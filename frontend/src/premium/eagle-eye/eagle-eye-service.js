@@ -41,13 +41,27 @@ export class EagleEyeService {
     return response.data
   }
 
-  static async trackClick({ url, platform }) {
+  static async track({ event, params }) {
     const tenantId = AuthCurrentTenant.get()
     const response = await authAxios.post(
       `/tenant/${tenantId}/eagleEyeContent/track`,
       {
-        url,
-        platform
+        event,
+        params
+      }
+    )
+    return response.data
+  }
+
+  static async generateReply({ title, description }) {
+    const tenantId = AuthCurrentTenant.get()
+    const response = await authAxios.get(
+      `/tenant/${tenantId}/eagleEyeContent/reply`,
+      {
+        params: {
+          title,
+          description
+        }
       }
     )
     return response.data

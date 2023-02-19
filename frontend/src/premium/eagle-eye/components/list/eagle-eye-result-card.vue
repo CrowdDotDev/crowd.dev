@@ -124,50 +124,181 @@
           </span>
         </el-tooltip>
       </div>
-      <el-tooltip
-        placement="top"
-        :content="bookmarkTooltip"
-      >
-        <span
-          :class="{
-            '!cursor-auto': isBookmarkedByTeam
-          }"
-          @click.stop
-        >
-          <div
-            class="h-8 w-8 flex items-center justify-center rounded-full hover:bg-gray-200 group"
-            :class="{
-              'bg-blue-100 hover:bg-blue-100': isBookmarked,
-              'pointer-events-none': isBookmarkedByTeam
-            }"
-            @click.stop="
-              onActionClick({
-                actionType: 'bookmark',
-                shouldAdd: !isBookmarked
-              })
-            "
-          >
-            <i
-              class="text-lg text-gray-400 group-hover:text-gray-900"
+      <div class="flex flex-wrap">
+        <el-tooltip placement="top" :content="replyTooltip">
+          <span @click.stop="onGenerateReplyClick">
+            <div
+              class="h-8 w-8 flex items-center mr-2 justify-center rounded-full group"
               :class="{
-                'ri-bookmark-line text-gray-400':
-                  !isBookmarked && !isBookmarkedByTeam,
-                'ri-bookmark-fill text-blue-600 group-hover:text-blue-600':
-                  isBookmarked && !isBookmarkedByTeam,
-                'ri-bookmark-fill text-blue-300':
-                  isBookmarkedByTeam
+                'hover:bg-gray-200':
+                  isGenerateReplyAvailable,
+                'hover:bg-white': !isGenerateReplyAvailable,
+                'cursor-auto': !isGenerateReplyAvailable
               }"
-            />
-          </div>
-        </span>
-      </el-tooltip>
+            >
+              <i
+                class="ri-lightbulb-flash-line text-lg"
+                :class="{
+                  'text-gray-300':
+                    !isGenerateReplyAvailable,
+                  'text-gray-400 group-hover:text-gray-900':
+                    isGenerateReplyAvailable
+                }"
+              />
+            </div>
+          </span>
+        </el-tooltip>
+        <app-dialog
+          v-model="replyDialogVisible"
+          title="🤖 AI suggested reply"
+          custom-class="eagle-eye-dialog"
+        >
+          <template #content>
+            <div
+              class="p-4 flex items-center justify-center"
+            >
+              <div
+                v-if="generatedReply === ''"
+                class="mx-auto text-center"
+              >
+                Generating reply...
+              </div>
+              <div v-else class="mx-auto">
+                <div
+                  class="bg-gray-50 p-4 rounded-lg w-full cursor-copy"
+                  @click="copyToClipboard(generatedReply)"
+                >
+                  {{ generatedReply }}
+                </div>
+                <div
+                  class="flex justify-between items-center mt-4 px-2 h-8"
+                >
+                  <div
+                    class="text-xs text-gray-400 flex items-center"
+                  >
+                    <span>Was this helpful? </span>
+                    <i
+                      class="cursor-pointer mx-1"
+                      :class="{
+                        'text-green-300':
+                          generatedReplyThumbsUpFeedback,
+                        'ri-thumb-up-line':
+                          !generatedReplyThumbsUpFeedback,
+                        'ri-thumb-up-fill':
+                          generatedReplyThumbsUpFeedback
+                      }"
+                      @click="
+                        generatedReplyFeedback(
+                          generatedReply,
+                          'thumbs-up'
+                        )
+                      "
+                    />
+                    <i
+                      class="cursor-pointer"
+                      :class="{
+                        'text-red-300':
+                          generatedReplyThumbsDownFeedback,
+                        'ri-thumb-down-line':
+                          !generatedReplyThumbsDownFeedback,
+                        'ri-thumb-down-fill':
+                          generatedReplyThumbsDownFeedback
+                      }"
+                      @click="
+                        generatedReplyFeedback(
+                          generatedReply,
+                          'thumbs-down'
+                        )
+                      "
+                    />
+                  </div>
+                  <Transition name="slide-up" mode="out-in">
+                    <div
+                      v-if="replyInClipboard"
+                      class="flex flex-wrap items-center"
+                    >
+                      <i
+                        class="ri-check-line text-brand-500"
+                      ></i>
+                      <span
+                        class="text-xs ml-1 text-brand-500"
+                        >Copied to clipboard.
+                        <span
+                          class="font-semibold cursor-pointer"
+                          @click="onCardClickFromDialog"
+                        >
+                          Go to post.
+                        </span>
+                      </span>
+                    </div>
+                    <div
+                      v-else
+                      class="h-8 w-8 flex items-center justify-center rounded-full hover:bg-brand-50 group cursor-pointer"
+                    >
+                      <el-tooltip
+                        placement="top"
+                        content="Copy to clipboard"
+                      >
+                        <i
+                          class="ri-clipboard-line text-lg text-gray-400 group-hover:text-brand-400"
+                          @click="
+                            copyToClipboard(generatedReply)
+                          "
+                        ></i>
+                      </el-tooltip>
+                    </div>
+                  </Transition>
+                </div>
+              </div>
+            </div>
+          </template>
+        </app-dialog>
+        <el-tooltip
+          placement="top"
+          :content="bookmarkTooltip"
+        >
+          <span
+            :class="{
+              '!cursor-auto': isBookmarkedByTeam
+            }"
+            @click.stop="onGenerateReplyClick"
+          >
+            <div
+              class="h-8 w-8 flex items-center justify-center rounded-full hover:bg-gray-200 group"
+              :class="{
+                'bg-blue-100 hover:bg-blue-100':
+                  isBookmarked,
+                'pointer-events-none': isBookmarkedByTeam
+              }"
+              @click.stop="
+                onActionClick({
+                  actionType: 'bookmark',
+                  shouldAdd: !isBookmarked
+                })
+              "
+            >
+              <i
+                class="text-lg text-gray-400 group-hover:text-gray-900"
+                :class="{
+                  'ri-bookmark-line text-gray-400':
+                    !isBookmarked && !isBookmarkedByTeam,
+                  'ri-bookmark-fill text-blue-600 group-hover:text-blue-600':
+                    isBookmarked && !isBookmarkedByTeam,
+                  'ri-bookmark-fill text-blue-300':
+                    isBookmarkedByTeam
+                }"
+              />
+            </div>
+          </span>
+        </el-tooltip>
+      </div>
     </div>
   </div>
 </template>
 
 <script setup>
 import { formatDateToTimeAgo } from '@/utils/date'
-import { computed, defineProps } from 'vue'
+import { computed, defineProps, ref, watch } from 'vue'
 import platformOptions from '@/premium/eagle-eye/constants/eagle-eye-platforms.json'
 import { EagleEyeService } from '../../eagle-eye-service'
 import { withHttp } from '@/utils/string'
@@ -188,6 +319,12 @@ const props = defineProps({
 
 const store = useStore()
 const { currentUser } = mapGetters('auth')
+
+const generatedReply = ref('')
+const replyDialogVisible = ref(false)
+const replyInClipboard = ref(false)
+const generatedReplyThumbsUpFeedback = ref(false)
+const generatedReplyThumbsDownFeedback = ref(false)
 
 const isBookmarked = computed(() =>
   props.result.actions.some(
@@ -226,6 +363,46 @@ const bookmarkTooltip = computed(() => {
   return isBookmarked.value ? 'Unbookmark' : 'Bookmark'
 })
 
+const isGenerateReplyAvailable = computed(() => {
+  return (
+    props.result.platform !== 'github' &&
+    props.result.platform !== 'stackoverflow' &&
+    props.result.platform !== 'youtube'
+  )
+})
+
+const replyTooltip = computed(() => {
+  if (!isGenerateReplyAvailable.value) {
+    return `Not available for this source`
+  }
+  return 'Generate a reply idea'
+})
+
+// eslint-disable-next-line no-unused-vars
+watch(replyInClipboard, (newValue, _) => {
+  if (newValue) {
+    setTimeout(() => {
+      replyInClipboard.value = false
+    }, 5000)
+  }
+})
+
+const copyToClipboard = async (generatedReply) => {
+  await navigator.clipboard.writeText(generatedReply)
+  replyInClipboard.value = true
+
+  await EagleEyeService.track({
+    event: 'generatedReplyCopied',
+    params: {
+      title: props.result.post.title,
+      description: props.result.post.description,
+      url: props.result.url,
+      platform: props.result.platform,
+      reply: generatedReply
+    }
+  })
+}
+
 const subreddit = computed(() => {
   if (props.result.platform !== 'reddit') {
     return null
@@ -242,6 +419,13 @@ const subreddit = computed(() => {
   return matches.groups.subreddit.slice(1)
 })
 
+const onCardClickFromDialog = async (e) => {
+  replyDialogVisible.value = false
+  setTimeout(() => {
+    onCardClick(e)
+  }, 200)
+}
+
 // Open post in origin url
 const onCardClick = async (e) => {
   if (!props.result.url || e.target.localName === 'a') {
@@ -250,9 +434,83 @@ const onCardClick = async (e) => {
 
   window.open(withHttp(props.result.url), '_blank')
 
-  await EagleEyeService.trackClick({
-    url: props.result.url,
-    platform: props.result.platform
+  await EagleEyeService.track({
+    event: 'postClicked',
+    params: {
+      url: props.result.url,
+      platform: props.result.platform
+    }
+  })
+}
+
+const generatedReplyFeedback = async (
+  generatedReply,
+  type
+) => {
+  if (type === 'thumbs-up') {
+    if (generatedReplyThumbsUpFeedback.value) {
+      return
+    }
+    generatedReplyThumbsUpFeedback.value = true
+    generatedReplyThumbsDownFeedback.value = false
+  } else {
+    if (generatedReplyThumbsDownFeedback.value) {
+      return
+    }
+    generatedReplyThumbsDownFeedback.value = true
+    generatedReplyThumbsUpFeedback.value = false
+  }
+  await EagleEyeService.track({
+    event: 'generatedReplyFeedback',
+    params: {
+      type,
+      title: props.result.post.title,
+      description: props.result.post.description,
+      url: props.result.url,
+      platform: props.result.platform,
+      reply: generatedReply
+    }
+  })
+}
+
+const onGenerateReplyClick = async () => {
+  if (!isGenerateReplyAvailable.value) {
+    return
+  }
+  replyDialogVisible.value = true
+  if (generatedReply.value !== '') {
+    return
+  }
+
+  const savedReplies =
+    JSON.parse(localStorage.getItem('eagleEyeReplies')) ||
+    {}
+
+  if (savedReplies && savedReplies[props.result.url]) {
+    generatedReply.value = savedReplies[props.result.url]
+    return
+  }
+
+  const generated = await EagleEyeService.generateReply({
+    title: props.result.post.title,
+    description: props.result.post.description
+  })
+  generatedReply.value = generated.reply
+  savedReplies[props.result.url] = generated.reply
+  localStorage.setItem(
+    'eagleEyeReplies',
+    JSON.stringify(savedReplies)
+  )
+
+  await EagleEyeService.track({
+    event: 'generatedReply',
+    params: {
+      title: props.result.post.title,
+      description: props.result.post.description,
+      url: props.result.url,
+      platform: props.result.platform,
+      reply: generatedReply.value
+    }
   })
 }
 
@@ -291,5 +549,26 @@ const onActionClick = async ({ actionType, shouldAdd }) => {
 <style lang="scss" scope>
 .eagle-eye-result-content a {
   @apply text-gray-500 underline;
+}
+
+.eagle-eye-dialog {
+  .el-dialog__header {
+    @apply pb-0;
+  }
+}
+
+.slide-up-enter-active,
+.slide-up-leave-active {
+  transition: all 0.2s ease-out;
+}
+
+.slide-up-enter-from {
+  opacity: 0;
+  transform: translateX(-15px);
+}
+
+.slide-up-leave-to {
+  opacity: 0;
+  transform: translateX(15px);
 }
 </style>
