@@ -81,7 +81,7 @@ const props = defineProps({
     default: () => null
   },
   title: {
-    type: [String, Node],
+    type: [String, Node, Object],
     required: true
   },
   size: {

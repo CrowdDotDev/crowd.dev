@@ -109,6 +109,34 @@
               v-model:platforms="form.platforms"
             />
           </section>
+
+          <hr />
+          <h5
+            class="text-base leading-5 font-semibold py-6"
+          >
+            AI replies
+            <span class="font-light text-xs text-brand-400">
+              Alpha
+            </span>
+          </h5>
+          <div
+            class="h-12 flex items-center border-b last:border-none border-gray-200 hover:cursor-pointer"
+          >
+            <div class="w-6 h-6 flex items-center">
+              <i
+                class="ri-lightbulb-flash-line text-lg mb-1 text-gray-400"
+              ></i>
+            </div>
+            <el-switch
+              v-model="form.aiReplies"
+              :inactive-text="
+                form.aiReplies
+                  ? 'AI replies on'
+                  : 'AI replies off'
+              "
+              class="h-full"
+            />
+          </div>
         </el-form>
       </div>
     </template>
@@ -174,7 +202,8 @@ const form = reactive({
   include: [],
   exclude: [],
   datePublished: '',
-  platforms: []
+  platforms: [],
+  aiReplies: true
 })
 const { hasFormChanged, formSnapshot } =
   formChangeDetector(form)
@@ -243,6 +272,7 @@ const fillForm = (user) => {
   form.platforms = feed.platforms
 
   form.datePublished = feed.publishedDate
+  form.aiReplies = eagleEyeSettings.aiReplies || false
   formSnapshot()
 }
 
@@ -265,7 +295,8 @@ const onSubmit = async () => {
     doUpdateSettings({
       data: {
         ...currentUser.value.eagleEyeSettings,
-        feed: data
+        feed: data,
+        aiReplies: form.aiReplies
       }
     }).then(() => {
       Message.success('Feed settings updated!')

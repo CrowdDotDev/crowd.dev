@@ -126,7 +126,10 @@
       </div>
       <div class="flex flex-wrap">
         <el-tooltip placement="top" :content="replyTooltip">
-          <span @click.stop="onGenerateReplyClick">
+          <span
+            v-if="areGeneratedRepliesActivated"
+            @click.stop="onGenerateReplyClick"
+          >
             <div
               class="h-8 w-8 flex items-center mr-2 justify-center rounded-full group"
               :class="{
@@ -150,7 +153,7 @@
         </el-tooltip>
         <app-dialog
           v-model="replyDialogVisible"
-          title="🤖 AI suggested reply"
+          :title="DialogHeading"
           custom-class="eagle-eye-dialog"
         >
           <template #content>
@@ -350,7 +353,7 @@
 
 <script setup>
 import { formatDateToTimeAgo } from '@/utils/date'
-import { computed, defineProps, ref, watch } from 'vue'
+import { computed, defineProps, ref, watch, h } from 'vue'
 import platformOptions from '@/premium/eagle-eye/constants/eagle-eye-platforms.json'
 import { EagleEyeService } from '../../eagle-eye-service'
 import { withHttp } from '@/utils/string'
@@ -377,6 +380,23 @@ const replyDialogVisible = ref(false)
 const replyInClipboard = ref(false)
 const generatedReplyThumbsUpFeedback = ref(false)
 const generatedReplyThumbsDownFeedback = ref(false)
+const DialogHeading = h(
+  'h5',
+  {
+    class:
+      'text-base text-lg leading-5 font-semibold pb-4 pt-2'
+  },
+  [
+    '🤖 AI suggested reply',
+    h(
+      'span',
+      {
+        class: 'ml-1 font-light text-xs text-brand-400'
+      },
+      'Alpha'
+    )
+  ]
+)
 
 const isBookmarked = computed(() =>
   props.result.actions.some(
@@ -413,6 +433,12 @@ const bookmarkTooltip = computed(() => {
   }
 
   return isBookmarked.value ? 'Unbookmark' : 'Bookmark'
+})
+
+const areGeneratedRepliesActivated = computed(() => {
+  return (
+    currentUser.value.eagleEyeSettings?.aiReplies || false
+  )
 })
 
 const isGenerateReplyAvailable = computed(() => {
