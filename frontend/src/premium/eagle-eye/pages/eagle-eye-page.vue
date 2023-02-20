@@ -17,7 +17,10 @@
     >
       <div :style="cssVars" class="eagle-eye-list-wrapper">
         <app-eagle-eye-tabs />
-        <app-eagle-eye-loading-state v-if="isLoading" />
+        <app-eagle-eye-loading-state
+          v-if="isLoading"
+          :show-description="activeView.id === 'feed'"
+        />
         <app-empty-state-cta
           v-else-if="showEmptyState"
           :icon="emptyStateContent.icon"

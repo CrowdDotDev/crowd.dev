@@ -6,7 +6,7 @@
     />
     <h5 class="mt-8">Loading results...</h5>
     <div
-      v-if="showLongerLoading"
+      v-if="showLongerLoading && showDescription"
       class="text-gray-600 text-sm mt-4"
     >
       Generating your Eagle Eye feed can take up to 10
@@ -17,18 +17,34 @@
 
 <script setup>
 import AppEagleEyeLoadingCard from '@/premium/eagle-eye/components/list/eagle-eye-loading-card.vue'
-import { onMounted, onUnmounted, ref } from 'vue'
+import {
+  onMounted,
+  onUnmounted,
+  ref,
+  defineProps
+} from 'vue'
 
 const showLongerLoading = ref(false)
 const timeout = ref()
 
+const props = defineProps({
+  showDescription: {
+    type: Boolean,
+    default: true
+  }
+})
+
 onMounted(() => {
-  timeout.value = setTimeout(() => {
-    showLongerLoading.value = true
-  }, 2000)
+  if (props.showDescription) {
+    timeout.value = setTimeout(() => {
+      showLongerLoading.value = true
+    }, 2000)
+  }
 })
 
 onUnmounted(() => {
-  clearTimeout(timeout.value)
+  if (props.showDescription) {
+    clearTimeout(timeout.value)
+  }
 })
 </script>
