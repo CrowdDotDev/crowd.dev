@@ -12,30 +12,30 @@ const job: CrowdJob = {
   cronTime: '*/30 * * * *',
   onTrigger: async () => {
     const options = await SequelizeRepository.getDefaultIRepositoryOptions()
-    let users = await options.database.user.findAll({
-      where: {
-        [Op.and]: [
-          {
-            'eagleEyeSettings.emailDigestActive': {
-              [Op.ne]: null,
+    const users = (
+      await options.database.user.findAll({
+        where: {
+          [Op.and]: [
+            {
+              'eagleEyeSettings.emailDigestActive': {
+                [Op.ne]: null,
+              },
             },
-          },
-          {
-            'eagleEyeSettings.emailDigestActive': {
-              [Op.eq]: true,
+            {
+              'eagleEyeSettings.emailDigestActive': {
+                [Op.eq]: true,
+              },
             },
+          ],
+        },
+        include: [
+          {
+            model: options.database.tenantUser,
+            as: 'tenants',
           },
         ],
-      },
-      include: [
-        {
-          model: options.database.tenantUser,
-          as: 'tenants',
-        },
-      ],
-    })
-
-    users = users.filter(
+      })
+    ).filter(
       (u) =>
         u.eagleEyeSettings &&
         u.eagleEyeSettings.emailDigestActive &&
