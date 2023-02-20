@@ -61,8 +61,6 @@ export class TwitterIntegrationService extends IntegrationServiceBase {
     stream: IIntegrationStream,
     context: IStepContext,
   ): Promise<IProcessStreamResults> {
-    const log = this.logger(context)
-
     const { fn, arg } = TwitterIntegrationService.getUsecase(
       stream.value,
       context.pipelineData.profileId,
@@ -79,7 +77,7 @@ export class TwitterIntegrationService extends IntegrationServiceBase {
         perPage: 100,
         ...arg,
       },
-      this.logger(context),
+      context.logger,
     )
 
     const nextPageStream = nextPage
@@ -88,7 +86,7 @@ export class TwitterIntegrationService extends IntegrationServiceBase {
     const sleep = limit <= 1 ? timeUntilReset : undefined
 
     if (records === undefined) {
-      log.error(
+      context.logger.error(
         {
           stream: stream.value,
           page: stream.metadata.page,

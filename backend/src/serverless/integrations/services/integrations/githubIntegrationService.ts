@@ -1,10 +1,12 @@
 import moment from 'moment/moment'
 import { createAppAuth } from '@octokit/auth-app'
+import verifyGithubWebhook from 'verify-github-webhook'
 import { Repo, Repos } from '../../types/regularTypes'
 import { IntegrationType, PlatformType } from '../../../../types/integrationEnums'
 import {
   IIntegrationStream,
   IProcessStreamResults,
+  IProcessWebhookResults,
   IStepContext,
 } from '../../../../types/integration/stepResult'
 import MemberAttributeSettingsService from '../../../../services/memberAttributeSettingsService'
@@ -32,6 +34,7 @@ import { AppTokenResponse, getAppToken } from '../../usecases/github/rest/getApp
 import getMember from '../../usecases/github/graphql/members'
 import { createRedisClient } from '../../../../utils/redis'
 import { RedisCache } from '../../../../utils/redis/redisCache'
+import { gridEntry } from '../../grid/grid'
 
 /* eslint class-methods-use-this: 0 */
 
@@ -82,8 +85,6 @@ export class GithubIntegrationService extends IntegrationServiceBase {
   }
 
   async preprocess(context: IStepContext): Promise<void> {
-    const log = this.logger(context)
-
     const redis = await createRedisClient(true)
     const emailCache = new RedisCache('github-emails', redis)
 
@@ -105,7 +106,7 @@ export class GithubIntegrationService extends IntegrationServiceBase {
         if (e.rateLimitResetSeconds) {
           throw e
         } else {
-          log.warn(
+          context.logger.warn(
             `Repo ${repo.name} will not be parsed. It is not available with the github token`,
           )
           unavailableRepos.push(repo)
@@ -286,6 +287,102 @@ export class GithubIntegrationService extends IntegrationServiceBase {
     }
   }
 
+  async processWebhook(webhook: any, context: IStepContext): Promise<IProcessWebhookResults> {
+    let record: AddActivitiesSingle | undefined
+
+    await GithubIntegrationService.verifyWebhookSignature(
+      webhook.payload.signature,
+      webhook.payload.data,
+    )
+
+    const event = webhook.payload.event
+    const payload = webhook.payload.data
+
+    const redis = await createRedisClient(true)
+    const emailCache = new RedisCache('github-emails', redis)
+
+    context.pipelineData = {
+      emailCache,
+    }
+
+    switch (event) {
+      case 'issues': {
+        record = await GithubIntegrationService.parseWebhookIssue(payload, context)
+        break
+      }
+
+      case 'discussion': {
+        record = await GithubIntegrationService.parseWebhookDiscussion(payload, context)
+        break
+      }
+
+      case 'pull_request': {
+        record = await GithubIntegrationService.parseWebhookPullRequest(payload, context)
+        break
+      }
+
+      case 'star': {
+        record = await GithubIntegrationService.parseWebhookStar(payload, context)
+        break
+      }
+
+      case 'fork': {
+        record = await GithubIntegrationService.parseWebhookFork(payload, context)
+        break
+      }
+
+      case 'discussion_comment':
+      case 'issue_comment': {
+        record = await GithubIntegrationService.parseWebhookComment(event, payload, context)
+        break
+      }
+
+      default:
+    }
+
+    if (record === undefined) {
+      context.logger.warn(
+        {
+          event,
+          action: payload.action,
+        },
+        'No record created for event!',
+      )
+
+      return {
+        operations: [],
+      }
+    }
+
+    return {
+      operations: [
+        {
+          type: Operations.UPSERT_ACTIVITIES_WITH_MEMBERS,
+          records: [record],
+        },
+      ],
+    }
+  }
+
+  private static verifyWebhookSignature(signature: string, data: any): void {
+    if (IS_TEST_ENV) {
+      return
+    }
+
+    const secret = GITHUB_CONFIG.webhookSecret
+
+    let isVerified: boolean
+    try {
+      isVerified = verifyGithubWebhook(signature, JSON.stringify(data), secret) // Returns true if verification succeeds; otherwise, false.
+    } catch (err) {
+      throw new Error(`Webhook not verified\n${err}`)
+    }
+
+    if (!isVerified) {
+      throw new Error('Webhook not verified')
+    }
+  }
+
   /**
    * Parses various activity types into crowd activities.
    * @param records List of activities to be parsed
@@ -334,6 +431,54 @@ export class GithubIntegrationService extends IntegrationServiceBase {
     return activities
   }
 
+  public static async parseWebhookStar(
+    payload: any,
+    context: IStepContext,
+  ): Promise<AddActivitiesSingle | undefined> {
+    let type: GithubActivityType
+    switch (payload.action) {
+      case 'created': {
+        type = GithubActivityType.STAR
+        break
+      }
+
+      case 'deleted': {
+        type = GithubActivityType.UNSTAR
+        break
+      }
+
+      default: {
+        return undefined
+      }
+    }
+    const member = await GithubIntegrationService.parseWebhookMember(payload.sender.login, context)
+
+    if (member) {
+      const starredAt =
+        type === GithubActivityType.STAR ? moment(payload.starred_at).utc() : moment().utc()
+
+      return {
+        member,
+        type,
+        timestamp: starredAt.toDate(),
+        platform: PlatformType.GITHUB,
+        tenant: context.integration.tenantId,
+        sourceId: IntegrationServiceBase.generateSourceIdHash(
+          payload.sender.login,
+          type,
+          starredAt.unix().toString(),
+          PlatformType.GITHUB,
+        ),
+        sourceParentId: null,
+        channel: payload.repository.html_url,
+        score: type === 'star' ? GitHubGrid.star.score : GitHubGrid.unStar.score,
+        isKeyAction: GitHubGrid.star.isKeyAction,
+      }
+    }
+
+    return undefined
+  }
+
   private static async parseStars(
     records: any[],
     repo: Repo,
@@ -362,6 +507,32 @@ export class GithubIntegrationService extends IntegrationServiceBase {
     return out
   }
 
+  public static async parseWebhookFork(
+    payload: any,
+    context: IStepContext,
+  ): Promise<AddActivitiesSingle | undefined> {
+    const member: Member = await GithubIntegrationService.parseWebhookMember(
+      payload.sender.login,
+      context,
+    )
+
+    if (member) {
+      return {
+        member,
+        type: GithubActivityType.FORK,
+        timestamp: moment(payload.forkee.created_at).utc().toDate(),
+        platform: PlatformType.GITHUB,
+        tenant: context.integration.tenantId,
+        sourceId: payload.forkee.node_id.toString(),
+        sourceParentId: null,
+        channel: payload.repository.html_url,
+        score: GitHubGrid.fork.score,
+        isKeyAction: GitHubGrid.fork.isKeyAction,
+      }
+    }
+    return undefined
+  }
+
   private static async parseForks(
     records: any[],
     repo: Repo,
@@ -385,6 +556,60 @@ export class GithubIntegrationService extends IntegrationServiceBase {
     }
 
     return out
+  }
+
+  public static async parseWebhookPullRequest(
+    payload: any,
+    context: IStepContext,
+  ): Promise<AddActivitiesSingle | undefined> {
+    let type: GithubActivityType
+    let scoreGrid: gridEntry
+    let timestamp: string
+
+    switch (payload.action) {
+      case 'edited':
+      case 'opened':
+      case 'reopened': {
+        type = GithubActivityType.PULL_REQUEST_OPENED
+        scoreGrid = GitHubGrid.pullRequestOpened
+        timestamp = payload.pull_request.created_at
+        break
+      }
+
+      case 'closed': {
+        type = GithubActivityType.PULL_REQUEST_CLOSED
+        scoreGrid = GitHubGrid.pullRequestClosed
+        timestamp = payload.pull_request.closed_at
+        break
+      }
+
+      default: {
+        return undefined
+      }
+    }
+
+    const pull = payload.pull_request
+    const member = await GithubIntegrationService.parseWebhookMember(pull.user.login, context)
+
+    if (member) {
+      return {
+        member,
+        type,
+        timestamp: moment(timestamp).utc().toDate(),
+        platform: PlatformType.GITHUB,
+        tenant: context.integration.tenantId,
+        sourceId: pull.node_id.toString(),
+        sourceParentId: null,
+        url: pull.html_url,
+        title: pull.title,
+        channel: payload.repository.html_url,
+        body: pull.body,
+        score: scoreGrid.score,
+        isKeyAction: scoreGrid.isKeyAction,
+      }
+    }
+
+    return undefined
   }
 
   private static async parsePullRequests(
@@ -418,6 +643,74 @@ export class GithubIntegrationService extends IntegrationServiceBase {
     return out
   }
 
+  public static async parseWebhookComment(
+    event: string,
+    payload: any,
+    context: IStepContext,
+  ): Promise<AddActivitiesSingle | undefined> {
+    let type: GithubActivityType
+    let sourceParentId: string | undefined
+
+    switch (event) {
+      case 'discussion_comment': {
+        switch (payload.action) {
+          case 'created':
+          case 'edited':
+            type = GithubActivityType.DISCUSSION_COMMENT
+            sourceParentId = payload.discussion.node_id.toString()
+            break
+          default:
+            return undefined
+        }
+        break
+      }
+
+      case 'issue_comment': {
+        switch (payload.action) {
+          case 'created':
+          case 'edited': {
+            if ('pull_request' in payload.issue) {
+              type = GithubActivityType.PULL_REQUEST_COMMENT
+            } else {
+              type = GithubActivityType.ISSUE_COMMENT
+            }
+            sourceParentId = payload.issue.node_id.toString()
+            break
+          }
+
+          default:
+            return undefined
+        }
+        break
+      }
+
+      default: {
+        return undefined
+      }
+    }
+
+    const member = await GithubIntegrationService.parseWebhookMember(payload.sender.login, context)
+    if (member) {
+      const comment = payload.comment
+      return {
+        member,
+        type,
+        timestamp: moment(comment.created_at).utc().toDate(),
+        platform: PlatformType.GITHUB,
+        tenant: context.integration.tenantId,
+        sourceId: comment.node_id.toString(),
+        sourceParentId,
+        url: comment.html_url,
+        body: comment.body,
+        channel: payload.repository.html_url,
+        score: GitHubGrid.comment.score,
+        isKeyAction: GitHubGrid.comment.isKeyAction,
+      }
+    }
+
+    return undefined
+  }
+
   private static async parsePullRequestComments(
     records: any[],
     repo: Repo,
@@ -441,6 +734,60 @@ export class GithubIntegrationService extends IntegrationServiceBase {
       })
     }
     return out
+  }
+
+  public static async parseWebhookIssue(
+    payload: any,
+    context: IStepContext,
+  ): Promise<AddActivitiesSingle | undefined> {
+    let type: GithubActivityType
+    let scoreGrid: gridEntry
+    let timestamp: string
+
+    switch (payload.action) {
+      case 'edited':
+      case 'opened':
+      case 'reopened':
+        type = GithubActivityType.ISSUE_OPENED
+        scoreGrid = GitHubGrid.issueOpened
+        timestamp = payload.issue.created_at
+        break
+
+      case 'closed':
+        type = GithubActivityType.ISSUE_CLOSED
+        scoreGrid = GitHubGrid.issueClosed
+        timestamp = payload.issue.closed_at
+        break
+
+      default:
+        return undefined
+    }
+
+    const issue = payload.issue
+    const member = await GithubIntegrationService.parseWebhookMember(issue.user.login, context)
+
+    if (member) {
+      return {
+        member,
+        type,
+        timestamp: moment(timestamp).utc().toDate(),
+        platform: PlatformType.GITHUB,
+        tenant: context.integration.tenantId,
+        sourceId: issue.node_id.toString(),
+        sourceParentId: null,
+        url: issue.html_url,
+        title: issue.title,
+        channel: payload.repository.html_url,
+        body: issue.body,
+        attributes: {
+          state: issue.state,
+        },
+        score: scoreGrid.score,
+        isKeyAction: scoreGrid.isKeyAction,
+      }
+    }
+
+    return undefined
   }
 
   private static async parseIssues(
@@ -499,6 +846,52 @@ export class GithubIntegrationService extends IntegrationServiceBase {
     return out
   }
 
+  public static async parseWebhookDiscussion(
+    payload: any,
+    context: IStepContext,
+  ): Promise<AddActivitiesSingle | undefined> {
+    if (payload.action === 'answered') {
+      return this.parseWebhookDiscussionComments(payload, context)
+    }
+
+    if (!['edited', 'created'].includes(payload.action)) {
+      return undefined
+    }
+
+    const discussion = payload.discussion
+    const member = await GithubIntegrationService.parseWebhookMember(discussion.user.login, context)
+
+    if (member) {
+      return {
+        member,
+        type: GithubActivityType.DISCUSSION_STARTED,
+        timestamp: moment(discussion.created_at).utc().toDate(),
+        platform: PlatformType.GITHUB,
+        tenant: context.integration.tenantId,
+        sourceId: discussion.node_id.toString(),
+        sourceParentId: null,
+        url: discussion.html_url,
+        title: discussion.title,
+        channel: payload.repository.html_url,
+        body: discussion.body,
+        attributes: {
+          category: {
+            id: discussion.category.node_id,
+            isAnswerable: discussion.category.is_answerable,
+            name: discussion.category.name,
+            slug: discussion.category.slug,
+            emoji: discussion.category.emoji,
+            description: discussion.category.description,
+          },
+        },
+        score: GitHubGrid.discussionOpened.score,
+        isKeyAction: GitHubGrid.discussionOpened.isKeyAction,
+      }
+    }
+
+    return undefined
+  }
+
   private static async parseDiscussions(
     records: any[],
     repo: Repo,
@@ -534,6 +927,36 @@ export class GithubIntegrationService extends IntegrationServiceBase {
       })
     }
     return out
+  }
+
+  private static async parseWebhookDiscussionComments(
+    payload: any,
+    context: IStepContext,
+  ): Promise<AddActivitiesSingle | undefined> {
+    const member: Member = await this.parseWebhookMember(payload.sender.login, context)
+
+    if (member) {
+      const answer = payload.answer
+      return {
+        member,
+        type: GithubActivityType.DISCUSSION_COMMENT,
+        timestamp: moment(answer.created_at).utc().toDate(),
+        platform: PlatformType.GITHUB,
+        tenant: context.integration.tenantId,
+        sourceId: answer.node_id.toString(),
+        sourceParentId: payload.discussion.node_id.toString(),
+        attributes: {
+          isSelectedAnswer: true,
+        },
+        channel: payload.repository.html_url,
+        body: answer.body,
+        url: answer.html_url,
+        score: GitHubGrid.selectedAnswer.score,
+        isKeyAction: GitHubGrid.selectedAnswer.isKeyAction,
+      }
+    }
+
+    return undefined
   }
 
   private static async parseDiscussionComments(
@@ -622,6 +1045,10 @@ export class GithubIntegrationService extends IntegrationServiceBase {
   }
 
   private static async getMemberEmail(context: IStepContext, login: string): Promise<string> {
+    if (IS_TEST_ENV) {
+      return ''
+    }
+
     const cache: RedisCache = context.pipelineData.emailCache
 
     const existing = await cache.getValue(login)
@@ -644,7 +1071,27 @@ export class GithubIntegrationService extends IntegrationServiceBase {
     return ''
   }
 
-  private static async parseMember(memberFromApi: any, context: IStepContext): Promise<Member> {
+  private static async parseWebhookMember(
+    login: string,
+    context: IStepContext,
+  ): Promise<Member | undefined> {
+    if (IS_TEST_ENV) {
+      return {
+        username: {
+          [PlatformType.GITHUB]: 'testMember',
+        },
+      }
+    }
+
+    const member = await getMember(login, context.integration.token)
+    if (member) {
+      return GithubIntegrationService.parseMember(member, context)
+    }
+
+    return undefined
+  }
+
+  public static async parseMember(memberFromApi: any, context: IStepContext): Promise<Member> {
     const email = await this.getMemberEmail(context, memberFromApi.login)
 
     const member: Member = {
@@ -668,6 +1115,12 @@ export class GithubIntegrationService extends IntegrationServiceBase {
         },
       },
       email,
+    }
+
+    if (memberFromApi.websiteUrl) {
+      member.attributes[MemberAttributeName.WEBSITE_URL] = {
+        [PlatformType.GITHUB]: memberFromApi.websiteUrl,
+      }
     }
 
     if (memberFromApi.company) {
@@ -705,7 +1158,7 @@ export class GithubIntegrationService extends IntegrationServiceBase {
       member.username[PlatformType.TWITTER] = memberFromApi.twitterUsername
     }
 
-    if (memberFromApi.followers.totalCount > 0) {
+    if (memberFromApi.followers && memberFromApi.followers.totalCount > 0) {
       member.reach = { [PlatformType.GITHUB]: memberFromApi.followers.totalCount }
     }
 

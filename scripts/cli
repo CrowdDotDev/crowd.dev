@@ -110,6 +110,8 @@ function build_and_publish() {
 function db_backup() {
     [[ -z "$1" ]] && error "Dump name has to be provided as first parameter!" && exit 1
 
+    mkdir -p $CLI_HOME/db_dumps
+
     say "Cloning local database to $CLI_HOME/db_dumps/$1.dump!"
     docker exec -t ${PROJECT_NAME}_db_1 bash -c "PGPASSWORD=example pg_dump -F c -d crowd-web -U postgres > /$1.dump"
     docker cp ${PROJECT_NAME}_db_1:/$1.dump $CLI_HOME/db_dumps/$1.dump

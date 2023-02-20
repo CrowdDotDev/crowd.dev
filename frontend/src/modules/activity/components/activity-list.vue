@@ -61,12 +61,12 @@
         </div>
       </div>
     </div>
+    <app-conversation-drawer
+      :expand="conversationId != null"
+      :conversation-id="conversationId"
+      @close="conversationId = null"
+    ></app-conversation-drawer>
   </div>
-  <app-conversation-drawer
-    :expand="conversationId != null"
-    :conversation-id="conversationId"
-    @close="conversationId = null"
-  ></app-conversation-drawer>
 </template>
 
 <script>

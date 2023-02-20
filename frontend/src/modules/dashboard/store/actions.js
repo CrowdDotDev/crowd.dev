@@ -171,6 +171,9 @@ export default {
                   period.granularity
                 )
                 .toISOString()
+            },
+            isTeamMember: {
+              not: true
             }
           },
           ...(platform !== 'all'

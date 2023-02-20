@@ -1,11 +1,11 @@
 import axios from 'axios'
-import { DiscordChannels, DiscordGetChannelsInput } from '../../types/discordTypes'
+import { DiscordApiChannel, DiscordGetChannelsInput } from '../../types/discordTypes'
 import { Logger } from '../../../../utils/logging'
 
 async function getThreads(
   input: DiscordGetChannelsInput,
   logger: Logger,
-): Promise<DiscordChannels> {
+): Promise<DiscordApiChannel[]> {
   try {
     const config = {
       method: 'get',
@@ -16,14 +16,7 @@ async function getThreads(
     }
 
     const response = await axios(config)
-    const result = response.data.threads
-
-    return result.map((c) => ({
-      name: c.name,
-      id: c.id,
-      parentId: c.parent_id,
-      thread: true,
-    }))
+    return response.data.threads
   } catch (err) {
     logger.error({ err, input }, 'Error while getting threads from Discord')
     throw err

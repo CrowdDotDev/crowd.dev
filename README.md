@@ -5,7 +5,7 @@
 
   </a>
 
-  <h2 align="center">The community-led growth platform, built with developers in mind.</h2>
+  <h2 align="center">Grow your Developer Tool through Community</h2>
   
   <p align="center">
     <br>
