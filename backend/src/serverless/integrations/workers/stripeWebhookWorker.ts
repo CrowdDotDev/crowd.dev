@@ -3,10 +3,8 @@ import { PostHog } from 'posthog-node'
 import { Stripe } from 'stripe'
 import { PLANS_CONFIG, POSTHOG_CONFIG } from '../../../config'
 import SequelizeRepository from '../../../database/repositories/sequelizeRepository'
-import ensureFlagUpdated from '../../../feature-flags/ensureFlagUpdated'
 import setPosthogTenantProperties from '../../../feature-flags/setTenantProperties'
 import Plans from '../../../security/plans'
-import { FeatureFlag } from '../../../types/common'
 import { ApiWebsocketMessage } from '../../../types/mq/apiWebsocketMessage'
 import { NodeWorkerMessageBase } from '../../../types/mq/nodeWorkerMessageBase'
 import { createServiceChildLogger } from '../../../utils/logging'
@@ -92,11 +90,6 @@ export const processStripeWebhook = async (message: any) => {
         setPosthogTenantProperties(updated, posthog, options.database, redis)
 
         await timeout(2000)
-
-        // Ensure a growth specific flag is available before sending websocket message
-        await ensureFlagUpdated(FeatureFlag.ORGANIZATIONS, tenantId, posthog, {
-          plan: Plans.values.growth,
-        })
 
         log.info('Emitting to redis pubsub for websocket forwarding from api..')
 

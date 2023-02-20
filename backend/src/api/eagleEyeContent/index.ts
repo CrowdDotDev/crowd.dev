@@ -22,6 +22,12 @@ export default (app) => {
   )
 
   app.get(
+    `/tenant/:tenantId/eagleEyeContent/reply`,
+    featureFlagMiddleware(FeatureFlag.EAGLE_EYE, 'entities.eagleEye.errors.planLimitExceeded'),
+    safeWrap(require('./eagleEyeContentReply').default),
+  )
+
+  app.get(
     `/tenant/:tenantId/eagleEyeContent/search`,
     featureFlagMiddleware(FeatureFlag.EAGLE_EYE, 'entities.eagleEye.errors.planLimitExceeded'),
     safeWrap(require('./eagleEyeContentSearch').default),

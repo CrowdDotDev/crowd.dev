@@ -343,9 +343,9 @@ const fillForm = (user) => {
     eagleEyeSettings.emailDigest?.frequency || 'daily'
   form.time = eagleEyeSettings.emailDigest?.time
     ? moment
-        .utc(eagleEyeSettings.emailDigest?.time, 'hh:mm')
+        .utc(eagleEyeSettings.emailDigest?.time, 'HH:mm')
         .local()
-        .format('hh:mm')
+        .format('HH:mm')
     : '09:00'
   form.updateResults = !eagleEyeSettings.emailDigest
     ? true
@@ -363,9 +363,9 @@ const doSubmit = async () => {
     const data = {
       email: form.email,
       frequency: form.frequency,
-      time: moment(form.time, 'hh:mm')
+      time: moment(form.time, 'HH:mm')
         .utc()
-        .format('hh:mm'),
+        .format('HH:mm'),
       matchFeedSettings: form.updateResults,
       feed: !form.updateResults ? feed.value : undefined
     }

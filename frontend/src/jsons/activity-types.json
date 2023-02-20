@@ -16,8 +16,7 @@
     "message",
     "replied",
     "replied_thread",
-    "joined_guild",
-    "left_guild"
+    "joined_guild"
   ],
   "slack": [
     "message",

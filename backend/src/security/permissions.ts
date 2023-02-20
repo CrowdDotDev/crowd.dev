@@ -222,35 +222,35 @@ class Permissions {
       organizationImport: {
         id: 'organizationImport',
         allowedRoles: [roles.admin],
-        allowedPlans: [plans.growth],
+        allowedPlans: [plans.essential, plans.growth],
       },
       organizationCreate: {
         id: 'organizationCreate',
         allowedRoles: [roles.admin],
-        allowedPlans: [plans.growth],
+        allowedPlans: [plans.essential, plans.growth],
         allowedStorage: [],
       },
       organizationEdit: {
         id: 'organizationEdit',
         allowedRoles: [roles.admin],
-        allowedPlans: [plans.growth],
+        allowedPlans: [plans.essential, plans.growth],
         allowedStorage: [],
       },
       organizationDestroy: {
         id: 'organizationDestroy',
         allowedRoles: [roles.admin],
-        allowedPlans: [plans.growth],
+        allowedPlans: [plans.essential, plans.growth],
         allowedStorage: [],
       },
       organizationRead: {
         id: 'organizationRead',
         allowedRoles: [roles.admin, roles.readonly],
-        allowedPlans: [plans.growth],
+        allowedPlans: [plans.essential, plans.growth],
       },
       organizationAutocomplete: {
         id: 'organizationAutocomplete',
         allowedRoles: [roles.admin, roles.readonly],
-        allowedPlans: [plans.growth],
+        allowedPlans: [plans.essential, plans.growth],
       },
       widgetImport: {
         id: 'widgetImport',

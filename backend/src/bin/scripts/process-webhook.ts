@@ -23,6 +23,14 @@ const options = [
       'The unique ID of webhook that you would like to process. Use comma delimiter when sending multiple webhooks.',
   },
   {
+    name: 'force',
+    alias: 'f',
+    typeLabel: '{underline force}',
+    type: Boolean,
+    defaultOption: false,
+    description: 'Force processing of webhooks.',
+  },
+  {
     name: 'help',
     alias: 'h',
     type: Boolean,
@@ -61,14 +69,14 @@ if (parameters.help || !parameters.webhook) {
       if (!webhook) {
         log.error({ webhookId }, 'Webhook not found!')
         process.exit(1)
-      } else if (webhook.state !== WebhookState.PENDING) {
+      } else if (!parameters.force && webhook.state !== WebhookState.PENDING) {
         log.error({ webhookId }, 'Webhook is not in pending state!')
         process.exit(1)
       } else {
         log.info({ webhookId }, 'Webhook found - triggering SQS message!')
         await sendNodeWorkerMessage(
           webhook.tenantId,
-          new NodeWorkerProcessWebhookMessage(webhook.tenantId, webhook.id),
+          new NodeWorkerProcessWebhookMessage(webhook.tenantId, webhook.id, parameters.force),
         )
       }
     }

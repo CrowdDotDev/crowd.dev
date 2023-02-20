@@ -188,7 +188,13 @@ export default class EagleEyeSettingsService extends LoggingBase {
       }
 
       // Remove any extra fields
-      data = lodash.pick(data, ['onboarded', 'feed', 'emailDigestActive', 'emailDigest'])
+      data = lodash.pick(data, [
+        'onboarded',
+        'feed',
+        'emailDigestActive',
+        'emailDigest',
+        'aiReplies',
+      ])
 
       // Update the user's EagleEye settings
       const userOut = await UserRepository.updateEagleEyeSettings(

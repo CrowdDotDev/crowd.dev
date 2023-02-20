@@ -63,7 +63,7 @@
       </div>
 
       <!-- Platforms -->
-      <div v-if="platforms.length">
+      <div v-if="platforms.length" class="mb-6">
         <div class="eagle-eye-settings-small-title">
           Platforms
         </div>
@@ -83,7 +83,26 @@
           </div>
         </div>
       </div>
-
+      <!-- AI replies -->
+      <div v-if="platforms.length">
+        <div class="eagle-eye-settings-small-title">
+          AI replies
+        </div>
+        <div class="flex flex-col gap-4">
+          <div class="flex items-center gap-3">
+            <div
+              class="w-5 h-5 rounded-md bg-gray-900 flex items-center justify-center"
+            >
+              <i
+                class="ri-lightbulb-flash-line text-sm text-white"
+              ></i>
+            </div>
+            <span class="text-xs text-gray-900">{{
+              aiRepliesEnabled ? 'Activated' : 'Deactivated'
+            }}</span>
+          </div>
+        </div>
+      </div>
       <!-- Feed Settings-->
       <el-button
         class="btn btn--full btn--md btn--secondary my-8"
@@ -135,6 +154,10 @@ const platforms = computed(
 const publishedDate = computed(
   () => eagleEyeFeedSettings.value.publishedDate
 )
+
+const aiRepliesEnabled = computed(() => {
+  return currentUser.value.eagleEyeSettings?.aiReplies
+})
 </script>
 
 <style lang="scss" scoped>

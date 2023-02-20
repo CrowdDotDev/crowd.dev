@@ -200,4 +200,24 @@ export default class EagleEyeContentService extends LoggingBase {
 
     return out
   }
+
+  static async reply(title, description) {
+    const config = {
+      method: 'get',
+      maxBodyLength: Infinity,
+      url: `${EAGLE_EYE_CONFIG.url}/reply`,
+      params: {
+        title,
+        description,
+      },
+      headers: {
+        Authorization: `Bearer ${EAGLE_EYE_CONFIG.apiKey}`,
+      },
+    }
+
+    const response = await axios(config)
+    return {
+      reply: response.data,
+    }
+  }
 }

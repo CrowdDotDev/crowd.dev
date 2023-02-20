@@ -72,7 +72,7 @@ export class TwitterReachIntegrationService extends IntegrationServiceBase {
         usernames: members,
         token: context.integration.token,
       },
-      this.logger(context),
+      context.logger,
     )
 
     const nextPageStream = nextPage
