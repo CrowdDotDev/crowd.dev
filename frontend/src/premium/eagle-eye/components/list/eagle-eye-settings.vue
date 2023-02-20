@@ -135,6 +135,7 @@ const settingsDrawerOpen = ref(false)
 const eagleEyeFeedSettings = computed(() => {
   return currentUser.value.eagleEyeSettings?.feed
 })
+
 const keywords = computed(
   () => eagleEyeFeedSettings.value.keywords
 )
