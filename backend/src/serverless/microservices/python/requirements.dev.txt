@@ -6,3 +6,4 @@ pytest-docker~=0.12.0
 pytest-dotenv~=0.5.2
 pytest-mock~=3.6.1
 psycopg2~=2.9.3
+setuptools>=65.5.1 # not directly required, pinned by Snyk to avoid a vulnerability
