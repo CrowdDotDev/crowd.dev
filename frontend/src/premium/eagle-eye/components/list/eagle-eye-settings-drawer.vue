@@ -133,11 +133,7 @@
             </div>
             <el-switch
               v-model="form.aiReplies"
-              :inactive-text="
-                form.aiReplies
-                  ? 'AI replies enabled'
-                  : 'AI replies disabled'
-              "
+              inactive-text="AI replies"
               class="h-full"
             />
           </div>
