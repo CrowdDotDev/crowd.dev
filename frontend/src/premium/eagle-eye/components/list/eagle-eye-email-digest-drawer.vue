@@ -52,64 +52,27 @@
                 v-model="form.frequency"
                 :disabled="!form.active"
               >
-              <el-input
-                ref="focus"
-                v-model="model.email"
-                :disabled="!active"
-              />
-            </el-form-item>
-            <el-form-item prop="frequency" class="mb-6">
-              <div>
-                <label
-                  class="text-sm mb-4 font-medium leading-5"
-                  >Frequency</label
+                <el-radio
+                  label="daily"
+                  size="large"
+                  class="frequency-radio !flex items-start mb-3"
                 >
-                <el-radio-group
-                  v-model="model.frequency"
-                  :disabled="!active"
-                >
-                  <el-radio
-                    label="daily"
-                    size="large"
-                    class="frequency-radio !flex items-start mb-3"
+                  <h6
+                    class="text-sm leading-5 font-medium mb-1"
                   >
-                    <h6
-                      class="text-sm leading-5 font-medium mb-1"
-                    >
-                      Daily
-                    </h6>
-                    <p
-                      class="text-2xs leading-4.5 text-gray-500"
-                    >
-                      From Monday to Friday (results from
-                      previous day)
-                    </p>
-                  </el-radio>
-                  <el-radio
-                    label="weekly"
-                    size="large"
-                    class="frequency-radio !flex items-start"
+                    Daily
+                  </h6>
+                  <p
+                    class="text-2xs leading-4.5 text-gray-500"
                   >
-                    <h6
-                      class="text-sm leading-5 font-medium mb-1"
-                    >
-                      Weekly
-                    </h6>
-                    <p
-                      class="text-2xs leading-4.5 text-gray-500"
-                    >
-                      Every Monday (results from previous
-                      week)
-                    </p>
-                  </el-radio>
-                </el-radio-group>
-              </div>
-            </el-form-item>
-            <el-form-item prop="time" class="mb-6">
-              <div class="w-36">
-                <label
-                  class="text-sm mb-1 font-medium leading-5"
-                  >Time (UTC)</label
+                    From Monday to Friday (results from
+                    previous day)
+                  </p>
+                </el-radio>
+                <el-radio
+                  label="weekly"
+                  size="large"
+                  class="frequency-radio !flex items-start"
                 >
                   <h6
                     class="text-sm leading-5 font-medium mb-1"
