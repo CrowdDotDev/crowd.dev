@@ -23,8 +23,10 @@ async function eagleEyeEmailDigestWorker(userId: string): Promise<void> {
     bypassPermissionValidation: true,
   })
 
-  if (moment(user.eagleEyeSettings.emailDigest.nextEmailAt) > moment()){
-    log.info("nextEmailAt is already updated. Email is already sent. Exiting without sending the email.")
+  if (moment(user.eagleEyeSettings.emailDigest.nextEmailAt) > moment()) {
+    log.info(
+      'nextEmailAt is already updated. Email is already sent. Exiting without sending the email.',
+    )
     return
   }
 
