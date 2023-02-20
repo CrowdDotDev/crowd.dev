@@ -5,6 +5,7 @@ import memberScoreCoordinator from './memberScoreCoordinator'
 import checkSqsQueues from './checkSqsQueues'
 import refreshMaterializedViews from './refreshMaterializedViews'
 import downgradeExpiredPlans from './downgradeExpiredPlans'
+import eagleEyeEmailDigestTicks from './eagleEyeEmailDigestTicks'
 
 const jobs: CrowdJob[] = [
   weeklyAnalyticsEmailsCoordinator,
@@ -13,6 +14,7 @@ const jobs: CrowdJob[] = [
   checkSqsQueues,
   refreshMaterializedViews,
   downgradeExpiredPlans,
+  eagleEyeEmailDigestTicks,
 ]
 
 export default jobs

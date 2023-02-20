@@ -425,32 +425,32 @@ class Permissions {
       eagleEyeActionCreate: {
         id: 'eagleEyeActionCreate',
         allowedRoles: [roles.admin],
-        allowedPlans: [plans.growth],
+        allowedPlans: [plans.growth, plans.essential],
       },
       eagleEyeActionDestroy: {
         id: 'eagleEyeActionDestroy',
         allowedRoles: [roles.admin],
-        allowedPlans: [plans.growth],
+        allowedPlans: [plans.growth, plans.essential],
       },
       eagleEyeContentCreate: {
         id: 'eagleEyeContentCreate',
         allowedRoles: [roles.admin],
-        allowedPlans: [plans.growth],
+        allowedPlans: [plans.growth, plans.essential],
       },
       eagleEyeContentRead: {
         id: 'eagleEyeContentRead',
         allowedRoles: [roles.admin, roles.readonly],
-        allowedPlans: [plans.growth],
+        allowedPlans: [plans.growth, plans.essential],
       },
       eagleEyeContentSearch: {
         id: 'eagleEyeContentSearch',
         allowedRoles: [roles.admin],
-        allowedPlans: [plans.growth],
+        allowedPlans: [plans.growth, plans.essential],
       },
       eagleEyeContentEdit: {
         id: 'eagleEyeContentEdit',
         allowedRoles: [roles.admin],
-        allowedPlans: [plans.growth],
+        allowedPlans: [plans.growth, plans.essential],
       },
       taskImport: {
         id: 'taskImport',

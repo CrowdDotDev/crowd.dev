@@ -14,10 +14,11 @@ import { createServiceChildLogger } from '../../../../../utils/logging'
 import { prettyActivityTypes } from '../../../../../types/prettyActivityTypes'
 import ConversationRepository from '../../../../../database/repositories/conversationRepository'
 import { PlatformType } from '../../../../../types/integrationEnums'
-import WeeklyAnalyticsEmailsHistoryRepository from '../../../../../database/repositories/weeklyAnalyticsEmailsHistoryRepository'
+import RecurringEmailsHistoryRepository from '../../../../../database/repositories/recurringEmailsHistoryRepository'
 import { sendNodeWorkerMessage } from '../../../../utils/nodeWorkerSQS'
 import { NodeWorkerMessageType } from '../../../../types/workerTypes'
 import { NodeWorkerMessageBase } from '../../../../../types/mq/nodeWorkerMessageBase'
+import { RecurringEmailType } from '../../../../../types/recurringEmailsHistoryTypes'
 
 const log = createServiceChildLogger('weeklyAnalyticsEmailsWorker')
 
@@ -83,7 +84,7 @@ async function weeklyAnalyticsEmailsWorker(tenantId: string): Promise<AnalyticsE
     activeTenantIntegrations,
   } = response.data as any
 
-  const waeRepository = new WeeklyAnalyticsEmailsHistoryRepository(userContext)
+  const rehRepository = new RecurringEmailsHistoryRepository(userContext)
 
   if (activeTenantIntegrations.length > 0) {
     log.info(tenantId, ` has completed integrations. Eligible for weekly emails.. `)
@@ -171,14 +172,15 @@ async function weeklyAnalyticsEmailsWorker(tenantId: string): Promise<AnalyticsE
       }
     }
 
-    const waeHistory = await waeRepository.create({
+    const reHistory = await rehRepository.create({
       tenantId,
+      type: RecurringEmailType.WEEKLY_ANALYTICS,
       weekOfYear: dateTimeStartThisWeek.isoWeek().toString(),
       emailSentAt: moment().toISOString(),
       emailSentTo,
     })
 
-    log.info({ receipt: waeHistory }, `Email sent!`)
+    log.info({ receipt: reHistory }, `Email sent!`)
 
     return { status: 200, emailSent: true }
   }
