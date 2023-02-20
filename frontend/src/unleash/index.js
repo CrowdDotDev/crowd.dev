@@ -6,7 +6,9 @@ export const FEATURE_FLAGS = {
   communityCenterPro: 'community-help-center-pro',
   organizations: 'organizations',
   automations: 'automations',
-  linkedin: 'linkedin'
+  linkedin: 'linkedin',
+  memberEnrichment: 'member-enrichment',
+  csvExport: 'csv-export'
 }
 
 export class FeatureFlagService {
