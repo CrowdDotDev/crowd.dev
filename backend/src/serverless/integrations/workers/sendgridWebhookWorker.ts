@@ -1,5 +1,5 @@
 import { EventWebhook, EventWebhookHeader } from '@sendgrid/eventwebhook'
-import { SENDGRID_CONFIG } from '../../../config'
+import { API_CONFIG, SENDGRID_CONFIG } from '../../../config'
 import SequelizeRepository from '../../../database/repositories/sequelizeRepository'
 import UserRepository from '../../../database/repositories/userRepository'
 import getUserContext from '../../../database/utils/getUserContext'
@@ -14,6 +14,20 @@ import { sendNodeWorkerMessage } from '../../utils/nodeWorkerSQS'
 const log = createServiceChildLogger('sendgridWebhookWorker')
 
 export default async function sendgridWebhookWorker(req) {
+  if (!SENDGRID_CONFIG.webhookSigningSecret) {
+    log.error('Sendgrid webhook signing secret is not found.')
+    return {
+      status: 400,
+    }
+  }
+
+  if (!IS_PROD_ENV) {
+    log.warn('Sendgrid events will be only sent for production.')
+    return {
+      status: 200,
+    }
+  }
+
   const events = req.body as SendgridWebhookEvent[]
 
   const signature = req.headers[EventWebhookHeader.SIGNATURE().toLowerCase()]
@@ -26,7 +40,7 @@ export default async function sendgridWebhookWorker(req) {
   )
 
   if (!eventWebhookVerifier.verifySignature(ecdsaPublicKey, req.rawBody, signature, timestamp)) {
-    log.error('Sendgrid webhook can not be verified.')
+    log.error('Sendgrid webhook cannot be verified.')
     return {
       status: 400,
     }
