@@ -111,24 +111,40 @@
           </section>
 
           <hr />
-          <h5
-            class="text-base leading-5 font-semibold py-6"
-          >
-            AI replies
-            <span class="font-light text-xs text-brand-400">
-              Alpha
-            </span>
-          </h5>
+          <div class="flex items-center justify-between">
+            <h5
+              class="text-base leading-5 font-semibold py-6"
+            >
+              AI replies
+              <span
+                class="font-light text-xs ml-1 text-purple-500"
+              >
+                Alpha
+              </span>
+            </h5>
+            <el-tooltip
+              placement="top"
+              content="Learn more"
+            >
+              <a
+                class="btn btn--transparent !h-8 !w-8 !text-gray-400 hover:!text-gray-600"
+                href="https://docs.crowd.dev/docs/member-enrichment"
+                target="_blank"
+              >
+                <i
+                  class="ri-question-line text-lg text-gray-400 font-normal"
+                ></i>
+              </a>
+            </el-tooltip>
+          </div>
           <div
             class="h-12 flex items-center border-b last:border-none border-gray-200 hover:cursor-pointer"
           >
-            <div class="w-6 h-6 flex items-center">
+            <div
+              class="w-6 h-6 rounded-md bg-gray-900 flex items-center justify-center"
+            >
               <i
-                class="ri-lightbulb-flash-line text-lg mb-1"
-                :class="{
-                  'text-brand-300': form.aiReplies,
-                  'text-gray-400': !form.aiReplies
-                }"
+                class="ri-lightbulb-flash-line text-md text-white"
               ></i>
             </div>
             <el-switch

@@ -171,7 +171,7 @@
                 <div class="text-gray-600 text-2xs">
                   This is just a starting point. We
                   recommend you to read the post and add
-                  genuine value to your response.”
+                  genuine value to your response.
                 </div>
               </div>
               <div
@@ -223,7 +223,7 @@
                       <i
                         class="cursor-pointer mx-1"
                         :class="{
-                          'text-green-300':
+                          'text-green-500':
                             generatedReplyThumbsUpFeedback,
                           'ri-thumb-up-line':
                             !generatedReplyThumbsUpFeedback,
@@ -240,7 +240,7 @@
                       <i
                         class="cursor-pointer"
                         :class="{
-                          'text-red-300':
+                          'text-red-500':
                             generatedReplyThumbsDownFeedback,
                           'ri-thumb-down-line':
                             !generatedReplyThumbsDownFeedback,
@@ -270,10 +270,10 @@
                             class="ri-check-line text-brand-500"
                           ></i>
                           <span
-                            class="text-xs ml-1 text-brand-500"
+                            class="text-xs ml-1 text-gray-600"
                             >Copied to clipboard.
                             <span
-                              class="font-semibold cursor-pointer"
+                              class="font-semibold cursor-pointer text-brand-500"
                               @click="onCardClickFromDialog"
                             >
                               Go to post.
@@ -282,14 +282,14 @@
                         </div>
                         <div
                           v-else
-                          class="h-8 w-8 flex items-center justify-center rounded-full hover:bg-brand-50 group cursor-pointer"
+                          class="h-8 w-8 flex items-center justify-center rounded-full bg-transparent text-gray-400 hover:bg-gray-200 hover:text-gray-900 group cursor-pointer"
                         >
                           <el-tooltip
                             placement="top"
                             content="Copy to clipboard"
                           >
                             <i
-                              class="ri-clipboard-line text-lg text-gray-400 group-hover:text-brand-400"
+                              class="ri-clipboard-line text-lg"
                               @click="
                                 copyToClipboard(
                                   generatedReply
@@ -389,7 +389,7 @@ const DialogHeading = h(
     h(
       'span',
       {
-        class: 'ml-1 font-light text-xs text-brand-400'
+        class: 'ml-1 font-light text-xs text-purple-500'
       },
       'Alpha'
     )

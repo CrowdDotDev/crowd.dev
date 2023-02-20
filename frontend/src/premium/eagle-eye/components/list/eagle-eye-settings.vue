@@ -90,13 +90,11 @@
         </div>
         <div class="flex flex-col gap-4">
           <div class="flex items-center gap-3">
-            <div class="w-5 h-5 flex items-center">
+            <div
+              class="w-5 h-5 rounded-md bg-gray-900 flex items-center justify-center"
+            >
               <i
-                :class="{
-                  'text-brand-300': aiRepliesEnabled,
-                  'text-gray-400': !aiRepliesEnabled
-                }"
-                class="ri-lightbulb-flash-line text-lg mb-1"
+                class="ri-lightbulb-flash-line text-sm text-white"
               ></i>
             </div>
             <span class="text-xs text-gray-900">{{
