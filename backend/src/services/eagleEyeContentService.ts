@@ -16,6 +16,7 @@ import { PageData, QueryData } from '../types/common'
 import Error400 from '../errors/Error400'
 import UserRepository from '../database/repositories/userRepository'
 import SequelizeRepository from '../database/repositories/sequelizeRepository'
+import track from '../segment/track'
 
 export interface EagleEyeContentUpsertData extends EagleEyeAction {
   content: EagleEyeContent
@@ -84,6 +85,28 @@ export default class EagleEyeContentService extends LoggingBase {
       { advancedFilter, orderBy, limit, offset },
       this.options,
     )
+  }
+
+  static trackPostClicked(url: string, platform: string, req:any): void{
+    track(
+      'Eagle Eye post clicked',
+      {
+        url,
+        platform,
+      },
+      { ...req },
+    )
+  }
+
+  static trackDigestEmailOpened(req:any): void{
+
+    track(
+      'Eagle Eye digest opened',
+      {
+      },
+      { ...req },
+    )
+
   }
 
   /**

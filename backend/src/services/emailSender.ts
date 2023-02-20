@@ -9,10 +9,13 @@ export default class EmailSender extends LoggingBase {
 
   variables: any
 
-  constructor(templateId, variables) {
+  tenantId: string
+
+  constructor(templateId, variables, tenantId = null) {
     super()
     this.templateId = templateId
     this.variables = variables
+    this.tenantId = tenantId
     if (SENDGRID_CONFIG.key) {
       sendgridMail.setApiKey(SENDGRID_CONFIG.key)
     }
@@ -59,6 +62,12 @@ export default class EmailSender extends LoggingBase {
       templateId: this.templateId,
       dynamicTemplateData: this.variables,
     } as any
+
+    if (this.tenantId){
+      msg.custom_args = {
+        tenantId: this.tenantId
+      }
+    }
 
     if (asm) {
       msg.asm = asm

@@ -1,17 +1,11 @@
 import Permissions from '../../security/permissions'
 import PermissionChecker from '../../services/user/permissionChecker'
-import track from '../../segment/track'
+import EagleEyeContentService from '../../services/eagleEyeContentService'
 
 export default async (req, res) => {
   new PermissionChecker(req).validateHas(Permissions.values.eagleEyeContentRead)
-  track(
-    'Eagle Eye post clicked',
-    {
-      url: req.body.url,
-      platform: req.body.platform,
-    },
-    { ...req },
-  )
+  
+  EagleEyeContentService.trackPostClicked(req.body.url, req.body.platform, req)
 
   const out = {
     Success: true,

@@ -43,7 +43,7 @@ async function eagleEyeEmailDigestWorker(userId: string): Promise<void> {
     content,
     frequency: user.eagleEyeSettings.emailDigest.frequency,
     date: moment().format('D MMM YYYY'),
-  }).sendTo(user.eagleEyeSettings.emailDigest.email)
+  }, user.tenants[0].tenant.id).sendTo(user.eagleEyeSettings.emailDigest.email)
 
   const rehRepository = new RecurringEmailsHistoryRepository(userContext)
 

@@ -9,6 +9,11 @@ export enum PlatformType {
   LINKEDIN = 'linkedin',
   CROWD = 'crowd',
   ENRICHMENT = 'enrichment',
+  HASHNODE = 'hashnode',
+  KAGGLE = 'kaggle',
+  MEDIUM = 'medium',
+  PRODUCTHUNT = 'producthunt',
+  YOUTUBE = 'youtube'
 }
 
 export enum IntegrationType {
