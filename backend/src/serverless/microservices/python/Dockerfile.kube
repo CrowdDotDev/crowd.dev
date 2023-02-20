@@ -1,4 +1,4 @@
-FROM python:3.8-bullseye
+FROM python:3.12.0a5-slim
 
 RUN apt install -y --no-install-recommends gcc
 
