@@ -1,5 +1,5 @@
 # syntax = docker/dockerfile:experimental
-FROM node:16.16.0 as builder
+FROM node:16.19.0 as builder
 WORKDIR /usr/crowd/backend
 COPY . .
 
@@ -7,7 +7,7 @@ RUN npm install && \
     npm run build && \
     cp ./package.json ./dist/package.json
 
-FROM node:16.16.0
+FROM node:16.19.0
 WORKDIR /usr/crowd/backend
 COPY --from=builder /usr/crowd/backend/dist ./dist
 RUN cd ./dist && npm install
