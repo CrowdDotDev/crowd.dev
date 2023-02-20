@@ -133,6 +133,13 @@ const en = {
       }
     },
 
+    emailDigest: {
+      fields: {
+        email: 'Email',
+        frequency: 'Frequency',
+        time: 'Time'
+      }
+    },
     member: {
       name: 'member',
       label: 'Members',

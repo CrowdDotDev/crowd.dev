@@ -9,17 +9,25 @@ import TenantRepository from '../repositories/tenantRepository'
  * @param tenantId
  * @returns IRepositoryOptions injected with currentTenant and currentUser
  */
-export default async function getUserContext(tenantId: string): Promise<IRepositoryOptions> {
+export default async function getUserContext(
+  tenantId: string,
+  userId?: string,
+): Promise<IRepositoryOptions> {
   const options = await SequelizeRepository.getDefaultIRepositoryOptions()
   const tenant = await TenantRepository.findById(tenantId, {
     ...options,
   })
 
   let user = null
-  const tenantUsers = await tenant.getUsers()
 
-  if (tenantUsers.length > 0) {
-    user = await tenantUsers[0].getUser()
+  if (userId) {
+    user = await options.database.user.findByPk(userId)
+  } else {
+    const tenantUsers = await tenant.getUsers()
+
+    if (tenantUsers.length > 0) {
+      user = await tenantUsers[0].getUser()
+    }
   }
 
   // Inject user and tenant to IRepositoryOptions

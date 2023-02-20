@@ -30,6 +30,7 @@ export default class EmailSender extends LoggingBase {
       WEEKLY_ANALYTICS: SENDGRID_CONFIG.templateWeeklyAnalytics,
       INTEGRATION_DONE: SENDGRID_CONFIG.templateIntegrationDone,
       CSV_EXPORT: SENDGRID_CONFIG.templateCsvExport,
+      EAGLE_EYE_DIGEST: SENDGRID_CONFIG.templateEagleEyeDigest,
     }
   }
 

@@ -156,6 +156,7 @@ export interface SendgridConfiguration {
   templateWeeklyAnalytics: string
   templateIntegrationDone: string
   templateCsvExport: string
+  templateEagleEyeDigest: string
   weeklyAnalyticsUnsubscribeGroupId: string
 }
 
@@ -176,6 +177,11 @@ export interface PizzlyConfiguration {
 }
 
 export interface EnrichmentConfiguration {
+  url: string
+  apiKey: string
+}
+
+export interface EagleEyeConfiguration {
   url: string
   apiKey: string
 }

@@ -44,7 +44,7 @@
             :display-title="false"
             class="text-sm"
             :class="{
-              'text-limit-1': !displayContent && !showMore
+              'line-clamp-1': !displayContent && !showMore
             }"
             :show-more="showMore"
             :limit="limit"
