@@ -8,7 +8,12 @@
         <h5 class="text-lg font-semibold leading-7 pr-3">
           Members
         </h5>
-        <p class="text-xs text-gray-500 leading-5">
+        <app-loading
+          v-if="members.loadingRecent"
+          height="20px"
+          width="60px"
+        />
+        <p v-else class="text-xs text-gray-500 leading-5">
           Total: {{ formatNumberToCompact(members.total) }}
         </p>
       </div>
@@ -17,7 +22,6 @@
           :to="{
             name: 'member'
           }"
-          class="mr-4"
         >
           <el-button
             class="btn btn-brand--transparent btn--sm w-full leading-5 text-brand-500"
@@ -25,11 +29,15 @@
             All members
           </el-button>
         </router-link>
-        <!-- TODO: link to default report -->
         <router-link
+          v-if="membersReportId"
           :to="{
-            name: 'member'
+            name: 'reportTemplate',
+            params: {
+              id: membersReportId
+            }
           }"
+          class="ml-4"
         >
           <el-button
             class="custom-btn flex items-center text-gray-600 !px-3"
@@ -65,20 +73,19 @@
               v-loading="members.loadingRecent"
               class="app-page-spinner !relative chart-loading"
             ></div>
-            <app-widget-cube-renderer
-              v-else
-              class="chart"
-              :widget="newMembersChart(period, platform)"
-              :dashboard="false"
-              :show-subtitle="false"
-              :chart-options="{
-                ...chartOptions,
-                library: {
-                  ...chartOptions.library,
-                  ...hideLabels
-                }
-              }"
-            ></app-widget-cube-renderer>
+            <app-cube-render
+              :query="newMembersChart(period, platform)"
+            >
+              <template #default="{ resultSet }">
+                <app-widget-area
+                  class="chart"
+                  :datasets="datasets('Total new members')"
+                  :result-set="resultSet"
+                  :chart-options="chartStyle"
+                  :granularity="granularity.value"
+                />
+              </template>
+            </app-cube-render>
           </div>
         </div>
         <div class="pt-8">
@@ -167,20 +174,22 @@
               v-loading="members.loadingActive"
               class="app-page-spinner !relative chart-loading"
             ></div>
-            <app-widget-cube-renderer
+            <app-cube-render
               v-else
-              class="chart"
-              :widget="activeMembersChart(period, platform)"
-              :dashboard="false"
-              :show-subtitle="false"
-              :chart-options="{
-                ...chartOptions,
-                library: {
-                  ...chartOptions.library,
-                  ...hideLabels
-                }
-              }"
-            ></app-widget-cube-renderer>
+              :query="activeMembersChart(period, platform)"
+            >
+              <template #default="{ resultSet }">
+                <app-widget-area
+                  class="chart"
+                  :datasets="
+                    datasets('Total active members')
+                  "
+                  :result-set="resultSet"
+                  :chart-options="chartStyle"
+                  :granularity="granularity.value"
+                />
+              </template>
+            </app-cube-render>
           </div>
         </div>
         <div class="pt-8">
@@ -244,27 +253,32 @@
 <script>
 import { mapGetters } from 'vuex'
 import moment from 'moment'
-import AppWidgetCubeRenderer from '@/modules/widget/components/cube/widget-cube-renderer'
 import {
   newMembersChart,
   activeMembersChart,
   activeMembersCount,
-  chartOptions,
-  hideLabels,
-  newMembersCount
+  newMembersCount,
+  dashboardChartOptions
 } from '@/modules/dashboard/dashboard.cube'
 import AppDashboardCount from '@/modules/dashboard/components/dashboard-count'
 import AppDashboardMemberItem from '@/modules/dashboard/components/member/dashboard-member-item'
 import { formatNumberToCompact } from '@/utils/number'
 import { CrowdIntegrations } from '@/integrations/integrations-config'
 import { formatDateToTimeAgo } from '@/utils/date'
+import { chartOptions } from '@/modules/report/templates/template-report-charts'
+import AppLoading from '@/shared/loading/loading-placeholder.vue'
+import AppCubeRender from '@/shared/cube/cube-render.vue'
+import { DAILY_GRANULARITY_FILTER } from '@/modules/widget/widget-constants'
+import AppWidgetArea from '@/modules/widget/components/v2/shared/widget-area.vue'
 
 export default {
   name: 'AppDashboardMember',
   components: {
+    AppWidgetArea,
+    AppCubeRender,
+    AppLoading,
     AppDashboardMemberItem,
-    AppDashboardCount,
-    AppWidgetCubeRenderer
+    AppDashboardCount
   },
   data() {
     return {
@@ -274,8 +288,9 @@ export default {
       activeMembersChart,
       activeMembersCount,
       chartOptions,
-      hideLabels,
-      formatDateToTimeAgo
+      dashboardChartOptions,
+      formatDateToTimeAgo,
+      granularity: DAILY_GRANULARITY_FILTER
     }
   },
   computed: {
@@ -285,9 +300,32 @@ export default {
       'members',
       'period',
       'platform'
-    ])
+    ]),
+    ...mapGetters('report', ['rows']),
+    membersReportId() {
+      const report = this.rows.find(
+        (r) => r.isTemplate && r.name === 'Members report'
+      )
+      if (!report) {
+        return null
+      }
+      return report.id
+    },
+    chartStyle() {
+      return chartOptions('area', dashboardChartOptions)
+    }
   },
   methods: {
+    datasets(name) {
+      return [
+        {
+          name: name,
+          borderColor: '#E94F2E',
+          measure: 'Members.count',
+          granularity: this.granularity.value
+        }
+      ]
+    },
     getPlatformDetails(platform) {
       return CrowdIntegrations.getConfig(platform)
     },
@@ -309,7 +347,7 @@ export default {
 <style lang="scss" scoped>
 .chart::v-deep {
   div {
-    line-height: 100px !important;
+    line-height: 112px !important;
     height: auto !important;
   }
   .cube-widget-chart {
@@ -317,12 +355,15 @@ export default {
     min-height: 0;
   }
   canvas {
-    height: 100px;
+    height: 112px;
   }
 }
 
 .chart-loading {
   @apply flex items-center justify-center;
-  height: 100px;
+  height: 112px;
+}
+.app-page-spinner {
+  min-height: initial;
 }
 </style>

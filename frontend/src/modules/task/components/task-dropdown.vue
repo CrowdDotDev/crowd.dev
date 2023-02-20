@@ -11,7 +11,7 @@
         type="button"
         @click.stop
       >
-          <i class="text-xl ri-more-fill"></i>
+        <i class="text-xl ri-more-fill"></i>
       </button>
     </slot>
 

@@ -10,7 +10,7 @@
         radius="4px"
         class="mb-2"
       />
-      <app-loading width="80px" height="16px"></app-loading>
+      <app-loading width="80px" height="24px"></app-loading>
     </template>
 
     <template #default="current">
@@ -18,12 +18,16 @@
         :query="query(previousDateRange, platform)"
       >
         <template #loading>
-          <div class="flex items-center pb-4 py-0.5">
-            <app-loading
-              width="80px"
-              height="16px"
-            ></app-loading>
-          </div>
+          <app-loading
+            height="56px"
+            width="44px"
+            radius="4px"
+            class="mb-2"
+          />
+          <app-loading
+            width="80px"
+            height="24px"
+          ></app-loading>
         </template>
         <template #default="previous">
           <h4

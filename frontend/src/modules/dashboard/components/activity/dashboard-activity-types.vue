@@ -23,7 +23,7 @@
               />
               <p class="text-xs leading-5 activity-type">
                 <app-i18n
-                  :code="`entities.activity.slack.left_channel`"
+                  :code="`entities.activity.${platform}.${type}`"
                 ></app-i18n>
               </p>
             </div>

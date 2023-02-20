@@ -18,7 +18,6 @@
           :to="{
             name: 'activity'
           }"
-          class="mr-4"
         >
           <el-button
             class="btn btn-brand--transparent btn--sm w-full leading-5 text-brand-500"
@@ -26,11 +25,15 @@
             All activities
           </el-button>
         </router-link>
-        <!-- TODO: link to default report -->
         <router-link
+          v-if="activitiesReportId"
           :to="{
-            name: 'activity'
+            name: 'reportTemplate',
+            params: {
+              id: activitiesReportId
+            }
           }"
+          class="ml-4"
         >
           <el-button
             class="custom-btn flex items-center text-gray-600 !px-3"
@@ -71,7 +74,7 @@
               :widget="activitiesChart(period, platform)"
               :dashboard="false"
               :show-subtitle="false"
-              :chart-options="chartOptions"
+              :chart-options="dashboardChartOptions"
             ></app-widget-cube-renderer>
           </div>
         </div>
@@ -115,7 +118,7 @@ import AppWidgetCubeRenderer from '@/modules/widget/components/cube/widget-cube-
 import {
   activitiesChart,
   activitiesCount,
-  chartOptions
+  dashboardChartOptions
 } from '@/modules/dashboard/dashboard.cube'
 import AppDashboardConversationList from '@/modules/dashboard/components/conversations/dashboard-conversation-list'
 import AppDashboardActivityList from '@/modules/dashboard/components/activity/dashboard-activity-list'
@@ -140,7 +143,7 @@ export default {
       hoveredSentiment: '',
       activitiesChart,
       activitiesCount,
-      chartOptions
+      dashboardChartOptions,
     }
   },
   computed: {
@@ -148,7 +151,17 @@ export default {
       'period',
       'platform',
       'activities'
-    ])
+    ]),
+    ...mapGetters('report', ['rows']),
+    activitiesReportId() {
+      const report = this.rows.find(
+        (r) => r.isTemplate && r.name === 'Activities report'
+      )
+      if (!report) {
+        return null
+      }
+      return report.id
+    }
   },
   methods: {
     formatNumberToCompact
@@ -164,7 +177,7 @@ export default {
 }
 .chart::v-deep {
   div {
-    line-height: 104px !important;
+    line-height: 112px !important;
     height: auto !important;
   }
   .cube-widget-chart {
@@ -172,12 +185,15 @@ export default {
     min-height: 0;
   }
   canvas {
-    height: 104px !important;
+    height: 112px;
   }
 }
 
 .chart-loading {
   @apply flex items-center justify-center;
-  height: 104px;
+  height: 112px;
+}
+.app-page-spinner {
+  min-height: initial;
 }
 </style>

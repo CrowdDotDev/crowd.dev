@@ -1,37 +1,27 @@
-import { i18n } from '@/i18n'
 import moment from 'moment'
-import pluralize from 'pluralize'
 
-export const chartOptions = {
+export const dashboardChartOptions = {
   legend: false,
-  curve: false,
-  points: false,
-  colors: ['#E94F2E'],
-  backgroundColor: 'pink',
-  loading: 'Loading...',
-  empty: 'Loading...',
-  library: {
-    plugins: {
-      tooltip: {
-        callbacks: {
-          label: (context) =>
-            pluralize(
-              i18n(
-                `widget.cubejs.tooltip.${context.dataset.label}`
-              ),
-              context.dataset.data[context.dataIndex],
-              true
-            )
-        }
-      }
-    }
+  yTicks: false,
+  yLines: false,
+  xTicksCallback: (label) => {
+    return moment(label).format('MMM DD')
   },
-  computeDataset: (canvas) => {
-    const ctx = canvas.getContext('2d')
-    const gradient = ctx.createLinearGradient(0, 0, 0, 150)
-    gradient.addColorStop(0, 'rgba(253,237, 234,1)')
-    gradient.addColorStop(1, 'rgba(253,237, 234,0)')
-    return { backgroundColor: gradient }
+  gradient: {
+    x0: 0,
+    y0: 0,
+    x1: 0,
+    y1: 100,
+    stops: [
+      {
+        offset: 0.38,
+        color: 'rgba(253,237, 234,1)'
+      },
+      {
+        offset: 1,
+        color: 'rgba(253,237, 234,0)'
+      }
+    ]
   }
 }
 
@@ -149,32 +139,24 @@ export function activityTypes(period, platform) {
 
 export function newMembersChart(period, platform) {
   return {
-    title: 'New members',
-    chartOnly: true,
-    settings: {
-      chartType: 'area',
-      unit: 'activities',
-      query: {
-        measures: ['Members.count'],
-        timeDimensions: [
-          {
-            dimension: 'Members.joinedAt',
-            granularity: 'day',
-            dateRange: dateRange(period)
-          }
-        ],
-        filters:
-          platform !== 'all'
-            ? [
-                {
-                  member: 'Activities.platform',
-                  operator: 'equals',
-                  values: [platform]
-                }
-              ]
-            : undefined
+    measures: ['Members.count'],
+    timeDimensions: [
+      {
+        dimension: 'Members.joinedAt',
+        granularity: 'day',
+        dateRange: dateRange(period)
       }
-    }
+    ],
+    filters:
+      platform !== 'all'
+        ? [
+            {
+              member: 'Activities.platform',
+              operator: 'equals',
+              values: [platform]
+            }
+          ]
+        : undefined
   }
 }
 
@@ -202,32 +184,24 @@ export function newMembersCount(dateRange, platform) {
 
 export function activeMembersChart(period, platform) {
   return {
-    title: 'Active members',
-    chartOnly: true,
-    settings: {
-      chartType: 'area',
-      unit: 'activities',
-      query: {
-        measures: ['Members.count'],
-        timeDimensions: [
-          {
-            dimension: 'Activities.date',
-            granularity: 'day',
-            dateRange: dateRange(period)
-          }
-        ],
-        filters:
-          platform !== 'all'
-            ? [
-                {
-                  member: 'Activities.platform',
-                  operator: 'equals',
-                  values: [platform]
-                }
-              ]
-            : undefined
+    measures: ['Members.count'],
+    timeDimensions: [
+      {
+        dimension: 'Activities.date',
+        granularity: 'day',
+        dateRange: dateRange(period)
       }
-    }
+    ],
+    filters:
+      platform !== 'all'
+        ? [
+            {
+              member: 'Activities.platform',
+              operator: 'equals',
+              values: [platform]
+            }
+          ]
+        : undefined
   }
 }
 

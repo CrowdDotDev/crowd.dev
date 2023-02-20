@@ -8,7 +8,12 @@
         <h5 class="text-lg font-semibold leading-7 pr-3">
           Organizations
         </h5>
-        <p class="text-xs text-gray-500 leading-5">
+        <app-loading
+          v-if="organizations.loadingRecent"
+          height="20px"
+          width="60px"
+        />
+        <p v-else class="text-xs text-gray-500 leading-5">
           Total:
           {{ formatNumberToCompact(organizations.total) }}
         </p>
@@ -18,7 +23,6 @@
           :to="{
             name: 'organization'
           }"
-          class="mr-4"
         >
           <el-button
             class="btn btn-brand--transparent btn--sm w-full leading-5 text-brand-500"
@@ -26,11 +30,15 @@
             All organizations
           </el-button>
         </router-link>
-        <!-- TODO: link to default report -->
         <router-link
+          v-if="organizationsReportId"
           :to="{
-            name: 'organization'
+            name: 'reportTemplate',
+            params: {
+              id: organizationsReportId
+            }
           }"
+          class="ml-4"
         >
           <el-button
             class="custom-btn flex items-center text-gray-600 !px-3"
@@ -74,13 +82,7 @@
               "
               :dashboard="false"
               :show-subtitle="false"
-              :chart-options="{
-                ...chartOptions,
-                library: {
-                  ...chartOptions.library,
-                  ...hideLabels
-                }
-              }"
+              :chart-options="dashboardChartOptions"
             ></app-widget-cube-renderer>
           </div>
         </div>
@@ -161,13 +163,7 @@
               "
               :dashboard="false"
               :show-subtitle="false"
-              :chart-options="{
-                ...chartOptions,
-                library: {
-                  ...chartOptions.library,
-                  ...hideLabels
-                }
-              }"
+              :chart-options="dashboardChartOptions"
             ></app-widget-cube-renderer>
           </div>
         </div>
@@ -228,18 +224,19 @@ import AppWidgetCubeRenderer from '@/modules/widget/components/cube/widget-cube-
 import {
   newOrganizationChart,
   activeOrganizationChart,
-  chartOptions,
-  hideLabels,
+  dashboardChartOptions,
   newOrganizationCount,
   activeOrganizationCount
 } from '@/modules/dashboard/dashboard.cube'
 import AppDashboardOrganizationItem from '@/modules/dashboard/components/organization/dashboard-organization-item.vue'
 import AppDashboardCount from '@/modules/dashboard/components/dashboard-count.vue'
 import { formatNumberToCompact } from '@/utils/number'
+import AppLoading from '@/shared/loading/loading-placeholder.vue'
 
 export default {
   name: 'AppDashboardOrganizations',
   components: {
+    AppLoading,
     AppDashboardCount,
     AppDashboardOrganizationItem,
     AppWidgetCubeRenderer
@@ -251,8 +248,7 @@ export default {
       activeOrganizationChart,
       newOrganizationCount,
       activeOrganizationCount,
-      chartOptions,
-      hideLabels
+      dashboardChartOptions
     }
   },
   computed: {
@@ -262,7 +258,18 @@ export default {
       'organizations',
       'period',
       'platform'
-    ])
+    ]),
+    ...mapGetters('report', ['rows']),
+    organizationsReportId() {
+      const report = this.rows.find(
+        (r) =>
+          r.isTemplate && r.name === 'Organizations report'
+      )
+      if (!report) {
+        return null
+      }
+      return report.id
+    }
   },
   methods: {
     getTimeText: function (index) {
@@ -302,14 +309,9 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-.list {
-  max-height: 14rem;
-  overflow: auto;
-}
-
 .chart::v-deep {
   div {
-    line-height: 100px !important;
+    line-height: 112px !important;
     height: auto !important;
   }
   .cube-widget-chart {
@@ -317,12 +319,15 @@ export default {
     min-height: 0;
   }
   canvas {
-    height: 100px;
+    height: 112px;
   }
 }
 
 .chart-loading {
   @apply flex items-center justify-center;
-  height: 100px;
+  height: 112px;
+}
+.app-page-spinner {
+  min-height: initial;
 }
 </style>

@@ -11,35 +11,40 @@
 
           <app-dashboard-filters class="mb-8" />
           <app-dashboard-members class="mb-8" />
-          <app-dashboard-organizations class="mb-8" />
-          <app-dashboard-activities class="mb-8" />
+          <!--          <app-dashboard-organizations class="mb-8" />-->
+          <!--          <app-dashboard-activities class="mb-8" />-->
         </div>
       </div>
     </div>
     <aside
       class="border-l border-gray-200 h-screen overflow-auto px-5 py-6"
     >
-      <app-dashboard-integrations class="mb-10" />
-      <app-dashboard-task class="hidden" />
+      <!--      <app-dashboard-integrations class="mb-10" />-->
+      <!--      <app-dashboard-task class="hidden" />-->
     </aside>
   </div>
 </template>
 
 <script setup>
-import AppDashboardActivities from '@/modules/dashboard/components/dashboard-activities'
+// import AppDashboardActivities from '@/modules/dashboard/components/dashboard-activities'
 import AppDashboardMembers from '@/modules/dashboard/components/dashboard-members'
-import AppDashboardOrganizations from '@/modules/dashboard/components/dashboard-organizations'
-import AppDashboardTask from '@/modules/dashboard/components/dashboard-task'
+// import AppDashboardOrganizations from '@/modules/dashboard/components/dashboard-organizations'
+// import AppDashboardTask from '@/modules/dashboard/components/dashboard-task'
 import AppDashboardFilters from '@/modules/dashboard/components/dashboard-filters'
-import AppDashboardIntegrations from '@/modules/dashboard/components/dashboard-active-integrations.vue'
+// import AppDashboardIntegrations from '@/modules/dashboard/components/dashboard-active-integrations.vue'
 
 import { onMounted } from 'vue'
-import { mapGetters } from '@/shared/vuex/vuex.helpers'
+import {
+  mapGetters,
+  mapActions
+} from '@/shared/vuex/vuex.helpers'
 
 const { currentTenant } = mapGetters('auth')
+const { doFetch } = mapActions('report')
 
 onMounted(() => {
   window.analytics.page('Dashboard')
+  doFetch({})
 })
 </script>
 
