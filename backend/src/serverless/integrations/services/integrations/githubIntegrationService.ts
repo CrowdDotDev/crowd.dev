@@ -444,10 +444,7 @@ export class GithubIntegrationService extends IntegrationServiceBase {
         return undefined
       }
     }
-    const member = await GithubIntegrationService.parseWebhookMember(
-      payload.sender.login,
-      context.integration.token,
-    )
+    const member = await GithubIntegrationService.parseWebhookMember(payload.sender.login, context)
 
     if (member) {
       const starredAt =
@@ -509,7 +506,7 @@ export class GithubIntegrationService extends IntegrationServiceBase {
   ): Promise<AddActivitiesSingle | undefined> {
     const member: Member = await GithubIntegrationService.parseWebhookMember(
       payload.sender.login,
-      context.integration.token,
+      context,
     )
 
     if (member) {
@@ -585,10 +582,7 @@ export class GithubIntegrationService extends IntegrationServiceBase {
     }
 
     const pull = payload.pull_request
-    const member = await GithubIntegrationService.parseWebhookMember(
-      pull.user.login,
-      context.integration.token,
-    )
+    const member = await GithubIntegrationService.parseWebhookMember(pull.user.login, context)
 
     if (member) {
       return {
@@ -688,10 +682,7 @@ export class GithubIntegrationService extends IntegrationServiceBase {
       }
     }
 
-    const member = await GithubIntegrationService.parseWebhookMember(
-      payload.sender.login,
-      context.integration.token,
-    )
+    const member = await GithubIntegrationService.parseWebhookMember(payload.sender.login, context)
     if (member) {
       const comment = payload.comment
       return {
@@ -935,10 +926,7 @@ export class GithubIntegrationService extends IntegrationServiceBase {
     payload: any,
     context: IStepContext,
   ): Promise<AddActivitiesSingle | undefined> {
-    const member: Member = await this.parseWebhookMember(
-      payload.sender.login,
-      context.integration.token,
-    )
+    const member: Member = await this.parseWebhookMember(payload.sender.login, context)
 
     if (member) {
       const answer = payload.answer
