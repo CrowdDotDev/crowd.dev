@@ -169,9 +169,9 @@
                   />
                 </div>
                 <div class="text-gray-600 text-2xs">
-                  This is just a starting point. We suggest
-                  reading the post and adding more value to
-                  your response.
+                  This is just a starting point. We
+                  recommend you to read the post and add
+                  genuine value to your response.”
                 </div>
               </div>
               <div
@@ -385,7 +385,7 @@ const DialogHeading = h(
       'text-base text-lg leading-5 font-semibold pb-4 pt-2'
   },
   [
-    '🤖 AI suggested reply',
+    '🤖 AI reply',
     h(
       'span',
       {
