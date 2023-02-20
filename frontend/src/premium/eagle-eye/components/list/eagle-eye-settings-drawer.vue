@@ -128,7 +128,7 @@
             >
               <a
                 class="btn btn--transparent !h-8 !w-8 !text-gray-400 hover:!text-gray-600"
-                href="https://docs.crowd.dev/docs/member-enrichment"
+                href="https://docs.crowd.dev/docs/eagle-eye#ai-replies"
                 target="_blank"
               >
                 <i

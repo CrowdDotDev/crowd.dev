@@ -98,7 +98,7 @@
               ></i>
             </div>
             <span class="text-xs text-gray-900">{{
-              aiRepliesEnabled ? 'Enabled' : 'Disabled'
+              aiRepliesEnabled ? 'Activated' : 'Deactivated'
             }}</span>
           </div>
         </div>
