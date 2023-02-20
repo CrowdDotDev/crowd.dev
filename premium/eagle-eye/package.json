@@ -13,6 +13,6 @@
     },
     "dependencies": {
       "serverless-python-requirements": "^5.4.0",
-      "serverless-plugin-datadog": "^5.1.1"
+      "serverless-plugin-datadog": "^5.17.0"
     }
   }
