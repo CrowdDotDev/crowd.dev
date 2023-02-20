@@ -1,5 +1,5 @@
 import { EventWebhook, EventWebhookHeader } from '@sendgrid/eventwebhook'
-import { API_CONFIG, SENDGRID_CONFIG } from '../../../config'
+import { SENDGRID_CONFIG } from '../../../config'
 import SequelizeRepository from '../../../database/repositories/sequelizeRepository'
 import UserRepository from '../../../database/repositories/userRepository'
 import getUserContext from '../../../database/utils/getUserContext'
