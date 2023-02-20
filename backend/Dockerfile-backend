@@ -1,5 +1,5 @@
 # syntax = docker/dockerfile:experimental
-FROM node:16.19.0 as builder
+FROM node:19.6.0-bullseye-slim as builder
 WORKDIR /usr/crowd/backend
 COPY . .
 
@@ -7,7 +7,7 @@ RUN npm install && \
     npm run build && \
     cp ./package.json ./dist/package.json
 
-FROM node:16.19.0
+FROM node:19.6.0-bullseye-slim
 WORKDIR /usr/crowd/backend
 COPY --from=builder /usr/crowd/backend/dist ./dist
 RUN cd ./dist && npm install
