@@ -22,6 +22,12 @@ async function eagleEyeEmailDigestWorker(userId: string): Promise<void> {
     ...options,
     bypassPermissionValidation: true,
   })
+
+  if (moment(user.eagleEyeSettings.emailDigest.nextEmailAt) > moment()){
+    log.info("nextEmailAt is already updated. Email is already sent. Exiting without sending the email.")
+    return
+  }
+
   const userContext = await getUserContext(user.tenants[0].tenant.id, user.id)
 
   const eagleEyeContentService = new EagleEyeContentService(userContext)
