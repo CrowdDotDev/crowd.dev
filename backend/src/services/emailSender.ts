@@ -63,9 +63,9 @@ export default class EmailSender extends LoggingBase {
       dynamicTemplateData: this.variables,
     } as any
 
-    if (this.tenantId){
+    if (this.tenantId) {
       msg.custom_args = {
-        tenantId: this.tenantId
+        tenantId: this.tenantId,
       }
     }
 

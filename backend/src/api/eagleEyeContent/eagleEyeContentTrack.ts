@@ -4,7 +4,7 @@ import EagleEyeContentService from '../../services/eagleEyeContentService'
 
 export default async (req, res) => {
   new PermissionChecker(req).validateHas(Permissions.values.eagleEyeContentRead)
-  
+
   EagleEyeContentService.trackPostClicked(req.body.url, req.body.platform, req)
 
   const out = {

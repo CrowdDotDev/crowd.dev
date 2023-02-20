@@ -13,7 +13,7 @@ export enum PlatformType {
   KAGGLE = 'kaggle',
   MEDIUM = 'medium',
   PRODUCTHUNT = 'producthunt',
-  YOUTUBE = 'youtube'
+  YOUTUBE = 'youtube',
 }
 
 export enum IntegrationType {

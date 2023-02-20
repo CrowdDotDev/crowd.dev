@@ -10,7 +10,7 @@ export enum WebhookType {
   GITHUB = 'GITHUB',
 }
 
-export interface SendgridWebhookEvent{
+export interface SendgridWebhookEvent {
   email: string
   url: string
   event: SendgridWebhookEventType
@@ -26,9 +26,9 @@ export interface SendgridWebhookEvent{
   useragent: string
 }
 
-export enum SendgridWebhookEventType{
+export enum SendgridWebhookEventType {
   DIGEST_OPENED = 'open',
-  POST_CLICKED = 'click'
+  POST_CLICKED = 'click',
 }
 
 export interface GithubWebhookPayload {

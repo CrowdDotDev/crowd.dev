@@ -21,12 +21,14 @@ export default async function sendgridWebhookWorker(req) {
 
   const eventWebhookVerifier = new EventWebhook()
 
-  const ecdsaPublicKey = eventWebhookVerifier.convertPublicKeyToECDSA(SENDGRID_CONFIG.webhookSigningSecret)
+  const ecdsaPublicKey = eventWebhookVerifier.convertPublicKeyToECDSA(
+    SENDGRID_CONFIG.webhookSigningSecret,
+  )
 
   if (!eventWebhookVerifier.verifySignature(ecdsaPublicKey, req.rawBody, signature, timestamp)) {
-    log.error("Sendgrid webhook can not be verified.")
+    log.error('Sendgrid webhook can not be verified.')
     return {
-      status: 400
+      status: 400,
     }
   }
 
@@ -41,13 +43,12 @@ export default async function sendgridWebhookWorker(req) {
   }
 
   return {
-    status: 200
+    status: 200,
   }
-
 }
 
-const findPlatform = (str:string, arr: string[]): string =>  {
-  const match = arr.find(item => str.includes(item))
+const findPlatform = (str: string, arr: string[]): string => {
+  const match = arr.find((item) => str.includes(item))
   return match || null
 }
 
@@ -67,7 +68,10 @@ export const processSendgridWebhook = async (message: any) => {
       break
     }
     case SendgridWebhookEventType.POST_CLICKED: {
-      const platform = findPlatform(new URL(sendgridEvent.url).hostname, Object.values(PlatformType))
+      const platform = findPlatform(
+        new URL(sendgridEvent.url).hostname,
+        Object.values(PlatformType),
+      )
       EagleEyeContentService.trackPostClicked(sendgridEvent.url, platform, userContext)
       break
     }
