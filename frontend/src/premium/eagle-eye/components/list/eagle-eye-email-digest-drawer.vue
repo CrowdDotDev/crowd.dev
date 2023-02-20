@@ -362,9 +362,12 @@ const doSubmit = async () => {
       feed: !form.updateResults ? feed.value : undefined
     }
     doUpdateSettings({
-      ...currentUser.value.eagleEyeSettings,
-      emailDigestActive: form.active,
-      emailDigest: data
+      data: {
+        ...currentUser.value.eagleEyeSettings,
+        emailDigestActive: form.active,
+        emailDigest: data
+      },
+      fetchNewResults: false
     }).then(() => {
       Message.success(
         'Email Digest settings successfully updated'

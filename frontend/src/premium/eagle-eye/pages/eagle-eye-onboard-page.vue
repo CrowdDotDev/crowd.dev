@@ -143,12 +143,14 @@ const onSubmit = async () => {
     .map(([key]) => key)
 
   await doUpdateSettings({
-    feed: {
-      keywords: formattedKeywords,
-      exactKeywords: [],
-      excludedKeywords: [],
-      publishedDate: form.datePublished,
-      platforms: formattedPlatforms
+    data: {
+      feed: {
+        keywords: formattedKeywords,
+        exactKeywords: [],
+        excludedKeywords: [],
+        publishedDate: form.datePublished,
+        platforms: formattedPlatforms
+      }
     }
   })
 }

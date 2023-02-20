@@ -263,8 +263,10 @@ const onSubmit = async () => {
       platforms: form.platforms
     }
     doUpdateSettings({
-      ...currentUser.value.eagleEyeSettings,
-      feed: data
+      data: {
+        ...currentUser.value.eagleEyeSettings,
+        feed: data
+      }
     }).then(() => {
       Message.success('Feed settings updated!')
       emit('update:modelValue', false)
