@@ -88,7 +88,7 @@
                 </el-radio>
               </el-radio-group>
             </app-form-item>
-            <app-form-item class="mb-6" label="Time (UTC)">
+            <app-form-item class="mb-6" label="Time">
               <div class="w-36">
                 <el-time-select
                   v-model="form.time"
@@ -247,6 +247,7 @@ import useVuelidate from '@vuelidate/core'
 import AppFormItem from '@/shared/form/form-item.vue'
 import formChangeDetector from '@/shared/form/form-change'
 import elementChangeDetector from '@/shared/form/element-change'
+import moment from 'moment'
 
 const props = defineProps({
   modelValue: {
@@ -340,7 +341,12 @@ const fillForm = (user) => {
     eagleEyeSettings.emailDigest?.email || user.email
   form.frequency =
     eagleEyeSettings.emailDigest?.frequency || 'daily'
-  form.time = eagleEyeSettings.emailDigest?.time || '09:00'
+  form.time = eagleEyeSettings.emailDigest?.time
+    ? moment
+        .utc(eagleEyeSettings.emailDigest?.time, 'hh:mm')
+        .local()
+        .format('hh:mm')
+    : '09:00'
   form.updateResults = !eagleEyeSettings.emailDigest
     ? true
     : eagleEyeSettings.emailDigest?.matchFeedSettings
@@ -357,7 +363,9 @@ const doSubmit = async () => {
     const data = {
       email: form.email,
       frequency: form.frequency,
-      time: form.time,
+      time: moment(form.time, 'hh:mm')
+        .utc()
+        .format('hh:mm'),
       matchFeedSettings: form.updateResults,
       feed: !form.updateResults ? feed.value : undefined
     }

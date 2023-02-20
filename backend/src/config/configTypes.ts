@@ -156,6 +156,7 @@ export interface SendgridConfiguration {
   templateWeeklyAnalytics: string
   templateIntegrationDone: string
   templateCsvExport: string
+  templateEagleEyeDigest: string
   weeklyAnalyticsUnsubscribeGroupId: string
 }
 
