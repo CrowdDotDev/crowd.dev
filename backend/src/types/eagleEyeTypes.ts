@@ -51,6 +51,7 @@ export interface EagleEyeSettings {
   feed: EagleEyeFeedSettings
   emailDigestActive: boolean
   emailDigest?: EagleEyeEmailDigestSettings
+  aiReplies: boolean
 }
 
 // Enum for EagleEyePlatforms

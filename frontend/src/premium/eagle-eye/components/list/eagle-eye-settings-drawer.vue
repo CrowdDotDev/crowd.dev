@@ -109,6 +109,50 @@
               v-model:platforms="form.platforms"
             />
           </section>
+
+          <hr />
+          <div class="flex items-center justify-between">
+            <h5
+              class="text-base leading-5 font-semibold py-6"
+            >
+              AI replies
+              <span
+                class="font-light text-xs ml-1 text-purple-500"
+              >
+                Alpha
+              </span>
+            </h5>
+            <el-tooltip
+              placement="top"
+              content="Learn more"
+            >
+              <a
+                class="btn btn--transparent !h-8 !w-8 !text-gray-400 hover:!text-gray-600"
+                href="https://docs.crowd.dev/docs/eagle-eye#ai-replies"
+                target="_blank"
+              >
+                <i
+                  class="ri-question-line text-lg text-gray-400 font-normal"
+                ></i>
+              </a>
+            </el-tooltip>
+          </div>
+          <div
+            class="h-12 flex items-center border-b last:border-none border-gray-200 hover:cursor-pointer"
+          >
+            <div
+              class="w-6 h-6 rounded-md bg-gray-900 flex items-center justify-center"
+            >
+              <i
+                class="ri-lightbulb-flash-line text-md text-white"
+              ></i>
+            </div>
+            <el-switch
+              v-model="form.aiReplies"
+              inactive-text="AI replies"
+              class="h-full"
+            />
+          </div>
         </el-form>
       </div>
     </template>
@@ -174,7 +218,8 @@ const form = reactive({
   include: [],
   exclude: [],
   datePublished: '',
-  platforms: []
+  platforms: [],
+  aiReplies: true
 })
 const { hasFormChanged, formSnapshot } =
   formChangeDetector(form)
@@ -243,6 +288,7 @@ const fillForm = (user) => {
   form.platforms = feed.platforms
 
   form.datePublished = feed.publishedDate
+  form.aiReplies = eagleEyeSettings.aiReplies || false
   formSnapshot()
 }
 
@@ -265,7 +311,8 @@ const onSubmit = async () => {
     doUpdateSettings({
       data: {
         ...currentUser.value.eagleEyeSettings,
-        feed: data
+        feed: data,
+        aiReplies: form.aiReplies
       }
     }).then(() => {
       Message.success('Feed settings updated!')
