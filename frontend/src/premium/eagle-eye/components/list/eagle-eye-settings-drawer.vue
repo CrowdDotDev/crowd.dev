@@ -124,15 +124,19 @@
           >
             <div class="w-6 h-6 flex items-center">
               <i
-                class="ri-lightbulb-flash-line text-lg mb-1 text-gray-400"
+                class="ri-lightbulb-flash-line text-lg mb-1"
+                :class="{
+                  'text-brand-300': form.aiReplies,
+                  'text-gray-400': !form.aiReplies
+                }"
               ></i>
             </div>
             <el-switch
               v-model="form.aiReplies"
               :inactive-text="
                 form.aiReplies
-                  ? 'AI replies on'
-                  : 'AI replies off'
+                  ? 'AI replies enabled'
+                  : 'AI replies disabled'
               "
               class="h-full"
             />
