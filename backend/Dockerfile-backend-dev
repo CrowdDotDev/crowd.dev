@@ -1,5 +1,5 @@
 # syntax = docker/dockerfile:experimental
-FROM ubuntu:20.04
+FROM ubuntu:rolling
 
 RUN groupadd --gid 1000 node \
     && useradd --uid 1000 --gid node --shell /bin/bash --create-home node
