@@ -34,5 +34,6 @@
     "maxRetrospectInSeconds": 3600
   },
   "github": {},
-  "enrichment": {}
+  "enrichment": {},
+  "eagleEye": {}
 }

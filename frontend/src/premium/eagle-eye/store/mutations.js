@@ -2,58 +2,191 @@ import sharedMutations from '@/shared/store/mutations'
 
 export default {
   ...sharedMutations(),
-  FETCH_SUCCESS(state, { rows, count }) {
-    state.list.loading = false
+  FETCH_STARTED(state, { keepPagination, activeView }) {
+    state.views[activeView].list.loading = true
 
-    for (const record of rows) {
-      state.records[record.id] = record
-      if (!state.list.ids.includes(record.id)) {
-        state.list.ids.push(record.id)
+    if (!keepPagination) {
+      state.views[activeView].list.posts.length = 0
+    }
+
+    state.pagination = keepPagination
+      ? state.pagination
+      : {
+          currentPage: 1,
+          pageSize:
+            state.pagination && state.pagination.pageSize
+        }
+  },
+
+  FETCH_SUCCESS(
+    state,
+    { list, count, appendToList, activeView }
+  ) {
+    state.views[activeView].list.loading = false
+    if (appendToList) {
+      state.views[activeView].list.posts.push(...list)
+    } else {
+      state.views[activeView].list.posts = list
+    }
+    state.views[activeView].count = count
+  },
+
+  FETCH_ERROR(state, { activeView }) {
+    state.views[activeView].list.loading = false
+    state.views[activeView].list.posts = []
+    state.views[activeView].count = 0
+  },
+
+  CREATE_ACTION_SUCCESS(
+    state,
+    { post, action, index, activeView }
+  ) {
+    // Update feed post if bookmark action is updated
+    if (activeView === 'bookmarked') {
+      const feedPost = state.views['feed'].list.posts.find(
+        (p) => p.url === post.url
+      )
+
+      if (feedPost) {
+        const indexAction = feedPost.actions.findIndex(
+          (a) => a.type === action.type
+        )
+
+        if (indexAction === -1) {
+          feedPost.actions.push(action)
+        } else {
+          feedPost.actions[indexAction] = {
+            ...action,
+            id: action.id
+          }
+        }
       }
     }
 
-    state.count = count
-  },
+    const { actions } =
+      state.views[activeView].list.posts[index]
+    const indexAction = actions.findIndex(
+      (a) => a.type === action.type
+    )
 
-  POPULATE_STARTED(state, { keepPagination }) {
-    state.list.loading = true
+    // Update store post with new one, except for actions
+    state.views[activeView].list.posts[index] = {
+      ...post,
+      actions
+    }
 
-    if (!keepPagination) {
-      state.list.ids.length = 0
+    if (indexAction === -1) {
+      actions.push(action)
+    } else {
+      actions[indexAction] = {
+        ...action,
+        id: action.id
+      }
     }
   },
 
-  POPULATE_SUCCESS(state) {
-    state.list.loading = true
-  },
+  REMOVE_ACTION_SUCCESS(
+    state,
+    { postId, action, index, activeView }
+  ) {
+    // Update feed post if bookmark action is updated
+    if (activeView === 'bookmarked') {
+      const feedPost = state.views['feed'].list.posts.find(
+        (p) => p.id === postId
+      )
 
-  POPULATE_ERROR(state) {
-    state.list.loading = false
-  },
+      if (feedPost) {
+        const deleteIndex = feedPost.actions.findIndex(
+          (a) => a.type === action.type
+        )
 
-  ENGAGE_STARTED() {},
-
-  ENGAGE_SUCCESS(state, recordId) {
-    if (state.records[recordId].status !== 'engaged') {
-      state.count--
+        if (deleteIndex !== -1) {
+          feedPost.actions.splice(deleteIndex, 1)
+          console.log(feedPost.actions)
+        }
+      }
     }
-    state.records[recordId].status = 'engaged'
+
+    // Remove post from bookmarks view
+    if (
+      action.type === 'bookmark' &&
+      activeView === 'bookmarked'
+    ) {
+      state.views[activeView].list.posts.splice(index, 1)
+    } else {
+      // Remove action from post
+      const { actions } =
+        state.views[activeView].list.posts[index]
+      const deleteIndex = actions.findIndex(
+        (a) => a.type === action.type
+      )
+
+      if (deleteIndex !== -1) {
+        actions.splice(deleteIndex, 1)
+      }
+    }
   },
-  ENGAGE_ERROR() {},
 
-  EXCLUDE_STARTED() {},
+  CREATE_TEMPORARY_ACTION(
+    state,
+    { action, activeView, index }
+  ) {
+    const { actions } =
+      state.views[activeView].list.posts[index]
+    const indexAction = actions.findIndex(
+      (a) => a.type === action.type
+    )
 
-  EXCLUDE_SUCCESS(state, recordId) {
-    state.records[recordId].status = 'rejected'
-    state.count--
+    if (indexAction === -1) {
+      actions.push(action)
+    } else {
+      actions[indexAction] = action
+    }
   },
-  EXCLUDE_ERROR() {},
 
-  REVERT_EXCLUDE_STARTED() {},
+  REMOVE_TEMPORARY_ACTION(
+    state,
+    { action, activeView, index }
+  ) {
+    const { actions } =
+      state.views[activeView].list.posts[index]
+    const deleteIndex = actions.findIndex(
+      (a) => a.type === action.type
+    )
 
-  REVERT_EXCLUDE_SUCCESS(state, recordId) {
-    state.records[recordId].status = null
-    state.count--
+    actions[deleteIndex].toRemove = true
   },
-  REVERT_EXCLUDE_ERROR() {}
+
+  UPDATE_POST(state, { activeView, index, post }) {
+    state.views[activeView].list.posts[index] = post
+  },
+
+  SORTER_CHANGED(state, payload) {
+    const { activeView, sorter } = payload
+    state.views[activeView.id].sorter = sorter
+  },
+
+  UPDATE_EAGLE_EYE_SETTINGS_STARTED(state) {
+    state.loadingUpdateSettings = true
+  },
+
+  UPDATE_EAGLE_EYE_SETTINGS_SUCCESS(state) {
+    state.loadingUpdateSettings = false
+  },
+
+  UPDATE_EAGLE_EYE_SETTINGS_ERROR(state) {
+    state.loadingUpdateSettings = false
+  },
+
+  ADD_PENDING_ACTION(state, job) {
+    state.pendingActions.push(job)
+  },
+
+  SET_ACTIVE_ACTION(state, job) {
+    state.activeAction = job
+  },
+
+  POP_CURRENT_ACTION(state) {
+    state.pendingActions.shift()
+  }
 }

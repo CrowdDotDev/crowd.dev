@@ -102,19 +102,30 @@ const en = {
     activityDup: {
       message: 'This activity has already been linked to this member',
     },
-    invalidEagleEyeStatus: {
-      message: 'Possible statuses are: "shown", "rejected", "engaged"',
-    },
-    eagleEyeSearchFailed: {
-      message: 'Search failed in EagleEye',
-    },
     OrganizationNameRequired: {
       message: 'Organization Name is required',
     },
     projectNotFound: {
       message: 'Project not found',
     },
-
+    eagleEye: {
+      urlRequiredWhenUpserting: 'URL field is mandatory when upserting eagleEyeContent',
+      contentNotFound: 'Eagle eye content not found. Action will not be created.',
+      feedSettingsMissing: 'Feed settings are missing. Settings not updated.',
+      keywordsMissing:
+        'Either keywords or exactKeywords are required in feeds. Settings not updated.',
+      platformMissing:
+        'feed.platforms is required and must be a non-empty list. Settings not updated.',
+      platformInvalid: `feed.platforms contains {0}, which is not in [{1}]. Settings not updated.`,
+      publishedDateMissing:
+        'feed.publishedDate is missing or invalid. It should be one of [{0}]. Settings not updated.',
+      emailInvalid: 'emailDigest.email needs a valid email address. Settings not updated.',
+      frequencyInvalid:
+        'emailDigest.frequency needs to be one of daily, weekly. Settings not updated.',
+      timeInvalid: 'emailDigest.time needs to be a valid time. Settings not updated.',
+      notOnboarded: 'Eagle eye is not set up yet.',
+      invalidEvent: 'Invalid event type.',
+    },
     integrations: {
       badEndpoint: 'Bad endpoint: {0}',
     },
@@ -193,6 +204,12 @@ const en = {
     automation: {
       errors: {
         planLimitExceeded: 'You have exceeded # of automations you can have in your plan.',
+      },
+    },
+    eagleEye: {
+      errors: {
+        planLimitExceeded:
+          'EagleEye is only available in the Growth and Custom plans. Please upgrade your plan.',
       },
     },
   },
