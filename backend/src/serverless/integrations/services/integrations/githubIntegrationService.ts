@@ -298,6 +298,13 @@ export class GithubIntegrationService extends IntegrationServiceBase {
     const event = webhook.payload.event
     const payload = webhook.payload.data
 
+    const redis = await createRedisClient(true)
+    const emailCache = new RedisCache('github-emails', redis)
+
+    context.pipelineData = {
+      emailCache,
+    }
+
     switch (event) {
       case 'issues': {
         record = await GithubIntegrationService.parseWebhookIssue(payload, context)
