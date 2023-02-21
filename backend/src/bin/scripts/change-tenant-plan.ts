@@ -44,7 +44,7 @@ const sections = [
   },
   {
     header: 'Update tenant plan',
-    content: 'Updates tenant plan and sends the data to posthog for feature flagging.',
+    content: 'Updates tenant plan.',
   },
   {
     header: 'Options',

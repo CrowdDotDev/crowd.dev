@@ -20,8 +20,6 @@ export default async (req, res) => {
   new PermissionChecker(req).validateHas(Permissions.values.automationDestroy)
   await new AutomationService(req).destroy(req.params.automationId)
 
-  await req.posthog.reloadFeatureFlags()
-
   track('Automation Destroyed', { id: req.params.automationId }, { ...req })
   identifyTenant(req)
 
