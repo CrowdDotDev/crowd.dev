@@ -50,6 +50,7 @@
         </router-link>
       </div>
     </div>
+
     <div class="flex -mx-5 pt-7">
       <!-- new members -->
       <section class="px-5 w-1/2">
@@ -74,12 +75,13 @@
               class="app-page-spinner !relative chart-loading"
             ></div>
             <app-cube-render
+              v-else
               :query="newMembersChart(period, platform)"
             >
               <template #default="{ resultSet }">
                 <app-widget-area
                   class="chart"
-                  :datasets="datasets('Total new members')"
+                  :datasets="datasets('new members')"
                   :result-set="resultSet"
                   :chart-options="chartStyle"
                   :granularity="granularity.value"
@@ -127,9 +129,15 @@
                 }}</span
               >
             </app-dashboard-member-item>
-            <div v-if="recentMembers.length === 0">
+            <div
+              v-if="recentMembers.length === 0"
+              class="flex items-center justify-center pt-6 pb-5"
+            >
+              <div
+                class="ri-group-2-line text-3xl text-gray-300 mr-4 h-10 flex items-center"
+              ></div>
               <p
-                class="text-xs leading-5 text-center italic text-gray-400 pb-4 pt-2"
+                class="text-xs leading-5 text-center italic text-gray-400"
               >
                 No new members during this period
               </p>
@@ -182,7 +190,7 @@
                 <app-widget-area
                   class="chart"
                   :datasets="
-                    datasets('Total active members')
+                    datasets('active members')
                   "
                   :result-set="resultSet"
                   :chart-options="chartStyle"
@@ -222,11 +230,17 @@
                 }}</span
               >
             </app-dashboard-member-item>
-            <div v-if="activeMembers.length === 0">
+            <div
+              v-if="activeMembers.length === 0"
+              class="flex items-center justify-center pt-6 pb-5"
+            >
+              <div
+                class="ri-group-2-line text-3xl text-gray-300 mr-4 h-10 flex items-center"
+              ></div>
               <p
-                class="text-xs leading-5 text-center italic text-gray-400 pb-4 pt-2"
+                class="text-xs leading-5 text-center italic text-gray-400"
               >
-                No new members during this period
+                No active members during this period
               </p>
             </div>
             <div

@@ -74,16 +74,24 @@
               v-loading="organizations.loadingRecent"
               class="app-page-spinner !relative chart-loading"
             ></div>
-            <app-widget-cube-renderer
+            <app-cube-render
               v-else
-              class="chart"
-              :widget="
+              :query="
                 newOrganizationChart(period, platform)
               "
-              :dashboard="false"
-              :show-subtitle="false"
-              :chart-options="dashboardChartOptions"
-            ></app-widget-cube-renderer>
+            >
+              <template #default="{ resultSet }">
+                <app-widget-area
+                  class="chart"
+                  :datasets="
+                    datasets('new organizations')
+                  "
+                  :result-set="resultSet"
+                  :chart-options="chartStyle"
+                  :granularity="granularity.value"
+                />
+              </template>
+            </app-cube-render>
           </div>
         </div>
         <div class="pt-8">
@@ -109,9 +117,15 @@
               :organization="organization"
             >
             </app-dashboard-organization-item>
-            <div v-if="recentOrganizations.length === 0">
+            <div
+              v-if="recentOrganizations.length === 0"
+              class="flex items-center justify-center pt-6 pb-5"
+            >
+              <div
+                class="ri-community-line text-3xl text-gray-300 mr-4 h-10 flex items-center"
+              ></div>
               <p
-                class="text-xs leading-5 text-center italic text-gray-400 pb-4 pt-2"
+                class="text-xs leading-5 text-center italic text-gray-400"
               >
                 No new organizations during this period
               </p>
@@ -155,16 +169,24 @@
               v-loading="organizations.loadingActive"
               class="app-page-spinner !relative chart-loading"
             ></div>
-            <app-widget-cube-renderer
+            <app-cube-render
               v-else
-              class="chart"
-              :widget="
+              :query="
                 activeOrganizationChart(period, platform)
               "
-              :dashboard="false"
-              :show-subtitle="false"
-              :chart-options="dashboardChartOptions"
-            ></app-widget-cube-renderer>
+            >
+              <template #default="{ resultSet }">
+                <app-widget-area
+                  class="chart"
+                  :datasets="
+                    datasets('active organizations')
+                  "
+                  :result-set="resultSet"
+                  :chart-options="chartStyle"
+                  :granularity="granularity.value"
+                />
+              </template>
+            </app-cube-render>
           </div>
         </div>
         <div class="pt-8">
@@ -189,11 +211,17 @@
               :organization="organization"
             >
             </app-dashboard-organization-item>
-            <div v-if="activeOrganizations.length === 0">
+            <div
+              v-if="activeOrganizations.length === 0"
+              class="flex items-center justify-center pt-6 pb-5"
+            >
+              <div
+                class="ri-community-line text-3xl text-gray-300 mr-4 h-10 flex items-center"
+              ></div>
               <p
-                class="text-xs leading-5 text-center italic text-gray-400 pb-4 pt-2"
+                class="text-xs leading-5 text-center italic text-gray-400"
               >
-                No new organizations during this period
+                No active organizations during this period
               </p>
             </div>
             <div
@@ -220,7 +248,6 @@
 <script>
 import { mapGetters } from 'vuex'
 import moment from 'moment'
-import AppWidgetCubeRenderer from '@/modules/widget/components/cube/widget-cube-renderer.vue'
 import {
   newOrganizationChart,
   activeOrganizationChart,
@@ -232,23 +259,27 @@ import AppDashboardOrganizationItem from '@/modules/dashboard/components/organiz
 import AppDashboardCount from '@/modules/dashboard/components/dashboard-count.vue'
 import { formatNumberToCompact } from '@/utils/number'
 import AppLoading from '@/shared/loading/loading-placeholder.vue'
+import { chartOptions } from '@/modules/report/templates/template-report-charts'
+import { DAILY_GRANULARITY_FILTER } from '@/modules/widget/widget-constants'
+import AppCubeRender from '@/shared/cube/cube-render.vue'
+import AppWidgetArea from '@/modules/widget/components/v2/shared/widget-area.vue'
 
 export default {
   name: 'AppDashboardOrganizations',
   components: {
+    AppWidgetArea,
+    AppCubeRender,
     AppLoading,
     AppDashboardCount,
-    AppDashboardOrganizationItem,
-    AppWidgetCubeRenderer
+    AppDashboardOrganizationItem
   },
   data() {
     return {
-      tab: 'new',
       newOrganizationChart,
       activeOrganizationChart,
       newOrganizationCount,
       activeOrganizationCount,
-      dashboardChartOptions
+      granularity: DAILY_GRANULARITY_FILTER
     }
   },
   computed: {
@@ -269,9 +300,22 @@ export default {
         return null
       }
       return report.id
+    },
+    chartStyle() {
+      return chartOptions('area', dashboardChartOptions)
     }
   },
   methods: {
+    datasets(name) {
+      return [
+        {
+          name: name,
+          borderColor: '#E94F2E',
+          measure: 'Organizations.count',
+          granularity: this.granularity.value
+        }
+      ]
+    },
     getTimeText: function (index) {
       const current = this.formatTime(
         this.recentOrganizations[index].createdAt

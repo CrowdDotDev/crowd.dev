@@ -59,33 +59,24 @@ export const hideLabels = {
 
 export function activitiesChart(period, platform) {
   return {
-    title: 'Activities',
-    chartOnly: true,
-    settings: {
-      chartType: 'area',
-      unit: 'activities',
-      query: {
-        measures: ['Activities.count'],
-        timeDimensions: [
-          {
-            dimension: 'Activities.date',
-            granularity: 'day',
-            dateRange: dateRange(period)
-          }
-        ],
-        filters:
-          platform !== 'all'
-            ? [
-                {
-                  member: 'Activities.platform',
-                  operator: 'equals',
-                  values: [platform]
-                }
-              ]
-            : undefined
+    measures: ['Activities.count'],
+    timeDimensions: [
+      {
+        dimension: 'Activities.date',
+        granularity: 'day',
+        dateRange: dateRange(period)
       }
-    },
-    unit: 'activities'
+    ],
+    filters:
+      platform !== 'all'
+        ? [
+            {
+              member: 'Activities.platform',
+              operator: 'equals',
+              values: [platform]
+            }
+          ]
+        : undefined
   }
 }
 
@@ -229,33 +220,24 @@ export function activeMembersCount(dateRange, platform) {
 
 export function newOrganizationChart(period, platform) {
   return {
-    title: 'New Organizations',
-    chartOnly: true,
-    settings: {
-      chartType: 'area',
-      unit: 'activities',
-      query: {
-        measures: ['Organizations.count'],
-        timeDimensions: [
-          {
-            dimension: 'Organizations.joinedAt',
-            granularity: 'day',
-            dateRange: dateRange(period)
-          }
-        ],
-        filters:
-          platform !== 'all'
-            ? [
-                {
-                  member: 'Activities.platform',
-                  operator: 'equals',
-                  values: [platform]
-                }
-              ]
-            : undefined
+    measures: ['Organizations.count'],
+    timeDimensions: [
+      {
+        dimension: 'Organizations.joinedAt',
+        granularity: 'day',
+        dateRange: dateRange(period)
       }
-    },
-    unit: 'activities'
+    ],
+    filters:
+      platform !== 'all'
+        ? [
+            {
+              member: 'Activities.platform',
+              operator: 'equals',
+              values: [platform]
+            }
+          ]
+        : undefined
   }
 }
 
@@ -283,33 +265,24 @@ export function newOrganizationCount(dateRange, platform) {
 
 export function activeOrganizationChart(period, platform) {
   return {
-    title: 'Active organizations',
-    chartOnly: true,
-    settings: {
-      chartType: 'area',
-      unit: 'activities',
-      query: {
-        measures: ['Organizations.count'],
-        timeDimensions: [
-          {
-            dimension: 'Activities.date',
-            granularity: 'day',
-            dateRange: dateRange(period)
-          }
-        ],
-        filters:
-          platform !== 'all'
-            ? [
-                {
-                  member: 'Activities.platform',
-                  operator: 'equals',
-                  values: [platform]
-                }
-              ]
-            : undefined
+    measures: ['Organizations.count'],
+    timeDimensions: [
+      {
+        dimension: 'Activities.date',
+        granularity: 'day',
+        dateRange: dateRange(period)
       }
-    },
-    unit: 'activities'
+    ],
+    filters:
+      platform !== 'all'
+        ? [
+            {
+              member: 'Activities.platform',
+              operator: 'equals',
+              values: [platform]
+            }
+          ]
+        : undefined
   }
 }
 

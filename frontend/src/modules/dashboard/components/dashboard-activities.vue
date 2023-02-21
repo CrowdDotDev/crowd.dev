@@ -8,7 +8,12 @@
         <h5 class="text-lg font-semibold leading-7 pr-3">
           Activities
         </h5>
-        <p class="text-xs text-gray-500 leading-5">
+        <app-loading
+          v-if="activities.loading"
+          height="20px"
+          width="60px"
+        />
+        <p v-else class="text-xs text-gray-500 leading-5">
           Total:
           {{ formatNumberToCompact(activities.total) }}
         </p>
@@ -68,14 +73,20 @@
               v-loading="activities.loading"
               class="app-page-spinner h-16 !relative !min-h-5 chart-loading"
             ></div>
-            <app-widget-cube-renderer
+            <app-cube-render
               v-else
-              class="chart"
-              :widget="activitiesChart(period, platform)"
-              :dashboard="false"
-              :show-subtitle="false"
-              :chart-options="dashboardChartOptions"
-            ></app-widget-cube-renderer>
+              :query="activitiesChart(period, platform)"
+            >
+              <template #default="{ resultSet }">
+                <app-widget-area
+                  class="chart"
+                  :datasets="datasets"
+                  :result-set="resultSet"
+                  :chart-options="chartStyle"
+                  :granularity="granularity.value"
+                />
+              </template>
+            </app-cube-render>
           </div>
         </div>
         <div class="pt-10">
@@ -114,7 +125,6 @@
 
 <script>
 import { mapGetters } from 'vuex'
-import AppWidgetCubeRenderer from '@/modules/widget/components/cube/widget-cube-renderer'
 import {
   activitiesChart,
   activitiesCount,
@@ -126,16 +136,23 @@ import AppDashboardActivitySentiment from '@/modules/dashboard/components/activi
 import AppDashboardCount from '@/modules/dashboard/components/dashboard-count'
 import { formatNumberToCompact } from '@/utils/number'
 import AppDashboardActivityTypes from '@/modules/dashboard/components/activity/dashboard-activity-types.vue'
+import { chartOptions } from '@/modules/report/templates/template-report-charts'
+import { DAILY_GRANULARITY_FILTER } from '@/modules/widget/widget-constants'
+import AppCubeRender from '@/shared/cube/cube-render.vue'
+import AppWidgetArea from '@/modules/widget/components/v2/shared/widget-area.vue'
+import AppLoading from '@/shared/loading/loading-placeholder.vue'
 
 export default {
   name: 'AppDashboardActivities',
   components: {
+    AppLoading,
+    AppWidgetArea,
+    AppCubeRender,
     AppDashboardActivityTypes,
     AppDashboardCount,
     AppDashboardActivitySentiment,
     AppDashboardActivityList,
-    AppDashboardConversationList,
-    AppWidgetCubeRenderer
+    AppDashboardConversationList
   },
   data() {
     return {
@@ -144,6 +161,7 @@ export default {
       activitiesChart,
       activitiesCount,
       dashboardChartOptions,
+      granularity: DAILY_GRANULARITY_FILTER
     }
   },
   computed: {
@@ -155,12 +173,26 @@ export default {
     ...mapGetters('report', ['rows']),
     activitiesReportId() {
       const report = this.rows.find(
-        (r) => r.isTemplate && r.name === 'Activities report'
+        (r) =>
+          r.isTemplate && r.name === 'Activities report'
       )
       if (!report) {
         return null
       }
       return report.id
+    },
+    datasets() {
+      return [
+        {
+          name: 'new activities',
+          borderColor: '#E94F2E',
+          measure: 'Activities.count',
+          granularity: this.granularity.value
+        }
+      ]
+    },
+    chartStyle() {
+      return chartOptions('area', dashboardChartOptions)
     }
   },
   methods: {

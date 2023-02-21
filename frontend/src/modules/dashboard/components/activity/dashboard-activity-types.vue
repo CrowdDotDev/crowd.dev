@@ -1,11 +1,51 @@
 <template>
   <app-cube-render :query="activityTypes(period, platform)">
+    <template #loading>
+      <div
+        v-for="i in 3"
+        :key="i"
+        class="flex items-center py-4 border-gray-100"
+        :class="{ 'border-t': i > 1 }"
+      >
+        <app-loading
+          height="16px"
+          width="16px"
+          radius="50%"
+        />
+        <div class="flex-grow pl-3">
+          <app-loading
+            height="12px"
+            width="120px"
+          ></app-loading>
+        </div>
+      </div>
+    </template>
     <template #default="{ resultSet }">
       <app-cube-render
         :query="
           activitiesCount(dateRange(period), platform)
         "
       >
+        <template #loading>
+          <div
+            v-for="i in 3"
+            :key="i"
+            class="flex items-center py-4 border-gray-100"
+            :class="{ 'border-t': i > 1 }"
+          >
+            <app-loading
+              height="16px"
+              width="16px"
+              radius="50%"
+            />
+            <div class="flex-grow pl-3">
+              <app-loading
+                height="12px"
+                width="120px"
+              ></app-loading>
+            </div>
+          </div>
+        </template>
         <template #default="current">
           <article
             v-for="(
@@ -38,6 +78,19 @@
               }}%
             </p>
           </article>
+          <div
+            v-if="compileData(resultSet).length === 0"
+            class="flex items-center justify-center pt-6 pb-5"
+          >
+            <div
+              class="ri-list-check-2 text-3xl text-gray-300 mr-4 h-10 flex items-center"
+            ></div>
+            <p
+              class="text-xs leading-5 text-center italic text-gray-400"
+            >
+              No activities during this period
+            </p>
+          </div>
         </template>
       </app-cube-render>
     </template>
@@ -53,10 +106,12 @@ import {
 } from '@/modules/dashboard/dashboard.cube'
 import AppCubeRender from '@/shared/cube/cube-render'
 import { CrowdIntegrations } from '@/integrations/integrations-config'
+import AppLoading from '@/shared/loading/loading-placeholder.vue'
 // import AppLoading from '@/shared/loading/loading-placeholder'
 export default {
   name: 'AppDashboardActivityTypes',
   components: {
+    AppLoading,
     // AppLoading,
     AppCubeRender
   },
