@@ -2,7 +2,7 @@ import config from '@/config'
 import { AutomationService } from '@/modules/automation/automation-service'
 import Errors from '@/shared/error/errors'
 import Message from '@/shared/message/message'
-import posthog from 'posthog-js'
+import { FeatureFlag } from '@/unleash'
 
 const INITIAL_PAGE_SIZE = 20
 
@@ -427,7 +427,7 @@ export default {
         commit('FETCH_ERROR')
       }
     },
-    async doCreate({ commit }, automation) {
+    async doCreate({ commit, rootGetters }, automation) {
       try {
         commit('CREATE_STARTED')
 
@@ -439,7 +439,10 @@ export default {
 
         // Make sure that feature flags are updated for automationsCount
         if (!config.isCommunityVersion) {
-          posthog.reloadFeatureFlags()
+          const currentTenant =
+            rootGetters['auth/currentTenant']
+
+          await FeatureFlag.updateContext(currentTenant)
         }
 
         Message.success('Automation created successfully')
@@ -462,7 +465,10 @@ export default {
 
         // Make sure that feature flags are updated for automationsCount
         if (!config.isCommunityVersion) {
-          posthog.reloadFeatureFlags()
+          const currentTenant =
+            rootGetters['auth/currentTenant']
+
+          await currentTenant.updateContext(currentTenant)
         }
 
         dispatch(
@@ -492,7 +498,10 @@ export default {
 
         // Make sure that feature flags are updated for automationsCount
         if (!config.isCommunityVersion) {
-          posthog.reloadFeatureFlags()
+          const currentTenant =
+            rootGetters['auth/currentTenant']
+
+          await FeatureFlag.updateContext(currentTenant)
         }
 
         dispatch(

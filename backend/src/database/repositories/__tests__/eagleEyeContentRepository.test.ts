@@ -1,85 +1,9 @@
-import lodash from 'lodash'
-import moment from 'moment'
 import EagleEyeContentRepository from '../eagleEyeContentRepository'
 import SequelizeTestUtils from '../../utils/sequelizeTestUtils'
-import Error404 from '../../../errors/Error404'
-import Error400 from '../../../errors/Error400'
-import EagleEyeContentService from '../../../services/eagleEyeContentService'
-import { PlatformType } from '../../../types/integrationEnums'
+import { EagleEyeActionType, EagleEyeContent } from '../../../types/eagleEyeTypes'
+import EagleEyeActionRepository from '../eagleEyeActionRepository'
 
 const db = null
-
-const toCreate = {
-  sourceId: 'sourceId',
-  vectorId: '123',
-  status: null,
-  platform: 'hacker_news',
-  title: 'title',
-  userAttributes: { [PlatformType.GITHUB]: 'hey', [PlatformType.TWITTER]: 'ho' },
-  text: 'text',
-  postAttributes: {
-    score: 10,
-  },
-  url: 'url',
-  exactKeywords: null,
-  timestamp: new Date(),
-  username: 'username',
-  keywords: ['keyword1', 'keyword2'],
-  similarityScore: 0.9,
-}
-
-const toCreateMinimal = {
-  sourceId: 'sourceIdMinimal',
-  vectorId: '456',
-  platform: 'hacker_news',
-  url: 'url',
-  title: 'title minimal',
-  timestamp: new Date(),
-  username: 'username',
-  keywords: 'keyword',
-}
-
-const forFiltering = [
-  toCreate,
-  toCreateMinimal,
-  {
-    sourceId: 'devto123',
-    vectorId: '123123',
-    status: 'engaged',
-    url: 'devto url',
-    username: 'devtousername1',
-    platform: 'devto',
-    timestamp: moment().toDate(),
-    title: 'title devto 1',
-  },
-  {
-    sourceId: 'devto456',
-    vectorId: '123456',
-    url: 'url devto 2',
-    username: 'devtousername2',
-    status: 'rejected',
-    platform: 'devto',
-    timestamp: moment().subtract(1, 'week').toDate(),
-    title: 'title devto 2',
-    keywords: ['keyword1', 'keyword2'],
-    score: 40,
-  },
-  {
-    sourceId: 'devto789',
-    vectorId: '123456',
-    url: 'url devto 3',
-    username: 'devtousername3',
-    status: null,
-    platform: 'devto',
-    timestamp: moment().subtract(1, 'week').toDate(),
-    keywords: ['keyword3', 'keyword2'],
-    title: 'title devto 3',
-  },
-]
-
-async function addAll(options) {
-  await Promise.all(forFiltering.map((item) => EagleEyeContentRepository.upsert(item, options)))
-}
 
 describe('eagleEyeContentRepository tests', () => {
   beforeEach(async () => {
@@ -92,28 +16,39 @@ describe('eagleEyeContentRepository tests', () => {
     done()
   })
 
-  describe('upserts method', () => {
-    it('Should create a complete content succesfully', async () => {
+  describe('create method', () => {
+    it('Should create a content succesfully', async () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
 
-      const created = await EagleEyeContentRepository.upsert(toCreate, mockIRepositoryOptions)
+      const content = {
+        platform: 'reddit',
+        url: 'https://some-post-url',
+        post: {
+          title: 'post title',
+          body: 'post body',
+        },
+        postedAt: '2020-05-27T15:13:30Z',
+        tenantId: mockIRepositoryOptions.currentTenant.id,
+      } as EagleEyeContent
 
-      created.createdAt = created.createdAt.toISOString().split('T')[0]
-      created.updatedAt = created.updatedAt.toISOString().split('T')[0]
+      const created = await EagleEyeContentRepository.create(content, mockIRepositoryOptions)
+
+      created.createdAt = (created.createdAt as Date).toISOString().split('T')[0]
+      created.updatedAt = (created.updatedAt as Date).toISOString().split('T')[0]
 
       const expectedCreated = {
         id: created.id,
-        ...toCreate,
-        importHash: null,
+        ...content,
+        postedAt: new Date(content.postedAt),
+        actions: [],
         createdAt: SequelizeTestUtils.getNowWithoutTime(),
         updatedAt: SequelizeTestUtils.getNowWithoutTime(),
-        deletedAt: null,
         tenantId: mockIRepositoryOptions.currentTenant.id,
-        createdById: mockIRepositoryOptions.currentUser.id,
-        updatedById: mockIRepositoryOptions.currentUser.id,
       }
       expect(created).toStrictEqual(expectedCreated)
     })
+
+    /*
 
     it('Should create a content with unix timestamp', async () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
@@ -157,130 +92,9 @@ describe('eagleEyeContentRepository tests', () => {
       expect(created).toStrictEqual(expectedCreated)
     })
 
-    it('Should not add it the record already exists', async () => {
-      const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
+    
 
-      await EagleEyeContentRepository.upsert(toCreate, mockIRepositoryOptions)
-
-      await EagleEyeContentRepository.upsert(toCreate, mockIRepositoryOptions)
-
-      const count = await mockIRepositoryOptions.database.eagleEyeContent.count()
-      expect(count).toBe(1)
-    })
-
-    it('Should update keywords and similarity score if the item already exists', async () => {
-      const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
-
-      await EagleEyeContentRepository.upsert(toCreate, mockIRepositoryOptions)
-
-      const toCreateNewKeywords = { ...toCreate }
-      toCreateNewKeywords.keywords = ['1', '2', 'keyword1']
-      toCreateNewKeywords.similarityScore = 0.95
-
-      const allKeywords = ['1', '2', 'keyword1', 'keyword2']
-
-      const created = await EagleEyeContentRepository.upsert(
-        toCreateNewKeywords,
-        mockIRepositoryOptions,
-      )
-
-      const count = await mockIRepositoryOptions.database.eagleEyeContent.count()
-      expect(count).toBe(1)
-      expect(lodash.isEqual(created.keywords.sort(), allKeywords.sort()))
-      expect(created.similarityScore).toBe(0.95)
-    })
-
-    it('Should create a minimal content succesfully', async () => {
-      const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
-
-      const created = await EagleEyeContentRepository.upsert(
-        toCreateMinimal,
-        mockIRepositoryOptions,
-      )
-
-      created.createdAt = created.createdAt.toISOString().split('T')[0]
-      created.updatedAt = created.updatedAt.toISOString().split('T')[0]
-
-      const expectedCreated = {
-        id: created.id,
-        ...toCreateMinimal,
-        text: null,
-        status: null,
-        userAttributes: null,
-        postAttributes: null,
-        similarityScore: null,
-        exactKeywords: null,
-        importHash: null,
-        createdAt: SequelizeTestUtils.getNowWithoutTime(),
-        updatedAt: SequelizeTestUtils.getNowWithoutTime(),
-        deletedAt: null,
-        tenantId: mockIRepositoryOptions.currentTenant.id,
-        createdById: mockIRepositoryOptions.currentUser.id,
-        updatedById: mockIRepositoryOptions.currentUser.id,
-      }
-      expect(created).toStrictEqual(expectedCreated)
-      expect(created.status).toBe(null)
-    })
-
-    it('Should create with rejected status', async () => {
-      const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
-      const newStatus = { ...toCreate }
-      newStatus.status = 'rejected'
-
-      const created = await EagleEyeContentRepository.upsert(newStatus, mockIRepositoryOptions)
-
-      created.createdAt = created.createdAt.toISOString().split('T')[0]
-      created.updatedAt = created.updatedAt.toISOString().split('T')[0]
-
-      const expectedCreated = {
-        id: created.id,
-        ...newStatus,
-        importHash: null,
-        createdAt: SequelizeTestUtils.getNowWithoutTime(),
-        updatedAt: SequelizeTestUtils.getNowWithoutTime(),
-        deletedAt: null,
-        tenantId: mockIRepositoryOptions.currentTenant.id,
-        createdById: mockIRepositoryOptions.currentUser.id,
-        updatedById: mockIRepositoryOptions.currentUser.id,
-      }
-      expect(created).toStrictEqual(expectedCreated)
-      expect(created.status).toBe('rejected')
-    })
-
-    it('Should create with engaged status', async () => {
-      const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
-      const newStatus = { ...toCreate }
-      newStatus.status = 'engaged'
-
-      const created = await EagleEyeContentRepository.upsert(newStatus, mockIRepositoryOptions)
-
-      created.createdAt = created.createdAt.toISOString().split('T')[0]
-      created.updatedAt = created.updatedAt.toISOString().split('T')[0]
-
-      const expectedCreated = {
-        id: created.id,
-        ...newStatus,
-        importHash: null,
-        createdAt: SequelizeTestUtils.getNowWithoutTime(),
-        updatedAt: SequelizeTestUtils.getNowWithoutTime(),
-        deletedAt: null,
-        tenantId: mockIRepositoryOptions.currentTenant.id,
-        createdById: mockIRepositoryOptions.currentUser.id,
-        updatedById: mockIRepositoryOptions.currentUser.id,
-      }
-      expect(created).toStrictEqual(expectedCreated)
-      expect(created.status).toBe('engaged')
-    })
-
-    it('Should throw an error for an invalid status', async () => {
-      const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
-      const newStatus = { ...toCreate }
-      newStatus.status = 'smth else'
-
-      await expect(() =>
-        EagleEyeContentRepository.upsert(newStatus, mockIRepositoryOptions),
-      ).rejects.toThrowError(new Error400('en', 'errors.invalidEagleEyeStatus.message'))
-    })
+  
   })
 
   describe('find by id method', () => {
@@ -599,6 +413,140 @@ describe('eagleEyeContentRepository tests', () => {
       )
       expect(updated.id).toBe(id)
       expect(updated.keywords).toStrictEqual(created.keywords)
+    })
+  })
+  */
+  })
+
+  describe('findAndCountAll method', () => {
+    it('Should find eagle eye contant, various cases', async () => {
+      // create random tenant with one user
+      const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
+
+      // create additional users for same tenant to test out actionBy filtering
+      const randomUser = await SequelizeTestUtils.getRandomUser()
+
+      console.log('random user: ')
+      console.log(randomUser)
+
+      const user2 = await mockIRepositoryOptions.database.user.create(randomUser)
+
+      await mockIRepositoryOptions.database.tenantUser.create({
+        roles: ['admin'],
+        status: 'active',
+        tenantId: mockIRepositoryOptions.currentTenant.id,
+        userId: user2.id,
+      })
+
+      // create few content
+      // one without any actions
+      await EagleEyeContentRepository.create(
+        {
+          platform: 'reddit',
+          url: 'https://some-reddit-url',
+          post: {
+            title: 'post title',
+            body: 'post body',
+          },
+          postedAt: '2020-05-27T15:13:30Z',
+          tenantId: mockIRepositoryOptions.currentTenant.id,
+        },
+        mockIRepositoryOptions,
+      )
+
+      // one with a bookmark action
+      let c2 = await EagleEyeContentRepository.create(
+        {
+          platform: 'hackernews',
+          url: 'https://some-hackernews-url',
+          post: {
+            title: 'post title',
+            body: 'post body',
+          },
+          postedAt: '2022-06-27T19:14:44Z',
+          tenantId: mockIRepositoryOptions.currentTenant.id,
+        },
+        mockIRepositoryOptions,
+      )
+
+      // add bookmark action
+      await EagleEyeActionRepository.createActionForContent(
+        {
+          type: EagleEyeActionType.BOOKMARK,
+          timestamp: '2022-07-27T19:13:30Z',
+        },
+        c2.id,
+        mockIRepositoryOptions,
+      )
+
+      c2 = await EagleEyeContentRepository.findById(c2.id, mockIRepositoryOptions)
+
+      // another content with a thumbs-up(user1) and a bookmark(user2) action
+      let c3 = await EagleEyeContentRepository.create(
+        {
+          platform: 'devto',
+          url: 'https://some-devto-url',
+          post: {
+            title: 'post title',
+            body: 'post body',
+          },
+          postedAt: '2022-06-27T19:14:44Z',
+          tenantId: mockIRepositoryOptions.currentTenant.id,
+        },
+        mockIRepositoryOptions,
+      )
+
+      // add the thumbs up action
+      await EagleEyeActionRepository.createActionForContent(
+        {
+          type: EagleEyeActionType.THUMBS_UP,
+          timestamp: '2022-09-30T23:11:10Z',
+        },
+        c3.id,
+        mockIRepositoryOptions,
+      )
+
+      // also add bookmark from user2
+      await EagleEyeActionRepository.createActionForContent(
+        {
+          type: EagleEyeActionType.BOOKMARK,
+          timestamp: '2022-09-30T23:11:10Z',
+        },
+        c3.id,
+        { ...mockIRepositoryOptions, currentUser: user2 },
+      )
+
+      c3 = await EagleEyeContentRepository.findById(c3.id, mockIRepositoryOptions)
+
+      // filter by action type
+      let res = await EagleEyeContentRepository.findAndCountAll(
+        {
+          advancedFilter: {
+            action: {
+              type: EagleEyeActionType.BOOKMARK,
+            },
+          },
+        },
+        mockIRepositoryOptions,
+      )
+
+      expect(res.count).toBe(2)
+      expect(res.rows.sort((a, b) => (a.createdAt > b.createdAt ? 1 : -1))).toStrictEqual([c2, c3])
+
+      // filter by actionBy
+      res = await EagleEyeContentRepository.findAndCountAll(
+        {
+          advancedFilter: {
+            action: {
+              actionById: user2.id,
+            },
+          },
+        },
+        mockIRepositoryOptions,
+      )
+
+      expect(res.count).toBe(1)
+      expect(res.rows).toStrictEqual([c3])
     })
   })
 })

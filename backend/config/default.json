@@ -13,7 +13,6 @@
   "cubejs": {},
   "searchEngine": {},
   "segment": {},
-  "posthog": {},
   "comprehend": {
     "aws": {}
   },
@@ -34,5 +33,9 @@
     "maxRetrospectInSeconds": 3600
   },
   "github": {},
-  "enrichment": {}
+  "enrichment": {},
+  "eagleEye": {},
+  "unleash": {
+    "db": {}
+  }
 }

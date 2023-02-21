@@ -3,8 +3,9 @@ import bodyParser from 'body-parser'
 import cors from 'cors'
 import helmet from 'helmet'
 import bunyanMiddleware from 'bunyan-middleware'
-import { PostHog } from 'posthog-node'
 import * as http from 'http'
+import { startUnleash, Unleash } from 'unleash-client'
+import { UNLEASH_CONFIG } from '../config'
 import { authMiddleware } from '../middlewares/authMiddleware'
 import { tenantMiddleware } from '../middlewares/tenantMiddleware'
 import { databaseMiddleware } from '../middlewares/databaseMiddleware'
@@ -18,7 +19,6 @@ import { responseHandlerMiddleware } from '../middlewares/responseHandlerMiddlew
 import { errorMiddleware } from '../middlewares/errorMiddleware'
 import { passportStrategyMiddleware } from '../middlewares/passportStrategyMiddleware'
 import { redisMiddleware } from '../middlewares/redisMiddleware'
-import { POSTHOG_CONFIG } from '../config'
 import { createRedisClient, createRedisPubSubPair } from '../utils/redis'
 import WebSockets from './websockets'
 import RedisPubSubReceiver from '../utils/redis/pubSubReceiver'
@@ -53,12 +53,6 @@ setImmediate(async () => {
     }
   })
 
-  let posthog = null
-
-  if (POSTHOG_CONFIG.apiKey) {
-    posthog = new PostHog(POSTHOG_CONFIG.apiKey)
-  }
-
   // Enables CORS
   app.use(cors({ origin: true }))
 
@@ -82,11 +76,42 @@ setImmediate(async () => {
   // Bind redis to request
   app.use(redisMiddleware(redis))
 
-  // Bind posthog to request
-  app.use((req: any, res, next) => {
-    req.posthog = posthog
-    next()
-  })
+  // Bind unleash to request
+  if (UNLEASH_CONFIG.url) {
+    const unleash = new Unleash({
+      url: `${UNLEASH_CONFIG.url}/api`,
+      appName: 'test',
+      customHeaders: {
+        Authorization: UNLEASH_CONFIG.backendApiKey,
+      },
+    })
+
+    unleash.on('error', (err) => {
+      serviceLogger.error(err, 'Unleash client error!')
+    })
+
+    let isReady = false
+
+    setInterval(async () => {
+      if (!isReady) {
+        serviceLogger.error('Unleash client is not ready yet, exiting...')
+        process.exit(1)
+      }
+    }, 60 * 1000)
+
+    await new Promise<void>((resolve) => {
+      unleash.on('ready', () => {
+        serviceLogger.info('Unleash client is ready!')
+        isReady = true
+        resolve()
+      })
+    })
+
+    app.use((req: any, res, next) => {
+      req.unleash = unleash
+      next()
+    })
+  }
 
   // initialize passport strategies
   app.use(passportStrategyMiddleware)

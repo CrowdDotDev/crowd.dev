@@ -42,7 +42,10 @@
           <span
             v-if="hasPremiumPlan"
             class="font-medium ml-2 text-purple-500"
-            >{{ premiumFeatureCopy() }} only</span
+            >{{
+              FeatureFlag.premiumFeatureCopy()
+            }}
+            only</span
           >
           <span
             v-else
@@ -90,13 +93,9 @@ import {
 } from 'vue'
 import { useStore } from 'vuex'
 import { ConversationPermissions } from '@/modules/conversation/conversation-permissions'
-import {
-  isFeatureEnabled,
-  featureFlags,
-  premiumFeatureCopy
-} from '@/utils/posthog'
 import config from '@/config'
 import AppPaywallModal from '@/modules/layout/components/paywall-modal.vue'
+import { FeatureFlag } from '@/unleash'
 
 const store = useStore()
 
@@ -167,12 +166,12 @@ const hasPermissionToCustomize = computed(() => {
 })
 
 onMounted(async () => {
-  const isFlagEnabled = await isFeatureEnabled(
-    featureFlags.communityCenterPro
+  const isFeatureEnabled = FeatureFlag.isFlagEnabled(
+    FeatureFlag.flags.communityCenterPro
   )
 
   hasPremiumPlan.value =
-    config.hasPremiumModules && isFlagEnabled
+    config.hasPremiumModules && isFeatureEnabled
 })
 
 const onUnlockClick = () => {

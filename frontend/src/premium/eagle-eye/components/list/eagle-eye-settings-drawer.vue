@@ -1,0 +1,284 @@
+<template>
+  <app-drawer v-model="drawerModel" title="Feed settings">
+    <template #content>
+      <div class="pt-2">
+        <h5 class="text-base leading-5 font-semibold pb-6">
+          Keywords
+        </h5>
+
+        <el-form @submit.prevent>
+          <!-- include -->
+          <section class="pb-8">
+            <p
+              class="text-2xs leading-4.5 font-semibold text-gray-400 uppercase tracking-1 pb-3"
+            >
+              Include
+              <span class="text-brand-500 font-normal"
+                >*</span
+              >
+            </p>
+            <app-eagle-eye-settings-include
+              v-for="(include, ii) of form.include"
+              :key="ii"
+              v-model="form.include[ii]"
+            >
+              <template #after>
+                <el-button
+                  class="btn btn--md btn--transparent w-10 h-10"
+                  :disabled="form.include.length === 1"
+                  @click="removeInclude(ii)"
+                >
+                  <i class="ri-delete-bin-line text-lg"></i>
+                </el-button>
+              </template>
+            </app-eagle-eye-settings-include>
+            <div class="flex">
+              <p
+                class="text-sm leading-5 text-brand-500 cursor-pointer"
+                @click="addInclude()"
+              >
+                + Add keyword
+              </p>
+            </div>
+          </section>
+
+          <!-- exclude -->
+          <section class="pb-10">
+            <p
+              class="text-2xs leading-4.5 font-semibold text-gray-400 uppercase tracking-1 pb-3"
+            >
+              Exclude
+            </p>
+            <article
+              v-for="(exclude, ei) of form.exclude"
+              :key="ei"
+              class="pb-3 flex items-center"
+            >
+              <app-form-item
+                class="mr-3 mb-0 no-margin flex-grow"
+              >
+                <el-input
+                  v-model="exclude.keyword"
+                  placeholder="Keyword"
+                ></el-input>
+              </app-form-item>
+              <el-button
+                class="btn btn--md btn--transparent w-10 h-10"
+                @click="removeExclude(ei)"
+              >
+                <i class="ri-delete-bin-line text-lg"></i>
+              </el-button>
+            </article>
+            <div class="flex">
+              <p
+                class="text-sm leading-5 text-brand-500 cursor-pointer"
+                @click="addExclude()"
+              >
+                + Add keyword
+              </p>
+            </div>
+          </section>
+          <hr />
+          <h5
+            class="text-base leading-5 font-semibold py-6"
+          >
+            Platforms
+          </h5>
+
+          <!-- date published -->
+          <section>
+            <h6
+              class="text-xs leading-5 font-semibold pb-2"
+            >
+              Date published
+            </h6>
+            <div class="pb-7">
+              <app-eagle-eye-published-date
+                v-model:date-published="form.datePublished"
+              />
+            </div>
+          </section>
+
+          <!-- platforms -->
+          <section>
+            <p class="mb-3 text-xs text-gray-500">
+              For better results, we recommend choosing at
+              least 3 platforms.
+            </p>
+            <app-eagle-eye-platforms
+              v-model:platforms="form.platforms"
+            />
+          </section>
+        </el-form>
+      </div>
+    </template>
+
+    <template #footer>
+      <div style="flex: auto" class="-my-2">
+        <el-button
+          class="btn btn--md btn--transparent mr-3"
+          @click="emit('update:modelValue', false)"
+          >Cancel
+        </el-button>
+        <el-button
+          type="primary"
+          class="btn btn--md btn--primary"
+          :loading="loadingUpdateSettings"
+          :disabled="$v.$invalid || !hasFormChanged"
+          @click="onSubmit()"
+          >Update
+        </el-button>
+      </div>
+    </template>
+  </app-drawer>
+</template>
+
+<script setup>
+import AppDrawer from '@/shared/drawer/drawer.vue'
+import Message from '@/shared/message/message'
+import {
+  computed,
+  defineEmits,
+  defineProps,
+  onMounted,
+  reactive,
+  watch,
+  defineExpose
+} from 'vue'
+import {
+  mapActions,
+  mapGetters,
+  mapState
+} from '@/shared/vuex/vuex.helpers'
+import AppEagleEyePlatforms from '@/premium/eagle-eye/components/eagle-eye-platforms-drawers.vue'
+import AppEagleEyePublishedDate from '@/premium/eagle-eye/components/eagle-eye-published-date.vue'
+import useVuelidate from '@vuelidate/core'
+import AppEagleEyeSettingsInclude from '@/premium/eagle-eye/components/form/eagle-eye-settings-include.vue'
+import AppFormItem from '@/shared/form/form-item.vue'
+import formChangeDetector from '@/shared/form/form-change'
+
+const props = defineProps({
+  modelValue: {
+    type: Boolean,
+    default: false
+  }
+})
+
+const emit = defineEmits(['update:modelValue'])
+
+const { currentUser } = mapGetters('auth')
+const { doUpdateSettings } = mapActions('eagleEye')
+const { loadingUpdateSettings } = mapState('eagleEye')
+
+const form = reactive({
+  include: [],
+  exclude: [],
+  datePublished: '',
+  platforms: []
+})
+const { hasFormChanged, formSnapshot } =
+  formChangeDetector(form)
+
+const $v = useVuelidate({}, form)
+
+const drawerModel = computed({
+  get() {
+    return props.modelValue
+  },
+  set(value) {
+    emit('update:modelValue', value)
+  }
+})
+
+watch(
+  () => props.modelValue,
+  (open) => {
+    if (open) {
+      fillForm(currentUser.value)
+    }
+  }
+)
+
+const addInclude = () => {
+  form.include.push({
+    keyword: '',
+    match: 'semantic'
+  })
+}
+
+const removeInclude = (index) => {
+  form.include.splice(index, 1)
+}
+
+const addExclude = () => {
+  form.exclude.push({
+    keyword: ''
+  })
+}
+
+const removeExclude = (index) => {
+  form.exclude.splice(index, 1)
+}
+
+const fillForm = (user) => {
+  if (!user) {
+    return
+  }
+  const { eagleEyeSettings } = user
+  const { feed } = eagleEyeSettings
+
+  form.include = [
+    ...feed.keywords.map((keyword) => ({
+      keyword,
+      match: 'semantic'
+    })),
+    ...feed.exactKeywords.map((keyword) => ({
+      keyword,
+      match: 'exact'
+    }))
+  ]
+  form.exclude = feed.excludedKeywords.map((keyword) => ({
+    keyword
+  }))
+  form.platforms = feed.platforms
+
+  form.datePublished = feed.publishedDate
+  formSnapshot()
+}
+
+const onSubmit = async () => {
+  $v.value.$touch()
+  if (!$v.value.$invalid) {
+    const data = {
+      keywords: form.include
+        .filter((i) => i.match === 'semantic')
+        .map((i) => i.keyword),
+      exactKeywords: form.include
+        .filter((i) => i.match === 'exact')
+        .map((i) => i.keyword),
+      excludedKeywords: form.exclude
+        .filter((e) => e.keyword.trim().length > 0)
+        .map((e) => e.keyword),
+      publishedDate: form.datePublished,
+      platforms: form.platforms
+    }
+    doUpdateSettings({
+      data: {
+        ...currentUser.value.eagleEyeSettings,
+        feed: data
+      }
+    }).then(() => {
+      Message.success('Feed settings updated!')
+      emit('update:modelValue', false)
+    })
+  }
+}
+
+onMounted(() => {
+  fillForm(currentUser.value)
+})
+
+defineExpose({
+  $v
+})
+</script>

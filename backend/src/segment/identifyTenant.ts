@@ -1,5 +1,4 @@
 import { SEGMENT_CONFIG, API_CONFIG } from '../config'
-import setPosthogTenantProperties from '../feature-flags/setTenantProperties'
 import { Edition } from '../types/common'
 
 export default async function identifyTenant(req) {
@@ -27,6 +26,4 @@ export default async function identifyTenant(req) {
       }
     }
   }
-
-  setPosthogTenantProperties(req.currentTenant, req.posthog, req.database, req.redis)
 }

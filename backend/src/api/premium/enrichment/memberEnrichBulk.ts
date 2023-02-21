@@ -1,5 +1,4 @@
 import Error403 from '../../../errors/Error403'
-import { PLAN_LIMITS } from '../../../feature-flags/ensureFlagUpdated'
 import Permissions from '../../../security/permissions'
 import identifyTenant from '../../../segment/identifyTenant'
 import { sendBulkEnrichMessage } from '../../../serverless/utils/nodeWorkerSQS'
@@ -9,6 +8,7 @@ import { createServiceLogger } from '../../../utils/logging'
 import { RedisCache } from '../../../utils/redis/redisCache'
 import track from '../../../segment/track'
 import { getSecondsTillEndOfMonth } from '../../../utils/timing'
+import { PLAN_LIMITS } from '../../../feature-flags/isFeatureEnabled'
 
 const log = createServiceLogger()
 

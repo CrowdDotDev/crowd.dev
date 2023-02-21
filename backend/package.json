@@ -33,7 +33,8 @@
     "script:process-integration": "SERVICE=script ts-node ./src/bin/scripts/process-integration.ts",
     "script:change-tenant-plan": "SERVICE=script ts-node ./src/bin/scripts/change-tenant-plan.ts",
     "script:process-webhook": "SERVICE=script ts-node ./src/bin/scripts/process-webhook.ts",
-    "script:send-weekly-analytics-email": "SERVICE=script ts-node ./src/bin/scripts/send-weekly-analytics-email.ts"
+    "script:send-weekly-analytics-email": "SERVICE=script ts-node ./src/bin/scripts/send-weekly-analytics-email.ts",
+    "script:unleash-init": "SERVICE=script ts-node ./src/bin/scripts/unleash-init.ts"
   },
   "dependencies": {
     "@aws-sdk/client-comprehend": "^3.159.0",
@@ -99,7 +100,6 @@
     "passport-slack": "0.0.7",
     "pg": "^8.7.3",
     "pm2": "^5.2.0",
-    "posthog-node": "^2.2.3",
     "redis": "^4.5.0",
     "sanitize-html": "^2.7.1",
     "sequelize": "6.21.2",
@@ -108,6 +108,7 @@
     "stripe": "^10.0.0",
     "superagent": "^8.0.0",
     "swagger-ui-dist": "4.1.3",
+    "unleash-client": "^3.18.1",
     "utf-8-validate": "^5.0.10",
     "uuid": "^8.3.2",
     "validator": "^13.7.0",

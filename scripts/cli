@@ -359,14 +359,19 @@ function create_qdrant_collection() {
     }'
 }
 
+function init_unleash() {
+    (cd $CLI_HOME/../backend && source source-local.sh && npm i && npm run script:unleash-init)
+}
+
 function up_scaffold() {
     scaffold_set_up_network "$PROJECT_NAME-bridge" $DOCKER_NETWORK_SUBNET $DOCKER_NETWORK_GATEWAY
     $_DC --compatibility -p $PROJECT_NAME -f $CLI_HOME/scaffold.yaml up -d --build
     wait_for_db
     migrate_local
     create_s3_buckets
-    create_qdrant_collection
+    # create_qdrant_collection
     bash pizzly-integrations.sh
+    init_unleash
 }
 
 function down_scaffold() {
@@ -590,6 +595,10 @@ do
         ;;
         db-restore)
             restore_db_backup $2
+            exit;
+        ;;
+        test-unleash)
+            init_unleash
             exit;
         ;;
         *) error "Invalid command '$1'" && say "$SCRIPT_USAGE"
