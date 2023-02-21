@@ -67,7 +67,7 @@ import AppCommunityHelpCenterFilter from '@/premium/community-help-center/compon
 import AppCommunityHelpCenterSettings from '@/premium/community-help-center/components/community-help-center-settings'
 import AppCommunityHelpCenterConversationDrawer from '@/premium/community-help-center/components/community-help-center-conversation-drawer'
 import config from '@/config'
-import { FeatureFlag } from '@/unleash'
+import { FeatureFlag } from '@/featureFlag'
 
 export default {
   name: 'AppConversationListPage',

@@ -108,7 +108,7 @@ export default {
 import { useStore } from 'vuex'
 import { defineProps, computed, ref } from 'vue'
 import AppIntegrationConnect from '@/modules/integration/components/integration-connect'
-import { FeatureFlag } from '@/unleash'
+import { FeatureFlag } from '@/featureFlag'
 
 const store = useStore()
 const props = defineProps({

@@ -5,7 +5,7 @@ import { formatNumber } from '@/utils/number'
 import { h } from 'vue'
 import Message from '@/shared/message/message'
 import pluralize from 'pluralize'
-import { FeatureFlag, FEATURE_FLAGS } from '@/unleash'
+import { FeatureFlag, FEATURE_FLAGS } from '@/featureFlag'
 
 const growthEnrichmentMax = 1000
 const essentialEnrichmentMax = 5

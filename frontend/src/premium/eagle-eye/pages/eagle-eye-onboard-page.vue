@@ -44,7 +44,7 @@ import {
   onBeforeUnmount
 } from 'vue'
 import { onBeforeRouteLeave, useRouter } from 'vue-router'
-import { FeatureFlag } from '@/unleash'
+import { FeatureFlag } from '@/featureFlag'
 import EagleEyeBanner from '@/premium/eagle-eye/components/onboard/eagle-eye-banner.vue'
 import EagleEyeIntro from '@/premium/eagle-eye/components/onboard/eagle-eye-intro-step.vue'
 import EagleEyeKeywords from '@/premium/eagle-eye/components/onboard/eagle-eye-keywords-step.vue'
@@ -121,7 +121,7 @@ onMounted(() => {
       'eagleEye/UPDATE_EAGLE_EYE_SETTINGS_SUCCESS'
     ) {
       wasFormSubmittedSuccessfuly.value = true
-      router.push({ name: 'eagleEye' })
+      router.go(0)
     }
   })
 })

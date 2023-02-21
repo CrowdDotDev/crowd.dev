@@ -97,17 +97,16 @@
 import config from '@/config'
 import AppPageWrapper from '@/shared/layout/page-wrapper.vue'
 import { pageContent } from '@/modules/layout/layout-page-content'
-import { defineProps, computed } from 'vue'
-import { FeatureFlag } from '@/unleash'
+import { computed } from 'vue'
+import { FeatureFlag } from '@/featureFlag'
+import { useRouter } from 'vue-router'
 
-const props = defineProps({
-  module: {
-    type: String,
-    required: true
-  }
-})
+const router = useRouter()
 
-const page = computed(() => pageContent[props.module])
+const module = computed(
+  () => router.currentRoute.value.name
+)
+const page = computed(() => pageContent[module.value])
 const computedFeaturePlan = computed(() => {
   return config.isCommunityVersion ? 'Custom' : 'Growth'
 })

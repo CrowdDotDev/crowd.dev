@@ -32,7 +32,7 @@ import Pizzly from '@nangohq/pizzly-frontend'
 import { useStore } from 'vuex'
 import AuthCurrentTenant from '@/modules/auth/auth-current-tenant'
 import { useThrottleFn } from '@vueuse/core'
-import { FeatureFlag } from '@/unleash'
+import { FeatureFlag } from '@/featureFlag'
 
 const store = useStore()
 const router = useRouter()

@@ -1,6 +1,6 @@
 import { tenantSubdomain } from '@/modules/tenant/tenant-subdomain'
 import config from '@/config'
-import { FeatureFlag } from '@/unleash'
+import { FeatureFlag } from '@/featureFlag'
 
 /**
  * Auth Current Tenant

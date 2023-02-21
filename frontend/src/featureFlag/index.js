@@ -1,5 +1,7 @@
 import { UnleashClient } from 'unleash-proxy-client'
 import config from '@/config'
+import { store } from '@/store'
+import LogRocket from 'logrocket'
 
 export const FEATURE_FLAGS = {
   eagleEye: 'eagle-eye',
@@ -28,9 +30,20 @@ export class FeatureFlagService {
     const context = this.getContextFromTenant(tenant)
 
     this.unleash.start()
+
     this.updateContext(context)
+
     this.unleash.on('ready', () => {
-      console.log('Unleash is ready')
+      store.dispatch('tenant/doUpdateFeatureFlag', {
+        isReady: true
+      })
+    })
+
+    this.unleash.on('error', (error) => {
+      LogRocket.captureException(error)
+      store.dispatch('tenant/doUpdateFeatureFlag', {
+        hasError: true
+      })
     })
   }
 

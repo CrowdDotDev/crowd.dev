@@ -95,7 +95,7 @@ import { useStore } from 'vuex'
 import { ConversationPermissions } from '@/modules/conversation/conversation-permissions'
 import config from '@/config'
 import AppPaywallModal from '@/modules/layout/components/paywall-modal.vue'
-import { FeatureFlag } from '@/unleash'
+import { FeatureFlag } from '@/featureFlag'
 
 const store = useStore()
 

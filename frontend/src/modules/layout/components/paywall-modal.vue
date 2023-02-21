@@ -53,7 +53,7 @@
 
 <script setup>
 import { defineProps, defineEmits, computed } from 'vue'
-import { FeatureFlag } from '@/unleash'
+import { FeatureFlag } from '@/featureFlag'
 
 const emit = defineEmits(['update:modelValue'])
 const props = defineProps({

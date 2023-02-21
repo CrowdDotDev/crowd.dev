@@ -76,7 +76,7 @@ import { mapGetters, mapActions } from 'vuex'
 import pluralize from 'pluralize'
 import ConfirmDialog from '@/shared/dialog/confirm-dialog'
 import { router } from '@/router'
-import { FeatureFlag } from '@/unleash'
+import { FeatureFlag } from '@/featureFlag'
 
 export default {
   name: 'AppAutomationListPage',

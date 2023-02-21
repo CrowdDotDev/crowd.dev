@@ -1,5 +1,5 @@
 <template>
-  <div v-if="!loadingInit" id="app">
+  <div v-if="!loading" id="app">
     <div class="sm:hidden md:block lg:block">
       <router-view v-slot="{ Component }">
         <transition>
@@ -17,9 +17,9 @@
 </template>
 
 <script>
-import { mapGetters, mapActions } from 'vuex'
+import { mapGetters, mapActions, mapState } from 'vuex'
 import AppResizePage from '@/modules/layout/pages/resize-page.vue'
-import { FeatureFlag } from '@/unleash'
+import { FeatureFlag } from '@/featureFlag'
 
 export default {
   name: 'App',
@@ -32,7 +32,17 @@ export default {
     ...mapGetters({
       loadingInit: 'auth/loadingInit',
       currentTenant: 'auth/currentTenant'
-    })
+    }),
+    ...mapState({
+      featureFlag: (state) => state.tenant.featureFlag
+    }),
+    loading() {
+      return (
+        this.loadingInit ||
+        (!this.featureFlag.isReady &&
+          !this.featureFlag.hasError)
+      )
+    }
   },
 
   async created() {

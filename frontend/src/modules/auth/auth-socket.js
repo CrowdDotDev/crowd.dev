@@ -8,7 +8,7 @@ import {
   getEnrichmentMax
 } from '@/modules/member/member-enrichment'
 import pluralize from 'pluralize'
-import { FeatureFlag } from '@/unleash'
+import { FeatureFlag } from '@/featureFlag'
 
 let socketIoClient
 
