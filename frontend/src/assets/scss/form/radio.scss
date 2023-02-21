@@ -18,6 +18,12 @@
         @apply text-brand-500;
       }
     }
+
+    &.is-small {
+      .el-radio-button__inner {
+        @apply p-2;
+      }
+    }
   }
 
   &.radio-chips {

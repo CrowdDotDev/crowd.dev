@@ -9,6 +9,7 @@ import {
   ProcessAutomationMessage,
   ProcessWebhookAutomationMessage,
   BulkEnrichMessage,
+  EagleEyeEmailDigestMessage,
 } from './messageTypes'
 import { AutomationTrigger, AutomationType } from '../../../types/automationTypes'
 import newActivityWorker from './automation/workers/newActivityWorker'
@@ -17,6 +18,7 @@ import webhookWorker from './automation/workers/webhookWorker'
 import { csvExportWorker } from './csv-export/csvExportWorker'
 import { processWebhook } from '../../integrations/workers/stripeWebhookWorker'
 import { bulkEnrichmentWorker } from './bulk-enrichment/bulkEnrichmentWorker'
+import { eagleEyeEmailDigestWorker } from './eagle-eye-email-digest/eagleEyeEmailDigestWorker'
 
 /**
  * Worker factory for spawning different microservices
@@ -33,6 +35,9 @@ async function workerFactory(event: NodeMicroserviceMessage): Promise<any> {
       return processWebhook(event)
     case 'weekly-analytics-emails':
       return weeklyAnalyticsEmailsWorker(tenant)
+    case 'eagle-eye-email-digest':
+      const eagleEyeDigestMessage = event as EagleEyeEmailDigestMessage
+      return eagleEyeEmailDigestWorker(eagleEyeDigestMessage.user)
     case 'csv-export':
       const csvExportMessage = event as CsvExportMessage
       return csvExportWorker(

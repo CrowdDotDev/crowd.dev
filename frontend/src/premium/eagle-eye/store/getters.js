@@ -1,14 +1,42 @@
 import sharedGetters from '@/shared/store/getters'
+import { INITIAL_PAGE_SIZE } from './constants'
 
 export default {
   ...sharedGetters(),
-  rows: (state, getters) => {
-    return state.list.ids
-      .map((r) => state.records[r])
-      .filter((r) => {
-        return getters.activeView.id === 'inbox'
-          ? r.status === null
-          : r.status === getters.activeView.id
-      })
+
+  activeViewList: (state) => {
+    const activeView = sharedGetters().activeView(state)
+
+    return state.views[activeView.id].list
+  },
+
+  pagination: (state, getters) => {
+    return {
+      ...getters.activeView.pagination,
+      total: getters.activeView.count,
+      showSizeChanger: true
+    }
+  },
+
+  limit: (state, getters) => {
+    const { pagination } = getters.activeView
+
+    if (!pagination?.pageSize) {
+      return INITIAL_PAGE_SIZE
+    }
+
+    return pagination.pageSize
+  },
+
+  offset: (state, getters) => {
+    const { pagination } = getters.activeView
+
+    if (!pagination?.pageSize) {
+      return 0
+    }
+
+    const { currentPage = 1 } = pagination
+
+    return (currentPage - 1) * pagination.pageSize
   }
 }

@@ -320,6 +320,37 @@ export default class UserRepository {
     return this.findById(user.id, options)
   }
 
+  static async updateEagleEyeSettings(id: string, data, options: IRepositoryOptions) {
+    const currentUser = SequelizeRepository.getCurrentUser(options)
+    const transaction = SequelizeRepository.getTransaction(options)
+
+    const user = await options.database.user.findByPk(id, {
+      transaction,
+    })
+
+    await user.update(
+      {
+        eagleEyeSettings: { ...user.eagleEyeSettings, ...data },
+        updatedById: currentUser.id,
+      },
+      { transaction },
+    )
+
+    await AuditLogRepository.log(
+      {
+        entityName: 'user',
+        entityId: user.id,
+        action: AuditLogRepository.UPDATE,
+        values: {
+          ...user.get({ plain: true }),
+          eagleEyeSettings: data,
+        },
+      },
+      options,
+    )
+    return this.findById(user.id, options)
+  }
+
   static async findByEmail(email, options: IRepositoryOptions) {
     const transaction = SequelizeRepository.getTransaction(options)
 

@@ -3,9 +3,13 @@
     <app-menu></app-menu>
     <el-container :style="elMainStyle">
       <el-main id="main-page-wrapper" class="relative">
-        <div :class="computedBannerWrapperClass">
+        <div
+          :class="{
+            'pt-16': showBanner
+          }"
+        >
           <banner
-            v-if="shouldShowSampleDataAlert"
+            v-if="showSampleDataAlert"
             variant="alert"
           >
             <div
@@ -23,7 +27,7 @@
             </div>
           </banner>
           <banner
-            v-if="shouldShowIntegrationsErrorAlert"
+            v-if="showIntegrationsErrorAlert"
             variant="alert"
           >
             <div
@@ -41,7 +45,7 @@
           </banner>
 
           <banner
-            v-if="shouldShowIntegrationsInProgressAlert"
+            v-if="showIntegrationsInProgressAlert"
             variant="info"
           >
             <div
@@ -67,7 +71,7 @@
             </div>
           </banner>
           <banner
-            v-if="shouldShowTenantCreatingAlert"
+            v-if="showTenantCreatingAlert"
             variant="info"
           >
             <div
@@ -84,10 +88,7 @@
               completely loaded.
             </div>
           </banner>
-          <banner
-            v-if="shouldShowPMFSurveyAlert"
-            variant="info"
-          >
+          <banner v-if="showPMFSurveyAlert" variant="info">
             <div
               class="flex items-center justify-center grow text-sm"
             >
@@ -159,7 +160,6 @@ import { mapActions, mapGetters } from 'vuex'
 import Banner from '@/shared/banner/banner.vue'
 import identify from '@/shared/monitoring/identify'
 import ConfirmDialog from '@/shared/dialog/confirm-dialog.js'
-import moment from 'moment'
 import config from '@/config'
 import Message from '@/shared/message/message'
 
@@ -188,7 +188,16 @@ export default {
       currentUser: 'auth/currentUser',
       currentTenant: 'auth/currentTenant',
       integrationsInProgress: 'integration/inProgress',
-      integrationsWithErrors: 'integration/withErrors'
+      integrationsWithErrors: 'integration/withErrors',
+      showSampleDataAlert: 'tenant/showSampleDataAlert',
+      showIntegrationsErrorAlert:
+        'tenant/showIntegrationsErrorAlert',
+      showIntegrationsInProgressAlert:
+        'tenant/showIntegrationsInProgressAlert',
+      showTenantCreatingAlert:
+        'tenant/showTenantCreatingAlert',
+      showPMFSurveyAlert: 'tenant/showPMFSurveyAlert',
+      showBanner: 'tenant/showBanner'
     }),
     integrationsInProgressToString() {
       const arr = this.integrationsInProgress.map(
@@ -204,52 +213,6 @@ export default {
           ', and ' +
           arr.slice(-1)
         )
-      }
-    },
-    shouldShowIntegrationsInProgressAlert() {
-      return this.integrationsInProgress.length > 0
-    },
-    shouldShowIntegrationsErrorAlert() {
-      return (
-        this.integrationsWithErrors.length > 0 &&
-        this.$route.name !== 'integration'
-      )
-    },
-    shouldShowSampleDataAlert() {
-      return this.currentTenant.hasSampleData
-    },
-    shouldShowPMFSurveyAlert() {
-      const timestampSignup = new Date(
-        this.currentUser.createdAt
-      ).getTime()
-      const timeStamp4WeeksAgo =
-        new Date().getTime() - 4 * 7 * 24 * 60 * 60 * 1000
-      const timeStamp2023 = new Date('2023-01-01').getTime()
-
-      return (
-        timestampSignup >= timeStamp2023 &&
-        timestampSignup <= timeStamp4WeeksAgo &&
-        config.formbricks.url &&
-        config.formbricks.pmfFormId &&
-        !this.hidePmfBanner
-      )
-    },
-    shouldShowTenantCreatingAlert() {
-      return (
-        moment().diff(
-          moment(this.currentTenant.createdAt),
-          'minutes'
-        ) <= 2
-      )
-    },
-    computedBannerWrapperClass() {
-      return {
-        'pt-16':
-          this.shouldShowSampleDataAlert ||
-          this.shouldShowIntegrationsErrorAlert ||
-          this.shouldShowIntegrationsInProgressAlert ||
-          this.shouldShowTenantCreatingAlert ||
-          this.shouldShowPMFSurveyAlert
       }
     },
     elMainStyle() {
@@ -357,30 +320,6 @@ export default {
       // Call this function in your authentication promise handler or callback when your visitor and account id values are available
       // Please use Strings, Numbers, or Bools for value types.
       window.pendo.initialize({
-        visitor: {
-          id: this.currentUser.id, // Required if user is logged in, default creates anonymous ID
-          email: this.currentUser.email, // Recommended if using Pendo Feedback, or NPS Email
-          full_name: this.currentUser.fullName // Recommended if using Pendo Feedback
-          // role:         // Optional
-
-          // You can add any additional visitor level key-values here,
-          // as long as it's not one of the above reserved names.
-        },
-
-        account: {
-          id: this.currentTenant.id, // Required if using Pendo Feedback, default uses the value 'ACCOUNT-UNIQUE-ID'
-          name: this.currentTenant.name, // Optional
-          is_paying: this.currentTenant.plan !== 'Essential' // Recommended if using Pendo Feedback
-          // monthly_value:// Recommended if using Pendo Feedback
-          // planLevel:    // Optional
-          // planPrice:    // Optional
-          // creationDate: // Optional
-
-          // You can add any additional account level key-values here,
-          // as long as it's not one of the above reserved names.
-        }
-      })
-      console.log({
         visitor: {
           id: this.currentUser.id, // Required if user is logged in, default creates anonymous ID
           email: this.currentUser.email, // Recommended if using Pendo Feedback, or NPS Email

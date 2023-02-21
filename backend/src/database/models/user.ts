@@ -102,6 +102,13 @@ export default (sequelize, DataTypes) => {
           len: [0, 255],
         },
       },
+      eagleEyeSettings: {
+        type: DataTypes.JSONB,
+        allowNull: false,
+        defaultValue: {
+          onboarded: false,
+        },
+      },
     },
     {
       indexes: [
