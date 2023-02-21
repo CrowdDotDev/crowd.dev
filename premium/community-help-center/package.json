@@ -21,7 +21,7 @@
     "@babel/runtime": "^7.17.9",
     "@headlessui/vue": "^1.5.0",
     "@heroicons/vue": "^1.0.6",
-    "@meilisearch/instant-meilisearch": "^0.7.0",
+    "@meilisearch/instant-meilisearch": "^0.10.1",
     "@nuxtjs/robots": "^3.0.0",
     "@tailwindcss/line-clamp": "^0.4.0",
     "instantsearch.css": "^7.4.5",
