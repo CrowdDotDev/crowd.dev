@@ -53,7 +53,7 @@ env:
 jobs:
   build-and-push-backend:
     runs-on: ubuntu-latest
-    if: ${{ inputs.deploy_api || inputs.deploy_job_generator || inputs.deploy_nodejs_worker }}
+    if: ${{ inputs.deploy_api || inputs.deploy_job_generator || inputs.deploy_nodejs_worker || inputs.deploy_discord_ws }}
     outputs:
       image: ${{ steps.image.outputs.IMAGE }}
     defaults:

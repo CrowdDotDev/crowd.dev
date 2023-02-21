@@ -200,6 +200,22 @@ const identitiesForm = reactive({
     imgContainerClass:
       'h-8 w-8 rounded flex items-center justify-center text-base btn--twitter'
   },
+  linkedin: {
+    enabled:
+      props.modelValue.username?.linkedin !== undefined ||
+      false,
+    urlPrefix: 'linkedin.com/in/',
+    imgContainerClass:
+      'h-8 w-8 rounded flex items-center justify-center text-base btn--linkedin'
+  },
+  reddit: {
+    enabled:
+      props.modelValue.username?.reddit !== undefined ||
+      false,
+    urlPrefix: 'reddit.com/user/',
+    imgContainerClass:
+      'h-8 w-8 rounded flex items-center justify-center text-base btn--reddit'
+  },
   hackernews: {
     enabled:
       props.modelValue.username?.hackernews !== undefined ||

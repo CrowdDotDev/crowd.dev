@@ -6,6 +6,7 @@ import { createServiceLogger } from '../../utils/logging'
 import SequelizeRepository from '../../database/repositories/sequelizeRepository'
 import { sendNodeWorkerMessage } from '../../serverless/utils/nodeWorkerSQS'
 import { NodeWorkerIntegrationProcessMessage } from '../../types/mq/nodeWorkerIntegrationProcessMessage'
+import IntegrationRepository from '../../database/repositories/integrationRepository'
 
 const banner = fs.readFileSync(path.join(__dirname, 'banner.txt'), 'utf8')
 
@@ -26,6 +27,11 @@ const options = [
     description: 'Process integration as if it was onboarding.',
     type: Boolean,
     defaultValue: false,
+  },
+  {
+    name: 'platform',
+    alias: 'p',
+    description: 'The platform for which we should run all integrations.',
   },
   {
     name: 'help',
@@ -52,24 +58,18 @@ const sections = [
 const usage = commandLineUsage(sections)
 const parameters = commandLineArgs(options)
 
-if (parameters.help || !parameters.integration) {
+if (parameters.help || (!parameters.integration && !parameters.platform)) {
   console.log(usage)
 } else {
   setImmediate(async () => {
-    const integrationIds = parameters.integration.split(',')
     const onboarding = parameters.onboarding
     const options = await SequelizeRepository.getDefaultIRepositoryOptions()
 
-    for (const integrationId of integrationIds) {
-      const integration = await options.database.integration.findOne({
-        where: { id: integrationId },
-      })
-
-      if (!integration) {
-        log.error({ integrationId }, 'Integration not found!')
-        process.exit(1)
-      } else {
-        log.info({ integrationId, onboarding }, 'Integration found - triggering SQS message!')
+    if (parameters.platform) {
+      const integrations = await IntegrationRepository.findAllActive(parameters.platform)
+      for (const i of integrations) {
+        const integration = i as any
+        log.info({ integrationId: integration.id, onboarding }, 'Triggering SQS message!')
         await sendNodeWorkerMessage(
           integration.tenantId,
           new NodeWorkerIntegrationProcessMessage(
@@ -80,7 +80,31 @@ if (parameters.help || !parameters.integration) {
           ),
         )
       }
+    } else {
+      const integrationIds = parameters.integration.split(',')
+      for (const integrationId of integrationIds) {
+        const integration = await options.database.integration.findOne({
+          where: { id: integrationId },
+        })
+
+        if (!integration) {
+          log.error({ integrationId }, 'Integration not found!')
+          process.exit(1)
+        } else {
+          log.info({ integrationId, onboarding }, 'Integration found - triggering SQS message!')
+          await sendNodeWorkerMessage(
+            integration.tenantId,
+            new NodeWorkerIntegrationProcessMessage(
+              integration.platform,
+              integration.tenantId,
+              onboarding,
+              integration.id,
+            ),
+          )
+        }
+      }
     }
+
     process.exit(0)
   })
 }

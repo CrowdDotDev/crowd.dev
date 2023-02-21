@@ -97,18 +97,16 @@
                 Could you help us by answering a quick
                 survey? 😄
                 <button
-                  :data-tf-popup="typeformData.id"
-                  :data-tf-iframe-props="`title=${typeformData.title}`"
                   data-tf-medium="snippet"
                   class="btn btn--sm btn--primary ml-4"
-                  @click="hideTypeform()"
+                  @click="toggleShowPmfSurvey()"
                 >
                   Take survey
                 </button>
               </div>
               <div class="flex-1">
                 <div class="w-20 ml-auto">
-                  <button @click="hideTypeform()">
+                  <button @click="hidePmfAsk()">
                     <i
                       class="ri-close-line text-gray-700"
                     ></i>
@@ -122,9 +120,41 @@
       </el-main>
     </el-container>
   </el-container>
+  <!-- PMF Modal -->
+  <div
+    v-if="showPmfSurvey"
+    class="relative z-10"
+    aria-labelledby="modal-title"
+    role="dialog"
+    aria-modal="true"
+  >
+    <div
+      class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"
+    ></div>
+
+    <div class="fixed inset-0 z-10 overflow-y-auto">
+      <div
+        class="flex min-h-full items-center justify-center p-4 text-center sm:items-center sm:p-0"
+      >
+        <div
+          class="relative transform overflow-hidden rounded-lg bg-white px-4 pt-5 pb-4 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-sm sm:p-6 w-96"
+          @click="(e) => e.stopPropagation()"
+        >
+          <button
+            class="absolute right-3 top-3"
+            @click="toggleShowPmfSurvey()"
+          >
+            <i class="ri-close-line text-gray-700"></i>
+          </button>
+          <div id="formbricks-pmf-container"></div>
+        </div>
+      </div>
+    </div>
+  </div>
 </template>
 
 <script>
+import { useStore } from 'vuex'
 import { TenantService } from '@/modules/tenant/tenant-service'
 import { mapActions, mapGetters } from 'vuex'
 import Banner from '@/shared/banner/banner.vue'
@@ -144,13 +174,10 @@ export default {
     return {
       fetchIntegrationTimer: null,
       loading: false,
-      hideTypeformBanner: localStorage.getItem(
-        `hideTypeformBanner-${config.typeformId}`
-      ),
-      typeformData: {
-        id: config.typeformId,
-        title: config.typeformTitle
-      }
+      showPmfSurvey: false,
+      hidePmfBanner: localStorage.getItem(
+        `hidePmfBanner-${config.formbricks.pmfFormId}`
+      )
     }
   },
 
@@ -199,6 +226,18 @@ export default {
     }
   },
 
+  watch: {
+    // whenever question changes, this function will run
+    showPmfSurvey(newValue) {
+      if (newValue) {
+        setTimeout(() => {
+          window.formbricksPmf.init()
+          window.formbricksPmf.reset()
+        }, 10)
+      }
+    }
+  },
+
   created() {
     if (this.isMobile) {
       this.collapseMenu()
@@ -210,14 +249,44 @@ export default {
   },
 
   async mounted() {
+    const store = useStore()
     identify(this.currentUser)
-    let recaptchaScript = document.createElement('script')
-    recaptchaScript.setAttribute(
-      'src',
-      '//embed.typeform.com/next/embed.js'
-    )
-    document.head.appendChild(recaptchaScript)
     this.initPendo()
+    // formbricks pmf
+    if (
+      config.formbricks.url &&
+      config.formbricks.pmfFormId
+    ) {
+      window.formbricksPmf = {
+        ...window.formbricksPmf,
+        config: {
+          formbricksUrl: config.formbricks.url,
+          formId: config.formbricks.pmfFormId,
+          containerId: 'formbricks-pmf-container',
+          onFinished: () => this.hidePmfAsk(),
+          contact: {
+            name: 'Jonathan',
+            position: 'Co-Founder',
+            imgUrl:
+              'https://avatars.githubusercontent.com/u/41432658?v=4'
+          },
+          customer: {
+            id: store.getters['auth/currentUser'].id,
+            name: store.getters['auth/currentUser']
+              .fullName,
+            email: store.getters['auth/currentUser'].email
+          },
+          style: {
+            brandColor: '#e94f2e',
+            headerBGColor: '#F9FAFB',
+            boxBGColor: '#ffffff',
+            textColor: '#140505',
+            buttonHoverColor: '#F9FAFB'
+          }
+        }
+      }
+      require('@formbricks/pmf')
+    }
   },
 
   unmounted() {
@@ -229,10 +298,18 @@ export default {
       collapseMenu: 'layout/collapseMenu'
     }),
 
-    hideTypeform() {
-      this.hideTypeformBanner = true
+    toggleShowPmfSurvey() {
+      this.showPmfSurvey = !this.showPmfSurvey
+      if (this.showPmfSurvey) {
+        window.formbricksPmf.init()
+        window.formbricksPmf.reset()
+      }
+    },
+
+    hidePmfAsk() {
+      this.hidePmfBanner = true
       localStorage.setItem(
-        `hideTypeformBanner-${config.typeformId}`,
+        `hidePmfBanner-${config.typeformId}`,
         true
       )
     },

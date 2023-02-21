@@ -1,20 +1,50 @@
 <template>
-  <div
-    class="grid grid-cols-3 md:grid-cols-2 gap-5 pr-8 pb-10 pl-3"
-  >
+  <div class="flex flex-col items-center">
+    <app-eagle-eye-loading-card
+      size="small"
+      class="mt-30 w-64"
+    />
+    <h5 class="mt-8">Loading results...</h5>
     <div
-      v-for="(_, index) in Array(3)"
-      :key="index"
-      class="col-span-1 flex flex-col gap-5"
+      v-if="showLongerLoading && showDescription"
+      class="text-gray-600 text-sm mt-4"
     >
-      <app-eagle-eye-loading-card
-        :size="index === 1 ? 'medium' : 'small'"
-      />
-      <app-eagle-eye-loading-card />
+      Generating your Eagle Eye feed can take up to 10
+      seconds.
     </div>
   </div>
 </template>
 
 <script setup>
 import AppEagleEyeLoadingCard from '@/premium/eagle-eye/components/list/eagle-eye-loading-card.vue'
+import {
+  onMounted,
+  onUnmounted,
+  ref,
+  defineProps
+} from 'vue'
+
+const showLongerLoading = ref(false)
+const timeout = ref()
+
+const props = defineProps({
+  showDescription: {
+    type: Boolean,
+    default: true
+  }
+})
+
+onMounted(() => {
+  if (props.showDescription) {
+    timeout.value = setTimeout(() => {
+      showLongerLoading.value = true
+    }, 2000)
+  }
+})
+
+onUnmounted(() => {
+  if (props.showDescription) {
+    clearTimeout(timeout.value)
+  }
+})
 </script>

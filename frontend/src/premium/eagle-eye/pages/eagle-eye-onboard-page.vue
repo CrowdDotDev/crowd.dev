@@ -150,7 +150,8 @@ const onSubmit = async () => {
         excludedKeywords: [],
         publishedDate: form.datePublished,
         platforms: formattedPlatforms
-      }
+      },
+      aiReplies: true
     }
   })
 }

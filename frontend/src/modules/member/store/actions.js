@@ -25,14 +25,14 @@ export default {
       customIds = [],
       customFilter = null,
       count = null
-    }
+    } = {}
   ) {
     let filter
 
     if (selected) {
       const ids = customIds.length
         ? customIds
-        : [getters.selectedRows.map((i) => i.id)]
+        : getters.selectedRows.map((i) => i.id)
 
       filter = {
         id: {

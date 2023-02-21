@@ -1,13 +1,16 @@
 import { v4 as uuid } from 'uuid'
 import { QueryTypes } from 'sequelize'
-import { WeeklyAnalyticsEmailsHistoryData } from '../../types/weeklyAnalyticsEmailsHistoryTypes'
+import {
+  RecurringEmailsHistoryData,
+  RecurringEmailType,
+} from '../../types/recurringEmailsHistoryTypes'
 import { IRepositoryOptions } from './IRepositoryOptions'
 import { RepositoryBase } from './repositoryBase'
 
-class WeeklyAnalyticsEmailsHistoryRepository extends RepositoryBase<
-  WeeklyAnalyticsEmailsHistoryData,
+class RecurringEmailsHistoryRepository extends RepositoryBase<
+  RecurringEmailsHistoryData,
   string,
-  WeeklyAnalyticsEmailsHistoryData,
+  RecurringEmailsHistoryData,
   unknown,
   unknown
 > {
@@ -16,23 +19,24 @@ class WeeklyAnalyticsEmailsHistoryRepository extends RepositoryBase<
   }
 
   /**
-   * Inserts weekly analytics email history.
-   * @param data weekly emails historical data
+   * Inserts recurring emails receipt history.
+   * @param data recurring emails historical data
    * @param options
    * @returns
    */
-  async create(data: WeeklyAnalyticsEmailsHistoryData): Promise<WeeklyAnalyticsEmailsHistoryData> {
+  async create(data: RecurringEmailsHistoryData): Promise<RecurringEmailsHistoryData> {
     const historyInserted = await this.options.database.sequelize.query(
-      `INSERT INTO "weeklyAnalyticsEmailsHistory" ("id", "tenantId", "weekOfYear", "emailSentAt", "emailSentTo")
+      `INSERT INTO "recurringEmailsHistory" ("id", "type", "tenantId", "weekOfYear", "emailSentAt", "emailSentTo")
           VALUES
-              (:id, :tenantId, :weekOfYear, :emailSentAt, ARRAY[:emailSentTo])
+              (:id, :type, :tenantId, :weekOfYear, :emailSentAt, ARRAY[:emailSentTo])
           RETURNING "id"
         `,
       {
         replacements: {
           id: uuid(),
+          type: data.type,
           tenantId: data.tenantId,
-          weekOfYear: data.weekOfYear,
+          weekOfYear: data.weekOfYear || null,
           emailSentAt: data.emailSentAt,
           emailSentTo: data.emailSentTo,
         },
@@ -55,17 +59,20 @@ class WeeklyAnalyticsEmailsHistoryRepository extends RepositoryBase<
   async findByWeekOfYear(
     tenantId: string,
     weekOfYear: string,
-  ): Promise<WeeklyAnalyticsEmailsHistoryData> {
+    type: RecurringEmailType,
+  ): Promise<RecurringEmailsHistoryData> {
     const records = await this.options.database.sequelize.query(
       `SELECT *
-             FROM "weeklyAnalyticsEmailsHistory"
+             FROM "recurringEmailsHistory"
              WHERE "tenantId" = :tenantId
-             AND "weekOfYear" = :weekOfYear;
+             AND "weekOfYear" = :weekOfYear
+             and "type" = :type;
             `,
       {
         replacements: {
           tenantId,
           weekOfYear,
+          type,
         },
         type: QueryTypes.SELECT,
       },
@@ -85,10 +92,10 @@ class WeeklyAnalyticsEmailsHistoryRepository extends RepositoryBase<
    * @param options
    * @returns
    */
-  async findById(id: string): Promise<WeeklyAnalyticsEmailsHistoryData> {
+  async findById(id: string): Promise<RecurringEmailsHistoryData> {
     const records = await this.options.database.sequelize.query(
       `SELECT *
-             FROM "weeklyAnalyticsEmailsHistory"
+             FROM "recurringEmailsHistory"
              WHERE id = :id;
             `,
       {
@@ -107,4 +114,4 @@ class WeeklyAnalyticsEmailsHistoryRepository extends RepositoryBase<
   }
 }
 
-export default WeeklyAnalyticsEmailsHistoryRepository
+export default RecurringEmailsHistoryRepository

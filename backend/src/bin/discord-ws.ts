@@ -1,5 +1,6 @@
 import { Client, Events, GatewayIntentBits, MessageType } from 'discord.js'
 import moment from 'moment'
+import { timeout } from '../utils/timing'
 import { DISCORD_CONFIG } from '../config'
 import { createChildLogger, getServiceLogger } from '../utils/logging'
 import SequelizeRepository from '../database/repositories/sequelizeRepository'
@@ -15,7 +16,29 @@ import { DiscordIntegrationService } from '../serverless/integrations/services/i
 
 const log = getServiceLogger()
 
-async function spawnClient(name: string, token: string) {
+async function executeIfNotExists(
+  key: string,
+  cache: RedisCache,
+  fn: () => Promise<void>,
+  delayMilliseconds?: number,
+) {
+  if (delayMilliseconds) {
+    await timeout(delayMilliseconds)
+  }
+
+  const exists = await cache.getValue(key)
+  if (!exists) {
+    await fn()
+    await cache.setValue(key, '1', 2 * 60 * 60)
+  }
+}
+
+async function spawnClient(
+  name: string,
+  token: string,
+  cache: RedisCache,
+  delayMilliseconds?: number,
+) {
   const logger = createChildLogger('discord-ws', log, { clientName: name })
 
   const repoOptions = await SequelizeRepository.getDefaultIRepositoryOptions()
@@ -96,27 +119,48 @@ async function spawnClient(name: string, token: string) {
 
   // listen to discord events
   client.on(Events.GuildMemberAdd, async (member) => {
-    logger.debug({ member }, 'Member joined guild!')
-    await processPayload(DiscordWebsocketEvent.MEMBER_ADDED, member, member.guild.id)
+    await executeIfNotExists(
+      `member-${(member as any).userId}`,
+      cache,
+      async () => {
+        logger.debug({ member }, 'Member joined guild!')
+        await processPayload(DiscordWebsocketEvent.MEMBER_ADDED, member, member.guild.id)
+      },
+      delayMilliseconds,
+    )
   })
 
   client.on(Events.MessageCreate, async (message) => {
     if (message.type === MessageType.Default || message.type === MessageType.Reply) {
-      logger.debug({ message }, 'Message created!')
-      await processPayload(DiscordWebsocketEvent.MESSAGE_CREATED, message, message.guildId)
+      await executeIfNotExists(
+        `msg-${message.id}`,
+        cache,
+        async () => {
+          logger.debug({ message }, 'Message created!')
+          await processPayload(DiscordWebsocketEvent.MESSAGE_CREATED, message, message.guildId)
+        },
+        delayMilliseconds,
+      )
     }
   })
 
   client.on(Events.MessageUpdate, async (oldMessage, newMessage) => {
-    if (newMessage.type === MessageType.Default) {
-      logger.debug({ oldMessage, newMessage }, 'Message updated!')
-      await processPayload(
-        DiscordWebsocketEvent.MESSAGE_UPDATED,
-        {
-          message: newMessage,
-          oldMessage,
+    if (newMessage.type === MessageType.Default && newMessage.editedTimestamp) {
+      await executeIfNotExists(
+        `msg-modified-${newMessage.id}-${newMessage.editedTimestamp}`,
+        cache,
+        async () => {
+          logger.debug({ oldMessage, newMessage }, 'Message updated!')
+          await processPayload(
+            DiscordWebsocketEvent.MESSAGE_UPDATED,
+            {
+              message: newMessage,
+              oldMessage,
+            },
+            newMessage.guildId,
+          )
         },
-        newMessage.guildId,
+        delayMilliseconds,
       )
     }
   })
@@ -158,10 +202,15 @@ setImmediate(async () => {
     }
   }
 
-  await spawnClient('first-app', DISCORD_CONFIG.token)
+  await spawnClient(
+    'first-app',
+    DISCORD_CONFIG.token,
+    cache,
+    DISCORD_CONFIG.token2 ? 1000 : undefined,
+  )
 
   if (DISCORD_CONFIG.token2) {
-    await spawnClient('second-app', DISCORD_CONFIG.token2)
+    await spawnClient('second-app', DISCORD_CONFIG.token2, cache)
   }
 
   setInterval(async () => {

@@ -110,6 +110,7 @@ export const sendExportCSVNodeSQSMessage = async (
   const payload = {
     type: NodeWorkerMessageType.NODE_MICROSERVICE,
     service: 'csv-export',
+    user,
     tenant,
     entity,
     criteria,
