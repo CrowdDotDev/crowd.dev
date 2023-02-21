@@ -80,7 +80,7 @@ setImmediate(async () => {
   if (UNLEASH_CONFIG.url) {
     const unleash = new Unleash({
       url: `${UNLEASH_CONFIG.url}/api`,
-      appName: 'test',
+      appName: 'crowd-api',
       customHeaders: {
         Authorization: UNLEASH_CONFIG.backendApiKey,
       },
