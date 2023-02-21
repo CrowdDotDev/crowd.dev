@@ -347,18 +347,6 @@ function create_s3_buckets() {
     # done
 }
 
-function create_qdrant_collection() {
-    say "Creating Qdrant collection!"
-    curl -X PUT 'http://localhost:6333/collections/crowddev' \
-    -H 'Content-Type: application/json' \
-    --data-raw '{
-        "vectors": {
-            "size": 768,
-            "distance": "Cosine"
-        }
-    }'
-}
-
 function init_unleash() {
     (cd $CLI_HOME/../backend && source source-local.sh && npm i && npm run script:unleash-init)
 }
@@ -369,7 +357,6 @@ function up_scaffold() {
     wait_for_db
     migrate_local
     create_s3_buckets
-    # create_qdrant_collection
     bash pizzly-integrations.sh
     init_unleash
 }
@@ -595,10 +582,6 @@ do
         ;;
         db-restore)
             restore_db_backup $2
-            exit;
-        ;;
-        test-unleash)
-            init_unleash
             exit;
         ;;
         *) error "Invalid command '$1'" && say "$SCRIPT_USAGE"
