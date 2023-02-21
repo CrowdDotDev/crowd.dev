@@ -30,7 +30,6 @@ export interface SQSConfiguration {
   nodejsWorkerQueue: string
   nodejsWorkerDelayableQueue: string
   pythonWorkerQueue: string
-  premiumPythonWorkerQueue: string
   aws: AwsCredentials
 }
 
@@ -84,7 +83,6 @@ export interface ApiConfiguration {
   url: string
   frontendUrl: string
   frontendUrlWithSubdomain: string
-  premiumApiUrl: string
   edition: string
   jwtSecret: string
   jwtExpiresIn: string

@@ -1,3 +1,0 @@
-.env*
-**/build
-**/qdrant_storage

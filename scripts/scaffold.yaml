@@ -85,14 +85,6 @@ services:
     networks:
       - crowd-bridge
 
-  qdrant:
-    image: qdrant/qdrant:latest
-    restart: always
-    ports:
-      - 6333:6333
-    networks:
-      - crowd-bridge
-
   redis:
     build:
       context: scaffold/redis

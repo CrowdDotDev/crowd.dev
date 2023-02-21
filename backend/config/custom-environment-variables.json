@@ -5,8 +5,7 @@
     "frontendUrl": "CROWD_API_FRONTEND_URL",
     "frontendUrlWithSubdomain": "CROWD_API_FRONTEND_URL_WITH_SUBDOMAINS",
     "jwtSecret": "CROWD_API_JWT_SECRET",
-    "jwtExpiresIn": "CROWD_API_JWT_EXPIRES_IN",
-    "premiumApiUrl": "CROWD_PREMIUM_API_URL"
+    "jwtExpiresIn": "CROWD_API_JWT_EXPIRES_IN"
   },
   "redis": {
     "username": "CROWD_REDIS_USERNAME",
@@ -20,7 +19,6 @@
     "nodejsWorkerQueue": "CROWD_SQS_NODEJS_WORKER_QUEUE",
     "nodejsWorkerDelayableQueue": "CROWD_SQS_NODEJS_WORKER_DELAYABLE_QUEUE",
     "pythonWorkerQueue": "CROWD_SQS_PYTHON_WORKER_QUEUE",
-    "premiumPythonWorkerQueue": "CROWD_SQS_PREMIUM_PYTHON_WORKER_QUEUE",
     "aws": {
       "accountId": "CROWD_SQS_AWS_ACCOUNT_ID",
       "accessKeyId": "CROWD_SQS_AWS_ACCESS_KEY_ID",
