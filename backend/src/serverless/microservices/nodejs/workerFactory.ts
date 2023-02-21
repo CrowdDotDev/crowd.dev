@@ -9,14 +9,17 @@ import {
   ProcessAutomationMessage,
   ProcessWebhookAutomationMessage,
   BulkEnrichMessage,
+  EagleEyeEmailDigestMessage,
 } from './messageTypes'
 import { AutomationTrigger, AutomationType } from '../../../types/automationTypes'
 import newActivityWorker from './automation/workers/newActivityWorker'
 import newMemberWorker from './automation/workers/newMemberWorker'
 import webhookWorker from './automation/workers/webhookWorker'
 import { csvExportWorker } from './csv-export/csvExportWorker'
-import { processWebhook } from '../../integrations/workers/stripeWebhookWorker'
+import { processStripeWebhook } from '../../integrations/workers/stripeWebhookWorker'
+import { processSendgridWebhook } from '../../integrations/workers/sendgridWebhookWorker'
 import { bulkEnrichmentWorker } from './bulk-enrichment/bulkEnrichmentWorker'
+import { eagleEyeEmailDigestWorker } from './eagle-eye-email-digest/eagleEyeEmailDigestWorker'
 
 /**
  * Worker factory for spawning different microservices
@@ -30,9 +33,14 @@ async function workerFactory(event: NodeMicroserviceMessage): Promise<any> {
 
   switch (service.toLowerCase()) {
     case 'stripe-webhooks':
-      return processWebhook(event)
+      return processStripeWebhook(event)
+    case 'sendgrid-webhooks':
+      return processSendgridWebhook(event)
     case 'weekly-analytics-emails':
       return weeklyAnalyticsEmailsWorker(tenant)
+    case 'eagle-eye-email-digest':
+      const eagleEyeDigestMessage = event as EagleEyeEmailDigestMessage
+      return eagleEyeEmailDigestWorker(eagleEyeDigestMessage.user)
     case 'csv-export':
       const csvExportMessage = event as CsvExportMessage
       return csvExportWorker(

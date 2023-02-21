@@ -69,8 +69,7 @@
 }
 
 // Selected icon for single selection
-.el-select-dropdown
-  .el-select-dropdown__item.selected::after {
+.el-select-dropdown .el-select-dropdown__item:not(.no-checkmark).selected::after {
   content: '';
   position: absolute;
   top: 50%;
@@ -117,7 +116,7 @@
       }
 
       // Select dropdown item selected
-      &.selected {
+      &.selected, &.selected.hover {
         @apply font-medium bg-brand-50 text-gray-900;
       }
 

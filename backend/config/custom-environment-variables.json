@@ -86,6 +86,7 @@
   },
   "sendgrid": {
     "key": "CROWD_SENDGRID_KEY",
+    "webhookSigningSecret": "CROWD_SENDGRID_WEBHOOK_SIGNING_SECRET",
     "emailFrom": "CROWD_SENDGRID_EMAIL_FROM",
     "nameFrom": "CROWD_SENDGRID_NAME_FROM",
     "templateEmailAddressVerification": "CROWD_SENDGRID_TEMPLATE_EMAIL_ADDRESS_VERIFICATION",
@@ -94,6 +95,7 @@
     "templateWeeklyAnalytics": "CROWD_SENDGRID_TEMPLATE_WEEKLY_ANALYTICS",
     "templateIntegrationDone": "CROWD_SENDGRID_TEMPLATE_INTEGRATION_DONE",
     "templateCsvExport": "CROWD_SENDGRID_TEMPLATE_CSV_EXPORT",
+    "templateEagleEyeDigest": "CROWD_SENDGRID_TEMPLATE_EAGLE_EYE_DIGEST",
     "weeklyAnalyticsUnsubscribeGroupId": "CROWD_SENDGRID_WEEKLY_ANALYTICS_UNSUBSCRIBE_GROUP_ID"
   },
   "plans": {
@@ -135,5 +137,9 @@
   "enrichment": {
     "url": "CROWD_ENRICHMENT_URL",
     "apiKey": "CROWD_ENRICHMENT_API_KEY"
+  },
+  "eagleEye": {
+    "url": "CROWD_EAGLE_EYE_URL",
+    "apiKey": "CROWD_EAGLE_EYE_API_KEY"
   }
 }

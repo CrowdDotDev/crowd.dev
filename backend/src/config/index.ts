@@ -24,6 +24,7 @@ import {
   PosthogConfiguration,
   PizzlyConfiguration,
   EnrichmentConfiguration,
+  EagleEyeConfiguration,
 } from './configTypes'
 
 // TODO-kube
@@ -194,6 +195,7 @@ export const SENDGRID_CONFIG: SendgridConfiguration = KUBE_MODE
   ? config.get<SendgridConfiguration>('sendgrid')
   : {
       key: process.env.SENDGRID_KEY,
+      webhookSigningSecret: process.env.SENDGRID_WEBHOOK_SIGNING_SECRET,
       emailFrom: process.env.SENDGRID_EMAIL_FROM,
       nameFrom: process.env.SENDGRID_NAME_FROM,
       weeklyAnalyticsUnsubscribeGroupId: process.env.SENDGRID_WEEKLY_ANALYTICS_UNSUBSCRIBE_GROUP_ID,
@@ -203,6 +205,7 @@ export const SENDGRID_CONFIG: SendgridConfiguration = KUBE_MODE
       templateWeeklyAnalytics: process.env.SENDGRID_TEMPLATE_WEEKLY_ANALYTICS,
       templateIntegrationDone: process.env.SENDGRID_TEMPLATE_INTEGRATION_DONE,
       templateCsvExport: process.env.SENDGRID_TEMPLATE_CSV_EXPORT,
+      templateEagleEyeDigest: process.env.SENDGRID_TEMPLATE_EAGLE_EYE_DIGEST,
     }
 
 export const NETLIFY_CONFIG: NetlifyConfiguration = KUBE_MODE
@@ -232,4 +235,11 @@ export const ENRICHMENT_CONFIG: EnrichmentConfiguration = KUBE_MODE
   : {
       url: process.env.ENRICHMENT_URL,
       apiKey: process.env.ENRICHMENT_SECRET_KEY,
+    }
+
+export const EAGLE_EYE_CONFIG: EagleEyeConfiguration = KUBE_MODE
+  ? config.get<EagleEyeConfiguration>('eagleEye')
+  : {
+      url: process.env.EAGLE_EYE_URL,
+      apiKey: process.env.EAGLE_EYE_SECRET_KEY,
     }

@@ -2,6 +2,61 @@
 
 All notable changes to this project will be documented in this file.
 
+## v0.20.0 - 2023-02-20
+
+### Changes
+
+#### 🚀 Features
+
+##### Eagle Eye 2.0
+
+Introducing Eagle Eye 2.0: a better way to grow your developer tool by engaging with relevant content.
+
+With a refreshed user interface and several new features, Eagle Eye 2.0 will help you find and and engage with the perfect content in your niche.
+
+![41cac97ad013228d74bf737c4b87372e](https://user-images.githubusercontent.com/37874460/220153970-e2642f81-fd37-4d01-9a69-838c263f96f9.png)
+
+###### Revamped User Interface
+
+We have redesigned the user interface to make setting up your feed and discovering relevant content easier.
+
+https://user-images.githubusercontent.com/37874460/220165561-1e158a47-421a-4d7a-b353-b56bf2e945ab.mp4
+
+###### More Platforms
+
+EagleEye now supports 12 of the most relevant platforms for developer tools. You can now access content from Reddit, GitHub discussions, Tweets, Medium posts, StackOverflow questions, DEV and Hacker News posts, YouTube videos, Producthunt discussions, Kaggle discussions, and Hashnode articles.
+
+###### Better Search
+
+We have improved the search algorithm to give you more relevant results. You can now exclude certain keywords from your search, enabling you to tailor your results further.
+
+###### Email Digest
+
+Stay up-to-date with your Eagle Eye feed by configuring an email digest that delivers a daily summary of your content. This feature will help you to make growth a daily routine.
+
+<img src="https://user-images.githubusercontent.com/37874460/220158597-7178802e-eef9-493c-a7d8-ac39a9040945.png"  width="400">
+###### AI Replies
+
+Eagle Eye 2.0 also offers a new AI-powered feature that generates suggested replies for your content.
+
+https://user-images.githubusercontent.com/37874460/220165717-4204605a-260f-41cb-acca-1bdf5747f6aa.mp4
+
+- Eagle Eye 2.0 @epipav @joanagmaia @gaspergrom @nunoeufrasio @jonathimer @joanreyero (#495)
+
+#### Improvements
+
+- Moved the Discord integration to use web sockets for scalability. @themarolt (#486)
+- Add Formbricks Product-Market-Fit widget. @mattinannt (#467)
+
+#### 🐞 Bug Fixes
+
+- Added missing identity forms when editing members. @joanreyero (#543)
+- Filtering out team members in the *Active members* widget on the home page. @joanreyero (#541)
+- When members are merged, the new member gets the highest of the two scores. @joanreyero (#542)
+- Fix a message duplication issue when a Discord server has both crowd.dev apps connected @themarolt (#538)
+- Preventing rapid-fire of the same messages over discord websockets @themarolt (#532)
+- Fix Export to CSV functionality @joanagmaia (#533)
+
 ## v0.19.0 - 2023-02-13
 
 ### Changes
@@ -37,14 +92,12 @@ Introducing our member enrichment feature! With it you can populate your communi
 - Multi-select attribute type for members @joanreyero (#426)
 - Tweak error messages when enriching in bulk @joanagmaia (#477)
 #### Detailed report drawers
-
 You can now get a detailed view of the members returned by widgets in default reports. For example, you can see exactly which members were active this month, as well as the total count.
 
 <img width="860" alt="Screenshot 2023-02-06 at 16 34 00" src="https://user-images.githubusercontent.com/37874460/217014619-f2b3b0ff-b25e-457b-9206-7793998b7a23.png">
 - Report detailed drawers @joanagmaia (#461)
 - Find active members endpoint @themarolt (#449)
 ### ✨ Improvements
-
 - Optimizations in the LinkedIn integration. @themarolt (#464)
 - Show organization logos and image comments for the LinkedIn integration. @themarolt (#451)
 - Prevent the same integration from being processed multiple times at once. @themarolt (#471)
@@ -78,7 +131,6 @@ Introduction the LinkedIn integration! With it, you can bring the comments and r
 - Make the email independent from the identities in the members' list. @joanagmaia (#440)
 - Refactor the UI of public reports. @joanagmaia (#437)
 - Remove activities performed by team members. @epipav (#427)
-
 ### 🐞 Bug Fixes
 
 - Fix a bug that kept redirecting from `auth/signup` to `augh/signin`. @themarolt (#445)
@@ -107,7 +159,6 @@ Our first external code contribution! @mattinannt and the [Formbricks](https://f
 <img width="200" alt="Screenshot 2023-01-16 at 14 04 37" src="https://user-images.githubusercontent.com/37874460/212684851-8edd5ee7-1f40-4b48-9556-78190249707e.png">
 - Add formbricks feedback @mattinannt (#411)
 ### ✨ Improvements
-
 - Added the capability of filtering members by the types of activities they performed. @joanreyero (#421)
 - Introduced WebSockets for 2-way communication between the frontend and backend. We will be using this to improve the UX of several features. @themarolt (#413)
 - Installed Pendo so we can show new features within the app. @joanreyero (#406)
@@ -141,7 +192,6 @@ For example, imagine you want to search for content that talks about *generatice
 Forum channels are now supported as part of the Discord integration. We will get posts and all comments on those channels. If you already have a Discord integration connected, we will get posts in public forum channels automatically. You'll need to add the bot to the forum channels that you want if they are private.
 - Get forum channels from Discord @joanreyero (#405)
 ### ✨ Improvements
-
 - Preventing that an automation is executed twice. @themarolt (#401)
 - Improved copy for tooltips in widgets. @epipav (#392)
 
@@ -186,7 +236,6 @@ You can now export your community members as CSV. You can export all members or 
 - Notes and tasks were being unlinked when updating tags in a member. @joanreyero (#370)
 - Fix the sorting in the dashboard's *active members* widget. @joanagmaia (#369)
 ## v0.13.0 - 2022-12-19
-
 ### Changes
 
 ### 🚀 Features
@@ -220,7 +269,6 @@ We are advancing in making premium plans possible. This week we introduced a *Pl
 - Fix a copy error in the Hacker News integration's connection page. @jonathimer (#343)
 ## v0.12.0 - 2022-12-13
 ### Changes
-
 - Fix identities for hackernews integration @joanagmaia (#313)
 
 ### 🚀 Features
@@ -284,7 +332,6 @@ The Hacker News integration will detect any post that mentions your community in
 This release introduces three new features: organizations, tasks, and notes. Furthermore, we added a bunch of bug fixes and improvements based on your feedback.
 ### :rocket: Features
 #### Organizations
-
 You can now track how organizations are adopting your community. With the organizations' list, you can have an overview of all organizations. You can also have several views and perform filtering. For each organization, there is an organization page with all its background information, a list of all the members that belong to the organization, and their activities.
 <img width="700" alt="Organizations" src="https://user-images.githubusercontent.com/37874460/204589538-65a46d85-ec91-488a-9b32-45f48fe53a94.png">
 
@@ -327,7 +374,6 @@ We’ve added social sign-in to make signing up and logging into [crowd.dev](htt
 This version introduces breaking API changes. While the API has vastly improved and it is now much more powerful, previous scripts written with the API will need to be adjusted. For more information, refer to the [API docs](https://docs.crowd.dev/reference).
 ## v0.8.0 - 2022-10-07
 ### Changes
-
 ### ✨ Enhancements
 
 - New Architecture: Serverless plus a static backend has been replaced by a Kubernetes cluster. (#53)
@@ -363,7 +409,9 @@ This version introduces breaking API changes. While the API has vastly improved 
 - 
 - 
 - 
+- 
 - - When a new activity is created
+- 
 - 
 - 
 - 
@@ -443,7 +491,6 @@ This version introduces breaking API changes. While the API has vastly improved 
 ## v0.0.3 - 2022-08-24
 ### Changes
 ### 🚀 Features
-
 - Eagle Eye backend @joanreyero
 - Eagle Eye frontend @mariobalca
 - NodeJS GitHub integration + Discussions @anilb0stanci

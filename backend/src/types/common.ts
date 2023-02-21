@@ -5,6 +5,13 @@ export interface PageData<T> {
   offset: number
 }
 
+export interface QueryData {
+  filter?: any
+  orderBy?: string
+  limit?: number
+  offset?: number
+}
+
 export interface SearchCriteria {
   limit?: number
   offset?: number

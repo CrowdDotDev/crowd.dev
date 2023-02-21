@@ -90,11 +90,9 @@
         <div
           ref="taskBody"
           class="text-2xs leading-4.5 text-gray-500 pt-1 c-content"
-          :class="
-            displayShowMore && !showMore
-              ? `text-limit-4`
-              : ''
-          "
+          :class="{
+            'line-clamp-4': displayShowMore && !showMore
+          }"
           v-html="$sanitize(props.task.body)"
         ></div>
         <div

@@ -148,6 +148,7 @@ export interface GithubConfiguration {
 
 export interface SendgridConfiguration {
   key: string
+  webhookSigningSecret: string
   emailFrom: string
   nameFrom: string
   templateEmailAddressVerification: string
@@ -156,6 +157,7 @@ export interface SendgridConfiguration {
   templateWeeklyAnalytics: string
   templateIntegrationDone: string
   templateCsvExport: string
+  templateEagleEyeDigest: string
   weeklyAnalyticsUnsubscribeGroupId: string
 }
 
@@ -176,6 +178,11 @@ export interface PizzlyConfiguration {
 }
 
 export interface EnrichmentConfiguration {
+  url: string
+  apiKey: string
+}
+
+export interface EagleEyeConfiguration {
   url: string
   apiKey: string
 }

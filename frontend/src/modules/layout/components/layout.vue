@@ -3,9 +3,13 @@
     <app-menu></app-menu>
     <el-container :style="elMainStyle">
       <el-main id="main-page-wrapper" class="relative">
-        <div :class="computedBannerWrapperClass">
+        <div
+          :class="{
+            'pt-16': showBanner
+          }"
+        >
           <banner
-            v-if="shouldShowSampleDataAlert"
+            v-if="showSampleDataAlert"
             variant="alert"
           >
             <div
@@ -23,7 +27,7 @@
             </div>
           </banner>
           <banner
-            v-if="shouldShowIntegrationsErrorAlert"
+            v-if="showIntegrationsErrorAlert"
             variant="alert"
           >
             <div
@@ -41,7 +45,7 @@
           </banner>
 
           <banner
-            v-if="shouldShowIntegrationsInProgressAlert"
+            v-if="showIntegrationsInProgressAlert"
             variant="info"
           >
             <div
@@ -67,7 +71,7 @@
             </div>
           </banner>
           <banner
-            v-if="shouldShowTenantCreatingAlert"
+            v-if="showTenantCreatingAlert"
             variant="info"
           >
             <div
@@ -84,10 +88,7 @@
               completely loaded.
             </div>
           </banner>
-          <banner
-            v-if="shouldShowPMFSurveyAlert"
-            variant="info"
-          >
+          <banner v-if="showPMFSurveyAlert" variant="info">
             <div
               class="flex items-center justify-center grow text-sm"
             >
@@ -96,18 +97,16 @@
                 Could you help us by answering a quick
                 survey? 😄
                 <button
-                  :data-tf-popup="typeformData.id"
-                  :data-tf-iframe-props="`title=${typeformData.title}`"
                   data-tf-medium="snippet"
                   class="btn btn--sm btn--primary ml-4"
-                  @click="hideTypeform()"
+                  @click="toggleShowPmfSurvey()"
                 >
                   Take survey
                 </button>
               </div>
               <div class="flex-1">
                 <div class="w-20 ml-auto">
-                  <button @click="hideTypeform()">
+                  <button @click="hidePmfAsk()">
                     <i
                       class="ri-close-line text-gray-700"
                     ></i>
@@ -121,15 +120,46 @@
       </el-main>
     </el-container>
   </el-container>
+  <!-- PMF Modal -->
+  <div
+    v-if="showPmfSurvey"
+    class="relative z-10"
+    aria-labelledby="modal-title"
+    role="dialog"
+    aria-modal="true"
+  >
+    <div
+      class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"
+    ></div>
+
+    <div class="fixed inset-0 z-10 overflow-y-auto">
+      <div
+        class="flex min-h-full items-center justify-center p-4 text-center sm:items-center sm:p-0"
+      >
+        <div
+          class="relative transform overflow-hidden rounded-lg bg-white px-4 pt-5 pb-4 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-sm sm:p-6 w-96"
+          @click="(e) => e.stopPropagation()"
+        >
+          <button
+            class="absolute right-3 top-3"
+            @click="toggleShowPmfSurvey()"
+          >
+            <i class="ri-close-line text-gray-700"></i>
+          </button>
+          <div id="formbricks-pmf-container"></div>
+        </div>
+      </div>
+    </div>
+  </div>
 </template>
 
 <script>
+import { useStore } from 'vuex'
 import { TenantService } from '@/modules/tenant/tenant-service'
 import { mapActions, mapGetters } from 'vuex'
 import Banner from '@/shared/banner/banner.vue'
 import identify from '@/shared/monitoring/identify'
 import ConfirmDialog from '@/shared/dialog/confirm-dialog.js'
-import moment from 'moment'
 import config from '@/config'
 import Message from '@/shared/message/message'
 
@@ -144,13 +174,10 @@ export default {
     return {
       fetchIntegrationTimer: null,
       loading: false,
-      hideTypeformBanner: localStorage.getItem(
-        `hideTypeformBanner-${config.typeformId}`
-      ),
-      typeformData: {
-        id: config.typeformId,
-        title: config.typeformTitle
-      }
+      showPmfSurvey: false,
+      hidePmfBanner: localStorage.getItem(
+        `hidePmfBanner-${config.formbricks.pmfFormId}`
+      )
     }
   },
 
@@ -161,7 +188,16 @@ export default {
       currentUser: 'auth/currentUser',
       currentTenant: 'auth/currentTenant',
       integrationsInProgress: 'integration/inProgress',
-      integrationsWithErrors: 'integration/withErrors'
+      integrationsWithErrors: 'integration/withErrors',
+      showSampleDataAlert: 'tenant/showSampleDataAlert',
+      showIntegrationsErrorAlert:
+        'tenant/showIntegrationsErrorAlert',
+      showIntegrationsInProgressAlert:
+        'tenant/showIntegrationsInProgressAlert',
+      showTenantCreatingAlert:
+        'tenant/showTenantCreatingAlert',
+      showPMFSurveyAlert: 'tenant/showPMFSurveyAlert',
+      showBanner: 'tenant/showBanner'
     }),
     integrationsInProgressToString() {
       const arr = this.integrationsInProgress.map(
@@ -179,43 +215,6 @@ export default {
         )
       }
     },
-    shouldShowIntegrationsInProgressAlert() {
-      return this.integrationsInProgress.length > 0
-    },
-    shouldShowIntegrationsErrorAlert() {
-      return (
-        this.integrationsWithErrors.length > 0 &&
-        this.$route.name !== 'integration'
-      )
-    },
-    shouldShowSampleDataAlert() {
-      return this.currentTenant.hasSampleData
-    },
-    shouldShowPMFSurveyAlert() {
-      return (
-        config.typeformId &&
-        config.typeformTitle &&
-        !this.hideTypeformBanner
-      )
-    },
-    shouldShowTenantCreatingAlert() {
-      return (
-        moment().diff(
-          moment(this.currentTenant.createdAt),
-          'minutes'
-        ) <= 2
-      )
-    },
-    computedBannerWrapperClass() {
-      return {
-        'pt-16':
-          this.shouldShowSampleDataAlert ||
-          this.shouldShowIntegrationsErrorAlert ||
-          this.shouldShowIntegrationsInProgressAlert ||
-          this.shouldShowTenantCreatingAlert ||
-          this.shouldShowPMFSurveyAlert
-      }
-    },
     elMainStyle() {
       if (this.isMobile && !this.collapsed) {
         return {
@@ -224,6 +223,18 @@ export default {
       }
 
       return null
+    }
+  },
+
+  watch: {
+    // whenever question changes, this function will run
+    showPmfSurvey(newValue) {
+      if (newValue) {
+        setTimeout(() => {
+          window.formbricksPmf.init()
+          window.formbricksPmf.reset()
+        }, 10)
+      }
     }
   },
 
@@ -238,14 +249,44 @@ export default {
   },
 
   async mounted() {
+    const store = useStore()
     identify(this.currentUser)
-    let recaptchaScript = document.createElement('script')
-    recaptchaScript.setAttribute(
-      'src',
-      '//embed.typeform.com/next/embed.js'
-    )
-    document.head.appendChild(recaptchaScript)
     this.initPendo()
+    // formbricks pmf
+    if (
+      config.formbricks.url &&
+      config.formbricks.pmfFormId
+    ) {
+      window.formbricksPmf = {
+        ...window.formbricksPmf,
+        config: {
+          formbricksUrl: config.formbricks.url,
+          formId: config.formbricks.pmfFormId,
+          containerId: 'formbricks-pmf-container',
+          onFinished: () => this.hidePmfAsk(),
+          contact: {
+            name: 'Jonathan',
+            position: 'Co-Founder',
+            imgUrl:
+              'https://avatars.githubusercontent.com/u/41432658?v=4'
+          },
+          customer: {
+            id: store.getters['auth/currentUser'].id,
+            name: store.getters['auth/currentUser']
+              .fullName,
+            email: store.getters['auth/currentUser'].email
+          },
+          style: {
+            brandColor: '#e94f2e',
+            headerBGColor: '#F9FAFB',
+            boxBGColor: '#ffffff',
+            textColor: '#140505',
+            buttonHoverColor: '#F9FAFB'
+          }
+        }
+      }
+      require('@formbricks/pmf')
+    }
   },
 
   unmounted() {
@@ -257,10 +298,18 @@ export default {
       collapseMenu: 'layout/collapseMenu'
     }),
 
-    hideTypeform() {
-      this.hideTypeformBanner = true
+    toggleShowPmfSurvey() {
+      this.showPmfSurvey = !this.showPmfSurvey
+      if (this.showPmfSurvey) {
+        window.formbricksPmf.init()
+        window.formbricksPmf.reset()
+      }
+    },
+
+    hidePmfAsk() {
+      this.hidePmfBanner = true
       localStorage.setItem(
-        `hideTypeformBanner-${config.typeformId}`,
+        `hidePmfBanner-${config.typeformId}`,
         true
       )
     },
@@ -271,30 +320,6 @@ export default {
       // Call this function in your authentication promise handler or callback when your visitor and account id values are available
       // Please use Strings, Numbers, or Bools for value types.
       window.pendo.initialize({
-        visitor: {
-          id: this.currentUser.id, // Required if user is logged in, default creates anonymous ID
-          email: this.currentUser.email, // Recommended if using Pendo Feedback, or NPS Email
-          full_name: this.currentUser.fullName // Recommended if using Pendo Feedback
-          // role:         // Optional
-
-          // You can add any additional visitor level key-values here,
-          // as long as it's not one of the above reserved names.
-        },
-
-        account: {
-          id: this.currentTenant.id, // Required if using Pendo Feedback, default uses the value 'ACCOUNT-UNIQUE-ID'
-          name: this.currentTenant.name, // Optional
-          is_paying: this.currentTenant.plan !== 'Essential' // Recommended if using Pendo Feedback
-          // monthly_value:// Recommended if using Pendo Feedback
-          // planLevel:    // Optional
-          // planPrice:    // Optional
-          // creationDate: // Optional
-
-          // You can add any additional account level key-values here,
-          // as long as it's not one of the above reserved names.
-        }
-      })
-      console.log({
         visitor: {
           id: this.currentUser.id, // Required if user is logged in, default creates anonymous ID
           email: this.currentUser.email, // Recommended if using Pendo Feedback, or NPS Email
