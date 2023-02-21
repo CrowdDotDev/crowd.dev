@@ -22,6 +22,7 @@
 import { mapGetters, mapActions, mapState } from 'vuex'
 import AppResizePage from '@/modules/layout/pages/resize-page.vue'
 import { FeatureFlag } from '@/featureFlag'
+import config from '@/config'
 
 export default {
   name: 'App',
@@ -42,7 +43,8 @@ export default {
       return (
         this.loadingInit ||
         (!this.featureFlag.isReady &&
-          !this.featureFlag.hasError)
+          !this.featureFlag.hasError &&
+          !config.isCommunityVersion)
       )
     }
   },
@@ -50,7 +52,9 @@ export default {
   async created() {
     await this.doInit()
 
-    FeatureFlag.init(this.currentTenant)
+    if (!config.isCommunityVersion) {
+      FeatureFlag.init(this.currentTenant)
+    }
 
     window.addEventListener('resize', this.handleResize)
     this.handleResize()

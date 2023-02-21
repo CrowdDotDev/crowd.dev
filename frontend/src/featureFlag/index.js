@@ -15,18 +15,25 @@ export const FEATURE_FLAGS = {
 
 export class FeatureFlagService {
   constructor() {
-    const unleashConfig = {
-      url: `${config.unleash.url}/api/frontend`,
-      clientKey: config.unleash.apiKey,
-      appName: 'crowd-web-app',
-      environment: 'production'
-    }
-
     this.flags = FEATURE_FLAGS
-    this.unleash = new UnleashClient(unleashConfig)
+
+    if (!config.isCommunityVersion) {
+      const unleashConfig = {
+        url: `${config.unleash.url}/api/frontend`,
+        clientKey: config.unleash.apiKey,
+        appName: 'crowd-web-app',
+        environment: 'production'
+      }
+
+      this.unleash = new UnleashClient(unleashConfig)
+    }
   }
 
   init(tenant) {
+    if (config.isCommunityVersion) {
+      return
+    }
+
     this.unleash.start()
 
     const context = this.getContextFromTenant(tenant)
@@ -49,10 +56,18 @@ export class FeatureFlagService {
   }
 
   isFlagEnabled(flag) {
+    if (config.isCommunityVersion) {
+      return true
+    }
+
     return this.unleash.isEnabled(flag)
   }
 
   updateContext(tenant) {
+    if (config.isCommunityVersion) {
+      return
+    }
+
     const context = this.getContextFromTenant(tenant)
 
     this.unleash.updateContext(context)

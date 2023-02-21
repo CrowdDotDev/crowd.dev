@@ -1,5 +1,4 @@
 import { tenantSubdomain } from '@/modules/tenant/tenant-subdomain'
-import config from '@/config'
 import { FeatureFlag } from '@/featureFlag'
 
 /**
@@ -111,9 +110,7 @@ export default class AuthCurrentTenant {
     }
 
     // Refresh feature flags each time tenant is set
-    if (!config.isCommunityVersion) {
-      await FeatureFlag.updateContext(tenant)
-    }
+    FeatureFlag.updateContext(tenant)
 
     localStorage.setItem('tenant', JSON.stringify(tenant))
   }

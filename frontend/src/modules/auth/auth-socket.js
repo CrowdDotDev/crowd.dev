@@ -8,7 +8,6 @@ import {
   getEnrichmentMax
 } from '@/modules/member/member-enrichment'
 import pluralize from 'pluralize'
-import { FeatureFlag } from '@/featureFlag'
 
 let socketIoClient
 
@@ -61,9 +60,8 @@ export const connectSocket = (token) => {
         data
       )
 
-      await FeatureFlag.updateContext(currentTenant.value)
+      await store.dispatch('auth/doRefreshCurrentUser')
 
-      store.dispatch('auth/doRefreshCurrentUser')
       Message.success(
         'Successfully upgraded to Growth plan'
       )
