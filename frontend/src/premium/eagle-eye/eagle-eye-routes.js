@@ -9,11 +9,6 @@ const EagleEyeOnboardPage = () =>
     '@/premium/eagle-eye/pages/eagle-eye-onboard-page.vue'
   )
 
-const EagleEyeOnboardPage = () =>
-  import(
-    '@/premium/eagle-eye/pages/eagle-eye-onboard-page.vue'
-  )
-
 const EagleEyePage = () =>
   import(
     '@/premium/eagle-eye/pages/eagle-eye-page-wrapper.vue'
