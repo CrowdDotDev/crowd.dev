@@ -27,11 +27,12 @@ export class FeatureFlagService {
   }
 
   init(tenant) {
-    const context = this.getContextFromTenant(tenant)
-
     this.unleash.start()
 
-    this.updateContext(context)
+    const context = this.getContextFromTenant(tenant)
+    if (context) {
+      this.updateContext(context)
+    }
 
     this.unleash.on('ready', () => {
       store.dispatch('tenant/doUpdateFeatureFlag', {
@@ -58,14 +59,18 @@ export class FeatureFlagService {
   }
 
   getContextFromTenant(tenant) {
+    if (!tenant) {
+      return null
+    }
+
     return {
       tenantId: tenant.id,
       tenantName: tenant.name,
       isTrialPlan: tenant.isTrialPlan,
       email: tenant.email,
-      automationCount: tenant.automationCount,
-      csvExportCount: tenant.csvExportCount,
-      memberEnrichmentCount: tenant.memberEnrichmentCount,
+      automationCount: `${tenant.automationCount}`,
+      csvExportCount: `${tenant.csvExportCount}`,
+      memberEnrichmentCount: `${tenant.memberEnrichmentCount}`,
       plan: tenant.plan
     }
   }
