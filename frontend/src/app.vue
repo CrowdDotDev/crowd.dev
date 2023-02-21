@@ -52,9 +52,7 @@ export default {
   async created() {
     await this.doInit()
 
-    if (!config.isCommunityVersion) {
-      FeatureFlag.init(this.currentTenant)
-    }
+    FeatureFlag.init(this.currentTenant)
 
     window.addEventListener('resize', this.handleResize)
     this.handleResize()
