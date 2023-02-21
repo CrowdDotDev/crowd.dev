@@ -26,7 +26,7 @@
     "@tailwindcss/line-clamp": "^0.4.0",
     "instantsearch.css": "^7.4.5",
     "lorem-ipsum": "^2.0.4",
-    "meilisearch": "^0.25.1",
+    "meilisearch": "^0.30.0",
     "moment": "^2.29.4",
     "showdown": "^2.1.0",
     "typesense": "^1.2.2",
