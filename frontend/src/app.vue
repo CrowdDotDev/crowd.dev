@@ -3,7 +3,9 @@
     <div class="sm:hidden md:block lg:block">
       <router-view v-slot="{ Component }">
         <transition>
-          <component :is="Component" />
+          <div>
+            <component :is="Component" />
+          </div>
         </transition>
       </router-view>
 
