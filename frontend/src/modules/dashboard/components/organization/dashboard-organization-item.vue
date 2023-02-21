@@ -12,7 +12,11 @@
     </div>
   </article>
   <article v-else class="flex">
-    <div
+    <router-link
+      :to="{
+        name: 'organizationView',
+        params: { id: props.organization.id }
+      }"
       class="flex items-center group hover:cursor-pointer"
       @click="onOrganizationClick"
     >
@@ -29,54 +33,38 @@
           }}
         </p>
       </div>
-    </div>
+    </router-link>
   </article>
-  <app-paywall-modal
-    v-model="isUpgradeModalOpen"
-    module="organizations"
-  />
 </template>
 
 <script>
+export default {
+  name: 'AppDashboardOrganizationItem'
+}
+</script>
+
+<script setup>
 import AppAvatar from '@/shared/avatar/avatar.vue'
 import AppLoading from '@/shared/loading/loading-placeholder.vue'
-import AppPaywallModal from '@/modules/layout/components/paywall-modal.vue'
+import { defineProps, computed } from 'vue'
 
-export default {
-  name: 'AppDashboardOrganizationItem',
-  components: { AppLoading, AppAvatar, AppPaywallModal },
-  props: {
-    organization: {
-      type: Object,
-      required: false,
-      default: () => ({})
-    },
-    loading: {
-      type: Boolean,
-      required: false,
-      default: false
-    }
+const props = defineProps({
+  organization: {
+    type: Object,
+    required: false,
+    default: () => ({})
   },
-  data() {
-    return {
-      isUpgradeModalOpen: false
-    }
-  },
-  computed: {
-    entity() {
-      return {
-        avatar: this.organization.logo,
-        displayName: this.organization.name.replace('@', '')
-      }
-    }
-  },
-  methods: {
-    async onOrganizationClick() {
-      this.$router.push({
-        name: 'organizationView',
-        params: { id: this.organization.id }
-      })
-    }
+  loading: {
+    type: Boolean,
+    required: false,
+    default: false
   }
-}
+})
+
+const entity = computed(() => {
+  return {
+    avatar: props.organization.logo,
+    displayName: props.organization.name.replace('@', '')
+  }
+})
 </script>

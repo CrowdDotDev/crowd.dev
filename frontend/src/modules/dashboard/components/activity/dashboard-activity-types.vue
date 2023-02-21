@@ -49,21 +49,21 @@
         <template #default="current">
           <article
             v-for="(
-              { total, platform, type }, ti
+              { total, plat, type }, ti
             ) of compileData(resultSet)"
-            :key="`${platform}-${type}`"
+            :key="`${plat}-${type}`"
             class="border-gray-100 py-4 flex items-center justify-between"
             :class="{ 'border-t': ti > 0 }"
           >
             <div class="flex items-center">
               <img
                 class="w-4 h-4 mr-3"
-                :src="getPlatformDetails(platform).image"
-                :alt="getPlatformDetails(platform).name"
+                :src="getPlatformDetails(plat).image"
+                :alt="getPlatformDetails(plat).name"
               />
               <p class="text-xs leading-5 activity-type">
                 <app-i18n
-                  :code="`entities.activity.${platform}.${type}`"
+                  :code="`entities.activity.${plat}.${type}`"
                 ></app-i18n>
               </p>
             </div>
@@ -98,7 +98,12 @@
 </template>
 
 <script>
-import { mapGetters } from 'vuex'
+export default {
+  name: 'AppDashboardActivityTypes'
+}
+</script>
+
+<script setup>
 import {
   activityTypes,
   activitiesCount,
@@ -106,51 +111,36 @@ import {
 } from '@/modules/dashboard/dashboard.cube'
 import AppCubeRender from '@/shared/cube/cube-render'
 import { CrowdIntegrations } from '@/integrations/integrations-config'
-import AppLoading from '@/shared/loading/loading-placeholder.vue'
-// import AppLoading from '@/shared/loading/loading-placeholder'
-export default {
-  name: 'AppDashboardActivityTypes',
-  components: {
-    AppLoading,
-    // AppLoading,
-    AppCubeRender
-  },
-  data() {
+import AppLoading from '@/shared/loading/loading-placeholder'
+import { mapGetters } from '@/shared/vuex/vuex.helpers'
+
+const { period, platform } = mapGetters('dashboard')
+
+const compileData = (resultSet) => {
+  const pivot = resultSet.chartPivot()
+  return pivot.map((el) => {
+    const [plat, type] = el['x'].split(',')
     return {
-      activityTypes,
-      activitiesCount,
-      dateRange
+      total: el['Activities.count'],
+      plat,
+      type
     }
-  },
-  computed: {
-    ...mapGetters('dashboard', ['period', 'platform'])
-  },
-  methods: {
-    compileData(resultSet) {
-      const pivot = resultSet.chartPivot()
-      return pivot.map((el) => {
-        const [platform, type] = el['x'].split(',')
-        return {
-          total: el['Activities.count'],
-          platform,
-          type
-        }
-      })
-    },
-    computedScore(resultSet) {
-      const seriesNames = resultSet.seriesNames()
-      const pivot = resultSet.chartPivot()
-      let count = 0
-      seriesNames.forEach((e) => {
-        const data = pivot.map((p) => p[e.key])
-        count += data.reduce((a, b) => a + b, 0)
-      })
-      return count
-    },
-    getPlatformDetails(platform) {
-      return CrowdIntegrations.getConfig(platform)
-    }
-  }
+  })
+}
+
+const computedScore = (resultSet) => {
+  const seriesNames = resultSet.seriesNames()
+  const pivot = resultSet.chartPivot()
+  let count = 0
+  seriesNames.forEach((e) => {
+    const data = pivot.map((p) => p[e.key])
+    count += data.reduce((a, b) => a + b, 0)
+  })
+  return count
+}
+
+const getPlatformDetails = (plat) => {
+  return CrowdIntegrations.getConfig(plat)
 }
 </script>
 
