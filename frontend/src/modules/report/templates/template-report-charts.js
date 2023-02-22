@@ -170,16 +170,16 @@ export function chartOptions(type, config) {
   let chartTypeOptions = {}
 
   if (type === 'area') {
-    chartTypeOptions = {
-      computeDataset: (canvas) => {
+    const computeDataset = (conf) => {
+      return (canvas) => {
         const ctx = canvas.getContext('2d')
         const gradient = ctx.createLinearGradient(
-          config.gradient.x0,
-          config.gradient.y0,
-          config.gradient.x1,
-          config.gradient.y1
+          conf.gradient.x0,
+          conf.gradient.y0,
+          conf.gradient.x1,
+          conf.gradient.y1
         )
-        for (let stop of config.gradient.stops) {
+        for (let stop of conf.gradient.stops) {
           gradient.addColorStop(stop.offset, stop.color)
         }
 
@@ -194,6 +194,10 @@ export function chartOptions(type, config) {
           spanGaps: true
         }
       }
+    }
+
+    chartTypeOptions = {
+      computeDataset: computeDataset(chartConfig)
     }
   }
 

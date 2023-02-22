@@ -3,10 +3,7 @@
     <h6 class="text-base leading-6 font-semibold pb-3">
       Integrations
     </h6>
-    <div
-      v-if="Object.keys(activeIntegrations).length > 0"
-      class="pb-1"
-    >
+    <div v-if="activeIntegrations.length > 0" class="pb-1">
       <div v-if="loading">
         <div
           v-for="index in 4"
@@ -23,10 +20,8 @@
       </div>
       <div v-else>
         <article
-          v-for="(
-            integration, active, ai
-          ) in activeIntegrations"
-          :key="active"
+          v-for="integration in activeIntegrations"
+          :key="integration.platform"
           class="border-gray-100 py-3 flex items-center justify-between"
           :class="{ 'border-t': ai > 0 }"
         >
@@ -34,12 +29,19 @@
             <div class="mr-4">
               <img
                 class="w-5 h-5"
-                :src="platformDetails(active).image"
-                :alt="platformDetails(active).name"
+                :src="
+                  platformDetails(integration.platform)
+                    .image
+                "
+                :alt="
+                  platformDetails(integration.platform).name
+                "
               />
             </div>
             <p class="text-xs leading-4">
-              {{ platformDetails(active).name }}
+              {{
+                platformDetails(integration.platform).name
+              }}
             </p>
           </div>
           <div>
@@ -115,9 +117,7 @@
           class="btn btn-brand--transparent btn--sm w-full leading-5"
         >
           <span
-            v-if="
-              Object.keys(activeIntegrations).length > 0
-            "
+            v-if="activeIntegrations.length > 0"
             class="text-brand-500"
             >Manage integrations</span
           >
@@ -144,8 +144,15 @@ export default {
   },
   computed: {
     ...mapGetters('integration', {
-      activeIntegrations: 'activeList'
-    })
+      array: 'array'
+    }),
+    activeIntegrations() {
+      return CrowdIntegrations.mappedEnabledConfigs(
+        this.$store
+      ).filter((integration) => {
+        return integration.status
+      })
+    }
   },
   async mounted() {
     window.analytics.page('Dashboard')

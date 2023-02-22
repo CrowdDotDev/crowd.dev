@@ -247,10 +247,20 @@ export default (moduleName, moduleService = null) => {
       const params = new URLSearchParams(
         window.location.search
       )
+      const search = location.search.substring(1)
+      const queryParams = JSON.parse(
+        '{"' +
+          decodeURI(search)
+            .replace(/"/g, '\\"')
+            .replace(/&/g, '","')
+            .replace(/=/g, '":"') +
+          '"}'
+      )
       if (params.get('activeTab') !== activeViewId) {
         router.push({
           name: moduleName,
           query: {
+            ...queryParams,
             activeTab:
               activeViewId ===
               Object.values(state.views)[0].id

@@ -45,19 +45,33 @@ import AppDashboardTask from '@/modules/dashboard/components/dashboard-task'
 import AppDashboardFilters from '@/modules/dashboard/components/dashboard-filters'
 import AppDashboardIntegrations from '@/modules/dashboard/components/dashboard-active-integrations.vue'
 
-import { onMounted } from 'vue'
+import { onMounted, ref } from 'vue'
 import {
   mapGetters,
   mapActions
 } from '@/shared/vuex/vuex.helpers'
 
+import { useStore } from 'vuex'
+
 const { currentTenant } = mapGetters('auth')
 const { doFetch } = mapActions('report')
 const { showBanner } = mapGetters('tenant')
 
+const store = useStore()
+
+let storeUnsubscribe = ref(null)
+
 onMounted(() => {
   window.analytics.page('Dashboard')
   doFetch({})
+
+  storeUnsubscribe.value = store.subscribeAction(
+    (action) => {
+      if (action.type === 'auth/doRefreshCurrentUser') {
+        doFetch({})
+      }
+    }
+  )
 })
 </script>
 

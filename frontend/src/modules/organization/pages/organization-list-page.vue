@@ -50,7 +50,7 @@ import { computed, ref, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import {
   mapGetters,
-  mapActions,
+  mapActions
 } from '@/shared/vuex/vuex.helpers'
 import { OrganizationService } from '../organization-service'
 
