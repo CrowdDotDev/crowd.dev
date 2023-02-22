@@ -21,10 +21,10 @@ import {
   ClearbitConfiguration,
   DevtoConfiguration,
   RedisConfiguration,
-  PosthogConfiguration,
   PizzlyConfiguration,
   EnrichmentConfiguration,
   EagleEyeConfiguration,
+  UnleashConfiguration,
 } from './configTypes'
 
 // TODO-kube
@@ -95,12 +95,6 @@ export const SEGMENT_CONFIG: SegmentConfiguration = KUBE_MODE
       writeKey: process.env.SEGMENT_WRITE_KEY,
     }
 
-export const POSTHOG_CONFIG: PosthogConfiguration = KUBE_MODE
-  ? config.get<PosthogConfiguration>('posthog')
-  : {
-      apiKey: process.env.POSTHOG_API_KEY,
-    }
-
 export const COMPREHEND_CONFIG: ComprehendConfiguration = KUBE_MODE
   ? config.get<ComprehendConfiguration>('comprehend')
   : {
@@ -130,7 +124,6 @@ export const API_CONFIG: ApiConfiguration = KUBE_MODE
       frontendUrlWithSubdomain: process.env.FRONTEND_URL_WITH_SUBDOMAIN,
       jwtSecret: process.env.AUTH_JWT_SECRET,
       jwtExpiresIn: process.env.AUTH_JWT_EXPIRES_IN,
-      premiumApiUrl: '',
     }
 export const PLANS_CONFIG: PlansConfiguration = KUBE_MODE
   ? config.get<PlansConfiguration>('plans')
@@ -243,3 +236,5 @@ export const EAGLE_EYE_CONFIG: EagleEyeConfiguration = KUBE_MODE
       url: process.env.EAGLE_EYE_URL,
       apiKey: process.env.EAGLE_EYE_SECRET_KEY,
     }
+
+export const UNLEASH_CONFIG: UnleashConfiguration = config.get<UnleashConfiguration>('unleash')

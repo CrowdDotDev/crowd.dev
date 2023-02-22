@@ -5,6 +5,7 @@ import { formatNumber } from '@/utils/number'
 import { h } from 'vue'
 import Message from '@/shared/message/message'
 import pluralize from 'pluralize'
+import { FeatureFlag, FEATURE_FLAGS } from '@/featureFlag'
 
 const growthEnrichmentMax = 1000
 const essentialEnrichmentMax = 5
@@ -25,15 +26,17 @@ export const getEnrichmentMax = (plan) => {
 }
 
 /**
- * @param {*} memberEnrichmentCount current member enrichment count
  * @param {*} planEnrichmentCountMax maximum plan enrichment count
  * @returns if enrichment has reached limit
  */
 export const checkEnrichmentLimit = (
-  memberEnrichmentCount,
   planEnrichmentCountMax
 ) => {
-  if (memberEnrichmentCount === planEnrichmentCountMax) {
+  const isFeatureEnabled = FeatureFlag.isFlagEnabled(
+    FEATURE_FLAGS.memberEnrichment
+  )
+
+  if (!isFeatureEnabled) {
     ConfirmDialog({
       vertical: true,
       type: 'danger',

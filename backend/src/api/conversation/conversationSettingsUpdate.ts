@@ -8,14 +8,7 @@ import { FeatureFlag } from '../../types/common'
 export default async (req, res) => {
   new PermissionChecker(req).validateHas(Permissions.values.conversationEdit)
 
-  if (
-    req.body.customUrl &&
-    !(await isFeatureEnabled(
-      FeatureFlag.COMMUNITY_HELP_CENTER_PRO,
-      req.currentTenant.id,
-      req.posthog,
-    ))
-  ) {
+  if (req.body.customUrl && !(await isFeatureEnabled(FeatureFlag.COMMUNITY_HELP_CENTER_PRO, req))) {
     await req.responseHandler.error(
       req,
       res,

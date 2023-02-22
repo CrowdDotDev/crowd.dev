@@ -32,10 +32,7 @@ import Pizzly from '@nangohq/pizzly-frontend'
 import { useStore } from 'vuex'
 import AuthCurrentTenant from '@/modules/auth/auth-current-tenant'
 import { useThrottleFn } from '@vueuse/core'
-import {
-  featureFlags,
-  isFeatureEnabled
-} from '@/utils/posthog'
+import { FeatureFlag } from '@/featureFlag'
 
 const store = useStore()
 const router = useRouter()
@@ -87,8 +84,8 @@ const settings = () => {
 }
 
 onMounted(async () => {
-  isLinkedinEnabled.value = await isFeatureEnabled(
-    featureFlags.linkedin
+  isLinkedinEnabled.value = FeatureFlag.isFlagEnabled(
+    FeatureFlag.flags.linkedin
   )
 })
 

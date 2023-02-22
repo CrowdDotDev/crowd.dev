@@ -67,10 +67,7 @@ import AppCommunityHelpCenterFilter from '@/premium/community-help-center/compon
 import AppCommunityHelpCenterSettings from '@/premium/community-help-center/components/community-help-center-settings'
 import AppCommunityHelpCenterConversationDrawer from '@/premium/community-help-center/components/community-help-center-conversation-drawer'
 import config from '@/config'
-import {
-  isFeatureEnabled,
-  featureFlags
-} from '@/utils/posthog'
+import { FeatureFlag } from '@/featureFlag'
 
 export default {
   name: 'AppConversationListPage',
@@ -103,12 +100,12 @@ export default {
   },
 
   async created() {
-    const isFlagEnabled = await isFeatureEnabled(
-      featureFlags.communityCenterPro
+    const isFeatureEnabled = FeatureFlag.isFlagEnabled(
+      FeatureFlag.flags.communityCenterPro
     )
 
     this.hasPremiumPlan =
-      config.hasPremiumModules && isFlagEnabled
+      config.hasPremiumModules && isFeatureEnabled
   },
 
   async mounted() {
