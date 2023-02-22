@@ -87,13 +87,13 @@ export default class EagleEyeContentService extends LoggingBase {
     )
   }
 
-  static trackPostClicked(url: string, platform: string, req: any, source:string = 'app'): void {
+  static trackPostClicked(url: string, platform: string, req: any, source: string = 'app'): void {
     track(
       'Eagle Eye post clicked',
       {
         url,
         platform,
-        source
+        source,
       },
       { ...req },
     )
