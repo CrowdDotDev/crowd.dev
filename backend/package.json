@@ -36,7 +36,7 @@
     "script:send-weekly-analytics-email": "SERVICE=script ts-node ./src/bin/scripts/send-weekly-analytics-email.ts"
   },
   "dependencies": {
-    "@aws-sdk/client-comprehend": "^3.159.0",
+    "@aws-sdk/client-comprehend": "^3.276.0",
     "@aws-sdk/hash-node": "^3.226.0",
     "@aws-sdk/protocol-http": "^3.226.0",
     "@aws-sdk/s3-request-presigner": "^3.229.0",
