@@ -14,5 +14,5 @@ setup(
     name="crowd-backend",
     packages=find_namespace_packages(include=["crowd.*"]),
     install_requires=["pyjwt", "python-dotenv", "requests", "cryptography == 3.4.7",
-                      "python-dateutil", "pytz", "SQLAlchemy", "dnspython==2.2.1", "boto3"],
+                      "python-dateutil", "pytz", "SQLAlchemy==1.4.46", "dnspython==2.2.1", "boto3"],
 )
