@@ -1,6 +1,6 @@
-import StringField from '@/shared/fields/string-field'
+import ArrayField from '@/shared/fields/array-field'
 
-export default class MemberArrayAttributesField extends StringField {
+export default class MemberArrayAttributesField extends ArrayField {
   constructor(name, label, config = {}) {
     super(name, label)
 
@@ -10,7 +10,7 @@ export default class MemberArrayAttributesField extends StringField {
     this.matches = config.matches
     this.filterable = config.filterable || false
     this.custom = config.custom || false
-    this.options = config.options
+    this.options = config.options || []
   }
 
   dropdownOptions() {
