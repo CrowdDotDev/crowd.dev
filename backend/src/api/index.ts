@@ -5,7 +5,7 @@ import helmet from 'helmet'
 import bunyanMiddleware from 'bunyan-middleware'
 import * as http from 'http'
 import { Unleash } from 'unleash-client'
-import { UNLEASH_CONFIG } from '../config'
+import { API_CONFIG, UNLEASH_CONFIG } from '../config'
 import { authMiddleware } from '../middlewares/authMiddleware'
 import { tenantMiddleware } from '../middlewares/tenantMiddleware'
 import { databaseMiddleware } from '../middlewares/databaseMiddleware'
@@ -23,6 +23,7 @@ import { createRedisClient, createRedisPubSubPair } from '../utils/redis'
 import WebSockets from './websockets'
 import RedisPubSubReceiver from '../utils/redis/pubSubReceiver'
 import { ApiWebsocketMessage } from '../types/mq/apiWebsocketMessage'
+import { Edition } from '../types/common'
 
 const serviceLogger = createServiceLogger()
 
@@ -77,7 +78,7 @@ setImmediate(async () => {
   app.use(redisMiddleware(redis))
 
   // Bind unleash to request
-  if (UNLEASH_CONFIG.url) {
+  if (UNLEASH_CONFIG.url && API_CONFIG.edition === Edition.CROWD_HOSTED) {
     const unleash = new Unleash({
       url: `${UNLEASH_CONFIG.url}/api`,
       appName: 'crowd-api',
