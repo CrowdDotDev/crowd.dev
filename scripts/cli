@@ -333,18 +333,16 @@ function migrate_test() {
         crowd_flyway
 }
 
-function create_s3_buckets() {
-    say "Creating S3 buckets!"
-    # sleep 10
+function source_edition() {
+    __CROWD_EDITION=$(source $CLI_HOME/../backend/.env.dist.local && source $CLI_HOME/../backend/.env.override.local && echo $CROWD_EDITION)
+}
 
-    # declare -a BUCKETS=("crowd-integrations-assets-local" "crowd-microservices-assets-local")
-    # for i in "${BUCKETS[@]}"
-    # do
-    #     say "Creating s3 bucket: $i"
-    #     curl "http://localhost:9000/ui/$i?create"
-    #     sleep 8
-    #     curl "http://localhost:9000/ui/$i?make-public"
-    # done
+function check_init_premium() {
+    source_edition
+    if [ $__CROWD_EDITION == "crowd-hosted" ]; then
+        $_DC --compatibility -p $PROJECT_NAME -f $CLI_HOME/premium-scaffold.yaml up -d --build
+        init_unleash
+    fi
 }
 
 function init_unleash() {
@@ -356,13 +354,14 @@ function up_scaffold() {
     $_DC --compatibility -p $PROJECT_NAME -f $CLI_HOME/scaffold.yaml up -d --build
     wait_for_db
     migrate_local
-    create_s3_buckets
     bash pizzly-integrations.sh
-    init_unleash
+
+    check_init_premium
 }
 
 function down_scaffold() {
     $_DC --compatibility -p $PROJECT_NAME -f $CLI_HOME/scaffold.yaml down
+    $_DC --compatibility -p $PROJECT_NAME -f $CLI_HOME/premium-scaffold.yaml down
 }
 
 function scaffold_destroy() {
@@ -406,6 +405,7 @@ function kill_all_containers() {
 function scaffold_destroy_confirmed() {
     kill_all_containers
     $_DC --compatibility -p $PROJECT_NAME -f $CLI_HOME/scaffold.yaml down
+    $_DC --compatibility -p $PROJECT_NAME -f $CLI_HOME/premium-scaffold.yaml down
 
     # needed because if there are no volumes this might cause the script to exit
     set +eo pipefail
