@@ -1,7 +1,13 @@
 <template>
-  <!-- TODO: adjust based on banners -->
   <div class="flex -m-5">
-    <div class="flex-grow h-screen overflow-auto">
+    <div
+      class="flex-grow overflow-auto"
+      :style="{
+        height: showBanner
+          ? 'calc(100vh - 3.5rem)'
+          : '100vh'
+      }"
+    >
       <div class="flex justify-center">
         <div class="home-content px-8">
           <div class="py-8">
@@ -18,7 +24,12 @@
       </div>
     </div>
     <aside
-      class="border-l border-gray-200 h-screen overflow-auto px-5 py-6"
+      class="border-l border-gray-200 overflow-auto px-5 py-6"
+      :style="{
+        height: showBanner
+          ? 'calc(100vh - 3.5rem)'
+          : '100vh'
+      }"
     >
       <app-dashboard-integrations class="mb-10" />
       <app-dashboard-task class="hidden" />
@@ -42,6 +53,7 @@ import {
 
 const { currentTenant } = mapGetters('auth')
 const { doFetch } = mapActions('report')
+const { showBanner } = mapGetters('tenant')
 
 onMounted(() => {
   window.analytics.page('Dashboard')
