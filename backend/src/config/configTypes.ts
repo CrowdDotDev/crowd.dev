@@ -142,6 +142,7 @@ export interface GithubConfiguration {
 
 export interface SendgridConfiguration {
   key: string
+  webhookSigningSecret: string
   emailFrom: string
   nameFrom: string
   templateEmailAddressVerification: string

@@ -42,7 +42,7 @@ export default async function stripeWebhookWorker(req) {
   }
 }
 
-export const processWebhook = async (message: any) => {
+export const processStripeWebhook = async (message: any) => {
   log.info({ message }, 'Got event from stripe webhook!')
   log.warn(message)
 

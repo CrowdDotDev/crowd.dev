@@ -1,5 +1,6 @@
 import Permissions from '../../security/permissions'
 import PermissionChecker from '../../services/user/permissionChecker'
+import EagleEyeContentService from '../../services/eagleEyeContentService'
 import track from '../../segment/track'
 import Error404 from '../../errors/Error404'
 
@@ -15,14 +16,7 @@ export default async (req, res) => {
         url: params.url,
         platform: params.platform,
       })
-      track(
-        'Eagle Eye post clicked',
-        {
-          url: params.url,
-          platform: params.platform,
-        },
-        { ...req },
-      )
+      EagleEyeContentService.trackPostClicked(req.body.url, req.body.platform, req)
       break
     case 'generatedReply':
       console.log('Eagle Eye AI reply generated', {

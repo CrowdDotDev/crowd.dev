@@ -188,6 +188,7 @@ export const SENDGRID_CONFIG: SendgridConfiguration = KUBE_MODE
   ? config.get<SendgridConfiguration>('sendgrid')
   : {
       key: process.env.SENDGRID_KEY,
+      webhookSigningSecret: process.env.SENDGRID_WEBHOOK_SIGNING_SECRET,
       emailFrom: process.env.SENDGRID_EMAIL_FROM,
       nameFrom: process.env.SENDGRID_NAME_FROM,
       weeklyAnalyticsUnsubscribeGroupId: process.env.SENDGRID_WEEKLY_ANALYTICS_UNSUBSCRIBE_GROUP_ID,

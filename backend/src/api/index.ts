@@ -145,9 +145,9 @@ setImmediate(async () => {
     bodyParser.json({
       verify(req, res, buf) {
         const url = (<any>req).originalUrl
-        if (url.startsWith('/webhooks/stripe')) {
-          // Stripe Webhook needs the body raw in order
-          // to validate the request
+        if (url.startsWith('/webhooks/stripe') || url.startsWith('/webhooks/sendgrid')) {
+          // Stripe and sendgrid webhooks needs the body raw
+          // for verifying the webhook with signing secret
           ;(<any>req).rawBody = buf.toString()
         }
       },
