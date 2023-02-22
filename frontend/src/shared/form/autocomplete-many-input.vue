@@ -109,7 +109,7 @@ export default {
     showCreateSuggestion() {
       return (
         this.createIfNotFound &&
-        this.currentQuery !== '' &&
+        !!this.currentQuery &&
         !this.localOptions.some(
           (o) =>
             o.label === this.currentQuery ||

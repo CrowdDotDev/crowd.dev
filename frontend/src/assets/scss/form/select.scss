@@ -34,6 +34,10 @@
       box-shadow: none !important;
       border: 1px solid var(--el-input-focus-border-color);
     }
+
+    &__suffix-inner {
+      @apply absolute right-3 top-3;
+    }
   }
 
   &__collapse-tags {
@@ -69,7 +73,8 @@
 }
 
 // Selected icon for single selection
-.el-select-dropdown .el-select-dropdown__item:not(.no-checkmark).selected::after {
+.el-select-dropdown
+  .el-select-dropdown__item:not(.no-checkmark).selected::after {
   content: '';
   position: absolute;
   top: 50%;
@@ -116,7 +121,8 @@
       }
 
       // Select dropdown item selected
-      &.selected, &.selected.hover {
+      &.selected,
+      &.selected.hover {
         @apply font-medium bg-brand-50 text-gray-900;
       }
 

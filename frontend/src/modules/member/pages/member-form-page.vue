@@ -129,7 +129,6 @@ import { useStore } from 'vuex'
 import getCustomAttributes from '@/shared/fields/get-custom-attributes.js'
 import getAttributesModel from '@/shared/attributes/get-attributes-model.js'
 import getParsedAttributes from '@/shared/attributes/get-parsed-attributes.js'
-import { OrganizationService } from '@/modules/organization/organization-service'
 
 const LoaderIcon = h(
   'i',
@@ -286,9 +285,7 @@ function getInitialModel(record) {
         attributes: record
           ? filteredAttributes(record.attributes)
           : {},
-        organizations: record?.organizations.length
-          ? record.organizations[0].name
-          : '',
+        organizations: record ? record.organizations : [],
         ...attributes,
         tags: record ? record.tags : [],
         username: record ? record.username : {},
@@ -352,6 +349,11 @@ async function onSubmit() {
     formModel.value.tags.length && {
       tags: formModel.value.tags.map((t) => t.id)
     },
+    formModel.value.organizations.length && {
+      organizations: formModel.value.organizations.map(
+        (o) => o.id
+      )
+    },
     (Object.keys(formattedAttributes).length ||
       formModel.value.attributes) && {
       attributes: {
@@ -368,30 +370,10 @@ async function onSubmit() {
   )
 
   let isRequestSuccessful = false
-  let organizations = [
-    { name: formModel.value.organizations }
-  ]
 
   // Edit member
   if (isEditPage.value) {
     isFormSubmitting.value = true
-
-    // Create organization if it doesn't exist, before updating it on member
-    if (formModel.value.organizations) {
-      const response = await OrganizationService.create({
-        name: formModel.value.organizations
-      })
-
-      if (response) {
-        organizations = [response.id]
-        Object.assign(
-          data,
-          formModel.value.organizations && {
-            organizations
-          }
-        )
-      }
-    }
 
     isRequestSuccessful = await store.dispatch(
       'member/doUpdate',
@@ -401,13 +383,6 @@ async function onSubmit() {
       }
     )
   } else {
-    // Assign organizations to payload
-    Object.assign(
-      data,
-      formModel.value.organizations && {
-        organizations
-      }
-    )
     // Create new member
     isFormSubmitting.value = true
     isRequestSuccessful = await store.dispatch(
