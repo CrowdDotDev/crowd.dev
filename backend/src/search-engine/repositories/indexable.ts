@@ -65,6 +65,6 @@ export default abstract class Indexable {
    * @param {string} id
    */
   async delete(id: string) {
-      await this.index.deleteDocument(id)
+    await this.index.deleteDocument(id)
   }
 }
