@@ -146,11 +146,13 @@
               v-if="recentMembers.length >= 5"
               class="pt-3"
             >
-              <!-- TODO: add dynamic links based on time period -->
               <router-link
                 :to="{
                   name: 'member',
-                  query: { activeTab: 'new-and-active' }
+                  query: {
+                    activeTab: 'new-and-active',
+                    joinedFrom: periodStartDate
+                  }
                 }"
                 class="text-sm leading-5 font-medium text-red"
                 >View more</router-link
@@ -189,9 +191,7 @@
               <template #default="{ resultSet }">
                 <app-widget-area
                   class="chart"
-                  :datasets="
-                    datasets('active members')
-                  "
+                  :datasets="datasets('active members')"
                   :result-set="resultSet"
                   :chart-options="chartStyle"
                   :granularity="granularity.value"
@@ -247,11 +247,13 @@
               v-if="activeMembers.length >= 5"
               class="pt-3"
             >
-              <!-- TODO: add dynamic links based on time period -->
               <router-link
                 :to="{
                   name: 'member',
-                  query: { activeTab: 'most-engaged' }
+                  query: {
+                    activeTab: 'all',
+                    activeFrom: periodStartDate
+                  }
                 }"
                 class="text-sm leading-5 font-medium text-red"
                 >View more</router-link
@@ -316,6 +318,11 @@ export default {
       'platform'
     ]),
     ...mapGetters('report', ['rows']),
+    periodStartDate() {
+      return moment()
+        .subtract(this.period.value, 'day')
+        .format('YYYY-MM-DD')
+    },
     membersReportId() {
       const report = this.rows.find(
         (r) => r.isTemplate && r.name === 'Members report'

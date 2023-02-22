@@ -119,6 +119,34 @@ export default {
 
     await this.doFetchIntegrations()
     await this.doFetchCustomAttributes()
+
+    const { joinedFrom, activeFrom } = this.$route.query
+    if (joinedFrom) {
+      await this.updateFilterAttribute({
+        custom: false,
+        defaultOperator: 'gt',
+        defaultValue: joinedFrom,
+        expanded: false,
+        label: 'Joined date',
+        name: 'joinedAt',
+        operator: 'gt',
+        type: 'date',
+        value: joinedFrom
+      })
+    }
+    if (activeFrom) {
+      await this.updateFilterAttribute({
+        custom: false,
+        defaultOperator: 'eq',
+        defaultValue: activeFrom,
+        expanded: false,
+        label: 'Last activity date',
+        name: 'lastActive',
+        operator: 'gt',
+        type: 'date',
+        value: activeFrom
+      })
+    }
     await this.doFetch({
       filter,
       keepPagination: true
@@ -143,6 +171,7 @@ export default {
       doFetchWidgets: 'widget/doFetch',
       doFetchCustomAttributes:
         'member/doFetchCustomAttributes',
+      updateFilterAttribute: 'member/updateFilterAttribute',
       doFetch: 'member/doFetch',
       doFetchIntegrations: 'integration/doFetch'
     }),

@@ -83,9 +83,7 @@
               <template #default="{ resultSet }">
                 <app-widget-area
                   class="chart"
-                  :datasets="
-                    datasets('new organizations')
-                  "
+                  :datasets="datasets('new organizations')"
                   :result-set="resultSet"
                   :chart-options="chartStyle"
                   :granularity="granularity.value"
@@ -134,11 +132,13 @@
               v-if="organizations.length >= 5"
               class="pt-3"
             >
-              <!-- TODO: add dynamic links based on time period -->
               <router-link
                 :to="{
                   name: 'organization',
-                  query: { activeTab: 'new-and-active' }
+                  query: {
+                    activeTab: 'new-and-active',
+                    joinedFrom: periodStartDate
+                  }
                 }"
                 class="text-sm leading-5 font-medium text-red"
                 >View more</router-link
@@ -228,11 +228,13 @@
               v-if="activeOrganizations.length >= 5"
               class="pt-3"
             >
-              <!-- TODO: add dynamic links based on time period -->
               <router-link
                 :to="{
                   name: 'organization',
-                  query: { activeTab: 'most-engaged' }
+                  query: {
+                    activeTab: 'all',
+                    activeFrom: periodStartDate
+                  }
                 }"
                 class="text-sm leading-5 font-medium text-red"
                 >View more</router-link
@@ -291,6 +293,11 @@ export default {
       'platform'
     ]),
     ...mapGetters('report', ['rows']),
+    periodStartDate() {
+      return moment()
+        .subtract(this.period.value, 'day')
+        .format('YYYY-MM-DD')
+    },
     organizationsReportId() {
       const report = this.rows.find(
         (r) =>

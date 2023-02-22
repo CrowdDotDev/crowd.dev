@@ -94,6 +94,7 @@ const filtersArray = computed(() =>
 )
 
 const handleFilterChange = (attribute) => {
+  console.log(attribute)
   store.dispatch(
     `${props.module}/updateFilterAttribute`,
     attribute
