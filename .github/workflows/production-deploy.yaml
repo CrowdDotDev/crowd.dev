@@ -27,18 +27,6 @@ on:
         description: Deploy frontend?
         required: true
         type: boolean
-      deploy_premium_api:
-        description: Deploy premium-api service?
-        required: true
-        type: boolean
-      deploy_premium_python_worker:
-        description: Deploy premium-python-worker service?
-        required: true
-        type: boolean
-      deploy_premium_job_generator:
-        description: Deploy premium-job-generator service?
-        required: true
-        type: boolean
 
 env:
   DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
@@ -109,48 +97,6 @@ jobs:
         id: image-builder
         with:
           image: python-worker
-
-      - name: Set docker image output
-        id: image
-        run: echo "IMAGE=${{ steps.image-builder.outputs.image }}" >> $GITHUB_OUTPUT
-
-  build-and-push-premium-job-generator:
-    runs-on: ubuntu-latest
-    if: ${{ inputs.deploy_premium_job_generator }}
-    outputs:
-      image: ${{ steps.image.outputs.IMAGE }}
-    defaults:
-      run:
-        shell: bash
-    steps:
-      - name: Check out repository code
-        uses: actions/checkout@v2
-
-      - uses: ./.github/actions/build-docker-image
-        id: image-builder
-        with:
-          image: premium-job-generator
-
-      - name: Set docker image output
-        id: image
-        run: echo "IMAGE=${{ steps.image-builder.outputs.image }}" >> $GITHUB_OUTPUT
-
-  build-and-push-premium-python-backend:
-    runs-on: ubuntu-latest
-    if: ${{ inputs.deploy_premium_api || inputs.deploy_premium_python_worker }}
-    outputs:
-      image: ${{ steps.image.outputs.IMAGE }}
-    defaults:
-      run:
-        shell: bash
-    steps:
-      - name: Check out repository code
-        uses: actions/checkout@v2
-
-      - uses: ./.github/actions/build-docker-image
-        id: image-builder
-        with:
-          image: premium-python-backend
 
       - name: Set docker image output
         id: image
@@ -261,58 +207,4 @@ jobs:
         with:
           service: python-worker
           image: ${{ needs.build-and-push-python-worker.outputs.image }}
-          cluster: ${{ env.CROWD_CLUSTER }}
-
-  deploy-premium-job-generator:
-    needs: build-and-push-premium-job-generator
-    runs-on: ubuntu-latest
-    if: ${{ inputs.deploy_premium_job_generator }}
-    defaults:
-      run:
-        shell: bash
-
-    steps:
-      - name: Check out repository code
-        uses: actions/checkout@v2
-
-      - uses: ./.github/actions/deploy-service
-        with:
-          service: premium-job-generator
-          image: ${{ needs.build-and-push-premium-job-generator.outputs.image }}
-          cluster: ${{ env.CROWD_CLUSTER }}
-
-  deploy-premium-python-worker:
-    needs: build-and-push-premium-python-backend
-    runs-on: ubuntu-latest
-    if: ${{ inputs.deploy_premium_python_worker }}
-    defaults:
-      run:
-        shell: bash
-
-    steps:
-      - name: Check out repository code
-        uses: actions/checkout@v2
-
-      - uses: ./.github/actions/deploy-service
-        with:
-          service: premium-python-worker
-          image: ${{ needs.build-and-push-premium-python-backend.outputs.image }}
-          cluster: ${{ env.CROWD_CLUSTER }}
-
-  deploy-premium-api:
-    needs: build-and-push-premium-python-backend
-    runs-on: ubuntu-latest
-    if: ${{ inputs.deploy_premium_api }}
-    defaults:
-      run:
-        shell: bash
-
-    steps:
-      - name: Check out repository code
-        uses: actions/checkout@v2
-
-      - uses: ./.github/actions/deploy-service
-        with:
-          service: premium-api
-          image: ${{ needs.build-and-push-premium-python-backend.outputs.image }}
           cluster: ${{ env.CROWD_CLUSTER }}

@@ -74,12 +74,9 @@ import AppWebhookForm from '@/modules/automation/components/webhooks/webhook-for
 import AppWebhookExecutionList from '@/modules/automation/components/webhooks/webhook-execution-list'
 import { mapGetters, mapActions } from 'vuex'
 import pluralize from 'pluralize'
-import {
-  isFeatureEnabled,
-  featureFlags
-} from '@/utils/posthog'
 import ConfirmDialog from '@/shared/dialog/confirm-dialog'
 import { router } from '@/router'
+import { FeatureFlag } from '@/featureFlag'
 
 export default {
   name: 'AppAutomationListPage',
@@ -136,11 +133,11 @@ export default {
       this.automation = null
     },
     async onAddWebhookClick() {
-      const isFlagEnabled = await isFeatureEnabled(
-        featureFlags.automations
+      const isFeatureEnabled = FeatureFlag.isFlagEnabled(
+        FeatureFlag.flags.automations
       )
 
-      if (isFlagEnabled) {
+      if (isFeatureEnabled) {
         this.isAutomationDrawerOpen = true
       } else {
         await ConfirmDialog({

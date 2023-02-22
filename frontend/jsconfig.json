@@ -1,7 +1,7 @@
 {
   "include": ["./src/**/*"],
   "compilerOptions": {
-    "module": "es6",
+    "module": "es2022",
     "moduleResolution": "node",
     "baseUrl": ".",
     "paths": {

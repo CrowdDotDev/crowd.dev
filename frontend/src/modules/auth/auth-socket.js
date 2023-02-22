@@ -1,5 +1,4 @@
 import io from 'socket.io-client'
-import posthog from 'posthog-js'
 import config from '@/config'
 import { computed } from 'vue'
 import { store } from '@/store'
@@ -53,24 +52,27 @@ export const connectSocket = (token) => {
     )
   })
 
-  socketIoClient.on('tenant-plan-upgraded', (data) => {
-    console.log(
-      'Tenant plan is upgraded. Force a hard refresh!',
-      data
-    )
-    posthog.group('tenant', currentTenant.value.id)
-    posthog.reloadFeatureFlags()
-    store.dispatch('auth/doRefreshCurrentUser')
-    Message.success('Successfully upgraded to Growth plan')
-  })
+  socketIoClient.on(
+    'tenant-plan-upgraded',
+    async (data) => {
+      console.log(
+        'Tenant plan is upgraded. Force a hard refresh!',
+        data
+      )
+
+      await store.dispatch('auth/doRefreshCurrentUser')
+
+      Message.success(
+        'Successfully upgraded to Growth plan'
+      )
+    }
+  )
 
   socketIoClient.on('bulk-enrichment', async (data) => {
     if (typeof data === 'string') {
       data = JSON.parse(data)
     }
 
-    // posthog.group('tenant', currentTenant.value.id)
-    // posthog.reloadFeatureFlags()
     await store.dispatch('auth/doRefreshCurrentUser')
 
     const updatedTenant = currentUser.value.tenants.find(

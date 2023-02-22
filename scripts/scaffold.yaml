@@ -3,6 +3,7 @@ version: '3.1'
 services:
   cubejs:
     image: cubejs/cube
+    restart: always
     ports:
       - '4000:4000'
       - '3001:3000'
@@ -24,6 +25,7 @@ services:
 
   db:
     image: postgres:13.6-alpine
+    restart: always
     environment:
       - POSTGRES_PASSWORD=example
       - POSTGRES_DB=crowd-web
@@ -36,6 +38,7 @@ services:
 
   search-engine:
     image: getmeili/meilisearch:v0.27.2
+    restart: always
     ports:
       - 7700:7700
     volumes:
@@ -55,6 +58,7 @@ services:
   sqs:
     build:
       context: scaffold/sqs
+    restart: always
     ports:
       - 9324:9324
       - 9325:9325
@@ -63,6 +67,7 @@ services:
 
   nginx:
     image: nginx:alpine
+    restart: always
     volumes:
       - ./scaffold/nginx/templates:/etc/nginx/templates
       - ./scaffold/nginx/ssl:/etc/nginx/ssl
@@ -74,17 +79,11 @@ services:
     networks:
       - crowd-bridge
 
-  qdrant:
-    image: qdrant/qdrant:latest
-    ports:
-      - 6333:6333
-    networks:
-      - crowd-bridge
-
   redis:
     build:
       context: scaffold/redis
     command: 'redis-server /redis.conf --requirepass crowdtest'
+    restart: always
     volumes:
       - redis-dev:/data
     ports:

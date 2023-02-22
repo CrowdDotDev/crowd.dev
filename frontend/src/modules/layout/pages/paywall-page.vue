@@ -15,7 +15,8 @@
           </div>
           <div class="flex flex-col">
             <div class="text-2xs text-brand-500">
-              {{ premiumFeatureCopy() }} feature
+              {{ FeatureFlag.premiumFeatureCopy() }}
+              feature
             </div>
             <h5 class="text-gray-900">
               {{ page.headerTitle }}
@@ -95,18 +96,17 @@
 <script setup>
 import config from '@/config'
 import AppPageWrapper from '@/shared/layout/page-wrapper.vue'
-import { defineProps, computed } from 'vue'
-import { premiumFeatureCopy } from '@/utils/posthog'
 import { pageContent } from '@/modules/layout/layout-page-content'
+import { computed } from 'vue'
+import { FeatureFlag } from '@/featureFlag'
+import { useRouter } from 'vue-router'
 
-const props = defineProps({
-  module: {
-    type: String,
-    required: true
-  }
-})
+const router = useRouter()
 
-const page = computed(() => pageContent[props.module])
+const module = computed(
+  () => router.currentRoute.value.name
+)
+const page = computed(() => pageContent[module.value])
 const computedFeaturePlan = computed(() => {
   return config.isCommunityVersion ? 'Custom' : 'Growth'
 })
