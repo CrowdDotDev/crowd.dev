@@ -12,15 +12,13 @@
       >
     </div>
     <div :class="showHeader ? 'col-span-2' : 'col-span-3'">
-      <div
-        class="grid grid-cols-12 gap-3 border-b h-8 items-center"
-      >
+      <div class="flex gap-3 border-b h-8 items-center">
         <span
-          class="uppercase text-gray-400 text-2xs font-semibold tracking-wide col-span-4"
+          class="uppercase text-gray-400 text-2xs font-semibold tracking-wide w-1/3"
           >Name</span
         >
         <span
-          class="uppercase text-gray-400 text-2xs font-semibold tracking-wide col-span-8"
+          class="uppercase text-gray-400 text-2xs font-semibold tracking-wide grow"
           >Value</span
         >
       </div>
@@ -31,10 +29,10 @@
         <div
           v-for="(attribute, index) in customAttributes"
           :key="index"
-          class="grid grid-cols-12 gap-3"
+          class="flex gap-3"
         >
           <div
-            class="col-span-4 flex flex-col gap-1 justify-center"
+            class="w-1/3 flex flex-col gap-1 justify-center"
           >
             <div class="flex items-center leading-tight">
               <div
@@ -60,7 +58,7 @@
               >{{ attributesTypes[attribute.type] }}</span
             >
           </div>
-          <el-form-item class="col-span-8">
+          <el-form-item class="grow">
             <el-date-picker
               v-if="attribute.type === 'date'"
               v-model="model[attribute.name]"
@@ -129,6 +127,23 @@
               </div>
             </template></el-form-item
           >
+          <el-button
+            v-if="!attribute.canDelete"
+            class="btn btn--md btn--transparent w-10 h-10"
+            @click="
+              updateAttribute(attribute.id, {
+                show: !attribute.show
+              })
+            "
+          >
+            <i
+              class="text-lg text-black"
+              :class="{
+                'ri-eye-off-line': attribute.show,
+                'ri-eye-line': !attribute.show
+              }"
+            ></i>
+          </el-button>
         </div>
       </div>
       <div
@@ -151,6 +166,9 @@ import {
 } from 'vue'
 import { onSelectMouseLeave } from '@/utils/select'
 import AppSvg from '@/shared/svg/svg'
+import { mapActions } from '@/shared/vuex/vuex.helpers'
+import ConfirmDialog from '@/shared/dialog/confirm-dialog.js'
+import Message from '@/shared/message/message'
 
 const CalendarIcon = h(
   'i', // type
@@ -197,40 +215,75 @@ const props = defineProps({
 const customAttributes = computed(() =>
   props.attributes
     .filter((attribute) => {
+      // For new member form, only display attributes that can be deleted
+      if (!props.record) {
+        return attribute.canDelete
+      }
+
       return (
-        (attribute.show &&
-          ![
-            'bio',
-            'url',
-            'location',
-            'jobTitle',
-            'emails',
-            'workExperiences', // we render them in _aside-enriched
-            'certifications', // we render them in _aside-enriched
-            'education', // we render them in _aside-enriched
-            'awards' // we render them in _aside-enriched
-          ].includes(attribute.name) &&
+        (![
+          'bio',
+          'url',
+          'location',
+          'jobTitle',
+          'emails',
+          'workExperiences', // we render them in _aside-enriched
+          'certifications', // we render them in _aside-enriched
+          'education', // we render them in _aside-enriched
+          'awards' // we render them in _aside-enriched
+        ].includes(attribute.name) &&
           props.record.attributes[attribute.name]) ||
         // Global attributes
         attribute.canDelete
       )
     })
     .sort((a, b) => {
-      if (props.record.attributes[a.name]?.enrich) {
-        return props.record.attributes[b.name].enrich
-          ? 0
-          : -1
-      } else {
-        return 1
+      // For new member form, maintain order
+      if (!props.record) {
+        return 0
       }
+
+      // Enrich attributes to the top and hidden attributes to the bottom
+      let enrichSorter
+      const showSorter = Number(b?.show) - Number(a?.show)
+
+      if (props.record.attributes[a.name]?.enrich) {
+        if (props.record.attributes[b.name]?.enrich) {
+          enrichSorter = 0
+        } else {
+          enrichSorter = -1
+        }
+      } else {
+        enrichSorter = 1
+      }
+
+      return enrichSorter && showSorter
     })
 )
 
+const { doUpdateCustomAttributes } = mapActions('member')
 const model = computed(() => props.modelValue)
 
 watch(model.value, (newModel) => {
   emit('update:modelValue', newModel)
 })
+
+const updateAttribute = (id, data) => {
+  ConfirmDialog({
+    type: 'danger',
+    title: `${data.show ? 'Show' : 'Hide'} attribute`,
+    message: `This attribute will be ${
+      data.show ? 'available' : 'hidden'
+    } in all member profiles. Are you sure you want to proceed? You can undo this action later.`,
+    confirmButtonText: 'Confirm',
+    cancelButtonText: 'Cancel',
+    icon: data.show ? 'ri-eye-line' : 'ri-eye-off-line'
+  }).then(() => {
+    doUpdateCustomAttributes({ id, data }).then(() => {
+      Message.success('Attribute successfully updated')
+    })
+  })
+}
 </script>
 
 <style lang="scss">
