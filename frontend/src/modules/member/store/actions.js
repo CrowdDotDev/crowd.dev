@@ -125,7 +125,7 @@ export default {
     }
   },
 
-  async doMarkAsTeamMember({ dispatch, getters }) {
+  async doMarkAsTeamMember({ dispatch, getters }, value) {
     try {
       const selectedRows = getters.selectedRows
 
@@ -134,8 +134,7 @@ export default {
           attributes: {
             ...row.attributes,
             isTeamMember: {
-              crowd: true,
-              default: true
+              default: value
             }
           }
         })
