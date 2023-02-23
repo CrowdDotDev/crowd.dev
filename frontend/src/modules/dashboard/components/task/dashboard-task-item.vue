@@ -74,7 +74,7 @@
           class="text-xs leading-5 text-gray-500 c-content"
           :class="
             displayShowMore && !showMore
-              ? `text-limit-4`
+              ? `line-clamp-4`
               : ''
           "
           v-html="$sanitize(props.task.body)"
@@ -145,12 +145,16 @@
             <app-avatar
               size="xxs"
               :entity="{
-                displayName: assignee.fullName,
+                displayName:
+                  assignee.fullName || assignee.email,
                 avatar: assignee.avatar
               }"
             />
             <p class="pl-2 text-2xs leading-4">
-              {{ assignee.fullName }}
+              {{
+                assignee.fullName ||
+                nameFromEmail(assignee.email)
+              }}
             </p>
           </article>
         </div>
@@ -250,6 +254,10 @@ const dateClass = computed(() => {
 
 const formatDate = (date) => {
   return moment(date).format('MMM D, YYYY')
+}
+const nameFromEmail = (email) => {
+  const [name] = email.split('@')
+  return name
 }
 
 const changeCompletion = (complete) => {

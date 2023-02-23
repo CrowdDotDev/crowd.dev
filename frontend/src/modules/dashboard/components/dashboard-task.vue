@@ -6,6 +6,7 @@
         My open tasks ({{ tasks.length }})
       </h4>
       <el-tooltip
+        v-if="tasks.length > 0 || suggestedTasks.length > 0"
         effect="dark"
         content="Add task"
         placement="top-start"

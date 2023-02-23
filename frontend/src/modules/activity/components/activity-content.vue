@@ -29,7 +29,7 @@
         :display-body="displayBody"
         :display-thread="displayThread"
         :body-class="
-          showMore && !more ? `text-limit-${limit}` : ''
+          showMore && !more ? `line-clamp-${limit}` : ''
         "
       ></component>
       <div v-else-if="activity.body">
@@ -50,7 +50,7 @@
           ref="body"
           class="block whitespace-pre-wrap custom-break-all activity-body parsed-body"
           :class="
-            showMore && !more ? `text-limit-${limit}` : ''
+            showMore && !more ? `line-clamp-${limit}` : ''
           "
           v-html="$sanitize($marked(activity.body))"
         />

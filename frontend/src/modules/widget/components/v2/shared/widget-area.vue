@@ -100,9 +100,8 @@ const paintDataSet = () => {
     '.cube-widget-chart canvas'
   )
   if (canvas && props.chartOptions?.computeDataset) {
-    dataset.value = props.chartOptions.computeDataset(
-      canvas
-    )
+    dataset.value =
+      props.chartOptions.computeDataset(canvas)
   }
 }
 

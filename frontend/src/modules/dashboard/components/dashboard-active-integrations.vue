@@ -1,24 +1,27 @@
 <template>
   <section>
     <h6 class="text-base leading-6 font-semibold pb-3">
-      Integrations
+      Integrations {{ loadingFetch }}
     </h6>
-    <div v-if="activeIntegrations.length > 0" class="pb-1">
-      <div v-if="loading">
-        <div
-          v-for="index in 4"
-          :key="index"
-          class="py-3.5 border-gray-100"
-          :class="{ 'border-t': index > 0 }"
-        >
-          <app-loading
-            width="110px"
-            height="16px"
-            radius="4px"
-          ></app-loading>
-        </div>
+    <div v-if="loadingFetch">
+      <div
+        v-for="index in 4"
+        :key="index"
+        class="py-3.5 border-gray-100"
+        :class="{ 'border-t': index > 1 }"
+      >
+        <app-loading
+          width="110px"
+          height="16px"
+          radius="4px"
+        ></app-loading>
       </div>
-      <div v-else>
+    </div>
+    <div v-else>
+      <div
+        v-if="activeIntegrations.length > 0"
+        class="pb-1"
+      >
         <article
           v-for="integration in activeIntegrations"
           :key="integration.platform"
@@ -99,19 +102,19 @@
           </div>
         </article>
       </div>
-    </div>
-    <div v-else class="flex flex-col items-center pt-3">
-      <div
-        class="ri-apps-2-line text-3xl text-gray-300"
-      ></div>
-      <p
-        class="text-xs italic leading-4 text-gray-400 text-center pt-4"
-      >
-        No connected integrations yet
-      </p>
+      <div v-else class="flex flex-col items-center pt-3">
+        <div
+          class="ri-apps-2-line text-3xl text-gray-300"
+        ></div>
+        <p
+          class="text-xs italic leading-4 text-gray-400 text-center pt-4"
+        >
+          No connected integrations yet
+        </p>
+      </div>
     </div>
 
-    <div class="pt-3">
+    <div v-if="!loadingFetch" class="pt-3">
       <router-link :to="{ name: 'integration' }" route>
         <el-button
           class="btn btn-brand--transparent btn--sm w-full leading-5"
@@ -138,14 +141,11 @@ export default {
   components: { AppLoading },
   data() {
     return {
-      loading: true,
       storeUnsubscribe: () => {}
     }
   },
   computed: {
-    ...mapGetters('integration', {
-      array: 'array'
-    }),
+    ...mapGetters('integration', ['array', 'loadingFetch']),
     activeIntegrations() {
       return CrowdIntegrations.mappedEnabledConfigs(
         this.$store
@@ -156,9 +156,7 @@ export default {
   },
   async mounted() {
     window.analytics.page('Dashboard')
-    this.loading = true
     await this.fetchIntegrations()
-    this.loading = false
     this.storeUnsubscribe =
       await this.$store.subscribeAction(async (action) => {
         if (action.type === 'auth/doRefreshCurrentUser') {

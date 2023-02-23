@@ -3,8 +3,8 @@
     v-if="loading || !organization"
     class="flex items-center"
   >
-    <app-loading height="32px" width="32px" radius="50%" />
-    <div class="flex-grow pl-3">
+    <app-loading height="20px" width="20px" radius="50%" />
+    <div class="flex-grow pl-4">
       <app-loading
         height="12px"
         width="120px"
@@ -17,22 +17,26 @@
         name: 'organizationView',
         params: { id: props.organization.id }
       }"
-      class="flex items-center group hover:cursor-pointer"
+      class="flex items-center justify-between group hover:cursor-pointer"
       @click="onOrganizationClick"
     >
-      <app-avatar :entity="entity" size="xxs" />
-      <div class="flex-grow pl-3">
+      <div class="flex items-center">
+        <app-avatar
+          :entity="entity"
+          size="xxs"
+          class="mr-4"
+        />
         <h6
           class="text-xs leading-5 font-medium text-gray-900 hover:text-brand-500 transition"
         >
           {{ organization.name }}
         </h6>
-        <p class="text-2xs leading-4 !text-gray-500">
-          {{ organization.memberCount }} member{{
-            organization.memberCount > 1 ? 's' : ''
-          }}
-        </p>
       </div>
+      <p class="text-2xs leading-4.5 !text-gray-400">
+        {{ organization.memberCount }} member{{
+          organization.memberCount > 1 ? 's' : ''
+        }}
+      </p>
     </router-link>
   </article>
 </template>

@@ -248,14 +248,21 @@ export default (moduleName, moduleService = null) => {
         window.location.search
       )
       const search = location.search.substring(1)
-      const queryParams = JSON.parse(
-        '{"' +
-          decodeURI(search)
-            .replace(/"/g, '\\"')
-            .replace(/&/g, '","')
-            .replace(/=/g, '":"') +
-          '"}'
-      )
+      let queryParams = {}
+      if (search.length > 0) {
+        try {
+          queryParams = JSON.parse(
+            '{"' +
+              decodeURI(search)
+                .replace(/"/g, '\\"')
+                .replace(/&/g, '","')
+                .replace(/=/g, '":"') +
+              '"}'
+          )
+        } catch (e) {
+          queryParams = {}
+        }
+      }
       if (params.get('activeTab') !== activeViewId) {
         router.push({
           name: moduleName,

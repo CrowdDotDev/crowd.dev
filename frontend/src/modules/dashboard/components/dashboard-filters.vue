@@ -18,12 +18,16 @@
       size="large"
     >
       <el-button
-        class="custom-btn bg-white"
+        class="btn btn--bordered bg-white !py-1.5 !px-3 outline-none"
         @click="handleOpenPlatform"
       >
         <div class="flex items-center text-xs">
-          <i class="ri-apps-2-line text-base mr-2"></i>
-          <span class="font-medium">Platform:</span>
+          <i
+            class="ri-apps-2-line text-base text-gray-900 mr-2"
+          ></i>
+          <span class="font-medium text-gray-900"
+            >Platform:</span
+          >
           <span class="text-gray-600 pl-1">{{
             getPlatformName
           }}</span>

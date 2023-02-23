@@ -40,7 +40,7 @@
           class="ml-4"
         >
           <el-button
-            class="custom-btn flex items-center text-gray-600 !px-3"
+            class="btn btn--bordered"
           >
             <i
               class="ri-bar-chart-line text-base text-gray-600 mr-2"
