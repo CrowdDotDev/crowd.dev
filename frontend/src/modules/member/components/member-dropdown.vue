@@ -72,12 +72,27 @@
           class="h-10"
           :command="{
             action: 'memberMarkAsTeamMember',
-            member: member
+            member: member,
+            value: true
           }"
           ><i
             class="ri-bookmark-line text-base mr-2"
           /><span class="text-xs text-gray-900"
             >Mark as team member</span
+          ></el-dropdown-item
+        >
+        <el-dropdown-item
+          v-if="member.attributes.isTeamMember?.default"
+          class="h-10"
+          :command="{
+            action: 'memberMarkAsTeamMember',
+            member: member,
+            value: false
+          }"
+          ><i
+            class="ri-bookmark-2-line text-base mr-2"
+          /><span class="text-xs text-gray-900"
+            >Unmark as team member</span
           ></el-dropdown-item
         >
         <el-dropdown-item
@@ -263,7 +278,7 @@ export default {
           attributes: {
             ...command.member.attributes,
             isTeamMember: {
-              default: true
+              default: command.value
             }
           }
         })

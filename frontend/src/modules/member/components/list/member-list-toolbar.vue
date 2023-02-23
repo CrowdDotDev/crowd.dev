@@ -3,9 +3,8 @@
     v-if="selectedRows.length > 0"
     class="app-list-table-bulk-actions"
   >
-    <span class="block text-sm font-semibold mr-4"
-      >{{ selectedRows.length }}
-      {{ selectedRows.length > 1 ? 'members' : 'member' }}
+    <span class="block text-sm font-semibold mr-4">
+      {{ pluralize('member', selectedRows.length, true) }}
       selected</span
     >
     <el-dropdown trigger="click" @command="handleCommand">
@@ -14,7 +13,7 @@
         <i class="ri-xl ri-arrow-down-s-line"></i>
       </button>
       <template #dropdown>
-        <el-dropdown-item command="export">
+        <el-dropdown-item :command="{ action: 'export' }">
           <i class="ri-lg ri-file-download-line mr-1" />
           Export to CSV
         </el-dropdown-item>
@@ -27,7 +26,7 @@
         >
           <span>
             <el-dropdown-item
-              command="enrichMember"
+              :command="{ action: 'enrichMember' }"
               :disabled="
                 !elegibleEnrichmentMembersIds.length
               "
@@ -43,21 +42,25 @@
           </span>
         </el-tooltip>
         <el-dropdown-item
-          command="markAsTeamMember"
+          :command="{
+            action: 'markAsTeamMember',
+            value: markAsTeamMemberOptions.value
+          }"
           :disabled="isReadOnly"
         >
-          <i class="ri-lg ri-bookmark-line mr-1" />
-          Mark as team member{{
-            selectedRows.length === 1 ? '' : 's'
-          }}
+          <i
+            class="ri-lg mr-1"
+            :class="markAsTeamMemberOptions.icon"
+          />
+          {{ markAsTeamMemberOptions.copy }}
         </el-dropdown-item>
-        <el-dropdown-item command="editTags">
+        <el-dropdown-item :command="{ action: 'editTags' }">
           <i class="ri-lg ri-price-tag-3-line mr-1" />
           Edit tags
         </el-dropdown-item>
         <hr class="border-gray-200 my-1 mx-2" />
         <el-dropdown-item
-          command="destroyAll"
+          :command="{ action: 'destroyAll' }"
           :disabled="isReadOnly"
         >
           <div class="text-red-500 flex items-center">
@@ -105,7 +108,8 @@ export default {
     ...mapGetters({
       currentUser: 'auth/currentUser',
       currentTenant: 'auth/currentTenant',
-      selectedRows: 'member/selectedRows'
+      selectedRows: 'member/selectedRows',
+      activeView: 'member/activeView'
     }),
     isReadOnly() {
       return (
@@ -133,6 +137,28 @@ export default {
       return this.selectedRows.some(
         (item) => !item.lastEnriched
       )
+    },
+    markAsTeamMemberOptions() {
+      const isTeamView = this.activeView.id === 'team'
+      const membersCopy = pluralize(
+        'member',
+        this.selectedRows.length,
+        false
+      )
+
+      if (isTeamView) {
+        return {
+          icon: 'ri-bookmark-2-line',
+          copy: `Unmark as team ${membersCopy}`,
+          value: false
+        }
+      }
+
+      return {
+        icon: 'ri-bookmark-line',
+        copy: `Mark as team ${membersCopy}`,
+        value: true
+      }
     }
   },
 
@@ -145,15 +171,15 @@ export default {
     }),
 
     async handleCommand(command) {
-      if (command === 'markAsTeamMember') {
-        await this.doMarkAsTeamMember()
-      } else if (command === 'export') {
+      if (command.action === 'markAsTeamMember') {
+        await this.doMarkAsTeamMember(command.value)
+      } else if (command.action === 'export') {
         await this.handleDoExport()
-      } else if (command === 'editTags') {
+      } else if (command.action === 'editTags') {
         await this.handleAddTags()
-      } else if (command === 'destroyAll') {
+      } else if (command.action === 'destroyAll') {
         await this.doDestroyAllWithConfirm()
-      } else if (command === 'enrichMember') {
+      } else if (command.action === 'enrichMember') {
         // All members are elegible for enrichment
         if (
           this.elegibleEnrichmentMembersIds.length ===
@@ -220,7 +246,9 @@ export default {
 
     async handleAddTags() {
       this.bulkTagsUpdateVisible = true
-    }
+    },
+
+    pluralize
   }
 }
 </script>
