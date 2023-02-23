@@ -274,6 +274,7 @@ class OrganizationRepository {
       {
         model: options.database.member,
         as: 'members',
+        required:true,
         attributes: [],
         through: {
           attributes: [],
