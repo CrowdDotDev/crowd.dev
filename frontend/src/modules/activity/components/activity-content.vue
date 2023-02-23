@@ -43,7 +43,7 @@
             activity.type === 'reaction_added' &&
             displayBody
           "
-          v-html="renderEmoji(activity.body)"
+          v-html="contentRenderEmojis(`:${activity.body}:`)"
         />
         <span
           v-else-if="displayBody"
@@ -157,16 +157,13 @@ export default {
     }
   },
   methods: {
-    renderEmoji(message) {
-      return joypixels.toImage(`:${message}:`)
-    },
     contentRenderEmojis(content) {
-      const render = joypixels.toImage(content)
-      return render
+      return joypixels
+        .toImage(content)
         .trim()
         .replaceAll(
           /(?<!"):[a-z_-]+:/g,
-          '<abbr title="Unable to detect emoji">⚫</abbr>'
+          '<abbr class="no-underline" title="Unable to detect emoji">⚪</abbr>'
         )
     }
   }
