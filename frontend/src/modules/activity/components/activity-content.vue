@@ -48,11 +48,15 @@
         <span
           v-else-if="displayBody"
           ref="body"
-          class="block whitespace-pre-wrap custom-break-all activity-body parsed-body"
+          class="block whitespace-pre-wrap custom-break-all activity-body parsed-body c-content"
           :class="
             showMore && !more ? `text-limit-${limit}` : ''
           "
-          v-html="$sanitize($marked(activity.body))"
+          v-html="
+            contentRenderEmojis(
+              $sanitize($marked(activity.body))
+            )
+          "
         />
       </div>
     </div>
@@ -155,6 +159,15 @@ export default {
   methods: {
     renderEmoji(message) {
       return joypixels.toImage(`:${message}:`)
+    },
+    contentRenderEmojis(content) {
+      const render = joypixels.toImage(content)
+      return render
+        .trim()
+        .replaceAll(
+          /(?<!"):[a-z_-]+:/g,
+          '<abbr title="Unable to detect emoji">⚫</abbr>'
+        )
     }
   }
 }
