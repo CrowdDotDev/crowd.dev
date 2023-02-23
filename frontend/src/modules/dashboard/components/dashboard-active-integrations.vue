@@ -1,7 +1,7 @@
 <template>
   <section>
     <h6 class="text-base leading-6 font-semibold pb-3">
-      Integrations {{ loadingFetch }}
+      Integrations
     </h6>
     <div v-if="loadingFetch">
       <div

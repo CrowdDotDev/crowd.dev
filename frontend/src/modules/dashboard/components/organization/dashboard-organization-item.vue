@@ -17,7 +17,7 @@
         name: 'organizationView',
         params: { id: props.organization.id }
       }"
-      class="flex items-center justify-between group hover:cursor-pointer"
+      class="flex items-center justify-between group hover:cursor-pointer w-full"
       @click="onOrganizationClick"
     >
       <div class="flex items-center">
@@ -32,11 +32,13 @@
           {{ organization.name }}
         </h6>
       </div>
-      <p class="text-2xs leading-4.5 !text-gray-400">
-        {{ organization.memberCount }} member{{
-          organization.memberCount > 1 ? 's' : ''
-        }}
-      </p>
+      <div>
+        <p class="text-2xs leading-4.5 !text-gray-400">
+          {{ organization.memberCount }} member{{
+            organization.memberCount > 1 ? 's' : ''
+          }}
+        </p>
+      </div>
     </router-link>
   </article>
 </template>
