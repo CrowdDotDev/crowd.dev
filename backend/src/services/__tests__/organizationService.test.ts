@@ -225,7 +225,10 @@ describe('OrganizationService tests', () => {
       expect(added.name).toEqual(toAdd.name)
       expect(added.url).toBeNull()
 
-      const foundAll = await service.findAndCountAll({ filter: {} })
+      const foundAll = await service.findAndCountAll({
+        filter: {},
+        includeOrganizationsWithoutMembers: true,
+      })
       expect(foundAll.count).toBe(1)
     })
   })
