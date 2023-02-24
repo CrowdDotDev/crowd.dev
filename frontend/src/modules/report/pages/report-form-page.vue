@@ -29,6 +29,7 @@
             :show-view-report="false"
             :show-view-report-public="false"
             :show-edit-report="false"
+            :show-duplicate-report="false"
           ></app-report-dropdown>
         </div>
       </div>
