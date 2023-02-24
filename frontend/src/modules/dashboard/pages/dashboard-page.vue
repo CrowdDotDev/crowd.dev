@@ -69,10 +69,8 @@ onMounted(() => {
   storeUnsubscribe.value = store.subscribeAction(
     (action) => {
       if (action.type === 'auth/doSelectTenant') {
-        setTimeout(() => {
           doFetch({})
           reset({})
-        }, 0)
       }
     }
   )
