@@ -228,14 +228,18 @@ export default {
       }
     },
 
-    async handleMergeMembers() {
+    handleMergeMembers() {
       const [firstMember, secondMember] = this.selectedRows
-      await MemberService.merge(firstMember, secondMember)
-
-      Message.success('Members merged successfuly')
-      await this.doFetch({
-        keepPagination: true
-      })
+      MemberService.merge(firstMember, secondMember)
+        .then(() => {
+          Message.success('Members merged successfuly')
+          this.doFetch({
+            keepPagination: true
+          })
+        })
+        .catch(() => {
+          Message.error('Error merging members')
+        })
     },
 
     async doDestroyAllWithConfirm() {
