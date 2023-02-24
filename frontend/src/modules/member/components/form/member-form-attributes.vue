@@ -99,7 +99,7 @@
             >
               <el-select
                 v-model="model[attribute.name]"
-                class="w-full"
+                class="w-full multi-select-field"
                 disabled
                 filterable
                 multiple
@@ -243,21 +243,27 @@ const customAttributes = computed(() =>
         return 0
       }
 
-      // Enrich attributes to the top and hidden attributes to the bottom
-      let enrichSorter
-      const showSorter = Number(b?.show) - Number(a?.show)
+      const aEnrichment = Number(
+        props.record.attributes[a.name]?.enrichment || 0
+      )
+      const bEnrichment = Number(
+        props.record.attributes[b.name]?.enrichment || 0
+      )
 
-      if (props.record.attributes[a.name]?.enrichment) {
-        if (props.record.attributes[b.name]?.enrichment) {
-          enrichSorter = 0
+      // Sort order
+      // 1. All attributes that have show = true && canDelete = true
+      // 2. All attributes that have show = true && canDelete = false
+      // 3. All attributes that have show = false && canDelete = false
+      // For each of these conditions, the enrichment attributes show at the top
+      if (a.show === b.show) {
+        if (a.canDelete === b.canDelete) {
+          return bEnrichment - aEnrichment
         } else {
-          enrichSorter = -1
+          return b.canDelete - a.canDelete
         }
       } else {
-        enrichSorter = 1
+        return b.show - a.show
       }
-
-      return enrichSorter && showSorter
     })
 )
 
@@ -292,5 +298,9 @@ const updateAttribute = (id, data) => {
   svg {
     @apply h-4 w-4 overflow-visible flex items-center justify-center leading-none;
   }
+}
+
+.multi-select-field .el-select__tags {
+  @apply h-7;
 }
 </style>
