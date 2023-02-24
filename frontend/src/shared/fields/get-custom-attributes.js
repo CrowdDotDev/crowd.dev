@@ -4,19 +4,28 @@ import IntegerField from '@/shared/fields/integer-field'
 import DateField from '@/shared/fields/date-field'
 import MemberArrayAttributesField from '@/modules/member/member-array-attributes-field'
 
-export default (customAttributes) => {
+export default ({
+  customAttributes,
+  considerShowProperty
+}) => {
   return (
     Object.values(customAttributes)
       .filter((a) => {
-        // Don't render special filters that do not have available options
+        // When parsing custom attributes, filter them according to show property
+        let show = a.show
+        if (!considerShowProperty) {
+          show = true
+        }
+
         if (
+          // Don't render special filters that do not have available options
           a.type === 'multiSelect' ||
           a.type === 'special'
         ) {
-          return a.options.length && a.show
+          return a.options.length && show
         }
 
-        return a.show
+        return show
       })
       .map((customAttribute) => {
         switch (customAttribute.type) {
