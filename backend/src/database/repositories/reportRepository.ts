@@ -110,7 +110,6 @@ class ReportRepository {
     const include = []
 
     const currentTenant = SequelizeRepository.getCurrentTenant(options)
-    console.log(id, currentTenant.id)
     const record = await options.database.report.findOne({
       where: {
         id,
