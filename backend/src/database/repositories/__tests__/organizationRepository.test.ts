@@ -607,6 +607,7 @@ describe('OrganizationRepository tests', () => {
           filter: {
             name: 'Pied Piper',
           },
+          includeOrganizationsWithoutMembers: true,
         },
         mockIRepositoryOptions,
       )
@@ -626,6 +627,7 @@ describe('OrganizationRepository tests', () => {
           filter: {
             url: 'crowd.dev',
           },
+          includeOrganizationsWithoutMembers: true,
         },
         mockIRepositoryOptions,
       )
@@ -645,6 +647,7 @@ describe('OrganizationRepository tests', () => {
           filter: {
             description: 'community',
           },
+          includeOrganizationsWithoutMembers: true,
         },
         mockIRepositoryOptions,
       )
@@ -664,6 +667,7 @@ describe('OrganizationRepository tests', () => {
           filter: {
             emails: 'richard@piedpiper.io,jonathan@crowd.dev',
           },
+          includeOrganizationsWithoutMembers: true,
         },
         mockIRepositoryOptions,
       )
@@ -675,6 +679,7 @@ describe('OrganizationRepository tests', () => {
           filter: {
             emails: ['richard@piedpiper.io', 'jonathan@crowd.dev'],
           },
+          includeOrganizationsWithoutMembers: true,
         },
         mockIRepositoryOptions,
       )
@@ -693,6 +698,7 @@ describe('OrganizationRepository tests', () => {
           filter: {
             tags: 'new-internet,not-google,new',
           },
+          includeOrganizationsWithoutMembers: true,
         },
         mockIRepositoryOptions,
       )
@@ -704,6 +710,7 @@ describe('OrganizationRepository tests', () => {
           filter: {
             tags: ['new-internet', 'not-google', 'new'],
           },
+          includeOrganizationsWithoutMembers: true,
         },
         mockIRepositoryOptions,
       )
@@ -722,6 +729,7 @@ describe('OrganizationRepository tests', () => {
           filter: {
             twitter: 'crowdDotDev',
           },
+          includeOrganizationsWithoutMembers: true,
         },
         mockIRepositoryOptions,
       )
@@ -741,6 +749,7 @@ describe('OrganizationRepository tests', () => {
           filter: {
             linkedin: 'crowddevhq',
           },
+          includeOrganizationsWithoutMembers: true,
         },
         mockIRepositoryOptions,
       )
@@ -760,6 +769,7 @@ describe('OrganizationRepository tests', () => {
           filter: {
             employeesRange: [90, 120],
           },
+          includeOrganizationsWithoutMembers: true,
         },
         mockIRepositoryOptions,
       )
@@ -780,6 +790,7 @@ describe('OrganizationRepository tests', () => {
             revenueMin: 0,
             revenueMax: 1,
           },
+          includeOrganizationsWithoutMembers: true,
         },
         mockIRepositoryOptions,
       )
@@ -792,6 +803,7 @@ describe('OrganizationRepository tests', () => {
           filter: {
             revenueMin: 9,
           },
+          includeOrganizationsWithoutMembers: true,
         },
         mockIRepositoryOptions,
       )
@@ -1053,6 +1065,7 @@ describe('OrganizationRepository tests', () => {
                   gte: 9,
                 },
               },
+              includeOrganizationsWithoutMembers: true,
             },
             mockIRepositoryOptions,
           )
@@ -1069,6 +1082,7 @@ describe('OrganizationRepository tests', () => {
                   textContains: 'world a better place',
                 },
               },
+              includeOrganizationsWithoutMembers: true,
             },
             mockIRepositoryOptions,
           )
@@ -1102,6 +1116,7 @@ describe('OrganizationRepository tests', () => {
                   },
                 ],
               },
+              includeOrganizationsWithoutMembers: true,
             },
             mockIRepositoryOptions,
           )
@@ -1133,6 +1148,7 @@ describe('OrganizationRepository tests', () => {
                   },
                 ],
               },
+              includeOrganizationsWithoutMembers: true,
             },
             mockIRepositoryOptions,
           )
