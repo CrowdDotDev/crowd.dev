@@ -41,6 +41,59 @@ export default class ReportService {
     }
   }
 
+  async duplicate(id) {
+    const transaction = await SequelizeRepository.createTransaction(this.options)
+
+    try {
+      const report = await ReportRepository.findById(id, {
+        ...this.options,
+        transaction,
+      })
+
+      let duplicatedReport = await ReportRepository.create(
+        {
+          name: `${report.name} (copy)`,
+          public: false,
+          widgets: [],
+        },
+        {
+          ...this.options,
+          transaction,
+        },
+      )
+
+      for (const widget of report.widgets) {
+        await WidgetRepository.create(
+          {
+            settings: widget.settings,
+            title: widget.title,
+            type: widget.type,
+            report: duplicatedReport.id,
+          },
+          {
+            ...this.options,
+            transaction,
+          },
+        )
+      }
+
+      duplicatedReport = await ReportRepository.findById(duplicatedReport.id, {
+        ...this.options,
+        transaction,
+      })
+
+      await SequelizeRepository.commitTransaction(transaction)
+
+      return duplicatedReport
+    } catch (error) {
+      await SequelizeRepository.rollbackTransaction(transaction)
+
+      SequelizeRepository.handleUniqueFieldError(error, this.options.language, 'report')
+
+      throw error
+    }
+  }
+
   async update(id, data) {
     const transaction = await SequelizeRepository.createTransaction(this.options)
 
