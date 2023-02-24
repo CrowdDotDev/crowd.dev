@@ -85,6 +85,13 @@ const fields = {
   joinedAt: new DateTimeField('joinedAt', 'Joined date', {
     filterable: true
   }),
+  lastActive: new DateTimeField(
+    'lastActive',
+    'Last activity date',
+    {
+      filterable: true
+    }
+  ),
   createdAt: new DateTimeField(
     'createdAt',
     label('createdAt')

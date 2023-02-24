@@ -8,27 +8,15 @@
         }}</span>
       </h4>
     </div>
-    <div class="w-full lg:w-auto md:w-auto pb-2">
-      <p
-        class="text-gray-400 text-2xs leading-5 uppercase font-semibold tracking-wide md:text-right lg:text-right tracking-1 pb-1"
-      >
-        Active integrations
-      </p>
-      <app-dashboard-integrations />
-    </div>
   </div>
 </template>
 
 <script>
-import AppDashboardIntegrations from '@/modules/dashboard/components/dashboard-active-integrations'
 import { mapGetters } from 'vuex'
 import moment from 'moment'
 import { activitiesChart } from '@/modules/dashboard/dashboard.cube'
 export default {
   name: 'AppDashboardHeader',
-  components: {
-    AppDashboardIntegrations
-  },
   computed: {
     ...mapGetters('auth', {
       currentTenant: 'currentTenant'

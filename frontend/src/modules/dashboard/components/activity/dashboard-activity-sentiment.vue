@@ -26,11 +26,11 @@
     <template #default="{ resultSet }">
       <div>
         <div v-if="!loadingData(resultSet)">
-          <div class="flex w-full pb-3">
+          <div class="flex w-full pb-5">
             <div
               v-for="data of compileData(resultSet)"
               :key="data.type"
-              class="h-2 border-l border-r rounded-sm transition cursor-pointer"
+              class="h-2 border-x-2 border-white rounded-lg transition cursor-pointer"
               :style="{
                 width: `${calculatePercentage(data.count)}%`
               }"
@@ -47,16 +47,22 @@
             <div
               v-for="data of compileData(resultSet)"
               :key="data.type"
-              class="flex justify-between pb-2 cursor-pointer"
+              class="flex items-center pb-3 cursor-pointer"
               :class="hoverSentimentClass(data.type)"
               @mouseover="hoveredSentiment = data.type"
               @mouseleave="hoveredSentiment = ''"
               @click="handleSentimentClick(data.type)"
             >
-              <p class="text-sm font-medium capitalize">
+              <i
+                class="text-lg mr-2 flex items-center h-5"
+                :class="typeEmoji[data.type]"
+              ></i>
+              <p
+                class="text-sm font-medium capitalize pr-2"
+              >
                 {{ data.type }}
               </p>
-              <p class="text-xs text-gray-600 text-right">
+              <p class="text-sm text-gray-400 text-right">
                 {{ data.count }}・{{
                   calculatePercentage(data.count)
                 }}%
@@ -95,6 +101,11 @@ export default {
         positive: 'bg-green-500',
         negative: 'bg-red-500',
         neutral: 'bg-gray-300'
+      },
+      typeEmoji: {
+        positive: 'ri-emotion-happy-line text-green-500',
+        negative: 'ri-emotion-unhappy-line text-red-500',
+        neutral: 'ri-emotion-normal-line text-gray-400'
       }
     }
   },

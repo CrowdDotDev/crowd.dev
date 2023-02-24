@@ -42,14 +42,19 @@ import AppOrganizationListFilter from '@/modules/organization/components/list/or
 import AppOrganizationListTable from '@/modules/organization/components/list/organization-list-table.vue'
 import { OrganizationPermissions } from '../organization-permissions'
 import { computed, ref, onMounted } from 'vue'
+import { useRoute } from 'vue-router'
 import {
   mapGetters,
   mapActions
 } from '@/shared/vuex/vuex.helpers'
 import { OrganizationService } from '../organization-service'
+import moment from 'moment/moment'
+
+const route = useRoute()
 
 const { currentUser, currentTenant } = mapGetters('auth')
-const { doFetch } = mapActions('organization')
+const { doFetch, updateFilterAttribute } =
+  mapActions('organization')
 
 const hasPermissionToCreate = computed(
   () =>
@@ -63,6 +68,40 @@ const isPageLoading = ref(false)
 
 onMounted(async () => {
   isPageLoading.value = true
+  const { joinedFrom, activeFrom } = route.query
+
+  if (
+    joinedFrom &&
+    moment(joinedFrom, 'YYYY-MM-DD', true).isValid()
+  ) {
+    await updateFilterAttribute({
+      custom: false,
+      defaultOperator: 'gt',
+      defaultValue: joinedFrom,
+      expanded: false,
+      label: 'Joined date',
+      name: 'joinedAt',
+      operator: 'gt',
+      type: 'date',
+      value: joinedFrom
+    })
+  }
+  if (
+    activeFrom &&
+    moment(activeFrom, 'YYYY-MM-DD', true).isValid()
+  ) {
+    await updateFilterAttribute({
+      custom: false,
+      defaultOperator: 'eq',
+      defaultValue: activeFrom,
+      expanded: false,
+      label: 'Last activity date',
+      name: 'lastActive',
+      operator: 'gt',
+      type: 'date',
+      value: activeFrom
+    })
+  }
 
   await doFetch({
     keepPagination: true

@@ -31,7 +31,8 @@ import { defineProps, computed } from 'vue'
 const props = defineProps({
   sentiment: {
     type: Number,
-    required: true
+    required: false,
+    default: 0
   }
 })
 

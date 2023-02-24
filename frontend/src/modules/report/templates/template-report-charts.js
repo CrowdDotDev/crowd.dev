@@ -5,13 +5,14 @@ import {
   parseTooltipBody
 } from '@/utils/reports'
 
-const defaultChartOptions = {
+const defaultChartOptions = (config) => ({
   legend: false,
-  curve: false,
+  curve: true,
   points: true,
   title: undefined,
   colors: ['#E94F2E'],
   loading: 'Loading...',
+  empty: 'Loading...',
   library: {
     layout: {
       padding: {
@@ -28,27 +29,35 @@ const defaultChartOptions = {
           }
         },
         ticks: {
+          display: config.xTicks,
           color: '#9CA3AF',
           font: {
             family: 'Inter',
             size: 10
-          }
+          },
+          callback: config.xTicksCallback
+        },
+        grid: {
+          display: config.xLines
         }
       },
       y: {
         grid: {
+          display: config.yLines,
           drawBorder: false,
           color: '#D1D5DB',
           borderDash: [4, 6],
           drawTicks: false
         },
         ticks: {
+          display: config.yTicks,
           color: '#9CA3AF',
           padding: 8,
           font: {
             family: 'Inter',
             size: 10
-          }
+          },
+          callback: config.yTicksCallback
         }
       }
     },
@@ -73,7 +82,7 @@ const defaultChartOptions = {
           }
         }
       },
-      legend: {
+      legend: config.legend && {
         display: true,
         position: 'bottom',
         align: 'center',
@@ -124,23 +133,55 @@ const defaultChartOptions = {
       }
     }
   }
+})
+
+const defaultChartConfig = {
+  legend: true,
+  xTicks: true,
+  xLines: false,
+  xTicksCallback: undefined,
+  yTicks: true,
+  yLines: true,
+  yTicksCallback: undefined,
+  gradient: {
+    x0: 0,
+    y0: 150,
+    x1: 0,
+    y1: 350,
+    stops: [
+      {
+        offset: 0,
+        color: 'rgba(233, 79, 46, 0.05)'
+      },
+      {
+        offset: 1,
+        color: 'rgba(233, 79, 46, 0)'
+      }
+    ]
+  }
 }
 
-export function chartOptions(type) {
+export function chartOptions(type, config) {
+  const chartConfig = {
+    ...defaultChartConfig,
+    ...config
+  }
+
   let chartTypeOptions = {}
 
   if (type === 'area') {
-    chartTypeOptions = {
-      computeDataset: (canvas) => {
+    const computeDataset = (conf) => {
+      return (canvas) => {
         const ctx = canvas.getContext('2d')
         const gradient = ctx.createLinearGradient(
-          0,
-          150,
-          0,
-          350
+          conf.gradient.x0,
+          conf.gradient.y0,
+          conf.gradient.x1,
+          conf.gradient.y1
         )
-        gradient.addColorStop(0, 'rgba(233, 79, 46, 0.05)')
-        gradient.addColorStop(1, 'rgba(233, 79, 46, 0)')
+        for (let stop of conf.gradient.stops) {
+          gradient.addColorStop(stop.offset, stop.color)
+        }
 
         return {
           backgroundColor: gradient,
@@ -154,10 +195,14 @@ export function chartOptions(type) {
         }
       }
     }
+
+    chartTypeOptions = {
+      computeDataset: computeDataset(chartConfig)
+    }
   }
 
   return {
-    ...defaultChartOptions,
+    ...defaultChartOptions(chartConfig),
     ...chartTypeOptions
   }
 }

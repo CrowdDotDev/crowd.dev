@@ -5,7 +5,7 @@
       <el-main id="main-page-wrapper" class="relative">
         <div
           :class="{
-            'pt-16': showBanner
+            'pt-14': showBanner
           }"
         >
           <banner

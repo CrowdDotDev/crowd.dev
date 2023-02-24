@@ -1,56 +1,57 @@
 <template>
   <div class="widget panel !p-6">
     <!-- header -->
-    <div class="flex items-center">
-      <div
-        class="w-8 h-8 rounded-md bg-gray-900 flex items-center justify-center mr-3"
-      >
-        <i class="ri-radar-line text-lg text-white"></i>
-      </div>
-      <div>
-        <h6 class="text-sm font-semibold leading-5">
-          Activities
-        </h6>
-        <p class="text-2xs text-gray-500">
-          Total:
-          {{ formatNumberToCompact(activities.total) }}
-        </p>
-      </div>
-    </div>
+    <app-dashboard-widget-header
+      title="Activities"
+      :total-loading="activities.loading"
+      :total="activities.total"
+      :route="{ name: 'activity' }"
+      button-title="All activities"
+      report-name="Activities report"
+    />
 
     <div class="pt-6 flex -mx-5 pb-12">
-      <div class="w-7/12 px-5 pb-4">
-        <div
-          v-if="activities.loading"
-          v-loading="activities.loading"
-          class="app-page-spinner h-16 !relative !min-h-5 chart-loading"
-        ></div>
-        <app-widget-cube-renderer
-          v-else
-          class="chart"
-          :widget="activitiesChart(period, platform)"
-          :dashboard="false"
-          :show-subtitle="false"
-          :chart-options="chartOptions"
-        ></app-widget-cube-renderer>
-      </div>
-      <div class="w-5/12 px-5 pb-4">
-        <p
-          class="text-2xs leading-5 font-semibold text-gray-400 mb-3 tracking-1 uppercase"
-        >
-          New activities
-        </p>
-        <app-dashboard-count
-          :query="activitiesCount"
-          :percentage="true"
-        />
-        <p
-          class="text-2xs leading-5 font-semibold text-gray-400 mb-3 tracking-1 uppercase"
-        >
-          OVERALL SENTIMENT
-        </p>
-        <app-dashboard-activity-sentiment />
-      </div>
+      <section class="px-5 w-1/2">
+        <div class="flex">
+          <div class="w-5/12">
+            <!-- info -->
+            <h6
+              class="text-sm leading-5 font-semibold mb-1"
+            >
+              New activities
+            </h6>
+            <app-dashboard-count
+              :loading="activities.loading"
+              :query="activitiesCount"
+            ></app-dashboard-count>
+          </div>
+          <div class="w-7/12">
+            <div
+              v-if="activities.loading"
+              v-loading="activities.loading"
+              class="app-page-spinner h-16 !relative !min-h-5 chart-loading"
+            ></div>
+
+            <app-dashboard-widget-chart
+              v-else
+              :datasets="datasets"
+              :query="activitiesChart"
+            />
+          </div>
+        </div>
+        <div class="pt-10">
+          <h6 class="text-sm leading-5 font-semibold mb-4">
+            Overall sentiment
+          </h6>
+          <app-dashboard-activity-sentiment />
+        </div>
+      </section>
+      <section class="px-5 w-1/2">
+        <h6 class="text-sm leading-5 font-semibold mb-4">
+          Top activities by type
+        </h6>
+        <app-dashboard-activity-types />
+      </section>
     </div>
 
     <div class="tabs">
@@ -74,71 +75,59 @@
 
 <script>
 import { mapGetters } from 'vuex'
-import AppWidgetCubeRenderer from '@/modules/widget/components/cube/widget-cube-renderer'
 import {
   activitiesChart,
-  activitiesCount,
-  chartOptions
+  activitiesCount
 } from '@/modules/dashboard/dashboard.cube'
 import AppDashboardConversationList from '@/modules/dashboard/components/conversations/dashboard-conversation-list'
 import AppDashboardActivityList from '@/modules/dashboard/components/activity/dashboard-activity-list'
 import AppDashboardActivitySentiment from '@/modules/dashboard/components/activity/dashboard-activity-sentiment'
 import AppDashboardCount from '@/modules/dashboard/components/dashboard-count'
-import { formatNumberToCompact } from '@/utils/number'
+import AppDashboardActivityTypes from '@/modules/dashboard/components/activity/dashboard-activity-types.vue'
+import { DAILY_GRANULARITY_FILTER } from '@/modules/widget/widget-constants'
+import AppDashboardWidgetHeader from '@/modules/dashboard/components/dashboard-widget-header.vue'
+import AppDashboardWidgetChart from '@/modules/dashboard/components/dashboard-widget-chart.vue'
 
 export default {
   name: 'AppDashboardActivities',
   components: {
+    AppDashboardWidgetChart,
+    AppDashboardWidgetHeader,
+    AppDashboardActivityTypes,
     AppDashboardCount,
     AppDashboardActivitySentiment,
     AppDashboardActivityList,
-    AppDashboardConversationList,
-    AppWidgetCubeRenderer
+    AppDashboardConversationList
   },
   data() {
     return {
       tab: 'trending',
-      hoveredSentiment: '',
       activitiesChart,
-      activitiesCount,
-      chartOptions
+      activitiesCount
     }
   },
   computed: {
-    ...mapGetters('dashboard', [
-      'period',
-      'platform',
-      'activities'
-    ])
-  },
-  methods: {
-    formatNumberToCompact
+    ...mapGetters('dashboard', ['activities']),
+    datasets() {
+      return [
+        {
+          name: 'new activities',
+          borderColor: '#E94F2E',
+          measure: 'Activities.count',
+          granularity: DAILY_GRANULARITY_FILTER.value
+        }
+      ]
+    }
   }
 }
 </script>
 
 <style scoped lang="scss">
-.tabs::v-deep {
-  .el-tabs__content {
-    overflow: visible;
-  }
-}
-.chart::v-deep {
-  div {
-    line-height: 233px !important;
-    height: auto !important;
-  }
-  .cube-widget-chart {
-    padding: 0;
-    min-height: 0;
-  }
-  canvas {
-    height: 233px !important;
-  }
-}
-
 .chart-loading {
   @apply flex items-center justify-center;
-  height: 233px;
+  height: 112px;
+}
+.app-page-spinner {
+  min-height: initial;
 }
 </style>

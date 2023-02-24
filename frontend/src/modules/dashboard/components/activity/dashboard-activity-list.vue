@@ -16,19 +16,14 @@
         }"
         :activity="activity"
       />
-      <div
+
+      <app-dashboard-empty-state
         v-if="recentActivities.length === 0"
-        class="flex items-center justify-center pt-17 pb-17"
+        icon-class="ri-list-check-2"
+        class="pt-17 pb-17"
       >
-        <i
-          class="ri-list-check-2 flex items-center text-3xl h-12 text-gray-300"
-        ></i>
-        <p
-          class="text-sm leading-5 text-center italic text-gray-400 pl-6"
-        >
-          No activities during this period
-        </p>
-      </div>
+        No activities during this period
+      </app-dashboard-empty-state>
     </div>
     <div class="pt-3 pb-2 flex justify-center">
       <router-link
@@ -47,9 +42,13 @@
 <script>
 import { mapGetters } from 'vuex'
 import AppDashboardActivityItem from '@/modules/dashboard/components/activity/dashboard-activity-item'
+import AppDashboardEmptyState from '@/modules/dashboard/components/dashboard-empty-state.vue'
 export default {
   name: 'AppDashboardActivityList',
-  components: { AppDashboardActivityItem },
+  components: {
+    AppDashboardEmptyState,
+    AppDashboardActivityItem
+  },
   emits: { count: null },
   data() {
     return {
