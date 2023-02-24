@@ -53,7 +53,7 @@
 
 <script setup>
 import { defineProps, defineEmits, computed } from 'vue'
-import { premiumFeatureCopy } from '@/utils/posthog'
+import { FeatureFlag } from '@/featureFlag'
 
 const emit = defineEmits(['update:modelValue'])
 const props = defineProps({
@@ -81,7 +81,7 @@ const modal = computed(() => modalContent[props.module])
 const modalContent = {
   organizations: {
     title: 'Organizations',
-    preTitle: `${premiumFeatureCopy()} feature`,
+    preTitle: `${FeatureFlag.premiumFeatureCopy()} feature`,
     imageSrc: '/images/paywall/organizations.png',
     imageClass: 'ml-10 mt-6',
     imageWrapperClass: 'h-52',
@@ -91,7 +91,7 @@ const modalContent = {
   },
   communityHelpCenter: {
     title: 'Custom domain',
-    preTitle: `${premiumFeatureCopy()} feature`,
+    preTitle: `${FeatureFlag.premiumFeatureCopy()} feature`,
     imageSrc: '/images/paywall/community-help-center.png',
     imageClass: 'absolute bottom-0 right-0',
     imageWrapperClass: 'h-30',

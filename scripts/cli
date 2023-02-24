@@ -333,30 +333,20 @@ function migrate_test() {
         crowd_flyway
 }
 
-function create_s3_buckets() {
-    say "Creating S3 buckets!"
-    # sleep 10
-
-    # declare -a BUCKETS=("crowd-integrations-assets-local" "crowd-microservices-assets-local")
-    # for i in "${BUCKETS[@]}"
-    # do
-    #     say "Creating s3 bucket: $i"
-    #     curl "http://localhost:9000/ui/$i?create"
-    #     sleep 8
-    #     curl "http://localhost:9000/ui/$i?make-public"
-    # done
+function source_edition() {
+    __CROWD_EDITION=$(source $CLI_HOME/../backend/.env.dist.local && source $CLI_HOME/../backend/.env.override.local && echo $CROWD_EDITION)
 }
 
-function create_qdrant_collection() {
-    say "Creating Qdrant collection!"
-    curl -X PUT 'http://localhost:6333/collections/crowddev' \
-    -H 'Content-Type: application/json' \
-    --data-raw '{
-        "vectors": {
-            "size": 768,
-            "distance": "Cosine"
-        }
-    }'
+function check_init_premium() {
+    source_edition
+    if [ $__CROWD_EDITION == "crowd-hosted" ]; then
+        $_DC --compatibility -p $PROJECT_NAME -f $CLI_HOME/premium-scaffold.yaml up -d --build
+        init_unleash
+    fi
+}
+
+function init_unleash() {
+    (cd $CLI_HOME/../backend && source source-local.sh && npm i && npm run script:unleash-init)
 }
 
 function up_scaffold() {
@@ -364,13 +354,14 @@ function up_scaffold() {
     $_DC --compatibility -p $PROJECT_NAME -f $CLI_HOME/scaffold.yaml up -d --build
     wait_for_db
     migrate_local
-    create_s3_buckets
-    create_qdrant_collection
     bash pizzly-integrations.sh
+
+    check_init_premium
 }
 
 function down_scaffold() {
     $_DC --compatibility -p $PROJECT_NAME -f $CLI_HOME/scaffold.yaml down
+    $_DC --compatibility -p $PROJECT_NAME -f $CLI_HOME/premium-scaffold.yaml down
 }
 
 function scaffold_destroy() {
@@ -414,6 +405,7 @@ function kill_all_containers() {
 function scaffold_destroy_confirmed() {
     kill_all_containers
     $_DC --compatibility -p $PROJECT_NAME -f $CLI_HOME/scaffold.yaml down
+    $_DC --compatibility -p $PROJECT_NAME -f $CLI_HOME/premium-scaffold.yaml down
 
     # needed because if there are no volumes this might cause the script to exit
     set +eo pipefail
@@ -486,12 +478,12 @@ do
             exit;
         ;;
         start)
-            declare -a INGORED_SERVICES=("premium-api" "premium-job-generator" "premium-python-worker" "community-help-center")
+            declare -a INGORED_SERVICES=("community-help-center")
             start
             exit;
         ;;
         start-e2e)
-            declare -a INGORED_SERVICES=("premium-api" "premium-job-generator" "premium-python-worker" "community-help-center" "python-worker" "job-generator")
+            declare -a INGORED_SERVICES=("community-help-center" "python-worker" "job-generator")
             start
             exit;
         ;;
@@ -501,43 +493,43 @@ do
             exit;
         ;;
         start-dev)
-            declare -a INGORED_SERVICES=("premium-api" "premium-job-generator" "premium-python-worker" "community-help-center")
+            declare -a INGORED_SERVICES=("community-help-center")
             DEV=1
             start
             exit;
         ;;
         clean-start)
-            declare -a INGORED_SERVICES=("premium-api" "premium-job-generator" "premium-python-worker" "community-help-center")
+            declare -a INGORED_SERVICES=("community-help-center")
             CLEAN_START=1
             start
             exit;
         ;;
         clean-start-dev)
-            declare -a INGORED_SERVICES=("premium-api" "premium-job-generator" "premium-python-worker" "community-help-center")
+            declare -a INGORED_SERVICES=("community-help-center")
             CLEAN_START=1
             DEV=1
             start
             exit;
         ;;
         start-backend)
-            declare -a INGORED_SERVICES=("frontend" "premium-api" "premium-job-generator" "premium-python-worker" "community-help-center")
+            declare -a INGORED_SERVICES=("frontend" "community-help-center")
             start
             exit;
         ;;
         start-backend-dev)
-            declare -a INGORED_SERVICES=("frontend" "premium-api" "premium-job-generator" "premium-python-worker" "community-help-center")
+            declare -a INGORED_SERVICES=("frontend" "community-help-center")
             DEV=1
             start
             exit;
         ;;
         clean-start-backend)
-            declare -a INGORED_SERVICES=("frontend" "premium-api" "premium-job-generator" "premium-python-worker" "community-help-center")
+            declare -a INGORED_SERVICES=("frontend" "community-help-center")
             CLEAN_START=1
             start
             exit;
         ;;
         clean-start-backend-dev)
-            declare -a INGORED_SERVICES=("frontend" "premium-api" "premium-job-generator" "premium-python-worker" "community-help-center")
+            declare -a INGORED_SERVICES=("frontend" "community-help-center")
             CLEAN_START=1
             DEV=1
             start

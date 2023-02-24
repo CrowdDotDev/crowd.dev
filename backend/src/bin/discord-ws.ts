@@ -110,7 +110,7 @@ async function spawnClient(
   })
 
   client.on(Events.Debug, (message) => {
-    logger.debug({ debugMsg: message }, 'Discord WS client debug message!')
+    logger.info({ debugMsg: message }, 'Discord WS client debug message!')
   })
 
   client.on(Events.Warn, (message) => {
@@ -118,13 +118,25 @@ async function spawnClient(
   })
 
   // listen to discord events
-  client.on(Events.GuildMemberAdd, async (member) => {
+  client.on(Events.GuildMemberAdd, async (m) => {
+    const member = m as any
     await executeIfNotExists(
-      `member-${(member as any).userId}`,
+      `member-${member.userId}`,
       cache,
       async () => {
-        logger.debug({ member }, 'Member joined guild!')
-        await processPayload(DiscordWebsocketEvent.MEMBER_ADDED, member, member.guild.id)
+        logger.info(
+          {
+            member: member.displayName,
+            guildId: member.guildId ?? member.guild.id,
+            userId: member.userId,
+          },
+          'Member joined guild!',
+        )
+        await processPayload(
+          DiscordWebsocketEvent.MEMBER_ADDED,
+          member,
+          member.guildId ?? member.guild.id,
+        )
       },
       delayMilliseconds,
     )
@@ -136,7 +148,15 @@ async function spawnClient(
         `msg-${message.id}`,
         cache,
         async () => {
-          logger.debug({ message }, 'Message created!')
+          logger.info(
+            {
+              guildId: message.guildId,
+              channelId: message.channelId,
+              message: message.cleanContent,
+              authorId: message.author,
+            },
+            'Message created!',
+          )
           await processPayload(DiscordWebsocketEvent.MESSAGE_CREATED, message, message.guildId)
         },
         delayMilliseconds,
@@ -150,7 +170,16 @@ async function spawnClient(
         `msg-modified-${newMessage.id}-${newMessage.editedTimestamp}`,
         cache,
         async () => {
-          logger.debug({ oldMessage, newMessage }, 'Message updated!')
+          logger.info(
+            {
+              guildId: newMessage.guildId,
+              channelId: newMessage.channelId,
+              oldMessageId: oldMessage.id,
+              newMessage: newMessage.cleanContent,
+              authorId: newMessage.author,
+            },
+            'Message updated!',
+          )
           await processPayload(
             DiscordWebsocketEvent.MESSAGE_UPDATED,
             {

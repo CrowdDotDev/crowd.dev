@@ -50,7 +50,7 @@
         <span
           v-if="integration.premium"
           class="text-2xs text-brand-500 ml-1"
-          >{{ premiumFeatureCopy() }}</span
+          >{{ FeatureFlag.premiumFeatureCopy() }}</span
         >
       </div>
       <span class="block mb-6 text-xs text-gray-500">{{
@@ -108,7 +108,7 @@ export default {
 import { useStore } from 'vuex'
 import { defineProps, computed, ref } from 'vue'
 import AppIntegrationConnect from '@/modules/integration/components/integration-connect'
-import { premiumFeatureCopy } from '@/utils/posthog'
+import { FeatureFlag } from '@/featureFlag'
 
 const store = useStore()
 const props = defineProps({

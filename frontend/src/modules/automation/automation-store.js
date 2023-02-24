@@ -1,8 +1,6 @@
-import config from '@/config'
 import { AutomationService } from '@/modules/automation/automation-service'
 import Errors from '@/shared/error/errors'
 import Message from '@/shared/message/message'
-import posthog from 'posthog-js'
 
 const INITIAL_PAGE_SIZE = 20
 
@@ -427,7 +425,7 @@ export default {
         commit('FETCH_ERROR')
       }
     },
-    async doCreate({ commit }, automation) {
+    async doCreate({ commit, dispatch }, automation) {
       try {
         commit('CREATE_STARTED')
 
@@ -438,9 +436,9 @@ export default {
         commit('CREATE_SUCCESS', response)
 
         // Make sure that feature flags are updated for automationsCount
-        if (!config.isCommunityVersion) {
-          posthog.reloadFeatureFlags()
-        }
+        await dispatch('auth/doRefreshCurrentUser', null, {
+          root: true
+        })
 
         Message.success('Automation created successfully')
       } catch (error) {
@@ -461,9 +459,9 @@ export default {
         commit('DESTROY_SUCCESS', automationId)
 
         // Make sure that feature flags are updated for automationsCount
-        if (!config.isCommunityVersion) {
-          posthog.reloadFeatureFlags()
-        }
+        await dispatch('auth/doRefreshCurrentUser', null, {
+          root: true
+        })
 
         dispatch(
           `automation/doFetch`,
@@ -491,9 +489,9 @@ export default {
         commit('DESTROY_ALL_SUCCESS', automationIds)
 
         // Make sure that feature flags are updated for automationsCount
-        if (!config.isCommunityVersion) {
-          posthog.reloadFeatureFlags()
-        }
+        await dispatch('auth/doRefreshCurrentUser', null, {
+          root: true
+        })
 
         dispatch(
           `automation/doFetch`,

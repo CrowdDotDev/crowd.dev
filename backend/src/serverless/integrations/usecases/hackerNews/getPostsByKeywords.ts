@@ -24,7 +24,7 @@ async function getPostsByKeyword(
         maxBodyLength: Infinity,
         url: 'http://hn.algolia.com/api/v1/search',
         params: {
-          query: keyword,
+          query: `"${keyword}"`,
           numericFilters: `created_at_i>${input.after}`,
           tags: '(story,ask_hn,show_hn,poll)',
         },

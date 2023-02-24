@@ -9,11 +9,7 @@ interface IQueueCount {
   increaseCount: number
 }
 
-const queues = [
-  SQS_CONFIG.nodejsWorkerQueue,
-  SQS_CONFIG.pythonWorkerQueue,
-  SQS_CONFIG.premiumPythonWorkerQueue,
-]
+const queues = [SQS_CONFIG.nodejsWorkerQueue, SQS_CONFIG.pythonWorkerQueue]
 
 const messageCounts: Map<string, IQueueCount> = new Map<string, IQueueCount>()
 

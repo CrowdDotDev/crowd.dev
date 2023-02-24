@@ -91,10 +91,10 @@ const emptyStateContent = computed(() => {
   }
 })
 
-onMounted(async () => {
+onMounted(() => {
   // Prevent new fetch if it still loading results from onboarding
   if (!activeViewList.value.loading) {
-    await store.dispatch('eagleEye/doFetch', {
+    store.dispatch('eagleEye/doFetch', {
       keepPagination: true,
       resetStorage: false
     })

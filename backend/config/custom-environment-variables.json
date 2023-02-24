@@ -5,8 +5,7 @@
     "frontendUrl": "CROWD_API_FRONTEND_URL",
     "frontendUrlWithSubdomain": "CROWD_API_FRONTEND_URL_WITH_SUBDOMAINS",
     "jwtSecret": "CROWD_API_JWT_SECRET",
-    "jwtExpiresIn": "CROWD_API_JWT_EXPIRES_IN",
-    "premiumApiUrl": "CROWD_PREMIUM_API_URL"
+    "jwtExpiresIn": "CROWD_API_JWT_EXPIRES_IN"
   },
   "redis": {
     "username": "CROWD_REDIS_USERNAME",
@@ -20,7 +19,6 @@
     "nodejsWorkerQueue": "CROWD_SQS_NODEJS_WORKER_QUEUE",
     "nodejsWorkerDelayableQueue": "CROWD_SQS_NODEJS_WORKER_DELAYABLE_QUEUE",
     "pythonWorkerQueue": "CROWD_SQS_PYTHON_WORKER_QUEUE",
-    "premiumPythonWorkerQueue": "CROWD_SQS_PREMIUM_PYTHON_WORKER_QUEUE",
     "aws": {
       "accountId": "CROWD_SQS_AWS_ACCOUNT_ID",
       "accessKeyId": "CROWD_SQS_AWS_ACCESS_KEY_ID",
@@ -65,9 +63,6 @@
   },
   "segment": {
     "writeKey": "CROWD_SEGMENT_WRITE_KEY"
-  },
-  "posthog": {
-    "apiKey": "CROWD_POSTHOG_API_KEY"
   },
   "comprehend": {
     "aws": {
@@ -141,5 +136,18 @@
   "eagleEye": {
     "url": "CROWD_EAGLE_EYE_URL",
     "apiKey": "CROWD_EAGLE_EYE_API_KEY"
+  },
+  "unleash": {
+    "url": "CROWD_UNLEASH_URL",
+    "adminApiKey": "CROWD_UNLEASH_ADMIN_API_KEY",
+    "frontendApiKey": "CROWD_UNLEASH_FRONTEND_API_KEY",
+    "backendApiKey": "CROWD_UNLEASH_BACKEND_API_KEY",
+    "db": {
+      "host": "CROWD_UNLEASH_DB_HOST",
+      "port": "CROWD_UNLEASH_DB_PORT",
+      "username": "CROWD_UNLEASH_DB_USERNAME",
+      "password": "CROWD_UNLEASH_DB_PASSWORD",
+      "database": "CROWD_UNLEASH_DB_DATABASE"
+    }
   }
 }

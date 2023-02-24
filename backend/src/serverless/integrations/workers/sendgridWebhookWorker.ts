@@ -86,7 +86,7 @@ export const processSendgridWebhook = async (message: any) => {
         new URL(sendgridEvent.url).hostname,
         Object.values(PlatformType),
       )
-      EagleEyeContentService.trackPostClicked(sendgridEvent.url, platform, userContext)
+      EagleEyeContentService.trackPostClicked(sendgridEvent.url, platform, userContext, 'email')
       break
     }
     default:

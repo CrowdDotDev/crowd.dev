@@ -46,5 +46,9 @@ export default {
       Errors.handle(error)
       commit('UPDATE_ERROR')
     }
+  },
+
+  doUpdateFeatureFlag({ commit }, { isReady, hasError }) {
+    commit('UPDATE_FEATURE_FLAG', { isReady, hasError })
   }
 }

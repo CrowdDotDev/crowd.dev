@@ -22,21 +22,27 @@
         />
       </el-form-item>
 
-      <div class="flex gap-6">
-        <el-form-item
-          class="grow"
-          :label="fieldsValue.jobTitle.label"
-        >
-          <el-input v-model="model.jobTitle" />
-        </el-form-item>
+      <el-form-item
+        class="grow"
+        :label="fieldsValue.jobTitle.label"
+      >
+        <el-input v-model="model.jobTitle" />
+      </el-form-item>
 
-        <el-form-item
-          class="grow"
-          :label="fieldsValue.organizations.label"
-        >
-          <el-input v-model="model.organizations" />
-        </el-form-item>
-      </div>
+      <el-form-item
+        class="grow"
+        :label="fieldsValue.organizations.label"
+      >
+        <app-autocomplete-many-input
+          v-model="model.organizations"
+          :fetch-fn="fetchOrganizationsFn"
+          :create-fn="createOrganizationFn"
+          placeholder="Type to search or create organizations"
+          input-class="w-full"
+          :create-if-not-found="true"
+          :in-memory-filter="false"
+        ></app-autocomplete-many-input>
+      </el-form-item>
 
       <el-form-item :label="fieldsValue.bio.label">
         <el-input
@@ -66,6 +72,7 @@
 <script setup>
 import AppTagAutocompleteInput from '@/modules/tag/components/tag-autocomplete-input.vue'
 import { defineEmits, defineProps, computed, h } from 'vue'
+import { OrganizationService } from '@/modules/organization/organization-service'
 
 const CalendarIcon = h(
   'i', // type
@@ -96,4 +103,29 @@ const model = computed({
     emit('update:modelValue', newModel)
   }
 })
+
+const fetchOrganizationsFn = (query, limit) => {
+  return OrganizationService.listAutocomplete(query, limit)
+    .then((options) =>
+      options.filter((m) => m.id !== props.id)
+    )
+    .catch(() => {
+      return []
+    })
+}
+
+const createOrganizationFn = (value) => {
+  return OrganizationService.create({
+    name: value
+  })
+    .then((newOrganization) => {
+      return {
+        id: newOrganization.id,
+        label: newOrganization.name
+      }
+    })
+    .catch(() => {
+      return null
+    })
+}
 </script>

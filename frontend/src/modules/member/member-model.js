@@ -7,6 +7,7 @@ import JsonField from '@/shared/fields/json-field'
 import { ActivityField } from '@/modules/activity/activity-field'
 import { MemberField } from '@/modules/member/member-field'
 import { TagField } from '@/modules/tag/tag-field'
+import { OrganizationField } from '@/modules/organization/organization-field'
 import IntegerField from '@/shared/fields/integer-field'
 import MemberEngagementLevelField from './member-engagement-level-field'
 import SearchField from '@/shared/fields/search-field'
@@ -77,9 +78,9 @@ const fields = {
     label('location'),
     {}
   ),
-  organizations: new StringField(
+  organizations: OrganizationField.relationToMany(
     'organizations',
-    label('organization')
+    'Organizations'
   ),
   joinedAt: new DateTimeField('joinedAt', 'Joined date', {
     filterable: true

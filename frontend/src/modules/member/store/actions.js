@@ -125,7 +125,7 @@ export default {
     }
   },
 
-  async doMarkAsTeamMember({ dispatch, getters }) {
+  async doMarkAsTeamMember({ dispatch, getters }, value) {
     try {
       const selectedRows = getters.selectedRows
 
@@ -134,8 +134,7 @@ export default {
           attributes: {
             ...row.attributes,
             isTeamMember: {
-              crowd: true,
-              default: true
+              default: value
             }
           }
         })
@@ -306,19 +305,13 @@ export default {
       const currentTenant =
         rootGetters['auth/currentTenant']
 
-      const { memberEnrichmentCount } = currentTenant
       const planEnrichmentCountMax = getEnrichmentMax(
         currentTenant.plan
       )
 
       // Check if it has reached enrichment maximum
       // If so, show dialog to upgrade plan
-      if (
-        checkEnrichmentLimit(
-          memberEnrichmentCount,
-          planEnrichmentCountMax
-        )
-      ) {
+      if (checkEnrichmentLimit(planEnrichmentCountMax)) {
         return
       }
 
@@ -390,12 +383,7 @@ export default {
 
       // Check if it has reached enrichment maximum
       // If so, show dialog to upgrade plan
-      if (
-        checkEnrichmentLimit(
-          memberEnrichmentCount,
-          planEnrichmentCountMax
-        )
-      ) {
+      if (checkEnrichmentLimit(planEnrichmentCountMax)) {
         return
       }
 
