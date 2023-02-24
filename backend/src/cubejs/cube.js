@@ -32,6 +32,18 @@ module.exports = {
       })
     }
 
+    // Cubejs doesn't support all time dateranges with cumulative measures yet.
+    // If a cumulative measure is selected
+    // without time dimension daterange(all time),
+    // send a long daterange
+    if (
+      query.measures[0] === 'Members.cumulativeCount' &&
+      query.timeDimensions[0] &&
+      !query.timeDimensions[0].dateRange
+    ) {
+      query.timeDimensions[0].dateRange = ['2020-01-01', new Date().toISOString()]
+    }
+
     query.filters.push({
       member: `Members.isBot`,
       operator: 'equals',
