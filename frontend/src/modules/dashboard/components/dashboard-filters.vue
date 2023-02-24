@@ -19,7 +19,6 @@
     >
       <el-button
         class="btn btn--bordered bg-white !py-1.5 !px-3 outline-none"
-        @click="handleOpenPlatform"
       >
         <div class="flex items-center text-xs">
           <i
@@ -108,18 +107,6 @@ export default {
         }
       }
     }
-  },
-  mounted() {
-    this.storeUnsubscribe = this.$store.subscribeAction(
-      (action) => {
-        if (action.type === 'auth/doRefreshCurrentUser') {
-          this.$store.dispatch('dashboard/reset')
-        }
-      }
-    )
-  },
-  beforeUnmount() {
-    this.storeUnsubscribe()
   },
   methods: {
     ...mapActions({

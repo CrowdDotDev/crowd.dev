@@ -4,8 +4,7 @@
       <div
         v-for="i in 3"
         :key="i"
-        class="flex items-center py-4 border-gray-100"
-        :class="{ 'border-t': i > 1 }"
+        class="border-t flex items-center py-4 border-gray-100 first:border-none"
       >
         <app-loading
           height="16px"
@@ -30,8 +29,7 @@
           <div
             v-for="i in 3"
             :key="i"
-            class="flex items-center py-4 border-gray-100"
-            :class="{ 'border-t': i > 1 }"
+            class="border-t flex items-center py-4 border-gray-100 first:border-none"
           >
             <app-loading
               height="16px"
@@ -48,12 +46,11 @@
         </template>
         <template #default="current">
           <article
-            v-for="(
-              { total, plat, type }, ti
-            ) of compileData(resultSet)"
+            v-for="{ total, plat, type } of compileData(
+              resultSet
+            )"
             :key="`${plat}-${type}`"
-            class="border-gray-100 py-4 flex items-center justify-between"
-            :class="{ 'border-t': ti > 0 }"
+            class="border-t border-gray-100 py-4 flex items-center justify-between first:border-none"
           >
             <div class="flex items-center">
               <img

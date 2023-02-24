@@ -18,7 +18,6 @@
         params: { id: props.organization.id }
       }"
       class="flex items-center justify-between group hover:cursor-pointer w-full"
-      @click="onOrganizationClick"
     >
       <div class="flex items-center">
         <app-avatar

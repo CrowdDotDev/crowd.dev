@@ -25,8 +25,7 @@
         <article
           v-for="integration in activeIntegrations"
           :key="integration.platform"
-          class="border-gray-100 py-3 flex items-center justify-between"
-          :class="{ 'border-t': ai > 0 }"
+          class="border-t border-gray-100 py-3 flex items-center justify-between first:border-none"
         >
           <div class="flex items-center">
             <div class="mr-4">

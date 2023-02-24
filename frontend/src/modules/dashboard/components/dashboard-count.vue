@@ -165,22 +165,17 @@ export default {
     computedBadgeLabel(current, previous) {
       const currentScore = this.computedScore(current)
       const previousScore = this.computedScore(previous)
-      const diff = currentScore - previousScore
+      const diff = Math.abs(currentScore - previousScore)
       if (previousScore === 0) {
         if (currentScore === 0) {
           return '='
         }
-        return `+100% (${currentScore})`
+        return `100% (${currentScore})`
       }
-      if (diff > 0) {
+      if (diff !== 0) {
         return `${Math.round(
           (diff / previousScore) * 100
         )}% (${diff})`
-      }
-      if (diff < 0) {
-        return `${Math.round(
-          (diff / previousScore) * 100
-        )}% (${Math.abs(diff)})`
       }
 
       return '='

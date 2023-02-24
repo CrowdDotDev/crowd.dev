@@ -32,7 +32,7 @@
       }"
     >
       <app-dashboard-integrations class="mb-10" />
-      <app-dashboard-task class="hidden" />
+      <app-dashboard-task />
     </aside>
   </div>
 </template>
@@ -45,7 +45,7 @@ import AppDashboardTask from '@/modules/dashboard/components/dashboard-task'
 import AppDashboardFilters from '@/modules/dashboard/components/dashboard-filters'
 import AppDashboardIntegrations from '@/modules/dashboard/components/dashboard-active-integrations.vue'
 
-import { onMounted, ref } from 'vue'
+import { onMounted, onBeforeUnmount, ref } from 'vue'
 import {
   mapGetters,
   mapActions
@@ -55,6 +55,7 @@ import { useStore } from 'vuex'
 
 const { currentTenant } = mapGetters('auth')
 const { doFetch } = mapActions('report')
+const { reset } = mapActions('dashboard')
 const { showBanner } = mapGetters('tenant')
 
 const store = useStore()
@@ -67,11 +68,18 @@ onMounted(() => {
 
   storeUnsubscribe.value = store.subscribeAction(
     (action) => {
-      if (action.type === 'auth/doRefreshCurrentUser') {
-        doFetch({})
+      if (action.type === 'auth/doSelectTenant') {
+        setTimeout(() => {
+          doFetch({})
+          reset({})
+        }, 0)
       }
     }
   )
+})
+
+onBeforeUnmount(() => {
+  storeUnsubscribe.value()
 })
 </script>
 

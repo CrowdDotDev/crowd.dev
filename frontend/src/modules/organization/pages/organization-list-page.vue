@@ -53,6 +53,7 @@ import {
   mapActions
 } from '@/shared/vuex/vuex.helpers'
 import { OrganizationService } from '../organization-service'
+import moment from 'moment/moment'
 
 const route = useRoute()
 
@@ -74,7 +75,10 @@ onMounted(async () => {
   isPageLoading.value = true
   const { joinedFrom, activeFrom } = route.query
 
-  if (joinedFrom) {
+  if (
+    joinedFrom &&
+    moment(joinedFrom, 'YYYY-MM-DD', true).isValid()
+  ) {
     await updateFilterAttribute({
       custom: false,
       defaultOperator: 'gt',
@@ -87,7 +91,10 @@ onMounted(async () => {
       value: joinedFrom
     })
   }
-  if (activeFrom) {
+  if (
+    activeFrom &&
+    moment(activeFrom, 'YYYY-MM-DD', true).isValid()
+  ) {
     await updateFilterAttribute({
       custom: false,
       defaultOperator: 'eq',

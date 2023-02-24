@@ -496,7 +496,7 @@ do
             exit;
         ;;
         start-be)
-            declare -a INGORED_SERVICES=("premium-api" "premium-job-generator" "premium-python-worker" "community-help-center" "python-worker" "frontend" "discord-ws")
+            declare -a INGORED_SERVICES=("community-help-center" "python-worker" "frontend" "discord-ws")
             start
             exit;
         ;;

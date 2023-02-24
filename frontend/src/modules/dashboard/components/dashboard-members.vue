@@ -1,55 +1,14 @@
 <template>
   <div class="panel !p-6">
     <!-- header -->
-    <div
-      class="flex items-center justify-between pb-5 border-b border-gray-200"
-    >
-      <div class="flex items-center">
-        <h5 class="text-lg font-semibold leading-7 pr-3">
-          Members
-        </h5>
-        <app-loading
-          v-if="members.loadingRecent"
-          height="20px"
-          width="60px"
-        />
-        <p v-else class="text-xs text-gray-500 leading-5">
-          Total: {{ formatNumberToCompact(members.total) }}
-        </p>
-      </div>
-      <div class="flex items-center">
-        <router-link
-          :to="{
-            name: 'member'
-          }"
-        >
-          <el-button
-            class="btn btn-brand--transparent btn--sm w-full leading-5 text-brand-500"
-          >
-            All members
-          </el-button>
-        </router-link>
-        <router-link
-          v-if="membersReportId"
-          :to="{
-            name: 'reportTemplate',
-            params: {
-              id: membersReportId
-            }
-          }"
-          class="ml-4"
-        >
-          <el-button
-            class="btn btn--bordered"
-          >
-            <i
-              class="ri-bar-chart-line text-base text-gray-600 mr-2"
-            ></i>
-            <span class="text-xs">View report</span>
-          </el-button>
-        </router-link>
-      </div>
-    </div>
+    <app-dashboard-widget-header
+      title="Members"
+      :total-loading="members.loadingRecent"
+      :total="members.total"
+      :route="{ name: 'member' }"
+      button-title="All members"
+      report-name="Members report"
+    />
 
     <div class="flex -mx-5 pt-7">
       <!-- new members -->
@@ -74,20 +33,11 @@
               v-loading="members.loadingRecent"
               class="app-page-spinner !relative chart-loading"
             ></div>
-            <app-cube-render
+            <app-dashboard-widget-chart
               v-else
-              :query="newMembersChart(period, platform)"
-            >
-              <template #default="{ resultSet }">
-                <app-widget-area
-                  class="chart"
-                  :datasets="datasets('new members')"
-                  :result-set="resultSet"
-                  :chart-options="chartStyle"
-                  :granularity="granularity.value"
-                />
-              </template>
-            </app-cube-render>
+              :datasets="datasets('new members')"
+              :query="newMembersChart"
+            />
           </div>
         </div>
         <div class="pt-8">
@@ -129,19 +79,13 @@
                 }}</span
               >
             </app-dashboard-member-item>
-            <div
+            <app-dashboard-empty-state
               v-if="recentMembers.length === 0"
-              class="flex items-center justify-center pt-6 pb-5"
+              icon-class="ri-group-2-line"
+              class="pt-6 pb-5"
             >
-              <div
-                class="ri-group-2-line text-3xl text-gray-300 mr-4 h-10 flex items-center"
-              ></div>
-              <p
-                class="text-xs leading-5 text-center italic text-gray-400"
-              >
-                No new members during this period
-              </p>
-            </div>
+              No new members during this period
+            </app-dashboard-empty-state>
             <div
               v-if="recentMembers.length >= 5"
               class="pt-3"
@@ -184,20 +128,11 @@
               v-loading="members.loadingActive"
               class="app-page-spinner !relative chart-loading"
             ></div>
-            <app-cube-render
+            <app-dashboard-widget-chart
               v-else
-              :query="activeMembersChart(period, platform)"
-            >
-              <template #default="{ resultSet }">
-                <app-widget-area
-                  class="chart"
-                  :datasets="datasets('active members')"
-                  :result-set="resultSet"
-                  :chart-options="chartStyle"
-                  :granularity="granularity.value"
-                />
-              </template>
-            </app-cube-render>
+              :datasets="datasets('active members')"
+              :query="activeMembersChart"
+            />
           </div>
         </div>
         <div class="pt-8">
@@ -230,19 +165,13 @@
                 }}</span
               >
             </app-dashboard-member-item>
-            <div
+            <app-dashboard-empty-state
               v-if="activeMembers.length === 0"
-              class="flex items-center justify-center pt-6 pb-5"
+              icon-class="ri-group-2-line"
+              class="pt-6 pb-5"
             >
-              <div
-                class="ri-group-2-line text-3xl text-gray-300 mr-4 h-10 flex items-center"
-              ></div>
-              <p
-                class="text-xs leading-5 text-center italic text-gray-400"
-              >
-                No active members during this period
-              </p>
-            </div>
+              No active members during this period
+            </app-dashboard-empty-state>
             <div
               v-if="activeMembers.length >= 5"
               class="pt-3"
@@ -273,40 +202,33 @@ import {
   newMembersChart,
   activeMembersChart,
   activeMembersCount,
-  newMembersCount,
-  dashboardChartOptions
+  newMembersCount
 } from '@/modules/dashboard/dashboard.cube'
 import AppDashboardCount from '@/modules/dashboard/components/dashboard-count'
 import AppDashboardMemberItem from '@/modules/dashboard/components/member/dashboard-member-item'
-import { formatNumberToCompact } from '@/utils/number'
 import { CrowdIntegrations } from '@/integrations/integrations-config'
 import { formatDateToTimeAgo } from '@/utils/date'
-import { chartOptions } from '@/modules/report/templates/template-report-charts'
-import AppLoading from '@/shared/loading/loading-placeholder.vue'
-import AppCubeRender from '@/shared/cube/cube-render.vue'
+import AppDashboardEmptyState from '@/modules/dashboard/components/dashboard-empty-state.vue'
+import AppDashboardWidgetHeader from '@/modules/dashboard/components/dashboard-widget-header.vue'
+import AppDashboardWidgetChart from '@/modules/dashboard/components/dashboard-widget-chart.vue'
 import { DAILY_GRANULARITY_FILTER } from '@/modules/widget/widget-constants'
-import AppWidgetArea from '@/modules/widget/components/v2/shared/widget-area.vue'
 
 export default {
   name: 'AppDashboardMember',
   components: {
-    AppWidgetArea,
-    AppCubeRender,
-    AppLoading,
+    AppDashboardWidgetChart,
+    AppDashboardWidgetHeader,
+    AppDashboardEmptyState,
     AppDashboardMemberItem,
     AppDashboardCount
   },
   data() {
     return {
-      tab: 'new',
       newMembersChart,
       newMembersCount,
       activeMembersChart,
       activeMembersCount,
-      chartOptions,
-      dashboardChartOptions,
-      formatDateToTimeAgo,
-      granularity: DAILY_GRANULARITY_FILTER
+      formatDateToTimeAgo
     }
   },
   computed: {
@@ -314,26 +236,12 @@ export default {
       'activeMembers',
       'recentMembers',
       'members',
-      'period',
-      'platform'
+      'period'
     ]),
-    ...mapGetters('report', ['rows']),
     periodStartDate() {
       return moment()
         .subtract(this.period.value, 'day')
         .format('YYYY-MM-DD')
-    },
-    membersReportId() {
-      const report = this.rows.find(
-        (r) => r.isTemplate && r.name === 'Members report'
-      )
-      if (!report) {
-        return null
-      }
-      return report.id
-    },
-    chartStyle() {
-      return chartOptions('area', dashboardChartOptions)
     }
   },
   methods: {
@@ -343,43 +251,18 @@ export default {
           name: name,
           borderColor: '#E94F2E',
           measure: 'Members.count',
-          granularity: this.granularity.value
+          granularity: DAILY_GRANULARITY_FILTER.value
         }
       ]
     },
     getPlatformDetails(platform) {
       return CrowdIntegrations.getConfig(platform)
-    },
-    formatTime(date) {
-      const d = moment(date)
-      if (d.isSame(moment(), 'day')) {
-        return 'today'
-      }
-      if (d.isSame(moment().subtract(1, 'day'), 'day')) {
-        return 'yesterday'
-      }
-      return d.format('ddd, MMM D')
-    },
-    formatNumberToCompact
+    }
   }
 }
 </script>
 
 <style lang="scss" scoped>
-.chart::v-deep {
-  div {
-    line-height: 112px !important;
-    height: auto !important;
-  }
-  .cube-widget-chart {
-    padding: 0;
-    min-height: 0;
-  }
-  canvas {
-    height: 112px;
-  }
-}
-
 .chart-loading {
   @apply flex items-center justify-center;
   height: 112px;

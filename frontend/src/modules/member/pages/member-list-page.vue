@@ -74,6 +74,7 @@ import MemberListTabs from '@/modules/member/components/list/member-list-tabs.vu
 import PageWrapper from '@/shared/layout/page-wrapper.vue'
 import { mapGetters, mapActions, mapMutations } from 'vuex'
 import { MemberPermissions } from '../member-permissions'
+import moment from 'moment'
 
 export default {
   name: 'AppMemberListPage',
@@ -122,7 +123,10 @@ export default {
     await this.doFetchCustomAttributes()
 
     const { joinedFrom, activeFrom } = this.$route.query
-    if (joinedFrom) {
+    if (
+      joinedFrom &&
+      moment(joinedFrom, 'YYYY-MM-DD', true).isValid()
+    ) {
       await this.updateFilterAttribute({
         custom: false,
         defaultOperator: 'gt',
@@ -135,7 +139,10 @@ export default {
         value: joinedFrom
       })
     }
-    if (activeFrom) {
+    if (
+      activeFrom &&
+      moment(activeFrom, 'YYYY-MM-DD', true).isValid()
+    ) {
       await this.updateFilterAttribute({
         custom: false,
         defaultOperator: 'eq',
