@@ -98,6 +98,10 @@
               class="panel"
               :editable="editable"
               :widget="widgets[item.i]"
+              :chart-options="{
+                ...widgets[item.i],
+                title: undefined
+              }"
               @edit="handleWidgetEdit(widgets[item.i])"
               @duplicate="
                 handleWidgetDuplicate(widgets[item.i])
