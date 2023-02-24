@@ -57,6 +57,16 @@ class IntegrationsConfig {
     }
   }
 
+  getMappedConfig(platform, store) {
+    return this._mapper(
+      {
+        ...this.getConfig(platform),
+        platform
+      },
+      store
+    )
+  }
+
   mappedConfigs(store) {
     return this.configs
       .map((i) => this._mapper(i, store))

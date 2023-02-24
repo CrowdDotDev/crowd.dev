@@ -194,3 +194,8 @@ export function mapWidget(widget, resultSet) {
     }
   }
 }
+
+export default {
+  mapWidget,
+  chartOptions
+}

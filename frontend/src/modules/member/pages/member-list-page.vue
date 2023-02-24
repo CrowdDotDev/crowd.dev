@@ -72,8 +72,9 @@ import MemberListFilter from '@/modules/member/components/list/member-list-filte
 import MemberListTable from '@/modules/member/components/list/member-list-table.vue'
 import MemberListTabs from '@/modules/member/components/list/member-list-tabs.vue'
 import PageWrapper from '@/shared/layout/page-wrapper.vue'
-import { mapGetters, mapActions } from 'vuex'
+import { mapGetters, mapActions, mapMutations } from 'vuex'
 import { MemberPermissions } from '../member-permissions'
+import moment from 'moment'
 
 export default {
   name: 'AppMemberListPage',
@@ -97,7 +98,8 @@ export default {
     ...mapGetters({
       currentUser: 'auth/currentUser',
       currentTenant: 'auth/currentTenant',
-      integrations: 'integration/listByPlatform'
+      integrations: 'integration/listByPlatform',
+      activeView: 'member/activeView'
     }),
 
     hasIntegrations() {
@@ -119,6 +121,47 @@ export default {
 
     await this.doFetchIntegrations()
     await this.doFetchCustomAttributes()
+
+    const { joinedFrom, activeFrom } = this.$route.query
+    if (
+      joinedFrom &&
+      moment(joinedFrom, 'YYYY-MM-DD', true).isValid()
+    ) {
+      await this.updateFilterAttribute({
+        custom: false,
+        defaultOperator: 'gt',
+        defaultValue: joinedFrom,
+        expanded: false,
+        label: 'Joined date',
+        name: 'joinedAt',
+        operator: 'gt',
+        type: 'date',
+        value: joinedFrom
+      })
+    }
+    if (
+      activeFrom &&
+      moment(activeFrom, 'YYYY-MM-DD', true).isValid()
+    ) {
+      await this.updateFilterAttribute({
+        custom: false,
+        defaultOperator: 'eq',
+        defaultValue: activeFrom,
+        expanded: false,
+        label: 'Last activity date',
+        name: 'lastActive',
+        operator: 'gt',
+        type: 'date',
+        value: activeFrom
+      })
+      this.SORTER_CHANGED({
+        activeView: this.activeView,
+        sorter: {
+          prop: 'activityCount',
+          order: 'descending'
+        }
+      })
+    }
     await this.doFetch({
       filter,
       keepPagination: true
@@ -139,10 +182,14 @@ export default {
   },
 
   methods: {
+    ...mapMutations({
+      SORTER_CHANGED: 'member/SORTER_CHANGED'
+    }),
     ...mapActions({
       doFetchWidgets: 'widget/doFetch',
       doFetchCustomAttributes:
         'member/doFetchCustomAttributes',
+      updateFilterAttribute: 'member/updateFilterAttribute',
       doFetch: 'member/doFetch',
       doFetchIntegrations: 'integration/doFetch'
     }),

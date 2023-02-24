@@ -1,116 +1,83 @@
 <template>
-  <div
-    v-if="hasPermissionToTask || isTaskLocked"
-    class="panel !p-0"
-  >
+  <div v-if="hasPermissionToTask || isTaskLocked">
     <!-- header -->
-    <div
-      class="flex items-center justify-between px-6 py-5"
-    >
-      <div class="flex items-center">
-        <div
-          class="w-8 h-8 rounded-md bg-gray-900 flex items-center justify-center mr-4"
-        >
-          <i
-            class="ri-checkbox-multiple-line text-lg text-white"
-          ></i>
-        </div>
-        <h6 class="text-sm font-semibold leading-5">
-          My open tasks
-        </h6>
-      </div>
-      <div class="flex items-center">
-        <router-link
-          :to="{ name: 'task' }"
-          class="text-xs text-brand-500 font-medium mr-6"
-        >
-          All tasks
-        </router-link>
-        <button
+    <div class="flex justify-between items-center pb-4">
+      <h4 class="text-base leading-6 font-semibold">
+        My open tasks ({{ tasks.length }})
+      </h4>
+      <el-tooltip
+        v-if="tasks.length > 0 || suggestedTasks.length > 0"
+        effect="dark"
+        content="Add task"
+        placement="top-start"
+      >
+        <el-button
           v-if="taskCreatePermission"
-          class="btn btn--secondary btn--sm"
+          class="btn btn--icon--sm btn--transparent h-8 w-8 !p-1.5"
           @click="addTask()"
         >
-          Add task
-        </button>
-      </div>
+          <i
+            class="ri-add-line text-lg leading-none text-gray-600"
+          ></i>
+        </el-button>
+      </el-tooltip>
     </div>
-    <div
-      class="flex-grow overflow-auto widget-content pb-4"
-    >
+    <!-- tasks list -->
+    <div>
       <div v-if="loading">
-        <app-task-item
-          class="px-6"
+        <app-dashboard-task-item
           :loading="true"
-        ></app-task-item>
-        <app-task-item
-          class="px-6"
+          class="mb-4"
+        ></app-dashboard-task-item>
+        <app-dashboard-task-item
           :loading="true"
-        ></app-task-item>
+          class="mb-4"
+        ></app-dashboard-task-item>
       </div>
       <div v-else>
-        <app-task-item
+        <app-dashboard-task-item
           v-for="task of tasks"
           :key="task.id"
-          class="px-6"
+          class="mb-4"
           :task="task"
         />
         <div v-if="tasks.length === 0">
-          <div
-            v-if="suggestedTasks.length > 0"
-            class="pt-2 px-6"
-          >
-            <p
-              class="text-2xs font-semibold uppercase text-gray-400 tracking-1 pb-4"
-            >
-              Task suggestions:
-            </p>
-            <div class="flex flex-wrap -mx-2">
-              <div
-                v-for="suggested of suggestedTasks"
-                :key="suggested.id"
-                class="w-full md:w-1/3 lg:w-1/3 px-2 pb-2"
-              >
-                <article
-                  class="border border-gray-200 rounded-lg p-4 h-full flex-grow"
-                >
-                  <h6
-                    class="text-2xs leading-4.5 font-semibold pb-1"
-                  >
-                    {{ suggested.name }}
-                  </h6>
-                  <div
-                    class="text-xs leading-5 text-gray-500 pb-3 c-content"
-                    v-html="$sanitize(suggested.body)"
-                  ></div>
-                  <div
-                    class="text-xs font-medium leading-5 text-brand-500 cursor-pointer"
-                    @click="addSuggested(suggested)"
-                  >
-                    + Add task
-                  </div>
-                </article>
-              </div>
-            </div>
+          <div v-if="suggestedTasks.length > 0">
+            <app-dashboard-task-suggested
+              v-for="suggested of suggestedTasks"
+              :key="suggested.id"
+              :task="suggested"
+              class="mb-4"
+              @create="editTask($event)"
+            />
           </div>
           <div
             v-else
-            class="pt-3 pb-4 flex justify-center items-center"
+            class="pt-2 pb-4 flex flex-col items-center"
           >
             <div
               class="ri-checkbox-multiple-blank-line text-3xl h-10 flex items-center text-gray-300"
             ></div>
             <div
-              class="pl-6 text-sm leading-5 italic text-gray-400"
+              class="pl-6 text-xs leading-4.5 italic text-gray-400 text-center pt-4 pb-3"
             >
               No tasks assigned to you at this moment
             </div>
+            <el-button
+              class="btn btn-brand--transparent btn--sm w-full leading-5 flex items-center"
+              @click="addTask()"
+            >
+              <i
+                class="ri-add-fill text-base text-brand-500"
+              ></i>
+              <span class="text-brand-500">Add task</span>
+            </el-button>
           </div>
         </div>
 
         <div
           v-if="tasks.length < taskCount"
-          class="flex justify-center pt-8 pb-1"
+          class="flex justify-center pt-3 pb-1"
         >
           <div
             class="flex items-center cursor-pointer"
@@ -132,7 +99,7 @@
   <app-task-form
     v-model="openForm"
     :task="selectedTask"
-    @close="task = null"
+    @close="openForm = false"
   />
 </template>
 
@@ -151,7 +118,6 @@ import {
 } from 'vue'
 import { useStore } from 'vuex'
 import AppTaskForm from '@/modules/task/components/task-form.vue'
-import AppTaskItem from '@/modules/task/components/task-item.vue'
 import { TaskPermissions } from '@/modules/task/task-permissions'
 import { TaskService } from '@/modules/task/task-service'
 import Message from '@/shared/message/message'
@@ -163,6 +129,8 @@ import {
   SUGGESTED_TASKS_NO_INTEGRATIONS_FILTER,
   SUGGESTED_TASKS_FILTER
 } from '@/modules/task/store/constants'
+import AppDashboardTaskSuggested from '@/modules/dashboard/components/task/dashboard-task-suggested.vue'
+import AppDashboardTaskItem from '@/modules/dashboard/components/task/dashboard-task-item.vue'
 
 const store = useStore()
 const { currentUser, currentTenant } = mapGetters('auth')
@@ -221,13 +189,6 @@ const taskCreatePermission = computed(
       currentUser.value
     ).create
 )
-
-const addSuggested = (task) => {
-  editTask({
-    ...task,
-    assignees: [currentUser.value]
-  })
-}
 
 onMounted(async () => {
   loadingIntegrations.value = true
@@ -316,13 +277,3 @@ const fetchSuggestedTasks = () => {
     })
 }
 </script>
-
-<style>
-.widget-content {
-  max-height: 420px;
-}
-
-.suggested {
-  max-width: 282px;
-}
-</style>

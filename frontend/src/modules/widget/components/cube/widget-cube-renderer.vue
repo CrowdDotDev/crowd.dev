@@ -11,8 +11,8 @@
         :widget="mapWidget(widget, resultSet)"
         :editable="editable"
         :chart-options="{
-          ...chartOptions,
-          ...mapOptions(widget, resultSet)
+          ...mapOptions(widget, resultSet),
+          ...chartOptions
         }"
         :dashboard="dashboard"
         @edit="$emit('edit', widget)"
@@ -27,10 +27,7 @@
 import { mapGetters, mapActions } from 'vuex'
 import { QueryRenderer } from '@cubejs-client/vue3'
 import WidgetCube from './widget-cube'
-import {
-  chartOptions,
-  mapWidget
-} from '@/modules/report/report-charts'
+import reportsCharts from '@/modules/report/report-charts'
 
 export default {
   name: 'AppWidgetCubeRenderer',
@@ -63,8 +60,8 @@ export default {
   emits: ['edit', 'duplicate', 'delete'],
   data() {
     return {
-      mapWidget,
-      mapOptions: chartOptions
+      mapWidget: reportsCharts.mapWidget,
+      mapOptions: reportsCharts.chartOptions
     }
   },
   computed: {

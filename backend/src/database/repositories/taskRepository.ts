@@ -484,7 +484,7 @@ class TaskRepository {
         joinTableAttributes: [],
         raw: true,
       })
-    ).map((a) => ({ id: a.id, avatarUrl: null, fullName: a.fullName }))
+    ).map((a) => ({ id: a.id, avatarUrl: null, fullName: a.fullName, email: a.email }))
 
     return output
   }
