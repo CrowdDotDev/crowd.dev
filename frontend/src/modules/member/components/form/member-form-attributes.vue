@@ -247,8 +247,8 @@ const customAttributes = computed(() =>
       let enrichSorter
       const showSorter = Number(b?.show) - Number(a?.show)
 
-      if (props.record.attributes[a.name]?.enrich) {
-        if (props.record.attributes[b.name]?.enrich) {
+      if (props.record.attributes[a.name]?.enrichment) {
+        if (props.record.attributes[b.name]?.enrichment) {
           enrichSorter = 0
         } else {
           enrichSorter = -1
