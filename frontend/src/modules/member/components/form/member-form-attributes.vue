@@ -12,15 +12,13 @@
       >
     </div>
     <div :class="showHeader ? 'col-span-2' : 'col-span-3'">
-      <div
-        class="grid grid-cols-12 gap-3 border-b h-8 items-center"
-      >
+      <div class="flex gap-3 border-b h-8 items-center">
         <span
-          class="uppercase text-gray-400 text-2xs font-semibold tracking-wide col-span-4"
+          class="uppercase text-gray-400 text-2xs font-semibold tracking-wide w-1/3"
           >Name</span
         >
         <span
-          class="uppercase text-gray-400 text-2xs font-semibold tracking-wide col-span-8"
+          class="uppercase text-gray-400 text-2xs font-semibold tracking-wide grow"
           >Value</span
         >
       </div>
@@ -31,104 +29,140 @@
         <div
           v-for="(attribute, index) in customAttributes"
           :key="index"
-          class="grid grid-cols-12 gap-3"
         >
           <div
-            class="col-span-4 flex flex-col gap-1 justify-center"
+            v-if="
+              index === firstHiddenAttributeIndex &&
+              firstHiddenAttributeIndex !== -1
+            "
+            class="text-xs text-gray-400 font-medium mt-4 mb-2"
           >
-            <div class="flex items-center leading-tight">
-              <div
-                class="text-gray-900 text-xs font-medium mr-2"
-              >
-                {{ attribute.label }}
-              </div>
-              <el-tooltip
-                v-if="
-                  model.attributes[attribute.name]
-                    ?.enrichment
-                "
-                content="Member enrichment"
-                placement="top"
-              >
-                <div class="form-enrichment-badge">
-                  <app-svg name="enrichment" />
-                </div>
-              </el-tooltip>
-            </div>
-            <span
-              class="text-2xs text-gray-500 leading-none"
-              >{{ attributesTypes[attribute.type] }}</span
-            >
+            Hidden in member
           </div>
-          <el-form-item class="col-span-8">
-            <el-date-picker
-              v-if="attribute.type === 'date'"
-              v-model="model[attribute.name]"
-              :prefix-icon="CalendarIcon"
-              :clearable="false"
-              class="custom-date-picker"
-              popper-class="date-picker-popper"
-              type="date"
-              value-format="YYYY-MM-DD"
-              format="YYYY-MM-DD"
-              placeholder="YYYY-MM-DD"
-            />
-            <el-select
-              v-else-if="attribute.type === 'boolean'"
-              v-model="model[attribute.name]"
-              class="w-full"
-              clearable
-              placeholder="Select option"
+          <div class="flex gap-3">
+            <div
+              class="w-1/3 flex flex-col gap-1 justify-center"
             >
-              <el-option
-                key="true"
-                label="True"
-                :value="true"
-                @mouseleave="onSelectMouseLeave"
+              <div class="flex items-center leading-tight">
+                <div
+                  class="text-gray-900 text-xs font-medium mr-2"
+                >
+                  {{ attribute.label }}
+                </div>
+                <el-tooltip
+                  v-if="
+                    model.attributes[attribute.name]
+                      ?.enrichment
+                  "
+                  content="Member enrichment"
+                  placement="top"
+                >
+                  <div class="form-enrichment-badge">
+                    <app-svg name="enrichment" />
+                  </div>
+                </el-tooltip>
+              </div>
+              <span
+                class="text-2xs text-gray-500 leading-none"
+                >{{ attributesTypes[attribute.type] }}</span
+              >
+            </div>
+            <el-form-item class="grow">
+              <el-date-picker
+                v-if="attribute.type === 'date'"
+                v-model="model[attribute.name]"
+                :prefix-icon="CalendarIcon"
+                :clearable="false"
+                class="custom-date-picker"
+                popper-class="date-picker-popper"
+                type="date"
+                value-format="YYYY-MM-DD"
+                format="YYYY-MM-DD"
+                placeholder="YYYY-MM-DD"
               />
-              <el-option
-                key="false"
-                label="False"
-                :value="false"
-                @mouseleave="onSelectMouseLeave"
-              />
-            </el-select>
-
-            <el-tooltip
-              v-else-if="attribute.type === 'multiSelect'"
-              content="Multi-select fields are temporarily read-only"
-              placement="top"
-            >
               <el-select
+                v-else-if="attribute.type === 'boolean'"
                 v-model="model[attribute.name]"
                 class="w-full"
-                disabled
-                filterable
-                multiple
-                collapse-tags
-                collapse-tags-tooltip
+                clearable
                 placeholder="Select option"
               >
                 <el-option
-                  v-for="item of attribute.options"
-                  :key="item"
-                  :label="item"
-                  :value="item"
+                  key="true"
+                  label="True"
+                  :value="true"
+                  @mouseleave="onSelectMouseLeave"
+                />
+                <el-option
+                  key="false"
+                  label="False"
+                  :value="false"
+                  @mouseleave="onSelectMouseLeave"
                 />
               </el-select>
+
+              <el-tooltip
+                v-else-if="attribute.type === 'multiSelect'"
+                content="Multi-select fields are temporarily read-only"
+                placement="top"
+              >
+                <el-select
+                  v-model="model[attribute.name]"
+                  class="w-full multi-select-field"
+                  disabled
+                  filterable
+                  multiple
+                  collapse-tags
+                  collapse-tags-tooltip
+                  placeholder="Select option"
+                >
+                  <el-option
+                    v-for="item of attribute.options"
+                    :key="item"
+                    :label="item"
+                    :value="item"
+                  />
+                </el-select>
+              </el-tooltip>
+              <el-input
+                v-else
+                v-model="model[attribute.name]"
+                :type="attribute.type"
+                clearable
+              ></el-input
+              ><template #error>
+                <div class="el-form-item__error">
+                  Value is required
+                </div>
+              </template></el-form-item
+            >
+            <el-tooltip
+              placement="top"
+              :content="
+                attribute.show
+                  ? 'Hide attribute'
+                  : 'Show attribute'
+              "
+            >
+              <el-button
+                v-if="!attribute.canDelete"
+                class="btn btn--md btn--transparent w-10 h-10"
+                @click="
+                  updateAttribute(attribute.id, {
+                    show: !attribute.show
+                  })
+                "
+              >
+                <i
+                  class="text-base text-black"
+                  :class="{
+                    'ri-eye-line': attribute.show,
+                    'ri-eye-off-line': !attribute.show
+                  }"
+                ></i>
+              </el-button>
             </el-tooltip>
-            <el-input
-              v-else
-              v-model="model[attribute.name]"
-              :type="attribute.type"
-              clearable
-            ></el-input
-            ><template #error>
-              <div class="el-form-item__error">
-                Value is required
-              </div>
-            </template></el-form-item
-          >
+          </div>
         </div>
       </div>
       <div
@@ -151,6 +185,9 @@ import {
 } from 'vue'
 import { onSelectMouseLeave } from '@/utils/select'
 import AppSvg from '@/shared/svg/svg'
+import { mapActions } from '@/shared/vuex/vuex.helpers'
+import ConfirmDialog from '@/shared/dialog/confirm-dialog.js'
+import Message from '@/shared/message/message'
 
 const CalendarIcon = h(
   'i', // type
@@ -194,43 +231,89 @@ const props = defineProps({
   }
 })
 
+const firstHiddenAttributeIndex = computed(() =>
+  customAttributes.value.findIndex(
+    (attribute) => !attribute.show
+  )
+)
 const customAttributes = computed(() =>
   props.attributes
     .filter((attribute) => {
+      // For new member form, only display attributes that can be deleted
+      if (!props.record) {
+        return attribute.canDelete
+      }
+
       return (
-        (attribute.show &&
-          ![
-            'bio',
-            'url',
-            'location',
-            'jobTitle',
-            'emails',
-            'workExperiences', // we render them in _aside-enriched
-            'certifications', // we render them in _aside-enriched
-            'education', // we render them in _aside-enriched
-            'awards' // we render them in _aside-enriched
-          ].includes(attribute.name) &&
+        (![
+          'bio',
+          'url',
+          'location',
+          'jobTitle',
+          'emails',
+          'workExperiences', // we render them in _aside-enriched
+          'certifications', // we render them in _aside-enriched
+          'education', // we render them in _aside-enriched
+          'awards' // we render them in _aside-enriched
+        ].includes(attribute.name) &&
           props.record.attributes[attribute.name]) ||
         // Global attributes
         attribute.canDelete
       )
     })
     .sort((a, b) => {
-      if (props.record.attributes[a.name]?.enrich) {
-        return props.record.attributes[b.name].enrich
-          ? 0
-          : -1
+      // For new member form, maintain order
+      if (!props.record) {
+        return 0
+      }
+
+      const aEnrichment = Number(
+        props.record.attributes[a.name]?.enrichment || 0
+      )
+      const bEnrichment = Number(
+        props.record.attributes[b.name]?.enrichment || 0
+      )
+
+      // Sort order
+      // 1. All attributes that have show = true && canDelete = true
+      // 2. All attributes that have show = true && canDelete = false
+      // 3. All attributes that have show = false && canDelete = false
+      // For each of these conditions, the enrichment attributes show at the top
+      if (a.show === b.show) {
+        if (a.canDelete === b.canDelete) {
+          return bEnrichment - aEnrichment
+        } else {
+          return b.canDelete - a.canDelete
+        }
       } else {
-        return 1
+        return b.show - a.show
       }
     })
 )
 
+const { doUpdateCustomAttributes } = mapActions('member')
 const model = computed(() => props.modelValue)
 
 watch(model.value, (newModel) => {
   emit('update:modelValue', newModel)
 })
+
+const updateAttribute = (id, data) => {
+  ConfirmDialog({
+    type: 'danger',
+    title: `${data.show ? 'Show' : 'Hide'} attribute`,
+    message: `This attribute will be ${
+      data.show ? 'available' : 'hidden'
+    } in all member profiles. Are you sure you want to proceed? You can undo this action later.`,
+    confirmButtonText: 'Confirm',
+    cancelButtonText: 'Cancel',
+    icon: data.show ? 'ri-eye-line' : 'ri-eye-off-line'
+  }).then(() => {
+    doUpdateCustomAttributes({ id, data }).then(() => {
+      Message.success('Attribute successfully updated')
+    })
+  })
+}
 </script>
 
 <style lang="scss">
@@ -239,5 +322,9 @@ watch(model.value, (newModel) => {
   svg {
     @apply h-4 w-4 overflow-visible flex items-center justify-center leading-none;
   }
+}
+
+.multi-select-field .el-select__tags {
+  @apply h-7;
 }
 </style>
