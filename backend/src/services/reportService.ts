@@ -45,7 +45,10 @@ export default class ReportService {
     const transaction = await SequelizeRepository.createTransaction(this.options)
 
     try {
-      const report = await ReportRepository.findById(id, this.options)
+      const report = await ReportRepository.findById(id, {
+        ...this.options,
+        transaction
+      })
 
       let duplicatedReport = await ReportRepository.create(
         {
@@ -74,9 +77,12 @@ export default class ReportService {
         )
       }
 
-      await SequelizeRepository.commitTransaction(transaction)
+      duplicatedReport = await ReportRepository.findById(duplicatedReport.id, {
+        ...this.options,
+        transaction
+      })
 
-      duplicatedReport = await ReportRepository.findById(duplicatedReport.id, this.options)
+      await SequelizeRepository.commitTransaction(transaction)
 
       return duplicatedReport
     } catch (error) {
