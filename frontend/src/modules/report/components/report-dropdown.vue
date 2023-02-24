@@ -49,6 +49,15 @@
           ><i class="ri-link mr-1"></i>Copy Public
           Url</el-dropdown-item
         >
+        <el-dropdown-item
+          v-if="showDuplicateReport"
+          :command="{
+            action: 'reportDuplicate',
+            report: report
+          }"
+          ><i class="ri-file-copy-line mr-1"></i>Duplicate
+          Report</el-dropdown-item
+        >
         <el-divider
           v-if="showEditReport || showViewReportPublic"
           class="border-gray-200 !my-2"
@@ -75,6 +84,7 @@ import Message from '@/shared/message/message'
 import AuthCurrentTenant from '@/modules/auth/auth-current-tenant'
 import { ReportPermissions } from '@/modules/report/report-permissions'
 import ConfirmDialog from '@/shared/dialog/confirm-dialog.js'
+import { ReportService } from '@/modules/report/report-service'
 
 export default {
   name: 'AppReportDropdown',
@@ -92,6 +102,10 @@ export default {
       default: true
     },
     showViewReportPublic: {
+      type: Boolean,
+      default: true
+    },
+    showDuplicateReport: {
       type: Boolean,
       default: true
     }
@@ -112,7 +126,8 @@ export default {
   },
   methods: {
     ...mapActions({
-      doDestroy: 'report/doDestroy'
+      doDestroy: 'report/doDestroy',
+      doCreate: 'report/doCreate'
     }),
     async doDestroyWithConfirm(id) {
       try {
@@ -131,11 +146,22 @@ export default {
         // no
       }
     },
+    async doDuplicate(id) {
+      const duplicate = await ReportService.duplicate(id)
+      this.$router.push({
+        name: 'reportEdit',
+        params: {
+          id: duplicate.id
+        }
+      })
+    },
     async handleCommand(command) {
       if (command.action === 'reportDelete') {
         return await this.doDestroyWithConfirm(
           command.report.id
         )
+      } else if (command.action === 'reportDuplicate') {
+        return await this.doDuplicate(command.report.id)
       } else if (command.action === 'reportPublicUrl') {
         return await this.copyToClipboard(command.report.id)
       } else {
