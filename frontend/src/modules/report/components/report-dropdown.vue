@@ -147,13 +147,19 @@ export default {
       }
     },
     async doDuplicate(id) {
-      const duplicate = await ReportService.duplicate(id)
-      this.$router.push({
-        name: 'reportEdit',
-        params: {
-          id: duplicate.id
-        }
-      })
+      ReportService.duplicate(id)
+        .then((duplicate) => {
+          this.$router.push({
+            name: 'reportEdit',
+            params: {
+              id: duplicate.id
+            }
+          })
+          Message.success('Report duplicated successfuly')
+        })
+        .catch(() => {
+          Message.error('Error duplicating report')
+        })
     },
     async handleCommand(command) {
       if (command.action === 'reportDelete') {
