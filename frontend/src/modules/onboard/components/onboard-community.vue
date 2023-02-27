@@ -160,7 +160,9 @@
       >
         <slot name="submitButton">
           <span class="pr-3">Next step</span>
-          <span class="ri-arrow-right-s-line text-xl"></span>
+          <span
+            class="ri-arrow-right-s-line text-xl"
+          ></span>
         </slot>
       </el-button>
     </div>
@@ -195,7 +197,7 @@ export default {
       type: Boolean,
       required: false,
       default: false
-    },
+    }
   },
   emits: ['saved'],
   data() {
