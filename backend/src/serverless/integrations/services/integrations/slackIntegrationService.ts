@@ -87,16 +87,21 @@ export class SlackIntegrationService extends IntegrationServiceBase {
   }
 
   async getStreams(context: IStepContext): Promise<IIntegrationStream[]> {
-    const streams = context.pipelineData.channels.map((c) => ({
-      value: 'channel',
-      metadata: { channelId: c.id, page: '', general: c.general },
-    }))
+    const streams = []
 
     if (context.onboarding) {
       streams.push({
         value: 'members',
         metadata: { page: '' },
       })
+    }
+
+    const channelStreams = context.pipelineData.channels.map((c) => ({
+      value: 'channel',
+      metadata: { channelId: c.id, page: '', general: c.general },
+    }))
+    if (channelStreams.length > 0) {
+      streams.push(...channelStreams)
     }
 
     return streams
@@ -327,7 +332,7 @@ export class SlackIntegrationService extends IntegrationServiceBase {
     return undefined
   }
 
-  private async parseMemberAndUpdateContext(context: IStepContext, userId: string): Promise<any> {
+  private async fetchAndParseMember(context: IStepContext, userId: string): Promise<any> {
     try {
       if (userId === undefined) {
         return undefined
@@ -361,17 +366,8 @@ export class SlackIntegrationService extends IntegrationServiceBase {
     const newStreams: IIntegrationStream[] = []
     const activities: AddActivitiesSingle[] = []
 
-    const subtypesToIgnore = context.onboarding
-      ? ['channel_join', 'channel_leave', 'group_join', 'group_leave']
-      : []
     for (const record of records) {
-      if (context.onboarding && subtypesToIgnore.includes(record.subtype)) {
-        // check if general channel
-        // eslint-disable-next-line no-continue
-        continue
-      }
-
-      const member = await this.parseMemberAndUpdateContext(context, record.user)
+      const member = await this.fetchAndParseMember(context, record.user)
 
       if (member !== undefined) {
         let body = record.text
@@ -381,25 +377,24 @@ export class SlackIntegrationService extends IntegrationServiceBase {
         let activityType
         let score
         let isKeyAction
+        let sourceId
         if (record.subtype === 'channel_join') {
-          if (stream.metadata.general !== true) {
-            // eslint-disable-next-line no-continue
-            continue
-          }
           activityType = 'channel_joined'
           score = SlackGrid.join.score
           isKeyAction = SlackGrid.join.isKeyAction
           body = undefined
+          sourceId = record.user
         } else {
           activityType = 'message'
           score = SlackGrid.message.score
           isKeyAction = SlackGrid.message.isKeyAction
+          sourceId = record.ts
         }
         activities.push({
           tenant: context.integration.tenantId,
           platform: PlatformType.SLACK,
           type: activityType,
-          sourceId: record.ts,
+          sourceId,
           sourceParentId: '',
           timestamp: moment(parseInt(record.ts, 10) * 1000)
             .utc()
@@ -431,7 +426,7 @@ export class SlackIntegrationService extends IntegrationServiceBase {
         }
       }
     }
-    await SlackIntegrationService.updateMembers(context)
+
     return {
       activities,
       additionalStreams: newStreams,
@@ -456,7 +451,6 @@ export class SlackIntegrationService extends IntegrationServiceBase {
         platform: PlatformType.SLACK,
         type: 'channel_joined',
         sourceId: record.id,
-        sourceParentId: '',
         timestamp: moment('1970-01-01T00:00:00+00:00').utc().toDate(),
         body: undefined,
         attributes: {
@@ -487,7 +481,7 @@ export class SlackIntegrationService extends IntegrationServiceBase {
     const threadInfo = stream.metadata
     const activities: AddActivitiesSingle[] = []
     for (const record of records) {
-      const member = await this.parseMemberAndUpdateContext(context, record.user)
+      const member = await this.fetchAndParseMember(context, record.user)
       if (member !== undefined) {
         const body = record.text
           ? await SlackIntegrationService.removeMentions(record.text, context)
@@ -518,7 +512,7 @@ export class SlackIntegrationService extends IntegrationServiceBase {
         })
       }
     }
-    await SlackIntegrationService.updateMembers(context)
+
     return {
       activities,
       additionalStreams: [],
@@ -546,22 +540,6 @@ export class SlackIntegrationService extends IntegrationServiceBase {
     }
 
     return text
-  }
-
-  /**
-   * Update members for an integration.
-   * This update needs to happen synchronously, since the message endpoints need these members
-   */
-  private static async updateMembers(context: IStepContext) {
-    const integration = await IntegrationRepository.findById(
-      context.integration.id,
-      context.repoContext,
-    )
-    const settings = {
-      members: context.pipelineData.members,
-      channels: integration.settings.channels || [],
-    }
-    await IntegrationRepository.update(context.integration.id, { settings }, context.repoContext)
   }
 
   async isProcessingFinished(
