@@ -857,6 +857,7 @@ class MemberRepository {
         nestedFields: {
           ...dynamicAttributesDefaultNestedFields,
           reach: 'reach.total',
+          username: 'username.asString',
         },
         aggregators: {
           activityCount,
@@ -868,6 +869,7 @@ class MemberRepository {
           identities,
           ...dynamicAttributesPlatformNestedFields,
           'reach.total': Sequelize.literal(`("member".reach->'total')::int`),
+          'username.asString': Sequelize.literal(`CAST("member"."username" AS TEXT)`),
           ...SequelizeFilterUtils.getNativeTableFieldAggregations(
             [
               'id',
