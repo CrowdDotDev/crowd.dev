@@ -204,7 +204,10 @@ export default class ActivityService extends LoggingBase {
 
       return text === '' ? {} : await detectSentiment(text)
     } catch (err) {
-      this.log.error({err, data}, 'Error getting sentiment of activity - Setting sentiment to empty object.')
+      this.log.error(
+        { err, data },
+        'Error getting sentiment of activity - Setting sentiment to empty object.',
+      )
       return {}
     }
   }
