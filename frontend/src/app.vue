@@ -59,10 +59,12 @@ export default {
   },
 
   mounted() {
-    const { ref } = this.$route.query
-    if (ref && ref === 'eagle-eye') {
-      localStorage.setItem('onboardType', 'eagle-eye')
-    }
+    this.$router.isReady().then(() => {
+      const { ref } = this.$route.query
+      if (ref && ref === 'eagle-eye') {
+        localStorage.setItem('onboardType', 'eagle-eye')
+      }
+    })
   },
 
   unmounted() {
