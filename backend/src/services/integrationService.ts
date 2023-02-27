@@ -579,4 +579,32 @@ export default class IntegrationService {
 
     return integration
   }
+
+  /**
+   * Adds/updates Stack Overflow integration
+   * @param integrationData  to create the integration object
+   * @returns integration object
+   */
+  async stackOverflowConnectOrUpdate(integrationData) {
+    const integration = await this.createOrUpdate({
+      platform: PlatformType.STACKOVERFLOW,
+      settings: {
+        tags: integrationData.tags,
+        updateMemberAttributes: true,
+      },
+      status: 'in-progress',
+    })
+
+    await sendNodeWorkerMessage(
+      integration.tenantId,
+      new NodeWorkerIntegrationProcessMessage(
+        IntegrationType.STACKOVERFLOW,
+        integration.tenantId,
+        true,
+        integration.id,
+      ),
+    )
+
+    return integration
+  }
 }

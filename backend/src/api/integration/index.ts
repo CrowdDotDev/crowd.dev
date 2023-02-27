@@ -45,6 +45,8 @@ export default (app) => {
     safeWrap(require('./helpers/hackerNewsCreateOrUpdate').default),
   )
 
+  app.post('/tenant/:tenantId/stackoverflow-connect', safeWrap(require('./helpers/stackOverflowCreateOrUpdate').default))
+
   if (TWITTER_CONFIG.clientId) {
     /**
      * Using the passport.authenticate this endpoint forces a
