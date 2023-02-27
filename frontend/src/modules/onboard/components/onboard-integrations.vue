@@ -181,7 +181,7 @@ export default {
       TenantService.populateSampleData(
         this.currentTenant.id
       ).then(() => {
-        return this.doFinishOnboard()
+        return this.doFinishOnboard({})
       })
     }
   }

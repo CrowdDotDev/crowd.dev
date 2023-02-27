@@ -266,7 +266,7 @@ export default {
     commit('CLEAR_TENANT')
   },
 
-  async doFinishOnboard({ dispatch, getters }) {
+  async doFinishOnboard({ dispatch, getters }, params) {
     return TenantService.update(getters.currentTenant.id, {
       onboardedAt: new Date()
     })
@@ -274,7 +274,7 @@ export default {
         return dispatch('doRefreshCurrentUser')
       })
       .then(() => {
-        router.push('/')
+        router.push(params?.route ?? '/')
       })
   }
 }
