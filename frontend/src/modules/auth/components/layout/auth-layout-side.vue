@@ -19,11 +19,47 @@
           organization
         </p>
       </div>
-      <div>
-        <img
-          src="/images/auth/partners.png"
-          alt="partners"
-        />
+      <div class="grid grid-rows-2 gap-8">
+        <div class="grid grid-cols-3 gap-4 col-span-1">
+          <div class="flex items-center">
+            <img
+              src="/images/auth/meilisearch.png"
+              alt="meilisearch logo"
+            />
+          </div>
+          <div class="flex items-center justify-end">
+            <img
+              src="/images/auth/crowdsec.png"
+              alt="crowdsec logo"
+            />
+          </div>
+          <div class="flex items-center justify-end">
+            <img
+              src="/images/auth/kernai.png"
+              alt="kernai logo"
+            />
+          </div>
+        </div>
+        <div class="grid grid-cols-3 gap-4">
+          <div class="flex items-center">
+            <img
+              src="/images/auth/dragonfly.png"
+              alt="dragonfly logo"
+            />
+          </div>
+          <div class="flex items-center justify-end">
+            <img
+              src="/images/auth/zenml.png"
+              alt="zenml logo"
+            />
+          </div>
+          <div class="flex items-center justify-end">
+            <img
+              src="/images/auth/openbb.png"
+              alt="openbb logo"
+            />
+          </div>
+        </div>
       </div>
     </div>
     <div>
