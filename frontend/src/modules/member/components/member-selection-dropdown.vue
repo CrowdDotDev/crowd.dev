@@ -6,13 +6,14 @@
     <div class="text-gray-900 text-sm">
       Select the member you want to merge with
     </div>
-    <app-member-autocomplete-input
-      v-model="computedMemberToMerge"
-      :fetch-fn="fetchFn"
-      placeholder="Type to search member"
-      input-class="w-full"
-      mode="single"
-    />
+    <div class="flex">
+      <app-autocomplete-one-input
+        v-model="computedMemberToMerge"
+        :fetch-fn="fetchFn"
+        placeholder="Type to search member"
+        input-class="w-full"
+      ></app-autocomplete-one-input>
+    </div>
   </div>
 </template>
 

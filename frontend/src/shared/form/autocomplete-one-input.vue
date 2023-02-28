@@ -2,7 +2,6 @@
   <el-select
     ref="input"
     :disabled="disabled"
-    :loading="loading"
     :remote-method="handleSearch"
     :model-value="modelValue"
     :clearable="true"
@@ -15,24 +14,43 @@
     value-key="id"
     :class="inputClass"
     @change="onChange"
+    @visible-change="onVisibleChange"
   >
-    <el-option
-      v-show="showCreateSuggestion"
-      :label="currentQuery"
-      :created="true"
-      @mouseleave="onSelectMouseLeave"
-    >
-      <span class="prefix">{{ createPrefix }}</span>
-      <span>{{ currentQuery }}</span>
-    </el-option>
-    <el-option
-      v-for="record in localOptions"
-      :key="record.id"
-      :label="record.label"
-      :value="record"
-      @mouseleave="onSelectMouseLeave"
-    >
-    </el-option>
+    <Transition name="fade">
+      <div
+        v-show="isDropdownOpen"
+        v-infinite-scroll="onScroll"
+      >
+        <el-option
+          v-show="showCreateSuggestion"
+          :label="currentQuery"
+          :created="true"
+          @mouseleave="onSelectMouseLeave"
+        >
+          <span class="prefix">{{ createPrefix }}</span>
+          <span>{{ currentQuery }}</span>
+        </el-option>
+        <el-option
+          v-for="record in localOptions"
+          :key="record.id"
+          :label="record.label"
+          :value="record"
+          @mouseleave="onSelectMouseLeave"
+        >
+        </el-option>
+        <div
+          v-if="loading"
+          v-loading="loading"
+          class="h-10"
+        ></div>
+        <div
+          v-else-if="!loading && !localOptions.length"
+          class="px-5 text-gray-400 text-xs w-full h-10 flex items-center justify-center"
+        >
+          No matches found
+        </div>
+      </div>
+    </Transition>
   </el-select>
 </template>
 
@@ -40,7 +58,7 @@
 import isString from 'lodash/isString'
 import { onSelectMouseLeave } from '@/utils/select'
 
-const AUTOCOMPLETE_SERVER_FETCH_SIZE = 100
+const AUTOCOMPLETE_SERVER_FETCH_SIZE = 20
 
 export default {
   name: 'AppAutocompleteOneInput',
@@ -96,7 +114,9 @@ export default {
     return {
       loading: false,
       localOptions: this.options ? this.options : [],
-      currentQuery: ''
+      currentQuery: '',
+      limit: AUTOCOMPLETE_SERVER_FETCH_SIZE,
+      isDropdownOpen: false
     }
   },
 
@@ -153,7 +173,10 @@ export default {
       this.loading = true
 
       try {
-        this.localOptions = await this.fetchFn()
+        this.localOptions = await this.fetchFn(
+          this.currentQuery,
+          this.limit
+        )
         this.loading = false
       } catch (error) {
         console.error(error)
@@ -172,7 +195,7 @@ export default {
       try {
         this.localOptions = await this.fetchFn(
           value,
-          AUTOCOMPLETE_SERVER_FETCH_SIZE
+          this.limit
         )
 
         this.loading = false
@@ -183,9 +206,23 @@ export default {
       }
     },
 
+    async onScroll() {
+      // If options are fewer than the limit, do not fetch for more options
+      if (this.limit - this.localOptions.length > 0) {
+        return
+      }
+
+      this.limit =
+        this.limit + AUTOCOMPLETE_SERVER_FETCH_SIZE
+
+      await this.fetchAllResults()
+    },
+
+    onVisibleChange(value) {
+      this.isDropdownOpen = value
+    },
+
     onSelectMouseLeave
   }
 }
 </script>
-
-<style></style>
