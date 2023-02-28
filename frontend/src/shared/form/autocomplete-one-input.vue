@@ -143,10 +143,7 @@ export default {
     },
 
     async handleSearch(value) {
-      if (
-        (!isString(value) && value === '') ||
-        value === undefined
-      ) {
+      if (!isString(value) && value === '') {
         return
       }
 
