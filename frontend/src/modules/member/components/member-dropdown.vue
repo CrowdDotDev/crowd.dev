@@ -324,6 +324,7 @@ export default {
           { username: {}, attributes: {} }
         ]
         this.isMergeDialogOpen = true
+        this.memberToMerge = null
       } else if (command.action === 'memberEnrich') {
         this.doEnrich(command.member.id)
       } else {
