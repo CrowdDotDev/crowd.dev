@@ -11,6 +11,7 @@
     :remote="true"
     :reserve-keyword="false"
     :allow-create="allowCreate"
+    fit-input-width
     value-key="id"
     :class="inputClass"
     @change="onChange"
@@ -33,10 +34,13 @@
         <el-option
           v-for="record in localOptions"
           :key="record.id"
-          :label="record.label"
           :value="record"
+          class="!px-5"
           @mouseleave="onSelectMouseLeave"
         >
+          <span class="text-ellipsis overflow-hidden">
+            {{ record.label }}
+          </span>
         </el-option>
         <div
           v-if="loading"
