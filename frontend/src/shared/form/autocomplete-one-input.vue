@@ -57,6 +57,7 @@
 <script>
 import isString from 'lodash/isString'
 import { onSelectMouseLeave } from '@/utils/select'
+import { mapState } from 'vuex'
 
 const AUTOCOMPLETE_SERVER_FETCH_SIZE = 20
 
@@ -76,7 +77,7 @@ export default {
       type: Function,
       default: () => {}
     },
-    mapperFn: {
+    totalFn: {
       type: Function,
       default: () => {}
     },
@@ -116,11 +117,15 @@ export default {
       localOptions: this.options ? this.options : [],
       currentQuery: '',
       limit: AUTOCOMPLETE_SERVER_FETCH_SIZE,
-      isDropdownOpen: false
+      isDropdownOpen: false,
+      total: 0
     }
   },
 
   computed: {
+    ...mapState({
+      count: (state) => state.member.count
+    }),
     showCreateSuggestion() {
       return (
         this.createIfNotFound &&
@@ -135,6 +140,12 @@ export default {
   },
 
   async created() {
+    // If total number of members is not known, fetch to know the number
+    if (!this.count) {
+      this.total = await this.totalFn()
+    } else {
+      this.total = this.count
+    }
     await this.fetchAllResults()
   },
 
@@ -157,9 +168,15 @@ export default {
     },
 
     async handleSearch(value) {
-      if (!isString(value) && value === '') {
+      if (
+        (!isString(value) && value === '') ||
+        value === undefined
+      ) {
         return
       }
+
+      // Reset limit when there is a new query
+      this.limit = AUTOCOMPLETE_SERVER_FETCH_SIZE
 
       await this.handleServerSearch(value)
       this.localOptions.filter((item) =>
@@ -207,8 +224,8 @@ export default {
     },
 
     async onScroll() {
-      // If options are fewer than the limit, do not fetch for more options
-      if (this.limit - this.localOptions.length > 0) {
+      // If limit is higher or equal to total number of members, do not fetch for more options
+      if (this.limit >= this.total) {
         return
       }
 

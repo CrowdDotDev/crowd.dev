@@ -10,6 +10,7 @@
       <app-autocomplete-one-input
         v-model="computedMemberToMerge"
         :fetch-fn="fetchFn"
+        :total-fn="totalFn"
         placeholder="Type to search member"
         input-class="w-full"
       ></app-autocomplete-one-input>
@@ -60,6 +61,16 @@ const fetchFn = async (query, limit) => {
   return options.filter((m) => {
     return m.id !== props.id
   })
+}
+
+const totalFn = async () => {
+  try {
+    const response = await MemberService.list({}, '', 1, 0)
+
+    return response.count
+  } catch (e) {
+    return null
+  }
 }
 </script>
 
