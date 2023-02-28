@@ -28,7 +28,7 @@ export const handleTwitterError = (
 
     throw new RateLimitError(rateLimitResetSeconds, url, err)
   } else {
-    logger.error({ err, input }, `Error while calling Twitter API URL: ${url}`)
+    logger.error(err, { input }, `Error while calling Twitter API URL: ${url}`)
     throw err
   }
 }

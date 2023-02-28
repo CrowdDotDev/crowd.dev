@@ -39,30 +39,50 @@ const getPostsByMention = async (
   try {
     const response = await axios(config)
 
-    const posts = response.data.data
-    const media = response.data.includes.media
-    const users = response.data.includes.users
-
-    const postsOut: TwitterParsedPosts = []
-
-    for (const post of posts) {
-      if (post.attachments?.media_keys) {
-        const computedMedia = post.attachments.media_keys.map((key) =>
-          media.find((m) => m.media_key === key),
-        )
-        post.attachments = computedMedia
-      }
-      const member = users.find((u) => u.id === post.author_id)
-      post.member = member
-      postsOut.push(post)
+    let limit: number
+    let timeUntilReset: number
+    if (response.headers['x-rate-limit-remaining'] && response.headers['x-rate-limit-reset']) {
+      limit = parseInt(response.headers['x-rate-limit-remaining'], 10)
+      const resetTs = parseInt(response.headers['x-rate-limit-reset'], 10) * 1000
+      timeUntilReset = moment(resetTs).diff(moment(), 'seconds')
+    } else {
+      limit = 0
+      timeUntilReset = 0
     }
 
-    const limit = parseInt(response.headers['x-rate-limit-remaining'], 10)
-    const resetTs = parseInt(response.headers['x-rate-limit-reset'], 10) * 1000
-    const timeUntilReset = moment(resetTs).diff(moment(), 'seconds')
+    if (
+      response.data.meta &&
+      response.data.meta.result_count &&
+      response.data.meta.result_count > 0
+    ) {
+      const posts = response.data.data
+      const media = response.data.includes.media
+      const users = response.data.includes.users
+
+      const postsOut: TwitterParsedPosts = []
+
+      for (const post of posts) {
+        if (post.attachments?.media_keys) {
+          const computedMedia = post.attachments.media_keys.map((key) =>
+            media.find((m) => m.media_key === key),
+          )
+          post.attachments = computedMedia
+        }
+        const member = users.find((u) => u.id === post.author_id)
+        post.member = member
+        postsOut.push(post)
+      }
+
+      return {
+        records: postsOut,
+        nextPage: response.data?.meta?.next_token || '',
+        limit,
+        timeUntilReset,
+      }
+    }
     return {
-      records: postsOut,
-      nextPage: response.data?.meta?.next_token || '',
+      records: [],
+      nextPage: '',
       limit,
       timeUntilReset,
     }
