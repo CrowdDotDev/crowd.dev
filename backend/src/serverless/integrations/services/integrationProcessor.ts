@@ -195,10 +195,6 @@ export class IntegrationProcessor extends LoggingBase {
       return
     }
 
-    logger = createChildLogger('processWebhook', this.log, {
-      webhookId,
-      tenantId: webhook.tenantId,
-    })
     logger.debug('Processing webhook!')
 
     logger = createChildLogger('processWebhook', this.log, {
