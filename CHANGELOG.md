@@ -2,6 +2,42 @@
 
 All notable changes to this project will be documented in this file.
 
+## v0.21.0 - 2023-02-28
+
+### New changelog
+
+This week we are introducing a new changelog: [changelog.crowd.dev](https://changelog.crowd.dev). From now on, GitHub changelogs will include only one-line bullet points listing the pull requests that were merged during the week. A link to the fully detailed changelog will be added to each GitHub changelog.
+
+### Changes
+
+#### :rocket: Features
+
+- Home rebuild @gaspergrom (#560)
+
+#### :sparkles: Improvements
+
+- Allow configuring which attributes are visible on the members' page @joanagmaia (#572)
+- Allow merging of two members when they are selected in the members' list @gaspergrom (#573)
+- Allow the user to duplicate custom reports @gaspergrom (#571)
+- Rendering of Slack emojis @gaspergrom (#566)
+- Allow un-marking members as team members @joanagmaia (#565)
+- Show an autocomplete when updating a member's organizations @joanagmaia (#561)
+- Moved feature flags to Unleash @themarolt (#553)
+
+#### :ladybug: Bug Fixes
+
+- Fixed filtering members by username on any platform @joanreyero (#580)
+- Sentiment exceptions result in an empty sentiment object instead of an error @epipav (#579)
+- Allow all-time range in cumulative measures @epipav (#576)
+- Hide organizations without members in the organizations' query endpoint @epipav (#570)
+- Fixed the fuzzy match in the Hacker News integration @joanreyero (#564)
+- Fix issues when unpublishing documents in the community help center @epipav (#563)
+- Removed trial label from organizations page @themarolt (#559)
+- Fix the `guildId` being passed incorrectly in the Discord integration sometimes @themarolt (#558)
+- Handling when a user has no followers on the Twitter integration @themarolt (#585)
+- Handling of no mentions returned in the Twitter integration. @themarolt (#584)
+- Save Twitter refresh tokens after refreshing for debugging purposes @themarolt (#583)
+
 ## v0.20.0 - 2023-02-20
 
 ### Changes
@@ -36,7 +72,6 @@ Stay up-to-date with your Eagle Eye feed by configuring an email digest that del
 
 <img src="https://user-images.githubusercontent.com/37874460/220158597-7178802e-eef9-493c-a7d8-ac39a9040945.png"  width="400">
 ###### AI Replies
-
 Eagle Eye 2.0 also offers a new AI-powered feature that generates suggested replies for your content.
 
 https://user-images.githubusercontent.com/37874460/220165717-4204605a-260f-41cb-acca-1bdf5747f6aa.mp4
@@ -93,7 +128,6 @@ Introducing our member enrichment feature! With it you can populate your communi
 - Tweak error messages when enriching in bulk @joanagmaia (#477)
 #### Detailed report drawers
 You can now get a detailed view of the members returned by widgets in default reports. For example, you can see exactly which members were active this month, as well as the total count.
-
 <img width="860" alt="Screenshot 2023-02-06 at 16 34 00" src="https://user-images.githubusercontent.com/37874460/217014619-f2b3b0ff-b25e-457b-9206-7793998b7a23.png">
 - Report detailed drawers @joanagmaia (#461)
 - Find active members endpoint @themarolt (#449)
@@ -103,7 +137,6 @@ You can now get a detailed view of the members returned by widgets in default re
 - Prevent the same integration from being processed multiple times at once. @themarolt (#471)
 - Hide activity from bot users. @mariobalca (#465)
 - Re-designed weekly analytics report. @epipav (#446)
-
 ### 🐞 Bug Fixes
 
 - Fix TypeScript errors and add a check in the CI. @themarolt (#480)
@@ -132,7 +165,6 @@ Introduction the LinkedIn integration! With it, you can bring the comments and r
 - Refactor the UI of public reports. @joanagmaia (#437)
 - Remove activities performed by team members. @epipav (#427)
 ### 🐞 Bug Fixes
-
 - Fix a bug that kept redirecting from `auth/signup` to `augh/signin`. @themarolt (#445)
 - Fix an error when unpublishing conversations in bulk. @epipav (#438)
 - Modified the Community help center's `robots.txt` so Google will index it again. @epipav (#434)
@@ -163,7 +195,6 @@ Our first external code contribution! @mattinannt and the [Formbricks](https://f
 - Introduced WebSockets for 2-way communication between the frontend and backend. We will be using this to improve the UX of several features. @themarolt (#413)
 - Installed Pendo so we can show new features within the app. @joanreyero (#406)
 - Add a placeholder for mobile screens that asks the user to sign up from a bigger one. @joanagmaia (#414)
-
 ### 🐞 Bug Fixes
 
 - Fixed a typo in the upgrade button @epipav (#409)
@@ -194,7 +225,6 @@ Forum channels are now supported as part of the Discord integration. We will get
 ### ✨ Improvements
 - Preventing that an automation is executed twice. @themarolt (#401)
 - Improved copy for tooltips in widgets. @epipav (#392)
-
 ### 🐞 Bug Fixes
 
 - Fix a bug where members could be merged twice. @joanagmaia (#402)
@@ -237,7 +267,6 @@ You can now export your community members as CSV. You can export all members or 
 - Fix the sorting in the dashboard's *active members* widget. @joanagmaia (#369)
 ## v0.13.0 - 2022-12-19
 ### Changes
-
 ### 🚀 Features
 
 #### Reddit integration
@@ -270,7 +299,6 @@ We are advancing in making premium plans possible. This week we introduced a *Pl
 ## v0.12.0 - 2022-12-13
 ### Changes
 - Fix identities for hackernews integration @joanagmaia (#313)
-
 ### 🚀 Features
 
 #### Pricing and feature flagging
@@ -334,7 +362,6 @@ This release introduces three new features: organizations, tasks, and notes. Fur
 #### Organizations
 You can now track how organizations are adopting your community. With the organizations' list, you can have an overview of all organizations. You can also have several views and perform filtering. For each organization, there is an organization page with all its background information, a list of all the members that belong to the organization, and their activities.
 <img width="700" alt="Organizations" src="https://user-images.githubusercontent.com/37874460/204589538-65a46d85-ec91-488a-9b32-45f48fe53a94.png">
-
 #### Tasks
 
 With the new tasks feature you can create tasks related to your community members. Do you want to ask newcomers for feedback? Or influential members for some recognition? Or an unhappy member how can you make their life easier? You can orchestrate all this with your team using tasks. We support all standard to-do features, like assigning them to colleagues and setting due dates. You can read more in our [tasks docs](https://docs.crowd.dev/docs/tasks).
@@ -375,7 +402,6 @@ This version introduces breaking API changes. While the API has vastly improved 
 ## v0.8.0 - 2022-10-07
 ### Changes
 ### ✨ Enhancements
-
 - New Architecture: Serverless plus a static backend has been replaced by a Kubernetes cluster. (#53)
 - Tweak error handling in DEV integration. Give a proper error when an organization / profile was not found @mariobalca (#65)
 
@@ -410,7 +436,9 @@ This version introduces breaking API changes. While the API has vastly improved 
 - 
 - 
 - 
+- 
 - - When a new activity is created
+- 
 - 
 - 
 - 
@@ -496,7 +524,6 @@ This version introduces breaking API changes. While the API has vastly improved 
 - NodeJS GitHub integration + Discussions @anilb0stanci
 - Dev.to integration backend @themarolt
 - Conversations auto-publish @mariobalca
-
 ### ✨ Enhancements
 
 - Read only role @mariobalca
