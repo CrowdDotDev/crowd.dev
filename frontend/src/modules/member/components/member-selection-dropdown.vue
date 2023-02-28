@@ -6,13 +6,14 @@
     <div class="text-gray-900 text-sm">
       Select the member you want to merge with
     </div>
-    <app-member-autocomplete-input
-      v-model="computedMemberToMerge"
-      :fetch-fn="fetchFn"
-      placeholder="Type to search member"
-      input-class="w-full"
-      mode="single"
-    />
+    <div class="flex w-3/5">
+      <app-autocomplete-one-input
+        v-model="computedMemberToMerge"
+        :fetch-fn="fetchFn"
+        placeholder="Type to search members"
+        input-class="w-full"
+      ></app-autocomplete-one-input>
+    </div>
   </div>
 </template>
 
@@ -56,9 +57,18 @@ const fetchFn = async (query, limit) => {
     query,
     limit
   )
-  return options.filter((m) => {
+
+  // Remove primary member from members that can be merged with
+  const filteredOptions = options.filter((m) => {
     return m.id !== props.id
   })
+
+  // If the primary member was removed, add an empty object in replacement
+  if (options.length !== filteredOptions.length) {
+    filteredOptions.push({})
+  }
+
+  return filteredOptions
 }
 </script>
 
