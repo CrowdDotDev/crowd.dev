@@ -26,19 +26,29 @@
       <span class="prefix">{{ createPrefix }}</span>
       <span>{{ currentQuery }}</span>
     </el-option>
-    <el-option
+    <Fragment
       v-for="record in localOptions"
       :key="record.id"
-      :value="record"
-      class="!px-5"
-      @mouseleave="onSelectMouseLeave"
     >
-      <span class="text-ellipsis overflow-hidden">
-        {{ record.label }}
-      </span>
-    </el-option>
+      <el-option
+        v-if="record.id"
+        :value="record"
+        class="!px-5"
+        @mouseleave="onSelectMouseLeave"
+      >
+        <span class="text-ellipsis overflow-hidden">
+          {{ record.label }}
+        </span>
+      </el-option>
+    </Fragment>
     <div
-      v-if="!loading && !localOptions.length"
+      v-if="!loading && localOptions.length === limit"
+      class="px-5 text-gray-400 text-2xs w-full h-8 flex items-center"
+    >
+      Type to search for more results
+    </div>
+    <div
+      v-else-if="showEmptyMessage"
       class="px-5 text-gray-400 text-xs w-full h-10 flex items-center justify-center"
     >
       No matches found
@@ -102,7 +112,8 @@ export default {
     return {
       loading: false,
       localOptions: this.options ? this.options : [],
-      currentQuery: ''
+      currentQuery: '',
+      limit: AUTOCOMPLETE_SERVER_FETCH_SIZE
     }
   },
 
@@ -116,6 +127,16 @@ export default {
             o.label === this.currentQuery ||
             o === this.currentQuery
         )
+      )
+    },
+    showEmptyMessage() {
+      // Show empty message if request is not loading,
+      // there are options or the only option is empty
+      return (
+        !this.loading &&
+        (!this.localOptions.length ||
+          (this.localOptions.length === 1 &&
+            !this.localOptions[0].id))
       )
     }
   },
