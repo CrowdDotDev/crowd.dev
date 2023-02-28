@@ -140,9 +140,7 @@ const loading = ref(false)
 const isEditingAttributes = ref(false)
 
 const computedAttributes = computed(() =>
-  Object.values(store.state.member.customAttributes).filter(
-    (attribute) => attribute.show
-  )
+  Object.values(store.state.member.customAttributes)
 )
 const drawerModel = computed({
   get() {

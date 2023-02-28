@@ -243,39 +243,48 @@ export default (moduleName, moduleService = null) => {
       activeViewId
     ) {
       commit('ACTIVE_VIEW_CHANGED', activeViewId)
-
-      const params = new URLSearchParams(
-        window.location.search
-      )
-      if (params.get('activeTab') !== activeViewId) {
-        router.push({
-          name: moduleName,
-          query: {
-            activeTab:
-              activeViewId ===
-              Object.values(state.views)[0].id
-                ? undefined
-                : activeViewId
-          }
-        })
-      }
-
-      const translatedModuleName = i18n(
-        `entities.${moduleName}.menu`
-      )
-      window.analytics.track(
-        `${translatedModuleName} View Changed`,
-        Object.assign(
-          {},
-          {
-            view: getters.activeView.label
-          }
+      setTimeout(() => {
+        const params = new URLSearchParams(
+          window.location.search
         )
-      )
+        const queryParams = {}
+        for (let [key, value] of params.entries()) {
+          queryParams[key] = value
+        }
+        delete queryParams['authToken']
+        delete queryParams['social']
 
-      return dispatch('doFetch', {
-        keepPagination: false
-      })
+        if (params.get('activeTab') !== activeViewId) {
+          router.push({
+            name: moduleName,
+            query: {
+              ...queryParams,
+              activeTab:
+                activeViewId ===
+                Object.values(state.views)[0].id
+                  ? undefined
+                  : activeViewId
+            }
+          })
+        }
+
+        const translatedModuleName = i18n(
+          `entities.${moduleName}.menu`
+        )
+        window.analytics.track(
+          `${translatedModuleName} View Changed`,
+          Object.assign(
+            {},
+            {
+              view: getters.activeView.label
+            }
+          )
+        )
+
+        dispatch('doFetch', {
+          keepPagination: false
+        })
+      }, 0)
     },
 
     addFilterAttribute(

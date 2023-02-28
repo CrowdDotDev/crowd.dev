@@ -34,9 +34,10 @@ const memberAttributes = Object.values(
   MemberModel.fields
 ).filter((f) => f.filterable)
 const customAttributes = computed(() => {
-  return getCustomAttributes(
-    store.state.member.customAttributes
-  )
+  return getCustomAttributes({
+    customAttributes: store.state.member.customAttributes,
+    considerShowProperty: true
+  })
 })
 
 const memberSearch = computed(() => {

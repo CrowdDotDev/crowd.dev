@@ -484,6 +484,11 @@ do
             start
             exit;
         ;;
+        start-be)
+            declare -a INGORED_SERVICES=("community-help-center" "python-worker" "frontend" "discord-ws")
+            start
+            exit;
+        ;;
         start-dev)
             declare -a INGORED_SERVICES=("community-help-center")
             DEV=1

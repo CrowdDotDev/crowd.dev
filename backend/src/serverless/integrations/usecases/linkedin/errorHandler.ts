@@ -28,6 +28,6 @@ export const handleLinkedinError = (
     const rateLimitResetSeconds = nextMidnight.diff(now, 'seconds')
     return new RateLimitError(rateLimitResetSeconds, url, err)
   }
-  logger.error({ err, input }, `Error while calling LinkedIn API URL: ${url}`)
+  logger.error(err, { input }, `Error while calling LinkedIn API URL: ${url}`)
   return err
 }

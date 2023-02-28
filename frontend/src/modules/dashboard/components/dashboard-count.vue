@@ -4,12 +4,13 @@
     :loading="loading"
   >
     <template #loading>
-      <div class="flex items-center pb-4 py-0.5">
-        <app-loading
-          width="80px"
-          height="16px"
-        ></app-loading>
-      </div>
+      <app-loading
+        height="56px"
+        width="44px"
+        radius="4px"
+        class="mb-2"
+      />
+      <app-loading width="80px" height="24px"></app-loading>
     </template>
 
     <template #default="current">
@@ -17,21 +18,27 @@
         :query="query(previousDateRange, platform)"
       >
         <template #loading>
-          <div class="flex items-center pb-4 py-0.5">
-            <app-loading
-              width="80px"
-              height="16px"
-            ></app-loading>
-          </div>
+          <app-loading
+            height="56px"
+            width="44px"
+            radius="4px"
+            class="mb-2"
+          />
+          <app-loading
+            width="80px"
+            height="24px"
+          ></app-loading>
         </template>
         <template #default="previous">
-          <div class="flex items-center pb-4">
-            <h6 class="text-base leading-5 mr-2">
-              {{ computedScore(current.resultSet) }}
-            </h6>
+          <h4
+            class="text-3xl leading-15 h-15 leading-5 mb-1 font-light"
+          >
+            {{ computedScore(current.resultSet) }}
+          </h4>
+          <div class="flex">
             <el-tooltip
               content="vs. previous time period"
-              placement="top"
+              placement="right"
             >
               <app-dashboard-badge
                 :type="
@@ -40,13 +47,14 @@
                     previous.resultSet
                   )
                 "
-                >{{
+              >
+                <span>{{
                   computedBadgeLabel(
                     current.resultSet,
                     previous.resultSet
                   )
-                }}</app-dashboard-badge
-              >
+                }}</span>
+              </app-dashboard-badge>
             </el-tooltip>
           </div>
         </template>
@@ -61,6 +69,7 @@ import AppDashboardBadge from '@/modules/dashboard/components/shared/dashboard-b
 import AppLoading from '@/shared/loading/loading-placeholder'
 import AppCubeRender from '@/shared/cube/cube-render'
 import moment from 'moment'
+
 export default {
   name: 'AppDashboardCount',
   components: {
@@ -76,11 +85,6 @@ export default {
     loading: {
       required: false,
       type: Boolean,
-      default: false
-    },
-    percentage: {
-      type: Boolean,
-      required: false,
       default: false
     }
   },
@@ -161,31 +165,17 @@ export default {
     computedBadgeLabel(current, previous) {
       const currentScore = this.computedScore(current)
       const previousScore = this.computedScore(previous)
-      const diff = currentScore - previousScore
-      if (this.percentage) {
-        if (previousScore === 0) {
-          if (currentScore === 0) {
-            return '='
-          }
-          return `+100%`
+      const diff = Math.abs(currentScore - previousScore)
+      if (previousScore === 0) {
+        if (currentScore === 0) {
+          return '='
         }
-        if (diff > 0) {
-          return `+${Math.round(
-            (diff / previousScore) * 100
-          )}%`
-        }
-        if (diff < 0) {
-          return `${Math.round(
-            (diff / previousScore) * 100
-          )}%`
-        }
-      } else {
-        if (diff > 0) {
-          return `+${diff}`
-        }
-        if (diff < 0) {
-          return diff
-        }
+        return `100% (${currentScore})`
+      }
+      if (diff !== 0) {
+        return `${Math.round(
+          (diff / previousScore) * 100
+        )}% (${diff})`
       }
 
       return '='

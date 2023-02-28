@@ -15,6 +15,16 @@ export class ReportService {
     return response.data
   }
 
+  static async duplicate(id) {
+    const tenantId = AuthCurrentTenant.get()
+
+    const response = await authAxios.post(
+      `/tenant/${tenantId}/report/${id}/duplicate`
+    )
+
+    return response.data
+  }
+
   static async destroyAll(ids) {
     const params = {
       ids

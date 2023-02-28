@@ -1,8 +1,11 @@
 <template>
-  <div class="flex items-center py-6">
+  <div
+    class="flex items-center py-4 border-y border-gray-200"
+  >
     <!-- period filters -->
     <app-widget-period
       :period="period"
+      class="uppercase"
       @on-update="setPeriod"
     />
 
@@ -13,18 +16,23 @@
       placement="bottom-start"
       trigger="click"
       size="large"
-      @visible-change="platformDropdownOpen = $event"
     >
-      <div class="flex items-center text-xs">
-        <span class="text-gray-500">Platform:</span>
-        <span class="text-gray-900 pl-1">{{
-          getPlatformName
-        }}</span>
-        <i
-          class="ri-arrow-down-s-line text-base ml-1 transition transform"
-          :class="{ 'rotate-180': platformDropdownOpen }"
-        ></i>
-      </div>
+      <el-button
+        class="btn btn--bordered bg-white !py-1.5 !px-3 outline-none"
+      >
+        <div class="flex items-center text-xs">
+          <i
+            class="ri-apps-2-line text-base text-gray-900 mr-2"
+          ></i>
+          <span class="font-medium text-gray-900"
+            >Platform:</span
+          >
+          <span class="text-gray-600 pl-1">{{
+            getPlatformName
+          }}</span>
+        </div>
+      </el-button>
+
       <template #dropdown>
         <el-dropdown-menu class="w-42">
           <!-- all platforms -->
@@ -65,7 +73,6 @@ export default {
   },
   data() {
     return {
-      platformDropdownOpen: false,
       storeUnsubscribe: () => {}
     }
   },
@@ -100,18 +107,6 @@ export default {
         }
       }
     }
-  },
-  mounted() {
-    this.storeUnsubscribe = this.$store.subscribeAction(
-      (action) => {
-        if (action.type === 'auth/doRefreshCurrentUser') {
-          this.$store.dispatch('dashboard/reset')
-        }
-      }
-    )
-  },
-  beforeUnmount() {
-    this.storeUnsubscribe()
   },
   methods: {
     ...mapActions({

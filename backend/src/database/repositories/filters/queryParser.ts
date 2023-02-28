@@ -215,8 +215,11 @@ class QueryParser {
     // {activityCount: {gt: 10}} (the value would be 10)
     let right = typeof value === 'object' ? value[Object.keys(value)[0]] : value
 
-    // handle textContains for literals
-    if (typeof value === 'object' && Object.keys(value)[0] === 'textContains') {
+    // handle textContains and jsonContains for literals
+    if (
+      (typeof value === 'object' && Object.keys(value)[0] === 'textContains') ||
+      Object.keys(value)[0] === 'jsonContains'
+    ) {
       op = Op.iLike
       right = `%${right}%`
     }

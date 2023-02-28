@@ -47,7 +47,7 @@ const props = defineProps({
 })
 
 const isTeam = computed(() => {
-  return props.member.attributes.isTeamMember
+  return props.member.attributes.isTeamMember?.default
 })
 
 const isBot = computed(() => {

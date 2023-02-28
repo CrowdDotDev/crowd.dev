@@ -53,6 +53,13 @@ const fields = {
       filterable: true
     }
   ),
+  lastActive: new DateTimeField(
+    'lastActive',
+    'Last activity date',
+    {
+      filterable: true
+    }
+  ),
   revenueRange: new JsonField(
     'revenueRange',
     label('revenueRange')

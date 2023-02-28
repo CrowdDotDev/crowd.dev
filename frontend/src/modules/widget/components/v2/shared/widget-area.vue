@@ -71,9 +71,11 @@ customChartOptions.library.plugins.tooltip.external = (
   })
 
 // Customize x ticks
-customChartOptions.library.scales.x.ticks.callback = (
-  value
-) => parseAxisLabel(value, props.granularity)
+if (!customChartOptions.library.scales.x.ticks.callback) {
+  customChartOptions.library.scales.x.ticks.callback = (
+    value
+  ) => parseAxisLabel(value, props.granularity)
+}
 
 const dataset = ref({})
 
