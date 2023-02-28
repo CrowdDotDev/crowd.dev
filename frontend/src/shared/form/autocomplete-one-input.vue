@@ -2,6 +2,7 @@
   <el-select
     ref="input"
     :disabled="disabled"
+    :loading="loading"
     :remote-method="handleSearch"
     :model-value="modelValue"
     :clearable="true"
@@ -15,7 +16,6 @@
     value-key="id"
     :class="inputClass"
     @change="onChange"
-    @visible-change="onVisibleChange"
   >
     <el-option
       v-show="showCreateSuggestion"
@@ -38,12 +38,7 @@
       </span>
     </el-option>
     <div
-      v-if="loading"
-      v-loading="loading"
-      class="h-10"
-    ></div>
-    <div
-      v-else-if="!loading && !localOptions.length"
+      v-if="!loading && !localOptions.length"
       class="px-5 text-gray-400 text-xs w-full h-10 flex items-center justify-center"
     >
       No matches found
@@ -54,7 +49,6 @@
 <script>
 import isString from 'lodash/isString'
 import { onSelectMouseLeave } from '@/utils/select'
-import { mapState } from 'vuex'
 
 const AUTOCOMPLETE_SERVER_FETCH_SIZE = 20
 
@@ -113,9 +107,6 @@ export default {
   },
 
   computed: {
-    ...mapState({
-      count: (state) => state.member.count
-    }),
     showCreateSuggestion() {
       return (
         this.createIfNotFound &&
