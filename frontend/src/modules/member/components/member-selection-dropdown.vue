@@ -11,7 +11,7 @@
         v-model="computedMemberToMerge"
         :fetch-fn="fetchFn"
         :total-fn="totalFn"
-        placeholder="Type to search member"
+        placeholder="Type to search members"
         input-class="w-full"
       ></app-autocomplete-one-input>
     </div>
