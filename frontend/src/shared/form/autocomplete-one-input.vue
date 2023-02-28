@@ -17,44 +17,37 @@
     @change="onChange"
     @visible-change="onVisibleChange"
   >
-    <Transition name="fade">
-      <div
-        v-show="isDropdownOpen"
-        v-infinite-scroll="onScroll"
-      >
-        <el-option
-          v-show="showCreateSuggestion"
-          :label="currentQuery"
-          :created="true"
-          @mouseleave="onSelectMouseLeave"
-        >
-          <span class="prefix">{{ createPrefix }}</span>
-          <span>{{ currentQuery }}</span>
-        </el-option>
-        <el-option
-          v-for="record in localOptions"
-          :key="record.id"
-          :value="record"
-          class="!px-5"
-          @mouseleave="onSelectMouseLeave"
-        >
-          <span class="text-ellipsis overflow-hidden">
-            {{ record.label }}
-          </span>
-        </el-option>
-        <div
-          v-if="loading"
-          v-loading="loading"
-          class="h-10"
-        ></div>
-        <div
-          v-else-if="!loading && !localOptions.length"
-          class="px-5 text-gray-400 text-xs w-full h-10 flex items-center justify-center"
-        >
-          No matches found
-        </div>
-      </div>
-    </Transition>
+    <el-option
+      v-show="showCreateSuggestion"
+      :label="currentQuery"
+      :created="true"
+      @mouseleave="onSelectMouseLeave"
+    >
+      <span class="prefix">{{ createPrefix }}</span>
+      <span>{{ currentQuery }}</span>
+    </el-option>
+    <el-option
+      v-for="record in localOptions"
+      :key="record.id"
+      :value="record"
+      class="!px-5"
+      @mouseleave="onSelectMouseLeave"
+    >
+      <span class="text-ellipsis overflow-hidden">
+        {{ record.label }}
+      </span>
+    </el-option>
+    <div
+      v-if="loading"
+      v-loading="loading"
+      class="h-10"
+    ></div>
+    <div
+      v-else-if="!loading && !localOptions.length"
+      class="px-5 text-gray-400 text-xs w-full h-10 flex items-center justify-center"
+    >
+      No matches found
+    </div>
   </el-select>
 </template>
 
@@ -78,10 +71,6 @@ export default {
       default: null
     },
     fetchFn: {
-      type: Function,
-      default: () => {}
-    },
-    totalFn: {
       type: Function,
       default: () => {}
     },
@@ -119,10 +108,7 @@ export default {
     return {
       loading: false,
       localOptions: this.options ? this.options : [],
-      currentQuery: '',
-      limit: AUTOCOMPLETE_SERVER_FETCH_SIZE,
-      isDropdownOpen: false,
-      total: 0
+      currentQuery: ''
     }
   },
 
@@ -144,12 +130,6 @@ export default {
   },
 
   async created() {
-    // If total number of members is not known, fetch to know the number
-    if (!this.count) {
-      this.total = await this.totalFn()
-    } else {
-      this.total = this.count
-    }
     await this.fetchAllResults()
   },
 
@@ -179,9 +159,6 @@ export default {
         return
       }
 
-      // Reset limit when there is a new query
-      this.limit = AUTOCOMPLETE_SERVER_FETCH_SIZE
-
       await this.handleServerSearch(value)
       this.localOptions.filter((item) =>
         String(item.label || '')
@@ -196,7 +173,7 @@ export default {
       try {
         this.localOptions = await this.fetchFn(
           this.currentQuery,
-          this.limit
+          AUTOCOMPLETE_SERVER_FETCH_SIZE
         )
         this.loading = false
       } catch (error) {
@@ -216,7 +193,7 @@ export default {
       try {
         this.localOptions = await this.fetchFn(
           value,
-          this.limit
+          AUTOCOMPLETE_SERVER_FETCH_SIZE
         )
 
         this.loading = false
@@ -225,22 +202,6 @@ export default {
         this.localOptions = []
         this.loading = false
       }
-    },
-
-    async onScroll() {
-      // If limit is higher or equal to total number of members, do not fetch for more options
-      if (this.limit >= this.total) {
-        return
-      }
-
-      this.limit =
-        this.limit + AUTOCOMPLETE_SERVER_FETCH_SIZE
-
-      await this.fetchAllResults()
-    },
-
-    onVisibleChange(value) {
-      this.isDropdownOpen = value
     },
 
     onSelectMouseLeave
