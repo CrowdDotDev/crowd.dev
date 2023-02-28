@@ -25,18 +25,21 @@
             <img
               src="/images/auth/meilisearch.png"
               alt="meilisearch logo"
+              class="h-4"
             />
           </div>
           <div class="flex items-center justify-end">
             <img
               src="/images/auth/crowdsec.png"
               alt="crowdsec logo"
+              class="h-7"
             />
           </div>
           <div class="flex items-center justify-end">
             <img
               src="/images/auth/kernai.png"
               alt="kernai logo"
+              class="h-5"
             />
           </div>
         </div>
@@ -45,18 +48,21 @@
             <img
               src="/images/auth/dragonfly.png"
               alt="dragonfly logo"
+              class="h-5"
             />
           </div>
           <div class="flex items-center justify-end">
             <img
               src="/images/auth/zenml.png"
               alt="zenml logo"
+              class="h-5"
             />
           </div>
           <div class="flex items-center justify-end">
             <img
               src="/images/auth/openbb.png"
               alt="openbb logo"
+              class="h-6"
             />
           </div>
         </div>
