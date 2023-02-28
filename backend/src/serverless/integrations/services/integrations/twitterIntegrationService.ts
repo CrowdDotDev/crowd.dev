@@ -20,6 +20,7 @@ import { AddActivitiesSingle } from '../../types/messageTypes'
 import { MemberAttributeName } from '../../../../database/attributes/member/enums'
 import { TwitterGrid } from '../../grid/twitterGrid'
 import Operations from '../../../dbOperations/operations'
+import IntegrationRepository from '../../../../database/repositories/integrationRepository'
 
 /* eslint class-methods-use-this: 0 */
 
@@ -414,5 +415,14 @@ export class TwitterIntegrationService extends IntegrationServiceBase {
       ...context.pipelineData,
       profileId: context.integration.integrationIdentifier,
     }
+
+    await IntegrationRepository.update(
+      context.integration.id,
+      {
+        token: context.integration.token,
+        refreshToken: context.integration.refreshToken,
+      },
+      context.repoContext,
+    )
   }
 }
