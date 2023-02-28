@@ -20,7 +20,7 @@
     </header>
     <section class="pb-1 px-4">
       <app-dashboard-guide-item
-        v-for="guide of guides()"
+        v-for="guide of guides"
         :key="guide.id"
         :guide="guide"
         :active="activeView === guide.id"
@@ -32,9 +32,7 @@
       />
     </section>
   </div>
-  <app-dashboard-guide-modal
-    v-model="selectedGuide"
-  />
+  <app-dashboard-guide-modal v-model="selectedGuide" />
 </template>
 
 <script>
@@ -50,16 +48,22 @@ import { useRouter } from 'vue-router'
 import { onboardingGuides } from '@/modules/dashboard/config/onboarding-guides'
 import AppDashboardGuideItem from '@/modules/dashboard/components/guide/dashboard-guide-item.vue'
 import AppDashboardGuideModal from '@/modules/dashboard/components/guide/dashboard-guide-modal.vue'
+
 const store = useStore()
 const router = useRouter()
 
-const guides = () =>
-  onboardingGuides({
-    store,
-    router
-  })
+const guides = onboardingGuides({
+  store,
+  router
+}).map((el) => ({
+  ...el,
+  completed: el.completed(),
+  display: el.display()
+}))
 
-const activeView = ref(guides()[0].id)
+// const completedGuides = computed(() => guides.filter((g) => g.completed))
+
+const activeView = ref(guides?.length ? guides[0].id : null)
 
 const selectedGuide = ref(null)
 </script>

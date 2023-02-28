@@ -103,8 +103,4 @@ export const onboardingGuides = ({ store, router }) =>
         return true
       }
     }
-  ].map((el) => ({
-    ...el,
-    completed: el.completed(),
-    display: el.display()
-  }))
+  ]
