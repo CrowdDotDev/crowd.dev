@@ -113,7 +113,7 @@
                       name: 'memberView',
                       params: { id: scope.row.id }
                     }"
-                    class="-mx-2.5 block px-2.5 py-2 h-full"
+                    class="-mx-2.5 block px-2.5 py-2"
                   >
                     <div
                       class="flex items-center text-black"
@@ -171,7 +171,7 @@
                       name: 'memberView',
                       params: { id: scope.row.id }
                     }"
-                    class="-mx-2.5 block px-2.5 py-2"
+                    class="-mx-2.5 block px-2.5 py-2 !text-gray-500"
                   >
                     {{
                       column.formatter
@@ -215,7 +215,7 @@
                       name: 'memberView',
                       params: { id: scope.row.id }
                     }"
-                    class="-mx-2.5 block px-2.5 py-2"
+                    class="-mx-2.5 block px-2.5 py-2 !text-gray-500"
                   >
                     <app-member-last-activity
                       v-if="scope.row.lastActivity"
@@ -347,24 +347,48 @@
               >
                 <template #default="scope">
                   <router-link
+                    v-slot="{ navigate }"
                     :to="{
                       name: 'memberView',
                       params: { id: scope.row.id }
                     }"
+                    custom
                     class="-mx-2.5 block px-2.5 py-2"
                   >
-                    <app-tag-list :member="scope.row" />
+                    <div
+                      class="block w-full h-full"
+                      @click="navigate"
+                    >
+                      <app-tag-list :member="scope.row" />
+                    </div>
                   </router-link>
                 </template>
               </el-table-column>
 
               <el-table-column fixed="right">
                 <template #default="scope">
-                  <div class="table-actions">
-                    <app-member-dropdown
-                      :member="scope.row"
-                    ></app-member-dropdown>
-                  </div>
+                  <router-link
+                    v-slot="{ navigate }"
+                    :to="{
+                      name: 'memberView',
+                      params: { id: scope.row.id }
+                    }"
+                    custom
+                    class="-mx-2.5 block px-2.5 py-2"
+                  >
+                    <div
+                      class="block w-full h-full"
+                      @click="navigate"
+                    >
+                      <div
+                        class="flex items-center justify-center w-full"
+                      >
+                        <app-member-dropdown
+                          :member="scope.row"
+                        ></app-member-dropdown>
+                      </div>
+                    </div>
+                  </router-link>
                 </template>
               </el-table-column>
             </el-table>
@@ -664,5 +688,15 @@ const trackEmailClick = () => {
 // Hide table header scrollbar
 #members-table .el-table__cell {
   padding: 0;
+}
+.el-table .cell,
+.el-table .cell > a {
+  height: 100%;
+  width: 100%;
+  display: flex;
+  align-items: center;
+}
+.el-table__body {
+  height: 1px;
 }
 </style>

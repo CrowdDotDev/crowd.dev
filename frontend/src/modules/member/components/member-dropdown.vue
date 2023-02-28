@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div @click.stop>
     <el-dropdown
       v-if="!isReadOnly"
       trigger="click"
