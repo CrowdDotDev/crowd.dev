@@ -1767,6 +1767,9 @@ describe('MemberService tests', () => {
         lastActivity: activityCreated,
       }
 
+      expect(mergedMember.tasks.sort()).toEqual(expectedMember.tasks.sort())
+      delete mergedMember.tasks
+      delete expectedMember.tasks
       expect(mergedMember).toStrictEqual(expectedMember)
     })
 
@@ -1836,8 +1839,6 @@ describe('MemberService tests', () => {
       const createdMember2 = await MemberRepository.create(member2, mockIRepositoryOptions)
 
       a1.member = createdMember2.id
-
-      await ActivityRepository.create(a1, mockIRepositoryOptions)
 
       const a3Created = await ActivityRepository.create(
         {
@@ -1911,8 +1912,6 @@ describe('MemberService tests', () => {
       const createdMember2 = await MemberRepository.create(member2, mockIRepositoryOptions)
 
       aRepeated.member = createdMember2.id
-
-      await ActivityRepository.create(aRepeated, mockIRepositoryOptions)
 
       const aSameTsDifferentType = await ActivityRepository.create(
         {
