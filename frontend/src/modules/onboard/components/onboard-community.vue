@@ -154,12 +154,16 @@
       <el-button
         id="submit"
         class="btn btn--lg btn--primary"
-        :loading="loading"
+        :loading="loading || isButtonLoading"
         :disabled="!isFormValid"
         @click="doSubmit()"
       >
-        <span class="pr-3">Next step</span>
-        <span class="ri-arrow-right-s-line text-xl"></span>
+        <slot name="submitButton">
+          <span class="pr-3">Next step</span>
+          <span
+            class="ri-arrow-right-s-line text-xl"
+          ></span>
+        </slot>
       </el-button>
     </div>
   </div>
@@ -185,6 +189,11 @@ export default {
   name: 'AppOnboardCommunity',
   props: {
     isNew: {
+      type: Boolean,
+      required: false,
+      default: false
+    },
+    isButtonLoading: {
       type: Boolean,
       required: false,
       default: false
