@@ -14,7 +14,7 @@
         v-if="editable && showEdit"
         class="text-gray-300 hover:text-gray-600 btn btn-link text-2xs"
         :class="member.tags.length > 0 ? 'ml-2' : ''"
-        @click.stop="editing = true"
+        @click.prevent.stop="editing = true"
         >Edit tags</el-button
       >
     </div>
