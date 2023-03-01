@@ -9,7 +9,7 @@
 
 <script>
 import { mapGetters, mapActions } from 'vuex'
-import AppUserForm from '@/premium/user/components/form/user-form.vue'
+import AppUserForm from '@/modules/user/components/form/user-form.vue'
 
 export default {
   name: 'AppUserNewPage',

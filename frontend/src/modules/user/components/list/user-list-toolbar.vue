@@ -39,7 +39,7 @@
 
 <script>
 import { mapGetters, mapActions } from 'vuex'
-import { UserPermissions } from '@/premium/user/user-permissions'
+import { UserPermissions } from '@/modules/user/user-permissions'
 import ConfirmDialog from '@/shared/dialog/confirm-dialog.js'
 
 export default {

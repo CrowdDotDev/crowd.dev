@@ -225,7 +225,7 @@
 
 <script>
 import { mapGetters, mapActions } from 'vuex'
-import { UserModel } from '@/premium/user/user-model'
+import { UserModel } from '@/modules/user/user-model'
 import config from '@/config'
 import AppI18n from '@/shared/i18n/i18n'
 import AppSvg from '@/shared/svg/svg'
