@@ -41,7 +41,7 @@
           </div>
           <div class="flex gap-3">
             <div
-              class="w-1/3 flex flex-col gap-1 justify-center"
+              class="w-1/3 flex flex-col gap-1 justify-start mt-0.5"
             >
               <div class="flex items-center leading-tight">
                 <div
@@ -101,29 +101,23 @@
                 />
               </el-select>
 
-              <el-tooltip
+              <app-autocomplete-many-input
                 v-else-if="attribute.type === 'multiSelect'"
-                content="Multi-select fields are temporarily read-only"
-                placement="top"
-              >
-                <el-select
-                  v-model="model[attribute.name]"
-                  class="w-full multi-select-field"
-                  disabled
-                  filterable
-                  multiple
-                  collapse-tags
-                  collapse-tags-tooltip
-                  placeholder="Select option"
-                >
-                  <el-option
-                    v-for="item of attribute.options"
-                    :key="item"
-                    :label="item"
-                    :value="item"
-                  />
-                </el-select>
-              </el-tooltip>
+                v-model="model[attribute.name]"
+                :fetch-fn="
+                  () => fetchCustomAttribute(attribute.id)
+                "
+                :create-fn="
+                  (value) =>
+                    updateCustomAttribute(attribute, value)
+                "
+                placeholder="Select an option or create one"
+                input-class="w-full multi-select-field"
+                :create-if-not-found="true"
+                :collapse-tags="true"
+                :allow-fetch-not-included-tags="false"
+                :parse-model="true"
+              ></app-autocomplete-many-input>
               <el-input
                 v-else
                 v-model="model[attribute.name]"
@@ -188,6 +182,7 @@ import AppSvg from '@/shared/svg/svg'
 import { mapActions } from '@/shared/vuex/vuex.helpers'
 import ConfirmDialog from '@/shared/dialog/confirm-dialog.js'
 import Message from '@/shared/message/message'
+import { MemberService } from '@/modules/member/member-service'
 
 const CalendarIcon = h(
   'i', // type
@@ -313,6 +308,29 @@ const updateAttribute = (id, data) => {
       Message.success('Attribute successfully updated')
     })
   })
+}
+
+const fetchCustomAttribute = (id) => {
+  return MemberService.getCustomAttribute(id)
+    .then((response) =>
+      response.options.sort().map((o) => ({
+        id: o,
+        label: o
+      }))
+    )
+    .catch(() => [])
+}
+
+const updateCustomAttribute = (attribute, value) => {
+  const options = [...attribute.options]
+  options.push(value)
+
+  return MemberService.updateCustomAttribute(attribute.id, {
+    options
+  }).then(() => ({
+    id: value,
+    label: value
+  }))
 }
 </script>
 

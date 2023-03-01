@@ -4,7 +4,7 @@
     :disabled="disabled || initialLoading"
     :loading="loading || initialLoading"
     :remote-method="handleSearch"
-    :model-value="initialLoading ? null : modelValue"
+    :model-value="initialLoading ? null : model"
     :clearable="true"
     :default-first-option="true"
     :filterable="true"
@@ -15,10 +15,18 @@
     :allow-create="allowCreate"
     :suffix-icon="initialLoading ? 'app-loader' : null"
     :remote-show-suffix="initialLoading"
+    :collapse-tags="shouldCollapseTags"
+    :collapse-tags-tooltip="shouldCollapseTags"
     value-key="id"
-    :class="inputClass"
+    class="autocomplete-many-input"
+    :class="{
+      [inputClass]: true,
+      expand: collapseTags && isSelectFocused,
+      empty: collapseTags && !model.length
+    }"
     @change="onChange"
     @remove-tag="(tag) => $emit('remove-tag', tag)"
+    @visible-change="onVisibleChange"
   >
     <el-option
       v-show="showCreateSuggestion"
@@ -30,7 +38,7 @@
       <span>{{ currentQuery }}</span>
     </el-option>
     <el-option
-      v-for="record in localOptions"
+      v-for="record in availableOptions"
       :key="record.id"
       :label="record.label"
       :value="record"
@@ -42,7 +50,6 @@
 </template>
 
 <script>
-import isString from 'lodash/isString'
 import { onSelectMouseLeave } from '@/utils/select'
 
 const AUTOCOMPLETE_SERVER_FETCH_SIZE = 100
@@ -93,6 +100,18 @@ export default {
     options: {
       type: Array,
       default: () => []
+    },
+    collapseTags: {
+      type: Boolean,
+      default: false
+    },
+    allowFetchNotIncludedTags: {
+      type: Boolean,
+      default: true
+    },
+    parseModel: {
+      type: Boolean,
+      default: false
     }
   },
   emits: ['remove-tag', 'update:modelValue'],
@@ -101,7 +120,9 @@ export default {
       initialLoading: false,
       loading: false,
       localOptions: this.options ? this.options : [],
-      currentQuery: ''
+      filterableOptions: this.options ? this.options : [],
+      currentQuery: '',
+      isSelectFocused: false
     }
   },
 
@@ -116,6 +137,37 @@ export default {
             o === this.currentQuery
         )
       )
+    },
+    shouldCollapseTags() {
+      return this.collapseTags && !this.isSelectFocused
+    },
+    model: {
+      get() {
+        return this.modelValue.map((v) => {
+          if (this.parseModel) {
+            return {
+              id: v,
+              label: v
+            }
+          }
+
+          return v
+        })
+      },
+      set(v) {
+        const updatedValue = this.parseModel
+          ? v.map((value) => value.label)
+          : v
+
+        this.$emit('update:modelValue', updatedValue)
+      }
+    },
+    availableOptions() {
+      if (this.currentQuery) {
+        return this.filterableOptions
+      }
+
+      return this.localOptions
     }
   },
 
@@ -127,7 +179,7 @@ export default {
     async onChange(value) {
       const query = this.$refs.input.query
       if (value.length === 0) {
-        this.$emit('update:modelValue', [])
+        this.model = []
       }
       const promises = value.map(async (item) => {
         if (
@@ -144,25 +196,38 @@ export default {
         }
       })
       Promise.all(promises).then((values) => {
-        this.$emit('update:modelValue', values)
+        this.model = values
       })
     },
 
-    async handleSearch(value) {
-      if (!isString(value) && value === '') {
+    async handleSearch(query) {
+      if (query === this.currentQuery) {
         return
       }
 
-      await this.handleServerSearch(value)
-      this.localOptions.filter((item) =>
-        String(item.label || '')
-          .toLowerCase()
-          .includes(String(value || '').toLowerCase())
-      )
+      this.currentQuery = query
+
+      if (query) {
+        setTimeout(() => {
+          this.filterableOptions = this.localOptions.filter(
+            (item) => {
+              return item.label
+                .toLowerCase()
+                .includes(query.toLowerCase())
+            }
+          )
+        }, 200)
+      } else {
+        await this.handleServerSearch(query)
+      }
     },
 
     async fetchNotIncludedTags(response) {
-      const notIncluded = this.modelValue.filter(
+      if (!this.allowFetchNotIncludedTags) {
+        return
+      }
+
+      const notIncluded = this.model.filter(
         (m) =>
           response.findIndex((r) => r.id === m.id) === -1
       )
@@ -194,11 +259,6 @@ export default {
     },
 
     async handleServerSearch(value) {
-      if (value === this.currentQuery) {
-        return
-      }
-
-      this.currentQuery = value
       this.loading = true
 
       try {
@@ -221,9 +281,64 @@ export default {
       }
     },
 
+    onVisibleChange(value) {
+      if (!this.collapseTags) {
+        return
+      }
+
+      this.isSelectFocused = value
+
+      // Scroll to the bottom of the list where cursor is focused
+      if (value) {
+        setTimeout(() => {
+          const element = document.querySelector(
+            '.autocomplete-many-input .el-select__tags'
+          )
+          if (element) {
+            element.scrollTop = element.scrollHeight
+          }
+        }, 150)
+      }
+    },
+
     onSelectMouseLeave
   }
 }
 </script>
 
-<style></style>
+<style lang="scss">
+.autocomplete-many-input {
+  .el-input__wrapper {
+    height: 40px;
+  }
+
+  .el-select__tags {
+    top: 6px;
+    transform: none;
+  }
+
+  &.expand {
+    .el-input__wrapper {
+      height: 87px;
+    }
+
+    .el-select__tags {
+      @apply overflow-auto;
+      top: 6px;
+      height: 80px;
+      transform: none;
+      align-items: start;
+    }
+  }
+
+  &.empty {
+    .el-input__wrapper {
+      height: 40px;
+    }
+
+    .el-select__tags {
+      height: 40px;
+    }
+  }
+}
+</style>
