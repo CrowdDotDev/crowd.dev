@@ -31,6 +31,21 @@ export default {
     )
   },
 
+  showIntegrationsNoDataAlert: (
+    _state,
+    _getters,
+    _rootState,
+    rootGetters
+  ) => {
+    const integrationsWithNoData =
+      rootGetters['integration/withNoData']
+
+    return (
+      integrationsWithNoData.length > 0 &&
+      router.currentRoute.value.name !== 'integration'
+    )
+  },
+
   showIntegrationsInProgressAlert: (
     _state,
     _getters,
@@ -75,6 +90,7 @@ export default {
     return (
       getters.showSampleDataAlert ||
       getters.showIntegrationsErrorAlert ||
+      getters.showIntegrationsNoDataAlert ||
       getters.showIntegrationsInProgressAlert ||
       getters.showTenantCreatingAlert ||
       getters.showPMFSurveyAlert
