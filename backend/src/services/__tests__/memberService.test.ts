@@ -1,4 +1,3 @@
-import moment from 'moment'
 import SequelizeTestUtils from '../../database/utils/sequelizeTestUtils'
 import MemberService from '../memberService'
 import MemberRepository from '../../database/repositories/memberRepository'
@@ -1767,6 +1766,9 @@ describe('MemberService tests', () => {
         lastActivity: activityCreated,
       }
 
+      expect(mergedMember.tasks.sort()).toEqual(expectedMember.tasks.sort())
+      delete mergedMember.tasks
+      delete expectedMember.tasks
       expect(mergedMember).toStrictEqual(expectedMember)
     })
 
@@ -1794,146 +1796,6 @@ describe('MemberService tests', () => {
 
       const found = await memberService.findById(memberCreated.id)
       expect(found).toStrictEqual(memberCreated)
-    })
-
-    it('Should not duplicate activities - by sourceId', async () => {
-      const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
-      const mas = new MemberAttributeSettingsService(mockIRepositoryOptions)
-
-      await mas.createPredefined(GithubMemberAttributes)
-
-      const memberService = new MemberService(mockIRepositoryOptions)
-
-      const member1 = {
-        username: {
-          [PlatformType.GITHUB]: 'anil',
-        },
-        displayName: 'Anil',
-        joinedAt: '2021-05-27T15:14:30Z',
-        attributes: {},
-      }
-
-      const createdMember = await MemberRepository.create(member1, mockIRepositoryOptions)
-
-      const a1 = {
-        timestamp: '2021-05-27T15:14:30Z',
-        type: 'activity',
-        member: createdMember.id,
-        platform: PlatformType.GITHUB,
-        sourceId: '#sourceId1',
-      }
-
-      const a1Created = await ActivityRepository.create(a1, mockIRepositoryOptions)
-
-      const member2 = {
-        username: {
-          [PlatformType.GITHUB]: 'anil',
-        },
-        displayName: 'Anil',
-        joinedAt: '2021-05-27T15:14:30Z',
-      }
-
-      const createdMember2 = await MemberRepository.create(member2, mockIRepositoryOptions)
-
-      a1.member = createdMember2.id
-
-      await ActivityRepository.create(a1, mockIRepositoryOptions)
-
-      const a3Created = await ActivityRepository.create(
-        {
-          timestamp: '2019-12-27T15:14:30Z',
-          type: 'activity',
-          member: createdMember2.id,
-          platform: PlatformType.GITHUB,
-          sourceId: '#sourceId3',
-        },
-        mockIRepositoryOptions,
-      )
-
-      // Merge
-      await memberService.merge(createdMember.id, createdMember2.id)
-
-      const foundMergedActivities = (await memberService.findById(createdMember.id)).activities
-        .map((a) => a.get({ plain: true }).id)
-        .sort()
-
-      const expected = [a1Created.id, a3Created.id].sort()
-      expect(foundMergedActivities).toStrictEqual(expected)
-    })
-
-    it('Duplication of activities - one matching timestamp is duplicated because platform is different', async () => {
-      const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
-      const mas = new MemberAttributeSettingsService(mockIRepositoryOptions)
-
-      await mas.createPredefined(GithubMemberAttributes)
-
-      const memberService = new MemberService(mockIRepositoryOptions)
-
-      const member1 = {
-        username: {
-          [PlatformType.GITHUB]: 'anil',
-        },
-        displayName: 'Anil',
-        joinedAt: '2021-05-27T15:14:30Z',
-        attributes: {},
-      }
-
-      const createdMember = await MemberRepository.create(member1, mockIRepositoryOptions)
-
-      const a1 = {
-        timestamp: moment(0).utc().toString(),
-        type: 'activity',
-        member: createdMember.id,
-        platform: PlatformType.GITHUB,
-        sourceId: '#sourceId1',
-      }
-
-      const aRepeated = {
-        timestamp: '2021-06-27T15:14:30Z',
-        type: 'activity',
-        member: createdMember.id,
-        platform: PlatformType.GITHUB,
-        sourceId: '#sourceId2',
-      }
-
-      const a1Created = await ActivityRepository.create(a1, mockIRepositoryOptions)
-
-      const aCreatedRepeated1 = await ActivityRepository.create(aRepeated, mockIRepositoryOptions)
-
-      const member2 = {
-        username: {
-          [PlatformType.GITHUB]: 'anil',
-        },
-        displayName: 'Anil',
-        joinedAt: '2021-05-27T15:14:30Z',
-      }
-
-      const createdMember2 = await MemberRepository.create(member2, mockIRepositoryOptions)
-
-      aRepeated.member = createdMember2.id
-
-      await ActivityRepository.create(aRepeated, mockIRepositoryOptions)
-
-      const aSameTsDifferentType = await ActivityRepository.create(
-        {
-          timestamp: moment(0).utc().toString(),
-          type: 'activity',
-          member: createdMember2.id,
-          platform: 'different',
-          sourceId: '#sourceId3',
-        },
-        mockIRepositoryOptions,
-      )
-
-      // Merge
-      await memberService.merge(createdMember.id, createdMember2.id)
-
-      const foundMergedActivities = (await memberService.findById(createdMember.id)).activities
-        .map((a) => a.get({ plain: true }).id)
-        .sort()
-
-      const expected = [aCreatedRepeated1.id, a1Created.id, aSameTsDifferentType.id].sort()
-      expect(foundMergedActivities).toStrictEqual(expected)
     })
   })
 

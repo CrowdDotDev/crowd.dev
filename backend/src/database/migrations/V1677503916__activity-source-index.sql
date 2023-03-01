@@ -1,0 +1,1 @@
+create unique index ix_unique_activities_tenantId_platform_type_sourceId on activities ("tenantId", platform, type, "sourceId");
