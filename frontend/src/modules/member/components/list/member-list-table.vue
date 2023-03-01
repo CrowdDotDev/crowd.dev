@@ -324,12 +324,16 @@
                               class="ri-external-link-line text-gray-400"
                             ></i></span
                         ></template>
-                        <a
-                          class="text-gray-500 hover:!text-brand-500"
-                          :href="`mailto:${scope.row.email}`"
-                          @click.stop="trackEmailClick"
+                        <div @click.prevent>
+                          <a
+                            target="_blank"
+                            class="text-gray-500 hover:!text-brand-500"
+                            :href="`mailto:${scope.row.email}`"
+                            @click.stop="trackEmailClick"
                           >{{ scope.row.email }}</a
-                        >
+                          >
+                        </div>
+
                       </el-tooltip>
                       <span v-else class="text-gray-500"
                         >-</span
