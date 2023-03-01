@@ -356,7 +356,7 @@
                     class="-mx-2.5 block px-2.5 py-2"
                   >
                     <div
-                      class="block w-full h-full"
+                      class="block w-full h-full flex items-center -mx-2.5"
                       @click="navigate"
                     >
                       <app-tag-list :member="scope.row" />
@@ -377,16 +377,12 @@
                     class="-mx-2.5 block px-2.5 py-2"
                   >
                     <div
-                      class="block w-full h-full"
+                      class="block w-full h-full flex items-center justify-center w-full"
                       @click="navigate"
                     >
-                      <div
-                        class="flex items-center justify-center w-full"
-                      >
-                        <app-member-dropdown
-                          :member="scope.row"
-                        ></app-member-dropdown>
-                      </div>
+                      <app-member-dropdown
+                        :member="scope.row"
+                      ></app-member-dropdown>
                     </div>
                   </router-link>
                 </template>
