@@ -140,8 +140,9 @@ export default {
     },
     enrichmentLabel() {
       if (
+        this.enrichedMembers &&
         this.enrichedMembers ===
-        this.elegibleEnrichmentMembersIds.length
+          this.elegibleEnrichmentMembersIds.length
       ) {
         return `Re-enrich ${pluralize(
           'member',
