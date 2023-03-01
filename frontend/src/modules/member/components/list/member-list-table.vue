@@ -92,7 +92,6 @@
               border
               :row-class-name="rowClass"
               @sort-change="doChangeSort"
-              @row-click="handleRowClick"
             >
               <el-table-column
                 type="selection"
@@ -106,23 +105,36 @@
                 width="250"
                 sortable
                 fixed
+                class="-my-2"
               >
                 <template #default="scope">
-                  <div class="flex items-center text-black">
-                    <app-avatar
-                      :entity="scope.row"
-                      size="sm"
-                      class="mr-2"
-                    />
-                    <span class="font-semibold">{{
-                      scope.row.displayName
-                    }}</span>
-                    <app-member-sentiment
-                      :member="scope.row"
-                      class="ml-2"
-                    />
-                    <app-member-badge :member="scope.row" />
-                  </div>
+                  <router-link
+                    :to="{
+                      name: 'memberView',
+                      params: { id: scope.row.id }
+                    }"
+                    class="block"
+                  >
+                    <div
+                      class="flex items-center text-black"
+                    >
+                      <app-avatar
+                        :entity="scope.row"
+                        size="sm"
+                        class="mr-2"
+                      />
+                      <span class="font-semibold">{{
+                        scope.row.displayName
+                      }}</span>
+                      <app-member-sentiment
+                        :member="scope.row"
+                        class="ml-2"
+                      />
+                      <app-member-badge
+                        :member="scope.row"
+                      />
+                    </div>
+                  </router-link>
                 </template>
               </el-table-column>
 
@@ -131,10 +143,18 @@
                 width="220"
               >
                 <template #default="scope">
-                  <app-member-organizations
-                    :member="scope.row"
-                    :show-title="true"
-                  />
+                  <router-link
+                    :to="{
+                      name: 'memberView',
+                      params: { id: scope.row.id }
+                    }"
+                    class="block"
+                  >
+                    <app-member-organizations
+                      :member="scope.row"
+                      :show-title="true"
+                    />
+                  </router-link>
                 </template>
               </el-table-column>
               <el-table-column
@@ -146,13 +166,21 @@
                 :sortable="column.sortable ? 'custom' : ''"
               >
                 <template #default="scope">
-                  {{
-                    column.formatter
-                      ? column.formatter(
-                          scope.row[column.name]
-                        )
-                      : scope.row[column.name]
-                  }}
+                  <router-link
+                    :to="{
+                      name: 'memberView',
+                      params: { id: scope.row.id }
+                    }"
+                    class="block !text-gray-500"
+                  >
+                    {{
+                      column.formatter
+                        ? column.formatter(
+                            scope.row[column.name]
+                          )
+                        : scope.row[column.name]
+                    }}
+                  </router-link>
                 </template>
               </el-table-column>
               <el-table-column
@@ -162,9 +190,17 @@
                 sortable="custom"
               >
                 <template #default="scope">
-                  <app-member-engagement-level
-                    :member="scope.row"
-                  />
+                  <router-link
+                    :to="{
+                      name: 'memberView',
+                      params: { id: scope.row.id }
+                    }"
+                    class="block"
+                  >
+                    <app-member-engagement-level
+                      :member="scope.row"
+                    />
+                  </router-link>
                 </template>
               </el-table-column>
               <el-table-column
@@ -174,10 +210,18 @@
                 sortable="custom"
               >
                 <template #default="scope">
-                  <app-member-last-activity
-                    v-if="scope.row.lastActivity"
-                    :member="scope.row"
-                  />
+                  <router-link
+                    :to="{
+                      name: 'memberView',
+                      params: { id: scope.row.id }
+                    }"
+                    class="block !text-gray-500"
+                  >
+                    <app-member-last-activity
+                      v-if="scope.row.lastActivity"
+                      :member="scope.row"
+                    />
+                  </router-link>
                 </template>
               </el-table-column>
               <el-table-column
@@ -188,12 +232,20 @@
                 sortable="custom"
               >
                 <template #default="scope">
-                  <app-member-reach
-                    :member="{
-                      ...scope.row,
-                      reach: scope.row.reach
+                  <router-link
+                    :to="{
+                      name: 'memberView',
+                      params: { id: scope.row.id }
                     }"
-                  />
+                    class="block !text-gray-500"
+                  >
+                    <app-member-reach
+                      :member="{
+                        ...scope.row,
+                        reach: scope.row.reach
+                      }"
+                    />
+                  </router-link>
                 </template>
               </el-table-column>
 
@@ -203,62 +255,90 @@
                 width="200"
                 prop="joinedAt"
                 sortable
-                ><template #default="scope"
-                  ><div
-                    v-if="scope.row.joinedAt"
-                    class="text-gray-900 text-sm"
-                  >
-                    {{
-                      formatDateToTimeAgo(
-                        scope.row.joinedAt
-                      )
-                    }}
-                  </div>
-                  <span v-else class="text-gray-900"
-                    >-</span
-                  ></template
-                ></el-table-column
               >
+                <template #default="scope">
+                  <router-link
+                    :to="{
+                      name: 'memberView',
+                      params: { id: scope.row.id }
+                    }"
+                    class="block"
+                  >
+                    <div
+                      v-if="scope.row.joinedAt"
+                      class="text-gray-900 text-sm"
+                    >
+                      {{
+                        formatDateToTimeAgo(
+                          scope.row.joinedAt
+                        )
+                      }}
+                    </div>
+                    <span v-else class="text-gray-900"
+                      >-</span
+                    ></router-link
+                  >
+                </template>
+              </el-table-column>
 
               <el-table-column
                 label="Identities"
                 width="240"
               >
                 <template #default="scope">
-                  <app-member-channels
-                    :member="scope.row"
-                  ></app-member-channels>
+                  <router-link
+                    :to="{
+                      name: 'memberView',
+                      params: { id: scope.row.id }
+                    }"
+                    class="block"
+                  >
+                    <app-member-channels
+                      :member="scope.row"
+                    ></app-member-channels>
+                  </router-link>
                 </template>
               </el-table-column>
 
               <el-table-column label="Email" width="240">
                 <template #default="scope">
-                  <div class="text-sm cursor-auto">
-                    <el-tooltip
-                      v-if="scope.row.email"
-                      :disabled="!scope.row.email"
-                      popper-class="custom-identity-tooltip"
-                      placement="top"
-                    >
-                      <template #content
-                        ><span
-                          >Send email
-                          <i
-                            v-if="scope.row.email"
-                            class="ri-external-link-line text-gray-400"
-                          ></i></span
-                      ></template>
-                      <a
-                        class="text-gray-500 hover:!text-brand-500"
-                        :href="`mailto:${scope.row.email}`"
-                        @click.stop="trackEmailClick"
-                        >{{ scope.row.email }}</a
+                  <router-link
+                    :to="{
+                      name: 'memberView',
+                      params: { id: scope.row.id }
+                    }"
+                    class="block"
+                  >
+                    <div class="text-sm cursor-auto">
+                      <el-tooltip
+                        v-if="scope.row.email"
+                        :disabled="!scope.row.email"
+                        popper-class="custom-identity-tooltip"
+                        placement="top"
                       >
-                    </el-tooltip>
-                    <span v-else class="text-gray-500"
-                      >-</span
-                    >
-                  </div>
+                        <template #content
+                          ><span
+                            >Send email
+                            <i
+                              v-if="scope.row.email"
+                              class="ri-external-link-line text-gray-400"
+                            ></i></span
+                        ></template>
+                        <div @click.prevent>
+                          <a
+                            target="_blank"
+                            class="text-gray-500 hover:!text-brand-500"
+                            :href="`mailto:${scope.row.email}`"
+                            @click.stop="trackEmailClick"
+                            >{{ scope.row.email }}</a
+                          >
+                        </div>
+                      </el-tooltip>
+                      <span v-else class="text-gray-500"
+                        >-</span
+                      >
+                    </div>
+                  </router-link>
                 </template>
               </el-table-column>
 
@@ -269,17 +349,35 @@
                 "
               >
                 <template #default="scope">
-                  <app-tag-list :member="scope.row" />
+                  <router-link
+                    :to="{
+                      name: 'memberView',
+                      params: { id: scope.row.id }
+                    }"
+                    class="block"
+                  >
+                    <app-tag-list :member="scope.row" />
+                  </router-link>
                 </template>
               </el-table-column>
 
               <el-table-column fixed="right">
                 <template #default="scope">
-                  <div class="table-actions">
-                    <app-member-dropdown
-                      :member="scope.row"
-                    ></app-member-dropdown>
-                  </div>
+                  <router-link
+                    :to="{
+                      name: 'memberView',
+                      params: { id: scope.row.id }
+                    }"
+                    class="block w-full"
+                  >
+                    <div
+                      class="block w-full h-full flex items-center justify-center w-full"
+                    >
+                      <app-member-dropdown
+                        :member="scope.row"
+                      ></app-member-dropdown>
+                    </div>
+                  </router-link>
                 </template>
               </el-table-column>
             </el-table>
@@ -511,13 +609,6 @@ function rowClass({ row }) {
   return isSelected ? 'is-selected' : ''
 }
 
-function handleRowClick(row) {
-  router.push({
-    name: 'memberView',
-    params: { id: row.id }
-  })
-}
-
 function onCtaClick() {
   router.push({
     path: '/integrations'
@@ -582,5 +673,26 @@ const trackEmailClick = () => {
   &::-webkit-scrollbar {
     display: none;
   }
+}
+#members-table
+  .el-table__cell:not(.el-table-column--selection) {
+  padding: 0;
+}
+
+.el-table tbody .cell {
+  display: block !important;
+  @apply p-0;
+
+  &,
+  & > a {
+    @apply h-full w-full flex items-center;
+  }
+
+  & > a {
+    @apply px-2.5 py-2;
+  }
+}
+.el-table__body {
+  height: 1px;
 }
 </style>
