@@ -17,6 +17,13 @@
           <i class="ri-lg ri-file-download-line mr-1" />
           Export to CSV
         </el-dropdown-item>
+        <el-dropdown-item
+          v-if="selectedRows.length === 2"
+          :command="{ action: 'mergeMembers' }"
+        >
+          <i class="ri-lg ri-group-line mr-1" />
+          Merge members
+        </el-dropdown-item>
         <el-tooltip
           v-if="areSelectedMembersNotEnriched"
           placement="top"
@@ -86,6 +93,8 @@ import { MemberPermissions } from '@/modules/member/member-permissions'
 import ConfirmDialog from '@/shared/dialog/confirm-dialog.js'
 import pluralize from 'pluralize'
 import AppSvg from '@/shared/svg/svg.vue'
+import { MemberService } from '@/modules/member/member-service'
+import Message from '@/shared/message/message'
 
 export default {
   name: 'AppMemberListToolbar',
@@ -167,7 +176,8 @@ export default {
       doExport: 'member/doExport',
       doMarkAsTeamMember: 'member/doMarkAsTeamMember',
       doDestroyAll: 'member/doDestroyAll',
-      doBulkEnrich: 'member/doBulkEnrich'
+      doBulkEnrich: 'member/doBulkEnrich',
+      doFetch: 'member/doFetch'
     }),
 
     async handleCommand(command) {
@@ -175,6 +185,8 @@ export default {
         await this.doMarkAsTeamMember(command.value)
       } else if (command.action === 'export') {
         await this.handleDoExport()
+      } else if (command.action === 'mergeMembers') {
+        await this.handleMergeMembers()
       } else if (command.action === 'editTags') {
         await this.handleAddTags()
       } else if (command.action === 'destroyAll') {
@@ -214,6 +226,20 @@ export default {
           }
         }
       }
+    },
+
+    handleMergeMembers() {
+      const [firstMember, secondMember] = this.selectedRows
+      MemberService.merge(firstMember, secondMember)
+        .then(() => {
+          Message.success('Members merged successfuly')
+          this.doFetch({
+            keepPagination: true
+          })
+        })
+        .catch(() => {
+          Message.error('Error merging members')
+        })
     },
 
     async doDestroyAllWithConfirm() {

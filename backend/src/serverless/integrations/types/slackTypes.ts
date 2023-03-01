@@ -19,6 +19,7 @@ export interface SlackGetMessagesInThreadsInput {
 
 export interface SlackGetMembersInput {
   token: string
+  teamId: string
   page: string | undefined
   perPage: number | 100
 }
@@ -32,6 +33,7 @@ export interface SlackChannel {
   id: string
   name: string
   is_member?: boolean
+  is_general: boolean
 }
 
 export interface SlackTeam {

@@ -23,12 +23,23 @@ async function getMembers(
 
   try {
     const response = await axios(config)
-    const member = response.data.user
-    const nextPage = response.data.response_metadata?.next_cursor || ''
-    return {
-      records: member,
-      nextPage,
+
+    if (response.data.ok === true) {
+      const member = response.data.user
+      return {
+        records: member,
+        nextPage: '',
+      }
     }
+
+    if (response.data.error === 'user_not_found' || response.data.error === 'user_not_visible') {
+      return {
+        records: undefined,
+        nextPage: '',
+      }
+    }
+
+    throw new Error(`Slack API error ${response.data.error}!`)
   } catch (err) {
     const newErr = handleSlackError(err, config, input, logger)
     throw newErr

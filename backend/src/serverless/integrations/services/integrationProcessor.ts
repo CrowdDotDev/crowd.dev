@@ -185,17 +185,17 @@ export class IntegrationProcessor extends LoggingBase {
   }
 
   async processWebhook(webhookId: string, force?: boolean) {
-    let logger = createChildLogger('processWebhook', this.log, { webhookId })
-    logger.debug('Processing webhook!')
-
     const options = (await SequelizeRepository.getDefaultIRepositoryOptions()) as IRepositoryOptions
     const repo = new IncomingWebhookRepository(options)
     const webhook = await repo.findById(webhookId)
+    let logger = createChildLogger('processWebhook', this.log, { webhookId })
 
     if (webhook === null || webhook === undefined) {
       logger.error('Webhook not found!')
       return
     }
+
+    logger.debug('Processing webhook!')
 
     logger = createChildLogger('processWebhook', this.log, {
       type: webhook.type,
@@ -287,6 +287,7 @@ export class IntegrationProcessor extends LoggingBase {
   async process(req: NodeWorkerIntegrationProcessMessage) {
     const logger = createChildLogger('process', this.log, {
       type: req.integrationType,
+      tenantId: req.tenantId,
       integrationId: req.integrationId,
       onboarding: req.onboarding,
       microserviceId: req.microserviceId,

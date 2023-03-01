@@ -1,94 +1,65 @@
 <template>
-  <div class="widget panel !p-5">
+  <div class="panel !p-6">
     <!-- header -->
-    <div class="flex items-center pb-5">
-      <div
-        class="w-8 h-8 rounded-md bg-gray-900 flex items-center justify-center mr-3"
-      >
-        <i class="ri-contacts-line text-lg text-white"></i>
-      </div>
-      <div>
-        <h6 class="text-sm font-semibold leading-5">
-          Members
-        </h6>
-        <p class="text-2xs text-gray-500">
-          Total: {{ formatNumberToCompact(members.total) }}
-        </p>
-      </div>
-    </div>
+    <app-dashboard-widget-header
+      title="Members"
+      :total-loading="members.loadingRecent"
+      :total="members.total"
+      :route="{ name: 'member' }"
+      button-title="All members"
+      report-name="Members report"
+    />
 
-    <!-- tabs -->
-    <div class="flex -mx-5">
-      <app-dashboard-tab
-        class="w-1/2"
-        :active="tab === 'new'"
-        @click="tab = 'new'"
-      >
-        New
-      </app-dashboard-tab>
-      <app-dashboard-tab
-        class="w-1/2"
-        :active="tab === 'active'"
-        @click="tab = 'active'"
-      >
-        Active
-      </app-dashboard-tab>
-    </div>
-
-    <!-- recent members -->
-    <section v-show="tab === 'new'">
-      <div
-        class="-mx-5 pb-5 px-5 pt-6 border-b border-gray-200"
-      >
-        <!-- difference in period -->
-        <app-dashboard-count
-          :loading="members.loadingRecent"
-          :query="newMembersCount"
-        ></app-dashboard-count>
-
-        <!-- Chart -->
-        <div
-          v-if="members.loadingRecent"
-          v-loading="members.loadingRecent"
-          class="app-page-spinner !relative chart-loading"
-        ></div>
-        <app-widget-cube-renderer
-          v-else
-          class="chart"
-          :widget="newMembersChart(period, platform)"
-          :dashboard="false"
-          :show-subtitle="false"
-          :chart-options="{
-            ...chartOptions,
-            library: {
-              ...chartOptions.library,
-              ...hideLabels
-            }
-          }"
-        ></app-widget-cube-renderer>
-      </div>
-      <div class="list -mx-5 -mb-5 p-5">
-        <div v-if="members.loadingRecent">
-          <app-dashboard-member-item
-            v-for="el of new Array(3)"
-            :key="el"
-            class="mb-2"
-            :loading="true"
-          />
-        </div>
-        <div v-else>
-          <template
-            v-for="(member, mi) of recentMembers"
-            :key="member.id"
-          >
-            <p
-              v-if="getTimeText(mi)"
-              class="text-2xs leading-5 font-semibold text-gray-400 mb-2 tracking-1 uppercase"
+    <div class="flex -mx-5 pt-7">
+      <!-- new members -->
+      <section class="px-5 w-1/2">
+        <div class="flex">
+          <div class="w-5/12">
+            <!-- info -->
+            <h6
+              class="text-sm leading-5 font-semibold mb-1"
             >
-              {{ getTimeText(mi) }}
-            </p>
+              New members
+            </h6>
+            <app-dashboard-count
+              :loading="members.loadingRecent"
+              :query="newMembersCount"
+            ></app-dashboard-count>
+          </div>
+          <div class="w-7/12">
+            <!-- Chart -->
+            <div
+              v-if="members.loadingRecent"
+              v-loading="members.loadingRecent"
+              class="app-page-spinner !relative chart-loading"
+            ></div>
+            <app-dashboard-widget-chart
+              v-else
+              :datasets="datasets('new members')"
+              :query="newMembersChart"
+            />
+          </div>
+        </div>
+        <div class="pt-8">
+          <p
+            class="text-2xs leading-5 font-semibold text-gray-400 pb-4 tracking-1 uppercase"
+          >
+            Most recent
+          </p>
+          <div v-if="members.loadingRecent">
             <app-dashboard-member-item
-              class="mb-4"
+              v-for="el in 3"
+              :key="el"
+              class="mb-3"
+              :loading="true"
+            />
+          </div>
+          <div v-else>
+            <app-dashboard-member-item
+              v-for="member of recentMembers"
+              :key="member.id"
+              :show-badge="false"
+              class="mb-3"
               :member="member"
             >
               <span
@@ -98,7 +69,9 @@
                     member.lastActivity.platform
                   )
                 "
-                >joined on
+                >joined
+                {{ formatDateToTimeAgo(member.joinedAt) }}
+                on
                 {{
                   getPlatformDetails(
                     member.lastActivity.platform
@@ -106,147 +79,156 @@
                 }}</span
               >
             </app-dashboard-member-item>
-          </template>
-          <div v-if="recentMembers.length === 0">
-            <p
-              class="text-xs leading-5 text-center italic text-gray-400 pb-4 pt-2"
+            <app-dashboard-empty-state
+              v-if="recentMembers.length === 0"
+              icon-class="ri-group-2-line"
+              class="pt-6 pb-5"
             >
               No new members during this period
-            </p>
-          </div>
-          <div class="pt-1 flex justify-center">
-            <router-link
-              :to="{
-                name: 'member',
-                query: { activeTab: 'new-and-active' }
-              }"
-              class="text-xs leading-5 font-medium text-red"
-              >View more</router-link
+            </app-dashboard-empty-state>
+            <div
+              v-if="recentMembers.length >= 5"
+              class="pt-3"
             >
+              <router-link
+                :to="{
+                  name: 'member',
+                  query: {
+                    activeTab: 'new-and-active',
+                    joinedFrom: periodStartDate
+                  }
+                }"
+                class="text-sm leading-5 font-medium text-red"
+                >View more</router-link
+              >
+            </div>
           </div>
         </div>
-      </div>
-    </section>
+      </section>
 
-    <section v-show="tab === 'active'">
-      <div
-        class="-mx-5 pb-5 px-5 pt-6 border-b border-gray-200"
-      >
-        <!-- difference in period -->
-        <app-dashboard-count
-          :loading="members.loadingActive"
-          :query="activeMembersCount"
-        ></app-dashboard-count>
-        <!-- Chart -->
-        <div
-          v-if="members.loadingActive"
-          v-loading="members.loadingActive"
-          class="app-page-spinner !relative chart-loading"
-        ></div>
-        <app-widget-cube-renderer
-          v-else
-          class="chart"
-          :widget="activeMembersChart(period, platform)"
-          :dashboard="false"
-          :show-subtitle="false"
-          :chart-options="{
-            ...chartOptions,
-            library: {
-              ...chartOptions.library,
-              ...hideLabels
-            }
-          }"
-        ></app-widget-cube-renderer>
-      </div>
-      <div class="list -mx-5 -mb-5 p-5">
-        <div v-if="members.loadingActive">
-          <app-dashboard-member-item
-            v-for="el of new Array(3)"
-            :key="el"
-            class="mb-2"
-            :loading="true"
-          />
-        </div>
-        <div v-else>
-          <p
-            v-if="activeMembers.length > 0"
-            class="text-2xs leading-5 font-semibold text-gray-400 mb-2 tracking-1 uppercase"
-          >
-            most active
-          </p>
-          <app-dashboard-member-item
-            v-for="member of activeMembers"
-            :key="member.id"
-            class="mb-4"
-            :member="member"
-          >
-            <span
-              >{{ member.activityCount }}
-              {{
-                +member.activityCount > 1
-                  ? 'activities'
-                  : 'activity'
-              }}</span
+      <!-- active members -->
+      <section class="px-5 w-1/2">
+        <div class="flex">
+          <div class="w-5/12">
+            <!-- info -->
+            <h6
+              class="text-sm leading-5 font-semibold mb-1"
             >
-          </app-dashboard-member-item>
-          <div v-if="activeMembers.length === 0">
-            <p
-              class="text-xs leading-5 text-center italic text-gray-400 pb-4 pt-2"
+              Active members
+            </h6>
+            <app-dashboard-count
+              :loading="members.loadingActive"
+              :query="activeMembersCount"
+            ></app-dashboard-count>
+          </div>
+          <div class="w-7/12">
+            <!-- Chart -->
+            <div
+              v-if="members.loadingActive"
+              v-loading="members.loadingActive"
+              class="app-page-spinner !relative chart-loading"
+            ></div>
+            <app-dashboard-widget-chart
+              v-else
+              :datasets="datasets('active members')"
+              :query="activeMembersChart"
+            />
+          </div>
+        </div>
+        <div class="pt-8">
+          <p
+            class="text-2xs leading-5 font-semibold text-gray-400 pb-4 tracking-1 uppercase"
+          >
+            Most active
+          </p>
+          <div v-if="members.loadingActive">
+            <app-dashboard-member-item
+              v-for="el in 3"
+              :key="el"
+              class="mb-3"
+              :loading="true"
+            />
+          </div>
+          <div v-else>
+            <app-dashboard-member-item
+              v-for="member of activeMembers"
+              :key="member.id"
+              class="mb-3"
+              :member="member"
+            >
+              <span
+                >{{ member.activityCount }}
+                {{
+                  +member.activityCount > 1
+                    ? 'activities'
+                    : 'activity'
+                }}</span
+              >
+            </app-dashboard-member-item>
+            <app-dashboard-empty-state
+              v-if="activeMembers.length === 0"
+              icon-class="ri-group-2-line"
+              class="pt-6 pb-5"
             >
               No active members during this period
-            </p>
-          </div>
-          <div class="pt-1 flex justify-center">
-            <router-link
-              :to="{
-                name: 'member',
-                query: { activeTab: 'most-engaged' }
-              }"
-              class="text-xs leading-5 font-medium text-red"
-              >View more</router-link
+            </app-dashboard-empty-state>
+            <div
+              v-if="activeMembers.length >= 5"
+              class="pt-3"
             >
+              <router-link
+                :to="{
+                  name: 'member',
+                  query: {
+                    activeTab: 'all',
+                    activeFrom: periodStartDate
+                  }
+                }"
+                class="text-sm leading-5 font-medium text-red"
+                >View more</router-link
+              >
+            </div>
           </div>
         </div>
-      </div>
-    </section>
+      </section>
+    </div>
   </div>
 </template>
 
 <script>
-import AppDashboardTab from '@/modules/dashboard/components/shared/dashboard-tab'
 import { mapGetters } from 'vuex'
 import moment from 'moment'
-import AppWidgetCubeRenderer from '@/modules/widget/components/cube/widget-cube-renderer'
 import {
   newMembersChart,
   activeMembersChart,
   activeMembersCount,
-  chartOptions,
-  hideLabels,
   newMembersCount
 } from '@/modules/dashboard/dashboard.cube'
 import AppDashboardCount from '@/modules/dashboard/components/dashboard-count'
 import AppDashboardMemberItem from '@/modules/dashboard/components/member/dashboard-member-item'
-import { formatNumberToCompact } from '@/utils/number'
 import { CrowdIntegrations } from '@/integrations/integrations-config'
+import { formatDateToTimeAgo } from '@/utils/date'
+import AppDashboardEmptyState from '@/modules/dashboard/components/dashboard-empty-state.vue'
+import AppDashboardWidgetHeader from '@/modules/dashboard/components/dashboard-widget-header.vue'
+import AppDashboardWidgetChart from '@/modules/dashboard/components/dashboard-widget-chart.vue'
+import { DAILY_GRANULARITY_FILTER } from '@/modules/widget/widget-constants'
 
 export default {
   name: 'AppDashboardMember',
   components: {
+    AppDashboardWidgetChart,
+    AppDashboardWidgetHeader,
+    AppDashboardEmptyState,
     AppDashboardMemberItem,
-    AppDashboardCount,
-    AppWidgetCubeRenderer,
-    AppDashboardTab
+    AppDashboardCount
   },
   data() {
     return {
-      tab: 'new',
       newMembersChart,
       newMembersCount,
       activeMembersChart,
       activeMembersCount,
-      chartOptions,
-      hideLabels
+      formatDateToTimeAgo
     }
   },
   computed: {
@@ -254,66 +236,38 @@ export default {
       'activeMembers',
       'recentMembers',
       'members',
-      'period',
-      'platform'
-    ])
+      'period'
+    ]),
+    periodStartDate() {
+      return moment()
+        .subtract(this.period.value, 'day')
+        .format('YYYY-MM-DD')
+    }
   },
   methods: {
+    datasets(name) {
+      return [
+        {
+          name: name,
+          borderColor: '#E94F2E',
+          measure: 'Members.count',
+          granularity: DAILY_GRANULARITY_FILTER.value
+        }
+      ]
+    },
     getPlatformDetails(platform) {
       return CrowdIntegrations.getConfig(platform)
-    },
-    getTimeText: function (index) {
-      const current = this.formatTime(
-        this.recentMembers[index].createdAt
-      )
-      if (index > 0) {
-        const before = this.formatTime(
-          this.recentMembers[index - 1].createdAt
-        )
-        if (before === current) {
-          return null
-        }
-        return current
-      }
-      return current
-    },
-    formatTime(date) {
-      const d = moment(date)
-      if (d.isSame(moment(), 'day')) {
-        return 'today'
-      }
-      if (d.isSame(moment().subtract(1, 'day'), 'day')) {
-        return 'yesterday'
-      }
-      return d.format('ddd, MMM D')
-    },
-    formatNumberToCompact
+    }
   }
 }
 </script>
 
 <style lang="scss" scoped>
-.list {
-  max-height: 14rem;
-  overflow: auto;
-}
-
-.chart::v-deep {
-  div {
-    line-height: 100px !important;
-    height: auto !important;
-  }
-  .cube-widget-chart {
-    padding: 0;
-    min-height: 0;
-  }
-  canvas {
-    height: 100px;
-  }
-}
-
 .chart-loading {
   @apply flex items-center justify-center;
-  height: 100px;
+  height: 112px;
+}
+.app-page-spinner {
+  min-height: initial;
 }
 </style>

@@ -21,7 +21,7 @@ import {
   ClearbitConfiguration,
   DevtoConfiguration,
   RedisConfiguration,
-  PizzlyConfiguration,
+  NangoConfiguration,
   EnrichmentConfiguration,
   EagleEyeConfiguration,
   UnleashConfiguration,
@@ -216,12 +216,7 @@ export const CUBEJS_CONFIG: CubeJSConfiguration = KUBE_MODE
       jwtExpiry: process.env.CUBE_JS_JWT_EXPIRY,
     }
 
-export const PIZZLY_CONFIG: PizzlyConfiguration = KUBE_MODE
-  ? config.get<PizzlyConfiguration>('pizzly')
-  : {
-      url: process.env.PIZZLY_URL,
-      secretKey: process.env.PIZZLY_SECRET_KEY,
-    }
+export const NANGO_CONFIG: NangoConfiguration = config.get<NangoConfiguration>('nango')
 
 export const ENRICHMENT_CONFIG: EnrichmentConfiguration = KUBE_MODE
   ? config.get<EnrichmentConfiguration>('enrichment')

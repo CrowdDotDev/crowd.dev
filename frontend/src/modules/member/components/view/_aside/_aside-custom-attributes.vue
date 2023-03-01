@@ -65,7 +65,7 @@
             </template>
           </app-member-custom-attributes-array-renderer>
         </div>
-        <p v-else class="value">
+        <p v-else class="value break-words">
           {{
             formattedComputedAttributeValue(
               member.attributes[attribute.name].default

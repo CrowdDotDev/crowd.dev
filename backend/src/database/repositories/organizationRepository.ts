@@ -265,7 +265,14 @@ class OrganizationRepository {
   }
 
   static async findAndCountAll(
-    { filter = {} as any, advancedFilter = null as any, limit = 0, offset = 0, orderBy = '' },
+    {
+      filter = {} as any,
+      advancedFilter = null as any,
+      limit = 0,
+      offset = 0,
+      orderBy = '',
+      includeOrganizationsWithoutMembers = false,
+    },
     options: IRepositoryOptions,
   ) {
     let customOrderBy: Array<any> = []
@@ -274,6 +281,7 @@ class OrganizationRepository {
       {
         model: options.database.member,
         as: 'members',
+        required: !includeOrganizationsWithoutMembers,
         attributes: [],
         through: {
           attributes: [],

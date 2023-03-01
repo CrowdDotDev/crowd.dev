@@ -144,12 +144,16 @@
               <app-avatar
                 size="xxs"
                 :entity="{
-                  displayName: assignee.fullName,
+                  displayName:
+                    assignee.fullName || assignee.email,
                   avatar: assignee.avatar
                 }"
               />
               <p class="pl-2 text-2xs leading-4">
-                {{ assignee.fullName }}
+                {{
+                  assignee.fullName ||
+                  nameFromEmail(assignee.email)
+                }}
               </p>
             </div>
           </div>
@@ -265,6 +269,11 @@ const dateClass = computed(() => {
 
 const formatDate = (date) => {
   return moment(date).format('MMM D, YYYY')
+}
+
+const nameFromEmail = (email) => {
+  const [name] = email.split('@')
+  return name
 }
 
 const changeCompletion = (complete) => {

@@ -20,19 +20,14 @@
         :conversation="conversation"
         @details="conversationId = conversation.id"
       />
-      <div
+
+      <app-dashboard-empty-state
         v-if="trendingConversations.length === 0"
-        class="flex items-center justify-center pt-20 pb-17"
+        icon-class="ri-question-answer-line"
+        class="pt-20 pb-17"
       >
-        <i
-          class="ri-question-answer-line flex items-center text-3xl h-12 text-gray-300"
-        ></i>
-        <p
-          class="text-sm leading-5 text-center italic text-gray-400 pl-6"
-        >
-          No conversations during this period
-        </p>
-      </div>
+        No conversations during this period
+      </app-dashboard-empty-state>
     </div>
 
     <div class="pt-3 pb-2 flex justify-center">
@@ -59,9 +54,11 @@
 import { mapGetters } from 'vuex'
 import AppDashboardConversationItem from '@/modules/dashboard/components/conversations/dashboard-conversation-item'
 import AppConversationDrawer from '@/modules/conversation/components/conversation-drawer'
+import AppDashboardEmptyState from '@/modules/dashboard/components/dashboard-empty-state.vue'
 export default {
   name: 'AppDashboardConversationList',
   components: {
+    AppDashboardEmptyState,
     AppConversationDrawer,
     AppDashboardConversationItem
   },

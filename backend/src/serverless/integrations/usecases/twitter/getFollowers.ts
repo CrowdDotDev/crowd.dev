@@ -34,13 +34,33 @@ const getFollowers = async (
 
   try {
     const response = await axios(config)
-    const limit = parseInt(response.headers['x-rate-limit-remaining'], 10)
-    const resetTs = parseInt(response.headers['x-rate-limit-reset'], 10) * 1000
-    const timeUntilReset = moment(resetTs).diff(moment(), 'seconds')
 
+    let limit: number
+    let timeUntilReset: number
+    if (response.headers['x-rate-limit-remaining'] && response.headers['x-rate-limit-reset']) {
+      limit = parseInt(response.headers['x-rate-limit-remaining'], 10)
+      const resetTs = parseInt(response.headers['x-rate-limit-reset'], 10) * 1000
+      timeUntilReset = moment(resetTs).diff(moment(), 'seconds')
+    } else {
+      limit = 0
+      timeUntilReset = 0
+    }
+
+    if (
+      response.data.meta &&
+      response.data.meta.result_count &&
+      response.data.meta.result_count > 0
+    ) {
+      return {
+        records: response.data.data,
+        nextPage: response.data?.meta?.next_token || '',
+        limit,
+        timeUntilReset,
+      }
+    }
     return {
-      records: response.data.data,
-      nextPage: response.data?.meta?.next_token || '',
+      records: [],
+      nextPage: '',
       limit,
       timeUntilReset,
     }
