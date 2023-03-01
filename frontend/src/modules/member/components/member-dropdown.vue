@@ -22,7 +22,7 @@
             }
           }"
         >
-          <el-dropdown-item class="h-10"
+          <el-dropdown-item class="h-10 mb-1"
             ><i
               class="ri-pencil-line text-base mr-2"
             /><span class="text-xs text-gray-900"
@@ -31,7 +31,6 @@
           >
         </router-link>
         <el-tooltip
-          v-if="!member.lastEnriched"
           placement="top"
           content="Member enrichment requires an associated GitHub profile or Email"
           :disabled="!isEnrichmentDisabled"
@@ -56,7 +55,11 @@
                 :class="{
                   'text-gray-400': isEnrichmentDisabled
                 }"
-                >Enrich member</span
+                >{{
+                  member.lastEnriched
+                    ? 'Re-enrich member'
+                    : 'Enrich member'
+                }}</span
               >
             </el-dropdown-item>
           </span>
