@@ -115,8 +115,8 @@
                 input-class="w-full multi-select-field"
                 :create-if-not-found="true"
                 :collapse-tags="true"
-                :allow-fetch-not-included-tags="false"
                 :parse-model="true"
+                :are-options-in-memory="true"
               ></app-autocomplete-many-input>
               <el-input
                 v-else
@@ -310,6 +310,8 @@ const updateAttribute = (id, data) => {
   })
 }
 
+// Get a custom attribute by id and parse the attribute options
+// into an object format with id and label
 const fetchCustomAttribute = (id) => {
   return MemberService.getCustomAttribute(id)
     .then((response) =>
@@ -321,8 +323,11 @@ const fetchCustomAttribute = (id) => {
     .catch(() => [])
 }
 
+// Create a new option for the custom attribute and
+// return the new option in an object format with id and label
 const updateCustomAttribute = (attribute, value) => {
   const options = [...attribute.options]
+
   options.push(value)
 
   return MemberService.updateCustomAttribute(attribute.id, {

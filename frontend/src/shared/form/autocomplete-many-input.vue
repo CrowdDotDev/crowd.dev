@@ -46,13 +46,31 @@
     >
       <slot name="option" :item="record"></slot>
     </el-option>
+    <div
+      v-if="showMoreResultsMessage"
+      class="px-5 text-gray-400 text-2xs w-full h-8 flex items-center"
+    >
+      Type to search for more results
+    </div>
+    <div
+      v-else-if="showNoDataMessage"
+      class="px-5 text-gray-400 text-xs w-full h-10 flex items-center justify-center"
+    >
+      No data
+    </div>
+    <div
+      v-else-if="showEmptyMessage"
+      class="px-5 text-gray-400 text-xs w-full h-10 flex items-center justify-center"
+    >
+      No matches found
+    </div>
   </el-select>
 </template>
 
 <script>
 import { onSelectMouseLeave } from '@/utils/select'
 
-const AUTOCOMPLETE_SERVER_FETCH_SIZE = 100
+const AUTOCOMPLETE_SERVER_FETCH_SIZE = 20
 
 export default {
   name: 'AppAutocompleteManyInput',
@@ -105,9 +123,9 @@ export default {
       type: Boolean,
       default: false
     },
-    allowFetchNotIncludedTags: {
+    areOptionsInMemory: {
       type: Boolean,
-      default: true
+      default: false
     },
     parseModel: {
       type: Boolean,
@@ -120,9 +138,10 @@ export default {
       initialLoading: false,
       loading: false,
       localOptions: this.options ? this.options : [],
-      filterableOptions: this.options ? this.options : [],
+      filteredOptions: this.options ? this.options : [],
       currentQuery: '',
-      isSelectFocused: false
+      isSelectFocused: false,
+      limit: AUTOCOMPLETE_SERVER_FETCH_SIZE
     }
   },
 
@@ -138,9 +157,28 @@ export default {
         )
       )
     },
+    showMoreResultsMessage() {
+      return (
+        !this.loading &&
+        this.availableOptions.length === this.limit
+      )
+    },
+    showEmptyMessage() {
+      return !this.loading && !this.availableOptions.length
+    },
+    showNoDataMessage() {
+      return (
+        !this.loading &&
+        !this.availableOptions.length &&
+        !this.currentQuery
+      )
+    },
+    // Collapse tags if prop is set and if select component is closed/not focused
     shouldCollapseTags() {
       return this.collapseTags && !this.isSelectFocused
     },
+    // If parseModel is set to true, then the modelValue is initially an array and strings
+    // and should be parsed into the component format
     model: {
       get() {
         return this.modelValue.map((v) => {
@@ -162,9 +200,10 @@ export default {
         this.$emit('update:modelValue', updatedValue)
       }
     },
+    // Rendered available options should be dependent on the current query
     availableOptions() {
       if (this.currentQuery) {
-        return this.filterableOptions
+        return this.filteredOptions
       }
 
       return this.localOptions
@@ -177,10 +216,12 @@ export default {
 
   methods: {
     async onChange(value) {
-      const query = this.$refs.input.query
-      if (value.length === 0) {
+      const { query } = this.$refs.input
+
+      if (!value.length) {
         this.model = []
       }
+
       const promises = value.map(async (item) => {
         if (
           item === false &&
@@ -189,12 +230,15 @@ export default {
         ) {
           // item is created/typed from user
           const newItem = await this.createFn(query)
+
           this.localOptions.push(newItem)
+
           return newItem
         } else {
           return item
         }
       })
+
       Promise.all(promises).then((values) => {
         this.model = values
       })
@@ -207,23 +251,20 @@ export default {
 
       this.currentQuery = query
 
-      if (query) {
-        setTimeout(() => {
-          this.filterableOptions = this.localOptions.filter(
-            (item) => {
-              return item.label
-                .toLowerCase()
-                .includes(query.toLowerCase())
-            }
-          )
-        }, 200)
-      } else {
+      if (!this.areOptionsInMemory) {
         await this.handleServerSearch(query)
       }
+
+      this.filteredOptions = this.localOptions.filter(
+        (item) =>
+          item.label
+            .toLowerCase()
+            .includes(query.toLowerCase())
+      )
     },
 
     async fetchNotIncludedTags(response) {
-      if (!this.allowFetchNotIncludedTags) {
+      if (this.areOptionsInMemory) {
         return
       }
 
@@ -297,7 +338,7 @@ export default {
           if (element) {
             element.scrollTop = element.scrollHeight
           }
-        }, 150)
+        }, 200)
       }
     },
 
