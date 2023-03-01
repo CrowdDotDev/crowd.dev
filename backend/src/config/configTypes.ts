@@ -166,7 +166,7 @@ export interface CubeJSConfiguration {
   jwtExpiry: string
 }
 
-export interface PizzlyConfiguration {
+export interface NangoConfiguration {
   url: string
   secretKey: string
 }

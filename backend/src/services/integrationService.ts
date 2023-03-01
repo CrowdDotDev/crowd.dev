@@ -15,7 +15,7 @@ import { getInstalledRepositories } from '../serverless/integrations/usecases/gi
 import { sendNodeWorkerMessage } from '../serverless/utils/nodeWorkerSQS'
 import { NodeWorkerIntegrationProcessMessage } from '../types/mq/nodeWorkerIntegrationProcessMessage'
 import telemetryTrack from '../segment/telemetryTrack'
-import getToken from '../serverless/integrations/usecases/pizzly/getToken'
+import getToken from '../serverless/integrations/usecases/nango/getToken'
 import { getOrganizations } from '../serverless/integrations/usecases/linkedin/getOrganizations'
 import Error404 from '../errors/Error404'
 
@@ -374,24 +374,24 @@ export default class IntegrationService {
 
   async linkedinConnect() {
     const tenantId = this.options.currentTenant.id
-    const pizzlyId = `${tenantId}-${PlatformType.LINKEDIN}`
+    const nangoId = `${tenantId}-${PlatformType.LINKEDIN}`
 
     let token: string
     try {
-      token = await getToken(pizzlyId, PlatformType.LINKEDIN, this.options.log)
+      token = await getToken(nangoId, PlatformType.LINKEDIN, this.options.log)
     } catch (err) {
-      this.options.log.error(err, 'Error while verifying LinkedIn tenant token in Pizzly!')
-      throw new Error400(this.options.language, 'errors.noPizzlyToken.message')
+      this.options.log.error(err, 'Error while verifying LinkedIn tenant token in Nango!')
+      throw new Error400(this.options.language, 'errors.noNangoToken.message')
     }
 
     if (!token) {
-      throw new Error400(this.options.language, 'errors.noPizzlyToken.message')
+      throw new Error400(this.options.language, 'errors.noNangoToken.message')
     }
 
     // fetch organizations
     let organizations: ILinkedInOrganization[]
     try {
-      organizations = await getOrganizations(pizzlyId, this.options.log)
+      organizations = await getOrganizations(nangoId, this.options.log)
     } catch (err) {
       this.options.log.error(err, 'Error while fetching LinkedIn organizations!')
       throw new Error400(this.options.language, 'errors.linkedin.noOrganization')
