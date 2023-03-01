@@ -13,11 +13,7 @@
 
     <template #content>
       <div class="px-6 pb-6">
-        <video
-          :src="guide.videoUrl"
-          autoplay
-          controls
-        ></video>
+        <div v-html="guide.loomHtml"></div>
       </div>
       <div
         v-if="guide.actionText"

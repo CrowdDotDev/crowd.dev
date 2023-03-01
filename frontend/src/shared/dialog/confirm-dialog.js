@@ -29,6 +29,9 @@ export default ({
   } else if (type === 'success') {
     iconColorClass = 'text-green-500'
     iconBgColorClass = 'bg-green-100'
+  } else if (type === 'notification') {
+    iconColorClass = 'text-blue-600'
+    iconBgColorClass = 'bg-blue-50'
   }
 
   let content = h(

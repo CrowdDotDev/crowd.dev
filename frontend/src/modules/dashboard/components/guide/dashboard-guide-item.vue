@@ -46,10 +46,17 @@
     >
       <div class="pb-1">
         <div
-          v-if="props.guide.videoUrl"
+          v-if="
+            props.guide.loomUrl &&
+            (props.guide.coverImageUrl ||
+              props.guide.loomThumbnailUrl)
+          "
           class="relative rounded bg-gray-100 mb-4 w-full h-20 flex items-center justify-center bg-cover group cursor-pointer"
           :style="{
-            'background-image': `url(${props.guide.coverImageUrl})`
+            'background-image': `url(${
+              props.guide.coverImageUrl ||
+              props.guide.loomThumbnailUrl
+            })`
           }"
           @click="emit('open')"
         >
