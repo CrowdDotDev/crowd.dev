@@ -160,11 +160,16 @@ export default {
     showMoreResultsMessage() {
       return (
         !this.loading &&
-        this.availableOptions.length === this.limit
+        this.availableOptions.length === this.limit &&
+        !this.areOptionsInMemory
       )
     },
     showEmptyMessage() {
-      return !this.loading && !this.availableOptions.length
+      return (
+        !this.loading &&
+        !this.availableOptions.length &&
+        !this.showCreateSuggestion
+      )
     },
     showNoDataMessage() {
       return (
@@ -275,7 +280,8 @@ export default {
 
       if (notIncluded.length) {
         const notIncludedResponse = await this.fetchFn(
-          notIncluded
+          notIncluded,
+          this.limit
         )
 
         this.localOptions.unshift(...notIncludedResponse)
@@ -286,7 +292,10 @@ export default {
       this.initialLoading = true
 
       try {
-        const response = await this.fetchFn()
+        const response = await this.fetchFn(
+          this.currentQuery,
+          this.limit
+        )
 
         this.localOptions = response
 
@@ -305,7 +314,7 @@ export default {
       try {
         const response = await this.fetchFn(
           value,
-          AUTOCOMPLETE_SERVER_FETCH_SIZE
+          this.limit
         )
 
         this.localOptions = response
@@ -333,12 +342,13 @@ export default {
       if (value) {
         setTimeout(() => {
           const element = document.querySelector(
-            '.autocomplete-many-input .el-select__tags'
+            '.autocomplete-many-input.expand .el-select__tags'
           )
+
           if (element) {
             element.scrollTop = element.scrollHeight
           }
-        }, 200)
+        }, 150)
       }
     },
 
