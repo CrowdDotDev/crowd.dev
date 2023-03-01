@@ -146,7 +146,7 @@ export default {
       ) {
         return `Re-enrich ${pluralize(
           'member',
-          this.selectedIds,
+          this.selectedIds.length,
           false
         )}`
       }
