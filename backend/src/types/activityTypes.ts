@@ -21,3 +21,8 @@ export enum RedditActivityType {
   POST = 'post',
   COMMENT = 'comment',
 }
+
+export enum StackOverflowActivityType {
+  QUESTION = 'question',
+  ANSWER = 'answer',
+}
