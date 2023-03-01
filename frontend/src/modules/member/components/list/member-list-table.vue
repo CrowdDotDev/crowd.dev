@@ -237,7 +237,7 @@
                       name: 'memberView',
                       params: { id: scope.row.id }
                     }"
-                    class="block"
+                    class="block !text-gray-500"
                   >
                     <app-member-reach
                       :member="{
@@ -330,10 +330,9 @@
                             class="text-gray-500 hover:!text-brand-500"
                             :href="`mailto:${scope.row.email}`"
                             @click.stop="trackEmailClick"
-                          >{{ scope.row.email }}</a
+                            >{{ scope.row.email }}</a
                           >
                         </div>
-
                       </el-tooltip>
                       <span v-else class="text-gray-500"
                         >-</span
@@ -675,7 +674,8 @@ const trackEmailClick = () => {
     display: none;
   }
 }
-#members-table .el-table__cell {
+#members-table
+  .el-table__cell:not(.el-table-column--selection) {
   padding: 0;
 }
 
