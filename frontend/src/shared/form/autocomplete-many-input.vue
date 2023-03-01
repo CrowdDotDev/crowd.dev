@@ -249,17 +249,17 @@ export default {
         return
       }
 
-      this.currentQuery = query
+      this.currentQuery = String(query || '')
 
       if (!this.areOptionsInMemory) {
-        await this.handleServerSearch(query)
+        await this.handleServerSearch(this.currentQuery)
       }
 
       this.filteredOptions = this.localOptions.filter(
         (item) =>
-          item.label
+          String(item.label || '')
             .toLowerCase()
-            .includes(query.toLowerCase())
+            .includes(this.currentQuery.toLowerCase())
       )
     },
 
