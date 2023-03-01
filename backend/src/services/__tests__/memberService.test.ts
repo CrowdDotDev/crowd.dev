@@ -1,4 +1,3 @@
-import moment from 'moment'
 import SequelizeTestUtils from '../../database/utils/sequelizeTestUtils'
 import MemberService from '../memberService'
 import MemberRepository from '../../database/repositories/memberRepository'
