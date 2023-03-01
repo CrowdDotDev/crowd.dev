@@ -113,7 +113,7 @@
                       name: 'memberView',
                       params: { id: scope.row.id }
                     }"
-                    class="-mx-2.5 block px-2.5 py-2"
+                    class="block"
                   >
                     <div
                       class="flex items-center text-black"
@@ -148,7 +148,7 @@
                       name: 'memberView',
                       params: { id: scope.row.id }
                     }"
-                    class="-mx-2.5 block px-2.5 py-2"
+                    class="block"
                   >
                     <app-member-organizations
                       :member="scope.row"
@@ -171,7 +171,7 @@
                       name: 'memberView',
                       params: { id: scope.row.id }
                     }"
-                    class="-mx-2.5 block px-2.5 py-2 !text-gray-500"
+                    class="block !text-gray-500"
                   >
                     {{
                       column.formatter
@@ -195,7 +195,7 @@
                       name: 'memberView',
                       params: { id: scope.row.id }
                     }"
-                    class="-mx-2.5 block px-2.5 py-2"
+                    class="block"
                   >
                     <app-member-engagement-level
                       :member="scope.row"
@@ -215,7 +215,7 @@
                       name: 'memberView',
                       params: { id: scope.row.id }
                     }"
-                    class="-mx-2.5 block px-2.5 py-2 !text-gray-500"
+                    class="block !text-gray-500"
                   >
                     <app-member-last-activity
                       v-if="scope.row.lastActivity"
@@ -237,7 +237,7 @@
                       name: 'memberView',
                       params: { id: scope.row.id }
                     }"
-                    class="-mx-2.5 block px-2.5 py-2"
+                    class="block"
                   >
                     <app-member-reach
                       :member="{
@@ -262,7 +262,7 @@
                       name: 'memberView',
                       params: { id: scope.row.id }
                     }"
-                    class="-mx-2.5 block px-2.5 py-2"
+                    class="block"
                   >
                     <div
                       v-if="scope.row.joinedAt"
@@ -291,7 +291,7 @@
                       name: 'memberView',
                       params: { id: scope.row.id }
                     }"
-                    class="-mx-2.5 block px-2.5 py-2"
+                    class="block"
                   >
                     <app-member-channels
                       :member="scope.row"
@@ -307,7 +307,7 @@
                       name: 'memberView',
                       params: { id: scope.row.id }
                     }"
-                    class="-mx-2.5 block px-2.5 py-2"
+                    class="block"
                   >
                     <div class="text-sm cursor-auto">
                       <el-tooltip
@@ -347,20 +347,13 @@
               >
                 <template #default="scope">
                   <router-link
-                    v-slot="{ navigate }"
                     :to="{
                       name: 'memberView',
                       params: { id: scope.row.id }
                     }"
-                    custom
-                    class="-mx-2.5 block px-2.5 py-2"
+                    class="block"
                   >
-                    <div
-                      class="block w-full h-full flex items-center -mx-2.5"
-                      @click="navigate"
-                    >
-                      <app-tag-list :member="scope.row" />
-                    </div>
+                    <app-tag-list :member="scope.row" />
                   </router-link>
                 </template>
               </el-table-column>
@@ -368,17 +361,14 @@
               <el-table-column fixed="right">
                 <template #default="scope">
                   <router-link
-                    v-slot="{ navigate }"
                     :to="{
                       name: 'memberView',
                       params: { id: scope.row.id }
                     }"
-                    custom
-                    class="-mx-2.5 block px-2.5 py-2"
+                    class="block w-full"
                   >
                     <div
                       class="block w-full h-full flex items-center justify-center w-full"
-                      @click="navigate"
                     >
                       <app-member-dropdown
                         :member="scope.row"
@@ -681,16 +671,22 @@ const trackEmailClick = () => {
     display: none;
   }
 }
-// Hide table header scrollbar
 #members-table .el-table__cell {
   padding: 0;
 }
-.el-table .cell,
-.el-table .cell > a {
-  height: 100%;
-  width: 100%;
-  display: flex;
-  align-items: center;
+
+.el-table tbody .cell {
+  display: block !important;
+  @apply p-0;
+
+  &,
+  & > a {
+    @apply h-full w-full flex items-center;
+  }
+
+  & > a {
+    @apply px-2.5 py-2;
+  }
 }
 .el-table__body {
   height: 1px;

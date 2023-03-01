@@ -1,5 +1,5 @@
 <template>
-  <div @click.stop>
+  <div>
     <el-dropdown
       v-if="!isReadOnly"
       trigger="click"
@@ -9,7 +9,7 @@
       <button
         class="el-dropdown-link btn p-1.5 rounder-md hover:bg-gray-200 text-gray-600"
         type="button"
-        @click.stop
+        @click.prevent.stop
       >
         <i class="text-xl ri-more-fill"></i>
       </button>
