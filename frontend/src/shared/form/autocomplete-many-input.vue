@@ -4,7 +4,7 @@
     :disabled="disabled || initialLoading"
     :loading="loading || initialLoading"
     :remote-method="handleSearch"
-    :model-value="initialLoading ? null : modelValue"
+    :model-value="initialLoading ? null : model"
     :clearable="true"
     :default-first-option="true"
     :filterable="true"
@@ -15,10 +15,18 @@
     :allow-create="allowCreate"
     :suffix-icon="initialLoading ? 'app-loader' : null"
     :remote-show-suffix="initialLoading"
+    :collapse-tags="shouldCollapseTags"
+    :collapse-tags-tooltip="shouldCollapseTags"
     value-key="id"
-    :class="inputClass"
+    class="autocomplete-many-input"
+    :class="{
+      [inputClass]: true,
+      expand: collapseTags && isSelectFocused,
+      empty: collapseTags && !model.length
+    }"
     @change="onChange"
     @remove-tag="(tag) => $emit('remove-tag', tag)"
+    @visible-change="onVisibleChange"
   >
     <el-option
       v-show="showCreateSuggestion"
@@ -30,7 +38,7 @@
       <span>{{ currentQuery }}</span>
     </el-option>
     <el-option
-      v-for="record in localOptions"
+      v-for="record in availableOptions"
       :key="record.id"
       :label="record.label"
       :value="record"
@@ -38,14 +46,31 @@
     >
       <slot name="option" :item="record"></slot>
     </el-option>
+    <div
+      v-if="showMoreResultsMessage"
+      class="px-5 text-gray-400 text-2xs w-full h-8 flex items-center"
+    >
+      Type to search for more results
+    </div>
+    <div
+      v-else-if="showNoDataMessage"
+      class="px-5 text-gray-400 text-xs w-full h-10 flex items-center justify-center"
+    >
+      No data
+    </div>
+    <div
+      v-else-if="showEmptyMessage"
+      class="px-5 text-gray-400 text-xs w-full h-10 flex items-center justify-center"
+    >
+      No matches found
+    </div>
   </el-select>
 </template>
 
 <script>
-import isString from 'lodash/isString'
 import { onSelectMouseLeave } from '@/utils/select'
 
-const AUTOCOMPLETE_SERVER_FETCH_SIZE = 100
+const AUTOCOMPLETE_SERVER_FETCH_SIZE = 20
 
 export default {
   name: 'AppAutocompleteManyInput',
@@ -93,6 +118,18 @@ export default {
     options: {
       type: Array,
       default: () => []
+    },
+    collapseTags: {
+      type: Boolean,
+      default: false
+    },
+    areOptionsInMemory: {
+      type: Boolean,
+      default: false
+    },
+    parseModel: {
+      type: Boolean,
+      default: false
     }
   },
   emits: ['remove-tag', 'update:modelValue'],
@@ -101,7 +138,10 @@ export default {
       initialLoading: false,
       loading: false,
       localOptions: this.options ? this.options : [],
-      currentQuery: ''
+      filteredOptions: this.options ? this.options : [],
+      currentQuery: '',
+      isSelectFocused: false,
+      limit: AUTOCOMPLETE_SERVER_FETCH_SIZE
     }
   },
 
@@ -116,6 +156,62 @@ export default {
             o === this.currentQuery
         )
       )
+    },
+    showMoreResultsMessage() {
+      return (
+        !this.loading &&
+        this.availableOptions.length === this.limit &&
+        !this.areOptionsInMemory
+      )
+    },
+    showEmptyMessage() {
+      return (
+        !this.loading &&
+        !this.availableOptions.length &&
+        !this.showCreateSuggestion
+      )
+    },
+    showNoDataMessage() {
+      return (
+        !this.loading &&
+        !this.availableOptions.length &&
+        !this.currentQuery
+      )
+    },
+    // Collapse tags if prop is set and if select component is closed/not focused
+    shouldCollapseTags() {
+      return this.collapseTags && !this.isSelectFocused
+    },
+    // If parseModel is set to true, then the modelValue is initially an array and strings
+    // and should be parsed into the component format
+    model: {
+      get() {
+        return this.modelValue.map((v) => {
+          if (this.parseModel) {
+            return {
+              id: v,
+              label: v
+            }
+          }
+
+          return v
+        })
+      },
+      set(v) {
+        const updatedValue = this.parseModel
+          ? v.map((value) => value.label)
+          : v
+
+        this.$emit('update:modelValue', updatedValue)
+      }
+    },
+    // Rendered available options should be dependent on the current query
+    availableOptions() {
+      if (this.currentQuery) {
+        return this.filteredOptions
+      }
+
+      return this.localOptions
     }
   },
 
@@ -125,10 +221,12 @@ export default {
 
   methods: {
     async onChange(value) {
-      const query = this.$refs.input.query
-      if (value.length === 0) {
-        this.$emit('update:modelValue', [])
+      const { query } = this.$refs.input
+
+      if (!value.length) {
+        this.model = []
       }
+
       const promises = value.map(async (item) => {
         if (
           item === false &&
@@ -137,39 +235,53 @@ export default {
         ) {
           // item is created/typed from user
           const newItem = await this.createFn(query)
+
           this.localOptions.push(newItem)
+
           return newItem
         } else {
           return item
         }
       })
+
       Promise.all(promises).then((values) => {
-        this.$emit('update:modelValue', values)
+        this.model = values
       })
     },
 
-    async handleSearch(value) {
-      if (!isString(value) && value === '') {
+    async handleSearch(query) {
+      if (query === this.currentQuery) {
         return
       }
 
-      await this.handleServerSearch(value)
-      this.localOptions.filter((item) =>
-        String(item.label || '')
-          .toLowerCase()
-          .includes(String(value || '').toLowerCase())
+      this.currentQuery = String(query || '')
+
+      if (!this.areOptionsInMemory) {
+        await this.handleServerSearch(this.currentQuery)
+      }
+
+      this.filteredOptions = this.localOptions.filter(
+        (item) =>
+          String(item.label || '')
+            .toLowerCase()
+            .includes(this.currentQuery.toLowerCase())
       )
     },
 
     async fetchNotIncludedTags(response) {
-      const notIncluded = this.modelValue.filter(
+      if (this.areOptionsInMemory) {
+        return
+      }
+
+      const notIncluded = this.model.filter(
         (m) =>
           response.findIndex((r) => r.id === m.id) === -1
       )
 
       if (notIncluded.length) {
         const notIncludedResponse = await this.fetchFn(
-          notIncluded
+          notIncluded,
+          this.limit
         )
 
         this.localOptions.unshift(...notIncludedResponse)
@@ -180,7 +292,10 @@ export default {
       this.initialLoading = true
 
       try {
-        const response = await this.fetchFn()
+        const response = await this.fetchFn(
+          this.currentQuery,
+          this.limit
+        )
 
         this.localOptions = response
 
@@ -194,17 +309,12 @@ export default {
     },
 
     async handleServerSearch(value) {
-      if (value === this.currentQuery) {
-        return
-      }
-
-      this.currentQuery = value
       this.loading = true
 
       try {
         const response = await this.fetchFn(
           value,
-          AUTOCOMPLETE_SERVER_FETCH_SIZE
+          this.limit
         )
 
         this.localOptions = response
@@ -221,9 +331,65 @@ export default {
       }
     },
 
+    onVisibleChange(value) {
+      if (!this.collapseTags) {
+        return
+      }
+
+      this.isSelectFocused = value
+
+      // Scroll to the bottom of the list where cursor is focused
+      if (value) {
+        setTimeout(() => {
+          const element = document.querySelector(
+            '.autocomplete-many-input.expand .el-select__tags'
+          )
+
+          if (element) {
+            element.scrollTop = element.scrollHeight
+          }
+        }, 150)
+      }
+    },
+
     onSelectMouseLeave
   }
 }
 </script>
 
-<style></style>
+<style lang="scss">
+.autocomplete-many-input {
+  .el-input__wrapper {
+    height: 40px;
+  }
+
+  .el-select__tags {
+    top: 6px;
+    transform: none;
+  }
+
+  &.expand {
+    .el-input__wrapper {
+      height: 87px;
+    }
+
+    .el-select__tags {
+      @apply overflow-auto;
+      top: 6px;
+      height: 80px;
+      transform: none;
+      align-items: start;
+    }
+  }
+
+  &.empty {
+    .el-input__wrapper {
+      height: 40px;
+    }
+
+    .el-select__tags {
+      height: 40px;
+    }
+  }
+}
+</style>

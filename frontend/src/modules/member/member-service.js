@@ -228,6 +228,16 @@ export class MemberService {
     return response.data
   }
 
+  static async getCustomAttribute(id) {
+    const tenantId = AuthCurrentTenant.get()
+
+    const response = await authAxios.get(
+      `/tenant/${tenantId}/settings/members/attributes/${id}`
+    )
+
+    return response.data
+  }
+
   static async fetchCustomAttributes() {
     const tenantId = AuthCurrentTenant.get()
 
