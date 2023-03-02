@@ -1161,7 +1161,7 @@ describe('ConversationService tests', () => {
         member: memberCreated.id,
         score: 1,
         parent: discordActivityParentCreated.id,
-        sourceId: '#discordSourceId1',
+        sourceId: '#discordSourceId2',
       }
 
       const discordActivityChildCreated = await ActivityRepository.create(

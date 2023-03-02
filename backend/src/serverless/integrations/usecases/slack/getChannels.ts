@@ -4,7 +4,7 @@ import { SlackChannels, SlackGetChannelsInput } from '../../types/slackTypes'
 import { Logger } from '../../../../utils/logging'
 import { timeout } from '../../../../utils/timing'
 
-async function getChannels(input: SlackGetChannelsInput, logger: Logger): Promise<SlackChannels> {
+async function getChannels(input: SlackGetChannelsInput, logger: Logger): Promise<any[]> {
   await timeout(2000)
 
   const config: AxiosRequestConfig<any> = {
@@ -27,6 +27,7 @@ async function getChannels(input: SlackGetChannelsInput, logger: Logger): Promis
       .map((c) => ({
         name: c.name,
         id: c.id,
+        general: c.is_general,
       }))
   } catch (err) {
     const newErr = handleSlackError(err, config, input, logger)

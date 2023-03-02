@@ -12,7 +12,7 @@ async function getMembers(
 
   const config: AxiosRequestConfig<any> = {
     method: 'get',
-    url: `https://slack.com/api/users.info`,
+    url: `https://slack.com/api/users.profile.get`,
     params: {
       user: input.userId,
     },
@@ -25,14 +25,14 @@ async function getMembers(
     const response = await axios(config)
 
     if (response.data.ok === true) {
-      const member = response.data.user
+      const profile = response.data.profile
       return {
-        records: member,
+        records: profile,
         nextPage: '',
       }
     }
 
-    if (response.data.error === 'user_not_found' || response.data.error === 'user_not_visible') {
+    if (response.data.error === 'user_not_found' || response.data.error === 'account_inactive') {
       return {
         records: undefined,
         nextPage: '',

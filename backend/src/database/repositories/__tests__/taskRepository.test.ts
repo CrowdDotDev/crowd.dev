@@ -136,8 +136,12 @@ describe('TaskRepository tests', () => {
         createdById: mockIRepositoryOptions.currentUser.id,
         updatedById: mockIRepositoryOptions.currentUser.id,
       }
-      expect(createdTask).toStrictEqual(expectedTaskCreated)
-      expect(createdTask.members.length).toBe(sampleMembers.length)
+      const clone1 = { ...createdTask }
+      const clone2 = { ...expectedTaskCreated }
+      delete clone1.members
+      delete clone2.members
+      expect(clone1).toStrictEqual(clone2)
+      expect(createdTask.members.sort()).toEqual(expectedTaskCreated.members.sort())
 
       // Make sure the task exists in the member
       for (const memberId of createdTask.members) {
@@ -210,7 +214,13 @@ describe('TaskRepository tests', () => {
         createdById: mockIRepositoryOptions.currentUser.id,
         updatedById: mockIRepositoryOptions.currentUser.id,
       }
-      expect(createdTask).toStrictEqual(expectedTaskCreated)
+
+      const clone1 = { ...createdTask }
+      const clone2 = { ...expectedTaskCreated }
+      delete clone1.members
+      delete clone2.members
+      expect(clone1).toStrictEqual(clone2)
+      expect(createdTask.members.sort()).toEqual(expectedTaskCreated.members.sort())
       expect(createdTask.activities.length).toBe(sampleActivities.length)
       expect(createdTask.members.length).toBe(sampleMembers.length)
     })
@@ -315,7 +325,12 @@ describe('TaskRepository tests', () => {
         createdById: mockIRepositoryOptions.currentUser.id,
         updatedById: mockIRepositoryOptions.currentUser.id,
       }
-      expect(createdTask).toStrictEqual(expectedTaskCreated)
+      const clone1 = { ...createdTask }
+      const clone2 = { ...expectedTaskCreated }
+      delete clone1.members
+      delete clone2.members
+      expect(clone1).toStrictEqual(clone2)
+      expect(createdTask.members.sort()).toEqual(expectedTaskCreated.members.sort())
       expect(createdTask.members.length).toBe(sampleMembers.length)
 
       // Make sure the task exists in the member
@@ -389,7 +404,13 @@ describe('TaskRepository tests', () => {
         createdById: mockIRepositoryOptions.currentUser.id,
         updatedById: mockIRepositoryOptions.currentUser.id,
       }
-      expect(createdTask).toStrictEqual(expectedTaskCreated)
+
+      const clone1 = { ...createdTask }
+      const clone2 = { ...expectedTaskCreated }
+      delete clone1.members
+      delete clone2.members
+      expect(clone1).toStrictEqual(clone2)
+      expect(createdTask.members.sort()).toEqual(expectedTaskCreated.members.sort())
       expect(createdTask.activities.length).toBe(sampleActivities.length)
       expect(createdTask.members.length).toBe(sampleMembers.length)
     })

@@ -28,6 +28,6 @@ export const handleDiscordError = (
 
     return new RateLimitError(rateLimitResetSeconds, url, err)
   }
-  logger.error({ err, input }, `Error while calling Slack API URL: ${url}`)
+  logger.error(err, { input }, `Error while calling Slack API URL: ${url}`)
   return err
 }

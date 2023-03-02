@@ -134,6 +134,7 @@ function restore_db_backup() {
     # docker exec -t ${PROJECT_NAME}_db_1 bash -c "PGPASSWORD=example dropdb -U postgres crowd-web && PGPASSWORD=example createdb -U postgres crowd-web"
     docker exec -t ${PROJECT_NAME}_db_1 bash -c "PGPASSWORD=example pg_restore --clean -U postgres -d crowd-web backup.dump && rm -f backup.dump"
 
+    post_up_scaffold
     say "All done!"
 }
 
@@ -146,6 +147,7 @@ function scaffold() {
     do
         case "$1" in
             up) up_scaffold
+                post_up_scaffold
                 exit;
             ;;
             down) down_scaffold
@@ -155,9 +157,6 @@ function scaffold() {
                 exit;
             ;;
             reset) scaffold_reset
-                exit;
-            ;;
-            clear-data) scaffold_clear
                 exit;
             ;;
             create-migration) create_migration $2
@@ -352,10 +351,11 @@ function init_unleash() {
 function up_scaffold() {
     scaffold_set_up_network "$PROJECT_NAME-bridge" $DOCKER_NETWORK_SUBNET $DOCKER_NETWORK_GATEWAY
     $_DC --compatibility -p $PROJECT_NAME -f $CLI_HOME/scaffold.yaml up -d --build
-    wait_for_db
+}
+
+function post_up_scaffold() {
     migrate_local
     bash pizzly-integrations.sh
-
     check_init_premium
 }
 
@@ -377,11 +377,7 @@ function scaffold_destroy() {
 function scaffold_reset() {
     scaffold_destroy
     up_scaffold
-}
-
-function scaffold_clear() {
-    scaffold_destroy
-    up_scaffold
+    post_up_scaffold
 }
 
 function kill_all_containers() {
@@ -439,6 +435,7 @@ function wait_for_db() {
 function start() {
     if [[ -z "$CLEAN_START" ]]; then
         up_scaffold
+        post_up_scaffold
     else
         scaffold_reset
     fi

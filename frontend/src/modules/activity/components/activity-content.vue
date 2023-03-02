@@ -163,7 +163,7 @@ export default {
         .trim()
         .replaceAll(
           /(?<!"):[a-z_-]+:/g,
-          '<abbr class="no-underline" title="Unable to detect emoji">⚪</abbr>'
+          '<abbr class="no-underline" title="Unable to detect emoji">&#65533;</abbr>'
         )
     }
   }

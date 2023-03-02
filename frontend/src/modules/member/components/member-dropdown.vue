@@ -9,22 +9,27 @@
       <button
         class="el-dropdown-link btn p-1.5 rounder-md hover:bg-gray-200 text-gray-600"
         type="button"
-        @click.stop
+        @click.prevent.stop
       >
         <i class="text-xl ri-more-fill"></i>
       </button>
       <template #dropdown>
-        <el-dropdown-item
-          :command="{
-            action: 'memberEdit',
-            member
+        <router-link
+          :to="{
+            name: 'memberEdit',
+            params: {
+              id: member.id
+            }
           }"
-          class="h-10"
-          ><i class="ri-pencil-line text-base mr-2" /><span
-            class="text-xs text-gray-900"
-            >Edit member</span
-          ></el-dropdown-item
         >
+          <el-dropdown-item class="h-10"
+            ><i
+              class="ri-pencil-line text-base mr-2"
+            /><span class="text-xs text-gray-900"
+              >Edit member</span
+            ></el-dropdown-item
+          >
+        </router-link>
         <el-tooltip
           v-if="!member.lastEnriched"
           placement="top"
@@ -264,13 +269,6 @@ export default {
     async handleCommand(command) {
       if (command.action === 'memberDelete') {
         return this.doDestroyWithConfirm(command.member.id)
-      } else if (command.action === 'memberEdit') {
-        this.$router.push({
-          name: 'memberEdit',
-          params: {
-            id: command.member.id
-          }
-        })
       } else if (
         command.action === 'memberMarkAsTeamMember'
       ) {
@@ -324,6 +322,7 @@ export default {
           { username: {}, attributes: {} }
         ]
         this.isMergeDialogOpen = true
+        this.memberToMerge = null
       } else if (command.action === 'memberEnrich') {
         this.doEnrich(command.member.id)
       } else {

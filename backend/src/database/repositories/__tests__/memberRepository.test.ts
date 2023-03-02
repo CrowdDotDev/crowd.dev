@@ -297,8 +297,8 @@ describe('MemberRepository tests', () => {
 
       const memberCreated = await MemberRepository.create(member2add, mockIRepositoryOptions)
       expect(memberCreated.tasks).toHaveLength(2)
-      expect(memberCreated.tasks[0].id).toEqual(tasks1.id)
-      expect(memberCreated.tasks[1].id).toEqual(task2.id)
+      expect(memberCreated.tasks.find((t) => t.id === tasks1.id)).not.toBeUndefined()
+      expect(memberCreated.tasks.find((t) => t.id === task2.id)).not.toBeUndefined()
     })
   })
 
@@ -1655,8 +1655,8 @@ describe('MemberRepository tests', () => {
         mockIRepositoryOptions,
       )
       expect(memberUpdated.tasks).toHaveLength(2)
-      expect(memberUpdated.tasks[0].id).toEqual(tasks1.id)
-      expect(memberUpdated.tasks[1].id).toEqual(task2.id)
+      expect(memberUpdated.tasks.find((t) => t.id === tasks1.id)).not.toBeUndefined()
+      expect(memberUpdated.tasks.find((t) => t.id === task2.id)).not.toBeUndefined()
     })
 
     it('Should throw 404 error when trying to update non existent member', async () => {

@@ -28,7 +28,7 @@
         <section class="panel !p-8">
           <div class="-mx-3 flex">
             <div
-              class="w-1/2 px-3"
+              class="basis-0 flex-grow w-full px-3"
               :class="{ 'cursor-pointer': currentTenant }"
               @click="tab = currentTenant ? 1 : tab"
             >
@@ -52,7 +52,8 @@
               </p>
             </div>
             <div
-              class="w-1/2 px-3"
+              v-if="secondTabEnabled"
+              class="basis-0 flex-grow w-full px-3"
               :class="{ 'cursor-pointer': currentTenant }"
               @click="tab = currentTenant ? 2 : tab"
             >
@@ -78,8 +79,21 @@
             <app-onboard-community
               v-show="tab === 1"
               :is-new="isNew"
-              @saved="tab = 2"
-            />
+              :is-button-loading="populatingData"
+              @saved="next()"
+            >
+              <template #submitButton>
+                <span v-if="secondTabEnabled" class="pr-3"
+                  >Next step</span
+                >
+                <span v-else class="pr-3"
+                  >Finish setup</span
+                >
+                <span
+                  class="ri-arrow-right-s-line text-xl"
+                ></span>
+              </template>
+            </app-onboard-community>
             <app-onboard-integrations
               v-if="currentTenant && tab === 2"
               @previous="tab = 1"
@@ -95,6 +109,7 @@
 import AppOnboardCommunity from '@/modules/onboard/components/onboard-community'
 import AppOnboardIntegrations from '@/modules/onboard/components/onboard-integrations'
 import { mapActions, mapGetters } from 'vuex'
+import { TenantService } from '@/modules/tenant/tenant-service'
 export default {
   name: 'OnboardPage',
   components: {
@@ -105,17 +120,28 @@ export default {
     return {
       tab: 1,
       created: false,
-      isNew: false
+      isNew: false,
+      onboardType: null,
+      populatingData: false
     }
   },
   computed: {
-    ...mapGetters('auth', ['currentUser', 'currentTenant'])
+    ...mapGetters('auth', ['currentUser', 'currentTenant']),
+    secondTabEnabled() {
+      return this.onboardType !== 'eagle-eye'
+    }
   },
   watch: {
     currentTenant: {
       immediate: true,
       handler(tenant) {
-        if (tenant && !this.isNew) {
+        this.onboardType =
+          localStorage.getItem('onboardType')
+        if (
+          tenant &&
+          !this.isNew &&
+          this.secondTabEnabled
+        ) {
           this.tab = 2
         }
       }
@@ -123,14 +149,38 @@ export default {
   },
   created() {
     const { action } = this.$route.query
+    this.onboardType = localStorage.getItem('onboardType')
     this.isNew = action === 'new'
+    if (this.isNew) {
+      localStorage.removeItem('onboardType')
+      this.onboardType = null
+    }
     if (this.isNew) {
       this.clearTenant()
       this.tab = 1
     }
   },
   methods: {
-    ...mapActions('auth', ['clearTenant'])
+    ...mapActions('auth', [
+      'clearTenant',
+      'doFinishOnboard'
+    ]),
+    next() {
+      if (this.secondTabEnabled) {
+        this.tab = 2
+      } else {
+        this.populateData()
+      }
+    },
+    populateData() {
+      this.populatingData = true
+      TenantService.populateSampleData(
+        this.currentTenant.id
+      ).then(() => {
+        localStorage.removeItem('onboardType')
+        return this.doFinishOnboard({ route: '/eagle-eye' })
+      })
+    }
   }
 }
 </script>

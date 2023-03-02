@@ -1,13 +1,15 @@
 <template>
   <div v-if="orientation === 'vertical'">
     <div v-if="props.member.organizations?.length > 0">
-      <div
+      <router-link
         v-for="organization of props.member.organizations"
         :key="organization.id"
+        :to="{
+          name: 'organizationView',
+          params: { id: organization.id }
+        }"
         class="flex items-start hover:cursor-pointer"
-        @click.stop="
-          () => onOrganizationClick(organization)
-        "
+        @click.stop
       >
         <div v-if="organization.logo">
           <div class="w-5 h-5 mr-1">
@@ -33,7 +35,7 @@
             }}
           </div>
         </div>
-      </div>
+      </router-link>
     </div>
     <div
       v-else-if="props.member.attributes.jobTitle?.default"
@@ -64,12 +66,14 @@
         >{{ member.attributes.jobTitle.default }}
         {{ member.organizations.length ? 'at' : '' }}</span
       >
-      <div
+      <router-link
         v-if="member.organizations.length"
+        :to="{
+          name: 'organizationView',
+          params: { id: member.organizations[0].id }
+        }"
         class="text-gray-900 text-sm text-ellipsis truncate flex items-center hover:cursor-pointer hover:text-brand-500 transition"
-        @click.stop="
-          () => onOrganizationClick(member.organizations[0])
-        "
+        @click.stop
       >
         <img
           v-if="member.organizations[0].logo"
@@ -78,7 +82,7 @@
           class="w-5 h-5 mr-1"
         />
         {{ member.organizations[0].name || '-' }}
-      </div>
+      </router-link>
     </div>
     <div v-else class="text-gray-900">-</div>
   </div>
@@ -97,9 +101,7 @@ export default {
 <script setup>
 import { defineProps, ref } from 'vue'
 import AppPaywallModal from '@/modules/layout/components/paywall-modal.vue'
-import { useRouter } from 'vue-router'
 
-const router = useRouter()
 const props = defineProps({
   member: {
     type: Object,
@@ -116,11 +118,4 @@ const props = defineProps({
 })
 
 const isUpgradeModalOpen = ref(false)
-
-const onOrganizationClick = async (organization) => {
-  router.push({
-    name: 'organizationView',
-    params: { id: organization.id }
-  })
-}
 </script>
