@@ -1,9 +1,4 @@
-import axios from 'axios'
 import moment from 'moment'
-// import { S3_CONFIG } from '../../../../config'
-// import RecurringEmailsHistoryRepository from '../../../../database/repositories/recurringEmailsHistoryRepository'
-// import SequelizeRepository from '../../../../database/repositories/sequelizeRepository'
-// import UserRepository from '../../../../database/repositories/userRepository'
 import getUserContext from '../../../../database/utils/getUserContext'
 import IntegrationService from '../../../../services/integrationService'
 import ActivityService from '../../../../services/activityService'
@@ -12,13 +7,9 @@ import {
   IntegrationDataCheckerSettingsType,
 } from './integrationDataCheckerSettings'
 import { IRepositoryOptions } from '../../../../database/repositories/IRepositoryOptions'
-// import EagleEyeContentService from '../../../../services/eagleEyeContentService'
-// import EagleEyeSettingsService from '../../../../services/eagleEyeSettingsService'
-// import EmailSender from '../../../../services/emailSender'
-// import getStage from '../../../../services/helpers/getStage'
-// import { RecurringEmailType } from '../../../../types/recurringEmailsHistoryTypes'
 import { createServiceChildLogger } from '../../../../utils/logging'
 import { IntegrationDataCheckerSettings } from './integrationDataCheckerTypes'
+import { sendSlackAlert, SlackAlertTypes } from '../../../../utils/slackAlerts'
 
 const log = createServiceChildLogger('integrationDataCheckerWorker')
 
@@ -61,29 +52,43 @@ async function checkIntegrationForAllSettings(integration, userContext: IReposit
 
     if (shouldCheckThisIntegration(integration, settings, timestampSinceLastData)) {
       console.log('Checking integration')
-      const activityCount = (
-        await activityService.findAndCountAll({
-          filter: {
-            platform: integration.platform,
-            createdAt: {
-              gte: timestampSinceLastData,
+      console.log(
+        'Going into if',
+        !(settings.type === IntegrationDataCheckerSettingsType.PLATFORM_SPECIFIC) ||
+          settings.activityPlatformsAndType?.platforms.includes(integration.platform),
+      )
+      if (
+        !(settings.type === IntegrationDataCheckerSettingsType.PLATFORM_SPECIFIC) ||
+        settings.activityPlatformsAndType?.platforms.includes(integration.platform)
+      ) {
+        console.log('Checking for activity count')
+        const activityCount = (
+          await activityService.findAndCountAll({
+            filter: {
+              platform: integration.platform,
+              createdAt: {
+                gte: timestampSinceLastData,
+              },
+              ...(settings.type === IntegrationDataCheckerSettingsType.PLATFORM_SPECIFIC && {
+                type: settings.activityPlatformsAndType.type,
+              }),
             },
-            ...(settings.type === IntegrationDataCheckerSettingsType.PLATFORM_SPECIFIC && {
-              type: settings.activityTye,
-            }),
-          },
-          limit: 1,
-        })
-      ).count
+            limit: 1,
+          })
+        ).count
 
-      if (!activityCount) {
-        await changeStatusAction(settings, integration, userContext)
-        await sendSlackAlertAction(settings, integration, userContext)
-        break
+        if (!activityCount) {
+          await changeStatusAction(settings, integration, userContext)
+          await sendSlackAlertAction(settings, integration, userContext)
+          break
+        }
+      } else {
+        console.log('Not going into if')
       }
     } else {
       console.log('Not checking integration')
     }
+    console.log('\n\n')
   }
 }
 
@@ -123,77 +128,7 @@ async function sendSlackAlertAction(
   integration,
   userContext: IRepositoryOptions,
 ) {
-  if (settings.actions.sendSlackAlert) {
-    try {
-      const tenantName = userContext.currentTenant.name
-      const timeSinceLastData = settings.timeSinceLastData
-      const isPayingCustomer = userContext.currentTenant.plan
-      const isTrial = userContext.currentTenant.trialEndsAt > new Date()
-
-      const payingCustomerMarker = `✅ ${isTrial ? ' (trial)' : ''}`
-
-      const url =
-        'https://hooks.slack.com/services/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'
-
-      const payload = {
-        blocks: [
-          {
-            type: 'section',
-            text: {
-              type: 'mrkdwn',
-              text: `${isPayingCustomer ? '🚨' : '✋🏼'} *Integration not getting data* ${
-                isPayingCustomer ? '🚨' : ''
-              }`,
-            },
-          },
-          {
-            type: 'section',
-            fields: [
-              {
-                type: 'mrkdwn',
-                text: `*Tenant Name:*\n${tenantName}`,
-              },
-              {
-                type: 'mrkdwn',
-                text: `*Paying customer:* ${isPayingCustomer ? payingCustomerMarker : '❌'}`,
-              },
-              {
-                type: 'mrkdwn',
-                text: `*Time since last data:*\n${timeSinceLastData}`,
-              },
-              {
-                type: 'mrkdwn',
-                text: ' ',
-              },
-              {
-                type: 'mrkdwn',
-                text: `*Platform:*\n${integration.platform}`,
-              },
-              {
-                type: 'mrkdwn',
-                text:
-                  settings.type === IntegrationDataCheckerSettingsType.PLATFORM_SPECIFIC
-                    ? `*Activity type:*\n${settings.activityTye}`
-                    : ' ',
-              },
-              {
-                type: 'mrkdwn',
-                text: `*Tenant ID:*\n${integration.tenantId}`,
-              },
-              {
-                type: 'mrkdwn',
-                text: `*Integration ID:*\n${integration.id}`,
-              },
-            ],
-          },
-        ],
-      }
-
-      await axios.post(url, payload)
-    } catch (error) {
-      log.error('Error sending slack alert', error)
-    }
-  }
+  return sendSlackAlert(SlackAlertTypes.DATA_CHECKER, integration, userContext, log, settings)
 }
 
 function generateDate(timeframe) {

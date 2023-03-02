@@ -7,19 +7,32 @@ export enum IntegrationDataCheckerSettingsType {
 }
 
 export const integrationDataCheckerSettings: IntegrationDataCheckerSettings[] = [
+  // Check that all new integrations received data in the first two hours
   {
     timeSinceLastData: '2 hours',
-    changeStatus: true,
     onlyNewIntegrations: true,
     actions: { sendSlackAlert: true, changeStatus: true },
     type: IntegrationDataCheckerSettingsType.REGULAR,
   },
+  // Check that Slack and Discord integrations have message activities in the first 2 hours
   {
     timeSinceLastData: '2 hours',
-    changeStatus: true,
     onlyNewIntegrations: true,
     actions: { sendSlackAlert: true, changeStatus: true },
     type: IntegrationDataCheckerSettingsType.PLATFORM_SPECIFIC,
-    activityTye: 'message',
+    activityPlatformsAndType: {
+      platforms: ['slack', 'discord'],
+      type: 'message',
+    },
+  },
+  // Check that each integration is actually getting data every in the last 3 days
+  {
+    timeSinceLastData: '3 days',
+    onlyNewIntegrations: false,
+    actions: {
+      sendSlackAlert: true,
+      changeStatus: false,
+    },
+    type: IntegrationDataCheckerSettingsType.REGULAR,
   },
 ]

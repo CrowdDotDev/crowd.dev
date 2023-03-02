@@ -1,9 +1,11 @@
 export type IntegrationDataCheckerSettings = {
   timeSinceLastData: string
-  changeStatus: boolean
   onlyNewIntegrations?: boolean
   type: 'regular' | 'platformSpecific'
-  activityTye?: string
+  activityPlatformsAndType?: {
+    platforms: string[]
+    type: string
+  }
   actions: IntegrationDataCheckerActions
 }
 
