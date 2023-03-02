@@ -23,6 +23,13 @@
         <i class="ri-alert-line mr-1"></i> Action required
       </div>
       <div
+        v-else-if="isWaitingApproval"
+        class="text-yellow-600 flex items-center text-sm"
+      >
+        <i class="ri-alert-line mr-1"></i> Waiting for
+        approval
+      </div>
+      <div
         v-else-if="isConnected"
         class="flex items-center"
       >
@@ -139,6 +146,10 @@ const isError = computed(() => {
 
 const isWaitingForAction = computed(() => {
   return props.integration.status === 'pending-action'
+})
+
+const isWaitingApproval = computed(() => {
+  return props.integration.status === 'waiting-approval'
 })
 
 const loadingDisconnect = ref(false)
