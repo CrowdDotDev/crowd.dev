@@ -2,7 +2,9 @@ import axios, { AxiosRequestConfig } from 'axios'
 import { StackOverflowGetQuestionsInput, StackOverflowQuestionsResponse } from '../../types/stackOverflowTypes'
 import { Logger } from '../../../../utils/logging'
 import { PlatformType } from '../../../../types/integrationEnums'
-import getToken from '../pizzly/getToken'
+import getToken from '../nango/getToken'
+import { timeout } from '../../../../utils/timing';
+import { RateLimitError } from '../../../../types/integration/rateLimitError';
 
 /**
  * Get paginated questions from StackOverflow given a set of tags
@@ -13,10 +15,6 @@ import getToken from '../pizzly/getToken'
 async function getQuestions(input: StackOverflowGetQuestionsInput, logger: Logger): Promise<StackOverflowQuestionsResponse> {
   try {
     logger.info({ message: 'Fetching questions from StackOverflow', input })
-
-    // Wait for 1.5s for rate limits.
-    // eslint-disable-next-line no-promise-executor-return
-    await new Promise((resolve) => setTimeout(resolve, 1500))
 
     // Gett an access token from Pizzly
     // const accessToken = await getToken(input.pizzlyId, PlatformType.REDDIT, logger)
@@ -38,8 +36,18 @@ async function getQuestions(input: StackOverflowGetQuestionsInput, logger: Logge
     //   },
     }
 
-    const response: StackOverflowQuestionsResponse = (await axios(config)).data
-    return response
+    const response: StackOverflowQuestionsResponse = (await axios(config)).data;
+    const backoff = response.backoff;
+    if (backoff) {
+      if (backoff <= 2) {
+        // Wait for backoff time returned by StackOverflow API
+        await timeout(backoff * 1000);
+      }
+      else {
+        throw new RateLimitError(backoff * 1000, "stackoverflow/getQuestions");
+      }
+    }
+    return response;
   } catch (err) {
     logger.error({ err, input }, 'Error while getting StackOverflow questions tagged with tags')
     throw err

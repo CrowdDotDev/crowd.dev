@@ -2,7 +2,9 @@ import axios, { AxiosRequestConfig } from 'axios'
 import { StackOverflowAnswersInput, StackOverflowAnswerResponse, StackOverflowAnswer } from '../../types/stackOverflowTypes'
 import { Logger } from '../../../../utils/logging'
 import { PlatformType } from '../../../../types/integrationEnums'
-import getToken from '../pizzly/getToken'
+import getToken from '../nango/getToken'
+import { timeout } from '../../../../utils/timing';
+import { RateLimitError } from '../../../../types/integration/rateLimitError'
 
 /**
  * Get paginated questions from StackOverflow given a set of tags
@@ -37,7 +39,14 @@ async function getAnswers(input: StackOverflowAnswersInput, logger: Logger): Pro
     const response: StackOverflowAnswerResponse = (await axios(config)).data;
     const backoff = response.backoff;
     if (backoff) {
-        await new Promise((resolve) => setTimeout(resolve, backoff * 1000));
+      if (backoff <= 2) {
+        // Wait for backoff time returned by StackOverflow API
+        // eslint-disable-next-line no-promise-executor-return
+        await timeout(backoff * 1000);
+      }
+      else {
+        throw new RateLimitError(backoff * 1000, "stackoverflow/getAnswers");
+      }
     }
     return response;
   } catch (err) {

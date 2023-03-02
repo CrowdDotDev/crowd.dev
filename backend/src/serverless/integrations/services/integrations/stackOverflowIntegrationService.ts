@@ -111,12 +111,11 @@ export class StackOverlflowIntegrationService extends IntegrationServiceBase {
     }
     // Shows if there are more pages to parse
     const has_more = response.has_more;
+    const activities: AddActivitiesSingle[] = [];
 
-    const activities = await Promise.all(questions.map(async (question) =>
-      (
-        this.parseQuestion(context.integration.tenantId, question, context)
-      )
-    ))
+    for (const question of questions) {
+      activities.push(await this.parseQuestion(context.integration.tenantId, question, context))
+    }
     const lastRecord = activities.length > 0 ? activities[activities.length - 1] : undefined
 
     // If we got results, we will want to check the next page
@@ -334,35 +333,4 @@ export class StackOverlflowIntegrationService extends IntegrationServiceBase {
     }
     await IntegrationRepository.update(context.integration.id, { settings }, context.repoContext)
   }
-
-  // async isProcessingFinished(
-  //   context: IStepContext,
-  //   currentStream: IIntegrationStream,
-  //   lastOperations: IStreamResultOperation[],
-  //   lastRecord?: any,
-  //   lastRecordTimestamp?: number,
-  // ): Promise<boolean> {
-  //   switch (currentStream.value) {
-  //     case 'questions_by_tags':
-  //       if (lastRecordTimestamp === undefined) return true
-
-  //       return IntegrationServiceBase.isRetrospectOver(
-  //         lastRecordTimestamp,
-  //         context.startTimestamp,
-  //         StackOverlflowIntegrationService.maxRetrospect,
-  //       )
-  //     case 'threads':
-  //       if ((currentStream.metadata as Thread).new) {
-  //         return false
-  //       }
-
-  //       if (lastRecordTimestamp === undefined) return true
-
-  //       return IntegrationServiceBase.isRetrospectOver(
-  //         lastRecordTimestamp,
-  //         context.startTimestamp,
-  //         SlackIntegrationService.maxRetrospect,
-  //       )
-  //   }
-  // }
 }

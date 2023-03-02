@@ -2,7 +2,9 @@ import axios, { AxiosRequestConfig } from 'axios'
 import { StackOverflowUserResponse, StackOverflowUser } from '../../types/stackOverflowTypes'
 import { Logger } from '../../../../utils/logging'
 import { PlatformType } from '../../../../types/integrationEnums'
-import getToken from '../pizzly/getToken'
+import getToken from '../nango/getToken';
+import { timeout } from '../../../../utils/timing';
+import { RateLimitError } from '../../../../types/integration/rateLimitError';
 
 /**
  * Get paginated questions from StackOverflow given a set of tags
@@ -31,9 +33,13 @@ async function getUser(user_id: number, logger: Logger): Promise<StackOverflowUs
     const response: StackOverflowUserResponse = (await axios(config)).data;
     const backoff = response.backoff;
     if (backoff) {
+      if (backoff <= 2) {
         // Wait for backoff time returned by StackOverflow API
-        // eslint-disable-next-line no-promise-executor-return
-        await new Promise((resolve) => setTimeout(resolve, backoff * 1000))
+        await timeout(backoff * 1000);
+      }
+      else {
+        throw new RateLimitError(backoff * 1000, "stackoverflow/getUser");
+      }
     }
     return response.items[0];
   } catch (err) {
