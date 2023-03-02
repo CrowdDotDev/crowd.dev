@@ -95,7 +95,7 @@
                 placement="top-start"
               >
                 <div
-                  class="ri-alert-fill text-base text-yellow-500"
+                  class="ri-time-line text-base text-gray-500"
                 ></div>
               </el-tooltip>
             </div>

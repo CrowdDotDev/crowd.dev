@@ -24,9 +24,9 @@
       </div>
       <div
         v-else-if="isWaitingApproval"
-        class="text-yellow-600 flex items-center text-sm"
+        class="text-gray-500 flex items-center text-sm"
       >
-        <i class="ri-alert-line mr-1"></i> Waiting for
+        <i class="ri-time-line mr-1"></i> Waiting for
         approval
       </div>
       <div
