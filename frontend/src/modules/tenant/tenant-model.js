@@ -30,6 +30,11 @@ const fields = {
     required: true,
     max: 50
   }),
+  achievement: new StringField(
+    'achievement',
+    'What would you like to achieve with crowd.dev? ',
+    {}
+  ),
   tenantPlatforms: new StringArrayField(
     'integrationsRequired',
     label('tenantPlatforms'),

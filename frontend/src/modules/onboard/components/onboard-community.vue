@@ -105,7 +105,7 @@
       </el-form-item>
       <el-form-item
         :prop="fields.tenantSize.name"
-        class="mb-12"
+        class="mb-0"
       >
         <label>
           <span
@@ -124,8 +124,7 @@
         <el-radio-group
           id="tenantSize"
           v-model="model[fields.tenantSize.name]"
-          class="radio-chips"
-          size="large"
+          class="radio-chips is-medium"
         >
           <el-radio-button
             v-for="size in tenantCommunitySize"
@@ -146,6 +145,29 @@
             >
           </div>
         </template>
+      </el-form-item>
+      <el-form-item
+        :prop="fields.achievement.name"
+        class="mb-12"
+      >
+        <label>
+          <span
+            class="block text-xs font-semibold leading-5 mb-1"
+          >
+            {{ fields.achievement.label }}
+          </span>
+        </label>
+        <el-select
+          v-model="model[fields.achievement.name]"
+          placeholder="Select option"
+        >
+          <el-option
+            v-for="(label, value) of achievements"
+            :key="value"
+            :value="value"
+            :label="label"
+          />
+        </el-select>
       </el-form-item>
     </el-form>
     <el-button
@@ -169,12 +191,14 @@ import tenantCommunitySize from '@/jsons/tenant-community-size.json'
 import { onSelectMouseLeave } from '@/utils/select'
 import { TenantService } from '@/modules/tenant/tenant-service'
 import Message from '@/shared/message/message'
+import achievements from '@/modules/onboard/config/achievements.config.json'
 
 const { fields } = TenantModel
 const formSchema = new FormSchema([
   fields.tenantName,
   fields.tenantPlatforms,
-  fields.tenantSize
+  fields.tenantSize,
+  fields.achievement
 ])
 export default {
   name: 'AppOnboardCommunity',
@@ -191,6 +215,7 @@ export default {
       fields,
       tenantCommunitySize,
       onboardPlatforms,
+      achievements,
       rules: formSchema.rules(),
       model: {
         [fields.tenantPlatforms.name]: []
