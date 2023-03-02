@@ -36,32 +36,11 @@ async function checkIntegrationForAllSettings(integration, userContext: IReposit
     // This is moment() - the time. For example, moment().subtract(1, 'hour') is 1 hour ago.
     const timestampSinceLastData = generateDate(settings.timeSinceLastData)
 
-    console.log(
-      'Integration created at (hour and minute)',
-      integration.createdAt.getHours(),
-      integration.createdAt.getMinutes(),
-    )
-
-    console.log(
-      'Timestamp since last data (hour and minute)',
-      timestampSinceLastData.hours(),
-      timestampSinceLastData.minutes(),
-    )
-
-    console.log('Current time (hour and minute)', moment().hours(), moment().minutes())
-
     if (shouldCheckThisIntegration(integration, settings, timestampSinceLastData)) {
-      console.log('Checking integration')
-      console.log(
-        'Going into if',
-        !(settings.type === IntegrationDataCheckerSettingsType.PLATFORM_SPECIFIC) ||
-          settings.activityPlatformsAndType?.platforms.includes(integration.platform),
-      )
       if (
         !(settings.type === IntegrationDataCheckerSettingsType.PLATFORM_SPECIFIC) ||
         settings.activityPlatformsAndType?.platforms.includes(integration.platform)
       ) {
-        console.log('Checking for activity count')
         const activityCount = (
           await activityService.findAndCountAll({
             filter: {
@@ -82,13 +61,8 @@ async function checkIntegrationForAllSettings(integration, userContext: IReposit
           await sendSlackAlertAction(settings, integration, userContext)
           break
         }
-      } else {
-        console.log('Not going into if')
       }
-    } else {
-      console.log('Not checking integration')
     }
-    console.log('\n\n')
   }
 }
 
