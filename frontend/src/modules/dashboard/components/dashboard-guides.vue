@@ -2,7 +2,8 @@
   <div
     v-if="
       minCommunitySize >= 5000 &&
-      notcompletedGuides.length > 0
+      notcompletedGuides.length > 0 &&
+      !onboardingGuidesDismissed
     "
     class="panel !p-0 !rounded-lg"
     v-bind="$attrs"
@@ -36,18 +37,21 @@
     <section class="pb-1 px-4">
       <app-dashboard-guide-item
         v-for="guide of guides"
-        :key="guide.id"
+        :key="guide.key"
         :guide="guide"
-        :active="activeView === guide.id"
+        :active="activeView === guide.key"
         @header-click="
           activeView =
-            activeView !== guide.id ? guide.id : null
+            activeView !== guide.key ? guide.key : null
         "
         @open="selectedGuide = guide"
       />
     </section>
   </div>
   <app-dashboard-guide-modal v-model="selectedGuide" />
+  <app-dashboard-guide-eagle-eye-modal
+    v-model="eagleEyeModalOpened"
+  />
 </template>
 
 <script>
@@ -58,25 +62,20 @@ export default {
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import { useStore } from 'vuex'
-import { useRouter } from 'vue-router'
-import { onboardingGuides } from '@/modules/dashboard/config/onboarding-guides'
 import AppDashboardGuideItem from '@/modules/dashboard/components/guide/dashboard-guide-item.vue'
 import AppDashboardGuideModal from '@/modules/dashboard/components/guide/dashboard-guide-modal.vue'
 import * as loom from '@loomhq/loom-embed'
 import { mapGetters } from '@/shared/vuex/vuex.helpers'
 import ConfirmDialog from '@/shared/dialog/confirm-dialog'
-
-const store = useStore()
-const router = useRouter()
+import AppDashboardGuideEagleEyeModal from '@/modules/dashboard/components/guide/dashboard-guide-eagle-eye-modal.vue'
 
 const { currentTenant } = mapGetters('auth')
 
 const guides = ref([])
-
 const activeView = ref(null)
-
 const selectedGuide = ref(null)
+const eagleEyeModalOpened = ref(false)
+const onboardingGuidesDismissed = ref(false)
 
 const notcompletedGuides = computed(() =>
   guides.value.filter((g) => !g.completed)
@@ -91,17 +90,13 @@ const minCommunitySize = computed(() => {
 })
 
 const getGuides = () => {
+  // TODO: fetch guides
   return Promise.all(
-    onboardingGuides({
-      store,
-      router
-    }).map((el) => {
-      return loom.oembed(el.loomUrl).then((video) => ({
+    [].map((el) => {
+      return loom.oembed(el.loomLink).then((video) => ({
         ...el,
         loomThumbnailUrl: video.thumbnail_url,
-        loomHtml: video.html,
-        completed: el.completed(),
-        display: el.display()
+        loomHtml: video.html
       }))
     })
   )
@@ -118,16 +113,30 @@ const dismissGuides = () => {
     confirmButtonText: 'Dismiss quickstart guide',
     cancelButtonText: 'Cancel'
   }).then(() => {
-    // TODO dismiss guide
-    console.log('dismissing guides')
+    localStorage.setItem('onboardingGuidesDismissed', true)
+    onboardingGuidesDismissed.value = true
   })
 }
 
 onMounted(async () => {
-  if (minCommunitySize.value < 5000) {
-    // TODO: trigger eagle eye modal
+  // Check if it can open eagle eye onboarding modal
+  const onboardingEagleEyeModal = localStorage.getItem(
+    'onboardingEagleEyeModal'
+  )
+  if (
+    minCommunitySize.value < 5000 &&
+    !onboardingEagleEyeModal
+  ) {
+    eagleEyeModalOpened.value = true
   }
 
+  // Check if onboarding guides dismissed
+  onboardingGuidesDismissed.value = !!localStorage.getItem(
+    'onboardingGuidesDismissed'
+  )
+  if (onboardingGuidesDismissed.value) {
+    return
+  }
   getGuides().then((guideList) => {
     guides.value = guideList
     activeView.value = notcompletedGuides.value?.length

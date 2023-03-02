@@ -48,15 +48,11 @@
         <div
           v-if="
             props.guide.loomUrl &&
-            (props.guide.coverImageUrl ||
-              props.guide.loomThumbnailUrl)
+            props.guide.loomThumbnailUrl
           "
           class="relative rounded bg-gray-100 mb-4 w-full h-20 flex items-center justify-center bg-cover group cursor-pointer"
           :style="{
-            'background-image': `url(${
-              props.guide.coverImageUrl ||
-              props.guide.loomThumbnailUrl
-            })`
+            'background-image': `url(${props.guide.loomThumbnailUrl})`
           }"
           @click="emit('open')"
         >
@@ -65,15 +61,16 @@
           ></i>
         </div>
         <p class="text-xs text-gray-600 leading-5 mb-4">
-          {{ props.guide.description }}
+          {{ props.guide.body }}
         </p>
-        <el-button
-          v-if="props.guide.actionText"
-          class="btn btn--primary btn--sm w-full mb-4 leading-5"
-          @click="props.guide.action()"
-        >
-          {{ props.guide.actionText }}
-        </el-button>
+        <router-link :to="props.guide.actionLink">
+          <el-button
+            v-if="props.guide.actionText"
+            class="btn btn--primary btn--sm w-full mb-4 leading-5"
+          >
+            {{ props.guide.actionText }}
+          </el-button>
+        </router-link>
       </div>
     </div>
   </article>

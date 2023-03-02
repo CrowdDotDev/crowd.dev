@@ -6,7 +6,7 @@
           {{ guide?.title }}
         </h5>
         <p class="text-xs text-gray-600">
-          {{ guide?.description }}
+          {{ guide?.body }}
         </p>
       </div>
     </template>
@@ -19,12 +19,11 @@
         v-if="guide.actionText"
         class="flex justify-end px-6 pb-6"
       >
-        <el-button
-          class="btn btn--primary btn--md"
-          @click="guide.action()"
-        >
-          {{ guide.actionText }}
-        </el-button>
+        <router-link :to="guide.actionLink">
+          <el-button class="btn btn--primary btn--md">
+            {{ guide.actionText }}
+          </el-button>
+        </router-link>
       </div>
     </template>
   </app-dialog>
