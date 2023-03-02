@@ -210,7 +210,12 @@ const props = defineProps({
 
 const emit = defineEmits(['update:modelValue'])
 
-const { currentUser } = mapGetters('auth')
+const { currentUser, currentTenant } = mapGetters('auth')
+
+const eagleEyeSettings = currentUser?.value.tenants.find(
+  (tu) => tu.tenantId === currentTenant?.value.id
+).settings.eagleEye
+
 const { doUpdateSettings } = mapActions('eagleEye')
 const { loadingUpdateSettings } = mapState('eagleEye')
 
@@ -269,7 +274,6 @@ const fillForm = (user) => {
   if (!user) {
     return
   }
-  const { eagleEyeSettings } = user
   const { feed } = eagleEyeSettings
 
   form.include = [
@@ -310,7 +314,7 @@ const onSubmit = async () => {
     }
     doUpdateSettings({
       data: {
-        ...currentUser.value.eagleEyeSettings,
+        ...eagleEyeSettings,
         feed: data,
         aiReplies: form.aiReplies
       }

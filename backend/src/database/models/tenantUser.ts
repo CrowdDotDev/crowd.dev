@@ -40,6 +40,17 @@ export default (sequelize, DataTypes) => {
           isIn: [['active', 'invited', 'empty-permissions']],
         },
       },
+      settings: {
+        type: DataTypes.JSONB,
+        allowNull: false,
+        defaultValue: {
+          isEagleEyeGuideDismissed: false,
+          isQuickstartGuideDismissed: false,
+          eagleEye: {
+            onboarded: false,
+          },
+        },
+      },
     },
     {
       timestamps: true,
@@ -66,6 +77,10 @@ export default (sequelize, DataTypes) => {
 
     models.tenantUser.belongsTo(models.user, {
       as: 'updatedBy',
+    })
+
+    models.tenantUser.belongsTo(models.user, {
+      as: 'invitedBy',
     })
   }
 

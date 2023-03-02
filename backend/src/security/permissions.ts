@@ -523,6 +523,16 @@ class Permissions {
         allowedRoles: [roles.admin, roles.readonly],
         allowedPlans: [plans.essential, plans.growth],
       },
+      quickstartGuideRead: {
+        id: 'quickstartGuideRead',
+        allowedRoles: [roles.admin, roles.readonly],
+        allowedPlans: [plans.essential, plans.growth],
+      },
+      quickstartGuideSettingsUpdate: {
+        id: 'quickstartGuideSettingsUpdate',
+        allowedRoles: [roles.admin, roles.readonly],
+        allowedPlans: [plans.essential, plans.growth],
+      },
     }
   }
 
