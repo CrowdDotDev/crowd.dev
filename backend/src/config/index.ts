@@ -25,6 +25,7 @@ import {
   EnrichmentConfiguration,
   EagleEyeConfiguration,
   UnleashConfiguration,
+  SlackAlertingConfiguration,
 } from './configTypes'
 
 // TODO-kube
@@ -238,3 +239,6 @@ export const EAGLE_EYE_CONFIG: EagleEyeConfiguration = KUBE_MODE
     }
 
 export const UNLEASH_CONFIG: UnleashConfiguration = config.get<UnleashConfiguration>('unleash')
+
+export const SLACK_ALERTING_CONFIG: SlackAlertingConfiguration =
+  config.get<SlackAlertingConfiguration>('slackAlerting')

@@ -195,3 +195,7 @@ export interface UnleashConfiguration {
     database: string
   }
 }
+
+export interface SlackAlertingConfiguration {
+  url: string
+}

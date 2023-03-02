@@ -2,6 +2,7 @@ import axios from 'axios'
 import { IntegrationDataCheckerSettings } from '../serverless/microservices/nodejs/integration-data-checker/integrationDataCheckerTypes'
 import { IRepositoryOptions } from '../database/repositories/IRepositoryOptions'
 import { IntegrationDataCheckerSettingsType } from '../serverless/microservices/nodejs/integration-data-checker/integrationDataCheckerSettings'
+import { SLACK_ALERTING_CONFIG } from '../config'
 
 export enum SlackAlertTypes {
   DATA_CHECKER = 'data-checker',
@@ -16,7 +17,7 @@ export async function sendSlackAlert(
   settings: IntegrationDataCheckerSettings | {} = {},
 ) {
   const blocks = getBlocks(alertType, integration, userContext, log, settings)
-  const url = 'https://hooks.slack.com/services/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'
+  const url = SLACK_ALERTING_CONFIG.url
   await axios.post(url, blocks)
 }
 
