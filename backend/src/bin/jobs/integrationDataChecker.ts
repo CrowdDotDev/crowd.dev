@@ -6,10 +6,8 @@ import { NodeWorkerMessageBase } from '../../types/mq/nodeWorkerMessageBase'
 
 const job: CrowdJob = {
   name: 'Integration Data Checker',
-  // every hour
-  // cronTime: '0 * * * *',
-  // every minute
-  cronTime: '* * * * *',
+  // every hour on weekdays
+  cronTime: '0 * * * 1-5',
   onTrigger: async () => {
     const options = await SequelizeRepository.getDefaultIRepositoryOptions()
 
