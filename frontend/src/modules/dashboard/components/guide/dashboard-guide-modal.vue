@@ -16,12 +16,12 @@
         <div v-html="guide.loomHtml"></div>
       </div>
       <div
-        v-if="guide.actionText"
+        v-if="guide.buttonText"
         class="flex justify-end px-6 pb-6"
       >
-        <router-link :to="guide.actionLink">
+        <router-link :to="guide.buttonLink">
           <el-button class="btn btn--primary btn--md">
-            {{ guide.actionText }}
+            {{ guide.buttonText }}
           </el-button>
         </router-link>
       </div>
