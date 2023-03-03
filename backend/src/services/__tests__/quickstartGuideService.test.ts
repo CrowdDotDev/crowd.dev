@@ -1,4 +1,4 @@
-import UserRepository from '../../database/repositories/userRepository'
+// import UserRepository from '../../database/repositories/userRepository'
 import SequelizeTestUtils from '../../database/utils/sequelizeTestUtils'
 
 const db = null
@@ -21,8 +21,5 @@ describe('QuickstartGuideService tests', () => {
     //     mockIRepositoryOptions,
     //   )
     // })
-   
   })
-
-
 })
