@@ -4,6 +4,7 @@ import { LoggingBase } from './loggingBase'
 import isFeatureEnabled from '../feature-flags/isFeatureEnabled'
 import {
   DEFAULT_GUIDES,
+  QuickstartGuideMap,
   QuickstartGuideSettings,
   QuickstartGuideType,
 } from '../types/quickstartGuideTypes'
@@ -36,10 +37,10 @@ export default class QuickstartGuideService extends LoggingBase {
     return tenantUser
   }
 
-  async find() {
-    const guides = DEFAULT_GUIDES
+  async find(): Promise <QuickstartGuideMap> {
+    const guides: QuickstartGuideMap = DEFAULT_GUIDES
 
-    const integrationCount = await IntegrationRepository.count({}, this.options)
+    const integrationCount: number = await IntegrationRepository.count({}, this.options)
 
     const ms = new MemberService(this.options)
 
