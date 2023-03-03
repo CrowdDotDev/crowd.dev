@@ -61,7 +61,7 @@ export default {
 </script>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import AppDashboardGuideItem from '@/modules/dashboard/components/guide/dashboard-guide-item.vue'
 import AppDashboardGuideModal from '@/modules/dashboard/components/guide/dashboard-guide-modal.vue'
 import * as loom from '@loomhq/loom-embed'
@@ -94,6 +94,19 @@ const minCommunitySize = computed(() => {
   return min
 })
 
+watch(
+  () => currentTenantUser,
+  (tenantUser) => {
+    if (tenantUser) {
+      showModals()
+    }
+  },
+  {
+    deep: true,
+    immediate: true
+  }
+)
+
 const getGuides = () => {
   return QuickstartGuideService.fetch().then((guides) => {
     return Promise.all(
@@ -120,7 +133,7 @@ const getGuides = () => {
 
 const dismissGuides = () => {
   ConfirmDialog({
-    type: 'info',
+    type: 'notification',
     title:
       'Do you really want to dismiss our Quickstart Guide?',
     message:
@@ -132,13 +145,11 @@ const dismissGuides = () => {
     onboardingGuidesDismissed.value = true
     return QuickstartGuideService.updateSettings({
       isQuickstartGuideDismissed: true
-    }).then(() => {
-      return doRefreshCurrentUser({})
     })
   })
 }
 
-onMounted(async () => {
+const showModals = () => {
   // Check if it can open eagle eye onboarding modal
   const {
     isEagleEyeGuideDismissed,
@@ -146,7 +157,7 @@ onMounted(async () => {
   } = currentTenantUser.value.settings
   if (
     minCommunitySize.value < 5000 &&
-    !isEagleEyeGuideDismissed
+    !isEagleEyeGuideDismissed && !eagleEyeModalOpened.value
   ) {
     eagleEyeModalOpened.value = true
   }
@@ -165,5 +176,10 @@ onMounted(async () => {
         : null
     })
   }
+}
+
+onMounted(() => {
+  doRefreshCurrentUser({})
+  showModals()
 })
 </script>
