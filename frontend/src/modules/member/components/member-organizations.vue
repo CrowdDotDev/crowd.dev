@@ -61,7 +61,7 @@
   >
     <span
       v-if="member.attributes?.jobTitle?.default"
-      class="text-gray-600 text-2xs mr-2 truncate block h-6"
+      class="text-gray-600 text-2xs mr-2 truncate block mt-0.5"
       >{{ member.attributes.jobTitle.default }}
       {{ member.organizations.length ? 'at' : '' }}</span
     >
