@@ -42,6 +42,7 @@
           : '100vh'
       }"
     >
+      <app-dashboard-guides class="mb-10" />
       <app-dashboard-integrations class="mb-10" />
       <app-dashboard-task />
     </aside>
@@ -63,6 +64,7 @@ import {
 } from '@/shared/vuex/vuex.helpers'
 
 import { useStore } from 'vuex'
+import AppDashboardGuides from '@/modules/dashboard/components/dashboard-guides.vue'
 
 const { currentTenant } = mapGetters('auth')
 const { doFetch } = mapActions('report')
@@ -74,7 +76,6 @@ const store = useStore()
 let storeUnsubscribe = ref(null)
 const scrolled = ref(false)
 const handleScroll = (event) => {
-  console.log(scrolled.value)
   scrolled.value = event.target.scrollTop > 20
 }
 
@@ -100,6 +101,7 @@ onBeforeUnmount(() => {
 <style lang="scss">
 aside {
   width: 16.25rem;
+  min-width: 16.25rem;
 }
 .home-content {
   max-width: 60rem;

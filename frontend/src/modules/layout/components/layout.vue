@@ -15,15 +15,17 @@
             <div
               class="flex items-center justify-center grow text-sm"
             >
-              This workspace is using sample data, before
-              adding real data please
-              <el-button
-                class="btn btn--sm btn--primary ml-4"
-                :loading="loading"
-                @click="handleDeleteSampleDataClick"
-              >
-                Delete Sample Data
-              </el-button>
+              This workspace is using sample data. Connect
+              your first integration to start fetching real
+              data
+              <router-link :to="{ name: 'integration' }">
+                <el-button
+                  class="btn btn--sm btn--primary ml-4"
+                  :loading="loading"
+                >
+                  Connect integration
+                </el-button>
+              </router-link>
             </div>
           </banner>
           <banner
@@ -155,13 +157,10 @@
 
 <script>
 import { useStore } from 'vuex'
-import { TenantService } from '@/modules/tenant/tenant-service'
 import { mapActions, mapGetters } from 'vuex'
 import Banner from '@/shared/banner/banner.vue'
 import identify from '@/shared/monitoring/identify'
-import ConfirmDialog from '@/shared/dialog/confirm-dialog.js'
 import config from '@/config'
-import Message from '@/shared/message/message'
 
 export default {
   name: 'AppLayout',
@@ -343,33 +342,6 @@ export default {
           // as long as it's not one of the above reserved names.
         }
       })
-    },
-
-    async handleDeleteSampleDataClick() {
-      await ConfirmDialog({
-        type: 'danger',
-        title: 'Delete sample data',
-        message:
-          "Are you sure you want to proceed? You can't undo this action",
-        confirmButtonText: 'Confirm',
-        cancelButtonText: 'Cancel',
-        icon: 'ri-delete-bin-line'
-      })
-
-      this.loading = true
-      try {
-        await TenantService.deleteSampleData(
-          this.currentTenant.id
-        )
-        window.location.reload()
-      } catch (e) {
-        if (e.response.status === 403) {
-          Message.error(
-            'You do not have permission to delete sample data'
-          )
-          this.loading = false
-        }
-      }
     }
   }
 }
