@@ -1,7 +1,6 @@
 <template>
   <div
     v-if="
-      minCommunitySize >= 5000 &&
       notcompletedGuides.length > 0 &&
       !onboardingGuidesDismissed
     "
@@ -143,10 +142,7 @@ const showModals = () => {
   // Check if onboarding guides dismissed
   onboardingGuidesDismissed.value =
     isQuickstartGuideDismissed
-  if (
-    !onboardingGuidesDismissed.value &&
-    minCommunitySize.value >= 5000
-  ) {
+  if (!onboardingGuidesDismissed.value) {
     getGuides({}).then(() => {
       activeView.value = notcompletedGuides.value?.length
         ? notcompletedGuides.value[0].key

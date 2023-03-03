@@ -7,7 +7,9 @@ export default {
   currentTenant: (state) => state.currentTenant,
   currentTenantUser: (state) => {
     const tenantId = state.currentTenant?.id
-    return state.currentUser?.tenants.find((t) => t.tenantId === tenantId)
+    return state.currentUser?.tenants.find(
+      (t) => t.tenantId === tenantId
+    )
   },
   currentUserEmail: (state, getters) =>
     getters.currentUser ? getters.currentUser.email : null,
