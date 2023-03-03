@@ -73,7 +73,7 @@ watch(
 
 // Reset model value when tab changes
 watch(
-  () => activeView,
+  () => activeView.value,
   (newActiveView, oldActiveView) => {
     if (newActiveView.id !== oldActiveView.id) {
       setModelValue('')
