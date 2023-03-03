@@ -1,6 +1,6 @@
 import sanitizeHtml from 'sanitize-html'
 import he from 'he'
-import { IStepContext, IIntegrationStream, IProcessStreamResults, IStreamResultOperation } from "../../../../types/integration/stepResult";
+import { IStepContext, IIntegrationStream, IProcessStreamResults } from "../../../../types/integration/stepResult";
 import { IntegrationType, PlatformType } from "../../../../types/integrationEnums";
 import { IntegrationServiceBase } from "../integrationServiceBase";
 import { StackOverflowAnswer, StackOverflowAnswerResponse, StackOverflowQuestionsResponse } from "../../types/stackOverflowTypes";
@@ -11,11 +11,12 @@ import { AddActivitiesSingle, Member } from '../../types/messageTypes';
 import { StackOverflowShallowQuestion } from '../../types/stackOverflowTypes';
 import { StackOverflowActivityType } from '../../../../types/activityTypes';
 import { StackOverflowGrid } from '../../grid/stackOverflowGrid';
-import IntegrationRepository from '../../../../database/repositories/integrationRepository';
 import getUser from '../../usecases/stackoverflow/getUser';
 import MemberAttributeSettingsService from '../../../../services/memberAttributeSettingsService';
 import { StackOverflowMemberAttributes } from '../../../../database/attributes/member/stackOverflow';
 import { MemberAttributeName } from '../../../../database/attributes/member/enums';
+import { createRedisClient } from '../../../../utils/redis';
+import { RedisCache } from '../../../../utils/redis/redisCache';
 
 
 export class StackOverlflowIntegrationService extends IntegrationServiceBase {
@@ -34,11 +35,12 @@ export class StackOverlflowIntegrationService extends IntegrationServiceBase {
    */
   async preprocess(context: IStepContext): Promise<void> {
     const settings = context.integration.settings;
-    const members = context.integration.settings.members ? context.integration.settings.members : {};
+    const redis = await createRedisClient(true);
+    const membersCache = new RedisCache('stackoverflow-members', redis);
     context.pipelineData = {
       tags: settings.tags,
       pizzlyId: `${context.integration.tenantId}-${PlatformType.STACKOVERFLOW}`,
-      members,
+      membersCache,
     }
   }
 
@@ -160,10 +162,10 @@ export class StackOverlflowIntegrationService extends IntegrationServiceBase {
     stream: IIntegrationStream,
     context: IStepContext,
   ): Promise<IProcessStreamResults> {
-    const question_id = stream.metadata.question_id as string;
+    const questionId = stream.metadata.questionId as string;
     const page = stream.metadata.page as number;
     const response: StackOverflowAnswerResponse = await getAnswers(
-      { questionId: question_id, page },
+      { questionId, page },
       context.logger,
     )
 
@@ -214,6 +216,7 @@ export class StackOverlflowIntegrationService extends IntegrationServiceBase {
    * @returns a question parsed as a crowd.dev activity
    */
   private async parseQuestion(tenantId, question: StackOverflowShallowQuestion, context: IStepContext): Promise<AddActivitiesSingle> {
+    context.logger.info(`Parsing question ${question.question_id}`);
     const body = question.body
       ? sanitizeHtml(he.decode(question.body))
       : `<a href="${question.link}" target="__blank">${question.link}</a>`
@@ -230,12 +233,7 @@ export class StackOverlflowIntegrationService extends IntegrationServiceBase {
       isKeyAction: StackOverflowGrid[StackOverflowActivityType.QUESTION].isKeyAction,
     }
 
-    const newMemberContext = await this.parseMemberAndUpdateContext(question.owner.user_id, context);
-    const member = newMemberContext.member;
-    if (member !== undefined) {
-      context = newMemberContext.context;
-    }
-    await StackOverlflowIntegrationService.updateMembers(context);
+    const member: Member | undefined = await this.parseMember(question.owner.user_id, context);
     return {
       ...activity,
       member
@@ -256,11 +254,7 @@ export class StackOverlflowIntegrationService extends IntegrationServiceBase {
     const body = answer.body
       ? sanitizeHtml(he.decode(answer.body))
       : `<a href="${answer.link}" target="__blank">${answer.link}</a>`
-    const newMemberContext = await this.parseMemberAndUpdateContext(answer.owner.user_id, context);
-    const member = newMemberContext.member;
-    if (member !== undefined) {
-      context = newMemberContext.context;
-    }
+    const member: Member | undefined = await this.parseMember(answer.owner.user_id, context);
     activities.push({
       tenant: tenantId,
       sourceId: answer.answer_id.toString(),
@@ -274,23 +268,32 @@ export class StackOverlflowIntegrationService extends IntegrationServiceBase {
       member
     })
     }
-    await StackOverlflowIntegrationService.updateMembers(context);
     return activities;
   }
 
-  private async parseMemberAndUpdateContext(user_id: number, context: IStepContext): Promise<{member: Member, context: IStepContext}> {
-    if (user_id == undefined) {
-      return {member: undefined, context}
+  private async parseMember(user_id: number, context: IStepContext): Promise<any> {
+    const membersCache: RedisCache = context.pipelineData.membersCache;
+
+    context.logger.info(`Parsing member ${user_id}`);
+
+    const cached = await membersCache.getValue(user_id.toString());
+    if (cached) {
+      if (cached === 'null') {
+        return undefined
+      }
+
+      return JSON.parse(cached)
     }
-    else if (user_id && context.pipelineData.members[user_id]) {
-      return {member: context.pipelineData.members[user_id], context}
-    } 
-    else {
-      // parsing user from StackOverflow API
-      const member = await this.getMember(user_id, context);
-      context.pipelineData.members[user_id] = member;
-      return {member, context}
+    const member = await this.getMember(user_id, context);
+
+    if (member) {
+      await membersCache.setValue(user_id.toString(), JSON.stringify(member), 24 * 60 * 60)
+
+      return member;
     }
+
+    await membersCache.setValue(user_id.toString(), 'null', 24 * 60 * 60)
+    return undefined;
   }
 
   private async getMember(user_id: number, context: IStepContext): Promise<Member> {
@@ -316,21 +319,5 @@ export class StackOverlflowIntegrationService extends IntegrationServiceBase {
         },
       },
    }
-  }
-
-  /**
-   * Update members for an integration.
-   * This update needs to happen synchronously, since the message endpoints need these members
-   */
-  private static async updateMembers(context: IStepContext) {
-    const integration = await IntegrationRepository.findById(
-      context.integration.id,
-      context.repoContext,
-    )
-    const settings = {
-      members: context.pipelineData.members,
-      tags: integration.settings.tags || [],
-    }
-    await IntegrationRepository.update(context.integration.id, { settings }, context.repoContext)
   }
 }

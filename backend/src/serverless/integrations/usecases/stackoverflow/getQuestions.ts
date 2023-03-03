@@ -44,7 +44,7 @@ async function getQuestions(input: StackOverflowGetQuestionsInput, logger: Logge
         await timeout(backoff * 1000);
       }
       else {
-        throw new RateLimitError(backoff * 1000, "stackoverflow/getQuestions");
+        throw new RateLimitError(backoff, "stackoverflow/getQuestions");
       }
     }
     return response;

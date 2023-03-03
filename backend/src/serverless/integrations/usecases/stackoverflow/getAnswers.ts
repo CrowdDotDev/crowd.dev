@@ -8,9 +8,9 @@ import { RateLimitError } from '../../../../types/integration/rateLimitError'
 
 /**
  * Get paginated questions from StackOverflow given a set of tags
- * @param input RedditGetPostsInput. Made of a Pizzly ID to get the auth token, and a subreddit.
+ * @param input StackOverflowAnswersInput. Made of a Pizzly ID to get the auth token, and a question_ids.
  * @param logger Logger instance for structured logging
- * @returns A reddit API response containing the posts in a subreddit.
+ * @returns A StackOverflow API response containing the answers corresponding to a question with question_id.
  */
 async function getAnswers(input: StackOverflowAnswersInput, logger: Logger): Promise<StackOverflowAnswerResponse> {
   try {
@@ -26,7 +26,7 @@ async function getAnswers(input: StackOverflowAnswersInput, logger: Logger): Pro
       params: {
         page: input.page,
         page_size: 100,
-        order: 'asc',
+        order: 'desc',
         sort: 'creation',
         site: 'stackoverflow',
         filter: 'withbody',
@@ -45,7 +45,7 @@ async function getAnswers(input: StackOverflowAnswersInput, logger: Logger): Pro
         await timeout(backoff * 1000);
       }
       else {
-        throw new RateLimitError(backoff * 1000, "stackoverflow/getAnswers");
+        throw new RateLimitError(backoff, "stackoverflow/getAnswers");
       }
     }
     return response;

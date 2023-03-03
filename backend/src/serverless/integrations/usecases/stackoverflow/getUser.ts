@@ -32,13 +32,13 @@ async function getUser(user_id: number, logger: Logger): Promise<StackOverflowUs
 
     const response: StackOverflowUserResponse = (await axios(config)).data;
     const backoff = response.backoff;
-    if (backoff) {
+    if (backoff !== undefined) {
       if (backoff <= 2) {
         // Wait for backoff time returned by StackOverflow API
         await timeout(backoff * 1000);
       }
       else {
-        throw new RateLimitError(backoff * 1000, "stackoverflow/getUser");
+        throw new RateLimitError(backoff, "stackoverflow/getUser");
       }
     }
     return response.items[0];
