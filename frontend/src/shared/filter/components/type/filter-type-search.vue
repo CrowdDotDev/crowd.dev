@@ -15,12 +15,13 @@
 </template>
 <script setup>
 import {
-  h,
+  computed,
   defineEmits,
   defineProps,
-  watch,
+  h,
   ref,
-  computed
+  watch,
+  onMounted
 } from 'vue'
 import debounce from 'lodash/debounce'
 import { useStore } from 'vuex'
@@ -76,4 +77,10 @@ const debouncedChange = debounce((value) => {
     value
   })
 }, 300)
+
+onMounted(() => {
+  if (model.value !== storeSearch.value) {
+    model.value = storeSearch.value
+  }
+})
 </script>
