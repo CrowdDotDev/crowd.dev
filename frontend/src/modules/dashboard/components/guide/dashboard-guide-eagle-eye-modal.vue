@@ -55,6 +55,7 @@ export default {
 import { defineProps, defineEmits, computed } from 'vue'
 import AppDialog from '@/shared/dialog/dialog.vue'
 import { QuickstartGuideService } from '@/modules/dashboard/services/quickstart-guide.service'
+import { mapActions } from '@/shared/vuex/vuex.helpers'
 
 const props = defineProps({
   modelValue: {
@@ -64,6 +65,8 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['update:modelValue'])
+
+const { doRefreshCurrentUser } = mapActions('auth')
 
 const modalOpened = computed({
   get() {
@@ -80,6 +83,8 @@ const modalOpened = computed({
 const closing = () => {
   return QuickstartGuideService.updateSettings({
     isEagleEyeGuideDismissed: true
+  }).then(() => {
+    return doRefreshCurrentUser({})
   })
 }
 </script>

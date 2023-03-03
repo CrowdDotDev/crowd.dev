@@ -65,13 +65,17 @@ import { ref, computed, onMounted } from 'vue'
 import AppDashboardGuideItem from '@/modules/dashboard/components/guide/dashboard-guide-item.vue'
 import AppDashboardGuideModal from '@/modules/dashboard/components/guide/dashboard-guide-modal.vue'
 import * as loom from '@loomhq/loom-embed'
-import { mapGetters } from '@/shared/vuex/vuex.helpers'
+import {
+  mapActions,
+  mapGetters
+} from '@/shared/vuex/vuex.helpers'
 import ConfirmDialog from '@/shared/dialog/confirm-dialog'
 import AppDashboardGuideEagleEyeModal from '@/modules/dashboard/components/guide/dashboard-guide-eagle-eye-modal.vue'
 import { QuickstartGuideService } from '@/modules/dashboard/services/quickstart-guide.service'
 
 const { currentTenant, currentTenantUser } =
   mapGetters('auth')
+const { doRefreshCurrentUser } = mapActions('auth')
 const guides = ref([])
 const activeView = ref(null)
 const selectedGuide = ref(null)
@@ -128,6 +132,8 @@ const dismissGuides = () => {
     onboardingGuidesDismissed.value = true
     return QuickstartGuideService.updateSettings({
       isQuickstartGuideDismissed: true
+    }).then(() => {
+      return doRefreshCurrentUser({})
     })
   })
 }
