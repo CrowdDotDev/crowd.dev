@@ -302,22 +302,34 @@ export class StackOverlflowIntegrationService extends IntegrationServiceBase {
       context.logger,
     )
    return {
-    username: user.user_id,
-    displayName: user.display_name,
-     attributes: {
+    username: {
+      [PlatformType.STACKOVERFLOW]: user.display_name,
+    },
+    attributes: {
+      [MemberAttributeName.SOURCE_ID]: {
+          [PlatformType.STACKOVERFLOW]: user.user_id.toString(),
+      },
+      ...(user.profile_image && {
         [MemberAttributeName.AVATAR_URL]: {
           [PlatformType.STACKOVERFLOW]: user.profile_image,
-        },
-         [MemberAttributeName.URL]: {
+        }
+      }),
+      ...(user.link && {
+        [MemberAttributeName.URL]: {
           [PlatformType.STACKOVERFLOW]: user.link,
         },
+      }),
+      ...(user.location && {
         [MemberAttributeName.LOCATION]: {
           [PlatformType.STACKOVERFLOW]: user.location,
         },
+      }),
+      ...(user.about_me && {
         [MemberAttributeName.BIO]: {
           [PlatformType.STACKOVERFLOW]: user.about_me,
         },
-      },
+      }),
+  },
    }
   }
 }
