@@ -6,6 +6,10 @@ export enum QuickstartGuideType {
   INVITE_COLLEAGUES = 'invite-colleagues',
 }
 
+export interface QuickstartGuideMap {
+    [key: string]: QuickstartGuide;
+}
+
 export interface QuickstartGuide {
   title: string
   body: string
