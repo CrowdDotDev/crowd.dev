@@ -4,13 +4,6 @@ import { MemberAttributes, MemberAttributeName } from './enums'
 
 export const LinkedInMemberAttributes: Attribute[] = [
   {
-    name: MemberAttributes[MemberAttributeName.IS_ORGANIZATION].name,
-    label: MemberAttributes[MemberAttributeName.IS_ORGANIZATION].label,
-    type: AttributeType.BOOLEAN,
-    canDelete: false,
-    show: false,
-  },
-  {
     name: MemberAttributes[MemberAttributeName.URL].name,
     label: MemberAttributes[MemberAttributeName.URL].label,
     type: AttributeType.URL,
