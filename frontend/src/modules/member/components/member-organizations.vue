@@ -83,7 +83,7 @@
           v-if="organization.logo"
           :src="organization.logo"
           alt="Logo"
-          class="w-3.5 mr-1"
+          class="w-3.5"
         />
         <span class="text-xs">{{
           organization.name || '-'
