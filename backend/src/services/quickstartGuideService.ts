@@ -1,0 +1,82 @@
+import lodash from 'lodash'
+import { IServiceOptions } from './IServiceOptions'
+import { LoggingBase } from './loggingBase'
+import isFeatureEnabled from '../feature-flags/isFeatureEnabled'
+import {
+  DEFAULT_GUIDES,
+  QuickstartGuideSettings,
+  QuickstartGuideType,
+} from '../types/quickstartGuideTypes'
+import IntegrationRepository from '../database/repositories/integrationRepository'
+import MemberService from './memberService'
+import TenantUserRepository from '../database/repositories/tenantUserRepository'
+import ReportRepository from '../database/repositories/reportRepository'
+import { FeatureFlag } from '../types/common'
+
+export default class QuickstartGuideService extends LoggingBase {
+  options: IServiceOptions
+
+  constructor(options) {
+    super(options)
+    this.options = options
+  }
+
+  async updateSettings(settings: any) {
+    const quickstartGuideSettings: QuickstartGuideSettings = lodash.pick(settings, [
+      'isEagleEyeGuideDismissed',
+      'isQuickstartGuideDismissed',
+    ])
+
+    const tenantUser = await TenantUserRepository.updateSettings(
+      this.options.currentUser.id,
+      quickstartGuideSettings,
+      this.options,
+    )
+
+    return tenantUser
+  }
+
+  async find() {
+    const guides = DEFAULT_GUIDES
+
+    const integrationCount = await IntegrationRepository.count({}, this.options)
+
+    const ms = new MemberService(this.options)
+
+    const enrichedMembers = await ms.findAndCountAll({
+      filter: { enrichedBy: { contains: [this.options.currentUser.id] } },
+      limit: 1,
+    })
+
+    const tenantUser = await TenantUserRepository.findByTenantAndUser(
+      this.options.currentTenant.id,
+      this.options.currentUser.id,
+      this.options,
+    )
+
+    const allTenantUsers = await TenantUserRepository.findByTenant(
+      this.options.currentTenant.id,
+      this.options,
+    )
+
+    const viewedReports = await ReportRepository.findAndCountAll(
+      { advancedFilter: { viewedBy: { contains: [this.options.currentUser.id] } } },
+      this.options,
+    )
+
+    guides[QuickstartGuideType.CONNECT_INTEGRATION].completed = integrationCount > 1
+    guides[QuickstartGuideType.ENRICH_MEMBER].completed = enrichedMembers.count > 0
+    guides[QuickstartGuideType.VIEW_REPORT].completed = viewedReports.count > 0
+    guides[QuickstartGuideType.INVITE_COLLEAGUES].completed = allTenantUsers.some(
+      (tu) => tu.invitedById === this.options.currentUser.id,
+    )
+
+    if (await isFeatureEnabled(FeatureFlag.EAGLE_EYE, this.options)) {
+      guides[QuickstartGuideType.SET_EAGLE_EYE].completed = tenantUser.settings.eagleEye.onboarded
+    } else {
+      delete guides[QuickstartGuideType.SET_EAGLE_EYE]
+    }
+
+    return guides
+  }
+}

@@ -128,12 +128,16 @@ import AppEagleEyeEmailDigestCard from '@/premium/eagle-eye/components/list/eagl
 import AppEagleEyeSettingsDrawer from '@/premium/eagle-eye/components/list/eagle-eye-settings-drawer.vue'
 import { mapGetters } from '@/shared/vuex/vuex.helpers'
 
-const { currentUser } = mapGetters('auth')
+const { currentUser, currentTenant } = mapGetters('auth')
+
+const eagleEyeSettings = currentUser?.value.tenants.find(
+  (tu) => tu.tenantId === currentTenant?.value.id
+).settings.eagleEye
 
 const settingsDrawerOpen = ref(false)
 
 const eagleEyeFeedSettings = computed(() => {
-  return currentUser.value.eagleEyeSettings?.feed
+  return eagleEyeSettings?.feed
 })
 const keywords = computed(
   () => eagleEyeFeedSettings.value.keywords
@@ -156,7 +160,7 @@ const publishedDate = computed(
 )
 
 const aiRepliesEnabled = computed(() => {
-  return currentUser.value.eagleEyeSettings?.aiReplies
+  return eagleEyeSettings?.aiReplies
 })
 </script>
 

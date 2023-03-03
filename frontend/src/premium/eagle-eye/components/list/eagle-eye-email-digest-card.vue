@@ -65,19 +65,20 @@ import { mapGetters } from '@/shared/vuex/vuex.helpers'
 import AppEagleEyeEmailDigestDrawer from '@/premium/eagle-eye/components/list/eagle-eye-email-digest-drawer.vue'
 import { ref, computed } from 'vue'
 
-const { currentUser } = mapGetters('auth')
+const { currentUser, currentTenant } = mapGetters('auth')
+
+const eagleEyeSettings = currentUser.value.tenants.find(
+  (tu) => tu.tenantId === currentTenant.value.id
+).settings.eagleEye
 
 const isEmailDigestDrawerOpen = ref(false)
 
 const isEmailDigestConfiguredOnce = computed(
   () =>
-    !!Object.keys(
-      currentUser.value.eagleEyeSettings.emailDigest || {}
-    ).length
+    !!Object.keys(eagleEyeSettings.emailDigest || {}).length
 )
 
 const isEmailDigestActivated = computed(
-  () =>
-    currentUser.value.eagleEyeSettings?.emailDigestActive
+  () => eagleEyeSettings?.emailDigestActive
 )
 </script>

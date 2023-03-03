@@ -12,40 +12,35 @@ const job: CrowdJob = {
   cronTime: '*/30 * * * *',
   onTrigger: async () => {
     const options = await SequelizeRepository.getDefaultIRepositoryOptions()
-    const users = (
-      await options.database.user.findAll({
+    const tenantUsers = (
+      await options.database.tenantUser.findAll({
         where: {
           [Op.and]: [
             {
-              'eagleEyeSettings.emailDigestActive': {
+              'settings.eagleEye.emailDigestActive': {
                 [Op.ne]: null,
               },
             },
             {
-              'eagleEyeSettings.emailDigestActive': {
+              'settings.eagleEye.emailDigestActive': {
                 [Op.eq]: true,
               },
             },
           ],
         },
-        include: [
-          {
-            model: options.database.tenantUser,
-            as: 'tenants',
-          },
-        ],
       })
     ).filter(
-      (u) =>
-        u.eagleEyeSettings &&
-        u.eagleEyeSettings.emailDigestActive &&
-        moment() > moment(u.eagleEyeSettings.emailDigest.nextEmailAt),
+      (tenantUser) =>
+        tenantUser.settings.eagleEye &&
+        tenantUser.settings.eagleEye.emailDigestActive &&
+        moment() > moment(tenantUser.settings.eagleEye.emailDigest.nextEmailAt),
     )
 
-    for (const user of users) {
-      await sendNodeWorkerMessage(user.id, {
+    for (const tenantUser of tenantUsers) {
+      await sendNodeWorkerMessage(tenantUser.tenantId, {
         type: NodeWorkerMessageType.NODE_MICROSERVICE,
-        user: user.id,
+        user: tenantUser.userId,
+        tenant: tenantUser.tenantId,
         service: 'eagle-eye-email-digest',
       } as NodeWorkerMessageBase)
     }

@@ -2,7 +2,7 @@ import moment from 'moment-timezone'
 import { S3_CONFIG } from '../../../../config'
 import RecurringEmailsHistoryRepository from '../../../../database/repositories/recurringEmailsHistoryRepository'
 import SequelizeRepository from '../../../../database/repositories/sequelizeRepository'
-import UserRepository from '../../../../database/repositories/userRepository'
+import TenantUserRepository from '../../../../database/repositories/tenantUserRepository'
 import getUserContext from '../../../../database/utils/getUserContext'
 import EagleEyeContentService from '../../../../services/eagleEyeContentService'
 import EagleEyeSettingsService from '../../../../services/eagleEyeSettingsService'
@@ -13,24 +13,22 @@ import { createServiceChildLogger } from '../../../../utils/logging'
 
 const log = createServiceChildLogger('eagleEyeEmailDigestWorker')
 
-async function eagleEyeEmailDigestWorker(userId: string): Promise<void> {
+async function eagleEyeEmailDigestWorker(userId: string, tenantId: string): Promise<void> {
   const s3Url = `https://${
     S3_CONFIG.microservicesAssetsBucket
   }-${getStage()}.s3.eu-central-1.amazonaws.com`
   const options = await SequelizeRepository.getDefaultIRepositoryOptions()
-  const user = await UserRepository.findById(userId, {
-    ...options,
-    bypassPermissionValidation: true,
-  })
 
-  if (moment(user.eagleEyeSettings.emailDigest.nextEmailAt) > moment()) {
+  const tenantUser = await TenantUserRepository.findByTenantAndUser(tenantId, userId, options)
+
+  if (moment(tenantUser.settings.eagleEye.emailDigest.nextEmailAt) > moment()) {
     log.info(
       'nextEmailAt is already updated. Email is already sent. Exiting without sending the email.',
     )
     return
   }
 
-  const userContext = await getUserContext(user.tenants[0].tenant.id, user.id)
+  const userContext = await getUserContext(tenantId, userId)
 
   const eagleEyeContentService = new EagleEyeContentService(userContext)
   const content = (await eagleEyeContentService.search(true)).slice(0, 10).map((c: any) => {
@@ -43,11 +41,11 @@ async function eagleEyeEmailDigestWorker(userId: string): Promise<void> {
     EmailSender.TEMPLATES.EAGLE_EYE_DIGEST,
     {
       content,
-      frequency: user.eagleEyeSettings.emailDigest.frequency,
+      frequency: tenantUser.settings.eagleEye.emailDigest.frequency,
       date: moment().format('D MMM YYYY'),
     },
-    user.tenants[0].tenant.id,
-  ).sendTo(user.eagleEyeSettings.emailDigest.email)
+    tenantId,
+  ).sendTo(tenantUser.settings.eagleEye.emailDigest.email)
 
   const rehRepository = new RecurringEmailsHistoryRepository(userContext)
 
@@ -55,17 +53,17 @@ async function eagleEyeEmailDigestWorker(userId: string): Promise<void> {
     tenantId: userContext.currentTenant.id,
     type: RecurringEmailType.EAGLE_EYE_DIGEST,
     emailSentAt: moment().toISOString(),
-    emailSentTo: [user.eagleEyeSettings.emailDigest.email],
+    emailSentTo: [tenantUser.settings.eagleEye.emailDigest.email],
   })
 
   // update nextEmailAt
   const nextEmailAt = EagleEyeSettingsService.getNextEmailDigestDate(
-    user.eagleEyeSettings.emailDigest,
+    tenantUser.settings.eagleEye.emailDigest,
   )
-  const updateSettings = user.eagleEyeSettings
+  const updateSettings = tenantUser.settings.eagleEye
   updateSettings.emailDigest.nextEmailAt = nextEmailAt
 
-  await UserRepository.updateEagleEyeSettings(
+  await TenantUserRepository.updateEagleEyeSettings(
     userContext.currentUser.id,
     updateSettings,
     userContext,
