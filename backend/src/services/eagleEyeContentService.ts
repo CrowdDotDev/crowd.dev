@@ -14,7 +14,6 @@ import {
 } from '../types/eagleEyeTypes'
 import { PageData, QueryData } from '../types/common'
 import Error400 from '../errors/Error400'
-import UserRepository from '../database/repositories/userRepository'
 import SequelizeRepository from '../database/repositories/sequelizeRepository'
 import track from '../segment/track'
 import TenantUserRepository from '../database/repositories/tenantUserRepository'
