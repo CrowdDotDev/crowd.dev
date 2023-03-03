@@ -4,6 +4,7 @@ import { LoggingBase } from './loggingBase'
 import isFeatureEnabled from '../feature-flags/isFeatureEnabled'
 import {
   DEFAULT_GUIDES,
+  QuickstartGuideMap,
   QuickstartGuideSettings,
   QuickstartGuideType,
 } from '../types/quickstartGuideTypes'
@@ -36,15 +37,15 @@ export default class QuickstartGuideService extends LoggingBase {
     return tenantUser
   }
 
-  async find() {
-    const guides = DEFAULT_GUIDES
+  async find(): Promise<QuickstartGuideMap> {
+    const guides: QuickstartGuideMap = DEFAULT_GUIDES
 
-    const integrationCount = await IntegrationRepository.count({}, this.options)
+    const integrationCount: number = await IntegrationRepository.count({}, this.options)
 
     const ms = new MemberService(this.options)
 
     const enrichedMembers = await ms.findAndCountAll({
-      filter: { enrichedBy: { contains: [this.options.currentUser.id] } },
+      advancedFilter: { enrichedBy: { contains: [this.options.currentUser.id] } },
       limit: 1,
     })
 
@@ -75,6 +76,33 @@ export default class QuickstartGuideService extends LoggingBase {
       guides[QuickstartGuideType.SET_EAGLE_EYE].completed = tenantUser.settings.eagleEye.onboarded
     } else {
       delete guides[QuickstartGuideType.SET_EAGLE_EYE]
+    }
+
+    // try to find an enrichable member for button CTA of enrich member guide
+    if (!guides[QuickstartGuideType.ENRICH_MEMBER].completed) {
+      const enrichableMembers = await ms.findAndCountAll({
+        advancedFilter: {
+          or: [
+            {
+              email: {
+                ne: null,
+              },
+            },
+            {
+              identities: {
+                contains: ['github'],
+              },
+            },
+          ],
+        },
+        limit: 1,
+      })
+
+      if (enrichableMembers.count > 0) {
+        guides[
+          QuickstartGuideType.ENRICH_MEMBER
+        ].buttonLink = `/members/${enrichableMembers.rows[0].id}`
+      }
     }
 
     return guides

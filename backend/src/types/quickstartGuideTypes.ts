@@ -6,11 +6,16 @@ export enum QuickstartGuideType {
   INVITE_COLLEAGUES = 'invite-colleagues',
 }
 
+export interface QuickstartGuideMap {
+  [key: string]: QuickstartGuide
+}
+
 export interface QuickstartGuide {
   title: string
   body: string
   videoLink: string
   buttonLink: string
+  buttonText: string
   completed: boolean
 }
 
@@ -21,41 +26,46 @@ export interface QuickstartGuideSettings {
 
 const connectIntegrationGuide: QuickstartGuide = {
   title: 'Connect your integration',
-  body: 'bodyplaceholder',
-  videoLink: 'https://a-link',
-  buttonLink: 'https://a-link',
+  body: 'Connect with our built-in integrations to start syncing data from your digital channels.',
+  videoLink: 'https://loom.com/share/86b43eb32ae34469ba3317bd329c652f',
+  buttonLink: '/integrations',
+  buttonText: 'Connect integrations',
   completed: false,
 }
 
 const enrichMemberGuide: QuickstartGuide = {
   title: 'Enrich a member',
-  body: 'bodyplaceholder',
-  videoLink: 'https://a-link',
-  buttonLink: 'https://a-link',
+  body: 'Get more insights about members by enriching them with attributes such as emails, seniority, OSS contributions and much more.',
+  videoLink: 'https://loom.com/share/86b43eb32ae34469ba3317bd329c652f',
+  buttonLink: '/members',
+  buttonText: 'Try enrichment',
   completed: false,
 }
 
 const viewReportGuide: QuickstartGuide = {
   title: 'View a report',
-  body: 'bodyplaceholder',
-  videoLink: 'https://a-link',
-  buttonLink: 'https://a-link',
+  body: 'Check our specially crafted default reports and dig into the inner workings of your community.',
+  videoLink: 'https://loom.com/share/86b43eb32ae34469ba3317bd329c652f',
+  buttonLink: '/reports',
+  buttonText: 'Explore reports',
   completed: false,
 }
 
 const setEagleEyeGuide: QuickstartGuide = {
   title: 'Set Eagle Eye',
-  body: 'bodyplaceholder',
-  videoLink: 'https://a-link',
-  buttonLink: 'https://a-link',
+  body: 'Discover and engage with relevant content across various community platforms in order to gain developers’ mindshare and increase your community awareness.',
+  videoLink: 'https://loom.com/share/86b43eb32ae34469ba3317bd329c652f',
+  buttonLink: '/eagle-eye',
+  buttonText: 'Explore Eagle Eye',
   completed: false,
 }
 
 const inviteColleaguesGuide: QuickstartGuide = {
   title: 'Invite colleagues',
-  body: 'blah blah',
-  videoLink: 'https://a-link',
-  buttonLink: 'https://a-link',
+  body: 'Invite colleagues to your crowd.dev workspace by giving full access or read-only permissions',
+  videoLink: 'https://loom.com/share/86b43eb32ae34469ba3317bd329c652f',
+  buttonLink: '/settings',
+  buttonText: 'Invite colleagues',
   completed: false,
 }
 
