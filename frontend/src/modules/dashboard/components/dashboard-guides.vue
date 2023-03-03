@@ -143,6 +143,9 @@ const showModals = () => {
   onboardingGuidesDismissed.value =
     isQuickstartGuideDismissed
   if (!onboardingGuidesDismissed.value) {
+    activeView.value = notcompletedGuides.value?.length
+      ? notcompletedGuides.value[0].key
+      : null
     getGuides({}).then(() => {
       activeView.value = notcompletedGuides.value?.length
         ? notcompletedGuides.value[0].key

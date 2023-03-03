@@ -7,6 +7,12 @@ export default {
       .then((guides) => {
         return Promise.all(
           Object.entries(guides).map(([key, guide]) => {
+            if (guide.completed) {
+              return {
+                ...guide,
+                key
+              }
+            }
             try {
               return loom
                 .oembed(guide.videoLink, {
