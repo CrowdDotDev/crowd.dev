@@ -68,9 +68,10 @@ import * as loom from '@loomhq/loom-embed'
 import { mapGetters } from '@/shared/vuex/vuex.helpers'
 import ConfirmDialog from '@/shared/dialog/confirm-dialog'
 import AppDashboardGuideEagleEyeModal from '@/modules/dashboard/components/guide/dashboard-guide-eagle-eye-modal.vue'
+import { QuickstartGuideService } from '@/modules/dashboard/services/quickstart-guide.service'
 
-const { currentTenant } = mapGetters('auth')
-
+const { currentTenant, currentTenantUser } =
+  mapGetters('auth')
 const guides = ref([])
 const activeView = ref(null)
 const selectedGuide = ref(null)
@@ -90,16 +91,27 @@ const minCommunitySize = computed(() => {
 })
 
 const getGuides = () => {
-  // TODO: fetch guides
-  return Promise.all(
-    [].map((el) => {
-      return loom.oembed(el.loomLink).then((video) => ({
-        ...el,
-        loomThumbnailUrl: video.thumbnail_url,
-        loomHtml: video.html
-      }))
-    })
-  )
+  return QuickstartGuideService.fetch().then((guides) => {
+    return Promise.all(
+      Object.entries(guides).map(([key, el]) => {
+        try {
+          return loom
+            .oembed(el.videoLink)
+            .then((video) => ({
+              ...el,
+              key,
+              loomThumbnailUrl: video.thumbnail_url,
+              loomHtml: video.html
+            }))
+        } catch (error) {
+          return Promise.resolve({
+            ...el,
+            key
+          })
+        }
+      })
+    )
+  })
 }
 
 const dismissGuides = () => {
@@ -113,35 +125,39 @@ const dismissGuides = () => {
     confirmButtonText: 'Dismiss quickstart guide',
     cancelButtonText: 'Cancel'
   }).then(() => {
-    localStorage.setItem('onboardingGuidesDismissed', true)
     onboardingGuidesDismissed.value = true
+    return QuickstartGuideService.updateSettings({
+      isQuickstartGuideDismissed: true
+    })
   })
 }
 
 onMounted(async () => {
   // Check if it can open eagle eye onboarding modal
-  const onboardingEagleEyeModal = localStorage.getItem(
-    'onboardingEagleEyeModal'
-  )
+  const {
+    isEagleEyeGuideDismissed,
+    isQuickstartGuideDismissed
+  } = currentTenantUser.value.settings
   if (
     minCommunitySize.value < 5000 &&
-    !onboardingEagleEyeModal
+    !isEagleEyeGuideDismissed
   ) {
     eagleEyeModalOpened.value = true
   }
 
   // Check if onboarding guides dismissed
-  onboardingGuidesDismissed.value = !!localStorage.getItem(
-    'onboardingGuidesDismissed'
-  )
-  if (onboardingGuidesDismissed.value) {
-    return
+  onboardingGuidesDismissed.value =
+    isQuickstartGuideDismissed
+  if (
+    !onboardingGuidesDismissed.value &&
+    minCommunitySize.value >= 5000
+  ) {
+    getGuides().then((guideList) => {
+      guides.value = guideList
+      activeView.value = notcompletedGuides.value?.length
+        ? notcompletedGuides.value[0].key
+        : null
+    })
   }
-  getGuides().then((guideList) => {
-    guides.value = guideList
-    activeView.value = notcompletedGuides.value?.length
-      ? notcompletedGuides.value[0].id
-      : null
-  })
 })
 </script>

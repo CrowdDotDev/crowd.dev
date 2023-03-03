@@ -1,7 +1,6 @@
 <template>
   <article
     class="border-t first:border-none border-gray-200"
-    :class="{ hidden: !props.guide.display }"
   >
     <!--         header-->
     <div
@@ -47,7 +46,7 @@
       <div class="pb-1">
         <div
           v-if="
-            props.guide.loomUrl &&
+            props.guide.videoLink &&
             props.guide.loomThumbnailUrl
           "
           class="relative rounded bg-gray-100 mb-4 w-full h-20 flex items-center justify-center bg-cover group cursor-pointer"
@@ -63,12 +62,12 @@
         <p class="text-xs text-gray-600 leading-5 mb-4">
           {{ props.guide.body }}
         </p>
-        <router-link :to="props.guide.actionLink">
+        <router-link :to="props.guide.buttonLink">
           <el-button
-            v-if="props.guide.actionText"
+            v-if="props.guide.buttonText"
             class="btn btn--primary btn--sm w-full mb-4 leading-5"
           >
-            {{ props.guide.actionText }}
+            {{ props.guide.buttonText }}
           </el-button>
         </router-link>
       </div>

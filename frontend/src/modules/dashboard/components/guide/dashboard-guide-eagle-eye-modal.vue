@@ -54,6 +54,7 @@ export default {
 <script setup>
 import { defineProps, defineEmits, computed } from 'vue'
 import AppDialog from '@/shared/dialog/dialog.vue'
+import { QuickstartGuideService } from '@/modules/dashboard/services/quickstart-guide.service'
 
 const props = defineProps({
   modelValue: {
@@ -77,7 +78,8 @@ const modalOpened = computed({
 })
 
 const closing = () => {
-  console.log('closing')
-  localStorage.setItem('onboardingEagleEyeModal', true)
+  return QuickstartGuideService.updateSettings({
+    isEagleEyeGuideDismissed: true
+  })
 }
 </script>

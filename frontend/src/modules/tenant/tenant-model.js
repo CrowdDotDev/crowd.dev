@@ -30,8 +30,8 @@ const fields = {
     required: true,
     max: 50
   }),
-  achievement: new StringField(
-    'achievement',
+  reasonForUsingCrowd: new StringField(
+    'reasonForUsingCrowd',
     'What would you like to achieve with crowd.dev? ',
     {}
   ),

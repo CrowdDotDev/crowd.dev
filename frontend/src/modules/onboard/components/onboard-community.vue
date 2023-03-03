@@ -147,18 +147,18 @@
         </template>
       </el-form-item>
       <el-form-item
-        :prop="fields.achievement.name"
+        :prop="fields.reasonForUsingCrowd.name"
         class="mb-12"
       >
         <label>
           <span
             class="block text-xs font-semibold leading-5 mb-1"
           >
-            {{ fields.achievement.label }}
+            {{ fields.reasonForUsingCrowd.label }}
           </span>
         </label>
         <el-select
-          v-model="model[fields.achievement.name]"
+          v-model="model[fields.reasonForUsingCrowd.name]"
           placeholder="Select option"
         >
           <el-option
@@ -191,14 +191,14 @@ import tenantCommunitySize from '@/jsons/tenant-community-size.json'
 import { onSelectMouseLeave } from '@/utils/select'
 import { TenantService } from '@/modules/tenant/tenant-service'
 import Message from '@/shared/message/message'
-import achievements from '@/modules/onboard/config/achievements.config.json'
+import achievements from '@/modules/onboard/config/achievements.config.js'
 
 const { fields } = TenantModel
 const formSchema = new FormSchema([
   fields.tenantName,
   fields.tenantPlatforms,
   fields.tenantSize,
-  fields.achievement
+  fields.reasonForUsingCrowd
 ])
 export default {
   name: 'AppOnboardCommunity',
@@ -231,19 +231,6 @@ export default {
         formSchema.isValidSync(this.model) &&
         this.model[fields.tenantPlatforms.name].length > 0
       )
-    }
-  },
-  watch: {
-    currentTenant: {
-      deep: true,
-      immediate: true,
-      handler(tenant) {
-        if (tenant && !this.isNew) {
-          this.model = tenant
-          this.selectedPlatforms =
-            tenant[fields.tenantPlatforms.name] || []
-        }
-      }
     }
   },
   methods: {
