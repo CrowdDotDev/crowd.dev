@@ -40,7 +40,7 @@ async function workerFactory(event: NodeMicroserviceMessage): Promise<any> {
       return weeklyAnalyticsEmailsWorker(tenant)
     case 'eagle-eye-email-digest':
       const eagleEyeDigestMessage = event as EagleEyeEmailDigestMessage
-      return eagleEyeEmailDigestWorker(eagleEyeDigestMessage.user)
+      return eagleEyeEmailDigestWorker(eagleEyeDigestMessage.user, eagleEyeDigestMessage.tenant)
     case 'csv-export':
       const csvExportMessage = event as CsvExportMessage
       return csvExportWorker(

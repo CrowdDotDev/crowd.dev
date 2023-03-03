@@ -40,6 +40,7 @@ describe('ReportRepository tests', () => {
         createdById: mockIRepositoryOptions.currentUser.id,
         updatedById: mockIRepositoryOptions.currentUser.id,
         widgets: [],
+        viewedBy: [],
       }
 
       expect(reportCreated).toStrictEqual(reportExpected)
@@ -71,6 +72,7 @@ describe('ReportRepository tests', () => {
         createdById: mockIRepositoryOptions.currentUser.id,
         updatedById: mockIRepositoryOptions.currentUser.id,
         widgets: [],
+        viewedBy: [],
       }
 
       expect(reportCreated).toStrictEqual(reportExpected)
@@ -127,6 +129,7 @@ describe('ReportRepository tests', () => {
         createdById: mockIRepositoryOptions.currentUser.id,
         updatedById: mockIRepositoryOptions.currentUser.id,
         widgets: [widget1Raw, widget2Raw, widget3Raw],
+        viewedBy: [],
       }
 
       expect(reportCreated).toStrictEqual(reportExpected)
@@ -167,6 +170,7 @@ describe('ReportRepository tests', () => {
         createdById: mockIRepositoryOptions.currentUser.id,
         updatedById: mockIRepositoryOptions.currentUser.id,
         widgets: [],
+        viewedBy: [],
       }
       const reportById = await ReportRepository.findById(reportCreated.id, mockIRepositoryOptions)
 
@@ -385,6 +389,7 @@ describe('ReportRepository tests', () => {
         updatedById: mockIRepositoryOptions.currentUser.id,
         widgets: [widgetRaw],
         isTemplate: false,
+        viewedBy: [],
       }
 
       expect(reportUpdated).toStrictEqual(reportExpected)
