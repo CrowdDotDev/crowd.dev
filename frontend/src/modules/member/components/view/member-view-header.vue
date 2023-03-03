@@ -2,7 +2,7 @@
   <div class="member-view-header panel relative">
     <div class="flex items-start gap-4">
       <app-avatar :entity="member" size="xl" />
-      <div class="flex flex-col gap-2">
+      <div class="flex grow flex-col gap-2">
         <div class="flex justify-between items-center">
           <div class="flex items-center h-fit">
             <h5>{{ member.displayName }}</h5>
