@@ -1,39 +1,29 @@
 <template>
   <div class="member-view-header panel relative">
-    <div class="flex items-start justify-between">
-      <div class="flex items-start">
-        <app-avatar
-          :entity="member"
-          size="xl"
-          class="mr-4"
-        />
-        <div>
-          <div class="flex items-center">
+    <div class="flex items-start gap-4">
+      <app-avatar :entity="member" size="xl" />
+      <div class="flex flex-col gap-2">
+        <div class="flex justify-between items-center">
+          <div class="flex items-center h-fit">
             <h5>{{ member.displayName }}</h5>
             <app-member-badge
               :member="member"
               class="ml-2"
             />
           </div>
-          <app-member-organizations
-            class="mt-2"
-            :member="member"
-            orientation="horizontal"
-          />
+          <div class="flex items-center gap-4">
+            <app-member-sentiment :member="member" />
+            <app-member-engagement-level :member="member" />
+            <app-member-dropdown
+              :member="member"
+              :show-view-member="false"
+            />
+          </div>
         </div>
-      </div>
-      <div class="flex items-center">
-        <app-member-sentiment
+        <app-member-organizations
+          class="mt-2"
           :member="member"
-          class="mr-4"
-        />
-        <app-member-engagement-level
-          :member="member"
-          class="mr-4"
-        />
-        <app-member-dropdown
-          :member="member"
-          :show-view-member="false"
+          orientation="horizontal"
         />
       </div>
     </div>

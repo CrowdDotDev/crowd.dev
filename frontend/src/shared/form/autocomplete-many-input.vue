@@ -21,6 +21,7 @@
     class="autocomplete-many-input"
     :class="{
       [inputClass]: true,
+      collapse: collapseTags && !isSelectFocused,
       expand: collapseTags && isSelectFocused,
       empty: collapseTags && !model.length
     }"
@@ -359,13 +360,15 @@ export default {
 
 <style lang="scss">
 .autocomplete-many-input {
-  .el-input__wrapper {
-    height: 40px;
-  }
+  &.collapse {
+    .el-input__wrapper {
+      height: 40px;
+    }
 
-  .el-select__tags {
-    top: 6px;
-    transform: none;
+    .el-select__tags {
+      top: 6px;
+      transform: none;
+    }
   }
 
   &.expand {
