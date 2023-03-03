@@ -12,7 +12,7 @@
     </template>
 
     <template #content>
-      <div class="px-6 pb-6">
+      <div class="px-6 pb-6 loom">
         <div v-html="guide.loomHtml"></div>
       </div>
       <div
@@ -62,3 +62,11 @@ const modalOpened = computed({
   }
 })
 </script>
+
+<style lang="scss">
+.loom {
+  .lo-emb-vid {
+    padding-bottom: 59% !important;
+  }
+}
+</style>

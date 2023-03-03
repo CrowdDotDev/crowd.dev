@@ -25,7 +25,7 @@ export interface QuickstartGuideSettings {
 }
 
 const connectIntegrationGuide: QuickstartGuide = {
-  title: 'Connect your integration',
+  title: 'Connect your first 2 integrations',
   body: 'Connect with our built-in integrations to start syncing data from your digital channels.',
   videoLink: 'https://loom.com/share/86b43eb32ae34469ba3317bd329c652f',
   buttonLink: '/integrations',
@@ -43,7 +43,7 @@ const enrichMemberGuide: QuickstartGuide = {
 }
 
 const viewReportGuide: QuickstartGuide = {
-  title: 'View a report',
+  title: 'Look into a report',
   body: 'Check our specially crafted default reports and dig into the inner workings of your community.',
   videoLink: 'https://loom.com/share/86b43eb32ae34469ba3317bd329c652f',
   buttonLink: '/reports',
@@ -52,7 +52,7 @@ const viewReportGuide: QuickstartGuide = {
 }
 
 const setEagleEyeGuide: QuickstartGuide = {
-  title: 'Set Eagle Eye',
+  title: 'Discover content in your niche',
   body: 'Discover and engage with relevant content across various community platforms in order to gain developers’ mindshare and increase your community awareness.',
   videoLink: 'https://loom.com/share/86b43eb32ae34469ba3317bd329c652f',
   buttonLink: '/eagle-eye',
@@ -61,8 +61,8 @@ const setEagleEyeGuide: QuickstartGuide = {
 }
 
 const inviteColleaguesGuide: QuickstartGuide = {
-  title: 'Invite colleagues',
-  body: 'Invite colleagues to your crowd.dev workspace by giving full access or read-only permissions',
+  title: 'Invite your colleagues',
+  body: 'Invite colleagues to your crowd.dev workspace by giving full access or read-only permissions.',
   videoLink: 'https://loom.com/share/86b43eb32ae34469ba3317bd329c652f',
   buttonLink: '/settings',
   buttonText: 'Invite colleagues',
