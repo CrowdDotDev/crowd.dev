@@ -14,9 +14,14 @@ export default {
               }
             }
             try {
-              return loom
-                .oembed(guide.videoLink, {
-                  hideOwner: true
+              return fetch(guide.videoLink)
+                .then((res) => {
+                  return res.url
+                })
+                .then((url) => {
+                  return loom.oembed(url, {
+                    hideOwner: true
+                  })
                 })
                 .then((video) => ({
                   ...guide,
