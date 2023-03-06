@@ -10,7 +10,6 @@ import { IRepositoryOptions } from '../../../../database/repositories/IRepositor
 import { createServiceChildLogger } from '../../../../utils/logging'
 import { IntegrationDataCheckerSettings } from './integrationDataCheckerTypes'
 import { sendSlackAlert, SlackAlertTypes } from '../../../../utils/slackAlerts'
-import { SLACK_ALERTING_CONFIG } from '../../../../config'
 
 const log = createServiceChildLogger('integrationDataCheckerWorker')
 
@@ -32,7 +31,6 @@ async function integrationDataCheckerWorker(integrationId, tenantId): Promise<vo
  * @param userContext User context
  */
 async function checkIntegrationForAllSettings(integration, userContext: IRepositoryOptions) {
-  console.log(SLACK_ALERTING_CONFIG.url)
   const activityService = new ActivityService(userContext)
   for (const settings of integrationDataCheckerSettings) {
     // This is moment() - the time. For example, moment().subtract(1, 'hour') is 1 hour ago.
