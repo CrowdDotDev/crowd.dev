@@ -60,14 +60,11 @@ export default {
   },
 
   showPMFSurveyAlert: (
-    _state,
+    state,
     _getters,
     _rootState,
     rootGetters
   ) => {
-    const hidePmfBanner = localStorage.getItem(
-      `hidePmfBanner-${config.formbricks.pmfFormId}`
-    )
     const timestampSignup = new Date(
       rootGetters['auth/currentUser'].createdAt
     ).getTime()
@@ -80,7 +77,7 @@ export default {
       timestampSignup <= timeStamp4WeeksAgo &&
       config.formbricks.url &&
       config.formbricks.pmfFormId &&
-      !hidePmfBanner
+      !state.hidePmfBanner
     )
   },
 

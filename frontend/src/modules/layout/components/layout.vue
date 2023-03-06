@@ -88,10 +88,7 @@
               completely loaded.
             </div>
           </banner>
-          <banner
-            v-if="showPMFSurveyAlert && !hidePmfBanner"
-            variant="info"
-          >
+          <banner v-if="showPMFSurveyAlert" variant="info">
             <div
               class="flex items-center justify-center grow text-sm"
             >
@@ -109,7 +106,7 @@
               </div>
               <div class="flex-1">
                 <div class="w-20 ml-auto">
-                  <button @click="hidePmfAsk()">
+                  <button @click="doHidePmfBanner()">
                     <i
                       class="ri-close-line text-gray-700"
                     ></i>
@@ -177,10 +174,7 @@ export default {
     return {
       fetchIntegrationTimer: null,
       loading: false,
-      showPmfSurvey: false,
-      hidePmfBanner: localStorage.getItem(
-        `hidePmfBanner-${config.formbricks.pmfFormId}`
-      )
+      showPmfSurvey: false
     }
   },
 
@@ -266,7 +260,7 @@ export default {
           formbricksUrl: config.formbricks.url,
           formId: config.formbricks.pmfFormId,
           containerId: 'formbricks-pmf-container',
-          onFinished: () => this.hidePmfAsk(),
+          onFinished: () => this.doHidePmfBanner(),
           contact: {
             name: 'Jonathan',
             position: 'Co-Founder',
@@ -298,7 +292,8 @@ export default {
 
   methods: {
     ...mapActions({
-      collapseMenu: 'layout/collapseMenu'
+      collapseMenu: 'layout/collapseMenu',
+      doHidePmfBanner: 'tenant/doHidePmfBanner'
     }),
 
     toggleShowPmfSurvey() {
@@ -307,14 +302,6 @@ export default {
         window.formbricksPmf.init()
         window.formbricksPmf.reset()
       }
-    },
-
-    hidePmfAsk() {
-      this.hidePmfBanner = true
-      localStorage.setItem(
-        `hidePmfBanner-${config.formbricks.pmfFormId}`,
-        true
-      )
     },
 
     initPendo() {
