@@ -111,7 +111,9 @@ export class MemberService {
     buildFilter = true
   ) {
     const body = {
-      filter: buildFilter ? buildApiFilter(filter) : filter,
+      filter:
+        (buildFilter ? buildApiFilter(filter) : filter) ||
+        {},
       orderBy,
       limit,
       offset
