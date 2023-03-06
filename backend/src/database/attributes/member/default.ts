@@ -45,4 +45,11 @@ export const DefaultMemberAttributes: Attribute[] = [
     canDelete: false,
     show: false,
   },
+  {
+    name: MemberAttributes[MemberAttributeName.IS_ORGANIZATION].name,
+    label: MemberAttributes[MemberAttributeName.IS_ORGANIZATION].label,
+    type: AttributeType.BOOLEAN,
+    canDelete: false,
+    show: false,
+  },
 ]
