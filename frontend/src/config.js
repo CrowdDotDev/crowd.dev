@@ -34,8 +34,6 @@ const defaultConfig = {
   pizzlyUrl: process.env.VUE_APP_PIZZLY_URL,
   pizzlyPublishableKey:
     process.env.VUE_APP_PIZZLY_PUBLISHABLE_KEY,
-  typeformId: process.env.VUE_APP_TYPEFORM_ID,
-  typeformTitle: process.env.VUE_APP_TYPEFORM_TITLE,
   unleash: {
     apiKey: process.env.VUE_APP_UNLEASH_API_KEY,
     url: process.env.VUE_APP_UNLEASH_URL
@@ -79,8 +77,6 @@ const composedConfig = {
   pizzlyUrl: 'CROWD_VUE_APP_PIZZLY_URL',
   pizzlyPublishableKey:
     'CROWD_VUE_APP_PIZZLY_PUBLISHABLE_KEY',
-  typeformId: 'CROWD_VUE_APP_TYPEFORM_ID',
-  typeformTitle: 'CROWD_VUE_APP_TYPEFORM_TITLE',
   unleash: {
     apiKey: 'CROWD_VUE_APP_UNLEASH_API_KEY',
     url: 'CROWD_VUE_APP_UNLEASH_URL'
