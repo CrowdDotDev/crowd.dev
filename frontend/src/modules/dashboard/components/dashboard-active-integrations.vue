@@ -98,6 +98,21 @@
               </el-tooltip>
             </div>
             <div
+              v-else-if="
+                integration.status === 'waiting-approval'
+              "
+            >
+              <el-tooltip
+                effect="dark"
+                content="Waiting for approval"
+                placement="top-start"
+              >
+                <div
+                  class="ri-time-line text-base text-gray-500"
+                ></div>
+              </el-tooltip>
+            </div>
+            <div
               v-else-if="integration.status !== undefined"
             >
               <el-tooltip
