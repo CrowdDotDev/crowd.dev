@@ -470,6 +470,16 @@ class MemberRepository {
       conditions.push("COALESCE((m.attributes->'isBot'->'default')::boolean, false) = false")
     }
 
+    if (filter.isOrganization === true) {
+      conditions.push(
+        "COALESCE((m.attributes->'isOrganization'->'default')::boolean, false) = true",
+      )
+    } else if (filter.isOrganization === false) {
+      conditions.push(
+        "COALESCE((m.attributes->'isOrganization'->'default')::boolean, false) = false",
+      )
+    }
+
     const activityConditions = ['1=1']
 
     if (filter.platforms && filter.platforms.length > 0) {
