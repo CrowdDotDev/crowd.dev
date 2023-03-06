@@ -240,5 +240,8 @@ export const EAGLE_EYE_CONFIG: EagleEyeConfiguration = KUBE_MODE
 
 export const UNLEASH_CONFIG: UnleashConfiguration = config.get<UnleashConfiguration>('unleash')
 
-export const SLACK_ALERTING_CONFIG: SlackAlertingConfiguration =
-  config.get<SlackAlertingConfiguration>('slackAlerting')
+export const SLACK_ALERTING_CONFIG: SlackAlertingConfiguration = KUBE_MODE
+  ? config.get<SlackAlertingConfiguration>('slackAlerting')
+  : {
+      url: process.env.SLACK_ALERTING_URL,
+    }
