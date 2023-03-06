@@ -9,13 +9,14 @@ export default {
       state.views[activeView].list.posts.length = 0
     }
 
-    state.pagination = keepPagination
-      ? state.pagination
-      : {
-          currentPage: 1,
-          pageSize:
-            state.pagination && state.pagination.pageSize
-        }
+    if (activeView.pagination) {
+      activeView.pagination = keepPagination
+        ? activeView.pagination
+        : {
+            currentPage: 1,
+            pageSize: activeView.pagination.pageSize
+          }
+    }
   },
 
   FETCH_SUCCESS(
