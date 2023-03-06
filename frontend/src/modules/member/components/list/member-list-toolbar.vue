@@ -25,7 +25,6 @@
           Merge members
         </el-dropdown-item>
         <el-tooltip
-          v-if="areSelectedMembersNotEnriched"
           placement="top"
           content="Selected members lack an associated GitHub profile or Email"
           :disabled="elegibleEnrichmentMembersIds.length"
@@ -44,7 +43,9 @@
                 class="max-w-[16px] h-4"
                 color="#9CA3AF"
               />
-              <span class="ml-2">Enrich members</span>
+              <span class="ml-2">{{
+                enrichmentLabel
+              }}</span>
             </el-dropdown-item>
           </span>
         </el-tooltip>
@@ -130,22 +131,34 @@ export default {
     },
     elegibleEnrichmentMembersIds() {
       return this.selectedRows
-        .filter(
-          (r) =>
-            (r.username?.github || r.email) &&
-            !r.lastEnriched
-        )
+        .filter((r) => r.username?.github || r.email)
         .map((item) => item.id)
+    },
+    enrichedMembers() {
+      return this.selectedRows.filter((r) => r.lastEnriched)
+        .length
+    },
+    enrichmentLabel() {
+      if (
+        this.enrichedMembers &&
+        this.enrichedMembers ===
+          this.elegibleEnrichmentMembersIds.length
+      ) {
+        return `Re-enrich ${pluralize(
+          'member',
+          this.selectedIds.length,
+          false
+        )}`
+      }
+
+      return `Enrich ${pluralize(
+        'member',
+        this.selectedIds.length,
+        false
+      )}`
     },
     selectedIds() {
-      return this.selectedRows
-        .filter((item) => !item.lastEnriched)
-        .map((item) => item.id)
-    },
-    areSelectedMembersNotEnriched() {
-      return this.selectedRows.some(
-        (item) => !item.lastEnriched
-      )
+      return this.selectedRows.map((item) => item.id)
     },
     markAsTeamMemberOptions() {
       const isTeamView = this.activeView.id === 'team'
@@ -192,16 +205,45 @@ export default {
       } else if (command.action === 'destroyAll') {
         await this.doDestroyAllWithConfirm()
       } else if (command.action === 'enrichMember') {
+        const enrichments =
+          this.elegibleEnrichmentMembersIds.length
+        let doEnrich = false
+        let reEnrichmentMessage = null
+
+        if (this.enrichedMembers) {
+          reEnrichmentMessage =
+            this.enrichedMembers === 1
+              ? `You selected 1 member that was already enriched. If you proceed, this member will be re-enriched and counted towards your quota.`
+              : `You selected ${this.enrichedMembers} members that were already enriched. If you proceed, these members will be re-enriched and counted towards your quota.`
+        }
+
         // All members are elegible for enrichment
-        if (
-          this.elegibleEnrichmentMembersIds.length ===
-          this.selectedIds.length
-        ) {
-          await this.doBulkEnrich(
-            this.elegibleEnrichmentMembersIds
-          )
-        } else {
+        if (enrichments === this.selectedIds.length) {
+          // If there are already enriched members, show a warning dialog
+          if (this.enrichedMembers) {
+            try {
+              await ConfirmDialog({
+                type: 'warning',
+                title: 'Some members were already enriched',
+                message: reEnrichmentMessage,
+                confirmButtonText: `Proceed with enrichment (${pluralize(
+                  'member',
+                  enrichments,
+                  true
+                )})`,
+                cancelButtonText: 'Cancel',
+                icon: 'ri-alert-line'
+              })
+
+              doEnrich = true
+            } catch (error) {
+              // no
+            }
+          } else {
+            doEnrich = true
+          }
           // Only a few members are elegible for enrichment
+        } else {
           try {
             await ConfirmDialog({
               type: 'warning',
@@ -211,19 +253,24 @@ export default {
                 'Member enrichment requires an associated GitHub profile or Email. If you proceed, only the members who fulfill this requirement will be enriched and counted towards your quota.',
               confirmButtonText: `Proceed with enrichment (${pluralize(
                 'member',
-                this.elegibleEnrichmentMembersIds.length,
+                enrichments,
                 true
               )})`,
+              highlightedInfo: reEnrichmentMessage,
               cancelButtonText: 'Cancel',
               icon: 'ri-alert-line'
             })
 
-            await this.doBulkEnrich(
-              this.elegibleEnrichmentMembersIds
-            )
+            doEnrich = true
           } catch (error) {
             // no
           }
+        }
+
+        if (doEnrich) {
+          await this.doBulkEnrich(
+            this.elegibleEnrichmentMembersIds
+          )
         }
       }
     },
