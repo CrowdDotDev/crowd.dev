@@ -14,6 +14,7 @@ import PermissionChecker from '../../services/user/permissionChecker'
  * @queryParam {string} [filter[platforms]] - Filter by activity platforms (comma separated list without spaces)
  * @queryParam {string} [filter[isTeamMember]] - If true we will return just team members, if false we will return just non-team members, if undefined we will return both.
  * @queryParam {string} [filter[isBot]] - If true we will return just members who are bots, if false we will return just non-bot members, if undefined we will return both.
+ * @queryParam {string} [filter[isOrganization]] - If true we will return just members who are organizations (such as linkedin organizations that post), if false we will return just non-organization members, if undefined we will return both.
  * @queryParam {string} [filter[activityTimestampFrom]] - Filter by activity timestamp from (required)
  * @queryParam {string} [filter[activityTimestampTo]] - Filter by activity timestamp to (required)
  * @queryParam {string} [orderBy] - How to sort results. Available values: activityCount_DESC, activityCount_ASC, activeDaysCount_DESC, activeDaysCount_ASC (default activityCount_DESC)
@@ -53,6 +54,10 @@ export default async (req, res) => {
         ? undefined
         : req.query.filter?.isTeamMember === 'true',
     isBot: req.query.filter?.isBot === undefined ? undefined : req.query.filter?.isBot === 'true',
+    isOrganization:
+      req.query.filter?.isOrganization === undefined
+        ? undefined
+        : req.query.filter?.isOrganization === 'true',
     activityTimestampFrom: req.query.filter?.activityTimestampFrom,
     activityTimestampTo: req.query.filter?.activityTimestampTo,
   }
