@@ -252,7 +252,7 @@ export default {
     identify(this.currentUser)
     this.initPendo()
     // formbricks pmf
-    console.log('formbricks 23', config.formbricks)
+    console.log('formbricks', config.formbricks)
     if (
       config.formbricks.url &&
       config.formbricks.pmfFormId
