@@ -125,7 +125,7 @@
   <!-- PMF Modal -->
   <div
     v-show="showPmfSurvey"
-    class="relative z-10"
+    class="relative z-30"
     aria-labelledby="modal-title"
     role="dialog"
     aria-modal="true"
