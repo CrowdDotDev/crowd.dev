@@ -117,6 +117,14 @@ export class MemberService {
       offset
     }
 
+    // Remove members marked as organizations from all responses
+    body.filter.and = [
+      {
+        isOrganization: { not: true }
+      },
+      { ...body.filter }
+    ]
+
     const tenantId = AuthCurrentTenant.get()
 
     const response = await authAxios.post(
@@ -145,6 +153,7 @@ export class MemberService {
       ...(isTeamMember === false && {
         'filter[isTeamMember]': isTeamMember
       }),
+      'filter[isOrganization]': false,
       'filter[isBot]': false,
       'filter[activityTimestampFrom]':
         activityTimestampFrom,

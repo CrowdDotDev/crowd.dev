@@ -2,7 +2,13 @@ import moment from 'moment'
 
 // Add platform and team members filters to cube query filters array
 const getCubeFilters = ({ platforms, hasTeamMembers }) => {
-  let filters = []
+  let filters = [
+    {
+      member: 'Members.isOrganization',
+      operator: 'equals',
+      values: ['0']
+    }
+  ]
 
   if (platforms.length) {
     filters.push({
