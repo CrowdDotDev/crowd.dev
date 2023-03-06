@@ -44,6 +44,7 @@ module.exports = {
       query.timeDimensions[0].dateRange = ['2020-01-01', new Date().toISOString()]
     }
 
+    
     query.filters.push({
       member: `Members.isBot`,
       operator: 'equals',
