@@ -90,7 +90,10 @@
               completely loaded.
             </div>
           </banner>
-          <banner v-if="showPMFSurveyAlert" variant="info">
+          <banner
+            v-if="showPMFSurveyAlert && !hidePmfBanner"
+            variant="info"
+          >
             <div
               class="flex items-center justify-center grow text-sm"
             >
@@ -124,7 +127,7 @@
   </el-container>
   <!-- PMF Modal -->
   <div
-    v-if="showPmfSurvey"
+    v-show="showPmfSurvey"
     class="relative z-10"
     aria-labelledby="modal-title"
     role="dialog"
@@ -309,7 +312,7 @@ export default {
     hidePmfAsk() {
       this.hidePmfBanner = true
       localStorage.setItem(
-        `hidePmfBanner-${config.typeformId}`,
+        `hidePmfBanner-${config.formbricks.pmfFormId}`,
         true
       )
     },
