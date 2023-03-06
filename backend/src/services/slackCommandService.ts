@@ -2,7 +2,7 @@
 import { validate as uuidValidate } from 'uuid'
 import moment from 'moment'
 import { Section, Message, SlackMessageDto, Divider } from 'slack-block-builder'
-import { IS_DEV_ENV, IS_STAGING_ENV, IS_PROD_ENV } from '../config/index'
+import { IS_DEV_ENV, IS_STAGING_ENV, IS_PROD_ENV } from '../config'
 import TenantRepository from '../database/repositories/tenantRepository'
 import {
   SlackCommand,
@@ -78,18 +78,23 @@ export default class SlackCommandService {
     const trialEndsAt = params.trialEndsAt || null
     const tenantId = params.tenantId
 
-    const tenant = await this.options.database.tenant.findByPk(tenantId)
+    const tenant = await TenantRepository.findById(tenantId, this.options)
 
     const sections = []
 
     if (!tenant) {
       sections.push(Section({ text: `*Tenant with ID ${tenantId} not found!*` }))
     } else {
-      await tenant.update({
-        plan,
-        isTrialPlan: isTrial,
-        trialEndsAt,
-      })
+      await TenantRepository.update(
+        tenantId,
+        {
+          plan,
+          isTrialPlan: isTrial,
+          trialEndsAt,
+        },
+        this.options,
+        true,
+      )
       sections.push(
         Section({
           text: `*Tenant ${
