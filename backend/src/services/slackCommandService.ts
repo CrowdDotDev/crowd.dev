@@ -63,7 +63,7 @@ export default class SlackCommandService {
             name: 'trialEndsAt',
             short: 'tea',
             required: false,
-            description: 'Trial end date in ISO string format - 2023-03-04',
+            description: 'Trial end date in ISO string format - 2023-03-30',
             type: SlackCommandParameterType.DATE,
           },
         ],
@@ -76,19 +76,34 @@ export default class SlackCommandService {
     const plan = params.plan
     const isTrial = params.trialEndsAt !== undefined
     const trialEndsAt = params.trialEndsAt || null
+    const tenantId = params.tenantId
 
-    const tenant = await this.options.database.tenant.findByPk(params.tenantId)
+    const tenant = await this.options.database.tenant.findByPk(tenantId)
+
+    const sections = []
+
     if (!tenant) {
-      return `Tenant with ID ${params.tenantId} not found!`
+      sections.push(Section({ text: `*Tenant with ID ${tenantId} not found!*` }))
+    } else {
+      await tenant.update({
+        plan,
+        isTrialPlan: isTrial,
+        trialEndsAt,
+      })
+      sections.push(
+        Section({
+          text: `*Tenant ${
+            tenant.name
+          } (${tenantId}) plan changed to ${plan}, trial=${isTrial}, trialEndsAt=${
+            trialEndsAt ?? '<unset>'
+          }!*`,
+        }),
+      )
     }
 
-    await tenant.update({
-      plan,
-      isTrialPlan: isTrial,
-      trialEndsAt,
-    })
-
-    return `Tenant ${params.tenantId} plan set to ${plan}!`
+    return Message()
+      .blocks(...sections)
+      .buildToObject()
   }
 
   public async printHelp(): Promise<SlackMessageDto> {
@@ -117,11 +132,23 @@ export default class SlackCommandService {
       .buildToObject()
   }
 
-  public async printTenant(params: string[]): Promise<SlackMessageDto> {
-    const tenantId = params[0]
+  public async printTenant(params: any): Promise<SlackMessageDto> {
+    const tenantId = params.tenantId
     const tenant = await TenantRepository.findById(tenantId, this.options)
 
-    return JSON.stringify(tenant, undefined, 2)
+    const sections = []
+    if (!tenant) {
+      sections.push(Section({ text: `*Tenant with ID ${tenantId} not found!*` }))
+    }
+    sections.push(
+      Section({ text: `*Tenant ${tenant.name} (${tenantId}):*` }),
+      Divider(),
+      Section({ text: `\`\`\`${JSON.stringify(tenant, null, 2)}\`\`\`` }),
+    )
+
+    return Message()
+      .blocks(...sections)
+      .buildToObject()
   }
 
   public async processCommand(
