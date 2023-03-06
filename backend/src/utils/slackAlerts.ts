@@ -24,7 +24,7 @@ export async function sendSlackAlert(
 function getBlocks(alertType, integration, userContext, log, settings) {
   const tenantName = userContext.currentTenant.name
   const isPayingCustomer = userContext.currentTenant.plan
-  const isTrial = userContext.currentTenant.trialEndsAt > new Date()
+  const isTrial = userContext.currentTenant.isTrial
   const payingCustomerMarker = `✅ ${isTrial ? ' (trial)' : ''}`
   switch (alertType) {
     case SlackAlertTypes.DATA_CHECKER:

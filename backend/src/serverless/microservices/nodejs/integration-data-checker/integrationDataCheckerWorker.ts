@@ -108,6 +108,7 @@ async function sendSlackAlertAction(
 function generateDate(timeframe) {
   const now = moment()
   if (timeframe.includes('hour')) {
+    // Parse int will actually work. 2 hours => 2, 1 day => 1, etc.
     const hours = parseInt(timeframe, 10)
     return now.subtract(hours, 'hours')
   }
