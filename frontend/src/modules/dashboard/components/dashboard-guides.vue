@@ -86,6 +86,9 @@ const eagleEyeModalOpened = ref(false)
 const onboardingGuidesDismissed = ref(false)
 
 const minCommunitySize = computed(() => {
+  if (!currentTenant.value.communitySize) {
+    return null
+  }
   // If community size bigger than 5000
   const [min] = currentTenant.value.communitySize
     .split(/[><-]/g)
@@ -96,10 +99,8 @@ const minCommunitySize = computed(() => {
 
 watch(
   () => currentTenantUser,
-  (tenantUser) => {
-    if (tenantUser) {
-      showModals()
-    }
+  () => {
+    showModals()
   },
   {
     deep: true,
@@ -132,6 +133,7 @@ const showModals = () => {
     isQuickstartGuideDismissed
   } = currentTenantUser.value.settings
   if (
+    minCommunitySize.value &&
     minCommunitySize.value < 5000 &&
     !isEagleEyeGuideDismissed &&
     !eagleEyeModalOpened.value
