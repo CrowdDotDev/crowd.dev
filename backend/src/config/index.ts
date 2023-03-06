@@ -148,14 +148,7 @@ export const TWITTER_CONFIG: TwitterConfiguration = KUBE_MODE
       limitResetFrequencyDays: Number(process.env.TWITTER_LIMIT_RESET_FREQUENCY_DAYS),
     }
 
-export const SLACK_CONFIG: SlackConfiguration = KUBE_MODE
-  ? config.get<SlackConfiguration>('slack')
-  : {
-      clientId: process.env.SLACK_CLIENT_ID,
-      clientSecret: process.env.SLACK_CLIENT_SECRET,
-      maxRetrospectInSeconds: Number(process.env.SLACK_MAX_RETROSPECT_IN_SECONDS || 3600),
-      globalLimit: Number(process.env.SLACK_GLOBAL_LIMIT || Infinity),
-    }
+export const SLACK_CONFIG: SlackConfiguration = config.get<SlackConfiguration>('slack')
 
 export const GOOGLE_CONFIG: GoogleConfiguration = KUBE_MODE
   ? config.get<GoogleConfiguration>('google')
