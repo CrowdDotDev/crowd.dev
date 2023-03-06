@@ -18,7 +18,7 @@
 
 <script>
 import { mapGetters } from 'vuex'
-import { PermissionChecker } from '@/premium/user/permission-checker'
+import { PermissionChecker } from '@/modules/user/permission-checker'
 
 export default {
   name: 'AppViewItemRelationToMany',

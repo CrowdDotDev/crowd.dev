@@ -136,7 +136,7 @@
 
 <script>
 import { mapGetters, mapActions } from 'vuex'
-import { UserModel } from '@/premium/user/user-model'
+import { UserModel } from '@/modules/user/user-model'
 
 const { fields } = UserModel
 

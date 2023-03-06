@@ -1,6 +1,6 @@
 import Errors from '@/shared/error/errors'
 import { router } from '@/router'
-import { UserService } from '@/premium/user/user-service'
+import { UserService } from '@/modules/user/user-service'
 
 export default {
   namespaced: true,

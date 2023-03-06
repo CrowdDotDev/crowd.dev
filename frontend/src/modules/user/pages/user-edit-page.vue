@@ -88,7 +88,7 @@
 <script>
 import { mapGetters, mapActions } from 'vuex'
 import { FormSchema } from '@/shared/form/form-schema'
-import { UserModel } from '@/premium/user/user-model'
+import { UserModel } from '@/modules/user/user-model'
 import { i18n } from '@/i18n'
 import isEqual from 'lodash/isEqual'
 import { onSelectMouseLeave } from '@/utils/select'
