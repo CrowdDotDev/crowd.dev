@@ -11,14 +11,16 @@ export const integrationDataCheckerSettings: IntegrationDataCheckerSettings[] = 
   {
     timeSinceLastData: '2 hours',
     onlyNewIntegrations: true,
-    actions: { sendSlackAlert: true, changeStatus: true },
+    actions: { sendSlackAlert: true, changeStatus: false },
+    // actions: { sendSlackAlert: true, changeStatus: true },
     type: IntegrationDataCheckerSettingsType.REGULAR,
   },
   // Check that Slack and Discord integrations have message activities in the first 2 hours
   {
     timeSinceLastData: '2 hours',
     onlyNewIntegrations: true,
-    actions: { sendSlackAlert: true, changeStatus: true },
+    actions: { sendSlackAlert: true, changeStatus: false },
+    // actions: { sendSlackAlert: true, changeStatus: true },
     type: IntegrationDataCheckerSettingsType.PLATFORM_SPECIFIC,
     activityPlatformsAndType: {
       platforms: ['slack', 'discord'],
