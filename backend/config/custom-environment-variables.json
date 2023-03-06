@@ -140,6 +140,9 @@
     "url": "CROWD_EAGLE_EYE_URL",
     "apiKey": "CROWD_EAGLE_EYE_API_KEY"
   },
+  "slackAlerting": {
+    "url": "CROWD_SLACK_ALERTING_URL"
+  },
   "unleash": {
     "url": "CROWD_UNLEASH_URL",
     "adminApiKey": "CROWD_UNLEASH_ADMIN_API_KEY",
