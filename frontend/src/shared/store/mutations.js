@@ -35,24 +35,25 @@ export default () => {
       }
 
       // Use active view pagination
-      if (payload?.activeView && !payload?.keepPagination) {
+      if (
+        payload?.activeView?.pagination &&
+        !payload?.keepPagination
+      ) {
         payload.activeView.pagination = {
           currentPage: 1,
-          pageSize:
-            payload.activeView.pagination &&
-            payload.activeView.pagination.pageSize
+          pageSize: payload.activeView.pagination.pageSize
         }
       }
 
       // Use root state pagination
       if (
         !payload?.activeView &&
+        state.pagination &&
         !payload?.keepPagination
       ) {
         state.pagination = {
           currentPage: 1,
-          pageSize:
-            state.pagination && state.pagination.pageSize
+          pageSize: state.pagination.pageSize
         }
       }
     },
