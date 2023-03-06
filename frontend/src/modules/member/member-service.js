@@ -111,11 +111,21 @@ export class MemberService {
     buildFilter = true
   ) {
     const body = {
-      filter: buildFilter ? buildApiFilter(filter) : filter,
+      filter:
+        (buildFilter ? buildApiFilter(filter) : filter) ||
+        {},
       orderBy,
       limit,
       offset
     }
+
+    // Remove members marked as organizations from all responses
+    body.filter.and = [
+      {
+        isOrganization: { not: true }
+      },
+      { ...body.filter }
+    ]
 
     const tenantId = AuthCurrentTenant.get()
 
@@ -145,6 +155,7 @@ export class MemberService {
       ...(isTeamMember === false && {
         'filter[isTeamMember]': isTeamMember
       }),
+      'filter[isOrganization]': false,
       'filter[isBot]': false,
       'filter[activityTimestampFrom]':
         activityTimestampFrom,
