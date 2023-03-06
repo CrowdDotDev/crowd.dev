@@ -62,6 +62,7 @@ hr {
 
   .el-loading-mask {
     @apply bg-transparent;
+    z-index: 10;
   }
   .el-loading-spinner {
     @apply relative flex items-center justify-center h-full top-auto mt-auto;

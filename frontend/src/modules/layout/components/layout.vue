@@ -106,7 +106,7 @@
               </div>
               <div class="flex-1">
                 <div class="w-20 ml-auto">
-                  <button @click="hidePmfAsk()">
+                  <button @click="doHidePmfBanner()">
                     <i
                       class="ri-close-line text-gray-700"
                     ></i>
@@ -122,8 +122,8 @@
   </el-container>
   <!-- PMF Modal -->
   <div
-    v-if="showPmfSurvey"
-    class="relative z-10"
+    v-show="showPmfSurvey"
+    class="relative z-30"
     aria-labelledby="modal-title"
     role="dialog"
     aria-modal="true"
@@ -174,10 +174,7 @@ export default {
     return {
       fetchIntegrationTimer: null,
       loading: false,
-      showPmfSurvey: false,
-      hidePmfBanner: localStorage.getItem(
-        `hidePmfBanner-${config.formbricks.pmfFormId}`
-      )
+      showPmfSurvey: false
     }
   },
 
@@ -263,7 +260,7 @@ export default {
           formbricksUrl: config.formbricks.url,
           formId: config.formbricks.pmfFormId,
           containerId: 'formbricks-pmf-container',
-          onFinished: () => this.hidePmfAsk(),
+          onFinished: () => this.doHidePmfBanner(),
           contact: {
             name: 'Jonathan',
             position: 'Co-Founder',
@@ -295,7 +292,8 @@ export default {
 
   methods: {
     ...mapActions({
-      collapseMenu: 'layout/collapseMenu'
+      collapseMenu: 'layout/collapseMenu',
+      doHidePmfBanner: 'tenant/doHidePmfBanner'
     }),
 
     toggleShowPmfSurvey() {
@@ -304,14 +302,6 @@ export default {
         window.formbricksPmf.init()
         window.formbricksPmf.reset()
       }
-    },
-
-    hidePmfAsk() {
-      this.hidePmfBanner = true
-      localStorage.setItem(
-        `hidePmfBanner-${config.typeformId}`,
-        true
-      )
     },
 
     initPendo() {
