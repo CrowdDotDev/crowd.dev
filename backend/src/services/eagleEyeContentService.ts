@@ -14,9 +14,9 @@ import {
 } from '../types/eagleEyeTypes'
 import { PageData, QueryData } from '../types/common'
 import Error400 from '../errors/Error400'
-import UserRepository from '../database/repositories/userRepository'
 import SequelizeRepository from '../database/repositories/sequelizeRepository'
 import track from '../segment/track'
+import TenantUserRepository from '../database/repositories/tenantUserRepository'
 
 export interface EagleEyeContentUpsertData extends EagleEyeAction {
   content: EagleEyeContent
@@ -134,8 +134,12 @@ export default class EagleEyeContentService extends LoggingBase {
 
   async search(email = false) {
     const eagleEyeSettings: EagleEyeSettings = (
-      await UserRepository.findById(this.options.currentUser.id, this.options)
-    ).eagleEyeSettings
+      await TenantUserRepository.findByTenantAndUser(
+        this.options.currentTenant.id,
+        this.options.currentUser.id,
+        this.options,
+      )
+    ).settings.eagleEye
 
     if (!eagleEyeSettings.onboarded) {
       throw new Error400(this.options.language, 'errors.eagleEye.notOnboarded')

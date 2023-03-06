@@ -274,6 +274,10 @@ export default class MemberEnrichmentService extends LoggingBase {
 
   async normalize(member: Member, enrichmentData: EnrichmentAPIMember) {
     member.lastEnriched = new Date()
+
+    const enrichedBy = new Set<string>(member.enrichedBy).add(this.options.currentUser.id)
+    member.enrichedBy = Array.from(enrichedBy)
+
     if (!member.email && enrichmentData.primary_mail) {
       member.email = enrichmentData.primary_mail
     }

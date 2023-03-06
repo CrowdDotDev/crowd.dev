@@ -28,7 +28,11 @@
 
   &.radio-chips {
     .el-radio-button {
-      @apply mr-3 mb-3;
+      @apply mb-3;
+
+      &:not(:last-child){
+        @apply mr-3;
+      }
 
       .el-radio-button__inner {
         @apply border border-solid shadow-none border-gray-300 h-10 px-3 rounded-md flex items-center font-normal transition text-black;
@@ -43,6 +47,13 @@
           @apply border border-l-brand-500 shadow-none border-brand-500 rounded-md font-medium text-black bg-brand-50;
         }
       }
+    }
+
+    &.is-medium {
+      .el-radio-button__inner {
+        @apply h-8 px-3 py-1.5 text-xs;
+      }
+
     }
   }
 

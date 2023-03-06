@@ -256,7 +256,12 @@ const props = defineProps({
   }
 })
 
-const { currentUser } = mapGetters('auth')
+const { currentUser, currentTenant } = mapGetters('auth')
+
+const eagleEyeSettings = currentUser?.value.tenants.find(
+  (tu) => tu.tenantId === currentTenant?.value.id
+).settings.eagleEye
+
 const { doUpdateSettings } = mapActions('eagleEye')
 const { loadingUpdateSettings } = mapState('eagleEye')
 
@@ -300,21 +305,17 @@ const results = computed(() => {
       return feed.value
     }
   }
-  return currentUser?.value.eagleEyeSettings.feed
+  return eagleEyeSettings.feed
 })
 
 const displayFeedWarning = computed(() => {
   if (form.updateResults) {
     return false
   }
-  if (
-    currentUser.value.eagleEyeSettings.feed &&
-    feed.value
-  ) {
+  if (eagleEyeSettings.feed && feed.value) {
     return (
-      JSON.stringify(
-        currentUser.value.eagleEyeSettings.feed
-      ) !== JSON.stringify(feed.value)
+      JSON.stringify(eagleEyeSettings.feed) !==
+      JSON.stringify(feed.value)
     )
   }
   return false
@@ -330,12 +331,10 @@ watch(
 )
 
 const updateFeed = () => {
-  feed.value =
-    currentUser.value?.eagleEyeSettings.feed ?? null
+  feed.value = eagleEyeSettings.feed ?? null
 }
 
 const fillForm = (user) => {
-  const { eagleEyeSettings } = user
   form.active = eagleEyeSettings.emailDigestActive || false
   form.email =
     eagleEyeSettings.emailDigest?.email || user.email
@@ -371,7 +370,7 @@ const doSubmit = async () => {
     }
     doUpdateSettings({
       data: {
-        ...currentUser.value.eagleEyeSettings,
+        ...eagleEyeSettings,
         emailDigestActive: form.active,
         emailDigest: data
       },
