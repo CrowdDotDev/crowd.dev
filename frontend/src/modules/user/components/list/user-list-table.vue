@@ -111,10 +111,10 @@
 </template>
 
 <script>
-import { UserModel } from '@/premium/user/user-model'
+import { UserModel } from '@/modules/user/user-model'
 import { mapGetters, mapActions } from 'vuex'
-import { UserPermissions } from '@/premium/user/user-permissions'
-import UserListToolbar from '@/premium/user/components/list/user-list-toolbar.vue'
+import { UserPermissions } from '@/modules/user/user-permissions'
+import UserListToolbar from '@/modules/user/components/list/user-list-toolbar.vue'
 import Roles from '@/security/roles'
 import AppUserDropdown from '../user-dropdown'
 import pluralize from 'pluralize'

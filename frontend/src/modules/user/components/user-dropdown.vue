@@ -71,7 +71,7 @@
 
 <script>
 import { mapActions } from 'vuex'
-import AppUserEditPage from '@/premium/user/pages/user-edit-page'
+import AppUserEditPage from '@/modules/user/pages/user-edit-page'
 import config from '@/config'
 import Message from '@/shared/message/message'
 import ConfirmDialog from '@/shared/dialog/confirm-dialog.js'

@@ -1,5 +1,5 @@
 import RelationToOneField from '@/shared/fields/relation-to-one-field'
-import { UserService } from '@/premium/user/user-service'
+import { UserService } from '@/modules/user/user-service'
 import RelationToManyField from '@/shared/fields/relation-to-many-field'
 import Permissions from '@/security/permissions'
 

@@ -122,7 +122,7 @@
 
 <script>
 import { mapGetters, mapActions } from 'vuex'
-import { UserModel } from '@/premium/user/user-model'
+import { UserModel } from '@/modules/user/user-model'
 import AppI18n from '@/shared/i18n/i18n'
 import Message from '@/shared/message/message'
 import { i18n } from '@/i18n'

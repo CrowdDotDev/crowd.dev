@@ -19,9 +19,9 @@
 
 <script>
 import { mapGetters, mapActions } from 'vuex'
-import UserListTable from '@/premium/user/components/list/user-list-table.vue'
-import UserNewPage from '@/premium/user/pages/user-new-page.vue'
-import { UserPermissions } from '@/premium/user/user-permissions'
+import UserListTable from '@/modules/user/components/list/user-list-table.vue'
+import UserNewPage from '@/modules/user/pages/user-new-page.vue'
+import { UserPermissions } from '@/modules/user/user-permissions'
 
 export default {
   name: 'AppUserListPage',

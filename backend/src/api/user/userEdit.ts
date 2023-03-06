@@ -1,5 +1,5 @@
 import Permissions from '../../security/permissions'
-import UserEditor from '../../services/premium/user/userEditor'
+import UserEditor from '../../services/user/userEditor'
 import PermissionChecker from '../../services/user/permissionChecker'
 
 export default async (req, res) => {

@@ -1,5 +1,5 @@
 import Permissions from '../../security/permissions'
-import UserImporter from '../../services/premium/user/userImporter'
+import UserImporter from '../../services/user/userImporter'
 import PermissionChecker from '../../services/user/permissionChecker'
 
 export default async (req, res) => {
