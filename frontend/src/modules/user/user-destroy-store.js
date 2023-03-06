@@ -1,4 +1,4 @@
-import { UserService } from '@/premium/user/user-service'
+import { UserService } from '@/modules/user/user-service'
 import Errors from '@/shared/error/errors'
 import Message from '@/shared/message/message'
 import { i18n } from '@/i18n'

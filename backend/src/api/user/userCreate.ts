@@ -1,6 +1,6 @@
 import Permissions from '../../security/permissions'
 import track from '../../segment/track'
-import UserCreator from '../../services/premium/user/userCreator'
+import UserCreator from '../../services/user/userCreator'
 import PermissionChecker from '../../services/user/permissionChecker'
 
 export default async (req, res) => {

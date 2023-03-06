@@ -202,7 +202,7 @@ export default {
 </script>
 
 <script setup>
-import { UserModel } from '@/premium/user/user-model'
+import { UserModel } from '@/modules/user/user-model'
 import { useStore } from 'vuex'
 import { FormSchema } from '@/shared/form/form-schema'
 import { ref, computed, onBeforeMount } from 'vue'

@@ -1,10 +1,10 @@
 import assert from 'assert'
-import SequelizeRepository from '../../../database/repositories/sequelizeRepository'
-import UserRepository from '../../../database/repositories/userRepository'
-import TenantUserRepository from '../../../database/repositories/tenantUserRepository'
-import Error400 from '../../../errors/Error400'
-import Plans from '../../../security/plans'
-import { IServiceOptions } from '../../IServiceOptions'
+import SequelizeRepository from '../../database/repositories/sequelizeRepository'
+import UserRepository from '../../database/repositories/userRepository'
+import TenantUserRepository from '../../database/repositories/tenantUserRepository'
+import Error400 from '../../errors/Error400'
+import Plans from '../../security/plans'
+import { IServiceOptions } from '../IServiceOptions'
 
 /**
  * Handles removing the permissions of the users.
