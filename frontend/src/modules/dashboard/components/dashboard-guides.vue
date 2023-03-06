@@ -99,8 +99,10 @@ const minCommunitySize = computed(() => {
 
 watch(
   () => currentTenantUser,
-  () => {
-    showModals()
+  (tenantUser) => {
+    if (tenantUser) {
+      showModals()
+    }
   },
   {
     deep: true,
@@ -143,7 +145,7 @@ const showModals = () => {
 
   // Check if onboarding guides dismissed
   onboardingGuidesDismissed.value =
-    isQuickstartGuideDismissed
+    isQuickstartGuideDismissed || false
   if (!onboardingGuidesDismissed.value) {
     activeView.value = notcompletedGuides.value?.length
       ? notcompletedGuides.value[0].key
@@ -158,6 +160,8 @@ const showModals = () => {
 
 onMounted(() => {
   doRefreshCurrentUser({})
-  showModals()
+  if (currentTenantUser.value) {
+    showModals()
+  }
 })
 </script>
