@@ -29,9 +29,9 @@
 
 crowd.dev is an open-source suite of community and data tools built to unlock community-led growth for your organization.
 
-In recent years, community has moved to the forefront of business. But building community is hard. In the beginning, organizations have to continuously find community members and maintain a high engagement among them. Once a community is thriving, organizations are stuck managing endless tools, working with incomplete data, and failing to bring the return of community back to their business.
+The modern buying journey of developers happens 90% outside of what your CRM covers. Decisions are made by developers and developers rely on community. Community is where developers explore new products, ask questions to peers, and make buying decisions.
 
-crowd.dev is here to change this. Self-hosted or hosted by us, with developers in mind, open to extensions, and with full control over your community's data.
+With crowd.dev, you get full visibility into all online platforms and can take actions to strengthen and grow your company’s most valuable asset - your developer community. Self-hosted or hosted by us, with developers in mind, open to extensions, and with full control over your community's data.
 
 <img src="https://user-images.githubusercontent.com/41432658/198830271-cbe6d3c7-0c46-4539-98cc-b13c495ddedf.png" alt="UI Home screen">
 
