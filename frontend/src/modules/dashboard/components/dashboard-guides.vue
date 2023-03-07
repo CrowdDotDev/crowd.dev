@@ -60,7 +60,10 @@
             ></i>
           </template>
 
-          <app-dashboard-guide-item :guide="guide" />
+          <app-dashboard-guide-item
+            :guide="guide"
+            @open="selectedGuide = guide"
+          />
         </el-collapse-item>
       </el-collapse>
     </section>

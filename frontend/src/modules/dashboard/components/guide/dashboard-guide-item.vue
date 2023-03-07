@@ -39,7 +39,7 @@ export default {
 </script>
 
 <script setup>
-import { defineProps } from 'vue'
+import { defineProps, defineEmits } from 'vue'
 
 const props = defineProps({
   guide: {
@@ -47,4 +47,6 @@ const props = defineProps({
     required: true
   }
 })
+
+const emit = defineEmits(['open'])
 </script>
