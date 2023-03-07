@@ -34,17 +34,16 @@
       </p>
     </header>
     <section class="pb-1 px-4">
-      <app-dashboard-guide-item
-        v-for="guide of guides"
-        :key="guide.key"
-        :guide="guide"
-        :active="activeView === guide.key"
-        @header-click="
-          activeView =
-            activeView !== guide.key ? guide.key : null
-        "
-        @open="selectedGuide = guide"
-      />
+      <el-collapse v-model="activeView" accordion>
+        <el-collapse-item
+          v-for="guide of guides"
+          :key="guide.key"
+          :title="guide.title"
+          :name="guide.key"
+        >
+          <app-dashboard-guide-item :guide="guide" />
+        </el-collapse-item>
+      </el-collapse>
     </section>
   </div>
   <app-dashboard-guide-modal v-model="selectedGuide" />
@@ -165,3 +164,32 @@ onMounted(() => {
   }
 })
 </script>
+
+<style lang="scss">
+.el-collapse {
+  @apply border-none;
+
+  .el-collapse-item__header {
+    line-height: 1.25rem !important;
+    height: auto !important;
+    @apply text-xs font-medium py-4;
+
+    &.is-active {
+      @apply font-semibold;
+    }
+  }
+
+  .el-collapse-item {
+    &:last-child {
+      .el-collapse-item__wrap,
+      .el-collapse-item__header {
+        border-bottom: 0;
+      }
+    }
+  }
+
+  .el-collapse-item__content {
+    padding: 0;
+  }
+}
+</style>

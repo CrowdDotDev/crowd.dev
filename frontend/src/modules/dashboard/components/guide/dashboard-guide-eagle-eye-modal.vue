@@ -11,7 +11,9 @@
         >
           EAGLE EYE
         </p>
-        <h4 class="text-lg leading-8 font-semibold">
+        <h4
+          class="text-lg leading-8 font-semibold break-normal"
+        >
           Gain developers’ mindshare and increase your
           community awareness
         </h4>
@@ -24,7 +26,9 @@
           src="/images/eagle-eye/modal-banner.jpg"
           class="w-full mb-8"
         />
-        <p class="text-sm leading-5 text-gray-600 pb-9">
+        <p
+          class="text-sm leading-5 text-gray-600 pb-9 break-normal"
+        >
           Our Eagle Eye app allows you to monitor different
           community platforms to find relevant content to
           engage with, helping you to gain developers’
