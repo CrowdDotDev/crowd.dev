@@ -38,7 +38,7 @@ export default class QuickstartGuideService extends LoggingBase {
   }
 
   async find(): Promise<QuickstartGuideMap> {
-    const guides: QuickstartGuideMap = DEFAULT_GUIDES
+    const guides: QuickstartGuideMap = structuredClone(DEFAULT_GUIDES)
 
     const integrationCount: number = await IntegrationRepository.count({}, this.options)
 
