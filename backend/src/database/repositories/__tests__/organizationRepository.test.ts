@@ -128,6 +128,7 @@ describe('OrganizationRepository tests', () => {
         tenantId: mockIRepositoryOptions.currentTenant.id,
         createdById: mockIRepositoryOptions.currentUser.id,
         updatedById: mockIRepositoryOptions.currentUser.id,
+        isTeamOrganization: false,
       }
       expect(organizationCreated).toStrictEqual(expectedOrganizationCreated)
     })
@@ -177,6 +178,7 @@ describe('OrganizationRepository tests', () => {
         tenantId: mockIRepositoryOptions.currentTenant.id,
         createdById: mockIRepositoryOptions.currentUser.id,
         updatedById: mockIRepositoryOptions.currentUser.id,
+        isTeamOrganization: false,
       }
       expect(organizationCreated).toStrictEqual(expectedOrganizationCreated)
 
@@ -218,6 +220,7 @@ describe('OrganizationRepository tests', () => {
         tenantId: mockIRepositoryOptions.currentTenant.id,
         createdById: mockIRepositoryOptions.currentUser.id,
         updatedById: mockIRepositoryOptions.currentUser.id,
+        isTeamOrganization: false,
       }
       const organizationById = await OrganizationRepository.findById(
         organizationCreated.id,
@@ -265,6 +268,7 @@ describe('OrganizationRepository tests', () => {
         tenantId: mockIRepositoryOptions.currentTenant.id,
         createdById: mockIRepositoryOptions.currentUser.id,
         updatedById: mockIRepositoryOptions.currentUser.id,
+        isTeamOrganization: false,
       }
       const organizatioFound = await OrganizationRepository.findByName(
         organizationCreated.name,
@@ -301,6 +305,7 @@ describe('OrganizationRepository tests', () => {
         tenantId: mockIRepositoryOptions.currentTenant.id,
         createdById: mockIRepositoryOptions.currentUser.id,
         updatedById: mockIRepositoryOptions.currentUser.id,
+        isTeamOrganization: false,
       }
       const organizatioFound = await OrganizationRepository.findByUrl(
         organizationCreated.url,
@@ -1204,6 +1209,7 @@ describe('OrganizationRepository tests', () => {
         tenantId: mockIRepositoryOptions.currentTenant.id,
         createdById: mockIRepositoryOptions.currentUser.id,
         updatedById: mockIRepositoryOptions.currentUser.id,
+        isTeamOrganization: false,
       }
 
       expect(organizationUpdated).toStrictEqual(organizationExpected)

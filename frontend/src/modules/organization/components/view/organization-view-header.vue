@@ -11,7 +11,13 @@
           class="mr-4"
         />
         <div>
-          <h5>{{ organization.name }}</h5>
+          <div class="flex">
+            <h5>{{ organization.name }}</h5>
+            <app-organization-badge
+              class="ml-2"
+              :organization="organization"
+            />
+          </div>
           <div
             class="text-sm text-gray-600 flex items-center"
           >
@@ -160,6 +166,7 @@ import {
   formatRevenueRange
 } from '@/utils/number'
 import { withHttp } from '@/utils/string'
+import AppOrganizationBadge from '@/modules/organization/components/organization-badge.vue'
 
 defineProps({
   organization: {

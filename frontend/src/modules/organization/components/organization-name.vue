@@ -36,18 +36,10 @@
           {{ organization.name }}
         </div>
       </el-tooltip>
-      <el-tooltip
-        v-if="isNew"
-        placement="top"
-        :content="newTooltipContent"
-      >
-        <div
-          v-if="isNew"
-          class="badge badge--light-brand inline-flex uppercase !text-3xs !px-1 !py-0 leading-normal font-semibold mt-1"
-        >
-          New
-        </div>
-      </el-tooltip>
+      <app-organization-badge
+        class="mt-1"
+        :organization="organization"
+      />
     </div>
   </div>
 </template>
@@ -59,10 +51,10 @@ export default {
 </script>
 
 <script setup>
-import { computed, defineProps, ref } from 'vue'
-import moment from 'moment/moment'
+import { defineProps, ref } from 'vue'
+import AppOrganizationBadge from '@/modules/organization/components/organization-badge.vue'
 
-const props = defineProps({
+defineProps({
   organization: {
     type: Object,
     default: () => null
@@ -71,22 +63,6 @@ const props = defineProps({
 
 const nameRef = ref()
 const showTooltip = ref(false)
-
-const isNew = computed(() => {
-  return (
-    moment().diff(
-      moment(props.organization.joinedAt),
-      'days'
-    ) <= 14
-  )
-})
-
-const newTooltipContent = computed(
-  () =>
-    `Joined date: ${moment(
-      props.organization.joinedAt
-    ).format('MMM DD, YYYY')}`
-)
 
 const handleOnMouseOver = () => {
   if (!nameRef.value) {
