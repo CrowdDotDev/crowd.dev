@@ -107,7 +107,8 @@ defineProps({
 })
 
 const { currentUser, currentTenant } = mapGetters('auth')
-const { doDestroy, doFetch } = mapActions('organization')
+const { doDestroy, doFetch, doFind } =
+  mapActions('organization')
 
 const isReadOnly = computed(
   () =>
@@ -151,9 +152,15 @@ const handleCommand = (command) => {
     }).then(() => {
       Message.success('Organization updated successfully')
 
-      doFetch({
-        keepPagination: false
-      })
+      if (
+        router.currentRoute.value.name === 'organization'
+      ) {
+        doFetch({
+          keepPagination: false
+        })
+      } else {
+        doFind(command.organization.id)
+      }
     })
   }
 }
