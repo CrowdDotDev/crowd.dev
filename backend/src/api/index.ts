@@ -155,6 +155,8 @@ setImmediate(async () => {
     }),
   )
 
+  app.use(bodyParser.urlencoded({ extended: true }))
+
   // Configure the Entity routes
   const routes = express.Router()
 
@@ -183,6 +185,7 @@ setImmediate(async () => {
   require('./note').default(routes)
   require('./organization').default(routes)
   require('./quickstart-guide').default(routes)
+  require('./slack').default(routes)
   require('./premium/enrichment').default(routes)
   // Loads the Tenant if the :tenantId param is passed
   routes.param('tenantId', tenantMiddleware)

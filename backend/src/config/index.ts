@@ -25,6 +25,7 @@ import {
   EnrichmentConfiguration,
   EagleEyeConfiguration,
   UnleashConfiguration,
+  SlackAlertingConfiguration,
 } from './configTypes'
 
 // TODO-kube
@@ -148,14 +149,7 @@ export const TWITTER_CONFIG: TwitterConfiguration = KUBE_MODE
       limitResetFrequencyDays: Number(process.env.TWITTER_LIMIT_RESET_FREQUENCY_DAYS),
     }
 
-export const SLACK_CONFIG: SlackConfiguration = KUBE_MODE
-  ? config.get<SlackConfiguration>('slack')
-  : {
-      clientId: process.env.SLACK_CLIENT_ID,
-      clientSecret: process.env.SLACK_CLIENT_SECRET,
-      maxRetrospectInSeconds: Number(process.env.SLACK_MAX_RETROSPECT_IN_SECONDS || 3600),
-      globalLimit: Number(process.env.SLACK_GLOBAL_LIMIT || Infinity),
-    }
+export const SLACK_CONFIG: SlackConfiguration = config.get<SlackConfiguration>('slack')
 
 export const GOOGLE_CONFIG: GoogleConfiguration = KUBE_MODE
   ? config.get<GoogleConfiguration>('google')
@@ -238,3 +232,9 @@ export const EAGLE_EYE_CONFIG: EagleEyeConfiguration = KUBE_MODE
     }
 
 export const UNLEASH_CONFIG: UnleashConfiguration = config.get<UnleashConfiguration>('unleash')
+
+export const SLACK_ALERTING_CONFIG: SlackAlertingConfiguration = KUBE_MODE
+  ? config.get<SlackAlertingConfiguration>('slackAlerting')
+  : {
+      url: process.env.SLACK_ALERTING_URL,
+    }

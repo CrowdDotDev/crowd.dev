@@ -94,6 +94,12 @@ export default {
       )
     },
 
+    withNoData: (state, getters) => {
+      return getters.array.filter(
+        (i) => i.status === 'no-data'
+      )
+    },
+
     count: (state) => state.count,
 
     hasRows: (state, getters) => getters.count > 0

@@ -17,6 +17,13 @@
         connect
       </div>
       <div
+        v-else-if="isNoData"
+        class="text-red-500 flex items-center text-sm"
+      >
+        <i class="ri-error-warning-line mr-1"></i> Not
+        receiving activities
+      </div>
+      <div
         v-else-if="isWaitingForAction"
         class="text-yellow-600 flex items-center text-sm"
       >
@@ -142,6 +149,10 @@ const isDone = computed(() => {
 
 const isError = computed(() => {
   return props.integration.status === 'error'
+})
+
+const isNoData = computed(() => {
+  return props.integration.status === 'no-data'
 })
 
 const isWaitingForAction = computed(() => {

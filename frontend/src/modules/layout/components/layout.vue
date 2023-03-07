@@ -47,6 +47,24 @@
           </banner>
 
           <banner
+            v-if="showIntegrationsNoDataAlert"
+            variant="alert"
+          >
+            <div
+              class="flex items-center justify-center grow text-sm"
+            >
+              Currently you have integrations that are not
+              receiving activities
+              <router-link
+                :to="{ name: 'integration' }"
+                class="btn btn--sm btn--primary ml-4"
+              >
+                Go to Integrations
+              </router-link>
+            </div>
+          </banner>
+
+          <banner
             v-if="showIntegrationsInProgressAlert"
             variant="info"
           >
@@ -185,9 +203,12 @@ export default {
       currentTenant: 'auth/currentTenant',
       integrationsInProgress: 'integration/inProgress',
       integrationsWithErrors: 'integration/withErrors',
+      integrationsWithNoData: 'integration/withNoData',
       showSampleDataAlert: 'tenant/showSampleDataAlert',
       showIntegrationsErrorAlert:
         'tenant/showIntegrationsErrorAlert',
+      showIntegrationsNoDataAlert:
+        'tenant/showIntegrationsNoDataAlert',
       showIntegrationsInProgressAlert:
         'tenant/showIntegrationsInProgressAlert',
       showTenantCreatingAlert:
