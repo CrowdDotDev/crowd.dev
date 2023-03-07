@@ -140,12 +140,14 @@ class OrganizationRepository {
       set attributes = jsonb_set("attributes", '{isTeamMember}', '{"default": ${isTeam}}'::jsonb)
       from "memberOrganizations" as mo
       where mo."memberId" = m.id
-      and mo."organizationId" = :organizationId;
+      and mo."organizationId" = :organizationId
+      and m."tenantId" = : tenantId;
    `,
       {
         replacements: {
           isTeam,
           organizationId,
+          tenantId: options.currentTenant.id,
         },
         type: QueryTypes.UPDATE,
       },
