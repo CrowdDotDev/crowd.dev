@@ -268,7 +268,7 @@ export default {
   async getActiveOrganizations({ commit, state }) {
     state.organizations.loadingActive = true
     const { platform, period } = state.filters
-    return OrganizationService.query(
+    return OrganizationService.list(
       {
         and: [
           {
@@ -282,6 +282,11 @@ export default {
                   period.granularity
                 )
                 .toISOString()
+            }
+          },
+          {
+            isTeamOrganization: {
+              not: true
             }
           },
           ...(platform !== 'all'
@@ -313,7 +318,7 @@ export default {
   async getRecentOrganizations({ commit, state }) {
     state.organizations.loadingRecent = true
     const { platform, period } = state.filters
-    return OrganizationService.query(
+    return OrganizationService.list(
       {
         and: [
           {
@@ -327,6 +332,11 @@ export default {
                   period.granularity
                 )
                 .toISOString()
+            }
+          },
+          {
+            isTeamOrganization: {
+              not: true
             }
           },
           ...(platform !== 'all'
@@ -356,7 +366,17 @@ export default {
 
   // Fetch  organizations count
   async getOrganizationsCount({ state }) {
-    return OrganizationService.list(null, '', 1, 0, false)
+    return OrganizationService.list(
+      {
+        isTeamOrganization: {
+          not: true
+        }
+      },
+      '',
+      1,
+      0,
+      false
+    )
       .then(({ count }) => {
         state.organizations.total = count
         return Promise.resolve(count)

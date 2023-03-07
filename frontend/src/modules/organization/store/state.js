@@ -1,5 +1,9 @@
 import { INITIAL_PAGE_SIZE } from './constants'
-import { INITIAL_VIEW_NEW_AND_ACTIVE_FILTER } from './constants'
+import {
+  INITIAL_VIEW_ALL_FILTER,
+  INITIAL_VIEW_NEW_AND_ACTIVE_FILTER,
+  INITIAL_VIEW_TEAM_ORGANIZATIONS_FILTER
+} from './constants'
 
 export default () => {
   return {
@@ -9,14 +13,10 @@ export default () => {
         id: 'all',
         label: 'All organizations',
         columns: [],
-        filter: {
-          operator: 'and',
-          attributes: {}
-        },
-        initialFilter: {
-          operator: 'and',
-          attributes: {}
-        },
+        initialFilter: INITIAL_VIEW_ALL_FILTER,
+        filter: JSON.parse(
+          JSON.stringify(INITIAL_VIEW_ALL_FILTER)
+        ),
         pagination: {
           currentPage: 1,
           pageSize: INITIAL_PAGE_SIZE
@@ -55,14 +55,10 @@ export default () => {
       'most-members': {
         id: 'most-members',
         label: 'Most members',
-        filter: {
-          operator: 'and',
-          attributes: {}
-        },
-        initialFilter: {
-          operator: 'and',
-          attributes: {}
-        },
+        initialFilter: INITIAL_VIEW_ALL_FILTER,
+        filter: JSON.parse(
+          JSON.stringify(INITIAL_VIEW_ALL_FILTER)
+        ),
         pagination: {
           currentPage: 1,
           pageSize: INITIAL_PAGE_SIZE
@@ -75,6 +71,30 @@ export default () => {
           prop: 'memberCount',
           order: 'descending'
         }
+      },
+      team: {
+        id: 'team',
+        label: 'Team organizations',
+        initialFilter:
+          INITIAL_VIEW_TEAM_ORGANIZATIONS_FILTER,
+        filter: JSON.parse(
+          JSON.stringify(
+            INITIAL_VIEW_TEAM_ORGANIZATIONS_FILTER
+          )
+        ),
+        pagination: {
+          currentPage: 1,
+          pageSize: INITIAL_PAGE_SIZE
+        },
+        initialSorter: {
+          prop: 'lastActive',
+          order: 'descending'
+        },
+        sorter: {
+          prop: 'lastActive',
+          order: 'descending'
+        },
+        active: false
       }
       // TODO: Uncomment when we support enrichment
       //   'enterprise-size': {

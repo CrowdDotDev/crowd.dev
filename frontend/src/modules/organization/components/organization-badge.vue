@@ -1,7 +1,7 @@
 <template>
   <div
-    v-if="isNew || isTeam || isBot"
-    class="member-badge flex items-center ml-1 min-w-fit"
+    v-if="isNew || isTeam"
+    class="flex items-center gap-1 min-w-fit"
   >
     <el-tooltip
       v-if="isNew"
@@ -19,19 +19,12 @@
     >
       <div :class="computedBadgeClass('team')">Team</div>
     </el-tooltip>
-    <el-tooltip
-      v-if="isBot"
-      placement="top"
-      :content="computedTooltipContent('bot')"
-    >
-      <div :class="computedBadgeClass('bot')">Bot</div>
-    </el-tooltip>
   </div>
 </template>
 
 <script>
 export default {
-  name: 'AppMemberBadge'
+  name: 'AppOrganizationBadge'
 }
 </script>
 
@@ -40,24 +33,22 @@ import { defineProps, computed } from 'vue'
 import moment from 'moment/moment'
 
 const props = defineProps({
-  member: {
+  organization: {
     type: Object,
     default: () => {}
   }
 })
 
 const isTeam = computed(() => {
-  return props.member.attributes.isTeamMember?.default
-})
-
-const isBot = computed(() => {
-  return props.member.attributes.isBot
+  return props.organization.isTeamOrganization
 })
 
 const isNew = computed(() => {
   return (
-    moment().diff(moment(props.member.joinedAt), 'days') <=
-    14
+    moment().diff(
+      moment(props.organization.joinedAt),
+      'days'
+    ) <= 14
   )
 })
 
@@ -72,8 +63,6 @@ const computedBadgeClass = function (badge) {
     }
   } else if (badge === 'team') {
     classes += ' badge--gray-dark'
-  } else if (badge === 'bot') {
-    classes += ' badge--gray'
   }
 
   return classes
@@ -81,20 +70,11 @@ const computedBadgeClass = function (badge) {
 
 const computedTooltipContent = function (tooltip) {
   if (tooltip === 'new') {
-    return `Member since ${moment(
-      props.member.joinedAt
+    return `Joined date: ${moment(
+      props.organization.joinedAt
     ).format('MMM DD, YYYY')}`
   } else if (tooltip === 'team') {
-    return 'Team member'
-  } else {
-    return 'Bot'
+    return 'Team organization'
   }
 }
 </script>
-
-<style lang="scss">
-.flex > .member-display-name + .member-badge,
-.inline-flex > .member-display-name + .member-badge {
-  @apply ml-2;
-}
-</style>
