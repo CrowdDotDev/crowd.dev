@@ -1,5 +1,5 @@
-import { UserService } from '@/premium/user/user-service'
-import userListExporterFields from '@/premium/user/user-list-exporter-fields'
+import { UserService } from '@/modules/user/user-service'
+import userListExporterFields from '@/modules/user/user-list-exporter-fields'
 import { i18n } from '@/i18n'
 import Errors from '@/shared/error/errors'
 import Exporter from '@/shared/exporter/exporter'

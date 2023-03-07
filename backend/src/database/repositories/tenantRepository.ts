@@ -108,7 +108,7 @@ class TenantRepository {
     return cleanedTenantUrl
   }
 
-  static async update(id, data, options: IRepositoryOptions) {
+  static async update(id, data, options: IRepositoryOptions, force = false) {
     const currentUser = SequelizeRepository.getCurrentUser(options)
 
     const transaction = SequelizeRepository.getTransaction(options)
@@ -117,7 +117,7 @@ class TenantRepository {
       transaction,
     })
 
-    if (!isUserInTenant(currentUser, record)) {
+    if (!force && !isUserInTenant(currentUser, record)) {
       throw new Error404()
     }
 

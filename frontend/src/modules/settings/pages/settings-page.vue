@@ -37,9 +37,9 @@
 <script>
 import AppApiKeysPage from '@/modules/settings/pages/api-keys-page.vue'
 import AppPlansPage from '@/modules/settings/pages/plans-page.vue'
-import UserListPage from '@/premium/user/pages/user-list-page.vue'
+import UserListPage from '@/modules/user/pages/user-list-page.vue'
 import AutomationListPage from '@/modules/automation/pages/automation-list-page.vue'
-import { UserPermissions } from '@/premium/user/user-permissions'
+import { UserPermissions } from '@/modules/user/user-permissions'
 import { mapGetters } from 'vuex'
 
 export default {

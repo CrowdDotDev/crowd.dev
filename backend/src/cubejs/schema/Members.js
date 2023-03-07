@@ -58,7 +58,7 @@ cube(`Members`, {
         Members.isBot,
         Members.isOrganization,
       ],
-      timeDimension: Members.joinedAt,
+      timeDimension: Activities.date,
       granularity: `day`,
       refreshKey: {
         every: `10 minute`,

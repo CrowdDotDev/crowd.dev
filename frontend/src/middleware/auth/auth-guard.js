@@ -1,4 +1,4 @@
-import { PermissionChecker } from '@/premium/user/permission-checker'
+import { PermissionChecker } from '@/modules/user/permission-checker'
 import config from '@/config'
 import { tenantSubdomain } from '@/modules/tenant/tenant-subdomain'
 
