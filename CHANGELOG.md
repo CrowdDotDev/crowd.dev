@@ -2,6 +2,36 @@
 
 All notable changes to this project will be documented in this file.
 
+## v0.22.0 - 2023-03-07
+
+### Changes
+
+For the full changelog, see: [changelog.crowd.dev](http://changelog.crowd.dev/)
+
+### :sparkles: Improvements
+
+- Eagle-eye onboarding flow @gaspergrom (#578)
+- Moved user management to free tier @joanreyero (#599)
+- Added an alerting (both to the user and internal) for faulty integrations @joanreyero (#616)
+- Admin tool based on Slack commands @themarolt (#613)
+- Allow editing multi select fields @joanagmaia (#593)
+- Allow to re-enrich members @joanagmaia (#594)
+- Added `isOrganization` as a default attribute for members @epipav (#605)
+- Allow to open members in a new tab @gaspergrom (#577)
+- Add limit to autocomplete member's dropdown @joanagmaia (#587)
+- Replace partners logos @joanagmaia (#581)
+
+### 🐞 Bug Fixes
+
+- Fix of member's emails not being updated @joanreyero (#598)
+- Remove members that are organizations from members list @joanagmaia (#600)
+- Fix formbricks integration @joanagmaia (#619)
+- Search filter initial value setting @gaspergrom (#603)
+- Show multiple organizations in members profile @joanagmaia (#608)
+- Add waiting approval status @gaspergrom (#601)
+- Cascading to member enrichment cache on member delete @epipav (#588)
+- Fix Slack channels duplicated activities @themarolt (#582)
+
 ## v0.21.0 - 2023-02-28
 
 ### New changelog
@@ -73,7 +103,6 @@ Stay up-to-date with your Eagle Eye feed by configuring an email digest that del
 <img src="https://user-images.githubusercontent.com/37874460/220158597-7178802e-eef9-493c-a7d8-ac39a9040945.png"  width="400">
 ###### AI Replies
 Eagle Eye 2.0 also offers a new AI-powered feature that generates suggested replies for your content.
-
 https://user-images.githubusercontent.com/37874460/220165717-4204605a-260f-41cb-acca-1bdf5747f6aa.mp4
 
 - Eagle Eye 2.0 @epipav @joanagmaia @gaspergrom @nunoeufrasio @jonathimer @joanreyero (#495)
@@ -138,7 +167,6 @@ You can now get a detailed view of the members returned by widgets in default re
 - Hide activity from bot users. @mariobalca (#465)
 - Re-designed weekly analytics report. @epipav (#446)
 ### 🐞 Bug Fixes
-
 - Fix TypeScript errors and add a check in the CI. @themarolt (#480)
 - Add receipt history for weekly report emails. @epipav (#479)
 - Fix some member attributes being non-existent. @epipav (#476)
@@ -170,7 +198,6 @@ Introduction the LinkedIn integration! With it, you can bring the comments and r
 - Modified the Community help center's `robots.txt` so Google will index it again. @epipav (#434)
 - Fix URLs in organizations @joanagmaia (#430)
 - Add the Job Title to the members list view @mariobalca (#428)
-
 ## v0.16.0 - 2023-01-16
 
 ### Changes
@@ -196,7 +223,6 @@ Our first external code contribution! @mattinannt and the [Formbricks](https://f
 - Installed Pendo so we can show new features within the app. @joanreyero (#406)
 - Add a placeholder for mobile screens that asks the user to sign up from a bigger one. @joanagmaia (#414)
 ### 🐞 Bug Fixes
-
 - Fixed a typo in the upgrade button @epipav (#409)
 - Every time Twitter is connected, call the integration service in *onboarding* mode. @themarolt (#412)
 - Fixed a bug where the user invite dialog disappeared almost immediately after inviting. @joanreyero (#415)
@@ -226,7 +252,6 @@ Forum channels are now supported as part of the Discord integration. We will get
 - Preventing that an automation is executed twice. @themarolt (#401)
 - Improved copy for tooltips in widgets. @epipav (#392)
 ### 🐞 Bug Fixes
-
 - Fix a bug where members could be merged twice. @joanagmaia (#402)
 - Do not throw an error when a GitHub webhook with an unsupported event type comes. @themarolt (#397)
 - Hashtags were not being saved in the Twitter integration. @joanreyero (#396)
@@ -268,7 +293,6 @@ You can now export your community members as CSV. You can export all members or 
 ## v0.13.0 - 2022-12-19
 ### Changes
 ### 🚀 Features
-
 #### Reddit integration
 
 The Reddit integration is finally here! It was one of the most wanted integrations, and we have delivered. You can now track the posts and comments in your community's subreddit.
@@ -300,7 +324,6 @@ We are advancing in making premium plans possible. This week we introduced a *Pl
 ### Changes
 - Fix identities for hackernews integration @joanagmaia (#313)
 ### 🚀 Features
-
 #### Pricing and feature flagging
 
 We are getting ready to make pricing possible so we can continue building crowd.dev for you. This week we introduced our infrastructure for pricing. You can check the full pricing details on our [website](https://crowd.dev/pricing). All tenants have been set to a free trial of the growth plan, which lasts until the 15th of January. After that, you will need to get a subscription to access the growth features.
@@ -363,7 +386,6 @@ This release introduces three new features: organizations, tasks, and notes. Fur
 You can now track how organizations are adopting your community. With the organizations' list, you can have an overview of all organizations. You can also have several views and perform filtering. For each organization, there is an organization page with all its background information, a list of all the members that belong to the organization, and their activities.
 <img width="700" alt="Organizations" src="https://user-images.githubusercontent.com/37874460/204589538-65a46d85-ec91-488a-9b32-45f48fe53a94.png">
 #### Tasks
-
 With the new tasks feature you can create tasks related to your community members. Do you want to ask newcomers for feedback? Or influential members for some recognition? Or an unhappy member how can you make their life easier? You can orchestrate all this with your team using tasks. We support all standard to-do features, like assigning them to colleagues and setting due dates. You can read more in our [tasks docs](https://docs.crowd.dev/docs/tasks).
 <img width="700" alt="Tasks" src="https://user-images.githubusercontent.com/37874460/204589346-6172b211-76fc-427c-9be2-9f5859756088.png">
 
@@ -404,7 +426,6 @@ This version introduces breaking API changes. While the API has vastly improved 
 ### ✨ Enhancements
 - New Architecture: Serverless plus a static backend has been replaced by a Kubernetes cluster. (#53)
 - Tweak error handling in DEV integration. Give a proper error when an organization / profile was not found @mariobalca (#65)
-
 ### 🐞 Bug Fixes
 
 - Fix handler for webhooks coming from GitHub in the new Kubernetes architecture @themarolt (#68)
@@ -437,7 +458,9 @@ This version introduces breaking API changes. While the API has vastly improved 
 - 
 - 
 - 
+- 
 - - When a new activity is created
+- 
 - 
 - 
 - 
@@ -525,7 +548,6 @@ This version introduces breaking API changes. While the API has vastly improved 
 - Dev.to integration backend @themarolt
 - Conversations auto-publish @mariobalca
 ### ✨ Enhancements
-
 - Read only role @mariobalca
 - Tweak some useMeta titles and descriptions @mariobalca
 - Python sls lambda containers @anilb0stanci
