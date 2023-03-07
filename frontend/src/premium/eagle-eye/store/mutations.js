@@ -24,9 +24,19 @@ export default {
     { list, count, appendToList, activeView }
   ) {
     state.views[activeView].list.loading = false
+
     if (appendToList) {
       state.views[activeView].list.posts.push(...list)
     } else {
+      const { sorter } = state.views[activeView]
+
+      if (activeView === 'feed' && sorter === 'recent') {
+        list.sort(
+          (a, b) =>
+            new Date(b.postedAt) - new Date(a.postedAt)
+        )
+      }
+
       state.views[activeView].list.posts = list
     }
     state.views[activeView].count = count
