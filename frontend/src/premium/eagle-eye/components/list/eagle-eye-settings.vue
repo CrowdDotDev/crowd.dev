@@ -8,6 +8,14 @@
     </div>
 
     <div v-if="eagleEyeFeedSettings">
+      <!-- Feed Settings-->
+      <el-button
+        class="btn btn--full btn--md btn--secondary mt-6"
+        @click="settingsDrawerOpen = true"
+        ><i class="ri-sound-module-line text-lg" /><span
+          >Feed settings</span
+        ></el-button
+      >
       <!-- Keywords -->
       <div
         v-if="
@@ -83,8 +91,9 @@
           </div>
         </div>
       </div>
+
       <!-- AI replies -->
-      <div v-if="platforms.length">
+      <div v-if="platforms.length" class="mb-10">
         <div class="eagle-eye-settings-small-title">
           AI replies
         </div>
@@ -103,14 +112,6 @@
           </div>
         </div>
       </div>
-      <!-- Feed Settings-->
-      <el-button
-        class="btn btn--full btn--md btn--secondary my-8"
-        @click="settingsDrawerOpen = true"
-        ><i class="ri-sound-module-line text-lg" /><span
-          >Feed settings</span
-        ></el-button
-      >
 
       <!-- Email Digest settings -->
       <app-eagle-eye-email-digest-card />
