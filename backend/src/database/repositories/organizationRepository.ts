@@ -1,5 +1,5 @@
 import lodash from 'lodash'
-import Sequelize from 'sequelize'
+import Sequelize, { QueryTypes } from 'sequelize'
 import SequelizeRepository from './sequelizeRepository'
 import AuditLogRepository from './auditLogRepository'
 import SequelizeFilterUtils from '../utils/sequelizeFilterUtils'
@@ -110,9 +110,48 @@ class OrganizationRepository {
       })
     }
 
+    if (
+      data.isTeamOrganization === true ||
+      data.isTeamOrganization === 'true' ||
+      data.isTeamOrganization === false ||
+      data.isTeamOrganization === 'false'
+    ) {
+      await this.setOrganizationIsTeam(record.id, data.isTeamOrganization, options)
+    }
+
     await this._createAuditLog(AuditLogRepository.UPDATE, record, data, options)
 
     return this.findById(record.id, options)
+  }
+
+  /**
+   * Marks/unmarks an organization's members as team members
+   * @param organizationId
+   * @param isTeam
+   * @param options
+   */
+  static async setOrganizationIsTeam(
+    organizationId: string,
+    isTeam: boolean,
+    options: IRepositoryOptions,
+  ): Promise<void> {
+    await options.database.sequelize.query(
+      `update members as m
+      set attributes = jsonb_set("attributes", '{isTeamMember}', '{"default": ${isTeam}}'::jsonb)
+      from "memberOrganizations" as mo
+      where mo."memberId" = m.id
+      and mo."organizationId" = :organizationId
+      and m."tenantId" = :tenantId;
+   `,
+      {
+        replacements: {
+          isTeam,
+          organizationId,
+          tenantId: options.currentTenant.id,
+        },
+        type: QueryTypes.UPDATE,
+      },
+    )
   }
 
   static async destroy(id, options: IRepositoryOptions, force = false) {
