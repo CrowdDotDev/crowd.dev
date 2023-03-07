@@ -15,7 +15,12 @@ export default {
     { keepPagination = false }
   ) {
     try {
-      commit('FETCH_STARTED', { keepPagination })
+      const activeView = getters.activeView
+
+      commit('FETCH_STARTED', {
+        keepPagination,
+        activeView
+      })
 
       let response
 
