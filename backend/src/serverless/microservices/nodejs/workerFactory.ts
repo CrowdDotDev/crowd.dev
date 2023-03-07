@@ -10,6 +10,7 @@ import {
   ProcessWebhookAutomationMessage,
   BulkEnrichMessage,
   EagleEyeEmailDigestMessage,
+  IntegrationDataCheckerMessage,
 } from './messageTypes'
 import { AutomationTrigger, AutomationType } from '../../../types/automationTypes'
 import newActivityWorker from './automation/workers/newActivityWorker'
@@ -20,6 +21,7 @@ import { processStripeWebhook } from '../../integrations/workers/stripeWebhookWo
 import { processSendgridWebhook } from '../../integrations/workers/sendgridWebhookWorker'
 import { bulkEnrichmentWorker } from './bulk-enrichment/bulkEnrichmentWorker'
 import { eagleEyeEmailDigestWorker } from './eagle-eye-email-digest/eagleEyeEmailDigestWorker'
+import { integrationDataCheckerWorker } from './integration-data-checker/integrationDataCheckerWorker'
 
 /**
  * Worker factory for spawning different microservices
@@ -41,6 +43,13 @@ async function workerFactory(event: NodeMicroserviceMessage): Promise<any> {
     case 'eagle-eye-email-digest':
       const eagleEyeDigestMessage = event as EagleEyeEmailDigestMessage
       return eagleEyeEmailDigestWorker(eagleEyeDigestMessage.user)
+
+    case 'integration-data-checker':
+      const integrationDataCheckerMessage = event as IntegrationDataCheckerMessage
+      return integrationDataCheckerWorker(
+        integrationDataCheckerMessage.integrationId,
+        integrationDataCheckerMessage.tenantId,
+      )
     case 'csv-export':
       const csvExportMessage = event as CsvExportMessage
       return csvExportWorker(

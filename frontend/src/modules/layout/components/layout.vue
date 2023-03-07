@@ -45,6 +45,24 @@
           </banner>
 
           <banner
+            v-if="showIntegrationsNoDataAlert"
+            variant="alert"
+          >
+            <div
+              class="flex items-center justify-center grow text-sm"
+            >
+              Currently you have integrations that are not
+              receiving activities
+              <router-link
+                :to="{ name: 'integration' }"
+                class="btn btn--sm btn--primary ml-4"
+              >
+                Go to Integrations
+              </router-link>
+            </div>
+          </banner>
+
+          <banner
             v-if="showIntegrationsInProgressAlert"
             variant="info"
           >
@@ -94,8 +112,8 @@
             >
               <div class="flex-1"></div>
               <div class="">
-                Could you help us by answering a quick
-                survey? 😄
+                Do you have 1 minute to help us improve
+                crowd.dev for you? 😊
                 <button
                   data-tf-medium="snippet"
                   class="btn btn--sm btn--primary ml-4"
@@ -106,7 +124,7 @@
               </div>
               <div class="flex-1">
                 <div class="w-20 ml-auto">
-                  <button @click="hidePmfAsk()">
+                  <button @click="doHidePmfBanner()">
                     <i
                       class="ri-close-line text-gray-700"
                     ></i>
@@ -122,8 +140,8 @@
   </el-container>
   <!-- PMF Modal -->
   <div
-    v-if="showPmfSurvey"
-    class="relative z-10"
+    v-show="showPmfSurvey"
+    class="relative z-30"
     aria-labelledby="modal-title"
     role="dialog"
     aria-modal="true"
@@ -174,10 +192,7 @@ export default {
     return {
       fetchIntegrationTimer: null,
       loading: false,
-      showPmfSurvey: false,
-      hidePmfBanner: localStorage.getItem(
-        `hidePmfBanner-${config.formbricks.pmfFormId}`
-      )
+      showPmfSurvey: false
     }
   },
 
@@ -189,9 +204,12 @@ export default {
       currentTenant: 'auth/currentTenant',
       integrationsInProgress: 'integration/inProgress',
       integrationsWithErrors: 'integration/withErrors',
+      integrationsWithNoData: 'integration/withNoData',
       showSampleDataAlert: 'tenant/showSampleDataAlert',
       showIntegrationsErrorAlert:
         'tenant/showIntegrationsErrorAlert',
+      showIntegrationsNoDataAlert:
+        'tenant/showIntegrationsNoDataAlert',
       showIntegrationsInProgressAlert:
         'tenant/showIntegrationsInProgressAlert',
       showTenantCreatingAlert:
@@ -263,7 +281,7 @@ export default {
           formbricksUrl: config.formbricks.url,
           formId: config.formbricks.pmfFormId,
           containerId: 'formbricks-pmf-container',
-          onFinished: () => this.hidePmfAsk(),
+          onFinished: () => this.doHidePmfBanner(),
           contact: {
             name: 'Jonathan',
             position: 'Co-Founder',
@@ -295,7 +313,8 @@ export default {
 
   methods: {
     ...mapActions({
-      collapseMenu: 'layout/collapseMenu'
+      collapseMenu: 'layout/collapseMenu',
+      doHidePmfBanner: 'tenant/doHidePmfBanner'
     }),
 
     toggleShowPmfSurvey() {
@@ -304,14 +323,6 @@ export default {
         window.formbricksPmf.init()
         window.formbricksPmf.reset()
       }
-    },
-
-    hidePmfAsk() {
-      this.hidePmfBanner = true
-      localStorage.setItem(
-        `hidePmfBanner-${config.typeformId}`,
-        true
-      )
     },
 
     initPendo() {

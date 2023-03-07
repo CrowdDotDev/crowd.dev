@@ -31,6 +31,21 @@ export default {
     )
   },
 
+  showIntegrationsNoDataAlert: (
+    _state,
+    _getters,
+    _rootState,
+    rootGetters
+  ) => {
+    const integrationsWithNoData =
+      rootGetters['integration/withNoData']
+
+    return (
+      integrationsWithNoData.length > 0 &&
+      router.currentRoute.value.name !== 'integration'
+    )
+  },
+
   showIntegrationsInProgressAlert: (
     _state,
     _getters,
@@ -59,15 +74,25 @@ export default {
     )
   },
 
-  showPMFSurveyAlert: () => {
-    const hideTypeformBanner = localStorage.getItem(
-      `hideTypeformBanner-${config.typeformId}`
-    )
+  showPMFSurveyAlert: (
+    state,
+    _getters,
+    _rootState,
+    rootGetters
+  ) => {
+    const timestampSignup = new Date(
+      rootGetters['auth/currentUser'].createdAt
+    ).getTime()
+    const timeStamp4WeeksAgo =
+      new Date().getTime() - 4 * 7 * 24 * 60 * 60 * 1000
+    const timeStamp2023 = new Date('2023-01-01').getTime()
 
     return (
-      config.typeformId &&
-      config.typeformTitle &&
-      !hideTypeformBanner
+      timestampSignup >= timeStamp2023 &&
+      timestampSignup <= timeStamp4WeeksAgo &&
+      config.formbricks.url &&
+      config.formbricks.pmfFormId &&
+      !state.hidePmfBanner
     )
   },
 
@@ -75,6 +100,7 @@ export default {
     return (
       getters.showSampleDataAlert ||
       getters.showIntegrationsErrorAlert ||
+      getters.showIntegrationsNoDataAlert ||
       getters.showIntegrationsInProgressAlert ||
       getters.showTenantCreatingAlert ||
       getters.showPMFSurveyAlert

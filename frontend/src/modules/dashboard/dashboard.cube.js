@@ -128,6 +128,26 @@ export function activityTypes(period, platform) {
   }
 }
 
+const getMembersFilters = (platform) => {
+  const filters = [
+    {
+      member: 'Members.isOrganization',
+      operator: 'equals',
+      values: ['0']
+    }
+  ]
+
+  if (platform !== 'all') {
+    filters.push({
+      member: 'Activities.platform',
+      operator: 'equals',
+      values: [platform]
+    })
+  }
+
+  return filters
+}
+
 export function newMembersChart(period, platform) {
   return {
     measures: ['Members.count'],
@@ -138,16 +158,7 @@ export function newMembersChart(period, platform) {
         dateRange: dateRange(period)
       }
     ],
-    filters:
-      platform !== 'all'
-        ? [
-            {
-              member: 'Activities.platform',
-              operator: 'equals',
-              values: [platform]
-            }
-          ]
-        : undefined
+    filters: getMembersFilters(platform)
   }
 }
 
@@ -160,16 +171,7 @@ export function newMembersCount(dateRange, platform) {
         dateRange
       }
     ],
-    filters:
-      platform !== 'all'
-        ? [
-            {
-              member: 'Activities.platform',
-              operator: 'equals',
-              values: [platform]
-            }
-          ]
-        : undefined
+    filters: getMembersFilters(platform)
   }
 }
 
@@ -183,16 +185,7 @@ export function activeMembersChart(period, platform) {
         dateRange: dateRange(period)
       }
     ],
-    filters:
-      platform !== 'all'
-        ? [
-            {
-              member: 'Activities.platform',
-              operator: 'equals',
-              values: [platform]
-            }
-          ]
-        : undefined
+    filters: getMembersFilters(platform)
   }
 }
 
@@ -205,16 +198,7 @@ export function activeMembersCount(dateRange, platform) {
         dateRange
       }
     ],
-    filters:
-      platform !== 'all'
-        ? [
-            {
-              member: 'Activities.platform',
-              operator: 'equals',
-              values: [platform]
-            }
-          ]
-        : undefined
+    filters: getMembersFilters(platform)
   }
 }
 

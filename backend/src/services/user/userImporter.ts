@@ -1,7 +1,7 @@
-import Error400 from '../../../errors/Error400'
-import UserRepository from '../../../database/repositories/userRepository'
+import Error400 from '../../errors/Error400'
+import UserRepository from '../../database/repositories/userRepository'
 import UserCreator from './userCreator'
-import { IServiceOptions } from '../../IServiceOptions'
+import { IServiceOptions } from '../IServiceOptions'
 
 /**
  * Flags if should send invitation emails for imported users.
