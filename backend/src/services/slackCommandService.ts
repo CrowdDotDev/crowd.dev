@@ -85,7 +85,7 @@ export default class SlackCommandService {
     if (!tenant) {
       sections.push(Section({ text: `*Tenant with ID ${tenantId} not found!*` }))
     } else {
-      await TenantRepository.update(
+      const result = await TenantRepository.update(
         tenantId,
         {
           plan,
@@ -97,11 +97,9 @@ export default class SlackCommandService {
       )
       sections.push(
         Section({
-          text: `*Tenant ${
-            tenant.name
-          } (${tenantId}) plan changed to ${plan}, trial=${isTrial}, trialEndsAt=${
-            trialEndsAt ?? '<unset>'
-          }!*`,
+          text: `*Tenant ${tenant.name} (${tenantId}) plan changed to ${result.plan}, trial=${
+            result.isTrialPlan
+          }, trialEndsAt=${result.trialEndsAt ?? '<unset>'}!*`,
         }),
       )
     }

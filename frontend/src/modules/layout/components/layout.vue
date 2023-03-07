@@ -114,8 +114,8 @@
             >
               <div class="flex-1"></div>
               <div class="">
-                Could you help us by answering a quick
-                survey? 😄
+                Do you have 1 minute to help us improve
+                crowd.dev for you? 😊
                 <button
                   data-tf-medium="snippet"
                   class="btn btn--sm btn--primary ml-4"
