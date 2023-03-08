@@ -91,14 +91,18 @@ import {
 import ConfirmDialog from '@/shared/dialog/confirm-dialog'
 import AppDashboardGuideEagleEyeModal from '@/modules/dashboard/components/guide/dashboard-guide-eagle-eye-modal.vue'
 import { QuickstartGuideService } from '@/modules/quickstart-guide/services/quickstart-guide.service'
+import { useQuickStartGuideStore } from '@/modules/quickstart-guide/store'
+import { storeToRefs } from 'pinia'
 
 const { currentTenant, currentTenantUser } =
   mapGetters('auth')
 const { doRefreshCurrentUser } = mapActions('auth')
-const { getGuides } = mapActions('quickstartGuide')
-const { guides, notcompletedGuides } = mapGetters(
-  'quickstartGuide'
+
+const storeQuickStartGuides = useQuickStartGuideStore()
+const { guides, notcompletedGuides } = storeToRefs(
+  storeQuickStartGuides
 )
+const { getGuides } = storeQuickStartGuides
 
 const activeView = ref(null)
 const selectedGuide = ref(null)
