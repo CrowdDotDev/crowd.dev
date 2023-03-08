@@ -311,8 +311,8 @@
                   >
                     <div class="text-sm cursor-auto">
                       <el-tooltip
-                        v-if="scope.row.email"
-                        :disabled="!scope.row.email"
+                        v-if="scope.row.emails.length"
+                        :disabled="!scope.row.emails.length"
                         popper-class="custom-identity-tooltip"
                         placement="top"
                       >
@@ -320,7 +320,7 @@
                           ><span
                             >Send email
                             <i
-                              v-if="scope.row.email"
+                              v-if="scope.row.emails[0]"
                               class="ri-external-link-line text-gray-400"
                             ></i></span
                         ></template>
@@ -328,9 +328,9 @@
                           <a
                             target="_blank"
                             class="text-gray-500 hover:!text-brand-500"
-                            :href="`mailto:${scope.row.email}`"
+                            :href="`mailto:${scope.row.emails[0]}`"
                             @click.stop="trackEmailClick"
-                            >{{ scope.row.email }}</a
+                            >{{ scope.row.emails[0] }}</a
                           >
                         </div>
                       </el-tooltip>

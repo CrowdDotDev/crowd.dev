@@ -113,7 +113,6 @@ const computedCustomAttributes = computed(() => {
           'url',
           'location',
           'jobTitle',
-          // 'emails' TODO: should we actually render emails here?
           'workExperiences', // we render them in _aside-work-experience
           'certifications', // we render them in _aside-work-certifications
           'education', // we render them in _aside-work-education
