@@ -28,13 +28,13 @@ export const integrationDataCheckerSettings: IntegrationDataCheckerSettings[] = 
     },
   },
   // Check that each integration is actually getting data every in the last 3 days
-  {
-    timeSinceLastData: '3 days',
-    onlyNewIntegrations: false,
-    actions: {
-      sendSlackAlert: true,
-      changeStatus: false,
-    },
-    type: IntegrationDataCheckerSettingsType.REGULAR,
-  },
+  // {
+  //   timeSinceLastData: '3 days',
+  //   onlyNewIntegrations: false,
+  //   actions: {
+  //     sendSlackAlert: true,
+  //     changeStatus: false,
+  //   },
+  //   type: IntegrationDataCheckerSettingsType.REGULAR,
+  // },
 ]
