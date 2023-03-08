@@ -1,14 +1,27 @@
 <template>
   <app-page-wrapper size="narrow">
     <div class="activity-list-page">
-      <h4>
-        <app-i18n
-          code="entities.activity.list.title"
-        ></app-i18n>
-      </h4>
-      <div class="text-xs text-gray-500 mb-10">
-        Activities are everything that is happening in your
-        community
+      <div class="flex justify-between">
+        <div>
+          <h4>
+            <app-i18n
+              code="entities.activity.list.title"
+            ></app-i18n>
+          </h4>
+          <div class="text-xs text-gray-500 mb-10">
+            Activities are everything that is happening in
+            your community
+          </div>
+        </div>
+        <div class="flex">
+          <el-button
+            class="btn btn--transparent btn--md text-gray-600"
+            @click="isActivityTypeDrawerOpen = true"
+          >
+            <i class="ri-settings-3-line text-lg mr-2"></i>
+            Activity types
+          </el-button>
+        </div>
       </div>
 
       <app-activity-list-tabs></app-activity-list-tabs>
@@ -29,6 +42,9 @@
       ></app-conversation-list>
     </div>
   </app-page-wrapper>
+  <app-activity-type-list-drawer
+    v-model="isActivityTypeDrawerOpen"
+  />
 </template>
 
 <script>
@@ -39,11 +55,13 @@ import AppConversationList from '@/modules/conversation/components/conversation-
 import AppActivityListTabs from '@/modules/activity/components/activity-list-tabs'
 import AppActivityListFilter from '@/modules/activity/components/list/activity-list-filter.vue'
 import AppI18n from '@/shared/i18n/i18n'
+import AppActivityTypeListDrawer from '@/modules/activity/components/type/activity-type-list-drawer.vue'
 
 export default {
   name: 'AppActivityListPage',
 
   components: {
+    AppActivityTypeListDrawer,
     AppI18n,
     AppActivityList,
     AppConversationList,
@@ -53,7 +71,8 @@ export default {
 
   data() {
     return {
-      creating: false
+      creating: false,
+      isActivityTypeDrawerOpen: true
     }
   },
   computed: {

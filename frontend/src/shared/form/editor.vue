@@ -42,6 +42,16 @@ const props = defineProps({
     type: String,
     required: false,
     default: '84px'
+  },
+  overrideExtensions: {
+    type: Boolean,
+    required: false,
+    default: false
+  },
+  extensions: {
+    type: Array,
+    required: false,
+    default: () => []
   }
 })
 
@@ -53,17 +63,21 @@ const emit = defineEmits([
 
 const valueProxy = ref('')
 
+const defaultExtensions = [
+  StarterKit,
+  Placeholder.configure({
+    placeholder: props.placeholder
+  }),
+  Link.configure({
+    openOnClick: false
+  })
+]
+
 const editor = useEditor({
   content: props.modelValue,
-  extensions: [
-    StarterKit,
-    Placeholder.configure({
-      placeholder: props.placeholder
-    }),
-    Link.configure({
-      openOnClick: false
-    })
-  ],
+  extensions: props.overrideExtensions
+    ? props.extensions
+    : [...defaultExtensions, ...props.extensions],
   onUpdate: () => {
     if (editor.value) {
       valueProxy.value = editor.value.getHTML()
