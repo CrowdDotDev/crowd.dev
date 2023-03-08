@@ -1,3 +1,4 @@
+import { Sequelize } from 'sequelize'
 import lodash from 'lodash'
 import { IServiceOptions } from './IServiceOptions'
 import { LoggingBase } from './loggingBase'
@@ -82,15 +83,24 @@ export default class QuickstartGuideService extends LoggingBase {
     if (!guides[QuickstartGuideType.ENRICH_MEMBER].completed) {
       const enrichableMembers = await ms.findAndCountAll({
         advancedFilter: {
-          or: [
+          and: [
             {
-              email: {
-                ne: null,
-              },
+              or: [
+                {
+                  email: {
+                    ne: null,
+                  },
+                },
+                {
+                  identities: {
+                    contains: ['github'],
+                  },
+                },
+              ],
             },
             {
-              identities: {
-                contains: ['github'],
+              enrichedBy: {
+                eq: Sequelize.literal("'{}'"),
               },
             },
           ],

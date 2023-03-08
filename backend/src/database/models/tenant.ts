@@ -40,7 +40,7 @@ export default (sequelize, DataTypes) => {
         },
       },
       reasonForUsingCrowd: {
-        type: DataTypes.STRING(50)
+        type: DataTypes.STRING(50),
       },
       plan: {
         type: DataTypes.STRING(255),

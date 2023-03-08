@@ -16,6 +16,7 @@ import { PlatformType } from '../types/integrationEnums'
 import OrganizationService from './organizationService'
 import ConversationService from './conversationService'
 import { LoggingBase } from './loggingBase'
+import MemberRepository from '../database/repositories/memberRepository'
 
 export default class SampleDataService extends LoggingBase {
   options: IServiceOptions
@@ -92,15 +93,7 @@ export default class SampleDataService extends LoggingBase {
       const memberService = new MemberService(this.options)
       const memberAttributeSettingsService = new MemberAttributeSettingsService(this.options)
 
-      const memberIds = await (
-        await memberService.findAndCountAll({
-          advancedFilter: { sample: true },
-          limit: 100,
-        })
-      ).rows.reduce((acc, item) => {
-        acc.push(item.id)
-        return acc
-      }, [])
+      const memberIds = await MemberRepository.findSampleDataMemberIds(this.options)
 
       const organizationService = new OrganizationService(this.options)
 
