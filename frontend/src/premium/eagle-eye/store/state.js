@@ -12,7 +12,8 @@ export default () => {
           loading: false
         },
         count: 0,
-        active: true
+        active: true,
+        sorter: 'relevant'
       },
       bookmarked: {
         id: 'bookmarked',

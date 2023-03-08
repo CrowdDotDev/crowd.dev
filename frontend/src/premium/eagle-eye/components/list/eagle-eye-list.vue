@@ -9,7 +9,7 @@
     >
       <div
         v-for="(item, index) in getItemsInColumn(i)"
-        :key="item.post.title"
+        :key="item.url"
       >
         <app-eagle-eye-result-card
           :result="item"
