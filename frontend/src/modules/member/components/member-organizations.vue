@@ -76,7 +76,7 @@
           name: 'organizationView',
           params: { id: organization.id }
         }"
-        class="text-gray-900 hover:text-brand-500 transition text-ellipsis truncate flex items-center hover:cursor-pointer gap-1.5 border px-1.5 rounded-md h-6"
+        class="badge--interactive"
         @click.stop
       >
         <img
