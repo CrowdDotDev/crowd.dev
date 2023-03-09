@@ -30,6 +30,11 @@ const fields = {
     required: true,
     max: 50
   }),
+  reasonForUsingCrowd: new StringField(
+    'reasonForUsingCrowd',
+    'What would you like to achieve with crowd.dev? ',
+    {}
+  ),
   tenantPlatforms: new StringArrayField(
     'integrationsRequired',
     label('tenantPlatforms'),

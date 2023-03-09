@@ -30,6 +30,9 @@ export default (sequelize) => {
           len: [0, 255],
         },
       },
+      viewedBy: {
+        type: DataTypes.ARRAY(DataTypes.TEXT),
+      },
     },
     {
       indexes: [

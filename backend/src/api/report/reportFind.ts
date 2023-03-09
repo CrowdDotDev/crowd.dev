@@ -4,11 +4,15 @@ import PermissionChecker from '../../services/user/permissionChecker'
 import track from '../../segment/track'
 
 export default async (req, res) => {
-  const payload = await new ReportService(req).findById(req.params.id)
+  const reportService = new ReportService(req)
+  const payload = await reportService.findById(req.params.id)
 
   if (!payload.public) {
     new PermissionChecker(req).validateHas(Permissions.values.reportRead)
   }
+
+  const viewedBy = new Set<string>(payload.viewedBy).add(req.currentUser.id)
+  await reportService.update(payload.id, { viewedBy: Array.from(viewedBy) })
 
   track('Report Viewed', { id: payload.id, name: payload.name, public: payload.public }, { ...req })
 

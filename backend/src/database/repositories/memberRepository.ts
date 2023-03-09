@@ -35,6 +35,7 @@ class MemberRepository {
           'attributes',
           'email',
           'lastEnriched',
+          'enrichedBy',
           'contributions',
           'score',
           'reach',
@@ -77,6 +78,24 @@ class MemberRepository {
     await this._createAuditLog(AuditLogRepository.CREATE, record, data, options)
 
     return this.findById(record.id, options, true, doPopulateRelations)
+  }
+
+  static async findSampleDataMemberIds(options: IRepositoryOptions) {
+    const currentTenant = SequelizeRepository.getCurrentTenant(options)
+    const sampleMemberIds = await options.database.sequelize.query(
+      `select m.id from members m
+      where (m.attributes->'sample'->'default')::boolean is true
+      and m."tenantId" = :tenantId;
+    `,
+      {
+        replacements: {
+          tenantId: currentTenant.id,
+        },
+        type: QueryTypes.SELECT,
+      },
+    )
+
+    return sampleMemberIds.map((i) => i.id)
   }
 
   static async findMembersWithMergeSuggestions(
@@ -214,7 +233,7 @@ class MemberRepository {
     const currentTenant = SequelizeRepository.getCurrentTenant(options)
 
     const query =
-      'SELECT "id", "username", "displayName", "attributes", "email", "score", "lastEnriched", "contributions", "reach", "joinedAt", "importHash", "createdAt", "updatedAt", "deletedAt", "tenantId", "createdById", "updatedById" FROM "members" AS "member" WHERE ("member"."deletedAt" IS NULL AND ("member"."tenantId" = $tenantId AND ("member"."username"->>$platform) = $username)) LIMIT 1;'
+      'SELECT "id", "username", "displayName", "attributes", "email", "score", "lastEnriched", "enrichedBy", "contributions", "reach", "joinedAt", "importHash", "createdAt", "updatedAt", "deletedAt", "tenantId", "createdById", "updatedById" FROM "members" AS "member" WHERE ("member"."deletedAt" IS NULL AND ("member"."tenantId" = $tenantId AND ("member"."username"->>$platform) = $username)) LIMIT 1;'
 
     const records = await options.database.sequelize.query(query, {
       type: Sequelize.QueryTypes.SELECT,
@@ -263,6 +282,7 @@ class MemberRepository {
           'attributes',
           'email',
           'lastEnriched',
+          'enrichedBy',
           'contributions',
           'score',
           'reach',
@@ -889,6 +909,7 @@ class MemberRepository {
               'email',
               'score',
               'lastEnriched',
+              'enrichedBy',
               'contributions',
               'joinedAt',
               'importHash',
@@ -967,6 +988,7 @@ class MemberRepository {
             'tenantId',
             'score',
             'lastEnriched',
+            'enrichedBy',
             'contributions',
             'joinedAt',
             'importHash',

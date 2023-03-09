@@ -1,6 +1,7 @@
 import { IRepositoryOptions } from '../repositories/IRepositoryOptions'
 import SequelizeRepository from '../repositories/sequelizeRepository'
 import TenantRepository from '../repositories/tenantRepository'
+import UserRepository from '../repositories/userRepository'
 
 /**
  * Gets the IRepositoryOptions for given tenantId
@@ -21,12 +22,20 @@ export default async function getUserContext(
   let user = null
 
   if (userId) {
-    user = await options.database.user.findByPk(userId)
+    user = await UserRepository.findById(userId, {
+      ...options,
+      currentTenant: tenant,
+      bypassPermissionValidation: true,
+    })
   } else {
     const tenantUsers = await tenant.getUsers()
 
     if (tenantUsers.length > 0) {
-      user = await tenantUsers[0].getUser()
+      user = await UserRepository.findById(tenantUsers[0].userId, {
+        ...options,
+        currentTenant: tenant,
+        bypassPermissionValidation: true,
+      })
     }
   }
 

@@ -12,36 +12,40 @@
       <div
         v-if="showHeader"
         class="flex grow justify-between"
-        :class="{
-          'items-center': preTitle || hasActionBtn
-        }"
+        :class="
+          preTitle || hasActionBtn
+            ? 'items-center'
+            : 'items-start'
+        "
       >
-        <div class="h-fit">
-          <div
-            v-if="preTitle"
-            class="text-gray-600 text-2xs"
-          >
-            {{ preTitle }}
-          </div>
-          <div
-            class="flex items-center"
-            :class="{
-              'h-6': showLoadingIcon
-            }"
-          >
-            <h5 :id="titleId" :class="titleClass">
-              <span v-if="typeof title === 'string'">
-                {{ title }}
-              </span>
-              <component :is="title" v-else />
-            </h5>
+        <slot name="header">
+          <div class="h-fit">
             <div
-              v-if="showLoadingIcon"
-              v-loading="true"
-              class="app-page-spinner w-6 ml-4"
-            ></div>
+              v-if="preTitle"
+              class="text-gray-600 text-2xs"
+            >
+              {{ preTitle }}
+            </div>
+            <div
+              class="flex items-center"
+              :class="{
+                'h-6': showLoadingIcon
+              }"
+            >
+              <h5 :id="titleId" :class="titleClass">
+                <span v-if="typeof title === 'string'">
+                  {{ title }}
+                </span>
+                <component :is="title" v-else />
+              </h5>
+              <div
+                v-if="showLoadingIcon"
+                v-loading="true"
+                class="app-page-spinner w-6 ml-4"
+              ></div>
+            </div>
           </div>
-        </div>
+        </slot>
         <div class="flex gap-3 items-center">
           <slot name="actionBtn"></slot>
           <div class="ml-3">
