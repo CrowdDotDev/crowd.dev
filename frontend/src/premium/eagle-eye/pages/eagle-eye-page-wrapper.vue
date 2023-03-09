@@ -3,16 +3,19 @@
 </template>
 
 <script setup>
-import { defineAsyncComponent } from 'vue'
+import { computed, defineAsyncComponent } from 'vue'
 import AppPageLoader from '@/shared/loading/page-loader.vue'
 import { FeatureFlag } from '@/featureFlag'
 import { mapGetters } from '@/shared/vuex/vuex.helpers'
 
 const { currentUser, currentTenant } = mapGetters('auth')
 
-const eagleEyeSettings = currentUser?.value.tenants.find(
-  (tu) => tu.tenantId === currentTenant?.value.id
-).settings?.eagleEye
+const eagleEyeSettings = computed(
+  () =>
+    currentUser?.value.tenants.find(
+      (tu) => tu.tenantId === currentTenant?.value.id
+    ).settings?.eagleEye
+)
 
 const AppEagleEyePage = defineAsyncComponent({
   loader: () => {
@@ -21,7 +24,7 @@ const AppEagleEyePage = defineAsyncComponent({
     )
 
     if (isFeatureEnabled) {
-      const isOnboarded = eagleEyeSettings?.onboarded
+      const isOnboarded = eagleEyeSettings.value?.onboarded
 
       if (isOnboarded) {
         return import(
