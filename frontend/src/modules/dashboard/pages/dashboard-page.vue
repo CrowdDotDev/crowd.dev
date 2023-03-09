@@ -98,7 +98,7 @@ onBeforeUnmount(() => {
 })
 </script>
 
-<style lang="scss">
+<style lang="scss" scoped>
 aside {
   width: 16.25rem;
   min-width: 16.25rem;
