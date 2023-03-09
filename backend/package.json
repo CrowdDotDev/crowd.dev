@@ -105,6 +105,7 @@
     "sanitize-html": "^2.7.1",
     "sequelize": "6.21.2",
     "sequelize-cli-typescript": "^3.2.0-c",
+    "slack-block-builder": "^2.7.2",
     "socket.io": "^4.5.4",
     "stripe": "^10.0.0",
     "superagent": "^8.0.0",

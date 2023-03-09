@@ -21,6 +21,7 @@ cube(`Members`, {
         Members.tenantId,
         Members.isTeamMember,
         Members.isBot,
+        Members.isOrganization,
       ],
       timeDimension: Members.joinedAt,
       granularity: `day`,
@@ -38,6 +39,7 @@ cube(`Members`, {
         Tags.name,
         Members.isTeamMember,
         Members.isBot,
+        Members.isOrganization,
       ],
       timeDimension: Members.joinedAt,
       granularity: `day`,
@@ -54,8 +56,9 @@ cube(`Members`, {
         Activities.type,
         Members.isTeamMember,
         Members.isBot,
+        Members.isOrganization,
       ],
-      timeDimension: Members.joinedAt,
+      timeDimension: Activities.date,
       granularity: `day`,
       refreshKey: {
         every: `10 minute`,
@@ -64,7 +67,13 @@ cube(`Members`, {
 
     MembersTags: {
       measures: [Members.count],
-      dimensions: [Members.tenantId, Tags.name, Members.isTeamMember, Members.isBot],
+      dimensions: [
+        Members.tenantId,
+        Tags.name,
+        Members.isTeamMember,
+        Members.isBot,
+        Members.isOrganization,
+      ],
       timeDimension: Members.joinedAt,
       granularity: `day`,
       refreshKey: {
@@ -156,6 +165,11 @@ cube(`Members`, {
 
     isBot: {
       sql: `COALESCE((${CUBE}.attributes->'isBot'->'default')::boolean, false)`,
+      type: `boolean`,
+    },
+
+    isOrganization: {
+      sql: `COALESCE((${CUBE}.attributes->'isOrganization'->'default')::boolean, false)`,
       type: `boolean`,
     },
 

@@ -1,5 +1,5 @@
 import Permissions from '../../security/permissions'
-import UserDestroyer from '../../services/premium/user/userDestroyer'
+import UserDestroyer from '../../services/user/userDestroyer'
 import PermissionChecker from '../../services/user/permissionChecker'
 
 export default async (req, res) => {

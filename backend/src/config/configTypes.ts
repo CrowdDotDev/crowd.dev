@@ -115,6 +115,9 @@ export interface SlackConfiguration {
   maxRetrospectInSeconds: number
   reporterToken?: string
   reporterChannel?: string
+  teamId?: string
+  appId?: string
+  appToken?: string
 }
 
 export interface GoogleConfiguration {
@@ -194,4 +197,8 @@ export interface UnleashConfiguration {
     password: string
     database: string
   }
+}
+
+export interface SlackAlertingConfiguration {
+  url: string
 }

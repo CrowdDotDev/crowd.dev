@@ -43,6 +43,7 @@ import IncomingWebhookRepository from '../../../database/repositories/incomingWe
 import { WebhookError, WebhookState } from '../../../types/webhooks'
 import { NodeWorkerProcessWebhookMessage } from '../../../types/mq/nodeWorkerProcessWebhookMessage'
 import SampleDataService from '../../../services/sampleDataService'
+import { SlackAlertTypes, sendSlackAlert } from '../../../utils/slackAlerts'
 
 const MAX_STREAM_RETRIES = 5
 
@@ -665,6 +666,10 @@ export class IntegrationProcessor extends LoggingBase {
         },
         userContext,
       )
+
+      if (setError) {
+        await sendSlackAlert(SlackAlertTypes.INTEGRATION_ERROR, integration, userContext, logger)
+      }
 
       if (req.onboarding && this.apiPubSubEmitter) {
         this.apiPubSubEmitter.emit(

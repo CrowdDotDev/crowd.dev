@@ -15,15 +15,17 @@
 </template>
 <script setup>
 import {
-  h,
+  computed,
   defineEmits,
   defineProps,
-  watch,
+  h,
   ref,
-  computed
+  watch,
+  onMounted
 } from 'vue'
 import debounce from 'lodash/debounce'
 import { useStore } from 'vuex'
+import { mapGetters } from '@/shared/vuex/vuex.helpers'
 
 const SearchIcon = h(
   'i', // type
@@ -49,14 +51,13 @@ const emit = defineEmits(['change'])
 
 const store = useStore()
 
+const { activeView } = mapGetters(props.module)
+
 const model = ref('')
 const storeSearch = computed(() => {
-  const activeView =
-    store.getters[`${props.module}/activeView`]
-
   return (
-    store.state[props.module].views[activeView.id].filter
-      .attributes.search?.value || ''
+    store.state[props.module].views[activeView.value.id]
+      .filter.attributes.search?.value || ''
   )
 })
 
@@ -70,10 +71,34 @@ watch(
   }
 )
 
+// Reset model value when tab changes
+watch(
+  () => activeView.value,
+  (newActiveView, oldActiveView) => {
+    if (newActiveView.id !== oldActiveView.id) {
+      setModelValue('')
+    }
+  }
+)
+
 const debouncedChange = debounce((value) => {
   emit('change', {
     ...props.filter,
     value
   })
 }, 300)
+
+const setModelValue = (value) => {
+  model.value = value
+  emit('change', {
+    ...props.filter,
+    value
+  })
+}
+
+onMounted(() => {
+  if (model.value !== storeSearch.value) {
+    setModelValue(storeSearch.value)
+  }
+})
 </script>

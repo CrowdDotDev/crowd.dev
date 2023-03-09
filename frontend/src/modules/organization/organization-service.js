@@ -76,24 +76,6 @@ export class OrganizationService {
     return response.data
   }
 
-  static async query(filter, orderBy, limit, offset) {
-    const body = {
-      filter,
-      orderBy,
-      limit,
-      offset
-    }
-
-    const tenantId = AuthCurrentTenant.get()
-
-    const response = await authAxios.post(
-      `/tenant/${tenantId}/organization/query`,
-      body
-    )
-
-    return response.data
-  }
-
   static async listAutocomplete(query, limit) {
     const params = {
       query,

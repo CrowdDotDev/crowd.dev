@@ -53,18 +53,39 @@ const views = computed(() => {
   return Object.values(store.state.eagleEye.views)
 })
 
-const sorter = computed(() => activeView.value?.sorter)
-const sorterOptions = [
-  {
-    value: 'individualBookmarks',
-    label: 'My bookmarks'
+const sorter = computed({
+  get() {
+    return activeView.value?.sorter
   },
-  {
-    value: 'teamBookmarks',
-    label: 'Team bookmarks',
-    description: 'All posts bookmarked by your team'
+  set() {}
+})
+
+const sorterOptions = computed(() => {
+  if (activeView.value.id === 'bookmarked') {
+    return [
+      {
+        value: 'individualBookmarks',
+        label: 'My bookmarks'
+      },
+      {
+        value: 'teamBookmarks',
+        label: 'Team bookmarks',
+        description: 'All posts bookmarked by your team'
+      }
+    ]
   }
-]
+
+  return [
+    {
+      value: 'relevant',
+      label: 'Most relevant'
+    },
+    {
+      value: 'recent',
+      label: 'Most recent'
+    }
+  ]
+})
 </script>
 
 <style lang="scss" scope>

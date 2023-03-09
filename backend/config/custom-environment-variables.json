@@ -107,7 +107,10 @@
     "clientId": "CROWD_SLACK_CLIENT_ID",
     "clientSecret": "CROWD_SLACK_CLIENT_SECRET",
     "reporterToken": "CROWD_SLACK_REPORTER_TOKEN",
-    "reporterChannel": "CROWD_SLACK_REPORTER_CHANNEL"
+    "reporterChannel": "CROWD_SLACK_REPORTER_CHANNEL",
+    "teamId": "CROWD_SLACK_TEAM_ID",
+    "appId": "CROWD_SLACK_APP_ID",
+    "appToken": "CROWD_SLACK_APP_TOKEN"
   },
   "google": {
     "clientId": "CROWD_GOOGLE_CLIENT_ID",
@@ -136,6 +139,9 @@
   "eagleEye": {
     "url": "CROWD_EAGLE_EYE_URL",
     "apiKey": "CROWD_EAGLE_EYE_API_KEY"
+  },
+  "slackAlerting": {
+    "url": "CROWD_SLACK_ALERTING_URL"
   },
   "unleash": {
     "url": "CROWD_UNLEASH_URL",

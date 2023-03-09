@@ -4,7 +4,7 @@ import DateTimeField from '@/shared/fields/date-time-field'
 import { GenericModel } from '@/shared/model/generic-model'
 import RelationToManyField from '@/shared/fields/relation-to-many-field'
 import Permissions from '@/security/permissions'
-import { UserService } from '@/premium/user/user-service'
+import { UserService } from '@/modules/user/user-service'
 import { MemberService } from '@/modules/member/member-service'
 
 const fetchUsers = (query, limit) => {
