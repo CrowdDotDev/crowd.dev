@@ -1,5 +1,8 @@
 <template>
-  <app-dialog v-model="modalOpened" :title="guide?.title">
+  <app-dialog
+    v-model="modalOpened"
+    :title="guide?.title || ''"
+  >
     <template #header>
       <div>
         <h5 class="text-lg font-semibold leading-8 pb-1">

@@ -4,8 +4,7 @@
       notcompletedGuides.length > 0 &&
       !onboardingGuidesDismissed
     "
-    class="panel !p-0 !rounded-lg"
-    v-bind="$attrs"
+    class="panel !p-0 !rounded-lg mb-10"
   >
     <header class="bg-purple-50 p-4 relative">
       <div class="flex justify-between items-center">

@@ -42,7 +42,7 @@
           : '100vh'
       }"
     >
-      <app-dashboard-guides class="mb-10" />
+      <app-dashboard-guides />
       <app-dashboard-integrations class="mb-10" />
       <app-dashboard-task />
     </aside>
