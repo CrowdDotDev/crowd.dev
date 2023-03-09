@@ -40,10 +40,10 @@
       </el-form-item>
 
       <el-form-item
+        id="tenantPlatformsItem"
         ref="tenantPlatforms"
         :prop="fields.tenantPlatforms.name"
         class="mb-2"
-        id="tenantPlatformsItem"
       >
         <label for="tenantPlatforms">
           <span

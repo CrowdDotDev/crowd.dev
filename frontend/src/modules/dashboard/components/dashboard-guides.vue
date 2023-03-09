@@ -122,19 +122,6 @@ const minCommunitySize = computed(() => {
   return min
 })
 
-watch(
-  () => currentTenantUser,
-  (tenantUser) => {
-    if (tenantUser) {
-      showModals()
-    }
-  },
-  {
-    deep: true,
-    immediate: true
-  }
-)
-
 const dismissGuides = () => {
   ConfirmDialog({
     type: 'notification',
@@ -154,6 +141,13 @@ const dismissGuides = () => {
 }
 
 const showModals = () => {
+  if (
+    !currentTenantUser.value ||
+    !currentTenantUser.value.settings
+  ) {
+    return
+  }
+
   // Check if it can open eagle eye onboarding modal
   const {
     isEagleEyeGuideDismissed,
@@ -183,11 +177,25 @@ const showModals = () => {
   }
 }
 
-onMounted(() => {
-  doRefreshCurrentUser({})
-  if (currentTenantUser.value) {
-    showModals()
+watch(
+  () => currentTenantUser,
+  (tenantUser) => {
+    if (tenantUser) {
+      showModals()
+    }
+  },
+  {
+    deep: true,
+    immediate: true
   }
+)
+
+onMounted(() => {
+  doRefreshCurrentUser({}).then(() => {
+    if (currentTenantUser.value) {
+      showModals()
+    }
+  })
 })
 </script>
 

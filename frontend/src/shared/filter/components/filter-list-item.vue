@@ -259,7 +259,11 @@ const clickOutsideListener = (event) => {
       event
         .composedPath()
         .some(
-          (o) => o.className?.includes('el-popper') || false
+          (o) =>
+            (o.className &&
+              typeof o.className.includes !== 'undefined' &&
+              o.className?.includes('el-popper')) ||
+            false
         )
     )
   ) {

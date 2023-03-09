@@ -12,16 +12,16 @@
     </template>
 
     <template #content>
-      <div class="px-6 pb-6 loom">
+      <div v-if="guide?.loomHtml" class="px-6 pb-6 loom">
         <div v-html="guide.loomHtml"></div>
       </div>
       <div
-        v-if="guide.buttonText"
+        v-if="guide?.buttonText"
         class="flex justify-end px-6 pb-6"
       >
-        <router-link :to="guide.buttonLink">
+        <router-link :to="guide?.buttonLink">
           <el-button class="btn btn--primary btn--md">
-            {{ guide.buttonText }}
+            {{ guide?.buttonText }}
           </el-button>
         </router-link>
       </div>
