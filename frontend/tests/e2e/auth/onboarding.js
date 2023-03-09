@@ -8,7 +8,9 @@ export default () => {
   beforeEach(() => {
     cy.get('#tenantName').as('tenantName')
     cy.get('#tenantSize').as('tenantSize')
-    cy.get('.el-select').as('tenantPlatformSelect')
+    cy.get('#tenantPlatformsItem .el-select').as(
+      'tenantPlatformSelect'
+    )
     cy.get('#submit').as('submit')
   })
 
