@@ -92,10 +92,6 @@
     </div>
   </div>
   <div v-else class="text-gray-900">-</div>
-  <app-paywall-modal
-    v-model="isUpgradeModalOpen"
-    module="organizations"
-  />
 </template>
 
 <script>
@@ -105,8 +101,7 @@ export default {
 </script>
 
 <script setup>
-import { defineProps, ref } from 'vue'
-import AppPaywallModal from '@/modules/layout/components/paywall-modal.vue'
+import { defineProps } from 'vue'
 
 const props = defineProps({
   member: {
@@ -122,6 +117,4 @@ const props = defineProps({
     default: () => 'vertical'
   }
 })
-
-const isUpgradeModalOpen = ref(false)
 </script>
