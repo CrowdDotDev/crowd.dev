@@ -39,7 +39,7 @@ export class StackOverlflowIntegrationService extends IntegrationServiceBase {
     const membersCache = new RedisCache('stackoverflow-members', redis);
     context.pipelineData = {
       tags: settings.tags,
-      pizzlyId: `${context.integration.tenantId}-${PlatformType.STACKOVERFLOW}`,
+      nangoId: `${context.integration.tenantId}-${PlatformType.STACKOVERFLOW}`,
       membersCache,
     }
   }
@@ -96,7 +96,7 @@ export class StackOverlflowIntegrationService extends IntegrationServiceBase {
     const tags = stream.metadata.tags as string[];
     const page = stream.metadata.page as number;
     const response: StackOverflowQuestionsResponse = await getQuestions(
-      { tags, page },
+      { tags, page, nangoId: context.pipelineData.nangoId },
       context.logger,
     )
 
@@ -165,7 +165,7 @@ export class StackOverlflowIntegrationService extends IntegrationServiceBase {
     const questionId = stream.metadata.questionId as string;
     const page = stream.metadata.page as number;
     const response: StackOverflowAnswerResponse = await getAnswers(
-      { questionId, page },
+      { questionId, page, nangoId: context.pipelineData.nangoId },
       context.logger,
     )
 
@@ -271,12 +271,12 @@ export class StackOverlflowIntegrationService extends IntegrationServiceBase {
     return activities;
   }
 
-  private async parseMember(user_id: number, context: IStepContext): Promise<any> {
+  private async parseMember(userId: number, context: IStepContext): Promise<any> {
     const membersCache: RedisCache = context.pipelineData.membersCache;
 
-    context.logger.info(`Parsing member ${user_id}`);
+    context.logger.info(`Parsing member ${userId}`);
 
-    const cached = await membersCache.getValue(user_id.toString());
+    const cached = await membersCache.getValue(userId.toString());
     if (cached) {
       if (cached === 'null') {
         return undefined
@@ -284,21 +284,24 @@ export class StackOverlflowIntegrationService extends IntegrationServiceBase {
 
       return JSON.parse(cached)
     }
-    const member = await this.getMember(user_id, context);
+    const member = await this.getMember(userId, context);
 
     if (member) {
-      await membersCache.setValue(user_id.toString(), JSON.stringify(member), 24 * 60 * 60)
+      await membersCache.setValue(userId.toString(), JSON.stringify(member), 24 * 60 * 60)
 
       return member;
     }
 
-    await membersCache.setValue(user_id.toString(), 'null', 24 * 60 * 60)
+    await membersCache.setValue(userId.toString(), 'null', 24 * 60 * 60)
     return undefined;
   }
 
-  private async getMember(user_id: number, context: IStepContext): Promise<Member> {
+  private async getMember(userId: number, context: IStepContext): Promise<Member> {
     const user = await getUser(
-      user_id,
+      {
+        userId: userId.toString(),
+        nangoId: context.pipelineData.nangoId,
+      },
       context.logger,
     )
    return {

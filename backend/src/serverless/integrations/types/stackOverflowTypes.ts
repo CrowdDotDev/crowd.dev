@@ -16,16 +16,33 @@ interface StackOverflowBase {
 
 export interface StackOverflowGetQuestionsInput {
     tags: string[],
+    nangoId: string,
     page: number, // 1-based
 }
 
 export interface StackOverflowAnswersInput {
     questionId: string,
+    nangoId: string,
     page: number, // 1-based
+}
+
+export interface StackOverflowUserInput {
+    userId: string,
+    nangoId: string,
 }
 
 export interface StackOverflowAnswerResponse extends StackOverflowBase {
     items: StackOverflowAnswer[],
+}
+
+export interface StackOverflowTagsResponse extends StackOverflowBase {
+    items: [{
+        has_synonyms: boolean,
+        is_moderator_only: boolean,
+        is_required: boolean,
+        count: number,
+        name: string,
+    }] | [],
 }
 
 export interface StackOverflowQuestionsResponse extends StackOverflowBase {

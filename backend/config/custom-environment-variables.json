@@ -125,6 +125,9 @@
     "privateKey": "CROWD_GITHUB_PRIVATE_KEY",
     "webhookSecret": "CROWD_GITHUB_WEBHOOK_SECRET"
   },
+  "stackexchange": {
+    "key": "CROWD_STACKEXCHANGE_KEY"
+  },
   "nango": {
     "url": "CROWD_NANGO_URL",
     "secretKey": "CROWD_NANGO_SECRET_KEY"

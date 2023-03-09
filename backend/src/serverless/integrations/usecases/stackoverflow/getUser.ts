@@ -1,10 +1,11 @@
 import axios, { AxiosRequestConfig } from 'axios'
 import { StackOverflowUserResponse, StackOverflowUser } from '../../types/stackOverflowTypes'
 import { Logger } from '../../../../utils/logging'
-import { PlatformType } from '../../../../types/integrationEnums'
+import { STACKEXCHANGE_CONFIG } from '../../../../config';
 import getToken from '../nango/getToken';
 import { timeout } from '../../../../utils/timing';
 import { RateLimitError } from '../../../../types/integration/rateLimitError';
+import { StackOverflowUserInput } from '../../types/stackOverflowTypes';
 
 /**
  * Get paginated questions from StackOverflow given a set of tags
@@ -12,22 +13,21 @@ import { RateLimitError } from '../../../../types/integration/rateLimitError';
  * @param logger Logger instance for structured logging
  * @returns A reddit API response containing the posts in a subreddit.
  */
-async function getUser(user_id: number, logger: Logger): Promise<StackOverflowUser> {
+async function getUser(input: StackOverflowUserInput, logger: Logger): Promise<StackOverflowUser> {
   try {
-    logger.info({ message: 'Fetching a member from StackOverflow', user_id })
+    logger.info({ message: 'Fetching a member from StackOverflow', userId: input.userId })
 
     // Gett an access token from Pizzly
-    // const accessToken = await getToken(input.pizzlyId, PlatformType.REDDIT, logger)
+    const accessToken = await getToken(input.nangoId, 'stackexchange', logger)
 
     const config: AxiosRequestConfig<any> = {
       method: 'get',
-      url: `https://api.stackexchange.com/2.3/users/${user_id}`,
+      url: `https://api.stackexchange.com/2.3/users/${input.userId}`,
       params: {
         site: 'stackoverflow',
+        access_token: accessToken,
+        key: STACKEXCHANGE_CONFIG.key,
       },
-    //   headers: {
-    //     Authorization: `Bearer ${accessToken}`,
-    //   },
     }
 
     const response: StackOverflowUserResponse = (await axios(config)).data;
@@ -43,7 +43,7 @@ async function getUser(user_id: number, logger: Logger): Promise<StackOverflowUs
     }
     return response.items[0];
   } catch (err) {
-    logger.error({ err, user_id }, 'Error while getting a member from StackOverflow API')
+    logger.error({ err, userId: input.userId }, 'Error while getting a member from StackOverflow API')
     throw err
   }
 }

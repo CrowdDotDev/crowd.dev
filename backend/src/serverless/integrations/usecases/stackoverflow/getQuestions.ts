@@ -1,7 +1,7 @@
 import axios, { AxiosRequestConfig } from 'axios'
 import { StackOverflowGetQuestionsInput, StackOverflowQuestionsResponse } from '../../types/stackOverflowTypes'
 import { Logger } from '../../../../utils/logging'
-import { PlatformType } from '../../../../types/integrationEnums'
+import { STACKEXCHANGE_CONFIG } from '../../../../config'
 import getToken from '../nango/getToken'
 import { timeout } from '../../../../utils/timing';
 import { RateLimitError } from '../../../../types/integration/rateLimitError';
@@ -16,8 +16,8 @@ async function getQuestions(input: StackOverflowGetQuestionsInput, logger: Logge
   try {
     logger.info({ message: 'Fetching questions from StackOverflow', input })
 
-    // Gett an access token from Pizzly
-    // const accessToken = await getToken(input.pizzlyId, PlatformType.REDDIT, logger)
+    // Gett an access token from Nango
+    const accessToken = await getToken(input.nangoId, 'stackexchange', logger)
 
     const config: AxiosRequestConfig<any> = {
       method: 'get',
@@ -30,11 +30,10 @@ async function getQuestions(input: StackOverflowGetQuestionsInput, logger: Logge
         tagged: input.tags.join(';'),
         site: 'stackoverflow',
         filter: 'withbody',
-      },
-    //   headers: {
-    //     Authorization: `Bearer ${accessToken}`,
-    //   },
+        access_token: accessToken,
+        key: STACKEXCHANGE_CONFIG.key,
     }
+  }
 
     const response: StackOverflowQuestionsResponse = (await axios(config)).data;
     const backoff = response.backoff;

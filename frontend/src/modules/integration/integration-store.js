@@ -442,6 +442,34 @@ export default {
         Errors.handle(error)
         commit('CREATE_ERROR')
       }
+    },
+
+    async doStackOverflowOnboard({ commit }, { tags }) {
+      // Function to connect to StackOverflow.
+
+      try {
+        commit('CREATE_STARTED')
+
+        const integration =
+          await IntegrationService.stackOverflowOnboard(
+            tags
+          )
+
+        commit('CREATE_SUCCESS', integration)
+
+        Message.success(
+          'The first activities will show up in a couple of seconds. <br /> <br /> This process might take a few minutes to finish, depending on the amount of data.',
+          {
+            title:
+              'Stack Overflow integration created successfully'
+          }
+        )
+
+        router.push('/integrations')
+      } catch (error) {
+        Errors.handle(error)
+        commit('CREATE_ERROR')
+      }
     }
   }
 }

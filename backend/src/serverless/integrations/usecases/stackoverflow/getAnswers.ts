@@ -1,10 +1,10 @@
 import axios, { AxiosRequestConfig } from 'axios'
 import { StackOverflowAnswersInput, StackOverflowAnswerResponse, StackOverflowAnswer } from '../../types/stackOverflowTypes'
 import { Logger } from '../../../../utils/logging'
-import { PlatformType } from '../../../../types/integrationEnums'
 import getToken from '../nango/getToken'
 import { timeout } from '../../../../utils/timing';
 import { RateLimitError } from '../../../../types/integration/rateLimitError'
+import { STACKEXCHANGE_CONFIG } from '../../../../config'
 
 /**
  * Get paginated questions from StackOverflow given a set of tags
@@ -17,7 +17,7 @@ async function getAnswers(input: StackOverflowAnswersInput, logger: Logger): Pro
     logger.info({ message: 'Fetching answers from StackOverflow', input })
 
     // Gett an access token from Pizzly
-    // const accessToken = await getToken(input.pizzlyId, PlatformType.REDDIT, logger)
+    const accessToken = await getToken(input.nangoId, 'stackexchange', logger)
 
     // we sort by creation date ascending (old first), so we can get the first answer and then relate answers to each other based on their order
     const config: AxiosRequestConfig<any> = {
@@ -30,10 +30,9 @@ async function getAnswers(input: StackOverflowAnswersInput, logger: Logger): Pro
         sort: 'creation',
         site: 'stackoverflow',
         filter: 'withbody',
-      },
-    //   headers: {
-    //     Authorization: `Bearer ${accessToken}`,
-    //   },
+        access_token: accessToken,
+        key: STACKEXCHANGE_CONFIG.key,
+      }
     }
 
     const response: StackOverflowAnswerResponse = (await axios(config)).data;

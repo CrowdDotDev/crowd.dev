@@ -240,4 +240,47 @@ export class IntegrationService {
 
     return response.data
   }
+
+  static async stackOverflowValidate(tag) {
+    const tenantId = AuthCurrentTenant.get()
+
+    const response = await authAxios.get(
+      `/tenant/${tenantId}/stackoverflow-validate`,
+      {
+        params: {
+          tag
+        }
+      }
+    )
+
+    return response.data
+  }
+
+  static async stackOverflowVolume(tags) {
+    const tenantId = AuthCurrentTenant.get()
+
+    const response = await authAxios.get(
+      `/tenant/${tenantId}/stackoverflow-volume`,
+      {
+        params: {
+          tags
+        }
+      }
+    )
+
+    return response.data.total
+  }
+
+  static async stackOverflowOnboard(tags) {
+    // Getting the tenant_id
+    const tenantId = AuthCurrentTenant.get()
+    // Calling the authenticate function in the backend.
+    const response = await authAxios.post(
+      `/tenant/${tenantId}/stackoverflow-connect`,
+      {
+        tags
+      }
+    )
+    return response.data
+  }
 }
