@@ -7,6 +7,8 @@ export default () => {
   it('Logs out successfully', () => {
     cy.wait(500)
 
+    cy.get('.el-dialog .btn.btn--transparent').click()
+
     cy.get('@accountDropdown').click()
     cy.get('@logout').click()
 
