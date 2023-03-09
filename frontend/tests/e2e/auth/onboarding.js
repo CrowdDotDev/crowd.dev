@@ -79,6 +79,7 @@ export default () => {
     cy.get('@tenantSize').contains(data.tenant.size).click()
     cy.get('@submit').should('not.be.disabled')
     cy.get('@submit').click()
+    cy.wait(4000)
 
     cy.url().should('not.include', '/onboard')
     cy.location('pathname').should('eq', '/')
