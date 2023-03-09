@@ -11,7 +11,7 @@
       />
       <i
         v-else
-        class="ri-radar-line text-base text-gray-400 mr-2"
+        class="ri-apps-2-line text-base text-gray-400 mr-2"
       ></i>
       <p class="text-sm leading-5">
         <span v-if="platformDetails">{{

@@ -38,7 +38,7 @@
                   />
                   <i
                     v-else-if="form.platform === 'other'"
-                    class="ri-radar-line text-base text-gray-400 h-4 flex items-center"
+                    class="ri-apps-2-line text-base text-gray-400 h-4 flex items-center"
                   ></i>
                 </template>
                 <el-option
@@ -59,7 +59,7 @@
                 <el-option value="other" label="Other">
                   <div class="flex items-center">
                     <i
-                      class="ri-radar-line text-base text-gray-400 mr-3 h-4 flex items-center"
+                      class="ri-apps-2-line text-base text-gray-400 mr-3 h-4 flex items-center"
                     ></i>
                     <span>Other</span>
                   </div>
@@ -83,7 +83,7 @@
         </div>
         <app-form-item
           class="mb-2"
-          label="Type name"
+          label="Activity type"
           :validation="$v.name"
           :required="true"
           :error-messages="{
@@ -92,9 +92,11 @@
         >
           <el-input v-model="form.name"> </el-input>
         </app-form-item>
-        <p class="text-2xs text-gray-500 leading-5">
-          Example: Attended
-          <span v-pre>{{ platform }}</span> conference.
+        <p
+          v-if="form.platform === 'other'"
+          class="text-2xs text-gray-500 leading-5"
+        >
+          Example: "Registered to conference"
         </p>
       </section>
       <footer
@@ -106,7 +108,6 @@
           >Cancel</el-button
         >
         <el-button
-          v-if="isEdit"
           class="btn btn--primary btn--md"
           @click="submit()"
         >
