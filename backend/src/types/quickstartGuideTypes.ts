@@ -63,7 +63,7 @@ const setEagleEyeGuide: QuickstartGuide = {
 const inviteColleaguesGuide: QuickstartGuide = {
   title: 'Invite your colleagues',
   body: 'Invite colleagues to your crowd.dev workspace by giving full access or read-only permissions.',
-  videoLink: 'https://www.loom.com/share/545e7dfc692540d09115ee32653640ca',
+  videoLink: 'https://www.loom.com/share/f12d87814e7447edab4282eab6bb3ccf',
   buttonLink: '/settings',
   buttonText: 'Invite colleagues',
   completed: false,
