@@ -373,9 +373,12 @@ const props = defineProps({
 const store = useStore()
 const { currentUser, currentTenant } = mapGetters('auth')
 
-const eagleEyeSettings = currentUser?.value.tenants.find(
-  (tu) => tu.tenantId === currentTenant?.value.id
-).settings.eagleEye
+const eagleEyeSettings = computed(
+  () =>
+    currentUser?.value.tenants.find(
+      (tu) => tu.tenantId === currentTenant?.value.id
+    ).settings.eagleEye
+)
 
 const generatedReply = ref('')
 const replyDialogVisible = ref(false)
@@ -438,7 +441,7 @@ const bookmarkTooltip = computed(() => {
 })
 
 const areGeneratedRepliesActivated = computed(() => {
-  return eagleEyeSettings?.aiReplies || false
+  return eagleEyeSettings.value?.aiReplies || false
 })
 
 const isGenerateReplyAvailable = computed(() => {
