@@ -131,14 +131,17 @@ import { mapGetters } from '@/shared/vuex/vuex.helpers'
 
 const { currentUser, currentTenant } = mapGetters('auth')
 
-const eagleEyeSettings = currentUser?.value.tenants.find(
-  (tu) => tu.tenantId === currentTenant?.value.id
-).settings.eagleEye
+const eagleEyeSettings = computed(
+  () =>
+    currentUser?.value.tenants.find(
+      (tu) => tu.tenantId === currentTenant?.value.id
+    ).settings.eagleEye
+)
 
 const settingsDrawerOpen = ref(false)
 
 const eagleEyeFeedSettings = computed(() => {
-  return eagleEyeSettings?.feed
+  return eagleEyeSettings.value?.feed
 })
 const keywords = computed(
   () => eagleEyeFeedSettings.value.keywords
@@ -161,7 +164,7 @@ const publishedDate = computed(
 )
 
 const aiRepliesEnabled = computed(() => {
-  return eagleEyeSettings?.aiReplies
+  return eagleEyeSettings.value?.aiReplies
 })
 </script>
 

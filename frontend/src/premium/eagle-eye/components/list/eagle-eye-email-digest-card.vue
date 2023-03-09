@@ -67,18 +67,22 @@ import { ref, computed } from 'vue'
 
 const { currentUser, currentTenant } = mapGetters('auth')
 
-const eagleEyeSettings = currentUser.value.tenants.find(
-  (tu) => tu.tenantId === currentTenant.value.id
-).settings.eagleEye
+const eagleEyeSettings = computed(
+  () =>
+    currentUser.value.tenants.find(
+      (tu) => tu.tenantId === currentTenant.value.id
+    ).settings.eagleEye
+)
 
 const isEmailDigestDrawerOpen = ref(false)
 
 const isEmailDigestConfiguredOnce = computed(
   () =>
-    !!Object.keys(eagleEyeSettings.emailDigest || {}).length
+    !!Object.keys(eagleEyeSettings.value.emailDigest || {})
+      .length
 )
 
 const isEmailDigestActivated = computed(
-  () => eagleEyeSettings?.emailDigestActive
+  () => eagleEyeSettings.value?.emailDigestActive
 )
 </script>
