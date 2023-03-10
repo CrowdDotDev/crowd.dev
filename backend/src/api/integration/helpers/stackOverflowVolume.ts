@@ -2,6 +2,7 @@ import axios from 'axios'
 import Error400 from '../../../errors/Error400'
 import Permissions from '../../../security/permissions'
 import PermissionChecker from '../../../services/user/permissionChecker'
+import { STACKEXCHANGE_CONFIG } from '../../../config'
 
 export default async (req, res) => {
   new PermissionChecker(req).validateHasAny([
@@ -17,7 +18,8 @@ export default async (req, res) => {
             params: {
                 site: 'stackoverflow',
                 tagged: req.query.tags,
-                filter: 'total'
+                filter: 'total',
+                key: STACKEXCHANGE_CONFIG.key
             }
         }
       )

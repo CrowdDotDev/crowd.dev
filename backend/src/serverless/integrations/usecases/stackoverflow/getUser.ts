@@ -9,9 +9,9 @@ import { StackOverflowUserInput } from '../../types/stackOverflowTypes';
 
 /**
  * Get paginated questions from StackOverflow given a set of tags
- * @param input RedditGetPostsInput. Made of a Pizzly ID to get the auth token, and a subreddit.
+ * @param input StackOverflowUserInput. Made of a Nango ID to get the auth token, and a userID.
  * @param logger Logger instance for structured logging
- * @returns A reddit API response containing the posts in a subreddit.
+ * @returns A Stack Overflow API response containing the user.
  */
 async function getUser(input: StackOverflowUserInput, logger: Logger): Promise<StackOverflowUser> {
   try {

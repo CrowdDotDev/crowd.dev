@@ -4,6 +4,7 @@ import Permissions from '../../../security/permissions'
 import PermissionChecker from '../../../services/user/permissionChecker'
 import track from '../../../segment/track'
 import { StackOverflowTagsResponse } from '../../../serverless/integrations/types/stackOverflowTypes'
+import { STACKEXCHANGE_CONFIG } from '../../../config'
 
 export default async (req, res) => {
   new PermissionChecker(req).validateHasAny([
@@ -18,6 +19,7 @@ export default async (req, res) => {
         {
             params: {
                 site: 'stackoverflow',
+                key: STACKEXCHANGE_CONFIG.key
             }
         }
       )
