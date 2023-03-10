@@ -133,6 +133,9 @@ export default {
     },
 
     FIND_SUCCESS(state, record) {
+      if (!record) {
+        return
+      }
       record.loading = false
       state.byId[record.id] = record
       if (state.allIds.indexOf(record.id) === -1) {

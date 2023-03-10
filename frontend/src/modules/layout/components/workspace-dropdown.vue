@@ -189,7 +189,11 @@ const clickOutsideListener = (event) => {
       // on popovers that are not DOM children of this component,
       // since popper is adding fixed components to the body directly
       event.path?.some(
-        (o) => o.className?.includes('el-popper') || false
+        (o) =>
+          (o.className &&
+            typeof o.className.includes !== 'undefined' &&
+            o.className?.includes('el-popper')) ||
+          false
       )
     )
   ) {
