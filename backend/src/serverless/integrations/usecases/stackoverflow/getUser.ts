@@ -27,6 +27,7 @@ async function getUser(input: StackOverflowUserInput, logger: Logger): Promise<S
         site: 'stackoverflow',
         access_token: accessToken,
         key: STACKEXCHANGE_CONFIG.key,
+        filter: '!b8M4F5DX_TlrUr'
       },
     }
 

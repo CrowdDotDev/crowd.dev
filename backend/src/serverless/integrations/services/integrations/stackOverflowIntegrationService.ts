@@ -332,6 +332,11 @@ export class StackOverlflowIntegrationService extends IntegrationServiceBase {
           [PlatformType.STACKOVERFLOW]: user.about_me,
         },
       }),
+       ...(user.website_url && {
+        [MemberAttributeName.WEBSITE_URL]: {
+          [PlatformType.STACKOVERFLOW]: user.website_url,
+        },
+      }),
   },
    }
   }

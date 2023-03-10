@@ -38,4 +38,11 @@ export const StackOverflowMemberAttributes: Attribute[] = [
     canDelete: false,
     show: true,
   },
+  {
+    name: MemberAttributes[MemberAttributeName.WEBSITE_URL].name,
+    label: MemberAttributes[MemberAttributeName.WEBSITE_URL].label,
+    type: AttributeType.URL,
+    canDelete: false,
+    show: true,
+  },
 ]

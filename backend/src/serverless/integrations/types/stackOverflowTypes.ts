@@ -59,7 +59,7 @@ export interface StackOverflowUser {
     account_id: number,
     age?: number,
     answer_count?: number,
-    badge_counts: StackOverflowBadgeCount,
+    badge_counts?: StackOverflowBadgeCount,
     collectives?: StackOverflowCollective[],
     creation_date: number,
     display_name: string,
