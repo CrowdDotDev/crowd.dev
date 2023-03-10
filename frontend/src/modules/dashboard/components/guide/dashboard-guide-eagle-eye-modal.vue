@@ -63,7 +63,7 @@ import { QuickstartGuideService } from '@/modules/quickstart-guide/services/quic
 
 const props = defineProps({
   modelValue: {
-    type: Object,
+    type: Boolean,
     default: null
   }
 })
