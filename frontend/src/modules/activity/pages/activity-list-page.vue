@@ -15,11 +15,17 @@
         </div>
         <div class="flex">
           <el-button
-            class="btn btn--transparent btn--md text-gray-600"
+            class="btn btn--transparent btn--md text-gray-600 mr-4"
             @click="isActivityTypeDrawerOpen = true"
           >
             <i class="ri-settings-3-line text-lg mr-2"></i>
             Activity types
+          </el-button>
+          <el-button
+            class="btn btn--primary btn--md text-gray-600"
+            @click="isActivityDrawerOpen = true"
+          >
+            Add activity
           </el-button>
         </div>
       </div>
@@ -45,6 +51,9 @@
   <app-activity-type-list-drawer
     v-model="isActivityTypeDrawerOpen"
   />
+  <app-activity-form-drawer
+    v-model="isActivityDrawerOpen"
+  />
 </template>
 
 <script>
@@ -56,11 +65,13 @@ import AppActivityListTabs from '@/modules/activity/components/activity-list-tab
 import AppActivityListFilter from '@/modules/activity/components/list/activity-list-filter.vue'
 import AppI18n from '@/shared/i18n/i18n'
 import AppActivityTypeListDrawer from '@/modules/activity/components/type/activity-type-list-drawer.vue'
+import AppActivityFormDrawer from '@/modules/activity/components/activity-form-drawer.vue'
 
 export default {
   name: 'AppActivityListPage',
 
   components: {
+    AppActivityFormDrawer,
     AppActivityTypeListDrawer,
     AppI18n,
     AppActivityList,
@@ -72,7 +83,8 @@ export default {
   data() {
     return {
       creating: false,
-      isActivityTypeDrawerOpen: true
+      isActivityTypeDrawerOpen: false,
+      isActivityDrawerOpen: false
     }
   },
   computed: {

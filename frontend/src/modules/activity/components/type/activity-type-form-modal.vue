@@ -7,80 +7,6 @@
   >
     <template #content>
       <section class="px-6 pb-10">
-        <div class="flex -mx-1.5">
-          <div class="w-1/3 px-1.5">
-            <app-form-item
-              class="mb-4"
-              label="Platform"
-              :validation="$v.platform"
-              :required="true"
-              :error-messages="{
-                required: 'This field is required'
-              }"
-            >
-              <el-select
-                v-model="form.platform"
-                placeholder="Select option"
-                class="w-full"
-              >
-                <template
-                  v-if="
-                    selectedPlatform ||
-                    form.platform === 'other'
-                  "
-                  #prefix
-                >
-                  <img
-                    v-if="selectedPlatform"
-                    :src="selectedPlatform.image"
-                    :alt="selectedPlatform.name"
-                    class="w-4 h-4"
-                  />
-                  <i
-                    v-else-if="form.platform === 'other'"
-                    class="ri-apps-2-line text-base text-gray-400 h-4 flex items-center"
-                  ></i>
-                </template>
-                <el-option
-                  v-for="platform in platforms"
-                  :key="platform.platform"
-                  :value="platform.platform"
-                  :label="platform.name"
-                >
-                  <div class="flex items-center">
-                    <img
-                      :src="platform.image"
-                      :alt="platform.name"
-                      class="w-4 h-4 mr-3"
-                    />
-                    <span>{{ platform.name }}</span>
-                  </div>
-                </el-option>
-                <el-option value="other" label="Other">
-                  <div class="flex items-center">
-                    <i
-                      class="ri-apps-2-line text-base text-gray-400 mr-3 h-4 flex items-center"
-                    ></i>
-                    <span>Other</span>
-                  </div>
-                </el-option>
-              </el-select>
-            </app-form-item>
-          </div>
-          <div
-            v-if="form.platform === 'other'"
-            class="w-2/3 px-1.5"
-          >
-            <app-form-item class="mb-4">
-              <el-input
-                v-model="form.platformName"
-                placeholder="Enter name"
-                class="mt-6"
-              >
-              </el-input>
-            </app-form-item>
-          </div>
-        </div>
         <app-form-item
           class="mb-2"
           label="Activity type"
@@ -134,7 +60,6 @@ import {
 } from 'vue'
 import useVuelidate from '@vuelidate/core'
 import { required } from '@vuelidate/validators'
-import { CrowdIntegrations } from '@/integrations/integrations-config'
 import AppFormItem from '@/shared/form/form-item.vue'
 
 // Props & Emits
@@ -149,15 +74,10 @@ const emit = defineEmits(['update:modelValue'])
 
 // Form control
 const form = reactive({
-  platform: '',
-  platformName: '',
   name: ''
 })
 
 const rules = {
-  platform: {
-    required
-  },
   name: {
     required
   }
@@ -174,14 +94,6 @@ const isVisible = computed({
 const isEdit = computed(() => {
   // TODO: is it edit / create
   return false
-})
-
-// Platforms data
-const platforms = computed(() => {
-  return CrowdIntegrations.enabledConfigs
-})
-const selectedPlatform = computed(() => {
-  return CrowdIntegrations.getConfig(form.platform)
 })
 
 const submit = () => {}

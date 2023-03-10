@@ -82,7 +82,7 @@ const props = defineProps({
 
 const emit = defineEmits(['update:modelValue'])
 
-const isFormModalOpen = ref(true)
+const isFormModalOpen = ref(false)
 
 const isVisible = computed({
   get() {
