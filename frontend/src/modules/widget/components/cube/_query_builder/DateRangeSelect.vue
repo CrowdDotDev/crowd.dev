@@ -72,8 +72,8 @@ export default {
           label: 'Last 30 days'
         },
         {
-          value: 'Last year',
-          label: 'Last year'
+          value: 'Last 12 months',
+          label: 'Last 12 months'
         },
         {
           value: undefined,
