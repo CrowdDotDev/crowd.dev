@@ -577,6 +577,9 @@ class MemberRepository {
     ['isOrganization', "coalesce((m.attributes -> 'isOrganization' -> 'default')::boolean, false)"],
     ['isTeamMember', "coalesce((m.attributes -> 'isTeamMember' -> 'default')::boolean, false)"],
     ['isBot', "coalesce((m.attributes -> 'isBot' -> 'default')::boolean, false)"],
+    ['activityCount', 'aggs."activityCount"'],
+    ['identities', 'array(select jsonb_object_keys(m.username))'],
+    ['email', 'm.email'],
   ])
 
   static async findAndCountAllv2(

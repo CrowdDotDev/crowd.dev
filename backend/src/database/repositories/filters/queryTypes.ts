@@ -1,3 +1,5 @@
+import { AttributeData } from '../../attributes/attribute'
+
 export interface QueryInput {
   filter: any
   orderBy: any
@@ -27,4 +29,10 @@ export interface ManyToManyType {
       to: string
     }
   }
+}
+
+export interface JsonColumnInfo {
+  property: string
+  column: string
+  attributeSettings: AttributeData[]
 }

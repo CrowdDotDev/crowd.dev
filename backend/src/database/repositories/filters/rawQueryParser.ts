@@ -1,3 +1,6 @@
+import { JsonColumnInfo } from './queryTypes'
+import { singleOrDefault } from '../../../utils/arrays'
+
 enum Operator {
   GREATER_THAN = 'gt',
   GREATER_THAN_OR_EQUAL = 'gte',
@@ -24,10 +27,17 @@ enum Operator {
 
   OVERLAP = 'overlap',
   CONTAINS = 'contains',
+
+  NOT = 'not',
 }
 
 export default class RawQueryParser {
-  public static parseFilters(filters: any, columnMap: Map<string, string>, params: any): string {
+  public static parseFilters(
+    filters: any,
+    columnMap: Map<string, string>,
+    jsonColumnInfos: JsonColumnInfo[],
+    params: any,
+  ): string {
     const keys = Object.keys(filters)
     if (keys.length === 0) {
       return '(1=1)'
@@ -39,14 +49,16 @@ export default class RawQueryParser {
       if (this.isOperator(key)) {
         const operands = []
         for (const operand of filters[key]) {
-          operands.push(this.parseFilters(operand, columnMap, params))
+          operands.push(this.parseFilters(operand, columnMap, jsonColumnInfos, params))
         }
 
         const condition = operands.join(` ${key} `)
         results.push(`(${condition})`)
       } else {
         // it's a condition
-        if (!columnMap.has(key)) {
+        const jsonColumnInfo = this.getJsonColumnInfo(key, jsonColumnInfos)
+
+        if (jsonColumnInfo === undefined && !columnMap.has(key)) {
           throw new Error(`Unknown filter key: ${key}!`)
         }
 
@@ -60,14 +72,60 @@ export default class RawQueryParser {
         const actualOperator = this.getOperator(operator)
         const value = filters[key][operator]
 
-        const paramName = this.getParamName(key, params)
-        params[paramName] = value
+        if (operator === Operator.BETWEEN || operator === Operator.NOT_BETWEEN) {
+          // we need two values
+          const firstParamName = this.getParamName(key, params)
+          params[firstParamName] = value[0]
 
-        results.push(`(${column} ${actualOperator} :${paramName})`)
+          const secondParamName = this.getParamName(key, params)
+          params[secondParamName] = value[1]
+
+          results.push(`(${column} ${actualOperator} :${firstParamName} and :${secondParamName})`)
+        } else if (operator === Operator.CONTAINS || operator === Operator.OVERLAP) {
+          // we need an array of values
+          const paramNames: string[] = []
+
+          for (const val of value) {
+            const paramName = this.getParamName(key, params)
+            params[paramName] = val
+            paramNames.push(`:${paramName}`)
+          }
+
+          const paramNamesString = paramNames.join(', ')
+          results.push(`(${column} ${actualOperator} array[${paramNamesString}])`)
+        } else if (operator === Operator.IN || operator === Operator.NOT_IN) {
+          // we need a list of values
+          const paramNames: string[] = []
+
+          for (const val of value) {
+            const paramName = this.getParamName(key, params)
+            params[paramName] = val
+            paramNames.push(`:${paramName}`)
+          }
+
+          const paramNamesString = paramNames.join(', ')
+          results.push(`(${column} ${actualOperator} (${paramNamesString}))`)
+        } else {
+          const paramName = this.getParamName(key, params)
+          if (operator === Operator.LIKE || operator === Operator.NOT_LIKE) {
+            params[paramName] = `%${value}%`
+          } else {
+            params[paramName] = value
+          }
+
+          results.push(`(${column} ${actualOperator} :${paramName})`)
+        }
       }
     }
 
     return results.join(' and ')
+  }
+
+  private static getJsonColumnInfo(
+    column: string,
+    jsonColumnInfos: JsonColumnInfo[],
+  ): JsonColumnInfo | undefined {
+    return singleOrDefault(jsonColumnInfos, (jsonColumnInfo) => jsonColumnInfo.property === column)
   }
 
   private static getOperator(operator: Operator): string {
@@ -81,6 +139,7 @@ export default class RawQueryParser {
       case Operator.LESS_THAN_OR_EQUAL:
         return '<='
       case Operator.NOT_EQUAL:
+      case Operator.NOT:
         return '<>'
       case Operator.EQUAL:
         return '='
@@ -104,6 +163,7 @@ export default class RawQueryParser {
         return '&&'
       case Operator.CONTAINS:
         return '@>'
+
       default:
         throw new Error(`Unknown operator: ${operator}!`)
     }
