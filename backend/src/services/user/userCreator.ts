@@ -113,6 +113,7 @@ export default class UserCreator {
         addRoles: true,
         transaction: this.transaction,
       },
+      true,
     )
 
     if (!isUserAlreadyInTenant) {

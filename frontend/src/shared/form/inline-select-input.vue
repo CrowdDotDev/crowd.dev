@@ -14,7 +14,7 @@
           modelLabel
         }}</span>
         <i
-          class="ri-arrow-down-s-line"
+          class="ri-arrow-down-s-line ml-1"
           :style="
             dropdownExpanded
               ? 'transform: rotate(180deg)'

@@ -36,6 +36,7 @@ class MemberRepository {
           'attributes',
           'email',
           'lastEnriched',
+          'enrichedBy',
           'contributions',
           'score',
           'reach',
@@ -78,6 +79,24 @@ class MemberRepository {
     await this._createAuditLog(AuditLogRepository.CREATE, record, data, options)
 
     return this.findById(record.id, options, true, doPopulateRelations)
+  }
+
+  static async findSampleDataMemberIds(options: IRepositoryOptions) {
+    const currentTenant = SequelizeRepository.getCurrentTenant(options)
+    const sampleMemberIds = await options.database.sequelize.query(
+      `select m.id from members m
+      where (m.attributes->'sample'->'default')::boolean is true
+      and m."tenantId" = :tenantId;
+    `,
+      {
+        replacements: {
+          tenantId: currentTenant.id,
+        },
+        type: QueryTypes.SELECT,
+      },
+    )
+
+    return sampleMemberIds.map((i) => i.id)
   }
 
   static async findMembersWithMergeSuggestions(
@@ -215,7 +234,7 @@ class MemberRepository {
     const currentTenant = SequelizeRepository.getCurrentTenant(options)
 
     const query =
-      'SELECT "id", "username", "displayName", "attributes", "email", "score", "lastEnriched", "contributions", "reach", "joinedAt", "importHash", "createdAt", "updatedAt", "deletedAt", "tenantId", "createdById", "updatedById" FROM "members" AS "member" WHERE ("member"."deletedAt" IS NULL AND ("member"."tenantId" = $tenantId AND ("member"."username"->>$platform) = $username)) LIMIT 1;'
+      'SELECT "id", "username", "displayName", "attributes", "email", "score", "lastEnriched", "enrichedBy", "contributions", "reach", "joinedAt", "importHash", "createdAt", "updatedAt", "deletedAt", "tenantId", "createdById", "updatedById" FROM "members" AS "member" WHERE ("member"."deletedAt" IS NULL AND ("member"."tenantId" = $tenantId AND ("member"."username"->>$platform) = $username)) LIMIT 1;'
 
     const records = await options.database.sequelize.query(query, {
       type: Sequelize.QueryTypes.SELECT,
@@ -264,6 +283,7 @@ class MemberRepository {
           'attributes',
           'email',
           'lastEnriched',
+          'enrichedBy',
           'contributions',
           'score',
           'reach',
@@ -1053,6 +1073,7 @@ where m."deletedAt" is null
               'email',
               'score',
               'lastEnriched',
+              'enrichedBy',
               'contributions',
               'joinedAt',
               'importHash',
@@ -1113,71 +1134,66 @@ where m."deletedAt" is null
       order = [customOrderBy]
     }
 
-    // eslint-disable-next-line prefer-const
-    let { rows, count } = await logExecutionTime(
-      async () =>
-        options.database.member.findAndCountAll({
-          where: parsed.where ? parsed.where : {},
-          having: parsed.having ? parsed.having : {},
-          include,
-          attributes: [
-            ...SequelizeFilterUtils.getLiteralProjections(
-              [
-                'id',
-                'username',
-                'attributes',
-                'displayName',
-                'email',
-                'tenantId',
-                'score',
-                'lastEnriched',
-                'contributions',
-                'joinedAt',
-                'importHash',
-                'createdAt',
-                'updatedAt',
-                'createdById',
-                'updatedById',
-                'reach',
-              ],
-              'member',
-            ),
-            [activeOn, 'activeOn'],
-            [identities, 'identities'],
-            [activityCount, 'activityCount'],
-            [activityTypes, 'activityTypes'],
-            [activeDaysCount, 'activeDaysCount'],
-            [lastActive, 'lastActive'],
-            [averageSentiment, 'averageSentiment'],
-            [toMergeArray, 'toMergeIds'],
-            [noMergeArray, 'noMergeIds'],
-            ...dynamicAttributesProjection,
+    let {
+      rows,
+      count, // eslint-disable-line prefer-const
+    } = await options.database.member.findAndCountAll({
+      where: parsed.where ? parsed.where : {},
+      having: parsed.having ? parsed.having : {},
+      include,
+      attributes: [
+        ...SequelizeFilterUtils.getLiteralProjections(
+          [
+            'id',
+            'username',
+            'attributes',
+            'displayName',
+            'email',
+            'tenantId',
+            'score',
+            'lastEnriched',
+            'enrichedBy',
+            'contributions',
+            'joinedAt',
+            'importHash',
+            'createdAt',
+            'updatedAt',
+            'createdById',
+            'updatedById',
+            'reach',
           ],
-          limit: parsed.limit || 50,
-          offset: offset ? Number(offset) : 0,
-          order,
-          subQuery: false,
-          group: [
-            'member.id',
-            'memberActivityAggregatesMVs.activeOn',
-            'memberActivityAggregatesMVs.activityCount',
-            'memberActivityAggregatesMVs.activityTypes',
-            'memberActivityAggregatesMVs.activeDaysCount',
-            'memberActivityAggregatesMVs.lastActive',
-            'memberActivityAggregatesMVs.averageSentiment',
-            'toMerge.id',
-          ],
-          distinct: true,
-        }),
-      options.log,
-      'query execution time',
-    )
+          'member',
+        ),
+        [activeOn, 'activeOn'],
+        [identities, 'identities'],
+        [activityCount, 'activityCount'],
+        [activityTypes, 'activityTypes'],
+        [activeDaysCount, 'activeDaysCount'],
+        [lastActive, 'lastActive'],
+        [averageSentiment, 'averageSentiment'],
+        [toMergeArray, 'toMergeIds'],
+        [noMergeArray, 'noMergeIds'],
+        ...dynamicAttributesProjection,
+      ],
+      limit: parsed.limit || 50,
+      offset: offset ? Number(offset) : 0,
+      order,
+      subQuery: false,
+      group: [
+        'member.id',
+        'memberActivityAggregatesMVs.activeOn',
+        'memberActivityAggregatesMVs.activityCount',
+        'memberActivityAggregatesMVs.activityTypes',
+        'memberActivityAggregatesMVs.activeDaysCount',
+        'memberActivityAggregatesMVs.lastActive',
+        'memberActivityAggregatesMVs.averageSentiment',
+        'toMerge.id',
+      ],
+      distinct: true,
+    })
 
-    rows = await logExecutionTime(
-      async () => this._populateRelationsForRows(rows, attributesSettings, exportMode),
-      options.log,
-      'population time',
-    )
+    rows = await this._populateRelationsForRows(rows, attributesSettings, exportMode)
+
     return {
       rows,
       count: count.length,

@@ -8,7 +8,9 @@ export default () => {
   beforeEach(() => {
     cy.get('#tenantName').as('tenantName')
     cy.get('#tenantSize').as('tenantSize')
-    cy.get('.el-select').as('tenantPlatformSelect')
+    cy.get('#tenantPlatformsItem .el-select').as(
+      'tenantPlatformSelect'
+    )
     cy.get('#submit').as('submit')
   })
 
@@ -65,7 +67,7 @@ export default () => {
       .should('exist')
   })
 
-  it('Continues onboarding if all fields are valid', () => {
+  it('Finishes onboarding if all fields are valid', () => {
     cy.get('@tenantPlatformSelect').click()
     for (let platform of data.tenant.platforms) {
       cy.get('.el-select-dropdown')
@@ -77,49 +79,8 @@ export default () => {
     cy.get('@tenantSize').contains(data.tenant.size).click()
     cy.get('@submit').should('not.be.disabled')
     cy.get('@submit').click()
-    cy.url().should('include', '/onboard')
-  })
+    cy.wait(4000)
 
-  it('Should display sample data modal if no integrations connected', () => {
-    cy.get('#onboardFinish').click()
-    cy.wait(200)
-    cy.get('.el-dialog').as('dialog')
-    cy.get('@dialog').should('exist')
-    cy.get('@dialog')
-      .find('#continueSampleData')
-      .should('exist')
-
-    cy.get('@dialog').find('#closeSampleDataModal').click()
-    cy.wait(200)
-  })
-
-  it('Should connect dev platform', () => {
-    cy.get('main section')
-      .contains('DEV')
-      .closest('article')
-      .find('button')
-      .first()
-      .click()
-
-    cy.get('#devOrganization')
-      .as('devOrganization')
-      .clear()
-      .type(data.tenant.integration.dev)
-    cy.get('#devUser').clear()
-    cy.wait(200)
-    cy.get('#devConnect').click()
-    cy.wait(200)
-
-    cy.get('main section')
-      .contains('DEV')
-      .closest('article')
-      .contains('In progress')
-      .should('exist')
-  })
-
-  it('Should finish onboarding', () => {
-    cy.get('#onboardFinish').click()
-    cy.wait(200)
     cy.url().should('not.include', '/onboard')
     cy.location('pathname').should('eq', '/')
   })
