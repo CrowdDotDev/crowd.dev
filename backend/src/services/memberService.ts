@@ -672,6 +672,18 @@ export default class MemberService extends LoggingBase {
     )
   }
 
+  async queryV2(data) {
+    return MemberRepository.findAndCountAllv2(
+      {
+        limit: data.limit,
+        offset: data.offset,
+        filter: data.filter,
+        orderBy: data.orderBy || undefined,
+      },
+      this.options,
+    )
+  }
+
   async query(data, exportMode = false) {
     const memberAttributeSettings = (
       await MemberAttributeSettingsRepository.findAndCountAll({}, this.options)
