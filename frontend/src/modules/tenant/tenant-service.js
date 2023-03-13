@@ -126,22 +126,4 @@ export class TenantService {
 
     return response.data
   }
-
-  static async populateSampleData(tenantId) {
-    const response = await authAxios.post(
-      `/tenant/${tenantId}/sampleData`
-    )
-
-    // We're adding a delay to allow the API to create the first few records
-    await new Promise((res) => setTimeout(res, 3000))
-    return response.data
-  }
-
-  static async deleteSampleData(tenantId) {
-    const response = await authAxios.delete(
-      `/tenant/${tenantId}/sampleData`
-    )
-
-    return response.data
-  }
 }
