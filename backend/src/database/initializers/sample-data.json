@@ -15,10 +15,67 @@
           "github": "It's not magic, it's talent and sweat",
           "custom": "It's not magic, it's talent and sweat. Systems architecture at PiedPiper"
         },
-        "jobTitle": { "custom": "Systems Architect" },
-        "location": { "github": "Silicon Valley" },
+        "jobTitle": {
+          "custom": "Systems Architect"
+        },
+        "location": {
+          "github": "Silicon Valley"
+        },
         "avatarUrl": {
           "custom": "https://s3.eu-central-1.amazonaws.com/crowd.dev-sample-data/gilfoyle-small.jpg"
+        },
+        "skills": {
+          "enrichment": ["DevOps", "Linux", "Networking"]
+        },
+        "languages": {
+          "enrichment": ["English", "German"]
+        },
+        "programmingLanguages": {
+          "enrichment": ["Python", "Go", "Bash", "Ruby"]
+        },
+        "awards": {
+          "enrichment": ["Silicon Valley Tech Innovator Award 2017"]
+        },
+        "seniorityLevel": {
+          "enrichment": "Senior"
+        },
+        "expertise": {
+          "enrichment": ["Systems architecture", "DevOps", "Networking", "Linux", "Python"]
+        },
+        "country": {
+          "enrichment": "USA"
+        },
+        "yearsOfExperience": {
+          "enrichment": 10
+        },
+        "education": {
+          "enrichment": [
+            {
+              "campus": "University of California, Berkeley",
+              "major": "Computer Science",
+              "specialization": "Systems",
+              "startDate": "2010-08-01",
+              "endDate": "2014-05-01"
+            }
+          ]
+        },
+        "workExperiences": {
+          "enrichment": [
+            {
+              "title": "Systems Architect",
+              "company": "Pied Piper",
+              "location": "Silicon Valley",
+              "startDate": "2014-05-01",
+              "endDate": "Present"
+            },
+            {
+              "title": "DevOps Engineer",
+              "company": "Hooli",
+              "location": "Silicon Valley",
+              "startDate": "2012-06-01",
+              "endDate": "2014-05-01"
+            }
+          ]
         }
       },
       "organizations": [
@@ -37,14 +94,96 @@
             "location": "Menlo Park"
           },
           "employees": 20,
-          "revenueRange": { "min": 0, "max": 1 },
-          "linkedin": { "handle": "company/pied-piper" },
-          "crunchbase": { "handle": "company/pied-piper" }
+          "revenueRange": {
+            "min": 0,
+            "max": 1
+          },
+          "linkedin": {
+            "handle": "company/pied-piper"
+          },
+          "crunchbase": {
+            "handle": "company/pied-piper"
+          }
         }
       ],
       "email": "gilfoyle@piedpiper.io",
       "score": 9,
-      "reach": { "twitter": 534, "github": 83, "total": 617 }
+      "reach": {
+        "twitter": 534,
+        "github": 83,
+        "total": 617
+      },
+      "notes": [
+        "Gilfoyle is known for his satanist beliefs and love of beer",
+        "He has a reputation for being blunt and sarcastic",
+        "Gilfoyle's expertise in systems architecture and security make him an invaluable member of Pied Piper's team"
+      ],
+      "tags": ["Systems Architect", "DevOps", "Security", "Networks"],
+      "openSourceContributions": [
+        {
+          "id": 1,
+          "url": "https://github.com/rhendricks/piedpiper",
+          "topics": ["compression", "data", "middle-out", "Java"],
+          "summary": "Pied Piper: 15 commits in 1 day",
+          "numberCommits": 25,
+          "lastCommitDate": "2023-03-10",
+          "firstCommitDate": "2023-03-09"
+        },
+        {
+          "id": 2,
+          "url": "https://github.com/rhendricks/piperchat",
+          "topics": ["messaging", "chat", "security", "compression", "decentralized", "Java"],
+          "summary": "PiperChat: 10 commits in 1 day",
+          "numberCommits": 50,
+          "lastCommitDate": "2023-03-08",
+          "firstCommitDate": "2023-03-07"
+        },
+        {
+          "id": 1,
+          "url": "https://github.com/gilfoyle/linux-kernel",
+          "topics": ["Linux", "Kernel", "Networking", "Unix"],
+          "summary": "linux-kernel: 15 commits in 1 day",
+          "numberCommits": 20,
+          "lastCommitDate": "2019-03-01",
+          "firstCommitDate": "2019-02-15"
+        },
+        {
+          "id": 2,
+          "url": "https://github.com/gilfoyle/pydevops",
+          "topics": ["Python", "DevOps"],
+          "summary": "pydevops: 8 commits in 1 day",
+          "numberCommits": 18,
+          "lastCommitDate": "2020-07-01",
+          "firstCommitDate": "2020-06-15"
+        },
+        {
+          "id": 3,
+          "url": "https://github.com/gilfoyle/pypackage",
+          "topics": ["Python", "Packaging"],
+          "summary": "pypackage: 5 commits in 1 day",
+          "numberCommits": 25,
+          "lastCommitDate": "2021-02-01",
+          "firstCommitDate": "2021-01-25"
+        },
+        {
+          "id": 4,
+          "url": "https://github.com/gilfoyle/go-webapp",
+          "topics": ["Go", "Web", "DevOps"],
+          "summary": "go-webapp: 10 commits in 1 day",
+          "numberCommits": 10,
+          "lastCommitDate": "2021-08-01",
+          "firstCommitDate": "2021-07-25"
+        },
+        {
+          "id": 5,
+          "url": "https://github.com/gilfoyle/batch-scripts",
+          "topics": ["Bash", "Scripts", "Unix"],
+          "summary": "batch-scripts: 3 commits in 1 day",
+          "numberCommits": 13,
+          "lastCommitDate": "2022-01-01",
+          "firstCommitDate": "2021-12-25"
+        }
+      ]
     },
     {
       "displayName": "Richard Hendricks",
@@ -65,6 +204,64 @@
         "location": { "github": "Silicon Valley" },
         "avatarUrl": {
           "custom": "https://s3.eu-central-1.amazonaws.com/crowd.dev-sample-data/richard-small.jpg"
+        },
+        "skills": {
+          "enrichment": ["compression", "startup management", "software development", "networking"]
+        },
+        "languages": {
+          "enrichment": ["English", "Spanish"]
+        },
+        "programmingLanguages": {
+          "enrichment": ["Java", "Python", "C++", "JavaScript"]
+        },
+        "awards": {
+          "enrichment": ["TechCrunch Disrupt Startup Battlefield Winner", "Forbes 30 under 30"]
+        },
+        "seniorityLevel": {
+          "enrichment": "Senior"
+        },
+        "expertise": {
+          "enrichment": [
+            "Leadership",
+            "Data compression",
+            "Software development",
+            "Public speaking"
+          ]
+        },
+        "country": {
+          "enrichment": "United States"
+        },
+        "yearsOfExperience": {
+          "enrichment": 10
+        },
+        "education": {
+          "enrichment": [
+            {
+              "campus": "Stanford University",
+              "major": "Computer Science",
+              "specialization": "Artificial Intelligence",
+              "startDate": "2010-09-01",
+              "endDate": "2014-06-01"
+            }
+          ]
+        },
+        "workExperiences": {
+          "enrichment": [
+            {
+              "title": "CEO",
+              "company": "Pied Piper",
+              "location": "Silicon Valley",
+              "startDate": "2014-06-01",
+              "endDate": "Present"
+            },
+            {
+              "title": "Software Engineer",
+              "company": "Hooli",
+              "location": "Silicon Valley",
+              "startDate": "2012-06-01",
+              "endDate": "2014-06-01"
+            }
+          ]
         }
       },
       "organizations": [
@@ -90,7 +287,87 @@
       ],
       "email": "richard@piedpiper.io",
       "score": 8,
-      "reach": { "twitter": 2016, "github": 157, "total": 2173 }
+      "reach": { "twitter": 2016, "github": 157, "total": 2173 },
+      "tags": ["entrepreneur", "tech leader", "innovator", "compression expert", "startups"],
+      "notes": [
+        "Has a tendency to overthink things",
+        "Very dedicated to his work",
+        "Can be shy in social situations"
+      ],
+      "openSourceContributions": [
+        {
+          "id": 1,
+          "url": "https://github.com/rhendricks/piedpiper",
+          "topics": ["compression", "data", "middle-out", "Java"],
+          "summary": "Pied Piper: 25 commits in 1 day",
+          "numberCommits": 75,
+          "lastCommitDate": "2023-03-10",
+          "firstCommitDate": "2023-03-09"
+        },
+        {
+          "id": 2,
+          "url": "https://github.com/rhendricks/piperchat",
+          "topics": ["messaging", "chat", "security", "compression", "decentralized"],
+          "summary": "PiperChat: 10 commits in 1 day",
+          "numberCommits": 30,
+          "lastCommitDate": "2023-03-08",
+          "firstCommitDate": "2023-03-07"
+        },
+        {
+          "id": 3,
+          "url": "https://github.com/rhendricks/neuralnets",
+          "topics": ["neuralnets", "machinelearning", "python"],
+          "summary": "NeuralNets: 5 commits in 1 day",
+          "numberCommits": 5,
+          "lastCommitDate": "2023-03-05",
+          "firstCommitDate": "2023-03-04"
+        },
+        {
+          "id": 4,
+          "url": "https://github.com/rhendricks/datasci",
+          "topics": ["datascience", "analytics", "visualization", "neuralnets"],
+          "summary": "DataSci: 15 commits in 1 day",
+          "numberCommits": 15,
+          "lastCommitDate": "2023-03-01",
+          "firstCommitDate": "2023-02-28"
+        },
+        {
+          "id": 6,
+          "url": "https://github.com/rhendricks/networking",
+          "topics": ["networking", "protocols", "security"],
+          "summary": "Networking: 8 commits in 1 day",
+          "numberCommits": 8,
+          "lastCommitDate": "2023-02-22",
+          "firstCommitDate": "2023-02-21"
+        },
+        {
+          "id": 7,
+          "url": "https://github.com/rhendricks/webdev",
+          "topics": ["webdev", "html", "css", "javascript"],
+          "summary": "WebDev: 10 commits in 1 day",
+          "numberCommits": 10,
+          "lastCommitDate": "2023-02-18",
+          "firstCommitDate": "2023-02-17"
+        },
+        {
+          "id": 8,
+          "url": "https://github.com/rhendricks/cloudcomputing",
+          "topics": ["cloudcomputing", "aws", "azure", "gcp"],
+          "summary": "CloudComputing: 7 commits in 1 day",
+          "numberCommits": 7,
+          "lastCommitDate": "2023-02-15",
+          "firstCommitDate": "2023-02-14"
+        },
+        {
+          "id": 10,
+          "url": "https://github.com/rhendricks/distributedsystems",
+          "topics": ["distributedsystems", "kafka", "rabbitmq", "kubernetes", "cloudcomputing"],
+          "summary": "DistributedSystems: 9 commits in 1 day",
+          "numberCommits": 9,
+          "lastCommitDate": "2023-02-05",
+          "firstCommitDate": "2023-02-04"
+        }
+      ]
     },
     {
       "displayName": "Erlich Bachman",
@@ -101,6 +378,7 @@
         "devto": "ebachman",
         "linkedin": "erlichbachman"
       },
+      "tags": ["entrepreneur", "public speaker", "showman"],
       "attributes": {
         "bio": {
           "twitter": "Founder of Aviato, backer of @piedpiper",
@@ -111,16 +389,83 @@
         "location": { "github": "Silicon Valley" },
         "avatarUrl": {
           "custom": "https://s3.eu-central-1.amazonaws.com/crowd.dev-sample-data/erlich-small.jpg"
+        },
+        "skills": {
+          "enrichment": ["Marketing", "Product Development", "Venture Capital", "Public Speaking"]
+        },
+        "languages": {
+          "enrichment": ["English", "Mandarin", "Spanish"]
+        },
+        "programmingLanguages": {
+          "enrichment": ["Python", "JavaScript", "Ruby", "C++"]
+        },
+        "awards": {
+          "enrichment": ["TechCrunch Disrupt Battlefield Winner 2014"]
+        },
+        "seniorityLevel": {
+          "enrichment": "Senior"
+        },
+        "expertise": {
+          "enrichment": [
+            "Startup incubation",
+            "Marketing",
+            "Business development",
+            "Product management",
+            "Fundraising",
+            "Public speaking"
+          ]
+        },
+        "country": {
+          "enrichment": "USA"
+        },
+        "yearsOfExperience": {
+          "enrichment": 12
+        },
+        "education": {
+          "enrichment": [
+            {
+              "campus": "UC Berkeley",
+              "major": "Business Administration",
+              "specialization": "",
+              "startDate": "2010-09-01",
+              "endDate": "2014-05-15"
+            },
+            {
+              "campus": "UC Berkeley",
+              "major": "Computer Science",
+              "specialization": "Artificial Intelligence",
+              "startDate": "2008-09-01",
+              "endDate": "2010-06-01"
+            }
+          ]
+        },
+        "workExperiences": {
+          "enrichment": [
+            {
+              "title": "CEO",
+              "company": "Aviato",
+              "location": "Silicon Valley",
+              "startDate": "2012-01-01",
+              "endDate": "2015-12-31"
+            },
+            {
+              "title": "Startup Incubator Creator",
+              "company": "Erlich's Startup Incubator",
+              "location": "Silicon Valley",
+              "startDate": "2016-01-01",
+              "endDate": "Present"
+            }
+          ]
         }
       },
       "organizations": [
         {
           "name": "Erlich's Startup Incubator",
           "website": "https://erlichincubator.in",
-          "logo": "https://s3.eu-central-1.amazonaws.com/crowd.dev-sample-data/erlich-small.jpg",
+          "logo": "https://cdn.dribbble.com/users/1771704/screenshots/3585167/erlich_still_2x.gif?compress=1&resize=400x300",
           "description": "Startup incubator right in Erlich Bachman's house",
           "emails": ["bachman@erlichincubator.in", "jianyang@erlichincubator.in"],
-          "tags": ["erlich", "incubator"],
+          "tags": ["Entrepreneur", "Startup Incubator", "VC"],
           "twitter": {
             "handle": "erlichincubator",
             "bio": "Startup incubator right in Erlich Bachman's house",
@@ -136,7 +481,37 @@
       ],
       "email": "erlich@piedpiper.io",
       "score": 7,
-      "reach": { "twitter": 711, "github": 1, "total": 712 }
+      "reach": { "twitter": 711, "github": 1, "total": 712 },
+      "notes": ["Can be difficult to work with", "Strong personality", "Likes to take risks"],
+      "openSourceContributions": [
+        {
+          "id": 112529472,
+          "url": "https://github.com/bachman/pied-piper",
+          "topics": ["compression", "data", "middle-out", "Java"],
+          "summary": "Pied Piper: 10 commits in 1 day",
+          "numberCommits": 10,
+          "lastCommitDate": "2023-03-10",
+          "firstCommitDate": "2023-03-01"
+        },
+        {
+          "id": 112529473,
+          "url": "https://github.com/bachman/aviato",
+          "topics": ["Python", "Django"],
+          "summary": "Aviato: 5 commits in 1 day",
+          "numberCommits": 5,
+          "lastCommitDate": "2023-02-25",
+          "firstCommitDate": "2023-02-20"
+        },
+        {
+          "id": 112529476,
+          "url": "https://github.com/bachman/erlichbot",
+          "topics": ["Python", "Slack API"],
+          "summary": "ErlichBot: 2 commits in 1 day",
+          "numberCommits": 2,
+          "lastCommitDate": "2023-01-25",
+          "firstCommitDate": "2023-01-24"
+        }
+      ]
     },
     {
       "displayName": "Big Head",
@@ -157,6 +532,69 @@
         "location": { "github": "Silicon Valley" },
         "avatarUrl": {
           "custom": "https://s3.eu-central-1.amazonaws.com/crowd.dev-sample-data/big-head-small.jpg"
+        },
+        "skills": {
+          "enrichment": ["Project Management", "Research", "Leadership", "Innovation"]
+        },
+        "languages": {
+          "enrichment": ["English", "Spanish"]
+        },
+        "programmingLanguages": {
+          "enrichment": ["Java", "Python", "JavaScript", "C++"]
+        },
+        "awards": {
+          "enrichment": [
+            "Hooli's most innovative employee of the year (2016)",
+            "Hooli's most innovative employee of the year (2017)"
+          ]
+        },
+        "expertise": {
+          "enrichment": ["Innovation", "Project Management", "Research"]
+        },
+        "country": {
+          "enrichment": "United States"
+        },
+        "yearsOfExperience": {
+          "enrichment": 5
+        },
+        "seniorityLevel": {
+          "enrichment": "Senior"
+        },
+        "education": {
+          "enrichment": [
+            {
+              "campus": "Stanford University",
+              "major": "Computer Science",
+              "specialization": "",
+              "startDate": "01/01/2011",
+              "endDate": "01/01/2015"
+            },
+            {
+              "campus": "UC Berkeley",
+              "major": "Business Administration",
+              "specialization": "Entrepreneurship",
+              "startDate": "01/01/2015",
+              "endDate": "01/01/2016"
+            }
+          ]
+        },
+        "workExperiences": {
+          "enrichment": [
+            {
+              "title": "Executive",
+              "company": "Hooli",
+              "location": "Silicon Valley",
+              "startDate": "01/01/2016",
+              "endDate": "Present"
+            },
+            {
+              "title": "Intern",
+              "company": "Hooli",
+              "location": "Silicon Valley",
+              "startDate": "01/01/2015",
+              "endDate": "01/01/2016"
+            }
+          ]
         }
       },
       "organizations": [
@@ -182,7 +620,50 @@
       ],
       "email": "bighead@hooli.xyz",
       "score": 5,
-      "reach": { "twitter": 401, "github": 5, "total": 406 }
+      "reach": { "twitter": 401, "github": 5, "total": 406 },
+      "notes": [
+        "Big Head is a dreamer, with great ideas but often lacks the follow-through to execute them",
+        "He is a loyal friend and willing to help those in need, even at his own expense"
+      ],
+      "tags": ["dreamer", "innovator", "researcher"],
+      "openSourceContributions": [
+        {
+          "id": 112529473,
+          "url": "https://github.com/bighead/silicon-valley",
+          "topics": ["TV Shows", "Comedy", "Startups"],
+          "summary": "Silicon Valley: 50 commits in 2 weeks",
+          "numberCommits": 50,
+          "lastCommitDate": "02/01/2023",
+          "firstCommitDate": "01/17/2023"
+        },
+        {
+          "id": 112529474,
+          "url": "https://github.com/bighead/startup-ideas",
+          "topics": ["Ideas", "Startups"],
+          "summary": "Startup Ideas: 20 commits in 1 week",
+          "numberCommits": 20,
+          "lastCommitDate": "03/01/2023",
+          "firstCommitDate": "02/22/2023"
+        },
+        {
+          "id": 112529475,
+          "url": "https://github.com/bighead/pied-piper-api",
+          "topics": ["API", "data", "compression"],
+          "summary": "Pied Piper API: 30 commits in 2 weeks",
+          "numberCommits": 30,
+          "lastCommitDate": "02/10/2023",
+          "firstCommitDate": "01/26/2023"
+        },
+        {
+          "id": 112529477,
+          "url": "https://github.com/bighead/hooli-analysis",
+          "topics": ["Data", "Analysis", "data"],
+          "summary": "Hooli Analysis: 15 commits in 2 weeks",
+          "numberCommits": 15,
+          "lastCommitDate": "02/20/2023",
+          "firstCommitDate": "02/05/2023"
+        }
+      ]
     },
     {
       "displayName": "Dinesh Chugtai",
@@ -199,10 +680,71 @@
           "github": "VP of Engineering at Pied Piper",
           "custom": "VP of Engineering at Pied Piper. Let's get insane"
         },
-        "jobTitle": { "custom": "VP of Engineering" },
-        "location": { "github": "Silicon Valley" },
+        "jobTitle": {
+          "custom": "VP of Engineering"
+        },
+        "location": {
+          "github": "Silicon Valley"
+        },
         "avatarUrl": {
           "custom": "https://s3.eu-central-1.amazonaws.com/crowd.dev-sample-data/dinesh-small.jpg"
+        },
+        "skills": {
+          "enrichment": ["coding", "data analysis", "project management"]
+        },
+        "languages": {
+          "enrichment": ["English", "Hindi", "Urdu"]
+        },
+        "programmingLanguages": {
+          "enrichment": ["Python", "Java", "JavaScript"]
+        },
+        "awards": {
+          "enrichment": [
+            "Silicon Valley Tech Innovator Award",
+            "IEEE Computer Society Award for Outstanding Paper",
+            "Best Presentation Award at the International Conference on Advanced Computing and Communications"
+          ]
+        },
+        "seniorityLevel": {
+          "enrichment": "Senior"
+        },
+        "expertise": {
+          "enrichment": ["Machine Learning", "Data Science", "Agile Development", "Team Leadership"]
+        },
+        "country": {
+          "enrichment": "Pakistan"
+        },
+        "yearsOfExperience": {
+          "enrichment": 7
+        },
+        "education": {
+          "enrichment": [
+            {
+              "campus": "Stanford University",
+              "major": "Computer Science",
+              "specialization": "Artificial Intelligence",
+              "startDate": "2011-09-15",
+              "endDate": "2015-06-15"
+            }
+          ]
+        },
+        "workExperiences": {
+          "enrichment": [
+            {
+              "title": "VP of Engineering",
+              "company": "Pied Piper",
+              "location": "Silicon Valley",
+              "startDate": "2015-07-15",
+              "endDate": "Present"
+            },
+            {
+              "title": "Senior Software Engineer",
+              "company": "Hooli",
+              "location": "Silicon Valley",
+              "startDate": "2013-06-15",
+              "endDate": "2015-06-15"
+            }
+          ]
         }
       },
       "organizations": [
@@ -210,9 +752,9 @@
           "name": "Pied Piper",
           "website": "https://piedpiper.io",
           "logo": "https://s3.eu-central-1.amazonaws.com/crowd.dev-sample-data/pied-piper-logo.jpg",
-          "description": "Pied Piper is a data compression platform founded by Richard Hendricks",
+          "description": "Pied Piper is a data compression platform founded by RichardHendricks",
           "emails": ["richard@piedpiper.io", "gilfoyle@piedpiper.io", "erlich@piedpier.io"],
-          "tags": ["pied piper", "data-compression", "not-hooli"],
+          "tags": ["Data Compression", "Startup", "Silicon Valley"],
           "twitter": {
             "handle": "piedpiper",
             "bio": "Pied Piper is a data compression platform founded by Richard Hendricks",
@@ -221,14 +763,83 @@
             "location": "Menlo Park"
           },
           "employees": 20,
-          "revenueRange": { "min": 0, "max": 1 },
-          "linkedin": { "handle": "company/pied-piper" },
-          "crunchbase": { "handle": "company/pied-piper" }
+          "revenueRange": {
+            "min": 0,
+            "max": 1
+          },
+          "linkedin": {
+            "handle": "company/pied-piper"
+          },
+          "crunchbase": {
+            "handle": "company/pied-piper"
+          }
         }
       ],
       "email": "dinesh@piedpiper.io",
       "score": 9,
-      "reach": { "twitter": 382, "github": 5, "total": 406 }
+      "reach": {
+        "twitter": 382,
+        "github": 5,
+        "total": 406
+      },
+      "tags": ["Java", "Greedy", "Tesla owner"],
+      "notes": ["Great problem solver", "Quick learner", "Attention to detail"],
+      "openSourceContributions": [
+        {
+          "id": 1,
+          "url": "https://github.com/rhendricks/piedpiper",
+          "topics": ["compression", "data", "middle-out", "Java"],
+          "summary": "Pied Piper: 15 commits in 1 day",
+          "numberCommits": 25,
+          "lastCommitDate": "2023-03-10",
+          "firstCommitDate": "2023-03-09"
+        },
+        {
+          "id": 2,
+          "url": "https://github.com/rhendricks/piperchat",
+          "topics": ["messaging", "chat", "security", "compression", "decentralized", "Java"],
+          "summary": "PiperChat: 10 commits in 1 day",
+          "numberCommits": 50,
+          "lastCommitDate": "2023-03-08",
+          "firstCommitDate": "2023-03-07"
+        },
+        {
+          "id": 112529472,
+          "url": "https://github.com/dinesh/distributed-file-system",
+          "topics": ["distributed systems", "file system", "Java"],
+          "summary": "Distributed File System: 20 commits in 1 week",
+          "numberCommits": 20,
+          "lastCommitDate": "2022-03-05",
+          "firstCommitDate": "2022-02-27"
+        },
+        {
+          "id": 112529474,
+          "url": "https://github.com/dinesh/auto-scaling",
+          "topics": ["cloud computing", "Java"],
+          "summary": "Auto-Scaling: 5 commits in 1 day",
+          "numberCommits": 5,
+          "lastCommitDate": "2021-12-28",
+          "firstCommitDate": "2021-12-28"
+        },
+        {
+          "id": 112529475,
+          "url": "https://github.com/dinesh/personal-website",
+          "topics": ["personal website", "JavaScript"],
+          "summary": "Personal Website: 2 commits in 1 week",
+          "numberCommits": 2,
+          "lastCommitDate": "2021-11-02",
+          "firstCommitDate": "2021-10-27"
+        },
+        {
+          "id": 112529476,
+          "url": "https://github.com/dinesh/remote-teams",
+          "topics": ["remote work", "team management", "Java"],
+          "summary": "Remote Teams: 6 commits in 2 days",
+          "numberCommits": 6,
+          "lastCommitDate": "2021-09-20",
+          "firstCommitDate": "2021-09-18"
+        }
+      ]
     },
     {
       "displayName": "Peter Gregory",
@@ -249,6 +860,66 @@
         "location": { "github": "Silicon Valley" },
         "avatarUrl": {
           "custom": "https://s3.eu-central-1.amazonaws.com/crowd.dev-sample-data/peter-small.jpg"
+        },
+        "skills": {
+          "enrichment": ["venture capital", "investments", "startups", "leadership", "management"]
+        },
+        "languages": {
+          "enrichment": ["English", "French", "Spanish"]
+        },
+        "programmingLanguages": {
+          "enrichment": ["JavaScript", "Python", "Java"]
+        },
+        "awards": {
+          "enrichment": ["Forbes 30 under 30", "Best VC Investor of the Year"]
+        },
+        "seniorityLevel": {
+          "enrichment": "Senior"
+        },
+        "expertise": {
+          "enrichment": ["Mentorship", "Team building", "Negotiation", "Strategic thinking"]
+        },
+        "country": {
+          "enrichment": "USA"
+        },
+        "yearsofExperience": {
+          "enrichment": 25
+        },
+        "education": {
+          "enrichment": [
+            {
+              "campus": "Harvard Business School",
+              "major": "Business Administration",
+              "specialization": "Venture Capital",
+              "startDate": "2010-09-01",
+              "endDate": "2012-05-01"
+            },
+            {
+              "campus": "Stanford University",
+              "major": "Computer Science",
+              "specialization": "Artificial Intelligence",
+              "startDate": "2006-09-01",
+              "endDate": "2010-05-01"
+            }
+          ]
+        },
+        "workExperiences": {
+          "enrichment": [
+            {
+              "title": "Founder & Investor",
+              "company": "Raviga Capital",
+              "location": "Silicon Valley",
+              "startDate": "2012-06-01",
+              "endDate": "Present"
+            },
+            {
+              "title": "Associate",
+              "company": "Kleiner Perkins",
+              "location": "Silicon Valley",
+              "startDate": "2010-06-01",
+              "endDate": "2012-05-01"
+            }
+          ]
         }
       },
       "organizations": [
@@ -274,7 +945,61 @@
       ],
       "email": "peter@raviga.vc",
       "score": 3,
-      "reach": { "twitter": 3000, "github": 7, "total": 3007 }
+      "reach": { "twitter": 3000, "github": 7, "total": 3007 },
+      "tags": [
+        "VC investor",
+        "startups",
+        "business",
+        "leadership",
+        "management",
+        "mentorship",
+        "team building",
+        "negotiation",
+        "strategic thinking"
+      ],
+      "notes": [
+        "Peter is a visionary investor with great experience in the startup world",
+        "He has a knack for spotting the next big thing, and his guidance is invaluable to any entrepreneur",
+        "His negotiation skills are top-notch, and he can turn a difficult situation into a win-win"
+      ],
+      "openSourceContributions": [
+        {
+          "id": 112529475,
+          "url": "https://github.com/raviga/awesome-compression-companies",
+          "topics": ["internet", "awesome-list", "search"],
+          "summary": "Awesome compression companies: 10 commits in 10 days",
+          "numberCommits": 12,
+          "lastCommitDate": "2003-03-02",
+          "firstCommitDate": "2003-03-02"
+        },
+        {
+          "id": 112529475,
+          "url": "https://github.com/raviga/awesome-college-alternatives",
+          "topics": ["startup", "awesome-list", "college"],
+          "summary": "Awesome college alternatives: 10 commits in 10 days",
+          "numberCommits": 17,
+          "lastCommitDate": "2003-03-02",
+          "firstCommitDate": "2003-03-02"
+        },
+        {
+          "id": 112529475,
+          "url": "https://github.com/raviga/awesome-startups",
+          "topics": ["startup", "awesome-list", "business"],
+          "summary": "Awesome startups: 10 commits in 10 days",
+          "numberCommits": 10,
+          "lastCommitDate": "2003-03-02",
+          "firstCommitDate": "2003-03-02"
+        },
+        {
+          "id": 112529474,
+          "url": "https://github.com/pgregory/hooli",
+          "topics": ["search", "python", "internet"],
+          "summary": "hooli: 23 commits in 1 day",
+          "numberCommits": 23,
+          "lastCommitDate": "2000-03-05",
+          "firstCommitDate": "2000-03-05"
+        }
+      ]
     },
     {
       "displayName": "Monica Hall",
@@ -295,6 +1020,66 @@
         "location": { "github": "Silicon Valley" },
         "avatarUrl": {
           "custom": "https://s3.eu-central-1.amazonaws.com/crowd.dev-sample-data/monica-small.jpg"
+        },
+        "skills": {
+          "enrichment": ["venture capital", "investing", "due diligence"]
+        },
+        "languages": {
+          "enrichment": ["English", "Spanish"]
+        },
+        "programmingLanguages": {
+          "enrichment": ["Python", "JavaScript", "Java"]
+        },
+        "awards": {
+          "enrichment": ["Forbes 30 under 30", "Women in Venture Capital"]
+        },
+        "seniorityLevel": {
+          "enrichment": "Senior"
+        },
+        "expertise": {
+          "enrichment": ["strategic planning", "relationship building", "public speaking"]
+        },
+        "country": {
+          "enrichment": "USA"
+        },
+        "yearsofExperience": {
+          "enrichment": 5
+        },
+        "education": {
+          "enrichment": [
+            {
+              "campus": "Stanford University",
+              "major": "Economics",
+              "specialization": "Finance",
+              "startDate": "2010",
+              "endDate": "2014"
+            },
+            {
+              "campus": "Stanford Graduate School of Business",
+              "major": "Master of Business Administration",
+              "specialization": "Entrepreneurship",
+              "startDate": "2014",
+              "endDate": "2016"
+            }
+          ]
+        },
+        "workExperiences": {
+          "enrichment": [
+            {
+              "title": "VC Partner",
+              "company": "Raviga Capital",
+              "location": "Silicon Valley",
+              "startDate": "2016",
+              "endDate": "Present"
+            },
+            {
+              "title": "Investment Banking Analyst",
+              "company": "Goldman Sachs",
+              "location": "New York City",
+              "startDate": "2014",
+              "endDate": "2016"
+            }
+          ]
         }
       },
       "organizations": [
@@ -316,30 +1101,46 @@
           "revenueRange": { "min": 5, "max": 20 },
           "linkedin": { "handle": "company/raviga-capital" },
           "crunchbase": { "handle": "company/raviga-capital" }
-        },
-        {
-          "name": "BreamHall Venture Capital",
-          "website": "https://breamhall.com",
-          "logo": "https://s3.eu-central-1.amazonaws.com/crowd.dev-sample-data/bream-hall-logo.png",
-          "description": "VC firm founded by Laurie Bream and Monical Hall",
-          "emails": ["laurie@breamhall.com", "monica@breamhall.com"],
-          "tags": ["vc", "monica"],
-          "twitter": {
-            "handle": "breamhall",
-            "bio": "VC firm founded by Laurie Bream and Monical Hall",
-            "followers": 517,
-            "following": 24,
-            "location": "Menlo Park"
-          },
-          "employees": 3,
-          "revenueRange": { "min": 0, "max": 50 },
-          "linkedin": { "handle": "company/breamhall" },
-          "crunchbase": { "handle": "company/breamhall" }
         }
       ],
       "email": "monica@raviga.vc",
       "score": 6,
-      "reach": { "twitter": 1417, "github": 3, "total": 1420 }
+      "reach": { "twitter": 1417, "github": 3, "total": 1420 },
+      "tags": ["VC", "investor", "Raviga Capital"],
+      "notes": [
+        "Monica is an expert in venture capital investing",
+        "She has a great track record of investing in technology startups",
+        "Monica is a great public speaker and an asset to any conference panel"
+      ],
+      "openSourceContributions": [
+        {
+          "id": 112529475,
+          "url": "https://github.com/raviga/awesome-compression-companies",
+          "topics": ["internet", "awesome-list", "search"],
+          "summary": "Awesome compression companies: 20 commits in 10 days",
+          "numberCommits": 20,
+          "lastCommitDate": "2003-03-02",
+          "firstCommitDate": "2003-03-02"
+        },
+        {
+          "id": 112529475,
+          "url": "https://github.com/raviga/awesome-college-alternatives",
+          "topics": ["startup", "awesome-list", "college"],
+          "summary": "Awesome college alternatives: 10 commits in 10 days",
+          "numberCommits": 10,
+          "lastCommitDate": "2003-03-02",
+          "firstCommitDate": "2003-03-02"
+        },
+        {
+          "id": 112529475,
+          "url": "https://github.com/raviga/awesome-startups",
+          "topics": ["startup", "awesome-list", "business"],
+          "summary": "Awesome startups: 12 commits in 10 days",
+          "numberCommits": 12,
+          "lastCommitDate": "2003-03-02",
+          "firstCommitDate": "2003-03-02"
+        }
+      ]
     },
     {
       "displayName": "Jared Dunn",
@@ -356,10 +1157,67 @@
           "github": "COO at Pied Piper",
           "custom": "COO at Pied Piper"
         },
-        "jobTitle": { "custom": "COO" },
-        "location": { "github": "Silicon Valley" },
+        "jobTitle": {
+          "custom": "COO"
+        },
+        "location": {
+          "github": "Silicon Valley"
+        },
         "avatarUrl": {
           "custom": "https://s3.eu-central-1.amazonaws.com/crowd.dev-sample-data/jared.jpg"
+        },
+        "skills": {
+          "enrichment": ["Leadership", "Product management", "Startups"]
+        },
+        "languages": {
+          "enrichment": ["English", "Spanish"]
+        },
+        "programmingLanguages": {
+          "enrichment": ["JavaScript", "Ruby"]
+        },
+        "awards": {
+          "enrichment": ["TechCrunch Disrupt Startup Battlefield Winner 2014"]
+        },
+        "seniorityLevel": {
+          "enrichment": "Senior"
+        },
+        "expertise": {
+          "enrichment": ["Product Management", "Entrepreneurship", "Marketing"]
+        },
+        "country": {
+          "enrichment": "USA"
+        },
+        "yearsofExperience": {
+          "enrichment": 10
+        },
+        "education": {
+          "enrichment": [
+            {
+              "campus": "Brown University",
+              "major": "Entrepreneurship",
+              "specialization": null,
+              "startDate": "2006-09-01",
+              "endDate": "2010-06-01"
+            }
+          ]
+        },
+        "workExperiences": {
+          "enrichment": [
+            {
+              "title": "COO",
+              "company": "Pied Piper",
+              "location": "Silicon Valley",
+              "startDate": "2014-06-01",
+              "endDate": "Present"
+            },
+            {
+              "title": "Business Development Manager",
+              "company": "Hooli",
+              "location": "Silicon Valley",
+              "startDate": "2010-06-01",
+              "endDate": "2014-06-01"
+            }
+          ]
         }
       },
       "organizations": [
@@ -378,14 +1236,57 @@
             "location": "Menlo Park"
           },
           "employees": 20,
-          "revenueRange": { "min": 0, "max": 1 },
-          "linkedin": { "handle": "company/pied-piper" },
-          "crunchbase": { "handle": "company/pied-piper" }
+          "revenueRange": {
+            "min": 0,
+            "max": 1
+          },
+          "linkedin": {
+            "handle": "company/pied-piper"
+          },
+          "crunchbase": {
+            "handle": "company/pied-piper"
+          }
         }
       ],
       "email": "jared@piedpiper.io",
       "score": 7,
-      "reach": { "twitter": 1417, "github": 3, "total": 1420 }
+      "reach": {
+        "twitter": 1417,
+        "github": 3,
+        "total": 1420
+      },
+      "tags": [
+        "COO",
+        "Product Management",
+        "Entrepreneurship",
+        "Marketing",
+        "Stanford Alumni",
+        "Pied Piper",
+        "Silicon Valley"
+      ],
+      "notes": [
+        "Jared is an experienced COO with a strong track record in product management and entrepreneurship. He is a Stanford alumni and has a deep understanding of the Silicon Valley ecosystem. He has been a valuable member of the Pied Piper team since its inception."
+      ],
+      "openSourceContributions": [
+        {
+          "id": 112529475,
+          "url": "https://github.com/jaredjared/awesome-richard-quotes",
+          "topics": ["Startups", "CEO", "awesome-list", "Markdown"],
+          "summary": "Awesome Richard Quotes: 8 commits in 1 day",
+          "numberCommits": 8,
+          "lastCommitDate": "2022-02-10",
+          "firstCommitDate": "2022-02-09"
+        },
+        {
+          "id": 112529476,
+          "url": "https://github.com/jaredjared/awesome-hbo-shows",
+          "topics": ["Markdown", "Lists", "awesome-list"],
+          "summary": "Awesome HBO Shows: 3 commits in 1 day",
+          "numberCommits": 3,
+          "lastCommitDate": "2022-02-08",
+          "firstCommitDate": "2022-02-08"
+        }
+      ]
     },
     {
       "displayName": "Gavin Belson",
@@ -402,10 +1303,67 @@
           "github": "CEO at Hooli",
           "custom": "CEO at Hooli"
         },
-        "jobTitle": { "custom": "CEO" },
-        "location": { "github": "Silicon Valley" },
+        "jobTitle": {
+          "custom": "CEO"
+        },
+        "location": {
+          "github": "Silicon Valley"
+        },
         "avatarUrl": {
           "custom": "https://s3.eu-central-1.amazonaws.com/crowd.dev-sample-data/gavin.jpg"
+        },
+        "skills": {
+          "enrichment": ["leadership", "strategy", "product management"]
+        },
+        "languages": {
+          "enrichment": ["English", "Mandarin"]
+        },
+        "programmingLanguages": {
+          "enrichment": ["Java", "Python", "C++"]
+        },
+        "awards": {
+          "enrichment": ["CEO of the Year", "Fortune 500 List"]
+        },
+        "seniorityLevel": {
+          "enrichment": "Senior"
+        },
+        "expertise": {
+          "enrichment": ["business strategy", "leadership", "public speaking"]
+        },
+        "country": {
+          "enrichment": "USA"
+        },
+        "yearsofExperience": {
+          "enrichment": 20
+        },
+        "education": {
+          "enrichment": [
+            {
+              "campus": "Stanford University",
+              "major": "Business Administration",
+              "specialization": "",
+              "startDate": "1985-09-01",
+              "endDate": "1987-06-01"
+            },
+            {
+              "campus": "Dartmouth College",
+              "major": "Computer Science",
+              "specialization": "Artificial Intelligence",
+              "startDate": "1981-09-01",
+              "endDate": "1985-06-01"
+            }
+          ]
+        },
+        "workExperiences": {
+          "enrichment": [
+            {
+              "title": "Founder and CEO",
+              "company": "Hooli",
+              "location": "Silicon Valley",
+              "startDate": "1995-01-01",
+              "endDate": "2023-03-12"
+            }
+          ]
         }
       },
       "organizations": [
@@ -415,7 +1373,14 @@
           "logo": "https://s3.eu-central-1.amazonaws.com/crowd.dev-sample-data/hooli-logo.png",
           "description": "Hooli is an international corporation founded by Gavin Belson and Peter Gregory",
           "emails": ["gavin@hooli.xyz", "bighead@hooli.xyz"],
-          "tags": ["hooli", "tethics", "not-google"],
+          "tags": [
+            "CEO",
+            "Silicon Valley",
+            "Technology",
+            "Innovation",
+            "Business Strategy",
+            "Leadership"
+          ],
           "twitter": {
             "handle": "hooli",
             "bio": "Hooli is an international corporation founded by Gavin Belson and Peter Gregory",
@@ -424,14 +1389,77 @@
             "location": "Menlo Park"
           },
           "employees": 4000,
-          "revenueRange": { "min": 100, "max": 500 },
-          "linkedin": { "handle": "company/hooli" },
-          "crunchbase": { "handle": "company/hooli" }
+          "revenueRange": {
+            "min": 100,
+            "max": 500
+          },
+          "linkedin": {
+            "handle": "company/hooli"
+          },
+          "crunchbase": {
+            "handle": "company/hooli"
+          }
         }
       ],
       "email": "ceo@hooli.xyz",
       "score": 5,
-      "reach": { "twitter": 130000, "github": 517, "total": 130517 }
+      "reach": {
+        "twitter": 130000,
+        "github": 517,
+        "total": 130517
+      },
+      "notes": [
+        "Great leadership skills, but can be stubborn at times.",
+        "Has a vision for Hooli's future, and is not afraid to make bold moves.",
+        "Excellent public speaker, can inspire and motivate employees and stakeholders."
+      ],
+      "openSourceContributions": [
+        {
+          "id": 112529472,
+          "url": "https://github.com/hooli/hooli-analytics",
+          "topics": ["analytics", "big data", "data visualization"],
+          "summary": "hooli-analytics: 25 commits in 1 day",
+          "numberCommits": 25,
+          "lastCommitDate": "2010-05-01",
+          "firstCommitDate": "2010-04-01"
+        },
+        {
+          "id": 112529473,
+          "url": "https://github.com/hooli/hooli-cloud",
+          "topics": ["cloud computing", "distributed systems", "networking"],
+          "summary": "hooli-cloud: 12 commits in 1 day",
+          "numberCommits": 12,
+          "lastCommitDate": "2009-10-01",
+          "firstCommitDate": "2009-09-01"
+        },
+        {
+          "id": 112529474,
+          "url": "https://github.com/hooli/hooli-search",
+          "topics": ["search engine", "information retrieval", "machine learning"],
+          "summary": "hooli-search: 10 commits in 1 day",
+          "numberCommits": 10,
+          "lastCommitDate": "2008-05-01",
+          "firstCommitDate": "2008-04-01"
+        },
+        {
+          "id": 112529475,
+          "url": "https://github.com/hooli/hooli-storage",
+          "topics": ["distributed storage", "file systems", "data visualization"],
+          "summary": "hooli-storage: 15 commits in 1 day",
+          "numberCommits": 15,
+          "lastCommitDate": "2007-10-01",
+          "firstCommitDate": "2007-09-01"
+        },
+        {
+          "id": 112529476,
+          "url": "https://github.com/hooli/hooli-security",
+          "topics": ["security", "cryptography", "authentication", "cloud computing"],
+          "summary": "hooli-security: 8 commits in 1 day",
+          "numberCommits": 8,
+          "lastCommitDate": "2006-06-01",
+          "firstCommitDate": "2006-05-01"
+        }
+      ]
     },
     {
       "displayName": "Jian-Yang",
@@ -448,10 +1476,81 @@
           "github": "Living at Erlich's startup house",
           "custom": "Living at Erlich's startup house"
         },
-        "jobTitle": { "custom": "Nobody" },
-        "location": { "github": "Silicon Valley" },
+        "jobTitle": {
+          "custom": "Founder"
+        },
+        "location": {
+          "github": "Silicon Valley"
+        },
         "avatarUrl": {
           "custom": "https://s3.eu-central-1.amazonaws.com/crowd.dev-sample-data/jian_yang.jpg"
+        },
+        "skills": {
+          "enrichment": ["Coding", "Web development", "Product management"]
+        },
+        "languages": {
+          "enrichment": ["Mandarin", "English"]
+        },
+        "programmingLanguages": {
+          "enrichment": ["Python", "JavaScript", "HTML", "CSS"]
+        },
+        "awards": {
+          "enrichment": ["Won the TechCrunch Disrupt Hackathon"]
+        },
+        "seniorityLevel": {
+          "enrichment": "Junior"
+        },
+        "expertise": {
+          "enrichment": ["Product development", "Leadership"]
+        },
+        "country": {
+          "enrichment": "China"
+        },
+        "yearsOfExperience": {
+          "enrichment": 2
+        },
+        "education": {
+          "enrichment": [
+            {
+              "campus": "Stanford University",
+              "major": "Computer Science",
+              "specialization": "Artificial Intelligence",
+              "startDate": "2016-09",
+              "endDate": "2018-06"
+            },
+            {
+              "campus": "Harvard University",
+              "major": "Economics",
+              "specialization": "",
+              "startDate": "2014-09",
+              "endDate": "2016-06"
+            }
+          ]
+        },
+        "workExperiences": {
+          "enrichment": [
+            {
+              "title": "CEO",
+              "company": "Seefood",
+              "location": "Silicon Valley",
+              "startDate": "2022-01",
+              "endDate": "Present"
+            },
+            {
+              "title": "Product Manager",
+              "company": "Hot Dog or Not",
+              "location": "San Francisco",
+              "startDate": "2021-04",
+              "endDate": "2021-12"
+            },
+            {
+              "title": "Erlich Impersonator",
+              "company": "Erlich Incubator",
+              "location": "Palo Alto",
+              "startDate": "2020-01",
+              "endDate": "2021-03"
+            }
+          ]
         }
       },
       "organizations": [
@@ -470,14 +1569,74 @@
             "location": "Menlo Park"
           },
           "employees": 1,
-          "revenueRange": { "min": 0, "max": 10 },
-          "linkedin": { "handle": "company/erlichincubator" },
-          "crunchbase": { "handle": "company/erlichincubator" }
+          "revenueRange": {
+            "min": 0,
+            "max": 10
+          },
+          "linkedin": {
+            "handle": "company/erlichincubator"
+          },
+          "crunchbase": {
+            "handle": "company/erlichincubator"
+          }
         }
       ],
       "email": "jianyang@seefood.ml",
       "score": 4,
-      "reach": { "twitter": 0, "github": 0, "total": 0 }
+      "reach": {
+        "twitter": 0,
+        "github": 0,
+        "total": 0
+      },
+      "tags": ["Seefood", "Hot Dog or Not", "Erlich Incubator", "Corrupt"],
+      "notes": ["He will do anything to get his way.", "Has a very corrupt uncle."],
+      "openSourceContributions": [
+        {
+          "id": 123456,
+          "url": "https://github.com/seefood/food-recognition",
+          "topics": ["machine-learning", "computer-vision", "food"],
+          "summary": "Seefood: 50 commits in 2 days",
+          "numberCommits": 50,
+          "lastCommitDate": "2022-02-28",
+          "firstCommitDate": "2022-02-26"
+        },
+        {
+          "id": 789012,
+          "url": "https://github.com/hotdogornot/image-classification",
+          "topics": ["machine-learning", "computer-vision", "hot-dogs"],
+          "summary": "Hot Dog or Not: 20 commits in 1 day",
+          "numberCommits": 20,
+          "lastCommitDate": "2021-11-30",
+          "firstCommitDate": "2021-11-29"
+        },
+        {
+          "id": 345678,
+          "url": "https://github.com/seefood/api",
+          "topics": ["api", "backend", "food"],
+          "summary": "Seefood: 30 commits in 3 days",
+          "numberCommits": 30,
+          "lastCommitDate": "2021-10-31",
+          "firstCommitDate": "2021-10-29"
+        },
+        {
+          "id": 901234,
+          "url": "https://github.com/hotdogornot/frontend",
+          "topics": ["frontend", "web-development", "hot-dogs"],
+          "summary": "Hot Dog or Not: 15 commits in 2 days",
+          "numberCommits": 15,
+          "lastCommitDate": "2021-09-30",
+          "firstCommitDate": "2021-09-29"
+        },
+        {
+          "id": 567890,
+          "url": "https://github.com/seefood/deployment",
+          "topics": ["devops", "deployment", "food"],
+          "summary": "Seefood: 10 commits in 1 day",
+          "numberCommits": 10,
+          "lastCommitDate": "2021-08-31",
+          "firstCommitDate": "2021-08-30"
+        }
+      ]
     },
     {
       "displayName": "Laurie Bream",
@@ -490,14 +1649,81 @@
       },
       "attributes": {
         "bio": {
-          "twitter": "CEO at Raviga Capital",
-          "github": "CEO at Raviga Capital",
-          "custom": "CEO at Raviga Capital"
+          "twitter": "VC and Partner at Raviga Capital",
+          "github": "VC and Partner at Raviga Capital",
+          "custom": "VC and Partner at Raviga Capital"
         },
-        "jobTitle": { "custom": "CEO" },
+        "jobTitle": { "custom": "VC" },
         "location": { "github": "Silicon Valley" },
         "avatarUrl": {
           "custom": "https://s3.eu-central-1.amazonaws.com/crowd.dev-sample-data/laurie.jpg"
+        },
+        "skills": {
+          "enrichment": ["venture capital", "business strategy"]
+        },
+        "languages": {
+          "enrichment": ["English", "Spanish"]
+        },
+        "programmingLanguages": {
+          "enrichment": ["Python", "Java"]
+        },
+        "awards": {
+          "enrichment": ["Forbes 30 Under 30"]
+        },
+        "seniorityLevel": {
+          "enrichment": "Senior"
+        },
+        "expertise": {
+          "enrichment": ["negotiation", "financial analysis"]
+        },
+        "country": {
+          "enrichment": "United States"
+        },
+        "yearsOfExperience": {
+          "enrichment": 10
+        },
+        "education": {
+          "enrichment": [
+            {
+              "campus": "Stanford University",
+              "major": "Business",
+              "specialization": "Finance",
+              "startDate": "2010-09-01",
+              "endDate": "2014-06-01"
+            },
+            {
+              "campus": "Massachusetts Institute of Technology",
+              "major": "Computer Science",
+              "specialization": "Artificial Intelligence",
+              "startDate": "2008-09-01",
+              "endDate": "2010-06-01"
+            }
+          ]
+        },
+        "workExperiences": {
+          "enrichment": [
+            {
+              "title": "VC Investor",
+              "company": "Raviga Capital",
+              "location": "Silicon Valley",
+              "startDate": "2014-06-01",
+              "endDate": "Present"
+            },
+            {
+              "title": "Senior Associate",
+              "company": "Bream Hall Capital",
+              "location": "New York City",
+              "startDate": "2012-06-01",
+              "endDate": "2014-05-01"
+            },
+            {
+              "title": "Junior Analyst",
+              "company": "Yao Net",
+              "location": "Shenzhen, China",
+              "startDate": "2010-06-01",
+              "endDate": "2012-05-01"
+            }
+          ]
         }
       },
       "organizations": [
@@ -506,7 +1732,7 @@
           "website": "https://raviga.vc",
           "logo": "https://s3.eu-central-1.amazonaws.com/crowd.dev-sample-data/raviga-capital-logo.jpg",
           "description": "Raviga Capital is a bay area VC firm founded by Peter Gregory",
-          "emails": ["peter@raviga.vc"],
+          "emails": ["peter@rraviga.vc"],
           "tags": ["vc", "gregory"],
           "twitter": {
             "handle": "ravigavc",
@@ -519,30 +1745,68 @@
           "revenueRange": { "min": 5, "max": 20 },
           "linkedin": { "handle": "company/raviga-capital" },
           "crunchbase": { "handle": "company/raviga-capital" }
-        },
-        {
-          "name": "BreamHall Venture Capital",
-          "website": "https://breamhall.com",
-          "logo": "https://s3.eu-central-1.amazonaws.com/crowd.dev-sample-data/bream-hall-logo.png",
-          "description": "VC firm founded by Laurie Bream and Monical Hall",
-          "emails": ["laurie@breamhall.com", "monica@breamhall.com"],
-          "tags": ["vc", "monica"],
-          "twitter": {
-            "handle": "breamhall",
-            "bio": "VC firm founded by Laurie Bream and Monical Hall",
-            "followers": 517,
-            "following": 24,
-            "location": "Menlo Park"
-          },
-          "employees": 3,
-          "revenueRange": { "min": 0, "max": 50 },
-          "linkedin": { "handle": "company/breamhall" },
-          "crunchbase": { "handle": "company/breamhall" }
         }
       ],
       "email": "laurie@raviga.vc",
       "score": 6,
-      "reach": { "twitter": 714, "github": 4, "total": 718 }
+      "reach": { "twitter": 714, "github": 4, "total": 718 },
+      "tags": [
+        "venture capitalist",
+        "business strategist",
+        "negotiator",
+        "potential robot",
+        "Forbes 30 Under 30"
+      ],
+      "notes": [
+        "Laurie Bream is known for her robotic personality and exceptional negotiation skills."
+      ],
+      "openSourceContributions": [
+        {
+          "id": 112529472,
+          "url": "https://github.com/sindresorhus/awesome-nodejs",
+          "topics": ["nodejs", "javascript", "awesome"],
+          "summary": "sindresorhus/awesome-nodejs: 10 commits in 1 day",
+          "numberCommits": 10,
+          "lastCommitDate": "2022-02-01T23:59:59Z",
+          "firstCommitDate": "2022-02-01T00:00:00Z"
+        },
+        {
+          "id": 112529473,
+          "url": "https://github.com/sindresorhus/awesome-python",
+          "topics": ["python", "awesome"],
+          "summary": "sindresorhus/awesome-python: 5 commits in 1 day",
+          "numberCommits": 5,
+          "lastCommitDate": "2022-01-01T23:59:59Z",
+          "firstCommitDate": "2022-01-01T00:00:00Z"
+        },
+        {
+          "id": 112529474,
+          "url": "https://github.com/sindresorhus/awesome-ai",
+          "topics": ["ai", "machine-learning", "awesome"],
+          "summary": "sindresorhus/awesome-ai: 7 commits in 1 day",
+          "numberCommits": 7,
+          "lastCommitDate": "2021-12-01T23:59:59Z",
+          "firstCommitDate": "2021-12-01T00:00:00Z"
+        },
+        {
+          "id": 112529475,
+          "url": "https://github.com/sindresorhus/awesome-tech-blogs",
+          "topics": ["tech-blogs", "awesome"],
+          "summary": "sindresorhus/awesome-tech-blogs: 6 commits in 1 day",
+          "numberCommits": 6,
+          "lastCommitDate": "2021-11-01T23:59:59Z",
+          "firstCommitDate": "2021-11-01T00:00:00Z"
+        },
+        {
+          "id": 112529476,
+          "url": "https://github.com/sindresorhus/awesome-web-development",
+          "topics": ["web-development", "javascript", "awesome"],
+          "summary": "sindresorhus/awesome-web-development: 8 commits in 1 day",
+          "numberCommits": 8,
+          "lastCommitDate": "2021-10-01T23:59:59Z",
+          "firstCommitDate": "2021-10-01T00:00:00Z"
+        }
+      ]
     },
     {
       "displayName": "Russ Hanneman",
@@ -557,18 +1821,156 @@
         "bio": {
           "twitter": "The billionaire, inventor of Radio on Internet",
           "github": "The billionaire, ROI = Radio on Internet",
-          "custom": "Investor in Pied Piper, wealthy person"
+          "custom": "Investor in Pied Piper, CEO at 3 Commas. Member of the three-comma club."
         },
-        "jobTitle": { "custom": "Investor" },
+        "jobTitle": { "custom": "CEO" },
         "location": { "github": "Silicon Valley" },
         "avatarUrl": {
           "custom": "https://s3.eu-central-1.amazonaws.com/crowd.dev-sample-data/russ.jpg"
+        },
+        "skills": {
+          "enrichment": ["Entrepreneurship", "Investing", "Marketing"]
+        },
+        "languages": {
+          "enrichment": ["English"]
+        },
+        "programmingLanguages": {
+          "enrichment": ["none"]
+        },
+        "awards": {
+          "enrichment": ["Three-Comma Club"]
+        },
+        "seniorityLevel": {
+          "enrichment": "Senior"
+        },
+        "expertise": {
+          "enrichment": ["Business Strategy", "Sales"]
+        },
+        "country": {
+          "enrichment": "United States"
+        },
+        "yearsOfExperience": {
+          "enrichment": 20
+        },
+        "education": {
+          "enrichment": [
+            {
+              "campus": "Wharton School of Business",
+              "major": "Business Administration",
+              "specialization": "Entrepreneurship",
+              "startDate": "1980-09-01",
+              "endDate": "1982-05-01"
+            },
+            {
+              "campus": "New York University",
+              "major": "Business Administration",
+              "specialization": "Finance",
+              "startDate": "1978-09-01",
+              "endDate": "1980-05-01"
+            }
+          ]
+        },
+        "workExperiences": {
+          "enrichment": [
+            {
+              "title": "CEO",
+              "company": "Radio on Internet",
+              "location": "Silicon Valley",
+              "startDate": "1995-01-01",
+              "endDate": "2002-06-01"
+            },
+            {
+              "title": "Investor",
+              "company": "Russ investing",
+              "location": "Silicon Valley",
+              "startDate": "2002-07-01",
+              "endDate": "2010-05-01"
+            },
+            {
+              "title": "CEO",
+              "company": "Russfest",
+              "location": "Austin, TX",
+              "startDate": "2010-06-01",
+              "endDate": "2014-12-01"
+            },
+            {
+              "title": "CEO",
+              "company": "3 commas",
+              "location": "Silicon Valley",
+              "startDate": "2015-01-01",
+              "endDate": "Present"
+            }
+          ]
         }
       },
-      "organizations": [],
+      "organizations": [
+        {
+          "name": "3 commas",
+          "website": "https://3commas.roi",
+          "logo": "https://i.pinimg.com/originals/ca/5a/9c/ca5a9cddc380c3413fa58a155710369c.png",
+          "description": "The tequila for members of the three-comma club.",
+          "emails": ["russ@3commas.roi"],
+          "tags": ["Tequila", "Billionaire", "Entrepreneur", "Investor"],
+          "twitter": {
+            "handle": "3commas",
+            "bio": "The tequila for members of the three-comma club.",
+            "followers": 10000,
+            "following": 1,
+            "location": "Menlo Park"
+          },
+          "employees": 20,
+          "revenueRange": { "min": 1, "max": 20 },
+          "linkedin": { "handle": "company/3-commas" },
+          "crunchbase": { "handle": "company/3-commas" }
+        }
+      ],
       "email": "me@russhanneman.com",
       "score": 4,
-      "reach": { "twitter": 618, "github": 3, "total": 621 }
+      "reach": { "twitter": 618, "github": 3, "total": 621 },
+      "tags": ["Tequila", "Billionaire", "Entrepreneur", "Investor"],
+      "notes": [
+        "Member of the three-comma club",
+        "Enjoys Tequila",
+        "Believes companies should not go after revenue"
+      ],
+      "openSourceContributions": [
+        {
+          "id": 1,
+          "url": "https://github.com/sindresorhus/awesome-money",
+          "topics": ["money", "finance", "awesome-list"],
+          "summary": "Awesome Money: 5 commits in 1 day",
+          "numberCommits": 5,
+          "lastCommitDate": "2023-03-11T16:30:00Z",
+          "firstCommitDate": "2023-03-11T10:00:00Z"
+        },
+        {
+          "id": 3,
+          "url": "https://github.com/sgryjp/gourmet-coffee",
+          "topics": ["coffee", "recipes", "awesome-list"],
+          "summary": "Gourmet Coffee: 8 commits in 1 day",
+          "numberCommits": 8,
+          "lastCommitDate": "2023-03-09T17:30:00Z",
+          "firstCommitDate": "2023-03-09T10:00:00Z"
+        },
+        {
+          "id": 7,
+          "url": "https://github.com/Tech-at-DU/Outfits",
+          "topics": ["fashion", "outfits", "awesome-list"],
+          "summary": "Outfits: 7 commits in 1 day",
+          "numberCommits": 7,
+          "lastCommitDate": "2023-03-05T15:30:00Z",
+          "firstCommitDate": "2023-03-05T08:00:00Z"
+        },
+        {
+          "id": 8,
+          "url": "https://github.com/josephearl/tequila-recipes",
+          "topics": ["Tequila", "recipes", "awesome-list"],
+          "summary": "Tequila Recipes: 4 commits in 1 day",
+          "numberCommits": 4,
+          "lastCommitDate": "2023-03-04T14:30:00Z",
+          "firstCommitDate": "2023-03-04T10:00:00Z"
+        }
+      ]
     },
     {
       "displayName": "Jack Barker",
@@ -589,6 +1991,73 @@
         "location": { "github": "Silicon Valley" },
         "avatarUrl": {
           "custom": "https://s3.eu-central-1.amazonaws.com/crowd.dev-sample-data/jack-barker-best.jpg"
+        },
+        "skills": {
+          "enrichment": ["Leadership", "Management", "Product development", "Software engineering"]
+        },
+        "languages": {
+          "enrichment": ["English"]
+        },
+        "programmingLanguages": {
+          "enrichment": ["Java", "C++", "Python"]
+        },
+        "awards": {
+          "enrichment": ["Tech Pioneer Award", "Entrepreneur of the Year Award"]
+        },
+        "seniorityLevel": {
+          "enrichment": "Senior"
+        },
+        "expertise": {
+          "enrichment": ["Product management", "Strategy", "Leadership", "Team building"]
+        },
+        "country": {
+          "enrichment": "United States"
+        },
+        "yearsOfExperience": {
+          "enrichment": 25
+        },
+        "education": {
+          "enrichment": [
+            {
+              "campus": "Harvard Business School",
+              "major": "Business Administration",
+              "specialization": "",
+              "startDate": "1995-09-01",
+              "endDate": "1997-06-01"
+            }
+          ]
+        },
+        "workExperiences": {
+          "enrichment": [
+            {
+              "title": "Head of Development",
+              "company": "Hooli",
+              "location": "Silicon Valley",
+              "startDate": "2000-01-01",
+              "endDate": "2016-05-01"
+            },
+            {
+              "title": "CEO",
+              "company": "Pied Piper",
+              "location": "Palo Alto",
+              "startDate": "2016-05-01",
+              "endDate": "2016-09-01"
+            },
+            {
+              "title": "Consultant",
+              "company": "Intersite",
+              "location": "New York",
+              "startDate": "2016-09-01",
+              "endDate": "2017-12-01"
+            },
+            {
+              "title": "CEO",
+              "company": "Barker Consulting",
+              "location": "San Francisco",
+              "startDate": "2018-01-01",
+              "endDate": "Present"
+            }
+          ]
         }
       },
       "organizations": [
@@ -598,7 +2067,7 @@
           "logo": "https://s3.eu-central-1.amazonaws.com/crowd.dev-sample-data/hooli-logo.png",
           "description": "Hooli is an international corporation founded by Gavin Belson and Peter Gregory",
           "emails": ["gavin@hooli.xyz", "bighead@hooli.xyz"],
-          "tags": ["hooli", "tethics", "not-google"],
+          "tags": ["Tech", "Software Development", "Product Management", "Silicon Valley"],
           "twitter": {
             "handle": "hooli",
             "bio": "Hooli is an international corporation founded by Gavin Belson and Peter Gregory",
@@ -614,7 +2083,15 @@
       ],
       "email": "barker@hooli.xyz",
       "score": 3,
-      "reach": { "twitter": 819, "github": 11, "total": 830 }
+      "reach": { "twitter": 819, "github": 11, "total": 830 },
+      "tags": ["Entrepreneur", "Product Manager", "Senior Executive"],
+      "notes": [
+        "Impressive background in software engineering and product development",
+        "Known for being a tough but effective leader",
+        "Not afraid to take risks and try new things",
+        "Inventor of the conjoined triangles of success."
+      ],
+      "openSourceContributions": []
     }
   ],
   "conversations": [
@@ -696,7 +2173,7 @@
       },
       {
         "member": "Monica Hall",
-        "timestamp": "2022-09-27T04:45:22",
+        "timestamp": "2022-09-29T04:45:22",
         "channel": "PiedPiper/pied-piper",
         "type": "issue-comment",
         "body": "Yeah, you can buy Pipercoin.",
@@ -734,7 +2211,7 @@
     [
       {
         "member": "Monica Hall",
-        "timestamp": "2022-09-20T07:31:24",
+        "timestamp": "2022-09-28T07:31:24",
         "title": "Erlich is rich?",
         "channel": "PiedPiper/pied-piper",
         "type": "pull_request-opened",
@@ -1146,7 +2623,7 @@
       },
       {
         "member": "Monica Hall",
-        "timestamp": "2022-09-15T10:45:11",
+        "timestamp": "2022-09-27T20:20:43",
         "channel": "PiedPiper/pied-piper",
         "type": "issue-comment",
         "body": "Not us. Because we can't tell anyone what we did.",
@@ -1978,7 +3455,7 @@
       },
       {
         "member": "Monica Hall",
-        "timestamp": "2022-09-23T22:14:49",
+        "timestamp": "2022-09-28T22:14:49",
         "channel": "PiedPiper/pied-piper",
         "type": "issue-comment",
         "body": "'Cause it's not that easy.",
@@ -2014,7 +3491,7 @@
       },
       {
         "member": "Monica Hall",
-        "timestamp": "2022-09-23T22:25:41",
+        "timestamp": "2022-09-28T22:25:41",
         "channel": "PiedPiper/pied-piper",
         "type": "issue-comment",
         "body": "'Cause EndFrame worked that Intersite deal for months, kicking every detail of the contract and SLA back and forth, promising tons of custom features. And you can't just make that stuff up.",
@@ -2586,7 +4063,7 @@
     [
       {
         "member": "Monica Hall",
-        "timestamp": "2022-09-27T05:43:42",
+        "timestamp": "2022-09-29T05:43:42",
         "channel": "random",
         "type": "message",
         "body": "The guy has calf implants, Richard.",
@@ -2763,7 +4240,7 @@
     [
       {
         "member": "Laurie Bream",
-        "timestamp": "2022-09-25T01:25:59",
+        "timestamp": "2022-09-28T01:25:59",
         "channel": "raviga",
         "title": "101 VC: How to write a pass email to a startup",
         "type": "message",
@@ -2821,7 +4298,7 @@
     [
       {
         "member": "Monica Hall",
-        "timestamp": "2022-09-25T07:59:22",
+        "timestamp": "2022-09-28T07:59:22",
         "title": "Unexpected death of Peter Gregory",
         "channel": "pied-piper",
         "type": "comment",
@@ -2875,7 +4352,7 @@
       },
       {
         "member": "Monica Hall",
-        "timestamp": "2022-09-25T08:03:02",
+        "timestamp": "2022-09-29T08:03:02",
         "channel": "pied-piper",
         "type": "comment",
         "body": "No, I guess the hippo started to charge when the guide grabbed his rifle and shot at it, but his aim was off, and...",
@@ -2911,7 +4388,7 @@
       },
       {
         "member": "Monica Hall",
-        "timestamp": "2022-09-25T08:18:16",
+        "timestamp": "2022-09-29T08:03:02",
         "channel": "pied-piper",
         "type": "comment",
         "body": "No, he he missed, but I guess the sound of the gun startled Peter, who ran out of his tent and...",
@@ -2947,7 +4424,7 @@
       },
       {
         "member": "Monica Hall",
-        "timestamp": "2022-09-25T08:25:38",
+        "timestamp": "2022-09-29T08:25:38",
         "channel": "pied-piper",
         "type": "comment",
         "body": "No, the hippo was also startled by the noise and had run off prior to Peter exiting his tent.",
@@ -2983,7 +4460,7 @@
       },
       {
         "member": "Monica Hall",
-        "timestamp": "2022-09-25T08:31:14",
+        "timestamp": "2022-09-29T08:31:14",
         "channel": "pied-piper",
         "type": "comment",
         "body": "He hadn't run in a long time, maybe ever, and you know, he just... that was it.",
@@ -3096,7 +4573,7 @@
     [
       {
         "member": "Monica Hall",
-        "timestamp": "2022-09-12T06:26:41",
+        "timestamp": "2022-09-27T21:05:37",
         "channel": "pitching",
         "type": "message",
         "body": "People may take credit for your idea and try and sue you. How awesome is that?",
@@ -4034,7 +5511,7 @@
       },
       {
         "member": "Monica Hall",
-        "timestamp": "2022-09-20T16:36:08",
+        "timestamp": "2022-09-28T16:36:08",
         "channel": "pitching",
         "type": "message",
         "body": "I know.",
@@ -4130,7 +5607,7 @@
     [
       {
         "member": "Monica Hall",
-        "timestamp": "2022-09-10T02:26:49",
+        "timestamp": "2022-09-27T20:30:17",
         "channel": "random",
         "type": "message",
         "body": "It's Chuy Ramirez? I'm impressed. He sold a mural today for a half-million bucks.",
@@ -4185,7 +5662,7 @@
       },
       {
         "member": "Monica Hall",
-        "timestamp": "2022-09-16T19:57:21",
+        "timestamp": "2022-09-27T20:37:53",
         "channel": "PiedPiper/pied-piper",
         "type": "issue-comment",
         "body": "Look, I'm going to be straight with you. Peter Gregory doesn't care.",
@@ -4221,7 +5698,7 @@
       },
       {
         "member": "Monica Hall",
-        "timestamp": "2022-09-16T20:08:54",
+        "timestamp": "2022-09-26T20:08:54",
         "channel": "PiedPiper/pied-piper",
         "type": "issue-comment",
         "body": "You.",
@@ -4257,7 +5734,7 @@
       },
       {
         "member": "Monica Hall",
-        "timestamp": "2022-09-16T20:20:43",
+        "timestamp": "2022-09-27T20:20:43",
         "channel": "PiedPiper/pied-piper",
         "type": "issue-comment",
         "body": "Any of you; Pied Piper.",
@@ -4293,7 +5770,7 @@
       },
       {
         "member": "Monica Hall",
-        "timestamp": "2022-09-16T20:30:17",
+        "timestamp": "2022-09-27T20:30:17",
         "channel": "PiedPiper/pied-piper",
         "type": "issue-comment",
         "body": "Yeah, that's nothing. Peter would spend millions just to mildly annoy Gavin. These are billionaires, Richard. Annoying each other means more to them than we'll make in a lifetime.",
@@ -4329,7 +5806,7 @@
       },
       {
         "member": "Monica Hall",
-        "timestamp": "2022-09-16T20:37:53",
+        "timestamp": "2022-09-27T20:37:53",
         "channel": "PiedPiper/pied-piper",
         "type": "issue-comment",
         "body": "In fairness, Gavin only offered the $10 million because we started pursuing you.",
@@ -4365,7 +5842,7 @@
       },
       {
         "member": "Monica Hall",
-        "timestamp": "2022-09-16T20:48:39",
+        "timestamp": "2022-09-27T20:48:39",
         "channel": "PiedPiper/pied-piper",
         "type": "issue-comment",
         "body": "Richard...",
@@ -4419,7 +5896,7 @@
       },
       {
         "member": "Monica Hall",
-        "timestamp": "2022-09-16T21:05:37",
+        "timestamp": "2022-09-27T21:05:37",
         "channel": "PiedPiper/pied-piper",
         "type": "issue-comment",
         "body": "I know.",
@@ -4455,7 +5932,7 @@
       },
       {
         "member": "Monica Hall",
-        "timestamp": "2022-09-16T21:12:08",
+        "timestamp": "2022-09-27T21:12:08",
         "channel": "PiedPiper/pied-piper",
         "type": "issue-comment",
         "body": "I know!",
@@ -5989,7 +7466,7 @@
     [
       {
         "member": "Peter Gregory",
-        "timestamp": "2022-09-29T11:53:54",
+        "timestamp": "2022-09-25T11:53:54",
         "channel": "pitching",
         "type": "message",
         "body": "Did you just take a sip from an empty cup?",
@@ -6024,7 +7501,7 @@
       },
       {
         "member": "Peter Gregory",
-        "timestamp": "2022-09-29T12:01:03",
+        "timestamp": "2022-09-26T12:01:03",
         "channel": "pitching",
         "type": "message",
         "body": "Why did you do that?",
@@ -6582,7 +8059,7 @@
     [
       {
         "member": "Peter Gregory",
-        "timestamp": "2022-09-20T02:08:46",
+        "timestamp": "2022-09-24T02:08:46",
         "title": "Peter's TED talk",
         "channel": "pied-piper",
         "type": "comment",
@@ -6602,7 +8079,7 @@
     [
       {
         "member": "Monica Hall",
-        "timestamp": "2022-09-17T02:12:36",
+        "timestamp": "2022-09-27T02:12:36",
         "title": "GPS tracking features",
         "channel": "PiedPiper/pied-piper",
         "type": "pull_request-opened",
@@ -6638,7 +8115,7 @@
       },
       {
         "member": "Monica Hall",
-        "timestamp": "2022-09-17T02:18:53",
+        "timestamp": "2022-09-27T02:18:53",
         "channel": "PiedPiper/pied-piper",
         "type": "pull_request-comment",
         "body": "Peter Gregory is invested in a company that uses GPS in phones to track people.",
@@ -6674,7 +8151,7 @@
       },
       {
         "member": "Monica Hall",
-        "timestamp": "2022-09-17T02:25:23",
+        "timestamp": "2022-09-28T02:25:23",
         "channel": "PiedPiper/pied-piper",
         "type": "pull_request-comment",
         "body": "You don't know the half of it. And neither does congress.",
@@ -6913,7 +8390,7 @@
     [
       {
         "member": "Peter Gregory",
-        "timestamp": "2022-09-11T12:43:50",
+        "timestamp": "2022-09-23T12:43:50",
         "type": "star",
         "sourceId": "yjohjszuknzrubg",
         "platform": "github"
@@ -6922,7 +8399,7 @@
     [
       {
         "member": "Peter Gregory",
-        "timestamp": "2022-08-12T09:40:07",
+        "timestamp": "2022-09-22T09:40:07",
         "type": "follow",
         "sourceId": "xhqvyrxpkomledo",
         "platform": "twitter"
@@ -6931,7 +8408,7 @@
     [
       {
         "member": "Monica Hall",
-        "timestamp": "2022-09-11T09:06:33",
+        "timestamp": "2022-09-27T21:05:37",
         "type": "star",
         "sourceId": "dleudwbgscschid",
         "platform": "github"
@@ -6940,7 +8417,7 @@
     [
       {
         "member": "Monica Hall",
-        "timestamp": "2022-08-01T19:50:36",
+        "timestamp": "2022-09-27T21:12:08",
         "type": "follow",
         "sourceId": "xhszjwjeqcwxqco",
         "platform": "twitter"
@@ -7003,7 +8480,7 @@
     [
       {
         "member": "Laurie Bream",
-        "timestamp": "2022-08-05T19:17:15",
+        "timestamp": "2022-09-26T19:17:15",
         "type": "star",
         "sourceId": "vtmcpgaalmaghbr",
         "platform": "github"
@@ -7012,7 +8489,7 @@
     [
       {
         "member": "Laurie Bream",
-        "timestamp": "2022-09-13T09:17:43",
+        "timestamp": "2022-09-27T09:17:43",
         "type": "follow",
         "sourceId": "pppsebevgltczzz",
         "platform": "twitter"
@@ -7054,10 +8531,5 @@
         "platform": "twitter"
       }
     ]
-  ],
-  "tags": [
-    { "name": "tesla-owner", "members": ["Dinesh Chugtai"] },
-    { "name": "developers", "members": ["Dinesh Chugtai", "Bertram Gilfoyle"] },
-    { "name": "3-comma-club", "members": ["Russ Hanneman"] }
   ]
 }
