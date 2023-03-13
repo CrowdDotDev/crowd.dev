@@ -54,7 +54,7 @@ const emit = defineEmits(['open'])
 
 const trackBtnClick = async (step) => {
   await EventTrackingService.track({
-    event: 'onboardingGuideButtonClicked',
+    event: 'Onboarding Guide button clicked',
     properties: {
       step
     }
