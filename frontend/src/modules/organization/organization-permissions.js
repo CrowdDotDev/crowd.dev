@@ -30,5 +30,17 @@ export class OrganizationPermissions {
       permissionChecker.lockedForCurrentPlan(
         Permissions.values.organizationRead
       )
+    this.createLockedForSampleData =
+      permissionChecker.lockedForSampleData(
+        Permissions.values.organizationCreate
+      )
+    this.editLockedForSampleData =
+      permissionChecker.lockedForSampleData(
+        Permissions.values.organizationEdit
+      )
+    this.destroyLockedForSampleData =
+      permissionChecker.lockedForSampleData(
+        Permissions.values.organizationDestroy
+      )
   }
 }

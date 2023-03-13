@@ -56,7 +56,8 @@ class Permissions {
           plans.essential,
           plans.growth,
           plans.enterprise
-        ]
+        ],
+        allowedSampleTenant: true
       },
       userDestroy: {
         id: 'userDestroy',
@@ -65,7 +66,8 @@ class Permissions {
           plans.essential,
           plans.growth,
           plans.enterprise
-        ]
+        ],
+        allowedSampleTenant: true
       },
       userCreate: {
         id: 'userCreate',
@@ -74,7 +76,8 @@ class Permissions {
           plans.essential,
           plans.growth,
           plans.enterprise
-        ]
+        ],
+        allowedSampleTenant: true
       },
       userImport: {
         id: 'userImport',
@@ -92,7 +95,8 @@ class Permissions {
           plans.essential,
           plans.growth,
           plans.enterprise
-        ]
+        ],
+        allowedSampleTenant: true
       },
       userAutocomplete: {
         id: 'userAutocomplete',
@@ -123,7 +127,8 @@ class Permissions {
         allowedStorage: [
           storage.settingsBackgroundImages,
           storage.settingsLogos
-        ]
+        ],
+        allowedSampleTenant: true
       },
       settingsEdit: {
         id: 'settingsEdit',
@@ -136,7 +141,8 @@ class Permissions {
         allowedStorage: [
           storage.settingsBackgroundImages,
           storage.settingsLogos
-        ]
+        ],
+        allowedSampleTenant: true
       },
       integrationImport: {
         id: 'integrationImport',
@@ -184,7 +190,8 @@ class Permissions {
           plans.essential,
           plans.growth,
           plans.enterprise
-        ]
+        ],
+        allowedSampleTenant: true
       },
       integrationAutocomplete: {
         id: 'integrationAutocomplete',
@@ -213,7 +220,8 @@ class Permissions {
           plans.growth,
           plans.enterprise
         ],
-        allowedStorage: []
+        allowedStorage: [],
+        allowedSampleTenant: true
       },
       reportEdit: {
         id: 'reportEdit',
@@ -223,7 +231,8 @@ class Permissions {
           plans.growth,
           plans.enterprise
         ],
-        allowedStorage: []
+        allowedStorage: [],
+        allowedSampleTenant: true
       },
       reportDestroy: {
         id: 'reportDestroy',
@@ -233,7 +242,8 @@ class Permissions {
           plans.growth,
           plans.enterprise
         ],
-        allowedStorage: []
+        allowedStorage: [],
+        allowedSampleTenant: true
       },
       reportRead: {
         id: 'reportRead',
@@ -242,7 +252,8 @@ class Permissions {
           plans.essential,
           plans.growth,
           plans.enterprise
-        ]
+        ],
+        allowedSampleTenant: true
       },
       reportAutocomplete: {
         id: 'reportAutocomplete',
@@ -300,7 +311,8 @@ class Permissions {
           plans.essential,
           plans.growth,
           plans.enterprise
-        ]
+        ],
+        allowedSampleTenant: true
       },
       memberAutocomplete: {
         id: 'memberAutocomplete',
@@ -358,7 +370,8 @@ class Permissions {
           plans.essential,
           plans.growth,
           plans.enterprise
-        ]
+        ],
+        allowedSampleTenant: true
       },
       organizationAutocomplete: {
         id: 'organizationAutocomplete',
@@ -416,7 +429,8 @@ class Permissions {
           plans.essential,
           plans.growth,
           plans.enterprise
-        ]
+        ],
+        allowedSampleTenant: true
       },
       activityAutocomplete: {
         id: 'activityAutocomplete',
@@ -435,7 +449,8 @@ class Permissions {
           plans.essential,
           plans.growth,
           plans.enterprise
-        ]
+        ],
+        allowedSampleTenant: true
       },
       taskCreate: {
         id: 'taskCreate',
@@ -445,7 +460,8 @@ class Permissions {
           plans.growth,
           plans.enterprise
         ],
-        allowedStorage: []
+        allowedStorage: [],
+        allowedSampleTenant: true
       },
       taskEdit: {
         id: 'taskEdit',
@@ -455,7 +471,8 @@ class Permissions {
           plans.growth,
           plans.enterprise
         ],
-        allowedStorage: []
+        allowedStorage: [],
+        allowedSampleTenant: true
       },
       taskDestroy: {
         id: 'taskDestroy',
@@ -465,7 +482,8 @@ class Permissions {
           plans.growth,
           plans.enterprise
         ],
-        allowedStorage: []
+        allowedStorage: [],
+        allowedSampleTenant: true
       },
       taskRead: {
         id: 'taskRead',
@@ -474,7 +492,8 @@ class Permissions {
           plans.essential,
           plans.growth,
           plans.enterprise
-        ]
+        ],
+        allowedSampleTenant: true
       },
       taskAutocomplete: {
         id: 'taskAutocomplete',
@@ -483,7 +502,8 @@ class Permissions {
           plans.essential,
           plans.growth,
           plans.enterprise
-        ]
+        ],
+        allowedSampleTenant: true
       },
 
       conversationImport: {
@@ -532,7 +552,8 @@ class Permissions {
           plans.essential,
           plans.growth,
           plans.enterprise
-        ]
+        ],
+        allowedSampleTenant: true
       },
       conversationCustomize: {
         id: 'conversationCustomize',
@@ -555,7 +576,8 @@ class Permissions {
           plans.essential,
           plans.growth,
           plans.enterprise
-        ]
+        ],
+        allowedSampleTenant: true
       },
       automationImport: {
         id: 'automationImport',
@@ -574,7 +596,8 @@ class Permissions {
           plans.growth,
           plans.enterprise
         ],
-        allowedStorage: []
+        allowedStorage: [],
+        allowedSampleTenant: true
       },
       automationEdit: {
         id: 'automationEdit',
@@ -584,7 +607,8 @@ class Permissions {
           plans.growth,
           plans.enterprise
         ],
-        allowedStorage: []
+        allowedStorage: [],
+        allowedSampleTenant: true
       },
       automationDestroy: {
         id: 'automationDestroy',
@@ -594,7 +618,8 @@ class Permissions {
           plans.growth,
           plans.enterprise
         ],
-        allowedStorage: []
+        allowedStorage: [],
+        allowedSampleTenant: true
       },
       automationRead: {
         id: 'automationRead',
@@ -603,7 +628,8 @@ class Permissions {
           plans.essential,
           plans.growth,
           plans.enterprise
-        ]
+        ],
+        allowedSampleTenant: true
       },
       automationCustomize: {
         id: 'automationCustomize',

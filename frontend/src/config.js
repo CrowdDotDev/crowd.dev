@@ -51,6 +51,10 @@ const defaultConfig = {
       '',
     customerPortalLink:
       process.env.VUE_APP_STRIPE_CUSTOMER_PORTAL_LINK || ''
+  },
+  sampleTenant: {
+    id: process.env.VUE_APP_SAMPLE_TENANT_ID,
+    token: process.env.VUE_APP_SAMPLE_TENANT_TOKEN
   }
 }
 
@@ -93,6 +97,10 @@ const composedConfig = {
       'CROWD_VUE_APP_STRIPE_GROWTH_PLAN_PAYMENT_LINK' || '',
     customerPortalLink:
       'CROWD_VUE_APP_STRIPE_CUSTOMER_PORTAL_LINK' || ''
+  },
+  sampleTenant: {
+    id: 'CROWD_VUE_APP_SAMPLE_TENANT_ID',
+    token: 'CROWD_VUE_APP_SAMPLE_TENANT_TOKEN'
   }
 }
 
