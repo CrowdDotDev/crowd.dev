@@ -106,7 +106,7 @@ export const processStripeWebhook = async (message: any) => {
           new ApiWebsocketMessage(
             'tenant-plan-upgraded',
             JSON.stringify({
-              plan: Plans.values.growth,
+              plan: productPlan,
               stripeSubscriptionId: stripeWebhookMessage.data.object.subscription,
             }),
             undefined,
