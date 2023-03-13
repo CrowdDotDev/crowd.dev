@@ -15,6 +15,7 @@ export enum PlatformType {
   PRODUCTHUNT = 'producthunt',
   YOUTUBE = 'youtube',
   STACKOVERFLOW = 'stackoverflow',
+  OTHER = 'other'
 }
 
 export enum IntegrationType {

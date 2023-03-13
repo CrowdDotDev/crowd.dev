@@ -1,7 +1,9 @@
+import lodash from 'lodash'
 import _get from 'lodash/get'
 import SequelizeRepository from './sequelizeRepository'
 import AuditLogRepository from './auditLogRepository'
 import { IRepositoryOptions } from './IRepositoryOptions'
+import { ActivityTypeSettings, DEFAULT_ACTIVITY_TYPE_SETTINGS } from '../../types/activityTypes'
 
 export default class SettingsRepository {
   static async findOrCreateDefault(defaults, options: IRepositoryOptions) {
@@ -60,11 +62,28 @@ export default class SettingsRepository {
     return this._populateRelations(settings)
   }
 
+  static getActivityTypes(record: any): ActivityTypeSettings{
+    const activityTypes = {} as ActivityTypeSettings
+
+    activityTypes.default = lodash.cloneDeep(DEFAULT_ACTIVITY_TYPE_SETTINGS)
+    activityTypes.custom = {}
+
+    if (Object.keys(record.customActivityTypes).length > 0){
+      activityTypes.custom = record.customActivityTypes
+    }
+
+    return activityTypes
+  }
+
   static async _populateRelations(record) {
     if (!record) {
       return record
     }
 
-    return record.get({ plain: true })
+    const settings = record.get({ plain: true })
+
+    settings.activityTypes =  this.getActivityTypes(record)
+
+    return settings
   }
 }
