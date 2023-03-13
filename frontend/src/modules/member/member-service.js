@@ -136,7 +136,7 @@ export class MemberService {
       body,
       {
         headers: {
-          'x-crowd-api-version': '2'
+          'x-crowd-api-version': '1'
         }
       }
     )

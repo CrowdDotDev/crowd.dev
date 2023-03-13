@@ -22,7 +22,7 @@ export default async (req, res) => {
   new PermissionChecker(req).validateHas(Permissions.values.memberRead)
 
   let payload
-  const newVersion = req.headers['x-crowd-api-version'] === '2'
+  const newVersion = req.headers['x-crowd-api-version'] === '1'
 
   const memberService = new MemberService(req)
 
