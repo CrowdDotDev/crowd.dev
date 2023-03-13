@@ -1,5 +1,9 @@
 <template>
-  <app-drawer v-model="drawerModel" title="Feed settings">
+  <app-drawer
+    v-model="drawerModel"
+    title="Feed settings"
+    size="600px"
+  >
     <template #content>
       <div class="pt-2">
         <h5 class="text-base leading-5 font-semibold pb-6">
