@@ -59,6 +59,9 @@ export const connectSocket = (token) => {
         'Tenant plan is upgraded. Force a hard refresh!',
         data
       )
+      if (typeof data === 'string') {
+        data = JSON.parse(data)
+      }
 
       await store.dispatch('auth/doRefreshCurrentUser')
 
