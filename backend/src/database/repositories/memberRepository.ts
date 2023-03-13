@@ -602,8 +602,8 @@ class MemberRepository {
     ['activityCount', 'aggs."activityCount"'],
     ['activityTypes', 'aggs."activityTypes"'],
     ['activeDaysCount', 'aggs."activeDaysCount"'],
-    ['lastActive', 'aggs"lastActive"'],
-    ['averageSentiment', 'aggs"averageSentiment"'],
+    ['lastActive', 'aggs."lastActive"'],
+    ['averageSentiment', 'aggs."averageSentiment"'],
     ['identities', 'aggs.identities'],
     ['reach', "(m.reach -> 'total')::integer"],
 
@@ -649,7 +649,7 @@ class MemberRepository {
       case 'displayName':
         orderByString = 'm."displayName"'
         break
-      case 'reach.total':
+      case 'reach':
         orderByString = "(m.reach ->> 'total')::int"
         break
       case 'score':
@@ -819,6 +819,8 @@ where m."deletedAt" is null
         offset,
       }
     }
+
+    // console.log('QUERY: ', query)
 
     const [results, countResults] = await Promise.all([
       seq.query(query, {
