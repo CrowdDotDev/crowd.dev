@@ -63,7 +63,7 @@ export const connectSocket = (token) => {
       await store.dispatch('auth/doRefreshCurrentUser')
 
       Message.success(
-        'Successfully upgraded to Growth plan'
+        `Successfully upgraded to ${data.plan} plan`
       )
     }
   )
