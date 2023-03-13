@@ -22,9 +22,8 @@ import { logExecutionTime } from '../../utils/logging'
 export default async (req, res) => {
   new PermissionChecker(req).validateHas(Permissions.values.memberRead)
 
-  const newVersion = true
   let payload
-  // req.headers['x-crowd-api-version'] === '2'
+  const newVersion = req.headers['x-crowd-api-version'] === '2'
   if (!newVersion) {
     payload = await logExecutionTime(
       async () => new MemberService(req).query(req.body),

@@ -173,7 +173,7 @@ export default {
 
     this.hasMembersToMerge =
       mergeSuggestions.rows?.length > 0
-    this.hasMembers = !!membersList.length
+    this.hasMembers = membersList.count > 0
     this.isPageLoading = false
   },
 
@@ -200,10 +200,12 @@ export default {
           {},
           '',
           1,
-          0
+          0,
+          undefined,
+          true
         )
 
-        return response.rows
+        return response
       } catch (e) {
         return null
       }

@@ -1,4 +1,4 @@
-import { AttributeData } from '../../attributes/attribute'
+import { AttributeType } from '../../attributes/types'
 
 export interface QueryInput {
   filter: any
@@ -31,8 +31,48 @@ export interface ManyToManyType {
   }
 }
 
+export enum Operator {
+  GREATER_THAN = 'gt',
+  GREATER_THAN_OR_EQUAL = 'gte',
+  LESS_THAN = 'lt',
+  LESS_THAN_OR_EQUAL = 'lte',
+  NOT_EQUAL = 'ne',
+  EQUAL = 'eq',
+
+  // case insensitive ilike
+  LIKE = 'like',
+  NOT_LIKE = 'notLike',
+
+  REGEX = 'regexp',
+  NOT_REGEX = 'notRegexp',
+
+  AND = 'and',
+  OR = 'or',
+
+  IN = 'in',
+  NOT_IN = 'notIn',
+
+  BETWEEN = 'between',
+  NOT_BETWEEN = 'notBetween',
+
+  OVERLAP = 'overlap',
+  CONTAINS = 'contains',
+
+  NOT = 'not',
+}
+
+export interface ParsedJsonColumn {
+  parts: string[]
+  info: JsonColumnInfo
+}
+
+export interface AttributeInfo {
+  name: string
+  type: AttributeType
+}
+
 export interface JsonColumnInfo {
   property: string
   column: string
-  attributeSettings: AttributeData[]
+  attributeInfos: AttributeInfo[]
 }

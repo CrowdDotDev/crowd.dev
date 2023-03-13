@@ -108,7 +108,8 @@ export class MemberService {
     orderBy,
     limit,
     offset,
-    buildFilter = true
+    buildFilter = true,
+    countOnly = false
   ) {
     const body = {
       filter:
@@ -116,7 +117,8 @@ export class MemberService {
         {},
       orderBy,
       limit,
-      offset
+      offset,
+      countOnly
     }
 
     // Remove members marked as organizations from all responses
@@ -131,7 +133,12 @@ export class MemberService {
 
     const response = await authAxios.post(
       `/tenant/${tenantId}/member/query`,
-      body
+      body,
+      {
+        headers: {
+          'x-crowd-api-version': '2'
+        }
+      }
     )
 
     return response.data

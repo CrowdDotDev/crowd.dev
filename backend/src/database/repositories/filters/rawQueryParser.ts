@@ -1,35 +1,6 @@
-import { JsonColumnInfo } from './queryTypes'
+import { JsonColumnInfo, Operator, ParsedJsonColumn } from './queryTypes'
 import { singleOrDefault } from '../../../utils/arrays'
-
-enum Operator {
-  GREATER_THAN = 'gt',
-  GREATER_THAN_OR_EQUAL = 'gte',
-  LESS_THAN = 'lt',
-  LESS_THAN_OR_EQUAL = 'lte',
-  NOT_EQUAL = 'ne',
-  EQUAL = 'eq',
-
-  // case insensitive ilike
-  LIKE = 'like',
-  NOT_LIKE = 'notLike',
-
-  REGEX = 'regexp',
-  NOT_REGEX = 'notRegexp',
-
-  AND = 'and',
-  OR = 'or',
-
-  IN = 'in',
-  NOT_IN = 'notIn',
-
-  BETWEEN = 'between',
-  NOT_BETWEEN = 'notBetween',
-
-  OVERLAP = 'overlap',
-  CONTAINS = 'contains',
-
-  NOT = 'not',
-}
+import { AttributeType } from '../../attributes/types'
 
 export default class RawQueryParser {
   public static parseFilters(
@@ -62,58 +33,10 @@ export default class RawQueryParser {
           throw new Error(`Unknown filter key: ${key}!`)
         }
 
-        const column = columnMap.get(key)
-        const conditionKeys = Object.keys(filters[key])
-        if (conditionKeys.length !== 1) {
-          throw new Error(`Invalid condition! ${JSON.stringify(filters[key], undefined, 2)}`)
-        }
-
-        const operator = conditionKeys[0] as Operator
-        const actualOperator = this.getOperator(operator)
-        const value = filters[key][operator]
-
-        if (operator === Operator.BETWEEN || operator === Operator.NOT_BETWEEN) {
-          // we need two values
-          const firstParamName = this.getParamName(key, params)
-          params[firstParamName] = value[0]
-
-          const secondParamName = this.getParamName(key, params)
-          params[secondParamName] = value[1]
-
-          results.push(`(${column} ${actualOperator} :${firstParamName} and :${secondParamName})`)
-        } else if (operator === Operator.CONTAINS || operator === Operator.OVERLAP) {
-          // we need an array of values
-          const paramNames: string[] = []
-
-          for (const val of value) {
-            const paramName = this.getParamName(key, params)
-            params[paramName] = val
-            paramNames.push(`:${paramName}`)
-          }
-
-          const paramNamesString = paramNames.join(', ')
-          results.push(`(${column} ${actualOperator} array[${paramNamesString}])`)
-        } else if (operator === Operator.IN || operator === Operator.NOT_IN) {
-          // we need a list of values
-          const paramNames: string[] = []
-
-          for (const val of value) {
-            const paramName = this.getParamName(key, params)
-            params[paramName] = val
-            paramNames.push(`:${paramName}`)
-          }
-
-          const paramNamesString = paramNames.join(', ')
-          results.push(`(${column} ${actualOperator} (${paramNamesString}))`)
+        if (jsonColumnInfo) {
+          results.push(this.parseJsonColumnCondition(jsonColumnInfo, filters[key], params))
         } else {
-          const paramName = this.getParamName(key, params)
-          if (operator === Operator.LIKE || operator === Operator.NOT_LIKE) {
-            params[paramName] = `%${value}%`
-          } else {
-            params[paramName] = value
-          }
-
-          results.push(`(${column} ${actualOperator} :${paramName})`)
+          results.push(this.parseColumnCondition(key, columnMap.get(key), filters[key], params))
         }
       }
     }
@@ -121,14 +44,186 @@ export default class RawQueryParser {
     return results.join(' and ')
   }
 
+  private static parseJsonColumnCondition(
+    property: ParsedJsonColumn,
+    filters: any,
+    params: any,
+  ): string {
+    const parts = property.parts.slice(1)
+
+    let jsonColumn: string
+    if (parts.length > 0) {
+      const nestedProperty = parts.map((p) => `'${p}'`).join(' -> ')
+      jsonColumn = `(${property.info.column} -> ${nestedProperty})`
+
+      const attribute = parts[0]
+      const attributeInfo = singleOrDefault(
+        property.info.attributeInfos,
+        (a) => a.name === attribute,
+      )
+      if (attributeInfo === undefined) {
+        throw new Error(`Unknown ${property.info.property} attribute: ${attribute}!`)
+      }
+
+      if (attributeInfo.type === AttributeType.BOOLEAN) {
+        jsonColumn = `${jsonColumn}::boolean`
+      } else if (attributeInfo.type === AttributeType.NUMBER) {
+        jsonColumn = `${jsonColumn}::integer`
+      } else if (attributeInfo.type === AttributeType.DATE) {
+        jsonColumn = `${jsonColumn}::timestamptz`
+      }
+    } else {
+      jsonColumn = `(${property.info.column})`
+    }
+
+    let value
+    let operator: Operator
+
+    if (Array.isArray(filters)) {
+      operator = Operator.CONTAINS
+      value = filters
+    } else {
+      const conditionKeys = Object.keys(filters)
+      if (conditionKeys.length !== 1) {
+        throw new Error(`Invalid condition! ${JSON.stringify(filters, undefined, 2)}`)
+      }
+
+      operator = conditionKeys[0] as Operator
+      value = filters[operator]
+    }
+
+    const actualOperator = this.getOperator(operator, true)
+
+    if (operator === Operator.BETWEEN || operator === Operator.NOT_BETWEEN) {
+      // we need two values
+      const firstParamName = this.getJsonParamName(property.info.property, parts, params)
+      params[firstParamName] = value[0]
+
+      const secondParamName = this.getJsonParamName(property.info.property, parts, params)
+      params[secondParamName] = value[1]
+
+      return `(${jsonColumn} ${actualOperator} :${firstParamName} and :${secondParamName})`
+    }
+    if (operator === Operator.CONTAINS || operator === Operator.OVERLAP) {
+      // we need an array of values
+      const paramNames: string[] = []
+
+      for (const val of value) {
+        const paramName = this.getJsonParamName(property.info.property, parts, params)
+        params[paramName] = val
+        paramNames.push(`:${paramName}`)
+      }
+
+      const paramNamesString = paramNames.join(', ')
+      return `(${jsonColumn} ${actualOperator} array[${paramNamesString}])`
+    }
+    if (operator === Operator.IN || operator === Operator.NOT_IN) {
+      // we need a list of values
+      const paramNames: string[] = []
+
+      for (const val of value) {
+        const paramName = this.getJsonParamName(property.info.property, parts, params)
+        params[paramName] = val
+        paramNames.push(`:${paramName}`)
+      }
+
+      const paramNamesString = paramNames.join(', ')
+      return `(${jsonColumn} ${actualOperator} (${paramNamesString}))`
+    }
+    const paramName = this.getJsonParamName(property.info.property, parts, params)
+    if (operator === Operator.LIKE || operator === Operator.NOT_LIKE) {
+      params[paramName] = `%${value}%`
+    } else {
+      params[paramName] = value
+    }
+
+    return `(${jsonColumn} ${actualOperator} :${paramName})`
+  }
+
+  private static parseColumnCondition(
+    key: string,
+    column: string,
+    filters: any,
+    params: any,
+  ): string {
+    const conditionKeys = Object.keys(filters)
+    if (conditionKeys.length !== 1) {
+      throw new Error(`Invalid condition! ${JSON.stringify(filters, undefined, 2)}`)
+    }
+
+    const operator = conditionKeys[0] as Operator
+    const actualOperator = this.getOperator(operator)
+    const value = filters[operator]
+
+    if (operator === Operator.BETWEEN || operator === Operator.NOT_BETWEEN) {
+      // we need two values
+      const firstParamName = this.getParamName(key, params)
+      params[firstParamName] = value[0]
+
+      const secondParamName = this.getParamName(key, params)
+      params[secondParamName] = value[1]
+
+      return `(${column} ${actualOperator} :${firstParamName} and :${secondParamName})`
+    }
+    if (operator === Operator.CONTAINS || operator === Operator.OVERLAP) {
+      // we need an array of values
+      const paramNames: string[] = []
+
+      for (const val of value) {
+        const paramName = this.getParamName(key, params)
+        params[paramName] = val
+        paramNames.push(`:${paramName}`)
+      }
+
+      const paramNamesString = paramNames.join(', ')
+      return `(${column} ${actualOperator} array[${paramNamesString}])`
+    }
+    if (operator === Operator.IN || operator === Operator.NOT_IN) {
+      // we need a list of values
+      const paramNames: string[] = []
+
+      for (const val of value) {
+        const paramName = this.getParamName(key, params)
+        params[paramName] = val
+        paramNames.push(`:${paramName}`)
+      }
+
+      const paramNamesString = paramNames.join(', ')
+      return `(${column} ${actualOperator} (${paramNamesString}))`
+    }
+    const paramName = this.getParamName(key, params)
+    if (operator === Operator.LIKE || operator === Operator.NOT_LIKE) {
+      params[paramName] = `%${value}%`
+    } else {
+      params[paramName] = value
+    }
+
+    return `(${column} ${actualOperator} :${paramName})`
+  }
+
   private static getJsonColumnInfo(
     column: string,
     jsonColumnInfos: JsonColumnInfo[],
-  ): JsonColumnInfo | undefined {
-    return singleOrDefault(jsonColumnInfos, (jsonColumnInfo) => jsonColumnInfo.property === column)
+  ): ParsedJsonColumn | undefined {
+    const parts = column.split('.')
+
+    const actualProperty = parts[0]
+    const info = singleOrDefault(
+      jsonColumnInfos,
+      (jsonColumnInfo) => jsonColumnInfo.property === actualProperty,
+    )
+
+    if (info) {
+      return {
+        info,
+        parts,
+      }
+    }
+
+    return undefined
   }
 
-  private static getOperator(operator: Operator): string {
+  private static getOperator(operator: Operator, json: boolean = false): string {
     switch (operator) {
       case Operator.GREATER_THAN:
         return '>'
@@ -160,8 +255,14 @@ export default class RawQueryParser {
       case Operator.NOT_BETWEEN:
         return 'not between'
       case Operator.OVERLAP:
+        if (json) {
+          return '?|'
+        }
         return '&&'
       case Operator.CONTAINS:
+        if (json) {
+          return '?&'
+        }
         return '@>'
 
       default:
@@ -179,6 +280,25 @@ export default class RawQueryParser {
     }
 
     return `${column}_${index}`
+  }
+
+  private static getJsonParamName(column: string, parts: string[], params: any): string {
+    let index = 1
+
+    let key: string
+    if (parts.length > 0) {
+      key = `${column}_${parts.join('_')}`
+    } else {
+      key = column
+    }
+
+    let value = params[`${key}_${index}`]
+    while (value !== undefined) {
+      index++
+      value = params[`${key}_${index}`]
+    }
+
+    return `${key}_${index}`
   }
 
   private static isOperator(opOrCondition: any): boolean {

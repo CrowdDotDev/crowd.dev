@@ -1,5 +1,6 @@
 import MemberRepository from '../../memberRepository'
 import RawQueryParser from '../rawQueryParser'
+import { AttributeType } from '../../../attributes/types'
 
 describe('RawQueryParser', () => {
   it('Should parse simple filter with an empty second operand', () => {
@@ -110,9 +111,7 @@ describe('RawQueryParser', () => {
       params,
     )
 
-    expect(result).toEqual(
-      `((array(select jsonb_object_keys(m.username)) @> array[:identities_1, :identities_2]) and (1=1))`,
-    )
+    expect(result).toEqual(`((aggs.identities @> array[:identities_1, :identities_2]) and (1=1))`)
     expect(params.identities_1).toEqual('github')
     expect(params.identities_2).toEqual('slack')
   })
@@ -138,9 +137,7 @@ describe('RawQueryParser', () => {
       params,
     )
 
-    expect(result).toEqual(
-      `((array(select jsonb_object_keys(m.username)) && array[:identities_1, :identities_2]) and (1=1))`,
-    )
+    expect(result).toEqual(`((aggs.identities && array[:identities_1, :identities_2]) and (1=1))`)
     expect(params.identities_1).toEqual('github')
     expect(params.identities_2).toEqual('slack')
   })
@@ -169,5 +166,109 @@ describe('RawQueryParser', () => {
     expect(result).toEqual(`((m.email in (:email_1, :email_2)) and (1=1))`)
     expect(params.email_1).toEqual('crash@crowd.dev')
     expect(params.email_2).toEqual('burn@crowd.dev')
+  })
+
+  it('Should parse filter with attribute column multiselect filter', () => {
+    const filter = {
+      and: [
+        {
+          'attributes.skills.default': {
+            contains: ['javascript', 'typescript'],
+          },
+        },
+        {},
+      ],
+    }
+
+    const params: any = {}
+    const result = RawQueryParser.parseFilters(
+      filter,
+      MemberRepository.MEMBER_QUERY_FILTER_COLUMN_MAP,
+      [
+        {
+          property: 'attributes',
+          column: 'm.attributes',
+          attributeInfos: [
+            {
+              name: 'skills',
+              type: AttributeType.MULTI_SELECT,
+            },
+          ],
+        },
+      ],
+      params,
+    )
+
+    expect(result).toEqual(
+      `(((m.attributes -> 'skills' -> 'default') ?& array[:attributes_skills_default_1, :attributes_skills_default_2]) and (1=1))`,
+    )
+    expect(params.attributes_skills_default_1).toEqual('javascript')
+    expect(params.attributes_skills_default_2).toEqual('typescript')
+  })
+
+  it('Should parse filter with attribute column number filter', () => {
+    const filter = {
+      and: [
+        {
+          'attributes.age.default': {
+            between: [20, 30],
+          },
+        },
+        {},
+      ],
+    }
+
+    const params: any = {}
+    const result = RawQueryParser.parseFilters(
+      filter,
+      MemberRepository.MEMBER_QUERY_FILTER_COLUMN_MAP,
+      [
+        {
+          property: 'attributes',
+          column: 'm.attributes',
+          attributeInfos: [
+            {
+              name: 'age',
+              type: AttributeType.NUMBER,
+            },
+          ],
+        },
+      ],
+      params,
+    )
+
+    expect(result).toEqual(
+      `(((m.attributes -> 'age' -> 'default')::integer between :attributes_age_default_1 and :attributes_age_default_2) and (1=1))`,
+    )
+    expect(params.attributes_age_default_1).toEqual(20)
+    expect(params.attributes_age_default_2).toEqual(30)
+  })
+
+  it('Should parse filter with json column array filter', () => {
+    const filter = {
+      and: [
+        {
+          tags: ['c194036e-cf7c-4353-ae16-e8572a208f51'],
+        },
+        {},
+      ],
+    }
+
+    const params: any = {}
+    const result = RawQueryParser.parseFilters(
+      filter,
+      MemberRepository.MEMBER_QUERY_FILTER_COLUMN_MAP,
+      [
+        {
+          property: 'tags',
+          column: 'mt.all_ids',
+          attributeInfos: [],
+        },
+      ],
+      params,
+    )
+
+    expect(result).toEqual(`(((mt.all_ids) ?& array[:tags_1]) and (1=1))`)
+    expect(params.tags_1).toEqual('c194036e-cf7c-4353-ae16-e8572a208f51')
   })
 })
