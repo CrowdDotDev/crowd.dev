@@ -3,7 +3,7 @@ import AuthCurrentTenant from '@/modules/auth/auth-current-tenant'
 
 export class NoteService {
   static create(data) {
-    const tenantId = AuthCurrentTenant.get(true)
+    const tenantId = AuthCurrentTenant.get()
 
     return authAxios
       .post(`/tenant/${tenantId}/note`, data)
@@ -13,7 +13,7 @@ export class NoteService {
   }
 
   static update(id, data) {
-    const tenantId = AuthCurrentTenant.get(true)
+    const tenantId = AuthCurrentTenant.get()
 
     return authAxios
       .put(`/tenant/${tenantId}/note/${id}`, data)
@@ -27,7 +27,7 @@ export class NoteService {
       ids
     }
 
-    const tenantId = AuthCurrentTenant.get(true)
+    const tenantId = AuthCurrentTenant.get()
 
     return authAxios
       .delete(`/tenant/${tenantId}/note`, {
@@ -46,7 +46,7 @@ export class NoteService {
       offset
     }
 
-    const tenantId = AuthCurrentTenant.get(true)
+    const tenantId = AuthCurrentTenant.get()
 
     return authAxios
       .post(`/tenant/${tenantId}/note/query`, body)

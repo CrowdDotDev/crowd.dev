@@ -3,7 +3,7 @@ import AuthCurrentTenant from '@/modules/auth/auth-current-tenant'
 
 export class UserService {
   static async edit(data) {
-    const tenantId = AuthCurrentTenant.get(true)
+    const tenantId = AuthCurrentTenant.get()
 
     const response = await authAxios.put(
       `/tenant/${tenantId}/user`,
@@ -18,7 +18,7 @@ export class UserService {
       ids
     }
 
-    const tenantId = AuthCurrentTenant.get(true)
+    const tenantId = AuthCurrentTenant.get()
 
     const response = await authAxios.delete(
       `/tenant/${tenantId}/user`,
@@ -31,7 +31,7 @@ export class UserService {
   }
 
   static async create(data) {
-    const tenantId = AuthCurrentTenant.get(true)
+    const tenantId = AuthCurrentTenant.get()
 
     const response = await authAxios.post(
       `/tenant/${tenantId}/user`,
@@ -49,7 +49,7 @@ export class UserService {
       importHash
     }
 
-    const tenantId = AuthCurrentTenant.get(true)
+    const tenantId = AuthCurrentTenant.get()
 
     const response = await authAxios.post(
       `/tenant/${tenantId}/user/import`,
@@ -60,7 +60,7 @@ export class UserService {
   }
 
   static async find(id) {
-    const tenantId = AuthCurrentTenant.get(true)
+    const tenantId = AuthCurrentTenant.get()
     const response = await authAxios.get(
       `/tenant/${tenantId}/user/${id}`
     )
@@ -75,7 +75,7 @@ export class UserService {
       offset
     }
 
-    const tenantId = AuthCurrentTenant.get(true)
+    const tenantId = AuthCurrentTenant.get()
 
     const response = await authAxios.get(
       `/tenant/${tenantId}/user`,
@@ -93,7 +93,7 @@ export class UserService {
       limit
     }
 
-    const tenantId = AuthCurrentTenant.get(true)
+    const tenantId = AuthCurrentTenant.get()
 
     const response = await authAxios.get(
       `/tenant/${tenantId}/user/autocomplete`,

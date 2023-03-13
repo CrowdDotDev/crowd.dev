@@ -43,7 +43,7 @@ const props = defineProps({
   }
 })
 
-const tenantId = computed(() => AuthCurrentTenant.get(true))
+const tenantId = computed(() => AuthCurrentTenant.get())
 
 const callOnboard = useThrottleFn(async () => {
   await store.dispatch('integration/doLinkedinConnect')

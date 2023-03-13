@@ -8,7 +8,7 @@ export class AutomationService {
       data
     }
 
-    const tenantId = AuthCurrentTenant.get(true)
+    const tenantId = AuthCurrentTenant.get()
 
     const response = await authAxios.put(
       `/tenant/${tenantId}/automation/${id}`,
@@ -19,7 +19,7 @@ export class AutomationService {
   }
 
   static async destroy(id) {
-    const tenantId = AuthCurrentTenant.get(true)
+    const tenantId = AuthCurrentTenant.get()
 
     const response = await authAxios.delete(
       `/tenant/${tenantId}/automation/${id}`
@@ -33,7 +33,7 @@ export class AutomationService {
       ids
     }
 
-    const tenantId = AuthCurrentTenant.get(true)
+    const tenantId = AuthCurrentTenant.get()
 
     const response = await authAxios.delete(
       `/tenant/${tenantId}/automation`,
@@ -46,7 +46,7 @@ export class AutomationService {
   }
 
   static async publishAll(ids) {
-    const tenantId = AuthCurrentTenant.get(true)
+    const tenantId = AuthCurrentTenant.get()
 
     for (const id of ids) {
       const body = {
@@ -63,7 +63,7 @@ export class AutomationService {
   }
 
   static async unpublishAll(ids) {
-    const tenantId = AuthCurrentTenant.get(true)
+    const tenantId = AuthCurrentTenant.get()
 
     for (const id of ids) {
       const body = {
@@ -84,7 +84,7 @@ export class AutomationService {
       data
     }
 
-    const tenantId = AuthCurrentTenant.get(true)
+    const tenantId = AuthCurrentTenant.get()
 
     const response = await authAxios.post(
       `/tenant/${tenantId}/automation`,
@@ -95,7 +95,7 @@ export class AutomationService {
   }
 
   static async find(id) {
-    const tenantId = AuthCurrentTenant.get(true)
+    const tenantId = AuthCurrentTenant.get()
 
     const response = await authAxios.get(
       `/tenant/${tenantId}/automation/${id}`
@@ -112,7 +112,7 @@ export class AutomationService {
       offset
     }
 
-    const tenantId = AuthCurrentTenant.get(true)
+    const tenantId = AuthCurrentTenant.get()
 
     const response = await authAxios.get(
       `/tenant/${tenantId}/automation`,
@@ -136,7 +136,7 @@ export class AutomationService {
       offset
     }
 
-    const tenantId = AuthCurrentTenant.get(true)
+    const tenantId = AuthCurrentTenant.get()
 
     const response = await authAxios.get(
       `/tenant/${tenantId}/automation/${automationId}/executions`,
@@ -154,7 +154,7 @@ export class AutomationService {
       limit
     }
 
-    const tenantId = AuthCurrentTenant.get(true)
+    const tenantId = AuthCurrentTenant.get()
 
     const response = await authAxios.get(
       `/tenant/${tenantId}/automation/autocomplete`,

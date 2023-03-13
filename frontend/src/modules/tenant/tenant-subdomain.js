@@ -58,7 +58,7 @@ export const tenantSubdomain = {
       return
     }
 
-    const token = AuthToken.get(true)
+    const token = AuthToken.get()
 
     // Clean the AuthToken of the Root Domain
     // to not redirect every time

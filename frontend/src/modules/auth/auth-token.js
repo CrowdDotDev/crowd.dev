@@ -1,21 +1,7 @@
-import config from '@/config'
-import { store } from '@/store'
-
 let inMemoryToken = null
 
 export class AuthToken {
-  static get(useRealTenant) {
-    const currentTenant =
-      store.getters['auth/currentTenant']
-
-    if (
-      !useRealTenant &&
-      currentTenant?.hasSampleData &&
-      config.sampleTenant.token
-    ) {
-      return config.sampleTenant.token
-    }
-
+  static get() {
     return (
       inMemoryToken || localStorage.getItem('jwt') || null
     )

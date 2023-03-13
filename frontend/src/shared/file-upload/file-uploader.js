@@ -91,7 +91,7 @@ export class FileUploader {
   }
 
   static async fetchFileCredentials(filename, config) {
-    const tenantId = AuthCurrentTenant.get(true)
+    const tenantId = AuthCurrentTenant.get()
 
     const { data } = await authAxios.get(
       `/tenant/${tenantId}/file/credentials`,

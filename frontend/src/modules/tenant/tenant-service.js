@@ -34,7 +34,7 @@ export class TenantService {
       }
     }
 
-    const tenantId = AuthCurrentTenant.get(true)
+    const tenantId = AuthCurrentTenant.get()
     if (tenantId && !tenantUrl) {
       try {
         const currentTenant = await this.find(tenantId)

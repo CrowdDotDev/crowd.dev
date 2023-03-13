@@ -9,7 +9,7 @@ export class AuthService {
     return authAxios
       .post('/auth/send-email-address-verification-email', {
         tenantId: tenantSubdomain.isSubdomain
-          ? AuthCurrentTenant.get(true)
+          ? AuthCurrentTenant.get()
           : undefined
       })
       .then((response) => {
@@ -22,7 +22,7 @@ export class AuthService {
       .post('/auth/send-password-reset-email', {
         email,
         tenantId: tenantSubdomain.isSubdomain
-          ? AuthCurrentTenant.get(true)
+          ? AuthCurrentTenant.get()
           : undefined
       })
       .then((response) => {
@@ -44,7 +44,7 @@ export class AuthService {
         invitationToken,
         ...data,
         tenantId: tenantSubdomain.isSubdomain
-          ? AuthCurrentTenant.get(true)
+          ? AuthCurrentTenant.get()
           : undefined
       })
       .then((response) => {
@@ -63,7 +63,7 @@ export class AuthService {
         password,
         invitationToken,
         tenantId: tenantSubdomain.isSubdomain
-          ? AuthCurrentTenant.get(true)
+          ? AuthCurrentTenant.get()
           : undefined
       })
       .then((response) => {
@@ -110,7 +110,7 @@ export class AuthService {
         token,
         password,
         tenantId: tenantSubdomain.isSubdomain
-          ? AuthCurrentTenant.get(true)
+          ? AuthCurrentTenant.get()
           : undefined
       })
       .then((response) => {
@@ -123,7 +123,7 @@ export class AuthService {
       .put('/auth/verify-email', {
         token,
         tenantId: tenantSubdomain.isSubdomain
-          ? AuthCurrentTenant.get(true)
+          ? AuthCurrentTenant.get()
           : undefined
       })
       .then((response) => {
@@ -138,7 +138,7 @@ export class AuthService {
       .post('/auth/social/onboard', {
         invitationToken,
         tenantId: tenantSubdomain.isSubdomain
-          ? AuthCurrentTenant.get(true)
+          ? AuthCurrentTenant.get()
           : undefined
       })
       .then((response) => {

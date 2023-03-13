@@ -52,22 +52,28 @@ export default class AuthCurrentTenant {
     return tenant
   }
 
-  static get(useRealTenant) {
+  static get() {
+    const tenantASString =
+      localStorage.getItem('tenant') || null
+
+    if (tenantASString) {
+      return JSON.parse(tenantASString).id
+    }
+
+    return null
+  }
+
+  static getSampleTenantData() {
     const tenantASString =
       localStorage.getItem('tenant') || null
 
     if (tenantASString) {
       const { hasSampleData } = JSON.parse(tenantASString)
+      const { id, token } = config.sampleTenant
 
-      if (
-        hasSampleData &&
-        !useRealTenant &&
-        config.sampleTenant.id
-      ) {
-        return config.sampleTenant.id
+      if (hasSampleData && id && token) {
+        return { id, token }
       }
-
-      return JSON.parse(tenantASString).id
     }
 
     return null

@@ -3,7 +3,7 @@ import AuthCurrentTenant from '@/modules/auth/auth-current-tenant'
 
 export class TaskService {
   static create(data) {
-    const tenantId = AuthCurrentTenant.get(true)
+    const tenantId = AuthCurrentTenant.get()
 
     return authAxios
       .post(`/tenant/${tenantId}/task`, data)
@@ -20,7 +20,7 @@ export class TaskService {
       offset
     }
 
-    const tenantId = AuthCurrentTenant.get(true)
+    const tenantId = AuthCurrentTenant.get()
 
     return authAxios
       .post(`/tenant/${tenantId}/task/query`, body)
@@ -30,7 +30,7 @@ export class TaskService {
   }
 
   static update(id, data) {
-    const tenantId = AuthCurrentTenant.get(true)
+    const tenantId = AuthCurrentTenant.get()
 
     return authAxios
       .put(`/tenant/${tenantId}/task/${id}`, data)
@@ -44,7 +44,7 @@ export class TaskService {
       ids
     }
 
-    const tenantId = AuthCurrentTenant.get(true)
+    const tenantId = AuthCurrentTenant.get()
 
     return authAxios
       .delete(`/tenant/${tenantId}/task`, {
@@ -56,7 +56,7 @@ export class TaskService {
   }
 
   static batch(operation, payload) {
-    const tenantId = AuthCurrentTenant.get(true)
+    const tenantId = AuthCurrentTenant.get()
 
     return authAxios
       .post(`/tenant/${tenantId}/task/batch`, {

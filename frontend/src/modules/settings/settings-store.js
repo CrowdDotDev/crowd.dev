@@ -55,7 +55,7 @@ export default {
     async doInit({ commit, rootGetters }) {
       if (
         !rootGetters['auth/signedIn'] ||
-        !AuthCurrentTenant.get(true)
+        !AuthCurrentTenant.get()
       ) {
         return
       }

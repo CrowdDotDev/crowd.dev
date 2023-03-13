@@ -5,7 +5,7 @@ import config from '@/config'
 
 export class ReportService {
   static async update(id, data) {
-    const tenantId = AuthCurrentTenant.get(true)
+    const tenantId = AuthCurrentTenant.get()
 
     const response = await authAxios.put(
       `/tenant/${tenantId}/report/${id}`,
@@ -16,7 +16,7 @@ export class ReportService {
   }
 
   static async duplicate(id) {
-    const tenantId = AuthCurrentTenant.get(true)
+    const tenantId = AuthCurrentTenant.get()
 
     const response = await authAxios.post(
       `/tenant/${tenantId}/report/${id}/duplicate`
@@ -30,7 +30,7 @@ export class ReportService {
       ids
     }
 
-    const tenantId = AuthCurrentTenant.get(true)
+    const tenantId = AuthCurrentTenant.get()
 
     const response = await authAxios.delete(
       `/tenant/${tenantId}/report`,
@@ -43,7 +43,7 @@ export class ReportService {
   }
 
   static async create(data) {
-    const tenantId = AuthCurrentTenant.get(true)
+    const tenantId = AuthCurrentTenant.get()
 
     const response = await authAxios.post(
       `/tenant/${tenantId}/report`,
@@ -54,7 +54,7 @@ export class ReportService {
   }
 
   static async find(id) {
-    const tenantId = AuthCurrentTenant.get(true)
+    const tenantId = AuthCurrentTenant.get()
 
     const response = await authAxios.get(
       `/tenant/${tenantId}/report/${id}`
@@ -79,7 +79,7 @@ export class ReportService {
       offset
     }
 
-    const tenantId = AuthCurrentTenant.get(true)
+    const tenantId = AuthCurrentTenant.get()
 
     const response = await authAxios.get(
       `/tenant/${tenantId}/report`,
@@ -97,7 +97,7 @@ export class ReportService {
       limit
     }
 
-    const tenantId = AuthCurrentTenant.get(true)
+    const tenantId = AuthCurrentTenant.get()
 
     const response = await authAxios.get(
       `/tenant/${tenantId}/report/autocomplete`,

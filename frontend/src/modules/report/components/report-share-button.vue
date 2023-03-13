@@ -101,7 +101,7 @@ const model = computed({
 })
 
 const computedPublicLink = computed(() => {
-  const tenantId = AuthCurrentTenant.get(true)
+  const tenantId = AuthCurrentTenant.get()
   return `${window.location.origin}/tenant/${tenantId}/reports/${props.id}/public`
 })
 

@@ -129,7 +129,7 @@ import { IntegrationService } from '@/modules/integration/integration-service'
 
 const store = useStore()
 
-const tenantId = computed(() => AuthCurrentTenant.get(true))
+const tenantId = computed(() => AuthCurrentTenant.get())
 
 const props = defineProps({
   modelValue: {
