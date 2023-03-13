@@ -52,7 +52,7 @@ export default class AuthCurrentTenant {
     return tenant
   }
 
-  static get(isAuthService) {
+  static get(useRealTenant) {
     const tenantASString =
       localStorage.getItem('tenant') || null
 
@@ -61,7 +61,7 @@ export default class AuthCurrentTenant {
 
       if (
         hasSampleData &&
-        !isAuthService &&
+        !useRealTenant &&
         config.sampleTenant.id
       ) {
         return config.sampleTenant.id

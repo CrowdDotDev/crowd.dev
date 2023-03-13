@@ -63,7 +63,9 @@ const connectUrl = computed(() => {
 
   return `${config.backendUrl}/twitter/${
     store.getters['auth/currentTenant'].id
-  }/connect?redirectUrl=${redirectUrl}&crowdToken=${AuthToken.get()}`
+  }/connect?redirectUrl=${redirectUrl}&crowdToken=${AuthToken.get(
+    true
+  )}`
 })
 
 const connect = () => {

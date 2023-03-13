@@ -91,7 +91,7 @@ const inputRef = ref()
 const showToken = ref(false)
 
 const tenantId = computed(() => AuthCurrentTenant.get(true))
-const jwtToken = computed(() => AuthToken.get())
+const jwtToken = computed(() => AuthToken.get(true))
 
 const copyToClipboard = async (type) => {
   const toCopy =

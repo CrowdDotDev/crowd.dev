@@ -30,6 +30,8 @@ const connectUrl = computed(() => {
 
   return `${config.backendUrl}/slack/${
     store.getters['auth/currentTenant'].id
-  }/connect?redirectUrl=${redirectUrl}&crowdToken=${AuthToken.get()}`
+  }/connect?redirectUrl=${redirectUrl}&crowdToken=${AuthToken.get(
+    true
+  )}`
 })
 </script>

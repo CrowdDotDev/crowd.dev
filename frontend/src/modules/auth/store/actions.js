@@ -17,7 +17,7 @@ import {
 export default {
   async doInit({ commit, dispatch }) {
     try {
-      const token = AuthToken.get()
+      const token = AuthToken.get(true)
       if (token) {
         const currentUser = await AuthService.fetchMe()
         connectSocket(token)
@@ -150,7 +150,7 @@ export default {
   },
 
   doRefreshCurrentUser({ commit }) {
-    const token = AuthToken.get()
+    const token = AuthToken.get(true)
     if (token) {
       return AuthService.fetchMe()
         .then((currentUser) => {
