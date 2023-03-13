@@ -190,6 +190,7 @@ import { mapActions, mapGetters } from 'vuex'
 import onboardPlatforms from '@/jsons/onboard-platforms.json'
 import tenantCommunitySize from '@/jsons/tenant-community-size.json'
 import { onSelectMouseLeave } from '@/utils/select'
+import { TenantService } from '@/modules/tenant/tenant-service'
 import Message from '@/shared/message/message'
 import achievements from '@/modules/onboard/config/achievements.config.js'
 
@@ -256,6 +257,11 @@ export default {
             })
           }
           return this.doCreate(this.model)
+        })
+        .then(() => {
+          return TenantService.populateSampleData(
+            this.currentTenant.id
+          )
         })
         .then(() => {
           const onboardType =

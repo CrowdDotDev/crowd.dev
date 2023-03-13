@@ -126,4 +126,12 @@ export class TenantService {
 
     return response.data
   }
+
+  static async populateSampleData(tenantId) {
+    const response = await authAxios.post(
+      `/tenant/${tenantId}/sampleData`
+    )
+
+    return response.data
+  }
 }
