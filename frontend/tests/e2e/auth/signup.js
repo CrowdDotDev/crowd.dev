@@ -143,7 +143,7 @@ export default (inject) => () => {
 
   it('Signs up if all fields are valid', () => {
     cy.server()
-    cy.route('POST', '/co/authenticate').as('apiSignup')
+    cy.route('POST', '/api/auth/sign-up').as('apiSignup')
 
     cy.get('@firstName').clear().type(data.firstName)
     cy.get('@lastName').clear().type(data.lastName)
@@ -154,6 +154,8 @@ export default (inject) => () => {
       .type(data.password)
 
     cy.get('@submit').click()
+
+    cy.wait('@apiSignup')
 
     cy.url().should('not.include', '/auth/signup')
     cy.url().should('include', '/auth/email-unverified')

@@ -4,8 +4,7 @@
       notcompletedGuides.length > 0 &&
       !onboardingGuidesDismissed
     "
-    class="panel !p-0 !rounded-lg"
-    v-bind="$attrs"
+    class="panel !p-0 !rounded-lg mb-10"
   >
     <header class="bg-purple-50 p-4 relative">
       <div class="flex justify-between items-center">
@@ -91,14 +90,18 @@ import {
 import ConfirmDialog from '@/shared/dialog/confirm-dialog'
 import AppDashboardGuideEagleEyeModal from '@/modules/dashboard/components/guide/dashboard-guide-eagle-eye-modal.vue'
 import { QuickstartGuideService } from '@/modules/quickstart-guide/services/quickstart-guide.service'
+import { useQuickStartGuideStore } from '@/modules/quickstart-guide/store'
+import { storeToRefs } from 'pinia'
 
 const { currentTenant, currentTenantUser } =
   mapGetters('auth')
 const { doRefreshCurrentUser } = mapActions('auth')
-const { getGuides } = mapActions('quickstartGuide')
-const { guides, notcompletedGuides } = mapGetters(
-  'quickstartGuide'
+
+const storeQuickStartGuides = useQuickStartGuideStore()
+const { guides, notcompletedGuides } = storeToRefs(
+  storeQuickStartGuides
 )
+const { getGuides } = storeQuickStartGuides
 
 const activeView = ref(null)
 const selectedGuide = ref(null)
@@ -117,19 +120,6 @@ const minCommunitySize = computed(() => {
     .map((el) => +el)
   return min
 })
-
-watch(
-  () => currentTenantUser,
-  (tenantUser) => {
-    if (tenantUser) {
-      showModals()
-    }
-  },
-  {
-    deep: true,
-    immediate: true
-  }
-)
 
 const dismissGuides = () => {
   ConfirmDialog({
@@ -150,6 +140,13 @@ const dismissGuides = () => {
 }
 
 const showModals = () => {
+  if (
+    !currentTenantUser.value ||
+    !currentTenantUser.value.settings
+  ) {
+    return
+  }
+
   // Check if it can open eagle eye onboarding modal
   const {
     isEagleEyeGuideDismissed,
@@ -179,11 +176,25 @@ const showModals = () => {
   }
 }
 
-onMounted(() => {
-  doRefreshCurrentUser({})
-  if (currentTenantUser.value) {
-    showModals()
+watch(
+  () => currentTenantUser,
+  (tenantUser) => {
+    if (tenantUser) {
+      showModals()
+    }
+  },
+  {
+    deep: true,
+    immediate: true
   }
+)
+
+onMounted(() => {
+  doRefreshCurrentUser({}).then(() => {
+    if (currentTenantUser.value) {
+      showModals()
+    }
+  })
 })
 </script>
 

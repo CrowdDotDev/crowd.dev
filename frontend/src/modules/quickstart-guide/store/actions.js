@@ -2,16 +2,16 @@ import { QuickstartGuideService } from '@/modules/quickstart-guide/services/quic
 import * as loom from '@loomhq/loom-embed'
 
 export default {
-  async getGuides({ commit }) {
+  getGuides() {
     return QuickstartGuideService.fetch()
       .then((guides) => {
         return Promise.all(
           Object.entries(guides).map(([key, guide]) => {
             if (guide.completed) {
-              return {
+              return Promise.resolve({
                 ...guide,
                 key
-              }
+              })
             }
             try {
               return loom
@@ -33,9 +33,9 @@ export default {
           })
         )
       })
-      .then((guides) => {
-        commit('SET_GUIDES', guides)
-        return Promise.resolve(guides)
+      .then((items) => {
+        this.guides = items
+        return Promise.resolve(this.guides)
       })
   }
 }

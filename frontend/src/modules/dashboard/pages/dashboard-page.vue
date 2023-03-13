@@ -42,7 +42,7 @@
           : '100vh'
       }"
     >
-      <app-dashboard-guides class="mb-10" />
+      <app-dashboard-guides />
       <app-dashboard-integrations class="mb-10" />
       <app-dashboard-task />
     </aside>
@@ -98,7 +98,7 @@ onBeforeUnmount(() => {
 })
 </script>
 
-<style lang="scss">
+<style lang="scss" scoped>
 aside {
   width: 16.25rem;
   min-width: 16.25rem;
