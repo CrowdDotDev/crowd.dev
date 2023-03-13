@@ -30,5 +30,17 @@ export class ActivityPermissions {
       permissionChecker.lockedForCurrentPlan(
         Permissions.values.activityRead
       )
+    this.createLockedForSampleData =
+      permissionChecker.lockedForSampleData(
+        Permissions.values.activityCreate
+      )
+    this.editLockedForSampleData =
+      permissionChecker.lockedForSampleData(
+        Permissions.values.activityEdit
+      )
+    this.destroyLockedForSampleData =
+      permissionChecker.lockedForSampleData(
+        Permissions.values.activityDestroy
+      )
   }
 }

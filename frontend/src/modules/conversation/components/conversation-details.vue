@@ -104,6 +104,7 @@
         <button
           class="btn btn--transparent w-8 !h-8 flex-shrink-0"
           type="button"
+          :disabled="isEditLockedForSampleData"
           @click.stop="$emit('edit-title')"
         >
           <i class="ri-lg ri-pencil-line"></i>
@@ -170,6 +171,8 @@ import AppAvatar from '@/shared/avatar/avatar'
 import { formatDateToTimeAgo } from '@/utils/date'
 import AppMemberDisplayName from '@/modules/member/components/member-display-name'
 import { CrowdIntegrations } from '@/integrations/integrations-config'
+import { ConversationPermissions } from '../conversation-permissions'
+import { mapGetters } from 'vuex'
 
 export default {
   name: 'AppConversationDetails',
@@ -200,6 +203,10 @@ export default {
   },
   emits: ['edit-title'],
   computed: {
+    ...mapGetters({
+      currentTenant: 'auth/currentTenant',
+      currentUser: 'auth/currentUser'
+    }),
     platform() {
       return CrowdIntegrations.getConfig(
         this.conversation.platform
@@ -219,6 +226,12 @@ export default {
       return this.editing
         ? this.conversation.activities
         : this.conversation.activities.slice(1)
+    },
+    isEditLockedForSampleData() {
+      return new ConversationPermissions(
+        this.currentTenant,
+        this.currentUser
+      ).editLockedForSampleData
     }
   },
   methods: {

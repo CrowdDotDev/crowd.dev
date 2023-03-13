@@ -1,5 +1,6 @@
 import { tenantSubdomain } from '@/modules/tenant/tenant-subdomain'
 import { FeatureFlag } from '@/featureFlag'
+import config from '@/config'
 
 /**
  * Auth Current Tenant
@@ -57,6 +58,22 @@ export default class AuthCurrentTenant {
 
     if (tenantASString) {
       return JSON.parse(tenantASString).id
+    }
+
+    return null
+  }
+
+  static getSampleTenantData() {
+    const tenantASString =
+      localStorage.getItem('tenant') || null
+
+    if (tenantASString) {
+      const { hasSampleData } = JSON.parse(tenantASString)
+      const { id, token } = config.sampleTenant
+
+      if (hasSampleData && id && token) {
+        return { id, token }
+      }
     }
 
     return null

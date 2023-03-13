@@ -28,6 +28,7 @@
             action: 'conversationPublish',
             conversation: conversation
           }"
+          :disabled="isEditLockedForSampleData"
           ><i class="ri-upload-cloud-2-line mr-1" />Publish
           conversation</el-dropdown-item
         >
@@ -37,6 +38,7 @@
             action: 'conversationUnpublish',
             conversation: conversation
           }"
+          :disabled="isEditLockedForSampleData"
           ><i class="ri-arrow-go-back-line mr-1" />Unpublish
           conversation</el-dropdown-item
         >
@@ -47,9 +49,16 @@
           action: 'conversationDelete',
           conversation: conversation
         }"
+        :disabled="isDeleteLockedForSampleData"
         ><i
-          class="ri-delete-bin-line mr-1 text-red-500"
-        /><span class="text-red-500"
+          class="ri-delete-bin-line mr-1"
+          :class="{
+            'text-red-500': !isDeleteLockedForSampleData
+          }"
+        /><span
+          :class="{
+            'text-red-500': !isDeleteLockedForSampleData
+          }"
           >Delete conversation</span
         ></el-dropdown-item
       >
@@ -62,6 +71,7 @@ import { mapGetters, mapActions } from 'vuex'
 import Message from '@/shared/message/message'
 import config from '@/config'
 import ConfirmDialog from '@/shared/dialog/confirm-dialog.js'
+import { ConversationPermissions } from '../conversation-permissions'
 
 export default {
   name: 'AppConversationDropdown',
@@ -88,9 +98,22 @@ export default {
   computed: {
     ...mapGetters({
       currentTenant: 'auth/currentTenant',
+      currentUser: 'auth/currentUser',
       communityHelpCenterConfigured:
         'communityHelpCenter/isConfigured'
-    })
+    }),
+    isEditLockedForSampleData() {
+      return new ConversationPermissions(
+        this.currentTenant,
+        this.currentUser
+      ).editLockedForSampleData
+    },
+    isDeleteLockedForSampleData() {
+      return new ConversationPermissions(
+        this.currentTenant,
+        this.currentUser
+      ).destroyLockedForSampleData
+    }
   },
   methods: {
     ...mapActions({

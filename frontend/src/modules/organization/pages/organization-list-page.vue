@@ -12,8 +12,15 @@
               :to="{
                 name: 'organizationCreate'
               }"
+              :class="{
+                'pointer-events-none cursor-not-allowed':
+                  isCreateLockedForSampleData
+              }"
             >
-              <el-button class="btn btn--primary btn--md">
+              <el-button
+                class="btn btn--primary btn--md"
+                :disabled="isCreateLockedForSampleData"
+              >
                 Add organization
               </el-button>
             </router-link>
@@ -62,6 +69,13 @@ const hasPermissionToCreate = computed(
       currentTenant.value,
       currentUser.value
     ).create
+)
+const isCreateLockedForSampleData = computed(
+  () =>
+    new OrganizationPermissions(
+      currentTenant.value,
+      currentUser.value
+    ).createLockedForSampleData
 )
 const hasOrganizations = ref(false)
 const isPageLoading = ref(false)

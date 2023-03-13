@@ -46,10 +46,15 @@ export class NoteService {
       offset
     }
 
-    const tenantId = AuthCurrentTenant.get()
+    const sampleTenant =
+      AuthCurrentTenant.getSampleTenantData()
+    const tenantId =
+      sampleTenant?.id || AuthCurrentTenant.get()
 
     return authAxios
-      .post(`/tenant/${tenantId}/note/query`, body)
+      .post(`/tenant/${tenantId}/note/query`, body, {
+        token: sampleTenant?.token
+      })
       .then((response) => {
         return response.data
       })

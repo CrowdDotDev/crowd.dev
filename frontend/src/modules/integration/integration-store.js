@@ -21,7 +21,7 @@ export default {
     loadingFetch: (state) => state.loading,
 
     loadingFind: (state) => (id) => {
-      state.byId[id].loading
+      state.byId[id]?.loading
     },
 
     loaded: (state) => state.loaded,
@@ -129,7 +129,9 @@ export default {
     },
 
     FIND_STARTED(state, id) {
-      state.byId[id].loading = true
+      if (state.byId[id]) {
+        state.byId[id].loading = true
+      }
     },
 
     FIND_SUCCESS(state, record) {
@@ -144,7 +146,9 @@ export default {
     },
 
     FIND_ERROR(state, id) {
-      state.byId[id].loading = false
+      if (state.byId[id]) {
+        state.byId[id].loading = false
+      }
     },
 
     CREATE_STARTED() {},
