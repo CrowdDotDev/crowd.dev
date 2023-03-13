@@ -3,7 +3,7 @@ import AuthCurrentTenant from '@/modules/auth/auth-current-tenant'
 
 export class WidgetService {
   static async update(id, data) {
-    const tenantId = AuthCurrentTenant.get()
+    const tenantId = AuthCurrentTenant.get(true)
 
     const response = await authAxios.put(
       `/tenant/${tenantId}/widget/${id}`,
@@ -18,7 +18,7 @@ export class WidgetService {
       ids
     }
 
-    const tenantId = AuthCurrentTenant.get()
+    const tenantId = AuthCurrentTenant.get(true)
 
     const response = await authAxios.delete(
       `/tenant/${tenantId}/widget`,
@@ -31,7 +31,7 @@ export class WidgetService {
   }
 
   static async create(data) {
-    const tenantId = AuthCurrentTenant.get()
+    const tenantId = AuthCurrentTenant.get(true)
 
     const response = await authAxios.post(
       `/tenant/${tenantId}/widget`,
@@ -42,7 +42,7 @@ export class WidgetService {
   }
 
   static async find(id) {
-    const tenantId = AuthCurrentTenant.get()
+    const tenantId = AuthCurrentTenant.get(true)
 
     const response = await authAxios.get(
       `/tenant/${tenantId}/widget/${id}`
@@ -59,7 +59,7 @@ export class WidgetService {
       offset
     }
 
-    const tenantId = AuthCurrentTenant.get()
+    const tenantId = AuthCurrentTenant.get(true)
 
     const response = await authAxios.get(
       `/tenant/${tenantId}/widget`,
@@ -77,7 +77,7 @@ export class WidgetService {
       limit
     }
 
-    const tenantId = AuthCurrentTenant.get()
+    const tenantId = AuthCurrentTenant.get(true)
 
     const response = await authAxios.get(
       `/tenant/${tenantId}/widget/autocomplete`,
@@ -90,7 +90,7 @@ export class WidgetService {
   }
 
   static async getCubeToken() {
-    const tenantId = AuthCurrentTenant.get()
+    const tenantId = AuthCurrentTenant.get(true)
 
     const response = await authAxios.get(
       `/tenant/${tenantId}/cubejs/auth`

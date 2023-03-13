@@ -44,7 +44,7 @@ export default {
       }
     },
     async copyToClipboard(value) {
-      const tenantId = AuthCurrentTenant.get()
+      const tenantId = AuthCurrentTenant.get(true)
       const url = `${window.location.origin}/tenant/${tenantId}/reports/${value}/public`
       await navigator.clipboard.writeText(url)
       Message.success(

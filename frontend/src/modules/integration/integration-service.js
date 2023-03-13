@@ -7,7 +7,7 @@ export class IntegrationService {
       data
     }
 
-    const tenantId = AuthCurrentTenant.get()
+    const tenantId = AuthCurrentTenant.get(true)
 
     const response = await authAxios.put(
       `/tenant/${tenantId}/integration/${id}`,
@@ -22,7 +22,7 @@ export class IntegrationService {
       ids
     }
 
-    const tenantId = AuthCurrentTenant.get()
+    const tenantId = AuthCurrentTenant.get(true)
 
     const response = await authAxios.delete(
       `/tenant/${tenantId}/integration`,
@@ -39,7 +39,7 @@ export class IntegrationService {
       data
     }
 
-    const tenantId = AuthCurrentTenant.get()
+    const tenantId = AuthCurrentTenant.get(true)
 
     const response = await authAxios.post(
       `/tenant/${tenantId}/integration`,
@@ -50,7 +50,7 @@ export class IntegrationService {
   }
 
   static async find(id) {
-    const tenantId = AuthCurrentTenant.get()
+    const tenantId = AuthCurrentTenant.get(true)
 
     const response = await authAxios.get(
       `/tenant/${tenantId}/integration/${id}`
@@ -67,7 +67,7 @@ export class IntegrationService {
       offset
     }
 
-    const tenantId = AuthCurrentTenant.get()
+    const tenantId = AuthCurrentTenant.get(true)
 
     const response = await authAxios.get(
       `/tenant/${tenantId}/integration`,
@@ -85,7 +85,7 @@ export class IntegrationService {
       limit
     }
 
-    const tenantId = AuthCurrentTenant.get()
+    const tenantId = AuthCurrentTenant.get(true)
 
     const response = await authAxios.get(
       `/tenant/${tenantId}/integration/autocomplete`,
@@ -99,7 +99,7 @@ export class IntegrationService {
 
   static async devtoConnect(users, organizations) {
     // Getting the tenant_id
-    const tenantId = AuthCurrentTenant.get()
+    const tenantId = AuthCurrentTenant.get(true)
 
     // Calling connect devto function in the backend.
     const response = await authAxios.post(
@@ -115,7 +115,7 @@ export class IntegrationService {
 
   static async hackerNewsConnect(keywords, urls) {
     // Getting the tenant_id
-    const tenantId = AuthCurrentTenant.get()
+    const tenantId = AuthCurrentTenant.get(true)
 
     // Calling connect devto function in the backend.
     const response = await authAxios.post(
@@ -137,7 +137,7 @@ export class IntegrationService {
       setupAction: setupAction
     }
     // Getting the tenant_id
-    const tenantId = AuthCurrentTenant.get()
+    const tenantId = AuthCurrentTenant.get(true)
     // Calling the authenticate function in the backend.
     const response = await authAxios.put(
       `/authenticate/${tenantId}/${code}`,
@@ -153,7 +153,7 @@ export class IntegrationService {
       subreddits
     }
     // Getting the tenant_id
-    const tenantId = AuthCurrentTenant.get()
+    const tenantId = AuthCurrentTenant.get(true)
     // Calling the authenticate function in the backend.
     const response = await authAxios.put(
       `/reddit-onboard/${tenantId}`,
@@ -163,7 +163,7 @@ export class IntegrationService {
   }
 
   static async linkedinConnect() {
-    const tenantId = AuthCurrentTenant.get()
+    const tenantId = AuthCurrentTenant.get(true)
     const response = await authAxios.put(
       `/linkedin-connect/${tenantId}`
     )
@@ -176,7 +176,7 @@ export class IntegrationService {
       organizationId
     }
 
-    const tenantId = AuthCurrentTenant.get()
+    const tenantId = AuthCurrentTenant.get(true)
 
     const response = await authAxios.post(
       `/linkedin-onboard/${tenantId}`,
@@ -188,7 +188,7 @@ export class IntegrationService {
 
   static async discordConnect(guild_id) {
     // Getting the tenant_id
-    const tenantId = AuthCurrentTenant.get()
+    const tenantId = AuthCurrentTenant.get(true)
     // Calling the authenticate function in the backend.
     const response = await authAxios.put(
       `/discord-authenticate/${tenantId}/${guild_id}`
@@ -197,7 +197,7 @@ export class IntegrationService {
   }
 
   static async devtoValidateUser(username) {
-    const tenantId = AuthCurrentTenant.get()
+    const tenantId = AuthCurrentTenant.get(true)
 
     const response = await authAxios.get(
       `/tenant/${tenantId}/devto-validate`,
@@ -212,7 +212,7 @@ export class IntegrationService {
   }
 
   static async devtoValidateOrganization(organization) {
-    const tenantId = AuthCurrentTenant.get()
+    const tenantId = AuthCurrentTenant.get(true)
 
     const response = await authAxios.get(
       `/tenant/${tenantId}/devto-validate`,
@@ -227,7 +227,7 @@ export class IntegrationService {
   }
 
   static async redditValidate(subreddit) {
-    const tenantId = AuthCurrentTenant.get()
+    const tenantId = AuthCurrentTenant.get(true)
 
     const response = await authAxios.get(
       `/tenant/${tenantId}/reddit-validate`,

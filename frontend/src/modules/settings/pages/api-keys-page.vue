@@ -90,7 +90,7 @@ import Message from '@/shared/message/message'
 const inputRef = ref()
 const showToken = ref(false)
 
-const tenantId = computed(() => AuthCurrentTenant.get())
+const tenantId = computed(() => AuthCurrentTenant.get(true))
 const jwtToken = computed(() => AuthToken.get())
 
 const copyToClipboard = async (type) => {

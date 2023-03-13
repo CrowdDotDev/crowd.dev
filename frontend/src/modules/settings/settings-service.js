@@ -3,7 +3,7 @@ import AuthCurrentTenant from '@/modules/auth/auth-current-tenant'
 
 export class SettingsService {
   static async find() {
-    const tenantId = AuthCurrentTenant.get()
+    const tenantId = AuthCurrentTenant.get(true)
 
     const response = await authAxios.get(
       `/tenant/${tenantId}/settings`
@@ -17,7 +17,7 @@ export class SettingsService {
       settings
     }
 
-    const tenantId = AuthCurrentTenant.get()
+    const tenantId = AuthCurrentTenant.get(true)
     const response = await authAxios.put(
       `/tenant/${tenantId}/settings`,
       body
