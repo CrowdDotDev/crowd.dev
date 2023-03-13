@@ -94,6 +94,8 @@ export interface PlansConfiguration {
   stripePriceEnterprise: string
   stripeSecretKey: string
   stripWebhookSigningSecret: string
+  stripeEagleEyePlanProductId: string
+  stripeGrowthPlanProductId: string
 }
 
 export interface DevtoConfiguration {

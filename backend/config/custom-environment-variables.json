@@ -97,7 +97,9 @@
     "stripePricePremium": "CROWD_STRIPE_PRICE_PREMIUM",
     "stripePriceEnterprise": "CROWD_STRIPE_PRICE_ENTERPRISE",
     "stripeSecretKey": "CROWD_STRIPE_SECRET_KEY",
-    "stripWebhookSigningSecret": "CROWD_STRIPE_WEBHOOK_SIGNING_SECRET"
+    "stripWebhookSigningSecret": "CROWD_STRIPE_WEBHOOK_SIGNING_SECRET",
+    "stripeEagleEyePlanProductId": "CROWD_STRIPE_EAGLE_EYE_PLAN_PRODUCT_ID",
+    "stripeGrowthPlanProductId": "CROWD_STRIPE_GROWTH_PLAN_PRODUCT_ID"
   },
   "twitter": {
     "clientId": "CROWD_TWITTER_CLIENT_ID",

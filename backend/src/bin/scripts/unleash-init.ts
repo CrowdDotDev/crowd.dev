@@ -96,7 +96,7 @@ const constaintConfiguration = {
   [FeatureFlag.EAGLE_EYE]: [
     [
       {
-        values: [Plans.values.growth],
+        values: [Plans.values.growth, Plans.values.eagleEye],
         inverted: false,
         operator: 'IN',
         contextName: 'plan',
