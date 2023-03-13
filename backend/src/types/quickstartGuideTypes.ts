@@ -18,7 +18,7 @@ export interface QuickstartGuide {
   buttonText: string
   completed: boolean
   disabledInSampleData?: boolean
-  disabledTooltipText?: boolean
+  disabledTooltipText?: string
 }
 
 export interface QuickstartGuideSettings {
