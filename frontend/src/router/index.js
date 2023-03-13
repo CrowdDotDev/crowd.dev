@@ -76,7 +76,6 @@ const createRouter = () => {
         }
 
         for (const middleware of middlewareArray) {
-          // TODO: permission guard is not working this way
           return await middleware(context)
         }
       }
