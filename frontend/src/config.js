@@ -49,6 +49,9 @@ const defaultConfig = {
     growthPlanPaymentLink:
       process.env.VUE_APP_STRIPE_GROWTH_PLAN_PAYMENT_LINK ||
       '',
+    eagleEyePlanPaymentLink:
+      process.env
+        .VUE_APP_STRIPE_EAGLE_EYE_PLAN_PAYMENT_LINK || '',
     customerPortalLink:
       process.env.VUE_APP_STRIPE_CUSTOMER_PORTAL_LINK || ''
   }
@@ -91,6 +94,9 @@ const composedConfig = {
       'CROWD_VUE_APP_STRIPE_PUBLISHABLE_KEY' || '',
     growthPlanPaymentLink:
       'CROWD_VUE_APP_STRIPE_GROWTH_PLAN_PAYMENT_LINK' || '',
+    eagleEyePlanPaymentLink:
+      'CROWD_VUE_APP_STRIPE_EAGLE_EYE_PLAN_PAYMENT_LINK' ||
+      '',
     customerPortalLink:
       'CROWD_VUE_APP_STRIPE_CUSTOMER_PORTAL_LINK' || ''
   }
