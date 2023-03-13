@@ -11,9 +11,7 @@
           Only interested in Eagle Eye?
         </div>
         <div clasS="text-xs">
-          <a
-            href="https://buy.stripe.com/eVag2w1ms0xU0F25kn"
-            target="_blank"
+          <a :href="eagleEyeStripeLink" target="_blank"
             >Add Eagle Eye</a
           ><span class="text-gray-500">
             for only $50 per month.</span
@@ -211,6 +209,10 @@ const plansList = computed(() => {
   return plans.crowdHosted
 })
 
+const eagleEyeStripeLink = computed(() => {
+  return `${config.stripe.eagleEyePlanPaymentLink}?client_reference_id=${currentTenant.value.id}&prefilled_email=${currentUser.value.email}`
+})
+
 const activePlan = computed(() => {
   // Community Versions
   if (isCommunityVersion) {
@@ -234,7 +236,7 @@ const isEssentialPlanActive = computed(
 )
 
 const isEagleEyeEnabled = computed(
-  () => activePlan.value === crowdHostedPlans['eagle-eye']
+  () => activePlan.value === crowdHostedPlans.eagleEye
 )
 
 const showEagleEyePricing = computed(

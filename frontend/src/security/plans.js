@@ -7,7 +7,7 @@ class Plans {
       essential: 'Essential',
       growth: 'Growth',
       enterprise: 'Enterprise',
-      ['eagle-eye']: 'Eagle Eye'
+      eagleEye: 'Eagle Eye'
     }
   }
 

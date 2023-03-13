@@ -18,7 +18,7 @@ class Permissions {
         allowedRoles: [roles.admin],
         allowedPlans: [
           plans.essential,
-          plans['eagle-eye'],
+          plans.eagleEye,
           plans.growth,
           plans.enterprise
         ]
@@ -28,7 +28,7 @@ class Permissions {
         allowedRoles: [roles.admin],
         allowedPlans: [
           plans.essential,
-          plans['eagle-eye'],
+          plans.eagleEye,
           plans.growth,
           plans.enterprise
         ]
@@ -38,7 +38,7 @@ class Permissions {
         allowedRoles: [roles.admin],
         allowedPlans: [
           plans.essential,
-          plans['eagle-eye'],
+          plans.eagleEye,
           plans.growth,
           plans.enterprise
         ]
@@ -48,7 +48,7 @@ class Permissions {
         allowedRoles: [roles.admin],
         allowedPlans: [
           plans.essential,
-          plans['eagle-eye'],
+          plans.eagleEye,
           plans.growth,
           plans.enterprise
         ]
@@ -58,7 +58,7 @@ class Permissions {
         allowedRoles: [roles.admin],
         allowedPlans: [
           plans.essential,
-          plans['eagle-eye'],
+          plans.eagleEye,
           plans.growth,
           plans.enterprise
         ]
@@ -68,7 +68,7 @@ class Permissions {
         allowedRoles: [roles.admin],
         allowedPlans: [
           plans.essential,
-          plans['eagle-eye'],
+          plans.eagleEye,
           plans.growth,
           plans.enterprise
         ]
@@ -78,7 +78,7 @@ class Permissions {
         allowedRoles: [roles.admin],
         allowedPlans: [
           plans.essential,
-          plans['eagle-eye'],
+          plans.eagleEye,
           plans.growth,
           plans.enterprise
         ]
@@ -88,7 +88,7 @@ class Permissions {
         allowedRoles: [roles.admin],
         allowedPlans: [
           plans.essential,
-          plans['eagle-eye'],
+          plans.eagleEye,
           plans.growth,
           plans.enterprise
         ]
@@ -98,7 +98,7 @@ class Permissions {
         allowedRoles: [roles.admin],
         allowedPlans: [
           plans.essential,
-          plans['eagle-eye'],
+          plans.eagleEye,
           plans.growth,
           plans.enterprise
         ]
@@ -108,7 +108,7 @@ class Permissions {
         allowedRoles: [roles.admin],
         allowedPlans: [
           plans.essential,
-          plans['eagle-eye'],
+          plans.eagleEye,
           plans.growth,
           plans.enterprise
         ]
@@ -118,7 +118,7 @@ class Permissions {
         allowedRoles: [roles.admin],
         allowedPlans: [
           plans.essential,
-          plans['eagle-eye'],
+          plans.eagleEye,
           plans.growth,
           plans.enterprise
         ]
@@ -128,7 +128,7 @@ class Permissions {
         allowedRoles: [roles.admin, roles.readonly],
         allowedPlans: [
           plans.essential,
-          plans['eagle-eye'],
+          plans.eagleEye,
           plans.growth,
           plans.enterprise
         ],
@@ -142,7 +142,7 @@ class Permissions {
         allowedRoles: [roles.admin],
         allowedPlans: [
           plans.essential,
-          plans['eagle-eye'],
+          plans.eagleEye,
           plans.growth,
           plans.enterprise
         ],
@@ -156,7 +156,7 @@ class Permissions {
         allowedRoles: [roles.admin],
         allowedPlans: [
           plans.essential,
-          plans['eagle-eye'],
+          plans.eagleEye,
           plans.growth,
           plans.enterprise
         ]
@@ -166,7 +166,7 @@ class Permissions {
         allowedRoles: [roles.admin],
         allowedPlans: [
           plans.essential,
-          plans['eagle-eye'],
+          plans.eagleEye,
           plans.growth,
           plans.enterprise
         ],
@@ -177,7 +177,7 @@ class Permissions {
         allowedRoles: [roles.admin],
         allowedPlans: [
           plans.essential,
-          plans['eagle-eye'],
+          plans.eagleEye,
           plans.growth,
           plans.enterprise
         ],
@@ -188,7 +188,7 @@ class Permissions {
         allowedRoles: [roles.admin],
         allowedPlans: [
           plans.essential,
-          plans['eagle-eye'],
+          plans.eagleEye,
           plans.growth,
           plans.enterprise
         ],
@@ -199,7 +199,7 @@ class Permissions {
         allowedRoles: [roles.admin, roles.readonly],
         allowedPlans: [
           plans.essential,
-          plans['eagle-eye'],
+          plans.eagleEye,
           plans.growth,
           plans.enterprise
         ]
@@ -209,7 +209,7 @@ class Permissions {
         allowedRoles: [roles.admin],
         allowedPlans: [
           plans.essential,
-          plans['eagle-eye'],
+          plans.eagleEye,
           plans.growth,
           plans.enterprise
         ]
@@ -220,7 +220,7 @@ class Permissions {
         allowedRoles: [roles.admin],
         allowedPlans: [
           plans.essential,
-          plans['eagle-eye'],
+          plans.eagleEye,
           plans.growth,
           plans.enterprise
         ]
@@ -230,7 +230,7 @@ class Permissions {
         allowedRoles: [roles.admin],
         allowedPlans: [
           plans.essential,
-          plans['eagle-eye'],
+          plans.eagleEye,
           plans.growth,
           plans.enterprise
         ],
@@ -241,7 +241,7 @@ class Permissions {
         allowedRoles: [roles.admin],
         allowedPlans: [
           plans.essential,
-          plans['eagle-eye'],
+          plans.eagleEye,
           plans.growth,
           plans.enterprise
         ],
@@ -252,7 +252,7 @@ class Permissions {
         allowedRoles: [roles.admin],
         allowedPlans: [
           plans.essential,
-          plans['eagle-eye'],
+          plans.eagleEye,
           plans.growth,
           plans.enterprise
         ],
@@ -263,7 +263,7 @@ class Permissions {
         allowedRoles: [roles.admin, roles.readonly],
         allowedPlans: [
           plans.essential,
-          plans['eagle-eye'],
+          plans.eagleEye,
           plans.growth,
           plans.enterprise
         ]
@@ -273,7 +273,7 @@ class Permissions {
         allowedRoles: [roles.admin],
         allowedPlans: [
           plans.essential,
-          plans['eagle-eye'],
+          plans.eagleEye,
           plans.growth,
           plans.enterprise
         ]
@@ -284,7 +284,7 @@ class Permissions {
         allowedRoles: [roles.admin],
         allowedPlans: [
           plans.essential,
-          plans['eagle-eye'],
+          plans.eagleEye,
           plans.growth,
           plans.enterprise
         ]
@@ -294,7 +294,7 @@ class Permissions {
         allowedRoles: [roles.admin],
         allowedPlans: [
           plans.essential,
-          plans['eagle-eye'],
+          plans.eagleEye,
           plans.growth,
           plans.enterprise
         ],
@@ -305,7 +305,7 @@ class Permissions {
         allowedRoles: [roles.admin],
         allowedPlans: [
           plans.essential,
-          plans['eagle-eye'],
+          plans.eagleEye,
           plans.growth,
           plans.enterprise
         ],
@@ -316,7 +316,7 @@ class Permissions {
         allowedRoles: [roles.admin],
         allowedPlans: [
           plans.essential,
-          plans['eagle-eye'],
+          plans.eagleEye,
           plans.growth,
           plans.enterprise
         ],
@@ -327,7 +327,7 @@ class Permissions {
         allowedRoles: [roles.admin, roles.readonly],
         allowedPlans: [
           plans.essential,
-          plans['eagle-eye'],
+          plans.eagleEye,
           plans.growth,
           plans.enterprise
         ]
@@ -337,7 +337,7 @@ class Permissions {
         allowedRoles: [roles.admin],
         allowedPlans: [
           plans.essential,
-          plans['eagle-eye'],
+          plans.eagleEye,
           plans.growth,
           plans.enterprise
         ]
@@ -348,7 +348,7 @@ class Permissions {
         allowedRoles: [roles.admin],
         allowedPlans: [
           plans.essential,
-          plans['eagle-eye'],
+          plans.eagleEye,
           plans.growth,
           plans.enterprise
         ]
@@ -358,7 +358,7 @@ class Permissions {
         allowedRoles: [roles.admin],
         allowedPlans: [
           plans.essential,
-          plans['eagle-eye'],
+          plans.eagleEye,
           plans.growth,
           plans.enterprise
         ],
@@ -369,7 +369,7 @@ class Permissions {
         allowedRoles: [roles.admin],
         allowedPlans: [
           plans.essential,
-          plans['eagle-eye'],
+          plans.eagleEye,
           plans.growth,
           plans.enterprise
         ],
@@ -380,7 +380,7 @@ class Permissions {
         allowedRoles: [roles.admin],
         allowedPlans: [
           plans.essential,
-          plans['eagle-eye'],
+          plans.eagleEye,
           plans.growth,
           plans.enterprise
         ],
@@ -391,7 +391,7 @@ class Permissions {
         allowedRoles: [roles.admin, roles.readonly],
         allowedPlans: [
           plans.essential,
-          plans['eagle-eye'],
+          plans.eagleEye,
           plans.growth,
           plans.enterprise
         ]
@@ -401,7 +401,7 @@ class Permissions {
         allowedRoles: [roles.admin],
         allowedPlans: [
           plans.essential,
-          plans['eagle-eye'],
+          plans.eagleEye,
           plans.growth,
           plans.enterprise
         ]
@@ -412,7 +412,7 @@ class Permissions {
         allowedRoles: [roles.admin],
         allowedPlans: [
           plans.essential,
-          plans['eagle-eye'],
+          plans.eagleEye,
           plans.growth,
           plans.enterprise
         ]
@@ -422,7 +422,7 @@ class Permissions {
         allowedRoles: [roles.admin],
         allowedPlans: [
           plans.essential,
-          plans['eagle-eye'],
+          plans.eagleEye,
           plans.growth,
           plans.enterprise
         ],
@@ -433,7 +433,7 @@ class Permissions {
         allowedRoles: [roles.admin],
         allowedPlans: [
           plans.essential,
-          plans['eagle-eye'],
+          plans.eagleEye,
           plans.growth,
           plans.enterprise
         ],
@@ -444,7 +444,7 @@ class Permissions {
         allowedRoles: [roles.admin],
         allowedPlans: [
           plans.essential,
-          plans['eagle-eye'],
+          plans.eagleEye,
           plans.growth,
           plans.enterprise
         ],
@@ -455,7 +455,7 @@ class Permissions {
         allowedRoles: [roles.admin, roles.readonly],
         allowedPlans: [
           plans.essential,
-          plans['eagle-eye'],
+          plans.eagleEye,
           plans.growth,
           plans.enterprise
         ]
@@ -465,7 +465,7 @@ class Permissions {
         allowedRoles: [roles.admin],
         allowedPlans: [
           plans.essential,
-          plans['eagle-eye'],
+          plans.eagleEye,
           plans.growth,
           plans.enterprise
         ]
@@ -476,7 +476,7 @@ class Permissions {
         allowedRoles: [roles.admin],
         allowedPlans: [
           plans.essential,
-          plans['eagle-eye'],
+          plans.eagleEye,
           plans.growth,
           plans.enterprise
         ]
@@ -486,7 +486,7 @@ class Permissions {
         allowedRoles: [roles.admin],
         allowedPlans: [
           plans.essential,
-          plans['eagle-eye'],
+          plans.eagleEye,
           plans.growth,
           plans.enterprise
         ],
@@ -497,7 +497,7 @@ class Permissions {
         allowedRoles: [roles.admin],
         allowedPlans: [
           plans.essential,
-          plans['eagle-eye'],
+          plans.eagleEye,
           plans.growth,
           plans.enterprise
         ],
@@ -508,7 +508,7 @@ class Permissions {
         allowedRoles: [roles.admin],
         allowedPlans: [
           plans.essential,
-          plans['eagle-eye'],
+          plans.eagleEye,
           plans.growth,
           plans.enterprise
         ],
@@ -519,7 +519,7 @@ class Permissions {
         allowedRoles: [roles.admin, roles.readonly],
         allowedPlans: [
           plans.essential,
-          plans['eagle-eye'],
+          plans.eagleEye,
           plans.growth,
           plans.enterprise
         ]
@@ -529,7 +529,7 @@ class Permissions {
         allowedRoles: [roles.admin],
         allowedPlans: [
           plans.essential,
-          plans['eagle-eye'],
+          plans.eagleEye,
           plans.growth,
           plans.enterprise
         ]
@@ -540,7 +540,7 @@ class Permissions {
         allowedRoles: [roles.admin],
         allowedPlans: [
           plans.essential,
-          plans['eagle-eye'],
+          plans.eagleEye,
           plans.growth,
           plans.enterprise
         ]
@@ -550,7 +550,7 @@ class Permissions {
         allowedRoles: [roles.admin],
         allowedPlans: [
           plans.essential,
-          plans['eagle-eye'],
+          plans.eagleEye,
           plans.growth,
           plans.enterprise
         ],
@@ -561,7 +561,7 @@ class Permissions {
         allowedRoles: [roles.admin],
         allowedPlans: [
           plans.essential,
-          plans['eagle-eye'],
+          plans.eagleEye,
           plans.growth,
           plans.enterprise
         ],
@@ -572,7 +572,7 @@ class Permissions {
         allowedRoles: [roles.admin],
         allowedPlans: [
           plans.essential,
-          plans['eagle-eye'],
+          plans.eagleEye,
           plans.growth,
           plans.enterprise
         ],
@@ -583,7 +583,7 @@ class Permissions {
         allowedRoles: [roles.admin, roles.readonly],
         allowedPlans: [
           plans.essential,
-          plans['eagle-eye'],
+          plans.eagleEye,
           plans.growth,
           plans.enterprise
         ]
@@ -598,7 +598,7 @@ class Permissions {
         allowedRoles: [roles.admin],
         allowedPlans: [
           plans.essential,
-          plans['eagle-eye'],
+          plans.eagleEye,
           plans.growth,
           plans.enterprise
         ]
@@ -608,7 +608,7 @@ class Permissions {
         allowedRoles: [roles.admin],
         allowedPlans: [
           plans.essential,
-          plans['eagle-eye'],
+          plans.eagleEye,
           plans.growth,
           plans.enterprise
         ]
@@ -618,7 +618,7 @@ class Permissions {
         allowedRoles: [roles.admin],
         allowedPlans: [
           plans.essential,
-          plans['eagle-eye'],
+          plans.eagleEye,
           plans.growth,
           plans.enterprise
         ]
@@ -628,7 +628,7 @@ class Permissions {
         allowedRoles: [roles.admin],
         allowedPlans: [
           plans.essential,
-          plans['eagle-eye'],
+          plans.eagleEye,
           plans.growth,
           plans.enterprise
         ],
@@ -639,7 +639,7 @@ class Permissions {
         allowedRoles: [roles.admin],
         allowedPlans: [
           plans.essential,
-          plans['eagle-eye'],
+          plans.eagleEye,
           plans.growth,
           plans.enterprise
         ],
@@ -650,7 +650,7 @@ class Permissions {
         allowedRoles: [roles.admin],
         allowedPlans: [
           plans.essential,
-          plans['eagle-eye'],
+          plans.eagleEye,
           plans.growth,
           plans.enterprise
         ],
@@ -661,7 +661,7 @@ class Permissions {
         allowedRoles: [roles.admin, roles.readonly],
         allowedPlans: [
           plans.essential,
-          plans['eagle-eye'],
+          plans.eagleEye,
           plans.growth,
           plans.enterprise
         ]
@@ -676,7 +676,7 @@ class Permissions {
         allowedRoles: [roles.admin],
         allowedPlans: [
           plans.essential,
-          plans['eagle-eye'],
+          plans.eagleEye,
           plans.growth,
           plans.enterprise
         ]
