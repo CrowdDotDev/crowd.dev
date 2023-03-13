@@ -24,6 +24,7 @@
         <el-button
           v-if="props.guide.buttonText"
           class="btn btn--primary btn--sm w-full mb-4 leading-5"
+          @click="trackBtnClick(props.guide.key)"
         >
           {{ props.guide.buttonText }}
         </el-button>
@@ -39,6 +40,7 @@ export default {
 </script>
 
 <script setup>
+import { EventTrackingService } from '@/modules/event-tracking/services/event-tracking-service'
 import { defineProps, defineEmits } from 'vue'
 
 const props = defineProps({
@@ -49,4 +51,13 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['open'])
+
+const trackBtnClick = async (step) => {
+  await EventTrackingService.track({
+    event: 'onboardingGuideButtonClicked',
+    properties: {
+      step
+    }
+  })
+}
 </script>
