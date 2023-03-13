@@ -587,10 +587,6 @@ do
             restore_db_backup $2
             exit;
         ;;
-        post-up-scaffold)
-            post_up_scaffold
-            exit;
-        ;;
         *) error "Invalid command '$1'" && say "$SCRIPT_USAGE"
             exit 1;
         ;;
