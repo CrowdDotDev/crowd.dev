@@ -644,6 +644,36 @@ class Permissions {
           plans.growth,
           plans.enterprise
         ]
+      },
+      noteCreate: {
+        id: 'noteCreate',
+        allowedRoles: [roles.admin],
+        allowedPlans: [
+          plans.essential,
+          plans.growth,
+          plans.enterprise
+        ],
+        allowedStorage: []
+      },
+      noteEdit: {
+        id: 'noteEdit',
+        allowedRoles: [roles.admin],
+        allowedPlans: [
+          plans.essential,
+          plans.growth,
+          plans.enterprise
+        ],
+        allowedStorage: []
+      },
+      noteDestroy: {
+        id: 'noteDestroy',
+        allowedRoles: [roles.admin],
+        allowedPlans: [
+          plans.essential,
+          plans.growth,
+          plans.enterprise
+        ],
+        allowedStorage: []
       }
     }
   }

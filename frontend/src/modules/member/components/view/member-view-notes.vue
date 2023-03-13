@@ -1,9 +1,15 @@
 <template>
-  <div class="pt-8">
+  <div v-if="!isCreateLockedForSampleData" class="pt-8">
     <app-note-editor
       :properties="{ members: [props.member.id] }"
       @created="fetchNotes()"
     />
+  </div>
+  <div
+    v-else
+    class="w-full text-gray-400 pt-8 italic text-sm"
+  >
+    Connect integrations to add notes to members
   </div>
   <div v-if="notes.length > 0" class="pt-6">
     <app-note-item
@@ -33,10 +39,12 @@ export default {
 </script>
 
 <script setup>
-import { defineProps, onMounted, ref } from 'vue'
+import { computed, defineProps, onMounted, ref } from 'vue'
 import AppNoteEditor from '@/modules/notes/components/note-editor'
 import AppNoteItem from '@/modules/notes/components/note-item'
 import { NoteService } from '@/modules/notes/note-service'
+import { NotePermissions } from '@/modules/notes/note-permissions'
+import { mapGetters } from '@/shared/vuex/vuex.helpers'
 
 const props = defineProps({
   member: {
@@ -45,6 +53,7 @@ const props = defineProps({
   }
 })
 
+const { currentTenant, currentUser } = mapGetters('auth')
 const notes = ref([])
 const notesCount = ref(0)
 const notesPage = ref(0)
@@ -52,6 +61,13 @@ const notesLimit = 20
 
 onMounted(() => {
   fetchNotes()
+})
+
+const isCreateLockedForSampleData = computed(() => {
+  return new NotePermissions(
+    currentTenant.value,
+    currentUser.value
+  ).createLockedForSampleData
 })
 
 const fetchNotes = (page = 0) => {
