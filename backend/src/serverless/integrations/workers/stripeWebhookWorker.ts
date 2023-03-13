@@ -71,13 +71,24 @@ export const processStripeWebhook = async (message: any) => {
 
       const tenant = await options.database.tenant.findByPk(tenantId)
 
+      let productPlan
+
+      if ((subscription as any).plan.product === PLANS_CONFIG.stripeEagleEyePlanProductId) {
+        productPlan = Plans.values.eagleEye
+      } else if ((subscription as any).plan.product === PLANS_CONFIG.stripeGrowthPlanProductId) {
+        productPlan = Plans.values.growth
+      } else {
+        log.error({ subscription }, `Unknown product in subscription`)
+        process.exit(1)
+      }
+
       if (!tenant) {
         log.error({ tenantId }, 'Tenant not found!')
         process.exit(1)
       } else {
-        log.info({ tenantId }, `Tenant found - updating tenant plan to Growth plan!`)
+        log.info({ tenantId }, `Tenant found - updating tenant plan to ${productPlan} plan!`)
         await tenant.update({
-          plan: Plans.values.growth,
+          plan: productPlan,
           isTrialPlan: false,
           trialEndsAt: null,
           stripeSubscriptionId: stripeWebhookMessage.data.object.subscription,
