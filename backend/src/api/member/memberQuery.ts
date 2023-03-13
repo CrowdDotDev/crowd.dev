@@ -2,7 +2,6 @@ import Permissions from '../../security/permissions'
 import track from '../../segment/track'
 import MemberService from '../../services/memberService'
 import PermissionChecker from '../../services/user/permissionChecker'
-import { logExecutionTime } from '../../utils/logging'
 
 /**
  * POST /tenant/{tenantId}/member/query
@@ -24,18 +23,13 @@ export default async (req, res) => {
 
   let payload
   const newVersion = req.headers['x-crowd-api-version'] === '2'
-  if (!newVersion) {
-    payload = await logExecutionTime(
-      async () => new MemberService(req).query(req.body),
-      req.log,
-      'query v1',
-    )
+
+  const memberService = new MemberService(req)
+
+  if (newVersion) {
+    payload = await memberService.queryV2(req.body)
   } else {
-    payload = await logExecutionTime(
-      async () => new MemberService(req).queryV2(req.body),
-      req.log,
-      'query v2',
-    )
+    payload = await memberService.query(req.body)
   }
 
   if (req.body.filter && Object.keys(req.body.filter).length > 0) {
