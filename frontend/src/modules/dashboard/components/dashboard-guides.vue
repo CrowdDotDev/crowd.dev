@@ -34,36 +34,47 @@
     </header>
     <section class="pb-1 px-4">
       <el-collapse v-model="activeView" accordion>
-        <el-collapse-item
+        <el-tooltip
           v-for="guide of guides"
           :key="guide.key"
-          :title="guide.title"
-          :name="guide.key"
-          :disabled="guide.completed"
-          class="relative cursor-auto"
+          :disabled="
+            !(hasSampleData && guide.disabledInSampleData)
+          "
+          :content="guide.disabledTooltipText"
+          placement="top"
         >
-          <template #title>
-            <h6
-              class="text-xs"
-              :class="
-                guide.completed
-                  ? 'line-through text-gray-500 font-medium'
-                  : 'font-semibold'
-              "
-            >
-              {{ guide.title }}
-            </h6>
-            <i
-              v-if="guide.completed"
-              class="absolute right-0 bg-white z-10 ri-checkbox-circle-fill text-lg text-green-500 h-5 flex items-center"
-            ></i>
-          </template>
+          <el-collapse-item
+            :title="guide.title"
+            :name="guide.key"
+            :disabled="
+              guide.completed ||
+              (hasSampleData && guide.disabledInSampleData)
+            "
+            class="relative cursor-auto"
+          >
+            <template #title>
+              <h6
+                class="text-xs"
+                :class="
+                  guide.completed
+                    ? 'line-through text-gray-500 font-medium'
+                    : 'font-semibold'
+                "
+              >
+                {{ guide.title }}
+              </h6>
+              <i
+                v-if="guide.completed"
+                class="absolute right-0 bg-white z-10 ri-checkbox-circle-fill text-lg text-green-500 h-5 flex items-center"
+              ></i>
+            </template>
 
-          <app-dashboard-guide-item
-            :guide="guide"
-            @open="selectedGuide = guide"
-          />
-        </el-collapse-item>
+            <app-dashboard-guide-item
+              :guide="guide"
+              @open="selectedGuide = guide"
+            />
+          </el-collapse-item>
+        </el-tooltip>
       </el-collapse>
     </section>
   </div>
@@ -109,6 +120,9 @@ const selectedGuide = ref(null)
 const eagleEyeModalOpened = ref(false)
 const onboardingGuidesDismissed = ref(false)
 
+const hasSampleData = computed(
+  () => currentTenant.value.hasSampleData
+)
 const minCommunitySize = computed(() => {
   if (!currentTenant.value.communitySize) {
     return null
@@ -221,6 +235,7 @@ onMounted(() => {
     }
 
     &.is-disabled .el-collapse-item__header {
+      @apply text-gray-400;
       cursor: auto !important;
     }
   }

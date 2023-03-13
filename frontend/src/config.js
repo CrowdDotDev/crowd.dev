@@ -54,6 +54,10 @@ const defaultConfig = {
         .VUE_APP_STRIPE_EAGLE_EYE_PLAN_PAYMENT_LINK || '',
     customerPortalLink:
       process.env.VUE_APP_STRIPE_CUSTOMER_PORTAL_LINK || ''
+  },
+  sampleTenant: {
+    id: process.env.VUE_APP_SAMPLE_TENANT_ID,
+    token: process.env.VUE_APP_SAMPLE_TENANT_TOKEN
   }
 }
 
@@ -99,6 +103,10 @@ const composedConfig = {
       '',
     customerPortalLink:
       'CROWD_VUE_APP_STRIPE_CUSTOMER_PORTAL_LINK' || ''
+  },
+  sampleTenant: {
+    id: 'CROWD_VUE_APP_SAMPLE_TENANT_ID',
+    token: 'CROWD_VUE_APP_SAMPLE_TENANT_TOKEN'
   }
 }
 

@@ -30,5 +30,17 @@ export class MemberPermissions {
       permissionChecker.lockedForCurrentPlan(
         Permissions.values.memberRead
       )
+    this.createLockedForSampleData =
+      permissionChecker.lockedForSampleData(
+        Permissions.values.memberCreate
+      )
+    this.editLockedForSampleData =
+      permissionChecker.lockedForSampleData(
+        Permissions.values.memberEdit
+      )
+    this.destroyLockedForSampleData =
+      permissionChecker.lockedForSampleData(
+        Permissions.values.memberDestroy
+      )
   }
 }

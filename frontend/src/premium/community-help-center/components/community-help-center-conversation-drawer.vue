@@ -51,7 +51,9 @@
           <el-button
             v-if="conversation.published"
             class="btn btn--md btn--bordered mr-4"
-            :disabled="loadingUpdate"
+            :disabled="
+              loadingUpdate || isEditLockedForSampleData
+            "
             :loading="loadingUpdate"
             @click="handleTogglePublished"
           >
@@ -61,7 +63,9 @@
           <el-button
             v-if="!conversation.published"
             class="btn btn--md btn--primary"
-            :disabled="loadingUpdate"
+            :disabled="
+              loadingUpdate || isEditLockedForSampleData
+            "
             :loading="loadingUpdate"
             @click="handleTogglePublished"
           >
@@ -104,7 +108,10 @@ export default {
 }
 </script>
 <script setup>
-import { mapActions } from '@/shared/vuex/vuex.helpers'
+import {
+  mapActions,
+  mapGetters
+} from '@/shared/vuex/vuex.helpers'
 import {
   defineEmits,
   defineProps,
@@ -115,6 +122,7 @@ import {
 } from 'vue'
 import { ConversationService } from '@/modules/conversation/conversation-service'
 import AppConversationDetails from '@/modules/conversation/components/conversation-details'
+import { ConversationPermissions } from '@/modules/conversation/conversation-permissions'
 
 const props = defineProps({
   conversationId: {
@@ -130,6 +138,11 @@ const props = defineProps({
 })
 const emit = defineEmits(['close'])
 
+const { doPublish, doUnpublish, doUpdate } = mapActions(
+  'communityHelpCenter'
+)
+const { currentTenant, currentUser } = mapGetters('auth')
+
 const isExpanded = computed({
   get() {
     return props.expanded
@@ -139,6 +152,13 @@ const isExpanded = computed({
       return emit('close')
     }
   }
+})
+
+const isEditLockedForSampleData = computed(() => {
+  return new ConversationPermissions(
+    currentTenant.value,
+    currentUser.value
+  ).editLockedForSampleData
 })
 
 const loadingFind = ref(false)
@@ -173,10 +193,6 @@ watch(
       )
     }
   }
-)
-
-const { doPublish, doUnpublish, doUpdate } = mapActions(
-  'communityHelpCenter'
 )
 
 const handleTogglePublished = async () => {

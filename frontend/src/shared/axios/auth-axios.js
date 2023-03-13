@@ -26,7 +26,7 @@ const authAxios = Axios.create({
 
 authAxios.interceptors.request.use(
   async function (options) {
-    const token = AuthToken.get()
+    const token = options.token || AuthToken.get()
 
     if (token) {
       options.headers['Authorization'] = `Bearer ${token}`

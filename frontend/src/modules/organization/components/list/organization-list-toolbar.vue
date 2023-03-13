@@ -26,7 +26,10 @@
             action: 'markAsTeamOrganization',
             value: markAsTeamOrganizationOptions.value
           }"
-          :disabled="isPermissionReadOnly"
+          :disabled="
+            isPermissionReadOnly ||
+            isEditLockedForSampleData
+          "
         >
           <i
             class="ri-lg mr-1"
@@ -39,9 +42,17 @@
 
         <el-dropdown-item
           :command="{ action: 'destroyAll' }"
-          :disabled="isPermissionReadOnly"
+          :disabled="
+            isPermissionReadOnly ||
+            isDeleteLockedForSampleData
+          "
         >
-          <div class="text-red-500 flex items-center">
+          <div
+            class="flex items-center"
+            :class="{
+              'text-red-500': !isDeleteLockedForSampleData
+            }"
+          >
             <i class="ri-lg ri-delete-bin-line mr-2" />
             <span>Delete organizations</span>
           </div>
@@ -81,6 +92,21 @@ const isPermissionReadOnly = computed(
       currentTenant.value,
       currentUser.value
     ).edit === false
+)
+
+const isEditLockedForSampleData = computed(
+  () =>
+    new OrganizationPermissions(
+      currentTenant.value,
+      currentUser.value
+    ).editLockedForSampleData
+)
+const isDeleteLockedForSampleData = computed(
+  () =>
+    new OrganizationPermissions(
+      currentTenant.value,
+      currentUser.value
+    ).destroyLockedForSampleData
 )
 
 const markAsTeamOrganizationOptions = computed(() => {
