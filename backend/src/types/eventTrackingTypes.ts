@@ -1,4 +1,4 @@
 export type Event = {
-  eventName: string
-  eventProperties: any
+  name: string
+  properties: any
 }

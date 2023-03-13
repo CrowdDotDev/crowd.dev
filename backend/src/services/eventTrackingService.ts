@@ -12,6 +12,7 @@ export default class EventTrackingService extends LoggingBase {
   }
 
   async trackEvent(event: Event) {
-    await track(event.eventName, event.eventProperties, this.options)
+    await track(event.name, event.properties, this.options)
+    console.log('trackEvent', event)
   }
 }
