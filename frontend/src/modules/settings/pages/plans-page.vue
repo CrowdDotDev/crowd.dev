@@ -1,14 +1,51 @@
 <template>
-  <div class="panel mt-6">
-    <div class="flex grow justify-end mb-4">
-      <el-button
-        class="btn btn--bordered flex items-center gap-2"
-        @click="onManageBillingClick"
-        ><i class="ri-external-link-line" /><span
-          >Manage billing & payments</span
-        ></el-button
-      >
+  <div
+    class="flex grow items-center justify-end my-8"
+    :class="{
+      'justify-between': showEagleEyePricing
+    }"
+  >
+    <div v-if="showEagleEyePricing">
+      <div v-if="!isEagleEyeEnabled">
+        <div class="font-medium text-sm">
+          Only interested in Eagle Eye?
+        </div>
+        <div clasS="text-xs">
+          <a
+            href="https://buy.stripe.com/eVag2w1ms0xU0F25kn"
+            target="_blank"
+            >Add Eagle Eye</a
+          ><span class="text-gray-500">
+            for only $50 per month.</span
+          >
+        </div>
+      </div>
+      <div v-else>
+        <div class="flex gap-3">
+          <div class="font-medium text-sm">Eagle Eye</div>
+          <div
+            class="text-green-600 flex items-center gap-1"
+          >
+            <i class="ri-check-line text-base" /><span
+              class="text-2xs"
+              >Subscribed</span
+            >
+          </div>
+        </div>
+        <div class="text-xs text-gray-500">
+          Enabled on top of your current Essential plan.
+        </div>
+      </div>
     </div>
+    <el-button
+      class="btn btn--bordered btn--md flex items-center gap-2"
+      @click="onManageBillingClick"
+      ><i class="ri-external-link-line" /><span
+        >Manage billing & payments</span
+      ></el-button
+    >
+  </div>
+  <div class="panel mt-6">
     <div class="flex gap-4">
       <div
         v-for="plan in plansList"
@@ -190,6 +227,21 @@ const isGrowthTrialPlan = computed(
   () =>
     activePlan.value === crowdHostedPlans.growth &&
     currentTenant.value.isTrialPlan
+)
+
+const isEssentialPlanActive = computed(
+  () => activePlan.value === crowdHostedPlans.essential
+)
+
+const isEagleEyeEnabled = computed(
+  () => activePlan.value === crowdHostedPlans['eagle-eye']
+)
+
+const showEagleEyePricing = computed(
+  () =>
+    isEssentialPlanActive.value ||
+    isGrowthTrialPlan.value ||
+    isEagleEyeEnabled.value
 )
 
 const getBadge = (plan) => {
