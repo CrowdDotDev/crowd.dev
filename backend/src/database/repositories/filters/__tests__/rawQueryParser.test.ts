@@ -271,4 +271,30 @@ describe('RawQueryParser', () => {
     expect(result).toEqual(`(((mt.all_ids) ?& array[:tags_1]) and (1=1))`)
     expect(params.tags_1).toEqual('c194036e-cf7c-4353-ae16-e8572a208f51')
   })
+
+  it('Should parse filter with not operator', () => {
+    const filter = {
+      and: [
+        {
+          not: {
+            displayName: {
+              textContains: 'test',
+            },
+          },
+        },
+        {},
+      ],
+    }
+
+    const params: any = {}
+    const result = RawQueryParser.parseFilters(
+      filter,
+      MemberRepository.MEMBER_QUERY_FILTER_COLUMN_MAP,
+      [],
+      params,
+    )
+
+    expect(result).toEqual(`((not (m."displayName" ilike :displayName_1)) and (1=1))`)
+    expect(params.displayName_1).toEqual('%test%')
+  })
 })

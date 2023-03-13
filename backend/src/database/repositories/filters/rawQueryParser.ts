@@ -25,8 +25,10 @@ export default class RawQueryParser {
 
         const condition = operands.join(` ${key} `)
         results.push(`(${condition})`)
+      } else if (key === Operator.NOT) {
+        const condition = this.parseFilters(filters[key], columnMap, jsonColumnInfos, params)
+        results.push(`(not ${condition})`)
       } else {
-        // it's a condition
         const jsonColumnInfo = this.getJsonColumnInfo(key, jsonColumnInfos)
 
         if (jsonColumnInfo === undefined && !columnMap.has(key)) {
@@ -74,7 +76,7 @@ export default class RawQueryParser {
           nestedProperty += ` -> '${part}'`
         }
       }
-      jsonColumn = `(${property.info.column} ${nestedProperty})`
+      jsonColumn = `(${property.info.column}${nestedProperty})`
 
       if (attributeInfo.type === AttributeType.BOOLEAN) {
         jsonColumn = `${jsonColumn}::boolean`
@@ -203,7 +205,12 @@ export default class RawQueryParser {
       return `(${column} ${actualOperator} (${paramNamesString}))`
     }
     const paramName = this.getParamName(key, params)
-    if (operator === Operator.LIKE || operator === Operator.NOT_LIKE) {
+    if (
+      operator === Operator.LIKE ||
+      operator === Operator.NOT_LIKE ||
+      operator === Operator.TEXT_CONTAINS ||
+      operator === Operator.NOT_TEXT_CONTAINS
+    ) {
       params[paramName] = `%${value}%`
     } else {
       params[paramName] = value
