@@ -43,6 +43,9 @@ export enum Operator {
   LIKE = 'like',
   NOT_LIKE = 'notLike',
 
+  TEXT_CONTAINS = 'textContains',
+  NOT_TEXT_CONTAINS = 'notContains',
+
   REGEX = 'regexp',
   NOT_REGEX = 'notRegexp',
 

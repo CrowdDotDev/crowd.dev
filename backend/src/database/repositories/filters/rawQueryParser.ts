@@ -53,9 +53,6 @@ export default class RawQueryParser {
 
     let jsonColumn: string
     if (parts.length > 0) {
-      const nestedProperty = parts.map((p) => `'${p}'`).join(' -> ')
-      jsonColumn = `(${property.info.column} -> ${nestedProperty})`
-
       const attribute = parts[0]
       const attributeInfo = singleOrDefault(
         property.info.attributeInfos,
@@ -64,6 +61,20 @@ export default class RawQueryParser {
       if (attributeInfo === undefined) {
         throw new Error(`Unknown ${property.info.property} attribute: ${attribute}!`)
       }
+
+      const isText = this.isJsonPropertyText(attributeInfo.type)
+
+      let nestedProperty = ''
+      for (let i = 0; i < parts.length; i++) {
+        const part = parts[i]
+
+        if (isText && i === parts.length - 1) {
+          nestedProperty += ` ->> '${part}'`
+        } else {
+          nestedProperty += ` -> '${part}'`
+        }
+      }
+      jsonColumn = `(${property.info.column} ${nestedProperty})`
 
       if (attributeInfo.type === AttributeType.BOOLEAN) {
         jsonColumn = `${jsonColumn}::boolean`
@@ -239,8 +250,10 @@ export default class RawQueryParser {
       case Operator.EQUAL:
         return '='
       case Operator.LIKE:
+      case Operator.TEXT_CONTAINS:
         return 'ilike'
       case Operator.NOT_LIKE:
+      case Operator.NOT_TEXT_CONTAINS:
         return 'not ilike'
       case Operator.AND:
         return 'and'
@@ -268,6 +281,12 @@ export default class RawQueryParser {
       default:
         throw new Error(`Unknown operator: ${operator}!`)
     }
+  }
+
+  private static isJsonPropertyText(type: AttributeType): boolean {
+    return (
+      type === AttributeType.STRING || type === AttributeType.EMAIL || type === AttributeType.URL
+    )
   }
 
   private static getParamName(column: string, params: any): string {
