@@ -27,7 +27,7 @@
       class="rounded w-full overflow-hidden flex mt-4 aspect-video"
     >
       <app-image
-        class="w-full"
+        class="w-full aspect-video"
         :src="result.post.thumbnail"
         :alt="result.post.title"
       />
