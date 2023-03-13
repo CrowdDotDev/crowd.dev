@@ -222,7 +222,7 @@ export default class SampleDataService extends LoggingBase {
             act.attributes = {}
           }
           act.attributes.sample = true
-          act.sentiment.sentiment = Math.min(act.sentiment.sentiment + 50, 100)
+          act.sentiment.sentiment = Math.min(act.sentiment.sentiment + 40, 100)
           await activityService.createWithMember(act)
         }
       }
