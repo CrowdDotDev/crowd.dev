@@ -46,6 +46,7 @@ export const connectSocket = (token) => {
 
   socketIoClient.on('integration-completed', (data) => {
     console.log('Integration onboarding done', data)
+    store.dispatch('auth/doRefreshCurrentUser')
     store.dispatch(
       'integration/doFind',
       JSON.parse(data).integrationId
