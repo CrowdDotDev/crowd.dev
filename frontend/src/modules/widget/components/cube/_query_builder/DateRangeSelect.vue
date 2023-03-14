@@ -72,7 +72,7 @@ export default {
           label: 'Last 30 days'
         },
         {
-          value: 'Last 12 months',
+          value: 'Last 365 days',
           label: 'Last 12 months'
         },
         {
