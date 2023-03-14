@@ -50,7 +50,9 @@ export class WidgetService {
     const response = await authAxios.get(
       `/tenant/${tenantId}/widget/${id}`,
       {
-        token: sampleTenant?.token
+        headers: {
+          Authorization: sampleTenant?.token
+        }
       }
     )
 
@@ -74,7 +76,9 @@ export class WidgetService {
       `/tenant/${tenantId}/widget`,
       {
         params,
-        token: sampleTenant?.token
+        headers: {
+          Authorization: sampleTenant?.token
+        }
       }
     )
 
@@ -108,7 +112,9 @@ export class WidgetService {
     const response = await authAxios.get(
       `/tenant/${tenantId}/cubejs/auth`,
       {
-        token: sampleTenant?.token
+        headers: {
+          Authorization: sampleTenant?.token
+        }
       }
     )
 

@@ -102,7 +102,9 @@ export class MemberService {
     const response = await authAxios.get(
       `/tenant/${tenantId}/member/${id}`,
       {
-        token: sampleTenant?.token
+        headers: {
+          Authorization: sampleTenant?.token
+        }
       }
     )
 
@@ -145,9 +147,9 @@ export class MemberService {
       body,
       {
         headers: {
-          'x-crowd-api-version': '1'
-        },
-        token: sampleTenant?.token
+          'x-crowd-api-version': '1',
+          Authorization: sampleTenant?.token
+        }
       }
     )
 
@@ -191,7 +193,9 @@ export class MemberService {
       `/tenant/${tenantId}/member/active`,
       {
         params,
-        token: sampleTenant?.token
+        headers: {
+          Authorization: sampleTenant?.token
+        }
       }
     )
 
@@ -257,7 +261,9 @@ export class MemberService {
       `/tenant/${tenantId}/membersToMerge`,
       {
         params,
-        token: sampleTenant?.token
+        headers: {
+          Authorization: sampleTenant?.token
+        }
       }
     )
 
@@ -272,7 +278,11 @@ export class MemberService {
 
     const response = await authAxios.get(
       `/tenant/${tenantId}/settings/members/attributes/${id}`,
-      { token: sampleTenant?.token }
+      {
+        headers: {
+          Authorization: sampleTenant?.token
+        }
+      }
     )
 
     return response.data
@@ -286,7 +296,11 @@ export class MemberService {
 
     const response = await authAxios.get(
       `/tenant/${tenantId}/settings/members/attributes`,
-      { token: sampleTenant?.token }
+      {
+        headers: {
+          Authorization: sampleTenant?.token
+        }
+      }
     )
 
     return response.data
