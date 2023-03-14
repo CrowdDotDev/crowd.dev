@@ -20,7 +20,8 @@ export default class SearchField extends GenericField {
       defaultOperator: 'textContains',
       operator: 'textContains',
       type: 'search',
-      fields: this.fields
+      fields: this.fields,
+      show: false
     }
   }
 }
