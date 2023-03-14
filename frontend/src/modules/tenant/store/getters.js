@@ -1,6 +1,5 @@
 import sharedGetters from '@/shared/store/getters'
 import { router } from '@/router'
-import moment from 'moment'
 import config from '@/config'
 
 export default {
@@ -58,22 +57,6 @@ export default {
     return integrationsInProgress.length > 0
   },
 
-  showTenantCreatingAlert: (
-    _state,
-    _getters,
-    _rootState,
-    rootGetters
-  ) => {
-    const currentTenant = rootGetters['auth/currentTenant']
-
-    return (
-      moment().diff(
-        moment(currentTenant.createdAt),
-        'minutes'
-      ) <= 2
-    )
-  },
-
   showPMFSurveyAlert: (
     state,
     _getters,
@@ -102,7 +85,6 @@ export default {
       getters.showIntegrationsErrorAlert ||
       getters.showIntegrationsNoDataAlert ||
       getters.showIntegrationsInProgressAlert ||
-      getters.showTenantCreatingAlert ||
       getters.showPMFSurveyAlert
     )
   }
