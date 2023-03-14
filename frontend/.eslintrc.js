@@ -24,6 +24,8 @@ module.exports = {
       process.env.NODE_ENV === 'production'
         ? 'warn'
         : 'off',
-    'vue/no-v-html': 'off'
+    'vue/no-v-html': 'off',
+    'vue/no-unused-components': 'warn',
+    'no-unused-vars': 'warn'
   }
 }

@@ -162,7 +162,7 @@ export default {
         .toImage(content)
         .trim()
         .replaceAll(
-          /(?<!"):[a-z_-]+:/g,
+          new RegExp('(?<!"):[a-z_-]+:', 'g'),
           '<abbr class="no-underline" title="Unable to detect emoji">&#65533;</abbr>'
         )
     }
