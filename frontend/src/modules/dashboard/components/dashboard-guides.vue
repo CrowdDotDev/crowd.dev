@@ -71,7 +71,7 @@
 
             <app-dashboard-guide-item
               :guide="guide"
-              @open="selectedGuide = guide"
+              @open="onGuideOpen(guide)"
             />
           </el-collapse-item>
         </el-tooltip>
@@ -103,6 +103,7 @@ import AppDashboardGuideEagleEyeModal from '@/modules/dashboard/components/guide
 import { QuickstartGuideService } from '@/modules/quickstart-guide/services/quickstart-guide.service'
 import { useQuickStartGuideStore } from '@/modules/quickstart-guide/store'
 import { storeToRefs } from 'pinia'
+import { EventTrackingService } from '@/modules/event-tracking/services/event-tracking-service'
 
 const { currentTenant, currentTenantUser } =
   mapGetters('auth')
@@ -210,6 +211,17 @@ onMounted(() => {
     }
   })
 })
+
+const onGuideOpen = (guide) => {
+  selectedGuide.value = guide
+
+  EventTrackingService.track({
+    event: 'Onboarding Guide details clicked',
+    properties: {
+      step: guide.key
+    }
+  })
+}
 </script>
 
 <style lang="scss">

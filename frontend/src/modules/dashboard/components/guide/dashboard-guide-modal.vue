@@ -69,8 +69,8 @@ const modalOpened = computed({
   }
 })
 
-const trackBtnClick = async (step) => {
-  await EventTrackingService.track({
+const trackBtnClick = (step) => {
+  EventTrackingService.track({
     event: 'Onboarding Guide button clicked',
     properties: {
       step
