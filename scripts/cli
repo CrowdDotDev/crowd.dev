@@ -132,8 +132,9 @@ function restore_db_backup() {
     say "Restoring dump from $CLI_HOME/db_dumps/$1.dump"
     docker cp $CLI_HOME/db_dumps/$1.dump ${PROJECT_NAME}_db_1:/backup.dump
     # docker exec -t ${PROJECT_NAME}_db_1 bash -c "PGPASSWORD=example dropdb -U postgres crowd-web && PGPASSWORD=example createdb -U postgres crowd-web"
+    set +eo pipefail
     docker exec -t ${PROJECT_NAME}_db_1 bash -c "PGPASSWORD=example pg_restore --clean -U postgres -d crowd-web backup.dump && rm -f backup.dump"
-
+    set -eo pipefail
     post_up_scaffold
     say "All done!"
 }

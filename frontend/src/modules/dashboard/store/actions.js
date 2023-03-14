@@ -247,7 +247,7 @@ export default {
   },
   // Fetch members count
   async getMembersCount({ state }) {
-    return MemberService.list(null, '', 1, 0, false)
+    return MemberService.list(null, '', 1, 0, false, true)
       .then(({ count }) => {
         state.members.total = count
         return Promise.resolve(count)
