@@ -293,11 +293,11 @@ export default class SampleDataService extends LoggingBase {
           })
         ).rows[0]
         await memberAttributeSettingsService.destroyAll([sampleAttributeSettings.id])
-
-        await tenantService.update(this.options.currentTenant.id, {
-          hasSampleData: false,
-        })
       }
+
+      await tenantService.update(this.options.currentTenant.id, {
+        hasSampleData: false,
+      })
     }
 
     this.log.info(`Sample data for tenant ${this.options.currentTenant.id} deleted succesfully.`)
