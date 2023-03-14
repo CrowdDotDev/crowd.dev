@@ -12,7 +12,21 @@
         :fetch-fn="fetchFn"
         placeholder="Type to search members"
         input-class="w-full"
-      ></app-autocomplete-one-input>
+      >
+        <template #option="{ item }">
+          <div class="flex items-center">
+            <app-avatar
+              :entity="{
+                displayName: item.label,
+                avatar: item.avatar
+              }"
+              size="xxs"
+              class="mr-2"
+            />
+            {{ item.label }}
+          </div>
+        </template>
+      </app-autocomplete-one-input>
     </div>
   </div>
 </template>
