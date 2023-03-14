@@ -58,6 +58,7 @@ export const logExecutionTime = async <T>(
 ): Promise<T> => {
   const start = performance.now()
   try {
+    log.info(`Starting timing process ${name}...`)
     return await process()
   } finally {
     const end = performance.now()

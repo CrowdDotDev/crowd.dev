@@ -33,6 +33,7 @@ services:
       - 5432:5432
     volumes:
       - pgdata-dev:/var/lib/postgresql/data
+    shm_size: 1gb
     networks:
       - crowd-bridge
 

@@ -114,7 +114,8 @@ export class MemberService {
     orderBy,
     limit,
     offset,
-    buildFilter = true
+    buildFilter = true,
+    countOnly = false
   ) {
     const body = {
       filter:
@@ -122,7 +123,8 @@ export class MemberService {
         {},
       orderBy,
       limit,
-      offset
+      offset,
+      countOnly
     }
 
     // Remove members marked as organizations from all responses
@@ -143,7 +145,7 @@ export class MemberService {
       body,
       {
         headers: {
-          'x-crowd-api-version': '2'
+          'x-crowd-api-version': '1'
         },
         token: sampleTenant?.token
       }

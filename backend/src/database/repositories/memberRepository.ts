@@ -5,7 +5,7 @@ import AuditLogRepository from './auditLogRepository'
 import Error404 from '../../errors/Error404'
 import { IRepositoryOptions } from './IRepositoryOptions'
 import QueryParser from './filters/queryParser'
-import { QueryOutput } from './filters/queryTypes'
+import { JsonColumnInfo, QueryOutput } from './filters/queryTypes'
 import { AttributeData } from '../attributes/attribute'
 import SequelizeFilterUtils from '../utils/sequelizeFilterUtils'
 import { KUBE_MODE, SERVICE } from '../../config'
@@ -14,6 +14,8 @@ import { AttributeType } from '../attributes/types'
 import TenantRepository from './tenantRepository'
 import { PageData } from '../../types/common'
 import { IActiveMemberData, IActiveMemberFilter } from './types/memberTypes'
+import { ALL_PLATFORM_TYPES } from '../../types/integrationEnums'
+import RawQueryParser from './filters/rawQueryParser'
 
 const { Op } = Sequelize
 
@@ -592,6 +594,281 @@ class MemberRepository {
     }
   }
 
+  public static MEMBER_QUERY_FILTER_COLUMN_MAP: Map<string, string> = new Map([
+    ['isOrganization', "coalesce((m.attributes -> 'isOrganization' -> 'default')::boolean, false)"],
+    ['isTeamMember', "coalesce((m.attributes -> 'isTeamMember' -> 'default')::boolean, false)"],
+    ['isBot', "coalesce((m.attributes -> 'isBot' -> 'default')::boolean, false)"],
+    ['activeOn', 'aggs."activeOn"'],
+    ['activityCount', 'aggs."activityCount"'],
+    ['activityTypes', 'aggs."activityTypes"'],
+    ['activeDaysCount', 'aggs."activeDaysCount"'],
+    ['lastActive', 'aggs."lastActive"'],
+    ['averageSentiment', 'aggs."averageSentiment"'],
+    ['identities', 'aggs.identities'],
+    ['reach', "(m.reach -> 'total')::integer"],
+
+    ['id', 'm.id'],
+    ['displayName', 'm."displayName"'],
+    ['tenantId', 'm."tenantId"'],
+    ['score', 'm.score'],
+    ['lastEnriched', 'm."lastEnriched"'],
+    ['joinedAt', 'm."joinedAt"'],
+    ['importHash', 'm."importHash"'],
+    ['createdAt', 'm."createdAt"'],
+    ['updatedAt', 'm."updatedAt"'],
+    ['email', 'm.email'],
+  ])
+
+  static async findAndCountAllv2(
+    {
+      filter = {} as any,
+      limit = 20,
+      offset = 0,
+      orderBy = 'joinedAt_DESC',
+      countOnly = false,
+      attributesSettings = [] as AttributeData[],
+    },
+    options: IRepositoryOptions,
+  ): Promise<PageData<any>> {
+    const tenant = SequelizeRepository.getCurrentTenant(options)
+    const seq = SequelizeRepository.getSequelize(options)
+
+    const params: any = {
+      tenantId: tenant.id,
+      limit,
+      offset,
+    }
+
+    let orderByString = ''
+    const orderByParts = orderBy.split('_')
+    const direction = orderByParts[1].toLowerCase()
+    switch (orderByParts[0]) {
+      case 'joinedAt':
+        orderByString = 'm."joinedAt"'
+        break
+      case 'displayName':
+        orderByString = 'm."displayName"'
+        break
+      case 'reach':
+        orderByString = "(m.reach ->> 'total')::int"
+        break
+      case 'score':
+        orderByString = 'm.score'
+        break
+      case 'lastActive':
+        orderByString = 'aggs."lastActive"'
+        break
+      case 'averageSentiment':
+        orderByString = 'aggs."averageSentiment"'
+        break
+      case 'activeDaysCount':
+        orderByString = 'aggs."activeDaysCount"'
+        break
+      case 'activityCount':
+        orderByString = 'aggs."activityCount"'
+        break
+
+      default:
+        throw new Error(`Invalid order by: ${orderBy}!`)
+    }
+    orderByString = `${orderByString} ${direction}`
+
+    const jsonColumnInfos: JsonColumnInfo[] = [
+      {
+        property: 'attributes',
+        column: 'm.attributes',
+        attributeInfos: attributesSettings,
+      },
+      {
+        property: 'username',
+        column: 'm.username',
+        attributeInfos: ALL_PLATFORM_TYPES.map((p) => ({
+          name: p,
+          type: AttributeType.STRING,
+        })),
+      },
+      {
+        property: 'tags',
+        column: 'mt.all_ids',
+        attributeInfos: [],
+      },
+    ]
+
+    let filterString = RawQueryParser.parseFilters(
+      filter,
+      MemberRepository.MEMBER_QUERY_FILTER_COLUMN_MAP,
+      jsonColumnInfos,
+      params,
+    )
+    if (filterString.trim().length === 0) {
+      filterString = '1=1'
+    }
+
+    const query = `
+    with to_merge_data as (select mtm."memberId", string_agg(distinct mtm."toMergeId"::text, ',') as to_merge_ids
+                       from "memberToMerge" mtm
+                                inner join members m on mtm."memberId" = m.id
+                                inner join members m2 on mtm."toMergeId" = m2.id
+                       where m."tenantId" = :tenantId
+                         and m2."deletedAt" is null
+                       group by mtm."memberId"),
+     no_merge_data as (select mnm."memberId", string_agg(distinct mnm."noMergeId"::text, ',') as no_merge_ids
+                       from "memberNoMerge" mnm
+                                inner join members m on mnm."memberId" = m.id
+                                inner join members m2 on mnm."noMergeId" = m2.id
+                       where m."tenantId" = :tenantId
+                         and m2."deletedAt" is null
+                       group by mnm."memberId"),
+     member_tags as (select mt."memberId",
+                            json_agg(
+                                    json_build_object(
+                                            'id', t.id,
+                                            'name', t.name
+                                        )
+                                ) as all_tags,
+                            jsonb_agg(t.id) as all_ids
+                     from "memberTags" mt
+                              inner join members m on mt."memberId" = m.id
+                              inner join tags t on mt."tagId" = t.id
+                     where m."tenantId" = :tenantId
+                       and m."deletedAt" is null
+                       and t."tenantId" = :tenantId
+                       and t."deletedAt" is null
+                     group by mt."memberId"),
+     member_organizations as (select mo."memberId",
+                                     json_agg(
+                                             row_to_json(o.*)
+                                         ) as all_organizations
+                              from "memberOrganizations" mo
+                                       inner join members m on mo."memberId" = m.id
+                                       inner join organizations o on mo."organizationId" = o.id
+                              where m."tenantId" = :tenantId
+                                and m."deletedAt" is null
+                                and o."tenantId" = :tenantId
+                                and o."deletedAt" is null
+                              group by mo."memberId")
+select m.id,
+       m.username,
+       m."displayName",
+       m.attributes,
+       m.email,
+       m."tenantId",
+       m.score,
+       m."lastEnriched",
+       m.contributions,
+       m."joinedAt",
+       m."importHash",
+       m."createdAt",
+       m."updatedAt",
+       m.reach,
+       array(select jsonb_object_keys(m.username)) as "identities",
+       tmd.to_merge_ids                            as "toMergeIds",
+       nmd.no_merge_ids                            as "noMergeIds",
+       aggs."activeOn",
+       aggs."activityCount",
+       aggs."activityTypes",
+       aggs."activeDaysCount",
+       aggs."lastActive",
+       aggs."averageSentiment",
+       coalesce(mt.all_tags, json_build_array())   as tags,
+       coalesce(mo.all_organizations, json_build_array()) as organizations
+from members m
+         inner join "memberActivityAggregatesMVs" aggs on aggs.id = m.id
+         left join to_merge_data tmd on m.id = tmd."memberId"
+         left join no_merge_data nmd on m.id = nmd."memberId"
+         left join member_tags mt on m.id = mt."memberId"
+         left join member_organizations mo on m.id = mo."memberId"
+where m."deletedAt" is null
+  and m."tenantId" = :tenantId
+  and ${filterString}
+order by ${orderByString}
+limit :limit offset :offset;
+    `
+
+    const countQuery = `
+with member_tags as (select mt."memberId",
+                            jsonb_agg(t.id) as all_ids
+                     from "memberTags" mt
+                              inner join members m on mt."memberId" = m.id
+                              inner join tags t on mt."tagId" = t.id
+                     where m."tenantId" = :tenantId
+                       and m."deletedAt" is null
+                       and t."tenantId" = :tenantId
+                       and t."deletedAt" is null
+                     group by mt."memberId")
+select count(m.id) as "totalCount"
+from members m
+         inner join "memberActivityAggregatesMVs" aggs on aggs.id = m.id
+         left join member_tags mt on m.id = mt."memberId"
+where m."deletedAt" is null
+  and m."tenantId" = :tenantId
+  and ${filterString};
+    `
+
+    if (countOnly) {
+      const countResults = await seq.query(countQuery, {
+        replacements: params,
+        type: QueryTypes.SELECT,
+      })
+      const count = parseInt((countResults[0] as any).totalCount, 10)
+
+      return {
+        rows: [],
+        count,
+        limit,
+        offset,
+      }
+    }
+
+    // console.log('QUERY: ', query)
+
+    const [results, countResults] = await Promise.all([
+      seq.query(query, {
+        replacements: params,
+        type: QueryTypes.SELECT,
+      }),
+      seq.query(countQuery, {
+        replacements: params,
+        type: QueryTypes.SELECT,
+      }),
+    ])
+
+    const memberIds = results.map((r) => (r as any).id)
+    if (memberIds.length > 0) {
+      const lastActivities = await seq.query(
+        `
+          with raw_data as (
+              select *, row_number() over (partition by "memberId" order by timestamp desc) as rn from activities
+              where "tenantId" = :tenantId and "memberId" in (:memberIds)
+          )
+          select * from raw_data
+          where rn = 1;
+      `,
+        {
+          replacements: {
+            tenantId: tenant.id,
+            memberIds,
+          },
+          type: QueryTypes.SELECT,
+        },
+      )
+
+      for (const row of results) {
+        const r = row as any
+        r.lastActivity = lastActivities.find((a) => (a as any).memberId === r.id)
+      }
+    }
+
+    const count = parseInt((countResults[0] as any).totalCount, 10)
+
+    return {
+      rows: results,
+      count,
+      limit,
+      offset,
+    }
+  }
+
   static async findAndCountAll(
     {
       filter = {} as any,
@@ -606,7 +883,6 @@ class MemberRepository {
     options: IRepositoryOptions,
   ) {
     let customOrderBy: Array<any> = []
-
     const include = [
       {
         model: options.database.memberActivityAggregatesMV,
