@@ -53,7 +53,9 @@ export class NoteService {
 
     return authAxios
       .post(`/tenant/${tenantId}/note/query`, body, {
-        token: sampleTenant?.token
+        headers: {
+          Authorization: sampleTenant?.token
+        }
       })
       .then((response) => {
         return response.data

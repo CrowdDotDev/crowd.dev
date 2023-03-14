@@ -238,7 +238,9 @@ const fetchActivities = async () => {
       offset: offset.value
     },
     {
-      token: sampleTenant?.token
+      headers: {
+        Authorization: sampleTenant?.token
+      }
     }
   )
 
