@@ -81,6 +81,13 @@ const modalOpened = computed({
   set(value) {
     emit('update:modelValue', value)
     if (!value) {
+      // Track event on modal dismiss
+      if (props.modelValue) {
+        EventTrackingService.track({
+          event: 'Eagle Eye Guide dismissed'
+        })
+      }
+
       closing()
     }
   }

@@ -147,7 +147,12 @@ const dismissGuides = () => {
     confirmButtonText: 'Dismiss quickstart guide',
     cancelButtonText: 'Cancel'
   }).then(() => {
+    EventTrackingService.track({
+      event: 'Onboarding Guide dismissed'
+    })
+
     onboardingGuidesDismissed.value = true
+
     return QuickstartGuideService.updateSettings({
       isQuickstartGuideDismissed: true
     })
