@@ -78,7 +78,9 @@ export class ActivityService {
     const response = await authAxios.get(
       `/tenant/${tenantId}/activity/${id}`,
       {
-        token: sampleTenant?.token
+        headers: {
+          Authorization: sampleTenant?.token
+        }
       }
     )
 
@@ -119,7 +121,9 @@ export class ActivityService {
       `/tenant/${tenantId}/activity/query`,
       body,
       {
-        token: sampleTenant?.token
+        headers: {
+          Authorization: sampleTenant?.token
+        }
       }
     )
 

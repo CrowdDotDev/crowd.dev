@@ -51,7 +51,9 @@ export class OrganizationService {
     const response = await authAxios.get(
       `/tenant/${tenantId}/organization/${id}`,
       {
-        token: sampleTenant?.token
+        headers: {
+          Authorization: sampleTenant?.token
+        }
       }
     )
 
@@ -81,7 +83,9 @@ export class OrganizationService {
       `/tenant/${tenantId}/organization/query`,
       body,
       {
-        token: sampleTenant?.token
+        headers: {
+          Authorization: sampleTenant?.token
+        }
       }
     )
 

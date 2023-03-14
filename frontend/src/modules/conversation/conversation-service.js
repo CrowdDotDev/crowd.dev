@@ -77,7 +77,9 @@ export class ConversationService {
     const response = await authAxios.get(
       `/tenant/${tenantId}/conversation/${id}`,
       {
-        token: sampleTenant?.token
+        headers: {
+          Authorization: sampleTenant?.token
+        }
       }
     )
 
@@ -101,7 +103,9 @@ export class ConversationService {
       `/tenant/${tenantId}/conversation/query`,
       body,
       {
-        token: sampleTenant?.token
+        headers: {
+          Authorization: sampleTenant?.token
+        }
       }
     )
 
@@ -125,7 +129,9 @@ export class ConversationService {
       `/tenant/${tenantId}/conversation/query`,
       body,
       {
-        token: sampleTenant?.token
+        headers: {
+          Authorization: sampleTenant?.token
+        }
       }
     )
 
