@@ -1,5 +1,9 @@
 <template>
-  <app-drawer v-model="drawerModel" title="Email Digest">
+  <app-drawer
+    v-model="drawerModel"
+    title="Email Digest"
+    size="600px"
+  >
     <template #beforeTitle>
       <i
         class="ri-mail-open-line text-xl h-6 text-gray-900 flex items-center mr-3"

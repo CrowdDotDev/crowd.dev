@@ -106,6 +106,7 @@
                   >
                     <el-button
                       class="btn btn-link btn-link--primary mr-4"
+                      :disabled="isEditLockedForSampleData"
                       @click="makePrimary(index)"
                     >
                       <i
@@ -130,12 +131,14 @@
               <div class="flex flex-wrap gap-3">
                 <el-button
                   class="btn btn--bordered btn--md"
+                  :disabled="isEditLockedForSampleData"
                   @click="handleNotMergeClick(pair)"
                 >
                   Ignore suggestion
                 </el-button>
                 <el-button
                   class="btn btn--primary btn--md"
+                  :disabled="isEditLockedForSampleData"
                   @click="handleMergeClick(pair)"
                 >
                   Merge members
@@ -150,12 +153,14 @@
                 <template #actionBtn>
                   <el-button
                     class="btn btn--bordered btn--md"
+                    :disabled="isEditLockedForSampleData"
                     @click="handleNotMergeClick(pair)"
                   >
                     Ignore suggestion
                   </el-button>
                   <el-button
                     class="btn btn--primary btn--md"
+                    :disabled="isEditLockedForSampleData"
                     @click="handleMergeClick(pair)"
                   >
                     Merge members
@@ -209,13 +214,17 @@ export default {
 </script>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, onMounted, computed } from 'vue'
 import AppMemberChannels from './../components/member-channels.vue'
 import AppMemberOrganizations from '@/modules/member/components/member-organizations.vue'
 import { MemberService } from '../member-service'
 import MemberMergeSuggestionsDetails from '../components/suggestions/member-merge-suggestions-details.vue'
 import AppMemberDisplayName from '@/modules/member/components/member-display-name'
 import Message from '@/shared/message/message'
+import { MemberPermissions } from '../member-permissions'
+import { mapGetters } from '@/shared/vuex/vuex.helpers'
+
+const { currentTenant, currentUser } = mapGetters('auth')
 
 let membersToMerge = reactive([])
 const channelsWidth = ref('')
@@ -235,6 +244,13 @@ onMounted(async () => {
     newViewingDetails[i] = false
   }
   viewingDetails.value = newViewingDetails
+})
+
+const isEditLockedForSampleData = computed(() => {
+  return new MemberPermissions(
+    currentTenant.value,
+    currentUser.value
+  ).editLockedForSampleData
 })
 
 /**

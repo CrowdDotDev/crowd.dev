@@ -40,6 +40,7 @@
         >
           <el-button
             class="btn btn--primary btn--md w-full"
+            @click="trackBtnClick"
           >
             Explore Eagle Eye
           </el-button>
@@ -60,6 +61,7 @@ import { defineProps, defineEmits, computed } from 'vue'
 import AppDialog from '@/shared/dialog/dialog.vue'
 import { mapActions } from '@/shared/vuex/vuex.helpers'
 import { QuickstartGuideService } from '@/modules/quickstart-guide/services/quickstart-guide.service'
+import { EventTrackingService } from '@/modules/event-tracking/services/event-tracking-service'
 
 const props = defineProps({
   modelValue: {
@@ -79,6 +81,13 @@ const modalOpened = computed({
   set(value) {
     emit('update:modelValue', value)
     if (!value) {
+      // Track event on modal dismiss
+      if (props.modelValue) {
+        EventTrackingService.track({
+          event: 'Eagle Eye Guide dismissed'
+        })
+      }
+
       closing()
     }
   }
@@ -89,6 +98,12 @@ const closing = () => {
     isEagleEyeGuideDismissed: true
   }).then(() => {
     return doRefreshCurrentUser({})
+  })
+}
+
+const trackBtnClick = () => {
+  EventTrackingService.track({
+    event: 'Eagle Eye Guide button clicked'
   })
 }
 </script>

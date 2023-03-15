@@ -465,7 +465,7 @@ const hasPermissionToSettings = computed(
     new SettingsPermissions(
       currentTenant.value,
       currentUser.value
-    ).edit
+    ).edit || currentTenant.value.hasSampleData
 )
 
 const hasPermissionToCommunityMember = computed(

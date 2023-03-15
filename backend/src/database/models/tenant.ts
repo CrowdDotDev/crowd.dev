@@ -44,7 +44,7 @@ export default (sequelize, DataTypes) => {
         allowNull: false,
         validate: {
           notEmpty: true,
-          isIn: [[plans.essential, plans.growth]],
+          isIn: [[plans.essential, plans.growth, plans.eagleEye]],
         },
         defaultValue: plans.essential,
       },

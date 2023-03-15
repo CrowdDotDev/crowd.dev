@@ -17,6 +17,8 @@ export interface QuickstartGuide {
   buttonLink: string
   buttonText: string
   completed: boolean
+  disabledInSampleData?: boolean
+  disabledTooltipText?: string
 }
 
 export interface QuickstartGuideSettings {
@@ -40,6 +42,8 @@ const enrichMemberGuide: QuickstartGuide = {
   buttonLink: '/members',
   buttonText: 'Try enrichment',
   completed: false,
+  disabledInSampleData: true,
+  disabledTooltipText: 'Connect integrations to try enrichment',
 }
 
 const viewReportGuide: QuickstartGuide = {

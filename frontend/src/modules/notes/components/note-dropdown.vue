@@ -14,13 +14,17 @@
         <i class="text-xl ri-more-fill"></i>
       </button>
       <template #dropdown>
-        <el-dropdown-item command="noteEdit">
+        <el-dropdown-item
+          command="noteEdit"
+          :disabled="isEditLockedForSampleData"
+        >
           <i class="ri-pencil-line text-gray-400 mr-1" />
           <span>Edit note</span></el-dropdown-item
         >
         <el-dropdown-item
           command="noteDelete"
           divided="divided"
+          :disabled="isDeleteLockedForSampleData"
         >
           <i class="ri-delete-bin-line text-red-500 mr-1" />
           <span class="text-red-500">Delete note</span>
@@ -38,9 +42,16 @@ export default {
 
 <script setup>
 import ConfirmDialog from '@/shared/dialog/confirm-dialog.js'
-import { ref, defineEmits, defineProps } from 'vue'
+import {
+  ref,
+  defineEmits,
+  defineProps,
+  computed
+} from 'vue'
 import { NoteService } from '@/modules/notes/note-service'
 import Message from '@/shared/message/message'
+import { NotePermissions } from '../note-permissions'
+import { mapGetters } from '@/shared/vuex/vuex.helpers'
 
 const emit = defineEmits(['edit', 'reload'])
 
@@ -52,6 +63,20 @@ const props = defineProps({
 })
 
 const dropdownVisible = ref(false)
+
+const { currentTenant, currentUser } = mapGetters('auth')
+const isEditLockedForSampleData = computed(() => {
+  return new NotePermissions(
+    currentTenant.value,
+    currentUser.value
+  ).editLockedForSampleData
+})
+const isDeleteLockedForSampleData = computed(() => {
+  return new NotePermissions(
+    currentTenant.value,
+    currentUser.value
+  ).destroyLockedForSampleData
+})
 
 const handleCommand = (command) => {
   if (command === 'noteDelete') {

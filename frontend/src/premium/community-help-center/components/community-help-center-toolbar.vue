@@ -12,7 +12,10 @@
       }}
       selected</span
     >
-    <el-dropdown trigger="click">
+    <el-dropdown
+      trigger="click"
+      @command="($event) => $event()"
+    >
       <button class="btn btn--bordered btn--sm">
         <span class="mr-2">Actions</span>
         <i class="ri-xl ri-arrow-down-s-line"></i>
@@ -22,16 +25,20 @@
           v-if="
             hasPermissionToEdit && hasUnpublishedSelected
           "
-          :disabled="isReadOnly"
-          @click="doPublishAllWithConfirm"
+          :disabled="
+            isReadOnly || isEditLockedForSampleData
+          "
+          :command="doPublishAllWithConfirm"
         >
           <i class="ri-lg ri-upload-cloud-2-line mr-1" />
           Publish conversations
         </el-dropdown-item>
         <el-dropdown-item
           v-if="hasPermissionToEdit && hasPublishedSelected"
-          :disabled="isReadOnly"
-          @click="doUnpublishAllWithConfirm"
+          :disabled="
+            isReadOnly || isEditLockedForSampleData
+          "
+          :command="doUnpublishAllWithConfirm"
         >
           <i class="ri-lg ri-arrow-go-back-line mr-1" />
           Unpublish conversations
@@ -39,11 +46,19 @@
         <hr class="border-gray-200 my-1 mx-2" />
         <el-dropdown-item
           v-if="hasPermissionToDestroy"
-          command="destroyAll"
-          :disabled="isReadOnly"
-          @click="doDestroyAllWithConfirm"
+          :disabled="
+            isReadOnly || isDeleteLockedForSampleData
+          "
+          :command="doDestroyAllWithConfirm"
         >
-          <div class="text-red-500 flex items-center">
+          <div
+            class="flex items-center"
+            :class="{
+              'text-red-500': !(
+                isReadOnly || isDeleteLockedForSampleData
+              )
+            }"
+          >
             <i class="ri-lg ri-delete-bin-line mr-1" />
             <app-i18n code="common.destroy"></app-i18n>
           </div>
@@ -129,6 +144,20 @@ export default {
       }
 
       return null
+    },
+
+    isEditLockedForSampleData() {
+      return new ConversationPermissions(
+        this.currentTenant,
+        this.currentUser
+      ).editLockedForSampleData
+    },
+
+    isDeleteLockedForSampleData() {
+      return new ConversationPermissions(
+        this.currentTenant,
+        this.currentUser
+      ).destroyLockedForSampleData
     }
   },
 

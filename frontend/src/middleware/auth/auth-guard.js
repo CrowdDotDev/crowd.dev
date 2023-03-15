@@ -40,6 +40,17 @@ export default async function ({ to, store, router }) {
     return router.push({ path: '/auth/email-unverified' })
   }
 
+  // Temporary fix
+  if (
+    to.meta.permission &&
+    (!permissionChecker.match(to.meta.permission) ||
+      permissionChecker.lockedForSampleData(
+        to.meta.permission
+      ))
+  ) {
+    return router.push('/403')
+  }
+
   if (
     ['multi', 'multi-with-subdomain'].includes(
       config.tenantMode

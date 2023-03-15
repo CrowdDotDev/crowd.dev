@@ -36,7 +36,10 @@
       <span>
         <el-button
           class="btn btn--primary btn--full !h-8"
-          :disabled="isEnrichmentDisabled"
+          :disabled="
+            isEnrichmentDisabled ||
+            isEditLockedForSampleData
+          "
           @click="onEnrichmentClick"
           >Enrich member</el-button
         >
@@ -52,9 +55,13 @@
 </template>
 
 <script setup>
-import { mapActions } from '@/shared/vuex/vuex.helpers'
+import {
+  mapActions,
+  mapGetters
+} from '@/shared/vuex/vuex.helpers'
 import { computed, defineProps } from 'vue'
 import AppSvg from '@/shared/svg/svg.vue'
+import { MemberPermissions } from '../member-permissions'
 
 const props = defineProps({
   member: {
@@ -64,11 +71,19 @@ const props = defineProps({
 })
 
 const { doEnrich } = mapActions('member')
+const { currentTenant, currentUser } = mapGetters('auth')
 
 const isEnrichmentDisabled = computed(
   () =>
     !props.member.username?.github && !props.member.email
 )
+
+const isEditLockedForSampleData = computed(() => {
+  return new MemberPermissions(
+    currentTenant.value,
+    currentUser.value
+  ).editLockedForSampleData
+})
 
 const onEnrichmentClick = async () => {
   await doEnrich(props.member.id)

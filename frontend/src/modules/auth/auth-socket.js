@@ -59,11 +59,14 @@ export const connectSocket = (token) => {
         'Tenant plan is upgraded. Force a hard refresh!',
         data
       )
+      if (typeof data === 'string') {
+        data = JSON.parse(data)
+      }
 
       await store.dispatch('auth/doRefreshCurrentUser')
 
       Message.success(
-        'Successfully upgraded to Growth plan'
+        `Successfully upgraded to ${data.plan} plan`
       )
     }
   )

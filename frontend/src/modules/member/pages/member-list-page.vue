@@ -41,8 +41,15 @@
               :to="{
                 name: 'memberCreate'
               }"
+              :class="{
+                'pointer-events-none cursor-not-allowed':
+                  isCreateLockedForSampleData
+              }"
             >
-              <el-button class="btn btn--primary btn--md">
+              <el-button
+                class="btn btn--primary btn--md"
+                :disabled="isCreateLockedForSampleData"
+              >
                 Add member
               </el-button>
             </router-link>
@@ -111,6 +118,13 @@ export default {
         this.currentTenant,
         this.currentUser
       ).create
+    },
+
+    isCreateLockedForSampleData() {
+      return new MemberPermissions(
+        this.currentTenant,
+        this.currentUser
+      ).createLockedForSampleData
     }
   },
 
@@ -173,7 +187,7 @@ export default {
 
     this.hasMembersToMerge =
       mergeSuggestions.rows?.length > 0
-    this.hasMembers = !!membersList.length
+    this.hasMembers = membersList.count > 0
     this.isPageLoading = false
   },
 
@@ -200,10 +214,12 @@ export default {
           {},
           '',
           1,
-          0
+          0,
+          undefined,
+          true
         )
 
-        return response.rows
+        return response
       } catch (e) {
         return null
       }

@@ -42,10 +42,18 @@ export class WidgetService {
   }
 
   static async find(id) {
-    const tenantId = AuthCurrentTenant.get()
+    const sampleTenant =
+      AuthCurrentTenant.getSampleTenantData()
+    const tenantId =
+      sampleTenant?.id || AuthCurrentTenant.get()
 
     const response = await authAxios.get(
-      `/tenant/${tenantId}/widget/${id}`
+      `/tenant/${tenantId}/widget/${id}`,
+      {
+        headers: {
+          Authorization: sampleTenant?.token
+        }
+      }
     )
 
     return response.data
@@ -59,12 +67,18 @@ export class WidgetService {
       offset
     }
 
-    const tenantId = AuthCurrentTenant.get()
+    const sampleTenant =
+      AuthCurrentTenant.getSampleTenantData()
+    const tenantId =
+      sampleTenant?.id || AuthCurrentTenant.get()
 
     const response = await authAxios.get(
       `/tenant/${tenantId}/widget`,
       {
-        params
+        params,
+        headers: {
+          Authorization: sampleTenant?.token
+        }
       }
     )
 
@@ -90,10 +104,18 @@ export class WidgetService {
   }
 
   static async getCubeToken() {
-    const tenantId = AuthCurrentTenant.get()
+    const sampleTenant =
+      AuthCurrentTenant.getSampleTenantData()
+    const tenantId =
+      sampleTenant?.id || AuthCurrentTenant.get()
 
     const response = await authAxios.get(
-      `/tenant/${tenantId}/cubejs/auth`
+      `/tenant/${tenantId}/cubejs/auth`,
+      {
+        headers: {
+          Authorization: sampleTenant?.token
+        }
+      }
     )
 
     return response.data

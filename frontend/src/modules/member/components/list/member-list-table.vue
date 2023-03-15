@@ -371,7 +371,7 @@
                     class="block w-full"
                   >
                     <div
-                      class="block w-full h-full flex items-center justify-center w-full"
+                      class="h-full flex items-center justify-center w-full"
                     >
                       <app-member-dropdown
                         :member="scope.row"

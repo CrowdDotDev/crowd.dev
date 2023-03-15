@@ -18,6 +18,8 @@ export enum PlatformType {
   OTHER = 'other',
 }
 
+export const ALL_PLATFORM_TYPES = Object.keys(PlatformType) as PlatformType[]
+
 export enum IntegrationType {
   DEVTO = 'devto',
   SLACK = 'slack',

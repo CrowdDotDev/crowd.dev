@@ -26,10 +26,11 @@ const authAxios = Axios.create({
 
 authAxios.interceptors.request.use(
   async function (options) {
-    const token = AuthToken.get()
+    const token =
+      options.headers?.Authorization || AuthToken.get()
 
     if (token) {
-      options.headers['Authorization'] = `Bearer ${token}`
+      options.headers.Authorization = `Bearer ${token}`
     }
 
     options.headers['Accept-Language'] = getLanguageCode()

@@ -90,24 +90,6 @@
               when it’s done.
             </div>
           </banner>
-          <banner
-            v-if="showTenantCreatingAlert"
-            variant="info"
-          >
-            <div
-              class="flex items-center justify-center grow text-sm"
-            >
-              <div
-                v-loading="true"
-                class="w-4 h-4 mr-2"
-              ></div>
-              <span class="font-semibold"
-                >Finishing your workspace setup.</span
-              >
-              The data might take a few minutes until it is
-              completely loaded.
-            </div>
-          </banner>
           <banner v-if="showPMFSurveyAlert" variant="info">
             <div
               class="flex items-center justify-center grow text-sm"
@@ -211,8 +193,6 @@ export default {
         'tenant/showIntegrationsNoDataAlert',
       showIntegrationsInProgressAlert:
         'tenant/showIntegrationsInProgressAlert',
-      showTenantCreatingAlert:
-        'tenant/showTenantCreatingAlert',
       showPMFSurveyAlert: 'tenant/showPMFSurveyAlert',
       showBanner: 'tenant/showBanner'
     }),

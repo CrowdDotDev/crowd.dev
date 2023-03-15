@@ -20,9 +20,10 @@
             action: 'organizationEdit',
             organization
           }"
+          :disabled="isEditLockedForSampleData"
           class="h-10"
           ><i class="ri-pencil-line text-base mr-2" /><span
-            class="text-xs text-gray-900"
+            class="text-xs"
             >Edit organization</span
           ></el-dropdown-item
         >
@@ -36,9 +37,10 @@
             value: true
           }"
           class="h-10"
+          :disabled="isEditLockedForSampleData"
           ><i
             class="ri-bookmark-line text-base mr-2"
-          /><span class="text-xs text-gray-900"
+          /><span class="text-xs"
             >Mark as team organization</span
           ></el-dropdown-item
         >
@@ -52,9 +54,10 @@
             value: false
           }"
           class="h-10"
+          :disabled="isEditLockedForSampleData"
           ><i
             class="ri-bookmark-2-line text-base mr-2"
-          /><span class="text-xs text-gray-900"
+          /><span class="text-xs"
             >Unmark as team organization</span
           ></el-dropdown-item
         >
@@ -68,9 +71,17 @@
             action: 'organizationDelete',
             organization
           }"
+          :disabled="isDeleteLockedForSampleData"
           ><i
-            class="ri-delete-bin-line text-base mr-2 text-red-500"
-          /><span class="text-xs text-red-500"
+            class="ri-delete-bin-line text-base mr-2"
+            :class="{
+              'text-red-500': !isDeleteLockedForSampleData
+            }"
+          /><span
+            class="text-xs"
+            :class="{
+              'text-red-500': !isDeleteLockedForSampleData
+            }"
             >Delete organization</span
           >
         </el-dropdown-item>
@@ -116,6 +127,21 @@ const isReadOnly = computed(
       currentTenant.value,
       currentUser.value
     ).edit === false
+)
+
+const isEditLockedForSampleData = computed(
+  () =>
+    new OrganizationPermissions(
+      currentTenant.value,
+      currentUser.value
+    ).editLockedForSampleData
+)
+const isDeleteLockedForSampleData = computed(
+  () =>
+    new OrganizationPermissions(
+      currentTenant.value,
+      currentUser.value
+    ).destroyLockedForSampleData
 )
 
 const doDestroyWithConfirm = async (id) => {

@@ -23,7 +23,10 @@
         class="flex justify-end px-6 pb-6"
       >
         <router-link :to="guide?.buttonLink">
-          <el-button class="btn btn--primary btn--md">
+          <el-button
+            class="btn btn--primary btn--md"
+            @click="trackBtnClick(guide.key)"
+          >
             {{ guide?.buttonText }}
           </el-button>
         </router-link>
@@ -41,6 +44,7 @@ export default {
 <script setup>
 import { defineProps, defineEmits, computed } from 'vue'
 import AppDialog from '@/shared/dialog/dialog.vue'
+import { EventTrackingService } from '@/modules/event-tracking/services/event-tracking-service'
 
 const props = defineProps({
   modelValue: {
@@ -64,6 +68,15 @@ const modalOpened = computed({
     )
   }
 })
+
+const trackBtnClick = (step) => {
+  EventTrackingService.track({
+    event: 'Onboarding Guide button clicked',
+    properties: {
+      step
+    }
+  })
+}
 </script>
 
 <style lang="scss">
