@@ -711,8 +711,10 @@ class ActivityRepository {
           let replacement = ''
 
           for (const variable of coalesceVariables) {
-            replacement = this.getAttribute(variable.trim(), activity)
-            if (replacement) {
+            const attribute = this.getAttribute(variable.trim(), activity)
+
+            if (attribute) {
+              replacement = attribute
               break
             }
           }
@@ -734,7 +736,11 @@ class ActivityRepository {
     let attribute = activity
 
     for (const key of splitted) {
-      attribute = attribute[key]
+      try {
+        attribute = attribute[key]
+      } catch (error) {
+        return null
+      }
     }
 
     return attribute
