@@ -147,12 +147,9 @@
                 <div class="flex items-center -mx-2">
                   <app-avatar
                     size="xxs"
-                    :entity="{
-                      displayName: item.label,
-                      avatar: item.avatar
-                    }"
+                    :entity="item"
                   ></app-avatar>
-                  <p class="pl-2">{{ item.label }}</p>
+                  <p class="pl-2">{{ item.displayName }}</p>
                 </div>
               </template>
             </app-autocomplete-many-input>

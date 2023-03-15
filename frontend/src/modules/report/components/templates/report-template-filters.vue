@@ -27,8 +27,16 @@
             <div
               v-if="hasSelectedPlatform"
               class="w-2 h-2 rounded-full bg-brand-500 outline outline-4 outline-gray-50 absolute top-[-4px] right-[-4px]"
-            ></div></div></template
-      ></app-filter-list-item>
+            ></div></div
+        ></template>
+        <template #optionPrefix="{ item }">
+          <img
+            v-if="item.value && platformOptions(item.value)"
+            :src="platformOptions(item.value).image"
+            class="w-4 h-4 mr-2"
+          />
+        </template>
+      </app-filter-list-item>
 
       <div
         v-if="showTeamMembers"
@@ -49,6 +57,7 @@
 <script setup>
 import AppFilterListItem from '@/shared/filter/components/filter-list-item.vue'
 import { computed, defineEmits, defineProps } from 'vue'
+import { CrowdIntegrations } from '@/integrations/integrations-config'
 
 const emit = defineEmits([
   'update:platform',
@@ -103,6 +112,9 @@ const onTeamMembersChange = (value) => {
 const handleOpenPlatform = () => {
   emit('open')
 }
+
+const platformOptions = (platform) =>
+  CrowdIntegrations.getConfig(platform)
 </script>
 
 <style lang="scss">

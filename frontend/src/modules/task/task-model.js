@@ -11,6 +11,44 @@ const fetchUsers = (query, limit) => {
   return UserService.fetchUserAutocomplete(query, limit)
 }
 
+const fetchMembers = (query, limit) => {
+  let filter = {}
+
+  if (Array.isArray(query)) {
+    filter = {
+      or: [
+        {
+          displayName: {
+            in: query.map((v) => v.displayName)
+          }
+        },
+        { email: { textContains: query } }
+      ]
+    }
+  } else if (query) {
+    filter = {
+      or: [
+        { displayName: { textContains: query } },
+        { email: { textContains: query } }
+      ]
+    }
+  }
+
+  return MemberService.list(
+    filter,
+    '',
+    limit,
+    0,
+    false
+  ).then(({ rows }) => {
+    return rows.map((r) => ({
+      ...r,
+      id: r.id,
+      label: r.displayName
+    }))
+  })
+}
+
 const fields = {
   id: new IdField('id', 'ID'),
   title: new StringField('name', 'Title', {
@@ -23,8 +61,19 @@ const fields = {
     'Related member(s)',
     '/member',
     Permissions.values.memberRead,
-    MemberService.listAutocomplete,
-    (record) => record,
+    fetchMembers,
+    (record) => {
+      if (!record) {
+        return null
+      }
+      return {
+        ...record,
+        id: record.id,
+        label: record.displayName || record.email,
+        displayName: record.displayName,
+        avatar: record.avatar
+      }
+    },
     {}
   ),
   assignees: new RelationToManyField(
