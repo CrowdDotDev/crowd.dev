@@ -11,7 +11,11 @@ import QueryParser from './filters/queryParser'
 import { QueryOutput } from './filters/queryTypes'
 import { AttributeData } from '../attributes/attribute'
 import MemberRepository from './memberRepository'
-import { ActivityTypeDisplayProperties, ActivityTypeSettings, DiscordtoActivityType } from '../../types/activityTypes'
+import {
+  ActivityTypeDisplayProperties,
+  ActivityTypeSettings,
+  DiscordtoActivityType,
+} from '../../types/activityTypes'
 import { PlatformType } from '../../types/integrationEnums'
 
 const { Op } = Sequelize
@@ -673,79 +677,96 @@ class ActivityRepository {
     }
   }
 
-  static getInterpolatableVariables(string: string, interpolatableVariables: string[] = []): string[]{
-
+  static getInterpolatableVariables(
+    string: string,
+    interpolatableVariables: string[] = [],
+  ): string[] {
     const interpolationStartIndex = string.indexOf('{')
     const interpolationEndIndex = string.indexOf('}')
 
     // we don't need processing if there's no opening/closing brackets, or when the string is empty
-    if (interpolationStartIndex === -1 || interpolationEndIndex === -1 || string.length === 0){
+    if (interpolationStartIndex === -1 || interpolationEndIndex === -1 || string.length === 0) {
       return interpolatableVariables
     }
 
     const interpolationVariable = string.slice(interpolationStartIndex + 1, interpolationEndIndex)
     interpolatableVariables.push(interpolationVariable)
 
-    return this.getInterpolatableVariables(string.slice(interpolationEndIndex + 1), interpolatableVariables)
-
+    return this.getInterpolatableVariables(
+      string.slice(interpolationEndIndex + 1),
+      interpolatableVariables,
+    )
   }
 
-  static interpolateVariables(displayOptions: ActivityTypeDisplayProperties, activity:any): ActivityTypeDisplayProperties{
+  static interpolateVariables(
+    displayOptions: ActivityTypeDisplayProperties,
+    activity: any,
+  ): ActivityTypeDisplayProperties {
+    for (const key of Object.keys(displayOptions)) {
+      if (typeof displayOptions[key] === 'string') {
+        const displayVariables = this.getInterpolatableVariables(displayOptions[key])
 
-    for (const key of Object.keys(displayOptions)){
-      if (typeof displayOptions[key] === 'string'){
-        const displayVariables  = this.getInterpolatableVariables(displayOptions[key])
+        for (const dv of displayVariables) {
+          const coalesceVariables = dv.split('|')
+          let replacement = ''
 
-        for (const dv of displayVariables){
-          let replacement = this.getAttribute(dv, activity) || ''
-          if (displayOptions.formatter && displayOptions.formatter[dv]){
-              replacement = displayOptions.formatter[dv](replacement)
+          for (const variable of coalesceVariables) {
+            replacement = this.getAttribute(variable.trim(), activity)
+            if (replacement) {
+              break
+            }
+          }
+
+          if (displayOptions.formatter && displayOptions.formatter[dv]) {
+            replacement = displayOptions.formatter[dv](replacement)
           }
           displayOptions[key] = displayOptions[key].replace(`{${dv}}`, replacement)
         }
       }
-      
     }
 
     return displayOptions
   }
 
-  static getAttribute(key: string, activity:any){
-    const splitted = key.split(".")
+  static getAttribute(key: string, activity: any) {
+    const splitted = key.split('.')
 
     let attribute = activity
 
-    for (const key of splitted){
+    for (const key of splitted) {
       attribute = attribute[key]
     }
 
-    console.log("returning att: ")
-    console.log(attribute)
-
     return attribute
-
   }
 
-  static getDisplayOptions(activity: any, activityTypes: ActivityTypeSettings): ActivityTypeDisplayProperties{
+  static getDisplayOptions(
+    activity: any,
+    activityTypes: ActivityTypeSettings,
+  ): ActivityTypeDisplayProperties {
+    const allActivityTypes = { ...activityTypes.default, ...activityTypes.custom }
 
-    const allActivityTypes = {...activityTypes.default, ...activityTypes.custom }
-
-    if (activity.platform === PlatformType.DISCORD && activity.type === DiscordtoActivityType.MESSAGE && activity.attributes.thread === true){
+    if (
+      activity.platform === PlatformType.DISCORD &&
+      activity.type === DiscordtoActivityType.MESSAGE &&
+      activity.attributes.thread === true
+    ) {
       activity.type = DiscordtoActivityType.THREAD_MESSAGE
     }
 
-    const displayOptions: ActivityTypeDisplayProperties = allActivityTypes[activity.platform][activity.type] 
+    const displayOptions: ActivityTypeDisplayProperties =
+      allActivityTypes[activity.platform][activity.type]
 
-    if (!displayOptions){
+    if (!displayOptions) {
       // return default display
       return {
-        default: 'Display not found',
-        short: 'Display not found'
+        default: 'Conducted an activity',
+        short: 'conducted an activity',
+        channel: '',
       }
     }
 
     return this.interpolateVariables(displayOptions, activity)
-
   }
 
   static async _populateRelationsForRows(rows, options: IRepositoryOptions) {
@@ -760,14 +781,12 @@ class ActivityRepository {
     if (!record) {
       return record
     }
-    const transaction = SequelizeRepository.getTransaction(options)    
+    const transaction = SequelizeRepository.getTransaction(options)
 
     const output = record.get({ plain: true })
 
-    const activityTypes = options.currentTenant.settings[0].dataValues.activityTypes as ActivityTypeSettings
-
-    console.log("act types: ")
-    console.log(activityTypes)
+    const activityTypes = options.currentTenant.settings[0].dataValues
+      .activityTypes as ActivityTypeSettings
 
     output.display = this.getDisplayOptions(record, activityTypes)
 

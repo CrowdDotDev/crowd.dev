@@ -62,17 +62,36 @@ export default class SettingsRepository {
     return this._populateRelations(settings)
   }
 
-  static getActivityTypes(record: any): ActivityTypeSettings{
+  static buildActivityTypes(record: any): ActivityTypeSettings {
     const activityTypes = {} as ActivityTypeSettings
 
     activityTypes.default = lodash.cloneDeep(DEFAULT_ACTIVITY_TYPE_SETTINGS)
     activityTypes.custom = {}
 
-    if (Object.keys(record.customActivityTypes).length > 0){
+    if (Object.keys(record.customActivityTypes).length > 0) {
       activityTypes.custom = record.customActivityTypes
     }
 
     return activityTypes
+  }
+
+  static getActivityTypes(options: IRepositoryOptions): ActivityTypeSettings {
+    return options.currentTenant?.settings[0]?.dataValues.activityTypes
+  }
+
+  static activityTypeExists(platform: string, key: string, options: IRepositoryOptions): boolean {
+    const activityTypes = this.getActivityTypes(options)
+
+    if (
+      !activityTypes.default[platform] ||
+      !activityTypes.default[platform][key] ||
+      !activityTypes.custom[platform] ||
+      !activityTypes.custom[platform][key]
+    ) {
+      return false
+    }
+
+    return true
   }
 
   static async _populateRelations(record) {
@@ -82,7 +101,7 @@ export default class SettingsRepository {
 
     const settings = record.get({ plain: true })
 
-    settings.activityTypes =  this.getActivityTypes(record)
+    settings.activityTypes = this.buildActivityTypes(record)
 
     return settings
   }

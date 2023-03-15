@@ -21,7 +21,7 @@ export default (sequelize, DataTypes) => {
       customActivityTypes: {
         type: DataTypes.JSONB,
         allowNull: false,
-        defaultValue: {}
+        defaultValue: {},
       },
       attributeSettings: {
         type: DataTypes.JSONB,

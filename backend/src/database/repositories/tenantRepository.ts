@@ -254,7 +254,11 @@ class TenantRepository {
       transaction,
     })
 
-    record.settings[0].dataValues.activityTypes = SettingsRepository.getActivityTypes(record.settings[0].dataValues)
+    if (record && record.settings && record.settings[0] && record.settings[0].dataValues) {
+      record.settings[0].dataValues.activityTypes = SettingsRepository.buildActivityTypes(
+        record.settings[0].dataValues,
+      )
+    }
 
     return record
   }

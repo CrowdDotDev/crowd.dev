@@ -5,6 +5,21 @@ export default (app) => {
   app.get(`/tenant/:tenantId/settings`, safeWrap(require('./settingsFind').default))
 
   app.post(
+    '/tenant/:tenantId/settings/activity/types',
+    safeWrap(require('./activityTypeCreate').default),
+  )
+
+  app.put(
+    '/tenant/:tenantId/settings/activity/types/:key',
+    safeWrap(require('./activityTypeUpdate').default),
+  )
+
+  app.delete(
+    '/tenant/:tenantId/settings/activity/types/:key',
+    safeWrap(require('./activityTypeDestroy').default),
+  )
+
+  app.post(
     '/tenant/:tenantId/settings/members/attributes',
     safeWrap(require('./memberAttributeCreate').default),
   )

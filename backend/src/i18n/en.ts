@@ -20,6 +20,13 @@ const en = {
         reservedField: `Cannot use reserved field '{0}' for dynamic attributes.`,
       },
     },
+    activityTypes: {
+      errors: {
+        typeRequiredWhenCreating: `Type field is required when creating a custom activity type.`,
+        typeRequiredWhenUpdating: `Type field is required when updating a custom activity type.`,
+        notFound: `Activity type with key {0} is not found.`,
+      },
+    },
   },
 
   auth: {
