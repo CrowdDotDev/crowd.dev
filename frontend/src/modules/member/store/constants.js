@@ -15,14 +15,6 @@ export const DEFAULT_MEMBER_FILTERS = [
   }
 ]
 
-export const DEFAULT_INITIAL_VIEW_ALL_FILTER = [
-  {
-    activityCount: {
-      gt: 0
-    }
-  }
-]
-
 export const ACTIVITY_COUNT_BIGGER_THAN_0_FILTER = {
   activityCount: {
     name: 'activityCount',
