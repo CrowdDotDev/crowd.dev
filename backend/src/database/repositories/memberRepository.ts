@@ -692,6 +692,11 @@ class MemberRepository {
         column: 'mt.all_ids',
         attributeInfos: [],
       },
+      {
+        property: 'organizations',
+        column: 'mo.all_ids',
+        attributeInfos: [],
+      },
     ]
 
     let filterString = RawQueryParser.parseFilters(
@@ -738,7 +743,8 @@ class MemberRepository {
      member_organizations as (select mo."memberId",
                                      json_agg(
                                              row_to_json(o.*)
-                                         ) as all_organizations
+                                         ) as all_organizations,
+                                     jsonb_agg(o.id) as all_ids
                               from "memberOrganizations" mo
                                        inner join members m on mo."memberId" = m.id
                                        inner join organizations o on mo."organizationId" = o.id
@@ -795,11 +801,22 @@ with member_tags as (select mt."memberId",
                        and m."deletedAt" is null
                        and t."tenantId" = :tenantId
                        and t."deletedAt" is null
-                     group by mt."memberId")
+                     group by mt."memberId"),
+    member_organizations as (select mo."memberId",
+                     jsonb_agg(o.id) as all_ids
+              from "memberOrganizations" mo
+                       inner join members m on mo."memberId" = m.id
+                       inner join organizations o on mo."organizationId" = o.id
+              where m."tenantId" = :tenantId
+                and m."deletedAt" is null
+                and o."tenantId" = :tenantId
+                and o."deletedAt" is null
+              group by mo."memberId")
 select count(m.id) as "totalCount"
 from members m
          inner join "memberActivityAggregatesMVs" aggs on aggs.id = m.id
          left join member_tags mt on m.id = mt."memberId"
+         left join member_organizations mo on m.id = mo."memberId"
 where m."deletedAt" is null
   and m."tenantId" = :tenantId
   and ${filterString};
