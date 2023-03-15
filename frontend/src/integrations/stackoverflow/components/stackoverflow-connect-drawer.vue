@@ -10,88 +10,97 @@
     @close="isVisible = false"
   >
     <template #content>
-      <div class="flex flex-col min-h-full gap-2">
-        <el-form
-          label-position="top"
-          class="form integration-reddit-form grow"
-          @submit.prevent
-        >
-          <div
-            class="flex flex-col min-h-full gap-2 items-start"
+      <el-form
+        label-position="top"
+        class="form integration-stackoverflow-form"
+        @submit.prevent
+      >
+        <div class="flex flex-col items-start gap-2">
+          <span class="block text-sm font-semibold"
+            >Track tags</span
           >
-            <span class="block text-sm font-semibold mb-2"
-              >Track tags</span
-            >
-            <span
-              class="text-2xs font-light mb-2 text-gray-600"
-            >
-              Monitor questions and answers based on your
-              selected tags. We will only match questions
-              containing all of your tags (max 5). <br />
-            </span>
-            <el-form-item
-              v-for="(tag, index) of model"
-              :key="index"
-              class="mb-4 w-full"
-            >
-              <div class="flex w-full gap-2">
-                <el-input
-                  v-model="tag.value"
-                  placeholder="Enter a Tag"
-                  @blur="handleTagValidation(index)"
-                >
-                  <template #suffix>
-                    <div
-                      v-if="tag.validating"
-                      v-loading="tag.validating"
-                      class="flex items-center justify-center w-6 h-6"
-                    ></div>
-                  </template>
-                </el-input>
-                <el-button
-                  v-if="model.length > 1"
-                  class="btn btn--md btn--transparent w-10 h-10"
-                  @click="deleteItem(index)"
-                >
-                  <i
-                    class="ri-delete-bin-line text-lg text-black"
-                  ></i>
-                </el-button>
-              </div>
-              <span
-                v-if="tag.touched && !tag.valid"
-                class="el-form-item__error pt-1"
-                >Tag does not exist</span
+          <span class="text-2xs font-light text-gray-600">
+            Monitor questions and answers related to your
+            community. We will match questions containing
+            all the selected tags.
+            <a
+              href="https://stackoverflow.com/tags"
+              target="__blank"
+              >Explore tags</a
+            ><br />
+          </span>
+          <el-form-item
+            v-for="(tag, index) of model"
+            :key="index"
+            class="w-full no-margin"
+          >
+            <div class="flex w-full">
+              <el-input
+                v-model="tag.value"
+                placeholder="Enter tag"
+                @blur="handleTagValidation(index)"
               >
-            </el-form-item>
-            <el-button
-              v-if="!isMaxTagsReached"
-              class="btn btn-link btn-link--primary"
-              @click="addNewTag"
-              >+ Add Tag
-            </el-button>
-          </div>
-        </el-form>
-        <el-form>
-          <el-form-item>
-            Estimated number of questions:
-            <b
-              >&nbsp;
-              {{
-                estimatedQuestions.toLocaleString('en-US')
-              }}</b
-            >
+                <template #suffix>
+                  <div
+                    v-if="tag.validating"
+                    v-loading="tag.validating"
+                    class="flex items-center justify-center w-6 h-6"
+                  ></div>
+                </template>
+              </el-input>
+              <el-button
+                v-if="model.length > 1"
+                class="btn btn--md btn--transparent w-10 h-10"
+                @click="deleteItem(index)"
+              >
+                <i
+                  class="ri-delete-bin-line text-lg text-black"
+                ></i>
+              </el-button>
+            </div>
             <span
-              v-if="isMaxQuestionsReached"
-              class="el-form-item__error pt-1"
-              >Volume of questions is too big. Add more
-              specific tags or remove too broad ones. If you
-              really want to use these tags, please reach
-              out to us.</span
-            >
+              v-if="tag.touched && !tag.valid"
+              class="el-form-item__error pt-1 flex gap-1"
+              ><i class="ri-error-warning-line"></i>
+              This tag does not exist
+            </span>
           </el-form-item>
-        </el-form>
-      </div>
+          <el-tooltip
+            :disabled="!isMaxTagsReached"
+            popper-class="w-60"
+            effect="dark"
+            content="You reached the limit of 5 tags allowed"
+            placement="top-start"
+          >
+            <div>
+              <el-button
+                :disabled="isMaxTagsReached"
+                class="btn btn-link btn-link--primary"
+                @click="addNewTag"
+                >+ Add Tag
+              </el-button>
+            </div>
+          </el-tooltip>
+        </div>
+        <hr class="my-6" />
+        <el-form-item>
+          Estimated number of questions:
+          <b
+            >&nbsp;
+            {{
+              estimatedQuestions.toLocaleString('en-US')
+            }}</b
+          >
+          <span
+            v-if="isMaxQuestionsReached"
+            class="el-form-item__error pt-1 flex gap-1"
+            ><i class="ri-error-warning-line"></i> Volume of
+            questions is too large, make sure you select
+            specific terms. If you really want to use these
+            tags, please reach out to us.</span
+          >
+        </el-form-item>
+      </el-form>
     </template>
 
     <template #footer>
@@ -111,7 +120,7 @@
         <div class="flex gap-4">
           <el-button
             class="btn btn--md btn--bordered"
-            @click="isVisible = false"
+            @click="doCancel"
           >
             <app-i18n code="common.cancel"></app-i18n>
           </el-button>
@@ -144,7 +153,8 @@ import {
   defineProps,
   computed,
   ref,
-  watch
+  watch,
+  onMounted
 } from 'vue'
 import { useThrottleFn } from '@vueuse/core'
 import { CrowdIntegrations } from '@/integrations/integrations-config'
@@ -182,9 +192,21 @@ const tags = props.integration.settings?.tags.map((i) => {
   }
 }) || [{ value: '', loading: false }]
 
+const calculateVolume = async () => {
+  const tags = model.value.map((i) => i.value).join(';')
+  const data = await IntegrationService.stackOverflowVolume(
+    tags
+  )
+  return data
+}
+
 const model = ref(JSON.parse(JSON.stringify(tags)))
-const estimatedQuestions = ref(0)
+const estimatedQuestions = ref(null)
 const isVolumeUpdating = ref(false)
+
+onMounted(async () => {
+  estimatedQuestions.value = await calculateVolume()
+})
 
 const logoUrl =
   CrowdIntegrations.getConfig('stackoverflow').image
@@ -207,7 +229,8 @@ const connectDisabled = computed(() => {
       )
     }).length > 0 ||
     isMaxQuestionsReached.value ||
-    isVolumeUpdating.value
+    isVolumeUpdating.value ||
+    isValidating.value
   )
 })
 
@@ -240,20 +263,12 @@ watch(
     if (shouldCalculateVolume.value) {
       estimatedQuestions.value = await calculateVolume()
     } else if (!isValidating.value) {
-      estimatedQuestions.value = 0
+      return
     }
     isVolumeUpdating.value = false
   },
   { immediate: true, deep: true }
 )
-
-const calculateVolume = async () => {
-  const tags = model.value.map((i) => i.value).join(';')
-  const data = await IntegrationService.stackOverflowVolume(
-    tags
-  )
-  return data
-}
 
 const isVisible = computed({
   get() {
@@ -291,6 +306,11 @@ const addNewTag = (tag) => {
 
 const doReset = () => {
   model.value = JSON.parse(JSON.stringify(tags))
+}
+
+const doCancel = () => {
+  isVisible.value = false
+  doReset()
 }
 
 const handleTagValidation = async (index) => {
@@ -351,21 +371,3 @@ watch(isVisible, (newValue, oldValue) => {
   }
 })
 </script>
-
-<style lang="scss">
-.integration-stackoverflow-form {
-  .el-form-item {
-    @apply mb-3;
-    &__content {
-      @apply mb-0;
-      .hashtag-input .el-input__inner {
-        @apply pl-1;
-      }
-    }
-  }
-
-  .el-input-group__prepend {
-    @apply px-3;
-  }
-}
-</style>
