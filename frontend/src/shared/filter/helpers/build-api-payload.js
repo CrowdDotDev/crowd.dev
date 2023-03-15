@@ -96,14 +96,12 @@ const buildDefaultAttributeBlock = ({
   customFilters,
   defaultFilters
 }) => {
-  const keys = customFilters?.attributes
-    ? Object.keys(customFilters.attributes)
-    : []
+  const filters = JSON.stringify(customFilters || {})
 
   return defaultFilters.filter((filter) => {
     const defaultName = Object.keys(filter)[0]
 
-    return !keys.includes(defaultName)
+    return !filters.includes(defaultName)
   })
 }
 
