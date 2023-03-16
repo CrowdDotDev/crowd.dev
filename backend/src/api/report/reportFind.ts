@@ -11,7 +11,7 @@ export default async (req, res) => {
     new PermissionChecker(req).validateHas(Permissions.values.reportRead)
   }
 
-  if (req.currentUser && req.currentUser.id){
+  if (req.currentUser && req.currentUser.id) {
     const viewedBy = new Set<string>(payload.viewedBy).add(req.currentUser.id)
     await reportService.update(payload.id, { viewedBy: Array.from(viewedBy) })
   }
