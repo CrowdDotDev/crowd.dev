@@ -1,6 +1,7 @@
 import authAxios from '@/shared/axios/auth-axios'
 import AuthCurrentTenant from '@/modules/auth/auth-current-tenant'
-import buildApiFilter from '@/shared/filter/helpers/build-api-payload'
+import buildApiPayload from '@/shared/filter/helpers/build-api-payload'
+import { DEFAULT_ORGANIZATION_FILTERS } from '@/modules/organization/store/constants'
 
 export class OrganizationService {
   static async update(id, data) {
@@ -68,7 +69,11 @@ export class OrganizationService {
     buildFilter = true
   ) {
     const body = {
-      filter: buildFilter ? buildApiFilter(filter) : filter,
+      filter: buildApiPayload({
+        customFilters: filter,
+        defaultFilters: DEFAULT_ORGANIZATION_FILTERS,
+        buildFilter
+      }),
       orderBy,
       limit,
       offset

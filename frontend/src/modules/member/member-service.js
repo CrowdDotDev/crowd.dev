@@ -1,6 +1,7 @@
 import authAxios from '@/shared/axios/auth-axios'
 import AuthCurrentTenant from '@/modules/auth/auth-current-tenant'
-import buildApiFilter from '@/shared/filter/helpers/build-api-payload'
+import buildApiPayload from '@/shared/filter/helpers/build-api-payload'
+import { DEFAULT_MEMBER_FILTERS } from '@/modules/member/store/constants'
 
 export class MemberService {
   static async update(id, data) {
@@ -77,7 +78,10 @@ export class MemberService {
     buildFilter = true
   ) {
     const body = {
-      filter: buildFilter ? buildApiFilter(filter) : filter,
+      filter: buildApiPayload({
+        customFilters: filter,
+        buildFilter
+      }),
       orderBy,
       limit,
       offset
@@ -112,7 +116,7 @@ export class MemberService {
   }
 
   static async list(
-    filter,
+    customFilters,
     orderBy,
     limit,
     offset,
@@ -120,22 +124,16 @@ export class MemberService {
     countOnly = false
   ) {
     const body = {
-      filter:
-        (buildFilter ? buildApiFilter(filter) : filter) ||
-        {},
+      filter: buildApiPayload({
+        customFilters,
+        defaultFilters: DEFAULT_MEMBER_FILTERS,
+        buildFilter
+      }),
       orderBy,
       limit,
       offset,
       countOnly
     }
-
-    // Remove members marked as organizations from all responses
-    body.filter.and = [
-      {
-        isOrganization: { not: true }
-      },
-      { ...body.filter }
-    ]
 
     const sampleTenant =
       AuthCurrentTenant.getSampleTenantData()

@@ -26,7 +26,10 @@ export default {
 
       if (getters.activeView.type === 'conversations') {
         response = await ConversationService.query(
-          buildApiPayload(getters.activeView.filter),
+          buildApiPayload({
+            customFilters: getters.activeView.filter,
+            buildFilter: true
+          }),
           getters.orderBy,
           getters.limit,
           getters.offset
