@@ -3,6 +3,7 @@
     v-model="isVisible"
     :size="480"
     title="Manage activity types"
+    :show-footer="false"
   >
     <template #content>
       <div class="-mt-4">
@@ -12,18 +13,38 @@
           >
             Custom
           </h6>
-          <app-activity-type-list class="mb-4">
-            <app-activity-type-list-item
-              v-for="custom of customActivityTypes"
-              :key="custom"
-              platform="Config conference"
-            >
-              <template #after>
-                <div>{{ custom }}</div>
-                <app-activity-type-dropdown />
-              </template>
-            </app-activity-type-list-item>
-          </app-activity-type-list>
+          <div class="mb-4">
+            <header class="py-2 border-b border-gray-200">
+              <p
+                class="text-2xs leading-5 uppercase font-semibold tracking-1 text-gray-400"
+              >
+                Type
+              </p>
+            </header>
+            <div>
+              <div
+                v-for="(
+                  activityTypes, platform
+                ) in types.custom"
+                :key="platform"
+              >
+                <app-activity-type-list-item
+                  v-for="(display, type) in activityTypes"
+                  :key="type"
+                  :label="display.short"
+                >
+                  <template #after>
+                    <app-activity-type-dropdown
+                      :activity-type-key="type"
+                      @edit="
+                        edit({ ...display, key: type })
+                      "
+                    />
+                  </template>
+                </app-activity-type-list-item>
+              </div>
+            </div>
+          </div>
           <p
             class="text-sm leading-5 font-medium text-brand-500 cursor-pointer"
             @click="isFormModalOpen = true"
@@ -37,24 +58,50 @@
           >
             Default
           </h6>
-          <app-activity-type-list class="mb-4">
-            <app-activity-type-list-item
-              platform="github"
-            />
-          </app-activity-type-list>
+          <div class="mb-4">
+            <header
+              class="flex py-2 border-b border-gray-200"
+            >
+              <div class="w-5/12">
+                <p
+                  class="text-2xs leading-5 uppercase font-semibold tracking-1 text-gray-400"
+                >
+                  Platform
+                </p>
+              </div>
+              <div class="w-7/12">
+                <p
+                  class="text-2xs leading-5 uppercase font-semibold tracking-1 text-gray-400"
+                >
+                  Type
+                </p>
+              </div>
+            </header>
+            <div>
+              <div
+                v-for="(
+                  activityTypes, platform
+                ) in types.default"
+                :key="platform"
+              >
+                <app-activity-type-list-item
+                  v-for="(display, type) in activityTypes"
+                  :key="type"
+                  :platform="platform"
+                  :label="display.short"
+                />
+              </div>
+            </div>
+          </div>
         </section>
       </div>
     </template>
-    <template #footer>
-      <!--      <router-link-->
-      <!--        :to="{ name: 'onboard', query: { action: 'new' } }"-->
-      <!--      ><el-button class="btn btn&#45;&#45;md btn&#45;&#45;primary"-->
-      <!--      >Add workspace</el-button-->
-      <!--      ></router-link-->
-      <!--      >-->
-    </template>
   </app-drawer>
-  <app-activity-type-form-modal v-model="isFormModalOpen" />
+  <app-activity-type-form-modal
+    v-model="isFormModalOpen"
+    :type="editableActivityType"
+    @update:model-value="onModalViewChange($event)"
+  />
 </template>
 
 <script>
@@ -68,14 +115,16 @@ import {
   defineEmits,
   defineProps,
   computed,
-  ref
+  ref,
+  watch
 } from 'vue'
 import AppDrawer from '@/shared/drawer/drawer.vue'
-import AppActivityTypeList from '@/modules/activity/components/type/activity-type-list.vue'
 import AppActivityTypeListItem from '@/modules/activity/components/type/activity-type-list-item.vue'
 import AppActivityTypeDropdown from '@/modules/activity/components/type/activity-type-dropdown.vue'
 import AppActivityTypeFormModal from '@/modules/activity/components/type/activity-type-form-modal.vue'
 import { mapGetters } from '@/shared/vuex/vuex.helpers'
+import { useActivityTypeStore } from '@/modules/activity/store/type'
+import { storeToRefs } from 'pinia'
 
 // Props & emits
 const props = defineProps({
@@ -89,9 +138,13 @@ const emit = defineEmits(['update:modelValue'])
 
 // Store
 const { currentTenant } = mapGetters('auth')
+const activityTypeStore = useActivityTypeStore()
+const { types } = storeToRefs(activityTypeStore)
+const { setTypes } = activityTypeStore
 
 // Drawer open
 const isFormModalOpen = ref(false)
+const editableActivityType = ref(null)
 const isVisible = computed({
   get() {
     return props.modelValue
@@ -101,18 +154,25 @@ const isVisible = computed({
   }
 })
 
-const tenantSettings = computed(() => {
-  if (currentTenant.value.settings.length > 0) {
-    return currentTenant.value.settings[0]
-  }
-  return null
-})
+watch(
+  () => currentTenant,
+  (tenant) => {
+    if (tenant.value.settings.length > 0) {
+      console.log(tenant.value.settings[0].activityTypes)
+      setTypes(tenant.value.settings[0].activityTypes)
+    }
+  },
+  { immediate: true, deep: true }
+)
 
-const customActivityTypes = computed(() => {
-  if (!tenantSettings.value) {
-    return null
+const edit = (activityType) => {
+  editableActivityType.value = activityType
+  isFormModalOpen.value = true
+}
+
+const onModalViewChange = (opened) => {
+  if (!opened) {
+    editableActivityType.value = null
   }
-  console.log(tenantSettings.value)
-  return tenantSettings
-})
+}
 </script>

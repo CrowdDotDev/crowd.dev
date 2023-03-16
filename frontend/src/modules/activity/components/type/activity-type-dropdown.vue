@@ -32,32 +32,42 @@
 </template>
 
 <script>
-import ConfirmDialog from '@/shared/dialog/confirm-dialog.js'
-
 export default {
-  name: 'AppActivityTypeDropdown',
-  props: {
-    activityType: {
-      type: Object,
-      default: () => {}
-    }
-  },
-  emits: ['activity-destroyed'],
-  methods: {
-    edit() {
-      console.log('editing')
-    },
-    doDestroyWithConfirm() {
-      ConfirmDialog({
-        type: 'danger',
-        title: 'Delete activity type',
-        message:
-          "Are you sure you want to proceed? You can't undo this action",
-        confirmButtonText: 'Delete',
-        cancelButtonText: 'Cancel',
-        icon: 'ri-delete-bin-line'
-      })
-    }
+  name: 'AppActivityTypeDropdown'
+}
+</script>
+
+<script setup>
+import ConfirmDialog from '@/shared/dialog/confirm-dialog'
+import { defineProps, defineEmits } from 'vue'
+import { useActivityTypeStore } from '@/modules/activity/store/type'
+
+const props = defineProps({
+  activityTypeKey: {
+    type: Object,
+    default: () => {}
   }
+})
+
+const emit = defineEmits(['edit'])
+
+const { deleteActivityType } = useActivityTypeStore()
+
+const doDestroyWithConfirm = () => {
+  ConfirmDialog({
+    type: 'danger',
+    title: 'Delete activity type',
+    message:
+      "Are you sure you want to proceed? You can't undo this action",
+    confirmButtonText: 'Delete',
+    cancelButtonText: 'Cancel',
+    icon: 'ri-delete-bin-line'
+  }).then(() => {
+    deleteActivityType(props.activityTypeKey)
+  })
+}
+
+const edit = () => {
+  emit('edit')
 }
 </script>

@@ -35,6 +35,7 @@
         >
         <el-button
           class="btn btn--primary btn--md"
+          :disabled="$v.$invalid"
           @click="submit()"
         >
           <span v-if="isEdit">Update</span>
@@ -56,22 +57,33 @@ import {
   defineEmits,
   defineProps,
   computed,
-  reactive
+  reactive,
+  watch
 } from 'vue'
 import useVuelidate from '@vuelidate/core'
 import { required } from '@vuelidate/validators'
 import AppFormItem from '@/shared/form/form-item.vue'
+import Message from '@/shared/message/message'
+import { useActivityTypeStore } from '@/modules/activity/store/type'
 
 // Props & Emits
 const props = defineProps({
   modelValue: {
     type: Boolean,
+    required: false,
     default: false
+  },
+  type: {
+    type: Object,
+    required: false,
+    default: () => null
   }
 })
 
 const emit = defineEmits(['update:modelValue'])
 
+const { createActivityType, updateActivityType } =
+  useActivityTypeStore()
 
 // Form control
 const form = reactive({
@@ -93,9 +105,59 @@ const isVisible = computed({
 })
 
 const isEdit = computed(() => {
-  // TODO: is it edit / create
-  return false
+  return props.type
 })
 
-const submit = () => {}
+watch(
+  () => props.type,
+  (activityType) => {
+    if (activityType) {
+      fillForm(activityType)
+    }
+  },
+  { immediate: true, deep: true }
+)
+
+const fillForm = (data) => {
+  form.name = data.short
+}
+
+const submit = () => {
+  if ($v.value.$invalid) {
+    return
+  }
+  if (!isEdit.value) {
+    // Create
+    createActivityType({
+      type: form.name
+    })
+      .then(() => {
+        emit('update:modelValue')
+        Message.success(
+          'Activity type successfully created!'
+        )
+      })
+      .catch(() => {
+        Message.error(
+          'There was an error creating activity type'
+        )
+      })
+  } else {
+    // Update
+    updateActivityType(props.type.key, {
+      type: form.name
+    })
+      .then(() => {
+        emit('update:modelValue')
+        Message.success(
+          'Activity type successfully updated!'
+        )
+      })
+      .catch(() => {
+        Message.error(
+          'There was an error updating activity type'
+        )
+      })
+  }
+}
 </script>

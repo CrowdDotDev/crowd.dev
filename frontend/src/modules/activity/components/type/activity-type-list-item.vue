@@ -1,8 +1,8 @@
 <template>
   <article
-    class="border-t first:border-none border-gray-200 flex items-center py-4.5"
+    class="border-t first:border-none border-gray-200 flex items-center py-2.5"
   >
-    <div class="w-5/12 flex items-center">
+    <div v-if="platform" class="w-5/12 flex items-center">
       <img
         v-if="platformDetails"
         :src="platformDetails.image"
@@ -13,15 +13,17 @@
         v-else
         class="ri-apps-2-line text-base text-gray-400 mr-2"
       ></i>
-      <p class="text-sm leading-5">
+      <p class="text-sm leading-5 py-2">
         <span v-if="platformDetails">{{
           platformDetails.name
         }}</span>
         <span v-else>{{ platform }}</span>
       </p>
     </div>
-    <div class="w-7/12 flex justify-between items-center">
-      <p class="text-sm leading-5">Comment on an issue</p>
+    <div
+      class="flex-grow flex justify-between items-center"
+    >
+      <p class="text-sm leading-5">{{ label }}</p>
       <slot name="after" />
     </div>
   </article>
@@ -39,6 +41,11 @@ import { computed, defineProps } from 'vue'
 
 const props = defineProps({
   platform: {
+    type: String,
+    required: false,
+    default: ''
+  },
+  label: {
     type: String,
     required: true
   }
