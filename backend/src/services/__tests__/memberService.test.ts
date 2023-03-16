@@ -1616,13 +1616,12 @@ describe('MemberService tests', () => {
       )
 
       // we don't need activity.member because we're already expecting member->activities
-      activityCreated = SequelizeTestUtils.objectWithoutKey(activityCreated, 'member')
-
-      // we don't need activity.parent because it is 2 level deep (member->activity->parent)
-      activityCreated = SequelizeTestUtils.objectWithoutKey(activityCreated, 'parent')
-
-      // we don't need activity.tasks because it is 2 level deep (member->activity->tasks)
-      activityCreated = SequelizeTestUtils.objectWithoutKey(activityCreated, 'tasks')
+      activityCreated = SequelizeTestUtils.objectWithoutKey(activityCreated, [
+        'member',
+        'parent',
+        'tasks',
+        'display',
+      ])
 
       // get previously created tags
       t1 = await TagRepository.findById(t1.id, mockIRepositoryOptions)

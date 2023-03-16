@@ -8,6 +8,7 @@ import { MemberAttributeName } from '../../attributes/member/enums'
 import MemberAttributeSettingsRepository from '../memberAttributeSettingsRepository'
 import MemberAttributeSettingsService from '../../../services/memberAttributeSettingsService'
 import { DefaultMemberAttributes } from '../../attributes/member/default'
+import { UNKNOWN_ACTIVITY_TYPE_DISPLAY } from '../../../types/activityTypes'
 
 const db = null
 
@@ -101,6 +102,7 @@ describe('ActivityRepository tests', () => {
         sourceId: activity.sourceId,
         sourceParentId: null,
         conversationId: null,
+        display: UNKNOWN_ACTIVITY_TYPE_DISPLAY,
       }
 
       expect(activityCreated).toStrictEqual(expectedActivityCreated)
@@ -161,6 +163,7 @@ describe('ActivityRepository tests', () => {
         sourceId: activityCreated.sourceId,
         sourceParentId: null,
         conversationId: null,
+        display: UNKNOWN_ACTIVITY_TYPE_DISPLAY,
       }
 
       expect(activityCreated).toStrictEqual(expectedActivityCreated)
@@ -406,6 +409,7 @@ describe('ActivityRepository tests', () => {
         sourceId: activity.sourceId,
         sourceParentId: null,
         conversationId: null,
+        display: UNKNOWN_ACTIVITY_TYPE_DISPLAY,
       }
 
       expect(activityCreated).toStrictEqual(expectedActivityCreated)
@@ -471,6 +475,7 @@ describe('ActivityRepository tests', () => {
         sourceId: activity.sourceId,
         sourceParentId: null,
         conversationId: null,
+        display: UNKNOWN_ACTIVITY_TYPE_DISPLAY,
       }
 
       expect(activityCreated).toStrictEqual(expectedActivityCreated)
@@ -589,6 +594,7 @@ describe('ActivityRepository tests', () => {
         sourceId: activity.sourceId,
         sourceParentId: null,
         conversationId: null,
+        display: UNKNOWN_ACTIVITY_TYPE_DISPLAY,
       }
 
       const activityFound = await ActivityRepository.findById(
@@ -918,6 +924,7 @@ describe('ActivityRepository tests', () => {
         sourceId: activityReturned.sourceId,
         sourceParentId: null,
         conversationId: null,
+        display: UNKNOWN_ACTIVITY_TYPE_DISPLAY,
       }
 
       expect(updatedActivity).toStrictEqual(expectedActivityUpdated)
@@ -1024,6 +1031,7 @@ describe('ActivityRepository tests', () => {
         sourceId: activityReturned.sourceId,
         sourceParentId: null,
         conversationId: null,
+        display: UNKNOWN_ACTIVITY_TYPE_DISPLAY,
       }
 
       expect(updatedActivity).toStrictEqual(expectedActivityUpdated)

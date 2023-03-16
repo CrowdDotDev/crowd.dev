@@ -83,10 +83,8 @@ export default class SettingsRepository {
     const activityTypes = this.getActivityTypes(options)
 
     if (
-      (activityTypes.default[platform] &&
-      activityTypes.default[platform][key]) ||
-      (activityTypes.custom[platform] &&
-      activityTypes.custom[platform][key])
+      (activityTypes.default[platform] && activityTypes.default[platform][key]) ||
+      (activityTypes.custom[platform] && activityTypes.custom[platform][key])
     ) {
       return true
     }

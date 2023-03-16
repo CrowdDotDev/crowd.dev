@@ -15,6 +15,7 @@ import {
   ActivityTypeDisplayProperties,
   ActivityTypeSettings,
   DiscordtoActivityType,
+  UNKNOWN_ACTIVITY_TYPE_DISPLAY,
 } from '../../types/activityTypes'
 import { PlatformType } from '../../types/integrationEnums'
 
@@ -750,6 +751,10 @@ class ActivityRepository {
     activity: any,
     activityTypes: ActivityTypeSettings,
   ): ActivityTypeDisplayProperties {
+    if (!activity || !activity.platform || !activity.type) {
+      return UNKNOWN_ACTIVITY_TYPE_DISPLAY
+    }
+
     const allActivityTypes = { ...activityTypes.default, ...activityTypes.custom }
 
     if (
@@ -760,16 +765,14 @@ class ActivityRepository {
       activity.type = DiscordtoActivityType.THREAD_MESSAGE
     }
 
-    const displayOptions: ActivityTypeDisplayProperties =
-      allActivityTypes[activity.platform][activity.type]
+    // cloning is for getting ready to interpolation
+    const displayOptions: ActivityTypeDisplayProperties = allActivityTypes[activity.platform]
+      ? lodash.cloneDeep(allActivityTypes[activity.platform][activity.type])
+      : null
 
     if (!displayOptions) {
       // return default display
-      return {
-        default: 'Conducted an activity',
-        short: 'conducted an activity',
-        channel: '',
-      }
+      return UNKNOWN_ACTIVITY_TYPE_DISPLAY
     }
 
     return this.interpolateVariables(displayOptions, activity)
@@ -794,6 +797,7 @@ class ActivityRepository {
     const activityTypes = options.currentTenant.settings[0].dataValues
       .activityTypes as ActivityTypeSettings
 
+    // we're cloning because we'll use the same object to do interpolating
     output.display = this.getDisplayOptions(record, activityTypes)
 
     output.tasks = await record.getTasks({

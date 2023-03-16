@@ -31,7 +31,9 @@ export default async (req, res) => {
 
       tenantUser.tenant.dataValues.settings[0].dataValues = {
         ...tenantUser.tenant.dataValues.settings[0].dataValues,
-        activityTypes: await SettingsRepository.buildActivityTypes(tenantUser.tenant.settings[0].dataValues)
+        activityTypes: await SettingsRepository.buildActivityTypes(
+          tenantUser.tenant.settings[0].dataValues,
+        ),
       }
 
       return tenantUser

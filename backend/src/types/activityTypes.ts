@@ -80,9 +80,16 @@ export enum TwitterActivityType {
 const githubUrl = 'https://github.com'
 
 const defaultGithubChannelFormatter = (channel) => {
-  const channelSplit = channel.split("/")
-  const repoName = `${channelSplit[3]}/${channelSplit[4]}`
-  return `<a href="${githubUrl}/${repoName}" target="_blank">${repoName}</a>`
+  const channelSplit = channel.split('/')
+  const organization = channelSplit[3]
+  const repo = channelSplit[4]
+  return `<a href="${githubUrl}/${organization}/${repo}" target="_blank">${repo}</a>`
+}
+
+export const UNKNOWN_ACTIVITY_TYPE_DISPLAY: ActivityTypeDisplayProperties = {
+  default: 'Conducted an activity',
+  short: 'conducted an activity',
+  channel: '',
 }
 
 export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
@@ -253,7 +260,7 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
     },
     [LinkedinActivityType.REACTION]: {
       default:
-        'reacted with <img src="/images/integrations/linkedin-reactions/{attributes.reactionType}"> on a post <a href="{attributes.postUrl}" target="_blank">{attributes.postBody}</a>',
+        'reacted with <img src="/images/integrations/linkedin-reactions/{attributes.reactionType}.svg"> on a post <a href="{attributes.postUrl}" target="_blank">{attributes.postBody}</a>',
       short: 'reacted',
       channel: '<a href="{attributes.postUrl}" target="_blank">{attributes.postBody}</a>',
     },
@@ -261,16 +268,15 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
   [PlatformType.REDDIT]: {
     [RedditActivityType.COMMENT]: {
       default:
-        'commented on <a href="{url}" target="_blank">{attributes.parentTitle|attributes.greatParentTitle}</a> in <a href="https://reddit.com/r/{channel}" target="_blank">r/{channel}</a>',
+        'commented in subreddit <a href="https://reddit.com/r/{channel}" target="_blank">r/{channel}</a>',
       short: 'commented on a post',
-      channel:
-        '<a href="{url}" target="_blank">{attributes.parentTitle|attributes.greatParentTitle}</a> in <a href="https://reddit.com/r/{channel}" target="_blank">r/{channel}</a>',
+      channel: '<a href="https://reddit.com/r/{channel}" target="_blank">r/{channel}</a>',
     },
     [RedditActivityType.POST]: {
       default:
-        'posted in subreddit <a href="https://reddit.com/r/{channel}" target="_blank">/r/{channel}</a>',
+        'posted in subreddit <a href="https://reddit.com/r/{channel}" target="_blank">r/{channel}</a>',
       short: 'posted in subreddit',
-      channel: '<a href="https://reddit.com/r/{channel}" target="_blank">/r/{channel}</a>',
+      channel: '<a href="https://reddit.com/r/{channel}" target="_blank">r/{channel}</a>',
     },
   },
   [PlatformType.SLACK]: {
@@ -278,28 +284,27 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
       default: 'joined channel {channel}',
       short: 'joined channel',
       channel: '{channel}',
-      formatter :{
+      formatter: {
         channel: (channel) => {
-          if (channel){
+          if (channel) {
             return `<span class="text-brand-500 truncate max-w-2xs">#${channel}</span>`
           }
           return ''
-        }
-      }
+        },
+      },
     },
     [SlackActivityType.MESSAGE]: {
-      default:
-        'sent a message in {channel}',
+      default: 'sent a message in {channel}',
       short: 'sent a message',
       channel: '{channel}',
-      formatter :{
+      formatter: {
         channel: (channel) => {
-          if (channel){
+          if (channel) {
             return `<span class="text-brand-500 truncate max-w-2xs">#${channel}</span>`
           }
           return ''
-        }
-      }
+        },
+      },
     },
   },
   [PlatformType.TWITTER]: {
