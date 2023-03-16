@@ -133,6 +133,8 @@ export const PLANS_CONFIG: PlansConfiguration = KUBE_MODE
       stripePriceEnterprise: process.env.PLAN_STRIPE_PRICES_ENTERPRISE,
       stripeSecretKey: process.env.PLAN_STRIPE_SECRET_KEY,
       stripWebhookSigningSecret: process.env.PLAN_STRIPE_WEBHOOK_SIGNING_SECRET,
+      stripeEagleEyePlanProductId: process.env.PLAN_STRIPE_EAGLE_EYE_PLAN_PRODUCT_ID,
+      stripeGrowthPlanProductId: process.env.PLAN_STRIPE_GROWTH_PLAN_PRODUCT_ID,
     }
 
 export const DEVTO_CONFIG: DevtoConfiguration = KUBE_MODE

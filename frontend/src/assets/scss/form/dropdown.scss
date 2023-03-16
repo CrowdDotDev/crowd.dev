@@ -51,6 +51,10 @@
   &:not(.is-disabled):hover {
     @apply text-black bg-gray-50;
   }
+
+  &.is-disabled i {
+    @apply text-gray-300;
+  }
 }
 
 // Title and separator
@@ -66,6 +70,8 @@
   @apply p-0;
 }
 
-.el-select-dropdown.is-multiple .el-select-dropdown__item.selected, .el-select-dropdown .el-select-dropdown__item.selected {
+.el-select-dropdown.is-multiple
+  .el-select-dropdown__item.selected,
+.el-select-dropdown .el-select-dropdown__item.selected {
   @apply text-brand-500;
 }

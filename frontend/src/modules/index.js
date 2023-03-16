@@ -14,6 +14,7 @@ import report from '@/modules/report/report-module'
 import automation from '@/modules/automation/automation-module'
 import organization from '@/modules/organization/organization-module'
 import task from '@/modules/task/task-module'
+import quickstartGuide from '@/modules/quickstart-guide/quickstart-guide-module'
 
 import communityHelpCenter from '@/premium/community-help-center/community-help-center-module'
 import eagleEye from '@/premium/eagle-eye/eagle-eye-module'
@@ -38,7 +39,8 @@ const modules = {
   user,
   eagleEye,
   communityHelpCenter,
-  organization
+  organization,
+  quickstartGuide
 }
 
 export default modules

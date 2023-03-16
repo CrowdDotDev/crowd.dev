@@ -20,9 +20,22 @@
         <!--          <i class="ri-pencil-line text-gray-400 mr-1" />-->
         <!--          <span>Edit Activity</span></el-dropdown-item-->
         <!--        >-->
-        <el-dropdown-item command="activityDelete">
-          <i class="ri-delete-bin-line text-red-500 mr-1" />
-          <span class="text-red-500">Delete activity</span>
+        <el-dropdown-item
+          command="activityDelete"
+          :disabled="isDeleteLockedForSampleData"
+        >
+          <i
+            class="ri-delete-bin-line mr-1"
+            :class="{
+              'text-red-500': !isDeleteLockedForSampleData
+            }"
+          />
+          <span
+            :class="{
+              'text-red-500': !isDeleteLockedForSampleData
+            }"
+            >Delete activity</span
+          >
         </el-dropdown-item>
       </template>
     </el-dropdown>
@@ -60,6 +73,12 @@ export default {
           this.currentUser
         ).edit === false
       )
+    },
+    isDeleteLockedForSampleData() {
+      return new ActivityPermissions(
+        this.currentTenant,
+        this.currentUser
+      ).destroyLockedForSampleData
     }
   },
   methods: {

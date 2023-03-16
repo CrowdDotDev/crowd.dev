@@ -43,10 +43,18 @@ export class OrganizationService {
   }
 
   static async find(id) {
-    const tenantId = AuthCurrentTenant.get()
+    const sampleTenant =
+      AuthCurrentTenant.getSampleTenantData()
+    const tenantId =
+      sampleTenant?.id || AuthCurrentTenant.get()
 
     const response = await authAxios.get(
-      `/tenant/${tenantId}/organization/${id}`
+      `/tenant/${tenantId}/organization/${id}`,
+      {
+        headers: {
+          Authorization: sampleTenant?.token
+        }
+      }
     )
 
     return response.data
@@ -66,11 +74,19 @@ export class OrganizationService {
       offset
     }
 
-    const tenantId = AuthCurrentTenant.get()
+    const sampleTenant =
+      AuthCurrentTenant.getSampleTenantData()
+    const tenantId =
+      sampleTenant?.id || AuthCurrentTenant.get()
 
     const response = await authAxios.post(
       `/tenant/${tenantId}/organization/query`,
-      body
+      body,
+      {
+        headers: {
+          Authorization: sampleTenant?.token
+        }
+      }
     )
 
     return response.data

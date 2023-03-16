@@ -111,7 +111,9 @@
               <!-- Website -->
               <el-table-column label="Website" width="220">
                 <template #default="scope">
-                  <div class="text-sm">
+                  <div
+                    class="text-sm h-full flex items-center"
+                  >
                     <a
                       v-if="scope.row.website"
                       class="text-gray-500 hover:!text-brand-500"
@@ -135,7 +137,9 @@
                 sortable
               >
                 <template #default="scope">
-                  <div class="text-gray-900 text-sm">
+                  <div
+                    class="text-gray-900 text-sm h-full flex items-center"
+                  >
                     {{
                       formatNumberToCompact(
                         scope.row.memberCount
@@ -171,7 +175,9 @@
                 prop="activityCount"
                 sortable
                 ><template #default="scope">
-                  <div class="text-gray-900 text-sm">
+                  <div
+                    class="text-gray-900 text-sm h-full flex items-center"
+                  >
                     {{
                       formatNumberToCompact(
                         scope.row.activityCount
@@ -190,7 +196,7 @@
                 ><template #default="scope"
                   ><div
                     v-if="scope.row.joinedAt"
-                    class="text-gray-900 text-sm"
+                    class="text-gray-900 text-sm h-full flex items-center"
                   >
                     {{
                       formatDateToTimeAgo(
@@ -209,15 +215,17 @@
                 label="Identities"
                 width="270"
                 ><template #default="scope">
-                  <app-organization-identities
-                    v-if="hasIdentities(scope.row)"
-                    :organization="scope.row"
-                  ></app-organization-identities>
-                  <span v-else class="text-gray-900"
-                    >-</span
-                  ></template
-                ></el-table-column
-              >
+                  <div class="h-full flex items-center">
+                    <app-organization-identities
+                      v-if="hasIdentities(scope.row)"
+                      :organization="scope.row"
+                    ></app-organization-identities>
+                    <span v-else class="text-gray-900"
+                      >-</span
+                    >
+                  </div>
+                </template>
+              </el-table-column>
 
               <!-- Actions -->
               <el-table-column fixed="right">

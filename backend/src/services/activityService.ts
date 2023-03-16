@@ -17,6 +17,8 @@ import { logExecutionTime } from '../utils/logging'
 import { sendNewActivityNodeSQSMessage } from '../serverless/utils/nodeWorkerSQS'
 import { LoggingBase } from './loggingBase'
 import MemberAttributeSettingsRepository from '../database/repositories/memberAttributeSettingsRepository'
+import SettingsRepository from '../database/repositories/settingsRepository'
+import SettingsService from './settingsService'
 
 export default class ActivityService extends LoggingBase {
   options: IServiceOptions
@@ -49,6 +51,15 @@ export default class ActivityService extends LoggingBase {
           ...this.options,
           transaction,
         })
+      }
+
+      // check type exists, if doesn't exist, create a placeholder type with activity type key
+      if (
+        data.platform &&
+        data.type &&
+        !SettingsRepository.activityTypeExists(data.platform, data.type, this.options)
+      ) {
+        await SettingsService.createActivityType({ type: data.type }, this.options, data.platform)
       }
 
       // If a sourceParentId is sent, try to find it in our db

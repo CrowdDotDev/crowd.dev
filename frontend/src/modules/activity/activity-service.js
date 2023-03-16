@@ -70,10 +70,18 @@ export class ActivityService {
   }
 
   static async find(id) {
-    const tenantId = AuthCurrentTenant.get()
+    const sampleTenant =
+      AuthCurrentTenant.getSampleTenantData()
+    const tenantId =
+      sampleTenant?.id || AuthCurrentTenant.get()
 
     const response = await authAxios.get(
-      `/tenant/${tenantId}/activity/${id}`
+      `/tenant/${tenantId}/activity/${id}`,
+      {
+        headers: {
+          Authorization: sampleTenant?.token
+        }
+      }
     )
 
     return response.data
@@ -104,11 +112,19 @@ export class ActivityService {
       offset
     }
 
-    const tenantId = AuthCurrentTenant.get()
+    const sampleTenant =
+      AuthCurrentTenant.getSampleTenantData()
+    const tenantId =
+      sampleTenant?.id || AuthCurrentTenant.get()
 
     const response = await authAxios.post(
       `/tenant/${tenantId}/activity/query`,
-      body
+      body,
+      {
+        headers: {
+          Authorization: sampleTenant?.token
+        }
+      }
     )
 
     return response.data

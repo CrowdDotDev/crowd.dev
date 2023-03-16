@@ -30,6 +30,6 @@ defineProps({
 
 <style lang="scss" scoped>
 img[lazy='loading'] {
-  @apply w-full h-24 bg-gray-200 animate-pulse;
+  @apply w-full bg-gray-200 animate-pulse;
 }
 </style>
