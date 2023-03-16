@@ -1,22 +1,29 @@
 <template>
-  <div class="flex">
-    <component
-      :is="platformConfig.activityMessage"
-      v-if="platformConfig.activityMessage"
-      :activity="activity"
-      :channel-only="channelOnly"
-      :short="short"
-    ></component>
-    <!-- other -->
-    <template v-else>
-      <app-i18n
-        v-if="!channelOnly"
-        :code="computedMessage"
-        :args="computedArgs"
-        :fallback="'entities.activity.fallback'"
-        :class="{ truncate: short }"
-      ></app-i18n>
-    </template>
+  <div>
+    <div>{{ activity.type }}</div>
+    <div
+      class="activity-message"
+      v-html="$sanitize(activity.display.default)"
+    ></div>
+    <div class="flex">
+      <component
+        :is="platformConfig.activityMessage"
+        v-if="platformConfig.activityMessage"
+        :activity="activity"
+        :channel-only="channelOnly"
+        :short="short"
+      ></component>
+      <!-- other -->
+      <template v-else>
+        <app-i18n
+          v-if="!channelOnly"
+          :code="computedMessage"
+          :args="computedArgs"
+          :fallback="'entities.activity.fallback'"
+          :class="{ truncate: short }"
+        ></app-i18n>
+      </template>
+    </div>
   </div>
 </template>
 
@@ -69,3 +76,20 @@ export default {
   }
 }
 </script>
+
+<style lang="scss">
+.activity-message {
+  * {
+    @apply inline-block align-middle;
+  }
+
+  a,
+  span {
+    @apply text-brand-500 truncate max-w-2xs;
+  }
+
+  img {
+    @apply h-4 w-auto;
+  }
+}
+</style>

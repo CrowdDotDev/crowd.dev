@@ -71,7 +71,8 @@ export const vueSanitizeOptions = {
     'thead',
     'tr',
     '<br>',
-    'input'
+    'input',
+    'img'
   ],
   disallowedTagsMode: 'discard',
   allowedAttributes: {

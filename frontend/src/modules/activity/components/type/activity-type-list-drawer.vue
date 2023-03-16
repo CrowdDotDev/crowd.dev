@@ -14,9 +14,12 @@
           </h6>
           <app-activity-type-list class="mb-4">
             <app-activity-type-list-item
+              v-for="custom of customActivityTypes"
+              :key="custom"
               platform="Config conference"
             >
               <template #after>
+                <div>{{ custom }}</div>
                 <app-activity-type-dropdown />
               </template>
             </app-activity-type-list-item>
@@ -72,7 +75,9 @@ import AppActivityTypeList from '@/modules/activity/components/type/activity-typ
 import AppActivityTypeListItem from '@/modules/activity/components/type/activity-type-list-item.vue'
 import AppActivityTypeDropdown from '@/modules/activity/components/type/activity-type-dropdown.vue'
 import AppActivityTypeFormModal from '@/modules/activity/components/type/activity-type-form-modal.vue'
+import { mapGetters } from '@/shared/vuex/vuex.helpers'
 
+// Props & emits
 const props = defineProps({
   modelValue: {
     type: Boolean,
@@ -82,8 +87,11 @@ const props = defineProps({
 
 const emit = defineEmits(['update:modelValue'])
 
-const isFormModalOpen = ref(false)
+// Store
+const { currentTenant } = mapGetters('auth')
 
+// Drawer open
+const isFormModalOpen = ref(false)
 const isVisible = computed({
   get() {
     return props.modelValue
@@ -91,5 +99,20 @@ const isVisible = computed({
   set(value) {
     emit('update:modelValue', value)
   }
+})
+
+const tenantSettings = computed(() => {
+  if (currentTenant.value.settings.length > 0) {
+    return currentTenant.value.settings[0]
+  }
+  return null
+})
+
+const customActivityTypes = computed(() => {
+  if (!tenantSettings.value) {
+    return null
+  }
+  console.log(tenantSettings.value)
+  return tenantSettings
 })
 </script>
