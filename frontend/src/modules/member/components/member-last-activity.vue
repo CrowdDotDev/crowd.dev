@@ -14,7 +14,7 @@
       </el-tooltip>
       <app-activity-message
         :activity="member.lastActivity"
-        :short="true"
+        type="short"
       />
     </div>
     <div class="flex items-center">
