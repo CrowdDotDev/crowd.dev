@@ -21,12 +21,12 @@
             <i class="ri-settings-3-line text-lg mr-2"></i>
             Activity types
           </el-button>
-          <el-button
-            class="btn btn--primary btn--md text-gray-600"
-            @click="isActivityDrawerOpen = true"
-          >
-            Add activity
-          </el-button>
+<!--          <el-button-->
+<!--            class="btn btn&#45;&#45;primary btn&#45;&#45;md text-gray-600"-->
+<!--            @click="isActivityDrawerOpen = true"-->
+<!--          >-->
+<!--            Add activity-->
+<!--          </el-button>-->
         </div>
       </div>
 
