@@ -79,138 +79,100 @@ export enum TwitterActivityType {
 
 const githubUrl = 'https://github.com'
 
+const defaultGithubChannelFormatter = (channel) => {
+  const channelSplit = channel.split("/")
+  const repoName = `${channelSplit[3]}/${channelSplit[4]}`
+  return `<a href="${githubUrl}/${repoName}" target="_blank">${repoName}</a>`
+}
+
 export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
   [PlatformType.GITHUB]: {
     [GithubActivityType.DISCUSSION_STARTED]: {
-      default: 'started a discussion in <a href="{url}" target="_blank">{channel}</a>',
+      default: 'started a discussion in {channel}',
       short: 'started a discussion',
-      channel: '<a href="{url}" target="_blank">{channel}</a>',
+      channel: '{channel}',
       formatter: {
-        channel: (string) => string.split('/')[1],
-        url: (string) => {
-          const split = string.split('/')
-          return `${githubUrl}/${split[3]}/${split[4]}`
-        },
+        channel: defaultGithubChannelFormatter,
       },
     },
     [GithubActivityType.DISCUSSION_COMMENT]: {
-      default: 'commented on a discussion in <a href="{url}" target="_blank">{channel}</a>',
+      default: 'commented on a discussion in {channel}',
       short: 'commented on a discussion',
-      channel: '<a href="{url}" target="_blank">{channel}</a>',
+      channel: '{channel}',
       formatter: {
-        channel: (string) => string.split('/')[1],
-        url: (string) => {
-          const split = string.split('/')
-          return `${githubUrl}/${split[3]}/${split[4]}`
-        },
+        channel: defaultGithubChannelFormatter,
       },
     },
     [GithubActivityType.FORK]: {
-      default: 'forked <a href="{url}" target="_blank">{channel}</a>',
+      default: 'forked {channel}',
       short: 'forked',
-      channel: '<a href="{url}" target="_blank">{channel}</a>',
+      channel: '{channel}',
       formatter: {
-        channel: (string) => string.split('/')[1],
-        url: (string) => {
-          const split = string.split('/')
-          return `${githubUrl}/${split[3]}/${split[4]}`
-        },
+        channel: defaultGithubChannelFormatter,
       },
     },
     [GithubActivityType.ISSUE_CLOSED]: {
-      default: 'closed an issue in <a href="{url}" target="_blank">{channel}</a>',
+      default: 'closed an issue in {channel}',
       short: 'closed an issue',
-      channel: '<a href="{url}" target="_blank">{channel}</a>',
+      channel: '{channel}',
       formatter: {
-        channel: (string) => string.split('/')[1],
-        url: (string) => {
-          const split = string.split('/')
-          return `${githubUrl}/${split[3]}/${split[4]}`
-        },
+        channel: defaultGithubChannelFormatter,
       },
     },
     [GithubActivityType.ISSUE_OPENED]: {
-      default: 'opened a new issue in <a href="{url}" target="_blank">{channel}</a>',
+      default: 'opened a new issue in {channel}',
       short: 'opened an issue',
-      channel: '<a href="{url}" target="_blank">{channel}</a>',
+      channel: '{channel}',
       formatter: {
-        channel: (string) => string.split('/')[1],
-        url: (string) => {
-          const split = string.split('/')
-          return `${githubUrl}/${split[3]}/${split[4]}`
-        },
+        channel: defaultGithubChannelFormatter,
       },
     },
     [GithubActivityType.ISSUE_COMMENT]: {
-      default: 'commented on an issue in <a href="{url}" target="_blank">{channel}</a>',
+      default: 'commented on an issue in {channel}',
       short: 'commented on an issue',
-      channel: '<a href="{url}" target="_blank">{channel}</a>',
+      channel: '{channel}',
       formatter: {
-        channel: (string) => string.split('/')[1],
-        url: (string) => {
-          const split = string.split('/')
-          return `${githubUrl}/${split[3]}/${split[4]}`
-        },
+        channel: defaultGithubChannelFormatter,
       },
     },
     [GithubActivityType.PULL_REQUEST_CLOSED]: {
-      default: 'closed a pull request in <a href="{url}" target="_blank">{channel}</a>',
+      default: 'closed a pull request in {channel}',
       short: 'closed a pull request',
-      channel: '<a href="{url}" target="_blank">{channel}</a>',
+      channel: '{channel}',
       formatter: {
-        channel: (string) => string.split('/')[1],
-        url: (string) => {
-          const split = string.split('/')
-          return `${githubUrl}/${split[3]}/${split[4]}`
-        },
+        channel: defaultGithubChannelFormatter,
       },
     },
     [GithubActivityType.PULL_REQUEST_OPENED]: {
-      default: 'opened a new pull request in <a href="{url}" target="_blank">{channel}</a>',
+      default: 'opened a new pull request in {channel}',
       short: 'opened a pull request',
-      channel: '<a href="{url}" target="_blank">{channel}</a>',
+      channel: '{channel}',
       formatter: {
-        channel: (string) => string.split('/')[1],
-        url: (string) => {
-          const split = string.split('/')
-          return `${githubUrl}/${split[3]}/${split[4]}`
-        },
+        channel: defaultGithubChannelFormatter,
       },
     },
     [GithubActivityType.PULL_REQUEST_COMMENT]: {
-      default: 'commented on a pull request in <a href="{url}" target="_blank">{channel}</a>',
+      default: 'commented on a pull request in {channel}',
       short: 'commented on a pull request',
-      channel: '<a href="{url}" target="_blank">{channel}</a>',
+      channel: '{channel}',
       formatter: {
-        channel: (string) => string.split('/')[1],
-        url: (string) => {
-          const split = string.split('/')
-          return `${githubUrl}/${split[3]}/${split[4]}`
-        },
+        channel: defaultGithubChannelFormatter,
       },
     },
     [GithubActivityType.STAR]: {
-      default: 'starred <a href="{url}" target="_blank">{channel}</a>',
+      default: 'starred {channel}',
       short: 'starred',
-      channel: '<a href="{url}" target="_blank">{channel}</a>',
+      channel: '{channel}',
       formatter: {
-        channel: (string) => string.split('/')[1],
-        url: (string) => {
-          const split = string.split('/')
-          return `${githubUrl}/${split[3]}/${split[4]}`
-        },
+        channel: defaultGithubChannelFormatter,
       },
     },
     [GithubActivityType.UNSTAR]: {
-      default: 'unstarred <a href="{url}" target="_blank">{channel}</a>',
+      default: 'unstarred {channel}',
       short: 'unstarred',
-      channel: '<a href="{url}" target="_blank">{channel}</a>',
+      channel: '{channel}',
       formatter: {
-        channel: (string) => string.split('/')[1],
-        url: (string) => {
-          const split = string.split('/')
-          return `${githubUrl}/${split[3]}/${split[4]}`
-        },
+        channel: defaultGithubChannelFormatter,
       },
     },
   },
@@ -242,7 +204,7 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
     },
     [DiscordtoActivityType.THREAD_MESSAGE]: {
       default:
-        'replied to a message in <span class="text-brand-500 truncate max-w-2xs">thread #{channel}</span> -> <span class="text-brand-500">{attributes.parentChannel}</span>',
+        'replied to a message in thread <span class="text-brand-500 truncate max-w-2xs">#{channel}</span> -> <span class="text-brand-500">{attributes.parentChannel}</span>',
       short: 'replied to a message',
       channel:
         '<span class="text-brand-500 truncate max-w-2xs">thread #{channel}</span> -> <span class="text-brand-500">#{attributes.parentChannel}</span>',
@@ -257,22 +219,22 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
       formatter: {
         channel: (channel) => {
           if (isUrl(channel)) {
-            return `<a href="https://{channel}">{channel}</a>`
+            return `<a href="https://${channel}">${channel}</a>`
           }
-          return `<a href="">{channel}</a>`
+          return `<a href="">${channel}</a>`
         },
       },
     },
     [HackerNewsActivityType.POST]: {
-      default: 'posted mentioning <a href="https://{channel}">{channel}</a>',
+      default: 'posted mentioning {channel}',
       short: 'posted',
       channel: '{channel}',
       formatter: {
         channel: (channel) => {
           if (isUrl(channel)) {
-            return `<a href="https://{channel}">{channel}</a>`
+            return `<a href="https://${channel}">${channel}</a>`
           }
-          return `<a href="">{channel}</a>`
+          return `<a href="">${channel}</a>`
         },
       },
     },
@@ -313,15 +275,31 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
   },
   [PlatformType.SLACK]: {
     [SlackActivityType.JOINED_CHANNEL]: {
-      default: 'joined channel <span class="text-brand-500 truncate max-w-2xs">#{channel}</span>',
+      default: 'joined channel {channel}',
       short: 'joined channel',
-      channel: '<span class="text-brand-500 truncate max-w-2xs">#{channel}</span>',
+      channel: '{channel}',
+      formatter :{
+        channel: (channel) => {
+          if (channel){
+            return `<span class="text-brand-500 truncate max-w-2xs">#${channel}</span>`
+          }
+          return ''
+        }
+      }
     },
     [SlackActivityType.MESSAGE]: {
       default:
-        'sent a message in <span class="text-brand-500 truncate max-w-2xs">#{channel}</span>',
+        'sent a message in {channel}',
       short: 'sent a message',
-      channel: '<span class="text-brand-500 truncate max-w-2xs">#{channel}</span>',
+      channel: '{channel}',
+      formatter :{
+        channel: (channel) => {
+          if (channel){
+            return `<span class="text-brand-500 truncate max-w-2xs">#${channel}</span>`
+          }
+          return ''
+        }
+      }
     },
   },
   [PlatformType.TWITTER]: {
