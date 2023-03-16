@@ -244,7 +244,7 @@ const onExport = async ({ count }) => {
       count
     })
   } catch (error) {
-    console.log(error)
+    console.error(error)
   }
 }
 </script>
@@ -252,7 +252,7 @@ const onExport = async ({ count }) => {
 <style lang="scss" scoped>
 .widget-total-members {
   @apply bg-white shadow rounded-lg p-6;
-  .chart::v-deep {
+  :deep(.chart) {
     div {
       line-height: 100px !important;
       height: auto !important;

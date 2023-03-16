@@ -102,7 +102,7 @@
     @apply p-2;
 
     & .el-select-dropdown__list {
-      @apply flex flex-col gap-1;
+      @apply flex flex-col gap-1 py-0;
       margin: 0 !important;
     }
 

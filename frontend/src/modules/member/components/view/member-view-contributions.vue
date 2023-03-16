@@ -534,7 +534,6 @@ const eventHandlers = {
       edgeToolTipOpacity.value = 0 // hide
       hoveredEdge.value = null
     }
-    console.log('here')
     targetNodeId.value = node
     tooltipOpacity.value = 1 // show
     hoveredNode.value = nodes.value[node].name

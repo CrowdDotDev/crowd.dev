@@ -62,7 +62,7 @@ const connect = async () => {
     )
     await callOnboard()
   } catch (e) {
-    console.log(e)
+    console.error(e)
   }
 }
 

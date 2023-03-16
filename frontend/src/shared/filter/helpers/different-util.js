@@ -1,4 +1,6 @@
-import _ from 'lodash'
+import isEqual from 'lodash/isEqual'
+import isEmpty from 'lodash/isEmpty'
+import xorWith from 'lodash/xorWith'
 
 const filtersAreDifferent = (filterObjA, filterObjB) => {
   if (
@@ -38,9 +40,12 @@ const attributesAreDifferent = (attributeA, attributeB) => {
   }
 
   return Array.isArray(attributeA.value)
-    ? !_(attributeA.value)
-        .xorWith(attributeB.value, _.isEqual)
-        .isEmpty()
+    ? !isEmpty(
+        xorWith(
+          [attributeA.value, attributeB.value],
+          isEqual
+        )
+      )
     : attributeA.value !== attributeB.value
 }
 
@@ -50,14 +55,13 @@ const attributeIsDifferent = (attribute) => {
   }
 
   return Array.isArray(attribute.value)
-    ? !_(attribute.value)
-        .xorWith(attribute.defaultValue, _.isEqual)
-        .isEmpty()
+    ? !isEmpty(
+        xorWith(
+          [attribute.value, attribute.defaultValue],
+          isEqual
+        )
+      )
     : attribute.value !== attribute.defaultValue
 }
 
-export {
-  filtersAreDifferent,
-  attributesAreDifferent,
-  attributeIsDifferent
-}
+export { filtersAreDifferent, attributesAreDifferent }

@@ -111,7 +111,7 @@ export default {
       try {
         await this.doExport()
       } catch (error) {
-        console.log(error)
+        console.error(error)
       }
     }
   }

@@ -101,7 +101,7 @@ export default {
     } catch (error) {
       commit('EXPORT_ERROR')
 
-      console.log(error)
+      console.error(error)
       if (error.response?.status === 403) {
         await ConfirmDialog({
           vertical: true,

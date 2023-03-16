@@ -171,7 +171,7 @@ export default {
 </script>
 
 <style scoped lang="scss">
-.content::v-deep {
+:deep(.content) {
   a {
     @apply text-brand-500;
   }

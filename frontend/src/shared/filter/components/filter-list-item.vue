@@ -94,7 +94,7 @@ import {
   computed,
   watch
 } from 'vue'
-import lodash from 'lodash'
+import isEqual from 'lodash/isEqual'
 import filterOperators from '../helpers/operators'
 import { attributesAreDifferent } from '../helpers/different-util'
 import { formatDate } from '@/utils/date'
@@ -172,7 +172,7 @@ const valueToString = computed(() => {
 })
 
 const shouldShowReset = computed(() => {
-  return !lodash.isEqual(
+  return !isEqual(
     props.filter.defaultValue,
     props.filter.value
   )

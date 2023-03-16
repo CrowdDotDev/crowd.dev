@@ -22,7 +22,6 @@ class IntegrationsConfig {
       devto,
       hackernews,
       reddit,
-      // discourse,
       linkedin,
       stackoverflow,
       zapier,
