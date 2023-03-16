@@ -4,7 +4,8 @@ import { IStepContext, IIntegrationStream, IProcessStreamResults } from "../../.
 import { IntegrationType, PlatformType } from "../../../../types/integrationEnums";
 import { IntegrationServiceBase } from "../integrationServiceBase";
 import { StackOverflowAnswer, StackOverflowAnswerResponse, StackOverflowQuestionsResponse } from "../../types/stackOverflowTypes";
-import getQuestions from "../../usecases/stackoverflow/getQuestions";
+import getQuestionsByTags from "../../usecases/stackoverflow/getQuestions";
+import getQuestionsByKeyword from "../../usecases/stackoverflow/getQuestionsByKeyword";
 import getAnswers from '../../usecases/stackoverflow/getAnswers';
 import Operations from "../../../dbOperations/operations";
 import { AddActivitiesSingle, Member } from '../../types/messageTypes';
@@ -20,6 +21,8 @@ import { RedisCache } from '../../../../utils/redis/redisCache';
 
 
 export class StackOverlflowIntegrationService extends IntegrationServiceBase {
+    static maxRetrospect: number = 3 * 3600
+
     constructor() {
         super(IntegrationType.STACKOVERFLOW, 60);
     }
@@ -39,6 +42,7 @@ export class StackOverlflowIntegrationService extends IntegrationServiceBase {
     const membersCache = new RedisCache('stackoverflow-members', redis);
     context.pipelineData = {
       tags: settings.tags,
+      keywords: settings.keywords,
       nangoId: `${context.integration.tenantId}-${PlatformType.STACKOVERFLOW}`,
       membersCache,
     }
@@ -50,15 +54,29 @@ export class StackOverlflowIntegrationService extends IntegrationServiceBase {
      * @returns an array of streams to process
      */
     async getStreams(context: IStepContext): Promise<IIntegrationStream[]> {
-        return [
+      const tagStreams =  context.pipelineData.tags.map((tag: string) => (
+        {
+          value: `questions_by_tag:${tag}`,
+          metadata: 
             {
-                value: `questions_by_tags:${(context.pipelineData.tags as string[]).join("-")}`,
-                metadata: {
-                    tags: context.pipelineData.tags,
-                    page: 1,
-                },
-            }
-        ]
+              tags: [tag],
+              page: 1,
+            },
+        })
+      )
+
+      const keywordStreams =  context.pipelineData.keywords.map((keyword: string) => (
+        {
+          value: `questions_by_keyword:${keyword}`,
+          metadata: 
+            {
+              keyword,
+              page: 1,
+            },
+        })
+      )
+
+      return [...tagStreams, ...keywordStreams]
     }
 
     /**
@@ -74,28 +92,30 @@ export class StackOverlflowIntegrationService extends IntegrationServiceBase {
         let newStreams: IIntegrationStream[]
 
         switch (stream.value.split(':')[0]) {
-        case 'questions_by_tags':
-            return this.tagsStream(stream, context);
+        case 'questions_by_tag':
+            return this.tagStream(stream, context);
         case 'answers_to_question':
             return this.answersStream(stream, context);
+        case 'questions_by_keyword':
+            return this.keywordStream(stream, context);
         }
     }
 
   /**
-   * Process a stream of type tags. It will fetch the questions with corresponding tags (AND between them) and process them into crowd.dev activities.
+   * Process a stream of type tags. It will fetch the questions with corresponding tags (AND between them) and process them into crowd.dev activities. If only tag is provided, it will fetch all questions with that tag.
    * If there is a new page of questions, it will add it as the nextPageStream.
    * For each question, it will create a new stream to fetch its answers.
    * @param stream the full stream information
    * @param context context passed along worker messages
    * @returns the processed stream results
    */
-  async tagsStream(
+  async tagStream(
     stream: IIntegrationStream,
     context: IStepContext,
   ): Promise<IProcessStreamResults> {
-    const tags = stream.metadata.tags as string[];
+    const tags = stream.metadata.tags as string[]; // it's really just one tag
     const page = stream.metadata.page as number;
-    const response: StackOverflowQuestionsResponse = await getQuestions(
+    const response: StackOverflowQuestionsResponse = await getQuestionsByTags(
       { tags, page, nangoId: context.pipelineData.nangoId },
       context.logger,
     )
@@ -116,9 +136,9 @@ export class StackOverlflowIntegrationService extends IntegrationServiceBase {
     const activities: AddActivitiesSingle[] = [];
 
     for (const question of questions) {
-      activities.push(await this.parseQuestion(context.integration.tenantId, question, context))
+      activities.push(await this.parseQuestion(context.integration.tenantId, question, context, {tag: tags[0], keyword: null}))
     }
-    const lastRecord = activities.length > 0 ? activities[activities.length - 1] : undefined
+    const lastRecord = activities.length > 0 ? activities[0] : undefined
 
     // If we got results, we will want to check the next page
     const nextPageStream: IIntegrationStream =
@@ -131,6 +151,8 @@ export class StackOverlflowIntegrationService extends IntegrationServiceBase {
       value: `answers_to_question:${question.question_id}`,
       metadata: {
         questionId: question.question_id,
+        tag: tags[0],
+        keyword: null,
         page: 1,
       },
     }))
@@ -183,8 +205,8 @@ export class StackOverlflowIntegrationService extends IntegrationServiceBase {
     // Shows if there are more pages to parse
     const has_more = response.has_more;
 
-    const activities = await this.parseAnswers(context.integration.tenantId, answers, context)
-    const lastRecord = activities.length > 0 ? activities[activities.length - 1] : undefined
+    const activities = await this.parseAnswers(context.integration.tenantId, answers, context, {keyword: stream.metadata.keyword, tag: stream.metadata.tag})
+    const lastRecord = activities.length > 0 ? activities[0] : undefined
 
     // If we got results, we will want to check the next page
     const nextPageStream: IIntegrationStream =
@@ -207,6 +229,77 @@ export class StackOverlflowIntegrationService extends IntegrationServiceBase {
     }
   }
 
+  /**
+   * Process a stream of type keywords. It will fetch the questions with correspondin keywords and process them into crowd.dev activities.
+   * If there is a new page of questions, it will add it as the nextPageStream.
+   * For each question, it will create a new stream to fetch its answers.
+   * @param stream the full stream information
+   * @param context context passed along worker messages
+   * @returns the processed stream results
+   */
+  async keywordStream(
+    stream: IIntegrationStream,
+    context: IStepContext,
+  ): Promise<IProcessStreamResults> {
+    const keyword = stream.metadata.keyword as string;
+    const page = stream.metadata.page as number;
+    const response: StackOverflowQuestionsResponse = await getQuestionsByKeyword(
+      { keyword, page, nangoId: context.pipelineData.nangoId },
+      context.logger,
+    )
+
+    const questions = response.items;
+    
+    if ((questions.length as any) === 0) {
+      return {
+        operations: [],
+        lastRecord: undefined,
+        lastRecordTimestamp: undefined,
+        // sleep: 1.5,
+        newStreams: [],
+      }
+    }
+
+    // Shows if there are more pages to parse
+    const has_more = response.has_more;
+    const activities: AddActivitiesSingle[] = [];
+
+    for (const question of questions) {
+      activities.push(await this.parseQuestion(context.integration.tenantId, question, context, { keyword, tag: null }))
+    }
+    const lastRecord = activities.length > 0 ? activities[0] : undefined
+
+    // If we got results, we will want to check the next page
+    const nextPageStream: IIntegrationStream =
+      questions.length > 0 && has_more
+        ? { value: stream.value, metadata: { ...(stream.metadata || {}), page: page + 1  } }
+        : undefined
+
+    // For each question, we need to create a stream to get all its answers
+    const newStreams = questions.map((question) => ({
+      value: `answers_to_question:${question.question_id}`,
+      metadata: {
+        questionId: question.question_id,
+        keyword,
+        tag: null,
+        page: 1,
+      },
+    }))
+
+    return {
+      operations: [
+        {
+          type: Operations.UPSERT_ACTIVITIES_WITH_MEMBERS,
+          records: activities,
+        },
+      ],
+      nextPageStream,
+      lastRecord,
+      lastRecordTimestamp: lastRecord ? lastRecord.timestamp.getTime() : undefined,
+      // sleep: 1.5,
+      newStreams,
+    }
+  }
 
   /**
    * Parse a question from the Stack Overflow API into a crowd.dev activity
@@ -215,7 +308,7 @@ export class StackOverlflowIntegrationService extends IntegrationServiceBase {
    * @param question the question from the StackOverflow API
    * @returns a question parsed as a crowd.dev activity
    */
-  private async parseQuestion(tenantId, question: StackOverflowShallowQuestion, context: IStepContext): Promise<AddActivitiesSingle> {
+  private async parseQuestion(tenantId, question: StackOverflowShallowQuestion, context: IStepContext, {keyword, tag}): Promise<AddActivitiesSingle> {
     context.logger.info(`Parsing question ${question.question_id}`);
     const body = question.body
       ? sanitizeHtml(he.decode(question.body))
@@ -231,9 +324,26 @@ export class StackOverlflowIntegrationService extends IntegrationServiceBase {
       url: `https://stackoverflow.com/questions/${question.question_id}`,
       score: StackOverflowGrid[StackOverflowActivityType.QUESTION].score,
       isKeyAction: StackOverflowGrid[StackOverflowActivityType.QUESTION].isKeyAction,
+      attributes: {
+        tags: question.tags,
+        answerCount: question.answer_count,
+        viewCount: question.view_count,
+        isAnswered: question.is_answered,
+        ...keyword && { keywordMentioned: keyword },
+        ...tag && { tagMentioned: tag },
+      }
     }
 
-    const member: Member | undefined = await this.parseMember(question.owner.user_id, context);
+    let member: Member | undefined = await this.parseMember(question.owner.user_id, context);
+
+    if (member == undefined && question.owner.display_name) {
+      member = {
+        username: {
+          [PlatformType.STACKOVERFLOW]: question.owner.display_name,
+        }
+      }
+    }
+
     return {
       ...activity,
       member
@@ -247,7 +357,7 @@ export class StackOverlflowIntegrationService extends IntegrationServiceBase {
    * @param question the question from the StackOverflow API
    * @returns a question parsed as a crowd.dev activity
    */
-  private async parseAnswers(tenantId, answers: StackOverflowAnswer[], context: IStepContext): Promise<AddActivitiesSingle[]> {
+  private async parseAnswers(tenantId, answers: StackOverflowAnswer[], context: IStepContext, {keyword, tag}): Promise<AddActivitiesSingle[]> {
     let activities: AddActivitiesSingle[] = [];
     for(let i = 0; i < answers.length; i++) {
     const answer = answers[i];
@@ -255,6 +365,13 @@ export class StackOverlflowIntegrationService extends IntegrationServiceBase {
       ? sanitizeHtml(he.decode(answer.body))
       : `<a href="${answer.link}" target="__blank">${answer.link}</a>`
     const member: Member | undefined = await this.parseMember(answer.owner.user_id, context);
+    if (member == undefined && answer.owner.display_name) {
+      member = {
+        username: {
+          [PlatformType.STACKOVERFLOW]: answer.owner.display_name,
+        }
+      }
+    }
     activities.push({
       tenant: tenantId,
       sourceId: answer.answer_id.toString(),
@@ -265,6 +382,10 @@ export class StackOverlflowIntegrationService extends IntegrationServiceBase {
       body,
       score: StackOverflowGrid[StackOverflowActivityType.ANSWER].score,
       isKeyAction: StackOverflowGrid[StackOverflowActivityType.ANSWER].isKeyAction,
+      attributes: {
+        ...keyword && { keywordMentioned: keyword },
+        ...tag && { tagMentioned: tag },
+      },
       member
     })
     }
@@ -272,6 +393,11 @@ export class StackOverlflowIntegrationService extends IntegrationServiceBase {
   }
 
   private async parseMember(userId: number, context: IStepContext): Promise<any> {
+
+    if (userId == undefined || userId == null) {
+      return undefined
+    }
+
     const membersCache: RedisCache = context.pipelineData.membersCache;
 
     context.logger.info(`Parsing member ${userId}`);

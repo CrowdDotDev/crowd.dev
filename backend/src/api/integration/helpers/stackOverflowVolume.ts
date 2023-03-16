@@ -10,27 +10,26 @@ export default async (req, res) => {
     Permissions.values.integrationEdit,
   ])
 
-  if (req.query.tags) {
+  if (req.query.keywords) {
     try {
-      const result = await axios.get(
-        `https://api.stackexchange.com/2.3/questions`,
-        {
-            params: {
-                site: 'stackoverflow',
-                tagged: req.query.tags,
-                filter: 'total',
-                key: STACKEXCHANGE_CONFIG.key
+      const promises = req.query.keywords.split(';').map(keyword => axios.get(
+            `https://api.stackexchange.com/2.3/search/advanced`,
+            {
+                params: {
+                    site: 'stackoverflow',
+                    q: `"${keyword}"`,
+                    filter: 'total',
+                    key: STACKEXCHANGE_CONFIG.key
+                }
             }
-        }
+          )
       )
-      const data = result.data
-      console.log(data)
+      const responses = await Promise.all(promises)
       if (
-        result.status === 200 &&
-        data.total >= 0
+        responses.every((response) => response.status === 200)
       ) {
         console.log('here')
-        return req.responseHandler.success(req, res, data)
+        return req.responseHandler.success(req, res, {total: responses.reduce((acc, response) => acc + response.data.total, 0)})
       }
     } catch (e) {
       return req.responseHandler.error(req, res, new Error400(req.language))

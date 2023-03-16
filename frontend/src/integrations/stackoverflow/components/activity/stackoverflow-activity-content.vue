@@ -14,7 +14,7 @@
     <span
       v-if="displayBody"
       ref="body"
-      class="parsed-body"
+      class="parsed-body stackoverflow-body"
       :class="bodyClass"
       v-html="$sanitize($marked(activity.body))"
     />

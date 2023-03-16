@@ -21,8 +21,7 @@
           >
           <span class="text-2xs font-light text-gray-600">
             Monitor questions and answers related to your
-            community. We will match questions containing
-            all the selected tags.
+            community.
             <a
               href="https://stackoverflow.com/tags"
               target="__blank"
@@ -64,6 +63,13 @@
               ><i class="ri-error-warning-line"></i>
               This tag does not exist
             </span>
+            <span
+              v-if="tag.touched && tag.volumeTooLarge"
+              class="el-form-item__error pt-1 flex gap-1"
+              ><i class="ri-error-warning-line"></i>
+              Volume of questions is too big. Try something
+              more specific.
+            </span>
           </el-form-item>
           <el-tooltip
             :disabled="!isMaxTagsReached"
@@ -81,25 +87,29 @@
               </el-button>
             </div>
           </el-tooltip>
-        </div>
-        <hr class="my-6" />
-        <el-form-item>
-          Estimated number of questions:
-          <b
-            >&nbsp;
-            {{
-              estimatedQuestions.toLocaleString('en-US')
-            }}</b
+          <span class="text-sm font-medium mt-6"
+            >Track keywords</span
           >
           <span
-            v-if="isMaxQuestionsReached"
-            class="el-form-item__error pt-1 flex gap-1"
-            ><i class="ri-error-warning-line"></i> Volume of
-            questions is too large, make sure you select
-            specific terms. If you really want to use these
-            tags, please reach out to us.</span
+            class="text-2xs font-light mb-2 text-gray-600"
           >
-        </el-form-item>
+            Monitor questions and answers containing the
+            selected keywords.
+          </span>
+          <app-keywords-input
+            v-model="modelKeywords"
+            placeholder="Enter keywords"
+            :is-error="!isKeywordsValid"
+          >
+            <template #error>
+              <span class="text-xs text-red-500 flex gap-1"
+                ><i class="ri-error-warning-line"></i>
+                Volume of questions is too big. Try
+                something more specific.</span
+              ></template
+            >
+          </app-keywords-input>
+        </div>
       </el-form>
     </template>
 
@@ -125,6 +135,7 @@
             <app-i18n code="common.cancel"></app-i18n>
           </el-button>
           <el-button
+            :loading="isVolumeUpdating"
             class="btn btn--md btn--primary"
             :class="{
               disabled: !hasFormChanged || connectDisabled
@@ -153,8 +164,7 @@ import {
   defineProps,
   computed,
   ref,
-  watch,
-  onMounted
+  watch
 } from 'vue'
 import { useThrottleFn } from '@vueuse/core'
 import { CrowdIntegrations } from '@/integrations/integrations-config'
@@ -183,30 +193,39 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['update:modelValue'])
-const tags = props.integration.settings?.tags.map((i) => {
-  return {
-    value: i,
-    validating: false,
-    touched: true,
-    valid: true
-  }
-}) || [{ value: '', loading: false }]
+const tags = computed(
+  () =>
+    props.integration.settings?.tags.map((i) => {
+      return {
+        value: i,
+        validating: false,
+        touched: true,
+        valid: true,
+        volumeTooLarge: false
+      }
+    }) || [{ value: '', loading: false }]
+)
 
+const keywords = computed(
+  () => props.integration.settings?.keywords || []
+)
 const calculateVolume = async () => {
-  const tags = model.value.map((i) => i.value).join(';')
   const data = await IntegrationService.stackOverflowVolume(
-    tags
+    modelKeywords.value.join(';')
   )
   return data
 }
 
-const model = ref(JSON.parse(JSON.stringify(tags)))
-const estimatedQuestions = ref(null)
-const isVolumeUpdating = ref(false)
+const model = ref(JSON.parse(JSON.stringify(tags.value)))
+const modelKeywords = ref(
+  JSON.parse(JSON.stringify(keywords.value))
+)
+const keywordsCount = computed(
+  () => modelKeywords.value.length
+)
 
-onMounted(async () => {
-  estimatedQuestions.value = await calculateVolume()
-})
+const isVolumeUpdating = ref(false)
+const isKeywordsValid = ref(true)
 
 const logoUrl =
   CrowdIntegrations.getConfig('stackoverflow').image
@@ -214,9 +233,9 @@ const logoUrl =
 const hasFormChanged = computed(
   () =>
     !isEqual(
-      tags.map((i) => i.value),
+      tags.value.map((i) => i.value),
       model.value.map((i) => i.value)
-    )
+    ) || !isEqual(keywords.value, modelKeywords.value)
 )
 
 const connectDisabled = computed(() => {
@@ -225,12 +244,13 @@ const connectDisabled = computed(() => {
       return (
         s.valid === false ||
         s.value === '' ||
-        s.touched !== true
+        s.touched !== true ||
+        s.volumeTooLarge == true
       )
     }).length > 0 ||
-    isMaxQuestionsReached.value ||
+    isValidating.value ||
     isVolumeUpdating.value ||
-    isValidating.value
+    !isKeywordsValid.value
   )
 })
 
@@ -238,32 +258,23 @@ const isValidating = computed(() => {
   return model.value.filter((s) => s.validating).length > 0
 })
 
-const isMaxQuestionsReached = computed(() => {
-  return (
-    estimatedQuestions.value > MAX_STACK_OVERFLOW_QUESTIONS
-  )
-})
-
-const shouldCalculateVolume = computed(() => {
-  return (
-    model.value.filter((s) => {
-      return (
-        s.valid === false ||
-        s.value === '' ||
-        s.touched !== true
-      )
-    }).length == 0
-  )
-})
+// const isMaxQuestionsReached = computed(() => {
+//   return (
+//     estimatedQuestions.value > MAX_STACK_OVERFLOW_QUESTIONS
+//   )
+// })
 
 watch(
-  () => model.value,
+  () => keywordsCount.value,
   async () => {
     isVolumeUpdating.value = true
-    if (shouldCalculateVolume.value) {
-      estimatedQuestions.value = await calculateVolume()
-    } else if (!isValidating.value) {
-      return
+    if (keywordsCount.value > 0) {
+      const volume = await calculateVolume()
+      console.log(volume)
+      isKeywordsValid.value =
+        volume <= MAX_STACK_OVERFLOW_QUESTIONS
+    } else {
+      isKeywordsValid.value = true
     }
     isVolumeUpdating.value = false
   },
@@ -305,7 +316,11 @@ const addNewTag = (tag) => {
 }
 
 const doReset = () => {
-  model.value = JSON.parse(JSON.stringify(tags))
+  model.value = JSON.parse(JSON.stringify(tags.value))
+  modelKeywords.value = JSON.parse(
+    JSON.stringify(keywords.value)
+  )
+  isKeywordsValid.value = true
 }
 
 const doCancel = () => {
@@ -317,9 +332,14 @@ const handleTagValidation = async (index) => {
   try {
     const tag = model.value[index].value
     model.value[index].validating = true
-    const response =
+    const data =
       await IntegrationService.stackOverflowValidate(tag)
-    console.log(response)
+    const count = data.items[0].count
+    if (count > MAX_STACK_OVERFLOW_QUESTIONS) {
+      model.value[index].volumeTooLarge = true
+    } else {
+      model.value[index].volumeTooLarge = false
+    }
     model.value[index].valid = true
   } catch (e) {
     console.log(e)
@@ -334,7 +354,8 @@ const callOnboard = useThrottleFn(async () => {
   await store.dispatch(
     'integration/doStackOverflowOnboard',
     {
-      tags: model.value.map((i) => i.value)
+      tags: model.value.map((i) => i.value),
+      keywords: modelKeywords.value
     }
   )
 }, 2000)
@@ -347,7 +368,7 @@ const connect = async () => {
       `${tenantId.value}-stackoverflow`
     )
     await callOnboard()
-    emit('update:modelValue', false)
+    isVisible.value = false
   } catch (e) {
     console.log(e)
   }

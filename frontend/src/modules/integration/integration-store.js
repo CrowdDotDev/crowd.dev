@@ -444,7 +444,10 @@ export default {
       }
     },
 
-    async doStackOverflowOnboard({ commit }, { tags }) {
+    async doStackOverflowOnboard(
+      { commit },
+      { tags, keywords }
+    ) {
       // Function to connect to StackOverflow.
 
       try {
@@ -452,7 +455,8 @@ export default {
 
         const integration =
           await IntegrationService.stackOverflowOnboard(
-            tags
+            tags,
+            keywords
           )
 
         commit('CREATE_SUCCESS', integration)

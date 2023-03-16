@@ -590,6 +590,7 @@ export default class IntegrationService {
       platform: PlatformType.STACKOVERFLOW,
       settings: {
         tags: integrationData.tags,
+        keywords: integrationData.keywords,
         updateMemberAttributes: true,
       },
       status: 'in-progress',

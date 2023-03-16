@@ -1,5 +1,33 @@
 <template>
-  <div>
+  <div v-if="!short">
+    <app-i18n
+      :code="computedMessage"
+      :args="computedArgs"
+      :fallback="'entities.activity.fallback'"
+    ></app-i18n>
+    <span
+      v-if="computedIsImportedBecauseOfTag"
+      class="text-gray-500"
+    >
+      tagged with "{{ computedTag }}"
+    </span>
+    <span
+      v-if="
+        computedIsImportedBecauseOfTag &&
+        computedIsImportedBecauseOfKeyword
+      "
+      class="text-gray-500"
+    >
+      and
+    </span>
+    <span
+      v-if="computedIsImportedBecauseOfKeyword"
+      class="text-gray-500"
+    >
+      mentioning "{{ computedKeyword }}"
+    </span>
+  </div>
+  <div v-else class="truncate">
     <app-i18n
       :code="computedMessage"
       :args="computedArgs"
@@ -42,6 +70,20 @@ export default {
     },
     computedArgs() {
       return computedArgs(this.activity)
+    },
+    computedIsImportedBecauseOfTag() {
+      return this.activity.attributes.tagMentioned != null
+    },
+    computedIsImportedBecauseOfKeyword() {
+      return (
+        this.activity.attributes.keywordMentioned != null
+      )
+    },
+    computedTag() {
+      return this.activity.attributes.tagMentioned
+    },
+    computedKeyword() {
+      return this.activity.attributes.keywordMentioned
     }
   }
 }

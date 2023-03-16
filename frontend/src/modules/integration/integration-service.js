@@ -256,14 +256,14 @@ export class IntegrationService {
     return response.data
   }
 
-  static async stackOverflowVolume(tags) {
+  static async stackOverflowVolume(keywords) {
     const tenantId = AuthCurrentTenant.get()
 
     const response = await authAxios.get(
       `/tenant/${tenantId}/stackoverflow-volume`,
       {
         params: {
-          tags
+          keywords
         }
       }
     )
@@ -271,14 +271,15 @@ export class IntegrationService {
     return response.data.total
   }
 
-  static async stackOverflowOnboard(tags) {
+  static async stackOverflowOnboard(tags, keywords) {
     // Getting the tenant_id
     const tenantId = AuthCurrentTenant.get()
     // Calling the authenticate function in the backend.
     const response = await authAxios.post(
       `/tenant/${tenantId}/stackoverflow-connect`,
       {
-        tags
+        tags,
+        keywords
       }
     )
     return response.data

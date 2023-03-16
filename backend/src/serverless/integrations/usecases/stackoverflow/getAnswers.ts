@@ -8,7 +8,7 @@ import { STACKEXCHANGE_CONFIG } from '../../../../config'
 
 /**
  * Get paginated questions from StackOverflow given a set of tags
- * @param input StackOverflowAnswersInput. Made of a Pizzly ID to get the auth token, and a question_ids.
+ * @param input StackOverflowAnswersInput. Made of a Nango ID to get the auth token, and a question_ids.
  * @param logger Logger instance for structured logging
  * @returns A StackOverflow API response containing the answers corresponding to a question with question_id.
  */

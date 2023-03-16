@@ -20,6 +20,12 @@ export interface StackOverflowGetQuestionsInput {
     page: number, // 1-based
 }
 
+export interface StackOverflowGetQuestionsByKeywordInput {
+    keyword: string,
+    nangoId: string,
+    page: number, // 1-based
+}
+
 export interface StackOverflowAnswersInput {
     questionId: string,
     nangoId: string,

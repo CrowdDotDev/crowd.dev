@@ -8,7 +8,7 @@ import { RateLimitError } from '../../../../types/integration/rateLimitError';
 import { StackOverflowUserInput } from '../../types/stackOverflowTypes';
 
 /**
- * Get paginated questions from StackOverflow given a set of tags
+ * Get user from StackOverflow given a user ID.
  * @param input StackOverflowUserInput. Made of a Nango ID to get the auth token, and a userID.
  * @param logger Logger instance for structured logging
  * @returns A Stack Overflow API response containing the user.
