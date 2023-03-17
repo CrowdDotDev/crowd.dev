@@ -87,12 +87,16 @@ const defaultGithubChannelFormatter = (channel) => {
 }
 
 const defaultStackoverflowFormatter = (activity) => {
-  if (activity.attributes.keyword && activity.attributes.tag) {
-    return `<span class="text-gray-500">tagged with "${activity.attributes.tag}" and mentioning "${activity.attributes.keyword}"</span>`
-  } else if (activity.attributes.keyword) {
-    return `<span class="text-gray-500">mentioning "${activity.attributes.keyword}"</span>`
-  } else if (activity.attributes.tag) {
-    return `<span class="text-gray-500">tagged with "${activity.attributes.tag}"</span>`
+  if (activity.attributes.keywordMentioned && activity.attributes.tagMentioned) {
+    return `<span class="text-gray-500">tagged with "${activity.attributes.tagMentioned}" and mentioning "${activity.attributes.keywordMentioned}"</span>`
+  }
+
+  if (activity.attributes.keywordMentioned) {
+    return `<span class="text-gray-500">mentioning "${activity.attributes.keywordMentioned}"</span>`
+  }
+
+  if (activity.attributes.tagMentioned) {
+    return `<span class="text-gray-500">tagged with "${activity.attributes.tagMentioned}"</span>`
   }
 
   return ''
