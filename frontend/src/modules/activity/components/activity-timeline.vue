@@ -12,14 +12,32 @@
           <el-select
             v-model="platform"
             placeholder="All platforms"
+            class="w-40"
           >
+            <template
+              v-if="
+                platform && getPlatformDetails(platform)
+              "
+              #prefix
+            >
+              <img
+                :src="getPlatformDetails(platform).image"
+                class="w-4 h-4"
+              />
+            </template>
             <el-option
               v-for="integration of activeIntegrations"
               :key="integration.id"
               :value="integration.platform"
               :label="integration.label"
               @mouseleave="onSelectMouseLeave"
-            ></el-option>
+            >
+              <img
+                :src="integration.image"
+                class="w-4 h-4 mr-2"
+              />
+              {{ integration.label }}
+            </el-option>
           </el-select>
         </template>
       </el-input>
@@ -265,6 +283,9 @@ const timeAgo = (activity) => {
 const debouncedQueryChange = debounce(async () => {
   await fetchActivities()
 }, 300)
+
+const getPlatformDetails = (platform) =>
+  CrowdIntegrations.getConfig(platform)
 
 watch(query, (newValue, oldValue) => {
   if (newValue !== oldValue) {
