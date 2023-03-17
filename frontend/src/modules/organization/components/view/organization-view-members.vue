@@ -170,6 +170,11 @@ const fetchMembers = async () => {
       orderBy: 'joinedAt_DESC',
       limit: limit.value,
       offset: offset.value
+    },
+    {
+      headers: {
+        'x-crowd-api-version': '1'
+      }
     }
   )
 
