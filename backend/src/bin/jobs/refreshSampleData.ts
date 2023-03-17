@@ -4,11 +4,11 @@ import { NodeWorkerMessageType } from '../../serverless/types/workerTypes'
 import { NodeWorkerMessageBase } from '../../types/mq/nodeWorkerMessageBase'
 
 const job: CrowdJob = {
-  name: 'Integration Data Checker',
+  name: 'Refresh sample data',
   // every day
   // cronTime: '0 0 * * *',
-  // every minute
-  cronTime: '* * * * *',
+  // every hour
+  cronTime: '0 * * * *',
   onTrigger: async () => {
     console.log('triggering!')
     await sendNodeWorkerMessage('refresh-sample-data', {
