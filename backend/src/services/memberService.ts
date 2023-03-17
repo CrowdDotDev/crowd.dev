@@ -412,14 +412,12 @@ export default class MemberService extends LoggingBase {
    */
   async merge(originalId, toMergeId) {
     this.options.log.info({ originalId, toMergeId }, 'Merging members!')
-    const tx = await SequelizeRepository.createTransaction(this.options)
 
-    const repoOptions: IRepositoryOptions = { ...this.options }
-    repoOptions.transaction = tx
+    let tx
 
     try {
-      const original = await MemberRepository.findById(originalId, repoOptions)
-      const toMerge = await MemberRepository.findById(toMergeId, repoOptions)
+      const original = await MemberRepository.findById(originalId, this.options)
+      const toMerge = await MemberRepository.findById(toMergeId, this.options)
 
       if (original.id === toMerge.id) {
         return {
@@ -427,6 +425,10 @@ export default class MemberService extends LoggingBase {
           mergedId: originalId,
         }
       }
+
+      tx = await SequelizeRepository.createTransaction(this.options)
+      const repoOptions: IRepositoryOptions = { ...this.options }
+      repoOptions.transaction = tx
 
       // Get tags and activities as array of ids (findById returns them as models)
       original.tags = original.tags.map((i) => i.get({ plain: true }).id)
@@ -451,6 +453,7 @@ export default class MemberService extends LoggingBase {
       await MemberRepository.destroy(toMergeId, repoOptions, true)
 
       await SequelizeRepository.commitTransaction(tx)
+      this.options.log.info({ originalId, toMergeId }, 'Members merged!')
       return { status: 200, mergedId: originalId }
     } catch (err) {
       this.options.log.error(err, 'Error while merging members!')
