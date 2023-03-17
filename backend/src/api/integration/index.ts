@@ -45,9 +45,18 @@ export default (app) => {
     safeWrap(require('./helpers/hackerNewsCreateOrUpdate').default),
   )
 
-  app.post('/tenant/:tenantId/stackoverflow-connect', safeWrap(require('./helpers/stackOverflowCreateOrUpdate').default))
-  app.get('/tenant/:tenantId/stackoverflow-validate', safeWrap(require('./helpers/stackOverflowValidator').default))
-  app.get('/tenant/:tenantId/stackoverflow-volume', safeWrap(require('./helpers/stackOverflowVolume').default))
+  app.post(
+    '/tenant/:tenantId/stackoverflow-connect',
+    safeWrap(require('./helpers/stackOverflowCreateOrUpdate').default),
+  )
+  app.get(
+    '/tenant/:tenantId/stackoverflow-validate',
+    safeWrap(require('./helpers/stackOverflowValidator').default),
+  )
+  app.get(
+    '/tenant/:tenantId/stackoverflow-volume',
+    safeWrap(require('./helpers/stackOverflowVolume').default),
+  )
 
   if (TWITTER_CONFIG.clientId) {
     /**

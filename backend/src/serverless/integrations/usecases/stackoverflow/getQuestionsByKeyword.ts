@@ -1,5 +1,8 @@
 import axios, { AxiosRequestConfig } from 'axios'
-import { StackOverflowGetQuestionsByKeywordInput, StackOverflowQuestionsResponse } from '../../types/stackOverflowTypes'
+import {
+  StackOverflowGetQuestionsByKeywordInput,
+  StackOverflowQuestionsResponse,
+} from '../../types/stackOverflowTypes'
 import { Logger } from '../../../../utils/logging'
 import { STACKEXCHANGE_CONFIG } from '../../../../config'
 import getToken from '../nango/getToken'
@@ -12,7 +15,10 @@ import { RateLimitError } from '../../../../types/integration/rateLimitError'
  * @param logger Logger instance for structured logging
  * @returns A Stack Overflow API response containing the posts with this keyword.
  */
-async function getQuestions(input: StackOverflowGetQuestionsByKeywordInput, logger: Logger): Promise<StackOverflowQuestionsResponse> {
+async function getQuestions(
+  input: StackOverflowGetQuestionsByKeywordInput,
+  logger: Logger,
+): Promise<StackOverflowQuestionsResponse> {
   try {
     logger.info({ message: 'Fetching questions by keywords from StackOverflow', input })
 
@@ -32,8 +38,8 @@ async function getQuestions(input: StackOverflowGetQuestionsByKeywordInput, logg
         filter: 'withbody',
         access_token: accessToken,
         key: STACKEXCHANGE_CONFIG.key,
+      },
     }
-  }
 
     const response: StackOverflowQuestionsResponse = (await axios(config)).data
     const backoff = response.backoff
@@ -41,9 +47,8 @@ async function getQuestions(input: StackOverflowGetQuestionsByKeywordInput, logg
       if (backoff <= 2) {
         // Wait for backoff time returned by StackOverflow API
         await timeout(backoff * 1000)
-      }
-      else {
-        throw new RateLimitError(backoff, "stackoverflow/getQuestionsByKeyword")
+      } else {
+        throw new RateLimitError(backoff, 'stackoverflow/getQuestionsByKeyword')
       }
     }
     return response

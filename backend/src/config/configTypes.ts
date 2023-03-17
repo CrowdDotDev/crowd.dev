@@ -201,11 +201,10 @@ export interface UnleashConfiguration {
   }
 }
 
-
 export interface StackExchangeConfiguration {
   key: string
 }
 
 export interface SlackAlertingConfiguration {
   url: string
-  }
+}

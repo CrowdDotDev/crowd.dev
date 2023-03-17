@@ -1,13 +1,22 @@
 import sanitizeHtml from 'sanitize-html'
 import he from 'he'
-import { IStepContext, IIntegrationStream, IProcessStreamResults } from "../../../../types/integration/stepResult"
-import { IntegrationType, PlatformType } from "../../../../types/integrationEnums"
-import { IntegrationServiceBase } from "../integrationServiceBase"
-import { StackOverflowAnswer, StackOverflowAnswerResponse, StackOverflowQuestionsResponse, StackOverflowShallowQuestion } from "../../types/stackOverflowTypes"
-import getQuestionsByTags from "../../usecases/stackoverflow/getQuestions"
-import getQuestionsByKeyword from "../../usecases/stackoverflow/getQuestionsByKeyword"
+import {
+  IStepContext,
+  IIntegrationStream,
+  IProcessStreamResults,
+} from '../../../../types/integration/stepResult'
+import { IntegrationType, PlatformType } from '../../../../types/integrationEnums'
+import { IntegrationServiceBase } from '../integrationServiceBase'
+import {
+  StackOverflowAnswer,
+  StackOverflowAnswerResponse,
+  StackOverflowQuestionsResponse,
+  StackOverflowShallowQuestion,
+} from '../../types/stackOverflowTypes'
+import getQuestionsByTags from '../../usecases/stackoverflow/getQuestions'
+import getQuestionsByKeyword from '../../usecases/stackoverflow/getQuestionsByKeyword'
 import getAnswers from '../../usecases/stackoverflow/getAnswers'
-import Operations from "../../../dbOperations/operations"
+import Operations from '../../../dbOperations/operations'
 import { AddActivitiesSingle, Member } from '../../types/messageTypes'
 import { StackOverflowGrid } from '../../grid/stackOverflowGrid'
 import getUser from '../../usecases/stackoverflow/getUser'
@@ -22,14 +31,13 @@ import { StackOverflowActivityType } from '../../../../types/activityTypes'
 
 /* eslint-disable @typescript-eslint/no-unused-vars */
 
-
 export class StackOverlflowIntegrationService extends IntegrationServiceBase {
-    static maxRetrospect: number = 3 * 3600
+  static maxRetrospect: number = 3 * 3600
 
-    constructor() {
-        super(IntegrationType.STACKOVERFLOW, 60)
-    }
-  
+  constructor() {
+    super(IntegrationType.STACKOVERFLOW, 60)
+  }
+
   async createMemberAttributes(context: IStepContext): Promise<void> {
     const service = new MemberAttributeSettingsService(context.repoContext)
     await service.createPredefined(StackOverflowMemberAttributes)
@@ -51,56 +59,50 @@ export class StackOverlflowIntegrationService extends IntegrationServiceBase {
     }
   }
 
-    /**
-     * Get the streams to process. In this case, we need one initial stream per set of tags.
-     * @param context context passed along worker messages
-     * @returns an array of streams to process
-     */
-    async getStreams(context: IStepContext): Promise<IIntegrationStream[]> {
-      const tagStreams =  context.pipelineData.tags.map((tag: string) => (
-        {
-          value: `questions_by_tag:${tag}`,
-          metadata: 
-            {
-              tags: [tag],
-              page: 1,
-            },
-        })
-      )
+  /**
+   * Get the streams to process. In this case, we need one initial stream per set of tags.
+   * @param context context passed along worker messages
+   * @returns an array of streams to process
+   */
+  async getStreams(context: IStepContext): Promise<IIntegrationStream[]> {
+    const tagStreams = context.pipelineData.tags.map((tag: string) => ({
+      value: `questions_by_tag:${tag}`,
+      metadata: {
+        tags: [tag],
+        page: 1,
+      },
+    }))
 
-      const keywordStreams =  context.pipelineData.keywords.map((keyword: string) => (
-        {
-          value: `questions_by_keyword:${keyword}`,
-          metadata: 
-            {
-              keyword,
-              page: 1,
-            },
-        })
-      )
+    const keywordStreams = context.pipelineData.keywords.map((keyword: string) => ({
+      value: `questions_by_keyword:${keyword}`,
+      metadata: {
+        keyword,
+        page: 1,
+      },
+    }))
 
-      return [...tagStreams, ...keywordStreams]
+    return [...tagStreams, ...keywordStreams]
+  }
+
+  /**
+   * Process a stream. It detects the type of stream we have and call the appropiate function
+   * @param stream the full stream information
+   * @param context context passed along worker messages
+   * @returns the processed stream results
+   */
+  async processStream(
+    stream: IIntegrationStream,
+    context: IStepContext,
+  ): Promise<IProcessStreamResults> {
+    switch (stream.value.split(':')[0]) {
+      case 'questions_by_tag':
+        return this.tagStream(stream, context)
+      case 'answers_to_question':
+        return this.answersStream(stream, context)
+      default:
+        return this.keywordStream(stream, context)
     }
-
-    /**
-     * Process a stream. It detects the type of stream we have and call the appropiate function
-     * @param stream the full stream information
-     * @param context context passed along worker messages
-     * @returns the processed stream results
-     */
-    async processStream(
-        stream: IIntegrationStream,
-        context: IStepContext,
-    ): Promise<IProcessStreamResults> {
-        switch (stream.value.split(':')[0]) {
-        case 'questions_by_tag':
-            return this.tagStream(stream, context)
-        case 'answers_to_question':
-            return this.answersStream(stream, context)
-        default:
-            return this.keywordStream(stream, context)
-        }
-    }
+  }
 
   /**
    * Process a stream of type tags. It will fetch the questions with corresponding tags (AND between them) and process them into crowd.dev activities. If only tag is provided, it will fetch all questions with that tag.
@@ -137,14 +139,19 @@ export class StackOverlflowIntegrationService extends IntegrationServiceBase {
     const activities: AddActivitiesSingle[] = []
 
     for (const question of questions) {
-      activities.push(await this.parseQuestion(context.integration.tenantId, question, context, {tag: tags[0], keyword: null}))
+      activities.push(
+        await this.parseQuestion(context.integration.tenantId, question, context, {
+          tag: tags[0],
+          keyword: null,
+        }),
+      )
     }
     const lastRecord = activities.length > 0 ? activities[0] : undefined
 
     // If we got results, we will want to check the next page
     const nextPageStream: IIntegrationStream =
       questions.length > 0 && hasMore
-        ? { value: stream.value, metadata: { ...(stream.metadata || {}), page: page + 1  } }
+        ? { value: stream.value, metadata: { ...(stream.metadata || {}), page: page + 1 } }
         : undefined
 
     // For each question, we need to create a stream to get all its answers
@@ -172,7 +179,6 @@ export class StackOverlflowIntegrationService extends IntegrationServiceBase {
       newStreams,
     }
   }
-
 
   /**
    * Process a stream of type answers. It will fetch the answers to a corresponding question and process them into crowd.dev activities.
@@ -206,13 +212,16 @@ export class StackOverlflowIntegrationService extends IntegrationServiceBase {
     // Shows if there are more pages to parse
     const hasMore = response.has_more
 
-    const activities = await this.parseAnswers(context.integration.tenantId, answers, context, {keyword: stream.metadata.keyword, tag: stream.metadata.tag})
+    const activities = await this.parseAnswers(context.integration.tenantId, answers, context, {
+      keyword: stream.metadata.keyword,
+      tag: stream.metadata.tag,
+    })
     const lastRecord = activities.length > 0 ? activities[0] : undefined
 
     // If we got results, we will want to check the next page
     const nextPageStream: IIntegrationStream =
       answers.length > 0 && hasMore
-        ? { value: stream.value, metadata: { ...(stream.metadata || {}), page: page + 1  } }
+        ? { value: stream.value, metadata: { ...(stream.metadata || {}), page: page + 1 } }
         : undefined
 
     return {
@@ -250,7 +259,7 @@ export class StackOverlflowIntegrationService extends IntegrationServiceBase {
     )
 
     const questions = response.items
-    
+
     if ((questions.length as any) === 0) {
       return {
         operations: [],
@@ -266,14 +275,19 @@ export class StackOverlflowIntegrationService extends IntegrationServiceBase {
     const activities: AddActivitiesSingle[] = []
 
     for (const question of questions) {
-      activities.push(await this.parseQuestion(context.integration.tenantId, question, context, { keyword, tag: null }))
+      activities.push(
+        await this.parseQuestion(context.integration.tenantId, question, context, {
+          keyword,
+          tag: null,
+        }),
+      )
     }
     const lastRecord = activities.length > 0 ? activities[0] : undefined
 
     // If we got results, we will want to check the next page
     const nextPageStream: IIntegrationStream =
       questions.length > 0 && hasMore
-        ? { value: stream.value, metadata: { ...(stream.metadata || {}), page: page + 1  } }
+        ? { value: stream.value, metadata: { ...(stream.metadata || {}), page: page + 1 } }
         : undefined
 
     // For each question, we need to create a stream to get all its answers
@@ -309,7 +323,12 @@ export class StackOverlflowIntegrationService extends IntegrationServiceBase {
    * @param question the question from the StackOverflow API
    * @returns a question parsed as a crowd.dev activity
    */
-  private async parseQuestion(tenantId, question: StackOverflowShallowQuestion, context: IStepContext, {keyword, tag}): Promise<AddActivitiesSingle> {
+  private async parseQuestion(
+    tenantId,
+    question: StackOverflowShallowQuestion,
+    context: IStepContext,
+    { keyword, tag },
+  ): Promise<AddActivitiesSingle> {
     context.logger.info(`Parsing question ${question.question_id}`)
     const body = question.body
       ? sanitizeHtml(he.decode(question.body))
@@ -330,9 +349,9 @@ export class StackOverlflowIntegrationService extends IntegrationServiceBase {
         answerCount: question.answer_count,
         viewCount: question.view_count,
         isAnswered: question.is_answered,
-        ...keyword && { keywordMentioned: keyword },
-        ...tag && { tagMentioned: tag },
-      }
+        ...(keyword && { keywordMentioned: keyword }),
+        ...(tag && { tagMentioned: tag }),
+      },
     }
 
     let member: Member | undefined = await this.parseMember(question.owner.user_id, context)
@@ -341,60 +360,65 @@ export class StackOverlflowIntegrationService extends IntegrationServiceBase {
       member = {
         username: {
           [PlatformType.STACKOVERFLOW]: question.owner.display_name,
-        }
+        },
       }
     }
 
     return {
       ...activity,
-      member
+      member,
     }
   }
 
-   /**
+  /**
    * Parse a question from the Stack Overflow API into a crowd.dev activity
    * @param tenantId the tenant ID
    * @param tags questions with these tags will be fetched
    * @param question the question from the StackOverflow API
    * @returns a question parsed as a crowd.dev activity
    */
-  private async parseAnswers(tenantId, answers: StackOverflowAnswer[], context: IStepContext, {keyword, tag}): Promise<AddActivitiesSingle[]> {
+  private async parseAnswers(
+    tenantId,
+    answers: StackOverflowAnswer[],
+    context: IStepContext,
+    { keyword, tag },
+  ): Promise<AddActivitiesSingle[]> {
     const activities: AddActivitiesSingle[] = []
-    for(let i = 0; i < answers.length; i++) {
-    const answer = answers[i]
-    const body = answer.body
-      ? sanitizeHtml(he.decode(answer.body))
-      : `<a href="${answer.link}" target="__blank">${answer.link}</a>`
-    let member: Member | undefined = await this.parseMember(answer.owner.user_id, context)
-    if (member === undefined && answer.owner.display_name) {
-      member = {
-        username: {
-          [PlatformType.STACKOVERFLOW]: answer.owner.display_name,
+    for (let i = 0; i < answers.length; i++) {
+      const answer = answers[i]
+      const body = answer.body
+        ? sanitizeHtml(he.decode(answer.body))
+        : `<a href="${answer.link}" target="__blank">${answer.link}</a>`
+      let member: Member | undefined = await this.parseMember(answer.owner.user_id, context)
+      if (member === undefined && answer.owner.display_name) {
+        member = {
+          username: {
+            [PlatformType.STACKOVERFLOW]: answer.owner.display_name,
+          },
         }
       }
-    }
-    activities.push({
-      tenant: tenantId,
-      sourceId: answer.answer_id.toString(),
-      sourceParentId: i === 0 ? answer.question_id.toString() : answers[i-1].answer_id.toString(),
-      type: StackOverflowActivityType.ANSWER,
-      platform: PlatformType.STACKOVERFLOW,
-      timestamp: new Date(answer.creation_date * 1000),
-      body,
-      score: StackOverflowGrid[StackOverflowActivityType.ANSWER].score,
-      isKeyAction: StackOverflowGrid[StackOverflowActivityType.ANSWER].isKeyAction,
-      attributes: {
-        ...keyword && { keywordMentioned: keyword },
-        ...tag && { tagMentioned: tag },
-      },
-      member
-    })
+      activities.push({
+        tenant: tenantId,
+        sourceId: answer.answer_id.toString(),
+        sourceParentId:
+          i === 0 ? answer.question_id.toString() : answers[i - 1].answer_id.toString(),
+        type: StackOverflowActivityType.ANSWER,
+        platform: PlatformType.STACKOVERFLOW,
+        timestamp: new Date(answer.creation_date * 1000),
+        body,
+        score: StackOverflowGrid[StackOverflowActivityType.ANSWER].score,
+        isKeyAction: StackOverflowGrid[StackOverflowActivityType.ANSWER].isKeyAction,
+        attributes: {
+          ...(keyword && { keywordMentioned: keyword }),
+          ...(tag && { tagMentioned: tag }),
+        },
+        member,
+      })
     }
     return activities
   }
 
   private async parseMember(userId: number, context: IStepContext): Promise<any> {
-
     if (userId === undefined || userId == null) {
       return undefined
     }
@@ -431,40 +455,40 @@ export class StackOverlflowIntegrationService extends IntegrationServiceBase {
       },
       context.logger,
     )
-   return {
-    username: {
-      [PlatformType.STACKOVERFLOW]: user.display_name,
-    },
-    attributes: {
-      [MemberAttributeName.SOURCE_ID]: {
-          [PlatformType.STACKOVERFLOW]: user.user_id.toString(),
+    return {
+      username: {
+        [PlatformType.STACKOVERFLOW]: user.display_name,
       },
-      ...(user.profile_image && {
-        [MemberAttributeName.AVATAR_URL]: {
-          [PlatformType.STACKOVERFLOW]: user.profile_image,
-        }
-      }),
-      ...(user.link && {
-        [MemberAttributeName.URL]: {
-          [PlatformType.STACKOVERFLOW]: user.link,
+      attributes: {
+        [MemberAttributeName.SOURCE_ID]: {
+          [PlatformType.STACKOVERFLOW]: user.user_id.toString(),
         },
-      }),
-      ...(user.location && {
-        [MemberAttributeName.LOCATION]: {
-          [PlatformType.STACKOVERFLOW]: user.location,
-        },
-      }),
-      ...(user.about_me && {
-        [MemberAttributeName.BIO]: {
-          [PlatformType.STACKOVERFLOW]: user.about_me,
-        },
-      }),
-       ...(user.website_url && {
-        [MemberAttributeName.WEBSITE_URL]: {
-          [PlatformType.STACKOVERFLOW]: user.website_url,
-        },
-      }),
-  },
-   }
+        ...(user.profile_image && {
+          [MemberAttributeName.AVATAR_URL]: {
+            [PlatformType.STACKOVERFLOW]: user.profile_image,
+          },
+        }),
+        ...(user.link && {
+          [MemberAttributeName.URL]: {
+            [PlatformType.STACKOVERFLOW]: user.link,
+          },
+        }),
+        ...(user.location && {
+          [MemberAttributeName.LOCATION]: {
+            [PlatformType.STACKOVERFLOW]: user.location,
+          },
+        }),
+        ...(user.about_me && {
+          [MemberAttributeName.BIO]: {
+            [PlatformType.STACKOVERFLOW]: user.about_me,
+          },
+        }),
+        ...(user.website_url && {
+          [MemberAttributeName.WEBSITE_URL]: {
+            [PlatformType.STACKOVERFLOW]: user.website_url,
+          },
+        }),
+      },
+    }
   }
 }

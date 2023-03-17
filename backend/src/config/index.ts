@@ -26,7 +26,7 @@ import {
   EagleEyeConfiguration,
   UnleashConfiguration,
   StackExchangeConfiguration,
-  SlackAlertingConfiguration
+  SlackAlertingConfiguration,
 } from './configTypes'
 
 // TODO-kube
@@ -231,12 +231,11 @@ export const EAGLE_EYE_CONFIG: EagleEyeConfiguration = KUBE_MODE
 
 export const UNLEASH_CONFIG: UnleashConfiguration = config.get<UnleashConfiguration>('unleash')
 
-export const STACKEXCHANGE_CONFIG: StackExchangeConfiguration = config.get<StackExchangeConfiguration>(
-  'stackexchange') ?? {
-    key: process.env.STACKEXCHANGE_KEY
+export const STACKEXCHANGE_CONFIG: StackExchangeConfiguration =
+  config.get<StackExchangeConfiguration>('stackexchange') ?? {
+    key: process.env.STACKEXCHANGE_KEY,
   }
 
-  
 export const SLACK_ALERTING_CONFIG: SlackAlertingConfiguration = KUBE_MODE
   ? config.get<SlackAlertingConfiguration>('slackAlerting')
   : {

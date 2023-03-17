@@ -17,11 +17,11 @@ export default async (req, res) => {
       const result = await axios.get(
         `https://api.stackexchange.com/2.3/tags/${req.query.tag}/info`,
         {
-            params: {
-                site: 'stackoverflow',
-                key: STACKEXCHANGE_CONFIG.key
-            }
-        }
+          params: {
+            site: 'stackoverflow',
+            key: STACKEXCHANGE_CONFIG.key,
+          },
+        },
       )
       const data = result.data as StackOverflowTagsResponse
       console.log(data)

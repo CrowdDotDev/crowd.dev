@@ -1,5 +1,8 @@
 import axios, { AxiosRequestConfig } from 'axios'
-import { StackOverflowAnswersInput, StackOverflowAnswerResponse } from '../../types/stackOverflowTypes'
+import {
+  StackOverflowAnswersInput,
+  StackOverflowAnswerResponse,
+} from '../../types/stackOverflowTypes'
 import { Logger } from '../../../../utils/logging'
 import getToken from '../nango/getToken'
 import { timeout } from '../../../../utils/timing'
@@ -12,7 +15,10 @@ import { STACKEXCHANGE_CONFIG } from '../../../../config'
  * @param logger Logger instance for structured logging
  * @returns A StackOverflow API response containing the answers corresponding to a question with question_id.
  */
-async function getAnswers(input: StackOverflowAnswersInput, logger: Logger): Promise<StackOverflowAnswerResponse> {
+async function getAnswers(
+  input: StackOverflowAnswersInput,
+  logger: Logger,
+): Promise<StackOverflowAnswerResponse> {
   try {
     logger.info({ message: 'Fetching answers from StackOverflow', input })
 
@@ -32,7 +38,7 @@ async function getAnswers(input: StackOverflowAnswersInput, logger: Logger): Pro
         filter: 'withbody',
         access_token: accessToken,
         key: STACKEXCHANGE_CONFIG.key,
-      }
+      },
     }
 
     const response: StackOverflowAnswerResponse = (await axios(config)).data
@@ -42,14 +48,16 @@ async function getAnswers(input: StackOverflowAnswersInput, logger: Logger): Pro
         // Wait for backoff time returned by StackOverflow API
         // eslint-disable-next-line no-promise-executor-return
         await timeout(backoff * 1000)
-      }
-      else {
-        throw new RateLimitError(backoff, "stackoverflow/getAnswers")
+      } else {
+        throw new RateLimitError(backoff, 'stackoverflow/getAnswers')
       }
     }
     return response
   } catch (err) {
-    logger.error({ err, input }, 'Error while getting StackOverflow answers corresponding to a question')
+    logger.error(
+      { err, input },
+      'Error while getting StackOverflow answers corresponding to a question',
+    )
     throw err
   }
 }

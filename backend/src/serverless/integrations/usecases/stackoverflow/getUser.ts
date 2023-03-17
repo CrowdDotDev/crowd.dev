@@ -1,5 +1,9 @@
 import axios, { AxiosRequestConfig } from 'axios'
-import { StackOverflowUserResponse, StackOverflowUser, StackOverflowUserInput } from '../../types/stackOverflowTypes'
+import {
+  StackOverflowUserResponse,
+  StackOverflowUser,
+  StackOverflowUserInput,
+} from '../../types/stackOverflowTypes'
 import { Logger } from '../../../../utils/logging'
 import { STACKEXCHANGE_CONFIG } from '../../../../config'
 import getToken from '../nango/getToken'
@@ -26,7 +30,7 @@ async function getUser(input: StackOverflowUserInput, logger: Logger): Promise<S
         site: 'stackoverflow',
         access_token: accessToken,
         key: STACKEXCHANGE_CONFIG.key,
-        filter: '!b8M4F5DX_TlrUr'
+        filter: '!b8M4F5DX_TlrUr',
       },
     }
 
@@ -36,14 +40,16 @@ async function getUser(input: StackOverflowUserInput, logger: Logger): Promise<S
       if (backoff <= 2) {
         // Wait for backoff time returned by StackOverflow API
         await timeout(backoff * 1000)
-      }
-      else {
-        throw new RateLimitError(backoff, "stackoverflow/getUser")
+      } else {
+        throw new RateLimitError(backoff, 'stackoverflow/getUser')
       }
     }
     return response.items[0]
   } catch (err) {
-    logger.error({ err, userId: input.userId }, 'Error while getting a member from StackOverflow API')
+    logger.error(
+      { err, userId: input.userId },
+      'Error while getting a member from StackOverflow API',
+    )
     throw err
   }
 }
