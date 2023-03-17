@@ -70,7 +70,7 @@ class ReportRepository {
       },
     )
 
-    if (data.widgets){
+    if (data.widgets) {
       await record.setWidgets(data.widgets || [], {
         transaction,
       })
