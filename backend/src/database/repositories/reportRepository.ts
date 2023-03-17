@@ -70,9 +70,11 @@ class ReportRepository {
       },
     )
 
-    await record.setWidgets(data.widgets || [], {
-      transaction,
-    })
+    if (data.widgets) {
+      await record.setWidgets(data.widgets || [], {
+        transaction,
+      })
+    }
 
     await this._createAuditLog(AuditLogRepository.UPDATE, record, data, options)
 

@@ -36,9 +36,11 @@
         class="!px-5"
         @mouseleave="onSelectMouseLeave"
       >
-        <span class="text-ellipsis overflow-hidden">
-          {{ record.label }}
-        </span>
+        <slot name="option" :item="record">
+          <span class="text-ellipsis overflow-hidden">
+            {{ record.label }}
+          </span>
+        </slot>
       </el-option>
     </Fragment>
     <div
