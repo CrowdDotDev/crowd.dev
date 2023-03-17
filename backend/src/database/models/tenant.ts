@@ -39,12 +39,15 @@ export default (sequelize, DataTypes) => {
           isIn: [['<200', '200-1000', '1000-5000', '5000-25000', '>25000']],
         },
       },
+      reasonForUsingCrowd: {
+        type: DataTypes.STRING(50),
+      },
       plan: {
         type: DataTypes.STRING(255),
         allowNull: false,
         validate: {
           notEmpty: true,
-          isIn: [[plans.essential, plans.growth]],
+          isIn: [[plans.essential, plans.growth, plans.eagleEye]],
         },
         defaultValue: plans.essential,
       },

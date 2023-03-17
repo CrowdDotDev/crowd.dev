@@ -83,6 +83,11 @@ export default (sequelize) => {
           len: [0, 255],
         },
       },
+      isTeamOrganization: {
+        type: DataTypes.BOOLEAN,
+        defaultValue: false,
+        allowNull: false,
+      },
     },
     {
       indexes: [

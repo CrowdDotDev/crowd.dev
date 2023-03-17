@@ -25,7 +25,8 @@ import {
   EnrichmentConfiguration,
   EagleEyeConfiguration,
   UnleashConfiguration,
-  StackExchangeConfiguration
+  StackExchangeConfiguration,
+  SlackAlertingConfiguration
 } from './configTypes'
 
 // TODO-kube
@@ -133,6 +134,8 @@ export const PLANS_CONFIG: PlansConfiguration = KUBE_MODE
       stripePriceEnterprise: process.env.PLAN_STRIPE_PRICES_ENTERPRISE,
       stripeSecretKey: process.env.PLAN_STRIPE_SECRET_KEY,
       stripWebhookSigningSecret: process.env.PLAN_STRIPE_WEBHOOK_SIGNING_SECRET,
+      stripeEagleEyePlanProductId: process.env.PLAN_STRIPE_EAGLE_EYE_PLAN_PRODUCT_ID,
+      stripeGrowthPlanProductId: process.env.PLAN_STRIPE_GROWTH_PLAN_PRODUCT_ID,
     }
 
 export const DEVTO_CONFIG: DevtoConfiguration = KUBE_MODE
@@ -149,14 +152,7 @@ export const TWITTER_CONFIG: TwitterConfiguration = KUBE_MODE
       limitResetFrequencyDays: Number(process.env.TWITTER_LIMIT_RESET_FREQUENCY_DAYS),
     }
 
-export const SLACK_CONFIG: SlackConfiguration = KUBE_MODE
-  ? config.get<SlackConfiguration>('slack')
-  : {
-      clientId: process.env.SLACK_CLIENT_ID,
-      clientSecret: process.env.SLACK_CLIENT_SECRET,
-      maxRetrospectInSeconds: Number(process.env.SLACK_MAX_RETROSPECT_IN_SECONDS || 3600),
-      globalLimit: Number(process.env.SLACK_GLOBAL_LIMIT || Infinity),
-    }
+export const SLACK_CONFIG: SlackConfiguration = config.get<SlackConfiguration>('slack')
 
 export const GOOGLE_CONFIG: GoogleConfiguration = KUBE_MODE
   ? config.get<GoogleConfiguration>('google')
@@ -239,3 +235,10 @@ export const STACKEXCHANGE_CONFIG: StackExchangeConfiguration = config.get<Stack
   'stackexchange') ?? {
     key: process.env.STACKEXCHANGE_KEY
   }
+
+  
+export const SLACK_ALERTING_CONFIG: SlackAlertingConfiguration = KUBE_MODE
+  ? config.get<SlackAlertingConfiguration>('slackAlerting')
+  : {
+      url: process.env.SLACK_ALERTING_URL,
+    }

@@ -3,6 +3,7 @@
     <el-button
       v-if="buttonVisible && hasPermissionToEdit"
       class="btn btn--transparent btn--md"
+      :disabled="isCreateLockedForSampleData"
       @click="$emit('open')"
     >
       <i class="ri-lg ri-settings-2-line mr-1" />
@@ -217,6 +218,12 @@ export default {
       }
 
       return shouldConfirm
+    },
+    isCreateLockedForSampleData() {
+      return new ConversationPermissions(
+        this.currentTenant,
+        this.currentUser
+      ).createLockedForSampleData
     }
   },
 

@@ -29,6 +29,9 @@ export default ({
   } else if (type === 'success') {
     iconColorClass = 'text-green-500'
     iconBgColorClass = 'bg-green-100'
+  } else if (type === 'notification') {
+    iconColorClass = 'text-blue-600'
+    iconBgColorClass = 'bg-blue-50'
   }
 
   let content = h(
@@ -52,10 +55,26 @@ export default ({
           )
         ]
       ),
-      h('p', {
-        innerHTML: message,
-        class: 'text-gray-500 text-sm'
-      })
+      h('div', [
+        h('p', {
+          innerHTML: message,
+          class: 'text-gray-500 text-sm'
+        }),
+        highlightedInfo
+          ? h(
+              'div',
+              {
+                class:
+                  'text-2xs text-yellow-600 flex items-center mt-4'
+              },
+              [
+                h('div', {
+                  innerHTML: highlightedInfo
+                })
+              ]
+            )
+          : undefined
+      ])
     ]
   )
 

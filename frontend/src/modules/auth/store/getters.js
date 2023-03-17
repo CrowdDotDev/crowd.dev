@@ -5,6 +5,12 @@ import _get from 'lodash/get'
 export default {
   currentUser: (state) => state.currentUser,
   currentTenant: (state) => state.currentTenant,
+  currentTenantUser: (state) => {
+    const tenantId = state.currentTenant?.id
+    return state.currentUser?.tenants.find(
+      (t) => t.tenantId === tenantId
+    )
+  },
   currentUserEmail: (state, getters) =>
     getters.currentUser ? getters.currentUser.email : null,
   currentUserFullName: (state, getters) =>

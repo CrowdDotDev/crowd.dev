@@ -34,15 +34,28 @@ export default () => {
         state.list.ids.length = 0
       }
 
-      state.pagination =
-        payload && payload.keepPagination
-          ? state.pagination
-          : {
-              currentPage: 1,
-              pageSize:
-                state.pagination &&
-                state.pagination.pageSize
-            }
+      // Use active view pagination
+      if (
+        payload?.activeView?.pagination &&
+        !payload?.keepPagination
+      ) {
+        payload.activeView.pagination = {
+          currentPage: 1,
+          pageSize: payload.activeView.pagination.pageSize
+        }
+      }
+
+      // Use root state pagination
+      if (
+        !payload?.activeView &&
+        state.pagination &&
+        !payload?.keepPagination
+      ) {
+        state.pagination = {
+          currentPage: 1,
+          pageSize: state.pagination.pageSize
+        }
+      }
     },
 
     FETCH_SUCCESS(state, payload) {

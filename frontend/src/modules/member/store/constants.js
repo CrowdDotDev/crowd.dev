@@ -2,6 +2,19 @@ import { formatDate } from '@/utils/date'
 
 export const INITIAL_PAGE_SIZE = 20
 
+export const DEFAULT_MEMBER_FILTERS = [
+  {
+    isTeamMember: {
+      not: true
+    }
+  },
+  {
+    isOrganization: {
+      not: true
+    }
+  }
+]
+
 export const ACTIVITY_COUNT_BIGGER_THAN_0_FILTER = {
   activityCount: {
     name: 'activityCount',
@@ -18,26 +31,9 @@ export const ACTIVITY_COUNT_BIGGER_THAN_0_FILTER = {
   }
 }
 
-export const NOT_TEAM_MEMBER_FILTER = {
-  isTeamMember: {
-    name: 'isTeamMember',
-    label: 'Team member',
-    custom: false,
-    props: {},
-    defaultValue: true,
-    value: true,
-    defaultOperator: 'not',
-    operator: 'not',
-    type: 'boolean',
-    expanded: false,
-    show: false
-  }
-}
-
 export const INITIAL_VIEW_ALL_FILTER = {
   operator: 'and',
   attributes: {
-    ...NOT_TEAM_MEMBER_FILTER,
     ...ACTIVITY_COUNT_BIGGER_THAN_0_FILTER
   }
 }
@@ -45,7 +41,6 @@ export const INITIAL_VIEW_ALL_FILTER = {
 export const INITIAL_VIEW_ACTIVE_FILTER = {
   operator: 'and',
   attributes: {
-    ...NOT_TEAM_MEMBER_FILTER,
     score: {
       name: 'score',
       label: 'Engagement Level',
@@ -110,7 +105,6 @@ export const INITIAL_VIEW_ACTIVE_FILTER = {
 export const INITIAL_VIEW_SLIPPING_AWAY_FILTER = {
   operator: 'and',
   attributes: {
-    ...NOT_TEAM_MEMBER_FILTER,
     score: {
       name: 'score',
       label: 'Engagement Level',
@@ -190,7 +184,6 @@ export const INITIAL_VIEW_SLIPPING_AWAY_FILTER = {
 export const INITIAL_VIEW_RECENT_FILTER = {
   operator: 'and',
   attributes: {
-    ...NOT_TEAM_MEMBER_FILTER,
     joinedAt: {
       name: 'joinedAt',
       label: 'Joined date',
@@ -247,7 +240,6 @@ export const INITIAL_VIEW_TEAM_MEMBERS_FILTER = {
 export const INITIAL_VIEW_INFLUENTIAL_FILTER = {
   operator: 'and',
   attributes: {
-    ...NOT_TEAM_MEMBER_FILTER,
     isTeamMember: {
       name: 'reach',
       label: 'Reach',

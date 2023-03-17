@@ -24,6 +24,7 @@ import App from '@/app.vue'
 import { vueSanitizeOptions } from '@/plugins/sanitize'
 import marked from '@/plugins/marked'
 import VueLazyLoad from 'vue3-lazyload'
+import { createPinia } from 'pinia'
 
 i18nInit()
 /**
@@ -36,6 +37,7 @@ i18nInit()
   }
 
   const app = createApp(App)
+  const pinia = createPinia()
   const router = await createRouter()
   const store = await createStore(LogRocket)
 
@@ -73,6 +75,7 @@ i18nInit()
   })
   app.use(VNetworkGraph)
 
+  app.use(pinia)
   app.use(store).use(router).mount('#app')
 
   if (window.Cypress) {

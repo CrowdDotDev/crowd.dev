@@ -70,6 +70,19 @@
               </el-tooltip>
             </div>
             <div
+              v-else-if="integration.status === 'no-data'"
+            >
+              <el-tooltip
+                effect="dark"
+                content="Not getting activities"
+                placement="top-start"
+              >
+                <div
+                  class="ri-error-warning-line text-base text-red-500"
+                ></div>
+              </el-tooltip>
+            </div>
+            <div
               v-else-if="
                 integration.status === 'pending-action'
               "
@@ -81,6 +94,21 @@
               >
                 <div
                   class="ri-alert-fill text-base text-yellow-500"
+                ></div>
+              </el-tooltip>
+            </div>
+            <div
+              v-else-if="
+                integration.status === 'waiting-approval'
+              "
+            >
+              <el-tooltip
+                effect="dark"
+                content="Waiting for approval"
+                placement="top-start"
+              >
+                <div
+                  class="ri-time-line text-base text-gray-500"
                 ></div>
               </el-tooltip>
             </div>

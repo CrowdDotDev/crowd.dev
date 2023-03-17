@@ -247,7 +247,7 @@ export default {
   },
   // Fetch members count
   async getMembersCount({ state }) {
-    return MemberService.list(null, '', 1, 0, false)
+    return MemberService.list(null, '', 1, 0, false, true)
       .then(({ count }) => {
         state.members.total = count
         return Promise.resolve(count)
@@ -268,7 +268,7 @@ export default {
   async getActiveOrganizations({ commit, state }) {
     state.organizations.loadingActive = true
     const { platform, period } = state.filters
-    return OrganizationService.query(
+    return OrganizationService.list(
       {
         and: [
           {
@@ -313,7 +313,7 @@ export default {
   async getRecentOrganizations({ commit, state }) {
     state.organizations.loadingRecent = true
     const { platform, period } = state.filters
-    return OrganizationService.query(
+    return OrganizationService.list(
       {
         and: [
           {

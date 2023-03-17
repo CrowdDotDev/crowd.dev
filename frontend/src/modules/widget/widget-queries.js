@@ -2,7 +2,13 @@ import moment from 'moment'
 
 // Add platform and team members filters to cube query filters array
 const getCubeFilters = ({ platforms, hasTeamMembers }) => {
-  let filters = []
+  let filters = [
+    {
+      member: 'Members.isOrganization',
+      operator: 'equals',
+      values: ['0']
+    }
+  ]
 
   if (platforms.length) {
     filters.push({
@@ -29,12 +35,26 @@ const setApiFilters = ({
   isBot,
   filters
 }) => {
-  // Only add filter if team members are excluded
   if (selectedHasTeamMembers === false) {
     filters.push({
       isTeamMember: {
         not: true
       }
+    })
+  } else {
+    filters.push({
+      or: [
+        {
+          isTeamMember: {
+            not: true
+          }
+        },
+        {
+          isTeamMember: {
+            eq: true
+          }
+        }
+      ]
     })
   }
 
@@ -50,7 +70,7 @@ const setApiFilters = ({
   if (selectedPlatforms.length) {
     filters.push({
       or: selectedPlatforms.map((platform) => ({
-        platform: { jsonContains: platform.value }
+        identities: { contains: [platform.value] }
       }))
     })
   }

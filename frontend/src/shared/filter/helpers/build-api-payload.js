@@ -1,29 +1,108 @@
-export default (filter) => {
-  if (Object.keys(filter).length === 0) {
-    return {}
-  } else {
-    const hasAttributes =
-      Object.keys(filter.attributes).length > 0
-    return !hasAttributes
-      ? {}
-      : {
-          [filter.operator]: Object.values(
-            filter.attributes
-          ).reduce((acc, item) => {
-            if (
-              Array.isArray(item.value)
-                ? item.value.length > 0
-                : item.value !== '' &&
-                  item.value !== null &&
-                  item.value !== {}
-            ) {
-              acc.push(_buildAttributeBlock(item))
-            }
+export default ({
+  customFilters = {},
+  defaultFilters = [],
+  defaultRootFilters = [],
+  buildFilter = false
+}) => {
+  let customAttributes = !buildFilter
+    ? customFilters || {}
+    : {}
 
-            return acc
-          }, [])
+  // Parse filters into API format
+  if (buildFilter && Object.keys(customFilters).length) {
+    const hasAttributes = Object.keys(
+      customFilters.attributes
+    ).length
+
+    if (!hasAttributes) {
+      customAttributes = {}
+    } else {
+      // Separate hidden from visible attributes
+      // Distinguished by show property
+      let hiddenAttributes = []
+      let visibleAttributes = Object.values(
+        customFilters.attributes
+      ).reduce((acc, item) => {
+        const attribute = _buildAttributeBlock(item)
+
+        if (
+          Array.isArray(item.value)
+            ? item.value.length > 0
+            : item.value !== '' &&
+              item.value !== null &&
+              item.value !== {}
+        ) {
+          if (item.show === false) {
+            hiddenAttributes.push(attribute)
+          } else {
+            acc.push(attribute)
+          }
         }
+
+        return acc
+      }, [])
+
+      // Hidden properties should always be inside an AND operator
+      // so that are always taken into account
+      // Visible attributes should be inside the operator defined in the UI
+      if (hiddenAttributes.length) {
+        customAttributes = {
+          and: [
+            ...hiddenAttributes,
+            {
+              ...(visibleAttributes.length && {
+                [customFilters.operator]: visibleAttributes
+              })
+            }
+          ]
+        }
+      } else if (visibleAttributes.length) {
+        customAttributes = {
+          [customFilters.operator]: visibleAttributes
+        }
+      }
+    }
   }
+
+  let payload = customAttributes
+
+  // Default filters should always be inside an AND operator
+  // so that they are always taken into account
+  // All other filters should handle their operators on their own
+  if (defaultFilters.length) {
+    payload = {
+      and: [
+        ...buildDefaultAttributeBlock({
+          customFilters,
+          defaultFilters
+        }),
+        customAttributes
+      ]
+    }
+  }
+
+  // Default root filters can be added diretly in the filter payload
+  // without being inside an operator
+  if (defaultRootFilters.length) {
+    Object.assign(payload, ...defaultRootFilters)
+  }
+
+  return payload
+}
+
+// Only add as default filter if custom filters do not have the same attribute as well
+// Scenarios where default filters are overriden by the same filter in the UI
+const buildDefaultAttributeBlock = ({
+  customFilters,
+  defaultFilters
+}) => {
+  const filters = JSON.stringify(customFilters || {})
+
+  return defaultFilters.filter((filter) => {
+    const defaultName = Object.keys(filter)[0]
+
+    return !filters.includes(defaultName)
+  })
 }
 
 function _buildAttributeBlock(attribute) {

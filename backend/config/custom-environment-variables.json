@@ -97,7 +97,9 @@
     "stripePricePremium": "CROWD_STRIPE_PRICE_PREMIUM",
     "stripePriceEnterprise": "CROWD_STRIPE_PRICE_ENTERPRISE",
     "stripeSecretKey": "CROWD_STRIPE_SECRET_KEY",
-    "stripWebhookSigningSecret": "CROWD_STRIPE_WEBHOOK_SIGNING_SECRET"
+    "stripWebhookSigningSecret": "CROWD_STRIPE_WEBHOOK_SIGNING_SECRET",
+    "stripeEagleEyePlanProductId": "CROWD_STRIPE_EAGLE_EYE_PLAN_PRODUCT_ID",
+    "stripeGrowthPlanProductId": "CROWD_STRIPE_GROWTH_PLAN_PRODUCT_ID"
   },
   "twitter": {
     "clientId": "CROWD_TWITTER_CLIENT_ID",
@@ -107,7 +109,10 @@
     "clientId": "CROWD_SLACK_CLIENT_ID",
     "clientSecret": "CROWD_SLACK_CLIENT_SECRET",
     "reporterToken": "CROWD_SLACK_REPORTER_TOKEN",
-    "reporterChannel": "CROWD_SLACK_REPORTER_CHANNEL"
+    "reporterChannel": "CROWD_SLACK_REPORTER_CHANNEL",
+    "teamId": "CROWD_SLACK_TEAM_ID",
+    "appId": "CROWD_SLACK_APP_ID",
+    "appToken": "CROWD_SLACK_APP_TOKEN"
   },
   "google": {
     "clientId": "CROWD_GOOGLE_CLIENT_ID",
@@ -139,6 +144,9 @@
   "eagleEye": {
     "url": "CROWD_EAGLE_EYE_URL",
     "apiKey": "CROWD_EAGLE_EYE_API_KEY"
+  },
+  "slackAlerting": {
+    "url": "CROWD_SLACK_ALERTING_URL"
   },
   "unleash": {
     "url": "CROWD_UNLEASH_URL",

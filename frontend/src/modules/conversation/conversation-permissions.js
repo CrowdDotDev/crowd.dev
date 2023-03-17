@@ -1,5 +1,5 @@
 import Permissions from '@/security/permissions'
-import { PermissionChecker } from '@/premium/user/permission-checker'
+import { PermissionChecker } from '@/modules/user/permission-checker'
 
 export class ConversationPermissions {
   constructor(currentTenant, currentUser) {
@@ -33,5 +33,17 @@ export class ConversationPermissions {
     this.customize = permissionChecker.match(
       Permissions.values.conversationCustomize
     )
+    this.createLockedForSampleData =
+      permissionChecker.lockedForSampleData(
+        Permissions.values.conversationCreate
+      )
+    this.editLockedForSampleData =
+      permissionChecker.lockedForSampleData(
+        Permissions.values.conversationEdit
+      )
+    this.destroyLockedForSampleData =
+      permissionChecker.lockedForSampleData(
+        Permissions.values.conversationDestroy
+      )
   }
 }

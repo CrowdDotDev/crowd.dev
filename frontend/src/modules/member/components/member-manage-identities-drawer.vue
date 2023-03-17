@@ -82,7 +82,8 @@ const handleCancel = () => {
 const handleSubmit = async () => {
   loading.value = true
   await MemberService.update(props.member.id, {
-    username: memberModel.value.username
+    username: memberModel.value.username,
+    email: memberModel.value.email
   })
   await store.dispatch('member/doFind', props.member.id)
   Message.success('Member identities updated successfully')

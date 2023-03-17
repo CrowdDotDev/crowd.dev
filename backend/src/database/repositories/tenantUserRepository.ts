@@ -100,7 +100,7 @@ export default class TenantUserRepository {
     )
   }
 
-  static async updateRoles(tenantId, id, roles, options) {
+  static async updateRoles(tenantId, id, roles, options, isInvited = false) {
     const transaction = SequelizeRepository.getTransaction(options)
 
     const user = await options.database.user.findByPk(id, {
@@ -120,6 +120,7 @@ export default class TenantUserRepository {
           status: selectStatus('invited', []),
           invitationToken: crypto.randomBytes(20).toString('hex'),
           roles: [],
+          invitedById: isInvited ? options.currentUser.id : undefined,
         },
         { transaction },
       )
@@ -156,6 +157,43 @@ export default class TenantUserRepository {
         },
       },
       options,
+    )
+
+    return tenantUser
+  }
+
+  static async updateSettings(userId: string, data, options: IRepositoryOptions) {
+    const currentUser = SequelizeRepository.getCurrentUser(options)
+    const transaction = SequelizeRepository.getTransaction(options)
+
+    const tenantUser = await this.findByTenantAndUser(options.currentTenant.id, userId, options)
+
+    await tenantUser.update(
+      {
+        settings: { ...tenantUser.settings, ...data },
+        updatedById: currentUser.id,
+      },
+      { transaction },
+    )
+
+    return tenantUser
+  }
+
+  static async updateEagleEyeSettings(userId: string, data, options: IRepositoryOptions) {
+    const currentUser = SequelizeRepository.getCurrentUser(options)
+    const transaction = SequelizeRepository.getTransaction(options)
+
+    const tenantUser = await this.findByTenantAndUser(options.currentTenant.id, userId, options)
+
+    await tenantUser.update(
+      {
+        settings: {
+          ...tenantUser.settings,
+          eagleEye: { ...tenantUser.settings.eagleEye, ...data },
+        },
+        updatedById: currentUser.id,
+      },
+      { transaction },
     )
 
     return tenantUser

@@ -25,7 +25,7 @@
         </div>
         <div class="flex items-center gap-4">
           <div class="text-gray-500 italic text-2xs">
-            Available in {{ computedFeaturePlan }} plan
+            Available in {{ computedFeaturePlan }}
           </div>
           <router-link
             :to="{
@@ -108,7 +108,10 @@ const module = computed(
 )
 const page = computed(() => pageContent[module.value])
 const computedFeaturePlan = computed(() => {
-  return config.isCommunityVersion ? 'Custom' : 'Growth'
+  if (config.isCommunityVersion) return 'Custom plan'
+  if (page.value.headerTitle === 'Eagle Eye')
+    return 'Growth and Eagle Eye plans'
+  else return 'Growth plan'
 })
 </script>
 

@@ -15,13 +15,21 @@ export default {
     { keepPagination = false }
   ) {
     try {
-      commit('FETCH_STARTED', { keepPagination })
+      const activeView = getters.activeView
+
+      commit('FETCH_STARTED', {
+        keepPagination,
+        activeView
+      })
 
       let response
 
       if (getters.activeView.type === 'conversations') {
         response = await ConversationService.query(
-          buildApiPayload(getters.activeView.filter),
+          buildApiPayload({
+            customFilters: getters.activeView.filter,
+            buildFilter: true
+          }),
           getters.orderBy,
           getters.limit,
           getters.offset

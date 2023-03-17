@@ -1,5 +1,5 @@
 import Permissions from '@/security/permissions'
-import { PermissionChecker } from '@/premium/user/permission-checker'
+import { PermissionChecker } from '@/modules/user/permission-checker'
 
 export class MemberPermissions {
   constructor(currentTenant, currentUser) {
@@ -29,6 +29,18 @@ export class MemberPermissions {
     this.lockedForCurrentPlan =
       permissionChecker.lockedForCurrentPlan(
         Permissions.values.memberRead
+      )
+    this.createLockedForSampleData =
+      permissionChecker.lockedForSampleData(
+        Permissions.values.memberCreate
+      )
+    this.editLockedForSampleData =
+      permissionChecker.lockedForSampleData(
+        Permissions.values.memberEdit
+      )
+    this.destroyLockedForSampleData =
+      permissionChecker.lockedForSampleData(
+        Permissions.values.memberDestroy
       )
   }
 }

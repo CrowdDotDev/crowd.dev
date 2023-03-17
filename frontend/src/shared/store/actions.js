@@ -13,7 +13,10 @@ export default (moduleName, moduleService = null) => {
         ) {
           try {
             const activeView = getters.activeView
-            commit('FETCH_STARTED', { keepPagination })
+            commit('FETCH_STARTED', {
+              keepPagination,
+              activeView
+            })
 
             const response = await moduleService.list(
               activeView.filter,

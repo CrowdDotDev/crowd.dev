@@ -65,6 +65,27 @@ async function createMembers(options) {
   ]
 }
 
+async function createOrganization(organization: any, options, members = []) {
+  const memberIds = []
+  for (const member of members) {
+    const memberCreated = await MemberRepository.create(
+      SequelizeTestUtils.objectWithoutKey(member, 'activities'),
+      options,
+    )
+
+    if (member.activities) {
+      for (const activity of member.activities) {
+        await ActivityRepository.create({ ...activity, member: memberCreated.id }, options)
+      }
+    }
+
+    memberIds.push(memberCreated.id)
+  }
+  organization.members = memberIds
+  const organizationCreated = await OrganizationRepository.create(organization, options)
+  return { ...organizationCreated, members: memberIds }
+}
+
 describe('OrganizationRepository tests', () => {
   beforeEach(async () => {
     await SequelizeTestUtils.wipeDatabase(db)
@@ -107,6 +128,7 @@ describe('OrganizationRepository tests', () => {
         tenantId: mockIRepositoryOptions.currentTenant.id,
         createdById: mockIRepositoryOptions.currentUser.id,
         updatedById: mockIRepositoryOptions.currentUser.id,
+        isTeamOrganization: false,
       }
       expect(organizationCreated).toStrictEqual(expectedOrganizationCreated)
     })
@@ -156,6 +178,7 @@ describe('OrganizationRepository tests', () => {
         tenantId: mockIRepositoryOptions.currentTenant.id,
         createdById: mockIRepositoryOptions.currentUser.id,
         updatedById: mockIRepositoryOptions.currentUser.id,
+        isTeamOrganization: false,
       }
       expect(organizationCreated).toStrictEqual(expectedOrganizationCreated)
 
@@ -197,6 +220,7 @@ describe('OrganizationRepository tests', () => {
         tenantId: mockIRepositoryOptions.currentTenant.id,
         createdById: mockIRepositoryOptions.currentUser.id,
         updatedById: mockIRepositoryOptions.currentUser.id,
+        isTeamOrganization: false,
       }
       const organizationById = await OrganizationRepository.findById(
         organizationCreated.id,
@@ -244,6 +268,7 @@ describe('OrganizationRepository tests', () => {
         tenantId: mockIRepositoryOptions.currentTenant.id,
         createdById: mockIRepositoryOptions.currentUser.id,
         updatedById: mockIRepositoryOptions.currentUser.id,
+        isTeamOrganization: false,
       }
       const organizatioFound = await OrganizationRepository.findByName(
         organizationCreated.name,
@@ -280,6 +305,7 @@ describe('OrganizationRepository tests', () => {
         tenantId: mockIRepositoryOptions.currentTenant.id,
         createdById: mockIRepositoryOptions.currentUser.id,
         updatedById: mockIRepositoryOptions.currentUser.id,
+        isTeamOrganization: false,
       }
       const organizatioFound = await OrganizationRepository.findByUrl(
         organizationCreated.url,
@@ -574,26 +600,6 @@ describe('OrganizationRepository tests', () => {
         min: 200,
         max: 500,
       },
-    }
-
-    async function createOrganization(organization: any, options, members = []) {
-      const memberIds = []
-      for (const member of members) {
-        const memberCreated = await MemberRepository.create(
-          SequelizeTestUtils.objectWithoutKey(member, 'activities'),
-          options,
-        )
-
-        if (member.activities) {
-          for (const activity of member.activities) {
-            await ActivityRepository.create({ ...activity, member: memberCreated.id }, options)
-          }
-        }
-
-        memberIds.push(memberCreated.id)
-      }
-      organization.members = memberIds
-      return OrganizationRepository.create(organization, options)
     }
 
     it('Should filter by name', async () => {
@@ -894,6 +900,8 @@ describe('OrganizationRepository tests', () => {
         mockIRepositoryOptions,
       )
 
+      delete org1.members
+
       expect(found.count).toBe(1)
       expect(found.rows).toStrictEqual([org1])
     })
@@ -941,6 +949,9 @@ describe('OrganizationRepository tests', () => {
         },
         mockIRepositoryOptions,
       )
+
+      delete org1.members
+      delete org2.members
 
       expect(found.count).toBe(2)
       expect(found.rows.sort((a, b) => (a.createdAt > b.createdAt ? 1 : -1))).toStrictEqual([
@@ -1032,6 +1043,8 @@ describe('OrganizationRepository tests', () => {
         },
         mockIRepositoryOptions,
       )
+
+      delete org2.members
 
       expect(found.count).toBe(1)
       expect(found.rows.sort((a, b) => (a.createdAt > b.createdAt ? 1 : -1))).toStrictEqual([org2])
@@ -1196,6 +1209,7 @@ describe('OrganizationRepository tests', () => {
         tenantId: mockIRepositoryOptions.currentTenant.id,
         createdById: mockIRepositoryOptions.currentUser.id,
         updatedById: mockIRepositoryOptions.currentUser.id,
+        isTeamOrganization: false,
       }
 
       expect(organizationUpdated).toStrictEqual(organizationExpected)
@@ -1213,6 +1227,157 @@ describe('OrganizationRepository tests', () => {
           mockIRepositoryOptions,
         ),
       ).rejects.toThrowError(new Error404())
+    })
+  })
+
+  describe('setOrganizationIsTeam method', () => {
+    const member1 = {
+      username: {
+        devto: 'iambarker',
+        github: 'barker',
+      },
+      displayName: 'Jack Barker',
+      attributes: {
+        bio: {
+          github: 'Head of development at Hooli',
+          twitter: 'Head of development at Hooli | ex CEO at Pied Piper',
+        },
+        sample: { crowd: true, default: true },
+        jobTitle: { custom: 'Head of development', default: 'Head of development' },
+        location: { github: 'Silicon Valley', default: 'Silicon Valley' },
+        avatarUrl: {
+          custom:
+            'https://s3.eu-central-1.amazonaws.com/crowd.dev-sample-data/jack-barker-best.jpg',
+          default:
+            'https://s3.eu-central-1.amazonaws.com/crowd.dev-sample-data/jack-barker-best.jpg',
+        },
+      },
+      joinedAt: moment().toDate(),
+      activities: [
+        {
+          type: 'star',
+          timestamp: '2020-05-27T15:13:30Z',
+          platform: PlatformType.GITHUB,
+          sourceId: '#sourceId1',
+        },
+      ],
+    }
+
+    const member2 = {
+      username: {
+        devto: 'thebelson',
+        github: 'gavinbelson',
+        discord: 'gavinbelson',
+        twitter: 'gavin',
+        linkedin: 'gavinbelson',
+      },
+      displayName: 'Gavin Belson',
+      attributes: {
+        bio: {
+          custom: 'CEO at Hooli',
+          github: 'CEO at Hooli',
+          default: 'CEO at Hooli',
+          twitter: 'CEO at Hooli',
+        },
+        sample: { crowd: true, default: true },
+        jobTitle: { custom: 'CEO', default: 'CEO' },
+        location: { github: 'Silicon Valley', default: 'Silicon Valley' },
+        avatarUrl: {
+          custom: 'https://s3.eu-central-1.amazonaws.com/crowd.dev-sample-data/gavin.jpg',
+          default: 'https://s3.eu-central-1.amazonaws.com/crowd.dev-sample-data/gavin.jpg',
+        },
+      },
+      joinedAt: moment().toDate(),
+      activities: [
+        {
+          type: 'star',
+          timestamp: '2020-05-28T15:13:30Z',
+          platform: PlatformType.GITHUB,
+          sourceId: '#sourceId2',
+        },
+      ],
+    }
+
+    const member3 = {
+      username: {
+        devto: 'bigheader',
+        github: 'bighead',
+      },
+      displayName: 'Big Head',
+      attributes: {
+        bio: {
+          custom: 'Executive at the Hooli XYZ project',
+          github: 'Co-head Dreamer of the Hooli XYZ project',
+          default: 'Executive at the Hooli XYZ project',
+          twitter: 'Co-head Dreamer of the Hooli XYZ project',
+        },
+        sample: { crowd: true, default: true },
+        jobTitle: { custom: 'Co-head Dreamer', default: 'Co-head Dreamer' },
+        location: { github: 'Silicon Valley', default: 'Silicon Valley' },
+        avatarUrl: {
+          custom: 'https://s3.eu-central-1.amazonaws.com/crowd.dev-sample-data/big-head-small.jpg',
+          default: 'https://s3.eu-central-1.amazonaws.com/crowd.dev-sample-data/big-head-small.jpg',
+        },
+      },
+      joinedAt: moment().toDate(),
+      activities: [
+        {
+          type: 'star',
+          timestamp: '2020-05-29T15:13:30Z',
+          platform: PlatformType.GITHUB,
+          sourceId: '#sourceId3',
+        },
+      ],
+    }
+    it('Should succesfully set/unset organization members as team members', async () => {
+      const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
+      const org = await createOrganization(toCreate, mockIRepositoryOptions, [
+        member1,
+        member2,
+        member3,
+      ])
+
+      // mark organization members as team members
+      await OrganizationRepository.setOrganizationIsTeam(org.id, true, mockIRepositoryOptions)
+
+      let m1 = await MemberRepository.findById(org.members[0], mockIRepositoryOptions)
+      let m2 = await MemberRepository.findById(org.members[1], mockIRepositoryOptions)
+      let m3 = await MemberRepository.findById(org.members[2], mockIRepositoryOptions)
+
+      expect(m1.attributes.isTeamMember.default).toEqual(true)
+      expect(m2.attributes.isTeamMember.default).toEqual(true)
+      expect(m3.attributes.isTeamMember.default).toEqual(true)
+
+      // expect other attributes intact
+      delete m1.attributes.isTeamMember
+      expect(m1.attributes).toStrictEqual(member1.attributes)
+
+      delete m2.attributes.isTeamMember
+      expect(m2.attributes).toStrictEqual(member2.attributes)
+
+      delete m3.attributes.isTeamMember
+      expect(m3.attributes).toStrictEqual(member3.attributes)
+
+      // now unmark
+      await OrganizationRepository.setOrganizationIsTeam(org.id, false, mockIRepositoryOptions)
+
+      m1 = await MemberRepository.findById(org.members[0], mockIRepositoryOptions)
+      m2 = await MemberRepository.findById(org.members[1], mockIRepositoryOptions)
+      m3 = await MemberRepository.findById(org.members[2], mockIRepositoryOptions)
+
+      expect(m1.attributes.isTeamMember.default).toEqual(false)
+      expect(m2.attributes.isTeamMember.default).toEqual(false)
+      expect(m3.attributes.isTeamMember.default).toEqual(false)
+
+      // expect other attributes intact
+      delete m1.attributes.isTeamMember
+      expect(m1.attributes).toStrictEqual(member1.attributes)
+
+      delete m2.attributes.isTeamMember
+      expect(m2.attributes).toStrictEqual(member2.attributes)
+
+      delete m3.attributes.isTeamMember
+      expect(m3.attributes).toStrictEqual(member3.attributes)
     })
   })
 

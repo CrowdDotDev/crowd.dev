@@ -9,24 +9,34 @@
       <button
         class="el-dropdown-link btn p-1.5 rounder-md hover:bg-gray-200 text-gray-600"
         type="button"
-        @click.stop
+        @click.prevent.stop
       >
         <i class="text-xl ri-more-fill"></i>
       </button>
       <template #dropdown>
-        <el-dropdown-item
-          :command="{
-            action: 'memberEdit',
-            member
+        <router-link
+          :to="{
+            name: 'memberEdit',
+            params: {
+              id: member.id
+            }
           }"
-          class="h-10"
-          ><i class="ri-pencil-line text-base mr-2" /><span
-            class="text-xs text-gray-900"
-            >Edit member</span
-          ></el-dropdown-item
+          :class="{
+            'pointer-events-none cursor-not-allowed':
+              isEditLockedForSampleData
+          }"
         >
+          <el-dropdown-item
+            class="h-10 mb-1"
+            :disabled="isEditLockedForSampleData"
+            ><i
+              class="ri-pencil-line text-base mr-2"
+            /><span class="text-xs"
+              >Edit member</span
+            ></el-dropdown-item
+          >
+        </router-link>
         <el-tooltip
-          v-if="!member.lastEnriched"
           placement="top"
           content="Member enrichment requires an associated GitHub profile or Email"
           :disabled="!isEnrichmentDisabled"
@@ -39,7 +49,10 @@
                 member
               }"
               class="h-10 mb-1"
-              :disabled="isEnrichmentDisabled"
+              :disabled="
+                isEnrichmentDisabled ||
+                isEditLockedForSampleData
+              "
             >
               <app-svg
                 name="enrichment"
@@ -47,11 +60,15 @@
                 color="#9CA3AF"
               />
               <span
-                class="ml-2 text-xs text-gray-900"
+                class="ml-2 text-xs"
                 :class="{
                   'text-gray-400': isEnrichmentDisabled
                 }"
-                >Enrich member</span
+                >{{
+                  member.lastEnriched
+                    ? 'Re-enrich member'
+                    : 'Enrich member'
+                }}</span
               >
             </el-dropdown-item>
           </span>
@@ -62,8 +79,9 @@
             action: 'memberMerge',
             member: member
           }"
+          :disabled="isEditLockedForSampleData"
           ><i class="ri-group-line text-base mr-2" /><span
-            class="text-xs text-gray-900"
+            class="text-xs"
             >Merge member</span
           ></el-dropdown-item
         >
@@ -75,9 +93,10 @@
             member: member,
             value: true
           }"
+          :disabled="isEditLockedForSampleData"
           ><i
             class="ri-bookmark-line text-base mr-2"
-          /><span class="text-xs text-gray-900"
+          /><span class="text-xs"
             >Mark as team member</span
           ></el-dropdown-item
         >
@@ -89,9 +108,10 @@
             member: member,
             value: false
           }"
+          :disabled="isEditLockedForSampleData"
           ><i
             class="ri-bookmark-2-line text-base mr-2"
-          /><span class="text-xs text-gray-900"
+          /><span class="text-xs"
             >Unmark as team member</span
           ></el-dropdown-item
         >
@@ -102,8 +122,9 @@
             action: 'memberMarkAsBot',
             member: member
           }"
+          :disabled="isEditLockedForSampleData"
           ><i class="ri-robot-line text-base mr-2" /><span
-            class="text-xs text-gray-900"
+            class="text-xs"
             >Mark as bot</span
           ></el-dropdown-item
         >
@@ -114,9 +135,17 @@
             action: 'memberDelete',
             member: member
           }"
+          :disabled="isDeleteLockedForSampleData"
           ><i
-            class="ri-delete-bin-line text-base mr-2 text-red-500"
-          /><span class="text-xs text-red-500"
+            class="ri-delete-bin-line text-base mr-2"
+            :class="{
+              'text-red-500': !isDeleteLockedForSampleData
+            }"
+          /><span
+            class="text-xs"
+            :class="{
+              'text-red-500': !isDeleteLockedForSampleData
+            }"
             >Delete member</span
           >
         </el-dropdown-item>
@@ -217,6 +246,18 @@ export default {
       return (
         !this.member.username?.github && !this.member.email
       )
+    },
+    isEditLockedForSampleData() {
+      return new MemberPermissions(
+        this.currentTenant,
+        this.currentUser
+      ).editLockedForSampleData
+    },
+    isDeleteLockedForSampleData() {
+      return new MemberPermissions(
+        this.currentTenant,
+        this.currentUser
+      ).destroyLockedForSampleData
     }
   },
   watch: {
@@ -264,13 +305,6 @@ export default {
     async handleCommand(command) {
       if (command.action === 'memberDelete') {
         return this.doDestroyWithConfirm(command.member.id)
-      } else if (command.action === 'memberEdit') {
-        this.$router.push({
-          name: 'memberEdit',
-          params: {
-            id: command.member.id
-          }
-        })
       } else if (
         command.action === 'memberMarkAsTeamMember'
       ) {

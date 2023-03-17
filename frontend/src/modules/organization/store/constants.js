@@ -3,6 +3,14 @@ import OrganizationEmployeesField from '@/modules/organization/organization-empl
 
 export const INITIAL_PAGE_SIZE = 20
 
+export const DEFAULT_ORGANIZATION_FILTERS = [
+  {
+    isTeamOrganization: {
+      not: true
+    }
+  }
+]
+
 export const INITIAL_VIEW_NEW_AND_ACTIVE_FILTER = {
   operator: 'and',
   attributes: {
@@ -42,6 +50,24 @@ export const INITIAL_VIEW_ENTERPRISE_SIZE_FILTER = {
       defaultOperator: 'between',
       operator: 'between',
       type: 'select',
+      expanded: false
+    }
+  }
+}
+
+export const INITIAL_VIEW_TEAM_ORGANIZATIONS_FILTER = {
+  operator: 'and',
+  attributes: {
+    isTeamOrganization: {
+      name: 'isTeamOrganization',
+      label: 'Team organization',
+      custom: false,
+      props: {},
+      defaultValue: true,
+      value: true,
+      defaultOperator: 'eq',
+      operator: 'eq',
+      type: 'boolean',
       expanded: false
     }
   }

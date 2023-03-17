@@ -9,13 +9,14 @@ export default {
       state.views[activeView].list.posts.length = 0
     }
 
-    state.pagination = keepPagination
-      ? state.pagination
-      : {
-          currentPage: 1,
-          pageSize:
-            state.pagination && state.pagination.pageSize
-        }
+    if (activeView.pagination) {
+      activeView.pagination = keepPagination
+        ? activeView.pagination
+        : {
+            currentPage: 1,
+            pageSize: activeView.pagination.pageSize
+          }
+    }
   },
 
   FETCH_SUCCESS(
@@ -23,9 +24,19 @@ export default {
     { list, count, appendToList, activeView }
   ) {
     state.views[activeView].list.loading = false
+
     if (appendToList) {
       state.views[activeView].list.posts.push(...list)
     } else {
+      const { sorter } = state.views[activeView]
+
+      if (activeView === 'feed' && sorter === 'recent') {
+        list.sort(
+          (a, b) =>
+            new Date(b.postedAt) - new Date(a.postedAt)
+        )
+      }
+
       state.views[activeView].list.posts = list
     }
     state.views[activeView].count = count

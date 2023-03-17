@@ -124,6 +124,7 @@ import { formatDateToTimeAgo } from '@/utils/date'
 import { CrowdIntegrations } from '@/integrations/integrations-config'
 import AppMemberDisplayName from '@/modules/member/components/member-display-name'
 import AppActivityLink from '@/modules/activity/components/activity-link'
+import AuthCurrentTenant from '@/modules/auth/auth-current-tenant'
 
 const SearchIcon = h(
   'i', // type
@@ -222,13 +223,24 @@ const fetchActivities = async () => {
 
   loading.value = true
 
+  const sampleTenant =
+    AuthCurrentTenant.getSampleTenantData()
+  const tenantId =
+    sampleTenant?.id ||
+    store.getters['auth/currentTenant'].id
+
   const { data } = await authAxios.post(
-    `/tenant/${store.getters['auth/currentTenant'].id}/activity/query`,
+    `/tenant/${tenantId}/activity/query`,
     {
       filter: filterToApply,
       orderBy: 'timestamp_DESC',
       limit: limit.value,
       offset: offset.value
+    },
+    {
+      headers: {
+        Authorization: sampleTenant?.token
+      }
     }
   )
 

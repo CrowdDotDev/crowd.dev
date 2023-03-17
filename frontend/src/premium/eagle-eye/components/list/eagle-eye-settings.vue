@@ -8,6 +8,14 @@
     </div>
 
     <div v-if="eagleEyeFeedSettings">
+      <!-- Feed Settings-->
+      <el-button
+        class="btn btn--full btn--md btn--secondary mt-6"
+        @click="settingsDrawerOpen = true"
+        ><i class="ri-sound-module-line text-lg" /><span
+          >Feed settings</span
+        ></el-button
+      >
       <!-- Keywords -->
       <div
         v-if="
@@ -83,8 +91,9 @@
           </div>
         </div>
       </div>
+
       <!-- AI replies -->
-      <div v-if="platforms.length">
+      <div v-if="platforms.length" class="mb-10">
         <div class="eagle-eye-settings-small-title">
           AI replies
         </div>
@@ -103,14 +112,6 @@
           </div>
         </div>
       </div>
-      <!-- Feed Settings-->
-      <el-button
-        class="btn btn--full btn--md btn--secondary my-8"
-        @click="settingsDrawerOpen = true"
-        ><i class="ri-sound-module-line text-lg" /><span
-          >Feed settings</span
-        ></el-button
-      >
 
       <!-- Email Digest settings -->
       <app-eagle-eye-email-digest-card />
@@ -128,12 +129,19 @@ import AppEagleEyeEmailDigestCard from '@/premium/eagle-eye/components/list/eagl
 import AppEagleEyeSettingsDrawer from '@/premium/eagle-eye/components/list/eagle-eye-settings-drawer.vue'
 import { mapGetters } from '@/shared/vuex/vuex.helpers'
 
-const { currentUser } = mapGetters('auth')
+const { currentUser, currentTenant } = mapGetters('auth')
+
+const eagleEyeSettings = computed(
+  () =>
+    currentUser?.value.tenants.find(
+      (tu) => tu.tenantId === currentTenant?.value.id
+    ).settings.eagleEye
+)
 
 const settingsDrawerOpen = ref(false)
 
 const eagleEyeFeedSettings = computed(() => {
-  return currentUser.value.eagleEyeSettings?.feed
+  return eagleEyeSettings.value?.feed
 })
 const keywords = computed(
   () => eagleEyeFeedSettings.value.keywords
@@ -156,7 +164,7 @@ const publishedDate = computed(
 )
 
 const aiRepliesEnabled = computed(() => {
-  return currentUser.value.eagleEyeSettings?.aiReplies
+  return eagleEyeSettings.value?.aiReplies
 })
 </script>
 

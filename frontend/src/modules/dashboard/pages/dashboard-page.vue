@@ -12,7 +12,7 @@
       <div class="flex justify-center">
         <div class="home-content px-8">
           <div
-            class="py-8 -mx-4 px-4 sticky -top-6 bg-gray-50 z-50"
+            class="py-8 -mx-4 px-4 sticky -top-6 bg-gray-50 z-20"
           >
             <h4
               class="leading-8 font-semibold transition-all duration-100"
@@ -23,7 +23,7 @@
           </div>
 
           <div
-            class="mb-8 -mx-4 px-4 sticky top-12 bg-gray-50 z-50"
+            class="mb-8 -mx-4 px-4 sticky top-12 bg-gray-50 z-20"
           >
             <app-dashboard-filters class="block" />
           </div>
@@ -42,6 +42,7 @@
           : '100vh'
       }"
     >
+      <app-dashboard-guides />
       <app-dashboard-integrations class="mb-10" />
       <app-dashboard-task />
     </aside>
@@ -63,6 +64,7 @@ import {
 } from '@/shared/vuex/vuex.helpers'
 
 import { useStore } from 'vuex'
+import AppDashboardGuides from '@/modules/dashboard/components/dashboard-guides.vue'
 
 const { currentTenant } = mapGetters('auth')
 const { doFetch } = mapActions('report')
@@ -74,7 +76,6 @@ const store = useStore()
 let storeUnsubscribe = ref(null)
 const scrolled = ref(false)
 const handleScroll = (event) => {
-  console.log(scrolled.value)
   scrolled.value = event.target.scrollTop > 20
 }
 
@@ -97,9 +98,10 @@ onBeforeUnmount(() => {
 })
 </script>
 
-<style lang="scss">
+<style lang="scss" scoped>
 aside {
   width: 16.25rem;
+  min-width: 16.25rem;
 }
 .home-content {
   max-width: 60rem;

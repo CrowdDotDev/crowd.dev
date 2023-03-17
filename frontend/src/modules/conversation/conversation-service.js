@@ -69,10 +69,18 @@ export class ConversationService {
   }
 
   static async find(id) {
-    const tenantId = AuthCurrentTenant.get()
+    const sampleTenant =
+      AuthCurrentTenant.getSampleTenantData()
+    const tenantId =
+      sampleTenant?.id || AuthCurrentTenant.get()
 
     const response = await authAxios.get(
-      `/tenant/${tenantId}/conversation/${id}`
+      `/tenant/${tenantId}/conversation/${id}`,
+      {
+        headers: {
+          Authorization: sampleTenant?.token
+        }
+      }
     )
 
     return response.data
@@ -80,17 +88,28 @@ export class ConversationService {
 
   static async list(filter, orderBy, limit, offset) {
     const body = {
-      filter: buildApiPayload(filter),
+      filter: buildApiPayload({
+        customFilters: filter,
+        buildFilter: true
+      }),
       orderBy,
       limit,
       offset
     }
 
-    const tenantId = AuthCurrentTenant.get()
+    const sampleTenant =
+      AuthCurrentTenant.getSampleTenantData()
+    const tenantId =
+      sampleTenant?.id || AuthCurrentTenant.get()
 
     const response = await authAxios.post(
       `/tenant/${tenantId}/conversation/query`,
-      body
+      body,
+      {
+        headers: {
+          Authorization: sampleTenant?.token
+        }
+      }
     )
 
     return response.data
@@ -104,11 +123,19 @@ export class ConversationService {
       offset
     }
 
-    const tenantId = AuthCurrentTenant.get()
+    const sampleTenant =
+      AuthCurrentTenant.getSampleTenantData()
+    const tenantId =
+      sampleTenant?.id || AuthCurrentTenant.get()
 
     const response = await authAxios.post(
       `/tenant/${tenantId}/conversation/query`,
-      body
+      body,
+      {
+        headers: {
+          Authorization: sampleTenant?.token
+        }
+      }
     )
 
     return response.data

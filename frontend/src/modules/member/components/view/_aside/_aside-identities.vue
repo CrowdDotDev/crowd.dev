@@ -4,6 +4,7 @@
       <div class="font-medium text-black">Identities</div>
       <el-button
         class="btn btn-link btn-link--primary"
+        :disabled="isEditLockedForSampleData"
         @click="identitiesDrawer = true"
         ><i class="ri-pencil-line" /><span
           >Edit</span
@@ -86,6 +87,8 @@
 </template>
 
 <script setup>
+import { MemberPermissions } from '@/modules/member/member-permissions'
+import { mapGetters } from '@/shared/vuex/vuex.helpers'
 import { computed, defineProps, ref } from 'vue'
 import AppMemberManageIdentitiesDrawer from '../../member-manage-identities-drawer'
 
@@ -96,14 +99,26 @@ const props = defineProps({
   }
 })
 
+const { currentTenant, currentUser } = mapGetters('auth')
+
 const identitiesDrawer = ref(false)
 
-const email = ref(props.member.email)
+const email = computed(() => {
+  return props.member.email
+})
+
 const socialIdentities = computed(() => {
   const identities = { ...props.member.username }
   delete identities.email
 
   return identities
+})
+
+const isEditLockedForSampleData = computed(() => {
+  return new MemberPermissions(
+    currentTenant.value,
+    currentUser.value
+  ).editLockedForSampleData
 })
 
 const identityUrl = (platform) => {

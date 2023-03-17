@@ -21,7 +21,7 @@ export default {
     loadingFetch: (state) => state.loading,
 
     loadingFind: (state) => (id) => {
-      state.byId[id].loading
+      state.byId[id]?.loading
     },
 
     loaded: (state) => state.loaded,
@@ -94,6 +94,12 @@ export default {
       )
     },
 
+    withNoData: (state, getters) => {
+      return getters.array.filter(
+        (i) => i.status === 'no-data'
+      )
+    },
+
     count: (state) => state.count,
 
     hasRows: (state, getters) => getters.count > 0
@@ -123,10 +129,15 @@ export default {
     },
 
     FIND_STARTED(state, id) {
-      state.byId[id].loading = true
+      if (state.byId[id]) {
+        state.byId[id].loading = true
+      }
     },
 
     FIND_SUCCESS(state, record) {
+      if (!record) {
+        return
+      }
       record.loading = false
       state.byId[record.id] = record
       if (state.allIds.indexOf(record.id) === -1) {
@@ -135,7 +146,9 @@ export default {
     },
 
     FIND_ERROR(state, id) {
-      state.byId[id].loading = false
+      if (state.byId[id]) {
+        state.byId[id].loading = false
+      }
     },
 
     CREATE_STARTED() {},

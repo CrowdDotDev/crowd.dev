@@ -94,6 +94,8 @@ export interface PlansConfiguration {
   stripePriceEnterprise: string
   stripeSecretKey: string
   stripWebhookSigningSecret: string
+  stripeEagleEyePlanProductId: string
+  stripeGrowthPlanProductId: string
 }
 
 export interface DevtoConfiguration {
@@ -115,6 +117,9 @@ export interface SlackConfiguration {
   maxRetrospectInSeconds: number
   reporterToken?: string
   reporterChannel?: string
+  teamId?: string
+  appId?: string
+  appToken?: string
 }
 
 export interface GoogleConfiguration {
@@ -196,6 +201,11 @@ export interface UnleashConfiguration {
   }
 }
 
+
 export interface StackExchangeConfiguration {
   key: string
 }
+
+export interface SlackAlertingConfiguration {
+  url: string
+  }

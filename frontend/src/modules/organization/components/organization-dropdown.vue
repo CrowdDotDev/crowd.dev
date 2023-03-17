@@ -20,10 +20,45 @@
             action: 'organizationEdit',
             organization
           }"
+          :disabled="isEditLockedForSampleData"
           class="h-10"
           ><i class="ri-pencil-line text-base mr-2" /><span
-            class="text-xs text-gray-900"
+            class="text-xs"
             >Edit organization</span
+          ></el-dropdown-item
+        >
+
+        <!-- Mark as Team Organization -->
+        <el-dropdown-item
+          v-if="!organization.isTeamOrganization"
+          :command="{
+            action: 'markOrganizationTeam',
+            organization,
+            value: true
+          }"
+          class="h-10"
+          :disabled="isEditLockedForSampleData"
+          ><i
+            class="ri-bookmark-line text-base mr-2"
+          /><span class="text-xs"
+            >Mark as team organization</span
+          ></el-dropdown-item
+        >
+
+        <!-- Unmark as Team Organization -->
+        <el-dropdown-item
+          v-if="organization.isTeamOrganization"
+          :command="{
+            action: 'markOrganizationTeam',
+            organization,
+            value: false
+          }"
+          class="h-10"
+          :disabled="isEditLockedForSampleData"
+          ><i
+            class="ri-bookmark-2-line text-base mr-2"
+          /><span class="text-xs"
+            >Unmark as team organization</span
           ></el-dropdown-item
         >
 
@@ -36,9 +71,17 @@
             action: 'organizationDelete',
             organization
           }"
+          :disabled="isDeleteLockedForSampleData"
           ><i
-            class="ri-delete-bin-line text-base mr-2 text-red-500"
-          /><span class="text-xs text-red-500"
+            class="ri-delete-bin-line text-base mr-2"
+            :class="{
+              'text-red-500': !isDeleteLockedForSampleData
+            }"
+          /><span
+            class="text-xs"
+            :class="{
+              'text-red-500': !isDeleteLockedForSampleData
+            }"
             >Delete organization</span
           >
         </el-dropdown-item>
@@ -62,6 +105,8 @@ import {
 import { OrganizationPermissions } from '../organization-permissions'
 import { useRouter } from 'vue-router'
 import ConfirmDialog from '@/shared/dialog/confirm-dialog'
+import { OrganizationService } from '../organization-service'
+import Message from '@/shared/message/message'
 
 const router = useRouter()
 
@@ -73,7 +118,8 @@ defineProps({
 })
 
 const { currentUser, currentTenant } = mapGetters('auth')
-const { doDestroy } = mapActions('organization')
+const { doDestroy, doFetch, doFind } =
+  mapActions('organization')
 
 const isReadOnly = computed(
   () =>
@@ -81,6 +127,21 @@ const isReadOnly = computed(
       currentTenant.value,
       currentUser.value
     ).edit === false
+)
+
+const isEditLockedForSampleData = computed(
+  () =>
+    new OrganizationPermissions(
+      currentTenant.value,
+      currentUser.value
+    ).editLockedForSampleData
+)
+const isDeleteLockedForSampleData = computed(
+  () =>
+    new OrganizationPermissions(
+      currentTenant.value,
+      currentUser.value
+    ).destroyLockedForSampleData
 )
 
 const doDestroyWithConfirm = async (id) => {
@@ -101,7 +162,7 @@ const doDestroyWithConfirm = async (id) => {
   }
 }
 
-const handleCommand = async (command) => {
+const handleCommand = (command) => {
   if (command.action === 'organizationDelete') {
     return doDestroyWithConfirm(command.organization.id)
   } else if (command.action === 'organizationEdit') {
@@ -109,6 +170,22 @@ const handleCommand = async (command) => {
       name: 'organizationEdit',
       params: {
         id: command.organization.id
+      }
+    })
+  } else if (command.action === 'markOrganizationTeam') {
+    OrganizationService.update(command.organization.id, {
+      isTeamOrganization: command.value
+    }).then(() => {
+      Message.success('Organization updated successfully')
+
+      if (
+        router.currentRoute.value.name === 'organization'
+      ) {
+        doFetch({
+          keepPagination: false
+        })
+      } else {
+        doFind(command.organization.id)
       }
     })
   }

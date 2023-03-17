@@ -1,4 +1,4 @@
-import { PermissionChecker } from '@/premium/user/permission-checker'
+import { PermissionChecker } from '@/modules/user/permission-checker'
 import config from '@/config'
 import { tenantSubdomain } from '@/modules/tenant/tenant-subdomain'
 
@@ -38,6 +38,17 @@ export default async function ({ to, store, router }) {
     !permissionChecker.isEmailVerified
   ) {
     return router.push({ path: '/auth/email-unverified' })
+  }
+
+  // Temporary fix
+  if (
+    to.meta.permission &&
+    (!permissionChecker.match(to.meta.permission) ||
+      permissionChecker.lockedForSampleData(
+        to.meta.permission
+      ))
+  ) {
+    return router.push('/403')
   }
 
   if (

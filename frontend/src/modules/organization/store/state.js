@@ -1,5 +1,8 @@
 import { INITIAL_PAGE_SIZE } from './constants'
-import { INITIAL_VIEW_NEW_AND_ACTIVE_FILTER } from './constants'
+import {
+  INITIAL_VIEW_NEW_AND_ACTIVE_FILTER,
+  INITIAL_VIEW_TEAM_ORGANIZATIONS_FILTER
+} from './constants'
 
 export default () => {
   return {
@@ -75,6 +78,30 @@ export default () => {
           prop: 'memberCount',
           order: 'descending'
         }
+      },
+      team: {
+        id: 'team',
+        label: 'Team organizations',
+        initialFilter:
+          INITIAL_VIEW_TEAM_ORGANIZATIONS_FILTER,
+        filter: JSON.parse(
+          JSON.stringify(
+            INITIAL_VIEW_TEAM_ORGANIZATIONS_FILTER
+          )
+        ),
+        pagination: {
+          currentPage: 1,
+          pageSize: INITIAL_PAGE_SIZE
+        },
+        initialSorter: {
+          prop: 'lastActive',
+          order: 'descending'
+        },
+        sorter: {
+          prop: 'lastActive',
+          order: 'descending'
+        },
+        active: false
       }
       // TODO: Uncomment when we support enrichment
       //   'enterprise-size': {
