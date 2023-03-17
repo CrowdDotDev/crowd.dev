@@ -86,6 +86,10 @@
                 "
                 class="filter-checkbox flex h-3 transition-0"
               />
+              <img
+                :src="integration.logo"
+                class="w-4 h-4 mr-2"
+              />
               <span class="text-black font-normal">{{
                 integration.label
               }}</span>

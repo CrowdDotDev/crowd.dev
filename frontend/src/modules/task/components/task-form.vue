@@ -97,7 +97,6 @@
               id="relatedMembers"
               v-model="model[fields.relatedMembers.name]"
               :fetch-fn="fields.relatedMembers.fetchFn"
-              :mapper-fn="fields.relatedMembers.mapperFn"
               placeholder="Select option(s)"
               :in-memory-filter="false"
             >
@@ -105,9 +104,12 @@
                 <div class="flex items-center -mx-2">
                   <app-avatar
                     size="xxs"
-                    :entity="item"
+                    :entity="{
+                      displayName: item.label,
+                      avatar: item.avatar
+                    }"
                   ></app-avatar>
-                  <p class="pl-2">{{ item.displayName }}</p>
+                  <p class="pl-2">{{ item.label }}</p>
                 </div>
               </template>
             </app-autocomplete-many-input>
@@ -145,12 +147,9 @@
                 <div class="flex items-center -mx-2">
                   <app-avatar
                     size="xxs"
-                    :entity="{
-                      displayName: item.label,
-                      avatar: item.avatar
-                    }"
+                    :entity="item"
                   ></app-avatar>
-                  <p class="pl-2">{{ item.label }}</p>
+                  <p class="pl-2">{{ item.displayName }}</p>
                 </div>
               </template>
             </app-autocomplete-many-input>

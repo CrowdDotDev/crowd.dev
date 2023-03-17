@@ -86,7 +86,19 @@
                       :value="platform.value"
                       :label="platform.label"
                       @mouseleave="onSelectMouseLeave"
-                    />
+                    >
+                      <div class="flex items-center">
+                        <img
+                          :src="
+                            getPlatformDetails(
+                              platform.value
+                            ).image
+                          "
+                          class="w-4 h-4 mr-2"
+                        />
+                        {{ platform.label }}
+                      </div>
+                    </el-option>
                   </el-select>
                 </el-form-item>
                 <el-form-item
@@ -384,6 +396,9 @@ export default {
       this.model = formSchema.initialValues(
         JSON.parse(JSON.stringify(this.modelValue))
       )
+    },
+    getPlatformDetails(platform) {
+      return CrowdIntegrations.getConfig(platform)
     },
 
     doCancel() {
