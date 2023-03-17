@@ -35,12 +35,26 @@ const setApiFilters = ({
   isBot,
   filters
 }) => {
-  // Only add filter if team members are excluded
   if (selectedHasTeamMembers === false) {
     filters.push({
       isTeamMember: {
         not: true
       }
+    })
+  } else {
+    filters.push({
+      or: [
+        {
+          isTeamMember: {
+            not: true
+          }
+        },
+        {
+          isTeamMember: {
+            eq: true
+          }
+        }
+      ]
     })
   }
 
@@ -56,7 +70,7 @@ const setApiFilters = ({
   if (selectedPlatforms.length) {
     filters.push({
       or: selectedPlatforms.map((platform) => ({
-        platform: { jsonContains: platform.value }
+        identities: { contains: [platform.value] }
       }))
     })
   }

@@ -688,7 +688,7 @@ class OrganizationRepository {
     const where = { [Op.and]: whereAnd }
 
     const records = await options.database.organization.findAll({
-      attributes: ['id', 'name'],
+      attributes: ['id', 'name', 'logo'],
       where,
       limit: limit ? Number(limit) : undefined,
       order: [['name', 'ASC']],
@@ -697,6 +697,7 @@ class OrganizationRepository {
     return records.map((record) => ({
       id: record.id,
       label: record.name,
+      logo: record.logo,
     }))
   }
 

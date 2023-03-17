@@ -1,6 +1,7 @@
 import authAxios from '@/shared/axios/auth-axios'
 import AuthCurrentTenant from '@/modules/auth/auth-current-tenant'
 import buildApiPayload from '@/shared/filter/helpers/build-api-payload'
+import { DEFAULT_ACTIVITY_FILTERS } from '@/modules/activity/store/constants'
 
 export class ActivityService {
   static async update(id, data) {
@@ -94,19 +95,12 @@ export class ActivityService {
     offset,
     buildFilter = true
   ) {
-    let builtFilter = buildFilter
-      ? buildApiPayload(filter)
-      : filter
-    builtFilter = {
-      ...builtFilter,
-      member: {
-        isTeamMember: { not: true },
-        isBot: { not: true }
-      }
-    }
-
     const body = {
-      filter: builtFilter,
+      filter: buildApiPayload({
+        customFilters: filter,
+        defaultRootFilters: DEFAULT_ACTIVITY_FILTERS,
+        buildFilter
+      }),
       orderBy,
       limit,
       offset

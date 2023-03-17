@@ -53,7 +53,12 @@
               'bg-brand-50': platform === integration
             }"
             @click="setPlatform(integration)"
-            >{{ platformDetails(integration).name }}
+          >
+            <img
+              :src="platformDetails(integration).image"
+              class="w-4 h-4 mr-2"
+            />
+            {{ platformDetails(integration).name }}
           </el-dropdown-item>
         </el-dropdown-menu>
       </template>

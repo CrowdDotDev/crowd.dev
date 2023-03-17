@@ -88,7 +88,10 @@ export class ConversationService {
 
   static async list(filter, orderBy, limit, offset) {
     const body = {
-      filter: buildApiPayload(filter),
+      filter: buildApiPayload({
+        customFilters: filter,
+        buildFilter: true
+      }),
       orderBy,
       limit,
       offset
