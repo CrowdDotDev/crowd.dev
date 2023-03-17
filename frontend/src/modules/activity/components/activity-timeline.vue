@@ -21,9 +21,14 @@
               #prefix
             >
               <img
+                v-if="getPlatformDetails(platform)"
                 :src="getPlatformDetails(platform).image"
                 class="w-4 h-4"
               />
+              <i
+                v-else
+                class="ri-radar-line text-base text-gray-400"
+              ></i>
             </template>
             <el-option
               v-for="integration of activeIntegrations"
@@ -37,6 +42,16 @@
                 class="w-4 h-4 mr-2"
               />
               {{ integration.label }}
+            </el-option>
+            <el-option
+              value="other"
+              label="Other"
+              @mouseleave="onSelectMouseLeave"
+            >
+              <i
+                class="ri-radar-line text-base text-gray-400 mr-2"
+              />
+              Other
             </el-option>
           </el-select>
         </template>
@@ -88,10 +103,17 @@
               :class="`btn--${activity.platform}`"
             >
               <img
-                :src="findIcon(activity.platform)"
+                v-if="platformDetails(activity.platform)"
+                :src="
+                  platformDetails(activity.platform).image
+                "
                 :alt="`${activity.platform}-icon`"
                 class="w-4 h-4"
               />
+              <i
+                v-else
+                class="ri-radar-line text-base text-gray-400"
+              ></i>
             </span>
           </template>
         </el-timeline-item>
@@ -273,8 +295,8 @@ const fetchActivities = async () => {
   }
 }
 
-const findIcon = (platform) => {
-  return CrowdIntegrations.getConfig(platform).image
+const platformDetails = (platform) => {
+  return CrowdIntegrations.getConfig(platform)
 }
 const timeAgo = (activity) => {
   return formatDateToTimeAgo(activity.timestamp)

@@ -101,6 +101,7 @@
               + Add activity type
             </div>
             <div
+              v-if="Object.keys(types.custom).length > 0"
               class="text-2xs text-gray-400 font-semibold tracking-wide leading-6 uppercase px-3 my-1"
             >
               Custom
@@ -206,8 +207,7 @@ import {
   reactive,
   ref,
   h,
-  watch,
-  onMounted
+  watch
 } from 'vue'
 import AppDrawer from '@/shared/drawer/drawer.vue'
 import { required, url } from '@vuelidate/validators'
@@ -413,9 +413,7 @@ const submit = () => {
       .then(() => {
         reset()
         emit('update:modelValue', false)
-        doFetch({
-          keepPagination: true
-        })
+        doFetch({})
         Message.success('Activity successfully created!')
       })
       .catch(() => {
@@ -429,9 +427,7 @@ const submit = () => {
       .then(() => {
         reset()
         emit('update:modelValue', false)
-        doFetch({
-          keepPagination: true
-        })
+        doFetch({})
         Message.success('Activity successfully updated!')
       })
       .catch(() => {

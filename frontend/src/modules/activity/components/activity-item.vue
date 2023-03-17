@@ -34,6 +34,7 @@
                 <div>
                   <!-- platform icon -->
                   <el-tooltip
+                    v-if="platform"
                     effect="dark"
                     :content="platform.name"
                     placement="top"
@@ -44,6 +45,10 @@
                       :src="platform.image"
                     />
                   </el-tooltip>
+                  <i
+                    v-else
+                    class="ri-radar-line text-base text-gray-400"
+                  ></i>
                 </div>
                 <p
                   class="text-xs leading-4 pl-2 flex flex-wrap"

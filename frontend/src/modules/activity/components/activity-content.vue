@@ -22,7 +22,9 @@
       <component
         :is="platformConfig.activityContent"
         v-if="
-          activity.body && platformConfig.activityContent
+          activity.body &&
+          platformConfig &&
+          platformConfig.activityContent
         "
         ref="content"
         :activity="activity"

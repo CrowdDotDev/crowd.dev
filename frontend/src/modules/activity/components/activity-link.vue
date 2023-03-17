@@ -6,9 +6,10 @@
     target="_blank"
     @click.stop
     ><i class="ri-lg ri-external-link-line mr-1"></i>
-    <span class="block"
+    <span v-if="platform" class="block"
       >Open on {{ platform.name }}</span
-    ></a
+    >
+    <span v-else class="block">Open link</span></a
   >
 </template>
 

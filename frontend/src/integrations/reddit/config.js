@@ -1,5 +1,4 @@
 import RedditConnect from './components/reddit-connect'
-import RedditActivityContent from '@/integrations/reddit/components/activity/reddit-activity-content'
 
 export default {
   enabled: true,
@@ -10,5 +9,4 @@ export default {
     'Connect Reddit to sync posts and comments from selected subreddits.',
   image: '/images/integrations/reddit.svg',
   connectComponent: RedditConnect,
-  activityContent: RedditActivityContent
 }

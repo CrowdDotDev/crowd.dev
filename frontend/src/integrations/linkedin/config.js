@@ -1,5 +1,4 @@
 import LinkedInConnect from './components/linkedin-connect'
-import LinkedInActivityContent from '@/integrations/linkedin/components/activity/linkedin-activity-content'
 
 export default {
   enabled: true,
@@ -10,7 +9,6 @@ export default {
     "Connect LinkedIn to sync comments and reactions from your organization's posts.",
   image: '/images/integrations/linkedin.png',
   connectComponent: LinkedInConnect,
-  activityContent: LinkedInActivityContent,
   reactions: {
     like: 'Like',
     praise: 'Celebrate',

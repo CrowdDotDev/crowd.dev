@@ -45,7 +45,11 @@ export default class ActivityPlatformField extends StringField {
       {
         value: 'linkedin',
         label: 'LinkedIn'
-      }
+      },
+      {
+        value: 'other',
+        label: 'Other'
+      },
     ]
   }
 
