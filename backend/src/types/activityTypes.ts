@@ -22,7 +22,7 @@ export type ActivityTypeDisplayProperties = {
   default: string
   short: string
   channel: string
-  formatter?: { [key: string]: (string: string) => string }
+  formatter?: { [key: string]: (input: any) => string }
 }
 
 export enum DevtoActivityType {
@@ -323,5 +323,23 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
       short: 'mentioned you',
       channel: '',
     },
+  },
+  [PlatformType.STACKOVERFLOW]: {
+    'question': {
+      default: 'Stackoverflow {self}',
+      short: 'Stackoverflow {self}',
+      channel: '',
+      formatter:{
+        self: (activity)=> activity.type
+      }
+    },
+    'answer':{
+      default: 'Stackoverflow {self}',
+      short: 'Stackoverflow {self}',
+      channel: '',
+      formatter:{
+        self: (activity)=> activity.type
+      }
+    }
   },
 }

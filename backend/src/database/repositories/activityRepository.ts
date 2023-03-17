@@ -732,6 +732,11 @@ class ActivityRepository {
   }
 
   static getAttribute(key: string, activity: any) {
+
+    if (key === 'self'){
+      return activity
+    }
+
     const splitted = key.split('.')
 
     let attribute = activity
