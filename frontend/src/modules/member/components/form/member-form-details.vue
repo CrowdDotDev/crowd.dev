@@ -41,7 +41,21 @@
           input-class="w-full"
           :create-if-not-found="true"
           :in-memory-filter="false"
-        ></app-autocomplete-many-input>
+        >
+          <template #option="{ item }">
+            <div class="flex items-center">
+              <app-avatar
+                :entity="{
+                  displayName: item.label,
+                  avatar: item.logo
+                }"
+                size="xxs"
+                class="mr-2"
+              />
+              {{ item.label }}
+            </div>
+          </template>
+        </app-autocomplete-many-input>
       </el-form-item>
 
       <el-form-item :label="fieldsValue.bio.label">
@@ -73,6 +87,7 @@
 import AppTagAutocompleteInput from '@/modules/tag/components/tag-autocomplete-input.vue'
 import { defineEmits, defineProps, computed, h } from 'vue'
 import { OrganizationService } from '@/modules/organization/organization-service'
+import AppAvatar from '@/shared/avatar/avatar.vue'
 
 const CalendarIcon = h(
   'i', // type

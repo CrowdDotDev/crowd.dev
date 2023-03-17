@@ -84,7 +84,7 @@ const modalOpened = computed({
       // Track event on modal dismiss
       if (props.modelValue) {
         EventTrackingService.track({
-          event: 'Eagle Eye Guide dismissed'
+          name: 'Eagle Eye Guide dismissed'
         })
       }
 
@@ -103,7 +103,7 @@ const closing = () => {
 
 const trackBtnClick = () => {
   EventTrackingService.track({
-    event: 'Eagle Eye Guide button clicked'
+    name: 'Eagle Eye Guide button clicked'
   })
 }
 </script>
