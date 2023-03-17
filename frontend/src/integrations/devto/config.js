@@ -1,5 +1,4 @@
 import DevtoConnect from './components/devto-connect'
-import DevtoActivityMessage from './components/activity/devto-activity-message'
 import DevtoActivityContent from './components/activity/devto-activity-content'
 
 export default {
@@ -12,6 +11,5 @@ export default {
   image:
     'https://cdn-icons-png.flaticon.com/512/5969/5969051.png',
   connectComponent: DevtoConnect,
-  activityMessage: DevtoActivityMessage,
   activityContent: DevtoActivityContent
 }

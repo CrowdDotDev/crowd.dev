@@ -21,12 +21,12 @@
             <i class="ri-settings-3-line text-lg mr-2"></i>
             Activity types
           </el-button>
-<!--          <el-button-->
-<!--            class="btn btn&#45;&#45;primary btn&#45;&#45;md text-gray-600"-->
-<!--            @click="isActivityDrawerOpen = true"-->
-<!--          >-->
-<!--            Add activity-->
-<!--          </el-button>-->
+          <el-button
+            class="btn btn--primary btn--md text-gray-600"
+            @click="isActivityDrawerOpen = true"
+          >
+            Add activity
+          </el-button>
         </div>
       </div>
 
@@ -53,6 +53,10 @@
   />
   <app-activity-form-drawer
     v-model="isActivityDrawerOpen"
+    @add-activity-type="isActivityTypeFormVisible = true"
+  />
+  <app-activity-type-form-modal
+    v-model="isActivityTypeFormVisible"
   />
 </template>
 
@@ -66,11 +70,13 @@ import AppActivityListFilter from '@/modules/activity/components/list/activity-l
 import AppI18n from '@/shared/i18n/i18n'
 import AppActivityTypeListDrawer from '@/modules/activity/components/type/activity-type-list-drawer.vue'
 import AppActivityFormDrawer from '@/modules/activity/components/activity-form-drawer.vue'
+import AppActivityTypeFormModal from '@/modules/activity/components/type/activity-type-form-modal.vue'
 
 export default {
   name: 'AppActivityListPage',
 
   components: {
+    AppActivityTypeFormModal,
     AppActivityFormDrawer,
     AppActivityTypeListDrawer,
     AppI18n,
@@ -84,7 +90,8 @@ export default {
     return {
       creating: false,
       isActivityTypeDrawerOpen: false,
-      isActivityDrawerOpen: false
+      isActivityDrawerOpen: false,
+      isActivityTypeFormVisible: false
     }
   },
   computed: {

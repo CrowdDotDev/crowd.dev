@@ -35,7 +35,7 @@
         >
         <el-button
           class="btn btn--primary btn--md"
-          :disabled="$v.$invalid"
+          :disabled="$v.$invalid || !hasFormChanged"
           @click="submit()"
         >
           <span v-if="isEdit">Update</span>
@@ -65,6 +65,7 @@ import { required } from '@vuelidate/validators'
 import AppFormItem from '@/shared/form/form-item.vue'
 import Message from '@/shared/message/message'
 import { useActivityTypeStore } from '@/modules/activity/store/type'
+import formChangeDetector from '@/shared/form/form-change'
 
 // Props & Emits
 const props = defineProps({
@@ -95,6 +96,8 @@ const rules = {
     required
   }
 }
+const { formSnapshot, hasFormChanged } =
+  formChangeDetector(form)
 
 const $v = useVuelidate(rules, form)
 
@@ -119,7 +122,12 @@ watch(
 )
 
 const fillForm = (data) => {
-  form.name = data.short
+  form.name = data?.short || ''
+  formSnapshot()
+}
+
+const reset = () => {
+  form.name = ''
 }
 
 const submit = () => {
@@ -132,6 +140,7 @@ const submit = () => {
       type: form.name
     })
       .then(() => {
+        reset()
         emit('update:modelValue')
         Message.success(
           'Activity type successfully created!'
@@ -148,6 +157,7 @@ const submit = () => {
       type: form.name
     })
       .then(() => {
+        reset()
         emit('update:modelValue')
         Message.success(
           'Activity type successfully updated!'
