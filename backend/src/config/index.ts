@@ -26,6 +26,7 @@ import {
   EagleEyeConfiguration,
   UnleashConfiguration,
   SlackAlertingConfiguration,
+  SampleDataConfiguration,
 } from './configTypes'
 
 // TODO-kube
@@ -239,4 +240,10 @@ export const SLACK_ALERTING_CONFIG: SlackAlertingConfiguration = KUBE_MODE
   ? config.get<SlackAlertingConfiguration>('slackAlerting')
   : {
       url: process.env.SLACK_ALERTING_URL,
+    }
+
+export const SAMPLE_DATA_CONFIG: SampleDataConfiguration = KUBE_MODE
+  ? config.get<SampleDataConfiguration>('sampleData')
+  : {
+      tenantId: process.env.SAMPLE_DATA_TENANT_ID,
     }

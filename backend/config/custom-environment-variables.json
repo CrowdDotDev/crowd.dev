@@ -145,6 +145,9 @@
   "slackAlerting": {
     "url": "CROWD_SLACK_ALERTING_URL"
   },
+  "sampleData": {
+    "tenantId": "CROWD_SAMPLE_DATA_TENANT_ID"
+  },
   "unleash": {
     "url": "CROWD_UNLEASH_URL",
     "adminApiKey": "CROWD_UNLEASH_ADMIN_API_KEY",

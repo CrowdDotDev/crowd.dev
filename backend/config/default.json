@@ -40,5 +40,8 @@
   },
   "slackAlerting": {
     "url": ""
+  },
+  "sampleData": {
+    "tenantId": ""
   }
 }
