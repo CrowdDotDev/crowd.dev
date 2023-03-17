@@ -32,6 +32,12 @@
             v-for="(tag, index) of model"
             :key="index"
             class="w-full no-margin"
+            :class="{
+              'is-error':
+                (tag.touched && !tag.valid) ||
+                (tag.touched && tag.volumeTooLarge),
+              'is-success': tag.touched && tag.valid
+            }"
           >
             <div class="flex w-full">
               <el-input
