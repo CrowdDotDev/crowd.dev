@@ -364,7 +364,7 @@ export class StackOverlflowIntegrationService extends IntegrationServiceBase {
     const body = answer.body
       ? sanitizeHtml(he.decode(answer.body))
       : `<a href="${answer.link}" target="__blank">${answer.link}</a>`
-    const member: Member | undefined = await this.parseMember(answer.owner.user_id, context);
+    let member: Member | undefined = await this.parseMember(answer.owner.user_id, context);
     if (member == undefined && answer.owner.display_name) {
       member = {
         username: {
