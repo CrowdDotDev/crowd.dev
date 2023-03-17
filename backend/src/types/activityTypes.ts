@@ -86,6 +86,18 @@ const defaultGithubChannelFormatter = (channel) => {
   return `<a href="${githubUrl}/${organization}/${repo}" target="_blank">${repo}</a>`
 }
 
+const defaultStackoverflowFormatter = (activity) => {
+  if (activity.attributes.keyword && activity.attributes.tag) {
+    return `<span class="text-gray-500">tagged with "${activity.attributes.tag}" and mentioning "${activity.attributes.keyword}"</span>`
+  } else if (activity.attributes.keyword) {
+    return `<span class="text-gray-500">mentioning "${activity.attributes.keyword}"</span>`
+  } else if (activity.attributes.tag) {
+    return `<span class="text-gray-500">tagged with "${activity.attributes.tag}"</span>`
+  }
+
+  return ''
+}
+
 export const UNKNOWN_ACTIVITY_TYPE_DISPLAY: ActivityTypeDisplayProperties = {
   default: 'Conducted an activity',
   short: 'conducted an activity',
@@ -326,19 +338,19 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
   },
   [PlatformType.STACKOVERFLOW]: {
     question: {
-      default: 'Stackoverflow {self}',
-      short: 'Stackoverflow {self}',
+      default: 'Asked a question {self}',
+      short: 'Asked a question',
       channel: '',
       formatter: {
-        self: (activity) => activity.type,
+        self: defaultStackoverflowFormatter,
       },
     },
     answer: {
-      default: 'Stackoverflow {self}',
-      short: 'Stackoverflow {self}',
+      default: 'Answered a question {self}',
+      short: 'Answered a question',
       channel: '',
       formatter: {
-        self: (activity) => activity.type,
+        self: defaultStackoverflowFormatter,
       },
     },
   },
