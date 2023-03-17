@@ -1,11 +1,10 @@
 import axios, { AxiosRequestConfig } from 'axios'
-import { StackOverflowUserResponse, StackOverflowUser } from '../../types/stackOverflowTypes'
+import { StackOverflowUserResponse, StackOverflowUser, StackOverflowUserInput } from '../../types/stackOverflowTypes'
 import { Logger } from '../../../../utils/logging'
-import { STACKEXCHANGE_CONFIG } from '../../../../config';
-import getToken from '../nango/getToken';
-import { timeout } from '../../../../utils/timing';
-import { RateLimitError } from '../../../../types/integration/rateLimitError';
-import { StackOverflowUserInput } from '../../types/stackOverflowTypes';
+import { STACKEXCHANGE_CONFIG } from '../../../../config'
+import getToken from '../nango/getToken'
+import { timeout } from '../../../../utils/timing'
+import { RateLimitError } from '../../../../types/integration/rateLimitError'
 
 /**
  * Get user from StackOverflow given a user ID.
@@ -31,22 +30,22 @@ async function getUser(input: StackOverflowUserInput, logger: Logger): Promise<S
       },
     }
 
-    const response: StackOverflowUserResponse = (await axios(config)).data;
-    const backoff = response.backoff;
+    const response: StackOverflowUserResponse = (await axios(config)).data
+    const backoff = response.backoff
     if (backoff !== undefined) {
       if (backoff <= 2) {
         // Wait for backoff time returned by StackOverflow API
-        await timeout(backoff * 1000);
+        await timeout(backoff * 1000)
       }
       else {
-        throw new RateLimitError(backoff, "stackoverflow/getUser");
+        throw new RateLimitError(backoff, "stackoverflow/getUser")
       }
     }
-    return response.items[0];
+    return response.items[0]
   } catch (err) {
     logger.error({ err, userId: input.userId }, 'Error while getting a member from StackOverflow API')
     throw err
   }
 }
 
-export default getUser;
+export default getUser

@@ -3,8 +3,8 @@ import { StackOverflowGetQuestionsByKeywordInput, StackOverflowQuestionsResponse
 import { Logger } from '../../../../utils/logging'
 import { STACKEXCHANGE_CONFIG } from '../../../../config'
 import getToken from '../nango/getToken'
-import { timeout } from '../../../../utils/timing';
-import { RateLimitError } from '../../../../types/integration/rateLimitError';
+import { timeout } from '../../../../utils/timing'
+import { RateLimitError } from '../../../../types/integration/rateLimitError'
 
 /**
  * Get paginated questions from StackOverflow given a keyword.
@@ -35,22 +35,22 @@ async function getQuestions(input: StackOverflowGetQuestionsByKeywordInput, logg
     }
   }
 
-    const response: StackOverflowQuestionsResponse = (await axios(config)).data;
-    const backoff = response.backoff;
+    const response: StackOverflowQuestionsResponse = (await axios(config)).data
+    const backoff = response.backoff
     if (backoff) {
       if (backoff <= 2) {
         // Wait for backoff time returned by StackOverflow API
-        await timeout(backoff * 1000);
+        await timeout(backoff * 1000)
       }
       else {
-        throw new RateLimitError(backoff, "stackoverflow/getQuestionsByKeyword");
+        throw new RateLimitError(backoff, "stackoverflow/getQuestionsByKeyword")
       }
     }
-    return response;
+    return response
   } catch (err) {
     logger.error({ err, input }, 'Error while getting StackOverflow questions by keywords')
     throw err
   }
 }
 
-export default getQuestions;
+export default getQuestions

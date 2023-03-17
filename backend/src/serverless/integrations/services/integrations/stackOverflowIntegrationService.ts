@@ -3,7 +3,7 @@ import he from 'he'
 import { IStepContext, IIntegrationStream, IProcessStreamResults } from "../../../../types/integration/stepResult"
 import { IntegrationType, PlatformType } from "../../../../types/integrationEnums"
 import { IntegrationServiceBase } from "../integrationServiceBase"
-import { StackOverflowAnswer, StackOverflowAnswerResponse, StackOverflowQuestionsResponse, StackOverflowShallowQuestion, StackOverflowActivityType } from "../../types/stackOverflowTypes"
+import { StackOverflowAnswer, StackOverflowAnswerResponse, StackOverflowQuestionsResponse, StackOverflowShallowQuestion } from "../../types/stackOverflowTypes"
 import getQuestionsByTags from "../../usecases/stackoverflow/getQuestions"
 import getQuestionsByKeyword from "../../usecases/stackoverflow/getQuestionsByKeyword"
 import getAnswers from '../../usecases/stackoverflow/getAnswers'
@@ -16,6 +16,11 @@ import { StackOverflowMemberAttributes } from '../../../../database/attributes/m
 import { MemberAttributeName } from '../../../../database/attributes/member/enums'
 import { createRedisClient } from '../../../../utils/redis'
 import { RedisCache } from '../../../../utils/redis/redisCache'
+import { StackOverflowActivityType } from '../../../../types/activityTypes'
+
+/* eslint class-methods-use-this: 0 */
+
+/* eslint-disable @typescript-eslint/no-unused-vars */
 
 
 export class StackOverlflowIntegrationService extends IntegrationServiceBase {
