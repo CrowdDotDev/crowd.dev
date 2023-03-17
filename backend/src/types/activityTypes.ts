@@ -325,21 +325,21 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
     },
   },
   [PlatformType.STACKOVERFLOW]: {
-    'question': {
+    question: {
       default: 'Stackoverflow {self}',
       short: 'Stackoverflow {self}',
       channel: '',
-      formatter:{
-        self: (activity)=> activity.type
-      }
+      formatter: {
+        self: (activity) => activity.type,
+      },
     },
-    'answer':{
+    answer: {
       default: 'Stackoverflow {self}',
       short: 'Stackoverflow {self}',
       channel: '',
-      formatter:{
-        self: (activity)=> activity.type
-      }
-    }
+      formatter: {
+        self: (activity) => activity.type,
+      },
+    },
   },
 }

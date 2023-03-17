@@ -732,8 +732,7 @@ class ActivityRepository {
   }
 
   static getAttribute(key: string, activity: any) {
-
-    if (key === 'self'){
+    if (key === 'self') {
       return activity
     }
 
