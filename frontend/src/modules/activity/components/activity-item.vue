@@ -91,7 +91,10 @@
                   >Open conversation</span
                 ></a
               >
-              <app-activity-dropdown :activity="activity" />
+              <app-activity-dropdown
+                :activity="activity"
+                @edit="$emit('edit')"
+              />
             </div>
           </div>
           <!-- member name -->
@@ -162,7 +165,7 @@ export default {
       default: true
     }
   },
-  emits: ['openConversation'],
+  emits: ['openConversation', 'edit'],
   computed: {
     platform() {
       return CrowdIntegrations.getConfig(

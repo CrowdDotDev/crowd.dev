@@ -4,7 +4,7 @@
       v-if="!isReadOnly"
       placement="bottom-end"
       trigger="click"
-      @command="handleCommand"
+      @command="$event()"
       @visible-change="dropdownVisible = $event"
     >
       <button
@@ -15,13 +15,15 @@
         <i class="text-xl ri-more-fill"></i>
       </button>
       <template #dropdown>
-        <!-- TODO: uncomment this once activity editing is done -->
-        <!--        <el-dropdown-item command="activityEdit">-->
-        <!--          <i class="ri-pencil-line text-gray-400 mr-1" />-->
-        <!--          <span>Edit Activity</span></el-dropdown-item-->
-        <!--        >-->
         <el-dropdown-item
-          command="activityDelete"
+          v-if="activity.platform === 'other'"
+          :command="editActivity"
+        >
+          <i class="ri-pencil-line text-gray-400 mr-1" />
+          <span>Edit Activity</span></el-dropdown-item
+        >
+        <el-dropdown-item
+          :command="doDestroyWithConfirm"
           :disabled="isDeleteLockedForSampleData"
         >
           <i
@@ -55,7 +57,7 @@ export default {
       default: () => {}
     }
   },
-  emits: ['activity-destroyed'],
+  emits: ['activity-destroyed', 'edit'],
   data() {
     return {
       dropdownVisible: false
@@ -85,17 +87,8 @@ export default {
     ...mapActions({
       doDestroy: 'activity/doDestroy'
     }),
-    handleCommand(command) {
-      if (command === 'activityDelete') {
-        return this.doDestroyWithConfirm()
-      } else if (command === 'activityEdit') {
-        this.editing = true
-      } else {
-        return this.$router.push({
-          name: command,
-          params: { id: this.activity.id }
-        })
-      }
+    editActivity() {
+      this.$emit('edit')
     },
     async doDestroyWithConfirm() {
       try {

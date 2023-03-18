@@ -39,6 +39,7 @@
         :activities="recordsArray"
         :loading="loading"
         :items-as-cards="true"
+        @edit="edit($event)"
       ></app-activity-list>
       <app-conversation-list
         v-else-if="activeView.type === 'conversations'"
@@ -53,7 +54,9 @@
   />
   <app-activity-form-drawer
     v-model="isActivityDrawerOpen"
+    :activity="editableActivity"
     @add-activity-type="isActivityTypeFormVisible = true"
+    @update:model-value="editableActivity = null"
   />
   <app-activity-type-form-modal
     v-model="isActivityTypeFormVisible"
@@ -91,7 +94,8 @@ export default {
       creating: false,
       isActivityTypeDrawerOpen: false,
       isActivityDrawerOpen: false,
-      isActivityTypeFormVisible: false
+      isActivityTypeFormVisible: false,
+      editableActivity: false
     }
   },
   computed: {
@@ -114,6 +118,12 @@ export default {
 
   async mounted() {
     window.analytics.page('Activities')
+  },
+  methods: {
+    edit(activity) {
+      this.isActivityDrawerOpen = true
+      this.editableActivity = activity
+    }
   }
 }
 </script>

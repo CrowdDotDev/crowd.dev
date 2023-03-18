@@ -41,6 +41,18 @@
               ></app-avatar>
             </template>
             <el-option
+              v-if="props.activity?.member"
+              :label="props.activity.member.displayName"
+              :value="props.activity.member.id"
+            >
+              <app-avatar
+                :entity="props.activity.member"
+                size="xxs"
+                class="mr-2"
+              ></app-avatar>
+              {{ props.activity.member.displayName }}
+            </el-option>
+            <el-option
               v-for="item in membersList"
               :key="item.id"
               :label="item.label"
@@ -331,7 +343,7 @@ const platformDetails = (platform) => {
 
 // Form utils
 watch(
-  () => props.activity(),
+  () => props.activity,
   (activity) => {
     if (activity) {
       fillForm(activity)
@@ -349,6 +361,7 @@ const isEdit = computed(() => {
 
 const fillForm = (activity) => {
   form.member = activity?.member?.id || ''
+  selectedMember.value = activity?.member || null
   form.datetime = activity?.timestamp || ''
   form.activityType = activity?.type || ''
   form.config.title = activity?.title || ''

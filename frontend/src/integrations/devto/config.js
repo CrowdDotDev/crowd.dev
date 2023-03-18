@@ -9,5 +9,5 @@ export default {
     'Connect DEV to sync profile information and comments on articles.',
   image:
     'https://cdn-icons-png.flaticon.com/512/5969/5969051.png',
-  connectComponent: DevtoConnect,
+  connectComponent: DevtoConnect
 }

@@ -37,6 +37,7 @@
           class="mb-6"
           v-bind="cardOptions"
           @open-conversation="conversationId = $event"
+          @edit="emit('edit', activity)"
         />
 
         <!-- Load more button -->
@@ -79,7 +80,12 @@ export default {
 import AppActivityItem from '@/modules/activity/components/activity-item'
 import AppConversationDrawer from '@/modules/conversation/components/conversation-drawer'
 import AppPaginationSorter from '@/shared/pagination/pagination-sorter'
-import { defineProps, computed, ref } from 'vue'
+import {
+  defineProps,
+  defineEmits,
+  computed,
+  ref
+} from 'vue'
 import { useStore } from 'vuex'
 
 const store = useStore()
@@ -101,6 +107,8 @@ defineProps({
     default: () => ({})
   }
 })
+
+const emit = defineEmits(['edit'])
 
 const activeView = computed(
   () => store.getters['activity/activeView']
