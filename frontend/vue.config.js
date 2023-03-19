@@ -1,13 +1,19 @@
 const fs = require('fs')
 const webpack = require('webpack')
-const BundleAnalyzerPlugin =
-  require('webpack-bundle-analyzer').BundleAnalyzerPlugin
-const DeadCodePlugin = require('webpack-deadcode-plugin')
+const path = require('path')
+
 const AutoImport = require('unplugin-auto-import/webpack')
 const Components = require('unplugin-vue-components/webpack')
 const {
   ElementPlusResolver
 } = require('unplugin-vue-components/resolvers')
+
+const DeadCodePlugin = require('webpack-deadcode-plugin')
+const MiniCssExtractPlugin = require('mini-css-extract-plugin')
+const CssMinimizerPlugin = require('css-minimizer-webpack-plugin')
+const TerserPlugin = require('terser-webpack-plugin')
+const BundleAnalyzerPlugin =
+  require('webpack-bundle-analyzer').BundleAnalyzerPlugin
 
 const packageJson = fs.readFileSync('./package.json')
 const version = JSON.parse(packageJson).version || 0
@@ -15,6 +21,12 @@ const version = JSON.parse(packageJson).version || 0
 module.exports = {
   configureWebpack: {
     plugins: [
+      AutoImport({
+        resolvers: [ElementPlusResolver()]
+      }),
+      Components({
+        resolvers: [ElementPlusResolver()]
+      }),
       new webpack.IgnorePlugin({
         resourceRegExp: /^\.\/locale$/,
         contextRegExp: /moment$/
@@ -28,13 +40,42 @@ module.exports = {
       new DeadCodePlugin({
         patterns: ['src/**/*.(js|jsx|css|vue)']
       }),
-      AutoImport({
-        resolvers: [ElementPlusResolver()]
-      }),
-      Components({
-        resolvers: [ElementPlusResolver()]
+      new MiniCssExtractPlugin({
+        filename: '[name].css',
+        ignoreOrder: true
       })
-    ]
+    ],
+    entry: {
+      app: './src/main.js'
+    },
+    output: {
+      filename: '[name].[contenthash].js',
+      path: path.resolve(__dirname, 'dist'),
+      clean: true
+    },
+    optimization: {
+      splitChunks: {
+        chunks: 'all'
+      },
+      minimizer: [
+        new CssMinimizerPlugin(),
+        new TerserPlugin({
+          terserOptions: {
+            compress: {
+              drop_console: true
+            }
+          }
+        })
+      ]
+    },
+    module: {
+      rules: [
+        {
+          test: /^\.\/.s?css$/,
+          use: [MiniCssExtractPlugin.loader, 'sass-loader']
+        }
+      ]
+    }
   },
   devServer: {
     port: 8081,
