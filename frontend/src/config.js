@@ -32,8 +32,6 @@ const defaultConfig = {
   env: process.env.VUE_APP_ENV,
   hotjarKey: process.env.VUE_APP_HOTJAR_KEY,
   nangoUrl: process.env.VUE_APP_NANGO_URL,
-  typeformId: process.env.VUE_APP_TYPEFORM_ID,
-  typeformTitle: process.env.VUE_APP_TYPEFORM_TITLE,
   unleash: {
     apiKey: process.env.VUE_APP_UNLEASH_API_KEY,
     url: process.env.VUE_APP_UNLEASH_URL
