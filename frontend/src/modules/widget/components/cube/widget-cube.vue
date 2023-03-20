@@ -324,6 +324,9 @@ export default {
           seriesItem.title
         )
 
+        const granularity =
+          this.query.timeDimensions[0].granularity
+
         if (
           this.query.timeDimensions.length &&
           !this.query.timeDimensions[0].granularity
@@ -340,11 +343,12 @@ export default {
                 'widget.cubejs.cubes.' +
                   this.query.measures[0].split('.')[0]
               )
+
         return {
           name: seriesName,
           data: seriesItem.series.map((item) => {
             const formattedDate = moment(item.x).format(
-              'MMM DD'
+              this.getDateFormatForGranularity(granularity)
             )
             item.x = item.x === '∅' ? 'unknown' : item.x
             return [
@@ -361,6 +365,18 @@ export default {
           })
         }
       })
+    },
+    getDateFormatForGranularity(granularity) {
+      const granularityFormat = {
+        day: 'MMM DD',
+        week: 'MMM DD',
+        month: 'MMM YY',
+        year: 'YYYY'
+      }
+
+      return granularity && granularity in granularityFormat
+        ? granularityFormat[granularity]
+        : 'MMM DD'
     },
     tableData(resultSet) {
       // For tables
