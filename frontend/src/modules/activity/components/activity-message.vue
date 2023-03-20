@@ -45,7 +45,15 @@ const activityMessage = computed(() => {
 
   a,
   span {
-    @apply text-brand-500 truncate max-w-2xs;
+    @apply text-brand-500;
+
+    &.gray {
+      @apply text-gray-500;
+    }
+
+    &:not(.notruncate) {
+      @apply truncate max-w-2xs;
+    }
   }
 
   img {
