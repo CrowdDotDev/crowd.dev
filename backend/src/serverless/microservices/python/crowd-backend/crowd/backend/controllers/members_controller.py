@@ -37,8 +37,6 @@ class MembersController(BaseController):
         Args:
             updates ([{id, update}]): list of dicts with id and corresponding update
         """
-        logger.info("UPDATES")
-        logger.info(updates)
         if type(updates) is not list:
             updates = [
                 updates,
