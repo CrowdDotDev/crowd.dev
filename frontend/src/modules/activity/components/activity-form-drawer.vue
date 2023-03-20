@@ -391,7 +391,7 @@ const submit = () => {
     return
   }
   const data = {
-    member: form.member,
+    member: form.member.id,
     timestamp: form.datetime,
     type: form.activityType,
     platform:
