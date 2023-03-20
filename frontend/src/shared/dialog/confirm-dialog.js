@@ -1,5 +1,5 @@
 import { ElMessageBox } from 'element-plus'
-import { h } from 'vue' // this is only needed if the page also used ElMessage
+import { h } from 'vue'
 import 'element-plus/es/components/message-box/style/css'
 
 export default ({

@@ -10,6 +10,6 @@
 
   // Label
   & .el-switch__label {
-    @apply text-xs text-gray-900 font-medium;
+    @apply text-xs text-gray-900 font-medium #{!important};
   }
 }
