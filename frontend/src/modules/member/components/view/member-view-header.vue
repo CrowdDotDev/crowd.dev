@@ -84,7 +84,7 @@
         <p class="mt-1 text-gray-900 text-xs">
           {{
             formattedInformation(
-              member.lastActivity?.createdAt,
+              member.lastActivity?.timestamp,
               'relative'
             )
           }}
