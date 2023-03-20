@@ -158,49 +158,57 @@ class MemberRepository {
   }
 
   static async addToMerge(id, toMergeId, options: IRepositoryOptions) {
+    const transaction = SequelizeRepository.getTransaction(options)
+
     const returnPlain = false
 
     const member = await this.findById(id, options, returnPlain)
 
     const toMergeMember = await this.findById(toMergeId, options, returnPlain)
 
-    await member.addToMerge(toMergeMember)
+    await member.addToMerge(toMergeMember, { transaction })
 
     return this.findById(id, options)
   }
 
   static async removeToMerge(id, toMergeId, options: IRepositoryOptions) {
+    const transaction = SequelizeRepository.getTransaction(options)
+
     const returnPlain = false
 
     const member = await this.findById(id, options, returnPlain)
 
     const toMergeMember = await this.findById(toMergeId, options, returnPlain)
 
-    await member.removeToMerge(toMergeMember)
+    await member.removeToMerge(toMergeMember, { transaction })
 
     return this.findById(id, options)
   }
 
   static async addNoMerge(id, toMergeId, options: IRepositoryOptions) {
+    const transaction = SequelizeRepository.getTransaction(options)
+
     const returnPlain = false
 
     const member = await this.findById(id, options, returnPlain)
 
     const toMergeMember = await this.findById(toMergeId, options, returnPlain)
 
-    await member.addNoMerge(toMergeMember)
+    await member.addNoMerge(toMergeMember, { transaction })
 
     return this.findById(id, options)
   }
 
   static async removeNoMerge(id, toMergeId, options: IRepositoryOptions) {
+    const transaction = SequelizeRepository.getTransaction(options)
+
     const returnPlain = false
 
     const member = await this.findById(id, options, returnPlain)
 
     const toMergeMember = await this.findById(toMergeId, options, returnPlain)
 
-    await member.removeNoMerge(toMergeMember)
+    await member.removeNoMerge(toMergeMember, { transaction })
 
     return this.findById(id, options)
   }
