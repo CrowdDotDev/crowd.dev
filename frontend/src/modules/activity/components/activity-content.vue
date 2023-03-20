@@ -78,7 +78,7 @@
 </template>
 
 <script>
-import joypixels from 'emoji-toolkit'
+import uEmojiParser from 'universal-emoji-parser'
 import { CrowdIntegrations } from '@/integrations/integrations-config'
 
 export default {
@@ -158,9 +158,8 @@ export default {
   },
   methods: {
     contentRenderEmojis(content) {
-      return joypixels
-        .toImage(content)
-        .trim()
+      return uEmojiParser
+        .parse(content)
         .replaceAll(
           new RegExp('(?<!"):[a-z_-]+:', 'g'),
           '<abbr class="no-underline" title="Unable to detect emoji">&#65533;</abbr>'
@@ -183,6 +182,10 @@ export default {
   h5,
   h6 {
     font-size: 16px;
+  }
+
+  .emoji {
+    @apply w-4 h-4 inline;
   }
 }
 
