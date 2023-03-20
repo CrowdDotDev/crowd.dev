@@ -7,7 +7,12 @@
         class="text-gray-400"
         placement="top"
       >
+        <i
+          v-if="member.lastActivity.platform === 'other'"
+          class="ri-radar-line text-base"
+        ></i>
         <app-svg
+          v-else
           :name="member.lastActivity.platform"
           class="w-4 h-4"
         />

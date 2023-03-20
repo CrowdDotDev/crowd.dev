@@ -95,7 +95,7 @@ export default {
       isActivityTypeDrawerOpen: false,
       isActivityDrawerOpen: false,
       isActivityTypeFormVisible: false,
-      editableActivity: false
+      editableActivity: null
     }
   },
   computed: {

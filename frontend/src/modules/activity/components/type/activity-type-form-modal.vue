@@ -18,10 +18,7 @@
         >
           <el-input v-model="form.name"> </el-input>
         </app-form-item>
-        <p
-          v-if="form.platform === 'other'"
-          class="text-2xs text-gray-500 leading-5"
-        >
+        <p class="text-2xs text-gray-500 leading-5">
           Example: "Registered to conference"
         </p>
       </section>
@@ -66,6 +63,7 @@ import AppFormItem from '@/shared/form/form-item.vue'
 import Message from '@/shared/message/message'
 import { useActivityTypeStore } from '@/modules/activity/store/type'
 import formChangeDetector from '@/shared/form/form-change'
+import { mapActions } from '@/shared/vuex/vuex.helpers'
 
 // Props & Emits
 const props = defineProps({
@@ -85,6 +83,7 @@ const emit = defineEmits(['update:modelValue'])
 
 const { createActivityType, updateActivityType } =
   useActivityTypeStore()
+const { doFetch } = mapActions('activity')
 
 // Form control
 const form = reactive({
@@ -100,12 +99,6 @@ const { formSnapshot, hasFormChanged } =
   formChangeDetector(form)
 
 const $v = useVuelidate(rules, form)
-
-// is modal visible
-const isVisible = computed({
-  get: () => props.modelValue,
-  set: (value) => emit('update:modelValue', value)
-})
 
 const isEdit = computed(() => {
   return props.type
@@ -158,6 +151,7 @@ const submit = () => {
     })
       .then(() => {
         reset()
+        doFetch({})
         emit('update:modelValue')
         Message.success(
           'Activity type successfully updated!'
@@ -170,4 +164,15 @@ const submit = () => {
       })
   }
 }
+
+// is modal visible
+const isVisible = computed({
+  get: () => props.modelValue,
+  set: (value) => {
+    if (!value) {
+      reset()
+    }
+    emit('update:modelValue', value)
+  }
+})
 </script>

@@ -79,15 +79,15 @@
             </header>
             <div>
               <div
-                v-for="(
-                  activityTypes, platform
-                ) in types.default"
-                :key="platform"
+                v-for="integration in activeIntegrations"
+                :key="integration.platform"
               >
                 <app-activity-type-list-item
-                  v-for="(display, type) in activityTypes"
+                  v-for="(display, type) in types.default[
+                    integration.platform
+                  ]"
                   :key="type"
-                  :platform="platform"
+                  :platform="integration.platform"
                   :label="display.short"
                 />
               </div>
@@ -116,15 +116,21 @@ import {
   defineProps,
   computed,
   ref,
-  watch
+  watch,
+  onMounted
 } from 'vue'
 import AppDrawer from '@/shared/drawer/drawer.vue'
 import AppActivityTypeListItem from '@/modules/activity/components/type/activity-type-list-item.vue'
 import AppActivityTypeDropdown from '@/modules/activity/components/type/activity-type-dropdown.vue'
 import AppActivityTypeFormModal from '@/modules/activity/components/type/activity-type-form-modal.vue'
-import { mapGetters } from '@/shared/vuex/vuex.helpers'
+import {
+  mapGetters,
+  mapActions
+} from '@/shared/vuex/vuex.helpers'
 import { useActivityTypeStore } from '@/modules/activity/store/type'
 import { storeToRefs } from 'pinia'
+import { useStore } from 'vuex'
+import { CrowdIntegrations } from '@/integrations/integrations-config'
 
 // Props & emits
 const props = defineProps({
@@ -137,7 +143,9 @@ const props = defineProps({
 const emit = defineEmits(['update:modelValue'])
 
 // Store
+const store = useStore()
 const { currentTenant } = mapGetters('auth')
+const { doFetch } = mapActions('integration')
 const activityTypeStore = useActivityTypeStore()
 const { types } = storeToRefs(activityTypeStore)
 const { setTypes } = activityTypeStore
@@ -158,7 +166,6 @@ watch(
   () => currentTenant,
   (tenant) => {
     if (tenant.value.settings.length > 0) {
-      console.log(tenant.value.settings[0].activityTypes)
       setTypes(tenant.value.settings[0].activityTypes)
     }
   },
@@ -175,4 +182,18 @@ const onModalViewChange = (opened) => {
     editableActivityType.value = null
   }
 }
+
+const activeIntegrations = computed(() => {
+  return CrowdIntegrations.mappedEnabledConfigs(
+    store
+  ).filter((integration) => {
+    return integration.status
+  })
+})
+
+onMounted(() => {
+  if (activeIntegrations.value.length === 0) {
+    doFetch({})
+  }
+})
 </script>

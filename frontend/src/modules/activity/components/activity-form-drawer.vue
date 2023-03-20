@@ -15,60 +15,37 @@
             required: 'This field is required'
           }"
         >
-          <el-select
+          <app-autocomplete-one-input
             v-model="form.member"
-            :filterable="true"
-            :remote="true"
+            :fetch-fn="searchMembers"
             placeholder="Select option"
-            :remote-method="searchMembers"
-            :loading="loadingMembers"
-            class="w-full"
-            @change="
-              selectMember($event) && $v.config.url.$touch()
-            "
-            @blur="$v.config.url.$touch"
+            input-class="w-full"
+            @change="$v.member.$touch"
+            @blur="$v.member.$touch"
           >
-            <template
-              v-if="form.member && selectedMember"
-              #prefix
-            >
+            <template v-if="form.member" #prefix>
               <app-avatar
                 :entity="{
-                  displayName: selectedMember.label,
-                  avatar: selectedMember.avatar
+                  displayName: form.member.label,
+                  avatar: form.member.avatar
                 }"
                 size="xxs"
               ></app-avatar>
             </template>
-            <el-option
-              v-if="props.activity?.member"
-              :label="props.activity.member.displayName"
-              :value="props.activity.member.id"
-            >
-              <app-avatar
-                :entity="props.activity.member"
-                size="xxs"
-                class="mr-2"
-              ></app-avatar>
-              {{ props.activity.member.displayName }}
-            </el-option>
-            <el-option
-              v-for="item in membersList"
-              :key="item.id"
-              :label="item.label"
-              :value="item.id"
-            >
-              <app-avatar
-                :entity="{
-                  displayName: item.label,
-                  avatar: item.avatar
-                }"
-                size="xxs"
-                class="mr-2"
-              ></app-avatar>
-              {{ item.label }}
-            </el-option>
-          </el-select>
+            <template #option="{ item }">
+              <div class="flex items-center">
+                <app-avatar
+                  :entity="{
+                    displayName: item.label,
+                    avatar: item.avatar
+                  }"
+                  size="xxs"
+                  class="mr-2"
+                />
+                {{ item.label }}
+              </div>
+            </template>
+          </app-autocomplete-one-input>
         </app-form-item>
 
         <app-form-item
@@ -77,7 +54,8 @@
           :validation="$v.datetime"
           :required="true"
           :error-messages="{
-            required: 'This field is required'
+            required: 'This field is required',
+            inPast: 'Selected date must be in the past'
           }"
         >
           <el-date-picker
@@ -85,8 +63,10 @@
             type="datetime"
             placeholder="Select date & time"
             :prefix-icon="CalendarIcon"
-            @blur="$v.config.url.$touch"
-            @change="$v.config.url.$touch"
+            class="custom-date-picker"
+            popper-class="date-picker-popper"
+            @blur="$v.datetime.$touch"
+            @change="$v.datetime.$touch"
           />
         </app-form-item>
 
@@ -103,8 +83,8 @@
             v-model="form.activityType"
             placeholder="Select option"
             class="w-full"
-            @blur="$v.config.url.$touch"
-            @change="$v.config.url.$touch"
+            @blur="$v.activityType.$touch"
+            @change="$v.activityType.$touch"
           >
             <div
               class="px-3 py-2.5 text-brand-500 text-xs leading-5 transition hover:bg-gray-50 cursor-pointer"
@@ -134,26 +114,34 @@
               </el-option>
             </template>
             <template
-              v-for="(
-                activityTypes, platform
-              ) in types.default"
-              :key="platform"
+              v-for="integration in activeIntegrations"
+              :key="integration.platform"
             >
               <div
                 class="text-2xs text-gray-400 font-semibold tracking-wide leading-6 uppercase px-3 my-1"
               >
-                {{ platformDetails(platform).name }}
+                {{
+                  platformDetails(integration.platform).name
+                }}
               </div>
               <el-option
-                v-for="(display, type) in activityTypes"
+                v-for="(display, type) in types.default[
+                  integration.platform
+                ]"
                 :key="type"
                 :label="display.short"
                 :value="type"
               >
                 <img
-                  :src="platformDetails(platform).image"
+                  :src="
+                    platformDetails(integration.platform)
+                      .image
+                  "
                   class="h-4 w-4 mr-2"
-                  :alt="platformDetails(platform).name"
+                  :alt="
+                    platformDetails(integration.platform)
+                      .name
+                  "
                 />
                 {{ display.short }}
               </el-option>
@@ -217,9 +205,9 @@ import {
   defineProps,
   computed,
   reactive,
-  ref,
   h,
-  watch
+  watch,
+  onMounted
 } from 'vue'
 import AppDrawer from '@/shared/drawer/drawer.vue'
 import { required, url } from '@vuelidate/validators'
@@ -234,6 +222,9 @@ import { ActivityService } from '@/modules/activity/activity-service'
 import Message from '@/shared/message/message'
 import formChangeDetector from '@/shared/form/form-change'
 import { mapActions } from '@/shared/vuex/vuex.helpers'
+import { useStore } from 'vuex'
+import AppAutocompleteOneInput from '@/shared/form/autocomplete-one-input.vue'
+import moment from 'moment'
 
 // Props & emits
 const props = defineProps({
@@ -257,7 +248,9 @@ const emit = defineEmits([
 const activityTypeStore = useActivityTypeStore()
 const { types } = storeToRefs(activityTypeStore)
 
+const store = useStore()
 const { doFetch } = mapActions('activity')
+const integrationStore = mapActions('integration')
 
 // Is drawer visible
 const isVisible = computed({
@@ -271,7 +264,7 @@ const isVisible = computed({
 
 // Form control
 const form = reactive({
-  member: '',
+  member: null,
   datetime: '',
   activityType: '',
   config: {
@@ -281,20 +274,13 @@ const form = reactive({
   }
 })
 
-const selectedMember = ref(null)
-
-const selectMember = (id) => {
-  selectedMember.value = membersList.value.find(
-    (m) => m.id === id
-  )
-}
-
 const rules = {
   member: {
     required
   },
   datetime: {
-    required
+    required,
+    inPast: (date) => moment(date).isBefore(moment())
   },
   activityType: {
     required
@@ -310,20 +296,12 @@ const rules = {
 const $v = useVuelidate(rules, form)
 
 // Members field
-const loadingMembers = ref(false)
-const membersList = ref([])
 const searchMembers = (query, limit) => {
-  loadingMembers.value = true
-  MemberService.listAutocomplete(query, limit)
-    .then((options) => {
-      membersList.value = options
-    })
-    .catch(() => {
-      membersList.value = []
-    })
-    .finally(() => {
-      loadingMembers.value = false
-    })
+  return MemberService.listAutocomplete(query, limit).catch(
+    () => {
+      return []
+    }
+  )
 }
 
 // Datetime field
@@ -347,6 +325,8 @@ watch(
   (activity) => {
     if (activity) {
       fillForm(activity)
+    } else {
+      reset()
     }
   },
   { immediate: true, deep: true }
@@ -360,8 +340,12 @@ const isEdit = computed(() => {
 })
 
 const fillForm = (activity) => {
-  form.member = activity?.member?.id || ''
-  selectedMember.value = activity?.member || null
+  form.member =
+    {
+      ...activity.member,
+      label: activity.member.displayName,
+      avatar: activity.member.attributes.avatarUrl.default
+    } || ''
   form.datetime = activity?.timestamp || ''
   form.activityType = activity?.type || ''
   form.config.title = activity?.title || ''
@@ -450,4 +434,18 @@ const submit = () => {
       })
   }
 }
+
+const activeIntegrations = computed(() => {
+  return CrowdIntegrations.mappedEnabledConfigs(
+    store
+  ).filter((integration) => {
+    return integration.status
+  })
+})
+
+onMounted(() => {
+  if (activeIntegrations.value.length === 0) {
+    integrationStore.doFetch({})
+  }
+})
 </script>
