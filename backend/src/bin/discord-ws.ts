@@ -110,7 +110,7 @@ async function spawnClient(
   })
 
   client.on(Events.Debug, (message) => {
-    logger.info({ debugMsg: message }, 'Discord WS client debug message!')
+    logger.debug({ debugMsg: message }, 'Discord WS client debug message!')
   })
 
   client.on(Events.Warn, (message) => {
@@ -124,7 +124,7 @@ async function spawnClient(
       `member-${member.userId}`,
       cache,
       async () => {
-        logger.info(
+        logger.debug(
           {
             member: member.displayName,
             guildId: member.guildId ?? member.guild.id,
@@ -148,7 +148,7 @@ async function spawnClient(
         `msg-${message.id}`,
         cache,
         async () => {
-          logger.info(
+          logger.debug(
             {
               guildId: message.guildId,
               channelId: message.channelId,
@@ -170,7 +170,7 @@ async function spawnClient(
         `msg-modified-${newMessage.id}-${newMessage.editedTimestamp}`,
         cache,
         async () => {
-          logger.info(
+          logger.debug(
             {
               guildId: newMessage.guildId,
               channelId: newMessage.channelId,

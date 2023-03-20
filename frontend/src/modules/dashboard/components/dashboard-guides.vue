@@ -148,7 +148,7 @@ const dismissGuides = () => {
     cancelButtonText: 'Cancel'
   }).then(() => {
     EventTrackingService.track({
-      event: 'Onboarding Guide dismissed'
+      name: 'Onboarding Guide dismissed'
     })
 
     onboardingGuidesDismissed.value = true
@@ -221,7 +221,7 @@ const onGuideOpen = (guide) => {
   selectedGuide.value = guide
 
   EventTrackingService.track({
-    event: 'Onboarding Guide details clicked',
+    name: 'Onboarding Guide details clicked',
     properties: {
       step: guide.key
     }
