@@ -22,7 +22,7 @@ export type ActivityTypeDisplayProperties = {
   default: string
   short: string
   channel: string
-  formatter?: { [key: string]: (string: string) => string }
+  formatter?: { [key: string]: (input: any) => string }
 }
 
 export enum DevtoActivityType {
@@ -84,6 +84,22 @@ const defaultGithubChannelFormatter = (channel) => {
   const organization = channelSplit[3]
   const repo = channelSplit[4]
   return `<a href="${githubUrl}/${organization}/${repo}" target="_blank">${repo}</a>`
+}
+
+const defaultStackoverflowFormatter = (activity) => {
+  if (activity.attributes.keywordMentioned && activity.attributes.tagMentioned) {
+    return `<span class="text-gray-500">tagged with "${activity.attributes.tagMentioned}" and mentioning "${activity.attributes.keywordMentioned}"</span>`
+  }
+
+  if (activity.attributes.keywordMentioned) {
+    return `<span class="text-gray-500">mentioning "${activity.attributes.keywordMentioned}"</span>`
+  }
+
+  if (activity.attributes.tagMentioned) {
+    return `<span class="text-gray-500">tagged with "${activity.attributes.tagMentioned}"</span>`
+  }
+
+  return ''
 }
 
 export const UNKNOWN_ACTIVITY_TYPE_DISPLAY: ActivityTypeDisplayProperties = {
@@ -322,6 +338,24 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
       default: 'mentioned you in a tweet',
       short: 'mentioned you',
       channel: '',
+    },
+  },
+  [PlatformType.STACKOVERFLOW]: {
+    question: {
+      default: 'Asked a question {self}',
+      short: 'Asked a question',
+      channel: '',
+      formatter: {
+        self: defaultStackoverflowFormatter,
+      },
+    },
+    answer: {
+      default: 'Answered a question {self}',
+      short: 'Answered a question',
+      channel: '',
+      formatter: {
+        self: defaultStackoverflowFormatter,
+      },
     },
   },
 }
