@@ -5,8 +5,9 @@ import { NodeWorkerMessageBase } from '../../types/mq/nodeWorkerMessageBase'
 
 const job: CrowdJob = {
   name: 'Refresh sample data',
-  // every day
-  cronTime: '0 0 * * *',
+  // every hour
+  cronTime: '0 * * * *',
+  // cronTime: '0 0 * * *',
   onTrigger: async () => {
     await sendNodeWorkerMessage('refresh-sample-data', {
       type: NodeWorkerMessageType.NODE_MICROSERVICE,
