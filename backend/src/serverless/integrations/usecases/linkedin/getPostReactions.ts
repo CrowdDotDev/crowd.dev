@@ -2,11 +2,11 @@ import axios, { AxiosRequestConfig } from 'axios'
 import { PlatformType } from '../../../../types/integrationEnums'
 import { Logger } from '../../../../utils/logging'
 import { ILinkedInPostReaction, IPaginatedResponse } from '../../types/linkedinTypes'
-import getToken from '../pizzly/getToken'
+import getToken from '../nango/getToken'
 import { handleLinkedinError } from './errorHandler'
 
 export const getPostReactions = async (
-  pizzlyId: string,
+  nangoId: string,
   postId: string,
   logger: Logger,
   start?: number,
@@ -27,10 +27,10 @@ export const getPostReactions = async (
   }
 
   try {
-    logger.debug({ pizzlyId, postId, start }, 'Fetching post reactions!')
+    logger.debug({ nangoId, postId, start }, 'Fetching post reactions!')
 
-    // Get an access token from Pizzly
-    const accessToken = await getToken(pizzlyId, PlatformType.LINKEDIN, logger)
+    // Get an access token from Nango
+    const accessToken = await getToken(nangoId, PlatformType.LINKEDIN, logger)
     config.params.oauth2_access_token = accessToken
 
     const response = (await axios(config)).data
@@ -66,23 +66,23 @@ export const getPostReactions = async (
       elements,
     }
   } catch (err) {
-    const newErr = handleLinkedinError(err, config, { pizzlyId, postId, start }, logger)
+    const newErr = handleLinkedinError(err, config, { nangoId, postId, start }, logger)
     throw newErr
   }
 }
 
 export const getAllPostReactions = async (
-  pizzlyId: string,
+  nangoId: string,
   postId: string,
   logger: Logger,
   lookBackUntilTs?: number,
 ): Promise<ILinkedInPostReaction[]> => {
   const elements = []
 
-  let response = await getPostReactions(pizzlyId, postId, logger, undefined, lookBackUntilTs)
+  let response = await getPostReactions(nangoId, postId, logger, undefined, lookBackUntilTs)
   elements.push(...response.elements)
   while (response.start !== undefined) {
-    response = await getPostReactions(pizzlyId, postId, logger, response.start, lookBackUntilTs)
+    response = await getPostReactions(nangoId, postId, logger, response.start, lookBackUntilTs)
     elements.push(...response.elements)
   }
 

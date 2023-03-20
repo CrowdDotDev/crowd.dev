@@ -2,11 +2,11 @@ import axios, { AxiosRequestConfig } from 'axios'
 import { PlatformType } from '../../../../types/integrationEnums'
 import { Logger } from '../../../../utils/logging'
 import { ILinkedInOrganizationPost } from '../../types/linkedinTypes'
-import getToken from '../pizzly/getToken'
+import getToken from '../nango/getToken'
 import { handleLinkedinError } from './errorHandler'
 
 export const getPost = async (
-  pizzlyId: string,
+  nangoId: string,
   postId: string,
   logger: Logger,
 ): Promise<ILinkedInOrganizationPost> => {
@@ -19,9 +19,9 @@ export const getPost = async (
   }
 
   try {
-    logger.debug({ pizzlyId, postId }, 'Fetching post!')
-    // Get an access token from Pizzly
-    const accessToken = await getToken(pizzlyId, PlatformType.LINKEDIN, logger)
+    logger.debug({ nangoId, postId }, 'Fetching post!')
+    // Get an access token from Nango
+    const accessToken = await getToken(nangoId, PlatformType.LINKEDIN, logger)
     config.params.oauth2_access_token = accessToken
 
     const e = (await axios(config)).data
@@ -36,7 +36,7 @@ export const getPost = async (
       timestamp: e.createdAt,
     }
   } catch (err) {
-    const newErr = handleLinkedinError(err, config, { pizzlyId, postId }, logger)
+    const newErr = handleLinkedinError(err, config, { nangoId, postId }, logger)
     throw newErr
   }
 }

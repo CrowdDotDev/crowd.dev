@@ -31,5 +31,6 @@
   "devto": ["comment"],
   "hackernews": ["comment", "post"],
   "reddit": ["comment", "post"],
-  "linkedin": ["comment", "reaction"]
+  "linkedin": ["comment", "reaction"],
+  "stackoverflow": ["question", "answer"]
 }
