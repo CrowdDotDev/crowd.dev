@@ -2,11 +2,11 @@ import axios, { AxiosRequestConfig } from 'axios'
 import { RedditGetPostsInput, RedditPostsResponse } from '../../types/redditTypes'
 import { Logger } from '../../../../utils/logging'
 import { PlatformType } from '../../../../types/integrationEnums'
-import getToken from '../nango/getToken'
+import getToken from '../pizzly/getToken'
 
 /**
  * Get paginated posts from a subreddit
- * @param input RedditGetPostsInput. Made of a Nango ID to get the auth token, and a subreddit.
+ * @param input RedditGetPostsInput. Made of a Pizzly ID to get the auth token, and a subreddit.
  * @param logger Logger instance for structured logging
  * @returns A reddit API response containing the posts in a subreddit.
  */
@@ -18,8 +18,8 @@ async function getPosts(input: RedditGetPostsInput, logger: Logger): Promise<Red
     // eslint-disable-next-line no-promise-executor-return
     await new Promise((resolve) => setTimeout(resolve, 1500))
 
-    // Gett an access token from Nango
-    const accessToken = await getToken(input.nangoId, PlatformType.REDDIT, logger)
+    // Gett an access token from Pizzly
+    const accessToken = await getToken(input.pizzlyId, PlatformType.REDDIT, logger)
 
     const config: AxiosRequestConfig<any> = {
       method: 'get',

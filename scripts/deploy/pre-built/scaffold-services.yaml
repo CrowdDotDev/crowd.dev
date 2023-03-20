@@ -38,8 +38,8 @@ services:
     networks:
       - crowd-bridge
 
-  nango:
-    image: nangohq/nango-server:0.9.0
+  pizzly:
+    image: crowddotdev/pizzly-server:1
     restart: always
     depends_on:
       db:
@@ -50,10 +50,8 @@ services:
       - NANGO_DB_NAME=crowd-web
       - NANGO_DB_USER=postgres
       - NANGO_DB_PASSWORD=example
-      - NANGO_SECRET_KEY=424242
-      - SERVER_PORT=3003
-      - NANGO_CALLBACK_URL=http://localhost:3003/oauth/callback
-      - NANGO_SERVER_URL=http://localhost:3003/
+      - PIZZLY_SECRET_KEY=424242
+      - PIZZLY_PUBLISHABLE_KEY=424242
     ports:
       - '3003:3003'
     networks:

@@ -21,11 +21,10 @@ import {
   ClearbitConfiguration,
   DevtoConfiguration,
   RedisConfiguration,
-  NangoConfiguration,
+  PizzlyConfiguration,
   EnrichmentConfiguration,
   EagleEyeConfiguration,
   UnleashConfiguration,
-  StackExchangeConfiguration,
   SlackAlertingConfiguration,
 } from './configTypes'
 
@@ -213,7 +212,12 @@ export const CUBEJS_CONFIG: CubeJSConfiguration = KUBE_MODE
       jwtExpiry: process.env.CUBE_JS_JWT_EXPIRY,
     }
 
-export const NANGO_CONFIG: NangoConfiguration = config.get<NangoConfiguration>('nango')
+export const PIZZLY_CONFIG: PizzlyConfiguration = KUBE_MODE
+  ? config.get<PizzlyConfiguration>('pizzly')
+  : {
+      url: process.env.PIZZLY_URL,
+      secretKey: process.env.PIZZLY_SECRET_KEY,
+    }
 
 export const ENRICHMENT_CONFIG: EnrichmentConfiguration = KUBE_MODE
   ? config.get<EnrichmentConfiguration>('enrichment')
@@ -230,11 +234,6 @@ export const EAGLE_EYE_CONFIG: EagleEyeConfiguration = KUBE_MODE
     }
 
 export const UNLEASH_CONFIG: UnleashConfiguration = config.get<UnleashConfiguration>('unleash')
-
-export const STACKEXCHANGE_CONFIG: StackExchangeConfiguration =
-  config.get<StackExchangeConfiguration>('stackexchange') ?? {
-    key: process.env.STACKEXCHANGE_KEY,
-  }
 
 export const SLACK_ALERTING_CONFIG: SlackAlertingConfiguration = KUBE_MODE
   ? config.get<SlackAlertingConfiguration>('slackAlerting')
