@@ -1,6 +1,7 @@
 import moment from 'moment'
 import jwt from 'jsonwebtoken'
 import bcrypt from 'bcrypt'
+import { getServiceLogger } from '../../utils/logging'
 import { databaseInit } from '../databaseConnection'
 import { IRepositoryOptions } from '../repositories/IRepositoryOptions'
 import { IServiceOptions } from '../../services/IServiceOptions'
@@ -133,6 +134,7 @@ export default class SequelizeTestUtils {
       currentTenant: tenant,
       database: db,
       bypassPermissionValidation: true,
+      log: getServiceLogger(),
     } as IRepositoryOptions
   }
 
