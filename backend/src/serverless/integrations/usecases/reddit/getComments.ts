@@ -2,11 +2,11 @@ import axios, { AxiosRequestConfig } from 'axios'
 import { RedditGetCommentsInput, RedditCommentsResponse } from '../../types/redditTypes'
 import { Logger } from '../../../../utils/logging'
 import { PlatformType } from '../../../../types/integrationEnums'
-import getToken from '../pizzly/getToken'
+import getToken from '../nango/getToken'
 
 /**
  * Get the comment tree of a post.
- * @param input The input to get comments. It needs a Pizzly ID, the subreddit where the post was posted, and the post's ID
+ * @param input The input to get comments. It needs a Nango ID, the subreddit where the post was posted, and the post's ID
  * @param logger A logger instance for structured logging
  * @returns The Reddit API response of getting comments from a post
  */
@@ -21,8 +21,8 @@ async function getComments(
     // eslint-disable-next-line no-promise-executor-return
     await new Promise((resolve) => setTimeout(resolve, 1500))
 
-    // Gett an access token from Pizzly
-    const accessToken = await getToken(input.pizzlyId, PlatformType.REDDIT, logger)
+    // Gett an access token from Nango
+    const accessToken = await getToken(input.nangoId, PlatformType.REDDIT, logger)
 
     const config: AxiosRequestConfig<any> = {
       method: 'get',

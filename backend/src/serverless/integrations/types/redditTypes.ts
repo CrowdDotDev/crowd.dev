@@ -21,18 +21,18 @@ export interface RedditIntegrationSettings {
 
 export interface RedditGetPostsInput {
   subreddit: string
-  pizzlyId: string
+  nangoId: string
   after?: string
 }
 
 export interface RedditGetCommentsInput {
   subreddit: string
-  pizzlyId: string
+  nangoId: string
   postId: string
 }
 
 export interface RedditMoreCommentsInput {
-  pizzlyId: string
+  nangoId: string
   postId: string
   children: string[]
 }

@@ -35,10 +35,11 @@
       </div>
       <span
         v-if="member.attributes?.bio"
+        s
         class="text-gray-500 text-xs pr-4 line-clamp"
       >
-        {{ member.attributes.bio.default }}</span
-      >
+        <app-member-bio :member="member"
+      /></span>
     </div>
 
     <!-- Row 1: Engagement level -->
@@ -138,6 +139,7 @@ import AppMemberOrganizations from '@/modules/member/components/member-organizat
 import AppTagList from '@/modules/tag/components/tag-list'
 import AppMemberEngagementLevel from '../member-engagement-level'
 import AppMemberMergeSuggestionsDetailsIdentities from './member-merge-suggestions-details-identities'
+import AppMemberBio from '@/modules/member/components/member-bio'
 import { CrowdIntegrations } from '@/integrations/integrations-config'
 import { MemberPermissions } from '../../member-permissions'
 import { mapGetters } from '@/shared/vuex/vuex.helpers'
