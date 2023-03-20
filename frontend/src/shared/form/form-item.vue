@@ -2,7 +2,7 @@
   <div
     class="el-form-item"
     :class="{
-      'is-error': props.validation?.$errors?.length
+      'is-error': errors.length
     }"
   >
     <div class="el-form-item__content flex-col items-start">
@@ -18,18 +18,13 @@
       <div class="w-full">
         <slot />
       </div>
-      <div v-if="showError">
-        <transition-group name="el-zoom-in-top">
-          <div
-            v-for="error of props.validation?.$errors || []"
-            :key="error.$uid"
-            class="el-form-item__error"
-          >
-            <div class="error-msg">
-              {{ errorMessage(error) }}
-            </div>
-          </div>
-        </transition-group>
+      <div
+        v-if="showError && errors.length > 0"
+        class="el-form-item__error"
+      >
+        <div class="error-msg">
+          {{ errorMessage(errors[0]) }}
+        </div>
       </div>
     </div>
   </div>
@@ -42,7 +37,7 @@ export default {
 </script>
 
 <script setup>
-import { defineProps } from 'vue'
+import { computed, defineProps } from 'vue'
 
 const props = defineProps({
   validation: {
@@ -70,6 +65,10 @@ const props = defineProps({
     type: Boolean,
     default: true
   }
+})
+
+const errors = computed(() => {
+  return props.validation?.$errors || []
 })
 
 const errorMessage = (error) => {

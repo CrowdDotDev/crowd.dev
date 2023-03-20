@@ -45,6 +45,7 @@
         v-model:operator="model.operator"
         :default-operator="filter.defaultOperator"
         :is-expanded="filter.expanded"
+        :label="filter.label"
       >
         <template
           v-for="(_, name) in $slots"

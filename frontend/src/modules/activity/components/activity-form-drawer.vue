@@ -63,7 +63,7 @@
             type="datetime"
             placeholder="Select date & time"
             :prefix-icon="CalendarIcon"
-            class="custom-date-picker"
+            class="custom-date-picker !h-10"
             popper-class="date-picker-popper"
             @blur="$v.datetime.$touch"
             @change="$v.datetime.$touch"
@@ -110,39 +110,6 @@
                 :label="display.short"
                 :value="type"
               >
-                {{ display.short }}
-              </el-option>
-            </template>
-            <template
-              v-for="integration in activeIntegrations"
-              :key="integration.platform"
-            >
-              <div
-                class="text-2xs text-gray-400 font-semibold tracking-wide leading-6 uppercase px-3 my-1"
-              >
-                {{
-                  platformDetails(integration.platform).name
-                }}
-              </div>
-              <el-option
-                v-for="(display, type) in types.default[
-                  integration.platform
-                ]"
-                :key="type"
-                :label="display.short"
-                :value="type"
-              >
-                <img
-                  :src="
-                    platformDetails(integration.platform)
-                      .image
-                  "
-                  class="h-4 w-4 mr-2"
-                  :alt="
-                    platformDetails(integration.platform)
-                      .name
-                  "
-                />
                 {{ display.short }}
               </el-option>
             </template>
@@ -206,8 +173,7 @@ import {
   computed,
   reactive,
   h,
-  watch,
-  onMounted
+  watch
 } from 'vue'
 import AppDrawer from '@/shared/drawer/drawer.vue'
 import { required, url } from '@vuelidate/validators'
@@ -217,12 +183,10 @@ import { MemberService } from '@/modules/member/member-service'
 import AppAvatar from '@/shared/avatar/avatar.vue'
 import { useActivityTypeStore } from '@/modules/activity/store/type'
 import { storeToRefs } from 'pinia'
-import { CrowdIntegrations } from '@/integrations/integrations-config'
 import { ActivityService } from '@/modules/activity/activity-service'
 import Message from '@/shared/message/message'
 import formChangeDetector from '@/shared/form/form-change'
 import { mapActions } from '@/shared/vuex/vuex.helpers'
-import { useStore } from 'vuex'
 import AppAutocompleteOneInput from '@/shared/form/autocomplete-one-input.vue'
 import moment from 'moment'
 
@@ -248,20 +212,7 @@ const emit = defineEmits([
 const activityTypeStore = useActivityTypeStore()
 const { types } = storeToRefs(activityTypeStore)
 
-const store = useStore()
 const { doFetch } = mapActions('activity')
-const integrationStore = mapActions('integration')
-
-// Is drawer visible
-const isVisible = computed({
-  get() {
-    return props.modelValue
-  },
-  set(value) {
-    emit('update:modelValue', value)
-  }
-})
-
 // Form control
 const form = reactive({
   member: null,
@@ -314,11 +265,6 @@ const CalendarIcon = h(
   []
 )
 
-// Platform details
-const platformDetails = (platform) => {
-  return CrowdIntegrations.getConfig(platform)
-}
-
 // Form utils
 watch(
   () => props.activity,
@@ -361,6 +307,7 @@ const reset = () => {
   form.config.title = ''
   form.config.body = ''
   form.config.url = ''
+  $v.value.$reset()
 }
 const generateSourceId = () => {
   const randomNumbers = (Math.random() + '').substring(2)
@@ -435,17 +382,16 @@ const submit = () => {
   }
 }
 
-const activeIntegrations = computed(() => {
-  return CrowdIntegrations.mappedEnabledConfigs(
-    store
-  ).filter((integration) => {
-    return integration.status
-  })
-})
-
-onMounted(() => {
-  if (activeIntegrations.value.length === 0) {
-    integrationStore.doFetch({})
+// Is drawer visible
+const isVisible = computed({
+  get() {
+    return props.modelValue
+  },
+  set(value) {
+    if (!value) {
+      reset()
+    }
+    emit('update:modelValue', value)
   }
 })
 </script>
