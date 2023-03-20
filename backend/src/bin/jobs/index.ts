@@ -18,7 +18,7 @@ const jobs: CrowdJob[] = [
   downgradeExpiredPlans,
   eagleEyeEmailDigestTicks,
   integrationDataChecker,
-  refreshSampleData
+  refreshSampleData,
 ]
 
 export default jobs
