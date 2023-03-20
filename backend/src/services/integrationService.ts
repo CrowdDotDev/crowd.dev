@@ -15,7 +15,7 @@ import { getInstalledRepositories } from '../serverless/integrations/usecases/gi
 import { sendNodeWorkerMessage } from '../serverless/utils/nodeWorkerSQS'
 import { NodeWorkerIntegrationProcessMessage } from '../types/mq/nodeWorkerIntegrationProcessMessage'
 import telemetryTrack from '../segment/telemetryTrack'
-import getToken from '../serverless/integrations/usecases/nango/getToken'
+import getToken from '../serverless/integrations/usecases/pizzly/getToken'
 import { getOrganizations } from '../serverless/integrations/usecases/linkedin/getOrganizations'
 import Error404 from '../errors/Error404'
 
@@ -374,24 +374,24 @@ export default class IntegrationService {
 
   async linkedinConnect() {
     const tenantId = this.options.currentTenant.id
-    const nangoId = `${tenantId}-${PlatformType.LINKEDIN}`
+    const pizzlyId = `${tenantId}-${PlatformType.LINKEDIN}`
 
     let token: string
     try {
-      token = await getToken(nangoId, PlatformType.LINKEDIN, this.options.log)
+      token = await getToken(pizzlyId, PlatformType.LINKEDIN, this.options.log)
     } catch (err) {
-      this.options.log.error(err, 'Error while verifying LinkedIn tenant token in Nango!')
-      throw new Error400(this.options.language, 'errors.noNangoToken.message')
+      this.options.log.error(err, 'Error while verifying LinkedIn tenant token in Pizzly!')
+      throw new Error400(this.options.language, 'errors.noPizzlyToken.message')
     }
 
     if (!token) {
-      throw new Error400(this.options.language, 'errors.noNangoToken.message')
+      throw new Error400(this.options.language, 'errors.noPizzlyToken.message')
     }
 
     // fetch organizations
     let organizations: ILinkedInOrganization[]
     try {
-      organizations = await getOrganizations(nangoId, this.options.log)
+      organizations = await getOrganizations(pizzlyId, this.options.log)
     } catch (err) {
       this.options.log.error(err, 'Error while fetching LinkedIn organizations!')
       throw new Error400(this.options.language, 'errors.linkedin.noOrganization')
@@ -571,35 +571,6 @@ export default class IntegrationService {
       integration.tenantId,
       new NodeWorkerIntegrationProcessMessage(
         IntegrationType.TWITTER,
-        integration.tenantId,
-        true,
-        integration.id,
-      ),
-    )
-
-    return integration
-  }
-
-  /**
-   * Adds/updates Stack Overflow integration
-   * @param integrationData  to create the integration object
-   * @returns integration object
-   */
-  async stackOverflowConnectOrUpdate(integrationData) {
-    const integration = await this.createOrUpdate({
-      platform: PlatformType.STACKOVERFLOW,
-      settings: {
-        tags: integrationData.tags,
-        keywords: integrationData.keywords,
-        updateMemberAttributes: true,
-      },
-      status: 'in-progress',
-    })
-
-    await sendNodeWorkerMessage(
-      integration.tenantId,
-      new NodeWorkerIntegrationProcessMessage(
-        IntegrationType.STACKOVERFLOW,
         integration.tenantId,
         true,
         integration.id,
