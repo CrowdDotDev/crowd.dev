@@ -45,12 +45,6 @@ module.exports = {
         ignoreOrder: true
       })
     ],
-    entry: './src/main.js',
-    output: {
-      filename: '[name].[contenthash].js',
-      path: path.resolve(__dirname, 'dist'),
-      chunkFilename: '[name].[contenthash:8].chunk.js'
-    },
     optimization: {
       splitChunks: {
         chunks: 'all'
