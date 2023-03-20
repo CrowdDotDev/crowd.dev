@@ -88,15 +88,15 @@ const defaultGithubChannelFormatter = (channel) => {
 
 const defaultStackoverflowFormatter = (activity) => {
   if (activity.attributes.keywordMentioned && activity.attributes.tagMentioned) {
-    return `<span class="text-gray-500">tagged with "${activity.attributes.tagMentioned}" and mentioning "${activity.attributes.keywordMentioned}"</span>`
+    return `<span class="gray notruncate">tagged with "${activity.attributes.tagMentioned}" and mentioning "${activity.attributes.keywordMentioned}"</span>`
   }
 
   if (activity.attributes.keywordMentioned) {
-    return `<span class="text-gray-500">mentioning "${activity.attributes.keywordMentioned}"</span>`
+    return `<span class="gray notruncate">mentioning "${activity.attributes.keywordMentioned}"</span>`
   }
 
   if (activity.attributes.tagMentioned) {
-    return `<span class="text-gray-500">tagged with "${activity.attributes.tagMentioned}"</span>`
+    return `<span class="gray notruncate">tagged with "${activity.attributes.tagMentioned}"</span>`
   }
 
   return ''
