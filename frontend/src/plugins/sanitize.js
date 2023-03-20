@@ -77,7 +77,7 @@ export const vueSanitizeOptions = {
   disallowedTagsMode: 'discard',
   allowedAttributes: {
     div: ['class', 'style'],
-    a: ['href', 'name', 'target'],
+    a: ['href', 'name', 'target', 'class', 'style'],
     img: [
       'src',
       'srcset',
@@ -87,7 +87,8 @@ export const vueSanitizeOptions = {
       'height',
       'loading'
     ],
-    input: ['checked', 'disabled', 'type']
+    input: ['checked', 'disabled', 'type'],
+    span: ['class', 'style']
   },
   selfClosing: [
     'img',
