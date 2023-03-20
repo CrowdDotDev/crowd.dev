@@ -151,8 +151,10 @@ import AuthCurrentTenant from '@/modules/auth/auth-current-tenant'
 import { TenantService } from '@/modules/tenant/tenant-service'
 import AppReportTemplateFilters from '@/modules/report/components/templates/report-template-filters.vue'
 import ActivityPlatformField from '@/modules/activity/activity-platform-field'
-import { templates } from '@/modules/report/templates/template-reports'
-import { MEMBERS_REPORT } from '@/modules/report/templates/template-reports'
+import {
+  MEMBERS_REPORT,
+  templates
+} from '@/modules/report/templates/template-reports'
 
 const platformField = new ActivityPlatformField(
   'activeOn',

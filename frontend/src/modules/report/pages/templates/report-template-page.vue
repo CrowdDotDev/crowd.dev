@@ -94,10 +94,12 @@ import {
 } from 'vue'
 import AppReportMemberTemplate from './report-member-template.vue'
 import AppReportShareButton from '@/modules/report/components/report-share-button.vue'
-import { MEMBERS_REPORT } from '@/modules/report/templates/template-reports'
+import {
+  MEMBERS_REPORT,
+  templates
+} from '@/modules/report/templates/template-reports'
 import AppReportTemplateFilters from '@/modules/report/components/templates/report-template-filters.vue'
 import ActivityPlatformField from '@/modules/activity/activity-platform-field'
-import { templates } from '@/modules/report/templates/template-reports'
 import { useStore } from 'vuex'
 
 const props = defineProps({
