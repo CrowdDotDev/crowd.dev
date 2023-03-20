@@ -27,8 +27,8 @@ export default (sequelize) => {
           notEmpty: true,
         },
       },
-      email: {
-        type: DataTypes.TEXT,
+      emails: {
+        type: DataTypes.ARRAY(DataTypes.TEXT),
       },
       score: {
         type: DataTypes.INTEGER,
@@ -69,13 +69,6 @@ export default (sequelize) => {
         {
           unique: true,
           fields: ['importHash', 'tenantId'],
-          where: {
-            deletedAt: null,
-          },
-        },
-        {
-          unique: false,
-          fields: ['email', 'tenantId'],
           where: {
             deletedAt: null,
           },
