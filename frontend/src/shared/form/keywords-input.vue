@@ -32,7 +32,6 @@
       />
     </div>
     <div
-      v-if="!isError"
       class="flex items-center mt-2"
       :class="focused ? 'opacity-100' : 'opacity-0'"
     >
@@ -71,9 +70,6 @@
         </div>
       </el-popover>
     </div>
-    <div v-else class="flex items-center mt-2">
-      <slot name="error"></slot>
-    </div>
   </div>
 </template>
 
@@ -98,10 +94,6 @@ export default {
       default: null
     },
     eagleEye: {
-      type: Boolean,
-      default: false
-    },
-    isError: {
       type: Boolean,
       default: false
     }

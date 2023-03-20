@@ -80,16 +80,6 @@
         :href="`https://linkedin.com/in/${member.username.linkedin}`"
         :as-link="true"
       />
-      <app-platform
-        v-if="!!member.username?.stackoverflow"
-        platform="stackoverflow"
-        track-event-name="Click Member Contact"
-        track-event-channel="Stack Overflow"
-        :has-tooltip="true"
-        tooltip-label="Stack Overflow profile"
-        :href="`${member.attributes?.url?.stackoverflow}`"
-        :as-link="true"
-      />
     </div>
   </div>
   <div v-else>-</div>
@@ -120,7 +110,6 @@ const hasSocialIdentities = computed(
     !!props.member.username?.slack ||
     !!props.member.username?.hackernews ||
     !!props.member.username?.reddit ||
-    !!props.member.username?.linkedin ||
-    !!props.member.username?.stackoverflow
+    !!props.member.username?.linkedin
 )
 </script>

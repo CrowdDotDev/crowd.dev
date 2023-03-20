@@ -387,10 +387,6 @@ const en = {
         comment: 'commented',
         reaction: 'reacted'
       },
-      stackoverflow: {
-        answer: 'Answered a question',
-        question: 'Asked a question'
-      },
       fallback: 'created an activity'
     },
 

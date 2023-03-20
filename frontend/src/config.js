@@ -31,7 +31,9 @@ const defaultConfig = {
   communityPremium: process.env.VUE_APP_COMMUNITY_PREMIUM,
   env: process.env.VUE_APP_ENV,
   hotjarKey: process.env.VUE_APP_HOTJAR_KEY,
-  nangoUrl: process.env.VUE_APP_NANGO_URL,
+  pizzlyUrl: process.env.VUE_APP_PIZZLY_URL,
+  pizzlyPublishableKey:
+    process.env.VUE_APP_PIZZLY_PUBLISHABLE_KEY,
   unleash: {
     apiKey: process.env.VUE_APP_UNLEASH_API_KEY,
     url: process.env.VUE_APP_UNLEASH_URL
@@ -79,9 +81,9 @@ const composedConfig = {
   communityPremium: 'CROWD_VUE_APP_COMMUNITY_PREMIUM',
   env: 'CROWD_VUE_APP_ENV',
   hotjarKey: 'CROWD_VUE_APP_HOTJAR_KEY',
-  nangoUrl: 'CROWD_VUE_APP_NANGO_URL',
-  typeformId: 'CROWD_VUE_APP_TYPEFORM_ID',
-  typeformTitle: 'CROWD_VUE_APP_TYPEFORM_TITLE',
+  pizzlyUrl: 'CROWD_VUE_APP_PIZZLY_URL',
+  pizzlyPublishableKey:
+    'CROWD_VUE_APP_PIZZLY_PUBLISHABLE_KEY',
   unleash: {
     apiKey: 'CROWD_VUE_APP_UNLEASH_API_KEY',
     url: 'CROWD_VUE_APP_UNLEASH_URL'

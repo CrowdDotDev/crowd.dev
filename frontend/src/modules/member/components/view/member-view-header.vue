@@ -30,8 +30,9 @@
     <div
       class="text-sm text-gray-600 py-6 border-b border-gray-200 mb-4"
     >
-      <app-member-bio :member="member" />
+      {{ member.attributes.bio?.default }}
     </div>
+
     <div class="grid grid-rows-2 grid-flow-col gap-4">
       <div>
         <p class="text-gray-400 font-medium text-2xs">
@@ -118,7 +119,6 @@ import AppMemberDropdown from '@/modules/member/components/member-dropdown'
 import AppMemberBadge from '@/modules/member/components/member-badge'
 import AppMemberOrganizations from '@/modules/member/components/member-organizations.vue'
 import AppTags from '@/modules/tag/components/tag-list'
-import AppMemberBio from '@/modules/member/components/member-bio'
 import {
   formatNumberToCompact,
   formatNumber
