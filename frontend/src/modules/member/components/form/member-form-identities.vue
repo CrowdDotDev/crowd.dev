@@ -128,7 +128,9 @@ const computedModelEmails = computed({
       : ['']
   },
   set(emails) {
-    model.value.emails = emails
+    const nonEmptyEmails = emails.filter((e) => !!e)
+
+    model.value.emails = nonEmptyEmails
   }
 })
 
