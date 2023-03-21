@@ -301,6 +301,7 @@ function filteredAttributes(attributes) {
   return Object.keys(attributes).reduce((acc, item) => {
     if (
       ![
+        'emails',
         'workExperiences',
         'education',
         'certifications',
