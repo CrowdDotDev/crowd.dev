@@ -75,7 +75,8 @@ const { currentTenant, currentUser } = mapGetters('auth')
 
 const isEnrichmentDisabled = computed(
   () =>
-    !props.member.username?.github && !props.member.email
+    !props.member.username?.github &&
+    !props.member.emails?.length
 )
 
 const isEditLockedForSampleData = computed(() => {

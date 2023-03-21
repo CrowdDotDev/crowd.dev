@@ -22,13 +22,30 @@
       <span class="block text-gray-500"> Email </span>
     </div>
     <div v-else-if="identity.type === 'email'">
-      <a
-        :href="`mailto:${identity.url}`"
-        class="leading-none cursor-pointer text-gray-900 underline"
-        @click.stop="trackClick('Email')"
+      <el-tooltip
+        v-for="email of identity.url"
+        :key="email"
+        :disabled="!email"
+        popper-class="custom-identity-tooltip"
+        placement="top"
       >
-        {{ identity.url }}
-      </a>
+        <template #content
+          ><span
+            >Send email
+            <i
+              v-if="email"
+              class="ri-external-link-line text-gray-400"
+            ></i></span
+        ></template>
+        <a
+          target="_blank"
+          :href="`mailto:${email}`"
+          class="badge--interactive"
+          @click.stop="trackClick('Email')"
+        >
+          {{ email }}
+        </a>
+      </el-tooltip>
     </div>
     <div
       v-else-if="identity.type === 'platform'"
