@@ -26,5 +26,4 @@ class GithubGrid(BaseGrid):
     unstar = -2
     fork = 4
 
-if __name__ == "__main__":
-    logger.info(GithubGrid.get_score("issues-opened"))
+
