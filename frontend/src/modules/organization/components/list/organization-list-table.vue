@@ -238,7 +238,8 @@
                     class="text-sm cursor-auto flex flex-wrap gap-1"
                   >
                     <el-tooltip
-                      v-for="email of scope.row.emails"
+                      v-for="email of scope.row.emails ||
+                      []"
                       :key="email"
                       :disabled="!email"
                       popper-class="custom-identity-tooltip"
@@ -503,7 +504,7 @@ const emailsColumnWidth = computed(() => {
 
   for (const row of rows.value) {
     const tabWidth = row.emails
-      .map((email) => email.length * 12)
+      ?.map((email) => email.length * 12)
       .reduce((a, b) => a + b, 0)
 
     if (tabWidth > maxTabWidth) {
