@@ -175,7 +175,10 @@ const identities = computed(() => {
     )
   const out = []
 
-  if (props.pair[0].email || props.pair[1].email) {
+  if (
+    props.pair[0].emails?.length ||
+    props.pair[1].email?.length
+  ) {
     out.push({
       type: 'email-platform',
       key: 'email',
@@ -186,13 +189,13 @@ const identities = computed(() => {
       key: `email-${props.pair[0].id}`,
       track: 'Email',
       middle: true,
-      url: props.pair[0].email
+      url: props.pair[0].emails
     })
     out.push({
       type: 'email',
       key: `email-${props.pair[1].id}`,
       track: 'Email',
-      url: props.pair[1].email
+      url: props.pair[1].emails
     })
   }
 
