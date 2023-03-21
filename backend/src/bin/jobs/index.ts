@@ -7,6 +7,7 @@ import refreshMaterializedViews from './refreshMaterializedViews'
 import downgradeExpiredPlans from './downgradeExpiredPlans'
 import eagleEyeEmailDigestTicks from './eagleEyeEmailDigestTicks'
 import integrationDataChecker from './integrationDataChecker'
+import refreshSampleData from './refreshSampleData'
 
 const jobs: CrowdJob[] = [
   weeklyAnalyticsEmailsCoordinator,
@@ -17,6 +18,7 @@ const jobs: CrowdJob[] = [
   downgradeExpiredPlans,
   eagleEyeEmailDigestTicks,
   integrationDataChecker,
+  refreshSampleData,
 ]
 
 export default jobs

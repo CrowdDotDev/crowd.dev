@@ -64,7 +64,11 @@ export default {
       return `avatar--${this.size}`
     },
     computedInitials() {
-      const names = (this.entity.displayName || '')
+      const names = (
+        this.entity.displayName ||
+        this.entity.label ||
+        ''
+      )
         .replace(
           // remove emojis from string
           /([\u2700-\u27BF]|[\uE000-\uF8FF]|\uD83C[\uDC00-\uDFFF]|\uD83D[\uDC00-\uDFFF]|[\u2011-\u26FF]|\uD83E[\uDD10-\uDDFF])/g,

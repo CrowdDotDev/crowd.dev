@@ -208,3 +208,7 @@ export interface StackExchangeConfiguration {
 export interface SlackAlertingConfiguration {
   url: string
 }
+
+export interface SampleDataConfiguration {
+  tenantId: string
+}

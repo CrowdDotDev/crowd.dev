@@ -490,12 +490,18 @@ export default class MemberService extends LoggingBase {
       displayName: (oldValue, _newValue) => oldValue,
       reach: (oldReach, newReach) => MemberService.calculateReach(oldReach, newReach),
       score: (oldScore, newScore) => Math.max(oldScore, newScore),
-      email: (oldEmail, newEmail) => {
-        if (newEmail && newEmail.trim().length > 0) {
-          return newEmail.trim()
+      emails: (oldEmails, newEmails) => {
+        if (!oldEmails && !newEmails) {
+          return []
         }
 
-        return oldEmail
+        oldEmails = oldEmails ?? []
+        newEmails = newEmails ?? []
+
+        const emailSet = new Set<string>(oldEmails)
+        newEmails.forEach((email) => emailSet.add(email))
+
+        return Array.from(emailSet)
       },
       // Get rid of activities that are the same and were in both members
       activities: (_oldActivities, newActivities) => {

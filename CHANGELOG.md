@@ -2,6 +2,38 @@
 
 All notable changes to this project will be documented in this file.
 
+## v0.24.0 - 2023-03-21
+
+### Changes
+
+For the full changelog, see: [[changelog.crowd.dev](http://changelog.crowd.dev/)](https://changelog.crowd.dev/changelogs/stack-overflow-integration)
+
+#### :rocket: Features
+
+- Stack Overflow integration @garrrikkotua (#671 )
+
+#### :sparkles: Improvements
+
+- Changed some log levels from `info` to `debug` @themarolt (#659)
+- Moved the organization's members page to the new query @themarolt (#653)
+- Logos and avatars on member, organization, and platform dropdowns @gaspergrom (#650)
+- Added segment events for quick-start guides @joanagmaia (#651)
+- Members can now have multiple emails @epipav and @joanagmaia (#672)
+
+#### 🐞 Bug Fixes
+
+- Fixed the granularity for bar charts @gaspergrom (#667)
+- Get last activity by `timestamp` instead of `createdAt` @gaspergrom (#664)
+- Merging members in a transaction in case something goes wrong @themarolt (#660)
+- Fix quick-start-guides events property name to Segment @joanagmaia (#662)
+- Set report widgets only if sent in the payload @epipav (#658)
+- Fixed an exception that did not allow to make reports public @epipav (#657)
+- Fix filters using OR operators @joanagmaia (#654)
+- Updated logic for whether a tenant has sample data @epipav (#652)
+- Moved last year date-range in reports to be the last 365 days @gaspergrom (#648)
+- Fix `axios` options @joanagmaia (#649)
+- Removed redundant logs in Python worker @joanreyero (#668) (edited)
+
 ## v0.23.0 - 2023-03-14
 
 ### Changes
@@ -134,7 +166,6 @@ Stay up-to-date with your Eagle Eye feed by configuring an email digest that del
 Eagle Eye 2.0 also offers a new AI-powered feature that generates suggested replies for your content.
 https://user-images.githubusercontent.com/37874460/220165717-4204605a-260f-41cb-acca-1bdf5747f6aa.mp4
 - Eagle Eye 2.0 @epipav @joanagmaia @gaspergrom @nunoeufrasio @jonathimer @joanreyero (#495)
-
 #### Improvements
 
 - Moved the Discord integration to use web sockets for scalability. @themarolt (#486)
@@ -201,7 +232,6 @@ You can now get a detailed view of the members returned by widgets in default re
 - Disable the filter button in custom reports for unsupported measures .@joanagmaia (#466)
 - Fix a bug related to Discord's *joined guild* activity. @themarolt (#462)
 ## v0.17.0 - 2023-01-23
-
 ### Changes
 
 ### 🚀 Features
@@ -227,7 +257,6 @@ Introduction the LinkedIn integration! With it, you can bring the comments and r
 - Add the Job Title to the members list view @mariobalca (#428)
 ## v0.16.0 - 2023-01-16
 ### Changes
-
 ### 🚀 Features
 
 #### Template reports
@@ -257,7 +286,6 @@ Our first external code contribution! @mattinannt and the [Formbricks](https://f
 - Github integration service should handle github settings not being available @themarolt (#408)
 - Fixed a bug in EagleEye that was causing exact keyword matching to crash @joanreyero (#416)
 ## v0.15.0 - 2023-01-09
-
 ### Changes
 
 ### Features
@@ -285,7 +313,6 @@ Forum channels are now supported as part of the Discord integration. We will get
 - Fix an edge case where merging members with similar activities was throwing a 500 error. @epipav (#388)
 - Get GitHub user emails with GitHub app token instead of a user token. @themarolt (#389)
 ## v0.14.0 - 2023-01-02
-
 ### Changes
 
 ### 🚀 Features
@@ -319,7 +346,6 @@ You can now export your community members as CSV. You can export all members or 
 ### 🚀 Features
 #### Reddit integration
 The Reddit integration is finally here! It was one of the most wanted integrations, and we have delivered. You can now track the posts and comments in your community's subreddit.
-
 ![Reddit (2) (1)](https://user-images.githubusercontent.com/37874460/208475828-a1e62b3c-6196-48bb-a362-4281630107a0.png)
 
 - Reddit integration @mariobalca and @joanreyero (#351)
@@ -349,7 +375,6 @@ We are advancing in making premium plans possible. This week we introduced a *Pl
 ### 🚀 Features
 #### Pricing and feature flagging
 We are getting ready to make pricing possible so we can continue building crowd.dev for you. This week we introduced our infrastructure for pricing. You can check the full pricing details on our [website](https://crowd.dev/pricing). All tenants have been set to a free trial of the growth plan, which lasts until the 15th of January. After that, you will need to get a subscription to access the growth features.
-
 With this, we have introduced feature flagging, so we can also roll out features gradually, with more testing and performance.
 
 - Integrate posthog in frontend @joanagmaia (#335)
@@ -411,7 +436,6 @@ You can now track how organizations are adopting your community. With the organi
 With the new tasks feature you can create tasks related to your community members. Do you want to ask newcomers for feedback? Or influential members for some recognition? Or an unhappy member how can you make their life easier? You can orchestrate all this with your team using tasks. We support all standard to-do features, like assigning them to colleagues and setting due dates. You can read more in our [tasks docs](https://docs.crowd.dev/docs/tasks).
 <img width="700" alt="Tasks" src="https://user-images.githubusercontent.com/37874460/204589346-6172b211-76fc-427c-9be2-9f5859756088.png">
 #### Notes
-
 The notes module allows you to add notes to your community members. You can annotate your chats with the member and leave comments for your colleagues. Oh, and we support markdown!
 
 ### Bug fixes and improvements
@@ -452,7 +476,6 @@ This version introduces breaking API changes. While the API has vastly improved 
 - The *new conversations* data-point in weekly emails not uses the first activity time, rather than time of creation @epipav (#64)
 - Copy tweak in Dashboard @joanreyero (#63)
 - Fix SQL Alchemy not connecting in Kubernetes in Python @joanreyero (#72)
-
 ## v0.7.0 - 2022-09-16
 
 ### Changes
@@ -480,7 +503,9 @@ This version introduces breaking API changes. While the API has vastly improved 
 - 
 - 
 - 
+- 
 - - When a new activity is created
+- 
 - 
 - 
 - 
