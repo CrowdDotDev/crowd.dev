@@ -146,7 +146,11 @@
             :class="{
               disabled: !hasFormChanged || connectDisabled
             }"
-            @click="hasFormChanged ? connect() : undefined"
+            @click="
+              hasFormChanged && !connectDisabled
+                ? connect()
+                : undefined
+            "
           >
             {{
               integration.settings?.tags.length > 0
@@ -244,7 +248,9 @@ const hasFormChanged = computed(
     ) || !isEqual(keywords.value, modelKeywords.value)
 )
 
-const connectDisabled = computed(() => {
+// connect disabled when
+
+const tagsInputInvalid = computed(() => {
   return (
     model.value.filter((s) => {
       return (
@@ -253,11 +259,29 @@ const connectDisabled = computed(() => {
         s.touched !== true ||
         s.volumeTooLarge == true
       )
-    }).length > 0 ||
-    isValidating.value ||
-    isVolumeUpdating.value ||
-    !isKeywordsValid.value
+    }).length > 0 || isValidating.value
   )
+})
+
+const keywordsInputValid = computed(() => {
+  return (
+    isKeywordsValid.value &&
+    !isVolumeUpdating.value &&
+    modelKeywords.value.filter((s) => s === '').length === 0
+  )
+})
+
+const connectEnabled = computed(() => {
+  return (
+    (!tagsInputInvalid.value && keywordsInputValid) ||
+    (model.value.length === 0 && keywordsInputValid) ||
+    (!tagsInputInvalid.value &&
+      modelKeywords.value.length === 0)
+  )
+})
+
+const connectDisabled = computed(() => {
+  return !connectEnabled.value
 })
 
 const isValidating = computed(() => {
