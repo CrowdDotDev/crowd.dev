@@ -791,6 +791,7 @@ describe('MemberService tests', () => {
 
       const member2 = {
         username: 'anil',
+        emails: ['test@email.com', 'test2@email.com'],
         platform: PlatformType.GITHUB,
         location: 'Ankara',
       }
@@ -831,7 +832,7 @@ describe('MemberService tests', () => {
         lastEnriched: null,
         enrichedBy: [],
         contributions: null,
-        emails: member1.emails,
+        emails: ['lala@l.com', 'test@email.com', 'test2@email.com'],
         score: member1.score,
         importHash: null,
         createdAt: SequelizeTestUtils.getNowWithoutTime(),
