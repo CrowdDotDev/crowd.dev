@@ -2,19 +2,19 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: pizzly-dpl
+  name: nango-dpl
 spec:
   selector:
     matchLabels:
-      app: pizzly
+      app: nango
   template:
     metadata:
       labels:
-        app: pizzly
+        app: nango
     spec:
       containers:
-        - name: pizzly
-          image: nangohq/pizzly-server:0.4.0
+        - name: nango
+          image: nangohq/nango-server:0.9.0
           env:
             - name: NANGO_DB_HOST
               valueFrom:
@@ -41,33 +41,34 @@ spec:
                 configMapKeyRef:
                   name: backend-config
                   key: CROWD_DB_PASSWORD
-            - name: PIZZLY_SECRET_KEY
+            - name: NANGO_SECRET_KEY
               valueFrom:
                 configMapKeyRef:
                   name: backend-config
-                  key: CROWD_PIZZLY_SECRET_KEY
-            - name: PIZZLY_PUBLISHABLE_KEY
+                  key: CROWD_NANGO_SECRET_KEY
+            - name: SERVER_PORT
+              value: '3003'
+            - name: NANGO_CALLBACK_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: backend-config
+                  key: CROWD_NANGO_URL_CALLBACK
+            - name: NANGO_SERVER_URL
               valueFrom:
                 configMapKeyRef:
                   name: frontend-config
-                  key: VUE_APP_PIZZLY_PUBLISHABLE_KEY
-            - name: AUTH_CALLBACK_URL
-              valueFrom:
-                configMapKeyRef:
-                  name: frontend-config
-                  key: VUE_APP_PIZZLY_URL_CALLBACK
-
+                  key: VUE_APP_NANGO_URL
           ports:
             - containerPort: 3003
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: pizzly-svc
+  name: nango-svc
 spec:
   type: ClusterIP
   selector:
-    app: pizzly
+    app: nango
   ports:
     - port: 3003
       targetPort: 3003

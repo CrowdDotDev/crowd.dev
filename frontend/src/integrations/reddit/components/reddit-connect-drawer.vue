@@ -121,7 +121,7 @@ import {
 import { useThrottleFn } from '@vueuse/core'
 import { CrowdIntegrations } from '@/integrations/integrations-config'
 import { useStore } from 'vuex'
-import Pizzly from '@nangohq/pizzly-frontend'
+import Nango from '@nangohq/frontend'
 import AuthCurrentTenant from '@/modules/auth/auth-current-tenant'
 import config from '@/config'
 import isEqual from 'lodash/isEqual'
@@ -226,12 +226,9 @@ const callOnboard = useThrottleFn(async () => {
 }, 2000)
 
 const connect = async () => {
-  const pizzly = new Pizzly(
-    config.pizzlyUrl,
-    config.pizzlyPublishableKey
-  )
+  const nango = new Nango({ host: config.nangoUrl })
   try {
-    await pizzly.auth('reddit', `${tenantId.value}-reddit`)
+    await nango.auth('reddit', `${tenantId.value}-reddit`)
     await callOnboard()
     emit('update:modelValue', false)
   } catch (e) {

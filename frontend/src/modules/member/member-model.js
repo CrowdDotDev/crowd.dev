@@ -14,6 +14,7 @@ import SearchField from '@/shared/fields/search-field'
 import MemberIdentitiesField from './member-identities-field'
 import SentimentField from '@/shared/fields/sentiment-field'
 import ActivityTypeField from '@/modules/activity/activity-type-field'
+import StringArrayField from '@/shared/fields/string-array-field'
 
 function label(name) {
   return i18n(`entities.member.fields.${name}`)
@@ -64,9 +65,7 @@ const fields = {
   tags: TagField.relationToMany('tags', label('tags'), {
     filterable: true
   }),
-  email: new StringField('email', label('email'), {
-    email: true
-  }),
+  emails: new StringArrayField('emails', 'Emails'),
   noMerge: MemberField.relationToMany(
     'noMerge',
     label('noMerge'),

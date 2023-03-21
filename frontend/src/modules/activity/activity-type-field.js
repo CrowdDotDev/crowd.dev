@@ -125,6 +125,20 @@ export default class ActivityTypeField extends JSONField {
             label: en.entities.activity.linkedin[activity]
           })
         )
+      },
+      {
+        label: {
+          type: 'platform',
+          key: 'stackoverflow',
+          value: 'Stack Overflow'
+        },
+        nestedOptions: activityTypesJson.stackoverflow.map(
+          (activity) => ({
+            value: activity,
+            label:
+              en.entities.activity.stackoverflow[activity]
+          })
+        )
       }
     ]
   }

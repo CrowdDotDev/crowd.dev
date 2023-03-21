@@ -18,7 +18,6 @@ class MembersScore:
     def __init__(self, tenant_id, repository=False, test=False, send=True):
 
         self.tenant_id = tenant_id
-        logger.info(tenant_id)
 
         if not repository:
             self.repository = Repository(tenant_id=self.tenant_id, test=test)
@@ -206,37 +205,25 @@ class MembersScore:
     def main(self):
         # Keeping track of time for lambda timeout
         start = time.time()
-        logger.info("Finding members...")
         members = self.repository.find_all(Member, query={})
-        logger.info("Found all members")
 
-        logger.info("Saving original scores...")
         for member in members:
             self.original_scores[member.id] = member.score
-        logger.info("Done")
 
-        logger.info("Calculating member raw scores...")
         self.scores = self._member_scores_(members)
-        logger.info("Done")
 
         # Take care of case where tenant doesn't have activities
         if len(self.scores) == 0:
             return {}
 
-        logger.info("Normalising scores...")
         scores_to_update = self.normalise(self.scores)
-        logger.info("Done")
 
-        length = len(scores_to_update)
         changed = 0
 
         members_controller = MembersController(self.tenant_id, repository=self.repository)
 
         for n, member_id in enumerate(scores_to_update):
-            if n % 500 == 0:
-                logger.info(f"Updating {n} / {length}")
             if time.time() - start > 800:
-                logger.info("Time limit reached. Will continue next time")
                 break
             # We only update the score if it has changed
             if scores_to_update[member_id] != self.original_scores.get(member_id, -2):

@@ -93,7 +93,7 @@ describe('Github webhooks tests', () => {
             [PlatformType.GITHUB]: '',
           },
         },
-        email: '',
+        emails: [],
         displayName: 'Joan Reyero',
       }
       expect(parsedMember).toStrictEqual(expected)
@@ -130,7 +130,7 @@ describe('Github webhooks tests', () => {
             [PlatformType.GITHUB]: '',
           },
         },
-        email: '',
+        emails: [],
         displayName: 'Joan Reyero',
       }
       expect(parsedMember).toStrictEqual(expected)
@@ -180,7 +180,7 @@ describe('Github webhooks tests', () => {
           },
         },
         reach: { [PlatformType.GITHUB]: 10 },
-        email: '',
+        emails: [],
         displayName: 'Joan Reyero',
         organizations: [{ name: 'crowd.dev' }],
       }

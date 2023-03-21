@@ -130,9 +130,12 @@
     "privateKey": "CROWD_GITHUB_PRIVATE_KEY",
     "webhookSecret": "CROWD_GITHUB_WEBHOOK_SECRET"
   },
-  "pizzly": {
-    "url": "CROWD_PIZZLY_URL",
-    "secretKey": "CROWD_PIZZLY_SECRET_KEY"
+  "stackexchange": {
+    "key": "CROWD_STACKEXCHANGE_KEY"
+  },
+  "nango": {
+    "url": "CROWD_NANGO_URL",
+    "secretKey": "CROWD_NANGO_SECRET_KEY"
   },
   "enrichment": {
     "url": "CROWD_ENRICHMENT_URL",

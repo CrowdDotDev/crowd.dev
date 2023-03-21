@@ -28,7 +28,7 @@ import {
 import { useRouter } from 'vue-router'
 import AppLinkedinSettingsDrawer from '@/integrations/linkedin/components/linkedin-settings-drawer'
 import config from '@/config'
-import Pizzly from '@nangohq/pizzly-frontend'
+import Nango from '@nangohq/frontend'
 import { useStore } from 'vuex'
 import AuthCurrentTenant from '@/modules/auth/auth-current-tenant'
 import { useThrottleFn } from '@vueuse/core'
@@ -50,13 +50,10 @@ const callOnboard = useThrottleFn(async () => {
 }, 2000)
 
 const connect = async () => {
-  const pizzly = new Pizzly(
-    config.pizzlyUrl,
-    config.pizzlyPublishableKey
-  )
+  const nango = new Nango({ host: config.nangoUrl })
 
   try {
-    await pizzly.auth(
+    await nango.auth(
       'linkedin',
       `${tenantId.value}-linkedin`
     )

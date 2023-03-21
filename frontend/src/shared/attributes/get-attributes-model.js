@@ -6,7 +6,8 @@ export default (record) => {
     (obj, [key, val]) => {
       if (
         val.default === undefined ||
-        val.default === null
+        val.default === null ||
+        key === 'emails'
       ) {
         return obj
       }

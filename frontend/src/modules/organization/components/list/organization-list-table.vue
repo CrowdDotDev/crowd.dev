@@ -213,7 +213,7 @@
               <!-- Identities -->
               <el-table-column
                 label="Identities"
-                width="270"
+                width="240"
                 ><template #default="scope">
                   <div class="h-full flex items-center">
                     <app-organization-identities
@@ -224,6 +224,49 @@
                       >-</span
                     >
                   </div>
+                </template>
+              </el-table-column>
+
+              <!-- Emails -->
+              <el-table-column
+                label="Emails"
+                :width="emailsColumnWidth"
+              >
+                <template #default="scope">
+                  <div
+                    v-if="scope.row.emails?.length"
+                    class="text-sm cursor-auto flex flex-wrap gap-1"
+                  >
+                    <el-tooltip
+                      v-for="email of scope.row.emails ||
+                      []"
+                      :key="email"
+                      :disabled="!email"
+                      popper-class="custom-identity-tooltip"
+                      placement="top"
+                    >
+                      <template #content
+                        ><span
+                          >Send email
+                          <i
+                            v-if="email"
+                            class="ri-external-link-line text-gray-400"
+                          ></i></span
+                      ></template>
+                      <div @click.prevent>
+                        <a
+                          target="_blank"
+                          class="badge--interactive"
+                          :href="`mailto:${email}`"
+                          @click.stop="trackEmailClick"
+                          >{{ email }}</a
+                        >
+                      </div>
+                    </el-tooltip>
+                  </div>
+                  <span v-else class="text-gray-500"
+                    >-</span
+                  >
                 </template>
               </el-table-column>
 
@@ -418,7 +461,6 @@ const hasIdentities = (row) => {
     !!row.linkedin ||
     !!row.twitter ||
     !!row.crunchbase ||
-    !!row.emails?.length ||
     !!row.phoneNumbers?.length
   )
 }
@@ -455,6 +497,28 @@ const onTableMouseover = () => {
 const onTableMouseLeft = () => {
   isTableHovered.value = false
   isScrollbarVisible.value = isCursorDown.value
+}
+
+const emailsColumnWidth = computed(() => {
+  let maxTabWidth = 0
+
+  for (const row of rows.value) {
+    const tabWidth = row.emails
+      ?.map((email) => email.length * 12)
+      .reduce((a, b) => a + b, 0)
+
+    if (tabWidth > maxTabWidth) {
+      maxTabWidth = tabWidth > 400 ? 400 : tabWidth
+    }
+  }
+
+  return maxTabWidth
+})
+
+const trackEmailClick = () => {
+  window.analytics.track('Click Organization Contact', {
+    channel: 'Email'
+  })
 }
 </script>
 
