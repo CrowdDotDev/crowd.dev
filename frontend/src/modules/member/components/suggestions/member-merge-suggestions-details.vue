@@ -177,7 +177,7 @@ const identities = computed(() => {
 
   if (
     props.pair[0].emails?.length ||
-    props.pair[1].email?.length
+    props.pair[1].emails?.length
   ) {
     out.push({
       type: 'email-platform',

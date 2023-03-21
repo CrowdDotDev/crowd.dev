@@ -149,7 +149,9 @@
                     size="xxs"
                     :entity="item"
                   ></app-avatar>
-                  <p class="pl-2">{{ item.displayName }}</p>
+                  <p class="pl-2">
+                    {{ item.displayName || item.label }}
+                  </p>
                 </div>
               </template>
             </app-autocomplete-many-input>
