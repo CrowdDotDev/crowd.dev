@@ -78,8 +78,8 @@
 </template>
 
 <script>
-import uEmojiParser from 'universal-emoji-parser'
 import { CrowdIntegrations } from '@/integrations/integrations-config'
+import emoji from 'node-emoji'
 
 export default {
   name: 'AppActivityContent',
@@ -158,8 +158,8 @@ export default {
   },
   methods: {
     contentRenderEmojis(content) {
-      return uEmojiParser
-        .parse(content)
+      return emoji
+        .emojify(content, () => '⚪')
         .replaceAll(
           new RegExp('(?<!"):[a-z_-]+:', 'g'),
           '<abbr class="no-underline" title="Unable to detect emoji">&#65533;</abbr>'
