@@ -62,12 +62,12 @@ export default class MemberEnrichmentService extends LoggingBase {
         fields: ['seniority_level'],
         type: AttributeType.STRING,
       },
-      [MemberEnrichmentAttributeName.EMAILS]: {
-        fields: ['emails'],
-        type: AttributeType.MULTI_SELECT,
-        fn: (emails: string[]) =>
-          lodash.filter(emails, (email) => !email.includes('noreply.github')),
-      },
+      // [MemberEnrichmentAttributeName.EMAILS]: {
+      //   fields: ['emails'],
+      //   type: AttributeType.MULTI_SELECT,
+      //   fn: (emails: string[]) =>
+      //     lodash.filter(emails, (email) => !email.includes('noreply.github')),
+      // },
       [MemberEnrichmentAttributeName.COUNTRY]: {
         fields: ['country'],
         type: AttributeType.STRING,
@@ -279,7 +279,7 @@ export default class MemberEnrichmentService extends LoggingBase {
     member.enrichedBy = Array.from(enrichedBy)
 
     if (enrichmentData.emails.length > 0) {
-      const emailSet = new Set<string>(enrichmentData.emails)
+      const emailSet = new Set<string>(enrichmentData.emails.filter((email) => !email.includes('noreply.github')))
       member.emails.forEach((email) => emailSet.add(email))
       member.emails = Array.from(emailSet)
     }
