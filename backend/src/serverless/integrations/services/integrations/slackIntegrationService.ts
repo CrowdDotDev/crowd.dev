@@ -278,7 +278,7 @@ export class SlackIntegrationService extends IntegrationServiceBase {
     const member: Member = {
       displayName: record.profile.real_name,
       username: record.name,
-      email: record.profile.email,
+      emails: record.profile.email ? [record.profile.email] : [],
       attributes: {
         [MemberAttributeName.SOURCE_ID]: {
           [PlatformType.SLACK]: record.id,

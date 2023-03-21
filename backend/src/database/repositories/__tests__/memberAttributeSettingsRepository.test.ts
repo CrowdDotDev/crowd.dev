@@ -135,11 +135,11 @@ describe('MemberAttributeSettings tests', () => {
       // no type
       await expect(() =>
         MemberAttributeSettingsRepository.create(
-          { type: AttributeType.STRING, label: 'Some Email', name: 'email' },
+          { type: AttributeType.STRING, label: 'Some Email', name: 'emails' },
           mockIRepositoryOptions,
         ),
       ).rejects.toThrowError(
-        new Error400('en', 'settings.memberAttributes.errors.reservedField', 'email'),
+        new Error400('en', 'settings.memberAttributes.errors.reservedField', 'emails'),
       )
     })
   })

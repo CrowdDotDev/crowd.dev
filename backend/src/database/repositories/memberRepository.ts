@@ -35,7 +35,7 @@ class MemberRepository {
           'username',
           'displayName',
           'attributes',
-          'email',
+          'emails',
           'lastEnriched',
           'enrichedBy',
           'contributions',
@@ -243,7 +243,7 @@ class MemberRepository {
     const currentTenant = SequelizeRepository.getCurrentTenant(options)
 
     const query =
-      'SELECT "id", "username", "displayName", "attributes", "email", "score", "lastEnriched", "enrichedBy", "contributions", "reach", "joinedAt", "importHash", "createdAt", "updatedAt", "deletedAt", "tenantId", "createdById", "updatedById" FROM "members" AS "member" WHERE ("member"."deletedAt" IS NULL AND ("member"."tenantId" = $tenantId AND ("member"."username"->>$platform) = $username)) LIMIT 1;'
+      'SELECT "id", "username", "displayName", "attributes", "emails", "score", "lastEnriched", "enrichedBy", "contributions", "reach", "joinedAt", "importHash", "createdAt", "updatedAt", "deletedAt", "tenantId", "createdById", "updatedById" FROM "members" AS "member" WHERE ("member"."deletedAt" IS NULL AND ("member"."tenantId" = $tenantId AND ("member"."username"->>$platform) = $username)) LIMIT 1;'
 
     const records = await options.database.sequelize.query(query, {
       type: Sequelize.QueryTypes.SELECT,
@@ -290,7 +290,7 @@ class MemberRepository {
           'username',
           'displayName',
           'attributes',
-          'email',
+          'emails',
           'lastEnriched',
           'enrichedBy',
           'contributions',
@@ -624,7 +624,7 @@ class MemberRepository {
     ['importHash', 'm."importHash"'],
     ['createdAt', 'm."createdAt"'],
     ['updatedAt', 'm."updatedAt"'],
-    ['email', 'm.email'],
+    ['emails', 'm.emails'],
   ])
 
   static async findAndCountAllv2(
@@ -765,7 +765,7 @@ select m.id,
        m.username,
        m."displayName",
        m.attributes,
-       m.email,
+       m.emails,
        m."tenantId",
        m.score,
        m."lastEnriched",
@@ -996,10 +996,10 @@ where m."deletedAt" is null
           })
         }
 
-        if (filter.email) {
+        if (filter.emails) {
           advancedFilter.and.push({
-            email: {
-              textContains: filter.email,
+            emails: {
+              contains: filter.emails,
             },
           })
         }
@@ -1207,7 +1207,7 @@ where m."deletedAt" is null
               'username',
               'attributes',
               'displayName',
-              'email',
+              'emails',
               'score',
               'lastEnriched',
               'enrichedBy',
@@ -1285,7 +1285,7 @@ where m."deletedAt" is null
             'username',
             'attributes',
             'displayName',
-            'email',
+            'emails',
             'tenantId',
             'score',
             'lastEnriched',
