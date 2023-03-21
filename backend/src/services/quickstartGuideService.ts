@@ -87,8 +87,8 @@ export default class QuickstartGuideService extends LoggingBase {
             {
               or: [
                 {
-                  email: {
-                    ne: null,
+                  emails: {
+                    ne: Sequelize.literal("'{}'"),
                   },
                 },
                 {
