@@ -10,7 +10,7 @@ function exportEnv() {
     fi
 }
 
-function create_pizzly_integration() {
+function create_nango_integration() {
     # $1 to uppercase
     KEY=$(echo $1 | tr '[:lower:]' '[:upper:]')
     exportEnv "$KEY"
@@ -20,25 +20,25 @@ function create_pizzly_integration() {
     clientSecret=$(env | grep -i CROWD_${KEY}_CLIENT_SECRET | awk -F '=' '{print $2}')
     scopes=$(env | grep -i CROWD_${KEY}_SCOPES | awk -F '=' '{print $2}')
     if [[ -z $clientId || -z $clientSecret || -z $scopes ]]; then
-        printf "\nNot all $1 variables are set. Skipping Pizzly integration creation.\n"
+        printf "\nNot all $1 variables are set. Skipping Nango integration creation.\n"
         printf "The variables needed are: \n- CROWD_${KEY}_CLIENT_ID \n- CROWD_${KEY}_CLIENT_SECRET \n- CROWD_${KEY}_SCOPES"
         return
     else
-        export PIZZLY_SECRET_KEY=$CROWD_PIZZLY_SECRET_KEY
+        export NANGO_SECRET_KEY=$CROWD_NANGO_SECRET_KEY
         printf "\nCreating $1 Integration with client ID: $clientId"    
-        npx pizzly config:create $1 $1 $clientId $clientSecret "$scopes"
+        npx nango config:create $1 $1 $clientId $clientSecret "$scopes"
     fi
 
 }
 
-function create_pizzly_integrations() {
-    exportEnv "PIZZLY" "dist"
-    integrations=$CROWD_PIZZLY_INTEGRATIONS
+function create_nango_integrations() {
+    exportEnv "NANGO" "dist"
+    integrations=$CROWD_NANGO_INTEGRATIONS
     IFS=',' read -ra INTEGRATIONS <<< "$integrations"
 
     for i in "${INTEGRATIONS[@]}"; do
-        create_pizzly_integration "$i"
+        create_nango_integration "$i"
     done
 }
 
-create_pizzly_integrations
+create_nango_integrations

@@ -16,7 +16,7 @@ spec:
   tls:
     - hosts:
         - example.domain.name
-        - pizzly.domain.name
+        - nango.domain.name
       secretName: letsencrypt-issuer
   rules:
     - host: example.domain.name
@@ -50,13 +50,13 @@ spec:
                 name: frontend-svc
                 port:
                   number: 8081
-    - host: pizzly.domain.name
+    - host: nango.domain.name
       http:
         paths:
           - path: /?(.*)
             pathType: Prefix
             backend:
               service:
-                name: pizzly-svc
+                name: nango-svc
                 port:
                   number: 3003

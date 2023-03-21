@@ -2,11 +2,11 @@ import axios, { AxiosRequestConfig } from 'axios'
 import { ILinkedInPostComment, IPaginatedResponse } from '../../types/linkedinTypes'
 import { Logger } from '../../../../utils/logging'
 import { handleLinkedinError } from './errorHandler'
-import getToken from '../pizzly/getToken'
+import getToken from '../nango/getToken'
 import { PlatformType } from '../../../../types/integrationEnums'
 
 export const getCommentComments = async (
-  pizzlyId: string,
+  nangoId: string,
   commentId: string,
   logger: Logger,
   start?: number,
@@ -21,9 +21,9 @@ export const getCommentComments = async (
   }
 
   try {
-    logger.debug({ pizzlyId, commentId, start }, 'Fetching comment comments!')
-    // Get an access token from Pizzly
-    const accessToken = await getToken(pizzlyId, PlatformType.LINKEDIN, logger)
+    logger.debug({ nangoId, commentId, start }, 'Fetching comment comments!')
+    // Get an access token from Nango
+    const accessToken = await getToken(nangoId, PlatformType.LINKEDIN, logger)
     config.params.oauth2_access_token = accessToken
 
     const response = (await axios(config)).data
@@ -57,22 +57,22 @@ export const getCommentComments = async (
       elements,
     }
   } catch (err) {
-    const newErr = handleLinkedinError(err, config, { pizzlyId, commentId, start }, logger)
+    const newErr = handleLinkedinError(err, config, { nangoId, commentId, start }, logger)
     throw newErr
   }
 }
 
 export const getAllCommentComments = async (
-  pizzlyId: string,
+  nangoId: string,
   commentId: string,
   logger: Logger,
 ): Promise<ILinkedInPostComment[]> => {
   const elements = []
 
-  let response = await getCommentComments(pizzlyId, commentId, logger)
+  let response = await getCommentComments(nangoId, commentId, logger)
   elements.push(...response.elements)
   while (response.start !== undefined) {
-    response = await getCommentComments(pizzlyId, commentId, logger, response.start)
+    response = await getCommentComments(nangoId, commentId, logger, response.start)
     elements.push(...response.elements)
   }
 
