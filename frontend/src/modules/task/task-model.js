@@ -22,14 +22,14 @@ const fetchMembers = (query, limit) => {
             in: query.map((v) => v.displayName)
           }
         },
-        { email: { textContains: query } }
+        { emails: { contains: [query] } }
       ]
     }
   } else if (query) {
     filter = {
       or: [
         { displayName: { textContains: query } },
-        { email: { textContains: query } }
+        { emails: { contains: [query] } }
       ]
     }
   }
