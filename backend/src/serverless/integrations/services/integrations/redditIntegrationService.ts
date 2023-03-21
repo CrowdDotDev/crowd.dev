@@ -53,7 +53,7 @@ export class RedditIntegrationService extends IntegrationServiceBase {
     const settings = context.integration.settings as RedditIntegrationSettings
     context.pipelineData = {
       subreddits: settings.subreddits,
-      pizzlyId: `${context.integration.tenantId}-${PlatformType.REDDIT}`,
+      nangoId: `${context.integration.tenantId}-${PlatformType.REDDIT}`,
     }
   }
 
@@ -106,10 +106,10 @@ export class RedditIntegrationService extends IntegrationServiceBase {
     context: IStepContext,
   ): Promise<IProcessStreamResults> {
     const subreddit = stream.value.split(':')[1]
-    const pizzlyId = context.pipelineData.pizzlyId
+    const nangoId = context.pipelineData.nangoId
     const after = stream.metadata.after
     const response: RedditPostsResponse = await getPosts(
-      { subreddit, pizzlyId, after },
+      { subreddit, nangoId, after },
       context.logger,
     )
 
@@ -177,10 +177,10 @@ export class RedditIntegrationService extends IntegrationServiceBase {
   ): Promise<IProcessStreamResults> {
     const subreddit = stream.metadata.channel
     const postId = stream.value.split(':')[1]
-    const pizzlyId = context.pipelineData.pizzlyId
+    const nangoId = context.pipelineData.nangoId
 
     const response: RedditCommentsResponse = await getComments(
-      { subreddit, pizzlyId, postId },
+      { subreddit, nangoId, postId },
       context.logger,
     )
 
@@ -240,10 +240,10 @@ export class RedditIntegrationService extends IntegrationServiceBase {
     const postId = stream.metadata.postId
     const sourceParentId = stream.metadata.sourceParentId
     const children = stream.metadata.children
-    const pizzlyId = context.pipelineData.pizzlyId
+    const nangoId = context.pipelineData.nangoId
 
     const response: RedditMoreCommentsResponse = await getMoreComments(
-      { postId, pizzlyId, children },
+      { postId, nangoId, children },
       context.logger,
     )
 

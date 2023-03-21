@@ -2,11 +2,11 @@ import axios, { AxiosRequestConfig } from 'axios'
 import { PlatformType } from '../../../../types/integrationEnums'
 import { Logger } from '../../../../utils/logging'
 import { ILinkedInOrganizationPost, IPaginatedResponse } from '../../types/linkedinTypes'
-import getToken from '../pizzly/getToken'
+import getToken from '../nango/getToken'
 import { handleLinkedinError } from './errorHandler'
 
 export const getOrganizationPosts = async (
-  pizzlyId: string,
+  nangoId: string,
   organization: string,
   logger: Logger,
   start?: number,
@@ -24,9 +24,9 @@ export const getOrganizationPosts = async (
   }
 
   try {
-    logger.debug({ pizzlyId, organization, start }, 'Fetching organization posts!')
-    // Get an access token from Pizzly
-    const accessToken = await getToken(pizzlyId, PlatformType.LINKEDIN, logger)
+    logger.debug({ nangoId, organization, start }, 'Fetching organization posts!')
+    // Get an access token from Nango
+    const accessToken = await getToken(nangoId, PlatformType.LINKEDIN, logger)
     config.params.oauth2_access_token = accessToken
 
     const response = (await axios(config)).data
@@ -66,13 +66,13 @@ export const getOrganizationPosts = async (
       elements,
     }
   } catch (err) {
-    const newErr = handleLinkedinError(err, config, { pizzlyId, organization, start }, logger)
+    const newErr = handleLinkedinError(err, config, { nangoId, organization, start }, logger)
     throw newErr
   }
 }
 
 export const getAllOrganizationPosts = async (
-  pizzlyId: string,
+  nangoId: string,
   organization: string,
   logger: Logger,
   lookBackUntilTs?: number,
@@ -80,7 +80,7 @@ export const getAllOrganizationPosts = async (
   const elements = []
 
   let response = await getOrganizationPosts(
-    pizzlyId,
+    nangoId,
     organization,
     logger,
     undefined,
@@ -89,7 +89,7 @@ export const getAllOrganizationPosts = async (
   elements.push(...response.elements)
   while (response.start !== undefined) {
     response = await getOrganizationPosts(
-      pizzlyId,
+      nangoId,
       organization,
       logger,
       response.start,
