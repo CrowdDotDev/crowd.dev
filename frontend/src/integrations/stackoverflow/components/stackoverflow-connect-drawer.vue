@@ -146,7 +146,11 @@
             :class="{
               disabled: !hasFormChanged || connectDisabled
             }"
-            @click="hasFormChanged ? connect() : undefined"
+            @click="
+              hasFormChanged && !connectDisabled
+                ? connect()
+                : undefined
+            "
           >
             {{
               integration.settings?.tags.length > 0
@@ -199,18 +203,23 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['update:modelValue'])
-const tags = computed(
-  () =>
-    props.integration.settings?.tags.map((i) => {
-      return {
-        value: i,
-        validating: false,
-        touched: true,
-        valid: true,
-        volumeTooLarge: false
-      }
-    }) || [{ value: '', loading: false }]
-)
+const tags = computed(() => {
+  if (props.integration.settings?.tags?.length > 0) {
+    return props.integration.settings?.tags.map((i) => ({
+      value: i,
+      valid: false,
+      validating: false,
+      touched: false,
+      volumeTooLarge: false
+    }))
+  }
+  return [
+    {
+      value: '',
+      loading: false
+    }
+  ]
+})
 
 const keywords = computed(
   () => props.integration.settings?.keywords || []
@@ -244,7 +253,9 @@ const hasFormChanged = computed(
     ) || !isEqual(keywords.value, modelKeywords.value)
 )
 
-const connectDisabled = computed(() => {
+// connect disabled when
+
+const tagsInputInvalid = computed(() => {
   return (
     model.value.filter((s) => {
       return (
@@ -253,11 +264,39 @@ const connectDisabled = computed(() => {
         s.touched !== true ||
         s.volumeTooLarge == true
       )
-    }).length > 0 ||
-    isValidating.value ||
-    isVolumeUpdating.value ||
-    !isKeywordsValid.value
+    }).length > 0 || isValidating.value
   )
+})
+
+const keywordsInputValid = computed(() => {
+  return (
+    isKeywordsValid.value &&
+    !isVolumeUpdating.value &&
+    modelKeywords.value.filter((s) => s === '').length === 0
+  )
+})
+
+const tagsInputUntouched = computed(() => {
+  return (
+    model.value.length === 1 &&
+    model.value[0].value == '' &&
+    model.value[0].touched == undefined
+  )
+})
+
+// checking if both tags and keywords are: both valid or one valid and the other empty
+const connectEnabled = computed(() => {
+  return (
+    (!tagsInputInvalid.value && keywordsInputValid.value) ||
+    (tagsInputUntouched.value &&
+      keywordsInputValid.value) ||
+    (!tagsInputInvalid.value &&
+      modelKeywords.value.length === 0)
+  )
+})
+
+const connectDisabled = computed(() => {
+  return !connectEnabled.value
 })
 
 const isValidating = computed(() => {
@@ -357,13 +396,23 @@ const handleTagValidation = async (index) => {
 }
 
 const callOnboard = useThrottleFn(async () => {
-  await store.dispatch(
-    'integration/doStackOverflowOnboard',
-    {
-      tags: model.value.map((i) => i.value),
-      keywords: modelKeywords.value
-    }
-  )
+  if (tagsInputUntouched.value) {
+    await store.dispatch(
+      'integration/doStackOverflowOnboard',
+      {
+        tags: [],
+        keywords: modelKeywords.value
+      }
+    )
+  } else {
+    await store.dispatch(
+      'integration/doStackOverflowOnboard',
+      {
+        tags: model.value.map((i) => i.value),
+        keywords: modelKeywords.value
+      }
+    )
+  }
 }, 2000)
 
 const connect = async () => {
