@@ -225,7 +225,7 @@ export default class MemberEnrichmentService extends LoggingBase {
     const member = await memberService.findById(memberId, false, false)
 
     // If the member's GitHub handle or email address is not available, throw an error
-    if (!(member.username[PlatformType.GITHUB] || member.email)) {
+    if (!(member.username[PlatformType.GITHUB] || member.emails.length === 0)) {
       throw new Error400(this.options.language, 'enrichment.errors.noGithubHandleOrEmail')
     }
 
@@ -238,7 +238,7 @@ export default class MemberEnrichmentService extends LoggingBase {
     } else if (member.email) {
       enrichedFrom = 'email'
       // If the member has an email address, use it to make a request to the Enrichment API
-      enrichmentData = await this.getEnrichmentByEmail(member.email)
+      enrichmentData = await this.getEnrichmentByEmail(member.emails[0])
     }
 
     if (enrichmentData) {
