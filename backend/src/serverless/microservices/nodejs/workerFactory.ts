@@ -22,6 +22,7 @@ import { processSendgridWebhook } from '../../integrations/workers/sendgridWebho
 import { bulkEnrichmentWorker } from './bulk-enrichment/bulkEnrichmentWorker'
 import { eagleEyeEmailDigestWorker } from './eagle-eye-email-digest/eagleEyeEmailDigestWorker'
 import { integrationDataCheckerWorker } from './integration-data-checker/integrationDataCheckerWorker'
+import { refreshSampleDataWorker } from './integration-data-checker/refreshSampleDataWorker'
 
 /**
  * Worker factory for spawning different microservices
@@ -49,6 +50,9 @@ async function workerFactory(event: NodeMicroserviceMessage): Promise<any> {
         integrationDataCheckerMessage.integrationId,
         integrationDataCheckerMessage.tenantId,
       )
+    case 'refresh-sample-data':
+      return refreshSampleDataWorker()
+
     case 'csv-export':
       const csvExportMessage = event as CsvExportMessage
       return csvExportWorker(
