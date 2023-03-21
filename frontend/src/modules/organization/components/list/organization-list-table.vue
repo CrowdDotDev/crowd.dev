@@ -234,7 +234,7 @@
               >
                 <template #default="scope">
                   <div
-                    v-if="scope.row.emails.length"
+                    v-if="scope.row.emails?.length"
                     class="text-sm cursor-auto flex flex-wrap gap-1"
                   >
                     <el-tooltip
