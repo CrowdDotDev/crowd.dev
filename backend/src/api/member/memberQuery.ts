@@ -21,10 +21,19 @@ import PermissionChecker from '../../services/user/permissionChecker'
 export default async (req, res) => {
   new PermissionChecker(req).validateHas(Permissions.values.memberRead)
 
-  const payload = await new MemberService(req).query(req.body)
+  let payload
+  const newVersion = req.headers['x-crowd-api-version'] === '1'
+
+  const memberService = new MemberService(req)
+
+  if (newVersion) {
+    payload = await memberService.queryV2(req.body)
+  } else {
+    payload = await memberService.query(req.body)
+  }
 
   if (req.body.filter && Object.keys(req.body.filter).length > 0) {
-    track('Member Advanced Fitler', { ...payload }, { ...req })
+    track('Member Advanced Fitler', { ...req.body }, { ...req })
   }
 
   await req.responseHandler.success(req, res, payload)

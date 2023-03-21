@@ -26,6 +26,7 @@
         <button
           v-if="member.id === pair[1].id"
           class="btn btn-link btn-link--primary ml-auto"
+          :disabled="isEditLockedForSampleData"
           @click="handleMakePrimary"
         >
           <i class="ri-arrow-left-right-line"></i>
@@ -34,10 +35,11 @@
       </div>
       <span
         v-if="member.attributes?.bio"
+        s
         class="text-gray-500 text-xs pr-4 line-clamp"
       >
-        {{ member.attributes.bio.default }}</span
-      >
+        <app-member-bio :member="member"
+      /></span>
     </div>
 
     <!-- Row 1: Engagement level -->
@@ -137,7 +139,10 @@ import AppMemberOrganizations from '@/modules/member/components/member-organizat
 import AppTagList from '@/modules/tag/components/tag-list'
 import AppMemberEngagementLevel from '../member-engagement-level'
 import AppMemberMergeSuggestionsDetailsIdentities from './member-merge-suggestions-details-identities'
+import AppMemberBio from '@/modules/member/components/member-bio'
 import { CrowdIntegrations } from '@/integrations/integrations-config'
+import { MemberPermissions } from '../../member-permissions'
+import { mapGetters } from '@/shared/vuex/vuex.helpers'
 
 const props = defineProps({
   pair: {
@@ -147,6 +152,15 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['makePrimary'])
+
+const { currentTenant, currentUser } = mapGetters('auth')
+
+const isEditLockedForSampleData = computed(() => {
+  return new MemberPermissions(
+    currentTenant.value,
+    currentUser.value
+  ).editLockedForSampleData
+})
 
 const identities = computed(() => {
   const integrationsFiltered =

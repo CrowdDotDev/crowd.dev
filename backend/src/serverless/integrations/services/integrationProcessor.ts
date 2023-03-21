@@ -28,6 +28,7 @@ import { RedditIntegrationService } from './integrations/redditIntegrationServic
 import { TwitterReachIntegrationService } from './integrations/twitterReachIntegrationService'
 import { SlackIntegrationService } from './integrations/slackIntegrationService'
 import { GithubIntegrationService } from './integrations/githubIntegrationService'
+import { StackOverlflowIntegrationService } from './integrations/stackOverflowIntegrationService'
 import { LoggingBase } from '../../../services/loggingBase'
 import { API_CONFIG } from '../../../config'
 import EmailSender from '../../../services/emailSender'
@@ -42,6 +43,7 @@ import { IRepositoryOptions } from '../../../database/repositories/IRepositoryOp
 import IncomingWebhookRepository from '../../../database/repositories/incomingWebhookRepository'
 import { WebhookError, WebhookState } from '../../../types/webhooks'
 import { NodeWorkerProcessWebhookMessage } from '../../../types/mq/nodeWorkerProcessWebhookMessage'
+import SampleDataService from '../../../services/sampleDataService'
 import { SlackAlertTypes, sendSlackAlert } from '../../../utils/slackAlerts'
 
 const MAX_STREAM_RETRIES = 5
@@ -67,6 +69,7 @@ export class IntegrationProcessor extends LoggingBase {
       new TwitterReachIntegrationService(),
       new SlackIntegrationService(),
       new GithubIntegrationService(),
+      new StackOverlflowIntegrationService(),
     ]
 
     // add premium integrations
@@ -345,6 +348,11 @@ export class IntegrationProcessor extends LoggingBase {
         { settings: integration.settings },
         userContext,
       )
+    }
+
+    // delete sample data on onboarding
+    if (req.onboarding) {
+      await new SampleDataService(userContext).deleteSampleData()
     }
 
     const failedStreams = []

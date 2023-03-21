@@ -1,6 +1,7 @@
 import authAxios from '@/shared/axios/auth-axios'
 import AuthCurrentTenant from '@/modules/auth/auth-current-tenant'
-import buildApiFilter from '@/shared/filter/helpers/build-api-payload'
+import buildApiPayload from '@/shared/filter/helpers/build-api-payload'
+import { DEFAULT_MEMBER_FILTERS } from '@/modules/member/store/constants'
 
 export class MemberService {
   static async update(id, data) {
@@ -77,7 +78,10 @@ export class MemberService {
     buildFilter = true
   ) {
     const body = {
-      filter: buildFilter ? buildApiFilter(filter) : filter,
+      filter: buildApiPayload({
+        customFilters: filter,
+        buildFilter
+      }),
       orderBy,
       limit,
       offset
@@ -94,44 +98,57 @@ export class MemberService {
   }
 
   static async find(id) {
-    const tenantId = AuthCurrentTenant.get()
+    const sampleTenant =
+      AuthCurrentTenant.getSampleTenantData()
+    const tenantId =
+      sampleTenant?.id || AuthCurrentTenant.get()
 
     const response = await authAxios.get(
-      `/tenant/${tenantId}/member/${id}`
+      `/tenant/${tenantId}/member/${id}`,
+      {
+        headers: {
+          Authorization: sampleTenant?.token
+        }
+      }
     )
 
     return response.data
   }
 
   static async list(
-    filter,
+    customFilters,
     orderBy,
     limit,
     offset,
-    buildFilter = true
+    buildFilter = true,
+    countOnly = false
   ) {
     const body = {
-      filter:
-        (buildFilter ? buildApiFilter(filter) : filter) ||
-        {},
+      filter: buildApiPayload({
+        customFilters,
+        defaultFilters: DEFAULT_MEMBER_FILTERS,
+        buildFilter
+      }),
       orderBy,
       limit,
-      offset
+      offset,
+      countOnly
     }
 
-    // Remove members marked as organizations from all responses
-    body.filter.and = [
-      {
-        isOrganization: { not: true }
-      },
-      { ...body.filter }
-    ]
-
-    const tenantId = AuthCurrentTenant.get()
+    const sampleTenant =
+      AuthCurrentTenant.getSampleTenantData()
+    const tenantId =
+      sampleTenant?.id || AuthCurrentTenant.get()
 
     const response = await authAxios.post(
       `/tenant/${tenantId}/member/query`,
-      body
+      body,
+      {
+        headers: {
+          'x-crowd-api-version': '1',
+          Authorization: sampleTenant?.token
+        }
+      }
     )
 
     return response.data
@@ -165,12 +182,18 @@ export class MemberService {
       limit
     }
 
-    const tenantId = AuthCurrentTenant.get()
+    const sampleTenant =
+      AuthCurrentTenant.getSampleTenantData()
+    const tenantId =
+      sampleTenant?.id || AuthCurrentTenant.get()
 
     const response = await authAxios.get(
       `/tenant/${tenantId}/member/active`,
       {
-        params
+        params,
+        headers: {
+          Authorization: sampleTenant?.token
+        }
       }
     )
 
@@ -222,7 +245,10 @@ export class MemberService {
   }
 
   static async fetchMergeSuggestions(limit, offset) {
-    const tenantId = AuthCurrentTenant.get()
+    const sampleTenant =
+      AuthCurrentTenant.getSampleTenantData()
+    const tenantId =
+      sampleTenant?.id || AuthCurrentTenant.get()
 
     const params = {
       limit,
@@ -232,7 +258,10 @@ export class MemberService {
     const response = await authAxios.get(
       `/tenant/${tenantId}/membersToMerge`,
       {
-        params
+        params,
+        headers: {
+          Authorization: sampleTenant?.token
+        }
       }
     )
 
@@ -240,20 +269,36 @@ export class MemberService {
   }
 
   static async getCustomAttribute(id) {
-    const tenantId = AuthCurrentTenant.get()
+    const sampleTenant =
+      AuthCurrentTenant.getSampleTenantData()
+    const tenantId =
+      sampleTenant?.id || AuthCurrentTenant.get()
 
     const response = await authAxios.get(
-      `/tenant/${tenantId}/settings/members/attributes/${id}`
+      `/tenant/${tenantId}/settings/members/attributes/${id}`,
+      {
+        headers: {
+          Authorization: sampleTenant?.token
+        }
+      }
     )
 
     return response.data
   }
 
   static async fetchCustomAttributes() {
-    const tenantId = AuthCurrentTenant.get()
+    const sampleTenant =
+      AuthCurrentTenant.getSampleTenantData()
+    const tenantId =
+      sampleTenant?.id || AuthCurrentTenant.get()
 
     const response = await authAxios.get(
-      `/tenant/${tenantId}/settings/members/attributes`
+      `/tenant/${tenantId}/settings/members/attributes`,
+      {
+        headers: {
+          Authorization: sampleTenant?.token
+        }
+      }
     )
 
     return response.data

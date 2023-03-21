@@ -45,7 +45,13 @@
         v-model:operator="model.operator"
         :default-operator="filter.defaultOperator"
         :is-expanded="filter.expanded"
-      />
+      >
+        <template
+          v-for="(_, name) in $slots"
+          #[name]="slotData"
+          ><slot :name="name" v-bind="slotData"
+        /></template>
+      </component>
       <div
         class="border-t border-gray-200 flex items-center justify-between -mx-2 px-4 pt-3 pb-1"
       >
@@ -259,7 +265,11 @@ const clickOutsideListener = (event) => {
       event
         .composedPath()
         .some(
-          (o) => o.className?.includes('el-popper') || false
+          (o) =>
+            (o.className &&
+              typeof o.className.includes !== 'undefined' &&
+              o.className?.includes('el-popper')) ||
+            false
         )
     )
   ) {

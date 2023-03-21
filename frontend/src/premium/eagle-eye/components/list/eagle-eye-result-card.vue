@@ -24,9 +24,10 @@
     <!-- Image -->
     <div
       v-if="result.post.thumbnail"
-      class="rounded max-h-30 w-full overflow-hidden flex mt-4"
+      class="rounded w-full overflow-hidden flex mt-4 aspect-video"
     >
       <app-image
+        class="w-full aspect-video"
         :src="result.post.thumbnail"
         :alt="result.post.title"
       />
@@ -371,7 +372,14 @@ const props = defineProps({
 })
 
 const store = useStore()
-const { currentUser } = mapGetters('auth')
+const { currentUser, currentTenant } = mapGetters('auth')
+
+const eagleEyeSettings = computed(
+  () =>
+    currentUser?.value.tenants.find(
+      (tu) => tu.tenantId === currentTenant?.value.id
+    ).settings.eagleEye
+)
 
 const generatedReply = ref('')
 const replyDialogVisible = ref(false)
@@ -434,9 +442,7 @@ const bookmarkTooltip = computed(() => {
 })
 
 const areGeneratedRepliesActivated = computed(() => {
-  return (
-    currentUser.value.eagleEyeSettings?.aiReplies || false
-  )
+  return eagleEyeSettings.value?.aiReplies || false
 })
 
 const isGenerateReplyAvailable = computed(() => {

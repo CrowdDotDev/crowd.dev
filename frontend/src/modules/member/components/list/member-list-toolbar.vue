@@ -20,6 +20,7 @@
         <el-dropdown-item
           v-if="selectedRows.length === 2"
           :command="{ action: 'mergeMembers' }"
+          :disabled="isEditLockedForSampleData"
         >
           <i class="ri-lg ri-group-line mr-1" />
           Merge members
@@ -27,14 +28,18 @@
         <el-tooltip
           placement="top"
           content="Selected members lack an associated GitHub profile or Email"
-          :disabled="elegibleEnrichmentMembersIds.length"
+          :disabled="
+            elegibleEnrichmentMembersIds.length ||
+            isEditLockedForSampleData
+          "
           popper-class="max-w-[260px]"
         >
           <span>
             <el-dropdown-item
               :command="{ action: 'enrichMember' }"
               :disabled="
-                !elegibleEnrichmentMembersIds.length
+                !elegibleEnrichmentMembersIds.length ||
+                isEditLockedForSampleData
               "
               class="mb-1"
             >
@@ -54,7 +59,9 @@
             action: 'markAsTeamMember',
             value: markAsTeamMemberOptions.value
           }"
-          :disabled="isReadOnly"
+          :disabled="
+            isReadOnly || isEditLockedForSampleData
+          "
         >
           <i
             class="ri-lg mr-1"
@@ -62,16 +69,26 @@
           />
           {{ markAsTeamMemberOptions.copy }}
         </el-dropdown-item>
-        <el-dropdown-item :command="{ action: 'editTags' }">
+        <el-dropdown-item
+          :command="{ action: 'editTags' }"
+          :disabled="isEditLockedForSampleData"
+        >
           <i class="ri-lg ri-price-tag-3-line mr-1" />
           Edit tags
         </el-dropdown-item>
         <hr class="border-gray-200 my-1 mx-2" />
         <el-dropdown-item
           :command="{ action: 'destroyAll' }"
-          :disabled="isReadOnly"
+          :disabled="
+            isReadOnly || isDeleteLockedForSampleData
+          "
         >
-          <div class="text-red-500 flex items-center">
+          <div
+            class="flex items-center"
+            :class="{
+              'text-red-500': !isDeleteLockedForSampleData
+            }"
+          >
             <i class="ri-lg ri-delete-bin-line mr-2" />
             <app-i18n code="common.destroy"></app-i18n>
           </div>
@@ -128,6 +145,18 @@ export default {
           this.currentUser
         ).edit === false
       )
+    },
+    isEditLockedForSampleData() {
+      return new MemberPermissions(
+        this.currentTenant,
+        this.currentUser
+      ).editLockedForSampleData
+    },
+    isDeleteLockedForSampleData() {
+      return new MemberPermissions(
+        this.currentTenant,
+        this.currentUser
+      ).destroyLockedForSampleData
     },
     elegibleEnrichmentMembersIds() {
       return this.selectedRows

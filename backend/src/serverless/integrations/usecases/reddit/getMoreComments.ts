@@ -2,12 +2,12 @@ import axios, { AxiosRequestConfig } from 'axios'
 import { RedditMoreCommentsInput, RedditMoreCommentsResponse } from '../../types/redditTypes'
 import { Logger } from '../../../../utils/logging'
 import { PlatformType } from '../../../../types/integrationEnums'
-import getToken from '../pizzly/getToken'
+import getToken from '../nango/getToken'
 
 /**
  * Expand a list of comment IDs into a comment tree.
  * This is needed because sometimes the API cuts the comment tree, and it returns a list of comment IDs to expand.
- * @param input It needs the Pizzly ID, the postId where the comments belong, and the IDs of the comments to expand.
+ * @param input It needs the Nango ID, the postId where the comments belong, and the IDs of the comments to expand.
  * @param logger A logger instance for structured logging
  * @returns Redit API's response to expand a list of comment IDs
  */
@@ -22,8 +22,8 @@ async function getMoreComments(
     // eslint-disable-next-line no-promise-executor-return
     await new Promise((resolve) => setTimeout(resolve, 1500))
 
-    // Gett an access token from Pizzly
-    const accessToken = await getToken(input.pizzlyId, PlatformType.REDDIT, logger)
+    // Gett an access token from Nango
+    const accessToken = await getToken(input.nangoId, PlatformType.REDDIT, logger)
 
     const config: AxiosRequestConfig<any> = {
       method: 'get',

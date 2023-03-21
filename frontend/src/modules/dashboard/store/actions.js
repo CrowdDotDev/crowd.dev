@@ -247,7 +247,7 @@ export default {
   },
   // Fetch members count
   async getMembersCount({ state }) {
-    return MemberService.list(null, '', 1, 0, false)
+    return MemberService.list(null, '', 1, 0, false, true)
       .then(({ count }) => {
         state.members.total = count
         return Promise.resolve(count)
@@ -282,11 +282,6 @@ export default {
                   period.granularity
                 )
                 .toISOString()
-            }
-          },
-          {
-            isTeamOrganization: {
-              not: true
             }
           },
           ...(platform !== 'all'
@@ -334,11 +329,6 @@ export default {
                 .toISOString()
             }
           },
-          {
-            isTeamOrganization: {
-              not: true
-            }
-          },
           ...(platform !== 'all'
             ? [
                 {
@@ -366,17 +356,7 @@ export default {
 
   // Fetch  organizations count
   async getOrganizationsCount({ state }) {
-    return OrganizationService.list(
-      {
-        isTeamOrganization: {
-          not: true
-        }
-      },
-      '',
-      1,
-      0,
-      false
-    )
+    return OrganizationService.list(null, '', 1, 0, false)
       .then(({ count }) => {
         state.organizations.total = count
         return Promise.resolve(count)

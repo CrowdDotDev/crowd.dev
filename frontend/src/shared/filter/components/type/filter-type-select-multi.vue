@@ -17,6 +17,7 @@
             :disabled="option.soon"
             @change="handleOptionClick(option)"
           />
+          <slot name="optionPrefix" :item="option"></slot>
           {{ option.label }}
           <span
             v-if="option.soon"

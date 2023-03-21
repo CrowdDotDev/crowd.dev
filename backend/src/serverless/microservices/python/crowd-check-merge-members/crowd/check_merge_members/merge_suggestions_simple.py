@@ -45,7 +45,6 @@ class CheckMergeDefault:
         """
         # Replacing  each Member with its respective id
         out = [(str(ms[0].id), str(ms[1].id)) for ms in arr_of_merge_members if ms[0].id != ms[1].id]
-        logger.info(f"Adding members to merge: {out}")
         if not self.test:
             MembersController(self.tenant_id, repository=self.repository).update_members_to_merge(out)
         return out

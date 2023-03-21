@@ -1,7 +1,7 @@
 import lodash from 'lodash'
 import moment from 'moment'
 import SequelizeRepository from '../database/repositories/sequelizeRepository'
-import UserRepository from '../database/repositories/userRepository'
+import TenantUserRepository from '../database/repositories/tenantUserRepository'
 import Error400 from '../errors/Error400'
 import track from '../segment/track'
 import {
@@ -142,7 +142,7 @@ export default class EagleEyeSettingsService extends LoggingBase {
 
         // if send time has passed for today, set it to next day
         if (now > moment(settings.time, 'HH:mm')) {
-          nextEmailAt = moment(settings.time, 'HH:mm').add(1, 'day').toISOString()
+          nextEmailAt = moment(nextEmailAt).add(1, 'day').toISOString()
         }
         break
       case EagleEyeEmailDigestFrequency.WEEKLY:
@@ -197,7 +197,7 @@ export default class EagleEyeSettingsService extends LoggingBase {
       ])
 
       // Update the user's EagleEye settings
-      const userOut = await UserRepository.updateEagleEyeSettings(
+      const tenantUserOut = await TenantUserRepository.updateEagleEyeSettings(
         this.options.currentUser.id,
         data,
         { ...this.options, transaction },
@@ -206,7 +206,7 @@ export default class EagleEyeSettingsService extends LoggingBase {
       await SequelizeRepository.commitTransaction(transaction)
 
       // Track the events in Segment
-      const settingsOut: EagleEyeSettings = userOut.eagleEyeSettings
+      const settingsOut: EagleEyeSettings = tenantUserOut.settings.eagleEye
 
       if (data.emailDigestActive) {
         track(
@@ -240,7 +240,7 @@ export default class EagleEyeSettingsService extends LoggingBase {
         )
       }
 
-      return userOut.eagleEyeSettings
+      return tenantUserOut.settings.eagleEye
     } catch (error) {
       await SequelizeRepository.rollbackTransaction(transaction)
 

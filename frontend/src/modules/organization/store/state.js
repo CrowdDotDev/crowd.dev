@@ -1,6 +1,5 @@
 import { INITIAL_PAGE_SIZE } from './constants'
 import {
-  INITIAL_VIEW_ALL_FILTER,
   INITIAL_VIEW_NEW_AND_ACTIVE_FILTER,
   INITIAL_VIEW_TEAM_ORGANIZATIONS_FILTER
 } from './constants'
@@ -13,10 +12,14 @@ export default () => {
         id: 'all',
         label: 'All organizations',
         columns: [],
-        initialFilter: INITIAL_VIEW_ALL_FILTER,
-        filter: JSON.parse(
-          JSON.stringify(INITIAL_VIEW_ALL_FILTER)
-        ),
+        filter: {
+          operator: 'and',
+          attributes: {}
+        },
+        initialFilter: {
+          operator: 'and',
+          attributes: {}
+        },
         pagination: {
           currentPage: 1,
           pageSize: INITIAL_PAGE_SIZE
@@ -55,10 +58,14 @@ export default () => {
       'most-members': {
         id: 'most-members',
         label: 'Most members',
-        initialFilter: INITIAL_VIEW_ALL_FILTER,
-        filter: JSON.parse(
-          JSON.stringify(INITIAL_VIEW_ALL_FILTER)
-        ),
+        filter: {
+          operator: 'and',
+          attributes: {}
+        },
+        initialFilter: {
+          operator: 'and',
+          attributes: {}
+        },
         pagination: {
           currentPage: 1,
           pageSize: INITIAL_PAGE_SIZE

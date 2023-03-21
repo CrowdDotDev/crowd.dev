@@ -25,6 +25,7 @@ import { LoggingBase } from './loggingBase'
 import { ExportableEntity } from '../serverless/microservices/nodejs/messageTypes'
 import { AttributeType } from '../database/attributes/types'
 import { IActiveMemberFilter } from '../database/repositories/types/memberTypes'
+import { IRepositoryOptions } from '../database/repositories/IRepositoryOptions'
 
 export default class MemberService extends LoggingBase {
   options: IServiceOptions
@@ -410,38 +411,55 @@ export default class MemberService extends LoggingBase {
    * @returns Success/Error message
    */
   async merge(originalId, toMergeId) {
-    const original = await MemberRepository.findById(originalId, this.options)
-    const toMerge = await MemberRepository.findById(toMergeId, this.options)
+    this.options.log.info({ originalId, toMergeId }, 'Merging members!')
 
-    if (original.id === toMerge.id) {
-      return {
-        status: 203,
-        mergedId: originalId,
+    let tx
+
+    try {
+      const original = await MemberRepository.findById(originalId, this.options)
+      const toMerge = await MemberRepository.findById(toMergeId, this.options)
+
+      if (original.id === toMerge.id) {
+        return {
+          status: 203,
+          mergedId: originalId,
+        }
       }
+
+      tx = await SequelizeRepository.createTransaction(this.options)
+      const repoOptions: IRepositoryOptions = { ...this.options }
+      repoOptions.transaction = tx
+
+      // Get tags and activities as array of ids (findById returns them as models)
+      original.tags = original.tags.map((i) => i.get({ plain: true }).id)
+      original.activities = original.activities.map((i) => i.get({ plain: true }))
+
+      toMerge.tags = toMerge.tags.map((i) => i.get({ plain: true }).id)
+      toMerge.activities = toMerge.activities.map((i) => i.get({ plain: true }))
+
+      // Performs a merge and returns the fields that were changed so we can update
+      const toUpdate = MemberService.membersMerge(original, toMerge)
+      if (toUpdate.activities) {
+        toUpdate.activities = toUpdate.activities.map((a) => a.id)
+      }
+      // Update original member
+      const txService = new MemberService(repoOptions as IServiceOptions)
+      await txService.update(originalId, toUpdate)
+
+      // Remove toMerge from original member
+      await MemberRepository.removeToMerge(originalId, toMergeId, repoOptions)
+
+      // Delete toMerge member
+      await MemberRepository.destroy(toMergeId, repoOptions, true)
+
+      await SequelizeRepository.commitTransaction(tx)
+      this.options.log.info({ originalId, toMergeId }, 'Members merged!')
+      return { status: 200, mergedId: originalId }
+    } catch (err) {
+      this.options.log.error(err, 'Error while merging members!')
+      await SequelizeRepository.rollbackTransaction(tx)
+      throw err
     }
-
-    // Get tags and activities as array of ids (findById returns them as models)
-    original.tags = original.tags.map((i) => i.get({ plain: true }).id)
-    original.activities = original.activities.map((i) => i.get({ plain: true }))
-
-    toMerge.tags = toMerge.tags.map((i) => i.get({ plain: true }).id)
-    toMerge.activities = toMerge.activities.map((i) => i.get({ plain: true }))
-
-    // Performs a merge and returns the fields that were changed so we can update
-    const toUpdate = MemberService.membersMerge(original, toMerge)
-    if (toUpdate.activities) {
-      toUpdate.activities = toUpdate.activities.map((a) => a.id)
-    }
-    // Update original member
-    await this.update(originalId, toUpdate)
-
-    // Remove toMerge from original member
-    await MemberRepository.removeToMerge(originalId, toMergeId, this.options)
-
-    // Delete toMerge member
-    await MemberRepository.destroy(toMergeId, this.options, true)
-
-    return { status: 200, mergedId: originalId }
   }
 
   /**
@@ -668,6 +686,24 @@ export default class MemberService extends LoggingBase {
     ).rows
     return MemberRepository.findAndCountAll(
       { ...args, attributesSettings: memberAttributeSettings },
+      this.options,
+    )
+  }
+
+  async queryV2(data) {
+    const memberAttributeSettings = (
+      await MemberAttributeSettingsRepository.findAndCountAll({}, this.options)
+    ).rows
+
+    return MemberRepository.findAndCountAllv2(
+      {
+        limit: data.limit,
+        offset: data.offset,
+        filter: data.filter,
+        orderBy: data.orderBy || undefined,
+        countOnly: data.countOnly || false,
+        attributesSettings: memberAttributeSettings,
+      },
       this.options,
     )
   }

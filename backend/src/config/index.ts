@@ -21,10 +21,11 @@ import {
   ClearbitConfiguration,
   DevtoConfiguration,
   RedisConfiguration,
-  PizzlyConfiguration,
+  NangoConfiguration,
   EnrichmentConfiguration,
   EagleEyeConfiguration,
   UnleashConfiguration,
+  StackExchangeConfiguration,
   SlackAlertingConfiguration,
 } from './configTypes'
 
@@ -133,6 +134,8 @@ export const PLANS_CONFIG: PlansConfiguration = KUBE_MODE
       stripePriceEnterprise: process.env.PLAN_STRIPE_PRICES_ENTERPRISE,
       stripeSecretKey: process.env.PLAN_STRIPE_SECRET_KEY,
       stripWebhookSigningSecret: process.env.PLAN_STRIPE_WEBHOOK_SIGNING_SECRET,
+      stripeEagleEyePlanProductId: process.env.PLAN_STRIPE_EAGLE_EYE_PLAN_PRODUCT_ID,
+      stripeGrowthPlanProductId: process.env.PLAN_STRIPE_GROWTH_PLAN_PRODUCT_ID,
     }
 
 export const DEVTO_CONFIG: DevtoConfiguration = KUBE_MODE
@@ -210,12 +213,7 @@ export const CUBEJS_CONFIG: CubeJSConfiguration = KUBE_MODE
       jwtExpiry: process.env.CUBE_JS_JWT_EXPIRY,
     }
 
-export const PIZZLY_CONFIG: PizzlyConfiguration = KUBE_MODE
-  ? config.get<PizzlyConfiguration>('pizzly')
-  : {
-      url: process.env.PIZZLY_URL,
-      secretKey: process.env.PIZZLY_SECRET_KEY,
-    }
+export const NANGO_CONFIG: NangoConfiguration = config.get<NangoConfiguration>('nango')
 
 export const ENRICHMENT_CONFIG: EnrichmentConfiguration = KUBE_MODE
   ? config.get<EnrichmentConfiguration>('enrichment')
@@ -232,6 +230,11 @@ export const EAGLE_EYE_CONFIG: EagleEyeConfiguration = KUBE_MODE
     }
 
 export const UNLEASH_CONFIG: UnleashConfiguration = config.get<UnleashConfiguration>('unleash')
+
+export const STACKEXCHANGE_CONFIG: StackExchangeConfiguration =
+  config.get<StackExchangeConfiguration>('stackexchange') ?? {
+    key: process.env.STACKEXCHANGE_KEY,
+  }
 
 export const SLACK_ALERTING_CONFIG: SlackAlertingConfiguration = KUBE_MODE
   ? config.get<SlackAlertingConfiguration>('slackAlerting')

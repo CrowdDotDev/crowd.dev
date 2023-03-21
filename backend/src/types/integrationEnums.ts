@@ -17,6 +17,8 @@ export enum PlatformType {
   STACKOVERFLOW = 'stackoverflow',
 }
 
+export const ALL_PLATFORM_TYPES = Object.keys(PlatformType) as PlatformType[]
+
 export enum IntegrationType {
   DEVTO = 'devto',
   SLACK = 'slack',
@@ -28,4 +30,5 @@ export enum IntegrationType {
   HACKER_NEWS = 'hackernews',
   LINKEDIN = 'linkedin',
   CROWD = 'crowd',
+  STACKOVERFLOW = 'stackoverflow',
 }

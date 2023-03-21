@@ -57,10 +57,10 @@ export class LinkedinIntegrationService extends IntegrationServiceBase {
       throw new Error('No organization selected!')
     }
 
-    const pizzlyId = `${context.integration.tenantId}-${PlatformType.LINKEDIN}`
+    const nangoId = `${context.integration.tenantId}-${PlatformType.LINKEDIN}`
 
     if (organization.profilePictureUrl === undefined) {
-      const org = await getOrganization(pizzlyId, organization.id.toString(), context.logger)
+      const org = await getOrganization(nangoId, organization.id.toString(), context.logger)
       context.integration.settings.organizations = [
         ...context.integration.settings.organizations.filter((o) => o.id !== organization.id),
         {
@@ -71,7 +71,7 @@ export class LinkedinIntegrationService extends IntegrationServiceBase {
     }
 
     const posts = await getAllOrganizationPosts(
-      pizzlyId,
+      nangoId,
       organization.organizationUrn,
       context.logger,
     )
@@ -103,7 +103,7 @@ export class LinkedinIntegrationService extends IntegrationServiceBase {
     context.pipelineData = {
       membersCache,
       posts,
-      pizzlyId,
+      nangoId,
     }
   }
 
@@ -149,7 +149,7 @@ export class LinkedinIntegrationService extends IntegrationServiceBase {
     context: IStepContext,
   ): Promise<IProcessStreamResults> {
     const comments = await getAllCommentComments(
-      context.pipelineData.pizzlyId,
+      context.pipelineData.nangoId,
       stream.metadata.urnId,
       context.logger,
     )
@@ -227,7 +227,7 @@ export class LinkedinIntegrationService extends IntegrationServiceBase {
     }
 
     const reactions = await getAllPostReactions(
-      context.pipelineData.pizzlyId,
+      context.pipelineData.nangoId,
       stream.metadata.urnId,
       context.logger,
       lastReactionTs,
@@ -310,7 +310,7 @@ export class LinkedinIntegrationService extends IntegrationServiceBase {
     }
 
     const comments = await getAllPostComments(
-      context.pipelineData.pizzlyId,
+      context.pipelineData.nangoId,
       stream.metadata.urnId,
       context.logger,
       lastCommentTs,
@@ -410,7 +410,7 @@ export class LinkedinIntegrationService extends IntegrationServiceBase {
       const userString = await membersCache.getOrAdd(
         userId,
         async () => {
-          const user = await getMember(context.pipelineData.pizzlyId, userId, context.logger)
+          const user = await getMember(context.pipelineData.nangoId, userId, context.logger)
           return JSON.stringify(user)
         },
         24 * 60 * 60,
@@ -444,7 +444,7 @@ export class LinkedinIntegrationService extends IntegrationServiceBase {
         userId,
         async () => {
           const organization = await getOrganization(
-            context.pipelineData.pizzlyId,
+            context.pipelineData.nangoId,
             userId,
             context.logger,
           )

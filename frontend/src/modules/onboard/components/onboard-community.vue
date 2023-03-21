@@ -40,6 +40,7 @@
       </el-form-item>
 
       <el-form-item
+        id="tenantPlatformsItem"
         ref="tenantPlatforms"
         :prop="fields.tenantPlatforms.name"
         class="mb-2"
@@ -85,6 +86,10 @@
                 "
                 class="filter-checkbox flex h-3 transition-0"
               />
+              <img
+                :src="integration.logo"
+                class="w-4 h-4 mr-2"
+              />
               <span class="text-black font-normal">{{
                 integration.label
               }}</span>
@@ -105,7 +110,7 @@
       </el-form-item>
       <el-form-item
         :prop="fields.tenantSize.name"
-        class="mb-3"
+        class="mb-0"
       >
         <label>
           <span
@@ -124,8 +129,7 @@
         <el-radio-group
           id="tenantSize"
           v-model="model[fields.tenantSize.name]"
-          class="radio-chips"
-          size="large"
+          class="radio-chips is-medium"
         >
           <el-radio-button
             v-for="size in tenantCommunitySize"
@@ -147,53 +151,64 @@
           </div>
         </template>
       </el-form-item>
-    </el-form>
-    <div
-      class="-mx-8 -mb-8 px-8 py-6 bg-gray-50 flex justify-end"
-    >
-      <el-button
-        id="submit"
-        class="btn btn--lg btn--primary"
-        :loading="loading || isButtonLoading"
-        :disabled="!isFormValid"
-        @click="doSubmit()"
+      <el-form-item
+        :prop="fields.reasonForUsingCrowd.name"
+        class="mb-12"
       >
-        <slot name="submitButton">
-          <span class="pr-3">Next step</span>
+        <label>
           <span
-            class="ri-arrow-right-s-line text-xl"
-          ></span>
-        </slot>
-      </el-button>
-    </div>
+            class="block text-xs font-semibold leading-5 mb-1"
+          >
+            {{ fields.reasonForUsingCrowd.label }}
+          </span>
+        </label>
+        <el-select
+          v-model="model[fields.reasonForUsingCrowd.name]"
+          placeholder="Select option"
+        >
+          <el-option
+            v-for="(label, value) of achievements"
+            :key="value"
+            :value="value"
+            :label="label"
+          />
+        </el-select>
+      </el-form-item>
+    </el-form>
+    <el-button
+      id="submit"
+      class="btn btn--lg btn--primary w-full"
+      :loading="loading"
+      :disabled="!isFormValid"
+      @click="doSubmit()"
+    >
+      Get started
+    </el-button>
   </div>
 </template>
 
 <script>
 import { TenantModel } from '@/modules/tenant/tenant-model'
 import { FormSchema } from '@/shared/form/form-schema'
-import { tenantSubdomain } from '@/modules/tenant/tenant-subdomain'
 import { mapActions, mapGetters } from 'vuex'
-import config from '@/config'
 import onboardPlatforms from '@/jsons/onboard-platforms.json'
 import tenantCommunitySize from '@/jsons/tenant-community-size.json'
 import { onSelectMouseLeave } from '@/utils/select'
+import { TenantService } from '@/modules/tenant/tenant-service'
+import Message from '@/shared/message/message'
+import achievements from '@/modules/onboard/config/achievements.config.js'
 
 const { fields } = TenantModel
 const formSchema = new FormSchema([
   fields.tenantName,
   fields.tenantPlatforms,
-  fields.tenantSize
+  fields.tenantSize,
+  fields.reasonForUsingCrowd
 ])
 export default {
   name: 'AppOnboardCommunity',
   props: {
     isNew: {
-      type: Boolean,
-      required: false,
-      default: false
-    },
-    isButtonLoading: {
       type: Boolean,
       required: false,
       default: false
@@ -205,6 +220,7 @@ export default {
       fields,
       tenantCommunitySize,
       onboardPlatforms,
+      achievements,
       rules: formSchema.rules(),
       model: {
         [fields.tenantPlatforms.name]: []
@@ -215,14 +231,6 @@ export default {
   },
   computed: {
     ...mapGetters('auth', ['currentTenant']),
-    frontendUrlHost() {
-      return `.${config.frontendUrl.host}`
-    },
-
-    tenantSubdomain() {
-      return tenantSubdomain
-    },
-
     isFormValid() {
       return (
         formSchema.isValidSync(this.model) &&
@@ -230,21 +238,9 @@ export default {
       )
     }
   },
-  watch: {
-    currentTenant: {
-      deep: true,
-      immediate: true,
-      handler(tenant) {
-        if (tenant && !this.isNew) {
-          this.model = tenant
-          this.selectedPlatforms =
-            tenant[fields.tenantPlatforms.name] || []
-        }
-      }
-    }
-  },
   methods: {
     ...mapActions('tenant', ['doCreate', 'doUpdate']),
+    ...mapActions('auth', ['doFinishOnboard']),
 
     platformEnabled(platform) {
       if (this.selectedPlatforms) {
@@ -253,7 +249,7 @@ export default {
       return false
     },
 
-    async doSubmit() {
+    doSubmit() {
       this.$refs.form
         .validate()
         .then(() => {
@@ -267,8 +263,29 @@ export default {
           return this.doCreate(this.model)
         })
         .then(() => {
+          return TenantService.populateSampleData(
+            this.currentTenant.id
+          )
+        })
+        .then(() => {
+          const onboardType =
+            localStorage.getItem('onboardType')
+          let route = '/'
+          if (onboardType === 'eagle-eye') {
+            route = '/eagle-eye'
+          }
+          return this.doFinishOnboard({ route: route })
+        })
+        .then(() => {
+          localStorage.removeItem('onboardType')
+        })
+        .catch(() => {
+          Message.error(
+            'There was an error creating community, please try again later'
+          )
+        })
+        .finally(() => {
           this.loading = false
-          this.$emit('saved')
         })
     },
 

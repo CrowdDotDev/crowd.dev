@@ -38,7 +38,6 @@ class MergeSuggestions:
 
         # Compute all members
         self.comparison = self.repository.find_all_usernames()
-        logger.info(f"Found {len(self.comparison)} members to compare")
 
         self.test = test
 
@@ -58,7 +57,6 @@ class MergeSuggestions:
             attempts += 1
 
         if not member_to_check:
-            logger.info("Member to check not found")
             return
 
         # Check if tenant has only 1 integration

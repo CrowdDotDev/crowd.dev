@@ -1,5 +1,9 @@
 <template>
-  <app-drawer v-model="drawerModel" title="Email Digest">
+  <app-drawer
+    v-model="drawerModel"
+    title="Email Digest"
+    size="600px"
+  >
     <template #beforeTitle>
       <i
         class="ri-mail-open-line text-xl h-6 text-gray-900 flex items-center mr-3"
@@ -256,7 +260,15 @@ const props = defineProps({
   }
 })
 
-const { currentUser } = mapGetters('auth')
+const { currentUser, currentTenant } = mapGetters('auth')
+
+const eagleEyeSettings = computed(
+  () =>
+    currentUser?.value.tenants.find(
+      (tu) => tu.tenantId === currentTenant?.value.id
+    ).settings.eagleEye
+)
+
 const { doUpdateSettings } = mapActions('eagleEye')
 const { loadingUpdateSettings } = mapState('eagleEye')
 
@@ -300,21 +312,17 @@ const results = computed(() => {
       return feed.value
     }
   }
-  return currentUser?.value.eagleEyeSettings.feed
+  return eagleEyeSettings.value.feed
 })
 
 const displayFeedWarning = computed(() => {
   if (form.updateResults) {
     return false
   }
-  if (
-    currentUser.value.eagleEyeSettings.feed &&
-    feed.value
-  ) {
+  if (eagleEyeSettings.value.feed && feed.value) {
     return (
-      JSON.stringify(
-        currentUser.value.eagleEyeSettings.feed
-      ) !== JSON.stringify(feed.value)
+      JSON.stringify(eagleEyeSettings.value.feed) !==
+      JSON.stringify(feed.value)
     )
   }
   return false
@@ -330,30 +338,32 @@ watch(
 )
 
 const updateFeed = () => {
-  feed.value =
-    currentUser.value?.eagleEyeSettings.feed ?? null
+  feed.value = eagleEyeSettings.value.feed ?? null
 }
 
 const fillForm = (user) => {
-  const { eagleEyeSettings } = user
-  form.active = eagleEyeSettings.emailDigestActive || false
+  form.active =
+    eagleEyeSettings.value.emailDigestActive || false
   form.email =
-    eagleEyeSettings.emailDigest?.email || user.email
+    eagleEyeSettings.value.emailDigest?.email || user.email
   form.frequency =
-    eagleEyeSettings.emailDigest?.frequency || 'daily'
-  form.time = eagleEyeSettings.emailDigest?.time
+    eagleEyeSettings.value.emailDigest?.frequency || 'daily'
+  form.time = eagleEyeSettings.value.emailDigest?.time
     ? moment
-        .utc(eagleEyeSettings.emailDigest?.time, 'HH:mm')
+        .utc(
+          eagleEyeSettings.value.emailDigest?.time,
+          'HH:mm'
+        )
         .local()
         .format('HH:mm')
     : '09:00'
-  form.updateResults = !eagleEyeSettings.emailDigest
+  form.updateResults = !eagleEyeSettings.value.emailDigest
     ? true
-    : eagleEyeSettings.emailDigest?.matchFeedSettings
+    : eagleEyeSettings.value.emailDigest?.matchFeedSettings
   formSnapshot()
   feed.value =
-    eagleEyeSettings?.emailDigest?.feed ||
-    eagleEyeSettings?.feed ||
+    eagleEyeSettings.value?.emailDigest?.feed ||
+    eagleEyeSettings.value?.feed ||
     null
   elementSnapshot()
 }
@@ -371,7 +381,7 @@ const doSubmit = async () => {
     }
     doUpdateSettings({
       data: {
-        ...currentUser.value.eagleEyeSettings,
+        ...eagleEyeSettings.value,
         emailDigestActive: form.active,
         emailDigest: data
       },

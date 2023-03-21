@@ -133,7 +133,8 @@ const getIconClass = (platform) => {
     return 'btn--discord'
   } else if (
     platform === 'slack' ||
-    platform === 'linkedin'
+    platform === 'linkedin' ||
+    platform === 'stackoverflow'
   ) {
     return 'bg-white border border-gray-200'
   } else if (platform === 'crunchbase') {

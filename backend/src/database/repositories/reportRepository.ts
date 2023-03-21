@@ -20,7 +20,7 @@ class ReportRepository {
 
     const record = await options.database.report.create(
       {
-        ...lodash.pick(data, ['name', 'public', 'importHash', 'isTemplate']),
+        ...lodash.pick(data, ['name', 'public', 'importHash', 'isTemplate', 'viewedBy']),
 
         tenantId: tenant.id,
         createdById: currentUser.id,
@@ -61,7 +61,7 @@ class ReportRepository {
 
     record = await record.update(
       {
-        ...lodash.pick(data, ['name', 'public', 'importHash', 'isTemplate']),
+        ...lodash.pick(data, ['name', 'public', 'importHash', 'isTemplate', 'viewedBy']),
 
         updatedById: currentUser.id,
       },
@@ -70,9 +70,11 @@ class ReportRepository {
       },
     )
 
-    await record.setWidgets(data.widgets || [], {
-      transaction,
-    })
+    if (data.widgets) {
+      await record.setWidgets(data.widgets || [], {
+        transaction,
+      })
+    }
 
     await this._createAuditLog(AuditLogRepository.UPDATE, record, data, options)
 

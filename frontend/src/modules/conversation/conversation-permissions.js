@@ -33,5 +33,17 @@ export class ConversationPermissions {
     this.customize = permissionChecker.match(
       Permissions.values.conversationCustomize
     )
+    this.createLockedForSampleData =
+      permissionChecker.lockedForSampleData(
+        Permissions.values.conversationCreate
+      )
+    this.editLockedForSampleData =
+      permissionChecker.lockedForSampleData(
+        Permissions.values.conversationEdit
+      )
+    this.destroyLockedForSampleData =
+      permissionChecker.lockedForSampleData(
+        Permissions.values.conversationDestroy
+      )
   }
 }

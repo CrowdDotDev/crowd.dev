@@ -4,6 +4,7 @@
       <div class="font-medium text-black">Attributes</div>
       <el-button
         class="btn btn-link btn-link--primary"
+        :disabled="isEditLockedForSampleData"
         @click="attributesDrawer = true"
         ><i class="ri-pencil-line" /><span
           >Edit</span
@@ -91,6 +92,7 @@ import { formatDate } from '@/utils/date'
 
 import AppMemberManageAttributesDrawer from '../../member-manage-attributes-drawer'
 import AppMemberCustomAttributesArrayRenderer from './_aside-custom-attributes-array-renderer'
+import { MemberPermissions } from '@/modules/member/member-permissions'
 
 const props = defineProps({
   member: {
@@ -102,6 +104,13 @@ const props = defineProps({
 const store = useStore()
 
 const attributesDrawer = ref(false)
+
+const isEditLockedForSampleData = computed(() => {
+  return new MemberPermissions(
+    store.getters['auth/currentTenant'],
+    store.getters['auth/currentUser']
+  ).editLockedForSampleData
+})
 
 const computedCustomAttributes = computed(() => {
   return Object.values(store.state.member.customAttributes)

@@ -59,6 +59,18 @@ export class PermissionChecker {
     return !this.planMatchOneOf(permission.allowedPlans)
   }
 
+  lockedForSampleData(permission) {
+    if (!permission) {
+      return true
+    }
+
+    if (!this.currentTenant.hasSampleData) {
+      return false
+    }
+
+    return !permission.allowedSampleTenant
+  }
+
   rolesMatchOneOf(arg) {
     if (!this.currentUserRolesIds) {
       return false

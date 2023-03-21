@@ -21,7 +21,7 @@ export default {
     loadingFetch: (state) => state.loading,
 
     loadingFind: (state) => (id) => {
-      state.byId[id].loading
+      state.byId[id]?.loading
     },
 
     loaded: (state) => state.loaded,
@@ -129,10 +129,15 @@ export default {
     },
 
     FIND_STARTED(state, id) {
-      state.byId[id].loading = true
+      if (state.byId[id]) {
+        state.byId[id].loading = true
+      }
     },
 
     FIND_SUCCESS(state, record) {
+      if (!record) {
+        return
+      }
       record.loading = false
       state.byId[record.id] = record
       if (state.allIds.indexOf(record.id) === -1) {
@@ -141,7 +146,9 @@ export default {
     },
 
     FIND_ERROR(state, id) {
-      state.byId[id].loading = false
+      if (state.byId[id]) {
+        state.byId[id].loading = false
+      }
     },
 
     CREATE_STARTED() {},
@@ -440,6 +447,38 @@ export default {
           {
             title:
               'Hacker News integration created successfully'
+          }
+        )
+
+        router.push('/integrations')
+      } catch (error) {
+        Errors.handle(error)
+        commit('CREATE_ERROR')
+      }
+    },
+
+    async doStackOverflowOnboard(
+      { commit },
+      { tags, keywords }
+    ) {
+      // Function to connect to StackOverflow.
+
+      try {
+        commit('CREATE_STARTED')
+
+        const integration =
+          await IntegrationService.stackOverflowOnboard(
+            tags,
+            keywords
+          )
+
+        commit('CREATE_SUCCESS', integration)
+
+        Message.success(
+          'The first activities will show up in a couple of seconds. <br /> <br /> This process might take a few minutes to finish, depending on the amount of data.',
+          {
+            title:
+              'Stack Overflow integration created successfully'
           }
         )
 

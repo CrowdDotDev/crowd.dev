@@ -94,6 +94,8 @@ export interface PlansConfiguration {
   stripePriceEnterprise: string
   stripeSecretKey: string
   stripWebhookSigningSecret: string
+  stripeEagleEyePlanProductId: string
+  stripeGrowthPlanProductId: string
 }
 
 export interface DevtoConfiguration {
@@ -169,7 +171,7 @@ export interface CubeJSConfiguration {
   jwtExpiry: string
 }
 
-export interface PizzlyConfiguration {
+export interface NangoConfiguration {
   url: string
   secretKey: string
 }
@@ -197,6 +199,10 @@ export interface UnleashConfiguration {
     password: string
     database: string
   }
+}
+
+export interface StackExchangeConfiguration {
+  key: string
 }
 
 export interface SlackAlertingConfiguration {

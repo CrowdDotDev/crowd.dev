@@ -14,6 +14,7 @@
         v-if="editable && showEdit"
         class="text-gray-300 hover:text-gray-600 btn btn-link text-2xs"
         :class="member.tags.length > 0 ? 'ml-2' : ''"
+        :disabled="isEditLockedForSampleData"
         @click.prevent.stop="editing = true"
         >Edit tags</el-button
       >
@@ -30,10 +31,11 @@
 </template>
 
 <script>
-import { mapActions } from 'vuex'
+import { mapActions, mapGetters } from 'vuex'
 import { FormSchema } from '@/shared/form/form-schema'
 import { MemberModel } from '@/modules/member/member-model'
 import AppTagPopover from '@/modules/tag/components/tag-popover'
+import { MemberPermissions } from '@/modules/member/member-permissions'
 
 const { fields } = MemberModel
 const formSchema = new FormSchema([
@@ -71,6 +73,10 @@ export default {
     }
   },
   computed: {
+    ...mapGetters({
+      currentTenant: 'auth/currentTenant',
+      currentUser: 'auth/currentUser'
+    }),
     computedTags() {
       const max = this.long ? 8 : 3
       return this.member.tags.length <= max || this.long
@@ -82,6 +88,12 @@ export default {
     },
     fields() {
       return fields
+    },
+    isEditLockedForSampleData() {
+      return new MemberPermissions(
+        this.currentTenant,
+        this.currentUser
+      ).editLockedForSampleData
     }
   },
   watch: {
