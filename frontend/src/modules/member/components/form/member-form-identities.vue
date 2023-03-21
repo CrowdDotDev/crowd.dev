@@ -69,30 +69,18 @@
           </el-form-item>
         </div>
       </div>
-
-      <div class="flex items-center justify-between mt-24">
+      <div class="flex items-start justify-between mt-24">
         <div class="flex items-center flex-1">
           <app-platform platform="email" />
           <div class="font-medium text-sm ml-3">
             Email address
           </div>
         </div>
-        <el-form-item
-          prop="email"
+        <app-string-array-input
+          v-model="computedModelEmails"
           class="flex-1"
-          :rules="[
-            {
-              type: 'email',
-              message: 'Please input correct email address',
-              trigger: ['blur', 'change']
-            }
-          ]"
-        >
-          <el-input
-            v-model="computedModelEmail"
-            placeholder="john.doe@gmail.com"
-          />
-        </el-form-item>
+          add-row-label="Add e-email address"
+        />
       </div>
     </div>
   </div>
@@ -133,12 +121,14 @@ const model = computed({
   }
 })
 
-const computedModelEmail = computed({
+const computedModelEmails = computed({
   get() {
-    return model.value.email
+    return model.value.emails?.length > 0
+      ? model.value.emails
+      : ['']
   },
-  set(newEmail) {
-    model.value.email = newEmail
+  set(emails) {
+    model.value.emails = emails
   }
 })
 
@@ -150,8 +140,8 @@ watch(
 
     if (platforms.length) {
       model.value.platform = platforms[0]
-    } else if (newValue.email) {
-      model.value.platform = 'email'
+    } else if (newValue.emails) {
+      model.value.platform = 'emails'
     } else {
       model.value.platform = null
     }
