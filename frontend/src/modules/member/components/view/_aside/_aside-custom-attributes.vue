@@ -121,6 +121,7 @@ const computedCustomAttributes = computed(() => {
           'bio',
           'url',
           'location',
+          'emails',
           'jobTitle',
           'workExperiences', // we render them in _aside-work-experience
           'certifications', // we render them in _aside-work-certifications
