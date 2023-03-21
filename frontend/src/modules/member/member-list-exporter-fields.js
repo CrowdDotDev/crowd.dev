@@ -5,7 +5,7 @@ const { fields } = MemberModel
 export default [
   fields.id,
   fields.username,
-  fields.email,
+  fields.emails,
   fields.createdAt,
   fields.updatedAt
 ]

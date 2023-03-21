@@ -150,7 +150,7 @@ const formSchema = computed(
   () =>
     new FormSchema([
       fields.displayName,
-      fields.email,
+      fields.emails,
       fields.joinedAt,
       fields.tags,
       fields.username,
@@ -280,7 +280,7 @@ function getInitialModel(record) {
     JSON.stringify(
       formSchema.value.initialValues({
         displayName: record ? record.displayName : '',
-        email: record ? record.email : '',
+        emails: record ? record.emails : '',
         joinedAt: record ? record.joinedAt : '',
         attributes: record
           ? filteredAttributes(record.attributes)
@@ -337,8 +337,8 @@ async function onSubmit() {
     formModel.value.displayName && {
       displayName: formModel.value.displayName
     },
-    formModel.value.email && {
-      email: formModel.value.email
+    formModel.value.emails && {
+      emails: formModel.value.emails
     },
     formModel.value.joinedAt && {
       joinedAt: formModel.value.joinedAt

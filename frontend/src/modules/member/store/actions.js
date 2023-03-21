@@ -258,7 +258,7 @@ export default {
       fields.username,
       fields.info,
       fields.tags,
-      fields.email
+      fields.emails
     ])
 
     try {
