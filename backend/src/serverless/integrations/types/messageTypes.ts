@@ -50,7 +50,7 @@ export type Member = {
   username: any
   displayName?: string
   attributes?: any
-  email?: string[]
+  emails?: string[]
   organizations?: [any]
   bio?: string
   reach?: number | any

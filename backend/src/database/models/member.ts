@@ -29,6 +29,7 @@ export default (sequelize) => {
       },
       emails: {
         type: DataTypes.ARRAY(DataTypes.TEXT),
+        defaultValue: [],
       },
       score: {
         type: DataTypes.INTEGER,

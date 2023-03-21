@@ -280,7 +280,7 @@ export default class MemberEnrichmentService extends LoggingBase {
 
     if (enrichmentData.emails.length > 0) {
       const emailSet = new Set<string>(enrichmentData.emails)
-      member.email.forEach(email => emailSet.add(email))
+      member.email.forEach((email) => emailSet.add(email))
       member.email = Array.from(emailSet)
     }
     member.contributions = enrichmentData.oss_contributions?.map(
