@@ -1441,7 +1441,7 @@ where m."deletedAt" is null
     const where = { [Op.and]: whereAnd }
 
     const records = await options.database.member.findAll({
-      attributes: ['id', 'displayName', 'attributes', 'email'],
+      attributes: ['id', 'displayName', 'attributes', 'emails'],
       where,
       limit: limit ? Number(limit) : undefined,
       order: [['displayName', 'ASC']],
@@ -1450,7 +1450,7 @@ where m."deletedAt" is null
     return records.map((record) => ({
       id: record.id,
       label: record.displayName,
-      email: record.email,
+      email: record.emails.length > 0 ? record.emails[0] : null,
       avatar: record.attributes?.avatarUrl?.default || null,
     }))
   }

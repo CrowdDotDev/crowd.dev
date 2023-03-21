@@ -44,7 +44,7 @@ export default class MemberEnrichmentService extends LoggingBase {
     this.attributes = undefined
 
     // This code defines an object, attributeSettings, which maps specific member attributes to their corresponding fields within a data source, as well as their attribute type and any additional information needed for processing the attribute.
-    // For example, the AVATAR_URL attribute maps to the profile_pic_url field in the data source and has a default value of true. The EMAILS attribute maps to the emails field in the data source, has a type of AttributeType.MULTI_SELECT, and a function that filters out emails with "noreply.github" in them.
+    // For example, the AVATAR_URL attribute maps to the profile_pic_url field in the data source and has a default value of true.
     // The object is used to define the fields, types and any additional information needed for processing the member attributes.
     this.attributeSettings = {
       [MemberAttributeName.AVATAR_URL]: {
@@ -61,12 +61,6 @@ export default class MemberEnrichmentService extends LoggingBase {
       [MemberEnrichmentAttributeName.SENIORITY_LEVEL]: {
         fields: ['seniority_level'],
         type: AttributeType.STRING,
-      },
-      [MemberEnrichmentAttributeName.EMAILS]: {
-        fields: ['emails'],
-        type: AttributeType.MULTI_SELECT,
-        fn: (emails: string[]) =>
-          lodash.filter(emails, (email) => !email.includes('noreply.github')),
       },
       [MemberEnrichmentAttributeName.COUNTRY]: {
         fields: ['country'],
@@ -225,7 +219,7 @@ export default class MemberEnrichmentService extends LoggingBase {
     const member = await memberService.findById(memberId, false, false)
 
     // If the member's GitHub handle or email address is not available, throw an error
-    if (!(member.username[PlatformType.GITHUB] || member.email)) {
+    if (!member.username[PlatformType.GITHUB] && member.emails.length === 0) {
       throw new Error400(this.options.language, 'enrichment.errors.noGithubHandleOrEmail')
     }
 
@@ -235,10 +229,10 @@ export default class MemberEnrichmentService extends LoggingBase {
     if (member.username[PlatformType.GITHUB]) {
       enrichedFrom = 'github'
       enrichmentData = await this.getEnrichmentByGithubHandle(member.username[PlatformType.GITHUB])
-    } else if (member.email) {
+    } else if (member.emails.length > 0) {
       enrichedFrom = 'email'
       // If the member has an email address, use it to make a request to the Enrichment API
-      enrichmentData = await this.getEnrichmentByEmail(member.email)
+      enrichmentData = await this.getEnrichmentByEmail(member.emails[0])
     }
 
     if (enrichmentData) {
@@ -279,7 +273,9 @@ export default class MemberEnrichmentService extends LoggingBase {
     member.enrichedBy = Array.from(enrichedBy)
 
     if (enrichmentData.emails.length > 0) {
-      const emailSet = new Set<string>(enrichmentData.emails)
+      const emailSet = new Set<string>(
+        enrichmentData.emails.filter((email) => !email.includes('noreply.github')),
+      )
       member.emails.forEach((email) => emailSet.add(email))
       member.emails = Array.from(emailSet)
     }

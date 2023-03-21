@@ -128,7 +128,7 @@ const fields = {
   ),
   // This field is just for filtering/searching
   search: new SearchField('search', label('search'), {
-    fields: ['displayName', 'email']
+    fields: ['displayName', 'emails']
   })
 }
 

@@ -244,7 +244,8 @@ export default {
     },
     isEnrichmentDisabled() {
       return (
-        !this.member.username?.github && !this.member.email
+        !this.member.username?.github &&
+        !this.member.emails?.length
       )
     },
     isEditLockedForSampleData() {
