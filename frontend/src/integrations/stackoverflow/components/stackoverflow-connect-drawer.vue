@@ -271,10 +271,20 @@ const keywordsInputValid = computed(() => {
   )
 })
 
+const tagsInputUntouched = computed(() => {
+  return (
+    model.value.length === 1 &&
+    model.value[0].value == '' &&
+    model.value[0].touched == false
+  )
+})
+
+// checking if both tags and keywords are: both valid or one valid and the other empty
 const connectEnabled = computed(() => {
   return (
-    (!tagsInputInvalid.value && keywordsInputValid) ||
-    (model.value.length === 0 && keywordsInputValid) ||
+    (!tagsInputInvalid.value && keywordsInputValid.value) ||
+    (tagsInputUntouched.value &&
+      keywordsInputValid.value) ||
     (!tagsInputInvalid.value &&
       modelKeywords.value.length === 0)
   )
