@@ -7,7 +7,7 @@ async function refreshSampleDataWorker(): Promise<void> {
   if (API_CONFIG.edition === 'crowd-hosted') {
     const tenantId = SAMPLE_DATA_CONFIG.tenantId
     const userContext = await getUserContext(SAMPLE_DATA_CONFIG.tenantId)
-    const updateDays = 9 // Every day we need to refresh
+    const updateDays = 1 // Every day we need to refresh
 
     // These are all the tables that have columns that need to be updated
     const tables = [
