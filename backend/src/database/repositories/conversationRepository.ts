@@ -502,8 +502,11 @@ class ConversationRepository {
               rec.lastReplies = []
             }
 
-            if (rec.conversationStarter){
-              rec.conversationStarter.display = ActivityDisplayService.getDisplayOptions(rec.conversationStarter, SettingsRepository.getActivityTypes(options))
+            if (rec.conversationStarter) {
+              rec.conversationStarter.display = ActivityDisplayService.getDisplayOptions(
+                rec.conversationStarter,
+                SettingsRepository.getActivityTypes(options),
+              )
             }
           } else {
             rec[relationship] = (await record[`get${snakeCaseNames(relationship)}`]()).map((a) =>

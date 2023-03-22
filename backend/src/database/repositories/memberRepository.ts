@@ -883,8 +883,11 @@ where m."deletedAt" is null
       for (const row of results) {
         const r = row as any
         r.lastActivity = lastActivities.find((a) => (a as any).memberId === r.id)
-        if (r.lastActivity){
-          r.lastActivity.display = ActivityDisplayService.getDisplayOptions(r.lastActivity, SettingsRepository.getActivityTypes(options))
+        if (r.lastActivity) {
+          r.lastActivity.display = ActivityDisplayService.getDisplayOptions(
+            r.lastActivity,
+            SettingsRepository.getActivityTypes(options),
+          )
         }
       }
     }

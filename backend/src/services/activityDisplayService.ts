@@ -1,10 +1,13 @@
-
 import lodash from 'lodash'
-import { ActivityTypeDisplayProperties, ActivityTypeSettings, DiscordtoActivityType, UNKNOWN_ACTIVITY_TYPE_DISPLAY } from '../types/activityTypes'
+import {
+  ActivityTypeDisplayProperties,
+  ActivityTypeSettings,
+  DiscordtoActivityType,
+  UNKNOWN_ACTIVITY_TYPE_DISPLAY,
+} from '../types/activityTypes'
 import { PlatformType } from '../types/integrationEnums'
 import { IServiceOptions } from './IServiceOptions'
 import { LoggingBase } from './loggingBase'
-
 
 export default class ActivityDisplayService extends LoggingBase {
   options: IServiceOptions
@@ -117,5 +120,4 @@ export default class ActivityDisplayService extends LoggingBase {
 
     return this.interpolateVariables(displayOptions, activity)
   }
-
 }

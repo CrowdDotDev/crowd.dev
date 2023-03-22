@@ -11,9 +11,7 @@ import QueryParser from './filters/queryParser'
 import { QueryOutput } from './filters/queryTypes'
 import { AttributeData } from '../attributes/attribute'
 import MemberRepository from './memberRepository'
-import {
-  ActivityTypeSettings,
-} from '../../types/activityTypes'
+import { ActivityTypeSettings } from '../../types/activityTypes'
 import ActivityDisplayService from '../../services/activityDisplayService'
 
 const { Op } = Sequelize
