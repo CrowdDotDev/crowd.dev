@@ -453,11 +453,19 @@ describe('ConversationRepository tests', () => {
         },
         lastReplies: [
           {
-            ...SequelizeTestUtils.objectWithoutKey(activity2Created, ['parent', 'tasks']),
+            ...SequelizeTestUtils.objectWithoutKey(activity2Created, [
+              'parent',
+              'tasks',
+              'display',
+            ]),
             member: memberReturnedWithinConversations,
           },
           {
-            ...SequelizeTestUtils.objectWithoutKey(activity3Created, ['parent', 'tasks']),
+            ...SequelizeTestUtils.objectWithoutKey(activity3Created, [
+              'parent',
+              'tasks',
+              'display',
+            ]),
             member: memberReturnedWithinConversations,
           },
         ],
@@ -471,7 +479,11 @@ describe('ConversationRepository tests', () => {
         },
         lastReplies: [
           {
-            ...SequelizeTestUtils.objectWithoutKey(activity5Created, ['parent', 'tasks']),
+            ...SequelizeTestUtils.objectWithoutKey(activity5Created, [
+              'parent',
+              'tasks',
+              'display',
+            ]),
             member: memberReturnedWithinConversations,
           },
         ],
@@ -485,7 +497,11 @@ describe('ConversationRepository tests', () => {
         },
         lastReplies: [
           {
-            ...SequelizeTestUtils.objectWithoutKey(activity7Created, ['parent', 'tasks']),
+            ...SequelizeTestUtils.objectWithoutKey(activity7Created, [
+              'parent',
+              'tasks',
+              'display',
+            ]),
             member: memberReturnedWithinConversations,
           },
         ],

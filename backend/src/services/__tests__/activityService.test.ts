@@ -103,6 +103,11 @@ describe('ActivityService tests', () => {
         conversationId: null,
         sourceId: activity.sourceId,
         sourceParentId: null,
+        display: {
+          default: activityCreated.type,
+          short: activityCreated.type,
+          channel: '',
+        },
       }
 
       expect(activityCreated).toStrictEqual(expectedActivityCreated)
@@ -122,7 +127,7 @@ describe('ActivityService tests', () => {
         type: 'question',
         timestamp: '2020-05-27T15:13:30Z',
         member: memberCreated.id,
-        platform: 'stackoverflow',
+        platform: 'non-existing-platform',
         body: 'What is love?',
         isKeyAction: true,
         score: 1,
@@ -134,7 +139,7 @@ describe('ActivityService tests', () => {
       const activity2 = {
         type: 'answer',
         timestamp: '2020-05-28T15:13:30Z',
-        platform: 'stackoverflow',
+        platform: 'non-existing-platform',
         body: 'Baby dont hurt me',
         isKeyAction: true,
         member: memberCreated.id,
@@ -191,6 +196,11 @@ describe('ActivityService tests', () => {
         sourceParentId: activity1.sourceId,
         sourceId: activity2.sourceId,
         conversationId: conversationCreated.rows[0].id,
+        display: {
+          default: activity2.type,
+          short: activity2.type,
+          channel: '',
+        },
       }
 
       expect(activityCreated2).toStrictEqual(expectedActivityCreated)
@@ -212,7 +222,7 @@ describe('ActivityService tests', () => {
         member: memberCreated.id,
         body: 'What is love?',
         title: 'Song',
-        platform: 'stackoverflow',
+        platform: 'non-existing-platform',
         attributes: {
           nested_1: {
             attribute_1: '1',
@@ -233,7 +243,7 @@ describe('ActivityService tests', () => {
         type: 'question',
         timestamp: '2020-05-27T15:13:30Z',
         member: memberCreated.id,
-        platform: 'stackoverflow',
+        platform: 'non-existing-platform',
         body: 'Test',
         attributes: {
           nested_1: {
@@ -304,6 +314,11 @@ describe('ActivityService tests', () => {
         sourceParentId: null,
         sourceId: activity1.sourceId,
         conversationId: null,
+        display: {
+          default: activity2.type,
+          short: activity2.type,
+          channel: '',
+        },
       }
 
       expect(activityUpserted).toStrictEqual(expectedActivityCreated)
@@ -764,6 +779,7 @@ describe('ActivityService tests', () => {
       )
 
       delete activityWithMember.member
+      delete activityWithMember.display
 
       activityWithMember.createdAt = activityWithMember.createdAt.toISOString().split('T')[0]
       activityWithMember.updatedAt = activityWithMember.updatedAt.toISOString().split('T')[0]
@@ -887,6 +903,7 @@ describe('ActivityService tests', () => {
       // delete models before expect because we already have ids (memberId, parentId)
       delete activityWithMember2.member
       delete activityWithMember2.parent
+      delete activityWithMember2.display
 
       activityWithMember2.createdAt = activityWithMember2.createdAt.toISOString().split('T')[0]
       activityWithMember2.updatedAt = activityWithMember2.updatedAt.toISOString().split('T')[0]
@@ -1015,8 +1032,10 @@ describe('ActivityService tests', () => {
       // delete models before expect because we already have ids (memberId, parentId)
       delete activityWithMemberChild.member
       delete activityWithMemberChild.parent
+      delete activityWithMemberChild.display
       delete activityWithMemberParent.member
       delete activityWithMemberParent.parent
+      delete activityWithMemberParent.display
 
       activityWithMemberChild.createdAt = activityWithMemberChild.createdAt
         .toISOString()
@@ -1168,6 +1187,7 @@ describe('ActivityService tests', () => {
         ).createWithMember(data)
 
         delete activityWithMember.member
+        delete activityWithMember.display
 
         activityWithMember.createdAt = activityWithMember.createdAt.toISOString().split('T')[0]
         activityWithMember.updatedAt = activityWithMember.updatedAt.toISOString().split('T')[0]
@@ -1279,6 +1299,7 @@ describe('ActivityService tests', () => {
         ).createWithMember(data)
 
         delete activityWithMember.member
+        delete activityWithMember.display
 
         activityWithMember.createdAt = activityWithMember.createdAt.toISOString().split('T')[0]
         activityWithMember.updatedAt = activityWithMember.updatedAt.toISOString().split('T')[0]
@@ -1390,6 +1411,7 @@ describe('ActivityService tests', () => {
         ).createWithMember(data)
 
         delete activityWithMember.member
+        delete activityWithMember.display
 
         activityWithMember.createdAt = activityWithMember.createdAt.toISOString().split('T')[0]
         activityWithMember.updatedAt = activityWithMember.updatedAt.toISOString().split('T')[0]
@@ -1502,6 +1524,7 @@ describe('ActivityService tests', () => {
         ).createWithMember(data)
 
         delete activityWithMember.member
+        delete activityWithMember.display
 
         activityWithMember.createdAt = activityWithMember.createdAt.toISOString().split('T')[0]
         activityWithMember.updatedAt = activityWithMember.updatedAt.toISOString().split('T')[0]

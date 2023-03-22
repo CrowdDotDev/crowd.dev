@@ -17,6 +17,9 @@
     :class="inputClass"
     @change="onChange"
   >
+    <template v-for="(_, name) in $slots" #[name]="slotData"
+      ><slot :name="name" v-bind="slotData"
+    /></template>
     <el-option
       v-show="showCreateSuggestion"
       :label="currentQuery"
@@ -26,13 +29,14 @@
       <span class="prefix">{{ createPrefix }}</span>
       <span>{{ currentQuery }}</span>
     </el-option>
-    <Fragment
+    <template
       v-for="record in localOptions"
       :key="record.id"
     >
       <el-option
         v-if="record.id"
         :value="record"
+        :label="record.label"
         class="!px-5"
         @mouseleave="onSelectMouseLeave"
       >
@@ -42,7 +46,7 @@
           </span>
         </slot>
       </el-option>
-    </Fragment>
+    </template>
     <div
       v-if="!loading && localOptions.length === limit"
       class="px-5 text-gray-400 text-2xs w-full h-8 flex items-center"
@@ -69,8 +73,8 @@ export default {
 
   props: {
     modelValue: {
-      type: Array,
-      default: () => []
+      type: Object,
+      default: () => null
     },
     placeholder: {
       type: String,
