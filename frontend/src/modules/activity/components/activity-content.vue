@@ -158,7 +158,11 @@ export default {
   },
   methods: {
     contentRenderEmojis(content) {
-      return emoji.emojify(content, () => '⚪')
+      return emoji.emojify(
+        content,
+        () =>
+          '<abbr class=“no-underline” title=“Unable to detect emoji”>&#65533;</abbr>'
+      )
     }
   }
 }
