@@ -127,7 +127,7 @@ describe('ActivityService tests', () => {
         type: 'question',
         timestamp: '2020-05-27T15:13:30Z',
         member: memberCreated.id,
-        platform: 'stackoverflow',
+        platform: 'non-existing-platform',
         body: 'What is love?',
         isKeyAction: true,
         score: 1,
@@ -139,7 +139,7 @@ describe('ActivityService tests', () => {
       const activity2 = {
         type: 'answer',
         timestamp: '2020-05-28T15:13:30Z',
-        platform: 'stackoverflow',
+        platform: 'non-existing-platform',
         body: 'Baby dont hurt me',
         isKeyAction: true,
         member: memberCreated.id,
@@ -222,7 +222,7 @@ describe('ActivityService tests', () => {
         member: memberCreated.id,
         body: 'What is love?',
         title: 'Song',
-        platform: 'stackoverflow',
+        platform: 'non-existing-platform',
         attributes: {
           nested_1: {
             attribute_1: '1',
@@ -243,7 +243,7 @@ describe('ActivityService tests', () => {
         type: 'question',
         timestamp: '2020-05-27T15:13:30Z',
         member: memberCreated.id,
-        platform: 'stackoverflow',
+        platform: 'non-existing-platform',
         body: 'Test',
         attributes: {
           nested_1: {
