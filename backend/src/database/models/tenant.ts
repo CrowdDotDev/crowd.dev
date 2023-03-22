@@ -2,9 +2,6 @@ import Plans from '../../security/plans'
 
 const plans = Plans.values
 
-// TODO::Check planUserId field
-// TODO::Add new fields that come from project (latestMetrics, benchMarkReports)
-
 export default (sequelize, DataTypes) => {
   const tenant = sequelize.define(
     'tenant',

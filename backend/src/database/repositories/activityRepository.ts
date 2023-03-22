@@ -11,6 +11,8 @@ import QueryParser from './filters/queryParser'
 import { QueryOutput } from './filters/queryTypes'
 import { AttributeData } from '../attributes/attribute'
 import MemberRepository from './memberRepository'
+import { ActivityTypeSettings } from '../../types/activityTypes'
+import ActivityDisplayService from '../../services/activityDisplayService'
 
 const { Op } = Sequelize
 
@@ -686,6 +688,11 @@ class ActivityRepository {
     const transaction = SequelizeRepository.getTransaction(options)
 
     const output = record.get({ plain: true })
+
+    const activityTypes = options.currentTenant.settings[0].dataValues
+      .activityTypes as ActivityTypeSettings
+
+    output.display = ActivityDisplayService.getDisplayOptions(record, activityTypes)
 
     output.tasks = await record.getTasks({
       transaction,

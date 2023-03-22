@@ -9,6 +9,7 @@ import Error400 from '../../errors/Error400'
 import { isUserInTenant } from '../utils/userTenantUtils'
 import { IRepositoryOptions } from './IRepositoryOptions'
 import getCleanString from '../../utils/getCleanString'
+import SettingsRepository from './settingsRepository'
 
 const { Op } = Sequelize
 
@@ -252,6 +253,12 @@ class TenantRepository {
       include,
       transaction,
     })
+
+    if (record && record.settings && record.settings[0] && record.settings[0].dataValues) {
+      record.settings[0].dataValues.activityTypes = SettingsRepository.buildActivityTypes(
+        record.settings[0].dataValues,
+      )
+    }
 
     return record
   }
