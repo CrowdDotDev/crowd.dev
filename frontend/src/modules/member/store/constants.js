@@ -15,7 +15,7 @@ export const DEFAULT_MEMBER_FILTERS = [
   }
 ]
 
-export const ACTIVITY_COUNT_BIGGER_THAN_0_FILTER = {
+const ACTIVITY_COUNT_BIGGER_THAN_0_FILTER = {
   activityCount: {
     name: 'activityCount',
     label: 'Activity Count',

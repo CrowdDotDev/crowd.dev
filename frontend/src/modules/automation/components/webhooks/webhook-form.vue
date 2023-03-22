@@ -377,7 +377,7 @@ export default {
       try {
         await this.$refs.form.validate()
       } catch (error) {
-        console.log(error)
+        console.error(error)
         return
       }
 

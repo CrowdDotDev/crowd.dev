@@ -88,7 +88,7 @@ export default {
 </script>
 
 <script setup>
-import _ from 'lodash'
+import isEqual from 'lodash/isEqual'
 import { useStore } from 'vuex'
 import {
   defineProps,
@@ -152,7 +152,7 @@ const fetchMembers = async () => {
     ]
   }
 
-  if (!_.isEqual(filter, filterToApply)) {
+  if (!isEqual(filter, filterToApply)) {
     members.length = 0
     noMore.value = false
   }

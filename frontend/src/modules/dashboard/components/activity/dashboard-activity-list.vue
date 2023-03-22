@@ -1,5 +1,5 @@
 <template>
-  <div class="pt-3">
+  <div class="pt-3 px-6">
     <div v-if="activities.loading">
       <app-dashboard-activity-item
         v-for="el of new Array(4)"

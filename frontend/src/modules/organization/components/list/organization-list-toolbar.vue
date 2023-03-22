@@ -148,7 +148,7 @@ const handleDoDestroyAllWithConfirm = async () => {
       selectedRows.value.map((item) => item.id)
     )
   } catch (error) {
-    console.log(error)
+    console.error(error)
   }
 }
 
@@ -156,7 +156,7 @@ const handleDoExport = async () => {
   try {
     await doExport()
   } catch (error) {
-    console.log(error)
+    console.error(error)
   }
 }
 

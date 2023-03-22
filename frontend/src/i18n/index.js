@@ -1,12 +1,5 @@
 import _get from 'lodash/get'
-import moment from 'moment'
 import { setLocale as setYupLocale } from 'yup'
-import momentLocaleEs from 'moment/locale/es'
-import momentLocalePt from 'moment/locale/pt'
-
-import elementPlusEs from 'element-plus/lib/locale/lang/es'
-import elementPlusEn from 'element-plus/lib/locale/lang/en'
-import elementPlusPt from 'element-plus/lib/locale/lang/pt'
 
 import i18nEs from '@/i18n/es'
 import i18nEn from '@/i18n/en'
@@ -59,13 +52,7 @@ export function init() {
 function initEs() {
   const language = languages['es']
 
-  const momentLocale = momentLocaleEs
-
-  language.elementUI = elementPlusEs
-
   language.dictionary = i18nEs
-
-  moment.locale('es', momentLocale)
 
   if (language.dictionary.validation) {
     setYupLocale(language.dictionary.validation)
@@ -77,13 +64,7 @@ function initEs() {
 function initPt() {
   const language = languages['pt']
 
-  const momentLocale = momentLocalePt
-
-  language.elementUI = elementPlusPt
-
   language.dictionary = i18nPt
-
-  moment.locale('pt', momentLocale)
 
   if (language.dictionary.validation) {
     setYupLocale(language.dictionary.validation)
@@ -95,11 +76,7 @@ function initPt() {
 export function initEn() {
   const language = languages['en']
 
-  language.elementUI = elementPlusEn
-
   language.dictionary = i18nEn
-
-  moment.locale('en')
 
   if (language.dictionary.validation) {
     setYupLocale(language.dictionary.validation)

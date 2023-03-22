@@ -1,4 +1,4 @@
-import _ from 'lodash'
+import cloneDeep from 'lodash/cloneDeep'
 import { INITIAL_PAGE_SIZE } from './constants'
 
 export default () => {
@@ -167,7 +167,7 @@ export default () => {
       const { activeView, filter } = payload
       const { attributes, operator } = filter
       state.views[activeView.id].filter = {
-        attributes: _.cloneDeep(attributes) || {},
+        attributes: cloneDeep(attributes) || {},
         operator: operator || 'and'
       }
     },

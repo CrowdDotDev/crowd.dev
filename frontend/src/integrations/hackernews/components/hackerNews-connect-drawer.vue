@@ -199,7 +199,6 @@ export default {
             this.integration.settings.keywords.length
         )
       }
-      console.log(empty)
       return empty
     },
     isLastUrl() {

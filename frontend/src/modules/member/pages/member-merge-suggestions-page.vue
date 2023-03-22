@@ -282,7 +282,7 @@ async function handleMergeClick(members) {
 
     await onFetch()
   } catch (error) {
-    console.log(error)
+    console.error(error)
 
     Message.error('There was an error merging members')
   }

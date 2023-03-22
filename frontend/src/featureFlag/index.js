@@ -13,7 +13,7 @@ export const FEATURE_FLAGS = {
   csvExport: 'csv-export'
 }
 
-export class FeatureFlagService {
+class FeatureFlagService {
   constructor() {
     this.flags = FEATURE_FLAGS
 

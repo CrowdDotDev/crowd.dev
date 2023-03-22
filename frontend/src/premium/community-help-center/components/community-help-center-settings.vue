@@ -306,7 +306,7 @@ export default {
         if (error.response) {
           Message.error(error.response.data)
         }
-        console.log(error)
+        console.error(error)
         this.loading = false
       }
     },
