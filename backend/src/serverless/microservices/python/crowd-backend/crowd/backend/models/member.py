@@ -1,4 +1,4 @@
-from sqlalchemy import Column, String, DateTime, ForeignKey, Integer, Table
+from sqlalchemy import Column, String, DateTime, ForeignKey, Integer, Table, ARRAY
 from .base import Base
 from sqlalchemy.orm import relationship, validates
 from sqlalchemy.dialects.postgresql import JSONB, UUID
@@ -32,7 +32,7 @@ class Member(Base):
     username = Column(JSONB, nullable=False)
     displayName = Column(String, nullable=True)
     attributes = Column(JSONB, default={})
-    email = Column(String)
+    emails = Column(ARRAY(String))
     score = Column(Integer, default=-1)
     joinedAt = Column(DateTime, nullable=False)
     importHash = Column(String, nullable=True)

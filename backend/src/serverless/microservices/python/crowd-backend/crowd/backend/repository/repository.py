@@ -143,7 +143,7 @@ class Repository(object):
     def find_all_usernames(self):
         with self.engine.connect() as con:
             return con.execute(
-                f"""SELECT "id", "username", "displayName", "email" from "members" WHERE "tenantId" = '{self.tenant_id}'""").fetchall()
+                f"""SELECT "id", "username", "displayName", "emails" from "members" WHERE "tenantId" = '{self.tenant_id}'""").fetchall()
 
     def find_all(
         self, table, ignore_tenant: "bool" = False, query: "dict" = None, order: "dict" = None
