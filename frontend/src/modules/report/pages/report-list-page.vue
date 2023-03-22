@@ -114,7 +114,7 @@ export default {
 
       return this.templates.map((t) => {
         const rowTemplate = templateRows.find(
-          (r) => r.name === t.name
+          (r) => r.name === t.nameAsId
         )
         return {
           ...t,

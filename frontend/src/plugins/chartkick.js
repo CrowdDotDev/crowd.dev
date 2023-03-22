@@ -23,6 +23,7 @@ import {
 } from 'chart.js'
 import 'chartjs-adapter-moment'
 import { h } from 'vue'
+import annotationPlugin from 'chartjs-plugin-annotation'
 
 /**
  * This plugin is responsible for doing a couple of different things:
@@ -138,7 +139,8 @@ Chart.register(
   SubTitle,
   Filler,
   tooltipAnnotationLine,
-  verticalTodayLine
+  verticalTodayLine,
+  annotationPlugin
 )
 
 let createComponent = function (app, tagName, chartType) {

@@ -43,7 +43,7 @@
         class="flex gap-2 items-center"
       >
         <el-switch
-          class="switch-filter"
+          class="switch-filter !ml-0"
           :model-value="teamMembers"
           size="small"
           active-text="Include team members"

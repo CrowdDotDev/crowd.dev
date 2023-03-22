@@ -34,7 +34,7 @@ export const THREE_MONTHS_PERIOD_FILTER = {
   granularity: 'month'
 }
 
-const SIX_MONTHS_PERIOD_FILTER = {
+export const SIX_MONTHS_PERIOD_FILTER = {
   label: '6m',
   extendedLabel: '6 months',
   value: 6,
@@ -48,6 +48,13 @@ const ONE_YEAR_PERIOD_FILTER = {
   granularity: 'year'
 }
 
+export const ALL_TIME_PERIOD_FILTER = {
+  label: 'All time',
+  extendedLabel: 'All time',
+  value: null,
+  granularity: null
+}
+
 export const DASHBOARD_PERIOD_OPTIONS = [
   SEVEN_DAYS_PERIOD_FILTER,
   FOURTEEN_DAYS_PERIOD_FILTER,
@@ -59,6 +66,12 @@ export const WIDGET_PERIOD_OPTIONS = [
   THREE_MONTHS_PERIOD_FILTER,
   SIX_MONTHS_PERIOD_FILTER,
   ONE_YEAR_PERIOD_FILTER
+]
+
+export const MONTHLY_WIDGET_PERIOD_OPTIONS = [
+  SIX_MONTHS_PERIOD_FILTER,
+  ONE_YEAR_PERIOD_FILTER,
+  ALL_TIME_PERIOD_FILTER
 ]
 
 // Granularity
@@ -75,6 +88,11 @@ export const WEEKLY_GRANULARITY_FILTER = {
 export const MONTHLY_GRANULARITY_FILTER = {
   label: 'Monthly',
   value: 'month'
+}
+
+export const YEARLY_GRANULARITY_FILTER = {
+  label: 'Yearly',
+  value: 'year'
 }
 
 export const WIDGET_GRANULARITY_OPTIONS = [

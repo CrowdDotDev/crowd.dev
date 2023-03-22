@@ -257,7 +257,9 @@
 
   &--link {
     @apply bg-transparent border-0 p-0 rounded-none text-blue-500 shadow-none;
-    &:hover {
+    &:hover,
+    &:active,
+    &:focus {
       @apply bg-transparent text-blue-500 opacity-80;
     }
   }

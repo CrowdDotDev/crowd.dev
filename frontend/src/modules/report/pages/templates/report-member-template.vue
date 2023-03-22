@@ -28,10 +28,10 @@
 </template>
 
 <script setup>
-import AppWidgetActiveMembers from '@/modules/widget/components/v2/widget-active-members.vue'
-import AppWidgetTotalMembers from '@/modules/widget/components/v2/widget-total-members.vue'
-import AppWidgetActiveMembersArea from '@/modules/widget/components/v2/widget-active-members-area.vue'
-import AppWidgetActiveLeaderboardMembers from '@/modules/widget/components/v2/widget-active-leaderboard-members.vue'
+import AppWidgetActiveMembers from '@/modules/widget/components/v2/member/widget-active-members.vue'
+import AppWidgetTotalMembers from '@/modules/widget/components/v2/member/widget-total-members.vue'
+import AppWidgetActiveMembersArea from '@/modules/widget/components/v2/member/widget-active-members-area.vue'
+import AppWidgetActiveLeaderboardMembers from '@/modules/widget/components/v2/member/widget-active-leaderboard-members.vue'
 import {
   mapGetters,
   mapActions

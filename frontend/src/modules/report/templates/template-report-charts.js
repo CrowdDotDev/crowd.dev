@@ -87,6 +87,10 @@ const defaultChartOptions = (config) => ({
         position: 'bottom',
         align: 'center',
         onClick: (_click, legendItem, legend) => {
+          if (legendItem.preventClick) {
+            return
+          }
+
           const datasets = legend.legendItems.map(
             (dataset) => dataset.text
           )
@@ -108,7 +112,7 @@ const defaultChartOptions = (config) => ({
           generateLabels: (chart) => {
             let visibility = []
 
-            chart.data.datasets.forEach((_, i) => {
+            chart.data.datasets.forEach((d, i) => {
               if (chart.isDatasetVisible(i)) {
                 visibility.push(false)
               } else {
@@ -116,18 +120,21 @@ const defaultChartOptions = (config) => ({
               }
             })
 
-            return chart.data.datasets.map(
-              (dataset, index) => ({
+            // Show legends for datasets that do not have "showLegend" explicitly set to false
+            // Prevent to click on legends to show/hide datasets if dataset is hidden
+            return chart.data.datasets
+              .filter((d) => !(d.showLegend === false))
+              .map((dataset, index) => ({
                 text: dataset.label,
                 fillStyle: dataset.backgroundColor,
                 strokeStyle: dataset.borderColor,
                 lineDash: dataset.borderDash,
                 fontColor: '#6B7280',
-                pointStyle: 'line',
+                pointStyle: dataset.pointStyle || 'line',
                 hidden: visibility[index],
+                preventClick: dataset.hidden === true,
                 lineWidth: 2
-              })
-            )
+              }))
           }
         }
       }

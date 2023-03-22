@@ -221,3 +221,32 @@ export const TOTAL_MEMBERS_FILTER = ({
     and: filters
   }
 }
+
+// Update to correct query, when there's support in backend
+export const TOTAL_MONTHLY_ACTIVE_CONTRIBUTORS = ({
+  period,
+  granularity,
+  selectedHasTeamMembers
+}) => ({
+  measures: ['Members.count'],
+  timeDimensions: [
+    {
+      ...(period.value &&
+        period.granularity && {
+          dateRange: [
+            moment()
+              .utc()
+              .subtract(period.value, period.granularity)
+              .format('YYYY-MM-DD'),
+            moment().utc().format('YYYY-MM-DD')
+          ]
+        }),
+      dimension: 'Activities.date',
+      granularity: granularity.value
+    }
+  ],
+  filters: getCubeFilters({
+    platforms: [],
+    hasTeamMembers: selectedHasTeamMembers
+  })
+})

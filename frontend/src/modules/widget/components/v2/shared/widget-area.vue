@@ -50,6 +50,10 @@ const props = defineProps({
   isGridMinMax: {
     type: Boolean,
     default: false
+  },
+  idealRangeAnnotation: {
+    type: Object,
+    default: null
   }
 })
 
@@ -69,6 +73,15 @@ customChartOptions.library.plugins.tooltip.external = (
 
     emit('on-view-more-click', date)
   })
+
+// Add idealRange annotation if passed through props
+if (props.idealRangeAnnotation) {
+  customChartOptions.library.plugins.annotation = {
+    annotations: {
+      idealRange: props.idealRangeAnnotation
+    }
+  }
+}
 
 // Customize x ticks
 if (!customChartOptions.library.scales.x.ticks.callback) {
@@ -184,6 +197,21 @@ const series = (resultSet) => {
         }
       })
     })
+  }
+
+  // If idealRangeAnnotation is passed
+  // Search for hidden datasets to add to the available series
+  if (props.idealRangeAnnotation) {
+    const hiddenDatasets = props.datasets
+      .filter((d) => d.hidden)
+      .map((d) => ({
+        name: d.name,
+        ...{
+          dataset: d
+        }
+      }))
+
+    series.push(...hiddenDatasets)
   }
 
   return series

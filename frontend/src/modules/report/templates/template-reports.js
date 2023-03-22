@@ -1,5 +1,6 @@
 export const MEMBERS_REPORT = {
-  name: 'Members report',
+  nameAsId: 'Members report',
+  name: 'Members',
   description:
     'Get insights into total/active/returning members and a member leaderboard',
   icon: 'ri-contacts-line',
@@ -11,6 +12,7 @@ export const MEMBERS_REPORT = {
 }
 
 export const PRODUCT_COMMUNITY_FIT_REPORT = {
+  nameAsId: 'Product-community fit',
   name: 'Product-community fit',
   description:
     'Measure and benchmark product-community fit for your open-source project ',

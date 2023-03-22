@@ -26,7 +26,7 @@
           class="flex flex-grow items-center justify-between"
         >
           <h1 class="text-xl font-semibold">
-            {{ report.name }}
+            {{ currentTemplate.name }}
           </h1>
           <div class="flex items-center gap-9">
             <div
@@ -67,10 +67,20 @@
       <div class="w-full mt-8">
         <app-report-member-template
           v-if="
-            currentTemplate.name === MEMBERS_REPORT.name
+            currentTemplate.nameAsId ===
+            MEMBERS_REPORT.nameAsId
           "
           :filters="{
             platform,
+            teamMembers
+          }"
+        />
+        <app-report-product-community-fit-template
+          v-if="
+            currentTemplate.nameAsId ===
+            PRODUCT_COMMUNITY_FIT_REPORT.nameAsId
+          "
+          :filters="{
             teamMembers
           }"
         />
@@ -93,9 +103,11 @@ import {
   onBeforeUnmount
 } from 'vue'
 import AppReportMemberTemplate from './report-member-template.vue'
+import AppReportProductCommunityFitTemplate from './report-product-community-fit-template.vue'
 import AppReportShareButton from '@/modules/report/components/report-share-button.vue'
 import {
   MEMBERS_REPORT,
+  PRODUCT_COMMUNITY_FIT_REPORT,
   templates
 } from '@/modules/report/templates/template-reports'
 import AppReportTemplateFilters from '@/modules/report/components/templates/report-template-filters.vue'
@@ -136,7 +148,7 @@ const platform = ref(initialPlatformValue)
 const teamMembers = ref(false)
 
 const currentTemplate = computed(() =>
-  templates.find((t) => t.name === report.value.name)
+  templates.find((t) => t.nameAsId === report.value.name)
 )
 
 const { cubejsApi } = mapGetters('widget')

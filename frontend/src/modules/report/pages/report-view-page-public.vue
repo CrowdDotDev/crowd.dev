@@ -25,7 +25,11 @@
               {{ currentTenant.name }}
             </div>
             <h1 class="text-lg font-semibold">
-              {{ report.name }}
+              {{
+                report.isTemplate
+                  ? currentTemplate.name
+                  : report.name
+              }}
             </h1>
           </div>
 
@@ -71,11 +75,22 @@
         <div class="w-full mt-8">
           <app-report-member-template
             v-if="
-              currentTemplate.name === MEMBERS_REPORT.name
+              currentTemplate.nameAsId ===
+              MEMBERS_REPORT.nameAsId
             "
             :is-public-view="true"
             :filters="{
               platform,
+              teamMembers
+            }"
+          />
+          <app-report-product-community-fit-template
+            v-if="
+              currentTemplate.nameAsId ===
+              PRODUCT_COMMUNITY_FIT_REPORT.nameAsId
+            "
+            :is-public-view="true"
+            :filters="{
               teamMembers
             }"
           />
@@ -153,6 +168,7 @@ import AppReportTemplateFilters from '@/modules/report/components/templates/repo
 import ActivityPlatformField from '@/modules/activity/activity-platform-field'
 import {
   MEMBERS_REPORT,
+  PRODUCT_COMMUNITY_FIT_REPORT,
   templates
 } from '@/modules/report/templates/template-reports'
 
@@ -195,7 +211,8 @@ export default {
       teamMembers: false,
       isHeaderOnTop: false,
       templates,
-      MEMBERS_REPORT
+      MEMBERS_REPORT,
+      PRODUCT_COMMUNITY_FIT_REPORT
     }
   },
 
@@ -214,7 +231,7 @@ export default {
     },
     currentTemplate() {
       return this.templates.find(
-        (t) => t.name === this.report.name
+        (t) => t.nameAsId === this.report.name
       )
     }
   },
