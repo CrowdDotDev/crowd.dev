@@ -39,9 +39,7 @@ const activityMessage = computed(() => {
 
 <style lang="scss">
 .activity-message {
-  * {
-    @apply inline-block align-middle;
-  }
+  @apply text-xs leading-4;
 
   a,
   span {
@@ -54,6 +52,10 @@ const activityMessage = computed(() => {
     &:not(.notruncate) {
       @apply truncate max-w-2xs;
     }
+  }
+
+  &:not(span, a) {
+    @apply inline-block align-middle;
   }
 
   img {
