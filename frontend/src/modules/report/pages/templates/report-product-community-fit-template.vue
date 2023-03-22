@@ -48,7 +48,19 @@
     <template #content>
       <div class="px-6 pb-6">
         <div class="border-t border-gray-200">
-          TODO List
+          <div
+            v-for="integration in integrations"
+            :key="integration.platform"
+            class="border-b last:border-none"
+          >
+            <app-activity-type-list-item
+              v-for="(display, type) in contributions
+                ?.default[integration.platform]"
+              :key="type"
+              :platform="integration.platform"
+              :label="display.short"
+            />
+          </div>
         </div>
       </div>
     </template>
@@ -62,6 +74,9 @@ import {
 } from '@/shared/vuex/vuex.helpers'
 import { computed, onMounted, defineProps, ref } from 'vue'
 import AppWidgetMonthlyActiveContributors from '@/modules/widget/components/v2/product-community-fit/widget-monthly-active-contributors.vue'
+import { CrowdIntegrations } from '@/integrations/integrations-config'
+import { useStore } from 'vuex'
+import AppActivityTypeListItem from '@/modules/activity/components/type/activity-type-list-item.vue'
 
 defineProps({
   filters: {
@@ -74,7 +89,10 @@ defineProps({
   }
 })
 
+const store = useStore()
+const { currentTenant } = mapGetters('auth')
 const { cubejsApi, cubejsToken } = mapGetters('widget')
+const { getCubeToken } = mapActions('widget')
 
 const isContributionTypeModalOpen = ref(false)
 
@@ -82,7 +100,17 @@ const loadingCube = computed(
   () => cubejsToken.value === null
 )
 
-const { getCubeToken } = mapActions('widget')
+const contributions = computed(() => {
+  if (currentTenant.value.settings.length > 0) {
+    return currentTenant.value.settings[0].activityTypes
+  }
+
+  return {}
+})
+
+const integrations = computed(() => {
+  return CrowdIntegrations.mappedEnabledConfigs(store)
+})
 
 onMounted(async () => {
   if (cubejsApi.value === null) {
