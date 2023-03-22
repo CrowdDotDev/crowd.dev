@@ -76,7 +76,7 @@ watch(
   () => activeView.value,
   (newActiveView, oldActiveView) => {
     if (newActiveView.id !== oldActiveView.id) {
-      setModelValue('')
+      model.value = ''
     }
   }
 )
