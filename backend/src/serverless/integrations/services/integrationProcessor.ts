@@ -28,6 +28,7 @@ import { RedditIntegrationService } from './integrations/redditIntegrationServic
 import { TwitterReachIntegrationService } from './integrations/twitterReachIntegrationService'
 import { SlackIntegrationService } from './integrations/slackIntegrationService'
 import { GithubIntegrationService } from './integrations/githubIntegrationService'
+import { StackOverlflowIntegrationService } from './integrations/stackOverflowIntegrationService'
 import { LoggingBase } from '../../../services/loggingBase'
 import { API_CONFIG } from '../../../config'
 import EmailSender from '../../../services/emailSender'
@@ -68,6 +69,7 @@ export class IntegrationProcessor extends LoggingBase {
       new TwitterReachIntegrationService(),
       new SlackIntegrationService(),
       new GithubIntegrationService(),
+      new StackOverlflowIntegrationService(),
     ]
 
     // add premium integrations

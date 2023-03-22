@@ -356,7 +356,7 @@ function up_scaffold() {
 
 function post_up_scaffold() {
     migrate_local
-    bash pizzly-integrations.sh
+    bash nango-integrations.sh
     check_init_premium
 }
 

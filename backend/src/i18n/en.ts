@@ -149,8 +149,8 @@ const en = {
       templateReportsCreateNotAllowed: `Template reports can't be created.`,
       templateReportsUpdateNotAllowed: `Custom reports can't be updated to template reports.`,
     },
-    noPizzlyToken: {
-      message: 'No Pizzly token found!',
+    noNangoToken: {
+      message: 'No Nango token found!',
     },
     linkedin: {
       noOrganization: 'User does not belong to any organization!',

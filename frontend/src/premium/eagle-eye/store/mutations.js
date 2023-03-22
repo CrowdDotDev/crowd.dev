@@ -113,7 +113,6 @@ export default {
 
         if (deleteIndex !== -1) {
           feedPost.actions.splice(deleteIndex, 1)
-          console.log(feedPost.actions)
         }
       }
     }

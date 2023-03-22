@@ -31,4 +31,5 @@ export enum IntegrationType {
   HACKER_NEWS = 'hackernews',
   LINKEDIN = 'linkedin',
   CROWD = 'crowd',
+  STACKOVERFLOW = 'stackoverflow',
 }

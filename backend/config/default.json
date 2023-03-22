@@ -33,6 +33,7 @@
     "maxRetrospectInSeconds": 3600
   },
   "github": {},
+  "stackexchange": {},
   "enrichment": {},
   "eagleEye": {},
   "unleash": {
@@ -40,5 +41,8 @@
   },
   "slackAlerting": {
     "url": ""
+  },
+  "sampleData": {
+    "tenantId": ""
   }
 }

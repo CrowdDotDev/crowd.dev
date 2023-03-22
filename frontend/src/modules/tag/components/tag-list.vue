@@ -42,7 +42,7 @@ const formSchema = new FormSchema([
   fields.username,
   fields.info,
   fields.tags,
-  fields.email
+  fields.emails
 ])
 
 export default {

@@ -80,28 +80,9 @@
     />
 
     <div
-      v-if="
-        !!props.organization.emails?.length ||
-        !!props.organization.phoneNumbers?.length
-      "
+      v-if="!!props.organization.phoneNumbers?.length"
       class="flex items-center gap-2"
     >
-      <!-- Email -->
-      <app-platform
-        v-if="!!organization.emails?.length"
-        platform="email"
-        track-event-name="Click Organization Contact"
-        track-event-channel="Email"
-        :has-tooltip="true"
-        tooltip-label="Send e-mail"
-        :href="
-          organization.emails?.length
-            ? `mailto:${organization.emails[0]}`
-            : null
-        "
-        :as-link="!!organization.emails?.length"
-      />
-
       <!-- Phone numbers -->
       <app-platform
         v-if="!!organization.phoneNumbers?.length"
@@ -146,8 +127,7 @@ const hasSocialIdentities = computed(
 )
 const showDivider = computed(
   () =>
-    (!!props.organization.emails?.length ||
-      !!props.organization.phoneNumbers?.length) &&
+    !!props.organization.phoneNumbers?.length &&
     hasSocialIdentities.value
 )
 

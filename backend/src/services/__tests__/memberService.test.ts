@@ -43,7 +43,7 @@ describe('MemberService tests', () => {
 
       const member1 = {
         username: 'anil',
-        email: 'lala@l.com',
+        emails: ['lala@l.com'],
         score: 10,
         attributes: {
           [MemberAttributeName.IS_HIREABLE]: {
@@ -80,7 +80,7 @@ describe('MemberService tests', () => {
       const member1 = {
         username: 'anil',
         platform: PlatformType.GITHUB,
-        email: 'lala@l.com',
+        emails: ['lala@l.com'],
         score: 10,
         attributes: {
           [MemberAttributeName.IS_HIREABLE]: {
@@ -138,7 +138,7 @@ describe('MemberService tests', () => {
             default: attributes[MemberAttributeName.LOCATION][PlatformType.GITHUB],
           },
         },
-        email: member1.email,
+        emails: member1.emails,
         score: member1.score,
         importHash: null,
         createdAt: SequelizeTestUtils.getNowWithoutTime(),
@@ -169,7 +169,7 @@ describe('MemberService tests', () => {
       const member1 = {
         username: 'anil',
         platform: PlatformType.GITHUB,
-        email: 'lala@l.com',
+        emails: ['lala@l.com'],
         score: 10,
         attributes: {
           [MemberAttributeName.IS_HIREABLE]: {
@@ -246,7 +246,7 @@ describe('MemberService tests', () => {
             default: attributes[MemberAttributeName.LOCATION][PlatformType.GITHUB],
           },
         },
-        email: member1.email,
+        emails: member1.emails,
         score: member1.score,
         importHash: null,
         createdAt: SequelizeTestUtils.getNowWithoutTime(),
@@ -277,7 +277,7 @@ describe('MemberService tests', () => {
           [PlatformType.TWITTER]: 'anil_twitter',
         },
         platform: PlatformType.GITHUB,
-        email: 'lala@l.com',
+        emails: ['lala@l.com'],
         score: 10,
         attributes: {
           [MemberAttributeName.IS_HIREABLE]: {
@@ -333,7 +333,7 @@ describe('MemberService tests', () => {
             default: attributes[MemberAttributeName.LOCATION][PlatformType.GITHUB],
           },
         },
-        email: member1.email,
+        emails: member1.emails,
         score: member1.score,
         importHash: null,
         createdAt: SequelizeTestUtils.getNowWithoutTime(),
@@ -358,7 +358,7 @@ describe('MemberService tests', () => {
       const member1 = {
         username: 'anil',
         platform: PlatformType.GITHUB,
-        email: 'lala@l.com',
+        emails: ['lala@l.com'],
         score: 10,
         attributes: {},
         reach: 10,
@@ -382,7 +382,7 @@ describe('MemberService tests', () => {
         },
         displayName: username,
         attributes: {},
-        email: member1.email,
+        emails: member1.emails,
         lastEnriched: null,
         enrichedBy: [],
         contributions: null,
@@ -407,7 +407,7 @@ describe('MemberService tests', () => {
       const member1 = {
         username: 'anil',
         platform: PlatformType.GITHUB,
-        email: 'lala@l.com',
+        emails: ['lala@l.com'],
         score: 10,
         reach: { [PlatformType.GITHUB]: 10, [PlatformType.TWITTER]: 10 },
         bio: 'Computer Science',
@@ -433,7 +433,7 @@ describe('MemberService tests', () => {
         lastEnriched: null,
         enrichedBy: [],
         contributions: null,
-        email: member1.email,
+        emails: member1.emails,
         score: member1.score,
         importHash: null,
         createdAt: SequelizeTestUtils.getNowWithoutTime(),
@@ -455,7 +455,7 @@ describe('MemberService tests', () => {
       const member1 = {
         username: 'anil',
         platform: PlatformType.GITHUB,
-        email: 'lala@l.com',
+        emails: ['lala@l.com'],
         score: 10,
         reach: { [PlatformType.DISCORD]: 10, [PlatformType.TWITTER]: 10 },
         bio: 'Computer Science',
@@ -478,7 +478,7 @@ describe('MemberService tests', () => {
         },
         displayName: username,
         attributes: {},
-        email: member1.email,
+        emails: member1.emails,
         score: member1.score,
         lastEnriched: null,
         enrichedBy: [],
@@ -503,7 +503,7 @@ describe('MemberService tests', () => {
       const member1 = {
         username: 'anil',
         platform: PlatformType.GITHUB,
-        email: 'lala@l.com',
+        emails: ['lala@l.com'],
         score: 10,
         attributes: {},
         reach: 10,
@@ -560,7 +560,7 @@ describe('MemberService tests', () => {
       const member1 = {
         username: 'anil',
         platform: PlatformType.GITHUB,
-        email: 'lala@l.com',
+        emails: ['lala@l.com'],
         score: 10,
         attributes: {},
         reach: 10,
@@ -621,7 +621,7 @@ describe('MemberService tests', () => {
       const member1 = {
         username: 'anil',
         platform: PlatformType.GITHUB,
-        email: 'lala@l.com',
+        emails: ['lala@l.com'],
         score: 10,
         attributes: {},
         reach: 10,
@@ -681,7 +681,7 @@ describe('MemberService tests', () => {
       const member1 = {
         username: 'anil',
         platform: PlatformType.GITHUB,
-        email: 'lala@l.com',
+        emails: ['lala@l.com'],
         score: 10,
         attributes: {},
         reach: 10,
@@ -758,7 +758,7 @@ describe('MemberService tests', () => {
 
       const member1 = {
         username: 'anil',
-        email: 'lala@l.com',
+        emails: ['lala@l.com'],
         platform: PlatformType.GITHUB,
         score: 10,
         attributes: {
@@ -791,6 +791,7 @@ describe('MemberService tests', () => {
 
       const member2 = {
         username: 'anil',
+        emails: ['test@email.com', 'test2@email.com'],
         platform: PlatformType.GITHUB,
         location: 'Ankara',
       }
@@ -831,7 +832,7 @@ describe('MemberService tests', () => {
         lastEnriched: null,
         enrichedBy: [],
         contributions: null,
-        email: member1.email,
+        emails: ['lala@l.com', 'test@email.com', 'test2@email.com'],
         score: member1.score,
         importHash: null,
         createdAt: SequelizeTestUtils.getNowWithoutTime(),
@@ -857,7 +858,7 @@ describe('MemberService tests', () => {
 
       const member1 = {
         username: 'anil',
-        email: 'lala@l.com',
+        emails: ['lala@l.com'],
         platform: PlatformType.GITHUB,
         score: 10,
         attributes: {
@@ -939,7 +940,7 @@ describe('MemberService tests', () => {
         lastEnriched: null,
         enrichedBy: [],
         contributions: null,
-        email: member1.email,
+        emails: member1.emails,
         score: member1.score,
         importHash: null,
         createdAt: SequelizeTestUtils.getNowWithoutTime(),
@@ -964,7 +965,7 @@ describe('MemberService tests', () => {
 
       const member1 = {
         username: 'anil',
-        email: 'lala@l.com',
+        emails: ['lala@l.com'],
         platform: PlatformType.GITHUB,
         score: 10,
         attributes: {
@@ -1035,7 +1036,7 @@ describe('MemberService tests', () => {
             default: attributes[MemberAttributeName.LOCATION][PlatformType.GITHUB],
           },
         },
-        email: member1.email,
+        emails: member1.emails,
         lastEnriched: null,
         enrichedBy: [],
         contributions: null,
@@ -1062,7 +1063,7 @@ describe('MemberService tests', () => {
 
       const member1 = {
         username: 'anil',
-        email: 'lala@l.com',
+        emails: ['lala@l.com'],
         platform: PlatformType.GITHUB,
         score: 10,
         attributes: {
@@ -1114,7 +1115,7 @@ describe('MemberService tests', () => {
       const member1 = {
         username: 'anil',
         platform: PlatformType.TWITTER,
-        email: 'lala@l.com',
+        emails: ['lala@l.com'],
         score: 10,
         attributes: {
           [MemberAttributeName.IS_HIREABLE]: {
@@ -1211,7 +1212,7 @@ describe('MemberService tests', () => {
             default: attributes1[MemberAttributeName.LOCATION][PlatformType.GITHUB],
           },
         },
-        email: member1.email,
+        emails: member1.emails,
         lastEnriched: null,
         enrichedBy: [],
         contributions: null,
@@ -1275,7 +1276,7 @@ describe('MemberService tests', () => {
         createdById: mockIServiceOptions.currentUser.id,
         updatedById: mockIServiceOptions.currentUser.id,
         score: -1,
-        email: null,
+        emails: [],
         attributes: {},
       }
 
@@ -1329,7 +1330,7 @@ describe('MemberService tests', () => {
         createdById: mockIServiceOptions.currentUser.id,
         updatedById: mockIServiceOptions.currentUser.id,
         score: -1,
-        email: null,
+        emails: [],
         attributes: {},
       }
 
@@ -1384,7 +1385,7 @@ describe('MemberService tests', () => {
         createdById: mockIServiceOptions.currentUser.id,
         updatedById: mockIServiceOptions.currentUser.id,
         score: -1,
-        email: null,
+        emails: [],
         attributes: {},
       }
 
@@ -1439,7 +1440,7 @@ describe('MemberService tests', () => {
         createdById: mockIServiceOptions.currentUser.id,
         updatedById: mockIServiceOptions.currentUser.id,
         score: -1,
-        email: null,
+        emails: [],
         attributes: {},
       }
 
@@ -1480,6 +1481,7 @@ describe('MemberService tests', () => {
           [PlatformType.GITHUB]: 'anil',
         },
         displayName: 'Anil',
+        emails: ['anil+1@crowd.dev', 'anil+2@crowd.dev'],
         joinedAt: '2021-05-27T15:14:30Z',
         attributes: {},
         tags: [t1.id, t2.id],
@@ -1492,6 +1494,7 @@ describe('MemberService tests', () => {
         username: {
           [PlatformType.DISCORD]: 'anil',
         },
+        emails: ['anil+1@crowd.dev', 'anil+3@crowd.dev'],
         displayName: 'Anil',
         joinedAt: '2021-05-30T15:14:30Z',
         attributes: {
@@ -1683,7 +1686,7 @@ describe('MemberService tests', () => {
         },
         activeOn: [activityCreated.platform],
         activityTypes: [`${activityCreated.platform}:${activityCreated.type}`],
-        email: null,
+        emails: ['anil+1@crowd.dev', 'anil+2@crowd.dev', 'anil+3@crowd.dev'],
         score: -1,
         importHash: null,
         createdAt: returnedMember1.createdAt,
@@ -2519,7 +2522,7 @@ describe('MemberService tests', () => {
           [PlatformType.TWITTER]: 'anil',
         },
         platform: PlatformType.GITHUB,
-        email: 'lala@l.com',
+        emails: ['lala@l.com'],
         score: 10,
         attributes: {
           aDateAttribute: {
@@ -2569,7 +2572,7 @@ describe('MemberService tests', () => {
           [PlatformType.TWITTER]: 'michaelScott',
         },
         platform: PlatformType.GITHUB,
-        email: 'michael@mifflin.com',
+        emails: ['michael@mifflin.com'],
         score: 10,
         attributes: {
           aDateAttribute: {
@@ -2619,7 +2622,7 @@ describe('MemberService tests', () => {
           [PlatformType.TWITTER]: 'jimHalpert',
         },
         platform: PlatformType.GITHUB,
-        email: 'jim@mifflin.com',
+        emails: ['jim@mifflin.com'],
         score: 10,
         attributes: {
           aDateAttribute: {

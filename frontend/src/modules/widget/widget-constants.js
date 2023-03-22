@@ -34,14 +34,14 @@ export const THREE_MONTHS_PERIOD_FILTER = {
   granularity: 'month'
 }
 
-export const SIX_MONTHS_PERIOD_FILTER = {
+const SIX_MONTHS_PERIOD_FILTER = {
   label: '6m',
   extendedLabel: '6 months',
   value: 6,
   granularity: 'month'
 }
 
-export const ONE_YEAR_PERIOD_FILTER = {
+const ONE_YEAR_PERIOD_FILTER = {
   label: '1y',
   extendedLabel: '1 year',
   value: 1,

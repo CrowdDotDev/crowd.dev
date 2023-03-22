@@ -45,6 +45,10 @@ export default class MemberIdentitiesField extends StringField {
       {
         value: 'linkedin',
         label: 'LinkedIn'
+      },
+      {
+        value: 'stackoverflow',
+        label: 'Stack Overflow'
       }
     ]
   }

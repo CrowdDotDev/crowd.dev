@@ -1,7 +1,7 @@
 <template>
   <article
     v-if="loading || !conversation"
-    class="py-5 border-gray-200 -mx-6 px-6"
+    class="py-5 border-gray-200 px-6"
   >
     <div class="flex relative">
       <div>
@@ -26,7 +26,7 @@
   </article>
   <article
     v-else
-    class="py-6 border-gray-200 hover:bg-gray-50 -mx-6 px-6 cursor-pointer"
+    class="py-6 border-gray-200 hover:bg-gray-50 px-6 cursor-pointer"
     @click="openConversation()"
   >
     <div class="flex relative">

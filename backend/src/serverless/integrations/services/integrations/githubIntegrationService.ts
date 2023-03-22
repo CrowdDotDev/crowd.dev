@@ -1114,7 +1114,7 @@ export class GithubIntegrationService extends IntegrationServiceBase {
           [PlatformType.GITHUB]: memberFromApi.avatarUrl || '',
         },
       },
-      email,
+      emails: email ? [email] : [],
     }
 
     if (memberFromApi.websiteUrl) {

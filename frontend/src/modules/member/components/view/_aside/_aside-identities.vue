@@ -61,23 +61,32 @@
       </a>
     </div>
     <div
-      v-if="Object.keys(socialIdentities).length && email"
+      v-if="
+        Object.keys(socialIdentities).length &&
+        emails.length
+      "
       class="mt-2"
     >
       <el-divider class="border-t-gray-200"></el-divider>
-      <a
-        class="py-2 px-6 -mx-6 mt-4 flex justify-between items-center relative hover:bg-gray-50 transition-colors cursor-pointer"
-        :href="`mailto:${email}`"
-        target="_blank"
-      >
-        <div class="flex gap-3 items-center">
-          <app-platform platform="email" />
-          <span class="text-gray-900 text-xs">
-            {{ email }}</span
-          >
-        </div>
-        <i class="ri-external-link-line text-gray-300"></i>
-      </a>
+      <div class="mt-4">
+        <a
+          v-for="email of emails"
+          :key="email"
+          class="py-2 px-6 -mx-6 flex justify-between items-center relative hover:bg-gray-50 transition-colors cursor-pointer"
+          :href="`mailto:${email}`"
+          target="_blank"
+        >
+          <div class="flex gap-3 items-center">
+            <app-platform platform="email" />
+            <span class="text-gray-900 text-xs">
+              {{ email }}</span
+            >
+          </div>
+          <i
+            class="ri-external-link-line text-gray-300"
+          ></i>
+        </a>
+      </div>
     </div>
     <app-member-manage-identities-drawer
       v-model="identitiesDrawer"
@@ -103,13 +112,13 @@ const { currentTenant, currentUser } = mapGetters('auth')
 
 const identitiesDrawer = ref(false)
 
-const email = computed(() => {
-  return props.member.email
+const emails = computed(() => {
+  return props.member.emails
 })
 
 const socialIdentities = computed(() => {
   const identities = { ...props.member.username }
-  delete identities.email
+  delete identities.emails
 
   return identities
 })

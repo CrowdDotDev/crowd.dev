@@ -1,5 +1,5 @@
 import FileSaver from 'file-saver'
-import XLSX from 'xlsx'
+import Papa from 'papaparse'
 
 export const EXCEL_TYPE =
   'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
@@ -8,22 +8,12 @@ export const EXCEL_EXTENSION = '.csv'
 
 export class Excel {
   static exportAsExcelFile(json, header, fileName) {
-    let worksheet = XLSX.utils.json_to_sheet(json, {
-      header,
-      skipHeader: false
+    const csv = Papa.unparse({
+      data: json,
+      fields: header
     })
 
-    let workbook = {
-      Sheets: { data: worksheet },
-      SheetNames: ['data']
-    }
-
-    let excelBuffer = XLSX.write(workbook, {
-      bookType: 'csv',
-      type: 'array'
-    })
-
-    this.saveAsExcelFile(excelBuffer, fileName)
+    this.saveAsExcelFile(csv, fileName)
   }
 
   static saveAsExcelFile(buffer, fileName) {

@@ -300,7 +300,10 @@
                 </template>
               </el-table-column>
 
-              <el-table-column label="Email" width="240">
+              <el-table-column
+                label="Emails"
+                :width="emailsColumnWidth"
+              >
                 <template #default="scope">
                   <router-link
                     :to="{
@@ -309,10 +312,14 @@
                     }"
                     class="block"
                   >
-                    <div class="text-sm cursor-auto">
+                    <div
+                      v-if="scope.row.emails.length"
+                      class="text-sm cursor-auto flex flex-wrap gap-1"
+                    >
                       <el-tooltip
-                        v-if="scope.row.email"
-                        :disabled="!scope.row.email"
+                        v-for="email of scope.row.emails"
+                        :key="email"
+                        :disabled="!email"
                         popper-class="custom-identity-tooltip"
                         placement="top"
                       >
@@ -320,30 +327,30 @@
                           ><span
                             >Send email
                             <i
-                              v-if="scope.row.email"
+                              v-if="email"
                               class="ri-external-link-line text-gray-400"
                             ></i></span
                         ></template>
                         <div @click.prevent>
                           <a
                             target="_blank"
-                            class="text-gray-500 hover:!text-brand-500"
-                            :href="`mailto:${scope.row.email}`"
+                            class="badge--interactive"
+                            :href="`mailto:${email}`"
                             @click.stop="trackEmailClick"
-                            >{{ scope.row.email }}</a
+                            >{{ email }}</a
                           >
                         </div>
                       </el-tooltip>
-                      <span v-else class="text-gray-500"
-                        >-</span
-                      >
                     </div>
+                    <span v-else class="text-gray-500"
+                      >-</span
+                    >
                   </router-link>
                 </template>
               </el-table-column>
 
               <el-table-column
-                :width="maxTabWidth"
+                :width="tagsColumnWidth"
                 :label="
                   translate('entities.member.fields.tag')
                 "
@@ -498,7 +505,7 @@ const loading = computed(
     store.state.member.list.loading || props.isPageLoading
 )
 
-const maxTabWidth = computed(() => {
+const tagsColumnWidth = computed(() => {
   let maxTabWidth = 0
   for (const row of rows.value) {
     if (row.tags) {
@@ -513,6 +520,21 @@ const maxTabWidth = computed(() => {
   }
 
   return Math.min(maxTabWidth + 100, 500)
+})
+
+const emailsColumnWidth = computed(() => {
+  let maxTabWidth = 0
+  for (const row of rows.value) {
+    const tabWidth = row.emails
+      .map((email) => email.length * 12)
+      .reduce((a, b) => a + b, 0)
+
+    if (tabWidth > maxTabWidth) {
+      maxTabWidth = tabWidth > 400 ? 400 : tabWidth
+    }
+  }
+
+  return maxTabWidth
 })
 
 const selectedRows = computed(

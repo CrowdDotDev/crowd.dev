@@ -223,7 +223,7 @@ const onExport = async ({ ids, count }) => {
       count
     })
   } catch (error) {
-    console.log(error)
+    console.error(error)
   }
 }
 </script>

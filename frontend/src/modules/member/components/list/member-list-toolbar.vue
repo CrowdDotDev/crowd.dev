@@ -160,7 +160,9 @@ export default {
     },
     elegibleEnrichmentMembersIds() {
       return this.selectedRows
-        .filter((r) => r.username?.github || r.email)
+        .filter(
+          (r) => r.username?.github || r.emails?.length
+        )
         .map((item) => item.id)
     },
     enrichedMembers() {
@@ -334,7 +336,7 @@ export default {
           this.selectedRows.map((item) => item.id)
         )
       } catch (error) {
-        console.log(error)
+        console.error(error)
       }
     },
 
@@ -342,7 +344,7 @@ export default {
       try {
         await this.doExport({ selected: true })
       } catch (error) {
-        console.log(error)
+        console.error(error)
       }
     },
 

@@ -77,6 +77,11 @@ export enum TwitterActivityType {
   FOLLOW = 'follow',
 }
 
+export enum StackOverflowActivityType {
+  QUESTION = 'question',
+  ANSWER = 'answer',
+}
+
 const githubUrl = 'https://github.com'
 
 const defaultGithubChannelFormatter = (channel) => {
@@ -341,7 +346,7 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
     },
   },
   [PlatformType.STACKOVERFLOW]: {
-    question: {
+    [StackOverflowActivityType.QUESTION]: {
       default: 'Asked a question {self}',
       short: 'asked a question',
       channel: '',
@@ -349,7 +354,7 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
         self: defaultStackoverflowFormatter,
       },
     },
-    answer: {
+    [StackOverflowActivityType.ANSWER]: {
       default: 'Answered a question {self}',
       short: 'answered a question',
       channel: '',

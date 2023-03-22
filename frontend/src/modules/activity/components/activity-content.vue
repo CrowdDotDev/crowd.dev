@@ -80,8 +80,8 @@
 </template>
 
 <script>
-import joypixels from 'emoji-toolkit'
 import { CrowdIntegrations } from '@/integrations/integrations-config'
+import emoji from 'node-emoji'
 
 export default {
   name: 'AppActivityContent',
@@ -160,20 +160,18 @@ export default {
   },
   methods: {
     contentRenderEmojis(content) {
-      return joypixels
-        .toImage(content)
-        .trim()
-        .replaceAll(
-          new RegExp('(?<!"):[a-z_-]+:', 'g'),
-          '<abbr class="no-underline" title="Unable to detect emoji">&#65533;</abbr>'
-        )
+      return emoji.emojify(
+        content,
+        () =>
+          '<abbr class=“no-underline” title=“Unable to detect emoji”>&#65533;</abbr>'
+      )
     }
   }
 }
 </script>
 
 <style scoped lang="scss">
-.content::v-deep {
+:deep(.content) {
   a {
     @apply text-brand-500;
   }
@@ -185,6 +183,10 @@ export default {
   h5,
   h6 {
     font-size: 16px;
+  }
+
+  .emoji {
+    @apply w-4 h-4 inline;
   }
 }
 

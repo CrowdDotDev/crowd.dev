@@ -1,3 +1,4 @@
+import { Op } from 'sequelize'
 import MemberRepository from '../memberRepository'
 import SequelizeTestUtils from '../../utils/sequelizeTestUtils'
 import Error404 from '../../../errors/Error404'
@@ -29,7 +30,7 @@ describe('MemberRepository tests', () => {
           [PlatformType.GITHUB]: 'anil_github',
         },
         displayName: 'Member 1',
-        email: 'lala@l.com',
+        emails: ['lala@l.com'],
         score: 10,
         attributes: {
           [PlatformType.GITHUB]: {
@@ -65,7 +66,7 @@ describe('MemberRepository tests', () => {
         username: member2add.username,
         attributes: member2add.attributes,
         displayName: member2add.displayName,
-        email: member2add.email,
+        emails: member2add.emails,
         score: member2add.score,
         identities: ['github'],
         lastEnriched: null,
@@ -106,7 +107,7 @@ describe('MemberRepository tests', () => {
           [PlatformType.GITHUB]: 'anil_github',
         },
         displayName: 'Member 1',
-        email: 'lala@l.com',
+        emails: ['lala@l.com'],
         score: 10,
         attributes: {
           [PlatformType.GITHUB]: {
@@ -142,7 +143,7 @@ describe('MemberRepository tests', () => {
         username: member2add.username,
         displayName: member2add.displayName,
         attributes: member2add.attributes,
-        email: member2add.email,
+        emails: member2add.emails,
         lastEnriched: null,
         enrichedBy: [],
         contributions: null,
@@ -182,7 +183,7 @@ describe('MemberRepository tests', () => {
         organizations: [],
         attributes: {},
         identities: ['github'],
-        email: null,
+        emails: [],
         lastEnriched: null,
         enrichedBy: [],
         contributions: null,
@@ -221,7 +222,7 @@ describe('MemberRepository tests', () => {
       // sequelize unique constraint
       const member2add = {
         joinedAt: '2020-05-27T15:13:30Z',
-        email: 'test@crowd.dev',
+        emails: ['test@crowd.dev'],
       }
 
       await expect(() =>
@@ -236,7 +237,7 @@ describe('MemberRepository tests', () => {
       // sequelize unique constraint
       const member2add = {
         username: { [PlatformType.GITHUB]: 'anil' },
-        email: 'test@crowd.dev',
+        emails: ['test@crowd.dev'],
       }
 
       await expect(() =>
@@ -323,7 +324,7 @@ describe('MemberRepository tests', () => {
         displayName: member2add.displayName,
         identities: ['github'],
         attributes: {},
-        email: null,
+        emails: [],
         lastEnriched: null,
         enrichedBy: [],
         contributions: null,
@@ -381,7 +382,7 @@ describe('MemberRepository tests', () => {
         enrichedBy: [],
         contributions: null,
         attributes: {},
-        email: null,
+        emails: [],
         score: -1,
         importHash: null,
         createdAt: SequelizeTestUtils.getNowWithoutTime(),
@@ -494,12 +495,16 @@ describe('MemberRepository tests', () => {
         username: { [PlatformType.GITHUB]: 'test1' },
         displayName: 'Member 1',
         joinedAt: '2020-05-27T15:13:30Z',
-        email: 'joan@crowd.dev',
+        emails: ['joan@crowd.dev'],
       }
       const member1Returned = await MemberRepository.create(member1, mockIRepositoryOptions)
 
       const found = await MemberRepository.findOne(
-        { email: 'joan@crowd.dev' },
+        {
+          emails: {
+            [Op.contains]: ['joan@crowd.dev'],
+          },
+        },
         mockIRepositoryOptions,
       )
 
@@ -512,7 +517,7 @@ describe('MemberRepository tests', () => {
         username: { [PlatformType.GITHUB]: 'test1' },
         displayName: 'Member 1',
         joinedAt: '2020-05-27T15:13:30Z',
-        email: 'joan@crowd.dev',
+        emails: ['joan@crowd.dev'],
       }
       const member1Returned = await MemberRepository.create(member1, mockIRepositoryOptions)
       delete member1Returned.toMerge
@@ -532,7 +537,11 @@ describe('MemberRepository tests', () => {
       delete member1Returned.activeDaysCount
 
       const found = await MemberRepository.findOne(
-        { email: 'joan@crowd.dev' },
+        {
+          emails: {
+            [Op.contains]: ['joan@crowd.dev'],
+          },
+        },
         mockIRepositoryOptions,
         false,
       )
@@ -547,7 +556,7 @@ describe('MemberRepository tests', () => {
         username: { [PlatformType.DEVTO]: 'test1' },
         displayName: 'Member 1',
         joinedAt: '2020-05-27T15:13:30Z',
-        email: 'joan@crowd.dev',
+        emails: ['joan@crowd.dev'],
       }
       const member1Returned = await MemberRepository.create(member1, mockIRepositoryOptions)
 
@@ -568,7 +577,7 @@ describe('MemberRepository tests', () => {
         username: { [PlatformType.DEVTO]: 'test1' },
         displayName: 'Member 1',
         joinedAt: '2020-05-27T15:13:30Z',
-        email: 'joan@crowd.dev',
+        emails: ['joan@crowd.dev'],
       }
       await MemberRepository.create(member1, mockIRepositoryOptions)
 
@@ -587,7 +596,7 @@ describe('MemberRepository tests', () => {
         username: { [PlatformType.TWITTER]: 'test1' },
         displayName: 'Member 1',
         joinedAt: '2020-05-27T15:13:30Z',
-        email: 'joan@crowd.dev',
+        emails: ['joan@crowd.dev'],
       }
       const member1Returned = await MemberRepository.create(member1, mockIRepositoryOptions)
 
@@ -606,7 +615,7 @@ describe('MemberRepository tests', () => {
         username: { [PlatformType.TWITTER]: 'test1' },
         displayName: 'Member 1',
         joinedAt: '2020-05-27T15:13:30Z',
-        email: 'joan@crowd.dev',
+        emails: ['joan@crowd.dev'],
       }
       const member1Returned = await MemberRepository.create(member1, mockIRepositoryOptions)
       delete member1Returned.toMerge
@@ -642,7 +651,7 @@ describe('MemberRepository tests', () => {
         username: { [PlatformType.TWITTER]: 'test1' },
         displayName: 'Member 1',
         joinedAt: '2020-05-27T15:13:30Z',
-        email: 'joan@crowd.dev',
+        emails: ['joan@crowd.dev'],
       }
       await MemberRepository.create(member1, mockIRepositoryOptions)
 
@@ -658,7 +667,7 @@ describe('MemberRepository tests', () => {
         username: { [PlatformType.TWITTER]: 'test1' },
         displayName: 'Member 1',
         joinedAt: '2020-05-27T15:13:30Z',
-        email: 'joan@crowd.dev',
+        emails: ['joan@crowd.dev'],
       }
       await MemberRepository.create(member1, mockIRepositoryOptions)
 
@@ -1267,7 +1276,7 @@ describe('MemberRepository tests', () => {
         username: {
           [PlatformType.GITHUB]: 'anil_github',
         },
-        email: 'lala@l.com',
+        emails: ['lala@l.com'],
         score: 10,
         attributes: {
           [PlatformType.GITHUB]: {
@@ -1311,7 +1320,7 @@ describe('MemberRepository tests', () => {
         identities: ['github'],
         displayName: returnedMember.displayName,
         attributes: updateFields.attributes,
-        email: updateFields.email,
+        emails: updateFields.emails,
         score: updateFields.score,
         lastEnriched: null,
         enrichedBy: [],
@@ -1359,7 +1368,7 @@ describe('MemberRepository tests', () => {
         username: {
           [PlatformType.GITHUB]: 'anil_github',
         },
-        email: 'lala@l.com',
+        emails: ['lala@l.com'],
         score: 10,
         attributes: {
           [PlatformType.GITHUB]: {
@@ -1406,7 +1415,7 @@ describe('MemberRepository tests', () => {
         lastEnriched: null,
         enrichedBy: [],
         contributions: null,
-        email: updateFields.email,
+        emails: updateFields.emails,
         score: updateFields.score,
         importHash: null,
         createdAt: SequelizeTestUtils.getNowWithoutTime(),
@@ -1465,7 +1474,7 @@ describe('MemberRepository tests', () => {
         displayName: member1.displayName,
         identities: ['discord'],
         attributes: {},
-        email: member1.email,
+        emails: member1.emails,
         score: member1.score,
         organizations: [],
         lastEnriched: null,
@@ -1549,7 +1558,7 @@ describe('MemberRepository tests', () => {
         displayName: member1.displayName,
         identities: ['discord'],
         attributes: {},
-        email: member1.email,
+        emails: member1.emails,
         score: member1.score,
         tags: [],
         lastEnriched: null,

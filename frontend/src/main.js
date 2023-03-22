@@ -6,12 +6,8 @@ import VueClickAway from 'vue3-click-away'
 import modules from '@/modules'
 import config from '@/config'
 
-import {
-  init as i18nInit,
-  getElementUILanguage
-} from '@/i18n'
+import { init as i18nInit } from '@/i18n'
 
-import ElementPlus from 'element-plus'
 import VueGridLayout from 'vue-grid-layout'
 import { AuthToken } from '@/modules/auth/auth-token'
 import { TenantService } from '@/modules/tenant/tenant-service'
@@ -44,7 +40,6 @@ i18nInit()
   AuthToken.applyFromLocationUrlIfExists()
   await TenantService.fetchAndApply()
 
-  app.use(ElementPlus, { locale: getElementUILanguage() })
   app.use(VueGridLayout)
   app.use(Vue3Sanitize, vueSanitizeOptions)
   app.use(VueClickAway)

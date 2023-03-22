@@ -16,10 +16,12 @@ module.exports = {
   },
 
   rules: {
-    'no-console':
-      process.env.NODE_ENV === 'production'
-        ? 'warn'
-        : 'off',
+    'no-console': [
+      'warn',
+      {
+        allow: ['error', 'info']
+      }
+    ],
     'no-debugger':
       process.env.NODE_ENV === 'production'
         ? 'warn'

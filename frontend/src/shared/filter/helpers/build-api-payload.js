@@ -160,6 +160,14 @@ function _buildAttributeBlock(attribute) {
   } else if (attribute.name === 'search') {
     return {
       or: attribute.fields.map((f) => {
+        if (f === 'emails') {
+          return {
+            [f]: {
+              contains: [attribute.value]
+            }
+          }
+        }
+
         return {
           [f]: {
             textContains: attribute.value

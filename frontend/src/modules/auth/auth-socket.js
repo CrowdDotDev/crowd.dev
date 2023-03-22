@@ -37,15 +37,15 @@ export const connectSocket = (token) => {
   })
 
   socketIoClient.on('connect', () => {
-    console.log('Socket connected')
+    console.info('Socket connected')
   })
 
   socketIoClient.on('disconnect', () => {
-    console.log('Socket disconnected')
+    console.info('Socket disconnected')
   })
 
   socketIoClient.on('integration-completed', (data) => {
-    console.log('Integration onboarding done', data)
+    console.info('Integration onboarding done', data)
     store.dispatch(
       'integration/doFind',
       JSON.parse(data).integrationId
@@ -55,7 +55,7 @@ export const connectSocket = (token) => {
   socketIoClient.on(
     'tenant-plan-upgraded',
     async (data) => {
-      console.log(
+      console.info(
         'Tenant plan is upgraded. Force a hard refresh!',
         data
       )
