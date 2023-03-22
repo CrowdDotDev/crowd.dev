@@ -131,6 +131,10 @@ class SettingsService {
     return activityTypes
   }
 
+  static listActivityTypes(options): ActivityTypeSettings {
+    return SettingsRepository.getActivityTypes(options)
+  }
+
   static async save(data, options) {
     const transaction = await SequelizeRepository.createTransaction(options)
 

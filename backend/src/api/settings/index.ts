@@ -4,6 +4,11 @@ export default (app) => {
   app.put(`/tenant/:tenantId/settings`, safeWrap(require('./settingsSave').default))
   app.get(`/tenant/:tenantId/settings`, safeWrap(require('./settingsFind').default))
 
+  app.get(
+    '/tenant/:tenantId/settings/activity/types',
+    safeWrap(require('./activityTypeList').default),
+  )
+
   app.post(
     '/tenant/:tenantId/settings/activity/types',
     safeWrap(require('./activityTypeCreate').default),

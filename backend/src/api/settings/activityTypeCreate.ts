@@ -3,9 +3,8 @@ import SettingsService from '../../services/settingsService'
 import PermissionChecker from '../../services/user/permissionChecker'
 
 /**
- * TODO: Update
  * POST /tenant/{tenantId}/settings/activity/types
- * @summary Activity type: create
+ * @summary Create an activity type
  * @tag Activities
  * @security Bearer
  * @description Create a custom activity type
