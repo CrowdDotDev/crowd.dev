@@ -9,6 +9,8 @@ import { IRepositoryOptions } from './IRepositoryOptions'
 import { PlatformType } from '../../types/integrationEnums'
 import snakeCaseNames from '../../utils/snakeCaseNames'
 import QueryParser from './filters/queryParser'
+import ActivityDisplayService from '../../services/activityDisplayService'
+import SettingsRepository from './settingsRepository'
 
 const Op = Sequelize.Op
 
@@ -414,7 +416,7 @@ class ConversationRepository {
       subQuery: false,
       distinct: true,
     })
-    rows = await this._populateRelationsForRows(rows, lazyLoad)
+    rows = await this._populateRelationsForRows(rows, options, lazyLoad)
     return { rows, count: count.length }
   }
 
@@ -459,7 +461,7 @@ class ConversationRepository {
     )
   }
 
-  static async _populateRelationsForRows(rows, lazyLoad = []) {
+  static async _populateRelationsForRows(rows, options, lazyLoad = []) {
     if (!rows) {
       return rows
     }
@@ -498,6 +500,10 @@ class ConversationRepository {
             } else {
               rec.conversationStarter = null
               rec.lastReplies = []
+            }
+
+            if (rec.conversationStarter){
+              rec.conversationStarter.display = ActivityDisplayService.getDisplayOptions(rec.conversationStarter, SettingsRepository.getActivityTypes(options))
             }
           } else {
             rec[relationship] = (await record[`get${snakeCaseNames(relationship)}`]()).map((a) =>

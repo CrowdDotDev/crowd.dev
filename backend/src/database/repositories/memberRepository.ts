@@ -16,6 +16,8 @@ import { PageData } from '../../types/common'
 import { IActiveMemberData, IActiveMemberFilter } from './types/memberTypes'
 import { ALL_PLATFORM_TYPES } from '../../types/integrationEnums'
 import RawQueryParser from './filters/rawQueryParser'
+import ActivityDisplayService from '../../services/activityDisplayService'
+import SettingsRepository from './settingsRepository'
 
 const { Op } = Sequelize
 
@@ -881,6 +883,9 @@ where m."deletedAt" is null
       for (const row of results) {
         const r = row as any
         r.lastActivity = lastActivities.find((a) => (a as any).memberId === r.id)
+        if (r.lastActivity){
+          r.lastActivity.display = ActivityDisplayService.getDisplayOptions(r.lastActivity, SettingsRepository.getActivityTypes(options))
+        }
       }
     }
 
