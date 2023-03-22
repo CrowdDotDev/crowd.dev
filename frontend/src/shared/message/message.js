@@ -1,5 +1,6 @@
 import { i18n } from '@/i18n'
 import { ElNotification } from 'element-plus'
+import 'element-plus/es/components/notification/style/css'
 
 import { h } from 'vue'
 

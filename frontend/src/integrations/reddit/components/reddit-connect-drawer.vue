@@ -205,14 +205,13 @@ const handleSubredditValidation = async (index) => {
 
     model.value[index].value = subreddit
     model.value[index].validating = true
-    const response =
-      await IntegrationService.redditValidate(
-        model.value[index].value
-      )
-    console.log(response)
+
+    await IntegrationService.redditValidate(
+      model.value[index].value
+    )
     model.value[index].valid = true
   } catch (e) {
-    console.log(e)
+    console.error(e)
     model.value[index].valid = false
   } finally {
     model.value[index].validating = false
@@ -233,7 +232,7 @@ const connect = async () => {
     await callOnboard()
     emit('update:modelValue', false)
   } catch (e) {
-    console.log(e)
+    console.error(e)
   }
 }
 

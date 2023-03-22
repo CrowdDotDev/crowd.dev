@@ -40,28 +40,6 @@ export const formatPercentage = (percentage) => {
   )} %`
 }
 
-export const formatNumberToRange = (number) => {
-  if (!number) {
-    return '-'
-  }
-
-  if (number >= 1 && number <= 10) {
-    return '1-10'
-  } else if (number >= 11 && number <= 50) {
-    return '11-50'
-  } else if (number >= 51 && number <= 200) {
-    return '51-200'
-  } else if (number >= 501 && number <= 1000) {
-    return '501-1000'
-  } else if (number >= 1001 && number <= 5000) {
-    return '1001-5000'
-  } else if (number >= 5001 && number <= 10000) {
-    return '5001-10000'
-  } else if (number >= 10001) {
-    return '10001+'
-  }
-}
-
 export const formatRevenueRange = (range) => {
   const min =
     range.min > 1000 ? `$${range.min}B` : `$${range.min}M`

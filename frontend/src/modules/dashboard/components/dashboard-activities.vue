@@ -54,7 +54,7 @@
       </section>
     </div>
 
-    <div class="tabs">
+    <div class="dashboard-tabs">
       <el-tabs v-model="tab">
         <el-tab-pane
           label="Trending conversations"
@@ -122,12 +122,17 @@ export default {
 }
 </script>
 
-<style scoped lang="scss">
+<style lang="scss">
 .chart-loading {
   @apply flex items-center justify-center;
   height: 112px;
 }
 .app-page-spinner {
   min-height: initial;
+}
+.dashboard-tabs {
+  .el-tabs__content {
+    @apply -mx-6 #{!important};
+  }
 }
 </style>

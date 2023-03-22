@@ -315,7 +315,7 @@ watch(
     isVolumeUpdating.value = true
     if (keywordsCount.value > 0) {
       const volume = await calculateVolume()
-      console.log(volume)
+
       isKeywordsValid.value =
         volume <= MAX_STACK_OVERFLOW_QUESTIONS
     } else {
@@ -387,7 +387,7 @@ const handleTagValidation = async (index) => {
     }
     model.value[index].valid = true
   } catch (e) {
-    console.log(e)
+    console.error(e)
     model.value[index].valid = false
   } finally {
     model.value[index].validating = false
@@ -425,7 +425,7 @@ const connect = async () => {
     await callOnboard()
     isVisible.value = false
   } catch (e) {
-    console.log(e)
+    console.error(e)
   }
 }
 

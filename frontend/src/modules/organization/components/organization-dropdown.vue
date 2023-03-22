@@ -158,7 +158,7 @@ const doDestroyWithConfirm = async (id) => {
 
     return doDestroy(id)
   } catch (error) {
-    console.log(error)
+    console.error(error)
   }
 }
 

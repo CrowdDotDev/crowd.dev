@@ -327,3 +327,7 @@
     color: #ff6600;
   }
 }
+
+.el-button {
+  --el-button-outline-color: transparent !important;
+}

@@ -121,7 +121,7 @@ export default {
 </script>
 
 <script setup>
-import _ from 'lodash'
+import isEqual from 'lodash/isEqual'
 import { useStore } from 'vuex'
 import AppActivityMessage from '@/modules/activity/components/activity-message'
 import AppActivitySentiment from '@/modules/activity/components/activity-sentiment'
@@ -230,7 +230,7 @@ const fetchActivities = async () => {
       ]
     }
 
-  if (!_.isEqual(filter, filterToApply)) {
+  if (!isEqual(filter, filterToApply)) {
     activities.length = 0
     noMore.value = false
   }
@@ -318,6 +318,15 @@ onMounted(async () => {
   }
   .activity-header {
     @apply max-w-full overflow-visible;
+  }
+  .el-timeline-item__dot {
+    @apply relative;
+  }
+  .el-timeline-item__wrapper {
+    @apply top-1 pl-4;
+  }
+  .el-timeline-item__tail {
+    @apply left-4;
   }
 }
 </style>
