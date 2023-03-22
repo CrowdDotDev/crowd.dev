@@ -99,9 +99,7 @@ export default {
         router.push({ name: 'activity' })
       }
 
-      dispatch('doFetch', {
-        keepPagination: true
-      })
+      dispatch('doFetch', {})
     } catch (error) {
       Errors.handle(error)
       commit('DESTROY_ERROR')

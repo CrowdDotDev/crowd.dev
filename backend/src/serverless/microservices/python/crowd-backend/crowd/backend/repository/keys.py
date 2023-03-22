@@ -27,7 +27,7 @@ class DBKeys:
     MEMBERS = "members"
     MEMBER = "member"
     SCORE = "score"
-    EMAIL = "email"
+    EMAILS = "emails"
     TO_MERGE = "membersToMerge"
     CROWD_USERNAME = "crowdUsername"
     NO_MERGE = "noMerge"

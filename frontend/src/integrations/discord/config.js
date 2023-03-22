@@ -1,6 +1,4 @@
 import DiscordConnect from './components/discord-connect'
-import DiscordActivityMessage from './components/activity/discord-activity-message'
-import DiscordActivityContent from './components/activity/discord-activity-content'
 
 export default {
   enabled: true,
@@ -11,7 +9,5 @@ export default {
     'Connect Discord to sync messages, threads, forum channels, and new joiners.',
   image:
     'https://cdn-icons-png.flaticon.com/512/5968/5968756.png',
-  connectComponent: DiscordConnect,
-  activityMessage: DiscordActivityMessage,
-  activityContent: DiscordActivityContent
+  connectComponent: DiscordConnect
 }

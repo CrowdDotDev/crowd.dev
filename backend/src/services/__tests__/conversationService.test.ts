@@ -31,8 +31,9 @@ function getConversationStyleActivity(activity) {
   activity.author = activity.member.username[activity.platform]
   delete activity.member
 
-  // parent won't be sent in the activity object to the search engine as well
+  // parent and display won't be sent in the activity object to the search engine as well
   delete activity.parent
+  delete activity.display
 
   // search engine returns everything as string
   activity.createdAt = moment(activity.createdAt).toISOString()
@@ -805,6 +806,9 @@ describe('ConversationService tests', () => {
       // Delete because we only care about 1st level relations
       delete activity1Created.tasks
 
+      // also delete display while expecting
+      delete activity1Created.display
+
       const expectedConversationDocument = {
         id: conversationCreated.id,
         tenantSlug: mockIServiceOptions.currentTenant.url,
@@ -1224,6 +1228,8 @@ describe('ConversationService tests', () => {
       // We only care about 1st order relations
       delete githubActivityParentCreated.tasks
       delete githubActivityChildCreated.tasks
+      delete githubActivityParentCreated.display
+      delete githubActivityChildCreated.display
 
       const conversationDocument = await conversationSearchEngineRepository.findById(
         githubConversationCreated.id,

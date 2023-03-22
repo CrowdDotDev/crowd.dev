@@ -21,11 +21,8 @@
           handleOptionClick(nestedOption, option.label)
         "
       >
-        <div>
-          {{
-            nestedOption.label.charAt(0).toUpperCase() +
-            nestedOption.label.slice(1)
-          }}
+        <div class="first-letter:uppercase">
+          {{ nestedOption.label }}
         </div>
         <i
           v-if="nestedOption.selected"
@@ -43,7 +40,14 @@ export default {
 </script>
 
 <script setup>
-import { defineProps, defineEmits, computed } from 'vue'
+import {
+  defineProps,
+  defineEmits,
+  computed,
+  reactive
+} from 'vue'
+import { storeToRefs } from 'pinia'
+import { useActivityTypeStore } from '@/modules/activity/store/type'
 
 const props = defineProps({
   options: {
@@ -54,6 +58,10 @@ const props = defineProps({
     type: Object,
     default: () => {}
   },
+  label: {
+    type: String,
+    default: ''
+  },
   isExpanded: {
     type: Boolean,
     default: false
@@ -61,21 +69,51 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['update:value'])
+
+const { types } = storeToRefs(useActivityTypeStore())
+
 const computedOptions = computed(() => {
-  return props.options.map((o) => {
-    return {
-      ...o,
-      nestedOptions: o.nestedOptions.map((n) => {
-        return {
-          ...n,
-          selected:
-            model.value?.value === n.value &&
-            model.value?.key === o.label.key
-        }
-      })
+  return [...props.options, ...additionalOptions.value].map(
+    (o) => {
+      return {
+        ...o,
+        nestedOptions: o.nestedOptions.map((n) => {
+          return {
+            ...n,
+            selected:
+              model.value?.value === n.value &&
+              model.value?.key === o.label.key
+          }
+        })
+      }
     }
-  })
+  )
 })
+
+const additionalOptions = computed(() => {
+  if (props.label === 'Activity type') {
+    return [
+      {
+        label: reactive({
+          key: 'other',
+          type: 'platform',
+          value: 'Custom'
+        }),
+        nestedOptions: Object.entries(types.value.custom)
+          .map(([, platformTypes]) =>
+            Object.entries(platformTypes)
+          )
+          .flat()
+          .map(([type, display]) => ({
+            label: display.short,
+            value: type
+          }))
+      }
+    ]
+  }
+  return []
+})
+
 const model = computed({
   get() {
     return props.value

@@ -67,7 +67,7 @@
                       :activity="
                         conversation.conversationStarter
                       "
-                      :channel-only="true"
+                      type="channel"
                     />
                   </p>
                   <span

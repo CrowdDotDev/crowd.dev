@@ -138,7 +138,7 @@ function _buildAttributeBlock(attribute) {
       },
       { or: [] }
     )
-  } else if (attribute.name === 'type') {
+  } else if (attribute.name === 'type' && attribute.value) {
     return {
       and: [
         {
