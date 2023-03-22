@@ -167,10 +167,10 @@ class MergeSuggestions:
 
                 member.username['displayNameMember1'] = member.displayName
                 members[i].username['displayNameMember2'] = members[i].displayName
-                if member.email:
-                    member.username['email'] = member.email
-                if members[i].email:
-                    members[i].username['email'] = members[i].email
+                if len(member.emails) > 0:
+                    member.username['email'] = member.emails[0]
+                if len(members[i].emails) > 0:
+                    members[i].username['email'] = members[i].emails[0]
 
                 # Go through all platform usernames
                 member_platforms = set(member.username)
