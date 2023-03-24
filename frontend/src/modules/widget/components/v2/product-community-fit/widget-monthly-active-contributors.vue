@@ -115,11 +115,12 @@ const { cubejsApi } = mapGetters('widget')
 const { doExport } = mapActions('member')
 
 const idealRangeAnnotation = {
-  backgroundColor: 'rgba(233, 79, 46, 0.05)',
+  backgroundColor: 'rgb(250, 237, 234)',
   yMin: 50,
   yMax: 100,
   borderColor: 'transparent',
-  type: 'box'
+  type: 'box',
+  drawTime: 'beforeDraw'
 }
 
 const datasets = computed(() => [
@@ -136,7 +137,7 @@ const datasets = computed(() => [
   },
   {
     name: 'Product-Community fit',
-    backgroundColor: 'rgba(233, 79, 46, 0.05)',
+    backgroundColor: 'rgb(250, 237, 234)',
     borderColor: 'transparent',
     pointStyle: 'rect',
     hidden: true

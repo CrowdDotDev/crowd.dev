@@ -12,10 +12,8 @@
             :class="{ 'mb-8': !loading && !error }"
           >
             <div class="flex gap-1">
-              <app-widget-title
-                title="Benchmark"
-                description="TODO"
-              />
+              <!-- TODO: Add description when available -->
+              <app-widget-title title="Benchmark" />
             </div>
 
             <app-widget-period
@@ -40,7 +38,7 @@
           <div v-else class="flex pb-8 gap-14">
             <div class="basis-1/4">
               <app-widget-average-kpi
-                :result="145"
+                :result="average"
                 description="Avg. monthly contributors"
               />
             </div>
@@ -50,6 +48,7 @@
               :chart-options="benchmarkChartOptions"
               :granularity="granularity.value"
               :show-as-average="true"
+              @on-average-calculation="onAverageCalculation"
             />
           </div>
         </div>
@@ -61,8 +60,8 @@
           >Considering the contribution history of over
           150,000 open-source repositories, we come to the
           conclusion that you had
-          <a href="TODO" target="_blank"
-            >Great Product-Community fit</a
+          <span class="font-medium"
+            >Great Product-Community fit</span
           >{{
             period.label === 'All time'
               ? ' since the beginning of your community.'
@@ -209,6 +208,7 @@ const props = defineProps({
 
 const period = ref(SIX_MONTHS_PERIOD_FILTER)
 const granularity = ref(MONTHLY_GRANULARITY_FILTER)
+const average = ref()
 
 const { cubejsApi } = mapGetters('widget')
 
@@ -244,5 +244,9 @@ const onUpdatePeriod = (updatedPeriod) => {
   } else {
     granularity.value = MONTHLY_GRANULARITY_FILTER
   }
+}
+
+const onAverageCalculation = (calculatedAverage) => {
+  average.value = calculatedAverage
 }
 </script>

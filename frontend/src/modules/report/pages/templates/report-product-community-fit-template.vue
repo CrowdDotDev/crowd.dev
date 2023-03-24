@@ -24,7 +24,7 @@
           </div>
         </div>
         <el-button
-          class="btn btn--link text-xs !h-fit leading-5"
+          class="btn btn-link btn-link--primary text-xs !h-fit leading-5"
           @click="onContributionTypesClick"
           >Contribution types</el-button
         >

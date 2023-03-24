@@ -17,11 +17,12 @@ export default {
 </script>
 
 <script setup>
-import { defineProps, computed } from 'vue'
+import { defineProps, defineEmits, computed } from 'vue'
 import cloneDeep from 'lodash/cloneDeep'
 
 const componentType = 'bar-chart'
 
+const emit = defineEmits(['onAverageCalculation'])
 const props = defineProps({
   datasets: {
     type: Array,
@@ -60,14 +61,14 @@ const series = (resultSet) => {
 
       // Show one bar for the DataPointsAverage
       if (props.showAsAverage) {
-        data = [
-          [
-            'average',
-            data.reduce((valueA, [_, valueB]) => {
-              return valueA + valueB
-            }, 0) / data.length
-          ]
-        ]
+        const average = Math.floor(
+          data.reduce((valueA, [, valueB]) => {
+            return valueA + valueB
+          }, 0) / data.length
+        )
+
+        emit('onAverageCalculation', average)
+        data = [['average', average]]
       }
 
       series.push({

@@ -5,7 +5,7 @@
  */
 const verticalTodayBlockPlugin = {
   id: 'verticalTodayBlock',
-  beforeDraw(chart, _args, options) {
+  afterDraw(chart, _args, options) {
     const chartType = chart.config?._config?.type
     const xScaleType = chart.scales?.x?.type
 
