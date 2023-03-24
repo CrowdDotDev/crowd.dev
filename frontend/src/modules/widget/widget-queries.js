@@ -1,7 +1,11 @@
 import moment from 'moment'
 
 // Add platform and team members filters to cube query filters array
-const getCubeFilters = ({ platforms, hasTeamMembers }) => {
+const getCubeFilters = ({
+  platforms,
+  hasTeamMembers,
+  isContribution
+}) => {
   let filters = [
     {
       member: 'Members.isOrganization',
@@ -26,6 +30,16 @@ const getCubeFilters = ({ platforms, hasTeamMembers }) => {
       values: ['0']
     })
   }
+
+  // TODO: Uncomment this
+  // if (isContribution) {
+  //   filters.push({
+  //     member: 'Activities.isContribution',
+  //     operator: 'equals',
+  //     values: ['1']
+  //   })
+  // }
+
   return filters
 }
 
@@ -228,6 +242,7 @@ export const TOTAL_MONTHLY_ACTIVE_CONTRIBUTORS = ({
   granularity,
   selectedHasTeamMembers
 }) => ({
+  // TODO: Change to Members.averageCount
   measures: ['Members.count'],
   timeDimensions: [
     {
@@ -247,6 +262,7 @@ export const TOTAL_MONTHLY_ACTIVE_CONTRIBUTORS = ({
   ],
   filters: getCubeFilters({
     platforms: [],
-    hasTeamMembers: selectedHasTeamMembers
+    hasTeamMembers: selectedHasTeamMembers,
+    isContribution: true
   })
 })

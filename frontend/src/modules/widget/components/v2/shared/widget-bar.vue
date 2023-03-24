@@ -35,13 +35,9 @@ const props = defineProps({
     type: Object,
     default: () => {}
   },
-  granularity: {
-    type: String,
-    required: true
-  },
-  query: {
-    type: Object,
-    default: null
+  showAsAverage: {
+    type: Boolean,
+    default: false
   }
 })
 
@@ -57,18 +53,26 @@ const series = (resultSet) => {
 
   if (resultSet.loadResponses.length > 0) {
     resultSet.loadResponses.forEach((_, index) => {
-      const prefix =
-        resultSet.loadResponses.length === 1
-          ? ''
-          : `${index},`
-      const data = pivot.map((p) => [
+      let data = pivot[index].series.map((p) => [
         p.x,
-        p[`${prefix}${props.datasets[index].measure}`]
+        p.value
       ])
+
+      // Show one bar for the DataPointsAverage
+      if (props.showAsAverage) {
+        data = [
+          [
+            'average',
+            data.reduce((valueA, [_, valueB]) => {
+              return valueA + valueB
+            }, 0) / data.length
+          ]
+        ]
+      }
 
       series.push({
         name: props.datasets[index].name,
-        data: [['average', 145]],
+        data,
         ...{
           dataset: props.datasets[index]
         }

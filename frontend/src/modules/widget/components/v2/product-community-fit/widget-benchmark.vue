@@ -49,6 +49,7 @@
               :result-set="resultSet"
               :chart-options="benchmarkChartOptions"
               :granularity="granularity.value"
+              :show-as-average="true"
             />
           </div>
         </div>
