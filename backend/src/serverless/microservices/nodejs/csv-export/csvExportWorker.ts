@@ -33,7 +33,7 @@ async function csvExportWorker(
     'id',
     'username',
     'displayName',
-    'email',
+    'emails',
     'score',
     'joinedAt',
     'activeOn',
