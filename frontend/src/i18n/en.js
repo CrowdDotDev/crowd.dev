@@ -300,7 +300,7 @@ const en = {
         project: 'Project',
         info: 'Custom Attributes',
         member: 'Member',
-        isKeyAction: 'Key Action',
+        isContribution: 'Key Action',
         crowdInfo: 'CrowdInfo',
         createdAt: 'Created at',
         updatedAt: 'Updated at',

@@ -402,7 +402,7 @@ export class RedditIntegrationService extends IntegrationServiceBase {
       url: `https://www.reddit.com${post.permalink}`,
       channel,
       score: RedditGrid[RedditActivityType.POST].score,
-      isKeyAction: RedditGrid[RedditActivityType.POST].isKeyAction,
+      isContribution: RedditGrid[RedditActivityType.POST].isContribution,
       attributes: {
         url: post.url,
         name: post.name,
@@ -445,7 +445,7 @@ export class RedditIntegrationService extends IntegrationServiceBase {
       url: `https://www.reddit.com${comment.permalink}`,
       channel,
       score: RedditGrid[RedditActivityType.COMMENT].score,
-      isKeyAction: RedditGrid[RedditActivityType.COMMENT].isKeyAction,
+      isContribution: RedditGrid[RedditActivityType.COMMENT].isContribution,
       attributes: {
         url: comment.url,
         name: comment.name,

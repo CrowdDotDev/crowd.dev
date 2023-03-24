@@ -217,7 +217,7 @@ describe('Github webhooks tests', () => {
           state: TestEvents.issues.opened.issue.state,
         },
         score: GitHubGrid.issueOpened.score,
-        isKeyAction: GitHubGrid.issueOpened.isKeyAction,
+        isContribution: GitHubGrid.issueOpened.isContribution,
       }
       expect(issue).toStrictEqual(expected)
     })
@@ -251,7 +251,7 @@ describe('Github webhooks tests', () => {
           state: TestEvents.issues.edited.issue.state,
         },
         score: GitHubGrid.issueOpened.score,
-        isKeyAction: GitHubGrid.issueOpened.isKeyAction,
+        isContribution: GitHubGrid.issueOpened.isContribution,
       }
       expect(issue).toStrictEqual(expected)
     })
@@ -285,7 +285,7 @@ describe('Github webhooks tests', () => {
           state: TestEvents.issues.opened.issue.state,
         },
         score: GitHubGrid.issueOpened.score,
-        isKeyAction: GitHubGrid.issueOpened.isKeyAction,
+        isContribution: GitHubGrid.issueOpened.isContribution,
       }
       expect(issue).toStrictEqual(expected)
     })
@@ -319,7 +319,7 @@ describe('Github webhooks tests', () => {
           state: TestEvents.issues.closed.issue.state,
         },
         score: GitHubGrid.issueClosed.score,
-        isKeyAction: GitHubGrid.issueClosed.isKeyAction,
+        isContribution: GitHubGrid.issueClosed.isContribution,
       }
       expect(issue).toStrictEqual(expected)
     })
@@ -398,7 +398,7 @@ describe('Github webhooks tests', () => {
           },
         },
         score: GitHubGrid.discussionOpened.score,
-        isKeyAction: GitHubGrid.discussionOpened.isKeyAction,
+        isContribution: GitHubGrid.discussionOpened.isContribution,
       }
 
       expect(discussion).toStrictEqual(expected)
@@ -439,7 +439,7 @@ describe('Github webhooks tests', () => {
           },
         },
         score: GitHubGrid.discussionOpened.score,
-        isKeyAction: GitHubGrid.discussionOpened.isKeyAction,
+        isContribution: GitHubGrid.discussionOpened.isContribution,
       }
       expect(discussion).toStrictEqual(expected)
     })
@@ -470,7 +470,7 @@ describe('Github webhooks tests', () => {
           isSelectedAnswer: true,
         },
         score: GitHubGrid.discussionOpened.score,
-        isKeyAction: GitHubGrid.discussionOpened.isKeyAction,
+        isContribution: GitHubGrid.discussionOpened.isContribution,
       }
       expect(discussion).toStrictEqual(expected)
     })
@@ -502,7 +502,7 @@ describe('Github webhooks tests', () => {
         title: TestEvents.pullRequests.opened.pull_request.title,
         body: TestEvents.pullRequests.opened.pull_request.body,
         score: GitHubGrid.pullRequestOpened.score,
-        isKeyAction: GitHubGrid.pullRequestOpened.isKeyAction,
+        isContribution: GitHubGrid.pullRequestOpened.isContribution,
       }
       expect(pr).toStrictEqual(expected)
     })
@@ -532,7 +532,7 @@ describe('Github webhooks tests', () => {
         title: TestEvents.pullRequests.edited.pull_request.title,
         body: TestEvents.pullRequests.edited.pull_request.body,
         score: GitHubGrid.pullRequestOpened.score,
-        isKeyAction: GitHubGrid.pullRequestOpened.isKeyAction,
+        isContribution: GitHubGrid.pullRequestOpened.isContribution,
       }
 
       expect(pr).toStrictEqual(expected)
@@ -564,7 +564,7 @@ describe('Github webhooks tests', () => {
         channel: TestEvents.pullRequests.reopened.repository.html_url,
 
         score: GitHubGrid.pullRequestOpened.score,
-        isKeyAction: GitHubGrid.pullRequestOpened.isKeyAction,
+        isContribution: GitHubGrid.pullRequestOpened.isContribution,
       }
       expect(pr).toStrictEqual(expected)
     })
@@ -594,7 +594,7 @@ describe('Github webhooks tests', () => {
         body: TestEvents.pullRequests.closed.pull_request.body,
         channel: TestEvents.pullRequests.closed.repository.html_url,
         score: GitHubGrid.pullRequestClosed.score,
-        isKeyAction: GitHubGrid.pullRequestClosed.isKeyAction,
+        isContribution: GitHubGrid.pullRequestClosed.isContribution,
       }
       expect(pr).toStrictEqual(expected)
     })
@@ -662,7 +662,7 @@ describe('Github webhooks tests', () => {
         sourceParentId: null,
         channel: TestEvents.star.created.repository.html_url,
         score: 2,
-        isKeyAction: false,
+        isContribution: false,
       }
       expect(star).toStrictEqual(expected)
     })
@@ -692,7 +692,7 @@ describe('Github webhooks tests', () => {
         sourceParentId: null,
         channel: TestEvents.star.deleted.repository.html_url,
         score: -2,
-        isKeyAction: false,
+        isContribution: false,
       }
       expect(star).toStrictEqual(expected)
       // Check timestamp
@@ -720,7 +720,7 @@ describe('Github webhooks tests', () => {
         sourceParentId: null,
         channel: TestEvents.fork.created.repository.html_url,
         score: 4,
-        isKeyAction: true,
+        isContribution: true,
       }
       expect(fork).toStrictEqual(expected)
     })
@@ -757,7 +757,7 @@ describe('Github webhooks tests', () => {
         body: TestEvents.comment.issue.created.comment.body,
         channel: TestEvents.comment.issue.created.repository.html_url,
         score: GitHubGrid.comment.score,
-        isKeyAction: GitHubGrid.comment.isKeyAction,
+        isContribution: GitHubGrid.comment.isContribution,
       }
       expect(comment).toStrictEqual(expected)
     })
@@ -798,7 +798,7 @@ describe('Github webhooks tests', () => {
         body: TestEvents.comment.issue.edited.comment.body,
         channel: TestEvents.comment.issue.edited.repository.html_url,
         score: GitHubGrid.comment.score,
-        isKeyAction: GitHubGrid.comment.isKeyAction,
+        isContribution: GitHubGrid.comment.isContribution,
       }
       expect(comment).toStrictEqual(expected)
     })
@@ -833,7 +833,7 @@ describe('Github webhooks tests', () => {
         body: TestEvents.comment.pullRequest.created.comment.body,
         channel: TestEvents.comment.pullRequest.created.repository.html_url,
         score: GitHubGrid.comment.score,
-        isKeyAction: GitHubGrid.comment.isKeyAction,
+        isContribution: GitHubGrid.comment.isContribution,
       }
       expect(comment).toStrictEqual(expected)
     })
@@ -873,7 +873,7 @@ describe('Github webhooks tests', () => {
         body: TestEvents.comment.pullRequest.edited.comment.body,
         channel: TestEvents.comment.pullRequest.edited.repository.html_url,
         score: GitHubGrid.comment.score,
-        isKeyAction: GitHubGrid.comment.isKeyAction,
+        isContribution: GitHubGrid.comment.isContribution,
       }
       expect(comment).toStrictEqual(expected)
     })
@@ -931,7 +931,7 @@ describe('Github webhooks tests', () => {
         body: TestEvents.discussionComment.created.comment.body,
         channel: TestEvents.discussionComment.created.repository.html_url,
         score: GitHubGrid.comment.score,
-        isKeyAction: GitHubGrid.comment.isKeyAction,
+        isContribution: GitHubGrid.comment.isContribution,
       }
       expect(comment).toStrictEqual(expected)
     })
@@ -972,7 +972,7 @@ describe('Github webhooks tests', () => {
         body: TestEvents.discussionComment.edited.comment.body,
         channel: TestEvents.discussionComment.edited.repository.html_url,
         score: GitHubGrid.comment.score,
-        isKeyAction: GitHubGrid.comment.isKeyAction,
+        isContribution: GitHubGrid.comment.isContribution,
       }
       expect(comment).toStrictEqual(expected)
     })

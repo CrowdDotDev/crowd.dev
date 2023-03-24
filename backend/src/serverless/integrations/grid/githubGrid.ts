@@ -3,51 +3,51 @@ import { gridEntry } from './grid'
 export class GitHubGrid {
   static discussionOpened: gridEntry = {
     score: 8,
-    isKeyAction: true,
+    isContribution: true,
   }
 
   static issueClosed: gridEntry = {
     score: 6,
-    isKeyAction: true,
+    isContribution: true,
   }
 
   static issueOpened: gridEntry = {
     score: 8,
-    isKeyAction: true,
+    isContribution: true,
   }
 
   static comment: gridEntry = {
     score: 6,
-    isKeyAction: true,
+    isContribution: true,
   }
 
   static selectedAnswer: gridEntry = {
     score: 8,
-    isKeyAction: true,
+    isContribution: true,
   }
 
   static pullRequestOpened: gridEntry = {
     score: 10,
-    isKeyAction: true,
+    isContribution: true,
   }
 
   static pullRequestClosed: gridEntry = {
     score: 8,
-    isKeyAction: true,
+    isContribution: true,
   }
 
   static star: gridEntry = {
     score: 2,
-    isKeyAction: false,
+    isContribution: false,
   }
 
   static unStar: gridEntry = {
     score: -2,
-    isKeyAction: false,
+    isContribution: false,
   }
 
   static fork: gridEntry = {
     score: 4,
-    isKeyAction: true,
+    isContribution: true,
   }
 }
