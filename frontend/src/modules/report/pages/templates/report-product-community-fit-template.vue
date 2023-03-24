@@ -34,6 +34,11 @@
         :filters="filters"
         :is-public-view="isPublicView"
       />
+
+      <app-widget-benchmark
+        :filters="filters"
+        :is-public-view="isPublicView"
+      />
     </div>
   </div>
   <app-dialog
@@ -74,6 +79,7 @@ import {
 } from '@/shared/vuex/vuex.helpers'
 import { computed, onMounted, defineProps, ref } from 'vue'
 import AppWidgetMonthlyActiveContributors from '@/modules/widget/components/v2/product-community-fit/widget-monthly-active-contributors.vue'
+import AppWidgetBenchmark from '@/modules/widget/components/v2/product-community-fit/widget-benchmark.vue'
 import { CrowdIntegrations } from '@/integrations/integrations-config'
 import { useStore } from 'vuex'
 import AppActivityTypeListItem from '@/modules/activity/components/type/activity-type-list-item.vue'

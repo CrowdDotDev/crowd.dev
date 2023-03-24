@@ -183,6 +183,7 @@ const getActiveMembers = async ({ pagination }) => {
     isTeamMember: props.filters.teamMembers,
     activityTimestampFrom: startDate.toISOString(),
     activityTimestampTo: endDate.toISOString(),
+    activityIsContribution: null,
     orderBy: 'activityCount_DESC',
     offset: !pagination.count
       ? (pagination.currentPage - 1) * pagination.pageSize

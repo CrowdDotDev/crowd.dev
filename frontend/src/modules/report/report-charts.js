@@ -169,9 +169,14 @@ export function chartOptions(widget, resultSet) {
       ...options.library,
       plugins: {
         ...options.library.plugins,
-        tooltipAnnotationLine: false,
-        verticalTodayLine: {
-          bottomMargin: 11
+        verticalHoverLine: false,
+        backgroundChart: false,
+        updateTicksLabelsPosition: false,
+        verticalTodayBlock: {
+          bottomMargin: 11,
+          strokeColor: 'rgb(200,200,200)',
+          strokeWidth: 0.5,
+          backgroundColor: 'rgb(200,200,200, 0.1)'
         }
       }
     }

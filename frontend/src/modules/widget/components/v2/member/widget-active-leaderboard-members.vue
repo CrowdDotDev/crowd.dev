@@ -46,13 +46,17 @@
       </div>
     </div>
 
-    <app-widget-insight
-      :description="`We recommend speaking with these members, as they went above and beyond in the last ${pluralize(
-        selectedPeriod.granularity,
-        selectedPeriod.value,
-        true
-      )}. They are probably eager to share their experiences and enthusiasm for your community.`"
-    />
+    <app-widget-insight>
+      <template #description
+        ><span>{{
+          `We recommend speaking with these members, as they went above and beyond in the last ${pluralize(
+            selectedPeriod.granularity,
+            selectedPeriod.value,
+            true
+          )}. They are probably eager to share their experiences and enthusiasm for your community.`
+        }}</span></template
+      >
+    </app-widget-insight>
   </div>
   <app-widget-drawer
     v-if="drawerExpanded"
@@ -166,6 +170,7 @@ const getActiveMembers = async (
     const response = await MemberService.listActive({
       platform: platforms,
       isTeamMember: teamMembers,
+      activityIsContribution: null,
       activityTimestampFrom: moment()
         .utc()
         .subtract(period.value, period.granularity)
@@ -195,6 +200,7 @@ const getDetailedActiveMembers = async ({
   return await MemberService.listActive({
     platform: props.platforms,
     isTeamMember: props.teamMembers,
+    activityIsContribution: null,
     activityTimestampFrom: moment()
       .utc()
       .subtract(period.value, period.granularity)

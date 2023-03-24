@@ -12,7 +12,7 @@
     <div>
       <div class="text-black text-sm">Insight</div>
       <div class="mt-1 text-gray-600 text-xs">
-        {{ description }}
+        <slot name="description" />
       </div>
     </div>
   </div>
@@ -24,13 +24,4 @@ export default {
 }
 </script>
 
-<script setup>
-import { defineProps } from 'vue'
-
-defineProps({
-  description: {
-    type: String,
-    required: true
-  }
-})
-</script>
+<script setup></script>

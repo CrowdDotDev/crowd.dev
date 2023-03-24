@@ -182,6 +182,7 @@ const getActiveMembers = async ({ pagination }) => {
   return await MemberService.listActive({
     platform: props.filters.platform.value,
     isTeamMember: props.filters.teamMembers,
+    activityIsContribution: null,
     activityTimestampFrom,
     activityTimestampTo: moment().utc(),
     orderBy: 'activityCount_DESC',

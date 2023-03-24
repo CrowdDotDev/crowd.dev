@@ -519,6 +519,11 @@ class MemberRepository {
       parameters.platforms = filter.platforms
     }
 
+    if (filter.activityIsContribution) {
+      activityConditions.push('"isContribution" = (:isContribution)')
+      parameters.isContribution = filter.activityIsContribution
+    }
+
     const conditionsString = conditions.join(' and ')
     const activityConditionsString = activityConditions.join(' and ')
 
