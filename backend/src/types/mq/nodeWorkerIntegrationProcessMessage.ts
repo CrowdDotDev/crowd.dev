@@ -19,6 +19,7 @@ export class NodeWorkerIntegrationProcessMessage extends NodeWorkerMessageBase {
     public readonly metadata?: any,
     public readonly retryStreams?: IIntegrationStreamRetry[],
     public readonly remainingStreams?: IIntegrationStream[],
+    public readonly totalDuration?: number,
   ) {
     super(NodeWorkerMessageType.INTEGRATION_PROCESS)
   }

@@ -4,7 +4,7 @@ import moment from 'moment'
 import { v4 as uuid } from 'uuid'
 import path from 'path'
 import fs from 'fs'
-import { createChildLogger } from '../../../utils/logging'
+import { createChildLogger, Logger } from '../../../utils/logging'
 import IntegrationRepository from '../../../database/repositories/integrationRepository'
 import MicroserviceRepository from '../../../database/repositories/microserviceRepository'
 import getUserContext from '../../../database/utils/getUserContext'
@@ -44,7 +44,7 @@ import IncomingWebhookRepository from '../../../database/repositories/incomingWe
 import { WebhookError, WebhookState } from '../../../types/webhooks'
 import { NodeWorkerProcessWebhookMessage } from '../../../types/mq/nodeWorkerProcessWebhookMessage'
 import SampleDataService from '../../../services/sampleDataService'
-import { SlackAlertTypes, sendSlackAlert } from '../../../utils/slackAlerts'
+import { sendSlackAlert, SlackAlertTypes } from '../../../utils/slackAlerts'
 
 const MAX_STREAM_RETRIES = 5
 
@@ -298,6 +298,8 @@ export class IntegrationProcessor extends LoggingBase {
     })
     logger.info('Processing integration!')
 
+    const startOfProcessing = moment()
+
     const userContext = await getUserContext(req.tenantId)
     userContext.log = logger
 
@@ -357,6 +359,7 @@ export class IntegrationProcessor extends LoggingBase {
 
     const failedStreams = []
     let setError = false
+    let stillProcessing = false
 
     try {
       // check global limit reset
@@ -388,7 +391,14 @@ export class IntegrationProcessor extends LoggingBase {
         if (err.rateLimitResetSeconds) {
           // need to delay integration processing
           logger.warn(err, 'Rate limit reached while preprocessing integration! Delaying...')
-          await sendNodeWorkerMessage(req.tenantId, req, err.rateLimitResetSeconds + 5)
+          await this.handleRateLimitError(
+            logger,
+            intService,
+            req,
+            startOfProcessing,
+            err.rateLimitResetSeconds,
+          )
+          stillProcessing = true
           return
         }
 
@@ -422,7 +432,14 @@ export class IntegrationProcessor extends LoggingBase {
           if (err.rateLimitResetSeconds) {
             // need to delay integration processing
             logger.warn(err, 'Rate limit reached while getting integration streams! Delaying...')
-            await sendNodeWorkerMessage(req.tenantId, req, err.rateLimitResetSeconds + 5)
+            await this.handleRateLimitError(
+              logger,
+              intService,
+              req,
+              startOfProcessing,
+              err.rateLimitResetSeconds,
+            )
+            stillProcessing = true
             return
           }
 
@@ -473,16 +490,25 @@ export class IntegrationProcessor extends LoggingBase {
               processStreamResult = await intService.processStream(stream, stepContext)
             } catch (err) {
               if (err.rateLimitResetSeconds) {
-                delay = err.rateLimitResetSeconds + 5
                 logger.warn(
                   { stream: JSON.stringify(stream), delay, message: err.message },
                   'Rate limit reached while processing stream! Delaying...',
                 )
-                failedStreams.push(stream)
-                break
-              } else {
-                throw err
+                streams.push(stream)
+                await this.handleRateLimitError(
+                  logger,
+                  intService,
+                  req,
+                  startOfProcessing,
+                  err.rateLimitResetSeconds,
+                  stepContext,
+                  failedStreams,
+                  streams,
+                )
+                stillProcessing = true
+                return
               }
+              throw err
             }
 
             if (processStreamResult.newStreams && processStreamResult.newStreams.length > 0) {
@@ -643,47 +669,171 @@ export class IntegrationProcessor extends LoggingBase {
       logger.error(err, 'Error while processing integration!')
       setError = req.onboarding
     } finally {
-      let emailSentAt
-      if (!setError && !integration.emailSentAt) {
-        const tenantUsers = await UserRepository.findAllUsersOfTenant(integration.tenantId)
-        emailSentAt = new Date()
-        for (const user of tenantUsers) {
-          await new EmailSender(EmailSender.TEMPLATES.INTEGRATION_DONE, {
-            integrationName: i18n('en', `entities.integration.name.${integration.platform}`),
-            link: API_CONFIG.frontendUrl,
-          }).sendTo(user.email)
+      if (!stillProcessing) {
+        let emailSentAt
+        if (!setError && !integration.emailSentAt) {
+          const tenantUsers = await UserRepository.findAllUsersOfTenant(integration.tenantId)
+          emailSentAt = new Date()
+          for (const user of tenantUsers) {
+            await new EmailSender(EmailSender.TEMPLATES.INTEGRATION_DONE, {
+              integrationName: i18n('en', `entities.integration.name.${integration.platform}`),
+              link: API_CONFIG.frontendUrl,
+            }).sendTo(user.email)
+          }
+        }
+
+        await this.redisCache.delete(integration.id)
+
+        await IntegrationRepository.update(
+          integration.id,
+          {
+            status: setError ? 'error' : 'done',
+            emailSentAt,
+            settings: stepContext.integration.settings,
+            refreshToken: stepContext.integration.refreshToken,
+            token: stepContext.integration.token,
+          },
+          userContext,
+        )
+
+        if (setError) {
+          await sendSlackAlert(SlackAlertTypes.INTEGRATION_ERROR, integration, userContext, logger)
+        }
+
+        if (req.onboarding && this.apiPubSubEmitter) {
+          this.apiPubSubEmitter.emit(
+            'user',
+            new ApiWebsocketMessage(
+              'integration-completed',
+              JSON.stringify({
+                integrationId: integration.id,
+                status: setError ? 'error' : 'done',
+              }),
+              undefined,
+              integration.tenantId,
+            ),
+          )
+        }
+      }
+    }
+  }
+
+  private async handleRateLimitError(
+    logger: Logger,
+    intService: IntegrationServiceBase,
+    req: NodeWorkerIntegrationProcessMessage,
+    startOfProcessing: moment.Moment,
+    rateLimitResetSeconds: number,
+    context?: IStepContext,
+    failedStreams?: IIntegrationStream[],
+    remainingStreams?: IIntegrationStream[],
+  ): Promise<void> {
+    if (req.onboarding) {
+      const totalProcessingSeconds =
+        moment().diff(startOfProcessing, 'seconds') +
+        rateLimitResetSeconds +
+        (req.totalDuration || 0)
+
+      // if we are processing for more than 7 days, we should just stop
+      if (totalProcessingSeconds > 7 * 24 * 60 * 60) {
+        logger.error(
+          { totalProcessing: totalProcessingSeconds },
+          'We are processing this integration onboarding for more than 7 days - stopping!',
+        )
+        await IntegrationRepository.update(
+          context.integration.id,
+          {
+            status: 'error',
+            settings: context.integration.settings,
+            refreshToken: context.integration.refreshToken,
+            token: context.integration.token,
+          },
+          context.repoContext,
+        )
+        return
+      }
+
+      // mark it as in process so that we don't do checks on it while we wait...
+      await this.redisCache.setValue(req.integrationId, 'processing', rateLimitResetSeconds + 5)
+
+      if (context) {
+        try {
+          await intService.postprocess(context, failedStreams, remainingStreams)
+          await IntegrationRepository.update(
+            context.integration.id,
+            {
+              settings: context.integration.settings,
+              refreshToken: context.integration.refreshToken,
+              token: context.integration.token,
+            },
+            context.repoContext,
+          )
+        } catch (err) {
+          logger.error(err, 'Error while postprocessing integration!')
+          await IntegrationRepository.update(
+            context.integration.id,
+            {
+              status: 'error',
+              settings: context.integration.settings,
+              refreshToken: context.integration.refreshToken,
+              token: context.integration.token,
+            },
+            context.repoContext,
+          )
+          return
         }
       }
 
-      await this.redisCache.delete(integration.id)
-
-      await IntegrationRepository.update(
-        integration.id,
-        {
-          status: setError ? 'error' : 'done',
-          emailSentAt,
-          settings: stepContext.integration.settings,
-          refreshToken: stepContext.integration.refreshToken,
-          token: stepContext.integration.token,
-        },
-        userContext,
-      )
-
-      if (setError) {
-        await sendSlackAlert(SlackAlertTypes.INTEGRATION_ERROR, integration, userContext, logger)
-      }
-
-      if (req.onboarding && this.apiPubSubEmitter) {
-        this.apiPubSubEmitter.emit(
-          'user',
-          new ApiWebsocketMessage(
-            'integration-completed',
-            JSON.stringify({ integrationId: integration.id, status: setError ? 'error' : 'done' }),
+      if (remainingStreams === undefined) {
+        logger.warn(
+          { totalProcessingSeconds },
+          'No remaining streams - delaying entire integration!',
+        )
+        await sendNodeWorkerMessage(
+          req.tenantId,
+          new NodeWorkerIntegrationProcessMessage(
+            req.integrationType,
+            req.tenantId,
+            true,
+            req.integrationId,
+            req.microserviceId,
+            req.metadata,
             undefined,
-            integration.tenantId,
+            undefined,
+            totalProcessingSeconds,
           ),
+          rateLimitResetSeconds + 30,
+        )
+      } else {
+        logger.warn({ totalProcessingSeconds }, 'Delaying integration processing!')
+        const streams: IIntegrationStream[] = []
+        if (failedStreams !== undefined && failedStreams.length > 0) {
+          logger.warn(
+            'We have some failed streams - we will mark them as normal streams for delayed processing!',
+          )
+          streams.push(...failedStreams)
+        }
+
+        streams.push(...remainingStreams)
+
+        await sendNodeWorkerMessage(
+          req.tenantId,
+          new NodeWorkerIntegrationProcessMessage(
+            req.integrationType,
+            req.tenantId,
+            true,
+            req.integrationId,
+            req.microserviceId,
+            req.metadata,
+            [],
+            streams,
+            totalProcessingSeconds,
+          ),
+          rateLimitResetSeconds + 5,
         )
       }
+    } else {
+      logger.warn('Not onboarding - skipping delay because of rate limit!')
     }
   }
 }
