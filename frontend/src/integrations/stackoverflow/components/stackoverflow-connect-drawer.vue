@@ -81,7 +81,7 @@
             :disabled="!isMaxTagsReached"
             popper-class="w-60"
             effect="dark"
-            content="You reached the limit of 5 tags allowed"
+            content="You reached the limit of 3 tags allowed"
             placement="top-start"
           >
             <div>
@@ -185,7 +185,8 @@ import config from '@/config'
 import isEqual from 'lodash/isEqual'
 import { IntegrationService } from '@/modules/integration/integration-service'
 
-const MAX_STACK_OVERFLOW_QUESTIONS = 10000
+const MAX_STACK_OVERFLOW_QUESTIONS_PER_TAG = 1100
+const MAX_STACK_OVERFLOW_QUESTIONS_FOR_KEYWORDS = 1100
 
 const store = useStore()
 
@@ -207,9 +208,9 @@ const tags = computed(() => {
   if (props.integration.settings?.tags?.length > 0) {
     return props.integration.settings?.tags.map((i) => ({
       value: i,
-      valid: false,
+      valid: true,
       validating: false,
-      touched: false,
+      touched: true,
       volumeTooLarge: false
     }))
   }
@@ -303,12 +304,6 @@ const isValidating = computed(() => {
   return model.value.filter((s) => s.validating).length > 0
 })
 
-// const isMaxQuestionsReached = computed(() => {
-//   return (
-//     estimatedQuestions.value > MAX_STACK_OVERFLOW_QUESTIONS
-//   )
-// })
-
 watch(
   () => keywordsCount.value,
   async () => {
@@ -317,7 +312,7 @@ watch(
       const volume = await calculateVolume()
 
       isKeywordsValid.value =
-        volume <= MAX_STACK_OVERFLOW_QUESTIONS
+        volume <= MAX_STACK_OVERFLOW_QUESTIONS_FOR_KEYWORDS
     } else {
       isKeywordsValid.value = true
     }
@@ -340,7 +335,7 @@ const maxId = computed(() => {
 })
 
 const isMaxTagsReached = computed(() => {
-  return model.value.length >= 5
+  return model.value.length >= 3
 })
 
 const deleteItem = (index) => {
@@ -380,7 +375,7 @@ const handleTagValidation = async (index) => {
     const data =
       await IntegrationService.stackOverflowValidate(tag)
     const count = data.items[0].count
-    if (count > MAX_STACK_OVERFLOW_QUESTIONS) {
+    if (count > MAX_STACK_OVERFLOW_QUESTIONS_PER_TAG) {
       model.value[index].volumeTooLarge = true
     } else {
       model.value[index].volumeTooLarge = false
