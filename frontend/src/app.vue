@@ -19,10 +19,10 @@
 </template>
 
 <script>
-import { mapGetters, mapActions, mapState } from 'vuex'
-import AppResizePage from '@/modules/layout/pages/resize-page.vue'
-import { FeatureFlag } from '@/featureFlag'
-import config from '@/config'
+import { mapGetters, mapActions, mapState } from 'vuex';
+import AppResizePage from '@/modules/layout/pages/resize-page.vue';
+import { FeatureFlag } from '@/featureFlag';
+import config from '@/config';
 import { AuthToken } from '@/modules/auth/auth-token';
 
 export default {
@@ -46,30 +46,30 @@ export default {
         || (!this.featureFlag.isReady
           && !this.featureFlag.hasError
           && !config.isCommunityVersion)
-      )
+      );
     },
   },
 
   async created() {
-    await this.doInit()
+    await this.doInit();
 
-    FeatureFlag.init(this.currentTenant)
+    FeatureFlag.init(this.currentTenant);
 
-    window.addEventListener('resize', this.handleResize)
-    this.handleResize()
+    window.addEventListener('resize', this.handleResize);
+    this.handleResize();
   },
 
   mounted() {
     this.$router.isReady().then(() => {
       const { ref } = this.$route.query
       if (ref && ref === 'eagle-eye') {
-        localStorage.setItem('onboardType', 'eagle-eye')
+        localStorage.setItem('onboardType', 'eagle-eye');
       }
-    })
+    });
   },
 
   unmounted() {
-    window.removeEventListener('resize', this.handleResize)
+    window.removeEventListener('resize', this.handleResize);
   },
 
   methods: {
@@ -82,10 +82,10 @@ export default {
       this.resize({
         width: window.innerWidth,
         height: window.innerHeight,
-      })
+      });
     },
   },
-}
+};
 </script>
 
 <style lang="scss">
