@@ -65,9 +65,7 @@ i18nInit();
       });
     });
 
-  Object.values(plugins).forEach((plugin) => {
-    app.use(plugin);
-  });
+  Object.values(plugins).map((plugin) => app.use(plugin));
   app.use(VNetworkGraph);
 
   app.use(pinia);

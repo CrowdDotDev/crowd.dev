@@ -1,5 +1,5 @@
 <template>
-  <div v-if="!loading" id="app">
+  <div v-show="!loading" id="app">
     <div class="sm:hidden md:block lg:block">
       <router-view v-slot="{ Component }">
         <transition>

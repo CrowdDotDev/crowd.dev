@@ -109,7 +109,7 @@ export default {
   AUTH_INIT_ERROR(state) {
     state.currentUser = null
     state.currentTenant = null
-    state.loadingInit = false
+    state.loadingInit = false;
   },
 
   CLEAR_TENANT(state) {
