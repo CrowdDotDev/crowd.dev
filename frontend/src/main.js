@@ -1,26 +1,26 @@
 import { createApp } from 'vue';
+import VueClickAway from 'vue3-click-away';
+import VueGridLayout from 'vue-grid-layout';
+import Vue3Sanitize from 'vue-3-sanitize';
+import LogRocket from 'logrocket';
+import VNetworkGraph from 'v-network-graph';
+import VueLazyLoad from 'vue3-lazyload';
+import { createPinia } from 'pinia';
 import { createRouter } from '@/router';
 import { createStore } from '@/store';
 import plugins from '@/plugins';
-import VueClickAway from 'vue3-click-away';
 import modules from '@/modules';
 import config from '@/config';
 
 import { init as i18nInit } from '@/i18n';
 
-import VueGridLayout from 'vue-grid-layout';
 import { AuthToken } from '@/modules/auth/auth-token';
 import { TenantService } from '@/modules/tenant/tenant-service';
-import Vue3Sanitize from 'vue-3-sanitize';
-import LogRocket from 'logrocket';
-import VNetworkGraph from 'v-network-graph';
 import 'v-network-graph/lib/style.css';
 
 import App from '@/app.vue';
 import { vueSanitizeOptions } from '@/plugins/sanitize';
 import marked from '@/plugins/marked';
-import VueLazyLoad from 'vue3-lazyload';
-import { createPinia } from 'pinia';
 
 i18nInit();
 /**

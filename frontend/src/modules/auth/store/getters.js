@@ -1,6 +1,6 @@
+import _get from 'lodash/get'
 import AuthCurrentTenant from '@/modules/auth/auth-current-tenant'
 import { tenantSubdomain } from '@/modules/tenant/tenant-subdomain'
-import _get from 'lodash/get'
 
 export default {
   currentUser: (state) => state.currentUser,

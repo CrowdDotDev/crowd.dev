@@ -1,6 +1,6 @@
+import * as yup from 'yup';
 import StringArrayField from '@/shared/fields/string-array-field';
 import Roles from '@/security/roles';
-import * as yup from 'yup';
 
 export class RolesField extends StringArrayField {
   constructor(name, fieldLabel, config = {}) {

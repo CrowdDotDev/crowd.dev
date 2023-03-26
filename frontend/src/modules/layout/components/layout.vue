@@ -163,9 +163,6 @@ import identify from '@/shared/monitoring/identify';
 import config from '@/config';
 import AppMenu from '@/modules/layout/components/menu.vue';
 
-/* eslint-disable import/no-unresolved */
-// require('@formbricks/pmf');
-
 export default {
   name: 'AppLayout',
 
@@ -285,6 +282,8 @@ export default {
           },
         },
       };
+      // eslint-disable-next-line global-require,import/no-unresolved
+      require('@formbricks/pmf')
     }
   },
 

@@ -1,5 +1,5 @@
-import StringArrayField from '@/shared/fields/string-array-field';
 import * as yup from 'yup';
+import StringArrayField from '@/shared/fields/string-array-field';
 import { i18n } from '@/i18n';
 
 export class EmailsField extends StringArrayField {

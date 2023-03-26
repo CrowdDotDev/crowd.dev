@@ -58,6 +58,7 @@ module.exports = {
         extensions: ['.js', '.jsx', '.ts', '.tsx'],
         map: [
           ['@', './src'],
+          ['@formbricks', './node_modules/@formbricks'],
         ],
       },
     },
