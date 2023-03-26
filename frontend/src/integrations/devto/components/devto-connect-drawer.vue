@@ -11,9 +11,7 @@
     <template #content>
       <el-form class="form integration-devto-form">
         <div class="flex flex-col gap-2 items-start">
-          <span class="text-sm font-medium"
-            >Track organization articles</span
-          >
+          <span class="text-sm font-medium">Track organization articles</span>
           <span
             class="text-2xs font-light mb-2 text-gray-600"
           >
@@ -25,7 +23,7 @@
             class="mb-4 w-full"
             :class="{
               'is-error': org.touched && !org.valid,
-              'is-success': org.touched && org.valid
+              'is-success': org.touched && org.valid,
             }"
           >
             <div
@@ -39,13 +37,15 @@
                 placeholder="Enter organization slug"
                 @blur="handleOrganizationValidation(org.id)"
               >
-                <template #prepend>dev.to/</template>
+                <template #prepend>
+                  dev.to/
+                </template>
                 <template #suffix>
                   <div
                     v-if="org.validating"
                     v-loading="org.validating"
                     class="flex items-center justify-center w-6 h-6"
-                  ></div>
+                  />
                 </template>
               </el-input>
               <el-button
@@ -55,23 +55,21 @@
               >
                 <i
                   class="ri-delete-bin-line text-lg text-black"
-                ></i>
+                />
               </el-button>
             </div>
             <span
               v-if="org.touched && !org.valid"
               class="el-form-item__error"
-              >Organization slug is not valid</span
-            >
+            >Organization slug is not valid</span>
           </el-form-item>
           <el-button
             class="btn btn-link btn-link--primary"
             @click="addNewOrganization"
-            >+ Add organization link</el-button
           >
-          <span class="text-sm font-medium mt-8"
-            >Track user articles</span
-          >
+            + Add organization link
+          </el-button>
+          <span class="text-sm font-medium mt-8">Track user articles</span>
           <span
             class="text-2xs font-light mb-2 text-gray-600"
           >
@@ -84,7 +82,7 @@
             class="mb-4 w-full"
             :class="{
               'is-error': user.touched && !user.valid,
-              'is-success': user.touched && user.valid
+              'is-success': user.touched && user.valid,
             }"
           >
             <div
@@ -97,13 +95,15 @@
                 placeholder="Enter user slug"
                 @blur="handleUserValidation(user.id)"
               >
-                <template #prepend>dev.to/</template>
+                <template #prepend>
+                  dev.to/
+                </template>
                 <template #suffix>
                   <div
                     v-if="user.validating"
                     v-loading="user.validating"
                     class="flex items-center justify-center w-6 h-6"
-                  ></div>
+                  />
                 </template>
               </el-input>
               <el-button
@@ -113,20 +113,20 @@
               >
                 <i
                   class="ri-delete-bin-line text-lg text-black"
-                ></i>
+                />
               </el-button>
             </div>
             <span
               v-if="user.touched && !user.valid"
               class="el-form-item__error"
-              >User slug is not valid</span
-            >
+            >User slug is not valid</span>
           </el-form-item>
           <el-button
             class="btn btn-link btn-link--primary"
             @click="addNewUser"
-            >+ Add user link</el-button
           >
+            + Add user link
+          </el-button>
         </div>
       </el-form>
     </template>
@@ -137,7 +137,7 @@
           :disabled="loading"
           @click="cancel"
         >
-          <app-i18n code="common.cancel"></app-i18n>
+          <app-i18n code="common.cancel" />
         </el-button>
         <el-button
           id="devConnect"
@@ -146,7 +146,7 @@
           :loading="loading"
           @click="save"
         >
-          <app-i18n code="common.connect"></app-i18n>
+          <app-i18n code="common.connect" />
         </el-button>
       </div>
     </template>
@@ -154,9 +154,9 @@
 </template>
 
 <script>
-import { mapActions } from 'vuex'
-import { IntegrationService } from '@/modules/integration/integration-service'
-import { CrowdIntegrations } from '@/integrations/integrations-config'
+import { mapActions } from 'vuex';
+import { IntegrationService } from '@/modules/integration/integration-service';
+import { CrowdIntegrations } from '@/integrations/integrations-config';
 
 export default {
   name: 'AppDevtoConnectDrawer',
@@ -164,12 +164,12 @@ export default {
   props: {
     integration: {
       type: Object,
-      default: null
+      default: null,
     },
     modelValue: {
       type: Boolean,
-      default: false
-    }
+      default: false,
+    },
   },
   emits: ['update:modelValue'],
   data() {
@@ -177,145 +177,137 @@ export default {
       logoUrl: CrowdIntegrations.getConfig('devto').image,
       users: [],
       organizations: [],
-      loading: false
-    }
+      loading: false,
+    };
   },
   computed: {
     isVisible: {
       get() {
-        return this.modelValue
+        return this.modelValue;
       },
       set(value) {
-        this.$emit('update:modelValue', value)
-      }
+        this.$emit('update:modelValue', value);
+      },
     },
     connectDisabled() {
       if (!this.isValid) {
-        return true
+        return true;
       }
 
       const validUsers = this.users.filter(
-        (u) => !!u.username
-      )
+        (u) => !!u.username,
+      );
       const validOrgs = this.organizations.filter(
-        (o) => !!o.username
-      )
+        (o) => !!o.username,
+      );
 
-      const empty =
-        validUsers.length + validOrgs.length === 0
+      const empty = validUsers.length + validOrgs.length === 0;
 
       if (this.integration.settings && !empty) {
         return (
-          validUsers.length ===
-            this.integration.settings.users.length &&
-          validUsers.every((u) =>
-            this.integration.settings.users.includes(
-              u.username
-            )
-          ) &&
-          validOrgs.length ===
-            this.integration.settings.organizations
-              .length &&
-          validOrgs.every((o) =>
-            this.integration.settings.organizations.includes(
-              o.username
-            )
-          )
-        )
+          validUsers.length
+            === this.integration.settings.users.length
+          && validUsers.every((u) => this.integration.settings.users.includes(
+            u.username,
+          ))
+          && validOrgs.length
+            === this.integration.settings.organizations
+              .length
+          && validOrgs.every((o) => this.integration.settings.organizations.includes(
+            o.username,
+          ))
+        );
       }
 
-      return empty
+      return empty;
     },
     isLastOrganization() {
-      return this.organizations.length === 1
+      return this.organizations.length === 1;
     },
     isLastUser() {
-      return this.users.length === 1
+      return this.users.length === 1;
     },
     isValid() {
       const relevantUsers = this.users.filter(
-        (u) => !!u.username
-      )
-      for (const user of relevantUsers) {
-        if (!user.valid) return false
+        (u) => !!u.username,
+      );
+
+      if (relevantUsers.some((user) => !user.valid)) {
+        return false;
       }
 
-      const relevantOrganizations =
-        this.organizations.filter((o) => !!o.username)
-      for (const org of relevantOrganizations) {
-        if (!org.valid) return false
+      const relevantOrganizations = this.organizations.filter((o) => !!o.username);
+      if (relevantOrganizations.some((org) => !org.valid)) {
+        return false;
       }
 
       return (
-        relevantUsers.length +
-          relevantOrganizations.length >
-        0
-      )
+        relevantUsers.length
+          + relevantOrganizations.length
+        > 0
+      );
     },
     maxId() {
       if (
-        this.users.length === 0 &&
-        this.organizations.length === 0
-      )
-        return 0
+        this.users.length === 0
+        && this.organizations.length === 0
+      ) return 0;
 
-      let maxId = -1
-      for (const user of this.users) {
+      let maxId = -1;
+      this.users.forEach((user) => {
         if (user.id > maxId) {
-          maxId = user.id
+          maxId = user.id;
         }
-      }
+      });
 
-      for (const org of this.organizations) {
+      this.organizations.forEach((org) => {
         if (org.id > maxId) {
-          maxId = org.id
+          maxId = org.id;
         }
-      }
+      });
 
-      return maxId
-    }
+      return maxId;
+    },
   },
   watch: {
     integration: {
-      handler: function (newVal) {
+      handler(newVal) {
         if (newVal) {
-          this.syncData()
+          this.syncData();
         }
-      }
-    }
+      },
+    },
   },
 
   mounted() {
-    this.syncData()
+    this.syncData();
   },
 
   methods: {
     ...mapActions({
-      doDevtoConnect: 'integration/doDevtoConnect'
+      doDevtoConnect: 'integration/doDevtoConnect',
     }),
 
     toggle() {
-      this.isVisible = !this.isVisible
+      this.isVisible = !this.isVisible;
     },
 
     syncData() {
-      this.users = []
-      this.organizations = []
+      this.users = [];
+      this.organizations = [];
 
       if (this.integration && this.integration.settings) {
-        this.integration.settings.users.forEach((u) =>
-          this.addNewUser(u)
-        )
+        this.integration.settings.users.forEach((u) => this.addNewUser(u));
         this.integration.settings.organizations.forEach(
-          (o) => this.addNewOrganization(o)
-        )
+          (o) => this.addNewOrganization(o),
+        );
       }
 
       if (this.users.length === 0) {
-        this.addNewUser()
+        this.addNewUser();
       }
       if (this.organizations.length === 0) {
-        this.addNewOrganization()
+        this.addNewOrganization();
       }
     },
 
@@ -323,137 +315,132 @@ export default {
       this.users.push({
         id: this.maxId + 1,
         username:
-          typeof username === 'string' ||
-          username instanceof String
+          typeof username === 'string'
+          || username instanceof String
             ? username
             : '',
         touched: false,
         valid: false,
-        validating: false
-      })
+        validating: false,
+      });
     },
 
     removeUser(id) {
-      this.users = this.users.filter((u) => u.id !== id)
+      this.users = this.users.filter((u) => u.id !== id);
     },
 
     addNewOrganization(username) {
       this.organizations.push({
         id: this.maxId + 1,
         username:
-          typeof username === 'string' ||
-          username instanceof String
+          typeof username === 'string'
+          || username instanceof String
             ? username
             : '',
         touched: false,
         valid: false,
-        validating: false
-      })
+        validating: false,
+      });
     },
 
     removeOrganization(id) {
       this.organizations = this.organizations.filter(
-        (o) => o.id !== id
-      )
+        (o) => o.id !== id,
+      );
     },
 
     async handleUserValidation(id) {
-      const user = this.users.find((u) => u.id === id)
+      const user = this.users.find((u) => u.id === id);
 
       try {
-        user.validating = true
+        user.validating = true;
 
         if (!user.username) {
-          user.valid = false
-          return
+          user.valid = false;
+          return;
         }
 
         if (
           this.users.find(
-            (u) =>
-              u.id !== id && u.username === user.username
+            (u) => u.id !== id && u.username === user.username,
           )
         ) {
-          user.valid = false
+          user.valid = false;
         } else {
-          const result =
-            await IntegrationService.devtoValidateUser(
-              user.username
-            )
+          const result = await IntegrationService.devtoValidateUser(
+            user.username,
+          );
 
-          user.valid = !!result
+          user.valid = !!result;
         }
       } catch (e) {
-        console.error(e)
-        user.valid = false
+        console.error(e);
+        user.valid = false;
       } finally {
-        user.validating = false
-        user.touched = true
+        user.validating = false;
+        user.touched = true;
       }
     },
 
     async handleOrganizationValidation(id) {
       const organization = this.organizations.find(
-        (o) => o.id === id
-      )
+        (o) => o.id === id,
+      );
 
       try {
-        organization.validating = true
+        organization.validating = true;
 
         if (!organization.username) {
-          organization.valid = false
-          return
+          organization.valid = false;
+          return;
         }
 
         if (
           this.organizations.find(
-            (o) =>
-              o.id !== id &&
-              o.username === organization.username
+            (o) => o.id !== id
+              && o.username === organization.username,
           )
         ) {
-          organization.valid = false
+          organization.valid = false;
         } else {
-          const result =
-            await IntegrationService.devtoValidateOrganization(
-              organization.username
-            )
-          organization.valid = !!result
+          const result = await IntegrationService.devtoValidateOrganization(
+            organization.username,
+          );
+          organization.valid = !!result;
         }
       } catch (e) {
-        console.error(e)
-        organization.valid = false
+        console.error(e);
+        organization.valid = false;
       } finally {
-        organization.validating = false
-        organization.touched = true
+        organization.validating = false;
+        organization.touched = true;
       }
     },
 
     cancel() {
-      this.isVisible = false
-      this.syncData()
+      this.isVisible = false;
+      this.syncData();
     },
 
     async save() {
-      this.loading = true
+      this.loading = true;
 
-      const relevantOrganizations =
-        this.organizations.filter((o) => !!o.username)
+      const relevantOrganizations = this.organizations.filter((o) => !!o.username);
       const relevantUsers = this.users.filter(
-        (u) => !!u.username
-      )
+        (u) => !!u.username,
+      );
       await this.doDevtoConnect({
         users: relevantUsers.map((u) => u.username),
         organizations: relevantOrganizations.map(
-          (o) => o.username
-        )
-      })
+          (o) => o.username,
+        ),
+      });
 
-      this.isVisible = false
-      this.loading = false
-    }
-  }
-}
+      this.isVisible = false;
+      this.loading = false;
+    },
+  },
+};
 </script>
 <style lang="scss">
 .integration-devto-form {

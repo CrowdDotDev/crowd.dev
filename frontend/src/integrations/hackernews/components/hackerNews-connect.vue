@@ -1,30 +1,31 @@
 <template>
   <slot :connect="connect" />
-  <app-hackerNews-connect-drawer
+  <app-hacker-news-connect-drawer
     v-model="drawerVisible"
     :integration="integration"
   />
 </template>
 
-<script>
-export default {
-  name: 'AppHackerNewsConnect'
-}
-</script>
 <script setup>
-import { defineProps, ref } from 'vue'
-import AppHackerNewsConnectDrawer from '@/integrations/hackernews/components/hackerNews-connect-drawer'
+import { defineProps, ref } from 'vue';
+import AppHackerNewsConnectDrawer from '@/integrations/hackernews/components/hackerNews-connect-drawer.vue';
 
 defineProps({
   integration: {
     type: Object,
-    default: () => {}
-  }
-})
+    default: () => {},
+  },
+});
 
+const drawerVisible = ref(false);
 const connect = () => {
-  drawerVisible.value = true
-}
+  drawerVisible.value = true;
+};
 
-const drawerVisible = ref(false)
+</script>
+
+<script>
+export default {
+  name: 'AppHackerNewsConnect',
+};
 </script>

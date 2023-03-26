@@ -16,6 +16,7 @@
 
     <img
       v-if="showImage"
+      alt="Eagle eye banner"
       class="absolute bottom-0 right-0 h-68"
       src="/images/eagle-eye/banner.png"
     />
@@ -23,20 +24,20 @@
 </template>
 
 <script setup>
-import { defineProps } from 'vue'
+import { defineProps } from 'vue';
 
 defineProps({
   preTitle: {
     type: String,
-    required: true
+    required: true,
   },
   title: {
     type: String,
-    required: true
+    required: true,
   },
   showImage: {
     type: Boolean,
-    default: false
-  }
-})
+    default: false,
+  },
+});
 </script>

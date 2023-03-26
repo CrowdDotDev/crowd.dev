@@ -2,7 +2,9 @@
   <div class="member-view-aside panel">
     <div>
       <div class="flex items-center justify-between">
-        <div class="font-medium text-black">Identities</div>
+        <div class="font-medium text-black">
+          Identities
+        </div>
       </div>
       <div class="-mx-6 mt-6">
         <a
@@ -15,17 +17,17 @@
           "
           :href="getIdentityLink('github')"
           target="_blank"
+          rel="noopener noreferrer"
         >
           <div class="flex gap-3 items-center">
             <app-platform platform="github" />
             <span class="text-gray-900 text-xs">
-              GitHub</span
-            >
+              GitHub</span>
           </div>
           <i
             v-if="getIdentityLink('github')"
             class="ri-external-link-line text-gray-300"
-          ></i>
+          />
         </a>
         <a
           v-if="getIdentityLink('twitter')"
@@ -37,17 +39,17 @@
           "
           :href="getIdentityLink('twitter')"
           target="_blank"
+          rel="noopener noreferrer"
         >
           <div class="flex gap-3 items-center">
             <app-platform platform="twitter" />
             <span class="text-gray-900 text-xs">
-              Twitter</span
-            >
+              Twitter</span>
           </div>
           <i
             v-if="getIdentityLink('twitter')"
             class="ri-external-link-line text-gray-300"
-          ></i>
+          />
         </a>
         <a
           v-if="getIdentityLink('linkedin')"
@@ -59,17 +61,17 @@
           "
           :href="getIdentityLink('linkedin')"
           target="_blank"
+          rel="noopener noreferrer"
         >
           <div class="flex gap-3 items-center">
             <app-platform platform="linkedin" />
             <span class="text-gray-900 text-xs">
-              LinkedIn</span
-            >
+              LinkedIn</span>
           </div>
           <i
             v-if="getIdentityLink('linkedin')"
             class="ri-external-link-line text-gray-300"
-          ></i>
+          />
         </a>
         <a
           v-if="getIdentityLink('crunchbase')"
@@ -81,38 +83,38 @@
           "
           :href="getIdentityLink('crunchbase')"
           target="_blank"
+          rel="noopener noreferrer"
         >
           <div class="flex gap-3 items-center">
             <app-platform platform="crunchbase" />
             <span class="text-gray-900 text-xs">
-              Crunchbase</span
-            >
+              Crunchbase</span>
           </div>
           <i
             v-if="getIdentityLink('crunchbase')"
             class="ri-external-link-line text-gray-300"
-          ></i>
+          />
         </a>
         <el-divider
           v-if="showDivider"
           class="border-t-gray-200"
-        ></el-divider>
+        />
         <a
           v-for="email of organization.emails"
           :key="email"
           class="px-6 py-2 flex justify-between items-center relative hover:bg-gray-50 transition-colors cursor-pointer"
           :href="`mailto:${email}`"
           target="_blank"
+          rel="noopener noreferrer"
         >
           <div class="flex gap-3 items-center">
             <app-platform platform="email" />
             <span class="text-gray-900 text-xs">
-              {{ email }}</span
-            >
+              {{ email }}</span>
           </div>
           <i
             class="ri-external-link-line text-gray-300"
-          ></i>
+          />
         </a>
         <a
           v-for="phone of organization.phoneNumbers"
@@ -120,16 +122,16 @@
           class="px-6 py-2 flex justify-between items-center relative hover:bg-gray-50 transition-colors cursor-pointer"
           :href="`tel:${phone}`"
           target="_blank"
+          rel="noopener noreferrer"
         >
           <div class="flex gap-3 items-center">
             <app-platform platform="phone" />
             <span class="text-gray-900 text-xs">
-              {{ phone }}</span
-            >
+              {{ phone }}</span>
           </div>
           <i
             class="ri-external-link-line text-gray-300"
-          ></i>
+          />
         </a>
 
         <div
@@ -139,7 +141,7 @@
           <router-link
             :to="{
               name: 'organizationEdit',
-              params: { id: organization.id }
+              params: { id: organization.id },
             }"
           >
             Add identities
@@ -150,66 +152,62 @@
   </div>
 </template>
 
-<script>
-export default {
-  name: 'AppMemberViewAside'
-}
-</script>
-
 <script setup>
-import { defineProps, computed } from 'vue'
+import { defineProps, computed } from 'vue';
 
 const props = defineProps({
   organization: {
     type: Object,
-    default: () => {}
-  }
-})
+    default: () => {},
+  },
+});
 
 const showDivider = computed(
-  () =>
-    (!!props.organization.emails?.length ||
-      !!props.organization.phoneNumbers?.length) &&
-    (!!props.organization.github ||
-      !!props.organization.linkedin ||
-      !!props.organization.twitter ||
-      !!props.organization.crunchbase)
-)
+  () => (!!props.organization.emails?.length
+      || !!props.organization.phoneNumbers?.length)
+    && (!!props.organization.github
+      || !!props.organization.linkedin
+      || !!props.organization.twitter
+      || !!props.organization.crunchbase),
+);
 
-const noIdentities = computed(() => {
-  return (
-    !props.organization.github?.url &&
-    !props.organization.linkedin?.url &&
-    !props.organization.twitter?.url &&
-    !props.organization.crunchbase?.url &&
-    (!props.organization.emails ||
-      props.organization.emails.length === 0) &&
-    (!props.organization.phoneNumbers ||
-      props.organization.phoneNumbers.length === 0)
-  )
-})
+const noIdentities = computed(() => (
+  !props.organization.github?.url
+    && !props.organization.linkedin?.url
+    && !props.organization.twitter?.url
+    && !props.organization.crunchbase?.url
+    && (!props.organization.emails
+      || props.organization.emails.length === 0)
+    && (!props.organization.phoneNumbers
+      || props.organization.phoneNumbers.length === 0)
+));
 
 const getIdentityLink = (platform) => {
   if (props.organization[platform]?.url) {
-    return props.organization[platform]?.url
-  } else if (props.organization[platform]?.handle) {
-    let url
+    return props.organization[platform]?.url;
+  } if (props.organization[platform]?.handle) {
+    let url;
 
     if (platform === 'linkedin') {
-      url = 'https://www.linkedin.com/'
+      url = 'https://www.linkedin.com/';
     } else if (platform === 'github') {
-      url = 'https://github.com/'
+      url = 'https://github.com/';
     } else if (platform === 'twitter') {
-      url = 'https://twitter.com/'
+      url = 'https://twitter.com/';
     } else if (platform === 'crunchbase') {
-      url = 'https://www.crunchbase.com/'
+      url = 'https://www.crunchbase.com/';
     } else {
-      return null
+      return null;
     }
 
-    return `${url}${props.organization[platform].handle}`
-  } else {
-    return null
+    return `${url}${props.organization[platform].handle}`;
   }
-}
+  return null;
+};
+</script>
+
+<script>
+export default {
+  name: 'AppMemberViewAside',
+};
 </script>

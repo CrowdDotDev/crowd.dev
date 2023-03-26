@@ -18,27 +18,27 @@
   </div>
 </template>
 
-<script>
-export default {
-  name: 'AppWidgetTitle'
-}
-</script>
-
 <script setup>
-import { defineProps } from 'vue'
+import { defineProps } from 'vue';
 
 defineProps({
   title: {
     type: String,
-    required: true
+    required: true,
   },
   description: {
     type: String,
-    default: null
+    default: null,
   },
   textSize: {
     type: String,
-    default: 'text-base'
-  }
-})
+    default: 'text-base',
+  },
+});
+</script>
+
+<script>
+export default {
+  name: 'AppWidgetTitle',
+};
 </script>

@@ -4,7 +4,7 @@
       v-if="loadingCube"
       v-loading="loadingCube"
       class="app-page-spinner"
-    ></div>
+    />
     <div v-else class="flex flex-col gap-8">
       <app-widget-total-members
         :filters="filters"
@@ -28,38 +28,38 @@
 </template>
 
 <script setup>
-import AppWidgetActiveMembers from '@/modules/widget/components/v2/widget-active-members.vue'
-import AppWidgetTotalMembers from '@/modules/widget/components/v2/widget-total-members.vue'
-import AppWidgetActiveMembersArea from '@/modules/widget/components/v2/widget-active-members-area.vue'
-import AppWidgetActiveLeaderboardMembers from '@/modules/widget/components/v2/widget-active-leaderboard-members.vue'
+import { computed, onMounted, defineProps } from 'vue';
+import AppWidgetActiveMembers from '@/modules/widget/components/v2/widget-active-members.vue';
+import AppWidgetTotalMembers from '@/modules/widget/components/v2/widget-total-members.vue';
+import AppWidgetActiveMembersArea from '@/modules/widget/components/v2/widget-active-members-area.vue';
+import AppWidgetActiveLeaderboardMembers from '@/modules/widget/components/v2/widget-active-leaderboard-members.vue';
 import {
   mapGetters,
-  mapActions
-} from '@/shared/vuex/vuex.helpers'
-import { computed, onMounted, defineProps } from 'vue'
+  mapActions,
+} from '@/shared/vuex/vuex.helpers';
 
 defineProps({
   filters: {
     type: Object,
-    required: true
+    required: true,
   },
   isPublicView: {
     type: Boolean,
-    default: false
-  }
-})
+    default: false,
+  },
+});
 
-const { cubejsApi, cubejsToken } = mapGetters('widget')
+const { cubejsApi, cubejsToken } = mapGetters('widget');
 
 const loadingCube = computed(
-  () => cubejsToken.value === null
-)
+  () => cubejsToken.value === null,
+);
 
-const { getCubeToken } = mapActions('widget')
+const { getCubeToken } = mapActions('widget');
 
 onMounted(async () => {
   if (cubejsApi.value === null) {
-    await getCubeToken()
+    await getCubeToken();
   }
-})
+});
 </script>

@@ -11,7 +11,7 @@
         class="h-12 flex items-center border-b last:border-none border-gray-200 hover:bg-gray-50 hover:cursor-pointer"
       >
         <div>
-          <img :src="platform.img" class="w-6 h-6" />
+          <img :src="platform.img" :alt="platform.label" class="w-6 h-6" />
         </div>
         <el-switch
           v-model="platforms[name]"
@@ -24,27 +24,27 @@
 </template>
 
 <script setup>
-import platformOptions from '@/premium/eagle-eye/constants/eagle-eye-platforms.json'
-import { computed, defineProps, defineEmits } from 'vue'
+import { computed, defineProps, defineEmits } from 'vue';
+import platformOptions from '@/premium/eagle-eye/constants/eagle-eye-platforms.json';
 
-const emit = defineEmits(['update:platforms'])
+const emit = defineEmits(['update:platforms']);
 const props = defineProps({
   platforms: {
     type: Object,
-    required: true
+    required: true,
   },
   rules: {
     type: Object,
-    default: null
-  }
-})
+    default: null,
+  },
+});
 
 const platforms = computed({
   get() {
-    return props.platforms
+    return props.platforms;
   },
   set(v) {
-    emit('update:platforms', v)
-  }
-})
+    emit('update:platforms', v);
+  },
+});
 </script>

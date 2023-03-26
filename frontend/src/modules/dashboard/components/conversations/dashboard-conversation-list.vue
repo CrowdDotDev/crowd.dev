@@ -5,7 +5,7 @@
         v-for="(el, ci) of new Array(2)"
         :key="el"
         :class="{
-          'border-b': ci < trendingConversations.length - 1
+          'border-b': ci < trendingConversations.length - 1,
         }"
         :loading="true"
       />
@@ -15,7 +15,7 @@
         v-for="(conversation, ci) of trendingConversations"
         :key="conversation.id"
         :class="{
-          'border-b': ci < trendingConversations.length - 1
+          'border-b': ci < trendingConversations.length - 1,
         }"
         :conversation="conversation"
         @details="conversationId = conversation.id"
@@ -34,7 +34,7 @@
       <router-link
         :to="{
           name: 'activity',
-          query: { activeTab: 'conversations' }
+          query: { activeTab: 'conversations' },
         }"
         class="text-red font-medium text-center text-xs leading-5"
       >
@@ -47,49 +47,50 @@
     :expand="conversationId != null"
     :conversation-id="conversationId"
     @close="conversationId = null"
-  ></app-conversation-drawer>
+  />
 </template>
 
 <script>
-import { mapGetters } from 'vuex'
-import AppDashboardConversationItem from '@/modules/dashboard/components/conversations/dashboard-conversation-item'
-import AppConversationDrawer from '@/modules/conversation/components/conversation-drawer'
-import AppDashboardEmptyState from '@/modules/dashboard/components/dashboard-empty-state.vue'
+import { mapGetters } from 'vuex';
+import AppDashboardEmptyState from '@/modules/dashboard/components/dashboard-empty-state.vue';
+import AppDashboardConversationItem from '@/modules/dashboard/components/conversations/dashboard-conversation-item.vue';
+import AppConversationDrawer from '@/modules/conversation/components/conversation-drawer.vue';
+
 export default {
   name: 'AppDashboardConversationList',
   components: {
     AppDashboardEmptyState,
     AppConversationDrawer,
-    AppDashboardConversationItem
+    AppDashboardConversationItem,
   },
   data() {
     return {
       conversationId: null,
-      storeUnsubscribe: () => {}
-    }
+      storeUnsubscribe: () => {},
+    };
   },
   computed: {
     ...mapGetters('dashboard', [
       'trendingConversations',
-      'conversations'
-    ])
+      'conversations',
+    ]),
   },
   created() {
     this.storeUnsubscribe = this.$store.subscribe(
       (mutation) => {
         if (
-          mutation.type ===
-          'communityHelpCenter/DESTROY_SUCCESS'
+          mutation.type
+          === 'communityHelpCenter/DESTROY_SUCCESS'
         ) {
           this.$store.dispatch(
-            'dashboard/getTrendingConversations'
-          )
+            'dashboard/getTrendingConversations',
+          );
         }
-      }
-    )
+      },
+    );
   },
   beforeUnmount() {
-    this.storeUnsubscribe()
-  }
-}
+    this.storeUnsubscribe();
+  },
+};
 </script>

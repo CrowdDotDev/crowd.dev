@@ -6,7 +6,7 @@
     <div>
       <i
         class="ri-mail-send-line text-5xl text-brand-200"
-      ></i>
+      />
     </div>
     <div class="pl-6">
       <p class="text-base leading-6">
@@ -29,7 +29,7 @@
 </template>
 
 <script>
-import { mapGetters, mapActions } from 'vuex'
+import { mapGetters, mapActions } from 'vuex';
 
 export default {
   name: 'AppEmailUnverifiedPage',
@@ -37,18 +37,18 @@ export default {
   computed: {
     ...mapGetters('auth', [
       'loadingEmailConfirmation',
-      'currentUserEmail'
-    ])
+      'currentUserEmail',
+    ]),
   },
 
   methods: {
     ...mapActions('auth', ['doSendEmailConfirmation']),
 
     doSubmit() {
-      this.doSendEmailConfirmation(this.email)
-    }
-  }
-}
+      this.doSendEmailConfirmation(this.email);
+    },
+  },
+};
 </script>
 
 <style></style>

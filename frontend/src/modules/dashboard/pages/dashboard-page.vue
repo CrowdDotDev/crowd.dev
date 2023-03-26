@@ -5,7 +5,7 @@
       :style="{
         height: showBanner
           ? 'calc(100vh - 3.5rem)'
-          : '100vh'
+          : '100vh',
       }"
       @scroll="handleScroll($event)"
     >
@@ -39,7 +39,7 @@
       :style="{
         height: showBanner
           ? 'calc(100vh - 3.5rem)'
-          : '100vh'
+          : '100vh',
       }"
     >
       <app-dashboard-guides />
@@ -50,52 +50,50 @@
 </template>
 
 <script setup>
-import AppDashboardActivities from '@/modules/dashboard/components/dashboard-activities'
-import AppDashboardMembers from '@/modules/dashboard/components/dashboard-members'
-import AppDashboardOrganizations from '@/modules/dashboard/components/dashboard-organizations'
-import AppDashboardTask from '@/modules/dashboard/components/dashboard-task'
-import AppDashboardFilters from '@/modules/dashboard/components/dashboard-filters'
-import AppDashboardIntegrations from '@/modules/dashboard/components/dashboard-active-integrations.vue'
-
-import { onMounted, onBeforeUnmount, ref } from 'vue'
+import { onMounted, onBeforeUnmount, ref } from 'vue';
+import { useStore } from 'vuex';
+import AppDashboardIntegrations from '@/modules/dashboard/components/dashboard-active-integrations.vue';
 import {
   mapGetters,
-  mapActions
-} from '@/shared/vuex/vuex.helpers'
+  mapActions,
+} from '@/shared/vuex/vuex.helpers';
+import AppDashboardGuides from '@/modules/dashboard/components/dashboard-guides.vue';
+import AppDashboardActivities from '@/modules/dashboard/components/dashboard-activities.vue';
+import AppDashboardMembers from '@/modules/dashboard/components/dashboard-members.vue';
+import AppDashboardOrganizations from '@/modules/dashboard/components/dashboard-organizations.vue';
+import AppDashboardTask from '@/modules/dashboard/components/dashboard-task.vue';
+import AppDashboardFilters from '@/modules/dashboard/components/dashboard-filters.vue';
 
-import { useStore } from 'vuex'
-import AppDashboardGuides from '@/modules/dashboard/components/dashboard-guides.vue'
+const { currentTenant } = mapGetters('auth');
+const { doFetch } = mapActions('report');
+const { reset } = mapActions('dashboard');
+const { showBanner } = mapGetters('tenant');
 
-const { currentTenant } = mapGetters('auth')
-const { doFetch } = mapActions('report')
-const { reset } = mapActions('dashboard')
-const { showBanner } = mapGetters('tenant')
+const store = useStore();
 
-const store = useStore()
-
-let storeUnsubscribe = ref(null)
-const scrolled = ref(false)
+const storeUnsubscribe = ref(null);
+const scrolled = ref(false);
 const handleScroll = (event) => {
-  scrolled.value = event.target.scrollTop > 20
-}
+  scrolled.value = event.target.scrollTop > 20;
+};
 
 onMounted(() => {
-  window.analytics.page('Dashboard')
-  doFetch({})
+  window.analytics.page('Dashboard');
+  doFetch({});
 
   storeUnsubscribe.value = store.subscribeAction(
     (action) => {
       if (action.type === 'auth/doSelectTenant') {
-        doFetch({})
-        reset({})
+        doFetch({});
+        reset({});
       }
-    }
-  )
-})
+    },
+  );
+});
 
 onBeforeUnmount(() => {
-  storeUnsubscribe.value()
-})
+  storeUnsubscribe.value();
+});
 </script>
 
 <style lang="scss" scoped>

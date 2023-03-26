@@ -24,7 +24,7 @@
         class="text-sm flex items-center ml-2"
       >
         <span class="block">{{ config.linkLabel }}</span>
-        <i class="ri-arrow-right-line ml-1"></i>
+        <i class="ri-arrow-right-line ml-1" />
       </router-link>
     </div>
     <div class="pt-4">
@@ -32,8 +32,8 @@
         v-if="loading"
         v-loading="loading"
         class="app-page-spinner !relative top-2"
-      ></div>
-      <slot v-else></slot>
+      />
+      <slot v-else />
     </div>
     <el-dropdown
       v-if="config.settings"
@@ -41,93 +41,93 @@
       @command="handleCommand"
     >
       <span class="el-dropdown-link">
-        <i class="ri-xl ri-more-line"></i>
+        <i class="ri-xl ri-more-line" />
       </span>
       <template #dropdown>
         <el-dropdown-item
           v-if="!editable"
           command="open-settings-modal"
-          ><i
-            class="ri-lg ri-settings-2-line mr-1"
-          />Settings</el-dropdown-item
         >
+          <i
+            class="ri-lg ri-settings-2-line mr-1"
+          />Settings
+        </el-dropdown-item>
         <el-dropdown-item
           v-if="editable"
           command="trigger-duplicate-widget"
-          ><i
-            class="ri-lg ri-file-copy-line mr-1"
-          />Duplicate widget</el-dropdown-item
         >
+          <i
+            class="ri-lg ri-file-copy-line mr-1"
+          />Duplicate widget
+        </el-dropdown-item>
         <el-dropdown-item
           v-if="editable"
           command="trigger-edit-widget"
-          ><i class="ri-lg ri-pencil-line mr-1" />Edit
-          widget</el-dropdown-item
         >
+          <i class="ri-lg ri-pencil-line mr-1" />Edit
+          widget
+        </el-dropdown-item>
         <el-divider class="border-gray-200 my-2" />
         <el-dropdown-item
           v-if="editable"
           command="trigger-delete-widget"
-          ><i
-            class="ri-lg ri-delete-bin-line mr-1 text-red-500"
-          /><span class="text-red-500"
-            >Delete widget</span
-          ></el-dropdown-item
         >
+          <i
+            class="ri-lg ri-delete-bin-line mr-1 text-red-500"
+          /><span class="text-red-500">Delete widget</span>
+        </el-dropdown-item>
       </template>
     </el-dropdown>
   </div>
 </template>
 
 <script>
-import { i18n } from '@/i18n'
-import { mapGetters } from 'vuex'
+import { mapGetters } from 'vuex';
+import { i18n } from '@/i18n';
 
 export default {
   name: 'AppWidget',
   props: {
     config: {
       type: Object,
-      default: () => {
-        return {
-          title: 'Label',
-          name: 'name',
-          type: 'bar',
-          loading: false
-        }
-      }
+      default: () => ({
+        title: 'Label',
+        name: 'name',
+        type: 'bar',
+        loading: false,
+      }),
     },
     number: {
       type: Boolean,
-      default: false
+      default: false,
     },
     editable: {
       type: Boolean,
-      default: false
-    }
+      default: false,
+    },
   },
   computed: {
     ...mapGetters({
-      widgetFind: 'widget/find'
+      widgetFind: 'widget/find',
     }),
     widget() {
       return this.config.id
         ? this.widgetFind(this.config.id)
-        : this.config
+        : this.config;
     },
     loading() {
-      return this.widget.loading || this.config.loading
-    }
+      return this.widget.loading || this.config.loading;
+    },
   },
   methods: {
     label(widgetType) {
-      return i18n(widgetType)
+      return i18n(widgetType);
     },
     handleCommand(command) {
-      this.$emit(command)
-    }
-  }
-}
+      this.$emit(command);
+    },
+  },
+};
 </script>
 
 <style lang="scss">

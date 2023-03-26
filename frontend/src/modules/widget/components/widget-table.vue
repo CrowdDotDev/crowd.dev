@@ -32,60 +32,58 @@
 </template>
 
 <script>
-import Widget from '@/modules/widget/components/widget'
+import Widget from '@/modules/widget/components/widget.vue';
 
 export default {
   name: 'AppWidgetTable',
   components: {
-    'app-widget': Widget
+    'app-widget': Widget,
   },
   props: {
     config: {
       type: Object,
-      default: () => {}
+      default: () => {},
     },
     editable: {
       type: Boolean,
-      default: false
+      default: false,
     },
     data: {
       type: Array,
       default: () => [],
-      required: true
-    }
+      required: true,
+    },
   },
   emits: [
     'trigger-duplicate-widget',
     'trigger-delete-widget',
-    'trigger-edit-widget'
+    'trigger-edit-widget',
   ],
   computed: {
     items() {
-      return this.data.map((key) => {
-        return key
-      })
+      return this.data.map((key) => key);
     },
     columns() {
       return this.data.length !== 0
         ? Object.keys(this.data[0])
-        : []
-    }
+        : [];
+    },
   },
   methods: {
     parsedColumn(column) {
       if (
-        column === 'widget.cubejs.Activities.date.week' ||
-        column === 'widget.cubejs.Activities.date.day' ||
-        column === 'widget.cubejs.Activities.date.month' ||
-        column === 'widget.cubejs.Activities.date.year'
+        column === 'widget.cubejs.Activities.date.week'
+        || column === 'widget.cubejs.Activities.date.day'
+        || column === 'widget.cubejs.Activities.date.month'
+        || column === 'widget.cubejs.Activities.date.year'
       ) {
-        return '[Activities] Date'
+        return '[Activities] Date';
       }
 
-      return column
-    }
-  }
-}
+      return column;
+    },
+  },
+};
 </script>
 
 <style lang="scss">

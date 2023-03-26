@@ -15,14 +15,14 @@
  */
 export const formatNumberToCompact = (number) => {
   if (typeof number !== 'number') {
-    return '-'
+    return '-';
   }
 
   return Intl.NumberFormat('en-US', {
     notation: 'compact',
-    maximumFractionDigits: 1
-  }).format(number)
-}
+    maximumFractionDigits: 1,
+  }).format(number);
+};
 
 /**
  *
@@ -30,20 +30,14 @@ export const formatNumberToCompact = (number) => {
  * @returns returns a string with a language-sensitive representation
  * of the original number
  */
-export const formatNumber = (number) => {
-  return number.toLocaleString('en-US')
-}
+export const formatNumber = (number) => number.toLocaleString('en-US');
 
-export const formatPercentage = (percentage) => {
-  return `${Math.ceil(
-    percentage < 0 ? percentage * -1 : percentage
-  )} %`
-}
+export const formatPercentage = (percentage) => `${Math.ceil(
+  percentage < 0 ? percentage * -1 : percentage,
+)} %`;
 
 export const formatRevenueRange = (range) => {
-  const min =
-    range.min > 1000 ? `$${range.min}B` : `$${range.min}M`
-  const max =
-    range.max > 1000 ? `$${range.max}B` : `$${range.max}M`
-  return `${min}-${max}`
-}
+  const min = range.min > 1000 ? `$${range.min}B` : `$${range.min}M`;
+  const max = range.max > 1000 ? `$${range.max}B` : `$${range.max}M`;
+  return `${min}-${max}`;
+};

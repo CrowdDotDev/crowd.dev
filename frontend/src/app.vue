@@ -9,7 +9,7 @@
         </transition>
       </router-view>
 
-      <div id="teleport-modal"></div>
+      <div id="teleport-modal" />
     </div>
 
     <div class="sm:block md:hidden lg:hidden">
@@ -23,30 +23,31 @@ import { mapGetters, mapActions, mapState } from 'vuex'
 import AppResizePage from '@/modules/layout/pages/resize-page.vue'
 import { FeatureFlag } from '@/featureFlag'
 import config from '@/config'
+import { AuthToken } from '@/modules/auth/auth-token';
 
 export default {
   name: 'App',
 
   components: {
-    AppResizePage
+    AppResizePage,
   },
 
   computed: {
     ...mapGetters({
       loadingInit: 'auth/loadingInit',
-      currentTenant: 'auth/currentTenant'
+      currentTenant: 'auth/currentTenant',
     }),
     ...mapState({
-      featureFlag: (state) => state.tenant.featureFlag
+      featureFlag: (state) => state.tenant.featureFlag,
     }),
     loading() {
       return (
-        this.loadingInit ||
-        (!this.featureFlag.isReady &&
-          !this.featureFlag.hasError &&
-          !config.isCommunityVersion)
+        (this.loadingInit && AuthToken.get())
+        || (!this.featureFlag.isReady
+          && !this.featureFlag.hasError
+          && !config.isCommunityVersion)
       )
-    }
+    },
   },
 
   async created() {
@@ -74,16 +75,16 @@ export default {
   methods: {
     ...mapActions({
       doInit: 'auth/doInit',
-      resize: 'layout/resize'
+      resize: 'layout/resize',
     }),
 
     handleResize() {
       this.resize({
         width: window.innerWidth,
-        height: window.innerHeight
+        height: window.innerHeight,
       })
-    }
-  }
+    },
+  },
 }
 </script>
 

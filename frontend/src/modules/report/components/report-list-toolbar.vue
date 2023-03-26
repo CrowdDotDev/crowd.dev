@@ -3,11 +3,9 @@
     v-if="selectedRows.length > 0"
     class="app-page-toolbar report-list-toolbar"
   >
-    <span class="block text-sm font-semibold mr-4"
-      >{{ selectedRows.length }}
+    <span class="block text-sm font-semibold mr-4">{{ selectedRows.length }}
       {{ selectedRows.length > 1 ? 'reports' : 'report' }}
-      selected</span
-    >
+      selected</span>
 
     <el-tooltip
       v-if="hasPermissionToDestroy"
@@ -21,7 +19,7 @@
           @click="doDestroyAllWithConfirm"
         >
           <i class="ri-lg ri-delete-bin-line mr-1" />
-          <app-i18n code="common.destroy"></app-i18n>
+          <app-i18n code="common.destroy" />
         </el-button>
       </span>
     </el-tooltip>
@@ -29,48 +27,48 @@
 </template>
 
 <script>
-import { mapGetters, mapActions, mapState } from 'vuex'
-import { ReportPermissions } from '@/modules/report/report-permissions'
-import { i18n } from '@/i18n'
-import ConfirmDialog from '@/shared/dialog/confirm-dialog.js'
+import { mapGetters, mapActions, mapState } from 'vuex';
+import { ReportPermissions } from '@/modules/report/report-permissions';
+import { i18n } from '@/i18n';
+import ConfirmDialog from '@/shared/dialog/confirm-dialog';
 
 export default {
   name: 'AppReportListToolbar',
 
   computed: {
     ...mapState({
-      loading: (state) => state.report.loading
+      loading: (state) => state.report.loading,
     }),
     ...mapGetters({
       currentUser: 'auth/currentUser',
       currentTenant: 'auth/currentTenant',
       hasRows: 'report/hasRows',
-      selectedRows: 'report/selectedRows'
+      selectedRows: 'report/selectedRows',
     }),
 
     hasPermissionToDestroy() {
       return new ReportPermissions(
         this.currentTenant,
-        this.currentUser
-      ).destroy
+        this.currentUser,
+      ).destroy;
     },
 
     destroyButtonDisabled() {
-      return !this.selectedRows.length || this.loading
+      return !this.selectedRows.length || this.loading;
     },
 
     destroyButtonTooltip() {
       if (this.destroyButtonDisabled) {
-        return i18n('common.mustSelectARow')
+        return i18n('common.mustSelectARow');
       }
 
-      return null
-    }
+      return null;
+    },
   },
 
   methods: {
     ...mapActions({
-      doDestroyAll: 'report/doDestroyAll'
+      doDestroyAll: 'report/doDestroyAll',
     }),
 
     async doDestroyAllWithConfirm() {
@@ -82,18 +80,19 @@ export default {
             "Are you sure you want to proceed? You can't undo this action",
           confirmButtonText: 'Confirm',
           cancelButtonText: 'Cancel',
-          icon: 'ri-delete-bin-line'
-        })
+          icon: 'ri-delete-bin-line',
+        });
 
         return this.doDestroyAll(
-          this.selectedRows.map((item) => item.id)
-        )
+          this.selectedRows.map((item) => item.id),
+        );
       } catch (error) {
         // no
       }
-    }
-  }
-}
+      return null;
+    },
+  },
+};
 </script>
 
 <style lang="scss">

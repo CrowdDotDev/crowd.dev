@@ -3,10 +3,9 @@ import AuthCurrentTenant from '@/modules/auth/auth-current-tenant'
 export default {
   CURRENT_USER_REFRESH_SUCCESS(state, payload) {
     state.currentUser = payload.currentUser || null
-    state.currentTenant =
-      AuthCurrentTenant.selectAndSaveOnStorageFor(
-        payload.currentUser
-      )
+    state.currentTenant = AuthCurrentTenant.selectAndSaveOnStorageFor(
+      payload.currentUser,
+    )
   },
 
   AUTH_START(state) {
@@ -15,10 +14,9 @@ export default {
 
   AUTH_SUCCESS(state, payload) {
     state.currentUser = payload.currentUser || null
-    state.currentTenant =
-      AuthCurrentTenant.selectAndSaveOnStorageFor(
-        payload.currentUser
-      )
+    state.currentTenant = AuthCurrentTenant.selectAndSaveOnStorageFor(
+      payload.currentUser,
+    )
     state.loading = false
   },
 
@@ -102,10 +100,9 @@ export default {
 
   AUTH_INIT_SUCCESS(state, payload) {
     state.currentUser = payload.currentUser || null
-    state.currentTenant =
-      AuthCurrentTenant.selectAndSaveOnStorageFor(
-        payload.currentUser
-      )
+    state.currentTenant = AuthCurrentTenant.selectAndSaveOnStorageFor(
+      payload.currentUser,
+    )
     state.loadingInit = false
   },
 
@@ -117,5 +114,5 @@ export default {
 
   CLEAR_TENANT(state) {
     state.currentTenant = null
-  }
+  },
 }

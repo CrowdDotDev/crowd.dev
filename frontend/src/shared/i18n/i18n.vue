@@ -1,9 +1,9 @@
 <template>
-  <span v-html="message"></span>
+  <span v-html="message" />
 </template>
 
 <script>
-import { i18n } from '@/i18n'
+import { i18n } from '@/i18n';
 
 export default {
   name: 'AppI18n',
@@ -11,31 +11,31 @@ export default {
   props: {
     code: {
       type: String,
-      default: null
+      default: null,
     },
     args: {
       type: Array,
-      default: () => []
+      default: () => [],
     },
     fallback: {
       type: String,
-      default: undefined
-    }
+      default: undefined,
+    },
   },
 
   computed: {
-    message: function () {
+    message() {
       const translated = i18n(
         this.code,
-        ...(this.args || [])
-      )
-      return this.fallback !== undefined &&
-        translated === this.code
+        ...(this.args || []),
+      );
+      return this.fallback !== undefined
+        && translated === this.code
         ? i18n(this.fallback)
-        : translated
-    }
-  }
-}
+        : translated;
+    },
+  },
+};
 </script>
 
 <style></style>

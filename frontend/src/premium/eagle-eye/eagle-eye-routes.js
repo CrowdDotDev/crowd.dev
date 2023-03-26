@@ -1,18 +1,17 @@
-import Layout from '@/modules/layout/components/layout.vue'
-import Permissions from '@/security/permissions'
-import { store } from '@/store'
+import Layout from '@/modules/layout/components/layout.vue';
+import Permissions from '@/security/permissions';
+import { store } from '@/store';
 
-const EagleEyePage = () =>
-  import(
-    '@/premium/eagle-eye/pages/eagle-eye-page-wrapper.vue'
-  )
+const EagleEyePage = () => import(
+  '@/premium/eagle-eye/pages/eagle-eye-page-wrapper.vue'
+);
 
 export default [
   {
     path: '',
     component: Layout,
     meta: {
-      auth: true
+      auth: true,
     },
     children: [
       {
@@ -22,23 +21,23 @@ export default [
         exact: true,
         meta: {
           auth: true,
-          permission: Permissions.values.eagleEyeRead
+          permission: Permissions.values.eagleEyeRead,
         },
         beforeEnter: async (to, _from, next) => {
           if (
-            to.query.activeTab !== undefined &&
-            store.getters['eagleEye/activeView'].id !==
-              to.query.activeTab
+            to.query.activeTab !== undefined
+            && store.getters['eagleEye/activeView'].id
+              !== to.query.activeTab
           ) {
             store.dispatch(
               'eagleEye/doChangeActiveView',
-              to.query.activeTab
-            )
+              to.query.activeTab,
+            );
           }
 
-          return next()
-        }
-      }
-    ]
-  }
-]
+          return next();
+        },
+      },
+    ],
+  },
+];

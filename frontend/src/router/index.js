@@ -1,12 +1,12 @@
 import {
   createRouter as createVueRouter,
-  createWebHistory
-} from 'vue-router'
+  createWebHistory,
+} from 'vue-router';
 
-import { store } from '@/store'
-import authGuards from '@/middleware/auth'
-import modules from '@/modules'
-import ProgressBar from '@/shared/progress-bar/progress-bar'
+import { store } from '@/store';
+import authGuards from '@/middleware/auth';
+import modules from '@/modules';
+import ProgressBar from '@/shared/progress-bar/progress-bar';
 
 /**
  * Loads all the routes from src/modules/ folders, and adds the catch-all rule to handle 404s
@@ -16,77 +16,77 @@ import ProgressBar from '@/shared/progress-bar/progress-bar'
 const routes = [
   ...Object.keys(modules)
     .filter((key) => Boolean(modules[key].routes))
-    .map((key) =>
-      modules[key].routes.map((r) => {
-        r.meta = {
-          ...r.meta,
-          middleware: [...authGuards]
-        }
-        return r
-      })
-    )
+    .map((key) => modules[key].routes.map((r) => ({
+      ...r,
+      meta: {
+        ...r.meta,
+        middleware: [...authGuards],
+      },
+    })))
     .reduce((a, b) => a.concat(b), []),
-  { path: '/:catchAll(.*)', redirect: '/404' }
-]
-let router
+  { path: '/:catchAll(.*)', redirect: '/404' },
+];
+// eslint-disable-next-line import/no-mutable-exports
+let router;
 
 /**
  * Creates/Sets Router
  * @returns {Router|{x: number, y: number}}
  */
-const createRouter = () => {
+export const createRouter = () => {
   if (!router) {
     router = createVueRouter({
       history: createWebHistory(),
       routes,
       scrollBehavior() {
-        return { x: 0, y: 0 }
-      }
-    })
+        return { x: 0, y: 0 };
+      },
+    });
 
-    const originalPush = router.push
+    const originalPush = router.push;
     router.push = function push(location) {
       return originalPush
         .call(this, location)
         .catch((error) => {
-          console.error(error)
-          ProgressBar.done()
-        })
-    }
+          console.error(error);
+          ProgressBar.done();
+        });
+    };
 
     router.beforeEach(async (to, from) => {
       if (to.name) {
-        ProgressBar.start()
+        ProgressBar.start();
       }
       const matchedRoute = to.matched.find(
-        (m) => m.meta.middleware
-      )
+        (m) => m.meta.middleware,
+      );
       if (matchedRoute !== undefined) {
         const middlewareArray = Array.isArray(
-          matchedRoute.meta.middleware
+          matchedRoute.meta.middleware,
         )
           ? matchedRoute.meta.middleware
-          : [matchedRoute.meta.middleware]
+          : [matchedRoute.meta.middleware];
 
         const context = {
           from,
           router,
           to,
-          store
-        }
-
-        for (const middleware of middlewareArray) {
-          return await middleware(context)
-        }
+          store,
+        };
+        middlewareArray.forEach((middleware) => {
+          middleware(context);
+        });
       }
-    })
+    });
 
     router.afterEach(() => {
-      ProgressBar.done()
-    })
+      ProgressBar.done();
+    });
   }
 
-  return router
-}
+  return router;
+};
 
-export { createRouter, router }
+export {
+  router,
+};

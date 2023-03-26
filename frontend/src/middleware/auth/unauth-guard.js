@@ -10,14 +10,14 @@
  * @param router
  * @returns {Promise<*>}
  */
-export default async function ({ to, store, router }) {
+export default async ({ to, store, router }) => {
   if (!to.meta || !to.meta.unauth) {
-    return
+    return;
   }
 
-  await store.dispatch('auth/doWaitUntilInit')
+  await store.dispatch('auth/doWaitUntilInit');
 
   if (store.getters['auth/signedIn']) {
-    return router.push('/')
+    router.push('/');
   }
-}
+};

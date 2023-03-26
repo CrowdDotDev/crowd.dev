@@ -15,7 +15,7 @@
     </el-button>
   </div>
   <div class="app-list-table not-clickable panel">
-    <app-user-list-toolbar></app-user-list-toolbar>
+    <app-user-list-toolbar />
     <div class="-mx-6 -mt-6">
       <el-table
         ref="table"
@@ -29,7 +29,7 @@
         <el-table-column
           type="selection"
           width="75"
-        ></el-table-column>
+        />
 
         <el-table-column
           :width="250"
@@ -81,14 +81,13 @@
               class="badge"
               :class="{
                 'badge--green':
-                  scope.row[fields.status.name] ===
-                  'active',
+                  scope.row[fields.status.name]
+                  === 'active',
                 'badge--red':
-                  scope.row[fields.status.name] ===
-                  'empty-permissions'
+                  scope.row[fields.status.name]
+                  === 'empty-permissions',
               }"
-              >{{ presenter(scope.row, 'status') }}</span
-            >
+            >{{ presenter(scope.row, 'status') }}</span>
           </template>
         </el-table-column>
 
@@ -101,7 +100,7 @@
             <div class="table-actions">
               <app-user-dropdown
                 :user="scope.row"
-              ></app-user-dropdown>
+              />
             </div>
           </template>
         </el-table-column>
@@ -111,22 +110,22 @@
 </template>
 
 <script>
-import { UserModel } from '@/modules/user/user-model'
-import { mapGetters, mapActions } from 'vuex'
-import { UserPermissions } from '@/modules/user/user-permissions'
-import UserListToolbar from '@/modules/user/components/list/user-list-toolbar.vue'
-import Roles from '@/security/roles'
-import AppUserDropdown from '../user-dropdown'
-import pluralize from 'pluralize'
+import { mapGetters, mapActions } from 'vuex';
+import pluralize from 'pluralize';
+import { UserModel } from '@/modules/user/user-model';
+import { UserPermissions } from '@/modules/user/user-permissions';
+import UserListToolbar from '@/modules/user/components/list/user-list-toolbar.vue';
+import Roles from '@/security/roles';
+import AppUserDropdown from '../user-dropdown.vue';
 
-const { fields } = UserModel
+const { fields } = UserModel;
 
 export default {
   name: 'AppUserListTable',
 
   components: {
     AppUserDropdown,
-    'app-user-list-toolbar': UserListToolbar
+    'app-user-list-toolbar': UserListToolbar,
   },
 
   emits: ['invite'],
@@ -138,59 +137,58 @@ export default {
       loading: 'user/list/loading',
       selectedRows: 'user/list/selectedRows',
       currentUser: 'auth/currentUser',
-      currentTenant: 'auth/currentTenant'
+      currentTenant: 'auth/currentTenant',
     }),
 
     hasPermissionToDestroy() {
       return new UserPermissions(
         this.currentTenant,
-        this.currentUser
-      ).destroy
+        this.currentUser,
+      ).destroy;
     },
 
     hasPermissionToEdit() {
       return new UserPermissions(
         this.currentTenant,
-        this.currentUser
-      ).edit
+        this.currentUser,
+      ).edit;
     },
 
     fields() {
-      return fields
-    }
+      return fields;
+    },
   },
 
   mounted() {
-    this.doMountTable(this.$refs.table)
+    this.doMountTable(this.$refs.table);
   },
 
   methods: {
     ...mapActions({
       doChangeSort: 'user/list/doChangeSort',
       doMountTable: 'user/list/doMountTable',
-      doDestroy: 'user/destroy/doDestroy'
+      doDestroy: 'user/destroy/doDestroy',
     }),
 
     roleDescriptionOf(roleId) {
-      return Roles.descriptionOf(roleId)
+      return Roles.descriptionOf(roleId);
     },
 
     roleLabelOf(roleId) {
-      return Roles.labelOf(roleId)
+      return Roles.labelOf(roleId);
     },
 
     presenter(row, fieldName) {
-      return UserModel.presenter(row, fieldName)
+      return UserModel.presenter(row, fieldName);
     },
 
     rowClass({ row }) {
-      const isSelected =
-        this.selectedRows.find((r) => r.id === row.id) !==
-        undefined
-      return isSelected ? 'is-selected' : ''
+      const isSelected = this.selectedRows.find((r) => r.id === row.id)
+        !== undefined;
+      return isSelected ? 'is-selected' : '';
     },
 
-    pluralize
-  }
-}
+    pluralize,
+  },
+};
 </script>

@@ -1,4 +1,4 @@
-import SlackConnect from './components/slack-connect'
+import SlackConnect from './components/slack-connect.vue';
 
 export default {
   enabled: true,
@@ -9,5 +9,5 @@ export default {
     'Connect Slack to sync messages, threads, and new joiners.',
   image:
     'https://cdn-icons-png.flaticon.com/512/3800/3800024.png',
-  connectComponent: SlackConnect
-}
+  connectComponent: SlackConnect,
+};

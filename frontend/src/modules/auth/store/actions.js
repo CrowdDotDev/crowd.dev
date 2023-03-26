@@ -11,7 +11,7 @@ import { TenantService } from '@/modules/tenant/tenant-service'
 import { buildInitialState, store } from '@/store'
 import {
   connectSocket,
-  disconnectSocket
+  disconnectSocket,
 } from '@/modules/auth/auth-socket'
 
 export default {
@@ -60,7 +60,7 @@ export default {
     return AuthService.sendEmailVerification()
       .then(() => {
         Message.success(
-          i18n('auth.verificationEmailSuccess')
+          i18n('auth.verificationEmailSuccess'),
         )
         commit('EMAIL_CONFIRMATION_SUCCESS')
       })
@@ -87,13 +87,13 @@ export default {
 
   doRegisterEmailAndPassword(
     { commit },
-    { email, password, data = {} }
+    { email, password, data = {} },
   ) {
     commit('AUTH_START')
     return AuthService.registerWithEmailAndPassword(
       email,
       password,
-      data
+      data,
     )
       .then((token) => {
         AuthToken.set(token, true)
@@ -102,7 +102,7 @@ export default {
       })
       .then((currentUser) => {
         commit('AUTH_SUCCESS', {
-          currentUser
+          currentUser,
         })
 
         router.push('/')
@@ -116,12 +116,12 @@ export default {
 
   doSigninWithEmailAndPassword(
     { commit },
-    { email, password, rememberMe }
+    { email, password, rememberMe },
   ) {
     commit('AUTH_START')
     return AuthService.signinWithEmailAndPassword(
       email,
-      password
+      password,
     )
       .then((token) => {
         AuthToken.set(token, rememberMe)
@@ -129,7 +129,7 @@ export default {
       })
       .then((currentUser) => {
         commit('AUTH_SUCCESS', {
-          currentUser: currentUser || null
+          currentUser: currentUser || null,
         })
         router.push('/')
       })
@@ -144,7 +144,7 @@ export default {
     commit('AUTH_START')
     AuthService.signout()
     commit('AUTH_SUCCESS', {
-      currentUser: null
+      currentUser: null,
     })
     router.push('/auth/signin')
   },
@@ -155,7 +155,7 @@ export default {
       return AuthService.fetchMe()
         .then((currentUser) => {
           commit('CURRENT_USER_REFRESH_SUCCESS', {
-            currentUser
+            currentUser,
           })
           return currentUser
         })
@@ -168,7 +168,7 @@ export default {
         })
     }
     commit('CURRENT_USER_REFRESH_SUCCESS', {
-      currentUser: null
+      currentUser: null,
     })
     return Promise.resolve(null)
   },
@@ -191,12 +191,12 @@ export default {
 
   doChangePassword(
     { commit, dispatch },
-    { oldPassword, newPassword }
+    { oldPassword, newPassword },
   ) {
     commit('PASSWORD_CHANGE_START')
     return AuthService.changePassword(
       oldPassword,
-      newPassword
+      newPassword,
     )
       .then(() => {
         commit('PASSWORD_CHANGE_SUCCESS')
@@ -231,7 +231,7 @@ export default {
 
   doResetPassword(
     { commit, dispatch },
-    { token, password }
+    { token, password },
   ) {
     commit('PASSWORD_RESET_START')
     return AuthService.passwordReset(token, password)
@@ -268,13 +268,11 @@ export default {
 
   async doFinishOnboard({ dispatch, getters }, params) {
     return TenantService.update(getters.currentTenant.id, {
-      onboardedAt: new Date()
+      onboardedAt: new Date(),
     })
-      .then(() => {
-        return dispatch('doRefreshCurrentUser')
-      })
+      .then(() => dispatch('doRefreshCurrentUser'))
       .then(() => {
         router.push(params?.route ?? '/')
       })
-  }
+  },
 }

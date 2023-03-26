@@ -17,12 +17,11 @@
           "
           class="mr-1 text-lg"
         />
-        <span class="font-medium text-sm"
-          >{{
-            execution.state === 'success'
-              ? 'Success'
-              : 'Error'
-          }}
+        <span class="font-medium text-sm">{{
+          execution.state === 'success'
+            ? 'Success'
+            : 'Error'
+        }}
         </span>
       </div>
       <div class="text-gray-500 ml-6 text-sm">
@@ -49,9 +48,7 @@
       />
     </div>
 
-    <span class="font-semibold block text-base mb-3 mt-8"
-      >Payload</span
-    >
+    <span class="font-semibold block text-base mb-3 mt-8">Payload</span>
     <div class="vjs-tree-wrapper">
       <vue-json-pretty
         :data="execution.payload"
@@ -63,27 +60,27 @@
 </template>
 
 <script>
-import VueJsonPretty from 'vue-json-pretty'
-import 'vue-json-pretty/lib/styles.css'
-import moment from 'moment'
+import VueJsonPretty from 'vue-json-pretty';
+import 'vue-json-pretty/lib/styles.css';
+import moment from 'moment';
 
 export default {
   name: 'AppWebhookExecution',
   components: {
-    VueJsonPretty
+    VueJsonPretty,
   },
   props: {
     execution: {
       type: Object,
-      default: () => {}
-    }
+      default: () => {},
+    },
   },
   methods: {
     formattedDate(date) {
-      return moment(date).format('YYYY-MM-DD HH:mm:ss')
-    }
-  }
-}
+      return moment(date).format('YYYY-MM-DD HH:mm:ss');
+    },
+  },
+};
 </script>
 
 <style lang="scss">

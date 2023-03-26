@@ -1,25 +1,19 @@
-import Layout from '@/modules/layout/components/layout.vue'
-import Permissions from '@/security/permissions'
-import { store } from '@/store'
+import Layout from '@/modules/layout/components/layout.vue';
+import Permissions from '@/security/permissions';
+import { store } from '@/store';
 
-const OrganizationsMainPage = async () => {
-  return OrganizationListPage()
-}
+const OrganizationListPage = () => import(
+  '@/modules/organization/pages/organization-list-page.vue'
+);
+const OrganizationViewPage = () => import(
+  '@/modules/organization/pages/organization-view-page.vue'
+);
 
-const OrganizationListPage = () =>
-  import(
-    '@/modules/organization/pages/organization-list-page'
-  )
-const OrganizationViewPage = () =>
-  import(
-    '@/modules/organization/pages/organization-view-page'
-  )
+const OrganizationFormPage = () => import(
+  '@/modules/organization/pages/organization-form-page.vue'
+);
 
-const OrganizationFormPage = () =>
-  import(
-    '@/modules/organization/pages/organization-form-page'
-  )
-
+const OrganizationsMainPage = async () => OrganizationListPage();
 export default [
   {
     name: '',
@@ -33,23 +27,23 @@ export default [
         component: OrganizationsMainPage,
         meta: {
           auth: true,
-          permission: Permissions.values.organizationRead
+          permission: Permissions.values.organizationRead,
         },
         props: {
-          module: 'organizations'
+          module: 'organizations',
         },
         beforeEnter: async (to) => {
           if (
-            to.query.activeTab !== undefined &&
-            to.query.activeTab !==
-              store.getters['organization/activeView']?.id
+            to.query.activeTab !== undefined
+            && to.query.activeTab
+              !== store.getters['organization/activeView']?.id
           ) {
             store.dispatch(
               'organization/doChangeActiveView',
-              to.query.activeTab
-            )
+              to.query.activeTab,
+            );
           }
-        }
+        },
       },
       {
         name: 'organizationCreate',
@@ -57,8 +51,8 @@ export default [
         component: OrganizationFormPage,
         meta: {
           auth: true,
-          permission: Permissions.values.organizationCreate
-        }
+          permission: Permissions.values.organizationCreate,
+        },
       },
       {
         name: 'organizationEdit',
@@ -66,9 +60,9 @@ export default [
         component: OrganizationFormPage,
         meta: {
           auth: true,
-          permission: Permissions.values.organizationEdit
+          permission: Permissions.values.organizationEdit,
         },
-        props: true
+        props: true,
       },
       {
         name: 'organizationView',
@@ -76,10 +70,10 @@ export default [
         component: OrganizationViewPage,
         meta: {
           auth: true,
-          permission: Permissions.values.organizationRead
+          permission: Permissions.values.organizationRead,
         },
-        props: true
-      }
-    ]
-  }
-]
+        props: true,
+      },
+    ],
+  },
+];

@@ -8,19 +8,18 @@
       <el-button
         class="btn btn-link btn-link--sm btn-link--primary mt-3"
         @click="() => emit('openDrawer')"
-        >Manage global attributes</el-button
       >
+        Manage global attributes
+      </el-button>
     </div>
     <div :class="showHeader ? 'col-span-2' : 'col-span-3'">
       <div class="flex gap-3 border-b h-8 items-center">
         <span
           class="uppercase text-gray-400 text-2xs font-semibold tracking-wide w-1/3"
-          >Name</span
-        >
+        >Name</span>
         <span
           class="uppercase text-gray-400 text-2xs font-semibold tracking-wide grow"
-          >Value</span
-        >
+        >Value</span>
       </div>
       <div
         v-if="!!customAttributes.length"
@@ -32,8 +31,8 @@
         >
           <div
             v-if="
-              index === firstHiddenAttributeIndex &&
-              firstHiddenAttributeIndex !== -1
+              index === firstHiddenAttributeIndex
+                && firstHiddenAttributeIndex !== -1
             "
             class="text-xs text-gray-400 font-medium mt-4 mb-2"
           >
@@ -64,8 +63,7 @@
               </div>
               <span
                 class="text-2xs text-gray-500 leading-none"
-                >{{ attributesTypes[attribute.type] }}</span
-              >
+              >{{ attributesTypes[attribute.type] }}</span>
             </div>
             <el-form-item class="grow">
               <el-date-picker
@@ -117,19 +115,18 @@
                 :collapse-tags="true"
                 :parse-model="true"
                 :are-options-in-memory="true"
-              ></app-autocomplete-many-input>
+              />
               <el-input
                 v-else
                 v-model="model[attribute.name]"
                 :type="attribute.type"
                 clearable
-              ></el-input
-              ><template #error>
+              /><template #error>
                 <div class="el-form-item__error">
                   Value is required
                 </div>
-              </template></el-form-item
-            >
+              </template>
+            </el-form-item>
             <el-tooltip
               placement="top"
               :content="
@@ -143,7 +140,7 @@
                 class="btn btn--md btn--transparent w-10 h-10"
                 @click="
                   updateAttribute(attribute.id, {
-                    show: !attribute.show
+                    show: !attribute.show,
                   })
                 "
               >
@@ -151,9 +148,9 @@
                   class="text-base text-black"
                   :class="{
                     'ri-eye-line': attribute.show,
-                    'ri-eye-off-line': !attribute.show
+                    'ri-eye-off-line': !attribute.show,
                   }"
-                ></i>
+                />
               </el-button>
             </el-tooltip>
           </div>
@@ -175,23 +172,23 @@ import {
   defineEmits,
   computed,
   h,
-  watch
-} from 'vue'
-import { onSelectMouseLeave } from '@/utils/select'
-import AppSvg from '@/shared/svg/svg'
-import { mapActions } from '@/shared/vuex/vuex.helpers'
-import ConfirmDialog from '@/shared/dialog/confirm-dialog.js'
-import Message from '@/shared/message/message'
-import { MemberService } from '@/modules/member/member-service'
+  watch,
+} from 'vue';
+import { onSelectMouseLeave } from '@/utils/select';
+import { mapActions } from '@/shared/vuex/vuex.helpers';
+import ConfirmDialog from '@/shared/dialog/confirm-dialog';
+import Message from '@/shared/message/message';
+import { MemberService } from '@/modules/member/member-service';
+import AppSvg from '@/shared/svg/svg.vue';
 
 const CalendarIcon = h(
   'i', // type
   {
     class:
-      'ri-calendar-line text-base leading-none text-gray-400'
+      'ri-calendar-line text-base leading-none text-gray-400',
   }, // props
-  []
-)
+  [],
+);
 
 const attributesTypes = {
   string: 'Text',
@@ -200,98 +197,92 @@ const attributesTypes = {
   url: 'URL',
   date: 'Date',
   boolean: 'Boolean',
-  multiSelect: 'Multi-select'
-}
+  multiSelect: 'Multi-select',
+};
 
 const emit = defineEmits([
   'update:modelValue',
-  'openDrawer'
-])
+  'openDrawer',
+]);
 const props = defineProps({
   attributes: {
     type: Array,
-    default: () => []
+    default: () => [],
   },
   modelValue: {
     type: Object,
-    default: () => {}
+    default: () => {},
   },
   showHeader: {
     type: Boolean,
-    default: true
+    default: true,
   },
   record: {
     type: Object,
-    default: () => {}
-  }
-})
+    default: () => {},
+  },
+});
 
-const firstHiddenAttributeIndex = computed(() =>
-  customAttributes.value.findIndex(
-    (attribute) => !attribute.show
-  )
-)
-const customAttributes = computed(() =>
-  props.attributes
-    .filter((attribute) => {
-      // For new member form, only display attributes that can be deleted
-      if (!props.record) {
-        return attribute.canDelete
-      }
+const customAttributes = computed(() => props.attributes
+  .filter((attribute) => {
+    // For new member form, only display attributes that can be deleted
+    if (!props.record) {
+      return attribute.canDelete;
+    }
 
-      return (
-        (![
-          'bio',
-          'url',
-          'location',
-          'jobTitle',
-          'emails',
-          'workExperiences', // we render them in _aside-enriched
-          'certifications', // we render them in _aside-enriched
-          'education', // we render them in _aside-enriched
-          'awards' // we render them in _aside-enriched
-        ].includes(attribute.name) &&
-          props.record.attributes[attribute.name]) ||
+    return (
+      (![
+        'bio',
+        'url',
+        'location',
+        'jobTitle',
+        'emails',
+        'workExperiences', // we render them in _aside-enriched
+        'certifications', // we render them in _aside-enriched
+        'education', // we render them in _aside-enriched
+        'awards', // we render them in _aside-enriched
+      ].includes(attribute.name)
+          && props.record.attributes[attribute.name])
         // Global attributes
-        attribute.canDelete
-      )
-    })
-    .sort((a, b) => {
-      // For new member form, maintain order
-      if (!props.record) {
-        return 0
+        || attribute.canDelete
+    );
+  })
+  .sort((a, b) => {
+    // For new member form, maintain order
+    if (!props.record) {
+      return 0;
+    }
+
+    const aEnrichment = Number(
+      props.record.attributes[a.name]?.enrichment || 0,
+    );
+    const bEnrichment = Number(
+      props.record.attributes[b.name]?.enrichment || 0,
+    );
+
+    // Sort order
+    // 1. All attributes that have show = true && canDelete = true
+    // 2. All attributes that have show = true && canDelete = false
+    // 3. All attributes that have show = false && canDelete = false
+    // For each of these conditions, the enrichment attributes show at the top
+    if (a.show === b.show) {
+      if (a.canDelete === b.canDelete) {
+        return bEnrichment - aEnrichment;
       }
+      return b.canDelete - a.canDelete;
+    }
+    return b.show - a.show;
+  }));
 
-      const aEnrichment = Number(
-        props.record.attributes[a.name]?.enrichment || 0
-      )
-      const bEnrichment = Number(
-        props.record.attributes[b.name]?.enrichment || 0
-      )
-
-      // Sort order
-      // 1. All attributes that have show = true && canDelete = true
-      // 2. All attributes that have show = true && canDelete = false
-      // 3. All attributes that have show = false && canDelete = false
-      // For each of these conditions, the enrichment attributes show at the top
-      if (a.show === b.show) {
-        if (a.canDelete === b.canDelete) {
-          return bEnrichment - aEnrichment
-        } else {
-          return b.canDelete - a.canDelete
-        }
-      } else {
-        return b.show - a.show
-      }
-    })
-)
-
-const { doUpdateCustomAttributes } = mapActions('member')
-const model = computed(() => props.modelValue)
+const firstHiddenAttributeIndex = computed(() => customAttributes.value.findIndex(
+  (attribute) => !attribute.show,
+));
+const { doUpdateCustomAttributes } = mapActions('member');
+const model = computed(() => props.modelValue);
 
 watch(model.value, (newModel) => {
-  emit('update:modelValue', newModel)
-})
+  emit('update:modelValue', newModel);
+});
 
 const updateAttribute = (id, data) => {
   ConfirmDialog({
@@ -302,41 +293,37 @@ const updateAttribute = (id, data) => {
     } in all member profiles. Are you sure you want to proceed? You can undo this action later.`,
     confirmButtonText: 'Confirm',
     cancelButtonText: 'Cancel',
-    icon: data.show ? 'ri-eye-line' : 'ri-eye-off-line'
+    icon: data.show ? 'ri-eye-line' : 'ri-eye-off-line',
   }).then(() => {
     doUpdateCustomAttributes({ id, data }).then(() => {
-      Message.success('Attribute successfully updated')
-    })
-  })
-}
+      Message.success('Attribute successfully updated');
+    });
+  });
+};
 
 // Get a custom attribute by id and parse the attribute options
 // into an object format with id and label
-const fetchCustomAttribute = (id) => {
-  return MemberService.getCustomAttribute(id)
-    .then((response) =>
-      response.options.sort().map((o) => ({
-        id: o,
-        label: o
-      }))
-    )
-    .catch(() => [])
-}
+const fetchCustomAttribute = (id) => MemberService.getCustomAttribute(id)
+  .then((response) => response.options.sort().map((o) => ({
+    id: o,
+    label: o,
+  })))
+  .catch(() => []);
 
 // Create a new option for the custom attribute and
 // return the new option in an object format with id and label
 const updateCustomAttribute = (attribute, value) => {
-  const options = [...attribute.options]
+  const options = [...attribute.options];
 
-  options.push(value)
+  options.push(value);
 
   return MemberService.updateCustomAttribute(attribute.id, {
-    options
+    options,
   }).then(() => ({
     id: value,
-    label: value
-  }))
-}
+    label: value,
+  }));
+};
 </script>
 
 <style lang="scss">

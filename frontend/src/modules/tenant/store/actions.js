@@ -11,13 +11,11 @@ export default {
     return TenantService.create(values)
       .then((tenant) => {
         commit('CREATE_SUCCESS', tenant)
-        return dispatch(`auth/doSelectTenant`, tenant, {
-          root: true
+        return dispatch('auth/doSelectTenant', tenant, {
+          root: true,
         })
       })
-      .then(() => {
-        return true
-      })
+      .then(() => true)
       .catch((error) => {
         Errors.handle(error)
         commit('CREATE_ERROR')
@@ -27,7 +25,7 @@ export default {
 
   async doUpdate(
     { commit, dispatch, state },
-    { id, values }
+    { id, values },
   ) {
     try {
       state.saveLoading = true
@@ -38,8 +36,8 @@ export default {
       state.saveLoading = false
       commit('UPDATE_SUCCESS', tenant)
       Message.success(i18n('tenant.update.success'))
-      await dispatch(`auth/doSelectTenant`, tenant, {
-        root: true
+      await dispatch('auth/doSelectTenant', tenant, {
+        root: true,
       })
     } catch (error) {
       state.saveLoading = false
@@ -54,5 +52,5 @@ export default {
 
   doHidePmfBanner({ commit }) {
     commit('HIDE_PMF_BANNER')
-  }
+  },
 }

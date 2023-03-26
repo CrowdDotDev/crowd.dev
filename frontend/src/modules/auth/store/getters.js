@@ -8,16 +8,13 @@ export default {
   currentTenantUser: (state) => {
     const tenantId = state.currentTenant?.id
     return state.currentUser?.tenants.find(
-      (t) => t.tenantId === tenantId
+      (t) => t.tenantId === tenantId,
     )
   },
-  currentUserEmail: (state, getters) =>
-    getters.currentUser ? getters.currentUser.email : null,
-  currentUserFullName: (state, getters) =>
-    getters.currentUser ? getters.currentUser.fullName : '',
+  currentUserEmail: (state, getters) => (getters.currentUser ? getters.currentUser.email : null),
+  currentUserFullName: (state, getters) => (getters.currentUser ? getters.currentUser.fullName : ''),
 
-  signedIn: (state, getters) =>
-    Boolean(getters.currentUser && getters.currentUser.id),
+  signedIn: (state, getters) => Boolean(getters.currentUser && getters.currentUser.id),
 
   roles: (state, getters) => {
     if (!getters.currentUser) {
@@ -29,8 +26,7 @@ export default {
     }
 
     const tenantUser = getters.currentUser.tenants.find(
-      (userTenant) =>
-        userTenant.tenant.id === getters.currentTenant.id
+      (userTenant) => userTenant.tenant.id === getters.currentTenant.id,
     )
 
     if (!tenantUser) {
@@ -40,30 +36,23 @@ export default {
     return tenantUser.roles
   },
 
-  emptyPermissions: (state, getters) =>
-    !getters.roles || !getters.roles.length,
+  emptyPermissions: (state, getters) => !getters.roles || !getters.roles.length,
 
   loading: (state) => Boolean(state.loading),
 
   loadingInit: (state) => Boolean(state.loadingInit),
 
-  loadingEmailConfirmation: (state) =>
-    Boolean(state.loadingEmailConfirmation),
+  loadingEmailConfirmation: (state) => Boolean(state.loadingEmailConfirmation),
 
-  loadingPasswordResetEmail: (state) =>
-    Boolean(state.loadingPasswordResetEmail),
+  loadingPasswordResetEmail: (state) => Boolean(state.loadingPasswordResetEmail),
 
-  loadingPasswordReset: (state) =>
-    Boolean(state.loadingPasswordReset),
+  loadingPasswordReset: (state) => Boolean(state.loadingPasswordReset),
 
-  loadingPasswordChange: (state) =>
-    Boolean(state.loadingPasswordChange),
+  loadingPasswordChange: (state) => Boolean(state.loadingPasswordChange),
 
-  loadingVerifyEmail: (state) =>
-    Boolean(state.loadingVerifyEmail),
+  loadingVerifyEmail: (state) => Boolean(state.loadingVerifyEmail),
 
-  loadingUpdateProfile: (state) =>
-    Boolean(state.loadingUpdateProfile),
+  loadingUpdateProfile: (state) => Boolean(state.loadingUpdateProfile),
 
   currentUserNameOrEmailPrefix: (state, getters) => {
     if (!getters.currentUser) {
@@ -71,8 +60,8 @@ export default {
     }
 
     if (
-      getters.currentUserFullName &&
-      getters.currentUserFullName.length < 25
+      getters.currentUserFullName
+      && getters.currentUserFullName.length < 25
     ) {
       return getters.currentUserFullName
     }
@@ -86,10 +75,10 @@ export default {
 
   currentUserAvatar: (state, getters) => {
     if (
-      !getters.currentUser ||
-      !getters.currentUser.avatars ||
-      !getters.currentUser.avatars.length ||
-      !getters.currentUser.avatars[0].downloadUrl
+      !getters.currentUser
+      || !getters.currentUser.avatars
+      || !getters.currentUser.avatars.length
+      || !getters.currentUser.avatars[0].downloadUrl
     ) {
       return null
     }
@@ -99,41 +88,36 @@ export default {
 
   invitedTenants: (state, getters) => {
     if (
-      !getters.currentUser ||
-      !getters.currentUser.tenants
+      !getters.currentUser
+      || !getters.currentUser.tenants
     ) {
       return []
     }
 
     return getters.currentUser.tenants
       .filter(
-        (tenantUser) => tenantUser.status === 'invited'
+        (tenantUser) => tenantUser.status === 'invited',
       )
       .map((tenantUser) => tenantUser.tenant)
   },
+  // I know, this is weird, but it is a hack
+  // so Vue refreshed the backgroundImageUrl getter
+  // based on the currentTenant on the store
+  currentSettings: (state, getters) => (getters.currentTenant
+    ? AuthCurrentTenant.getSettings()
+    : AuthCurrentTenant.getSettings()),
 
-  currentSettings: (state, getters) => {
-    // I know, this is weird, but it is a hack
-    // so Vue refreshed the backgroundImageUrl getter
-    // based on the currentTenant on the store
-    return getters.currentTenant
-      ? AuthCurrentTenant.getSettings()
-      : AuthCurrentTenant.getSettings()
-  },
-
-  communityHelpCenterSettings: (state, getters) => {
-    // I know, this is weird, but it is a hack
-    // so Vue refreshed the backgroundImageUrl getter
-    // based on the currentTenant on the store
-    return getters.currentTenant
-      ? AuthCurrentTenant.getCommunityHelpCenterSettings()
-      : AuthCurrentTenant.getCommunityHelpCenterSettings()
-  },
+  // I know, this is weird, but it is a hack
+  // so Vue refreshed the backgroundImageUrl getter
+  // based on the currentTenant on the store
+  communityHelpCenterSettings: (state, getters) => (getters.currentTenant
+    ? AuthCurrentTenant.getCommunityHelpCenterSettings()
+    : AuthCurrentTenant.getCommunityHelpCenterSettings()),
 
   backgroundImageUrl: (state, getters) => {
     if (
-      tenantSubdomain.isEnabled &&
-      tenantSubdomain.isRootDomain
+      tenantSubdomain.isEnabled
+      && tenantSubdomain.isRootDomain
     ) {
       return null
     }
@@ -146,15 +130,15 @@ export default {
       _get(
         settings,
         'backgroundImages[0].downloadUrl',
-        null
-      )
+        null,
+      ),
     )
   },
 
   logoUrl: (state, getters) => {
     if (
-      tenantSubdomain.isEnabled &&
-      tenantSubdomain.isRootDomain
+      tenantSubdomain.isEnabled
+      && tenantSubdomain.isRootDomain
     ) {
       return null
     }
@@ -164,7 +148,7 @@ export default {
     return _get(
       settings,
       'logoUrl',
-      _get(settings, 'logos[0].downloadUrl', null)
+      _get(settings, 'logos[0].downloadUrl', null),
     )
-  }
+  },
 }

@@ -20,7 +20,7 @@
               ? 'transform: rotate(180deg)'
               : ''
           "
-        ></i>
+        />
       </div>
       <template #dropdown>
         <el-dropdown-item
@@ -28,7 +28,7 @@
           :key="`option-${option.value}`"
           :class="{
             '!h-fit !py-2.5': option.description,
-            'is-selected': option.selected
+            'is-selected': option.selected,
           }"
           @click="handleOptionClick(option)"
         >
@@ -47,73 +47,70 @@
   </div>
 </template>
 
-<script>
-export default {
-  name: 'AppInlineSelectInput'
-}
-</script>
 <script setup>
 import {
   defineProps,
   defineEmits,
   ref,
-  computed
-} from 'vue'
+  computed,
+} from 'vue';
 
 const props = defineProps({
   modelValue: {
     type: [String, Number, Array],
-    default: null
+    default: null,
   },
   options: {
     type: Array,
-    default: () => {}
+    default: () => {},
   },
   prefix: {
     type: String,
-    default: null
+    default: null,
   },
   popperClass: {
     type: String,
-    default: null
+    default: null,
   },
   popperPlacement: {
     type: String,
-    default: 'top-start'
-  }
-})
+    default: 'top-start',
+  },
+});
 
-const emit = defineEmits(['update:modelValue', 'change'])
+const emit = defineEmits(['update:modelValue', 'change']);
 
-const computedOptions = computed(() => {
-  return props.options.map((o) => {
-    return {
-      ...o,
-      selected: o.value === model.value
-    }
-  })
-})
 const model = computed({
   get() {
-    return props.modelValue
+    return props.modelValue;
   },
   set(value) {
-    emit('update:modelValue', value)
-    emit('change', value)
-  }
-})
-const modelLabel = computed(() => {
-  return props.options.find((o) => o.value === model.value)
-    ?.label
-})
+    emit('update:modelValue', value);
+    emit('change', value);
+  },
+});
 
-const dropdownExpanded = ref(false)
+const computedOptions = computed(() => props.options.map((o) => ({
+  ...o,
+  selected: o.value === model.value,
+})));
+
+const modelLabel = computed(() => props.options.find((o) => o.value === model.value)
+  ?.label);
+
+const dropdownExpanded = ref(false);
 const handleDropdownVisibleChange = (value) => {
-  dropdownExpanded.value = value
-}
+  dropdownExpanded.value = value;
+};
 const handleOptionClick = (option) => {
-  model.value = option.value
-}
+  model.value = option.value;
+};
+</script>
+
+<script>
+export default {
+  name: 'AppInlineSelectInput',
+};
 </script>
 
 <style lang="scss">

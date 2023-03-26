@@ -11,7 +11,7 @@
         <div
           class="eagle-eye-view-btn"
           :class="{
-            selected: activeView.id === view.id
+            selected: activeView.id === view.id,
           }"
           @click="doChangeActiveView(view.id)"
         >
@@ -32,60 +32,57 @@
 </template>
 
 <script setup>
+import { computed } from 'vue';
+import { useStore } from 'vuex';
 import {
   mapActions,
-  mapGetters
-} from '@/shared/vuex/vuex.helpers'
-import { computed } from 'vue'
-import { useStore } from 'vuex'
+  mapGetters,
+} from '@/shared/vuex/vuex.helpers';
 
 const icons = {
   feed: 'ri-eye-2-line',
-  bookmarked: 'ri-bookmark-line'
-}
+  bookmarked: 'ri-bookmark-line',
+};
 
-const store = useStore()
-const { doChangeActiveView, doChangeSort } =
-  mapActions('eagleEye')
-const { activeView } = mapGetters('eagleEye')
+const store = useStore();
+const { doChangeActiveView, doChangeSort } = mapActions('eagleEye');
+const { activeView } = mapGetters('eagleEye');
 
-const views = computed(() => {
-  return Object.values(store.state.eagleEye.views)
-})
+const views = computed(() => Object.values(store.state.eagleEye.views));
 
 const sorter = computed({
   get() {
-    return activeView.value?.sorter
+    return activeView.value?.sorter;
   },
-  set() {}
-})
+  set() {},
+});
 
 const sorterOptions = computed(() => {
   if (activeView.value.id === 'bookmarked') {
     return [
       {
         value: 'individualBookmarks',
-        label: 'My bookmarks'
+        label: 'My bookmarks',
       },
       {
         value: 'teamBookmarks',
         label: 'Team bookmarks',
-        description: 'All posts bookmarked by your team'
-      }
-    ]
+        description: 'All posts bookmarked by your team',
+      },
+    ];
   }
 
   return [
     {
       value: 'relevant',
-      label: 'Most relevant'
+      label: 'Most relevant',
     },
     {
       value: 'recent',
-      label: 'Most recent'
-    }
-  ]
-})
+      label: 'Most recent',
+    },
+  ];
+});
 </script>
 
 <style lang="scss" scope>

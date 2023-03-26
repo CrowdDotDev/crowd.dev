@@ -14,33 +14,33 @@
   </app-cube-render>
 </template>
 
-<script>
-export default {
-  name: 'AppDashboardWidgetChart'
-}
-</script>
-
 <script setup>
-import { defineProps } from 'vue'
-import { mapGetters } from '@/shared/vuex/vuex.helpers'
-import AppCubeRender from '@/shared/cube/cube-render.vue'
-import AppWidgetArea from '@/modules/widget/components/v2/shared/widget-area.vue'
-import { chartOptions } from '@/modules/report/templates/template-report-charts'
-import { dashboardChartOptions } from '@/modules/dashboard/dashboard.cube'
-import { DAILY_GRANULARITY_FILTER } from '@/modules/widget/widget-constants'
+import { defineProps } from 'vue';
+import { mapGetters } from '@/shared/vuex/vuex.helpers';
+import AppCubeRender from '@/shared/cube/cube-render.vue';
+import AppWidgetArea from '@/modules/widget/components/v2/shared/widget-area.vue';
+import { chartOptions } from '@/modules/report/templates/template-report-charts';
+import { dashboardChartOptions } from '@/modules/dashboard/dashboard.cube';
+import { DAILY_GRANULARITY_FILTER } from '@/modules/widget/widget-constants';
 
 const props = defineProps({
   query: {
     type: Function,
-    required: true
+    required: true,
   },
   datasets: {
     type: Object,
-    required: true
-  }
-})
+    required: true,
+  },
+});
 
-const { period, platform } = mapGetters('dashboard')
+const { period, platform } = mapGetters('dashboard');
+</script>
+
+<script>
+export default {
+  name: 'AppDashboardWidgetChart',
+};
 </script>
 
 <style lang="scss">

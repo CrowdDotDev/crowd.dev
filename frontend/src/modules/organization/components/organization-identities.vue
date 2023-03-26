@@ -15,8 +15,8 @@
         :href="getIdentityLink('github')"
         :as-link="
           !!(
-            organization['github']?.url ||
-            organization['github']?.handle
+            organization['github']?.url
+            || organization['github']?.handle
           )
         "
       />
@@ -32,8 +32,8 @@
         :href="getIdentityLink('linkedin')"
         :as-link="
           !!(
-            organization['linkedin']?.url ||
-            organization['linkedin']?.handle
+            organization['linkedin']?.url
+            || organization['linkedin']?.handle
           )
         "
       />
@@ -49,8 +49,8 @@
         :href="getIdentityLink('twitter')"
         :as-link="
           !!(
-            organization['twitter']?.url ||
-            organization['twitter']?.handle
+            organization['twitter']?.url
+            || organization['twitter']?.handle
           )
         "
       />
@@ -66,8 +66,8 @@
         :href="getIdentityLink('crunchbase')"
         :as-link="
           !!(
-            organization['crunchbase']?.url ||
-            organization['crunchbase']?.handle
+            organization['crunchbase']?.url
+            || organization['crunchbase']?.handle
           )
         "
       />
@@ -102,56 +102,53 @@
   </div>
 </template>
 
-<script>
-export default {
-  name: 'AppOrganizationIdentities'
-}
-</script>
-
 <script setup>
-import { defineProps, computed } from 'vue'
+import { defineProps, computed } from 'vue';
 
 const props = defineProps({
   organization: {
     type: Object,
-    required: true
-  }
-})
+    required: true,
+  },
+});
 
 const hasSocialIdentities = computed(
-  () =>
-    !!props.organization.github ||
-    !!props.organization.linkedin ||
-    !!props.organization.twitter ||
-    !!props.organization.crunchbase
-)
+  () => !!props.organization.github
+    || !!props.organization.linkedin
+    || !!props.organization.twitter
+    || !!props.organization.crunchbase,
+);
 const showDivider = computed(
-  () =>
-    !!props.organization.phoneNumbers?.length &&
-    hasSocialIdentities.value
-)
+  () => !!props.organization.phoneNumbers?.length
+    && hasSocialIdentities.value,
+);
 
 const getIdentityLink = (platform) => {
   if (props.organization[platform]?.url) {
-    return props.organization[platform]?.url
-  } else if (props.organization[platform]?.handle) {
-    let url
+    return props.organization[platform]?.url;
+  } if (props.organization[platform]?.handle) {
+    let url;
 
     if (platform === 'linkedin') {
-      url = 'https://www.linkedin.com/'
+      url = 'https://www.linkedin.com/';
     } else if (platform === 'github') {
-      url = 'https://github.com/'
+      url = 'https://github.com/';
     } else if (platform === 'twitter') {
-      url = 'https://twitter.com/'
+      url = 'https://twitter.com/';
     } else if (platform === 'crunchbase') {
-      url = 'https://www.crunchbase.com/'
+      url = 'https://www.crunchbase.com/';
     } else {
-      return null
+      return null;
     }
 
-    return `${url}${props.organization[platform].handle}`
-  } else {
-    return null
+    return `${url}${props.organization[platform].handle}`;
   }
-}
+  return null;
+};
+</script>
+
+<script>
+export default {
+  name: 'AppOrganizationIdentities',
+};
 </script>

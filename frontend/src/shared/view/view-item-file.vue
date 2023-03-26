@@ -7,8 +7,8 @@
             :href="item.downloadUrl"
             download
             target="_blank"
-            >{{ item.name }}</a
-          >
+            rel="noopener noreferrer"
+          >{{ item.name }}</a>
         </strong>
       </div>
     </el-col>
@@ -22,20 +22,20 @@ export default {
   props: {
     label: {
       type: String,
-      default: null
+      default: null,
     },
     value: {
       type: String,
-      default: null
-    }
+      default: null,
+    },
   },
 
   computed: {
     isBlank() {
-      return !this.value || !this.value.length
-    }
-  }
-}
+      return !this.value || !this.value.length;
+    },
+  },
+};
 </script>
 
 <style></style>

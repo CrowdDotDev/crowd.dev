@@ -17,9 +17,7 @@
               class="text-2xs leading-4.5 font-semibold text-gray-400 uppercase tracking-1 pb-3"
             >
               Include
-              <span class="text-brand-500 font-normal"
-                >*</span
-              >
+              <span class="text-brand-500 font-normal">*</span>
             </p>
             <app-eagle-eye-settings-include
               v-for="(include, ii) of form.include"
@@ -32,7 +30,7 @@
                   :disabled="form.include.length === 1"
                   @click="removeInclude(ii)"
                 >
-                  <i class="ri-delete-bin-line text-lg"></i>
+                  <i class="ri-delete-bin-line text-lg" />
                 </el-button>
               </template>
             </app-eagle-eye-settings-include>
@@ -64,13 +62,13 @@
                 <el-input
                   v-model="exclude.keyword"
                   placeholder="Keyword"
-                ></el-input>
+                />
               </app-form-item>
               <el-button
                 class="btn btn--md btn--transparent w-10 h-10"
                 @click="removeExclude(ei)"
               >
-                <i class="ri-delete-bin-line text-lg"></i>
+                <i class="ri-delete-bin-line text-lg" />
               </el-button>
             </article>
             <div class="flex">
@@ -131,13 +129,15 @@
               content="Learn more"
             >
               <a
+                aria-label="Question"
                 class="btn btn--transparent !h-8 !w-8 !text-gray-400 hover:!text-gray-600"
                 href="https://docs.crowd.dev/docs/eagle-eye#ai-replies"
                 target="_blank"
+                rel="noopener noreferrer"
               >
                 <i
                   class="ri-question-line text-lg text-gray-400 font-normal"
-                ></i>
+                />
               </a>
             </el-tooltip>
           </div>
@@ -149,7 +149,7 @@
             >
               <i
                 class="ri-lightbulb-flash-line text-md text-white"
-              ></i>
+              />
             </div>
             <el-switch
               v-model="form.aiReplies"
@@ -166,7 +166,8 @@
         <el-button
           class="btn btn--md btn--transparent mr-3"
           @click="emit('update:modelValue', false)"
-          >Cancel
+        >
+          Cancel
         </el-button>
         <el-button
           type="primary"
@@ -174,7 +175,8 @@
           :loading="loadingUpdateSettings"
           :disabled="$v.$invalid || !hasFormChanged"
           @click="onSubmit()"
-          >Update
+        >
+          Update
         </el-button>
       </div>
     </template>
@@ -182,8 +184,6 @@
 </template>
 
 <script setup>
-import AppDrawer from '@/shared/drawer/drawer.vue'
-import Message from '@/shared/message/message'
 import {
   computed,
   defineEmits,
@@ -191,120 +191,111 @@ import {
   onMounted,
   reactive,
   watch,
-  defineExpose
-} from 'vue'
+  defineExpose,
+} from 'vue';
+import useVuelidate from '@vuelidate/core';
+import AppDrawer from '@/shared/drawer/drawer.vue';
+import Message from '@/shared/message/message';
 import {
   mapActions,
   mapGetters,
-  mapState
-} from '@/shared/vuex/vuex.helpers'
-import AppEagleEyePlatforms from '@/premium/eagle-eye/components/eagle-eye-platforms-drawers.vue'
-import AppEagleEyePublishedDate from '@/premium/eagle-eye/components/eagle-eye-published-date.vue'
-import useVuelidate from '@vuelidate/core'
-import AppEagleEyeSettingsInclude from '@/premium/eagle-eye/components/form/eagle-eye-settings-include.vue'
-import AppFormItem from '@/shared/form/form-item.vue'
-import formChangeDetector from '@/shared/form/form-change'
+  mapState,
+} from '@/shared/vuex/vuex.helpers';
+import AppEagleEyePlatforms from '@/premium/eagle-eye/components/eagle-eye-platforms-drawers.vue';
+import AppEagleEyePublishedDate from '@/premium/eagle-eye/components/eagle-eye-published-date.vue';
+import AppEagleEyeSettingsInclude from '@/premium/eagle-eye/components/form/eagle-eye-settings-include.vue';
+import AppFormItem from '@/shared/form/form-item.vue';
+import formChangeDetector from '@/shared/form/form-change';
 
 const props = defineProps({
   modelValue: {
     type: Boolean,
-    default: false
-  }
-})
+    default: false,
+  },
+});
 
-const emit = defineEmits(['update:modelValue'])
+const emit = defineEmits(['update:modelValue']);
 
-const { currentUser, currentTenant } = mapGetters('auth')
+const { currentUser, currentTenant } = mapGetters('auth');
 
 const eagleEyeSettings = computed(
-  () =>
-    currentUser?.value.tenants.find(
-      (tu) => tu.tenantId === currentTenant?.value.id
-    ).settings.eagleEye
-)
+  () => currentUser?.value.tenants.find(
+    (tu) => tu.tenantId === currentTenant?.value.id,
+  ).settings.eagleEye,
+);
 
-const { doUpdateSettings } = mapActions('eagleEye')
-const { loadingUpdateSettings } = mapState('eagleEye')
+const { doUpdateSettings } = mapActions('eagleEye');
+const { loadingUpdateSettings } = mapState('eagleEye');
 
 const form = reactive({
   include: [],
   exclude: [],
   datePublished: '',
   platforms: [],
-  aiReplies: true
-})
-const { hasFormChanged, formSnapshot } =
-  formChangeDetector(form)
+  aiReplies: true,
+});
+const { hasFormChanged, formSnapshot } = formChangeDetector(form);
 
-const $v = useVuelidate({}, form)
+const $v = useVuelidate({}, form);
 
 const drawerModel = computed({
   get() {
-    return props.modelValue
+    return props.modelValue;
   },
   set(value) {
-    emit('update:modelValue', value)
-  }
-})
-
-watch(
-  () => props.modelValue,
-  (open) => {
-    if (open) {
-      fillForm(currentUser.value)
-    }
-  }
-)
+    emit('update:modelValue', value);
+  },
+});
 
 const addInclude = () => {
   form.include.push({
     keyword: '',
-    match: 'semantic'
-  })
-}
+    match: 'semantic',
+  });
+};
 
 const removeInclude = (index) => {
-  form.include.splice(index, 1)
-}
+  form.include.splice(index, 1);
+};
 
 const addExclude = () => {
   form.exclude.push({
-    keyword: ''
-  })
-}
+    keyword: '',
+  });
+};
 
 const removeExclude = (index) => {
-  form.exclude.splice(index, 1)
-}
+  form.exclude.splice(index, 1);
+};
 
 const fillForm = (user) => {
   if (!user) {
-    return
+    return;
   }
-  const { feed } = eagleEyeSettings.value
+  const { feed } = eagleEyeSettings.value;
 
   form.include = [
     ...feed.keywords.map((keyword) => ({
       keyword,
-      match: 'semantic'
+      match: 'semantic',
     })),
     ...feed.exactKeywords.map((keyword) => ({
       keyword,
-      match: 'exact'
-    }))
-  ]
+      match: 'exact',
+    })),
+  ];
   form.exclude = feed.excludedKeywords.map((keyword) => ({
-    keyword
-  }))
-  form.platforms = feed.platforms
+    keyword,
+  }));
+  form.platforms = feed.platforms;
 
-  form.datePublished = feed.publishedDate
-  form.aiReplies = eagleEyeSettings.value.aiReplies || false
-  formSnapshot()
-}
+  form.datePublished = feed.publishedDate;
+  form.aiReplies = eagleEyeSettings.value.aiReplies || false;
+  formSnapshot();
+};
 
 const onSubmit = async () => {
-  $v.value.$touch()
+  $v.value.$touch();
   if (!$v.value.$invalid) {
     const data = {
       keywords: form.include
@@ -317,26 +308,35 @@ const onSubmit = async () => {
         .filter((e) => e.keyword.trim().length > 0)
         .map((e) => e.keyword),
       publishedDate: form.datePublished,
-      platforms: form.platforms
-    }
+      platforms: form.platforms,
+    };
     doUpdateSettings({
       data: {
         ...eagleEyeSettings.value,
         feed: data,
-        aiReplies: form.aiReplies
-      }
+        aiReplies: form.aiReplies,
+      },
     }).then(() => {
-      Message.success('Feed settings updated!')
-      emit('update:modelValue', false)
-    })
+      Message.success('Feed settings updated!');
+      emit('update:modelValue', false);
+    });
   }
-}
+};
+
+watch(
+  () => props.modelValue,
+  (open) => {
+    if (open) {
+      fillForm(currentUser.value);
+    }
+  },
+);
 
 onMounted(() => {
-  fillForm(currentUser.value)
-})
+  fillForm(currentUser.value);
+});
 
 defineExpose({
-  $v
-})
+  $v,
+});
 </script>

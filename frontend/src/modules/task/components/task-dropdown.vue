@@ -11,114 +11,114 @@
         type="button"
         @click.stop
       >
-        <i class="text-xl ri-more-fill"></i>
+        <i class="text-xl ri-more-fill" />
       </button>
     </slot>
 
     <template #dropdown>
       <el-dropdown-item
         v-if="
-          task.status === 'in-progress' &&
-          taskEditPermission
+          task.status === 'in-progress'
+            && taskEditPermission
         "
         class="w-55"
         :command="{
-          action: 'taskEdit'
+          action: 'taskEdit',
         }"
-        ><i
-          class="ri-pencil-line mr-1 text-gray-400"
-        /><span>Edit task</span></el-dropdown-item
       >
+        <i
+          class="ri-pencil-line mr-1 text-gray-400"
+        /><span>Edit task</span>
+      </el-dropdown-item>
 
       <el-dropdown-item
         v-if="
-          task.status === 'archived' &&
-          taskDestroyPermission
+          task.status === 'archived'
+            && taskDestroyPermission
         "
         class="w-55"
         :command="{
-          action: 'taskUnarchive'
+          action: 'taskUnarchive',
         }"
-        ><i
+      >
+        <i
           class="ri-inbox-unarchive-line mr-1 text-gray-400"
-        /><span>Unarchive task</span></el-dropdown-item
-      >
+        /><span>Unarchive task</span>
+      </el-dropdown-item>
       <el-dropdown-item
         v-if="
-          task.status === 'in-progress' &&
-          taskDestroyPermission
+          task.status === 'in-progress'
+            && taskDestroyPermission
         "
         class="w-55"
         divided
         :command="{
-          action: 'taskDelete'
+          action: 'taskDelete',
         }"
-        ><i
-          class="ri-delete-bin-line mr-1 text-red-500"
-        /><span class="text-red-500"
-          >Delete task</span
-        ></el-dropdown-item
       >
+        <i
+          class="ri-delete-bin-line mr-1 text-red-500"
+        /><span class="text-red-500">Delete task</span>
+      </el-dropdown-item>
       <el-dropdown-item
         v-if="
-          task.status === 'archived' &&
-          taskDestroyPermission
+          task.status === 'archived'
+            && taskDestroyPermission
         "
         class="w-55"
         divided
         :command="{
-          action: 'taskDeletePermanently'
+          action: 'taskDeletePermanently',
         }"
-        ><i
-          class="ri-delete-bin-line mr-1 text-red-500"
-        /><span class="text-red-500"
-          >Delete permanently</span
-        ></el-dropdown-item
       >
+        <i
+          class="ri-delete-bin-line mr-1 text-red-500"
+        /><span class="text-red-500">Delete permanently</span>
+      </el-dropdown-item>
     </template>
   </el-dropdown>
 </template>
 
 <script>
-import ConfirmDialog from '@/shared/dialog/confirm-dialog.js'
-import { TaskService } from '@/modules/task/task-service'
-import { mapActions, mapGetters } from 'vuex'
-import { TaskPermissions } from '@/modules/task/task-permissions'
+import { mapActions, mapGetters } from 'vuex';
+import ConfirmDialog from '@/shared/dialog/confirm-dialog';
+import { TaskService } from '@/modules/task/task-service';
+import { TaskPermissions } from '@/modules/task/task-permissions';
 
 export default {
   name: 'AppTaskDropdown',
   props: {
     task: {
       type: Object,
-      required: true
-    }
+      required: true,
+    },
   },
   data() {
     return {
-      dropdownVisible: false
-    }
+      dropdownVisible: false,
+    };
   },
   computed: {
     ...mapGetters('auth', ['currentTenant', 'currentUser']),
     taskEditPermission() {
       return new TaskPermissions(
         this.currentTenant,
-        this.currentUser
-      ).edit
+        this.currentUser,
+      ).edit;
     },
     taskDestroyPermission() {
       return new TaskPermissions(
         this.currentTenant,
-        this.currentUser
-      ).destroy
-    }
+        this.currentUser,
+      ).destroy;
+    },
   },
   methods: {
     ...mapActions('task', [
       'reloadTaskPage',
       'editTask',
       'reloadArchivedTasks',
-      'reloadClosedTasks'
+      'reloadClosedTasks',
     ]),
     doDestroyWithConfirm(archived) {
       ConfirmDialog({
@@ -128,40 +128,39 @@ export default {
           'Are you sure you want to delete this task? You can’t undo this action.',
         confirmButtonText: 'Confirm',
         cancelButtonText: 'Cancel',
-        icon: 'ri-delete-bin-line'
+        icon: 'ri-delete-bin-line',
       })
-        .then(() => {
-          return TaskService.delete([this.task.id])
-        })
+        .then(() => TaskService.delete([this.task.id]))
         .then(() => {
           if (archived) {
-            this.reloadArchivedTasks()
+            this.reloadArchivedTasks();
           } else {
-            this.reloadTaskPage()
+            this.reloadTaskPage();
           }
-        })
+        });
     },
     doUnarchive() {
       return TaskService.update(this.task.id, {
-        status: 'done'
+        status: 'done',
       }).then(() => {
-        this.reloadClosedTasks()
-        this.reloadArchivedTasks()
-      })
+        this.reloadClosedTasks();
+        this.reloadArchivedTasks();
+      });
     },
     handleCommand(command) {
       if (command.action === 'taskDelete') {
-        return this.doDestroyWithConfirm(false)
-      } else if (command.action === 'taskEdit') {
-        this.editTask(this.task)
+        return this.doDestroyWithConfirm(false);
+      } if (command.action === 'taskEdit') {
+        this.editTask(this.task);
       } else if (
         command.action === 'taskDeletePermanently'
       ) {
-        return this.doDestroyWithConfirm(true)
+        return this.doDestroyWithConfirm(true);
       } else if (command.action === 'taskUnarchive') {
-        return this.doUnarchive()
+        return this.doUnarchive();
       }
-    }
-  }
-}
+      return null;
+    },
+  },
+};
 </script>

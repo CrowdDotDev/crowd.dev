@@ -31,7 +31,7 @@
             <div
               v-if="!model.enabled"
               class="absolute inset-0 bg-gray-50 opacity-60 z-10 -m-6"
-            ></div>
+            />
             <general
               v-model:tenantSlug="model.tenantSlug"
               v-model:tenantName="model.tenantName"
@@ -72,7 +72,7 @@
             class="btn btn--bordered btn--md mr-4"
             @click="$emit('close')"
           >
-            <app-i18n code="common.cancel"></app-i18n>
+            <app-i18n code="common.cancel" />
           </el-button>
 
           <el-button
@@ -89,21 +89,21 @@
 </template>
 
 <script>
-import { mapGetters, mapActions } from 'vuex'
-import StringField from '@/shared/fields/string-field'
-import UrlField from '@/shared/fields/url-field'
-import DomainField from '@/shared/fields/domain-field'
-import { FormSchema } from '@/shared/form/form-schema'
-import authAxios from '@/shared/axios/auth-axios'
-import Message from '@/shared/message/message'
-import { ConversationPermissions } from '@/modules/conversation/conversation-permissions'
-import { i18n } from '@/i18n'
-import AutoPublish from '@/premium/community-help-center/components/settings/_auto-publish'
-import General from '@/premium/community-help-center/components/settings/_general'
-import Theming from '@/premium/community-help-center/components/settings/_theming'
-import Toggle from '@/premium/community-help-center/components/settings/_toggle'
-import Links from '@/premium/community-help-center/components/settings/_links'
-import ConfirmDialog from '@/shared/dialog/confirm-dialog'
+import { mapGetters, mapActions } from 'vuex';
+import StringField from '@/shared/fields/string-field';
+import UrlField from '@/shared/fields/url-field';
+import DomainField from '@/shared/fields/domain-field';
+import { FormSchema } from '@/shared/form/form-schema';
+import authAxios from '@/shared/axios/auth-axios';
+import Message from '@/shared/message/message';
+import { ConversationPermissions } from '@/modules/conversation/conversation-permissions';
+import { i18n } from '@/i18n';
+import ConfirmDialog from '@/shared/dialog/confirm-dialog';
+import AutoPublish from '@/premium/community-help-center/components/settings/_auto-publish.vue';
+import General from '@/premium/community-help-center/components/settings/_general.vue';
+import Theming from '@/premium/community-help-center/components/settings/_theming.vue';
+import Toggle from '@/premium/community-help-center/components/settings/_toggle.vue';
+import Links from '@/premium/community-help-center/components/settings/_links.vue';
 
 const formSchema = new FormSchema([
   new UrlField('website', 'Website'),
@@ -114,8 +114,8 @@ const formSchema = new FormSchema([
   new UrlField('githubInviteLink', 'GitHub URL'),
   new UrlField('logoUrl', 'Logo URL'),
   new UrlField('faviconUrl', 'Favicon URL'),
-  new DomainField('customUrl', 'Custom Domain')
-])
+  new DomainField('customUrl', 'Custom Domain'),
+]);
 
 export default {
   name: 'AppConversationSettings',
@@ -124,18 +124,18 @@ export default {
     AutoPublish,
     Theming,
     Toggle,
-    Links
+    Links,
   },
 
   props: {
     visible: {
       type: Boolean,
-      default: false
+      default: false,
     },
     buttonVisible: {
       type: Boolean,
-      default: true
-    }
+      default: true,
+    },
   },
   emits: ['close', 'open', 'update:modelValue'],
 
@@ -145,9 +145,9 @@ export default {
       rules: formSchema.rules(),
       model: {
         theme: {},
-        autoPublish: {}
-      }
-    }
+        autoPublish: {},
+      },
+    };
   },
 
   computed: {
@@ -160,90 +160,88 @@ export default {
       currentTenant: 'auth/currentTenant',
       currentSettings: 'auth/currentSettings',
       communityHelpCenterSettings:
-        'auth/communityHelpCenterSettings'
+        'auth/communityHelpCenterSettings',
     }),
     computedVisible: {
       get() {
-        return this.visible
+        return this.visible;
       },
       set(value) {
         if (value) {
-          this.$emit('open')
+          this.$emit('open');
         } else {
-          this.$emit('close')
+          this.$emit('close');
         }
-      }
+      },
     },
     slackIntegration() {
       return (
         this.activeIntegrationsList.slack || {
-          settings: {}
+          settings: {},
         }
-      )
+      );
     },
     discordIntegration() {
       return (
         this.activeIntegrationsList.discord || {
-          settings: {}
+          settings: {},
         }
-      )
+      );
     },
     githubIntegration() {
       return (
         this.activeIntegrationsList.github || {
-          settings: {}
+          settings: {},
         }
-      )
+      );
     },
     hasPermissionToEdit() {
       return new ConversationPermissions(
         this.currentTenant,
-        this.currentUser
-      ).edit
+        this.currentUser,
+      ).edit;
     },
     shouldConfirmAutoPublish() {
       if (this.model.autoPublish.status === 'disabled') {
-        return false
+        return false;
       }
 
-      let shouldConfirm =
-        this.model.autoPublish.status === 'all' ||
-        this.model.autoPublish.status === 'custom'
+      let shouldConfirm = this.model.autoPublish.status === 'all'
+        || this.model.autoPublish.status === 'custom';
 
       if (this.communityHelpCenterSettings.autoPublish) {
-        shouldConfirm =
-          this.model.autoPublish.status !==
-          this.communityHelpCenterSettings.autoPublish
-            .status
+        shouldConfirm = this.model.autoPublish.status
+          !== this.communityHelpCenterSettings.autoPublish
+            .status;
       }
 
-      return shouldConfirm
+      return shouldConfirm;
     },
     isCreateLockedForSampleData() {
       return new ConversationPermissions(
         this.currentTenant,
-        this.currentUser
-      ).createLockedForSampleData
-    }
+        this.currentUser,
+      ).createLockedForSampleData;
+    },
   },
 
   async created() {
     if (!this.loadedIntegrations) {
-      await this.fetchIntegrations()
+      await this.fetchIntegrations();
     }
-    this.setModel()
+    this.setModel();
   },
 
   methods: {
     ...mapActions({
       fetchIntegrations: 'integration/doFetch',
       fetchConversations: 'communityHelpCenter/doFetch',
-      doRefreshCurrentUser: 'auth/doRefreshCurrentUser'
+      doRefreshCurrentUser: 'auth/doRefreshCurrentUser',
     }),
     async doSubmit() {
-      this.loading = true
+      this.loading = true;
       try {
-        await this.$refs.form.validate()
+        await this.$refs.form.validate();
 
         if (this.shouldConfirmAutoPublish) {
           await ConfirmDialog({
@@ -254,8 +252,8 @@ export default {
                 : 'selected channels'
             }?`,
             confirmButtonText: i18n('common.yes'),
-            cancelButtonText: i18n('common.no')
-          })
+            cancelButtonText: i18n('common.no'),
+          });
         }
 
         await authAxios.post(
@@ -263,13 +261,13 @@ export default {
           {
             tenant: {
               name: this.model.tenantName,
-              url: this.model.tenantSlug
+              url: this.model.tenantSlug,
             },
             enabled: this.model.enabled,
             inviteLinks: {
               discord: this.model.discordInviteLink,
               slack: this.model.slackInviteLink,
-              github: this.model.githubInviteLink
+              github: this.model.githubInviteLink,
             },
             website: this.model.website,
             customUrl: this.model.customUrl || undefined,
@@ -281,33 +279,32 @@ export default {
               channelsByPlatform:
                 this.model.autoPublish.channels.reduce(
                   (acc, item) => {
-                    const [platform, channel] =
-                      item.split('.')
+                    const [platform, channel] = item.split('.');
                     acc[platform] = acc[platform]
                       ? [...acc[platform], channel]
-                      : [channel]
-                    return acc
+                      : [channel];
+                    return acc;
                   },
-                  {}
-                )
-            }
-          }
-        )
-        await this.doRefreshCurrentUser()
-        await this.fetchIntegrations()
-        await this.fetchConversations({})
-        this.setModel()
-        this.loading = false
-        this.$emit('close')
+                  {},
+                ),
+            },
+          },
+        );
+        await this.doRefreshCurrentUser();
+        await this.fetchIntegrations();
+        await this.fetchConversations({});
+        this.setModel();
+        this.loading = false;
+        this.$emit('close');
         Message.success(
-          'Community Help Center settings updated successfully'
-        )
+          'Community Help Center settings updated successfully',
+        );
       } catch (error) {
         if (error.response) {
-          Message.error(error.response.data)
+          Message.error(error.response.data);
         }
-        console.error(error)
-        this.loading = false
+        console.error(error);
+        this.loading = false;
       }
     },
     setModel() {
@@ -320,15 +317,15 @@ export default {
         theme: this.communityHelpCenterSettings.theme
           ? this.communityHelpCenterSettings.theme
           : {
-              primary: '#E94F2E',
-              secondary: '#140505',
-              text: '#140505',
-              textSecondary: '#7F7F7F',
-              textCta: '#fff',
-              bg: '#F8F8F8',
-              bgHighlight: '#fff',
-              bgNav: '#140505'
-            },
+            primary: '#E94F2E',
+            secondary: '#140505',
+            text: '#140505',
+            textSecondary: '#7F7F7F',
+            textCta: '#fff',
+            bg: '#F8F8F8',
+            bgHighlight: '#fff',
+            bgNav: '#140505',
+          },
         customUrl:
           this.communityHelpCenterSettings.customUrl,
         logoUrl: this.communityHelpCenterSettings.logoUrl,
@@ -343,35 +340,32 @@ export default {
         autoPublish: !this.communityHelpCenterSettings
           .autoPublish
           ? {
-              status: 'all',
-              channels: [],
-              channelsByPlatform: {}
-            }
+            status: 'all',
+            channels: [],
+            channelsByPlatform: {},
+          }
           : {
-              status:
+            status:
                 this.communityHelpCenterSettings.autoPublish
                   .status,
-              channels: Object.keys(
+            channels: Object.keys(
+              this.communityHelpCenterSettings.autoPublish
+                .channelsByPlatform,
+            ).reduce((acc, platform) => acc.concat(
+              this.communityHelpCenterSettings.autoPublish.channelsByPlatform[
+                platform
+              ].map(
+                (channel) => `${platform}.${channel}`,
+              ),
+            ), []),
+            channelsByPlatform:
                 this.communityHelpCenterSettings.autoPublish
-                  .channelsByPlatform
-              ).reduce((acc, platform) => {
-                acc = acc.concat(
-                  this.communityHelpCenterSettings.autoPublish.channelsByPlatform[
-                    platform
-                  ].map(
-                    (channel) => `${platform}.${channel}`
-                  )
-                )
-                return acc
-              }, []),
-              channelsByPlatform:
-                this.communityHelpCenterSettings.autoPublish
-                  .channelsByPlatform
-            }
-      }
-    }
-  }
-}
+                  .channelsByPlatform,
+          },
+      };
+    },
+  },
+};
 </script>
 
 <style lang="scss">

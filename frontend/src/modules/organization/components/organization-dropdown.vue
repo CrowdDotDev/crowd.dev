@@ -11,22 +11,22 @@
         type="button"
         @click.stop
       >
-        <i class="text-xl ri-more-fill"></i>
+        <i class="text-xl ri-more-fill" />
       </button>
       <template #dropdown>
         <!-- Edit -->
         <el-dropdown-item
           :command="{
             action: 'organizationEdit',
-            organization
+            organization,
           }"
           :disabled="isEditLockedForSampleData"
           class="h-10"
-          ><i class="ri-pencil-line text-base mr-2" /><span
-            class="text-xs"
-            >Edit organization</span
-          ></el-dropdown-item
         >
+          <i class="ri-pencil-line text-base mr-2" /><span
+            class="text-xs"
+          >Edit organization</span>
+        </el-dropdown-item>
 
         <!-- Mark as Team Organization -->
         <el-dropdown-item
@@ -34,16 +34,15 @@
           :command="{
             action: 'markOrganizationTeam',
             organization,
-            value: true
+            value: true,
           }"
           class="h-10"
           :disabled="isEditLockedForSampleData"
-          ><i
-            class="ri-bookmark-line text-base mr-2"
-          /><span class="text-xs"
-            >Mark as team organization</span
-          ></el-dropdown-item
         >
+          <i
+            class="ri-bookmark-line text-base mr-2"
+          /><span class="text-xs">Mark as team organization</span>
+        </el-dropdown-item>
 
         <!-- Unmark as Team Organization -->
         <el-dropdown-item
@@ -51,16 +50,15 @@
           :command="{
             action: 'markOrganizationTeam',
             organization,
-            value: false
+            value: false,
           }"
           class="h-10"
           :disabled="isEditLockedForSampleData"
-          ><i
-            class="ri-bookmark-2-line text-base mr-2"
-          /><span class="text-xs"
-            >Unmark as team organization</span
-          ></el-dropdown-item
         >
+          <i
+            class="ri-bookmark-2-line text-base mr-2"
+          /><span class="text-xs">Unmark as team organization</span>
+        </el-dropdown-item>
 
         <el-divider class="border-gray-200 my-2" />
 
@@ -69,80 +67,70 @@
           class="h-10"
           :command="{
             action: 'organizationDelete',
-            organization
+            organization,
           }"
           :disabled="isDeleteLockedForSampleData"
-          ><i
+        >
+          <i
             class="ri-delete-bin-line text-base mr-2"
             :class="{
-              'text-red-500': !isDeleteLockedForSampleData
+              'text-red-500': !isDeleteLockedForSampleData,
             }"
           /><span
             class="text-xs"
             :class="{
-              'text-red-500': !isDeleteLockedForSampleData
+              'text-red-500': !isDeleteLockedForSampleData,
             }"
-            >Delete organization</span
-          >
+          >Delete organization</span>
         </el-dropdown-item>
       </template>
     </el-dropdown>
   </div>
 </template>
 
-<script>
-export default {
-  name: 'AppOrganizationDropdown'
-}
-</script>
-
 <script setup>
-import { computed, defineProps } from 'vue'
+import { computed, defineProps } from 'vue';
+import { useRouter } from 'vue-router';
 import {
   mapGetters,
-  mapActions
-} from '@/shared/vuex/vuex.helpers'
-import { OrganizationPermissions } from '../organization-permissions'
-import { useRouter } from 'vue-router'
-import ConfirmDialog from '@/shared/dialog/confirm-dialog'
-import { OrganizationService } from '../organization-service'
-import Message from '@/shared/message/message'
+  mapActions,
+} from '@/shared/vuex/vuex.helpers';
+import ConfirmDialog from '@/shared/dialog/confirm-dialog';
+import Message from '@/shared/message/message';
+import { OrganizationPermissions } from '../organization-permissions';
+import { OrganizationService } from '../organization-service';
 
-const router = useRouter()
+const router = useRouter();
 
 defineProps({
   organization: {
     type: Object,
-    default: () => {}
-  }
-})
+    default: () => {},
+  },
+});
 
-const { currentUser, currentTenant } = mapGetters('auth')
-const { doDestroy, doFetch, doFind } =
-  mapActions('organization')
+const { currentUser, currentTenant } = mapGetters('auth');
+const { doDestroy, doFetch, doFind } = mapActions('organization');
 
 const isReadOnly = computed(
-  () =>
-    new OrganizationPermissions(
-      currentTenant.value,
-      currentUser.value
-    ).edit === false
-)
+  () => new OrganizationPermissions(
+    currentTenant.value,
+    currentUser.value,
+  ).edit === false,
+);
 
 const isEditLockedForSampleData = computed(
-  () =>
-    new OrganizationPermissions(
-      currentTenant.value,
-      currentUser.value
-    ).editLockedForSampleData
-)
+  () => new OrganizationPermissions(
+    currentTenant.value,
+    currentUser.value,
+  ).editLockedForSampleData,
+);
 const isDeleteLockedForSampleData = computed(
-  () =>
-    new OrganizationPermissions(
-      currentTenant.value,
-      currentUser.value
-    ).destroyLockedForSampleData
-)
+  () => new OrganizationPermissions(
+    currentTenant.value,
+    currentUser.value,
+  ).destroyLockedForSampleData,
+);
 
 const doDestroyWithConfirm = async (id) => {
   try {
@@ -153,41 +141,49 @@ const doDestroyWithConfirm = async (id) => {
         "Are you sure you want to proceed? You can't undo this action",
       confirmButtonText: 'Confirm',
       cancelButtonText: 'Cancel',
-      icon: 'ri-delete-bin-line'
-    })
+      icon: 'ri-delete-bin-line',
+    });
 
-    return doDestroy(id)
+    return doDestroy(id);
   } catch (error) {
-    console.error(error)
+    console.error(error);
   }
-}
+  return null;
+};
 
 const handleCommand = (command) => {
   if (command.action === 'organizationDelete') {
-    return doDestroyWithConfirm(command.organization.id)
-  } else if (command.action === 'organizationEdit') {
+    return doDestroyWithConfirm(command.organization.id);
+  } if (command.action === 'organizationEdit') {
     router.push({
       name: 'organizationEdit',
       params: {
-        id: command.organization.id
-      }
-    })
+        id: command.organization.id,
+      },
+    });
   } else if (command.action === 'markOrganizationTeam') {
     OrganizationService.update(command.organization.id, {
-      isTeamOrganization: command.value
+      isTeamOrganization: command.value,
     }).then(() => {
-      Message.success('Organization updated successfully')
+      Message.success('Organization updated successfully');
 
       if (
         router.currentRoute.value.name === 'organization'
       ) {
         doFetch({
-          keepPagination: false
-        })
+          keepPagination: false,
+        });
       } else {
-        doFind(command.organization.id)
+        doFind(command.organization.id);
       }
-    })
+    });
   }
-}
+  return null;
+};
+</script>
+
+<script>
+export default {
+  name: 'AppOrganizationDropdown',
+};
 </script>

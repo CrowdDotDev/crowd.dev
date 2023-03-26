@@ -1,7 +1,7 @@
 <template>
   <div class="grid grid-cols-5">
     <!-- Row 0: Names -->
-    <div></div>
+    <div />
     <div
       v-for="member in props.pair"
       :key="member.id"
@@ -9,7 +9,7 @@
         'main-member col-span-2': member.id === pair[0].id,
         'second-member  col-span-2':
           member.id === pair[1].id,
-        middle: member.id === pair[0].id
+        middle: member.id === pair[0].id,
       }"
       class="row"
     >
@@ -25,11 +25,12 @@
         />
         <button
           v-if="member.id === pair[1].id"
+          type="button"
           class="btn btn-link btn-link--primary ml-auto"
           :disabled="isEditLockedForSampleData"
           @click="handleMakePrimary"
         >
-          <i class="ri-arrow-left-right-line"></i>
+          <i class="ri-arrow-left-right-line" />
           <span>Make primary</span>
         </button>
       </div>
@@ -38,12 +39,13 @@
         s
         class="text-gray-500 text-xs pr-4 line-clamp"
       >
-        <app-member-bio :member="member"
-      /></span>
+        <app-member-bio :member="member" /></span>
     </div>
 
     <!-- Row 1: Engagement level -->
-    <div class="row left">Engagement level</div>
+    <div class="row left">
+      Engagement level
+    </div>
     <div class="middle row col-span-2">
       <app-member-engagement-level :member="pair[0]" />
     </div>
@@ -54,7 +56,9 @@
       />
     </div>
     <!-- Row 2: Location -->
-    <div class="row">Location</div>
+    <div class="row">
+      Location
+    </div>
     <div class="middle row col-span-2">
       {{ pair[0].attributes?.location?.default }}
     </div>
@@ -64,7 +68,9 @@
       }}</span>
     </div>
     <!-- Row 3: Organization -->
-    <div class="row">Organization</div>
+    <div class="row">
+      Organization
+    </div>
     <div class="middle row col-span-2">
       <app-member-organizations
         :member="pair[0]"
@@ -79,7 +85,9 @@
       />
     </div>
     <!-- Row 4: Title -->
-    <div class="row">Title</div>
+    <div class="row">
+      Title
+    </div>
     <div class="middle row col-span-2">
       <span>{{
         pair[0].attributes?.jobTitle?.default
@@ -91,7 +99,9 @@
       }}</span>
     </div>
     <!-- Row 5: Member since -->
-    <div class="row">Member since</div>
+    <div class="row">
+      Member since
+    </div>
     <div class="middle row col-span-2">
       {{ getJoinedAt(pair[0]) }}
     </div>
@@ -101,7 +111,9 @@
       }}</span>
     </div>
     <!-- Row 7: Tags -->
-    <div class="row">Tags</div>
+    <div class="row">
+      Tags
+    </div>
     <div class="middle row col-span-2">
       <app-tag-list :member="pair[0]" :editable="false" />
     </div>
@@ -126,110 +138,106 @@
   </div>
 </template>
 
-<script>
-export default {
-  name: 'AppMemberMergeSuggestionsDetails'
-}
-</script>
-
 <script setup>
-import { defineProps, computed, defineEmits } from 'vue'
-import AppMemberDisplayName from '@/modules/member/components/member-display-name'
-import AppMemberOrganizations from '@/modules/member/components/member-organizations'
-import AppTagList from '@/modules/tag/components/tag-list'
-import AppMemberEngagementLevel from '../member-engagement-level'
-import AppMemberMergeSuggestionsDetailsIdentities from './member-merge-suggestions-details-identities'
-import AppMemberBio from '@/modules/member/components/member-bio'
-import { CrowdIntegrations } from '@/integrations/integrations-config'
-import { MemberPermissions } from '../../member-permissions'
-import { mapGetters } from '@/shared/vuex/vuex.helpers'
+import { defineProps, computed, defineEmits } from 'vue';
+import { CrowdIntegrations } from '@/integrations/integrations-config';
+import { mapGetters } from '@/shared/vuex/vuex.helpers';
+import AppMemberDisplayName from '@/modules/member/components/member-display-name.vue';
+import AppMemberOrganizations from '@/modules/member/components/member-organizations.vue';
+import AppTagList from '@/modules/tag/components/tag-list.vue';
+import AppMemberBio from '@/modules/member/components/member-bio.vue';
+import AppMemberEngagementLevel from '../member-engagement-level.vue';
+import AppMemberMergeSuggestionsDetailsIdentities from './member-merge-suggestions-details-identities.vue';
+import { MemberPermissions } from '../../member-permissions';
 
 const props = defineProps({
   pair: {
     type: Array,
-    required: true
-  }
-})
+    required: true,
+  },
+});
 
-const emit = defineEmits(['makePrimary'])
+const emit = defineEmits(['makePrimary']);
 
-const { currentTenant, currentUser } = mapGetters('auth')
+const { currentTenant, currentUser } = mapGetters('auth');
 
-const isEditLockedForSampleData = computed(() => {
-  return new MemberPermissions(
-    currentTenant.value,
-    currentUser.value
-  ).editLockedForSampleData
-})
+const isEditLockedForSampleData = computed(() => new MemberPermissions(
+  currentTenant.value,
+  currentUser.value,
+).editLockedForSampleData);
 
 const identities = computed(() => {
-  const integrationsFiltered =
-    CrowdIntegrations.configs.filter(
-      (x) =>
-        Object.keys(props.pair[0].username).includes(
-          x.platform
-        ) ||
-        Object.keys(props.pair[1].username).includes(
-          x.platform
-        )
+  const integrationsFiltered = CrowdIntegrations.configs.filter(
+    (x) => Object.keys(props.pair[0].username).includes(
+      x.platform,
     )
-  const out = []
+        || Object.keys(props.pair[1].username).includes(
+          x.platform,
+        ),
+  );
+  const out = [];
 
   if (
-    props.pair[0].emails?.length ||
-    props.pair[1].emails?.length
+    props.pair[0].emails?.length
+    || props.pair[1].emails?.length
   ) {
     out.push({
       type: 'email-platform',
       key: 'email',
-      name: 'E-mail'
-    })
+      name: 'E-mail',
+    });
     out.push({
       type: 'email',
       key: `email-${props.pair[0].id}`,
       track: 'Email',
       middle: true,
-      url: props.pair[0].emails
-    })
+      url: props.pair[0].emails,
+    });
     out.push({
       type: 'email',
       key: `email-${props.pair[1].id}`,
       track: 'Email',
-      url: props.pair[1].emails
-    })
+      url: props.pair[1].emails,
+    });
   }
 
-  for (const platform of integrationsFiltered) {
+  integrationsFiltered.forEach((platform) => {
     out.push({
       type: 'platform',
       key: platform.platform,
       platform: platform.platform,
       name: platform.name,
-      image: platform.image
-    })
-    for (const member of props.pair) {
+      image: platform.image,
+    });
+    props.pair.forEach((member) => {
       out.push({
         type: 'identity',
         key: `${platform.platform}-${member.id}`,
         middle: member.id === props.pair[0].id,
         track: platform.name,
         url: member.attributes?.url?.[platform.platform],
-        username: member.username[platform.platform]
-      })
-    }
-  }
-  return out
-})
+        username: member.username[platform.platform],
+      });
+    });
+  });
+  return out;
+});
 
 function handleMakePrimary() {
-  emit('makePrimary')
+  emit('makePrimary');
 }
 
 function getJoinedAt(member) {
   return member.joinedAt.includes('1970')
     ? '-'
-    : member.joinedAt.split('T')[0]
+    : member.joinedAt.split('T')[0];
 }
+</script>
+
+<script>
+export default {
+  name: 'AppMemberMergeSuggestionsDetails',
+};
 </script>
 
 <style lang="scss">

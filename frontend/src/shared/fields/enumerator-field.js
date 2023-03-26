@@ -1,100 +1,100 @@
-import isString from 'lodash/isString'
-import * as yup from 'yup'
-import { i18n } from '@/i18n'
-import GenericField from '@/shared/fields/generic-field'
+import isString from 'lodash/isString';
+import * as yup from 'yup';
+import { i18n } from '@/i18n';
+import GenericField from '@/shared/fields/generic-field';
 
 export default class EnumeratorField extends GenericField {
   constructor(name, label, options, config = {}) {
-    super(name, label)
-    this.options = options || []
-    this.required = config.required
-    this.placeholder = config.placeholder
-    this.hint = config.hint
-    this.filterable = config.filterable || false
+    super(name, label);
+    this.options = options || [];
+    this.required = config.required;
+    this.placeholder = config.placeholder;
+    this.hint = config.hint;
+    this.filterable = config.filterable || false;
   }
 
-  _id(option) {
+  id(option) {
     if (!option) {
-      return option
+      return option;
     }
 
     if (isString(option)) {
-      return option
+      return option;
     }
 
-    return option.id
+    return option.id;
   }
 
-  _label(option) {
+  label(option) {
     if (!option) {
-      return option
+      return option;
     }
 
     if (isString(option)) {
-      return option
+      return option;
     }
 
-    return option.label
+    return option.label;
   }
 
   forPresenter(value) {
     const option = this.options.find(
-      (option) => option.id === this._id(value)
-    )
+      (o) => o.id === this.id(value),
+    );
 
     if (option) {
-      return this._label(option)
+      return this.label(option);
     }
 
-    return value
+    return value;
   }
 
   forFilterPreview(value) {
     const option = this.options.find(
-      (option) => option.id === this._id(value)
-    )
+      (o) => o.id === this.id(value),
+    );
 
     if (option) {
-      return this._label(option)
+      return this.label(option);
     }
 
-    return value
+    return value;
   }
 
   forFormInitialValue(value) {
-    return this._id(value)
+    return this.id(value);
   }
 
   forFilterInitialValue(value) {
-    return this._id(value)
+    return this.id(value);
   }
 
   forFilterCast() {
-    return yup.string().nullable(true).label(this.label)
+    return yup.string().nullable(true).label(this.label);
   }
 
   forFormRules() {
-    const output = []
+    const output = [];
 
     if (this.required) {
       output.push({
         required: Boolean(this.required),
         message: i18n('validation.string.selected').replace(
-          '${path}',
-          this.label
-        )
-      })
+          '{path}',
+          this.label,
+        ),
+      });
     }
 
-    return output
+    return output;
   }
 
   forFormCast() {
-    return yup.string().nullable(true).label(this.label)
+    return yup.string().nullable(true).label(this.label);
   }
 
   forExport() {
-    return yup.mixed().label(this.label)
+    return yup.mixed().label(this.label);
   }
 
   forImport() {
@@ -104,15 +104,15 @@ export default class EnumeratorField extends GenericField {
       .nullable(true)
       .oneOf([
         null,
-        ...this.options.map((option) => this._id(option))
-      ])
+        ...this.options.map((option) => this.id(option)),
+      ]);
 
     if (this.required) {
       yupChain = yupChain.required(
-        i18n('validation.string.selected')
-      )
+        i18n('validation.string.selected'),
+      );
     }
 
-    return yupChain
+    return yupChain;
   }
 }

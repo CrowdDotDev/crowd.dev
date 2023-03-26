@@ -42,9 +42,7 @@
             v-model="computedTheme.primary"
           />
 
-          <span class="text-xs text-gray-600 ml-2"
-            >Primary</span
-          >
+          <span class="text-xs text-gray-600 ml-2">Primary</span>
         </div>
         <div class="text-2xs text-gray-500">
           Aliquam aliquam eget odio dui dictumst eget.
@@ -60,9 +58,7 @@
       >
         <div class="flex items-center">
           <el-color-picker v-model="computedTheme.text" />
-          <span class="text-xs text-gray-600 ml-2"
-            >Primary</span
-          >
+          <span class="text-xs text-gray-600 ml-2">Primary</span>
         </div>
         <div class="text-2xs text-gray-500">
           Aliquam aliquam eget odio dui dictumst eget.
@@ -75,9 +71,7 @@
           <el-color-picker
             v-model="computedTheme.textSecondary"
           />
-          <span class="text-xs text-gray-600 ml-2"
-            >Secondary</span
-          >
+          <span class="text-xs text-gray-600 ml-2">Secondary</span>
         </div>
         <div class="text-2xs text-gray-500">
           Aliquam aliquam eget odio dui dictumst eget.
@@ -90,9 +84,7 @@
           <el-color-picker
             v-model="computedTheme.textCta"
           />
-          <span class="text-xs text-gray-600 ml-2"
-            >CTA</span
-          >
+          <span class="text-xs text-gray-600 ml-2">CTA</span>
         </div>
         <div class="text-2xs text-gray-500">
           Aliquam aliquam eget odio dui dictumst eget.
@@ -109,9 +101,7 @@
       >
         <div class="flex items-center">
           <el-color-picker v-model="computedTheme.bg" />
-          <span class="text-xs text-gray-600 ml-2"
-            >Normal</span
-          >
+          <span class="text-xs text-gray-600 ml-2">Normal</span>
         </div>
         <div class="text-2xs text-gray-500">
           Aliquam aliquam eget odio dui dictumst eget.
@@ -124,9 +114,7 @@
           <el-color-picker
             v-model="computedTheme.bgHighlight"
           />
-          <span class="text-xs text-gray-600 ml-2"
-            >Highlight</span
-          >
+          <span class="text-xs text-gray-600 ml-2">Highlight</span>
         </div>
         <div class="text-2xs text-gray-500">
           Aliquam aliquam eget odio dui dictumst eget.
@@ -137,9 +125,7 @@
       >
         <div class="flex items-center">
           <el-color-picker v-model="computedTheme.bgNav" />
-          <span class="text-xs text-gray-600 ml-2"
-            >Navigation</span
-          >
+          <span class="text-xs text-gray-600 ml-2">Navigation</span>
         </div>
         <div class="text-2xs text-gray-500">
           Aliquam aliquam eget odio dui dictumst eget.
@@ -150,59 +136,59 @@
 </template>
 
 <script setup>
-import { defineProps, defineEmits, computed } from 'vue'
+import { defineProps, defineEmits, computed } from 'vue';
 
 const props = defineProps({
   theme: {
     type: Object,
-    default: () => {}
+    default: () => {},
   },
   logoUrl: {
     type: String,
-    default: null
+    default: null,
   },
   faviconUrl: {
     type: String,
-    default: null
+    default: null,
   },
   disabled: {
     type: Boolean,
-    default: false
-  }
-})
+    default: false,
+  },
+});
 
 const emit = defineEmits([
   'update:theme',
   'update:logoUrl',
-  'update:faviconUrl'
-])
+  'update:faviconUrl',
+]);
 
 const computedLogoUrl = computed({
   get() {
-    return props.logoUrl
+    return props.logoUrl;
   },
   set(value) {
-    emit('update:logoUrl', value)
-  }
-})
+    emit('update:logoUrl', value);
+  },
+});
 
 const computedFaviconUrl = computed({
   get() {
-    return props.faviconUrl
+    return props.faviconUrl;
   },
   set(value) {
-    emit('update:faviconUrl', value)
-  }
-})
+    emit('update:faviconUrl', value);
+  },
+});
 
 const computedTheme = computed({
   get() {
-    return props.theme
+    return props.theme;
   },
   set(value) {
-    emit('update:theme', value)
-  }
-})
+    emit('update:theme', value);
+  },
+});
 </script>
 
 <style lang="scss">

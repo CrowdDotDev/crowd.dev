@@ -1,4 +1,4 @@
-import { PermissionChecker } from '@/modules/user/permission-checker'
+import { PermissionChecker } from '@/modules/user/permission-checker';
 
 /**
  * Permission Guard
@@ -12,24 +12,24 @@ import { PermissionChecker } from '@/modules/user/permission-checker'
  * @param router
  * @returns {Promise<*>}
  */
-export default async function ({ to, store, router }) {
+export default async ({ to, store, router }) => {
   if (!to.meta || !to.meta.permission) {
-    return
+    return;
   }
 
-  await store.dispatch('auth/doWaitUntilInit')
+  await store.dispatch('auth/doWaitUntilInit');
 
   const permissionChecker = new PermissionChecker(
     store.getters['auth/currentTenant'],
-    store.getters['auth/currentUser']
-  )
+    store.getters['auth/currentUser'],
+  );
 
   if (
-    !permissionChecker.match(to.meta.permission) ||
-    permissionChecker.lockedForSampleData(
-      to.meta.permission
+    !permissionChecker.match(to.meta.permission)
+    || permissionChecker.lockedForSampleData(
+      to.meta.permission,
     )
   ) {
-    return router.push('/403')
+    router.push('/403');
   }
-}
+};

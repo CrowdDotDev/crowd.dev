@@ -6,33 +6,34 @@
     size="35%"
     :show-footer="false"
   >
-    <template #content
-      ><app-member-form-global-attributes
+    <template #content>
+      <app-member-form-global-attributes
         v-model="isDrawerOpen"
-    /></template>
+      />
+    </template>
   </app-drawer>
 </template>
 
 <script setup>
-import AppMemberFormGlobalAttributes from './form/member-form-global-attributes'
-import { defineProps, defineEmits, computed } from 'vue'
+import { defineProps, defineEmits, computed } from 'vue';
+import AppMemberFormGlobalAttributes from './form/member-form-global-attributes.vue';
 
-const emit = defineEmits(['update:modelValue'])
+const emit = defineEmits(['update:modelValue']);
 const props = defineProps({
   modelValue: {
     type: Boolean,
-    default: () => false
-  }
-})
+    default: () => false,
+  },
+});
 
 const isDrawerOpen = computed({
   get() {
-    return props.modelValue
+    return props.modelValue;
   },
   set(drawerVisibility) {
-    emit('update:modelValue', drawerVisibility)
-  }
-})
+    emit('update:modelValue', drawerVisibility);
+  },
+});
 </script>
 
 <style lang="scss">

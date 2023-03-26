@@ -1,7 +1,3 @@
-export const withHttp = (url) => {
-  return !/^https?:\/\//i.test(url) ? `https://${url}` : url
-}
+export const withHttp = (url) => (!/^https?:\/\//i.test(url) ? `https://${url}` : url);
 
-export const toSentenceCase = (string) => {
-  return string.charAt(0).toUpperCase() + string.slice(1)
-}
+export const toSentenceCase = (string) => string.charAt(0).toUpperCase() + string.slice(1);

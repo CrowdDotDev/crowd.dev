@@ -2,39 +2,39 @@
   <div
     class="activity-message"
     v-html="$sanitize(activityMessage)"
-  ></div>
+  />
 </template>
 
-<script>
-export default {
-  name: 'AppActivityMessage'
-}
-</script>
-
 <script setup>
-import { defineProps, computed } from 'vue'
+import { defineProps, computed } from 'vue';
 
 const props = defineProps({
   activity: {
     type: Object,
-    required: true
+    required: true,
   },
   type: {
     type: String,
     required: false,
-    default: 'default'
-  }
-})
+    default: 'default',
+  },
+});
 
 const activityMessage = computed(() => {
   if (
-    props.activity?.display &&
-    props.type in props.activity.display
+    props.activity?.display
+    && props.type in props.activity.display
   ) {
-    return props.activity.display[props.type]
+    return props.activity.display[props.type];
   }
-  return ''
-})
+  return '';
+});
+</script>
+
+<script>
+export default {
+  name: 'AppActivityMessage',
+};
 </script>
 
 <style lang="scss">

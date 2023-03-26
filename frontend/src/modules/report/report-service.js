@@ -1,74 +1,74 @@
-import axios from 'axios'
-import authAxios from '@/shared/axios/auth-axios'
-import AuthCurrentTenant from '@/modules/auth/auth-current-tenant'
-import config from '@/config'
+import axios from 'axios';
+import authAxios from '@/shared/axios/auth-axios';
+import AuthCurrentTenant from '@/modules/auth/auth-current-tenant';
+import config from '@/config';
 
 export class ReportService {
   static async update(id, data) {
-    const tenantId = AuthCurrentTenant.get()
+    const tenantId = AuthCurrentTenant.get();
 
     const response = await authAxios.put(
       `/tenant/${tenantId}/report/${id}`,
-      data
-    )
+      data,
+    );
 
-    return response.data
+    return response.data;
   }
 
   static async duplicate(id) {
-    const tenantId = AuthCurrentTenant.get()
+    const tenantId = AuthCurrentTenant.get();
 
     const response = await authAxios.post(
-      `/tenant/${tenantId}/report/${id}/duplicate`
-    )
+      `/tenant/${tenantId}/report/${id}/duplicate`,
+    );
 
-    return response.data
+    return response.data;
   }
 
   static async destroyAll(ids) {
     const params = {
-      ids
-    }
+      ids,
+    };
 
-    const tenantId = AuthCurrentTenant.get()
+    const tenantId = AuthCurrentTenant.get();
 
     const response = await authAxios.delete(
       `/tenant/${tenantId}/report`,
       {
-        params
-      }
-    )
+        params,
+      },
+    );
 
-    return response.data
+    return response.data;
   }
 
   static async create(data) {
-    const tenantId = AuthCurrentTenant.get()
+    const tenantId = AuthCurrentTenant.get();
 
     const response = await authAxios.post(
       `/tenant/${tenantId}/report`,
-      data
-    )
+      data,
+    );
 
-    return response.data
+    return response.data;
   }
 
   static async find(id) {
-    const tenantId = AuthCurrentTenant.get()
+    const tenantId = AuthCurrentTenant.get();
 
     const response = await authAxios.get(
-      `/tenant/${tenantId}/report/${id}`
-    )
+      `/tenant/${tenantId}/report/${id}`,
+    );
 
-    return response.data
+    return response.data;
   }
 
   static async findPublic(id, tenantId) {
     const response = await axios.get(
-      `${config.backendUrl}/tenant/${tenantId}/report/${id}`
-    )
+      `${config.backendUrl}/tenant/${tenantId}/report/${id}`,
+    );
 
-    return response.data
+    return response.data;
   }
 
   static async list(filter, orderBy, limit, offset) {
@@ -76,36 +76,36 @@ export class ReportService {
       filter,
       orderBy,
       limit,
-      offset
-    }
+      offset,
+    };
 
-    const tenantId = AuthCurrentTenant.get()
+    const tenantId = AuthCurrentTenant.get();
 
     const response = await authAxios.get(
       `/tenant/${tenantId}/report`,
       {
-        params
-      }
-    )
+        params,
+      },
+    );
 
-    return response.data
+    return response.data;
   }
 
   static async listAutocomplete(query, limit) {
     const params = {
       query,
-      limit
-    }
+      limit,
+    };
 
-    const tenantId = AuthCurrentTenant.get()
+    const tenantId = AuthCurrentTenant.get();
 
     const response = await authAxios.get(
       `/tenant/${tenantId}/report/autocomplete`,
       {
-        params
-      }
-    )
+        params,
+      },
+    );
 
-    return response.data
+    return response.data;
   }
 }

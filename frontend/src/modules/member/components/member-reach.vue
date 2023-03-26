@@ -9,29 +9,25 @@
         <div>
           <div v-if="member.reach.github !== undefined">
             Github:
-            <span class="font-semibold"
-              >{{
-                formatNumberToCompact(member.reach.github)
-              }}
+            <span class="font-semibold">{{
+                                          formatNumberToCompact(member.reach.github)
+                                        }}
               {{
                 member.reach.github === 1
                   ? 'follower'
                   : 'followers'
-              }}</span
-            >
+              }}</span>
           </div>
           <div v-if="member.reach.twitter !== undefined">
             Twitter:
-            <span class="font-semibold"
-              >{{
-                formatNumberToCompact(member.reach.twitter)
-              }}
+            <span class="font-semibold">{{
+                                          formatNumberToCompact(member.reach.twitter)
+                                        }}
               {{
                 member.reach.twitter === 1
                   ? 'follower'
                   : 'followers'
-              }}</span
-            >
+              }}</span>
           </div>
         </div>
       </template>
@@ -39,27 +35,27 @@
         <span v-if="member.reach.total !== -1">{{
           formatNumberToCompact(member.reach.total)
         }}</span>
-        <span v-else></span>
+        <span v-else />
       </div>
     </el-tooltip>
   </div>
 </template>
 
 <script>
-import { formatNumberToCompact } from '@/utils/number'
+import { formatNumberToCompact } from '@/utils/number';
 
 export default {
   name: 'AppMemberReach',
   props: {
     member: {
       type: Object,
-      default: () => {}
-    }
+      default: () => {},
+    },
   },
   methods: {
-    formatNumberToCompact
-  }
-}
+    formatNumberToCompact,
+  },
+};
 </script>
 
 <style lang="scss">

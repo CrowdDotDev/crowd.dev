@@ -1,4 +1,4 @@
-import { PermissionChecker } from '@/modules/user/permission-checker'
+import { PermissionChecker } from '@/modules/user/permission-checker';
 
 /**
  * Not Empty Tenant Guard
@@ -14,23 +14,23 @@ import { PermissionChecker } from '@/modules/user/permission-checker'
  * @param router
  * @returns {Promise<*>}
  */
-export default async function ({ to, store, router }) {
+export default async ({ to, store, router }) => {
   if (!to.meta || !to.meta.notEmptyTenant) {
-    return
+    return;
   }
 
-  await store.dispatch('auth/doWaitUntilInit')
+  await store.dispatch('auth/doWaitUntilInit');
 
   const permissionChecker = new PermissionChecker(
     store.getters['auth/currentTenant'],
-    store.getters['auth/currentUser']
-  )
+    store.getters['auth/currentUser'],
+  );
 
   if (!permissionChecker.isAuthenticated) {
-    return router.push('/auth/signin')
+    router.push('/auth/signin');
   }
 
   if (!permissionChecker.isEmptyTenant) {
-    return router.push('/')
+    router.push('/');
   }
-}
+};

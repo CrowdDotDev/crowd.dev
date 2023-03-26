@@ -16,25 +16,23 @@
         <label
           for="tenantName"
           class="text-xs mb-1 font-semibold leading-5"
-          >{{ fields.tenantName.label }}
-          <span class="text-brand-500">*</span></label
-        >
+        >{{ fields.tenantName.label }}
+          <span class="text-brand-500">*</span></label>
         <el-input
           id="tenantName"
           ref="focus"
           v-model="model[fields.tenantName.name]"
           autocomplete="disabled"
           type="text"
-        ></el-input>
+        />
         <template #error="{ error }">
           <div class="flex items-center mt-1">
             <i
               class="h-4 flex items-center ri-error-warning-line text-base text-red-500"
-            ></i>
+            />
             <span
               class="pl-1 text-2xs text-red-500 leading-4.5"
-              >{{ error }}</span
-            >
+            >{{ error }}</span>
           </div>
         </template>
       </el-form-item>
@@ -87,6 +85,7 @@
                 class="filter-checkbox flex h-3 transition-0"
               />
               <img
+                :alt="integration.label"
                 :src="integration.logo"
                 class="w-4 h-4 mr-2"
               />
@@ -100,11 +99,10 @@
           <div class="flex items-center mt-1">
             <i
               class="h-4 flex items-center ri-error-warning-line text-base text-red-500"
-            ></i>
+            />
             <span
               class="pl-1 text-2xs text-red-500 leading-4.5"
-              >{{ error }}</span
-            >
+            >{{ error }}</span>
           </div>
         </template>
       </el-form-item>
@@ -112,7 +110,7 @@
         :prop="fields.tenantSize.name"
         class="mb-0"
       >
-        <label>
+        <label for="tenantSize">
           <span
             class="block text-xs font-semibold leading-5"
           >
@@ -143,11 +141,10 @@
           <div class="flex items-center mt-1">
             <i
               class="h-4 flex items-center ri-error-warning-line text-base text-red-500"
-            ></i>
+            />
             <span
               class="pl-1 text-2xs text-red-500 leading-4.5"
-              >{{ error }}</span
-            >
+            >{{ error }}</span>
           </div>
         </template>
       </el-form-item>
@@ -155,7 +152,7 @@
         :prop="fields.reasonForUsingCrowd.name"
         class="mb-12"
       >
-        <label>
+        <label for="reasonForUsingCrowd">
           <span
             class="block text-xs font-semibold leading-5 mb-1"
           >
@@ -163,6 +160,7 @@
           </span>
         </label>
         <el-select
+          id="reasonForUsingCrowd"
           v-model="model[fields.reasonForUsingCrowd.name]"
           placeholder="Select option"
         >
@@ -188,31 +186,31 @@
 </template>
 
 <script>
-import { TenantModel } from '@/modules/tenant/tenant-model'
-import { FormSchema } from '@/shared/form/form-schema'
-import { mapActions, mapGetters } from 'vuex'
-import onboardPlatforms from '@/jsons/onboard-platforms.json'
-import tenantCommunitySize from '@/jsons/tenant-community-size.json'
-import { onSelectMouseLeave } from '@/utils/select'
-import { TenantService } from '@/modules/tenant/tenant-service'
-import Message from '@/shared/message/message'
-import achievements from '@/modules/onboard/config/achievements.config.js'
+import { mapActions, mapGetters } from 'vuex';
+import { TenantModel } from '@/modules/tenant/tenant-model';
+import { FormSchema } from '@/shared/form/form-schema';
+import onboardPlatforms from '@/jsons/onboard-platforms.json';
+import tenantCommunitySize from '@/jsons/tenant-community-size.json';
+import { onSelectMouseLeave } from '@/utils/select';
+import { TenantService } from '@/modules/tenant/tenant-service';
+import Message from '@/shared/message/message';
+import achievements from '@/modules/onboard/config/achievements.config';
 
-const { fields } = TenantModel
+const { fields } = TenantModel;
 const formSchema = new FormSchema([
   fields.tenantName,
   fields.tenantPlatforms,
   fields.tenantSize,
-  fields.reasonForUsingCrowd
-])
+  fields.reasonForUsingCrowd,
+]);
 export default {
   name: 'AppOnboardCommunity',
   props: {
     isNew: {
       type: Boolean,
       required: false,
-      default: false
-    }
+      default: false,
+    },
   },
   emits: ['saved'],
   data() {
@@ -223,20 +221,20 @@ export default {
       achievements,
       rules: formSchema.rules(),
       model: {
-        [fields.tenantPlatforms.name]: []
+        [fields.tenantPlatforms.name]: [],
       },
       selectedPlatforms: [],
-      loading: false
-    }
+      loading: false,
+    };
   },
   computed: {
     ...mapGetters('auth', ['currentTenant']),
     isFormValid() {
       return (
-        formSchema.isValidSync(this.model) &&
-        this.model[fields.tenantPlatforms.name].length > 0
-      )
-    }
+        formSchema.isValidSync(this.model)
+        && this.model[fields.tenantPlatforms.name].length > 0
+      );
+    },
   },
   methods: {
     ...mapActions('tenant', ['doCreate', 'doUpdate']),
@@ -244,54 +242,51 @@ export default {
 
     platformEnabled(platform) {
       if (this.selectedPlatforms) {
-        return this.selectedPlatforms.includes(platform)
+        return this.selectedPlatforms.includes(platform);
       }
-      return false
+      return false;
     },
 
     doSubmit() {
       this.$refs.form
         .validate()
         .then(() => {
-          this.loading = true
+          this.loading = true;
           if (this.currentTenant && !this.isNew) {
             return this.doUpdate({
               id: this.currentTenant.id,
-              values: this.model
-            })
+              values: this.model,
+            });
           }
-          return this.doCreate(this.model)
+          return this.doCreate(this.model);
         })
+        .then(() => TenantService.populateSampleData(
+          this.currentTenant.id,
+        ))
         .then(() => {
-          return TenantService.populateSampleData(
-            this.currentTenant.id
-          )
-        })
-        .then(() => {
-          const onboardType =
-            localStorage.getItem('onboardType')
-          let route = '/'
+          const onboardType = localStorage.getItem('onboardType');
+          let route = '/';
           if (onboardType === 'eagle-eye') {
-            route = '/eagle-eye'
+            route = '/eagle-eye';
           }
-          return this.doFinishOnboard({ route: route })
+          return this.doFinishOnboard({ route });
         })
         .then(() => {
-          localStorage.removeItem('onboardType')
+          localStorage.removeItem('onboardType');
         })
         .catch(() => {
           Message.error(
-            'There was an error creating community, please try again later'
-          )
+            'There was an error creating community, please try again later',
+          );
         })
         .finally(() => {
-          this.loading = false
-        })
+          this.loading = false;
+        });
     },
 
-    onSelectMouseLeave
-  }
-}
+    onSelectMouseLeave,
+  },
+};
 </script>
 
 <style lang="scss">

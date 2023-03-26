@@ -1,36 +1,36 @@
-let inMemoryToken = null
+let inMemoryToken = null;
 
 export class AuthToken {
   static get() {
     return (
       inMemoryToken || localStorage.getItem('jwt') || null
-    )
+    );
   }
 
   static set(token, rememberMe) {
-    inMemoryToken = token
+    inMemoryToken = token;
     if (rememberMe) {
-      localStorage.setItem('jwt', token || '')
+      localStorage.setItem('jwt', token || '');
     } else {
-      localStorage.setItem('jwt', '')
+      localStorage.setItem('jwt', '');
     }
   }
 
   static applyFromLocationUrlIfExists() {
     const urlParams = new URLSearchParams(
-      window.location.search
-    )
-    const authToken = urlParams.get('authToken')
+      window.location.search,
+    );
+    const authToken = urlParams.get('authToken');
 
     if (!authToken) {
-      return
+      return;
     }
 
-    this.set(authToken, true)
+    this.set(authToken, true);
     window.history.replaceState(
       {},
       document.title,
-      window.location.origin
-    )
+      window.location.origin,
+    );
   }
 }

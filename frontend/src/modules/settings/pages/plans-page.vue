@@ -2,7 +2,7 @@
   <div
     class="flex grow items-center justify-end my-8"
     :class="{
-      'justify-between': showEagleEyePricing
+      'justify-between': showEagleEyePricing,
     }"
   >
     <div v-if="showEagleEyePricing">
@@ -11,23 +11,25 @@
           Only interested in Eagle Eye?
         </div>
         <div clasS="text-xs">
-          <a :href="eagleEyeStripeLink" target="_blank"
-            >Add Eagle Eye</a
-          ><span class="text-gray-500">
-            for only $50 per month.</span
-          >
+          <a
+            :href="eagleEyeStripeLink"
+            target="_blank"
+            rel="noopener noreferrer"
+          >Add Eagle Eye</a><span class="text-gray-500">
+            for only $50 per month.</span>
         </div>
       </div>
       <div v-else>
         <div class="flex gap-3">
-          <div class="font-medium text-sm">Eagle Eye</div>
+          <div class="font-medium text-sm">
+            Eagle Eye
+          </div>
           <div
             class="text-green-600 flex items-center gap-1"
           >
             <i class="ri-check-line text-base" /><span
               class="text-2xs"
-              >Subscribed</span
-            >
+            >Subscribed</span>
           </div>
         </div>
         <div class="text-xs text-gray-500">
@@ -38,10 +40,9 @@
     <el-button
       class="btn btn--bordered btn--md flex items-center gap-2"
       @click="onManageBillingClick"
-      ><i class="ri-external-link-line" /><span
-        >Manage billing & payments</span
-      ></el-button
     >
+      <i class="ri-external-link-line" /><span>Manage billing & payments</span>
+    </el-button>
   </div>
   <div class="panel mt-6">
     <div class="flex gap-4">
@@ -60,7 +61,7 @@
           :class="{
             active: plan.key === activePlan,
             sale: plan.sale,
-            'mt-6': !isCommunityVersion && !plan.sale
+            'mt-6': !isCommunityVersion && !plan.sale,
           }"
         >
           <div>
@@ -75,15 +76,14 @@
                 <!-- Badge -->
                 <span
                   v-if="
-                    plan.key === activePlan ||
-                    (plan.key === crowdHostedPlans.growth &&
-                      activePlan ===
-                        crowdHostedPlans.essential)
+                    plan.key === activePlan
+                      || (plan.key === crowdHostedPlans.growth
+                        && activePlan
+                          === crowdHostedPlans.essential)
                   "
                   class="badge badge--sm"
                   :class="getBadge(plan.key).class"
-                  >{{ getBadge(plan.key).content }}</span
-                >
+                >{{ getBadge(plan.key).content }}</span>
               </div>
               <!-- Description -->
               <div class="text-gray-600 text-xs">
@@ -121,38 +121,36 @@
             class="text-center flex flex-col justify-end"
             :class="{
               'min-h-10': !isGrowthTrialPlan,
-              'min-h-[110px]': isGrowthTrialPlan
+              'min-h-[110px]': isGrowthTrialPlan,
             }"
           >
             <div
               v-if="
-                plan.key === crowdHostedPlans.growth &&
-                isGrowthTrialPlan
+                plan.key === crowdHostedPlans.growth
+                  && isGrowthTrialPlan
               "
               class="text-gray-500 text-xs italic mb-3"
             >
               <span class="font-medium">{{
                 getTrialDate()
-              }}</span
-              ><br />
-              <span
-                >If you don't take action, you will be
-                automatically downgraded to Essential.</span
-              >
+              }}</span><br />
+              <span>If you don't take action, you will be
+                automatically downgraded to Essential.</span>
             </div>
             <el-button
               v-if="
-                (plan.key !== activePlan ||
-                  isGrowthTrialPlan) &&
-                !(
-                  plan.key === crowdHostedPlans.essential &&
-                  isGrowthTrialPlan
-                )
+                (plan.key !== activePlan
+                  || isGrowthTrialPlan)
+                  && !(
+                    plan.key === crowdHostedPlans.essential
+                    && isGrowthTrialPlan
+                  )
               "
               class="btn btn--md btn--full btn--primary"
               @click="() => handleOnCtaClick(plan.key)"
-              >{{ getCtaContent(plan.key) }}</el-button
             >
+              {{ getCtaContent(plan.key) }}
+            </el-button>
           </div>
         </div>
       </div>
@@ -166,85 +164,74 @@
   />
 </template>
 
-<script>
-export default {
-  name: 'AppPlansPage'
-}
-</script>
-
 <script setup>
-import config from '@/config'
-import Plans from '@/security/plans'
-import { computed, ref } from 'vue'
-import { useStore } from 'vuex'
-import { plans } from '../settings-pricing-plans'
-import moment from 'moment'
-import AppPlanModal from '../components/plan-modal.vue'
+import { computed, ref } from 'vue';
+import { useStore } from 'vuex';
+import moment from 'moment';
+import config from '@/config';
+import Plans from '@/security/plans';
+import { plans } from '../settings-pricing-plans';
+import AppPlanModal from '../components/plan-modal.vue';
 
-const crowdHostedPlans = Plans.values
-const communityPlans = Plans.communityValues
+const crowdHostedPlans = Plans.values;
+const communityPlans = Plans.communityValues;
 
-const isCommunityVersion = config.isCommunityVersion
-const isCommunitPremiumVersion =
-  config.communityPremium === 'true'
+const { isCommunityVersion } = config;
+const isCommunitPremiumVersion = config.communityPremium === 'true';
 
-const store = useStore()
+const store = useStore();
 
-const isPlanModalOpen = ref(false)
-const planModalTitle = ref(null)
+const isPlanModalOpen = ref(false);
+const planModalTitle = ref(null);
 
 const currentTenant = computed(
-  () => store.getters['auth/currentTenant']
-)
+  () => store.getters['auth/currentTenant'],
+);
 
 const currentUser = computed(
-  () => store.getters['auth/currentUser']
-)
+  () => store.getters['auth/currentUser'],
+);
 
 const plansList = computed(() => {
   if (isCommunityVersion) {
-    return plans.community
+    return plans.community;
   }
 
-  return plans.crowdHosted
-})
+  return plans.crowdHosted;
+});
 
-const eagleEyeStripeLink = computed(() => {
-  return `${config.stripe.eagleEyePlanPaymentLink}?client_reference_id=${currentTenant.value.id}&prefilled_email=${currentUser.value.email}`
-})
+// eslint-disable-next-line vue/max-len
+const eagleEyeStripeLink = computed(() => `${config.stripe.eagleEyePlanPaymentLink}?client_reference_id=${currentTenant.value.id}&prefilled_email=${currentUser.value.email}`);
 
 const activePlan = computed(() => {
   // Community Versions
   if (isCommunityVersion) {
     return isCommunitPremiumVersion
       ? communityPlans.custom
-      : communityPlans.community
-  } else {
-    // Crowd Hosted Versions
-    return currentTenant.value.plan
+      : communityPlans.community;
   }
-})
+  // Crowd Hosted Versions
+  return currentTenant.value.plan;
+});
 
 const isGrowthTrialPlan = computed(
-  () =>
-    activePlan.value === crowdHostedPlans.growth &&
-    currentTenant.value.isTrialPlan
-)
+  () => activePlan.value === crowdHostedPlans.growth
+    && currentTenant.value.isTrialPlan,
+);
 
 const isEssentialPlanActive = computed(
-  () => activePlan.value === crowdHostedPlans.essential
-)
+  () => activePlan.value === crowdHostedPlans.essential,
+);
 
 const isEagleEyeEnabled = computed(
-  () => activePlan.value === crowdHostedPlans.eagleEye
-)
+  () => activePlan.value === crowdHostedPlans.eagleEye,
+);
 
 const showEagleEyePricing = computed(
-  () =>
-    isEssentialPlanActive.value ||
-    isGrowthTrialPlan.value ||
-    isEagleEyeEnabled.value
-)
+  () => isEssentialPlanActive.value
+    || isGrowthTrialPlan.value
+    || isEagleEyeEnabled.value,
+);
 
 const getBadge = (plan) => {
   if (plan === crowdHostedPlans.growth) {
@@ -252,97 +239,102 @@ const getBadge = (plan) => {
     if (currentTenant.value.isTrialPlan) {
       return {
         class: 'badge--yellow',
-        content: 'Active plan (Trial)'
-      }
-    } else if (
+        content: 'Active plan (Trial)',
+      };
+    } if (
       // Recommended plans
       activePlan.value === crowdHostedPlans.essential
     ) {
       return {
         class: 'badge--light-brand',
-        content: 'Recommended'
-      }
+        content: 'Recommended',
+      };
     }
   }
 
   // Active plans
   return {
     class: 'badge--brand',
-    content: 'Active plan'
-  }
-}
+    content: 'Active plan',
+  };
+};
 
 const getCtaContent = (plan) => {
-  const title = plansList.value.find(
-    (p) => p.key === plan
-  ).title
+  const { title } = plansList.value.find(
+    (p) => p.key === plan,
+  );
 
   // Custom plans
   if (
-    plan === crowdHostedPlans.enterprise ||
-    plan === communityPlans.custom
+    plan === crowdHostedPlans.enterprise
+    || plan === communityPlans.custom
   ) {
-    return 'Book a call'
+    return 'Book a call';
     // Growth Trial Plans
-  } else if (
-    plan === crowdHostedPlans.growth &&
-    isGrowthTrialPlan.value
+  } if (
+    plan === crowdHostedPlans.growth
+    && isGrowthTrialPlan.value
   ) {
-    return 'Subscribe Growth'
-  } else if (
+    return 'Subscribe Growth';
+  } if (
     // Essential, Community and Growth
-    plan === crowdHostedPlans.essential ||
-    plan === communityPlans.community ||
-    (plan === crowdHostedPlans.growth &&
-      activePlan.value === crowdHostedPlans.enterprise)
+    plan === crowdHostedPlans.essential
+    || plan === communityPlans.community
+    || (plan === crowdHostedPlans.growth
+      && activePlan.value === crowdHostedPlans.enterprise)
   ) {
-    return `Downgrade to ${title}`
-  } else {
-    return `Upgrade to ${title}`
+    return `Downgrade to ${title}`;
   }
-}
+  return `Upgrade to ${title}`;
+};
+
+const onManageBillingClick = () => {
+  window.open(config.stripe.customerPortalLink, '_blank');
+};
 
 const handleOnCtaClick = (plan) => {
   // Send an event with plan request
   window.analytics.track('Change Plan Request', {
     tenantId: currentTenant.value.id,
     tenantName: currentTenant.value.name,
-    requestedPlan: plan
-  })
+    requestedPlan: plan,
+  });
 
   // Custom plans
   if (
-    plan === crowdHostedPlans.enterprise ||
-    plan === communityPlans.custom
+    plan === crowdHostedPlans.enterprise
+    || plan === communityPlans.custom
   ) {
     window.open(
       'https://cal.com/team/CrowdDotDev/custom-plan',
-      '_blank'
-    )
+      '_blank',
+    );
     // Growth plan
   } else if (plan === crowdHostedPlans.growth) {
     window.open(
       `${config.stripe.growthPlanPaymentLink}?client_reference_id=${currentTenant.value.id}&prefilled_email=${currentUser.value.email}`,
-      '_blank'
-    )
+      '_blank',
+    );
   } else {
-    onManageBillingClick()
+    onManageBillingClick();
   }
-}
-
-const onManageBillingClick = () => {
-  window.open(config.stripe.customerPortalLink, '_blank')
-}
+};
 
 const getTrialDate = () => {
   const daysLeft = moment(
-    currentTenant.value.trialEndsAt
-  ).diff(moment(), 'days')
+    currentTenant.value.trialEndsAt,
+  ).diff(moment(), 'days');
 
   return `Growth Trial ends in ${
     daysLeft < 0 ? 0 : daysLeft
-  } days.`
-}
+  } days.`;
+};
+</script>
+
+<script>
+export default {
+  name: 'AppPlansPage',
+};
 </script>
 
 <style lang="scss">

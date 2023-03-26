@@ -23,14 +23,14 @@
             <app-dashboard-count
               :loading="activities.loading"
               :query="activitiesCount"
-            ></app-dashboard-count>
+            />
           </div>
           <div class="w-7/12">
             <div
               v-if="activities.loading"
               v-loading="activities.loading"
               class="app-page-spinner h-16 !relative !min-h-5 chart-loading"
-            ></div>
+            />
 
             <app-dashboard-widget-chart
               v-else
@@ -74,19 +74,19 @@
 </template>
 
 <script>
-import { mapGetters } from 'vuex'
+import { mapGetters } from 'vuex';
 import {
   activitiesChart,
-  activitiesCount
-} from '@/modules/dashboard/dashboard.cube'
-import AppDashboardConversationList from '@/modules/dashboard/components/conversations/dashboard-conversation-list'
-import AppDashboardActivityList from '@/modules/dashboard/components/activity/dashboard-activity-list'
-import AppDashboardActivitySentiment from '@/modules/dashboard/components/activity/dashboard-activity-sentiment'
-import AppDashboardCount from '@/modules/dashboard/components/dashboard-count'
-import AppDashboardActivityTypes from '@/modules/dashboard/components/activity/dashboard-activity-types.vue'
-import { DAILY_GRANULARITY_FILTER } from '@/modules/widget/widget-constants'
-import AppDashboardWidgetHeader from '@/modules/dashboard/components/dashboard-widget-header.vue'
-import AppDashboardWidgetChart from '@/modules/dashboard/components/dashboard-widget-chart.vue'
+  activitiesCount,
+} from '@/modules/dashboard/dashboard.cube';
+import AppDashboardActivityTypes from '@/modules/dashboard/components/activity/dashboard-activity-types.vue';
+import { DAILY_GRANULARITY_FILTER } from '@/modules/widget/widget-constants';
+import AppDashboardWidgetHeader from '@/modules/dashboard/components/dashboard-widget-header.vue';
+import AppDashboardWidgetChart from '@/modules/dashboard/components/dashboard-widget-chart.vue';
+import AppDashboardConversationList from '@/modules/dashboard/components/conversations/dashboard-conversation-list.vue';
+import AppDashboardActivityList from '@/modules/dashboard/components/activity/dashboard-activity-list.vue';
+import AppDashboardActivitySentiment from '@/modules/dashboard/components/activity/dashboard-activity-sentiment.vue';
+import AppDashboardCount from '@/modules/dashboard/components/dashboard-count.vue';
 
 export default {
   name: 'AppDashboardActivities',
@@ -97,14 +97,14 @@ export default {
     AppDashboardCount,
     AppDashboardActivitySentiment,
     AppDashboardActivityList,
-    AppDashboardConversationList
+    AppDashboardConversationList,
   },
   data() {
     return {
       tab: 'trending',
       activitiesChart,
-      activitiesCount
-    }
+      activitiesCount,
+    };
   },
   computed: {
     ...mapGetters('dashboard', ['activities']),
@@ -114,12 +114,12 @@ export default {
           name: 'new activities',
           borderColor: '#E94F2E',
           measure: 'Activities.count',
-          granularity: DAILY_GRANULARITY_FILTER.value
-        }
-      ]
-    }
-  }
-}
+          granularity: DAILY_GRANULARITY_FILTER.value,
+        },
+      ];
+    },
+  },
+};
 </script>
 
 <style lang="scss">

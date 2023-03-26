@@ -3,16 +3,14 @@
     v-if="selectedRows.length > 0"
     class="app-page-toolbar user-list-toolbar"
   >
-    <span class="block text-sm font-semibold mr-4"
-      >{{ selectedRows.length }}
+    <span class="block text-sm font-semibold mr-4">{{ selectedRows.length }}
       {{ selectedRows.length > 1 ? 'rows' : 'row' }}
-      selected</span
-    >
+      selected</span>
 
     <el-dropdown trigger="click" @command="handleCommand">
-      <button class="btn btn--bordered btn--sm">
+      <button type="button" class="btn btn--bordered btn--sm">
         <span class="mr-2">Actions</span>
-        <i class="ri-xl ri-arrow-down-s-line"></i>
+        <i class="ri-xl ri-arrow-down-s-line" />
       </button>
       <template #dropdown>
         <el-dropdown-item
@@ -29,7 +27,7 @@
         >
           <div class="text-red-500 flex items-center">
             <i class="ri-lg ri-delete-bin-line mr-2" />
-            <app-i18n code="common.destroy"></app-i18n>
+            <app-i18n code="common.destroy" />
           </div>
         </el-dropdown-item>
       </template>
@@ -38,9 +36,9 @@
 </template>
 
 <script>
-import { mapGetters, mapActions } from 'vuex'
-import { UserPermissions } from '@/modules/user/user-permissions'
-import ConfirmDialog from '@/shared/dialog/confirm-dialog.js'
+import { mapGetters, mapActions } from 'vuex';
+import { UserPermissions } from '@/modules/user/user-permissions';
+import ConfirmDialog from '@/shared/dialog/confirm-dialog';
 
 export default {
   name: 'AppUserListToolbar',
@@ -52,38 +50,38 @@ export default {
       hasRows: 'user/list/hasRows',
       loading: 'user/list/loading',
       exportLoading: 'user/list/exportLoading',
-      selectedRows: 'user/list/selectedRows'
+      selectedRows: 'user/list/selectedRows',
     }),
 
     hasPermissionToDestroy() {
       return new UserPermissions(
         this.currentTenant,
-        this.currentUser
-      ).destroy
+        this.currentUser,
+      ).destroy;
     },
 
     exportButtonDisabled() {
       return (
         !this.hasRows || this.loading || this.exportLoading
-      )
+      );
     },
 
     destroyButtonDisabled() {
-      return !this.selectedRows.length || this.loading
-    }
+      return !this.selectedRows.length || this.loading;
+    },
   },
 
   methods: {
     ...mapActions({
       doExport: 'user/list/doExport',
-      doDestroyAll: 'user/destroy/doDestroyAll'
+      doDestroyAll: 'user/destroy/doDestroyAll',
     }),
 
     async handleCommand(command) {
       if (command === 'export') {
-        await this.handleDoExport()
+        await this.handleDoExport();
       } else if (command === 'destroyAll') {
-        await this.doDestroyAllWithConfirm()
+        await this.doDestroyAllWithConfirm();
       }
     },
 
@@ -96,26 +94,27 @@ export default {
             "Are you sure you want to proceed? You can't undo this action",
           confirmButtonText: 'Confirm',
           cancelButtonText: 'Cancel',
-          icon: 'ri-delete-bin-line'
-        })
+          icon: 'ri-delete-bin-line',
+        });
 
         return this.doDestroyAll(
-          this.selectedRows.map((item) => item.id)
-        )
+          this.selectedRows.map((item) => item.id),
+        );
       } catch (error) {
         // no
       }
+      return null;
     },
 
     async handleDoExport() {
       try {
-        await this.doExport()
+        await this.doExport();
       } catch (error) {
-        console.error(error)
+        console.error(error);
       }
-    }
-  }
-}
+    },
+  },
+};
 </script>
 
 <style lang="scss">

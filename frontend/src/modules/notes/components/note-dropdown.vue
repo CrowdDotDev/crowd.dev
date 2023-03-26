@@ -11,7 +11,7 @@
         type="button"
         @click.stop
       >
-        <i class="text-xl ri-more-fill"></i>
+        <i class="text-xl ri-more-fill" />
       </button>
       <template #dropdown>
         <el-dropdown-item
@@ -19,8 +19,8 @@
           :disabled="isEditLockedForSampleData"
         >
           <i class="ri-pencil-line text-gray-400 mr-1" />
-          <span>Edit note</span></el-dropdown-item
-        >
+          <span>Edit note</span>
+        </el-dropdown-item>
         <el-dropdown-item
           command="noteDelete"
           divided="divided"
@@ -34,57 +34,39 @@
   </div>
 </template>
 
-<script>
-export default {
-  name: 'AppNoteDropdown'
-}
-</script>
-
 <script setup>
-import ConfirmDialog from '@/shared/dialog/confirm-dialog.js'
 import {
   ref,
   defineEmits,
   defineProps,
-  computed
-} from 'vue'
-import { NoteService } from '@/modules/notes/note-service'
-import Message from '@/shared/message/message'
-import { NotePermissions } from '../note-permissions'
-import { mapGetters } from '@/shared/vuex/vuex.helpers'
+  computed,
+} from 'vue';
+import ConfirmDialog from '@/shared/dialog/confirm-dialog';
+import { NoteService } from '@/modules/notes/note-service';
+import Message from '@/shared/message/message';
+import { mapGetters } from '@/shared/vuex/vuex.helpers';
+import { NotePermissions } from '../note-permissions';
 
-const emit = defineEmits(['edit', 'reload'])
+const emit = defineEmits(['edit', 'reload']);
 
 const props = defineProps({
   note: {
     type: Object,
-    required: true
-  }
-})
+    required: true,
+  },
+});
 
-const dropdownVisible = ref(false)
+const dropdownVisible = ref(false);
 
-const { currentTenant, currentUser } = mapGetters('auth')
-const isEditLockedForSampleData = computed(() => {
-  return new NotePermissions(
-    currentTenant.value,
-    currentUser.value
-  ).editLockedForSampleData
-})
-const isDeleteLockedForSampleData = computed(() => {
-  return new NotePermissions(
-    currentTenant.value,
-    currentUser.value
-  ).destroyLockedForSampleData
-})
-
-const handleCommand = (command) => {
-  if (command === 'noteDelete') {
-    return doDestroyWithConfirm()
-  } else if (command === 'noteEdit') {
-    emit('edit')
-  }
-}
+const { currentTenant, currentUser } = mapGetters('auth');
+const isEditLockedForSampleData = computed(() => new NotePermissions(
+  currentTenant.value,
+  currentUser.value,
+).editLockedForSampleData);
+const isDeleteLockedForSampleData = computed(() => new NotePermissions(
+  currentTenant.value,
+  currentUser.value,
+).destroyLockedForSampleData);
 
 const doDestroyWithConfirm = () => {
   ConfirmDialog({
@@ -94,14 +76,27 @@ const doDestroyWithConfirm = () => {
     message:
       'Are you sure you want to proceed? You can’t undo this action',
     confirmButtonText: 'Confirm',
-    cancelButtonText: 'Cancel'
+    cancelButtonText: 'Cancel',
   })
+    .then(() => NoteService.destroyAll([props.note.id]))
     .then(() => {
-      return NoteService.destroyAll([props.note.id])
-    })
-    .then(() => {
-      Message.success('Note successfully deleted!')
-      emit('reload')
-    })
-}
+      Message.success('Note successfully deleted!');
+      emit('reload');
+    });
+};
+
+const handleCommand = (command) => {
+  if (command === 'noteDelete') {
+    return doDestroyWithConfirm();
+  } if (command === 'noteEdit') {
+    emit('edit');
+  }
+  return null;
+};
+</script>
+
+<script>
+export default {
+  name: 'AppNoteDropdown',
+};
 </script>

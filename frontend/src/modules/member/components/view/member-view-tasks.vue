@@ -10,8 +10,8 @@
             tabClasses(t.name),
             {
               'border-r-0 rounded-l-md': ti === 0,
-              'rounded-r-md': ti === tabs.length - 1
-            }
+              'rounded-r-md': ti === tabs.length - 1,
+            },
           ]"
           @click="changeTab(t)"
         >
@@ -20,6 +20,7 @@
       </div>
       <button
         v-if="taskCreatePermission"
+        type="button"
         class="btn btn--primary btn--sm !px-3"
         @click="addTask()"
       >
@@ -31,11 +32,11 @@
         <app-task-item
           class="px-6"
           :loading="true"
-        ></app-task-item>
+        />
         <app-task-item
           class="px-6"
           :loading="true"
-        ></app-task-item>
+        />
       </div>
       <div v-else>
         <app-task-item
@@ -54,7 +55,7 @@
           >
             <div
               class="ri-arrow-down-line text-base text-brand-500 flex items-center h-4"
-            ></div>
+            />
             <div
               class="pl-2 text-xs leading-5 text-brand-500 font-medium"
             >
@@ -68,7 +69,7 @@
         >
           <div
             class="ri-checkbox-multiple-blank-line text-3xl text-gray-300 flex items-center h-10"
-          ></div>
+          />
           <p class="pl-6 text-sm text-gray-400 italic">
             {{ tab.emptyText }}
           </p>
@@ -83,12 +84,6 @@
   />
 </template>
 
-<script>
-export default {
-  name: 'AppMemberViewTasks'
-}
-</script>
-
 <script setup>
 import {
   defineProps,
@@ -96,25 +91,25 @@ import {
   ref,
   onMounted,
   defineExpose,
-  computed
-} from 'vue'
-import { TaskService } from '@/modules/task/task-service'
-import Message from '@/shared/message/message'
-import { useStore } from 'vuex'
-import AppTaskItem from '@/modules/task/components/task-item'
-import AppTaskForm from '@/modules/task/components/task-form'
-import { TaskPermissions } from '@/modules/task/task-permissions'
-import { mapGetters } from '@/shared/vuex/vuex.helpers'
+  computed,
+} from 'vue';
+import { useStore } from 'vuex';
+import { TaskService } from '@/modules/task/task-service';
+import Message from '@/shared/message/message';
+import { TaskPermissions } from '@/modules/task/task-permissions';
+import { mapGetters } from '@/shared/vuex/vuex.helpers';
+import AppTaskItem from '@/modules/task/components/task-item.vue';
+import AppTaskForm from '@/modules/task/components/task-form.vue';
 
 const props = defineProps({
   member: {
     type: Object,
-    required: true
-  }
-})
+    required: true,
+  },
+});
 
-const store = useStore()
-const { currentTenant, currentUser } = mapGetters('auth')
+const store = useStore();
+const { currentTenant, currentUser } = mapGetters('auth');
 
 const tabs = ref([
   {
@@ -124,8 +119,8 @@ const tabs = ref([
     filters: {
       type: 'regular',
       status: 'in-progress',
-      members: [props.member.id]
-    }
+      members: [props.member.id],
+    },
   },
   {
     label: 'Completed',
@@ -135,74 +130,46 @@ const tabs = ref([
     filters: {
       type: 'regular',
       status: 'done',
-      members: [props.member.id]
-    }
-  }
-])
+      members: [props.member.id],
+    },
+  },
+]);
 
-const tab = ref(tabs.value[0])
-const tasks = ref([])
-const taskCount = ref(0)
-const openTaskCount = ref(0)
-const loading = ref(false)
+const tab = ref(tabs.value[0]);
+const tasks = ref([]);
+const taskCount = ref(0);
+const openTaskCount = ref(0);
+const loading = ref(false);
 
-const openForm = ref(false)
-const selectedTask = ref(null)
+const openForm = ref(false);
+const selectedTask = ref(null);
 
 const taskCreatePermission = computed(
-  () =>
-    new TaskPermissions(
-      currentTenant.value,
-      currentUser.value
-    ).create
-)
+  () => new TaskPermissions(
+    currentTenant.value,
+    currentUser.value,
+  ).create,
+);
 
 const addTask = () => {
-  openForm.value = true
+  openForm.value = true;
   selectedTask.value = {
-    members: [props.member]
-  }
-}
+    members: [props.member],
+  };
+};
 
 const editTask = (task) => {
-  openForm.value = true
-  selectedTask.value = task
-}
+  openForm.value = true;
+  selectedTask.value = task;
+};
 
-const storeUnsubscribe = store.subscribeAction((action) => {
-  if (action.type === 'task/reloadOpenTasks') {
-    fetchTasks()
-  }
-  if (action.type === 'task/addTask') {
-    addTask()
-  }
-  if (action.type === 'task/editTask') {
-    editTask(action.payload)
-  }
-})
-
-const tabClasses = (tabName) => {
-  return tab.value.name === tabName
-    ? 'bg-gray-100 font-medium text-gray-900'
-    : 'bg-white'
-}
-
-const changeTab = (t) => {
-  tab.value = t
-  fetchTasks()
-}
-
-onMounted(() => {
-  fetchTasks()
-})
-
-onBeforeUnmount(() => {
-  storeUnsubscribe()
-})
+const tabClasses = (tabName) => (tab.value.name === tabName
+  ? 'bg-gray-100 font-medium text-gray-900'
+  : 'bg-white');
 
 const fetchTasks = (loadMore = false) => {
-  const filter = tab.value.filters
-  loading.value = true
+  const filter = tab.value.filters;
+  loading.value = true;
 
   TaskService.list(
     filter,
@@ -210,46 +177,77 @@ const fetchTasks = (loadMore = false) => {
       ? 'dueDate_ASC'
       : 'createdAt_DESC',
     20,
-    loadMore ? tasks.value.length : 0
+    loadMore ? tasks.value.length : 0,
   )
     .then(({ rows, count }) => {
       tasks.value = loadMore
         ? [...tasks.value, ...rows]
-        : rows
-      taskCount.value = count
+        : rows;
+      taskCount.value = count;
       if (tab.value.name === 'open') {
-        openTaskCount.value = count
+        openTaskCount.value = count;
       }
     })
     .catch(() => {
       if (!loadMore) {
-        tasks.value = []
-        taskCount.value = 0
-        openTaskCount.value = 0
+        tasks.value = [];
+        taskCount.value = 0;
+        openTaskCount.value = 0;
       }
-      Message.error('There was an error loading tasks')
+      Message.error('There was an error loading tasks');
     })
     .finally(() => {
-      loading.value = false
-    })
+      loading.value = false;
+    });
 
   if (tab.value.name !== 'open') {
     TaskService.list(
       {
         type: 'regular',
         status: 'in-progress',
-        members: [props.member.id]
+        members: [props.member.id],
       },
       '',
       1,
-      0
+      0,
     ).then(({ count }) => {
-      openTaskCount.value = count
-    })
+      openTaskCount.value = count;
+    });
   }
-}
+};
+
+const storeUnsubscribe = store.subscribeAction((action) => {
+  if (action.type === 'task/reloadOpenTasks') {
+    fetchTasks();
+  }
+  if (action.type === 'task/addTask') {
+    addTask();
+  }
+  if (action.type === 'task/editTask') {
+    editTask(action.payload);
+  }
+});
+
+const changeTab = (t) => {
+  tab.value = t;
+  fetchTasks();
+};
+
+onMounted(() => {
+  fetchTasks();
+});
+
+onBeforeUnmount(() => {
+  storeUnsubscribe();
+});
 
 defineExpose({
-  openTaskCount
-})
+  openTaskCount,
+});
+</script>
+
+<script>
+export default {
+  name: 'AppMemberViewTasks',
+};
 </script>

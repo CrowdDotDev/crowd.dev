@@ -1,9 +1,9 @@
 <template>
   <div>
     <label
+      for="formOrder"
       class="block text-xs leading-none font-semibold mb-2"
-      >Order</label
-    >
+    >Order</label>
     <draggable
       v-model="list"
       class="list-group"
@@ -14,10 +14,11 @@
           <div class="order-element-name">
             <i
               class="ri-drag-move-2-line text-gray-400"
-            ></i>
+            />
             <span class="text-xs">{{ element.title }}</span>
           </div>
           <el-radio-group
+            id="formOrder"
             :model-value="element.order"
             size="small"
             class="radio-button-group"
@@ -26,15 +27,24 @@
                 $emit('orderChange', element.id, value)
             "
           >
-            <el-radio-button label="asc" :name="element.id"
-              >Asc</el-radio-button
+            <el-radio-button
+              label="asc"
+              :name="element.id"
             >
-            <el-radio-button label="desc" :name="element.id"
-              >Desc</el-radio-button
+              Asc
+            </el-radio-button>
+            <el-radio-button
+              label="desc"
+              :name="element.id"
             >
-            <el-radio-button label="none" :name="element.id"
-              >None</el-radio-button
+              Desc
+            </el-radio-button>
+            <el-radio-button
+              label="none"
+              :name="element.id"
             >
+              None
+            </el-radio-button>
           </el-radio-group>
         </div>
       </template>
@@ -43,45 +53,45 @@
 </template>
 
 <script>
-import draggable from 'vuedraggable'
+import draggable from 'vuedraggable';
 
 export default {
   name: 'AppQueryBuilderOrder',
   components: {
-    draggable
+    draggable,
   },
   props: {
     orderMembers: {
       type: Array,
-      required: true
+      required: true,
     },
     disabled: {
       type: Boolean,
-      default: false
-    }
+      default: false,
+    },
   },
   emits: ['reorder', 'orderChange'],
   data() {
     return {
-      dialog: false
-    }
+      dialog: false,
+    };
   },
   computed: {
     list: {
       get() {
-        return this.orderMembers
+        return this.orderMembers;
       },
       set(value) {
-        return value
-      }
-    }
+        return value;
+      },
+    },
   },
   methods: {
     handleDragEnd(event) {
-      this.$emit('reorder', event.oldIndex, event.newIndex)
-    }
-  }
-}
+      this.$emit('reorder', event.oldIndex, event.newIndex);
+    },
+  },
+};
 </script>
 
 <style scoped lang="scss">

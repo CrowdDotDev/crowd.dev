@@ -19,7 +19,7 @@ export default {
 
     localStorage.setItem(
       `hidePmfBanner-${config.formbricks.pmfFormId}`,
-      true
+      true,
     )
-  }
+  },
 }

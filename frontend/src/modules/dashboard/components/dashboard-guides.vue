@@ -1,8 +1,8 @@
 <template>
   <div
     v-if="
-      notcompletedGuides.length > 0 &&
-      !onboardingGuidesDismissed
+      notcompletedGuides.length > 0
+        && !onboardingGuidesDismissed
     "
     class="panel !p-0 !rounded-lg mb-10"
   >
@@ -10,7 +10,7 @@
       <div class="flex justify-between items-center">
         <i
           class="ri-lightbulb-line text-lg text-purple-800"
-        ></i>
+        />
         <el-tooltip
           content="Dismiss guide"
           placement="top-end"
@@ -21,11 +21,11 @@
           >
             <i
               class="ri-close-fill text-lg text-gray-400"
-            ></i>
+            />
           </div>
         </el-tooltip>
       </div>
-      <div class="pb-4.5"></div>
+      <div class="pb-4.5" />
       <p
         class="text-2xs text-purple-800 font-semibold uppercase"
       >
@@ -47,8 +47,8 @@
             :title="guide.title"
             :name="guide.key"
             :disabled="
-              guide.completed ||
-              (hasSampleData && guide.disabledInSampleData)
+              guide.completed
+                || (hasSampleData && guide.disabledInSampleData)
             "
             class="relative cursor-auto"
           >
@@ -66,7 +66,7 @@
               <i
                 v-if="guide.completed"
                 class="absolute right-0 bg-white z-10 ri-checkbox-circle-fill text-lg text-green-500 h-5 flex items-center"
-              ></i>
+              />
             </template>
 
             <app-dashboard-guide-item
@@ -84,57 +84,52 @@
   />
 </template>
 
-<script>
-export default {
-  name: 'AppDashboardGuides'
-}
-</script>
-
 <script setup>
-import { ref, computed, onMounted, watch } from 'vue'
-import AppDashboardGuideItem from '@/modules/dashboard/components/guide/dashboard-guide-item.vue'
-import AppDashboardGuideModal from '@/modules/dashboard/components/guide/dashboard-guide-modal.vue'
+import {
+  ref, computed, onMounted, watch,
+} from 'vue';
+import { storeToRefs } from 'pinia';
+import AppDashboardGuideItem from '@/modules/dashboard/components/guide/dashboard-guide-item.vue';
+import AppDashboardGuideModal from '@/modules/dashboard/components/guide/dashboard-guide-modal.vue';
 import {
   mapActions,
-  mapGetters
-} from '@/shared/vuex/vuex.helpers'
-import ConfirmDialog from '@/shared/dialog/confirm-dialog'
-import AppDashboardGuideEagleEyeModal from '@/modules/dashboard/components/guide/dashboard-guide-eagle-eye-modal.vue'
-import { QuickstartGuideService } from '@/modules/quickstart-guide/services/quickstart-guide.service'
-import { useQuickStartGuideStore } from '@/modules/quickstart-guide/store'
-import { storeToRefs } from 'pinia'
-import { EventTrackingService } from '@/modules/event-tracking/services/event-tracking-service'
+  mapGetters,
+} from '@/shared/vuex/vuex.helpers';
+import ConfirmDialog from '@/shared/dialog/confirm-dialog';
+import AppDashboardGuideEagleEyeModal from '@/modules/dashboard/components/guide/dashboard-guide-eagle-eye-modal.vue';
+import { QuickstartGuideService } from '@/modules/quickstart-guide/services/quickstart-guide.service';
+import { useQuickStartGuideStore } from '@/modules/quickstart-guide/store';
+import { EventTrackingService } from '@/modules/event-tracking/services/event-tracking-service';
 
-const { currentTenant, currentTenantUser } =
-  mapGetters('auth')
-const { doRefreshCurrentUser } = mapActions('auth')
+const { currentTenant, currentTenantUser } = mapGetters('auth');
+const { doRefreshCurrentUser } = mapActions('auth');
 
-const storeQuickStartGuides = useQuickStartGuideStore()
+const storeQuickStartGuides = useQuickStartGuideStore();
 const { guides, notcompletedGuides } = storeToRefs(
-  storeQuickStartGuides
-)
-const { getGuides } = storeQuickStartGuides
+  storeQuickStartGuides,
+);
+const { getGuides } = storeQuickStartGuides;
 
-const activeView = ref(null)
-const selectedGuide = ref(null)
+const activeView = ref(null);
+const selectedGuide = ref(null);
 
-const eagleEyeModalOpened = ref(false)
-const onboardingGuidesDismissed = ref(false)
+const eagleEyeModalOpened = ref(false);
+const onboardingGuidesDismissed = ref(false);
 
 const hasSampleData = computed(
-  () => currentTenant.value.hasSampleData
-)
+  () => currentTenant.value.hasSampleData,
+);
 const minCommunitySize = computed(() => {
   if (!currentTenant.value.communitySize) {
-    return null
+    return null;
   }
   // If community size bigger than 5000
   const [min] = currentTenant.value.communitySize
     .split(/[><-]/g)
     .filter((sub) => sub.length > 0)
-    .map((el) => +el)
-  return min
-})
+    .map((el) => +el);
+  return min;
+});
 
 const dismissGuides = () => {
   ConfirmDialog({
@@ -145,88 +140,93 @@ const dismissGuides = () => {
       'Users that follow our Quickstart Guide are 73% more likely to successfully set-up crowd.dev.',
     icon: 'ri-information-line',
     confirmButtonText: 'Dismiss quickstart guide',
-    cancelButtonText: 'Cancel'
+    cancelButtonText: 'Cancel',
   }).then(() => {
     EventTrackingService.track({
-      name: 'Onboarding Guide dismissed'
-    })
+      name: 'Onboarding Guide dismissed',
+    });
 
-    onboardingGuidesDismissed.value = true
+    onboardingGuidesDismissed.value = true;
 
     return QuickstartGuideService.updateSettings({
-      isQuickstartGuideDismissed: true
-    })
-  })
-}
+      isQuickstartGuideDismissed: true,
+    });
+  });
+};
 
 const showModals = () => {
   if (
-    !currentTenantUser.value ||
-    !currentTenantUser.value.settings
+    !currentTenantUser.value
+    || !currentTenantUser.value.settings
   ) {
-    return
+    return;
   }
 
   // Check if it can open eagle eye onboarding modal
   const {
     isEagleEyeGuideDismissed,
-    isQuickstartGuideDismissed
-  } = currentTenantUser.value.settings
+    isQuickstartGuideDismissed,
+  } = currentTenantUser.value.settings;
   if (
-    minCommunitySize.value &&
-    minCommunitySize.value < 5000 &&
-    !isEagleEyeGuideDismissed &&
-    !eagleEyeModalOpened.value
+    minCommunitySize.value
+    && minCommunitySize.value < 5000
+    && !isEagleEyeGuideDismissed
+    && !eagleEyeModalOpened.value
   ) {
-    eagleEyeModalOpened.value = true
+    eagleEyeModalOpened.value = true;
   }
 
   // Check if onboarding guides dismissed
-  onboardingGuidesDismissed.value =
-    isQuickstartGuideDismissed || false
+  onboardingGuidesDismissed.value = isQuickstartGuideDismissed || false;
   if (!onboardingGuidesDismissed.value) {
     activeView.value = notcompletedGuides.value?.length
       ? notcompletedGuides.value[0].key
-      : null
+      : null;
     getGuides({}).then(() => {
       activeView.value = notcompletedGuides.value?.length
         ? notcompletedGuides.value[0].key
-        : null
-    })
+        : null;
+    });
   }
-}
+};
 
 watch(
   () => currentTenantUser,
   (tenantUser) => {
     if (tenantUser) {
-      showModals()
+      showModals();
     }
   },
   {
     deep: true,
-    immediate: true
-  }
-)
+    immediate: true,
+  },
+);
 
 onMounted(() => {
   doRefreshCurrentUser({}).then(() => {
     if (currentTenantUser.value) {
-      showModals()
+      showModals();
     }
-  })
-})
+  });
+});
 
 const onGuideOpen = (guide) => {
-  selectedGuide.value = guide
+  selectedGuide.value = guide;
 
   EventTrackingService.track({
     name: 'Onboarding Guide details clicked',
     properties: {
-      step: guide.key
-    }
-  })
-}
+      step: guide.key,
+    },
+  });
+};
+</script>
+
+<script>
+export default {
+  name: 'AppDashboardGuides',
+};
 </script>
 
 <style lang="scss">

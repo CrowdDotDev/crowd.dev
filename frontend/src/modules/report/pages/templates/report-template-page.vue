@@ -3,14 +3,14 @@
     v-if="loading"
     v-loading="loading"
     class="app-page-spinner"
-  ></div>
+  />
   <div v-else-if="!error" class="absolute left-0 right-0">
     <div
       ref="header"
       class="w-full bg-gray-50 border-gray-200 pt-4 sticky top-[-20px] z-10"
       :class="{
         'border-b': !isHeaderOnTop,
-        shadow: isHeaderOnTop
+        shadow: isHeaderOnTop,
       }"
     >
       <div class="max-w-5xl mx-auto px-8 pb-6">
@@ -20,8 +20,8 @@
         >
           <i
             class="ri-arrow-left-s-line mr-2"
-          />Reports</router-link
-        >
+          />Reports
+        </router-link>
         <div
           class="flex flex-grow items-center justify-between"
         >
@@ -71,7 +71,7 @@
           "
           :filters="{
             platform,
-            teamMembers
+            teamMembers,
           }"
         />
       </div>
@@ -81,117 +81,113 @@
 
 <script setup>
 import {
-  mapGetters,
-  mapActions
-} from '@/shared/vuex/vuex.helpers'
-import {
   ref,
   onMounted,
   onUnmounted,
   defineProps,
   computed,
-  onBeforeUnmount
-} from 'vue'
-import AppReportMemberTemplate from './report-member-template.vue'
-import AppReportShareButton from '@/modules/report/components/report-share-button.vue'
-import { MEMBERS_REPORT } from '@/modules/report/templates/template-reports'
-import AppReportTemplateFilters from '@/modules/report/components/templates/report-template-filters.vue'
-import ActivityPlatformField from '@/modules/activity/activity-platform-field'
-import { templates } from '@/modules/report/templates/template-reports'
-import { useStore } from 'vuex'
+  onBeforeUnmount,
+} from 'vue';
+import { useStore } from 'vuex';
+import {
+  mapGetters,
+  mapActions,
+} from '@/shared/vuex/vuex.helpers';
+import AppReportShareButton from '@/modules/report/components/report-share-button.vue';
+import { MEMBERS_REPORT, templates } from '@/modules/report/templates/template-reports';
+import AppReportTemplateFilters from '@/modules/report/components/templates/report-template-filters.vue';
+import ActivityPlatformField from '@/modules/activity/activity-platform-field';
+import AppReportMemberTemplate from './report-member-template.vue';
 
 const props = defineProps({
   id: {
     type: String,
-    default: null
-  }
-})
+    default: null,
+  },
+});
 
-const { doFind } = mapActions('report')
+const { doFind } = mapActions('report');
 
-const store = useStore()
+const store = useStore();
 
-const report = ref()
-const header = ref()
-const wrapper = ref()
-const loading = ref()
-const error = ref()
-const storeUnsubscribe = ref(() => {})
-const isHeaderOnTop = ref(false)
+const report = ref();
+const header = ref();
+const wrapper = ref();
+const loading = ref();
+const error = ref();
+const storeUnsubscribe = ref(() => {});
+const isHeaderOnTop = ref(false);
 
 const platformField = new ActivityPlatformField(
   'activeOn',
   'Platforms',
-  { filterable: true }
-).forFilter()
+  { filterable: true },
+).forFilter();
 
 const initialPlatformValue = {
   ...platformField,
-  expanded: false
-}
+  expanded: false,
+};
 
-const platform = ref(initialPlatformValue)
-const teamMembers = ref(false)
+const platform = ref(initialPlatformValue);
+const teamMembers = ref(false);
 
-const currentTemplate = computed(() =>
-  templates.find((t) => t.name === report.value.name)
-)
+const currentTemplate = computed(() => templates.find((t) => t.name === report.value.name));
 
-const { cubejsApi } = mapGetters('widget')
-const { getCubeToken } = mapActions('widget')
-
-onMounted(async () => {
-  storeUnsubscribe.value = store.subscribe((mutation) => {
-    if (mutation.type === 'report/FIND_ERROR') {
-      error.value = true
-    }
-  })
-
-  loading.value = true
-  report.value = await doFind(props.id)
-  loading.value = false
-
-  if (cubejsApi.value === null) {
-    await getCubeToken()
-  }
-
-  wrapper.value = document.querySelector(
-    '#main-page-wrapper'
-  )
-
-  wrapper.value?.addEventListener('scroll', onPageScroll)
-})
-
-onBeforeUnmount(() => {
-  storeUnsubscribe.value()
-})
-
-onUnmounted(() => {
-  wrapper.value?.removeEventListener('scroll', onPageScroll)
-})
+const { cubejsApi } = mapGetters('widget');
+const { getCubeToken } = mapActions('widget');
 
 const onPageScroll = () => {
-  isHeaderOnTop.value =
-    header.value.getBoundingClientRect().top === 0 &&
-    wrapper.value.scrollTop !== 0
-}
+  isHeaderOnTop.value = header.value.getBoundingClientRect().top === 0
+    && wrapper.value.scrollTop !== 0;
+};
 
 const onPlatformFilterOpen = () => {
   platform.value = {
     ...platform.value,
-    expanded: true
-  }
-}
+    expanded: true,
+  };
+};
 
 const onPlatformFilterReset = () => {
-  platform.value = initialPlatformValue
-}
+  platform.value = initialPlatformValue;
+};
 
 const onTrackFilters = () => {
   window.analytics.track('Filter template report', {
     template: currentTemplate.value.name,
     platforms: platform.value.value.map((p) => p.value),
-    includeTeamMembers: teamMembers.value
-  })
-}
+    includeTeamMembers: teamMembers.value,
+  });
+};
+
+onMounted(async () => {
+  storeUnsubscribe.value = store.subscribe((mutation) => {
+    if (mutation.type === 'report/FIND_ERROR') {
+      error.value = true;
+    }
+  });
+
+  loading.value = true;
+  report.value = await doFind(props.id);
+  loading.value = false;
+
+  if (cubejsApi.value === null) {
+    await getCubeToken();
+  }
+
+  wrapper.value = document.querySelector(
+    '#main-page-wrapper',
+  );
+
+  wrapper.value?.addEventListener('scroll', onPageScroll);
+});
+
+onBeforeUnmount(() => {
+  storeUnsubscribe.value();
+});
+
+onUnmounted(() => {
+  wrapper.value?.removeEventListener('scroll', onPageScroll);
+});
 </script>

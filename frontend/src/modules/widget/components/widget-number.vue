@@ -15,7 +15,7 @@
     @open-settings-modal="modal = true"
   >
     <div class="widget--number">
-      <i class="mr-4" :class="iconClass"></i>
+      <i class="mr-4" :class="iconClass" />
       <div class="widget--number-values">
         <div class="flex items-center">
           <el-tooltip
@@ -48,50 +48,47 @@
     <app-dialog
       v-model="modal"
       :title="`${config.title} Settings`"
-    >
-    </app-dialog>
+    />
   </app-widget>
 </template>
 
 <script>
-import Widget from './widget'
-import { mapGetters, mapActions } from 'vuex'
+import { mapGetters, mapActions } from 'vuex';
+import Widget from './widget.vue';
 
 export default {
   name: 'AppWidgetNumber',
 
   components: {
-    'app-widget': Widget
+    'app-widget': Widget,
   },
 
   props: {
     config: {
       type: Object,
-      default: () => {
-        return {
-          name: 'name',
-          type: 'number',
-          label: 'Label',
-          data: {
-            value: 60
-          },
-          speed: 200
-        }
-      }
+      default: () => ({
+        name: 'name',
+        type: 'number',
+        label: 'Label',
+        data: {
+          value: 60,
+        },
+        speed: 200,
+      }),
     },
     dashboard: {
       type: Boolean,
-      default: false
+      default: false,
     },
     editable: {
       type: Boolean,
-      default: false
-    }
+      default: false,
+    },
   },
   emits: [
     'trigger-duplicate-widget',
     'trigger-edit-widget',
-    'trigger-delete-widget'
+    'trigger-delete-widget',
   ],
 
   data() {
@@ -101,23 +98,23 @@ export default {
         current: 0,
         target: null,
         suffix: this.config.suffix,
-        unit: this.config.unit
+        unit: this.config.unit,
       },
       growth: {
         current: 0,
-        target: null
+        target: null,
       },
-      speed: this.config.speed ? this.config.speed : 200
-    }
+      speed: this.config.speed ? this.config.speed : 200,
+    };
   },
 
   computed: {
     ...mapGetters({
-      widgetFind: 'widget/find'
+      widgetFind: 'widget/find',
     }),
 
     widget() {
-      return this.widgetFind(this.config.id)
+      return this.widgetFind(this.config.id);
     },
 
     iconClass() {
@@ -132,104 +129,102 @@ export default {
           'ri-timer-flash-line bg-yellow-50 text-yellow-500 ',
         members: 'ri-contacts-line bg-gray-900 text-white ',
         activities:
-          'ri-radar-line bg-brand-50 text-brand-500 '
-      }
+          'ri-radar-line bg-brand-50 text-brand-500 ',
+      };
 
       const widgetType = this.config.title
         .toLowerCase()
         .split(' ')
-        .join('-')
+        .join('-');
 
-      let iconKey
+      let iconKey;
 
       if (this.dashboard) {
-        iconKey = Object.keys(widgetIcon).find((k) => {
-          return k.includes(widgetType)
-        })
+        iconKey = Object.keys(widgetIcon).find((k) => k.includes(widgetType));
       } else {
-        const measure =
-          this.config.measures.length > 0
-            ? this.config.measures[0]
-            : null
-        iconKey = measure
-          ? measure.toLowerCase().includes('activit')
+        const measure = this.config.measures.length > 0
+          ? this.config.measures[0]
+          : null;
+        if (measure) {
+          iconKey = measure.toLowerCase().includes('activit')
             ? 'activities'
-            : 'members'
-          : null
+            : 'members';
+        } else {
+          iconKey = null;
+        }
       }
 
-      return `${widgetIcon[iconKey]} h-12 w-12 rounded-md text-xl flex items-center justify-center`
-    }
+      return `${widgetIcon[iconKey]} h-12 w-12 rounded-md text-xl flex items-center justify-center`;
+    },
   },
 
   watch: {
     config: {
       deep: true,
       async handler() {
-        this.setValues()
-      }
-    }
+        this.setValues();
+      },
+    },
   },
 
   async created() {
-    this.setValues()
+    this.setValues();
   },
 
   methods: {
     ...mapActions({
-      doFind: 'widget/doFind'
+      doFind: 'widget/doFind',
     }),
     calculateGrowth() {
-      const growth =
-        this.widget.cache[1] - this.widget.cache[0]
+      const growth = this.widget.cache[1] - this.widget.cache[0];
 
       this.growth.target = this.widget.cache[0]
         ? Math.floor((growth / this.value.target) * 100)
-        : null
+        : null;
     },
     updateValue() {
-      const inc = this.value.target / this.speed
+      const inc = this.value.target / this.speed;
 
       if (this.value.current < this.value.target) {
-        this.value.current += Math.ceil(inc)
-        setTimeout(this.updateValue, 1)
+        this.value.current += Math.ceil(inc);
+        setTimeout(this.updateValue, 1);
       } else {
-        this.value.current = this.value.target
+        this.value.current = this.value.target;
       }
     },
     updateGrowth() {
-      const inc = Math.abs(this.growth.target) / this.speed
+      const inc = Math.abs(this.growth.target) / this.speed;
 
       if (
-        Math.abs(this.growth.current) <
-        Math.abs(this.growth.target)
+        Math.abs(this.growth.current)
+        < Math.abs(this.growth.target)
       ) {
-        this.growth.current += Math.ceil(inc)
-        setTimeout(this.updateGrowth, 1)
+        this.growth.current += Math.ceil(inc);
+        setTimeout(this.updateGrowth, 1);
       } else {
-        this.growth.current = Math.abs(this.growth.target)
+        this.growth.current = Math.abs(this.growth.target);
       }
     },
     setValues() {
       if (this.widget) {
         this.value.target = this.widget.cache
           ? Math.ceil(this.widget.cache[1])
-          : 0
+          : 0;
         this.growth.target = this.widget.cache
           ? Math.ceil(this.widget.cache[0])
-          : null
-        this.calculateGrowth()
-        this.updateValue()
-        this.updateGrowth()
+          : null;
+        this.calculateGrowth();
+        this.updateValue();
+        this.updateGrowth();
       } else {
         this.value.target = Math.ceil(
-          this.config.data.value
-        )
-        this.updateValue()
+          this.config.data.value,
+        );
+        this.updateValue();
       }
-    }
-  }
-}
+    },
+  },
+};
 </script>
 
 <style lang="scss">

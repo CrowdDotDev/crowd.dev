@@ -36,10 +36,8 @@
       class="flex items-center mt-2"
       :class="focused ? 'opacity-100' : 'opacity-0'"
     >
-      <span class="helper-copy"
-        >Press ENTER or comma (,) to separate
-        keywords.</span
-      >
+      <span class="helper-copy">Press ENTER or comma (,) to separate
+        keywords.</span>
       <el-popover v-if="eagleEye" placement="top-start">
         <template #reference>
           <div
@@ -47,7 +45,7 @@
           >
             <i
               class="ri-question-line flex items-center mr-1"
-            ></i>
+            />
             <span>How to use different match types</span>
           </div>
         </template>
@@ -64,7 +62,9 @@
           <div class="text-2xs text-gray-500 mb-4">
             Example: devtool
           </div>
-          <div class="text-xs font-medium">Exact match</div>
+          <div class="text-xs font-medium">
+            Exact match
+          </div>
           <div class="text-2xs text-gray-500">
             Example: "devtool"
           </div>
@@ -72,7 +72,7 @@
       </el-popover>
     </div>
     <div v-else class="flex items-center mt-2">
-      <slot name="error"></slot>
+      <slot name="error" />
     </div>
   </div>
 </template>
@@ -83,120 +83,115 @@ export default {
   props: {
     modelValue: {
       type: Array,
-      default: () => []
+      default: () => [],
     },
     addKeywordOnKeys: {
       type: Array,
-      default: () => [13, 188, 9]
+      default: () => [13, 188, 9],
     },
     readOnly: {
       type: Boolean,
-      default: false
+      default: false,
     },
     placeholder: {
       type: String,
-      default: null
+      default: null,
     },
     eagleEye: {
       type: Boolean,
-      default: false
+      default: false,
     },
     isError: {
       type: Boolean,
-      default: false
-    }
+      default: false,
+    },
   },
   emits: ['update:modelValue'],
   data() {
     return {
       newKeyword: '',
       innerKeywords: [...this.modelValue],
-      focused: false
-    }
+      focused: false,
+    };
   },
   watch: {
     modelValue() {
-      this.innerKeywords = [...this.modelValue]
-    }
+      this.innerKeywords = [...this.modelValue];
+    },
   },
   methods: {
     focusKeywordInput() {
       if (
-        this.readOnly ||
-        !this.$el.querySelector('.el-keywords-input')
-      ) {
-        return
-      } else {
-        this.$el.querySelector('.el-keywords-input').focus()
-        this.focused = true
+        !(this.readOnly
+        || !this.$el.querySelector('.el-keywords-input'))) {
+        this.$el.querySelector('.el-keywords-input').focus();
+        this.focused = true;
       }
     },
     inputKeyword(ev) {
-      this.newKeyword = ev.target.value
+      this.newKeyword = ev.target.value;
     },
     blur(e) {
-      this.focused = false
-      this.addNew(e)
+      this.focused = false;
+      this.addNew(e);
     },
     focus() {
-      this.focused = true
+      this.focused = true;
     },
     addNew(e) {
       if (
-        e &&
-        !this.addKeywordOnKeys.includes(e.keyCode) &&
-        e.type !== 'blur'
+        e
+        && !this.addKeywordOnKeys.includes(e.keyCode)
+        && e.type !== 'blur'
       ) {
-        return
+        return;
       }
       if (e) {
-        e.stopPropagation()
-        e.preventDefault()
+        e.stopPropagation();
+        e.preventDefault();
       }
-      let addSuccess = false
+      let addSuccess = false;
       if (this.newKeyword.includes(',')) {
         this.newKeyword.split(',').forEach((item) => {
           if (this.addKeyword(item.trim())) {
-            addSuccess = true
+            addSuccess = true;
           }
-        })
-      } else {
-        if (this.addKeyword(this.newKeyword.trim())) {
-          addSuccess = true
-        }
+        });
+      } else if (this.addKeyword(this.newKeyword.trim())) {
+        addSuccess = true;
       }
       if (addSuccess) {
-        this.keywordChange()
-        this.newKeyword = ''
+        this.keywordChange();
+        this.newKeyword = '';
       }
     },
     addKeyword(keyword) {
-      keyword = keyword.trim()
+      const trimmedKeyword = keyword.trim();
       if (
-        keyword &&
-        !this.innerKeywords.includes(keyword)
+        trimmedKeyword
+        && !this.innerKeywords.includes(trimmedKeyword)
       ) {
-        this.innerKeywords.push(keyword)
-        return true
+        this.innerKeywords.push(trimmedKeyword);
+        return true;
       }
-      return false
+      return false;
     },
     remove(index) {
-      this.innerKeywords.splice(index, 1)
-      this.keywordChange()
+      this.innerKeywords.splice(index, 1);
+      this.keywordChange();
     },
     removeLastKeyword() {
       if (this.newKeyword) {
-        return
+        return;
       }
-      this.innerKeywords.pop()
-      this.keywordChange()
+      this.innerKeywords.pop();
+      this.keywordChange();
     },
     keywordChange() {
-      this.$emit('update:modelValue', this.innerKeywords)
-    }
-  }
-}
+      this.$emit('update:modelValue', this.innerKeywords);
+    },
+  },
+};
 </script>
 
 <style lang="scss">

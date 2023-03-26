@@ -26,53 +26,53 @@
   </div>
 </template>
 
-<script>
-export default {
-  name: 'AppPagination'
-}
-</script>
-
 <script setup>
-import { defineProps, defineEmits, h } from 'vue'
+import { defineProps, defineEmits, h } from 'vue';
 
 const ArrowPrevIcon = h(
   'i', // type
   {
-    class: 'ri-arrow-left-s-line text-lg leading-none'
+    class: 'ri-arrow-left-s-line text-lg leading-none',
   }, // props
-  []
-)
+  [],
+);
 
 const ArrowNextIcon = h(
   'i', // type
   {
-    class: 'ri-arrow-right-s-line text-lg leading-none'
+    class: 'ri-arrow-right-s-line text-lg leading-none',
   }, // props
-  []
-)
+  [],
+);
 
 const emit = defineEmits([
   'changeCurrentPage',
-  'changePageSize'
-])
+  'changePageSize',
+]);
 defineProps({
   currentPage: {
     type: Number,
-    required: true
+    required: true,
   },
   pageSize: {
     type: Number,
-    required: true
+    required: true,
   },
   total: {
     type: Number,
-    required: true
+    required: true,
   },
   module: {
     type: String,
-    default: () => ''
-  }
-})
+    default: () => '',
+  },
+});
+</script>
+
+<script>
+export default {
+  name: 'AppPagination',
+};
 </script>
 
 <style lang="scss">

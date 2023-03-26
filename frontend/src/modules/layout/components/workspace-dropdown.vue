@@ -31,7 +31,7 @@
                 >
                   <app-squared-avatar
                     :name="currentTenant.name"
-                  ></app-squared-avatar>
+                  />
                 </div>
                 <div
                   v-if="!isCollapsed"
@@ -49,17 +49,16 @@
                     <router-link
                       :to="{
                         name: 'settings',
-                        query: { activeTab: 'plans' }
+                        query: { activeTab: 'plans' },
                       }"
                       @click.stop
                     >
                       <span
                         v-if="getTrialDate(currentTenant)"
                         class="badge badge--xs badge--light-yellow ml-1 hover:cursor-pointer"
-                        >{{
-                          getTrialDate(currentTenant)
-                        }}</span
-                      >
+                      >{{
+                        getTrialDate(currentTenant)
+                      }}</span>
                     </router-link>
                   </div>
                 </div>
@@ -68,7 +67,7 @@
               <i
                 v-if="!isCollapsed"
                 class="ri-more-2-fill text-gray-300 text-lg"
-              ></i>
+              />
             </div>
           </el-tooltip>
         </div>
@@ -103,12 +102,10 @@
             <div
               class="text-gray-400 pl-3 text-2xs whitespace-nowrap flex flex-col items-end"
             >
-              <span>{{ getPlan(tenant.plan) }}</span
-              ><span
+              <span>{{ getPlan(tenant.plan) }}</span><span
                 v-if="getTrialDate(tenant)"
                 class="!text-yellow-600 !text-3xs"
-                >{{ getTrialDate(tenant) }}</span
-              >
+              >{{ getTrialDate(tenant) }}</span>
             </div>
           </div>
         </div>
@@ -121,10 +118,8 @@
         >
           <i
             class="text-base text-gray-400 ri-list-settings-line"
-          ></i>
-          <span class="text-xs text-gray-900"
-            ><app-i18n code="tenant.menu"></app-i18n
-          ></span>
+          />
+          <span class="text-xs text-gray-900"><app-i18n code="tenant.menu" /></span>
         </div>
       </div>
     </el-popover>
@@ -132,74 +127,73 @@
   </div>
 </template>
 
-<script>
-export default {
-  name: 'AppWorkspaceDropdown'
-}
-</script>
-
 <script setup>
-import { useStore } from 'vuex'
-import { computed, onMounted, ref, watch } from 'vue'
-import AppTenantListDrawer from '@/modules/tenant/components/tenant-list-drawer.vue'
-import config from '@/config'
-import { getTrialDate } from '@/utils/date'
+import { useStore } from 'vuex';
+import {
+  computed, onMounted, ref, watch,
+} from 'vue';
+import AppTenantListDrawer from '@/modules/tenant/components/tenant-list-drawer.vue';
+import config from '@/config';
+import { getTrialDate } from '@/utils/date';
 
-const store = useStore()
+const store = useStore();
 
-const isDropdownOpen = ref(false)
-const isTenantsDrawerOpen = ref(false)
+const isDropdownOpen = ref(false);
+const isTenantsDrawerOpen = ref(false);
 
 const currentTenant = computed(
-  () => store.getters['auth/currentTenant']
-)
+  () => store.getters['auth/currentTenant'],
+);
 const tenantsList = computed(() => {
-  const rows = store.getters['tenant/rows']
+  const rows = store.getters['tenant/rows'];
 
   return rows.sort((x, y) => {
-    return x.name < y.name ? -1 : x.name > y.name ? 1 : 0
-  })
-})
+    if (x.name < y.name) {
+      return -1;
+    }
+    return x.name > y.name ? 1 : 0;
+  });
+});
+
 const isCollapsed = computed(
-  () => store.getters['layout/menuCollapsed']
-)
+  () => store.getters['layout/menuCollapsed'],
+);
 
 onMounted(async () => {
-  await store.dispatch('tenant/doFetch', {})
-})
+  await store.dispatch('tenant/doFetch', {});
+});
 
 const getPlan = (plan) => {
   if (config.isCommunityVersion) {
-    return 'Community'
+    return 'Community';
   }
 
-  return plan
-}
+  return plan;
+};
 
 const clickOutsideListener = (event) => {
   const component = document.querySelector(
-    `.workspace-popover`
-  )
+    '.workspace-popover',
+  );
   if (
     // clicks outside
     !(
-      component === event.target ||
-      component.contains(event.target) ||
+      component === event.target
+      || component.contains(event.target)
       // we need the following condition to validate clicks
       // on popovers that are not DOM children of this component,
       // since popper is adding fixed components to the body directly
-      event.path?.some(
-        (o) =>
-          (o.className &&
-            typeof o.className.includes !== 'undefined' &&
-            o.className?.includes('el-popper')) ||
-          false
+      || event.path?.some(
+        (o) => (o.className
+            && typeof o.className.includes !== 'undefined'
+            && o.className?.includes('el-popper'))
+          || false,
       )
     )
   ) {
-    isDropdownOpen.value = false
+    isDropdownOpen.value = false;
   }
-}
+};
 
 watch(
   isDropdownOpen,
@@ -208,28 +202,34 @@ watch(
       if (newValue) {
         document.addEventListener(
           'click',
-          clickOutsideListener
-        )
+          clickOutsideListener,
+        );
       } else {
         document.removeEventListener(
           'click',
-          clickOutsideListener
-        )
+          clickOutsideListener,
+        );
       }
-    }, 500)
+    }, 500);
   },
-  { immediate: true }
-)
+  { immediate: true },
+);
 
 function doManageWorkspaces() {
-  isDropdownOpen.value = false
-  isTenantsDrawerOpen.value = true
+  isDropdownOpen.value = false;
+  isTenantsDrawerOpen.value = true;
 }
 
 async function doSwitchTenant(tenant) {
-  isDropdownOpen.value = false
-  await store.dispatch('auth/doSelectTenant', tenant)
+  isDropdownOpen.value = false;
+  await store.dispatch('auth/doSelectTenant', tenant);
 }
+</script>
+
+<script>
+export default {
+  name: 'AppWorkspaceDropdown',
+};
 </script>
 
 <style lang="scss">

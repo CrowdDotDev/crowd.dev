@@ -1,70 +1,70 @@
-import authAxios from '@/shared/axios/auth-axios'
-import AuthCurrentTenant from '@/modules/auth/auth-current-tenant'
+import authAxios from '@/shared/axios/auth-axios';
+import AuthCurrentTenant from '@/modules/auth/auth-current-tenant';
 
 export class TagService {
   static async update(id, data) {
-    const tenantId = AuthCurrentTenant.get()
+    const tenantId = AuthCurrentTenant.get();
 
     const response = await authAxios.put(
       `/tenant/${tenantId}/tag/${id}`,
-      data
-    )
+      data,
+    );
 
-    return response.data
+    return response.data;
   }
 
   static async destroyAll(ids) {
     const params = {
-      ids
-    }
+      ids,
+    };
 
-    const tenantId = AuthCurrentTenant.get()
+    const tenantId = AuthCurrentTenant.get();
 
     const response = await authAxios.delete(
       `/tenant/${tenantId}/tag`,
       {
-        params
-      }
-    )
+        params,
+      },
+    );
 
-    return response.data
+    return response.data;
   }
 
   static async create(data) {
-    const tenantId = AuthCurrentTenant.get()
+    const tenantId = AuthCurrentTenant.get();
 
     const response = await authAxios.post(
       `/tenant/${tenantId}/tag`,
-      data
-    )
+      data,
+    );
 
-    return response.data
+    return response.data;
   }
 
   static async import(values, importHash) {
     const body = {
       data: values,
-      importHash
-    }
+      importHash,
+    };
 
-    const tenantId = AuthCurrentTenant.get()
+    const tenantId = AuthCurrentTenant.get();
 
     const response = await authAxios.post(
       `/tenant/${tenantId}/tag/import`,
-      body
-    )
+      body,
+    );
 
-    return response.data
+    return response.data;
   }
 
   static async find(id) {
-    const tenantId = AuthCurrentTenant.get()
+    const tenantId = AuthCurrentTenant.get();
 
     const response = await authAxios.get(
-      `/tenant/${tenantId}/tag/${id}`
-    )
+      `/tenant/${tenantId}/tag/${id}`,
+    );
 
-    return response.data
+    return response.data;
   }
 
   static async list(filter, orderBy, limit, offset) {
@@ -72,36 +72,36 @@ export class TagService {
       filter,
       orderBy,
       limit,
-      offset
-    }
+      offset,
+    };
 
-    const tenantId = AuthCurrentTenant.get()
+    const tenantId = AuthCurrentTenant.get();
 
     const response = await authAxios.get(
       `/tenant/${tenantId}/tag`,
       {
-        params
-      }
-    )
+        params,
+      },
+    );
 
-    return response.data
+    return response.data;
   }
 
   static async listAutocomplete(query, limit) {
     const params = {
       query,
-      limit
-    }
+      limit,
+    };
 
-    const tenantId = AuthCurrentTenant.get()
+    const tenantId = AuthCurrentTenant.get();
 
     const response = await authAxios.get(
       `/tenant/${tenantId}/tag/autocomplete`,
       {
-        params
-      }
-    )
+        params,
+      },
+    );
 
-    return response.data
+    return response.data;
   }
 }

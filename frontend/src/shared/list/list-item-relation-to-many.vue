@@ -6,7 +6,7 @@
       :permission="permission"
       :url="url"
       :value="item"
-    ></app-list-item-relation-to-one>
+    />
   </div>
 </template>
 
@@ -17,24 +17,24 @@ export default {
   props: {
     label: {
       type: String,
-      default: null
+      default: null,
     },
     url: {
       type: String,
-      default: null
+      default: null,
     },
     permission: {
       type: String,
-      default: null
-    }
+      default: null,
+    },
   },
 
   computed: {
     isBlank() {
-      return !this.value || !this.value.length
-    }
-  }
-}
+      return !this.value || !this.value.length;
+    },
+  },
+};
 </script>
 
 <style></style>

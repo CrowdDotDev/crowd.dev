@@ -14,7 +14,7 @@
               :mapper-fn="fields.tags.mapperFn"
               :create-if-not-found="true"
               placeholder="Type to search/create tags"
-            ></app-tag-autocomplete-input>
+            />
           </form>
         </div>
 
@@ -24,13 +24,15 @@
           <el-button
             class="btn btn--bordered btn--md mr-3"
             @click="handleCancel"
-            >Cancel</el-button
           >
+            Cancel
+          </el-button>
           <el-button
             class="btn btn--primary btn--md"
             @click="handleSubmit"
-            >Submit</el-button
           >
+            Submit
+          </el-button>
         </div>
       </template>
     </app-dialog>
@@ -38,9 +40,9 @@
 </template>
 
 <script>
-import { MemberModel } from '@/modules/member/member-model'
+import { MemberModel } from '@/modules/member/member-model';
 
-const { fields } = MemberModel
+const { fields } = MemberModel;
 
 export default {
   name: 'AppTagPopover',
@@ -48,59 +50,59 @@ export default {
   props: {
     visible: {
       type: Boolean,
-      default: false
+      default: false,
     },
     loading: {
       type: Boolean,
-      default: false
+      default: false,
     },
     modelValue: {
       type: Array,
-      default: () => []
+      default: () => [],
     },
     pretitle: {
       type: String,
-      default: null
-    }
+      default: null,
+    },
   },
   emits: ['submit', 'cancel', 'update:modelValue'],
 
   data() {
     return {
-      changed: false
-    }
+      changed: false,
+    };
   },
 
   computed: {
     fields() {
-      return fields
+      return fields;
     },
     model: {
       get() {
-        return this.modelValue
+        return this.modelValue;
       },
       set(value) {
-        this.changed = true
-        this.$emit('update:modelValue', value)
-      }
+        this.changed = true;
+        this.$emit('update:modelValue', value);
+      },
     },
     computedVisible: {
       get() {
-        return this.visible
+        return this.visible;
       },
       set() {
-        this.handleCancel()
-      }
-    }
+        this.handleCancel();
+      },
+    },
   },
 
   methods: {
     handleCancel() {
-      this.$emit('cancel')
+      this.$emit('cancel');
     },
     handleSubmit() {
-      this.$emit('submit')
-    }
-  }
-}
+      this.$emit('submit');
+    },
+  },
+};
 </script>
