@@ -31,7 +31,7 @@
         </template>
         <template #default="previous">
           <h4
-            class="text-3xl leading-15 h-15 leading-5 mb-1 font-light"
+            class="text-3xl leading-15 h-15 mb-1 font-light"
           >
             {{ computedScore(current.resultSet) }}
           </h4>
