@@ -102,17 +102,17 @@ export const externalTooltipHandler = (
   classes.color
 } h-5 px-1 flex items-center">
                   ${
-  after.difference === 0
+  a.difference === 0
     ? '<span class="px-0.5">=</span>'
     : `<i class="${classes.arrow} mr-1"></i>`
 }${
-  after.difference === 0
+  a.difference === 0
     ? ''
     : `<span>${Math.abs(
-      after.growth,
-    )}% (${Math.abs(after.difference)})</span>`
+      a.growth,
+    )}% (${Math.abs(a.difference)})</span>`
 }</div><span class="text-2xs text-gray-400">vs. ${
-  after.previousDate
+  a.previousDate
 }</span></div></td></tr>`;
         }
       });
