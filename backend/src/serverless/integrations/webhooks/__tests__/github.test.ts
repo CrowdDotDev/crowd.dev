@@ -720,7 +720,7 @@ describe('Github webhooks tests', () => {
         sourceParentId: null,
         channel: TestEvents.fork.created.repository.html_url,
         score: 4,
-        isContribution: true,
+        isContribution: false,
       }
       expect(fork).toStrictEqual(expected)
     })
