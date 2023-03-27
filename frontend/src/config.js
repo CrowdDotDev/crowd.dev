@@ -4,17 +4,17 @@
  * multi-with-subdomain: Same as multi, but enable access to the tenant via subdomain.
  * single: One tenant, the first user to register will be the admin.
  */
-const tenantMode = 'multi'
+const tenantMode = 'multi';
 
 /**
  * Plan payments configuration.
  */
-const isPlanEnabled = true
+const isPlanEnabled = true;
 
 const defaultConfig = {
   frontendUrl: {
     host: process.env.VUE_APP_FRONTEND_HOST,
-    protocol: process.env.VUE_APP_FRONTEND_PROTOCOL
+    protocol: process.env.VUE_APP_FRONTEND_PROTOCOL,
   },
   backendUrl: process.env.VUE_APP_BACKEND_URL,
   websocketsUrl: process.env.VUE_APP_WEBSOCKETS_URL,
@@ -34,35 +34,35 @@ const defaultConfig = {
   nangoUrl: process.env.VUE_APP_NANGO_URL,
   unleash: {
     apiKey: process.env.VUE_APP_UNLEASH_API_KEY,
-    url: process.env.VUE_APP_UNLEASH_URL
+    url: process.env.VUE_APP_UNLEASH_URL,
   },
   formbricks: {
     url: process.env.VUE_APP_FORMBRICKS_URL,
     formId: process.env.VUE_APP_FORMBRICKS_FORM_ID,
-    pmfFormId: process.env.VUE_APP_FORMBRICKS_PMF_FORM_ID
+    pmfFormId: process.env.VUE_APP_FORMBRICKS_PMF_FORM_ID,
   },
   stripe: {
     publishableKey:
       process.env.VUE_APP_STRIPE_PUBLISHABLE_KEY || '',
     growthPlanPaymentLink:
-      process.env.VUE_APP_STRIPE_GROWTH_PLAN_PAYMENT_LINK ||
-      '',
+      process.env.VUE_APP_STRIPE_GROWTH_PLAN_PAYMENT_LINK
+      || '',
     eagleEyePlanPaymentLink:
       process.env
         .VUE_APP_STRIPE_EAGLE_EYE_PLAN_PAYMENT_LINK || '',
     customerPortalLink:
-      process.env.VUE_APP_STRIPE_CUSTOMER_PORTAL_LINK || ''
+      process.env.VUE_APP_STRIPE_CUSTOMER_PORTAL_LINK || '',
   },
   sampleTenant: {
     id: process.env.VUE_APP_SAMPLE_TENANT_ID,
-    token: process.env.VUE_APP_SAMPLE_TENANT_TOKEN
-  }
-}
+    token: process.env.VUE_APP_SAMPLE_TENANT_TOKEN,
+  },
+};
 
 const composedConfig = {
   frontendUrl: {
     host: 'CROWD_VUE_APP_FRONTEND_HOST',
-    protocol: 'CROWD_VUE_APP_FRONTEND_PROTOCOL'
+    protocol: 'CROWD_VUE_APP_FRONTEND_PROTOCOL',
   },
   backendUrl: 'CROWD_VUE_APP_BACKEND_URL',
   websocketsUrl: 'CROWD_VUE_APP_WEBSOCKETS_URL',
@@ -84,12 +84,12 @@ const composedConfig = {
   typeformTitle: 'CROWD_VUE_APP_TYPEFORM_TITLE',
   unleash: {
     apiKey: 'CROWD_VUE_APP_UNLEASH_API_KEY',
-    url: 'CROWD_VUE_APP_UNLEASH_URL'
+    url: 'CROWD_VUE_APP_UNLEASH_URL',
   },
   formbricks: {
     url: 'CROWD_VUE_APP_FORMBRICKS_URL',
     formId: 'CROWD_VUE_APP_FORMBRICKS_FORM_ID',
-    pmfFormId: 'CROWD_VUE_APP_FORMBRICKS_PMF_FORM_ID'
+    pmfFormId: 'CROWD_VUE_APP_FORMBRICKS_PMF_FORM_ID',
   },
   stripe: {
     publishableKey:
@@ -97,24 +97,23 @@ const composedConfig = {
     growthPlanPaymentLink:
       'CROWD_VUE_APP_STRIPE_GROWTH_PLAN_PAYMENT_LINK' || '',
     eagleEyePlanPaymentLink:
-      'CROWD_VUE_APP_STRIPE_EAGLE_EYE_PLAN_PAYMENT_LINK' ||
-      '',
+      'CROWD_VUE_APP_STRIPE_EAGLE_EYE_PLAN_PAYMENT_LINK'
+      || '',
     customerPortalLink:
-      'CROWD_VUE_APP_STRIPE_CUSTOMER_PORTAL_LINK' || ''
+      'CROWD_VUE_APP_STRIPE_CUSTOMER_PORTAL_LINK' || '',
   },
   sampleTenant: {
     id: 'CROWD_VUE_APP_SAMPLE_TENANT_ID',
-    token: 'CROWD_VUE_APP_SAMPLE_TENANT_TOKEN'
-  }
-}
+    token: 'CROWD_VUE_APP_SAMPLE_TENANT_TOKEN',
+  },
+};
 
 const config = defaultConfig.backendUrl
   ? defaultConfig
-  : composedConfig
+  : composedConfig;
 
-config.isCommunityVersion = config.edition === 'community'
-config.hasPremiumModules =
-  !config.isCommunityVersion ||
-  config.communityPremium === 'true'
+config.isCommunityVersion = config.edition === 'community';
+config.hasPremiumModules = !config.isCommunityVersion
+  || config.communityPremium === 'true';
 
-export default config
+export default config;

@@ -1,6 +1,6 @@
-import { tenantSubdomain } from '@/modules/tenant/tenant-subdomain'
-import { FeatureFlag } from '@/featureFlag'
-import config from '@/config'
+import { tenantSubdomain } from '@/modules/tenant/tenant-subdomain';
+import { FeatureFlag } from '@/featureFlag';
+import config from '@/config';
 
 /**
  * Auth Current Tenant
@@ -11,128 +11,126 @@ import config from '@/config'
 export default class AuthCurrentTenant {
   static selectAndSaveOnStorageFor(currentUser) {
     if (!currentUser) {
-      return null
+      return null;
     }
 
     if (!currentUser.tenants) {
-      return null
+      return null;
     }
 
     const activeTenants = currentUser.tenants.filter(
-      (tenantUser) => tenantUser.status === 'active'
-    )
+      (tenantUser) => tenantUser.status === 'active',
+    );
 
     if (!activeTenants || !activeTenants.length) {
-      return null
+      return null;
     }
 
-    const tenantId = this.get()
+    const tenantId = this.get();
 
-    let tenant
+    let tenant;
 
     if (tenantId) {
       tenant = activeTenants
         .map((tenantUser) => tenantUser.tenant)
-        .find((tenant) => tenant.id === tenantId)
+        .find((t) => t.id === tenantId);
     }
 
-    tenant = tenant || activeTenants[0].tenant
+    tenant = tenant || activeTenants[0].tenant;
 
     if (
-      tenant &&
-      tenantSubdomain.isEnabled &&
-      !tenantSubdomain.isSubdomainOf(tenant.url)
+      tenant
+      && tenantSubdomain.isEnabled
+      && !tenantSubdomain.isSubdomainOf(tenant.url)
     ) {
       return tenantSubdomain.redirectAuthenticatedTo(
-        tenant.url
-      )
+        tenant.url,
+      );
     }
 
-    this.set(tenant)
-    return tenant
+    this.set(tenant);
+    return tenant;
   }
 
   static get() {
-    const tenantASString =
-      localStorage.getItem('tenant') || null
+    const tenantASString = localStorage.getItem('tenant') || null;
 
     if (tenantASString) {
-      return JSON.parse(tenantASString).id
+      return JSON.parse(tenantASString).id;
     }
 
-    return null
+    return null;
   }
 
   static getSampleTenantData() {
-    const tenantASString =
-      localStorage.getItem('tenant') || null
+    const tenantASString = localStorage.getItem('tenant') || null;
 
     if (tenantASString) {
-      const { hasSampleData } = JSON.parse(tenantASString)
-      const { id, token } = config.sampleTenant
+      const { hasSampleData } = JSON.parse(tenantASString);
+      const { id, token } = config.sampleTenant;
 
       if (hasSampleData && id && token) {
-        return { id, token }
+        return { id, token };
       }
     }
 
-    return null
+    return null;
   }
 
   static getSettings() {
-    const tenantASString =
-      localStorage.getItem('tenant') || null
+    const tenantASString = localStorage.getItem('tenant') || null;
 
     if (tenantASString) {
-      const tenant = JSON.parse(tenantASString)
+      const tenant = JSON.parse(tenantASString);
 
       if (tenant) {
         if (Array.isArray(tenant.settings)) {
           if (tenant.settings.length) {
-            return tenant.settings[0]
+            return tenant.settings[0];
           }
         } else {
-          return tenant.settings
+          return tenant.settings;
         }
       }
     }
 
-    return null
+    return null;
   }
 
   static getCommunityHelpCenterSettings() {
-    const tenantASString =
-      localStorage.getItem('tenant') || null
+    const tenantASString = localStorage.getItem('tenant') || null;
 
     if (tenantASString) {
-      const tenant = JSON.parse(tenantASString)
+      const tenant = JSON.parse(tenantASString);
 
       if (tenant) {
         if (Array.isArray(tenant.conversationSettings)) {
           if (tenant.conversationSettings.length) {
-            return tenant.conversationSettings[0]
+            return tenant.conversationSettings[0];
           }
         } else {
-          return tenant.conversationSettings
+          return tenant.conversationSettings;
         }
       }
     }
 
-    return {}
+    return {};
   }
 
   static async set(tenant) {
     if (!tenant) {
-      return this.clear()
+      return this.clear();
     }
 
     // Refresh feature flags each time tenant is set
-    FeatureFlag.updateContext(tenant)
+    FeatureFlag.updateContext(tenant);
 
-    localStorage.setItem('tenant', JSON.stringify(tenant))
+    localStorage.setItem('tenant', JSON.stringify(tenant));
+
+    return null;
   }
 
   static clear() {
-    localStorage.removeItem('tenant')
+    localStorage.removeItem('tenant');
   }
 }

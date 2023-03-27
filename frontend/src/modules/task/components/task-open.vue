@@ -26,8 +26,8 @@
             {
               'border-r-0 rounded-l-md': ti === 0,
               'border-l-0 rounded-r-md':
-                ti === tabs.length - 1
-            }
+                ti === tabs.length - 1,
+            },
           ]"
           @click="changeTab(t)"
         >
@@ -44,11 +44,11 @@
         <app-task-item
           class="px-6"
           :loading="true"
-        ></app-task-item>
+        />
         <app-task-item
           class="px-6"
           :loading="true"
-        ></app-task-item>
+        />
       </div>
       <div v-else>
         <app-task-item
@@ -67,7 +67,7 @@
           >
             <div
               class="ri-arrow-down-line text-base text-brand-500 flex items-center h-4"
-            ></div>
+            />
             <div
               class="pl-2 text-xs leading-5 text-brand-500 font-medium"
             >
@@ -81,7 +81,7 @@
         >
           <div
             class="ri-checkbox-multiple-blank-line text-3xl text-gray-300 flex items-center h-10"
-          ></div>
+          />
           <p class="pl-6 text-sm text-gray-400 italic">
             {{ tab.emptyText }}
           </p>
@@ -91,35 +91,29 @@
   </section>
 </template>
 
-<script>
-export default {
-  name: 'AppTaskOpen'
-}
-</script>
-
 <script setup>
-import AppTaskItem from '@/modules/task/components/task-item'
-import AppTaskSorting from '@/modules/task/components/task-sorting'
-import { ref, onBeforeUnmount, computed } from 'vue'
+import { ref, onBeforeUnmount, computed } from 'vue';
+import moment from 'moment';
+import { useStore } from 'vuex';
 import {
   mapActions,
-  mapGetters
-} from '@/shared/vuex/vuex.helpers'
-import moment from 'moment'
-import { TaskService } from '@/modules/task/task-service'
-import Message from '@/shared/message/message'
-import { useStore } from 'vuex'
-import { TaskPermissions } from '@/modules/task/task-permissions'
+  mapGetters,
+} from '@/shared/vuex/vuex.helpers';
+import { TaskService } from '@/modules/task/task-service';
+import Message from '@/shared/message/message';
+import { TaskPermissions } from '@/modules/task/task-permissions';
+import AppTaskSorting from '@/modules/task/components/task-sorting.vue';
+import AppTaskItem from '@/modules/task/components/task-item.vue';
 
-const store = useStore()
+const store = useStore();
 
-const { addTask } = mapActions('task')
+const { addTask } = mapActions('task');
 const {
   openTasksCount,
   closedTasksCount,
-  myOpenTasksCount
-} = mapGetters('task')
-const { currentUser, currentTenant } = mapGetters('auth')
+  myOpenTasksCount,
+} = mapGetters('task');
+const { currentUser, currentTenant } = mapGetters('auth');
 
 const tabs = ref([
   {
@@ -128,8 +122,8 @@ const tabs = ref([
     emptyText: 'No open tasks at this moment',
     filters: {
       type: 'regular',
-      status: 'in-progress'
-    }
+      status: 'in-progress',
+    },
   },
   {
     label: 'Assigned to me',
@@ -138,8 +132,8 @@ const tabs = ref([
     filters: {
       type: 'regular',
       status: 'in-progress',
-      assignees: [currentUser.value.id]
-    }
+      assignees: [currentUser.value.id],
+    },
   },
   {
     label: 'Overdue',
@@ -149,85 +143,87 @@ const tabs = ref([
       type: 'regular',
       status: 'in-progress',
       dueDate: {
-        lt: moment().startOf('day').toISOString()
-      }
-    }
-  }
-])
+        lt: moment().startOf('day').toISOString(),
+      },
+    },
+  },
+]);
 
-const tasks = ref([])
-const taskCount = ref(0)
-const loading = ref(false)
-const intitialLoad = ref(false)
+const tasks = ref([]);
+const taskCount = ref(0);
+const loading = ref(false);
+const intitialLoad = ref(false);
 
-const tab =
-  myOpenTasksCount.value > 0
-    ? ref(tabs.value[1])
-    : ref(tabs.value[0])
-const order = ref('createdAt_DESC')
+const tab = myOpenTasksCount.value > 0
+  ? ref(tabs.value[1])
+  : ref(tabs.value[0]);
+const order = ref('createdAt_DESC');
 
-const tabClasses = (tabName) => {
-  return tab.value.name === tabName
-    ? 'bg-gray-100 font-medium text-gray-900'
-    : 'bg-white'
-}
+const tabClasses = (tabName) => (tab.value.name === tabName
+  ? 'bg-gray-100 font-medium text-gray-900'
+  : 'bg-white');
 
 const taskCreatePermission = computed(
-  () =>
-    new TaskPermissions(
-      currentTenant.value,
-      currentUser.value
-    ).create
-)
-
-const changeTab = (t) => {
-  tab.value = t
-  fetchTasks()
-}
-
-const changeOrder = (orderBy) => {
-  order.value = orderBy
-  fetchTasks()
-}
-
-const storeUnsubscribe = store.subscribeAction((action) => {
-  if (action.type === 'task/reloadOpenTasks') {
-    fetchTasks()
-  }
-})
-
-onBeforeUnmount(() => {
-  storeUnsubscribe()
-})
+  () => new TaskPermissions(
+    currentTenant.value,
+    currentUser.value,
+  ).create,
+);
 
 const fetchTasks = (loadMore = false) => {
-  const filter = tab.value.filters
+  const filter = tab.value.filters;
   if (!intitialLoad.value) {
-    loading.value = true
+    loading.value = true;
   }
 
   TaskService.list(
     filter,
     order.value,
     20,
-    loadMore ? tasks.value.length : 0
+    loadMore ? tasks.value.length : 0,
   )
     .then(({ rows, count }) => {
       tasks.value = loadMore
         ? [...tasks.value, ...rows]
-        : rows
-      taskCount.value = count
+        : rows;
+      taskCount.value = count;
     })
     .catch(() => {
       if (!loadMore) {
-        tasks.value = []
-        taskCount.value = 0
+        tasks.value = [];
+        taskCount.value = 0;
       }
-      Message.error('There was an error loading tasks')
+      Message.error('There was an error loading tasks');
     })
     .finally(() => {
-      loading.value = false
-      intitialLoad.value = true
-    })
-}
+      loading.value = false;
+      intitialLoad.value = true;
+    });
+};
+
+const changeTab = (t) => {
+  tab.value = t;
+  fetchTasks();
+};
+
+const changeOrder = (orderBy) => {
+  order.value = orderBy;
+  fetchTasks();
+};
+
+const storeUnsubscribe = store.subscribeAction((action) => {
+  if (action.type === 'task/reloadOpenTasks') {
+    fetchTasks();
+  }
+});
+
+onBeforeUnmount(() => {
+  storeUnsubscribe();
+});
+</script>
+
+<script>
+export default {
+  name: 'AppTaskOpen',
+};
 </script>

@@ -12,16 +12,14 @@
     <template #content>
       <div
         class="flex flex-col gap-2 items-start mb-2"
-      ></div>
+      />
       <el-form
         label-position="top"
         class="form integration-reddit-form"
         @submit.prevent
       >
         <div class="flex flex-col gap-2 items-start">
-          <span class="block text-sm font-semibold mb-2"
-            >Track subreddit</span
-          >
+          <span class="block text-sm font-semibold mb-2">Track subreddit</span>
           <span
             class="text-2xs font-light mb-2 text-gray-600"
           >
@@ -37,13 +35,15 @@
                 v-model="subreddit.value"
                 @blur="handleSubredditValidation(index)"
               >
-                <template #prepend>reddit.com/r/</template>
+                <template #prepend>
+                  reddit.com/r/
+                </template>
                 <template #suffix>
                   <div
                     v-if="subreddit.validating"
                     v-loading="subreddit.validating"
                     class="flex items-center justify-center w-6 h-6"
-                  ></div>
+                  />
                 </template>
               </el-input>
               <el-button
@@ -53,14 +53,13 @@
               >
                 <i
                   class="ri-delete-bin-line text-lg text-black"
-                ></i>
+                />
               </el-button>
             </div>
             <span
               v-if="subreddit.touched && !subreddit.valid"
               class="el-form-item__error pt-1"
-              >Subreddit does not exist</span
-            >
+            >Subreddit does not exist</span>
           </el-form-item>
         </div>
       </el-form>
@@ -77,20 +76,21 @@
           v-if="hasFormChanged"
           class="btn btn-link btn-link--primary"
           @click="doReset"
-          ><i class="ri-arrow-go-back-line"></i>
-          <span>Reset changes</span></el-button
         >
+          <i class="ri-arrow-go-back-line" />
+          <span>Reset changes</span>
+        </el-button>
         <div class="flex gap-4">
           <el-button
             class="btn btn--md btn--bordered"
             @click="isVisible = false"
           >
-            <app-i18n code="common.cancel"></app-i18n>
+            <app-i18n code="common.cancel" />
           </el-button>
           <el-button
             class="btn btn--md btn--primary"
             :class="{
-              disabled: !hasFormChanged || connectDisabled
+              disabled: !hasFormChanged || connectDisabled,
             }"
             @click="hasFormChanged ? connect() : undefined"
           >
@@ -105,148 +105,142 @@
     </template>
   </app-drawer>
 </template>
-<script>
-export default {
-  name: 'AppRedditConnectDrawer'
-}
-</script>
+
 <script setup>
 import {
   defineEmits,
   defineProps,
   computed,
   ref,
-  watch
-} from 'vue'
-import { useThrottleFn } from '@vueuse/core'
-import { CrowdIntegrations } from '@/integrations/integrations-config'
-import { useStore } from 'vuex'
-import Nango from '@nangohq/frontend'
-import AuthCurrentTenant from '@/modules/auth/auth-current-tenant'
-import config from '@/config'
-import isEqual from 'lodash/isEqual'
-import { IntegrationService } from '@/modules/integration/integration-service'
+  watch,
+} from 'vue';
+import { useThrottleFn } from '@vueuse/core';
+import { useStore } from 'vuex';
+import Nango from '@nangohq/frontend';
+import isEqual from 'lodash/isEqual';
+import { CrowdIntegrations } from '@/integrations/integrations-config';
+import AuthCurrentTenant from '@/modules/auth/auth-current-tenant';
+import config from '@/config';
+import { IntegrationService } from '@/modules/integration/integration-service';
 
-const store = useStore()
+const store = useStore();
 
-const tenantId = computed(() => AuthCurrentTenant.get())
+const tenantId = computed(() => AuthCurrentTenant.get());
 
 const props = defineProps({
   modelValue: {
     type: Boolean,
-    default: false
+    default: false,
   },
   integration: {
     type: Object,
-    default: () => {}
-  }
-})
+    default: () => {},
+  },
+});
 
-const emit = defineEmits(['update:modelValue'])
-const subreddits =
-  props.integration.settings?.subreddits.map((i) => {
-    return {
-      value: i,
-      validating: false,
-      touched: true,
-      valid: true
-    }
-  }) || [{ value: '', loading: false }]
+const emit = defineEmits(['update:modelValue']);
+const subreddits = props.integration.settings?.subreddits.map((i) => ({
+  value: i,
+  validating: false,
+  touched: true,
+  valid: true,
+})) || [{ value: '', loading: false }];
 
-const model = ref(JSON.parse(JSON.stringify(subreddits)))
+const model = ref(JSON.parse(JSON.stringify(subreddits)));
 
-const logoUrl = CrowdIntegrations.getConfig('reddit').image
+const logoUrl = CrowdIntegrations.getConfig('reddit').image;
 
 const hasFormChanged = computed(
-  () =>
-    !isEqual(
-      subreddits.map((i) => i.value),
-      model.value.map((i) => i.value)
-    )
-)
-const connectDisabled = computed(() => {
-  return (
-    model.value.filter((s) => {
-      return (
-        s.valid === false ||
-        s.value === '' ||
-        s.touched !== true
-      )
-    }).length > 0
-  )
-})
+  () => !isEqual(
+    subreddits.map((i) => i.value),
+    model.value.map((i) => i.value),
+  ),
+);
+const connectDisabled = computed(() => (
+  model.value.filter((s) => (
+    s.valid === false
+        || s.value === ''
+        || s.touched !== true
+  )).length > 0
+));
 
 const isVisible = computed({
   get() {
-    return props.modelValue
+    return props.modelValue;
   },
   set(value) {
-    return emit('update:modelValue', value)
-  }
-})
+    return emit('update:modelValue', value);
+  },
+});
 
 const deleteItem = (index) => {
-  model.value.splice(index, 1)
-}
+  model.value.splice(index, 1);
+};
 
 const doReset = () => {
-  model.value = JSON.parse(JSON.stringify(subreddits))
-}
+  model.value = JSON.parse(JSON.stringify(subreddits));
+};
 
 const handleSubredditValidation = async (index) => {
   try {
-    let subreddit = model.value[index].value
+    let subreddit = model.value[index].value;
 
-    subreddit = subreddit.replace('https://', '')
-    subreddit = subreddit.replace('http://', '')
-    subreddit = subreddit.replace('reddit.com', '')
-    subreddit = subreddit.replace('/r/', '')
-    subreddit = subreddit.replace('r/', '')
+    subreddit = subreddit.replace('https://', '');
+    subreddit = subreddit.replace('http://', '');
+    subreddit = subreddit.replace('reddit.com', '');
+    subreddit = subreddit.replace('/r/', '');
+    subreddit = subreddit.replace('r/', '');
 
-    model.value[index].value = subreddit
-    model.value[index].validating = true
+    model.value[index].value = subreddit;
+    model.value[index].validating = true;
 
     await IntegrationService.redditValidate(
-      model.value[index].value
-    )
-    model.value[index].valid = true
+      model.value[index].value,
+    );
+    model.value[index].valid = true;
   } catch (e) {
-    console.error(e)
-    model.value[index].valid = false
+    console.error(e);
+    model.value[index].valid = false;
   } finally {
-    model.value[index].validating = false
-    model.value[index].touched = true
+    model.value[index].validating = false;
+    model.value[index].touched = true;
   }
-}
+};
 
 const callOnboard = useThrottleFn(async () => {
   await store.dispatch('integration/doRedditOnboard', {
-    subreddits: model.value.map((i) => i.value)
-  })
-}, 2000)
+    subreddits: model.value.map((i) => i.value),
+  });
+}, 2000);
 
 const connect = async () => {
-  const nango = new Nango({ host: config.nangoUrl })
+  const nango = new Nango({ host: config.nangoUrl });
   try {
-    await nango.auth('reddit', `${tenantId.value}-reddit`)
-    await callOnboard()
-    emit('update:modelValue', false)
+    await nango.auth('reddit', `${tenantId.value}-reddit`);
+    await callOnboard();
+    emit('update:modelValue', false);
   } catch (e) {
-    console.error(e)
+    console.error(e);
   }
-}
+};
 
 watch(isVisible, (newValue, oldValue) => {
   if (newValue) {
     window.analytics.track('Reddit: connect drawer', {
-      action: 'open'
-    })
+      action: 'open',
+    });
   } else if (newValue === false && oldValue) {
     window.analytics.track('Reddit: connect drawer', {
-      action: 'close'
-    })
+      action: 'close',
+    });
   }
-})
+});
+</script>
+
+<script>
+export default {
+  name: 'AppRedditConnectDrawer',
+};
 </script>
 
 <style lang="scss">

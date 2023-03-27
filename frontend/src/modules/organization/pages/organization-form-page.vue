@@ -9,8 +9,9 @@
         :icon="ArrowPrevIcon"
         class="text-gray-600 btn-link--md btn-link--secondary p-0"
         @click="onCancel"
-        >Organizations</el-button
       >
+        Organizations
+      </el-button>
       <h4 class="mt-4 mb-6">
         {{
           isEditPage
@@ -56,9 +57,10 @@
             class="btn btn-link btn-link--primary"
             :disabled="isFormSubmitting"
             @click="onReset"
-            ><i class="ri-arrow-go-back-line"></i>
-            <span>Reset changes</span></el-button
           >
+            <i class="ri-arrow-go-back-line" />
+            <span>Reset changes</span>
+          </el-button>
           <div class="flex gap-4">
             <el-button
               :disabled="isFormSubmitting"
@@ -87,22 +89,13 @@
         <div
           v-loading="isPageLoading"
           class="app-page-spinner w-full"
-        ></div>
+        />
       </el-container>
     </div>
   </app-page-wrapper>
 </template>
 
-<script>
-export default {
-  name: 'OrganizationFormPage'
-}
-</script>
 <script setup>
-import AppOrganizationFormDetails from '@/modules/organization/components/form/organization-form-details'
-import AppOrganizationFormIdentities from '@/modules/organization/components/form/organization-form-identities'
-import { OrganizationModel } from '@/modules/organization/organization-model'
-import { FormSchema } from '@/shared/form/form-schema'
 import {
   computed,
   h,
@@ -111,40 +104,44 @@ import {
   defineProps,
   reactive,
   ref,
-  watch
-} from 'vue'
+  watch,
+} from 'vue';
 import {
   onBeforeRouteLeave,
   useRoute,
-  useRouter
-} from 'vue-router'
-import isEqual from 'lodash/isEqual'
-import ConfirmDialog from '@/shared/dialog/confirm-dialog.js'
-import { useStore } from 'vuex'
+  useRouter,
+} from 'vue-router';
+import isEqual from 'lodash/isEqual';
+import { useStore } from 'vuex';
+import { OrganizationModel } from '@/modules/organization/organization-model';
+import { FormSchema } from '@/shared/form/form-schema';
+import ConfirmDialog from '@/shared/dialog/confirm-dialog';
+import AppOrganizationFormIdentities from '@/modules/organization/components/form/organization-form-identities.vue';
+import AppOrganizationFormDetails from '@/modules/organization/components/form/organization-form-details.vue';
 
 const LoaderIcon = h(
   'i',
   {
-    class: 'ri-loader-4-fill text-sm text-white'
+    class: 'ri-loader-4-fill text-sm text-white',
   },
-  []
-)
+  [],
+);
 const ArrowPrevIcon = h(
   'i', // type
   {
-    class: 'ri-arrow-left-s-line text-base leading-none'
+    class: 'ri-arrow-left-s-line text-base leading-none',
   }, // props
-  []
-)
+  [],
+);
 
 const props = defineProps({
   id: {
     type: String,
-    default: null
-  }
-})
+    default: null,
+  },
+});
 
-const { fields } = OrganizationModel
+const { fields } = OrganizationModel;
 const formSchema = new FormSchema([
   fields.name,
   fields.description,
@@ -157,111 +154,12 @@ const formSchema = new FormSchema([
   fields.linkedin,
   fields.crunchbase,
   fields.emails,
-  fields.phoneNumbers
-])
+  fields.phoneNumbers,
+]);
 
-const router = useRouter()
-const route = useRoute()
-const store = useStore()
-
-const record = ref(null)
-const formRef = ref(null)
-const formModel = ref(getInitialModel())
-
-const isPageLoading = ref(true)
-const isFormSubmitting = ref(false)
-const wasFormSubmittedSuccessfuly = ref(false)
-
-const rules = reactive(formSchema.rules())
-
-// UI Validations
-const isEditPage = computed(() => !!route.params.id)
-const isFormValid = computed(() => {
-  return formSchema.isValidSync(formModel.value)
-})
-const isSubmitBtnDisabled = computed(
-  () =>
-    !isFormValid.value ||
-    isFormSubmitting.value ||
-    (isEditPage.value && !hasFormChanged.value)
-)
-const hasFormChanged = computed(() => {
-  const initialModel = isEditPage.value
-    ? getInitialModel(record.value)
-    : getInitialModel()
-
-  return !isEqual(initialModel, formModel.value)
-})
-
-// Prevent lost data on route change
-onBeforeRouteLeave((to) => {
-  if (
-    hasFormChanged.value &&
-    !wasFormSubmittedSuccessfuly.value &&
-    to.fullPath !== '/500'
-  ) {
-    return ConfirmDialog({})
-      .then(() => {
-        return true
-      })
-      .catch(() => {
-        return false
-      })
-  }
-
-  return true
-})
-
-onMounted(async () => {
-  if (isEditPage.value) {
-    const id = route.params.id
-
-    record.value = await store.dispatch(
-      'organization/doFind',
-      id
-    )
-    isPageLoading.value = false
-    formModel.value = getInitialModel(record.value)
-  } else {
-    isPageLoading.value = false
-  }
-})
-
-// Prevent window reload when form has changes
-const preventWindowReload = (e) => {
-  if (hasFormChanged.value) {
-    e.preventDefault()
-    e.returnValue = ''
-  }
-}
-
-window.addEventListener('beforeunload', preventWindowReload)
-
-onUnmounted(() => {
-  window.removeEventListener(
-    'beforeunload',
-    preventWindowReload
-  )
-})
-
-// Once form is submitted successfuly, update route
-watch(
-  wasFormSubmittedSuccessfuly,
-  (isFormSubmittedSuccessfuly) => {
-    if (isFormSubmittedSuccessfuly) {
-      if (isEditPage.value) {
-        return router.push({
-          name: 'organizationView',
-          params: {
-            id: record.value.id
-          }
-        })
-      }
-
-      return router.push({ name: 'organization' })
-    }
-  }
-)
+const router = useRouter();
+const route = useRoute();
+const store = useStore();
 
 function getInitialModel(record) {
   return JSON.parse(
@@ -297,86 +195,185 @@ function getInitialModel(record) {
         phoneNumbers:
           record && record.phoneNumbers?.length > 0
             ? record.phoneNumbers
-            : ['']
-      })
-    )
-  )
+            : [''],
+      }),
+    ),
+  );
 }
+
+const record = ref(null);
+const formRef = ref(null);
+const formModel = ref(getInitialModel());
+
+const isPageLoading = ref(true);
+const isFormSubmitting = ref(false);
+const wasFormSubmittedSuccessfuly = ref(false);
+
+const rules = reactive(formSchema.rules());
+
+// UI Validations
+const isEditPage = computed(() => !!route.params.id);
+const isFormValid = computed(() => formSchema.isValidSync(formModel.value));
+
+const hasFormChanged = computed(() => {
+  const initialModel = isEditPage.value
+    ? getInitialModel(record.value)
+    : getInitialModel();
+
+  return !isEqual(initialModel, formModel.value);
+});
+
+const isSubmitBtnDisabled = computed(
+  () => !isFormValid.value
+    || isFormSubmitting.value
+    || (isEditPage.value && !hasFormChanged.value),
+);
+
+// Prevent lost data on route change
+onBeforeRouteLeave((to) => {
+  if (
+    hasFormChanged.value
+    && !wasFormSubmittedSuccessfuly.value
+    && to.fullPath !== '/500'
+  ) {
+    return ConfirmDialog({})
+      .then(() => true)
+      .catch(() => false);
+  }
+
+  return true;
+});
+
+onMounted(async () => {
+  if (isEditPage.value) {
+    const { id } = route.params;
+
+    record.value = await store.dispatch(
+      'organization/doFind',
+      id,
+    );
+    isPageLoading.value = false;
+    formModel.value = getInitialModel(record.value);
+  } else {
+    isPageLoading.value = false;
+  }
+});
+
+// Prevent window reload when form has changes
+const preventWindowReload = (e) => {
+  if (hasFormChanged.value) {
+    e.preventDefault();
+    e.returnValue = '';
+  }
+};
+
+window.addEventListener('beforeunload', preventWindowReload);
+
+onUnmounted(() => {
+  window.removeEventListener(
+    'beforeunload',
+    preventWindowReload,
+  );
+});
+
+// Once form is submitted successfuly, update route
+watch(
+  wasFormSubmittedSuccessfuly,
+  (isFormSubmittedSuccessfuly) => {
+    if (isFormSubmittedSuccessfuly) {
+      if (isEditPage.value) {
+        return router.push({
+          name: 'organizationView',
+          params: {
+            id: record.value.id,
+          },
+        });
+      }
+
+      return router.push({ name: 'organization' });
+    }
+    return null;
+  },
+);
 
 function onReset() {
   formModel.value = isEditPage.value
     ? getInitialModel(record.value)
-    : getInitialModel()
+    : getInitialModel();
 }
 
 function onCancel() {
-  router.push({ name: 'organization' })
+  router.push({ name: 'organization' });
 }
-async function onSubmit() {
-  isFormSubmitting.value = true
-  const data = Object.assign(
-    {},
-    {
-      ...formModel.value,
-      emails: formModel.value.emails.reduce((acc, item) => {
-        if (item !== '') {
-          acc.push(item)
-        }
-        return acc
-      }, []),
-      phoneNumbers: formModel.value.phoneNumbers.reduce(
-        (acc, item) => {
-          if (item !== '') {
-            acc.push(item)
-          }
-          return acc
-        },
-        []
-      ),
-      github: formModel.value.github
-        ? platformPayload('github', formModel.value.github)
-        : null,
-      linkedin: formModel.value.linkedin
-        ? platformPayload(
-            'linkedin',
-            formModel.value.linkedin
-          )
-        : null,
-      twitter: formModel.value.twitter
-        ? platformPayload(
-            'twitter',
-            formModel.value.twitter
-          )
-        : null,
-      crunchbase: formModel.value.crunchbase
-        ? platformPayload(
-            'crunchbase',
-            formModel.value.crunchbase
-          )
-        : null
-    }
-  )
-  const action = isEditPage.value
-    ? 'organization/doUpdate'
-    : 'organization/doCreate'
-  const payload = isEditPage.value
-    ? { id: props.id, values: data }
-    : data
 
-  await store.dispatch(action, payload)
-  isFormSubmitting.value = false
-  wasFormSubmittedSuccessfuly.value = true
-}
 function platformPayload(platform, value) {
   if (value && value !== '') {
     return {
       handle: value,
-      url: `https://${platform}.com/${value}`
-    }
-  } else {
-    return undefined
+      url: `https://${platform}.com/${value}`,
+    };
   }
+  return undefined;
 }
+async function onSubmit() {
+  isFormSubmitting.value = true;
+  const data = {
+
+    ...formModel.value,
+    emails: formModel.value.emails.reduce((acc, item) => {
+      if (item !== '') {
+        acc.push(item);
+      }
+      return acc;
+    }, []),
+    phoneNumbers: formModel.value.phoneNumbers.reduce(
+      (acc, item) => {
+        if (item !== '') {
+          acc.push(item);
+        }
+        return acc;
+      },
+      [],
+    ),
+    github: formModel.value.github
+      ? platformPayload('github', formModel.value.github)
+      : null,
+    linkedin: formModel.value.linkedin
+      ? platformPayload(
+        'linkedin',
+        formModel.value.linkedin,
+      )
+      : null,
+    twitter: formModel.value.twitter
+      ? platformPayload(
+        'twitter',
+        formModel.value.twitter,
+      )
+      : null,
+    crunchbase: formModel.value.crunchbase
+      ? platformPayload(
+        'crunchbase',
+        formModel.value.crunchbase,
+      )
+      : null,
+  };
+  const action = isEditPage.value
+    ? 'organization/doUpdate'
+    : 'organization/doCreate';
+  const payload = isEditPage.value
+    ? { id: props.id, values: data }
+    : data;
+
+  await store.dispatch(action, payload);
+  isFormSubmitting.value = false;
+  wasFormSubmittedSuccessfuly.value = true;
+}
+</script>
+
+<script>
+export default {
+  name: 'OrganizationFormPage',
+};
 </script>
 
 <style lang="scss">
@@ -402,9 +399,9 @@ function platformPayload(platform, value) {
   }
 
   .el-form .el-form-item__content,
-  .el-form--default.el-form--label-top
-    .custom-attributes-form
-    .el-form-item__content {
+  .el-form--default.el-form--label-top,
+  .custom-attributes-form,
+  .el-form-item__content {
     @apply flex mb-0;
   }
 }

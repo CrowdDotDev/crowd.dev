@@ -1,6 +1,8 @@
 <template>
   <div class="flex items-center justify-between">
-    <div class="font-semibold text-sm">Filters</div>
+    <div class="font-semibold text-sm">
+      Filters
+    </div>
   </div>
   <div
     v-if="!!computedFilters.length"
@@ -9,13 +11,13 @@
     <div class="mt-2">
       <div class="flex -mx-2">
         <div class="flex-1 grow h-0">
-          <label class="block leading-none mb-2"></label>
+          <div class="block leading-none mb-2" />
         </div>
         <div class="flex-1 grow h-0">
-          <label class="block leading-none mb-2"></label>
+          <div class="block leading-none mb-2" />
         </div>
         <div class="flex-1 grow h-0">
-          <label class="block leading-none mb-2"></label>
+          <div class="block leading-none mb-2" />
         </div>
         <div class="shrink h-0">
           <span class="w-1 block">&nbsp;</span>
@@ -39,7 +41,7 @@
                   handleFilterChange(
                     'first-option',
                     value,
-                    index
+                    index,
                   )
               "
             >
@@ -49,7 +51,7 @@
                 :value="item.value"
                 :label="item.label"
                 @mouseleave="onSelectMouseLeave"
-              ></el-option>
+              />
             </el-select>
           </div>
 
@@ -64,7 +66,7 @@
                   handleFilterChange(
                     'second-option',
                     value,
-                    index
+                    index,
                   )
               "
             >
@@ -90,13 +92,13 @@
                   handleFilterChange(
                     'third-option',
                     value,
-                    index
+                    index,
                   )
               "
             >
               <el-option
                 v-for="integration of Object.keys(
-                  activeIntegrationsList
+                  activeIntegrationsList,
                 )"
                 :key="platformDetails(integration).name"
                 :label="platformDetails(integration).name"
@@ -116,7 +118,7 @@
                   handleFilterChange(
                     'third-option',
                     value,
-                    index
+                    index,
                   )
               "
             >
@@ -143,7 +145,7 @@
                   handleFilterChange(
                     'third-option',
                     value,
-                    index
+                    index,
                   )
               "
             >
@@ -166,10 +168,10 @@
                   handleFilterChange(
                     'third-option',
                     value,
-                    index
+                    index,
                   )
               "
-            ></el-input>
+            />
           </div>
         </div>
         <div class="pr-2 shrink">
@@ -182,7 +184,7 @@
               type="button"
               @click.prevent="removeFilter(index)"
             >
-              <i class="ri-lg ri-delete-bin-line"></i>
+              <i class="ri-lg ri-delete-bin-line" />
             </button>
           </el-tooltip>
         </div>
@@ -198,7 +200,7 @@
       class="w-fit flex"
       :class="{
         'mt-4': !computedFilters.length,
-        'mt-2': computedFilters.length
+        'mt-2': computedFilters.length,
       }"
     >
       <span
@@ -207,52 +209,52 @@
           'pointer-events-none text-gray-300':
             !computedFilters.length,
           'cursor-pointer text-brand-500':
-            computedFilters.length
+            computedFilters.length,
         }"
       >
-        <i class="flex items-center ri-add-line mr-1"></i
-        ><span class="leading-none block" @click="addFilter"
-          >Add filter</span
-        >
+        <i class="flex items-center ri-add-line mr-1" /><span
+          class="leading-none block"
+          @click="addFilter"
+        >Add filter</span>
       </span>
     </span>
   </el-tooltip>
 </template>
 
 <script>
-import { v4 as uuid } from 'uuid'
-import { onSelectMouseLeave } from '@/utils/select'
-import { mapGetters, mapActions } from 'vuex'
-import { CrowdIntegrations } from '@/integrations/integrations-config'
-import { ActivityModel } from '@/modules/activity/activity-model'
-import { MemberModel } from '@/modules/member/member-model'
+import { v4 as uuid } from 'uuid';
+import { mapGetters, mapActions } from 'vuex';
+import { onSelectMouseLeave } from '@/utils/select';
+import { CrowdIntegrations } from '@/integrations/integrations-config';
+import { ActivityModel } from '@/modules/activity/activity-model';
+import { MemberModel } from '@/modules/member/member-model';
 
-const { fields: activityFields } = ActivityModel
-const { fields: memberFields } = MemberModel
+const { fields: activityFields } = ActivityModel;
+const { fields: memberFields } = MemberModel;
 
 export default {
   name: 'FilterComponent',
   props: {
     measures: {
       type: Array,
-      default: () => []
+      default: () => [],
     },
     dimensions: {
       type: Array,
-      default: () => []
+      default: () => [],
     },
     filters: {
       type: Array,
-      default: () => []
+      default: () => [],
     },
     availableDimensions: {
       type: Array,
-      default: () => []
+      default: () => [],
     },
     setFilters: {
       type: Function,
-      default: () => {}
-    }
+      default: () => {},
+    },
   },
   data() {
     return {
@@ -260,115 +262,111 @@ export default {
         'Activities.count': {
           noDimension: [
             'Activities.platform',
-            'Activities.type'
+            'Activities.type',
           ],
           Activities: [
             'Activities.platform',
             'Activities.type',
-            'Activities.date'
+            'Activities.date',
           ],
           Members: [
             'Members.score',
             'Members.joinedAt',
             'Members.location',
-            'Members.organization'
+            'Members.organization',
           ],
-          Tags: ['Tags.name']
+          Tags: ['Tags.name'],
         },
         'Members.count': {
           noDimension: [
             'Members.score',
             'Members.joinedAt',
             'Members.location',
-            'Members.organization'
+            'Members.organization',
           ],
           Activities: [
             'Activities.platform',
             'Activities.type',
-            'Activities.date'
+            'Activities.date',
           ],
           Members: [
             'Members.score',
             'Members.location',
-            'Members.organization'
+            'Members.organization',
           ],
-          Tags: ['Tags.name']
-        }
+          Tags: ['Tags.name'],
+        },
       },
       actionItems: [
         {
           text: 'equals',
-          value: 'equals'
+          value: 'equals',
         },
         {
           text: 'does not equal',
-          value: 'notEquals'
+          value: 'notEquals',
         },
         {
           text: 'is set',
-          value: 'set'
+          value: 'set',
         },
         {
           text: 'is not set',
-          value: 'notSet'
+          value: 'notSet',
         },
         {
           text: '>',
-          value: 'gt'
+          value: 'gt',
         },
         {
           text: '>=',
-          value: 'gte'
+          value: 'gte',
         },
         {
           text: '<',
-          value: 'lt'
+          value: 'lt',
         },
         {
           text: '<=',
-          value: 'lte'
-        }
+          value: 'lte',
+        },
       ],
-      localFilters: []
-    }
+      localFilters: [],
+    };
   },
   computed: {
     computedFilters() {
-      const measure = this.measures[0]
+      const measure = this.measures[0];
       const dimension = this.dimensions[0]
         ? this.dimensions[0].name.split('.')[0]
-        : 'noDimension'
+        : 'noDimension';
       return !measure
         ? []
-        : this.availableDimensions.filter((d) => {
-            return this.measureDimensionFilters[
-              measure.name
-            ]?.[dimension] === undefined
-              ? false
-              : this.measureDimensionFilters[measure.name][
-                  dimension
-                ].includes(d.name)
-          })
+        : this.availableDimensions.filter((d) => (this.measureDimensionFilters[
+          measure.name
+        ]?.[dimension] === undefined
+          ? false
+          : this.measureDimensionFilters[measure.name][
+            dimension
+          ].includes(d.name)));
     },
     computedActivityTypes() {
       return activityFields.type
         .dropdownOptions()
-        .filter((i) =>
-          Object.keys(this.activeIntegrationsList).includes(
-            i.label.key
-          )
-        )
+        .filter((i) => Object.keys(this.activeIntegrationsList).includes(
+          i.label.key,
+        ));
     },
     computedEngagementLevelTypes() {
-      return memberFields.engagementLevel.dropdownOptions()
+      return memberFields.engagementLevel.dropdownOptions();
     },
     ...mapGetters({
-      activeIntegrationsList: 'integration/activeList'
-    })
+      activeIntegrationsList: 'integration/activeList',
+    }),
   },
   async created() {
-    await this.doFetchIntegrations()
-    this.localFilters = this.initFilters() || []
+    await this.doFetchIntegrations();
+    this.localFilters = this.initFilters() || [];
   },
   methods: {
     addFilter() {
@@ -376,87 +374,84 @@ export default {
         id: uuid(),
         select: null,
         operator: null,
-        value: null
-      })
+        value: null,
+      });
     },
     removeFilter(index) {
-      this.localFilters.splice(index, 1)
-      this.syncFilters()
+      this.localFilters.splice(index, 1);
+      this.syncFilters();
     },
     handleFilterChange(option, value, index) {
-      this.syncFilters(option, value, index)
+      this.syncFilters(option, value, index);
     },
     initFilters() {
       if (!this.filters.length) {
-        return []
+        return [];
       }
 
       return (
         JSON.parse(JSON.stringify(this.filters))
           .map((f) => {
-            const filter = f
+            const filter = f;
 
-            filter.value = f.values[0]
-            filter.select = f.member.name
+            [filter.value] = f.values;
+            filter.select = f.member.name;
 
-            delete filter.member
-            delete filter.values
+            delete filter.member;
+            delete filter.values;
 
-            return filter
+            return filter;
           })
           // Remove this filter from options for now
           .filter(
-            (f) => f.select !== 'Members.isTeamMember'
+            (f) => f.select !== 'Members.isTeamMember',
           )
-      )
+      );
     },
     syncFilters(option, value, index) {
-      const hasChangedFirstOption =
-        option === 'first-option' &&
-        this.filters?.[index]?.select !== value
+      const hasChangedFirstOption = option === 'first-option'
+        && this.filters?.[index]?.select !== value;
 
       const newFilters = this.localFilters
-        .filter((filter) => {
-          return [
-            filter.select,
-            filter.operator,
-            filter.value
-          ].every((value) => value !== '' && value != null)
-        })
+        .filter((filter) => [
+          filter.select,
+          filter.operator,
+          filter.value,
+        ].every((v) => v !== '' && v != null))
         .map((filter) => {
-          let values = [filter.value]
+          let values = [filter.value];
 
           // Members engagement level needs to be parsed differently
           if (filter.select === 'Members.score') {
             values = this.computedEngagementLevelTypes
               .filter((t) => t.label === filter.value)?.[0]
-              .value.map((v) => `${v}`)
+              .value.map((v) => `${v}`);
           }
 
           return {
             member: filter.select,
             operator: filter.operator,
-            values
-          }
-        })
+            values,
+          };
+        });
 
       if (hasChangedFirstOption) {
-        this.localFilters[index].value = undefined
+        this.localFilters[index].value = undefined;
       }
 
-      this.setFilters(newFilters)
+      this.setFilters(newFilters);
     },
 
     onSelectMouseLeave,
     ...mapActions({
-      doFetchIntegrations: 'integration/doFetch'
+      doFetchIntegrations: 'integration/doFetch',
     }),
 
     platformDetails(platform) {
-      return CrowdIntegrations.getConfig(platform)
-    }
-  }
-}
+      return CrowdIntegrations.getConfig(platform);
+    },
+  },
+};
 </script>
 
 <style lang="scss">

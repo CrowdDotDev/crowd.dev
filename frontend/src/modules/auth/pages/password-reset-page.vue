@@ -24,8 +24,7 @@
           <label
             for="password"
             class="text-xs mb-1 font-semibold leading-5"
-            >New password</label
-          >
+          >New password</label>
           <el-input
             id="password"
             v-model="model[fields.password.name]"
@@ -38,18 +37,17 @@
                 @click="
                   display.password = !display.password
                 "
-              ></span>
+              />
             </template>
           </el-input>
           <template #error="{ error }">
             <div class="flex items-center mt-1">
               <i
                 class="h-4 flex items-center ri-error-warning-line text-base text-red-500"
-              ></i>
+              />
               <span
                 class="pl-1 text-2xs text-red-500 leading-4.5"
-                >{{ error }}</span
-              >
+              >{{ error }}</span>
             </div>
           </template>
         </el-form-item>
@@ -60,8 +58,7 @@
           <label
             for="passwordConfirmation"
             class="text-xs mb-1 font-semibold leading-5"
-            >Confirm new password</label
-          >
+          >Confirm new password</label>
           <el-input
             id="passwordConfirmation"
             v-model="
@@ -78,21 +75,19 @@
               <span
                 class="ri-eye-line text-base text-gray-400 cursor-pointer"
                 @click="
-                  display.passwordConfirmation =
-                    !display.passwordConfirmation
+                  display.passwordConfirmation = !display.passwordConfirmation
                 "
-              ></span>
+              />
             </template>
           </el-input>
           <template #error="{ error }">
             <div class="flex items-center mt-1">
               <i
                 class="h-4 flex items-center ri-error-warning-line text-base text-red-500"
-              ></i>
+              />
               <span
                 class="pl-1 text-2xs text-red-500 leading-4.5"
-                >{{ error }}</span
-              >
+              >{{ error }}</span>
             </div>
           </template>
         </el-form-item>
@@ -106,7 +101,7 @@
           >
             <app-i18n
               code="auth.passwordReset.message"
-            ></app-i18n>
+            />
           </el-button>
         </el-form-item>
       </el-form>
@@ -117,11 +112,10 @@
         >
           <i
             class="ri-arrow-left-line text-lg text-gray-600"
-          ></i>
+          />
           <span
             class="text-base text-gray-600 font-medium leading-6 pl-2"
-            >Back to sign in</span
-          >
+          >Back to sign in</span>
         </router-link>
       </div>
     </div>
@@ -134,7 +128,7 @@
       <div>
         <i
           class="ri-checkbox-circle-line text-5xl text-green-200"
-        ></i>
+        />
       </div>
       <div class="pl-6">
         <p class="text-base leading-6">
@@ -154,11 +148,12 @@
 </template>
 
 <script>
-import { mapGetters, mapActions } from 'vuex'
-import { UserModel } from '@/modules/user/user-model'
-import AppI18n from '@/shared/i18n/i18n'
-import { passwordConfirmRules } from '@/modules/auth/auth-helpers'
-const { fields } = UserModel
+import { mapGetters, mapActions } from 'vuex';
+import { UserModel } from '@/modules/user/user-model';
+import { passwordConfirmRules } from '@/modules/auth/auth-helpers';
+import AppI18n from '@/shared/i18n/i18n.vue';
+
+const { fields } = UserModel;
 
 export default {
   name: 'AppPasswordResetPage',
@@ -168,31 +163,31 @@ export default {
       rules: {
         password: fields.password.forFormRules(),
         passwordConfirmation:
-          fields.passwordConfirmation.forFormRules()
+          fields.passwordConfirmation.forFormRules(),
       },
       model: {},
       success: false,
       display: {
         password: false,
-        passwordConfirmation: false
-      }
-    }
+        passwordConfirmation: false,
+      },
+    };
   },
 
   computed: {
     ...mapGetters('auth', ['loadingPasswordReset']),
 
     fields() {
-      return fields
+      return fields;
     },
 
     extendedRules() {
       return passwordConfirmRules(
         this.rules,
         fields,
-        this.model
-      )
-    }
+        this.model,
+      );
+    },
   },
 
   methods: {
@@ -201,16 +196,14 @@ export default {
     doSubmit() {
       this.$refs.form
         .validate()
+        .then(() => this.doResetPassword({
+          token: this.$route.query.token,
+          password: this.model.password,
+        }))
         .then(() => {
-          return this.doResetPassword({
-            token: this.$route.query.token,
-            password: this.model.password
-          })
-        })
-        .then(() => {
-          this.success = true
-        })
-    }
-  }
-}
+          this.success = true;
+        });
+    },
+  },
+};
 </script>

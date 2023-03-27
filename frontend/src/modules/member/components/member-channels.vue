@@ -92,35 +92,36 @@
       />
     </div>
   </div>
-  <div v-else>-</div>
+  <div v-else>
+    -
+  </div>
 </template>
 
-<script>
-export default {
-  name: 'AppMemberChannels'
-}
-</script>
-
 <script setup>
-import { defineProps, computed } from 'vue'
+import { defineProps, computed } from 'vue';
 
 const props = defineProps({
   member: {
     type: Object,
-    default: () => {}
-  }
-})
+    default: () => {},
+  },
+});
 
 const hasSocialIdentities = computed(
-  () =>
-    !!props.member.username?.twitter ||
-    !!props.member.username?.github ||
-    !!props.member.username?.devto ||
-    !!props.member.username?.discord ||
-    !!props.member.username?.slack ||
-    !!props.member.username?.hackernews ||
-    !!props.member.username?.reddit ||
-    !!props.member.username?.linkedin ||
-    !!props.member.username?.stackoverflow
-)
+  () => !!props.member.username?.twitter
+    || !!props.member.username?.github
+    || !!props.member.username?.devto
+    || !!props.member.username?.discord
+    || !!props.member.username?.slack
+    || !!props.member.username?.hackernews
+    || !!props.member.username?.reddit
+    || !!props.member.username?.linkedin
+    || !!props.member.username?.stackoverflow,
+);
+</script>
+
+<script>
+export default {
+  name: 'AppMemberChannels',
+};
 </script>

@@ -1,7 +1,7 @@
-import Plans from '@/security/plans'
+import Plans from '@/security/plans';
 
-const crowdHostedPlans = Plans.values
-const communityPlans = Plans.communityValues
+const crowdHostedPlans = Plans.values;
+const communityPlans = Plans.communityValues;
 
 export const plans = {
   crowdHosted: [
@@ -18,8 +18,8 @@ export const plans = {
         'Full API access & native integrations with GitHub, Discord, Slack, Twitter, DEV, Reddit, and Hacker News',
         '5 member enrichments per month (manual)',
         '2 active workflows & CSV exports per month',
-        'Community & email support'
-      ]
+        'Community & email support',
+      ],
     },
     {
       key: crowdHostedPlans.growth,
@@ -32,9 +32,9 @@ export const plans = {
         '1,000 member enrichments per month (manual)',
         '10 active workflows & CSV exports per month',
         'Slack connect support',
-        'LinkedIn integration'
+        'LinkedIn integration',
       ],
-      sale: '🐦 Early bird offer'
+      sale: '🐦 Early bird offer',
     },
     {
       key: crowdHostedPlans.enterprise,
@@ -48,9 +48,9 @@ export const plans = {
         'Integrations with CRMs & CDPs',
         'Unlimited member & organization enrichment (automated)',
         'Unlimited active workflows & CSV exports per month',
-        'Dedicated community expert'
-      ]
-    }
+        'Dedicated community expert',
+      ],
+    },
   ],
   community: [
     {
@@ -65,8 +65,8 @@ export const plans = {
         'Community management',
         'Community intelligence',
         'Integrations with GitHub, Discord, Slack, Twitter, DEV, Hacker News',
-        'Community support'
-      ]
+        'Community support',
+      ],
     },
     {
       key: communityPlans.custom,
@@ -81,8 +81,8 @@ export const plans = {
         'Custom integrations',
         'Enterprise-grade support',
         'LinkedIn integration',
-        'Unlimited member enrichments (automated)'
-      ]
-    }
-  ]
-}
+        'Unlimited member enrichments (automated)',
+      ],
+    },
+  ],
+};

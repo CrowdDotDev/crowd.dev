@@ -17,8 +17,8 @@
 </template>
 
 <script>
-import { mapGetters } from 'vuex'
-import { PermissionChecker } from '@/modules/user/permission-checker'
+import { mapGetters } from 'vuex';
+import { PermissionChecker } from '@/modules/user/permission-checker';
 
 export default {
   name: 'AppViewItemRelationToMany',
@@ -26,58 +26,58 @@ export default {
   props: {
     label: {
       type: String,
-      default: null
+      default: null,
     },
     value: {
       type: String,
-      default: null
+      default: null,
     },
     url: {
       type: String,
-      default: null
+      default: null,
     },
     permission: {
       type: String,
-      default: null
-    }
+      default: null,
+    },
   },
 
   computed: {
     ...mapGetters({
       currentTenant: 'auth/currentTenant',
-      currentUser: 'auth/currentUser'
+      currentUser: 'auth/currentUser',
     }),
 
     hasPermissionToRead() {
       return new PermissionChecker(
         this.currentTenant,
-        this.currentUser
-      ).match(this.permission)
+        this.currentUser,
+      ).match(this.permission);
     },
 
     isBlank() {
-      return !this.value || !this.value.length
-    }
+      return !this.value || !this.value.length;
+    },
   },
 
   methods: {
     urlWithId(item) {
       if (!item) {
-        return null
+        return null;
       }
 
-      return `${this.url}/${item.id}`
+      return `${this.url}/${item.id}`;
     },
 
     display(item) {
       if (!item) {
-        return null
+        return null;
       }
 
-      return item.label
-    }
-  }
-}
+      return item.label;
+    },
+  },
+};
 </script>
 
 <style></style>

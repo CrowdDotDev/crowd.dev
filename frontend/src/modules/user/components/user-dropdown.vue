@@ -10,30 +10,29 @@
         type="button"
         @click.stop
       >
-        <i class="text-xl ri-more-fill"></i>
+        <i class="text-xl ri-more-fill" />
       </button>
       <template #dropdown>
         <el-dropdown-item
           v-if="user.status === 'invited'"
           command="userInviteTokenClipboard"
-          ><i class="ri-file-copy-line mr-2" /><span
-            class="text-xs"
-            >Copy invite link</span
-          ></el-dropdown-item
         >
+          <i class="ri-file-copy-line mr-2" /><span
+            class="text-xs"
+          >Copy invite link</span>
+        </el-dropdown-item>
         <el-dropdown-item command="userEdit">
           <i class="ri-pencil-line mr-2" /><span
             class="text-xs"
-            >{{
-              user.status === 'invited'
-                ? 'Edit invite'
-                : 'Edit user'
-            }}</span
-          ></el-dropdown-item
-        >
+          >{{
+            user.status === 'invited'
+              ? 'Edit invite'
+              : 'Edit user'
+          }}</span>
+        </el-dropdown-item>
         <el-divider class="border-gray-200 my-2" />
-        <el-dropdown-item command="userDelete"
-          ><i
+        <el-dropdown-item command="userDelete">
+          <i
             class="text-base mr-2 text-red-500"
             :class="
               user.status === 'invited'
@@ -44,8 +43,8 @@
             user.status === 'invited'
               ? 'Cancel invite'
               : 'Delete user'
-          }}</span></el-dropdown-item
-        >
+          }}</span>
+        </el-dropdown-item>
       </template>
     </el-dropdown>
     <app-dialog
@@ -62,67 +61,67 @@
         <app-user-form-page
           :id="user.id"
           @cancel="editing = false"
-        >
-        </app-user-form-page>
+        />
       </template>
     </app-dialog>
   </div>
 </template>
 
 <script>
-import { mapActions } from 'vuex'
-import AppUserEditPage from '@/modules/user/pages/user-edit-page'
-import config from '@/config'
-import Message from '@/shared/message/message'
-import ConfirmDialog from '@/shared/dialog/confirm-dialog.js'
+import { mapActions } from 'vuex';
+import config from '@/config';
+import Message from '@/shared/message/message';
+import ConfirmDialog from '@/shared/dialog/confirm-dialog';
+import AppUserEditPage from '@/modules/user/pages/user-edit-page.vue';
 
 export default {
   name: 'AppUserDropdown',
   components: {
-    'app-user-form-page': AppUserEditPage
+    'app-user-form-page': AppUserEditPage,
   },
   props: {
     user: {
       type: Object,
-      default: () => {}
-    }
+      default: () => {},
+    },
   },
   emits: ['user-destroyed'],
   data() {
     return {
-      editing: false
-    }
+      editing: false,
+    };
   },
   computed: {
     computedInviteLink() {
-      return `${config.frontendUrl.protocol}://${config.frontendUrl.host}/auth/invitation?token=${this.user.invitationToken}`
-    }
+      return `${config.frontendUrl.protocol}://${config.frontendUrl.host}/auth/invitation?token=${this.user.invitationToken}`;
+    },
   },
   methods: {
     ...mapActions({
-      doDestroy: 'user/destroy/doDestroy'
+      doDestroy: 'user/destroy/doDestroy',
     }),
     handleCommand(command) {
       if (command === 'userDelete') {
-        return this.doDestroyWithConfirm()
-      } else if (command === 'userEdit') {
-        this.editing = true
+        return this.doDestroyWithConfirm();
+      } if (command === 'userEdit') {
+        this.editing = true;
       } else if (command === 'userInviteTokenClipboard') {
-        this.copyToClipboard()
+        this.copyToClipboard();
       } else {
         return this.$router.push({
           name: command,
-          params: { id: this.user.id }
-        })
+          params: { id: this.user.id },
+        });
       }
+      return null;
     },
     async copyToClipboard() {
       await navigator.clipboard.writeText(
-        this.computedInviteLink
-      )
+        this.computedInviteLink,
+      );
       Message.success(
-        `Invite link successfully copied to your clipboard`
-      )
+        'Invite link successfully copied to your clipboard',
+      );
     },
     async doDestroyWithConfirm() {
       try {
@@ -142,15 +141,15 @@ export default {
           icon:
             this.user.status === 'invited'
               ? 'ri-close-circle-line'
-              : 'ri-delete-bin-line'
-        })
+              : 'ri-delete-bin-line',
+        });
 
-        await this.doDestroy(this.user.id)
-        this.$emit('user-destroyed', this.user.id)
+        await this.doDestroy(this.user.id);
+        this.$emit('user-destroyed', this.user.id);
       } catch (error) {
         // no
       }
-    }
-  }
-}
+    },
+  },
+};
 </script>

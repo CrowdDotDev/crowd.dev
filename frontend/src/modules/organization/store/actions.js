@@ -1,9 +1,9 @@
-import { OrganizationService } from '@/modules/organization/organization-service'
-import sharedActions from '@/shared/store/actions'
-import organizationListExporterFields from '@/modules/organization/organization-list-exporter-fields'
-import Exporter from '@/shared/exporter/exporter'
-import Errors from '@/shared/error/errors'
-import Message from '@/shared/message/message'
+import { OrganizationService } from '@/modules/organization/organization-service';
+import sharedActions from '@/shared/store/actions';
+import organizationListExporterFields from '@/modules/organization/organization-list-exporter-fields';
+import Exporter from '@/shared/exporter/exporter';
+import Errors from '@/shared/error/errors';
+import Message from '@/shared/message/message';
 
 export default {
   ...sharedActions('organization', OrganizationService),
@@ -11,39 +11,39 @@ export default {
   async doExport({ commit, getters }) {
     try {
       if (
-        !organizationListExporterFields ||
-        !organizationListExporterFields.length
+        !organizationListExporterFields
+        || !organizationListExporterFields.length
       ) {
         throw new Error(
-          'organizationListExporterFields is required'
-        )
+          'organizationListExporterFields is required',
+        );
       }
 
-      commit('EXPORT_STARTED')
+      commit('EXPORT_STARTED');
 
       const response = await OrganizationService.list(
         getters.activeView.filter,
         getters.orderBy,
         null,
-        null
-      )
+        null,
+      );
 
       new Exporter(
         organizationListExporterFields,
-        'organization'
-      ).transformAndExportAsExcelFile(response.rows)
+        'organization',
+      ).transformAndExportAsExcelFile(response.rows);
 
-      commit('EXPORT_SUCCESS')
+      commit('EXPORT_SUCCESS');
 
-      Message.success('Organizations exported successfully')
+      Message.success('Organizations exported successfully');
     } catch (error) {
-      Errors.handle(error)
+      Errors.handle(error);
 
-      commit('EXPORT_ERROR')
+      commit('EXPORT_ERROR');
 
       Message.error(
-        'There was an error exporting organizations'
-      )
+        'There was an error exporting organizations',
+      );
     }
-  }
-}
+  },
+};

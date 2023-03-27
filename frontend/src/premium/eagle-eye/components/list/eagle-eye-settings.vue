@@ -1,6 +1,8 @@
 <template>
   <div class="py-8 px-8">
-    <h4 class="text-gray-900">Eagle Eye</h4>
+    <h4 class="text-gray-900">
+      Eagle Eye
+    </h4>
 
     <div class="text-gray-500 text-xs mt-1">
       Discover and engage with relevant content across
@@ -12,16 +14,15 @@
       <el-button
         class="btn btn--full btn--md btn--secondary mt-6"
         @click="settingsDrawerOpen = true"
-        ><i class="ri-sound-module-line text-lg" /><span
-          >Feed settings</span
-        ></el-button
       >
+        <i class="ri-sound-module-line text-lg" /><span>Feed settings</span>
+      </el-button>
       <!-- Keywords -->
       <div
         v-if="
-          keywords.length ||
-          exactKeywords.length ||
-          excludedKeywords.length
+          keywords.length
+            || exactKeywords.length
+            || excludedKeywords.length
         "
         class="mt-8 mb-6"
       >
@@ -82,6 +83,7 @@
             class="flex items-center gap-3"
           >
             <img
+              :alt="platformOptions[platform].label"
               :src="platformOptions[platform].img"
               class="w-5 h-5"
             />
@@ -104,7 +106,7 @@
             >
               <i
                 class="ri-lightbulb-flash-line text-sm text-white"
-              ></i>
+              />
             </div>
             <span class="text-xs text-gray-900">{{
               aiRepliesEnabled ? 'Activated' : 'Deactivated'
@@ -123,49 +125,44 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
-import platformOptions from '@/premium/eagle-eye/constants/eagle-eye-platforms.json'
-import AppEagleEyeEmailDigestCard from '@/premium/eagle-eye/components/list/eagle-eye-email-digest-card.vue'
-import AppEagleEyeSettingsDrawer from '@/premium/eagle-eye/components/list/eagle-eye-settings-drawer.vue'
-import { mapGetters } from '@/shared/vuex/vuex.helpers'
+import { ref, computed } from 'vue';
+import platformOptions from '@/premium/eagle-eye/constants/eagle-eye-platforms.json';
+import AppEagleEyeEmailDigestCard from '@/premium/eagle-eye/components/list/eagle-eye-email-digest-card.vue';
+import AppEagleEyeSettingsDrawer from '@/premium/eagle-eye/components/list/eagle-eye-settings-drawer.vue';
+import { mapGetters } from '@/shared/vuex/vuex.helpers';
 
-const { currentUser, currentTenant } = mapGetters('auth')
+const { currentUser, currentTenant } = mapGetters('auth');
 
 const eagleEyeSettings = computed(
-  () =>
-    currentUser?.value.tenants.find(
-      (tu) => tu.tenantId === currentTenant?.value.id
-    ).settings.eagleEye
-)
+  () => currentUser?.value.tenants.find(
+    (tu) => tu.tenantId === currentTenant?.value.id,
+  ).settings.eagleEye,
+);
 
-const settingsDrawerOpen = ref(false)
+const settingsDrawerOpen = ref(false);
 
-const eagleEyeFeedSettings = computed(() => {
-  return eagleEyeSettings.value?.feed
-})
+const eagleEyeFeedSettings = computed(() => eagleEyeSettings.value?.feed);
 const keywords = computed(
-  () => eagleEyeFeedSettings.value.keywords
-)
+  () => eagleEyeFeedSettings.value.keywords,
+);
 
 const exactKeywords = computed(
-  () => eagleEyeFeedSettings.value.exactKeywords
-)
+  () => eagleEyeFeedSettings.value.exactKeywords,
+);
 
 const excludedKeywords = computed(
-  () => eagleEyeFeedSettings.value.excludedKeywords
-)
+  () => eagleEyeFeedSettings.value.excludedKeywords,
+);
 
 const platforms = computed(
-  () => eagleEyeFeedSettings.value.platforms
-)
+  () => eagleEyeFeedSettings.value.platforms,
+);
 
 const publishedDate = computed(
-  () => eagleEyeFeedSettings.value.publishedDate
-)
+  () => eagleEyeFeedSettings.value.publishedDate,
+);
 
-const aiRepliesEnabled = computed(() => {
-  return eagleEyeSettings.value?.aiReplies
-})
+const aiRepliesEnabled = computed(() => eagleEyeSettings.value?.aiReplies);
 </script>
 
 <style lang="scss" scoped>

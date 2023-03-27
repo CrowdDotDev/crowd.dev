@@ -25,15 +25,14 @@
               <span
                 v-if="hasValue"
                 class="ml-1 max-w-xs truncate font-normal"
-                >{{ valueToString }}</span
-              >
+              >{{ valueToString }}</span>
             </el-button>
             <el-button
               class="filter-list-item-btn filter-list-item-btn__close"
               :class="hasValue ? 'is-active' : ''"
               @click.stop="handleDestroy"
             >
-              <i class="ri-close-line"></i>
+              <i class="ri-close-line" />
             </el-button>
           </el-button-group>
         </slot>
@@ -50,8 +49,12 @@
         <template
           v-for="(_, name) in $slots"
           #[name]="slotData"
-          ><slot :name="name" v-bind="slotData"
-        /></template>
+        >
+          <slot
+            :name="name"
+            v-bind="slotData"
+          />
+        </template>
       </component>
       <div
         class="border-t border-gray-200 flex items-center justify-between -mx-2 px-4 pt-3 pb-1"
@@ -60,32 +63,31 @@
           v-if="shouldShowReset"
           class="btn btn-link btn-link--primary"
           @click="handleReset"
-          >Reset filter</el-button
         >
-        <div v-else>&nbsp;</div>
+          Reset filter
+        </el-button>
+        <div v-else>
+&nbsp;
+        </div>
         <div class="flex items-center">
           <el-button
             class="btn btn--transparent btn--sm mr-3"
             @click="handleCancel"
-            >Cancel</el-button
           >
+            Cancel
+          </el-button>
           <el-button
             class="btn btn--primary btn--sm"
             :disabled="shouldDisableApplyButton"
             @click="handleApply"
-            >Apply</el-button
           >
+            Apply
+          </el-button>
         </div>
       </div>
     </el-popover>
   </div>
 </template>
-
-<script>
-export default {
-  name: 'AppFilterListItem'
-}
-</script>
 
 <script setup>
 import {
@@ -93,193 +95,182 @@ import {
   defineEmits,
   reactive,
   computed,
-  watch
-} from 'vue'
-import isEqual from 'lodash/isEqual'
-import filterOperators from '../helpers/operators'
-import { attributesAreDifferent } from '../helpers/different-util'
-import { formatDate } from '@/utils/date'
+  watch,
+} from 'vue';
+import isEqual from 'lodash/isEqual';
+import { formatDate } from '@/utils/date';
+import filterOperators from '../helpers/operators';
+import { attributesAreDifferent } from '../helpers/different-util';
 
 const props = defineProps({
   filter: {
     type: Object,
-    default: () => {}
+    default: () => {},
   },
   filterClass: {
     type: String,
-    default: 'filter-list-item'
-  }
-})
+    default: 'filter-list-item',
+  },
+});
 
-const emit = defineEmits(['destroy', 'change', 'reset'])
+const emit = defineEmits(['destroy', 'change', 'reset']);
 
-const isExpanded = computed(() => props.filter.expanded)
-const hasValue = computed(() =>
-  Array.isArray(props.filter.value)
-    ? props.filter.value.length > 0
-    : props.filter.value !== null
-)
+const isExpanded = computed(() => props.filter.expanded);
+const hasValue = computed(() => (Array.isArray(props.filter.value)
+  ? props.filter.value.length > 0
+  : props.filter.value !== null));
 const valueToString = computed(() => {
   if (props.filter.type === 'boolean') {
-    return 'is ' + props.filter.value
-  } else {
-    const operatorLabel =
-      filterOperators[props.filter.type]?.operator[
-        props.filter.operator
-      ] || ''
-    if (props.filter.type === 'date') {
-      if (Array.isArray(props.filter.value)) {
-        const formattedStartDate = formatDate({
-          timestamp: props.filter.value[0]
-        })
-        const formattedEndDate = formatDate({
-          timestamp: props.filter.value[1]
-        })
-        return `${operatorLabel} ${formattedStartDate} and ${formattedEndDate}`
-      } else {
-        const formattedDate = formatDate({
-          timestamp: props.filter.value
-        })
-        return `${operatorLabel} ${formattedDate}`
-      }
-    } else if (props.filter.type === 'select') {
-      const label = props.filter.props.options.find(
-        (o) =>
-          JSON.stringify(o.value) ===
-          JSON.stringify(props.filter.value)
-      )?.label
-
-      return `${operatorLabel} ${label}`
-    } else if (
-      props.filter.type.includes('select-multi') ||
-      Array.isArray(props.filter.value)
-    ) {
-      return props.filter.value
-        .map((o) => o.label || o)
-        .join(', ')
-    } else if (props.filter.type.includes('select-group')) {
-      const { displayKey, displayValue } =
-        props.filter.value
-
-      if (displayKey && displayValue) {
-        return `${displayKey} - ${displayValue}`
-      }
-
-      return ''
-    } else {
-      return `${operatorLabel} ${props.filter.value}`
-    }
+    return `is ${props.filter.value}`;
   }
-})
-
-const shouldShowReset = computed(() => {
-  return !isEqual(
-    props.filter.defaultValue,
-    props.filter.value
-  )
-})
-const shouldDisableApplyButton = computed(() => {
-  // Disable apply button for range inputs
-  if (model.operator === 'between') {
-    if (props.filter.type === 'number') {
-      return (
-        isNaN(model.value?.[0]) || isNaN(model.value?.[1])
-      )
-    } else {
-      return !model.value?.[0] || !model.value?.[1]
+  const operatorLabel = filterOperators[props.filter.type]?.operator[
+    props.filter.operator
+  ] || '';
+  if (props.filter.type === 'date') {
+    if (Array.isArray(props.filter.value)) {
+      const formattedStartDate = formatDate({
+        timestamp: props.filter.value[0],
+      });
+      const formattedEndDate = formatDate({
+        timestamp: props.filter.value[1],
+      });
+      return `${operatorLabel} ${formattedStartDate} and ${formattedEndDate}`;
     }
-  }
+    const formattedDate = formatDate({
+      timestamp: props.filter.value,
+    });
+    return `${operatorLabel} ${formattedDate}`;
+  } if (props.filter.type === 'select') {
+    const label = props.filter.props.options.find(
+      (o) => JSON.stringify(o.value)
+          === JSON.stringify(props.filter.value),
+    )?.label;
 
-  return Array.isArray(model.value)
-    ? model.value.length === 0
-    : model.value === '' || model.value === null
-})
+    return `${operatorLabel} ${label}`;
+  } if (
+    props.filter.type.includes('select-multi')
+      || Array.isArray(props.filter.value)
+  ) {
+    return props.filter.value
+      .map((o) => o.label || o)
+      .join(', ');
+  } if (props.filter.type.includes('select-group')) {
+    const { displayKey, displayValue } = props.filter.value;
+
+    if (displayKey && displayValue) {
+      return `${displayKey} - ${displayValue}`;
+    }
+
+    return '';
+  }
+  return `${operatorLabel} ${props.filter.value}`;
+});
+
+const shouldShowReset = computed(() => !isEqual(
+  props.filter.defaultValue,
+  props.filter.value,
+));
 
 const model = reactive({
   value: JSON.parse(
     JSON.stringify(
       props.filter.value
         ? props.filter.value
-        : props.filter.defaultValue
-    )
+        : props.filter.defaultValue,
+    ),
   ),
   operator: JSON.parse(
     JSON.stringify(
       props.filter.operator
         ? props.filter.operator
-        : props.filter.defaultOperator
-    )
-  )
-})
+        : props.filter.defaultOperator,
+    ),
+  ),
+});
+
+const shouldDisableApplyButton = computed(() => {
+  // Disable apply button for range inputs
+  if (model.operator === 'between') {
+    if (props.filter.type === 'number') {
+      return (
+        Number.isNaN(model.value?.[0]) || Number.isNaN(model.value?.[1])
+      );
+    }
+    return !model.value?.[0] || !model.value?.[1];
+  }
+
+  return Array.isArray(model.value)
+    ? model.value.length === 0
+    : model.value === '' || model.value === null;
+});
 
 const handleChange = () => {
   emit('change', {
     ...props.filter,
     value: JSON.parse(JSON.stringify(model.value)),
     operator: JSON.parse(JSON.stringify(model.operator)),
-    expanded: false
-  })
-}
+    expanded: false,
+  });
+};
 
 const handleOpen = () => {
   emit('change', {
     ...props.filter,
-    expanded: true
-  })
-}
+    expanded: true,
+  });
+};
 
 const handleDestroy = () => {
-  emit('destroy', { ...props.filter })
-}
+  emit('destroy', { ...props.filter });
+};
 
 const handleReset = () => {
-  model.operator = props.filter.defaultOperator
+  model.operator = props.filter.defaultOperator;
   model.value = JSON.parse(
-    JSON.stringify(props.filter.defaultValue)
-  )
-  emit('reset', { ...props.filter })
-}
+    JSON.stringify(props.filter.defaultValue),
+  );
+  emit('reset', { ...props.filter });
+};
 
 const handleCancel = () => {
   emit('change', {
     ...props.filter,
-    expanded: false
-  })
-}
+    expanded: false,
+  });
+};
 
 const handleApply = () => {
-  handleChange()
-}
+  handleChange();
+};
 
 const clickOutsideListener = (event) => {
   const component = document.querySelector(
-    `.filter-type-${props.filter.name}-popper`
-  )
+    `.filter-type-${props.filter.name}-popper`,
+  );
   if (
     // clicks outside
     !(
-      component === event.target ||
-      component?.contains(event.target) ||
+      component === event.target
+      || component?.contains(event.target)
       // we need the following condition to validate clicks
       // on popovers that are not DOM children of this component,
       // since popper is adding fixed components to the body directly
-      event
+      || event
         .composedPath()
         .some(
-          (o) =>
-            (o.className &&
-              typeof o.className.includes !== 'undefined' &&
-              o.className?.includes('el-popper')) ||
-            false
+          (o) => (o.className
+              && typeof o.className.includes !== 'undefined'
+              && o.className?.includes('el-popper'))
+            || false,
         )
     )
   ) {
     emit('change', {
       ...props.filter,
-      expanded: false
-    })
+      expanded: false,
+    });
   }
-}
+};
 
 watch(
   isExpanded,
@@ -288,29 +279,35 @@ watch(
       if (newValue) {
         document.addEventListener(
           'click',
-          clickOutsideListener
-        )
+          clickOutsideListener,
+        );
       } else {
         document.removeEventListener(
           'click',
-          clickOutsideListener
-        )
+          clickOutsideListener,
+        );
       }
-    }, 500)
+    }, 500);
   },
-  { immediate: true }
-)
+  { immediate: true },
+);
 
 watch(
   () => props.filter,
   (newValue) => {
     if (attributesAreDifferent(model, newValue)) {
-      model.value = newValue.value
-      model.operator = newValue.operator
+      model.value = newValue.value;
+      model.operator = newValue.operator;
     }
   },
-  { deep: true }
-)
+  { deep: true },
+);
+</script>
+
+<script>
+export default {
+  name: 'AppFilterListItem',
+};
 </script>
 
 <style lang="scss">

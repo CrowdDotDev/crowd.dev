@@ -12,15 +12,15 @@
  */
 export default async function ({ to, store, router }) {
   if (!to.meta || !to.meta.notEmptyPermissions) {
-    return
+    return;
   }
 
-  await store.dispatch('auth/doWaitUntilInit')
+  await store.dispatch('auth/doWaitUntilInit');
 
   if (
-    store.getters['auth/signedIn'] &&
-    store.getters['auth/roles'].length
+    store.getters['auth/signedIn']
+    && store.getters['auth/roles'].length
   ) {
-    return router.push('/')
+    router.push('/');
   }
 }

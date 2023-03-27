@@ -1,121 +1,118 @@
-import AuthCurrentTenant from '@/modules/auth/auth-current-tenant'
+import AuthCurrentTenant from '@/modules/auth/auth-current-tenant';
 
 export default {
   CURRENT_USER_REFRESH_SUCCESS(state, payload) {
-    state.currentUser = payload.currentUser || null
-    state.currentTenant =
-      AuthCurrentTenant.selectAndSaveOnStorageFor(
-        payload.currentUser
-      )
+    state.currentUser = payload.currentUser || null;
+    state.currentTenant = AuthCurrentTenant.selectAndSaveOnStorageFor(
+      payload.currentUser,
+    );
   },
 
   AUTH_START(state) {
-    state.loading = true
+    state.loading = true;
   },
 
   AUTH_SUCCESS(state, payload) {
-    state.currentUser = payload.currentUser || null
-    state.currentTenant =
-      AuthCurrentTenant.selectAndSaveOnStorageFor(
-        payload.currentUser
-      )
-    state.loading = false
+    state.currentUser = payload.currentUser || null;
+    state.currentTenant = AuthCurrentTenant.selectAndSaveOnStorageFor(
+      payload.currentUser,
+    );
+    state.loading = false;
   },
 
   AUTH_ERROR(state) {
-    state.currentUser = null
-    state.currentTenant = null
-    state.loading = false
+    state.currentUser = null;
+    state.currentTenant = null;
+    state.loading = false;
   },
 
   EMAIL_CONFIRMATION_START(state) {
-    state.loadingEmailConfirmation = true
+    state.loadingEmailConfirmation = true;
   },
 
   EMAIL_CONFIRMATION_SUCCESS(state) {
-    state.loadingEmailConfirmation = false
+    state.loadingEmailConfirmation = false;
   },
 
   EMAIL_CONFIRMATION_ERROR(state) {
-    state.loadingEmailConfirmation = false
+    state.loadingEmailConfirmation = false;
   },
 
   EMAIL_VERIFY_START(state) {
-    state.loadingVerifyEmail = true
+    state.loadingVerifyEmail = true;
   },
 
   EMAIL_VERIFY_SUCCESS(state) {
-    state.loadingVerifyEmail = false
+    state.loadingVerifyEmail = false;
   },
 
   EMAIL_VERIFY_ERROR(state) {
-    state.loadingVerifyEmail = false
+    state.loadingVerifyEmail = false;
   },
 
   PASSWORD_CHANGE_START(state) {
-    state.loadingPasswordChange = true
+    state.loadingPasswordChange = true;
   },
 
   PASSWORD_CHANGE_SUCCESS(state) {
-    state.loadingPasswordChange = false
+    state.loadingPasswordChange = false;
   },
 
   PASSWORD_CHANGE_ERROR(state) {
-    state.loadingPasswordChange = false
+    state.loadingPasswordChange = false;
   },
 
   PASSWORD_RESET_START(state) {
-    state.loadingPasswordReset = true
+    state.loadingPasswordReset = true;
   },
 
   PASSWORD_RESET_SUCCESS(state) {
-    state.loadingPasswordReset = false
+    state.loadingPasswordReset = false;
   },
 
   PASSWORD_RESET_ERROR(state) {
-    state.loadingPasswordReset = false
+    state.loadingPasswordReset = false;
   },
 
   PASSWORD_RESET_EMAIL_START(state) {
-    state.loadingPasswordResetEmail = true
+    state.loadingPasswordResetEmail = true;
   },
 
   PASSWORD_RESET_EMAIL_SUCCESS(state) {
-    state.loadingPasswordResetEmail = false
+    state.loadingPasswordResetEmail = false;
   },
 
   PASSWORD_RESET_EMAIL_ERROR(state) {
-    state.loadingPasswordResetEmail = false
+    state.loadingPasswordResetEmail = false;
   },
 
   UPDATE_PROFILE_START(state) {
-    state.loadingUpdateProfile = true
+    state.loadingUpdateProfile = true;
   },
 
   UPDATE_PROFILE_SUCCESS(state) {
-    state.loadingUpdateProfile = false
+    state.loadingUpdateProfile = false;
   },
 
   UPDATE_PROFILE_ERROR(state) {
-    state.loadingUpdateProfile = false
+    state.loadingUpdateProfile = false;
   },
 
   AUTH_INIT_SUCCESS(state, payload) {
-    state.currentUser = payload.currentUser || null
-    state.currentTenant =
-      AuthCurrentTenant.selectAndSaveOnStorageFor(
-        payload.currentUser
-      )
-    state.loadingInit = false
+    state.currentUser = payload.currentUser || null;
+    state.currentTenant = AuthCurrentTenant.selectAndSaveOnStorageFor(
+      payload.currentUser,
+    );
+    state.loadingInit = false;
   },
 
   AUTH_INIT_ERROR(state) {
-    state.currentUser = null
-    state.currentTenant = null
-    state.loadingInit = false
+    state.currentUser = null;
+    state.currentTenant = null;
+    state.loadingInit = false;
   },
 
   CLEAR_TENANT(state) {
-    state.currentTenant = null
-  }
-}
+    state.currentTenant = null;
+  },
+};

@@ -1,21 +1,21 @@
-import moment from 'moment'
+import moment from 'moment';
 
 // Add platform and team members filters to cube query filters array
 const getCubeFilters = ({ platforms, hasTeamMembers }) => {
-  let filters = [
+  const filters = [
     {
       member: 'Members.isOrganization',
       operator: 'equals',
-      values: ['0']
-    }
-  ]
+      values: ['0'],
+    },
+  ];
 
   if (platforms.length) {
     filters.push({
       member: 'Activities.platform',
       operator: 'contains',
-      values: platforms.map((v) => v.value)
-    })
+      values: platforms.map((v) => v.value),
+    });
   }
 
   // Only add filter if team members are excluded
@@ -23,64 +23,64 @@ const getCubeFilters = ({ platforms, hasTeamMembers }) => {
     filters.push({
       member: 'Members.isTeamMember',
       operator: 'equals',
-      values: ['0']
-    })
+      values: ['0'],
+    });
   }
-  return filters
-}
+  return filters;
+};
 
 const setApiFilters = ({
   selectedPlatforms,
   selectedHasTeamMembers,
   isBot,
-  filters
+  filters,
 }) => {
   if (selectedHasTeamMembers === false) {
     filters.push({
       isTeamMember: {
-        not: true
-      }
-    })
+        not: true,
+      },
+    });
   } else {
     filters.push({
       or: [
         {
           isTeamMember: {
-            not: true
-          }
+            not: true,
+          },
         },
         {
           isTeamMember: {
-            eq: true
-          }
-        }
-      ]
-    })
+            eq: true,
+          },
+        },
+      ],
+    });
   }
 
   if (isBot === false) {
     filters.push({
       isBot: {
-        not: true
-      }
-    })
+        not: true,
+      },
+    });
   }
 
   // Only add filter if there are selected platforms
   if (selectedPlatforms.length) {
     filters.push({
       or: selectedPlatforms.map((platform) => ({
-        identities: { contains: [platform.value] }
-      }))
-    })
+        identities: { contains: [platform.value] },
+      })),
+    });
   }
-}
+};
 
 export const TOTAL_ACTIVE_MEMBERS_QUERY = ({
   period,
   granularity,
   selectedPlatforms,
-  selectedHasTeamMembers
+  selectedHasTeamMembers,
 }) => ({
   measures: ['Members.count'],
   timeDimensions: [
@@ -90,23 +90,23 @@ export const TOTAL_ACTIVE_MEMBERS_QUERY = ({
           .utc()
           .subtract(period.value, period.granularity)
           .format('YYYY-MM-DD'),
-        moment().utc().format('YYYY-MM-DD')
+        moment().utc().format('YYYY-MM-DD'),
       ],
       dimension: 'Activities.date',
-      granularity: granularity.value
-    }
+      granularity: granularity.value,
+    },
   ],
   filters: getCubeFilters({
     platforms: selectedPlatforms,
-    hasTeamMembers: selectedHasTeamMembers
-  })
-})
+    hasTeamMembers: selectedHasTeamMembers,
+  }),
+});
 
 export const TOTAL_ACTIVE_RETURNING_MEMBERS_QUERY = ({
   period,
   granularity,
   selectedPlatforms,
-  selectedHasTeamMembers
+  selectedHasTeamMembers,
 }) => ({
   measures: ['Members.count'],
   timeDimensions: [
@@ -116,11 +116,11 @@ export const TOTAL_ACTIVE_RETURNING_MEMBERS_QUERY = ({
           .utc()
           .subtract(period.value, period.granularity)
           .format('YYYY-MM-DD'),
-        moment().utc().format('YYYY-MM-DD')
+        moment().utc().format('YYYY-MM-DD'),
       ],
       dimension: 'Activities.date',
-      granularity: granularity.value
-    }
+      granularity: granularity.value,
+    },
   ],
   filters: [
     {
@@ -131,33 +131,33 @@ export const TOTAL_ACTIVE_RETURNING_MEMBERS_QUERY = ({
           .utc()
           .startOf('day')
           .subtract(period.value, period.granularity)
-          .format('YYYY-MM-DD')
-      ]
+          .format('YYYY-MM-DD'),
+      ],
     },
     ...getCubeFilters({
       platforms: selectedPlatforms,
-      hasTeamMembers: selectedHasTeamMembers
-    })
-  ]
-})
+      hasTeamMembers: selectedHasTeamMembers,
+    }),
+  ],
+});
 
 export const TOTAL_MEMBERS_QUERY = ({
   period,
   granularity,
   selectedPlatforms,
-  selectedHasTeamMembers
+  selectedHasTeamMembers,
 }) => {
-  const dateRange = (period) => {
-    const end = moment().utc().format('YYYY-MM-DD')
+  const dateRange = (periodValue) => {
+    const end = moment().utc().format('YYYY-MM-DD');
     const start = moment()
       .utc()
-      .subtract(period.value, period.granularity)
+      .subtract(periodValue.value, periodValue.granularity)
       // we're subtracting one more day, to get the last value of the previous period within the same request
       .subtract(1, 'day')
-      .format('YYYY-MM-DD')
+      .format('YYYY-MM-DD');
 
-    return [start, end]
-  }
+    return [start, end];
+  };
 
   return {
     measures: ['Members.cumulativeCount'],
@@ -165,37 +165,37 @@ export const TOTAL_MEMBERS_QUERY = ({
       {
         dimension: 'Members.joinedAt',
         granularity: granularity.value,
-        dateRange: dateRange(period)
-      }
+        dateRange: dateRange(period),
+      },
     ],
     filters: getCubeFilters({
       platforms: selectedPlatforms,
-      hasTeamMembers: selectedHasTeamMembers
-    })
-  }
-}
+      hasTeamMembers: selectedHasTeamMembers,
+    }),
+  };
+};
 
 export const TOTAL_MEMBERS_FILTER = ({
   date,
   granularity,
   selectedPlatforms,
-  selectedHasTeamMembers
+  selectedHasTeamMembers,
 }) => {
-  let endDate
+  let endDate;
 
   if (granularity === 'day') {
-    endDate = moment(date).endOf('day').toISOString()
+    endDate = moment(date).endOf('day').toISOString();
   } else if (granularity === 'week') {
     endDate = moment(date)
       .startOf('day')
       .add(6, 'day')
       .endOf('day')
-      .toISOString()
+      .toISOString();
   } else if (granularity === 'month') {
     endDate = moment(date)
       .startOf('day')
       .add(1, 'month')
-      .toISOString()
+      .toISOString();
   }
 
   const filters = [
@@ -203,21 +203,21 @@ export const TOTAL_MEMBERS_FILTER = ({
       and: [
         {
           joinedAt: {
-            lte: endDate
-          }
-        }
-      ]
-    }
-  ]
+            lte: endDate,
+          },
+        },
+      ],
+    },
+  ];
 
   setApiFilters({
     filters,
     selectedHasTeamMembers,
     selectedPlatforms,
-    isBot: false
-  })
+    isBot: false,
+  });
 
   return {
-    and: filters
-  }
-}
+    and: filters,
+  };
+};

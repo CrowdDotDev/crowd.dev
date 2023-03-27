@@ -22,13 +22,14 @@
             >
               <img
                 v-if="getPlatformDetails(platform)"
+                :alt="getPlatformDetails(platform).name"
                 :src="getPlatformDetails(platform).image"
                 class="w-4 h-4"
               />
               <i
                 v-else
                 class="ri-radar-line text-base text-gray-400"
-              ></i>
+              />
             </template>
             <el-option
               v-for="integration of activeIntegrations"
@@ -38,6 +39,7 @@
               @mouseleave="onSelectMouseLeave"
             >
               <img
+                :alt="integration.name"
                 :src="integration.image"
                 class="w-4 h-4 mr-2"
               />
@@ -73,15 +75,11 @@
             />
             <div class="flex items-center">
               <app-activity-message :activity="activity" />
-              <span class="whitespace-nowrap text-gray-500"
-                ><span class="mx-1">·</span
-                >{{ timeAgo(activity) }}</span
-              >
+              <span class="whitespace-nowrap text-gray-500"><span class="mx-1">·</span>{{ timeAgo(activity) }}</span>
               <span
                 v-if="activity.sentiment.sentiment"
                 class="mx-1"
-                >·</span
-              >
+              >·</span>
               <app-activity-sentiment
                 v-if="activity.sentiment.sentiment"
                 :sentiment="activity.sentiment.sentiment"
@@ -91,11 +89,13 @@
               class="text-sm bg-gray-50 rounded-lg p-4"
               :activity="activity"
               :show-more="true"
-              ><div v-if="activity.url" class="pt-6">
+            >
+              <div v-if="activity.url" class="pt-6">
                 <app-activity-link
                   :activity="activity"
-                /></div
-            ></app-activity-content>
+                />
+              </div>
+            </app-activity-content>
           </div>
           <template #dot>
             <span
@@ -113,7 +113,7 @@
               <i
                 v-else
                 class="ri-radar-line text-base text-gray-400"
-              ></i>
+              />
             </span>
           </template>
         </el-timeline-item>
@@ -122,33 +122,24 @@
         v-if="loading"
         v-loading="loading"
         class="app-page-spinner"
-      ></div>
+      />
       <div v-if="!noMore" class="flex justify-center pt-4">
         <el-button
           class="btn btn-brand btn-brand--transparent"
           :disabled="loading"
           @click="fetchActivities"
-          ><i class="ri-arrow-down-line mr-2"></i>Load
-          more</el-button
         >
+          <i class="ri-arrow-down-line mr-2" />Load
+          more
+        </el-button>
       </div>
     </div>
   </div>
 </template>
 
-<script>
-export default {
-  name: 'AppMemberViewActivities'
-}
-</script>
-
 <script setup>
-import isEqual from 'lodash/isEqual'
-import { useStore } from 'vuex'
-import AppActivityMessage from '@/modules/activity/components/activity-message'
-import AppActivitySentiment from '@/modules/activity/components/activity-sentiment'
-import AppActivityContent from '@/modules/activity/components/activity-content'
-import { onSelectMouseLeave } from '@/utils/select'
+import isEqual from 'lodash/isEqual';
+import { useStore } from 'vuex';
 import {
   defineProps,
   computed,
@@ -156,118 +147,118 @@ import {
   ref,
   h,
   onMounted,
-  watch
-} from 'vue'
-import debounce from 'lodash/debounce'
-import authAxios from '@/shared/axios/auth-axios'
-import { formatDateToTimeAgo } from '@/utils/date'
-import { CrowdIntegrations } from '@/integrations/integrations-config'
-import AppMemberDisplayName from '@/modules/member/components/member-display-name'
-import AppActivityLink from '@/modules/activity/components/activity-link'
-import AuthCurrentTenant from '@/modules/auth/auth-current-tenant'
+  watch,
+} from 'vue';
+import debounce from 'lodash/debounce';
+import AppActivityMessage from '@/modules/activity/components/activity-message.vue';
+import AppActivitySentiment from '@/modules/activity/components/activity-sentiment.vue';
+import AppActivityContent from '@/modules/activity/components/activity-content.vue';
+import { onSelectMouseLeave } from '@/utils/select';
+import authAxios from '@/shared/axios/auth-axios';
+import { formatDateToTimeAgo } from '@/utils/date';
+import { CrowdIntegrations } from '@/integrations/integrations-config';
+import AppMemberDisplayName from '@/modules/member/components/member-display-name.vue';
+import AppActivityLink from '@/modules/activity/components/activity-link.vue';
+import AuthCurrentTenant from '@/modules/auth/auth-current-tenant';
 
 const SearchIcon = h(
   'i', // type
   { class: 'ri-search-line' }, // props
-  []
-)
+  [],
+);
 
-const store = useStore()
+const store = useStore();
 const props = defineProps({
   entityId: {
     type: String,
-    default: null
+    default: null,
   },
   entityType: {
     type: String,
-    default: null
-  }
-})
+    default: null,
+  },
+});
 
 const activeIntegrations = computed(() => {
-  const activeIntegrationList =
-    store.getters['integration/activeList']
-  return Object.keys(activeIntegrationList).map((i) => {
-    return {
-      ...activeIntegrationList[i],
-      label: CrowdIntegrations.getConfig(i).name
-    }
-  })
-})
+  const activeIntegrationList = store.getters['integration/activeList'];
+  return Object.keys(activeIntegrationList).map((i) => ({
+    ...activeIntegrationList[i],
+    label: CrowdIntegrations.getConfig(i).name,
+  }));
+});
 
-const loading = ref(true)
-const platform = ref(null)
-const query = ref('')
-const activities = reactive([])
-const limit = ref(20)
-const offset = ref(0)
-const noMore = ref(false)
+const loading = ref(true);
+const platform = ref(null);
+const query = ref('');
+const activities = reactive([]);
+const limit = ref(20);
+const offset = ref(0);
+const noMore = ref(false);
 
-let filter = {}
+let filter = {};
 
 const fetchActivities = async () => {
   const filterToApply = {
-    platform: platform.value ?? undefined
-  }
+    platform: platform.value ?? undefined,
+  };
 
   if (props.entityType === 'member') {
-    filterToApply.memberId = props.entityId
+    filterToApply.memberId = props.entityId;
   } else {
-    filterToApply[`${props.entityType}s`] = [props.entityId]
+    filterToApply[`${props.entityType}s`] = [props.entityId];
   }
 
-  if (props.entityId)
+  if (props.entityId) {
     if (query.value && query.value !== '') {
       filterToApply.or = [
         {
           body: {
-            textContains: query.value
-          }
+            textContains: query.value,
+          },
         },
         {
           channel: {
-            textContains: query.value
-          }
+            textContains: query.value,
+          },
         },
         {
           url: {
-            textContains: query.value
-          }
+            textContains: query.value,
+          },
         },
         {
           body: {
-            textContains: query.value
-          }
+            textContains: query.value,
+          },
         },
         {
           title: {
-            textContains: query.value
-          }
+            textContains: query.value,
+          },
         },
         {
           type: {
-            textContains: query.value
-          }
-        }
-      ]
+            textContains: query.value,
+          },
+        },
+      ];
     }
+  }
 
   if (!isEqual(filter, filterToApply)) {
-    activities.length = 0
-    noMore.value = false
+    activities.length = 0;
+    noMore.value = false;
   }
 
   if (noMore.value) {
-    return
+    return;
   }
 
-  loading.value = true
+  loading.value = true;
 
-  const sampleTenant =
-    AuthCurrentTenant.getSampleTenantData()
-  const tenantId =
-    sampleTenant?.id ||
-    store.getters['auth/currentTenant'].id
+  const sampleTenant = AuthCurrentTenant.getSampleTenantData();
+  const tenantId = sampleTenant?.id
+    || store.getters['auth/currentTenant'].id;
 
   const { data } = await authAxios.post(
     `/tenant/${tenantId}/activity/query`,
@@ -275,58 +266,59 @@ const fetchActivities = async () => {
       filter: filterToApply,
       orderBy: 'timestamp_DESC',
       limit: limit.value,
-      offset: offset.value
+      offset: offset.value,
     },
     {
       headers: {
-        Authorization: sampleTenant?.token
-      }
-    }
-  )
+        Authorization: sampleTenant?.token,
+      },
+    },
+  );
 
-  filter = { ...filterToApply }
-  loading.value = false
+  filter = { ...filterToApply };
+  loading.value = false;
   if (data.rows.length < limit.value) {
-    noMore.value = true
-    activities.push(...data.rows)
+    noMore.value = true;
+    activities.push(...data.rows);
   } else {
-    offset.value += limit.value
-    activities.push(...data.rows)
+    offset.value += limit.value;
+    activities.push(...data.rows);
   }
-}
+};
 
-const platformDetails = (platform) => {
-  return CrowdIntegrations.getConfig(platform)
-}
-const timeAgo = (activity) => {
-  return formatDateToTimeAgo(activity.timestamp)
-}
+const platformDetails = (p) => CrowdIntegrations.getConfig(p);
+const timeAgo = (activity) => formatDateToTimeAgo(activity.timestamp);
 
 const debouncedQueryChange = debounce(async () => {
-  await fetchActivities()
-}, 300)
+  await fetchActivities();
+}, 300);
 
-const getPlatformDetails = (platform) =>
-  CrowdIntegrations.getConfig(platform)
+const getPlatformDetails = (p) => CrowdIntegrations.getConfig(p);
 
 watch(query, (newValue, oldValue) => {
   if (newValue !== oldValue) {
-    debouncedQueryChange()
+    debouncedQueryChange();
   }
-})
+});
 
 watch(platform, async (newValue, oldValue) => {
   if (newValue !== oldValue) {
-    await fetchActivities()
+    await fetchActivities();
   }
-})
+});
 
 onMounted(async () => {
   if (activeIntegrations.value.length === 0) {
-    await store.dispatch('integration/doFetch')
+    await store.dispatch('integration/doFetch');
   }
-  await fetchActivities()
-})
+  await fetchActivities();
+});
+</script>
+
+<script>
+export default {
+  name: 'AppMemberViewActivities',
+};
 </script>
 
 <style lang="scss">

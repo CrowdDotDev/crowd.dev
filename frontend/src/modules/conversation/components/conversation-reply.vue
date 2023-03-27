@@ -15,7 +15,7 @@
     <div class="flex">
       <div class="flex flex-col items-center">
         <app-avatar :entity="member" size="xs" />
-        <slot name="underAvatar"></slot>
+        <slot name="underAvatar" />
       </div>
       <div class="flex-grow pl-3" :class="bodyClasses">
         <div class="flex items-center h-5">
@@ -44,7 +44,7 @@
             :display-title="false"
             class="text-sm"
             :class="{
-              'line-clamp-1': !displayContent && !showMore
+              'line-clamp-1': !displayContent && !showMore,
             }"
             :show-more="showMore"
             :limit="limit"
@@ -56,12 +56,12 @@
 </template>
 
 <script>
-import AppAvatar from '@/shared/avatar/avatar'
-import { formatDateToTimeAgo } from '@/utils/date'
-import AppLoading from '@/shared/loading/loading-placeholder'
-import AppMemberDisplayName from '@/modules/member/components/member-display-name'
-import AppActivityContent from '@/modules/activity/components/activity-content'
-import AppActivitySentiment from '@/modules/activity/components/activity-sentiment'
+import { formatDateToTimeAgo } from '@/utils/date';
+import AppAvatar from '@/shared/avatar/avatar.vue';
+import AppLoading from '@/shared/loading/loading-placeholder.vue';
+import AppMemberDisplayName from '@/modules/member/components/member-display-name.vue';
+import AppActivityContent from '@/modules/activity/components/activity-content.vue';
+import AppActivitySentiment from '@/modules/activity/components/activity-sentiment.vue';
 
 export default {
   name: 'AppConversationReply',
@@ -70,59 +70,59 @@ export default {
     AppActivityContent,
     AppActivitySentiment,
     AppLoading,
-    AppAvatar
+    AppAvatar,
   },
   props: {
     activity: {
       type: Object,
       required: false,
-      default: () => ({})
+      default: () => ({}),
     },
     loading: {
       type: Boolean,
       required: false,
-      default: false
+      default: false,
     },
     bodyClasses: {
       type: String,
       required: false,
-      default: ''
+      default: '',
     },
     displayContent: {
       type: Boolean,
       required: false,
-      default: false
+      default: false,
     },
     showMore: {
       type: Boolean,
       required: false,
-      default: false
+      default: false,
     },
     limit: {
       type: Number,
       required: false,
-      default: 4
-    }
+      default: 4,
+    },
   },
   computed: {
     member() {
-      return this.activity.member
+      return this.activity.member;
     },
     sentiment() {
       if (
-        this.activity &&
-        this.activity.sentiment &&
-        this.activity.sentiment.sentiment
+        this.activity
+        && this.activity.sentiment
+        && this.activity.sentiment.sentiment
       ) {
-        return this.activity.sentiment.sentiment
+        return this.activity.sentiment.sentiment;
       }
-      return 0
-    }
+      return 0;
+    },
   },
   methods: {
     timeAgo(date) {
-      return formatDateToTimeAgo(date)
-    }
-  }
-}
+      return formatDateToTimeAgo(date);
+    },
+  },
+};
 </script>

@@ -1,15 +1,16 @@
 <template>
   <div>
     <div class="flex items-center justify-between">
-      <div class="font-medium text-black">Identities</div>
+      <div class="font-medium text-black">
+        Identities
+      </div>
       <el-button
         class="btn btn-link btn-link--primary"
         :disabled="isEditLockedForSampleData"
         @click="identitiesDrawer = true"
-        ><i class="ri-pencil-line" /><span
-          >Edit</span
-        ></el-button
       >
+        <i class="ri-pencil-line" /><span>Edit</span>
+      </el-button>
     </div>
     <div class="-mx-6 mt-6">
       <a
@@ -17,22 +18,23 @@
         :key="platform"
         class="px-6 py-2 flex justify-between items-center relative"
         :class="
-          member.attributes.url?.[platform] !== undefined ||
-          platform === 'hackernews'
+          member.attributes.url?.[platform] !== undefined
+            || platform === 'hackernews'
             ? 'hover:bg-gray-50 transition-colors cursor-pointer'
             : ''
         "
         :href="identityUrl(platform)"
         target="_blank"
+        rel="noopener noreferrer"
       >
         <div class="flex gap-3 items-center">
           <app-platform :platform="platform" />
           <div
             v-if="
-              platform === 'linkedin' &&
-              socialIdentities[platform].includes(
-                'private-'
-              )
+              platform === 'linkedin'
+                && socialIdentities[platform].includes(
+                  'private-',
+                )
             "
             class="text-gray-900 text-xs"
           >
@@ -43,12 +45,11 @@
             >
               <i
                 class="ri-lock-line text-gray-400 ml-2"
-              ></i>
+              />
             </el-tooltip>
           </div>
           <span v-else class="text-gray-900 text-xs">
-            {{ socialIdentities[platform] }}</span
-          >
+            {{ socialIdentities[platform] }}</span>
         </div>
         <i
           v-if="
@@ -57,17 +58,17 @@
               : member.attributes.url?.[platform]
           "
           class="ri-external-link-line text-gray-300"
-        ></i>
+        />
       </a>
     </div>
     <div
       v-if="
-        Object.keys(socialIdentities).length &&
-        emails.length
+        Object.keys(socialIdentities).length
+          && emails.length
       "
       class="mt-2"
     >
-      <el-divider class="border-t-gray-200"></el-divider>
+      <el-divider class="border-t-gray-200" />
       <div class="mt-4">
         <a
           v-for="email of emails"
@@ -75,16 +76,16 @@
           class="py-2 px-6 -mx-6 flex justify-between items-center relative hover:bg-gray-50 transition-colors cursor-pointer"
           :href="`mailto:${email}`"
           target="_blank"
+          rel="noopener noreferrer"
         >
           <div class="flex gap-3 items-center">
             <app-platform platform="email" />
             <span class="text-gray-900 text-xs">
-              {{ email }}</span
-            >
+              {{ email }}</span>
           </div>
           <i
             class="ri-external-link-line text-gray-300"
-          ></i>
+          />
         </a>
       </div>
     </div>
@@ -96,50 +97,45 @@
 </template>
 
 <script setup>
-import { MemberPermissions } from '@/modules/member/member-permissions'
-import { mapGetters } from '@/shared/vuex/vuex.helpers'
-import { computed, defineProps, ref } from 'vue'
-import AppMemberManageIdentitiesDrawer from '../../member-manage-identities-drawer'
+import { computed, defineProps, ref } from 'vue';
+import { MemberPermissions } from '@/modules/member/member-permissions';
+import { mapGetters } from '@/shared/vuex/vuex.helpers';
+import AppMemberManageIdentitiesDrawer from '../../member-manage-identities-drawer.vue';
 
 const props = defineProps({
   member: {
     type: Object,
-    default: () => {}
-  }
-})
+    default: () => {},
+  },
+});
 
-const { currentTenant, currentUser } = mapGetters('auth')
+const { currentTenant, currentUser } = mapGetters('auth');
 
-const identitiesDrawer = ref(false)
+const identitiesDrawer = ref(false);
 
-const emails = computed(() => {
-  return props.member.emails
-})
+const emails = computed(() => props.member.emails);
 
 const socialIdentities = computed(() => {
-  const identities = { ...props.member.username }
-  delete identities.emails
+  const identities = { ...props.member.username };
+  delete identities.emails;
 
-  return identities
-})
+  return identities;
+});
 
-const isEditLockedForSampleData = computed(() => {
-  return new MemberPermissions(
-    currentTenant.value,
-    currentUser.value
-  ).editLockedForSampleData
-})
+const isEditLockedForSampleData = computed(() => new MemberPermissions(
+  currentTenant.value,
+  currentUser.value,
+).editLockedForSampleData);
 
 const identityUrl = (platform) => {
   if (platform === 'hackernews') {
-    return `https://news.ycombinator.com/user?id=${socialIdentities.value.hackernews}`
-  } else if (
-    platform === 'linkedin' &&
-    socialIdentities.value[platform].includes('private-')
+    return `https://news.ycombinator.com/user?id=${socialIdentities.value.hackernews}`;
+  } if (
+    platform === 'linkedin'
+    && socialIdentities.value[platform].includes('private-')
   ) {
-    return null
-  } else {
-    return props.member.attributes.url?.[platform]
+    return null;
   }
-}
+  return props.member.attributes.url?.[platform];
+};
 </script>

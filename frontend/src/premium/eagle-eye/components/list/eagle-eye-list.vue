@@ -36,72 +36,66 @@
       v-if="loading"
       v-loading="loading"
       class="app-page-spinner h-16 w-16 !relative !min-h-fit"
-    ></div>
+    />
     <el-button
       v-else
       class="btn btn-link btn-link--primary"
       @click="onLoadMore"
-      ><i class="ri-arrow-down-line"></i
-      ><span class="text-xs">Load more</span></el-button
     >
+      <i class="ri-arrow-down-line" /><span class="text-xs">Load more</span>
+    </el-button>
   </div>
 </template>
 
 <script setup>
-import AppEagleEyeResultCard from '@/premium/eagle-eye/components/list/eagle-eye-result-card.vue'
-import { computed, defineProps } from 'vue'
-import { useStore } from 'vuex'
+import { computed, defineProps } from 'vue';
+import { useStore } from 'vuex';
+import AppEagleEyeResultCard from '@/premium/eagle-eye/components/list/eagle-eye-result-card.vue';
 
 const props = defineProps({
   list: {
     type: Array,
-    default: () => []
-  }
-})
+    default: () => [],
+  },
+});
 
-const store = useStore()
+const store = useStore();
 const activeView = computed(
-  () => store.getters['eagleEye/activeView']
-)
+  () => store.getters['eagleEye/activeView'],
+);
 const loading = computed(
-  () =>
-    store.state.eagleEye.views[activeView.value.id].list
-      .loading
-)
+  () => store.state.eagleEye.views[activeView.value.id].list
+    .loading,
+);
 const count = computed(
-  () =>
-    store.state.eagleEye.views[activeView.value.id].count
-)
+  () => store.state.eagleEye.views[activeView.value.id].count,
+);
 const pagination = computed(
-  () => store.getters['eagleEye/pagination']
-)
+  () => store.getters['eagleEye/pagination'],
+);
 
 const isLoadMoreVisible = computed(() => {
   if (activeView.value.id === 'feed') {
-    return false
+    return false;
   }
 
   return (
-    pagination.value.currentPage *
-      pagination.value.pageSize <
-    count.value
-  )
-})
+    pagination.value.currentPage
+      * pagination.value.pageSize
+    < count.value
+  );
+});
 
-const getItemsInColumn = (column) => {
-  return props.list.filter(
-    (_v, i) => (i - column) % 3 === 0
-  )
-}
+const getItemsInColumn = (column) => props.list.filter(
+  (_v, i) => (i - column) % 3 === 0,
+);
 
 const onLoadMore = () => {
   store.dispatch(
     'eagleEye/doChangePaginationCurrentPage',
-    pagination.value.currentPage + 1
-  )
-}
+    pagination.value.currentPage + 1,
+  );
+};
 
-const showBottomFeedMessage = computed(() => {
-  return activeView.value.id === 'feed'
-})
+const showBottomFeedMessage = computed(() => activeView.value.id === 'feed');
 </script>

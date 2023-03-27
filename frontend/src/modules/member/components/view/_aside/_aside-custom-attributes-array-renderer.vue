@@ -50,47 +50,44 @@
 </template>
 
 <script setup>
-import { defineProps, computed } from 'vue'
+import { defineProps, computed } from 'vue';
+
 const props = defineProps({
   attribute: {
     type: Array,
-    default: () => []
+    default: () => [],
   },
   title: {
     type: String,
-    default: 'Section title'
+    default: 'Section title',
   },
   moreLabel: {
     type: String,
-    default: 'items'
+    default: 'items',
   },
   sliceSize: {
     type: Number,
-    default: 3
+    default: 3,
   },
   itemClass: {
     type: String,
     default:
-      'border-b border-gray-200 last-of-type:border-none'
+      'border-b border-gray-200 last-of-type:border-none',
   },
   wrapperClass: {
     type: String,
-    default: null
-  }
-})
+    default: null,
+  },
+});
 
-const slicedValues = computed(() => {
-  return (
-    props.attribute?.default.slice(0, props.sliceSize) || []
-  )
-})
+const slicedValues = computed(() => (
+  props.attribute?.default.slice(0, props.sliceSize) || []
+));
 
-const restOfValues = computed(() => {
-  return (
-    props.attribute?.default.slice(
-      props.sliceSize,
-      props.attribute.length
-    ) || []
-  )
-})
+const restOfValues = computed(() => (
+  props.attribute?.default.slice(
+    props.sliceSize,
+    props.attribute.length,
+  ) || []
+));
 </script>

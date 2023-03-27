@@ -8,7 +8,7 @@
         <div
           v-loading="true"
           class="app-page-spinner"
-        ></div>
+        />
       </div>
       <slot>This is an alert</slot>
     </div>
@@ -21,14 +21,14 @@ export default {
   props: {
     variant: {
       type: String,
-      default: null
+      default: null,
     },
     spinner: {
       type: Boolean,
-      default: false
-    }
-  }
-}
+      default: false,
+    },
+  },
+};
 </script>
 
 <style lang="scss">

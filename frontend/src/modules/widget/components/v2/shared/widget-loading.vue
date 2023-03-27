@@ -11,7 +11,7 @@
       <i
         class="animate-pulse text-gray-200 text-5xl"
         :class="icon"
-      ></i>
+      />
       <div class="text-gray-600 text-sm font-semibold">
         Loading your data...
       </div>
@@ -31,25 +31,25 @@
 </template>
 
 <script setup>
-import { defineProps, computed } from 'vue'
-import AppLoading from '@/shared/loading/loading-placeholder.vue'
+import { defineProps, computed } from 'vue';
+import AppLoading from '@/shared/loading/loading-placeholder.vue';
 
 const props = defineProps({
   type: {
     type: String,
-    default: 'chart'
+    default: 'chart',
   },
   size: {
     type: String,
-    default: 'normal'
-  }
-})
+    default: 'normal',
+  },
+});
 
 const icon = computed(() => {
   if (props.type === 'chart') {
-    return 'ri-bar-chart-fill'
+    return 'ri-bar-chart-fill';
   }
 
-  return 'ri-list-unordered'
-})
+  return 'ri-list-unordered';
+});
 </script>

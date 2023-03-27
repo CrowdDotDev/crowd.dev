@@ -15,7 +15,7 @@
     >
       <div
         v-for="[key, value] in Object.entries(
-          identitiesForm
+          identitiesForm,
         )"
         :key="key"
         class="border-b border-gray-200 last:border-none"
@@ -54,12 +54,10 @@
                   onInputChange(newValue, key, value)
               "
             >
-              <template #prepend
-                ><span>{{ value.urlPrefix }}</span>
-                <span class="text-brand-500"
-                  >*</span
-                ></template
-              >
+              <template #prepend>
+                <span>{{ value.urlPrefix }}</span>
+                <span class="text-brand-500">*</span>
+              </template>
             </el-input>
             <template #error>
               <div class="el-form-item__error">
@@ -92,171 +90,171 @@ import {
   defineProps,
   reactive,
   computed,
-  watch
-} from 'vue'
-import { CrowdIntegrations } from '@/integrations/integrations-config'
+  watch,
+} from 'vue';
+import { CrowdIntegrations } from '@/integrations/integrations-config';
 
-const emit = defineEmits(['update:modelValue'])
+const emit = defineEmits(['update:modelValue']);
 const props = defineProps({
   modelValue: {
     type: Object,
-    default: () => {}
+    default: () => {},
   },
   record: {
     type: Object,
-    default: () => {}
+    default: () => {},
   },
   showHeader: {
     type: Boolean,
-    default: true
-  }
-})
+    default: true,
+  },
+});
 
 const model = computed({
   get() {
-    return props.modelValue
+    return props.modelValue;
   },
   set(newModel) {
-    emit('update:modelValue', newModel)
-  }
-})
+    emit('update:modelValue', newModel);
+  },
+});
 
 const computedModelEmails = computed({
   get() {
     return model.value.emails?.length > 0
       ? model.value.emails
-      : ['']
+      : [''];
   },
   set(emails) {
-    const nonEmptyEmails = emails.filter((e) => !!e)
+    const nonEmptyEmails = emails.filter((e) => !!e);
 
-    model.value.emails = nonEmptyEmails
-  }
-})
+    model.value.emails = nonEmptyEmails;
+  },
+});
 
 watch(
   model.value,
   (newValue) => {
     // Handle platform value each time username object is updated
-    const platforms = Object.keys(newValue.username || {})
+    const platforms = Object.keys(newValue.username || {});
 
     if (platforms.length) {
-      model.value.platform = platforms[0]
+      [model.value.platform] = platforms;
     } else if (newValue.emails) {
-      model.value.platform = 'emails'
+      model.value.platform = 'emails';
     } else {
-      model.value.platform = null
+      model.value.platform = null;
     }
   },
-  { deep: true }
-)
+  { deep: true },
+);
 
 const identitiesForm = reactive({
   devto: {
     enabled:
-      props.modelValue.username?.devto !== undefined ||
-      false,
+      props.modelValue.username?.devto !== undefined
+      || false,
     urlPrefix: 'dev.to/',
     imgContainerClass:
-      'h-8 w-8 rounded flex items-center justify-center text-base bg-gray-100 border border-gray-200'
+      'h-8 w-8 rounded flex items-center justify-center text-base bg-gray-100 border border-gray-200',
   },
   discord: {
     enabled:
-      props.modelValue.username?.discord !== undefined ||
-      false,
+      props.modelValue.username?.discord !== undefined
+      || false,
     urlPrefix: 'discord.com/',
     imgContainerClass:
-      'h-8 w-8 rounded flex items-center justify-center text-base btn--discord cursor-auto hover:cursor-auto'
+      'h-8 w-8 rounded flex items-center justify-center text-base btn--discord cursor-auto hover:cursor-auto',
   },
   github: {
     enabled:
-      props.modelValue.username?.github !== undefined ||
-      false,
+      props.modelValue.username?.github !== undefined
+      || false,
     urlPrefix: 'github.com/',
     imgContainerClass:
-      'h-8 w-8 rounded flex items-center justify-center text-base bg-gray-100 border border-gray-200'
+      'h-8 w-8 rounded flex items-center justify-center text-base bg-gray-100 border border-gray-200',
   },
   slack: {
     enabled:
-      props.modelValue.username?.slack !== undefined ||
-      false,
+      props.modelValue.username?.slack !== undefined
+      || false,
     urlPrefix: 'slack.com/',
     imgContainerClass:
-      'h-8 w-8 rounded flex items-center justify-center text-base btn--slack cursor-auto hover:cursor-auto bg-white border border-gray-200'
+      'h-8 w-8 rounded flex items-center justify-center text-base btn--slack cursor-auto hover:cursor-auto bg-white border border-gray-200',
   },
   twitter: {
     enabled:
-      props.modelValue.username?.twitter !== undefined ||
-      false,
+      props.modelValue.username?.twitter !== undefined
+      || false,
     urlPrefix: 'twitter.com/',
     imgContainerClass:
-      'h-8 w-8 rounded flex items-center justify-center text-base btn--twitter'
+      'h-8 w-8 rounded flex items-center justify-center text-base btn--twitter',
   },
   linkedin: {
     enabled:
-      props.modelValue.username?.linkedin !== undefined ||
-      false,
+      props.modelValue.username?.linkedin !== undefined
+      || false,
     urlPrefix: 'linkedin.com/in/',
     imgContainerClass:
-      'h-8 w-8 rounded flex items-center justify-center text-base btn--linkedin'
+      'h-8 w-8 rounded flex items-center justify-center text-base btn--linkedin',
   },
   reddit: {
     enabled:
-      props.modelValue.username?.reddit !== undefined ||
-      false,
+      props.modelValue.username?.reddit !== undefined
+      || false,
     urlPrefix: 'reddit.com/user/',
     imgContainerClass:
-      'h-8 w-8 rounded flex items-center justify-center text-base btn--reddit'
+      'h-8 w-8 rounded flex items-center justify-center text-base btn--reddit',
   },
   hackernews: {
     enabled:
-      props.modelValue.username?.hackernews !== undefined ||
-      false,
+      props.modelValue.username?.hackernews !== undefined
+      || false,
     urlPrefix: 'news.ycombinator.com/user?id=',
     imgContainerClass:
-      'h-8 w-8 rounded flex items-center justify-center text-base btn--hackernews'
+      'h-8 w-8 rounded flex items-center justify-center text-base btn--hackernews',
   },
   stackoverflow: {
     enabled:
-      props.modelValue.username?.stackoverflow !==
-        undefined || false,
+      props.modelValue.username?.stackoverflow
+        !== undefined || false,
     urlPrefix: 'stackoverflow.com/users/',
     imgContainerClass:
-      'h-8 w-8 rounded flex items-center justify-center text-base btn--stackoverflow'
-  }
-})
+      'h-8 w-8 rounded flex items-center justify-center text-base btn--stackoverflow',
+  },
+});
 
 function findPlatform(platform) {
-  return CrowdIntegrations.getConfig(platform)
+  return CrowdIntegrations.getConfig(platform);
 }
 
 function editingDisabled(platform) {
   return props.record
     ? props.record.activeOn.includes(platform)
-    : false
+    : false;
 }
 
 function onSwitchChange(value, key) {
   // Add platform to username object
   if (
-    (model.value.username?.[key] === null ||
-      model.value.username?.[key] === undefined) &&
-    value
+    (model.value.username?.[key] === null
+      || model.value.username?.[key] === undefined)
+    && value
   ) {
-    model.value.username[key] = ''
-    return
+    model.value.username[key] = '';
+    return;
   }
 
   // Remove platform from username object
   if (!value) {
-    delete model.value.username[key]
-    delete model.value.attributes?.url?.[key]
+    delete model.value.username[key];
+    delete model.value.attributes?.url?.[key];
   }
 
   // Handle platfom and attributes when username profiles are removed
   if (!Object.keys(model.value.username || {}).length) {
-    delete model.value.platform
-    delete model.value.attributes?.url
+    delete model.value.platform;
+    delete model.value.attributes?.url;
   }
 }
 
@@ -265,8 +263,8 @@ function onInputChange(newValue, key, value) {
     ...props.modelValue.attributes,
     url: {
       ...props.modelValue.attributes?.url,
-      [key]: `https://${value.urlPrefix}${newValue}`
-    }
-  }
+      [key]: `https://${value.urlPrefix}${newValue}`,
+    },
+  };
 }
 </script>

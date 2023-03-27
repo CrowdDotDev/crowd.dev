@@ -29,7 +29,7 @@
             <div
               class="flex items-center"
               :class="{
-                'h-6': showLoadingIcon
+                'h-6': showLoadingIcon,
               }"
             >
               <h5 :id="titleId" :class="titleClass">
@@ -42,12 +42,12 @@
                 v-if="showLoadingIcon"
                 v-loading="true"
                 class="app-page-spinner w-6 ml-4"
-              ></div>
+              />
             </div>
           </div>
         </slot>
         <div class="flex gap-3 items-center">
-          <slot name="actionBtn"></slot>
+          <slot name="actionBtn" />
           <div class="ml-3">
             <el-button
               class="btn btn--transparent btn--xs w-8 !h-8"
@@ -55,84 +55,84 @@
             >
               <i
                 class="ri-close-line text-lg text-gray-400"
-              ></i>
+              />
             </el-button>
           </div>
         </div>
       </div>
     </template>
-    <slot name="content"></slot>
+    <slot name="content" />
   </el-dialog>
 </template>
 
-<script>
-export default {
-  name: 'AppDialog'
-}
-</script>
-
 <script setup>
-import { defineProps, defineEmits, computed } from 'vue'
+import { defineProps, defineEmits, computed } from 'vue';
 
-const emit = defineEmits(['update:modelValue', 'close'])
+const emit = defineEmits(['update:modelValue', 'close']);
 const props = defineProps({
   modelValue: {
     type: Boolean,
-    default: () => false
+    default: () => false,
   },
   preTitle: {
     type: String,
-    default: () => null
+    default: () => null,
   },
   title: {
     type: [String, Node, Object],
-    required: true
+    required: true,
   },
   size: {
     type: String,
-    default: () => 'large'
+    default: () => 'large',
   },
   customClass: {
     type: String,
-    default: () => ''
+    default: () => '',
   },
   hasActionBtn: {
     type: Boolean,
-    default: () => false
+    default: () => false,
   },
   showHeader: {
     type: Boolean,
-    default: () => true
+    default: () => true,
   },
   showLoadingIcon: {
     type: Boolean,
-    default: () => false
-  }
-})
+    default: () => false,
+  },
+});
 
 const dialogSize = computed(() => {
   if (props.size === 'small') {
-    return 'el-dialog--sm'
-  } else if (props.size === 'extra-large') {
-    return 'el-dialog--xl'
-  } else if (props.size === '2extra-large') {
-    return 'el-dialog--2xl'
+    return 'el-dialog--sm';
+  } if (props.size === 'extra-large') {
+    return 'el-dialog--xl';
+  } if (props.size === '2extra-large') {
+    return 'el-dialog--2xl';
   }
 
-  return 'el-dialog--lg'
-})
+  return 'el-dialog--lg';
+});
 
 const model = computed({
   get() {
-    return props.modelValue
+    return props.modelValue;
   },
   set(value) {
-    emit('update:modelValue', value)
-  }
-})
+    emit('update:modelValue', value);
+  },
+});
 
 const onClose = () => {
-  model.value = false
-  emit('close')
-}
+  model.value = false;
+  emit('close');
+};
+</script>
+
+<script>
+export default {
+  name: 'AppDialog',
+};
 </script>

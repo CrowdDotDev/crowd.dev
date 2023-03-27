@@ -1,51 +1,51 @@
-import StringField from '@/shared/fields/string-field'
-import { formatDate } from '@/utils/date'
+import StringField from '@/shared/fields/string-field';
+import { formatDate } from '@/utils/date';
 
 export default class ActivityDateField extends StringField {
   constructor(name, label, config = {}) {
-    super(name, label)
+    super(name, label);
 
-    this.placeholder = config.placeholder
-    this.hint = config.hint
-    this.required = config.required
-    this.matches = config.matches
-    this.filterable = config.filterable || false
-    this.custom = config.custom || false
+    this.placeholder = config.placeholder;
+    this.hint = config.hint;
+    this.required = config.required;
+    this.matches = config.matches;
+    this.filterable = config.filterable || false;
+    this.custom = config.custom || false;
   }
 
   dropdownOptions() {
     return [
       {
         value: formatDate({
-          subtractDays: 1
+          subtractDays: 1,
         }),
-        label: 'Last 24 hours'
+        label: 'Last 24 hours',
       },
       {
         value: formatDate({
-          subtractDays: 7
+          subtractDays: 7,
         }),
-        label: 'Last 7 days'
+        label: 'Last 7 days',
       },
       {
         value: formatDate({
-          subtractDays: 14
+          subtractDays: 14,
         }),
-        label: 'Last 14 days'
+        label: 'Last 14 days',
       },
       {
         value: formatDate({
-          subtractDays: 30
+          subtractDays: 30,
         }),
-        label: 'Last 30 days'
+        label: 'Last 30 days',
       },
       {
         value: formatDate({
-          subtractDays: 90
+          subtractDays: 90,
         }),
-        label: 'Last 90 days'
-      }
-    ]
+        label: 'Last 90 days',
+      },
+    ];
   }
 
   forFilter() {
@@ -55,13 +55,13 @@ export default class ActivityDateField extends StringField {
       custom: this.custom,
       props: {
         options: this.dropdownOptions(),
-        multiple: false
+        multiple: false,
       },
       defaultValue: null,
       value: null,
       defaultOperator: 'gte',
       operator: 'gte',
-      type: 'select'
-    }
+      type: 'select',
+    };
   }
 }

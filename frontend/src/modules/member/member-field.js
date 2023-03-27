@@ -1,7 +1,7 @@
-import { MemberService } from '@/modules/member/member-service'
-import RelationToOneField from '@/shared/fields/relation-to-one-field'
-import RelationToManyField from '@/shared/fields/relation-to-many-field'
-import Permissions from '@/security/permissions'
+import { MemberService } from '@/modules/member/member-service';
+import RelationToOneField from '@/shared/fields/relation-to-one-field';
+import RelationToManyField from '@/shared/fields/relation-to-many-field';
+import Permissions from '@/security/permissions';
 
 export class MemberField {
   static relationToOne(name, label, options) {
@@ -13,16 +13,16 @@ export class MemberField {
       MemberService.listAutocomplete,
       (record) => {
         if (!record) {
-          return null
+          return null;
         }
 
         return {
           id: record.id,
-          label: record.displayName
-        }
+          label: record.displayName,
+        };
       },
-      options
-    )
+      options,
+    );
   }
 
   static relationToMany(name, label, options) {
@@ -34,15 +34,15 @@ export class MemberField {
       MemberService.listAutocomplete,
       (record) => {
         if (!record) {
-          return null
+          return null;
         }
 
         return {
           id: record.id,
-          label: record.displayName
-        }
+          label: record.displayName,
+        };
       },
-      options
-    )
+      options,
+    );
   }
 }

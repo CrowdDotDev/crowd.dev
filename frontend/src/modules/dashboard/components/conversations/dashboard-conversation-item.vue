@@ -9,7 +9,7 @@
           height="32px"
           width="32px"
           radius="50%"
-        ></app-loading>
+        />
       </div>
       <div class="flex-grow pl-3 pt-2.5">
         <app-loading
@@ -130,7 +130,7 @@
                   ri < conversation.lastReplies.length - 1
                 "
                 class="h-4 w-0.5 bg-gray-200 my-2"
-              ></div>
+              />
             </template>
           </app-conversation-reply>
         </div>
@@ -141,7 +141,7 @@
         <div class="flex items-center mr-6">
           <i
             class="ri-group-line text-base mr-2 text-gray-500"
-          ></i>
+          />
           <p class="text-xs text-gray-600">
             {{ conversation.memberCount }} participant{{
               conversation.memberCount > 1 ? 's' : ''
@@ -151,7 +151,7 @@
         <div class="flex items-center">
           <i
             class="ri-reply-line text-base mr-2 text-gray-500"
-          ></i>
+          />
           <p class="text-xs text-gray-600">
             {{ conversation.activityCount - 1 }}
             {{
@@ -168,27 +168,25 @@
           :href="url"
           class="text-2xs text-gray-600 font-medium flex items-center"
           target="_blank"
-          ><i class="ri-lg ri-external-link-line mr-1"></i>
-          <span class="block"
-            >Open on {{ platform.name }}</span
-          ></a
-        >
+          rel="noopener noreferrer"
+        ><i class="ri-lg ri-external-link-line mr-1" />
+          <span class="block">Open on {{ platform.name }}</span></a>
       </div>
     </div>
   </article>
 </template>
 
 <script>
-import AppAvatar from '@/shared/avatar/avatar'
-import AppConversationDropdown from '@/modules/conversation/components/conversation-dropdown'
-import { formatDateToTimeAgo } from '@/utils/date'
-import AppLoading from '@/shared/loading/loading-placeholder'
-import AppActivityContent from '@/modules/activity/components/activity-content'
-import AppConversationReply from '@/modules/conversation/components/conversation-reply'
-import AppActivitySentiment from '@/modules/activity/components/activity-sentiment'
-import AppMemberDisplayName from '@/modules/member/components/member-display-name'
-import { CrowdIntegrations } from '@/integrations/integrations-config'
-import AppActivityMessage from '@/modules/activity/components/activity-message'
+import { formatDateToTimeAgo } from '@/utils/date';
+import { CrowdIntegrations } from '@/integrations/integrations-config';
+import AppAvatar from '@/shared/avatar/avatar.vue';
+import AppConversationDropdown from '@/modules/conversation/components/conversation-dropdown.vue';
+import AppLoading from '@/shared/loading/loading-placeholder.vue';
+import AppActivityContent from '@/modules/activity/components/activity-content.vue';
+import AppConversationReply from '@/modules/conversation/components/conversation-reply.vue';
+import AppActivitySentiment from '@/modules/activity/components/activity-sentiment.vue';
+import AppMemberDisplayName from '@/modules/member/components/member-display-name.vue';
+import AppActivityMessage from '@/modules/activity/components/activity-message.vue';
 
 export default {
   name: 'AppDashboardConversationItem',
@@ -200,48 +198,48 @@ export default {
     AppLoading,
     AppConversationDropdown,
     AppAvatar,
-    AppActivitySentiment
+    AppActivitySentiment,
   },
   props: {
     conversation: {
       type: Object,
       required: false,
-      default: () => ({})
+      default: () => ({}),
     },
     loading: {
       type: Boolean,
       required: false,
-      default: false
-    }
+      default: false,
+    },
   },
   emits: ['details'],
   computed: {
     platform() {
       return CrowdIntegrations.getConfig(
-        this.conversation.platform
-      )
+        this.conversation.platform,
+      );
     },
     member() {
-      return this.conversation.conversationStarter.member
+      return this.conversation.conversationStarter.member;
     },
     sentiment() {
       return this.conversation.conversationStarter.sentiment
-        .sentiment
+        .sentiment;
     },
     url() {
       return (
-        this.conversation.url ||
-        this.conversation.conversationStarter.url
-      )
-    }
+        this.conversation.url
+        || this.conversation.conversationStarter.url
+      );
+    },
   },
   methods: {
     timeAgo(date) {
-      return formatDateToTimeAgo(date)
+      return formatDateToTimeAgo(date);
     },
     openConversation() {
-      this.$emit('details', this.conversation.id)
-    }
-  }
-}
+      this.$emit('details', this.conversation.id);
+    },
+  },
+};
 </script>

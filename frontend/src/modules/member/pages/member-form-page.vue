@@ -9,8 +9,9 @@
         :icon="ArrowPrevIcon"
         class="text-gray-600 btn-link--md btn-link--secondary p-0"
         @click="onCancel"
-        >Members</el-button
       >
+        Members
+      </el-button>
       <h4 class="mt-4 mb-6">
         {{ isEditPage ? 'Edit member' : 'New member' }}
       </h4>
@@ -61,9 +62,10 @@
             class="btn btn-link btn-link--primary"
             :disabled="isFormSubmitting"
             @click="onReset"
-            ><i class="ri-arrow-go-back-line"></i>
-            <span>Reset changes</span></el-button
           >
+            <i class="ri-arrow-go-back-line" />
+            <span>Reset changes</span>
+          </el-button>
           <div class="flex gap-4">
             <el-button
               :disabled="isFormSubmitting"
@@ -90,7 +92,7 @@
         <div
           v-loading="isPageLoading"
           class="app-page-spinner w-full"
-        ></div>
+        />
       </el-container>
     </div>
 
@@ -103,156 +105,179 @@
 </template>
 
 <script setup>
-import AppMemberFormDetails from '@/modules/member/components/form/member-form-details.vue'
-import AppMemberFormIdentities from '@/modules/member/components/form/member-form-identities.vue'
-import AppMemberFormAttributes from '@/modules/member/components/form/member-form-attributes.vue'
-import AppMemberGlobalAttributesDrawer from '@/modules/member/components/member-global-attributes-drawer.vue'
-import { MemberModel } from '@/modules/member/member-model'
-import { FormSchema } from '@/shared/form/form-schema'
 import {
-  h,
-  reactive,
-  ref,
-  computed,
-  onMounted,
-  onUnmounted,
-  watch
-} from 'vue'
-import {
-  useRouter,
-  useRoute,
-  onBeforeRouteLeave
-} from 'vue-router'
-import isEqual from 'lodash/isEqual'
-import ConfirmDialog from '@/shared/dialog/confirm-dialog.js'
-import { useStore } from 'vuex'
-import getCustomAttributes from '@/shared/fields/get-custom-attributes.js'
-import getAttributesModel from '@/shared/attributes/get-attributes-model.js'
-import getParsedAttributes from '@/shared/attributes/get-parsed-attributes.js'
+  computed, h, onMounted, onUnmounted, reactive, ref, watch,
+} from 'vue';
+import { onBeforeRouteLeave, useRoute, useRouter } from 'vue-router';
+import isEqual from 'lodash/isEqual';
+import { useStore } from 'vuex';
+import AppMemberFormDetails from '@/modules/member/components/form/member-form-details.vue';
+import AppMemberFormIdentities from '@/modules/member/components/form/member-form-identities.vue';
+import AppMemberFormAttributes from '@/modules/member/components/form/member-form-attributes.vue';
+import AppMemberGlobalAttributesDrawer from '@/modules/member/components/member-global-attributes-drawer.vue';
+import { MemberModel } from '@/modules/member/member-model';
+import { FormSchema } from '@/shared/form/form-schema';
+import ConfirmDialog from '@/shared/dialog/confirm-dialog';
+import getCustomAttributes from '@/shared/fields/get-custom-attributes';
+import getAttributesModel from '@/shared/attributes/get-attributes-model';
+import getParsedAttributes from '@/shared/attributes/get-parsed-attributes';
 
 const LoaderIcon = h(
   'i',
   {
-    class: 'ri-loader-4-fill text-sm text-white'
+    class: 'ri-loader-4-fill text-sm text-white',
   },
-  []
-)
+  [],
+);
 const ArrowPrevIcon = h(
   'i', // type
   {
-    class: 'ri-arrow-left-s-line text-base leading-none'
+    class: 'ri-arrow-left-s-line text-base leading-none',
   }, // props
-  []
-)
+  [],
+);
 
-const { fields } = MemberModel
+const router = useRouter();
+const route = useRoute();
+const store = useStore();
+
+const { fields } = MemberModel;
 const formSchema = computed(
-  () =>
-    new FormSchema([
-      fields.displayName,
-      fields.emails,
-      fields.joinedAt,
-      fields.tags,
-      fields.username,
-      fields.organizations,
-      fields.attributes,
-      ...getCustomAttributes({
-        customAttributes:
-          store.state.member.customAttributes,
-        considerShowProperty: false
-      })
-    ])
-)
+  () => new FormSchema([
+    fields.displayName,
+    fields.emails,
+    fields.joinedAt,
+    fields.tags,
+    fields.username,
+    fields.organizations,
+    fields.attributes,
+    ...getCustomAttributes({
+      customAttributes:
+      store.state.member.customAttributes,
+      considerShowProperty: false,
+    }),
+  ]),
+);
 
-const router = useRouter()
-const route = useRoute()
-const store = useStore()
+function filteredAttributes(attributes) {
+  return Object.keys(attributes).reduce((acc, item) => {
+    if (
+      ![
+        'emails',
+        'workExperiences',
+        'education',
+        'certifications',
+        'awards',
+      ].includes(item)
+    ) {
+      acc[item] = attributes[item];
+    }
+    return acc;
+  }, {});
+}
 
-const record = ref(null)
-const formRef = ref(null)
-const formModel = ref(getInitialModel())
+function getInitialModel(r) {
+  const attributes = getAttributesModel(r);
 
-const isPageLoading = ref(true)
-const isFormSubmitting = ref(false)
-const wasFormSubmittedSuccessfuly = ref(false)
-const isDrawerOpen = ref(false)
+  return JSON.parse(
+    JSON.stringify(
+      formSchema.value.initialValues({
+        displayName: r ? r.displayName : '',
+        emails: r ? r.emails : '',
+        joinedAt: r ? r.joinedAt : '',
+        attributes: r
+          ? filteredAttributes(r.attributes)
+          : {},
+        organizations: r ? r.organizations : [],
+        ...attributes,
+        tags: r ? r.tags : [],
+        username: r ? r.username : {},
+        platform: r
+          ? r.username[Object.keys(r.username)[0]]
+          : '',
+      }),
+    ),
+  );
+}
 
-const rules = reactive(formSchema.value.rules())
+const record = ref(null);
+const formRef = ref(null);
+const formModel = ref(getInitialModel());
 
-const computedFields = computed(() => fields)
-const computedAttributes = computed(() =>
-  Object.values(store.state.member.customAttributes)
-)
+const isPageLoading = ref(true);
+const isFormSubmitting = ref(false);
+const wasFormSubmittedSuccessfuly = ref(false);
+const isDrawerOpen = ref(false);
+
+const rules = reactive(formSchema.value.rules());
+
+const computedFields = computed(() => fields);
+const computedAttributes = computed(() => Object.values(store.state.member.customAttributes));
 
 // UI Validations
-const isEditPage = computed(() => !!route.params.id)
-const isFormValid = computed(() => {
-  return formSchema.value.isValidSync(formModel.value)
-})
-const isSubmitBtnDisabled = computed(
-  () =>
-    !isFormValid.value ||
-    isFormSubmitting.value ||
-    (isEditPage.value && !hasFormChanged.value)
-)
+const isEditPage = computed(() => !!route.params.id);
+const isFormValid = computed(() => formSchema.value.isValidSync(formModel.value));
+
 const hasFormChanged = computed(() => {
   const initialModel = isEditPage.value
     ? getInitialModel(record.value)
-    : getInitialModel()
+    : getInitialModel();
 
-  return !isEqual(initialModel, formModel.value)
-})
+  return !isEqual(initialModel, formModel.value);
+});
+
+const isSubmitBtnDisabled = computed(
+  () => !isFormValid.value
+    || isFormSubmitting.value
+    || (isEditPage.value && !hasFormChanged.value),
+);
 
 // Prevent lost data on route change
 onBeforeRouteLeave((to) => {
   if (
-    hasFormChanged.value &&
-    !wasFormSubmittedSuccessfuly.value &&
-    to.fullPath !== '/500'
+    hasFormChanged.value
+    && !wasFormSubmittedSuccessfuly.value
+    && to.fullPath !== '/500'
   ) {
     return ConfirmDialog({})
-      .then(() => {
-        return true
-      })
-      .catch(() => {
-        return false
-      })
+      .then(() => true)
+      .catch(() => false);
   }
 
-  return true
-})
+  return true;
+});
 
 onMounted(async () => {
   // Fetch custom attributes on mount
-  await store.dispatch('member/doFetchCustomAttributes')
+  await store.dispatch('member/doFetchCustomAttributes');
 
   if (isEditPage.value) {
-    const id = route.params.id
+    const { id } = route.params;
 
-    record.value = await store.dispatch('member/doFind', id)
-    isPageLoading.value = false
-    formModel.value = getInitialModel(record.value)
+    record.value = await store.dispatch('member/doFind', id);
+    isPageLoading.value = false;
+    formModel.value = getInitialModel(record.value);
   } else {
-    isPageLoading.value = false
+    isPageLoading.value = false;
   }
-})
+});
 
 // Prevent window reload when form has changes
 const preventWindowReload = (e) => {
   if (hasFormChanged.value) {
-    e.preventDefault()
-    e.returnValue = ''
+    e.preventDefault();
+    e.returnValue = '';
   }
-}
+};
 
-window.addEventListener('beforeunload', preventWindowReload)
+window.addEventListener('beforeunload', preventWindowReload);
 
 onUnmounted(() => {
   window.removeEventListener(
     'beforeunload',
-    preventWindowReload
-  )
-})
+    preventWindowReload,
+  );
+});
 
 // Once form is submitted successfuly, update route
 watch(
@@ -263,141 +288,99 @@ watch(
         return router.push({
           name: 'memberView',
           params: {
-            id: record.value.id
-          }
-        })
+            id: record.value.id,
+          },
+        });
       }
 
-      return router.push({ name: 'member' })
+      return router.push({ name: 'member' });
     }
-  }
-)
-
-function getInitialModel(record) {
-  const attributes = getAttributesModel(record)
-
-  return JSON.parse(
-    JSON.stringify(
-      formSchema.value.initialValues({
-        displayName: record ? record.displayName : '',
-        emails: record ? record.emails : '',
-        joinedAt: record ? record.joinedAt : '',
-        attributes: record
-          ? filteredAttributes(record.attributes)
-          : {},
-        organizations: record ? record.organizations : [],
-        ...attributes,
-        tags: record ? record.tags : [],
-        username: record ? record.username : {},
-        platform: record
-          ? record.username[Object.keys(record.username)[0]]
-          : ''
-      })
-    )
-  )
-}
-
-function filteredAttributes(attributes) {
-  return Object.keys(attributes).reduce((acc, item) => {
-    if (
-      ![
-        'emails',
-        'workExperiences',
-        'education',
-        'certifications',
-        'awards'
-      ].includes(item)
-    ) {
-      acc[item] = attributes[item]
-    }
-    return acc
-  }, {})
-}
+    return null;
+  },
+);
 
 async function onReset() {
-  const initialModel = isEditPage.value
+  formModel.value = isEditPage.value
     ? getInitialModel(record.value)
-    : getInitialModel()
-
-  formModel.value = initialModel
+    : getInitialModel();
 }
 
 async function onCancel() {
-  router.push({ name: 'member' })
+  router.push({ name: 'member' });
 }
 
 async function onSubmit() {
   const formattedAttributes = getParsedAttributes(
     computedAttributes.value,
-    formModel.value
-  )
+    formModel.value,
+  );
 
   // Remove any existent empty data
-  const data = Object.assign(
-    {},
-    formModel.value.displayName && {
-      displayName: formModel.value.displayName
-    },
-    formModel.value.emails && {
-      emails: formModel.value.emails
-    },
-    formModel.value.joinedAt && {
-      joinedAt: formModel.value.joinedAt
-    },
-    formModel.value.platform && {
-      platform: formModel.value.platform
-    },
-    formModel.value.tags.length && {
-      tags: formModel.value.tags.map((t) => t.id)
-    },
-    formModel.value.organizations.length && {
-      organizations: formModel.value.organizations.map(
-        (o) => o.id
-      )
-    },
-    (Object.keys(formattedAttributes).length ||
-      formModel.value.attributes) && {
-      attributes: {
-        ...(Object.keys(formattedAttributes).length &&
-          formattedAttributes),
-        ...(formModel.value.attributes.url && {
-          url: formModel.value.attributes.url
-        })
-      }
-    },
-    Object.keys(formModel.value.username).length && {
-      username: formModel.value.username
-    }
-  )
+  const data = {
 
-  let isRequestSuccessful = false
+    ...formModel.value.displayName && {
+      displayName: formModel.value.displayName,
+    },
+    ...formModel.value.emails && {
+      emails: formModel.value.emails,
+    },
+    ...formModel.value.joinedAt && {
+      joinedAt: formModel.value.joinedAt,
+    },
+    ...formModel.value.platform && {
+      platform: formModel.value.platform,
+    },
+    ...formModel.value.tags.length && {
+      tags: formModel.value.tags.map((t) => t.id),
+    },
+    ...formModel.value.organizations.length && {
+      organizations: formModel.value.organizations.map(
+        (o) => o.id,
+      ),
+    },
+    ...(Object.keys(formattedAttributes).length
+      || formModel.value.attributes) && {
+      attributes: {
+        ...(Object.keys(formattedAttributes).length
+          && formattedAttributes),
+        ...(formModel.value.attributes.url && {
+          url: formModel.value.attributes.url,
+        }),
+      },
+    },
+    ...Object.keys(formModel.value.username).length && {
+      username: formModel.value.username,
+    },
+  };
+
+  let isRequestSuccessful = false;
 
   // Edit member
   if (isEditPage.value) {
-    isFormSubmitting.value = true
+    isFormSubmitting.value = true;
 
     isRequestSuccessful = await store.dispatch(
       'member/doUpdate',
       {
         id: record.value.id,
-        values: data
-      }
-    )
+        values: data,
+      },
+    );
   } else {
     // Create new member
-    isFormSubmitting.value = true
+    isFormSubmitting.value = true;
     isRequestSuccessful = await store.dispatch(
       'member/doCreate',
       {
-        data
-      }
-    )
+        data,
+      },
+    );
   }
 
-  isFormSubmitting.value = false
+  isFormSubmitting.value = false;
 
   if (isRequestSuccessful) {
-    wasFormSubmittedSuccessfuly.value = true
+    wasFormSubmittedSuccessfuly.value = true;
   }
 }
 </script>

@@ -12,34 +12,34 @@
 </template>
 
 <script>
-import AppTagPopover from '@/modules/tag/components/tag-popover'
-import { MemberModel } from '../../member-model'
-import { FormSchema } from '@/shared/form/form-schema'
-import { mapActions } from 'vuex'
+import { mapActions } from 'vuex';
+import { FormSchema } from '@/shared/form/form-schema';
+import AppTagPopover from '@/modules/tag/components/tag-popover.vue';
+import { MemberModel } from '../../member-model';
 
-const { fields } = MemberModel
-const formSchema = new FormSchema([fields.tags])
+const { fields } = MemberModel;
+const formSchema = new FormSchema([fields.tags]);
 
 export default {
   name: 'AppMemberListBulkUpdateTags',
 
   components: {
-    AppTagPopover
+    AppTagPopover,
   },
 
   props: {
     modelValue: {
       type: Boolean,
-      default: false
+      default: false,
     },
     loading: {
       type: Boolean,
-      default: false
+      default: false,
     },
     selectedRows: {
       type: Array,
-      default: () => []
-    }
+      default: () => [],
+    },
   },
 
   emits: ['update:modelValue'],
@@ -48,71 +48,70 @@ export default {
     return {
       bulkEditTags: false,
       bulkEditTagsModel: [],
-      bulkEditTagsInCommon: []
-    }
+      bulkEditTagsInCommon: [],
+    };
   },
 
   watch: {
     modelValue: {
-      handler: async function (newValue) {
+      async handler(newValue) {
         if (newValue) {
-          await this.prepareBulkUpdateTags()
+          await this.prepareBulkUpdateTags();
         }
-      }
-    }
+      },
+    },
   },
 
   methods: {
     ...mapActions({
       doBulkUpdateMembersTags:
-        'member/doBulkUpdateMembersTags'
+        'member/doBulkUpdateMembersTags',
     }),
 
     async doBulkUpdateTagsWithConfirm() {
       try {
-        this.$emit('update:modelValue', false)
-        this.bulkEditTags = false
+        this.$emit('update:modelValue', false);
+        this.bulkEditTags = false;
 
         return this.doBulkUpdateMembersTags({
           members: [...this.selectedRows],
           tagsInCommon: this.bulkEditTagsInCommon,
-          tagsToSave: this.bulkEditTagsModel
-        })
+          tagsToSave: this.bulkEditTagsModel,
+        });
       } catch (error) {
         // no
       }
+      return null;
     },
 
     prepareBulkUpdateTags() {
       this.bulkEditTagsModel = this.selectedRows.reduce(
         (acc, item, index) => {
-          let tags = formSchema.initialValues({
-            tags: item.tags
-          }).tags
+          let { tags } = formSchema.initialValues({
+            tags: item.tags,
+          });
           if (index > 0) {
             tags = tags.filter(
-              (tag) =>
-                acc.filter((t) => t.id === tag.id).length >
-                0
-            )
+              (tag) => acc.filter((t) => t.id === tag.id).length
+                > 0,
+            );
           }
-          acc = tags
-          return acc
+          return tags;
         },
-        []
-      )
+        [],
+      );
       this.bulkEditTagsInCommon = [
-        ...this.bulkEditTagsModel
-      ]
-      this.bulkEditTags = true
+        ...this.bulkEditTagsModel,
+      ];
+      this.bulkEditTags = true;
     },
 
     cancelBulkUpdateTags() {
-      this.bulkEditTagsModel = []
-      this.bulkEditTagsInCommon = []
-      this.$emit('update:modelValue', false)
-      this.bulkEditTags = false
-    }
-  }
-}
+      this.bulkEditTagsModel = [];
+      this.bulkEditTagsInCommon = [];
+      this.$emit('update:modelValue', false);
+      this.bulkEditTags = false;
+    },
+  },
+};
 </script>

@@ -1,14 +1,14 @@
-import Plans from '@/security/plans'
-import { router } from '@/router'
-import ConfirmDialog from '@/shared/dialog/confirm-dialog'
-import { formatNumber } from '@/utils/number'
-import { h } from 'vue'
-import Message from '@/shared/message/message'
-import pluralize from 'pluralize'
-import { FeatureFlag, FEATURE_FLAGS } from '@/featureFlag'
+import { h } from 'vue';
+import pluralize from 'pluralize';
+import Plans from '@/security/plans';
+import { router } from '@/router';
+import ConfirmDialog from '@/shared/dialog/confirm-dialog';
+import { formatNumber } from '@/utils/number';
+import Message from '@/shared/message/message';
+import { FeatureFlag, FEATURE_FLAGS } from '@/featureFlag';
 
-const growthEnrichmentMax = 1000
-const essentialEnrichmentMax = 5
+const growthEnrichmentMax = 1000;
+const essentialEnrichmentMax = 5;
 
 /**
  * @param {*} plan tenant plan (Essential | Growth | Enterprise)
@@ -16,124 +16,121 @@ const essentialEnrichmentMax = 5
  */
 export const getEnrichmentMax = (plan) => {
   if (
-    plan === Plans.values.growth ||
-    plan === Plans.values.enterprise
+    plan === Plans.values.growth
+    || plan === Plans.values.enterprise
   ) {
-    return growthEnrichmentMax
+    return growthEnrichmentMax;
   }
 
-  return essentialEnrichmentMax
-}
+  return essentialEnrichmentMax;
+};
 
 /**
  * @param {*} planEnrichmentCountMax maximum plan enrichment count
  * @returns if enrichment has reached limit
  */
 export const checkEnrichmentLimit = (
-  planEnrichmentCountMax
+  planEnrichmentCountMax,
 ) => {
   const isFeatureEnabled = FeatureFlag.isFlagEnabled(
-    FEATURE_FLAGS.memberEnrichment
-  )
+    FEATURE_FLAGS.memberEnrichment,
+  );
 
   if (!isFeatureEnabled) {
     ConfirmDialog({
       vertical: true,
       type: 'danger',
       title: `You have reached the limit of ${formatNumber(
-        planEnrichmentCountMax
+        planEnrichmentCountMax,
       )} enrichments per month on your current plan`,
       message:
         'Upgrade your plan in order to increase your quota of available member enrichments.',
       icon: 'ri-error-warning-line',
       confirmButtonText: 'Upgrade plan',
-      showCancelButton: false
+      showCancelButton: false,
     }).then(() => {
-      router.push(`/settings?activeTab=plans`)
-    })
-
-    return true
+      router.push('/settings?activeTab=plans');
+    });
   }
-}
+  return true;
+};
 
 export const checkEnrichmentPlan = ({
   enrichmentCount,
-  planEnrichmentCountMax
+  planEnrichmentCountMax,
 }) => {
   if (enrichmentCount > planEnrichmentCountMax) {
     ConfirmDialog({
       vertical: true,
       type: 'danger',
       title: `You are trying to enrich a number of members above the limit of ${formatNumber(
-        planEnrichmentCountMax
+        planEnrichmentCountMax,
       )} enrichments available in your current plan`,
       message:
         'Upgrade your plan in order to increase your quota of available member enrichments.',
       icon: 'ri-error-warning-line',
       confirmButtonText: 'Upgrade plan',
-      showCancelButton: false
+      showCancelButton: false,
     }).then(() => {
-      router.push(`/settings?activeTab=plans`)
-    })
-
-    return true
+      router.push('/settings?activeTab=plans');
+    });
   }
-}
+  return true;
+};
 
 export const showEnrichmentSuccessMessage = ({
   enrichedMembers = 1,
   memberEnrichmentCount,
   planEnrichmentCountMax,
   plan,
-  isBulk
+  isBulk,
 }) => {
   const commonMessage = `${formatNumber(
-    memberEnrichmentCount
+    memberEnrichmentCount,
   )} out of ${formatNumber(
-    planEnrichmentCountMax
-  )} enrichments used this month.`
+    planEnrichmentCountMax,
+  )} enrichments used this month.`;
 
   const essentialMessage = h('span', null, [
     h('span', null, commonMessage),
     h(
       'a',
       {
-        href: '/settings?activeTab=plans'
+        href: '/settings?activeTab=plans',
       },
-      ' Upgrade your plan '
+      ' Upgrade your plan ',
     ),
     h(
       'span',
       `to increase your quota to ${formatNumber(
-        growthEnrichmentMax
-      )} enrichments.`
-    )
-  ])
+        growthEnrichmentMax,
+      )} enrichments.`,
+    ),
+  ]);
 
-  const message =
-    plan === Plans.values.essential
-      ? essentialMessage
-      : commonMessage
+  const message = plan === Plans.values.essential
+    ? essentialMessage
+    : commonMessage;
 
-  Message.closeAll()
+  Message.closeAll();
   Message.success(message, {
     title: `Successfully enriched ${pluralize(
       'member',
       enrichedMembers,
-      isBulk
-    )}`
-  })
-}
+      isBulk,
+    )}`,
+  });
+};
 
 export const showEnrichmentLoadingMessage = ({
-  isBulk
+  isBulk,
 }) => {
   Message.info(
     "We'll let you know when the process is done.",
     {
       title: `${
         isBulk ? 'Members are' : 'Member is'
-      } being enriched`
-    }
-  )
-}
+      } being enriched`,
+    },
+  );
+};

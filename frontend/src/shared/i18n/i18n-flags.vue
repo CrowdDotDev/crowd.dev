@@ -12,24 +12,24 @@
 </template>
 
 <script>
-import { I18nUtil } from '@/shared/i18n/i18n-util'
-import { getLanguages } from '@/i18n'
+import { I18nUtil } from '@/shared/i18n/i18n-util';
+import { getLanguages } from '@/i18n';
 
 export default {
   name: 'AppI18nFlags',
 
   computed: {
     languages() {
-      return getLanguages()
-    }
+      return getLanguages();
+    },
   },
 
   methods: {
     doChangeLanguage(language) {
-      I18nUtil.doChangeLanguage(language)
-    }
-  }
-}
+      I18nUtil.doChangeLanguage(language);
+    },
+  },
+};
 </script>
 
 <style>

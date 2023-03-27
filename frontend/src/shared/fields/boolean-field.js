@@ -1,20 +1,20 @@
-import * as yup from 'yup'
-import { i18n } from '@/i18n'
-import GenericField from '@/shared/fields/generic-field'
+import * as yup from 'yup';
+import { i18n } from '@/i18n';
+import GenericField from '@/shared/fields/generic-field';
 
 export default class BooleanField extends GenericField {
   constructor(name, label, config = {}) {
-    super(name, label)
+    super(name, label);
 
-    this.hint = config.hint
-    this.yesLabel = config.yesLabel || i18n('common.yes')
-    this.noLabel = config.noLabel || i18n('common.no')
-    this.filterable = config.filterable || false
-    this.custom = config.custom || false
+    this.hint = config.hint;
+    this.yesLabel = config.yesLabel || i18n('common.yes');
+    this.noLabel = config.noLabel || i18n('common.no');
+    this.filterable = config.filterable || false;
+    this.custom = config.custom || false;
   }
 
   forPresenter(value) {
-    return value ? this.yesLabel : this.noLabel
+    return value ? this.yesLabel : this.noLabel;
   }
 
   forFilter() {
@@ -27,32 +27,31 @@ export default class BooleanField extends GenericField {
       value: null,
       defaultOperator: 'eq',
       operator: null,
-      type: 'boolean'
-    }
+      type: 'boolean',
+    };
   }
 
   forFilterPreview(value) {
-    return value == null
-      ? null
-      : value
-      ? this.yesLabel
-      : this.noLabel
+    if (value == null) {
+      return null;
+    }
+    return value ? this.yesLabel : this.noLabel;
   }
 
   forFilterInitialValue(value) {
-    return value
+    return value;
   }
 
   forFormInitialValue(value) {
-    return value
+    return value;
   }
 
   forFormCast() {
-    return yup.bool().default(false).label(this.label)
+    return yup.bool().default(false).label(this.label);
   }
 
   forFilterCast() {
-    return yup.bool().nullable(true).label(this.label)
+    return yup.bool().nullable(true).label(this.label);
   }
 
   forExport() {
@@ -60,10 +59,10 @@ export default class BooleanField extends GenericField {
       .bool()
       .nullable(true)
       .default(false)
-      .label(this.label)
+      .label(this.label);
   }
 
   forImport() {
-    return yup.bool().default(false).label(this.label)
+    return yup.bool().default(false).label(this.label);
   }
 }

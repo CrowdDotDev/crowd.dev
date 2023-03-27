@@ -18,17 +18,14 @@
           v-if="loadingIntegrations"
           v-loading="loadingIntegrations"
           class="app-page-spinner"
-        ></div>
+        />
         <div v-else class="flex flex-col">
           <div class="flex flex-col gap-1 mb-6">
             <span
               class="text-base font-semibold text-brand-500"
-              >Trigger</span
-            >
-            <span class="text-gray-500 text-2xs"
-              >Define the event that triggers your
-              webkook</span
-            >
+            >Trigger</span>
+            <span class="text-gray-500 text-2xs">Define the event that triggers your
+              webkook</span>
           </div>
           <el-form-item
             :label="fields.trigger.label"
@@ -45,7 +42,7 @@
                 value="new_activity"
                 :label="
                   translate(
-                    'entities.automation.triggers.new_activity'
+                    'entities.automation.triggers.new_activity',
                   )
                 "
                 @mouseleave="onSelectMouseLeave"
@@ -55,7 +52,7 @@
                 value="new_member"
                 :label="
                   translate(
-                    'entities.automation.triggers.new_member'
+                    'entities.automation.triggers.new_member',
                   )
                 "
                 @mouseleave="onSelectMouseLeave"
@@ -89,9 +86,14 @@
                     >
                       <div class="flex items-center">
                         <img
+                          :alt="
+                            getPlatformDetails(
+                              platform.value,
+                            ).name
+                          "
                           :src="
                             getPlatformDetails(
-                              platform.value
+                              platform.value,
                             ).image
                           "
                           class="w-4 h-4 mr-2"
@@ -134,7 +136,7 @@
                 "
                 class="text-gray-900"
                 label="Include activities from team members"
-              ></el-checkbox>
+              />
             </el-collapse-item>
           </el-collapse>
 
@@ -169,17 +171,14 @@
 
           <el-divider
             class="border-gray-200 mt-4 mb-6"
-          ></el-divider>
+          />
 
           <div class="flex flex-col gap-1 mb-6">
             <span
               class="text-base font-semibold text-brand-500"
-              >Action</span
-            >
-            <span class="text-gray-500 text-2xs"
-              >Define the endpoint where the webhook payload
-              should be sent to</span
-            >
+            >Action</span>
+            <span class="text-gray-500 text-2xs">Define the endpoint where the webhook payload
+              should be sent to</span>
           </div>
 
           <el-form-item
@@ -191,7 +190,7 @@
               v-model="model.settings.url"
               type="text"
               placholder="https://somewebhook.url"
-            ></el-input>
+            />
           </el-form-item>
         </div>
       </el-form>
@@ -210,9 +209,10 @@
           v-if="isEditing && isDirty"
           class="btn btn-link btn-link--primary"
           @click="doReset"
-          ><i class="ri-arrow-go-back-line"></i>
-          <span>Reset changes</span></el-button
         >
+          <i class="ri-arrow-go-back-line" />
+          <span>Reset changes</span>
+        </el-button>
 
         <div class="flex gap-4">
           <el-button
@@ -220,7 +220,7 @@
             class="btn btn--md btn--bordered"
             @click="doCancel"
           >
-            <app-i18n code="common.cancel"></app-i18n>
+            <app-i18n code="common.cancel" />
           </el-button>
 
           <el-button
@@ -237,17 +237,17 @@
 </template>
 
 <script>
-import { mapGetters, mapActions } from 'vuex'
-import { AutomationModel } from '@/modules/automation/automation-model'
-import { FormSchema } from '@/shared/form/form-schema'
-import { i18n } from '@/i18n'
-import activityTypesJson from '@/jsons/activity-types.json'
-import UrlField from '@/shared/fields/url-field'
-import isEqual from 'lodash/isEqual'
-import { onSelectMouseLeave } from '@/utils/select'
-import { CrowdIntegrations } from '@/integrations/integrations-config'
+import { mapGetters, mapActions } from 'vuex';
+import isEqual from 'lodash/isEqual';
+import { AutomationModel } from '@/modules/automation/automation-model';
+import { FormSchema } from '@/shared/form/form-schema';
+import { i18n } from '@/i18n';
+import activityTypesJson from '@/jsons/activity-types.json';
+import UrlField from '@/shared/fields/url-field';
+import { onSelectMouseLeave } from '@/utils/select';
+import { CrowdIntegrations } from '@/integrations/integrations-config';
 
-const { fields } = AutomationModel
+const { fields } = AutomationModel;
 const formSchema = new FormSchema([
   fields.id,
   fields.type,
@@ -255,21 +255,21 @@ const formSchema = new FormSchema([
   fields.status,
   fields.settings,
   new UrlField('settings.url', 'Webhook URL', {
-    required: true
-  })
-])
+    required: true,
+  }),
+]);
 
 export default {
   name: 'AppWebhookForm',
   props: {
     modelValue: {
       type: Object,
-      default: () => {}
+      default: () => {},
     },
     isDrawerOpen: {
       type: Boolean,
-      default: () => false
-    }
+      default: () => false,
+    },
   },
   emits: ['cancel', 'success'],
   data() {
@@ -279,88 +279,83 @@ export default {
       newMemberFilters: 'memberFilters',
       loadingIntegrations: false,
       model: formSchema.initialValues(
-        JSON.parse(JSON.stringify(this.modelValue))
-      )
-    }
+        JSON.parse(JSON.stringify(this.modelValue)),
+      ),
+    };
   },
 
   computed: {
     isDrawerOpenComputed: {
       get() {
-        return this.isDrawerOpen
+        return this.isDrawerOpen;
       },
       set(value) {
-        return value
-      }
+        return value;
+      },
     },
     ...mapGetters({
       loading: 'automation/loading',
       integrationsActive: 'integration/active',
-      integrationsCount: 'integration/count'
+      integrationsCount: 'integration/count',
     }),
     fields() {
-      return fields
+      return fields;
     },
     isEditing() {
-      return this.modelValue.id !== undefined
+      return this.modelValue.id !== undefined;
     },
     saveLoading() {
-      return this.loading('submit')
+      return this.loading('submit');
     },
     isFilled() {
-      return this.model.trigger && this.model.settings.url
+      return this.model.trigger && this.model.settings.url;
     },
     isDirty() {
       return !isEqual(
         formSchema.initialValues(
-          JSON.parse(JSON.stringify(this.modelValue))
+          JSON.parse(JSON.stringify(this.modelValue)),
         ),
-        this.model
-      )
+        this.model,
+      );
     },
     computedPlatformOptions() {
-      return this.integrationsActive.map((item) => {
-        return {
-          value: item.platform,
-          label: CrowdIntegrations.getConfig(item.platform)
-            .name
-        }
-      })
+      return this.integrationsActive.map((item) => ({
+        value: item.platform,
+        label: CrowdIntegrations.getConfig(item.platform)
+          .name,
+      }));
     },
     computedActivityTypeOptions() {
       if (
-        !this.model.settings.platforms ||
-        this.model.settings.platforms.length === 0
+        !this.model.settings.platforms
+        || this.model.settings.platforms.length === 0
       ) {
-        return []
+        return [];
       }
 
       return this.model.settings.platforms.reduce(
         (acc, platform) => {
-          const platformActivityTypes =
-            activityTypesJson[platform]
+          const platformActivityTypes = activityTypesJson[platform];
           acc.push(
-            ...platformActivityTypes.map((activityType) => {
-              return {
-                value: activityType,
-                label: i18n(
-                  `entities.activity.${platform}.${activityType}`
-                )
-              }
-            })
-          )
-          return acc
+            ...platformActivityTypes.map((activityType) => ({
+              value: activityType,
+              label: i18n(
+                `entities.activity.${platform}.${activityType}`,
+              ),
+            })),
+          );
+          return acc;
         },
-        []
-      )
-    }
+        [],
+      );
+    },
   },
 
   async created() {
     if (this.integrationsCount === 0) {
-      this.loadingIntegrations = true
-      await this.doFetchIntegrations()
-      this.loadingIntegrations = false
+      this.loadingIntegrations = true;
+      await this.doFetchIntegrations();
+      this.loadingIntegrations = false;
     }
   },
 
@@ -368,46 +363,46 @@ export default {
     ...mapActions({
       doFetchIntegrations: 'integration/doFetch',
       doUpdate: 'automation/doUpdate',
-      doCreate: 'automation/doCreate'
+      doCreate: 'automation/doCreate',
     }),
     translate(key) {
-      return i18n(key)
+      return i18n(key);
     },
     async doSubmit() {
       try {
-        await this.$refs.form.validate()
+        await this.$refs.form.validate();
       } catch (error) {
-        console.error(error)
-        return
+        console.error(error);
+        return;
       }
 
       if (this.isEditing) {
         await this.doUpdate({
           id: this.model.id,
-          values: formSchema.cast(this.model)
-        })
+          values: formSchema.cast(this.model),
+        });
       } else {
-        await this.doCreate(formSchema.cast(this.model))
+        await this.doCreate(formSchema.cast(this.model));
       }
 
-      this.$emit('success')
+      this.$emit('success');
     },
     doReset() {
       this.model = formSchema.initialValues(
-        JSON.parse(JSON.stringify(this.modelValue))
-      )
+        JSON.parse(JSON.stringify(this.modelValue)),
+      );
     },
     getPlatformDetails(platform) {
-      return CrowdIntegrations.getConfig(platform)
+      return CrowdIntegrations.getConfig(platform);
     },
 
     doCancel() {
-      this.$emit('cancel')
+      this.$emit('cancel');
     },
 
-    onSelectMouseLeave
-  }
-}
+    onSelectMouseLeave,
+  },
+};
 </script>
 
 <style lang="scss">

@@ -1,23 +1,23 @@
-import * as yup from 'yup'
-import GenericField from '@/shared/fields/generic-field'
-import { i18n } from '@/i18n'
-import isInteger from 'lodash/isInteger'
+import * as yup from 'yup';
+import isInteger from 'lodash/isInteger';
+import GenericField from '@/shared/fields/generic-field';
+import { i18n } from '@/i18n';
 
 export default class IntegerField extends GenericField {
   constructor(name, label, config = {}) {
-    super(name, label)
+    super(name, label);
 
-    this.required = config.required
-    this.min = config.min
-    this.max = config.max
-    this.placeholder = config.placeholder
-    this.hint = config.hint
-    this.filterable = config.filterable || false
-    this.custom = config.custom || false
+    this.required = config.required;
+    this.min = config.min;
+    this.max = config.max;
+    this.placeholder = config.placeholder;
+    this.hint = config.hint;
+    this.filterable = config.filterable || false;
+    this.custom = config.custom || false;
   }
 
   forPresenter(value) {
-    return value
+    return value;
   }
 
   forFilter() {
@@ -30,16 +30,16 @@ export default class IntegerField extends GenericField {
       value: [],
       defaultOperator: 'eq',
       operator: 'eq',
-      type: 'number'
-    }
+      type: 'number',
+    };
   }
 
   forFormInitialValue(value) {
-    return value
+    return value;
   }
 
   forFilterInitialValue(value) {
-    return value
+    return value;
   }
 
   forFilterCast() {
@@ -47,7 +47,7 @@ export default class IntegerField extends GenericField {
       .number()
       .integer()
       .nullable(true)
-      .label(this.label)
+      .label(this.label);
   }
 
   forFormCast() {
@@ -55,46 +55,46 @@ export default class IntegerField extends GenericField {
       .number()
       .integer()
       .nullable(true)
-      .label(this.label)
+      .label(this.label);
   }
 
   forFormRules() {
-    const output = []
+    const output = [];
 
     const integerFn = (rule, value, callback) => {
       if (!value) {
-        callback()
-        return
+        callback();
+        return;
       }
 
       if (isInteger(value)) {
-        callback()
-        return
+        callback();
+        return;
       }
 
       callback(
         new Error(
           i18n('validation.number.integer').replace(
-            '${path}',
-            this.label
-          )
-        )
-      )
-    }
+            '{path}',
+            this.label,
+          ),
+        ),
+      );
+    };
 
     output.push({
-      validator: integerFn
-    })
+      validator: integerFn,
+    });
 
     if (this.required) {
       output.push({
         type: 'number',
         required: Boolean(this.required),
         message: i18n('validation.mixed.required').replace(
-          '${path}',
-          this.label
-        )
-      })
+          '{path}',
+          this.label,
+        ),
+      });
     }
 
     if (this.min || this.min === 0) {
@@ -102,9 +102,9 @@ export default class IntegerField extends GenericField {
         type: 'number',
         min: this.min,
         message: i18n('validation.number.min')
-          .replace('${path}', this.label)
-          .replace('${min}', this.min)
-      })
+          .replace('{path}', this.label)
+          .replace('{min}', this.min),
+      });
     }
 
     if (this.max || this.max === 0) {
@@ -112,16 +112,16 @@ export default class IntegerField extends GenericField {
         type: 'number',
         max: this.max,
         message: i18n('validation.number.max')
-          .replace('${path}', this.label)
-          .replace('${max}', this.max)
-      })
+          .replace('{path}', this.label)
+          .replace('{max}', this.max),
+      });
     }
 
-    return output
+    return output;
   }
 
   forExport() {
-    return yup.mixed().label(this.label)
+    return yup.mixed().label(this.label);
   }
 
   forImport() {
@@ -129,20 +129,20 @@ export default class IntegerField extends GenericField {
       .number()
       .integer()
       .nullable(true)
-      .label(this.label)
+      .label(this.label);
 
     if (this.required) {
-      yupChain = yupChain.required()
+      yupChain = yupChain.required();
     }
 
     if (this.min || this.min === 0) {
-      yupChain = yupChain.min(this.min)
+      yupChain = yupChain.min(this.min);
     }
 
     if (this.max) {
-      yupChain = yupChain.max(this.max)
+      yupChain = yupChain.max(this.max);
     }
 
-    return yupChain
+    return yupChain;
   }
 }

@@ -1,16 +1,16 @@
-import github from './github'
-import discord from './discord'
-import slack from './slack'
-import twitter from './twitter'
-import devto from './devto'
-import hackernews from './hackernews'
+import github from './github';
+import discord from './discord';
+import slack from './slack';
+import twitter from './twitter';
+import devto from './devto';
+import hackernews from './hackernews';
 // import discourse from './discourse'
-import stackoverflow from './stackoverflow'
-import reddit from './reddit'
-import linkedin from './linkedin'
-import zapier from './zapier'
-import crunchbase from './crunchbase'
-import make from './make'
+import stackoverflow from './stackoverflow';
+import reddit from './reddit';
+import linkedin from './linkedin';
+import zapier from './zapier';
+import crunchbase from './crunchbase';
+import make from './make';
 
 class IntegrationsConfig {
   get integrations() {
@@ -26,57 +26,57 @@ class IntegrationsConfig {
       stackoverflow,
       zapier,
       crunchbase,
-      make
-    }
+      make,
+    };
   }
 
   getConfig(platform) {
-    return this.integrations[platform]
+    return this.integrations[platform];
   }
 
   get configs() {
     return Object.entries(this.integrations).map(
       ([key, config]) => ({
         ...config,
-        platform: key
-      })
-    )
+        platform: key,
+      }),
+    );
   }
 
   get enabledConfigs() {
-    return this.configs.filter((config) => config.enabled)
+    return this.configs.filter((config) => config.enabled);
   }
 
-  _mapper(integration, store) {
+  mapper(integration, store) {
     return {
       ...integration,
       ...store.getters['integration/findByPlatform'](
-        integration.platform
-      )
-    }
+        integration.platform,
+      ),
+    };
   }
 
   getMappedConfig(platform, store) {
-    return this._mapper(
+    return this.mapper(
       {
         ...this.getConfig(platform),
-        platform
+        platform,
       },
-      store
-    )
+      store,
+    );
   }
 
   mappedConfigs(store) {
     return this.configs
-      .map((i) => this._mapper(i, store))
-      .filter((i) => !i.hideAsIntegration)
+      .map((i) => this.mapper(i, store))
+      .filter((i) => !i.hideAsIntegration);
   }
 
   mappedEnabledConfigs(store) {
     return this.enabledConfigs
-      .map((i) => this._mapper(i, store))
-      .filter((i) => !i.hideAsIntegration)
+      .map((i) => this.mapper(i, store))
+      .filter((i) => !i.hideAsIntegration);
   }
 }
 
-export const CrowdIntegrations = new IntegrationsConfig()
+export const CrowdIntegrations = new IntegrationsConfig();

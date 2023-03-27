@@ -2,6 +2,7 @@
   <div class="app-avatar" style="margin-right: 8px">
     <img
       v-if="!isBlank"
+      alt="avatar"
       :src="value.length && value[0].downloadUrl"
     />
   </div>
@@ -14,16 +15,16 @@ export default {
   props: {
     value: {
       type: Array,
-      default: () => []
-    }
+      default: () => [],
+    },
   },
 
   computed: {
     isBlank() {
-      return !this.value || !this.value.length
-    }
-  }
-}
+      return !this.value || !this.value.length;
+    },
+  },
+};
 </script>
 
 <style></style>

@@ -6,13 +6,13 @@
       <el-input
         v-model="startValue"
         placeholder="0"
-      ></el-input>
+      />
     </el-form-item>
     <el-form-item label="To" class="w-1/2 px-2">
       <el-input
         v-model="endValue"
         placeholder="100"
-      ></el-input>
+      />
     </el-form-item>
   </el-form>
 </template>
@@ -24,8 +24,8 @@ export default {
   props: {
     modelValue: {
       type: Array,
-      default: () => []
-    }
+      default: () => [],
+    },
   },
   emits: ['update:modelValue'],
 
@@ -34,31 +34,31 @@ export default {
       get() {
         return this.modelValue && this.modelValue.length
           ? this.modelValue[0]
-          : undefined
+          : undefined;
       },
       set(value) {
         this.$emit('update:modelValue', [
           Number.isNaN(value) ? Number(value) : value,
-          this.endValue
-        ])
-      }
+          this.endValue,
+        ]);
+      },
     },
 
     endValue: {
       get() {
         return this.modelValue && this.modelValue.length > 1
           ? this.modelValue[1]
-          : undefined
+          : undefined;
       },
       set(value) {
         this.$emit('update:modelValue', [
           this.startValue ? this.startValue : '0',
-          Number.isNaN(value) ? Number(value) : value
-        ])
-      }
-    }
-  }
-}
+          Number.isNaN(value) ? Number(value) : value,
+        ]);
+      },
+    },
+  },
+};
 </script>
 
 <style></style>

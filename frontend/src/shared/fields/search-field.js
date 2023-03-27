@@ -1,12 +1,12 @@
-import GenericField from '@/shared/fields/generic-field'
+import GenericField from '@/shared/fields/generic-field';
 
 export default class SearchField extends GenericField {
   constructor(name, label, config = {}) {
-    super(name, label)
+    super(name, label);
 
-    this.filterable = config.filterable || false
-    this.custom = config.custom || false
-    this.fields = config.fields
+    this.filterable = config.filterable || false;
+    this.custom = config.custom || false;
+    this.fields = config.fields;
   }
 
   forFilter() {
@@ -21,7 +21,7 @@ export default class SearchField extends GenericField {
       operator: 'textContains',
       type: 'search',
       fields: this.fields,
-      show: false
-    }
+      show: false,
+    };
   }
 }

@@ -1,4 +1,4 @@
-import sharedGetters from '@/shared/store/getters'
+import sharedGetters from '@/shared/store/getters';
 
 export default {
   ...sharedGetters(),
@@ -6,21 +6,15 @@ export default {
     state,
     getters,
     rootState,
-    rootGetters
-  ) => {
-    return (
-      rootGetters['auth/currentSettings'].website !==
-        null &&
-      rootGetters['auth/communityHelpCenterSettings']
+    rootGetters,
+  ) => (
+    rootGetters['auth/currentSettings'].website
+        !== null
+      && rootGetters['auth/communityHelpCenterSettings']
         .enabled
-    )
-  },
+  ),
 
-  publishedRows: (state, getters) => {
-    return getters.rows.filter((c) => c.published)
-  },
+  publishedRows: (state, getters) => getters.rows.filter((c) => c.published),
 
-  hasSettingsVisible: (state) => {
-    return state.settingsVisible
-  }
-}
+  hasSettingsVisible: (state) => state.settingsVisible,
+};

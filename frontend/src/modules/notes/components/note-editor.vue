@@ -19,7 +19,7 @@
           :class="{
             'border-gray-600': noteEditorFocused,
             'border-gray-300': !noteEditorFocused,
-            'hover:border-gray-400': !noteEditorFocused
+            'hover:border-gray-400': !noteEditorFocused,
           }"
           @focus="noteEditorFocused = true"
           @blur="noteEditorFocused = false"
@@ -43,7 +43,7 @@
               <div
                 class="ri-close-circle-fill text-2xl text-gray-300 flex items-center h-8 mr-2 transition hover:text-gray-400 cursor-pointer"
                 @click="cancel()"
-              ></div>
+              />
             </el-tooltip>
             <el-tooltip
               effect="dark"
@@ -59,10 +59,10 @@
                     : 'text-gray-400 cursor-not-allowed',
                   props.note
                     ? 'ri-checkbox-circle-fill'
-                    : 'ri-arrow-up-circle-fill'
+                    : 'ri-arrow-up-circle-fill',
                 ]"
                 @click="submit()"
-              ></div>
+              />
             </el-tooltip>
           </div>
         </div>
@@ -83,110 +83,109 @@
   </div>
 </template>
 
-<script>
-export default {
-  name: 'AppNoteEditor'
-}
-</script>
-
 <script setup>
-import AppEditor from '@/shared/form/editor'
 import {
   computed,
   ref,
   defineProps,
   defineEmits,
   onMounted,
-  defineExpose
-} from 'vue'
-import { mapGetters } from '@/shared/vuex/vuex.helpers'
-import AppAvatar from '@/shared/avatar/avatar'
-import { NoteService } from '@/modules/notes/note-service'
+  defineExpose,
+} from 'vue';
+import { mapGetters } from '@/shared/vuex/vuex.helpers';
+import { NoteService } from '@/modules/notes/note-service';
+import AppEditor from '@/shared/form/editor.vue';
+import AppAvatar from '@/shared/avatar/avatar.vue';
 
 const props = defineProps({
   properties: {
     type: Object,
     required: false,
-    default: () => ({})
+    default: () => ({}),
   },
   note: {
     type: Object,
     required: false,
-    default: null
+    default: null,
   },
   hideAvatar: {
     type: Boolean,
     required: false,
-    default: false
+    default: false,
   },
   hideSuggestion: {
     type: Boolean,
     required: false,
-    default: false
-  }
-})
+    default: false,
+  },
+});
 
-const emit = defineEmits(['created', 'updated', 'cancel'])
+const emit = defineEmits(['created', 'updated', 'cancel']);
 
-const note = ref('')
-const editor = ref('')
-const noteEditorFocused = ref(false)
+const note = ref('');
+const editor = ref('');
+const noteEditorFocused = ref(false);
 
-const { currentUserNameOrEmailPrefix, currentUserAvatar } =
-  mapGetters('auth')
+const { currentUserNameOrEmailPrefix, currentUserAvatar } = mapGetters('auth');
 
 const computedAvatarEntity = computed(() => ({
   avatar: currentUserAvatar.value,
-  displayName: currentUserNameOrEmailPrefix.value
-}))
+  displayName: currentUserNameOrEmailPrefix.value,
+}));
 
 onMounted(() => {
   if (props.note) {
-    note.value = props.note.body
+    note.value = props.note.body;
   }
-})
-
-const cancel = () => {
-  emit('cancel')
-  clear()
-}
+});
 
 const clear = () => {
-  note.value = ''
-  editor.value.clear()
-}
+  note.value = '';
+  editor.value.clear();
+};
 
 const focus = () => {
-  editor.value.focus()
-}
+  editor.value.focus();
+};
 
-const keydownSubmit = (event) => {
-  if (event.metaKey || event.ctrlKey) {
-    submit()
-  }
-}
+const cancel = () => {
+  emit('cancel');
+  clear();
+};
 
 const submit = () => {
   if (props.note) {
     NoteService.update(props.note.id, {
       members: props.note.members.map((m) => m.id),
-      body: note.value
+      body: note.value,
     }).then(() => {
-      emit('updated')
-    })
+      emit('updated');
+    });
   } else {
     NoteService.create({
       body: note.value,
-      ...props.properties
+      ...props.properties,
     }).then(() => {
-      clear()
-      emit('created')
-    })
+      clear();
+      emit('created');
+    });
   }
-}
+};
+
+const keydownSubmit = (event) => {
+  if (event.metaKey || event.ctrlKey) {
+    submit();
+  }
+};
 
 defineExpose({
   focus,
-  editor
-})
+  editor,
+});
+</script>
+
+<script>
+export default {
+  name: 'AppNoteEditor',
+};
 </script>

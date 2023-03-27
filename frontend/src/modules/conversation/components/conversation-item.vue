@@ -1,6 +1,6 @@
 <template>
   <article v-if="loading || !conversation">
-    <app-loading height="380px"></app-loading>
+    <app-loading height="380px" />
   </article>
   <article
     v-else
@@ -38,15 +38,12 @@
                 :activity="conversation.conversationStarter"
               />
               <!-- activity timestamp -->
-              <span class="whitespace-nowrap text-gray-500"
-                ><span class="mx-1">·</span
-                >{{
-                  timeAgo(
-                    conversation.conversationStarter
-                      .timestamp
-                  )
-                }}</span
-              >
+              <span class="whitespace-nowrap text-gray-500"><span class="mx-1">·</span>{{
+                timeAgo(
+                  conversation.conversationStarter
+                    .timestamp,
+                )
+              }}</span>
               <span v-if="sentiment" class="mx-1">·</span>
               <!-- conversation starter sentiment -->
               <app-activity-sentiment
@@ -71,7 +68,7 @@
       />
     </div>
     <div class="flex items-center py-6">
-      <div class="flex-grow border-b border-gray-200"></div>
+      <div class="flex-grow border-b border-gray-200" />
       <div
         v-if="conversation.activityCount.length > 3"
         class="text-xs h-6 flex items-center px-3 rounded-3xl border border-gray-200 text-gray-500"
@@ -84,7 +81,7 @@
             : 'reply'
         }}
       </div>
-      <div class="flex-grow border-b border-gray-200"></div>
+      <div class="flex-grow border-b border-gray-200" />
     </div>
     <div class="pb-10">
       <app-conversation-reply
@@ -96,7 +93,7 @@
           <div
             v-if="ri < conversation.lastReplies.length - 1"
             class="h-4 w-0.5 bg-gray-200 my-2"
-          ></div>
+          />
         </template>
       </app-conversation-reply>
     </div>
@@ -107,7 +104,7 @@
         <div class="flex items-center mr-6">
           <i
             class="ri-group-line text-base mr-2 text-gray-400"
-          ></i>
+          />
           <p class="text-xs text-gray-600">
             {{ conversation.memberCount }} participant{{
               conversation.memberCount > 1 ? 's' : ''
@@ -117,7 +114,7 @@
         <div class="flex items-center">
           <i
             class="ri-reply-line text-base mr-2 text-gray-400"
-          ></i>
+          />
           <p class="text-xs text-gray-600">
             {{ conversation.activityCount - 1 }}
             {{
@@ -138,16 +135,16 @@
 </template>
 
 <script>
-import AppAvatar from '@/shared/avatar/avatar'
-import { formatDateToTimeAgo } from '@/utils/date'
-import AppLoading from '@/shared/loading/loading-placeholder'
-import AppMemberDisplayName from '@/modules/member/components/member-display-name'
-import AppActivityContent from '@/modules/activity/components/activity-content'
-import AppConversationReply from '@/modules/conversation/components/conversation-reply'
-import AppActivityMessage from '@/modules/activity/components/activity-message'
-import AppActivityLink from '@/modules/activity/components/activity-link'
-import AppActivitySentiment from '@/modules/activity/components/activity-sentiment'
-import { CrowdIntegrations } from '@/integrations/integrations-config'
+import { formatDateToTimeAgo } from '@/utils/date';
+import { CrowdIntegrations } from '@/integrations/integrations-config';
+import AppAvatar from '@/shared/avatar/avatar.vue';
+import AppLoading from '@/shared/loading/loading-placeholder.vue';
+import AppMemberDisplayName from '@/modules/member/components/member-display-name.vue';
+import AppActivityContent from '@/modules/activity/components/activity-content.vue';
+import AppConversationReply from '@/modules/conversation/components/conversation-reply.vue';
+import AppActivityMessage from '@/modules/activity/components/activity-message.vue';
+import AppActivityLink from '@/modules/activity/components/activity-link.vue';
+import AppActivitySentiment from '@/modules/activity/components/activity-sentiment.vue';
 
 export default {
   name: 'AppConversationItem',
@@ -159,47 +156,47 @@ export default {
     AppActivityContent,
     AppActivitySentiment,
     AppLoading,
-    AppAvatar
+    AppAvatar,
   },
   props: {
     conversation: {
       type: Object,
       required: false,
-      default: () => ({})
+      default: () => ({}),
     },
     loading: {
       type: Boolean,
       required: false,
-      default: false
-    }
+      default: false,
+    },
   },
   emits: ['details'],
   computed: {
     platform() {
       return CrowdIntegrations.getConfig(
-        this.conversation.platform
-      )
+        this.conversation.platform,
+      );
     },
     member() {
-      return this.conversation.conversationStarter.member
+      return this.conversation.conversationStarter.member;
     },
     sentiment() {
       return this.conversation.conversationStarter.sentiment
-        .sentiment
+        .sentiment;
     },
     url() {
-      return this.conversation.url
-    }
+      return this.conversation.url;
+    },
   },
   methods: {
     timeAgo(date) {
-      return formatDateToTimeAgo(date)
+      return formatDateToTimeAgo(date);
     },
     openConversation() {
-      this.$emit('details', this.conversation.id)
-    }
-  }
-}
+      this.$emit('details', this.conversation.id);
+    },
+  },
+};
 </script>
 
 <style lang="scss">

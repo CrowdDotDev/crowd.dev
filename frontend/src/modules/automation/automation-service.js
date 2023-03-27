@@ -1,107 +1,107 @@
-import authAxios from '@/shared/axios/auth-axios'
-import AuthCurrentTenant from '@/modules/auth/auth-current-tenant'
+import authAxios from '@/shared/axios/auth-axios';
+import AuthCurrentTenant from '@/modules/auth/auth-current-tenant';
 
 export class AutomationService {
   static async update(id, data) {
     const body = {
       id,
-      data
-    }
+      data,
+    };
 
-    const tenantId = AuthCurrentTenant.get()
+    const tenantId = AuthCurrentTenant.get();
 
     const response = await authAxios.put(
       `/tenant/${tenantId}/automation/${id}`,
-      body
-    )
+      body,
+    );
 
-    return response.data
+    return response.data;
   }
 
   static async destroy(id) {
-    const tenantId = AuthCurrentTenant.get()
+    const tenantId = AuthCurrentTenant.get();
 
     const response = await authAxios.delete(
-      `/tenant/${tenantId}/automation/${id}`
-    )
+      `/tenant/${tenantId}/automation/${id}`,
+    );
 
-    return response.data
+    return response.data;
   }
 
   static async destroyAll(ids) {
     const params = {
-      ids
-    }
+      ids,
+    };
 
-    const tenantId = AuthCurrentTenant.get()
+    const tenantId = AuthCurrentTenant.get();
 
     const response = await authAxios.delete(
       `/tenant/${tenantId}/automation`,
       {
-        params
-      }
-    )
+        params,
+      },
+    );
 
-    return response.data
+    return response.data;
   }
 
-  static async publishAll(ids) {
-    const tenantId = AuthCurrentTenant.get()
+  static publishAll(ids) {
+    const tenantId = AuthCurrentTenant.get();
 
-    for (const id of ids) {
+    return Promise.all(ids.map((id) => {
       const body = {
         id,
         data: {
-          state: true
-        }
-      }
-      await authAxios.put(
+          state: true,
+        },
+      };
+      return authAxios.put(
         `/tenant/${tenantId}/automation/${id}`,
-        body
-      )
-    }
+        body,
+      );
+    }));
   }
 
-  static async unpublishAll(ids) {
-    const tenantId = AuthCurrentTenant.get()
+  static unpublishAll(ids) {
+    const tenantId = AuthCurrentTenant.get();
 
-    for (const id of ids) {
+    return Promise.all(ids.map((id) => {
       const body = {
         id,
         data: {
-          state: false
-        }
-      }
-      await authAxios.put(
+          state: false,
+        },
+      };
+      return authAxios.put(
         `/tenant/${tenantId}/automation/${id}`,
-        body
-      )
-    }
+        body,
+      );
+    }));
   }
 
   static async create(data) {
     const body = {
-      data
-    }
+      data,
+    };
 
-    const tenantId = AuthCurrentTenant.get()
+    const tenantId = AuthCurrentTenant.get();
 
     const response = await authAxios.post(
       `/tenant/${tenantId}/automation`,
-      body
-    )
+      body,
+    );
 
-    return response.data
+    return response.data;
   }
 
   static async find(id) {
-    const tenantId = AuthCurrentTenant.get()
+    const tenantId = AuthCurrentTenant.get();
 
     const response = await authAxios.get(
-      `/tenant/${tenantId}/automation/${id}`
-    )
+      `/tenant/${tenantId}/automation/${id}`,
+    );
 
-    return response.data
+    return response.data;
   }
 
   static async list(filter, orderBy, limit, offset) {
@@ -109,60 +109,60 @@ export class AutomationService {
       filter,
       orderBy,
       limit,
-      offset
-    }
+      offset,
+    };
 
-    const tenantId = AuthCurrentTenant.get()
+    const tenantId = AuthCurrentTenant.get();
 
     const response = await authAxios.get(
       `/tenant/${tenantId}/automation`,
       {
-        params
-      }
-    )
+        params,
+      },
+    );
 
-    return response.data
+    return response.data;
   }
 
   static async listAutomationExecutions(
     automationId,
     orderBy,
     limit,
-    offset
+    offset,
   ) {
     const params = {
       orderBy,
       limit,
-      offset
-    }
+      offset,
+    };
 
-    const tenantId = AuthCurrentTenant.get()
+    const tenantId = AuthCurrentTenant.get();
 
     const response = await authAxios.get(
       `/tenant/${tenantId}/automation/${automationId}/executions`,
       {
-        params
-      }
-    )
+        params,
+      },
+    );
 
-    return response.data
+    return response.data;
   }
 
   static async listAutocomplete(query, limit) {
     const params = {
       query,
-      limit
-    }
+      limit,
+    };
 
-    const tenantId = AuthCurrentTenant.get()
+    const tenantId = AuthCurrentTenant.get();
 
     const response = await authAxios.get(
       `/tenant/${tenantId}/automation/autocomplete`,
       {
-        params
-      }
-    )
+        params,
+      },
+    );
 
-    return response.data
+    return response.data;
   }
 }

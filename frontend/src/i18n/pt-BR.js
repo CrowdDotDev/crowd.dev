@@ -25,15 +25,15 @@ const ptBR = {
       active: 'Active Filters',
       hide: 'Hide Filters',
       show: 'Show Filters',
-      apply: 'Apply Filters'
-    }
+      apply: 'Apply Filters',
+    },
   },
 
   app: {
-    title: 'crowd.dev'
+    title: 'crowd.dev',
   },
   api: {
-    menu: 'API'
+    menu: 'API',
   },
 
   entities: {
@@ -44,22 +44,22 @@ const ptBR = {
       exporterFileName: 'Project_exportados',
       list: {
         menu: 'Projects',
-        title: 'Projects'
+        title: 'Projects',
       },
       create: {
-        success: 'Project salvo com sucesso'
+        success: 'Project salvo com sucesso',
       },
       update: {
-        success: 'Project salvo com sucesso'
+        success: 'Project salvo com sucesso',
       },
       destroy: {
-        success: 'Project deletado com sucesso'
+        success: 'Project deletado com sucesso',
       },
       destroyAll: {
-        success: 'Project(s) deletado com sucesso'
+        success: 'Project(s) deletado com sucesso',
       },
       edit: {
-        title: 'Editar Project'
+        title: 'Editar Project',
       },
       fields: {
         id: 'Id',
@@ -74,17 +74,17 @@ const ptBR = {
         benchmarkRepos: 'BenchmarkRepos',
         createdAt: 'Criado em',
         updatedAt: 'Atualizado em',
-        createdAtRange: 'Criado em'
+        createdAtRange: 'Criado em',
       },
       enumerators: {},
       placeholders: {},
       hints: {},
       new: {
-        title: 'Novo Project'
+        title: 'Novo Project',
       },
       view: {
-        title: 'Visualizar Project'
-      }
+        title: 'Visualizar Project',
+      },
     },
 
     repo: {
@@ -94,22 +94,22 @@ const ptBR = {
       exporterFileName: 'Repo_exportados',
       list: {
         menu: 'Repos',
-        title: 'Repos'
+        title: 'Repos',
       },
       create: {
-        success: 'Repo salvo com sucesso'
+        success: 'Repo salvo com sucesso',
       },
       update: {
-        success: 'Repo salvo com sucesso'
+        success: 'Repo salvo com sucesso',
       },
       destroy: {
-        success: 'Repo deletado com sucesso'
+        success: 'Repo deletado com sucesso',
       },
       destroyAll: {
-        success: 'Repo(s) deletado com sucesso'
+        success: 'Repo(s) deletado com sucesso',
       },
       edit: {
-        title: 'Editar Repo'
+        title: 'Editar Repo',
       },
       fields: {
         id: 'Id',
@@ -119,17 +119,17 @@ const ptBR = {
         project: 'Project',
         createdAt: 'Criado em',
         updatedAt: 'Atualizado em',
-        createdAtRange: 'Criado em'
+        createdAtRange: 'Criado em',
       },
       enumerators: {},
       placeholders: {},
       hints: {},
       new: {
-        title: 'Novo Repo'
+        title: 'Novo Repo',
       },
       view: {
-        title: 'Visualizar Repo'
-      }
+        title: 'Visualizar Repo',
+      },
     },
 
     communityMember: {
@@ -139,26 +139,26 @@ const ptBR = {
       exporterFileName: 'Member_exportados',
       list: {
         menu: 'Members',
-        title: 'Members'
+        title: 'Members',
       },
       create: {
-        success: 'Member salvo com sucesso'
+        success: 'Member salvo com sucesso',
       },
       update: {
-        success: 'Member salvo com sucesso'
+        success: 'Member salvo com sucesso',
       },
       destroy: {
-        success: 'Member deletado com sucesso'
+        success: 'Member deletado com sucesso',
       },
       destroyAll: {
-        success: 'Member(s) deletado com sucesso'
+        success: 'Member(s) deletado com sucesso',
       },
       edit: {
-        title: 'Editar Member'
+        title: 'Editar Member',
       },
       merge: {
         title: 'Merge Member',
-        success: 'Members merged successfully'
+        success: 'Members merged successfully',
       },
       fields: {
         // TODO: Translate these
@@ -181,17 +181,17 @@ const ptBR = {
         crowdInfo: 'CrowdInfo',
         createdAt: 'Created at',
         updatedAt: 'Updated at',
-        createdAtRange: 'Created at'
+        createdAtRange: 'Created at',
       },
       enumerators: {},
       placeholders: {},
       hints: {},
       new: {
-        title: 'Novo Member'
+        title: 'Novo Member',
       },
       view: {
-        title: 'Visualizar Member'
-      }
+        title: 'Visualizar Member',
+      },
     },
 
     activity: {
@@ -201,22 +201,22 @@ const ptBR = {
       exporterFileName: 'Activity_exportados',
       list: {
         menu: 'Activities',
-        title: 'Activities'
+        title: 'Activities',
       },
       create: {
-        success: 'Activity salvo com sucesso'
+        success: 'Activity salvo com sucesso',
       },
       update: {
-        success: 'Activity salvo com sucesso'
+        success: 'Activity salvo com sucesso',
       },
       destroy: {
-        success: 'Activity deletado com sucesso'
+        success: 'Activity deletado com sucesso',
       },
       destroyAll: {
-        success: 'Activity(s) deletado com sucesso'
+        success: 'Activity(s) deletado com sucesso',
       },
       edit: {
-        title: 'Editar Activity'
+        title: 'Editar Activity',
       },
       fields: {
         id: 'Id',
@@ -231,16 +231,16 @@ const ptBR = {
         crowdInfo: 'CrowdInfo',
         createdAt: 'Criado em',
         updatedAt: 'Atualizado em',
-        createdAtRange: 'Criado em'
+        createdAtRange: 'Criado em',
       },
       enumerators: {},
       placeholders: {},
       hints: {},
       new: {
-        title: 'Novo Activity'
+        title: 'Novo Activity',
       },
       view: {
-        title: 'Visualizar Activity'
+        title: 'Visualizar Activity',
       },
       github: {
         // TODO: Translate these
@@ -253,20 +253,20 @@ const ptBR = {
         'issues-close': 'closed an issue',
         'issue-comment': 'commented an issue',
         'commit-comment': 'commented a commit',
-        'pull_request-comment': 'commented a pull request'
-      }
+        'pull_request-comment': 'commented a pull request',
+      },
     },
 
     report: {
-      menu: 'Analytics'
-    }
+      menu: 'Analytics',
+    },
   },
 
   auth: {
     tenants: 'Áreas de Trabalho',
     profile: {
       title: 'Perfil',
-      success: 'Perfil atualizado com sucesso'
+      success: 'Perfil atualizado com sucesso',
     },
     createAnAccount: 'Criar uma conta',
     rememberMe: 'Lembrar-me',
@@ -279,51 +279,51 @@ const ptBR = {
       errors: {
         'auth-invalid-provider':
           'Este email está registrado para outro provedor.',
-        'auth-no-email': `O email associado a esta conta é privado ou não existe.`
-      }
+        'auth-no-email': 'O email associado a esta conta é privado ou não existe.',
+      },
     },
     signinWithAnotherAccount: 'Entrar com outra conta',
     emailUnverified: {
-      message: `Por favor, confirme seu email em <strong>{0}</strong> para continuar.`,
-      submit: `Reenviar confirmação por email`
+      message: 'Por favor, confirme seu email em <strong>{0}</strong> para continuar.',
+      submit: 'Reenviar confirmação por email',
     },
     passwordResetEmail: {
       message: 'Enviar email de redefinição de senha',
-      error: `Email não encontrado`
+      error: 'Email não encontrado',
     },
     emptyPermissions: {
-      message: `Você ainda não possui permissões. Aguarde o administrador conceder seus privilégios.`
+      message: 'Você ainda não possui permissões. Aguarde o administrador conceder seus privilégios.',
     },
     passwordReset: {
-      message: 'Alterar senha'
+      message: 'Alterar senha',
     },
     passwordChange: {
       title: 'Mudar a Senha',
       success: 'Senha alterada com sucesso',
-      mustMatch: 'Senhas devem ser iguais'
+      mustMatch: 'Senhas devem ser iguais',
     },
     emailAddressVerificationEmail: {
-      error: `Email não encontrado`
+      error: 'Email não encontrado',
     },
-    verificationEmailSuccess: `Verificação de email enviada com sucesso`,
-    passwordResetEmailSuccess: `Email de redefinição de senha enviado com sucesso`,
-    passwordResetSuccess: `Senha alterada com sucesso`,
+    verificationEmailSuccess: 'Verificação de email enviada com sucesso',
+    passwordResetEmailSuccess: 'Email de redefinição de senha enviado com sucesso',
+    passwordResetSuccess: 'Senha alterada com sucesso',
     verifyEmail: {
       success: 'Email verificado com sucesso.',
       message:
-        'Aguarde um momento, seu email está sendo verificado...'
-    }
+        'Aguarde um momento, seu email está sendo verificado...',
+    },
   },
 
   roles: {
     admin: {
       label: 'Administrador',
-      description: 'Acesso completo a todos os recursos'
+      description: 'Acesso completo a todos os recursos',
     },
     custom: {
       label: 'Perfil Customizado',
-      description: 'Acesso customizado'
-    }
+      description: 'Acesso customizado',
+    },
   },
 
   user: {
@@ -347,16 +347,16 @@ const ptBR = {
       oldPassword: 'Senha Antiga',
       newPassword: 'Nova Senha',
       newPasswordConfirmation: 'Confirmação da Nova Senha',
-      rememberMe: 'Lembrar-me'
+      rememberMe: 'Lembrar-me',
     },
     status: {
       active: 'Ativo',
       invited: 'Convidado',
-      'empty-permissions': 'Aguardando Permissões'
+      'empty-permissions': 'Aguardando Permissões',
     },
     invite: 'Convidar',
     validations: {
-      email: 'Email ${value} é inválido'
+      email: 'Email {value} é inválido',
     },
     title: 'Usuários',
     menu: 'Usuários',
@@ -367,23 +367,23 @@ const ptBR = {
     doDestroyAllSelectedSuccess:
       'Usuários deletado com sucesso',
     edit: {
-      title: 'Editar usuário'
+      title: 'Editar usuário',
     },
     new: {
       title: 'Novo(s) Usuário(s)',
       titleModal: 'Novo Usuário',
       emailsHint:
-        'Separe múltiplos endereços de e-mail usando a vírgula.'
+        'Separe múltiplos endereços de e-mail usando a vírgula.',
     },
     view: {
       title: 'Visualizar Usuário',
-      activity: 'Atividades'
+      activity: 'Atividades',
     },
     errors: {
       userAlreadyExists: 'Usuário com este email já existe',
       userNotFound: 'Usuário não encontrado',
-      revokingOwnPermission: `Você não pode revogar sua própria permissão de proprietário`
-    }
+      revokingOwnPermission: 'Você não pode revogar sua própria permissão de proprietário',
+    },
   },
 
   tenant: {
@@ -392,23 +392,23 @@ const ptBR = {
     menu: 'Áreas de Trabalho',
     list: {
       menu: 'Áreas de Trabalho',
-      title: 'Áreas de Trabalho'
+      title: 'Áreas de Trabalho',
     },
     create: {
       button: 'Criar Área de Trabalho',
-      success: 'Área de Trabalho salva com sucesso'
+      success: 'Área de Trabalho salva com sucesso',
     },
     update: {
-      success: 'Área de Trabalho salva com sucesso'
+      success: 'Área de Trabalho salva com sucesso',
     },
     destroy: {
-      success: 'Área de Trabalho deletada com sucesso'
+      success: 'Área de Trabalho deletada com sucesso',
     },
     destroyAll: {
-      success: 'Área(s) de Trabalho deletadas com sucesso'
+      success: 'Área(s) de Trabalho deletadas com sucesso',
     },
     edit: {
-      title: 'Editar Área de Trabalho'
+      title: 'Editar Área de Trabalho',
     },
     fields: {
       id: 'Id',
@@ -416,11 +416,11 @@ const ptBR = {
       tenantName: 'Nome da Área de Trabalho',
       tenantId: 'Área de Trabalho',
       tenantUrl: 'URL da Área de Trabalho',
-      plan: 'Plano'
+      plan: 'Plano',
     },
     enumerators: {},
     new: {
-      title: 'Nova Área de Trabalho'
+      title: 'Nova Área de Trabalho',
     },
     invitation: {
       view: 'Ver Convites',
@@ -428,12 +428,12 @@ const ptBR = {
       accept: 'Aceitar Convite',
       decline: 'Recusar Convite',
       declined: 'Convite recusado com sucesso',
-      acceptWrongEmail: 'Aceitar Convite Com Este Email'
+      acceptWrongEmail: 'Aceitar Convite Com Este Email',
     },
     select: 'Selecionar Área de Trabalho',
     url: {
-      exists: 'Esta URL de área de trabalho já está em uso.'
-    }
+      exists: 'Esta URL de área de trabalho já está em uso.',
+    },
   },
 
   plan: {
@@ -442,15 +442,15 @@ const ptBR = {
 
     free: {
       label: 'Gratuito',
-      price: '$0'
+      price: '$0',
     },
     premium: {
       label: 'Premium',
-      price: '$10'
+      price: '$10',
     },
     enterprise: {
       label: 'Enterprise',
-      price: '$50'
+      price: '$50',
     },
 
     pricingPeriod: '/mês',
@@ -461,7 +461,7 @@ const ptBR = {
       'Há algo errado com sua assinatura. Por favor clique em Gerenciar Assinatura para mais informações.',
     cancelAtPeriodEnd:
       'O plano será cancelado no fim do período.',
-    notPlanUser: `Esta assinatura não é controlada por você.`
+    notPlanUser: 'Esta assinatura não é controlada por você.',
   },
 
   auditLog: {
@@ -479,20 +479,20 @@ const ptBR = {
       action: 'Ação',
       values: 'Valores',
       timestamp: 'Data',
-      createdByEmail: 'Email do Usuário'
-    }
+      createdByEmail: 'Email do Usuário',
+    },
   },
   settings: {
     title: 'Configurações',
     menu: 'Configurações',
     save: {
       success:
-        'Configurações salvas com sucesso. A página irá recarregar em {0} para que as alterações tenham efeito.'
+        'Configurações salvas com sucesso. A página irá recarregar em {0} para que as alterações tenham efeito.',
     },
     fields: {
       theme: 'Tema',
       logos: 'Logo',
-      backgroundImages: 'Papel de Parede'
+      backgroundImages: 'Papel de Parede',
     },
     colors: {
       default: 'Padrão',
@@ -506,12 +506,13 @@ const ptBR = {
       purple: 'Roxo',
       red: 'Vermelho',
       volcano: 'Vúlcão',
-      yellow: 'Amarelo'
-    }
+      yellow: 'Amarelo',
+    },
   },
   dashboard: {
     menu: 'Dashboard',
-    message: `Esta página usa dados falsos apenas para fins de demonstração. Você pode editá-la em frontend/src/modules/dashboard/components/dashboard-page.vue.`,
+    message: 'Esta página usa dados falsos apenas para fins de demonstração. Você pode editá-la em '
+      + 'frontend/src/modules/dashboard/components/dashboard-page.vue.',
     charts: {
       day: 'Dia',
       red: 'Vermelho',
@@ -527,7 +528,7 @@ const ptBR = {
         4: 'Abril',
         5: 'Maio',
         6: 'Junho',
-        7: 'Julho'
+        7: 'Julho',
       },
       eating: 'Comendo',
       drinking: 'Bebendo',
@@ -536,82 +537,82 @@ const ptBR = {
       coding: 'Codificando',
       cycling: 'Pedalando',
       running: 'Correndo',
-      customer: 'Cliente'
-    }
+      customer: 'Cliente',
+    },
   },
   errors: {
     backToHome: 'Voltar a página inicial',
-    403: `Desculpe, você não tem acesso a esta página`,
+    403: 'Desculpe, você não tem acesso a esta página',
     404: 'Desculpe, a página que você visitou não existe',
     500: 'Desculpe, o servidor está relatando um erro',
     429: 'Muitas requisições. Por favor, tente novamente mais tarde.',
     forbidden: {
-      message: 'Acesso negado'
+      message: 'Acesso negado',
     },
     validation: {
-      message: 'Ocorreu um erro'
+      message: 'Ocorreu um erro',
     },
-    defaultErrorMessage: 'Ops, ocorreu um erro'
+    defaultErrorMessage: 'Ops, ocorreu um erro',
   },
 
   preview: {
     error:
-      'Desculpe, esta operação não é permitida em modo de demonstração.'
+      'Desculpe, esta operação não é permitida em modo de demonstração.',
   },
 
   // See https://github.com/jquense/yup#using-a-custom-locale-dictionary
   /* eslint-disable */
   validation: {
     mixed: {
-      default: '${path} é inválido',
-      required: '${path} é obrigatório',
+      default: '{path} é inválido',
+      required: '{path} é obrigatório',
       oneOf:
-        '${path} deve ser um dos seguintes valores: ${values}',
+        '{path} deve ser um dos seguintes valores: {values}',
       notOneOf:
-        '${path} não deve ser um dos seguintes valores: ${values}',
+        '{path} não deve ser um dos seguintes valores: {values}',
       notType: ({ path, type, value, originalValue }) => {
         return `${path} deve ser um ${type}`;
       },
     },
     string: {
-      length: '${path} deve possuir ${length} caracteres',
+      length: '{path} deve possuir {length} caracteres',
       min:
-        '${path} deve possuir ao menos ${min} caracteres',
+        '{path} deve possuir ao menos {min} caracteres',
       max:
-        '${path} deve possui no máximo ${max} caracteres',
+        '{path} deve possui no máximo {max} caracteres',
       matches:
-        '${path} deve respeitar o padrão: "${regex}"',
-      email: '${path} deve ser um email válido',
-      url: '${path} deve ser uma URL válida',
+        '{path} deve respeitar o padrão: "{regex}"',
+      email: '{path} deve ser um email válido',
+      url: '{path} deve ser uma URL válida',
       trim:
-        '${path} deve ser uma palavra sem espaços em branco',
-      lowercase: '${path} deve ser minúsculo',
-      uppercase: '${path} deve ser maiúsculo',
-      selected: '${path} deve ser selecionado',
+        '{path} deve ser uma palavra sem espaços em branco',
+      lowercase: '{path} deve ser minúsculo',
+      uppercase: '{path} deve ser maiúsculo',
+      selected: '{path} deve ser selecionado',
     },
     number: {
-      min: '${path} deve ser maior ou igual a ${min}',
-      max: '${path} deve ser menor ou igual a ${max}',
-      lessThan: '${path} deve ser menor que ${less}',
-      moreThan: '${path} deve ser maior que ${more}',
-      notEqual: '${path} não deve ser igual a ${notEqual}',
-      positive: '${path} deve ser um número positivo',
-      negative: '${path} deve ser um número negativo',
-      integer: '${path} deve ser um inteiro',
-      invalid: '${path} deve ser um número',
+      min: '{path} deve ser maior ou igual a {min}',
+      max: '{path} deve ser menor ou igual a {max}',
+      lessThan: '{path} deve ser menor que {less}',
+      moreThan: '{path} deve ser maior que {more}',
+      notEqual: '{path} não deve ser igual a {notEqual}',
+      positive: '{path} deve ser um número positivo',
+      negative: '{path} deve ser um número negativo',
+      integer: '{path} deve ser um inteiro',
+      invalid: '{path} deve ser um número',
     },
     date: {
-      min: '${path} deve ser posterior a ${min}',
-      max: '${path} deve ser mais cedo do que ${max}',
+      min: '{path} deve ser posterior a {min}',
+      max: '{path} deve ser mais cedo do que {max}',
     },
     boolean: {},
     object: {
       noUnknown:
-        '${path} não pode ter atributos não especificados no formato do objeto',
+        '{path} não pode ter atributos não especificados no formato do objeto',
     },
     array: {
-      min: '${path} deve possuir ao menos ${min} itens',
-      max: '${path} deve possuir no máximo ${max} itens',
+      min: '{path} deve possuir ao menos {min} itens',
+      max: '{path} deve possuir no máximo {max} itens',
     },
   },
   /* eslint-disable */

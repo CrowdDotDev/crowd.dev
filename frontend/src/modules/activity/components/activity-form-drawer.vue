@@ -12,7 +12,7 @@
           :validation="$v.member"
           :required="true"
           :error-messages="{
-            required: 'This field is required'
+            required: 'This field is required',
           }"
         >
           <app-autocomplete-one-input
@@ -27,17 +27,17 @@
               <app-avatar
                 :entity="{
                   displayName: form.member.label,
-                  avatar: form.member.avatar
+                  avatar: form.member.avatar,
                 }"
                 size="xxs"
-              ></app-avatar>
+              />
             </template>
             <template #option="{ item }">
               <div class="flex items-center">
                 <app-avatar
                   :entity="{
                     displayName: item.label,
-                    avatar: item.avatar
+                    avatar: item.avatar,
                   }"
                   size="xxs"
                   class="mr-2"
@@ -55,7 +55,7 @@
           :required="true"
           :error-messages="{
             required: 'This field is required',
-            inPast: 'Selected date must be in the past'
+            inPast: 'Selected date must be in the past',
           }"
         >
           <el-date-picker
@@ -76,7 +76,7 @@
           :validation="$v.activityType"
           :required="true"
           :error-messages="{
-            required: 'This field is required'
+            required: 'This field is required',
           }"
         >
           <el-select
@@ -146,8 +146,9 @@
       <el-button
         class="btn btn--bordered btn--md mr-4"
         @click="emit('update:modelValue', false)"
-        >Cancel</el-button
       >
+        Cancel
+      </el-button>
       <el-button
         class="btn btn--primary btn--md"
         :disabled="$v.$invalid || !hasFormChanged"
@@ -160,12 +161,6 @@
   </app-drawer>
 </template>
 
-<script>
-export default {
-  name: 'AppActivityFormDrawer'
-}
-</script>
-
 <script setup>
 import {
   defineEmits,
@@ -173,46 +168,46 @@ import {
   computed,
   reactive,
   h,
-  watch
-} from 'vue'
-import AppDrawer from '@/shared/drawer/drawer.vue'
-import { required, url } from '@vuelidate/validators'
-import useVuelidate from '@vuelidate/core'
-import AppFormItem from '@/shared/form/form-item.vue'
-import { MemberService } from '@/modules/member/member-service'
-import AppAvatar from '@/shared/avatar/avatar.vue'
-import { useActivityTypeStore } from '@/modules/activity/store/type'
-import { storeToRefs } from 'pinia'
-import { ActivityService } from '@/modules/activity/activity-service'
-import Message from '@/shared/message/message'
-import formChangeDetector from '@/shared/form/form-change'
-import { mapActions } from '@/shared/vuex/vuex.helpers'
-import AppAutocompleteOneInput from '@/shared/form/autocomplete-one-input.vue'
-import moment from 'moment'
+  watch,
+} from 'vue';
+import { required, url } from '@vuelidate/validators';
+import useVuelidate from '@vuelidate/core';
+import { storeToRefs } from 'pinia';
+import moment from 'moment';
+import AppDrawer from '@/shared/drawer/drawer.vue';
+import AppFormItem from '@/shared/form/form-item.vue';
+import { MemberService } from '@/modules/member/member-service';
+import AppAvatar from '@/shared/avatar/avatar.vue';
+import { useActivityTypeStore } from '@/modules/activity/store/type';
+import { ActivityService } from '@/modules/activity/activity-service';
+import Message from '@/shared/message/message';
+import formChangeDetector from '@/shared/form/form-change';
+import { mapActions } from '@/shared/vuex/vuex.helpers';
+import AppAutocompleteOneInput from '@/shared/form/autocomplete-one-input.vue';
 
 // Props & emits
 const props = defineProps({
   modelValue: {
     type: Boolean,
-    default: false
+    default: false,
   },
   activity: {
     type: Object,
     required: false,
-    default: () => null
-  }
-})
+    default: () => null,
+  },
+});
 
 const emit = defineEmits([
   'update:modelValue',
-  'add-activity-type'
-])
+  'add-activity-type',
+]);
 
 // Store
-const activityTypeStore = useActivityTypeStore()
-const { types } = storeToRefs(activityTypeStore)
+const activityTypeStore = useActivityTypeStore();
+const { types } = storeToRefs(activityTypeStore);
 
-const { doFetch } = mapActions('activity')
+const { doFetch } = mapActions('activity');
 // Form control
 const form = reactive({
   member: null,
@@ -221,121 +216,96 @@ const form = reactive({
   config: {
     title: '',
     body: '',
-    url: ''
-  }
-})
+    url: '',
+  },
+});
 
 const rules = {
   member: {
-    required
+    required,
   },
   datetime: {
     required,
-    inPast: (date) => moment(date).isBefore(moment())
+    inPast: (date) => moment(date).isBefore(moment()),
   },
   activityType: {
-    required
+    required,
   },
   config: {
     url: {
-      url
-    }
+      url,
+    },
   },
-  name: {}
-}
+  name: {},
+};
 
-const $v = useVuelidate(rules, form)
+const $v = useVuelidate(rules, form);
 
 // Members field
-const searchMembers = (query, limit) => {
-  return MemberService.listAutocomplete(query, limit).catch(
-    () => {
-      return []
-    }
-  )
-}
+const searchMembers = (query, limit) => MemberService.listAutocomplete(query, limit).catch(
+  () => [],
+);
 
 // Datetime field
 const CalendarIcon = h(
   'i', // type
   {
     class:
-      'ri-calendar-line text-base leading-none text-gray-400'
+      'ri-calendar-line text-base leading-none text-gray-400',
   }, // props
-  []
-)
+  [],
+);
 
-// Form utils
-watch(
-  () => props.activity,
-  (activity) => {
-    if (activity) {
-      fillForm(activity)
-    } else {
-      reset()
-    }
-  },
-  { immediate: true, deep: true }
-)
+const { hasFormChanged, formSnapshot } = formChangeDetector(form);
 
-const { hasFormChanged, formSnapshot } =
-  formChangeDetector(form)
-
-const isEdit = computed(() => {
-  return props.activity
-})
+const isEdit = computed(() => props.activity);
 
 const fillForm = (activity) => {
-  form.member =
-    {
-      ...activity.member,
-      label: activity.member.displayName,
-      avatar: activity.member.attributes.avatarUrl.default
-    } || ''
-  form.datetime = activity?.timestamp || ''
-  form.activityType = activity?.type || ''
-  form.config.title = activity?.title || ''
-  form.config.body = activity?.body || ''
-  form.config.url = activity?.url || ''
-  formSnapshot()
-}
+  form.member = {
+    ...activity.member,
+    label: activity.member.displayName,
+    avatar: activity.member.attributes.avatarUrl.default,
+  } || '';
+  form.datetime = activity?.timestamp || '';
+  form.activityType = activity?.type || '';
+  form.config.title = activity?.title || '';
+  form.config.body = activity?.body || '';
+  form.config.url = activity?.url || '';
+  formSnapshot();
+};
 
 const reset = () => {
-  form.member = ''
-  form.datetime = ''
-  form.activityType = ''
-  form.config.title = ''
-  form.config.body = ''
-  form.config.url = ''
-  $v.value.$reset()
-}
+  form.member = '';
+  form.datetime = '';
+  form.activityType = '';
+  form.config.title = '';
+  form.config.body = '';
+  form.config.url = '';
+  $v.value.$reset();
+};
 const generateSourceId = () => {
-  const randomNumbers = (Math.random() + '').substring(2)
-  return `gen-${randomNumbers}`
-}
+  const randomNumbers = (`${Math.random()}`).substring(2);
+  return `gen-${randomNumbers}`;
+};
 
-const platformsForActivityType = computed(() => {
-  return Object.entries({
-    ...types.value.custom,
-    ...types.value.default
-  })
-    .map(([platform, types]) =>
-      Object.keys(types).map((type) => ({
-        platform,
-        type
-      }))
-    )
-    .flat()
-    .reduce((object, { platform, type }) => {
-      object[type] = platform
-      return object
-    }, {})
+const platformsForActivityType = computed(() => Object.entries({
+  ...types.value.custom,
+  ...types.value.default,
 })
+  .map(([platform, typeList]) => Object.keys(typeList).map((type) => ({
+    platform,
+    type,
+  })))
+  .flat()
+  .reduce((object, { platform, type }) => ({
+    ...object,
+    [type]: platform,
+  }), {}));
 
 // Submit
 const submit = () => {
   if ($v.value.$invalid) {
-    return
+    return;
   }
   const data = {
     member: form.member.id,
@@ -343,55 +313,74 @@ const submit = () => {
     type: form.activityType,
     platform:
       platformsForActivityType.value[form.activityType],
-    ...form.config
-  }
+    ...form.config,
+  };
 
   if (!isEdit.value) {
     // Create
     ActivityService.create({
       data: {
         ...data,
-        sourceId: generateSourceId()
-      }
+        sourceId: generateSourceId(),
+      },
     })
       .then(() => {
-        reset()
-        emit('update:modelValue', false)
-        doFetch({})
-        Message.success('Activity successfully created!')
+        reset();
+        emit('update:modelValue', false);
+        doFetch({});
+        Message.success('Activity successfully created!');
       })
       .catch(() => {
         Message.error(
-          'There was an error creating activity'
-        )
-      })
+          'There was an error creating activity',
+        );
+      });
   } else {
     // Update
     ActivityService.update(props.activity.id, data)
       .then(() => {
-        reset()
-        emit('update:modelValue', false)
-        doFetch({})
-        Message.success('Activity successfully updated!')
+        reset();
+        emit('update:modelValue', false);
+        doFetch({});
+        Message.success('Activity successfully updated!');
       })
       .catch(() => {
         Message.error(
-          'There was an error updating activity'
-        )
-      })
+          'There was an error updating activity',
+        );
+      });
   }
-}
+};
 
 // Is drawer visible
 const isVisible = computed({
   get() {
-    return props.modelValue
+    return props.modelValue;
   },
   set(value) {
     if (!value) {
-      reset()
+      reset();
     }
-    emit('update:modelValue', value)
-  }
-})
+    emit('update:modelValue', value);
+  },
+});
+
+watch(
+  () => props.activity,
+  (activity) => {
+    if (activity) {
+      fillForm(activity);
+    } else {
+      reset();
+    }
+  },
+  { immediate: true, deep: true },
+);
+
+</script>
+
+<script>
+export default {
+  name: 'AppActivityFormDrawer',
+};
 </script>

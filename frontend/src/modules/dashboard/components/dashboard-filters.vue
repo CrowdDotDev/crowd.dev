@@ -23,10 +23,8 @@
         <div class="flex items-center text-xs">
           <i
             class="ri-apps-2-line text-base text-gray-900 mr-2"
-          ></i>
-          <span class="font-medium text-gray-900"
-            >Platform:</span
-          >
+          />
+          <span class="font-medium text-gray-900">Platform:</span>
           <span class="text-gray-600 pl-1">{{
             getPlatformName
           }}</span>
@@ -45,16 +43,17 @@
           <!-- dynamic active platforms -->
           <el-dropdown-item
             v-for="(integration, ii) of Object.keys(
-              activeIntegrations
+              activeIntegrations,
             )"
             :key="integration"
             :divided="ii === 0"
             :class="{
-              'bg-brand-50': platform === integration
+              'bg-brand-50': platform === integration,
             }"
             @click="setPlatform(integration)"
           >
             <img
+              :alt="platformDetails(integration).name"
               :src="platformDetails(integration).image"
               class="w-4 h-4 mr-2"
             />
@@ -67,37 +66,37 @@
 </template>
 
 <script>
-import { mapGetters, mapActions } from 'vuex'
-import { CrowdIntegrations } from '@/integrations/integrations-config'
-import AppWidgetPeriod from '@/modules/widget/components/v2/shared/widget-period.vue'
+import { mapGetters, mapActions } from 'vuex';
+import { CrowdIntegrations } from '@/integrations/integrations-config';
+import AppWidgetPeriod from '@/modules/widget/components/v2/shared/widget-period.vue';
 
 export default {
   name: 'AppDashboardFilters',
   components: {
-    AppWidgetPeriod
+    AppWidgetPeriod,
   },
   data() {
     return {
-      storeUnsubscribe: () => {}
-    }
+      storeUnsubscribe: () => {},
+    };
   },
   computed: {
     ...mapGetters('dashboard', ['period', 'platform']),
     ...mapGetters('auth', {
-      currentTenant: 'currentTenant'
+      currentTenant: 'currentTenant',
     }),
     ...mapGetters('integration', {
-      activeIntegrations: 'activeList'
+      activeIntegrations: 'activeList',
     }),
     getPlatformName() {
       if (this.platform.length) {
-        const platform = this.platformDetails(this.platform)
+        const platform = this.platformDetails(this.platform);
         if (platform) {
-          return platform.name
+          return platform.name;
         }
       }
-      return 'All'
-    }
+      return 'All';
+    },
   },
   watch: {
     currentTenant: {
@@ -105,31 +104,31 @@ export default {
       immediate: true,
       handler(tenant, previousTenant) {
         if (
-          !previousTenant ||
-          tenant.id !== previousTenant.id
+          !previousTenant
+          || tenant.id !== previousTenant.id
         ) {
-          this.setFilters({})
+          this.setFilters({});
         }
-      }
-    }
+      },
+    },
   },
   methods: {
     ...mapActions({
-      setFilters: 'dashboard/setFilters'
+      setFilters: 'dashboard/setFilters',
     }),
     platformDetails(platform) {
-      return CrowdIntegrations.getConfig(platform)
+      return CrowdIntegrations.getConfig(platform);
     },
     setPeriod(period) {
       this.setFilters({
-        period
-      })
+        period,
+      });
     },
     setPlatform(platform) {
       this.setFilters({
-        platform
-      })
-    }
-  }
-}
+        platform,
+      });
+    },
+  },
+};
 </script>

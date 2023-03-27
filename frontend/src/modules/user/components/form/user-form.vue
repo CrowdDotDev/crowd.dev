@@ -36,7 +36,7 @@
               :label="option.label"
               :value="option.value"
               @mouseleave="onSelectMouseLeave"
-            ></el-option>
+            />
           </el-select>
         </el-form-item>
       </div>
@@ -45,7 +45,7 @@
         <div
           class="flex items-center text-green-600 text-sm"
         >
-          <i class="ri-lg ri-check-line mr-1"></i>An invite
+          <i class="ri-lg ri-check-line mr-1" />An invite
           has been sent to
           <span class="font-semibold ml-1">{{
             model.email
@@ -69,8 +69,9 @@
                 <el-button
                   class="append-icon"
                   @click="copyToClipboard('token')"
-                  ><i class="ri-clipboard-line"></i
-                ></el-button>
+                >
+                  <i class="ri-clipboard-line" />
+                </el-button>
               </el-tooltip>
             </template>
           </el-input>
@@ -89,7 +90,7 @@
         class="btn btn-link btn-link--primary"
         @click="doReset"
       >
-        <i class="ri-arrow-go-back-line"></i>
+        <i class="ri-arrow-go-back-line" />
         <span>Reset changes</span>
       </el-button>
 
@@ -99,7 +100,7 @@
           class="btn btn--md btn--bordered"
           @click="doCancel"
         >
-          <app-i18n code="common.cancel"></app-i18n>
+          <app-i18n code="common.cancel" />
         </el-button>
 
         <el-button
@@ -115,19 +116,19 @@
 </template>
 
 <script>
-import { FormSchema } from '@/shared/form/form-schema'
-import { UserModel } from '@/modules/user/user-model'
-import { i18n } from '@/i18n'
-import Message from '@/shared/message/message'
-import config from '@/config'
-import isEqual from 'lodash/isEqual'
-import { onSelectMouseLeave } from '@/utils/select'
+import isEqual from 'lodash/isEqual';
+import { FormSchema } from '@/shared/form/form-schema';
+import { UserModel } from '@/modules/user/user-model';
+import { i18n } from '@/i18n';
+import Message from '@/shared/message/message';
+import config from '@/config';
+import { onSelectMouseLeave } from '@/utils/select';
 
-const { fields } = UserModel
+const { fields } = UserModel;
 const formSchema = new FormSchema([
   fields.email,
-  fields.rolesRequired
-])
+  fields.rolesRequired,
+]);
 
 export default {
   name: 'AppUserNewForm',
@@ -135,82 +136,82 @@ export default {
   props: {
     saveLoading: {
       type: Boolean,
-      default: false
+      default: false,
     },
     invitationToken: {
       type: String,
-      default: null
-    }
+      default: null,
+    },
   },
   emits: ['submit', 'cancel'],
 
   data() {
     return {
       rules: formSchema.rules(),
-      model: formSchema.initialValues({})
-    }
+      model: formSchema.initialValues({}),
+    };
   },
 
   computed: {
     computedInviteLink() {
-      return `${config.frontendUrl.protocol}://${config.frontendUrl.host}/auth/invitation?token=${this.invitationToken}`
+      return `${config.frontendUrl.protocol}://${config.frontendUrl.host}/auth/invitation?token=${this.invitationToken}`;
     },
 
     fields() {
-      return fields
+      return fields;
     },
     hasFormChanged() {
       return !isEqual(
         this.model,
-        formSchema.initialValues({})
-      )
-    }
+        formSchema.initialValues({}),
+      );
+    },
   },
 
   methods: {
     doReset() {
-      this.model = formSchema.initialValues()
-      this.$refs.form.resetFields()
+      this.model = formSchema.initialValues();
+      this.$refs.form.resetFields();
     },
 
     async copyToClipboard() {
       await navigator.clipboard.writeText(
-        this.computedInviteLink
-      )
+        this.computedInviteLink,
+      );
       Message.success(
-        `Invite link successfully copied to your clipboard`
-      )
+        'Invite link successfully copied to your clipboard',
+      );
     },
 
     async doSubmit() {
       try {
-        await this.$refs.form.validate()
+        await this.$refs.form.validate();
       } catch (error) {
-        return
+        return;
       }
 
-      const values = formSchema.cast(this.model)
+      const values = formSchema.cast(this.model);
 
       if (values.email) {
-        values.emails = [values.email]
-        delete values.email
+        values.emails = [values.email];
+        delete values.email;
       }
 
-      return this.$emit('submit', {
+      this.$emit('submit', {
         id: null,
-        values
-      })
+        values,
+      });
     },
 
     doCancel() {
-      this.$emit('cancel')
+      this.$emit('cancel');
     },
 
     i18n(code) {
-      return i18n(code)
+      return i18n(code);
     },
 
-    onSelectMouseLeave
-  }
-}
+    onSelectMouseLeave,
+  },
+};
 </script>

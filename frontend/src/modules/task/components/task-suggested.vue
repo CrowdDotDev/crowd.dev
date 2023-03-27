@@ -7,7 +7,7 @@
         >
           <div
             class="ri-lightbulb-line text-sm h-4 flex items-center text-purple-500"
-          ></div>
+          />
         </div>
         <h6 class="text-base leading-6 font-semibold pl-3">
           Suggestions
@@ -26,7 +26,7 @@
         <div
           class="text-xs leading-5 text-gray-600 pb-4 c-content"
           v-html="$sanitize(task.body)"
-        ></div>
+        />
         <el-button
           class="btn btn--secondary btn--sm !py-2.5 w-full"
           :disabled="!taskCreatePermission"
@@ -39,95 +39,90 @@
   </section>
 </template>
 
-<script>
-export default {
-  name: 'AppTaskSuggested'
-}
-</script>
-
 <script setup>
 import {
   ref,
   onBeforeUnmount,
   defineExpose,
   computed,
-  onMounted
-} from 'vue'
+  onMounted,
+} from 'vue';
+import { useStore } from 'vuex';
 import {
   mapActions,
-  mapGetters
-} from '@/shared/vuex/vuex.helpers'
-import { TaskService } from '@/modules/task/task-service'
-import Message from '@/shared/message/message'
-import { useStore } from 'vuex'
-import { TaskPermissions } from '@/modules/task/task-permissions'
+  mapGetters,
+} from '@/shared/vuex/vuex.helpers';
+import { TaskService } from '@/modules/task/task-service';
+import Message from '@/shared/message/message';
+import { TaskPermissions } from '@/modules/task/task-permissions';
 import {
   SUGGESTED_TASKS_NO_INTEGRATIONS_FILTER,
-  SUGGESTED_TASKS_FILTER
-} from '@/modules/task/store/constants'
+  SUGGESTED_TASKS_FILTER,
+} from '@/modules/task/store/constants';
 
-const { currentUser, currentTenant } = mapGetters('auth')
-const { editTask } = mapActions('task')
-const { active: activeIntegrations } =
-  mapGetters('integration')
-const { doFetch: doFetchIntegrations } =
-  mapActions('integration')
+const { currentUser, currentTenant } = mapGetters('auth');
+const { editTask } = mapActions('task');
+const { active: activeIntegrations } = mapGetters('integration');
+const { doFetch: doFetchIntegrations } = mapActions('integration');
 
-const store = useStore()
+const store = useStore();
 
-const tasks = ref([])
-const taskCount = ref(0)
+const tasks = ref([]);
+const taskCount = ref(0);
 
 const addTask = (task) => {
   editTask({
     ...task,
-    assignees: [currentUser.value]
-  })
-}
-
-const storeUnsubscribe = store.subscribeAction((action) => {
-  if (action.type === 'task/reloadSuggestedTasks') {
-    fetchTasks()
-  }
-})
+    assignees: [currentUser.value],
+  });
+};
 
 const taskCreatePermission = computed(
-  () =>
-    new TaskPermissions(
-      currentTenant.value,
-      currentUser.value
-    ).create
-)
-
-onMounted(async () => {
-  await doFetchIntegrations()
-
-  fetchTasks()
-})
-
-onBeforeUnmount(() => {
-  storeUnsubscribe()
-})
+  () => new TaskPermissions(
+    currentTenant.value,
+    currentUser.value,
+  ).create,
+);
 
 const fetchTasks = () => {
-  const filter =
-    activeIntegrations.value.length > 1
-      ? SUGGESTED_TASKS_NO_INTEGRATIONS_FILTER
-      : SUGGESTED_TASKS_FILTER
+  const filter = activeIntegrations.value.length > 1
+    ? SUGGESTED_TASKS_NO_INTEGRATIONS_FILTER
+    : SUGGESTED_TASKS_FILTER;
 
   TaskService.list(filter, 'createdAt_DESC', 20, 0)
     .then(({ rows, count }) => {
-      tasks.value = rows
-      taskCount.value = count
+      tasks.value = rows;
+      taskCount.value = count;
     })
     .catch(() => {
-      tasks.value = []
-      taskCount.value = 0
-      Message.error('There was an error loading tasks')
-    })
-}
+      tasks.value = [];
+      taskCount.value = 0;
+      Message.error('There was an error loading tasks');
+    });
+};
+
+const storeUnsubscribe = store.subscribeAction((action) => {
+  if (action.type === 'task/reloadSuggestedTasks') {
+    fetchTasks();
+  }
+});
+onMounted(async () => {
+  await doFetchIntegrations({});
+
+  fetchTasks();
+});
+
+onBeforeUnmount(() => {
+  storeUnsubscribe();
+});
 
 defineExpose({
-  taskCount
-})
+  taskCount,
+});
+</script>
+
+<script>
+export default {
+  name: 'AppTaskSuggested',
+};
 </script>

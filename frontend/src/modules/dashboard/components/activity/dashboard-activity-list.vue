@@ -12,7 +12,7 @@
         v-for="(activity, ai) of recentActivities"
         :key="activity.id"
         :class="{
-          'border-b': ai < recentActivities.length - 1
+          'border-b': ai < recentActivities.length - 1,
         }"
         :activity="activity"
       />
@@ -29,7 +29,7 @@
       <router-link
         :to="{
           name: 'activity',
-          query: { activeTab: 'activities' }
+          query: { activeTab: 'activities' },
         }"
         class="text-red font-medium text-center text-xs leading-5"
       >
@@ -40,40 +40,41 @@
 </template>
 
 <script>
-import { mapGetters } from 'vuex'
-import AppDashboardActivityItem from '@/modules/dashboard/components/activity/dashboard-activity-item'
-import AppDashboardEmptyState from '@/modules/dashboard/components/dashboard-empty-state.vue'
+import { mapGetters } from 'vuex';
+import AppDashboardEmptyState from '@/modules/dashboard/components/dashboard-empty-state.vue';
+import AppDashboardActivityItem from '@/modules/dashboard/components/activity/dashboard-activity-item.vue';
+
 export default {
   name: 'AppDashboardActivityList',
   components: {
     AppDashboardEmptyState,
-    AppDashboardActivityItem
+    AppDashboardActivityItem,
   },
   emits: { count: null },
   data() {
     return {
-      storeUnsubscribe: () => {}
-    }
+      storeUnsubscribe: () => {},
+    };
   },
   computed: {
     ...mapGetters('dashboard', [
       'recentActivities',
-      'activities'
-    ])
+      'activities',
+    ]),
   },
   created() {
     this.storeUnsubscribe = this.$store.subscribe(
       (mutation) => {
         if (mutation.type === 'activity/DESTROY_SUCCESS') {
           this.$store.dispatch(
-            'dashboard/getRecentActivities'
-          )
+            'dashboard/getRecentActivities',
+          );
         }
-      }
-    )
+      },
+    );
   },
   beforeUnmount() {
-    this.storeUnsubscribe()
-  }
-}
+    this.storeUnsubscribe();
+  },
+};
 </script>

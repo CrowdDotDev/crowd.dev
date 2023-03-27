@@ -1,18 +1,18 @@
-import JSONField from '@/shared/fields/json-field'
-import en from '@/i18n/en'
-import activityTypesJson from '@/jsons/activity-types.json'
+import JSONField from '@/shared/fields/json-field';
+import en from '@/i18n/en';
+import activityTypesJson from '@/jsons/activity-types.json';
 
 export default class ActivityTypeField extends JSONField {
   constructor(name, label, config = {}) {
-    super(name, label)
+    super(name, label);
 
-    this.placeholder = config.placeholder
-    this.hint = config.hint
-    this.required = config.required
-    this.matches = config.matches
-    this.filterable = config.filterable || false
-    this.custom = config.custom || false
-    this.fromMembers = config.fromMembers || false
+    this.placeholder = config.placeholder;
+    this.hint = config.hint;
+    this.required = config.required;
+    this.matches = config.matches;
+    this.filterable = config.filterable || false;
+    this.custom = config.custom || false;
+    this.fromMembers = config.fromMembers || false;
   }
 
   dropdownOptions() {
@@ -21,126 +21,125 @@ export default class ActivityTypeField extends JSONField {
         label: {
           type: 'platform',
           key: 'github',
-          value: 'GitHub'
+          value: 'GitHub',
         },
         nestedOptions: activityTypesJson.github.map(
           (activity) => ({
             value: activity,
-            label: en.entities.activity.github[activity]
-          })
-        )
+            label: en.entities.activity.github[activity],
+          }),
+        ),
       },
       {
         label: {
           type: 'platform',
           key: 'twitter',
-          value: 'Twitter'
+          value: 'Twitter',
         },
         nestedOptions: activityTypesJson.twitter.map(
           (activity) => ({
             value: activity,
-            label: en.entities.activity.twitter[activity]
-          })
-        )
+            label: en.entities.activity.twitter[activity],
+          }),
+        ),
       },
       {
         label: {
           type: 'platform',
           key: 'discord',
-          value: 'Discord'
+          value: 'Discord',
         },
         nestedOptions: activityTypesJson.discord
           .map((activity) => ({
             value: activity,
-            label: en.entities.activity.discord[activity]
+            label: en.entities.activity.discord[activity],
           }))
           .filter(
-            (option) =>
-              !['replied_thread', 'replied'].includes(
-                option.value
-              )
-          )
+            (option) => !['replied_thread', 'replied'].includes(
+              option.value,
+            ),
+          ),
       },
       {
         label: {
           type: 'platform',
           key: 'slack',
-          value: 'Slack'
+          value: 'Slack',
         },
         nestedOptions: activityTypesJson.slack.map(
           (activity) => ({
             value: activity,
-            label: en.entities.activity.slack[activity]
-          })
-        )
+            label: en.entities.activity.slack[activity],
+          }),
+        ),
       },
       {
         label: {
           type: 'platform',
           key: 'hackernews',
-          value: 'Hacker News'
+          value: 'Hacker News',
         },
         nestedOptions: activityTypesJson.hackernews.map(
           (activity) => ({
             value: activity,
-            label: en.entities.activity.hackernews[activity]
-          })
-        )
+            label: en.entities.activity.hackernews[activity],
+          }),
+        ),
       },
       {
         label: {
           type: 'platform',
           key: 'devto',
-          value: 'DEV'
+          value: 'DEV',
         },
         nestedOptions: activityTypesJson.devto.map(
           (activity) => ({
             value: activity,
-            label: en.entities.activity.devto[activity]
-          })
-        )
+            label: en.entities.activity.devto[activity],
+          }),
+        ),
       },
       {
         label: {
           type: 'platform',
           key: 'reddit',
-          value: 'Reddit'
+          value: 'Reddit',
         },
         nestedOptions: activityTypesJson.reddit.map(
           (activity) => ({
             value: activity,
-            label: en.entities.activity.reddit[activity]
-          })
-        )
+            label: en.entities.activity.reddit[activity],
+          }),
+        ),
       },
       {
         label: {
           type: 'platform',
           key: 'linkedin',
-          value: 'LinkedIn'
+          value: 'LinkedIn',
         },
         nestedOptions: activityTypesJson.linkedin.map(
           (activity) => ({
             value: activity,
-            label: en.entities.activity.linkedin[activity]
-          })
-        )
+            label: en.entities.activity.linkedin[activity],
+          }),
+        ),
       },
       {
         label: {
           type: 'platform',
           key: 'stackoverflow',
-          value: 'Stack Overflow'
+          value: 'Stack Overflow',
         },
         nestedOptions: activityTypesJson.stackoverflow.map(
           (activity) => ({
             value: activity,
             label:
-              en.entities.activity.stackoverflow[activity]
-          })
-        )
-      }
-    ]
+              en.entities.activity.stackoverflow[activity],
+          }),
+        ),
+      },
+    ];
   }
 
   forFilter() {
@@ -151,14 +150,14 @@ export default class ActivityTypeField extends JSONField {
         custom: this.custom,
         props: {
           options: this.dropdownOptions(),
-          multiple: false
+          multiple: false,
         },
         defaultValue: null,
         value: (this.value || []).map((item) => item.value),
         defaultOperator: 'overlap',
         operator: 'overlap',
-        type: 'select-group'
-      }
+        type: 'select-group',
+      };
     }
     return {
       name: this.name,
@@ -166,13 +165,13 @@ export default class ActivityTypeField extends JSONField {
       custom: this.custom,
       props: {
         options: this.dropdownOptions(),
-        multiple: false
+        multiple: false,
       },
       defaultValue: null,
       value: null,
       defaultOperator: null,
       operator: null,
-      type: 'select-group'
-    }
+      type: 'select-group',
+    };
   }
 }
