@@ -48,6 +48,6 @@ export class GitHubGrid {
 
   static fork: gridEntry = {
     score: 4,
-    isContribution: true,
+    isContribution: false,
   }
 }
