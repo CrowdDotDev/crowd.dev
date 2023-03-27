@@ -65,6 +65,8 @@ const defaultChartOptions = (config) => ({
             family: 'Inter',
             size: 10,
           },
+          ...(config.yMaxTicksLimit && { maxTicksLimit: config.yMaxTicksLimit }),
+          stepSize: config.yStepSize,
           callback: config.yTicksCallback,
         },
       },

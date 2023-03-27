@@ -22,6 +22,8 @@ export const defaultChartConfig = {
   yMin: null,
   yMax: null,
   ySuggestedMax: null,
+  yStepSize: null,
+  yMaxTicksLimit: null,
   indexAxis: 'x',
   y1Scale: {
     display: false,

@@ -107,7 +107,33 @@ const drawerDate = ref();
 const drawerTitle = ref();
 
 const widgetChartOptions = chartOptions('area', {
-  ySuggestedMax: 150,
+  ySuggestedMax: 200,
+  yMaxTicksLimit: 11,
+  yStepSize: 50,
+  yAfterBuildTicks: (axis) => {
+    const hasMinTick = axis.ticks.some((t) => t.value === 50);
+    const hasMaxTick = axis.ticks.some((t) => t.value === 100);
+
+    const { ticks } = axis;
+
+    if (!hasMinTick) {
+      ticks.push({
+        label: '50',
+        value: 50,
+      });
+    }
+
+    if (!hasMaxTick) {
+      ticks.push({
+        label: '100',
+        value: 100,
+      });
+    }
+
+    Object.assign(axis, {
+      ticks,
+    });
+  },
   xTicksCallback: (
     value,
   ) => parseAxisLabel(value, granularity.value.value),

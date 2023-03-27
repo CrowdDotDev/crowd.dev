@@ -64,7 +64,7 @@ const verticalTodayBlockPlugin = {
  */
 const verticalHoverLinePlugin = {
   id: 'verticalHoverLine',
-  beforeDraw: (chart, _args, options) => {
+  afterDraw: (chart, _args, options) => {
     if (chart.tooltip?._active?.length) {
       const {
         ctx, data, tooltip, chartArea,
