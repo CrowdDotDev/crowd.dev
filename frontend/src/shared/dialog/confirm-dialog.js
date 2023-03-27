@@ -179,11 +179,11 @@ export default ({
       message: content,
       showClose: true,
       showCancelButton,
-      overrideCustomClass,
+      customClass: overrideCustomClass,
       confirmButtonText,
-      overrideConfirmButtonClass,
+      confirmButtonClass: overrideConfirmButtonClass,
       cancelButtonText,
-      overrideCancelButtonClass,
+      cancelButtonClass: overrideCancelButtonClass,
     });
   }
 
