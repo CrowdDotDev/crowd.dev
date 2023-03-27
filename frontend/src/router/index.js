@@ -16,13 +16,14 @@ import ProgressBar from '@/shared/progress-bar/progress-bar';
 const routes = [
   ...Object.keys(modules)
     .filter((key) => Boolean(modules[key].routes))
-    .map((key) => modules[key].routes.map((r) => ({
-      ...r,
-      meta: {
+    .map((key) => modules[key].routes.map((r) => {
+      // eslint-disable-next-line no-param-reassign
+      r.meta = {
         ...r.meta,
         middleware: [...authGuards],
-      },
-    })))
+      };
+      return r;
+    }))
     .reduce((a, b) => a.concat(b), []),
   { path: '/:catchAll(.*)', redirect: '/404' },
 ];
@@ -73,6 +74,7 @@ export const createRouter = () => {
           to,
           store,
         };
+
         middlewareArray.forEach((middleware) => {
           middleware(context);
         });
