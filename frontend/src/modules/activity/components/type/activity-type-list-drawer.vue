@@ -82,6 +82,7 @@
                 v-for="integration in activeIntegrations"
                 :key="integration.platform"
               >
+                {{}}
                 <app-activity-type-list-item
                   v-for="(settings, type) in types.default[
                     integration.platform
