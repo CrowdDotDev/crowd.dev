@@ -4,12 +4,12 @@
  * multi-with-subdomain: Same as multi, but enable access to the tenant via subdomain.
  * single: One tenant, the first user to register will be the admin.
  */
-const tenantMode = 'multi'
+const tenantMode = 'multi';
 
 /**
  * Plan payments configuration.
  */
-const isPlanEnabled = true
+const isPlanEnabled = true;
 
 const defaultConfig = {
   frontendUrl: {
@@ -57,7 +57,7 @@ const defaultConfig = {
     id: process.env.VUE_APP_SAMPLE_TENANT_ID,
     token: process.env.VUE_APP_SAMPLE_TENANT_TOKEN,
   },
-}
+};
 
 const composedConfig = {
   frontendUrl: {
@@ -106,14 +106,14 @@ const composedConfig = {
     id: 'CROWD_VUE_APP_SAMPLE_TENANT_ID',
     token: 'CROWD_VUE_APP_SAMPLE_TENANT_TOKEN',
   },
-}
+};
 
 const config = defaultConfig.backendUrl
   ? defaultConfig
-  : composedConfig
+  : composedConfig;
 
-config.isCommunityVersion = config.edition === 'community'
+config.isCommunityVersion = config.edition === 'community';
 config.hasPremiumModules = !config.isCommunityVersion
-  || config.communityPremium === 'true'
+  || config.communityPremium === 'true';
 
-export default config
+export default config;

@@ -1,15 +1,15 @@
-import _get from 'lodash/get'
-import AuthCurrentTenant from '@/modules/auth/auth-current-tenant'
-import { tenantSubdomain } from '@/modules/tenant/tenant-subdomain'
+import _get from 'lodash/get';
+import AuthCurrentTenant from '@/modules/auth/auth-current-tenant';
+import { tenantSubdomain } from '@/modules/tenant/tenant-subdomain';
 
 export default {
   currentUser: (state) => state.currentUser,
   currentTenant: (state) => state.currentTenant,
   currentTenantUser: (state) => {
-    const tenantId = state.currentTenant?.id
+    const tenantId = state.currentTenant?.id;
     return state.currentUser?.tenants.find(
       (t) => t.tenantId === tenantId,
-    )
+    );
   },
   currentUserEmail: (state, getters) => (getters.currentUser ? getters.currentUser.email : null),
   currentUserFullName: (state, getters) => (getters.currentUser ? getters.currentUser.fullName : ''),
@@ -18,22 +18,22 @@ export default {
 
   roles: (state, getters) => {
     if (!getters.currentUser) {
-      return []
+      return [];
     }
 
     if (!getters.currentTenant) {
-      return []
+      return [];
     }
 
     const tenantUser = getters.currentUser.tenants.find(
       (userTenant) => userTenant.tenant.id === getters.currentTenant.id,
-    )
+    );
 
     if (!tenantUser) {
-      return []
+      return [];
     }
 
-    return tenantUser.roles
+    return tenantUser.roles;
   },
 
   emptyPermissions: (state, getters) => !getters.roles || !getters.roles.length,
@@ -56,21 +56,21 @@ export default {
 
   currentUserNameOrEmailPrefix: (state, getters) => {
     if (!getters.currentUser) {
-      return null
+      return null;
     }
 
     if (
       getters.currentUserFullName
       && getters.currentUserFullName.length < 25
     ) {
-      return getters.currentUserFullName
+      return getters.currentUserFullName;
     }
 
     if (getters.currentUser.firstName) {
-      return getters.currentUser.firstName
+      return getters.currentUser.firstName;
     }
 
-    return getters.currentUser.email.split('@')[0]
+    return getters.currentUser.email.split('@')[0];
   },
 
   currentUserAvatar: (state, getters) => {
@@ -80,10 +80,10 @@ export default {
       || !getters.currentUser.avatars.length
       || !getters.currentUser.avatars[0].downloadUrl
     ) {
-      return null
+      return null;
     }
 
-    return getters.currentUser.avatars[0].downloadUrl
+    return getters.currentUser.avatars[0].downloadUrl;
   },
 
   invitedTenants: (state, getters) => {
@@ -91,14 +91,14 @@ export default {
       !getters.currentUser
       || !getters.currentUser.tenants
     ) {
-      return []
+      return [];
     }
 
     return getters.currentUser.tenants
       .filter(
         (tenantUser) => tenantUser.status === 'invited',
       )
-      .map((tenantUser) => tenantUser.tenant)
+      .map((tenantUser) => tenantUser.tenant);
   },
   // I know, this is weird, but it is a hack
   // so Vue refreshed the backgroundImageUrl getter
@@ -119,10 +119,10 @@ export default {
       tenantSubdomain.isEnabled
       && tenantSubdomain.isRootDomain
     ) {
-      return null
+      return null;
     }
 
-    const settings = getters.currentSettings
+    const settings = getters.currentSettings;
 
     return _get(
       settings,
@@ -132,7 +132,7 @@ export default {
         'backgroundImages[0].downloadUrl',
         null,
       ),
-    )
+    );
   },
 
   logoUrl: (state, getters) => {
@@ -140,15 +140,15 @@ export default {
       tenantSubdomain.isEnabled
       && tenantSubdomain.isRootDomain
     ) {
-      return null
+      return null;
     }
 
-    const settings = getters.currentSettings
+    const settings = getters.currentSettings;
 
     return _get(
       settings,
       'logoUrl',
       _get(settings, 'logos[0].downloadUrl', null),
-    )
+    );
   },
-}
+};

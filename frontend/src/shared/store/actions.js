@@ -252,14 +252,14 @@ export default (moduleName, moduleService = null) => {
       setTimeout(() => {
         const params = new URLSearchParams(
           window.location.search,
-        )
-        const queryParams = {}
+        );
+        const queryParams = {};
         // eslint-disable-next-line no-restricted-syntax
         for (const [key, value] of params.entries()) {
-          queryParams[key] = value
+          queryParams[key] = value;
         }
-        delete queryParams.authToken
-        delete queryParams.social
+        delete queryParams.authToken;
+        delete queryParams.social;
 
         if (params.get('activeTab') !== activeViewId) {
           router.push({

@@ -9,12 +9,14 @@ export default {
       state.views[activeView].list.posts.length = 0;
     }
 
-    if (state.views[activeView].pagination) {
-      state.views[activeView].pagination = keepPagination
-        ? activeView.pagination
+    if (activeView.pagination) {
+      const active = { ...activeView };
+
+      active.pagination = keepPagination
+        ? active.pagination
         : {
           currentPage: 1,
-          pageSize: activeView.pagination.pageSize,
+          pageSize: active.pagination?.pageSize || 10,
         };
     }
   },

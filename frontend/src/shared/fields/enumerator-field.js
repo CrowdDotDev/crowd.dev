@@ -41,12 +41,10 @@ export default class EnumeratorField extends GenericField {
     const option = this.options.find(
       (o) => o.id === this.id(value),
     );
-
-    if (option) {
-      return this.label(option);
+    if (!option) {
+      return 'test';
     }
-
-    return value;
+    return option.label;
   }
 
   forFilterPreview(value) {

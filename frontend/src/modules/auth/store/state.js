@@ -9,4 +9,4 @@ export default () => ({
   loadingPasswordChange: false,
   loadingUpdateProfile: false,
   loading: false,
-})
+});
