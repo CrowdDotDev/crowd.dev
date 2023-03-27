@@ -12,7 +12,7 @@ export class AuthToken {
     if (rememberMe) {
       localStorage.setItem('jwt', token || '');
     } else {
-      localStorage.setItem('jwt', '');
+      localStorage.removeItem('jwt');
     }
   }
 
