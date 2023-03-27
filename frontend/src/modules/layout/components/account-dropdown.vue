@@ -130,7 +130,6 @@ export default {
 // Override inline style in popover
 .account-popover {
   padding: 8px !important;
-  left: 1px !important;
   bottom: 10px !important;
   border-radius: 8px !important;
   border: none !important;
