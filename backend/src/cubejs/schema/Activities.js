@@ -108,7 +108,7 @@ cube(`Activities`, {
     iscontribution: {
       sql: `${CUBE}."isContribution"`,
       type: `string`,
-      shown: false,
+      shown: true,
     },
 
     parentid: {

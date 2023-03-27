@@ -98,7 +98,7 @@ export default class ActivityDisplayService extends LoggingBase {
       return UNKNOWN_ACTIVITY_TYPE_DISPLAY
     }
 
-    const allActivityTypes = { ...activityTypes.default, ...activityTypes.custom }
+    const allActivityTypes = lodash.merge(activityTypes.custom, activityTypes.default)
 
     if (
       activity.platform === PlatformType.DISCORD &&
@@ -110,7 +110,7 @@ export default class ActivityDisplayService extends LoggingBase {
 
     // we're cloning because we'll use the same object to do the interpolation
     const displayOptions: ActivityTypeDisplayProperties = allActivityTypes[activity.platform]
-      ? lodash.cloneDeep(allActivityTypes[activity.platform][activity.type])
+      ? lodash.cloneDeep(allActivityTypes[activity.platform][activity.type].display)
       : null
 
     if (!displayOptions) {

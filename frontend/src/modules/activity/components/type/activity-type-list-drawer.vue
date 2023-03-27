@@ -29,15 +29,15 @@
                 :key="platform"
               >
                 <app-activity-type-list-item
-                  v-for="(display, type) in activityTypes"
+                  v-for="(settings, type) in activityTypes"
                   :key="type"
-                  :label="display.short"
+                  :label="settings.display.short"
                 >
                   <template #after>
                     <app-activity-type-dropdown
                       :activity-type-key="type"
                       @edit="
-                        edit({ ...display, key: type })
+                        edit({ ...settings.display, key: type })
                       "
                     />
                   </template>
@@ -83,12 +83,12 @@
                 :key="integration.platform"
               >
                 <app-activity-type-list-item
-                  v-for="(display, type) in types.default[
+                  v-for="(settings, type) in types.default[
                     integration.platform
                   ]"
                   :key="type"
                   :platform="integration.platform"
-                  :label="display.short"
+                  :label="settings.display.short"
                 />
               </div>
             </div>
