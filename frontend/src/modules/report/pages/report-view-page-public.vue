@@ -165,6 +165,7 @@
 import { mapState, mapGetters, mapActions } from 'vuex';
 import ReportGridLayout from '@/modules/report/components/report-grid-layout.vue';
 import AppReportMemberTemplate from '@/modules/report/pages/templates/report-member-template.vue';
+import AppReportProductCommunityFitTemplate from '@/modules/report/pages/templates/report-product-community-fit-template.vue';
 import AuthCurrentTenant from '@/modules/auth/auth-current-tenant';
 import { TenantService } from '@/modules/tenant/tenant-service';
 import AppReportTemplateFilters from '@/modules/report/components/templates/report-template-filters.vue';
@@ -192,6 +193,7 @@ export default {
   components: {
     'app-report-grid-layout': ReportGridLayout,
     AppReportMemberTemplate,
+    AppReportProductCommunityFitTemplate,
     AppReportTemplateFilters,
   },
 

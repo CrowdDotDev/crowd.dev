@@ -72,6 +72,8 @@ const defaultChartOptions = (config) => ({
       },
       y1: config.y1Scale,
     },
+    clip: false,
+    responsive: true,
     interaction: {
       mode: 'index',
       intersect: false,

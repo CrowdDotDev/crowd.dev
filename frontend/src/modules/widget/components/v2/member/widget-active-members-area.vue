@@ -120,18 +120,6 @@ const widgetChartOptions = chartOptions('area', {
   xTicksCallback: (
     value,
   ) => parseAxisLabel(value, granularity.value.value),
-  annotationPlugin: {
-    annotations: {
-      idealRange: {
-        backgroundColor: 'rgb(250, 237, 234)',
-        yMin: 50,
-        yMax: 100,
-        borderColor: 'transparent',
-        type: 'box',
-        drawTime: 'beforeDraw',
-      },
-    },
-  },
 });
 
 const { doExport } = mapActions('member');

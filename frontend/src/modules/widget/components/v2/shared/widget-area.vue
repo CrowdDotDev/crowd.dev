@@ -173,3 +173,9 @@ onMounted(async () => {
   paintDataSet();
 });
 </script>
+
+<script>
+export default {
+  name: 'AppWidgetArea',
+};
+</script>
