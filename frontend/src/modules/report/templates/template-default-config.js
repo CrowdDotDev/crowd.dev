@@ -21,6 +21,7 @@ export const defaultChartConfig = {
   yPosition: 'left',
   yMin: null,
   yMax: null,
+  ySuggestedMax: null,
   indexAxis: 'x',
   y1Scale: {
     display: false,

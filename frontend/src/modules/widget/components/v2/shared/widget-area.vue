@@ -14,7 +14,6 @@ import {
   computed, defineEmits, defineProps, onMounted, ref,
 } from 'vue';
 import cloneDeep from 'lodash/cloneDeep';
-import { parseAxisLabel } from '@/utils/reports';
 import { externalTooltipHandler } from '@/modules/report/tooltip';
 
 const componentType = 'area-chart';
@@ -41,32 +40,11 @@ const props = defineProps({
     type: Boolean,
     default: false,
   },
-  idealRangeAnnotation: {
-    type: Object,
-    default: null,
-  },
 });
 
 const customChartOptions = cloneDeep(props.chartOptions);
 
-// Add idealRange annotation if passed through props
-if (props.idealRangeAnnotation) {
-  customChartOptions.library.plugins.annotation = {
-    annotations: {
-      idealRange: props.idealRangeAnnotation,
-    },
-  };
-}
-
-// Customize x ticks
-if (!customChartOptions.library.scales.x.ticks.callback) {
-  customChartOptions.library.scales.x.ticks.callback = (
-    value,
-  ) => parseAxisLabel(value, props.granularity);
-}
-
 const dataset = ref({});
-
 const loading = computed(
   () => !props.resultSet?.loadResponses,
 );
@@ -146,18 +124,17 @@ const series = (resultSet) => {
     });
   }
 
-  // If idealRangeAnnotation is passed
   // Search for hidden datasets to add to the available series
-  if (props.idealRangeAnnotation) {
-    const hiddenDatasets = props.datasets
-      .filter((d) => d.hidden)
-      .map((d) => ({
-        name: d.name,
-        ...{
-          dataset: d,
-        },
-      }));
+  const hiddenDatasets = props.datasets
+    .filter((d) => d.hidden)
+    .map((d) => ({
+      name: d.name,
+      ...{
+        dataset: d,
+      },
+    }));
 
+  if (hiddenDatasets.length) {
     computedSeries.push(...hiddenDatasets);
   }
 
@@ -170,12 +147,13 @@ const data = computed(() => {
   }
   return series(props.resultSet);
 });
+
 const paintDataSet = () => {
   const canvas = document.querySelector(
     '.cube-widget-chart canvas',
   );
-  if (canvas && props.chartOptions?.computeDataset) {
-    dataset.value = props.chartOptions.computeDataset(canvas);
+  if (canvas && customChartOptions?.computeDataset) {
+    dataset.value = customChartOptions.computeDataset(canvas);
   }
 };
 // Customize external tooltip

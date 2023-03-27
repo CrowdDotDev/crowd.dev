@@ -59,13 +59,15 @@
             :key="integration.platform"
             class="border-b last:border-none"
           >
-            <app-activity-type-list-item
-              v-for="(display, type) in contributions
-                ?.default[integration.platform]"
-              :key="type"
-              :platform="integration.platform"
-              :label="display.short"
-            />
+            <div
+              v-for="activityType in contributions[integration.platform]"
+              :key="activityType.display.short"
+            >
+              <app-activity-type-list-item
+                :platform="integration.platform"
+                :label="activityType.display.short"
+              />
+            </div>
           </div>
         </div>
       </div>
@@ -111,7 +113,19 @@ const loadingCube = computed(
 
 const contributions = computed(() => {
   if (currentTenant.value.settings.length > 0) {
-    return currentTenant.value.settings[0].activityTypes;
+    return Object.entries(currentTenant.value.settings[0].activityTypes.default).reduce((platformAcc, [platformKey, platformValue]) => {
+      const activities = Object.entries(platformValue).reduce((activityAcc, [activityKey, activityValue]) => ({
+        ...activityAcc,
+        ...(activityValue.isContribution && {
+          [activityKey]: activityValue,
+        }),
+      }), {});
+
+      return {
+        ...platformAcc,
+        [platformKey]: activities,
+      };
+    }, {});
   }
 
   return {};

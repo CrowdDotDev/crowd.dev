@@ -1,4 +1,3 @@
-/* eslint-disable no-param-reassign */
 /* eslint-disable no-underscore-dangle */
 /**
  * Draw a block in the chart to identify the current time block
@@ -132,8 +131,13 @@ const updateTicksLabelsPositionPlugin = {
           - options.ranges[index]
           - options.labelsHeight;
 
-        chart.ctx.font = `${fontWeight || 400} 12px Inter`;
-        chart.ctx.fillStyle = color;
+        const { ctx } = chart;
+
+        Object.assign(ctx, {
+          font: `${fontWeight || 400} 12px Inter`,
+          fillStyle: color,
+        });
+
         chart.ctx.fillText(text, xOffset, yOffset);
       },
     );

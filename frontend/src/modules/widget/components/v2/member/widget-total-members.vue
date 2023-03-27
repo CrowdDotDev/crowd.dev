@@ -47,7 +47,7 @@
               <app-widget-area
                 :result-set="chartResultSet(resultSet)"
                 :datasets="datasets"
-                :chart-options="customChartOptions"
+                :chart-options="widgetChartOptions"
                 :granularity="granularity"
                 :is-grid-min-max="true"
                 @on-view-more-click="onViewMoreClick"
@@ -90,7 +90,7 @@ import {
   mapGetters,
   mapActions,
 } from '@/shared/vuex/vuex.helpers';
-import { getTimeGranularityFromPeriod } from '@/utils/reports';
+import { getTimeGranularityFromPeriod, parseAxisLabel } from '@/utils/reports';
 import {
   TOTAL_MEMBERS_QUERY,
   TOTAL_MEMBERS_FILTER,
@@ -98,11 +98,6 @@ import {
 import { MemberService } from '@/modules/member/member-service';
 import AppWidgetDrawer from '@/modules/widget/components/v2/shared/widget-drawer.vue';
 import { MEMBERS_REPORT } from '@/modules/report/templates/template-reports';
-
-const customChartOptions = cloneDeep(chartOptions('area'));
-
-// Remove legend from the chart options
-customChartOptions.library.plugins.legend = {};
 
 const props = defineProps({
   filters: {
@@ -119,6 +114,10 @@ const period = ref(SEVEN_DAYS_PERIOD_FILTER);
 const drawerExpanded = ref();
 const drawerDate = ref();
 const drawerTitle = ref();
+
+const widgetChartOptions = chartOptions('area', {
+  legendPlugin: false,
+});
 
 const granularity = computed(() => getTimeGranularityFromPeriod(period.value));
 const datasets = computed(() => [

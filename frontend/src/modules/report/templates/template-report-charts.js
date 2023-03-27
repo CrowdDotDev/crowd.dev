@@ -43,6 +43,7 @@ const defaultChartOptions = (config) => ({
         position: config.yPosition,
         min: config.yMin,
         max: config.yMax,
+        suggestedMax: config.ySuggestedMax,
         afterBuildTicks: config.yAfterBuildTicks,
         grid: {
           display: config.yLines,

@@ -107,10 +107,13 @@ const benchmarkChartOptions = chartOptions('bar', {
   yTicksAutoSkip: false,
   yMin: 0,
   yMax: 250,
-  // eslint-disable-next-line no-return-assign, no-param-reassign
-  yAfterBuildTicks: (axis) => (axis.ticks = [0, 20, 50, 100, 200].map((v) => ({
-    value: v,
-  }))),
+  yAfterBuildTicks: (axis) => {
+    Object.assign(axis, {
+      ticks: [0, 20, 50, 100, 200].map((v) => ({
+        value: v,
+      })),
+    });
+  },
   y1Scale: {
     type: 'linear',
     position: 'right',
@@ -132,10 +135,13 @@ const benchmarkChartOptions = chartOptions('bar', {
         size: 12,
       },
     },
-    // eslint-disable-next-line no-return-assign, no-param-reassign
-    afterBuildTicks: (axis) => (axis.ticks = [0, 20, 50, 100, 200].map((v) => ({
-      value: v,
-    }))),
+    afterBuildTicks: (axis) => {
+      Object.assign(axis, {
+        ticks: [0, 20, 50, 100, 200].map((v) => ({
+          value: v,
+        })),
+      });
+    },
     afterTickToLabelConversion: (axis) => {
       const labels = [
         { text: '' },
@@ -158,17 +164,18 @@ const benchmarkChartOptions = chartOptions('bar', {
         },
       ];
 
-      // eslint-disable-next-line no-return-assign, no-param-reassign
-      axis.ticks = axis.ticks.map(({ value }, i) => ({
-        value,
-        ...labels[i],
-      }));
+      Object.assign(axis, {
+        ticks: axis.ticks.map(({ value }, i) => ({
+          value,
+          ...labels[i],
+        })),
+      });
     },
     afterFit: (scaleInstance) => {
-      // eslint-disable-next-line no-return-assign, no-param-reassign
-      scaleInstance.width = 410;
-      // eslint-disable-next-line no-return-assign, no-param-reassign
-      scaleInstance.maxWidth = 410;
+      Object.assign(scaleInstance, {
+        width: 410,
+        maxWidth: 410,
+      });
     },
   },
   legendPlugin: false,

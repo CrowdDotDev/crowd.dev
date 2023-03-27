@@ -40,10 +40,7 @@
           v-else
           :datasets="datasets"
           :result-set="resultSet"
-          :ideal-range-annotation="idealRangeAnnotation"
-          :chart-options="{
-            ...chartOptions('area'),
-          }"
+          :chart-options="widgetChartOptions"
           :granularity="granularity.value"
           @on-view-more-click="onViewMoreClick"
         />
@@ -90,6 +87,7 @@ import {
 import AppWidgetDrawer from '@/modules/widget/components/v2/shared/widget-drawer.vue';
 import { MemberService } from '@/modules/member/member-service';
 import { PRODUCT_COMMUNITY_FIT_REPORT } from '@/modules/report/templates/template-reports';
+import { parseAxisLabel } from '@/utils/reports';
 
 const props = defineProps({
   filters: {
@@ -108,17 +106,27 @@ const drawerExpanded = ref();
 const drawerDate = ref();
 const drawerTitle = ref();
 
+const widgetChartOptions = chartOptions('area', {
+  ySuggestedMax: 150,
+  xTicksCallback: (
+    value,
+  ) => parseAxisLabel(value, granularity.value.value),
+  annotationPlugin: {
+    annotations: {
+      idealRange: {
+        backgroundColor: 'rgb(250, 237, 234)',
+        yMin: 50,
+        yMax: 100,
+        borderColor: 'transparent',
+        type: 'box',
+        drawTime: 'beforeDraw',
+      },
+    },
+  },
+});
+
 const { cubejsApi } = mapGetters('widget');
 const { doExport } = mapActions('member');
-
-const idealRangeAnnotation = {
-  backgroundColor: 'rgb(250, 237, 234)',
-  yMin: 50,
-  yMax: 100,
-  borderColor: 'transparent',
-  type: 'box',
-  drawTime: 'beforeDraw',
-};
 
 const datasets = computed(() => [
   {

@@ -49,9 +49,7 @@
           v-else
           :datasets="datasets"
           :result-set="resultSet"
-          :chart-options="{
-            ...chartOptions('area'),
-          }"
+          :chart-options="widgetChartOptions"
           :granularity="granularity.value"
           @on-view-more-click="onViewMoreClick"
         />
@@ -99,6 +97,7 @@ import AppWidgetError from '@/modules/widget/components/v2/shared/widget-error.v
 import AppWidgetDrawer from '@/modules/widget/components/v2/shared/widget-drawer.vue';
 import { MemberService } from '@/modules/member/member-service';
 import { MEMBERS_REPORT } from '@/modules/report/templates/template-reports';
+import { parseAxisLabel } from '@/utils/reports';
 
 const props = defineProps({
   filters: {
@@ -113,10 +112,27 @@ const props = defineProps({
 
 const period = ref(SEVEN_DAYS_PERIOD_FILTER);
 const granularity = ref(DAILY_GRANULARITY_FILTER);
-
 const drawerExpanded = ref();
 const drawerDate = ref();
 const drawerTitle = ref();
+
+const widgetChartOptions = chartOptions('area', {
+  xTicksCallback: (
+    value,
+  ) => parseAxisLabel(value, granularity.value.value),
+  annotationPlugin: {
+    annotations: {
+      idealRange: {
+        backgroundColor: 'rgb(250, 237, 234)',
+        yMin: 50,
+        yMax: 100,
+        borderColor: 'transparent',
+        type: 'box',
+        drawTime: 'beforeDraw',
+      },
+    },
+  },
+});
 
 const { doExport } = mapActions('member');
 const { cubejsApi } = mapGetters('widget');
