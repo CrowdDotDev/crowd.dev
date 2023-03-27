@@ -4,7 +4,7 @@
     v-html="
       $sanitize($marked(member.attributes.bio?.default))
     "
-  ></div>
+  />
 </template>
 
 <script>
@@ -13,8 +13,8 @@ export default {
   props: {
     member: {
       type: Object,
-      default: () => {}
-    }
-  }
-}
+      default: () => {},
+    },
+  },
+};
 </script>

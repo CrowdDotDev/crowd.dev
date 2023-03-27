@@ -6,7 +6,7 @@
   >
     <template #default="{ resultSet }">
       <div v-if="loadingData(resultSet)">
-        <slot name="loading"></slot>
+        <slot name="loading" />
       </div>
       <div v-else>
         <slot name="default" :result-set="resultSet" />
@@ -16,62 +16,63 @@
 </template>
 
 <script>
-import { mapActions, mapGetters } from 'vuex'
-import { QueryRenderer } from '@cubejs-client/vue3'
+import { mapActions, mapGetters } from 'vuex';
+import { QueryRenderer } from '@cubejs-client/vue3';
+
 export default {
   name: 'AppCubeRender',
   components: {
-    QueryRenderer
+    QueryRenderer,
   },
   props: {
     query: {
       required: true,
-      type: Object
+      type: Object,
     },
     loading: {
       required: false,
       type: Boolean,
-      default: false
-    }
+      default: false,
+    },
   },
   computed: {
     ...mapGetters('widget', ['cubejsToken', 'cubejsApi']),
     computedQuery() {
       // Exclude team members in all queries
-      const widgetQuery = this.query
+      const widgetQuery = this.query;
       const isTeamMemberFilter = {
-        member: `Members.isTeamMember`,
+        member: 'Members.isTeamMember',
         operator: 'equals',
-        values: ['0']
-      }
+        values: ['0'],
+      };
 
       if (!widgetQuery.filters) {
-        widgetQuery.filters = [isTeamMemberFilter]
+        widgetQuery.filters = [isTeamMemberFilter];
       } else {
-        widgetQuery.filters.push(isTeamMemberFilter)
+        widgetQuery.filters.push(isTeamMemberFilter);
       }
 
-      return widgetQuery
-    }
+      return widgetQuery;
+    },
   },
   async created() {
     if (this.cubejsApi === null) {
-      await this.getCubeToken()
+      await this.getCubeToken();
     }
   },
   methods: {
     ...mapActions({
-      getCubeToken: 'widget/getCubeToken'
+      getCubeToken: 'widget/getCubeToken',
     }),
     loadingData(resultSet) {
       return (
-        !resultSet ||
-        resultSet.loadResponse === undefined ||
-        this.loading
-      )
-    }
-  }
-}
+        !resultSet
+        || resultSet.loadResponse === undefined
+        || this.loading
+      );
+    },
+  },
+};
 </script>
 
 <style scoped></style>

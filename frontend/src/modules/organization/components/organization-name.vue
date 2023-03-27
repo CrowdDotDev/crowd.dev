@@ -5,7 +5,7 @@
         class="min-h-8 min-w-8 w-8 h-8 border border-gray-200 rounded flex items-center justify-center overflow-hidden"
         :class="{
           'bg-white': organization.logo,
-          'bg-gray-50': !organization.logo
+          'bg-gray-50': !organization.logo,
         }"
       >
         <img
@@ -17,7 +17,7 @@
         <i
           v-else
           class="ri-community-line text-lg text-gray-300 h-5"
-        ></i>
+        />
       </div>
     </div>
     <div class="overflow-hidden">
@@ -44,36 +44,35 @@
   </div>
 </template>
 
-<script>
-export default {
-  name: 'AppOrganizationName'
-}
-</script>
-
 <script setup>
-import { defineProps, ref } from 'vue'
-import AppOrganizationBadge from '@/modules/organization/components/organization-badge.vue'
+import { defineProps, ref } from 'vue';
+import AppOrganizationBadge from '@/modules/organization/components/organization-badge.vue';
 
 defineProps({
   organization: {
     type: Object,
-    default: () => null
-  }
-})
+    default: () => null,
+  },
+});
 
-const nameRef = ref()
-const showTooltip = ref(false)
+const nameRef = ref();
+const showTooltip = ref(false);
 
 const handleOnMouseOver = () => {
   if (!nameRef.value) {
-    showTooltip.value = false
+    showTooltip.value = false;
   }
 
-  showTooltip.value =
-    nameRef.value.scrollWidth > nameRef.value.clientWidth
-}
+  showTooltip.value = nameRef.value.scrollWidth > nameRef.value.clientWidth;
+};
 
 const handleOnMouseLeave = () => {
-  showTooltip.value = false
-}
+  showTooltip.value = false;
+};
+</script>
+
+<script>
+export default {
+  name: 'AppOrganizationName',
+};
 </script>

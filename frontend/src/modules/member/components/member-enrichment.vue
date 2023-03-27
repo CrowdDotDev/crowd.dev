@@ -7,17 +7,16 @@
           class="w-5 h-5 enrichment-icon"
           color="#111827"
         />
-        <span class="text-gray-900 font-semibold text-sm"
-          >Member enrichment</span
-        >
+        <span class="text-gray-900 font-semibold text-sm">Member enrichment</span>
       </div>
       <el-tooltip placement="top" content="Learn more">
         <a
+          aria-label="Learn more"
           class="btn btn--transparent !h-8 !w-8 !text-gray-400 hover:!text-gray-600"
           href="https://docs.crowd.dev/docs/member-enrichment"
           target="_blank"
-          ><i class="ri-question-line text-lg"
-        /></a>
+          rel="noopener noreferrer"
+        ><i class="ri-question-line text-lg" /></a>
       </el-tooltip>
     </div>
 
@@ -37,12 +36,11 @@
         <el-button
           class="btn btn--primary btn--full !h-8"
           :disabled="
-            isEnrichmentDisabled ||
-            isEditLockedForSampleData
+            isEnrichmentDisabled
+              || isEditLockedForSampleData
           "
           @click="onEnrichmentClick"
-          >Enrich member</el-button
-        >
+        >Enrich member</el-button>
       </span>
     </el-tooltip>
 
@@ -55,40 +53,37 @@
 </template>
 
 <script setup>
+import { computed, defineProps } from 'vue';
 import {
   mapActions,
-  mapGetters
-} from '@/shared/vuex/vuex.helpers'
-import { computed, defineProps } from 'vue'
-import AppSvg from '@/shared/svg/svg.vue'
-import { MemberPermissions } from '../member-permissions'
+  mapGetters,
+} from '@/shared/vuex/vuex.helpers';
+import AppSvg from '@/shared/svg/svg.vue';
+import { MemberPermissions } from '../member-permissions';
 
 const props = defineProps({
   member: {
     type: Object,
-    default: () => {}
-  }
-})
+    default: () => {},
+  },
+});
 
-const { doEnrich } = mapActions('member')
-const { currentTenant, currentUser } = mapGetters('auth')
+const { doEnrich } = mapActions('member');
+const { currentTenant, currentUser } = mapGetters('auth');
 
 const isEnrichmentDisabled = computed(
-  () =>
-    !props.member.username?.github &&
-    !props.member.emails?.length
-)
+  () => !props.member.username?.github
+    && !props.member.emails?.length,
+);
 
-const isEditLockedForSampleData = computed(() => {
-  return new MemberPermissions(
-    currentTenant.value,
-    currentUser.value
-  ).editLockedForSampleData
-})
+const isEditLockedForSampleData = computed(() => new MemberPermissions(
+  currentTenant.value,
+  currentUser.value,
+).editLockedForSampleData);
 
 const onEnrichmentClick = async () => {
-  await doEnrich(props.member.id)
-}
+  await doEnrich(props.member.id);
+};
 </script>
 
 <style lang="scss">

@@ -1,9 +1,7 @@
 <template>
   <div v-show="!success">
     <h3 class="text-2xl leading-12 font-semibold mb-1">
-      <app-i18n
-        code="auth.emptyPermissions.message"
-      ></app-i18n>
+      You have no permissions yet. Wait for the admin to grant you privileges.
     </h3>
     <div class="pt-10">
       <el-button
@@ -17,16 +15,14 @@
 </template>
 
 <script>
-import { mapActions } from 'vuex'
-import AppI18n from '@/shared/i18n/i18n'
+import { mapActions } from 'vuex';
 
 export default {
   name: 'AppEmptyPermissionsPage',
-  components: { AppI18n },
   computed: {},
 
   methods: {
-    ...mapActions('auth', ['doSignout'])
-  }
-}
+    ...mapActions('auth', ['doSignout']),
+  },
+};
 </script>

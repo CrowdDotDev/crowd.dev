@@ -6,90 +6,89 @@
       width="500px"
       :data="data"
       v-bind="customChartOptions"
-    ></component>
+    />
   </div>
 </template>
 
-<script>
-export default {
-  name: 'AppWidgetBar'
-}
-</script>
-
 <script setup>
-import { defineProps, defineEmits, computed } from 'vue'
-import cloneDeep from 'lodash/cloneDeep'
+import { defineProps, defineEmits, computed } from 'vue';
+import cloneDeep from 'lodash/cloneDeep';
 
-const componentType = 'bar-chart'
+const componentType = 'bar-chart';
 
-const emit = defineEmits(['onAverageCalculation'])
+const emit = defineEmits(['onAverageCalculation']);
 const props = defineProps({
   datasets: {
     type: Array,
-    default: () => []
+    default: () => [],
   },
   resultSet: {
     type: null,
-    required: true
+    required: true,
   },
   chartOptions: {
     type: Object,
-    default: () => {}
+    default: () => {},
   },
   showAsAverage: {
     type: Boolean,
-    default: false
-  }
-})
+    default: false,
+  },
+});
 
-const customChartOptions = cloneDeep(props.chartOptions)
+const customChartOptions = cloneDeep(props.chartOptions);
 
 const loading = computed(
-  () => !props.resultSet?.loadResponses
-)
+  () => !props.resultSet?.loadResponses,
+);
 
 const series = (resultSet) => {
-  const pivot = resultSet.series()
-  const series = []
+  const pivot = resultSet.series();
+  const computedSeries = [];
 
   if (resultSet.loadResponses.length > 0) {
     resultSet.loadResponses.forEach((_, index) => {
       let data = pivot.length
         ? pivot[index].series.map((p) => [p.x, p.value])
-        : []
+        : [];
 
       // Show one bar for the DataPointsAverage
       if (props.showAsAverage) {
-        const average =
-          Math.floor(
-            data.reduce((valueA, [, valueB]) => {
-              return valueA + valueB
-            }, 0) / data.length
-          ) || 0
+        const average = Math.floor(
+          data.reduce((valueA, [, valueB]) => valueA + valueB, 0) / data.length,
+        ) || 0;
 
-        emit('onAverageCalculation', average)
+        emit('onAverageCalculation', average);
 
-        data = [['average', average]]
+        data = [['average', average]];
       }
 
-      series.push({
+      computedSeries.push({
         name: props.datasets[index].name,
         data,
         ...{
-          dataset: props.datasets[index]
-        }
-      })
-    })
+          dataset: props.datasets[index],
+        },
+      });
+    });
   }
 
-  return series
-}
+  return computedSeries;
+};
 
 const data = computed(() => {
   if (loading.value) {
-    return []
+    return [];
   }
 
-  return series(props.resultSet)
-})
+  return series(props.resultSet);
+});
+</script>
+
+<script>
+
+export default {
+  name: 'AppWidgetBar',
+};
+
 </script>

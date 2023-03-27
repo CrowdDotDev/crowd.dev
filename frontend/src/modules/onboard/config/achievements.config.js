@@ -9,5 +9,5 @@ export default {
   share_community_reports: 'Share community reports',
   create_community_help_center:
     'Create a community help center',
-  other: 'Other'
-}
+  other: 'Other',
+};

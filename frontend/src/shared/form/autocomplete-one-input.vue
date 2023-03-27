@@ -17,9 +17,15 @@
     :class="inputClass"
     @change="onChange"
   >
-    <template v-for="(_, name) in $slots" #[name]="slotData"
-      ><slot :name="name" v-bind="slotData"
-    /></template>
+    <template
+      v-for="(_, name) in $slots"
+      #[name]="slotData"
+    >
+      <slot
+        :name="name"
+        v-bind="slotData"
+      />
+    </template>
     <el-option
       v-show="showCreateSuggestion"
       :label="currentQuery"
@@ -63,10 +69,10 @@
 </template>
 
 <script>
-import isString from 'lodash/isString'
-import { onSelectMouseLeave } from '@/utils/select'
+import isString from 'lodash/isString';
+import { onSelectMouseLeave } from '@/utils/select';
 
-const AUTOCOMPLETE_SERVER_FETCH_SIZE = 20
+const AUTOCOMPLETE_SERVER_FETCH_SIZE = 20;
 
 export default {
   name: 'AppAutocompleteOneInput',
@@ -74,44 +80,44 @@ export default {
   props: {
     modelValue: {
       type: Object,
-      default: () => null
+      default: () => null,
     },
     placeholder: {
       type: String,
-      default: null
+      default: null,
     },
     fetchFn: {
       type: Function,
-      default: () => {}
+      default: () => {},
     },
     createFn: {
       type: Function,
-      default: () => {}
+      default: () => {},
     },
     disabled: {
       type: Boolean,
-      default: false
+      default: false,
     },
     createIfNotFound: {
       type: Boolean,
-      default: false
+      default: false,
     },
     createPrefix: {
       type: String,
-      default: 'Create'
+      default: 'Create',
     },
     inputClass: {
       type: String,
-      default: ''
+      default: '',
     },
     allowCreate: {
       type: Boolean,
-      default: false
+      default: false,
     },
     options: {
       type: Array,
-      default: () => []
-    }
+      default: () => [],
+    },
   },
   emits: ['update:modelValue'],
   data() {
@@ -119,107 +125,104 @@ export default {
       loading: false,
       localOptions: this.options ? this.options : [],
       currentQuery: '',
-      limit: AUTOCOMPLETE_SERVER_FETCH_SIZE
-    }
+      limit: AUTOCOMPLETE_SERVER_FETCH_SIZE,
+    };
   },
 
   computed: {
     showCreateSuggestion() {
       return (
-        this.createIfNotFound &&
-        this.currentQuery !== '' &&
-        !this.localOptions.some(
-          (o) =>
-            o.label === this.currentQuery ||
-            o === this.currentQuery
+        this.createIfNotFound
+        && this.currentQuery !== ''
+        && !this.localOptions.some(
+          (o) => o.label === this.currentQuery
+            || o === this.currentQuery,
         )
-      )
+      );
     },
     showEmptyMessage() {
       // Show empty message if request is not loading,
       // there are options or the only option is empty
       return (
-        !this.loading &&
-        (!this.localOptions.length ||
-          (this.localOptions.length === 1 &&
-            !this.localOptions[0].id))
-      )
-    }
+        !this.loading
+        && (!this.localOptions.length
+          || (this.localOptions.length === 1
+            && !this.localOptions[0].id))
+      );
+    },
   },
 
   async created() {
-    await this.fetchAllResults()
+    await this.fetchAllResults();
   },
 
   methods: {
     async onChange(value) {
-      const query = this.$refs.input.query
+      const { query } = this.$refs.input;
 
       if (
-        typeof query === 'string' &&
-        query !== '' &&
-        this.createIfNotFound
+        typeof query === 'string'
+        && query !== ''
+        && this.createIfNotFound
       ) {
         // If value is a string, convert it to a db object
-        const newItem = await this.createFn(value)
-        this.localOptions.push(newItem)
-        this.$emit('update:modelValue', newItem)
+        const newItem = await this.createFn(value);
+        this.localOptions.push(newItem);
+        this.$emit('update:modelValue', newItem);
       } else {
-        this.$emit('update:modelValue', value || null)
+        this.$emit('update:modelValue', value || null);
       }
     },
 
     async handleSearch(value) {
       if (!isString(value) && value === '') {
-        return
+        return;
       }
 
-      await this.handleServerSearch(value)
-      this.localOptions.filter((item) =>
-        String(item.label || '')
-          .toLowerCase()
-          .includes(String(value || '').toLowerCase())
-      )
+      await this.handleServerSearch(value);
+      this.localOptions.filter((item) => String(item.label || '')
+        .toLowerCase()
+        .includes(String(value || '').toLowerCase()));
     },
 
     async fetchAllResults() {
-      this.loading = true
+      this.loading = true;
 
       try {
         this.localOptions = await this.fetchFn(
           this.currentQuery,
-          AUTOCOMPLETE_SERVER_FETCH_SIZE
-        )
-        this.loading = false
+          AUTOCOMPLETE_SERVER_FETCH_SIZE,
+        );
+        this.loading = false;
       } catch (error) {
-        console.error(error)
-        this.loading = false
+        console.error(error);
+        this.loading = false;
       }
     },
 
     async handleServerSearch(value) {
       if (value === this.currentQuery) {
-        return
+        return;
       }
 
-      this.currentQuery = value
-      this.loading = true
+      this.currentQuery = value;
+      this.loading = true;
 
       try {
         this.localOptions = await this.fetchFn(
           value,
-          AUTOCOMPLETE_SERVER_FETCH_SIZE
-        )
+          AUTOCOMPLETE_SERVER_FETCH_SIZE,
+        );
 
-        this.loading = false
+        this.loading = false;
       } catch (error) {
-        console.error(error)
-        this.localOptions = []
-        this.loading = false
+        console.error(error);
+        this.localOptions = [];
+        this.loading = false;
       }
     },
 
-    onSelectMouseLeave
-  }
-}
+    onSelectMouseLeave,
+  },
+};
 </script>

@@ -1,7 +1,6 @@
-import Layout from '@/modules/layout/components/layout.vue'
+import Layout from '@/modules/layout/components/layout.vue';
 
-const DashboardPage = () =>
-  import('@/modules/dashboard/pages/dashboard-page.vue')
+const DashboardPage = () => import('@/modules/dashboard/pages/dashboard-page.vue');
 
 export default [
   {
@@ -15,8 +14,8 @@ export default [
         path: '',
         component: DashboardPage,
         exact: true,
-        meta: { auth: true }
-      }
-    ]
-  }
-]
+        meta: { auth: true },
+      },
+    ],
+  },
+];

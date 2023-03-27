@@ -1,5 +1,5 @@
-import { v4 as uuid } from 'uuid'
-import Chartkick from 'chartkick'
+import { v4 as uuid } from 'uuid';
+import Chartkick from 'chartkick';
 import {
   Chart,
   LineElement,
@@ -19,17 +19,17 @@ import {
   Title,
   Tooltip,
   SubTitle,
-  Filler
-} from 'chart.js'
-import 'chartjs-adapter-moment'
-import { h } from 'vue'
-import annotationPlugin from 'chartjs-plugin-annotation'
+  Filler,
+} from 'chart.js';
+import 'chartjs-adapter-moment';
+import { h } from 'vue';
+import annotationPlugin from 'chartjs-plugin-annotation';
 import {
   backgroundChartPlugin,
   verticalTodayBlockPlugin,
   verticalHoverLinePlugin,
-  updateTicksLabelsPositionPlugin
-} from './chartkick-custom-plugins'
+  updateTicksLabelsPositionPlugin,
+} from './chartkick-custom-plugins';
 
 Chart.register(
   LineElement,
@@ -54,11 +54,11 @@ Chart.register(
   verticalHoverLinePlugin,
   updateTicksLabelsPositionPlugin,
   backgroundChartPlugin,
-  annotationPlugin
-)
+  annotationPlugin,
+);
 
-let createComponent = function (app, tagName, chartType) {
-  let chartProps = [
+const createComponent = (app, tagName, ChartType) => {
+  const chartProps = [
     'bytes',
     'code',
     'colors',
@@ -79,86 +79,86 @@ let createComponent = function (app, tagName, chartType) {
     'title',
     'xtitle',
     'ytitle',
-    'zeros'
-  ]
+    'zeros',
+  ];
   app.component(tagName, {
     props: {
       data: {
         type: Array,
-        default: () => []
+        default: () => [],
       },
       id: {
         type: String,
-        default: () => {
-          return uuid()
-        }
+        default: () => uuid(),
       },
       width: {
         type: String,
-        default: null
+        default: null,
       },
       height: {
         type: String,
-        default: null
+        default: null,
       },
       dataset: {
         type: Object,
-        default: undefined
+        default: undefined,
       },
       library: {
         type: Object,
-        default: undefined
+        default: undefined,
       },
       loading: {
         type: String,
-        default: undefined
+        default: undefined,
       },
       precision: {
         type: String,
-        default: undefined
+        default: undefined,
       },
       round: {
         type: String,
-        default: undefined
+        default: undefined,
       },
       min: {
         type: String,
-        default: undefined
+        default: undefined,
       },
       max: {
         type: String,
-        default: undefined
+        default: undefined,
       },
       xmax: {
         type: String,
-        default: undefined
+        default: undefined,
       },
       xmin: {
         type: String,
-        default: undefined
+        default: undefined,
       },
       legend: {
         type: Boolean,
-        default: true
+        default: true,
       },
       ...chartProps.reduce((acc, item) => {
         acc[item] = {
           type: [String, Number, Boolean, Array],
-          default: null
-        }
-        return acc
-      }, {})
+          default: null,
+        };
+        return acc;
+      }, {}),
     },
     data() {
       return {
-        chartId: null
-      }
+        chartId: null,
+      };
     },
     computed: {
-      chartStyle: function () {
+      chartStyle() {
         // hack to watch data and options
-        this.data
-        this.chartOptions
+        // eslint-disable-next-line no-unused-expressions
+        this.data;
+        // eslint-disable-next-line no-unused-expressions
+        this.chartOptions;
 
         return {
           height: this.height || '300px',
@@ -168,100 +168,99 @@ let createComponent = function (app, tagName, chartType) {
           color: '#999',
           fontSize: '14px',
           fontFamily:
-            "'Lucida Grande', 'Lucida Sans Unicode', Verdana, Arial, Helvetica, sans-serif"
-        }
+            "'Lucida Grande', 'Lucida Sans Unicode', Verdana, Arial, Helvetica, sans-serif",
+        };
       },
-      chartOptions: function () {
-        let options = {}
-        let props = Object.keys(this.$props)
-        for (let i = 0; i < props.length; i++) {
-          let prop = props[i]
+      chartOptions() {
+        const options = {};
+        const props = Object.keys(this.$props);
+        for (let i = 0; i < props.length; i += 1) {
+          const prop = props[i];
           if (this[prop] !== undefined) {
-            options[prop] = this[prop]
+            options[prop] = this[prop];
           }
         }
-        return options
-      }
+        return options;
+      },
     },
-    created: function () {
-      this.chartId = this.chartId || this.id
+    created() {
+      this.chartId = this.chartId || this.id;
     },
-    mounted: function () {
-      this.updateChart()
+    mounted() {
+      this.updateChart();
     },
-    updated: function () {
-      this.updateChart()
+    updated() {
+      this.updateChart();
     },
-    beforeUnmount: function () {
+    beforeUnmount() {
       if (this.chart) {
-        this.chart.destroy()
+        this.chart.destroy();
       }
     },
     methods: {
-      updateChart: function () {
+      updateChart() {
         if (this.data !== null) {
           if (this.chart) {
             this.chart.updateData(
               this.data,
-              this.chartOptions
-            )
+              this.chartOptions,
+            );
           } else {
-            this.chart = new chartType(
+            this.chart = new ChartType(
               this.chartId,
               this.data,
-              this.chartOptions
-            )
+              this.chartOptions,
+            );
           }
         } else if (this.chart) {
-          this.chart.destroy()
-          this.chart = null
-          this.$el.innerText = 'Loading...'
+          this.chart.destroy();
+          this.chart = null;
+          this.$el.innerText = 'Loading...';
         }
-      }
+      },
     },
-    render: function () {
+    render() {
       // check if undefined so works with empty string
-      let loading =
-        this.chartOptions.loading !== undefined
-          ? this.chartOptions.loading
-          : 'Loading...'
+      const loading = this.chartOptions.loading !== undefined
+        ? this.chartOptions.loading
+        : 'Loading...';
 
       // h() accepts VNodes,
       // but limit to string since it may be used by Chartkick.js
       if (typeof loading !== 'string') {
-        throw new Error('loading must be a string')
+        throw new Error('loading must be a string');
       }
 
       return h(
         'div',
         {
           id: this.chartId,
-          style: this.chartStyle
+          style: this.chartStyle,
         },
-        [loading]
-      )
-    }
-  })
-}
+        [loading],
+      );
+    },
+  });
+};
 
-Chartkick.install = function (app) {
-  Chartkick.addAdapter(Chart)
-  createComponent(app, 'line-chart', Chartkick.LineChart)
-  createComponent(app, 'pie-chart', Chartkick.PieChart)
+Chartkick.install = (app) => {
+  Chartkick.addAdapter(Chart);
+  createComponent(app, 'line-chart', Chartkick.LineChart);
+  createComponent(app, 'pie-chart', Chartkick.PieChart);
   createComponent(
     app,
     'column-chart',
-    Chartkick.ColumnChart
-  )
-  createComponent(app, 'bar-chart', Chartkick.BarChart)
-  createComponent(app, 'area-chart', Chartkick.AreaChart)
+    Chartkick.ColumnChart,
+  );
+  createComponent(app, 'bar-chart', Chartkick.BarChart);
+  createComponent(app, 'area-chart', Chartkick.AreaChart);
   createComponent(
     app,
     'scatter-chart',
-    Chartkick.ScatterChart
-  )
-  createComponent(app, 'geo-chart', Chartkick.GeoChart)
-  createComponent(app, 'timeline', Chartkick.Timeline)
-}
+    Chartkick.ScatterChart,
+  );
+  createComponent(app, 'geo-chart', Chartkick.GeoChart);
+  createComponent(app, 'timeline', Chartkick.Timeline);
+};
 
-export default Chartkick
+export default Chartkick;

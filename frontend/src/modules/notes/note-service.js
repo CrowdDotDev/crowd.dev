@@ -1,41 +1,35 @@
-import authAxios from '@/shared/axios/auth-axios'
-import AuthCurrentTenant from '@/modules/auth/auth-current-tenant'
+import authAxios from '@/shared/axios/auth-axios';
+import AuthCurrentTenant from '@/modules/auth/auth-current-tenant';
 
 export class NoteService {
   static create(data) {
-    const tenantId = AuthCurrentTenant.get()
+    const tenantId = AuthCurrentTenant.get();
 
     return authAxios
       .post(`/tenant/${tenantId}/note`, data)
-      .then((response) => {
-        return response.data
-      })
+      .then((response) => response.data);
   }
 
   static update(id, data) {
-    const tenantId = AuthCurrentTenant.get()
+    const tenantId = AuthCurrentTenant.get();
 
     return authAxios
       .put(`/tenant/${tenantId}/note/${id}`, data)
-      .then((response) => {
-        return response.data
-      })
+      .then((response) => response.data);
   }
 
   static destroyAll(ids) {
     const params = {
-      ids
-    }
+      ids,
+    };
 
-    const tenantId = AuthCurrentTenant.get()
+    const tenantId = AuthCurrentTenant.get();
 
     return authAxios
       .delete(`/tenant/${tenantId}/note`, {
-        params
+        params,
       })
-      .then((response) => {
-        return response.data
-      })
+      .then((response) => response.data);
   }
 
   static list(filter, orderBy, limit, offset) {
@@ -43,22 +37,18 @@ export class NoteService {
       filter,
       orderBy,
       limit,
-      offset
-    }
+      offset,
+    };
 
-    const sampleTenant =
-      AuthCurrentTenant.getSampleTenantData()
-    const tenantId =
-      sampleTenant?.id || AuthCurrentTenant.get()
+    const sampleTenant = AuthCurrentTenant.getSampleTenantData();
+    const tenantId = sampleTenant?.id || AuthCurrentTenant.get();
 
     return authAxios
       .post(`/tenant/${tenantId}/note/query`, body, {
         headers: {
-          Authorization: sampleTenant?.token
-        }
+          Authorization: sampleTenant?.token,
+        },
       })
-      .then((response) => {
-        return response.data
-      })
+      .then((response) => response.data);
   }
 }

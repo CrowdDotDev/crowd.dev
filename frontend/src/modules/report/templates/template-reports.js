@@ -7,9 +7,9 @@ export const MEMBERS_REPORT = {
   color: 'bg-gray-900',
   filters: {
     platform: true,
-    teamMembers: true
-  }
-}
+    teamMembers: true,
+  },
+};
 
 export const PRODUCT_COMMUNITY_FIT_REPORT = {
   nameAsId: 'Product-community fit',
@@ -19,11 +19,11 @@ export const PRODUCT_COMMUNITY_FIT_REPORT = {
   icon: 'ri-rocket-2-line rotate-45',
   color: 'bg-purple-500',
   filters: {
-    teamMembers: true
-  }
-}
+    teamMembers: true,
+  },
+};
 
 export const templates = [
   MEMBERS_REPORT,
-  PRODUCT_COMMUNITY_FIT_REPORT
-]
+  PRODUCT_COMMUNITY_FIT_REPORT,
+];

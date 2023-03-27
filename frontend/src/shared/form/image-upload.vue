@@ -4,7 +4,7 @@
       ref="files"
       :accept="accept"
       :class="{
-        'image-upload-hide-upload': isFull || loading
+        'image-upload-hide-upload': isFull || loading,
       }"
       :file-list="fileList"
       :http-request="uploadFromRequest"
@@ -15,13 +15,13 @@
       action
       list-type="picture-card"
     >
-      <i class="el-icon-plus"></i>
+      <i class="el-icon-plus" />
     </el-upload>
 
     <app-dialog v-model="dialogVisible">
       <template #content>
         <div class="p-6">
-          <img :src="dialogImageUrl" alt width="100%" />
+          <img :src="dialogImageUrl" alt="" width="100%" />
         </div>
       </template>
     </app-dialog>
@@ -29,24 +29,24 @@
 </template>
 
 <script>
-import { FileUploader } from '@/shared/file-upload/file-uploader'
-import Errors from '@/shared/error/errors'
+import { FileUploader } from '@/shared/file-upload/file-uploader';
+import Errors from '@/shared/error/errors';
 
 export default {
   name: 'AppImageUpload',
   props: {
     storage: {
       type: String,
-      default: null
+      default: null,
     },
     value: {
       type: Array,
-      default: () => []
+      default: () => [],
     },
     max: {
       type: Number,
-      default: null
-    }
+      default: null,
+    },
   },
   emits: ['update:modelValue'],
 
@@ -54,81 +54,81 @@ export default {
     return {
       dialogImageUrl: '',
       dialogVisible: false,
-      loading: false
-    }
+      loading: false,
+    };
   },
 
   computed: {
     isFull() {
-      const hasInputReference = Boolean(this.$refs.files)
+      const hasInputReference = Boolean(this.$refs.files);
 
       return (
-        (this.max &&
-          hasInputReference &&
-          this.$refs.files.uploadFiles.length >=
-            this.max) ||
-        (!hasInputReference &&
-          (this.value || []).length >= this.max)
-      )
+        (this.max
+          && hasInputReference
+          && this.$refs.files.uploadFiles.length
+            >= this.max)
+        || (!hasInputReference
+          && (this.value || []).length >= this.max)
+      );
     },
 
     accept() {
-      return 'image/*'
+      return 'image/*';
     },
 
     fileList() {
       return (this.value || []).map((item) => ({
         ...item,
-        url: item.downloadUrl
-      }))
-    }
+        url: item.downloadUrl,
+      }));
+    },
   },
 
   methods: {
     async uploadFromRequest(request) {
-      this.loading = true
+      this.loading = true;
       return FileUploader.uploadFromRequest(request, {
         storage: this.storage,
-        image: true
-      })
+        image: true,
+      });
     },
 
     onSuccess(file) {
       if (!file) {
-        return
+        return;
       }
 
       this.$emit('update:modelValue', [
         ...(this.value || []),
-        file
-      ])
-      this.loading = false
+        file,
+      ]);
+      this.loading = false;
     },
 
     onError(error) {
-      Errors.showMessage(error)
-      this.loading = false
+      Errors.showMessage(error);
+      this.loading = false;
     },
 
     onRemove(file) {
       if (!file) {
-        return
+        return;
       }
 
-      const id = file.response ? file.response.id : file.id
+      const id = file.response ? file.response.id : file.id;
 
       this.$emit(
         'update:modelValue',
-        (this.value || []).filter((item) => item.id !== id)
-      )
+        (this.value || []).filter((item) => item.id !== id),
+      );
     },
 
     handlePictureCardPreview(file) {
-      this.dialogImageUrl = file.url
-      this.dialogVisible = true
-    }
-  }
-}
+      this.dialogImageUrl = file.url;
+      this.dialogVisible = true;
+    },
+  },
+};
 </script>
 
 <style>

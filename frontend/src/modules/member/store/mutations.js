@@ -1,4 +1,4 @@
-import sharedMutations from '@/shared/store/mutations'
+import sharedMutations from '@/shared/store/mutations';
 
 export default {
   ...sharedMutations(),
@@ -16,53 +16,53 @@ export default {
   FETCH_CUSTOM_ATTRIBUTES_SUCCESS(state, payload) {
     state.customAttributes = payload.rows.reduce(
       (acc, item) => {
-        acc[item.name] = item
-        return acc
+        acc[item.name] = item;
+        return acc;
       },
-      {}
-    )
+      {},
+    );
   },
 
   FETCH_CUSTOM_ATTRIBUTES_ERROR(state) {
-    state.customAttributes = {}
+    state.customAttributes = {};
   },
 
   EXPORT_STARTED(state) {
-    state.exportLoading = true
+    state.exportLoading = true;
   },
 
   EXPORT_SUCCESS(state) {
-    state.exportLoading = false
+    state.exportLoading = false;
   },
 
   EXPORT_ERROR(state) {
-    state.exportLoading = false
+    state.exportLoading = false;
   },
 
   MERGE_STARTED(state) {
-    state.mergeLoading = true
+    state.mergeLoading = true;
   },
 
   MERGE_SUCCESS(state) {
-    state.mergeLoading = false
+    state.mergeLoading = false;
   },
 
   MERGE_ERROR(state) {
-    state.mergeLoading = false
+    state.mergeLoading = false;
   },
 
   BULK_UPDATE_MEMBERS_TAGS_STARTED(state) {
-    state.list.loading = true
+    state.list.loading = true;
   },
 
   BULK_UPDATE_MEMBERS_TAGS_SUCCESS(state, members) {
-    for (const member of members) {
-      state.records[member.id] = member
-    }
-    state.list.loading = false
+    members.forEach((member) => {
+      state.records[member.id] = member;
+    });
+    state.list.loading = false;
   },
 
   BULK_UPDATE_MEMBERS_TAGS_ERROR(state) {
-    state.list.loading = false
-  }
-}
+    state.list.loading = false;
+  },
+};

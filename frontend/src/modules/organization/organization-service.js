@@ -1,64 +1,62 @@
-import authAxios from '@/shared/axios/auth-axios'
-import AuthCurrentTenant from '@/modules/auth/auth-current-tenant'
-import buildApiPayload from '@/shared/filter/helpers/build-api-payload'
-import { DEFAULT_ORGANIZATION_FILTERS } from '@/modules/organization/store/constants'
+import authAxios from '@/shared/axios/auth-axios';
+import AuthCurrentTenant from '@/modules/auth/auth-current-tenant';
+import buildApiPayload from '@/shared/filter/helpers/build-api-payload';
+import { DEFAULT_ORGANIZATION_FILTERS } from '@/modules/organization/store/constants';
 
 export class OrganizationService {
   static async update(id, data) {
-    const tenantId = AuthCurrentTenant.get()
+    const tenantId = AuthCurrentTenant.get();
 
     const response = await authAxios.put(
       `/tenant/${tenantId}/organization/${id}`,
-      data
-    )
+      data,
+    );
 
-    return response.data
+    return response.data;
   }
 
   static async destroyAll(ids) {
     const params = {
-      ids
-    }
+      ids,
+    };
 
-    const tenantId = AuthCurrentTenant.get()
+    const tenantId = AuthCurrentTenant.get();
 
     const response = await authAxios.delete(
       `/tenant/${tenantId}/organization`,
       {
-        params
-      }
-    )
+        params,
+      },
+    );
 
-    return response.data
+    return response.data;
   }
 
   static async create(data) {
-    const tenantId = AuthCurrentTenant.get()
+    const tenantId = AuthCurrentTenant.get();
 
     const response = await authAxios.post(
       `/tenant/${tenantId}/organization`,
-      data
-    )
+      data,
+    );
 
-    return response.data
+    return response.data;
   }
 
   static async find(id) {
-    const sampleTenant =
-      AuthCurrentTenant.getSampleTenantData()
-    const tenantId =
-      sampleTenant?.id || AuthCurrentTenant.get()
+    const sampleTenant = AuthCurrentTenant.getSampleTenantData();
+    const tenantId = sampleTenant?.id || AuthCurrentTenant.get();
 
     const response = await authAxios.get(
       `/tenant/${tenantId}/organization/${id}`,
       {
         headers: {
-          Authorization: sampleTenant?.token
-        }
-      }
-    )
+          Authorization: sampleTenant?.token,
+        },
+      },
+    );
 
-    return response.data
+    return response.data;
   }
 
   static async list(
@@ -66,52 +64,50 @@ export class OrganizationService {
     orderBy,
     limit,
     offset,
-    buildFilter = true
+    buildFilter = true,
   ) {
     const body = {
       filter: buildApiPayload({
         customFilters: filter,
         defaultFilters: DEFAULT_ORGANIZATION_FILTERS,
-        buildFilter
+        buildFilter,
       }),
       orderBy,
       limit,
-      offset
-    }
+      offset,
+    };
 
-    const sampleTenant =
-      AuthCurrentTenant.getSampleTenantData()
-    const tenantId =
-      sampleTenant?.id || AuthCurrentTenant.get()
+    const sampleTenant = AuthCurrentTenant.getSampleTenantData();
+    const tenantId = sampleTenant?.id || AuthCurrentTenant.get();
 
     const response = await authAxios.post(
       `/tenant/${tenantId}/organization/query`,
       body,
       {
         headers: {
-          Authorization: sampleTenant?.token
-        }
-      }
-    )
+          Authorization: sampleTenant?.token,
+        },
+      },
+    );
 
-    return response.data
+    return response.data;
   }
 
   static async listAutocomplete(query, limit) {
     const params = {
       query,
-      limit
-    }
+      limit,
+    };
 
-    const tenantId = AuthCurrentTenant.get()
+    const tenantId = AuthCurrentTenant.get();
 
     const response = await authAxios.get(
       `/tenant/${tenantId}/organization/autocomplete`,
       {
-        params
-      }
-    )
+        params,
+      },
+    );
 
-    return response.data
+    return response.data;
   }
 }

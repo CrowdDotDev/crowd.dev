@@ -9,30 +9,33 @@
         filter-class="custom"
         @change="onPlatformChange"
         @reset="onPlatformReset"
-        ><template #button
-          ><div class="relative">
+      >
+        <template #button>
+          <div class="relative">
             <el-button
               class="custom-btn"
               @click="handleOpenPlatform"
-              ><div class="flex items-center gap-2">
+            >
+              <div class="flex items-center gap-2">
                 <i class="ri-apps-2-line" /><span
                   class="font-medium"
-                  >Platforms:
+                >Platforms:
                   <span class="font-normal text-gray-600">{{
                     platformLabel
-                  }}</span></span
-                >
-              </div></el-button
-            >
+                  }}</span></span>
+              </div>
+            </el-button>
             <div
               v-if="hasSelectedPlatform"
               class="w-2 h-2 rounded-full bg-brand-500 outline outline-4 outline-gray-50 absolute top-[-4px] right-[-4px]"
-            ></div></div
-        ></template>
+            />
+          </div>
+        </template>
         <template #optionPrefix="{ item }">
           <img
             v-if="item.value && platformOptions(item.value)"
             :src="platformOptions(item.value).image"
+            :alt="platformOptions(item.value).name"
             class="w-4 h-4 mr-2"
           />
         </template>
@@ -55,66 +58,63 @@
 </template>
 
 <script setup>
-import AppFilterListItem from '@/shared/filter/components/filter-list-item.vue'
-import { computed, defineEmits, defineProps } from 'vue'
-import { CrowdIntegrations } from '@/integrations/integrations-config'
+import { computed, defineEmits, defineProps } from 'vue';
+import AppFilterListItem from '@/shared/filter/components/filter-list-item.vue';
+import { CrowdIntegrations } from '@/integrations/integrations-config';
 
 const emit = defineEmits([
   'update:platform',
   'update:teamMembers',
   'trackFilters',
   'reset',
-  'open'
-])
+  'open',
+]);
 const props = defineProps({
   platform: {
     type: Object,
-    default: null
+    default: null,
   },
   teamMembers: {
     type: Boolean,
-    defaul: null
+    defaul: null,
   },
   showPlatform: {
     type: Boolean,
-    defaul: true
+    defaul: true,
   },
   showTeamMembers: {
     type: Boolean,
-    defaul: true
-  }
-})
+    defaul: true,
+  },
+});
 
-const hasSelectedPlatform = computed(() => {
-  return !!props.platform.value.length
-})
+const hasSelectedPlatform = computed(() => !!props.platform.value.length);
 const platformLabel = computed(() => {
   if (!hasSelectedPlatform.value) {
-    return 'All'
+    return 'All';
   }
 
-  return props.platform.value.map((v) => v.label).join(', ')
-})
+  return props.platform.value.map((v) => v.label).join(', ');
+});
 
 const onPlatformChange = (newPlatform) => {
-  emit('update:platform', newPlatform)
-  emit('trackFilters')
-}
+  emit('update:platform', newPlatform);
+  emit('trackFilters');
+};
 const onPlatformReset = () => {
-  emit('reset')
-  emit('trackFilters')
-}
+  emit('reset');
+  emit('trackFilters');
+};
 const onTeamMembersChange = (value) => {
-  emit('update:teamMembers', value)
-  emit('trackFilters')
-}
+  emit('update:teamMembers', value);
+  emit('trackFilters');
+};
 
 const handleOpenPlatform = () => {
-  emit('open')
-}
+  emit('open');
+};
 
-const platformOptions = (platform) =>
-  CrowdIntegrations.getConfig(platform)
+const platformOptions = (platform) => CrowdIntegrations.getConfig(platform);
 </script>
 
 <style lang="scss">

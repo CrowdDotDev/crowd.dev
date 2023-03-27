@@ -6,7 +6,7 @@
     >
       <i
         class="ri-contacts-line flex items-center text-3xl h-12 text-gray-300"
-      ></i>
+      />
       <p
         class="text-sm leading-5 text-center italic text-gray-400 pl-6"
       >
@@ -22,8 +22,7 @@
           :prefix-icon="SearchIcon"
           clearable
           class="organization-view-members-search"
-        >
-        </el-input>
+        />
       </div>
       <div>
         <div
@@ -36,7 +35,7 @@
               class="flex items-center gap-2"
               :to="{
                 name: 'memberView',
-                params: { id: member.id }
+                params: { id: member.id },
               }"
             >
               <app-avatar :entity="member" size="sm" />
@@ -56,14 +55,14 @@
             </div>
             <app-member-channels
               :member="member"
-            ></app-member-channels>
+            />
           </div>
         </div>
         <div
           v-if="loading"
           v-loading="loading"
           class="app-page-spinner"
-        ></div>
+        />
         <div
           v-if="!noMore"
           class="flex justify-center pt-4"
@@ -72,96 +71,91 @@
             class="btn btn-brand btn-brand--transparent"
             :disabled="loading"
             @click="fetchMembers"
-            ><i class="ri-arrow-down-line mr-2"></i>Load
-            more</el-button
           >
+            <i class="ri-arrow-down-line mr-2" />Load
+            more
+          </el-button>
         </div>
       </div>
     </div>
   </div>
 </template>
 
-<script>
-export default {
-  name: 'AppMemberViewActivities'
-}
-</script>
-
 <script setup>
-import isEqual from 'lodash/isEqual'
-import { useStore } from 'vuex'
+import isEqual from 'lodash/isEqual';
+import { useStore } from 'vuex';
 import {
   defineProps,
   reactive,
   ref,
   h,
   onMounted,
-  watch
-} from 'vue'
-import debounce from 'lodash/debounce'
-import authAxios from '@/shared/axios/auth-axios'
-import AppMemberEngagementLevel from '@/modules/member/components/member-engagement-level'
-import AppMemberChannels from '@/modules/member/components/member-channels'
-import AppMemberDisplayName from '@/modules/member/components/member-display-name'
+  watch,
+} from 'vue';
+import debounce from 'lodash/debounce';
+import authAxios from '@/shared/axios/auth-axios';
+import AppMemberEngagementLevel from '@/modules/member/components/member-engagement-level.vue';
+import AppMemberChannels from '@/modules/member/components/member-channels.vue';
+import AppMemberDisplayName from '@/modules/member/components/member-display-name.vue';
 
 const SearchIcon = h(
   'i', // type
   { class: 'ri-search-line' }, // props
-  []
-)
+  [],
+);
 
-const store = useStore()
+const store = useStore();
 const props = defineProps({
   organizationId: {
     type: String,
-    default: null
-  }
-})
+    default: null,
+  },
+});
 
-const loading = ref(true)
-const query = ref('')
-const members = reactive([])
-const limit = ref(20)
-const offset = ref(0)
-const noMore = ref(false)
+const loading = ref(true);
+const query = ref('');
+const members = reactive([]);
+const limit = ref(20);
+const offset = ref(0);
+const noMore = ref(false);
 
-let filter = {}
+let filter = {};
 
 const fetchMembers = async () => {
   const filterToApply = {
-    organizations: [props.organizationId]
-  }
+    organizations: [props.organizationId],
+  };
 
   if (query.value && query.value !== '') {
     filterToApply.or = [
       {
         name: {
-          textContains: query.value
-        }
+          textContains: query.value,
+        },
       },
       {
         bio: {
-          textContains: query.value
-        }
+          textContains: query.value,
+        },
       },
       {
         email: {
-          textContains: query.value
-        }
-      }
-    ]
+          textContains: query.value,
+        },
+      },
+    ];
   }
 
   if (!isEqual(filter, filterToApply)) {
-    members.length = 0
-    noMore.value = false
+    members.length = 0;
+    noMore.value = false;
   }
 
   if (noMore.value) {
-    return
+    return;
   }
 
-  loading.value = true
+  loading.value = true;
 
   const { data } = await authAxios.post(
     `/tenant/${store.getters['auth/currentTenant'].id}/member/query`,
@@ -169,37 +163,43 @@ const fetchMembers = async () => {
       filter: filterToApply,
       orderBy: 'joinedAt_DESC',
       limit: limit.value,
-      offset: offset.value
+      offset: offset.value,
     },
     {
       headers: {
-        'x-crowd-api-version': '1'
-      }
-    }
-  )
+        'x-crowd-api-version': '1',
+      },
+    },
+  );
 
-  filter = { ...filterToApply }
-  loading.value = false
+  filter = { ...filterToApply };
+  loading.value = false;
   if (data.rows.length < limit.value) {
-    noMore.value = true
-    members.push(...data.rows)
+    noMore.value = true;
+    members.push(...data.rows);
   } else {
-    offset.value += limit.value
-    members.push(...data.rows)
+    offset.value += limit.value;
+    members.push(...data.rows);
   }
-}
+};
 
 const debouncedQueryChange = debounce(async () => {
-  await fetchMembers()
-}, 300)
+  await fetchMembers();
+}, 300);
 
 watch(query, (newValue, oldValue) => {
   if (newValue !== oldValue) {
-    debouncedQueryChange()
+    debouncedQueryChange();
   }
-})
+});
 
 onMounted(async () => {
-  await fetchMembers()
-})
+  await fetchMembers();
+});
+</script>
+
+<script>
+export default {
+  name: 'AppMemberViewActivities',
+};
 </script>

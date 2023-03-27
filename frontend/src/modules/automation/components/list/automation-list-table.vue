@@ -9,7 +9,7 @@
         border
         :default-sort="{
           prop: 'lastActive',
-          order: 'descending'
+          order: 'descending',
         }"
         :row-class-name="rowClass"
         @sort-change="doChangeSort"
@@ -19,7 +19,7 @@
             <div class="font-medium text-black">
               {{
                 translate(
-                  `entities.automation.triggers.${scope.row.trigger}`
+                  `entities.automation.triggers.${scope.row.trigger}`,
                 )
               }}
             </div>
@@ -56,9 +56,9 @@
           </template>
         </el-table-column>
         <el-table-column label="Status" width="200">
-          <template #default="scope"
-            ><app-automation-toggle :automation="scope.row"
-          /></template>
+          <template #default="scope">
+            <app-automation-toggle :automation="scope.row" />
+          </template>
         </el-table-column>
         <el-table-column label="" width="70">
           <template #default="scope">
@@ -71,10 +71,10 @@
                 @open-edit-automation-drawer="
                   $emit(
                     'openEditAutomationDrawer',
-                    scope.row
+                    scope.row,
                   )
                 "
-              ></app-automation-dropdown>
+              />
             </div>
           </template>
         </el-table-column>
@@ -84,25 +84,26 @@
 </template>
 
 <script>
-import moment from 'moment'
-import { mapGetters, mapActions } from 'vuex'
-import { AutomationPermissions } from '@/modules/automation/automation-permissions'
-import { AutomationModel } from '@/modules/automation/automation-model'
-import { i18n } from '@/i18n'
-import AutomationDropdown from '../automation-dropdown'
-import AutomationToggle from '../automation-toggle'
-import { formatDateToTimeAgo } from '@/utils/date'
-const { fields } = AutomationModel
+import moment from 'moment';
+import { mapGetters, mapActions } from 'vuex';
+import { AutomationPermissions } from '@/modules/automation/automation-permissions';
+import { AutomationModel } from '@/modules/automation/automation-model';
+import { i18n } from '@/i18n';
+import { formatDateToTimeAgo } from '@/utils/date';
+import AutomationDropdown from '../automation-dropdown.vue';
+import AutomationToggle from '../automation-toggle.vue';
+
+const { fields } = AutomationModel;
 
 export default {
   name: 'AppAutomationListTable',
   components: {
     'app-automation-dropdown': AutomationDropdown,
-    'app-automation-toggle': AutomationToggle
+    'app-automation-toggle': AutomationToggle,
   },
   emits: [
     'openExecutionsDrawer',
-    'openEditAutomationDrawer'
+    'openEditAutomationDrawer',
   ],
   computed: {
     ...mapGetters({
@@ -110,52 +111,51 @@ export default {
       loading: 'automation/loading',
       selectedRows: 'automation/selectedRows',
       currentUser: 'auth/currentUser',
-      currentTenant: 'auth/currentTenant'
+      currentTenant: 'auth/currentTenant',
     }),
 
     hasPermissionToEdit() {
       return new AutomationPermissions(
         this.currentTenant,
-        this.currentUser
-      ).edit
+        this.currentUser,
+      ).edit;
     },
 
     hasPermissionToDestroy() {
       return new AutomationPermissions(
         this.currentTenant,
-        this.currentUser
-      ).destroy
+        this.currentUser,
+      ).destroy;
     },
 
     fields() {
-      return fields
-    }
+      return fields;
+    },
   },
   mounted() {
-    this.doMountTable(this.$refs.table)
+    this.doMountTable(this.$refs.table);
   },
   methods: {
     ...mapActions({
       doChangeSort: 'automation/doChangeSort',
-      doMountTable: 'automation/doMountTable'
+      doMountTable: 'automation/doMountTable',
     }),
 
     translate(key) {
-      return i18n(key)
+      return i18n(key);
     },
 
     rowClass({ row }) {
-      const isSelected =
-        this.selectedRows.find((r) => r.id === row.id) !==
-        undefined
-      return isSelected ? 'is-selected' : ''
+      const isSelected = this.selectedRows.find((r) => r.id === row.id)
+        !== undefined;
+      return isSelected ? 'is-selected' : '';
     },
     timeAgo(date) {
-      return formatDateToTimeAgo(date)
+      return formatDateToTimeAgo(date);
     },
     formattedDate(date) {
-      return moment(date).format('YYYY-MM-DD HH:mm:ss')
-    }
-  }
-}
+      return moment(date).format('YYYY-MM-DD HH:mm:ss');
+    },
+  },
+};
 </script>

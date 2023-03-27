@@ -5,7 +5,7 @@
     :style="{
       height: height,
       width: width,
-      'border-radius': radius
+      'border-radius': radius,
     }"
   />
 </template>
@@ -17,20 +17,20 @@ export default {
     height: {
       required: false,
       type: String,
-      default: '100px'
+      default: '100px',
     },
     width: {
       required: false,
       type: String,
-      default: '100%'
+      default: '100%',
     },
     radius: {
       required: false,
       type: String,
-      default: '0px'
-    }
-  }
-}
+      default: '0px',
+    },
+  },
+};
 </script>
 
 <style scoped lang="scss">

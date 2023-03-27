@@ -1,16 +1,17 @@
 <template>
   <div class="w-full">
     <label
+      for="formDateRange"
       class="block text-xs leading-none font-semibold mb-1"
-      >Date Range
-      <span class="text-brand-500 ml-0.5">*</span></label
-    >
+    >Date Range
+      <span class="text-brand-500 ml-0.5">*</span></label>
     <el-select
+      id="formDateRange"
       :model-value="
-        timeDimensions[0] &&
-        dateRangeItems.find(
-          (o) => o.value === timeDimensions[0].dateRange
-        ).label
+        timeDimensions[0]
+          && dateRangeItems.find(
+            (o) => o.value === timeDimensions[0].dateRange,
+          ).label
       "
       filterable
       value-key="label"
@@ -23,21 +24,21 @@
         :value="item.value"
         :label="item.label"
         @mouseleave="onSelectMouseLeave"
-      ></el-option>
+      />
     </el-select>
   </div>
 </template>
 
 <script>
-import { onSelectMouseLeave } from '@/utils/select'
+import { onSelectMouseLeave } from '@/utils/select';
 
 export default {
   name: 'DateRangeSelect',
   props: {
     timeDimensions: {
       type: Array,
-      default: () => []
-    }
+      default: () => [],
+    },
   },
   emits: ['change'],
   data() {
@@ -45,42 +46,42 @@ export default {
       dateRangeItems: [
         {
           value: 'Today',
-          label: 'Today'
+          label: 'Today',
         },
         {
           value: 'Yesterday',
-          label: 'Yesterday'
+          label: 'Yesterday',
         },
         {
           value: 'This week',
-          label: 'This week'
+          label: 'This week',
         },
         {
           value: 'This month',
-          label: 'This month'
+          label: 'This month',
         },
         {
           value: 'This quarter',
-          label: 'This quarter'
+          label: 'This quarter',
         },
         {
           value: 'This year',
-          label: 'This year'
+          label: 'This year',
         },
         {
           value: 'Last 30 days',
-          label: 'Last 30 days'
+          label: 'Last 30 days',
         },
         {
           value: 'Last 365 days',
-          label: 'Last 12 months'
+          label: 'Last 12 months',
         },
         {
           value: undefined,
-          label: 'All time'
-        }
-      ]
-    }
+          label: 'All time',
+        },
+      ],
+    };
   },
   methods: {
     changeHandler(item) {
@@ -88,12 +89,12 @@ export default {
         {
           dimension: this.timeDimensions[0].dimension.name,
           granularity: this.timeDimensions[0].granularity,
-          ...(item ? { dateRange: item } : null)
-        }
-      ])
+          ...(item ? { dateRange: item } : null),
+        },
+      ]);
     },
 
-    onSelectMouseLeave
-  }
-}
+    onSelectMouseLeave,
+  },
+};
 </script>

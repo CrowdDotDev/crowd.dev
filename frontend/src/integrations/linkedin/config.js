@@ -1,4 +1,4 @@
-import LinkedInConnect from './components/linkedin-connect'
+import LinkedInConnect from './components/linkedin-connect.vue';
 
 export default {
   enabled: true,
@@ -16,7 +16,7 @@ export default {
     empathy: 'Love',
     interest: 'Insightful',
     appreciation: 'Support',
-    entertainment: 'Funny'
+    entertainment: 'Funny',
   },
-  premium: true
-}
+  premium: true,
+};

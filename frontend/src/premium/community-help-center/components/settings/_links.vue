@@ -64,78 +64,76 @@
 </template>
 
 <script setup>
-import { defineProps, defineEmits, computed } from 'vue'
-import { useStore } from 'vuex'
+import { defineProps, defineEmits, computed } from 'vue';
+import { useStore } from 'vuex';
 
-const store = useStore()
+const store = useStore();
 
 const props = defineProps({
   website: {
     type: String,
-    default: null
+    default: null,
   },
   slackInviteLink: {
     type: String,
-    default: null
+    default: null,
   },
   discordInviteLink: {
     type: String,
-    default: null
+    default: null,
   },
   githubInviteLink: {
     type: String,
-    default: null
+    default: null,
   },
   disabled: {
     type: Boolean,
-    default: false
-  }
-})
+    default: false,
+  },
+});
 
 const emit = defineEmits([
   'update:website',
   'update:slackInviteLink',
   'update:discordInviteLink',
-  'update:githubInviteLink'
-])
+  'update:githubInviteLink',
+]);
 
 const computedWebsite = computed({
   get() {
-    return props.website
+    return props.website;
   },
   set(value) {
-    emit('update:website', value)
-  }
-})
+    emit('update:website', value);
+  },
+});
 
 const computedDiscordInviteLink = computed({
   get() {
-    return props.discordInviteLink
+    return props.discordInviteLink;
   },
   set(value) {
-    emit('update:discordInviteLink', value)
-  }
-})
+    emit('update:discordInviteLink', value);
+  },
+});
 
 const computedSlackInviteLink = computed({
   get() {
-    return props.slackInviteLink
+    return props.slackInviteLink;
   },
   set(value) {
-    emit('update:slackInviteLink', value)
-  }
-})
+    emit('update:slackInviteLink', value);
+  },
+});
 
 const computedGithubInviteLink = computed({
   get() {
-    return props.githubInviteLink
+    return props.githubInviteLink;
   },
   set(value) {
-    emit('update:githubInviteLink', value)
-  }
-})
+    emit('update:githubInviteLink', value);
+  },
+});
 
-const activeIntegrations = computed(() =>
-  Object.keys(store.getters['integration/activeList'])
-)
+const activeIntegrations = computed(() => Object.keys(store.getters['integration/activeList']));
 </script>

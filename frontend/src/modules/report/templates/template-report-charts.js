@@ -1,4 +1,4 @@
-import { defaultChartConfig } from './template-default-config'
+import { defaultChartConfig } from './template-default-config';
 
 const defaultChartOptions = (config) => ({
   legend: false,
@@ -12,8 +12,8 @@ const defaultChartOptions = (config) => ({
     indexAxis: config.indexAxis,
     layout: {
       padding: {
-        top: 20
-      }
+        top: 20,
+      },
     },
     lineTension: 0.25,
     scales: {
@@ -21,21 +21,21 @@ const defaultChartOptions = (config) => ({
         type: config.xType,
         time: config.xType === 'time' && {
           displayFormats: {
-            day: 'MMM DD, YYYY'
-          }
+            day: 'MMM DD, YYYY',
+          },
         },
         ticks: {
           display: config.xTicks,
           color: '#9CA3AF',
           font: {
             family: 'Inter',
-            size: 10
+            size: 10,
           },
-          callback: config.xTicksCallback
+          callback: config.xTicksCallback,
         },
         grid: {
-          display: config.xLines
-        }
+          display: config.xLines,
+        },
       },
       y: {
         type: config.yType,
@@ -49,10 +49,10 @@ const defaultChartOptions = (config) => ({
           drawBorder: false,
           color: '#D1D5DB',
           borderDash: [4, 6],
-          drawTicks: false
+          drawTicks: false,
         },
         gridLines: {
-          drawOnChartArea: config.yLinesDrawOnChartArea
+          drawOnChartArea: config.yLinesDrawOnChartArea,
         },
         ticks: {
           display: config.yTicks,
@@ -61,16 +61,16 @@ const defaultChartOptions = (config) => ({
           padding: 8,
           font: {
             family: 'Inter',
-            size: 10
+            size: 10,
           },
-          callback: config.yTicksCallback
-        }
+          callback: config.yTicksCallback,
+        },
       },
-      y1: config.y1Scale
+      y1: config.y1Scale,
     },
     interaction: {
       mode: 'index',
-      intersect: false
+      intersect: false,
     },
     plugins: {
       backgroundChart: config.backgroundChartPlugin,
@@ -80,53 +80,51 @@ const defaultChartOptions = (config) => ({
       verticalHoverLine: config.verticalHoverLinePlugin,
       verticalTodayBlock: config.verticalTodayBlockPlugin,
       tooltip: config.tooltipPlugin,
-      legend: config.legendPlugin
-    }
-  }
-})
+      legend: config.legendPlugin,
+    },
+  },
+});
 
 export function chartOptions(type, config) {
   const chartConfig = {
     ...defaultChartConfig,
-    ...config
-  }
+    ...config,
+  };
 
-  let chartTypeOptions = {}
+  let chartTypeOptions = {};
 
   if (type === 'area') {
-    const computeDataset = (conf) => {
-      return (canvas) => {
-        const ctx = canvas.getContext('2d')
-        const gradient = ctx.createLinearGradient(
-          conf.gradient.x0,
-          conf.gradient.y0,
-          conf.gradient.x1,
-          conf.gradient.y1
-        )
-        for (let stop of conf.gradient.stops) {
-          gradient.addColorStop(stop.offset, stop.color)
-        }
+    const computeDataset = (conf) => (canvas) => {
+      const ctx = canvas.getContext('2d');
+      const gradient = ctx.createLinearGradient(
+        conf.gradient.x0,
+        conf.gradient.y0,
+        conf.gradient.x1,
+        conf.gradient.y1,
+      );
+      conf.gradient.stops.forEach((stop) => {
+        gradient.addColorStop(stop.offset, stop.color);
+      });
 
-        return {
-          backgroundColor: gradient,
-          pointRadius: 5,
-          pointBorderColor: 'transparent',
-          pointBackgroundColor: 'transparent',
-          pointHoverBorderColor: '#E94F2E',
-          pointHoverBackgroundColor: '#fff',
-          pointHoverBorderWidth: '2',
-          spanGaps: true
-        }
-      }
-    }
+      return {
+        backgroundColor: gradient,
+        pointRadius: 5,
+        pointBorderColor: 'transparent',
+        pointBackgroundColor: 'transparent',
+        pointHoverBorderColor: '#E94F2E',
+        pointHoverBackgroundColor: '#fff',
+        pointHoverBorderWidth: '2',
+        spanGaps: true,
+      };
+    };
 
     chartTypeOptions = {
-      computeDataset: computeDataset(chartConfig)
-    }
+      computeDataset: computeDataset(chartConfig),
+    };
   }
 
   return {
     ...defaultChartOptions(chartConfig),
-    ...chartTypeOptions
-  }
+    ...chartTypeOptions,
+  };
 }

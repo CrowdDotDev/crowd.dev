@@ -1,16 +1,14 @@
-import Layout from '@/modules/layout/components/layout.vue'
-import Permissions from '@/security/permissions'
-import { store } from '@/store'
+import Layout from '@/modules/layout/components/layout.vue';
+import Permissions from '@/security/permissions';
+import { store } from '@/store';
 
-const CommunityHelpCenterPage = () =>
-  import(
-    '@/premium/community-help-center/pages/community-help-center-page.vue'
-  )
+const CommunityHelpCenterPage = () => import(
+  '@/premium/community-help-center/pages/community-help-center-page.vue'
+);
 
-const CommunityHelpCenterPaywallPage = () =>
-  import(
-    '@/modules/layout/pages/temporary-paywall-page.vue'
-  )
+const CommunityHelpCenterPaywallPage = () => import(
+  '@/modules/layout/pages/temporary-paywall-page.vue'
+);
 
 export default [
   {
@@ -25,26 +23,26 @@ export default [
         component: CommunityHelpCenterPage,
         meta: {
           auth: true,
-          permission: Permissions.values.conversationRead
+          permission: Permissions.values.conversationRead,
         },
         beforeEnter: (to) => {
           if (
-            to.query.activeTab !== undefined &&
-            store.getters['communityHelpCenter/activeView']
+            to.query.activeTab !== undefined
+            && store.getters['communityHelpCenter/activeView']
               .id !== to.query.activeTab
           ) {
             store.dispatch(
               'communityHelpCenter/doChangeActiveView',
-              to.query.activeTab
-            )
+              to.query.activeTab,
+            );
           }
-        }
+        },
       },
       {
         name: 'communityHelpCenterPaywall',
         path: '/community-help-center/403',
-        component: CommunityHelpCenterPaywallPage
-      }
-    ]
-  }
-]
+        component: CommunityHelpCenterPaywallPage,
+      },
+    ],
+  },
+];

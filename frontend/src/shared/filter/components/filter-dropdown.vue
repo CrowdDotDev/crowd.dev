@@ -9,7 +9,7 @@
         class="filter-dropdown-trigger"
         :class="isExpanded ? 'is-expanded' : ''"
       >
-        <i class="ri-lg ri-filter-3-line mr-2"></i>
+        <i class="ri-lg ri-filter-3-line mr-2" />
         Filters
       </el-button>
       <template #dropdown>
@@ -34,7 +34,7 @@
               <i
                 v-if="item.selected"
                 class="ri-check-line text-brand-600 absolute right-0 mr-8"
-              ></i>
+              />
             </div>
           </el-dropdown-item>
           <div
@@ -57,79 +57,65 @@
   </div>
 </template>
 
-<script>
-export default {
-  name: 'AppFilterDropdown'
-}
-</script>
-
 <script setup>
-import { defineProps, computed, h, ref } from 'vue'
-import { useStore } from 'vuex'
-import queryFilterFunction from '@/shared/filter/helpers/query-filter'
+import {
+  defineProps, computed, h, ref,
+} from 'vue';
+import { useStore } from 'vuex';
+import queryFilterFunction from '@/shared/filter/helpers/query-filter';
 
-const store = useStore()
+const store = useStore();
 const props = defineProps({
   module: {
     type: String,
-    required: true
+    required: true,
   },
   attributes: {
     type: Array,
-    default: () => []
+    default: () => [],
   },
   customAttributes: {
     type: Array,
-    default: () => []
-  }
-})
+    default: () => [],
+  },
+});
 const SearchIcon = h(
   'i', // type
   { class: 'ri-search-line' }, // props
-  []
-)
+  [],
+);
 
-const query = ref('')
-const queryInput = ref(null)
-const isExpanded = ref(false)
+const query = ref('');
+const queryInput = ref(null);
+const isExpanded = ref(false);
 
 const activeView = computed(
-  () => store.getters[`${props.module}/activeView`]
-)
-const computedAttributes = computed(() =>
-  props.attributes
-    .filter((a) => queryFilterFunction(a, query.value))
-    .map((a) => {
-      a.selected =
-        store.state[props.module].views[activeView.value.id]
-          .filter.attributes[a.name] !== undefined &&
-        store.state[props.module].views[activeView.value.id]
-          .filter.attributes[a.name].show !== false
-      return a
-    })
-    .sort((a, b) =>
-      Intl.Collator().compare(a.label, b.label)
-    )
-)
-const computedCustomAttributes = computed(() =>
-  props.customAttributes
-    .filter((a) => queryFilterFunction(a, query.value))
-    .map((a) => {
-      a.selected =
-        store.state[props.module].views[activeView.value.id]
-          .filter.attributes[a.name] !== undefined
-      a.custom = true
-      return a
-    })
-    .sort((a, b) =>
-      Intl.Collator().compare(a.label, b.label)
-    )
-)
+  () => store.getters[`${props.module}/activeView`],
+);
+const computedAttributes = computed(() => props.attributes
+  .filter((a) => queryFilterFunction(a, query.value))
+  .map((a) => ({
+    ...a,
+    selected: store.state[props.module].views[activeView.value.id]
+      .filter.attributes[a.name] !== undefined
+      && store.state[props.module].views[activeView.value.id]
+        .filter.attributes[a.name].show !== false,
+  }))
+  .sort((a, b) => Intl.Collator().compare(a.label, b.label)));
+const computedCustomAttributes = computed(() => props.customAttributes
+  .filter((a) => queryFilterFunction(a, query.value))
+  .map((a) => ({
+    ...a,
+    selected: store.state[props.module].views[activeView.value.id]
+      .filter.attributes[a.name] !== undefined,
+    custom: true,
+  }))
+  .sort((a, b) => Intl.Collator().compare(a.label, b.label)));
 
 function handleDropdownChange(value) {
-  isExpanded.value = value
+  isExpanded.value = value;
   if (value) {
-    queryInput.value.focus()
+    queryInput.value.focus();
   }
 }
 function handleOptionClick(v) {
@@ -139,10 +125,16 @@ function handleOptionClick(v) {
   ) {
     store.dispatch(`${props.module}/addFilterAttribute`, {
       ...v.forFilter(),
-      expanded: true
-    })
+      expanded: true,
+    });
   }
 }
+</script>
+
+<script>
+export default {
+  name: 'AppFilterDropdown',
+};
 </script>
 
 <style lang="scss">

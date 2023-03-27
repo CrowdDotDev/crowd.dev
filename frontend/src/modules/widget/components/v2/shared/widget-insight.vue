@@ -10,7 +10,9 @@
       />
     </div>
     <div>
-      <div class="text-black text-sm">Insight</div>
+      <div class="text-black text-sm">
+        Insight
+      </div>
       <div class="mt-1 text-gray-600 text-xs">
         <slot name="description" />
       </div>
@@ -20,8 +22,8 @@
 
 <script>
 export default {
-  name: 'AppWidgetInsight'
-}
+  name: 'AppWidgetInsight',
+};
 </script>
 
 <script setup></script>

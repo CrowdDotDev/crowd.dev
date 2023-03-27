@@ -1,9 +1,9 @@
-import { externalTooltipHandler } from '../tooltip'
 import {
   parseTooltipTitle,
   formatTooltipTitle,
-  parseTooltipBody
-} from '@/utils/reports'
+  parseTooltipBody,
+} from '@/utils/reports';
+import { externalTooltipHandler } from '../tooltip';
 
 export const defaultChartConfig = {
   legend: true,
@@ -23,7 +23,7 @@ export const defaultChartConfig = {
   yMax: null,
   indexAxis: 'x',
   y1Scale: {
-    display: false
+    display: false,
   },
   gradient: {
     x0: 0,
@@ -33,13 +33,13 @@ export const defaultChartConfig = {
     stops: [
       {
         offset: 0,
-        color: 'rgba(233, 79, 46, 0.05)'
+        color: 'rgba(233, 79, 46, 0.05)',
       },
       {
         offset: 1,
-        color: 'rgba(233, 79, 46, 0)'
-      }
-    ]
+        color: 'rgba(233, 79, 46, 0)',
+      },
+    ],
   },
   backgroundChartPlugin: false,
   updateTicksLabelsPositionPlugin: false,
@@ -47,13 +47,13 @@ export const defaultChartConfig = {
   verticalHoverLinePlugin: {
     lineWidth: 32,
     strokeStyle: 'rgba(100,100,100, 0.05)',
-    strokeStyleAfterTodayLine: 'rgba(233,79,46, 0.05)'
+    strokeStyleAfterTodayLine: 'rgba(233,79,46, 0.05)',
   },
   verticalTodayBlockPlugin: {
     bottomMargin: 11,
     strokeColor: 'rgb(200,200,200)',
     strokeWidth: 0.5,
-    backgroundColor: 'rgb(200,200,200, 0.1)'
+    backgroundColor: 'rgb(200,200,200, 0.1)',
   },
   tooltipPlugin: {
     position: 'nearest',
@@ -63,10 +63,8 @@ export const defaultChartConfig = {
       title: parseTooltipTitle,
       label: formatTooltipTitle,
       afterLabel: parseTooltipBody,
-      footer: (context) => {
-        return context[0].dataset.tooltipBtn
-      }
-    }
+      footer: (context) => context[0].dataset.tooltipBtn,
+    },
   },
   legendPlugin: {
     display: true,
@@ -74,37 +72,37 @@ export const defaultChartConfig = {
     align: 'center',
     onClick: (_click, legendItem, legend) => {
       if (legendItem.preventClick) {
-        return
+        return;
       }
 
       const datasets = legend.legendItems.map(
-        (dataset) => dataset.text
-      )
+        (dataset) => dataset.text,
+      );
 
-      const index = datasets.indexOf(legendItem.text)
+      const index = datasets.indexOf(legendItem.text);
 
       if (legend.chart.isDatasetVisible(index)) {
-        legend.chart.hide(index)
+        legend.chart.hide(index);
       } else {
-        legend.chart.show(index)
+        legend.chart.show(index);
       }
     },
     labels: {
       font: {
         family: 'Inter',
-        size: 12
+        size: 12,
       },
       usePointStyle: true,
       generateLabels: (chart) => {
-        let visibility = []
+        const visibility = [];
 
         chart.data.datasets.forEach((d, i) => {
           if (chart.isDatasetVisible(i)) {
-            visibility.push(false)
+            visibility.push(false);
           } else {
-            visibility.push(true)
+            visibility.push(true);
           }
-        })
+        });
 
         // Show legends for datasets that do not have "showLegend" explicitly set to false
         // Prevent to click on legends to show/hide datasets if dataset is hidden
@@ -119,9 +117,9 @@ export const defaultChartConfig = {
             pointStyle: dataset.pointStyle || 'line',
             hidden: visibility[index],
             preventClick: dataset.hidden === true,
-            lineWidth: 2
-          }))
-      }
-    }
-  }
-}
+            lineWidth: 2,
+          }));
+      },
+    },
+  },
+};

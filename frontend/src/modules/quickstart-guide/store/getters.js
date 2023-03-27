@@ -1,4 +1,3 @@
 export default {
-  notcompletedGuides: (state) =>
-    state.guides.filter((guide) => !guide.completed)
-}
+  notcompletedGuides: (state) => state.guides.filter((guide) => !guide.completed),
+};

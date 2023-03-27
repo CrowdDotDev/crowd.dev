@@ -6,7 +6,7 @@
         :key="organization.id"
         :to="{
           name: 'organizationView',
-          params: { id: organization.id }
+          params: { id: organization.id },
         }"
         class="flex items-start hover:cursor-pointer"
         @click.stop
@@ -24,14 +24,14 @@
           </p>
           <div
             v-if="
-              props.showTitle &&
-              props.member.attributes.jobTitle?.default
+              props.showTitle
+                && props.member.attributes.jobTitle?.default
             "
             class="text-gray-500 text-2xs truncate pr-4"
           >
             {{
-              props.member.attributes.jobTitle?.default ||
-              '-'
+              props.member.attributes.jobTitle?.default
+                || '-'
             }}
           </div>
         </div>
@@ -40,7 +40,9 @@
     <div
       v-else-if="props.member.attributes.jobTitle?.default"
     >
-      <p class="text-gray-900 text-ellipsis truncate">-</p>
+      <p class="text-gray-900 text-ellipsis truncate">
+        -
+      </p>
       <div
         v-if="props.showTitle"
         class="text-gray-500 text-2xs"
@@ -50,21 +52,22 @@
         }}
       </div>
     </div>
-    <div v-else class="text-gray-900">-</div>
+    <div v-else class="text-gray-900">
+      -
+    </div>
   </div>
   <div
     v-else-if="
-      member.attributes.jobTitle?.default ||
-      props.member.organizations?.length
+      member.attributes.jobTitle?.default
+        || props.member.organizations?.length
     "
     class="flex items-start grow mt-2"
   >
     <span
       v-if="member.attributes?.jobTitle?.default"
       class="text-gray-600 text-2xs mr-2 truncate block mt-0.5"
-      >{{ member.attributes.jobTitle.default }}
-      {{ member.organizations.length ? 'at' : '' }}</span
-    >
+    >{{ member.attributes.jobTitle.default }}
+      {{ member.organizations.length ? 'at' : '' }}</span>
     <div
       v-if="member.organizations.length"
       class="flex gap-2 flex-wrap max-w-[70%]"
@@ -74,7 +77,7 @@
         :key="organization.id"
         :to="{
           name: 'organizationView',
-          params: { id: organization.id }
+          params: { id: organization.id },
         }"
         class="badge--interactive"
         @click.stop
@@ -91,30 +94,32 @@
       </router-link>
     </div>
   </div>
-  <div v-else class="text-gray-900">-</div>
+  <div v-else class="text-gray-900">
+    -
+  </div>
 </template>
 
-<script>
-export default {
-  name: 'AppMemberOrganizations'
-}
-</script>
-
 <script setup>
-import { defineProps } from 'vue'
+import { defineProps } from 'vue';
 
 const props = defineProps({
   member: {
     type: Object,
-    required: true
+    required: true,
   },
   showTitle: {
     type: Boolean,
-    default: true
+    default: true,
   },
   orientation: {
     type: String,
-    default: () => 'vertical'
-  }
-})
+    default: () => 'vertical',
+  },
+});
+</script>
+
+<script>
+export default {
+  name: 'AppMemberOrganizations',
+};
 </script>

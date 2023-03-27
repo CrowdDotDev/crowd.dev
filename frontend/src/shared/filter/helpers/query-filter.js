@@ -1,11 +1,9 @@
-export default (option, query) => {
-  return (
-    (option.name
-      ?.toLowerCase()
-      .includes(query.toLowerCase()) ||
-      option.label
+export default (option, query) => (
+  (option.name
+    ?.toLowerCase()
+    .includes(query.toLowerCase())
+      || option.label
         .toLowerCase()
-        .includes(query.toLowerCase())) &&
-    option.show !== false
-  )
-}
+        .includes(query.toLowerCase()))
+    && option.show !== false
+);

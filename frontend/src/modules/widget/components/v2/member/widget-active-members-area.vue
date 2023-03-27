@@ -50,7 +50,7 @@
           :datasets="datasets"
           :result-set="resultSet"
           :chart-options="{
-            ...chartOptions('area')
+            ...chartOptions('area'),
           }"
           :granularity="granularity.value"
           @on-view-more-click="onViewMoreClick"
@@ -70,62 +70,56 @@
     :template="MEMBERS_REPORT.nameAsId"
     size="480px"
     @on-export="onExport"
-  ></app-widget-drawer>
+  />
 </template>
 
-<script>
-export default {
-  name: 'AppWidgetActiveMembersArea'
-}
-</script>
-
 <script setup>
-import { computed, ref, defineProps } from 'vue'
-import AppWidgetTitle from '@/modules/widget/components/v2/shared/widget-title.vue'
-import AppWidgetPeriod from '@/modules/widget/components/v2/shared/widget-period.vue'
-import AppWidgetGranularity from '@/modules/widget/components/v2/shared/widget-granularity.vue'
-import AppWidgetArea from '@/modules/widget/components/v2/shared/widget-area.vue'
+import { computed, ref, defineProps } from 'vue';
+import { QueryRenderer } from '@cubejs-client/vue3';
+import moment from 'moment';
+import AppWidgetTitle from '@/modules/widget/components/v2/shared/widget-title.vue';
+import AppWidgetPeriod from '@/modules/widget/components/v2/shared/widget-period.vue';
+import AppWidgetGranularity from '@/modules/widget/components/v2/shared/widget-granularity.vue';
+import AppWidgetArea from '@/modules/widget/components/v2/shared/widget-area.vue';
 import {
   DAILY_GRANULARITY_FILTER,
-  SEVEN_DAYS_PERIOD_FILTER
-} from '@/modules/widget/widget-constants'
-import { QueryRenderer } from '@cubejs-client/vue3'
+  SEVEN_DAYS_PERIOD_FILTER,
+} from '@/modules/widget/widget-constants';
 import {
   mapGetters,
-  mapActions
-} from '@/shared/vuex/vuex.helpers'
-import { chartOptions } from '@/modules/report/templates/template-report-charts'
+  mapActions,
+} from '@/shared/vuex/vuex.helpers';
+import { chartOptions } from '@/modules/report/templates/template-report-charts';
 import {
   TOTAL_ACTIVE_MEMBERS_QUERY,
-  TOTAL_ACTIVE_RETURNING_MEMBERS_QUERY
-} from '@/modules/widget/widget-queries'
-import AppWidgetLoading from '@/modules/widget/components/v2/shared/widget-loading.vue'
-import AppWidgetError from '@/modules/widget/components/v2/shared/widget-error.vue'
-import AppWidgetDrawer from '@/modules/widget/components/v2/shared/widget-drawer.vue'
-import { MemberService } from '@/modules/member/member-service'
-import moment from 'moment'
-import { MEMBERS_REPORT } from '@/modules/report/templates/template-reports'
+  TOTAL_ACTIVE_RETURNING_MEMBERS_QUERY,
+} from '@/modules/widget/widget-queries';
+import AppWidgetLoading from '@/modules/widget/components/v2/shared/widget-loading.vue';
+import AppWidgetError from '@/modules/widget/components/v2/shared/widget-error.vue';
+import AppWidgetDrawer from '@/modules/widget/components/v2/shared/widget-drawer.vue';
+import { MemberService } from '@/modules/member/member-service';
+import { MEMBERS_REPORT } from '@/modules/report/templates/template-reports';
 
 const props = defineProps({
   filters: {
     type: Object,
-    default: null
+    default: null,
   },
   isPublicView: {
     type: Boolean,
-    default: false
-  }
-})
+    default: false,
+  },
+});
 
-const period = ref(SEVEN_DAYS_PERIOD_FILTER)
-const granularity = ref(DAILY_GRANULARITY_FILTER)
+const period = ref(SEVEN_DAYS_PERIOD_FILTER);
+const granularity = ref(DAILY_GRANULARITY_FILTER);
 
-const drawerExpanded = ref()
-const drawerDate = ref()
-const drawerTitle = ref()
+const drawerExpanded = ref();
+const drawerDate = ref();
+const drawerTitle = ref();
 
-const { doExport } = mapActions('member')
-const { cubejsApi } = mapGetters('widget')
+const { doExport } = mapActions('member');
+const { cubejsApi } = mapGetters('widget');
 
 const datasets = computed(() => [
   {
@@ -134,8 +128,8 @@ const datasets = computed(() => [
     measure: 'Members.count',
     granularity: granularity.value.value,
     ...(!props.isPublicView && {
-      tooltipBtn: 'View members'
-    })
+      tooltipBtn: 'View members',
+    }),
   },
   {
     name: 'Returning members',
@@ -144,42 +138,40 @@ const datasets = computed(() => [
     measure: 'Members.count',
     granularity: granularity.value.value,
     ...(!props.isPublicView && {
-      tooltipBtn: 'View members'
-    })
-  }
-])
-
-const query = computed(() => {
-  return [
-    TOTAL_ACTIVE_MEMBERS_QUERY({
-      period: period.value,
-      granularity: granularity.value,
-      selectedPlatforms: props.filters.platform.value,
-      selectedHasTeamMembers: props.filters.teamMembers
+      tooltipBtn: 'View members',
     }),
-    TOTAL_ACTIVE_RETURNING_MEMBERS_QUERY({
-      period: period.value,
-      granularity: granularity.value,
-      selectedPlatforms: props.filters.platform.value,
-      selectedHasTeamMembers: props.filters.teamMembers
-    })
-  ]
-})
+  },
+]);
+
+const query = computed(() => [
+  TOTAL_ACTIVE_MEMBERS_QUERY({
+    period: period.value,
+    granularity: granularity.value,
+    selectedPlatforms: props.filters.platform.value,
+    selectedHasTeamMembers: props.filters.teamMembers,
+  }),
+  TOTAL_ACTIVE_RETURNING_MEMBERS_QUERY({
+    period: period.value,
+    granularity: granularity.value,
+    selectedPlatforms: props.filters.platform.value,
+    selectedHasTeamMembers: props.filters.teamMembers,
+  }),
+]);
 
 // Fetch function to pass to detail drawer
 const getActiveMembers = async ({ pagination }) => {
-  const startDate = moment(drawerDate.value).startOf('day')
-  const endDate = moment(drawerDate.value)
+  const startDate = moment(drawerDate.value).startOf('day');
+  const endDate = moment(drawerDate.value);
 
   if (granularity.value.value === 'day') {
-    endDate.endOf('day')
+    endDate.endOf('day');
   } else if (granularity.value.value === 'week') {
-    endDate.startOf('day').add(6, 'day').endOf('day')
+    endDate.startOf('day').add(6, 'day').endOf('day');
   } else if (granularity.value.value === 'month') {
-    endDate.startOf('day').add(1, 'month')
+    endDate.startOf('day').add(1, 'month');
   }
 
-  return await MemberService.listActive({
+  const res = await MemberService.listActive({
     platform: props.filters.platform.value,
     isTeamMember: props.filters.teamMembers,
     activityTimestampFrom: startDate.toISOString(),
@@ -191,9 +183,11 @@ const getActiveMembers = async ({ pagination }) => {
       : 0,
     limit: !pagination.count
       ? pagination.pageSize
-      : pagination.count
-  })
-}
+      : pagination.count,
+  });
+
+  return res;
+};
 
 // Open drawer and set title and date
 const onViewMoreClick = (date) => {
@@ -201,33 +195,39 @@ const onViewMoreClick = (date) => {
     template: MEMBERS_REPORT.nameAsId,
     widget: 'Active members',
     date,
-    granularity: granularity.value
-  })
+    granularity: granularity.value,
+  });
 
-  drawerExpanded.value = true
-  drawerDate.value = date
+  drawerExpanded.value = true;
+  drawerDate.value = date;
 
   // Title
   if (granularity.value.value === 'week') {
-    drawerTitle.value = 'Weekly active members'
+    drawerTitle.value = 'Weekly active members';
   } else if (granularity.value.value === 'month') {
-    drawerTitle.value = 'Monthly active members'
+    drawerTitle.value = 'Monthly active members';
   } else {
-    drawerTitle.value = 'Daily active members'
+    drawerTitle.value = 'Daily active members';
   }
-}
+};
 
 const onExport = async ({ ids, count }) => {
   try {
     await doExport({
       selected: true,
       customIds: ids,
-      count
-    })
+      count,
+    });
   } catch (error) {
-    console.error(error)
+    console.error(error);
   }
-}
+};
+</script>
+
+<script>
+export default {
+  name: 'AppWidgetActiveMembersArea',
+};
 </script>
 
 <style lang="scss" scoped>

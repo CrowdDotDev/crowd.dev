@@ -1,4 +1,4 @@
-import RedditConnect from './components/reddit-connect'
+import RedditConnect from './components/reddit-connect.vue';
 
 export default {
   enabled: true,
@@ -8,5 +8,5 @@ export default {
   description:
     'Connect Reddit to sync posts and comments from selected subreddits.',
   image: '/images/integrations/reddit.svg',
-  connectComponent: RedditConnect
-}
+  connectComponent: RedditConnect,
+};

@@ -1,280 +1,278 @@
-import { AuthToken } from '@/modules/auth/auth-token'
-import { AuthService } from '@/modules/auth/auth-service'
-import ProgressBar from '@/shared/progress-bar/progress-bar'
-import Message from '@/shared/message/message'
-import { i18n } from '@/i18n'
-import Errors from '@/shared/error/errors'
-import { router } from '@/router'
-import { tenantSubdomain } from '@/modules/tenant/tenant-subdomain'
-import AuthCurrentTenant from '@/modules/auth/auth-current-tenant'
-import { TenantService } from '@/modules/tenant/tenant-service'
-import { buildInitialState, store } from '@/store'
+import { AuthToken } from '@/modules/auth/auth-token';
+import { AuthService } from '@/modules/auth/auth-service';
+import ProgressBar from '@/shared/progress-bar/progress-bar';
+import Message from '@/shared/message/message';
+import { i18n } from '@/i18n';
+import Errors from '@/shared/error/errors';
+import { router } from '@/router';
+import { tenantSubdomain } from '@/modules/tenant/tenant-subdomain';
+import AuthCurrentTenant from '@/modules/auth/auth-current-tenant';
+import { TenantService } from '@/modules/tenant/tenant-service';
+import { buildInitialState, store } from '@/store';
 import {
   connectSocket,
-  disconnectSocket
-} from '@/modules/auth/auth-socket'
+  disconnectSocket,
+} from '@/modules/auth/auth-socket';
 
 export default {
   async doInit({ commit, dispatch }) {
     try {
-      const token = AuthToken.get()
+      const token = AuthToken.get();
       if (token) {
-        const currentUser = await AuthService.fetchMe()
-        connectSocket(token)
-        commit('AUTH_INIT_SUCCESS', { currentUser })
-        return currentUser
+        const currentUser = await AuthService.fetchMe();
+        connectSocket(token);
+        commit('AUTH_INIT_SUCCESS', { currentUser });
+        return currentUser;
       }
 
-      disconnectSocket()
-      commit('AUTH_INIT_ERROR')
-      return null
+      disconnectSocket();
+      commit('AUTH_INIT_ERROR');
+      return null;
     } catch (error) {
-      console.error(error)
-      disconnectSocket()
-      commit('AUTH_INIT_ERROR')
-      dispatch('doSignout')
-      return null
+      console.error(error);
+      disconnectSocket();
+      commit('AUTH_INIT_ERROR');
+      dispatch('doSignout');
+      return null;
     } finally {
-      ProgressBar.done()
+      ProgressBar.done();
     }
   },
 
   doWaitUntilInit({ getters }) {
     if (!getters.loadingInit) {
-      return Promise.resolve()
+      return Promise.resolve();
     }
 
     return new Promise((resolve) => {
       const waitUntilInitInterval = setInterval(() => {
         if (!getters.loadingInit) {
-          clearInterval(waitUntilInitInterval)
-          resolve({})
+          clearInterval(waitUntilInitInterval);
+          resolve({});
         }
-      }, 500)
-    })
+      }, 500);
+    });
   },
 
   doSendEmailConfirmation({ commit }) {
-    commit('EMAIL_CONFIRMATION_START')
+    commit('EMAIL_CONFIRMATION_START');
 
     return AuthService.sendEmailVerification()
       .then(() => {
         Message.success(
-          i18n('auth.verificationEmailSuccess')
-        )
-        commit('EMAIL_CONFIRMATION_SUCCESS')
+          i18n('auth.verificationEmailSuccess'),
+        );
+        commit('EMAIL_CONFIRMATION_SUCCESS');
       })
       .catch((error) => {
-        Errors.handle(error)
-        commit('EMAIL_CONFIRMATION_ERROR')
-      })
+        Errors.handle(error);
+        commit('EMAIL_CONFIRMATION_ERROR');
+      });
   },
 
   doSendPasswordResetEmail({ commit }, email) {
-    commit('PASSWORD_RESET_EMAIL_START')
+    commit('PASSWORD_RESET_EMAIL_START');
 
     return AuthService.sendPasswordResetEmail(email)
       .then((data) => {
-        commit('PASSWORD_RESET_EMAIL_SUCCESS')
-        return Promise.resolve(data)
+        commit('PASSWORD_RESET_EMAIL_SUCCESS');
+        return Promise.resolve(data);
       })
       .catch((error) => {
-        Errors.handle(error)
-        commit('PASSWORD_RESET_EMAIL_ERROR')
-        return Promise.reject(error)
-      })
+        Errors.handle(error);
+        commit('PASSWORD_RESET_EMAIL_ERROR');
+        return Promise.reject(error);
+      });
   },
 
   doRegisterEmailAndPassword(
     { commit },
-    { email, password, data = {} }
+    { email, password, data = {} },
   ) {
-    commit('AUTH_START')
+    commit('AUTH_START');
     return AuthService.registerWithEmailAndPassword(
       email,
       password,
-      data
+      data,
     )
       .then((token) => {
-        AuthToken.set(token, true)
-        connectSocket(token)
-        return AuthService.fetchMe()
+        AuthToken.set(token, true);
+        connectSocket(token);
+        return AuthService.fetchMe();
       })
       .then((currentUser) => {
         commit('AUTH_SUCCESS', {
-          currentUser
-        })
+          currentUser,
+        });
 
-        router.push('/')
+        router.push('/');
       })
       .catch((error) => {
-        AuthService.signout()
-        Errors.handle(error)
-        commit('AUTH_ERROR')
-      })
+        AuthService.signout();
+        Errors.handle(error);
+        commit('AUTH_ERROR');
+      });
   },
 
   doSigninWithEmailAndPassword(
     { commit },
-    { email, password, rememberMe }
+    { email, password, rememberMe },
   ) {
-    commit('AUTH_START')
+    commit('AUTH_START');
     return AuthService.signinWithEmailAndPassword(
       email,
-      password
+      password,
     )
       .then((token) => {
-        AuthToken.set(token, rememberMe)
-        return AuthService.fetchMe()
+        AuthToken.set(token, rememberMe);
+        return AuthService.fetchMe();
       })
       .then((currentUser) => {
         commit('AUTH_SUCCESS', {
-          currentUser: currentUser || null
-        })
-        router.push('/')
+          currentUser: currentUser || null,
+        });
+        router.push('/');
       })
       .catch((error) => {
-        AuthService.signout()
-        Errors.handle(error)
-        commit('AUTH_ERROR')
-      })
+        AuthService.signout();
+        Errors.handle(error);
+        commit('AUTH_ERROR');
+      });
   },
 
   async doSignout({ commit }) {
-    commit('AUTH_START')
-    AuthService.signout()
+    commit('AUTH_START');
+    AuthService.signout();
     commit('AUTH_SUCCESS', {
-      currentUser: null
-    })
-    router.push('/auth/signin')
+      currentUser: null,
+    });
+    router.push('/auth/signin');
   },
 
   doRefreshCurrentUser({ commit }) {
-    const token = AuthToken.get()
+    const token = AuthToken.get();
     if (token) {
       return AuthService.fetchMe()
         .then((currentUser) => {
           commit('CURRENT_USER_REFRESH_SUCCESS', {
-            currentUser
-          })
-          return currentUser
+            currentUser,
+          });
+          return currentUser;
         })
         .catch((error) => {
-          AuthService.signout()
-          Errors.handle(error)
+          AuthService.signout();
+          Errors.handle(error);
 
-          commit('CURRENT_USER_REFRESH_ERROR', error)
-          return null
-        })
+          commit('CURRENT_USER_REFRESH_ERROR', error);
+          return null;
+        });
     }
     commit('CURRENT_USER_REFRESH_SUCCESS', {
-      currentUser: null
-    })
-    return Promise.resolve(null)
+      currentUser: null,
+    });
+    return Promise.resolve(null);
   },
 
   doUpdateProfile({ commit, dispatch }, data) {
-    commit('UPDATE_PROFILE_START')
+    commit('UPDATE_PROFILE_START');
     return AuthService.updateProfile(data)
       .then(() => {
-        commit('UPDATE_PROFILE_SUCCESS')
-        return dispatch('doRefreshCurrentUser')
+        commit('UPDATE_PROFILE_SUCCESS');
+        return dispatch('doRefreshCurrentUser');
       })
       .then(() => {
-        Message.success(i18n('auth.profile.success'))
+        Message.success(i18n('auth.profile.success'));
       })
       .catch((error) => {
-        Errors.handle(error)
-        commit('UPDATE_PROFILE_ERROR')
-      })
+        Errors.handle(error);
+        commit('UPDATE_PROFILE_ERROR');
+      });
   },
 
   doChangePassword(
     { commit, dispatch },
-    { oldPassword, newPassword }
+    { oldPassword, newPassword },
   ) {
-    commit('PASSWORD_CHANGE_START')
+    commit('PASSWORD_CHANGE_START');
     return AuthService.changePassword(
       oldPassword,
-      newPassword
+      newPassword,
     )
       .then(() => {
-        commit('PASSWORD_CHANGE_SUCCESS')
-        return dispatch('doRefreshCurrentUser')
+        commit('PASSWORD_CHANGE_SUCCESS');
+        return dispatch('doRefreshCurrentUser');
       })
       .then(() => {
-        Message.success(i18n('auth.passwordChange.success'))
+        Message.success(i18n('auth.passwordChange.success'));
       })
       .catch((error) => {
-        Errors.handle(error)
-        commit('PASSWORD_CHANGE_ERROR')
-      })
+        Errors.handle(error);
+        commit('PASSWORD_CHANGE_ERROR');
+      });
   },
 
   doVerifyEmail({ commit, dispatch }, token) {
-    commit('EMAIL_VERIFY_START')
+    commit('EMAIL_VERIFY_START');
     return AuthService.verifyEmail(token)
       .then(() => {
-        Message.success(i18n('auth.verifyEmail.success'))
-        return dispatch('doRefreshCurrentUser')
+        Message.success(i18n('auth.verifyEmail.success'));
+        return dispatch('doRefreshCurrentUser');
       })
       .then(() => {
-        commit('EMAIL_VERIFY_SUCCESS')
-        router.push('/')
+        commit('EMAIL_VERIFY_SUCCESS');
+        router.push('/');
       })
       .catch((error) => {
-        Errors.handle(error)
-        commit('EMAIL_VERIFY_ERROR')
-        dispatch('doSignout')
-      })
+        Errors.handle(error);
+        commit('EMAIL_VERIFY_ERROR');
+        dispatch('doSignout');
+      });
   },
 
   doResetPassword(
     { commit, dispatch },
-    { token, password }
+    { token, password },
   ) {
-    commit('PASSWORD_RESET_START')
+    commit('PASSWORD_RESET_START');
     return AuthService.passwordReset(token, password)
       .then(() => {
-        commit('PASSWORD_RESET_SUCCESS')
+        commit('PASSWORD_RESET_SUCCESS');
       })
       .catch((error) => {
-        Errors.handle(error)
-        commit('PASSWORD_RESET_ERROR')
-        dispatch('doSignout')
-      })
+        Errors.handle(error);
+        commit('PASSWORD_RESET_ERROR');
+        dispatch('doSignout');
+      });
   },
 
   async doSelectTenant({ dispatch }, tenant) {
     if (tenantSubdomain.isEnabled) {
-      tenantSubdomain.redirectAuthenticatedTo(tenant.url)
-      return
+      tenantSubdomain.redirectAuthenticatedTo(tenant.url);
+      return;
     }
 
-    AuthCurrentTenant.set(tenant)
-    await dispatch('doRefreshCurrentUser')
+    AuthCurrentTenant.set(tenant);
+    await dispatch('doRefreshCurrentUser');
 
-    const initialState = buildInitialState(true)
+    const initialState = buildInitialState(true);
 
-    store.replaceState(initialState)
+    store.replaceState(initialState);
 
-    router.push('/')
+    router.push('/');
   },
 
   clearTenant({ commit }) {
-    AuthCurrentTenant.set(null)
-    commit('CLEAR_TENANT')
+    AuthCurrentTenant.set(null);
+    commit('CLEAR_TENANT');
   },
 
   async doFinishOnboard({ dispatch, getters }, params) {
     return TenantService.update(getters.currentTenant.id, {
-      onboardedAt: new Date()
+      onboardedAt: new Date(),
     })
+      .then(() => dispatch('doRefreshCurrentUser'))
       .then(() => {
-        return dispatch('doRefreshCurrentUser')
-      })
-      .then(() => {
-        router.push(params?.route ?? '/')
-      })
-  }
-}
+        router.push(params?.route ?? '/');
+      });
+  },
+};

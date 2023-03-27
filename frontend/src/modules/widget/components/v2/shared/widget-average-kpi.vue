@@ -8,16 +8,16 @@
 </template>
 
 <script setup>
-import { defineProps } from 'vue'
+import { defineProps } from 'vue';
 
 defineProps({
   result: {
     type: Number,
-    required: true
+    required: true,
   },
   description: {
     type: String,
-    required: true
-  }
-})
+    required: true,
+  },
+});
 </script>

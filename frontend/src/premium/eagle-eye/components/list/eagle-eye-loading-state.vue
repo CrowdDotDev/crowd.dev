@@ -4,7 +4,9 @@
       size="small"
       class="mt-30 w-64"
     />
-    <h5 class="mt-8">Loading results...</h5>
+    <h5 class="mt-8">
+      Loading results...
+    </h5>
     <div
       v-if="showLongerLoading && showDescription"
       class="text-gray-600 text-sm mt-4"
@@ -16,35 +18,35 @@
 </template>
 
 <script setup>
-import AppEagleEyeLoadingCard from '@/premium/eagle-eye/components/list/eagle-eye-loading-card.vue'
 import {
   onMounted,
   onUnmounted,
   ref,
-  defineProps
-} from 'vue'
+  defineProps,
+} from 'vue';
+import AppEagleEyeLoadingCard from '@/premium/eagle-eye/components/list/eagle-eye-loading-card.vue';
 
-const showLongerLoading = ref(false)
-const timeout = ref()
+const showLongerLoading = ref(false);
+const timeout = ref();
 
 const props = defineProps({
   showDescription: {
     type: Boolean,
-    default: true
-  }
-})
+    default: true,
+  },
+});
 
 onMounted(() => {
   if (props.showDescription) {
     timeout.value = setTimeout(() => {
-      showLongerLoading.value = true
-    }, 2000)
+      showLongerLoading.value = true;
+    }, 2000);
   }
-})
+});
 
 onUnmounted(() => {
   if (props.showDescription) {
-    clearTimeout(timeout.value)
+    clearTimeout(timeout.value);
   }
-})
+});
 </script>

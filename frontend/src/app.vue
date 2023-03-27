@@ -1,5 +1,5 @@
 <template>
-  <div v-if="!loading" id="app">
+  <div v-show="!loading" id="app">
     <div class="sm:hidden md:block lg:block">
       <router-view v-slot="{ Component }">
         <transition>
@@ -9,7 +9,7 @@
         </transition>
       </router-view>
 
-      <div id="teleport-modal"></div>
+      <div id="teleport-modal" />
     </div>
 
     <div class="sm:block md:hidden lg:hidden">
@@ -19,72 +19,73 @@
 </template>
 
 <script>
-import { mapGetters, mapActions, mapState } from 'vuex'
-import AppResizePage from '@/modules/layout/pages/resize-page.vue'
-import { FeatureFlag } from '@/featureFlag'
-import config from '@/config'
+import { mapGetters, mapActions, mapState } from 'vuex';
+import AppResizePage from '@/modules/layout/pages/resize-page.vue';
+import { FeatureFlag } from '@/featureFlag';
+import config from '@/config';
+import { AuthToken } from '@/modules/auth/auth-token';
 
 export default {
   name: 'App',
 
   components: {
-    AppResizePage
+    AppResizePage,
   },
 
   computed: {
     ...mapGetters({
       loadingInit: 'auth/loadingInit',
-      currentTenant: 'auth/currentTenant'
+      currentTenant: 'auth/currentTenant',
     }),
     ...mapState({
-      featureFlag: (state) => state.tenant.featureFlag
+      featureFlag: (state) => state.tenant.featureFlag,
     }),
     loading() {
       return (
-        this.loadingInit ||
-        (!this.featureFlag.isReady &&
-          !this.featureFlag.hasError &&
-          !config.isCommunityVersion)
-      )
-    }
+        (this.loadingInit && !!AuthToken.get())
+        || (!this.featureFlag.isReady
+          && !this.featureFlag.hasError
+          && !config.isCommunityVersion)
+      );
+    },
   },
 
   async created() {
-    await this.doInit()
+    await this.doInit();
 
-    FeatureFlag.init(this.currentTenant)
+    FeatureFlag.init(this.currentTenant);
 
-    window.addEventListener('resize', this.handleResize)
-    this.handleResize()
+    window.addEventListener('resize', this.handleResize);
+    this.handleResize();
   },
 
   mounted() {
     this.$router.isReady().then(() => {
-      const { ref } = this.$route.query
+      const { ref } = this.$route.query;
       if (ref && ref === 'eagle-eye') {
-        localStorage.setItem('onboardType', 'eagle-eye')
+        localStorage.setItem('onboardType', 'eagle-eye');
       }
-    })
+    });
   },
 
   unmounted() {
-    window.removeEventListener('resize', this.handleResize)
+    window.removeEventListener('resize', this.handleResize);
   },
 
   methods: {
     ...mapActions({
       doInit: 'auth/doInit',
-      resize: 'layout/resize'
+      resize: 'layout/resize',
     }),
 
     handleResize() {
       this.resize({
         width: window.innerWidth,
-        height: window.innerHeight
-      })
-    }
-  }
-}
+        height: window.innerHeight,
+      });
+    },
+  },
+};
 </script>
 
 <style lang="scss">

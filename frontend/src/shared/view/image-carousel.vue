@@ -12,7 +12,7 @@
       v-for="(image, index) in value"
       :key="index"
     >
-      <a :href="image.downloadUrl" target="_blank">
+      <a :href="image.downloadUrl" target="_blank" rel="noopener noreferrer">
         <img
           :alt="image.name"
           :src="image.downloadUrl"
@@ -34,10 +34,10 @@ export default {
   props: {
     value: {
       type: Array,
-      default: () => []
-    }
-  }
-}
+      default: () => [],
+    },
+  },
+};
 </script>
 
 <style></style>

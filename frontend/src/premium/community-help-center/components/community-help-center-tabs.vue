@@ -6,7 +6,7 @@
         :key="view.id"
         :label="view.label"
         :name="view.id"
-      ></el-tab-pane>
+      />
     </el-tabs>
     <span
       v-if="showResetView"
@@ -19,40 +19,38 @@
   </div>
 </template>
 
-<script>
-export default {
-  name: 'AppCommunityHelpCenterTabs'
-}
-</script>
-
 <script setup>
-import { computed } from 'vue'
-import { useStore } from 'vuex'
+import { computed } from 'vue';
+import { useStore } from 'vuex';
 
-const store = useStore()
+const store = useStore();
 const showResetView = computed(
-  () => store.getters['communityHelpCenter/showResetView']
-)
+  () => store.getters['communityHelpCenter/showResetView'],
+);
 const model = computed({
   get() {
     return Object.values(
-      store.state.communityHelpCenter.views
-    ).find((v) => v.active).id
+      store.state.communityHelpCenter.views,
+    ).find((v) => v.active).id;
   },
   set(value) {
     store.dispatch(
       'communityHelpCenter/doChangeActiveView',
-      value
-    )
-  }
-})
-const views = computed(() => {
-  return Object.values(
-    store.state.communityHelpCenter.views
-  )
-})
+      value,
+    );
+  },
+});
+const views = computed(() => Object.values(
+  store.state.communityHelpCenter.views,
+));
 
 const resetView = () => {
-  store.dispatch('communityHelpCenter/doResetActiveView')
-}
+  store.dispatch('communityHelpCenter/doResetActiveView');
+};
+</script>
+
+<script>
+export default {
+  name: 'AppCommunityHelpCenterTabs',
+};
 </script>

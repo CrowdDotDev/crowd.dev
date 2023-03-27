@@ -4,7 +4,8 @@
     :title="title"
     size="480px"
     :show-footer="false"
-    ><template v-if="showPeriod || showDate" #belowTitle>
+  >
+    <template v-if="showPeriod || showDate" #belowTitle>
       <div class="mt-2">
         <el-popover
           v-if="showPeriod"
@@ -13,20 +14,18 @@
           placement="bottom-start"
         >
           <template #reference>
-            <el-button class="custom-btn"
-              ><i
+            <el-button class="custom-btn">
+              <i
                 class="ri-calendar-line text-base mr-2"
-              /><span
-                >Last
+              /><span>Last
                 {{
                   pluralize(
                     selectedPeriod.granularity,
                     selectedPeriod.value,
-                    true
+                    true,
                   )
-                }}</span
-              ></el-button
-            >
+                }}</span>
+            </el-button>
           </template>
           <div
             class="filter-type-select filter-content-wrapper"
@@ -36,7 +35,7 @@
               :key="option.label"
               class="filter-type-select-option"
               :class="{
-                'is-selected': option.selected
+                'is-selected': option.selected,
               }"
               @click="onPeriodOptionClick(option)"
             >
@@ -49,7 +48,7 @@
                     pluralize(
                       option.granularity,
                       option.value,
-                      true
+                      true,
                     )
                   }}
                 </div>
@@ -63,15 +62,14 @@
         >
           <i class="ri-calendar-line text-base" /><span
             class="text-xs"
-            >{{
-              granularity === 'day'
-                ? parseAxisLabel(date, granularity)
-                : parseAxisLabel(date, granularity)[0]
-            }}</span
-          >
+          >{{
+            granularity === 'day'
+              ? parseAxisLabel(date, granularity)
+              : parseAxisLabel(date, granularity)[0]
+          }}</span>
         </div>
-      </div></template
-    ><template #content>
+      </div>
+    </template><template #content>
       <!-- Loading -->
       <app-widget-loading
         v-if="loading && list.length === 0"
@@ -104,17 +102,17 @@
           v-if="loading"
           v-loading="loading"
           class="app-page-spinner h-16 w-16 !relative !min-h-fit"
-        ></div>
+        />
         <el-button
           v-else
           class="btn btn-link btn-link--primary"
           @click="onLoadMore"
-          ><i class="ri-arrow-down-line"></i
-          ><span class="text-xs">Load more</span></el-button
         >
+          <i class="ri-arrow-down-line" /><span class="text-xs">Load more</span>
+        </el-button>
       </div>
-    </template></app-drawer
-  >
+    </template>
+  </app-drawer>
 </template>
 
 <script setup>
@@ -123,202 +121,191 @@ import {
   defineEmits,
   computed,
   onMounted,
-  ref
-} from 'vue'
-import AppWidgetMembersTable from '@/modules/widget/components/v2/shared/widget-members-table.vue'
-import AppWidgetLoading from '@/modules/widget/components/v2/shared/widget-loading.vue'
-import AppWidgetError from '@/modules/widget/components/v2/shared/widget-error.vue'
-import AppWidgetEmpty from '@/modules/widget/components/v2/shared/widget-empty.vue'
-import { parseAxisLabel } from '@/utils/reports'
-import { WIDGET_PERIOD_OPTIONS } from '@/modules/widget/widget-constants'
-import pluralize from 'pluralize'
+  ref,
+} from 'vue';
+import pluralize from 'pluralize';
+import AppWidgetMembersTable from '@/modules/widget/components/v2/shared/widget-members-table.vue';
+import AppWidgetLoading from '@/modules/widget/components/v2/shared/widget-loading.vue';
+import AppWidgetError from '@/modules/widget/components/v2/shared/widget-error.vue';
+import AppWidgetEmpty from '@/modules/widget/components/v2/shared/widget-empty.vue';
+import { parseAxisLabel } from '@/utils/reports';
+import { WIDGET_PERIOD_OPTIONS } from '@/modules/widget/widget-constants';
 
 const emit = defineEmits([
   'update:modelValue',
   'update:period',
-  'on-export'
-])
+  'on-export',
+]);
 const props = defineProps({
   modelValue: {
     type: Boolean,
-    default: false
+    default: false,
   },
   period: {
     type: Object,
-    default: null
+    default: null,
   },
   date: {
     type: String,
-    default: null
+    default: null,
   },
   granularity: {
     type: String,
-    default: null
+    default: null,
   },
   title: {
     type: String,
-    default: null
+    default: null,
   },
   showPeriod: {
     type: Boolean,
-    default: false
+    default: false,
   },
   showDate: {
     type: Boolean,
-    default: false
+    default: false,
   },
   fetchFn: {
     type: Function,
-    default: null
+    default: null,
   },
   template: {
     type: String,
-    default: null
+    default: null,
   },
   exportByIds: {
     type: Boolean,
-    default: false
+    default: false,
   },
   showActiveDays: {
     type: Boolean,
-    default: false
-  }
-})
+    default: false,
+  },
+});
 
-const selectedPeriod = ref(props.period)
-const loading = ref(false)
-const error = ref(false)
-const list = ref([])
-const count = ref(0)
+const selectedPeriod = ref(props.period);
+const loading = ref(false);
+const error = ref(false);
+const list = ref([]);
+const count = ref(0);
 const pagination = ref({
   currentPage: 1,
-  pageSize: 10
-})
-
-onMounted(async () => {
-  await getList({ isNewList: true })
-})
+  pageSize: 10,
+});
 
 // Create period options with selected property
-const periodOptions = computed(() => {
-  return WIDGET_PERIOD_OPTIONS.map((o) => {
-    return {
-      ...o,
-      selected:
-        JSON.stringify(selectedPeriod.value.label) ===
-        JSON.stringify(o.label)
-    }
-  })
-})
+const periodOptions = computed(() => WIDGET_PERIOD_OPTIONS.map((o) => ({
+  ...o,
+  selected:
+        JSON.stringify(selectedPeriod.value.label)
+        === JSON.stringify(o.label),
+})));
 
 // Render list table component for each specific module
-const listComponent = computed(() => {
-  return AppWidgetMembersTable
-})
+const listComponent = computed(() => AppWidgetMembersTable);
 
 const model = computed({
   get() {
-    return props.modelValue
+    return props.modelValue;
   },
   set(v) {
-    emit('update:modelValue', v)
-  }
-})
+    emit('update:modelValue', v);
+  },
+});
 
-const isLoadMoreVisible = computed(() => {
-  return (
-    pagination.value.currentPage *
-      pagination.value.pageSize <
-    count.value
-  )
-})
+const isLoadMoreVisible = computed(() => pagination.value.currentPage
+      * pagination.value.pageSize
+    < count.value);
 
 // Request to get list
 const getList = async ({ isNewList }) => {
   try {
-    loading.value = true
+    loading.value = true;
 
     const response = await props.fetchFn({
       pagination: pagination.value,
       ...(props.showPeriod && {
-        period: selectedPeriod.value
-      })
-    })
+        period: selectedPeriod.value,
+      }),
+    });
 
-    loading.value = false
-    count.value = response.count
+    loading.value = false;
+    count.value = response.count;
 
     if (isNewList) {
-      list.value = response.rows
+      list.value = response.rows;
     } else {
-      list.value = list.value.concat(response.rows)
+      list.value = list.value.concat(response.rows);
     }
   } catch (e) {
-    loading.value = false
-    error.value = true
-    console.error(e)
+    loading.value = false;
+    error.value = true;
+    console.error(e);
   }
-}
+};
 
 // Handle filter by period
 // Reset pagination, fetch new list and select a new period
 const onPeriodOptionClick = async (option) => {
   window.analytics.track('Filter in report drawer', {
     template: props.template,
-    period: option
-  })
+    period: option,
+  });
 
-  selectedPeriod.value = option
-  pagination.value.currentPage = 1
+  selectedPeriod.value = option;
+  pagination.value.currentPage = 1;
 
-  await getList({ isNewList: true })
-}
+  await getList({ isNewList: true });
+};
 
 // Handle load more click
 // Reset pagination and fetch more items on the list
 const onLoadMore = async () => {
-  pagination.value.currentPage =
-    pagination.value.currentPage + 1
+  pagination.value.currentPage += 1;
 
-  await getList({ isNewList: false })
-}
+  await getList({ isNewList: false });
+};
 
 // Handle export list
 // Export all items on the list from its ids
 const onExportClick = async () => {
   window.analytics.track('Export CSV in report drawer', {
-    template: props.template
-  })
+    template: props.template,
+  });
 
-  let ids
+  let ids;
 
   if (props.exportByIds) {
     try {
       if (count.value <= list.value.length) {
-        ids = list.value.map((l) => l.id)
+        ids = list.value.map((l) => l.id);
       } else {
         const response = await props.fetchFn({
           pagination: { count: count.value },
           ...(props.showPeriod && {
-            period: selectedPeriod.value
-          })
-        })
+            period: selectedPeriod.value,
+          }),
+        });
 
-        ids = response.rows.map((r) => r.id)
+        ids = response.rows.map((r) => r.id);
       }
     } catch (e) {
-      console.error(e)
+      console.error(e);
     }
   }
 
-  emit('on-export', { ids, count: count.value })
-}
+  emit('on-export', { ids, count: count.value });
+};
 
 const onRowClick = () => {
   window.analytics.track('Click report drawer row', {
-    template: props.template
-  })
-}
+    template: props.template,
+  });
+};
+
+onMounted(async () => {
+  await getList({ isNewList: true });
+});
 </script>
 
 <style lang="scss">

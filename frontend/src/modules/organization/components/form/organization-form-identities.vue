@@ -33,7 +33,7 @@
           <el-input
             v-model="model[platform.name]"
             class="!w-64"
-          ></el-input>
+          />
         </div>
       </div>
       <div class="flex items-start justify-between mt-16">
@@ -67,35 +67,35 @@
 </template>
 
 <script setup>
-import { computed, defineEmits, defineProps } from 'vue'
-import { CrowdIntegrations } from '@/integrations/integrations-config'
+import { computed, defineEmits, defineProps } from 'vue';
+import { CrowdIntegrations } from '@/integrations/integrations-config';
 
-const emit = defineEmits(['update:modelValue'])
+const emit = defineEmits(['update:modelValue']);
 const props = defineProps({
   modelValue: {
     type: Object,
-    default: () => {}
+    default: () => {},
   },
   record: {
     type: Object,
-    default: () => {}
+    default: () => {},
   },
   showHeader: {
     type: Boolean,
-    default: true
-  }
-})
+    default: true,
+  },
+});
 const model = computed({
   get() {
-    return props.modelValue
+    return props.modelValue;
   },
   set(newModel) {
-    emit('update:modelValue', newModel)
-  }
-})
+    emit('update:modelValue', newModel);
+  },
+});
 
 function findPlatform(platform) {
-  return CrowdIntegrations.getConfig(platform)
+  return CrowdIntegrations.getConfig(platform);
 }
 
 const platforms = [
@@ -104,30 +104,30 @@ const platforms = [
     label: 'GitHub',
     prefix: 'github.com/',
     imgContainerClass:
-      'h-8 w-8 rounded flex items-center justify-center text-base bg-gray-100 border border-gray-200'
+      'h-8 w-8 rounded flex items-center justify-center text-base bg-gray-100 border border-gray-200',
   },
   {
     name: 'linkedin',
     label: 'LinkedIn',
     prefix: 'linkedin.com/',
     imgContainerClass:
-      'h-8 w-8 rounded flex items-center justify-center text-base platform-logo--linkedin'
+      'h-8 w-8 rounded flex items-center justify-center text-base platform-logo--linkedin',
   },
   {
     name: 'twitter',
     label: 'Twitter',
     prefix: 'twitter.com/',
     imgContainerClass:
-      'h-8 w-8 rounded flex items-center justify-center text-base platform-logo--twitter'
+      'h-8 w-8 rounded flex items-center justify-center text-base platform-logo--twitter',
   },
   {
     name: 'crunchbase',
     label: 'Crunchbase',
     prefix: 'crunchbase.com/',
     imgContainerClass:
-      'h-8 w-8 rounded flex items-center justify-center text-base platform-logo--crunchbase'
-  }
-]
+      'h-8 w-8 rounded flex items-center justify-center text-base platform-logo--crunchbase',
+  },
+];
 </script>
 
 <style lang="scss">

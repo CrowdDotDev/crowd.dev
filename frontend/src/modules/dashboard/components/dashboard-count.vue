@@ -10,7 +10,7 @@
         radius="4px"
         class="mb-2"
       />
-      <app-loading width="80px" height="24px"></app-loading>
+      <app-loading width="80px" height="24px" />
     </template>
 
     <template #default="current">
@@ -27,11 +27,11 @@
           <app-loading
             width="80px"
             height="24px"
-          ></app-loading>
+          />
         </template>
         <template #default="previous">
           <h4
-            class="text-3xl leading-15 h-15 leading-5 mb-1 font-light"
+            class="text-3xl leading-15 h-15 mb-1 font-light"
           >
             {{ computedScore(current.resultSet) }}
           </h4>
@@ -44,14 +44,14 @@
                 :type="
                   computedBadgeType(
                     current.resultSet,
-                    previous.resultSet
+                    previous.resultSet,
                   )
                 "
               >
                 <span>{{
                   computedBadgeLabel(
                     current.resultSet,
-                    previous.resultSet
+                    previous.resultSet,
                   )
                 }}</span>
               </app-dashboard-badge>
@@ -64,29 +64,29 @@
 </template>
 
 <script>
-import { mapGetters } from 'vuex'
-import AppDashboardBadge from '@/modules/dashboard/components/shared/dashboard-badge'
-import AppLoading from '@/shared/loading/loading-placeholder'
-import AppCubeRender from '@/shared/cube/cube-render'
-import moment from 'moment'
+import { mapGetters } from 'vuex';
+import moment from 'moment';
+import AppDashboardBadge from '@/modules/dashboard/components/shared/dashboard-badge.vue';
+import AppLoading from '@/shared/loading/loading-placeholder.vue';
+import AppCubeRender from '@/shared/cube/cube-render.vue';
 
 export default {
   name: 'AppDashboardCount',
   components: {
     AppCubeRender,
     AppLoading,
-    AppDashboardBadge
+    AppDashboardBadge,
   },
   props: {
     query: {
       required: true,
-      type: Function
+      type: Function,
     },
     loading: {
       required: false,
       type: Boolean,
-      default: false
-    }
+      default: false,
+    },
   },
   computed: {
     ...mapGetters('dashboard', ['period', 'platform']),
@@ -99,11 +99,11 @@ export default {
             this.period.granularity === 'day'
               ? this.period.value - 1
               : this.period.value,
-            this.period.granularity
+            this.period.granularity,
           )
           .toISOString(),
-        moment().utc().endOf('day').toISOString()
-      ]
+        moment().utc().endOf('day').toISOString(),
+      ];
     },
     previousDateRange() {
       return [
@@ -114,7 +114,7 @@ export default {
             this.period.granularity === 'day'
               ? this.period.value - 1
               : this.period.value,
-            this.period.granularity
+            this.period.granularity,
           )
           .subtract(1, 'ms')
           .startOf('day')
@@ -122,7 +122,7 @@ export default {
             this.period.granularity === 'day'
               ? this.period.value - 1
               : this.period.value,
-            this.period.granularity
+            this.period.granularity,
           )
           .toISOString(),
         moment()
@@ -132,54 +132,54 @@ export default {
             this.period.granularity === 'day'
               ? this.period.value - 1
               : this.period.value,
-            this.period.granularity
+            this.period.granularity,
           )
           .subtract(1, 'ms')
-          .toISOString()
-      ]
-    }
+          .toISOString(),
+      ];
+    },
   },
   methods: {
     computedScore(resultSet) {
-      const seriesNames = resultSet.seriesNames()
-      const pivot = resultSet.chartPivot()
-      let count = 0
+      const seriesNames = resultSet.seriesNames();
+      const pivot = resultSet.chartPivot();
+      let count = 0;
       seriesNames.forEach((e) => {
-        const data = pivot.map((p) => p[e.key])
-        count += data.reduce((a, b) => a + b, 0)
-      })
-      return count
+        const data = pivot.map((p) => p[e.key]);
+        count += data.reduce((a, b) => a + b, 0);
+      });
+      return count;
     },
     computedBadgeType(current, previous) {
-      const currentScore = this.computedScore(current)
-      const previousScore = this.computedScore(previous)
-      const diff = currentScore - previousScore
+      const currentScore = this.computedScore(current);
+      const previousScore = this.computedScore(previous);
+      const diff = currentScore - previousScore;
       if (diff > 0) {
-        return 'success'
+        return 'success';
       }
       if (diff < 0) {
-        return 'danger'
+        return 'danger';
       }
-      return 'info'
+      return 'info';
     },
     computedBadgeLabel(current, previous) {
-      const currentScore = this.computedScore(current)
-      const previousScore = this.computedScore(previous)
-      const diff = Math.abs(currentScore - previousScore)
+      const currentScore = this.computedScore(current);
+      const previousScore = this.computedScore(previous);
+      const diff = Math.abs(currentScore - previousScore);
       if (previousScore === 0) {
         if (currentScore === 0) {
-          return '='
+          return '=';
         }
-        return `100% (${currentScore})`
+        return `100% (${currentScore})`;
       }
       if (diff !== 0) {
         return `${Math.round(
-          (diff / previousScore) * 100
-        )}% (${diff})`
+          (diff / previousScore) * 100,
+        )}% (${diff})`;
       }
 
-      return '='
-    }
-  }
-}
+      return '=';
+    },
+  },
+};
 </script>

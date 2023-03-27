@@ -25,16 +25,16 @@ const en = {
       active: 'Active Filters',
       hide: 'Hide Filters',
       show: 'Show Filters',
-      apply: 'Apply Filters'
-    }
+      apply: 'Apply Filters',
+    },
   },
 
   app: {
-    title: 'crowd.dev'
+    title: 'crowd.dev',
   },
 
   api: {
-    menu: 'API'
+    menu: 'API',
   },
 
   entities: {
@@ -45,22 +45,22 @@ const en = {
       exporterFileName: 'project_export',
       list: {
         menu: 'Projects',
-        title: 'Projects'
+        title: 'Projects',
       },
       create: {
-        success: 'Project successfully saved'
+        success: 'Project successfully saved',
       },
       update: {
-        success: 'Project successfully saved'
+        success: 'Project successfully saved',
       },
       destroy: {
-        success: 'Project successfully deleted'
+        success: 'Project successfully deleted',
       },
       destroyAll: {
-        success: 'Project(s) successfully deleted'
+        success: 'Project(s) successfully deleted',
       },
       edit: {
-        title: 'Edit Project'
+        title: 'Edit Project',
       },
       fields: {
         id: 'Id',
@@ -75,17 +75,17 @@ const en = {
         benchmarkRepos: 'BenchmarkRepos',
         createdAt: 'Created at',
         updatedAt: 'Updated at',
-        createdAtRange: 'Created at'
+        createdAtRange: 'Created at',
       },
       enumerators: {},
       placeholders: {},
       hints: {},
       new: {
-        title: 'New Project'
+        title: 'New Project',
       },
       view: {
-        title: 'View Project'
-      }
+        title: 'View Project',
+      },
     },
 
     repo: {
@@ -95,22 +95,22 @@ const en = {
       exporterFileName: 'repo_export',
       list: {
         menu: 'Repos',
-        title: 'Repos'
+        title: 'Repos',
       },
       create: {
-        success: 'Repo successfully saved'
+        success: 'Repo successfully saved',
       },
       update: {
-        success: 'Repo successfully saved'
+        success: 'Repo successfully saved',
       },
       destroy: {
-        success: 'Repo successfully deleted'
+        success: 'Repo successfully deleted',
       },
       destroyAll: {
-        success: 'Repo(s) successfully deleted'
+        success: 'Repo(s) successfully deleted',
       },
       edit: {
-        title: 'Edit Repo'
+        title: 'Edit Repo',
       },
       fields: {
         id: 'Id',
@@ -120,25 +120,25 @@ const en = {
         project: 'Project',
         createdAt: 'Created at',
         updatedAt: 'Updated at',
-        createdAtRange: 'Created at'
+        createdAtRange: 'Created at',
       },
       enumerators: {},
       placeholders: {},
       hints: {},
       new: {
-        title: 'New Repo'
+        title: 'New Repo',
       },
       view: {
-        title: 'View Repo'
-      }
+        title: 'View Repo',
+      },
     },
 
     emailDigest: {
       fields: {
         email: 'Email',
         frequency: 'Frequency',
-        time: 'Time'
-      }
+        time: 'Time',
+      },
     },
     member: {
       name: 'member',
@@ -147,32 +147,32 @@ const en = {
       exporterFileName: 'member_export',
       list: {
         menu: 'Members',
-        title: 'Members'
+        title: 'Members',
       },
       create: {
         success: 'Member successfully saved',
-        error: 'There was an error creating the member'
+        error: 'There was an error creating the member',
       },
       update: {
         success: 'Member successfully saved',
-        error: 'There was an error updating the member'
+        error: 'There was an error updating the member',
       },
       destroy: {
-        success: 'Member successfully deleted'
+        success: 'Member successfully deleted',
       },
       destroyAll: {
-        success: 'Member(s) successfully deleted'
+        success: 'Member(s) successfully deleted',
       },
       edit: {
-        title: 'Edit Member'
+        title: 'Edit Member',
       },
       merge: {
         title: 'Merge Member',
-        success: 'Members merged successfully'
+        success: 'Members merged successfully',
       },
       attributes: {
         error: 'Custom Attributes could not be created',
-        success: 'Custom Attributes successfuly updated'
+        success: 'Custom Attributes successfuly updated',
       },
       fields: {
         id: 'Id',
@@ -209,24 +209,24 @@ const en = {
         updatedAt: 'Updated at',
         createdAtRange: 'Created at',
         identities: 'Identities',
-        activeOn: 'Active On'
+        activeOn: 'Active On',
       },
       enumerators: {},
       placeholders: {},
       hints: {},
       new: {
-        title: 'New Member'
+        title: 'New Member',
       },
       view: {
-        title: 'View Member'
-      }
+        title: 'View Member',
+      },
     },
 
     note: {
       fields: {
         id: 'ID',
-        body: 'Note'
-      }
+        body: 'Note',
+      },
     },
 
     organization: {
@@ -236,21 +236,21 @@ const en = {
       create: {
         success: 'Organization successfully saved',
         error:
-          'There was an error creating the organization'
+          'There was an error creating the organization',
       },
       update: {
         success: 'Organization successfully saved',
         error:
-          'There was an error updating the organization'
+          'There was an error updating the organization',
       },
       destroy: {
-        success: 'Organization successfully deleted'
+        success: 'Organization successfully deleted',
       },
       destroyAll: {
-        success: 'Organization(s) successfully deleted'
+        success: 'Organization(s) successfully deleted',
       },
       edit: {
-        title: 'Edit Organization'
+        title: 'Edit Organization',
       },
       fields: {
         name: 'Name',
@@ -263,8 +263,8 @@ const en = {
         github: 'GitHub',
         twitter: 'Twitter',
         linkedin: 'LinkedIn',
-        crunchbase: 'Crunchbase'
-      }
+        crunchbase: 'Crunchbase',
+      },
     },
 
     activity: {
@@ -274,22 +274,22 @@ const en = {
       exporterFileName: 'activity_export',
       list: {
         menu: 'Activities',
-        title: 'Activities'
+        title: 'Activities',
       },
       create: {
-        success: 'Activity successfully saved'
+        success: 'Activity successfully saved',
       },
       update: {
-        success: 'Activity successfully saved'
+        success: 'Activity successfully saved',
       },
       destroy: {
-        success: 'Activity successfully deleted'
+        success: 'Activity successfully deleted',
       },
       destroyAll: {
-        success: 'Activity(s) successfully deleted'
+        success: 'Activity(s) successfully deleted',
       },
       edit: {
-        title: 'Edit Activity'
+        title: 'Edit Activity',
       },
       fields: {
         id: 'Id',
@@ -305,16 +305,16 @@ const en = {
         createdAt: 'Created at',
         updatedAt: 'Updated at',
         date: 'Date',
-        createdAtRange: 'Created at'
+        createdAtRange: 'Created at',
       },
       enumerators: {},
       placeholders: {},
       hints: {},
       new: {
-        title: 'New Activity'
+        title: 'New Activity',
       },
       view: {
-        title: 'View Activity'
+        title: 'View Activity',
       },
       github: {
         fork: 'forked',
@@ -335,12 +335,12 @@ const en = {
         'discussion-comment': 'commented on a discussion',
         contributed_to_community:
           'contributed to community',
-        joined_community: 'joined community'
+        joined_community: 'joined community',
       },
       apis: {
         contributed_to_community:
           'contributed to community',
-        joined_community: 'joined community'
+        joined_community: 'joined community',
       },
       twitter: {
         contributed_to_community:
@@ -348,7 +348,7 @@ const en = {
         joined_community: 'joined community',
         mention: 'mentioned you in a tweet',
         hashtag: 'posted a tweet',
-        follow: 'followed you'
+        follow: 'followed you',
       },
       discord: {
         contributed_to_community:
@@ -358,7 +358,7 @@ const en = {
         replied: 'replied to a message',
         replied_thread: 'replied to a thread',
         started_thread: 'started a new thread',
-        joined_guild: 'joined server'
+        joined_guild: 'joined server',
       },
       slack: {
         contributed_to_community:
@@ -370,28 +370,28 @@ const en = {
         file_share: 'shared a file',
         reaction_added: 'reacted to a message',
         channel_joined: 'joined channel',
-        left_channel: 'left channel'
+        left_channel: 'left channel',
       },
       devto: {
-        comment: 'comment'
+        comment: 'comment',
       },
       hackernews: {
         post: 'posted',
-        comment: 'commented '
+        comment: 'commented ',
       },
       reddit: {
         post: 'posted',
-        comment: 'commented'
+        comment: 'commented',
       },
       linkedin: {
         comment: 'commented',
-        reaction: 'reacted'
+        reaction: 'reacted',
       },
       stackoverflow: {
         answer: 'Answered a question',
-        question: 'Asked a question'
+        question: 'Asked a question',
       },
-      fallback: 'created an activity'
+      fallback: 'created an activity',
     },
 
     report: {
@@ -399,41 +399,41 @@ const en = {
       label: 'Reports',
       menu: 'Reports',
       edit: {
-        title: 'Edit Report'
+        title: 'Edit Report',
       },
       new: {
-        title: 'New Report'
+        title: 'New Report',
       },
       view: {
-        title: 'View Report'
+        title: 'View Report',
       },
       exporterFileName: 'report_export',
       list: {
         menu: 'Reports',
-        title: 'Reports'
+        title: 'Reports',
       },
       create: {
-        success: 'Report successfully saved'
+        success: 'Report successfully saved',
       },
       update: {
-        success: 'Report successfully saved'
+        success: 'Report successfully saved',
       },
       destroy: {
-        success: 'Report successfully deleted'
+        success: 'Report successfully deleted',
       },
       destroyAll: {
-        success: 'Report(s) successfully deleted'
+        success: 'Report(s) successfully deleted',
       },
       fields: {
         name: 'Name',
-        public: 'Public'
-      }
+        public: 'Public',
+      },
     },
 
     eagleEye: {
       name: 'Eagle Eye',
       label: 'Eagle Eye',
-      menu: 'Eagle Eye'
+      menu: 'Eagle Eye',
     },
 
     communityHelpCenter: {
@@ -441,44 +441,44 @@ const en = {
       label: 'Community Help Center',
       menu: 'Community Help Center',
       create: {
-        success: 'Conversation successfully saved'
+        success: 'Conversation successfully saved',
       },
       update: {
-        success: 'Conversation successfully saved'
+        success: 'Conversation successfully saved',
       },
       destroy: {
-        success: 'Conversation successfully deleted'
+        success: 'Conversation successfully deleted',
       },
       destroyAll: {
-        success: 'Conversation(s) successfully deleted'
-      }
+        success: 'Conversation(s) successfully deleted',
+      },
     },
 
     automation: {
       name: 'Automations',
       label: 'Automations',
       create: {
-        success: 'Automation successfully saved'
+        success: 'Automation successfully saved',
       },
       update: {
-        success: 'Automation successfully saved'
+        success: 'Automation successfully saved',
       },
       destroy: {
-        success: 'Automation successfully deleted'
+        success: 'Automation successfully deleted',
       },
       destroyAll: {
-        success: 'Automation(s) successfully deleted'
+        success: 'Automation(s) successfully deleted',
       },
       fields: {
         type: 'Type',
         trigger: 'Choose Trigger',
-        status: 'Status'
+        status: 'Status',
       },
       triggers: {
         new_activity:
           'New activity happened in your community',
-        new_member: 'New member joined your community'
-      }
+        new_member: 'New member joined your community',
+      },
     },
 
     conversation: {
@@ -486,30 +486,30 @@ const en = {
       label: 'Conversations',
       menu: 'Community Help Center',
       edit: {
-        title: 'Edit Conversation'
+        title: 'Edit Conversation',
       },
       new: {
-        title: 'New Conversation'
+        title: 'New Conversation',
       },
       view: {
-        title: 'View Conversation'
+        title: 'View Conversation',
       },
       exporterFileName: 'conversation_export',
       list: {
         menu: 'Conversations',
-        title: 'Conversations'
+        title: 'Conversations',
       },
       create: {
-        success: 'Conversation successfully saved'
+        success: 'Conversation successfully saved',
       },
       update: {
-        success: 'Conversation successfully saved'
+        success: 'Conversation successfully saved',
       },
       destroy: {
-        success: 'Conversation successfully deleted'
+        success: 'Conversation successfully deleted',
       },
       destroyAll: {
-        success: 'Conversation(s) successfully deleted'
+        success: 'Conversation(s) successfully deleted',
       },
       fields: {
         title: 'Title',
@@ -518,9 +518,9 @@ const en = {
         published: 'Published',
         activityCount: '# of activities',
         createdAt: 'Date started',
-        lastActive: 'Last activity'
-      }
-    }
+        lastActive: 'Last activity',
+      },
+    },
   },
 
   widget: {
@@ -529,20 +529,20 @@ const en = {
         Activities: 'Activity',
         Members: 'Member',
         Conversations: 'Conversation',
-        Organizations: 'Organization'
+        Organizations: 'Organization',
       },
       cubes: {
         Activities: 'Activities',
         Members: 'Members',
         Conversations: 'Conversations',
-        Organizations: 'Organizations'
+        Organizations: 'Organizations',
       },
       Activities: {
         count: '[Activities] Count',
         type: '[Activities] Type',
         platform: '[Activities] Platform',
         date: '[Activities] Date',
-        channel: '[Activities] Channel'
+        channel: '[Activities] Channel',
       },
       Members: {
         count: '[Members] Count',
@@ -552,10 +552,10 @@ const en = {
         organization: '[Members] Organization',
         joinedAt: '[Members] Joined Date',
         averageTimeToFirstInteraction:
-          '[Members] Avg. Time To First Interaction'
+          '[Members] Avg. Time To First Interaction',
       },
       MemberTags: {
-        count: '[Members] # of Tags'
+        count: '[Members] # of Tags',
       },
       Conversations: {
         count: '[Conversations] Count',
@@ -563,32 +563,32 @@ const en = {
         lastactive: '[Conversations] Last Active',
         platform: '[Conversations] Platform',
         category: '[Conversations] Category',
-        published: '[Conversations] Published'
+        published: '[Conversations] Published',
       },
       Tags: {
         name: '[Tags] Name',
-        count: '[Tags] Count'
+        count: '[Tags] Count',
       },
       Identities: {
-        count: '[Identities] Count'
+        count: '[Identities] Count',
       },
       Organizations: {
         count: '[Organizations] Count',
-        createdat: '[Organizations] Date'
+        createdat: '[Organizations] Date',
       },
       Sentiment: {
         averageSentiment: '[Sentiment] Average',
         date: '[Sentiment] Date',
-        platform: '[Sentiment] Platform'
-      }
-    }
+        platform: '[Sentiment] Platform',
+      },
+    },
   },
 
   auth: {
     tenants: 'Workspaces',
     profile: {
       title: 'Profile settings',
-      success: 'Profile successfully updated'
+      success: 'Profile successfully updated',
     },
     createAnAccount: 'Create an account',
     rememberMe: 'Remember me',
@@ -602,53 +602,53 @@ const en = {
       errors: {
         'auth-invalid-provider':
           'This email is already registered to another provider.',
-        'auth-no-email': `The email associated with this account is private or inexistent.`
-      }
+        'auth-no-email': 'The email associated with this account is private or inexistent.',
+      },
     },
     signinWithAnotherAccount:
       'Sign in with another account',
     emailUnverified: {
-      message: `Please confirm your email at <strong>{0}</strong> to continue.`,
-      submit: `Resend email verification`
+      message: 'Please confirm your email at <strong>{0}</strong> to continue.',
+      submit: 'Resend email verification',
     },
     emptyPermissions: {
-      message: `You have no permissions yet. Wait for the admin to grant you privileges.`
+      message: 'You have no permissions yet. Wait for the admin to grant you privileges.',
     },
     passwordResetEmail: {
       message: 'Send password reset e-mail',
-      error: `Email not recognized`
+      error: 'Email not recognized',
     },
     passwordReset: {
-      message: 'Reset password'
+      message: 'Reset password',
     },
     passwordChange: {
       title: 'Change Password',
       success: 'Password successfully changed',
-      mustMatch: 'Passwords do not match'
+      mustMatch: 'Passwords do not match',
     },
     emailAddressVerificationEmail: {
-      error: `Email not recognized`
+      error: 'Email not recognized',
     },
-    verificationEmailSuccess: `Verification email successfully sent`,
-    passwordResetEmailSuccess: `Password reset email successfully sent`,
-    passwordResetSuccess: `Password successfully changed`,
+    verificationEmailSuccess: 'Verification email successfully sent',
+    passwordResetEmailSuccess: 'Password reset email successfully sent',
+    passwordResetSuccess: 'Password successfully changed',
     verifyEmail: {
       success: 'Email successfully verified.',
       message:
-        'Just a moment, your email is being verified...'
-    }
+        'Just a moment, your email is being verified...',
+    },
   },
 
   roles: {
     admin: {
       label: 'Admin',
-      description: 'Full access to all resources'
+      description: 'Full access to all resources',
     },
     readonly: {
       label: 'Read-only',
       description:
-        'Read access to Community Members, Activities, Conversations, and Reports'
-    }
+        'Read access to Community Members, Activities, Conversations, and Reports',
+    },
   },
 
   user: {
@@ -673,16 +673,16 @@ const en = {
       oldPassword: 'Old password',
       newPassword: 'New password',
       newPasswordConfirmation: 'Confirm new password',
-      rememberMe: 'Remember me'
+      rememberMe: 'Remember me',
     },
     status: {
       active: 'Active',
       invited: 'Invite sent',
-      'empty-permissions': 'Waiting for Permissions'
+      'empty-permissions': 'Waiting for Permissions',
     },
     invite: 'Invite',
     validations: {
-      email: 'Email ${value} is invalid'
+      email: 'Email {value} is invalid',
     },
     title: 'Users',
     menu: 'Users',
@@ -692,24 +692,24 @@ const en = {
     doDestroySuccess: 'User successfully deleted',
     doDestroyAllSuccess: 'Users successfully deleted',
     edit: {
-      title: 'Edit User'
+      title: 'Edit User',
     },
     new: {
       title: 'Invite User(s)',
       titleModal: 'Invite User',
       emailsHint:
-        'Separate multiple email addresses using the comma character.'
+        'Separate multiple email addresses using the comma character.',
     },
     view: {
       title: 'View User',
-      activity: 'Activity'
+      activity: 'Activity',
     },
     errors: {
       userAlreadyExists:
         'User with this email already exists',
       userNotFound: 'User not found',
-      revokingOwnPermission: `You can't revoke your own admin permission`
-    }
+      revokingOwnPermission: 'You can\'t revoke your own admin permission',
+    },
   },
 
   tenant: {
@@ -718,23 +718,23 @@ const en = {
     menu: 'Manage workspaces',
     list: {
       menu: 'Workspaces',
-      title: 'Workspaces'
+      title: 'Workspaces',
     },
     create: {
       button: 'Create Workspace',
-      success: 'Community has been created'
+      success: 'Community has been created',
     },
     update: {
-      success: 'Community has been updated'
+      success: 'Community has been updated',
     },
     destroy: {
-      success: 'Community successfully deleted'
+      success: 'Community successfully deleted',
     },
     destroyAll: {
-      success: 'Workspace(s) successfully deleted'
+      success: 'Workspace(s) successfully deleted',
     },
     edit: {
-      title: 'Edit Workspace'
+      title: 'Edit Workspace',
     },
     fields: {
       id: 'Id',
@@ -745,11 +745,11 @@ const en = {
       tenantPlatforms: 'Community platforms',
       tenantSize: 'Community size',
       tenantId: 'Community',
-      plan: 'Plan'
+      plan: 'Plan',
     },
     enumerators: {},
     new: {
-      title: 'New Workspace'
+      title: 'New Workspace',
     },
     invitation: {
       view: 'View Invitations',
@@ -757,12 +757,12 @@ const en = {
       accept: 'Accept Invitation',
       decline: 'Decline Invitation',
       declined: 'Invitation successfully declined',
-      acceptWrongEmail: 'Accept Invitation With This Email'
+      acceptWrongEmail: 'Accept Invitation With This Email',
     },
     select: 'Select Workspace',
     validation: {
-      url: 'Your workspace URL can only contain lowercase letters, numbers and dashes (and must start with a letter or number).'
-    }
+      url: 'Your workspace URL can only contain lowercase letters, numbers and dashes (and must start with a letter or number).',
+    },
   },
 
   plan: {
@@ -771,15 +771,15 @@ const en = {
 
     free: {
       label: 'Free',
-      price: '$0'
+      price: '$0',
     },
     premium: {
       label: 'Premium',
-      price: '$10'
+      price: '$10',
     },
     enterprise: {
       label: 'Enterprise',
-      price: '$50'
+      price: '$50',
     },
 
     pricingPeriod: '/month',
@@ -790,7 +790,7 @@ const en = {
       'This plan will be canceled at the end of the period.',
     somethingWrong:
       'There is something wrong with your subscription. Please go to manage subscription for more details.',
-    notPlanUser: `You are not the manager of this subscription.`
+    notPlanUser: 'You are not the manager of this subscription.',
   },
 
   auditLog: {
@@ -808,20 +808,20 @@ const en = {
       action: 'Action',
       values: 'Values',
       timestamp: 'Date',
-      createdByEmail: 'User Email'
-    }
+      createdByEmail: 'User Email',
+    },
   },
   settings: {
     title: 'Settings',
     menu: 'Settings',
     save: {
       success:
-        'Settings successfully saved. The page will reload in {0} seconds for changes to take effect.'
+        'Settings successfully saved. The page will reload in {0} seconds for changes to take effect.',
     },
     fields: {
       theme: 'Theme',
       logos: 'Logo',
-      backgroundImages: 'Background Image'
+      backgroundImages: 'Background Image',
     },
     colors: {
       default: 'Default',
@@ -835,18 +835,19 @@ const en = {
       purple: 'Purple',
       red: 'Red',
       volcano: 'Volcano',
-      yellow: 'Yellow'
-    }
+      yellow: 'Yellow',
+    },
   },
   feedback: {
-    menu: 'Feedback'
+    menu: 'Feedback',
   },
   integrations: {
-    menu: 'Integrations'
+    menu: 'Integrations',
   },
   dashboard: {
     menu: 'Home',
-    message: `This page uses fake data for demonstration purposes only. You can edit it at frontend/src/modules/dashboard/components/dashboard-page.vue.`,
+    message: 'This page uses fake data for demonstration purposes only. You can edit it at '
+      + 'frontend/src/modules/dashboard/components/dashboard-page.vue.',
     charts: {
       day: 'Day',
       red: 'Red',
@@ -862,7 +863,7 @@ const en = {
         4: 'April',
         5: 'May',
         6: 'June',
-        7: 'July'
+        7: 'July',
       },
       eating: 'Eating',
       drinking: 'Drinking',
@@ -871,80 +872,80 @@ const en = {
       coding: 'Coding',
       cycling: 'Cycling',
       running: 'Running',
-      customer: 'Customer'
-    }
+      customer: 'Customer',
+    },
   },
   errors: {
     backToHome: 'Back to home',
-    403: `Sorry, you don't have access to this page`,
+    403: 'Sorry, you don\'t have access to this page',
     404: 'Sorry, the page you visited does not exist',
     500: 'Sorry, the server is reporting an error',
     429: 'Too many requests. Please try again later.',
     forbidden: {
-      message: 'Forbidden'
+      message: 'Forbidden',
     },
     validation: {
-      message: 'An error occurred'
+      message: 'An error occurred',
     },
-    defaultErrorMessage: 'Ops, an error occurred'
+    defaultErrorMessage: 'Ops, an error occurred',
   },
 
   preview: {
     error:
-      'Sorry, this operation is not allowed in preview mode.'
+      'Sorry, this operation is not allowed in preview mode.',
   },
 
   // See https://github.com/jquense/yup#using-a-custom-locale-dictionary
   /* eslint-disable */
   validation: {
     mixed: {
-      default: '${path} is invalid',
+      default: 'path} is invalid',
       required: 'This field is required',
       oneOf:
-        '${path} must be one of the following values: ${values}',
+        '{path} must be one of the following values: ${values}',
       notOneOf:
-        '${path} must not be one of the following values: ${values}',
+        '{path} must not be one of the following values: ${values}',
       notType: ({ path, type, value, originalValue }) => {
         return `${path} must be a ${type}`
       }
     },
     string: {
       length:
-        '${path} must be exactly ${length} characters',
-      min: '${path} must be at least ${min} characters',
-      max: '${path} must be at most ${max} characters',
+        '{path} must be exactly ${length} characters',
+      min: '{path} must be at least ${min} characters',
+      max: '{path} must be at most ${max} characters',
       matches:
-        '${path} must match the following: "${regex}"',
-      email: '${path} must be a valid email',
-      url: '${path} must be a valid URL',
-      trim: '${path} must be a trimmed string',
-      lowercase: '${path} must be a lowercase string',
-      uppercase: '${path} must be a upper case string',
-      selected: '${path} must be selected'
+        '{path} must match the following: "${regex}"',
+      email: '{path} must be a valid email',
+      url: '{path} must be a valid URL',
+      trim: '{path} must be a trimmed string',
+      lowercase: '{path} must be a lowercase string',
+      uppercase: '{path} must be a upper case string',
+      selected: '{path} must be selected'
     },
     number: {
-      min: '${path} must be greater than or equal to ${min}',
-      max: '${path} must be less than or equal to ${max}',
-      lessThan: '${path} must be less than ${less}',
-      moreThan: '${path} must be greater than ${more}',
-      notEqual: '${path} must be not equal to ${notEqual}',
-      positive: '${path} must be a positive number',
-      negative: '${path} must be a negative number',
-      integer: '${path} must be an integer',
-      invalid: '${path} must be a number'
+      min: '{path} must be greater than or equal to ${min}',
+      max: '{path} must be less than or equal to ${max}',
+      lessThan: '{path} must be less than ${less}',
+      moreThan: '{path} must be greater than ${more}',
+      notEqual: '{path} must be not equal to ${notEqual}',
+      positive: '{path} must be a positive number',
+      negative: '{path} must be a negative number',
+      integer: '{path} must be an integer',
+      invalid: '{path} must be a number'
     },
     date: {
-      min: '${path} field must be later than ${min}',
-      max: '${path} field must be at earlier than ${max}'
+      min: '{path} field must be later than ${min}',
+      max: '{path} field must be at earlier than ${max}'
     },
     boolean: {},
     object: {
       noUnknown:
-        '${path} field cannot have keys not specified in the object shape'
+        '{path} field cannot have keys not specified in the object shape'
     },
     array: {
-      min: '${path} field must have at least ${min} items',
-      max: '${path} field must have less than or equal to ${max} items'
+      min: '{path} field must have at least ${min} items',
+      max: '{path} field must have less than or equal to ${max} items'
     }
   },
   /* eslint-disable */

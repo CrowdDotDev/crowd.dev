@@ -1,34 +1,34 @@
-const { defineConfig } = require('cypress')
-const webpackConfig = require('@vue/cli-service/webpack.config.js')
+const { defineConfig } = require('cypress');
+const webpackConfig = require('@vue/cli-service/webpack.config.js');
 require('dotenv').config({
-  path: './.env.cypress'
-})
+  path: './.env.cypress',
+});
 
 module.exports = defineConfig({
   e2e: {
     baseUrl: 'https://apptest-kube.crowd.dev',
     specPattern: 'tests/e2e/*.spec.js',
-    supportFile: 'tests/support/index.js'
+    supportFile: 'tests/support/index.js',
   },
   folders: {
     fixturesFolder: 'tests/fixtures',
     screenshotsFolder: 'tests/screenshots',
-    videosFolder: 'tests/videos'
+    videosFolder: 'tests/videos',
   },
   component: {
     devServer: {
       framework: 'vue',
       bundler: 'webpack',
-      webpackConfig
-    }
+      webpackConfig,
+    },
   },
   browser: {
-    chromeWebSecurity: false
+    chromeWebSecurity: false,
   },
   env: {
     appUrl: 'https://apptest-kube.crowd.dev',
     apiUrl: 'https://apptest-kube.crowd.dev/api',
     MAILOSAUR_API_KEY: process.env.MAILOSAUR_API_KEY,
-    MAILOSAUR_SERVER_ID: process.env.MAILOSAUR_SERVER_ID
-  }
-})
+    MAILOSAUR_SERVER_ID: process.env.MAILOSAUR_SERVER_ID,
+  },
+});

@@ -21,25 +21,24 @@
           class="mb-0"
         >
           <label
+            for="email"
             class="text-xs mb-1 font-semibold leading-5"
-            >{{ fields.email.label }}</label
-          >
+          >{{ fields.email.label }}</label>
           <el-input
             id="email"
             ref="focus"
             v-model="model[fields.email.name]"
             autocomplete="email"
             type="email"
-          ></el-input>
+          />
           <template #error="{ error }">
             <div class="flex items-center mt-1">
               <i
                 class="h-4 flex items-center ri-error-warning-line text-base text-red-500"
-              ></i>
+              />
               <span
                 class="pl-1 text-2xs text-red-500 leading-4.5"
-                >{{ error }}</span
-              >
+              >{{ error }}</span>
             </div>
           </template>
         </el-form-item>
@@ -49,9 +48,9 @@
           class="mb-0"
         >
           <label
+            for="password"
             class="text-xs mb-1 font-semibold leading-5"
-            >{{ fields.password.label }}</label
-          >
+          >{{ fields.password.label }}</label>
           <el-input
             id="password"
             v-model="model[fields.password.name]"
@@ -64,18 +63,17 @@
                 @click="
                   display.password = !display.password
                 "
-              ></span>
+              />
             </template>
           </el-input>
           <template #error="{ error }">
             <div class="flex items-center mt-1">
               <i
                 class="h-4 flex items-center ri-error-warning-line text-base text-red-500"
-              ></i>
+              />
               <span
                 class="pl-1 text-2xs text-red-500 leading-4.5"
-                >{{ error }}</span
-              >
+              >{{ error }}</span>
             </div>
           </template>
         </el-form-item>
@@ -89,13 +87,13 @@
           >
             <span class="text-sm text-gray-900">{{
               fields.rememberMe.label
-            }}</span></el-checkbox
-          >
+            }}</span>
+          </el-checkbox>
           <router-link
             :to="{ name: 'forgotPassword' }"
             class="text-brand-500 text-sm leading-5"
           >
-            <app-i18n code="auth.forgotPassword"></app-i18n>
+            <app-i18n code="auth.forgotPassword" />
           </router-link>
         </div>
 
@@ -106,7 +104,7 @@
             native-type="submit"
             class="w-full btn btn--primary btn--lg"
           >
-            <app-i18n code="auth.signin"></app-i18n>
+            <app-i18n code="auth.signin" />
           </el-button>
         </el-form-item>
       </el-form>
@@ -125,9 +123,7 @@
           class="btn btn--secondary btn--lg w-full"
         >
           <app-svg name="google" class="h-5 w-5" />
-          <span class="pl-3 text-gray-600"
-            >Sign in with Google</span
-          >
+          <span class="pl-3 text-gray-600">Sign in with Google</span>
         </a>
       </div>
     </div>
@@ -135,54 +131,54 @@
 </template>
 
 <script>
-import { mapGetters, mapActions } from 'vuex'
-import { UserModel } from '@/modules/user/user-model'
+import { mapGetters, mapActions } from 'vuex';
+import { UserModel } from '@/modules/user/user-model';
 
-const { fields } = UserModel
+import { i18n } from '@/i18n';
+import Message from '@/shared/message/message';
+import config from '@/config';
+import AppI18n from '@/shared/i18n/i18n.vue';
+import AppSvg from '@/shared/svg/svg.vue';
 
-import { i18n } from '@/i18n'
-import Message from '@/shared/message/message'
-import config from '@/config'
-import AppI18n from '@/shared/i18n/i18n'
-import AppSvg from '@/shared/svg/svg'
+const { fields } = UserModel;
 
 export default {
   name: 'AppSigninPage',
   components: { AppSvg, AppI18n },
-  data: function () {
+  data() {
     return {
       rules: {
         email: fields.email.forFormRules(),
         password: fields.password.forFormRules(),
-        rememberMe: fields.rememberMe.forFormRules()
+        rememberMe: fields.rememberMe.forFormRules(),
       },
       model: {
-        rememberMe: true
+        rememberMe: true,
       },
       display: {
-        password: false
-      }
-    }
+        password: false,
+      },
+    };
   },
 
   computed: {
     ...mapGetters('auth', ['loading']),
 
     fields() {
-      return fields
-    }
+      return fields;
+    },
   },
 
   created() {
-    const { socialErrorCode } = this.$route.query
+    const { socialErrorCode } = this.$route.query;
 
     if (socialErrorCode) {
       if (socialErrorCode === 'generic') {
-        Message.error(i18n('errors.defaultErrorMessage'))
+        Message.error(i18n('errors.defaultErrorMessage'));
       } else {
         Message.error(
-          i18n(`auth.social.errors.${socialErrorCode}`)
-        )
+          i18n(`auth.social.errors.${socialErrorCode}`),
+        );
       }
     }
   },
@@ -190,20 +186,18 @@ export default {
   methods: {
     ...mapActions('auth', ['doSigninWithEmailAndPassword']),
     doSubmit() {
-      this.$refs.form.validate().then(() => {
-        return this.doSigninWithEmailAndPassword({
-          email: this.model.email,
-          password: this.model.password,
-          rememberMe: this.model.rememberMe
-        })
-      })
+      this.$refs.form.validate().then(() => this.doSigninWithEmailAndPassword({
+        email: this.model.email,
+        password: this.model.password,
+        rememberMe: this.model.rememberMe,
+      }));
     },
 
     socialOauthLink(provider) {
-      return `${config.backendUrl}/auth/social/${provider}`
-    }
-  }
-}
+      return `${config.backendUrl}/auth/social/${provider}`;
+    },
+  },
+};
 </script>
 
 <style></style>

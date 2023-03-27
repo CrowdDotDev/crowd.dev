@@ -4,8 +4,8 @@ export default {
       eq: 'is',
       lt: 'is before',
       gt: 'is after',
-      between: 'between'
-    }
+      between: 'between',
+    },
   },
   number: {
     operator: {
@@ -14,15 +14,15 @@ export default {
       lte: '<=',
       gt: '>',
       gte: '>=',
-      between: 'between'
-    }
+      between: 'between',
+    },
   },
   string: {
     operator: {
       eq: 'is',
       ne: 'is not',
       textContains: 'contains',
-      notContains: 'not contains'
-    }
-  }
-}
+      notContains: 'not contains',
+    },
+  },
+};

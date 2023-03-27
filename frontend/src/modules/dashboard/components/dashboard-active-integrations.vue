@@ -14,7 +14,7 @@
           width="110px"
           height="16px"
           radius="4px"
-        ></app-loading>
+        />
       </div>
     </div>
     <div v-else>
@@ -55,7 +55,7 @@
               >
                 <div
                   class="p-1 ri-checkbox-blank-circle-fill text-4xs text-green-400"
-                ></div>
+                />
               </el-tooltip>
             </div>
             <div v-else-if="integration.status === 'error'">
@@ -66,7 +66,7 @@
               >
                 <div
                   class="ri-error-warning-line text-base text-red-500"
-                ></div>
+                />
               </el-tooltip>
             </div>
             <div
@@ -79,7 +79,7 @@
               >
                 <div
                   class="ri-error-warning-line text-base text-red-500"
-                ></div>
+                />
               </el-tooltip>
             </div>
             <div
@@ -94,7 +94,7 @@
               >
                 <div
                   class="ri-alert-fill text-base text-yellow-500"
-                ></div>
+                />
               </el-tooltip>
             </div>
             <div
@@ -109,7 +109,7 @@
               >
                 <div
                   class="ri-time-line text-base text-gray-500"
-                ></div>
+                />
               </el-tooltip>
             </div>
             <div
@@ -123,7 +123,7 @@
                 <div
                   v-loading="true"
                   class="app-page-spinner !relative h-4 !w-4 mr-2 !min-h-fit"
-                ></div>
+                />
               </el-tooltip>
             </div>
           </div>
@@ -132,7 +132,7 @@
       <div v-else class="flex flex-col items-center pt-3">
         <div
           class="ri-apps-2-line text-3xl text-gray-300"
-        ></div>
+        />
         <p
           class="text-xs italic leading-4 text-gray-400 text-center pt-4"
         >
@@ -149,8 +149,7 @@
           <span
             v-if="activeIntegrations.length > 0"
             class="text-brand-500"
-            >Manage integrations</span
-          >
+          >Manage integrations</span>
           <span v-else>Connect integration</span>
         </el-button>
       </router-link>
@@ -159,51 +158,48 @@
 </template>
 
 <script>
-import { mapActions, mapGetters } from 'vuex'
-import { CrowdIntegrations } from '@/integrations/integrations-config'
-import AppLoading from '@/shared/loading/loading-placeholder.vue'
+import { mapActions, mapGetters } from 'vuex';
+import { CrowdIntegrations } from '@/integrations/integrations-config';
+import AppLoading from '@/shared/loading/loading-placeholder.vue';
 
 export default {
   name: 'AppDashboardIntegrations',
   components: { AppLoading },
   data() {
     return {
-      storeUnsubscribe: () => {}
-    }
+      storeUnsubscribe: () => {},
+    };
   },
   computed: {
     ...mapGetters('integration', ['array', 'loadingFetch']),
     activeIntegrations() {
       return CrowdIntegrations.mappedEnabledConfigs(
-        this.$store
-      ).filter((integration) => {
-        return integration.status
-      })
-    }
+        this.$store,
+      ).filter((integration) => integration.status);
+    },
   },
   async mounted() {
-    window.analytics.page('Dashboard')
-    await this.fetchIntegrations()
-    this.storeUnsubscribe =
-      await this.$store.subscribeAction(async (action) => {
-        if (action.type === 'auth/doRefreshCurrentUser') {
-          await this.fetchIntegrations()
-        }
-      })
+    window.analytics.page('Dashboard');
+    await this.fetchIntegrations();
+    this.storeUnsubscribe = await this.$store.subscribeAction(async (action) => {
+      if (action.type === 'auth/doRefreshCurrentUser') {
+        await this.fetchIntegrations();
+      }
+    });
   },
   beforeUnmount() {
-    this.storeUnsubscribe()
+    this.storeUnsubscribe();
   },
   methods: {
     ...mapActions('integration', {
-      fetchIntegrations: 'doFetch'
+      fetchIntegrations: 'doFetch',
     }),
     platformDetails(platform) {
       return CrowdIntegrations.getMappedConfig(
         platform,
-        this.$store
-      )
-    }
-  }
-}
+        this.$store,
+      );
+    },
+  },
+};
 </script>

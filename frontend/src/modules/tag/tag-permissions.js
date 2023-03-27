@@ -1,34 +1,33 @@
-import Permissions from '@/security/permissions'
-import { PermissionChecker } from '@/modules/user/permission-checker'
+import Permissions from '@/security/permissions';
+import { PermissionChecker } from '@/modules/user/permission-checker';
 
 export class TagPermissions {
   constructor(currentTenant, currentUser) {
     const permissionChecker = new PermissionChecker(
       currentTenant,
-      currentUser
-    )
+      currentUser,
+    );
 
     this.read = permissionChecker.match(
-      Permissions.values.tagRead
-    )
+      Permissions.values.tagRead,
+    );
     this.import = permissionChecker.match(
-      Permissions.values.tagImport
-    )
+      Permissions.values.tagImport,
+    );
     this.tagAutocomplete = permissionChecker.match(
-      Permissions.values.tagAutocomplete
-    )
+      Permissions.values.tagAutocomplete,
+    );
     this.create = permissionChecker.match(
-      Permissions.values.tagCreate
-    )
+      Permissions.values.tagCreate,
+    );
     this.edit = permissionChecker.match(
-      Permissions.values.tagEdit
-    )
+      Permissions.values.tagEdit,
+    );
     this.destroy = permissionChecker.match(
-      Permissions.values.tagDestroy
-    )
-    this.lockedForCurrentPlan =
-      permissionChecker.lockedForCurrentPlan(
-        Permissions.values.tagRead
-      )
+      Permissions.values.tagDestroy,
+    );
+    this.lockedForCurrentPlan = permissionChecker.lockedForCurrentPlan(
+      Permissions.values.tagRead,
+    );
   }
 }

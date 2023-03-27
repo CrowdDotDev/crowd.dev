@@ -14,29 +14,29 @@
 </template>
 
 <script>
-import moment from 'moment'
+import moment from 'moment';
 
 export default {
   name: 'AppSvg',
   props: {
     name: {
       type: String,
-      required: true
+      required: true,
     },
     color: {
       type: String,
-      default: '#9CA3AF'
+      default: '#9CA3AF',
     },
     hoverColor: {
       type: String,
-      default: null
-    }
+      default: null,
+    },
   },
   data() {
     return {
       isHovered: false,
-      version: moment().format('x')
-    }
-  }
-}
+      version: moment().format('x'),
+    };
+  },
+};
 </script>

@@ -61,7 +61,7 @@ export default async (req, res) => {
         : req.query.filter?.isOrganization === 'true',
     activityTimestampFrom: req.query.filter?.activityTimestampFrom,
     activityTimestampTo: req.query.filter?.activityTimestampTo,
-    activityIsKeyAction: req.query.filter?.activityIsContribution,
+    activityIsContribution: req.query.filter?.activityIsContribution,
   }
 
   const orderBy = req.query.orderBy || 'activityCount_DESC'

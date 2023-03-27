@@ -1,38 +1,38 @@
-import * as yup from 'yup'
+import * as yup from 'yup';
 
 export default class ExporterSchema {
   constructor(fields) {
-    this.fields = fields
-    this.yupSchema = this.buildSchema()
+    this.fields = fields;
+    this.yupSchema = this.buildSchema();
   }
 
   get labels() {
-    return this.fields.map((field) => field.label)
+    return this.fields.map((field) => field.label);
   }
 
   labelOf(name) {
     const field = this.fields.find(
-      (field) => field.name === name
-    )
+      (f) => f.name === name,
+    );
 
     if (field) {
-      return field.label
+      return field.label;
     }
 
-    return name
+    return name;
   }
 
   buildSchema() {
-    const shape = {}
+    const shape = {};
 
     this.fields.forEach((field) => {
-      shape[field.name] = field.forExport()
-    })
+      shape[field.name] = field.forExport();
+    });
 
-    return yup.object().shape(shape).noUnknown(true)
+    return yup.object().shape(shape).noUnknown(true);
   }
 
   cast(row) {
-    return this.yupSchema.cast(row)
+    return this.yupSchema.cast(row);
   }
 }

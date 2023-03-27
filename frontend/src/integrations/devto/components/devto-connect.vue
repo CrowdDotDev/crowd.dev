@@ -6,25 +6,26 @@
   />
 </template>
 
-<script>
-export default {
-  name: 'AppDevtoConnect'
-}
-</script>
 <script setup>
-import { defineProps, ref } from 'vue'
-import AppDevtoConnectDrawer from '@/integrations/devto/components/devto-connect-drawer'
+import { defineProps, ref } from 'vue';
+import AppDevtoConnectDrawer from '@/integrations/devto/components/devto-connect-drawer.vue';
 
 defineProps({
   integration: {
     type: Object,
-    default: () => {}
-  }
-})
+    default: () => {},
+  },
+});
+
+const drawerVisible = ref(false);
 
 const connect = () => {
-  drawerVisible.value = true
-}
+  drawerVisible.value = true;
+};
+</script>
 
-const drawerVisible = ref(false)
+<script>
+export default {
+  name: 'AppDevtoConnect',
+};
 </script>

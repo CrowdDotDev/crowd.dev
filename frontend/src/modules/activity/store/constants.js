@@ -1,19 +1,19 @@
-import { formatDate } from '@/utils/date'
+import { formatDate } from '@/utils/date';
 
-export const INITIAL_PAGE_SIZE = 20
+export const INITIAL_PAGE_SIZE = 20;
 
 export const DEFAULT_ACTIVITY_FILTERS = [
   {
     member: {
       isTeamMember: {
-        not: true
+        not: true,
       },
       isBot: {
-        not: true
-      }
-    }
-  }
-]
+        not: true,
+      },
+    },
+  },
+];
 
 export const TRENDING_CONVERSATIONS_FILTER = {
   operator: 'and',
@@ -24,15 +24,15 @@ export const TRENDING_CONVERSATIONS_FILTER = {
       custom: false,
       props: {},
       defaultValue: formatDate({
-        subtractDays: 7
+        subtractDays: 7,
       }),
       value: formatDate({
-        subtractDays: 7
+        subtractDays: 7,
       }),
       defaultOperator: 'gt',
       operator: 'gt',
       type: 'date',
-      expanded: false
-    }
-  }
-}
+      expanded: false,
+    },
+  },
+};

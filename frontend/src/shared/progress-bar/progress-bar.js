@@ -1,14 +1,14 @@
-import NProgress from 'nprogress'
-import 'nprogress/nprogress.css'
+import NProgress from 'nprogress';
+import 'nprogress/nprogress.css';
 
-NProgress.configure({ showSpinner: false })
+NProgress.configure({ showSpinner: false });
 
 export default class ProgressBar {
   static start() {
-    NProgress.start()
+    NProgress.start();
   }
 
   static done() {
-    NProgress.done()
+    NProgress.done();
   }
 }

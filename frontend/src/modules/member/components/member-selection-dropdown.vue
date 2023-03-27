@@ -2,7 +2,7 @@
   <div class="flex flex-col items-center gap-4">
     <i
       class="ri-account-circle-line text-gray-200 account-icon"
-    ></i>
+    />
     <div class="text-gray-900 text-sm">
       Select the member you want to merge with
     </div>
@@ -18,7 +18,7 @@
             <app-avatar
               :entity="{
                 displayName: item.label,
-                avatar: item.avatar
+                avatar: item.avatar,
               }"
               size="xxs"
               class="mr-2"
@@ -36,54 +36,52 @@ import {
   computed,
   ref,
   defineProps,
-  defineEmits
-} from 'vue'
-import { MemberService } from '@/modules/member/member-service'
+  defineEmits,
+} from 'vue';
+import { MemberService } from '@/modules/member/member-service';
 
-const emit = defineEmits('update:modelValue')
+const emit = defineEmits('update:modelValue');
 const props = defineProps({
   modelValue: {
     type: Object,
-    required: true
+    required: true,
   },
   id: {
     type: String,
-    required: true
-  }
-})
-const loadingMemberToMerge = ref()
+    required: true,
+  },
+});
+const loadingMemberToMerge = ref();
 const computedMemberToMerge = computed({
   get() {
-    return props.modelValue
+    return props.modelValue;
   },
   async set(value) {
-    loadingMemberToMerge.value = true
+    loadingMemberToMerge.value = true;
 
-    const response = await MemberService.find(value.id)
+    const response = await MemberService.find(value.id);
 
-    emit('update:modelValue', response)
-    loadingMemberToMerge.value = false
-  }
-})
+    emit('update:modelValue', response);
+    loadingMemberToMerge.value = false;
+  },
+});
 
 const fetchFn = async (query, limit) => {
   const options = await MemberService.listAutocomplete(
     query,
-    limit
-  )
+    limit,
+  );
 
   // Remove primary member from members that can be merged with
-  const filteredOptions = options.filter((m) => {
-    return m.id !== props.id
-  })
+  const filteredOptions = options.filter((m) => m.id !== props.id);
 
   // If the primary member was removed, add an empty object in replacement
   if (options.length !== filteredOptions.length) {
-    filteredOptions.push({})
+    filteredOptions.push({});
   }
 
-  return filteredOptions
-}
+  return filteredOptions;
+};
 </script>
 
 <style>

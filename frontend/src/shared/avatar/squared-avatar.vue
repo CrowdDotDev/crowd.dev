@@ -13,21 +13,21 @@
 </template>
 
 <script setup>
-import { computed, defineProps } from 'vue'
+import { computed, defineProps } from 'vue';
 
 const props = defineProps({
   name: {
     type: String,
-    required: true
-  }
-})
+    required: true,
+  },
+});
 
 const computedInitialLetter = computed(() => {
   const names = props.name
     .replace(/\s+/g, ' ')
     .trim()
-    .split(' ')
+    .split(' ');
 
-  return names[0].charAt(0).toUpperCase()
-})
+  return names[0].charAt(0).toUpperCase();
+});
 </script>

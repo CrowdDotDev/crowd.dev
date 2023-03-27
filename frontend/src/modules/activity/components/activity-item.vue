@@ -10,7 +10,7 @@
           <router-link
             :to="{
               name: 'memberView',
-              params: { id: activity.member.id }
+              params: { id: activity.member.id },
             }"
             target="_blank"
           >
@@ -48,7 +48,7 @@
                   <i
                     v-else
                     class="ri-radar-line text-base text-gray-400"
-                  ></i>
+                  />
                 </div>
                 <p
                   class="text-xs leading-4 pl-2 flex flex-wrap"
@@ -60,12 +60,11 @@
                   <!-- activity timestamp -->
                   <span
                     class="whitespace-nowrap text-gray-500"
-                    ><span class="mx-1">·</span
-                    >{{ timeAgo }}</span
-                  >
-                  <span v-if="sentiment" class="mx-1"
-                    >·</span
-                  >
+                  ><span class="mx-1">·</span>{{ timeAgo }}</span>
+                  <span
+                    v-if="sentiment"
+                    class="mx-1"
+                  >·</span>
                   <app-activity-sentiment
                     v-if="sentiment"
                     :sentiment="sentiment"
@@ -76,21 +75,18 @@
             <div class="flex items-center">
               <a
                 v-if="
-                  activity.conversationId &&
-                  displayConversationLink
+                  activity.conversationId
+                    && displayConversationLink
                 "
                 class="text-xs font-medium flex items-center mr-6 cursor-pointer"
                 target="_blank"
                 @click="
                   openConversation(activity.conversationId)
                 "
-                ><i
-                  class="ri-lg ri-arrow-right-up-line mr-1"
-                ></i>
-                <span class="block"
-                  >Open conversation</span
-                ></a
-              >
+              ><i
+                 class="ri-lg ri-arrow-right-up-line mr-1"
+               />
+                <span class="block">Open conversation</span></a>
               <app-activity-dropdown
                 :activity="activity"
                 @edit="$emit('edit')"
@@ -125,16 +121,16 @@
 </template>
 
 <script>
-import AppAvatar from '@/shared/avatar/avatar'
-import { formatDateToTimeAgo } from '@/utils/date'
-import AppActivityDropdown from '@/modules/activity/components/activity-dropdown'
-import AppLoading from '@/shared/loading/loading-placeholder'
-import AppActivityMessage from '@/modules/activity/components/activity-message'
-import AppActivityContent from '@/modules/activity/components/activity-content'
-import AppActivityLink from '@/modules/activity/components/activity-link'
-import AppActivitySentiment from '@/modules/activity/components/activity-sentiment'
-import AppMemberDisplayName from '@/modules/member/components/member-display-name'
-import { CrowdIntegrations } from '@/integrations/integrations-config'
+import { formatDateToTimeAgo } from '@/utils/date';
+import { CrowdIntegrations } from '@/integrations/integrations-config';
+import AppAvatar from '@/shared/avatar/avatar.vue';
+import AppActivityDropdown from '@/modules/activity/components/activity-dropdown.vue';
+import AppLoading from '@/shared/loading/loading-placeholder.vue';
+import AppActivityMessage from '@/modules/activity/components/activity-message.vue';
+import AppActivityContent from '@/modules/activity/components/activity-content.vue';
+import AppActivityLink from '@/modules/activity/components/activity-link.vue';
+import AppActivitySentiment from '@/modules/activity/components/activity-sentiment.vue';
+import AppMemberDisplayName from '@/modules/member/components/member-display-name.vue';
 
 export default {
   name: 'AppActivityItem',
@@ -146,50 +142,50 @@ export default {
     AppLoading,
     AppActivityDropdown,
     AppAvatar,
-    AppActivitySentiment
+    AppActivitySentiment,
   },
   props: {
     activity: {
       type: Object,
       required: false,
-      default: () => ({})
+      default: () => ({}),
     },
     loading: {
       type: Boolean,
       required: false,
-      default: false
+      default: false,
     },
     displayConversationLink: {
       type: Boolean,
       required: false,
-      default: true
-    }
+      default: true,
+    },
   },
   emits: ['openConversation', 'edit'],
   computed: {
     platform() {
       return CrowdIntegrations.getConfig(
-        this.activity.platform
-      )
+        this.activity.platform,
+      );
     },
     timeAgo() {
-      return formatDateToTimeAgo(this.activity.timestamp)
+      return formatDateToTimeAgo(this.activity.timestamp);
     },
     sentiment() {
       if (
-        this.activity &&
-        this.activity.sentiment &&
-        this.activity.sentiment.sentiment
+        this.activity
+        && this.activity.sentiment
+        && this.activity.sentiment.sentiment
       ) {
-        return this.activity.sentiment.sentiment
+        return this.activity.sentiment.sentiment;
       }
-      return 0
-    }
+      return 0;
+    },
   },
   methods: {
     openConversation(conversationId) {
-      this.$emit('openConversation', conversationId)
-    }
-  }
-}
+      this.$emit('openConversation', conversationId);
+    },
+  },
+};
 </script>

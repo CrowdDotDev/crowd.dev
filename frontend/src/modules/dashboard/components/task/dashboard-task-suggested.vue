@@ -11,7 +11,7 @@
     <div
       class="text-xs leading-5 text-gray-500 pb-6 c-content"
       v-html="$sanitize(props.task.body)"
-    ></div>
+    />
     <div
       class="text-xs font-medium leading-5 text-brand-500 cursor-pointer"
       @click="addSuggested(props.task)"
@@ -21,30 +21,31 @@
   </article>
 </template>
 
-<script>
-export default {
-  name: 'AppDashboardTaskSuggested'
-}
-</script>
-
 <script setup>
-import { defineProps, defineEmits } from 'vue'
-import { mapGetters } from '@/shared/vuex/vuex.helpers'
+import { defineProps, defineEmits } from 'vue';
+import { mapGetters } from '@/shared/vuex/vuex.helpers';
+
 const props = defineProps({
   task: {
     type: Object,
     required: false,
-    default: () => ({})
-  }
-})
+    default: () => ({}),
+  },
+});
 
-const emit = defineEmits(['create'])
+const emit = defineEmits(['create']);
 
-const { currentUser } = mapGetters('auth')
+const { currentUser } = mapGetters('auth');
 const addSuggested = (task) => {
   emit('create', {
     ...task,
-    assignees: [currentUser.value]
-  })
-}
+    assignees: [currentUser.value],
+  });
+};
+</script>
+
+<script>
+export default {
+  name: 'AppDashboardTaskSuggested',
+};
 </script>

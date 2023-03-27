@@ -1,51 +1,50 @@
-import * as yup from 'yup'
+import * as yup from 'yup';
 
 export class FormSchema {
   constructor(fields) {
-    this.fields = fields
-    this.schema = this.buildSchema()
+    this.fields = fields;
+    this.schema = this.buildSchema();
   }
 
   initialValues(record) {
-    record = record || {}
+    const records = record || {};
 
-    const intialValues = {}
+    const intialValues = {};
 
     this.fields.forEach((field) => {
-      if (field.forFormInitialValue(record[field.name])) {
-        intialValues[field.name] =
-          field.forFormInitialValue(record[field.name])
+      if (field.forFormInitialValue(records[field.name])) {
+        intialValues[field.name] = field.forFormInitialValue(records[field.name]);
       }
-    })
+    });
 
-    return intialValues
+    return intialValues;
   }
 
   buildSchema() {
-    const shape = {}
+    const shape = {};
 
     this.fields.forEach((field) => {
-      shape[field.name] = field.forFormCast()
-    })
+      shape[field.name] = field.forFormCast();
+    });
 
-    return yup.object().shape(shape)
+    return yup.object().shape(shape);
   }
 
   rules() {
-    const rules = {}
+    const rules = {};
 
     this.fields.forEach((field) => {
-      rules[field.name] = field.forFormRules()
-    })
+      rules[field.name] = field.forFormRules();
+    });
 
-    return rules
+    return rules;
   }
 
   cast(values) {
-    return { ...this.schema.cast(values) }
+    return { ...this.schema.cast(values) };
   }
 
   isValidSync(values) {
-    return this.schema.isValidSync(values)
+    return this.schema.isValidSync(values);
   }
 }

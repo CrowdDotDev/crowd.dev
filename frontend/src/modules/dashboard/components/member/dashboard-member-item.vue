@@ -9,7 +9,7 @@
       <app-loading
         height="12px"
         width="120px"
-      ></app-loading>
+      />
     </div>
   </article>
   <router-link
@@ -33,39 +33,39 @@
 </template>
 
 <script>
-import AppAvatar from '@/shared/avatar/avatar'
-import AppLoading from '@/shared/loading/loading-placeholder'
-import AppMemberDisplayName from '@/modules/member/components/member-display-name'
-import { CrowdIntegrations } from '@/integrations/integrations-config'
+import { CrowdIntegrations } from '@/integrations/integrations-config';
+import AppAvatar from '@/shared/avatar/avatar.vue';
+import AppLoading from '@/shared/loading/loading-placeholder.vue';
+import AppMemberDisplayName from '@/modules/member/components/member-display-name.vue';
 
 export default {
   name: 'AppDashboardMemberItem',
   components: {
     AppMemberDisplayName,
     AppLoading,
-    AppAvatar
+    AppAvatar,
   },
   props: {
     member: {
       type: Object,
       required: false,
-      default: () => ({})
+      default: () => ({}),
     },
     showBadge: {
       type: Boolean,
       required: false,
-      default: true
+      default: true,
     },
     loading: {
       type: Boolean,
       required: false,
-      default: false
-    }
+      default: false,
+    },
   },
   methods: {
     getPlatformDetails(platform) {
-      return CrowdIntegrations.getConfig(platform)
-    }
-  }
-}
+      return CrowdIntegrations.getConfig(platform);
+    },
+  },
+};
 </script>

@@ -1,10 +1,9 @@
 <template>
   <div>
-    <label
+    <span
       class="block text-xs leading-none font-semibold mb-1"
-      >Chart Type
-      <span class="text-brand-500 ml-0.5">*</span></label
-    ><el-radio-group
+    >Chart Type
+      <span class="text-brand-500 ml-0.5">*</span></span><el-radio-group
       v-model="model"
       class="radio-button-group radio-group-chart-type"
       size="large"
@@ -13,11 +12,11 @@
         v-for="item in options"
         :key="item.value"
         :label="item.value"
-        ><div class="flex items-center text-sm">
-          <i class="mr-2" :class="item.icon"></i
-          >{{ item.label }}
-        </div></el-radio-button
       >
+        <div class="flex items-center text-sm">
+          <i class="mr-2" :class="item.icon" />{{ item.label }}
+        </div>
+      </el-radio-button>
     </el-radio-group>
   </div>
 </template>
@@ -28,16 +27,16 @@ export default {
   props: {
     chartType: {
       type: String,
-      default: null
+      default: null,
     },
     updateChartType: {
       type: Function,
-      default: () => {}
+      default: () => {},
     },
     modelValue: {
       type: String,
-      default: null
-    }
+      default: null,
+    },
   },
   emits: ['update:modelValue'],
   data() {
@@ -46,45 +45,45 @@ export default {
         {
           value: 'area',
           label: 'Line',
-          icon: 'ri-line-chart-line'
+          icon: 'ri-line-chart-line',
         },
         {
           value: 'bar',
           label: 'Bar',
-          icon: 'ri-bar-chart-line'
+          icon: 'ri-bar-chart-line',
         },
         {
           value: 'pie',
           label: 'Doughnut',
-          icon: 'ri-donut-chart-line'
+          icon: 'ri-donut-chart-line',
         },
         {
           value: 'table',
           label: 'Table',
-          icon: 'ri-list-check'
+          icon: 'ri-list-check',
         },
         {
           value: 'number',
           label: 'Number',
-          icon: 'ri-hashtag'
-        }
-      ]
-    }
+          icon: 'ri-hashtag',
+        },
+      ],
+    };
   },
   computed: {
     model: {
       get() {
         return this.modelValue === 'line'
           ? 'area'
-          : this.modelValue
+          : this.modelValue;
       },
       set(value) {
-        this.updateChartType(value)
-        this.$emit('update:modelValue', value)
-      }
-    }
-  }
-}
+        this.updateChartType(value);
+        this.$emit('update:modelValue', value);
+      },
+    },
+  },
+};
 </script>
 <style lang="scss">
 .radio-group-chart-type {

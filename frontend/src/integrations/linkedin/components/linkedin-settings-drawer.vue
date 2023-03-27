@@ -12,7 +12,7 @@
     <template #content>
       <div
         class="flex flex-col gap-2 items-start mb-2"
-      ></div>
+      />
       <el-form
         v-if="isVisible"
         label-position="top"
@@ -20,9 +20,7 @@
         @submit.prevent
       >
         <div class="flex flex-col gap-2 items-start">
-          <span class="block text-sm font-semibold mb-2"
-            >Organization profile</span
-          >
+          <span class="block text-sm font-semibold mb-2">Organization profile</span>
           <span
             class="text-2xs font-light mb-2 text-gray-600"
           >
@@ -43,16 +41,14 @@
           </el-select>
           <div
             v-if="
-              integration.status === 'pending-action' &&
-              model === null
+              integration.status === 'pending-action'
+                && model === null
             "
             class="text-yellow-600 flex items-start"
           >
-            <i class="ri-alert-line mr-2"></i>
+            <i class="ri-alert-line mr-2" />
             <div class="text-sm pt-0.5">
-              <span class="font-medium"
-                >Action required.</span
-              >
+              <span class="font-medium">Action required.</span>
               Select one of your associated organization
               profiles to start tracking LinkedIn activities
             </div>
@@ -72,20 +68,21 @@
           v-if="hasFormChanged"
           class="btn btn-link btn-link--primary"
           @click="doReset"
-          ><i class="ri-arrow-go-back-line"></i>
-          <span>Reset changes</span></el-button
         >
+          <i class="ri-arrow-go-back-line" />
+          <span>Reset changes</span>
+        </el-button>
         <div class="flex gap-4">
           <el-button
             class="btn btn--md btn--bordered"
             @click="isVisible = false"
           >
-            <app-i18n code="common.cancel"></app-i18n>
+            <app-i18n code="common.cancel" />
           </el-button>
           <el-button
             class="btn btn--md btn--primary"
             :class="{
-              disabled: !hasFormChanged || loading
+              disabled: !hasFormChanged || loading,
             }"
             :loading="loading"
             @click="hasFormChanged ? connect() : undefined"
@@ -101,93 +98,91 @@
     </template>
   </app-drawer>
 </template>
-<script>
-export default {
-  name: 'AppLinkedInConnectDrawer'
-}
-</script>
+
 <script setup>
 import {
   defineEmits,
   defineProps,
   computed,
   ref,
-  watch
-} from 'vue'
-import { CrowdIntegrations } from '@/integrations/integrations-config'
-import { useStore } from 'vuex'
+  watch,
+} from 'vue';
+import { useStore } from 'vuex';
+import { CrowdIntegrations } from '@/integrations/integrations-config';
 
-const store = useStore()
+const store = useStore();
 
 const props = defineProps({
   modelValue: {
     type: Boolean,
-    default: false
+    default: false,
   },
   integration: {
     type: Object,
-    default: () => {}
-  }
-})
+    default: () => {},
+  },
+});
 
-const emit = defineEmits(['update:modelValue'])
+const emit = defineEmits(['update:modelValue']);
 const organizations = computed(
-  () => props.integration.settings?.organizations
-)
-const selectedOrg = computed(() =>
-  organizations.value.find((o) => o.inUse === true)
-)
+  () => props.integration.settings?.organizations,
+);
+const selectedOrg = computed(() => organizations.value.find((o) => o.inUse === true));
 
 const model = ref(
-  selectedOrg.value ? selectedOrg.value.id : null
-)
-const loading = ref(false)
+  selectedOrg.value ? selectedOrg.value.id : null,
+);
+const loading = ref(false);
 
-const logoUrl =
-  CrowdIntegrations.getConfig('linkedin').image
+const logoUrl = CrowdIntegrations.getConfig('linkedin').image;
 
 const isVisible = computed({
   get() {
-    return props.modelValue
+    return props.modelValue;
   },
   set(value) {
-    return emit('update:modelValue', value)
-  }
-})
+    return emit('update:modelValue', value);
+  },
+});
 
 const hasFormChanged = computed(() => {
   if (selectedOrg.value === undefined) {
-    return model.value !== null
-  } else {
-    return model.value !== selectedOrg.value.id
+    return model.value !== null;
   }
-})
+  return model.value !== selectedOrg.value.id;
+});
 
 const doReset = () => {
   model.value = selectedOrg.value
     ? selectedOrg.value.id
-    : null
-}
+    : null;
+};
 
 const connect = async () => {
-  loading.value = true
+  loading.value = true;
   await store.dispatch(
     'integration/doLinkedinOnboard',
-    model.value
-  )
-  loading.value = false
-  isVisible.value = false
-}
+    model.value,
+  );
+  loading.value = false;
+  isVisible.value = false;
+};
 
 watch(isVisible, (newValue, oldValue) => {
   if (newValue) {
     window.analytics.track('LinkedIn: settings drawer', {
-      action: 'open'
-    })
+      action: 'open',
+    });
   } else if (newValue === false && oldValue) {
     window.analytics.track('LinkedIn: settings drawer', {
-      action: 'close'
-    })
+      action: 'close',
+    });
   }
-})
+});
+</script>
+
+<script>
+export default {
+  name: 'AppLinkedInConnectDrawer',
+};
 </script>

@@ -1,4 +1,4 @@
-import StackOverflowConnect from './components/stackoverflow-connect'
+import StackOverflowConnect from './components/stackoverflow-connect.vue';
 
 export default {
   enabled: true,
@@ -10,4 +10,4 @@ export default {
   image:
     'https://cdn-icons-png.flaticon.com/512/2111/2111628.png',
   connectComponent: StackOverflowConnect,
-}
+};

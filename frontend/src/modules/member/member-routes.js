@@ -1,17 +1,13 @@
-import Layout from '@/modules/layout/components/layout.vue'
-import Permissions from '@/security/permissions'
-import { store } from '@/store'
+import Layout from '@/modules/layout/components/layout.vue';
+import Permissions from '@/security/permissions';
+import { store } from '@/store';
 
-const MemberListPage = () =>
-  import('@/modules/member/pages/member-list-page.vue')
-const MemberMergeSuggestionsPage = () =>
-  import(
-    '@/modules/member/pages/member-merge-suggestions-page.vue'
-  )
-const MemberViewPage = () =>
-  import('@/modules/member/pages/member-view-page.vue')
-const MemberCreatePage = () =>
-  import('@/modules/member/pages/member-form-page.vue')
+const MemberListPage = () => import('@/modules/member/pages/member-list-page.vue');
+const MemberMergeSuggestionsPage = () => import(
+  '@/modules/member/pages/member-merge-suggestions-page.vue'
+);
+const MemberViewPage = () => import('@/modules/member/pages/member-view-page.vue');
+const MemberCreatePage = () => import('@/modules/member/pages/member-form-page.vue');
 
 export default [
   {
@@ -26,20 +22,20 @@ export default [
         component: MemberListPage,
         meta: {
           auth: true,
-          permission: Permissions.values.memberRead
+          permission: Permissions.values.memberRead,
         },
         beforeEnter: (to) => {
           if (
-            to.query.activeTab !== undefined &&
-            to.query.activeTab !==
-              store.getters['member/activeView'].id
+            to.query.activeTab !== undefined
+            && to.query.activeTab
+              !== store.getters['member/activeView'].id
           ) {
             store.dispatch(
               'member/doChangeActiveView',
-              to.query.activeTab
-            )
+              to.query.activeTab,
+            );
           }
-        }
+        },
       },
       {
         name: 'memberCreate',
@@ -47,8 +43,8 @@ export default [
         component: MemberCreatePage,
         meta: {
           auth: true,
-          permission: Permissions.values.memberCreate
-        }
+          permission: Permissions.values.memberCreate,
+        },
       },
       {
         name: 'memberEdit',
@@ -56,9 +52,9 @@ export default [
         component: MemberCreatePage,
         meta: {
           auth: true,
-          permission: Permissions.values.memberEdit
+          permission: Permissions.values.memberEdit,
         },
-        props: true
+        props: true,
       },
       {
         name: 'memberMergeSuggestions',
@@ -66,8 +62,8 @@ export default [
         component: MemberMergeSuggestionsPage,
         meta: {
           auth: true,
-          permission: Permissions.values.memberEdit
-        }
+          permission: Permissions.values.memberEdit,
+        },
       },
       {
         name: 'memberView',
@@ -75,9 +71,9 @@ export default [
         component: MemberViewPage,
         meta: {
           auth: true,
-          permission: Permissions.values.memberRead
+          permission: Permissions.values.memberRead,
         },
-        props: true
+        props: true,
       },
       {
         name: 'memberMerge',
@@ -85,10 +81,10 @@ export default [
         component: MemberMergeSuggestionsPage,
         meta: {
           auth: true,
-          permission: Permissions.values.memberEdit
+          permission: Permissions.values.memberEdit,
         },
-        props: true
-      }
-    ]
-  }
-]
+        props: true,
+      },
+    ],
+  },
+];

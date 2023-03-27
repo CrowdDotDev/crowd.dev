@@ -25,67 +25,67 @@
       <el-button
         class="btn btn-brand btn-brand--transparent"
         @click="fetchNotes(notesPage + 1)"
-        ><i class="ri-arrow-down-line"></i
-        ><span class="text-xs">Load more</span></el-button
       >
+        <i class="ri-arrow-down-line" /><span class="text-xs">Load more</span>
+      </el-button>
     </div>
   </div>
 </template>
 
-<script>
-export default {
-  name: 'AppMemberViewNotes'
-}
-</script>
-
 <script setup>
-import { computed, defineProps, onMounted, ref } from 'vue'
-import AppNoteEditor from '@/modules/notes/components/note-editor'
-import AppNoteItem from '@/modules/notes/components/note-item'
-import { NoteService } from '@/modules/notes/note-service'
-import { NotePermissions } from '@/modules/notes/note-permissions'
-import { mapGetters } from '@/shared/vuex/vuex.helpers'
+import {
+  computed, defineProps, onMounted, ref,
+} from 'vue';
+import { NoteService } from '@/modules/notes/note-service';
+import { NotePermissions } from '@/modules/notes/note-permissions';
+import { mapGetters } from '@/shared/vuex/vuex.helpers';
+import AppNoteItem from '@/modules/notes/components/note-item.vue';
+import AppNoteEditor from '@/modules/notes/components/note-editor.vue';
 
 const props = defineProps({
   member: {
     type: Object,
-    required: true
-  }
-})
+    required: true,
+  },
+});
 
-const { currentTenant, currentUser } = mapGetters('auth')
-const notes = ref([])
-const notesCount = ref(0)
-const notesPage = ref(0)
-const notesLimit = 20
+const { currentTenant, currentUser } = mapGetters('auth');
+const notes = ref([]);
+const notesCount = ref(0);
+const notesPage = ref(0);
+const notesLimit = 20;
 
-onMounted(() => {
-  fetchNotes()
-})
-
-const isCreateLockedForSampleData = computed(() => {
-  return new NotePermissions(
-    currentTenant.value,
-    currentUser.value
-  ).createLockedForSampleData
-})
+const isCreateLockedForSampleData = computed(() => new NotePermissions(
+  currentTenant.value,
+  currentUser.value,
+).createLockedForSampleData);
 
 const fetchNotes = (page = 0) => {
-  notesPage.value = page
+  notesPage.value = page;
   NoteService.list(
     {
-      members: [props.member.id]
+      members: [props.member.id],
     },
     'createdAt_DESC',
     notesLimit,
-    notesPage.value * notesLimit
+    notesPage.value * notesLimit,
   ).then(({ rows, count }) => {
     if (notesPage.value > 0) {
-      notes.value = [...notes.value, ...rows]
+      notes.value = [...notes.value, ...rows];
     } else {
-      notes.value = rows
+      notes.value = rows;
     }
-    notesCount.value = count
-  })
-}
+    notesCount.value = count;
+  });
+};
+
+onMounted(() => {
+  fetchNotes();
+});
+</script>
+
+<script>
+export default {
+  name: 'AppMemberViewNotes',
+};
 </script>

@@ -12,7 +12,7 @@
         type="button"
         @click.stop
       >
-        <i class="text-xl ri-more-fill"></i>
+        <i class="text-xl ri-more-fill" />
       </button>
       <template #dropdown>
         <el-dropdown-item
@@ -20,8 +20,8 @@
           :command="editActivity"
         >
           <i class="ri-pencil-line text-gray-400 mr-1" />
-          <span>Edit Activity</span></el-dropdown-item
-        >
+          <span>Edit Activity</span>
+        </el-dropdown-item>
         <el-dropdown-item
           :command="doDestroyWithConfirm"
           :disabled="isDeleteLockedForSampleData"
@@ -29,15 +29,14 @@
           <i
             class="ri-delete-bin-line mr-1"
             :class="{
-              'text-red-500': !isDeleteLockedForSampleData
+              'text-red-500': !isDeleteLockedForSampleData,
             }"
           />
           <span
             :class="{
-              'text-red-500': !isDeleteLockedForSampleData
+              'text-red-500': !isDeleteLockedForSampleData,
             }"
-            >Delete activity</span
-          >
+          >Delete activity</span>
         </el-dropdown-item>
       </template>
     </el-dropdown>
@@ -45,50 +44,50 @@
 </template>
 
 <script>
-import { mapActions, mapGetters } from 'vuex'
-import { ActivityPermissions } from '@/modules/activity/activity-permissions'
-import ConfirmDialog from '@/shared/dialog/confirm-dialog.js'
+import { mapActions, mapGetters } from 'vuex';
+import { ActivityPermissions } from '@/modules/activity/activity-permissions';
+import ConfirmDialog from '@/shared/dialog/confirm-dialog';
 
 export default {
   name: 'AppActivityDropdown',
   props: {
     activity: {
       type: Object,
-      default: () => {}
-    }
+      default: () => {},
+    },
   },
   emits: ['activity-destroyed', 'edit'],
   data() {
     return {
-      dropdownVisible: false
-    }
+      dropdownVisible: false,
+    };
   },
   computed: {
     ...mapGetters({
       currentTenant: 'auth/currentTenant',
-      currentUser: 'auth/currentUser'
+      currentUser: 'auth/currentUser',
     }),
     isReadOnly() {
       return (
         new ActivityPermissions(
           this.currentTenant,
-          this.currentUser
+          this.currentUser,
         ).edit === false
-      )
+      );
     },
     isDeleteLockedForSampleData() {
       return new ActivityPermissions(
         this.currentTenant,
-        this.currentUser
-      ).destroyLockedForSampleData
-    }
+        this.currentUser,
+      ).destroyLockedForSampleData;
+    },
   },
   methods: {
     ...mapActions({
-      doDestroy: 'activity/doDestroy'
+      doDestroy: 'activity/doDestroy',
     }),
     editActivity() {
-      this.$emit('edit')
+      this.$emit('edit');
     },
     async doDestroyWithConfirm() {
       try {
@@ -99,15 +98,15 @@ export default {
             "Are you sure you want to proceed? You can't undo this action",
           confirmButtonText: 'Confirm',
           cancelButtonText: 'Cancel',
-          icon: 'ri-delete-bin-line'
-        })
+          icon: 'ri-delete-bin-line',
+        });
 
-        await this.doDestroy(this.activity.id)
-        this.$emit('activity-destroyed', this.activity.id)
+        await this.doDestroy(this.activity.id);
+        this.$emit('activity-destroyed', this.activity.id);
       } catch (error) {
         // no
       }
-    }
-  }
-}
+    },
+  },
+};
 </script>

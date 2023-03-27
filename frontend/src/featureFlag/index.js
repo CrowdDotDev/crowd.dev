@@ -1,7 +1,7 @@
-import { UnleashClient } from 'unleash-proxy-client'
-import config from '@/config'
-import { store } from '@/store'
-import LogRocket from 'logrocket'
+import { UnleashClient } from 'unleash-proxy-client';
+import LogRocket from 'logrocket';
+import config from '@/config';
+import { store } from '@/store';
 
 export const FEATURE_FLAGS = {
   eagleEye: 'eagle-eye',
@@ -10,72 +10,72 @@ export const FEATURE_FLAGS = {
   automations: 'automations',
   linkedin: 'linkedin',
   memberEnrichment: 'member-enrichment',
-  csvExport: 'csv-export'
-}
+  csvExport: 'csv-export',
+};
 
 class FeatureFlagService {
   constructor() {
-    this.flags = FEATURE_FLAGS
+    this.flags = FEATURE_FLAGS;
 
     if (!config.isCommunityVersion) {
       const unleashConfig = {
         url: `${config.unleash.url}/api/frontend`,
         clientKey: config.unleash.apiKey,
         appName: 'crowd-web-app',
-        environment: 'production'
-      }
+        environment: 'production',
+      };
 
-      this.unleash = new UnleashClient(unleashConfig)
+      this.unleash = new UnleashClient(unleashConfig);
     }
   }
 
   init(tenant) {
     if (config.isCommunityVersion) {
-      return
+      return;
     }
 
-    this.unleash.start()
+    this.unleash.start();
 
-    const context = this.getContextFromTenant(tenant)
+    const context = this.getContextFromTenant(tenant);
     if (context) {
-      this.updateContext(context)
+      this.updateContext(context);
     }
 
     this.unleash.on('ready', () => {
       store.dispatch('tenant/doUpdateFeatureFlag', {
-        isReady: true
-      })
-    })
+        isReady: true,
+      });
+    });
 
     this.unleash.on('error', (error) => {
-      LogRocket.captureException(error)
+      LogRocket.captureException(error);
       store.dispatch('tenant/doUpdateFeatureFlag', {
-        hasError: true
-      })
-    })
+        hasError: true,
+      });
+    });
   }
 
   isFlagEnabled(flag) {
     if (config.isCommunityVersion) {
-      return true
+      return true;
     }
 
-    return this.unleash.isEnabled(flag)
+    return this.unleash.isEnabled(flag);
   }
 
   updateContext(tenant) {
     if (config.isCommunityVersion) {
-      return
+      return;
     }
 
-    const context = this.getContextFromTenant(tenant)
+    const context = this.getContextFromTenant(tenant);
 
-    this.unleash.updateContext(context)
+    this.unleash.updateContext(context);
   }
 
   getContextFromTenant(tenant) {
     if (!tenant) {
-      return null
+      return null;
     }
 
     return {
@@ -86,17 +86,16 @@ class FeatureFlagService {
       automationCount: `${tenant.automationCount}`,
       csvExportCount: `${tenant.csvExportCount}`,
       memberEnrichmentCount: `${tenant.memberEnrichmentCount}`,
-      plan: tenant.plan
-    }
+      plan: tenant.plan,
+    };
   }
 
   premiumFeatureCopy() {
     if (config.isCommunityVersion) {
-      return 'Premium'
-    } else {
-      return 'Growth'
+      return 'Premium';
     }
+    return 'Growth';
   }
 }
 
-export const FeatureFlag = new FeatureFlagService()
+export const FeatureFlag = new FeatureFlagService();

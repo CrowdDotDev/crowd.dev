@@ -35,18 +35,17 @@
         <div
           class="flex items-center grow -mr-3"
           :class="{
-            'justify-between': !hasPremiumPlan
+            'justify-between': !hasPremiumPlan,
           }"
         >
           <span class="font-medium">Custom domain</span>
           <span
             v-if="hasPremiumPlan"
             class="font-medium ml-2 text-purple-500"
-            >{{
-              FeatureFlag.premiumFeatureCopy()
-            }}
-            only</span
-          >
+          >{{
+            FeatureFlag.premiumFeatureCopy()
+          }}
+            only</span>
           <span
             v-else
             class="flex gap-1.5 text-xs text-brand-500 hover:text-brand-700 font-normal cursor-pointer"
@@ -70,9 +69,9 @@
           <a
             href="https://docs.crowd.dev/docs/conversations#4-set-up-custom-domain-premium-only"
             target="_blank"
+            rel="noopener noreferrer"
             class="font-semibold"
-            >see docs</a
-          >
+          >see docs</a>
         </div>
       </div>
     </el-form-item>
@@ -89,92 +88,89 @@ import {
   defineEmits,
   computed,
   onMounted,
-  ref
-} from 'vue'
-import { useStore } from 'vuex'
-import { ConversationPermissions } from '@/modules/conversation/conversation-permissions'
-import config from '@/config'
-import AppPaywallModal from '@/modules/layout/components/paywall-modal.vue'
-import { FeatureFlag } from '@/featureFlag'
+  ref,
+} from 'vue';
+import { useStore } from 'vuex';
+import { ConversationPermissions } from '@/modules/conversation/conversation-permissions';
+import config from '@/config';
+import AppPaywallModal from '@/modules/layout/components/paywall-modal.vue';
+import { FeatureFlag } from '@/featureFlag';
 
-const store = useStore()
+const store = useStore();
 
 const props = defineProps({
   tenantName: {
     type: String,
-    default: null
+    default: null,
   },
   tenantSlug: {
     type: String,
-    default: null
+    default: null,
   },
   customUrl: {
     type: String,
-    default: null
+    default: null,
   },
   disabled: {
     type: Boolean,
-    default: false
-  }
-})
+    default: false,
+  },
+});
 
 const emit = defineEmits([
   'update:tenantName',
   'update:tenantSlug',
-  'update:customUrl'
-])
+  'update:customUrl',
+]);
 
-const hasPremiumPlan = ref(false)
-const isUpgradeModalOpen = ref(false)
+const hasPremiumPlan = ref(false);
+const isUpgradeModalOpen = ref(false);
 
 const computedTenantName = computed({
   get() {
-    return props.tenantName
+    return props.tenantName;
   },
   set(value) {
-    emit('update:tenantName', value)
-  }
-})
+    emit('update:tenantName', value);
+  },
+});
 
 const computedTenantSlug = computed({
   get() {
-    return props.tenantSlug
+    return props.tenantSlug;
   },
   set(value) {
-    emit('update:tenantSlug', value)
-  }
-})
+    emit('update:tenantSlug', value);
+  },
+});
 
 const computedCustomUrl = computed({
   get() {
-    return props.customUrl
+    return props.customUrl;
   },
   set(value) {
-    emit('update:customUrl', value)
-  }
-})
+    emit('update:customUrl', value);
+  },
+});
 
 const publishedConversations = computed(
-  () => store.getters['communityHelpCenter/publishedRows']
-)
+  () => store.getters['communityHelpCenter/publishedRows'],
+);
 
-const hasPermissionToCustomize = computed(() => {
-  return new ConversationPermissions(
-    store.getters['auth/currentTenant'],
-    store.getters['auth/currentUser']
-  ).customize
-})
+const hasPermissionToCustomize = computed(() => new ConversationPermissions(
+  store.getters['auth/currentTenant'],
+  store.getters['auth/currentUser'],
+).customize);
 
 onMounted(async () => {
   const isFeatureEnabled = FeatureFlag.isFlagEnabled(
-    FeatureFlag.flags.communityCenterPro
-  )
+    FeatureFlag.flags.communityCenterPro,
+  );
 
-  hasPremiumPlan.value =
-    config.hasPremiumModules && isFeatureEnabled
-})
+  hasPremiumPlan.value = config.hasPremiumModules && isFeatureEnabled;
+});
 
 const onUnlockClick = () => {
-  isUpgradeModalOpen.value = true
-}
+  isUpgradeModalOpen.value = true;
+};
 </script>

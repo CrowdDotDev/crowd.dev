@@ -4,7 +4,7 @@
       v-if="loadingCube"
       v-loading="loadingCube"
       class="app-page-spinner"
-    ></div>
+    />
     <div v-else class="flex flex-col gap-8">
       <div class="flex justify-betweens gap-6">
         <div class="flex gap-3">
@@ -26,8 +26,9 @@
         <el-button
           class="btn btn-link btn-link--primary text-xs !h-fit leading-5"
           @click="onContributionTypesClick"
-          >Contribution types</el-button
         >
+          Contribution types
+        </el-button>
       </div>
 
       <app-widget-monthly-active-contributors
@@ -74,57 +75,57 @@
 
 <script setup>
 import {
+  computed, onMounted, defineProps, ref,
+} from 'vue';
+import { useStore } from 'vuex';
+import AppWidgetMonthlyActiveContributors from '@/modules/widget/components/v2/product-community-fit/widget-monthly-active-contributors.vue';
+import AppWidgetBenchmark from '@/modules/widget/components/v2/product-community-fit/widget-benchmark.vue';
+import { CrowdIntegrations } from '@/integrations/integrations-config';
+import AppActivityTypeListItem from '@/modules/activity/components/type/activity-type-list-item.vue';
+import {
   mapGetters,
-  mapActions
-} from '@/shared/vuex/vuex.helpers'
-import { computed, onMounted, defineProps, ref } from 'vue'
-import AppWidgetMonthlyActiveContributors from '@/modules/widget/components/v2/product-community-fit/widget-monthly-active-contributors.vue'
-import AppWidgetBenchmark from '@/modules/widget/components/v2/product-community-fit/widget-benchmark.vue'
-import { CrowdIntegrations } from '@/integrations/integrations-config'
-import { useStore } from 'vuex'
-import AppActivityTypeListItem from '@/modules/activity/components/type/activity-type-list-item.vue'
+  mapActions,
+} from '@/shared/vuex/vuex.helpers';
 
 defineProps({
   filters: {
     type: Object,
-    required: true
+    required: true,
   },
   isPublicView: {
     type: Boolean,
-    default: false
-  }
-})
+    default: false,
+  },
+});
 
-const store = useStore()
-const { currentTenant } = mapGetters('auth')
-const { cubejsApi, cubejsToken } = mapGetters('widget')
-const { getCubeToken } = mapActions('widget')
+const store = useStore();
+const { currentTenant } = mapGetters('auth');
+const { cubejsApi, cubejsToken } = mapGetters('widget');
+const { getCubeToken } = mapActions('widget');
 
-const isContributionTypeModalOpen = ref(false)
+const isContributionTypeModalOpen = ref(false);
 
 const loadingCube = computed(
-  () => cubejsToken.value === null
-)
+  () => cubejsToken.value === null,
+);
 
 const contributions = computed(() => {
   if (currentTenant.value.settings.length > 0) {
-    return currentTenant.value.settings[0].activityTypes
+    return currentTenant.value.settings[0].activityTypes;
   }
 
-  return {}
-})
+  return {};
+});
 
-const integrations = computed(() => {
-  return CrowdIntegrations.mappedEnabledConfigs(store)
-})
+const integrations = computed(() => CrowdIntegrations.mappedEnabledConfigs(store));
 
 onMounted(async () => {
   if (cubejsApi.value === null) {
-    await getCubeToken()
+    await getCubeToken();
   }
-})
+});
 
 const onContributionTypesClick = () => {
-  isContributionTypeModalOpen.value = true
-}
+  isContributionTypeModalOpen.value = true;
+};
 </script>
