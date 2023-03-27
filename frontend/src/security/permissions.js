@@ -1,10 +1,10 @@
-import Roles from '@/security/roles'
-import Plans from '@/security/plans'
-import Storage from '@/security/storage'
+import Roles from '@/security/roles';
+import Plans from '@/security/plans';
+import Storage from '@/security/storage';
 
-const storage = Storage.values
-const roles = Roles.values
-const plans = Plans.values
+const storage = Storage.values;
+const roles = Roles.values;
+const plans = Plans.values;
 
 /**
  * This class defines all the roles/plans that have permissions to trigger
@@ -20,8 +20,8 @@ class Permissions {
           plans.essential,
           plans.eagleEye,
           plans.growth,
-          plans.enterprise
-        ]
+          plans.enterprise,
+        ],
       },
       tenantDestroy: {
         id: 'tenantDestroy',
@@ -30,8 +30,8 @@ class Permissions {
           plans.essential,
           plans.eagleEye,
           plans.growth,
-          plans.enterprise
-        ]
+          plans.enterprise,
+        ],
       },
       planEdit: {
         id: 'planEdit',
@@ -40,8 +40,8 @@ class Permissions {
           plans.essential,
           plans.eagleEye,
           plans.growth,
-          plans.enterprise
-        ]
+          plans.enterprise,
+        ],
       },
       planRead: {
         id: 'planRead',
@@ -50,8 +50,8 @@ class Permissions {
           plans.essential,
           plans.eagleEye,
           plans.growth,
-          plans.enterprise
-        ]
+          plans.enterprise,
+        ],
       },
       userEdit: {
         id: 'userEdit',
@@ -60,9 +60,9 @@ class Permissions {
           plans.essential,
           plans.eagleEye,
           plans.growth,
-          plans.enterprise
+          plans.enterprise,
         ],
-        allowedSampleTenant: true
+        allowedSampleTenant: true,
       },
       userDestroy: {
         id: 'userDestroy',
@@ -71,9 +71,9 @@ class Permissions {
           plans.essential,
           plans.eagleEye,
           plans.growth,
-          plans.enterprise
+          plans.enterprise,
         ],
-        allowedSampleTenant: true
+        allowedSampleTenant: true,
       },
       userCreate: {
         id: 'userCreate',
@@ -82,9 +82,9 @@ class Permissions {
           plans.essential,
           plans.eagleEye,
           plans.growth,
-          plans.enterprise
+          plans.enterprise,
         ],
-        allowedSampleTenant: true
+        allowedSampleTenant: true,
       },
       userImport: {
         id: 'userImport',
@@ -93,8 +93,8 @@ class Permissions {
           plans.essential,
           plans.eagleEye,
           plans.growth,
-          plans.enterprise
-        ]
+          plans.enterprise,
+        ],
       },
       userRead: {
         id: 'userRead',
@@ -103,9 +103,9 @@ class Permissions {
           plans.essential,
           plans.eagleEye,
           plans.growth,
-          plans.enterprise
+          plans.enterprise,
         ],
-        allowedSampleTenant: true
+        allowedSampleTenant: true,
       },
       userAutocomplete: {
         id: 'userAutocomplete',
@@ -114,8 +114,8 @@ class Permissions {
           plans.essential,
           plans.eagleEye,
           plans.growth,
-          plans.enterprise
-        ]
+          plans.enterprise,
+        ],
       },
       auditLogRead: {
         id: 'auditLogRead',
@@ -124,8 +124,8 @@ class Permissions {
           plans.essential,
           plans.eagleEye,
           plans.growth,
-          plans.enterprise
-        ]
+          plans.enterprise,
+        ],
       },
       settingsRead: {
         id: 'settingsRead',
@@ -134,13 +134,13 @@ class Permissions {
           plans.essential,
           plans.eagleEye,
           plans.growth,
-          plans.enterprise
+          plans.enterprise,
         ],
         allowedStorage: [
           storage.settingsBackgroundImages,
-          storage.settingsLogos
+          storage.settingsLogos,
         ],
-        allowedSampleTenant: true
+        allowedSampleTenant: true,
       },
       settingsEdit: {
         id: 'settingsEdit',
@@ -149,13 +149,13 @@ class Permissions {
           plans.essential,
           plans.eagleEye,
           plans.growth,
-          plans.enterprise
+          plans.enterprise,
         ],
         allowedStorage: [
           storage.settingsBackgroundImages,
-          storage.settingsLogos
+          storage.settingsLogos,
         ],
-        allowedSampleTenant: true
+        allowedSampleTenant: true,
       },
       integrationImport: {
         id: 'integrationImport',
@@ -164,8 +164,8 @@ class Permissions {
           plans.essential,
           plans.eagleEye,
           plans.growth,
-          plans.enterprise
-        ]
+          plans.enterprise,
+        ],
       },
       integrationCreate: {
         id: 'integrationCreate',
@@ -174,9 +174,9 @@ class Permissions {
           plans.essential,
           plans.eagleEye,
           plans.growth,
-          plans.enterprise
+          plans.enterprise,
         ],
-        allowedStorage: []
+        allowedStorage: [],
       },
       integrationEdit: {
         id: 'integrationEdit',
@@ -185,9 +185,9 @@ class Permissions {
           plans.essential,
           plans.eagleEye,
           plans.growth,
-          plans.enterprise
+          plans.enterprise,
         ],
-        allowedStorage: []
+        allowedStorage: [],
       },
       integrationDestroy: {
         id: 'integrationDestroy',
@@ -196,9 +196,9 @@ class Permissions {
           plans.essential,
           plans.eagleEye,
           plans.growth,
-          plans.enterprise
+          plans.enterprise,
         ],
-        allowedStorage: []
+        allowedStorage: [],
       },
       integrationRead: {
         id: 'integrationRead',
@@ -207,9 +207,9 @@ class Permissions {
           plans.essential,
           plans.eagleEye,
           plans.growth,
-          plans.enterprise
+          plans.enterprise,
         ],
-        allowedSampleTenant: true
+        allowedSampleTenant: true,
       },
       integrationAutocomplete: {
         id: 'integrationAutocomplete',
@@ -218,8 +218,8 @@ class Permissions {
           plans.essential,
           plans.eagleEye,
           plans.growth,
-          plans.enterprise
-        ]
+          plans.enterprise,
+        ],
       },
 
       reportImport: {
@@ -229,8 +229,8 @@ class Permissions {
           plans.essential,
           plans.eagleEye,
           plans.growth,
-          plans.enterprise
-        ]
+          plans.enterprise,
+        ],
       },
       reportCreate: {
         id: 'reportCreate',
@@ -239,10 +239,10 @@ class Permissions {
           plans.essential,
           plans.eagleEye,
           plans.growth,
-          plans.enterprise
+          plans.enterprise,
         ],
         allowedStorage: [],
-        allowedSampleTenant: true
+        allowedSampleTenant: true,
       },
       reportEdit: {
         id: 'reportEdit',
@@ -251,10 +251,10 @@ class Permissions {
           plans.essential,
           plans.eagleEye,
           plans.growth,
-          plans.enterprise
+          plans.enterprise,
         ],
         allowedStorage: [],
-        allowedSampleTenant: true
+        allowedSampleTenant: true,
       },
       reportDestroy: {
         id: 'reportDestroy',
@@ -263,10 +263,10 @@ class Permissions {
           plans.essential,
           plans.eagleEye,
           plans.growth,
-          plans.enterprise
+          plans.enterprise,
         ],
         allowedStorage: [],
-        allowedSampleTenant: true
+        allowedSampleTenant: true,
       },
       reportRead: {
         id: 'reportRead',
@@ -275,9 +275,9 @@ class Permissions {
           plans.essential,
           plans.eagleEye,
           plans.growth,
-          plans.enterprise
+          plans.enterprise,
         ],
-        allowedSampleTenant: true
+        allowedSampleTenant: true,
       },
       reportAutocomplete: {
         id: 'reportAutocomplete',
@@ -286,8 +286,8 @@ class Permissions {
           plans.essential,
           plans.eagleEye,
           plans.growth,
-          plans.enterprise
-        ]
+          plans.enterprise,
+        ],
       },
 
       memberImport: {
@@ -297,8 +297,8 @@ class Permissions {
           plans.essential,
           plans.eagleEye,
           plans.growth,
-          plans.enterprise
-        ]
+          plans.enterprise,
+        ],
       },
       memberCreate: {
         id: 'memberCreate',
@@ -307,9 +307,9 @@ class Permissions {
           plans.essential,
           plans.eagleEye,
           plans.growth,
-          plans.enterprise
+          plans.enterprise,
         ],
-        allowedStorage: []
+        allowedStorage: [],
       },
       memberEdit: {
         id: 'memberEdit',
@@ -318,9 +318,9 @@ class Permissions {
           plans.essential,
           plans.eagleEye,
           plans.growth,
-          plans.enterprise
+          plans.enterprise,
         ],
-        allowedStorage: []
+        allowedStorage: [],
       },
       memberDestroy: {
         id: 'memberDestroy',
@@ -329,9 +329,9 @@ class Permissions {
           plans.essential,
           plans.eagleEye,
           plans.growth,
-          plans.enterprise
+          plans.enterprise,
         ],
-        allowedStorage: []
+        allowedStorage: [],
       },
       memberRead: {
         id: 'memberRead',
@@ -340,9 +340,9 @@ class Permissions {
           plans.essential,
           plans.eagleEye,
           plans.growth,
-          plans.enterprise
+          plans.enterprise,
         ],
-        allowedSampleTenant: true
+        allowedSampleTenant: true,
       },
       memberAutocomplete: {
         id: 'memberAutocomplete',
@@ -351,8 +351,8 @@ class Permissions {
           plans.essential,
           plans.eagleEye,
           plans.growth,
-          plans.enterprise
-        ]
+          plans.enterprise,
+        ],
       },
 
       organizationImport: {
@@ -362,8 +362,8 @@ class Permissions {
           plans.essential,
           plans.eagleEye,
           plans.growth,
-          plans.enterprise
-        ]
+          plans.enterprise,
+        ],
       },
       organizationCreate: {
         id: 'organizationCreate',
@@ -372,9 +372,9 @@ class Permissions {
           plans.essential,
           plans.eagleEye,
           plans.growth,
-          plans.enterprise
+          plans.enterprise,
         ],
-        allowedStorage: []
+        allowedStorage: [],
       },
       organizationEdit: {
         id: 'organizationEdit',
@@ -383,9 +383,9 @@ class Permissions {
           plans.essential,
           plans.eagleEye,
           plans.growth,
-          plans.enterprise
+          plans.enterprise,
         ],
-        allowedStorage: []
+        allowedStorage: [],
       },
       organizationDestroy: {
         id: 'organizationDestroy',
@@ -394,9 +394,9 @@ class Permissions {
           plans.essential,
           plans.eagleEye,
           plans.growth,
-          plans.enterprise
+          plans.enterprise,
         ],
-        allowedStorage: []
+        allowedStorage: [],
       },
       organizationRead: {
         id: 'organizationRead',
@@ -405,9 +405,9 @@ class Permissions {
           plans.essential,
           plans.eagleEye,
           plans.growth,
-          plans.enterprise
+          plans.enterprise,
         ],
-        allowedSampleTenant: true
+        allowedSampleTenant: true,
       },
       organizationAutocomplete: {
         id: 'organizationAutocomplete',
@@ -416,8 +416,8 @@ class Permissions {
           plans.essential,
           plans.eagleEye,
           plans.growth,
-          plans.enterprise
-        ]
+          plans.enterprise,
+        ],
       },
 
       activityImport: {
@@ -427,8 +427,8 @@ class Permissions {
           plans.essential,
           plans.eagleEye,
           plans.growth,
-          plans.enterprise
-        ]
+          plans.enterprise,
+        ],
       },
       activityCreate: {
         id: 'activityCreate',
@@ -437,9 +437,9 @@ class Permissions {
           plans.essential,
           plans.eagleEye,
           plans.growth,
-          plans.enterprise
+          plans.enterprise,
         ],
-        allowedStorage: []
+        allowedStorage: [],
       },
       activityEdit: {
         id: 'activityEdit',
@@ -448,9 +448,9 @@ class Permissions {
           plans.essential,
           plans.eagleEye,
           plans.growth,
-          plans.enterprise
+          plans.enterprise,
         ],
-        allowedStorage: []
+        allowedStorage: [],
       },
       activityDestroy: {
         id: 'activityDestroy',
@@ -459,9 +459,9 @@ class Permissions {
           plans.essential,
           plans.eagleEye,
           plans.growth,
-          plans.enterprise
+          plans.enterprise,
         ],
-        allowedStorage: []
+        allowedStorage: [],
       },
       activityRead: {
         id: 'activityRead',
@@ -470,9 +470,9 @@ class Permissions {
           plans.essential,
           plans.eagleEye,
           plans.growth,
-          plans.enterprise
+          plans.enterprise,
         ],
-        allowedSampleTenant: true
+        allowedSampleTenant: true,
       },
       activityAutocomplete: {
         id: 'activityAutocomplete',
@@ -481,8 +481,8 @@ class Permissions {
           plans.essential,
           plans.eagleEye,
           plans.growth,
-          plans.enterprise
-        ]
+          plans.enterprise,
+        ],
       },
 
       taskImport: {
@@ -492,9 +492,9 @@ class Permissions {
           plans.essential,
           plans.eagleEye,
           plans.growth,
-          plans.enterprise
+          plans.enterprise,
         ],
-        allowedSampleTenant: true
+        allowedSampleTenant: true,
       },
       taskCreate: {
         id: 'taskCreate',
@@ -503,10 +503,10 @@ class Permissions {
           plans.essential,
           plans.eagleEye,
           plans.growth,
-          plans.enterprise
+          plans.enterprise,
         ],
         allowedStorage: [],
-        allowedSampleTenant: true
+        allowedSampleTenant: true,
       },
       taskEdit: {
         id: 'taskEdit',
@@ -515,10 +515,10 @@ class Permissions {
           plans.essential,
           plans.eagleEye,
           plans.growth,
-          plans.enterprise
+          plans.enterprise,
         ],
         allowedStorage: [],
-        allowedSampleTenant: true
+        allowedSampleTenant: true,
       },
       taskDestroy: {
         id: 'taskDestroy',
@@ -527,10 +527,10 @@ class Permissions {
           plans.essential,
           plans.eagleEye,
           plans.growth,
-          plans.enterprise
+          plans.enterprise,
         ],
         allowedStorage: [],
-        allowedSampleTenant: true
+        allowedSampleTenant: true,
       },
       taskRead: {
         id: 'taskRead',
@@ -539,9 +539,9 @@ class Permissions {
           plans.essential,
           plans.eagleEye,
           plans.growth,
-          plans.enterprise
+          plans.enterprise,
         ],
-        allowedSampleTenant: true
+        allowedSampleTenant: true,
       },
       taskAutocomplete: {
         id: 'taskAutocomplete',
@@ -550,9 +550,9 @@ class Permissions {
           plans.essential,
           plans.eagleEye,
           plans.growth,
-          plans.enterprise
+          plans.enterprise,
         ],
-        allowedSampleTenant: true
+        allowedSampleTenant: true,
       },
 
       conversationImport: {
@@ -562,8 +562,8 @@ class Permissions {
           plans.essential,
           plans.eagleEye,
           plans.growth,
-          plans.enterprise
-        ]
+          plans.enterprise,
+        ],
       },
       conversationCreate: {
         id: 'conversationCreate',
@@ -572,9 +572,9 @@ class Permissions {
           plans.essential,
           plans.eagleEye,
           plans.growth,
-          plans.enterprise
+          plans.enterprise,
         ],
-        allowedStorage: []
+        allowedStorage: [],
       },
       conversationEdit: {
         id: 'conversationEdit',
@@ -583,9 +583,9 @@ class Permissions {
           plans.essential,
           plans.eagleEye,
           plans.growth,
-          plans.enterprise
+          plans.enterprise,
         ],
-        allowedStorage: []
+        allowedStorage: [],
       },
       conversationDestroy: {
         id: 'conversationDestroy',
@@ -594,9 +594,9 @@ class Permissions {
           plans.essential,
           plans.eagleEye,
           plans.growth,
-          plans.enterprise
+          plans.enterprise,
         ],
-        allowedStorage: []
+        allowedStorage: [],
       },
       conversationRead: {
         id: 'conversationRead',
@@ -605,14 +605,14 @@ class Permissions {
           plans.essential,
           plans.eagleEye,
           plans.growth,
-          plans.enterprise
+          plans.enterprise,
         ],
-        allowedSampleTenant: true
+        allowedSampleTenant: true,
       },
       conversationCustomize: {
         id: 'conversationCustomize',
         allowedRoles: [roles.admin],
-        allowedPlans: [plans.growth, plans.enterprise]
+        allowedPlans: [plans.growth, plans.enterprise],
       },
       conversationAutocomplete: {
         id: 'conversationAutocomplete',
@@ -621,8 +621,8 @@ class Permissions {
           plans.essential,
           plans.eagleEye,
           plans.growth,
-          plans.enterprise
-        ]
+          plans.enterprise,
+        ],
       },
       eagleEyeRead: {
         id: 'eagleEyeRead',
@@ -631,9 +631,9 @@ class Permissions {
           plans.essential,
           plans.eagleEye,
           plans.growth,
-          plans.enterprise
+          plans.enterprise,
         ],
-        allowedSampleTenant: true
+        allowedSampleTenant: true,
       },
       automationImport: {
         id: 'automationImport',
@@ -642,8 +642,8 @@ class Permissions {
           plans.essential,
           plans.eagleEye,
           plans.growth,
-          plans.enterprise
-        ]
+          plans.enterprise,
+        ],
       },
       automationCreate: {
         id: 'automationCreate',
@@ -652,10 +652,10 @@ class Permissions {
           plans.essential,
           plans.eagleEye,
           plans.growth,
-          plans.enterprise
+          plans.enterprise,
         ],
         allowedStorage: [],
-        allowedSampleTenant: true
+        allowedSampleTenant: true,
       },
       automationEdit: {
         id: 'automationEdit',
@@ -664,10 +664,10 @@ class Permissions {
           plans.essential,
           plans.eagleEye,
           plans.growth,
-          plans.enterprise
+          plans.enterprise,
         ],
         allowedStorage: [],
-        allowedSampleTenant: true
+        allowedSampleTenant: true,
       },
       automationDestroy: {
         id: 'automationDestroy',
@@ -676,10 +676,10 @@ class Permissions {
           plans.essential,
           plans.eagleEye,
           plans.growth,
-          plans.enterprise
+          plans.enterprise,
         ],
         allowedStorage: [],
-        allowedSampleTenant: true
+        allowedSampleTenant: true,
       },
       automationRead: {
         id: 'automationRead',
@@ -688,14 +688,14 @@ class Permissions {
           plans.essential,
           plans.eagleEye,
           plans.growth,
-          plans.enterprise
+          plans.enterprise,
         ],
-        allowedSampleTenant: true
+        allowedSampleTenant: true,
       },
       automationCustomize: {
         id: 'automationCustomize',
         allowedRoles: [roles.admin],
-        allowedPlans: [plans.growth, plans.enterprise]
+        allowedPlans: [plans.growth, plans.enterprise],
       },
       automationAutocomplete: {
         id: 'automationAutocomplete',
@@ -704,8 +704,8 @@ class Permissions {
           plans.essential,
           plans.eagleEye,
           plans.growth,
-          plans.enterprise
-        ]
+          plans.enterprise,
+        ],
       },
       noteCreate: {
         id: 'noteCreate',
@@ -713,9 +713,9 @@ class Permissions {
         allowedPlans: [
           plans.essential,
           plans.growth,
-          plans.enterprise
+          plans.enterprise,
         ],
-        allowedStorage: []
+        allowedStorage: [],
       },
       noteEdit: {
         id: 'noteEdit',
@@ -723,9 +723,9 @@ class Permissions {
         allowedPlans: [
           plans.essential,
           plans.growth,
-          plans.enterprise
+          plans.enterprise,
         ],
-        allowedStorage: []
+        allowedStorage: [],
       },
       noteDestroy: {
         id: 'noteDestroy',
@@ -733,18 +733,16 @@ class Permissions {
         allowedPlans: [
           plans.essential,
           plans.growth,
-          plans.enterprise
+          plans.enterprise,
         ],
-        allowedStorage: []
-      }
-    }
+        allowedStorage: [],
+      },
+    };
   }
 
   static get asArray() {
-    return Object.keys(this.values).map((value) => {
-      return this.values[value]
-    })
+    return Object.keys(this.values).map((value) => this.values[value]);
   }
 }
 
-export default Permissions
+export default Permissions;

@@ -79,6 +79,7 @@
         <div class="flex items-center">
           <div class="pr-4">
             <img
+              alt="Testimonials Crowd.dev"
               src="/images/auth/testimonial.png"
               class="h-11 w-11"
             />
@@ -101,8 +102,8 @@
 
 <script>
 export default {
-  name: 'AppAuthLayoutSide'
-}
+  name: 'AppAuthLayoutSide',
+};
 </script>
 
 <style scoped></style>

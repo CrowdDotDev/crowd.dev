@@ -12,18 +12,12 @@
       v-model="model"
       placeholder="Enter a value"
       :disabled="
-        operator === 'is_empty' ||
-        operator === 'is_not_empty'
+        operator === 'is_empty'
+          || operator === 'is_not_empty'
       "
-    ></el-input>
+    />
   </div>
 </template>
-
-<script>
-export default {
-  name: 'AppFilterTypeString'
-}
-</script>
 
 <script setup>
 import {
@@ -31,61 +25,63 @@ import {
   defineEmits,
   defineProps,
   watch,
-  ref
-} from 'vue'
-import filterOperators from '../../helpers/operators'
+  ref,
+} from 'vue';
+import filterOperators from '../../helpers/operators';
 
 const props = defineProps({
   value: {
     type: String,
-    default: null
+    default: null,
   },
   operator: {
     type: String,
-    default: null
+    default: null,
   },
   isExpanded: {
     type: Boolean,
-    default: false
-  }
-})
+    default: false,
+  },
+});
 
 const emit = defineEmits([
   'update:value',
-  'update:operator'
-])
+  'update:operator',
+]);
 const model = computed({
   get() {
-    return props.value
+    return props.value;
   },
   set(v) {
-    emit('update:value', v)
-  }
-})
+    emit('update:value', v);
+  },
+});
 const operator = computed({
   get() {
-    return props.operator
+    return props.operator;
   },
   set(v) {
-    emit('update:operator', v)
-  }
-})
-const expanded = computed(() => props.isExpanded)
-const computedOperatorOptions = computed(() => {
-  return Object.keys(filterOperators.string.operator).map(
-    (o) => {
-      return {
-        value: o,
-        label: filterOperators.string.operator[o]
-      }
-    }
-  )
-})
-const inputRef = ref(null)
+    emit('update:operator', v);
+  },
+});
+const expanded = computed(() => props.isExpanded);
+const computedOperatorOptions = computed(() => Object.keys(filterOperators.string.operator).map(
+  (o) => ({
+    value: o,
+    label: filterOperators.string.operator[o],
+  }),
+));
+const inputRef = ref(null);
 
 watch(expanded, async (newValue) => {
   if (newValue) {
-    inputRef.value.focus()
+    inputRef.value.focus();
   }
-})
+});
+</script>
+
+<script>
+export default {
+  name: 'AppFilterTypeString',
+};
 </script>

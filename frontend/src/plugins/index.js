@@ -1,5 +1,5 @@
-import Chartkick from './chartkick'
+import Chartkick from './chartkick';
 
 export default {
-  Chartkick
-}
+  Chartkick,
+};

@@ -1,62 +1,62 @@
-import authAxios from '@/shared/axios/auth-axios'
-import AuthCurrentTenant from '@/modules/auth/auth-current-tenant'
+import authAxios from '@/shared/axios/auth-axios';
+import AuthCurrentTenant from '@/modules/auth/auth-current-tenant';
 
 export class IntegrationService {
   static async update(id, data) {
     const body = {
-      data
-    }
+      data,
+    };
 
-    const tenantId = AuthCurrentTenant.get()
+    const tenantId = AuthCurrentTenant.get();
 
     const response = await authAxios.put(
       `/tenant/${tenantId}/integration/${id}`,
-      body
-    )
+      body,
+    );
 
-    return response.data
+    return response.data;
   }
 
   static async destroyAll(ids) {
     const params = {
-      ids
-    }
+      ids,
+    };
 
-    const tenantId = AuthCurrentTenant.get()
+    const tenantId = AuthCurrentTenant.get();
 
     const response = await authAxios.delete(
       `/tenant/${tenantId}/integration`,
       {
-        params
-      }
-    )
+        params,
+      },
+    );
 
-    return response.data
+    return response.data;
   }
 
   static async create(data) {
     const body = {
-      data
-    }
+      data,
+    };
 
-    const tenantId = AuthCurrentTenant.get()
+    const tenantId = AuthCurrentTenant.get();
 
     const response = await authAxios.post(
       `/tenant/${tenantId}/integration`,
-      body
-    )
+      body,
+    );
 
-    return response.data
+    return response.data;
   }
 
   static async find(id) {
-    const tenantId = AuthCurrentTenant.get()
+    const tenantId = AuthCurrentTenant.get();
 
     const response = await authAxios.get(
-      `/tenant/${tenantId}/integration/${id}`
-    )
+      `/tenant/${tenantId}/integration/${id}`,
+    );
 
-    return response.data
+    return response.data;
   }
 
   static async list(filter, orderBy, limit, offset) {
@@ -64,224 +64,224 @@ export class IntegrationService {
       filter,
       orderBy,
       limit,
-      offset
-    }
+      offset,
+    };
 
-    const tenantId = AuthCurrentTenant.get()
+    const tenantId = AuthCurrentTenant.get();
 
     const response = await authAxios.get(
       `/tenant/${tenantId}/integration`,
       {
-        params
-      }
-    )
+        params,
+      },
+    );
 
-    return response.data
+    return response.data;
   }
 
   static async listAutocomplete(query, limit) {
     const params = {
       query,
-      limit
-    }
+      limit,
+    };
 
-    const tenantId = AuthCurrentTenant.get()
+    const tenantId = AuthCurrentTenant.get();
 
     const response = await authAxios.get(
       `/tenant/${tenantId}/integration/autocomplete`,
       {
-        params
-      }
-    )
+        params,
+      },
+    );
 
-    return response.data
+    return response.data;
   }
 
   static async devtoConnect(users, organizations) {
     // Getting the tenant_id
-    const tenantId = AuthCurrentTenant.get()
+    const tenantId = AuthCurrentTenant.get();
 
     // Calling connect devto function in the backend.
     const response = await authAxios.post(
       `/tenant/${tenantId}/devto-connect`,
       {
         users,
-        organizations
-      }
-    )
+        organizations,
+      },
+    );
 
-    return response.data
+    return response.data;
   }
 
   static async hackerNewsConnect(keywords, urls) {
     // Getting the tenant_id
-    const tenantId = AuthCurrentTenant.get()
+    const tenantId = AuthCurrentTenant.get();
 
     // Calling connect devto function in the backend.
     const response = await authAxios.post(
       `/tenant/${tenantId}/hackernews-connect`,
       {
         keywords,
-        urls
-      }
-    )
+        urls,
+      },
+    );
 
-    return response.data
+    return response.data;
   }
 
   static async githubConnect(code, installId, setupAction) {
     // Ask backend to connect to GitHub through Oauth.
     // Install_id is the GitHub app installation id.
     const body = {
-      installId: installId,
-      setupAction: setupAction
-    }
+      installId,
+      setupAction,
+    };
     // Getting the tenant_id
-    const tenantId = AuthCurrentTenant.get()
+    const tenantId = AuthCurrentTenant.get();
     // Calling the authenticate function in the backend.
     const response = await authAxios.put(
       `/authenticate/${tenantId}/${code}`,
-      body
-    )
-    return response.data
+      body,
+    );
+    return response.data;
   }
 
   static async redditOnboard(subreddits) {
     // Ask backend to connect to GitHub through Oauth.
     // Install_id is the GitHub app installation id.
     const body = {
-      subreddits
-    }
+      subreddits,
+    };
     // Getting the tenant_id
-    const tenantId = AuthCurrentTenant.get()
+    const tenantId = AuthCurrentTenant.get();
     // Calling the authenticate function in the backend.
     const response = await authAxios.put(
       `/reddit-onboard/${tenantId}`,
-      body
-    )
-    return response.data
+      body,
+    );
+    return response.data;
   }
 
   static async linkedinConnect() {
-    const tenantId = AuthCurrentTenant.get()
+    const tenantId = AuthCurrentTenant.get();
     const response = await authAxios.put(
-      `/linkedin-connect/${tenantId}`
-    )
+      `/linkedin-connect/${tenantId}`,
+    );
 
-    return response.data
+    return response.data;
   }
 
   static async linkedinOnboard(organizationId) {
     const body = {
-      organizationId
-    }
+      organizationId,
+    };
 
-    const tenantId = AuthCurrentTenant.get()
+    const tenantId = AuthCurrentTenant.get();
 
     const response = await authAxios.post(
       `/linkedin-onboard/${tenantId}`,
-      body
-    )
+      body,
+    );
 
-    return response.data
+    return response.data;
   }
 
-  static async discordConnect(guild_id) {
+  static async discordConnect(guildId) {
     // Getting the tenant_id
-    const tenantId = AuthCurrentTenant.get()
+    const tenantId = AuthCurrentTenant.get();
     // Calling the authenticate function in the backend.
     const response = await authAxios.put(
-      `/discord-authenticate/${tenantId}/${guild_id}`
-    )
-    return response.data
+      `/discord-authenticate/${tenantId}/${guildId}`,
+    );
+    return response.data;
   }
 
   static async devtoValidateUser(username) {
-    const tenantId = AuthCurrentTenant.get()
+    const tenantId = AuthCurrentTenant.get();
 
     const response = await authAxios.get(
       `/tenant/${tenantId}/devto-validate`,
       {
         params: {
-          username
-        }
-      }
-    )
+          username,
+        },
+      },
+    );
 
-    return response.data
+    return response.data;
   }
 
   static async devtoValidateOrganization(organization) {
-    const tenantId = AuthCurrentTenant.get()
+    const tenantId = AuthCurrentTenant.get();
 
     const response = await authAxios.get(
       `/tenant/${tenantId}/devto-validate`,
       {
         params: {
-          organization
-        }
-      }
-    )
+          organization,
+        },
+      },
+    );
 
-    return response.data
+    return response.data;
   }
 
   static async redditValidate(subreddit) {
-    const tenantId = AuthCurrentTenant.get()
+    const tenantId = AuthCurrentTenant.get();
 
     const response = await authAxios.get(
       `/tenant/${tenantId}/reddit-validate`,
       {
         params: {
-          subreddit
-        }
-      }
-    )
+          subreddit,
+        },
+      },
+    );
 
-    return response.data
+    return response.data;
   }
 
   static async stackOverflowValidate(tag) {
-    const tenantId = AuthCurrentTenant.get()
+    const tenantId = AuthCurrentTenant.get();
 
     const response = await authAxios.get(
       `/tenant/${tenantId}/stackoverflow-validate`,
       {
         params: {
-          tag
-        }
-      }
-    )
+          tag,
+        },
+      },
+    );
 
-    return response.data
+    return response.data;
   }
 
   static async stackOverflowVolume(keywords) {
-    const tenantId = AuthCurrentTenant.get()
+    const tenantId = AuthCurrentTenant.get();
 
     const response = await authAxios.get(
       `/tenant/${tenantId}/stackoverflow-volume`,
       {
         params: {
-          keywords
-        }
-      }
-    )
+          keywords,
+        },
+      },
+    );
 
-    return response.data.total
+    return response.data.total;
   }
 
   static async stackOverflowOnboard(tags, keywords) {
     // Getting the tenant_id
-    const tenantId = AuthCurrentTenant.get()
+    const tenantId = AuthCurrentTenant.get();
     // Calling the authenticate function in the backend.
     const response = await authAxios.post(
       `/tenant/${tenantId}/stackoverflow-connect`,
       {
         tags,
-        keywords
-      }
-    )
-    return response.data
+        keywords,
+      },
+    );
+    return response.data;
   }
 }

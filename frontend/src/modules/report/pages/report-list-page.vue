@@ -21,7 +21,7 @@
       v-if="loading"
       v-loading="loading"
       class="app-page-spinner h-16 !relative !min-h-5"
-    ></div>
+    />
     <div v-else>
       <!-- Template reports -->
       <div v-if="computedTemplates.length">
@@ -54,22 +54,22 @@
         </div>
         <app-report-list-table
           @cta-click="isCreatingReport = true"
-        ></app-report-list-table>
+        />
       </div>
       <app-report-create-dialog
         v-model="isCreatingReport"
-      ></app-report-create-dialog>
+      />
     </div>
   </app-page-wrapper>
 </template>
 
 <script>
-import { mapActions, mapGetters, mapState } from 'vuex'
-import ReportListTable from '@/modules/report/components/report-list-table.vue'
-import AppReportCreateDialog from '@/modules/report/components/report-create-dialog.vue'
-import { ReportPermissions } from '@/modules/report/report-permissions'
-import AppReportTemplateItem from '@/modules/report/components/templates/report-template-item.vue'
-import { templates } from '@/modules/report/templates/template-reports'
+import { mapActions, mapGetters, mapState } from 'vuex';
+import ReportListTable from '@/modules/report/components/report-list-table.vue';
+import AppReportCreateDialog from '@/modules/report/components/report-create-dialog.vue';
+import { ReportPermissions } from '@/modules/report/report-permissions';
+import AppReportTemplateItem from '@/modules/report/components/templates/report-template-item.vue';
+import { templates } from '@/modules/report/templates/template-reports';
 
 export default {
   name: 'AppReportListPage',
@@ -77,73 +77,73 @@ export default {
   components: {
     AppReportCreateDialog,
     AppReportTemplateItem,
-    'app-report-list-table': ReportListTable
+    'app-report-list-table': ReportListTable,
   },
 
   data() {
     return {
       isCreatingReport: false,
-      templates
-    }
+      templates,
+    };
   },
 
   computed: {
     ...mapState({
       count: (state) => state.report.count,
-      loading: (state) => state.report.list.loading
+      loading: (state) => state.report.list.loading,
     }),
     ...mapGetters({
       currentTenant: 'auth/currentTenant',
       currentUser: 'auth/currentUser',
-      rows: 'report/rows'
+      rows: 'report/rows',
     }),
     hasPermissionToCreate() {
       return new ReportPermissions(
         this.currentTenant,
-        this.currentUser
-      ).create
+        this.currentUser,
+      ).create;
     },
     computedTemplates() {
       if (this.loading) {
-        return []
+        return [];
       }
 
       const templateRows = this.rows.filter(
-        (r) => r.isTemplate
-      )
+        (r) => r.isTemplate,
+      );
 
       return this.templates.map((t) => {
         const rowTemplate = templateRows.find(
-          (r) => r.name === t.name
-        )
+          (r) => r.name === t.name,
+        );
         return {
           ...t,
           public: rowTemplate?.public || false,
-          id: rowTemplate?.id
-        }
-      })
+          id: rowTemplate?.id,
+        };
+      });
     },
     customReportsCount() {
-      return this.count - this.computedTemplates.length
-    }
+      return this.count - this.computedTemplates.length;
+    },
   },
 
   created() {
     this.doFetch({
-      keepPagination: true
-    })
+      keepPagination: true,
+    });
   },
 
   async mounted() {
-    window.analytics.page('Reports')
+    window.analytics.page('Reports');
   },
 
   methods: {
     ...mapActions({
-      doFetch: 'report/doFetch'
-    })
-  }
-}
+      doFetch: 'report/doFetch',
+    }),
+  },
+};
 </script>
 
 <style></style>

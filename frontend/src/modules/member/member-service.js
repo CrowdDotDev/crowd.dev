@@ -1,73 +1,73 @@
-import authAxios from '@/shared/axios/auth-axios'
-import AuthCurrentTenant from '@/modules/auth/auth-current-tenant'
-import buildApiPayload from '@/shared/filter/helpers/build-api-payload'
-import { DEFAULT_MEMBER_FILTERS } from '@/modules/member/store/constants'
+import authAxios from '@/shared/axios/auth-axios';
+import AuthCurrentTenant from '@/modules/auth/auth-current-tenant';
+import buildApiPayload from '@/shared/filter/helpers/build-api-payload';
+import { DEFAULT_MEMBER_FILTERS } from '@/modules/member/store/constants';
 
 export class MemberService {
   static async update(id, data) {
-    const tenantId = AuthCurrentTenant.get()
+    const tenantId = AuthCurrentTenant.get();
 
     const response = await authAxios.put(
       `/tenant/${tenantId}/member/${id}`,
-      data
-    )
+      data,
+    );
 
-    return response.data
+    return response.data;
   }
 
   static async updateBulk(data) {
-    const tenantId = AuthCurrentTenant.get()
+    const tenantId = AuthCurrentTenant.get();
 
     const response = await authAxios.patch(
       `/tenant/${tenantId}/member`,
-      data
-    )
+      data,
+    );
 
-    return response.data
+    return response.data;
   }
 
   static async destroyAll(ids) {
     const params = {
-      ids
-    }
+      ids,
+    };
 
-    const tenantId = AuthCurrentTenant.get()
+    const tenantId = AuthCurrentTenant.get();
 
     const response = await authAxios.delete(
       `/tenant/${tenantId}/member`,
       {
-        params
-      }
-    )
+        params,
+      },
+    );
 
-    return response.data
+    return response.data;
   }
 
   static async create(data) {
-    const tenantId = AuthCurrentTenant.get()
+    const tenantId = AuthCurrentTenant.get();
 
     const response = await authAxios.post(
       `/tenant/${tenantId}/member`,
-      data.data
-    )
+      data.data,
+    );
 
-    return response.data
+    return response.data;
   }
 
   static async import(values, importHash) {
     const body = {
       data: values,
-      importHash
-    }
+      importHash,
+    };
 
-    const tenantId = AuthCurrentTenant.get()
+    const tenantId = AuthCurrentTenant.get();
 
     const response = await authAxios.post(
       `/tenant/${tenantId}/member/import`,
-      body
-    )
+      body,
+    );
 
-    return response.data
+    return response.data;
   }
 
   static async export(
@@ -75,44 +75,42 @@ export class MemberService {
     orderBy,
     limit,
     offset,
-    buildFilter = true
+    buildFilter = true,
   ) {
     const body = {
       filter: buildApiPayload({
         customFilters: filter,
-        buildFilter
+        buildFilter,
       }),
       orderBy,
       limit,
-      offset
-    }
+      offset,
+    };
 
-    const tenantId = AuthCurrentTenant.get()
+    const tenantId = AuthCurrentTenant.get();
 
     const response = await authAxios.post(
       `/tenant/${tenantId}/member/export`,
-      body
-    )
+      body,
+    );
 
-    return response.data
+    return response.data;
   }
 
   static async find(id) {
-    const sampleTenant =
-      AuthCurrentTenant.getSampleTenantData()
-    const tenantId =
-      sampleTenant?.id || AuthCurrentTenant.get()
+    const sampleTenant = AuthCurrentTenant.getSampleTenantData();
+    const tenantId = sampleTenant?.id || AuthCurrentTenant.get();
 
     const response = await authAxios.get(
       `/tenant/${tenantId}/member/${id}`,
       {
         headers: {
-          Authorization: sampleTenant?.token
-        }
-      }
-    )
+          Authorization: sampleTenant?.token,
+        },
+      },
+    );
 
-    return response.data
+    return response.data;
   }
 
   static async list(
@@ -121,24 +119,22 @@ export class MemberService {
     limit,
     offset,
     buildFilter = true,
-    countOnly = false
+    countOnly = false,
   ) {
     const body = {
       filter: buildApiPayload({
         customFilters,
         defaultFilters: DEFAULT_MEMBER_FILTERS,
-        buildFilter
+        buildFilter,
       }),
       orderBy,
       limit,
       offset,
-      countOnly
-    }
+      countOnly,
+    };
 
-    const sampleTenant =
-      AuthCurrentTenant.getSampleTenantData()
-    const tenantId =
-      sampleTenant?.id || AuthCurrentTenant.get()
+    const sampleTenant = AuthCurrentTenant.getSampleTenantData();
+    const tenantId = sampleTenant?.id || AuthCurrentTenant.get();
 
     const response = await authAxios.post(
       `/tenant/${tenantId}/member/query`,
@@ -146,12 +142,12 @@ export class MemberService {
       {
         headers: {
           'x-crowd-api-version': '1',
-          Authorization: sampleTenant?.token
-        }
-      }
-    )
+          Authorization: sampleTenant?.token,
+        },
+      },
+    );
 
-    return response.data
+    return response.data;
   }
 
   static async listActive({
@@ -161,16 +157,16 @@ export class MemberService {
     activityTimestampTo,
     orderBy,
     offset,
-    limit
+    limit,
   }) {
     const params = {
       ...(platform.length && {
         'filter[platforms]': platform
           .map((p) => p.value)
-          .join(',')
+          .join(','),
       }),
       ...(isTeamMember === false && {
-        'filter[isTeamMember]': isTeamMember
+        'filter[isTeamMember]': isTeamMember,
       }),
       'filter[isOrganization]': false,
       'filter[isBot]': false,
@@ -179,190 +175,182 @@ export class MemberService {
       'filter[activityTimestampTo]': activityTimestampTo,
       orderBy,
       offset,
-      limit
-    }
+      limit,
+    };
 
-    const sampleTenant =
-      AuthCurrentTenant.getSampleTenantData()
-    const tenantId =
-      sampleTenant?.id || AuthCurrentTenant.get()
+    const sampleTenant = AuthCurrentTenant.getSampleTenantData();
+    const tenantId = sampleTenant?.id || AuthCurrentTenant.get();
 
     const response = await authAxios.get(
       `/tenant/${tenantId}/member/active`,
       {
         params,
         headers: {
-          Authorization: sampleTenant?.token
-        }
-      }
-    )
+          Authorization: sampleTenant?.token,
+        },
+      },
+    );
 
-    return response.data
+    return response.data;
   }
 
   static async listAutocomplete(query, limit) {
     const params = {
       query,
-      limit
-    }
+      limit,
+    };
 
-    const tenantId = AuthCurrentTenant.get()
+    const tenantId = AuthCurrentTenant.get();
 
     const response = await authAxios.get(
       `/tenant/${tenantId}/member/autocomplete`,
       {
-        params
-      }
-    )
+        params,
+      },
+    );
 
-    return response.data
+    return response.data;
   }
 
   static async merge(memberToKeep, memberToMerge) {
-    const tenantId = AuthCurrentTenant.get()
+    const tenantId = AuthCurrentTenant.get();
 
     const response = await authAxios.put(
       `/tenant/${tenantId}/member/${memberToKeep.id}/merge`,
       {
-        memberToMerge: memberToMerge.id
-      }
-    )
+        memberToMerge: memberToMerge.id,
+      },
+    );
 
-    return response.data
+    return response.data;
   }
 
   static async addToNoMerge(memberA, memberB) {
-    const tenantId = AuthCurrentTenant.get()
+    const tenantId = AuthCurrentTenant.get();
 
     const response = await authAxios.put(
       `/tenant/${tenantId}/member/${memberA.id}/no-merge`,
       {
-        memberToNotMerge: memberB.id
-      }
-    )
+        memberToNotMerge: memberB.id,
+      },
+    );
 
-    return response.data
+    return response.data;
   }
 
   static async fetchMergeSuggestions(limit, offset) {
-    const sampleTenant =
-      AuthCurrentTenant.getSampleTenantData()
-    const tenantId =
-      sampleTenant?.id || AuthCurrentTenant.get()
+    const sampleTenant = AuthCurrentTenant.getSampleTenantData();
+    const tenantId = sampleTenant?.id || AuthCurrentTenant.get();
 
     const params = {
       limit,
-      offset
-    }
+      offset,
+    };
 
     const response = await authAxios.get(
       `/tenant/${tenantId}/membersToMerge`,
       {
         params,
         headers: {
-          Authorization: sampleTenant?.token
-        }
-      }
-    )
+          Authorization: sampleTenant?.token,
+        },
+      },
+    );
 
-    return response.data
+    return response.data;
   }
 
   static async getCustomAttribute(id) {
-    const sampleTenant =
-      AuthCurrentTenant.getSampleTenantData()
-    const tenantId =
-      sampleTenant?.id || AuthCurrentTenant.get()
+    const sampleTenant = AuthCurrentTenant.getSampleTenantData();
+    const tenantId = sampleTenant?.id || AuthCurrentTenant.get();
 
     const response = await authAxios.get(
       `/tenant/${tenantId}/settings/members/attributes/${id}`,
       {
         headers: {
-          Authorization: sampleTenant?.token
-        }
-      }
-    )
+          Authorization: sampleTenant?.token,
+        },
+      },
+    );
 
-    return response.data
+    return response.data;
   }
 
   static async fetchCustomAttributes() {
-    const sampleTenant =
-      AuthCurrentTenant.getSampleTenantData()
-    const tenantId =
-      sampleTenant?.id || AuthCurrentTenant.get()
+    const sampleTenant = AuthCurrentTenant.getSampleTenantData();
+    const tenantId = sampleTenant?.id || AuthCurrentTenant.get();
 
     const response = await authAxios.get(
       `/tenant/${tenantId}/settings/members/attributes`,
       {
         headers: {
-          Authorization: sampleTenant?.token
-        }
-      }
-    )
+          Authorization: sampleTenant?.token,
+        },
+      },
+    );
 
-    return response.data
+    return response.data;
   }
 
   static async createCustomAttributes(data) {
-    const tenantId = AuthCurrentTenant.get()
+    const tenantId = AuthCurrentTenant.get();
 
     const response = await authAxios.post(
       `/tenant/${tenantId}/settings/members/attributes`,
-      data
-    )
+      data,
+    );
 
-    return response.data
+    return response.data;
   }
 
   static async destroyCustomAttribute(id) {
     const params = {
-      ids: [id]
-    }
+      ids: [id],
+    };
 
-    const tenantId = AuthCurrentTenant.get()
+    const tenantId = AuthCurrentTenant.get();
 
     const response = await authAxios.delete(
       `/tenant/${tenantId}/settings/members/attributes`,
       {
-        params
-      }
-    )
+        params,
+      },
+    );
 
-    return response.data
+    return response.data;
   }
 
   static async updateCustomAttribute(id, data) {
-    const tenantId = AuthCurrentTenant.get()
+    const tenantId = AuthCurrentTenant.get();
 
     const response = await authAxios.put(
       `/tenant/${tenantId}/settings/members/attributes/${id}`,
-      data
-    )
+      data,
+    );
 
-    return response.data
+    return response.data;
   }
 
   static async enrichMember(id) {
-    const tenantId = AuthCurrentTenant.get()
+    const tenantId = AuthCurrentTenant.get();
 
     const response = await authAxios.put(
-      `/tenant/${tenantId}/enrichment/member/${id}`
-    )
+      `/tenant/${tenantId}/enrichment/member/${id}`,
+    );
 
-    return response.data
+    return response.data;
   }
 
   static async enrichMemberBulk(ids) {
-    const tenantId = AuthCurrentTenant.get()
+    const tenantId = AuthCurrentTenant.get();
 
     const response = await authAxios.put(
       `/tenant/${tenantId}/enrichment/member/bulk`,
       {
-        members: ids
-      }
-    )
+        members: ids,
+      },
+    );
 
-    return response
+    return response;
   }
 }

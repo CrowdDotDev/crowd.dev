@@ -1,5 +1,5 @@
-import store from '@/modules/tenant/store'
+import store from '@/modules/tenant/store';
 
 export default {
-  store
-}
+  store,
+};

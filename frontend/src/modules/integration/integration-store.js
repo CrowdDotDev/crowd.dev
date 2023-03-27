@@ -1,163 +1,136 @@
-import { IntegrationService } from '@/modules/integration/integration-service'
-import Errors from '@/shared/error/errors'
-import { router } from '@/router'
-import Message from '../../shared/message/message'
-import { CrowdIntegrations } from '@/integrations/integrations-config'
+import { IntegrationService } from '@/modules/integration/integration-service';
+import Errors from '@/shared/error/errors';
+import { router } from '@/router';
+import { CrowdIntegrations } from '@/integrations/integrations-config';
+import Message from '../../shared/message/message';
 
 export default {
   namespaced: true,
 
-  state: () => {
-    return {
-      byId: {},
-      allIds: [],
-      count: 0,
-      loading: false,
-      loaded: false
-    }
-  },
+  state: () => ({
+    byId: {},
+    allIds: [],
+    count: 0,
+    loading: false,
+    loaded: false,
+  }),
 
   getters: {
     loadingFetch: (state) => state.loading,
 
-    loadingFind: (state) => (id) => {
-      state.byId[id]?.loading
-    },
+    loadingFind: (state) => (id) => state.byId[id]?.loading,
 
     loaded: (state) => state.loaded,
 
-    find: (state) => (id) => {
-      return state.byId[id]
-    },
+    find: (state) => (id) => state.byId[id],
 
-    findByPlatform: (state, getters) => (platform) => {
-      return getters.array.find(
-        (w) => w.platform === platform
-      )
-    },
+    findByPlatform: (state, getters) => (platform) => getters.array.find(
+      (w) => w.platform === platform,
+    ),
 
-    list: (state) => {
-      return Object.keys(state.byId).reduce((acc, key) => {
-        const integrationJsonData =
-          CrowdIntegrations.getConfig(
-            state.byId[key].platform
-          )
-        acc[key] = {
-          ...state.byId[key],
-          ...integrationJsonData
-        }
-        return acc
-      }, {})
-    },
+    list: (state) => Object.keys(state.byId).reduce((acc, key) => {
+      const integrationJsonData = CrowdIntegrations.getConfig(
+        state.byId[key].platform,
+      );
+      acc[key] = {
+        ...state.byId[key],
+        ...integrationJsonData,
+      };
+      return acc;
+    }, {}),
 
-    listByPlatform: (state) => {
-      return Object.keys(state.byId).reduce((acc, key) => {
-        const integrationJsonData =
-          CrowdIntegrations.getConfig(
-            state.byId[key].platform
-          )
-        acc[state.byId[key].platform] = {
-          ...state.byId[key],
-          ...integrationJsonData
-        }
-        return acc
-      }, {})
-    },
+    listByPlatform: (state) => Object.keys(state.byId).reduce((acc, key) => {
+      const integrationJsonData = CrowdIntegrations.getConfig(
+        state.byId[key].platform,
+      );
+      acc[state.byId[key].platform] = {
+        ...state.byId[key],
+        ...integrationJsonData,
+      };
+      return acc;
+    }, {}),
 
-    array: (state, getters) => {
-      return state.allIds.map((id) => getters.list[id])
-    },
+    array: (state, getters) => state.allIds.map((id) => getters.list[id]),
 
-    active: (state, getters) => {
-      return getters.array.filter(
-        (i) =>
-          i.status === 'done' || i.status === 'in-progress'
-      )
-    },
+    active: (state, getters) => getters.array.filter(
+      (i) => i.status === 'done' || i.status === 'in-progress',
+    ),
 
-    activeList: (state, getters) => {
-      return getters.active.reduce((acc, item) => {
-        acc[item.platform] = item
-        return acc
-      }, {})
-    },
+    activeList: (state, getters) => getters.active.reduce((acc, item) => {
+      acc[item.platform] = item;
+      return acc;
+    }, {}),
 
-    inProgress: (state, getters) => {
-      return getters.array.filter(
-        (i) => i.status === 'in-progress'
-      )
-    },
+    inProgress: (state, getters) => getters.array.filter(
+      (i) => i.status === 'in-progress',
+    ),
 
-    withErrors: (state, getters) => {
-      return getters.array.filter(
-        (i) => i.status === 'error'
-      )
-    },
+    withErrors: (state, getters) => getters.array.filter(
+      (i) => i.status === 'error',
+    ),
 
-    withNoData: (state, getters) => {
-      return getters.array.filter(
-        (i) => i.status === 'no-data'
-      )
-    },
+    withNoData: (state, getters) => getters.array.filter(
+      (i) => i.status === 'no-data',
+    ),
 
     count: (state) => state.count,
 
-    hasRows: (state, getters) => getters.count > 0
+    hasRows: (state, getters) => getters.count > 0,
   },
 
   mutations: {
     FETCH_STARTED(state) {
-      state.loading = true
+      state.loading = true;
     },
 
     FETCH_SUCCESS(state, payload) {
-      state.loading = false
-      for (let integration of payload.rows) {
-        state.byId[integration.id] = integration
+      state.loading = false;
+      payload.rows.forEach((integration) => {
+        state.byId[integration.id] = integration;
         if (state.allIds.indexOf(integration.id) === -1) {
-          state.allIds.push(integration.id)
+          state.allIds.push(integration.id);
         }
-      }
-      state.count = payload.count
-      state.loaded = true
+      });
+      state.count = payload.count;
+      state.loaded = true;
     },
 
     FETCH_ERROR(state) {
-      state.loading = false
-      state.rows = []
-      state.count = 0
+      state.loading = false;
+      state.rows = [];
+      state.count = 0;
     },
 
     FIND_STARTED(state, id) {
       if (state.byId[id]) {
-        state.byId[id].loading = true
+        state.byId[id].loading = true;
       }
     },
 
     FIND_SUCCESS(state, record) {
       if (!record) {
-        return
+        return;
       }
-      record.loading = false
-      state.byId[record.id] = record
+      state.byId[record.id] = record;
+      state.byId[record.id].loading = false;
       if (state.allIds.indexOf(record.id) === -1) {
-        state.allIds.push(record.id)
+        state.allIds.push(record.id);
       }
     },
 
     FIND_ERROR(state, id) {
       if (state.byId[id]) {
-        state.byId[id].loading = false
+        state.byId[id].loading = false;
       }
     },
 
     CREATE_STARTED() {},
 
     CREATE_SUCCESS(state, record) {
-      state.byId[record.id] = record
+      state.byId[record.id] = record;
       if (state.allIds.indexOf(record.id) === -1) {
-        state.allIds.push(record.id)
-        state.count++
+        state.allIds.push(record.id);
+        state.count += 1;
       }
     },
 
@@ -166,205 +139,204 @@ export default {
     UPDATE_STARTED() {},
 
     UPDATE_SUCCESS(state, record) {
-      state.byId[record.id] = record
+      state.byId[record.id] = record;
       if (state.allIds.indexOf(record.id) === -1) {
-        state.allIds.push(record.id)
-        state.count++
+        state.allIds.push(record.id);
+        state.count += 1;
       }
     },
 
     UPDATE_ERROR() {},
 
     DESTROY_STARTED(state) {
-      state.loading = true
+      state.loading = true;
     },
 
     DESTROY_SUCCESS(state, id) {
-      state.loading = false
-      delete state.byId[id]
-      const index = state.allIds.indexOf(id)
-      state.allIds.splice(index, 1)
-      state.count--
+      state.loading = false;
+      delete state.byId[id];
+      const index = state.allIds.indexOf(id);
+      state.allIds.splice(index, 1);
+      state.count -= 1;
     },
 
     DESTROY_ERROR(state) {
-      state.loading = false
+      state.loading = false;
     },
 
     DESTROY_ALL_STARTED(state) {
-      state.loading = true
+      state.loading = true;
     },
 
     DESTROY_ALL_SUCCESS(state) {
-      state.loading = false
-      state.byId = {}
-      state.allIds.splice(0)
-      state.count = 0
+      state.loading = false;
+      state.byId = {};
+      state.allIds.splice(0);
+      state.count = 0;
     },
 
     DESTROY_ALL_ERROR(state) {
-      state.loading = false
-    }
+      state.loading = false;
+    },
   },
 
   actions: {
     async doFetch({ commit }) {
       try {
-        commit('FETCH_STARTED')
+        commit('FETCH_STARTED');
 
-        const response = await IntegrationService.list()
+        const response = await IntegrationService.list();
 
         commit('FETCH_SUCCESS', {
           rows: response.rows,
-          count: response.count
-        })
+          count: response.count,
+        });
       } catch (error) {
-        Errors.handle(error)
-        commit('FETCH_ERROR')
+        Errors.handle(error);
+        commit('FETCH_ERROR');
       }
     },
 
     async doDestroy({ commit }, integrationId) {
       try {
-        commit('DESTROY_STARTED')
+        commit('DESTROY_STARTED');
 
-        await IntegrationService.destroyAll([integrationId])
+        await IntegrationService.destroyAll([integrationId]);
         Message.success(
-          'Integration was disconnected successfully'
-        )
+          'Integration was disconnected successfully',
+        );
 
-        commit('DESTROY_SUCCESS', integrationId)
+        commit('DESTROY_SUCCESS', integrationId);
       } catch (error) {
-        Errors.handle(error)
-        commit('DESTROY_ERROR')
+        Errors.handle(error);
+        commit('DESTROY_ERROR');
       }
     },
 
     async doDestroyAll({ commit }, integrationIds) {
       try {
-        commit('DESTROY_ALL_STARTED')
+        commit('DESTROY_ALL_STARTED');
 
-        const response =
-          await IntegrationService.destroyAll(
-            integrationIds
-          )
+        const response = await IntegrationService.destroyAll(
+          integrationIds,
+        );
 
-        commit('DESTROY_ALL_SUCCESS', response)
+        commit('DESTROY_ALL_SUCCESS', response);
       } catch (error) {
-        Errors.handle(error)
-        commit('DESTROY_ALL_ERROR')
+        Errors.handle(error);
+        commit('DESTROY_ALL_ERROR');
       }
     },
 
     async doFind({ commit }, id) {
       try {
-        commit('FIND_STARTED', id)
-        const record = await IntegrationService.find(id)
-        commit('FIND_SUCCESS', record)
+        commit('FIND_STARTED', id);
+        const record = await IntegrationService.find(id);
+        commit('FIND_SUCCESS', record);
       } catch (error) {
-        Errors.handle(error)
-        commit('FIND_ERROR', id)
+        Errors.handle(error);
+        commit('FIND_ERROR', id);
       }
     },
 
     async doGithubConnect(
       { commit },
-      { code, install_id, setupAction }
+      { code, installId, setupAction },
     ) {
       // Function to trigger Oauth performance.
       try {
-        commit('CREATE_STARTED')
+        commit('CREATE_STARTED');
         // Call the connect function in IntegrationService to handle functionality
-        const integration =
-          await IntegrationService.githubConnect(
-            code,
-            install_id,
-            setupAction
-          )
+        const integration = await IntegrationService.githubConnect(
+          code,
+          installId,
+          setupAction,
+        );
 
-        commit('CREATE_SUCCESS', integration)
+        commit('CREATE_SUCCESS', integration);
         Message.success(
-          'The first activities will show up in a couple of seconds. <br /> <br /> This process might take a few minutes to finish, depending on the amount of data.',
+          'The first activities will show up in a couple of seconds. <br /> '
+          + '<br /> This process might take a few minutes to finish, depending on the amount of data.',
           {
-            title: 'GitHub integration created successfully'
-          }
-        )
-        router.push('/integrations')
+            title: 'GitHub integration created successfully',
+          },
+        );
+        router.push('/integrations');
       } catch (error) {
-        Errors.handle(error)
-        commit('CREATE_ERROR')
+        Errors.handle(error);
+        commit('CREATE_ERROR');
       }
     },
 
     async doRedditOnboard({ commit }, { subreddits }) {
       // Function to trigger Oauth performance.
       try {
-        commit('CREATE_STARTED')
+        commit('CREATE_STARTED');
         // Call the connect function in IntegrationService to handle functionality
-        const integration =
-          await IntegrationService.redditOnboard(subreddits)
+        const integration = await IntegrationService.redditOnboard(subreddits);
 
-        commit('CREATE_SUCCESS', integration)
+        commit('CREATE_SUCCESS', integration);
         Message.success(
-          'The first activities will show up in a couple of seconds. <br /> <br /> This process might take a few minutes to finish, depending on the amount of data.',
+          'The first activities will show up in a couple of seconds. <br /> <br /> '
+          + 'This process might take a few minutes to finish, depending on the amount of data.',
           {
-            title: 'Reddit integration created successfully'
-          }
-        )
-        router.push('/integrations')
+            title: 'Reddit integration created successfully',
+          },
+        );
+        router.push('/integrations');
       } catch (error) {
-        Errors.handle(error)
-        commit('CREATE_ERROR')
+        Errors.handle(error);
+        commit('CREATE_ERROR');
       }
     },
 
     async doLinkedinConnect({ commit }) {
       try {
-        commit('CREATE_STARTED')
+        commit('CREATE_STARTED');
         // Call the connect function in IntegrationService to handle functionality
-        const integration =
-          await IntegrationService.linkedinConnect()
+        const integration = await IntegrationService.linkedinConnect();
 
-        commit('CREATE_SUCCESS', integration)
+        commit('CREATE_SUCCESS', integration);
         if (
           integration.settings?.organizations.length === 1
         ) {
           Message.success(
-            'The first activities will show up in a couple of seconds. <br /> <br /> This process might take a few minutes to finish, depending on the amount of data.',
+            'The first activities will show up in a couple of seconds. <br /> <br /> '
+            + 'This process might take a few minutes to finish, depending on the amount of data.',
             {
               title:
-                'LinkedIn integration created successfully'
-            }
-          )
+                'LinkedIn integration created successfully',
+            },
+          );
         }
-        router.push('/integrations')
+        router.push('/integrations');
       } catch (error) {
-        Errors.handle(error)
-        commit('CREATE_ERROR')
+        Errors.handle(error);
+        commit('CREATE_ERROR');
       }
     },
 
     async doLinkedinOnboard({ commit }, organizationId) {
       try {
-        commit('UPDATE_STARTED')
+        commit('UPDATE_STARTED');
         // Call the connect function in IntegrationService to handle functionality
-        const integration =
-          await IntegrationService.linkedinOnboard(
-            organizationId
-          )
+        const integration = await IntegrationService.linkedinOnboard(
+          organizationId,
+        );
 
-        commit('UPDATE_SUCCESS', integration)
+        commit('UPDATE_SUCCESS', integration);
         Message.success(
-          'The first activities will show up in a couple of seconds. <br /> <br /> This process might take a few minutes to finish, depending on the amount of data.',
+          'The first activities will show up in a couple of seconds. <br /> <br /> '
+          + 'This process might take a few minutes to finish, depending on the amount of data.',
           {
             title:
-              'LinkedIn integration updated successfully'
-          }
-        )
-        router.push('/integrations')
+              'LinkedIn integration updated successfully',
+          },
+        );
+        router.push('/integrations');
       } catch (error) {
-        Errors.handle(error)
-        commit('UPDATE_ERROR')
+        Errors.handle(error);
+        commit('UPDATE_ERROR');
       }
     },
 
@@ -372,121 +344,121 @@ export default {
       // Function to connect to Discord. We just need to store the
       // guildId to be able to match bot events to users.
       try {
-        commit('CREATE_STARTED')
+        commit('CREATE_STARTED');
 
-        const integration =
-          await IntegrationService.discordConnect(guildId)
+        const integration = await IntegrationService.discordConnect(guildId);
 
-        commit('CREATE_SUCCESS', integration)
+        commit('CREATE_SUCCESS', integration);
         Message.success(
-          'The first activities will show up in a couple of seconds. <br /> This process might take a few minutes to finish, depending on the amount of data.',
+          'The first activities will show up in a couple of seconds. <br /> '
+          + 'This process might take a few minutes to finish, depending on the amount of data.',
           {
             title:
-              'Discord integration created successfully'
-          }
-        )
-        router.push('/integrations')
+              'Discord integration created successfully',
+          },
+        );
+        router.push('/integrations');
       } catch (error) {
-        Errors.handle(error)
-        commit('CREATE_ERROR')
+        Errors.handle(error);
+        commit('CREATE_ERROR');
       }
     },
 
     async doDevtoConnect(
       { commit },
-      { users, organizations }
+      { users, organizations },
     ) {
       // Function to connect to Dev.to. We just need to store the
       // users and organizations we want to track
 
       try {
-        commit('CREATE_STARTED')
+        commit('CREATE_STARTED');
 
-        const integration =
-          await IntegrationService.devtoConnect(
-            users,
-            organizations
-          )
+        const integration = await IntegrationService.devtoConnect(
+          users,
+          organizations,
+        );
 
-        commit('CREATE_SUCCESS', integration)
+        commit('CREATE_SUCCESS', integration);
 
         Message.success(
-          'The first activities will show up in a couple of seconds. <br /> <br /> This process might take a few minutes to finish, depending on the amount of data.',
+          'The first activities will show up in a couple of seconds. <br /> <br /> '
+          + 'This process might take a few minutes to finish, depending on the amount of data.',
           {
-            title: 'DEV integration created successfully'
-          }
-        )
+            title: 'DEV integration created successfully',
+          },
+        );
 
-        router.push('/integrations')
+        router.push('/integrations');
       } catch (error) {
-        Errors.handle(error)
-        commit('CREATE_ERROR')
+        Errors.handle(error);
+        commit('CREATE_ERROR');
       }
     },
 
     async doHackerNewsConnect(
       { commit },
-      { keywords, urls }
+      { keywords, urls },
     ) {
       // Function to connect to Dev.to. We just need to store the
       // users and organizations we want to track
 
       try {
-        commit('CREATE_STARTED')
+        commit('CREATE_STARTED');
 
-        const integration =
-          await IntegrationService.hackerNewsConnect(
-            keywords,
-            urls
-          )
+        const integration = await IntegrationService.hackerNewsConnect(
+          keywords,
+          urls,
+        );
 
-        commit('CREATE_SUCCESS', integration)
+        commit('CREATE_SUCCESS', integration);
 
         Message.success(
-          'The first activities will show up in a couple of seconds. <br /> <br /> This process might take a few minutes to finish, depending on the amount of data.',
+          'The first activities will show up in a couple of seconds. <br /> <br /> '
+          + 'This process might take a few minutes to finish, depending on the amount of data.',
           {
             title:
-              'Hacker News integration created successfully'
-          }
-        )
+              'Hacker News integration created successfully',
+          },
+        );
 
-        router.push('/integrations')
+        router.push('/integrations');
       } catch (error) {
-        Errors.handle(error)
-        commit('CREATE_ERROR')
+        Errors.handle(error);
+        commit('CREATE_ERROR');
       }
     },
 
     async doStackOverflowOnboard(
       { commit },
-      { tags, keywords }
+      { tags, keywords },
     ) {
       // Function to connect to StackOverflow.
 
       try {
-        commit('CREATE_STARTED')
+        commit('CREATE_STARTED');
 
-        const integration =
-          await IntegrationService.stackOverflowOnboard(
-            tags,
-            keywords
-          )
+        const integration = await IntegrationService.stackOverflowOnboard(
+          tags,
+          keywords,
+        );
 
-        commit('CREATE_SUCCESS', integration)
+        commit('CREATE_SUCCESS', integration);
 
         Message.success(
-          'The first activities will show up in a couple of seconds. <br /> <br /> This process might take a few minutes to finish, depending on the amount of data.',
+          'The first activities will show up in a couple of seconds. <br /> <br /> '
+          + 'This process might take a few minutes to finish, depending on the amount of data.',
           {
             title:
-              'Stack Overflow integration created successfully'
-          }
-        )
+              'Stack Overflow integration created successfully',
+          },
+        );
 
-        router.push('/integrations')
+        router.push('/integrations');
       } catch (error) {
-        Errors.handle(error)
-        commit('CREATE_ERROR')
+        Errors.handle(error);
+        commit('CREATE_ERROR');
       }
-    }
-  }
-}
+    },
+  },
+};

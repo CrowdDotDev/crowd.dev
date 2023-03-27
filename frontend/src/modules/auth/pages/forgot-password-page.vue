@@ -22,25 +22,24 @@
           class="mb-4"
         >
           <label
+            for="email"
             class="text-xs mb-1 font-semibold leading-5"
-            >{{ fields.email.label }}</label
-          >
+          >{{ fields.email.label }}</label>
           <el-input
             id="email"
             ref="focus"
             v-model="model[fields.email.name]"
             autocomplete="email"
             type="text"
-          ></el-input>
+          />
           <template #error="{ error }">
             <div class="flex items-center mt-1">
               <i
                 class="h-4 flex items-center ri-error-warning-line text-base text-red-500"
-              ></i>
+              />
               <span
                 class="pl-1 text-2xs text-red-500 leading-4.5"
-                >{{ error }}</span
-              >
+              >{{ error }}</span>
             </div>
           </template>
         </el-form-item>
@@ -54,7 +53,7 @@
           >
             <app-i18n
               code="auth.passwordResetEmail.message"
-            ></app-i18n>
+            />
           </el-button>
         </el-form-item>
       </el-form>
@@ -65,11 +64,10 @@
         >
           <i
             class="ri-arrow-left-line text-lg text-gray-600"
-          ></i>
+          />
           <span
             class="text-base text-gray-600 font-medium leading-6 pl-2"
-            >Back to sign in</span
-          >
+          >Back to sign in</span>
         </router-link>
       </div>
     </div>
@@ -83,7 +81,7 @@
       <div>
         <i
           class="ri-mail-send-line text-5xl text-brand-200"
-        ></i>
+        />
       </div>
       <div class="pl-6">
         <p class="text-base leading-6">
@@ -110,24 +108,23 @@
       >
         <i
           class="ri-arrow-left-line text-lg text-gray-600"
-        ></i>
+        />
         <span
           class="text-base text-gray-600 font-medium leading-6 pl-2"
-          >Back to sign in</span
-        >
+        >Back to sign in</span>
       </router-link>
     </div>
   </div>
 </template>
 
 <script>
-import { mapGetters, mapActions } from 'vuex'
-import { UserModel } from '@/modules/user/user-model'
-import AppI18n from '@/shared/i18n/i18n'
-import Message from '@/shared/message/message'
-import { i18n } from '@/i18n'
+import { mapGetters, mapActions } from 'vuex';
+import { UserModel } from '@/modules/user/user-model';
+import Message from '@/shared/message/message';
+import { i18n } from '@/i18n';
+import AppI18n from '@/shared/i18n/i18n.vue';
 
-const { fields } = UserModel
+const { fields } = UserModel;
 
 export default {
   name: 'AppForgotPasswordPage',
@@ -135,19 +132,19 @@ export default {
   data() {
     return {
       rules: {
-        email: fields.email.forFormRules()
+        email: fields.email.forFormRules(),
       },
       model: {},
-      success: false
-    }
+      success: false,
+    };
   },
 
   computed: {
     ...mapGetters('auth', ['loadingPasswordResetEmail']),
 
     fields() {
-      return fields
-    }
+      return fields;
+    },
   },
 
   methods: {
@@ -155,25 +152,23 @@ export default {
     doSubmit() {
       return this.$refs.form
         .validate()
+        .then(() => this.doSendPasswordResetEmail(
+          this.model.email,
+        ))
         .then(() => {
-          return this.doSendPasswordResetEmail(
-            this.model.email
-          )
-        })
-        .then(() => {
-          this.success = true
-          return Promise.resolve()
-        })
+          this.success = true;
+          return Promise.resolve();
+        });
     },
     resend() {
       this.doSubmit().then(() => {
         Message.success(
-          i18n('auth.passwordResetEmailSuccess')
-        )
-      })
-    }
-  }
-}
+          i18n('auth.passwordResetEmailSuccess'),
+        );
+      });
+    },
+  },
+};
 </script>
 
 <style></style>

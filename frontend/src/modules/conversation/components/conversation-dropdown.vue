@@ -9,111 +9,114 @@
       type="button"
       @click.stop
     >
-      <i class="text-xl ri-more-fill"></i>
+      <i class="text-xl ri-more-fill" />
     </button>
     <template #dropdown>
       <el-dropdown-item
         v-if="conversation.published"
         :command="{
           action: 'conversationPublicUrl',
-          conversation: conversation
+          conversation: conversation,
         }"
-        ><i class="ri-link mr-1" />Copy Public
-        Url</el-dropdown-item
       >
+        <i class="ri-link mr-1" />Copy Public
+        Url
+      </el-dropdown-item>
       <template v-if="publishEnabled">
         <el-dropdown-item
           v-if="!conversation.published"
           :command="{
             action: 'conversationPublish',
-            conversation: conversation
+            conversation: conversation,
           }"
           :disabled="isEditLockedForSampleData"
-          ><i class="ri-upload-cloud-2-line mr-1" />Publish
-          conversation</el-dropdown-item
         >
+          <i class="ri-upload-cloud-2-line mr-1" />Publish
+          conversation
+        </el-dropdown-item>
         <el-dropdown-item
           v-else
           :command="{
             action: 'conversationUnpublish',
-            conversation: conversation
+            conversation: conversation,
           }"
           :disabled="isEditLockedForSampleData"
-          ><i class="ri-arrow-go-back-line mr-1" />Unpublish
-          conversation</el-dropdown-item
         >
+          <i class="ri-arrow-go-back-line mr-1" />Unpublish
+          conversation
+        </el-dropdown-item>
       </template>
 
       <el-dropdown-item
         :command="{
           action: 'conversationDelete',
-          conversation: conversation
+          conversation: conversation,
         }"
         :disabled="isDeleteLockedForSampleData"
-        ><i
+      >
+        <i
           class="ri-delete-bin-line mr-1"
           :class="{
-            'text-red-500': !isDeleteLockedForSampleData
+            'text-red-500': !isDeleteLockedForSampleData,
           }"
         /><span
           :class="{
-            'text-red-500': !isDeleteLockedForSampleData
+            'text-red-500': !isDeleteLockedForSampleData,
           }"
-          >Delete conversation</span
-        ></el-dropdown-item
-      >
+        >Delete conversation</span>
+      </el-dropdown-item>
     </template>
   </el-dropdown>
 </template>
 
 <script>
-import { mapGetters, mapActions } from 'vuex'
-import Message from '@/shared/message/message'
-import config from '@/config'
-import ConfirmDialog from '@/shared/dialog/confirm-dialog.js'
-import { ConversationPermissions } from '../conversation-permissions'
+import { mapGetters, mapActions } from 'vuex';
+import Message from '@/shared/message/message';
+import config from '@/config';
+import ConfirmDialog from '@/shared/dialog/confirm-dialog';
+import { ConversationPermissions } from '../conversation-permissions';
 
 export default {
   name: 'AppConversationDropdown',
   props: {
     conversation: {
       type: Object,
-      default: () => {}
+      default: () => {},
     },
     showViewConversation: {
       type: Boolean,
-      default: true
+      default: true,
     },
     publishEnabled: {
       type: Boolean,
       required: false,
-      default: true
-    }
+      default: true,
+    },
   },
   data() {
     return {
-      dropdownVisible: false
-    }
+      dropdownVisible: false,
+    };
   },
   computed: {
     ...mapGetters({
       currentTenant: 'auth/currentTenant',
       currentUser: 'auth/currentUser',
       communityHelpCenterConfigured:
-        'communityHelpCenter/isConfigured'
+        'communityHelpCenter/isConfigured',
     }),
     isEditLockedForSampleData() {
       return new ConversationPermissions(
         this.currentTenant,
-        this.currentUser
-      ).editLockedForSampleData
+        this.currentUser,
+      ).editLockedForSampleData;
     },
     isDeleteLockedForSampleData() {
       return new ConversationPermissions(
         this.currentTenant,
-        this.currentUser
-      ).destroyLockedForSampleData
-    }
+        this.currentUser,
+      ).destroyLockedForSampleData;
+    },
   },
   methods: {
     ...mapActions({
@@ -121,7 +124,7 @@ export default {
       doPublish: 'communityHelpCenter/doPublish',
       doUnpublish: 'communityHelpCenter/doUnpublish',
       doOpenSettingsDrawer:
-        'communityHelpCenter/doOpenSettingsDrawer'
+        'communityHelpCenter/doOpenSettingsDrawer',
     }),
     async doDestroyWithConfirm(id) {
       try {
@@ -132,45 +135,47 @@ export default {
             "Are you sure you want to proceed? You can't undo this action",
           confirmButtonText: 'Confirm',
           cancelButtonText: 'Cancel',
-          icon: 'ri-delete-bin-line'
-        })
+          icon: 'ri-delete-bin-line',
+        });
 
-        return this.doDestroy(id)
+        return this.doDestroy(id);
       } catch (error) {
         // no
       }
+      return null;
     },
     async handleCommand(command) {
       if (command.action === 'conversationDelete') {
         return this.doDestroyWithConfirm(
-          command.conversation.id
-        )
-      } else if (
+          command.conversation.id,
+        );
+      } if (
         command.action === 'conversationPublicUrl'
       ) {
-        const url = `${config.conversationPublicUrl}/${this.currentTenant.url}/${command.conversation.slug}`
+        const url = `${config.conversationPublicUrl}/${this.currentTenant.url}/${command.conversation.slug}`;
 
-        await navigator.clipboard.writeText(url)
+        await navigator.clipboard.writeText(url);
 
         Message.success(
-          'Conversation Public URL successfully copied to your clipboard'
-        )
+          'Conversation Public URL successfully copied to your clipboard',
+        );
       } else if (command.action === 'conversationPublish') {
         if (!this.communityHelpCenterConfigured) {
-          return this.doOpenSettingsDrawer()
+          return this.doOpenSettingsDrawer();
         }
         await this.doPublish({
-          id: command.conversation.id
-        })
+          id: command.conversation.id,
+        });
       } else if (
         command.action === 'conversationUnpublish'
       ) {
-        this.editing = false
+        this.editing = false;
         await this.doUnpublish({
-          id: command.conversation.id
-        })
+          id: command.conversation.id,
+        });
       }
-    }
-  }
-}
+      return null;
+    },
+  },
+};
 </script>

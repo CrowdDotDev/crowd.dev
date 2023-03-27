@@ -23,7 +23,7 @@
         >
           <i
             class="ri-layout-left-2-line text-lg leading-none text-gray-300"
-          ></i>
+          />
         </el-button>
       </div>
 
@@ -45,7 +45,7 @@
         >
           <i
             class="ri-arrow-right-s-line text-lg leading-none text-gray-300"
-          ></i>
+          />
         </el-button>
       </div>
 
@@ -70,9 +70,9 @@
             class="el-menu-item"
             :class="classFor('/', true)"
           >
-            <i class="ri-home-5-line"></i>
+            <i class="ri-home-5-line" />
             <span v-if="!isCollapsed">
-              <app-i18n code="dashboard.menu"></app-i18n>
+              <app-i18n code="dashboard.menu" />
             </span>
           </router-link>
         </el-tooltip>
@@ -97,7 +97,7 @@
               class="flex justify-between items-center w-full"
             >
               <div>
-                <i class="ri-checkbox-multiple-line"></i>
+                <i class="ri-checkbox-multiple-line" />
                 <span v-if="!isCollapsed" class="pl-2">
                   Tasks
                 </span>
@@ -124,8 +124,8 @@
         >
           <router-link
             v-if="
-              hasPermissionToCommunityMember ||
-              isCommunityMemberLocked
+              hasPermissionToCommunityMember
+                || isCommunityMemberLocked
             "
             id="menu-members"
             :to="{ path: '/members' }"
@@ -133,11 +133,11 @@
             :class="classFor('/members')"
             :disabled="isCommunityMemberLocked"
           >
-            <i class="ri-contacts-line"></i>
+            <i class="ri-contacts-line" />
             <span v-if="!isCollapsed">
               <app-i18n
                 code="entities.member.menu"
-              ></app-i18n>
+              />
             </span>
           </router-link>
         </el-tooltip>
@@ -158,11 +158,11 @@
             class="el-menu-item"
             :class="classFor('/organizations')"
           >
-            <i class="ri-community-line"></i>
+            <i class="ri-community-line" />
             <span v-if="!isCollapsed">
               <app-i18n
                 code="entities.organization.menu"
-              ></app-i18n>
+              />
             </span>
           </router-link>
         </el-tooltip>
@@ -187,11 +187,11 @@
             :class="classFor('/activities')"
             :disabled="isActivityLocked"
           >
-            <i class="ri-radar-line"></i>
+            <i class="ri-radar-line" />
             <span v-if="!isCollapsed">
               <app-i18n
                 code="entities.activity.menu"
-              ></app-i18n>
+              />
             </span>
           </router-link>
         </el-tooltip>
@@ -214,11 +214,11 @@
             :class="classFor('/reports')"
             :disabled="isReportLocked"
           >
-            <i class="ri-bar-chart-line"></i>
+            <i class="ri-bar-chart-line" />
             <span v-if="!isCollapsed">
               <app-i18n
                 code="entities.report.menu"
-              ></app-i18n>
+              />
             </span>
           </router-link>
         </el-tooltip>
@@ -246,11 +246,11 @@
             :class="classFor('/eagle-eye')"
             :disabled="isEagleEyeLocked"
           >
-            <i class="ri-search-eye-line"></i>
+            <i class="ri-search-eye-line" />
             <span v-if="!isCollapsed">
               <app-i18n
                 code="entities.eagleEye.menu"
-              ></app-i18n>
+              />
             </span>
           </router-link>
         </el-tooltip>
@@ -271,16 +271,16 @@
             class="el-menu-item"
             :class="classFor('/community-help-center')"
           >
-            <i class="ri-question-answer-line"></i>
+            <i class="ri-question-answer-line" />
             <span v-if="!isCollapsed">
               <app-i18n
                 code="entities.communityHelpCenter.menu"
-              ></app-i18n>
+              />
             </span>
           </router-link>
         </el-tooltip>
 
-        <div class="grow"></div>
+        <div class="grow" />
 
         <!-- Integrations -->
         <el-tooltip
@@ -298,9 +298,9 @@
             class="el-menu-item"
             :class="classFor('/integrations')"
           >
-            <i class="ri-apps-2-line"></i>
+            <i class="ri-apps-2-line" />
             <span v-if="!isCollapsed">
-              <app-i18n code="integrations.menu"></app-i18n>
+              <app-i18n code="integrations.menu" />
             </span>
           </router-link>
         </el-tooltip>
@@ -325,10 +325,9 @@
             :class="classFor('/settings')"
             :disabled="isSettingsLocked"
           >
-            <i class="ri-settings-3-line"></i>
+            <i class="ri-settings-3-line" />
             <span v-if="!isCollapsed">
-              <app-i18n code="settings.menu"></app-i18n
-            ></span>
+              <app-i18n code="settings.menu" /></span>
           </router-link>
         </el-tooltip>
 
@@ -345,13 +344,13 @@
           <button
             v-if="formbricksEnabled"
             id="menu-feedback"
+            type="button"
             class="el-menu-item"
             @click="openFeedbackWidget"
           >
-            <i class="ri-feedback-line"></i>
+            <i class="ri-feedback-line" />
             <span v-if="!isCollapsed">
-              <app-i18n code="feedback.menu"></app-i18n
-            ></span>
+              <app-i18n code="feedback.menu" /></span>
           </button>
         </el-tooltip>
 
@@ -367,21 +366,159 @@
   </el-aside>
 </template>
 
-<script>
-export default {
-  name: 'AppMenu',
-  mounted() {
-    const store = useStore()
-    let formbricksFeedbackWidget =
-      document.createElement('script')
-    formbricksFeedbackWidget.setAttribute(
-      'src',
-      'https://cdn.jsdelivr.net/npm/@formbricks/feedback@0.1.5/dist/index.umd.js'
-    )
-    document.head.appendChild(formbricksFeedbackWidget)
-    let formbricksFeedbackConfig =
-      document.createElement('script')
-    formbricksFeedbackConfig.innerHTML = `
+<script setup>
+import { useStore } from 'vuex';
+import { computed, onMounted } from 'vue';
+import { RouterLink, useLink } from 'vue-router';
+import { SettingsPermissions } from '@/modules/settings/settings-permissions';
+import { ReportPermissions } from '@/modules/report/report-permissions';
+import { MemberPermissions } from '@/modules/member/member-permissions';
+import { ActivityPermissions } from '@/modules/activity/activity-permissions';
+import { EagleEyePermissions } from '@/premium/eagle-eye/eagle-eye-permissions';
+import { i18n } from '@/i18n';
+import config from '@/config';
+
+import { mapGetters } from '@/shared/vuex/vuex.helpers';
+import { TaskPermissions } from '@/modules/task/task-permissions';
+import AppWorkspaceDropdown from './workspace-dropdown.vue';
+import AppSupportDropdown from './support-dropdown.vue';
+import AppAccountDropdown from './account-dropdown.vue';
+
+const store = useStore();
+const { route } = useLink(RouterLink.props);
+const isCollapsed = computed(
+  () => store.getters['layout/menuCollapsed'],
+);
+const currentUser = computed(
+  () => store.getters['auth/currentUser'],
+);
+const currentTenant = computed(
+  () => store.getters['auth/currentTenant'],
+);
+
+function toggleMenu() {
+  store.dispatch('layout/toggleMenu');
+}
+
+const formbricksEnabled = computed(
+  () => i18n('feedback.menu') !== 'feedback.menu'
+    && config.formbricks.url
+    && config.formbricks.formId,
+);
+
+const { myOpenTasksCount } = mapGetters('task');
+
+const hasPermissionToSettings = computed(
+  () => new SettingsPermissions(
+    currentTenant.value,
+    currentUser.value,
+  ).edit || currentTenant.value.hasSampleData,
+);
+
+const hasPermissionToCommunityMember = computed(
+  () => new MemberPermissions(
+    currentTenant.value,
+    currentUser.value,
+  ).read,
+);
+
+const hasPermissionToTask = computed(
+  () => new TaskPermissions(
+    currentTenant.value,
+    currentUser.value,
+  ).read,
+);
+
+const hasPermissionToActivity = computed(
+  () => new ActivityPermissions(
+    currentTenant.value,
+    currentUser.value,
+  ).read,
+);
+
+const hasPermissionToReport = computed(
+  () => new ReportPermissions(
+    currentTenant.value,
+    currentUser.value,
+  ).read,
+);
+
+const hasPermissionToEagleEye = computed(
+  () => new EagleEyePermissions(
+    currentTenant.value,
+    currentUser.value,
+  ).read,
+);
+
+const isSettingsLocked = computed(
+  () => new SettingsPermissions(
+    currentTenant.value,
+    currentUser.value,
+  ).lockedForCurrentPlan,
+);
+
+const isCommunityMemberLocked = computed(
+  () => new MemberPermissions(
+    currentTenant.value,
+    currentUser.value,
+  ).lockedForCurrentPlan,
+);
+
+const isTaskLocked = computed(
+  () => new TaskPermissions(
+    currentTenant.value,
+    currentUser.value,
+  ).lockedForCurrentPlan,
+);
+
+const isActivityLocked = computed(
+  () => new ActivityPermissions(
+    currentTenant.value,
+    currentUser.value,
+  ).lockedForCurrentPlan,
+);
+
+const isReportLocked = computed(
+  () => new ReportPermissions(
+    currentTenant.value,
+    currentUser.value,
+  ).lockedForCurrentPlan,
+);
+
+const isEagleEyeLocked = computed(
+  () => new EagleEyePermissions(
+    currentTenant.value,
+    currentUser.value,
+  ).lockedForCurrentPlan,
+);
+
+const classFor = (path, exact = false) => {
+  if (exact) {
+    return {
+      'is-active': route.value.path === path,
+    };
+  }
+
+  const routePath = route.value.path;
+  const active = routePath === path || routePath.startsWith(`${path}/`);
+  return {
+    'is-active': active,
+  };
+};
+
+const openFeedbackWidget = (event) => {
+  window.formbricks.open(event);
+};
+
+onMounted(() => {
+  const formbricksFeedbackWidget = document.createElement('script');
+  formbricksFeedbackWidget.setAttribute(
+    'src',
+    'https://cdn.jsdelivr.net/npm/@formbricks/feedback@0.1.5/dist/index.umd.js',
+  );
+  document.head.appendChild(formbricksFeedbackWidget);
+  const formbricksFeedbackConfig = document.createElement('script');
+  formbricksFeedbackConfig.innerHTML = `
     window.formbricks = {
       config: {
         hqUrl: "${config.formbricks.url}",
@@ -406,170 +543,15 @@ export default {
       },
       ...window.formbricks,
     };
-    `
-    document.head.appendChild(formbricksFeedbackConfig)
-  },
-  methods: {
-    openFeedbackWidget: function (event) {
-      window.formbricks.open(event)
-    }
-  }
-}
+    `;
+  document.head.appendChild(formbricksFeedbackConfig);
+});
 </script>
 
-<script setup>
-import { useStore } from 'vuex'
-import { SettingsPermissions } from '@/modules/settings/settings-permissions'
-import { ReportPermissions } from '@/modules/report/report-permissions'
-import { MemberPermissions } from '@/modules/member/member-permissions'
-import { ActivityPermissions } from '@/modules/activity/activity-permissions'
-import { EagleEyePermissions } from '@/premium/eagle-eye/eagle-eye-permissions'
-import AppAccountDropdown from './account-dropdown'
-import AppSupportDropdown from './support-dropdown'
-import AppWorkspaceDropdown from './workspace-dropdown'
-import { computed } from 'vue'
-import { i18n } from '@/i18n'
-import config from '@/config'
-
-import { RouterLink, useLink } from 'vue-router'
-import { mapGetters } from '@/shared/vuex/vuex.helpers'
-import { TaskPermissions } from '@/modules/task/task-permissions'
-
-const store = useStore()
-const { route } = useLink(RouterLink.props)
-const isCollapsed = computed(
-  () => store.getters['layout/menuCollapsed']
-)
-const currentUser = computed(
-  () => store.getters['auth/currentUser']
-)
-const currentTenant = computed(
-  () => store.getters['auth/currentTenant']
-)
-
-function toggleMenu() {
-  store.dispatch('layout/toggleMenu')
-}
-
-const formbricksEnabled = computed(
-  () =>
-    i18n('feedback.menu') !== 'feedback.menu' &&
-    config.formbricks.url &&
-    config.formbricks.formId
-)
-
-const { myOpenTasksCount } = mapGetters('task')
-
-const hasPermissionToSettings = computed(
-  () =>
-    new SettingsPermissions(
-      currentTenant.value,
-      currentUser.value
-    ).edit || currentTenant.value.hasSampleData
-)
-
-const hasPermissionToCommunityMember = computed(
-  () =>
-    new MemberPermissions(
-      currentTenant.value,
-      currentUser.value
-    ).read
-)
-
-const hasPermissionToTask = computed(
-  () =>
-    new TaskPermissions(
-      currentTenant.value,
-      currentUser.value
-    ).read
-)
-
-const hasPermissionToActivity = computed(
-  () =>
-    new ActivityPermissions(
-      currentTenant.value,
-      currentUser.value
-    ).read
-)
-
-const hasPermissionToReport = computed(
-  () =>
-    new ReportPermissions(
-      currentTenant.value,
-      currentUser.value
-    ).read
-)
-
-const hasPermissionToEagleEye = computed(
-  () =>
-    new EagleEyePermissions(
-      currentTenant.value,
-      currentUser.value
-    ).read
-)
-
-const isSettingsLocked = computed(
-  () =>
-    new SettingsPermissions(
-      currentTenant.value,
-      currentUser.value
-    ).lockedForCurrentPlan
-)
-
-const isCommunityMemberLocked = computed(
-  () =>
-    new MemberPermissions(
-      currentTenant.value,
-      currentUser.value
-    ).lockedForCurrentPlan
-)
-
-const isTaskLocked = computed(
-  () =>
-    new TaskPermissions(
-      currentTenant.value,
-      currentUser.value
-    ).lockedForCurrentPlan
-)
-
-const isActivityLocked = computed(
-  () =>
-    new ActivityPermissions(
-      currentTenant.value,
-      currentUser.value
-    ).lockedForCurrentPlan
-)
-
-const isReportLocked = computed(
-  () =>
-    new ReportPermissions(
-      currentTenant.value,
-      currentUser.value
-    ).lockedForCurrentPlan
-)
-
-const isEagleEyeLocked = computed(
-  () =>
-    new EagleEyePermissions(
-      currentTenant.value,
-      currentUser.value
-    ).lockedForCurrentPlan
-)
-
-const classFor = (path, exact = false) => {
-  if (exact) {
-    return {
-      'is-active': route.value.path === path
-    }
-  }
-
-  const routePath = route.value.path
-  const active =
-    routePath === path || routePath.startsWith(path + '/')
-  return {
-    'is-active': active
-  }
-}
+<script>
+export default {
+  name: 'AppMenu',
+};
 </script>
 
 <style lang="scss">

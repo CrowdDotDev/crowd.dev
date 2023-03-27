@@ -1,7 +1,7 @@
-import { WidgetService } from '@/modules/widget/widget-service'
-import RelationToOneField from '@/shared/fields/relation-to-one-field'
-import RelationToManyField from '@/shared/fields/relation-to-many-field'
-import Permissions from '@/security/permissions'
+import { WidgetService } from '@/modules/widget/widget-service';
+import RelationToOneField from '@/shared/fields/relation-to-one-field';
+import RelationToManyField from '@/shared/fields/relation-to-many-field';
+import Permissions from '@/security/permissions';
 
 export class WidgetField {
   static relationToOne(name, label, options) {
@@ -13,16 +13,16 @@ export class WidgetField {
       WidgetService.listAutocomplete,
       (record) => {
         if (!record) {
-          return null
+          return null;
         }
 
         return {
           id: record.id,
-          label: record.type
-        }
+          label: record.type,
+        };
       },
-      options
-    )
+      options,
+    );
   }
 
   static relationToMany(name, label, options) {
@@ -34,15 +34,15 @@ export class WidgetField {
       WidgetService.listAutocomplete,
       (record) => {
         if (!record) {
-          return null
+          return null;
         }
 
         return {
           id: record.id,
-          label: record.type
-        }
+          label: record.type,
+        };
       },
-      options
-    )
+      options,
+    );
   }
 }

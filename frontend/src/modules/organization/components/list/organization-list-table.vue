@@ -4,7 +4,7 @@
       v-if="isLoading"
       v-loading="isLoading"
       class="app-page-spinner h-16 !relative !min-h-5"
-    ></div>
+    />
     <div v-else>
       <!-- Empty State -->
       <app-empty-state-cta
@@ -14,14 +14,14 @@
         description="We coulnd't track any organizations related to your community members"
         cta-btn="Add organization"
         @cta-click="onCtaClick"
-      ></app-empty-state-cta>
+      />
 
       <app-empty-state-cta
         v-else-if="hasOrganizations && !count"
         icon="ri-community-line"
         title="No organizations found"
         description="We couldn't find any results that match your search criteria, please try a different query"
-      ></app-empty-state-cta>
+      />
 
       <div v-else>
         <!-- Sorter -->
@@ -57,9 +57,9 @@
                 <div
                   :style="{
                     width: tableWidth,
-                    height: '10px'
+                    height: '10px',
                   }"
-                ></div>
+                />
               </el-scrollbar>
             </div>
           </transition>
@@ -67,7 +67,7 @@
           <app-organization-list-toolbar
             @mouseover="onTableMouseover"
             @mouseleave="onTableMouseLeft"
-          ></app-organization-list-toolbar>
+          />
 
           <div
             class="-mx-6 -mt-6"
@@ -90,8 +90,7 @@
                 type="selection"
                 width="75"
                 fixed
-              >
-              </el-table-column>
+              />
 
               <!-- Organization logo and name -->
               <el-table-column
@@ -104,7 +103,7 @@
                 <template #default="scope">
                   <app-organization-name
                     :organization="scope.row"
-                  ></app-organization-name>
+                  />
                 </template>
               </el-table-column>
 
@@ -119,12 +118,13 @@
                       class="text-gray-500 hover:!text-brand-500"
                       :href="withHttp(scope.row.website)"
                       target="_blank"
+                      rel="noopener noreferrer"
                       @click.stop
-                      >{{ scope.row.website }}</a
-                    >
-                    <span v-else class="text-gray-500"
-                      >-</span
-                    >
+                    >{{ scope.row.website }}</a>
+                    <span
+                      v-else
+                      class="text-gray-500"
+                    >-</span>
                   </div>
                 </template>
               </el-table-column>
@@ -142,14 +142,14 @@
                   >
                     {{
                       formatNumberToCompact(
-                        scope.row.memberCount
+                        scope.row.memberCount,
                       )
                     }}
                   </div>
                 </template>
               </el-table-column>
 
-              <!-- Number of employees 
+              <!-- Number of employees
               TODO: Uncomment when we support enrichment
               <el-table-column
                 label="# Employees"
@@ -174,18 +174,19 @@
                 width="150"
                 prop="activityCount"
                 sortable
-                ><template #default="scope">
+              >
+                <template #default="scope">
                   <div
                     class="text-gray-900 text-sm h-full flex items-center"
                   >
                     {{
                       formatNumberToCompact(
-                        scope.row.activityCount
+                        scope.row.activityCount,
                       )
                     }}
-                  </div></template
-                ></el-table-column
-              >
+                  </div>
+                </template>
+              </el-table-column>
 
               <!-- Joined Date -->
               <el-table-column
@@ -193,36 +194,40 @@
                 width="200"
                 prop="joinedAt"
                 sortable
-                ><template #default="scope"
-                  ><div
+              >
+                <template #default="scope">
+                  <div
                     v-if="scope.row.joinedAt"
                     class="text-gray-900 text-sm h-full flex items-center"
                   >
                     {{
                       formatDateToTimeAgo(
-                        scope.row.joinedAt
+                        scope.row.joinedAt,
                       )
                     }}
                   </div>
-                  <span v-else class="text-gray-900"
-                    >-</span
-                  ></template
-                ></el-table-column
-              >
+                  <span
+                    v-else
+                    class="text-gray-900"
+                  >-</span>
+                </template>
+              </el-table-column>
 
               <!-- Identities -->
               <el-table-column
                 label="Identities"
                 width="240"
-                ><template #default="scope">
+              >
+                <template #default="scope">
                   <div class="h-full flex items-center">
                     <app-organization-identities
                       v-if="hasIdentities(scope.row)"
                       :organization="scope.row"
-                    ></app-organization-identities>
-                    <span v-else class="text-gray-900"
-                      >-</span
-                    >
+                    />
+                    <span
+                      v-else
+                      class="text-gray-900"
+                    >-</span>
                   </div>
                 </template>
               </el-table-column>
@@ -238,35 +243,35 @@
                     class="text-sm cursor-auto flex flex-wrap gap-1"
                   >
                     <el-tooltip
-                      v-for="email of scope.row.emails ||
-                      []"
+                      v-for="email of scope.row.emails
+                        || []"
                       :key="email"
                       :disabled="!email"
                       popper-class="custom-identity-tooltip"
                       placement="top"
                     >
-                      <template #content
-                        ><span
-                          >Send email
+                      <template #content>
+                        <span>Send email
                           <i
                             v-if="email"
                             class="ri-external-link-line text-gray-400"
-                          ></i></span
-                      ></template>
+                          /></span>
+                      </template>
                       <div @click.prevent>
                         <a
                           target="_blank"
+                          rel="noopener noreferrer"
                           class="badge--interactive"
                           :href="`mailto:${email}`"
                           @click.stop="trackEmailClick"
-                          >{{ email }}</a
-                        >
+                        >{{ email }}</a>
                       </div>
                     </el-tooltip>
                   </div>
-                  <span v-else class="text-gray-500"
-                    >-</span
-                  >
+                  <span
+                    v-else
+                    class="text-gray-500"
+                  >-</span>
                 </template>
               </el-table-column>
 
@@ -276,7 +281,7 @@
                   <div class="table-actions">
                     <app-organization-dropdown
                       :organization="scope.row"
-                    ></app-organization-dropdown>
+                    />
                   </div>
                 </template>
               </el-table-column>
@@ -306,220 +311,210 @@
   </div>
 </template>
 
-<script>
-export default {
-  name: 'AppOrganizationListTable'
-}
-</script>
-
 <script setup>
 import {
   computed,
   defineProps,
   ref,
   watch,
-  onUnmounted
-} from 'vue'
-import { useRouter } from 'vue-router'
+  onUnmounted,
+} from 'vue';
+import { useRouter } from 'vue-router';
 import {
   mapState,
   mapGetters,
-  mapActions
-} from '@/shared/vuex/vuex.helpers'
-import { formatDateToTimeAgo } from '@/utils/date'
-import { formatNumberToCompact } from '@/utils/number'
-import { withHttp } from '@/utils/string'
-import AppOrganizationIdentities from '../organization-identities'
-import AppOrganizationListToolbar from './organization-list-toolbar'
-import AppOrganizationName from '../organization-name'
-import AppOrganizationDropdown from '../organization-dropdown'
+  mapActions,
+} from '@/shared/vuex/vuex.helpers';
+import { formatDateToTimeAgo } from '@/utils/date';
+import { formatNumberToCompact } from '@/utils/number';
+import { withHttp } from '@/utils/string';
+import AppOrganizationIdentities from '../organization-identities.vue';
+import AppOrganizationListToolbar from './organization-list-toolbar.vue';
+import AppOrganizationName from '../organization-name.vue';
+import AppOrganizationDropdown from '../organization-dropdown.vue';
 
-const router = useRouter()
+const router = useRouter();
 
 const props = defineProps({
   hasOrganizations: {
     type: Boolean,
-    default: () => false
+    default: () => false,
   },
   isPageLoading: {
     type: Boolean,
-    default: () => true
-  }
-})
+    default: () => true,
+  },
+});
 
-const { count, list } = mapState('organization')
-const { activeView, rows, pagination, selectedRows } =
-  mapGetters('organization')
+const { count, list } = mapState('organization');
+const {
+  activeView, rows, pagination, selectedRows,
+} = mapGetters('organization');
 const {
   doChangePaginationCurrentPage,
   doChangePaginationPageSize,
   doChangeSort,
-  doMountTable
-} = mapActions('organization')
+  doMountTable,
+} = mapActions('organization');
 
-const table = ref(null)
-const scrollbarRef = ref()
-const tableBodyRef = ref()
-const tableHeaderRef = ref()
-const isScrollbarVisible = ref(false)
-const isTableHovered = ref(false)
-const isCursorDown = ref(false)
+const table = ref(null);
+const scrollbarRef = ref();
+const tableBodyRef = ref();
+const tableHeaderRef = ref();
+const isScrollbarVisible = ref(false);
+const isTableHovered = ref(false);
+const isCursorDown = ref(false);
 
-const showBottomPagination = computed(() => {
-  return (
-    !!count.value &&
-    Math.ceil(
-      count.value / Number(pagination.value.pageSize)
+const showBottomPagination = computed(() => (
+  !!count.value
+    && Math.ceil(
+      count.value / Number(pagination.value.pageSize),
     ) > 1
-  )
-})
-const tableWidth = computed(() => {
-  return list.value.table?.bodyWidth
-})
-const defaultSort = computed(() => {
-  return activeView.value.sorter
-})
+));
+const tableWidth = computed(() => list.value.table?.bodyWidth);
+const defaultSort = computed(() => activeView.value.sorter);
 const isLoading = computed(
-  () => list.value.loading || props.isPageLoading
-)
+  () => list.value.loading || props.isPageLoading,
+);
 
 document.onmouseup = () => {
   // As soon as mouse is released, set scrollbar visibility
   // according to wether the mouse is hovering the table or not
-  isScrollbarVisible.value = isTableHovered.value
-  isCursorDown.value = false
-}
+  isScrollbarVisible.value = isTableHovered.value;
+  isCursorDown.value = false;
+};
+
+const onCtaClick = () => {
+  router.push({
+    name: 'organizationCreate',
+  });
+};
+
+const onRowClick = (row) => {
+  router.push({
+    name: 'organizationView',
+    params: { id: row.id },
+  });
+};
+
+const rowClass = ({ row }) => {
+  const isSelected = selectedRows.value.find((r) => r.id === row.id)
+    !== undefined;
+
+  return isSelected ? 'is-selected' : '';
+};
+
+const hasIdentities = (row) => (
+  !!row.github
+    || !!row.linkedin
+    || !!row.twitter
+    || !!row.crunchbase
+    || !!row.phoneNumbers?.length
+);
+
+// On custom scrollbar scroll, set the table scroll with the same value
+const onCustomScrollbarScroll = ({ scrollLeft }) => {
+  table.value.setScrollLeft(scrollLeft);
+};
+
+// On table body scroll, set the custom scrollbar scroll with the same value
+const onTableBodyScroll = () => {
+  scrollbarRef.value.setScrollLeft(
+    tableBodyRef.value.scrollLeft,
+  );
+};
+
+// On table header scroll, set the custom scrollbar scroll with the same value
+const onTableHeaderScroll = () => {
+  scrollbarRef.value.setScrollLeft(
+    tableHeaderRef.value.scrollLeft,
+  );
+  table.value.setScrollLeft(tableHeaderRef.value.scrollLeft);
+};
+
+const onScrollMousedown = () => {
+  isCursorDown.value = true;
+};
+
+const onTableMouseover = () => {
+  isTableHovered.value = true;
+  isScrollbarVisible.value = true;
+};
+
+const onTableMouseLeft = () => {
+  isTableHovered.value = false;
+  isScrollbarVisible.value = isCursorDown.value;
+};
+
+const emailsColumnWidth = computed(() => {
+  let maxTabWidth = 0;
+  rows.value.forEach((row) => {
+    const tabWidth = row.emails
+      ?.map((email) => email.length * 12)
+      .reduce((a, b) => a + b, 0);
+
+    if (tabWidth > maxTabWidth) {
+      maxTabWidth = tabWidth > 400 ? 400 : tabWidth;
+    }
+  });
+  return maxTabWidth;
+});
+
+const trackEmailClick = () => {
+  window.analytics.track('Click Organization Contact', {
+    channel: 'Email',
+  });
+};
 
 watch(table, (newValue) => {
   if (newValue) {
-    doMountTable(table.value)
+    doMountTable(table.value);
   }
 
   // Add scroll events to table, it's not possible to access it from 'el-table'
   // as the overflowed element is within it
   const tableBodyEl = document.querySelector(
-    '#organizations-table .el-scrollbar__wrap'
-  )
+    '#organizations-table .el-scrollbar__wrap',
+  );
   const tableHeaderEl = document.querySelector(
-    '#organizations-table .el-table__header-wrapper'
-  )
+    '#organizations-table .el-table__header-wrapper',
+  );
 
   if (tableBodyEl) {
-    tableBodyRef.value = tableBodyEl
+    tableBodyRef.value = tableBodyEl;
     tableBodyRef.value.addEventListener(
       'scroll',
-      onTableBodyScroll
-    )
+      onTableBodyScroll,
+    );
   }
 
   if (tableHeaderEl) {
-    tableHeaderEl.style.overflow = 'auto'
-    tableHeaderRef.value = tableHeaderEl
+    tableHeaderEl.style.overflow = 'auto';
+    tableHeaderRef.value = tableHeaderEl;
     tableHeaderRef.value.addEventListener(
       'scroll',
-      onTableHeaderScroll
-    )
+      onTableHeaderScroll,
+    );
   }
-})
+});
 
 // Remove listeners on unmount
 onUnmounted(() => {
   tableBodyRef.value?.removeEventListener(
     'scroll',
-    onTableBodyScroll
-  )
+    onTableBodyScroll,
+  );
   tableHeaderRef.value?.removeEventListener(
     'scroll',
-    onTableHeaderScroll
-  )
-})
+    onTableHeaderScroll,
+  );
+});
+</script>
 
-const onCtaClick = () => {
-  router.push({
-    name: 'organizationCreate'
-  })
-}
-
-const onRowClick = (row) => {
-  router.push({
-    name: 'organizationView',
-    params: { id: row.id }
-  })
-}
-
-const rowClass = ({ row }) => {
-  const isSelected =
-    selectedRows.value.find((r) => r.id === row.id) !==
-    undefined
-
-  return isSelected ? 'is-selected' : ''
-}
-
-const hasIdentities = (row) => {
-  return (
-    !!row.github ||
-    !!row.linkedin ||
-    !!row.twitter ||
-    !!row.crunchbase ||
-    !!row.phoneNumbers?.length
-  )
-}
-
-// On custom scrollbar scroll, set the table scroll with the same value
-const onCustomScrollbarScroll = ({ scrollLeft }) => {
-  table.value.setScrollLeft(scrollLeft)
-}
-
-// On table body scroll, set the custom scrollbar scroll with the same value
-const onTableBodyScroll = () => {
-  scrollbarRef.value.setScrollLeft(
-    tableBodyRef.value.scrollLeft
-  )
-}
-
-// On table header scroll, set the custom scrollbar scroll with the same value
-const onTableHeaderScroll = () => {
-  scrollbarRef.value.setScrollLeft(
-    tableHeaderRef.value.scrollLeft
-  )
-  table.value.setScrollLeft(tableHeaderRef.value.scrollLeft)
-}
-
-const onScrollMousedown = () => {
-  isCursorDown.value = true
-}
-
-const onTableMouseover = () => {
-  isTableHovered.value = true
-  isScrollbarVisible.value = true
-}
-
-const onTableMouseLeft = () => {
-  isTableHovered.value = false
-  isScrollbarVisible.value = isCursorDown.value
-}
-
-const emailsColumnWidth = computed(() => {
-  let maxTabWidth = 0
-
-  for (const row of rows.value) {
-    const tabWidth = row.emails
-      ?.map((email) => email.length * 12)
-      .reduce((a, b) => a + b, 0)
-
-    if (tabWidth > maxTabWidth) {
-      maxTabWidth = tabWidth > 400 ? 400 : tabWidth
-    }
-  }
-
-  return maxTabWidth
-})
-
-const trackEmailClick = () => {
-  window.analytics.track('Click Organization Contact', {
-    channel: 'Email'
-  })
-}
+<script>
+export default {
+  name: 'AppOrganizationListTable',
+};
 </script>
 
 <style lang="scss">

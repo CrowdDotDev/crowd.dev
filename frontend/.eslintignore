@@ -1,0 +1,8 @@
+**/*.spec.js
+cypress
+coverage
+dist
+tests
+tailwind.config.js
+cypress.config.js
+cypress.staging.config.js

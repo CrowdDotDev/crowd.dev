@@ -10,48 +10,40 @@
         type="button"
         @click.stop
       >
-        <i class="text-xl ri-more-fill"></i>
+        <i class="text-xl ri-more-fill" />
       </button>
       <template #dropdown>
         <el-dropdown-item :command="edit">
           <i class="ri-pencil-line text-gray-400 mr-1" />
-          <span>Edit Activity type</span></el-dropdown-item
-        >
+          <span>Edit Activity type</span>
+        </el-dropdown-item>
         <el-dropdown-item
           divided
           :command="doDestroyWithConfirm"
         >
           <i class="ri-delete-bin-line text-red-500 mr-1" />
-          <span class="text-red-500"
-            >Delete activity type</span
-          >
+          <span class="text-red-500">Delete activity type</span>
         </el-dropdown-item>
       </template>
     </el-dropdown>
   </div>
 </template>
 
-<script>
-export default {
-  name: 'AppActivityTypeDropdown'
-}
-</script>
-
 <script setup>
-import ConfirmDialog from '@/shared/dialog/confirm-dialog'
-import { defineProps, defineEmits } from 'vue'
-import { useActivityTypeStore } from '@/modules/activity/store/type'
+import { defineProps, defineEmits } from 'vue';
+import ConfirmDialog from '@/shared/dialog/confirm-dialog';
+import { useActivityTypeStore } from '@/modules/activity/store/type';
 
 const props = defineProps({
   activityTypeKey: {
     type: Object,
-    default: () => {}
-  }
-})
+    default: () => {},
+  },
+});
 
-const emit = defineEmits(['edit'])
+const emit = defineEmits(['edit']);
 
-const { deleteActivityType } = useActivityTypeStore()
+const { deleteActivityType } = useActivityTypeStore();
 
 const doDestroyWithConfirm = () => {
   ConfirmDialog({
@@ -61,13 +53,19 @@ const doDestroyWithConfirm = () => {
       "Are you sure you want to proceed? You can't undo this action",
     confirmButtonText: 'Delete',
     cancelButtonText: 'Cancel',
-    icon: 'ri-delete-bin-line'
+    icon: 'ri-delete-bin-line',
   }).then(() => {
-    deleteActivityType(props.activityTypeKey)
-  })
-}
+    deleteActivityType(props.activityTypeKey);
+  });
+};
 
 const edit = () => {
-  emit('edit')
-}
+  emit('edit');
+};
+</script>
+
+<script>
+export default {
+  name: 'AppActivityTypeDropdown',
+};
 </script>

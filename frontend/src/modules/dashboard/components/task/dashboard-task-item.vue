@@ -47,7 +47,7 @@
               />
               <div
                 class="ri-checkbox-circle-line h-6 flex items-center text-xl absolute top-0 left-0 transition opacity-0 group-hover:opacity-100"
-              ></div>
+              />
             </div>
           </el-tooltip>
         </div>
@@ -60,7 +60,7 @@
             >
               <i
                 class="text-lg ri-more-fill text-gray-400"
-              ></i>
+              />
             </button>
           </template>
         </app-task-dropdown>
@@ -78,7 +78,7 @@
               : ''
           "
           v-html="$sanitize(props.task.body)"
-        ></div>
+        />
 
         <!-- show more/less button -->
         <div
@@ -107,7 +107,7 @@
               :key="member.id"
               :to="{
                 name: 'memberView',
-                params: { id: member.id }
+                params: { id: member.id },
               }"
               class="mr-2 mb-2 bg-gray-100 border group border-gray-200 rounded-md h-6 flex items-center px-1.5 cursor-pointer"
             >
@@ -127,11 +127,11 @@
 
         <div
           v-if="
-            props.task.members.length > 0 &&
-            props.task.assignees.length > 0
+            props.task.members.length > 0
+              && props.task.assignees.length > 0
           "
           class="border-b border-gray-200 pt-2"
-        ></div>
+        />
         <!-- assignee -->
         <div
           v-if="props.task.assignees.length"
@@ -147,13 +147,13 @@
               :entity="{
                 displayName:
                   assignee.fullName || assignee.email,
-                avatar: assignee.avatar
+                avatar: assignee.avatar,
               }"
             />
             <p class="pl-2 text-2xs leading-4">
               {{
-                assignee.fullName ||
-                nameFromEmail(assignee.email)
+                assignee.fullName
+                  || nameFromEmail(assignee.email)
               }}
             </p>
           </article>
@@ -162,16 +162,15 @@
           <div class="flex items-center" :class="dateClass">
             <div
               class="ri-calendar-line text-base h-4 flex items-center"
-            ></div>
+            />
             <p class="pl-2 text-2xs leading-4">
               {{ formatDate(props.task.dueDate) }}
               <span
                 v-if="
-                  overdue &&
-                  props.task.status === 'in-progress'
+                  overdue
+                    && props.task.status === 'in-progress'
                 "
-                >(overdue)</span
-              >
+              >(overdue)</span>
             </p>
           </div>
         </div>
@@ -180,131 +179,126 @@
   </div>
 </template>
 
-<script>
-export default {
-  name: 'AppDashboardTaskItem'
-}
-</script>
-
 <script setup>
 import {
   computed,
   defineProps,
   defineExpose,
   onMounted,
-  ref
-} from 'vue'
-import AppTaskDropdown from '@/modules/task/components/task-dropdown'
-import AppAvatar from '@/shared/avatar/avatar'
-import moment from 'moment'
-import AppLoading from '@/shared/loading/loading-placeholder'
-import { TaskService } from '@/modules/task/task-service'
-import Message from '@/shared/message/message'
-import { mapActions } from '@/shared/vuex/vuex.helpers'
+  ref,
+} from 'vue';
+import moment from 'moment';
+import { TaskService } from '@/modules/task/task-service';
+import Message from '@/shared/message/message';
+import { mapActions } from '@/shared/vuex/vuex.helpers';
+import AppTaskDropdown from '@/modules/task/components/task-dropdown.vue';
+import AppAvatar from '@/shared/avatar/avatar.vue';
+import AppLoading from '@/shared/loading/loading-placeholder.vue';
 
 const props = defineProps({
   task: {
     type: Object,
     required: false,
-    default: () => {}
+    default: () => {},
   },
   loading: {
     type: Boolean,
     required: false,
-    default: false
-  }
-})
+    default: false,
+  },
+});
 
-const { reloadTaskPage } = mapActions('task')
+const { reloadTaskPage } = mapActions('task');
 
-let showMore = ref(false)
-const displayShowMore = ref(true)
-const taskBody = ref(null)
-const closing = ref(false)
+const showMore = ref(false);
+const displayShowMore = ref(true);
+const taskBody = ref(null);
+const closing = ref(false);
 
 const dueSoon = computed(
-  () =>
-    props.task.dueDate &&
-    moment()
+  () => props.task.dueDate
+    && moment()
       .add(1, 'day')
       .startOf('day')
-      .isAfter(moment(props.task.dueDate))
-)
-const overdue = computed(() => {
-  return (
-    props.task.dueDate &&
-    moment()
+      .isAfter(moment(props.task.dueDate)),
+);
+const overdue = computed(() => (
+  props.task.dueDate
+    && moment()
       .startOf('day')
       .isAfter(moment(props.task.dueDate))
-  )
-})
+));
 
 const dateClass = computed(() => {
   if (props.task.status === 'in-progress') {
     if (overdue.value) {
-      return 'px-1.5 py-1 text-red-900 bg-red-100 rounded-md'
+      return 'px-1.5 py-1 text-red-900 bg-red-100 rounded-md';
     }
     if (dueSoon.value) {
-      return 'px-1.5 py-1 text-yellow-900 bg-yellow-100 rounded-md'
+      return 'px-1.5 py-1 text-yellow-900 bg-yellow-100 rounded-md';
     }
   }
 
-  return 'text-gray-500'
-})
+  return 'text-gray-500';
+});
 
-const formatDate = (date) => {
-  return moment(date).format('MMM D, YYYY')
-}
+const formatDate = (date) => moment(date).format('MMM D, YYYY');
 const nameFromEmail = (email) => {
-  const [name] = email.split('@')
-  return name
-}
+  const [name] = email.split('@');
+  return name;
+};
 
 const changeCompletion = (complete) => {
-  closing.value = true
+  closing.value = true;
 
   Promise.all([
     TaskService.update(props.task.id, {
-      status: complete ? 'done' : 'in-progress'
+      status: complete ? 'done' : 'in-progress',
     }),
     new Promise((resolve) => {
       setTimeout(() => {
-        resolve()
-      }, 300)
-    })
+        resolve();
+      }, 300);
+    }),
   ])
     .then(() => {
-      reloadTaskPage()
+      reloadTaskPage();
       Message.success(
         `Task has been marked as ${
           complete ? 'completed' : 'incomplete'
-        }`
-      )
+        }`,
+      );
     })
     .catch(() => {
-      closing.value = false
+      closing.value = false;
       Message.error(
         `There was an error marking task as ${
           complete ? 'completed' : 'incomplete'
-        }`
-      )
-    })
-}
+        }`,
+      );
+    });
+};
 
 onMounted(() => {
-  const body = taskBody.value
+  const body = taskBody.value;
   if (body) {
-    const height = body.clientHeight
-    const scrollHeight = body.scrollHeight
-    displayShowMore.value = scrollHeight > height
+    const height = body.clientHeight;
+    const { scrollHeight } = body;
+    displayShowMore.value = scrollHeight > height;
   } else {
-    displayShowMore.value = false
+    displayShowMore.value = false;
   }
-})
+});
 
 defineExpose({
-  taskBody
-})
+  taskBody,
+});
+</script>
+
+<script>
+export default {
+  name: 'AppDashboardTaskItem',
+};
 </script>
 
 <style lang="scss" scoped>

@@ -1,6 +1,6 @@
-import * as yup from 'yup'
-import GenericField from '@/shared/fields/generic-field'
-import { i18n } from '@/i18n'
+import * as yup from 'yup';
+import GenericField from '@/shared/fields/generic-field';
+import { i18n } from '@/i18n';
 
 export default class RelationToOneField extends GenericField {
   constructor(
@@ -10,23 +10,23 @@ export default class RelationToOneField extends GenericField {
     readPermission,
     fetchFn,
     mapperFn,
-    config = {}
+    config = {},
   ) {
-    super(name, label)
+    super(name, label);
 
-    this.placeholder = config.placeholder
-    this.hint = config.hint
-    this.required = config.required
-    this.fetchFn = fetchFn
-    this.mapperFn = mapperFn
-    this.viewUrl = viewUrl
-    this.readPermission = readPermission
-    this.filterable = config.filterable || false
-    this.custom = config.custom
+    this.placeholder = config.placeholder;
+    this.hint = config.hint;
+    this.required = config.required;
+    this.fetchFn = fetchFn;
+    this.mapperFn = mapperFn;
+    this.viewUrl = viewUrl;
+    this.readPermission = readPermission;
+    this.filterable = config.filterable || false;
+    this.custom = config.custom;
   }
 
   forPresenter(value) {
-    return this.mapperFn(value)
+    return this.mapperFn(value);
   }
 
   forFilter() {
@@ -35,42 +35,42 @@ export default class RelationToOneField extends GenericField {
       label: this.label,
       custom: this.custom,
       props: {
-        fetchFn: this.fetchFn
+        fetchFn: this.fetchFn,
       },
       defaultValue: [],
       value: [],
       defaultOperator: null,
       operator: null,
-      type: 'select-async'
-    }
+      type: 'select-async',
+    };
   }
 
   forFilterPreview(value) {
-    return (value && value.label) || null
+    return (value && value.label) || null;
   }
 
   forFormRules() {
-    const output = []
+    const output = [];
 
     if (this.required) {
       output.push({
         required: true,
         message: i18n('validation.mixed.required').replace(
-          '${path}',
-          this.label
-        )
-      })
+          '{path}',
+          this.label,
+        ),
+      });
     }
 
-    return output
+    return output;
   }
 
   forFormInitialValue(value) {
-    return this.mapperFn(value)
+    return this.mapperFn(value);
   }
 
   forFilterInitialValue(value) {
-    return this.mapperFn(value)
+    return this.mapperFn(value);
   }
 
   forFormCast() {
@@ -80,11 +80,11 @@ export default class RelationToOneField extends GenericField {
       .label(this.label)
       .transform((value, originalValue) => {
         if (!originalValue) {
-          return null
+          return null;
         }
 
-        return originalValue.id
-      })
+        return originalValue.id;
+      });
   }
 
   forFilterCast() {
@@ -93,11 +93,11 @@ export default class RelationToOneField extends GenericField {
       .label(this.label)
       .transform((value, originalValue) => {
         if (!originalValue) {
-          return null
+          return null;
         }
 
-        return originalValue.id
-      })
+        return originalValue.id;
+      });
   }
 
   forExport() {
@@ -106,23 +106,23 @@ export default class RelationToOneField extends GenericField {
       .label(this.label)
       .transform((value, originalValue) => {
         if (!originalValue || !originalValue.id) {
-          return null
+          return null;
         }
 
-        return originalValue.id
-      })
+        return originalValue.id;
+      });
   }
 
   forImport() {
     let yupChain = yup
       .mixed()
       .nullable(true)
-      .label(this.label)
+      .label(this.label);
 
     if (this.required) {
-      yupChain = yupChain.required()
+      yupChain = yupChain.required();
     }
 
-    return yupChain
+    return yupChain;
   }
 }

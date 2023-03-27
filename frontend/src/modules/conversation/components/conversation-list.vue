@@ -4,7 +4,7 @@
       v-if="loading && !conversations.length"
       v-loading="loading"
       class="app-page-spinner h-16 !relative !min-h-5"
-    ></div>
+    />
     <div v-else>
       <!-- Empty state -->
       <app-empty-state-cta
@@ -12,7 +12,7 @@
         icon="ri-question-answer-line"
         :title="emptyState.title"
         :description="emptyState.description"
-      ></app-empty-state-cta>
+      />
 
       <div v-else>
         <div class="mb-4">
@@ -45,16 +45,14 @@
             v-if="loading"
             v-loading="loading"
             class="app-page-spinner h-16 !relative !min-h-5"
-          ></div>
+          />
           <el-button
             v-else
             class="btn btn-link btn-link--primary"
             @click="onLoadMore"
-            ><i class="ri-arrow-down-line"></i
-            ><span class="text-xs"
-              >Load more</span
-            ></el-button
           >
+            <i class="ri-arrow-down-line" /><span class="text-xs">Load more</span>
+          </el-button>
         </div>
       </div>
     </div>
@@ -63,121 +61,117 @@
     :expand="conversationId != null"
     :conversation-id="conversationId"
     @close="conversationId = null"
-  ></app-conversation-drawer>
+  />
 </template>
 
-<script>
-export default {
-  name: 'AppConversationsList'
-}
-</script>
-
 <script setup>
-import AppConversationItem from '@/modules/conversation/components/conversation-item'
-import AppConversationDrawer from '@/modules/conversation/components/conversation-drawer'
-import AppPaginationSorter from '@/shared/pagination/pagination-sorter'
-import { defineProps, computed, ref } from 'vue'
-import { useStore } from 'vuex'
-import { TRENDING_CONVERSATIONS_FILTER } from '@/modules/activity/store/constants'
+import { defineProps, computed, ref } from 'vue';
+import { useStore } from 'vuex';
+import { TRENDING_CONVERSATIONS_FILTER } from '@/modules/activity/store/constants';
+import AppConversationItem from '@/modules/conversation/components/conversation-item.vue';
+import AppConversationDrawer from '@/modules/conversation/components/conversation-drawer.vue';
+import AppPaginationSorter from '@/shared/pagination/pagination-sorter.vue';
 
-const store = useStore()
-const conversationId = ref(null)
+const store = useStore();
+const conversationId = ref(null);
 
 defineProps({
   conversations: {
     type: Array,
-    default: () => {}
+    default: () => {},
   },
   loading: {
     type: Boolean,
-    default: false
+    default: false,
   },
   itemsAsCards: {
     type: Boolean,
-    default: false
-  }
-})
+    default: false,
+  },
+});
 
 const activeView = computed(
-  () => store.getters['activity/activeView']
-)
-const sorterFilter = computed(() =>
-  activeView.value?.sorter.prop === 'activityCount'
-    ? 'trending'
-    : 'recentActivity'
-)
+  () => store.getters['activity/activeView'],
+);
+const sorterFilter = computed(() => (activeView.value?.sorter.prop === 'activityCount'
+  ? 'trending'
+  : 'recentActivity'));
 const hasFilter = computed(() => {
   const parsedFilters = {
-    ...activeView.value.filter.attributes
-  }
+    ...activeView.value.filter.attributes,
+  };
 
   // Remove search filter if value is empty
   if (!parsedFilters.search?.value) {
-    delete parsedFilters.search
+    delete parsedFilters.search;
   }
 
-  return !!Object.keys(parsedFilters).length
-})
+  return !!Object.keys(parsedFilters).length;
+});
 const emptyState = computed(() => {
   if (hasFilter.value) {
     return {
       title: 'No conversations found',
       description:
-        "We couldn't find any results that match your search criteria, please try a different query"
-    }
+        "We couldn't find any results that match your search criteria, please try a different query",
+    };
   }
 
   return {
     title: 'No conversations yet',
     description:
-      "We couldn't track any conversations among your community members"
-  }
-})
+      "We couldn't track any conversations among your community members",
+  };
+});
 
-const count = computed(() => store.state.activity.count)
+const count = computed(() => store.state.activity.count);
 const pagination = computed(
-  () => store.getters['activity/pagination']
-)
-const isLoadMoreVisible = computed(() => {
-  return (
-    pagination.value.currentPage *
-      pagination.value.pageSize <
-    count.value
-  )
-})
+  () => store.getters['activity/pagination'],
+);
+const isLoadMoreVisible = computed(() => (
+  pagination.value.currentPage
+      * pagination.value.pageSize
+    < count.value
+));
 
 const doChangeFilter = (filter) => {
-  let sorter = 'lastActive'
+  let sorter = 'lastActive';
   const payload = {
     activeView: activeView.value,
     attribute:
-      TRENDING_CONVERSATIONS_FILTER.attributes.lastActive
-  }
+      TRENDING_CONVERSATIONS_FILTER.attributes.lastActive,
+  };
 
   if (filter === 'trending') {
     // Add lastActive filter for 'Trending' sorter
-    store.commit('activity/FILTER_ATTRIBUTE_ADDED', payload)
-    sorter = 'activityCount'
+    store.commit('activity/FILTER_ATTRIBUTE_ADDED', payload);
+    sorter = 'activityCount';
   } else {
     // Remove lastActive filter for 'Most recent activity' sorter
     store.commit(
       'activity/FILTER_ATTRIBUTE_DESTROYED',
-      payload
-    )
+      payload,
+    );
   }
 
   store.dispatch('activity/doChangeSort', {
     prop: sorter,
-    order: 'descending'
-  })
-}
+    order: 'descending',
+  });
+};
 
 const onLoadMore = () => {
-  const newPageSize = pagination.value.pageSize + 10
+  const newPageSize = pagination.value.pageSize + 10;
 
   store.dispatch(
     'activity/doChangePaginationPageSize',
-    newPageSize
-  )
-}
+    newPageSize,
+  );
+};
+</script>
+
+<script>
+export default {
+  name: 'AppConversationsList',
+};
 </script>

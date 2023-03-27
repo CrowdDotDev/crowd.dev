@@ -1,5 +1,7 @@
 <template>
-  <h6 class="text-gray-900">Choose keywords</h6>
+  <h6 class="text-gray-900">
+    Choose keywords
+  </h6>
   <div class="text-xs text-gray-500 mt-2">
     Choose keywords that are relevant to the niche that you
     want to grow in. For example, we at crowd.dev are
@@ -32,7 +34,7 @@
           :disabled="keywords.length === 1"
           @click="deleteKeyword(index)"
         >
-          <i class="ri-delete-bin-line text-lg"></i>
+          <i class="ri-delete-bin-line text-lg" />
         </el-button>
       </div>
     </el-form>
@@ -40,8 +42,9 @@
     <el-button
       class="btn btn-link btn-link--md btn-link--primary mt-3"
       @click="addKeyword"
-      >+ Add keyword</el-button
     >
+      + Add keyword
+    </el-button>
   </div>
 
   <eagle-eye-footer
@@ -53,42 +56,42 @@
 </template>
 
 <script setup>
-import EagleEyeFooter from '@/premium/eagle-eye/components/onboard/eagle-eye-footer.vue'
-import { defineEmits, computed, defineProps } from 'vue'
+import { defineEmits, computed, defineProps } from 'vue';
+import EagleEyeFooter from '@/premium/eagle-eye/components/onboard/eagle-eye-footer.vue';
 
 const emit = defineEmits([
   'update:modelValue',
-  'onStepChange'
-])
+  'onStepChange',
+]);
 const props = defineProps({
   modelValue: {
     type: Array,
-    required: true
-  }
-})
+    required: true,
+  },
+});
 
 const keywords = computed({
   get() {
-    return props.modelValue
+    return props.modelValue;
   },
   set(v) {
-    emit('update:modelValue', v)
-  }
-})
+    emit('update:modelValue', v);
+  },
+});
 
 const isKeywordsFormValid = computed(
-  () => !keywords.value.some((k) => !k.value)
-)
+  () => !keywords.value.some((k) => !k.value),
+);
 
 const addKeyword = () => {
   keywords.value.push({
-    value: null
-  })
-}
+    value: null,
+  });
+};
 
 const deleteKeyword = (index) => {
-  keywords.value.splice(index, 1)
-}
+  keywords.value.splice(index, 1);
+};
 </script>
 
 <style lang="scss">

@@ -6,7 +6,7 @@
           height="32px"
           width="32px"
           radius="50%"
-        ></app-loading>
+        />
       </div>
       <div class="flex-grow pl-3 pt-2.5">
         <app-loading
@@ -32,7 +32,7 @@
       <router-link
         :to="{
           name: 'memberView',
-          params: { id: member.id }
+          params: { id: member.id },
         }"
       >
         <app-avatar :entity="member" size="xs" />
@@ -64,15 +64,12 @@
                 :activity="conversation.conversationStarter"
               />
               <!-- activity timestamp -->
-              <span class="whitespace-nowrap text-gray-500"
-                ><span class="mx-1">·</span
-                >{{
-                  timeAgo(
-                    conversation.conversationStarter
-                      .timestamp
-                  )
-                }}</span
-              >
+              <span class="whitespace-nowrap text-gray-500"><span class="mx-1">·</span>{{
+                timeAgo(
+                  conversation.conversationStarter
+                    .timestamp,
+                )
+              }}</span>
               <span v-if="sentiment" class="mx-1">·</span>
               <!-- conversation starter sentiment -->
               <app-activity-sentiment
@@ -107,7 +104,7 @@
           :disabled="isEditLockedForSampleData"
           @click.stop="$emit('edit-title')"
         >
-          <i class="ri-lg ri-pencil-line"></i>
+          <i class="ri-lg ri-pencil-line" />
         </button>
       </div>
     </div>
@@ -116,7 +113,7 @@
         <div class="flex items-center mr-6">
           <i
             class="ri-group-line text-base mr-2 text-gray-400"
-          ></i>
+          />
           <p class="text-xs text-gray-600">
             {{ conversation.memberCount }} participant{{
               conversation.memberCount > 1 ? 's' : ''
@@ -126,7 +123,7 @@
         <div class="flex items-center">
           <i
             class="ri-reply-line text-base mr-2 text-gray-400"
-          ></i>
+          />
           <p class="text-xs text-gray-600">
             {{ conversation.activityCount - 1 }}
             {{
@@ -154,7 +151,7 @@
           <div
             v-if="ri < replies.length - 1"
             class="h-full w-0.5 bg-gray-200 my-2"
-          ></div>
+          />
         </template>
       </app-conversation-reply>
     </div>
@@ -162,17 +159,17 @@
 </template>
 
 <script>
-import AppActivityMessage from '@/modules/activity/components/activity-message'
-import AppConversationReply from '@/modules/conversation/components/conversation-reply'
-import AppActivityContent from '@/modules/activity/components/activity-content'
-import AppActivitySentiment from '@/modules/activity/components/activity-sentiment'
-import AppLoading from '@/shared/loading/loading-placeholder'
-import AppAvatar from '@/shared/avatar/avatar'
-import { formatDateToTimeAgo } from '@/utils/date'
-import AppMemberDisplayName from '@/modules/member/components/member-display-name'
-import { CrowdIntegrations } from '@/integrations/integrations-config'
-import { ConversationPermissions } from '../conversation-permissions'
-import { mapGetters } from 'vuex'
+import { mapGetters } from 'vuex';
+import { formatDateToTimeAgo } from '@/utils/date';
+import { CrowdIntegrations } from '@/integrations/integrations-config';
+import AppActivityMessage from '@/modules/activity/components/activity-message.vue';
+import AppConversationReply from '@/modules/conversation/components/conversation-reply.vue';
+import AppActivityContent from '@/modules/activity/components/activity-content.vue';
+import AppActivitySentiment from '@/modules/activity/components/activity-sentiment.vue';
+import AppLoading from '@/shared/loading/loading-placeholder.vue';
+import AppAvatar from '@/shared/avatar/avatar.vue';
+import AppMemberDisplayName from '@/modules/member/components/member-display-name.vue';
+import { ConversationPermissions } from '../conversation-permissions';
 
 export default {
   name: 'AppConversationDetails',
@@ -183,61 +180,61 @@ export default {
     AppActivitySentiment,
     AppActivityContent,
     AppLoading,
-    AppAvatar
+    AppAvatar,
   },
   props: {
     conversation: {
       type: Object,
       required: false,
-      default: () => ({})
+      default: () => ({}),
     },
     editing: {
       type: Boolean,
-      default: false
+      default: false,
     },
     loading: {
       type: Boolean,
       required: false,
-      default: false
-    }
+      default: false,
+    },
   },
   emits: ['edit-title'],
   computed: {
     ...mapGetters({
       currentTenant: 'auth/currentTenant',
-      currentUser: 'auth/currentUser'
+      currentUser: 'auth/currentUser',
     }),
     platform() {
       return CrowdIntegrations.getConfig(
-        this.conversation.platform
-      )
+        this.conversation.platform,
+      );
     },
     member() {
-      return this.conversation.conversationStarter.member
+      return this.conversation.conversationStarter.member;
     },
     sentiment() {
       return this.conversation.conversationStarter.sentiment
-        .sentiment
+        .sentiment;
     },
     url() {
-      return this.conversation.url
+      return this.conversation.url;
     },
     replies() {
       return this.editing
         ? this.conversation.activities
-        : this.conversation.activities.slice(1)
+        : this.conversation.activities.slice(1);
     },
     isEditLockedForSampleData() {
       return new ConversationPermissions(
         this.currentTenant,
-        this.currentUser
-      ).editLockedForSampleData
-    }
+        this.currentUser,
+      ).editLockedForSampleData;
+    },
   },
   methods: {
     timeAgo(date) {
-      return formatDateToTimeAgo(date)
-    }
-  }
-}
+      return formatDateToTimeAgo(date);
+    },
+  },
+};
 </script>

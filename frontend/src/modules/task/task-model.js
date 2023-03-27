@@ -1,37 +1,35 @@
-import IdField from '@/shared/fields/id-field'
-import StringField from '@/shared/fields/string-field'
-import DateTimeField from '@/shared/fields/date-time-field'
-import { GenericModel } from '@/shared/model/generic-model'
-import RelationToManyField from '@/shared/fields/relation-to-many-field'
-import Permissions from '@/security/permissions'
-import { UserService } from '@/modules/user/user-service'
-import { MemberService } from '@/modules/member/member-service'
+import IdField from '@/shared/fields/id-field';
+import StringField from '@/shared/fields/string-field';
+import DateTimeField from '@/shared/fields/date-time-field';
+import { GenericModel } from '@/shared/model/generic-model';
+import RelationToManyField from '@/shared/fields/relation-to-many-field';
+import Permissions from '@/security/permissions';
+import { UserService } from '@/modules/user/user-service';
+import { MemberService } from '@/modules/member/member-service';
 
-const fetchUsers = (query, limit) => {
-  return UserService.fetchUserAutocomplete(query, limit)
-}
+const fetchUsers = (query, limit) => UserService.fetchUserAutocomplete(query, limit);
 
 const fetchMembers = (query, limit) => {
-  let filter = {}
+  let filter = {};
 
   if (Array.isArray(query)) {
     filter = {
       or: [
         {
           displayName: {
-            in: query.map((v) => v.displayName)
-          }
+            in: query.map((v) => v.displayName),
+          },
         },
-        { emails: { contains: [query] } }
-      ]
-    }
+        { emails: { contains: [query] } },
+      ],
+    };
   } else if (query) {
     filter = {
       or: [
         { displayName: { textContains: query } },
-        { emails: { contains: [query] } }
-      ]
-    }
+        { emails: { contains: [query] } },
+      ],
+    };
   }
 
   return MemberService.list(
@@ -39,20 +37,18 @@ const fetchMembers = (query, limit) => {
     '',
     limit,
     0,
-    false
-  ).then(({ rows }) => {
-    return rows.map((r) => ({
-      ...r,
-      id: r.id,
-      label: r.displayName
-    }))
-  })
-}
+    false,
+  ).then(({ rows }) => rows.map((r) => ({
+    ...r,
+    id: r.id,
+    label: r.displayName,
+  })));
+};
 
 const fields = {
   id: new IdField('id', 'ID'),
   title: new StringField('name', 'Title', {
-    required: true
+    required: true,
   }),
   description: new StringField('body', 'Description'),
   dueDate: new DateTimeField('dueDate', 'Due date'),
@@ -64,17 +60,17 @@ const fields = {
     fetchMembers,
     (record) => {
       if (!record) {
-        return null
+        return null;
       }
       return {
         ...record,
         id: record.id,
         label: record.displayName || record.email,
         displayName: record.displayName,
-        avatar: record.avatar
-      }
+        avatar: record.avatar,
+      };
     },
-    {}
+    {},
   ),
   assignees: new RelationToManyField(
     'assignees',
@@ -82,12 +78,12 @@ const fields = {
     '/user',
     Permissions.values.userRead,
     fetchUsers,
-    () => {}
-  )
-}
+    () => {},
+  ),
+};
 
 export class TaskModel extends GenericModel {
   static get fields() {
-    return fields
+    return fields;
   }
 }

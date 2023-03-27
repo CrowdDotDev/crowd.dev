@@ -12,7 +12,7 @@
       <i
         v-else
         class="ri-apps-2-line text-base text-gray-400 mr-2"
-      ></i>
+      />
       <p class="text-sm leading-5 py-2">
         <span v-if="platformDetails">{{
           platformDetails.name
@@ -23,35 +23,35 @@
     <div
       class="flex-grow flex justify-between items-center"
     >
-      <p class="text-sm leading-5">{{ label }}</p>
+      <p class="text-sm leading-5">
+        {{ label }}
+      </p>
       <slot name="after" />
     </div>
   </article>
 </template>
 
-<script>
-export default {
-  name: 'AppActivityTypeListItem'
-}
-</script>
-
 <script setup>
-import { CrowdIntegrations } from '@/integrations/integrations-config'
-import { computed, defineProps } from 'vue'
+import { computed, defineProps } from 'vue';
+import { CrowdIntegrations } from '@/integrations/integrations-config';
 
 const props = defineProps({
   platform: {
     type: String,
     required: false,
-    default: ''
+    default: '',
   },
   label: {
     type: String,
-    required: true
-  }
-})
+    required: true,
+  },
+});
 
-const platformDetails = computed(() => {
-  return CrowdIntegrations.getConfig(props.platform)
-})
+const platformDetails = computed(() => CrowdIntegrations.getConfig(props.platform));
+</script>
+
+<script>
+export default {
+  name: 'AppActivityTypeListItem',
+};
 </script>

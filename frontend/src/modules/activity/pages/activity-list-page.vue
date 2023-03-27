@@ -4,9 +4,7 @@
       <div class="flex justify-between">
         <div>
           <h4>
-            <app-i18n
-              code="entities.activity.list.title"
-            ></app-i18n>
+            Activities
           </h4>
           <div class="text-xs text-gray-500 mb-10">
             Activities are everything that is happening in
@@ -18,7 +16,7 @@
             class="btn btn--transparent btn--md text-gray-600 mr-4"
             @click="isActivityTypeDrawerOpen = true"
           >
-            <i class="ri-settings-3-line text-lg mr-2"></i>
+            <i class="ri-settings-3-line text-lg mr-2" />
             Activity types
           </el-button>
           <el-button
@@ -30,23 +28,23 @@
         </div>
       </div>
 
-      <app-activity-list-tabs></app-activity-list-tabs>
+      <app-activity-list-tabs />
       <app-activity-list-filter
         :module="activeView.type"
-      ></app-activity-list-filter>
+      />
       <app-activity-list
         v-if="activeView.type === 'activities'"
         :activities="recordsArray"
         :loading="loading"
         :items-as-cards="true"
         @edit="edit($event)"
-      ></app-activity-list>
+      />
       <app-conversation-list
         v-else-if="activeView.type === 'conversations'"
         :conversations="recordsArray"
         :loading="loading"
         :items-as-cards="true"
-      ></app-conversation-list>
+      />
     </div>
   </app-page-wrapper>
   <app-activity-type-list-drawer
@@ -64,16 +62,15 @@
 </template>
 
 <script>
-import { mapState, mapGetters } from 'vuex'
-import { ActivityPermissions } from '@/modules/activity/activity-permissions'
-import AppActivityList from '@/modules/activity/components/activity-list'
-import AppConversationList from '@/modules/conversation/components/conversation-list'
-import AppActivityListTabs from '@/modules/activity/components/activity-list-tabs'
-import AppActivityListFilter from '@/modules/activity/components/list/activity-list-filter.vue'
-import AppI18n from '@/shared/i18n/i18n'
-import AppActivityTypeListDrawer from '@/modules/activity/components/type/activity-type-list-drawer.vue'
-import AppActivityFormDrawer from '@/modules/activity/components/activity-form-drawer.vue'
-import AppActivityTypeFormModal from '@/modules/activity/components/type/activity-type-form-modal.vue'
+import { mapState, mapGetters } from 'vuex';
+import { ActivityPermissions } from '@/modules/activity/activity-permissions';
+import AppActivityListFilter from '@/modules/activity/components/list/activity-list-filter.vue';
+import AppActivityTypeListDrawer from '@/modules/activity/components/type/activity-type-list-drawer.vue';
+import AppActivityFormDrawer from '@/modules/activity/components/activity-form-drawer.vue';
+import AppActivityTypeFormModal from '@/modules/activity/components/type/activity-type-form-modal.vue';
+import AppActivityList from '@/modules/activity/components/activity-list.vue';
+import AppConversationList from '@/modules/conversation/components/conversation-list.vue';
+import AppActivityListTabs from '@/modules/activity/components/activity-list-tabs.vue';
 
 export default {
   name: 'AppActivityListPage',
@@ -82,11 +79,10 @@ export default {
     AppActivityTypeFormModal,
     AppActivityFormDrawer,
     AppActivityTypeListDrawer,
-    AppI18n,
     AppActivityList,
     AppConversationList,
     AppActivityListTabs,
-    AppActivityListFilter
+    AppActivityListFilter,
   },
 
   data() {
@@ -95,37 +91,37 @@ export default {
       isActivityTypeDrawerOpen: false,
       isActivityDrawerOpen: false,
       isActivityTypeFormVisible: false,
-      editableActivity: null
-    }
+      editableActivity: null,
+    };
   },
   computed: {
     ...mapGetters({
       currentTenant: 'auth/currentTenant',
       currentUser: 'auth/currentUser',
       activeView: 'activity/activeView',
-      recordsArray: 'activity/rows'
+      recordsArray: 'activity/rows',
     }),
     ...mapState({
-      loading: (state) => state.activity.list.loading
+      loading: (state) => state.activity.list.loading,
     }),
     hasPermissionToCreate() {
       return new ActivityPermissions(
         this.currentTenant,
-        this.currentUser
-      ).create
-    }
+        this.currentUser,
+      ).create;
+    },
   },
 
   async mounted() {
-    window.analytics.page('Activities')
+    window.analytics.page('Activities');
   },
   methods: {
     edit(activity) {
-      this.isActivityDrawerOpen = true
-      this.editableActivity = activity
-    }
-  }
-}
+      this.isActivityDrawerOpen = true;
+      this.editableActivity = activity;
+    },
+  },
+};
 </script>
 
 <style></style>

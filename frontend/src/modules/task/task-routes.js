@@ -1,7 +1,6 @@
-import Layout from '@/modules/layout/components/layout.vue'
+import Layout from '@/modules/layout/components/layout.vue';
 
-const TaskPage = () =>
-  import('@/modules/task/pages/task-page.vue')
+const TaskPage = () => import('@/modules/task/pages/task-page.vue');
 
 export default [
   {
@@ -14,8 +13,8 @@ export default [
         name: 'task',
         path: '/task',
         component: TaskPage,
-        exact: true
-      }
-    ]
-  }
-]
+        exact: true,
+      },
+    ],
+  },
+];

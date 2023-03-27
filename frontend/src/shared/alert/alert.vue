@@ -7,12 +7,16 @@
       <i
         class="mr-2.5 flex items-center h-3.5 pt-1"
         :class="iconClass"
-      ></i>
+      />
       <div class="text-xs flex-grow">
         <div class="font-semibold inline-flex pr-1">
-          <slot name="title"> Action Required:</slot>
+          <slot name="title">
+            Action Required:
+          </slot>
         </div>
-        <slot name="body"> This is the body </slot>
+        <slot name="body">
+          This is the body
+        </slot>
       </div>
     </div>
   </div>
@@ -24,30 +28,30 @@ export default {
   props: {
     title: {
       type: String,
-      default: ''
+      default: '',
     },
     type: {
       type: String,
-      default: 'warning'
-    }
+      default: 'warning',
+    },
   },
   computed: {
     alertClass() {
       switch (this.type) {
         case 'warning':
-          return 'bg-yellow-50 border-yellow-100'
+          return 'bg-yellow-50 border-yellow-100';
         default:
-          return 'bg-blue-50 border-blue-100'
+          return 'bg-blue-50 border-blue-100';
       }
     },
     iconClass() {
       switch (this.type) {
         case 'warning':
-          return 'text-yellow-500 ri-alert-fill'
+          return 'text-yellow-500 ri-alert-fill';
         default:
-          return 'text-blue-500 ri-information-fill'
+          return 'text-blue-500 ri-information-fill';
       }
-    }
-  }
-}
+    },
+  },
+};
 </script>

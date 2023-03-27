@@ -5,9 +5,7 @@
   >
     <div class="flex items-center gap-2">
       <i class="ri-mail-open-line text-lg text-gray-900" />
-      <span class="text-gray-900 font-semibold text-sm"
-        >Email Digest</span
-      >
+      <span class="text-gray-900 font-semibold text-sm">Email Digest</span>
     </div>
 
     <div class="text-2xs text-gray-600 mt-4 mb-6">
@@ -18,8 +16,9 @@
     <el-button
       class="btn btn--primary btn--full !h-8"
       @click="isEmailDigestDrawerOpen = true"
-      >Activate Email Digest</el-button
     >
+      Activate Email Digest
+    </el-button>
   </div>
 
   <div
@@ -29,21 +28,18 @@
     <div class="flex items-center gap-3">
       <i class="ri-mail-open-line text-lg text-gray-900" />
       <div class="flex flex-col">
-        <span class="text-gray-900 font-medium text-xs"
-          >Email Digest</span
-        >
+        <span class="text-gray-900 font-medium text-xs">Email Digest</span>
         <span
           class="text-2xs"
           :class="{
             'text-gray-500': !isEmailDigestActivated,
-            'text-green-600': isEmailDigestActivated
+            'text-green-600': isEmailDigestActivated,
           }"
-          >{{
-            isEmailDigestActivated
-              ? 'Active'
-              : 'Deactivated'
-          }}</span
-        >
+        >{{
+          isEmailDigestActivated
+            ? 'Active'
+            : 'Deactivated'
+        }}</span>
       </div>
     </div>
 
@@ -61,28 +57,26 @@
 </template>
 
 <script setup>
-import { mapGetters } from '@/shared/vuex/vuex.helpers'
-import AppEagleEyeEmailDigestDrawer from '@/premium/eagle-eye/components/list/eagle-eye-email-digest-drawer.vue'
-import { ref, computed } from 'vue'
+import { ref, computed } from 'vue';
+import { mapGetters } from '@/shared/vuex/vuex.helpers';
+import AppEagleEyeEmailDigestDrawer from '@/premium/eagle-eye/components/list/eagle-eye-email-digest-drawer.vue';
 
-const { currentUser, currentTenant } = mapGetters('auth')
+const { currentUser, currentTenant } = mapGetters('auth');
 
 const eagleEyeSettings = computed(
-  () =>
-    currentUser.value.tenants.find(
-      (tu) => tu.tenantId === currentTenant.value.id
-    ).settings.eagleEye
-)
+  () => currentUser.value.tenants.find(
+    (tu) => tu.tenantId === currentTenant.value.id,
+  ).settings.eagleEye,
+);
 
-const isEmailDigestDrawerOpen = ref(false)
+const isEmailDigestDrawerOpen = ref(false);
 
 const isEmailDigestConfiguredOnce = computed(
-  () =>
-    !!Object.keys(eagleEyeSettings.value.emailDigest || {})
-      .length
-)
+  () => !!Object.keys(eagleEyeSettings.value.emailDigest || {})
+    .length,
+);
 
 const isEmailDigestActivated = computed(
-  () => eagleEyeSettings.value?.emailDigestActive
-)
+  () => eagleEyeSettings.value?.emailDigestActive,
+);
 </script>

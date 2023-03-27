@@ -6,7 +6,7 @@
         :key="view.id"
         :label="view.label"
         :name="view.id"
-      ></el-tab-pane>
+      />
     </el-tabs>
     <span
       v-if="showResetView"
@@ -19,48 +19,45 @@
   </div>
 </template>
 
-<script>
-export default {
-  name: 'AppMemberListTabs'
-}
-</script>
-
 <script setup>
-import { computed } from 'vue'
-import { useStore } from 'vuex'
+import { computed } from 'vue';
+import { useStore } from 'vuex';
 
-const store = useStore()
+const store = useStore();
 const showResetView = computed(
-  () => store.getters['member/showResetView']
-)
+  () => store.getters['member/showResetView'],
+);
 const model = computed({
   get() {
     return Object.values(store.state.member.views).find(
-      (v) => v.active
-    ).id
+      (v) => v.active,
+    ).id;
   },
   set(value) {
-    store.dispatch('member/doChangeActiveView', value)
-  }
-})
-const views = computed(() => {
-  return Object.values(store.state.member.views).filter(
-    (v) => v.id !== 'influential' || showInfluential.value
-  )
-})
+    store.dispatch('member/doChangeActiveView', value);
+  },
+});
 
 const integrations = computed(
-  () => store.getters['integration/activeList'] || {}
-)
+  () => store.getters['integration/activeList'] || {},
+);
 
-const showInfluential = computed(() => {
-  return (
-    integrations.value.twitter?.status === 'done' ||
-    integrations.value.github?.status === 'done'
-  )
-})
+const showInfluential = computed(() => (
+  integrations.value.twitter?.status === 'done'
+  || integrations.value.github?.status === 'done'
+));
+
+const views = computed(() => Object.values(store.state.member.views).filter(
+  (v) => v.id !== 'influential' || showInfluential.value,
+));
 
 const resetView = () => {
-  store.dispatch('member/doResetActiveView')
-}
+  store.dispatch('member/doResetActiveView');
+};
+</script>
+
+<script>
+export default {
+  name: 'AppMemberListTabs',
+};
 </script>

@@ -25,9 +25,9 @@
             v-if="template.public"
             :report="{
               id: template.id,
-              public: template.public
+              public: template.public,
             }"
-          ></app-report-template-dropdown>
+          />
         </div>
       </div>
       <div class="text-gray-900 text-base font-medium mb-3">
@@ -41,24 +41,24 @@
 </template>
 
 <script setup>
-import { defineProps } from 'vue'
-import AppReportTemplateDropdown from '@/modules/report/components/templates/report-template-dropdown.vue'
-import { useRouter } from 'vue-router'
+import { defineProps } from 'vue';
+import { useRouter } from 'vue-router';
+import AppReportTemplateDropdown from '@/modules/report/components/templates/report-template-dropdown.vue';
 
-const router = useRouter()
+const router = useRouter();
 const props = defineProps({
   template: {
     type: Object,
-    required: true
-  }
-})
+    required: true,
+  },
+});
 
 const onClick = () => {
   router.push({
     name: 'reportTemplate',
     params: {
-      id: props.template.id
-    }
-  })
-}
+      id: props.template.id,
+    },
+  });
+};
 </script>

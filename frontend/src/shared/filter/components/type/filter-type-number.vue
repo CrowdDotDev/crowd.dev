@@ -19,29 +19,23 @@
           operator === 'between' ? 'From' : 'Enter a value'
         "
         :disabled="
-          operator === 'is_empty' ||
-          operator === 'is_not_empty'
+          operator === 'is_empty'
+            || operator === 'is_not_empty'
         "
-      ></el-input>
+      />
       <el-input
         v-if="operator === 'between'"
         v-model="rangeModel"
         type="number"
         placeholder="To"
         :disabled="
-          operator === 'is_empty' ||
-          operator === 'is_not_empty'
+          operator === 'is_empty'
+            || operator === 'is_not_empty'
         "
-      ></el-input>
+      />
     </div>
   </div>
 </template>
-
-<script>
-export default {
-  name: 'AppFilterTypeNumber'
-}
-</script>
 
 <script setup>
 import {
@@ -49,86 +43,89 @@ import {
   defineEmits,
   defineProps,
   watch,
-  ref
-} from 'vue'
-import operators from '@/shared/filter/helpers/operators'
+  ref,
+} from 'vue';
+import operators from '@/shared/filter/helpers/operators';
 
 const props = defineProps({
   value: {
     type: [Array, Number],
-    default: null
+    default: null,
   },
   defaultOperator: {
     type: String,
-    default: null
+    default: null,
   },
   operator: {
     type: String,
-    default: null
+    default: null,
   },
   isExpanded: {
     type: Boolean,
-    default: false
-  }
-})
+    default: false,
+  },
+});
 
 const emit = defineEmits([
   'update:value',
-  'update:operator'
-])
+  'update:operator',
+]);
+
+const operator = computed({
+  get() {
+    return props.operator;
+  },
+  set(v) {
+    emit('update:operator', v);
+  },
+});
 
 const model = computed({
   get() {
     if (operator.value === 'between') {
       return Array.isArray(props.value)
         ? props.value[0]
-        : props.value
+        : props.value;
     }
-    return props.value
+    return props.value;
   },
   set(v) {
     emit(
       'update:value',
       operator.value === 'between'
-        ? [Number(v), Number(rangeModel.value)]
-        : Number(v)
-    )
-  }
-})
+        ? [Number(v), Number(props.value[1])]
+        : Number(v),
+    );
+  },
+});
 
 const rangeModel = computed({
   get() {
-    return props.value[1]
+    return props.value[1];
   },
   set(v) {
-    emit('update:value', [Number(model.value), Number(v)])
-  }
-})
+    emit('update:value', [Number(model.value), Number(v)]);
+  },
+});
 
-const operator = computed({
-  get() {
-    return props.operator
-  },
-  set(v) {
-    emit('update:operator', v)
-  }
-})
-const computedOperatorOptions = computed(() => {
-  return Object.keys(operators.number.operator).map((o) => {
-    return {
-      value: o,
-      label: operators.number.operator[o]
-    }
-  })
-})
-const expanded = computed(() => props.isExpanded)
-const inputRef = ref(null)
+const computedOperatorOptions = computed(() => Object.keys(operators.number.operator).map((o) => ({
+  value: o,
+  label: operators.number.operator[o],
+})));
+const expanded = computed(() => props.isExpanded);
+const inputRef = ref(null);
 
 watch(expanded, async (newValue) => {
   if (newValue) {
-    inputRef.value.focus()
+    inputRef.value.focus();
   }
-})
+});
+</script>
+
+<script>
+export default {
+  name: 'AppFilterTypeNumber',
+};
 </script>
 
 <style lang="scss">

@@ -2,8 +2,8 @@
   <component
     :is="props.integration.connectComponent"
     v-if="
-      props.integration.enabled &&
-      props.integration.connectComponent
+      props.integration.enabled
+        && props.integration.connectComponent
     "
     :integration="props.integration"
   >
@@ -12,7 +12,7 @@
         connect,
         settings,
         hasSettings,
-        hasIntegration
+        hasIntegration,
       }"
     >
       <slot
@@ -29,38 +29,36 @@
     v-else-if="props.integration.platform === 'custom'"
     href="https://crowd.dev/integration-framework"
     target="_blank"
+    rel="noopener noreferrer"
     class="btn btn-brand btn-brand--primary btn--md"
-    >Read more</a
-  >
+  >Read more</a>
   <el-button
     v-else
     class="btn btn--bordered btn--md"
     :disabled="true"
-    >Soon</el-button
   >
+    Soon
+  </el-button>
 </template>
 
-<script>
-export default {
-  name: 'AppIntegrationConnect'
-}
-</script>
 <script setup>
-import { defineProps, computed } from 'vue'
+import { defineProps, computed } from 'vue';
 
 const props = defineProps({
   integration: {
     type: Object,
     required: true,
-    default: () => ({})
-  }
-})
+    default: () => ({}),
+  },
+});
 
-const isConnected = computed(() => {
-  return props.integration.status !== undefined
-})
+const isConnected = computed(() => props.integration.status !== undefined);
 
-const isDone = computed(() => {
-  return props.integration.status === 'done'
-})
+const isDone = computed(() => props.integration.status === 'done');
+</script>
+
+<script>
+export default {
+  name: 'AppIntegrationConnect',
+};
 </script>

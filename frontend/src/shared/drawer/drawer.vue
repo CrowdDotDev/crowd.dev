@@ -32,7 +32,7 @@
           <slot name="belowTitle" />
         </div>
         <div class="flex gap-3 items-center">
-          <slot name="header-label"></slot>
+          <slot name="header-label" />
           <div class="ml-3">
             <el-button
               class="btn btn--transparent btn--xs w-8 !h-8"
@@ -40,7 +40,7 @@
             >
               <i
                 class="ri-close-line text-lg text-gray-400"
-              ></i>
+              />
             </el-button>
           </div>
         </div>
@@ -48,69 +48,70 @@
     </template>
 
     <template #default>
-      <slot name="content"></slot>
+      <slot name="content" />
     </template>
     <template v-if="showFooter" #footer>
-      <slot name="footer"></slot>
+      <slot name="footer" />
     </template>
   </el-drawer>
 </template>
 
-<script>
-export default {
-  name: 'AppDrawer'
-}
-</script>
 <script setup>
-import { defineProps, computed, defineEmits } from 'vue'
+import { defineProps, computed, defineEmits } from 'vue';
 
-const emit = defineEmits(['update:modelValue', 'close'])
+const emit = defineEmits(['update:modelValue', 'close']);
 const props = defineProps({
   modelValue: {
     type: Boolean,
-    default: () => false
+    default: () => false,
   },
   preTitle: {
     type: String,
-    default: () => null
+    default: () => null,
   },
   title: {
     type: String,
-    required: true
+    required: true,
   },
   customClass: {
     type: String,
-    default: () => ''
+    default: () => '',
   },
   direction: {
     type: String,
-    default: () => 'rtl'
+    default: () => 'rtl',
   },
   size: {
     type: [String, Number],
-    default: () => '40%'
+    default: () => '40%',
   },
   showFooter: {
     type: Boolean,
-    default: () => true
+    default: () => true,
   },
   hasBorder: {
     type: Boolean,
-    default: () => false
-  }
-})
+    default: () => false,
+  },
+});
 
 const model = computed({
   get() {
-    return props.modelValue
+    return props.modelValue;
   },
   set(value) {
-    emit('update:modelValue', value)
-  }
-})
+    emit('update:modelValue', value);
+  },
+});
 
 const onClose = () => {
-  model.value = false
-  emit('close')
-}
+  model.value = false;
+  emit('close');
+};
+</script>
+
+<script>
+export default {
+  name: 'AppDrawer',
+};
 </script>

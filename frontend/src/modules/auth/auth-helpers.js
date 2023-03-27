@@ -1,19 +1,19 @@
-import { i18n } from '@/i18n'
+import { i18n } from '@/i18n';
 
 export function passwordConfirmRules(rules, fields, model) {
   const passwordConfirmationValidator = (
     _rule,
     value,
-    callback
+    callback,
   ) => {
     if (value !== model[fields.password.name]) {
       callback(
-        new Error(i18n('auth.passwordChange.mustMatch'))
-      )
+        new Error(i18n('auth.passwordChange.mustMatch')),
+      );
     } else {
-      callback()
+      callback();
     }
-  }
+  };
 
   return {
     ...rules,
@@ -21,8 +21,8 @@ export function passwordConfirmRules(rules, fields, model) {
       ...rules[fields.passwordConfirmation.name],
       {
         validator: passwordConfirmationValidator,
-        trigger: 'blur'
-      }
-    ]
-  }
+        trigger: 'blur',
+      },
+    ],
+  };
 }

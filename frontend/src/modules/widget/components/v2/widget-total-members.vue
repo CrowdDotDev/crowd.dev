@@ -13,7 +13,7 @@
         @on-update="
           (updatedPeriod) => (period = updatedPeriod)
         "
-      ></app-widget-period>
+      />
     </div>
     <div>
       <query-renderer
@@ -41,7 +41,7 @@
                 "
                 :vs-label="`vs. last ${period.extendedLabel}`"
                 class="col-span-5"
-              ></app-widget-kpi>
+              />
             </div>
             <div class="col-span-7 chart">
               <app-widget-area
@@ -69,144 +69,136 @@
     module-name="member"
     size="480px"
     @on-export="onExport"
-  ></app-widget-drawer>
+  />
 </template>
 <script setup>
-import moment from 'moment'
-import cloneDeep from 'lodash/cloneDeep'
-import { ref, computed, defineProps } from 'vue'
-import { QueryRenderer } from '@cubejs-client/vue3'
-import { SEVEN_DAYS_PERIOD_FILTER } from '@/modules/widget/widget-constants'
-import { chartOptions } from '@/modules/report/templates/template-report-charts'
+import moment from 'moment';
+import cloneDeep from 'lodash/cloneDeep';
+import { ref, computed, defineProps } from 'vue';
+import { QueryRenderer } from '@cubejs-client/vue3';
+import { SEVEN_DAYS_PERIOD_FILTER } from '@/modules/widget/widget-constants';
+import { chartOptions } from '@/modules/report/templates/template-report-charts';
 
-import AppWidgetKpi from '@/modules/widget/components/v2/shared/widget-kpi.vue'
-import AppWidgetTitle from '@/modules/widget/components/v2/shared/widget-title.vue'
-import AppWidgetPeriod from '@/modules/widget/components/v2/shared/widget-period.vue'
-import AppWidgetArea from '@/modules/widget/components/v2/shared/widget-area.vue'
-import AppWidgetLoading from '@/modules/widget/components/v2/shared/widget-loading.vue'
-import AppWidgetError from '@/modules/widget/components/v2/shared/widget-error.vue'
+import AppWidgetKpi from '@/modules/widget/components/v2/shared/widget-kpi.vue';
+import AppWidgetTitle from '@/modules/widget/components/v2/shared/widget-title.vue';
+import AppWidgetPeriod from '@/modules/widget/components/v2/shared/widget-period.vue';
+import AppWidgetArea from '@/modules/widget/components/v2/shared/widget-area.vue';
+import AppWidgetLoading from '@/modules/widget/components/v2/shared/widget-loading.vue';
+import AppWidgetError from '@/modules/widget/components/v2/shared/widget-error.vue';
 
 import {
   mapGetters,
-  mapActions
-} from '@/shared/vuex/vuex.helpers'
-import { getTimeGranularityFromPeriod } from '@/utils/reports'
+  mapActions,
+} from '@/shared/vuex/vuex.helpers';
+import { getTimeGranularityFromPeriod } from '@/utils/reports';
 import {
   TOTAL_MEMBERS_QUERY,
-  TOTAL_MEMBERS_FILTER
-} from '@/modules/widget/widget-queries'
-import { MemberService } from '@/modules/member/member-service'
-import AppWidgetDrawer from '@/modules/widget/components/v2/shared/widget-drawer.vue'
+  TOTAL_MEMBERS_FILTER,
+} from '@/modules/widget/widget-queries';
+import { MemberService } from '@/modules/member/member-service';
+import AppWidgetDrawer from '@/modules/widget/components/v2/shared/widget-drawer.vue';
 
-const customChartOptions = cloneDeep(chartOptions('area'))
+const customChartOptions = cloneDeep(chartOptions('area'));
 
 // Remove legend from the chart options
-customChartOptions.library.plugins.legend = {}
+customChartOptions.library.plugins.legend = {};
 
 const props = defineProps({
   filters: {
     type: Object,
-    default: null
+    default: null,
   },
   isPublicView: {
     type: Boolean,
-    default: false
-  }
-})
+    default: false,
+  },
+});
 
-const period = ref(SEVEN_DAYS_PERIOD_FILTER)
-const drawerExpanded = ref()
-const drawerDate = ref()
-const drawerTitle = ref()
+const period = ref(SEVEN_DAYS_PERIOD_FILTER);
+const drawerExpanded = ref();
+const drawerDate = ref();
+const drawerTitle = ref();
 
-const granularity = computed(() =>
-  getTimeGranularityFromPeriod(period.value)
-)
-const datasets = computed(() => {
-  return [
-    {
-      name: 'Total members',
-      borderColor: '#E94F2E',
-      measure: 'Members.cumulativeCount',
-      granularity: granularity.value,
-      ...(!props.isPublicView && {
-        tooltipBtn: 'View members'
-      })
-    }
-  ]
-})
+const granularity = computed(() => getTimeGranularityFromPeriod(period.value));
+const datasets = computed(() => [
+  {
+    name: 'Total members',
+    borderColor: '#E94F2E',
+    measure: 'Members.cumulativeCount',
+    granularity: granularity.value,
+    ...(!props.isPublicView && {
+      tooltipBtn: 'View members',
+    }),
+  },
+]);
 
-const { doExport } = mapActions('member')
-const { cubejsApi } = mapGetters('widget')
+const { doExport } = mapActions('member');
+const { cubejsApi } = mapGetters('widget');
 
-const query = computed(() => {
-  return TOTAL_MEMBERS_QUERY({
-    period: period.value,
-    granularity,
-    selectedPlatforms: props.filters.platform.value,
-    selectedHasTeamMembers: props.filters.teamMembers
-  })
-})
+const query = computed(() => TOTAL_MEMBERS_QUERY({
+  period: period.value,
+  granularity,
+  selectedPlatforms: props.filters.platform.value,
+  selectedHasTeamMembers: props.filters.teamMembers,
+}));
 
 const kpiCurrentValue = (resultSet) => {
-  const data = resultSet.chartPivot()
+  const data = resultSet.chartPivot();
   return Number(
-    data[data.length - 1]['Members.cumulativeCount']
-  )
-}
+    data[data.length - 1]['Members.cumulativeCount'],
+  );
+};
 
 const kpiPreviousValue = (resultSet) => {
-  const data = resultSet.chartPivot()
-  return Number(data[0]['Members.cumulativeCount'])
-}
+  const data = resultSet.chartPivot();
+  return Number(data[0]['Members.cumulativeCount']);
+};
+
+const spliceFirstValue = (data) => cloneDeep(data).reduce((acc, item, index) => {
+  if (index !== 0) {
+    acc.push({
+      ...item,
+    });
+  }
+  return acc;
+}, []);
 
 const chartResultSet = (resultSet) => {
-  const clone = cloneDeep(resultSet)
+  const clone = cloneDeep(resultSet);
 
   // We'll be excluding the first data point, since it's related to the last period
   clone.loadResponses[0].data = spliceFirstValue(
-    clone.loadResponses[0].data
-  )
+    clone.loadResponses[0].data,
+  );
 
   // Then we also fix the first entry of the dateRange
-  clone.loadResponses[0].query.timeDimensions[0].dateRange[0] =
-    moment(
-      clone.loadResponses[0].query.timeDimensions[0]
-        .dateRange[0]
-    )
-      .utc()
-      .add(1, 'day')
-      .format('YYYY-MM-DD')
+  clone.loadResponses[0].query.timeDimensions[0].dateRange[0] = moment(
+    clone.loadResponses[0].query.timeDimensions[0]
+      .dateRange[0],
+  )
+    .utc()
+    .add(1, 'day')
+    .format('YYYY-MM-DD');
 
-  return clone
-}
-
-const spliceFirstValue = (data) => {
-  return cloneDeep(data).reduce((acc, item, index) => {
-    if (index !== 0) {
-      acc.push({
-        ...item
-      })
-    }
-    return acc
-  }, [])
-}
+  return clone;
+};
 
 // Fetch function to pass to detail drawer
 const getTotalMembers = async ({ pagination }) => {
-  return await MemberService.list(
+  const res = await MemberService.list(
     TOTAL_MEMBERS_FILTER({
       date: drawerDate.value,
       granularity: granularity.value,
       selectedPlatforms: props.filters.platform.value,
-      selectedHasTeamMembers: props.filters.teamMembers
+      selectedHasTeamMembers: props.filters.teamMembers,
     }),
     'joinedAt_DESC',
     pagination.pageSize,
     (pagination.currentPage - 1) * pagination.pageSize,
-    false
-  )
-}
+    false,
+  );
+  return res;
+};
 
 // Open drawer and set drawer title,
 // and detailed date
@@ -215,21 +207,21 @@ const onViewMoreClick = (date) => {
     template: 'Members report',
     widget: 'Total members',
     date,
-    granularity: granularity.value
-  })
+    granularity: granularity.value,
+  });
 
-  drawerExpanded.value = true
-  drawerDate.value = date
+  drawerExpanded.value = true;
+  drawerDate.value = date;
 
   // Title
   if (granularity.value === 'week') {
-    drawerTitle.value = 'Weekly total members'
+    drawerTitle.value = 'Weekly total members';
   } else if (granularity.value === 'month') {
-    drawerTitle.value = 'Monthly total members'
+    drawerTitle.value = 'Monthly total members';
   } else {
-    drawerTitle.value = 'Daily total members'
+    drawerTitle.value = 'Daily total members';
   }
-}
+};
 
 const onExport = async ({ count }) => {
   try {
@@ -239,14 +231,14 @@ const onExport = async ({ count }) => {
         date: drawerDate.value,
         granularity: granularity.value,
         selectedPlatforms: props.filters.platform.value,
-        selectedHasTeamMembers: props.filters.teamMembers
+        selectedHasTeamMembers: props.filters.teamMembers,
       }),
-      count
-    })
+      count,
+    });
   } catch (error) {
-    console.error(error)
+    console.error(error);
   }
-}
+};
 </script>
 
 <style lang="scss" scoped>

@@ -1,5 +1,5 @@
-import moment from 'moment'
-import config from '@/config'
+import moment from 'moment';
+import config from '@/config';
 
 /**
  * Time ago utility
@@ -10,11 +10,9 @@ import config from '@/config'
  * @param timestamp
  * @returns {string|string}
  */
-export const formatDateToTimeAgo = (timestamp) => {
-  return moment(timestamp).year() === 1970
-    ? 'some time ago'
-    : moment(timestamp).fromNow()
-}
+export const formatDateToTimeAgo = (timestamp) => (moment(timestamp).year() === 1970
+  ? 'some time ago'
+  : moment(timestamp).fromNow());
 
 /**
  *
@@ -29,34 +27,34 @@ export const formatDate = ({
   subtractDays,
   subtractMonths,
   subtractYears,
-  format = 'YYYY-MM-DD'
+  format = 'YYYY-MM-DD',
 }) => {
-  const date = timestamp ? moment(timestamp) : moment()
+  const date = timestamp ? moment(timestamp) : moment();
 
   if (subtractDays) {
-    date.subtract(subtractDays, 'days')
+    date.subtract(subtractDays, 'days');
   }
 
   if (subtractMonths) {
-    date.subtract(subtractMonths, 'months')
+    date.subtract(subtractMonths, 'months');
   }
 
   if (subtractYears) {
-    date.subtract(subtractYears, 'years')
+    date.subtract(subtractYears, 'years');
   }
 
-  return date.format(format)
-}
+  return date.format(format);
+};
 
 export const getTrialDate = (tenant) => {
   if (config.isCommunityVersion || !tenant.isTrialPlan) {
-    return null
+    return null;
   }
 
   const daysLeft = moment(tenant.trialEndsAt).diff(
     moment(),
-    'days'
-  )
+    'days',
+  );
 
-  return `Trial (${daysLeft < 0 ? 0 : daysLeft} days left)`
-}
+  return `Trial (${daysLeft < 0 ? 0 : daysLeft} days left)`;
+};

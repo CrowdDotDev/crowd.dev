@@ -102,13 +102,13 @@
 </template>
 
 <script setup>
-import AppMemberCustomAttributesArrayRenderer from './_aside-custom-attributes-array-renderer'
-import { defineProps } from 'vue'
+import { defineProps } from 'vue';
+import AppMemberCustomAttributesArrayRenderer from './_aside-custom-attributes-array-renderer.vue';
 
 defineProps({
   member: {
     type: Object,
-    default: () => {}
-  }
-})
+    default: () => {},
+  },
+});
 </script>

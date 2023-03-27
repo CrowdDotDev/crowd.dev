@@ -4,7 +4,7 @@
       v-if="loading"
       v-loading="loading"
       class="app-page-spinner h-16 !relative !min-h-5"
-    ></div>
+    />
     <div v-else>
       <!-- Empty state -->
       <app-empty-state-cta
@@ -12,7 +12,7 @@
         icon="ri-question-answer-line"
         :title="emptyState.title"
         :description="emptyState.description"
-      ></app-empty-state-cta>
+      />
 
       <div v-else>
         <!-- Sorter -->
@@ -30,7 +30,7 @@
 
         <!-- Conversations list -->
         <div class="app-list-table panel">
-          <app-community-help-center-toolbar></app-community-help-center-toolbar>
+          <app-community-help-center-toolbar />
           <div class="-mx-6 -mt-4">
             <el-table
               ref="table"
@@ -40,7 +40,7 @@
               border
               :default-sort="{
                 prop: 'lastActive',
-                order: 'descending'
+                order: 'descending',
               }"
               :row-class-name="rowClass"
               @sort-change="doChangeSort"
@@ -49,17 +49,17 @@
               <el-table-column
                 type="selection"
                 width="75"
-              ></el-table-column>
+              />
               <el-table-column width="150" label="Status">
                 <template #default="scope">
                   <span
                     v-if="scope.row.published"
                     class="badge badge--green"
-                    >Published</span
-                  >
-                  <span v-else class="badge"
-                    >Unpublished</span
-                  >
+                  >Published</span>
+                  <span
+                    v-else
+                    class="badge"
+                  >Unpublished</span>
                 </template>
               </el-table-column>
               <el-table-column
@@ -101,9 +101,7 @@
               >
                 <template #header>
                   <span class="inline-flex items-center">
-                    <span class="inline-flex mr-1"
-                      >Platform/Channel</span
-                    >
+                    <span class="inline-flex mr-1">Platform/Channel</span>
                     <el-tooltip placement="top">
                       <template #content>
                         Channel corresponds to a proper
@@ -112,7 +110,7 @@
                       </template>
                       <i
                         class="ri-information-line inline-flex items-center mr-2"
-                      ></i>
+                      />
                     </el-tooltip>
                   </span>
                 </template>
@@ -167,7 +165,7 @@
                   <div class="table-actions">
                     <app-conversation-dropdown
                       :conversation="scope.row"
-                    ></app-conversation-dropdown>
+                    />
                   </div>
                 </template>
               </el-table-column>
@@ -194,129 +192,127 @@
   </div>
 </template>
 
-<script>
-export default {
-  name: 'AppCommunityHelpCenterTable'
-}
-</script>
-
 <script setup>
-import { defineEmits, ref, watch, computed } from 'vue'
-import { useStore } from 'vuex'
+import {
+  defineEmits, ref, watch, computed,
+} from 'vue';
+import { useStore } from 'vuex';
 
-import { formatDateToTimeAgo } from '@/utils/date'
-import AppConversationDropdown from '@/modules/conversation/components/conversation-dropdown'
-import AppCommunityHelpCenterToolbar from './community-help-center-toolbar'
+import { formatDateToTimeAgo } from '@/utils/date';
+import AppConversationDropdown from '@/modules/conversation/components/conversation-dropdown.vue';
+import AppCommunityHelpCenterToolbar from './community-help-center-toolbar.vue';
 
-const store = useStore()
+const store = useStore();
 const emit = defineEmits([
   'cta-click',
-  'open-conversation-drawer'
-])
+  'open-conversation-drawer',
+]);
 
-const table = ref(null)
+const table = ref(null);
 
 const loading = computed(
-  () => store.state.communityHelpCenter.list.loading
-)
+  () => store.state.communityHelpCenter.list.loading,
+);
 const count = computed(
-  () => store.state.communityHelpCenter.count
-)
+  () => store.state.communityHelpCenter.count,
+);
 const rows = computed(
-  () => store.getters['communityHelpCenter/rows']
-)
+  () => store.getters['communityHelpCenter/rows'],
+);
 const selectedRows = computed(
-  () => store.getters['communityHelpCenter/selectedRows']
-)
+  () => store.getters['communityHelpCenter/selectedRows'],
+);
 const pagination = computed(
-  () => store.getters['communityHelpCenter/pagination']
-)
+  () => store.getters['communityHelpCenter/pagination'],
+);
 
 const activeView = computed(
-  () => store.getters['communityHelpCenter/activeView']
-)
+  () => store.getters['communityHelpCenter/activeView'],
+);
 
 const hasFilter = computed(() => {
   const parsedFilters = {
-    ...activeView.value.filter.attributes
-  }
+    ...activeView.value.filter.attributes,
+  };
   // Remove published and unpublished filters has they are the default view
-  delete parsedFilters.published
-  delete parsedFilters.unpublished
+  delete parsedFilters.published;
+  delete parsedFilters.unpublished;
   // Remove search filter if value is empty
   if (!parsedFilters.search?.value) {
-    delete parsedFilters.search
+    delete parsedFilters.search;
   }
-  return !!Object.keys(parsedFilters).length
-})
+  return !!Object.keys(parsedFilters).length;
+});
 
 const emptyState = computed(() => {
   if (hasFilter.value) {
     return {
       title: `No ${activeView.value.id} conversations found`,
       description:
-        "We couldn't find any results that match your search criteria, please try a different query"
-    }
+        "We couldn't find any results that match your search criteria, please try a different query",
+    };
   }
   // Default view
-  const title = `No ${activeView.value.id} conversations yet`
-  let description =
-    "We couldn't track any conversations among your community members"
+  const title = `No ${activeView.value.id} conversations yet`;
+  let description = "We couldn't track any conversations among your community members";
   // Published view
   if (activeView.value.id === 'published') {
-    description =
-      'Start publishing conversations in order to feed your Community Help Center'
+    description = 'Start publishing conversations in order to feed your Community Help Center';
     // Unpublished view
   } else if (activeView.value.id === 'unpublished') {
-    description =
-      "We couldn't find any unpublished conversations"
+    description = "We couldn't find any unpublished conversations";
   }
   return {
     title,
-    description
-  }
-})
+    description,
+  };
+});
 
 watch(table, (newValue) => {
   if (newValue) {
     store.dispatch(
       'communityHelpCenter/doMountTable',
-      table.value
-    )
+      table.value,
+    );
   }
-})
+});
 
 function doChangeSort(sorter) {
-  store.dispatch('communityHelpCenter/doChangeSort', sorter)
+  store.dispatch('communityHelpCenter/doChangeSort', sorter);
 }
 
 function doChangePaginationCurrentPage(currentPage) {
   store.dispatch(
     'communityHelpCenter/doChangePaginationCurrentPage',
-    currentPage
-  )
+    currentPage,
+  );
 }
 
 function doChangePaginationPageSize(pageSize) {
   store.dispatch(
     'communityHelpCenter/doChangePaginationPageSize',
-    pageSize
-  )
+    pageSize,
+  );
 }
 
 function rowClass({ row }) {
-  const isSelected =
-    selectedRows.value.find((r) => r.id === row.id) !==
-    undefined
+  const isSelected = selectedRows.value.find((r) => r.id === row.id)
+    !== undefined;
 
-  return isSelected ? 'is-selected' : ''
+  return isSelected ? 'is-selected' : '';
 }
 
 function handleRowClick(row) {
-  emit('open-conversation-drawer', row.id)
+  emit('open-conversation-drawer', row.id);
 }
 
 function timeAgo(date) {
-  return formatDateToTimeAgo(date)
+  return formatDateToTimeAgo(date);
 }
+</script>
+
+<script>
+export default {
+  name: 'AppCommunityHelpCenterTable',
+};
 </script>

@@ -52,7 +52,7 @@
               :current-value="kpiCurrentValue(resultSet)"
               :previous-value="kpiPreviousValue(resultSet)"
               :vs-label="`vs. last ${widget.period}`"
-            ></app-widget-kpi>
+            />
           </template>
         </query-renderer>
       </div>
@@ -66,120 +66,116 @@
       module-name="member"
       size="480px"
       @on-export="onExport"
-    ></app-widget-drawer>
+    />
   </div>
 </template>
 
 <script setup>
-import { computed, ref, defineProps } from 'vue'
-import { QueryRenderer } from '@cubejs-client/vue3'
+import { computed, ref, defineProps } from 'vue';
+import { QueryRenderer } from '@cubejs-client/vue3';
+import moment from 'moment';
 import {
   mapGetters,
-  mapActions
-} from '@/shared/vuex/vuex.helpers'
-import { TOTAL_ACTIVE_MEMBERS_QUERY } from '@/modules/widget/widget-queries'
-import AppWidgetKpi from '@/modules/widget/components/v2/shared/widget-kpi.vue'
-import AppWidgetTitle from '@/modules/widget/components/v2/shared/widget-title.vue'
-import AppWidgetLoading from '@/modules/widget/components/v2/shared/widget-loading.vue'
-import AppWidgetError from '@/modules/widget/components/v2/shared/widget-error.vue'
-import AppWidgetDrawer from '@/modules/widget/components/v2/shared/widget-drawer.vue'
+  mapActions,
+} from '@/shared/vuex/vuex.helpers';
+import { TOTAL_ACTIVE_MEMBERS_QUERY } from '@/modules/widget/widget-queries';
+import AppWidgetKpi from '@/modules/widget/components/v2/shared/widget-kpi.vue';
+import AppWidgetTitle from '@/modules/widget/components/v2/shared/widget-title.vue';
+import AppWidgetLoading from '@/modules/widget/components/v2/shared/widget-loading.vue';
+import AppWidgetError from '@/modules/widget/components/v2/shared/widget-error.vue';
+import AppWidgetDrawer from '@/modules/widget/components/v2/shared/widget-drawer.vue';
 import {
   ONE_DAY_PERIOD_FILTER,
   FOURTEEN_DAYS_PERIOD_FILTER,
   THIRTY_DAYS_PERIOD_FILTER,
   DAILY_GRANULARITY_FILTER,
   WEEKLY_GRANULARITY_FILTER,
-  MONTHLY_GRANULARITY_FILTER
-} from '@/modules/widget/widget-constants'
-import { MemberService } from '@/modules/member/member-service'
-import moment from 'moment'
+  MONTHLY_GRANULARITY_FILTER,
+} from '@/modules/widget/widget-constants';
+import { MemberService } from '@/modules/member/member-service';
 
 const props = defineProps({
   filters: {
     type: Object,
-    default: null
+    default: null,
   },
   isPublicView: {
     type: Boolean,
-    default: false
-  }
-})
+    default: false,
+  },
+});
 
-const { currentUser } = mapGetters('auth')
-const { cubejsApi } = mapGetters('widget')
-const { doExport } = mapActions('member')
+const { currentUser } = mapGetters('auth');
+const { cubejsApi } = mapGetters('widget');
+const { doExport } = mapActions('member');
 
-const drawerExpanded = ref()
-const drawerTitle = ref()
-const drawerGranularity = ref()
+const drawerExpanded = ref();
+const drawerTitle = ref();
+const drawerGranularity = ref();
 
-const widgets = computed(() => {
-  return [
-    {
-      title: 'Active members today',
-      query: query(
-        ONE_DAY_PERIOD_FILTER,
-        DAILY_GRANULARITY_FILTER
-      ),
-      period: 'day'
-    },
-    {
-      title: 'Active members this week',
-      query: query(
-        FOURTEEN_DAYS_PERIOD_FILTER,
-        WEEKLY_GRANULARITY_FILTER
-      ),
-      period: 'week'
-    },
-    {
-      title: 'Active members this month',
-      query: query(
-        THIRTY_DAYS_PERIOD_FILTER,
-        MONTHLY_GRANULARITY_FILTER
-      ),
-      period: 'month'
-    }
-  ]
-})
+const query = (period, granularity) => TOTAL_ACTIVE_MEMBERS_QUERY({
+  period,
+  granularity,
+  selectedPlatforms: props.filters.platform.value,
+  selectedHasTeamMembers: props.filters.teamMembers,
+});
 
-const query = (period, granularity) => {
-  return TOTAL_ACTIVE_MEMBERS_QUERY({
-    period,
-    granularity,
-    selectedPlatforms: props.filters.platform.value,
-    selectedHasTeamMembers: props.filters.teamMembers
-  })
-}
+const widgets = computed(() => [
+  {
+    title: 'Active members today',
+    query: query(
+      ONE_DAY_PERIOD_FILTER,
+      DAILY_GRANULARITY_FILTER,
+    ),
+    period: 'day',
+  },
+  {
+    title: 'Active members this week',
+    query: query(
+      FOURTEEN_DAYS_PERIOD_FILTER,
+      WEEKLY_GRANULARITY_FILTER,
+    ),
+    period: 'week',
+  },
+  {
+    title: 'Active members this month',
+    query: query(
+      THIRTY_DAYS_PERIOD_FILTER,
+      MONTHLY_GRANULARITY_FILTER,
+    ),
+    period: 'month',
+  },
+]);
 
 const kpiCurrentValue = (resultSet) => {
   if (resultSet.loadResponses[0].data.length === 0) {
     // if we get an empty data points array from cube
-    return 0
+    return 0;
   }
-  const pivot = resultSet.chartPivot()
-  return Number(pivot[pivot.length - 1]['Members.count'])
-}
+  const pivot = resultSet.chartPivot();
+  return Number(pivot[pivot.length - 1]['Members.count']);
+};
 
 const kpiPreviousValue = (resultSet) => {
   if (resultSet.loadResponses[0].data.length === 0) {
     // if we get an empty data points array from cube
-    return 0
+    return 0;
   }
-  const pivot = resultSet.chartPivot()
-  return Number(pivot[pivot.length - 2]['Members.count'])
-}
+  const pivot = resultSet.chartPivot();
+  return Number(pivot[pivot.length - 2]['Members.count']);
+};
 
 // Fetch function to pass to detail drawer
 const getActiveMembers = async ({ pagination }) => {
   const activityTimestampFrom = moment()
     .utc()
-    .startOf(drawerGranularity.value)
+    .startOf(drawerGranularity.value);
 
   if (drawerGranularity.value === 'week') {
-    activityTimestampFrom.add(1, 'day')
+    activityTimestampFrom.add(1, 'day');
   }
 
-  return await MemberService.listActive({
+  const res = await MemberService.listActive({
     platform: props.filters.platform.value,
     isTeamMember: props.filters.teamMembers,
     activityTimestampFrom,
@@ -190,34 +186,35 @@ const getActiveMembers = async ({ pagination }) => {
       : 0,
     limit: !pagination.count
       ? pagination.pageSize
-      : pagination.count
-  })
-}
+      : pagination.count,
+  });
+  return res;
+};
 
 // Open drawer and set title and period
 const handleDrawerOpen = async (widget) => {
   window.analytics.track('Open report drawer', {
     template: 'Members report',
     widget: widget.title,
-    period: widget.period
-  })
+    period: widget.period,
+  });
 
-  drawerExpanded.value = true
-  drawerTitle.value = widget.title
-  drawerGranularity.value = widget.period
-}
+  drawerExpanded.value = true;
+  drawerTitle.value = widget.title;
+  drawerGranularity.value = widget.period;
+};
 
 const onExport = async ({ ids, count }) => {
   try {
     await doExport({
       selected: true,
       customIds: ids,
-      count
-    })
+      count,
+    });
   } catch (error) {
-    console.error(error)
+    console.error(error);
   }
-}
+};
 </script>
 
 <style lang="scss">

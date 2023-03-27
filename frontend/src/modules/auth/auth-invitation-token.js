@@ -3,14 +3,14 @@
  */
 export default class AuthInvitationToken {
   static get() {
-    return sessionStorage.getItem('invitationToken') || null
+    return sessionStorage.getItem('invitationToken') || null;
   }
 
   static set(token) {
-    sessionStorage.setItem('invitationToken', token)
+    sessionStorage.setItem('invitationToken', token);
   }
 
   static clear() {
-    sessionStorage.removeItem('invitationToken')
+    sessionStorage.removeItem('invitationToken');
   }
 }

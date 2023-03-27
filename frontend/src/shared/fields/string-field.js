@@ -1,31 +1,31 @@
-import * as yup from 'yup'
-import GenericField from '@/shared/fields/generic-field'
-import { i18n } from '@/i18n'
+import * as yup from 'yup';
+import GenericField from '@/shared/fields/generic-field';
+import { i18n } from '@/i18n';
 
 export default class StringField extends GenericField {
   constructor(name, label, config = {}) {
-    super(name, label)
+    super(name, label);
 
-    this.placeholder = config.placeholder
-    this.hint = config.hint
-    this.required = config.required
-    this.matches = config.matches
-    this.min = config.min
-    this.max = config.max
-    this.filterable = config.filterable || false
-    this.custom = config.custom || false
-    this.email = config.email
+    this.placeholder = config.placeholder;
+    this.hint = config.hint;
+    this.required = config.required;
+    this.matches = config.matches;
+    this.min = config.min;
+    this.max = config.max;
+    this.filterable = config.filterable || false;
+    this.custom = config.custom || false;
+    this.email = config.email;
   }
 
   forPresenter(value) {
-    return value
+    return value;
   }
 
   forFilterPreview(value) {
     if (typeof value === 'object' && value) {
-      return value.id
+      return value.id;
     }
-    return value
+    return value;
   }
 
   forFilter() {
@@ -38,68 +38,68 @@ export default class StringField extends GenericField {
       value: null,
       defaultOperator: 'textContains',
       operator: 'textContains',
-      type: 'string'
-    }
+      type: 'string',
+    };
   }
 
   forFormInitialValue(value) {
-    return value
+    return value;
   }
 
   forFilterInitialValue(value) {
-    return value
+    return value;
   }
 
   forFormRules() {
-    const output = []
+    const output = [];
 
     if (this.required) {
       output.push({
         required: Boolean(this.required),
         message: i18n('validation.mixed.required').replace(
-          '${path}',
-          this.label
-        )
-      })
+          '{path}',
+          this.label,
+        ),
+      });
     }
 
     if (this.min || this.min === 0) {
       output.push({
         min: this.min,
         message: i18n('validation.string.min')
-          .replace('${path}', this.label)
-          .replace('${min}', this.min)
-      })
+          .replace('{path}', this.label)
+          .replace('{min}', this.min),
+      });
     }
 
     if (this.max || this.max === 0) {
       output.push({
         max: this.max,
         message: i18n('validation.string.max')
-          .replace('${path}', this.label)
-          .replace('${max}', this.max)
-      })
+          .replace('{path}', this.label)
+          .replace('{max}', this.max),
+      });
     }
 
     if (this.matches) {
       output.push({
         pattern: this.matches,
         message: i18n('validation.mixed.default').replace(
-          '${path}',
-          this.label
-        )
-      })
+          '{path}',
+          this.label,
+        ),
+      });
     }
 
     if (this.email) {
       output.push({
         type: 'email',
         message: 'Please input correct email address',
-        trigger: ['blur', 'change']
-      })
+        trigger: ['blur', 'change'],
+      });
     }
 
-    return output
+    return output;
   }
 
   forFormCast() {
@@ -107,17 +107,17 @@ export default class StringField extends GenericField {
       .string()
       .nullable(true)
       .trim()
-      .label(this.label)
+      .label(this.label);
 
     if (this.required) {
-      yupChain = yupChain.required()
+      yupChain = yupChain.required();
     }
 
     if (this.email) {
-      yupChain = yupChain.email()
+      yupChain = yupChain.email();
     }
 
-    return yupChain
+    return yupChain;
   }
 
   forFilterCast() {
@@ -125,11 +125,11 @@ export default class StringField extends GenericField {
       .string()
       .nullable(true)
       .trim()
-      .label(this.label)
+      .label(this.label);
   }
 
   forExport() {
-    return yup.mixed().label(this.label)
+    return yup.mixed().label(this.label);
   }
 
   forImport() {
@@ -137,24 +137,24 @@ export default class StringField extends GenericField {
       .string()
       .nullable(true)
       .trim()
-      .label(this.label)
+      .label(this.label);
 
     if (this.required) {
-      yupChain = yupChain.required()
+      yupChain = yupChain.required();
     }
 
     if (this.min || this.min === 0) {
-      yupChain = yupChain.min(this.min)
+      yupChain = yupChain.min(this.min);
     }
 
     if (this.max) {
-      yupChain = yupChain.max(this.max)
+      yupChain = yupChain.max(this.max);
     }
 
     if (this.matches) {
-      yupChain = yupChain.matches(/^[0-9]/)
+      yupChain = yupChain.matches(/^[0-9]/);
     }
 
-    return yupChain
+    return yupChain;
   }
 }

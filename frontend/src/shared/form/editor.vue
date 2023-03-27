@@ -8,70 +8,64 @@
   />
 </template>
 
-<script>
-export default {
-  name: 'AppEditor'
-}
-</script>
-
 <script setup>
-import { useEditor, EditorContent } from '@tiptap/vue-3'
-import StarterKit from '@tiptap/starter-kit'
-import Placeholder from '@tiptap/extension-placeholder'
-import Link from '@tiptap/extension-link'
+import { useEditor, EditorContent } from '@tiptap/vue-3';
+import StarterKit from '@tiptap/starter-kit';
+import Placeholder from '@tiptap/extension-placeholder';
+import Link from '@tiptap/extension-link';
 import {
   ref,
   defineProps,
   defineEmits,
   watch,
   onBeforeMount,
-  defineExpose
-} from 'vue'
+  defineExpose,
+} from 'vue';
 
 const props = defineProps({
   modelValue: {
     type: String,
-    required: true
+    required: true,
   },
   placeholder: {
     type: String,
     required: false,
-    default: ''
+    default: '',
   },
   minHeight: {
     type: String,
     required: false,
-    default: '84px'
+    default: '84px',
   },
   overrideExtensions: {
     type: Boolean,
     required: false,
-    default: false
+    default: false,
   },
   extensions: {
     type: Array,
     required: false,
-    default: () => []
-  }
-})
+    default: () => [],
+  },
+});
 
 const emit = defineEmits([
   'update:modelValue',
   'focus',
-  'blur'
-])
+  'blur',
+]);
 
-const valueProxy = ref('')
+const valueProxy = ref('');
 
 const defaultExtensions = [
   StarterKit,
   Placeholder.configure({
-    placeholder: props.placeholder
+    placeholder: props.placeholder,
   }),
   Link.configure({
-    openOnClick: false
-  })
-]
+    openOnClick: false,
+  }),
+];
 
 const editor = useEditor({
   content: props.modelValue,
@@ -80,62 +74,68 @@ const editor = useEditor({
     : [...defaultExtensions, ...props.extensions],
   onUpdate: () => {
     if (editor.value) {
-      valueProxy.value = editor.value.getHTML()
+      valueProxy.value = editor.value.getHTML();
       const noTags = valueProxy.value
         .replace('<p>', '')
         .replace('</p>', '')
-        .trim()
+        .trim();
       if (noTags.length === 0) {
-        valueProxy.value = ''
-        editor.value.commands.setContent('', false)
+        valueProxy.value = '';
+        editor.value.commands.setContent('', false);
       }
-      emit('update:modelValue', valueProxy.value)
+      emit('update:modelValue', valueProxy.value);
     }
   },
   onFocus: () => {
-    emit('focus')
+    emit('focus');
   },
   onBlur: () => {
-    emit('blur')
-  }
-})
+    emit('blur');
+  },
+});
 
 watch(
   () => props.modelValue,
   (val) => {
     if (editor.value) {
       if (valueProxy.value === val && val.length > 0) {
-        return
+        return;
       }
-      valueProxy.value = val
-      editor.value.commands.setContent(val, false)
+      valueProxy.value = val;
+      editor.value.commands.setContent(val, false);
     }
-  }
-)
+  },
+);
 
 onBeforeMount(() => {
   if (editor.value) {
-    editor.value.destroy()
+    editor.value.destroy();
   }
-})
+});
 
 const focus = () => {
-  editor.value.commands.focus()
-}
+  editor.value.commands.focus();
+};
 
 const blur = () => {
-  editor.value.commands.blur()
-}
+  editor.value.commands.blur();
+};
 
 const clear = () => {
-  editor.value.commands.clearContent()
-}
+  editor.value.commands.clearContent();
+};
 
 defineExpose({
   focus,
   blur,
-  clear
-})
+  clear,
+});
+</script>
+
+<script>
+export default {
+  name: 'AppEditor',
+};
 </script>
 
 <style lang="scss">

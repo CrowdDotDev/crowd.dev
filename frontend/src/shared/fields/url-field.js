@@ -1,31 +1,49 @@
-import * as yup from 'yup'
-import StringField from '@/shared/fields/string-field'
-import { i18n } from '@/i18n'
+import * as yup from 'yup';
+import StringField from '@/shared/fields/string-field';
+import { i18n } from '@/i18n';
+
+function isValidUrl(rule, value, callback) {
+  if (!value) {
+    callback();
+    return;
+  }
+
+  if (
+    value.match(
+      /^https?:\/\/(?:www\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_+.~#?&/=]*)$/gm,
+    )
+  ) {
+    callback();
+    return;
+  }
+
+  callback(new Error('Invalid URL'));
+}
 
 export default class UrlField extends StringField {
   constructor(name, label, config = {}) {
-    super(name, label)
+    super(name, label);
 
-    this.placeholder = config.placeholder
-    this.hint = config.hint
-    this.required = config.required
-    this.filterable = config.filterable || false
-    this.custom = config.custom || false
+    this.placeholder = config.placeholder;
+    this.hint = config.hint;
+    this.required = config.required;
+    this.filterable = config.filterable || false;
+    this.custom = config.custom || false;
   }
 
   forPresenter(value) {
-    return value
+    return value;
   }
 
   forFilterPreview(value) {
     if (typeof value === 'object' && value) {
-      return value.id
+      return value.id;
     }
-    return value
+    return value;
   }
 
   forFormInitialValue(value) {
-    return value
+    return value;
   }
 
   forFilter() {
@@ -38,33 +56,30 @@ export default class UrlField extends StringField {
       value: null,
       defaultOperator: 'textContains',
       operator: 'textContains',
-      type: 'string'
-    }
+      type: 'string',
+    };
   }
 
   forFilterInitialValue(value) {
-    return value
+    return value;
   }
 
   forFormRules() {
     const output = [
       {
-        validator: _isValidUrl,
-        message: `Invalid URL, please include the full link (ex: https://crowd.dev)`
-      }
-    ]
+        validator: isValidUrl,
+        message: 'Invalid URL, please include the full link (ex: https://crowd.dev)',
+      },
+    ];
 
     if (this.required) {
       output.push({
         required: Boolean(this.required),
-        message: i18n('validation.mixed.required').replace(
-          '${path}',
-          this.label
-        )
-      })
+        message: 'This field is required',
+      });
     }
 
-    return output
+    return output;
   }
 
   forFormCast() {
@@ -72,7 +87,7 @@ export default class UrlField extends StringField {
       .string()
       .nullable(true)
       .trim()
-      .label(this.label)
+      .label(this.label);
   }
 
   forFilterCast() {
@@ -80,11 +95,11 @@ export default class UrlField extends StringField {
       .string()
       .nullable(true)
       .trim()
-      .label(this.label)
+      .label(this.label);
   }
 
   forExport() {
-    return yup.mixed().label(this.label)
+    return yup.mixed().label(this.label);
   }
 
   forImport() {
@@ -92,30 +107,12 @@ export default class UrlField extends StringField {
       .string()
       .nullable(true)
       .trim()
-      .label(this.label)
+      .label(this.label);
 
     if (this.required) {
-      yupChain = yupChain.required()
+      yupChain = yupChain.required();
     }
 
-    return yupChain
+    return yupChain;
   }
-}
-
-function _isValidUrl(rule, value, callback) {
-  if (!value) {
-    callback()
-    return
-  }
-
-  if (
-    value.match(
-      /^https?:\/\/(?:www\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_+.~#?&/=]*)$/gm
-    )
-  ) {
-    callback()
-    return
-  }
-
-  callback(new Error('Invalid URL'))
 }

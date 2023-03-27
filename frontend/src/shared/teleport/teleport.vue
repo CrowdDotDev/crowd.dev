@@ -1,6 +1,6 @@
 <template>
   <Teleport v-if="targetMounted" :to="to">
-    <slot></slot>
+    <slot />
   </Teleport>
 </template>
 
@@ -10,29 +10,29 @@ export default {
   props: {
     to: {
       type: String,
-      default: null
-    }
+      default: null,
+    },
   },
   data() {
     return {
       targetMounted: false,
-      timer: null
-    }
+      timer: null,
+    };
   },
   mounted() {
     this.timer = setInterval(
       this.validateTargetIsMounted,
-      100
-    )
+      100,
+    );
   },
   methods: {
     validateTargetIsMounted() {
-      const element = document.querySelector(this.to)
+      const element = document.querySelector(this.to);
       if (element) {
-        this.targetMounted = true
-        clearInterval(this.timer)
+        this.targetMounted = true;
+        clearInterval(this.timer);
       }
-    }
-  }
-}
+    },
+  },
+};
 </script>

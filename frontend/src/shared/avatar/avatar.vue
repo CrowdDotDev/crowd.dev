@@ -7,12 +7,11 @@
   >
     <span
       v-if="
-        !entity.attributes?.avatarUrl?.default &&
-        !entity.avatar
+        !entity.attributes?.avatarUrl?.default
+          && !entity.avatar
       "
       class="font-semibold uppercase"
-      >{{ computedInitials }}</span
-    >
+    >{{ computedInitials }}</span>
   </div>
 </template>
 
@@ -22,68 +21,68 @@ export default {
   props: {
     entity: {
       type: Object,
-      default: () => {}
+      default: () => {},
     },
     size: {
       type: String,
-      default: 'md'
-    }
+      default: 'md',
+    },
   },
   data() {
     return {
       backgroundColors: ['#FDEDEA'],
-      textColors: ['#BA3F25']
-    }
+      textColors: ['#BA3F25'],
+    };
   },
   computed: {
     computedBackgroundColor() {
       return this.backgroundColors[
-        (this.entity.displayName || '').length %
-          this.backgroundColors.length
-      ]
+        (this.entity.displayName || '').length
+          % this.backgroundColors.length
+      ];
     },
     computedTextColor() {
       return this.textColors[
-        (this.entity.displayName || '').length %
-          this.textColors.length
-      ]
+        (this.entity.displayName || '').length
+          % this.textColors.length
+      ];
     },
     computedStyle() {
       const url = this.entity.avatar
         ? this.entity.avatar
-        : this.entity.attributes?.avatarUrl?.default || null
+        : this.entity.attributes?.avatarUrl?.default || null;
       return url
         ? `background-image: url(${url})`
         : {
-            backgroundColor: this.computedBackgroundColor,
-            borderColor: this.computedBackgroundColor,
-            color: this.computedTextColor
-          }
+          backgroundColor: this.computedBackgroundColor,
+          borderColor: this.computedBackgroundColor,
+          color: this.computedTextColor,
+        };
     },
     computedClass() {
-      return `avatar--${this.size}`
+      return `avatar--${this.size}`;
     },
     computedInitials() {
       const names = (
-        this.entity.displayName ||
-        this.entity.label ||
-        ''
+        this.entity.displayName
+        || this.entity.label
+        || ''
       )
         .replace(
           // remove emojis from string
           /([\u2700-\u27BF]|[\uE000-\uF8FF]|\uD83C[\uDC00-\uDFFF]|\uD83D[\uDC00-\uDFFF]|[\u2011-\u26FF]|\uD83E[\uDD10-\uDDFF])/g,
-          ''
+          '',
         )
         .replace(/\s+/g, ' ')
         .trim()
-        .split(' ')
+        .split(' ');
 
       return names.length > 1
         ? names[0][0] + names[1][0]
-        : names[0][0]
-    }
-  }
-}
+        : names[0][0];
+    },
+  },
+};
 </script>
 
 <style lang="scss">

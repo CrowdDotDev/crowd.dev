@@ -1,5 +1,5 @@
-import { v4 as uuid } from 'uuid'
-import Chartkick from 'chartkick'
+import { v4 as uuid } from 'uuid';
+import Chartkick from 'chartkick';
 import {
   Chart,
   LineElement,
@@ -19,10 +19,10 @@ import {
   Title,
   Tooltip,
   SubTitle,
-  Filler
-} from 'chart.js'
-import 'chartjs-adapter-moment'
-import { h } from 'vue'
+  Filler,
+} from 'chart.js';
+import 'chartjs-adapter-moment';
+import { h } from 'vue';
 
 /**
  * This plugin is responsible for doing a couple of different things:
@@ -34,89 +34,91 @@ import { h } from 'vue'
 const verticalTodayLine = {
   id: 'verticalTodayLine',
   beforeDraw(chart, _args, options) {
-    const chartType = chart.config?._config?.type
-    const xScaleType = chart.scales?.x?.type
+    // eslint-disable-next-line no-underscore-dangle
+    const chartType = chart.config?._config?.type;
+    const xScaleType = chart.scales?.x?.type;
 
     // Only add vertical lines to line and bar charts
     // Only add vertical lines to time scaled x axis
     if (
-      (chartType === 'line' || chartType === 'bar') &&
-      xScaleType === 'time'
+      (chartType === 'line' || chartType === 'bar')
+      && xScaleType === 'time'
     ) {
       const {
         ctx,
         data,
         chartArea: { top, bottom },
-        scales: { x }
-      } = chart
+        scales: { x },
+      } = chart;
 
-      const penultimatePoint =
-        data.labels[data.labels.length - 2]
-      const lastPoint = data.labels[data.labels.length - 1]
+      const penultimatePoint = data.labels[data.labels.length - 2];
+      const lastPoint = data.labels[data.labels.length - 1];
 
       // Logic to add vertical line to the
       // penultimate data point
-      ctx.save()
+      ctx.save();
 
       // Draw vertical line
-      ctx.strokeStyle = 'rgb(200,200,200)'
-      ctx.lineWidth = 0.5
+      ctx.strokeStyle = 'rgb(200,200,200)';
+      ctx.lineWidth = 0.5;
       ctx.strokeRect(
         x.getPixelForValue(penultimatePoint),
         top,
         0,
-        bottom - options.bottomMargin
-      )
+        bottom - options.bottomMargin,
+      );
 
       // Logic to add vertical rect
       // between penultimate and last data point
-      const rectWidth =
-        x.getPixelForValue(lastPoint) -
-        x.getPixelForValue(penultimatePoint)
+      const rectWidth = x.getPixelForValue(lastPoint)
+        - x.getPixelForValue(penultimatePoint);
 
       // Draw vertical rect
-      ctx.fillStyle = 'rgb(200,200,200, 0.1)'
+      ctx.fillStyle = 'rgb(200,200,200, 0.1)';
       ctx.fillRect(
         x.getPixelForValue(penultimatePoint),
         top,
         rectWidth,
-        bottom - options.bottomMargin
-      )
+        bottom - options.bottomMargin,
+      );
 
-      ctx.restore()
+      ctx.restore();
     }
-  }
-}
+  },
+};
 
 const tooltipAnnotationLine = {
   id: 'tooltipAnnotationLine',
   beforeDraw: (chart) => {
+    // eslint-disable-next-line no-underscore-dangle
     if (chart.tooltip?._active?.length) {
-      const { ctx, data, tooltip, chartArea } = chart
-      const activeElement = tooltip._active[0]
+      const {
+        ctx, data, tooltip, chartArea,
+      } = chart;
+      // eslint-disable-next-line no-underscore-dangle
+      const activeElement = tooltip._active[0];
 
-      ctx.save()
+      ctx.save();
 
-      ctx.beginPath()
-      ctx.moveTo(activeElement.element.x, chartArea.top)
-      ctx.lineTo(activeElement.element.x, chartArea.bottom)
+      ctx.beginPath();
+      ctx.moveTo(activeElement.element.x, chartArea.top);
+      ctx.lineTo(activeElement.element.x, chartArea.bottom);
 
-      ctx.lineWidth = 32
+      ctx.lineWidth = 32;
 
       // If tooltip is hovered after the last two data points
       // the highlight rect should be greyed out as well
-      const isAfterPenultimatePoint =
-        activeElement.index >= data.labels.length - 2
+      const isAfterPenultimatePoint = activeElement.index >= data.labels.length - 2;
 
       ctx.strokeStyle = isAfterPenultimatePoint
         ? 'rgba(100,100,100, 0.05)'
-        : 'rgba(233,79,46, 0.05)'
+        : 'rgba(233,79,46, 0.05)';
 
-      ctx.stroke()
-      ctx.restore()
+      ctx.stroke();
+      ctx.restore();
     }
-  }
-}
+  },
+};
 
 Chart.register(
   LineElement,
@@ -138,11 +140,11 @@ Chart.register(
   SubTitle,
   Filler,
   tooltipAnnotationLine,
-  verticalTodayLine
-)
+  verticalTodayLine,
+);
 
-let createComponent = function (app, tagName, chartType) {
-  let chartProps = [
+const createComponent = (app, tagName, ChartType) => {
+  const chartProps = [
     'bytes',
     'code',
     'colors',
@@ -163,86 +165,86 @@ let createComponent = function (app, tagName, chartType) {
     'title',
     'xtitle',
     'ytitle',
-    'zeros'
-  ]
+    'zeros',
+  ];
   app.component(tagName, {
     props: {
       data: {
         type: Array,
-        default: () => []
+        default: () => [],
       },
       id: {
         type: String,
-        default: () => {
-          return uuid()
-        }
+        default: () => uuid(),
       },
       width: {
         type: String,
-        default: null
+        default: null,
       },
       height: {
         type: String,
-        default: null
+        default: null,
       },
       dataset: {
         type: Object,
-        default: undefined
+        default: undefined,
       },
       library: {
         type: Object,
-        default: undefined
+        default: undefined,
       },
       loading: {
         type: String,
-        default: undefined
+        default: undefined,
       },
       precision: {
         type: String,
-        default: undefined
+        default: undefined,
       },
       round: {
         type: String,
-        default: undefined
+        default: undefined,
       },
       min: {
         type: String,
-        default: undefined
+        default: undefined,
       },
       max: {
         type: String,
-        default: undefined
+        default: undefined,
       },
       xmax: {
         type: String,
-        default: undefined
+        default: undefined,
       },
       xmin: {
         type: String,
-        default: undefined
+        default: undefined,
       },
       legend: {
         type: Boolean,
-        default: true
+        default: true,
       },
       ...chartProps.reduce((acc, item) => {
         acc[item] = {
           type: [String, Number, Boolean, Array],
-          default: null
-        }
-        return acc
-      }, {})
+          default: null,
+        };
+        return acc;
+      }, {}),
     },
     data() {
       return {
-        chartId: null
-      }
+        chartId: null,
+      };
     },
     computed: {
-      chartStyle: function () {
+      chartStyle() {
         // hack to watch data and options
-        this.data
-        this.chartOptions
+        // eslint-disable-next-line no-unused-expressions
+        this.data;
+        // eslint-disable-next-line no-unused-expressions
+        this.chartOptions;
 
         return {
           height: this.height || '300px',
@@ -252,100 +254,99 @@ let createComponent = function (app, tagName, chartType) {
           color: '#999',
           fontSize: '14px',
           fontFamily:
-            "'Lucida Grande', 'Lucida Sans Unicode', Verdana, Arial, Helvetica, sans-serif"
-        }
+            "'Lucida Grande', 'Lucida Sans Unicode', Verdana, Arial, Helvetica, sans-serif",
+        };
       },
-      chartOptions: function () {
-        let options = {}
-        let props = Object.keys(this.$props)
-        for (let i = 0; i < props.length; i++) {
-          let prop = props[i]
+      chartOptions() {
+        const options = {};
+        const props = Object.keys(this.$props);
+        for (let i = 0; i < props.length; i += 1) {
+          const prop = props[i];
           if (this[prop] !== undefined) {
-            options[prop] = this[prop]
+            options[prop] = this[prop];
           }
         }
-        return options
-      }
+        return options;
+      },
     },
-    created: function () {
-      this.chartId = this.chartId || this.id
+    created() {
+      this.chartId = this.chartId || this.id;
     },
-    mounted: function () {
-      this.updateChart()
+    mounted() {
+      this.updateChart();
     },
-    updated: function () {
-      this.updateChart()
+    updated() {
+      this.updateChart();
     },
-    beforeUnmount: function () {
+    beforeUnmount() {
       if (this.chart) {
-        this.chart.destroy()
+        this.chart.destroy();
       }
     },
     methods: {
-      updateChart: function () {
+      updateChart() {
         if (this.data !== null) {
           if (this.chart) {
             this.chart.updateData(
               this.data,
-              this.chartOptions
-            )
+              this.chartOptions,
+            );
           } else {
-            this.chart = new chartType(
+            this.chart = new ChartType(
               this.chartId,
               this.data,
-              this.chartOptions
-            )
+              this.chartOptions,
+            );
           }
         } else if (this.chart) {
-          this.chart.destroy()
-          this.chart = null
-          this.$el.innerText = 'Loading...'
+          this.chart.destroy();
+          this.chart = null;
+          this.$el.innerText = 'Loading...';
         }
-      }
+      },
     },
-    render: function () {
+    render() {
       // check if undefined so works with empty string
-      let loading =
-        this.chartOptions.loading !== undefined
-          ? this.chartOptions.loading
-          : 'Loading...'
+      const loading = this.chartOptions.loading !== undefined
+        ? this.chartOptions.loading
+        : 'Loading...';
 
       // h() accepts VNodes,
       // but limit to string since it may be used by Chartkick.js
       if (typeof loading !== 'string') {
-        throw new Error('loading must be a string')
+        throw new Error('loading must be a string');
       }
 
       return h(
         'div',
         {
           id: this.chartId,
-          style: this.chartStyle
+          style: this.chartStyle,
         },
-        [loading]
-      )
-    }
-  })
-}
+        [loading],
+      );
+    },
+  });
+};
 
-Chartkick.install = function (app) {
-  Chartkick.addAdapter(Chart)
-  createComponent(app, 'line-chart', Chartkick.LineChart)
-  createComponent(app, 'pie-chart', Chartkick.PieChart)
+Chartkick.install = (app) => {
+  Chartkick.addAdapter(Chart);
+  createComponent(app, 'line-chart', Chartkick.LineChart);
+  createComponent(app, 'pie-chart', Chartkick.PieChart);
   createComponent(
     app,
     'column-chart',
-    Chartkick.ColumnChart
-  )
-  createComponent(app, 'bar-chart', Chartkick.BarChart)
-  createComponent(app, 'area-chart', Chartkick.AreaChart)
+    Chartkick.ColumnChart,
+  );
+  createComponent(app, 'bar-chart', Chartkick.BarChart);
+  createComponent(app, 'area-chart', Chartkick.AreaChart);
   createComponent(
     app,
     'scatter-chart',
-    Chartkick.ScatterChart
-  )
-  createComponent(app, 'geo-chart', Chartkick.GeoChart)
-  createComponent(app, 'timeline', Chartkick.Timeline)
-}
+    Chartkick.ScatterChart,
+  );
+  createComponent(app, 'geo-chart', Chartkick.GeoChart);
+  createComponent(app, 'timeline', Chartkick.Timeline);
+};
 
-export default Chartkick
+export default Chartkick;

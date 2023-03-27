@@ -6,10 +6,11 @@
   >
     <div class="w-full">
       <label
+        for="dimensions"
         class="block text-xs leading-none font-semibold mb-1"
-        >Dimensions</label
-      >
+      >Dimensions</label>
       <el-select
+        id="dimensions"
         v-model="value"
         clearable
         filterable
@@ -19,43 +20,43 @@
       >
         <el-option
           v-for="item in translatedOptions(
-            computedDimensions
+            computedDimensions,
           )"
           :key="item.value"
           :value="item.value"
           :label="item.label"
-        ></el-option>
+        />
       </el-select>
     </div>
   </el-tooltip>
 </template>
 
 <script>
-import { onSelectMouseLeave } from '@/utils/select'
+import { onSelectMouseLeave } from '@/utils/select';
 
 export default {
   name: 'DimensionSelect',
   props: {
     measures: {
       type: Array,
-      default: () => []
+      default: () => [],
     },
     dimensions: {
       type: Array,
-      default: () => []
+      default: () => [],
     },
     availableDimensions: {
       type: Array,
-      default: () => []
+      default: () => [],
     },
     setDimensions: {
       type: Function,
-      default: () => {}
+      default: () => {},
     },
     translatedOptions: {
       type: Function,
-      default: () => {}
-    }
+      default: () => {},
+    },
   },
   data() {
     return {
@@ -69,7 +70,7 @@ export default {
           'Members.location',
           'Members.joinedAt',
           'Members.organization',
-          'Tags.name'
+          'Tags.name',
         ],
         'Members.count': [
           'Activities.platform',
@@ -80,7 +81,7 @@ export default {
           'Members.location',
           'Members.joinedAt',
           'Members.organization',
-          'Tags.name'
+          'Tags.name',
         ],
         'Conversations.count': [
           'Activities.platform',
@@ -96,55 +97,53 @@ export default {
           'Members.location',
           'Members.joinedAt',
           'Members.organization',
-          'Tags.name'
+          'Tags.name',
         ],
-        'Sentiment.averageSentiment': ['Sentiment.platform']
-      }
-    }
+        'Sentiment.averageSentiment': ['Sentiment.platform'],
+      },
+    };
   },
   computed: {
     computedDimensions() {
-      const measure = this.measures[0]
+      const measure = this.measures[0];
       return !measure
         ? []
-        : this.availableDimensions.filter((t) => {
-            return !!this.measureDimensions[
-              measure.name
-            ]?.includes(t.name)
-          })
+        : this.availableDimensions.filter((t) => !!this.measureDimensions[
+          measure.name
+        ]?.includes(t.name));
     },
     value: {
       get() {
-        const measure = this.measures[0]
+        const measure = this.measures[0];
 
         // Select first option by default if measure changes
         if (measure) {
           const hasOption = this.measureDimensions[
             measure.name
-          ]?.includes(this.dimensions?.[0]?.name)
+          ]?.includes(this.dimensions?.[0]?.name);
 
           if (
-            !hasOption &&
-            this.measureDimensions[measure.name]?.[0]
+            !hasOption
+            && this.measureDimensions[measure.name]?.[0]
           ) {
             this.setDimensions([
-              this.measureDimensions[measure.name][0]
-            ])
+              this.measureDimensions[measure.name][0],
+            ]);
           }
         }
 
         return this.translatedOptions(this.dimensions).map(
-          (i) => i.name
-        )?.[0]
+          (i) => i.name,
+        )?.[0];
       },
       set(value) {
-        return this.setDimensions([value])
-      }
-    }
+        return this.setDimensions([value]);
+      },
+    },
   },
 
   methods: {
-    onSelectMouseLeave
-  }
-}
+    onSelectMouseLeave,
+  },
+};
 </script>

@@ -2,7 +2,7 @@
   <div
     class="bg-white shadow-sm px-5 pt-5 pb-4 rounded-lg h-fit"
     :class="{
-      'hover:shadow-md hover:cursor-pointer': result.url
+      'hover:shadow-md hover:cursor-pointer': result.url,
     }"
     @click="onCardClick"
   >
@@ -11,14 +11,14 @@
       class="flex items-center justify-between pb-4 border-b border-gray-100"
     >
       <img
+        :alt="platformOptions[result.platform].label"
         :src="platformOptions[result.platform].img"
         class="w-6 h-6"
       />
       <span
         v-if="result.postedAt"
         class="text-gray-400 text-2xs"
-        >{{ formatDateToTimeAgo(result.postedAt) }}</span
-      >
+      >{{ formatDateToTimeAgo(result.postedAt) }}</span>
     </div>
 
     <!-- Image -->
@@ -46,6 +46,7 @@
           v-if="subreddit"
           class="text-xs mb-1 font-medium leading-6"
           target="_blank"
+          rel="noopener noreferrer"
           :href="`https://www.reddit.com/${subreddit}`"
         >
           {{ subreddit }}
@@ -65,9 +66,7 @@
     </div>
 
     <!-- Actions footer -->
-    <span class="text-gray-400 text-3xs mt-2 mb-1"
-      >Rate this content</span
-    >
+    <span class="text-gray-400 text-3xs mt-2 mb-1">Rate this content</span>
     <div class="flex items-center justify-between gap-2">
       <div class="flex items-center gap-1">
         <el-tooltip placement="top" content="Relevant">
@@ -76,12 +75,12 @@
               class="h-8 w-8 flex items-center justify-center rounded-full hover:bg-gray-200 group"
               :class="{
                 'bg-green-100 hover:bg-green-100':
-                  isRelevant
+                  isRelevant,
               }"
               @click.stop="
                 onActionClick({
                   actionType: 'thumbs-up',
-                  shouldAdd: !isRelevant
+                  shouldAdd: !isRelevant,
                 })
               "
             >
@@ -91,7 +90,7 @@
                   'ri-thumb-up-line text-gray-400':
                     !isRelevant,
                   'ri-thumb-up-fill text-green-600 group-hover:text-green-600':
-                    isRelevant
+                    isRelevant,
                 }"
               />
             </div>
@@ -103,12 +102,12 @@
             <div
               class="h-8 w-8 flex items-center justify-center rounded-full hover:bg-gray-200 group"
               :class="{
-                'bg-red-100 hover:bg-red-100': isNotRelevant
+                'bg-red-100 hover:bg-red-100': isNotRelevant,
               }"
               @click.stop="
                 onActionClick({
                   actionType: 'thumbs-down',
-                  shouldAdd: !isNotRelevant
+                  shouldAdd: !isNotRelevant,
                 })
               "
             >
@@ -118,7 +117,7 @@
                   'ri-thumb-down-line text-gray-400':
                     !isNotRelevant,
                   'ri-thumb-down-fill text-red-600 group-hover:text-red-600':
-                    isNotRelevant
+                    isNotRelevant,
                 }"
               />
             </div>
@@ -137,7 +136,7 @@
                 'hover:bg-gray-200':
                   isGenerateReplyAvailable,
                 'hover:bg-white': !isGenerateReplyAvailable,
-                'cursor-auto': !isGenerateReplyAvailable
+                'cursor-auto': !isGenerateReplyAvailable,
               }"
             >
               <i
@@ -146,7 +145,7 @@
                   'text-gray-300':
                     !isGenerateReplyAvailable,
                   'text-gray-400 group-hover:text-gray-900':
-                    isGenerateReplyAvailable
+                    isGenerateReplyAvailable,
                 }"
               />
             </div>
@@ -195,7 +194,7 @@
                           :key="dindex"
                           class="bg-gray-200 h-3 w-full rounded animate-pulse"
                           :class="{
-                            'w-11/12': dindex === 1
+                            'w-11/12': dindex === 1,
                           }"
                         />
                       </div>
@@ -229,12 +228,12 @@
                           'ri-thumb-up-line':
                             !generatedReplyThumbsUpFeedback,
                           'ri-thumb-up-fill':
-                            generatedReplyThumbsUpFeedback
+                            generatedReplyThumbsUpFeedback,
                         }"
                         @click="
                           generatedReplyFeedback(
                             generatedReply,
-                            'thumbs-up'
+                            'thumbs-up',
                           )
                         "
                       />
@@ -246,12 +245,12 @@
                           'ri-thumb-down-line':
                             !generatedReplyThumbsDownFeedback,
                           'ri-thumb-down-fill':
-                            generatedReplyThumbsDownFeedback
+                            generatedReplyThumbsDownFeedback,
                         }"
                         @click="
                           generatedReplyFeedback(
                             generatedReply,
-                            'thumbs-down'
+                            'thumbs-down',
                           )
                         "
                       />
@@ -269,10 +268,10 @@
                         >
                           <i
                             class="ri-check-line text-brand-500"
-                          ></i>
+                          />
                           <span
                             class="text-xs ml-1 text-gray-600"
-                            >Copied to clipboard.
+                          >Copied to clipboard.
                             <span
                               class="font-semibold cursor-pointer text-brand-500"
                               @click="onCardClickFromDialog"
@@ -283,7 +282,8 @@
                         </div>
                         <div
                           v-else
-                          class="h-8 w-8 flex items-center justify-center rounded-full bg-transparent text-gray-400 hover:bg-gray-200 hover:text-gray-900 group cursor-pointer"
+                          class="h-8 w-8 flex items-center justify-center rounded-full bg-transparent text-gray-400
+                          hover:bg-gray-200 hover:text-gray-900 group cursor-pointer"
                         >
                           <el-tooltip
                             placement="top"
@@ -293,10 +293,10 @@
                               class="ri-clipboard-line text-lg"
                               @click="
                                 copyToClipboard(
-                                  generatedReply
+                                  generatedReply,
                                 )
                               "
-                            ></i>
+                            />
                           </el-tooltip>
                         </div>
                       </Transition>
@@ -313,7 +313,7 @@
         >
           <span
             :class="{
-              '!cursor-auto': isBookmarkedByTeam
+              '!cursor-auto': isBookmarkedByTeam,
             }"
             @click.stop="onGenerateReplyClick"
           >
@@ -322,12 +322,12 @@
               :class="{
                 'bg-blue-100 hover:bg-blue-100':
                   isBookmarked,
-                'pointer-events-none': isBookmarkedByTeam
+                'pointer-events-none': isBookmarkedByTeam,
               }"
               @click.stop="
                 onActionClick({
                   actionType: 'bookmark',
-                  shouldAdd: !isBookmarked
+                  shouldAdd: !isBookmarked,
                 })
               "
             >
@@ -339,7 +339,7 @@
                   'ri-bookmark-fill text-blue-600 group-hover:text-blue-600':
                     isBookmarked && !isBookmarkedByTeam,
                   'ri-bookmark-fill text-blue-300':
-                    isBookmarkedByTeam
+                    isBookmarkedByTeam,
                 }"
               />
             </div>
@@ -351,127 +351,116 @@
 </template>
 
 <script setup>
-import { formatDateToTimeAgo } from '@/utils/date'
-import { computed, defineProps, ref, watch, h } from 'vue'
-import platformOptions from '@/premium/eagle-eye/constants/eagle-eye-platforms.json'
-import { EagleEyeService } from '../../eagle-eye-service'
-import { withHttp } from '@/utils/string'
-import { mapGetters } from '@/shared/vuex/vuex.helpers'
-import { useStore } from 'vuex'
-import moment from 'moment'
+import {
+  computed, defineProps, ref, watch, h,
+} from 'vue';
+import { useStore } from 'vuex';
+import moment from 'moment';
+import { formatDateToTimeAgo } from '@/utils/date';
+import platformOptions from '@/premium/eagle-eye/constants/eagle-eye-platforms.json';
+import { withHttp } from '@/utils/string';
+import { mapGetters } from '@/shared/vuex/vuex.helpers';
+import { EagleEyeService } from '../../eagle-eye-service';
 
 const props = defineProps({
   result: {
     type: Object,
-    required: true
+    required: true,
   },
   index: {
     type: Number,
-    required: true
-  }
-})
+    required: true,
+  },
+});
 
-const store = useStore()
-const { currentUser, currentTenant } = mapGetters('auth')
+const store = useStore();
+const { currentUser, currentTenant } = mapGetters('auth');
 
 const eagleEyeSettings = computed(
-  () =>
-    currentUser?.value.tenants.find(
-      (tu) => tu.tenantId === currentTenant?.value.id
-    ).settings.eagleEye
-)
+  () => currentUser?.value.tenants.find(
+    (tu) => tu.tenantId === currentTenant?.value.id,
+  ).settings.eagleEye,
+);
 
-const generatedReply = ref('')
-const replyDialogVisible = ref(false)
-const replyInClipboard = ref(false)
-const generatedReplyThumbsUpFeedback = ref(false)
-const generatedReplyThumbsDownFeedback = ref(false)
+const generatedReply = ref('');
+const replyDialogVisible = ref(false);
+const replyInClipboard = ref(false);
+const generatedReplyThumbsUpFeedback = ref(false);
+const generatedReplyThumbsDownFeedback = ref(false);
 const DialogHeading = h(
   'h5',
   {
     class:
-      'text-base text-lg leading-5 font-semibold pb-4 pt-2'
+      'text-base text-lg leading-5 font-semibold pb-4 pt-2',
   },
   [
     '🤖 AI reply',
     h(
       'span',
       {
-        class: 'ml-1 font-light text-xs text-purple-500'
+        class: 'ml-1 font-light text-xs text-purple-500',
       },
-      'Alpha'
-    )
-  ]
-)
+      'Alpha',
+    ),
+  ],
+);
 
-const isBookmarked = computed(() =>
-  props.result.actions.some(
-    (a) => a.type === 'bookmark' && !a.toRemove
-  )
-)
-const isRelevant = computed(() =>
-  props.result.actions.some(
-    (a) => a.type === 'thumbs-up' && !a.toRemove
-  )
-)
-const isNotRelevant = computed(() =>
-  props.result.actions.some(
-    (a) => a.type === 'thumbs-down' && !a.toRemove
-  )
-)
+const isBookmarked = computed(() => props.result.actions.some(
+  (a) => a.type === 'bookmark' && !a.toRemove,
+));
+const isRelevant = computed(() => props.result.actions.some(
+  (a) => a.type === 'thumbs-up' && !a.toRemove,
+));
+const isNotRelevant = computed(() => props.result.actions.some(
+  (a) => a.type === 'thumbs-down' && !a.toRemove,
+));
 const isBookmarkedByUser = computed(() => {
   const bookmarkAction = props.result.actions.find(
-    (a) => a.type === 'bookmark'
-  )
+    (a) => a.type === 'bookmark',
+  );
   return (
-    !bookmarkAction?.actionById ||
-    bookmarkAction?.actionById === currentUser.value.id
-  )
-})
+    !bookmarkAction?.actionById
+    || bookmarkAction?.actionById === currentUser.value.id
+  );
+});
 
-const isBookmarkedByTeam = computed(() => {
-  return isBookmarked.value && !isBookmarkedByUser.value
-})
+const isBookmarkedByTeam = computed(() => isBookmarked.value && !isBookmarkedByUser.value);
 
 const bookmarkTooltip = computed(() => {
   if (isBookmarked.value && !isBookmarkedByUser.value) {
-    return 'Bookmarked by team member'
+    return 'Bookmarked by team member';
   }
 
-  return isBookmarked.value ? 'Unbookmark' : 'Bookmark'
-})
+  return isBookmarked.value ? 'Unbookmark' : 'Bookmark';
+});
 
-const areGeneratedRepliesActivated = computed(() => {
-  return eagleEyeSettings.value?.aiReplies || false
-})
+const areGeneratedRepliesActivated = computed(() => eagleEyeSettings.value?.aiReplies || false);
 
-const isGenerateReplyAvailable = computed(() => {
-  return (
-    props.result.platform !== 'github' &&
-    props.result.platform !== 'stackoverflow' &&
-    props.result.platform !== 'youtube'
-  )
-})
+const isGenerateReplyAvailable = computed(() => (
+  props.result.platform !== 'github'
+    && props.result.platform !== 'stackoverflow'
+    && props.result.platform !== 'youtube'
+));
 
 const replyTooltip = computed(() => {
   if (!isGenerateReplyAvailable.value) {
-    return `Not available for this source`
+    return 'Not available for this source';
   }
-  return 'Generate a reply idea'
-})
+  return 'Generate a reply idea';
+});
 
 // eslint-disable-next-line no-unused-vars
 watch(replyInClipboard, (newValue, _) => {
   if (newValue) {
     setTimeout(() => {
-      replyInClipboard.value = false
-    }, 5000)
+      replyInClipboard.value = false;
+    }, 5000);
   }
-})
+});
 
-const copyToClipboard = async (generatedReply) => {
-  await navigator.clipboard.writeText(generatedReply)
-  replyInClipboard.value = true
+const copyToClipboard = async (reply) => {
+  await navigator.clipboard.writeText(reply);
+  replyInClipboard.value = true;
 
   await EagleEyeService.track({
     event: 'generatedReplyCopied',
@@ -480,67 +469,66 @@ const copyToClipboard = async (generatedReply) => {
       description: props.result.post.description,
       url: props.result.url,
       platform: props.result.platform,
-      reply: generatedReply
-    }
-  })
-}
+      reply,
+    },
+  });
+};
 
 const subreddit = computed(() => {
   if (props.result.platform !== 'reddit') {
-    return null
+    return null;
   }
 
-  const pattern =
-    /.*reddit\.com(?<subreddit>\/r\/.[^\\/]*).*/gm
-  const matches = pattern.exec(props.result.url)
+  const pattern = /.*reddit\.com(?<subreddit>\/r\/.[^\\/]*).*/gm;
+  const matches = pattern.exec(props.result.url);
 
   if (!matches.groups.subreddit) {
-    return null
+    return null;
   }
 
-  return matches.groups.subreddit.slice(1)
-})
-
-const onCardClickFromDialog = async (e) => {
-  replyDialogVisible.value = false
-  setTimeout(() => {
-    onCardClick(e)
-  }, 200)
-}
+  return matches.groups.subreddit.slice(1);
+});
 
 // Open post in origin url
 const onCardClick = async (e) => {
   if (!props.result.url || e.target.localName === 'a') {
-    return
+    return;
   }
 
-  window.open(withHttp(props.result.url), '_blank')
+  window.open(withHttp(props.result.url), '_blank');
 
   await EagleEyeService.track({
     event: 'postClicked',
     params: {
       url: props.result.url,
-      platform: props.result.platform
-    }
-  })
-}
+      platform: props.result.platform,
+    },
+  });
+};
+
+const onCardClickFromDialog = async (e) => {
+  replyDialogVisible.value = false;
+  setTimeout(() => {
+    onCardClick(e);
+  }, 200);
+};
 
 const generatedReplyFeedback = async (
-  generatedReply,
-  type
+  reply,
+  type,
 ) => {
   if (type === 'thumbs-up') {
     if (generatedReplyThumbsUpFeedback.value) {
-      return
+      return;
     }
-    generatedReplyThumbsUpFeedback.value = true
-    generatedReplyThumbsDownFeedback.value = false
+    generatedReplyThumbsUpFeedback.value = true;
+    generatedReplyThumbsDownFeedback.value = false;
   } else {
     if (generatedReplyThumbsDownFeedback.value) {
-      return
+      return;
     }
-    generatedReplyThumbsDownFeedback.value = true
-    generatedReplyThumbsUpFeedback.value = false
+    generatedReplyThumbsDownFeedback.value = true;
+    generatedReplyThumbsUpFeedback.value = false;
   }
   await EagleEyeService.track({
     event: 'generatedReplyFeedback',
@@ -550,39 +538,38 @@ const generatedReplyFeedback = async (
       description: props.result.post.description,
       url: props.result.url,
       platform: props.result.platform,
-      reply: generatedReply
-    }
-  })
-}
+      reply,
+    },
+  });
+};
 
 const onGenerateReplyClick = async () => {
   if (!isGenerateReplyAvailable.value) {
-    return
+    return;
   }
-  replyDialogVisible.value = true
+  replyDialogVisible.value = true;
   if (generatedReply.value !== '') {
-    return
+    return;
   }
 
-  const savedReplies =
-    JSON.parse(localStorage.getItem('eagleEyeReplies')) ||
-    {}
+  const savedReplies = JSON.parse(localStorage.getItem('eagleEyeReplies'))
+    || {};
 
   if (savedReplies && savedReplies[props.result.url]) {
-    generatedReply.value = savedReplies[props.result.url]
-    return
+    generatedReply.value = savedReplies[props.result.url];
+    return;
   }
 
   const generated = await EagleEyeService.generateReply({
     title: props.result.post.title,
-    description: props.result.post.description
-  })
-  generatedReply.value = generated.reply
-  savedReplies[props.result.url] = generated.reply
+    description: props.result.post.description,
+  });
+  generatedReply.value = generated.reply;
+  savedReplies[props.result.url] = generated.reply;
   localStorage.setItem(
     'eagleEyeReplies',
-    JSON.stringify(savedReplies)
-  )
+    JSON.stringify(savedReplies),
+  );
 
   await EagleEyeService.track({
     event: 'generatedReply',
@@ -591,44 +578,43 @@ const onGenerateReplyClick = async () => {
       description: props.result.post.description,
       url: props.result.url,
       platform: props.result.platform,
-      reply: generatedReply.value
-    }
-  })
-}
+      reply: generatedReply.value,
+    },
+  });
+};
 
 const onActionClick = async ({ actionType, shouldAdd }) => {
-  const storeActionType = shouldAdd ? 'add' : 'delete'
+  const storeActionType = shouldAdd ? 'add' : 'delete';
   const action = shouldAdd
     ? {
-        type: actionType,
-        timestamp: moment()
-      }
+      type: actionType,
+      timestamp: moment(),
+    }
     : props.result.actions.find(
-        (a) => a.type === actionType
-      )
+      (a) => a.type === actionType,
+    );
 
   store.dispatch('eagleEye/doAddTemporaryPostAction', {
     index: props.index,
     storeActionType,
-    action
-  })
+    action,
+  });
 
   store.dispatch('eagleEye/doAddActionQueue', {
     index: props.index,
     id: props.result.id,
     post: props.result,
-    handler: async () =>
-      await store.dispatch('eagleEye/doUpdatePostAction', {
-        post: props.result,
-        index: props.index,
-        storeActionType,
-        actionType
-      })
-  })
-}
+    handler: () => store.dispatch('eagleEye/doUpdatePostAction', {
+      post: props.result,
+      index: props.index,
+      storeActionType,
+      actionType,
+    }),
+  });
+};
 </script>
 
-<style lang="scss" scope>
+<style lang="scss" scoped>
 .eagle-eye-result-content a {
   @apply text-gray-500 underline;
 }

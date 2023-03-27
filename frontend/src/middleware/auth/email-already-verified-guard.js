@@ -12,15 +12,15 @@
  */
 export default async function ({ to, store, router }) {
   if (!to.meta || !to.meta.emailAlreadyVerified) {
-    return
+    return;
   }
 
-  await store.dispatch('auth/doWaitUntilInit')
+  await store.dispatch('auth/doWaitUntilInit');
 
   if (
-    store.getters['auth/signedIn'] &&
-    store.getters['auth/currentUser'].emailVerified
+    store.getters['auth/signedIn']
+    && store.getters['auth/currentUser'].emailVerified
   ) {
-    return router.push('/')
+    router.push('/');
   }
 }

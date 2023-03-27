@@ -12,27 +12,28 @@
 </template>
 
 <script>
-import { mapActions } from 'vuex'
+import { mapActions } from 'vuex';
+
 export default {
   name: 'AppAutomationToggle',
   props: {
     automation: {
       type: Object,
-      default: () => {}
-    }
+      default: () => {},
+    },
   },
   methods: {
     ...mapActions({
       doPublish: 'automation/doPublish',
-      doUnpublish: 'automation/doUnpublish'
+      doUnpublish: 'automation/doUnpublish',
     }),
     handleChange(value) {
       if (value) {
-        this.doPublish(this.automation)
+        this.doPublish(this.automation);
       } else {
-        this.doUnpublish(this.automation)
+        this.doUnpublish(this.automation);
       }
-    }
-  }
-}
+    },
+  },
+};
 </script>

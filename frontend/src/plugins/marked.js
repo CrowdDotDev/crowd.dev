@@ -1,14 +1,15 @@
-import { marked } from 'marked'
+import { marked } from 'marked';
 
 export default {
   install: (app) => {
+    // eslint-disable-next-line no-param-reassign
     app.config.globalProperties.$marked = (
       markdownString,
-      options
+      options,
     ) => {
-      marked.setOptions(options)
+      marked.setOptions(options);
 
-      return marked.parse(markdownString)
-    }
-  }
-}
+      return marked.parse(markdownString);
+    };
+  },
+};

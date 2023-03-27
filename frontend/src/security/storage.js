@@ -14,29 +14,29 @@ export default class Storage {
         id: 'settingsLogos',
         folder: 'tenant/:tenantId/settings/logos',
         maxSizeInBytes: 10 * 1024 * 1024,
-        publicRead: true
+        publicRead: true,
       },
       settingsBackgroundImages: {
         id: 'settingsBackgroundImages',
         folder:
           'tenant/:tenantId/settings/backgroundImages',
         maxSizeInBytes: 10 * 1024 * 1024,
-        publicRead: true
+        publicRead: true,
       },
       userAvatarsProfiles: {
         id: 'userAvatarsProfiles',
         folder: 'user/avatars/profile/:userId',
         maxSizeInBytes: 10 * 1024 * 1024,
         bypassWritingPermissions: true,
-        publicRead: true
+        publicRead: true,
       },
       slackHistory: {
         id: 'slackHistory',
         folder: 'integrations/slack/:tenantId',
         maxSizeInBytes: 5000000000,
         bypassWritingPermissions: true,
-        publicRead: false
-      }
-    }
+        publicRead: false,
+      },
+    };
   }
 }

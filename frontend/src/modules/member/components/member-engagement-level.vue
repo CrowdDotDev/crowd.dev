@@ -7,16 +7,14 @@
       >
         <span
           class="block mr-2 text-xs font-semibold text-gray-400"
-          >Computing</span
-        >
+        >Computing</span>
       </div>
       <div
         v-else-if="member.attributes.isTeamMember?.crowd"
       >
         <span
           class="block mr-2 text-xs font-semibold text-gray-500"
-          >-</span
-        >
+        >-</span>
       </div>
       <div
         v-else
@@ -41,33 +39,33 @@ export default {
   props: {
     member: {
       type: Object,
-      default: () => {}
-    }
+      default: () => {},
+    },
   },
   computed: {
     computedEngagementLevel() {
-      const value = this.member.score
-      let label = ''
+      const value = this.member.score;
+      let label = '';
 
       if (value <= 1) {
-        label = 'Silent'
+        label = 'Silent';
       } else if (value <= 3) {
-        label = 'Quiet'
+        label = 'Quiet';
       } else if (value <= 6) {
-        label = 'Engaged'
+        label = 'Engaged';
       } else if (value <= 8) {
-        label = 'Fan'
+        label = 'Fan';
       } else if (value <= 10) {
-        label = 'Ultra'
+        label = 'Ultra';
       }
 
       return {
         value,
-        label
-      }
-    }
-  }
-}
+        label,
+      };
+    },
+  },
+};
 </script>
 
 <style lang="scss">

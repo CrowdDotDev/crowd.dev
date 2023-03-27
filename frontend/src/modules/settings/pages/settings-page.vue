@@ -2,7 +2,7 @@
   <app-page-wrapper>
     <div class="settings">
       <h4>
-        <app-i18n code="settings.title"></app-i18n>
+        Settings
       </h4>
       <el-tabs v-model="computedActiveTab" class="mt-10">
         <el-tab-pane
@@ -35,12 +35,12 @@
 </template>
 
 <script>
-import AppApiKeysPage from '@/modules/settings/pages/api-keys-page.vue'
-import AppPlansPage from '@/modules/settings/pages/plans-page.vue'
-import UserListPage from '@/modules/user/pages/user-list-page.vue'
-import AutomationListPage from '@/modules/automation/pages/automation-list-page.vue'
-import { UserPermissions } from '@/modules/user/user-permissions'
-import { mapGetters } from 'vuex'
+import { mapGetters } from 'vuex';
+import AppApiKeysPage from '@/modules/settings/pages/api-keys-page.vue';
+import AppPlansPage from '@/modules/settings/pages/plans-page.vue';
+import UserListPage from '@/modules/user/pages/user-list-page.vue';
+import AutomationListPage from '@/modules/automation/pages/automation-list-page.vue';
+import { UserPermissions } from '@/modules/user/user-permissions';
 
 export default {
   name: 'AppSettingsPage',
@@ -49,60 +49,62 @@ export default {
     AppApiKeysPage,
     AppPlansPage,
     'app-user-list-page': UserListPage,
-    'app-automation-list-page': AutomationListPage
+    'app-automation-list-page': AutomationListPage,
   },
 
   data() {
     return {
-      activeTab: null
-    }
+      activeTab: null,
+    };
   },
 
   computed: {
     ...mapGetters({
       currentUser: 'auth/currentUser',
-      currentTenant: 'auth/currentTenant'
+      currentTenant: 'auth/currentTenant',
     }),
     hasUsersModule() {
       return new UserPermissions(
         this.currentTenant,
-        this.currentUser
-      ).read
+        this.currentUser,
+      ).read;
     },
     computedActiveTab: {
       get() {
-        return this.activeTab
+        return this.activeTab;
       },
       set(value) {
         this.$router.push({
           name: 'settings',
-          query: { activeTab: value }
-        })
-      }
-    }
+          query: { activeTab: value },
+        });
+      },
+    },
   },
 
   watch: {
-    '$route.query.activeTab'(newActiveTab) {
-      if (newActiveTab) {
-        this.activeTab = newActiveTab
-      }
-    }
+    '$route.query.activeTab': {
+      handler(newActiveTab) {
+        if (newActiveTab) {
+          this.activeTab = newActiveTab;
+        }
+      },
+    },
   },
 
   created() {
     const urlSearchParams = new URLSearchParams(
-      window.location.search
-    )
+      window.location.search,
+    );
     const params = Object.fromEntries(
-      urlSearchParams.entries()
-    )
+      urlSearchParams.entries(),
+    );
 
     this.activeTab = this.hasUsersModule
-      ? params['activeTab'] || 'users'
-      : 'api-keys'
-  }
-}
+      ? params.activeTab || 'users'
+      : 'api-keys';
+  },
+};
 </script>
 
 <style lang="scss">

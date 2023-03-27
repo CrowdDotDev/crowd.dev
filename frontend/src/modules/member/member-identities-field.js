@@ -1,56 +1,56 @@
-import StringField from '@/shared/fields/string-field'
+import StringField from '@/shared/fields/string-field';
 
 export default class MemberIdentitiesField extends StringField {
   constructor(name, label, config = {}) {
-    super(name, label)
+    super(name, label);
 
-    this.placeholder = config.placeholder
-    this.hint = config.hint
-    this.required = config.required
-    this.matches = config.matches
-    this.filterable = config.filterable || false
-    this.custom = config.custom || false
+    this.placeholder = config.placeholder;
+    this.hint = config.hint;
+    this.required = config.required;
+    this.matches = config.matches;
+    this.filterable = config.filterable || false;
+    this.custom = config.custom || false;
   }
 
   dropdownOptions() {
     return [
       {
         value: 'github',
-        label: 'GitHub'
+        label: 'GitHub',
       },
       {
         value: 'discord',
-        label: 'Discord'
+        label: 'Discord',
       },
       {
         value: 'slack',
-        label: 'Slack'
+        label: 'Slack',
       },
       {
         value: 'twitter',
-        label: 'Twitter'
+        label: 'Twitter',
       },
       {
         value: 'devto',
-        label: 'DEV'
+        label: 'DEV',
       },
       {
         value: 'hackernews',
-        label: 'Hacker News'
+        label: 'Hacker News',
       },
       {
         value: 'reddit',
-        label: 'Reddit'
+        label: 'Reddit',
       },
       {
         value: 'linkedin',
-        label: 'LinkedIn'
+        label: 'LinkedIn',
       },
       {
         value: 'stackoverflow',
-        label: 'Stack Overflow'
-      }
-    ]
+        label: 'Stack Overflow',
+      },
+    ];
   }
 
   forFilter() {
@@ -60,13 +60,13 @@ export default class MemberIdentitiesField extends StringField {
       custom: this.custom,
       props: {
         options: this.dropdownOptions(),
-        multiple: true
+        multiple: true,
       },
       defaultValue: [],
       value: [],
       defaultOperator: 'contains',
       operator: 'contains',
-      type: 'select-multi'
-    }
+      type: 'select-multi',
+    };
   }
 }

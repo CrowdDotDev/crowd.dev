@@ -24,25 +24,24 @@
               class="mb-0"
             >
               <label
+                for="firstName"
                 class="text-xs mb-1 font-semibold leading-5"
-                >{{ fields.firstName.label }}</label
-              >
+              >{{ fields.firstName.label }}</label>
               <el-input
                 id="firstName"
                 ref="focus"
                 v-model="model[fields.firstName.name]"
                 autocomplete="given-name"
                 type="text"
-              ></el-input>
+              />
               <template #error="{ error }">
                 <div class="flex items-center mt-1">
                   <i
                     class="h-4 flex items-center ri-error-warning-line text-base text-red-500"
-                  ></i>
+                  />
                   <span
                     class="pl-1 text-2xs text-red-500 leading-4.5"
-                    >{{ error }}</span
-                  >
+                  >{{ error }}</span>
                 </div>
               </template>
             </el-form-item>
@@ -53,24 +52,23 @@
               class="mb-0"
             >
               <label
+                for="lastName"
                 class="text-xs mb-1 font-semibold leading-5"
-                >{{ fields.lastName.label }}</label
-              >
+              >{{ fields.lastName.label }}</label>
               <el-input
                 id="lastName"
                 v-model="model[fields.lastName.name]"
                 autocomplete="family-name"
                 type="text"
-              ></el-input>
+              />
               <template #error="{ error }">
                 <div class="flex items-center mt-1">
                   <i
                     class="h-4 flex items-center ri-error-warning-line text-base text-red-500"
-                  ></i>
+                  />
                   <span
                     class="pl-1 text-2xs text-red-500 leading-4.5"
-                    >{{ error }}</span
-                  >
+                  >{{ error }}</span>
                 </div>
               </template>
             </el-form-item>
@@ -81,24 +79,23 @@
           class="mb-0"
         >
           <label
+            for="email"
             class="text-xs mb-1 font-semibold leading-5"
-            >{{ fields.email.label }}</label
-          >
+          >{{ fields.email.label }}</label>
           <el-input
             id="email"
             v-model="model[fields.email.name]"
             autocomplete="email"
             type="email"
-          ></el-input>
+          />
           <template #error="{ error }">
             <div class="flex items-center mt-1">
               <i
                 class="h-4 flex items-center ri-error-warning-line text-base text-red-500"
-              ></i>
+              />
               <span
                 class="pl-1 text-2xs text-red-500 leading-4.5"
-                >{{ error }}</span
-              >
+              >{{ error }}</span>
             </div>
           </template>
         </el-form-item>
@@ -108,9 +105,9 @@
           class="mb-0"
         >
           <label
+            for="password"
             class="text-xs mb-1 font-semibold leading-5"
-            >{{ fields.password.label }}</label
-          >
+          >{{ fields.password.label }}</label>
           <el-input
             id="password"
             v-model="model[fields.password.name]"
@@ -123,18 +120,17 @@
                 @click="
                   display.password = !display.password
                 "
-              ></span>
+              />
             </template>
           </el-input>
           <template #error="{ error }">
             <div class="flex items-center mt-1">
               <i
                 class="h-4 flex items-center ri-error-warning-line text-base text-red-500"
-              ></i>
+              />
               <span
                 class="pl-1 text-2xs text-red-500 leading-4.5"
-                >{{ error }}</span
-              >
+              >{{ error }}</span>
             </div>
           </template>
         </el-form-item>
@@ -144,9 +140,9 @@
           class="mb-0"
         >
           <label
+            for="passwordConfirmation"
             class="text-xs mb-1 font-semibold leading-5"
-            >{{ fields.passwordConfirmation.label }}</label
-          >
+          >{{ fields.passwordConfirmation.label }}</label>
           <el-input
             id="passwordConfirmation"
             v-model="
@@ -161,21 +157,19 @@
               <span
                 class="ri-eye-line text-base text-gray-400 cursor-pointer"
                 @click="
-                  display.passwordConfirm =
-                    !display.passwordConfirm
+                  display.passwordConfirm = !display.passwordConfirm
                 "
-              ></span>
+              />
             </template>
           </el-input>
           <template #error="{ error }">
             <div class="flex items-center mt-1">
               <i
                 class="h-4 flex items-center ri-error-warning-line text-base text-red-500"
-              ></i>
+              />
               <span
                 class="pl-1 text-2xs text-red-500 leading-4.5"
-                >{{ error }}</span
-              >
+              >{{ error }}</span>
             </div>
           </template>
         </el-form-item>
@@ -187,7 +181,7 @@
             native-type="submit"
             class="w-full btn btn--primary btn--lg"
           >
-            <app-i18n code="auth.signup"></app-i18n>
+            <app-i18n code="auth.signup" />
           </el-button>
         </el-form-item>
       </el-form>
@@ -206,17 +200,15 @@
           class="btn btn--secondary btn--lg w-full"
         >
           <app-svg name="google" class="h-5 w-5" />
-          <span class="pl-3 text-gray-600"
-            >Sign up with Google</span
-          >
+          <span class="pl-3 text-gray-600">Sign up with Google</span>
         </a>
       </div>
       <div class="flex justify-center">
         <p class="text-sm leading-5 text-center">
           Already have an account?
-          <router-link :to="{ name: 'signin' }"
-            >Sign in</router-link
-          >
+          <router-link :to="{ name: 'signin' }">
+            Sign in
+          </router-link>
         </p>
       </div>
     </div>
@@ -224,19 +216,19 @@
 </template>
 
 <script>
-import { mapGetters, mapActions } from 'vuex'
-import { UserModel } from '@/modules/user/user-model'
-import config from '@/config'
-import AppI18n from '@/shared/i18n/i18n'
-import AppSvg from '@/shared/svg/svg'
-import { passwordConfirmRules } from '@/modules/auth/auth-helpers'
+import { mapGetters, mapActions } from 'vuex';
+import { UserModel } from '@/modules/user/user-model';
+import config from '@/config';
+import { passwordConfirmRules } from '@/modules/auth/auth-helpers';
+import AppI18n from '@/shared/i18n/i18n.vue';
+import AppSvg from '@/shared/svg/svg.vue';
 
-const { fields } = UserModel
+const { fields } = UserModel;
 
 export default {
   name: 'AppSignupPage',
   components: { AppSvg, AppI18n },
-  data: function () {
+  data() {
     return {
       rules: {
         firstName: fields.firstName.forFormRules(),
@@ -244,51 +236,49 @@ export default {
         email: fields.email.forFormRules(),
         password: fields.password.forFormRules(),
         passwordConfirmation:
-          fields.passwordConfirmation.forFormRules()
+          fields.passwordConfirmation.forFormRules(),
       },
       model: {},
       display: {
         password: false,
-        passwordConfirm: false
-      }
-    }
+        passwordConfirm: false,
+      },
+    };
   },
 
   computed: {
     ...mapGetters('auth', ['loading']),
 
     fields() {
-      return fields
+      return fields;
     },
 
     extendedRules() {
       return passwordConfirmRules(
         this.rules,
         fields,
-        this.model
-      )
-    }
+        this.model,
+      );
+    },
   },
 
   methods: {
     ...mapActions('auth', ['doRegisterEmailAndPassword']),
 
     doSubmit() {
-      this.$refs.form.validate().then(() => {
-        return this.doRegisterEmailAndPassword({
-          email: this.model.email,
-          password: this.model.password,
-          data: {
-            firstName: this.model.firstName,
-            lastName: this.model.lastName
-          }
-        })
-      })
+      this.$refs.form.validate().then(() => this.doRegisterEmailAndPassword({
+        email: this.model.email,
+        password: this.model.password,
+        data: {
+          firstName: this.model.firstName,
+          lastName: this.model.lastName,
+        },
+      }));
     },
 
     socialOauthLink(provider) {
-      return `${config.backendUrl}/auth/social/${provider}`
-    }
-  }
-}
+      return `${config.backendUrl}/auth/social/${provider}`;
+    },
+  },
+};
 </script>

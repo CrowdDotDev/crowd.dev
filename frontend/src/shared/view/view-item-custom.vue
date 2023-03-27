@@ -1,7 +1,7 @@
 <template>
   <el-form-item v-if="!isBlank" :label="label">
     <el-col :lg="11" :md="16" :sm="24">
-      <slot></slot>
+      <slot />
     </el-col>
   </el-form-item>
 </template>
@@ -13,25 +13,25 @@ export default {
   props: {
     label: {
       type: String,
-      default: null
+      default: null,
     },
     value: {
       type: String,
-      default: null
-    }
+      default: null,
+    },
   },
 
   computed: {
     isBlank() {
       return (
-        (!this.value &&
-          this.value !== 0 &&
-          this.value !== false) ||
-        (Array.isArray(this.value) && !this.value.length)
-      )
-    }
-  }
-}
+        (!this.value
+          && this.value !== 0
+          && this.value !== false)
+        || (Array.isArray(this.value) && !this.value.length)
+      );
+    },
+  },
+};
 </script>
 
 <style></style>

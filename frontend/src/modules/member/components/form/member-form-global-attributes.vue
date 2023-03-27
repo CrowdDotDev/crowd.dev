@@ -50,20 +50,19 @@
               <el-input
                 v-model="attribute.label"
                 @input="(e) => onInputChange(e, attribute)"
-              ></el-input
-              ><template #error>
+              /><template #error>
                 <div class="el-form-item__error">
                   Name is required
                 </div>
-              </template></el-form-item
-            >
+              </template>
+            </el-form-item>
             <el-button
               class="btn btn--md btn--transparent w-10 h-10"
               @click="deleteAttribute(attribute.name)"
             >
               <i
                 class="ri-delete-bin-line text-lg text-black"
-              ></i>
+              />
             </el-button>
           </div>
         </div>
@@ -71,8 +70,9 @@
       <el-button
         class="btn btn-link btn-link--md btn-link--primary mt-5"
         @click="addAttribute"
-        >+ Add attribute</el-button
       >
+        + Add attribute
+      </el-button>
     </div>
 
     <div class="el-drawer__footer">
@@ -86,21 +86,24 @@
           v-if="hasFormChanged"
           class="btn btn-link btn-link--primary"
           @click="onReset"
-          ><i class="ri-arrow-go-back-line"></i>
-          <span>Reset changes</span></el-button
         >
+          <i class="ri-arrow-go-back-line" />
+          <span>Reset changes</span>
+        </el-button>
         <div class="flex gap-4">
           <el-button
             class="btn btn--md btn--bordered"
             @click="() => (isDrawerOpen = false)"
-            >Cancel</el-button
           >
+            Cancel
+          </el-button>
           <el-button
             :disabled="!hasFormChanged || isFormInvalid"
             class="btn btn--md btn--primary"
             @click="onSubmit"
-            >Update</el-button
           >
+            Update
+          </el-button>
         </div>
       </div>
     </div>
@@ -108,81 +111,64 @@
 </template>
 
 <script setup>
-import attributeTypes from '@/jsons/member-custom-attributes.json'
 import {
   defineProps,
   defineEmits,
   computed,
   reactive,
   ref,
-  watch
-} from 'vue'
-import { useStore } from 'vuex'
-import isEqual from 'lodash/isEqual'
-import ConfirmDialog from '@/shared/dialog/confirm-dialog.js'
-import Message from '@/shared/message/message'
-import { i18n } from '@/i18n'
-import parseCustomAttributes from '@/shared/fields/parse-custom-attributes.js'
-import cloneDeep from 'lodash/cloneDeep'
-import { onSelectMouseLeave } from '@/utils/select'
+  watch,
+} from 'vue';
+import { useStore } from 'vuex';
+import isEqual from 'lodash/isEqual';
+import cloneDeep from 'lodash/cloneDeep';
+import attributeTypes from '@/jsons/member-custom-attributes.json';
+import ConfirmDialog from '@/shared/dialog/confirm-dialog';
+import Message from '@/shared/message/message';
+import { i18n } from '@/i18n';
+import parseCustomAttributes from '@/shared/fields/parse-custom-attributes';
+import { onSelectMouseLeave } from '@/utils/select';
 
-const emit = defineEmits(['update:modelValue'])
+const emit = defineEmits(['update:modelValue']);
 const props = defineProps({
   modelValue: {
     type: Boolean,
-    default: () => false
-  }
-})
+    default: () => false,
+  },
+});
 
-const store = useStore()
+const store = useStore();
 
 // Arrays used to make the requests on form submission
-const editedFields = reactive([])
-const addedFields = reactive([])
-const deletedFields = reactive([])
+const editedFields = reactive([]);
+const addedFields = reactive([]);
+const deletedFields = reactive([]);
 
 // Form models
 const initialModel = ref(
   cloneDeep(
     parseCustomAttributes(
-      store.state.member.customAttributes
-    )
-  )
-)
-const model = ref(cloneDeep(initialModel.value))
-watch(
-  () => store.state.member.customAttributes,
-  (updatedStore) => {
-    onReset()
-    initialModel.value = cloneDeep(
-      parseCustomAttributes(updatedStore)
-    )
+      store.state.member.customAttributes,
+    ),
+  ),
+);
+const model = ref(cloneDeep(initialModel.value));
 
-    model.value = cloneDeep(
-      parseCustomAttributes(updatedStore)
-    )
-  }
-)
-
-const isFormInvalid = computed(() => {
-  return Object.entries(model.value).some(
-    ([, value]) => !value.label
-  )
-})
-const hasFormChanged = computed(() => {
-  return !isEqual(initialModel.value, model.value)
-})
+const isFormInvalid = computed(() => Object.entries(model.value).some(
+  ([, value]) => !value.label,
+));
+const hasFormChanged = computed(() => !isEqual(initialModel.value, model.value));
 const isDrawerOpen = computed({
   get() {
-    return props.modelValue
+    return props.modelValue;
   },
   set(drawerVisibility) {
-    emit('update:modelValue', drawerVisibility)
-  }
-})
+    emit('update:modelValue', drawerVisibility);
+  },
+});
 
 async function onSubmit() {
-  let hasErrorOccurred = false
+  let hasErrorOccurred = false;
   // Handle deleted fields
   if (deletedFields.length) {
     try {
@@ -192,20 +178,20 @@ async function onSubmit() {
         title: 'Deleting global attributes in use',
         message:
           'Deleting global attributes will also discard any associated values. \n Are you sure you want to proceed?',
-        confirmButtonText: 'Confirm update'
-      })
+        confirmButtonText: 'Confirm update',
+      });
 
       const ids = deletedFields.map(
-        (deletedField) => deletedField.id
-      )
+        (deletedField) => deletedField.id,
+      );
 
       store
         .dispatch('member/doDestroyCustomAttributes', ids)
         .catch(() => {
-          hasErrorOccurred = true
-        })
+          hasErrorOccurred = true;
+        });
     } catch (e) {
-      return
+      return;
     }
   }
 
@@ -217,13 +203,13 @@ async function onSubmit() {
           'member/doCreateCustomAttributes',
           {
             type,
-            label
-          }
-        )
+            label,
+          },
+        );
       } catch (e) {
-        hasErrorOccurred = true
+        hasErrorOccurred = true;
       }
-    })
+    });
   }
 
   // Handle edited fields
@@ -235,83 +221,97 @@ async function onSubmit() {
           {
             id,
             data: {
-              label
-            }
-          }
-        )
+              label,
+            },
+          },
+        );
       } catch (e) {
-        hasErrorOccurred = true
+        hasErrorOccurred = true;
       }
-    })
+    });
   }
 
   if (hasErrorOccurred) {
-    Message.error(i18n('errors.defaultErrorMessage'))
+    Message.error(i18n('errors.defaultErrorMessage'));
   } else {
     Message.success(
-      i18n('entities.member.attributes.success')
-    )
-    isDrawerOpen.value = false
+      i18n('entities.member.attributes.success'),
+    );
+    isDrawerOpen.value = false;
   }
 }
 
 function onInputChange(newValue, attribute) {
   // Logic for edited attributes
   if (
-    model.value[attribute.name].canDelete &&
-    newValue !==
-      initialModel.value[attribute.name]?.label &&
-    !editedFields.some(
-      (field) => field.name === attribute.name
+    model.value[attribute.name].canDelete
+    && newValue
+      !== initialModel.value[attribute.name]?.label
+    && !editedFields.some(
+      (field) => field.name === attribute.name,
     )
   ) {
-    editedFields.push(model.value[attribute.name])
+    editedFields.push(model.value[attribute.name]);
   } else if (
-    model.value[attribute.name].canDelete &&
-    newValue === initialModel.value[attribute.name]?.label
+    model.value[attribute.name].canDelete
+    && newValue === initialModel.value[attribute.name]?.label
   ) {
     const id = editedFields.findIndex(
-      (field) => field.name === attribute.name
-    )
-    editedFields.splice(id, 1)
+      (field) => field.name === attribute.name,
+    );
+    editedFields.splice(id, 1);
   }
 }
 
 function onReset() {
-  addedFields.splice(0)
-  editedFields.splice(0)
-  deletedFields.splice(0)
+  addedFields.splice(0);
+  editedFields.splice(0);
+  deletedFields.splice(0);
 
-  model.value = cloneDeep(initialModel.value)
+  model.value = cloneDeep(initialModel.value);
 }
 
 function addAttribute() {
   const newAttribute = {
     name: Date.now(),
     type: 'string',
-    label: null
-  }
+    label: null,
+  };
 
-  addedFields.push(newAttribute)
-  model.value[newAttribute.name] = newAttribute
+  addedFields.push(newAttribute);
+  model.value[newAttribute.name] = newAttribute;
 }
 
 function deleteAttribute(key) {
   if (
-    model.value[key].canDelete &&
-    !deletedFields.some((field) => field.name === key)
+    model.value[key].canDelete
+    && !deletedFields.some((field) => field.name === key)
   ) {
-    deletedFields.push(model.value[key])
+    deletedFields.push(model.value[key]);
   } else {
-    const id = addedFields.findIndex((a) => a.name === key)
+    const id = addedFields.findIndex((a) => a.name === key);
 
     if (id !== -1) {
-      addedFields.splice(id, 1)
+      addedFields.splice(id, 1);
     }
   }
 
-  delete model.value[key]
+  delete model.value[key];
 }
+
+watch(
+  () => store.state.member.customAttributes,
+  (updatedStore) => {
+    onReset();
+    initialModel.value = cloneDeep(
+      parseCustomAttributes(updatedStore),
+    );
+
+    model.value = cloneDeep(
+      parseCustomAttributes(updatedStore),
+    );
+  },
+);
 </script>
 
 <style lang="scss">

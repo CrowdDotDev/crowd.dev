@@ -1,46 +1,42 @@
-import Permissions from '@/security/permissions'
-import { PermissionChecker } from '@/modules/user/permission-checker'
+import Permissions from '@/security/permissions';
+import { PermissionChecker } from '@/modules/user/permission-checker';
 
 export class OrganizationPermissions {
   constructor(currentTenant, currentUser) {
     const permissionChecker = new PermissionChecker(
       currentTenant,
-      currentUser
-    )
+      currentUser,
+    );
 
     this.read = permissionChecker.match(
-      Permissions.values.organizationRead
-    )
+      Permissions.values.organizationRead,
+    );
     this.import = permissionChecker.match(
-      Permissions.values.organizationImport
-    )
+      Permissions.values.organizationImport,
+    );
     this.organizationAutocomplete = permissionChecker.match(
-      Permissions.values.organizationAutocomplete
-    )
+      Permissions.values.organizationAutocomplete,
+    );
     this.create = permissionChecker.match(
-      Permissions.values.organizationCreate
-    )
+      Permissions.values.organizationCreate,
+    );
     this.edit = permissionChecker.match(
-      Permissions.values.organizationEdit
-    )
+      Permissions.values.organizationEdit,
+    );
     this.destroy = permissionChecker.match(
-      Permissions.values.organizationDestroy
-    )
-    this.lockedForCurrentPlan =
-      permissionChecker.lockedForCurrentPlan(
-        Permissions.values.organizationRead
-      )
-    this.createLockedForSampleData =
-      permissionChecker.lockedForSampleData(
-        Permissions.values.organizationCreate
-      )
-    this.editLockedForSampleData =
-      permissionChecker.lockedForSampleData(
-        Permissions.values.organizationEdit
-      )
-    this.destroyLockedForSampleData =
-      permissionChecker.lockedForSampleData(
-        Permissions.values.organizationDestroy
-      )
+      Permissions.values.organizationDestroy,
+    );
+    this.lockedForCurrentPlan = permissionChecker.lockedForCurrentPlan(
+      Permissions.values.organizationRead,
+    );
+    this.createLockedForSampleData = permissionChecker.lockedForSampleData(
+      Permissions.values.organizationCreate,
+    );
+    this.editLockedForSampleData = permissionChecker.lockedForSampleData(
+      Permissions.values.organizationEdit,
+    );
+    this.destroyLockedForSampleData = permissionChecker.lockedForSampleData(
+      Permissions.values.organizationDestroy,
+    );
   }
 }
