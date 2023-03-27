@@ -40,7 +40,7 @@ export default {
 
   loading: (state) => Boolean(state.loading),
 
-  loadingInit: (state) => Boolean(state.loadingInit),
+  loadingInit: (state) => state.loadingInit,
 
   loadingEmailConfirmation: (state) => Boolean(state.loadingEmailConfirmation),
 

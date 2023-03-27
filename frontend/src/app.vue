@@ -1,5 +1,5 @@
 <template>
-  <div v-show="!loading" id="app">
+  <div v-if="!loading" id="app">
     <div class="sm:hidden md:block lg:block">
       <router-view v-slot="{ Component }">
         <transition>
@@ -42,7 +42,7 @@ export default {
     }),
     loading() {
       return (
-        (this.loadingInit && AuthToken.get())
+        (this.loadingInit && !!AuthToken.get())
         || (!this.featureFlag.isReady
           && !this.featureFlag.hasError
           && !config.isCommunityVersion)

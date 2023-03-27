@@ -11,7 +11,7 @@ import { buildInitialState } from '@/store';
  * @param store
  * @returns {Promise<*>}
  */
-export default async ({ to, store }) => {
+export default async function ({ to, store }) {
   if (to.path === '/auth/signin') {
     const initialState = buildInitialState();
 

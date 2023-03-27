@@ -10,7 +10,7 @@
  * @param router
  * @returns {Promise<*>}
  */
-export default async ({ to, store, router }) => {
+export default async function ({ to, store, router }) {
   if (!to.meta || !to.meta.notEmptyPermissions) {
     return;
   }
