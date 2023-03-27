@@ -38,10 +38,7 @@ module.exports = {
       new DeadCodePlugin({
         patterns: ['src/**/*.(js|jsx|css|vue)'],
       }),
-      new MiniCssExtractPlugin({
-        filename: '[name].css',
-        ignoreOrder: true,
-      }),
+      new MiniCssExtractPlugin(),
     ],
     optimization: {
       splitChunks: {
