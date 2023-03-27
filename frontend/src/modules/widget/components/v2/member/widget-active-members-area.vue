@@ -67,7 +67,7 @@
     :show-date="true"
     :title="drawerTitle"
     :export-by-ids="true"
-    module-name="member"
+    :template="MEMBERS_REPORT.nameAsId"
     size="480px"
     @on-export="onExport"
   ></app-widget-drawer>
@@ -104,6 +104,7 @@ import AppWidgetError from '@/modules/widget/components/v2/shared/widget-error.v
 import AppWidgetDrawer from '@/modules/widget/components/v2/shared/widget-drawer.vue'
 import { MemberService } from '@/modules/member/member-service'
 import moment from 'moment'
+import { MEMBERS_REPORT } from '@/modules/report/templates/template-reports'
 
 const props = defineProps({
   filters: {
@@ -197,7 +198,7 @@ const getActiveMembers = async ({ pagination }) => {
 // Open drawer and set title and date
 const onViewMoreClick = (date) => {
   window.analytics.track('Open report drawer', {
-    template: 'Members report',
+    template: MEMBERS_REPORT.nameAsId,
     widget: 'Active members',
     date,
     granularity: granularity.value

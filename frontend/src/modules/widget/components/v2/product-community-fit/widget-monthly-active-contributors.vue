@@ -17,7 +17,9 @@
             />
           </div>
           <app-widget-period
-            template="Product-community fit"
+            :template="
+              PRODUCT_COMMUNITY_FIT_REPORT.nameAsId
+            "
             widget="Monthly active contributors"
             :period="period"
             :granularity="granularity"
@@ -57,7 +59,7 @@
     :show-date="true"
     :title="drawerTitle"
     :export-by-ids="true"
-    module-name="member"
+    :template="PRODUCT_COMMUNITY_FIT_REPORT.nameAsId"
     size="480px"
     @on-export="onExport"
   ></app-widget-drawer>
@@ -93,6 +95,7 @@ import {
 import AppWidgetDrawer from '@/modules/widget/components/v2/shared/widget-drawer.vue'
 import { MemberService } from '@/modules/member/member-service'
 import moment from 'moment'
+import { PRODUCT_COMMUNITY_FIT_REPORT } from '@/modules/report/templates/template-reports'
 
 const props = defineProps({
   filters: {
@@ -197,7 +200,7 @@ const getActiveMembers = async ({ pagination }) => {
 // and detailed date
 const onViewMoreClick = (date) => {
   window.analytics.track('Open report drawer', {
-    template: 'Product-communit fit report',
+    template: PRODUCT_COMMUNITY_FIT_REPORT.nameAsId,
     widget: 'Monthly active contributors',
     date,
     granularity: granularity.value

@@ -66,7 +66,7 @@
     :granularity="granularity"
     :show-date="true"
     :title="drawerTitle"
-    module-name="member"
+    :template="MEMBERS_REPORT.nameAsId"
     size="480px"
     @on-export="onExport"
   ></app-widget-drawer>
@@ -97,6 +97,7 @@ import {
 } from '@/modules/widget/widget-queries'
 import { MemberService } from '@/modules/member/member-service'
 import AppWidgetDrawer from '@/modules/widget/components/v2/shared/widget-drawer.vue'
+import { MEMBERS_REPORT } from '@/modules/report/templates/template-reports'
 
 const customChartOptions = cloneDeep(chartOptions('area'))
 
@@ -150,14 +151,16 @@ const query = computed(() => {
 
 const kpiCurrentValue = (resultSet) => {
   const data = resultSet.chartPivot()
-  return Number(
-    data[data.length - 1]['Members.cumulativeCount']
+  return (
+    Number(
+      data[data.length - 1]['Members.cumulativeCount']
+    ) || 0
   )
 }
 
 const kpiPreviousValue = (resultSet) => {
   const data = resultSet.chartPivot()
-  return Number(data[0]['Members.cumulativeCount'])
+  return Number(data[0]['Members.cumulativeCount']) || 0
 }
 
 const chartResultSet = (resultSet) => {
@@ -212,7 +215,7 @@ const getTotalMembers = async ({ pagination }) => {
 // and detailed date
 const onViewMoreClick = (date) => {
   window.analytics.track('Open report drawer', {
-    template: 'Members report',
+    template: MEMBERS_REPORT.nameAsId,
     widget: 'Total members',
     date,
     granularity: granularity.value

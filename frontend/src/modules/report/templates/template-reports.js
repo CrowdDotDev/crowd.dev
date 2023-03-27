@@ -16,7 +16,7 @@ export const PRODUCT_COMMUNITY_FIT_REPORT = {
   name: 'Product-community fit',
   description:
     'Measure and benchmark product-community fit for your open-source project ',
-  icon: 'ri-rocket-2-line',
+  icon: 'ri-rocket-2-line rotate-45',
   color: 'bg-purple-500',
   filters: {
     teamMembers: true

@@ -22,7 +22,9 @@ export const defaultChartConfig = {
   yMin: null,
   yMax: null,
   indexAxis: 'x',
-  y1Scale: null,
+  y1Scale: {
+    display: false
+  },
   gradient: {
     x0: 0,
     y0: 150,

@@ -17,7 +17,9 @@
             </div>
 
             <app-widget-period
-              template="Product-community fit"
+              :template="
+                PRODUCT_COMMUNITY_FIT_REPORT.nameAsId
+              "
               widget="Benchmark"
               :period="period"
               :granularity="granularity"
@@ -98,6 +100,7 @@ import { mapGetters } from '@/shared/vuex/vuex.helpers'
 import { TOTAL_MONTHLY_ACTIVE_CONTRIBUTORS } from '@/modules/widget/widget-queries'
 import { chartOptions } from '@/modules/report/templates/template-report-charts'
 import { QueryRenderer } from '@cubejs-client/vue3'
+import { PRODUCT_COMMUNITY_FIT_REPORT } from '@/modules/report/templates/template-reports'
 
 const benchmarkChartOptions = chartOptions('bar', {
   xTicks: false,
@@ -208,7 +211,7 @@ const props = defineProps({
 
 const period = ref(SIX_MONTHS_PERIOD_FILTER)
 const granularity = ref(MONTHLY_GRANULARITY_FILTER)
-const average = ref()
+const average = ref(0)
 
 const { cubejsApi } = mapGetters('widget')
 
@@ -247,6 +250,7 @@ const onUpdatePeriod = (updatedPeriod) => {
 }
 
 const onAverageCalculation = (calculatedAverage) => {
+  console.log(calculatedAverage)
   average.value = calculatedAverage
 }
 </script>

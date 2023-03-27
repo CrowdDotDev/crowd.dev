@@ -131,7 +131,6 @@ import AppWidgetError from '@/modules/widget/components/v2/shared/widget-error.v
 import AppWidgetEmpty from '@/modules/widget/components/v2/shared/widget-empty.vue'
 import { parseAxisLabel } from '@/utils/reports'
 import { WIDGET_PERIOD_OPTIONS } from '@/modules/widget/widget-constants'
-import { toSentenceCase } from '@/utils/string'
 import pluralize from 'pluralize'
 
 const emit = defineEmits([
@@ -172,7 +171,7 @@ const props = defineProps({
     type: Function,
     default: null
   },
-  moduleName: {
+  template: {
     type: String,
     default: null
   },
@@ -214,11 +213,7 @@ const periodOptions = computed(() => {
 
 // Render list table component for each specific module
 const listComponent = computed(() => {
-  if (props.moduleName === 'member') {
-    return AppWidgetMembersTable
-  }
-
-  return null
+  return AppWidgetMembersTable
 })
 
 const model = computed({
@@ -269,7 +264,7 @@ const getList = async ({ isNewList }) => {
 // Reset pagination, fetch new list and select a new period
 const onPeriodOptionClick = async (option) => {
   window.analytics.track('Filter in report drawer', {
-    template: `${toSentenceCase(props.moduleName)}s report`,
+    template: props.template,
     period: option
   })
 
@@ -292,7 +287,7 @@ const onLoadMore = async () => {
 // Export all items on the list from its ids
 const onExportClick = async () => {
   window.analytics.track('Export CSV in report drawer', {
-    template: `${toSentenceCase(props.moduleName)}s report`
+    template: props.template
   })
 
   let ids
@@ -321,7 +316,7 @@ const onExportClick = async () => {
 
 const onRowClick = () => {
   window.analytics.track('Click report drawer row', {
-    template: `${toSentenceCase(props.moduleName)}s report`
+    template: props.template
   })
 }
 </script>

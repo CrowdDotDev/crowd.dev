@@ -203,7 +203,7 @@ const onPlatformFilterReset = () => {
 
 const onTrackFilters = () => {
   window.analytics.track('Filter template report', {
-    template: currentTemplate.value.name,
+    template: currentTemplate.value.nameAsId,
     platforms: platform.value.value.map((p) => p.value),
     includeTeamMembers: teamMembers.value
   })

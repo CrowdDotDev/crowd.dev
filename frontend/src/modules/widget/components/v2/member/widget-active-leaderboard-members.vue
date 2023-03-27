@@ -67,7 +67,7 @@
     :export-by-ids="true"
     :period="selectedPeriod"
     :show-active-days="true"
-    module-name="member"
+    :template="MEMBERS_REPORT.nameAsId"
     size="480px"
     @on-export="onExport"
   ></app-widget-drawer>
@@ -100,6 +100,7 @@ import AppWidgetEmpty from '@/modules/widget/components/v2/shared/widget-empty.v
 import AppWidgetDrawer from '@/modules/widget/components/v2/shared/widget-drawer.vue'
 import { mapActions } from '@/shared/vuex/vuex.helpers'
 import moment from 'moment'
+import { MEMBERS_REPORT } from '@/modules/report/templates/template-reports'
 
 const props = defineProps({
   platforms: {
@@ -218,7 +219,7 @@ const getDetailedActiveMembers = async ({
 
 const onRowClick = () => {
   window.analytics.track('Click table widget row', {
-    template: 'Members report',
+    template: MEMBERS_REPORT.nameAsId,
     widget: 'Leaderbord: Most active members'
   })
 }
@@ -226,7 +227,7 @@ const onRowClick = () => {
 // Open drawer and set title
 const handleDrawerOpen = async () => {
   window.analytics.track('Open report drawer', {
-    template: 'Members report',
+    template: MEMBERS_REPORT.nameAsId,
     widget: 'Leaderbord: Most active members',
     period: selectedPeriod.value
   })

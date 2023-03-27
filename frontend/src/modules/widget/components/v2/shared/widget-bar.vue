@@ -54,20 +54,21 @@ const series = (resultSet) => {
 
   if (resultSet.loadResponses.length > 0) {
     resultSet.loadResponses.forEach((_, index) => {
-      let data = pivot[index].series.map((p) => [
-        p.x,
-        p.value
-      ])
+      let data = pivot.length
+        ? pivot[index].series.map((p) => [p.x, p.value])
+        : []
 
       // Show one bar for the DataPointsAverage
       if (props.showAsAverage) {
-        const average = Math.floor(
-          data.reduce((valueA, [, valueB]) => {
-            return valueA + valueB
-          }, 0) / data.length
-        )
+        const average =
+          Math.floor(
+            data.reduce((valueA, [, valueB]) => {
+              return valueA + valueB
+            }, 0) / data.length
+          ) || 0
 
         emit('onAverageCalculation', average)
+
         data = [['average', average]]
       }
 

@@ -285,7 +285,7 @@ export default {
     },
     onTrackFilters() {
       window.analytics.track('Filter template report', {
-        template: this.currentTemplate.name,
+        template: this.currentTemplate.nameAsId,
         public: true,
         platforms: this.platform.value.map((p) => p.value),
         includeTeamMembers: this.teamMembers
