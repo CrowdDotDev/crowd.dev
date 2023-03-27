@@ -232,6 +232,16 @@ export default class TenantService {
         { ...this.options, transaction, currentTenant: record },
       )
 
+      // create community-product fit template report
+      await ReportRepository.create(
+        {
+          name: 'Product-community fit report',
+          public: false,
+          isTemplate: true,
+        },
+        { ...this.options, transaction, currentTenant: record },
+      )
+
       for (const widgetToCreate of defaultReport.widgets) {
         await WidgetRepository.create(
           {
