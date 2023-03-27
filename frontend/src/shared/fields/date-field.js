@@ -1,18 +1,18 @@
-import * as yup from 'yup'
-import moment from 'moment'
-import { i18n } from '@/i18n'
-import GenericField from '@/shared/fields/generic-field'
-import { formatDate } from '@/utils/date'
+import * as yup from 'yup';
+import moment from 'moment';
+import { i18n } from '@/i18n';
+import GenericField from '@/shared/fields/generic-field';
+import { formatDate } from '@/utils/date';
 
 export default class DateField extends GenericField {
   constructor(name, label, config = {}) {
-    super(name, label)
+    super(name, label);
 
-    this.required = config.required
-    this.placeholder = config.placeholder
-    this.hint = config.hint
-    this.filterable = config.filterable || false
-    this.custom = config.custom
+    this.required = config.required;
+    this.placeholder = config.placeholder;
+    this.hint = config.hint;
+    this.filterable = config.filterable || false;
+    this.custom = config.custom;
   }
 
   forFilter() {
@@ -25,20 +25,20 @@ export default class DateField extends GenericField {
       value: [],
       defaultOperator: 'eq',
       operator: null,
-      type: 'date'
-    }
+      type: 'date',
+    };
   }
 
   forPresenter(value) {
-    return value
+    return value;
   }
 
   forFilterPreview(value) {
-    return value ? formatDate({ timestamp: value }) : null
+    return value ? formatDate({ timestamp: value }) : null;
   }
 
   forImportViewTable(value) {
-    return value ? formatDate({ timestamp: value }) : null
+    return value ? formatDate({ timestamp: value }) : null;
   }
 
   forFilterCast() {
@@ -46,29 +46,27 @@ export default class DateField extends GenericField {
       .mixed()
       .nullable(true)
       .label(this.label)
-      .transform((value) =>
-        value ? formatDate({ timestamp: value }) : null
-      )
+      .transform((value) => (value ? formatDate({ timestamp: value }) : null));
   }
 
   forFormRules() {
-    const output = []
+    const output = [];
 
     if (this.required) {
       output.push({
         required: true,
         message: i18n('validation.mixed.required').replace(
-          '${path}',
-          this.label
-        )
-      })
+          '{path}',
+          this.label,
+        ),
+      });
     }
 
-    return output
+    return output;
   }
 
   forFormInitialValue(value) {
-    return value ? moment(value, 'YYYY-MM-DD') : null
+    return value ? moment(value, 'YYYY-MM-DD') : null;
   }
 
   forFormCast() {
@@ -76,13 +74,11 @@ export default class DateField extends GenericField {
       .mixed()
       .nullable(true)
       .label(this.label)
-      .transform((value) =>
-        value ? formatDate({ timestamp: value }) : null
-      )
+      .transform((value) => (value ? formatDate({ timestamp: value }) : null));
   }
 
   forExport() {
-    return yup.mixed().label(this.label)
+    return yup.mixed().label(this.label);
   }
 
   forImport() {
@@ -95,20 +91,18 @@ export default class DateField extends GenericField {
         i18n('validation.mixed.default'),
         (value) => {
           if (!value) {
-            return true
+            return true;
           }
 
-          return moment(value, 'YYYY-MM-DD').isValid()
-        }
+          return moment(value, 'YYYY-MM-DD').isValid();
+        },
       )
-      .transform((value) =>
-        value ? formatDate({ timestamp: value }) : null
-      )
+      .transform((value) => (value ? formatDate({ timestamp: value }) : null));
 
     if (this.required) {
-      yupChain = yupChain.required()
+      yupChain = yupChain.required();
     }
 
-    return yupChain
+    return yupChain;
   }
 }

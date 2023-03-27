@@ -12,7 +12,7 @@
         :editable="editable"
         :chart-options="{
           ...mapOptions(widget, resultSet),
-          ...chartOptions
+          ...chartOptions,
         }"
         :dashboard="dashboard"
         @edit="$emit('edit', widget)"
@@ -24,78 +24,78 @@
 </template>
 
 <script>
-import { mapGetters, mapActions } from 'vuex'
-import { QueryRenderer } from '@cubejs-client/vue3'
-import WidgetCube from './widget-cube'
-import reportsCharts from '@/modules/report/report-charts'
+import { mapGetters, mapActions } from 'vuex';
+import { QueryRenderer } from '@cubejs-client/vue3';
+import { mapWidget, chartOptions } from '@/modules/report/report-charts';
+import WidgetCube from './widget-cube.vue';
 
 export default {
   name: 'AppWidgetCubeRenderer',
   components: {
     QueryRenderer,
-    'app-widget-cube': WidgetCube
+    'app-widget-cube': WidgetCube,
   },
   props: {
     widget: {
       type: Object,
-      default: null
+      default: null,
     },
     dashboard: {
       type: Boolean,
-      default: false
+      default: false,
     },
     editable: {
       type: Boolean,
-      default: false
+      default: false,
     },
     showSubtitle: {
       type: Boolean,
-      default: true
+      default: true,
     },
     chartOptions: {
       type: Object,
-      default: () => {}
-    }
+      default: () => {},
+    },
   },
   emits: ['edit', 'duplicate', 'delete'],
   data() {
     return {
-      mapWidget: reportsCharts.mapWidget,
-      mapOptions: reportsCharts.chartOptions
-    }
+      mapWidget,
+      mapOptions: chartOptions,
+    };
   },
   computed: {
     ...mapGetters({
       cubejsToken: 'widget/cubejsToken',
-      cubejsApi: 'widget/cubejsApi'
+      cubejsApi: 'widget/cubejsApi',
     }),
     query() {
       // Exclude team members in all queries
-      const widgetQuery = this.widget.settings.query
+      const widgetQuery = this.widget.settings.query;
       const isTeamMemberFilter = {
-        member: `Members.isTeamMember`,
+        member: 'Members.isTeamMember',
         operator: 'equals',
-        values: ['0']
-      }
+        values: ['0'],
+      };
 
       if (!widgetQuery.filters) {
-        widgetQuery.filters = [isTeamMemberFilter]
+        widgetQuery.filters = [isTeamMemberFilter];
       } else {
-        widgetQuery.filters.push(isTeamMemberFilter)
+        widgetQuery.filters.push(isTeamMemberFilter);
       }
 
-      return widgetQuery
-    }
+      return widgetQuery;
+    },
   },
   async created() {
     if (this.cubejsApi === null) {
-      await this.getCubeToken()
+      await this.getCubeToken();
     }
   },
   methods: {
     ...mapActions({
-      getCubeToken: 'widget/getCubeToken'
-    })
-  }
-}
+      getCubeToken: 'widget/getCubeToken',
+    }),
+  },
+};
 </script>

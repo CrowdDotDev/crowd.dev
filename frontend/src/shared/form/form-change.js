@@ -1,19 +1,17 @@
-import { ref, computed } from 'vue'
+import { ref, computed } from 'vue';
 
 export default function formChangeDetector(form) {
-  const temporaryForm = ref('')
+  const temporaryForm = ref('');
 
   function formSnapshot() {
-    temporaryForm.value = JSON.stringify(form)
+    temporaryForm.value = JSON.stringify(form);
   }
 
-  const hasFormChanged = computed(() => {
-    return temporaryForm.value !== JSON.stringify(form)
-  })
+  const hasFormChanged = computed(() => temporaryForm.value !== JSON.stringify(form));
 
   return {
     temporaryForm,
     formSnapshot,
-    hasFormChanged
-  }
+    hasFormChanged,
+  };
 }

@@ -1,38 +1,36 @@
-import { INITIAL_PAGE_SIZE } from './constants'
+import { INITIAL_PAGE_SIZE } from './constants';
 
-export default () => {
-  return {
-    records: {},
-    views: {
-      feed: {
-        id: 'feed',
-        label: 'Feed',
-        list: {
-          posts: [],
-          loading: false
-        },
-        count: 0,
-        active: true,
-        sorter: 'relevant'
+export default () => ({
+  records: {},
+  views: {
+    feed: {
+      id: 'feed',
+      label: 'Feed',
+      list: {
+        posts: [],
+        loading: false,
       },
-      bookmarked: {
-        id: 'bookmarked',
-        label: 'Bookmarked',
-        list: {
-          posts: [],
-          loading: false
-        },
-        count: 0,
-        pagination: {
-          currentPage: 1,
-          pageSize: INITIAL_PAGE_SIZE
-        },
-        sorter: 'individualBookmarks',
-        active: false
-      }
+      count: 0,
+      active: true,
+      sorter: 'relevant',
     },
-    pendingActions: [],
-    activeAction: {},
-    loadingUpdateSettings: false
-  }
-}
+    bookmarked: {
+      id: 'bookmarked',
+      label: 'Bookmarked',
+      list: {
+        posts: [],
+        loading: false,
+      },
+      count: 0,
+      pagination: {
+        currentPage: 1,
+        pageSize: INITIAL_PAGE_SIZE,
+      },
+      sorter: 'individualBookmarks',
+      active: false,
+    },
+  },
+  pendingActions: [],
+  activeAction: {},
+  loadingUpdateSettings: false,
+});

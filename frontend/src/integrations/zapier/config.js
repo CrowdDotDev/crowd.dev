@@ -6,5 +6,5 @@ export default {
   description:
     "We're currently working on this integration.",
   image:
-    'https://www.seekpng.com/png/full/67-672759_zapiers-new-cli-tool-for-creating-apps-zapier.png'
-}
+    'https://www.seekpng.com/png/full/67-672759_zapiers-new-cli-tool-for-creating-apps-zapier.png',
+};

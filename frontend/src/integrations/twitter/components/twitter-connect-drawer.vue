@@ -21,7 +21,9 @@
             clearable
             class="hashtag-input"
           >
-            <template #prefix><span>#</span></template>
+            <template #prefix>
+              <span>#</span>
+            </template>
           </el-input>
 
           <div class="app-form-hint leading-tight mt-2">
@@ -43,20 +45,21 @@
           v-if="hasFormChanged"
           class="btn btn-link btn-link--primary"
           @click="doReset"
-          ><i class="ri-arrow-go-back-line"></i>
-          <span>Reset changes</span></el-button
         >
+          <i class="ri-arrow-go-back-line" />
+          <span>Reset changes</span>
+        </el-button>
         <div class="flex gap-4">
           <el-button
             class="btn btn--md btn--bordered"
             @click="isVisible = false"
           >
-            <app-i18n code="common.cancel"></app-i18n>
+            <app-i18n code="common.cancel" />
           </el-button>
           <a
             class="btn btn--md btn--primary"
             :class="{
-              disabled: !hasFormChanged
+              disabled: !hasFormChanged,
             }"
             :href="
               hasFormChanged
@@ -71,91 +74,89 @@
     </template>
   </app-drawer>
 </template>
-<script>
-import { FormSchema } from '@/shared/form/form-schema'
-import StringField from '@/shared/fields/string-field'
 
-export default {
-  name: 'AppTwitterConnectDrawer'
-}
-</script>
 <script setup>
 import {
   defineEmits,
   defineProps,
   computed,
-  ref
-} from 'vue'
-import isEqual from 'lodash/isEqual'
-import { CrowdIntegrations } from '@/integrations/integrations-config'
+  ref,
+} from 'vue';
+import isEqual from 'lodash/isEqual';
+import { FormSchema } from '@/shared/form/form-schema';
+import StringField from '@/shared/fields/string-field';
+import { CrowdIntegrations } from '@/integrations/integrations-config';
 
 const props = defineProps({
   modelValue: {
     type: Boolean,
-    default: false
+    default: false,
   },
   hashtags: {
     type: Array,
-    default: () => []
+    default: () => [],
   },
   connectUrl: {
     type: String,
-    default: null
-  }
-})
+    default: null,
+  },
+});
 
-const emit = defineEmits(['update:modelValue'])
+const emit = defineEmits(['update:modelValue']);
 
-const parsedHashtags = computed(() =>
-  props.hashtags.length
-    ? props.hashtags[props.hashtags.length - 1]
-    : ''
-)
+const parsedHashtags = computed(() => (props.hashtags.length
+  ? props.hashtags[props.hashtags.length - 1]
+  : ''));
 const hashtagField = new StringField(
   'hashtag',
-  'Track hashtag'
-)
-const formSchema = ref(new FormSchema([hashtagField]))
+  'Track hashtag',
+);
+const formSchema = ref(new FormSchema([hashtagField]));
 const model = ref(
   formSchema.value.initialValues({
-    hashtag: parsedHashtags.value
-  })
-)
+    hashtag: parsedHashtags.value,
+  }),
+);
 
-const logoUrl = CrowdIntegrations.getConfig('twitter').image
+const logoUrl = CrowdIntegrations.getConfig('twitter').image;
 
 const hasFormChanged = computed(
-  () =>
-    !isEqual(
-      formSchema.value.initialValues({
-        hashtag: parsedHashtags.value
-      }),
-      model.value
-    )
-)
+  () => !isEqual(
+    formSchema.value.initialValues({
+      hashtag: parsedHashtags.value,
+    }),
+    model.value,
+  ),
+);
 
 const isVisible = computed({
   get() {
-    return props.modelValue
+    return props.modelValue;
   },
   set(value) {
-    return emit('update:modelValue', value)
-  }
-})
+    return emit('update:modelValue', value);
+  },
+});
 
 const computedConnectUrl = computed(() => {
   const encodedHashtags = model.value.hashtag
     ? `&hashtags[]=${model.value.hashtag}`
-    : ''
+    : '';
 
-  return `${props.connectUrl}${encodedHashtags}`
-})
+  return `${props.connectUrl}${encodedHashtags}`;
+});
 
 const doReset = () => {
   model.value = formSchema.value.initialValues({
-    hashtag: parsedHashtags.value
-  })
-}
+    hashtag: parsedHashtags.value,
+  });
+};
+</script>
+
+<script>
+export default {
+  name: 'AppTwitterConnectDrawer',
+};
 </script>
 
 <style lang="scss">

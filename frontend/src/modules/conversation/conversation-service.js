@@ -1,118 +1,115 @@
-import authAxios from '@/shared/axios/auth-axios'
-import AuthCurrentTenant from '@/modules/auth/auth-current-tenant'
-import buildApiPayload from '@/shared/filter/helpers/build-api-payload'
+import authAxios from '@/shared/axios/auth-axios';
+import AuthCurrentTenant from '@/modules/auth/auth-current-tenant';
+import buildApiPayload from '@/shared/filter/helpers/build-api-payload';
+
 export class ConversationService {
   static async update(id, data) {
-    const tenantId = AuthCurrentTenant.get()
+    const tenantId = AuthCurrentTenant.get();
 
     const response = await authAxios.put(
       `/tenant/${tenantId}/conversation/${id}`,
-      data
-    )
+      data,
+    );
 
-    return response.data
+    return response.data;
   }
 
   static async destroyAll(ids) {
     const params = {
-      ids
-    }
+      ids,
+    };
 
-    const tenantId = AuthCurrentTenant.get()
+    const tenantId = AuthCurrentTenant.get();
 
     const response = await authAxios.delete(
       `/tenant/${tenantId}/conversation`,
-      { params }
-    )
+      { params },
+    );
 
-    return response.data
+    return response.data;
   }
 
   static async publishAll(ids) {
-    const tenantId = AuthCurrentTenant.get()
+    const tenantId = AuthCurrentTenant.get();
 
-    for (const id of ids) {
+    return Promise.all(ids.map((id) => {
       const data = {
-        published: true
-      }
-      await authAxios.put(
+        published: true,
+      };
+      return authAxios.put(
         `/tenant/${tenantId}/conversation/${id}`,
-        data
-      )
-    }
+        data,
+      );
+    }));
   }
 
   static async unpublishAll(ids) {
-    const tenantId = AuthCurrentTenant.get()
+    const tenantId = AuthCurrentTenant.get();
 
-    for (const id of ids) {
+    return Promise.all(ids.map((id) => {
       const data = {
-        published: false
-      }
+        published: false,
+      };
 
-      await authAxios.put(
+      return authAxios.put(
         `/tenant/${tenantId}/conversation/${id}`,
-        data
-      )
-    }
+        data,
+      );
+    }));
   }
 
   static async create(data) {
-    const tenantId = AuthCurrentTenant.get()
+    const tenantId = AuthCurrentTenant.get();
 
     const response = await authAxios.post(
       `/tenant/${tenantId}/conversation`,
-      data
-    )
+      data,
+    );
 
-    return response.data
+    return response.data;
   }
 
   static async find(id) {
-    const sampleTenant =
-      AuthCurrentTenant.getSampleTenantData()
-    const tenantId =
-      sampleTenant?.id || AuthCurrentTenant.get()
+    const sampleTenant = AuthCurrentTenant.getSampleTenantData();
+    const tenantId = sampleTenant?.id || AuthCurrentTenant.get();
 
     const response = await authAxios.get(
       `/tenant/${tenantId}/conversation/${id}`,
       {
         headers: {
-          Authorization: sampleTenant?.token
-        }
-      }
-    )
+          Authorization: sampleTenant?.token,
+        },
+      },
+    );
 
-    return response.data
+    return response.data;
   }
 
   static async list(filter, orderBy, limit, offset) {
     const body = {
       filter: buildApiPayload({
         customFilters: filter,
-        buildFilter: true
+        buildFilter: true,
       }),
       orderBy,
       limit,
-      offset
-    }
+      offset,
+    };
 
-    const sampleTenant =
-      AuthCurrentTenant.getSampleTenantData()
-    const tenantId =
-      sampleTenant?.id || AuthCurrentTenant.get()
+    const sampleTenant = AuthCurrentTenant.getSampleTenantData();
+    const tenantId = sampleTenant?.id || AuthCurrentTenant.get();
 
     const response = await authAxios.post(
       `/tenant/${tenantId}/conversation/query`,
       body,
       {
         headers: {
-          Authorization: sampleTenant?.token
-        }
-      }
-    )
+          Authorization: sampleTenant?.token,
+        },
+      },
+    );
 
-    return response.data
+    return response.data;
   }
 
   static async query(filter, orderBy, limit, offset) {
@@ -120,42 +117,40 @@ export class ConversationService {
       filter,
       orderBy,
       limit,
-      offset
-    }
+      offset,
+    };
 
-    const sampleTenant =
-      AuthCurrentTenant.getSampleTenantData()
-    const tenantId =
-      sampleTenant?.id || AuthCurrentTenant.get()
+    const sampleTenant = AuthCurrentTenant.getSampleTenantData();
+    const tenantId = sampleTenant?.id || AuthCurrentTenant.get();
 
     const response = await authAxios.post(
       `/tenant/${tenantId}/conversation/query`,
       body,
       {
         headers: {
-          Authorization: sampleTenant?.token
-        }
-      }
-    )
+          Authorization: sampleTenant?.token,
+        },
+      },
+    );
 
-    return response.data
+    return response.data;
   }
 
   static async listAutocomplete(query, limit) {
     const params = {
       query,
-      limit
-    }
+      limit,
+    };
 
-    const tenantId = AuthCurrentTenant.get()
+    const tenantId = AuthCurrentTenant.get();
 
     const response = await authAxios.get(
       `/tenant/${tenantId}/conversation/autocomplete`,
       {
-        params
-      }
-    )
+        params,
+      },
+    );
 
-    return response.data
+    return response.data;
   }
 }

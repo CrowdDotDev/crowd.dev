@@ -7,16 +7,16 @@ class Plans {
       essential: 'Essential',
       growth: 'Growth',
       enterprise: 'Enterprise',
-      eagleEye: 'Eagle Eye'
-    }
+      eagleEye: 'Eagle Eye',
+    };
   }
 
   static get communityValues() {
     return {
       community: 'Community',
-      custom: 'Custom'
-    }
+      custom: 'Custom',
+    };
   }
 }
 
-export default Plans
+export default Plans;

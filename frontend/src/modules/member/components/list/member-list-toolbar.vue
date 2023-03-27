@@ -5,12 +5,11 @@
   >
     <span class="block text-sm font-semibold mr-4">
       {{ pluralize('member', selectedRows.length, true) }}
-      selected</span
-    >
+      selected</span>
     <el-dropdown trigger="click" @command="handleCommand">
-      <button class="btn btn--bordered btn--sm">
+      <button type="button" class="btn btn--bordered btn--sm">
         <span class="mr-2">Actions</span>
-        <i class="ri-xl ri-arrow-down-s-line"></i>
+        <i class="ri-xl ri-arrow-down-s-line" />
       </button>
       <template #dropdown>
         <el-dropdown-item :command="{ action: 'export' }">
@@ -29,8 +28,8 @@
           placement="top"
           content="Selected members lack an associated GitHub profile or Email"
           :disabled="
-            elegibleEnrichmentMembersIds.length ||
-            isEditLockedForSampleData
+            elegibleEnrichmentMembersIds.length
+              || isEditLockedForSampleData
           "
           popper-class="max-w-[260px]"
         >
@@ -38,8 +37,8 @@
             <el-dropdown-item
               :command="{ action: 'enrichMember' }"
               :disabled="
-                !elegibleEnrichmentMembersIds.length ||
-                isEditLockedForSampleData
+                !elegibleEnrichmentMembersIds.length
+                  || isEditLockedForSampleData
               "
               class="mb-1"
             >
@@ -57,7 +56,7 @@
         <el-dropdown-item
           :command="{
             action: 'markAsTeamMember',
-            value: markAsTeamMemberOptions.value
+            value: markAsTeamMemberOptions.value,
           }"
           :disabled="
             isReadOnly || isEditLockedForSampleData
@@ -86,11 +85,11 @@
           <div
             class="flex items-center"
             :class="{
-              'text-red-500': !isDeleteLockedForSampleData
+              'text-red-500': !isDeleteLockedForSampleData,
             }"
           >
             <i class="ri-lg ri-delete-bin-line mr-2" />
-            <app-i18n code="common.destroy"></app-i18n>
+            <app-i18n code="common.destroy" />
           </div>
         </el-dropdown-item>
       </template>
@@ -105,114 +104,114 @@
 </template>
 
 <script>
-import { mapGetters, mapActions, mapState } from 'vuex'
-import AppMemberListBulkUpdateTags from '@/modules/member/components/list/member-list-bulk-update-tags'
-import { MemberPermissions } from '@/modules/member/member-permissions'
-import ConfirmDialog from '@/shared/dialog/confirm-dialog.js'
-import pluralize from 'pluralize'
-import AppSvg from '@/shared/svg/svg.vue'
-import { MemberService } from '@/modules/member/member-service'
-import Message from '@/shared/message/message'
+import { mapGetters, mapActions, mapState } from 'vuex';
+import pluralize from 'pluralize';
+import { MemberPermissions } from '@/modules/member/member-permissions';
+import ConfirmDialog from '@/shared/dialog/confirm-dialog';
+import AppSvg from '@/shared/svg/svg.vue';
+import { MemberService } from '@/modules/member/member-service';
+import Message from '@/shared/message/message';
+import AppMemberListBulkUpdateTags from '@/modules/member/components/list/member-list-bulk-update-tags.vue';
 
 export default {
   name: 'AppMemberListToolbar',
 
   components: {
     AppMemberListBulkUpdateTags,
-    AppSvg
+    AppSvg,
   },
 
   data() {
     return {
-      bulkTagsUpdateVisible: false
-    }
+      bulkTagsUpdateVisible: false,
+    };
   },
 
   computed: {
     ...mapState({
-      loading: (state) => state.member.list.loading
+      loading: (state) => state.member.list.loading,
     }),
     ...mapGetters({
       currentUser: 'auth/currentUser',
       currentTenant: 'auth/currentTenant',
       selectedRows: 'member/selectedRows',
-      activeView: 'member/activeView'
+      activeView: 'member/activeView',
     }),
     isReadOnly() {
       return (
         new MemberPermissions(
           this.currentTenant,
-          this.currentUser
+          this.currentUser,
         ).edit === false
-      )
+      );
     },
     isEditLockedForSampleData() {
       return new MemberPermissions(
         this.currentTenant,
-        this.currentUser
-      ).editLockedForSampleData
+        this.currentUser,
+      ).editLockedForSampleData;
     },
     isDeleteLockedForSampleData() {
       return new MemberPermissions(
         this.currentTenant,
-        this.currentUser
-      ).destroyLockedForSampleData
+        this.currentUser,
+      ).destroyLockedForSampleData;
     },
     elegibleEnrichmentMembersIds() {
       return this.selectedRows
         .filter(
-          (r) => r.username?.github || r.emails?.length
+          (r) => r.username?.github || r.emails?.length,
         )
-        .map((item) => item.id)
+        .map((item) => item.id);
     },
     enrichedMembers() {
       return this.selectedRows.filter((r) => r.lastEnriched)
-        .length
+        .length;
     },
     enrichmentLabel() {
       if (
-        this.enrichedMembers &&
-        this.enrichedMembers ===
-          this.elegibleEnrichmentMembersIds.length
+        this.enrichedMembers
+        && this.enrichedMembers
+          === this.elegibleEnrichmentMembersIds.length
       ) {
         return `Re-enrich ${pluralize(
           'member',
           this.selectedIds.length,
-          false
-        )}`
+          false,
+        )}`;
       }
 
       return `Enrich ${pluralize(
         'member',
         this.selectedIds.length,
-        false
-      )}`
+        false,
+      )}`;
     },
     selectedIds() {
-      return this.selectedRows.map((item) => item.id)
+      return this.selectedRows.map((item) => item.id);
     },
     markAsTeamMemberOptions() {
-      const isTeamView = this.activeView.id === 'team'
+      const isTeamView = this.activeView.id === 'team';
       const membersCopy = pluralize(
         'member',
         this.selectedRows.length,
-        false
-      )
+        false,
+      );
 
       if (isTeamView) {
         return {
           icon: 'ri-bookmark-2-line',
           copy: `Unmark as team ${membersCopy}`,
-          value: false
-        }
+          value: false,
+        };
       }
 
       return {
         icon: 'ri-bookmark-line',
         copy: `Mark as team ${membersCopy}`,
-        value: true
-      }
-    }
+        value: true,
+      };
+    },
   },
 
   methods: {
@@ -221,31 +220,30 @@ export default {
       doMarkAsTeamMember: 'member/doMarkAsTeamMember',
       doDestroyAll: 'member/doDestroyAll',
       doBulkEnrich: 'member/doBulkEnrich',
-      doFetch: 'member/doFetch'
+      doFetch: 'member/doFetch',
     }),
 
     async handleCommand(command) {
       if (command.action === 'markAsTeamMember') {
-        await this.doMarkAsTeamMember(command.value)
+        await this.doMarkAsTeamMember(command.value);
       } else if (command.action === 'export') {
-        await this.handleDoExport()
+        await this.handleDoExport();
       } else if (command.action === 'mergeMembers') {
-        await this.handleMergeMembers()
+        await this.handleMergeMembers();
       } else if (command.action === 'editTags') {
-        await this.handleAddTags()
+        await this.handleAddTags();
       } else if (command.action === 'destroyAll') {
-        await this.doDestroyAllWithConfirm()
+        await this.doDestroyAllWithConfirm();
       } else if (command.action === 'enrichMember') {
-        const enrichments =
-          this.elegibleEnrichmentMembersIds.length
-        let doEnrich = false
-        let reEnrichmentMessage = null
+        const enrichments = this.elegibleEnrichmentMembersIds.length;
+        let doEnrich = false;
+        let reEnrichmentMessage = null;
 
         if (this.enrichedMembers) {
-          reEnrichmentMessage =
-            this.enrichedMembers === 1
-              ? `You selected 1 member that was already enriched. If you proceed, this member will be re-enriched and counted towards your quota.`
-              : `You selected ${this.enrichedMembers} members that were already enriched. If you proceed, these members will be re-enriched and counted towards your quota.`
+          reEnrichmentMessage = this.enrichedMembers === 1
+            ? 'You selected 1 member that was already enriched. If you proceed, this member will be re-enriched and counted towards your quota.'
+            : `You selected ${this.enrichedMembers} members that were already enriched. If you proceed,
+            these members will be re-enriched and counted towards your quota.`;
         }
 
         // All members are elegible for enrichment
@@ -260,18 +258,18 @@ export default {
                 confirmButtonText: `Proceed with enrichment (${pluralize(
                   'member',
                   enrichments,
-                  true
+                  true,
                 )})`,
                 cancelButtonText: 'Cancel',
-                icon: 'ri-alert-line'
-              })
+                icon: 'ri-alert-line',
+              });
 
-              doEnrich = true
+              doEnrich = true;
             } catch (error) {
               // no
             }
           } else {
-            doEnrich = true
+            doEnrich = true;
           }
           // Only a few members are elegible for enrichment
         } else {
@@ -281,18 +279,19 @@ export default {
               title:
                 'Some members lack an associated GitHub profile or Email',
               message:
-                'Member enrichment requires an associated GitHub profile or Email. If you proceed, only the members who fulfill this requirement will be enriched and counted towards your quota.',
+                'Member enrichment requires an associated GitHub profile or Email. If you proceed, only the members who fulfill '
+                + 'this requirement will be enriched and counted towards your quota.',
               confirmButtonText: `Proceed with enrichment (${pluralize(
                 'member',
                 enrichments,
-                true
+                true,
               )})`,
               highlightedInfo: reEnrichmentMessage,
               cancelButtonText: 'Cancel',
-              icon: 'ri-alert-line'
-            })
+              icon: 'ri-alert-line',
+            });
 
-            doEnrich = true
+            doEnrich = true;
           } catch (error) {
             // no
           }
@@ -300,24 +299,24 @@ export default {
 
         if (doEnrich) {
           await this.doBulkEnrich(
-            this.elegibleEnrichmentMembersIds
-          )
+            this.elegibleEnrichmentMembersIds,
+          );
         }
       }
     },
 
     handleMergeMembers() {
-      const [firstMember, secondMember] = this.selectedRows
+      const [firstMember, secondMember] = this.selectedRows;
       MemberService.merge(firstMember, secondMember)
         .then(() => {
-          Message.success('Members merged successfuly')
+          Message.success('Members merged successfuly');
           this.doFetch({
-            keepPagination: true
-          })
+            keepPagination: true,
+          });
         })
         .catch(() => {
-          Message.error('Error merging members')
-        })
+          Message.error('Error merging members');
+        });
     },
 
     async doDestroyAllWithConfirm() {
@@ -329,30 +328,30 @@ export default {
             "Are you sure you want to proceed? You can't undo this action",
           confirmButtonText: 'Confirm',
           cancelButtonText: 'Cancel',
-          icon: 'ri-delete-bin-line'
-        })
+          icon: 'ri-delete-bin-line',
+        });
 
         await this.doDestroyAll(
-          this.selectedRows.map((item) => item.id)
-        )
+          this.selectedRows.map((item) => item.id),
+        );
       } catch (error) {
-        console.error(error)
+        console.error(error);
       }
     },
 
     async handleDoExport() {
       try {
-        await this.doExport({ selected: true })
+        await this.doExport({ selected: true });
       } catch (error) {
-        console.error(error)
+        console.error(error);
       }
     },
 
     async handleAddTags() {
-      this.bulkTagsUpdateVisible = true
+      this.bulkTagsUpdateVisible = true;
     },
 
-    pluralize
-  }
-}
+    pluralize,
+  },
+};
 </script>

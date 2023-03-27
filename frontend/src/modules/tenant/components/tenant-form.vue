@@ -40,7 +40,7 @@
             class="btn btn--md btn--bordered"
             @click="$emit('cancel')"
           >
-            <app-i18n code="common.cancel"></app-i18n>
+            <app-i18n code="common.cancel" />
           </el-button>
 
           <el-button
@@ -57,18 +57,18 @@
 </template>
 
 <script>
-import { mapActions } from 'vuex'
-import { FormSchema } from '@/shared/form/form-schema'
-import { TenantModel } from '@/modules/tenant/tenant-model'
-import { tenantSubdomain } from '@/modules/tenant/tenant-subdomain'
+import { mapActions } from 'vuex';
+import { FormSchema } from '@/shared/form/form-schema';
+import { TenantModel } from '@/modules/tenant/tenant-model';
+import { tenantSubdomain } from '@/modules/tenant/tenant-subdomain';
 
-const { fields } = TenantModel
+const { fields } = TenantModel;
 const formSchema = new FormSchema(
   [
     fields.tenantName,
-    tenantSubdomain.isEnabled && fields.tenantUrl
-  ].filter(Boolean)
-)
+    tenantSubdomain.isEnabled && fields.tenantUrl,
+  ].filter(Boolean),
+);
 
 export default {
   name: 'AppTenantForm',
@@ -76,8 +76,8 @@ export default {
   props: {
     record: {
       type: Object,
-      default: () => {}
-    }
+      default: () => {},
+    },
   },
   emits: ['cancel', 'success'],
 
@@ -85,53 +85,53 @@ export default {
     return {
       rules: formSchema.rules(),
       model: null,
-      loading: false
-    }
+      loading: false,
+    };
   },
 
   computed: {
     fields() {
-      return fields
-    }
+      return fields;
+    },
   },
 
   created() {
-    this.model = formSchema.initialValues(this.record || {})
+    this.model = formSchema.initialValues(this.record || {});
   },
 
   methods: {
     ...mapActions('tenant', ['doCreate', 'doUpdate']),
     doReset() {
-      this.model = formSchema.initialValues(this.record)
+      this.model = formSchema.initialValues(this.record);
     },
 
     doCancel() {
-      this.$emit('cancel')
+      this.$emit('cancel');
     },
 
     async doSubmit() {
-      this.loading = true
+      this.loading = true;
       try {
-        await this.$refs.form.validate()
+        await this.$refs.form.validate();
       } catch (error) {
-        this.loading = false
-        return
+        this.loading = false;
+        return;
       }
 
       if (this.record.id) {
         await this.doUpdate({
           id: this.record.id,
-          values: this.model
-        })
+          values: this.model,
+        });
       } else {
-        await this.doCreate(this.model)
+        await this.doCreate(this.model);
       }
 
-      this.$emit('success')
-      this.loading = false
-    }
-  }
-}
+      this.$emit('success');
+      this.loading = false;
+    },
+  },
+};
 </script>
 
 <style></style>

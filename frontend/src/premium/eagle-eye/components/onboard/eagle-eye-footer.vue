@@ -3,7 +3,7 @@
     class="flex mt-16"
     :class="{
       'justify-between': showPreviousStep,
-      'justify-end': !showPreviousStep
+      'justify-end': !showPreviousStep,
     }"
   >
     <el-button
@@ -11,10 +11,9 @@
       class="btn btn--transparent btn--lg"
       :disabled="loadingUpdateSettings"
       @click="emit('onStepChange', -1)"
-      ><i class="ri-arrow-left-s-line mr-3 text-lg" /><span
-        >Previous step</span
-      ></el-button
     >
+      <i class="ri-arrow-left-s-line mr-3 text-lg" /><span>Previous step</span>
+    </el-button>
 
     <el-button
       class="btn btn--primary btn--lg"
@@ -27,37 +26,38 @@
           ? emit('onSubmit')
           : emit('onStepChange', 1)
       "
-      ><span>{{
+    >
+      <span>{{
         showFinalStep
           ? 'Start exploring Eagle Eye'
           : 'Next step'
-      }}</span
-      ><i
+      }}</span><i
         v-if="!showFinalStep"
         class="ri-arrow-right-s-line ml-3 text-lg"
-    /></el-button>
+      />
+    </el-button>
   </div>
 </template>
 
 <script setup>
-import { mapState } from '@/shared/vuex/vuex.helpers'
-import { defineProps, defineEmits } from 'vue'
+import { defineProps, defineEmits } from 'vue';
+import { mapState } from '@/shared/vuex/vuex.helpers';
 
-const emit = defineEmits(['onStepChange', 'onSubmit'])
+const emit = defineEmits(['onStepChange', 'onSubmit']);
 defineProps({
   showPreviousStep: {
     type: Boolean,
-    default: false
+    default: false,
   },
   showFinalStep: {
     type: Boolean,
-    default: false
+    default: false,
   },
   isNextButtonDisabled: {
     type: Boolean,
-    default: false
-  }
-})
+    default: false,
+  },
+});
 
-const { loadingUpdateSettings } = mapState('eagleEye')
+const { loadingUpdateSettings } = mapState('eagleEye');
 </script>

@@ -4,7 +4,7 @@
       v-if="loading('table') && count === 0"
       v-loading="loading('table')"
       class="app-page-spinner"
-    ></div>
+    />
     <div v-else-if="count > 0">
       <div
         class="flex items-center py-1 mb-3 mt-2"
@@ -42,7 +42,7 @@
         happens, or a new member joins your community"
       cta-btn="Add webhook"
       @cta-click="isAutomationDrawerOpen = true"
-    ></app-empty-state-cta>
+    />
 
     <!-- Add/Edit Webhook form drawer -->
     <app-webhook-form
@@ -69,76 +69,76 @@
 </template>
 
 <script>
-import AppAutomationListTable from '@/modules/automation/components/list/automation-list-table'
-import AppWebhookForm from '@/modules/automation/components/webhooks/webhook-form'
-import AppWebhookExecutionList from '@/modules/automation/components/webhooks/webhook-execution-list'
-import { mapGetters, mapActions } from 'vuex'
-import pluralize from 'pluralize'
-import ConfirmDialog from '@/shared/dialog/confirm-dialog'
-import { router } from '@/router'
-import { FeatureFlag } from '@/featureFlag'
+import { mapGetters, mapActions } from 'vuex';
+import pluralize from 'pluralize';
+import ConfirmDialog from '@/shared/dialog/confirm-dialog';
+import { router } from '@/router';
+import { FeatureFlag } from '@/featureFlag';
+import AppAutomationListTable from '@/modules/automation/components/list/automation-list-table.vue';
+import AppWebhookForm from '@/modules/automation/components/webhooks/webhook-form.vue';
+import AppWebhookExecutionList from '@/modules/automation/components/webhooks/webhook-execution-list.vue';
 
 export default {
   name: 'AppAutomationListPage',
   components: {
     AppWebhookExecutionList,
     AppAutomationListTable,
-    AppWebhookForm
+    AppWebhookForm,
   },
   data() {
     return {
       newAutomation: {
         type: 'webhook',
-        settings: {}
+        settings: {},
       },
       isAutomationDrawerOpen: false,
       isExecutionsDrawerOpen: false,
-      automation: null
-    }
+      automation: null,
+    };
   },
   computed: {
     ...mapGetters({
       loading: 'automation/loading',
       filter: 'automation/filter',
-      count: 'automation/count'
-    })
+      count: 'automation/count',
+    }),
   },
   async created() {
     await this.doFetch({
       filter: { ...this.filter },
-      rawFilter: { ...this.filter }
-    })
+      rawFilter: { ...this.filter },
+    });
   },
   methods: {
     ...mapActions({
-      doFetch: 'automation/doFetch'
+      doFetch: 'automation/doFetch',
     }),
     onOpenEditAutomationDrawer(automation) {
-      this.isAutomationDrawerOpen = true
-      this.newAutomation = { ...automation }
+      this.isAutomationDrawerOpen = true;
+      this.newAutomation = { ...automation };
     },
     onCloseAutomationDrawer() {
       this.newAutomation = {
         type: 'webhook',
-        settings: {}
-      }
-      this.isAutomationDrawerOpen = false
+        settings: {},
+      };
+      this.isAutomationDrawerOpen = false;
     },
     onOpenExecutionsDrawer(automation) {
-      this.isExecutionsDrawerOpen = true
-      this.automation = automation
+      this.isExecutionsDrawerOpen = true;
+      this.automation = automation;
     },
     onCloseExecutionsDrawer() {
-      this.isExecutionsDrawerOpen = false
-      this.automation = null
+      this.isExecutionsDrawerOpen = false;
+      this.automation = null;
     },
     async onAddWebhookClick() {
       const isFeatureEnabled = FeatureFlag.isFlagEnabled(
-        FeatureFlag.flags.automations
-      )
+        FeatureFlag.flags.automations,
+      );
 
       if (isFeatureEnabled) {
-        this.isAutomationDrawerOpen = true
+        this.isAutomationDrawerOpen = true;
       } else {
         await ConfirmDialog({
           vertical: true,
@@ -147,14 +147,14 @@ export default {
             'You have reached the limit of 2 automations on your current plan',
           message:
             'Upgrade your plan to get unlimited automations and take full advantage of this feature',
-          confirmButtonText: 'Upgrade plan'
-        })
-        router.push('settings?activeTab=plans')
+          confirmButtonText: 'Upgrade plan',
+        });
+        router.push('settings?activeTab=plans');
       }
     },
-    pluralize
-  }
-}
+    pluralize,
+  },
+};
 </script>
 
 <style lang="scss">

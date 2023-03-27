@@ -13,7 +13,7 @@
       @hide="isVisible = false"
     >
       <div>
-        <slot></slot>
+        <slot />
       </div>
     </el-popover>
     <app-teleport v-if="isVisible" to="#teleport-modal">
@@ -25,7 +25,7 @@
               ? $emit('hide')
               : (isVisible = false)
           "
-        ></div>
+        />
       </transition>
     </app-teleport>
   </div>
@@ -37,66 +37,62 @@ export default {
   props: {
     trigger: {
       type: String,
-      default: 'manual'
+      default: 'manual',
     },
     title: {
       type: String,
-      default: null
+      default: null,
     },
     placement: {
       type: String,
-      default: null
+      default: null,
     },
     visible: {
       type: Boolean,
-      default: false
+      default: false,
     },
     showArrow: {
       type: Boolean,
-      default: false
+      default: false,
     },
     customClass: {
       type: String,
-      default: null
-    }
+      default: null,
+    },
   },
   emits: ['hide'],
   data() {
     return {
-      isVisible: this.visible
-    }
+      isVisible: this.visible,
+    };
   },
   watch: {
     visible: {
       handler(newValue) {
-        this.isVisible = newValue
-      }
+        this.isVisible = newValue;
+      },
     },
     isVisible: {
       handler(newValue) {
         if (newValue) {
           setTimeout(() => {
-            const el =
-              document.querySelector('.app-popover')
+            const el = document.querySelector('.app-popover');
 
-            const offsetTop =
-              this.$el.getBoundingClientRect().top +
-              window.pageYOffset
-            const offsetLeft =
-              this.$el.getBoundingClientRect().left +
-              window.pageXOffset
+            const offsetTop = this.$el.getBoundingClientRect().top
+              + window.pageYOffset;
+            const offsetLeft = this.$el.getBoundingClientRect().left
+              + window.pageXOffset;
 
-            el.style.top = offsetTop - 100 + 'px'
-            el.style.left =
-              offsetLeft -
-              (offsetLeft < 242 ? 0 : 242) +
-              'px'
-          }, 100)
+            el.style.top = `${offsetTop - 100}px`;
+            el.style.left = `${offsetLeft
+              - (offsetLeft < 242 ? 0 : 242)
+            }px`;
+          }, 100);
         }
-      }
-    }
-  }
-}
+      },
+    },
+  },
+};
 </script>
 
 <style lang="scss">

@@ -3,22 +3,20 @@
     v-if="selectedRows.length > 0"
     class="app-list-table-bulk-actions"
   >
-    <span class="block text-sm font-semibold mr-4"
-      >{{ selectedRows.length }}
+    <span class="block text-sm font-semibold mr-4">{{ selectedRows.length }}
       {{
         selectedRows.length > 1
           ? 'conversations'
           : 'conversation'
       }}
-      selected</span
-    >
+      selected</span>
     <el-dropdown
       trigger="click"
       @command="($event) => $event()"
     >
-      <button class="btn btn--bordered btn--sm">
+      <button type="button" class="btn btn--bordered btn--sm">
         <span class="mr-2">Actions</span>
-        <i class="ri-xl ri-arrow-down-s-line"></i>
+        <i class="ri-xl ri-arrow-down-s-line" />
       </button>
       <template #dropdown>
         <el-dropdown-item
@@ -56,11 +54,11 @@
             :class="{
               'text-red-500': !(
                 isReadOnly || isDeleteLockedForSampleData
-              )
+              ),
             }"
           >
             <i class="ri-lg ri-delete-bin-line mr-1" />
-            <app-i18n code="common.destroy"></app-i18n>
+            <app-i18n code="common.destroy" />
           </div>
         </el-dropdown-item>
       </template>
@@ -69,18 +67,17 @@
 </template>
 
 <script>
-import { mapGetters, mapActions, mapState } from 'vuex'
-import { ConversationPermissions } from '@/modules/conversation/conversation-permissions'
-import { i18n } from '@/i18n'
-import ConfirmDialog from '@/shared/dialog/confirm-dialog.js'
+import { mapGetters, mapActions, mapState } from 'vuex';
+import { ConversationPermissions } from '@/modules/conversation/conversation-permissions';
+import { i18n } from '@/i18n';
+import ConfirmDialog from '@/shared/dialog/confirm-dialog';
 
 export default {
   name: 'AppConversationListToolbar',
 
   computed: {
     ...mapState({
-      loading: (state) =>
-        state.communityHelpCenter.list.loading
+      loading: (state) => state.communityHelpCenter.list.loading,
     }),
     ...mapGetters({
       currentUser: 'auth/currentUser',
@@ -88,77 +85,77 @@ export default {
       hasRows: 'communityHelpCenter/hasRows',
       selectedRows: 'communityHelpCenter/selectedRows',
       hasConversationsConfigured:
-        'communityHelpCenter/isConfigured'
+        'communityHelpCenter/isConfigured',
     }),
 
     isReadOnly() {
       return (
         new ConversationPermissions(
           this.currentTenant,
-          this.currentUser
+          this.currentUser,
         ).edit === false
-      )
+      );
     },
 
     hasPublishedSelected() {
       return (
         this.selectedRows.filter(
-          (r) => r.published === true
+          (r) => r.published === true,
         ).length > 0
-      )
+      );
     },
 
     hasUnpublishedSelected() {
       return (
         this.selectedRows.filter(
-          (r) => r.published === false
+          (r) => r.published === false,
         ).length > 0
-      )
+      );
     },
 
     hasPermissionToEdit() {
       return new ConversationPermissions(
         this.currentTenant,
-        this.currentUser
-      ).edit
+        this.currentUser,
+      ).edit;
     },
 
     hasPermissionToDestroy() {
       return new ConversationPermissions(
         this.currentTenant,
-        this.currentUser
-      ).destroy
+        this.currentUser,
+      ).destroy;
     },
 
     destroyButtonDisabled() {
       return (
-        !this.selectedRows.length ||
-        this.loading('submit') ||
-        this.loading
-      )
+        !this.selectedRows.length
+        || this.loading('submit')
+        || this.loading
+      );
     },
 
     destroyButtonTooltip() {
       if (this.destroyButtonDisabled) {
-        return i18n('common.mustSelectARow')
+        return i18n('common.mustSelectARow');
       }
 
-      return null
+      return null;
     },
 
     isEditLockedForSampleData() {
       return new ConversationPermissions(
         this.currentTenant,
-        this.currentUser
-      ).editLockedForSampleData
+        this.currentUser,
+      ).editLockedForSampleData;
     },
 
     isDeleteLockedForSampleData() {
       return new ConversationPermissions(
         this.currentTenant,
-        this.currentUser
-      ).destroyLockedForSampleData
-    }
+        this.currentUser,
+      ).destroyLockedForSampleData;
+    },
   },
 
   methods: {
@@ -167,7 +164,7 @@ export default {
       doPublishAll: 'communityHelpCenter/doPublishAll',
       doUnpublishAll: 'communityHelpCenter/doUnpublishAll',
       doOpenSettingsDrawer:
-        'communityHelpCenter/doOpenSettingsDrawer'
+        'communityHelpCenter/doOpenSettingsDrawer',
     }),
 
     async doDestroyAllWithConfirm() {
@@ -179,34 +176,36 @@ export default {
             "Are you sure you want to proceed? You can't undo this action",
           confirmButtonText: 'Confirm',
           cancelButtonText: 'Cancel',
-          icon: 'ri-delete-bin-line'
-        })
+          icon: 'ri-delete-bin-line',
+        });
 
         return this.doDestroyAll(
-          this.selectedRows.map((item) => item.id)
-        )
+          this.selectedRows.map((item) => item.id),
+        );
       } catch (error) {
         // no
       }
+      return null;
     },
     async doPublishAllWithConfirm() {
       if (!this.hasConversationsConfigured) {
-        return this.doOpenSettingsDrawer()
+        return this.doOpenSettingsDrawer();
       }
       try {
         await ConfirmDialog({
           title: i18n('common.confirm'),
           message: i18n('common.areYouSure'),
           confirmButtonText: i18n('common.yes'),
-          cancelButtonText: i18n('common.no')
-        })
+          cancelButtonText: i18n('common.no'),
+        });
 
         await this.doPublishAll(
-          this.selectedRows.map((item) => item.id)
-        )
+          this.selectedRows.map((item) => item.id),
+        );
       } catch (error) {
         // no
       }
+      return null;
     },
 
     async doUnpublishAllWithConfirm() {
@@ -215,18 +214,18 @@ export default {
           title: i18n('common.confirm'),
           message: i18n('common.areYouSure'),
           confirmButtonText: i18n('common.yes'),
-          cancelButtonText: i18n('common.no')
-        })
+          cancelButtonText: i18n('common.no'),
+        });
 
         await this.doUnpublishAll(
-          this.selectedRows.map((item) => item.id)
-        )
+          this.selectedRows.map((item) => item.id),
+        );
       } catch (error) {
         // no
       }
-    }
-  }
-}
+    },
+  },
+};
 </script>
 
 <style lang="scss">

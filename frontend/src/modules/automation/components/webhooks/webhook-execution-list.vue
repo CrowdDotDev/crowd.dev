@@ -5,7 +5,7 @@
         <div class="font-medium">
           {{
             translate(
-              `entities.automation.triggers.${webhook.trigger}`
+              `entities.automation.triggers.${webhook.trigger}`,
             )
           }}
         </div>
@@ -32,7 +32,7 @@
         v-if="loading"
         v-loading="loading"
         class="app-page-spinner"
-      ></div>
+      />
       <!-- Executions list -->
       <div
         v-else-if="executions && executions.length > 0"
@@ -64,8 +64,9 @@
               <el-button
                 class="btn btn-brand--transparent btn--sm !h-8"
                 @click="modals[execution.id] = true"
-                >Payload</el-button
               >
+                Payload
+              </el-button>
             </div>
 
             <app-dialog
@@ -86,90 +87,89 @@
         <app-empty-state
           icon="ri-folder-3-line"
           description="There are no execution logs yet"
-        ></app-empty-state>
+        />
       </div>
     </div>
   </div>
 </template>
 
 <script>
-import moment from 'moment'
-import { i18n } from '@/i18n'
-import { computed, ref, reactive } from 'vue'
-import { AutomationService } from '@/modules/automation/automation-service'
-import AppWebhookExecution from './webhook-execution'
+import moment from 'moment';
+import { computed, ref, reactive } from 'vue';
+import { i18n } from '@/i18n';
+import { AutomationService } from '@/modules/automation/automation-service';
+import AppWebhookExecution from './webhook-execution.vue';
 
 export default {
   name: 'AppAutomationExecutionList',
   components: {
-    AppWebhookExecution
+    AppWebhookExecution,
   },
   props: {
     webhook: {
       type: Object,
-      default: () => {}
-    }
+      default: () => {},
+    },
   },
   setup(props) {
-    const limit = ref(5)
-    const offset = ref(0)
-    const loading = ref(false)
-    const noMore = ref(false)
+    const limit = ref(5);
+    const offset = ref(0);
+    const loading = ref(false);
+    const noMore = ref(false);
     const disabled = computed(
-      () => loading.value || noMore.value
-    )
-    const executions = reactive([])
+      () => loading.value || noMore.value,
+    );
+    const executions = reactive([]);
 
     const fetchExecutions = async () => {
       if (noMore.value) {
-        return
+        return;
       }
-      loading.value = true
-      const response =
-        await AutomationService.listAutomationExecutions(
-          props.webhook.id,
-          'createdAt_DESC',
-          limit.value,
-          offset.value
-        )
-      loading.value = false
+      loading.value = true;
+      const response = await AutomationService.listAutomationExecutions(
+        props.webhook.id,
+        'createdAt_DESC',
+        limit.value,
+        offset.value,
+      );
+      loading.value = false;
       if (response.rows.length < limit.value) {
-        noMore.value = true
-        executions.push(...response.rows)
+        noMore.value = true;
+        executions.push(...response.rows);
       } else {
-        offset.value += limit.value
-        executions.push(...response.rows)
+        offset.value += limit.value;
+        executions.push(...response.rows);
       }
-    }
+    };
 
     return {
       loading,
       noMore,
       disabled,
       executions,
-      fetchExecutions
-    }
+      fetchExecutions,
+    };
   },
   data() {
     return {
       modals: this.executions.reduce((acc, item) => {
-        acc[item.id] = false
-        return acc
-      }, {})
-    }
+        acc[item.id] = false;
+        return acc;
+      }, {}),
+    };
   },
   async created() {
-    await this.fetchExecutions()
+    await this.fetchExecutions();
   },
   methods: {
     translate(key) {
-      return i18n(key)
+      return i18n(key);
     },
     formattedDate(date) {
-      return moment(date).format('YYYY-MM-DD HH:mm:ss')
-    }
-  }
-}
+      return moment(date).format('YYYY-MM-DD HH:mm:ss');
+    },
+  },
+};
 </script>
 
 <style lang="scss">

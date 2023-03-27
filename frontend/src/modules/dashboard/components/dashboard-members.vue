@@ -24,7 +24,7 @@
             <app-dashboard-count
               :loading="members.loadingRecent"
               :query="newMembersCount"
-            ></app-dashboard-count>
+            />
           </div>
           <div class="w-7/12">
             <!-- Chart -->
@@ -32,7 +32,7 @@
               v-if="members.loadingRecent"
               v-loading="members.loadingRecent"
               class="app-page-spinner !relative chart-loading"
-            ></div>
+            />
             <app-dashboard-widget-chart
               v-else
               :datasets="datasets('new members')"
@@ -64,20 +64,19 @@
             >
               <span
                 v-if="
-                  member.lastActivity &&
-                  getPlatformDetails(
-                    member.lastActivity.platform
-                  )
+                  member.lastActivity
+                    && getPlatformDetails(
+                      member.lastActivity.platform,
+                    )
                 "
-                >joined
+              >joined
                 {{ formatDateToTimeAgo(member.joinedAt) }}
                 on
                 {{
                   getPlatformDetails(
-                    member.lastActivity.platform
+                    member.lastActivity.platform,
                   ).name
-                }}</span
-              >
+                }}</span>
             </app-dashboard-member-item>
             <app-dashboard-empty-state
               v-if="recentMembers.length === 0"
@@ -95,12 +94,13 @@
                   name: 'member',
                   query: {
                     activeTab: 'new-and-active',
-                    joinedFrom: periodStartDate
-                  }
+                    joinedFrom: periodStartDate,
+                  },
                 }"
                 class="text-sm leading-5 font-medium text-red"
-                >View more</router-link
               >
+                View more
+              </router-link>
             </div>
           </div>
         </div>
@@ -119,7 +119,7 @@
             <app-dashboard-count
               :loading="members.loadingActive"
               :query="activeMembersCount"
-            ></app-dashboard-count>
+            />
           </div>
           <div class="w-7/12">
             <!-- Chart -->
@@ -127,7 +127,7 @@
               v-if="members.loadingActive"
               v-loading="members.loadingActive"
               class="app-page-spinner !relative chart-loading"
-            ></div>
+            />
             <app-dashboard-widget-chart
               v-else
               :datasets="datasets('active members')"
@@ -156,14 +156,12 @@
               class="mb-3"
               :member="member"
             >
-              <span
-                >{{ member.activityCount }}
+              <span>{{ member.activityCount }}
                 {{
                   +member.activityCount > 1
                     ? 'activities'
                     : 'activity'
-                }}</span
-              >
+                }}</span>
             </app-dashboard-member-item>
             <app-dashboard-empty-state
               v-if="activeMembers.length === 0"
@@ -181,12 +179,13 @@
                   name: 'member',
                   query: {
                     activeTab: 'all',
-                    activeFrom: periodStartDate
-                  }
+                    activeFrom: periodStartDate,
+                  },
                 }"
                 class="text-sm leading-5 font-medium text-red"
-                >View more</router-link
               >
+                View more
+              </router-link>
             </div>
           </div>
         </div>
@@ -196,22 +195,22 @@
 </template>
 
 <script>
-import { mapGetters } from 'vuex'
-import moment from 'moment'
+import { mapGetters } from 'vuex';
+import moment from 'moment';
 import {
   newMembersChart,
   activeMembersChart,
   activeMembersCount,
-  newMembersCount
-} from '@/modules/dashboard/dashboard.cube'
-import AppDashboardCount from '@/modules/dashboard/components/dashboard-count'
-import AppDashboardMemberItem from '@/modules/dashboard/components/member/dashboard-member-item'
-import { CrowdIntegrations } from '@/integrations/integrations-config'
-import { formatDateToTimeAgo } from '@/utils/date'
-import AppDashboardEmptyState from '@/modules/dashboard/components/dashboard-empty-state.vue'
-import AppDashboardWidgetHeader from '@/modules/dashboard/components/dashboard-widget-header.vue'
-import AppDashboardWidgetChart from '@/modules/dashboard/components/dashboard-widget-chart.vue'
-import { DAILY_GRANULARITY_FILTER } from '@/modules/widget/widget-constants'
+  newMembersCount,
+} from '@/modules/dashboard/dashboard.cube';
+import { CrowdIntegrations } from '@/integrations/integrations-config';
+import { formatDateToTimeAgo } from '@/utils/date';
+import AppDashboardEmptyState from '@/modules/dashboard/components/dashboard-empty-state.vue';
+import AppDashboardWidgetHeader from '@/modules/dashboard/components/dashboard-widget-header.vue';
+import AppDashboardWidgetChart from '@/modules/dashboard/components/dashboard-widget-chart.vue';
+import { DAILY_GRANULARITY_FILTER } from '@/modules/widget/widget-constants';
+import AppDashboardMemberItem from '@/modules/dashboard/components/member/dashboard-member-item.vue';
+import AppDashboardCount from '@/modules/dashboard/components/dashboard-count.vue';
 
 export default {
   name: 'AppDashboardMember',
@@ -220,7 +219,7 @@ export default {
     AppDashboardWidgetHeader,
     AppDashboardEmptyState,
     AppDashboardMemberItem,
-    AppDashboardCount
+    AppDashboardCount,
   },
   data() {
     return {
@@ -228,38 +227,38 @@ export default {
       newMembersCount,
       activeMembersChart,
       activeMembersCount,
-      formatDateToTimeAgo
-    }
+      formatDateToTimeAgo,
+    };
   },
   computed: {
     ...mapGetters('dashboard', [
       'activeMembers',
       'recentMembers',
       'members',
-      'period'
+      'period',
     ]),
     periodStartDate() {
       return moment()
         .subtract(this.period.value, 'day')
-        .format('YYYY-MM-DD')
-    }
+        .format('YYYY-MM-DD');
+    },
   },
   methods: {
     datasets(name) {
       return [
         {
-          name: name,
+          name,
           borderColor: '#E94F2E',
           measure: 'Members.count',
-          granularity: DAILY_GRANULARITY_FILTER.value
-        }
-      ]
+          granularity: DAILY_GRANULARITY_FILTER.value,
+        },
+      ];
     },
     getPlatformDetails(platform) {
-      return CrowdIntegrations.getConfig(platform)
-    }
-  }
-}
+      return CrowdIntegrations.getConfig(platform);
+    },
+  },
+};
 </script>
 
 <style lang="scss" scoped>

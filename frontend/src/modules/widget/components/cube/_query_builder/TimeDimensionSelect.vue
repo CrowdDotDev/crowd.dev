@@ -1,13 +1,14 @@
 <template>
   <div>
     <label
+      for="formTimeDimensions"
       class="block text-xs leading-none font-semibold mb-1"
-      >Time Dimensions</label
-    >
+    >Time Dimensions</label>
     <el-select
+      id="formTimeDimensions"
       :model-value="
-        timeDimensions[0] &&
-        timeDimensions[0].dimension.name
+        timeDimensions[0]
+          && timeDimensions[0].dimension.name
       "
       clearable
       filterable
@@ -17,36 +18,36 @@
     >
       <el-option
         v-for="item in translatedOptions(
-          computedTimeDimensions
+          computedTimeDimensions,
         )"
         :key="item.value"
         :value="item.value"
         :label="item.label"
         @mouseleave="onSelectMouseLeave"
-      ></el-option>
+      />
     </el-select>
   </div>
 </template>
 
 <script>
-import { i18n } from '@/i18n'
-import { onSelectMouseLeave } from '@/utils/select'
+import { i18n } from '@/i18n';
+import { onSelectMouseLeave } from '@/utils/select';
 
 export default {
   name: 'TimeDimensionSelect',
   props: {
     measures: {
       type: Array,
-      default: () => []
+      default: () => [],
     },
     timeDimensions: {
       type: Array,
-      default: () => []
+      default: () => [],
     },
     availableTimeDimensions: {
       type: Array,
-      default: () => []
-    }
+      default: () => [],
+    },
   },
   emits: ['change'],
   data() {
@@ -55,54 +56,50 @@ export default {
         'Activities.count': ['Activities.date'],
         'Members.count': [
           'Members.joinedAt',
-          'Activities.date'
+          'Activities.date',
         ],
         'Conversations.count': ['Conversations.createdat'],
         'Sentiment.averageSentiment': ['Sentiment.date'],
-        'Organizations.count': ['Organizations.createdat']
-      }
-    }
+        'Organizations.count': ['Organizations.createdat'],
+      },
+    };
   },
   computed: {
     computedTimeDimensions() {
-      const measure = this.measures[0]
+      const measure = this.measures[0];
       return !measure
         ? []
-        : this.availableTimeDimensions.filter((t) => {
-            return !!this.measureTimeDimensions[
-              measure.name
-            ]?.includes(t.name)
-          })
-    }
+        : this.availableTimeDimensions.filter((t) => !!this.measureTimeDimensions[
+          measure.name
+        ]?.includes(t.name));
+    },
   },
   methods: {
     handleTimeChange(value) {
-      const [selectedTd = {}] = this.timeDimensions
+      const [selectedTd = {}] = this.timeDimensions;
       const td = this.availableTimeDimensions.find(
-        ({ name }) => name === value
-      )
+        ({ name }) => name === value,
+      );
       if (!td) {
-        this.$emit('change', [])
-        return
+        this.$emit('change', []);
+        return;
       }
       this.$emit('change', [
         {
           dimension: td.name,
           granularity: selectedTd.granularity || 'day',
-          dateRange: selectedTd.dateRange
-        }
-      ])
+          dateRange: selectedTd.dateRange,
+        },
+      ]);
     },
     translatedOptions(list) {
-      return list.map((i) => {
-        return {
-          ...i,
-          value: i.name,
-          label: i18n('widget.cubejs.' + i.name)
-        }
-      })
+      return list.map((i) => ({
+        ...i,
+        value: i.name,
+        label: i18n(`widget.cubejs.${i.name}`),
+      }));
     },
-    onSelectMouseLeave
-  }
-}
+    onSelectMouseLeave,
+  },
+};
 </script>

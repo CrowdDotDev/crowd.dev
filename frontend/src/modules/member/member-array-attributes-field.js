@@ -1,26 +1,27 @@
-import ArrayField from '@/shared/fields/array-field'
+import ArrayField from '@/shared/fields/array-field';
 
 export default class MemberArrayAttributesField extends ArrayField {
   constructor(name, label, config = {}) {
-    super(name, label)
+    super(name, label);
 
-    this.placeholder = config.placeholder
-    this.hint = config.hint
-    this.required = config.required
-    this.matches = config.matches
-    this.filterable = config.filterable || false
-    this.custom = config.custom || false
-    this.options = config.options || []
+    this.placeholder = config.placeholder;
+    this.hint = config.hint;
+    this.required = config.required;
+    this.matches = config.matches;
+    this.filterable = config.filterable || false;
+    this.custom = config.custom || false;
+    this.options = config.options || [];
   }
 
   dropdownOptions() {
     return this.options.sort((x, y) => {
-      return x.label < y.label
-        ? -1
-        : x.label > y.label
+      if (x.label < y.label) {
+        return -1;
+      }
+      return x.label > y.label
         ? 1
-        : 0
-    })
+        : 0;
+    });
   }
 
   forFilter() {
@@ -30,13 +31,13 @@ export default class MemberArrayAttributesField extends ArrayField {
       custom: this.custom,
       props: {
         options: this.dropdownOptions(),
-        multiple: true
+        multiple: true,
       },
       defaultValue: [],
       value: [],
       defaultOperator: 'contains',
       operator: 'contains',
-      type: 'select-multi'
-    }
+      type: 'select-multi',
+    };
   }
 }

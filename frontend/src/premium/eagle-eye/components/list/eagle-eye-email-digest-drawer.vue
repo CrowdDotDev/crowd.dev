@@ -7,7 +7,7 @@
     <template #beforeTitle>
       <i
         class="ri-mail-open-line text-xl h-6 text-gray-900 flex items-center mr-3"
-      ></i>
+      />
     </template>
     <template #content>
       <div class="pb-8">
@@ -16,7 +16,9 @@
           class="bg-gray-100 px-6 py-4 -mx-6 flex justify-between -mt-5"
         >
           <div>
-            <h5 class="text-sm font-medium mb-1">Active</h5>
+            <h5 class="text-sm font-medium mb-1">
+              Active
+            </h5>
             <p class="text-2xs text-gray-500">
               If active, you will receive an email with up
               to 10 most relevant results from Eagle Eye,
@@ -40,7 +42,7 @@
               :required="true"
               :error-messages="{
                 required: 'This field is required',
-                email: 'Enter valid email'
+                email: 'Enter valid email',
               }"
             >
               <el-input
@@ -112,11 +114,9 @@
               class="filter-checkbox"
               :disabled="!form.active"
             >
-              <span class="text-sm text-gray-900"
-                >Update email results based on your current
-                feed settings</span
-              ></el-checkbox
-            >
+              <span class="text-sm text-gray-900">Update email results based on your current
+                feed settings</span>
+            </el-checkbox>
           </el-form>
           <hr />
           <!-- Results summary -->
@@ -134,7 +134,7 @@
               <div class="flex items-center">
                 <i
                   class="text-base ri-alert-fill text-yellow-500 mr-2"
-                ></i>
+                />
                 <p class="text-2xs leading-5">
                   Current feed settings don’t match the
                   digest results
@@ -210,18 +210,20 @@
         <el-button
           class="btn btn--md btn--transparent mr-3"
           @click="handleCancel"
-          >Cancel
+        >
+          Cancel
         </el-button>
         <el-button
           type="primary"
           class="btn btn--md btn--primary"
           :loading="loadingUpdateSettings"
           :disabled="
-            $v.$invalid ||
-            (!hasFormChanged && !hasElementChanged)
+            $v.$invalid
+              || (!hasFormChanged && !hasElementChanged)
           "
           @click="doSubmit()"
-          >Update
+        >
+          Update
         </el-button>
       </div>
     </template>
@@ -229,7 +231,6 @@
 </template>
 
 <script setup>
-import AppDrawer from '@/shared/drawer/drawer.vue'
 import {
   ref,
   computed,
@@ -237,138 +238,123 @@ import {
   defineEmits,
   defineProps,
   onMounted,
-  watch
-} from 'vue'
+  watch,
+} from 'vue';
+import { email, required } from '@vuelidate/validators';
+import useVuelidate from '@vuelidate/core';
+import moment from 'moment';
+import AppDrawer from '@/shared/drawer/drawer.vue';
 import {
   mapActions,
   mapGetters,
-  mapState
-} from '@/shared/vuex/vuex.helpers'
-import Message from '@/shared/message/message'
-import platformOptions from '@/premium/eagle-eye/constants/eagle-eye-platforms.json'
-import { email, required } from '@vuelidate/validators'
-import useVuelidate from '@vuelidate/core'
-import AppFormItem from '@/shared/form/form-item.vue'
-import formChangeDetector from '@/shared/form/form-change'
-import elementChangeDetector from '@/shared/form/element-change'
-import moment from 'moment'
+  mapState,
+} from '@/shared/vuex/vuex.helpers';
+import Message from '@/shared/message/message';
+import platformOptions from '@/premium/eagle-eye/constants/eagle-eye-platforms.json';
+import AppFormItem from '@/shared/form/form-item.vue';
+import formChangeDetector from '@/shared/form/form-change';
+import elementChangeDetector from '@/shared/form/element-change';
 
 const props = defineProps({
   modelValue: {
     type: Boolean,
-    default: false
-  }
-})
+    default: false,
+  },
+});
 
-const { currentUser, currentTenant } = mapGetters('auth')
+const { currentUser, currentTenant } = mapGetters('auth');
 
 const eagleEyeSettings = computed(
-  () =>
-    currentUser?.value.tenants.find(
-      (tu) => tu.tenantId === currentTenant?.value.id
-    ).settings.eagleEye
-)
+  () => currentUser?.value.tenants.find(
+    (tu) => tu.tenantId === currentTenant?.value.id,
+  ).settings.eagleEye,
+);
 
-const { doUpdateSettings } = mapActions('eagleEye')
-const { loadingUpdateSettings } = mapState('eagleEye')
+const { doUpdateSettings } = mapActions('eagleEye');
+const { loadingUpdateSettings } = mapState('eagleEye');
 
-const emit = defineEmits(['update:modelValue'])
+const emit = defineEmits(['update:modelValue']);
 
 const rules = {
   email: {
     required,
-    email
-  }
-}
+    email,
+  },
+};
 
 const form = reactive({
   active: false,
   email: '',
   frequency: 'daily',
   time: '09:00',
-  updateResults: true
-})
-const { hasFormChanged, formSnapshot } =
-  formChangeDetector(form)
+  updateResults: true,
+});
+const { hasFormChanged, formSnapshot } = formChangeDetector(form);
 
-const feed = ref(null)
-const { elementSnapshot, hasElementChanged } =
-  elementChangeDetector(feed)
+const feed = ref(null);
+const { elementSnapshot, hasElementChanged } = elementChangeDetector(feed);
 
-const $v = useVuelidate(rules, form)
+const $v = useVuelidate(rules, form);
 
 const drawerModel = computed({
   get() {
-    return props.modelValue
+    return props.modelValue;
   },
   set(value) {
-    emit('update:modelValue', value)
-  }
-})
+    emit('update:modelValue', value);
+  },
+});
 
 const results = computed(() => {
   if (!form.updateResults) {
     if (currentUser.value && feed.value) {
-      return feed.value
+      return feed.value;
     }
   }
-  return eagleEyeSettings.value.feed
-})
+  return eagleEyeSettings.value.feed;
+});
 
 const displayFeedWarning = computed(() => {
   if (form.updateResults) {
-    return false
+    return false;
   }
   if (eagleEyeSettings.value.feed && feed.value) {
     return (
-      JSON.stringify(eagleEyeSettings.value.feed) !==
-      JSON.stringify(feed.value)
-    )
+      JSON.stringify(eagleEyeSettings.value.feed)
+      !== JSON.stringify(feed.value)
+    );
   }
-  return false
-})
-
-watch(
-  () => props.modelValue,
-  (open) => {
-    if (open) {
-      fillForm(currentUser.value)
-    }
-  }
-)
+  return false;
+});
 
 const updateFeed = () => {
-  feed.value = eagleEyeSettings.value.feed ?? null
-}
+  feed.value = eagleEyeSettings.value.feed ?? null;
+};
 
 const fillForm = (user) => {
-  form.active =
-    eagleEyeSettings.value.emailDigestActive || false
-  form.email =
-    eagleEyeSettings.value.emailDigest?.email || user.email
-  form.frequency =
-    eagleEyeSettings.value.emailDigest?.frequency || 'daily'
+  form.active = eagleEyeSettings.value.emailDigestActive || false;
+  form.email = eagleEyeSettings.value.emailDigest?.email || user.email;
+  form.frequency = eagleEyeSettings.value.emailDigest?.frequency || 'daily';
   form.time = eagleEyeSettings.value.emailDigest?.time
     ? moment
-        .utc(
-          eagleEyeSettings.value.emailDigest?.time,
-          'HH:mm'
-        )
-        .local()
-        .format('HH:mm')
-    : '09:00'
+      .utc(
+        eagleEyeSettings.value.emailDigest?.time,
+        'HH:mm',
+      )
+      .local()
+      .format('HH:mm')
+    : '09:00';
   form.updateResults = !eagleEyeSettings.value.emailDigest
     ? true
-    : eagleEyeSettings.value.emailDigest?.matchFeedSettings
-  formSnapshot()
-  feed.value =
-    eagleEyeSettings.value?.emailDigest?.feed ||
-    eagleEyeSettings.value?.feed ||
-    null
-  elementSnapshot()
-}
+    : eagleEyeSettings.value.emailDigest?.matchFeedSettings;
+  formSnapshot();
+  feed.value = eagleEyeSettings.value?.emailDigest?.feed
+    || eagleEyeSettings.value?.feed
+    || null;
+  elementSnapshot();
+};
 const doSubmit = async () => {
-  $v.value.$touch()
+  $v.value.$touch();
   if (!$v.value.$invalid) {
     const data = {
       email: form.email,
@@ -377,31 +363,40 @@ const doSubmit = async () => {
         .utc()
         .format('HH:mm'),
       matchFeedSettings: form.updateResults,
-      feed: !form.updateResults ? feed.value : undefined
-    }
+      feed: !form.updateResults ? feed.value : undefined,
+    };
     doUpdateSettings({
       data: {
         ...eagleEyeSettings.value,
         emailDigestActive: form.active,
-        emailDigest: data
+        emailDigest: data,
       },
-      fetchNewResults: false
+      fetchNewResults: false,
     }).then(() => {
       Message.success(
-        'Email Digest settings successfully updated'
-      )
-      emit('update:modelValue', false)
-    })
+        'Email Digest settings successfully updated',
+      );
+      emit('update:modelValue', false);
+    });
   }
-}
+};
 
 const handleCancel = () => {
-  emit('update:modelValue', false)
-}
+  emit('update:modelValue', false);
+};
+
+watch(
+  () => props.modelValue,
+  (open) => {
+    if (open) {
+      fillForm(currentUser.value);
+    }
+  },
+);
 
 onMounted(() => {
-  fillForm(currentUser.value)
-})
+  fillForm(currentUser.value);
+});
 </script>
 
 <style lang="scss">

@@ -35,15 +35,14 @@
             <span
               v-if="getTrialDate(tenant)"
               class="text-2xs text-yellow-600"
-              >{{ getTrialDate(tenant) }}</span
-            >
+            >{{ getTrialDate(tenant) }}</span>
           </div>
           <button
             class="el-dropdown-link btn rounder-md hover:bg-gray-200 w-8 py-1 flex items-center justify-center"
             type="button"
             @click="handleEditClick(tenant)"
           >
-            <i class="ri-pencil-line"></i>
+            <i class="ri-pencil-line" />
           </button>
         </div>
       </div>
@@ -51,10 +50,11 @@
     <template #footer>
       <router-link
         :to="{ name: 'onboard', query: { action: 'new' } }"
-        ><el-button class="btn btn--md btn--primary"
-          >Add workspace</el-button
-        ></router-link
       >
+        <el-button class="btn btn--md btn--primary">
+          Add workspace
+        </el-button>
+      </router-link>
     </template>
   </app-drawer>
 
@@ -74,67 +74,67 @@
   </app-dialog>
 </template>
 
-<script>
-export default {
-  name: 'TenantListDrawer'
-}
-</script>
-
 <script setup>
-import { useStore } from 'vuex'
+import { useStore } from 'vuex';
 import {
   defineEmits,
   defineProps,
   computed,
   ref,
-  reactive
-} from 'vue'
-import AppTenantForm from '@/modules/tenant/components/tenant-form'
-import config from '@/config'
-import { getTrialDate } from '@/utils/date'
+  reactive,
+} from 'vue';
+import config from '@/config';
+import { getTrialDate } from '@/utils/date';
+import AppTenantForm from '@/modules/tenant/components/tenant-form.vue';
 
-const store = useStore()
+const store = useStore();
 
 const props = defineProps({
   modelValue: {
     type: Boolean,
-    default: false
-  }
-})
+    default: false,
+  },
+});
 
-const emit = defineEmits(['update:modelValue'])
+const emit = defineEmits(['update:modelValue']);
 
-const editing = ref(false)
-let model = reactive({})
+const editing = ref(false);
+const model = reactive({});
 
 const isVisible = computed({
   get() {
-    return props.modelValue
+    return props.modelValue;
   },
   set(value) {
-    emit('update:modelValue', value)
-  }
-})
+    emit('update:modelValue', value);
+  },
+});
 
-const tenants = computed(() => store.getters['tenant/rows'])
+const tenants = computed(() => store.getters['tenant/rows']);
 
 const handleEditClick = (tenant) => {
-  Object.assign(model, tenant)
-  editing.value = true
-}
+  Object.assign(model, tenant);
+  editing.value = true;
+};
 const handleCancel = () => {
-  editing.value = false
-}
+  editing.value = false;
+};
 const handleSuccess = () => {
-  editing.value = false
-  emit('update:modelValue', false)
-}
+  editing.value = false;
+  emit('update:modelValue', false);
+};
 
 const getPlan = (plan) => {
   if (config.isCommunityVersion) {
-    return 'Community'
+    return 'Community';
   }
 
-  return plan
-}
+  return plan;
+};
+</script>
+
+<script>
+export default {
+  name: 'TenantListDrawer',
+};
 </script>

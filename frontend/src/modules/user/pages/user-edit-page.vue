@@ -4,7 +4,7 @@
       v-if="initLoading"
       v-loading="initLoading"
       class="app-page-spinner"
-    ></div>
+    />
 
     <el-form
       v-if="model"
@@ -42,7 +42,7 @@
               :label="option.label"
               :value="option.value"
               @mouseleave="onSelectMouseLeave"
-            ></el-option>
+            />
           </el-select>
         </el-form-item>
       </div>
@@ -69,7 +69,7 @@
             class="btn btn--md btn--bordered"
             @click="$emit('cancel')"
           >
-            <app-i18n code="common.cancel"></app-i18n>
+            <app-i18n code="common.cancel" />
           </el-button>
 
           <el-button
@@ -86,18 +86,18 @@
 </template>
 
 <script>
-import { mapGetters, mapActions } from 'vuex'
-import { FormSchema } from '@/shared/form/form-schema'
-import { UserModel } from '@/modules/user/user-model'
-import { i18n } from '@/i18n'
-import isEqual from 'lodash/isEqual'
-import { onSelectMouseLeave } from '@/utils/select'
+import { mapGetters, mapActions } from 'vuex';
+import isEqual from 'lodash/isEqual';
+import { FormSchema } from '@/shared/form/form-schema';
+import { UserModel } from '@/modules/user/user-model';
+import { i18n } from '@/i18n';
+import { onSelectMouseLeave } from '@/utils/select';
 
-const { fields } = UserModel
+const { fields } = UserModel;
 const formSchema = new FormSchema([
   fields.email,
-  fields.roles
-])
+  fields.roles,
+]);
 
 export default {
   name: 'AppUserEditPage',
@@ -105,73 +105,73 @@ export default {
   props: {
     id: {
       type: String,
-      default: null
-    }
+      default: null,
+    },
   },
   emits: ['cancel'],
 
   data() {
     return {
       rules: formSchema.rules(),
-      model: formSchema.initialValues(this.record)
-    }
+      model: formSchema.initialValues(this.record),
+    };
   },
 
   computed: {
     ...mapGetters({
       record: 'user/form/record',
       initLoading: 'user/form/initLoading',
-      saveLoading: 'user/form/saveLoading'
+      saveLoading: 'user/form/saveLoading',
     }),
 
     hasFormChanged() {
       return !isEqual(
         this.model,
-        formSchema.initialValues(this.record)
-      )
+        formSchema.initialValues(this.record),
+      );
     },
 
     fields() {
-      return fields
-    }
+      return fields;
+    },
   },
 
   async created() {
-    await this.doInit(this.id)
-    this.model = formSchema.initialValues(this.record)
+    await this.doInit(this.id);
+    this.model = formSchema.initialValues(this.record);
   },
 
   methods: {
     ...mapActions({
       doInit: 'user/form/doInit',
-      doUpdate: 'user/form/doUpdate'
+      doUpdate: 'user/form/doUpdate',
     }),
 
     doReset() {
-      this.model = formSchema.initialValues(this.record)
+      this.model = formSchema.initialValues(this.record);
     },
 
     async doSubmit() {
       try {
-        await this.$refs.form.validate()
+        await this.$refs.form.validate();
       } catch (error) {
-        return
+        return;
       }
 
-      const values = formSchema.cast(this.model)
-      delete values.email
+      const values = formSchema.cast(this.model);
+      delete values.email;
       await this.doUpdate({
         id: this.record && this.record.id,
-        ...values
-      })
-      this.$emit('cancel')
+        ...values,
+      });
+      this.$emit('cancel');
     },
 
     i18n(code) {
-      return i18n(code)
+      return i18n(code);
     },
 
-    onSelectMouseLeave
-  }
-}
+    onSelectMouseLeave,
+  },
+};
 </script>

@@ -19,45 +19,49 @@
         type="button"
         @click.stop
       >
-        <i class="text-xl ri-more-fill"></i>
+        <i class="text-xl ri-more-fill" />
       </button>
       <template #dropdown>
         <el-dropdown-item
           v-if="showViewReport"
           :command="{
             action: 'reportView',
-            report: report
+            report: report,
           }"
-          ><i class="ri-eye-line mr-1" />View
-          Report</el-dropdown-item
         >
+          <i class="ri-eye-line mr-1" />View
+          Report
+        </el-dropdown-item>
         <el-dropdown-item
           v-if="showEditReport"
           :command="{
             action: 'reportEdit',
-            report: report
+            report: report,
           }"
-          ><i class="ri-pencil-line mr-1" />Edit
-          Report</el-dropdown-item
         >
+          <i class="ri-pencil-line mr-1" />Edit
+          Report
+        </el-dropdown-item>
         <el-dropdown-item
           v-if="report.public && showViewReportPublic"
           :command="{
             action: 'reportPublicUrl',
-            report: report
+            report: report,
           }"
-          ><i class="ri-link mr-1"></i>Copy Public
-          Url</el-dropdown-item
         >
+          <i class="ri-link mr-1" />Copy Public
+          Url
+        </el-dropdown-item>
         <el-dropdown-item
           v-if="showDuplicateReport"
           :command="{
             action: 'reportDuplicate',
-            report: report
+            report: report,
           }"
-          ><i class="ri-file-copy-line mr-1"></i>Duplicate
-          Report</el-dropdown-item
         >
+          <i class="ri-file-copy-line mr-1" />Duplicate
+          Report
+        </el-dropdown-item>
         <el-divider
           v-if="showEditReport || showViewReportPublic"
           class="border-gray-200 !my-2"
@@ -65,69 +69,68 @@
         <el-dropdown-item
           :command="{
             action: 'reportDelete',
-            report: report
+            report: report,
           }"
-          ><i
-            class="ri-delete-bin-line text-base mr-2 text-red-500"
-          /><span class="text-xs text-red-500"
-            >Delete Report</span
-          ></el-dropdown-item
         >
+          <i
+            class="ri-delete-bin-line text-base mr-2 text-red-500"
+          /><span class="text-xs text-red-500">Delete Report</span>
+        </el-dropdown-item>
       </template>
     </el-dropdown>
   </div>
 </template>
 
 <script>
-import { mapActions, mapGetters } from 'vuex'
-import Message from '@/shared/message/message'
-import AuthCurrentTenant from '@/modules/auth/auth-current-tenant'
-import { ReportPermissions } from '@/modules/report/report-permissions'
-import ConfirmDialog from '@/shared/dialog/confirm-dialog.js'
-import { ReportService } from '@/modules/report/report-service'
+import { mapActions, mapGetters } from 'vuex';
+import Message from '@/shared/message/message';
+import AuthCurrentTenant from '@/modules/auth/auth-current-tenant';
+import { ReportPermissions } from '@/modules/report/report-permissions';
+import ConfirmDialog from '@/shared/dialog/confirm-dialog';
+import { ReportService } from '@/modules/report/report-service';
 
 export default {
   name: 'AppReportDropdown',
   props: {
     report: {
       type: Object,
-      default: () => {}
+      default: () => {},
     },
     showViewReport: {
       type: Boolean,
-      default: true
+      default: true,
     },
     showEditReport: {
       type: Boolean,
-      default: true
+      default: true,
     },
     showViewReportPublic: {
       type: Boolean,
-      default: true
+      default: true,
     },
     showDuplicateReport: {
       type: Boolean,
-      default: true
-    }
+      default: true,
+    },
   },
   computed: {
     ...mapGetters({
       currentTenant: 'auth/currentTenant',
-      currentUser: 'auth/currentUser'
+      currentUser: 'auth/currentUser',
     }),
     isReadOnly() {
       return (
         new ReportPermissions(
           this.currentTenant,
-          this.currentUser
+          this.currentUser,
         ).edit === false
-      )
-    }
+      );
+    },
   },
   methods: {
     ...mapActions({
       doDestroy: 'report/doDestroy',
-      doCreate: 'report/doCreate'
+      doCreate: 'report/doCreate',
     }),
     async doDestroyWithConfirm(id) {
       try {
@@ -138,13 +141,14 @@ export default {
             "Are you sure you want to proceed? You can't undo this action",
           confirmButtonText: 'Confirm',
           cancelButtonText: 'Cancel',
-          icon: 'ri-delete-bin-line'
-        })
+          icon: 'ri-delete-bin-line',
+        });
 
-        return this.doDestroy(id)
+        return this.doDestroy(id);
       } catch (error) {
         // no
       }
+      return null;
     },
     async doDuplicate(id) {
       ReportService.duplicate(id)
@@ -152,39 +156,38 @@ export default {
           this.$router.push({
             name: 'reportEdit',
             params: {
-              id: duplicate.id
-            }
-          })
-          Message.success('Report duplicated successfuly')
+              id: duplicate.id,
+            },
+          });
+          Message.success('Report duplicated successfuly');
         })
         .catch(() => {
-          Message.error('Error duplicating report')
-        })
+          Message.error('Error duplicating report');
+        });
     },
-    async handleCommand(command) {
+    handleCommand(command) {
       if (command.action === 'reportDelete') {
-        return await this.doDestroyWithConfirm(
-          command.report.id
-        )
-      } else if (command.action === 'reportDuplicate') {
-        return await this.doDuplicate(command.report.id)
-      } else if (command.action === 'reportPublicUrl') {
-        return await this.copyToClipboard(command.report.id)
-      } else {
-        return this.$router.push({
-          name: command.action,
-          params: { id: command.report.id }
-        })
+        return this.doDestroyWithConfirm(
+          command.report.id,
+        );
+      } if (command.action === 'reportDuplicate') {
+        return this.doDuplicate(command.report.id);
+      } if (command.action === 'reportPublicUrl') {
+        return this.copyToClipboard(command.report.id);
       }
+      return this.$router.push({
+        name: command.action,
+        params: { id: command.report.id },
+      });
     },
     async copyToClipboard(value) {
-      const tenantId = AuthCurrentTenant.get()
-      const url = `${window.location.origin}/tenant/${tenantId}/reports/${value}/public`
-      await navigator.clipboard.writeText(url)
+      const tenantId = AuthCurrentTenant.get();
+      const url = `${window.location.origin}/tenant/${tenantId}/reports/${value}/public`;
+      await navigator.clipboard.writeText(url);
       Message.success(
-        'Report URL successfully copied to your clipboard'
-      )
-    }
-  }
-}
+        'Report URL successfully copied to your clipboard',
+      );
+    },
+  },
+};
 </script>

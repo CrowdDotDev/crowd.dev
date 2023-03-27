@@ -5,5 +5,5 @@ export default {
   borderColor: '#FFFFFF',
   description:
     "We're currently working on this integration.",
-  image: '/images/integrations/make.svg'
-}
+  image: '/images/integrations/make.svg',
+};

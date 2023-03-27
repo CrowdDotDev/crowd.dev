@@ -4,15 +4,14 @@
       v-if="loading"
       v-loading="loading"
       class="app-page-spinner"
-    ></div>
+    />
     <div v-else>
       <router-link
         class="text-gray-600 btn-link--md btn-link--secondary p-0 inline-flex items-center"
         :to="{ path: '/organizations' }"
       >
-        <i class="ri-arrow-left-s-line mr-2"></i
-        >Organizations</router-link
-      >
+        <i class="ri-arrow-left-s-line mr-2" />Organizations
+      </router-link>
       <div class="grid grid-cols-3 gap-6 mt-4">
         <app-organization-view-header
           :organization="organization"
@@ -47,38 +46,38 @@
   </app-page-wrapper>
 </template>
 
-<script>
-export default {
-  name: 'AppOrganizationViewPage'
-}
-</script>
-
 <script setup>
-import { useStore } from 'vuex'
-import { defineProps, computed, onMounted, ref } from 'vue'
+import { useStore } from 'vuex';
+import {
+  defineProps, computed, onMounted, ref,
+} from 'vue';
 
-import AppActivityTimeline from '@/modules/activity/components/activity-timeline'
-import AppOrganizationViewHeader from '@/modules/organization/components/view/organization-view-header'
-import AppOrganizationViewAside from '@/modules/organization/components/view/organization-view-aside'
-import AppOrganizationViewMembers from '@/modules/organization/components/view/organization-view-members'
+import AppActivityTimeline from '@/modules/activity/components/activity-timeline.vue';
+import AppOrganizationViewHeader from '@/modules/organization/components/view/organization-view-header.vue';
+import AppOrganizationViewAside from '@/modules/organization/components/view/organization-view-aside.vue';
+import AppOrganizationViewMembers from '@/modules/organization/components/view/organization-view-members.vue';
 
-const store = useStore()
+const store = useStore();
 const props = defineProps({
   id: {
     type: String,
-    default: null
-  }
-})
+    default: null,
+  },
+});
 
-const organization = computed(() => {
-  return store.getters['organization/find'](props.id) || {}
-})
+const organization = computed(() => store.getters['organization/find'](props.id) || {});
 
-const loading = ref(true)
-const tab = ref('members')
+const loading = ref(true);
+const tab = ref('members');
 
 onMounted(async () => {
-  await store.dispatch('organization/doFind', props.id)
-  loading.value = false
-})
+  await store.dispatch('organization/doFind', props.id);
+  loading.value = false;
+});
+</script>
+
+<script>
+export default {
+  name: 'AppOrganizationViewPage',
+};
 </script>

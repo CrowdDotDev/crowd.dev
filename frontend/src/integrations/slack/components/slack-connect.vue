@@ -1,35 +1,37 @@
 <template>
-  <slot :connect="connect"></slot>
+  <slot :connect="connect" />
 </template>
 
-<script>
-export default {
-  name: 'AppSlackConnect'
-}
-</script>
 <script setup>
-import { useStore } from 'vuex'
-import { defineProps, computed } from 'vue'
-import config from '@/config'
-import { AuthToken } from '@/modules/auth/auth-token'
+import { useStore } from 'vuex';
+import { defineProps, computed } from 'vue';
+import config from '@/config';
+import { AuthToken } from '@/modules/auth/auth-token';
 
-const store = useStore()
+const store = useStore();
 defineProps({
   integration: {
     type: Object,
-    default: () => {}
-  }
-})
-
-const connect = () => {
-  window.open(connectUrl.value, '_self')
-}
+    default: () => {},
+  },
+});
 
 const connectUrl = computed(() => {
-  const redirectUrl = `${window.location.protocol}//${window.location.host}${window.location.pathname}?success=true`
+  const redirectUrl = `${window.location.protocol}//${window.location.host}${window.location.pathname}?success=true`;
 
   return `${config.backendUrl}/slack/${
     store.getters['auth/currentTenant'].id
-  }/connect?redirectUrl=${redirectUrl}&crowdToken=${AuthToken.get()}`
-})
+  }/connect?redirectUrl=${redirectUrl}&crowdToken=${AuthToken.get()}`;
+});
+
+const connect = () => {
+  window.open(connectUrl.value, '_self');
+};
+
+</script>
+
+<script>
+export default {
+  name: 'AppSlackConnect',
+};
 </script>

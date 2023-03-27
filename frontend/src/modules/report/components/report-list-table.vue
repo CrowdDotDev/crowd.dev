@@ -4,7 +4,7 @@
       v-if="loading"
       v-loading="loading"
       class="app-page-spinner h-16 !relative !min-h-5"
-    ></div>
+    />
 
     <div v-else>
       <!-- Empty state -->
@@ -15,7 +15,7 @@
         description="Please create your first report to start analyzing data from your community"
         cta-btn="Add report"
         @cta-click="$emit('cta-click')"
-      ></app-empty-state-cta>
+      />
 
       <div v-else>
         <!-- Sorter -->
@@ -33,7 +33,7 @@
 
         <!-- Sorters list -->
         <div class="app-list-table panel">
-          <app-report-list-toolbar></app-report-list-toolbar>
+          <app-report-list-toolbar />
           <div class="-mx-6 -mt-6">
             <el-table
               ref="table"
@@ -48,7 +48,7 @@
               <el-table-column
                 type="selection"
                 width="75"
-              ></el-table-column>
+              />
 
               <el-table-column
                 label="Name"
@@ -60,8 +60,8 @@
                     :to="{
                       name: 'reportView',
                       params: {
-                        id: scope.row.id
-                      }
+                        id: scope.row.id,
+                      },
                     }"
                     class="flex items-center text-black"
                   >
@@ -84,8 +84,7 @@
                   <span
                     v-if="scope.row.public"
                     class="badge badge--green"
-                    >Public</span
-                  >
+                  >Public</span>
                   <span v-else class="badge">Private</span>
                 </template>
               </el-table-column>
@@ -98,7 +97,7 @@
                   <div class="table-actions">
                     <app-report-dropdown
                       :report="scope.row"
-                    ></app-report-dropdown>
+                    />
                   </div>
                 </template>
               </el-table-column>
@@ -125,93 +124,94 @@
   </div>
 </template>
 
-<script>
-export default {
-  name: 'AppReportListTable'
-}
-</script>
-
 <script setup>
-import { defineEmits, ref, watch, computed } from 'vue'
-import { useStore } from 'vuex'
-import AppReportDropdown from './report-dropdown'
-import AppReportListToolbar from './report-list-toolbar'
-import { useRouter } from 'vue-router/dist/vue-router'
+import {
+  defineEmits, ref, watch, computed,
+} from 'vue';
+import { useStore } from 'vuex';
+import { useRouter } from 'vue-router';
+import AppReportDropdown from './report-dropdown.vue';
+import AppReportListToolbar from './report-list-toolbar.vue';
 
-const store = useStore()
-const router = useRouter()
-defineEmits(['cta-click'])
+const store = useStore();
+const router = useRouter();
+defineEmits(['cta-click']);
 
-const table = ref(null)
+const table = ref(null);
 
 const loading = computed(
-  () => store.state.report.list.loading
-)
-const count = computed(() => store.state.report.count)
-const rows = computed(() => store.getters['report/rows'])
+  () => store.state.report.list.loading,
+);
+const count = computed(() => store.state.report.count);
+const rows = computed(() => store.getters['report/rows']);
 
 const computedRows = computed(() => {
   if (loading.value) {
-    return []
+    return [];
   }
 
-  return rows.value.filter((r) => !r.isTemplate)
-})
+  return rows.value.filter((r) => !r.isTemplate);
+});
 
 const computedCount = computed(() => {
   if (loading.value) {
-    return 0
+    return 0;
   }
 
   return (
-    count.value -
-    rows.value.filter((r) => r.isTemplate).length
-  )
-})
+    count.value
+    - rows.value.filter((r) => r.isTemplate).length
+  );
+});
 
 const selectedRows = computed(
-  () => store.getters['report/selectedRows']
-)
+  () => store.getters['report/selectedRows'],
+);
 const pagination = computed(
-  () => store.getters['report/pagination']
-)
+  () => store.getters['report/pagination'],
+);
 
 watch(table, (newValue) => {
   if (newValue) {
-    store.dispatch('report/doMountTable', table.value)
+    store.dispatch('report/doMountTable', table.value);
   }
-})
+});
 
 function doChangeSort(sorter) {
-  store.dispatch('report/doChangeSort', sorter)
+  store.dispatch('report/doChangeSort', sorter);
 }
 
 function doChangePaginationCurrentPage(currentPage) {
   store.dispatch(
     'report/doChangePaginationCurrentPage',
-    currentPage
-  )
+    currentPage,
+  );
 }
 
 function doChangePaginationPageSize(pageSize) {
   store.dispatch(
     'report/doChangePaginationPageSize',
-    pageSize
-  )
+    pageSize,
+  );
 }
 
 function rowClass({ row }) {
-  const isSelected =
-    selectedRows.value.find((r) => r.id === row.id) !==
-    undefined
+  const isSelected = selectedRows.value.find((r) => r.id === row.id)
+    !== undefined;
 
-  return isSelected ? 'is-selected' : ''
+  return isSelected ? 'is-selected' : '';
 }
 
 function handleRowClick(row) {
   router.push({
     name: 'reportView',
-    params: { id: row.id }
-  })
+    params: { id: row.id },
+  });
 }
+</script>
+
+<script>
+export default {
+  name: 'AppReportListTable',
+};
 </script>

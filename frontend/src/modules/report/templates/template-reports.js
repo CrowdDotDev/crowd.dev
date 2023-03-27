@@ -6,8 +6,8 @@ export const MEMBERS_REPORT = {
   color: 'bg-gray-900',
   filters: {
     platform: true,
-    teamMembers: true
-  }
-}
+    teamMembers: true,
+  },
+};
 
-export const templates = [MEMBERS_REPORT]
+export const templates = [MEMBERS_REPORT];

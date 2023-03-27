@@ -104,12 +104,6 @@
   />
 </template>
 
-<script>
-export default {
-  name: 'AppActivityTypeListDrawer'
-}
-</script>
-
 <script setup>
 import {
   defineEmits,
@@ -117,83 +111,85 @@ import {
   computed,
   ref,
   watch,
-  onMounted
-} from 'vue'
-import AppDrawer from '@/shared/drawer/drawer.vue'
-import AppActivityTypeListItem from '@/modules/activity/components/type/activity-type-list-item.vue'
-import AppActivityTypeDropdown from '@/modules/activity/components/type/activity-type-dropdown.vue'
-import AppActivityTypeFormModal from '@/modules/activity/components/type/activity-type-form-modal.vue'
+  onMounted,
+} from 'vue';
+import { storeToRefs } from 'pinia';
+import { useStore } from 'vuex';
+import AppDrawer from '@/shared/drawer/drawer.vue';
+import AppActivityTypeListItem from '@/modules/activity/components/type/activity-type-list-item.vue';
+import AppActivityTypeDropdown from '@/modules/activity/components/type/activity-type-dropdown.vue';
+import AppActivityTypeFormModal from '@/modules/activity/components/type/activity-type-form-modal.vue';
 import {
   mapGetters,
-  mapActions
-} from '@/shared/vuex/vuex.helpers'
-import { useActivityTypeStore } from '@/modules/activity/store/type'
-import { storeToRefs } from 'pinia'
-import { useStore } from 'vuex'
-import { CrowdIntegrations } from '@/integrations/integrations-config'
+  mapActions,
+} from '@/shared/vuex/vuex.helpers';
+import { useActivityTypeStore } from '@/modules/activity/store/type';
+import { CrowdIntegrations } from '@/integrations/integrations-config';
 
 // Props & emits
 const props = defineProps({
   modelValue: {
     type: Boolean,
-    default: false
-  }
-})
+    default: false,
+  },
+});
 
-const emit = defineEmits(['update:modelValue'])
+const emit = defineEmits(['update:modelValue']);
 
 // Store
-const store = useStore()
-const { currentTenant } = mapGetters('auth')
-const { doFetch } = mapActions('integration')
-const activityTypeStore = useActivityTypeStore()
-const { types } = storeToRefs(activityTypeStore)
-const { setTypes } = activityTypeStore
+const store = useStore();
+const { currentTenant } = mapGetters('auth');
+const { doFetch } = mapActions('integration');
+const activityTypeStore = useActivityTypeStore();
+const { types } = storeToRefs(activityTypeStore);
+const { setTypes } = activityTypeStore;
 
 // Drawer open
-const isFormModalOpen = ref(false)
-const editableActivityType = ref(null)
+const isFormModalOpen = ref(false);
+const editableActivityType = ref(null);
 const isVisible = computed({
   get() {
-    return props.modelValue
+    return props.modelValue;
   },
   set(value) {
-    emit('update:modelValue', value)
-  }
-})
+    emit('update:modelValue', value);
+  },
+});
 
 watch(
   () => currentTenant,
   (tenant) => {
     if (tenant.value.settings.length > 0) {
-      setTypes(tenant.value.settings[0].activityTypes)
+      setTypes(tenant.value.settings[0].activityTypes);
     }
   },
-  { immediate: true, deep: true }
-)
+  { immediate: true, deep: true },
+);
 
 const edit = (activityType) => {
-  editableActivityType.value = activityType
-  isFormModalOpen.value = true
-}
+  editableActivityType.value = activityType;
+  isFormModalOpen.value = true;
+};
 
 const onModalViewChange = (opened) => {
   if (!opened) {
-    editableActivityType.value = null
+    editableActivityType.value = null;
   }
-}
+};
 
-const activeIntegrations = computed(() => {
-  return CrowdIntegrations.mappedEnabledConfigs(
-    store
-  ).filter((integration) => {
-    return integration.status
-  })
-})
+const activeIntegrations = computed(() => CrowdIntegrations.mappedEnabledConfigs(
+  store,
+).filter((integration) => integration.status));
 
 onMounted(() => {
   if (activeIntegrations.value.length === 0) {
-    doFetch({})
+    doFetch({});
   }
-})
+});
+</script>
+
+<script>
+export default {
+  name: 'AppActivityTypeListDrawer',
+};
 </script>

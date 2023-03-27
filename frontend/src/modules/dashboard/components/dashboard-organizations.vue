@@ -23,7 +23,7 @@
             <app-dashboard-count
               :loading="organizations.loadingRecent"
               :query="newOrganizationCount"
-            ></app-dashboard-count>
+            />
           </div>
           <div class="w-7/12">
             <!-- Chart -->
@@ -31,7 +31,7 @@
               v-if="organizations.loadingRecent"
               v-loading="organizations.loadingRecent"
               class="app-page-spinner !relative chart-loading"
-            ></div>
+            />
             <app-dashboard-widget-chart
               v-else
               :datasets="datasets('new organizations')"
@@ -60,8 +60,7 @@
               :show-badge="false"
               class="mb-4"
               :organization="organization"
-            >
-            </app-dashboard-organization-item>
+            />
             <app-dashboard-empty-state
               v-if="recentOrganizations.length === 0"
               icon-class="ri-community-line"
@@ -78,12 +77,13 @@
                   name: 'organization',
                   query: {
                     activeTab: 'new-and-active',
-                    joinedFrom: periodStartDate
-                  }
+                    joinedFrom: periodStartDate,
+                  },
                 }"
                 class="text-sm leading-5 font-medium text-red"
-                >View more</router-link
               >
+                View more
+              </router-link>
             </div>
           </div>
         </div>
@@ -101,7 +101,7 @@
             <app-dashboard-count
               :loading="organizations.loadingActive"
               :query="activeOrganizationCount"
-            ></app-dashboard-count>
+            />
           </div>
           <div class="w-7/12">
             <!-- Chart -->
@@ -109,7 +109,7 @@
               v-if="organizations.loadingActive"
               v-loading="organizations.loadingActive"
               class="app-page-spinner !relative chart-loading"
-            ></div>
+            />
             <app-dashboard-widget-chart
               v-else
               :datasets="datasets('active organizations')"
@@ -137,8 +137,7 @@
               :key="organization.id"
               class="mb-4"
               :organization="organization"
-            >
-            </app-dashboard-organization-item>
+            />
             <app-dashboard-empty-state
               v-if="activeOrganizations.length === 0"
               icon-class="ri-community-line"
@@ -155,12 +154,13 @@
                   name: 'organization',
                   query: {
                     activeTab: 'all',
-                    activeFrom: periodStartDate
-                  }
+                    activeFrom: periodStartDate,
+                  },
                 }"
                 class="text-sm leading-5 font-medium text-red"
-                >View more</router-link
               >
+                View more
+              </router-link>
             </div>
           </div>
         </div>
@@ -170,20 +170,20 @@
 </template>
 
 <script>
-import { mapGetters } from 'vuex'
-import moment from 'moment'
+import { mapGetters } from 'vuex';
+import moment from 'moment';
 import {
   newOrganizationChart,
   activeOrganizationChart,
   newOrganizationCount,
-  activeOrganizationCount
-} from '@/modules/dashboard/dashboard.cube'
-import AppDashboardOrganizationItem from '@/modules/dashboard/components/organization/dashboard-organization-item.vue'
-import AppDashboardCount from '@/modules/dashboard/components/dashboard-count.vue'
-import { DAILY_GRANULARITY_FILTER } from '@/modules/widget/widget-constants'
-import AppDashboardEmptyState from '@/modules/dashboard/components/dashboard-empty-state.vue'
-import AppDashboardWidgetHeader from '@/modules/dashboard/components/dashboard-widget-header.vue'
-import AppDashboardWidgetChart from '@/modules/dashboard/components/dashboard-widget-chart.vue'
+  activeOrganizationCount,
+} from '@/modules/dashboard/dashboard.cube';
+import AppDashboardOrganizationItem from '@/modules/dashboard/components/organization/dashboard-organization-item.vue';
+import AppDashboardCount from '@/modules/dashboard/components/dashboard-count.vue';
+import { DAILY_GRANULARITY_FILTER } from '@/modules/widget/widget-constants';
+import AppDashboardEmptyState from '@/modules/dashboard/components/dashboard-empty-state.vue';
+import AppDashboardWidgetHeader from '@/modules/dashboard/components/dashboard-widget-header.vue';
+import AppDashboardWidgetChart from '@/modules/dashboard/components/dashboard-widget-chart.vue';
 
 export default {
   name: 'AppDashboardOrganizations',
@@ -192,42 +192,42 @@ export default {
     AppDashboardWidgetHeader,
     AppDashboardEmptyState,
     AppDashboardCount,
-    AppDashboardOrganizationItem
+    AppDashboardOrganizationItem,
   },
   data() {
     return {
       newOrganizationChart,
       activeOrganizationChart,
       newOrganizationCount,
-      activeOrganizationCount
-    }
+      activeOrganizationCount,
+    };
   },
   computed: {
     ...mapGetters('dashboard', [
       'activeOrganizations',
       'recentOrganizations',
       'organizations',
-      'period'
+      'period',
     ]),
     periodStartDate() {
       return moment()
         .subtract(this.period.value, 'day')
-        .format('YYYY-MM-DD')
-    }
+        .format('YYYY-MM-DD');
+    },
   },
   methods: {
     datasets(name) {
       return [
         {
-          name: name,
+          name,
           borderColor: '#E94F2E',
           measure: 'Organizations.count',
-          granularity: DAILY_GRANULARITY_FILTER.value
-        }
-      ]
-    }
-  }
-}
+          granularity: DAILY_GRANULARITY_FILTER.value,
+        },
+      ];
+    },
+  },
+};
 </script>
 
 <style lang="scss" scoped>

@@ -1,23 +1,23 @@
-import { i18n, init as i18nInit } from '@/i18n'
-import IdField from '@/shared/fields/id-field'
-import { GenericModel } from '@/shared/model/generic-model'
-import DateTimeField from '@/shared/fields/date-time-field'
-import StringField from '@/shared/fields/string-field'
-import JsonField from '@/shared/fields/json-field'
-import { ActivityField } from '@/modules/activity/activity-field'
-import { MemberField } from '@/modules/member/member-field'
-import { TagField } from '@/modules/tag/tag-field'
-import { OrganizationField } from '@/modules/organization/organization-field'
-import IntegerField from '@/shared/fields/integer-field'
-import MemberEngagementLevelField from './member-engagement-level-field'
-import SearchField from '@/shared/fields/search-field'
-import MemberIdentitiesField from './member-identities-field'
-import SentimentField from '@/shared/fields/sentiment-field'
-import ActivityTypeField from '@/modules/activity/activity-type-field'
-import StringArrayField from '@/shared/fields/string-array-field'
+import { i18n, init as i18nInit } from '@/i18n';
+import IdField from '@/shared/fields/id-field';
+import { GenericModel } from '@/shared/model/generic-model';
+import DateTimeField from '@/shared/fields/date-time-field';
+import StringField from '@/shared/fields/string-field';
+import JsonField from '@/shared/fields/json-field';
+import { ActivityField } from '@/modules/activity/activity-field';
+import { MemberField } from '@/modules/member/member-field';
+import { TagField } from '@/modules/tag/tag-field';
+import { OrganizationField } from '@/modules/organization/organization-field';
+import IntegerField from '@/shared/fields/integer-field';
+import SearchField from '@/shared/fields/search-field';
+import SentimentField from '@/shared/fields/sentiment-field';
+import ActivityTypeField from '@/modules/activity/activity-type-field';
+import StringArrayField from '@/shared/fields/string-array-field';
+import MemberIdentitiesField from './member-identities-field';
+import MemberEngagementLevelField from './member-engagement-level-field';
 
 function label(name) {
-  return i18n(`entities.member.fields.${name}`)
+  return i18n(`entities.member.fields.${name}`);
 }
 
 const fields = {
@@ -26,91 +26,89 @@ const fields = {
   username: new JsonField('username', label('username'), {
     nonEmpty: true,
     requiredUnless: 'email',
-    customFilterPreview: (record) => {
-      return record
-    }
+    customFilterPreview: (record) => record,
   }),
   attributes: new JsonField(
     'attributes',
-    label('attributes')
+    label('attributes'),
   ),
   displayName: new StringField(
     'displayName',
-    label('fullName')
+    label('fullName'),
   ),
   identities: new MemberIdentitiesField(
     'identities',
     label('identities'),
     {
-      filterable: true
-    }
+      filterable: true,
+    },
   ),
   activeOn: new MemberIdentitiesField(
     'activeOn',
     label('activeOn'),
     {
-      filterable: true
-    }
+      filterable: true,
+    },
   ),
   activities: ActivityField.relationToMany(
     'activities',
     label('activities'),
-    {}
+    {},
   ),
   reach: new IntegerField('reach', label('reach'), {
     required: false,
-    filterable: true
+    filterable: true,
   }),
   info: new JsonField('info', label('info')),
   tags: TagField.relationToMany('tags', label('tags'), {
-    filterable: true
+    filterable: true,
   }),
   emails: new StringArrayField('emails', 'Emails'),
   noMerge: MemberField.relationToMany(
     'noMerge',
     label('noMerge'),
-    {}
+    {},
   ),
   bio: new StringField('bio', label('bio')),
   location: new StringField(
     'location',
     label('location'),
-    {}
+    {},
   ),
   organizations: OrganizationField.relationToMany(
     'organizations',
-    'Organizations'
+    'Organizations',
   ),
   joinedAt: new DateTimeField('joinedAt', 'Joined date', {
-    filterable: true
+    filterable: true,
   }),
   lastActive: new DateTimeField(
     'lastActive',
     'Last activity date',
     {
-      filterable: true
-    }
+      filterable: true,
+    },
   ),
   createdAt: new DateTimeField(
     'createdAt',
-    label('createdAt')
+    label('createdAt'),
   ),
   updatedAt: new DateTimeField(
     'updatedAt',
-    label('updatedAt')
+    label('updatedAt'),
   ),
   score: new IntegerField('score', label('score')),
   averageSentiment: new SentimentField(
     'averageSentiment',
     'Avg. sentiment',
     {
-      filterable: true
-    }
+      filterable: true,
+    },
   ),
   activityCount: new IntegerField(
     'activityCount',
     label('activityCount'),
-    { filterable: true }
+    { filterable: true },
   ),
   activityTypes: new ActivityTypeField(
     'activityTypes',
@@ -118,23 +116,23 @@ const fields = {
     {
       required: true,
       filterable: true,
-      fromMembers: true
-    }
+      fromMembers: true,
+    },
   ),
   engagementLevel: new MemberEngagementLevelField(
     'score',
     'Engagement level',
-    { filterable: true }
+    { filterable: true },
   ),
   // This field is just for filtering/searching
   search: new SearchField('search', label('search'), {
-    fields: ['displayName', 'emails']
-  })
-}
+    fields: ['displayName', 'emails'],
+  }),
+};
 
 export class MemberModel extends GenericModel {
   static get fields() {
-    i18nInit()
-    return fields
+    i18nInit();
+    return fields;
   }
 }

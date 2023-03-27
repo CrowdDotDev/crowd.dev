@@ -1,71 +1,59 @@
-import { AutomationService } from '@/modules/automation/automation-service'
-import Errors from '@/shared/error/errors'
-import Message from '@/shared/message/message'
+import { AutomationService } from '@/modules/automation/automation-service';
+import Errors from '@/shared/error/errors';
+import Message from '@/shared/message/message';
 
-const INITIAL_PAGE_SIZE = 20
+const INITIAL_PAGE_SIZE = 20;
 
 export default {
   namespaced: true,
 
-  state: () => {
-    return {
-      records: {},
-      rows: [],
-      count: 0,
-      loading: {
-        table: false,
-        view: false,
-        form: false,
-        submit: false
-      },
-      filter: {},
-      rawFilter: {},
-      pagination: {},
-      sorter: {},
-      table: null,
-      form: null
-    }
-  },
+  state: () => ({
+    records: {},
+    rows: [],
+    count: 0,
+    loading: {
+      table: false,
+      view: false,
+      form: false,
+      submit: false,
+    },
+    filter: {},
+    rawFilter: {},
+    pagination: {},
+    sorter: {},
+    table: null,
+    form: null,
+  }),
 
   getters: {
-    loading: (state) => (component) =>
-      state.loading[component],
+    loading: (state) => (component) => state.loading[component],
 
-    find: (state) => (id) => {
-      return state.records[id]
-    },
+    find: (state) => (id) => state.records[id],
 
-    records: (state) => {
-      return state.records
-    },
+    records: (state) => state.records,
 
-    rows: (state) => {
-      return state.rows.map((id) => state.records[id])
-    },
+    rows: (state) => state.rows.map((id) => state.records[id]),
 
-    activeRows: (state, getters) => {
-      return getters.rows.filter((c) => c.active)
-    },
+    activeRows: (state, getters) => getters.rows.filter((c) => c.active),
 
     count: (state) => state.count,
 
     hasRows: (state, getters) => getters.count > 0,
 
     orderBy: (state) => {
-      const sorter = state.sorter
+      const { sorter } = state;
 
       if (!sorter) {
-        return null
+        return null;
       }
 
       if (!sorter.prop) {
-        return null
+        return null;
       }
 
-      let direction =
-        sorter.order === 'descending' ? 'DESC' : 'ASC'
+      const direction = sorter.order === 'descending' ? 'DESC' : 'ASC';
 
-      return `${sorter.prop}_${direction}`
+      return `${sorter.prop}_${direction}`;
     },
 
     filter: (state) => state.filter,
@@ -73,325 +61,317 @@ export default {
     rawFilter: (state) => state.rawFilter,
 
     limit: (state) => {
-      const pagination = state.pagination
+      const { pagination } = state;
 
       if (!pagination || !pagination.pageSize) {
-        return INITIAL_PAGE_SIZE
+        return INITIAL_PAGE_SIZE;
       }
 
-      return pagination.pageSize
+      return pagination.pageSize;
     },
 
     offset: (state) => {
-      const pagination = state.pagination
+      const { pagination } = state;
 
       if (!pagination || !pagination.pageSize) {
-        return 0
+        return 0;
       }
 
-      const currentPage = pagination.currentPage || 1
+      const currentPage = pagination.currentPage || 1;
 
-      return (currentPage - 1) * pagination.pageSize
+      return (currentPage - 1) * pagination.pageSize;
     },
 
-    pagination: (state, getters) => {
-      return {
-        ...state.pagination,
-        total: getters.count,
-        showSizeChanger: true
-      }
-    },
+    pagination: (state, getters) => ({
+      ...state.pagination,
+      total: getters.count,
+      showSizeChanger: true,
+    }),
 
-    selectedRows: (state) => {
-      return state.table
-        ? state.table.getSelectionRows()
-        : []
-    },
+    selectedRows: (state) => (state.table
+      ? state.table.getSelectionRows()
+      : []),
 
-    form: (state) => state.form
+    form: (state) => state.form,
   },
 
   mutations: {
     RESETED(state) {
-      state.rows = []
-      state.count = 0
-      state.loading.table = false
-      state.filter = {}
-      state.rawFilter = {}
-      state.pagination = {}
-      state.sorter = {}
+      state.rows = [];
+      state.count = 0;
+      state.loading.table = false;
+      state.filter = {};
+      state.rawFilter = {};
+      state.pagination = {};
+      state.sorter = {};
       if (state.table) {
-        state.table.clearSelection()
+        state.table.clearSelection();
       }
     },
 
     UNSELECT_ALL(state) {
       if (state.table) {
-        state.table.clearSelection()
+        state.table.clearSelection();
       }
     },
 
     TABLE_MOUNTED(state, payload) {
-      state.table = payload
+      state.table = payload;
     },
 
     PAGINATION_CHANGED(state, payload) {
-      state.pagination = payload || {}
+      state.pagination = payload || {};
     },
 
     PAGINATION_CURRENT_PAGE_CHANGED(state, payload) {
-      const previousPagination = state.pagination || {}
+      const previousPagination = state.pagination || {};
 
       state.pagination = {
         currentPage: payload || 1,
         pageSize:
-          previousPagination.pageSize || INITIAL_PAGE_SIZE
-      }
+          previousPagination.pageSize || INITIAL_PAGE_SIZE,
+      };
     },
 
     PAGINATION_PAGE_SIZE_CHANGED(state, payload) {
-      const previousPagination = state.pagination || {}
+      const previousPagination = state.pagination || {};
 
       state.pagination = {
         currentPage: previousPagination.currentPage || 1,
-        pageSize: payload || INITIAL_PAGE_SIZE
-      }
+        pageSize: payload || INITIAL_PAGE_SIZE,
+      };
     },
 
     SORTER_CHANGED(state, payload) {
-      state.sorter = payload || {}
+      state.sorter = payload || {};
     },
 
     FETCH_STARTED(state, payload) {
-      state.loading.table = true
+      state.loading.table = true;
 
       if (state.table) {
-        state.table.clearSelection()
+        state.table.clearSelection();
       }
 
-      state.rawFilter =
-        payload && state.rawFilter ? state.rawFilter : {}
-      state.filter =
-        payload && payload.filter ? payload.filter : {}
-      state.pagination =
-        payload && payload.keepPagination
-          ? state.pagination
-          : {
-              pageSize:
-                state.pagination &&
-                state.pagination.pageSize
-            }
+      state.rawFilter = payload && state.rawFilter ? state.rawFilter : {};
+      state.filter = payload && payload.filter ? payload.filter : {};
+      state.pagination = payload && payload.keepPagination
+        ? state.pagination
+        : {
+          pageSize:
+                state.pagination
+                && state.pagination.pageSize,
+        };
     },
 
     FETCH_SUCCESS(state, payload) {
-      state.loading.table = false
-      for (let automation of payload.rows) {
-        state.records[automation.id] = automation
-      }
-      state.rows = payload.rows.map((row) => row.id)
-      state.count = payload.count
+      state.loading.table = false;
+      payload.rows.forEach((automation) => {
+        state.records[automation.id] = automation;
+      });
+      state.rows = payload.rows.map((row) => row.id);
+      state.count = payload.count;
     },
 
     FETCH_ERROR(state) {
-      state.loading.table = false
-      state.rows = []
-      state.count = 0
+      state.loading.table = false;
+      state.rows = [];
+      state.count = 0;
     },
 
     FIND_STARTED(state) {
-      state.loading.view = true
+      state.loading.view = true;
     },
 
     FIND_SUCCESS(state, record) {
-      state.loading.view = false
-      state.records[record.id] = record
+      state.loading.view = false;
+      state.records[record.id] = record;
     },
 
     FIND_ERROR(state) {
-      state.loading.view = false
+      state.loading.view = false;
     },
 
     INIT_FORM_STARTED(state) {
-      state.form = null
-      state.loading.form = true
+      state.form = null;
+      state.loading.form = true;
     },
 
     INIT_FORM_SUCCESS(state, payload) {
-      state.form = payload
-      state.loading.form = false
+      state.form = payload;
+      state.loading.form = false;
     },
 
     INIT_FORM_ERROR(state) {
-      state.form = null
-      state.loading.form = false
+      state.form = null;
+      state.loading.form = false;
     },
 
     CREATE_STARTED(state) {
-      state.loading.submit = true
+      state.loading.submit = true;
     },
 
     CREATE_SUCCESS(state, record) {
-      state.loading.submit = false
-      state.records[record.id] = record
+      state.loading.submit = false;
+      state.records[record.id] = record;
       if (state.rows.indexOf(record.id) === -1) {
-        state.rows.push(record.id)
+        state.rows.push(record.id);
       }
-      state.count++
+      state.count += 1;
     },
 
     CREATE_ERROR(state) {
-      state.loading.submit = false
+      state.loading.submit = false;
     },
 
     UPDATE_STARTED(state) {
-      state.loading.submit = true
+      state.loading.submit = true;
     },
 
     UPDATE_SUCCESS(state, record) {
-      state.loading.submit = false
-      state.records[record.id] = record
+      state.loading.submit = false;
+      state.records[record.id] = record;
     },
 
     UPDATE_ERROR(state) {
-      state.loading.submit = false
+      state.loading.submit = false;
     },
 
     DESTROY_STARTED(state) {
-      state.loading.submit = true
+      state.loading.submit = true;
     },
 
     DESTROY_SUCCESS(state, automationId) {
-      state.loading.submit = false
-      const index = state.rows.indexOf(automationId)
-      state.rows.splice(index, 1)
-      delete state.records[automationId]
+      state.loading.submit = false;
+      const index = state.rows.indexOf(automationId);
+      state.rows.splice(index, 1);
+      delete state.records[automationId];
     },
 
     DESTROY_ERROR(state) {
-      state.loading.submit = false
+      state.loading.submit = false;
     },
 
     DESTROY_ALL_STARTED(state) {
-      state.loading.submit = true
+      state.loading.submit = true;
     },
 
     DESTROY_ALL_SUCCESS(state, automationIds) {
-      state.loading.submit = false
-
-      for (const automationId of automationIds) {
-        const index = state.rows.indexOf(automationId)
-        state.rows.splice(index, 1)
-        delete state.records[automationId]
-      }
+      state.loading.submit = false;
+      automationIds.forEach((automationId) => {
+        const index = state.rows.indexOf(automationId);
+        state.rows.splice(index, 1);
+        delete state.records[automationId];
+      });
     },
 
     DESTROY_ALL_ERROR(state) {
-      state.loading.submit = false
+      state.loading.submit = false;
     },
 
     PUBLISH_ALL_STARTED(state) {
-      state.loading.submit = true
+      state.loading.submit = true;
     },
 
     PUBLISH_ALL_SUCCESS(state, automationIds) {
-      state.loading.submit = false
+      state.loading.submit = false;
 
-      for (const automationId of automationIds) {
-        state.records[automationId].active = true
-      }
+      automationIds.forEach((automationId) => {
+        state.records[automationId].active = true;
+      });
     },
 
     PUBLISH_ALL_ERROR(state) {
-      state.loading.submit = false
+      state.loading.submit = false;
     },
 
     UNPUBLISH_ALL_STARTED(state) {
-      state.loading.submit = true
+      state.loading.submit = true;
     },
 
     UNPUBLISH_ALL_SUCCESS(state, automationIds) {
-      state.loading.submit = false
+      state.loading.submit = false;
 
-      for (const automationId of automationIds) {
-        state.records[automationId].active = false
-      }
+      automationIds.forEach((automationId) => {
+        state.records[automationId].active = false;
+      });
     },
 
     UNPUBLISH_ALL_ERROR(state) {
-      state.loading.submit = false
-    }
+      state.loading.submit = false;
+    },
   },
 
   actions: {
     doUnselectAll({ commit }) {
-      commit('UNSELECT_ALL')
+      commit('UNSELECT_ALL');
     },
 
     doMountTable({ commit }, table) {
-      commit('TABLE_MOUNTED', table)
+      commit('TABLE_MOUNTED', table);
     },
 
     async doResetStore({ commit }) {
-      commit('RESETED')
+      commit('RESETED');
     },
     async doReset({ commit, getters, dispatch }) {
-      commit('RESETED')
+      commit('RESETED');
       return dispatch('doFetch', {
         filter: getters.filter,
-        rawFilter: getters.rawFilter
-      })
+        rawFilter: getters.rawFilter,
+      });
     },
     doChangePagination(
       { commit, getters, dispatch },
-      pagination
+      pagination,
     ) {
-      commit('PAGINATION_CHANGED', pagination)
-      const filter = getters.filter
-      const rawFilter = getters.rawFilter
+      commit('PAGINATION_CHANGED', pagination);
+      const { filter } = getters;
+      const { rawFilter } = getters;
       dispatch('doFetch', {
         filter,
         rawFilter,
-        keepPagination: true
-      })
+        keepPagination: true,
+      });
     },
 
     doChangePaginationPageSize(
       { commit, getters, dispatch },
-      pageSize
+      pageSize,
     ) {
-      commit('PAGINATION_PAGE_SIZE_CHANGED', pageSize)
-      const filter = getters.filter
-      const rawFilter = getters.rawFilter
+      commit('PAGINATION_PAGE_SIZE_CHANGED', pageSize);
+      const { filter } = getters;
+      const { rawFilter } = getters;
       dispatch('doFetch', {
         filter,
         rawFilter,
-        keepPagination: true
-      })
+        keepPagination: true,
+      });
     },
 
     doChangePaginationCurrentPage(
       { commit, getters, dispatch },
-      currentPage
+      currentPage,
     ) {
-      commit('PAGINATION_CURRENT_PAGE_CHANGED', currentPage)
-      const filter = getters.filter
-      const rawFilter = getters.rawFilter
+      commit('PAGINATION_CURRENT_PAGE_CHANGED', currentPage);
+      const { filter } = getters;
+      const { rawFilter } = getters;
       dispatch('doFetch', {
         filter,
         rawFilter,
-        keepPagination: true
-      })
+        keepPagination: true,
+      });
     },
 
     doChangeSort({ commit, getters, dispatch }, sorter) {
-      commit('SORTER_CHANGED', sorter)
-      const filter = getters.filter
-      const rawFilter = getters.rawFilter
+      commit('SORTER_CHANGED', sorter);
+      const { filter } = getters;
+      const { rawFilter } = getters;
       dispatch('doFetch', {
         filter,
         rawFilter,
-        keepPagination: true
-      })
+        keepPagination: true,
+      });
     },
 
     async doFetch(
@@ -399,268 +379,268 @@ export default {
       {
         filter = null,
         rawFilter = null,
-        keepPagination = false
-      }
+        keepPagination = false,
+      },
     ) {
       try {
         commit('FETCH_STARTED', {
           filter,
           rawFilter,
-          keepPagination
-        })
+          keepPagination,
+        });
 
         const response = await AutomationService.list(
           filter,
           getters.orderBy,
           getters.limit,
-          getters.offset
-        )
+          getters.offset,
+        );
 
         commit('FETCH_SUCCESS', {
           rows: response.rows,
-          count: response.count
-        })
+          count: response.count,
+        });
       } catch (error) {
-        Errors.handle(error)
-        commit('FETCH_ERROR')
+        Errors.handle(error);
+        commit('FETCH_ERROR');
       }
     },
     async doCreate({ commit, dispatch }, automation) {
       try {
-        commit('CREATE_STARTED')
+        commit('CREATE_STARTED');
 
         const response = await AutomationService.create(
-          automation
-        )
+          automation,
+        );
 
-        commit('CREATE_SUCCESS', response)
+        commit('CREATE_SUCCESS', response);
 
         // Make sure that feature flags are updated for automationsCount
         await dispatch('auth/doRefreshCurrentUser', null, {
-          root: true
-        })
+          root: true,
+        });
 
-        Message.success('Automation created successfully')
+        Message.success('Automation created successfully');
       } catch (error) {
-        Errors.handle(error)
-        commit('FETCH_ERROR')
+        Errors.handle(error);
+        commit('FETCH_ERROR');
       }
     },
 
     async doDestroy(
       { commit, dispatch, rootGetters },
-      automationId
+      automationId,
     ) {
       try {
-        commit('DESTROY_STARTED')
+        commit('DESTROY_STARTED');
 
-        await AutomationService.destroy(automationId)
+        await AutomationService.destroy(automationId);
 
-        commit('DESTROY_SUCCESS', automationId)
+        commit('DESTROY_SUCCESS', automationId);
 
         // Make sure that feature flags are updated for automationsCount
         await dispatch('auth/doRefreshCurrentUser', null, {
-          root: true
-        })
+          root: true,
+        });
 
         dispatch(
-          `automation/doFetch`,
-          rootGetters[`automation/filter`],
+          'automation/doFetch',
+          rootGetters['automation/filter'],
           {
-            root: true
-          }
-        )
-        Message.success('Automation deleted successfully')
+            root: true,
+          },
+        );
+        Message.success('Automation deleted successfully');
       } catch (error) {
-        Errors.handle(error)
-        commit('DESTROY_ERROR')
+        Errors.handle(error);
+        commit('DESTROY_ERROR');
       }
     },
 
     async doDestroyAll(
       { commit, dispatch, rootGetters },
-      automationIds
+      automationIds,
     ) {
       try {
-        commit('DESTROY_ALL_STARTED')
+        commit('DESTROY_ALL_STARTED');
 
-        await AutomationService.destroyAll(automationIds)
+        await AutomationService.destroyAll(automationIds);
 
-        commit('DESTROY_ALL_SUCCESS', automationIds)
+        commit('DESTROY_ALL_SUCCESS', automationIds);
 
         // Make sure that feature flags are updated for automationsCount
         await dispatch('auth/doRefreshCurrentUser', null, {
-          root: true
-        })
+          root: true,
+        });
 
         dispatch(
-          `automation/doFetch`,
-          rootGetters[`automation/filter`],
+          'automation/doFetch',
+          rootGetters['automation/filter'],
           {
-            root: true
-          }
-        )
+            root: true,
+          },
+        );
         Message.success(
           `Automation${
             automationIds.length > 1 ? 's' : ''
-          } deleted successfully`
-        )
+          } deleted successfully`,
+        );
       } catch (error) {
-        Errors.handle(error)
-        commit('DESTROY_ALL_ERROR')
+        Errors.handle(error);
+        commit('DESTROY_ALL_ERROR');
       }
     },
 
     async doPublishAll(
       { commit, dispatch, rootGetters },
-      automationIds
+      automationIds,
     ) {
       try {
-        commit('PUBLISH_ALL_STARTED')
+        commit('PUBLISH_ALL_STARTED');
 
-        await AutomationService.publishAll(automationIds)
+        await AutomationService.publishAll(automationIds);
 
-        commit('PUBLISH_ALL_SUCCESS', automationIds)
+        commit('PUBLISH_ALL_SUCCESS', automationIds);
 
         dispatch(
-          `automation/doFetch`,
-          rootGetters[`automation/filter`],
+          'automation/doFetch',
+          rootGetters['automation/filter'],
           {
-            root: true
-          }
-        )
+            root: true,
+          },
+        );
         Message.success(
           `Automation${
             automationIds.length > 1 ? 's' : ''
-          } published successfully`
-        )
+          } published successfully`,
+        );
       } catch (error) {
-        Errors.handle(error)
-        commit('PUBLISH_ALL_ERROR')
+        Errors.handle(error);
+        commit('PUBLISH_ALL_ERROR');
       }
     },
 
     async doUnpublishAll(
       { commit, dispatch, rootGetters },
-      automationIds
+      automationIds,
     ) {
       try {
-        commit('UNPUBLISH_ALL_STARTED')
+        commit('UNPUBLISH_ALL_STARTED');
 
-        await AutomationService.unpublishAll(automationIds)
+        await AutomationService.unpublishAll(automationIds);
 
-        commit('UNPUBLISH_ALL_SUCCESS', automationIds)
+        commit('UNPUBLISH_ALL_SUCCESS', automationIds);
 
         Message.success(
-          'Automations unpublished successfully'
-        )
+          'Automations unpublished successfully',
+        );
         dispatch(
-          `automation/doFetch`,
-          rootGetters[`automation/filter`],
+          'automation/doFetch',
+          rootGetters['automation/filter'],
           {
-            root: true
-          }
-        )
+            root: true,
+          },
+        );
         Message.success(
           `Automation${
             automationIds.length > 1 ? 's' : ''
-          } unpublished successfully`
-        )
+          } unpublished successfully`,
+        );
       } catch (error) {
-        Errors.handle(error)
-        commit('UNPUBLISH_ALL_ERROR')
+        Errors.handle(error);
+        commit('UNPUBLISH_ALL_ERROR');
       }
     },
 
     async doFind({ commit }, id) {
       try {
-        commit('FIND_STARTED', id)
-        const record = await AutomationService.find(id)
-        commit('FIND_SUCCESS', record)
+        commit('FIND_STARTED', id);
+        const record = await AutomationService.find(id);
+        commit('FIND_SUCCESS', record);
       } catch (error) {
-        Errors.handle(error)
-        commit('FIND_ERROR', id)
+        Errors.handle(error);
+        commit('FIND_ERROR', id);
       }
     },
 
     async doInitForm({ commit, getters }, id) {
       try {
-        commit('INIT_FORM_STARTED')
+        commit('INIT_FORM_STARTED');
 
-        let record = null
+        let record = null;
 
         if (id) {
-          record = getters.find(id)
+          record = getters.find(id);
         }
 
-        commit('INIT_FORM_SUCCESS', record)
+        commit('INIT_FORM_SUCCESS', record);
       } catch (error) {
-        Errors.handle(error)
-        commit('INIT_FORM_ERROR')
+        Errors.handle(error);
+        commit('INIT_FORM_ERROR');
       }
     },
 
     async doUpdate(
       { commit, getters, dispatch },
-      { id, values }
+      { id, values },
     ) {
       try {
-        commit('UPDATE_STARTED', id)
+        commit('UPDATE_STARTED', id);
         const record = await AutomationService.update(
           id,
-          values
-        )
+          values,
+        );
         dispatch('doFetch', {
           filter: getters.filter,
-          rawFilter: getters.rawFilter
-        })
-        commit('UPDATE_SUCCESS', record)
-        Message.success('Automation updated successfully')
+          rawFilter: getters.rawFilter,
+        });
+        commit('UPDATE_SUCCESS', record);
+        Message.success('Automation updated successfully');
       } catch (error) {
-        Errors.handle(error)
-        commit('UPDATE_ERROR', id)
+        Errors.handle(error);
+        commit('UPDATE_ERROR', id);
       }
     },
 
     async doPublish({ commit, getters, dispatch }, { id }) {
       try {
-        commit('UPDATE_STARTED', id)
+        commit('UPDATE_STARTED', id);
         const record = await AutomationService.update(id, {
-          state: 'active'
-        })
+          state: 'active',
+        });
         dispatch('doFetch', {
           filter: getters.filter,
-          rawFilter: getters.rawFilter
-        })
-        commit('UPDATE_SUCCESS', record)
-        Message.success('Automation published successfully')
+          rawFilter: getters.rawFilter,
+        });
+        commit('UPDATE_SUCCESS', record);
+        Message.success('Automation published successfully');
       } catch (error) {
-        Errors.handle(error)
-        commit('UPDATE_ERROR', id)
+        Errors.handle(error);
+        commit('UPDATE_ERROR', id);
       }
     },
 
     async doUnpublish(
       { commit, getters, dispatch },
-      { id }
+      { id },
     ) {
       try {
-        commit('UPDATE_STARTED', id)
+        commit('UPDATE_STARTED', id);
         const record = await AutomationService.update(id, {
-          state: 'disabled'
-        })
+          state: 'disabled',
+        });
         dispatch('doFetch', {
           filter: getters.filter,
-          rawFilter: getters.rawFilter
-        })
-        commit('UPDATE_SUCCESS', record)
+          rawFilter: getters.rawFilter,
+        });
+        commit('UPDATE_SUCCESS', record);
         Message.success(
-          'Automation unpublished successfully'
-        )
+          'Automation unpublished successfully',
+        );
       } catch (error) {
-        Errors.handle(error)
-        commit('UPDATE_ERROR', id)
+        Errors.handle(error);
+        commit('UPDATE_ERROR', id);
       }
-    }
-  }
-}
+    },
+  },
+};

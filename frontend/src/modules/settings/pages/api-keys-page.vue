@@ -7,9 +7,9 @@
         <a
           href="https://app.swaggerhub.com/apis-docs/Crowd.dev/Crowd.dev"
           target="_blank"
+          rel="noopener noreferrer"
           class="font-semibold"
-          >documentation</a
-        >
+        >documentation</a>
         to get the most out of our API
       </div>
     </div>
@@ -33,7 +33,7 @@
                 class="append-icon"
                 @click="copyToClipboard('tenantId')"
               >
-                <i class="ri-file-copy-line"></i>
+                <i class="ri-file-copy-line" />
               </el-button>
             </el-tooltip>
           </template>
@@ -56,7 +56,7 @@
                 class="append-icon"
                 @click="onShowToken"
               >
-                <i class="ri-eye-line"></i>
+                <i class="ri-eye-line" />
               </el-button>
             </el-tooltip>
             <el-tooltip
@@ -65,7 +65,7 @@
               placement="top"
             >
               <el-button @click="copyToClipboard('token')">
-                <i class="ri-file-copy-line"></i>
+                <i class="ri-file-copy-line" />
               </el-button>
             </el-tooltip>
           </template>
@@ -75,40 +75,39 @@
   </div>
 </template>
 
-<script>
-export default {
-  name: 'AppApiKeysPage'
-}
-</script>
-
 <script setup>
-import { computed, ref } from 'vue'
-import AuthCurrentTenant from '@/modules/auth/auth-current-tenant'
-import { AuthToken } from '@/modules/auth/auth-token'
-import Message from '@/shared/message/message'
+import { computed, ref } from 'vue';
+import AuthCurrentTenant from '@/modules/auth/auth-current-tenant';
+import { AuthToken } from '@/modules/auth/auth-token';
+import Message from '@/shared/message/message';
 
-const inputRef = ref()
-const showToken = ref(false)
+const inputRef = ref();
+const showToken = ref(false);
 
-const tenantId = computed(() => AuthCurrentTenant.get())
-const jwtToken = computed(() => AuthToken.get())
+const tenantId = computed(() => AuthCurrentTenant.get());
+const jwtToken = computed(() => AuthToken.get());
 
 const copyToClipboard = async (type) => {
-  const toCopy =
-    type === 'token' ? jwtToken.value : tenantId.value
-  await navigator.clipboard.writeText(toCopy)
+  const toCopy = type === 'token' ? jwtToken.value : tenantId.value;
+  await navigator.clipboard.writeText(toCopy);
 
   Message.success(
     `${
       type === 'token' ? 'Auth Token' : 'Tenant ID'
-    } successfully copied to your clipboard`
-  )
-}
+    } successfully copied to your clipboard`,
+  );
+};
 
 const onShowToken = () => {
-  showToken.value = true
-  inputRef.value.focus()
-}
+  showToken.value = true;
+  inputRef.value.focus();
+};
+</script>
+
+<script>
+export default {
+  name: 'AppApiKeysPage',
+};
 </script>
 
 <style lang="scss">

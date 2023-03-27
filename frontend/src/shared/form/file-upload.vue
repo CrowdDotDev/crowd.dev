@@ -17,7 +17,7 @@
         size="small"
         :class="btnClass"
       >
-        <i class="ri-upload-2-line mr-2"></i>
+        <i class="ri-upload-2-line mr-2" />
         {{ text }}
       </el-button>
     </el-upload>
@@ -25,8 +25,8 @@
 </template>
 
 <script>
-import { FileUploader } from '@/shared/file-upload/file-uploader'
-import Errors from '@/shared/error/errors'
+import { FileUploader } from '@/shared/file-upload/file-uploader';
+import Errors from '@/shared/error/errors';
 
 export default {
   name: 'AppFileUpload',
@@ -35,30 +35,30 @@ export default {
     text: {
       type: String,
       required: false,
-      default: 'Upload'
+      default: 'Upload',
     },
     storage: {
       type: String,
-      required: true
+      required: true,
     },
     value: {
       type: Array,
       default: () => [],
-      required: false
+      required: false,
     },
     formats: {
       type: String,
       default: null,
-      required: false
+      required: false,
     },
     max: {
       type: Number,
-      required: true
+      required: true,
     },
     btnClass: {
       type: String,
-      default: null
-    }
+      default: null,
+    },
   },
   emits: ['update:modelValue'],
 
@@ -66,77 +66,73 @@ export default {
     return {
       fileList: (this.value || []).map((item) => ({
         ...item,
-        url: item.downloadUrl
+        url: item.downloadUrl,
       })),
-      loading: false
-    }
+      loading: false,
+    };
   },
 
   computed: {
     isFull() {
-      const hasInputReference = Boolean(this.$refs.files)
+      const hasInputReference = Boolean(this.$refs.files);
 
       return (
-        (this.max &&
-          hasInputReference &&
-          this.$refs.files.uploadFiles.length >=
-            this.max) ||
-        (!hasInputReference &&
-          (this.value || []).length >= this.max)
-      )
+        (this.max
+          && hasInputReference
+          && this.$refs.files.uploadFiles.length
+            >= this.max)
+        || (!hasInputReference
+          && (this.value || []).length >= this.max)
+      );
     },
 
     accept() {
       return this.formats
         ? this.formats
-            .map((format) => `.${format}`)
-            .join(',')
-        : undefined
-    }
+          .map((format) => `.${format}`)
+          .join(',')
+        : undefined;
+    },
   },
 
   methods: {
     async uploadFromRequest(request) {
-      this.loading = true
+      this.loading = true;
       return FileUploader.uploadFromRequest(request, {
         storage: this.storage,
-        formats: this.formats
-      })
+        formats: this.formats,
+      });
     },
 
     onSuccess(file) {
       if (!file) {
-        return
+        return;
       }
 
       this.$emit('update:modelValue', [
         ...(this.value || []),
-        file
-      ])
-      this.loading = false
+        file,
+      ]);
+      this.loading = false;
     },
 
     onError(error) {
-      Errors.showMessage(error)
-      this.loading = false
+      Errors.showMessage(error);
+      this.loading = false;
     },
 
     onRemove(file, files) {
       this.$emit(
         'update:modelValue',
-        (this.value || []).filter((item) =>
-          files.some((file) =>
-            file.response
-              ? file.response.id === item.id
-              : file.id === item.id
-          )
-        )
-      )
+        (this.value || []).filter((item) => files.some((f) => (f.response
+          ? f.response.id === item.id
+          : file.id === item.id))),
+      );
     },
 
     download(file) {
-      window.open(file.url, '_blank')
-    }
-  }
-}
+      window.open(file.url, '_blank');
+    },
+  },
+};
 </script>

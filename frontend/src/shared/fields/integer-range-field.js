@@ -1,14 +1,14 @@
-import * as yup from 'yup'
-import GenericField from '@/shared/fields/generic-field'
-import { i18n } from '@/i18n'
+import * as yup from 'yup';
+import GenericField from '@/shared/fields/generic-field';
+import { i18n } from '@/i18n';
 
 export default class IntegerRangeField extends GenericField {
   forFilterInitialValue(value) {
-    return value || [undefined, undefined]
+    return value || [undefined, undefined];
   }
 
   forFilterRules() {
-    const output = []
+    const output = [];
 
     const integerRangeValidator = yup
       .array()
@@ -19,36 +19,36 @@ export default class IntegerRangeField extends GenericField {
           .number()
           .integer()
           .nullable(true)
-          .label(this.label)
+          .label(this.label),
       )
-      .label(this.label)
+      .label(this.label);
 
     const integerRangeFn = (rule, value, callback) => {
       if (!value) {
-        callback()
-        return
+        callback();
+        return;
       }
 
       try {
-        integerRangeValidator.validateSync(value)
-        callback()
+        integerRangeValidator.validateSync(value);
+        callback();
       } catch (error) {
         callback(
           new Error(
             i18n('validation.number.integer').replace(
-              '${path}',
-              this.label
-            )
-          )
-        )
+              '{path}',
+              this.label,
+            ),
+          ),
+        );
       }
-    }
+    };
 
     output.push({
-      validator: integerRangeFn
-    })
+      validator: integerRangeFn,
+    });
 
-    return output
+    return output;
   }
 
   forFilterCast() {
@@ -61,34 +61,34 @@ export default class IntegerRangeField extends GenericField {
           .number()
           .integer()
           .nullable(true)
-          .label(this.label)
+          .label(this.label),
       )
-      .label(this.label)
+      .label(this.label);
   }
 
   forFilterPreview(value) {
     if (!value || !value.length) {
-      return null
+      return null;
     }
 
-    const start = value[0]
-    const end = value.length === 2 && value[1]
+    const start = value[0];
+    const end = value.length === 2 && value[1];
 
     if (
-      (start == null || start === '') &&
-      (end == null || end === '')
+      (start == null || start === '')
+      && (end == null || end === '')
     ) {
-      return null
+      return null;
     }
 
     if (start != null && (end == null || end === '')) {
-      return `> ${start}`
+      return `> ${start}`;
     }
 
     if ((start == null || start === '') && end != null) {
-      return `< ${end}`
+      return `< ${end}`;
     }
 
-    return `${start} - ${end}`
+    return `${start} - ${end}`;
   }
 }

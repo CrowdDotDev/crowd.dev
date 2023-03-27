@@ -1,5 +1,5 @@
-import store from '@/modules/automation/automation-store'
+import store from '@/modules/automation/automation-store';
 
 export default {
-  store
-}
+  store,
+};

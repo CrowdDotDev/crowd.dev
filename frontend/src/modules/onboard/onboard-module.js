@@ -1,7 +1,7 @@
-import routes from '@/modules/onboard/onboard-routes'
+import routes from '@/modules/onboard/onboard-routes';
 
 const module = {
-  routes
-}
+  routes,
+};
 
-export default module
+export default module;

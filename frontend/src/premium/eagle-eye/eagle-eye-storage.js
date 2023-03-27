@@ -8,84 +8,84 @@
  * }
  */
 
-import moment from 'moment'
+import moment from 'moment';
 
 export const isStorageUpdating = ({ tenantId, userId }) => {
-  const storage = localStorage.getItem('eagleEyeResults')
+  const storage = localStorage.getItem('eagleEyeResults');
 
   if (
-    !storage ||
-    !JSON.parse(storage)?.[tenantId]?.[userId]
+    !storage
+    || !JSON.parse(storage)?.[tenantId]?.[userId]
   ) {
-    return null
+    return null;
   }
 
-  return !JSON.parse(storage)[tenantId][userId].storageDate
-}
+  return !JSON.parse(storage)[tenantId][userId].storageDate;
+};
 
 export const shouldFetchNewResults = ({
   tenantId,
-  userId
+  userId,
 }) => {
-  const storage = localStorage.getItem('eagleEyeResults')
-  const currentDay = moment()
+  const storage = localStorage.getItem('eagleEyeResults');
+  const currentDay = moment();
 
   // Fetch new results if it is a new day from the previous stored one,
   // or if storage is not set or if user is not set in storage
   if (
-    !storage ||
-    !JSON.parse(storage)[tenantId]?.[userId] ||
-    !currentDay.isSame(
+    !storage
+    || !JSON.parse(storage)[tenantId]?.[userId]
+    || !currentDay.isSame(
       JSON.parse(storage)[tenantId][userId].storageDate,
-      'd'
+      'd',
     )
   ) {
-    return true
+    return true;
   }
 
-  return false
-}
+  return false;
+};
 
 // Get posts from local storage
 export const getResultsFromStorage = ({
   tenantId,
-  userId
+  userId,
 }) => {
-  const storage = localStorage.getItem('eagleEyeResults')
+  const storage = localStorage.getItem('eagleEyeResults');
 
   if (!storage) {
-    return null
+    return null;
   }
 
-  return JSON.parse(storage)[tenantId][userId].posts
-}
+  return JSON.parse(storage)[tenantId][userId].posts;
+};
 
 // Set results in storage for the given tenant and user id
 export const setResultsInStorage = ({
   storageDate,
   posts,
   tenantId,
-  userId
+  userId,
 }) => {
   const storage = JSON.parse(
-    localStorage.getItem('eagleEyeResults') || '{}'
-  )
+    localStorage.getItem('eagleEyeResults') || '{}',
+  );
   const payload = {
     posts,
-    storageDate
-  }
+    storageDate,
+  };
 
   // Add/update user posts in tenantId
   if (storage[tenantId]) {
-    storage[tenantId][userId] = payload
+    storage[tenantId][userId] = payload;
   } else {
     storage[tenantId] = {
-      [userId]: payload
-    }
+      [userId]: payload,
+    };
   }
 
   localStorage.setItem(
     'eagleEyeResults',
-    JSON.stringify(storage)
-  )
-}
+    JSON.stringify(storage),
+  );
+};

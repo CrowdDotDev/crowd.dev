@@ -1,15 +1,13 @@
-import authAxios from '@/shared/axios/auth-axios'
-import AuthCurrentTenant from '@/modules/auth/auth-current-tenant'
+import authAxios from '@/shared/axios/auth-axios';
+import AuthCurrentTenant from '@/modules/auth/auth-current-tenant';
 
 export class TaskService {
   static create(data) {
-    const tenantId = AuthCurrentTenant.get()
+    const tenantId = AuthCurrentTenant.get();
 
     return authAxios
       .post(`/tenant/${tenantId}/task`, data)
-      .then((response) => {
-        return response.data
-      })
+      .then((response) => response.data);
   }
 
   static list(filter, orderBy, limit, offset) {
@@ -17,54 +15,46 @@ export class TaskService {
       filter,
       orderBy,
       limit,
-      offset
-    }
+      offset,
+    };
 
-    const tenantId = AuthCurrentTenant.get()
+    const tenantId = AuthCurrentTenant.get();
 
     return authAxios
       .post(`/tenant/${tenantId}/task/query`, body)
-      .then((response) => {
-        return response.data
-      })
+      .then((response) => response.data);
   }
 
   static update(id, data) {
-    const tenantId = AuthCurrentTenant.get()
+    const tenantId = AuthCurrentTenant.get();
 
     return authAxios
       .put(`/tenant/${tenantId}/task/${id}`, data)
-      .then((response) => {
-        return response.data
-      })
+      .then((response) => response.data);
   }
 
   static delete(ids) {
     const params = {
-      ids
-    }
+      ids,
+    };
 
-    const tenantId = AuthCurrentTenant.get()
+    const tenantId = AuthCurrentTenant.get();
 
     return authAxios
       .delete(`/tenant/${tenantId}/task`, {
-        params
+        params,
       })
-      .then((response) => {
-        return response.data
-      })
+      .then((response) => response.data);
   }
 
   static batch(operation, payload) {
-    const tenantId = AuthCurrentTenant.get()
+    const tenantId = AuthCurrentTenant.get();
 
     return authAxios
       .post(`/tenant/${tenantId}/task/batch`, {
         operation,
-        payload
+        payload,
       })
-      .then((response) => {
-        return response.data
-      })
+      .then((response) => response.data);
   }
 }

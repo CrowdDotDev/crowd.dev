@@ -1,54 +1,54 @@
-import * as yup from 'yup'
-import moment from 'moment'
-import GenericField from '@/shared/fields/generic-field'
-import { i18n } from '@/i18n'
+import * as yup from 'yup';
+import moment from 'moment';
+import GenericField from '@/shared/fields/generic-field';
+import { i18n } from '@/i18n';
 
 export default class DateTimeField extends GenericField {
   constructor(name, label, config = {}) {
-    super(name, label)
+    super(name, label);
 
-    this.required = config.required
-    this.placeholder = config.placeholder
-    this.hint = config.hint
-    this.filterable = config.filterable || false
+    this.required = config.required;
+    this.placeholder = config.placeholder;
+    this.hint = config.hint;
+    this.filterable = config.filterable || false;
   }
 
   forPresenter(value) {
     return value
       ? moment(value).format('YYYY-MM-DD HH:mm')
-      : null
+      : null;
   }
 
   forFilterPreview(value) {
     return value
       ? moment(value).format('YYYY-MM-DD HH:mm')
-      : null
+      : null;
   }
 
   forImportViewTable(value) {
     return value
       ? moment(value).format('YYYY-MM-DD HH:mm')
-      : null
+      : null;
   }
 
   forFormInitialValue(value) {
-    return value ? moment(value) : null
+    return value ? moment(value) : null;
   }
 
   forFormRules() {
-    const output = []
+    const output = [];
 
     if (this.required) {
       output.push({
         required: true,
         message: i18n('validation.mixed.required').replace(
-          '${path}',
-          this.label
-        )
-      })
+          '{path}',
+          this.label,
+        ),
+      });
     }
 
-    return output
+    return output;
   }
 
   forFormCast() {
@@ -56,11 +56,11 @@ export default class DateTimeField extends GenericField {
       .mixed()
       .nullable(true)
       .label(this.label)
-      .transform((value) => (value ? moment(value) : null))
+      .transform((value) => (value ? moment(value) : null));
   }
 
   forExport() {
-    return yup.mixed().label(this.label)
+    return yup.mixed().label(this.label);
   }
 
   forImport() {
@@ -73,18 +73,18 @@ export default class DateTimeField extends GenericField {
         i18n('validation.mixed.default'),
         (value) => {
           if (!value) {
-            return true
+            return true;
           }
 
-          return value instanceof Date
-        }
-      )
+          return value instanceof Date;
+        },
+      );
 
     if (this.required) {
-      yupChain = yupChain.required()
+      yupChain = yupChain.required();
     }
 
-    return yupChain
+    return yupChain;
   }
 
   forFilter() {
@@ -97,7 +97,7 @@ export default class DateTimeField extends GenericField {
       value: [],
       defaultOperator: 'eq',
       operator: null,
-      type: 'date'
-    }
+      type: 'date',
+    };
   }
 }

@@ -1,11 +1,11 @@
 <template>
   <el-container>
-    <app-menu></app-menu>
+    <app-menu />
     <el-container :style="elMainStyle">
       <el-main id="main-page-wrapper" class="relative">
         <div
           :class="{
-            'pt-14': showBanner
+            'pt-14': showBanner,
           }"
         >
           <banner
@@ -74,18 +74,16 @@
               <div
                 v-loading="true"
                 class="w-4 h-4 mr-2"
-              ></div>
-              <span class="font-semibold mr-1"
-                >{{
-                  integrationsInProgressToString
-                }}
+              />
+              <span class="font-semibold mr-1">{{
+                integrationsInProgressToString
+              }}
                 integration{{
                   integrationsInProgress.length > 1
                     ? 's are'
                     : ' is'
                 }}
-                getting set up.</span
-              >
+                getting set up.</span>
               Sit back and relax. We will send you an email
               when it’s done.
             </div>
@@ -94,11 +92,12 @@
             <div
               class="flex items-center justify-center grow text-sm"
             >
-              <div class="flex-1"></div>
+              <div class="flex-1" />
               <div class="">
                 Do you have 1 minute to help us improve
                 crowd.dev for you? 😊
                 <button
+                  type="button"
                   data-tf-medium="snippet"
                   class="btn btn--sm btn--primary ml-4"
                   @click="toggleShowPmfSurvey()"
@@ -108,17 +107,17 @@
               </div>
               <div class="flex-1">
                 <div class="w-20 ml-auto">
-                  <button @click="doHidePmfBanner()">
+                  <button type="button" @click="doHidePmfBanner()">
                     <i
                       class="ri-close-line text-gray-700"
-                    ></i>
+                    />
                   </button>
                 </div>
               </div>
             </div>
           </banner>
         </div>
-        <router-view></router-view>
+        <router-view />
       </el-main>
     </el-container>
   </el-container>
@@ -132,23 +131,25 @@
   >
     <div
       class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"
-    ></div>
+    />
 
     <div class="fixed inset-0 z-10 overflow-y-auto">
       <div
         class="flex min-h-full items-center justify-center p-4 text-center sm:items-center sm:p-0"
       >
         <div
-          class="relative transform overflow-hidden rounded-lg bg-white px-4 pt-5 pb-4 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-sm sm:p-6 w-96"
+          class="relative transform overflow-hidden rounded-lg bg-white px-4 pt-5 pb-4 text-left shadow-xl
+           transition-all sm:my-8 sm:w-full sm:max-w-sm sm:p-6 w-96"
           @click="(e) => e.stopPropagation()"
         >
           <button
+            type="button"
             class="absolute right-3 top-3"
             @click="toggleShowPmfSurvey()"
           >
-            <i class="ri-close-line text-gray-700"></i>
+            <i class="ri-close-line text-gray-700" />
           </button>
-          <div id="formbricks-pmf-container"></div>
+          <div id="formbricks-pmf-container" />
         </div>
       </div>
     </div>
@@ -156,25 +157,26 @@
 </template>
 
 <script>
-import { useStore } from 'vuex'
-import { mapActions, mapGetters } from 'vuex'
-import Banner from '@/shared/banner/banner.vue'
-import identify from '@/shared/monitoring/identify'
-import config from '@/config'
+import { useStore, mapActions, mapGetters } from 'vuex';
+import Banner from '@/shared/banner/banner.vue';
+import identify from '@/shared/monitoring/identify';
+import config from '@/config';
+import AppMenu from '@/modules/layout/components/menu.vue';
 
 export default {
   name: 'AppLayout',
 
   components: {
-    Banner
+    AppMenu,
+    Banner,
   },
 
   data() {
     return {
       fetchIntegrationTimer: null,
       loading: false,
-      showPmfSurvey: false
-    }
+      showPmfSurvey: false,
+    };
   },
 
   computed: {
@@ -194,33 +196,32 @@ export default {
       showIntegrationsInProgressAlert:
         'tenant/showIntegrationsInProgressAlert',
       showPMFSurveyAlert: 'tenant/showPMFSurveyAlert',
-      showBanner: 'tenant/showBanner'
+      showBanner: 'tenant/showBanner',
     }),
     integrationsInProgressToString() {
       const arr = this.integrationsInProgress.map(
-        (i) => i.name
-      )
+        (i) => i.name,
+      );
       if (arr.length === 1) {
-        return arr[0]
-      } else if (arr.length === 2) {
-        return `${arr[0]} and ${arr[1]}`
-      } else {
-        return (
-          arr.slice(0, arr.length - 1).join(', ') +
-          ', and ' +
-          arr.slice(-1)
-        )
+        return arr[0];
+      } if (arr.length === 2) {
+        return `${arr[0]} and ${arr[1]}`;
       }
+      return (
+        `${arr.slice(0, arr.length - 1).join(', ')
+        }, and ${
+          arr.slice(-1)}`
+      );
     },
     elMainStyle() {
       if (this.isMobile && !this.collapsed) {
         return {
-          display: 'none'
-        }
+          display: 'none',
+        };
       }
 
-      return null
-    }
+      return null;
+    },
   },
 
   watch: {
@@ -228,31 +229,30 @@ export default {
     showPmfSurvey(newValue) {
       if (newValue) {
         setTimeout(() => {
-          window.formbricksPmf.init()
-          window.formbricksPmf.reset()
-        }, 10)
+          window.formbricksPmf.init();
+          window.formbricksPmf.reset();
+        }, 10);
       }
-    }
+    },
   },
 
   created() {
     if (this.isMobile) {
-      this.collapseMenu()
+      this.collapseMenu();
     }
     this.fetchIntegrationTimer = setInterval(async () => {
-      if (this.integrationsInProgress.length === 0)
-        clearInterval(this.fetchIntegrationTimer)
-    }, 30000)
+      if (this.integrationsInProgress.length === 0) clearInterval(this.fetchIntegrationTimer);
+    }, 30000);
   },
 
   async mounted() {
-    const store = useStore()
-    identify(this.currentUser)
-    this.initPendo()
+    const store = useStore();
+    identify(this.currentUser);
+    this.initPendo();
 
     if (
-      config.formbricks.url &&
-      config.formbricks.pmfFormId
+      config.formbricks.url
+      && config.formbricks.pmfFormId
     ) {
       window.formbricksPmf = {
         ...window.formbricksPmf,
@@ -265,42 +265,43 @@ export default {
             name: 'Jonathan',
             position: 'Co-Founder',
             imgUrl:
-              'https://avatars.githubusercontent.com/u/41432658?v=4'
+              'https://avatars.githubusercontent.com/u/41432658?v=4',
           },
           customer: {
             id: store.getters['auth/currentUser'].id,
             name: store.getters['auth/currentUser']
               .fullName,
-            email: store.getters['auth/currentUser'].email
+            email: store.getters['auth/currentUser'].email,
           },
           style: {
             brandColor: '#e94f2e',
             headerBGColor: '#F9FAFB',
             boxBGColor: '#ffffff',
             textColor: '#140505',
-            buttonHoverColor: '#F9FAFB'
-          }
-        }
-      }
-      require('@formbricks/pmf')
+            buttonHoverColor: '#F9FAFB',
+          },
+        },
+      };
+      // eslint-disable-next-line global-require,import/no-unresolved
+      require('@formbricks/pmf');
     }
   },
 
   unmounted() {
-    clearInterval(this.fetchIntegrationTimer)
+    clearInterval(this.fetchIntegrationTimer);
   },
 
   methods: {
     ...mapActions({
       collapseMenu: 'layout/collapseMenu',
-      doHidePmfBanner: 'tenant/doHidePmfBanner'
+      doHidePmfBanner: 'tenant/doHidePmfBanner',
     }),
 
     toggleShowPmfSurvey() {
-      this.showPmfSurvey = !this.showPmfSurvey
+      this.showPmfSurvey = !this.showPmfSurvey;
       if (this.showPmfSurvey) {
-        window.formbricksPmf.init()
-        window.formbricksPmf.reset()
+        window.formbricksPmf.init();
+        window.formbricksPmf.reset();
       }
     },
 
@@ -313,7 +314,7 @@ export default {
         visitor: {
           id: this.currentUser.id, // Required if user is logged in, default creates anonymous ID
           email: this.currentUser.email, // Recommended if using Pendo Feedback, or NPS Email
-          full_name: this.currentUser.fullName // Recommended if using Pendo Feedback
+          full_name: this.currentUser.fullName, // Recommended if using Pendo Feedback
           // role:         // Optional
 
           // You can add any additional visitor level key-values here,
@@ -323,7 +324,7 @@ export default {
         account: {
           id: this.currentTenant.id, // Required if using Pendo Feedback, default uses the value 'ACCOUNT-UNIQUE-ID'
           name: this.currentTenant.name, // Optional
-          is_paying: this.currentTenant.plan !== 'Essential' // Recommended if using Pendo Feedback
+          is_paying: this.currentTenant.plan !== 'Essential', // Recommended if using Pendo Feedback
           // monthly_value:// Recommended if using Pendo Feedback
           // planLevel:    // Optional
           // planPrice:    // Optional
@@ -331,11 +332,9 @@ export default {
 
           // You can add any additional account level key-values here,
           // as long as it's not one of the above reserved names.
-        }
-      })
-    }
-  }
-}
+        },
+      });
+    },
+  },
+};
 </script>
-
-<style></style>

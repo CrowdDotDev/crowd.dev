@@ -16,61 +16,64 @@
         <el-button
           class="btn btn--primary btn--md btn--full"
           @click="onClose"
-          >Continue</el-button
         >
+          Continue
+        </el-button>
       </div>
     </template>
   </app-dialog>
 </template>
 
-<script>
-export default {
-  name: 'AppPlanModal'
-}
-</script>
-
 <script setup>
-import { defineEmits, defineProps, computed, h } from 'vue'
+import {
+  defineEmits, defineProps, computed, h,
+} from 'vue';
 
 const WarningIcon = h(
   'span',
   {
-    class: `rounded-full bg-blue-100 w-10 h-10 flex items-center justify-center`
+    class: 'rounded-full bg-blue-100 w-10 h-10 flex items-center justify-center',
   },
   [
     h(
       'i',
       {
         class:
-          'ri-error-warning-line text-lg text-blue-600 leading-none'
+          'ri-error-warning-line text-lg text-blue-600 leading-none',
       },
-      []
-    )
-  ]
-)
+      [],
+    ),
+  ],
+);
 
-const emit = defineEmits(['update:modelValue'])
+const emit = defineEmits(['update:modelValue']);
 const props = defineProps({
   title: {
     type: String,
-    required: true
+    required: true,
   },
   modelValue: {
     type: Boolean,
-    default: () => false
-  }
-})
+    default: () => false,
+  },
+});
 
 const model = computed({
   get() {
-    return props.modelValue
+    return props.modelValue;
   },
   set(v) {
-    emit('update:modelValue', v)
-  }
-})
+    emit('update:modelValue', v);
+  },
+});
 
 const onClose = () => {
-  model.value = false
-}
+  model.value = false;
+};
+</script>
+
+<script>
+export default {
+  name: 'AppPlanModal',
+};
 </script>

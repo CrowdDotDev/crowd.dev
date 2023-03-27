@@ -1,6 +1,6 @@
-import { OrganizationService } from '@/modules/organization/organization-service'
-import RelationToManyField from '@/shared/fields/relation-to-many-field'
-import Permissions from '@/security/permissions'
+import { OrganizationService } from '@/modules/organization/organization-service';
+import RelationToManyField from '@/shared/fields/relation-to-many-field';
+import Permissions from '@/security/permissions';
 
 export class OrganizationField {
   static relationToMany(name, label, options) {
@@ -12,15 +12,15 @@ export class OrganizationField {
       OrganizationService.listAutocomplete,
       (record) => {
         if (!record) {
-          return null
+          return null;
         }
 
         return {
-          id: record.id || record._id,
-          label: record.name
-        }
+          id: record.id,
+          label: record.name,
+        };
       },
-      options
-    )
+      options,
+    );
   }
 }

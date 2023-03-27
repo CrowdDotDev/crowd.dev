@@ -1,46 +1,42 @@
-import Permissions from '@/security/permissions'
-import { PermissionChecker } from '@/modules/user/permission-checker'
+import Permissions from '@/security/permissions';
+import { PermissionChecker } from '@/modules/user/permission-checker';
 
 export class MemberPermissions {
   constructor(currentTenant, currentUser) {
     const permissionChecker = new PermissionChecker(
       currentTenant,
-      currentUser
-    )
+      currentUser,
+    );
 
     this.read = permissionChecker.match(
-      Permissions.values.memberRead
-    )
+      Permissions.values.memberRead,
+    );
     this.import = permissionChecker.match(
-      Permissions.values.memberImport
-    )
+      Permissions.values.memberImport,
+    );
     this.memberAutocomplete = permissionChecker.match(
-      Permissions.values.memberAutocomplete
-    )
+      Permissions.values.memberAutocomplete,
+    );
     this.create = permissionChecker.match(
-      Permissions.values.memberCreate
-    )
+      Permissions.values.memberCreate,
+    );
     this.edit = permissionChecker.match(
-      Permissions.values.memberEdit
-    )
+      Permissions.values.memberEdit,
+    );
     this.destroy = permissionChecker.match(
-      Permissions.values.memberDestroy
-    )
-    this.lockedForCurrentPlan =
-      permissionChecker.lockedForCurrentPlan(
-        Permissions.values.memberRead
-      )
-    this.createLockedForSampleData =
-      permissionChecker.lockedForSampleData(
-        Permissions.values.memberCreate
-      )
-    this.editLockedForSampleData =
-      permissionChecker.lockedForSampleData(
-        Permissions.values.memberEdit
-      )
-    this.destroyLockedForSampleData =
-      permissionChecker.lockedForSampleData(
-        Permissions.values.memberDestroy
-      )
+      Permissions.values.memberDestroy,
+    );
+    this.lockedForCurrentPlan = permissionChecker.lockedForCurrentPlan(
+      Permissions.values.memberRead,
+    );
+    this.createLockedForSampleData = permissionChecker.lockedForSampleData(
+      Permissions.values.memberCreate,
+    );
+    this.editLockedForSampleData = permissionChecker.lockedForSampleData(
+      Permissions.values.memberEdit,
+    );
+    this.destroyLockedForSampleData = permissionChecker.lockedForSampleData(
+      Permissions.values.memberDestroy,
+    );
   }
 }

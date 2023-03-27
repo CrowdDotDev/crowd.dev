@@ -4,14 +4,14 @@
       v-if="computedLoading"
       v-loading="computedLoading"
       class="app-page-spinner"
-    ></div>
+    />
     <div v-else>
       <div
         ref="header"
         class="mb-4 sticky top-0 inset-x-0 z-10 bg-white"
         :class="{
           'border-b': !isHeaderOnTop,
-          shadow: isHeaderOnTop
+          shadow: isHeaderOnTop,
         }"
       >
         <div
@@ -36,16 +36,15 @@
             <span
               class="badge mr-4"
               :class="report.public ? 'badge--green' : ''"
-              >{{
-                report.public ? 'Public' : 'Private'
-              }}</span
-            >
+            >{{
+              report.public ? 'Public' : 'Private'
+            }}</span>
             <router-link
               class="btn btn--transparent btn--sm"
               :to="{ name: 'reportEdit', params: { id } }"
-              ><i class="ri-pencil-line mr-2"></i
-              >Edit</router-link
             >
+              <i class="ri-pencil-line mr-2" />Edit
+            </router-link>
           </div>
         </div>
 
@@ -76,7 +75,7 @@
             :is-public-view="true"
             :filters="{
               platform,
-              teamMembers
+              teamMembers,
             }"
           />
         </div>
@@ -87,7 +86,7 @@
           v-model="report"
           :is-public-view="true"
           class="-mx-4 pt-20 pb-24"
-        ></app-report-grid-layout>
+        />
       </div>
       <div
         v-if="tenantId"
@@ -101,13 +100,14 @@
               href="https://www.crowd.dev/privacy-policy"
               class="text-gray-400 hover:text-brand-500"
               target="_blank"
-              >Privacy Policy</a
-            >
+              rel="noopener noreferrer"
+            >Privacy Policy</a>
             <span class="mx-1"> · </span>
             <a
               href="https://www.crowd.dev/terms-of-use"
               class="text-gray-400 hover:text-brand-500"
               target="_blank"
+              rel="noopener noreferrer"
             >
               Terms of Use
             </a>
@@ -116,6 +116,7 @@
               href="https://www.crowd.dev/imprint"
               class="text-gray-400 hover:text-brand-500 mr-8"
               target="_blank"
+              rel="noopener noreferrer"
             >
               Imprint
             </a>
@@ -130,8 +131,10 @@
       <div
         class="fixed right-6 flex items-center gap-2 bg-black rounded-full px-3 h-8 bottom-btn"
       >
-        <div class="text-gray-300 text-2xs">Powered by</div>
-        <a href="https://www.crowd.dev/" target="_blank">
+        <div class="text-gray-300 text-2xs">
+          Powered by
+        </div>
+        <a href="https://www.crowd.dev/" target="_blank" rel="noopener noreferrer">
           <img
             src="/images/logo/crowd-white.svg"
             class="block h-3.5 mb-1"
@@ -144,26 +147,25 @@
 </template>
 
 <script>
-import { mapState, mapGetters, mapActions } from 'vuex'
-import ReportGridLayout from '@/modules/report/components/report-grid-layout.vue'
-import AppReportMemberTemplate from '@/modules/report/pages/templates/report-member-template.vue'
-import AuthCurrentTenant from '@/modules/auth/auth-current-tenant'
-import { TenantService } from '@/modules/tenant/tenant-service'
-import AppReportTemplateFilters from '@/modules/report/components/templates/report-template-filters.vue'
-import ActivityPlatformField from '@/modules/activity/activity-platform-field'
-import { templates } from '@/modules/report/templates/template-reports'
-import { MEMBERS_REPORT } from '@/modules/report/templates/template-reports'
+import { mapState, mapGetters, mapActions } from 'vuex';
+import ReportGridLayout from '@/modules/report/components/report-grid-layout.vue';
+import AppReportMemberTemplate from '@/modules/report/pages/templates/report-member-template.vue';
+import AuthCurrentTenant from '@/modules/auth/auth-current-tenant';
+import { TenantService } from '@/modules/tenant/tenant-service';
+import AppReportTemplateFilters from '@/modules/report/components/templates/report-template-filters.vue';
+import ActivityPlatformField from '@/modules/activity/activity-platform-field';
+import { templates, MEMBERS_REPORT } from '@/modules/report/templates/template-reports';
 
 const platformField = new ActivityPlatformField(
   'activeOn',
   'Platforms',
-  { filterable: true }
-).forFilter()
+  { filterable: true },
+).forFilter();
 
 const initialPlatformValue = {
   ...platformField,
-  expanded: false
-}
+  expanded: false,
+};
 
 export default {
   name: 'AppReportViewPage',
@@ -171,18 +173,18 @@ export default {
   components: {
     'app-report-grid-layout': ReportGridLayout,
     AppReportMemberTemplate,
-    AppReportTemplateFilters
+    AppReportTemplateFilters,
   },
 
   props: {
     id: {
       type: String,
-      default: null
+      default: null,
     },
     tenantId: {
       type: String,
-      default: null
-    }
+      default: null,
+    },
   },
 
   data() {
@@ -193,92 +195,91 @@ export default {
       teamMembers: false,
       isHeaderOnTop: false,
       templates,
-      MEMBERS_REPORT
-    }
+      MEMBERS_REPORT,
+    };
   },
 
   computed: {
     ...mapState({
-      reportLoading: 'report/loading'
+      reportLoading: 'report/loading',
     }),
     ...mapGetters({
-      reportFind: 'report/find'
+      reportFind: 'report/find',
     }),
     report() {
-      return this.reportFind(this.id)
+      return this.reportFind(this.id);
     },
     computedLoading() {
-      return this.reportLoading || this.loading
+      return this.reportLoading || this.loading;
     },
     currentTemplate() {
       return this.templates.find(
-        (t) => t.name === this.report.name
-      )
-    }
+        (t) => t.name === this.report.name,
+      );
+    },
   },
 
   mounted() {
     if (this.$refs.wrapper) {
       this.$refs.wrapper.addEventListener(
         'scroll',
-        this.onPageScroll
-      )
+        this.onPageScroll,
+      );
     }
   },
 
   unmounted() {
     this.$refs.wrapper?.removeEventListener(
       'scroll',
-      this.onPageScroll
-    )
+      this.onPageScroll,
+    );
   },
 
   async created() {
-    this.loading = true
+    this.loading = true;
     if (this.tenantId) {
-      await AuthCurrentTenant.set({ id: this.tenantId })
+      await AuthCurrentTenant.set({ id: this.tenantId });
       await this.doFindPublic({
         id: this.id,
-        tenantId: this.tenantId
-      })
+        tenantId: this.tenantId,
+      });
       this.currentTenant = await TenantService.find(
-        this.tenantId
-      )
+        this.tenantId,
+      );
     } else {
-      await this.doFind(this.id)
+      await this.doFind(this.id);
     }
-    this.loading = false
+    this.loading = false;
   },
 
   methods: {
     ...mapActions({
       doFind: 'report/doFind',
-      doFindPublic: 'report/doFindPublic'
+      doFindPublic: 'report/doFindPublic',
     }),
     onPlatformFilterOpen() {
       this.platform = {
         ...this.platform,
-        expanded: true
-      }
+        expanded: true,
+      };
     },
     onPlatformFilterReset() {
-      this.platform = initialPlatformValue
+      this.platform = initialPlatformValue;
     },
     onTrackFilters() {
       window.analytics.track('Filter template report', {
         template: this.currentTemplate.name,
         public: true,
         platforms: this.platform.value.map((p) => p.value),
-        includeTeamMembers: this.teamMembers
-      })
+        includeTeamMembers: this.teamMembers,
+      });
     },
     onPageScroll() {
-      this.isHeaderOnTop =
-        this.$refs.header?.getBoundingClientRect().top ===
-          0 && this.$refs.wrapper?.scrollTop !== 0
-    }
-  }
-}
+      this.isHeaderOnTop = this.$refs.header?.getBoundingClientRect().top
+          === 0 && this.$refs.wrapper?.scrollTop !== 0;
+    },
+  },
+};
 </script>
 
 <style lang="scss">

@@ -2,7 +2,7 @@
   <app-page-wrapper size="narrow">
     <div class="profile-form-page">
       <h4 class="mb-6">
-        <app-i18n code="auth.profile.title"></app-i18n>
+        Profile settings
       </h4>
       <el-container
         class="bg-white rounded-lg shadow shadow-black/15"
@@ -167,9 +167,10 @@
             class="btn btn-link btn-link--primary"
             :disabled="saveLoading"
             @click="doReset"
-            ><i class="ri-arrow-go-back-line"></i>
-            <span>Reset changes</span></el-button
           >
+            <i class="ri-arrow-go-back-line" />
+            <span>Reset changes</span>
+          </el-button>
           <div class="flex gap-4">
             <el-button
               :disabled="saveLoading"
@@ -181,13 +182,13 @@
             <el-button
               class="btn btn--md btn--primary"
               :disabled="
-                saveLoading ||
-                !hasFormChanged ||
-                !isFormValid
+                saveLoading
+                  || !hasFormChanged
+                  || !isFormValid
               "
               @click="doSubmit"
             >
-              <app-i18n code="common.save"></app-i18n>
+              <app-i18n code="common.save" />
             </el-button>
           </div>
         </el-footer>
@@ -195,81 +196,73 @@
     </div>
   </app-page-wrapper>
 </template>
-<script>
-export default {
-  name: 'AppProfileFormPage'
-}
-</script>
 
 <script setup>
-import { UserModel } from '@/modules/user/user-model'
-import { useStore } from 'vuex'
-import { FormSchema } from '@/shared/form/form-schema'
-import { ref, computed, onBeforeMount } from 'vue'
-import { i18n } from '@/i18n'
-import isEqual from 'lodash/isEqual'
-import { useRouter } from 'vue-router'
+import { useStore } from 'vuex';
+import { ref, computed, onBeforeMount } from 'vue';
+import isEqual from 'lodash/isEqual';
+import { useRouter } from 'vue-router';
+import { i18n } from '@/i18n';
+import { FormSchema } from '@/shared/form/form-schema';
+import { UserModel } from '@/modules/user/user-model';
 
-const { fields } = UserModel
-const store = useStore()
-const router = useRouter()
+const { fields } = UserModel;
+const store = useStore();
+const router = useRouter();
 
 const profileFormSchema = computed(
-  () =>
-    new FormSchema([
-      fields.email,
-      fields.firstName,
-      fields.lastName
-    ])
-)
+  () => new FormSchema([
+    fields.email,
+    fields.firstName,
+    fields.lastName,
+  ]),
+);
 const passwordFormSchema = computed(
-  () =>
-    new FormSchema([
-      fields.oldPassword,
-      fields.newPassword,
-      fields.newPasswordConfirmation
-    ])
-)
+  () => new FormSchema([
+    fields.oldPassword,
+    fields.newPassword,
+    fields.newPasswordConfirmation,
+  ]),
+);
 
 const currentUser = computed(
-  () => store.getters['auth/currentUser']
-)
+  () => store.getters['auth/currentUser'],
+);
 const saveLoading = computed(
-  () =>
-    store.getters['auth/loadingUpdateProfile'] ||
-    store.getters['auth/loadingPasswordChange']
-)
+  () => store.getters['auth/loadingUpdateProfile']
+    || store.getters['auth/loadingPasswordChange'],
+);
 
-const computedFields = computed(() => fields)
+const computedFields = computed(() => fields);
 
 // Form references
-const profileFormRef = ref(null)
-const passwordFormRef = ref(null)
+const profileFormRef = ref(null);
+const passwordFormRef = ref(null);
 
 // Form models
-const profileModel = ref(null)
-const passwordModel = ref(null)
+const profileModel = ref(null);
+const passwordModel = ref(null);
 
 // Form rules
-const profileRules = ref(profileFormSchema.value.rules())
+const profileRules = ref(profileFormSchema.value.rules());
 const passwordRules = computed(() => {
-  const rules = passwordFormSchema.value.rules()
+  const rules = passwordFormSchema.value.rules();
 
   const passwordConfirmationValidator = (
     _rule,
     value,
-    callback
+    callback,
   ) => {
     if (
       value !== passwordModel.value[fields.newPassword.name]
     ) {
       callback(
-        new Error(i18n('auth.passwordChange.mustMatch'))
-      )
+        new Error(i18n('auth.passwordChange.mustMatch')),
+      );
     } else {
-      callback()
+      callback();
     }
-  }
+  };
 
   return {
     ...rules,
@@ -277,108 +270,101 @@ const passwordRules = computed(() => {
       ...rules[fields.newPasswordConfirmation.name],
       {
         validator: passwordConfirmationValidator,
-        trigger: 'blur'
-      }
-    ]
-  }
-})
+        trigger: 'blur',
+      },
+    ],
+  };
+});
 
 // Form validations
-const hasProfileModelChanged = computed(() => {
-  return !isEqual(
-    profileFormSchema.value.initialValues(
-      currentUser.value
-    ),
-    profileModel.value
-  )
-})
+const hasProfileModelChanged = computed(() => !isEqual(
+  profileFormSchema.value.initialValues(
+    currentUser.value,
+  ),
+  profileModel.value,
+));
 const hasPasswordModelChanged = computed(
-  () =>
-    !isEqual(
-      passwordFormSchema.value.initialValues(
-        currentUser.value
-      ),
-      passwordModel.value
-    )
-)
+  () => !isEqual(
+    passwordFormSchema.value.initialValues(
+      currentUser.value,
+    ),
+    passwordModel.value,
+  ),
+);
 const hasFormChanged = computed(
-  () =>
-    hasProfileModelChanged.value ||
-    hasPasswordModelChanged.value
-)
+  () => hasProfileModelChanged.value
+    || hasPasswordModelChanged.value,
+);
 
-const isProfileFormValid = computed(() =>
-  profileFormSchema.value.isValidSync(profileModel.value)
-)
-const isPasswordFormValid = computed(() =>
-  passwordFormSchema.value.isValidSync(passwordModel.value)
-)
+const isProfileFormValid = computed(() => profileFormSchema.value.isValidSync(profileModel.value));
+const isPasswordFormValid = computed(() => passwordFormSchema.value.isValidSync(passwordModel.value));
 
 const isFormValid = computed(
-  () =>
-    ((hasPasswordModelChanged.value &&
-      isPasswordFormValid.value) ||
-      !hasPasswordModelChanged.value) &&
-    ((hasProfileModelChanged.value &&
-      isProfileFormValid.value) ||
-      !hasProfileModelChanged.value)
-)
+  () => ((hasPasswordModelChanged.value
+      && isPasswordFormValid.value)
+      || !hasPasswordModelChanged.value)
+    && ((hasProfileModelChanged.value
+      && isProfileFormValid.value)
+      || !hasProfileModelChanged.value),
+);
 
 onBeforeMount(() => {
-  profileModel.value =
-    profileFormSchema.value.initialValues(currentUser.value)
-  passwordModel.value =
-    passwordFormSchema.value.initialValues(
-      currentUser.value
-    )
-})
+  profileModel.value = profileFormSchema.value.initialValues(currentUser.value);
+  passwordModel.value = passwordFormSchema.value.initialValues(
+    currentUser.value,
+  );
+});
 
 const doCancel = () => {
-  router.push({ path: '/' })
-}
+  router.push({ path: '/' });
+};
 
 const doReset = () => {
-  profileModel.value =
-    profileFormSchema.value.initialValues(currentUser.value)
+  profileModel.value = profileFormSchema.value.initialValues(currentUser.value);
 
-  passwordModel.value =
-    passwordFormSchema.value.initialValues(
-      currentUser.value
-    )
-}
+  passwordModel.value = passwordFormSchema.value.initialValues(
+    currentUser.value,
+  );
+};
 
 const doSubmit = async () => {
   // Submit for profile changes
   if (hasProfileModelChanged.value) {
     try {
-      await profileFormRef.value.validate()
+      await profileFormRef.value.validate();
     } catch (error) {
-      return
+      return;
     }
 
     const values = profileFormSchema.value.cast(
-      profileModel.value
-    )
+      profileModel.value,
+    );
 
-    store.dispatch('auth/doUpdateProfile', values)
-    router.push('/')
+    store.dispatch('auth/doUpdateProfile', values);
+    router.push('/');
   }
 
   // Submit for password changes
   if (hasPasswordModelChanged.value) {
     try {
-      await passwordFormRef.value.validate()
+      await passwordFormRef.value.validate();
     } catch (error) {
-      return
+      return;
     }
 
     const values = passwordFormSchema.value.cast(
-      passwordModel.value
-    )
+      passwordModel.value,
+    );
 
-    store.dispatch('auth/doChangePassword', values)
+    store.dispatch('auth/doChangePassword', values);
   }
-}
+};
+</script>
+
+<script>
+export default {
+  name: 'AppProfileFormPage',
+};
 </script>
 
 <style lang="scss">

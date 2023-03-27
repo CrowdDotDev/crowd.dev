@@ -11,7 +11,7 @@
       }}</span>
       <i
         class="ri-arrow-down-s-line text-base ml-1 transition transform"
-      ></i>
+      />
     </div>
     <template #dropdown>
       <el-dropdown-menu class="w-55">
@@ -27,8 +27,7 @@
             <span
               v-if="s.subLabel"
               class="text-2xs text-gray-400"
-              >{{ s.subLabel }}</span
-            >
+            >{{ s.subLabel }}</span>
           </div>
         </el-dropdown-item>
       </el-dropdown-menu>
@@ -36,46 +35,46 @@
   </el-dropdown>
 </template>
 
-<script>
-export default {
-  name: 'AppTaskSorting'
-}
-</script>
-
 <script setup>
-import { ref, defineEmits, computed } from 'vue'
+import { ref, defineEmits, computed } from 'vue';
 
-const emit = defineEmits(['change'])
+const emit = defineEmits(['change']);
 
-const sort = ref('createdAt_DESC')
+const sort = ref('createdAt_DESC');
 
 const sortings = ref([
   {
     label: 'Creation date',
     subLabel: 'Newest first',
-    value: 'createdAt_DESC'
+    value: 'createdAt_DESC',
   },
   {
     label: 'Due date',
     subLabel: 'Earliest first',
-    value: 'dueDate_ASC'
+    value: 'dueDate_ASC',
   },
   {
     label: 'Title',
     subLabel: 'A-Z',
-    value: 'name_ASC'
-  }
-])
+    value: 'name_ASC',
+  },
+]);
 
 const selectedLabel = computed(() => {
   const selected = sortings.value.find(
-    (s) => s.value === sort.value
-  )
-  return selected ? selected.label : ''
-})
+    (s) => s.value === sort.value,
+  );
+  return selected ? selected.label : '';
+});
 
 const changeSorting = (sorting) => {
-  sort.value = sorting
-  emit('change', sorting)
-}
+  sort.value = sorting;
+  emit('change', sorting);
+};
+</script>
+
+<script>
+export default {
+  name: 'AppTaskSorting',
+};
 </script>

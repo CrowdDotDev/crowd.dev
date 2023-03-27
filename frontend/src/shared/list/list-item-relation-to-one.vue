@@ -10,8 +10,8 @@
 </template>
 
 <script>
-import { mapGetters } from 'vuex'
-import { PermissionChecker } from '@/modules/user/permission-checker'
+import { mapGetters } from 'vuex';
+import { PermissionChecker } from '@/modules/user/permission-checker';
 
 export default {
   name: 'AppListItemRelationToOne',
@@ -19,52 +19,52 @@ export default {
   props: {
     label: {
       type: String,
-      default: null
+      default: null,
     },
     url: {
       type: String,
-      default: null
+      default: null,
     },
     permission: {
       type: String,
-      default: null
-    }
+      default: null,
+    },
   },
 
   computed: {
     ...mapGetters({
       currentTenant: 'auth/currentTenant',
-      currentUser: 'auth/currentUser'
+      currentUser: 'auth/currentUser',
     }),
 
     hasPermissionToRead() {
       return new PermissionChecker(
         this.currentTenant,
-        this.currentUser
-      ).match(this.permission)
+        this.currentUser,
+      ).match(this.permission);
     },
 
     urlWithId() {
       if (!this.value) {
-        return null
+        return null;
       }
 
-      return `${this.url}/${this.value.id}`
+      return `${this.url}/${this.value.id}`;
     },
 
     isBlank() {
-      return !this.value || !this.value.id
+      return !this.value || !this.value.id;
     },
 
     display() {
       if (!this.value) {
-        return null
+        return null;
       }
 
-      return this.value.label
-    }
-  }
-}
+      return this.value.label;
+    },
+  },
+};
 </script>
 
 <style></style>

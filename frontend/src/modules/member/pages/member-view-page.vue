@@ -4,15 +4,14 @@
       v-if="loading"
       v-loading="loading"
       class="app-page-spinner"
-    ></div>
+    />
     <div v-else>
       <router-link
         class="text-gray-600 btn-link--md btn-link--secondary p-0 inline-flex items-center"
         :to="{ path: '/members' }"
       >
-        <i class="ri-arrow-left-s-line mr-2"></i
-        >Members</router-link
-      >
+        <i class="ri-arrow-left-s-line mr-2" />Members
+      </router-link>
       <div class="grid grid-cols-3 gap-6 mt-4">
         <app-member-view-header
           :member="member"
@@ -59,77 +58,73 @@
   </app-page-wrapper>
 </template>
 
-<script>
-export default {
-  name: 'AppMemberViewPage'
-}
-</script>
-
 <script setup>
-import { useStore } from 'vuex'
+import { useStore } from 'vuex';
 import {
   defineProps,
   computed,
   onMounted,
   ref,
-  defineExpose
-} from 'vue'
+  defineExpose,
+} from 'vue';
 
-import AppActivityTimeline from '@/modules/activity/components/activity-timeline'
-import AppMemberViewHeader from '@/modules/member/components/view/member-view-header'
-import AppMemberViewAside from '@/modules/member/components/view/member-view-aside'
-import AppMemberViewNotes from '@/modules/member/components/view/member-view-notes'
-import AppMemberViewContributions from '@/modules/member/components/view/member-view-contributions'
-import AppMemberViewTasks from '@/modules/member/components/view/member-view-tasks'
-import { mapGetters } from '@/shared/vuex/vuex.helpers'
-import { TaskPermissions } from '@/modules/task/task-permissions'
+import { mapGetters } from '@/shared/vuex/vuex.helpers';
+import { TaskPermissions } from '@/modules/task/task-permissions';
+import AppActivityTimeline from '@/modules/activity/components/activity-timeline.vue';
+import AppMemberViewHeader from '@/modules/member/components/view/member-view-header.vue';
+import AppMemberViewAside from '@/modules/member/components/view/member-view-aside.vue';
+import AppMemberViewNotes from '@/modules/member/components/view/member-view-notes.vue';
+import AppMemberViewContributions from '@/modules/member/components/view/member-view-contributions.vue';
+import AppMemberViewTasks from '@/modules/member/components/view/member-view-tasks.vue';
 
-const store = useStore()
+const store = useStore();
 const props = defineProps({
   id: {
     type: String,
-    default: null
-  }
-})
+    default: null,
+  },
+});
 
-const { currentTenant, currentUser } = mapGetters('auth')
+const { currentTenant, currentUser } = mapGetters('auth');
 
-const member = computed(() => {
-  return store.getters['member/find'](props.id) || {}
-})
+const member = computed(() => store.getters['member/find'](props.id) || {});
 
 const isTaskLocked = computed(
-  () =>
-    new TaskPermissions(
-      currentTenant.value,
-      currentUser.value
-    ).lockedForCurrentPlan
-)
+  () => new TaskPermissions(
+    currentTenant.value,
+    currentUser.value,
+  ).lockedForCurrentPlan,
+);
 const hasPermissionToTask = computed(
-  () =>
-    new TaskPermissions(
-      currentTenant.value,
-      currentUser.value
-    ).read
-)
+  () => new TaskPermissions(
+    currentTenant.value,
+    currentUser.value,
+  ).read,
+);
 
-const tasksTab = ref(null)
+const tasksTab = ref(null);
 
-const loading = ref(true)
-const tab = ref('activities')
+const loading = ref(true);
+const tab = ref('activities');
 
 onMounted(async () => {
-  await store.dispatch('member/doFind', props.id)
+  await store.dispatch('member/doFind', props.id);
   if (
     Object.keys(store.state.member.customAttributes)
       .length === 0
   ) {
-    await store.dispatch('member/doFetchCustomAttributes')
+    await store.dispatch('member/doFetchCustomAttributes');
   }
-  loading.value = false
-})
+  loading.value = false;
+});
 
 defineExpose({
-  tasksTab
-})
+  tasksTab,
+});
+</script>
+
+<script>
+export default {
+  name: 'AppMemberViewPage',
+};
 </script>

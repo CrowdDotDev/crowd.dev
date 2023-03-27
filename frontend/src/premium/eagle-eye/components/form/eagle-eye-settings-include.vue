@@ -4,7 +4,7 @@
       <app-form-item
         :validation="$v.keyword"
         :error-messages="{
-          required: 'This field is required'
+          required: 'This field is required',
         }"
         class="mr-3 mb-0 no-margin basis-7/12 is-error-relative"
       >
@@ -13,7 +13,7 @@
           placeholder="Keyword"
           @blur="$v.keyword.$touch"
           @change="$v.keyword.$touch"
-        ></el-input>
+        />
       </app-form-item>
       <app-form-item
         class="mr-3 mb-0 no-margin basis-5/12 is-error-relative"
@@ -54,41 +54,41 @@
   </article>
 </template>
 
-<script>
-export default {
-  name: 'AppEagleEyeSettingsInclude'
-}
-</script>
-
 <script setup>
-import { computed, defineEmits, defineProps } from 'vue'
-import { required } from '@vuelidate/validators'
-import useVuelidate from '@vuelidate/core'
-import AppFormItem from '@/shared/form/form-item.vue'
+import { computed, defineEmits, defineProps } from 'vue';
+import { required } from '@vuelidate/validators';
+import useVuelidate from '@vuelidate/core';
+import AppFormItem from '@/shared/form/form-item.vue';
 
-const emit = defineEmits(['update:modelValue'])
+const emit = defineEmits(['update:modelValue']);
 
 const props = defineProps({
   modelValue: {
     type: Object,
-    required: true
-  }
-})
+    required: true,
+  },
+});
 
 const rules = {
   keyword: {
-    required
-  }
-}
+    required,
+  },
+};
 
 const include = computed({
   get() {
-    return props.modelValue
+    return props.modelValue;
   },
   set(value) {
-    emit('update:modelValue', value)
-  }
-})
+    emit('update:modelValue', value);
+  },
+});
 
-const $v = useVuelidate(rules, include)
+const $v = useVuelidate(rules, include);
+</script>
+
+<script>
+export default {
+  name: 'AppEagleEyeSettingsInclude',
+};
 </script>

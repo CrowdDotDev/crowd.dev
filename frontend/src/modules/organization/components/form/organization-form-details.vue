@@ -59,91 +59,91 @@
 </template>
 
 <script setup>
-import { defineEmits, defineProps, computed } from 'vue'
+import { defineEmits, defineProps, computed } from 'vue';
 
-const emit = defineEmits(['update:modelValue'])
+const emit = defineEmits(['update:modelValue']);
 const props = defineProps({
   modelValue: {
     type: Object,
-    default: () => {}
+    default: () => {},
   },
   fields: {
     type: Object,
-    default: () => {}
-  }
-})
+    default: () => {},
+  },
+});
 
 const model = computed({
   get() {
-    return props.modelValue
+    return props.modelValue;
   },
   set(newModel) {
-    emit('update:modelValue', newModel)
-  }
-})
+    emit('update:modelValue', newModel);
+  },
+});
 
 const revenueOptions = [
   {
     label: '$0-1M',
     value: {
       min: 0,
-      max: 1
-    }
+      max: 1,
+    },
   },
   {
     label: '$1M-$10M',
     value: {
       min: 1,
-      max: 10
-    }
+      max: 10,
+    },
   },
   {
     label: '$11M-$50M',
     value: {
       min: 11,
-      max: 50
-    }
+      max: 50,
+    },
   },
   {
     label: '$51M-$100M',
     value: {
       min: 51,
-      max: 100
-    }
+      max: 100,
+    },
   },
   {
     label: '$101M-$250M',
     value: {
       min: 101,
-      max: 250
-    }
+      max: 250,
+    },
   },
   {
     label: '$251M-$500M',
     value: {
       min: 251,
-      max: 500
-    }
+      max: 500,
+    },
   },
   {
     label: '$501M-$1B',
     value: {
       min: 501,
-      max: 1000
-    }
+      max: 1000,
+    },
   },
   {
     label: '$1B-$10B',
     value: {
       min: 1001,
-      max: 10000
-    }
+      max: 10000,
+    },
   },
   {
     label: '$10B+',
     value: {
-      min: 10001
-    }
-  }
-]
+      min: 10001,
+    },
+  },
+];
 </script>
