@@ -12,7 +12,7 @@ export const MEMBERS_REPORT = {
 };
 
 export const PRODUCT_COMMUNITY_FIT_REPORT = {
-  nameAsId: 'Product-community fit',
+  nameAsId: 'Product-community fit report',
   name: 'Product-community fit',
   description:
     'Measure and benchmark product-community fit for your open-source project ',

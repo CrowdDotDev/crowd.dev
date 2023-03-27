@@ -21,6 +21,7 @@ export const dashboardChartOptions = {
       },
     ],
   },
+  legendPlugin: false,
 };
 
 export function dateRange(period) {

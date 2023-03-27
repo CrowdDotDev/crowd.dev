@@ -163,4 +163,35 @@ const series = (resultSet) => {
 
   return computedSeries;
 };
+
+const data = computed(() => {
+  if (loading.value) {
+    return [];
+  }
+  return series(props.resultSet);
+});
+const paintDataSet = () => {
+  const canvas = document.querySelector(
+    '.cube-widget-chart canvas',
+  );
+  if (canvas && props.chartOptions?.computeDataset) {
+    dataset.value = props.chartOptions.computeDataset(canvas);
+  }
+};
+// Customize external tooltip
+// Handle View more button click
+// Get dataPoint from tooltip and extract the date
+customChartOptions.library.plugins.tooltip.external = (
+  context,
+) => externalTooltipHandler(context, () => {
+  const point = context.tooltip.dataPoints.find(
+    (p) => p.datasetIndex === 0,
+  );
+  const date = data.value[0].data[point.dataIndex][0];
+  emit('on-view-more-click', date);
+});
+
+onMounted(async () => {
+  paintDataSet();
+});
 </script>

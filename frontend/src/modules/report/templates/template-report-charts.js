@@ -39,6 +39,7 @@ const defaultChartOptions = (config) => ({
       },
       y: {
         type: config.yType,
+        beginAtZero: true,
         position: config.yPosition,
         min: config.yMin,
         max: config.yMax,

@@ -247,7 +247,6 @@ const onUpdatePeriod = (updatedPeriod) => {
 };
 
 const onAverageCalculation = (calculatedAverage) => {
-  console.log(calculatedAverage);
   average.value = calculatedAverage;
 };
 </script>

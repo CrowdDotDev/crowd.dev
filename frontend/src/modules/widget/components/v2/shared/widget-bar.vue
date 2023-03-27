@@ -54,7 +54,7 @@ const series = (resultSet) => {
 
       // Show one bar for the DataPointsAverage
       if (props.showAsAverage) {
-        const average = Math.floor(
+        const average = Math.round(
           data.reduce((valueA, [, valueB]) => valueA + valueB, 0) / data.length,
         ) || 0;
 
