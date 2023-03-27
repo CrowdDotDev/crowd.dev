@@ -20,4 +20,4 @@ export default async function ({ to, store, router }) {
   if (store.getters['auth/signedIn']) {
     router.push('/');
   }
-};
+}

@@ -17,4 +17,4 @@ export default async function ({ to, store }) {
 
     store.replaceState(initialState);
   }
-};
+}

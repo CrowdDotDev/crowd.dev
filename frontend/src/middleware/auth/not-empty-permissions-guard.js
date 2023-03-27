@@ -23,4 +23,4 @@ export default async function ({ to, store, router }) {
   ) {
     router.push('/');
   }
-};
+}
