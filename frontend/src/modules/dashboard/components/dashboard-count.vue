@@ -37,7 +37,7 @@
           </h4>
           <div class="flex">
             <el-tooltip
-              content="vs. previous time period"
+              :content="`vs. previous ${period.extendedLabel}`"
               placement="right"
             >
               <app-dashboard-badge
