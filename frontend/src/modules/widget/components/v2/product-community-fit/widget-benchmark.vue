@@ -174,7 +174,7 @@ const benchmarkChartOptions = chartOptions('bar', {
     },
     afterFit: (scaleInstance) => {
       Object.assign(scaleInstance, {
-        width: 410,
+        width: 400,
         maxWidth: 410,
       });
     },

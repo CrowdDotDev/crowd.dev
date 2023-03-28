@@ -47,7 +47,7 @@
     title="Contribution types"
   >
     <template #description>
-      <div class="text-xs text-gray-600 mt-1">
+      <div class="text-xs text-gray-600 mt-2.5">
         Activity types that are considered as contributions
       </div>
     </template>
@@ -65,7 +65,7 @@
             >
               <app-activity-type-list-item
                 :platform="integration.platform"
-                :label="activityType.display.short"
+                :label="toSentenceCase(activityType.display.short)"
               />
             </div>
           </div>
@@ -88,6 +88,7 @@ import {
   mapGetters,
   mapActions,
 } from '@/shared/vuex/vuex.helpers';
+import { toSentenceCase } from '@/utils/string';
 
 defineProps({
   filters: {
