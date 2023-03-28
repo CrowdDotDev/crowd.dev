@@ -114,7 +114,6 @@ export default class ConversationService extends LoggingBase {
               filter: { platform },
             })
           ).rows[0]
-
           await integrationService.update(integration.id, {
             settings: { ...integration.settings, inviteLink: data.inviteLinks[platform] },
           })

@@ -1,9 +1,11 @@
 import { SuperfaceClient } from '@superfaceai/one-sdk'
 import moment from 'moment'
 import crypto from 'crypto'
+import { IRepositoryOptions } from '../../../database/repositories/IRepositoryOptions'
 import { createServiceChildLogger } from '../../../utils/logging'
 import {
   IIntegrationStream,
+  IPendingStream,
   IProcessStreamResults,
   IProcessWebhookResults,
   IStepContext,
@@ -13,6 +15,8 @@ import { IntegrationType } from '../../../types/integrationEnums'
 import { IS_TEST_ENV } from '../../../config'
 import { sendNodeWorkerMessage } from '../../utils/nodeWorkerSQS'
 import { NodeWorkerIntegrationProcessMessage } from '../../../types/mq/nodeWorkerIntegrationProcessMessage'
+import IntegrationRunRepository from '../../../database/repositories/integrationRunRepository'
+import { IntegrationRunState } from '../../../types/integrationRunTypes'
 
 const logger = createServiceChildLogger('integrationService')
 
@@ -51,17 +55,24 @@ export abstract class IntegrationServiceBase {
     this.limitResetFrequencySeconds = 0
   }
 
-  async triggerIntegrationCheck(integrations: any[]): Promise<void> {
+  async triggerIntegrationCheck(integrations: any[], options: IRepositoryOptions): Promise<void> {
+    const repository = new IntegrationRunRepository(options)
+
     for (const integration of integrations) {
-      logger.info({ integrationId: integration.id }, 'Triggering integration processing!')
+      const run = await repository.create({
+        integrationId: integration.id,
+        tenantId: integration.tenantId,
+        onboarding: false,
+        state: IntegrationRunState.PENDING,
+      })
+
+      logger.info(
+        { integrationId: integration.id, runId: run.id },
+        'Triggering integration processing!',
+      )
       await sendNodeWorkerMessage(
         integration.tenantId,
-        new NodeWorkerIntegrationProcessMessage(
-          this.type,
-          integration.tenantId,
-          false,
-          integration.id,
-        ),
+        new NodeWorkerIntegrationProcessMessage(run.id),
       )
     }
   }
@@ -74,7 +85,7 @@ export abstract class IntegrationServiceBase {
     // do nothing - override if something is needed
   }
 
-  abstract getStreams(context: IStepContext): Promise<IIntegrationStream[]>
+  abstract getStreams(context: IStepContext): Promise<IPendingStream[]>
 
   abstract processStream(
     stream: IIntegrationStream,

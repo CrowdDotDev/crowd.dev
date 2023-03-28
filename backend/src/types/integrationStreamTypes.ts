@@ -1,5 +1,3 @@
-import { String } from 'aws-sdk/clients/cloudtrail'
-
 export enum IntegrationStreamState {
   PENDING = 'pending',
   PROCESSING = 'processing',
@@ -9,19 +7,24 @@ export enum IntegrationStreamState {
 
 export interface IntegrationStream {
   id: string
-  runId: String
-  integrationId: string
+  runId: string
+  tenantId: string
+  integrationId: string | null
+  microserviceId: string | null
   state: IntegrationStreamState
   name: string
   metadata: any
   processedAt: string | null
   error: any | null
+  retries: number | null
   createdAt: string
 }
 
 export interface DbIntegrationStreamCreateData {
   runId: string
-  integrationId: string
+  tenantId: string
+  integrationId?: string
+  microserviceId?: string
   name: string
   metadata: any
 }

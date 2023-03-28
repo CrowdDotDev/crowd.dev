@@ -4,6 +4,7 @@ import {
   IStepContext,
   IIntegrationStream,
   IProcessStreamResults,
+  IPendingStream,
 } from '../../../../types/integration/stepResult'
 import { IntegrationType, PlatformType } from '../../../../types/integrationEnums'
 import { IntegrationServiceBase } from '../integrationServiceBase'
@@ -64,7 +65,7 @@ export class StackOverlflowIntegrationService extends IntegrationServiceBase {
    * @param context context passed along worker messages
    * @returns an array of streams to process
    */
-  async getStreams(context: IStepContext): Promise<IIntegrationStream[]> {
+  async getStreams(context: IStepContext): Promise<IPendingStream[]> {
     const tagStreams = context.pipelineData.tags.map((tag: string) => ({
       value: `questions_by_tag:${tag}`,
       metadata: {
@@ -149,7 +150,7 @@ export class StackOverlflowIntegrationService extends IntegrationServiceBase {
     const lastRecord = activities.length > 0 ? activities[0] : undefined
 
     // If we got results, we will want to check the next page
-    const nextPageStream: IIntegrationStream =
+    const nextPageStream: IPendingStream =
       questions.length > 0 && hasMore
         ? { value: stream.value, metadata: { ...(stream.metadata || {}), page: page + 1 } }
         : undefined
@@ -219,7 +220,7 @@ export class StackOverlflowIntegrationService extends IntegrationServiceBase {
     const lastRecord = activities.length > 0 ? activities[0] : undefined
 
     // If we got results, we will want to check the next page
-    const nextPageStream: IIntegrationStream =
+    const nextPageStream: IPendingStream =
       answers.length > 0 && hasMore
         ? { value: stream.value, metadata: { ...(stream.metadata || {}), page: page + 1 } }
         : undefined
@@ -285,7 +286,7 @@ export class StackOverlflowIntegrationService extends IntegrationServiceBase {
     const lastRecord = activities.length > 0 ? activities[0] : undefined
 
     // If we got results, we will want to check the next page
-    const nextPageStream: IIntegrationStream =
+    const nextPageStream: IPendingStream =
       questions.length > 0 && hasMore
         ? { value: stream.value, metadata: { ...(stream.metadata || {}), page: page + 1 } }
         : undefined

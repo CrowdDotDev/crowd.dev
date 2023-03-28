@@ -3,6 +3,7 @@ import sanitizeHtml from 'sanitize-html'
 import { SLACK_CONFIG } from '../../../../config'
 import {
   IIntegrationStream,
+  IPendingStream,
   IProcessStreamResults,
   IStepContext,
   IStreamResultOperation,
@@ -85,7 +86,7 @@ export class SlackIntegrationService extends IntegrationServiceBase {
     await service.createPredefined(SlackMemberAttributes)
   }
 
-  async getStreams(context: IStepContext): Promise<IIntegrationStream[]> {
+  async getStreams(context: IStepContext): Promise<IPendingStream[]> {
     const streams = []
 
     if (context.onboarding) {
@@ -114,7 +115,7 @@ export class SlackIntegrationService extends IntegrationServiceBase {
 
     const operations: IStreamResultOperation[] = []
     let nextPage: string
-    let newStreams: IIntegrationStream[]
+    let newStreams: IPendingStream[]
     let lastRecord
 
     switch (stream.value) {
@@ -205,7 +206,7 @@ export class SlackIntegrationService extends IntegrationServiceBase {
         throw new Error(`Unknown stream value ${stream.value}!`)
     }
 
-    const nextPageStream: IIntegrationStream = nextPage
+    const nextPageStream: IPendingStream = nextPage
       ? { value: stream.value, metadata: { ...(stream.metadata || {}), page: nextPage } }
       : undefined
 
@@ -234,7 +235,7 @@ export class SlackIntegrationService extends IntegrationServiceBase {
     records: any[],
     stream: IIntegrationStream,
     context: IStepContext,
-  ): Promise<{ activities: AddActivitiesSingle[]; additionalStreams: IIntegrationStream[] }> {
+  ): Promise<{ activities: AddActivitiesSingle[]; additionalStreams: IPendingStream[] }> {
     switch (stream.value) {
       case 'members': {
         const members = await this.parseMembers(records, context)
@@ -361,8 +362,8 @@ export class SlackIntegrationService extends IntegrationServiceBase {
     records: SlackMessages,
     stream: IIntegrationStream,
     context: IStepContext,
-  ): Promise<{ activities: AddActivitiesSingle[]; additionalStreams: IIntegrationStream[] }> {
-    const newStreams: IIntegrationStream[] = []
+  ): Promise<{ activities: AddActivitiesSingle[]; additionalStreams: IPendingStream[] }> {
+    const newStreams: IPendingStream[] = []
     const activities: AddActivitiesSingle[] = []
 
     for (const record of records) {

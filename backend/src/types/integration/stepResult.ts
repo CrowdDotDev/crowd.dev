@@ -2,10 +2,17 @@ import { IRepositoryOptions } from '../../database/repositories/IRepositoryOptio
 import { IServiceOptions } from '../../services/IServiceOptions'
 import { Logger } from '../../utils/logging'
 
-export interface IIntegrationStream {
+export interface IPendingStream {
   value: string
   metadata?: any
-  id?: string
+}
+
+export interface IIntegrationStream extends IPendingStream {
+  id: string
+}
+
+export interface IFailedIntegrationStream extends IIntegrationStream {
+  retries: number
 }
 
 export interface IStreamResultOperation {
@@ -24,10 +31,10 @@ export interface IProcessStreamResults {
   lastRecordTimestamp?: number
 
   // if processing of the current stream results in new streams they should be returned here
-  newStreams?: IIntegrationStream[]
+  newStreams?: IPendingStream[]
 
   // if processing of the current stream results in the next page of the same stream it should be returned here
-  nextPageStream?: IIntegrationStream
+  nextPageStream?: IPendingStream
 
   // seconds to pause between continuing with integration processing for the remaining streams
   sleep?: number

@@ -28,12 +28,15 @@ export default class IntegrationStreamRepository extends RepositoryBase<
     const query = `
     select id,
           "runId",
+          "tenantId",
           "integrationId",
+          "microserviceId",
           state,
           name,
           metadata,
           "processedAt",
           error,
+          retries,
           "createdAt"
       from "integrationStreams" where id = :id;      
     `
@@ -61,14 +64,19 @@ export default class IntegrationStreamRepository extends RepositoryBase<
     const query = `
     select id,
           "runId",
+          "tenantId",
           "integrationId",
+          "microserviceId",
           state,
           name,
           metadata,
           "processedAt",
           error,
+          retries,
           "createdAt"
-      from "integrationStreams" where "runId" = :runId;      
+      from "integrationStreams" where "runId" = :runId
+      -- we are using uuid v1 so we can sort by it
+      order by "id";
     `
 
     const result = await seq.query(query, {
@@ -87,12 +95,12 @@ export default class IntegrationStreamRepository extends RepositoryBase<
 
     const seq = this.seq
 
-    const batches = lodash.chunk(data, 999)
+    const batches = lodash.chunk(data, 999) as DbIntegrationStreamCreateData[][]
 
     const results: IntegrationStream[] = []
 
     const query = `
-    insert into "integrationStreams"(id, "runId", "integrationId", state, name, metadata)
+    insert into "integrationStreams"(id, "runId", "tenantId", "integrationId", "microserviceId", state, name, metadata)
     values 
     `
 
@@ -104,14 +112,16 @@ export default class IntegrationStreamRepository extends RepositoryBase<
       for (const item of batch) {
         const id = uuidV1()
         values.push(
-          `(:id${i}, :runId${i}, :integrationId${i}, :state${i}, :name${i}, :metadata${i})`,
+          `(:id${i}, :runId${i}, :tenantId${i}, :integrationId${i}, :microserviceId${i}, :state${i}, :name${i}, :metadata${i})`,
         )
         replacements[`id${i}`] = id
         replacements[`runId${i}`] = item.runId
+        replacements[`tenantId${i}`] = item.tenantId
         replacements[`state${i}`] = IntegrationStreamState.PENDING
-        replacements[`integrationId${i}`] = item.integrationId
+        replacements[`integrationId${i}`] = item.integrationId || null
+        replacements[`microserviceId${i}`] = item.microserviceId || null
         replacements[`name${i}`] = item.name
-        replacements[`metadata${i}`] = item.metadata
+        replacements[`metadata${i}`] = JSON.stringify(item.metadata || {})
         i++
       }
 
@@ -135,13 +145,16 @@ export default class IntegrationStreamRepository extends RepositoryBase<
         results.push({
           id: replacements[`id${j}`],
           runId: item.runId,
+          tenantId: item.tenantId,
           state: IntegrationStreamState.PENDING,
           integrationId: item.integrationId,
+          microserviceId: item.microserviceId,
           name: item.name,
-          metadata: item.metadata,
+          metadata: item.metadata || {},
           createdAt,
           processedAt: null,
           error: null,
+          retries: null,
         })
       }
     }
@@ -157,8 +170,8 @@ export default class IntegrationStreamRepository extends RepositoryBase<
     const id = uuidV1()
 
     const query = `
-      insert into "integrationStreams"(id, "runId", "integrationId", state, name, metadata)
-      values(:id, :runId, :integrationId, :state, :name, :metadata)
+      insert into "integrationStreams"(id, "runId", "tenantId", "integrationId", "microserviceId", state, name, metadata)
+      values(:id, :runId, :tenantId, :integrationId, :microserviceId, :state, :name, :metadata)
       returning "createdAt";
     `
 
@@ -166,10 +179,12 @@ export default class IntegrationStreamRepository extends RepositoryBase<
       replacements: {
         id,
         runId: data.runId,
+        tenantId: data.tenantId,
         state: IntegrationStreamState.PENDING,
-        integrationId: data.integrationId,
+        integrationId: data.integrationId || null,
+        microserviceId: data.microserviceId || null,
         name: data.name,
-        metadata: data.metadata,
+        metadata: JSON.stringify(data.metadata || {}),
       },
       type: QueryTypes.SELECT,
       transaction,
@@ -182,13 +197,16 @@ export default class IntegrationStreamRepository extends RepositoryBase<
     return {
       id,
       runId: data.runId,
+      tenantId: data.tenantId,
       state: IntegrationStreamState.PENDING,
       integrationId: data.integrationId,
+      microserviceId: data.microserviceId,
       name: data.name,
-      metadata: data.metadata,
+      metadata: data.metadata || {},
       createdAt: (result[0] as any).createdAt,
       processedAt: null,
       error: null,
+      retries: null,
     }
   }
 
@@ -247,7 +265,7 @@ export default class IntegrationStreamRepository extends RepositoryBase<
     }
   }
 
-  async markError(id: string, error: any): Promise<void> {
+  async markError(id: string, error: any): Promise<number> {
     const transaction = this.transaction
 
     const seq = this.seq
@@ -257,23 +275,57 @@ export default class IntegrationStreamRepository extends RepositoryBase<
       set state = :state,
           "processedAt" = now(),
           error = :error,
+          retries = coalesce(retries, 0) + 1,
+          "updatedAt" = now()
+      where id = :id
+      returning retries;
+    `
+
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const result = await seq.query(query, {
+      replacements: {
+        id,
+        error: JSON.stringify(error),
+        state: IntegrationStreamState.ERROR,
+      },
+      type: QueryTypes.SELECT,
+      transaction,
+    })
+
+    if (result.length !== 1) {
+      throw new Error(`Expected 1 row to be updated, got ${result.length} rows instead.`)
+    }
+
+    return (result[0] as any).retries
+  }
+
+  async reset(id: string): Promise<void> {
+    const transaction = this.transaction
+
+    const seq = this.seq
+
+    const query = `
+      update "integrationStreams"
+      set state = :state,
+          "processedAt" = null,
+          error = null,
+          retries = null,
           "updatedAt" = now()
       where id = :id;
     `
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const [_, rowCount] = await seq.query(query, {
+    const [_, count] = await seq.query(query, {
       replacements: {
         id,
-        error,
-        state: IntegrationStreamState.ERROR,
+        state: IntegrationStreamState.PENDING,
       },
       type: QueryTypes.UPDATE,
       transaction,
     })
 
-    if (rowCount !== 1) {
-      throw new Error(`Expected 1 row to be updated, got ${rowCount} rows instead.`)
+    if (count !== 1) {
+      throw new Error(`Expected 1 row to be updated, got ${count} rows instead.`)
     }
   }
 }

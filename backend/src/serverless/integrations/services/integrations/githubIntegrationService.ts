@@ -5,6 +5,7 @@ import { Repo, Repos } from '../../types/regularTypes'
 import { IntegrationType, PlatformType } from '../../../../types/integrationEnums'
 import {
   IIntegrationStream,
+  IPendingStream,
   IProcessStreamResults,
   IProcessWebhookResults,
   IStepContext,
@@ -124,7 +125,7 @@ export class GithubIntegrationService extends IntegrationServiceBase {
     }
   }
 
-  async getStreams(context: IStepContext): Promise<IIntegrationStream[]> {
+  async getStreams(context: IStepContext): Promise<IPendingStream[]> {
     return context.pipelineData.repos.reduce((acc, repo) => {
       for (const endpoint of [
         GithubStreamType.STARGAZERS,
@@ -164,7 +165,7 @@ export class GithubIntegrationService extends IntegrationServiceBase {
     }
 
     let result
-    let newStreams: IIntegrationStream[]
+    let newStreams: IPendingStream[]
 
     switch (event) {
       case GithubStreamType.STARGAZERS:
