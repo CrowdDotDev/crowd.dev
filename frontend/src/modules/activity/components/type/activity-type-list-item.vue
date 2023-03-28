@@ -30,6 +30,7 @@
           class="text-sm leading-5"
           :class="{
             'py-2': !module,
+            'font-medium': module === 'reports',
           }"
         >
           <span v-if="platformDetails">{{

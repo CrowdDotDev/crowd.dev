@@ -98,7 +98,22 @@ import { TOTAL_MONTHLY_ACTIVE_CONTRIBUTORS } from '@/modules/widget/widget-queri
 import { chartOptions } from '@/modules/report/templates/template-report-charts';
 import { PRODUCT_COMMUNITY_FIT_REPORT } from '@/modules/report/templates/template-reports';
 
-const benchmarkChartOptions = chartOptions('bar', {
+const props = defineProps({
+  filters: {
+    type: Object,
+    default: null,
+  },
+  isPublicView: {
+    type: Boolean,
+    default: false,
+  },
+});
+
+const period = ref(SIX_MONTHS_PERIOD_FILTER);
+const granularity = ref(MONTHLY_GRANULARITY_FILTER);
+const average = ref(0);
+
+const benchmarkChartOptions = computed(() => chartOptions('bar', {
   clip: true,
   xTicks: false,
   xLines: false,
@@ -144,24 +159,38 @@ const benchmarkChartOptions = chartOptions('bar', {
       });
     },
     afterTickToLabelConversion: (axis) => {
+      const match = {
+        color: '#111827',
+        fontWeight: 500,
+      };
+      const unmatch = {
+        color: '#9CA3AF',
+        fontWeight: 400,
+      };
+
+      const getMatch = (min, max) => (average.value >= min && (!max || average.value <= max) ? match : unmatch);
+
       const labels = [
         { text: '' },
         {
           text: 'Early signals of Product-Community Fit (20-50)',
-          color: '#9CA3AF',
+          color: getMatch(20, 50).color,
+          fontWeight: getMatch(20, 50).fontWeight,
         },
         {
           text: 'Strong emerging signals of Product-Community Fit (51-100)',
-          color: '#9CA3AF',
+          color: getMatch(51, 100).color,
+          fontWeight: getMatch(51, 100).fontWeight,
         },
         {
           text: 'Great Product-Community Fit (101-200)',
-          color: '#111827',
-          fontWeight: 500,
+          color: getMatch(101, 200).color,
+          fontWeight: getMatch(101, 200).fontWeight,
         },
         {
           text: 'Scale beyond Product-Community Fit (200+)',
-          color: '#9CA3AF',
+          color: getMatch(201).color,
+          fontWeight: getMatch(201).fontWeight,
         },
       ];
 
@@ -203,22 +232,7 @@ const benchmarkChartOptions = chartOptions('bar', {
       },
     },
   },
-});
-
-const props = defineProps({
-  filters: {
-    type: Object,
-    default: null,
-  },
-  isPublicView: {
-    type: Boolean,
-    default: false,
-  },
-});
-
-const period = ref(SIX_MONTHS_PERIOD_FILTER);
-const granularity = ref(MONTHLY_GRANULARITY_FILTER);
-const average = ref(0);
+}));
 
 const { cubejsApi } = mapGetters('widget');
 
