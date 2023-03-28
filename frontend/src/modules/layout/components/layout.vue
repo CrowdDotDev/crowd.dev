@@ -283,7 +283,7 @@ export default {
         },
       };
       // eslint-disable-next-line global-require,import/no-unresolved
-      require('@formbricks/pmf');
+      // require('@formbricks/pmf');
     }
   },
 

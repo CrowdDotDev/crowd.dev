@@ -118,9 +118,7 @@
               />
               <p
                 class="text-2xs leading-4 text-gray-900 group-hover:text-brand-500 transition"
-              >
-                {{ member.displayName }}
-              </p>
+                v-html="$sanitize(member.displayName)" />
             </router-link>
           </div>
         </div>

@@ -35,9 +35,7 @@
       >
         <app-avatar :entity="member" size="sm" />
         <div class="flex flex-col">
-          <span class="font-medium text-xs text-gray-900">{{
-            member.displayName
-          }}</span>
+          <span class="font-medium text-xs text-gray-900" v-html="$sanitize(member.displayName)" />
           <span
             v-if="isDetailedView && showActiveDays"
             class="text-gray-500 text-2xs italic"
