@@ -11,8 +11,6 @@ create table "integrationRuns" (
 
     "processedAt"          timestamptz  null,
     error                  json         null,
-    "processedStreamCount" int          null,
-    "errorStreamCount"     int          null,
 
     "createdAt"            timestamptz  not null default now(),
     "updatedAt"            timestamptz  not null default now(),

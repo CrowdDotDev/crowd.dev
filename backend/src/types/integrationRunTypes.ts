@@ -15,7 +15,6 @@ export interface IntegrationRun {
   state: IntegrationRunState
   delayedUntil: string | null
   processedAt: string | null
-  streamCount: number | null
   error: any | null
   createdAt: string | null
 }

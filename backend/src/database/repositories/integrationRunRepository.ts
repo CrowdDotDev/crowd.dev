@@ -35,8 +35,6 @@ export default class IntegrationRunRepository extends RepositoryBase<
             "delayedUntil",
             "processedAt",
             error,
-            "processedStreamCount",
-            "errorStreamCount",
             "createdAt"  
       from "integrationRuns"
       where state = :delayedState and "delayedUntil" <= now()
@@ -95,8 +93,6 @@ export default class IntegrationRunRepository extends RepositoryBase<
             "delayedUntil",
             "processedAt",
             error,
-            "processedStreamCount",
-            "errorStreamCount",
             "createdAt"  
     from "integrationRuns"
     where state in (:delayedState, :processingState, :pendingState) and ${condition}
@@ -132,8 +128,6 @@ export default class IntegrationRunRepository extends RepositoryBase<
           "delayedUntil",
           "processedAt",
           error,
-          "processedStreamCount",
-          "errorStreamCount",
           "createdAt"          
       from "integrationRuns" where id = :id;      
     `
@@ -192,7 +186,6 @@ export default class IntegrationRunRepository extends RepositoryBase<
       state: data.state,
       delayedUntil: null,
       processedAt: null,
-      streamCount: null,
       error: null,
       createdAt: (result[0] as any).createdAt,
     }
@@ -236,8 +229,6 @@ export default class IntegrationRunRepository extends RepositoryBase<
         set state = :state,
             "delayedUntil" = null,
             "processedAt" = null,
-            "processedStreamCount" = null,
-            "errorStreamCount" = null,
             error = null,
             "updatedAt" = now()
       where id = :id
@@ -323,15 +314,7 @@ export default class IntegrationRunRepository extends RepositoryBase<
 
     const query = `
     update "integrationRuns"
-    set "processedStreamCount" = (select count(s.id)
-                                  from "integrationStreams" s
-                                  where s."runId" = :id
-                                    and s.state = :successStreamState),
-        "errorStreamCount"     = (select count(s.id)
-                                  from "integrationStreams" s
-                                  where s."runId" = :id
-                                    and s.state = :errorStreamState),
-        "processedAt"          = case
+    set "processedAt"          = case
                                      when (select count(s.id) =
                                                   (count(s.id) filter ( where s.state = :successStreamState ) +
                                                    count(s.id) filter (where s.state = :errorStreamState and s.retries >= :maxRetries))
@@ -363,7 +346,6 @@ export default class IntegrationRunRepository extends RepositoryBase<
         successStreamState: IntegrationStreamState.PROCESSED,
         errorStreamState: IntegrationStreamState.ERROR,
         successRunState: IntegrationRunState.PROCESSED,
-        processingRunState: IntegrationRunState.PROCESSING,
         errorRunState: IntegrationRunState.ERROR,
         maxRetries: 5,
       },
