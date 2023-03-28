@@ -2,6 +2,32 @@
 
 All notable changes to this project will be documented in this file.
 
+## v0.25.0 - 2023-03-28
+
+### Changes
+
+For the full changelog, see: https://changelog.crowd.dev
+
+#### 🚀 Features
+
+- Custom activity types and activity manual creation @gaspergrom (#666)
+
+#### ✨ Improvements
+
+- Migrated the frontend's ESLint to Airbnb, which fixed several bugs @gaspergrom (#687)
+- Improved the performance of the app while loading @joanagmaia (#663)
+- Added a worker to refresh sample data @joanreyero (#661)
+
+#### 🐞 Bug Fixes
+
+- Made limits more strict in Stack Overflow @garrrikkotua (#683)
+- Fixed emails not being exported in CSV exports @epipav (#682)
+- The frontend was sending duplicate queries to the backend. This is now fixed. @gaspergrom (#679)
+- Integration processing  can now last multiple days because of rate limits @themarolt (#677)
+- Fixed a bug in members' merge suggestions caused by members having multiple emails @epipav (#678)
+- Fix some frontend bugs caused by members having multiple emails  @joanagmaia (#674)
+- Fix end-to-end tests for a smoother CI @gaspergrom (#673)
+
 ## v0.24.0 - 2023-03-21
 
 ### Changes
@@ -167,7 +193,6 @@ Eagle Eye 2.0 also offers a new AI-powered feature that generates suggested repl
 https://user-images.githubusercontent.com/37874460/220165717-4204605a-260f-41cb-acca-1bdf5747f6aa.mp4
 - Eagle Eye 2.0 @epipav @joanagmaia @gaspergrom @nunoeufrasio @jonathimer @joanreyero (#495)
 #### Improvements
-
 - Moved the Discord integration to use web sockets for scalability. @themarolt (#486)
 - Add Formbricks Product-Market-Fit widget. @mattinannt (#467)
 
@@ -233,7 +258,6 @@ You can now get a detailed view of the members returned by widgets in default re
 - Fix a bug related to Discord's *joined guild* activity. @themarolt (#462)
 ## v0.17.0 - 2023-01-23
 ### Changes
-
 ### 🚀 Features
 
 #### LinkedIn integration
@@ -258,7 +282,6 @@ Introduction the LinkedIn integration! With it, you can bring the comments and r
 ## v0.16.0 - 2023-01-16
 ### Changes
 ### 🚀 Features
-
 #### Template reports
 
 Introducing our newest feature: Default Reports! These specially crafted reports are designed to give you a deep dive into the inner workings of your community. With absolutely no setup required on your end, you can now access valuable insights about your members, including a breakdown of your active members, a comparison of new vs returning active members, and a list of your top engaged members.
@@ -287,7 +310,6 @@ Our first external code contribution! @mattinannt and the [Formbricks](https://f
 - Fixed a bug in EagleEye that was causing exact keyword matching to crash @joanreyero (#416)
 ## v0.15.0 - 2023-01-09
 ### Changes
-
 ### Features
 
 #### Exact keyword matching for EagleEye
@@ -314,7 +336,6 @@ Forum channels are now supported as part of the Discord integration. We will get
 - Get GitHub user emails with GitHub app token instead of a user token. @themarolt (#389)
 ## v0.14.0 - 2023-01-02
 ### Changes
-
 ### 🚀 Features
 
 #### CSV exports
@@ -347,7 +368,6 @@ You can now export your community members as CSV. You can export all members or 
 #### Reddit integration
 The Reddit integration is finally here! It was one of the most wanted integrations, and we have delivered. You can now track the posts and comments in your community's subreddit.
 ![Reddit (2) (1)](https://user-images.githubusercontent.com/37874460/208475828-a1e62b3c-6196-48bb-a362-4281630107a0.png)
-
 - Reddit integration @mariobalca and @joanreyero (#351)
 
 #### Plan page
@@ -376,7 +396,6 @@ We are advancing in making premium plans possible. This week we introduced a *Pl
 #### Pricing and feature flagging
 We are getting ready to make pricing possible so we can continue building crowd.dev for you. This week we introduced our infrastructure for pricing. You can check the full pricing details on our [website](https://crowd.dev/pricing). All tenants have been set to a free trial of the growth plan, which lasts until the 15th of January. After that, you will need to get a subscription to access the growth features.
 With this, we have introduced feature flagging, so we can also roll out features gradually, with more testing and performance.
-
 - Integrate posthog in frontend @joanagmaia (#335)
 - Tenant plans and feature flagging @epipav (#318)
 
@@ -437,7 +456,6 @@ With the new tasks feature you can create tasks related to your community member
 <img width="700" alt="Tasks" src="https://user-images.githubusercontent.com/37874460/204589346-6172b211-76fc-427c-9be2-9f5859756088.png">
 #### Notes
 The notes module allows you to add notes to your community members. You can annotate your chats with the member and leave comments for your colleagues. Oh, and we support markdown!
-
 ### Bug fixes and improvements
 
 The feedback has been tremendous after our open-source launch! We have spent this month working on many bug fixes and improvements to make the app better every single day.
@@ -477,7 +495,6 @@ This version introduces breaking API changes. While the API has vastly improved 
 - Copy tweak in Dashboard @joanreyero (#63)
 - Fix SQL Alchemy not connecting in Kubernetes in Python @joanreyero (#72)
 ## v0.7.0 - 2022-09-16
-
 ### Changes
 
 ### 🚀 Features
@@ -504,7 +521,9 @@ This version introduces breaking API changes. While the API has vastly improved 
 - 
 - 
 - 
+- 
 - - When a new activity is created
+- 
 - 
 - 
 - 
