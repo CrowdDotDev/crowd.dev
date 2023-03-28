@@ -359,4 +359,16 @@ export default class IntegrationRunRepository extends RepositoryBase<
 
     return (result[0] as any).state
   }
+
+  async cleanupOldRuns(months: number): Promise<void> {
+    const seq = this.seq
+
+    const cleanQuery = `
+        delete from "integrationRuns" where state = 'processed' and "processedAt" < now() - interval '${months} months';                     
+    `
+
+    await seq.query(cleanQuery, {
+      type: QueryTypes.DELETE,
+    })
+  }
 }
