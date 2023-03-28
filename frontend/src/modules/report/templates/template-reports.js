@@ -13,9 +13,9 @@ export const MEMBERS_REPORT = {
 
 export const PRODUCT_COMMUNITY_FIT_REPORT = {
   nameAsId: 'Product-community fit report',
-  name: 'Product-community fit',
+  name: 'Product-Community Fit',
   description:
-    'Measure and benchmark product-community fit for your open-source project ',
+    'Measure and benchmark Product-Community Fit for your open-source project ',
   icon: 'ri-rocket-2-line rotate-45',
   color: 'bg-purple-500',
   filters: {

@@ -190,7 +190,7 @@ const list = ref([]);
 const count = ref(0);
 const pagination = ref({
   currentPage: 1,
-  pageSize: 10,
+  pageSize: 20,
 });
 
 // Create period options with selected property

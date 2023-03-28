@@ -61,7 +61,7 @@
         <span>Considering the contribution history of over
           150,000 open-source repositories, we come to the
           conclusion that you had
-          <span class="font-medium">Great Product-Community fit</span>{{
+          <span class="font-medium">Great Product-Community Fit</span>{{
             period.label === 'All time'
               ? ' since the beginning of your community.'
               : ` during the past ${pluralize(
@@ -147,20 +147,20 @@ const benchmarkChartOptions = chartOptions('bar', {
       const labels = [
         { text: '' },
         {
-          text: 'Early signals of Product-Community fit (20-50)',
+          text: 'Early signals of Product-Community Fit (20-50)',
           color: '#9CA3AF',
         },
         {
-          text: 'Strong emerging signals of Product-Community fit (51-100)',
+          text: 'Strong emerging signals of Product-Community Fit (51-100)',
           color: '#9CA3AF',
         },
         {
-          text: 'Great Product-Community fit (101-200)',
+          text: 'Great Product-Community Fit (101-200)',
           color: '#111827',
           fontWeight: 500,
         },
         {
-          text: 'Scale beyond Product-Community fit (200+)',
+          text: 'Scale beyond Product-Community Fit (200+)',
           color: '#9CA3AF',
         },
       ];
