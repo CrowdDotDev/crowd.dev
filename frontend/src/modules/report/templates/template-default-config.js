@@ -7,6 +7,7 @@ import { externalTooltipHandler } from '../tooltip';
 
 export const defaultChartConfig = {
   legend: true,
+  clip: false,
   xTicks: true,
   xLines: false,
   xTicksCallback: undefined,

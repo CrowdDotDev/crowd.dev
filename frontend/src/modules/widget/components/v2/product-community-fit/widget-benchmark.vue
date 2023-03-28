@@ -99,6 +99,7 @@ import { chartOptions } from '@/modules/report/templates/template-report-charts'
 import { PRODUCT_COMMUNITY_FIT_REPORT } from '@/modules/report/templates/template-reports';
 
 const benchmarkChartOptions = chartOptions('bar', {
+  clip: true,
   xTicks: false,
   xLines: false,
   xType: 'category',
