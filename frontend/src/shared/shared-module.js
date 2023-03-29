@@ -33,6 +33,7 @@ import FilterTypeSelect from '@/shared/filter/components/type/filter-type-select
 import FilterTypeSelectMulti from '@/shared/filter/components/type/filter-type-select-multi.vue';
 import FilterTypeSelectGroup from '@/shared/filter/components/type/filter-type-select-group.vue';
 import FilterTypeSelectAsync from '@/shared/filter/components/type/filter-type-select-async.vue';
+import FilterTypeSelectFilter from '@/shared/filter/components/type/filter-type-select-filter.vue';
 import FilterTypeKeywords from '@/shared/filter/components/type/filter-type-keywords.vue';
 import FilterTypeBoolean from '@/shared/filter/components/type/filter-type-boolean.vue';
 import FilterTypeNumber from '@/shared/filter/components/type/filter-type-number.vue';
@@ -81,6 +82,7 @@ export default {
     'app-filter-type-select-group': FilterTypeSelectGroup,
     'app-filter-type-keywords': FilterTypeKeywords,
     'app-filter-type-select-async': FilterTypeSelectAsync,
+    'app-filter-type-select-filter': FilterTypeSelectFilter,
     'app-filter-type-boolean': FilterTypeBoolean,
     'app-filter-type-number': FilterTypeNumber,
     'app-filter-type-string': FilterTypeString,

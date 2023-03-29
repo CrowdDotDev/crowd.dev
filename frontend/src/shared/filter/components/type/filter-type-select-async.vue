@@ -146,17 +146,20 @@ onMounted(async () => {
 });
 
 const handleOptionClick = (option) => {
-  model.value.push(option);
+  model.value = [...model.value, option];
+  query.value = '';
 };
 
 const remove = (index) => {
-  model.value.splice(index, 1);
+  model.value = [...model.value].filter((item, i) => index !== i);
 };
 const removeLastKeyword = () => {
   if (query.value && query.value !== '') {
     return;
   }
-  model.value.pop();
+  const arr = [...model.value];
+  arr.pop();
+  model.value = arr;
 };
 </script>
 
