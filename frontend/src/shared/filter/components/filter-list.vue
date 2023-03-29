@@ -78,9 +78,21 @@ const filters = computed(() => ({
   ...store.state[props.module].views[activeView.value.id]
     .filter.attributes,
 }));
-const filtersArray = computed(() => Object.values(filters.value).filter(
-  (a) => a.type !== 'search' && a.show !== false,
-));
+const filtersArray = computed(() => {
+  let list = Object.values(filters.value).filter(
+    (a) => a.type !== 'search' && a.show !== false,
+  );
+  list = list.map((p) => {
+    if (p.name === 'skills') {
+      return {
+        ...p,
+        type: 'select-filter',
+      };
+    }
+    return p;
+  });
+  return list;
+});
 
 const handleFilterChange = (attribute) => {
   store.dispatch(
