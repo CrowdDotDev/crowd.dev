@@ -130,6 +130,7 @@ function handleOptionClick(v) {
     store.dispatch(`${props.module}/addFilterAttribute`, {
       ...attribute.forFilter(),
       expanded: true,
+      custom: v.custom,
     });
   }
 }
