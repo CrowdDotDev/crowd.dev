@@ -78,9 +78,39 @@ const filters = computed(() => ({
   ...store.state[props.module].views[activeView.value.id]
     .filter.attributes,
 }));
-const filtersArray = computed(() => Object.values(filters.value).filter(
-  (a) => a.type !== 'search' && a.show !== false,
-));
+const filtersArray = computed(() => {
+  let list = Object.values(filters.value).filter(
+    (a) => a.type !== 'search' && a.show !== false,
+  );
+  list = list.map((p) => {
+    if (p.name === 'skills') {
+      return {
+        ...p,
+        type: 'select-async',
+        props: {
+          fetchFn: (query, limit) => {
+            const skills = [];
+            p.props.options.forEach((o) => {
+              if (skills.length >= limit) {
+                return;
+              }
+              if (o.value.includes(query)) {
+                skills.push({
+                  ...o,
+                  id: o.value,
+                  selected: false,
+                });
+              }
+            });
+            return skills;
+          },
+        },
+      };
+    }
+    return p;
+  });
+  return list;
+});
 
 const handleFilterChange = (attribute) => {
   store.dispatch(

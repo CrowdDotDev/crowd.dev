@@ -147,6 +147,7 @@ onMounted(async () => {
 
 const handleOptionClick = (option) => {
   model.value.push(option);
+  query.value = '';
 };
 
 const remove = (index) => {
