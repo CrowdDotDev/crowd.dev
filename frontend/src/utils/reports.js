@@ -111,9 +111,7 @@ export const parseTooltipBody = (context) => {
 
   return {
     difference,
-    growth: percDiff.toLocaleString('fullwide', {
-      maximumFractionDigits: 0,
-    }),
+    growth: Math.round(percDiff),
     previousDate,
   };
 };

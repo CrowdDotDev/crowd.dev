@@ -30,6 +30,9 @@ import {
   verticalHoverLinePlugin,
   updateTicksLabelsPositionPlugin,
 } from './chartkick-custom-plugins';
+import {
+  CustomLogarithmicScale,
+} from './chartkick-custom-scales';
 
 Chart.register(
   LineElement,
@@ -55,6 +58,7 @@ Chart.register(
   updateTicksLabelsPositionPlugin,
   backgroundChartPlugin,
   annotationPlugin,
+  CustomLogarithmicScale,
 );
 
 const createComponent = (app, tagName, ChartType) => {

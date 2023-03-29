@@ -18,7 +18,7 @@ import { externalTooltipHandler } from '@/modules/report/tooltip';
 
 const componentType = 'area-chart';
 
-const emit = defineEmits(['on-view-more-click']);
+const emit = defineEmits(['on-view-more-click', 'on-highest-number-calculation']);
 const props = defineProps({
   datasets: {
     type: Array,
@@ -42,7 +42,7 @@ const props = defineProps({
   },
 });
 
-const customChartOptions = cloneDeep(props.chartOptions);
+const customChartOptions = computed(() => cloneDeep(props.chartOptions));
 
 const dataset = ref({});
 const loading = computed(
@@ -111,9 +111,10 @@ const series = (resultSet) => {
       // Only show bottom and top grid lines by setting
       // the stepSize to be the maxValue
       if (props.isGridMinMax) {
-        customChartOptions.library.scales.y.ticks.stepSize = Math.max(...computedData.map((d) => d[1]));
+        customChartOptions.value.library.scales.y.ticks.stepSize = Math.max(...computedData.map((d) => d[1]));
       }
 
+      emit('on-highest-number-calculation', Math.max(...computedData.map((d) => d[1])));
       computedSeries.push({
         name: props.datasets[index].name,
         data: computedData,
@@ -152,14 +153,14 @@ const paintDataSet = () => {
   const canvas = document.querySelector(
     '.cube-widget-chart canvas',
   );
-  if (canvas && customChartOptions?.computeDataset) {
-    dataset.value = customChartOptions.computeDataset(canvas);
+  if (canvas && customChartOptions.value?.computeDataset) {
+    dataset.value = customChartOptions.value.computeDataset(canvas);
   }
 };
 // Customize external tooltip
 // Handle View more button click
 // Get dataPoint from tooltip and extract the date
-customChartOptions.library.plugins.tooltip.external = (
+customChartOptions.value.library.plugins.tooltip.external = (
   context,
 ) => externalTooltipHandler(context, () => {
   const point = context.tooltip.dataPoints.find(
