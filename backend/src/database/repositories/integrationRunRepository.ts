@@ -8,6 +8,7 @@ import {
 import { IntegrationStreamState } from '../../types/integrationStreamTypes'
 import { IRepositoryOptions } from './IRepositoryOptions'
 import { RepositoryBase } from './repositoryBase'
+import { INTEGRATION_PROCESSING_CONFIG } from '../../config'
 
 export default class IntegrationRunRepository extends RepositoryBase<
   IntegrationRun,
@@ -347,7 +348,7 @@ export default class IntegrationRunRepository extends RepositoryBase<
         errorStreamState: IntegrationStreamState.ERROR,
         successRunState: IntegrationRunState.PROCESSED,
         errorRunState: IntegrationRunState.ERROR,
-        maxRetries: 5,
+        maxRetries: INTEGRATION_PROCESSING_CONFIG.maxRetries,
       },
       type: QueryTypes.SELECT,
       transaction,
