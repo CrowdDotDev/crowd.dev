@@ -86,25 +86,7 @@ const filtersArray = computed(() => {
     if (p.name === 'skills') {
       return {
         ...p,
-        type: 'select-async',
-        props: {
-          fetchFn: (query, limit) => {
-            const skills = [];
-            p.props.options.forEach((o) => {
-              if (skills.length >= limit) {
-                return;
-              }
-              if (o.value.includes(query)) {
-                skills.push({
-                  ...o,
-                  id: o.value,
-                  selected: false,
-                });
-              }
-            });
-            return skills;
-          },
-        },
+        type: 'select-filter',
       };
     }
     return p;
