@@ -123,9 +123,7 @@
                         size="sm"
                         class="mr-2"
                       />
-                      <span class="font-semibold">{{
-                        scope.row.displayName
-                      }}</span>
+                      <span class="font-semibold" v-html="$sanitize(scope.row.displayName)" />
                       <app-member-sentiment
                         :member="scope.row"
                         class="ml-2"

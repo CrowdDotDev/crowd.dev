@@ -28,6 +28,7 @@ module.exports = {
     'vue/no-unused-components': 'warn',
     'vue/html-indent': 'warn',
     'vue/html-self-closing': 'warn',
+    'object-curly-spacing': 'warn',
     'vue/no-v-html': 'off',
     'no-unused-vars': 'off',
     'import/prefer-default-export': 'off',
