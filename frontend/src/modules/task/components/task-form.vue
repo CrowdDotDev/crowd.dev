@@ -108,9 +108,7 @@
                       avatar: item.avatar,
                     }"
                   />
-                  <p class="pl-2">
-                    {{ item.label }}
-                  </p>
+                  <p class="pl-2" v-html="$sanitize(item.label)" />
                 </div>
               </template>
             </app-autocomplete-many-input>

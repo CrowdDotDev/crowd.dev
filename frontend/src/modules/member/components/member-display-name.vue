@@ -12,7 +12,7 @@
           : null
       "
     >
-      {{ member.displayName }}
+      <span v-html="$sanitize(member.displayName)" />
     </component>
     <app-member-badge v-if="showBadge" :member="member" />
   </div>

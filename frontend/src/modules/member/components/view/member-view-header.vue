@@ -5,7 +5,7 @@
       <div class="flex grow flex-col gap-2">
         <div class="flex justify-between items-center">
           <div class="flex items-center h-fit">
-            <h5>{{ member.displayName }}</h5>
+            <h5 v-html="$sanitize(member.displayName)" />
             <app-member-badge
               :member="member"
               class="ml-2"

@@ -4,6 +4,7 @@
       trigger="click"
       placement="bottom-end"
       @visible-change="handleDropdownChange"
+      @command="handleOptionClick($event)"
     >
       <el-button
         class="filter-dropdown-trigger"
@@ -27,7 +28,7 @@
             v-for="item of computedAttributes"
             :key="item.name"
             :class="item.selected ? 'is-selected' : ''"
-            @click="handleOptionClick(item)"
+            :command="item"
           >
             <div class="flex items-center justify-between">
               <span class="block">{{ item.label }}</span>
@@ -47,7 +48,7 @@
             v-for="item of computedCustomAttributes"
             :key="item.name"
             :class="item.selected ? 'is-selected' : ''"
-            @click="handleOptionClick(item)"
+            :command="item"
           >
             {{ item.label }}
           </el-dropdown-item>
@@ -96,12 +97,14 @@ const computedAttributes = computed(() => props.attributes
   .filter((a) => queryFilterFunction(a, query.value))
   .map((a) => ({
     ...a,
+    forFilter: a.forFilter,
     selected: store.state[props.module].views[activeView.value.id]
       .filter.attributes[a.name] !== undefined
       && store.state[props.module].views[activeView.value.id]
         .filter.attributes[a.name].show !== false,
   }))
   .sort((a, b) => Intl.Collator().compare(a.label, b.label)));
+
 const computedCustomAttributes = computed(() => props.customAttributes
   .filter((a) => queryFilterFunction(a, query.value))
   .map((a) => ({
@@ -119,12 +122,13 @@ function handleDropdownChange(value) {
   }
 }
 function handleOptionClick(v) {
+  const attribute = [...props.attributes, ...props.customAttributes].find((att) => att.name === v.name);
   if (
     store.state[props.module].views[activeView.value.id]
       .filter[v.name] === undefined
   ) {
     store.dispatch(`${props.module}/addFilterAttribute`, {
-      ...v.forFilter(),
+      ...attribute.forFilter(),
       expanded: true,
     });
   }
