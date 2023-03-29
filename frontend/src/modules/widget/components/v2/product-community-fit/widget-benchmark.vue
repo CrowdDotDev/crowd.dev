@@ -12,8 +12,10 @@
             :class="{ 'mb-8': !loading && !error }"
           >
             <div class="flex gap-1">
-              <!-- TODO: Add description when available -->
-              <app-widget-title title="Benchmark" />
+              <app-widget-title
+                title="Benchmark"
+                description="Compare your community with the contribution history of over 150,000 open-source repositories"
+              />
             </div>
 
             <app-widget-period
