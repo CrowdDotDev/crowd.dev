@@ -4,23 +4,27 @@
   >
     <template #loading>
       <div class="pb-3">
-        <app-loading height="8px"></app-loading>
+        <app-loading height="8px" />
       </div>
       <div class="flex justify-between pb-2">
-        <p class="text-sm font-medium">Positive</p>
+        <p class="text-sm font-medium">
+          Positive
+        </p>
         <app-loading
           class="py-1"
           height="12px"
           width="40px"
-        ></app-loading>
+        />
       </div>
       <div class="flex justify-between pb-2">
-        <p class="text-sm font-medium">Negative</p>
+        <p class="text-sm font-medium">
+          Negative
+        </p>
         <app-loading
           class="py-1"
           height="12px"
           width="40px"
-        ></app-loading>
+        />
       </div>
     </template>
     <template #default="{ resultSet }">
@@ -32,16 +36,16 @@
               :key="data.type"
               class="h-2 border-x-2 border-white rounded-lg transition cursor-pointer"
               :style="{
-                width: `${calculatePercentage(data.count)}%`
+                width: `${calculatePercentage(data.count)}%`,
               }"
               :class="[
                 hoverSentimentClass(data.type),
-                typeClasses[data.type]
+                typeClasses[data.type],
               ]"
               @mouseover="hoveredSentiment = data.type"
               @mouseleave="hoveredSentiment = ''"
               @click="handleSentimentClick(data.type)"
-            ></div>
+            />
           </div>
           <div>
             <div
@@ -56,7 +60,7 @@
               <i
                 class="text-lg mr-2 flex items-center h-5"
                 :class="typeEmoji[data.type]"
-              ></i>
+              />
               <p
                 class="text-sm font-medium capitalize pr-2"
               >
@@ -82,15 +86,16 @@
 </template>
 
 <script>
-import { mapGetters } from 'vuex'
-import { sentimentQuery } from '@/modules/dashboard/dashboard.cube'
-import AppCubeRender from '@/shared/cube/cube-render'
-import AppLoading from '@/shared/loading/loading-placeholder'
+import { mapGetters } from 'vuex';
+import { sentimentQuery } from '@/modules/dashboard/dashboard.cube';
+import AppCubeRender from '@/shared/cube/cube-render.vue';
+import AppLoading from '@/shared/loading/loading-placeholder.vue';
+
 export default {
   name: 'AppDashboardActivitySentiment',
   components: {
     AppLoading,
-    AppCubeRender
+    AppCubeRender,
   },
   data() {
     return {
@@ -100,76 +105,74 @@ export default {
       typeClasses: {
         positive: 'bg-green-500',
         negative: 'bg-red-500',
-        neutral: 'bg-gray-300'
+        neutral: 'bg-gray-300',
       },
       typeEmoji: {
         positive: 'ri-emotion-happy-line text-green-500',
         negative: 'ri-emotion-unhappy-line text-red-500',
-        neutral: 'ri-emotion-normal-line text-gray-400'
-      }
-    }
+        neutral: 'ri-emotion-normal-line text-gray-400',
+      },
+    };
   },
   computed: {
-    ...mapGetters('dashboard', ['period', 'platform'])
+    ...mapGetters('dashboard', ['period', 'platform']),
   },
   methods: {
     calculatePercentage(count) {
-      return Math.round((count / this.total) * 100)
+      return Math.round((count / this.total) * 100);
     },
     hoverSentimentClass(type) {
-      return this.hoveredSentiment !== type &&
-        this.hoveredSentiment !== ''
+      return this.hoveredSentiment !== type
+        && this.hoveredSentiment !== ''
         ? 'opacity-50'
-        : ''
+        : '';
     },
     loadingData(resultSet) {
       return (
         !resultSet || resultSet.loadResponse === undefined
-      )
+      );
     },
     noData(resultSet) {
-      return this.loadingData(resultSet) && this.total === 0
+      return this.loadingData(resultSet) && this.total === 0;
     },
     compileData(resultSet) {
-      const seriesNames = resultSet.seriesNames()
-      const pivot = resultSet.chartPivot()
-      let series = []
+      const seriesNames = resultSet.seriesNames();
+      const pivot = resultSet.chartPivot();
+      let series = [];
       seriesNames.forEach((e) => {
-        const data = pivot.map((p) => [p['x'], p[e.key]])
-        series = [...series, ...data]
-      })
+        const data = pivot.map((p) => [p.x, p[e.key]]);
+        series = [...series, ...data];
+      });
       const seriesObject = series.reduce(
         (a, [key, value]) => ({
           ...a,
-          [key]: value
+          [key]: value,
         }),
-        {}
-      )
+        {},
+      );
       const result = {
-        positive: seriesObject['positive'] || 0,
-        negative: seriesObject['negative'] || 0,
-        neutral: seriesObject['neutral'] || 0
-      }
+        positive: seriesObject.positive || 0,
+        negative: seriesObject.negative || 0,
+        neutral: seriesObject.neutral || 0,
+      };
       const finalResult = Object.entries(result)
         .sort(([, a], [, b]) => b - a)
         .map(([type, count]) => ({
           type,
-          count
+          count,
         }))
-        .filter(({ count }) => count > 0)
+        .filter(({ count }) => count > 0);
 
-      this.total = finalResult.reduce((a, b) => {
-        return a + b.count
-      }, 0)
+      this.total = finalResult.reduce((a, b) => a + b.count, 0);
 
-      return finalResult
+      return finalResult;
     },
     handleSentimentClick(sentiment) {
       this.$router.push({
         name: 'activity',
-        query: { sentiment }
-      })
-    }
-  }
-}
+        query: { sentiment },
+      });
+    },
+  },
+};
 </script>

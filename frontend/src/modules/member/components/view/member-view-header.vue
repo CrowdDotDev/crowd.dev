@@ -5,7 +5,7 @@
       <div class="flex grow flex-col gap-2">
         <div class="flex justify-between items-center">
           <div class="flex items-center h-fit">
-            <h5>{{ member.displayName }}</h5>
+            <h5 v-html="$sanitize(member.displayName)" />
             <app-member-badge
               :member="member"
               class="ml-2"
@@ -41,7 +41,7 @@
           {{
             formattedInformation(
               member.activityCount,
-              'number'
+              'number',
             )
           }}
         </p>
@@ -54,7 +54,7 @@
           {{
             formattedInformation(
               member.attributes.location?.default,
-              'string'
+              'string',
             )
           }}
         </p>
@@ -85,7 +85,7 @@
           {{
             formattedInformation(
               member.lastActivity?.timestamp,
-              'relative'
+              'relative',
             )
           }}
         </p>
@@ -102,65 +102,64 @@
   </div>
 </template>
 
-<script>
-export default {
-  name: 'AppMemberViewHeader'
-}
-</script>
-
 <script setup>
-import { defineProps } from 'vue'
-import moment from 'moment/moment'
-import AppMemberReach from '@/modules/member/components/member-reach'
-import AppMemberSentiment from '@/modules/member/components/member-sentiment'
-import AppMemberEngagementLevel from '@/modules/member/components/member-engagement-level'
-import AppMemberDropdown from '@/modules/member/components/member-dropdown'
-import AppMemberBadge from '@/modules/member/components/member-badge'
-import AppMemberOrganizations from '@/modules/member/components/member-organizations.vue'
-import AppTags from '@/modules/tag/components/tag-list'
-import AppMemberBio from '@/modules/member/components/member-bio'
+import { defineProps } from 'vue';
+import moment from 'moment/moment';
+import AppMemberOrganizations from '@/modules/member/components/member-organizations.vue';
 import {
   formatNumberToCompact,
-  formatNumber
-} from '@/utils/number'
-import { formatDateToTimeAgo } from '@/utils/date'
-import { formatDate } from '@/utils/date'
+  formatNumber,
+} from '@/utils/number';
+import { formatDateToTimeAgo, formatDate } from '@/utils/date';
+import AppMemberReach from '@/modules/member/components/member-reach.vue';
+import AppMemberSentiment from '@/modules/member/components/member-sentiment.vue';
+import AppMemberEngagementLevel from '@/modules/member/components/member-engagement-level.vue';
+import AppMemberDropdown from '@/modules/member/components/member-dropdown.vue';
+import AppMemberBadge from '@/modules/member/components/member-badge.vue';
+import AppTags from '@/modules/tag/components/tag-list.vue';
+import AppMemberBio from '@/modules/member/components/member-bio.vue';
 
 defineProps({
   member: {
     type: Object,
-    default: () => {}
-  }
-})
+    default: () => {},
+  },
+});
 
 const formattedInformation = (value, type) => {
   // Show dash for empty information
   if (
-    value === undefined ||
-    value === null ||
-    value === -1 ||
+    value === undefined
+    || value === null
+    || value === -1
     // If the timestamp is 1970, we show "-"
-    (type === 'date' &&
-      moment(value).isBefore(
-        moment().subtract(40, 'years')
+    || (type === 'date'
+      && moment(value).isBefore(
+        moment().subtract(40, 'years'),
       ))
   ) {
-    return '-'
+    return '-';
   }
 
   // Render inforamation depending on type
   if (type === 'date') {
-    return formatDate({ timestamp: value })
-  } else if (type === 'number') {
-    return formatNumber(value)
-  } else if (type === 'relative') {
-    return formatDateToTimeAgo(value)
-  } else if (type === 'compact') {
-    return formatNumberToCompact(value)
+    return formatDate({ timestamp: value });
+  } if (type === 'number') {
+    return formatNumber(value);
+  } if (type === 'relative') {
+    return formatDateToTimeAgo(value);
+  } if (type === 'compact') {
+    return formatNumberToCompact(value);
   }
 
-  return value
-}
+  return value;
+};
+</script>
+
+<script>
+export default {
+  name: 'AppMemberViewHeader',
+};
 </script>
 
 <style lang="scss">

@@ -3,20 +3,20 @@ export default {
   props: {
     chartType: {
       type: String,
-      default: null
+      default: null,
     },
     query: {
       type: Object,
-      default: () => {}
+      default: () => {},
     },
     modelChartType: {
       type: String,
-      default: null
+      default: null,
     },
     modelQuery: {
       type: Object,
-      default: () => {}
-    }
+      default: () => {},
+    },
   },
 
   emits: ['update:modelChartType', 'update:modelQuery'],
@@ -24,8 +24,8 @@ export default {
   data() {
     return {
       localQuery: {},
-      localCharType: null
-    }
+      localCharType: null,
+    };
   },
 
   watch: {
@@ -33,37 +33,37 @@ export default {
       immediate: true,
       deep: true,
       handler(newValue) {
-        this.updateChartType(newValue)
-      }
+        this.updateChartType(newValue);
+      },
     },
     query: {
       immediate: true,
       deep: true,
       handler(newValue) {
-        this.updateQueryProp(newValue)
-      }
-    }
+        this.updateQueryProp(newValue);
+      },
+    },
   },
 
   methods: {
     updateChartType(value) {
       if (value) {
-        this.localCharType = value
+        this.localCharType = value;
         this.$emit(
           'update:modelChartType',
-          this.localCharType
-        )
+          this.localCharType,
+        );
       }
     },
     updateQueryProp(value) {
       if (value) {
-        this.localQuery = value
+        this.localQuery = value;
         this.$emit(
           'update:modelQuery',
-          JSON.parse(JSON.stringify(this.localQuery))
-        )
+          JSON.parse(JSON.stringify(this.localQuery)),
+        );
       }
-    }
-  }
-}
+    },
+  },
+};
 </script>

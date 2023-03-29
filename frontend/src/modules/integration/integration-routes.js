@@ -1,10 +1,9 @@
-import Layout from '@/modules/layout/components/layout.vue'
-import Permissions from '@/security/permissions'
+import Layout from '@/modules/layout/components/layout.vue';
+import Permissions from '@/security/permissions';
 
-const IntegrationListPage = () =>
-  import(
-    '@/modules/integration/components/integration-list-page.vue'
-  )
+const IntegrationListPage = () => import(
+  '@/modules/integration/components/integration-list-page.vue'
+);
 
 export default [
   {
@@ -19,9 +18,9 @@ export default [
         component: IntegrationListPage,
         meta: {
           auth: true,
-          permission: Permissions.values.integrationRead
-        }
-      }
-    ]
-  }
-]
+          permission: Permissions.values.integrationRead,
+        },
+      },
+    ],
+  },
+];

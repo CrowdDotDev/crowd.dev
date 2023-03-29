@@ -1,8 +1,8 @@
-import authAxios from '@/shared/axios/auth-axios'
-import { AuthToken } from '@/modules/auth/auth-token'
-import AuthCurrentTenant from '@/modules/auth/auth-current-tenant'
-import AuthInvitationToken from '@/modules/auth/auth-invitation-token'
-import { tenantSubdomain } from '@/modules/tenant/tenant-subdomain'
+import authAxios from '@/shared/axios/auth-axios';
+import { AuthToken } from '@/modules/auth/auth-token';
+import AuthCurrentTenant from '@/modules/auth/auth-current-tenant';
+import AuthInvitationToken from '@/modules/auth/auth-invitation-token';
+import { tenantSubdomain } from '@/modules/tenant/tenant-subdomain';
 
 export class AuthService {
   static sendEmailVerification() {
@@ -10,11 +10,9 @@ export class AuthService {
       .post('/auth/send-email-address-verification-email', {
         tenantId: tenantSubdomain.isSubdomain
           ? AuthCurrentTenant.get()
-          : undefined
+          : undefined,
       })
-      .then((response) => {
-        return response.data
-      })
+      .then((response) => response.data);
   }
 
   static sendPasswordResetEmail(email) {
@@ -23,19 +21,17 @@ export class AuthService {
         email,
         tenantId: tenantSubdomain.isSubdomain
           ? AuthCurrentTenant.get()
-          : undefined
+          : undefined,
       })
-      .then((response) => {
-        return response.data
-      })
+      .then((response) => response.data);
   }
 
   static registerWithEmailAndPassword(
     email,
     password,
-    data = {}
+    data = {},
   ) {
-    const invitationToken = AuthInvitationToken.get()
+    const invitationToken = AuthInvitationToken.get();
 
     return authAxios
       .post('/auth/sign-up', {
@@ -45,17 +41,17 @@ export class AuthService {
         ...data,
         tenantId: tenantSubdomain.isSubdomain
           ? AuthCurrentTenant.get()
-          : undefined
+          : undefined,
       })
       .then((response) => {
-        AuthInvitationToken.clear()
+        AuthInvitationToken.clear();
 
-        return response.data
-      })
+        return response.data;
+      });
   }
 
   static signinWithEmailAndPassword(email, password) {
-    const invitationToken = AuthInvitationToken.get()
+    const invitationToken = AuthInvitationToken.get();
 
     return authAxios
       .post('/auth/sign-in', {
@@ -64,44 +60,38 @@ export class AuthService {
         invitationToken,
         tenantId: tenantSubdomain.isSubdomain
           ? AuthCurrentTenant.get()
-          : undefined
+          : undefined,
       })
       .then((response) => {
-        AuthInvitationToken.clear()
+        AuthInvitationToken.clear();
 
-        return response.data
-      })
+        return response.data;
+      });
   }
 
   static fetchMe() {
-    return authAxios.get('/auth/me').then((response) => {
-      return response.data
-    })
+    return authAxios.get('/auth/me').then((response) => response.data);
   }
 
   static signout() {
-    AuthToken.set(null, true)
+    AuthToken.set(null, true);
   }
 
   static updateProfile(data) {
     return authAxios
       .put('/auth/profile', data)
-      .then((response) => {
-        return response.data
-      })
+      .then((response) => response.data);
   }
 
   static changePassword(oldPassword, newPassword) {
     const body = {
       oldPassword,
-      newPassword
-    }
+      newPassword,
+    };
 
     return authAxios
       .put('/auth/change-password', body)
-      .then((response) => {
-        return response.data
-      })
+      .then((response) => response.data);
   }
 
   static passwordReset(token, password) {
@@ -111,11 +101,9 @@ export class AuthService {
         password,
         tenantId: tenantSubdomain.isSubdomain
           ? AuthCurrentTenant.get()
-          : undefined
+          : undefined,
       })
-      .then((response) => {
-        return response.data
-      })
+      .then((response) => response.data);
   }
 
   static verifyEmail(token) {
@@ -124,34 +112,32 @@ export class AuthService {
         token,
         tenantId: tenantSubdomain.isSubdomain
           ? AuthCurrentTenant.get()
-          : undefined
+          : undefined,
       })
-      .then((response) => {
-        return response.data
-      })
+      .then((response) => response.data);
   }
 
   static socialOnboard() {
-    const invitationToken = AuthInvitationToken.get()
+    const invitationToken = AuthInvitationToken.get();
 
     return authAxios
       .post('/auth/social/onboard', {
         invitationToken,
         tenantId: tenantSubdomain.isSubdomain
           ? AuthCurrentTenant.get()
-          : undefined
+          : undefined,
       })
       .then((response) => {
-        AuthInvitationToken.clear()
-        return response.data
-      })
+        AuthInvitationToken.clear();
+        return response.data;
+      });
   }
 
   static isSocialOnboardRequested() {
     const urlParams = new URLSearchParams(
-      window.location.search
-    )
+      window.location.search,
+    );
 
-    return Boolean(urlParams.get('social'))
+    return Boolean(urlParams.get('social'));
   }
 }

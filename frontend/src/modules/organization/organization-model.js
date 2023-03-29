@@ -1,99 +1,99 @@
-import { i18n, init as i18nInit } from '@/i18n'
-import IdField from '@/shared/fields/id-field'
-import { GenericModel } from '@/shared/model/generic-model'
-import DateTimeField from '@/shared/fields/date-time-field'
-import StringField from '@/shared/fields/string-field'
-import OrganizationMemberCountField from '@/modules/organization/organization-member-count-field'
-import SearchField from '@/shared/fields/search-field'
-import OrganizationPlatformField from './organization-platform-field'
-import OrganizationEmployeesField from './organization-employees-field'
-import JsonField from '@/shared/fields/json-field'
-import StringArrayField from '@/shared/fields/string-array-field'
-import IntegerField from '@/shared/fields/integer-field'
+import { i18n, init as i18nInit } from '@/i18n';
+import IdField from '@/shared/fields/id-field';
+import { GenericModel } from '@/shared/model/generic-model';
+import DateTimeField from '@/shared/fields/date-time-field';
+import StringField from '@/shared/fields/string-field';
+import OrganizationMemberCountField from '@/modules/organization/organization-member-count-field';
+import SearchField from '@/shared/fields/search-field';
+import JsonField from '@/shared/fields/json-field';
+import StringArrayField from '@/shared/fields/string-array-field';
+import IntegerField from '@/shared/fields/integer-field';
+import OrganizationEmployeesField from './organization-employees-field';
+import OrganizationPlatformField from './organization-platform-field';
 
 function label(name) {
-  return i18n(`entities.organization.fields.${name}`)
+  return i18n(`entities.organization.fields.${name}`);
 }
 
-i18nInit()
+i18nInit();
 
 const fields = {
   id: new IdField('id', label('id')),
   name: new StringField('name', label('name'), {
-    required: true
+    required: true,
   }),
   description: new StringField(
     'description',
-    label('description')
+    label('description'),
   ),
   url: new StringField('url', label('url')),
   website: new StringField('website', label('website')),
   location: new StringField('location', label('location')),
   createdAt: new DateTimeField(
     'createdAt',
-    label('createdAt')
+    label('createdAt'),
   ),
   updatedAt: new DateTimeField(
     'updatedAt',
-    label('updatedAt')
+    label('updatedAt'),
   ),
   members: new OrganizationMemberCountField(
     'memberCount',
     '# of members',
-    { filterable: true }
+    { filterable: true },
   ),
   employees: new OrganizationEmployeesField(
     'employees',
-    '# of employees'
+    '# of employees',
   ),
   activityCount: new IntegerField(
     'activityCount',
     '# of activities',
     {
-      filterable: true
-    }
+      filterable: true,
+    },
   ),
   lastActive: new DateTimeField(
     'lastActive',
     'Last activity date',
     {
-      filterable: true
-    }
+      filterable: true,
+    },
   ),
   revenueRange: new JsonField(
     'revenueRange',
-    label('revenueRange')
+    label('revenueRange'),
   ),
   joinedAt: new DateTimeField('joinedAt', 'Joined date', {
-    filterable: true
+    filterable: true,
   }),
   activeOn: new OrganizationPlatformField(
     'activeOn',
     'Active on',
-    { filterable: true }
+    { filterable: true },
   ),
   github: new JsonField('github', label('github')),
   twitter: new JsonField('twitter', label('twitter')),
   linkedin: new JsonField('linkedin', label('linkedin')),
   crunchbase: new JsonField(
     'crunchbase',
-    label('crunchbase')
+    label('crunchbase'),
   ),
   emails: new StringArrayField('emails', 'E-mail address'),
   phoneNumbers: new StringArrayField(
     'phoneNumbers',
-    'Phone number'
+    'Phone number',
   ),
 
   // This field is just for filtering/searching
   // TODO: Confirm what else can be searchable
   search: new SearchField('search', label('search'), {
-    fields: ['name']
-  })
-}
+    fields: ['name'],
+  }),
+};
 
 export class OrganizationModel extends GenericModel {
   static get fields() {
-    return fields
+    return fields;
   }
 }

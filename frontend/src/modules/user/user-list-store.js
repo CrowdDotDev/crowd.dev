@@ -1,30 +1,28 @@
-import { UserService } from '@/modules/user/user-service'
-import userListExporterFields from '@/modules/user/user-list-exporter-fields'
-import { i18n } from '@/i18n'
-import Errors from '@/shared/error/errors'
-import Exporter from '@/shared/exporter/exporter'
+import { UserService } from '@/modules/user/user-service';
+import userListExporterFields from '@/modules/user/user-list-exporter-fields';
+import { i18n } from '@/i18n';
+import Errors from '@/shared/error/errors';
+import Exporter from '@/shared/exporter/exporter';
 
-const INITIAL_PAGE_SIZE = 20
+const INITIAL_PAGE_SIZE = 20;
 
 export default {
   namespaced: true,
 
-  state: () => {
-    return {
-      rows: [],
-      count: 0,
-      loading: false,
-      filter: {},
-      rawFilter: {},
-      pagination: {
-        currentPage: 1,
-        pageSize: INITIAL_PAGE_SIZE
-      },
-      sorter: {},
+  state: () => ({
+    rows: [],
+    count: 0,
+    loading: false,
+    filter: {},
+    rawFilter: {},
+    pagination: {
+      currentPage: 1,
+      pageSize: INITIAL_PAGE_SIZE,
+    },
+    sorter: {},
 
-      table: null
-    }
-  },
+    table: null,
+  }),
 
   getters: {
     loading: (state) => state.loading,
@@ -38,20 +36,19 @@ export default {
     hasRows: (state, getters) => getters.count > 0,
 
     orderBy: (state) => {
-      const sorter = state.sorter
+      const { sorter } = state;
 
       if (!sorter) {
-        return null
+        return null;
       }
 
       if (!sorter.prop) {
-        return null
+        return null;
       }
 
-      let direction =
-        sorter.order === 'descending' ? 'DESC' : 'ASC'
+      const direction = sorter.order === 'descending' ? 'DESC' : 'ASC';
 
-      return `${sorter.prop}_${direction}`
+      return `${sorter.prop}_${direction}`;
     },
 
     filter: (state) => state.filter,
@@ -59,239 +56,232 @@ export default {
     rawFilter: (state) => state.rawFilter,
 
     limit: (state) => {
-      const pagination = state.pagination
+      const { pagination } = state;
 
       if (!pagination || !pagination.pageSize) {
-        return INITIAL_PAGE_SIZE
+        return INITIAL_PAGE_SIZE;
       }
 
-      return pagination.pageSize
+      return pagination.pageSize;
     },
 
     offset: (state) => {
-      const pagination = state.pagination
+      const { pagination } = state;
 
       if (!pagination || !pagination.pageSize) {
-        return 0
+        return 0;
       }
 
-      const currentPage = pagination.currentPage || 1
+      const currentPage = pagination.currentPage || 1;
 
-      return (currentPage - 1) * pagination.pageSize
+      return (currentPage - 1) * pagination.pageSize;
     },
 
-    pagination: (state, getters) => {
-      return {
-        ...state.pagination,
-        total: getters.count,
-        showSizeChanger: true
-      }
-    },
+    pagination: (state, getters) => ({
+      ...state.pagination,
+      total: getters.count,
+      showSizeChanger: true,
+    }),
 
-    selectedRows: (state) => {
-      return state.table
-        ? state.table.getSelectionRows()
-        : []
-    }
+    selectedRows: (state) => (state.table
+      ? state.table.getSelectionRows()
+      : []),
   },
 
   mutations: {
     RESETED(state) {
-      state.rows = []
-      state.count = 0
-      state.loading = false
-      state.filter = {}
-      state.rawFilter = {}
-      state.pagination = {}
-      state.sorter = {}
+      state.rows = [];
+      state.count = 0;
+      state.loading = false;
+      state.filter = {};
+      state.rawFilter = {};
+      state.pagination = {};
+      state.sorter = {};
       if (state.table) {
-        state.table.clearSelection()
+        state.table.clearSelection();
       }
     },
 
     UNSELECT_ALL(state) {
       if (state.table) {
-        state.table.clearSelection()
+        state.table.clearSelection();
       }
     },
 
     TABLE_MOUNTED(state, payload) {
-      state.table = payload
+      state.table = payload;
     },
 
     PAGINATION_CHANGED(state, payload) {
-      state.pagination = payload || {}
+      state.pagination = payload || {};
     },
 
     PAGINATION_CURRENT_PAGE_CHANGED(state, payload) {
-      const previousPagination = state.pagination || {}
+      const previousPagination = state.pagination || {};
 
       state.pagination = {
         currentPage: payload || 1,
         pageSize:
-          previousPagination.pageSize || INITIAL_PAGE_SIZE
-      }
+          previousPagination.pageSize || INITIAL_PAGE_SIZE,
+      };
     },
 
     PAGINATION_PAGE_SIZE_CHANGED(state, payload) {
-      const previousPagination = state.pagination || {}
+      const previousPagination = state.pagination || {};
 
       state.pagination = {
         currentPage: previousPagination.currentPage || 1,
-        pageSize: payload || INITIAL_PAGE_SIZE
-      }
+        pageSize: payload || INITIAL_PAGE_SIZE,
+      };
     },
 
     SORTER_CHANGED(state, payload) {
-      state.sorter = payload || {}
+      state.sorter = payload || {};
     },
 
     FETCH_STARTED(state, payload) {
-      state.loading = true
+      state.loading = true;
 
       if (state.table) {
-        state.table.clearSelection()
+        state.table.clearSelection();
       }
 
-      state.rawFilter =
-        payload && state.rawFilter ? state.rawFilter : {}
-      state.filter =
-        payload && payload.filter ? payload.filter : {}
-      state.pagination =
-        payload && payload.keepPagination
-          ? state.pagination
-          : {
-              pageSize:
-                state.pagination &&
-                state.pagination.pageSize
-            }
+      state.rawFilter = payload && state.rawFilter ? state.rawFilter : {};
+      state.filter = payload && payload.filter ? payload.filter : {};
+      state.pagination = payload && payload.keepPagination
+        ? state.pagination
+        : {
+          pageSize:
+                state.pagination
+                && state.pagination.pageSize,
+        };
     },
 
     FETCH_SUCCESS(state, payload) {
-      state.loading = false
-      state.rows = payload.rows
-      state.count = payload.count
+      state.loading = false;
+      state.rows = payload.rows;
+      state.count = payload.count;
     },
 
     FETCH_ERROR(state) {
-      state.loading = false
-      state.rows = []
-      state.count = 0
+      state.loading = false;
+      state.rows = [];
+      state.count = 0;
     },
 
     EXPORT_STARTED(state) {
-      state.exportLoading = true
+      state.exportLoading = true;
     },
 
     EXPORT_SUCCESS(state) {
-      state.exportLoading = false
+      state.exportLoading = false;
     },
 
     EXPORT_ERROR(state) {
-      state.exportLoading = false
-    }
+      state.exportLoading = false;
+    },
   },
 
   actions: {
     doUnselectAll({ commit }) {
-      commit('UNSELECT_ALL')
+      commit('UNSELECT_ALL');
     },
 
     doMountTable({ commit }, table) {
-      commit('TABLE_MOUNTED', table)
+      commit('TABLE_MOUNTED', table);
     },
 
     async doReset({ commit, dispatch }) {
-      commit('RESETED')
-      return dispatch('doFetch', {})
+      commit('RESETED');
+      return dispatch('doFetch', {});
     },
 
     async doExport({ commit, getters }) {
       try {
         if (
-          !userListExporterFields ||
-          !userListExporterFields.length
+          !userListExporterFields
+          || !userListExporterFields.length
         ) {
           throw new Error(
-            'userListExporterFields is required'
-          )
+            'userListExporterFields is required',
+          );
         }
 
-        commit('EXPORT_STARTED')
+        commit('EXPORT_STARTED');
 
-        const filter = getters.filter
+        const { filter } = getters;
 
         const response = await UserService.fetchUsers(
           filter,
           getters.orderBy,
           null,
-          null
-        )
+          null,
+        );
 
         new Exporter(
           userListExporterFields,
-          i18n('user.exporterFileName')
-        ).transformAndExportAsExcelFile(response.rows)
+          i18n('user.exporterFileName'),
+        ).transformAndExportAsExcelFile(response.rows);
 
-        commit('EXPORT_SUCCESS')
+        commit('EXPORT_SUCCESS');
       } catch (error) {
-        Errors.handle(error)
+        Errors.handle(error);
 
-        commit('EXPORT_ERROR')
+        commit('EXPORT_ERROR');
       }
     },
 
     doChangePagination(
       { commit, getters, dispatch },
-      pagination
+      pagination,
     ) {
-      commit('PAGINATION_CHANGED', pagination)
-      const filter = getters.filter
-      const rawFilter = getters.rawFilter
+      commit('PAGINATION_CHANGED', pagination);
+      const { filter } = getters;
+      const { rawFilter } = getters;
       dispatch('doFetch', {
         filter,
         rawFilter,
-        keepPagination: true
-      })
+        keepPagination: true,
+      });
     },
 
     doChangePaginationPageSize(
       { commit, getters, dispatch },
-      pageSize
+      pageSize,
     ) {
-      commit('PAGINATION_PAGE_SIZE_CHANGED', pageSize)
-      const filter = getters.filter
-      const rawFilter = getters.rawFilter
+      commit('PAGINATION_PAGE_SIZE_CHANGED', pageSize);
+      const { filter } = getters;
+      const { rawFilter } = getters;
       dispatch('doFetch', {
         filter,
         rawFilter,
-        keepPagination: true
-      })
+        keepPagination: true,
+      });
     },
 
     doChangePaginationCurrentPage(
       { commit, getters, dispatch },
-      currentPage
+      currentPage,
     ) {
-      commit('PAGINATION_CURRENT_PAGE_CHANGED', currentPage)
-      const filter = getters.filter
-      const rawFilter = getters.rawFilter
+      commit('PAGINATION_CURRENT_PAGE_CHANGED', currentPage);
+      const { filter } = getters;
+      const { rawFilter } = getters;
       dispatch('doFetch', {
         filter,
         rawFilter,
-        keepPagination: true
-      })
+        keepPagination: true,
+      });
     },
 
     doChangeSort({ commit, getters, dispatch }, sorter) {
-      commit('SORTER_CHANGED', sorter)
-      const filter = getters.filter
-      const rawFilter = getters.rawFilter
+      commit('SORTER_CHANGED', sorter);
+      const { filter } = getters;
+      const { rawFilter } = getters;
       dispatch('doFetch', {
         filter,
         rawFilter,
-        keepPagination: true
-      })
+        keepPagination: true,
+      });
     },
 
     async doFetch(
@@ -299,31 +289,31 @@ export default {
       {
         filter = null,
         rawFilter = null,
-        keepPagination = false
-      } = {}
+        keepPagination = false,
+      } = {},
     ) {
       try {
         commit('FETCH_STARTED', {
           filter,
           rawFilter,
-          keepPagination
-        })
+          keepPagination,
+        });
 
         const response = await UserService.fetchUsers(
           filter,
           getters.orderBy,
           getters.limit,
-          getters.offset
-        )
+          getters.offset,
+        );
 
         commit('FETCH_SUCCESS', {
           rows: response.rows,
-          count: response.count
-        })
+          count: response.count,
+        });
       } catch (error) {
-        Errors.handle(error)
-        commit('FETCH_ERROR')
+        Errors.handle(error);
+        commit('FETCH_ERROR');
       }
-    }
-  }
-}
+    },
+  },
+};

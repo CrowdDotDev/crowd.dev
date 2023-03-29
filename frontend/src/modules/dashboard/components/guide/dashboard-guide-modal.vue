@@ -16,7 +16,7 @@
 
     <template #content>
       <div v-if="guide?.loomHtml" class="px-6 pb-6 loom">
-        <div v-html="guide.loomHtml"></div>
+        <div v-html="guide.loomHtml" />
       </div>
       <div
         v-if="guide?.buttonText"
@@ -35,48 +35,48 @@
   </app-dialog>
 </template>
 
-<script>
-export default {
-  name: 'AppDashboardGuideModal'
-}
-</script>
-
 <script setup>
-import { defineProps, defineEmits, computed } from 'vue'
-import AppDialog from '@/shared/dialog/dialog.vue'
-import { EventTrackingService } from '@/modules/event-tracking/services/event-tracking-service'
+import { defineProps, defineEmits, computed } from 'vue';
+import AppDialog from '@/shared/dialog/dialog.vue';
+import { EventTrackingService } from '@/modules/event-tracking/services/event-tracking-service';
 
 const props = defineProps({
   modelValue: {
     type: Object,
-    default: null
-  }
-})
+    default: null,
+  },
+});
 
-const emit = defineEmits(['update:modelValue'])
+const emit = defineEmits(['update:modelValue']);
 
-const guide = computed(() => props.modelValue)
+const guide = computed(() => props.modelValue);
 
 const modalOpened = computed({
   get() {
-    return props.modelValue !== null
+    return props.modelValue !== null;
   },
   set(value) {
     emit(
       'update:modelValue',
-      value ? props.modelValue : null
-    )
-  }
-})
+      value ? props.modelValue : null,
+    );
+  },
+});
 
 const trackBtnClick = (step) => {
   EventTrackingService.track({
     name: 'Onboarding Guide button clicked',
     properties: {
-      step
-    }
-  })
-}
+      step,
+    },
+  });
+};
+</script>
+
+<script>
+export default {
+  name: 'AppDashboardGuideModal',
+};
 </script>
 
 <style lang="scss">

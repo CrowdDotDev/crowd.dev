@@ -1,20 +1,38 @@
-import * as yup from 'yup'
-import StringField from '@/shared/fields/string-field'
-import { i18n } from '@/i18n'
+import * as yup from 'yup';
+import StringField from '@/shared/fields/string-field';
+import { i18n } from '@/i18n';
+
+function isValidDomain(rule, value, callback) {
+  if (!value) {
+    callback();
+    return;
+  }
+
+  if (
+    value.match(
+      /^[a-zA-Z0-9][a-zA-Z0-9-]{0,61}[a-zA-Z0-9](?:\.[a-zA-Z]{2,})+$/gm,
+    )
+  ) {
+    callback();
+    return;
+  }
+
+  callback(new Error('Invalid domain'));
+}
 
 export default class DomainField extends StringField {
   constructor(name, label, config = {}) {
-    super(name, label)
+    super(name, label);
 
-    this.placeholder = config.placeholder
-    this.hint = config.hint
-    this.required = config.required
-    this.filterable = config.filterable || false
-    this.custom = config.custom || false
+    this.placeholder = config.placeholder;
+    this.hint = config.hint;
+    this.required = config.required;
+    this.filterable = config.filterable || false;
+    this.custom = config.custom || false;
   }
 
   forPresenter(value) {
-    return value
+    return value;
   }
 
   forFilter() {
@@ -27,44 +45,44 @@ export default class DomainField extends StringField {
       value: null,
       defaultOperator: 'textContains',
       operator: 'textContains',
-      type: 'string'
-    }
+      type: 'string',
+    };
   }
 
   forFilterPreview(value) {
     if (typeof value === 'object' && value) {
-      return value.id
+      return value.id;
     }
-    return value
+    return value;
   }
 
   forFormInitialValue(value) {
-    return value
+    return value;
   }
 
   forFilterInitialValue(value) {
-    return value
+    return value;
   }
 
   forFormRules() {
     const output = [
       {
-        validator: _isValidDomain,
-        message: `Invalid domain`
-      }
-    ]
+        validator: isValidDomain,
+        message: 'Invalid domain',
+      },
+    ];
 
     if (this.required) {
       output.push({
         required: Boolean(this.required),
         message: i18n('validation.mixed.required').replace(
-          '${path}',
-          this.label
-        )
-      })
+          '{path}',
+          this.label,
+        ),
+      });
     }
 
-    return output
+    return output;
   }
 
   forFormCast() {
@@ -72,7 +90,7 @@ export default class DomainField extends StringField {
       .string()
       .nullable(true)
       .trim()
-      .label(this.label)
+      .label(this.label);
   }
 
   forFilterCast() {
@@ -80,11 +98,11 @@ export default class DomainField extends StringField {
       .string()
       .nullable(true)
       .trim()
-      .label(this.label)
+      .label(this.label);
   }
 
   forExport() {
-    return yup.mixed().label(this.label)
+    return yup.mixed().label(this.label);
   }
 
   forImport() {
@@ -92,30 +110,12 @@ export default class DomainField extends StringField {
       .string()
       .nullable(true)
       .trim()
-      .label(this.label)
+      .label(this.label);
 
     if (this.required) {
-      yupChain = yupChain.required()
+      yupChain = yupChain.required();
     }
 
-    return yupChain
+    return yupChain;
   }
-}
-
-function _isValidDomain(rule, value, callback) {
-  if (!value) {
-    callback()
-    return
-  }
-
-  if (
-    value.match(
-      /^[a-zA-Z0-9][a-zA-Z0-9-]{0,61}[a-zA-Z0-9](?:\.[a-zA-Z]{2,})+$/gm
-    )
-  ) {
-    callback()
-    return
-  }
-
-  callback(new Error('Invalid domain'))
 }

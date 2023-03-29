@@ -1,15 +1,16 @@
 <template>
   <div class="member-view-custom-attributes">
     <div class="flex items-center justify-between">
-      <div class="font-medium text-black">Attributes</div>
+      <div class="font-medium text-black">
+        Attributes
+      </div>
       <el-button
         class="btn btn-link btn-link--primary"
         :disabled="isEditLockedForSampleData"
         @click="attributesDrawer = true"
-        ><i class="ri-pencil-line" /><span
-          >Edit</span
-        ></el-button
       >
+        <i class="ri-pencil-line" /><span>Edit</span>
+      </el-button>
     </div>
     <div
       v-if="!computedCustomAttributes.length"
@@ -19,14 +20,16 @@
     </div>
     <div v-else>
       <div v-if="member.lastEnriched" class="attribute">
-        <p class="title">Last enrichment</p>
+        <p class="title">
+          Last enrichment
+        </p>
         <p class="value">
           {{
             formatDate({
               timestamp: props.member.lastEnriched,
               subtractDays: null,
               subtractMonths: null,
-              format: 'DD MMMM YYYY'
+              format: 'DD MMMM YYYY',
             })
           }}
         </p>
@@ -45,7 +48,7 @@
             <i
               v-if="attribute.name === 'skills'"
               class="ri-information-line"
-            ></i>
+            />
           </el-tooltip>
         </p>
         <div
@@ -69,7 +72,7 @@
         <p v-else class="value break-words">
           {{
             formattedComputedAttributeValue(
-              member.attributes[attribute.name].default
+              member.attributes[attribute.name].default,
             )
           }}
         </p>
@@ -85,39 +88,35 @@
 </template>
 
 <script setup>
-import { defineProps, computed, ref } from 'vue'
-import { useStore } from 'vuex'
-import moment from 'moment'
-import { formatDate } from '@/utils/date'
+import { defineProps, computed, ref } from 'vue';
+import { useStore } from 'vuex';
+import moment from 'moment';
+import { formatDate } from '@/utils/date';
 
-import AppMemberManageAttributesDrawer from '../../member-manage-attributes-drawer'
-import AppMemberCustomAttributesArrayRenderer from './_aside-custom-attributes-array-renderer'
-import { MemberPermissions } from '@/modules/member/member-permissions'
+import { MemberPermissions } from '@/modules/member/member-permissions';
+import AppMemberManageAttributesDrawer from '../../member-manage-attributes-drawer.vue';
+import AppMemberCustomAttributesArrayRenderer from './_aside-custom-attributes-array-renderer.vue';
 
 const props = defineProps({
   member: {
     type: Object,
-    default: () => {}
-  }
-})
+    default: () => {},
+  },
+});
 
-const store = useStore()
+const store = useStore();
 
-const attributesDrawer = ref(false)
+const attributesDrawer = ref(false);
 
-const isEditLockedForSampleData = computed(() => {
-  return new MemberPermissions(
-    store.getters['auth/currentTenant'],
-    store.getters['auth/currentUser']
-  ).editLockedForSampleData
-})
+const isEditLockedForSampleData = computed(() => new MemberPermissions(
+  store.getters['auth/currentTenant'],
+  store.getters['auth/currentUser'],
+).editLockedForSampleData);
 
-const computedCustomAttributes = computed(() => {
-  return Object.values(store.state.member.customAttributes)
-    .filter((attribute) => {
-      return (
-        attribute.show &&
-        ![
+const computedCustomAttributes = computed(() => Object.values(store.state.member.customAttributes)
+  .filter((attribute) => (
+    attribute.show
+        && ![
           'bio',
           'url',
           'location',
@@ -126,31 +125,28 @@ const computedCustomAttributes = computed(() => {
           'workExperiences', // we render them in _aside-work-experience
           'certifications', // we render them in _aside-work-certifications
           'education', // we render them in _aside-work-education
-          'awards' // we render them in _aside-work-awards
-        ].includes(attribute.name) &&
-        props.member.attributes[attribute.name]
-      )
-    })
-    .sort((a, b) => {
-      if (props.member.attributes[a.name].enrich) {
-        return props.member.attributes[b.name].enrich
-          ? 0
-          : -1
-      } else {
-        return 1
-      }
-    })
-})
+          'awards', // we render them in _aside-work-awards
+        ].includes(attribute.name)
+        && props.member.attributes[attribute.name]
+  ))
+  .sort((a, b) => {
+    if (props.member.attributes[a.name].enrich) {
+      return props.member.attributes[b.name].enrich
+        ? 0
+        : -1;
+    }
+    return 1;
+  }));
 
 const formattedComputedAttributeValue = (value) => {
-  const dateFormat = 'YYYY-MM-DD'
+  const dateFormat = 'YYYY-MM-DD';
 
   return moment(value, dateFormat, true).isValid()
     ? formatDate({
-        timestamp: value
-      })
-    : value
-}
+      timestamp: value,
+    })
+    : value;
+};
 </script>
 
 <style lang="scss">

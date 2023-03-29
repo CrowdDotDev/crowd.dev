@@ -1,28 +1,27 @@
 <template>
-  <slot :connect="connect"></slot>
+  <slot :connect="connect" />
 </template>
 
-<script>
-export default {
-  name: 'AppIntegrationDiscord'
-}
-</script>
 <script setup>
-import { defineProps, computed } from 'vue'
-import config from '@/config'
+import { defineProps, computed } from 'vue';
+import config from '@/config';
 
 defineProps({
   integration: {
     type: Object,
-    default: () => {}
-  }
-})
+    default: () => {},
+  },
+});
+
+const connectUrl = computed(() => config.discordInstallationUrl);
 
 const connect = () => {
-  window.open(connectUrl.value, '_self')
-}
+  window.open(connectUrl.value, '_self');
+};
+</script>
 
-const connectUrl = computed(() => {
-  return config.discordInstallationUrl
-})
+<script>
+export default {
+  name: 'AppIntegrationDiscord',
+};
 </script>

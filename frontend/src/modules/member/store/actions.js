@@ -1,64 +1,64 @@
-import { MemberService } from '@/modules/member/member-service'
-import Errors from '@/shared/error/errors'
-import { router } from '@/router'
-import Message from '@/shared/message/message'
-import { i18n } from '@/i18n'
-import { MemberModel } from '../member-model'
-import { FormSchema } from '@/shared/form/form-schema'
-import sharedActions from '@/shared/store/actions'
-import ConfirmDialog from '@/shared/dialog/confirm-dialog'
+import { MemberService } from '@/modules/member/member-service';
+import Errors from '@/shared/error/errors';
+import { router } from '@/router';
+import Message from '@/shared/message/message';
+import { i18n } from '@/i18n';
+import { FormSchema } from '@/shared/form/form-schema';
+import sharedActions from '@/shared/store/actions';
+import ConfirmDialog from '@/shared/dialog/confirm-dialog';
 import {
   getEnrichmentMax,
   checkEnrichmentLimit,
   showEnrichmentSuccessMessage,
   showEnrichmentLoadingMessage,
-  checkEnrichmentPlan
-} from '@/modules/member/member-enrichment'
+  checkEnrichmentPlan,
+} from '@/modules/member/member-enrichment';
+import { MemberModel } from '../member-model';
 
 export default {
   ...sharedActions('member', MemberService),
 
   async doExport(
-    { commit, getters, rootGetters, dispatch },
+    {
+      commit, getters, rootGetters, dispatch,
+    },
     {
       selected = false,
       customIds = [],
       customFilter = null,
-      count = null
-    } = {}
+      count = null,
+    } = {},
   ) {
-    let filter
+    let filter;
 
     if (selected) {
       const ids = customIds.length
         ? customIds
-        : getters.selectedRows.map((i) => i.id)
+        : getters.selectedRows.map((i) => i.id);
 
       filter = {
         id: {
-          in: ids
-        }
-      }
+          in: ids,
+        },
+      };
     } else if (customFilter) {
-      filter = customFilter
+      filter = customFilter;
     } else {
-      filter = getters.activeView.filter
+      filter = getters.activeView.filter;
     }
 
     try {
-      commit('EXPORT_STARTED', filter)
+      commit('EXPORT_STARTED', filter);
 
-      commit('EXPORT_SUCCESS')
-      const currentTenant =
-        rootGetters['auth/currentTenant']
+      commit('EXPORT_SUCCESS');
+      const currentTenant = rootGetters['auth/currentTenant'];
 
-      const tenantCsvExportCount =
-        currentTenant.csvExportCount
-      let planCsvExportMax = 2
+      const tenantCsvExportCount = currentTenant.csvExportCount;
+      let planCsvExportMax = 2;
       if (currentTenant.plan === 'Growth') {
-        planCsvExportMax = 10
+        planCsvExportMax = 10;
       } else if (currentTenant.plan === 'Custom') {
-        planCsvExportMax = 'unlimited'
+        planCsvExportMax = 'unlimited';
       }
 
       await ConfirmDialog({
@@ -73,35 +73,35 @@ export default {
         badgeContent:
           selected || count
             ? `${
-                count || getters.selectedRows.length
-              } member${
-                (count || getters.selectedRows.length) === 1
-                  ? ''
-                  : 's'
-              }`
+              count || getters.selectedRows.length
+            } member${
+              (count || getters.selectedRows.length) === 1
+                ? ''
+                : 's'
+            }`
             : `View: ${getters.activeView.label}`,
-        highlightedInfo: `${tenantCsvExportCount}/${planCsvExportMax} exports available in this plan used`
-      })
+        highlightedInfo: `${tenantCsvExportCount}/${planCsvExportMax} exports available in this plan used`,
+      });
 
       await MemberService.export(
         filter,
         getters.orderBy,
         0,
         null,
-        !selected && !customFilter // build API payload if selected === false || !customFilter
-      )
+        !selected && !customFilter, // build API payload if selected === false || !customFilter
+      );
 
-      await dispatch(`auth/doRefreshCurrentUser`, null, {
-        root: true
-      })
+      await dispatch('auth/doRefreshCurrentUser', null, {
+        root: true,
+      });
 
       Message.success(
-        'CSV download link will be sent to your e-mail'
-      )
+        'CSV download link will be sent to your e-mail',
+      );
     } catch (error) {
-      commit('EXPORT_ERROR')
+      commit('EXPORT_ERROR');
 
-      console.error(error)
+      console.error(error);
       if (error.response?.status === 403) {
         await ConfirmDialog({
           vertical: true,
@@ -111,226 +111,219 @@ export default {
           message:
             'Upgrade your plan to get unlimited CSV exports per month and take full advantage of this feature',
           confirmButtonText: 'Upgrade plan',
-          showCancelButton: false
-        })
-        router.push('settings?activeTab=plans')
+          showCancelButton: false,
+        });
+        router.push('settings?activeTab=plans');
       } else if (error !== 'cancel') {
         Message.error(
           'An error has occured while trying to export the CSV file. Please try again',
           {
-            title: 'CSV Export failed'
-          }
-        )
+            title: 'CSV Export failed',
+          },
+        );
       }
     }
   },
 
   async doMarkAsTeamMember({ dispatch, getters }, value) {
     try {
-      const selectedRows = getters.selectedRows
+      const { selectedRows } = getters;
 
-      for (const row of selectedRows) {
-        await MemberService.update(row.id, {
+      selectedRows.forEach((row) => {
+        MemberService.update(row.id, {
           attributes: {
             ...row.attributes,
             isTeamMember: {
-              default: value
-            }
-          }
-        })
-      }
+              default: value,
+            },
+          },
+        });
+      });
 
       dispatch('doFetch', {
-        keepPagination: true
-      })
+        keepPagination: true,
+      });
 
       Message.success(
         `Member${
           selectedRows.length > 1 ? 's' : ''
-        } updated successfully`
-      )
+        } updated successfully`,
+      );
     } catch (error) {
-      Errors.handle(error)
+      Errors.handle(error);
     }
   },
 
   async doDestroyCustomAttributes(
     { commit, dispatch },
-    id
+    id,
   ) {
     try {
-      commit('DESTROY_CUSTOM_ATTRIBUTES_STARTED')
-      const response =
-        await MemberService.destroyCustomAttribute(id)
-      commit('DESTROY_CUSTOM_ATTRIBUTES_SUCCESS', response)
+      commit('DESTROY_CUSTOM_ATTRIBUTES_STARTED');
+      const response = await MemberService.destroyCustomAttribute(id);
+      commit('DESTROY_CUSTOM_ATTRIBUTES_SUCCESS', response);
 
-      dispatch('doFetchCustomAttributes')
+      dispatch('doFetchCustomAttributes');
     } catch (error) {
-      Errors.handle(error)
-      commit('DESTROY_CUSTOM_ATTRIBUTES_ERROR')
+      Errors.handle(error);
+      commit('DESTROY_CUSTOM_ATTRIBUTES_ERROR');
     }
   },
 
   async doUpdateCustomAttributes(
     { commit, dispatch },
-    { id, data }
+    { id, data },
   ) {
     try {
-      commit('UPDATE_CUSTOM_ATTRIBUTES_STARTED')
-      const response =
-        await MemberService.updateCustomAttribute(id, data)
-      commit('UPDATE_CUSTOM_ATTRIBUTES_SUCCESS', response)
+      commit('UPDATE_CUSTOM_ATTRIBUTES_STARTED');
+      const response = await MemberService.updateCustomAttribute(id, data);
+      commit('UPDATE_CUSTOM_ATTRIBUTES_SUCCESS', response);
 
-      dispatch('doFetchCustomAttributes')
+      dispatch('doFetchCustomAttributes');
     } catch (error) {
-      Errors.handle(error)
-      commit('UPDATE_CUSTOM_ATTRIBUTES_ERROR')
+      Errors.handle(error);
+      commit('UPDATE_CUSTOM_ATTRIBUTES_ERROR');
     }
   },
 
   async doFetchCustomAttributes({ commit }) {
     try {
-      commit('FETCH_CUSTOM_ATTRIBUTES_STARTED')
-      const response =
-        await MemberService.fetchCustomAttributes()
-      commit('FETCH_CUSTOM_ATTRIBUTES_SUCCESS', response)
+      commit('FETCH_CUSTOM_ATTRIBUTES_STARTED');
+      const response = await MemberService.fetchCustomAttributes();
+      commit('FETCH_CUSTOM_ATTRIBUTES_SUCCESS', response);
     } catch (error) {
-      Errors.handle(error)
-      commit('FETCH_CUSTOM_ATTRIBUTES_ERROR')
+      Errors.handle(error);
+      commit('FETCH_CUSTOM_ATTRIBUTES_ERROR');
     }
   },
 
   async doCreateCustomAttributes(
     { commit, dispatch },
-    values
+    values,
   ) {
     try {
-      commit('CREATE_ATTRIBUTES_STARTED')
-      const response =
-        await MemberService.createCustomAttributes(values)
+      commit('CREATE_ATTRIBUTES_STARTED');
+      const response = await MemberService.createCustomAttributes(values);
 
-      dispatch('doFetchCustomAttributes')
-      commit('CREATE_ATTRIBUTES_SUCCESS')
+      dispatch('doFetchCustomAttributes');
+      commit('CREATE_ATTRIBUTES_SUCCESS');
 
-      return response
+      return response;
     } catch (error) {
       if (error.response.status !== 500) {
-        Errors.handle(error)
+        Errors.handle(error);
       }
-      commit('CREATE_ATTRIBUTES_ERROR')
+      commit('CREATE_ATTRIBUTES_ERROR');
 
       Message.error(
-        i18n('entities.member.attributes.error')
-      )
+        i18n('entities.member.attributes.error'),
+      );
     }
+    return null;
   },
 
   async doMerge(
     { commit },
-    { memberToKeep, memberToMerge }
+    { memberToKeep, memberToMerge },
   ) {
     try {
       commit('MERGE_STARTED', {
         memberToKeep,
-        memberToMerge
-      })
+        memberToMerge,
+      });
 
-      await MemberService.merge(memberToKeep, memberToMerge)
+      await MemberService.merge(memberToKeep, memberToMerge);
 
       commit('MERGE_SUCCESS', {
-        memberToDelete: memberToMerge.id
-      })
+        memberToDelete: memberToMerge.id,
+      });
 
-      Message.success(i18n('entities.member.merge.success'))
-      router.push(`/members/${memberToKeep.id}`)
+      Message.success(i18n('entities.member.merge.success'));
+      router.push(`/members/${memberToKeep.id}`);
     } catch (error) {
-      Errors.handle(error)
-      commit('MERGE_ERROR')
+      Errors.handle(error);
+      commit('MERGE_ERROR');
     }
   },
 
   async doBulkUpdateMembersTags(
     { commit },
-    { members, tagsInCommon, tagsToSave }
+    { members, tagsInCommon, tagsToSave },
   ) {
-    const { fields } = MemberModel
+    const { fields } = MemberModel;
     const formSchema = new FormSchema([
       fields.username,
       fields.info,
       fields.tags,
-      fields.emails
-    ])
+      fields.emails,
+    ]);
 
     try {
       commit('BULK_UPDATE_MEMBERS_TAGS_STARTED', {
         members,
         tagsInCommon,
-        tagsToSave
-      })
+        tagsToSave,
+      });
       const payload = members.reduce((acc, item) => {
-        const memberToUpdate = { ...item }
-        const tagsToKeep = item.tags.filter((tag) => {
-          return (
-            tagsInCommon.filter((t) => t.id === tag.id)
-              .length === 0 &&
-            tagsToSave.filter((t) => t.id === tag.id)
+        const memberToUpdate = { ...item };
+        const tagsToKeep = item.tags.filter((tag) => (
+          tagsInCommon.filter((t) => t.id === tag.id)
+            .length === 0
+            && tagsToSave.filter((t) => t.id === tag.id)
               .length === 0
-          )
-        })
+        ));
 
-        memberToUpdate.tags = [...tagsToKeep, ...tagsToSave]
+        memberToUpdate.tags = [...tagsToKeep, ...tagsToSave];
         acc.push(
           formSchema.cast({
             id: memberToUpdate.id,
-            tags: memberToUpdate.tags
-          })
-        )
-        return acc
-      }, [])
+            tags: memberToUpdate.tags,
+          }),
+        );
+        return acc;
+      }, []);
       const updatedMembers = await MemberService.updateBulk(
-        payload
-      )
+        payload,
+      );
       commit(
         'BULK_UPDATE_MEMBERS_TAGS_SUCCESS',
-        updatedMembers
-      )
+        updatedMembers,
+      );
     } catch (error) {
-      Errors.handle(error)
-      commit('BULK_UPDATE_MEMBERS_TAGS_ERROR')
+      Errors.handle(error);
+      commit('BULK_UPDATE_MEMBERS_TAGS_ERROR');
     }
   },
 
   async doEnrich({ commit, dispatch, rootGetters }, id) {
     try {
-      const currentTenant =
-        rootGetters['auth/currentTenant']
+      const currentTenant = rootGetters['auth/currentTenant'];
 
       const planEnrichmentCountMax = getEnrichmentMax(
-        currentTenant.plan
-      )
+        currentTenant.plan,
+      );
 
       // Check if it has reached enrichment maximum
       // If so, show dialog to upgrade plan
       if (checkEnrichmentLimit(planEnrichmentCountMax)) {
-        return
+        return;
       }
 
       // Start member enrichment
-      commit('UPDATE_STARTED')
+      commit('UPDATE_STARTED');
 
       // Show enrichment loading message
-      showEnrichmentLoadingMessage({ isBulk: false })
+      showEnrichmentLoadingMessage({ isBulk: false });
 
-      const response = await MemberService.enrichMember(id)
+      const response = await MemberService.enrichMember(id);
 
-      commit('UPDATE_SUCCESS', response)
+      commit('UPDATE_SUCCESS', response);
 
-      await dispatch(`auth/doRefreshCurrentUser`, null, {
-        root: true
-      })
+      await dispatch('auth/doRefreshCurrentUser', null, {
+        root: true,
+      });
 
-      const updatedTenant =
-        rootGetters['auth/currentTenant']
+      const updatedTenant = rootGetters['auth/currentTenant'];
 
       // Show enrichment success message
       showEnrichmentSuccessMessage({
@@ -338,36 +331,35 @@ export default {
           updatedTenant.memberEnrichmentCount,
         planEnrichmentCountMax,
         plan: currentTenant.plan,
-        isBulk: false
-      })
+        isBulk: false,
+      });
 
       if (router.currentRoute.value.name !== 'memberView') {
         router.push({
           name: 'memberView',
           params: {
-            id
-          }
-        })
+            id,
+          },
+        });
       } else {
-        await dispatch('doFind', id)
+        await dispatch('doFind', id);
       }
     } catch (error) {
-      Message.closeAll()
-      Errors.handle(error)
+      Message.closeAll();
+      Errors.handle(error);
 
-      commit('UPDATE_ERROR')
+      commit('UPDATE_ERROR');
     }
   },
 
   async doBulkEnrich({ rootGetters, dispatch }, ids) {
     try {
-      const currentTenant =
-        rootGetters['auth/currentTenant']
+      const currentTenant = rootGetters['auth/currentTenant'];
 
-      const { memberEnrichmentCount } = currentTenant
+      const { memberEnrichmentCount } = currentTenant;
       const planEnrichmentCountMax = getEnrichmentMax(
-        currentTenant.plan
-      )
+        currentTenant.plan,
+      );
 
       // Check if it is trying to enrich more members than
       // the number available for the current tenant plan
@@ -375,27 +367,27 @@ export default {
         checkEnrichmentPlan({
           enrichmentCount:
             memberEnrichmentCount + ids.length,
-          planEnrichmentCountMax
+          planEnrichmentCountMax,
         })
       ) {
-        return
+        return;
       }
 
       // Check if it has reached enrichment maximum
       // If so, show dialog to upgrade plan
       if (checkEnrichmentLimit(planEnrichmentCountMax)) {
-        return
+        return;
       }
 
       // Show enrichment loading message
-      showEnrichmentLoadingMessage({ isBulk: true })
+      showEnrichmentLoadingMessage({ isBulk: true });
 
-      await MemberService.enrichMemberBulk(ids)
+      await MemberService.enrichMemberBulk(ids);
 
-      await dispatch('doFetchCustomAttributes')
+      await dispatch('doFetchCustomAttributes');
     } catch (error) {
-      Message.closeAll()
-      Errors.handle(error)
+      Message.closeAll();
+      Errors.handle(error);
     }
-  }
-}
+  },
+};

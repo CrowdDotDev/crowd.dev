@@ -7,83 +7,83 @@
       :mapper-fn="mapperFn"
       :placeholder="placeholder"
       :create-if-not-found="canCreate"
-    ></app-autocomplete-many-input>
+    />
   </div>
 </template>
 
 <script>
-import { TagPermissions } from '@/modules/tag/tag-permissions'
-import { mapGetters, mapActions } from 'vuex'
+import { mapGetters, mapActions } from 'vuex';
+import { TagPermissions } from '@/modules/tag/tag-permissions';
 
 export default {
   name: 'AppTagAutocompleteInput',
   props: {
     modelValue: {
       type: Array,
-      default: () => []
+      default: () => [],
     },
     fetchFn: {
       type: Function,
-      default: () => {}
+      default: () => {},
     },
     mapperFn: {
       type: Function,
-      default: () => {}
+      default: () => {},
     },
     createIfNotFound: {
       type: Boolean,
-      default: false
+      default: false,
     },
     placeholder: {
       type: String,
-      default: null
-    }
+      default: null,
+    },
   },
   emits: ['update:modelValue'],
 
   computed: {
     ...mapGetters({
       currentUser: 'auth/currentUser',
-      currentTenant: 'auth/currentTenant'
+      currentTenant: 'auth/currentTenant',
     }),
 
     model: {
-      get: function () {
-        return this.modelValue
+      get() {
+        return this.modelValue;
       },
 
-      set: function (value) {
-        this.$emit('update:modelValue', value)
-      }
+      set(value) {
+        this.$emit('update:modelValue', value);
+      },
     },
 
     canCreate() {
       return (
         new TagPermissions(
           this.currentTenant,
-          this.currentUser
+          this.currentUser,
         ).create && this.createIfNotFound
-      )
-    }
+      );
+    },
   },
 
   methods: {
     ...mapActions({
-      doCreateTag: 'tag/form/doAutocompleteCreate'
+      doCreateTag: 'tag/form/doAutocompleteCreate',
     }),
 
     async createTag(value) {
       const newTag = await this.doCreateTag({
-        name: value
-      })
+        name: value,
+      });
 
       return {
         id: newTag.id,
-        label: newTag.name
-      }
-    }
-  }
-}
+        label: newTag.name,
+      };
+    },
+  },
+};
 </script>
 
 <style>

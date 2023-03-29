@@ -27,68 +27,53 @@
         <i
           v-if="nestedOption.selected"
           class="ri-check-line text-brand-600"
-        ></i>
+        />
       </div>
     </div>
   </div>
 </template>
-
-<script>
-export default {
-  name: 'AppFilterTypeSelectGroup'
-}
-</script>
 
 <script setup>
 import {
   defineProps,
   defineEmits,
   computed,
-  reactive
-} from 'vue'
-import { storeToRefs } from 'pinia'
-import { useActivityTypeStore } from '@/modules/activity/store/type'
+  reactive,
+} from 'vue';
+import { storeToRefs } from 'pinia';
+import { useActivityTypeStore } from '@/modules/activity/store/type';
 
 const props = defineProps({
   options: {
     type: Array,
-    default: () => []
+    default: () => [],
   },
   value: {
     type: Object,
-    default: () => {}
+    default: () => {},
   },
   label: {
     type: String,
-    default: ''
+    default: '',
   },
   isExpanded: {
     type: Boolean,
-    default: false
-  }
-})
+    default: false,
+  },
+});
 
-const emit = defineEmits(['update:value'])
+const emit = defineEmits(['update:value']);
 
-const { types } = storeToRefs(useActivityTypeStore())
+const { types } = storeToRefs(useActivityTypeStore());
 
-const computedOptions = computed(() => {
-  return [...props.options, ...additionalOptions.value].map(
-    (o) => {
-      return {
-        ...o,
-        nestedOptions: o.nestedOptions.map((n) => {
-          return {
-            ...n,
-            selected:
-              model.value?.value === n.value &&
-              model.value?.key === o.label.key
-          }
-        })
-      }
-    }
-  )
-})
+const model = computed({
+  get() {
+    return props.value;
+  },
+  set(v) {
+    emit('update:value', v);
+  },
+});
 
 const additionalOptions = computed(() => {
   if (props.label === 'Activity type') {
@@ -97,43 +82,50 @@ const additionalOptions = computed(() => {
         label: reactive({
           key: 'other',
           type: 'platform',
-          value: 'Custom'
+          value: 'Custom',
         }),
         nestedOptions: Object.entries(types.value.custom)
-          .map(([, platformTypes]) =>
-            Object.entries(platformTypes)
-          )
+          .map(([, platformTypes]) => Object.entries(platformTypes))
           .flat()
           .map(([type, display]) => ({
             label: display.short,
-            value: type
-          }))
-      }
-    ]
+            value: type,
+          })),
+      },
+    ];
   }
-  return []
-})
+  return [];
+});
 
-const model = computed({
-  get() {
-    return props.value
-  },
-  set(v) {
-    emit('update:value', v)
-  }
-})
+const computedOptions = computed(() => [...props.options, ...additionalOptions.value].map(
+  (o) => ({
+    ...o,
+    nestedOptions: o.nestedOptions.map((n) => ({
+      ...n,
+      selected:
+              model.value?.value === n.value
+              && model.value?.key === o.label.key,
+    })),
+  }),
+));
 
 const handleOptionClick = (option, label) => {
   model.value = {
     displayValue:
-      option.label.charAt(0).toUpperCase() +
-      option.label.slice(1),
+      option.label.charAt(0).toUpperCase()
+      + option.label.slice(1),
     displayKey: label.value,
     type: label.type,
     key: label.key,
-    value: option.value
-  }
-}
+    value: option.value,
+  };
+};
+</script>
+
+<script>
+export default {
+  name: 'AppFilterTypeSelectGroup',
+};
 </script>
 
 <style lang="scss">

@@ -6,8 +6,8 @@
     :class="{
       middle: identity.middle,
       'col-span-2':
-        identity.middle ||
-        (index !== 0 && (index + 1) % 3) === 0
+        identity.middle
+        || (index !== 0 && (index + 1) % 3) === 0,
     }"
   >
     <div
@@ -17,8 +17,7 @@
       <span
         class="block btn p-2 mr-2 bg-white text-brand-500 border border-gray-200"
       >
-        <i class="ri-mail-line"></i
-      ></span>
+        <i class="ri-mail-line" /></span>
       <span class="block text-gray-500"> Email </span>
     </div>
     <div v-else-if="identity.type === 'email'">
@@ -29,16 +28,16 @@
         popper-class="custom-identity-tooltip"
         placement="top"
       >
-        <template #content
-          ><span
-            >Send email
+        <template #content>
+          <span>Send email
             <i
               v-if="email"
               class="ri-external-link-line text-gray-400"
-            ></i></span
-        ></template>
+            /></span>
+        </template>
         <a
           target="_blank"
+          rel="noopener noreferrer"
           :href="`mailto:${email}`"
           class="badge--interactive"
           @click.stop="trackClick('Email')"
@@ -72,9 +71,7 @@
           class="leading-none cursor-pointer text-gray-900 underline"
           target="__blank"
         >
-          {{ identity.url }}</a
-        ></span
-      >
+          {{ identity.url }}</a></span>
       <span v-else>{{ identity.username }}</span>
     </div>
   </div>
@@ -86,15 +83,15 @@ export default {
   props: {
     identities: {
       type: Object,
-      default: () => {}
-    }
+      default: () => {},
+    },
   },
   methods: {
     trackClick(channel) {
       window.analytics.track('Click Member Contact', {
-        channel
-      })
-    }
-  }
-}
+        channel,
+      });
+    },
+  },
+};
 </script>

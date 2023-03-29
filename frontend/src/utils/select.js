@@ -7,5 +7,5 @@
  * @param {*} el DOM element
  */
 export const onSelectMouseLeave = (el) => {
-  el.target.classList.remove('hover')
-}
+  el.target.classList.remove('hover');
+};

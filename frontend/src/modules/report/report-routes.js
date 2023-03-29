@@ -1,20 +1,15 @@
-import Layout from '@/modules/layout/components/layout.vue'
-import Permissions from '@/security/permissions'
+import Layout from '@/modules/layout/components/layout.vue';
+import Permissions from '@/security/permissions';
 
-const ReportListPage = () =>
-  import('@/modules/report/pages/report-list-page.vue')
-const ReportFormPage = () =>
-  import('@/modules/report/pages/report-form-page.vue')
-const ReportViewPage = () =>
-  import('@/modules/report/pages/report-view-page.vue')
-const ReportTemplatePage = () =>
-  import(
-    '@/modules/report/pages/templates/report-template-page.vue'
-  )
-const ReportViewPagePublic = () =>
-  import(
-    '@/modules/report/pages/report-view-page-public.vue'
-  )
+const ReportListPage = () => import('@/modules/report/pages/report-list-page.vue');
+const ReportFormPage = () => import('@/modules/report/pages/report-form-page.vue');
+const ReportViewPage = () => import('@/modules/report/pages/report-view-page.vue');
+const ReportTemplatePage = () => import(
+  '@/modules/report/pages/templates/report-template-page.vue'
+);
+const ReportViewPagePublic = () => import(
+  '@/modules/report/pages/report-view-page-public.vue'
+);
 
 export default [
   {
@@ -29,8 +24,8 @@ export default [
         component: ReportListPage,
         meta: {
           auth: true,
-          permission: Permissions.values.reportRead
-        }
+          permission: Permissions.values.reportRead,
+        },
       },
       {
         name: 'reportTemplate',
@@ -38,9 +33,9 @@ export default [
         component: ReportTemplatePage,
         meta: {
           auth: true,
-          permission: Permissions.values.reportRead
+          permission: Permissions.values.reportRead,
         },
-        props: true
+        props: true,
       },
       {
         name: 'reportEdit',
@@ -48,9 +43,9 @@ export default [
         component: ReportFormPage,
         meta: {
           auth: true,
-          permission: Permissions.values.reportEdit
+          permission: Permissions.values.reportEdit,
         },
-        props: true
+        props: true,
       },
       {
         name: 'reportView',
@@ -58,16 +53,16 @@ export default [
         component: ReportViewPage,
         meta: {
           auth: true,
-          permission: Permissions.values.reportRead
+          permission: Permissions.values.reportRead,
         },
-        props: true
-      }
-    ]
+        props: true,
+      },
+    ],
   },
   {
     name: 'reportPublicView',
     path: '/tenant/:tenantId/reports/:id/public',
     component: ReportViewPagePublic,
-    props: true
-  }
-]
+    props: true,
+  },
+];

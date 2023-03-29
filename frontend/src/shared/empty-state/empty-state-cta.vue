@@ -2,7 +2,7 @@
   <div
     class="flex flex-col items-center justify-center pt-20 pb-10"
   >
-    <i class="empty-list-icon mb-8" :class="icon"></i>
+    <i class="empty-list-icon mb-8" :class="icon" />
 
     <h5>{{ title }}</h5>
     <div
@@ -12,7 +12,7 @@
       <i
         v-if="hasWarningIcon"
         class="ri-information-line text-brand-500 text-base mr-2"
-      ></i>
+      />
       <span>{{ description }}</span>
     </div>
     <div class="flex gap-6 mt-8">
@@ -35,35 +35,35 @@
 </template>
 
 <script setup>
-import { defineProps, defineEmits } from 'vue'
+import { defineProps, defineEmits } from 'vue';
 
-const emit = defineEmits(['ctaClick', 'secondaryClick'])
+const emit = defineEmits(['ctaClick', 'secondaryClick']);
 defineProps({
   icon: {
     type: String,
-    required: true
+    required: true,
   },
   title: {
     type: String,
-    required: true
+    required: true,
   },
   description: {
     type: String,
-    default: () => null
+    default: () => null,
   },
   ctaBtn: {
     type: String,
-    default: () => null
+    default: () => null,
   },
   secondaryBtn: {
     type: String,
-    default: () => null
+    default: () => null,
   },
   hasWarningIcon: {
     type: Boolean,
-    default: () => false
-  }
-})
+    default: () => false,
+  },
+});
 </script>
 
 <style lang="scss">

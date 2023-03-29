@@ -23,6 +23,7 @@
     <template #content>
       <div class="px-6 pb-7">
         <img
+          alt="Eagle eye"
           src="/images/eagle-eye/modal-banner.jpg"
           class="w-full mb-8"
         />
@@ -50,60 +51,56 @@
   </app-dialog>
 </template>
 
-<script>
-export default {
-  name: 'AppDashboardGuideEagleEyeModal'
-}
-</script>
-
 <script setup>
-import { defineProps, defineEmits, computed } from 'vue'
-import AppDialog from '@/shared/dialog/dialog.vue'
-import { mapActions } from '@/shared/vuex/vuex.helpers'
-import { QuickstartGuideService } from '@/modules/quickstart-guide/services/quickstart-guide.service'
-import { EventTrackingService } from '@/modules/event-tracking/services/event-tracking-service'
+import { defineProps, defineEmits, computed } from 'vue';
+import AppDialog from '@/shared/dialog/dialog.vue';
+import { mapActions } from '@/shared/vuex/vuex.helpers';
+import { QuickstartGuideService } from '@/modules/quickstart-guide/services/quickstart-guide.service';
+import { EventTrackingService } from '@/modules/event-tracking/services/event-tracking-service';
 
 const props = defineProps({
   modelValue: {
     type: Boolean,
-    default: null
-  }
-})
+    default: null,
+  },
+});
 
-const emit = defineEmits(['update:modelValue'])
+const emit = defineEmits(['update:modelValue']);
 
-const { doRefreshCurrentUser } = mapActions('auth')
+const { doRefreshCurrentUser } = mapActions('auth');
+
+const closing = () => QuickstartGuideService.updateSettings({
+  isEagleEyeGuideDismissed: true,
+}).then(() => doRefreshCurrentUser({}));
 
 const modalOpened = computed({
   get() {
-    return props.modelValue
+    return props.modelValue;
   },
   set(value) {
-    emit('update:modelValue', value)
+    emit('update:modelValue', value);
     if (!value) {
       // Track event on modal dismiss
       if (props.modelValue) {
         EventTrackingService.track({
-          name: 'Eagle Eye Guide dismissed'
-        })
+          name: 'Eagle Eye Guide dismissed',
+        });
       }
 
-      closing()
+      closing();
     }
-  }
-})
-
-const closing = () => {
-  return QuickstartGuideService.updateSettings({
-    isEagleEyeGuideDismissed: true
-  }).then(() => {
-    return doRefreshCurrentUser({})
-  })
-}
+  },
+});
 
 const trackBtnClick = () => {
   EventTrackingService.track({
-    name: 'Eagle Eye Guide button clicked'
-  })
-}
+    name: 'Eagle Eye Guide button clicked',
+  });
+};
+</script>
+
+<script>
+export default {
+  name: 'AppDashboardGuideEagleEyeModal',
+};
 </script>

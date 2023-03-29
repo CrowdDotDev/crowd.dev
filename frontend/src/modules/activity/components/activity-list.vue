@@ -4,7 +4,7 @@
       v-if="loading && !activities.length"
       v-loading="loading"
       class="app-page-spinner h-16 !relative !min-h-5"
-    ></div>
+    />
     <div v-else>
       <!-- Empty State -->
       <app-empty-state-cta
@@ -12,7 +12,7 @@
         icon="ri-list-check-2"
         :title="emptyState.title"
         :description="emptyState.description"
-      ></app-empty-state-cta>
+      />
 
       <div v-else>
         <!-- Sorter -->
@@ -49,16 +49,14 @@
             v-if="loading"
             v-loading="loading"
             class="app-page-spinner h-16 w-16 !relative !min-h-fit"
-          ></div>
+          />
           <el-button
             v-else
             class="btn btn-link btn-link--primary"
             @click="onLoadMore"
-            ><i class="ri-arrow-down-line"></i
-            ><span class="text-xs"
-              >Load more</span
-            ></el-button
           >
+            <i class="ri-arrow-down-line" /><span class="text-xs">Load more</span>
+          </el-button>
         </div>
       </div>
     </div>
@@ -66,97 +64,95 @@
       :expand="conversationId != null"
       :conversation-id="conversationId"
       @close="conversationId = null"
-    ></app-conversation-drawer>
+    />
   </div>
 </template>
 
-<script>
-export default {
-  name: 'AppActivityList'
-}
-</script>
-
 <script setup>
-import AppActivityItem from '@/modules/activity/components/activity-item'
-import AppConversationDrawer from '@/modules/conversation/components/conversation-drawer'
-import AppPaginationSorter from '@/shared/pagination/pagination-sorter'
 import {
   defineProps,
   defineEmits,
   computed,
-  ref
-} from 'vue'
-import { useStore } from 'vuex'
+  ref,
+} from 'vue';
+import { useStore } from 'vuex';
+import AppActivityItem from '@/modules/activity/components/activity-item.vue';
+import AppConversationDrawer from '@/modules/conversation/components/conversation-drawer.vue';
+import AppPaginationSorter from '@/shared/pagination/pagination-sorter.vue';
 
-const store = useStore()
-const sorterFilter = ref('trending')
-const conversationId = ref(null)
+const store = useStore();
+const sorterFilter = ref('trending');
+const conversationId = ref(null);
 
 defineProps({
   activities: {
     type: Array,
-    default: () => {}
+    default: () => {},
   },
   loading: {
     type: Boolean,
-    default: false
+    default: false,
   },
   cardOptions: {
     type: Object,
     required: false,
-    default: () => ({})
-  }
-})
+    default: () => ({}),
+  },
+});
 
-const emit = defineEmits(['edit'])
+const emit = defineEmits(['edit']);
 
 const activeView = computed(
-  () => store.getters['activity/activeView']
-)
+  () => store.getters['activity/activeView'],
+);
 const hasFilter = computed(() => {
   const parsedFilters = {
-    ...activeView.value.filter.attributes
-  }
+    ...activeView.value.filter.attributes,
+  };
 
   // Remove search filter if value is empty
   if (!parsedFilters.search?.value) {
-    delete parsedFilters.search
+    delete parsedFilters.search;
   }
 
-  return !!Object.keys(parsedFilters).length
-})
+  return !!Object.keys(parsedFilters).length;
+});
 const emptyState = computed(() => {
   if (hasFilter.value) {
     return {
       title: 'No activities found',
       description:
-        "We couldn't find any results that match your search criteria, please try a different query"
-    }
+        "We couldn't find any results that match your search criteria, please try a different query",
+    };
   }
 
   return {
     title: 'No activities yet',
     description:
-      "We couldn't track any community member activities"
-  }
-})
+      "We couldn't track any community member activities",
+  };
+});
 
-const count = computed(() => store.state.activity.count)
+const count = computed(() => store.state.activity.count);
 const pagination = computed(
-  () => store.getters['activity/pagination']
-)
-const isLoadMoreVisible = computed(() => {
-  return (
-    pagination.value.currentPage *
-      pagination.value.pageSize <
-    count.value
-  )
-})
+  () => store.getters['activity/pagination'],
+);
+const isLoadMoreVisible = computed(() => (
+  pagination.value.currentPage
+      * pagination.value.pageSize
+    < count.value
+));
 
 const onLoadMore = () => {
   store.dispatch(
     'activity/doChangePaginationCurrentPage',
-    pagination.value.currentPage + 1
-  )
-}
+    pagination.value.currentPage + 1,
+  );
+};
+</script>
+
+<script>
+export default {
+  name: 'AppActivityList',
+};
 </script>

@@ -1,5 +1,5 @@
-import store from '@/modules/widget/widget-store'
+import store from '@/modules/widget/widget-store';
 
 export default {
-  store
-}
+  store,
+};

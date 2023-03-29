@@ -23,7 +23,7 @@
       [inputClass]: true,
       collapsed: collapseTags && !isSelectFocused,
       expand: collapseTags && isSelectFocused,
-      empty: collapseTags && !model.length
+      empty: collapseTags && !model.length,
     }"
     @change="onChange"
     @remove-tag="(tag) => $emit('remove-tag', tag)"
@@ -45,7 +45,7 @@
       :value="record"
       @mouseleave="onSelectMouseLeave"
     >
-      <slot name="option" :item="record"></slot>
+      <slot name="option" :item="record" />
     </el-option>
     <div
       v-if="showMoreResultsMessage"
@@ -69,69 +69,69 @@
 </template>
 
 <script>
-import { onSelectMouseLeave } from '@/utils/select'
+import { onSelectMouseLeave } from '@/utils/select';
 
-const AUTOCOMPLETE_SERVER_FETCH_SIZE = 20
+const AUTOCOMPLETE_SERVER_FETCH_SIZE = 20;
 
 export default {
   name: 'AppAutocompleteManyInput',
   props: {
     modelValue: {
       type: Array,
-      default: () => []
+      default: () => [],
     },
     placeholder: {
       type: String,
-      default: null
+      default: null,
     },
     fetchFn: {
       type: Function,
-      default: () => {}
+      default: () => {},
     },
     mapperFn: {
       type: Function,
-      default: () => {}
+      default: () => {},
     },
     createFn: {
       type: Function,
-      default: () => {}
+      default: () => {},
     },
     disabled: {
       type: Boolean,
-      default: false
+      default: false,
     },
     createIfNotFound: {
       type: Boolean,
-      default: false
+      default: false,
     },
     createPrefix: {
       type: String,
-      default: 'Create'
+      default: 'Create',
     },
     inputClass: {
       type: String,
-      default: ''
+      default: '',
     },
     allowCreate: {
       type: Boolean,
-      default: false
+      default: false,
     },
     options: {
       type: Array,
-      default: () => []
+      default: () => [],
     },
     collapseTags: {
       type: Boolean,
-      default: false
+      default: false,
     },
     areOptionsInMemory: {
       type: Boolean,
-      default: false
+      default: false,
     },
     parseModel: {
       type: Boolean,
-      default: false
-    }
+      default: false,
+    },
   },
   emits: ['remove-tag', 'update:modelValue'],
   data() {
@@ -142,46 +142,45 @@ export default {
       filteredOptions: this.options ? this.options : [],
       currentQuery: '',
       isSelectFocused: false,
-      limit: AUTOCOMPLETE_SERVER_FETCH_SIZE
-    }
+      limit: AUTOCOMPLETE_SERVER_FETCH_SIZE,
+    };
   },
 
   computed: {
     showCreateSuggestion() {
       return (
-        this.createIfNotFound &&
-        !!this.currentQuery &&
-        !this.localOptions.some(
-          (o) =>
-            o.label === this.currentQuery ||
-            o === this.currentQuery
+        this.createIfNotFound
+        && !!this.currentQuery
+        && !this.localOptions.some(
+          (o) => o.label === this.currentQuery
+            || o === this.currentQuery,
         )
-      )
+      );
     },
     showMoreResultsMessage() {
       return (
-        !this.loading &&
-        this.availableOptions.length === this.limit &&
-        !this.areOptionsInMemory
-      )
+        !this.loading
+        && this.availableOptions.length === this.limit
+        && !this.areOptionsInMemory
+      );
     },
     showEmptyMessage() {
       return (
-        !this.loading &&
-        !this.availableOptions.length &&
-        !this.showCreateSuggestion
-      )
+        !this.loading
+        && !this.availableOptions.length
+        && !this.showCreateSuggestion
+      );
     },
     showNoDataMessage() {
       return (
-        !this.loading &&
-        !this.availableOptions.length &&
-        !this.currentQuery
-      )
+        !this.loading
+        && !this.availableOptions.length
+        && !this.currentQuery
+      );
     },
     // Collapse tags if prop is set and if select component is closed/not focused
     shouldCollapseTags() {
-      return this.collapseTags && !this.isSelectFocused
+      return this.collapseTags && !this.isSelectFocused;
     },
     // If parseModel is set to true, then the modelValue is initially an array and strings
     // and should be parsed into the component format
@@ -191,171 +190,168 @@ export default {
           if (this.parseModel) {
             return {
               id: v,
-              label: v
-            }
+              label: v,
+            };
           }
 
-          return v
-        })
+          return v;
+        });
       },
       set(v) {
         const updatedValue = this.parseModel
           ? v.map((value) => value.label)
-          : v
+          : v;
 
-        this.$emit('update:modelValue', updatedValue)
-      }
+        this.$emit('update:modelValue', updatedValue);
+      },
     },
     // Rendered available options should be dependent on the current query
     availableOptions() {
       if (this.currentQuery) {
-        return this.filteredOptions
+        return this.filteredOptions;
       }
 
-      return this.localOptions
-    }
+      return this.localOptions;
+    },
   },
 
   async created() {
-    await this.fetchAllResults()
+    await this.fetchAllResults();
   },
 
   methods: {
     async onChange(value) {
-      const { query } = this.$refs.input
+      const { query } = this.$refs.input;
 
       if (!value.length) {
-        this.model = []
+        this.model = [];
       }
 
       const promises = value.map(async (item) => {
         if (
-          item === false &&
-          query !== '' &&
-          this.createIfNotFound
+          item === false
+          && query !== ''
+          && this.createIfNotFound
         ) {
           // item is created/typed from user
-          const newItem = await this.createFn(query)
+          const newItem = await this.createFn(query);
 
-          this.localOptions.push(newItem)
+          this.localOptions.push(newItem);
 
-          return newItem
-        } else {
-          return item
+          return newItem;
         }
-      })
+        return item;
+      });
 
       Promise.all(promises).then((values) => {
-        this.model = values
-      })
+        this.model = values;
+      });
     },
 
     async handleSearch(query) {
       if (query === this.currentQuery) {
-        return
+        return;
       }
 
-      this.currentQuery = String(query || '')
+      this.currentQuery = String(query || '');
 
       if (!this.areOptionsInMemory) {
-        await this.handleServerSearch(this.currentQuery)
+        await this.handleServerSearch(this.currentQuery);
       }
 
       this.filteredOptions = this.localOptions.filter(
-        (item) =>
-          String(item.label || '')
-            .toLowerCase()
-            .includes(this.currentQuery.toLowerCase())
-      )
+        (item) => String(item.label || '')
+          .toLowerCase()
+          .includes(this.currentQuery.toLowerCase()),
+      );
     },
 
     async fetchNotIncludedTags(response) {
       if (this.areOptionsInMemory) {
-        return
+        return;
       }
 
       const notIncluded = this.model.filter(
-        (m) =>
-          response.findIndex((r) => r.id === m.id) === -1
-      )
+        (m) => response.findIndex((r) => r.id === m.id) === -1,
+      );
 
       if (notIncluded.length) {
         const notIncludedResponse = await this.fetchFn(
           notIncluded,
-          this.limit
-        )
+          this.limit,
+        );
 
-        this.localOptions.unshift(...notIncludedResponse)
+        this.localOptions.unshift(...notIncludedResponse);
       }
     },
 
     async fetchAllResults() {
-      this.initialLoading = true
+      this.initialLoading = true;
 
       try {
         const response = await this.fetchFn(
           this.currentQuery,
-          this.limit
-        )
+          this.limit,
+        );
 
-        this.localOptions = response
+        this.localOptions = response;
 
-        await this.fetchNotIncludedTags(response)
+        await this.fetchNotIncludedTags(response);
 
-        this.initialLoading = false
+        this.initialLoading = false;
       } catch (error) {
-        console.error(error)
-        this.initialLoading = false
+        console.error(error);
+        this.initialLoading = false;
       }
     },
 
     async handleServerSearch(value) {
-      this.loading = true
+      this.loading = true;
 
       try {
         const response = await this.fetchFn(
           value,
-          this.limit
-        )
+          this.limit,
+        );
 
-        this.localOptions = response
+        this.localOptions = response;
 
         if (!value) {
-          await this.fetchNotIncludedTags(response)
+          await this.fetchNotIncludedTags(response);
         }
 
-        this.loading = false
+        this.loading = false;
       } catch (error) {
-        console.error(error)
-        this.localOptions = []
-        this.loading = false
+        console.error(error);
+        this.localOptions = [];
+        this.loading = false;
       }
     },
 
     onVisibleChange(value) {
       if (!this.collapseTags) {
-        return
+        return;
       }
 
-      this.isSelectFocused = value
+      this.isSelectFocused = value;
 
       // Scroll to the bottom of the list where cursor is focused
       if (value) {
         setTimeout(() => {
           const element = document.querySelector(
-            '.autocomplete-many-input.expand .el-select__tags'
-          )
+            '.autocomplete-many-input.expand .el-select__tags',
+          );
 
           if (element) {
-            element.scrollTop = element.scrollHeight
+            element.scrollTop = element.scrollHeight;
           }
-        }, 150)
+        }, 150);
       }
     },
 
-    onSelectMouseLeave
-  }
-}
+    onSelectMouseLeave,
+  },
+};
 </script>
 
 <style lang="scss">

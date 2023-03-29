@@ -1,47 +1,47 @@
-import authAxios from '@/shared/axios/auth-axios'
-import { tenantSubdomain } from '@/modules/tenant/tenant-subdomain'
-import AuthCurrentTenant from '@/modules/auth/auth-current-tenant'
-import config from '@/config'
+import authAxios from '@/shared/axios/auth-axios';
+import { tenantSubdomain } from '@/modules/tenant/tenant-subdomain';
+import AuthCurrentTenant from '@/modules/auth/auth-current-tenant';
+import config from '@/config';
 
 export class TenantService {
   static async fetchAndApply() {
-    const tenantUrl = tenantSubdomain.fromLocationHref()
+    const tenantUrl = tenantSubdomain.fromLocationHref();
 
     if (
-      tenantSubdomain.isEnabled &&
-      tenantSubdomain.isRootDomain
+      tenantSubdomain.isEnabled
+      && tenantSubdomain.isRootDomain
     ) {
-      AuthCurrentTenant.clear()
-      return
+      AuthCurrentTenant.clear();
+      return;
     }
 
     // If there is a subdomain with the tenant url,
     // it must fetch the settings form that subdomain no matter
     // which one is on local storage
     if (tenantUrl) {
-      let currentTenant
+      let currentTenant;
       try {
-        currentTenant = await this.findByUrl(tenantUrl)
+        currentTenant = await this.findByUrl(tenantUrl);
       } catch (error) {
-        console.error(error)
+        console.error(error);
       }
 
-      AuthCurrentTenant.set(currentTenant)
+      AuthCurrentTenant.set(currentTenant);
 
       if (!currentTenant) {
-        window.location.href = `${config.frontendUrl.protocol}://${config.frontendUrl.host}`
-        return
+        window.location.href = `${config.frontendUrl.protocol}://${config.frontendUrl.host}`;
+        return;
       }
     }
 
-    const tenantId = AuthCurrentTenant.get()
+    const tenantId = AuthCurrentTenant.get();
     if (tenantId && !tenantUrl) {
       try {
-        const currentTenant = await this.find(tenantId)
+        const currentTenant = await this.find(tenantId);
 
-        AuthCurrentTenant.set(currentTenant)
+        AuthCurrentTenant.set(currentTenant);
       } catch (error) {
-        console.error(error)
+        console.error(error);
       }
     }
   }
@@ -49,67 +49,67 @@ export class TenantService {
   static async update(id, data) {
     const response = await authAxios.put(
       `/tenant/${id}`,
-      data
-    )
+      data,
+    );
 
-    return response.data
+    return response.data;
   }
 
   static async destroyAll(ids) {
     const params = {
-      ids
-    }
+      ids,
+    };
 
-    const response = await authAxios.delete(`/tenant`, {
-      params
-    })
+    const response = await authAxios.delete('/tenant', {
+      params,
+    });
 
-    return response.data
+    return response.data;
   }
 
   static async create(data) {
-    const response = await authAxios.post(`/tenant`, data)
+    const response = await authAxios.post('/tenant', data);
 
-    return response.data
+    return response.data;
   }
 
   static async acceptInvitation(
     token,
-    forceAcceptOtherEmail = false
+    forceAcceptOtherEmail = false,
   ) {
     const response = await authAxios.post(
       `/tenant/invitation/${token}/accept`,
       {
-        forceAcceptOtherEmail
-      }
-    )
+        forceAcceptOtherEmail,
+      },
+    );
 
-    return response.data
+    return response.data;
   }
 
   static async declineInvitation(token) {
-    const params = null
+    const params = null;
 
     const response = await authAxios.delete(
       `/tenant/invitation/${token}/decline`,
       {
-        params
-      }
-    )
+        params,
+      },
+    );
 
-    return response.data
+    return response.data;
   }
 
   static async find(id) {
-    const response = await authAxios.get(`/tenant/${id}`)
-    return response.data
+    const response = await authAxios.get(`/tenant/${id}`);
+    return response.data;
   }
 
   static async findByUrl(url) {
-    const response = await authAxios.get(`/tenant/url`, {
-      params: { url }
-    })
-    return response.data
+    const response = await authAxios.get('/tenant/url', {
+      params: { url },
+    });
+    return response.data;
   }
 
   static async list(filter, orderBy, limit, offset) {
@@ -117,21 +117,21 @@ export class TenantService {
       filter,
       orderBy,
       limit,
-      offset
-    }
+      offset,
+    };
 
-    const response = await authAxios.get(`/tenant`, {
-      params
-    })
+    const response = await authAxios.get('/tenant', {
+      params,
+    });
 
-    return response.data
+    return response.data;
   }
 
   static async populateSampleData(tenantId) {
     const response = await authAxios.post(
-      `/tenant/${tenantId}/sampleData`
-    )
+      `/tenant/${tenantId}/sampleData`,
+    );
 
-    return response.data
+    return response.data;
   }
 }

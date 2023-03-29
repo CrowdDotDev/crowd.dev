@@ -1,5 +1,5 @@
-import { i18n } from '@/i18n'
-import pluralize from 'pluralize'
+import pluralize from 'pluralize';
+import { i18n } from '@/i18n';
 
 const defaultChartOptions = {
   legend: false,
@@ -14,70 +14,67 @@ const defaultChartOptions = {
     '#F59E0B',
     '#8B5CF6',
     '#06B6D4',
-    '#F97316'
+    '#F97316',
   ],
-  loading: 'Loading...'
-}
+  loading: 'Loading...',
+};
 
 const formatTooltipOptions = {
   library: {
     plugins: {
       tooltip: {
         callbacks: {
-          label: (context) =>
-            pluralize(
-              i18n(
-                `widget.cubejs.tooltip.${context.dataset.label}`
-              ),
-              context.dataset.data[context.dataIndex],
-              true
-            )
-        }
-      }
-    }
-  }
-}
+          label: (context) => pluralize(
+            i18n(
+              `widget.cubejs.tooltip.${context.dataset.label}`,
+            ),
+            context.dataset.data[context.dataIndex],
+            true,
+          ),
+        },
+      },
+    },
+  },
+};
 
 const platformColors = {
   github: '#111827',
   discord: '#8B5CF6',
   slack: '#E94F2E',
   twitter: '#60A5FA',
-  devto: '#5EEAD4'
-}
+  devto: '#5EEAD4',
+};
 
 export function chartOptions(widget, resultSet) {
-  let chartTypeOptions = {}
+  let chartTypeOptions = {};
   const seriesNames = resultSet
     ? resultSet.seriesNames()
-    : []
-  const type = widget.settings.chartType
+    : [];
+  const type = widget.settings.chartType;
 
   if (type === 'area' || type === 'line') {
     if (seriesNames.length <= 1) {
       chartTypeOptions = {
         computeDataset: (canvas) => {
-          const ctx = canvas.getContext('2d')
+          const ctx = canvas.getContext('2d');
           const gradient = ctx.createLinearGradient(
             0,
             150,
             0,
-            350
-          )
-          gradient.addColorStop(0, 'rgba(253,237, 234,1)')
-          gradient.addColorStop(1, 'rgba(253,237, 234,0)')
-          return { backgroundColor: gradient }
-        }
-      }
+            350,
+          );
+          gradient.addColorStop(0, 'rgba(253,237, 234,1)');
+          gradient.addColorStop(1, 'rgba(253,237, 234,0)');
+          return { backgroundColor: gradient };
+        },
+      };
     } else {
       chartTypeOptions = {
-        computeDataset: () => {
-          return { backgroundColor: 'transparent' }
-        }
-      }
+        computeDataset: () => ({ backgroundColor: 'transparent' }),
+      };
     }
   } else if (type === 'bar') {
-    chartTypeOptions = {}
+    chartTypeOptions = {};
   } else if (type === 'pie' || type === 'donut') {
     chartTypeOptions = {
       donut: true,
@@ -94,74 +91,71 @@ export function chartOptions(widget, resultSet) {
             labels: {
               usePointStyle: true,
               color: '#000',
-              padding: 10
-            }
-          }
-        }
-      }
-    }
+              padding: 10,
+            },
+          },
+        },
+      },
+    };
   }
 
   // Sort colors by platform
   if (
-    widget.settings.query &&
-    widget.settings.query.dimensions &&
-    widget.settings.query.dimensions.length &&
-    widget.settings.query.dimensions.includes(
-      'Activities.platform'
-    ) &&
-    !(
-      ['area', 'line'].includes(type) &&
-      seriesNames.length <= 1
+    widget.settings.query
+    && widget.settings.query.dimensions
+    && widget.settings.query.dimensions.length
+    && widget.settings.query.dimensions.includes(
+      'Activities.platform',
+    )
+    && !(
+      ['area', 'line'].includes(type)
+      && seriesNames.length <= 1
     )
   ) {
     const platforms = (
       resultSet ? resultSet.tablePivot() : []
     )
       .map((p) => p['Activities.platform'])
-      .filter((item, i, ar) => ar.indexOf(item) === i)
+      .filter((item, i, ar) => ar.indexOf(item) === i);
 
-    let mappedColors = platforms.map((p) => {
-      return platformColors[p]
-    })
-    const defaultColors =
-      chartTypeOptions.colors || defaultChartOptions.colors
+    let mappedColors = platforms.map((p) => platformColors[p]);
+    const defaultColors = chartTypeOptions.colors || defaultChartOptions.colors;
 
-    let restColors = defaultColors.filter(
-      (c) => !mappedColors.includes(c)
-    )
+    const restColors = defaultColors.filter(
+      (c) => !mappedColors.includes(c),
+    );
     mappedColors = mappedColors.map((c) => {
       if (!c) {
-        const firstColor = restColors[0]
-        restColors.shift()
-        return firstColor
+        const firstColor = restColors[0];
+        restColors.shift();
+        return firstColor;
       }
-      return c
-    })
+      return c;
+    });
 
     chartTypeOptions = {
       ...chartTypeOptions,
-      colors: [...mappedColors, ...restColors]
-    }
+      colors: [...mappedColors, ...restColors],
+    };
   }
 
   // When there's a dimension, we don't want custom format in tooltips,
   // instead we'll use the default format `dimension: value`
   if (
-    widget.settings.query.dimensions &&
-    widget.settings.query.dimensions.length
+    widget.settings.query.dimensions
+    && widget.settings.query.dimensions.length
   ) {
     return {
       ...defaultChartOptions,
-      ...chartTypeOptions
-    }
+      ...chartTypeOptions,
+    };
   }
 
   const options = {
     ...defaultChartOptions,
     ...chartTypeOptions,
-    ...formatTooltipOptions
-  }
+    ...formatTooltipOptions,
+  };
 
   return {
     ...options,
@@ -171,31 +165,31 @@ export function chartOptions(widget, resultSet) {
         ...options.library.plugins,
         tooltipAnnotationLine: false,
         verticalTodayLine: {
-          bottomMargin: 11
-        }
-      }
-    }
-  }
+          bottomMargin: 11,
+        },
+      },
+    },
+  };
 }
 
 export function mapWidget(widget, resultSet) {
   const seriesNames = resultSet
     ? resultSet.seriesNames()
-    : []
-  let type = widget.settings.chartType
+    : [];
+  let type = widget.settings.chartType;
   if (type === 'line' && seriesNames.length <= 1) {
-    type = 'area'
+    type = 'area';
   }
   return {
     ...widget,
     settings: {
       ...widget.settings,
-      chartType: type
-    }
-  }
+      chartType: type,
+    },
+  };
 }
 
 export default {
   mapWidget,
-  chartOptions
-}
+  chartOptions,
+};

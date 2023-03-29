@@ -1,7 +1,6 @@
-import { buildInitialState, store } from '@/store'
+import { buildInitialState, store } from '@/store';
 
-const OnboardPage = () =>
-  import('@/modules/onboard/pages/onboard-page.vue')
+const OnboardPage = () => import('@/modules/onboard/pages/onboard-page.vue');
 
 export default [
   {
@@ -9,12 +8,12 @@ export default [
     path: '/onboard',
     component: OnboardPage,
     meta: {
-      auth: true
+      auth: true,
     },
     beforeEnter: () => {
-      const initialState = buildInitialState(true)
+      const initialState = buildInitialState(true);
 
-      store.replaceState(initialState)
-    }
-  }
-]
+      store.replaceState(initialState);
+    },
+  },
+];

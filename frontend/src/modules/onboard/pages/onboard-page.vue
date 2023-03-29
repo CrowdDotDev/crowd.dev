@@ -5,6 +5,7 @@
         <header class="p-8">
           <div class="pb-12">
             <img
+              alt="Crowd logo mini"
               src="/images/logo/crowd-mini.svg"
               class="w-10"
             />
@@ -12,9 +13,7 @@
           <h3
             class="text-2xl font-semibold leading-12 mb-1"
           >
-            Howdie<span v-if="currentUser"
-              >, {{ currentUser.firstName }}</span
-            >
+            Howdie<span v-if="currentUser">, {{ currentUser.firstName }}</span>
           </h3>
           <p class="text-sm text-gray-600 leading-5">
             Let’s setup your community
@@ -30,33 +29,34 @@
 </template>
 
 <script>
-import AppOnboardCommunity from '@/modules/onboard/components/onboard-community'
-import { mapActions, mapGetters } from 'vuex'
+import { mapActions, mapGetters } from 'vuex';
+import AppOnboardCommunity from '@/modules/onboard/components/onboard-community.vue';
+
 export default {
   name: 'OnboardPage',
   components: {
-    AppOnboardCommunity
+    AppOnboardCommunity,
   },
   data() {
     return {
-      isNew: false
-    }
+      isNew: false,
+    };
   },
   computed: {
-    ...mapGetters('auth', ['currentUser'])
+    ...mapGetters('auth', ['currentUser']),
   },
   created() {
-    const { action } = this.$route.query
-    this.isNew = action === 'new'
+    const { action } = this.$route.query;
+    this.isNew = action === 'new';
     if (this.isNew) {
-      localStorage.removeItem('onboardType')
-      this.clearTenant()
+      localStorage.removeItem('onboardType');
+      this.clearTenant();
     }
   },
   methods: {
-    ...mapActions('auth', ['clearTenant'])
-  }
-}
+    ...mapActions('auth', ['clearTenant']),
+  },
+};
 </script>
 <style lang="scss" scoped>
 main {

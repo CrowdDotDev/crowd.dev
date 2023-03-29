@@ -18,7 +18,7 @@
             :entity="computedAvatarEntity"
             size="sm"
             :class="isCollapsed ? '' : 'mr-3'"
-          ></app-avatar>
+          />
           <div
             v-if="!isCollapsed"
             class="text-sm account-btn-info"
@@ -35,7 +35,7 @@
         <i
           v-if="!isCollapsed"
           class="ri-more-2-fill text-gray-300 text-lg"
-        ></i>
+        />
       </div>
     </template>
 
@@ -47,10 +47,8 @@
       <div class="popover-item" @click="doEditProfile">
         <i
           class="text-base text-gray-400 ri-account-circle-line"
-        ></i>
-        <span class="text-xs text-gray-900"
-          ><app-i18n code="auth.profile.title"></app-i18n
-        ></span>
+        />
+        <span class="text-xs text-gray-900"><app-i18n code="auth.profile.title" /></span>
       </div>
     </div>
     <div
@@ -60,55 +58,53 @@
     >
       <i
         class="text-base text-gray-400 ri-logout-box-r-line"
-      ></i>
-      <span class="text-xs text-gray-900"
-        ><app-i18n code="auth.signout"></app-i18n
-      ></span>
+      />
+      <span class="text-xs text-gray-900"><app-i18n code="auth.signout" /></span>
     </div>
   </el-popover>
 </template>
 
-<script>
-export default {
-  name: 'AppAccountDropdown'
-}
-</script>
-
 <script setup>
-import { useStore } from 'vuex'
-import { computed, ref } from 'vue'
-import { useRouter } from 'vue-router'
+import { useStore } from 'vuex';
+import { computed, ref } from 'vue';
+import { useRouter } from 'vue-router';
 
-const store = useStore()
-const router = useRouter()
+const store = useStore();
+const router = useRouter();
 
-const isDropdownOpen = ref(false)
+const isDropdownOpen = ref(false);
 
 const isCollapsed = computed(
-  () => store.getters['layout/menuCollapsed']
-)
+  () => store.getters['layout/menuCollapsed'],
+);
 const currentUserNameOrEmailPrefix = computed(
-  () => store.getters['auth/currentUserNameOrEmailPrefix']
-)
+  () => store.getters['auth/currentUserNameOrEmailPrefix'],
+);
 const currentUserAvatar = computed(
-  () => store.getters['auth/currentUserAvatar']
-)
+  () => store.getters['auth/currentUserAvatar'],
+);
 const currentTenant = computed(
-  () => store.getters['auth/currentTenant']
-)
+  () => store.getters['auth/currentTenant'],
+);
 
 const computedAvatarEntity = computed(() => ({
   avatar: currentUserAvatar.value,
-  displayName: currentUserNameOrEmailPrefix.value
-}))
+  displayName: currentUserNameOrEmailPrefix.value,
+}));
 
 function doSignout() {
-  store.dispatch('auth/doSignout')
+  store.dispatch('auth/doSignout');
 }
 
 function doEditProfile() {
-  return router.push('/auth/edit-profile')
+  return router.push('/auth/edit-profile');
 }
+</script>
+
+<script>
+export default {
+  name: 'AppAccountDropdown',
+};
 </script>
 
 <style lang="scss">
@@ -134,7 +130,6 @@ function doEditProfile() {
 // Override inline style in popover
 .account-popover {
   padding: 8px !important;
-  left: 1px !important;
   bottom: 10px !important;
   border-radius: 8px !important;
   border: none !important;

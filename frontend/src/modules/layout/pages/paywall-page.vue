@@ -30,12 +30,12 @@
           <router-link
             :to="{
               name: 'settings',
-              query: { activeTab: 'plans' }
+              query: { activeTab: 'plans' },
             }"
           >
-            <el-button class="btn btn--md btn--primary"
-              >Upgrade plan</el-button
-            >
+            <el-button class="btn btn--md btn--primary">
+              Upgrade plan
+            </el-button>
           </router-link>
         </div>
       </div>
@@ -54,6 +54,7 @@
 
         <div class="bg-image">
           <img
+            alt="Paywall"
             class="w-9/12 mx-auto"
             :src="page.imageSrc"
             :class="page.imageClass"
@@ -81,7 +82,9 @@
               :class="feature.icon"
             />
             <div class="ml-4 pt-1">
-              <h6 class="mb-4">{{ feature.title }}</h6>
+              <h6 class="mb-4">
+                {{ feature.title }}
+              </h6>
               <div class="text-xs text-gray-900">
                 {{ feature.content }}
               </div>
@@ -94,25 +97,24 @@
 </template>
 
 <script setup>
-import config from '@/config'
-import AppPageWrapper from '@/shared/layout/page-wrapper.vue'
-import { pageContent } from '@/modules/layout/layout-page-content'
-import { computed } from 'vue'
-import { FeatureFlag } from '@/featureFlag'
-import { useRouter } from 'vue-router'
+import { computed } from 'vue';
+import { useRouter } from 'vue-router';
+import config from '@/config';
+import AppPageWrapper from '@/shared/layout/page-wrapper.vue';
+import { pageContent } from '@/modules/layout/layout-page-content';
+import { FeatureFlag } from '@/featureFlag';
 
-const router = useRouter()
+const router = useRouter();
 
-const module = computed(
-  () => router.currentRoute.value.name
-)
-const page = computed(() => pageContent[module.value])
+const section = computed(
+  () => router.currentRoute.value.name,
+);
+const page = computed(() => pageContent[section.value]);
 const computedFeaturePlan = computed(() => {
-  if (config.isCommunityVersion) return 'Custom plan'
-  if (page.value.headerTitle === 'Eagle Eye')
-    return 'Growth and Eagle Eye plans'
-  else return 'Growth plan'
-})
+  if (config.isCommunityVersion) return 'Custom plan';
+  if (page.value.headerTitle === 'Eagle Eye') return 'Growth and Eagle Eye plans';
+  return 'Growth plan';
+});
 </script>
 
 <style lang="scss">

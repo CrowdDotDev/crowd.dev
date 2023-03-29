@@ -4,33 +4,33 @@
       v-if="loading.find"
       v-loading="loading.find"
       class="app-page-spinner"
-    ></div>
+    />
     <div v-else>
       <div class="flex items-center justify-between">
         <router-link
           class="text-gray-600 btn-link--md btn-link--secondary p-0 inline-flex items-center"
           :to="{ path: '/reports' }"
         >
-          <i class="ri-arrow-left-s-line mr-2"></i
-          >Reports</router-link
-        >
+          <i class="ri-arrow-left-s-line mr-2" />Reports
+        </router-link>
         <div class="flex items-center">
           <router-link
             class="btn btn--transparent btn--md mr-4"
             :to="{
               name: 'reportView',
-              params: { id: id }
+              params: { id: id },
             }"
-            ><i class="ri-eye-line mr-2"></i>View
-            report</router-link
           >
+            <i class="ri-eye-line mr-2" />View
+            report
+          </router-link>
           <app-report-dropdown
             :report="record"
             :show-view-report="false"
             :show-view-report-public="false"
             :show-edit-report="false"
             :show-duplicate-report="false"
-          ></app-report-dropdown>
+          />
         </div>
       </div>
       <app-report-form
@@ -42,60 +42,60 @@
 </template>
 
 <script>
-import { mapActions, mapGetters } from 'vuex'
-import AppReportForm from '@/modules/report/components/report-form.vue'
-import AppReportDropdown from '@/modules/report/components/report-dropdown.vue'
+import { mapActions, mapGetters } from 'vuex';
+import AppReportForm from '@/modules/report/components/report-form.vue';
+import AppReportDropdown from '@/modules/report/components/report-dropdown.vue';
 
 export default {
   name: 'AppReportFormPage',
 
   components: {
     AppReportForm,
-    AppReportDropdown
+    AppReportDropdown,
   },
 
   props: {
     id: {
       type: String,
-      default: null
-    }
+      default: null,
+    },
   },
 
   data() {
     return {
       loading: {
         find: false,
-        submit: false
+        submit: false,
       },
-      isPublic: false
-    }
+      isPublic: false,
+    };
   },
 
   computed: {
     ...mapGetters('report', ['find']),
     record() {
-      return this.find(this.id)
-    }
+      return this.find(this.id);
+    },
   },
 
   async created() {
-    this.loading.find = true
-    await this.doFind(this.id)
-    this.isPublic = this.record.public
-    this.loading.find = false
+    this.loading.find = true;
+    await this.doFind(this.id);
+    this.isPublic = this.record.public;
+    this.loading.find = false;
   },
 
   methods: {
     ...mapActions({
       doFind: 'report/doFind',
-      doCreate: 'report/doCreate'
+      doCreate: 'report/doCreate',
     }),
 
     doCancel() {
-      this.$router.push('/reports')
-    }
-  }
-}
+      this.$router.push('/reports');
+    },
+  },
+};
 </script>
 
 <style lang="scss">

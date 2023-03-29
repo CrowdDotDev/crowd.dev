@@ -15,7 +15,7 @@
           <el-input
             v-model="model.name"
             placeholder="Monthly investor report"
-          ></el-input>
+          />
         </el-form-item>
         <div class="flex items-start">
           <el-switch
@@ -38,13 +38,15 @@
         <el-button
           class="btn btn--bordered btn--md mr-3"
           @click="visible = false"
-          >Cancel</el-button
         >
+          Cancel
+        </el-button>
         <el-button
           class="btn btn--primary btn--md"
           @click="handleSubmit"
-          >Submit</el-button
         >
+          Submit
+        </el-button>
       </div>
     </template>
   </app-dialog>
@@ -55,51 +57,51 @@ import {
   defineProps,
   defineEmits,
   computed,
-  reactive
-} from 'vue'
-import { useRouter } from 'vue-router'
-import { ReportService } from '@/modules/report/report-service'
-import { ReportModel } from '@/modules/report/report-model'
-import { FormSchema } from '@/shared/form/form-schema'
+  reactive,
+} from 'vue';
+import { useRouter } from 'vue-router';
+import { ReportService } from '@/modules/report/report-service';
+import { ReportModel } from '@/modules/report/report-model';
+import { FormSchema } from '@/shared/form/form-schema';
 
-const router = useRouter()
+const router = useRouter();
 const props = defineProps({
   modelValue: {
     type: Boolean,
-    default: false
-  }
-})
-const emit = defineEmits('update:modelValue')
+    default: false,
+  },
+});
+const emit = defineEmits('update:modelValue');
 
-const { fields } = ReportModel
+const { fields } = ReportModel;
 const formSchema = new FormSchema([
   fields.name,
   fields.widgets,
   fields.settings,
-  fields.public
-])
+  fields.public,
+]);
 
-const rules = reactive(formSchema.rules())
+const rules = reactive(formSchema.rules());
 
 const visible = computed({
   get() {
-    return props.modelValue
+    return props.modelValue;
   },
   set(value) {
-    return emit('update:modelValue', value)
-  }
-})
+    return emit('update:modelValue', value);
+  },
+});
 
-const model = reactive({})
+const model = reactive({});
 
 const handleSubmit = async () => {
   const report = await ReportService.create({
     name: model.name,
-    public: model.public
-  })
+    public: model.public,
+  });
   await router.push({
     name: 'reportEdit',
-    params: { id: report.id }
-  })
-}
+    params: { id: report.id },
+  });
+};
 </script>

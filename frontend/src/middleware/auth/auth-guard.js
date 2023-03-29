@@ -1,6 +1,10 @@
-import { PermissionChecker } from '@/modules/user/permission-checker'
-import config from '@/config'
-import { tenantSubdomain } from '@/modules/tenant/tenant-subdomain'
+import { PermissionChecker } from '@/modules/user/permission-checker';
+import config from '@/config';
+import { tenantSubdomain } from '@/modules/tenant/tenant-subdomain';
+
+function isGoingToIntegrationsPage(to) {
+  return to.name === 'integration';
+}
 
 /**
  * Auth Guard
@@ -20,72 +24,69 @@ import { tenantSubdomain } from '@/modules/tenant/tenant-subdomain'
  */
 export default async function ({ to, store, router }) {
   if (!to.meta || !to.meta.auth) {
-    return
+    return;
   }
-  await store.dispatch('auth/doWaitUntilInit')
+  await store.dispatch('auth/doWaitUntilInit');
 
   const permissionChecker = new PermissionChecker(
     store.getters['auth/currentTenant'],
-    store.getters['auth/currentUser']
-  )
+    store.getters['auth/currentUser'],
+  );
 
   if (!permissionChecker.isAuthenticated) {
-    return router.push({ path: '/auth/signin' })
+    router.push({ path: '/auth/signin' });
+    return;
   }
 
   if (
-    to.path !== '/auth/email-unverified' &&
-    !permissionChecker.isEmailVerified
+    to.path !== '/auth/email-unverified'
+    && !permissionChecker.isEmailVerified
   ) {
-    return router.push({ path: '/auth/email-unverified' })
+    router.push({ path: '/auth/email-unverified' });
+    return;
   }
 
   // Temporary fix
   if (
-    to.meta.permission &&
-    (!permissionChecker.match(to.meta.permission) ||
-      permissionChecker.lockedForSampleData(
-        to.meta.permission
+    to.meta.permission
+    && (!permissionChecker.match(to.meta.permission)
+      || permissionChecker.lockedForSampleData(
+        to.meta.permission,
       ))
   ) {
-    return router.push('/403')
+    router.push('/403');
+    return;
   }
 
   if (
     ['multi', 'multi-with-subdomain'].includes(
-      config.tenantMode
-    ) &&
-    !tenantSubdomain.isSubdomain
+      config.tenantMode,
+    )
+    && !tenantSubdomain.isSubdomain
   ) {
     if (
-      to.path !== '/onboard' &&
-      permissionChecker.isEmailVerified &&
-      (permissionChecker.isEmptyTenant ||
-        !store.getters['auth/currentTenant'].onboardedAt)
+      to.path !== '/onboard'
+      && permissionChecker.isEmailVerified
+      && (permissionChecker.isEmptyTenant
+        || !store.getters['auth/currentTenant'].onboardedAt)
     ) {
-      return router.push({
+      router.push({
         path: '/onboard',
-        query: _isGoingToIntegrationsPage(to)
+        query: isGoingToIntegrationsPage(to)
           ? {
-              selectedDataType: 'real',
-              ...to.query
-            }
-          : undefined
-      })
+            selectedDataType: 'real',
+            ...to.query,
+          }
+          : undefined,
+      });
     }
-  } else {
-    if (
-      to.path !== '/auth/empty-permissions' &&
-      permissionChecker.isEmailVerified &&
-      permissionChecker.isEmptyPermissions
-    ) {
-      return router.push({
-        path: '/auth/empty-permissions'
-      })
-    }
+  } else if (
+    to.path !== '/auth/empty-permissions'
+      && permissionChecker.isEmailVerified
+      && permissionChecker.isEmptyPermissions
+  ) {
+    router.push({
+      path: '/auth/empty-permissions',
+    });
   }
-}
-
-function _isGoingToIntegrationsPage(to) {
-  return to.name === 'integration'
 }

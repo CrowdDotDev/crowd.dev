@@ -47,7 +47,7 @@
               <app-avatar
                 :entity="{
                   displayName: item.label,
-                  avatar: item.logo
+                  avatar: item.logo,
                 }"
                 size="xxs"
                 class="mr-2"
@@ -77,70 +77,60 @@
           :mapper-fn="fieldsValue.tags.mapperFn"
           :create-if-not-found="true"
           placeholder="Enter tags..."
-        ></app-tag-autocomplete-input>
+        />
       </el-form-item>
     </div>
   </div>
 </template>
 
 <script setup>
-import AppTagAutocompleteInput from '@/modules/tag/components/tag-autocomplete-input.vue'
-import { defineEmits, defineProps, computed, h } from 'vue'
-import { OrganizationService } from '@/modules/organization/organization-service'
-import AppAvatar from '@/shared/avatar/avatar.vue'
+import {
+  defineEmits, defineProps, computed, h,
+} from 'vue';
+import AppTagAutocompleteInput from '@/modules/tag/components/tag-autocomplete-input.vue';
+import { OrganizationService } from '@/modules/organization/organization-service';
+import AppAvatar from '@/shared/avatar/avatar.vue';
 
 const CalendarIcon = h(
   'i', // type
   {
     class:
-      'ri-calendar-line text-base leading-none text-gray-400'
+      'ri-calendar-line text-base leading-none text-gray-400',
   }, // props
-  []
-)
+  [],
+);
 
-const emit = defineEmits(['update:modelValue'])
+const emit = defineEmits(['update:modelValue']);
 const props = defineProps({
   modelValue: {
     type: Object,
-    default: () => {}
+    default: () => {},
   },
   fieldsValue: {
     type: Object,
-    default: () => {}
-  }
-})
+    default: () => {},
+  },
+});
 
 const model = computed({
   get() {
-    return props.modelValue
+    return props.modelValue;
   },
   set(newModel) {
-    emit('update:modelValue', newModel)
-  }
+    emit('update:modelValue', newModel);
+  },
+});
+
+const fetchOrganizationsFn = (query, limit) => OrganizationService.listAutocomplete(query, limit)
+  .then((options) => options.filter((m) => m.id !== props.id))
+  .catch(() => []);
+
+const createOrganizationFn = (value) => OrganizationService.create({
+  name: value,
 })
-
-const fetchOrganizationsFn = (query, limit) => {
-  return OrganizationService.listAutocomplete(query, limit)
-    .then((options) =>
-      options.filter((m) => m.id !== props.id)
-    )
-    .catch(() => {
-      return []
-    })
-}
-
-const createOrganizationFn = (value) => {
-  return OrganizationService.create({
-    name: value
-  })
-    .then((newOrganization) => {
-      return {
-        id: newOrganization.id,
-        label: newOrganization.name
-      }
-    })
-    .catch(() => {
-      return null
-    })
-}
+  .then((newOrganization) => ({
+    id: newOrganization.id,
+    label: newOrganization.name,
+  }))
+  .catch(() => null);
 </script>

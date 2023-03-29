@@ -1,9 +1,9 @@
-import { externalTooltipHandler } from '../tooltip'
 import {
   parseTooltipTitle,
   formatTooltipTitle,
-  parseTooltipBody
-} from '@/utils/reports'
+  parseTooltipBody,
+} from '@/utils/reports';
+import { externalTooltipHandler } from '../tooltip';
 
 const defaultChartOptions = (config) => ({
   legend: false,
@@ -16,8 +16,8 @@ const defaultChartOptions = (config) => ({
   library: {
     layout: {
       padding: {
-        top: 20
-      }
+        top: 20,
+      },
     },
     lineTension: 0.25,
     scales: {
@@ -25,21 +25,21 @@ const defaultChartOptions = (config) => ({
         type: 'time',
         time: {
           displayFormats: {
-            day: 'MMM DD, YYYY'
-          }
+            day: 'MMM DD, YYYY',
+          },
         },
         ticks: {
           display: config.xTicks,
           color: '#9CA3AF',
           font: {
             family: 'Inter',
-            size: 10
+            size: 10,
           },
-          callback: config.xTicksCallback
+          callback: config.xTicksCallback,
         },
         grid: {
-          display: config.xLines
-        }
+          display: config.xLines,
+        },
       },
       y: {
         grid: {
@@ -47,7 +47,7 @@ const defaultChartOptions = (config) => ({
           drawBorder: false,
           color: '#D1D5DB',
           borderDash: [4, 6],
-          drawTicks: false
+          drawTicks: false,
         },
         ticks: {
           display: config.yTicks,
@@ -55,19 +55,19 @@ const defaultChartOptions = (config) => ({
           padding: 8,
           font: {
             family: 'Inter',
-            size: 10
+            size: 10,
           },
-          callback: config.yTicksCallback
-        }
-      }
+          callback: config.yTicksCallback,
+        },
+      },
     },
     interaction: {
       mode: 'index',
-      intersect: false
+      intersect: false,
     },
     plugins: {
       verticalTodayLine: {
-        bottomMargin: 14
+        bottomMargin: 14,
       },
       tooltip: {
         position: 'nearest',
@@ -77,10 +77,8 @@ const defaultChartOptions = (config) => ({
           title: parseTooltipTitle,
           label: formatTooltipTitle,
           afterLabel: parseTooltipBody,
-          footer: (context) => {
-            return context[0].dataset.tooltipBtn
-          }
-        }
+          footer: (context) => context[0].dataset.tooltipBtn,
+        },
       },
       legend: config.legend && {
         display: true,
@@ -88,33 +86,33 @@ const defaultChartOptions = (config) => ({
         align: 'center',
         onClick: (_click, legendItem, legend) => {
           const datasets = legend.legendItems.map(
-            (dataset) => dataset.text
-          )
+            (dataset) => dataset.text,
+          );
 
-          const index = datasets.indexOf(legendItem.text)
+          const index = datasets.indexOf(legendItem.text);
 
           if (legend.chart.isDatasetVisible(index)) {
-            legend.chart.hide(index)
+            legend.chart.hide(index);
           } else {
-            legend.chart.show(index)
+            legend.chart.show(index);
           }
         },
         labels: {
           font: {
             family: 'Inter',
-            size: 12
+            size: 12,
           },
           usePointStyle: true,
           generateLabels: (chart) => {
-            let visibility = []
+            const visibility = [];
 
             chart.data.datasets.forEach((_, i) => {
               if (chart.isDatasetVisible(i)) {
-                visibility.push(false)
+                visibility.push(false);
               } else {
-                visibility.push(true)
+                visibility.push(true);
               }
-            })
+            });
 
             return chart.data.datasets.map(
               (dataset, index) => ({
@@ -125,15 +123,15 @@ const defaultChartOptions = (config) => ({
                 fontColor: '#6B7280',
                 pointStyle: 'line',
                 hidden: visibility[index],
-                lineWidth: 2
-              })
-            )
-          }
-        }
-      }
-    }
-  }
-})
+                lineWidth: 2,
+              }),
+            );
+          },
+        },
+      },
+    },
+  },
+});
 
 const defaultChartConfig = {
   legend: true,
@@ -151,58 +149,56 @@ const defaultChartConfig = {
     stops: [
       {
         offset: 0,
-        color: 'rgba(233, 79, 46, 0.05)'
+        color: 'rgba(233, 79, 46, 0.05)',
       },
       {
         offset: 1,
-        color: 'rgba(233, 79, 46, 0)'
-      }
-    ]
-  }
-}
+        color: 'rgba(233, 79, 46, 0)',
+      },
+    ],
+  },
+};
 
 export function chartOptions(type, config) {
   const chartConfig = {
     ...defaultChartConfig,
-    ...config
-  }
+    ...config,
+  };
 
-  let chartTypeOptions = {}
+  let chartTypeOptions = {};
 
   if (type === 'area') {
-    const computeDataset = (conf) => {
-      return (canvas) => {
-        const ctx = canvas.getContext('2d')
-        const gradient = ctx.createLinearGradient(
-          conf.gradient.x0,
-          conf.gradient.y0,
-          conf.gradient.x1,
-          conf.gradient.y1
-        )
-        for (let stop of conf.gradient.stops) {
-          gradient.addColorStop(stop.offset, stop.color)
-        }
+    const computeDataset = (conf) => (canvas) => {
+      const ctx = canvas.getContext('2d');
+      const gradient = ctx.createLinearGradient(
+        conf.gradient.x0,
+        conf.gradient.y0,
+        conf.gradient.x1,
+        conf.gradient.y1,
+      );
+      conf.gradient.stops.forEach((stop) => {
+        gradient.addColorStop(stop.offset, stop.color);
+      });
 
-        return {
-          backgroundColor: gradient,
-          pointRadius: 5,
-          pointBorderColor: 'transparent',
-          pointBackgroundColor: 'transparent',
-          pointHoverBorderColor: '#E94F2E',
-          pointHoverBackgroundColor: '#fff',
-          pointHoverBorderWidth: '2',
-          spanGaps: true
-        }
-      }
-    }
+      return {
+        backgroundColor: gradient,
+        pointRadius: 5,
+        pointBorderColor: 'transparent',
+        pointBackgroundColor: 'transparent',
+        pointHoverBorderColor: '#E94F2E',
+        pointHoverBackgroundColor: '#fff',
+        pointHoverBorderWidth: '2',
+        spanGaps: true,
+      };
+    };
 
     chartTypeOptions = {
-      computeDataset: computeDataset(chartConfig)
-    }
+      computeDataset: computeDataset(chartConfig),
+    };
   }
 
   return {
     ...defaultChartOptions(chartConfig),
-    ...chartTypeOptions
-  }
+    ...chartTypeOptions,
+  };
 }

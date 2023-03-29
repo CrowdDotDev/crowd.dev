@@ -4,8 +4,7 @@ export default {
   platform: (state) => state.filters.platform,
 
   // Conversations
-  trendingConversations: (state) =>
-    state.conversations.trending,
+  trendingConversations: (state) => state.conversations.trending,
   conversations: (state) => state.conversations,
 
   // Activities
@@ -18,9 +17,7 @@ export default {
   members: (state) => state.members,
 
   // Organizations
-  activeOrganizations: (state) =>
-    state.organizations.active,
-  recentOrganizations: (state) =>
-    state.organizations.recent,
-  organizations: (state) => state.organizations
-}
+  activeOrganizations: (state) => state.organizations.active,
+  recentOrganizations: (state) => state.organizations.recent,
+  organizations: (state) => state.organizations,
+};

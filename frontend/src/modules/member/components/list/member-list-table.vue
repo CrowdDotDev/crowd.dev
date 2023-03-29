@@ -4,7 +4,7 @@
       v-if="loading"
       v-loading="loading"
       class="app-page-spinner h-16 !relative !min-h-5"
-    ></div>
+    />
     <div v-else>
       <!-- Empty State -->
       <app-empty-state-cta
@@ -16,7 +16,7 @@
         secondary-btn="Add member"
         @cta-click="onCtaClick"
         @secondary-click="onSecondaryBtnClick"
-      ></app-empty-state-cta>
+      />
 
       <app-empty-state-cta
         v-else-if="hasIntegrations && !hasMembers"
@@ -24,14 +24,14 @@
         title="No community members yet"
         description="Please consider that the first members may take a couple of minutes to be displayed"
         :has-warning-icon="true"
-      ></app-empty-state-cta>
+      />
 
       <app-empty-state-cta
         v-else-if="hasMembers && !count"
         icon="ri-contacts-line"
         title="No members found"
         description="We couldn't find any results that match your search criteria, please try a different query"
-      ></app-empty-state-cta>
+      />
 
       <div v-else>
         <!-- Sorter -->
@@ -67,16 +67,16 @@
                 <div
                   :style="{
                     width: tableWidth,
-                    height: '10px'
+                    height: '10px',
                   }"
-                ></div>
+                />
               </el-scrollbar>
             </div>
           </transition>
           <app-member-list-toolbar
             @mouseover="onTableMouseover"
             @mouseleave="onTableMouseLeft"
-          ></app-member-list-toolbar>
+          />
           <div
             class="-mx-6 -mt-6"
             @mouseover="onTableMouseover"
@@ -97,7 +97,7 @@
                 type="selection"
                 width="75"
                 fixed
-              ></el-table-column>
+              />
 
               <el-table-column
                 label="Member"
@@ -111,7 +111,7 @@
                   <router-link
                     :to="{
                       name: 'memberView',
-                      params: { id: scope.row.id }
+                      params: { id: scope.row.id },
                     }"
                     class="block"
                   >
@@ -123,9 +123,7 @@
                         size="sm"
                         class="mr-2"
                       />
-                      <span class="font-semibold">{{
-                        scope.row.displayName
-                      }}</span>
+                      <span class="font-semibold" v-html="$sanitize(scope.row.displayName)" />
                       <app-member-sentiment
                         :member="scope.row"
                         class="ml-2"
@@ -146,7 +144,7 @@
                   <router-link
                     :to="{
                       name: 'memberView',
-                      params: { id: scope.row.id }
+                      params: { id: scope.row.id },
                     }"
                     class="block"
                   >
@@ -169,15 +167,15 @@
                   <router-link
                     :to="{
                       name: 'memberView',
-                      params: { id: scope.row.id }
+                      params: { id: scope.row.id },
                     }"
                     class="block !text-gray-500"
                   >
                     {{
                       column.formatter
                         ? column.formatter(
-                            scope.row[column.name]
-                          )
+                          scope.row[column.name],
+                        )
                         : scope.row[column.name]
                     }}
                   </router-link>
@@ -193,7 +191,7 @@
                   <router-link
                     :to="{
                       name: 'memberView',
-                      params: { id: scope.row.id }
+                      params: { id: scope.row.id },
                     }"
                     class="block"
                   >
@@ -213,7 +211,7 @@
                   <router-link
                     :to="{
                       name: 'memberView',
-                      params: { id: scope.row.id }
+                      params: { id: scope.row.id },
                     }"
                     class="block !text-gray-500"
                   >
@@ -235,14 +233,14 @@
                   <router-link
                     :to="{
                       name: 'memberView',
-                      params: { id: scope.row.id }
+                      params: { id: scope.row.id },
                     }"
                     class="block !text-gray-500"
                   >
                     <app-member-reach
                       :member="{
                         ...scope.row,
-                        reach: scope.row.reach
+                        reach: scope.row.reach,
                       }"
                     />
                   </router-link>
@@ -260,7 +258,7 @@
                   <router-link
                     :to="{
                       name: 'memberView',
-                      params: { id: scope.row.id }
+                      params: { id: scope.row.id },
                     }"
                     class="block"
                   >
@@ -270,14 +268,15 @@
                     >
                       {{
                         formatDateToTimeAgo(
-                          scope.row.joinedAt
+                          scope.row.joinedAt,
                         )
                       }}
                     </div>
-                    <span v-else class="text-gray-900"
-                      >-</span
-                    ></router-link
-                  >
+                    <span
+                      v-else
+                      class="text-gray-900"
+                    >-</span>
+                  </router-link>
                 </template>
               </el-table-column>
 
@@ -289,13 +288,13 @@
                   <router-link
                     :to="{
                       name: 'memberView',
-                      params: { id: scope.row.id }
+                      params: { id: scope.row.id },
                     }"
                     class="block"
                   >
                     <app-member-channels
                       :member="scope.row"
-                    ></app-member-channels>
+                    />
                   </router-link>
                 </template>
               </el-table-column>
@@ -308,7 +307,7 @@
                   <router-link
                     :to="{
                       name: 'memberView',
-                      params: { id: scope.row.id }
+                      params: { id: scope.row.id },
                     }"
                     class="block"
                   >
@@ -323,28 +322,28 @@
                         popper-class="custom-identity-tooltip"
                         placement="top"
                       >
-                        <template #content
-                          ><span
-                            >Send email
+                        <template #content>
+                          <span>Send email
                             <i
                               v-if="email"
                               class="ri-external-link-line text-gray-400"
-                            ></i></span
-                        ></template>
+                            /></span>
+                        </template>
                         <div @click.prevent>
                           <a
                             target="_blank"
+                            rel="noopener noreferrer"
                             class="badge--interactive"
                             :href="`mailto:${email}`"
                             @click.stop="trackEmailClick"
-                            >{{ email }}</a
-                          >
+                          >{{ email }}</a>
                         </div>
                       </el-tooltip>
                     </div>
-                    <span v-else class="text-gray-500"
-                      >-</span
-                    >
+                    <span
+                      v-else
+                      class="text-gray-500"
+                    >-</span>
                   </router-link>
                 </template>
               </el-table-column>
@@ -359,7 +358,7 @@
                   <router-link
                     :to="{
                       name: 'memberView',
-                      params: { id: scope.row.id }
+                      params: { id: scope.row.id },
                     }"
                     class="block"
                   >
@@ -373,7 +372,7 @@
                   <router-link
                     :to="{
                       name: 'memberView',
-                      params: { id: scope.row.id }
+                      params: { id: scope.row.id },
                     }"
                     class="block w-full"
                   >
@@ -382,7 +381,7 @@
                     >
                       <app-member-dropdown
                         :member="scope.row"
-                      ></app-member-dropdown>
+                      />
                     </div>
                   </router-link>
                 </template>
@@ -410,278 +409,274 @@
   </div>
 </template>
 
-<script>
-export default {
-  name: 'AppMemberListTable'
-}
-</script>
-
 <script setup>
-import { i18n } from '@/i18n'
-import { useStore } from 'vuex'
-import { useRouter } from 'vue-router'
+import { useStore } from 'vuex';
+import { useRouter } from 'vue-router';
 import {
   computed,
   onMounted,
   onUnmounted,
   ref,
   defineProps,
-  watch
-} from 'vue'
-import AppMemberListToolbar from '@/modules/member/components/list/member-list-toolbar.vue'
-import AppMemberBadge from '../member-badge.vue'
-import AppMemberOrganizations from '@/modules/member/components/member-organizations.vue'
-import AppMemberDropdown from '../member-dropdown.vue'
-import AppMemberChannels from '../member-channels.vue'
-import AppMemberReach from '../member-reach.vue'
-import AppTagList from '@/modules/tag/components/tag-list.vue'
-import AppMemberEngagementLevel from '../member-engagement-level.vue'
-import AppMemberLastActivity from '../member-last-activity.vue'
-import AppMemberSentiment from '../member-sentiment.vue'
-import { formatDateToTimeAgo } from '@/utils/date'
+  watch,
+} from 'vue';
+import { i18n } from '@/i18n';
+import AppMemberListToolbar from '@/modules/member/components/list/member-list-toolbar.vue';
+import AppMemberOrganizations from '@/modules/member/components/member-organizations.vue';
+import AppTagList from '@/modules/tag/components/tag-list.vue';
+import { formatDateToTimeAgo } from '@/utils/date';
+import AppMemberBadge from '../member-badge.vue';
+import AppMemberDropdown from '../member-dropdown.vue';
+import AppMemberChannels from '../member-channels.vue';
+import AppMemberReach from '../member-reach.vue';
+import AppMemberEngagementLevel from '../member-engagement-level.vue';
+import AppMemberLastActivity from '../member-last-activity.vue';
+import AppMemberSentiment from '../member-sentiment.vue';
 
-const store = useStore()
-const router = useRouter()
-const table = ref(null)
-const scrollbarRef = ref()
-const tableBodyRef = ref()
-const tableHeaderRef = ref()
-const isScrollbarVisible = ref(false)
-const isTableHovered = ref(false)
-const isCursorDown = ref(false)
+const store = useStore();
+const router = useRouter();
+const table = ref(null);
+const scrollbarRef = ref();
+const tableBodyRef = ref();
+const tableHeaderRef = ref();
+const isScrollbarVisible = ref(false);
+const isTableHovered = ref(false);
+const isCursorDown = ref(false);
 
 const props = defineProps({
   hasIntegrations: {
     type: Boolean,
-    default: () => false
+    default: () => false,
   },
   hasMembers: {
     type: Boolean,
-    default: () => false
+    default: () => false,
   },
   isPageLoading: {
     type: Boolean,
-    default: () => true
-  }
-})
+    default: () => true,
+  },
+});
 
 const extraColumns = computed(
-  () => store.getters['member/activeView']?.columns || []
-)
+  () => store.getters['member/activeView']?.columns || [],
+);
 
 const activeView = computed(
-  () => store.getters['member/activeView']
-)
+  () => store.getters['member/activeView'],
+);
 
 const defaultSort = computed(() => {
   if (activeView.value?.sorter) {
-    return activeView.value.sorter
+    return activeView.value.sorter;
   }
 
   return {
     field: 'lastActive',
-    order: 'descending'
-  }
-})
+    order: 'descending',
+  };
+});
 
 const integrations = computed(
-  () => store.getters['integration/activeList'] || {}
-)
+  () => store.getters['integration/activeList'] || {},
+);
 
-const showReach = computed(() => {
-  return (
-    integrations.value.twitter?.status === 'done' ||
-    integrations.value.github?.status === 'done'
-  )
-})
+const showReach = computed(() => (
+  integrations.value.twitter?.status === 'done'
+    || integrations.value.github?.status === 'done'
+));
 
-const rows = computed(() => store.getters['member/rows'])
-const count = computed(() => store.state.member.count)
-const tableWidth = computed(() => {
-  return store.state.member.list.table?.bodyWidth
-})
+const rows = computed(() => store.getters['member/rows']);
+const count = computed(() => store.state.member.count);
+const tableWidth = computed(() => store.state.member.list.table?.bodyWidth);
 const loading = computed(
-  () =>
-    store.state.member.list.loading || props.isPageLoading
-)
+  () => store.state.member.list.loading || props.isPageLoading,
+);
 
 const tagsColumnWidth = computed(() => {
-  let maxTabWidth = 0
-  for (const row of rows.value) {
+  let maxTabWidth = 0;
+
+  rows.value.forEach((row) => {
     if (row.tags) {
       const tabWidth = row.tags
         .map((tag) => tag.name.length * 20)
-        .reduce((a, b) => a + b, 0)
+        .reduce((a, b) => a + b, 0);
 
       if (tabWidth > maxTabWidth) {
-        maxTabWidth = tabWidth
+        maxTabWidth = tabWidth;
       }
     }
-  }
+  });
 
-  return Math.min(maxTabWidth + 100, 500)
-})
+  return Math.min(maxTabWidth + 100, 500);
+});
 
 const emailsColumnWidth = computed(() => {
-  let maxTabWidth = 0
-  for (const row of rows.value) {
+  let maxTabWidth = 0;
+
+  rows.value.forEach((row) => {
     const tabWidth = row.emails
       .map((email) => email.length * 12)
-      .reduce((a, b) => a + b, 0)
+      .reduce((a, b) => a + b, 0);
 
     if (tabWidth > maxTabWidth) {
-      maxTabWidth = tabWidth > 400 ? 400 : tabWidth
+      maxTabWidth = tabWidth > 400 ? 400 : tabWidth;
     }
-  }
+  });
 
-  return maxTabWidth
-})
+  return maxTabWidth;
+});
 
 const selectedRows = computed(
-  () => store.getters['member/selectedRows']
-)
+  () => store.getters['member/selectedRows'],
+);
 const pagination = computed(
-  () => store.getters['member/pagination']
-)
+  () => store.getters['member/pagination'],
+);
 
 document.onmouseup = () => {
   // As soon as mouse is released, set scrollbar visibility
   // according to wether the mouse is hovering the table or not
-  isScrollbarVisible.value = isTableHovered.value
-  isCursorDown.value = false
-}
-
-onMounted(async () => {
-  if (store.state.integration.count === 0) {
-    await store.dispatch('integration/doFetch')
-  }
-})
-
-// Remove listeners on unmount
-onUnmounted(() => {
-  tableBodyRef.value?.removeEventListener(
-    'scroll',
-    onTableBodyScroll
-  )
-  tableHeaderRef.value?.removeEventListener(
-    'scroll',
-    onTableHeaderScroll
-  )
-})
+  isScrollbarVisible.value = isTableHovered.value;
+  isCursorDown.value = false;
+};
 
 function doChangeSort(sorter) {
-  store.dispatch('member/doChangeSort', sorter)
+  store.dispatch('member/doChangeSort', sorter);
 }
 
 function doChangePaginationCurrentPage(currentPage) {
   store.dispatch(
     'member/doChangePaginationCurrentPage',
-    currentPage
-  )
+    currentPage,
+  );
 }
 
 function doChangePaginationPageSize(pageSize) {
   store.dispatch(
     'member/doChangePaginationPageSize',
-    pageSize
-  )
+    pageSize,
+  );
 }
+
+function translate(key) {
+  return i18n(key);
+}
+
+function rowClass({ row }) {
+  const isSelected = selectedRows.value.find((r) => r.id === row.id)
+    !== undefined;
+
+  return isSelected ? 'is-selected' : '';
+}
+
+function onCtaClick() {
+  router.push({
+    path: '/integrations',
+  });
+}
+
+function onSecondaryBtnClick() {
+  router.push({
+    name: 'memberCreate',
+  });
+}
+
+// On custom scrollbar scroll, set the table scroll with the same value
+const onCustomScrollbarScroll = ({ scrollLeft }) => {
+  table.value.setScrollLeft(scrollLeft);
+};
+
+// On table body scroll, set the custom scrollbar scroll with the same value
+const onTableBodyScroll = () => {
+  scrollbarRef.value.setScrollLeft(
+    tableBodyRef.value.scrollLeft,
+  );
+};
+
+// On table header scroll, set the custom scrollbar scroll with the same value
+const onTableHeaderScroll = () => {
+  scrollbarRef.value.setScrollLeft(
+    tableHeaderRef.value.scrollLeft,
+  );
+  table.value.setScrollLeft(tableHeaderRef.value.scrollLeft);
+};
+
+const onScrollMousedown = () => {
+  isCursorDown.value = true;
+};
+
+const onTableMouseover = () => {
+  isTableHovered.value = true;
+  isScrollbarVisible.value = true;
+};
+
+const onTableMouseLeft = () => {
+  isTableHovered.value = false;
+  isScrollbarVisible.value = isCursorDown.value;
+};
+
+const trackEmailClick = () => {
+  window.analytics.track('Click Member Contact', {
+    channel: 'Email',
+  });
+};
 
 watch(table, (newValue) => {
   if (newValue) {
-    store.dispatch('member/doMountTable', table.value)
+    store.dispatch('member/doMountTable', table.value);
   }
 
   // Add scroll events to table, it's not possible to access it from 'el-table'
   // as the overflowed element is within it
   const tableBodyEl = document.querySelector(
-    '#members-table .el-scrollbar__wrap'
-  )
+    '#members-table .el-scrollbar__wrap',
+  );
   const tableHeaderEl = document.querySelector(
-    '#members-table .el-table__header-wrapper'
-  )
+    '#members-table .el-table__header-wrapper',
+  );
 
   if (tableBodyEl) {
-    tableBodyRef.value = tableBodyEl
+    tableBodyRef.value = tableBodyEl;
     tableBodyRef.value.addEventListener(
       'scroll',
-      onTableBodyScroll
-    )
+      onTableBodyScroll,
+    );
   }
 
   if (tableHeaderEl) {
-    tableHeaderEl.style.overflow = 'auto'
-    tableHeaderRef.value = tableHeaderEl
+    tableHeaderEl.style.overflow = 'auto';
+    tableHeaderRef.value = tableHeaderEl;
     tableHeaderRef.value.addEventListener(
       'scroll',
-      onTableHeaderScroll
-    )
+      onTableHeaderScroll,
+    );
   }
-})
+});
 
-function translate(key) {
-  return i18n(key)
-}
+onMounted(async () => {
+  if (store.state.integration.count === 0) {
+    await store.dispatch('integration/doFetch');
+  }
+});
 
-function rowClass({ row }) {
-  const isSelected =
-    selectedRows.value.find((r) => r.id === row.id) !==
-    undefined
+// Remove listeners on unmount
+onUnmounted(() => {
+  tableBodyRef.value?.removeEventListener(
+    'scroll',
+    onTableBodyScroll,
+  );
+  tableHeaderRef.value?.removeEventListener(
+    'scroll',
+    onTableHeaderScroll,
+  );
+});
+</script>
 
-  return isSelected ? 'is-selected' : ''
-}
-
-function onCtaClick() {
-  router.push({
-    path: '/integrations'
-  })
-}
-
-function onSecondaryBtnClick() {
-  router.push({
-    name: 'memberCreate'
-  })
-}
-
-// On custom scrollbar scroll, set the table scroll with the same value
-const onCustomScrollbarScroll = ({ scrollLeft }) => {
-  table.value.setScrollLeft(scrollLeft)
-}
-
-// On table body scroll, set the custom scrollbar scroll with the same value
-const onTableBodyScroll = () => {
-  scrollbarRef.value.setScrollLeft(
-    tableBodyRef.value.scrollLeft
-  )
-}
-
-// On table header scroll, set the custom scrollbar scroll with the same value
-const onTableHeaderScroll = () => {
-  scrollbarRef.value.setScrollLeft(
-    tableHeaderRef.value.scrollLeft
-  )
-  table.value.setScrollLeft(tableHeaderRef.value.scrollLeft)
-}
-
-const onScrollMousedown = () => {
-  isCursorDown.value = true
-}
-
-const onTableMouseover = () => {
-  isTableHovered.value = true
-  isScrollbarVisible.value = true
-}
-
-const onTableMouseLeft = () => {
-  isTableHovered.value = false
-  isScrollbarVisible.value = isCursorDown.value
-}
-
-const trackEmailClick = () => {
-  window.analytics.track('Click Member Contact', {
-    channel: 'Email'
-  })
-}
+<script>
+export default {
+  name: 'AppMemberListTable',
+};
 </script>
 
 <style lang="scss">

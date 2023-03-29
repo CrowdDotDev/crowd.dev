@@ -14,25 +14,25 @@
 </template>
 
 <script setup>
-import datePublishedOptions from '@/premium/eagle-eye/constants/eagle-eye-date-published.json'
-import { defineEmits, defineProps, computed } from 'vue'
+import { defineEmits, defineProps, computed } from 'vue';
+import datePublishedOptions from '@/premium/eagle-eye/constants/eagle-eye-date-published.json';
 
-const emit = defineEmits(['update:datePublished'])
+const emit = defineEmits(['update:datePublished']);
 const props = defineProps({
   datePublished: {
     type: String,
-    required: true
-  }
-})
+    required: true,
+  },
+});
 
 const datePublished = computed({
   get() {
-    return props.datePublished
+    return props.datePublished;
   },
   set(v) {
-    emit('update:datePublished', v)
-  }
-})
+    emit('update:datePublished', v);
+  },
+});
 </script>
 
 <style lang="scss">

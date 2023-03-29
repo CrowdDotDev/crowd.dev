@@ -21,17 +21,18 @@
   </div>
 </template>
 <script setup>
-import { computed, defineProps } from 'vue'
+import { computed, defineProps } from 'vue';
+
 const props = defineProps({
   size: {
     type: String,
-    default: 'small'
-  }
-})
+    default: 'small',
+  },
+});
 const tiles = computed(() => {
   if (props.size === 'small') {
-    return { title: 2, description: 3 }
+    return { title: 2, description: 3 };
   }
-  return { title: 3, description: 4 }
-})
+  return { title: 3, description: 4 };
+});
 </script>

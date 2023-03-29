@@ -10,10 +10,9 @@
         <el-button
           class="btn btn--transparent !h-8"
           @click="onExportClick"
-          ><i class="ri-file-download-line" /><span
-            >Export CSV</span
-          ></el-button
         >
+          <i class="ri-file-download-line" /><span>Export CSV</span>
+        </el-button>
       </div>
       <el-divider class="!my-0 border-gray-200" />
     </div>
@@ -24,37 +23,33 @@
       class="h-14 border-b border-gray-100 last:border-none grid grid-cols-8 gap-4 hover:bg-gray-50 hover:cursor-pointer group"
       :to="{
         name: 'memberView',
-        params: { id: member.id }
+        params: { id: member.id },
       }"
       @click="onRowClick"
     >
       <div
         class="flex gap-3 items-center col-span-3"
         :class="{
-          'col-span-4': isDetailedView
+          'col-span-4': isDetailedView,
         }"
       >
         <app-avatar :entity="member" size="sm" />
         <div class="flex flex-col">
-          <span class="font-medium text-xs text-gray-900">{{
-            member.displayName
-          }}</span>
+          <span class="font-medium text-xs text-gray-900" v-html="$sanitize(member.displayName)" />
           <span
             v-if="isDetailedView && showActiveDays"
             class="text-gray-500 text-2xs italic"
-            >{{
-              pluralize('day', member.activeDaysCount, true)
-            }}
-            active</span
-          >
+          >{{
+            pluralize('day', member.activeDaysCount, true)
+          }}
+            active</span>
           <span
             v-else-if="
-              member.organizations?.length &&
-              !isDetailedView
+              member.organizations?.length
+                && !isDetailedView
             "
             class="text-gray-500 text-2xs"
-            >{{ member.organizations?.[0]?.name }}</span
-          >
+          >{{ member.organizations?.[0]?.name }}</span>
         </div>
       </div>
 
@@ -68,7 +63,7 @@
       <div class="flex gap-3 items-center">
         <div
           v-for="platform in Object.keys(
-            member.username || {}
+            member.username || {},
           )"
           :key="platform"
         >
@@ -76,26 +71,26 @@
             popper-class="custom-identity-tooltip"
             placement="top"
           >
-            <template #content
-              ><span
-                ><span class="capitalize">{{
-                  platform
-                }}</span
-                >profile
+            <template #content>
+              <span><span class="capitalize">{{
+                platform
+              }}</span>profile
                 <i
                   v-if="member.attributes?.url?.[platform]"
                   class="ri-external-link-line text-gray-400"
-                ></i></span
-            ></template>
+                /></span>
+            </template>
 
             <a
+              :aria-label="platform"
               :href="
                 member.attributes?.url?.[platform] || null
               "
               target="_blank"
+              rel="noopener noreferrer"
               class="hover:cursor-pointer"
               :style="{
-                minWidth: '32px'
+                minWidth: '32px',
               }"
               @click.stop
             >
@@ -104,8 +99,8 @@
                 class="max-w-[16px] h-4"
                 color="#D1D5DB"
                 hover-color="#4B5563"
-              /> </a
-          ></el-tooltip>
+              /> </a>
+          </el-tooltip>
         </div>
       </div>
 
@@ -119,38 +114,38 @@
   </div>
 </template>
 
-<script>
-export default {
-  name: 'AppWidgetTable'
-}
-</script>
-
 <script setup>
-import { defineProps, defineEmits } from 'vue'
-import AppSvg from '@/shared/svg/svg.vue'
-import pluralize from 'pluralize'
+import { defineProps, defineEmits } from 'vue';
+import pluralize from 'pluralize';
+import AppSvg from '@/shared/svg/svg.vue';
 
-const emit = defineEmits(['onRowClick', 'onExportClick'])
+const emit = defineEmits(['onRowClick', 'onExportClick']);
 defineProps({
   list: {
     type: Array,
-    default: () => []
+    default: () => [],
   },
   isDetailedView: {
     type: Boolean,
-    default: false
+    default: false,
   },
   showActiveDays: {
     type: Boolean,
-    default: false
-  }
-})
+    default: false,
+  },
+});
 
 const onRowClick = () => {
-  emit('onRowClick')
-}
+  emit('onRowClick');
+};
 
 const onExportClick = () => {
-  emit('onExportClick')
-}
+  emit('onExportClick');
+};
+</script>
+
+<script>
+export default {
+  name: 'AppWidgetTable',
+};
 </script>

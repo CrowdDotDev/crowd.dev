@@ -8,7 +8,7 @@
       <el-input
         v-model="model[index]"
         :class="inputClass"
-      ></el-input>
+      />
       <div v-if="model.length > 1">
         <button
           type="button"
@@ -17,7 +17,7 @@
         >
           <i
             class="ri-delete-bin-line text-lg text-gray-600"
-          ></i>
+          />
         </button>
       </div>
     </div>
@@ -31,50 +31,51 @@
   </div>
 </template>
 
-<script>
-export default {
-  name: 'StringArrayInput'
-}
-</script>
-
 <script setup>
 import {
   defineProps,
   defineEmits,
   reactive,
-  watch
-} from 'vue'
+  watch,
+} from 'vue';
+
 const props = defineProps({
   modelValue: {
     type: Array,
-    default: () => []
+    default: () => [],
   },
   inputClass: {
     type: String,
-    default: ''
+    default: '',
   },
   addRowLabel: {
     type: String,
-    default: 'Add row'
-  }
-})
+    default: 'Add row',
+  },
+});
 
-const emit = defineEmits(['update:modelValue'])
-const model = reactive(props.modelValue)
+const emit = defineEmits(['update:modelValue']);
+const model = reactive(props.modelValue);
 
 watch(
   model,
   (newValue) => {
-    emit('update:modelValue', newValue)
+    emit('update:modelValue', newValue);
   },
-  { deep: true }
-)
+  { deep: true },
+);
 
 const addRow = () => {
-  model.push('')
-}
+  model.push('');
+};
 
 const removeRow = (index) => {
-  model.splice(index, 1)
-}
+  model.splice(index, 1);
+};
+</script>
+
+<script>
+export default {
+  name: 'StringArrayInput',
+};
 </script>

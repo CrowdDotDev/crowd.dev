@@ -1,4 +1,4 @@
-import { buildInitialState } from '@/store'
+import { buildInitialState } from '@/store';
 
 /**
  * Reset Store
@@ -13,8 +13,8 @@ import { buildInitialState } from '@/store'
  */
 export default async function ({ to, store }) {
   if (to.path === '/auth/signin') {
-    const initialState = buildInitialState()
+    const initialState = buildInitialState();
 
-    store.replaceState(initialState)
+    store.replaceState(initialState);
   }
 }

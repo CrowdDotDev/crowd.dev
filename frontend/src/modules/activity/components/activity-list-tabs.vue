@@ -6,7 +6,7 @@
         :key="view.id"
         :label="view.label"
         :name="view.id"
-      ></el-tab-pane>
+      />
     </el-tabs>
     <span
       v-if="showResetView"
@@ -19,35 +19,33 @@
   </div>
 </template>
 
-<script>
-export default {
-  name: 'AppMemberListTabs'
-}
-</script>
-
 <script setup>
-import { computed } from 'vue'
-import { useStore } from 'vuex'
+import { computed } from 'vue';
+import { useStore } from 'vuex';
 
-const store = useStore()
+const store = useStore();
 const showResetView = computed(
-  () => store.getters['activity/showResetView']
-)
+  () => store.getters['activity/showResetView'],
+);
 const model = computed({
   get() {
     return Object.values(store.state.activity.views).find(
-      (v) => v.active
-    ).id
+      (v) => v.active,
+    ).id;
   },
   set(value) {
-    store.dispatch('activity/doChangeActiveView', value)
-  }
-})
-const views = computed(() => {
-  return Object.values(store.state.activity.views)
-})
+    store.dispatch('activity/doChangeActiveView', value);
+  },
+});
+const views = computed(() => Object.values(store.state.activity.views));
 
 const resetView = () => {
-  store.dispatch('activity/doResetActiveView')
-}
+  store.dispatch('activity/doResetActiveView');
+};
+</script>
+
+<script>
+export default {
+  name: 'AppMemberListTabs',
+};
 </script>

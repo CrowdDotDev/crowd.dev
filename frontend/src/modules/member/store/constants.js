@@ -1,19 +1,19 @@
-import { formatDate } from '@/utils/date'
+import { formatDate } from '@/utils/date';
 
-export const INITIAL_PAGE_SIZE = 20
+export const INITIAL_PAGE_SIZE = 20;
 
 export const DEFAULT_MEMBER_FILTERS = [
   {
     isTeamMember: {
-      not: true
-    }
+      not: true,
+    },
   },
   {
     isOrganization: {
-      not: true
-    }
-  }
-]
+      not: true,
+    },
+  },
+];
 
 const ACTIVITY_COUNT_BIGGER_THAN_0_FILTER = {
   activityCount: {
@@ -27,16 +27,16 @@ const ACTIVITY_COUNT_BIGGER_THAN_0_FILTER = {
     operator: 'gt',
     type: 'boolean',
     expanded: false,
-    show: false
-  }
-}
+    show: false,
+  },
+};
 
 export const INITIAL_VIEW_ALL_FILTER = {
   operator: 'and',
   attributes: {
-    ...ACTIVITY_COUNT_BIGGER_THAN_0_FILTER
-  }
-}
+    ...ACTIVITY_COUNT_BIGGER_THAN_0_FILTER,
+  },
+};
 
 export const INITIAL_VIEW_ACTIVE_FILTER = {
   operator: 'and',
@@ -49,58 +49,58 @@ export const INITIAL_VIEW_ACTIVE_FILTER = {
         options: [
           {
             value: [0, 1],
-            label: 'Silent'
+            label: 'Silent',
           },
           {
             value: [2, 3],
-            label: 'Quiet'
+            label: 'Quiet',
           },
           {
             value: [4, 6],
-            label: 'Engaged'
+            label: 'Engaged',
           },
           {
             value: [7, 8],
-            label: 'Fan'
+            label: 'Fan',
           },
           {
             value: [9, 10],
-            label: 'Ultra'
-          }
+            label: 'Ultra',
+          },
         ],
-        multiple: true
+        multiple: true,
       },
       defaultValue: [
         {
           value: [7, 8],
           label: 'Fan',
-          selected: false
+          selected: false,
         },
         {
           value: [9, 10],
           label: 'Ultra',
-          selected: false
-        }
+          selected: false,
+        },
       ],
       value: [
         {
           value: [7, 8],
           label: 'Fan',
-          selected: false
+          selected: false,
         },
         {
           value: [9, 10],
           label: 'Ultra',
-          selected: false
-        }
+          selected: false,
+        },
       ],
       defaultOperator: null,
       operator: null,
       type: 'select-multi',
-      expanded: false
-    }
-  }
-}
+      expanded: false,
+    },
+  },
+};
 
 export const INITIAL_VIEW_SLIPPING_AWAY_FILTER = {
   operator: 'and',
@@ -113,55 +113,55 @@ export const INITIAL_VIEW_SLIPPING_AWAY_FILTER = {
         options: [
           {
             value: [0, 1],
-            label: 'Silent'
+            label: 'Silent',
           },
           {
             value: [2, 3],
-            label: 'Quiet'
+            label: 'Quiet',
           },
           {
             value: [4, 6],
-            label: 'Engaged'
+            label: 'Engaged',
           },
           {
             value: [7, 8],
-            label: 'Fan'
+            label: 'Fan',
           },
           {
             value: [9, 10],
-            label: 'Ultra'
-          }
+            label: 'Ultra',
+          },
         ],
-        multiple: true
+        multiple: true,
       },
       defaultValue: [
         {
           value: [7, 8],
           label: 'Fan',
-          selected: false
+          selected: false,
         },
         {
           value: [9, 10],
           label: 'Ultra',
-          selected: false
-        }
+          selected: false,
+        },
       ],
       value: [
         {
           value: [7, 8],
           label: 'Fan',
-          selected: false
+          selected: false,
         },
         {
           value: [9, 10],
           label: 'Ultra',
-          selected: false
-        }
+          selected: false,
+        },
       ],
       defaultOperator: null,
       operator: null,
       type: 'select-multi',
-      expanded: false
+      expanded: false,
     },
     lastActive: {
       name: 'lastActive',
@@ -169,18 +169,18 @@ export const INITIAL_VIEW_SLIPPING_AWAY_FILTER = {
       custom: false,
       props: {},
       defaultValue: formatDate({
-        subtractDays: 14
+        subtractDays: 14,
       }),
       value: formatDate({
-        subtractDays: 14
+        subtractDays: 14,
       }),
       defaultOperator: 'lt',
       operator: 'lt',
       type: 'date',
-      expanded: false
-    }
-  }
-}
+      expanded: false,
+    },
+  },
+};
 export const INITIAL_VIEW_RECENT_FILTER = {
   operator: 'and',
   attributes: {
@@ -190,15 +190,15 @@ export const INITIAL_VIEW_RECENT_FILTER = {
       custom: false,
       props: {},
       defaultValue: formatDate({
-        subtractDays: 30
+        subtractDays: 30,
       }),
       value: formatDate({
-        subtractDays: 30
+        subtractDays: 30,
       }),
       defaultOperator: 'gt',
       operator: 'gt',
       type: 'date',
-      expanded: false
+      expanded: false,
     },
     lastActive: {
       name: 'lastActive',
@@ -206,18 +206,18 @@ export const INITIAL_VIEW_RECENT_FILTER = {
       custom: false,
       props: {},
       defaultValue: formatDate({
-        subtractDays: 30
+        subtractDays: 30,
       }),
       value: formatDate({
-        subtractDays: 30
+        subtractDays: 30,
       }),
       defaultOperator: 'gt',
       operator: 'gt',
       type: 'date',
-      expanded: false
-    }
-  }
-}
+      expanded: false,
+    },
+  },
+};
 
 export const INITIAL_VIEW_TEAM_MEMBERS_FILTER = {
   operator: 'and',
@@ -232,10 +232,10 @@ export const INITIAL_VIEW_TEAM_MEMBERS_FILTER = {
       defaultOperator: 'eq',
       operator: 'eq',
       type: 'boolean',
-      expanded: false
-    }
-  }
-}
+      expanded: false,
+    },
+  },
+};
 
 export const INITIAL_VIEW_INFLUENTIAL_FILTER = {
   operator: 'and',
@@ -250,7 +250,7 @@ export const INITIAL_VIEW_INFLUENTIAL_FILTER = {
       defaultOperator: 'gte',
       operator: 'gte',
       type: 'number',
-      expanded: false
-    }
-  }
-}
+      expanded: false,
+    },
+  },
+};

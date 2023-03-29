@@ -3,12 +3,13 @@
     trigger="click"
     placement="bottom-end"
     @visible-change="open = $event"
-    ><el-button
+  >
+    <el-button
       type="button"
       class="btn btn--transparent btn--md"
       :class="{ '!bg-gray-200': open }"
     >
-      <i class="ri-share-line mr-2"></i>Share
+      <i class="ri-share-line mr-2" />Share
     </el-button>
     <template #dropdown>
       <div class="p-2 w-100">
@@ -34,7 +35,7 @@
           <div
             v-if="!model"
             class="absolute inset-0 bg-gray-50 opacity-60 z-10 -m-4"
-          ></div>
+          />
           <div
             class="font-medium text-gray-900 text-sm mb-1"
           >
@@ -53,7 +54,7 @@
                   class="append-icon"
                   @click="copyPublicLinkToClipboard()"
                 >
-                  <i class="ri-file-copy-line"></i>
+                  <i class="ri-file-copy-line" />
                 </el-button>
               </el-tooltip>
             </template>
@@ -65,61 +66,61 @@
 </template>
 
 <script setup>
-import Message from '@/shared/message/message'
 import {
   ref,
   computed,
   defineProps,
-  defineEmits
-} from 'vue'
-import AuthCurrentTenant from '@/modules/auth/auth-current-tenant'
-import { mapActions } from '@/shared/vuex/vuex.helpers'
+  defineEmits,
+} from 'vue';
+import Message from '@/shared/message/message';
+import AuthCurrentTenant from '@/modules/auth/auth-current-tenant';
+import { mapActions } from '@/shared/vuex/vuex.helpers';
 
-const emit = defineEmits(['update:modelValue'])
+const emit = defineEmits(['update:modelValue']);
 const props = defineProps({
   modelValue: {
     type: Boolean,
-    required: true
+    required: true,
   },
   id: {
     type: String,
-    required: true
-  }
-})
+    required: true,
+  },
+});
 
-const open = ref(false)
+const open = ref(false);
 
-const { doUpdate } = mapActions('report')
+const { doUpdate } = mapActions('report');
 
 const model = computed({
   get() {
-    return props.modelValue
+    return props.modelValue;
   },
   set(v) {
-    emit('update:modelValue', v)
-  }
-})
+    emit('update:modelValue', v);
+  },
+});
 
 const computedPublicLink = computed(() => {
-  const tenantId = AuthCurrentTenant.get()
-  return `${window.location.origin}/tenant/${tenantId}/reports/${props.id}/public`
-})
+  const tenantId = AuthCurrentTenant.get();
+  return `${window.location.origin}/tenant/${tenantId}/reports/${props.id}/public`;
+});
 
 const copyPublicLinkToClipboard = async () => {
   await navigator.clipboard.writeText(
-    computedPublicLink.value
-  )
+    computedPublicLink.value,
+  );
   Message.success(
-    'Report URL successfully copied to your clipboard'
-  )
-}
+    'Report URL successfully copied to your clipboard',
+  );
+};
 
 const handlePublicChange = async (value) => {
   await doUpdate({
     id: props.id,
     values: {
-      public: value
-    }
-  })
-}
+      public: value,
+    },
+  });
+};
 </script>

@@ -1,14 +1,14 @@
-import { formatDate } from '@/utils/date'
+import { formatDate } from '@/utils/date';
 
-export const INITIAL_PAGE_SIZE = 20
+export const INITIAL_PAGE_SIZE = 20;
 
 export const DEFAULT_ORGANIZATION_FILTERS = [
   {
     isTeamOrganization: {
-      not: true
-    }
-  }
-]
+      not: true,
+    },
+  },
+];
 
 export const INITIAL_VIEW_NEW_AND_ACTIVE_FILTER = {
   operator: 'and',
@@ -19,18 +19,18 @@ export const INITIAL_VIEW_NEW_AND_ACTIVE_FILTER = {
       custom: false,
       props: {},
       defaultValue: formatDate({
-        subtractDays: 30
+        subtractDays: 30,
       }),
       value: formatDate({
-        subtractDays: 30
+        subtractDays: 30,
       }),
       defaultOperator: 'gt',
       operator: 'gt',
       type: 'date',
-      expanded: false
-    }
-  }
-}
+      expanded: false,
+    },
+  },
+};
 
 export const INITIAL_VIEW_TEAM_ORGANIZATIONS_FILTER = {
   operator: 'and',
@@ -45,7 +45,7 @@ export const INITIAL_VIEW_TEAM_ORGANIZATIONS_FILTER = {
       defaultOperator: 'eq',
       operator: 'eq',
       type: 'boolean',
-      expanded: false
-    }
-  }
-}
+      expanded: false,
+    },
+  },
+};

@@ -1,52 +1,53 @@
-import I18n from '@/shared/i18n/i18n.vue'
-import I18nFlags from '@/shared/i18n/i18n-flags.vue'
-import I18nSelect from '@/shared/i18n/i18n-select.vue'
-import ImageUpload from '@/shared/form/image-upload.vue'
-import FileUpload from '@/shared/form/file-upload.vue'
-import ImageCarousel from '@/shared/view/image-carousel.vue'
-import ViewItemText from '@/shared/view/view-item-text.vue'
-import ViewItemImage from '@/shared/view/view-item-image.vue'
-import ViewItemFile from '@/shared/view/view-item-file.vue'
-import ViewItemCustom from '@/shared/view/view-item-custom.vue'
-import ListItemImage from '@/shared/list/list-item-image.vue'
-import ListItemFile from '@/shared/list/list-item-file.vue'
-import NumberRangeInput from '@/shared/form/number-range-input.vue'
-import StringArrayInput from '@/shared/form/string-array-input.vue'
-import AutocompleteOneInput from '@/shared/form/autocomplete-one-input.vue'
-import AutocompleteManyInput from '@/shared/form/autocomplete-many-input.vue'
-import KeywordsInput from '@/shared/form/keywords-input.vue'
-import ViewItemRelationToOne from '@/shared/view/view-item-relation-to-one.vue'
-import ViewItemRelationToMany from '@/shared/view/view-item-relation-to-many.vue'
-import ListItemRelationToOne from '@/shared/list/list-item-relation-to-one.vue'
-import ListItemRelationToMany from '@/shared/list/list-item-relation-to-many.vue'
-import FilterDropdown from '@/shared/filter/components/filter-dropdown.vue'
-import FilterSearch from '@/shared/filter/components/type/filter-type-search'
-import FilterList from '@/shared/filter/components/filter-list.vue'
-import FilterTypeSelect from '@/shared/filter/components/type/filter-type-select'
-import FilterTypeSelectMulti from '@/shared/filter/components/type/filter-type-select-multi'
-import FilterTypeSelectGroup from '@/shared/filter/components/type/filter-type-select-group'
-import FilterTypeSelectAsync from '@/shared/filter/components/type/filter-type-select-async'
-import FilterTypeKeywords from '@/shared/filter/components/type/filter-type-keywords'
-import FilterTypeBoolean from '@/shared/filter/components/type/filter-type-boolean'
-import FilterTypeNumber from '@/shared/filter/components/type/filter-type-number'
-import FilterTypeString from '@/shared/filter/components/type/filter-type-string'
-import FilterTypeDate from '@/shared/filter/components/type/filter-type-date'
-import Avatar from '@/shared/avatar/avatar.vue'
-import SquaredAvatar from '@/shared/avatar/squared-avatar.vue'
-import Alert from '@/shared/alert/alert.vue'
-import Teleport from '@/shared/teleport/teleport.vue'
-import Popover from '@/shared/popover/popover.vue'
-import Pagination from '@/shared/pagination/pagination.vue'
-import PaginationSorter from '@/shared/pagination/pagination-sorter.vue'
-import InlineSelectInput from '@/shared/form/inline-select-input'
-import Dialog from '@/shared/dialog/dialog'
-import EmptyStateCta from '@/shared/empty-state/empty-state-cta'
-import EmptyState from '@/shared/empty-state/empty-state'
-import Platform from '@/shared/platform/platform'
-import Drawer from '@/shared/drawer/drawer'
-import AppLoader from '@/shared/loading/loader'
-import AppPageWrapper from '@/shared/layout/page-wrapper'
-import Image from '@/shared/image/image'
+import I18n from '@/shared/i18n/i18n.vue';
+import I18nFlags from '@/shared/i18n/i18n-flags.vue';
+import I18nSelect from '@/shared/i18n/i18n-select.vue';
+import ImageUpload from '@/shared/form/image-upload.vue';
+import FileUpload from '@/shared/form/file-upload.vue';
+import ImageCarousel from '@/shared/view/image-carousel.vue';
+import ViewItemText from '@/shared/view/view-item-text.vue';
+import ViewItemImage from '@/shared/view/view-item-image.vue';
+import ViewItemFile from '@/shared/view/view-item-file.vue';
+import ViewItemCustom from '@/shared/view/view-item-custom.vue';
+import ListItemImage from '@/shared/list/list-item-image.vue';
+import ListItemFile from '@/shared/list/list-item-file.vue';
+import NumberRangeInput from '@/shared/form/number-range-input.vue';
+import StringArrayInput from '@/shared/form/string-array-input.vue';
+import AutocompleteOneInput from '@/shared/form/autocomplete-one-input.vue';
+import AutocompleteManyInput from '@/shared/form/autocomplete-many-input.vue';
+import KeywordsInput from '@/shared/form/keywords-input.vue';
+import ViewItemRelationToOne from '@/shared/view/view-item-relation-to-one.vue';
+import ViewItemRelationToMany from '@/shared/view/view-item-relation-to-many.vue';
+import ListItemRelationToOne from '@/shared/list/list-item-relation-to-one.vue';
+import ListItemRelationToMany from '@/shared/list/list-item-relation-to-many.vue';
+import FilterDropdown from '@/shared/filter/components/filter-dropdown.vue';
+import FilterList from '@/shared/filter/components/filter-list.vue';
+import Avatar from '@/shared/avatar/avatar.vue';
+import SquaredAvatar from '@/shared/avatar/squared-avatar.vue';
+import Alert from '@/shared/alert/alert.vue';
+import Teleport from '@/shared/teleport/teleport.vue';
+import Popover from '@/shared/popover/popover.vue';
+import Pagination from '@/shared/pagination/pagination.vue';
+import PaginationSorter from '@/shared/pagination/pagination-sorter.vue';
+import FilterSearch from '@/shared/filter/components/type/filter-type-search.vue';
+import FilterTypeSelect from '@/shared/filter/components/type/filter-type-select.vue';
+import FilterTypeSelectMulti from '@/shared/filter/components/type/filter-type-select-multi.vue';
+import FilterTypeSelectGroup from '@/shared/filter/components/type/filter-type-select-group.vue';
+import FilterTypeSelectAsync from '@/shared/filter/components/type/filter-type-select-async.vue';
+import FilterTypeSelectFilter from '@/shared/filter/components/type/filter-type-select-filter.vue';
+import FilterTypeKeywords from '@/shared/filter/components/type/filter-type-keywords.vue';
+import FilterTypeBoolean from '@/shared/filter/components/type/filter-type-boolean.vue';
+import FilterTypeNumber from '@/shared/filter/components/type/filter-type-number.vue';
+import FilterTypeString from '@/shared/filter/components/type/filter-type-string.vue';
+import FilterTypeDate from '@/shared/filter/components/type/filter-type-date.vue';
+import InlineSelectInput from '@/shared/form/inline-select-input.vue';
+import Dialog from '@/shared/dialog/dialog.vue';
+import EmptyStateCta from '@/shared/empty-state/empty-state-cta.vue';
+import EmptyState from '@/shared/empty-state/empty-state.vue';
+import Platform from '@/shared/platform/platform.vue';
+import Drawer from '@/shared/drawer/drawer.vue';
+import AppLoader from '@/shared/loading/loader.vue';
+import AppPageWrapper from '@/shared/layout/page-wrapper.vue';
+import Image from '@/shared/image/image.vue';
 
 /**
  * All shared components are globally registered, so there's no need to import them from other components
@@ -81,6 +82,7 @@ export default {
     'app-filter-type-select-group': FilterTypeSelectGroup,
     'app-filter-type-keywords': FilterTypeKeywords,
     'app-filter-type-select-async': FilterTypeSelectAsync,
+    'app-filter-type-select-filter': FilterTypeSelectFilter,
     'app-filter-type-boolean': FilterTypeBoolean,
     'app-filter-type-number': FilterTypeNumber,
     'app-filter-type-string': FilterTypeString,
@@ -103,6 +105,6 @@ export default {
     'app-drawer': Drawer,
     'app-loader': AppLoader,
     'app-page-wrapper': AppPageWrapper,
-    'app-image': Image
-  }
-}
+    'app-image': Image,
+  },
+};

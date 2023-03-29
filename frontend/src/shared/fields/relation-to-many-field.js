@@ -1,6 +1,6 @@
-import * as yup from 'yup'
-import GenericField from '@/shared/fields/generic-field'
-import { i18n } from '@/i18n'
+import * as yup from 'yup';
+import GenericField from '@/shared/fields/generic-field';
+import { i18n } from '@/i18n';
 
 export default class RelationToManyField extends GenericField {
   constructor(
@@ -10,34 +10,34 @@ export default class RelationToManyField extends GenericField {
     readPermission,
     fetchFn,
     mapperFn,
-    config = {}
+    config = {},
   ) {
-    super(name, label)
+    super(name, label);
 
-    this.required = config.required
-    this.min = config.min
-    this.max = config.max
-    this.placeholder = config.placeholder
-    this.hint = config.hint
+    this.required = config.required;
+    this.min = config.min;
+    this.max = config.max;
+    this.placeholder = config.placeholder;
+    this.hint = config.hint;
 
     if (config.required && !config.min) {
-      this.min = 1
+      this.min = 1;
     }
 
-    this.fetchFn = fetchFn
-    this.mapperFn = mapperFn
-    this.viewUrl = viewUrl
-    this.readPermission = readPermission
-    this.filterable = config.filterable || false
-    this.custom = config.custom || false
+    this.fetchFn = fetchFn;
+    this.mapperFn = mapperFn;
+    this.viewUrl = viewUrl;
+    this.readPermission = readPermission;
+    this.filterable = config.filterable || false;
+    this.custom = config.custom || false;
   }
 
   forPresenter(value) {
     if (!value) {
-      return []
+      return [];
     }
 
-    return value.map((item) => this.mapperFn(item))
+    return value.map((item) => this.mapperFn(item));
   }
 
   forFilter() {
@@ -46,40 +46,38 @@ export default class RelationToManyField extends GenericField {
       label: this.label,
       custom: this.custom,
       props: {
-        fetchFn: this.fetchFn
+        fetchFn: this.fetchFn,
       },
       defaultValue: [],
       value: [],
       defaultOperator: null,
       operator: null,
-      type: 'select-async'
-    }
+      type: 'select-async',
+    };
   }
 
   forFilterPreview(value) {
     return value
-      .map((item) => {
-        return (item && item.label) || null
-      })
-      .join(', ')
+      .map((item) => (item && item.label) || null)
+      .join(', ');
   }
 
   forFormInitialValue(value) {
-    return this.forPresenter(value)
+    return this.forPresenter(value);
   }
 
   forFormRules() {
-    const output = []
+    const output = [];
 
     if (this.required) {
       output.push({
         type: 'array',
         required: Boolean(this.required),
         message: i18n('validation.mixed.required').replace(
-          '${path}',
-          this.label
-        )
-      })
+          '{path}',
+          this.label,
+        ),
+      });
     }
 
     if (this.min || this.min === 0) {
@@ -87,9 +85,9 @@ export default class RelationToManyField extends GenericField {
         type: 'array',
         min: this.min,
         message: i18n('validation.array.min')
-          .replace('${path}', this.label)
-          .replace('${min}', this.min)
-      })
+          .replace('{path}', this.label)
+          .replace('{min}', this.min),
+      });
     }
 
     if (this.max || this.max === 0) {
@@ -97,12 +95,12 @@ export default class RelationToManyField extends GenericField {
         type: 'array',
         max: this.max,
         message: i18n('validation.array.max')
-          .replace('${path}', this.label)
-          .replace('${max}', this.max)
-      })
+          .replace('{path}', this.label)
+          .replace('{max}', this.max),
+      });
     }
 
-    return output
+    return output;
   }
 
   forFormCast() {
@@ -112,11 +110,11 @@ export default class RelationToManyField extends GenericField {
       .label(this.label)
       .transform((value, originalValue) => {
         if (!originalValue || !originalValue.length) {
-          return []
+          return [];
         }
 
-        return originalValue.map((item) => item.id)
-      })
+        return originalValue.map((item) => item.id);
+      });
   }
 
   forFilterCast() {
@@ -125,11 +123,11 @@ export default class RelationToManyField extends GenericField {
       .label(this.label)
       .transform((value, originalValue) => {
         if (!originalValue) {
-          return []
+          return [];
         }
 
-        return originalValue.map((item) => item.id)
-      })
+        return originalValue.map((item) => item.id);
+      });
   }
 
   forExport() {
@@ -138,13 +136,13 @@ export default class RelationToManyField extends GenericField {
       .label(this.label)
       .transform((value, originalValue) => {
         if (!originalValue || !originalValue.length) {
-          return null
+          return null;
         }
 
         return originalValue
-          .map((value) => value.id)
-          .join(' ')
-      })
+          .map((v) => v.id)
+          .join(' ');
+      });
   }
 
   forImport() {
@@ -154,35 +152,33 @@ export default class RelationToManyField extends GenericField {
       .label(this.label)
       .transform((value, originalValue) => {
         if (!originalValue) {
-          return null
+          return null;
         }
 
         if (Array.isArray(originalValue)) {
-          return originalValue
+          return originalValue;
         }
 
         return originalValue
           .trim()
           .split(' ')
-          .map((value) => {
-            return value
-          })
-      })
+          .map((v) => v);
+      });
 
     if (this.required || this.min) {
-      yupChain = yupChain.required()
+      yupChain = yupChain.required();
     }
 
     if (this.min || this.min === 0) {
-      yupChain = yupChain.min(this.min)
+      yupChain = yupChain.min(this.min);
     } else if (this.required) {
-      yupChain = yupChain.min(1)
+      yupChain = yupChain.min(1);
     }
 
     if (this.max) {
-      yupChain = yupChain.max(this.max)
+      yupChain = yupChain.max(this.max);
     }
 
-    return yupChain
+    return yupChain;
   }
 }

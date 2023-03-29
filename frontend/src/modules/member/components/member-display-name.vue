@@ -6,48 +6,49 @@
       :to="
         withLink
           ? {
-              name: 'memberView',
-              params: { id: member.id }
-            }
+            name: 'memberView',
+            params: { id: member.id },
+          }
           : null
       "
     >
-      {{ member.displayName }}
+      <span v-html="$sanitize(member.displayName)" />
     </component>
     <app-member-badge v-if="showBadge" :member="member" />
   </div>
 </template>
 
-<script>
-export default {
-  name: 'AppMemberDisplayName'
-}
-</script>
 <script setup>
-import AppMemberBadge from '@/modules/member/components/member-badge'
-import { defineProps } from 'vue'
+import { defineProps } from 'vue';
+import AppMemberBadge from '@/modules/member/components/member-badge.vue';
 
 const props = defineProps({
   member: {
     type: Object,
-    default: () => {}
+    default: () => {},
   },
   showBadge: {
     type: Boolean,
     required: false,
-    default: true
+    default: true,
   },
   withLink: {
     type: Boolean,
-    default: false
+    default: false,
   },
   customClass: {
     type: String,
-    default: null
-  }
-})
+    default: null,
+  },
+});
 
 const customComponent = props.withLink
   ? 'router-link'
-  : 'span'
+  : 'span';
+</script>
+
+<script>
+export default {
+  name: 'AppMemberDisplayName',
+};
 </script>

@@ -15,7 +15,7 @@
           <app-loading
             height="12px"
             width="120px"
-          ></app-loading>
+          />
         </div>
       </div>
     </template>
@@ -40,14 +40,14 @@
               <app-loading
                 height="12px"
                 width="120px"
-              ></app-loading>
+              />
             </div>
           </div>
         </template>
         <template #default="current">
           <article
             v-for="{ total, plat, type } of compileData(
-              resultSet
+              resultSet,
             )"
             :key="`${plat}-${type}`"
             class="border-t border-gray-100 py-4 flex items-center justify-between first:border-none"
@@ -61,16 +61,16 @@
               <p class="text-xs leading-5 activity-type">
                 <app-i18n
                   :code="`entities.activity.${plat}.${type}`"
-                ></app-i18n>
+                />
               </p>
             </div>
             <p class="text-2xs text-gray-400">
               {{ total }} activities ・
               {{
                 Math.round(
-                  (total /
-                    computedScore(current.resultSet)) *
-                    100
+                  (total
+                    / computedScore(current.resultSet))
+                    * 100,
                 )
               }}%
             </p>
@@ -81,7 +81,7 @@
           >
             <div
               class="ri-list-check-2 text-3xl text-gray-300 mr-4 h-10 flex items-center"
-            ></div>
+            />
             <p
               class="text-xs leading-5 text-center italic text-gray-400"
             >
@@ -94,51 +94,49 @@
   </app-cube-render>
 </template>
 
-<script>
-export default {
-  name: 'AppDashboardActivityTypes'
-}
-</script>
-
 <script setup>
 import {
   activityTypes,
   activitiesCount,
-  dateRange
-} from '@/modules/dashboard/dashboard.cube'
-import AppCubeRender from '@/shared/cube/cube-render'
-import { CrowdIntegrations } from '@/integrations/integrations-config'
-import AppLoading from '@/shared/loading/loading-placeholder'
-import { mapGetters } from '@/shared/vuex/vuex.helpers'
+  dateRange,
+} from '@/modules/dashboard/dashboard.cube';
+import { CrowdIntegrations } from '@/integrations/integrations-config';
+import { mapGetters } from '@/shared/vuex/vuex.helpers';
+import AppCubeRender from '@/shared/cube/cube-render.vue';
+import AppLoading from '@/shared/loading/loading-placeholder.vue';
 
-const { period, platform } = mapGetters('dashboard')
+const { period, platform } = mapGetters('dashboard');
 
 const compileData = (resultSet) => {
-  const pivot = resultSet.chartPivot()
+  const pivot = resultSet.chartPivot();
   return pivot.map((el) => {
-    const [plat, type] = el['x'].split(',')
+    const [plat, type] = el.x.split(',');
     return {
       total: el['Activities.count'],
       plat,
-      type
-    }
-  })
-}
+      type,
+    };
+  });
+};
 
 const computedScore = (resultSet) => {
-  const seriesNames = resultSet.seriesNames()
-  const pivot = resultSet.chartPivot()
-  let count = 0
+  const seriesNames = resultSet.seriesNames();
+  const pivot = resultSet.chartPivot();
+  let count = 0;
   seriesNames.forEach((e) => {
-    const data = pivot.map((p) => p[e.key])
-    count += data.reduce((a, b) => a + b, 0)
-  })
-  return count
-}
+    const data = pivot.map((p) => p[e.key]);
+    count += data.reduce((a, b) => a + b, 0);
+  });
+  return count;
+};
 
-const getPlatformDetails = (plat) => {
-  return CrowdIntegrations.getConfig(plat)
-}
+const getPlatformDetails = (plat) => CrowdIntegrations.getConfig(plat);
+</script>
+
+<script>
+export default {
+  name: 'AppDashboardActivityTypes',
+};
 </script>
 
 <style lang="scss">
