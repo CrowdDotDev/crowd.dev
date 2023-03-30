@@ -37,7 +37,7 @@
           </h4>
           <div class="flex">
             <el-tooltip
-              :content="`vs. previous ${period.extendedLabel}`"
+              :content="`vs. ${computedPeriodTooltipLabel(previousDateRange)}`"
               placement="right"
             >
               <app-dashboard-badge
@@ -179,6 +179,10 @@ export default {
       }
 
       return '=';
+    },
+    computedPeriodTooltipLabel(dateRange) {
+      const [from, to] = dateRange;
+      return `${moment(from).format('MMM D')} - ${moment(to).format('MMM D')}`;
     },
   },
 };
