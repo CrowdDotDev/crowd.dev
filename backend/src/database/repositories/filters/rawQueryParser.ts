@@ -204,7 +204,19 @@ export default class RawQueryParser {
       const paramNamesString = paramNames.join(', ')
       return `(${column} ${actualOperator} (${paramNamesString}))`
     }
+
     const paramName = this.getParamName(key, params)
+
+    if (operator === Operator.EQUAL && (value === null || value.toLowerCase() === "null") ){
+      params[paramName] = value
+      return `(${column} is :${paramName})`
+    }
+
+    if (operator === Operator.NOT_EQUAL && (value === null || value.toLowerCase() === "null") ){
+      params[paramName] = value
+      return `(${column} is not :${paramName})`
+    }
+
     if (
       operator === Operator.LIKE ||
       operator === Operator.NOT_LIKE ||
