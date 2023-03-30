@@ -315,28 +315,32 @@ export default class IntegrationRunRepository extends RepositoryBase<
 
     const query = `
     update "integrationRuns"
-    set "processedAt"          = case
-                                     when (select count(s.id) =
-                                                  (count(s.id) filter ( where s.state = :successStreamState ) +
-                                                   count(s.id) filter (where s.state = :errorStreamState and s.retries >= :maxRetries))
-                                           from "integrationStreams" s
-                                           where s."runId" = :id) then now()
+    set "processedAt" = case
+                            when (select count(s.id) =
+                                        (count(s.id) filter ( where s.state = :successStreamState ) +
+                                          count(s.id)
+                                          filter (where s.state = :errorStreamState and s.retries >= :maxRetries))
+                                  from "integrationStreams" s
+                                  where s."runId" = :id) then now()
+        end,
+        state         = case
+                            when (select (count(s.id) =
+                                          (count(s.id) filter ( where s.state = :successStreamState ) +
+                                          count(s.id) filter (where s.state = :errorStreamState))) and
+                                        (count(s.id)
+                                          filter (where s.state = :errorStreamState and s.retries < :maxRetries)) = 0
+                                  from "integrationStreams" s
+                                  where s."runId" = :id) then :successRunState
+                            when (select (count(s.id) =
+                                          (count(s.id) filter ( where s.state = :successStreamState ) +
+                                          count(s.id) filter (where s.state = :errorStreamState))) and
+                                        (count(s.id)
+                                          filter (where s.state = :errorStreamState and s.retries >= :maxRetries)) > 0
+                                  from "integrationStreams" s
+                                  where s."runId" = :id) then :errorRunState
+                            else state
             end,
-        state                  = case
-                                     when (select (count(s.id) =
-                                                   (count(s.id) filter ( where s.state = :successStreamState ) +
-                                                    count(s.id) filter (where s.state = :errorStreamState))) and
-                                                  (count(s.id) filter (where s.state = :errorStreamState and s.retries >= :maxRetries)) = 0
-                                           from "integrationStreams" s
-                                           where s."runId" = :id) then :successRunState
-                                     when (select (count(s.id) =
-                                                   (count(s.id) filter ( where s.state = :successStreamState ) +
-                                                    count(s.id) filter (where s.state = :errorStreamState))) and
-                                                  (count(s.id) filter (where s.state = :errorStreamState and s.retries >= :maxRetries)) > 0
-                                           from "integrationStreams" s
-                                           where s."runId" = :id) then :errorRunState
-              end,
-        "updatedAt"            = now()
+        "updatedAt"   = now()
     where id = :id
     returning state;
     `
