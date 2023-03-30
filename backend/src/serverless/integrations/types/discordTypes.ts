@@ -1,5 +1,5 @@
 import { AddActivitiesSingle } from './messageTypes'
-import { IIntegrationStream } from '../../../types/integration/stepResult'
+import { IPendingStream } from '../../../types/integration/stepResult'
 
 export interface DiscordGetChannelsInput {
   guildId: string
@@ -23,7 +23,7 @@ export interface DiscordGetMembersInput {
 
 export interface DiscordStreamProcessResult {
   activities: AddActivitiesSingle[]
-  newStreams: IIntegrationStream[]
+  newStreams: IPendingStream[]
 }
 
 export interface DiscordParsedReponse {

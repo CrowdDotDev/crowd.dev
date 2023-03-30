@@ -1,0 +1,375 @@
+import { QueryTypes } from 'sequelize'
+import { v1 as uuidV1 } from 'uuid'
+import {
+  IntegrationRunState,
+  IntegrationRun,
+  DbIntegrationRunCreateData,
+} from '../../types/integrationRunTypes'
+import { IntegrationStreamState } from '../../types/integrationStreamTypes'
+import { IRepositoryOptions } from './IRepositoryOptions'
+import { RepositoryBase } from './repositoryBase'
+import { INTEGRATION_PROCESSING_CONFIG } from '../../config'
+
+export default class IntegrationRunRepository extends RepositoryBase<
+  IntegrationRun,
+  string,
+  DbIntegrationRunCreateData,
+  unknown,
+  unknown
+> {
+  public constructor(options: IRepositoryOptions) {
+    super(options, true)
+  }
+
+  async findDelayedRuns(): Promise<IntegrationRun[]> {
+    const transaction = this.transaction
+
+    const seq = this.seq
+
+    const query = `
+      select  id,
+            "tenantId",
+            "integrationId",
+            "microserviceId",
+            onboarding,
+            state,
+            "delayedUntil",
+            "processedAt",
+            error,
+            "createdAt"  
+      from "integrationRuns"
+      where state = :delayedState and "delayedUntil" <= now()
+      order by "createdAt" desc
+    `
+
+    const results = await seq.query(query, {
+      replacements: {
+        delayedState: IntegrationRunState.DELAYED,
+      },
+      type: QueryTypes.SELECT,
+      transaction,
+    })
+
+    return results as IntegrationRun[]
+  }
+
+  async findLastProcessingRun(
+    integrationId?: string,
+    microserviceId?: string,
+    ignoreId?: string,
+  ): Promise<IntegrationRun | undefined> {
+    const transaction = this.transaction
+
+    const seq = this.seq
+
+    let condition = ``
+    const replacements: any = {
+      delayedState: IntegrationRunState.DELAYED,
+      processingState: IntegrationRunState.PROCESSING,
+      pendingState: IntegrationRunState.PENDING,
+    }
+
+    if (integrationId) {
+      condition = ` "integrationId" = :integrationId `
+      replacements.integrationId = integrationId
+    } else if (microserviceId) {
+      condition = ` "microserviceId" = :microserviceId `
+      replacements.microserviceId = microserviceId
+    } else {
+      throw new Error(`Either integrationId or microserviceId must be provided!`)
+    }
+
+    if (ignoreId) {
+      condition = `${condition} and id <> :ignoreId`
+      replacements.ignoreId = ignoreId
+    }
+
+    const query = `
+    select  id,
+            "tenantId",
+            "integrationId",
+            "microserviceId",
+            onboarding,
+            state,
+            "delayedUntil",
+            "processedAt",
+            error,
+            "createdAt"  
+    from "integrationRuns"
+    where state in (:delayedState, :processingState, :pendingState) and ${condition}
+    order by "createdAt" desc
+    limit 1
+    `
+
+    const results = await seq.query(query, {
+      replacements,
+      type: QueryTypes.SELECT,
+      transaction,
+    })
+
+    if (results.length === 1) {
+      return results[0] as IntegrationRun
+    }
+
+    return undefined
+  }
+
+  override async findById(id: string): Promise<IntegrationRun> {
+    const transaction = this.transaction
+
+    const seq = this.seq
+
+    const query = `
+    select id,
+           "tenantId",
+          "integrationId",
+          "microserviceId",
+          onboarding,
+          state,
+          "delayedUntil",
+          "processedAt",
+          error,
+          "createdAt"          
+      from "integrationRuns" where id = :id;      
+    `
+
+    const result = await seq.query(query, {
+      replacements: {
+        id,
+      },
+      type: QueryTypes.SELECT,
+      transaction,
+    })
+
+    if (result.length !== 1) {
+      throw new Error(`Expected 1 row to be selected, got ${result.length} rows instead.`)
+    }
+
+    return result[0] as IntegrationRun
+  }
+
+  override async create(data: DbIntegrationRunCreateData): Promise<IntegrationRun> {
+    const transaction = this.transaction
+
+    const seq = this.seq
+
+    const id = uuidV1()
+
+    const query = `
+      insert into "integrationRuns"(id, "tenantId", "integrationId", "microserviceId", onboarding, state)
+      values(:id, :tenantId, :integrationId, :microserviceId, :onboarding, :state)
+      returning "createdAt";
+    `
+
+    const result = await seq.query(query, {
+      replacements: {
+        id,
+        tenantId: data.tenantId,
+        integrationId: data.integrationId || null,
+        microserviceId: data.microserviceId || null,
+        onboarding: data.onboarding,
+        state: data.state,
+      },
+      type: QueryTypes.SELECT,
+      transaction,
+    })
+
+    if (result.length !== 1) {
+      throw new Error(`Expected 1 row to be inserted, got ${result.length} rows instead.`)
+    }
+
+    return {
+      id,
+      tenantId: data.tenantId,
+      integrationId: data.integrationId,
+      microserviceId: data.microserviceId,
+      onboarding: data.onboarding,
+      state: data.state,
+      delayedUntil: null,
+      processedAt: null,
+      error: null,
+      createdAt: (result[0] as any).createdAt,
+    }
+  }
+
+  async markProcessing(id: string): Promise<void> {
+    const transaction = this.transaction
+
+    const seq = this.seq
+
+    const query = `
+      update "integrationRuns"
+      set state = :state,
+          "delayedUntil" = null,
+          "updatedAt" = now()
+      where id = :id
+    `
+
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const [_, rowCount] = await seq.query(query, {
+      replacements: {
+        id,
+        state: IntegrationRunState.PROCESSING,
+      },
+      type: QueryTypes.UPDATE,
+      transaction,
+    })
+
+    if (rowCount !== 1) {
+      throw new Error(`Expected 1 row to be updated, got ${rowCount} rows instead.`)
+    }
+  }
+
+  async restart(id: string): Promise<void> {
+    const transaction = this.transaction
+
+    const seq = this.seq
+
+    const query = `
+      update "integrationRuns"
+        set state = :state,
+            "delayedUntil" = null,
+            "processedAt" = null,
+            error = null,
+            "updatedAt" = now()
+      where id = :id
+    `
+
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const [_, rowCount] = await seq.query(query, {
+      replacements: {
+        id,
+        state: IntegrationRunState.PENDING,
+      },
+      type: QueryTypes.UPDATE,
+      transaction,
+    })
+
+    if (rowCount !== 1) {
+      throw new Error(`Expected 1 row to be updated, got ${rowCount} rows instead.`)
+    }
+  }
+
+  async markError(id: string, error: any): Promise<void> {
+    const transaction = this.transaction
+
+    const seq = this.seq
+
+    const query = `
+      update "integrationRuns"
+      set state = :state,
+          error = :error,
+          "updatedAt" = now()
+      where id = :id
+    `
+
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const [_, rowCount] = await seq.query(query, {
+      replacements: {
+        id,
+        state: IntegrationRunState.ERROR,
+        error: JSON.stringify(error),
+      },
+      type: QueryTypes.UPDATE,
+      transaction,
+    })
+
+    if (rowCount !== 1) {
+      throw new Error(`Expected 1 row to be updated, got ${rowCount} rows instead.`)
+    }
+  }
+
+  async delay(id: string, until: Date): Promise<void> {
+    const transaction = this.transaction
+
+    const seq = this.seq
+
+    const query = `
+      update "integrationRuns"
+      set "delayedUntil" = :until,
+          state = :state,
+          "updatedAt" = now()
+      where id = :id
+    `
+
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const [_, rowCount] = await seq.query(query, {
+      replacements: {
+        id,
+        until,
+        state: IntegrationRunState.DELAYED,
+      },
+      type: QueryTypes.UPDATE,
+      transaction,
+    })
+
+    if (rowCount !== 1) {
+      throw new Error(`Expected 1 row to be updated, got ${rowCount} rows instead.`)
+    }
+  }
+
+  async touchState(id: string): Promise<IntegrationRunState> {
+    const transaction = this.transaction
+
+    const seq = this.seq
+
+    const query = `
+    update "integrationRuns"
+    set "processedAt"          = case
+                                     when (select count(s.id) =
+                                                  (count(s.id) filter ( where s.state = :successStreamState ) +
+                                                   count(s.id) filter (where s.state = :errorStreamState and s.retries >= :maxRetries))
+                                           from "integrationStreams" s
+                                           where s."runId" = :id) then now()
+            end,
+        state                  = case
+                                     when (select (count(s.id) =
+                                                   (count(s.id) filter ( where s.state = :successStreamState ) +
+                                                    count(s.id) filter (where s.state = :errorStreamState))) and
+                                                  (count(s.id) filter (where s.state = :errorStreamState and s.retries >= :maxRetries)) = 0
+                                           from "integrationStreams" s
+                                           where s."runId" = :id) then :successRunState
+                                     when (select (count(s.id) =
+                                                   (count(s.id) filter ( where s.state = :successStreamState ) +
+                                                    count(s.id) filter (where s.state = :errorStreamState))) and
+                                                  (count(s.id) filter (where s.state = :errorStreamState and s.retries >= :maxRetries)) > 0
+                                           from "integrationStreams" s
+                                           where s."runId" = :id) then :errorRunState
+              end,
+        "updatedAt"            = now()
+    where id = :id
+    returning state;
+    `
+
+    const result = await seq.query(query, {
+      replacements: {
+        id,
+        successStreamState: IntegrationStreamState.PROCESSED,
+        errorStreamState: IntegrationStreamState.ERROR,
+        successRunState: IntegrationRunState.PROCESSED,
+        errorRunState: IntegrationRunState.ERROR,
+        maxRetries: INTEGRATION_PROCESSING_CONFIG.maxRetries,
+      },
+      type: QueryTypes.SELECT,
+      transaction,
+    })
+
+    if (result.length !== 1) {
+      throw new Error(`Expected 1 row to be updated, got ${result.length} rows instead.`)
+    }
+
+    return (result[0] as any).state
+  }
+
+  async cleanupOldRuns(months: number): Promise<void> {
+    const seq = this.seq
+
+    const cleanQuery = `
+        delete from "integrationRuns" where state = 'processed' and "processedAt" < now() - interval '${months} months';                     
+    `
+
+    await seq.query(cleanQuery, {
+      type: QueryTypes.DELETE,
+    })
+  }
+}

@@ -5,6 +5,7 @@ import { IntegrationType, PlatformType } from '../../../../types/integrationEnum
 import { TWITTER_CONFIG } from '../../../../config'
 import {
   IIntegrationStream,
+  IPendingStream,
   IProcessStreamResults,
   IStepContext,
   IStreamResultOperation,
@@ -47,7 +48,7 @@ export class TwitterIntegrationService extends IntegrationServiceBase {
     await service.createPredefined(TwitterMemberAttributes)
   }
 
-  async getStreams(context: IStepContext): Promise<IIntegrationStream[]> {
+  async getStreams(context: IStepContext): Promise<IPendingStream[]> {
     const hashtags = context.integration.settings.hashtags
 
     return ['followers', 'mentions']
