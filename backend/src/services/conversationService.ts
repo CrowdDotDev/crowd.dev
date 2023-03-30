@@ -309,6 +309,7 @@ export default class ConversationService extends LoggingBase {
         act.timestamp = moment(act.timestamp).unix()
         act.author = act.member.username[act.platform]
         delete act.member
+        delete act.display
         return act
       })
       .filter(

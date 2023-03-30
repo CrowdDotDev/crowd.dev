@@ -36,9 +36,9 @@ const fields = {
     'attributes',
     label('attributes'),
   ),
-  isKeyAction: new BooleanField(
-    'isKeyAction',
-    label('isKeyAction'),
+  isContribution: new BooleanField(
+    'isContribution',
+    label('isContribution'),
     {},
   ),
   updatedAt: new DateTimeField(

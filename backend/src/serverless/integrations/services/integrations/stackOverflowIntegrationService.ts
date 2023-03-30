@@ -343,7 +343,7 @@ export class StackOverlflowIntegrationService extends IntegrationServiceBase {
       title: question.title,
       url: `https://stackoverflow.com/questions/${question.question_id}`,
       score: StackOverflowGrid[StackOverflowActivityType.QUESTION].score,
-      isKeyAction: StackOverflowGrid[StackOverflowActivityType.QUESTION].isKeyAction,
+      isContribution: StackOverflowGrid[StackOverflowActivityType.QUESTION].isContribution,
       attributes: {
         tags: question.tags,
         answerCount: question.answer_count,
@@ -407,7 +407,7 @@ export class StackOverlflowIntegrationService extends IntegrationServiceBase {
         timestamp: new Date(answer.creation_date * 1000),
         body,
         score: StackOverflowGrid[StackOverflowActivityType.ANSWER].score,
-        isKeyAction: StackOverflowGrid[StackOverflowActivityType.ANSWER].isKeyAction,
+        isContribution: StackOverflowGrid[StackOverflowActivityType.ANSWER].isContribution,
         attributes: {
           ...(keyword && { keywordMentioned: keyword }),
           ...(tag && { tagMentioned: tag }),

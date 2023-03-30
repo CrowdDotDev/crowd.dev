@@ -90,8 +90,8 @@ components:
           description: Score associated with the activity
           type: number
 
-        isKeyAction:
-          description: Whether the activity was a key action
+        isContribution:
+          description: Whether the activity was a contribution
           type: boolean
 
         attributes:

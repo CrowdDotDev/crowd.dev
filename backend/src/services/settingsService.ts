@@ -36,9 +36,12 @@ class SettingsService {
     }
 
     activityTypes.custom[platform][typeKey] = {
-      default: data.type,
-      short: data.type,
-      channel: '',
+      display: {
+        default: data.type,
+        short: data.type,
+        channel: '',
+      },
+      isContribution: false,
     }
 
     const updated = await SettingsRepository.save(
@@ -95,9 +98,12 @@ class SettingsService {
     }
 
     activityTypes.custom[activityTypesUnnested[key].platform][key] = {
-      default: data.type,
-      short: data.type,
-      channel: '',
+      display: {
+        default: data.type,
+        short: data.type,
+        channel: '',
+      },
+      isContribution: false,
     }
 
     const updated = await SettingsRepository.save(

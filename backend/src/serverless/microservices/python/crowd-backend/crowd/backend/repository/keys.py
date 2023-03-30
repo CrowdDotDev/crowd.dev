@@ -21,7 +21,7 @@ class DBKeys:
     PROJECTS = "projects"
     PROJECT = "project"
     TENANT = "tenantId"
-    IS_KEY = "isKeyAction"
+    IS_CONTRIBUTION = "isContribution"
     DELETE_STARS = "delete-stargazers"
     DELETE_SUBS = "delete-subscribers"
     MEMBERS = "members"

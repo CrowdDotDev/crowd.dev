@@ -27,7 +27,7 @@ export default (sequelize) => {
           notEmpty: true,
         },
       },
-      isKeyAction: {
+      isContribution: {
         type: DataTypes.BOOLEAN,
         allowNull: false,
         defaultValue: false,

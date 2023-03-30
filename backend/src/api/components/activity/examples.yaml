@@ -6,7 +6,7 @@ components:
         type: message
         timestamp: '2020-05-27T15:13:30.000Z'
         platform: discord
-        isKeyAction: true
+        isContribution: true
         score: 1
         sourceId: '1234'
         sourceParentId: null
@@ -75,7 +75,7 @@ components:
         type: pull_request-closed
         timestamp: '2021-07-27T20:20:30.000Z'
         platform: github
-        isKeyAction: true
+        isContribution: true
         score: 10
         sourceId: gh_1
         sourceParentId: null
@@ -142,7 +142,7 @@ components:
         type: pull_request-comment
         timestamp: '2021-07-27T20:22:30.000Z'
         platform: github
-        isKeyAction: true
+        isContribution: true
         score: 3
         sourceId: gh_2
         sourceParentId: gh_1
@@ -206,7 +206,7 @@ components:
           type: pull_request-closed
           timestamp: '2021-07-27T20:22:30.000Z'
           platform: github
-          isKeyAction: true
+          isContribution: true
           score: 10
           sourceId: gh_1
           sourceParentId: null
@@ -240,7 +240,7 @@ components:
         type: pull_request-comment
         timestamp: '2021-07-27T20:23:30.000Z'
         platform: github
-        isKeyAction: true
+        isContribution: true
         score: 3
         sourceId: gh_3
         sourceParentId: gh_1
@@ -304,7 +304,7 @@ components:
           type: pull_request-closed
           timestamp: '2021-07-27T20:22:30.000Z'
           platform: github
-          isKeyAction: true
+          isContribution: true
           score: 10
           sourceId: gh_1
           sourceParentId: null

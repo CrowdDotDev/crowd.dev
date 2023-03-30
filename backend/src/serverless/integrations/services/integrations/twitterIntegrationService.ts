@@ -255,7 +255,7 @@ export class TwitterIntegrationService extends IntegrationServiceBase {
         },
       },
       score: TwitterGrid.follow.score,
-      isKeyAction: TwitterGrid.follow.isKeyAction,
+      isContribution: TwitterGrid.follow.isContribution,
     }))
 
     // It is imperative that we remove the followers we have already seen.
@@ -324,10 +324,10 @@ export class TwitterIntegrationService extends IntegrationServiceBase {
           reach: { [PlatformType.TWITTER]: record.member.public_metrics.followers_count },
         },
         score: stream.value === 'mentions' ? TwitterGrid.mention.score : TwitterGrid.hashtag.score,
-        isKeyAction:
+        isContribution:
           stream.value === 'mentions'
-            ? TwitterGrid.mention.isKeyAction
-            : TwitterGrid.hashtag.isKeyAction,
+            ? TwitterGrid.mention.isContribution
+            : TwitterGrid.hashtag.isContribution,
       }
 
       if (stream.value.includes('hashtag')) {

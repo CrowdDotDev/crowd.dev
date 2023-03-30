@@ -227,7 +227,7 @@ const es = {
         project: 'Project',
         info: 'Info',
         communityMember: 'Member',
-        isKeyAction: 'Key Action',
+        isContribution: 'Contribution',
         crowdInfo: 'CrowdInfo',
         createdAt: 'Creado el',
         updatedAt: 'Actualizado el',

@@ -404,7 +404,7 @@ export class DiscordIntegrationService extends IntegrationServiceBase {
             },
           },
           score: DiscordGrid.join.score,
-          isKeyAction: DiscordGrid.join.isKeyAction,
+          isContribution: DiscordGrid.join.isContribution,
         })
       }
       return acc
@@ -528,7 +528,7 @@ export class DiscordIntegrationService extends IntegrationServiceBase {
             },
           },
           score: DiscordGrid.message.score,
-          isKeyAction: DiscordGrid.message.isKeyAction,
+          isContribution: DiscordGrid.message.isContribution,
         } as any
 
         activities.push(activityObject)

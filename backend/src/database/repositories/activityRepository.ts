@@ -45,7 +45,7 @@ class ActivityRepository {
           'type',
           'timestamp',
           'platform',
-          'isKeyAction',
+          'isContribution',
           'score',
           'attributes',
           'channel',
@@ -140,7 +140,7 @@ class ActivityRepository {
           'type',
           'timestamp',
           'platform',
-          'isKeyAction',
+          'isContribution',
           'attributes',
           'channel',
           'body',
@@ -349,13 +349,13 @@ class ActivityRepository {
       }
 
       if (
-        filter.isKeyAction === true ||
-        filter.isKeyAction === 'true' ||
-        filter.isKeyAction === false ||
-        filter.isKeyAction === 'false'
+        filter.isContribution === true ||
+        filter.isContribution === 'true' ||
+        filter.isContribution === false ||
+        filter.isContribution === 'false'
       ) {
         advancedFilter.and.push({
-          isKeyAction: filter.isKeyAction === true || filter.isKeyAction === 'true',
+          isContribution: filter.isContribution === true || filter.isContribution === 'true',
         })
       }
 

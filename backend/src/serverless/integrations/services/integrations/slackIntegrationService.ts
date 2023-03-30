@@ -375,18 +375,18 @@ export class SlackIntegrationService extends IntegrationServiceBase {
 
         let activityType
         let score
-        let isKeyAction
+        let isContribution
         let sourceId
         if (record.subtype === 'channel_join') {
           activityType = 'channel_joined'
           score = SlackGrid.join.score
-          isKeyAction = SlackGrid.join.isKeyAction
+          isContribution = SlackGrid.join.isContribution
           body = undefined
           sourceId = record.user
         } else {
           activityType = 'message'
           score = SlackGrid.message.score
-          isKeyAction = SlackGrid.message.isKeyAction
+          isContribution = SlackGrid.message.isContribution
           sourceId = record.ts
         }
         activities.push({
@@ -407,7 +407,7 @@ export class SlackIntegrationService extends IntegrationServiceBase {
             attachments: record.attachments ? record.attachments : [],
           },
           score,
-          isKeyAction,
+          isContribution,
           member,
         })
         if (record.thread_ts) {
@@ -458,7 +458,7 @@ export class SlackIntegrationService extends IntegrationServiceBase {
           attachments: record.attachments ? record.attachments : [],
         },
         score: SlackGrid.join.score,
-        isKeyAction: SlackGrid.join.isKeyAction,
+        isContribution: SlackGrid.join.isContribution,
         member,
       })
     }
@@ -507,7 +507,7 @@ export class SlackIntegrationService extends IntegrationServiceBase {
           },
           member,
           score: SlackGrid.message.score,
-          isKeyAction: SlackGrid.message.isKeyAction,
+          isContribution: SlackGrid.message.isContribution,
         })
       }
     }

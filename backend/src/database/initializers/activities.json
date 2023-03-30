@@ -23,7 +23,7 @@
     },
     "timestamp": "2022-02-02T15:27:03.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -50,7 +50,7 @@
     },
     "timestamp": "2022-02-02T15:27:03.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -77,7 +77,7 @@
     },
     "timestamp": "2022-02-02T15:27:03.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -104,7 +104,7 @@
     },
     "timestamp": "2022-02-02T15:27:03.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -130,7 +130,7 @@
     },
     "timestamp": "2022-02-02T15:26:37.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -156,7 +156,7 @@
     },
     "timestamp": "2022-02-02T15:26:37.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -192,7 +192,7 @@
     },
     "timestamp": "2022-02-02T15:26:37.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -218,7 +218,7 @@
     },
     "timestamp": "2022-02-02T15:26:37.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -244,7 +244,7 @@
     },
     "timestamp": "2022-02-02T15:24:50.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -270,7 +270,7 @@
     },
     "timestamp": "2022-02-02T15:24:50.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -296,7 +296,7 @@
     },
     "timestamp": "2022-02-02T15:24:50.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -322,7 +322,7 @@
     },
     "timestamp": "2022-02-02T15:24:50.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -348,7 +348,7 @@
     },
     "timestamp": "2022-02-02T11:59:09.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -374,7 +374,7 @@
     },
     "timestamp": "2022-02-02T11:59:09.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -400,7 +400,7 @@
     },
     "timestamp": "2022-02-02T11:59:09.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -426,7 +426,7 @@
     },
     "timestamp": "2022-02-02T11:59:09.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -452,7 +452,7 @@
     },
     "timestamp": "2022-02-01T15:30:15.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -478,7 +478,7 @@
     },
     "timestamp": "2022-02-01T15:30:15.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -511,7 +511,7 @@
     },
     "timestamp": "2022-02-01T15:30:15.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -544,7 +544,7 @@
     },
     "timestamp": "2022-02-01T15:30:15.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -573,7 +573,7 @@
     },
     "timestamp": "2022-02-01T15:17:52.000Z",
     "type": "reaction_added",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -602,7 +602,7 @@
     },
     "timestamp": "2022-02-01T15:17:52.000Z",
     "type": "reaction_added",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -631,7 +631,7 @@
     },
     "timestamp": "2022-02-01T15:17:52.000Z",
     "type": "reaction_added",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -660,7 +660,7 @@
     },
     "timestamp": "2022-02-01T15:17:52.000Z",
     "type": "reaction_added",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -690,7 +690,7 @@
     },
     "timestamp": "2022-02-01T14:39:34.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -720,7 +720,7 @@
     },
     "timestamp": "2022-02-01T14:39:34.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -760,7 +760,7 @@
     },
     "timestamp": "2022-02-01T14:39:34.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -790,7 +790,7 @@
     },
     "timestamp": "2022-02-01T14:39:34.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -820,7 +820,7 @@
     },
     "timestamp": "2022-02-01T14:39:15.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -850,7 +850,7 @@
     },
     "timestamp": "2022-02-01T14:39:15.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -880,7 +880,7 @@
     },
     "timestamp": "2022-02-01T14:39:15.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -910,7 +910,7 @@
     },
     "timestamp": "2022-02-01T14:39:15.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -940,7 +940,7 @@
     },
     "timestamp": "2022-02-01T14:20:55.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -970,7 +970,7 @@
     },
     "timestamp": "2022-02-01T14:20:55.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -1010,7 +1010,7 @@
     },
     "timestamp": "2022-02-01T14:20:55.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -1040,7 +1040,7 @@
     },
     "timestamp": "2022-02-01T14:20:55.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -1069,7 +1069,7 @@
     },
     "timestamp": "2022-02-01T14:18:55.000Z",
     "type": "reaction_added",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -1098,7 +1098,7 @@
     },
     "timestamp": "2022-02-01T14:18:55.000Z",
     "type": "reaction_added",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -1137,7 +1137,7 @@
     },
     "timestamp": "2022-02-01T14:18:55.000Z",
     "type": "reaction_added",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -1166,7 +1166,7 @@
     },
     "timestamp": "2022-02-01T14:18:55.000Z",
     "type": "reaction_added",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -1191,7 +1191,7 @@
     },
     "timestamp": "2022-02-01T14:17:55.000Z",
     "type": "file_share",
-    "isKeyAction": false,
+    "isContribution": false,
     "platform": "slack"
   },
   {
@@ -1216,7 +1216,7 @@
     },
     "timestamp": "2022-02-01T14:17:55.000Z",
     "type": "file_share",
-    "isKeyAction": false,
+    "isContribution": false,
     "platform": "slack"
   },
   {
@@ -1241,7 +1241,7 @@
     },
     "timestamp": "2022-02-01T14:17:55.000Z",
     "type": "file_share",
-    "isKeyAction": false,
+    "isContribution": false,
     "platform": "slack"
   },
   {
@@ -1266,7 +1266,7 @@
     },
     "timestamp": "2022-02-01T14:17:55.000Z",
     "type": "file_share",
-    "isKeyAction": false,
+    "isContribution": false,
     "platform": "slack"
   },
   {
@@ -1291,7 +1291,7 @@
     },
     "timestamp": "2022-02-01T14:13:56.000Z",
     "type": "channel_joined",
-    "isKeyAction": false,
+    "isContribution": false,
     "platform": "slack"
   },
   {
@@ -1316,7 +1316,7 @@
     },
     "timestamp": "2022-02-01T14:13:56.000Z",
     "type": "channel_joined",
-    "isKeyAction": false,
+    "isContribution": false,
     "platform": "slack"
   },
   {
@@ -1341,7 +1341,7 @@
     },
     "timestamp": "2022-02-01T14:13:56.000Z",
     "type": "channel_joined",
-    "isKeyAction": false,
+    "isContribution": false,
     "platform": "slack"
   },
   {
@@ -1366,7 +1366,7 @@
     },
     "timestamp": "2022-02-01T14:13:56.000Z",
     "type": "channel_joined",
-    "isKeyAction": false,
+    "isContribution": false,
     "platform": "slack"
   },
   {
@@ -1392,7 +1392,7 @@
     },
     "timestamp": "2022-02-01T12:44:31.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -1418,7 +1418,7 @@
     },
     "timestamp": "2022-02-01T12:44:31.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -1451,7 +1451,7 @@
     },
     "timestamp": "2022-02-01T12:44:31.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -1484,7 +1484,7 @@
     },
     "timestamp": "2022-02-01T12:44:31.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -1510,7 +1510,7 @@
     },
     "timestamp": "2022-02-01T12:38:38.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -1536,7 +1536,7 @@
     },
     "timestamp": "2022-02-01T12:38:38.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -1562,7 +1562,7 @@
     },
     "timestamp": "2022-02-01T12:38:38.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -1588,7 +1588,7 @@
     },
     "timestamp": "2022-02-01T12:38:38.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -1613,7 +1613,7 @@
     },
     "timestamp": "2022-01-30T21:12:33.000Z",
     "type": "channel_joined",
-    "isKeyAction": false,
+    "isContribution": false,
     "platform": "slack"
   },
   {
@@ -1638,7 +1638,7 @@
     },
     "timestamp": "2022-01-30T21:12:33.000Z",
     "type": "channel_joined",
-    "isKeyAction": false,
+    "isContribution": false,
     "platform": "slack"
   },
   {
@@ -1663,7 +1663,7 @@
     },
     "timestamp": "2022-01-30T21:12:33.000Z",
     "type": "channel_joined",
-    "isKeyAction": false,
+    "isContribution": false,
     "platform": "slack"
   },
   {
@@ -1688,7 +1688,7 @@
     },
     "timestamp": "2022-01-30T21:12:33.000Z",
     "type": "channel_joined",
-    "isKeyAction": false,
+    "isContribution": false,
     "platform": "slack"
   },
   {
@@ -1713,7 +1713,7 @@
     },
     "timestamp": "2022-01-30T21:12:32.000Z",
     "type": "channel_joined",
-    "isKeyAction": false,
+    "isContribution": false,
     "platform": "slack"
   },
   {
@@ -1738,7 +1738,7 @@
     },
     "timestamp": "2022-01-30T21:12:32.000Z",
     "type": "channel_joined",
-    "isKeyAction": false,
+    "isContribution": false,
     "platform": "slack"
   },
   {
@@ -1763,7 +1763,7 @@
     },
     "timestamp": "2022-01-30T21:12:32.000Z",
     "type": "channel_joined",
-    "isKeyAction": false,
+    "isContribution": false,
     "platform": "slack"
   },
   {
@@ -1788,7 +1788,7 @@
     },
     "timestamp": "2022-01-30T21:12:32.000Z",
     "type": "channel_joined",
-    "isKeyAction": false,
+    "isContribution": false,
     "platform": "slack"
   },
   {
@@ -1817,7 +1817,7 @@
     },
     "timestamp": "2022-01-28T17:50:17.000Z",
     "type": "reaction_added",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -1846,7 +1846,7 @@
     },
     "timestamp": "2022-01-28T17:50:17.000Z",
     "type": "reaction_added",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -1882,7 +1882,7 @@
     },
     "timestamp": "2022-01-28T17:50:17.000Z",
     "type": "reaction_added",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -1918,7 +1918,7 @@
     },
     "timestamp": "2022-01-28T17:50:17.000Z",
     "type": "reaction_added",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -1947,7 +1947,7 @@
     },
     "timestamp": "2022-01-28T17:50:10.000Z",
     "type": "reaction_added",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -1976,7 +1976,7 @@
     },
     "timestamp": "2022-01-28T17:50:10.000Z",
     "type": "reaction_added",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -2012,7 +2012,7 @@
     },
     "timestamp": "2022-01-28T17:50:10.000Z",
     "type": "reaction_added",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -2048,7 +2048,7 @@
     },
     "timestamp": "2022-01-28T17:50:10.000Z",
     "type": "reaction_added",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -2074,7 +2074,7 @@
     },
     "timestamp": "2022-01-28T17:23:17.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -2100,7 +2100,7 @@
     },
     "timestamp": "2022-01-28T17:23:17.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -2126,7 +2126,7 @@
     },
     "timestamp": "2022-01-28T17:23:17.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -2152,7 +2152,7 @@
     },
     "timestamp": "2022-01-28T17:23:17.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -2178,7 +2178,7 @@
     },
     "timestamp": "2022-01-28T15:57:08.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -2204,7 +2204,7 @@
     },
     "timestamp": "2022-01-28T15:57:08.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -2230,7 +2230,7 @@
     },
     "timestamp": "2022-01-28T15:57:08.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -2256,7 +2256,7 @@
     },
     "timestamp": "2022-01-28T15:57:08.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -2285,7 +2285,7 @@
     },
     "timestamp": "2022-01-28T12:01:22.000Z",
     "type": "reaction_added",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -2314,7 +2314,7 @@
     },
     "timestamp": "2022-01-28T12:01:22.000Z",
     "type": "reaction_added",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -2353,7 +2353,7 @@
     },
     "timestamp": "2022-01-28T12:01:22.000Z",
     "type": "reaction_added",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -2382,7 +2382,7 @@
     },
     "timestamp": "2022-01-28T12:01:22.000Z",
     "type": "reaction_added",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -2413,7 +2413,7 @@
     },
     "timestamp": "2022-01-28T12:00:57.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -2444,7 +2444,7 @@
     },
     "timestamp": "2022-01-28T12:00:57.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -2475,7 +2475,7 @@
     },
     "timestamp": "2022-01-28T12:00:57.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -2506,7 +2506,7 @@
     },
     "timestamp": "2022-01-28T12:00:57.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -2536,7 +2536,7 @@
     },
     "timestamp": "2022-01-28T11:53:52.000Z",
     "type": "reaction_added",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -2566,7 +2566,7 @@
     },
     "timestamp": "2022-01-28T11:53:52.000Z",
     "type": "reaction_added",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -2596,7 +2596,7 @@
     },
     "timestamp": "2022-01-28T11:53:52.000Z",
     "type": "reaction_added",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -2626,7 +2626,7 @@
     },
     "timestamp": "2022-01-28T11:53:52.000Z",
     "type": "reaction_added",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -2652,7 +2652,7 @@
     },
     "timestamp": "2022-01-28T11:51:08.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -2678,7 +2678,7 @@
     },
     "timestamp": "2022-01-28T11:51:08.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -2714,7 +2714,7 @@
     },
     "timestamp": "2022-01-28T11:51:08.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -2740,7 +2740,7 @@
     },
     "timestamp": "2022-01-28T11:51:08.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -2767,7 +2767,7 @@
     },
     "timestamp": "2022-01-28T11:50:35.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -2794,7 +2794,7 @@
     },
     "timestamp": "2022-01-28T11:50:35.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -2821,7 +2821,7 @@
     },
     "timestamp": "2022-01-28T11:50:35.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -2848,7 +2848,7 @@
     },
     "timestamp": "2022-01-28T11:50:35.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -2875,7 +2875,7 @@
     },
     "timestamp": "2022-01-28T11:50:08.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -2902,7 +2902,7 @@
     },
     "timestamp": "2022-01-28T11:50:08.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -2929,7 +2929,7 @@
     },
     "timestamp": "2022-01-28T11:50:08.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -2956,7 +2956,7 @@
     },
     "timestamp": "2022-01-28T11:50:08.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -2983,7 +2983,7 @@
     },
     "timestamp": "2022-01-28T11:49:23.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -3010,7 +3010,7 @@
     },
     "timestamp": "2022-01-28T11:49:23.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -3037,7 +3037,7 @@
     },
     "timestamp": "2022-01-28T11:49:23.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -3064,7 +3064,7 @@
     },
     "timestamp": "2022-01-28T11:49:23.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -3089,7 +3089,7 @@
     },
     "timestamp": "2022-01-28T11:45:04.000Z",
     "type": "file_share",
-    "isKeyAction": false,
+    "isContribution": false,
     "platform": "slack"
   },
   {
@@ -3114,7 +3114,7 @@
     },
     "timestamp": "2022-01-28T11:45:04.000Z",
     "type": "file_share",
-    "isKeyAction": false,
+    "isContribution": false,
     "platform": "slack"
   },
   {
@@ -3149,7 +3149,7 @@
     },
     "timestamp": "2022-01-28T11:45:04.000Z",
     "type": "file_share",
-    "isKeyAction": false,
+    "isContribution": false,
     "platform": "slack"
   },
   {
@@ -3174,7 +3174,7 @@
     },
     "timestamp": "2022-01-28T11:45:04.000Z",
     "type": "file_share",
-    "isKeyAction": false,
+    "isContribution": false,
     "platform": "slack"
   },
   {
@@ -3199,7 +3199,7 @@
     },
     "timestamp": "2022-01-28T11:44:40.000Z",
     "type": "file_share",
-    "isKeyAction": false,
+    "isContribution": false,
     "platform": "slack"
   },
   {
@@ -3224,7 +3224,7 @@
     },
     "timestamp": "2022-01-28T11:44:40.000Z",
     "type": "file_share",
-    "isKeyAction": false,
+    "isContribution": false,
     "platform": "slack"
   },
   {
@@ -3259,7 +3259,7 @@
     },
     "timestamp": "2022-01-28T11:44:40.000Z",
     "type": "file_share",
-    "isKeyAction": false,
+    "isContribution": false,
     "platform": "slack"
   },
   {
@@ -3284,7 +3284,7 @@
     },
     "timestamp": "2022-01-28T11:44:40.000Z",
     "type": "file_share",
-    "isKeyAction": false,
+    "isContribution": false,
     "platform": "slack"
   },
   {
@@ -3314,7 +3314,7 @@
     },
     "timestamp": "2022-01-27T17:35:15.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -3344,44 +3344,7 @@
     },
     "timestamp": "2022-01-27T17:35:15.000Z",
     "type": "message",
-    "isKeyAction": true,
-    "platform": "slack"
-  },
-  {
-    "crowdInfo": {
-      "body": "Yeah",
-      "channel": "dev",
-      "slackId": "1643304915.001300",
-      "url": "https://crowddevspace.slack.com/archives/C01NBV2BDDK/p1643304915001300?thread_ts=1643301420.000700&cid=C01NBV2BDDK",
-      "thread": {
-        "id": "1643301420.000700",
-        "body": "@Joan Reyero @Anil Bostanci Just noticed that we’re 1 major behind in `Sequilize` , maybe it would be cool to get it to version 7 right from the start"
-      }
-    },
-    "member": {
-      "crowdInfo": {
-        "slack": {
-          "timezone": "Europe/Amsterdam"
-        },
-        "github": {
-          "name": "Joan Reyero",
-          "isHireable": false,
-          "url": "https://github.com/joanreyero",
-          "websiteUrl": "crowd.dev",
-          "bio": "Co-founder and CTO at Crowd.dev"
-        }
-      },
-      "username": "Joan Reyero",
-      "type": "member",
-      "score": 10,
-      "email": "joanreyero@gmail.com",
-      "organisation": "@CrowdDevHQ",
-      "location": "Europe/London (timezone)",
-      "bio": "Co-founder and CTO at Crowd.dev"
-    },
-    "timestamp": "2022-01-27T17:35:15.000Z",
-    "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -3418,7 +3381,44 @@
     },
     "timestamp": "2022-01-27T17:35:15.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
+    "platform": "slack"
+  },
+  {
+    "crowdInfo": {
+      "body": "Yeah",
+      "channel": "dev",
+      "slackId": "1643304915.001300",
+      "url": "https://crowddevspace.slack.com/archives/C01NBV2BDDK/p1643304915001300?thread_ts=1643301420.000700&cid=C01NBV2BDDK",
+      "thread": {
+        "id": "1643301420.000700",
+        "body": "@Joan Reyero @Anil Bostanci Just noticed that we’re 1 major behind in `Sequilize` , maybe it would be cool to get it to version 7 right from the start"
+      }
+    },
+    "member": {
+      "crowdInfo": {
+        "slack": {
+          "timezone": "Europe/Amsterdam"
+        },
+        "github": {
+          "name": "Joan Reyero",
+          "isHireable": false,
+          "url": "https://github.com/joanreyero",
+          "websiteUrl": "crowd.dev",
+          "bio": "Co-founder and CTO at Crowd.dev"
+        }
+      },
+      "username": "Joan Reyero",
+      "type": "member",
+      "score": 10,
+      "email": "joanreyero@gmail.com",
+      "organisation": "@CrowdDevHQ",
+      "location": "Europe/London (timezone)",
+      "bio": "Co-founder and CTO at Crowd.dev"
+    },
+    "timestamp": "2022-01-27T17:35:15.000Z",
+    "type": "message",
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -3449,7 +3449,7 @@
     },
     "timestamp": "2022-01-27T17:34:35.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -3480,7 +3480,7 @@
     },
     "timestamp": "2022-01-27T17:34:35.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -3511,7 +3511,7 @@
     },
     "timestamp": "2022-01-27T17:34:35.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -3542,7 +3542,7 @@
     },
     "timestamp": "2022-01-27T17:34:35.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -3568,7 +3568,7 @@
     },
     "timestamp": "2022-01-27T16:37:00.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -3594,7 +3594,7 @@
     },
     "timestamp": "2022-01-27T16:37:00.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -3630,7 +3630,7 @@
     },
     "timestamp": "2022-01-27T16:37:00.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -3656,7 +3656,7 @@
     },
     "timestamp": "2022-01-27T16:37:00.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -3682,7 +3682,7 @@
     },
     "timestamp": "2022-01-27T15:32:23.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -3708,7 +3708,7 @@
     },
     "timestamp": "2022-01-27T15:32:23.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -3744,7 +3744,7 @@
     },
     "timestamp": "2022-01-27T15:32:23.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -3770,7 +3770,7 @@
     },
     "timestamp": "2022-01-27T15:32:23.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -3797,7 +3797,7 @@
     },
     "timestamp": "2022-01-27T15:32:06.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -3824,7 +3824,7 @@
     },
     "timestamp": "2022-01-27T15:32:06.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -3851,7 +3851,7 @@
     },
     "timestamp": "2022-01-27T15:32:06.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -3878,7 +3878,7 @@
     },
     "timestamp": "2022-01-27T15:32:06.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -3908,7 +3908,7 @@
     },
     "timestamp": "2022-01-27T15:27:23.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -3938,7 +3938,7 @@
     },
     "timestamp": "2022-01-27T15:27:23.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -3978,7 +3978,7 @@
     },
     "timestamp": "2022-01-27T15:27:23.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -4008,7 +4008,7 @@
     },
     "timestamp": "2022-01-27T15:27:23.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -4039,7 +4039,7 @@
     },
     "timestamp": "2022-01-27T13:22:37.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -4070,7 +4070,7 @@
     },
     "timestamp": "2022-01-27T13:22:37.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -4101,7 +4101,7 @@
     },
     "timestamp": "2022-01-27T13:22:37.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -4132,7 +4132,7 @@
     },
     "timestamp": "2022-01-27T13:22:37.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -4162,7 +4162,7 @@
     },
     "timestamp": "2022-01-27T13:22:31.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -4192,7 +4192,7 @@
     },
     "timestamp": "2022-01-27T13:22:31.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -4229,7 +4229,7 @@
     },
     "timestamp": "2022-01-27T13:22:31.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -4266,7 +4266,7 @@
     },
     "timestamp": "2022-01-27T13:22:31.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -4292,7 +4292,7 @@
     },
     "timestamp": "2022-01-27T13:21:39.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -4318,7 +4318,7 @@
     },
     "timestamp": "2022-01-27T13:21:39.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -4344,7 +4344,7 @@
     },
     "timestamp": "2022-01-27T13:21:39.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -4370,7 +4370,7 @@
     },
     "timestamp": "2022-01-27T13:21:39.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -4396,7 +4396,7 @@
     },
     "timestamp": "2022-01-27T11:42:21.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -4422,7 +4422,7 @@
     },
     "timestamp": "2022-01-27T11:42:21.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -4448,7 +4448,7 @@
     },
     "timestamp": "2022-01-27T11:42:21.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -4474,7 +4474,7 @@
     },
     "timestamp": "2022-01-27T11:42:21.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -4503,7 +4503,7 @@
     },
     "timestamp": "2022-01-26T12:48:22.000Z",
     "type": "reaction_added",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -4532,7 +4532,7 @@
     },
     "timestamp": "2022-01-26T12:48:22.000Z",
     "type": "reaction_added",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -4571,7 +4571,7 @@
     },
     "timestamp": "2022-01-26T12:48:22.000Z",
     "type": "reaction_added",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -4600,7 +4600,7 @@
     },
     "timestamp": "2022-01-26T12:48:22.000Z",
     "type": "reaction_added",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -4626,7 +4626,7 @@
     },
     "timestamp": "2022-01-26T11:16:37.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -4652,7 +4652,7 @@
     },
     "timestamp": "2022-01-26T11:16:37.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -4688,7 +4688,7 @@
     },
     "timestamp": "2022-01-26T11:16:37.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -4714,7 +4714,7 @@
     },
     "timestamp": "2022-01-26T11:16:37.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -4740,7 +4740,7 @@
     },
     "timestamp": "2022-01-26T09:48:44.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -4766,7 +4766,7 @@
     },
     "timestamp": "2022-01-26T09:48:44.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -4792,7 +4792,7 @@
     },
     "timestamp": "2022-01-26T09:48:44.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -4818,7 +4818,7 @@
     },
     "timestamp": "2022-01-26T09:48:44.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -4849,7 +4849,7 @@
     },
     "timestamp": "2022-01-26T08:26:06.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -4880,7 +4880,7 @@
     },
     "timestamp": "2022-01-26T08:26:06.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -4911,7 +4911,7 @@
     },
     "timestamp": "2022-01-26T08:26:06.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -4942,7 +4942,7 @@
     },
     "timestamp": "2022-01-26T08:26:06.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -4973,7 +4973,7 @@
     },
     "timestamp": "2022-01-26T08:25:13.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -5004,7 +5004,7 @@
     },
     "timestamp": "2022-01-26T08:25:13.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -5035,7 +5035,7 @@
     },
     "timestamp": "2022-01-26T08:25:13.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -5066,7 +5066,7 @@
     },
     "timestamp": "2022-01-26T08:25:13.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -5097,7 +5097,7 @@
     },
     "timestamp": "2022-01-25T16:49:37.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -5128,7 +5128,7 @@
     },
     "timestamp": "2022-01-25T16:49:37.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -5159,7 +5159,7 @@
     },
     "timestamp": "2022-01-25T16:49:37.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -5190,7 +5190,7 @@
     },
     "timestamp": "2022-01-25T16:49:37.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -5220,7 +5220,7 @@
     },
     "timestamp": "2022-01-25T16:48:04.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -5250,7 +5250,7 @@
     },
     "timestamp": "2022-01-25T16:48:04.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -5290,7 +5290,7 @@
     },
     "timestamp": "2022-01-25T16:48:04.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -5320,7 +5320,7 @@
     },
     "timestamp": "2022-01-25T16:48:04.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -5350,7 +5350,7 @@
     },
     "timestamp": "2022-01-25T16:48:03.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -5380,7 +5380,7 @@
     },
     "timestamp": "2022-01-25T16:48:03.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -5410,7 +5410,7 @@
     },
     "timestamp": "2022-01-25T16:48:03.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -5440,7 +5440,7 @@
     },
     "timestamp": "2022-01-25T16:48:03.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -5469,7 +5469,7 @@
     },
     "timestamp": "2022-01-25T16:47:57.000Z",
     "type": "reaction_added",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -5498,7 +5498,7 @@
     },
     "timestamp": "2022-01-25T16:47:57.000Z",
     "type": "reaction_added",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -5534,7 +5534,7 @@
     },
     "timestamp": "2022-01-25T16:47:57.000Z",
     "type": "reaction_added",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -5570,7 +5570,7 @@
     },
     "timestamp": "2022-01-25T16:47:57.000Z",
     "type": "reaction_added",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -5600,7 +5600,7 @@
     },
     "timestamp": "2022-01-25T16:47:21.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -5630,7 +5630,7 @@
     },
     "timestamp": "2022-01-25T16:47:21.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -5670,7 +5670,7 @@
     },
     "timestamp": "2022-01-25T16:47:21.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -5700,7 +5700,7 @@
     },
     "timestamp": "2022-01-25T16:47:21.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -5730,7 +5730,7 @@
     },
     "timestamp": "2022-01-25T16:47:13.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -5760,7 +5760,7 @@
     },
     "timestamp": "2022-01-25T16:47:13.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -5800,7 +5800,7 @@
     },
     "timestamp": "2022-01-25T16:47:13.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -5830,7 +5830,7 @@
     },
     "timestamp": "2022-01-25T16:47:13.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -5856,7 +5856,7 @@
     },
     "timestamp": "2022-01-25T16:46:37.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -5882,7 +5882,7 @@
     },
     "timestamp": "2022-01-25T16:46:37.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -5908,7 +5908,7 @@
     },
     "timestamp": "2022-01-25T16:46:37.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -5934,7 +5934,7 @@
     },
     "timestamp": "2022-01-25T16:46:37.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -5959,7 +5959,7 @@
     },
     "timestamp": "2022-01-25T16:46:16.000Z",
     "type": "file_share",
-    "isKeyAction": false,
+    "isContribution": false,
     "platform": "slack"
   },
   {
@@ -5984,7 +5984,7 @@
     },
     "timestamp": "2022-01-25T16:46:16.000Z",
     "type": "file_share",
-    "isKeyAction": false,
+    "isContribution": false,
     "platform": "slack"
   },
   {
@@ -6009,7 +6009,7 @@
     },
     "timestamp": "2022-01-25T16:46:16.000Z",
     "type": "file_share",
-    "isKeyAction": false,
+    "isContribution": false,
     "platform": "slack"
   },
   {
@@ -6034,7 +6034,7 @@
     },
     "timestamp": "2022-01-25T16:46:16.000Z",
     "type": "file_share",
-    "isKeyAction": false,
+    "isContribution": false,
     "platform": "slack"
   },
   {
@@ -6064,7 +6064,7 @@
     },
     "timestamp": "2022-01-25T15:35:55.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -6094,7 +6094,7 @@
     },
     "timestamp": "2022-01-25T15:35:55.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -6134,7 +6134,7 @@
     },
     "timestamp": "2022-01-25T15:35:55.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -6164,7 +6164,7 @@
     },
     "timestamp": "2022-01-25T15:35:55.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -6190,7 +6190,7 @@
     },
     "timestamp": "2022-01-25T15:31:15.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -6216,7 +6216,7 @@
     },
     "timestamp": "2022-01-25T15:31:15.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -6242,7 +6242,7 @@
     },
     "timestamp": "2022-01-25T15:31:15.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -6268,7 +6268,7 @@
     },
     "timestamp": "2022-01-25T15:31:15.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -6294,7 +6294,7 @@
     },
     "timestamp": "2022-01-21T18:02:47.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -6320,7 +6320,7 @@
     },
     "timestamp": "2022-01-21T18:02:47.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -6346,7 +6346,7 @@
     },
     "timestamp": "2022-01-21T18:02:47.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -6372,7 +6372,7 @@
     },
     "timestamp": "2022-01-21T18:02:47.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -6401,7 +6401,7 @@
     },
     "timestamp": "2022-01-21T14:09:27.000Z",
     "type": "reaction_added",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -6430,7 +6430,7 @@
     },
     "timestamp": "2022-01-21T14:09:27.000Z",
     "type": "reaction_added",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -6466,7 +6466,7 @@
     },
     "timestamp": "2022-01-21T14:09:27.000Z",
     "type": "reaction_added",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -6502,7 +6502,7 @@
     },
     "timestamp": "2022-01-21T14:09:27.000Z",
     "type": "reaction_added",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -6532,7 +6532,7 @@
     },
     "timestamp": "2022-01-21T14:09:15.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -6562,7 +6562,7 @@
     },
     "timestamp": "2022-01-21T14:09:15.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -6602,7 +6602,7 @@
     },
     "timestamp": "2022-01-21T14:09:15.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -6632,7 +6632,7 @@
     },
     "timestamp": "2022-01-21T14:09:15.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -6657,7 +6657,7 @@
     },
     "timestamp": "2022-01-21T10:41:26.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -6682,7 +6682,7 @@
     },
     "timestamp": "2022-01-21T09:40:57.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -6707,7 +6707,7 @@
     },
     "timestamp": "2022-01-21T09:00:50.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -6732,7 +6732,7 @@
     },
     "timestamp": "2022-01-21T07:43:49.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -6757,7 +6757,7 @@
     },
     "timestamp": "2022-01-21T07:42:03.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -6782,7 +6782,7 @@
     },
     "timestamp": "2022-01-21T07:17:22.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -6807,7 +6807,7 @@
     },
     "timestamp": "2022-01-21T06:33:42.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -6832,7 +6832,7 @@
     },
     "timestamp": "2022-01-21T04:38:21.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -6857,7 +6857,7 @@
     },
     "timestamp": "2022-01-21T04:26:14.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -6882,7 +6882,7 @@
     },
     "timestamp": "2022-01-21T04:26:06.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -6907,7 +6907,7 @@
     },
     "timestamp": "2022-01-21T01:28:21.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -6932,7 +6932,7 @@
     },
     "timestamp": "2022-01-21T00:03:19.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -6957,7 +6957,7 @@
     },
     "timestamp": "2022-01-20T23:46:28.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -6982,7 +6982,7 @@
     },
     "timestamp": "2022-01-20T23:20:57.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -7007,7 +7007,7 @@
     },
     "timestamp": "2022-01-20T23:19:04.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -7032,7 +7032,7 @@
     },
     "timestamp": "2022-01-20T22:15:21.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -7057,7 +7057,7 @@
     },
     "timestamp": "2022-01-20T21:16:44.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -7082,7 +7082,7 @@
     },
     "timestamp": "2022-01-20T21:15:17.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -7107,7 +7107,7 @@
     },
     "timestamp": "2022-01-20T19:18:01.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -7132,7 +7132,7 @@
     },
     "timestamp": "2022-01-20T18:09:07.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -7157,7 +7157,7 @@
     },
     "timestamp": "2022-01-20T17:43:20.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -7186,7 +7186,7 @@
     },
     "timestamp": "2022-01-20T15:20:45.000Z",
     "type": "reaction_added",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -7215,7 +7215,7 @@
     },
     "timestamp": "2022-01-20T15:20:45.000Z",
     "type": "reaction_added",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -7251,7 +7251,7 @@
     },
     "timestamp": "2022-01-20T15:20:45.000Z",
     "type": "reaction_added",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -7287,7 +7287,7 @@
     },
     "timestamp": "2022-01-20T15:20:45.000Z",
     "type": "reaction_added",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -7316,7 +7316,7 @@
     },
     "timestamp": "2022-01-20T15:17:53.000Z",
     "type": "reaction_added",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -7345,7 +7345,7 @@
     },
     "timestamp": "2022-01-20T15:17:53.000Z",
     "type": "reaction_added",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -7381,7 +7381,7 @@
     },
     "timestamp": "2022-01-20T15:17:53.000Z",
     "type": "reaction_added",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -7417,7 +7417,7 @@
     },
     "timestamp": "2022-01-20T15:17:53.000Z",
     "type": "reaction_added",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -7447,7 +7447,7 @@
     },
     "timestamp": "2022-01-20T15:14:02.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -7477,7 +7477,7 @@
     },
     "timestamp": "2022-01-20T15:14:02.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -7507,7 +7507,7 @@
     },
     "timestamp": "2022-01-20T15:14:02.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -7537,7 +7537,7 @@
     },
     "timestamp": "2022-01-20T15:14:02.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -7567,7 +7567,7 @@
     },
     "timestamp": "2022-01-20T15:13:55.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -7597,7 +7597,7 @@
     },
     "timestamp": "2022-01-20T15:13:55.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -7627,7 +7627,7 @@
     },
     "timestamp": "2022-01-20T15:13:55.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -7657,7 +7657,7 @@
     },
     "timestamp": "2022-01-20T15:13:55.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -7683,7 +7683,7 @@
     },
     "timestamp": "2022-01-20T15:13:15.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -7709,7 +7709,7 @@
     },
     "timestamp": "2022-01-20T15:13:15.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -7735,7 +7735,7 @@
     },
     "timestamp": "2022-01-20T15:13:15.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -7761,7 +7761,7 @@
     },
     "timestamp": "2022-01-20T15:13:15.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -7791,7 +7791,7 @@
     },
     "timestamp": "2022-01-20T15:12:03.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -7821,7 +7821,7 @@
     },
     "timestamp": "2022-01-20T15:12:03.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -7861,7 +7861,7 @@
     },
     "timestamp": "2022-01-20T15:12:03.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -7891,7 +7891,7 @@
     },
     "timestamp": "2022-01-20T15:12:03.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -7921,7 +7921,7 @@
     },
     "timestamp": "2022-01-20T15:11:14.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -7951,7 +7951,7 @@
     },
     "timestamp": "2022-01-20T15:11:14.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -7981,7 +7981,7 @@
     },
     "timestamp": "2022-01-20T15:11:14.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -8011,7 +8011,7 @@
     },
     "timestamp": "2022-01-20T15:11:14.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -8041,7 +8041,7 @@
     },
     "timestamp": "2022-01-20T15:11:04.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -8071,7 +8071,7 @@
     },
     "timestamp": "2022-01-20T15:11:04.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -8101,7 +8101,7 @@
     },
     "timestamp": "2022-01-20T15:11:04.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -8131,7 +8131,7 @@
     },
     "timestamp": "2022-01-20T15:11:04.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -8161,7 +8161,7 @@
     },
     "timestamp": "2022-01-20T15:10:33.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -8191,7 +8191,7 @@
     },
     "timestamp": "2022-01-20T15:10:33.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -8231,7 +8231,7 @@
     },
     "timestamp": "2022-01-20T15:10:33.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -8261,7 +8261,7 @@
     },
     "timestamp": "2022-01-20T15:10:33.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -8291,7 +8291,7 @@
     },
     "timestamp": "2022-01-20T15:10:19.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -8321,7 +8321,7 @@
     },
     "timestamp": "2022-01-20T15:10:19.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -8351,7 +8351,7 @@
     },
     "timestamp": "2022-01-20T15:10:19.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -8381,7 +8381,7 @@
     },
     "timestamp": "2022-01-20T15:10:19.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -8410,7 +8410,7 @@
     },
     "timestamp": "2022-01-20T15:10:10.000Z",
     "type": "file_share",
-    "isKeyAction": false,
+    "isContribution": false,
     "platform": "slack"
   },
   {
@@ -8439,7 +8439,7 @@
     },
     "timestamp": "2022-01-20T15:10:10.000Z",
     "type": "file_share",
-    "isKeyAction": false,
+    "isContribution": false,
     "platform": "slack"
   },
   {
@@ -8468,7 +8468,7 @@
     },
     "timestamp": "2022-01-20T15:10:10.000Z",
     "type": "file_share",
-    "isKeyAction": false,
+    "isContribution": false,
     "platform": "slack"
   },
   {
@@ -8497,7 +8497,7 @@
     },
     "timestamp": "2022-01-20T15:10:10.000Z",
     "type": "file_share",
-    "isKeyAction": false,
+    "isContribution": false,
     "platform": "slack"
   },
   {
@@ -8527,7 +8527,7 @@
     },
     "timestamp": "2022-01-20T15:10:06.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -8557,7 +8557,7 @@
     },
     "timestamp": "2022-01-20T15:10:06.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -8597,7 +8597,7 @@
     },
     "timestamp": "2022-01-20T15:10:06.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -8627,7 +8627,7 @@
     },
     "timestamp": "2022-01-20T15:10:06.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -8657,7 +8657,7 @@
     },
     "timestamp": "2022-01-20T15:09:59.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -8687,7 +8687,7 @@
     },
     "timestamp": "2022-01-20T15:09:59.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -8717,7 +8717,7 @@
     },
     "timestamp": "2022-01-20T15:09:59.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -8747,7 +8747,7 @@
     },
     "timestamp": "2022-01-20T15:09:59.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -8777,7 +8777,7 @@
     },
     "timestamp": "2022-01-20T15:09:56.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -8807,7 +8807,7 @@
     },
     "timestamp": "2022-01-20T15:09:56.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -8847,7 +8847,7 @@
     },
     "timestamp": "2022-01-20T15:09:56.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -8877,7 +8877,7 @@
     },
     "timestamp": "2022-01-20T15:09:56.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -8903,7 +8903,7 @@
     },
     "timestamp": "2022-01-20T15:09:16.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -8929,7 +8929,7 @@
     },
     "timestamp": "2022-01-20T15:09:16.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -8955,7 +8955,7 @@
     },
     "timestamp": "2022-01-20T15:09:16.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -8981,7 +8981,7 @@
     },
     "timestamp": "2022-01-20T15:09:16.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -9006,7 +9006,7 @@
     },
     "timestamp": "2022-01-20T14:42:15.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -9031,7 +9031,7 @@
     },
     "timestamp": "2022-01-20T14:25:35.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -9056,7 +9056,7 @@
     },
     "timestamp": "2022-01-20T13:37:26.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -9081,7 +9081,7 @@
     },
     "timestamp": "2022-01-20T13:09:35.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -9106,7 +9106,7 @@
     },
     "timestamp": "2022-01-20T12:18:31.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -9131,7 +9131,7 @@
     },
     "timestamp": "2022-01-20T12:08:57.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -9170,7 +9170,7 @@
     },
     "timestamp": "2022-01-20T11:31:22.000Z",
     "type": "pull_request-opened",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "github"
   },
   {
@@ -9195,7 +9195,7 @@
     },
     "timestamp": "2022-01-20T11:00:11.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -9227,7 +9227,7 @@
     },
     "timestamp": "2022-01-20T10:02:04.000Z",
     "type": "star",
-    "isKeyAction": false,
+    "isContribution": false,
     "platform": "github"
   },
   {
@@ -9257,7 +9257,7 @@
     },
     "timestamp": "2022-01-20T09:16:10.000Z",
     "type": "star",
-    "isKeyAction": false,
+    "isContribution": false,
     "platform": "github"
   },
   {
@@ -9287,7 +9287,7 @@
     },
     "timestamp": "2022-01-20T09:16:03.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -9317,7 +9317,7 @@
     },
     "timestamp": "2022-01-20T09:16:03.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -9354,7 +9354,7 @@
     },
     "timestamp": "2022-01-20T09:16:03.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -9391,7 +9391,7 @@
     },
     "timestamp": "2022-01-20T09:16:03.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -9416,7 +9416,7 @@
     },
     "timestamp": "2022-01-20T09:12:59.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -9446,7 +9446,7 @@
     },
     "timestamp": "2022-01-20T09:04:25.000Z",
     "type": "star",
-    "isKeyAction": false,
+    "isContribution": false,
     "platform": "github"
   },
   {
@@ -9471,7 +9471,7 @@
     },
     "timestamp": "2022-01-20T08:08:32.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -9496,7 +9496,7 @@
     },
     "timestamp": "2022-01-20T06:55:45.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -9521,7 +9521,7 @@
     },
     "timestamp": "2022-01-20T06:13:38.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -9546,7 +9546,7 @@
     },
     "timestamp": "2022-01-20T05:23:56.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -9571,7 +9571,7 @@
     },
     "timestamp": "2022-01-20T05:22:03.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -9596,7 +9596,7 @@
     },
     "timestamp": "2022-01-20T04:55:52.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -9621,7 +9621,7 @@
     },
     "timestamp": "2022-01-20T04:29:30.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -9646,7 +9646,7 @@
     },
     "timestamp": "2022-01-20T03:49:19.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -9671,7 +9671,7 @@
     },
     "timestamp": "2022-01-20T03:04:27.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -9696,7 +9696,7 @@
     },
     "timestamp": "2022-01-20T01:58:33.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -9721,7 +9721,7 @@
     },
     "timestamp": "2022-01-20T01:13:10.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -9746,7 +9746,7 @@
     },
     "timestamp": "2022-01-20T01:05:19.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -9771,7 +9771,7 @@
     },
     "timestamp": "2022-01-20T00:00:06.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -9796,7 +9796,7 @@
     },
     "timestamp": "2022-01-19T22:33:27.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -9821,7 +9821,7 @@
     },
     "timestamp": "2022-01-19T22:05:01.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -9856,7 +9856,7 @@
     },
     "timestamp": "2022-01-19T21:57:50.000Z",
     "type": "star",
-    "isKeyAction": false,
+    "isContribution": false,
     "platform": "github"
   },
   {
@@ -9881,7 +9881,7 @@
     },
     "timestamp": "2022-01-19T19:51:14.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -9906,7 +9906,7 @@
     },
     "timestamp": "2022-01-19T19:23:50.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -9931,7 +9931,7 @@
     },
     "timestamp": "2022-01-19T19:10:35.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -9956,7 +9956,7 @@
     },
     "timestamp": "2022-01-19T19:03:26.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -9981,7 +9981,7 @@
     },
     "timestamp": "2022-01-19T19:01:33.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -10006,7 +10006,7 @@
     },
     "timestamp": "2022-01-19T18:14:24.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -10031,7 +10031,7 @@
     },
     "timestamp": "2022-01-19T17:51:53.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -10062,7 +10062,7 @@
     },
     "timestamp": "2022-01-19T17:10:36.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -10093,7 +10093,7 @@
     },
     "timestamp": "2022-01-19T17:10:36.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -10124,7 +10124,7 @@
     },
     "timestamp": "2022-01-19T17:10:36.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -10155,7 +10155,7 @@
     },
     "timestamp": "2022-01-19T17:10:36.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -10186,7 +10186,7 @@
     },
     "timestamp": "2022-01-19T17:09:52.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -10217,7 +10217,7 @@
     },
     "timestamp": "2022-01-19T17:09:52.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -10248,7 +10248,7 @@
     },
     "timestamp": "2022-01-19T17:09:52.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -10279,7 +10279,7 @@
     },
     "timestamp": "2022-01-19T17:09:52.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -10306,7 +10306,7 @@
     },
     "timestamp": "2022-01-19T17:05:38.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -10333,7 +10333,7 @@
     },
     "timestamp": "2022-01-19T17:05:38.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -10360,7 +10360,7 @@
     },
     "timestamp": "2022-01-19T17:05:38.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -10387,7 +10387,7 @@
     },
     "timestamp": "2022-01-19T17:05:38.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -10412,7 +10412,7 @@
     },
     "timestamp": "2022-01-19T16:38:29.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -10437,7 +10437,7 @@
     },
     "timestamp": "2022-01-19T16:12:43.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -10462,7 +10462,7 @@
     },
     "timestamp": "2022-01-19T15:51:48.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -10487,7 +10487,7 @@
     },
     "timestamp": "2022-01-19T15:32:44.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -10517,7 +10517,7 @@
     },
     "timestamp": "2022-01-19T15:19:19.000Z",
     "type": "reaction_added",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -10547,7 +10547,7 @@
     },
     "timestamp": "2022-01-19T15:19:19.000Z",
     "type": "reaction_added",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -10577,7 +10577,7 @@
     },
     "timestamp": "2022-01-19T15:19:19.000Z",
     "type": "reaction_added",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -10607,7 +10607,7 @@
     },
     "timestamp": "2022-01-19T15:19:19.000Z",
     "type": "reaction_added",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -10632,7 +10632,7 @@
     },
     "timestamp": "2022-01-19T15:09:29.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -10671,7 +10671,7 @@
     },
     "timestamp": "2022-01-19T13:55:33.000Z",
     "type": "issue-comment",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "github"
   },
   {
@@ -10696,7 +10696,7 @@
     },
     "timestamp": "2022-01-19T12:58:14.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -10733,7 +10733,7 @@
     },
     "timestamp": "2022-01-19T12:53:42.000Z",
     "type": "pull_request-opened",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "github"
   },
   {
@@ -10763,7 +10763,7 @@
     },
     "timestamp": "2022-01-19T12:40:58.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -10793,7 +10793,7 @@
     },
     "timestamp": "2022-01-19T12:40:58.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -10833,7 +10833,7 @@
     },
     "timestamp": "2022-01-19T12:40:58.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -10863,7 +10863,7 @@
     },
     "timestamp": "2022-01-19T12:40:58.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -10893,7 +10893,7 @@
     },
     "timestamp": "2022-01-19T12:39:29.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -10923,7 +10923,7 @@
     },
     "timestamp": "2022-01-19T12:39:29.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -10963,7 +10963,7 @@
     },
     "timestamp": "2022-01-19T12:39:29.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -10993,7 +10993,7 @@
     },
     "timestamp": "2022-01-19T12:39:29.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -11023,7 +11023,7 @@
     },
     "timestamp": "2022-01-19T12:39:12.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -11053,7 +11053,7 @@
     },
     "timestamp": "2022-01-19T12:39:12.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -11093,7 +11093,7 @@
     },
     "timestamp": "2022-01-19T12:39:12.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -11123,7 +11123,7 @@
     },
     "timestamp": "2022-01-19T12:39:12.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -11154,7 +11154,7 @@
     },
     "timestamp": "2022-01-19T12:38:56.000Z",
     "type": "star",
-    "isKeyAction": false,
+    "isContribution": false,
     "platform": "github"
   },
   {
@@ -11184,7 +11184,7 @@
     },
     "timestamp": "2022-01-19T12:38:09.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -11214,7 +11214,7 @@
     },
     "timestamp": "2022-01-19T12:38:09.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -11254,7 +11254,7 @@
     },
     "timestamp": "2022-01-19T12:38:09.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -11284,7 +11284,7 @@
     },
     "timestamp": "2022-01-19T12:38:09.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -11315,7 +11315,7 @@
     },
     "timestamp": "2022-01-19T12:36:50.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -11346,7 +11346,7 @@
     },
     "timestamp": "2022-01-19T12:36:50.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -11377,7 +11377,7 @@
     },
     "timestamp": "2022-01-19T12:36:50.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -11408,7 +11408,7 @@
     },
     "timestamp": "2022-01-19T12:36:50.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -11445,7 +11445,7 @@
     },
     "timestamp": "2022-01-19T12:25:08.000Z",
     "type": "pull_request-opened",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "github"
   },
   {
@@ -11480,7 +11480,7 @@
     },
     "timestamp": "2022-01-19T12:21:22.000Z",
     "type": "star",
-    "isKeyAction": false,
+    "isContribution": false,
     "platform": "github"
   },
   {
@@ -11514,7 +11514,7 @@
     },
     "timestamp": "2022-01-19T11:57:21.000Z",
     "type": "issue-comment",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "github"
   },
   {
@@ -11553,7 +11553,7 @@
     },
     "timestamp": "2022-01-19T11:50:20.000Z",
     "type": "issue-comment",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "github"
   },
   {
@@ -11592,7 +11592,7 @@
     },
     "timestamp": "2022-01-19T11:40:58.000Z",
     "type": "issue-comment",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "github"
   },
   {
@@ -11631,7 +11631,7 @@
     },
     "timestamp": "2022-01-19T11:39:44.000Z",
     "type": "issue-comment",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "github"
   },
   {
@@ -11656,7 +11656,7 @@
     },
     "timestamp": "2022-01-19T11:39:15.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -11695,7 +11695,7 @@
     },
     "timestamp": "2022-01-19T11:38:22.000Z",
     "type": "issue-comment",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "github"
   },
   {
@@ -11734,7 +11734,7 @@
     },
     "timestamp": "2022-01-19T11:37:38.000Z",
     "type": "issue-comment",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "github"
   },
   {
@@ -11773,7 +11773,7 @@
     },
     "timestamp": "2022-01-19T11:37:16.000Z",
     "type": "issue-comment",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "github"
   },
   {
@@ -11812,7 +11812,7 @@
     },
     "timestamp": "2022-01-19T11:35:45.000Z",
     "type": "issue-comment",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "github"
   },
   {
@@ -11851,7 +11851,7 @@
     },
     "timestamp": "2022-01-19T11:33:45.000Z",
     "type": "issue-comment",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "github"
   },
   {
@@ -11881,7 +11881,7 @@
     },
     "timestamp": "2022-01-19T11:26:02.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -11911,7 +11911,7 @@
     },
     "timestamp": "2022-01-19T11:26:02.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -11951,7 +11951,7 @@
     },
     "timestamp": "2022-01-19T11:26:02.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -11981,7 +11981,7 @@
     },
     "timestamp": "2022-01-19T11:26:02.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -12011,7 +12011,7 @@
     },
     "timestamp": "2022-01-19T11:25:44.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -12041,7 +12041,7 @@
     },
     "timestamp": "2022-01-19T11:25:44.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -12081,7 +12081,7 @@
     },
     "timestamp": "2022-01-19T11:25:44.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -12111,7 +12111,7 @@
     },
     "timestamp": "2022-01-19T11:25:44.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -12141,7 +12141,7 @@
     },
     "timestamp": "2022-01-19T11:21:51.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -12171,7 +12171,7 @@
     },
     "timestamp": "2022-01-19T11:21:51.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -12211,7 +12211,7 @@
     },
     "timestamp": "2022-01-19T11:21:51.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -12241,7 +12241,7 @@
     },
     "timestamp": "2022-01-19T11:21:51.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -12271,7 +12271,7 @@
     },
     "timestamp": "2022-01-19T11:20:10.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -12301,7 +12301,7 @@
     },
     "timestamp": "2022-01-19T11:20:10.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -12341,7 +12341,7 @@
     },
     "timestamp": "2022-01-19T11:20:10.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -12371,7 +12371,7 @@
     },
     "timestamp": "2022-01-19T11:20:10.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -12397,7 +12397,7 @@
     },
     "timestamp": "2022-01-19T11:14:34.000Z",
     "type": "file_share",
-    "isKeyAction": false,
+    "isContribution": false,
     "platform": "slack"
   },
   {
@@ -12423,7 +12423,7 @@
     },
     "timestamp": "2022-01-19T11:14:34.000Z",
     "type": "file_share",
-    "isKeyAction": false,
+    "isContribution": false,
     "platform": "slack"
   },
   {
@@ -12449,7 +12449,7 @@
     },
     "timestamp": "2022-01-19T11:14:34.000Z",
     "type": "file_share",
-    "isKeyAction": false,
+    "isContribution": false,
     "platform": "slack"
   },
   {
@@ -12475,7 +12475,7 @@
     },
     "timestamp": "2022-01-19T11:14:34.000Z",
     "type": "file_share",
-    "isKeyAction": false,
+    "isContribution": false,
     "platform": "slack"
   },
   {
@@ -12500,7 +12500,7 @@
     },
     "timestamp": "2022-01-19T11:12:52.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -12525,7 +12525,7 @@
     },
     "timestamp": "2022-01-19T10:49:35.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -12550,7 +12550,7 @@
     },
     "timestamp": "2022-01-19T10:46:08.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -12575,7 +12575,7 @@
     },
     "timestamp": "2022-01-19T10:19:47.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -12607,7 +12607,7 @@
     },
     "timestamp": "2022-01-19T09:18:35.000Z",
     "type": "star",
-    "isKeyAction": false,
+    "isContribution": false,
     "platform": "github"
   },
   {
@@ -12632,7 +12632,7 @@
     },
     "timestamp": "2022-01-19T09:07:29.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -12657,7 +12657,7 @@
     },
     "timestamp": "2022-01-19T09:01:31.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -12682,7 +12682,7 @@
     },
     "timestamp": "2022-01-19T07:14:52.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -12707,7 +12707,7 @@
     },
     "timestamp": "2022-01-19T06:20:38.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -12742,7 +12742,7 @@
     },
     "timestamp": "2022-01-19T06:12:31.000Z",
     "type": "issue-comment",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "github"
   },
   {
@@ -12767,7 +12767,7 @@
     },
     "timestamp": "2022-01-19T06:00:08.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -12792,7 +12792,7 @@
     },
     "timestamp": "2022-01-19T05:12:55.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -12817,7 +12817,7 @@
     },
     "timestamp": "2022-01-19T03:22:02.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -12842,7 +12842,7 @@
     },
     "timestamp": "2022-01-19T02:58:05.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -12875,7 +12875,7 @@
     },
     "timestamp": "2022-01-19T02:26:38.000Z",
     "type": "star",
-    "isKeyAction": false,
+    "isContribution": false,
     "platform": "github"
   },
   {
@@ -12900,7 +12900,7 @@
     },
     "timestamp": "2022-01-19T00:05:45.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -12925,7 +12925,7 @@
     },
     "timestamp": "2022-01-18T23:09:28.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -12951,7 +12951,7 @@
     },
     "timestamp": "2022-01-18T22:49:24.000Z",
     "type": "star",
-    "isKeyAction": false,
+    "isContribution": false,
     "platform": "github"
   },
   {
@@ -12976,7 +12976,7 @@
     },
     "timestamp": "2022-01-18T19:49:00.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -13001,7 +13001,7 @@
     },
     "timestamp": "2022-01-18T19:33:10.000Z",
     "type": "star",
-    "isKeyAction": false,
+    "isContribution": false,
     "platform": "github"
   },
   {
@@ -13026,7 +13026,7 @@
     },
     "timestamp": "2022-01-18T19:29:39.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -13051,7 +13051,7 @@
     },
     "timestamp": "2022-01-18T19:04:37.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -13076,7 +13076,7 @@
     },
     "timestamp": "2022-01-18T18:54:48.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -13101,7 +13101,7 @@
     },
     "timestamp": "2022-01-18T18:31:44.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -13126,7 +13126,7 @@
     },
     "timestamp": "2022-01-18T18:22:51.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -13151,7 +13151,7 @@
     },
     "timestamp": "2022-01-18T16:35:03.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -13177,7 +13177,7 @@
     },
     "timestamp": "2022-01-18T15:34:25.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -13203,7 +13203,7 @@
     },
     "timestamp": "2022-01-18T15:34:25.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -13229,7 +13229,7 @@
     },
     "timestamp": "2022-01-18T15:34:25.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -13255,7 +13255,7 @@
     },
     "timestamp": "2022-01-18T15:34:25.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -13280,7 +13280,7 @@
     },
     "timestamp": "2022-01-18T15:34:20.000Z",
     "type": "reaction_added",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -13305,7 +13305,7 @@
     },
     "timestamp": "2022-01-18T15:34:20.000Z",
     "type": "reaction_added",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -13330,7 +13330,7 @@
     },
     "timestamp": "2022-01-18T15:34:20.000Z",
     "type": "reaction_added",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -13355,7 +13355,7 @@
     },
     "timestamp": "2022-01-18T15:34:20.000Z",
     "type": "reaction_added",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -13380,7 +13380,7 @@
     },
     "timestamp": "2022-01-18T15:34:00.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -13405,7 +13405,7 @@
     },
     "timestamp": "2022-01-18T14:37:59.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -13430,7 +13430,7 @@
     },
     "timestamp": "2022-01-18T14:21:37.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -13455,7 +13455,7 @@
     },
     "timestamp": "2022-01-18T12:26:21.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -13480,7 +13480,7 @@
     },
     "timestamp": "2022-01-18T11:21:12.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -13510,7 +13510,7 @@
     },
     "timestamp": "2022-01-18T10:35:52.000Z",
     "type": "star",
-    "isKeyAction": false,
+    "isContribution": false,
     "platform": "github"
   },
   {
@@ -13535,7 +13535,7 @@
     },
     "timestamp": "2022-01-18T09:44:54.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -13560,7 +13560,7 @@
     },
     "timestamp": "2022-01-18T09:24:49.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -13585,7 +13585,7 @@
     },
     "timestamp": "2022-01-18T08:17:26.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -13610,7 +13610,7 @@
     },
     "timestamp": "2022-01-18T07:46:41.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -13635,7 +13635,7 @@
     },
     "timestamp": "2022-01-18T07:22:05.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -13664,7 +13664,7 @@
     },
     "timestamp": "2022-01-18T06:53:17.000Z",
     "type": "star",
-    "isKeyAction": false,
+    "isContribution": false,
     "platform": "github"
   },
   {
@@ -13689,7 +13689,7 @@
     },
     "timestamp": "2022-01-18T05:34:52.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -13714,7 +13714,7 @@
     },
     "timestamp": "2022-01-18T05:12:41.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -13739,7 +13739,7 @@
     },
     "timestamp": "2022-01-18T04:40:39.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -13764,7 +13764,7 @@
     },
     "timestamp": "2022-01-18T01:15:16.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -13789,7 +13789,7 @@
     },
     "timestamp": "2022-01-17T23:20:34.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -13814,7 +13814,7 @@
     },
     "timestamp": "2022-01-17T22:49:23.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -13839,7 +13839,7 @@
     },
     "timestamp": "2022-01-17T21:36:42.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -13864,7 +13864,7 @@
     },
     "timestamp": "2022-01-17T21:25:30.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -13889,7 +13889,7 @@
     },
     "timestamp": "2022-01-17T20:06:48.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -13920,7 +13920,7 @@
     },
     "timestamp": "2022-01-17T19:38:48.000Z",
     "type": "star",
-    "isKeyAction": false,
+    "isContribution": false,
     "platform": "github"
   },
   {
@@ -13955,7 +13955,7 @@
     },
     "timestamp": "2022-01-17T17:25:17.000Z",
     "type": "star",
-    "isKeyAction": false,
+    "isContribution": false,
     "platform": "github"
   },
   {
@@ -13980,7 +13980,7 @@
     },
     "timestamp": "2022-01-17T16:34:13.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -14005,7 +14005,7 @@
     },
     "timestamp": "2022-01-17T15:44:12.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -14030,7 +14030,7 @@
     },
     "timestamp": "2022-01-17T15:21:09.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -14064,7 +14064,7 @@
     },
     "timestamp": "2022-01-17T14:30:23.000Z",
     "type": "star",
-    "isKeyAction": false,
+    "isContribution": false,
     "platform": "github"
   },
   {
@@ -14089,7 +14089,7 @@
     },
     "timestamp": "2022-01-17T14:10:59.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -14118,7 +14118,7 @@
     },
     "timestamp": "2022-01-17T12:45:18.000Z",
     "type": "reaction_added",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -14147,7 +14147,7 @@
     },
     "timestamp": "2022-01-17T12:45:18.000Z",
     "type": "reaction_added",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -14186,7 +14186,7 @@
     },
     "timestamp": "2022-01-17T12:45:18.000Z",
     "type": "reaction_added",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -14215,7 +14215,7 @@
     },
     "timestamp": "2022-01-17T12:45:18.000Z",
     "type": "reaction_added",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -14240,7 +14240,7 @@
     },
     "timestamp": "2022-01-17T12:34:43.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -14265,7 +14265,7 @@
     },
     "timestamp": "2022-01-17T11:39:54.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -14298,7 +14298,7 @@
     },
     "timestamp": "2022-01-17T11:34:56.790Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "discord"
   },
   {
@@ -14327,7 +14327,7 @@
     },
     "timestamp": "2022-01-17T11:23:43.000Z",
     "type": "file_share",
-    "isKeyAction": false,
+    "isContribution": false,
     "platform": "slack"
   },
   {
@@ -14356,43 +14356,7 @@
     },
     "timestamp": "2022-01-17T11:23:43.000Z",
     "type": "file_share",
-    "isKeyAction": false,
-    "platform": "slack"
-  },
-  {
-    "crowdInfo": {
-      "channel": "bugs",
-      "slackId": "1642418623.002400",
-      "url": "https://crowddevspace.slack.com/archives/C02LWNKS17B/p1642418623002400?thread_ts=1642069668.001600&cid=C02LWNKS17B",
-      "thread": {
-        "id": "1642069668.001600",
-        "body": "seems like the graphs are always zeroed now? the y-axis should still show the “total members” and not the change, right?\n\nFurthermore, the # of new members in the period does not match the graph."
-      }
-    },
-    "member": {
-      "crowdInfo": {
-        "slack": {
-          "timezone": "Europe/Amsterdam"
-        },
-        "github": {
-          "name": "Joan Reyero",
-          "isHireable": false,
-          "url": "https://github.com/joanreyero",
-          "websiteUrl": "crowd.dev",
-          "bio": "Co-founder and CTO at Crowd.dev"
-        }
-      },
-      "username": "Joan Reyero",
-      "type": "member",
-      "score": 10,
-      "email": "joanreyero@gmail.com",
-      "organisation": "@CrowdDevHQ",
-      "location": "Europe/London (timezone)",
-      "bio": "Co-founder and CTO at Crowd.dev"
-    },
-    "timestamp": "2022-01-17T11:23:43.000Z",
-    "type": "file_share",
-    "isKeyAction": false,
+    "isContribution": false,
     "platform": "slack"
   },
   {
@@ -14428,7 +14392,43 @@
     },
     "timestamp": "2022-01-17T11:23:43.000Z",
     "type": "file_share",
-    "isKeyAction": false,
+    "isContribution": false,
+    "platform": "slack"
+  },
+  {
+    "crowdInfo": {
+      "channel": "bugs",
+      "slackId": "1642418623.002400",
+      "url": "https://crowddevspace.slack.com/archives/C02LWNKS17B/p1642418623002400?thread_ts=1642069668.001600&cid=C02LWNKS17B",
+      "thread": {
+        "id": "1642069668.001600",
+        "body": "seems like the graphs are always zeroed now? the y-axis should still show the “total members” and not the change, right?\n\nFurthermore, the # of new members in the period does not match the graph."
+      }
+    },
+    "member": {
+      "crowdInfo": {
+        "slack": {
+          "timezone": "Europe/Amsterdam"
+        },
+        "github": {
+          "name": "Joan Reyero",
+          "isHireable": false,
+          "url": "https://github.com/joanreyero",
+          "websiteUrl": "crowd.dev",
+          "bio": "Co-founder and CTO at Crowd.dev"
+        }
+      },
+      "username": "Joan Reyero",
+      "type": "member",
+      "score": 10,
+      "email": "joanreyero@gmail.com",
+      "organisation": "@CrowdDevHQ",
+      "location": "Europe/London (timezone)",
+      "bio": "Co-founder and CTO at Crowd.dev"
+    },
+    "timestamp": "2022-01-17T11:23:43.000Z",
+    "type": "file_share",
+    "isContribution": false,
     "platform": "slack"
   },
   {
@@ -14457,7 +14457,7 @@
     },
     "timestamp": "2022-01-17T11:22:16.000Z",
     "type": "reaction_added",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -14486,7 +14486,7 @@
     },
     "timestamp": "2022-01-17T11:22:16.000Z",
     "type": "reaction_added",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -14522,7 +14522,7 @@
     },
     "timestamp": "2022-01-17T11:22:16.000Z",
     "type": "reaction_added",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -14558,7 +14558,7 @@
     },
     "timestamp": "2022-01-17T11:22:16.000Z",
     "type": "reaction_added",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -14588,7 +14588,7 @@
     },
     "timestamp": "2022-01-17T11:22:14.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -14618,7 +14618,7 @@
     },
     "timestamp": "2022-01-17T11:22:14.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -14655,7 +14655,7 @@
     },
     "timestamp": "2022-01-17T11:22:14.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -14692,7 +14692,7 @@
     },
     "timestamp": "2022-01-17T11:22:14.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -14722,7 +14722,7 @@
     },
     "timestamp": "2022-01-17T11:21:53.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -14752,7 +14752,7 @@
     },
     "timestamp": "2022-01-17T11:21:53.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -14782,7 +14782,7 @@
     },
     "timestamp": "2022-01-17T11:21:53.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -14812,7 +14812,7 @@
     },
     "timestamp": "2022-01-17T11:21:53.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -14842,7 +14842,7 @@
     },
     "timestamp": "2022-01-17T11:21:29.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -14872,7 +14872,7 @@
     },
     "timestamp": "2022-01-17T11:21:29.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -14909,7 +14909,7 @@
     },
     "timestamp": "2022-01-17T11:21:29.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -14946,7 +14946,7 @@
     },
     "timestamp": "2022-01-17T11:21:29.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -14976,7 +14976,7 @@
     },
     "timestamp": "2022-01-17T11:21:17.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -15006,7 +15006,7 @@
     },
     "timestamp": "2022-01-17T11:21:17.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -15046,7 +15046,7 @@
     },
     "timestamp": "2022-01-17T11:21:17.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -15076,7 +15076,7 @@
     },
     "timestamp": "2022-01-17T11:21:17.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -15102,7 +15102,7 @@
     },
     "timestamp": "2022-01-17T11:19:23.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -15128,7 +15128,7 @@
     },
     "timestamp": "2022-01-17T11:19:23.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -15154,7 +15154,7 @@
     },
     "timestamp": "2022-01-17T11:19:23.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -15180,7 +15180,7 @@
     },
     "timestamp": "2022-01-17T11:19:23.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -15210,7 +15210,7 @@
     },
     "timestamp": "2022-01-17T11:17:36.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -15240,7 +15240,7 @@
     },
     "timestamp": "2022-01-17T11:17:36.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -15280,7 +15280,7 @@
     },
     "timestamp": "2022-01-17T11:17:36.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -15310,7 +15310,7 @@
     },
     "timestamp": "2022-01-17T11:17:36.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -15340,7 +15340,7 @@
     },
     "timestamp": "2022-01-17T11:16:21.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -15370,7 +15370,7 @@
     },
     "timestamp": "2022-01-17T11:16:21.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -15400,7 +15400,7 @@
     },
     "timestamp": "2022-01-17T11:16:21.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -15430,7 +15430,7 @@
     },
     "timestamp": "2022-01-17T11:16:21.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -15455,7 +15455,7 @@
     },
     "timestamp": "2022-01-17T10:52:30.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -15481,7 +15481,7 @@
     },
     "timestamp": "2022-01-17T10:12:14.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -15507,7 +15507,7 @@
     },
     "timestamp": "2022-01-17T10:12:14.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -15543,7 +15543,7 @@
     },
     "timestamp": "2022-01-17T10:12:14.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -15569,7 +15569,7 @@
     },
     "timestamp": "2022-01-17T10:12:14.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -15594,7 +15594,7 @@
     },
     "timestamp": "2022-01-17T09:56:56.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -15619,7 +15619,7 @@
     },
     "timestamp": "2022-01-17T09:54:44.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -15646,7 +15646,7 @@
     },
     "timestamp": "2022-01-17T07:55:55.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -15673,7 +15673,7 @@
     },
     "timestamp": "2022-01-17T07:55:55.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -15700,7 +15700,7 @@
     },
     "timestamp": "2022-01-17T07:55:55.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -15727,7 +15727,7 @@
     },
     "timestamp": "2022-01-17T07:55:55.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -15752,7 +15752,7 @@
     },
     "timestamp": "2022-01-17T07:15:21.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -15782,7 +15782,7 @@
     },
     "timestamp": "2022-01-17T03:33:17.000Z",
     "type": "star",
-    "isKeyAction": false,
+    "isContribution": false,
     "platform": "github"
   },
   {
@@ -15807,7 +15807,7 @@
     },
     "timestamp": "2022-01-17T02:38:02.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -15832,7 +15832,7 @@
     },
     "timestamp": "2022-01-17T02:12:07.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -15857,7 +15857,7 @@
     },
     "timestamp": "2022-01-17T01:13:03.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -15882,7 +15882,7 @@
     },
     "timestamp": "2022-01-17T01:06:54.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -15907,7 +15907,7 @@
     },
     "timestamp": "2022-01-17T00:04:17.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -15932,7 +15932,7 @@
     },
     "timestamp": "2022-01-16T23:49:16.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -15957,7 +15957,7 @@
     },
     "timestamp": "2022-01-16T23:30:13.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -15989,7 +15989,7 @@
     },
     "timestamp": "2022-01-16T23:18:13.000Z",
     "type": "star",
-    "isKeyAction": false,
+    "isContribution": false,
     "platform": "github"
   },
   {
@@ -16014,7 +16014,7 @@
     },
     "timestamp": "2022-01-16T22:32:38.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -16039,7 +16039,7 @@
     },
     "timestamp": "2022-01-16T22:29:29.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -16065,7 +16065,7 @@
     },
     "timestamp": "2022-01-16T19:56:41.000Z",
     "type": "reaction_added",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -16091,7 +16091,7 @@
     },
     "timestamp": "2022-01-16T19:56:41.000Z",
     "type": "reaction_added",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -16117,7 +16117,7 @@
     },
     "timestamp": "2022-01-16T19:56:41.000Z",
     "type": "reaction_added",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -16143,7 +16143,7 @@
     },
     "timestamp": "2022-01-16T19:56:41.000Z",
     "type": "reaction_added",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -16169,7 +16169,7 @@
     },
     "timestamp": "2022-01-16T19:56:26.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -16195,7 +16195,7 @@
     },
     "timestamp": "2022-01-16T19:56:26.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -16221,7 +16221,7 @@
     },
     "timestamp": "2022-01-16T19:56:26.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -16247,7 +16247,7 @@
     },
     "timestamp": "2022-01-16T19:56:26.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -16273,7 +16273,7 @@
     },
     "timestamp": "2022-01-16T18:52:53.000Z",
     "type": "star",
-    "isKeyAction": false,
+    "isContribution": false,
     "platform": "github"
   },
   {
@@ -16304,7 +16304,7 @@
     },
     "timestamp": "2022-01-16T18:17:30.000Z",
     "type": "star",
-    "isKeyAction": false,
+    "isContribution": false,
     "platform": "github"
   },
   {
@@ -16335,7 +16335,7 @@
     },
     "timestamp": "2022-01-16T18:14:49.000Z",
     "type": "star",
-    "isKeyAction": false,
+    "isContribution": false,
     "platform": "github"
   },
   {
@@ -16360,7 +16360,7 @@
     },
     "timestamp": "2022-01-16T16:53:18.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -16385,7 +16385,7 @@
     },
     "timestamp": "2022-01-16T16:27:55.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -16410,7 +16410,7 @@
     },
     "timestamp": "2022-01-16T16:05:49.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -16435,7 +16435,7 @@
     },
     "timestamp": "2022-01-16T15:27:21.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -16465,7 +16465,7 @@
     },
     "timestamp": "2022-01-16T15:23:51.000Z",
     "type": "star",
-    "isKeyAction": false,
+    "isContribution": false,
     "platform": "github"
   },
   {
@@ -16490,7 +16490,7 @@
     },
     "timestamp": "2022-01-16T15:11:43.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -16515,7 +16515,7 @@
     },
     "timestamp": "2022-01-16T15:06:35.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -16540,7 +16540,7 @@
     },
     "timestamp": "2022-01-16T14:41:43.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -16565,7 +16565,7 @@
     },
     "timestamp": "2022-01-16T14:39:50.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -16597,7 +16597,7 @@
     },
     "timestamp": "2022-01-16T12:29:41.000Z",
     "type": "fork",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "github"
   },
   {
@@ -16622,7 +16622,7 @@
     },
     "timestamp": "2022-01-16T11:53:24.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -16647,7 +16647,7 @@
     },
     "timestamp": "2022-01-16T11:32:19.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -16672,7 +16672,7 @@
     },
     "timestamp": "2022-01-16T11:22:04.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -16697,7 +16697,7 @@
     },
     "timestamp": "2022-01-16T11:00:51.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -16722,7 +16722,7 @@
     },
     "timestamp": "2022-01-16T09:51:55.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -16752,7 +16752,7 @@
     },
     "timestamp": "2022-01-16T09:09:57.000Z",
     "type": "star",
-    "isKeyAction": false,
+    "isContribution": false,
     "platform": "github"
   },
   {
@@ -16777,7 +16777,7 @@
     },
     "timestamp": "2022-01-16T08:46:59.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -16807,7 +16807,7 @@
     },
     "timestamp": "2022-01-16T08:13:28.000Z",
     "type": "star",
-    "isKeyAction": false,
+    "isContribution": false,
     "platform": "github"
   },
   {
@@ -16832,7 +16832,7 @@
     },
     "timestamp": "2022-01-16T06:06:26.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -16857,7 +16857,7 @@
     },
     "timestamp": "2022-01-16T05:57:40.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -16882,7 +16882,7 @@
     },
     "timestamp": "2022-01-16T05:38:31.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -16907,7 +16907,7 @@
     },
     "timestamp": "2022-01-16T04:01:13.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -16932,7 +16932,7 @@
     },
     "timestamp": "2022-01-16T03:39:45.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -16957,7 +16957,7 @@
     },
     "timestamp": "2022-01-16T03:27:43.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -16982,7 +16982,7 @@
     },
     "timestamp": "2022-01-16T01:41:02.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -17007,7 +17007,7 @@
     },
     "timestamp": "2022-01-16T00:19:43.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -17032,7 +17032,7 @@
     },
     "timestamp": "2022-01-16T00:10:45.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -17057,7 +17057,7 @@
     },
     "timestamp": "2022-01-15T22:29:42.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -17082,7 +17082,7 @@
     },
     "timestamp": "2022-01-15T22:23:14.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -17107,7 +17107,7 @@
     },
     "timestamp": "2022-01-15T21:44:40.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -17132,7 +17132,7 @@
     },
     "timestamp": "2022-01-15T21:39:19.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -17157,7 +17157,7 @@
     },
     "timestamp": "2022-01-15T21:24:47.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -17182,7 +17182,7 @@
     },
     "timestamp": "2022-01-15T21:21:51.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -17207,7 +17207,7 @@
     },
     "timestamp": "2022-01-15T20:52:55.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -17232,7 +17232,7 @@
     },
     "timestamp": "2022-01-15T19:15:12.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -17257,7 +17257,7 @@
     },
     "timestamp": "2022-01-15T19:12:32.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -17282,7 +17282,7 @@
     },
     "timestamp": "2022-01-15T18:41:48.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -17307,7 +17307,7 @@
     },
     "timestamp": "2022-01-15T16:49:57.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -17332,7 +17332,7 @@
     },
     "timestamp": "2022-01-15T16:40:32.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -17357,7 +17357,7 @@
     },
     "timestamp": "2022-01-15T15:08:43.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -17382,7 +17382,7 @@
     },
     "timestamp": "2022-01-15T14:16:00.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -17407,7 +17407,7 @@
     },
     "timestamp": "2022-01-15T13:58:48.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -17432,7 +17432,7 @@
     },
     "timestamp": "2022-01-15T13:03:21.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -17457,7 +17457,7 @@
     },
     "timestamp": "2022-01-15T11:16:46.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -17482,7 +17482,7 @@
     },
     "timestamp": "2022-01-15T10:10:45.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -17507,7 +17507,7 @@
     },
     "timestamp": "2022-01-15T09:06:28.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -17532,7 +17532,7 @@
     },
     "timestamp": "2022-01-15T08:32:37.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -17557,7 +17557,7 @@
     },
     "timestamp": "2022-01-15T06:14:51.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -17582,7 +17582,7 @@
     },
     "timestamp": "2022-01-15T05:56:24.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -17607,7 +17607,7 @@
     },
     "timestamp": "2022-01-15T05:06:22.000Z",
     "type": "star",
-    "isKeyAction": false,
+    "isContribution": false,
     "platform": "github"
   },
   {
@@ -17632,7 +17632,7 @@
     },
     "timestamp": "2022-01-15T04:16:59.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -17657,7 +17657,7 @@
     },
     "timestamp": "2022-01-15T03:07:56.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -17682,7 +17682,7 @@
     },
     "timestamp": "2022-01-15T02:08:35.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -17707,7 +17707,7 @@
     },
     "timestamp": "2022-01-15T01:36:08.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -17732,7 +17732,7 @@
     },
     "timestamp": "2022-01-15T00:09:53.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -17757,7 +17757,7 @@
     },
     "timestamp": "2022-01-15T00:01:39.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -17782,7 +17782,7 @@
     },
     "timestamp": "2022-01-14T23:56:06.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -17807,7 +17807,7 @@
     },
     "timestamp": "2022-01-14T22:46:41.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -17841,7 +17841,7 @@
     },
     "timestamp": "2022-01-14T22:22:27.000Z",
     "type": "star",
-    "isKeyAction": false,
+    "isContribution": false,
     "platform": "github"
   },
   {
@@ -17866,7 +17866,7 @@
     },
     "timestamp": "2022-01-14T22:04:50.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -17891,7 +17891,7 @@
     },
     "timestamp": "2022-01-14T20:25:42.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -17916,7 +17916,7 @@
     },
     "timestamp": "2022-01-14T20:18:40.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -17941,7 +17941,7 @@
     },
     "timestamp": "2022-01-14T20:02:49.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -17966,7 +17966,7 @@
     },
     "timestamp": "2022-01-14T19:21:04.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -18000,7 +18000,7 @@
     },
     "timestamp": "2022-01-14T19:16:41.000Z",
     "type": "star",
-    "isKeyAction": false,
+    "isContribution": false,
     "platform": "github"
   },
   {
@@ -18035,7 +18035,7 @@
     },
     "timestamp": "2022-01-14T19:00:08.000Z",
     "type": "star",
-    "isKeyAction": false,
+    "isContribution": false,
     "platform": "github"
   },
   {
@@ -18060,7 +18060,7 @@
     },
     "timestamp": "2022-01-14T18:26:30.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -18085,7 +18085,7 @@
     },
     "timestamp": "2022-01-14T18:04:44.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -18116,7 +18116,7 @@
     },
     "timestamp": "2022-01-14T17:12:14.000Z",
     "type": "star",
-    "isKeyAction": false,
+    "isContribution": false,
     "platform": "github"
   },
   {
@@ -18141,7 +18141,7 @@
     },
     "timestamp": "2022-01-14T16:52:44.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -18166,7 +18166,7 @@
     },
     "timestamp": "2022-01-14T16:51:13.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -18191,7 +18191,7 @@
     },
     "timestamp": "2022-01-14T16:34:07.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -18216,7 +18216,7 @@
     },
     "timestamp": "2022-01-14T16:29:17.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -18241,7 +18241,7 @@
     },
     "timestamp": "2022-01-14T15:42:36.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -18273,7 +18273,7 @@
     },
     "timestamp": "2022-01-14T15:36:19.000Z",
     "type": "star",
-    "isKeyAction": false,
+    "isContribution": false,
     "platform": "github"
   },
   {
@@ -18298,7 +18298,7 @@
     },
     "timestamp": "2022-01-14T15:29:18.000Z",
     "type": "reaction_added",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -18323,7 +18323,7 @@
     },
     "timestamp": "2022-01-14T15:29:18.000Z",
     "type": "reaction_added",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -18358,7 +18358,7 @@
     },
     "timestamp": "2022-01-14T15:29:18.000Z",
     "type": "reaction_added",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -18383,7 +18383,7 @@
     },
     "timestamp": "2022-01-14T15:29:18.000Z",
     "type": "reaction_added",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -18408,7 +18408,7 @@
     },
     "timestamp": "2022-01-14T15:29:15.000Z",
     "type": "reaction_added",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -18433,7 +18433,7 @@
     },
     "timestamp": "2022-01-14T15:29:15.000Z",
     "type": "reaction_added",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -18468,7 +18468,7 @@
     },
     "timestamp": "2022-01-14T15:29:15.000Z",
     "type": "reaction_added",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -18493,7 +18493,7 @@
     },
     "timestamp": "2022-01-14T15:29:15.000Z",
     "type": "reaction_added",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -18519,7 +18519,7 @@
     },
     "timestamp": "2022-01-14T15:28:55.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -18545,7 +18545,7 @@
     },
     "timestamp": "2022-01-14T15:28:55.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -18571,7 +18571,7 @@
     },
     "timestamp": "2022-01-14T15:28:55.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -18597,7 +18597,7 @@
     },
     "timestamp": "2022-01-14T15:28:55.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -18622,7 +18622,7 @@
     },
     "timestamp": "2022-01-14T15:28:46.000Z",
     "type": "reaction_added",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -18647,7 +18647,7 @@
     },
     "timestamp": "2022-01-14T15:28:46.000Z",
     "type": "reaction_added",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -18682,7 +18682,7 @@
     },
     "timestamp": "2022-01-14T15:28:46.000Z",
     "type": "reaction_added",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -18707,7 +18707,7 @@
     },
     "timestamp": "2022-01-14T15:28:46.000Z",
     "type": "reaction_added",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -18733,7 +18733,7 @@
     },
     "timestamp": "2022-01-14T15:28:32.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -18759,7 +18759,7 @@
     },
     "timestamp": "2022-01-14T15:28:32.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -18785,7 +18785,7 @@
     },
     "timestamp": "2022-01-14T15:28:32.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -18811,7 +18811,7 @@
     },
     "timestamp": "2022-01-14T15:28:32.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -18837,7 +18837,7 @@
     },
     "timestamp": "2022-01-14T15:26:27.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -18863,7 +18863,7 @@
     },
     "timestamp": "2022-01-14T15:26:27.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -18899,7 +18899,7 @@
     },
     "timestamp": "2022-01-14T15:26:27.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -18925,7 +18925,7 @@
     },
     "timestamp": "2022-01-14T15:26:27.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -18951,7 +18951,7 @@
     },
     "timestamp": "2022-01-14T15:25:39.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -18977,7 +18977,7 @@
     },
     "timestamp": "2022-01-14T15:25:39.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -19003,7 +19003,7 @@
     },
     "timestamp": "2022-01-14T15:25:39.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -19029,7 +19029,7 @@
     },
     "timestamp": "2022-01-14T15:25:39.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -19060,7 +19060,7 @@
     },
     "timestamp": "2022-01-14T14:14:01.000Z",
     "type": "star",
-    "isKeyAction": false,
+    "isContribution": false,
     "platform": "github"
   },
   {
@@ -19085,7 +19085,7 @@
     },
     "timestamp": "2022-01-14T13:12:45.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -19115,7 +19115,7 @@
     },
     "timestamp": "2022-01-14T13:07:34.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -19145,7 +19145,7 @@
     },
     "timestamp": "2022-01-14T13:07:34.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -19185,7 +19185,7 @@
     },
     "timestamp": "2022-01-14T13:07:34.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -19215,7 +19215,7 @@
     },
     "timestamp": "2022-01-14T13:07:34.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -19241,7 +19241,7 @@
     },
     "timestamp": "2022-01-14T13:04:29.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -19267,7 +19267,7 @@
     },
     "timestamp": "2022-01-14T13:04:29.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -19293,7 +19293,7 @@
     },
     "timestamp": "2022-01-14T13:04:29.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -19319,7 +19319,7 @@
     },
     "timestamp": "2022-01-14T13:04:29.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -19356,7 +19356,7 @@
     },
     "timestamp": "2022-01-14T12:59:45.000Z",
     "type": "pull_request-opened",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "github"
   },
   {
@@ -19381,7 +19381,7 @@
     },
     "timestamp": "2022-01-14T12:17:38.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -19406,7 +19406,7 @@
     },
     "timestamp": "2022-01-14T11:50:02.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -19431,7 +19431,7 @@
     },
     "timestamp": "2022-01-14T10:49:02.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -19456,7 +19456,7 @@
     },
     "timestamp": "2022-01-14T10:32:40.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -19481,7 +19481,7 @@
     },
     "timestamp": "2022-01-14T10:29:53.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -19511,7 +19511,7 @@
     },
     "timestamp": "2022-01-14T10:28:01.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -19541,7 +19541,7 @@
     },
     "timestamp": "2022-01-14T10:28:01.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -19581,7 +19581,7 @@
     },
     "timestamp": "2022-01-14T10:28:01.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -19611,7 +19611,7 @@
     },
     "timestamp": "2022-01-14T10:28:01.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -19636,7 +19636,7 @@
     },
     "timestamp": "2022-01-14T09:56:29.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -19660,7 +19660,7 @@
     },
     "timestamp": "2022-01-14T09:33:28.000Z",
     "type": "star",
-    "isKeyAction": false,
+    "isContribution": false,
     "platform": "github"
   },
   {
@@ -19686,7 +19686,7 @@
     },
     "timestamp": "2022-01-14T09:07:01.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -19712,7 +19712,7 @@
     },
     "timestamp": "2022-01-14T09:07:01.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -19738,7 +19738,7 @@
     },
     "timestamp": "2022-01-14T09:07:01.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -19764,7 +19764,7 @@
     },
     "timestamp": "2022-01-14T09:07:01.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -19789,7 +19789,7 @@
     },
     "timestamp": "2022-01-14T08:43:43.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -19814,7 +19814,7 @@
     },
     "timestamp": "2022-01-14T08:43:04.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -19839,7 +19839,7 @@
     },
     "timestamp": "2022-01-14T08:16:34.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -19869,7 +19869,7 @@
     },
     "timestamp": "2022-01-14T08:05:20.000Z",
     "type": "star",
-    "isKeyAction": false,
+    "isContribution": false,
     "platform": "github"
   },
   {
@@ -19899,7 +19899,7 @@
     },
     "timestamp": "2022-01-14T08:02:21.000Z",
     "type": "star",
-    "isKeyAction": false,
+    "isContribution": false,
     "platform": "github"
   },
   {
@@ -19924,7 +19924,7 @@
     },
     "timestamp": "2022-01-14T07:38:25.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -19949,7 +19949,7 @@
     },
     "timestamp": "2022-01-14T06:42:28.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -19974,7 +19974,7 @@
     },
     "timestamp": "2022-01-14T06:14:06.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -19999,7 +19999,7 @@
     },
     "timestamp": "2022-01-14T05:33:38.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -20024,7 +20024,7 @@
     },
     "timestamp": "2022-01-14T05:29:37.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -20049,7 +20049,7 @@
     },
     "timestamp": "2022-01-14T05:27:43.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -20074,7 +20074,7 @@
     },
     "timestamp": "2022-01-14T05:24:19.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -20099,7 +20099,7 @@
     },
     "timestamp": "2022-01-14T00:31:27.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -20124,7 +20124,7 @@
     },
     "timestamp": "2022-01-14T00:14:33.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -20149,7 +20149,7 @@
     },
     "timestamp": "2022-01-13T23:16:23.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -20174,7 +20174,7 @@
     },
     "timestamp": "2022-01-13T22:36:34.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -20199,7 +20199,7 @@
     },
     "timestamp": "2022-01-13T22:30:01.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -20224,7 +20224,7 @@
     },
     "timestamp": "2022-01-13T22:29:35.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -20249,7 +20249,7 @@
     },
     "timestamp": "2022-01-13T22:22:23.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -20274,7 +20274,7 @@
     },
     "timestamp": "2022-01-13T22:21:41.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -20299,7 +20299,7 @@
     },
     "timestamp": "2022-01-13T22:19:33.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -20324,7 +20324,7 @@
     },
     "timestamp": "2022-01-13T21:59:16.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -20349,7 +20349,7 @@
     },
     "timestamp": "2022-01-13T21:47:46.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -20374,7 +20374,7 @@
     },
     "timestamp": "2022-01-13T21:13:41.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -20399,7 +20399,7 @@
     },
     "timestamp": "2022-01-13T19:36:13.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -20424,7 +20424,7 @@
     },
     "timestamp": "2022-01-13T18:46:29.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -20458,7 +20458,7 @@
     },
     "timestamp": "2022-01-13T17:38:22.000Z",
     "type": "pull_request-closed",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "github"
   },
   {
@@ -20483,7 +20483,7 @@
     },
     "timestamp": "2022-01-13T16:40:12.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -20509,7 +20509,7 @@
     },
     "timestamp": "2022-01-13T15:31:33.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -20535,7 +20535,7 @@
     },
     "timestamp": "2022-01-13T15:31:33.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -20568,7 +20568,7 @@
     },
     "timestamp": "2022-01-13T15:31:33.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -20601,7 +20601,7 @@
     },
     "timestamp": "2022-01-13T15:31:33.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -20627,7 +20627,7 @@
     },
     "timestamp": "2022-01-13T15:30:25.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -20653,7 +20653,7 @@
     },
     "timestamp": "2022-01-13T15:30:25.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -20679,7 +20679,7 @@
     },
     "timestamp": "2022-01-13T15:30:25.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -20705,7 +20705,7 @@
     },
     "timestamp": "2022-01-13T15:30:25.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -20730,7 +20730,7 @@
     },
     "timestamp": "2022-01-13T15:07:52.000Z",
     "type": "reaction_added",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -20755,7 +20755,7 @@
     },
     "timestamp": "2022-01-13T15:07:52.000Z",
     "type": "reaction_added",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -20780,7 +20780,7 @@
     },
     "timestamp": "2022-01-13T15:07:52.000Z",
     "type": "reaction_added",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -20805,7 +20805,7 @@
     },
     "timestamp": "2022-01-13T15:07:52.000Z",
     "type": "reaction_added",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -20830,7 +20830,7 @@
     },
     "timestamp": "2022-01-13T14:19:35.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -20855,7 +20855,7 @@
     },
     "timestamp": "2022-01-13T14:04:11.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -20880,7 +20880,7 @@
     },
     "timestamp": "2022-01-13T13:48:24.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -20905,7 +20905,7 @@
     },
     "timestamp": "2022-01-13T13:03:03.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -20930,7 +20930,7 @@
     },
     "timestamp": "2022-01-13T12:09:25.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -20955,7 +20955,7 @@
     },
     "timestamp": "2022-01-13T11:46:08.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -20980,7 +20980,7 @@
     },
     "timestamp": "2022-01-13T11:46:04.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -21005,7 +21005,7 @@
     },
     "timestamp": "2022-01-13T11:46:02.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -21030,7 +21030,7 @@
     },
     "timestamp": "2022-01-13T11:45:57.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -21055,7 +21055,7 @@
     },
     "timestamp": "2022-01-13T11:45:54.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -21080,7 +21080,7 @@
     },
     "timestamp": "2022-01-13T11:40:51.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -21109,7 +21109,7 @@
     },
     "timestamp": "2022-01-13T11:10:09.000Z",
     "type": "reaction_added",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -21138,7 +21138,7 @@
     },
     "timestamp": "2022-01-13T11:10:09.000Z",
     "type": "reaction_added",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -21177,7 +21177,7 @@
     },
     "timestamp": "2022-01-13T11:10:09.000Z",
     "type": "reaction_added",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -21206,7 +21206,7 @@
     },
     "timestamp": "2022-01-13T11:10:09.000Z",
     "type": "reaction_added",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -21231,7 +21231,7 @@
     },
     "timestamp": "2022-01-13T10:55:53.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -21270,7 +21270,7 @@
     },
     "timestamp": "2022-01-13T10:36:37.000Z",
     "type": "issue-comment",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "github"
   },
   {
@@ -21295,7 +21295,7 @@
     },
     "timestamp": "2022-01-13T10:27:48.000Z",
     "type": "file_share",
-    "isKeyAction": false,
+    "isContribution": false,
     "platform": "slack"
   },
   {
@@ -21320,7 +21320,7 @@
     },
     "timestamp": "2022-01-13T10:27:48.000Z",
     "type": "file_share",
-    "isKeyAction": false,
+    "isContribution": false,
     "platform": "slack"
   },
   {
@@ -21345,7 +21345,7 @@
     },
     "timestamp": "2022-01-13T10:27:48.000Z",
     "type": "file_share",
-    "isKeyAction": false,
+    "isContribution": false,
     "platform": "slack"
   },
   {
@@ -21370,7 +21370,7 @@
     },
     "timestamp": "2022-01-13T10:27:48.000Z",
     "type": "file_share",
-    "isKeyAction": false,
+    "isContribution": false,
     "platform": "slack"
   },
   {
@@ -21399,7 +21399,7 @@
     },
     "timestamp": "2022-01-13T10:23:35.000Z",
     "type": "reaction_added",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -21428,7 +21428,7 @@
     },
     "timestamp": "2022-01-13T10:23:35.000Z",
     "type": "reaction_added",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -21464,7 +21464,7 @@
     },
     "timestamp": "2022-01-13T10:23:35.000Z",
     "type": "reaction_added",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -21500,7 +21500,7 @@
     },
     "timestamp": "2022-01-13T10:23:35.000Z",
     "type": "reaction_added",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -21526,7 +21526,7 @@
     },
     "timestamp": "2022-01-13T10:23:16.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -21552,7 +21552,7 @@
     },
     "timestamp": "2022-01-13T10:23:16.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -21578,7 +21578,7 @@
     },
     "timestamp": "2022-01-13T10:23:16.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -21604,7 +21604,7 @@
     },
     "timestamp": "2022-01-13T10:23:16.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -21637,7 +21637,7 @@
     },
     "timestamp": "2022-01-13T10:23:03.084Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "discord"
   },
   {
@@ -21662,7 +21662,7 @@
     },
     "timestamp": "2022-01-13T10:12:40.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -21687,7 +21687,7 @@
     },
     "timestamp": "2022-01-13T09:51:38.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -21712,7 +21712,7 @@
     },
     "timestamp": "2022-01-13T09:49:59.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -21737,7 +21737,7 @@
     },
     "timestamp": "2022-01-13T09:25:19.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -21772,7 +21772,7 @@
     },
     "timestamp": "2022-01-13T09:24:30.000Z",
     "type": "issue-comment",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "github"
   },
   {
@@ -21798,7 +21798,7 @@
     },
     "timestamp": "2022-01-13T09:21:36.481Z",
     "type": "joined_community",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "discord"
   },
   {
@@ -21823,7 +21823,7 @@
     },
     "timestamp": "2022-01-13T08:41:24.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -21850,7 +21850,7 @@
     },
     "timestamp": "2022-01-13T07:38:45.481Z",
     "type": "joined_community",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "twitter"
   },
   {
@@ -21875,7 +21875,7 @@
     },
     "timestamp": "2022-01-13T07:12:49.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -21900,7 +21900,7 @@
     },
     "timestamp": "2022-01-13T06:57:52.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -21925,7 +21925,7 @@
     },
     "timestamp": "2022-01-13T06:37:13.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -21950,7 +21950,7 @@
     },
     "timestamp": "2022-01-13T06:17:32.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -21975,7 +21975,7 @@
     },
     "timestamp": "2022-01-13T06:00:09.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -22002,7 +22002,7 @@
     },
     "timestamp": "2022-01-13T05:31:04.481Z",
     "type": "contributed_to_community",
-    "isKeyAction": false,
+    "isContribution": false,
     "platform": "discord"
   },
   {
@@ -22027,7 +22027,7 @@
     },
     "timestamp": "2022-01-13T04:02:29.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -22054,7 +22054,7 @@
     },
     "timestamp": "2022-01-13T03:29:54.481Z",
     "type": "joined_community",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "hubspot"
   },
   {
@@ -22079,7 +22079,7 @@
     },
     "timestamp": "2022-01-13T03:29:25.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -22104,7 +22104,7 @@
     },
     "timestamp": "2022-01-13T03:11:51.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -22129,7 +22129,7 @@
     },
     "timestamp": "2022-01-13T02:55:04.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -22154,7 +22154,7 @@
     },
     "timestamp": "2022-01-13T02:42:30.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -22179,7 +22179,7 @@
     },
     "timestamp": "2022-01-13T02:30:15.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -22209,7 +22209,7 @@
     },
     "timestamp": "2022-01-13T01:34:54.000Z",
     "type": "star",
-    "isKeyAction": false,
+    "isContribution": false,
     "platform": "github"
   },
   {
@@ -22234,7 +22234,7 @@
     },
     "timestamp": "2022-01-13T01:28:37.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -22259,7 +22259,7 @@
     },
     "timestamp": "2022-01-13T01:14:43.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -22284,7 +22284,7 @@
     },
     "timestamp": "2022-01-13T01:05:02.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -22309,7 +22309,7 @@
     },
     "timestamp": "2022-01-13T00:32:50.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -22334,7 +22334,7 @@
     },
     "timestamp": "2022-01-13T00:23:19.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -22361,7 +22361,7 @@
     },
     "timestamp": "2022-01-12T23:54:26.481Z",
     "type": "joined_community",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "twitter"
   },
   {
@@ -22386,7 +22386,7 @@
     },
     "timestamp": "2022-01-12T23:33:41.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -22411,7 +22411,7 @@
     },
     "timestamp": "2022-01-12T23:15:55.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -22436,7 +22436,7 @@
     },
     "timestamp": "2022-01-12T22:28:39.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -22471,7 +22471,7 @@
     },
     "timestamp": "2022-01-12T21:43:42.000Z",
     "type": "star",
-    "isKeyAction": false,
+    "isContribution": false,
     "platform": "github"
   },
   {
@@ -22496,7 +22496,7 @@
     },
     "timestamp": "2022-01-12T21:20:04.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -22521,7 +22521,7 @@
     },
     "timestamp": "2022-01-12T21:17:19.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -22546,7 +22546,7 @@
     },
     "timestamp": "2022-01-12T20:47:07.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -22578,7 +22578,7 @@
     },
     "timestamp": "2022-01-12T20:45:44.000Z",
     "type": "star",
-    "isKeyAction": false,
+    "isContribution": false,
     "platform": "github"
   },
   {
@@ -22610,7 +22610,7 @@
     },
     "timestamp": "2022-01-12T20:43:04.000Z",
     "type": "star",
-    "isKeyAction": false,
+    "isContribution": false,
     "platform": "github"
   },
   {
@@ -22636,7 +22636,7 @@
     },
     "timestamp": "2022-01-12T20:19:02.481Z",
     "type": "joined_community",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "hubspot"
   },
   {
@@ -22666,7 +22666,7 @@
     },
     "timestamp": "2022-01-12T19:42:53.000Z",
     "type": "star",
-    "isKeyAction": false,
+    "isContribution": false,
     "platform": "github"
   },
   {
@@ -22701,7 +22701,7 @@
     },
     "timestamp": "2022-01-12T17:43:13.000Z",
     "type": "star",
-    "isKeyAction": false,
+    "isContribution": false,
     "platform": "github"
   },
   {
@@ -22726,7 +22726,7 @@
     },
     "timestamp": "2022-01-12T17:43:03.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -22753,7 +22753,7 @@
     },
     "timestamp": "2022-01-12T17:42:27.481Z",
     "type": "joined_community",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "apis"
   },
   {
@@ -22786,7 +22786,7 @@
     },
     "timestamp": "2022-01-12T17:32:24.617Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "discord"
   },
   {
@@ -22815,7 +22815,7 @@
     },
     "timestamp": "2022-01-12T17:30:36.000Z",
     "type": "reaction_added",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -22844,7 +22844,7 @@
     },
     "timestamp": "2022-01-12T17:30:36.000Z",
     "type": "reaction_added",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -22880,7 +22880,7 @@
     },
     "timestamp": "2022-01-12T17:30:36.000Z",
     "type": "reaction_added",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -22916,7 +22916,7 @@
     },
     "timestamp": "2022-01-12T17:30:36.000Z",
     "type": "reaction_added",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -22942,7 +22942,7 @@
     },
     "timestamp": "2022-01-12T17:07:07.481Z",
     "type": "joined_community",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "apis"
   },
   {
@@ -22971,7 +22971,7 @@
     },
     "timestamp": "2022-01-12T16:56:10.000Z",
     "type": "reaction_added",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -23000,7 +23000,7 @@
     },
     "timestamp": "2022-01-12T16:56:10.000Z",
     "type": "reaction_added",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -23036,7 +23036,7 @@
     },
     "timestamp": "2022-01-12T16:56:10.000Z",
     "type": "reaction_added",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -23072,7 +23072,7 @@
     },
     "timestamp": "2022-01-12T16:56:10.000Z",
     "type": "reaction_added",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -23101,7 +23101,7 @@
     },
     "timestamp": "2022-01-12T16:53:08.000Z",
     "type": "reaction_added",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -23130,7 +23130,7 @@
     },
     "timestamp": "2022-01-12T16:53:08.000Z",
     "type": "reaction_added",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -23166,7 +23166,7 @@
     },
     "timestamp": "2022-01-12T16:53:08.000Z",
     "type": "reaction_added",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -23202,7 +23202,7 @@
     },
     "timestamp": "2022-01-12T16:53:08.000Z",
     "type": "reaction_added",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -23231,7 +23231,7 @@
     },
     "timestamp": "2022-01-12T16:48:15.000Z",
     "type": "reaction_added",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -23260,7 +23260,7 @@
     },
     "timestamp": "2022-01-12T16:48:15.000Z",
     "type": "reaction_added",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -23296,7 +23296,7 @@
     },
     "timestamp": "2022-01-12T16:48:15.000Z",
     "type": "reaction_added",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -23332,7 +23332,7 @@
     },
     "timestamp": "2022-01-12T16:48:15.000Z",
     "type": "reaction_added",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -23357,7 +23357,7 @@
     },
     "timestamp": "2022-01-12T16:41:53.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -23383,7 +23383,7 @@
     },
     "timestamp": "2022-01-12T16:17:43.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -23409,7 +23409,7 @@
     },
     "timestamp": "2022-01-12T16:17:43.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -23435,7 +23435,7 @@
     },
     "timestamp": "2022-01-12T16:17:43.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -23461,7 +23461,7 @@
     },
     "timestamp": "2022-01-12T16:17:43.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -23487,7 +23487,7 @@
     },
     "timestamp": "2022-01-12T16:17:09.000Z",
     "type": "channel_joined",
-    "isKeyAction": false,
+    "isContribution": false,
     "platform": "slack"
   },
   {
@@ -23514,7 +23514,7 @@
     },
     "timestamp": "2022-01-12T16:17:09.000Z",
     "type": "channel_joined",
-    "isKeyAction": false,
+    "isContribution": false,
     "platform": "slack"
   },
   {
@@ -23539,7 +23539,7 @@
     },
     "timestamp": "2022-01-12T16:17:09.000Z",
     "type": "channel_joined",
-    "isKeyAction": false,
+    "isContribution": false,
     "platform": "slack"
   },
   {
@@ -23564,7 +23564,7 @@
     },
     "timestamp": "2022-01-12T16:17:09.000Z",
     "type": "channel_joined",
-    "isKeyAction": false,
+    "isContribution": false,
     "platform": "slack"
   },
   {
@@ -23590,7 +23590,7 @@
     },
     "timestamp": "2022-01-12T16:17:09.000Z",
     "type": "channel_joined",
-    "isKeyAction": false,
+    "isContribution": false,
     "platform": "slack"
   },
   {
@@ -23617,7 +23617,7 @@
     },
     "timestamp": "2022-01-12T16:17:09.000Z",
     "type": "channel_joined",
-    "isKeyAction": false,
+    "isContribution": false,
     "platform": "slack"
   },
   {
@@ -23642,7 +23642,7 @@
     },
     "timestamp": "2022-01-12T16:17:09.000Z",
     "type": "channel_joined",
-    "isKeyAction": false,
+    "isContribution": false,
     "platform": "slack"
   },
   {
@@ -23667,7 +23667,7 @@
     },
     "timestamp": "2022-01-12T16:17:09.000Z",
     "type": "channel_joined",
-    "isKeyAction": false,
+    "isContribution": false,
     "platform": "slack"
   },
   {
@@ -23693,7 +23693,7 @@
     },
     "timestamp": "2022-01-12T16:17:09.000Z",
     "type": "channel_joined",
-    "isKeyAction": false,
+    "isContribution": false,
     "platform": "slack"
   },
   {
@@ -23720,7 +23720,7 @@
     },
     "timestamp": "2022-01-12T16:17:09.000Z",
     "type": "channel_joined",
-    "isKeyAction": false,
+    "isContribution": false,
     "platform": "slack"
   },
   {
@@ -23745,7 +23745,7 @@
     },
     "timestamp": "2022-01-12T16:17:09.000Z",
     "type": "channel_joined",
-    "isKeyAction": false,
+    "isContribution": false,
     "platform": "slack"
   },
   {
@@ -23780,7 +23780,7 @@
     },
     "timestamp": "2022-01-12T16:17:09.000Z",
     "type": "channel_joined",
-    "isKeyAction": false,
+    "isContribution": false,
     "platform": "slack"
   },
   {
@@ -23806,7 +23806,7 @@
     },
     "timestamp": "2022-01-12T16:17:09.000Z",
     "type": "channel_joined",
-    "isKeyAction": false,
+    "isContribution": false,
     "platform": "slack"
   },
   {
@@ -23833,7 +23833,7 @@
     },
     "timestamp": "2022-01-12T16:17:09.000Z",
     "type": "channel_joined",
-    "isKeyAction": false,
+    "isContribution": false,
     "platform": "slack"
   },
   {
@@ -23858,7 +23858,7 @@
     },
     "timestamp": "2022-01-12T16:17:09.000Z",
     "type": "channel_joined",
-    "isKeyAction": false,
+    "isContribution": false,
     "platform": "slack"
   },
   {
@@ -23883,7 +23883,7 @@
     },
     "timestamp": "2022-01-12T16:17:09.000Z",
     "type": "channel_joined",
-    "isKeyAction": false,
+    "isContribution": false,
     "platform": "slack"
   },
   {
@@ -23908,7 +23908,7 @@
     },
     "timestamp": "2022-01-12T16:17:08.000Z",
     "type": "channel_joined",
-    "isKeyAction": false,
+    "isContribution": false,
     "platform": "slack"
   },
   {
@@ -23933,7 +23933,7 @@
     },
     "timestamp": "2022-01-12T16:17:08.000Z",
     "type": "channel_joined",
-    "isKeyAction": false,
+    "isContribution": false,
     "platform": "slack"
   },
   {
@@ -23965,7 +23965,7 @@
     },
     "timestamp": "2022-01-12T16:17:08.000Z",
     "type": "channel_joined",
-    "isKeyAction": false,
+    "isContribution": false,
     "platform": "slack"
   },
   {
@@ -23997,7 +23997,7 @@
     },
     "timestamp": "2022-01-12T16:17:08.000Z",
     "type": "channel_joined",
-    "isKeyAction": false,
+    "isContribution": false,
     "platform": "slack"
   },
   {
@@ -24022,7 +24022,7 @@
     },
     "timestamp": "2022-01-12T16:17:05.000Z",
     "type": "channel_joined",
-    "isKeyAction": false,
+    "isContribution": false,
     "platform": "slack"
   },
   {
@@ -24047,7 +24047,7 @@
     },
     "timestamp": "2022-01-12T16:17:05.000Z",
     "type": "channel_joined",
-    "isKeyAction": false,
+    "isContribution": false,
     "platform": "slack"
   },
   {
@@ -24072,7 +24072,7 @@
     },
     "timestamp": "2022-01-12T16:17:05.000Z",
     "type": "channel_joined",
-    "isKeyAction": false,
+    "isContribution": false,
     "platform": "slack"
   },
   {
@@ -24097,7 +24097,7 @@
     },
     "timestamp": "2022-01-12T16:17:05.000Z",
     "type": "channel_joined",
-    "isKeyAction": false,
+    "isContribution": false,
     "platform": "slack"
   },
   {
@@ -24123,7 +24123,7 @@
     },
     "timestamp": "2022-01-12T16:16:31.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -24149,7 +24149,7 @@
     },
     "timestamp": "2022-01-12T16:16:31.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -24175,7 +24175,7 @@
     },
     "timestamp": "2022-01-12T16:16:31.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -24201,7 +24201,7 @@
     },
     "timestamp": "2022-01-12T16:16:31.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -24228,7 +24228,7 @@
     },
     "timestamp": "2022-01-12T16:01:36.481Z",
     "type": "joined_community",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "hubspot"
   },
   {
@@ -24253,7 +24253,7 @@
     },
     "timestamp": "2022-01-12T15:56:30.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -24278,7 +24278,7 @@
     },
     "timestamp": "2022-01-12T15:32:38.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -24309,7 +24309,7 @@
     },
     "timestamp": "2022-01-12T15:31:12.000Z",
     "type": "star",
-    "isKeyAction": false,
+    "isContribution": false,
     "platform": "github"
   },
   {
@@ -24340,7 +24340,7 @@
     },
     "timestamp": "2022-01-12T15:30:47.000Z",
     "type": "star",
-    "isKeyAction": false,
+    "isContribution": false,
     "platform": "github"
   },
   {
@@ -24367,7 +24367,7 @@
     },
     "timestamp": "2022-01-12T15:24:48.481Z",
     "type": "joined_community",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "apis"
   },
   {
@@ -24397,7 +24397,7 @@
     },
     "timestamp": "2022-01-12T13:37:11.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -24427,7 +24427,7 @@
     },
     "timestamp": "2022-01-12T13:37:11.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -24464,7 +24464,7 @@
     },
     "timestamp": "2022-01-12T13:37:11.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -24501,7 +24501,7 @@
     },
     "timestamp": "2022-01-12T13:37:11.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -24531,7 +24531,7 @@
     },
     "timestamp": "2022-01-12T13:35:01.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -24561,7 +24561,7 @@
     },
     "timestamp": "2022-01-12T13:35:01.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -24601,7 +24601,7 @@
     },
     "timestamp": "2022-01-12T13:35:01.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -24631,7 +24631,7 @@
     },
     "timestamp": "2022-01-12T13:35:01.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -24661,7 +24661,7 @@
     },
     "timestamp": "2022-01-12T13:34:57.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -24691,7 +24691,7 @@
     },
     "timestamp": "2022-01-12T13:34:57.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -24728,7 +24728,7 @@
     },
     "timestamp": "2022-01-12T13:34:57.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -24765,7 +24765,7 @@
     },
     "timestamp": "2022-01-12T13:34:57.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -24795,7 +24795,7 @@
     },
     "timestamp": "2022-01-12T13:34:45.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -24825,7 +24825,7 @@
     },
     "timestamp": "2022-01-12T13:34:45.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -24865,7 +24865,7 @@
     },
     "timestamp": "2022-01-12T13:34:45.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -24895,7 +24895,7 @@
     },
     "timestamp": "2022-01-12T13:34:45.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -24924,7 +24924,7 @@
     },
     "timestamp": "2022-01-12T13:33:06.000Z",
     "type": "reaction_added",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -24953,7 +24953,7 @@
     },
     "timestamp": "2022-01-12T13:33:06.000Z",
     "type": "reaction_added",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -24992,7 +24992,7 @@
     },
     "timestamp": "2022-01-12T13:33:06.000Z",
     "type": "reaction_added",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -25021,7 +25021,7 @@
     },
     "timestamp": "2022-01-12T13:33:06.000Z",
     "type": "reaction_added",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -25050,7 +25050,7 @@
     },
     "timestamp": "2022-01-12T13:33:02.000Z",
     "type": "reaction_added",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -25079,7 +25079,7 @@
     },
     "timestamp": "2022-01-12T13:33:02.000Z",
     "type": "reaction_added",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -25118,7 +25118,7 @@
     },
     "timestamp": "2022-01-12T13:33:02.000Z",
     "type": "reaction_added",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -25147,7 +25147,7 @@
     },
     "timestamp": "2022-01-12T13:33:02.000Z",
     "type": "reaction_added",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -25176,7 +25176,7 @@
     },
     "timestamp": "2022-01-12T13:32:58.000Z",
     "type": "reaction_added",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -25205,7 +25205,7 @@
     },
     "timestamp": "2022-01-12T13:32:58.000Z",
     "type": "reaction_added",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -25244,7 +25244,7 @@
     },
     "timestamp": "2022-01-12T13:32:58.000Z",
     "type": "reaction_added",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -25273,7 +25273,7 @@
     },
     "timestamp": "2022-01-12T13:32:58.000Z",
     "type": "reaction_added",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -25299,7 +25299,7 @@
     },
     "timestamp": "2022-01-12T13:32:10.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -25325,7 +25325,7 @@
     },
     "timestamp": "2022-01-12T13:32:10.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -25358,7 +25358,7 @@
     },
     "timestamp": "2022-01-12T13:32:10.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -25391,7 +25391,7 @@
     },
     "timestamp": "2022-01-12T13:32:10.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -25416,7 +25416,7 @@
     },
     "timestamp": "2022-01-12T13:32:08.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -25441,7 +25441,7 @@
     },
     "timestamp": "2022-01-12T13:25:49.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -25471,7 +25471,7 @@
     },
     "timestamp": "2022-01-12T13:20:54.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -25501,7 +25501,7 @@
     },
     "timestamp": "2022-01-12T13:20:54.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -25531,7 +25531,7 @@
     },
     "timestamp": "2022-01-12T13:20:54.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -25561,7 +25561,7 @@
     },
     "timestamp": "2022-01-12T13:20:54.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -25587,7 +25587,7 @@
     },
     "timestamp": "2022-01-12T13:18:14.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -25613,7 +25613,7 @@
     },
     "timestamp": "2022-01-12T13:18:14.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -25646,7 +25646,7 @@
     },
     "timestamp": "2022-01-12T13:18:14.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -25679,7 +25679,7 @@
     },
     "timestamp": "2022-01-12T13:18:14.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -25710,7 +25710,7 @@
     },
     "timestamp": "2022-01-12T13:17:50.991Z",
     "type": "contributed_to_community",
-    "isKeyAction": false,
+    "isContribution": false,
     "platform": "discord"
   },
   {
@@ -25735,7 +25735,7 @@
     },
     "timestamp": "2022-01-12T13:16:54.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -25765,7 +25765,7 @@
     },
     "timestamp": "2022-01-12T13:07:07.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -25805,7 +25805,7 @@
     },
     "timestamp": "2022-01-12T13:07:07.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -25835,7 +25835,7 @@
     },
     "timestamp": "2022-01-12T13:07:07.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -25872,7 +25872,7 @@
     },
     "timestamp": "2022-01-12T13:05:07.000Z",
     "type": "pull_request-closed",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "github"
   },
   {
@@ -25906,7 +25906,7 @@
     },
     "timestamp": "2022-01-12T13:05:07.000Z",
     "type": "pull_request-opened",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "github"
   },
   {
@@ -25936,7 +25936,7 @@
     },
     "timestamp": "2022-01-12T13:00:17.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -25973,7 +25973,7 @@
     },
     "timestamp": "2022-01-12T13:00:17.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -26010,7 +26010,7 @@
     },
     "timestamp": "2022-01-12T13:00:17.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -26040,7 +26040,7 @@
     },
     "timestamp": "2022-01-12T12:51:07.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -26080,7 +26080,7 @@
     },
     "timestamp": "2022-01-12T12:51:07.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -26110,7 +26110,7 @@
     },
     "timestamp": "2022-01-12T12:51:07.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -26135,7 +26135,7 @@
     },
     "timestamp": "2022-01-12T12:47:33.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -26160,7 +26160,7 @@
     },
     "timestamp": "2022-01-12T12:37:52.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -26185,7 +26185,7 @@
     },
     "timestamp": "2022-01-12T12:26:56.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -26210,7 +26210,7 @@
     },
     "timestamp": "2022-01-12T12:26:29.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -26235,7 +26235,7 @@
     },
     "timestamp": "2022-01-12T12:18:02.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -26268,7 +26268,7 @@
     },
     "timestamp": "2022-01-12T12:00:18.203Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "discord"
   },
   {
@@ -26298,7 +26298,7 @@
     },
     "timestamp": "2022-01-12T11:51:30.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -26335,7 +26335,7 @@
     },
     "timestamp": "2022-01-12T11:51:30.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -26372,7 +26372,7 @@
     },
     "timestamp": "2022-01-12T11:51:30.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -26391,7 +26391,7 @@
     },
     "timestamp": "2022-01-12T11:47:40.514Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "discord"
   },
   {
@@ -26410,7 +26410,7 @@
     },
     "timestamp": "2022-01-12T11:37:33.962Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "discord"
   },
   {
@@ -26429,7 +26429,7 @@
     },
     "timestamp": "2022-01-12T11:37:28.040Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "discord"
   },
   {
@@ -26448,7 +26448,7 @@
     },
     "timestamp": "2022-01-12T11:37:21.476Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "discord"
   },
   {
@@ -26467,7 +26467,7 @@
     },
     "timestamp": "2022-01-12T11:36:05.911Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "discord"
   },
   {
@@ -26486,7 +26486,7 @@
     },
     "timestamp": "2022-01-12T11:35:47.188Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "discord"
   },
   {
@@ -26505,7 +26505,7 @@
     },
     "timestamp": "2022-01-12T11:35:22.739Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "discord"
   },
   {
@@ -26524,7 +26524,7 @@
     },
     "timestamp": "2022-01-12T11:34:51.042Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "discord"
   },
   {
@@ -26543,7 +26543,7 @@
     },
     "timestamp": "2022-01-12T11:34:29.080Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "discord"
   },
   {
@@ -26562,7 +26562,7 @@
     },
     "timestamp": "2022-01-12T11:34:16.310Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "discord"
   },
   {
@@ -26581,7 +26581,7 @@
     },
     "timestamp": "2022-01-12T11:34:00.493Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "discord"
   },
   {
@@ -26600,7 +26600,7 @@
     },
     "timestamp": "2022-01-12T11:33:37.949Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "discord"
   },
   {
@@ -26619,7 +26619,7 @@
     },
     "timestamp": "2022-01-12T11:33:09.796Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "discord"
   },
   {
@@ -26638,7 +26638,7 @@
     },
     "timestamp": "2022-01-12T11:32:50.430Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "discord"
   },
   {
@@ -26657,7 +26657,7 @@
     },
     "timestamp": "2022-01-12T11:30:35.919Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "discord"
   },
   {
@@ -26676,7 +26676,7 @@
     },
     "timestamp": "2022-01-12T11:29:23.257Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "discord"
   },
   {
@@ -26695,7 +26695,7 @@
     },
     "timestamp": "2022-01-12T11:29:01.509Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "discord"
   },
   {
@@ -26714,7 +26714,7 @@
     },
     "timestamp": "2022-01-12T11:28:31.462Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "discord"
   },
   {
@@ -26733,7 +26733,7 @@
     },
     "timestamp": "2022-01-12T11:26:31.343Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "discord"
   },
   {
@@ -26765,7 +26765,7 @@
     },
     "timestamp": "2022-01-12T11:20:33.000Z",
     "type": "star",
-    "isKeyAction": false,
+    "isContribution": false,
     "platform": "github"
   },
   {
@@ -26794,7 +26794,7 @@
     },
     "timestamp": "2022-01-12T10:56:21.000Z",
     "type": "reaction_added",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -26830,7 +26830,7 @@
     },
     "timestamp": "2022-01-12T10:56:21.000Z",
     "type": "reaction_added",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -26866,7 +26866,7 @@
     },
     "timestamp": "2022-01-12T10:56:21.000Z",
     "type": "reaction_added",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -26899,7 +26899,7 @@
     },
     "timestamp": "2022-01-12T10:53:50.384Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "discord"
   },
   {
@@ -26932,7 +26932,7 @@
     },
     "timestamp": "2022-01-12T10:53:20.882Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "discord"
   },
   {
@@ -26965,7 +26965,7 @@
     },
     "timestamp": "2022-01-12T10:52:48.354Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "discord"
   },
   {
@@ -26990,7 +26990,7 @@
     },
     "timestamp": "2022-01-12T10:49:54.000Z",
     "type": "file_share",
-    "isKeyAction": false,
+    "isContribution": false,
     "platform": "slack"
   },
   {
@@ -27025,7 +27025,7 @@
     },
     "timestamp": "2022-01-12T10:49:54.000Z",
     "type": "file_share",
-    "isKeyAction": false,
+    "isContribution": false,
     "platform": "slack"
   },
   {
@@ -27050,7 +27050,7 @@
     },
     "timestamp": "2022-01-12T10:49:54.000Z",
     "type": "file_share",
-    "isKeyAction": false,
+    "isContribution": false,
     "platform": "slack"
   },
   {
@@ -27083,7 +27083,7 @@
     },
     "timestamp": "2022-01-12T10:45:28.953Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "discord"
   },
   {
@@ -27116,7 +27116,7 @@
     },
     "timestamp": "2022-01-12T10:43:05.247Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "discord"
   },
   {
@@ -27149,7 +27149,7 @@
     },
     "timestamp": "2022-01-12T10:42:58.604Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "discord"
   },
   {
@@ -27182,7 +27182,7 @@
     },
     "timestamp": "2022-01-12T10:42:50.057Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "discord"
   },
   {
@@ -27207,7 +27207,7 @@
     },
     "timestamp": "2022-01-12T10:31:48.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -27236,7 +27236,7 @@
     },
     "timestamp": "2022-01-12T10:19:33.000Z",
     "type": "reaction_added",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -27275,7 +27275,7 @@
     },
     "timestamp": "2022-01-12T10:19:33.000Z",
     "type": "reaction_added",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -27304,7 +27304,7 @@
     },
     "timestamp": "2022-01-12T10:19:33.000Z",
     "type": "reaction_added",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -27330,7 +27330,7 @@
     },
     "timestamp": "2022-01-12T10:17:22.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -27366,7 +27366,7 @@
     },
     "timestamp": "2022-01-12T10:17:22.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -27392,7 +27392,7 @@
     },
     "timestamp": "2022-01-12T10:17:22.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -27418,7 +27418,7 @@
     },
     "timestamp": "2022-01-12T10:17:19.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -27454,7 +27454,7 @@
     },
     "timestamp": "2022-01-12T10:17:19.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -27480,7 +27480,7 @@
     },
     "timestamp": "2022-01-12T10:17:19.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -27505,7 +27505,7 @@
     },
     "timestamp": "2022-01-12T09:51:03.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -27543,7 +27543,7 @@
     },
     "timestamp": "2022-01-12T09:25:45.000Z",
     "type": "pull_request-opened",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "github"
   },
   {
@@ -27570,7 +27570,7 @@
     },
     "timestamp": "2022-01-12T08:57:56.481Z",
     "type": "joined_community",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "discord"
   },
   {
@@ -27597,7 +27597,7 @@
     },
     "timestamp": "2022-01-12T07:42:35.991Z",
     "type": "joined_community",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "hubspot"
   },
   {
@@ -27622,7 +27622,7 @@
     },
     "timestamp": "2022-01-12T07:13:56.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -27647,7 +27647,7 @@
     },
     "timestamp": "2022-01-12T07:09:47.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -27672,7 +27672,7 @@
     },
     "timestamp": "2022-01-12T05:24:30.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -27697,7 +27697,7 @@
     },
     "timestamp": "2022-01-12T05:21:42.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -27722,7 +27722,7 @@
     },
     "timestamp": "2022-01-12T03:58:03.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -27747,7 +27747,7 @@
     },
     "timestamp": "2022-01-12T02:24:33.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -27774,7 +27774,7 @@
     },
     "timestamp": "2022-01-12T01:05:55.481Z",
     "type": "joined_community",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "twitter"
   },
   {
@@ -27803,7 +27803,7 @@
     },
     "timestamp": "2022-01-12T00:47:22.000Z",
     "type": "star",
-    "isKeyAction": false,
+    "isContribution": false,
     "platform": "github"
   },
   {
@@ -27828,7 +27828,7 @@
     },
     "timestamp": "2022-01-11T22:31:18.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -27853,7 +27853,7 @@
     },
     "timestamp": "2022-01-11T22:27:12.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -27878,7 +27878,7 @@
     },
     "timestamp": "2022-01-11T21:39:17.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -27904,7 +27904,7 @@
     },
     "timestamp": "2022-01-11T21:03:17.991Z",
     "type": "joined_community",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "apis"
   },
   {
@@ -27931,7 +27931,7 @@
     },
     "timestamp": "2022-01-11T20:30:48.481Z",
     "type": "joined_community",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "hubspot"
   },
   {
@@ -27956,7 +27956,7 @@
     },
     "timestamp": "2022-01-11T20:25:56.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -27995,7 +27995,7 @@
     },
     "timestamp": "2022-01-11T19:49:55.000Z",
     "type": "issue-comment",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "github"
   },
   {
@@ -28020,7 +28020,7 @@
     },
     "timestamp": "2022-01-11T19:38:54.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -28045,7 +28045,7 @@
     },
     "timestamp": "2022-01-11T19:37:47.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -28072,7 +28072,7 @@
     },
     "timestamp": "2022-01-11T19:11:41.481Z",
     "type": "joined_community",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "apis"
   },
   {
@@ -28108,7 +28108,7 @@
     },
     "timestamp": "2022-01-11T18:23:54.000Z",
     "type": "issue-comment",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "github"
   },
   {
@@ -28134,7 +28134,7 @@
     },
     "timestamp": "2022-01-11T18:22:29.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -28167,7 +28167,7 @@
     },
     "timestamp": "2022-01-11T18:22:29.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -28200,7 +28200,7 @@
     },
     "timestamp": "2022-01-11T18:22:29.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -28225,7 +28225,7 @@
     },
     "timestamp": "2022-01-11T18:00:21.000Z",
     "type": "message",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "slack"
   },
   {
@@ -28262,7 +28262,7 @@
     },
     "timestamp": "2022-01-11T17:58:06.000Z",
     "type": "pull_request-closed",
-    "isKeyAction": true,
+    "isContribution": true,
     "platform": "github"
   }
 ]

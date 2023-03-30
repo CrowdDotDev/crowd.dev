@@ -227,7 +227,7 @@ const ptBR = {
         project: 'Project',
         info: 'Info',
         communityMember: 'Member',
-        isKeyAction: 'Key Action',
+        isContribution: 'Contribution',
         crowdInfo: 'CrowdInfo',
         createdAt: 'Criado em',
         updatedAt: 'Atualizado em',
