@@ -7,6 +7,7 @@ import { LinkedInMemberAttributes } from '../../../../../database/attributes/mem
 import MemberAttributeSettingsService from '../../../../../services/memberAttributeSettingsService'
 import {
   IIntegrationStream,
+  IPendingStream,
   IProcessStreamResults,
   IStepContext,
 } from '../../../../../types/integration/stepResult'
@@ -107,7 +108,7 @@ export class LinkedinIntegrationService extends IntegrationServiceBase {
     }
   }
 
-  async getStreams(context: IStepContext): Promise<IIntegrationStream[]> {
+  async getStreams(context: IStepContext): Promise<IPendingStream[]> {
     const posts: ILinkedInOrganizationPost[] = context.pipelineData.posts
 
     const commentsStream = posts.map((p) => ({
@@ -317,7 +318,7 @@ export class LinkedinIntegrationService extends IntegrationServiceBase {
     )
 
     const activities: AddActivitiesSingle[] = []
-    const newStreams: IIntegrationStream[] = []
+    const newStreams: IPendingStream[] = []
     for (const comment of comments) {
       const member = await this.parseMember(comment.authorUrn, context)
 
@@ -413,7 +414,7 @@ export class LinkedinIntegrationService extends IntegrationServiceBase {
           const user = await getMember(context.pipelineData.nangoId, userId, context.logger)
           return JSON.stringify(user)
         },
-        24 * 60 * 60,
+        2 * 24 * 60 * 60,
       )
 
       const user = JSON.parse(userString)
@@ -450,7 +451,7 @@ export class LinkedinIntegrationService extends IntegrationServiceBase {
           )
           return JSON.stringify(organization)
         },
-        24 * 60 * 60,
+        2 * 24 * 60 * 60,
       )
 
       const organization = JSON.parse(organizationString)

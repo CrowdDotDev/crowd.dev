@@ -14,6 +14,7 @@ import { MemberAttributeName } from '../../../../database/attributes/member/enum
 import MemberAttributeSettingsService from '../../../../services/memberAttributeSettingsService'
 import {
   IIntegrationStream,
+  IPendingStream,
   IProcessStreamResults,
   IProcessWebhookResults,
   IStepContext,
@@ -37,10 +38,16 @@ import { getMessage } from '../../usecases/discord/getMessage'
 import { createRedisClient } from '../../../../utils/redis'
 import { RedisCache } from '../../../../utils/redis/redisCache'
 import { getChannel } from '../../usecases/discord/getChannel'
+import { IRepositoryOptions } from '../../../../database/repositories/IRepositoryOptions'
+import IntegrationRunRepository from '../../../../database/repositories/integrationRunRepository'
+import { IntegrationRunState } from '../../../../types/integrationRunTypes'
+import { createServiceChildLogger } from '../../../../utils/logging'
 
 /* eslint class-methods-use-this: 0 */
 
 /* eslint-disable @typescript-eslint/no-unused-vars */
+
+const logger = createServiceChildLogger('discordIntegrationService')
 
 export class DiscordIntegrationService extends IntegrationServiceBase {
   static readonly ENDPOINT_MAX_RETRY = 5
@@ -64,20 +71,32 @@ export class DiscordIntegrationService extends IntegrationServiceBase {
     return DiscordIntegrationService.token
   }
 
-  override async triggerIntegrationCheck(integrations: any[]): Promise<void> {
+  override async triggerIntegrationCheck(
+    integrations: any[],
+    options: IRepositoryOptions,
+  ): Promise<void> {
+    const repository = new IntegrationRunRepository(options)
+
     let initialDelaySeconds = 0
     const batches = lodash.chunk(integrations, 2)
 
     for (const batch of batches) {
       for (const integration of batch) {
+        const run = await repository.create({
+          integrationId: integration.id,
+          tenantId: integration.tenantId,
+          onboarding: false,
+          state: IntegrationRunState.PENDING,
+        })
+
+        logger.info(
+          { integrationId: integration.id, runId: run.id },
+          'Triggering discord integration processing!',
+        )
+
         await sendNodeWorkerMessage(
           integration.tenantId,
-          new NodeWorkerIntegrationProcessMessage(
-            this.type,
-            integration.tenantId,
-            false,
-            integration.id,
-          ),
+          new NodeWorkerIntegrationProcessMessage(run.id),
           initialDelaySeconds,
         )
       }
@@ -198,8 +217,8 @@ export class DiscordIntegrationService extends IntegrationServiceBase {
     }
   }
 
-  async getStreams(context: IStepContext): Promise<IIntegrationStream[]> {
-    const predefined: IIntegrationStream[] = [
+  async getStreams(context: IStepContext): Promise<IPendingStream[]> {
+    const predefined: IPendingStream[] = [
       {
         value: 'members',
         metadata: {
@@ -438,7 +457,7 @@ export class DiscordIntegrationService extends IntegrationServiceBase {
     context: IStepContext,
     records: DiscordApiMessage[],
   ): Promise<DiscordStreamProcessResult> {
-    const newStreams: IIntegrationStream[] = []
+    const newStreams: IPendingStream[] = []
     const activities: AddActivitiesSingle[] = []
 
     for (const record of records) {

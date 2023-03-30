@@ -6,6 +6,7 @@ import MemberAttributeSettingsService from '../../../../services/memberAttribute
 import { HackerNewsActivityType } from '../../../../types/activityTypes'
 import {
   IIntegrationStream,
+  IPendingStream,
   IProcessStreamResults,
   IStepContext,
 } from '../../../../types/integration/stepResult'
@@ -58,7 +59,7 @@ export class HackerNewsIntegrationService extends IntegrationServiceBase {
     }
   }
 
-  async getStreams(context: IStepContext): Promise<IIntegrationStream[]> {
+  async getStreams(context: IStepContext): Promise<IPendingStream[]> {
     return context.pipelineData.posts.map((a: HackerNewsSearchResult) => ({
       value: a.postId,
       metadata: {
@@ -71,7 +72,7 @@ export class HackerNewsIntegrationService extends IntegrationServiceBase {
     stream: IIntegrationStream,
     context: IStepContext,
   ): Promise<IProcessStreamResults> {
-    let newStreams: IIntegrationStream[]
+    let newStreams: IPendingStream[]
 
     const post: HackerNewsResponse = await getPost(stream.value, context.logger)
 

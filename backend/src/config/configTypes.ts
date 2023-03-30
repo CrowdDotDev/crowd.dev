@@ -212,3 +212,7 @@ export interface SlackAlertingConfiguration {
 export interface SampleDataConfiguration {
   tenantId: string
 }
+
+export interface IntegrationProcessingConfiguration {
+  maxRetries: number
+}

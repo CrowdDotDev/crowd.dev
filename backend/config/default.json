@@ -3,6 +3,9 @@
     "port": 8080,
     "documentation": false
   },
+  "integrationProcessing": {
+    "maxRetries": 5
+  },
   "sqs": {},
   "s3": {},
   "db": {

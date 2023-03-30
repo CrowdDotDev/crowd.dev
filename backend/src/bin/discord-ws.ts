@@ -221,11 +221,13 @@ setImmediate(async () => {
   }
 
   if (triggerCheck) {
+    const repoOptions = await SequelizeRepository.getDefaultIRepositoryOptions()
+
     const integrations = await IntegrationRepository.findAllActive(PlatformType.DISCORD)
     if (integrations.length > 0) {
       log.warn(`Found ${integrations.length} integrations to trigger check for!`)
       const service = new DiscordIntegrationService()
-      await service.triggerIntegrationCheck(integrations)
+      await service.triggerIntegrationCheck(integrations, repoOptions)
     } else {
       log.warn('Found no integrations to trigger check for!')
     }

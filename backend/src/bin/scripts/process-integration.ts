@@ -7,6 +7,8 @@ import SequelizeRepository from '../../database/repositories/sequelizeRepository
 import { sendNodeWorkerMessage } from '../../serverless/utils/nodeWorkerSQS'
 import { NodeWorkerIntegrationProcessMessage } from '../../types/mq/nodeWorkerIntegrationProcessMessage'
 import IntegrationRepository from '../../database/repositories/integrationRepository'
+import IntegrationRunRepository from '../../database/repositories/integrationRunRepository'
+import { IntegrationRunState } from '../../types/integrationRunTypes'
 
 const banner = fs.readFileSync(path.join(__dirname, 'banner.txt'), 'utf8')
 
@@ -65,19 +67,31 @@ if (parameters.help || (!parameters.integration && !parameters.platform)) {
     const onboarding = parameters.onboarding
     const options = await SequelizeRepository.getDefaultIRepositoryOptions()
 
+    const runRepo = new IntegrationRunRepository(options)
+
     if (parameters.platform) {
       const integrations = await IntegrationRepository.findAllActive(parameters.platform)
       for (const i of integrations) {
         const integration = i as any
         log.info({ integrationId: integration.id, onboarding }, 'Triggering SQS message!')
+
+        const existingRun = await runRepo.findLastProcessingRun(integration.id)
+
+        if (existingRun && existingRun.onboarding) {
+          log.error('Integration is already processing, skipping!')
+          return
+        }
+
+        const run = await runRepo.create({
+          integrationId: integration.id,
+          tenantId: integration.tenantId,
+          onboarding,
+          state: IntegrationRunState.PENDING,
+        })
+
         await sendNodeWorkerMessage(
           integration.tenantId,
-          new NodeWorkerIntegrationProcessMessage(
-            integration.platform,
-            integration.tenantId,
-            onboarding,
-            integration.id,
-          ),
+          new NodeWorkerIntegrationProcessMessage(run.id),
         )
       }
     } else {
@@ -92,15 +106,24 @@ if (parameters.help || (!parameters.integration && !parameters.platform)) {
           process.exit(1)
         } else {
           log.info({ integrationId, onboarding }, 'Integration found - triggering SQS message!')
-          await sendNodeWorkerMessage(
-            integration.tenantId,
-            new NodeWorkerIntegrationProcessMessage(
-              integration.platform,
-              integration.tenantId,
+
+          const existingRun = await runRepo.findLastProcessingRun(integration.id)
+
+          if (existingRun && existingRun.onboarding) {
+            log.error('Integration is already processing, skipping!')
+          } else {
+            const run = await runRepo.create({
+              integrationId: integration.id,
+              tenantId: integration.tenantId,
               onboarding,
-              integration.id,
-            ),
-          )
+              state: IntegrationRunState.PENDING,
+            })
+
+            await sendNodeWorkerMessage(
+              integration.tenantId,
+              new NodeWorkerIntegrationProcessMessage(run.id),
+            )
+          }
         }
       }
     }

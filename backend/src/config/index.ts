@@ -28,6 +28,7 @@ import {
   StackExchangeConfiguration,
   SlackAlertingConfiguration,
   SampleDataConfiguration,
+  IntegrationProcessingConfiguration,
 } from './configTypes'
 
 // TODO-kube
@@ -248,3 +249,6 @@ export const SAMPLE_DATA_CONFIG: SampleDataConfiguration = KUBE_MODE
   : {
       tenantId: process.env.SAMPLE_DATA_TENANT_ID,
     }
+
+export const INTEGRATION_PROCESSING_CONFIG: IntegrationProcessingConfiguration =
+  config.get<IntegrationProcessingConfiguration>('integrationProcessing')

@@ -6,6 +6,7 @@ import MemberAttributeSettingsService from '../../../../services/memberAttribute
 import { RedditActivityType } from '../../../../types/activityTypes'
 import {
   IIntegrationStream,
+  IPendingStream,
   IProcessStreamResults,
   IStepContext,
 } from '../../../../types/integration/stepResult'
@@ -62,7 +63,7 @@ export class RedditIntegrationService extends IntegrationServiceBase {
    * @param context context passed along worker messages
    * @returns an array of streams to process
    */
-  async getStreams(context: IStepContext): Promise<IIntegrationStream[]> {
+  async getStreams(context: IStepContext): Promise<IPendingStream[]> {
     return context.pipelineData.subreddits.map((subreddit: string) => ({
       value: `subreddit:${subreddit}`,
       metadata: {
@@ -133,7 +134,7 @@ export class RedditIntegrationService extends IntegrationServiceBase {
     const lastRecord = activities.length > 0 ? activities[activities.length - 1] : undefined
 
     // If we got results, we will want to check the next page
-    const nextPageStream: IIntegrationStream =
+    const nextPageStream: IPendingStream =
       posts.length > 0
         ? { value: stream.value, metadata: { ...(stream.metadata || {}), after: nextPage } }
         : undefined
