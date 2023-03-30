@@ -130,7 +130,9 @@ export default (moduleName, moduleService = null) => {
         }
       },
 
-      async doUpdate({ commit }, { id, values }) {
+      async doUpdate({ commit }, {
+        id, values, successMessage, errorMessage,
+      }) {
         try {
           commit('UPDATE_STARTED');
 
@@ -141,13 +143,13 @@ export default (moduleName, moduleService = null) => {
 
           commit('UPDATE_SUCCESS', response);
           Message.success(
-            i18n(`entities.${moduleName}.update.success`),
+            successMessage || i18n(`entities.${moduleName}.update.success`),
           );
 
           return response;
         } catch (error) {
           Message.error(
-            i18n(`entities.${moduleName}.update.error`),
+            errorMessage || i18n(`entities.${moduleName}.update.error`),
           );
 
           Errors.handle(error);

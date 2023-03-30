@@ -35,6 +35,7 @@
     "axios": "^0.22.0",
     "chart.js": "^3.9.1",
     "chartjs-adapter-moment": "^1.0.1",
+    "chartjs-plugin-annotation": "^2.2.1",
     "chartkick": "github:CrowdDotDev/chartkick.js",
     "core-js": "3.24.1",
     "element-plus": "^2.3.1",

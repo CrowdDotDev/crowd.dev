@@ -25,7 +25,11 @@
               {{ currentTenant.name }}
             </div>
             <h1 class="text-lg font-semibold">
-              {{ report.name }}
+              {{
+                report.isTemplate
+                  ? currentTemplate.name
+                  : report.name
+              }}
             </h1>
           </div>
 
@@ -70,11 +74,22 @@
         <div class="w-full mt-8">
           <app-report-member-template
             v-if="
-              currentTemplate.name === MEMBERS_REPORT.name
+              currentTemplate.nameAsId
+                === MEMBERS_REPORT.nameAsId
             "
             :is-public-view="true"
             :filters="{
               platform,
+              teamMembers,
+            }"
+          />
+          <app-report-product-community-fit-template
+            v-if="
+              currentTemplate.nameAsId
+                === PRODUCT_COMMUNITY_FIT_REPORT.nameAsId
+            "
+            :is-public-view="true"
+            :filters="{
               teamMembers,
             }"
           />
@@ -150,11 +165,16 @@
 import { mapState, mapGetters, mapActions } from 'vuex';
 import ReportGridLayout from '@/modules/report/components/report-grid-layout.vue';
 import AppReportMemberTemplate from '@/modules/report/pages/templates/report-member-template.vue';
+import AppReportProductCommunityFitTemplate from '@/modules/report/pages/templates/report-product-community-fit-template.vue';
 import AuthCurrentTenant from '@/modules/auth/auth-current-tenant';
 import { TenantService } from '@/modules/tenant/tenant-service';
 import AppReportTemplateFilters from '@/modules/report/components/templates/report-template-filters.vue';
 import ActivityPlatformField from '@/modules/activity/activity-platform-field';
-import { templates, MEMBERS_REPORT } from '@/modules/report/templates/template-reports';
+import {
+  MEMBERS_REPORT,
+  PRODUCT_COMMUNITY_FIT_REPORT,
+  templates,
+} from '@/modules/report/templates/template-reports';
 
 const platformField = new ActivityPlatformField(
   'activeOn',
@@ -173,6 +193,7 @@ export default {
   components: {
     'app-report-grid-layout': ReportGridLayout,
     AppReportMemberTemplate,
+    AppReportProductCommunityFitTemplate,
     AppReportTemplateFilters,
   },
 
@@ -196,6 +217,7 @@ export default {
       isHeaderOnTop: false,
       templates,
       MEMBERS_REPORT,
+      PRODUCT_COMMUNITY_FIT_REPORT,
     };
   },
 
@@ -214,7 +236,7 @@ export default {
     },
     currentTemplate() {
       return this.templates.find(
-        (t) => t.name === this.report.name,
+        (t) => t.nameAsId === this.report.name,
       );
     },
   },
@@ -268,7 +290,7 @@ export default {
     },
     onTrackFilters() {
       window.analytics.track('Filter template report', {
-        template: this.currentTemplate.name,
+        template: this.currentTemplate.nameAsId,
         public: true,
         platforms: this.platform.value.map((p) => p.value),
         includeTeamMembers: this.teamMembers,

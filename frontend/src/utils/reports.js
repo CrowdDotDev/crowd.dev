@@ -13,7 +13,9 @@ const weekdays = [
 const parseDate = (date, granularity) => {
   // For granularity MONTH
   // Show label as full month (e.g January)
-  if (granularity === 'month') {
+  if (granularity === 'year') {
+    return [date.format('YYYY')];
+  } if (granularity === 'month') {
     return [date.format('MMMM YYYY')];
   } if (granularity === 'week') {
     // For granularity WEEK
@@ -101,15 +103,15 @@ export const parseTooltipBody = (context) => {
       .format('MMMM YYYY');
     // For granularity DAY
     // Show label as day (e.g Jan 12 )
+  } else if (granularity === 'year') {
+    previousDate = date.subtract(1, 'year').format('YYYY');
   } else {
     previousDate = date.subtract(1, 'day').format('MMM DD');
   }
 
   return {
     difference,
-    growth: percDiff.toLocaleString('fullwide', {
-      maximumFractionDigits: 0,
-    }),
+    growth: Math.round(percDiff),
     previousDate,
   };
 };
