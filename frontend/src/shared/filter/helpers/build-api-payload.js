@@ -106,6 +106,8 @@ function buildAttributeBlock(attribute) {
         return acc;
       }, []),
     };
+  } if (attribute.name === 'lastEnriched') {
+    // rule = { eq: null };
   } else if (attribute.operator === 'notContains') {
     return {
       not: {
