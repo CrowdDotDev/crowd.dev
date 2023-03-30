@@ -92,8 +92,6 @@ import {
   MONTHLY_GRANULARITY_FILTER,
   SIX_MONTHS_PERIOD_FILTER,
   MONTHLY_WIDGET_PERIOD_OPTIONS,
-  ALL_TIME_PERIOD_FILTER,
-  YEARLY_GRANULARITY_FILTER,
 } from '@/modules/widget/widget-constants';
 import { mapGetters } from '@/shared/vuex/vuex.helpers';
 import { TOTAL_MONTHLY_ACTIVE_CONTRIBUTORS } from '@/modules/widget/widget-queries';
@@ -303,14 +301,7 @@ const query = computed(() => TOTAL_MONTHLY_ACTIVE_CONTRIBUTORS({
 
 const onUpdatePeriod = (updatedPeriod) => {
   period.value = updatedPeriod;
-
-  if (
-    updatedPeriod.label === ALL_TIME_PERIOD_FILTER.label
-  ) {
-    granularity.value = YEARLY_GRANULARITY_FILTER;
-  } else {
-    granularity.value = MONTHLY_GRANULARITY_FILTER;
-  }
+  granularity.value = MONTHLY_GRANULARITY_FILTER;
 };
 
 const onAverageCalculation = (calculatedAverage) => {
