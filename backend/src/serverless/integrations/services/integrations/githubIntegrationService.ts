@@ -472,7 +472,7 @@ export class GithubIntegrationService extends IntegrationServiceBase {
         sourceParentId: null,
         channel: payload.repository.html_url,
         score: type === 'star' ? GitHubGrid.star.score : GitHubGrid.unStar.score,
-        isKeyAction: GitHubGrid.star.isKeyAction,
+        isContribution: GitHubGrid.star.isContribution,
       }
     }
 
@@ -501,7 +501,7 @@ export class GithubIntegrationService extends IntegrationServiceBase {
         channel: repo.url,
         member: await GithubIntegrationService.parseMember(record.node, context),
         score: GitHubGrid.star.score,
-        isKeyAction: GitHubGrid.star.isKeyAction,
+        isContribution: GitHubGrid.star.isContribution,
       })
     }
     return out
@@ -527,7 +527,7 @@ export class GithubIntegrationService extends IntegrationServiceBase {
         sourceParentId: null,
         channel: payload.repository.html_url,
         score: GitHubGrid.fork.score,
-        isKeyAction: GitHubGrid.fork.isKeyAction,
+        isContribution: GitHubGrid.fork.isContribution,
       }
     }
     return undefined
@@ -551,7 +551,7 @@ export class GithubIntegrationService extends IntegrationServiceBase {
         channel: repo.url,
         member: await GithubIntegrationService.parseMember(record.owner, context),
         score: GitHubGrid.fork.score,
-        isKeyAction: GitHubGrid.fork.isKeyAction,
+        isContribution: GitHubGrid.fork.isContribution,
       })
     }
 
@@ -605,7 +605,7 @@ export class GithubIntegrationService extends IntegrationServiceBase {
         channel: payload.repository.html_url,
         body: pull.body,
         score: scoreGrid.score,
-        isKeyAction: scoreGrid.isKeyAction,
+        isContribution: scoreGrid.isContribution,
       }
     }
 
@@ -636,7 +636,7 @@ export class GithubIntegrationService extends IntegrationServiceBase {
         },
         member: await GithubIntegrationService.parseMember(record.author, context),
         score: GitHubGrid.pullRequestOpened.score,
-        isKeyAction: GitHubGrid.pullRequestOpened.isKeyAction,
+        isContribution: GitHubGrid.pullRequestOpened.isContribution,
       })
     }
 
@@ -704,7 +704,7 @@ export class GithubIntegrationService extends IntegrationServiceBase {
         body: comment.body,
         channel: payload.repository.html_url,
         score: GitHubGrid.comment.score,
-        isKeyAction: GitHubGrid.comment.isKeyAction,
+        isContribution: GitHubGrid.comment.isContribution,
       }
     }
 
@@ -730,7 +730,7 @@ export class GithubIntegrationService extends IntegrationServiceBase {
         channel: repo.url,
         member: await GithubIntegrationService.parseMember(record.author, context),
         score: GitHubGrid.comment.score,
-        isKeyAction: GitHubGrid.comment.isKeyAction,
+        isContribution: GitHubGrid.comment.isContribution,
       })
     }
     return out
@@ -783,7 +783,7 @@ export class GithubIntegrationService extends IntegrationServiceBase {
           state: issue.state,
         },
         score: scoreGrid.score,
-        isKeyAction: scoreGrid.isKeyAction,
+        isContribution: scoreGrid.isContribution,
       }
     }
 
@@ -814,7 +814,7 @@ export class GithubIntegrationService extends IntegrationServiceBase {
         },
         member: await GithubIntegrationService.parseMember(record.author, context),
         score: GitHubGrid.issueOpened.score,
-        isKeyAction: GitHubGrid.issueOpened.isKeyAction,
+        isContribution: GitHubGrid.issueOpened.isContribution,
       })
     }
 
@@ -840,7 +840,7 @@ export class GithubIntegrationService extends IntegrationServiceBase {
         channel: repo.url,
         member: await GithubIntegrationService.parseMember(record.author, context),
         score: GitHubGrid.comment.score,
-        isKeyAction: GitHubGrid.comment.isKeyAction,
+        isContribution: GitHubGrid.comment.isContribution,
       })
     }
     return out
@@ -885,7 +885,7 @@ export class GithubIntegrationService extends IntegrationServiceBase {
           },
         },
         score: GitHubGrid.discussionOpened.score,
-        isKeyAction: GitHubGrid.discussionOpened.isKeyAction,
+        isContribution: GitHubGrid.discussionOpened.isContribution,
       }
     }
 
@@ -923,7 +923,7 @@ export class GithubIntegrationService extends IntegrationServiceBase {
         },
         member: await GithubIntegrationService.parseMember(record.author, context),
         score: GitHubGrid.discussionOpened.score,
-        isKeyAction: GitHubGrid.discussionOpened.isKeyAction,
+        isContribution: GitHubGrid.discussionOpened.isContribution,
       })
     }
     return out
@@ -952,7 +952,7 @@ export class GithubIntegrationService extends IntegrationServiceBase {
         body: answer.body,
         url: answer.html_url,
         score: GitHubGrid.selectedAnswer.score,
-        isKeyAction: GitHubGrid.selectedAnswer.isKeyAction,
+        isContribution: GitHubGrid.selectedAnswer.isContribution,
       }
     }
 
@@ -984,9 +984,9 @@ export class GithubIntegrationService extends IntegrationServiceBase {
         },
         member: await GithubIntegrationService.parseMember(record.author, context),
         score: record.isAnswer ? GitHubGrid.selectedAnswer.score : GitHubGrid.comment.score,
-        isKeyAction: record.isAnswer
-          ? GitHubGrid.selectedAnswer.isKeyAction
-          : GitHubGrid.comment.isKeyAction,
+        isContribution: record.isAnswer
+          ? GitHubGrid.selectedAnswer.isContribution
+          : GitHubGrid.comment.isContribution,
       })
 
       for (const reply of record.replies.nodes) {
@@ -1003,7 +1003,7 @@ export class GithubIntegrationService extends IntegrationServiceBase {
           channel: repo.url,
           member,
           score: GitHubGrid.comment.score,
-          isKeyAction: GitHubGrid.comment.isKeyAction,
+          isContribution: GitHubGrid.comment.isContribution,
         })
       }
     }

@@ -1,21 +1,21 @@
 import { gridEntry } from './grid'
 
 /**
- * Class that holds the Twitter grid for scores and isKeyActions
+ * Class that holds the Twitter grid for scores and isContributions
  */
 export class TwitterGrid {
   static mention: gridEntry = {
     score: 6,
-    isKeyAction: true,
+    isContribution: true,
   }
 
   static hashtag: gridEntry = {
     score: 6,
-    isKeyAction: true,
+    isContribution: true,
   }
 
   static follow: gridEntry = {
     score: 2,
-    isKeyAction: false,
+    isContribution: false,
   }
 }

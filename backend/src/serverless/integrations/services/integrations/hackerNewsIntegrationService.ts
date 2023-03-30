@@ -146,7 +146,7 @@ export class HackerNewsIntegrationService extends IntegrationServiceBase {
       url,
       channel,
       score: HackerNewsGrid[type].score,
-      isKeyAction: HackerNewsGrid[type].isKeyAction,
+      isContribution: HackerNewsGrid[type].isContribution,
       attributes: {
         commentsCount: post.descendants,
         destinationUrl: post.url,

@@ -9,7 +9,7 @@ cube(`Members`, {
 		 	END AS time_to_first_interaction,
       ARRAY_TO_STRING(ARRAY(SELECT jsonb_object_keys(m.username)), '|') AS identities
       FROM "members" m
-      LEFT JOIN activities a ON (a."memberId" = m.id AND a."isKeyAction"=TRUE)
+      LEFT JOIN activities a ON (a."memberId" = m.id AND a."isContribution"=TRUE)
       GROUP BY m.id`,
 
   preAggregations: {

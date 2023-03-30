@@ -59,7 +59,7 @@ def test_add_activity_with_member(api: "Repository"):
         "platform": "github",
         "info": "{}",
         "crowdInfo": '{"url": "test", "body": "test", "repo": "test", "title": "Client returns different total number of entities in a non-deterministic way", "parent_url": "htest"}',  # noqa
-        "isKeyAction": True,
+        "isContribution": True,
         "score": 3,
         "sourceId": None,
         "importHash": None,

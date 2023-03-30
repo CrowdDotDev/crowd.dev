@@ -71,7 +71,7 @@ components:
             type: message
             timestamp: '2020-05-27T15:13:30.000Z'
             platform: discord
-            isKeyAction: true
+            isContribution: true
             score: 1
             sourceId: '1234'
             sourceParentId: null

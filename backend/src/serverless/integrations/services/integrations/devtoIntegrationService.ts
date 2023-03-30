@@ -263,7 +263,7 @@ export class DevtoIntegrationService extends IntegrationServiceBase {
       },
       member,
       score: DevtoGrid.comment.score,
-      isKeyAction: DevtoGrid.comment.isKeyAction,
+      isContribution: DevtoGrid.comment.isContribution,
     })
 
     for (const child of comment.children) {

@@ -21,7 +21,7 @@ class Activity(Base):
     platform = Column(String, nullable=False)
     info = Column(JSONB, default={})
     crowdInfo = Column(JSONB, default={})
-    isKeyAction = Column(Boolean, nullable=False, default=False)
+    isContribution = Column(Boolean, nullable=False, default=False)
     score = Column(Integer, default=2)
     sourceId = Column(String)
     sourceParentId = Column(String)

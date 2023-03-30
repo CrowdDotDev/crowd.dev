@@ -184,7 +184,7 @@ export class LinkedinIntegrationService extends IntegrationServiceBase {
         },
         member,
         score: LinkedInGrid.comment.score,
-        isKeyAction: LinkedInGrid.comment.isKeyAction,
+        isContribution: LinkedInGrid.comment.isContribution,
       })
 
       if (comment.childComments > 0) {
@@ -264,7 +264,7 @@ export class LinkedinIntegrationService extends IntegrationServiceBase {
         },
         member,
         score: LinkedInGrid.reaction.score,
-        isKeyAction: LinkedInGrid.reaction.isKeyAction,
+        isContribution: LinkedInGrid.reaction.isContribution,
       })
     }
 
@@ -349,7 +349,7 @@ export class LinkedinIntegrationService extends IntegrationServiceBase {
         },
         member,
         score: LinkedInGrid.comment.score,
-        isKeyAction: LinkedInGrid.comment.isKeyAction,
+        isContribution: LinkedInGrid.comment.isContribution,
       })
 
       if (comment.childComments > 0) {

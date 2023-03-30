@@ -586,6 +586,10 @@ class ConversationRepository {
       output.platform = output.activities[0].platform ?? null
       output.lastActive = output.activities[output.activities.length - 1].timestamp
       output.channel = output.activities[0].channel ? output.activities[0].channel : null
+      output.conversationStarter.display = ActivityDisplayService.getDisplayOptions(
+        output.conversationStarter,
+        SettingsRepository.getActivityTypes(options),
+      )
     }
 
     return output

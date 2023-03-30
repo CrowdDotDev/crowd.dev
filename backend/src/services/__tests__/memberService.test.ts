@@ -1561,7 +1561,7 @@ describe('MemberService tests', () => {
           label: 'positive',
           sentiment: 0.98,
         },
-        isKeyAction: true,
+        isContribution: true,
         member: returnedMember2.id,
         score: 1,
         sourceId: '#sourceId1',

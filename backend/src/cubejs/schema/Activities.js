@@ -105,10 +105,10 @@ cube(`Activities`, {
       shown: false,
     },
 
-    iskeyaction: {
-      sql: `${CUBE}."isKeyAction"`,
+    iscontribution: {
+      sql: `${CUBE}."isContribution"`,
       type: `string`,
-      shown: false,
+      shown: true,
     },
 
     parentid: {
