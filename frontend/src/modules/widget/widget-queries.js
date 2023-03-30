@@ -249,6 +249,7 @@ export const TOTAL_MONTHLY_ACTIVE_CONTRIBUTORS = ({
         dateRange: [
           moment()
             .utc()
+            .startOf('month')
             .subtract(period.value, period.granularity)
             .format('YYYY-MM-DD'),
           moment().utc().format('YYYY-MM-DD'),

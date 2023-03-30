@@ -1,5 +1,5 @@
 <template>
-  <div class="cube-widget-chart" :class="componentType">
+  <div v-if="!emptyData" class="cube-widget-chart" :class="componentType">
     <component
       :is="componentType"
       ref="chart"
@@ -7,6 +7,7 @@
       v-bind="customChartOptions"
     />
   </div>
+  <app-widget-empty v-else />
 </template>
 
 <script setup>
@@ -15,6 +16,7 @@ import {
 } from 'vue';
 import cloneDeep from 'lodash/cloneDeep';
 import { externalTooltipHandler } from '@/modules/report/tooltip';
+import AppWidgetEmpty from '@/modules/widget/components/v2/shared/widget-empty.vue';
 
 const componentType = 'area-chart';
 
@@ -47,6 +49,7 @@ const dataset = ref({});
 const loading = computed(
   () => !props.resultSet?.loadResponses,
 );
+const emptyData = ref(false);
 
 const buildSeriesDataset = (d, index) => {
   const seriesDataset = {
@@ -132,6 +135,10 @@ const series = (resultSet) => {
 
   if (hiddenDatasets.length) {
     computedSeries.push(...hiddenDatasets);
+  }
+
+  if (!computedSeries.some((s) => !!s?.data?.length)) {
+    emptyData.value = true;
   }
 
   return computedSeries;
