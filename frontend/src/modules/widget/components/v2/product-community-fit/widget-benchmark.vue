@@ -56,24 +56,24 @@
             />
           </div>
         </div>
+        <app-widget-insight v-if="!loading">
+          <template #description>
+            <span>Considering the contribution history of over
+              150,000 open-source repositories, we come to the
+              conclusion that you {{ average < 20 ? 'didn\'t achieve Early signals of Product-Community Fit' : 'had' }}
+              <span v-if="average >= 20" class="font-medium">{{ getInsightContent }}</span>{{
+                period.label === 'All time'
+                  ? ' since the beginning of your community.'
+                  : ` during the past ${pluralize(
+                    period.granularity,
+                    period.value,
+                    true,
+                  )}.`
+              }}</span>
+          </template>
+        </app-widget-insight>
       </template>
     </query-renderer>
-    <app-widget-insight>
-      <template #description>
-        <span>Considering the contribution history of over
-          150,000 open-source repositories, we come to the
-          conclusion that you had
-          <span class="font-medium">Great Product-Community Fit</span>{{
-            period.label === 'All time'
-              ? ' since the beginning of your community.'
-              : ` during the past ${pluralize(
-                period.granularity,
-                period.value,
-                true,
-              )}.`
-          }}</span>
-      </template>
-    </app-widget-insight>
   </div>
 </template>
 
@@ -114,6 +114,18 @@ const props = defineProps({
 const period = ref(SIX_MONTHS_PERIOD_FILTER);
 const granularity = ref(MONTHLY_GRANULARITY_FILTER);
 const average = ref(0);
+
+const getInsightContent = computed(() => {
+  if (average.value >= 20 && average.value <= 50) {
+    return 'Early signals of Product-Community Fit';
+  } if (average.value > 50 && average.value <= 100) {
+    return 'Strong emerging signals of Product-Community Fit';
+  } if (average.value > 100 && average.value <= 200) {
+    return 'Great Product-Community Fit';
+  }
+
+  return 'Scale beyond Product-Community Fit';
+});
 
 const benchmarkChartOptions = computed(() => chartOptions('bar', {
   clip: true,

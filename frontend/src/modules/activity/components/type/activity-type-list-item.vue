@@ -8,7 +8,7 @@
   >
     <div
       :class="{
-        'w-5/12': !module,
+        'w-5/12': !module && platform,
         'w-4/12': module === 'reports',
       }"
     >
