@@ -51,8 +51,11 @@ export const checkEnrichmentLimit = (
     }).then(() => {
       router.push('/settings?activeTab=plans');
     });
+
+    return true;
   }
-  return true;
+
+  return false;
 };
 
 export const checkEnrichmentPlan = ({
@@ -74,8 +77,11 @@ export const checkEnrichmentPlan = ({
     }).then(() => {
       router.push('/settings?activeTab=plans');
     });
+
+    return true;
   }
-  return true;
+
+  return false;
 };
 
 export const showEnrichmentSuccessMessage = ({
