@@ -155,6 +155,7 @@ export class MemberService {
     isTeamMember,
     activityTimestampFrom,
     activityTimestampTo,
+    activityIsContribution,
     orderBy,
     offset,
     limit,
@@ -167,6 +168,10 @@ export class MemberService {
       }),
       ...(isTeamMember === false && {
         'filter[isTeamMember]': isTeamMember,
+      }),
+      ...(activityIsContribution && {
+        'filter[activityIsContribution]':
+          activityIsContribution,
       }),
       'filter[isOrganization]': false,
       'filter[isBot]': false,

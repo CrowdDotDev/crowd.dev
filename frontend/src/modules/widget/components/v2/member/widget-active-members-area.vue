@@ -49,9 +49,7 @@
           v-else
           :datasets="datasets"
           :result-set="resultSet"
-          :chart-options="{
-            ...chartOptions('area'),
-          }"
+          :chart-options="widgetChartOptions"
           :granularity="granularity.value"
           @on-view-more-click="onViewMoreClick"
         />
@@ -67,7 +65,7 @@
     :show-date="true"
     :title="drawerTitle"
     :export-by-ids="true"
-    module-name="member"
+    :template="MEMBERS_REPORT.nameAsId"
     size="480px"
     @on-export="onExport"
   />
@@ -98,6 +96,8 @@ import AppWidgetLoading from '@/modules/widget/components/v2/shared/widget-loadi
 import AppWidgetError from '@/modules/widget/components/v2/shared/widget-error.vue';
 import AppWidgetDrawer from '@/modules/widget/components/v2/shared/widget-drawer.vue';
 import { MemberService } from '@/modules/member/member-service';
+import { MEMBERS_REPORT } from '@/modules/report/templates/template-reports';
+import { parseAxisLabel } from '@/utils/reports';
 
 const props = defineProps({
   filters: {
@@ -112,10 +112,15 @@ const props = defineProps({
 
 const period = ref(SEVEN_DAYS_PERIOD_FILTER);
 const granularity = ref(DAILY_GRANULARITY_FILTER);
-
 const drawerExpanded = ref();
 const drawerDate = ref();
 const drawerTitle = ref();
+
+const widgetChartOptions = chartOptions('area', {
+  xTicksCallback: (
+    value,
+  ) => parseAxisLabel(value, granularity.value.value),
+});
 
 const { doExport } = mapActions('member');
 const { cubejsApi } = mapGetters('widget');
@@ -175,6 +180,7 @@ const getActiveMembers = async ({ pagination }) => {
     isTeamMember: props.filters.teamMembers,
     activityTimestampFrom: startDate.toISOString(),
     activityTimestampTo: endDate.toISOString(),
+    activityIsContribution: null,
     orderBy: 'activityCount_DESC',
     offset: !pagination.count
       ? (pagination.currentPage - 1) * pagination.pageSize
@@ -190,7 +196,7 @@ const getActiveMembers = async ({ pagination }) => {
 // Open drawer and set title and date
 const onViewMoreClick = (date) => {
   window.analytics.track('Open report drawer', {
-    template: 'Members report',
+    template: MEMBERS_REPORT.nameAsId,
     widget: 'Active members',
     date,
     granularity: granularity.value,

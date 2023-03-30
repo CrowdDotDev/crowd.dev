@@ -1,7 +1,11 @@
 import moment from 'moment';
 
 // Add platform and team members filters to cube query filters array
-const getCubeFilters = ({ platforms, hasTeamMembers }) => {
+const getCubeFilters = ({
+  platforms,
+  hasTeamMembers,
+  isContribution,
+}) => {
   const filters = [
     {
       member: 'Members.isOrganization',
@@ -26,6 +30,15 @@ const getCubeFilters = ({ platforms, hasTeamMembers }) => {
       values: ['0'],
     });
   }
+
+  if (isContribution) {
+    filters.push({
+      member: 'Activities.iscontribution',
+      operator: 'equals',
+      values: ['1'],
+    });
+  }
+
   return filters;
 };
 
@@ -221,3 +234,34 @@ export const TOTAL_MEMBERS_FILTER = ({
     and: filters,
   };
 };
+
+// Update to correct query, when there's support in backend
+export const TOTAL_MONTHLY_ACTIVE_CONTRIBUTORS = ({
+  period,
+  granularity,
+  selectedHasTeamMembers,
+}) => ({
+  measures: ['Members.count'],
+  timeDimensions: [
+    {
+      ...(period.value
+        && period.granularity && {
+        dateRange: [
+          moment()
+            .utc()
+            .startOf('month')
+            .subtract(period.value, period.granularity)
+            .format('YYYY-MM-DD'),
+          moment().utc().format('YYYY-MM-DD'),
+        ],
+      }),
+      dimension: 'Activities.date',
+      granularity: granularity.value,
+    },
+  ],
+  filters: getCubeFilters({
+    platforms: [],
+    hasTeamMembers: selectedHasTeamMembers,
+    isContribution: true,
+  }),
+});

@@ -23,102 +23,16 @@ import {
 } from 'chart.js';
 import 'chartjs-adapter-moment';
 import { h } from 'vue';
-
-/**
- * This plugin is responsible for doing a couple of different things:
- * - Initializing chart.js (the package that we're using to render charts)
- * - Initializing chartkick (a package that we're using to easily create customized charts based on chart.js)
- * - Creating global components like <line-chart> or <pie-chart> to enhance developer experience and code quality
- */
-
-const verticalTodayLine = {
-  id: 'verticalTodayLine',
-  beforeDraw(chart, _args, options) {
-    // eslint-disable-next-line no-underscore-dangle
-    const chartType = chart.config?._config?.type;
-    const xScaleType = chart.scales?.x?.type;
-
-    // Only add vertical lines to line and bar charts
-    // Only add vertical lines to time scaled x axis
-    if (
-      (chartType === 'line' || chartType === 'bar')
-      && xScaleType === 'time'
-    ) {
-      const {
-        ctx,
-        data,
-        chartArea: { top, bottom },
-        scales: { x },
-      } = chart;
-
-      const penultimatePoint = data.labels[data.labels.length - 2];
-      const lastPoint = data.labels[data.labels.length - 1];
-
-      // Logic to add vertical line to the
-      // penultimate data point
-      ctx.save();
-
-      // Draw vertical line
-      ctx.strokeStyle = 'rgb(200,200,200)';
-      ctx.lineWidth = 0.5;
-      ctx.strokeRect(
-        x.getPixelForValue(penultimatePoint),
-        top,
-        0,
-        bottom - options.bottomMargin,
-      );
-
-      // Logic to add vertical rect
-      // between penultimate and last data point
-      const rectWidth = x.getPixelForValue(lastPoint)
-        - x.getPixelForValue(penultimatePoint);
-
-      // Draw vertical rect
-      ctx.fillStyle = 'rgb(200,200,200, 0.1)';
-      ctx.fillRect(
-        x.getPixelForValue(penultimatePoint),
-        top,
-        rectWidth,
-        bottom - options.bottomMargin,
-      );
-
-      ctx.restore();
-    }
-  },
-};
-
-const tooltipAnnotationLine = {
-  id: 'tooltipAnnotationLine',
-  beforeDraw: (chart) => {
-    // eslint-disable-next-line no-underscore-dangle
-    if (chart.tooltip?._active?.length) {
-      const {
-        ctx, data, tooltip, chartArea,
-      } = chart;
-      // eslint-disable-next-line no-underscore-dangle
-      const activeElement = tooltip._active[0];
-
-      ctx.save();
-
-      ctx.beginPath();
-      ctx.moveTo(activeElement.element.x, chartArea.top);
-      ctx.lineTo(activeElement.element.x, chartArea.bottom);
-
-      ctx.lineWidth = 32;
-
-      // If tooltip is hovered after the last two data points
-      // the highlight rect should be greyed out as well
-      const isAfterPenultimatePoint = activeElement.index >= data.labels.length - 2;
-
-      ctx.strokeStyle = isAfterPenultimatePoint
-        ? 'rgba(100,100,100, 0.05)'
-        : 'rgba(233,79,46, 0.05)';
-
-      ctx.stroke();
-      ctx.restore();
-    }
-  },
-};
+import annotationPlugin from 'chartjs-plugin-annotation';
+import {
+  backgroundChartPlugin,
+  verticalTodayBlockPlugin,
+  verticalHoverLinePlugin,
+  updateTicksLabelsPositionPlugin,
+} from './chartkick-custom-plugins';
+import {
+  CustomLogarithmicScale,
+} from './chartkick-custom-scales';
 
 Chart.register(
   LineElement,
@@ -139,8 +53,12 @@ Chart.register(
   Tooltip,
   SubTitle,
   Filler,
-  tooltipAnnotationLine,
-  verticalTodayLine,
+  verticalTodayBlockPlugin,
+  verticalHoverLinePlugin,
+  updateTicksLabelsPositionPlugin,
+  backgroundChartPlugin,
+  annotationPlugin,
+  CustomLogarithmicScale,
 );
 
 const createComponent = (app, tagName, ChartType) => {

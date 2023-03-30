@@ -44,6 +44,7 @@
                 class="app-page-spinner w-6 ml-4"
               />
             </div>
+            <slot name="description" />
           </div>
         </slot>
         <div class="flex gap-3 items-center">

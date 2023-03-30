@@ -46,14 +46,17 @@
         </div>
       </div>
     </div>
-
-    <app-widget-insight
-      :description="`We recommend speaking with these members, as they went above and beyond in the last ${pluralize(
-        selectedPeriod.granularity,
-        selectedPeriod.value,
-        true,
-      )}. They are probably eager to share their experiences and enthusiasm for your community.`"
-    />
+    <app-widget-insight>
+      <template #description>
+        <span>{{
+          `We recommend speaking with these members, as they went above and beyond in the last ${pluralize(
+            selectedPeriod.granularity,
+            selectedPeriod.value,
+            true,
+          )}. They are probably eager to share their experiences and enthusiasm for your community.`
+        }}</span>
+      </template>
+    </app-widget-insight>
   </div>
   <app-widget-drawer
     v-if="drawerExpanded"
@@ -64,7 +67,7 @@
     :export-by-ids="true"
     :period="selectedPeriod"
     :show-active-days="true"
-    module-name="member"
+    :template="MEMBERS_REPORT.nameAsId"
     size="480px"
     @on-export="onExport"
   />
@@ -72,7 +75,11 @@
 
 <script setup>
 import {
-  computed, defineProps, onMounted, ref, watch,
+  ref,
+  onMounted,
+  computed,
+  defineProps,
+  watch,
 } from 'vue';
 import pluralize from 'pluralize';
 import moment from 'moment';
@@ -87,6 +94,7 @@ import AppWidgetError from '@/modules/widget/components/v2/shared/widget-error.v
 import AppWidgetEmpty from '@/modules/widget/components/v2/shared/widget-empty.vue';
 import AppWidgetDrawer from '@/modules/widget/components/v2/shared/widget-drawer.vue';
 import { mapActions } from '@/shared/vuex/vuex.helpers';
+import { MEMBERS_REPORT } from '@/modules/report/templates/template-reports';
 
 const props = defineProps({
   platforms: {
@@ -127,6 +135,7 @@ const getActiveMembers = async (
     const response = await MemberService.listActive({
       platform: platforms,
       isTeamMember: teamMembers,
+      activityIsContribution: null,
       activityTimestampFrom: moment()
         .utc()
         .subtract(period.value, period.granularity)
@@ -160,6 +169,7 @@ const getDetailedActiveMembers = ({
 }) => MemberService.listActive({
   platform: props.platforms,
   isTeamMember: props.teamMembers,
+  activityIsContribution: null,
   activityTimestampFrom: moment()
     .utc()
     .subtract(period.value, period.granularity)
@@ -176,7 +186,7 @@ const getDetailedActiveMembers = ({
 
 const onRowClick = () => {
   window.analytics.track('Click table widget row', {
-    template: 'Members report',
+    template: MEMBERS_REPORT.nameAsId,
     widget: 'Leaderbord: Most active members',
   });
 };
@@ -184,7 +194,7 @@ const onRowClick = () => {
 // Open drawer and set title
 const handleDrawerOpen = async () => {
   window.analytics.track('Open report drawer', {
-    template: 'Members report',
+    template: MEMBERS_REPORT.nameAsId,
     widget: 'Leaderbord: Most active members',
     period: selectedPeriod.value,
   });

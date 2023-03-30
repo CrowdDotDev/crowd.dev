@@ -121,6 +121,8 @@ const handlePublicChange = async (value) => {
     values: {
       public: value,
     },
+    successMessage: `Report successfully ${value ? 'published' : 'unpublished'}`,
+    errorMessage: `There was an error ${value ? 'publishing' : 'unpublishing'} your report`,
   });
 };
 </script>

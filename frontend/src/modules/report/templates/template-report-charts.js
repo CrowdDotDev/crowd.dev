@@ -1,9 +1,4 @@
-import {
-  parseTooltipTitle,
-  formatTooltipTitle,
-  parseTooltipBody,
-} from '@/utils/reports';
-import { externalTooltipHandler } from '../tooltip';
+import { defaultChartConfig } from './template-default-config';
 
 const defaultChartOptions = (config) => ({
   legend: false,
@@ -14,6 +9,7 @@ const defaultChartOptions = (config) => ({
   loading: 'Loading...',
   empty: 'Loading...',
   library: {
+    indexAxis: config.indexAxis,
     layout: {
       padding: {
         top: 20,
@@ -22,8 +18,8 @@ const defaultChartOptions = (config) => ({
     lineTension: 0.25,
     scales: {
       x: {
-        type: 'time',
-        time: {
+        type: config.xType,
+        time: config.xType === 'time' && {
           displayFormats: {
             day: 'MMM DD, YYYY',
           },
@@ -42,122 +38,58 @@ const defaultChartOptions = (config) => ({
         },
       },
       y: {
+        type: config.yType,
+        beginAtZero: true,
+        position: config.yPosition,
+        min: config.yMin,
+        max: config.yMax,
+        suggestedMax: config.ySuggestedMax,
+        afterBuildTicks: config.yAfterBuildTicks,
         grid: {
           display: config.yLines,
+          drawOnChartArea: config.yLinesDrawOnChartArea,
           drawBorder: false,
           color: '#D1D5DB',
           borderDash: [4, 6],
           drawTicks: false,
         },
+        gridLines: {
+          drawOnChartArea: config.yLinesDrawOnChartArea,
+        },
         ticks: {
           display: config.yTicks,
+          autoSkip: config.yTicksAutoSkip,
           color: '#9CA3AF',
           padding: 8,
           font: {
             family: 'Inter',
             size: 10,
           },
+          ...(config.yMaxTicksLimit && { maxTicksLimit: config.yMaxTicksLimit }),
+          stepSize: config.yStepSize,
           callback: config.yTicksCallback,
         },
       },
+      y1: config.y1Scale,
     },
+    clip: config.clip,
+    responsive: true,
     interaction: {
       mode: 'index',
       intersect: false,
     },
     plugins: {
-      verticalTodayLine: {
-        bottomMargin: 14,
-      },
-      tooltip: {
-        position: 'nearest',
-        enabled: false,
-        external: externalTooltipHandler,
-        callbacks: {
-          title: parseTooltipTitle,
-          label: formatTooltipTitle,
-          afterLabel: parseTooltipBody,
-          footer: (context) => context[0].dataset.tooltipBtn,
-        },
-      },
-      legend: config.legend && {
-        display: true,
-        position: 'bottom',
-        align: 'center',
-        onClick: (_click, legendItem, legend) => {
-          const datasets = legend.legendItems.map(
-            (dataset) => dataset.text,
-          );
-
-          const index = datasets.indexOf(legendItem.text);
-
-          if (legend.chart.isDatasetVisible(index)) {
-            legend.chart.hide(index);
-          } else {
-            legend.chart.show(index);
-          }
-        },
-        labels: {
-          font: {
-            family: 'Inter',
-            size: 12,
-          },
-          usePointStyle: true,
-          generateLabels: (chart) => {
-            const visibility = [];
-
-            chart.data.datasets.forEach((_, i) => {
-              if (chart.isDatasetVisible(i)) {
-                visibility.push(false);
-              } else {
-                visibility.push(true);
-              }
-            });
-
-            return chart.data.datasets.map(
-              (dataset, index) => ({
-                text: dataset.label,
-                fillStyle: dataset.backgroundColor,
-                strokeStyle: dataset.borderColor,
-                lineDash: dataset.borderDash,
-                fontColor: '#6B7280',
-                pointStyle: 'line',
-                hidden: visibility[index],
-                lineWidth: 2,
-              }),
-            );
-          },
-        },
-      },
+      backgroundChart: config.backgroundChartPlugin,
+      updateTicksLabelsPosition:
+        config.updateTicksLabelsPositionPlugin,
+      annotation: config.annotationPlugin,
+      verticalHoverLine: config.verticalHoverLinePlugin,
+      verticalTodayBlock: config.verticalTodayBlockPlugin,
+      tooltip: config.tooltipPlugin,
+      legend: config.legendPlugin,
     },
   },
 });
-
-const defaultChartConfig = {
-  legend: true,
-  xTicks: true,
-  xLines: false,
-  xTicksCallback: undefined,
-  yTicks: true,
-  yLines: true,
-  yTicksCallback: undefined,
-  gradient: {
-    x0: 0,
-    y0: 150,
-    x1: 0,
-    y1: 350,
-    stops: [
-      {
-        offset: 0,
-        color: 'rgba(233, 79, 46, 0.05)',
-      },
-      {
-        offset: 1,
-        color: 'rgba(233, 79, 46, 0)',
-      },
-    ],
-  },
-};
 
 export function chartOptions(type, config) {
   const chartConfig = {

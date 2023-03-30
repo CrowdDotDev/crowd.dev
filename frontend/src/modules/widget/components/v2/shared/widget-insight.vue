@@ -14,25 +14,16 @@
         Insight
       </div>
       <div class="mt-1 text-gray-600 text-xs">
-        {{ description }}
+        <slot name="description" />
       </div>
     </div>
   </div>
 </template>
-
-<script setup>
-import { defineProps } from 'vue';
-
-defineProps({
-  description: {
-    type: String,
-    required: true,
-  },
-});
-</script>
 
 <script>
 export default {
   name: 'AppWidgetInsight',
 };
 </script>
+
+<script setup></script>

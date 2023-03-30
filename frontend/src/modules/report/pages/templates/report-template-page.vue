@@ -26,7 +26,7 @@
           class="flex flex-grow items-center justify-between"
         >
           <h1 class="text-xl font-semibold">
-            {{ report.name }}
+            {{ currentTemplate.name }}
           </h1>
           <div class="flex items-center gap-9">
             <div
@@ -67,10 +67,20 @@
       <div class="w-full mt-8">
         <app-report-member-template
           v-if="
-            currentTemplate.name === MEMBERS_REPORT.name
+            currentTemplate.nameAsId
+              === MEMBERS_REPORT.nameAsId
           "
           :filters="{
             platform,
+            teamMembers,
+          }"
+        />
+        <app-report-product-community-fit-template
+          v-if="
+            currentTemplate.nameAsId
+              === PRODUCT_COMMUNITY_FIT_REPORT.nameAsId
+          "
+          :filters="{
             teamMembers,
           }"
         />
@@ -89,15 +99,17 @@ import {
   onBeforeUnmount,
 } from 'vue';
 import { useStore } from 'vuex';
-import {
-  mapGetters,
-  mapActions,
-} from '@/shared/vuex/vuex.helpers';
 import AppReportShareButton from '@/modules/report/components/report-share-button.vue';
-import { MEMBERS_REPORT, templates } from '@/modules/report/templates/template-reports';
+import {
+  MEMBERS_REPORT,
+  PRODUCT_COMMUNITY_FIT_REPORT,
+  templates,
+} from '@/modules/report/templates/template-reports';
 import AppReportTemplateFilters from '@/modules/report/components/templates/report-template-filters.vue';
 import ActivityPlatformField from '@/modules/activity/activity-platform-field';
+import { mapActions, mapGetters } from '@/shared/vuex/vuex.helpers';
 import AppReportMemberTemplate from './report-member-template.vue';
+import AppReportProductCommunityFitTemplate from './report-product-community-fit-template.vue';
 
 const props = defineProps({
   id: {
@@ -132,7 +144,7 @@ const initialPlatformValue = {
 const platform = ref(initialPlatformValue);
 const teamMembers = ref(false);
 
-const currentTemplate = computed(() => templates.find((t) => t.name === report.value.name));
+const currentTemplate = computed(() => templates.find((t) => t.nameAsId === report.value.name));
 
 const { cubejsApi } = mapGetters('widget');
 const { getCubeToken } = mapActions('widget');
@@ -155,7 +167,7 @@ const onPlatformFilterReset = () => {
 
 const onTrackFilters = () => {
   window.analytics.track('Filter template report', {
-    template: currentTemplate.value.name,
+    template: currentTemplate.value.nameAsId,
     platforms: platform.value.value.map((p) => p.value),
     includeTeamMembers: teamMembers.value,
   });

@@ -63,7 +63,7 @@
       :fetch-fn="getActiveMembers"
       :title="drawerTitle"
       :export-by-ids="true"
-      module-name="member"
+      :template="MEMBERS_REPORT.nameAsId"
       size="480px"
       @on-export="onExport"
     />
@@ -93,6 +93,7 @@ import {
   MONTHLY_GRANULARITY_FILTER,
 } from '@/modules/widget/widget-constants';
 import { MemberService } from '@/modules/member/member-service';
+import { MEMBERS_REPORT } from '@/modules/report/templates/template-reports';
 
 const props = defineProps({
   filters: {
@@ -178,6 +179,7 @@ const getActiveMembers = async ({ pagination }) => {
   const res = await MemberService.listActive({
     platform: props.filters.platform.value,
     isTeamMember: props.filters.teamMembers,
+    activityIsContribution: null,
     activityTimestampFrom,
     activityTimestampTo: moment().utc(),
     orderBy: 'activityCount_DESC',
@@ -194,7 +196,7 @@ const getActiveMembers = async ({ pagination }) => {
 // Open drawer and set title and period
 const handleDrawerOpen = async (widget) => {
   window.analytics.track('Open report drawer', {
-    template: 'Members report',
+    template: MEMBERS_REPORT.nameAsId,
     widget: widget.title,
     period: widget.period,
   });

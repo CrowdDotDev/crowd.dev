@@ -31,7 +31,7 @@
           Default reports
         </div>
 
-        <div class="grid grid-cols-3">
+        <div class="grid grid-cols-3 gap-5">
           <app-report-template-item
             v-for="template in computedTemplates"
             :key="template.name"
@@ -114,7 +114,7 @@ export default {
 
       return this.templates.map((t) => {
         const rowTemplate = templateRows.find(
-          (r) => r.name === t.name,
+          (r) => r.name === t.nameAsId,
         );
         return {
           ...t,

@@ -55,11 +55,19 @@ const props = defineProps({
     type: Object,
     default: () => DAILY_GRANULARITY_FILTER,
   },
+  options: {
+    type: Array,
+    default: () => null,
+  },
 });
 
 const options = computed(() => {
   if (props.module === 'dashboard') {
     return DASHBOARD_PERIOD_OPTIONS;
+  }
+
+  if (props.options) {
+    return props.options;
   }
 
   const { value: granularity } = props.granularity;
