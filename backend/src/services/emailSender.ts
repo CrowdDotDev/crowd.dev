@@ -62,7 +62,7 @@ export default class EmailSender extends LoggingBase {
       templateId: this.templateId,
       dynamicTemplateData: {
         ...this.variables,
-        appHost: API_CONFIG.frontendUrl
+        appHost: API_CONFIG.frontendUrl,
       },
     } as any
 
