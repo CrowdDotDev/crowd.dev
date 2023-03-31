@@ -16,7 +16,8 @@ export interface IntegrationRun {
   delayedUntil: string | null
   processedAt: string | null
   error: any | null
-  createdAt: string | null
+  createdAt: string
+  updatedAt: string
 }
 
 export interface DbIntegrationRunCreateData {

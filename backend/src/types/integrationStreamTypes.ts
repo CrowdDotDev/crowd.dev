@@ -18,6 +18,7 @@ export interface IntegrationStream {
   error: any | null
   retries: number | null
   createdAt: string
+  updatedAt: string
 }
 
 export interface DbIntegrationStreamCreateData {
