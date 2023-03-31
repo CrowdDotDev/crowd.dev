@@ -36,7 +36,8 @@ export default class IntegrationRunRepository extends RepositoryBase<
             "delayedUntil",
             "processedAt",
             error,
-            "createdAt"  
+            "createdAt",
+            "updatedAt"
       from "integrationRuns"
       where state = :delayedState and "delayedUntil" <= now()
       order by "createdAt" desc
@@ -48,6 +49,41 @@ export default class IntegrationRunRepository extends RepositoryBase<
       },
       type: QueryTypes.SELECT,
       transaction,
+    })
+
+    return results as IntegrationRun[]
+  }
+
+  async findIntegrationsByState(states: IntegrationRunState[]): Promise<IntegrationRun[]> {
+    const seq = this.seq
+
+    const replacements: any = {}
+
+    const stateParams: string[] = states.map((state, index) => {
+      replacements[`state${index}`] = state
+      return `:state${index}`
+    })
+
+    const query = `
+      select  id,
+            "tenantId",
+            "integrationId",
+            "microserviceId",
+            onboarding,
+            state,
+            "delayedUntil",
+            "processedAt",
+            error,
+            "createdAt",
+            "updatedAt"
+      from "integrationRuns"
+      where state in (${stateParams.join(', ')})
+      order by "createdAt" desc
+    `
+
+    const results = await seq.query(query, {
+      replacements,
+      type: QueryTypes.SELECT,
     })
 
     return results as IntegrationRun[]
@@ -94,7 +130,8 @@ export default class IntegrationRunRepository extends RepositoryBase<
             "delayedUntil",
             "processedAt",
             error,
-            "createdAt"  
+            "createdAt",
+            "updatedAt"
     from "integrationRuns"
     where state in (:delayedState, :processingState, :pendingState) and ${condition}
     order by "createdAt" desc
@@ -129,7 +166,8 @@ export default class IntegrationRunRepository extends RepositoryBase<
           "delayedUntil",
           "processedAt",
           error,
-          "createdAt"          
+          "createdAt",
+          "updatedAt"
       from "integrationRuns" where id = :id;      
     `
 
@@ -189,6 +227,7 @@ export default class IntegrationRunRepository extends RepositoryBase<
       processedAt: null,
       error: null,
       createdAt: (result[0] as any).createdAt,
+      updatedAt: (result[0] as any).createdAt,
     }
   }
 
