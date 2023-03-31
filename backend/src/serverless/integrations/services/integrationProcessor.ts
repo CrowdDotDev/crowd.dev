@@ -497,6 +497,7 @@ export class IntegrationProcessor extends LoggingBase {
             metadata: s.metadata,
           }))
           const results = await this.integrationStreamRepository.bulkCreate(createStreams)
+          await this.integrationRunRepository.touch(run.id)
           streams = results.map((r) => ({
             id: r.id,
             value: r.name,
@@ -544,6 +545,7 @@ export class IntegrationProcessor extends LoggingBase {
 
           logger.trace({ streamId: stream.id }, 'Processing stream!')
           await this.integrationStreamRepository.markProcessing(stream.id)
+          await this.integrationRunRepository.touch(run.id)
           try {
             processStreamResult = await intService.processStream(stream, stepContext)
           } catch (err) {
@@ -569,6 +571,7 @@ export class IntegrationProcessor extends LoggingBase {
               stack: err.stack,
               errorString: JSON.stringify(err),
             })
+            await this.integrationRunRepository.touch(run.id)
 
             logger.error(err, { retries, streamId: stream.id }, 'Error while processing stream!')
 
@@ -598,6 +601,7 @@ export class IntegrationProcessor extends LoggingBase {
                   }))
 
                 const results = await this.integrationStreamRepository.bulkCreate(dbCreateStreams)
+                await this.integrationRunRepository.touch(run.id)
 
                 const newStreams: IIntegrationStream[] = results.map((r) => ({
                   id: r.id,
@@ -647,6 +651,7 @@ export class IntegrationProcessor extends LoggingBase {
                     name: processStreamResult.nextPageStream.value,
                     metadata: processStreamResult.nextPageStream.metadata,
                   })
+                  await this.integrationRunRepository.touch(run.id)
 
                   streams.push({
                     id: result.id,
@@ -703,6 +708,7 @@ export class IntegrationProcessor extends LoggingBase {
               }
 
               await this.integrationStreamRepository.markProcessed(stream.id)
+              await this.integrationRunRepository.touch(run.id)
             } catch (err) {
               logger.error(
                 err,
@@ -715,6 +721,8 @@ export class IntegrationProcessor extends LoggingBase {
                 stack: err.stack,
                 errorString: JSON.stringify(err),
               })
+              await this.integrationRunRepository.touch(run.id)
+
               failedStreams.push({
                 ...stream,
                 retries,

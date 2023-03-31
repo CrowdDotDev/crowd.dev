@@ -36,7 +36,8 @@ export default class IntegrationRunRepository extends RepositoryBase<
             "delayedUntil",
             "processedAt",
             error,
-            "createdAt"  
+            "createdAt",
+            "updatedAt"
       from "integrationRuns"
       where state = :delayedState and "delayedUntil" <= now()
       order by "createdAt" desc
@@ -48,6 +49,41 @@ export default class IntegrationRunRepository extends RepositoryBase<
       },
       type: QueryTypes.SELECT,
       transaction,
+    })
+
+    return results as IntegrationRun[]
+  }
+
+  async findIntegrationsByState(states: IntegrationRunState[]): Promise<IntegrationRun[]> {
+    const seq = this.seq
+
+    const replacements: any = {}
+
+    const stateParams: string[] = states.map((state, index) => {
+      replacements[`state${index}`] = state
+      return `:state${index}`
+    })
+
+    const query = `
+      select  id,
+            "tenantId",
+            "integrationId",
+            "microserviceId",
+            onboarding,
+            state,
+            "delayedUntil",
+            "processedAt",
+            error,
+            "createdAt",
+            "updatedAt"
+      from "integrationRuns"
+      where state in (${stateParams.join(', ')})
+      order by "createdAt" desc
+    `
+
+    const results = await seq.query(query, {
+      replacements,
+      type: QueryTypes.SELECT,
     })
 
     return results as IntegrationRun[]
@@ -94,7 +130,8 @@ export default class IntegrationRunRepository extends RepositoryBase<
             "delayedUntil",
             "processedAt",
             error,
-            "createdAt"  
+            "createdAt",
+            "updatedAt"
     from "integrationRuns"
     where state in (:delayedState, :processingState, :pendingState) and ${condition}
     order by "createdAt" desc
@@ -129,7 +166,8 @@ export default class IntegrationRunRepository extends RepositoryBase<
           "delayedUntil",
           "processedAt",
           error,
-          "createdAt"          
+          "createdAt",
+          "updatedAt"
       from "integrationRuns" where id = :id;      
     `
 
@@ -189,6 +227,7 @@ export default class IntegrationRunRepository extends RepositoryBase<
       processedAt: null,
       error: null,
       createdAt: (result[0] as any).createdAt,
+      updatedAt: (result[0] as any).createdAt,
     }
   }
 
@@ -298,6 +337,31 @@ export default class IntegrationRunRepository extends RepositoryBase<
         id,
         until,
         state: IntegrationRunState.DELAYED,
+      },
+      type: QueryTypes.UPDATE,
+      transaction,
+    })
+
+    if (rowCount !== 1) {
+      throw new Error(`Expected 1 row to be updated, got ${rowCount} rows instead.`)
+    }
+  }
+
+  async touch(id: string): Promise<void> {
+    const transaction = this.transaction
+
+    const seq = this.seq
+
+    const query = `
+      update "integrationRuns"
+      set "updatedAt" = now()
+      where id = :id
+    `
+
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const [_, rowCount] = await seq.query(query, {
+      replacements: {
+        id,
       },
       type: QueryTypes.UPDATE,
       transaction,

@@ -9,6 +9,7 @@ import eagleEyeEmailDigestTicks from './eagleEyeEmailDigestTicks'
 import integrationDataChecker from './integrationDataChecker'
 import refreshSampleData from './refreshSampleData'
 import cleanUpIntegrationRuns from './cleanUpIntegrationRuns'
+import checkStuckIntegrationRuns from './checkStuckIntegrationRuns'
 
 const jobs: CrowdJob[] = [
   weeklyAnalyticsEmailsCoordinator,
@@ -21,6 +22,7 @@ const jobs: CrowdJob[] = [
   integrationDataChecker,
   refreshSampleData,
   cleanUpIntegrationRuns,
+  checkStuckIntegrationRuns,
 ]
 
 export default jobs

@@ -37,7 +37,8 @@ export default class IntegrationStreamRepository extends RepositoryBase<
           "processedAt",
           error,
           retries,
-          "createdAt"
+          "createdAt",
+          "updatedAt"
       from "integrationStreams" where id = :id;      
     `
 
@@ -56,10 +57,20 @@ export default class IntegrationStreamRepository extends RepositoryBase<
     return result[0] as IntegrationStream
   }
 
-  async findByRunId(runId: string): Promise<IntegrationStream[]> {
+  async findByRunId(runId: string, state?: IntegrationStreamState): Promise<IntegrationStream[]> {
     const transaction = this.transaction
 
     const seq = this.seq
+
+    const replacements: any = {
+      runId,
+    }
+
+    let condition = `1=1`
+    if (state) {
+      condition = `"state" = :state`
+      replacements.state = state
+    }
 
     const query = `
     select id,
@@ -73,16 +84,15 @@ export default class IntegrationStreamRepository extends RepositoryBase<
           "processedAt",
           error,
           retries,
-          "createdAt"
-      from "integrationStreams" where "runId" = :runId
+          "createdAt",
+          "updatedAt"
+      from "integrationStreams" where "runId" = :runId and ${condition}
       -- we are using uuid v1 so we can sort by it
       order by "id";
     `
 
     const result = await seq.query(query, {
-      replacements: {
-        runId,
-      },
+      replacements,
       type: QueryTypes.SELECT,
       transaction,
     })
@@ -152,6 +162,7 @@ export default class IntegrationStreamRepository extends RepositoryBase<
           name: item.name,
           metadata: item.metadata || {},
           createdAt,
+          updatedAt: createdAt,
           processedAt: null,
           error: null,
           retries: null,
@@ -204,6 +215,7 @@ export default class IntegrationStreamRepository extends RepositoryBase<
       name: data.name,
       metadata: data.metadata || {},
       createdAt: (result[0] as any).createdAt,
+      updatedAt: (result[0] as any).createdAt,
       processedAt: null,
       error: null,
       retries: null,
