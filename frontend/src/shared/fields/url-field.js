@@ -1,6 +1,5 @@
 import * as yup from 'yup';
 import StringField from '@/shared/fields/string-field';
-import { i18n } from '@/i18n';
 
 function isValidUrl(rule, value, callback) {
   if (!value) {

@@ -1,205 +1,147 @@
 <template>
   <app-page-wrapper size="narrow">
     <router-link
-      class="text-gray-600 btn-link--md btn-link--secondary p-0 inline-flex items-center my-4"
+      class="text-gray-600 btn-link--md btn-link--secondary p-0 inline-flex items-center mt-1 mb-4"
       :to="{ path: '/members' }"
     >
       <i class="ri-arrow-left-s-line mr-2" />Members
     </router-link>
-    <div class="col-start-1 col-end-13">
-      <div class="mb-10">
-        <div class="flex items-center justify-between">
-          <h4>Merging suggestions</h4>
+    <h4 class="text-xl font-semibold leading-9 mb-1">
+      Merging suggestions
+    </h4>
+    <div class="text-xs text-gray-600 pb-6">
+      crowd.dev is constantly checking your community for duplicate members. Here you can check all the merging
+      suggestions.
+    </div>
+    <div class="panel">
+      <!-- Header -->
+      <header class="flex items-center justify-between pb-4">
+        <button type="button" class="btn btn--transparent btn--md" :disabled="offset <= 0" @click="fetch(offset - 1)">
+          <span class="ri-arrow-left-s-line text-lg mr-2" />
+          <span>Previous</span>
+        </button>
+        <div class="text-sm leading-5 text-gray-500">
+          {{ offset + 1 }} of {{ count }} suggestions
         </div>
-        <div class="text-xs text-gray-600 max-w-3xl">
-          crowd.dev is constantly checking your community
-          for duplicate members. Here you can check all the
-          merging suggestions.
-        </div>
-      </div>
-
-      <!-- Loading -->
-      <div v-if="loading && membersToMerge?.length === 0">
-        <div
-          class="flex items-center justify-center w-full"
+        <button
+          type="button"
+          class="btn btn--transparent btn--md"
+          :disabled="offset >= (count - 1)"
+          @click="fetch(offset + 1)"
         >
-          <div
-            v-loading="loading"
-            class="app-page-spinner h-16 w-16 !relative !min-h-fit"
-          />
-        </div>
-      </div>
+          <span>Next</span>
+          <span class="ri-arrow-right-s-line text-lg ml-2" />
+        </button>
+      </header>
 
-      <!-- Merging suggestions list -->
-      <div v-else-if="!!membersToMerge.length">
-        <p class="text-gray-500 text-sm mb-2">
-          {{ count }} suggestions
-        </p>
-        <div
-          v-for="(pair, index) in membersToMerge"
-          :key="pair[0].id + '-' + pair[1].id"
-          class="panel mb-6 !pb-0"
-        >
-          <div class="-mx-6">
-            <el-table ref="table" :data="pair" row-key="k1">
-              <el-table-column
-                label="Member"
-                min-width="150"
-              >
-                <template #default="scope">
-                  <div class="flex items-start">
-                    <div class="min-h-12">
-                      <app-avatar
-                        :entity="scope.row"
-                        size="sm"
-                        class="mr-2 mt-0.5"
-                      />
-                    </div>
-                    <div class="min-h-12 text-gray-900">
-                      <app-member-display-name
-                        :member="scope.row"
-                      />
-                      <div
-                        v-if="scope.row.attributes.bio"
-                        class="text-gray-500 text-xs pr-4"
-                      >
-                        {{
-                          scope.row.attributes.bio.default
-                        }}
-                      </div>
-                      <div
-                        v-else
-                        class="text-gray-500 text-xs pr-4"
-                      >
-                        -
-                      </div>
-                    </div>
-                  </div>
-                </template>
-              </el-table-column>
-              <el-table-column
-                label="Organization & Title"
-                width="250"
-              >
-                <template #default="scope">
-                  <app-member-organizations
-                    :member="scope.row"
-                  />
-                </template>
-              </el-table-column>
-              <el-table-column
-                label="Identities"
-                :width="channelsWidth"
-              >
-                <template #default="scope">
-                  <app-member-channels
-                    :member="scope.row"
-                  />
-                </template>
-              </el-table-column>
-              <el-table-column>
-                <template #default="scope">
-                  <div
-                    v-if="scope.row.id === pair[1].id"
-                    class="flex items-center justify-end"
-                  >
-                    <el-button
-                      class="btn btn-link btn-link--primary mr-4"
-                      :disabled="isEditLockedForSampleData"
-                      @click="makePrimary(index)"
-                    >
-                      <i
-                        class="ri-arrow-left-right-line"
-                      />
-                      <span>Make primary</span>
-                    </el-button>
-                  </div>
-                </template>
-              </el-table-column>
-            </el-table>
-            <div
-              class="flex flex-wrap w-full justify-between bg-gray-50 px-6 py-4"
-            >
-              <el-button
-                class="btn btn--transparent btn--md flex items-center"
-                @click="setViewingDetails(index)"
-              >
-                <i class="ri-eye-line text-lg" /><span>View details</span>
-              </el-button>
-              <div class="flex flex-wrap gap-3">
-                <el-button
-                  class="btn btn--bordered btn--md"
-                  :disabled="isEditLockedForSampleData"
-                  @click="handleNotMergeClick(pair)"
-                >
-                  Ignore suggestion
-                </el-button>
-                <el-button
-                  class="btn btn--primary btn--md"
-                  :disabled="isEditLockedForSampleData"
-                  @click="handleMergeClick(pair)"
-                >
-                  Merge members
-                </el-button>
+      <!-- Comparison -->
+      <div class="flex -mx-3">
+        <section v-for="(member, mi) of membersToMerge" :key="member.id" class="w-1/2 px-3">
+          <div class="rounded p-6 transition h-full" :class="{ 'bg-gray-50': primary === mi }">
+            <!-- primary member -->
+            <div class="h-13">
+              <div v-if="mi === primary" class="bg-brand-500 rounded-full py-0.5 px-2 text-white inline-block text-xs leading-5 font-medium">
+                Primary member
               </div>
+              <button v-else type="button" class="btn btn--bordered btn--sm" @click="primary = mi">
+                <span class="ri-arrow-left-right-fill text-base text-gray-600 mr-2" />
+                <span>Make primary</span>
+              </button>
+            </div>
+            <app-avatar :entity="member" class="mb-3" />
+            <div class="pb-4">
+              <h6 class="text-base text-black font-semibold" v-html="$sanitize(member.displayName)" />
+              <div
+                v-if="member.attributes.bio"
+                class="text-gray-600 leading-5 text-xs truncate h-10"
+                v-html="$sanitize(member.attributes.bio.default)"
+              />
+              <div v-else-if="membersHaveBio" class="h-10" />
+            </div>
 
-              <app-dialog
-                v-model="viewingDetails[index]"
-                title="Merging suggestion"
-                size="2extra-large"
+            <div>
+              <article class="flex items-center justify-between h-12 border-b border-gray-200">
+                <p class="text-2xs font-medium text-gray-500">
+                  Engagement level
+                </p>
+                <app-community-engagement-level :member="member" />
+              </article>
+              <article class="flex items-center justify-between h-12 border-b border-gray-200">
+                <p class="text-2xs font-medium text-gray-500">
+                  Location
+                </p>
+                <p class="text-xs text-gray-900">
+                  {{ member.attributes.location?.default || '-' }}
+                </p>
+              </article>
+              <article class="flex items-center justify-between h-12 border-b border-gray-200">
+                <p class="text-2xs font-medium text-gray-500">
+                  Organization
+                </p>
+                <app-member-organizations
+                  :member="member"
+                  :show-title="true"
+                />
+              </article>
+              <article class="flex items-center justify-between h-12 border-b border-gray-200">
+                <p class="text-2xs font-medium text-gray-500">
+                  Title
+                </p>
+              </article>
+              <article class="flex items-center justify-between h-12 border-b border-gray-200">
+                <p class="text-2xs font-medium text-gray-500">
+                  Member since
+                </p>
+                <p class="text-xs text-gray-900">
+                  {{ moment(member.joinedAt).format('YYYY-MM-DD') }}
+                </p>
+              </article>
+              <article class="flex items-center justify-between h-12 border-b border-gray-200">
+                <p class="text-2xs font-medium text-gray-500">
+                  Tags
+                </p>
+                <app-tags v-if="member.tags.length > 0" :member="member" :editable="false" />
+                <span v-else>-</span>
+              </article>
+            </div>
+            <div class="pt-5">
+              <a
+                v-for="(username, platform) in member.username"
+                :key="platform"
+                :href="identityUrl(platform, username, member)"
+                class="pb-2 pt-3 flex items-center text-gray-900 hover:text-brand-500"
+                target="_blank"
+                rel="noopener noreferrer"
               >
-                <template #actionBtn>
-                  <el-button
-                    class="btn btn--bordered btn--md"
-                    :disabled="isEditLockedForSampleData"
-                    @click="handleNotMergeClick(pair)"
-                  >
-                    Ignore suggestion
-                  </el-button>
-                  <el-button
-                    class="btn btn--primary btn--md"
-                    :disabled="isEditLockedForSampleData"
-                    @click="handleMergeClick(pair)"
-                  >
-                    Merge members
-                  </el-button>
-                </template>
-                <template #content>
-                  <div>
-                    <member-merge-suggestions-details
-                      :pair="pair"
-                      @make-primary="makePrimary(index)"
-                    />
-                  </div>
-                </template>
-              </app-dialog>
+                <img v-if="platformDetails(platform)" :src="platformDetails(platform).image" class="h5 w-5 mr-4" :alt="platform">
+                <span class="text-xs leading-5">{{ username }}</span>
+              </a>
+              <a
+                v-for="email of member.emails"
+                :key="email"
+                :href="`mailto:${email}`"
+                class="pb-2 pt-3 flex items-center text-gray-900 hover:text-brand-500"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <span class="ri-mail-line text-lg text-gray-600" />
+                <span class="text-xs leading-5">{{ email }}</span>
+              </a>
             </div>
           </div>
+        </section>
+      </div>
+      <div class="flex -mx-3 pt-8">
+        <div class="w-1/2 px-3">
+          <el-button class="btn btn--bordered btn--lg w-full" :loading="sendingIgnore" @click="ignoreSuggestion()">
+            Ignore suggestion
+          </el-button>
         </div>
-      </div>
-      <div v-else>
-        <p class="text-gray-500 text-sm mb-2">
-          0 suggestions
-        </p>
-      </div>
-
-      <!-- Load more button -->
-      <div
-        v-if="isLoadMoreVisible && !!membersToMerge?.length"
-        class="flex grow justify-center pt-4"
-      >
-        <div
-          v-if="loading"
-          v-loading="loading"
-          class="app-page-spinner h-16 w-16 !relative !min-h-fit"
-        />
-        <el-button
-          v-else
-          class="btn btn-link btn-link--primary"
-          @click="onLoadMore"
-        >
-          <i class="ri-arrow-down-line" /><span class="text-xs">Load more</span>
-        </el-button>
+        <div class="w-1/2 px-3">
+          <el-button class="btn btn--primary btn--lg w-full" :loading="sendingMerge" @click="mergeSuggestion()">
+            Merge members
+          </el-button>
+        </div>
       </div>
     </div>
   </app-page-wrapper>
@@ -207,133 +149,117 @@
 
 <script setup>
 import {
-  ref, reactive, onMounted, computed,
+  ref, onMounted, computed,
 } from 'vue';
-import AppMemberOrganizations from '@/modules/member/components/member-organizations.vue';
 import Message from '@/shared/message/message';
 import { mapGetters } from '@/shared/vuex/vuex.helpers';
-import AppMemberDisplayName from '@/modules/member/components/member-display-name.vue';
-import AppMemberChannels from '../components/member-channels.vue';
+import AppAvatar from '@/shared/avatar/avatar.vue';
+import AppCommunityEngagementLevel from '@/modules/member/components/member-engagement-level.vue';
+import AppMemberOrganizations from '@/modules/member/components/member-organizations.vue';
+import moment from 'moment';
+import AppTags from '@/modules/tag/components/tag-list.vue';
+import { CrowdIntegrations } from '@/integrations/integrations-config';
 import { MemberService } from '../member-service';
-import MemberMergeSuggestionsDetails from '../components/suggestions/member-merge-suggestions-details.vue';
 import { MemberPermissions } from '../member-permissions';
 
 const { currentTenant, currentUser } = mapGetters('auth');
 
-const membersToMerge = reactive([]);
-const channelsWidth = ref('');
-const viewingDetails = ref({});
-const limit = ref(20);
-const loading = ref(false);
-const count = ref(0);
-const isLoadMoreVisible = ref(true);
+const membersToMerge = ref([]);
+const primary = ref(0);
 const offset = ref(0);
+const count = ref(0);
+const loading = ref(false);
+
+const sendingIgnore = ref(false);
+const sendingMerge = ref(false);
 
 const isEditLockedForSampleData = computed(() => new MemberPermissions(
   currentTenant.value,
   currentUser.value,
 ).editLockedForSampleData);
 
-/**
- * Find the width of the channels column. Get the member with the most channels,
- * and return the width of the column based on the number of channels.
- * @param {string} members List of pairs of members to merge
- * @returns {string} Width of the channels column
- */
-function getChannelsWidth(members) {
-  const maxChannels = members.reduce((acc, item) => {
-    const m0Channels = Object.keys(item[0].username).length;
-    const m1Channels = Object.keys(item[1].username).length;
-    const max = Math.max(m0Channels, m1Channels);
-    return Math.max(acc, max);
-  }, 0);
+const membersHaveBio = computed(() => membersToMerge.value.some((m) => !!m.attributes.bio));
 
-  return `${90 + maxChannels * 32}px`;
-}
-
-function setViewingDetails(index) {
-  viewingDetails.value[index] = true;
-}
-
-async function onLoadMore() {
-  try {
-    loading.value = true;
-
-    const response = await MemberService.fetchMergeSuggestions(
-      limit.value,
-      offset.value,
-    );
-
-    membersToMerge.push(...response.rows);
-    count.value = response.count;
-    loading.value = false;
-    offset.value += limit.value;
-    isLoadMoreVisible.value = response.rows.length === limit.value;
-  } catch (e) {
-    Message.error(
-      'There was an error loading the merging suggestions',
-    );
+const platformDetails = (platform) => CrowdIntegrations.getConfig(platform);
+const identityUrl = (platform, username, member) => {
+  if (platform === 'hackernews') {
+    return `https://news.ycombinator.com/user?id=${username}`;
+  } if (
+    platform === 'linkedin'
+    && username.includes('private-')
+  ) {
+    return null;
   }
-}
-
-async function onFetch() {
-  // Reset
+  return member.attributes.url?.[platform];
+};
+const fetch = (page) => {
+  if (page > -1) {
+    offset.value = page;
+  }
   loading.value = true;
-  membersToMerge.splice(0, membersToMerge.length);
-  count.value = 0;
-  offset.value = 0;
 
-  await onLoadMore();
-}
+  MemberService.fetchMergeSuggestions(
+    1,
+    offset.value,
+  )
+    .then((res) => {
+      offset.value = +res.offset;
+      count.value = res.count;
+      [membersToMerge.value] = res.rows;
+    })
+    .catch(() => {
+      Message.error('There was an error fetching merge suggestion, please try again later');
+    })
+    .finally(() => {
+      loading.value = false;
+    });
+};
 
-async function handleMergeClick(members) {
-  try {
-    await MemberService.merge(members[0], members[1]);
-
-    Message.success('Members merged successfuly');
-
-    await onFetch();
-  } catch (error) {
-    console.error(error);
-
-    Message.error('There was an error merging members');
+const ignoreSuggestion = () => {
+  if (sendingIgnore.value || sendingMerge.value || loading.value) {
+    return;
   }
-}
-async function handleNotMergeClick(members) {
-  try {
-    await MemberService.addToNoMerge(members[0], members[1]);
+  sendingIgnore.value = true;
+  MemberService.addToNoMerge(...membersToMerge.value)
+    .then(() => {
+      Message.success(
+        'Merging suggestion ignored successfuly',
+      );
+      fetch();
+    })
+    .catch(() => {
+      Message.error(
+        'There was an error ignoring the merging suggestion',
+      );
+    })
+    .finally(() => {
+      sendingIgnore.value = false;
+    });
+};
 
-    Message.success(
-      'Merging suggestion ignored successfuly',
-    );
-
-    await onFetch();
-  } catch (error) {
-    Message.error(
-      'There was an error ignoring the merging suggestion',
-    );
+const mergeSuggestion = () => {
+  if (sendingIgnore.value || sendingMerge.value || loading.value) {
+    return;
   }
-}
-
-function makePrimary(index) {
-  const newToMerge = [];
-
-  membersToMerge[index].forEach((ms) => {
-    newToMerge.unshift(ms);
-  });
-
-  membersToMerge.splice(index, 1, newToMerge);
-}
+  sendingMerge.value = true;
+  MemberService.merge(
+    membersToMerge.value[primary.value],
+    membersToMerge.value[(primary.value + 1) % 2],
+  )
+    .then(() => {
+      Message.success('Members merged successfuly');
+      fetch();
+    })
+    .catch(() => {
+      Message.error('There was an error merging members');
+    })
+    .finally(() => {
+      sendingMerge.value = false;
+    });
+};
 
 onMounted(async () => {
-  await onLoadMore();
-  channelsWidth.value = getChannelsWidth(membersToMerge);
-
-  const newViewingDetails = {};
-  for (let i = 0; i < membersToMerge.length; i += 1) {
-    newViewingDetails[i] = false;
-  }
-  viewingDetails.value = newViewingDetails;
+  fetch(0);
 });
 </script>
 

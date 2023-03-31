@@ -13,7 +13,6 @@
 import {
   defineProps,
   defineEmits,
-  computed,
 } from 'vue';
 
 import AppFilterTypeSelectAsync from '@/shared/filter/components/type/filter-type-select-async.vue';
