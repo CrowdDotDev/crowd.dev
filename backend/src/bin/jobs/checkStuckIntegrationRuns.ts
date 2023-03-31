@@ -1,10 +1,10 @@
 import cronGenerator from 'cron-time-generator'
 import moment from 'moment'
+import { IntegrationStream, IntegrationStreamState } from '../../types/integrationStreamTypes'
 import { createChildLogger, createServiceChildLogger } from '../../utils/logging'
 import IntegrationRunRepository from '../../database/repositories/integrationRunRepository'
 import IntegrationStreamRepository from '../../database/repositories/integrationStreamRepository'
 import SequelizeRepository from '../../database/repositories/sequelizeRepository'
-import { IntegrationStreamState } from '../../types/integrationStreamTypes'
 import { CrowdJob } from '../../types/jobTypes'
 import { IntegrationRunState } from '../../types/integrationRunTypes'
 import { INTEGRATION_PROCESSING_CONFIG } from '../../config'
@@ -14,6 +14,21 @@ const log = createServiceChildLogger('checkStuckIntegrationRuns')
 const THRESHOLD_HOURS = 3
 
 let running = false
+
+function sortStreamsFromNewestToOldest(streams: IntegrationStream[]) {
+  streams.sort((a, b) => {
+    const aDate = moment(a.updatedAt)
+    const bDate = moment(b.updatedAt)
+
+    if (aDate.isBefore(bDate)) {
+      return 1
+    }
+    if (aDate.isAfter(bDate)) {
+      return -1
+    }
+    return 0
+  })
+}
 
 const job: CrowdJob = {
   name: 'Detect & Fix Stuck Integration Runs',
@@ -48,20 +63,7 @@ const job: CrowdJob = {
             let stuck = false
 
             if (processingStreams.length > 0) {
-              // find the newest one by updatedAt
-              processingStreams.sort((a, b) => {
-                const aDate = moment(a.updatedAt)
-                const bDate = moment(b.updatedAt)
-
-                if (aDate.isBefore(bDate)) {
-                  return 1
-                }
-                if (aDate.isAfter(bDate)) {
-                  return -1
-                }
-                return 0
-              })
-
+              sortStreamsFromNewestToOldest(processingStreams)
               const newestStream = processingStreams[0]
               const streamLastUpdatedAt = moment(newestStream.updatedAt)
               const diff = now.diff(streamLastUpdatedAt, 'hours')
@@ -84,20 +86,7 @@ const job: CrowdJob = {
                 IntegrationStreamState.PENDING,
               )
               if (pendingStreams.length > 0) {
-                // find the newest one by updatedAt
-                pendingStreams.sort((a, b) => {
-                  const aDate = moment(a.updatedAt)
-                  const bDate = moment(b.updatedAt)
-
-                  if (aDate.isBefore(bDate)) {
-                    return 1
-                  }
-                  if (aDate.isAfter(bDate)) {
-                    return -1
-                  }
-                  return 0
-                })
-
+                sortStreamsFromNewestToOldest(pendingStreams)
                 const newestStream = pendingStreams[0]
                 const streamLastUpdatedAt = moment(newestStream.updatedAt)
                 const diff = now.diff(streamLastUpdatedAt, 'hours')
@@ -122,7 +111,15 @@ const job: CrowdJob = {
                 logger.warn(
                   `Found ${notEnoughRetries.length} errored streams with not enough retries!`,
                 )
-                stuck = true
+
+                sortStreamsFromNewestToOldest(notEnoughRetries)
+                const newestStream = notEnoughRetries[0]
+                const streamLastUpdatedAt = moment(newestStream.updatedAt)
+                const diff = now.diff(streamLastUpdatedAt, 'hours')
+                if (diff >= THRESHOLD_HOURS) {
+                  logger.warn({ streamId: newestStream.id }, 'Found stuck errored stream!')
+                  stuck = true
+                }
               }
             }
 
