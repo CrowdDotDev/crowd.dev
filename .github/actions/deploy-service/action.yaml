@@ -17,7 +17,7 @@ inputs:
 runs:
   using: composite
   steps:
-    - name: Initialize staging kubernetes kubectl context
+    - name: Initialize kubernetes kubectl context
       shell: bash
       run: aws eks --region ${{ env.AWS_REGION }} update-kubeconfig --name ${{ inputs.cluster }}
       env:
