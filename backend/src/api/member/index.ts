@@ -19,6 +19,10 @@ export default (app) => {
     `/tenant/:tenantId/member/autocomplete`,
     safeWrap(require('./memberAutocomplete').default),
   )
+  app.get(
+    `/tenant/:tenantId/member/orautocomplete`,
+    safeWrap(require('./memberAutocomplete').default),
+  )
   app.get(`/tenant/:tenantId/member`, safeWrap(require('./memberList').default))
   app.get(`/tenant/:tenantId/member/active`, safeWrap(require('./memberActiveList').default))
   app.get(`/tenant/:tenantId/member/:id`, safeWrap(require('./memberFind').default))

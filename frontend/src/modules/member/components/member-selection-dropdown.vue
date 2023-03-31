@@ -8,6 +8,7 @@
     </div>
     <div class="flex w-3/5">
       <app-autocomplete-one-input
+        id="searchMembers"
         v-model="computedMemberToMerge"
         :fetch-fn="fetchFn"
         placeholder="Type to search members"
@@ -20,10 +21,15 @@
                 displayName: item.label,
                 avatar: item.avatar,
               }"
-              size="xxs"
-              class="mr-2"
+              size="xs"
+              class="mr-3"
             />
-            {{ item.label }}
+            <div class="flex flex-col justify-center">
+              <p class="text-xs leading-4.5" v-html="$sanitize(item.label)" />
+              <p v-if="item.organizations.length > 0" class="text-xxs leading-4.5 text-gray-500">
+                {{ item.organizations.map((o) => o.name).join(', ') }}
+              </p>
+            </div>
           </div>
         </template>
       </app-autocomplete-one-input>
@@ -84,8 +90,11 @@ const fetchFn = async (query, limit) => {
 };
 </script>
 
-<style>
+<style lang="scss" scoped>
 .account-icon {
   font-size: 80px;
+}
+#searchMembers .el-select-dropdown__item {
+  height: auto !important;
 }
 </style>
