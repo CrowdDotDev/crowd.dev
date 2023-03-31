@@ -347,6 +347,31 @@ export default class IntegrationRunRepository extends RepositoryBase<
     }
   }
 
+  async touch(id: string): Promise<void> {
+    const transaction = this.transaction
+
+    const seq = this.seq
+
+    const query = `
+      update "integrationRuns"
+      set "updatedAt" = now()
+      where id = :id
+    `
+
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const [_, rowCount] = await seq.query(query, {
+      replacements: {
+        id,
+      },
+      type: QueryTypes.UPDATE,
+      transaction,
+    })
+
+    if (rowCount !== 1) {
+      throw new Error(`Expected 1 row to be updated, got ${rowCount} rows instead.`)
+    }
+  }
+
   async touchState(id: string): Promise<IntegrationRunState> {
     const transaction = this.transaction
 
