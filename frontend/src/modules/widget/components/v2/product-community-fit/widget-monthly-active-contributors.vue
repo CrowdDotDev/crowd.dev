@@ -71,11 +71,9 @@ import AppWidgetTitle from '@/modules/widget/components/v2/shared/widget-title.v
 import AppWidgetPeriod from '@/modules/widget/components/v2/shared/widget-period.vue';
 import AppWidgetArea from '@/modules/widget/components/v2/shared/widget-area.vue';
 import {
-  ALL_TIME_PERIOD_FILTER,
   MONTHLY_GRANULARITY_FILTER,
   MONTHLY_WIDGET_PERIOD_OPTIONS,
   SIX_MONTHS_PERIOD_FILTER,
-  YEARLY_GRANULARITY_FILTER,
 } from '@/modules/widget/widget-constants';
 import { chartOptions } from '@/modules/report/templates/template-report-charts';
 import AppWidgetLoading from '@/modules/widget/components/v2/shared/widget-loading.vue';
@@ -227,14 +225,7 @@ const query = computed(() => TOTAL_MONTHLY_ACTIVE_CONTRIBUTORS({
 
 const onUpdatePeriod = (updatedPeriod) => {
   period.value = updatedPeriod;
-
-  if (
-    updatedPeriod.label === ALL_TIME_PERIOD_FILTER.label
-  ) {
-    granularity.value = YEARLY_GRANULARITY_FILTER;
-  } else {
-    granularity.value = MONTHLY_GRANULARITY_FILTER;
-  }
+  granularity.value = MONTHLY_GRANULARITY_FILTER;
 };
 
 // Fetch function to pass to detail drawer
