@@ -129,7 +129,7 @@ export class GithubIntegrationService extends IntegrationServiceBase {
     return context.pipelineData.repos.reduce((acc, repo) => {
       for (const endpoint of [
         GithubStreamType.STARGAZERS,
-        GithubStreamType.FORKS,
+        // GithubStreamType.FORKS,
         GithubStreamType.PULLS,
         GithubStreamType.ISSUES,
         GithubStreamType.DISCUSSIONS,
