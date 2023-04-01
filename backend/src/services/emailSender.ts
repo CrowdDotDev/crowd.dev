@@ -1,6 +1,6 @@
 import assert from 'assert'
 import sendgridMail from '@sendgrid/mail'
-import { SENDGRID_CONFIG } from '../config'
+import { API_CONFIG, SENDGRID_CONFIG } from '../config'
 import { AdvancedSuppressionManager } from './helpers/sendgridAsmType'
 import { LoggingBase } from './loggingBase'
 
@@ -60,7 +60,10 @@ export default class EmailSender extends LoggingBase {
         email: SENDGRID_CONFIG.emailFrom,
       },
       templateId: this.templateId,
-      dynamicTemplateData: this.variables,
+      dynamicTemplateData: {
+        ...this.variables,
+        appHost: API_CONFIG.frontendUrl,
+      },
     } as any
 
     if (this.tenantId) {
