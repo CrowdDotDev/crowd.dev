@@ -26,7 +26,7 @@
         <el-main class="p-6">
           <el-form
             ref="formRef"
-            class="form"
+            class="form flex-col"
             label-position="top"
             :rules="rules"
             :model="formModel"
