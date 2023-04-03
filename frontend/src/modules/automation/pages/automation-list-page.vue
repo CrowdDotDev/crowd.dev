@@ -71,12 +71,11 @@
 <script>
 import { mapGetters, mapActions } from 'vuex';
 import pluralize from 'pluralize';
-import ConfirmDialog from '@/shared/dialog/confirm-dialog';
-import { router } from '@/router';
 import { FeatureFlag } from '@/featureFlag';
 import AppAutomationListTable from '@/modules/automation/components/list/automation-list-table.vue';
 import AppWebhookForm from '@/modules/automation/components/webhooks/webhook-form.vue';
 import AppWebhookExecutionList from '@/modules/automation/components/webhooks/webhook-execution-list.vue';
+import { getWorkflowMax, showWorkflowLimitDialog } from '../automation-limit';
 
 export default {
   name: 'AppAutomationListPage',
@@ -101,6 +100,7 @@ export default {
       loading: 'automation/loading',
       filter: 'automation/filter',
       count: 'automation/count',
+      currentTenant: 'auth/currentTenant',
     }),
   },
   async created() {
@@ -140,16 +140,11 @@ export default {
       if (isFeatureEnabled) {
         this.isAutomationDrawerOpen = true;
       } else {
-        await ConfirmDialog({
-          vertical: true,
-          type: 'danger',
-          title:
-            'You have reached the limit of 2 automations on your current plan',
-          message:
-            'Upgrade your plan to get unlimited automations and take full advantage of this feature',
-          confirmButtonText: 'Upgrade plan',
-        });
-        router.push('settings?activeTab=plans');
+        const planWorkflowCountMax = getWorkflowMax(
+          this.currentTenant.plan,
+        );
+
+        showWorkflowLimitDialog({ planWorkflowCountMax });
       }
     },
     pluralize,
