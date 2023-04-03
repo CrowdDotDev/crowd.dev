@@ -1,3 +1,4 @@
+import pluralize from 'pluralize';
 import { MemberService } from '@/modules/member/member-service';
 import Errors from '@/shared/error/errors';
 import { router } from '@/router';
@@ -5,7 +6,6 @@ import Message from '@/shared/message/message';
 import { i18n } from '@/i18n';
 import { FormSchema } from '@/shared/form/form-schema';
 import sharedActions from '@/shared/store/actions';
-import ConfirmDialog from '@/shared/dialog/confirm-dialog';
 import {
   getEnrichmentMax,
   checkEnrichmentLimit,
@@ -13,6 +13,7 @@ import {
   showEnrichmentLoadingMessage,
   checkEnrichmentPlan,
 } from '@/modules/member/member-enrichment';
+import { getExportMax, showExportLimitDialog, showExportDialog } from '@/modules/member/member-export-limit';
 import { MemberModel } from '../member-model';
 
 export default {
@@ -54,33 +55,16 @@ export default {
       const currentTenant = rootGetters['auth/currentTenant'];
 
       const tenantCsvExportCount = currentTenant.csvExportCount;
-      let planCsvExportMax = 2;
-      if (currentTenant.plan === 'Growth') {
-        planCsvExportMax = 10;
-      } else if (currentTenant.plan === 'Custom') {
-        planCsvExportMax = 'unlimited';
-      }
+      const planExportCountMax = getExportMax(
+        currentTenant.plan,
+      );
 
-      await ConfirmDialog({
-        vertical: true,
-        type: 'info',
-        title: 'Export CSV',
-        message:
-          'Receive in your inbox a link to download the CSV file ',
-        icon: 'ri-file-download-line',
-        confirmButtonText: 'Send download link to e-mail',
-        cancelButtonText: 'Cancel',
-        badgeContent:
-          selected || count
-            ? `${
-              count || getters.selectedRows.length
-            } member${
-              (count || getters.selectedRows.length) === 1
-                ? ''
-                : 's'
-            }`
-            : `View: ${getters.activeView.label}`,
-        highlightedInfo: `${tenantCsvExportCount}/${planCsvExportMax} exports available in this plan used`,
+      await showExportDialog({
+        tenantCsvExportCount,
+        planExportCountMax,
+        badgeContent: selected || count
+          ? pluralize('member', count || getters.selectedRows.length, true)
+          : `View: ${getters.activeView.label}`,
       });
 
       await MemberService.export(
@@ -100,20 +84,15 @@ export default {
       );
     } catch (error) {
       commit('EXPORT_ERROR');
-
       console.error(error);
+
       if (error.response?.status === 403) {
-        await ConfirmDialog({
-          vertical: true,
-          type: 'danger',
-          title:
-            'You have reached the limit of 2 CSV exports per month on your current plan',
-          message:
-            'Upgrade your plan to get unlimited CSV exports per month and take full advantage of this feature',
-          confirmButtonText: 'Upgrade plan',
-          showCancelButton: false,
-        });
-        router.push('settings?activeTab=plans');
+        const currentTenant = rootGetters['auth/currentTenant'];
+        const planExportCountMax = getExportMax(
+          currentTenant.plan,
+        );
+
+        showExportLimitDialog({ planExportCountMax });
       } else if (error !== 'cancel') {
         Message.error(
           'An error has occured while trying to export the CSV file. Please try again',
