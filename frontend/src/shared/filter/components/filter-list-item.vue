@@ -19,8 +19,7 @@
               @click="handleOpen"
             >
               <span>
-                {{ filter.label
-                }}{{ hasValue ? ':' : '...' }}
+                {{ `${filter.label}${filter.include === false ? ' (exclude)' : ''}${hasValue ? ':' : '...'}` }}
               </span>
               <span
                 v-if="hasValue"
@@ -42,6 +41,7 @@
         v-bind="filter.props"
         v-model:value="model.value"
         v-model:operator="model.operator"
+        v-model:include="model.include"
         :default-operator="filter.defaultOperator"
         :is-expanded="filter.expanded"
         :label="filter.label"
@@ -186,6 +186,13 @@ const model = reactive({
         : props.filter.defaultOperator,
     ),
   ),
+  include: JSON.parse(
+    JSON.stringify(
+      props.filter.include
+        ? props.filter.include
+        : true,
+    ),
+  ),
 });
 
 const shouldDisableApplyButton = computed(() => {
@@ -209,6 +216,7 @@ const handleChange = () => {
     ...props.filter,
     value: JSON.parse(JSON.stringify(model.value)),
     operator: JSON.parse(JSON.stringify(model.operator)),
+    include: JSON.parse(JSON.stringify(model.include)),
     expanded: false,
   });
 };

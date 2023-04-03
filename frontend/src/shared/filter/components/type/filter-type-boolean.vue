@@ -1,4 +1,7 @@
 <template>
+  <app-include-toggle
+    v-model="includeModel"
+  />
   <div class="filter-type-select px-2 pb-4 pt-2">
     <div class="text-gray-500 mb-2 font-medium text-2xs">
       {{ label }}
@@ -44,15 +47,28 @@ const props = defineProps({
     type: Boolean,
     default: false,
   },
+  include: {
+    type: Boolean,
+    default: true,
+  },
 });
 
-const emit = defineEmits(['update:value']);
+const emit = defineEmits(['update:value', 'update:include']);
 const model = computed({
   get() {
     return props.value;
   },
   set(v) {
     emit('update:value', v);
+  },
+});
+
+const includeModel = computed({
+  get() {
+    return props.include;
+  },
+  set(v) {
+    emit('update:include', v);
   },
 });
 

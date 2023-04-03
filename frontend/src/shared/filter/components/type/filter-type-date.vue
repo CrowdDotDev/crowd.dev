@@ -1,12 +1,18 @@
 <template>
   <div class="filter-with-operator-and-input">
-    <app-inline-select-input
-      v-model="operator"
-      popper-placement="bottom-start"
-      prefix="Date:"
-      class="mb-2"
-      :options="computedOperatorOptions"
-    />
+    <div class="flex justify-between items-center">
+      <app-inline-select-input
+        v-model="operator"
+        popper-placement="bottom-start"
+        prefix="Date:"
+        class="mb-2"
+        :options="computedOperatorOptions"
+      />
+      <app-include-toggle
+        v-model="includeModel"
+        class="mt-0"
+      />
+    </div>
     <el-date-picker
       ref="inputRef"
       v-model="model"
@@ -48,11 +54,16 @@ const props = defineProps({
     type: Boolean,
     default: false,
   },
+  include: {
+    type: Boolean,
+    default: true,
+  },
 });
 
 const emit = defineEmits([
   'update:value',
   'update:operator',
+  'update:include',
 ]);
 
 const model = computed({
@@ -61,6 +72,14 @@ const model = computed({
   },
   set(v) {
     emit('update:value', v);
+  },
+});
+const includeModel = computed({
+  get() {
+    return props.include;
+  },
+  set(v) {
+    emit('update:include', v);
   },
 });
 
