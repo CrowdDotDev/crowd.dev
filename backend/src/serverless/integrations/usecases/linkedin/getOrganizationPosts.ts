@@ -33,21 +33,23 @@ export const getOrganizationPosts = async (
 
     let stop = false
 
-    const elements = response.elements.map((e) => {
-      if (lookBackUntilTs && e.createdAt <= lookBackUntilTs) {
-        stop = true
-      }
+    const elements = response.elements
+      .filter((e) => e.publishedAt !== undefined)
+      .map((e) => {
+        if (lookBackUntilTs && e.createdAt <= lookBackUntilTs) {
+          stop = true
+        }
 
-      return {
-        urnId: e.id,
-        lifecycleState: e.lifecycleState,
-        visibility: e.visibility,
-        authorUrn: e.author,
-        body: e.commentary,
-        originalUrnId: e.reshareContext?.parent,
-        timestamp: e.createdAt,
-      }
-    })
+        return {
+          urnId: e.id,
+          lifecycleState: e.lifecycleState,
+          visibility: e.visibility,
+          authorUrn: e.author,
+          body: e.commentary,
+          originalUrnId: e.reshareContext?.parent,
+          timestamp: e.createdAt,
+        }
+      })
 
     if (stop) {
       return {
