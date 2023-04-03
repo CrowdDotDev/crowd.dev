@@ -19,7 +19,7 @@
                 <span
                   v-if="membersToMergeCount > 0"
                   class="ml-2 bg-brand-100 text-brand-500 py-px px-1.5 leading-5 rounded-full font-semibold"
-                >{{ membersToMergeCount }}</span>
+                >{{ Math.ceil(membersToMergeCount) }}</span>
               </button>
             </router-link>
 

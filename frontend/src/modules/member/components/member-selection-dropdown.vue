@@ -1,38 +1,42 @@
 <template>
-  <div class="flex flex-col items-center gap-4">
-    <i
-      class="ri-account-circle-line text-gray-200 account-icon"
-    />
-    <div class="text-gray-900 text-sm">
+  <div class="pt-16">
+    <div class="flex justify-center">
+      <i
+        class="ri-account-circle-line text-gray-200 account-icon text-center h-16 flex items-center"
+      />
+    </div>
+    <div class="text-gray-600 text-sm text-center py-4">
       Select the member you want to merge with
     </div>
-    <div class="flex w-3/5">
-      <app-autocomplete-one-input
-        id="searchMembers"
-        v-model="computedMemberToMerge"
-        :fetch-fn="fetchFn"
-        placeholder="Type to search members"
-        input-class="w-full"
-      >
-        <template #option="{ item }">
-          <div class="flex items-center">
-            <app-avatar
-              :entity="{
-                displayName: item.label,
-                avatar: item.avatar,
-              }"
-              size="xs"
-              class="mr-3"
-            />
-            <div class="flex flex-col justify-center">
-              <p class="text-xs leading-4.5" v-html="$sanitize(item.label)" />
-              <p v-if="item.organizations.length > 0" class="text-xxs leading-4.5 text-gray-500">
-                {{ item.organizations.map((o) => o.name).join(', ') }}
-              </p>
+    <div class="flex justify-center">
+      <div class="flex w-4/5">
+        <app-autocomplete-one-input
+          id="searchMembers"
+          v-model="computedMemberToMerge"
+          :fetch-fn="fetchFn"
+          placeholder="Type to search members"
+          input-class="w-full"
+        >
+          <template #option="{ item }">
+            <div class="flex items-center">
+              <app-avatar
+                :entity="{
+                  displayName: item.label,
+                  avatar: item.avatar,
+                }"
+                size="xs"
+                class="mr-3"
+              />
+              <div class="flex flex-col justify-center">
+                <p class="text-xs leading-4.5" v-html="$sanitize(item.label)" />
+                <p v-if="item.organizations.length > 0" class="text-xxs leading-4.5 text-gray-500">
+                  {{ item.organizations.map((o) => o.name).join(', ') }}
+                </p>
+              </div>
             </div>
-          </div>
-        </template>
-      </app-autocomplete-one-input>
+          </template>
+        </app-autocomplete-one-input>
+      </div>
     </div>
   </div>
 </template>
@@ -45,6 +49,8 @@ import {
   defineEmits,
 } from 'vue';
 import { MemberService } from '@/modules/member/member-service';
+import AppAutocompleteOneInput from '@/shared/form/autocomplete-one-input.vue';
+import AppAvatar from '@/shared/avatar/avatar.vue';
 
 const emit = defineEmits('update:modelValue');
 const props = defineProps({
@@ -92,7 +98,7 @@ const fetchFn = async (query, limit) => {
 
 <style lang="scss" scoped>
 .account-icon {
-  font-size: 80px;
+  font-size: 64px;
 }
 #searchMembers .el-select-dropdown__item {
   height: auto !important;
