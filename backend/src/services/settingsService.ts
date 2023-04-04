@@ -63,8 +63,8 @@ class SettingsService {
       throw new Error400(options.language, 'settings.activityTypes.errors.typeRequiredWhenCreating')
     }
 
-    const settings = await this.findOrCreateDefault(options)
-    const activityChannels = settings.activityChannels
+
+    const activityChannels = await SettingsRepository.getActivityChannels(options)
     // const channelKey = getCleanString(data.channel) Maybe this is required?
 
     if (activityChannels[data.platform]) {
