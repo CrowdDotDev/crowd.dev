@@ -54,6 +54,39 @@ class SettingsService {
 
     return updated.activityTypes
   }
+  /**
+   * update activity channels after checking for duplicates with platform key
+   */
+  static async updateActivityChannels(data, options) {
+    if (!data.channel) {
+      throw new Error400(options.language, 'settings.activityTypes.errors.typeRequiredWhenCreating')
+    }
+
+    const settings  = await this.findOrCreateDefault(options)
+    let activityChannels = settings.activityChannels
+    //const channelKey = getCleanString(data.channel) Maybe this is required?
+
+
+    if(activityChannels[data.platform]) {
+      const channelList = activityChannels[data.platform]
+      if(!channelList.includes(data.channel)) {
+        const updatedChannelList = [...channelList, data.channel]
+        activityChannels[data.platform] = updatedChannelList
+      }
+    } else {
+      activityChannels[data.platform] = [data.channel]
+    }
+    const updated = await SettingsRepository.save(
+      {
+        activityChannels: activityChannels,
+      },
+      options,
+    )
+    return updated.activityChannels
+
+
+  }
+
 
   /**
    * unnest activity types with platform for easy access/manipulation

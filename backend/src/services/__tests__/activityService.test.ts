@@ -712,6 +712,78 @@ describe('ActivityService tests', () => {
       expect(activityCreated9.parentId).toBe(activityCreated5.id)
       expect(activityCreated9.conversationId).toStrictEqual(conversationCreated2.id)
     })
+
+    //Tests for checking channel logic when creating activity
+    //Settings should get updated only when a new channel is sent alog while creating activity.
+    it('Create an activity with a channel which is not present in settings', async () => {
+      const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
+      const memberCreated = await new MemberService(mockIRepositoryOptions).upsert({
+        username: {
+          [PlatformType.GITHUB]: 'test1',
+        },
+        platform: PlatformType.GITHUB,
+        joinedAt: '2020-05-27T15:13:30Z',
+      })
+
+      const activity = {
+        type: 'activity',
+        timestamp: '2020-05-27T15:13:30Z',
+        platform: PlatformType.GITHUB,
+        body: 'Body',
+        title: 'Title',
+        url: 'URL',
+        sentiment: {
+          positive: 0.98,
+          negative: 0.0,
+          neutral: 0.02,
+          mixed: 0.0,
+          label: 'positive',
+          sentiment: 0.98,
+        },
+        channel: "TestChannel",
+        attributes: {
+          replies: 12,
+        },
+        sourceId: '#sourceId',
+        isContribution: true,
+        member: memberCreated.id,
+        score: 1,
+      }
+
+      await new ActivityService(mockIRepositoryOptions).upsert(activity)
+      let settings = await SettingsRepository.findOrCreateDefault({},mockIRepositoryOptions)
+
+      expect(settings.activityChannels[activity.platform].includes(activity.channel)).toBe(0)
+
+      const activity1 = {
+        type: 'activity1',
+        timestamp: '2020-05-27T15:13:30Z',
+        platform: PlatformType.GITHUB,
+        body: 'Body',
+        title: 'Title',
+        url: 'URL',
+        sentiment: {
+          positive: 0.98,
+          negative: 0.0,
+          neutral: 0.02,
+          mixed: 0.0,
+          label: 'positive',
+          sentiment: 0.98,
+        },
+        channel: "TestChannel",
+        attributes: {
+          replies: 12,
+        },
+        sourceId: '#sourceId',
+        isContribution: true,
+        member: memberCreated.id,
+        score: 1,
+      }
+      await new ActivityService(mockIRepositoryOptions).upsert(activity)
+      settings = await SettingsRepository.findOrCreateDefault({},mockIRepositoryOptions)
+
+      expect(settings.activityChannels[activity1.platform].size).toBe(1)
+    })
   })
 
   describe('createWithMember method', () => {

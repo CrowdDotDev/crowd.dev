@@ -42,6 +42,10 @@ export default (sequelize, DataTypes) => {
           ],
         },
       },
+      activityChannels : {
+            type: DataTypes.JSONB,
+            defaultValue: {}
+      }
     },
     {
       timestamps: true,

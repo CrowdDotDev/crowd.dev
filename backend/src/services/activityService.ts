@@ -62,6 +62,14 @@ export default class ActivityService extends LoggingBase {
         await SettingsService.createActivityType({ type: data.type }, this.options, data.platform)
       }
 
+      // check if channel exists in settings for respective platform. If not, update by adding channel to settings
+      if (
+          data.platform &&
+          data.channel
+        ) {
+          await SettingsService.updateActivityChannels(data, this.options)
+        }
+
       // If a sourceParentId is sent, try to find it in our db
       if ('sourceParentId' in data && data.sourceParentId) {
         const parent = await ActivityRepository.findOne(

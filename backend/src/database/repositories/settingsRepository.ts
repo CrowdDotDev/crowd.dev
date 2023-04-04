@@ -75,6 +75,10 @@ export default class SettingsRepository {
     return activityTypes
   }
 
+  static getActivityChannels(options: IRepositoryOptions) {
+    return options.currentTenant?.settings[0]?.activityChannels
+  }
+
   static getActivityTypes(options: IRepositoryOptions): ActivityTypeSettings {
     return options.currentTenant?.settings[0]?.dataValues.activityTypes
   }
