@@ -1,5 +1,6 @@
 <template>
   <app-include-toggle
+    v-if="!isCustom"
     v-model="includeModel"
   />
   <div class="filter-type-select filter-content-wrapper">
@@ -45,6 +46,10 @@ const props = defineProps({
     default: () => [],
   },
   isExpanded: {
+    type: Boolean,
+    default: false,
+  },
+  isCustom: {
     type: Boolean,
     default: false,
   },

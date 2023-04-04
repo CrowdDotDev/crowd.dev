@@ -44,6 +44,7 @@
         v-model:include="model.include"
         :default-operator="filter.defaultOperator"
         :is-expanded="filter.expanded"
+        :is-custom="filter.custom"
         :label="filter.label"
       >
         <template

@@ -1,5 +1,6 @@
 <template>
   <app-include-toggle
+    v-if="!isCustom"
     v-model="includeModel"
     class="-ml-4"
   />
@@ -80,6 +81,10 @@ const props = defineProps({
     default: () => [],
   },
   isExpanded: {
+    type: Boolean,
+    default: false,
+  },
+  isCustom: {
     type: Boolean,
     default: false,
   },

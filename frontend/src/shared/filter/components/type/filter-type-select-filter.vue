@@ -3,6 +3,7 @@
     <app-filter-type-select-async
       :fetch-fn="fetchFn"
       :is-expanded="props.isExpanded"
+      :is-custom="props.isCustom"
       :value="props.value"
       @update:value="emit('update:value', $event)"
     />
@@ -28,6 +29,10 @@ const props = defineProps({
     default: () => [],
   },
   isExpanded: {
+    type: Boolean,
+    default: false,
+  },
+  isCustom: {
     type: Boolean,
     default: false,
   },
