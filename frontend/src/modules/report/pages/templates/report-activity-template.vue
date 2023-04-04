@@ -9,6 +9,9 @@
       <app-widget-activities-kpi
         :filters="filters"
       />
+      <app-widget-new-activities
+        :filters="filters"
+      />
     </div>
   </div>
 </template>
@@ -16,6 +19,7 @@
 <script setup>import { computed, onMounted } from 'vue';
 import { mapActions, mapGetters } from '@/shared/vuex/vuex.helpers';
 import AppWidgetActivitiesKpi from '@/modules/widget/components/v2/activity/widget-activities-kpi.vue';
+import AppWidgetNewActivities from '@/modules/widget/components/v2/activity/widget-new-activities.vue';
 
 defineProps({
   filters: {

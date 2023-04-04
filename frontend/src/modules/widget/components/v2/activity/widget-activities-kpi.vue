@@ -111,7 +111,7 @@ const widgets = computed(() => [
   },
 ]);
 
-const kpiCurrentValue = (resultSet, widget) => {
+const kpiCurrentValue = (resultSet) => {
   if (resultSet.loadResponses[0].data.length === 0) {
     // if we get an empty data points array from cube
     return 0;
