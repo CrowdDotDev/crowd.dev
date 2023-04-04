@@ -4,6 +4,7 @@ import moment from 'moment';
 const getCubeFilters = ({
   platforms,
   hasTeamMembers,
+  hasTeamActivities,
   isContribution,
 }) => {
   const filters = [
@@ -22,8 +23,8 @@ const getCubeFilters = ({
     });
   }
 
-  // Only add filter if team members are excluded
-  if (hasTeamMembers === false) {
+  // Only add filter if team members or team activities are excluded
+  if (hasTeamMembers === false || hasTeamActivities === false) {
     filters.push({
       member: 'Members.isTeamMember',
       operator: 'equals',
@@ -263,5 +264,31 @@ export const TOTAL_MONTHLY_ACTIVE_CONTRIBUTORS = ({
     platforms: [],
     hasTeamMembers: selectedHasTeamMembers,
     isContribution: true,
+  }),
+});
+
+export const ACTIVITIES_QUERY = ({
+  period,
+  granularity,
+  selectedPlatforms,
+  selectedHasTeamActivities,
+}) => ({
+  measures: ['Activities.count'],
+  timeDimensions: [
+    {
+      dateRange: [
+        moment()
+          .utc()
+          .subtract(period.value, period.granularity)
+          .format('YYYY-MM-DD'),
+        moment().utc().format('YYYY-MM-DD'),
+      ],
+      dimension: 'Activities.date',
+      granularity: granularity.value,
+    },
+  ],
+  filters: getCubeFilters({
+    platforms: selectedPlatforms,
+    hasTeamActivities: selectedHasTeamActivities,
   }),
 });

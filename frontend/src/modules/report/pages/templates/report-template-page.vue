@@ -54,10 +54,12 @@
       <app-report-template-filters
         v-model:platform="platform"
         v-model:team-members="teamMembers"
+        v-model:team-activities="teamActivities"
         :show-platform="currentTemplate.filters.platform"
         :show-team-members="
           currentTemplate.filters.teamMembers
         "
+        :show-team-activities="currentTemplate.filters.teamActivities"
         @open="onPlatformFilterOpen"
         @reset="onPlatformFilterReset"
         @track-filters="onTrackFilters"
@@ -76,12 +78,19 @@
           }"
         />
         <app-report-product-community-fit-template
-          v-if="
+          v-else-if="
             currentTemplate.nameAsId
               === PRODUCT_COMMUNITY_FIT_REPORT.nameAsId
           "
           :filters="{
             teamMembers,
+          }"
+        />
+        <app-report-activity-template
+          v-else-if="currentTemplate.nameAsId === ACTIVITIES_REPORT.nameAsId"
+          :filters="{
+            platform,
+            teamActivities,
           }"
         />
       </div>
@@ -103,6 +112,7 @@ import AppReportShareButton from '@/modules/report/components/report-share-butto
 import {
   MEMBERS_REPORT,
   PRODUCT_COMMUNITY_FIT_REPORT,
+  ACTIVITIES_REPORT,
   templates,
 } from '@/modules/report/templates/template-reports';
 import AppReportTemplateFilters from '@/modules/report/components/templates/report-template-filters.vue';
@@ -110,6 +120,7 @@ import ActivityPlatformField from '@/modules/activity/activity-platform-field';
 import { mapActions, mapGetters } from '@/shared/vuex/vuex.helpers';
 import AppReportMemberTemplate from './report-member-template.vue';
 import AppReportProductCommunityFitTemplate from './report-product-community-fit-template.vue';
+import AppReportActivityTemplate from './report-activity-template.vue';
 
 const props = defineProps({
   id: {
@@ -144,6 +155,7 @@ const initialPlatformValue = {
 
 const platform = ref(initialPlatformValue);
 const teamMembers = ref(false);
+const teamActivities = ref(false);
 
 const currentTemplate = computed(() => templates.find((t) => t.nameAsId === report.value.name));
 
@@ -171,6 +183,7 @@ const onTrackFilters = () => {
     template: currentTemplate.value.nameAsId,
     platforms: platform.value.value.map((p) => p.value),
     includeTeamMembers: teamMembers.value,
+    includeTeamActivities: teamActivities.value,
   });
 };
 

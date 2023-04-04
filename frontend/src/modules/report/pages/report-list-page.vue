@@ -112,6 +112,8 @@ export default {
         (r) => r.isTemplate,
       );
 
+      // List all templates that exist in the backend
+      // (have an id)
       return this.templates.map((t) => {
         const rowTemplate = templateRows.find(
           (r) => r.name === t.nameAsId,
@@ -121,7 +123,7 @@ export default {
           public: rowTemplate?.public || false,
           id: rowTemplate?.id,
         };
-      });
+      }).filter((t) => !!t.id);
     },
     customReportsCount() {
       return this.count - this.computedTemplates.length;

@@ -57,10 +57,12 @@
           v-if="report.isTemplate"
           v-model:platform="platform"
           v-model:team-members="teamMembers"
+          v-model:team-activities="teamActivities"
           :show-platform="currentTemplate.filters?.platform"
           :show-team-members="
             currentTemplate.filters?.teamMembers
           "
+          :show-team-activities="currentTemplate.filters.teamActivities"
           @open="onPlatformFilterOpen"
           @reset="onPlatformFilterReset"
           @track-filters="onTrackFilters"
@@ -84,13 +86,20 @@
             }"
           />
           <app-report-product-community-fit-template
-            v-if="
+            v-else-if="
               currentTemplate.nameAsId
                 === PRODUCT_COMMUNITY_FIT_REPORT.nameAsId
             "
             :is-public-view="true"
             :filters="{
               teamMembers,
+            }"
+          />
+          <app-report-activity-template
+            v-else-if="currentTemplate.name === ACTIVITIES_REPORT.nameAsId"
+            :filters="{
+              platform,
+              teamActivities,
             }"
           />
         </div>
@@ -169,10 +178,12 @@ import AppReportProductCommunityFitTemplate from '@/modules/report/pages/templat
 import AuthCurrentTenant from '@/modules/auth/auth-current-tenant';
 import { TenantService } from '@/modules/tenant/tenant-service';
 import AppReportTemplateFilters from '@/modules/report/components/templates/report-template-filters.vue';
+import AppReportActivityTemplate from '@/modules/report/pages/templates/report-activity-template.vue';
 import ActivityPlatformField from '@/modules/activity/activity-platform-field';
 import {
   MEMBERS_REPORT,
   PRODUCT_COMMUNITY_FIT_REPORT,
+  ACTIVITIES_REPORT,
   templates,
 } from '@/modules/report/templates/template-reports';
 
@@ -195,6 +206,7 @@ export default {
     'app-report-grid-layout': ReportGridLayout,
     AppReportMemberTemplate,
     AppReportProductCommunityFitTemplate,
+    AppReportActivityTemplate,
     AppReportTemplateFilters,
   },
 
@@ -215,10 +227,12 @@ export default {
       currentTenant: null,
       platform: initialPlatformValue,
       teamMembers: false,
+      teamActivities: false,
       isHeaderOnTop: false,
       templates,
       MEMBERS_REPORT,
       PRODUCT_COMMUNITY_FIT_REPORT,
+      ACTIVITIES_REPORT,
     };
   },
 
@@ -295,6 +309,7 @@ export default {
         public: true,
         platforms: this.platform.value.map((p) => p.value),
         includeTeamMembers: this.teamMembers,
+        includeTeamActivities: this.teamActivities,
       });
     },
     onPageScroll() {

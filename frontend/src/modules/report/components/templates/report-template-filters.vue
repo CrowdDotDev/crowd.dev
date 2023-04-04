@@ -53,6 +53,19 @@
           @change="onTeamMembersChange"
         />
       </div>
+
+      <div
+        v-if="showTeamActivities"
+        class="flex gap-2 items-center"
+      >
+        <el-switch
+          class="switch-filter !ml-0"
+          :model-value="teamActivities"
+          size="small"
+          active-text="Include team activities"
+          @change="onTeamActivitiesChange"
+        />
+      </div>
     </div>
   </div>
 </template>
@@ -65,6 +78,7 @@ import { CrowdIntegrations } from '@/integrations/integrations-config';
 const emit = defineEmits([
   'update:platform',
   'update:teamMembers',
+  'update:teamActivities',
   'trackFilters',
   'reset',
   'open',
@@ -78,6 +92,10 @@ const props = defineProps({
     type: Boolean,
     defaul: null,
   },
+  teamActivities: {
+    type: Boolean,
+    defaul: null,
+  },
   showPlatform: {
     type: Boolean,
     defaul: true,
@@ -85,6 +103,10 @@ const props = defineProps({
   showTeamMembers: {
     type: Boolean,
     defaul: true,
+  },
+  showTeamActivities: {
+    type: Boolean,
+    defaul: false,
   },
 });
 
@@ -107,6 +129,10 @@ const onPlatformReset = () => {
 };
 const onTeamMembersChange = (value) => {
   emit('update:teamMembers', value);
+  emit('trackFilters');
+};
+const onTeamActivitiesChange = (value) => {
+  emit('update:teamActivities', value);
   emit('trackFilters');
 };
 
