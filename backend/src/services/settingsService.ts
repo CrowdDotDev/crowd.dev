@@ -54,6 +54,7 @@ class SettingsService {
 
     return updated.activityTypes
   }
+
   /**
    * update activity channels after checking for duplicates with platform key
    */
@@ -63,8 +64,8 @@ class SettingsService {
     }
 
     const settings  = await this.findOrCreateDefault(options)
-    let activityChannels = settings.activityChannels
-    //const channelKey = getCleanString(data.channel) Maybe this is required?
+    const activityChannels = settings.activityChannels
+    // const channelKey = getCleanString(data.channel) Maybe this is required?
 
 
     if(activityChannels[data.platform]) {
@@ -78,7 +79,7 @@ class SettingsService {
     }
     const updated = await SettingsRepository.save(
       {
-        activityChannels: activityChannels,
+        activityChannels,
       },
       options,
     )
