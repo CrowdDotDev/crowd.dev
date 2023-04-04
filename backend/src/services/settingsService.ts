@@ -66,8 +66,7 @@ class SettingsService {
       )
     }
 
-    const activityChannels = await SettingsRepository.getActivityChannels(options)
-    // const channelKey = getCleanString(data.channel) Maybe this is required?
+    const activityChannels = SettingsRepository.getActivityChannels(options)
 
     if (activityChannels[data.platform]) {
       const channelList = activityChannels[data.platform]
