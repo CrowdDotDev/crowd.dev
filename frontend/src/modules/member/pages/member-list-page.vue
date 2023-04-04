@@ -8,12 +8,13 @@
           </h4>
           <div class="flex items-center">
             <router-link
-              class=" mr-4"
+              class=" mr-4 "
+              :class="{ 'pointer-events-none': isEditLockedForSampleData }"
               :to="{
                 name: 'memberMergeSuggestions',
               }"
             >
-              <button type="button" class="btn btn--bordered btn--md flex items-center">
+              <button :disabled="isEditLockedForSampleData" type="button" class="btn btn--bordered btn--md flex items-center">
                 <span class="ri-shuffle-line text-base mr-2 text-gray-900" />
                 <span class="text-gray-900">Merge suggestions</span>
                 <span
@@ -115,6 +116,13 @@ export default {
         this.currentTenant,
         this.currentUser,
       ).createLockedForSampleData;
+    },
+
+    isEditLockedForSampleData() {
+      return new MemberPermissions(
+        this.currentTenant,
+        this.currentUser,
+      ).editLockedForSampleData;
     },
   },
 

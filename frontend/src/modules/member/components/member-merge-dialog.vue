@@ -11,7 +11,7 @@
             <app-member-suggestions-details
               v-if="props.modelValue"
               :member="props.modelValue"
-              :extend-bio="membersHaveBio"
+              :compare-member="memberToMerge"
               :is-primary="originalMemberPrimary"
               @make-primary="originalMemberPrimary = true"
             />
@@ -19,26 +19,26 @@
           <div class="w-1/2 px-3">
             <app-member-selection-dropdown
               v-if="memberToMerge === null"
-              :id="props.member?.id"
+              :id="props.modelValue?.id"
               v-model="memberToMerge"
               style="margin-right: 5px"
             />
             <app-member-suggestions-details
               v-else
               :member="memberToMerge"
-              :extend-bio="membersHaveBio"
+              :compare-member="props.modelValue"
               :is-primary="!originalMemberPrimary"
               @make-primary="originalMemberPrimary = false"
             >
               <template #action>
-                <el-button
-                  class="btn btn--transparent btn--sm"
+                <button
+                  class="btn btn--transparent btn--sm leading-5 !px-4 !py-1"
                   type="button"
                   @click="memberToMerge = null; originalMemberPrimary = true"
                 >
                   <span class="ri-refresh-line text-base text-brand-500 mr-2" />
                   <span class="text-brand-500">Change member</span>
-                </el-button>
+                </button>
               </template>
             </app-member-suggestions-details>
           </div>
@@ -88,10 +88,6 @@ const originalMemberPrimary = ref(true);
 const sendingMerge = ref(false);
 
 const memberToMerge = ref(null);
-
-const membersHaveBio = computed(() => (
-  [props.modelValue.value, memberToMerge.value].filter((m) => !!m)
-).some((m) => !!m.attributes.bio));
 
 const isModalOpen = computed({
   get() {

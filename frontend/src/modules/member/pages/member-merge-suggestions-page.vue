@@ -39,7 +39,10 @@
       <!-- Comparison -->
       <!-- Loading -->
       <div v-if="loading" class="flex -mx-3">
-        <div v-for="n in 2" :key="n" class="w-1/2 px-3">
+        <div class="w-1/2 px-3">
+          <app-member-merge-suggestions-details member="null" :loading="true" :is-primary="true" />
+        </div>
+        <div class="w-1/2 px-3">
           <app-member-merge-suggestions-details member="null" :loading="true" />
         </div>
       </div>
@@ -47,9 +50,11 @@
         <div v-for="(member, mi) of membersToMerge" :key="member.id" class="w-1/2 px-3">
           <app-member-merge-suggestions-details
             :member="member"
+            :compare-member="membersToMerge[(mi + 1) % membersToMerge.length]"
             :is-primary="mi === primary"
-            :extend-bio="membersHaveBio"
+            :extend-bio="bioHeight"
             @make-primary="primary = mi"
+            @bio-height="$event > bioHeight ? bioHeight = $event : null"
           />
         </div>
       </div>
@@ -114,14 +119,15 @@ const loading = ref(false);
 const sendingIgnore = ref(false);
 const sendingMerge = ref(false);
 
+const bioHeight = ref(0);
+
 const isEditLockedForSampleData = computed(() => new MemberPermissions(
   currentTenant.value,
   currentUser.value,
 ).editLockedForSampleData);
 
-const membersHaveBio = computed(() => membersToMerge.value.some((m) => !!m.attributes.bio));
-
 const fetch = (page) => {
+  primary.value = 0;
   if (page > -1) {
     offset.value = page;
   }
