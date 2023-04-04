@@ -740,7 +740,7 @@ describe('ActivityService tests', () => {
           label: 'positive',
           sentiment: 0.98,
         },
-        channel: "TestChannel",
+        channel: 'TestChannel',
         attributes: {
           replies: 12,
         },
@@ -751,7 +751,7 @@ describe('ActivityService tests', () => {
       }
 
       await new ActivityService(mockIRepositoryOptions).upsert(activity)
-      const settings = await SettingsRepository.findOrCreateDefault({},mockIRepositoryOptions)
+      const settings = await SettingsRepository.findOrCreateDefault({}, mockIRepositoryOptions)
 
       expect(settings.activityChannels[activity.platform].includes(activity.channel)).toBe(true)
     })
@@ -780,7 +780,7 @@ describe('ActivityService tests', () => {
           label: 'positive',
           sentiment: 0.98,
         },
-        channel: "TestChannel",
+        channel: 'TestChannel',
         attributes: {
           replies: 12,
         },
@@ -791,7 +791,7 @@ describe('ActivityService tests', () => {
       }
 
       await new ActivityService(mockIRepositoryOptions).upsert(activity)
-      let settings = await SettingsRepository.findOrCreateDefault({},mockIRepositoryOptions)
+      let settings = await SettingsRepository.findOrCreateDefault({}, mockIRepositoryOptions)
       const activity1 = {
         type: 'activity1',
         timestamp: '2020-05-27T15:13:30Z',
@@ -807,7 +807,7 @@ describe('ActivityService tests', () => {
           label: 'positive',
           sentiment: 0.98,
         },
-        channel: "TestChannel",
+        channel: 'TestChannel',
         attributes: {
           replies: 12,
         },
@@ -817,8 +817,8 @@ describe('ActivityService tests', () => {
         score: 1,
       }
       await new ActivityService(mockIRepositoryOptions).upsert(activity)
-      settings = await SettingsRepository.findOrCreateDefault({},mockIRepositoryOptions)
-      console.log("Hhoho", settings)
+      settings = await SettingsRepository.findOrCreateDefault({}, mockIRepositoryOptions)
+      console.log('Hhoho', settings)
       expect(settings.activityChannels[activity1.platform].length).toBe(1)
     })
   })

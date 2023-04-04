@@ -63,14 +63,13 @@ class SettingsService {
       throw new Error400(options.language, 'settings.activityTypes.errors.typeRequiredWhenCreating')
     }
 
-    const settings  = await this.findOrCreateDefault(options)
+    const settings = await this.findOrCreateDefault(options)
     const activityChannels = settings.activityChannels
     // const channelKey = getCleanString(data.channel) Maybe this is required?
 
-
-    if(activityChannels[data.platform]) {
+    if (activityChannels[data.platform]) {
       const channelList = activityChannels[data.platform]
-      if(!channelList.includes(data.channel)) {
+      if (!channelList.includes(data.channel)) {
         const updatedChannelList = [...channelList, data.channel]
         activityChannels[data.platform] = updatedChannelList
       }
@@ -84,10 +83,7 @@ class SettingsService {
       options,
     )
     return updated.activityChannels
-
-
   }
-
 
   /**
    * unnest activity types with platform for easy access/manipulation
