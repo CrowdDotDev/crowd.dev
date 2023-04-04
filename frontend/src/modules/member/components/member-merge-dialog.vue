@@ -34,7 +34,7 @@
                 <button
                   class="btn btn--transparent btn--sm leading-5 !px-4 !py-1"
                   type="button"
-                  @click="memberToMerge = null; originalMemberPrimary = true"
+                  @click="changeMember()"
                 >
                   <span class="ri-refresh-line text-base text-brand-500 mr-2" />
                   <span class="text-brand-500">Change member</span>
@@ -98,6 +98,11 @@ const isModalOpen = computed({
     memberToMerge.value = null;
   },
 });
+
+const changeMember = () => {
+  memberToMerge.value = null;
+  originalMemberPrimary.value = true;
+};
 
 const mergeSuggestion = () => {
   if (sendingMerge.value) {

@@ -1463,7 +1463,7 @@ where m."deletedAt" is null
           model: options.database.organization,
           attributes: ['id', 'name'],
           as: 'organizations',
-        }
+        },
       ],
     })
 
@@ -1474,7 +1474,7 @@ where m."deletedAt" is null
       avatar: record.attributes?.avatarUrl?.default || null,
       organizations: record.organizations.map((org) => ({
         id: org.id,
-        name: org.name
+        name: org.name,
       })),
     }))
   }
