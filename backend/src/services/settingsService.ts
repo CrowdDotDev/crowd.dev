@@ -60,9 +60,11 @@ class SettingsService {
    */
   static async updateActivityChannels(data, options) {
     if (!data.channel) {
-      throw new Error400(options.language, 'settings.activityTypes.errors.typeRequiredWhenCreating')
+      throw new Error400(
+        options.language,
+        'settings.activityChannels.errors.typeRequiredWhenCreating',
+      )
     }
-
 
     const activityChannels = await SettingsRepository.getActivityChannels(options)
     // const channelKey = getCleanString(data.channel) Maybe this is required?
