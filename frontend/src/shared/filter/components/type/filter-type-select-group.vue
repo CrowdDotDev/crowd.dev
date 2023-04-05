@@ -25,7 +25,7 @@
           handleOptionClick(nestedOption, option.label)
         "
       >
-        <div class="first-letter:uppercase">
+        <div>
           {{ nestedOption.label }}
         </div>
         <i

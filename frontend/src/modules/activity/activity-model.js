@@ -10,6 +10,7 @@ import JsonField from '@/shared/fields/json-field';
 import SearchField from '@/shared/fields/search-field';
 import SentimentField from '@/shared/fields/sentiment-field';
 import ActivityDateField from '@/shared/fields/activity-date-field';
+import ActivityChannelsField from '@/shared/fields/activity-channels-field';
 import ActivityPlatformField from './activity-platform-field';
 import ActivityTypeField from './activity-type-field';
 
@@ -83,6 +84,13 @@ const fields = {
   sentiment: new SentimentField('sentiment', 'Sentiment', {
     filterable: true,
   }),
+  activityChannels: new ActivityChannelsField(
+    'channel',
+    'Activity Channels',
+    {
+      filterable: true,
+    },
+  ),
 };
 
 export class ActivityModel extends GenericModel {
