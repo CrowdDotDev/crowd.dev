@@ -36,6 +36,9 @@ export default class ActivityChannelsField extends JSONField {
       props: {
         options: this.dropdownOptions(),
         multiple: false,
+        searchable: true,
+        searchPlaceholder: 'Search for channels',
+        searchEmpty: 'No channels found',
       },
       defaultValue: null,
       value: null,
