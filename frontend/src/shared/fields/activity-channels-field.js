@@ -1,41 +1,29 @@
 import JSONField from '@/shared/fields/json-field';
 import { store } from '@/store';
 import { CrowdIntegrations } from '@/integrations/integrations-config';
+import { computed } from 'vue';
+import { extractRepoNameFromUrl } from '@/utils/string';
 
 export default class ActivityChannelsField extends JSONField {
   constructor(name, label, config = {}) {
     super(name, label);
 
-    this.placeholder = config.placeholder;
-    this.hint = config.hint;
-    this.required = config.required;
-    this.matches = config.matches;
     this.filterable = config.filterable || false;
     this.custom = config.custom || false;
-    this.fromMembers = config.fromMembers || false;
   }
 
   dropdownOptions() {
-    const activityChannels = store.getters['auth/currentTenant'].settings[0].activityChannels || {};
+    const activityChannels = computed(() => store.getters['auth/currentTenant'].settings[0].activityChannels || {});
 
-    const extractRepoNameFromUrl = (url) => {
-      const regex = /^https?:\/\/github\.com\/(.+?)\/(.+?)(?:\.git)?$/;
-      const match = url.match(regex);
-      if (match) {
-        return match[2];
-      }
-      return url;
-    };
-
-    return Object.entries(activityChannels).map(([key, value]) => ({
+    return Object.entries(activityChannels.value).map(([platform, channels]) => ({
       label: {
         type: 'platform',
-        key,
-        value: CrowdIntegrations.getConfig(key).name,
+        key: platform,
+        value: CrowdIntegrations.getConfig(platform).name,
       },
-      nestedOptions: value.map((v) => ({
-        value: v,
-        label: extractRepoNameFromUrl(v),
+      nestedOptions: channels.map((channel) => ({
+        value: channel,
+        label: platform === 'github' ? extractRepoNameFromUrl(channel) : channel,
       })),
     }));
   }

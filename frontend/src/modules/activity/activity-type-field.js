@@ -1,6 +1,7 @@
 import JSONField from '@/shared/fields/json-field';
 import en from '@/i18n/en';
 import activityTypesJson from '@/jsons/activity-types.json';
+import { capitalizeFirstLetter } from '@/utils/string';
 
 export default class ActivityTypeField extends JSONField {
   constructor(name, label, config = {}) {
@@ -16,10 +17,6 @@ export default class ActivityTypeField extends JSONField {
   }
 
   dropdownOptions() {
-    function capitalizeFirstLetter(str) {
-      return str.charAt(0).toUpperCase() + str.slice(1);
-    }
-
     return [
       {
         label: {
