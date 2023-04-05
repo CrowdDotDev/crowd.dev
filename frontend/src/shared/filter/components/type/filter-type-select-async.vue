@@ -1,4 +1,9 @@
 <template>
+  <app-include-toggle
+    v-if="!isCustom"
+    v-model="includeModel"
+    class="-ml-4"
+  />
   <div class="filter-type-select-async">
     <div class="filter-type-select-async-input">
       <div
@@ -79,19 +84,35 @@ const props = defineProps({
     type: Boolean,
     default: false,
   },
+  isCustom: {
+    type: Boolean,
+    default: false,
+  },
   fetchFn: {
     type: Function,
     default: () => {},
   },
+  include: {
+    type: Boolean,
+    default: true,
+  },
 });
 
-const emit = defineEmits(['update:value']);
+const emit = defineEmits(['update:value', 'update:include']);
 const model = computed({
   get() {
     return props.value;
   },
   set(v) {
     emit('update:value', v);
+  },
+});
+const includeModel = computed({
+  get() {
+    return props.include;
+  },
+  set(v) {
+    emit('update:include', v);
   },
 });
 const expanded = computed(() => props.isExpanded);

@@ -39,6 +39,7 @@ export default class StringField extends GenericField {
       defaultOperator: 'textContains',
       operator: 'textContains',
       type: 'string',
+      include: true,
     };
   }
 

@@ -1,4 +1,8 @@
 <template>
+  <app-include-toggle
+    v-if="!isCustom"
+    v-model="includeModel"
+  />
   <div
     class="filter-type-select-group filter-content-wrapper"
   >
@@ -60,9 +64,17 @@ const props = defineProps({
     type: Boolean,
     default: false,
   },
+  isCustom: {
+    type: Boolean,
+    default: false,
+  },
+  include: {
+    type: Boolean,
+    default: true,
+  },
 });
 
-const emit = defineEmits(['update:value']);
+const emit = defineEmits(['update:value', 'update:include']);
 
 const { types } = storeToRefs(useActivityTypeStore());
 
@@ -72,6 +84,15 @@ const model = computed({
   },
   set(v) {
     emit('update:value', v);
+  },
+});
+
+const includeModel = computed({
+  get() {
+    return props.include;
+  },
+  set(v) {
+    emit('update:include', v);
   },
 });
 
