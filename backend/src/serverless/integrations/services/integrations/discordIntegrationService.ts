@@ -525,9 +525,9 @@ export class DiscordIntegrationService extends IntegrationServiceBase {
             ? DiscordIntegrationService.replaceMentions(record.content, record.mentions)
             : '',
           url: `https://discordapp.com/channels/${channel.guild_id}/${channel.id}/${record.id}`,
-          channel: parentChannel,
+          channel: parentChannel || channel.name,
           attributes: {
-            childChannel: channel.name,
+            childChannel: parentChannel ? channel.name : undefined,
             thread: isThread,
             reactions: record.reactions ? record.reactions : [],
             attachments: record.attachments ? record.attachments : [],
