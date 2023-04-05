@@ -7,27 +7,22 @@
             Members
           </h4>
           <div class="flex items-center">
-            <div
-              v-if="hasMembersToMerge"
-              class="border py-2.5 pl-2 pr-3 rounded-md border-blue-200 bg-blue-50 mr-4"
+            <router-link
+              class=" mr-4 "
+              :class="{ 'pointer-events-none': isEditLockedForSampleData }"
+              :to="{
+                name: 'memberMergeSuggestions',
+              }"
             >
-              <div class="flex items-center">
-                <i class="ri-lightbulb-line mr-3 ri-xl" />
-                <div class="text-sm">
-                  <span class="font-semibold">Suggestion:</span>
-                  <span class="mr-6">
-                    Merge community members</span>
-                  <router-link
-                    :to="{
-                      name: 'memberMergeSuggestions',
-                    }"
-                    class="font-semibold"
-                  >
-                    Review suggestions
-                  </router-link>
-                </div>
-              </div>
-            </div>
+              <button :disabled="isEditLockedForSampleData" type="button" class="btn btn--bordered btn--md flex items-center">
+                <span class="ri-shuffle-line text-base mr-2 text-gray-900" />
+                <span class="text-gray-900">Merge suggestions</span>
+                <span
+                  v-if="membersToMergeCount > 0"
+                  class="ml-2 bg-brand-100 text-brand-500 py-px px-1.5 leading-5 rounded-full font-semibold"
+                >{{ Math.ceil(membersToMergeCount) }}</span>
+              </button>
+            </router-link>
 
             <router-link
               v-if="
@@ -91,7 +86,7 @@ export default {
 
   data() {
     return {
-      hasMembersToMerge: false,
+      membersToMergeCount: 0,
       hasMembers: false,
       isPageLoading: true,
     };
@@ -121,6 +116,13 @@ export default {
         this.currentTenant,
         this.currentUser,
       ).createLockedForSampleData;
+    },
+
+    isEditLockedForSampleData() {
+      return new MemberPermissions(
+        this.currentTenant,
+        this.currentUser,
+      ).editLockedForSampleData;
     },
   },
 
@@ -180,7 +182,7 @@ export default {
     const membersList = await this.doGetMembersCount();
     const mergeSuggestions = await MemberService.fetchMergeSuggestions(1, 0);
 
-    this.hasMembersToMerge = mergeSuggestions.rows?.length > 0;
+    this.membersToMergeCount = mergeSuggestions.count;
     this.hasMembers = membersList.count > 0;
     this.isPageLoading = false;
   },

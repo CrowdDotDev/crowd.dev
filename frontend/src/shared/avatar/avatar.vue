@@ -2,16 +2,10 @@
   <div
     v-if="entity"
     class="avatar"
-    :class="computedClass"
     :style="computedStyle"
+    :aria-label="computedInitials"
   >
-    <span
-      v-if="
-        !entity.attributes?.avatarUrl?.default
-          && !entity.avatar
-      "
-      class="font-semibold uppercase"
-    >{{ computedInitials }}</span>
+    <img :src="url" alt="">
   </div>
 </template>
 
@@ -32,9 +26,20 @@ export default {
     return {
       backgroundColors: ['#FDEDEA'],
       textColors: ['#BA3F25'],
+      sizes: {
+        xl: '4.5rem',
+        lg: '4rem',
+        md: '3rem',
+        sm: '2.5rem',
+        xs: '2rem',
+        xxs: '1.25rem',
+      },
     };
   },
   computed: {
+    computedSize() {
+      return this.sizes[this.size] ?? this.size;
+    },
     computedBackgroundColor() {
       return this.backgroundColors[
         (this.entity.displayName || '').length
@@ -47,23 +52,21 @@ export default {
           % this.textColors.length
       ];
     },
-    computedStyle() {
-      const url = this.entity.avatar
-        ? this.entity.avatar
-        : this.entity.attributes?.avatarUrl?.default || null;
-      return url
-        ? `background-image: url(${url})`
-        : {
-          backgroundColor: this.computedBackgroundColor,
-          borderColor: this.computedBackgroundColor,
-          color: this.computedTextColor,
-        };
+    url() {
+      return this.entity.avatar ?? this.entity.attributes?.avatarUrl?.default ?? null;
     },
-    computedClass() {
-      return `avatar--${this.size}`;
+    computedStyle() {
+      return {
+        backgroundColor: this.computedBackgroundColor,
+        borderColor: this.computedBackgroundColor,
+        color: this.computedTextColor,
+        height: this.computedSize,
+        width: this.computedSize,
+        fontSize: `calc(${this.computedSize} * 0.4)`,
+      };
     },
     computedInitials() {
-      const names = (
+      return (
         this.entity.displayName
         || this.entity.label
         || ''
@@ -73,13 +76,10 @@ export default {
           /([\u2700-\u27BF]|[\uE000-\uF8FF]|\uD83C[\uDC00-\uDFFF]|\uD83D[\uDC00-\uDFFF]|[\u2011-\u26FF]|\uD83E[\uDD10-\uDDFF])/g,
           '',
         )
-        .replace(/\s+/g, ' ')
-        .trim()
-        .split(' ');
-
-      return names.length > 1
-        ? names[0][0] + names[1][0]
-        : names[0][0];
+        .split(/\s+/g)
+        .map((n) => n[0])
+        .slice(0, 2)
+        .join('');
     },
   },
 };
@@ -92,33 +92,22 @@ export default {
   background-position: center;
   background-repeat: no-repeat;
   border: 1px solid #dedede;
+  position: relative;
+  overflow: hidden;
 
-  &--xl {
-    @apply h-18 w-18 text-xl;
+  img{
+    object-fit: cover;
+    z-index: 1;
   }
 
-  &--lg {
-    @apply h-16 w-16 text-lg;
+  &:after{
+    content: attr(aria-label);
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    @apply uppercase font-semibold whitespace-nowrap;
   }
 
-  &--md {
-    @apply h-12 w-12;
-  }
-
-  &--sm {
-    @apply h-10 w-10;
-  }
-
-  &--xs {
-    @apply h-8 w-8;
-  }
-
-  &--xxs {
-    @apply h-5 w-5;
-
-    span {
-      @apply text-3xs;
-    }
-  }
 }
 </style>
