@@ -8,6 +8,7 @@
         v-for="tag in computedTags"
         :key="tag.id"
         class="tag mr-2 my-1 text-xs"
+        :class="tagClasses"
       >{{ getTagName(tag) }}</span>
       <el-button
         v-if="editable && showEdit"
@@ -52,6 +53,10 @@ export default {
     member: {
       type: Object,
       default: () => {},
+    },
+    tagClasses: {
+      type: String,
+      default: '',
     },
     editable: {
       type: Boolean,
