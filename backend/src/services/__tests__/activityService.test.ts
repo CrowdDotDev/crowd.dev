@@ -818,7 +818,6 @@ describe('ActivityService tests', () => {
       }
       await new ActivityService(mockIRepositoryOptions).upsert(activity)
       settings = await SettingsRepository.findOrCreateDefault({}, mockIRepositoryOptions)
-      console.log('Hhoho', settings)
       expect(settings.activityChannels[activity1.platform].length).toBe(1)
     })
   })
