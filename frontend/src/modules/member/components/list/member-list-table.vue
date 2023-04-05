@@ -287,7 +287,7 @@
                 <template #default="scope">
                   <router-link
                     :to="{
-                      name: 'memberView',
+                      name: 'organizationView',
                       params: { id: scope.row.id },
                     }"
                     class="block"
