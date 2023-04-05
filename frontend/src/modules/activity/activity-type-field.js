@@ -157,6 +157,7 @@ export default class ActivityTypeField extends JSONField {
         defaultOperator: 'overlap',
         operator: 'overlap',
         type: 'select-group',
+        include: true,
       };
     }
     return {
@@ -172,6 +173,7 @@ export default class ActivityTypeField extends JSONField {
       defaultOperator: null,
       operator: null,
       type: 'select-group',
+      include: true,
     };
   }
 }

@@ -42,6 +42,7 @@ export default class RelationToOneField extends GenericField {
       defaultOperator: null,
       operator: null,
       type: 'select-async',
+      include: true,
     };
   }
 

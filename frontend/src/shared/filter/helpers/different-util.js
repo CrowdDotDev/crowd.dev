@@ -40,7 +40,7 @@ const filtersAreDifferent = (filterObjA, filterObjB) => {
 const attributesAreDifferent = (attributeA, attributeB) => {
   if (!attributeA || !attributeB) {
     return true;
-  } if (attributeA.operator !== attributeB.operator) {
+  } if (attributeA.operator !== attributeB.operator || attributeA.include !== attributeB.include) {
     return true;
   } if (
     (Array.isArray(attributeA.value)
