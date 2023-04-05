@@ -132,9 +132,7 @@ const computedOptions = computed(() => [...props.options, ...additionalOptions.v
 
 const handleOptionClick = (option, label) => {
   model.value = {
-    displayValue:
-      option.label.charAt(0).toUpperCase()
-      + option.label.slice(1),
+    displayValue: option.label,
     displayKey: label.value,
     type: label.type,
     key: label.key,

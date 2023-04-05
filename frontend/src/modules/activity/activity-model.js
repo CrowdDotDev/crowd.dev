@@ -86,7 +86,7 @@ const fields = {
   }),
   activityChannels: new ActivityChannelsField(
     'channel',
-    'Activity Channels',
+    'Channel',
     {
       filterable: true,
     },

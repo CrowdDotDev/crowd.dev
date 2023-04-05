@@ -1,5 +1,6 @@
 import JSONField from '@/shared/fields/json-field';
 import { store } from '@/store';
+import { CrowdIntegrations } from '@/integrations/integrations-config';
 
 export default class ActivityChannelsField extends JSONField {
   constructor(name, label, config = {}) {
@@ -17,20 +18,20 @@ export default class ActivityChannelsField extends JSONField {
   dropdownOptions() {
     const activityChannels = store.getters['auth/currentTenant'].settings[0].activityChannels || {};
 
-    function extractRepoNameFromUrl(url) {
+    const extractRepoNameFromUrl = (url) => {
       const regex = /^https?:\/\/github\.com\/(.+?)\/(.+?)(?:\.git)?$/;
       const match = url.match(regex);
       if (match) {
         return match[2];
       }
       return url;
-    }
+    };
 
     return Object.entries(activityChannels).map(([key, value]) => ({
       label: {
         type: 'platform',
         key,
-        value: key,
+        value: CrowdIntegrations.getConfig(key).name,
       },
       nestedOptions: value.map((v) => ({
         value: v,

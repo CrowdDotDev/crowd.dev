@@ -65,7 +65,7 @@ function buildAttributeBlock(attribute) {
     };
   } if (attribute.name === 'channel') {
     return {
-      channel: attribute.value.value,
+      channel: attribute.value?.value,
     };
   } if (attribute.name === 'search') {
     return {
