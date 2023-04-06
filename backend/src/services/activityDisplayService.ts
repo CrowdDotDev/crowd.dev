@@ -1,5 +1,6 @@
 import lodash from 'lodash'
 import {
+  ActivityDisplayVariant,
   ActivityTypeDisplayProperties,
   ActivityTypeSettings,
   DiscordtoActivityType,
@@ -41,9 +42,10 @@ export default class ActivityDisplayService extends LoggingBase {
   static interpolateVariables(
     displayOptions: ActivityTypeDisplayProperties,
     activity: any,
+    selectedDisplayVariants: string[],
   ): ActivityTypeDisplayProperties {
     for (const key of Object.keys(displayOptions)) {
-      if (typeof displayOptions[key] === 'string') {
+      if (typeof displayOptions[key] === 'string' && selectedDisplayVariants.includes(key)) {
         const displayVariables = this.getInterpolatableVariables(displayOptions[key])
 
         for (const dv of displayVariables) {
@@ -93,6 +95,11 @@ export default class ActivityDisplayService extends LoggingBase {
   static getDisplayOptions(
     activity: any,
     activityTypes: ActivityTypeSettings,
+    selectedDisplayVariants: ActivityDisplayVariant[] = [
+      ActivityDisplayVariant.DEFAULT,
+      ActivityDisplayVariant.SHORT,
+      ActivityDisplayVariant.CHANNEL,
+    ],
   ): ActivityTypeDisplayProperties {
     if (!activity || !activity.platform || !activity.type) {
       return UNKNOWN_ACTIVITY_TYPE_DISPLAY
@@ -119,6 +126,6 @@ export default class ActivityDisplayService extends LoggingBase {
       return UNKNOWN_ACTIVITY_TYPE_DISPLAY
     }
 
-    return this.interpolateVariables(displayOptions, activity)
+    return this.interpolateVariables(displayOptions, activity, selectedDisplayVariants)
   }
 }
