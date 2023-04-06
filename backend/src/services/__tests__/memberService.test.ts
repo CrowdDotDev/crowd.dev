@@ -1621,6 +1621,7 @@ describe('MemberService tests', () => {
       // we don't need activity.member because we're already expecting member->activities
       activityCreated = SequelizeTestUtils.objectWithoutKey(activityCreated, [
         'member',
+        'objectMember',
         'parent',
         'tasks',
         'display',
