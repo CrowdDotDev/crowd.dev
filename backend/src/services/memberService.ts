@@ -430,21 +430,25 @@ export default class MemberService extends LoggingBase {
       const repoOptions: IRepositoryOptions = { ...this.options }
       repoOptions.transaction = tx
 
-      // Get tags and activities as array of ids (findById returns them as models)
+      // Get tags as array of ids (findById returns them as models)
       original.tags = original.tags.map((i) => i.get({ plain: true }).id)
-      original.activities = original.activities.map((i) => i.get({ plain: true }))
-
       toMerge.tags = toMerge.tags.map((i) => i.get({ plain: true }).id)
-      toMerge.activities = toMerge.activities.map((i) => i.get({ plain: true }))
+
+      // leave member activities alone - we will update them with a single query later
+      delete original.activities
+      delete toMerge.activities
 
       // Performs a merge and returns the fields that were changed so we can update
-      const toUpdate = MemberService.membersMerge(original, toMerge)
-      if (toUpdate.activities) {
-        toUpdate.activities = toUpdate.activities.map((a) => a.id)
-      }
+      const toUpdate: any = await MemberService.membersMerge(original, toMerge)
+
+      delete toUpdate.activities
+
       // Update original member
       const txService = new MemberService(repoOptions as IServiceOptions)
       await txService.update(originalId, toUpdate)
+
+      // update activities to belong to the originalId member
+      await MemberRepository.moveActivitiesBetweenMembers(toMergeId, originalId, repoOptions)
 
       // Remove toMerge from original member
       await MemberRepository.removeToMerge(originalId, toMergeId, repoOptions)
@@ -457,7 +461,9 @@ export default class MemberService extends LoggingBase {
       return { status: 200, mergedId: originalId }
     } catch (err) {
       this.options.log.error(err, 'Error while merging members!')
-      await SequelizeRepository.rollbackTransaction(tx)
+      if (tx) {
+        await SequelizeRepository.rollbackTransaction(tx)
+      }
       throw err
     }
   }
@@ -502,14 +508,6 @@ export default class MemberService extends LoggingBase {
         newEmails.forEach((email) => emailSet.add(email))
 
         return Array.from(emailSet)
-      },
-      // Get rid of activities that are the same and were in both members
-      activities: (_oldActivities, newActivities) => {
-        newActivities = newActivities || []
-        // A member cannot 2 different activities with same timestamp and platform and type
-        const uniq = lodash.uniqWith(newActivities, (act1, act2) => act1.sourceId === act2.sourceId)
-
-        return uniq.length > 0 ? uniq : null
       },
     })
   }

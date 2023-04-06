@@ -1,5 +1,6 @@
 import sanitizeHtml from 'sanitize-html'
 import he from 'he'
+import { v4 as uuid } from 'uuid'
 import { MemberAttributeName } from '../../../../database/attributes/member/enums'
 import { RedditMemberAttributes } from '../../../../database/attributes/member/reddit'
 import MemberAttributeSettingsService from '../../../../services/memberAttributeSettingsService'
@@ -25,7 +26,6 @@ import {
   RedditMoreCommentsResponse,
 } from '../../types/redditTypes'
 import { AddActivitiesSingle } from '../../types/messageTypes'
-
 import { IntegrationServiceBase } from '../integrationServiceBase'
 import { Logger } from '../../../../utils/logging'
 import getMoreComments from '../../usecases/reddit/getMoreComments'
@@ -472,8 +472,10 @@ export class RedditIntegrationService extends IntegrationServiceBase {
    */
   getMember(activity) {
     if (activity.author === '[deleted]') {
+      const uniqueId = `deleted:${uuid()}`
+
       return {
-        username: 'deleted',
+        username: uniqueId,
         displayName: 'Deleted User',
       }
     }
