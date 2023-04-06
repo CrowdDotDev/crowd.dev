@@ -18,6 +18,7 @@ import { ALL_PLATFORM_TYPES } from '../../types/integrationEnums'
 import RawQueryParser from './filters/rawQueryParser'
 import ActivityDisplayService from '../../services/activityDisplayService'
 import SettingsRepository from './settingsRepository'
+import { ActivityDisplayVariant } from '../../types/activityTypes'
 
 const { Op } = Sequelize
 
@@ -892,6 +893,7 @@ where m."deletedAt" is null
           r.lastActivity.display = ActivityDisplayService.getDisplayOptions(
             r.lastActivity,
             SettingsRepository.getActivityTypes(options),
+            [ActivityDisplayVariant.SHORT, ActivityDisplayVariant.CHANNEL],
           )
         }
       }
