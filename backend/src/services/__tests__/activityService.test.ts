@@ -1595,7 +1595,6 @@ describe('ActivityService tests', () => {
           username: {
             [PlatformType.TWITTER]: 'anil',
           },
-          displayName: 'Anil',
         }
 
         const data = {
@@ -1610,11 +1609,10 @@ describe('ActivityService tests', () => {
           mockIRepositoryOptions,
         ).createWithMember(data)
 
-        const data2 = data
-        data2.timestamp = '2021-09-30T14:20:27.000Z'
+        data.timestamp = '2021-09-30T14:20:27.000Z'
 
         // Upsert the same activity with a different timestamp
-        await new ActivityService(mockIRepositoryOptions).createWithMember(data2)
+        await new ActivityService(mockIRepositoryOptions).createWithMember(data)
 
         const memberFound = await MemberRepository.findById(
           activityWithMember.memberId,
