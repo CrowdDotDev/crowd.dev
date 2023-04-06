@@ -142,7 +142,7 @@ describe('ActivityRepository tests', () => {
       activityCreated.updatedAt = activityCreated.updatedAt.toISOString().split('T')[0]
       delete activityCreated.member
       delete activityCreated.objectMember
-    
+
       const expectedActivityCreated = {
         id: activityCreated.id,
         attributes: {},
@@ -400,7 +400,7 @@ describe('ActivityRepository tests', () => {
       activityCreated.updatedAt = activityCreated.updatedAt.toISOString().split('T')[0]
       delete activityCreated.member
       delete activityCreated.objectMember
-      
+
       const expectedActivityCreated = {
         id: activityCreated.id,
         attributes: {},
