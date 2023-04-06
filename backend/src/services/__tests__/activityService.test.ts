@@ -1591,14 +1591,10 @@ describe('ActivityService tests', () => {
         await memberAttributeSettingsService.createPredefined(GithubMemberAttributes)
         await memberAttributeSettingsService.createPredefined(TwitterMemberAttributes)
 
-        const member = {
-          username: {
-            [PlatformType.TWITTER]: 'anil',
-          },
-        }
-
         const data = {
-          member,
+          member: {
+            username: 'anil,',
+          },
           timestamp: '1970-01-01T00:00:00.000Z',
           type: 'follow',
           platform: PlatformType.TWITTER,
@@ -1609,10 +1605,18 @@ describe('ActivityService tests', () => {
           mockIRepositoryOptions,
         ).createWithMember(data)
 
-        data.timestamp = '2021-09-30T14:20:27.000Z'
-
-        // Upsert the same activity with a different timestamp
-        await new ActivityService(mockIRepositoryOptions).createWithMember(data)
+        const data2 = {
+          member: {
+            username: 'anil,',
+          },
+          timestamp: '2021-09-30T14:20:27.000Z',
+          type: 'follow',
+          platform: PlatformType.TWITTER,
+          sourceId: '#sourceId1',
+        }
+        data.timestamp =
+          // Upsert the same activity with a different timestamp
+          await new ActivityService(mockIRepositoryOptions).createWithMember(data2)
 
         const memberFound = await MemberRepository.findById(
           activityWithMember.memberId,
