@@ -155,7 +155,6 @@ export default (sequelize) => {
 
     models.activity.belongsTo(models.member, {
       as: 'objectMember',
-
     })
 
     models.activity.belongsTo(models.conversation, {

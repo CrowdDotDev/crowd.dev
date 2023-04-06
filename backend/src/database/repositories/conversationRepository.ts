@@ -471,7 +471,10 @@ class ConversationRepository {
         const rec = record.get({ plain: true })
         for (const relationship of lazyLoad) {
           if (relationship === 'activities') {
-            const allActivities = await record.getActivities({ order: [['timestamp', 'ASC']] })
+            const allActivities = await record.getActivities({
+              order: [['timestamp', 'ASC']],
+              include: ['parent'],
+            })
 
             rec.memberCount = ConversationRepository.getTotalMemberCount(allActivities)
 
@@ -480,18 +483,29 @@ class ConversationRepository {
 
               if (allActivities.length > 2) {
                 neededActivities = [
-                  allActivities[0],
+                  allActivities.find((a) => a.parent === null),
                   allActivities[allActivities.length - 2],
                   allActivities[allActivities.length - 1],
                 ]
               } else {
-                neededActivities = [allActivities[0], allActivities[allActivities.length - 1]]
+                neededActivities = [
+                  allActivities.find((a) => a.parent === null),
+                  allActivities[allActivities.length - 1],
+                ]
               }
 
               const promises = neededActivities.map(async (act) => {
                 const member = (await act.getMember()).get({ plain: true })
+
+                let objectMember = null
+                if (act.objectMemberId) {
+                  objectMember = (await act.getObjectMember()).get({ plain: true })
+                }
+
                 act = act.get({ plain: true })
                 act.member = member
+                act.objectMember = objectMember
+
                 return act
               })
               const returnedNeededActivities = await Promise.all(promises)
@@ -542,7 +556,7 @@ class ConversationRepository {
     const transaction = SequelizeRepository.getTransaction(options)
 
     output.activities = await record.getActivities({
-      include: ['member'],
+      include: ['member', 'parent', 'objectMember'],
       order: [['timestamp', 'ASC']],
       transaction,
     })

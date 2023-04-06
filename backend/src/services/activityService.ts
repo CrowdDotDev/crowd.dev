@@ -435,14 +435,13 @@ export default class ActivityService extends LoggingBase {
         existingMember,
       )
 
-      if (data.objectMember){
+      if (data.objectMember) {
         const objectMember = await memberService.upsert({
           ...data.objectMember,
           platform: data.platform,
-          joinedAt: data.timestamp
+          joinedAt: data.timestamp,
         })
         data.objectMember = objectMember.id
-        
       }
 
       data.member = member.id
