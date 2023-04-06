@@ -31,6 +31,7 @@ function getConversationStyleActivity(activity) {
   // only the username will be returned as author, rest of the member object shouldn't be expected
   activity.author = activity.username
   delete activity.member
+  delete activity.objectMember
 
   // parent and display won't be sent in the activity object to the search engine as well
   delete activity.parent
