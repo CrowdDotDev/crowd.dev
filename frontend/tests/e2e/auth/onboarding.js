@@ -85,6 +85,7 @@ export default () => {
     cy.get('@submit').should('not.be.disabled');
     cy.get('@submit').click();
     cy.wait('@apiTenant');
+    cy.wait(3000);
     cy.wait('@apiTenantSampleData');
     cy.wait('@apiAuthMe');
 
