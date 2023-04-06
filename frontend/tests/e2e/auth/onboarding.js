@@ -70,7 +70,9 @@ export default () => {
 
   it('Finishes onboarding if all fields are valid', () => {
     cy.server();
-    cy.route('POST', '/api/tenant').as('apiTenant')
+    cy.route('POST', '/api/tenant').as('apiTenant');
+    cy.route('POST', '/api/tenant/*/sampleData').as('apiTenantSampleData');
+    cy.route('POST', '/api/auth/me').as('apiAuthMe');
     cy.get('@tenantPlatformSelect').click();
     data.tenant.platforms.forEach((platform) => {
       cy.get('.el-select-dropdown')
@@ -83,6 +85,8 @@ export default () => {
     cy.get('@submit').should('not.be.disabled');
     cy.get('@submit').click();
     cy.wait('@apiTenant');
+    cy.wait('@apiTenantSampleData');
+    cy.wait('@apiAuthMe');
 
     cy.url().should('not.include', '/onboard');
     cy.location('pathname').should('eq', '/');
