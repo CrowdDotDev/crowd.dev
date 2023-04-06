@@ -393,6 +393,7 @@ export default class ActivityService extends LoggingBase {
 
   async createWithMember(data) {
     const transaction = await SequelizeRepository.createTransaction(this.options)
+    const memberService = new MemberService(this.options)
 
     try {
       if (typeof data.member.username === 'string') {
@@ -422,10 +423,10 @@ export default class ActivityService extends LoggingBase {
       const activityExists = await this._activityExists(data, transaction)
 
       const existingMember = activityExists
-        ? await new MemberService(this.options).findById(activityExists.memberId, true, false)
+        ? await memberService.findById(activityExists.memberId, true, false)
         : false
 
-      const member = await new MemberService(this.options).upsert(
+      const member = await memberService.upsert(
         {
           ...data.member,
           platform: data.platform,
@@ -433,6 +434,16 @@ export default class ActivityService extends LoggingBase {
         },
         existingMember,
       )
+
+      if (data.objectMember){
+        const objectMember = await memberService.upsert({
+          ...data.objectMember,
+          platform: data.platform,
+          joinedAt: data.timestamp
+        })
+        data.objectMember = objectMember.id
+        
+      }
 
       data.member = member.id
 
