@@ -31,13 +31,13 @@
                 <app-activity-type-list-item
                   v-for="(settings, type) in activityTypes"
                   :key="type"
-                  :label="settings.display.short"
+                  :label="settings?.display?.short"
                 >
                   <template #after>
                     <app-activity-type-dropdown
                       :activity-type-key="type"
                       @edit="
-                        edit({ ...settings.display, key: type })
+                        edit({ ...(settings?.display || {}), key: type })
                       "
                     />
                   </template>
