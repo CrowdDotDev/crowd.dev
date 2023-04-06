@@ -1464,7 +1464,7 @@ describe('ActivityService tests', () => {
         })
       })
 
-      it('It should replace joinedAt if the orginal was in year 1000', async () => {
+      it('It should replace joinedAt if the orginal was in year 1970', async () => {
         const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
         const memberAttributeSettingsService = new MemberAttributeSettingsService(
           mockIRepositoryOptions,
@@ -1499,7 +1499,7 @@ describe('ActivityService tests', () => {
             },
           },
           organisation: 'Crowd',
-          joinedAt: new Date('1000-01-01T00:00:00Z'),
+          joinedAt: new Date('1970-01-01T00:00:00Z'),
         }
 
         await MemberRepository.create(member, mockIRepositoryOptions)
@@ -1575,6 +1575,55 @@ describe('ActivityService tests', () => {
         expect(memberFound.username).toStrictEqual({
           [PlatformType.GITHUB]: 'anil_github',
         })
+      })
+
+      it('Should respect joinedAt when an existing activity comes in with a different timestamp', async () => {
+        // This can happen in cases like the Twitter integration.
+        // For follow activities, if we are onboarding we set the timestamp to 1970,
+        // but if we are not onboarding, we set the timestamp to the current time.
+        // This can cause having 2 activities with different timestamps, but the same sourceId.
+        // The joinedAt should stay untouched in this case.
+        const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
+        const memberAttributeSettingsService = new MemberAttributeSettingsService(
+          mockIRepositoryOptions,
+        )
+
+        await memberAttributeSettingsService.createPredefined(GithubMemberAttributes)
+        await memberAttributeSettingsService.createPredefined(TwitterMemberAttributes)
+
+        const data = {
+          member: {
+            username: 'anil,',
+          },
+          timestamp: '1970-01-01T00:00:00.000Z',
+          type: 'follow',
+          platform: PlatformType.TWITTER,
+          sourceId: '#sourceId1',
+        }
+
+        const activityWithMember = await new ActivityService(
+          mockIRepositoryOptions,
+        ).createWithMember(data)
+
+        const data2 = {
+          member: {
+            username: 'anil,',
+          },
+          timestamp: '2021-09-30T14:20:27.000Z',
+          type: 'follow',
+          platform: PlatformType.TWITTER,
+          sourceId: '#sourceId1',
+        }
+        data.timestamp =
+          // Upsert the same activity with a different timestamp
+          await new ActivityService(mockIRepositoryOptions).createWithMember(data2)
+
+        const memberFound = await MemberRepository.findById(
+          activityWithMember.memberId,
+          mockIRepositoryOptions,
+        )
+        // The joinedAt should stay untouched
+        expect(memberFound.joinedAt).toStrictEqual(new Date('1970-01-01T00:00:00.000Z'))
       })
     })
   })
