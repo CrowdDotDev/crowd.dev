@@ -7,6 +7,8 @@ import Plans from '../../security/plans'
 import { FeatureFlag } from '../../types/common'
 import { PLAN_LIMITS } from '../../feature-flags/isFeatureEnabled'
 
+/* eslint-disable no-console */
+
 const log = getServiceLogger()
 
 const constaintConfiguration = {
