@@ -78,10 +78,16 @@
     &[disabled] {
       @apply cursor-not-allowed bg-white text-gray-400 border-2 border-gray-100 border-solid;
     }
+
+    &.btn{
+      &--lg {
+        @apply py-2.5;
+      }
+    }
   }
 
   &--transparent {
-    @apply bg-transparent text-gray-600 border-none;
+    @apply bg-transparent text-gray-600 border-2 border-transparent;
 
     &:hover,
     &:hover:is(a) {
@@ -95,7 +101,7 @@
     }
     &[disabled],
     &.disabled {
-      @apply cursor-not-allowed bg-white text-gray-400 border-none;
+      @apply cursor-not-allowed bg-white text-gray-400 border-2 border-transparent;
     }
   }
 

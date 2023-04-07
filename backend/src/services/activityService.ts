@@ -400,7 +400,7 @@ export default class ActivityService extends LoggingBase {
         {
           ...data.member,
           platform: data.platform,
-          joinedAt: data.timestamp,
+          joinedAt: activityExists ? activityExists.timestamp : data.timestamp,
         },
         existingMember,
       )

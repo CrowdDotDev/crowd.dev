@@ -90,7 +90,7 @@ import {
   mapGetters,
   mapActions,
 } from '@/shared/vuex/vuex.helpers';
-import { getTimeGranularityFromPeriod, parseAxisLabel } from '@/utils/reports';
+import { getTimeGranularityFromPeriod } from '@/utils/reports';
 import {
   TOTAL_MEMBERS_QUERY,
   TOTAL_MEMBERS_FILTER,

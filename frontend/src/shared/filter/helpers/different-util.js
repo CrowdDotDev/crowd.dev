@@ -8,12 +8,7 @@ const attributeIsDifferent = (attribute) => {
   }
 
   return Array.isArray(attribute.value)
-    ? !isEmpty(
-      xorWith(
-        [attribute.value, attribute.defaultValue],
-        isEqual,
-      ),
-    )
+    ? !isEmpty(xorWith(attribute.value, attribute.defaultValue, isEqual))
     : attribute.value !== attribute.defaultValue;
 };
 
@@ -40,7 +35,9 @@ const filtersAreDifferent = (filterObjA, filterObjB) => {
 const attributesAreDifferent = (attributeA, attributeB) => {
   if (!attributeA || !attributeB) {
     return true;
-  } if (attributeA.operator !== attributeB.operator) {
+  } if (attributeA.operator !== attributeB.operator
+    || (attributeA.include !== attributeB.include
+      && !attributeA.custom && !attributeB.custom)) {
     return true;
   } if (
     (Array.isArray(attributeA.value)
@@ -52,12 +49,7 @@ const attributesAreDifferent = (attributeA, attributeB) => {
   }
 
   return Array.isArray(attributeA.value)
-    ? !isEmpty(
-      xorWith(
-        [attributeA.value, attributeB.value],
-        isEqual,
-      ),
-    )
+    ? !isEmpty(xorWith(attributeA.value, attributeB.value, isEqual))
     : attributeA.value !== attributeB.value;
 };
 

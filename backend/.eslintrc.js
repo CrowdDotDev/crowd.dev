@@ -6,7 +6,7 @@ module.exports = {
   extends: ['airbnb-base', 'prettier', 'plugin:openapi/recommended'],
   parser: '@typescript-eslint/parser',
   plugins: ['@typescript-eslint'],
-  ignorePatterns: ['dist/*'],
+  ignorePatterns: ['dist/*', '**/*.test.ts'],
   rules: {
     semi: ['error', 'never'],
     'prefer-destructuring': ['error', { object: false, array: false }],
@@ -63,7 +63,6 @@ module.exports = {
         'no-plusplus': 0,
         'no-await-in-loop': 0,
         '@typescript-eslint/no-shadow': 0,
-        'no-console': 0,
       },
     },
   ],

@@ -191,8 +191,8 @@ export default ({
       const visibleAttributes = Object.values(
         customFilters.attributes,
       ).reduce((acc, item) => {
-        const attribute = buildAttributeBlock(item);
-
+        const filter = buildAttributeBlock(item);
+        const attribute = item.include === false ? { not: filter } : filter;
         if (
           Array.isArray(item.value)
             ? item.value.length > 0

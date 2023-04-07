@@ -10,6 +10,8 @@ import IntegrationRepository from '../../database/repositories/integrationReposi
 import IntegrationRunRepository from '../../database/repositories/integrationRunRepository'
 import { IntegrationRunState } from '../../types/integrationRunTypes'
 
+/* eslint-disable no-console */
+
 const banner = fs.readFileSync(path.join(__dirname, 'banner.txt'), 'utf8')
 
 const log = createServiceLogger()

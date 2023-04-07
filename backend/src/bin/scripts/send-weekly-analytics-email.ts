@@ -12,6 +12,8 @@ import { NodeWorkerMessageBase } from '../../types/mq/nodeWorkerMessageBase'
 import RecurringEmailsHistoryRepository from '../../database/repositories/recurringEmailsHistoryRepository'
 import { RecurringEmailType } from '../../types/recurringEmailsHistoryTypes'
 
+/* eslint-disable no-console */
+
 const banner = fs.readFileSync(path.join(__dirname, 'banner.txt'), 'utf8')
 
 const log = createServiceLogger()

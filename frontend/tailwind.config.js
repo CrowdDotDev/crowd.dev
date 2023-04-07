@@ -194,6 +194,7 @@ module.exports = {
       10: '2.5rem',
       11: '2.75rem',
       12: '3rem',
+      13: '3.25rem',
       14: '3.5rem',
       16: '4rem',
       17: '4.25rem',
@@ -538,7 +539,8 @@ module.exports = {
       '3xl': ['2.5rem'],
       '4xl': ['3rem'],
       '5xl': ['4rem'],
-      '8xl': ['8rem']
+      '8xl': ['8rem'],
+      '10xl': ['10rem'],
     },
     fontWeight: {
       thin: '100',

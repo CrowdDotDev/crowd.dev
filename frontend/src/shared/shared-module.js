@@ -48,6 +48,7 @@ import Drawer from '@/shared/drawer/drawer.vue';
 import AppLoader from '@/shared/loading/loader.vue';
 import AppPageWrapper from '@/shared/layout/page-wrapper.vue';
 import Image from '@/shared/image/image.vue';
+import AppIncludeToggle from '@/shared/form/include-toggle.vue';
 
 /**
  * All shared components are globally registered, so there's no need to import them from other components
@@ -106,5 +107,6 @@ export default {
     'app-loader': AppLoader,
     'app-page-wrapper': AppPageWrapper,
     'app-image': Image,
+    'app-include-toggle': AppIncludeToggle,
   },
 };

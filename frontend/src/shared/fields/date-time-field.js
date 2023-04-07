@@ -98,6 +98,7 @@ export default class DateTimeField extends GenericField {
       defaultOperator: 'eq',
       operator: null,
       type: 'date',
+      include: true,
     };
   }
 }

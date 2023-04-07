@@ -147,50 +147,7 @@
         </el-dropdown-item>
       </template>
     </el-dropdown>
-    <app-dialog
-      v-model="isMergeDialogOpen"
-      title="Merge member"
-      size="2extra-large"
-      :has-action-btn="true"
-    >
-      <template #actionBtn>
-        <div class="flex gap-4">
-          <el-button
-            v-if="memberToMerge"
-            class="btn btn-md btn-brand--transparent"
-            @click="handleChangeMemberClick"
-          >
-            <i class="ri-refresh-line" />
-            <span>Change member</span>
-          </el-button>
-          <el-button
-            class="btn btn--md btn--primary"
-            :loading="isMergeLoading"
-            :disabled="!memberToMerge || isMergeLoading"
-            @click="handleMergeClick"
-          >
-            Merge members
-          </el-button>
-        </div>
-      </template>
-      <template #content>
-        <div class="p-6 flex relative">
-          <div class="grow">
-            <app-member-suggestions-details
-              :pair="pair"
-              @make-primary="handleMakePrimaryClick"
-            />
-          </div>
-          <app-member-selection-dropdown
-            v-if="memberToMerge === null"
-            :id="primaryMember.id"
-            v-model="memberToMerge"
-            class="bg-white absolute w-2/5 right-0 inset-y-0 z-10 flex justify-center"
-            style="margin-right: 5px"
-          />
-        </div>
-      </template>
-    </app-dialog>
+    <app-member-merge-dialog v-model="isMergeDialogOpen" />
   </div>
 </template>
 
@@ -201,14 +158,12 @@ import Message from '@/shared/message/message';
 import { MemberPermissions } from '@/modules/member/member-permissions';
 import ConfirmDialog from '@/shared/dialog/confirm-dialog';
 import AppSvg from '@/shared/svg/svg.vue';
-import AppMemberSelectionDropdown from './member-selection-dropdown.vue';
-import AppMemberSuggestionsDetails from './suggestions/member-merge-suggestions-details.vue';
+import AppMemberMergeDialog from '@/modules/member/components/member-merge-dialog.vue';
 
 export default {
   name: 'AppMemberDropdown',
   components: {
-    AppMemberSelectionDropdown,
-    AppMemberSuggestionsDetails,
+    AppMemberMergeDialog,
     AppSvg,
   },
   props: {
@@ -219,9 +174,7 @@ export default {
   },
   data() {
     return {
-      primaryMember: null,
-      memberToMerge: null,
-      isMergeDialogOpen: false,
+      isMergeDialogOpen: null,
       isMergeLoading: false,
       pair: [],
     };
@@ -256,24 +209,6 @@ export default {
         this.currentTenant,
         this.currentUser,
       ).destroyLockedForSampleData;
-    },
-  },
-  watch: {
-    memberToMerge(newMember, oldMember) {
-      // Reset member to merge
-      if (!newMember) {
-        this.pair = [
-          this.primaryMember,
-          { username: {}, attributes: {} },
-        ];
-        // Switch primary member with member to merge
-      } else if (newMember?.id === this.primaryMember.id) {
-        this.primaryMember = oldMember;
-        this.pair.reverse();
-        // Add new member to member to merge
-      } else if (newMember) {
-        this.pair = [this.primaryMember, newMember];
-      }
     },
   },
   methods: {
@@ -351,13 +286,7 @@ export default {
           this.doFind(command.member.id);
         }
       } else if (command.action === 'memberMerge') {
-        this.primaryMember = this.member;
-        this.pair = [
-          this.primaryMember,
-          { username: {}, attributes: {} },
-        ];
-        this.isMergeDialogOpen = true;
-        this.memberToMerge = null;
+        this.isMergeDialogOpen = this.member;
       } else if (command.action === 'memberEnrich') {
         this.doEnrich(command.member.id);
       } else {
@@ -367,12 +296,6 @@ export default {
         });
       }
       return null;
-    },
-    handleChangeMemberClick() {
-      this.memberToMerge = null;
-    },
-    handleMakePrimaryClick() {
-      this.memberToMerge = this.primaryMember;
     },
     async handleMergeClick() {
       try {
