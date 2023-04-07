@@ -24,7 +24,6 @@ export default async (req, res) => {
       )
       const responses = await Promise.all(promises)
       if (responses.every((response) => response.status === 200)) {
-        console.log('here')
         return req.responseHandler.success(req, res, {
           total: responses.reduce((acc, response) => acc + response.data.total, 0),
         })

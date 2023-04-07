@@ -20,7 +20,6 @@ export default async (req, res) => {
         result.data.data.children &&
         result.data.data.children.length > 0
       ) {
-        console.log('here')
         track(
           'Reddit: subreddit input',
           {

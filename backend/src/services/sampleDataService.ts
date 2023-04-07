@@ -162,7 +162,6 @@ export default class SampleDataService extends LoggingBase {
         for (const member of members) {
           const tagList = []
           const noteList = []
-          console.log(member.displayName, member.tags)
           for (const tag of member.tags || []) {
             const found = (await tagService.findAndCountAll({ advancedFilter: { name: tag } }))
               .rows[0]
