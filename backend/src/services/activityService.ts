@@ -189,17 +189,18 @@ export default class ActivityService extends LoggingBase {
         `${data.title} ${data.body}`,
       )
 
+      const compound = Math.round(((sentiment.compound + 1) / 2) * 100)
       let label = 'neutral'
-      if (sentiment.compound < -0.5) {
+      if (compound < 33) {
         label = 'negative'
-      } else if (sentiment.compound > 0.5) {
+      } else if (compound > 66) {
         label = 'positive'
       }
       return {
         positive: Math.round(sentiment.pos * 100),
         negative: Math.round(sentiment.neg * 100),
         neutral: Math.round(sentiment.neu * 100),
-        sentiment: Math.round(sentiment.compound * 100),
+        sentiment: compound,
         label,
       }
     } catch (err) {
