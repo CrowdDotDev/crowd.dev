@@ -24,7 +24,6 @@ export default async (req, res) => {
         },
       )
       const data = result.data as StackOverflowTagsResponse
-      console.log(data)
       if (
         result.status === 200 &&
         data.items &&
@@ -32,7 +31,6 @@ export default async (req, res) => {
         data.items[0].is_moderator_only === false &&
         data.items[0].count > 0
       ) {
-        console.log('here')
         track(
           'Stack Overflow: tag input',
           {
