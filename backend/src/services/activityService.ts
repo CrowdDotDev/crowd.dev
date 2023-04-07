@@ -1,9 +1,8 @@
 import { Transaction } from 'sequelize/types'
-import { Blob } from 'buffer'
+import vader from 'vader-sentiment'
 import { PlatformType } from '../types/integrationEnums'
 import Error400 from '../errors/Error400'
 import SequelizeRepository from '../database/repositories/sequelizeRepository'
-import { detectSentiment, detectSentimentBatch } from './aws'
 import { IServiceOptions } from './IServiceOptions'
 import merge from './helpers/merge'
 import ActivityRepository from '../database/repositories/activityRepository'
@@ -12,8 +11,7 @@ import MemberService from './memberService'
 import ConversationService from './conversationService'
 import telemetryTrack from '../segment/telemetryTrack'
 import ConversationSettingsService from './conversationSettingsService'
-import { IS_TEST_ENV, IS_DEV_ENV } from '../config'
-import { logExecutionTime } from '../utils/logging'
+import { IS_TEST_ENV } from '../config'
 import { sendNewActivityNodeSQSMessage } from '../serverless/utils/nodeWorkerSQS'
 import { LoggingBase } from './loggingBase'
 import MemberAttributeSettingsRepository from '../database/repositories/memberAttributeSettingsRepository'
@@ -178,96 +176,37 @@ export default class ActivityService extends LoggingBase {
       return {
         positive: 0.42,
         negative: 0.42,
-        neutral: 0.42,
-        mixed: 0.42,
         label: 'positive',
         sentiment: 0.42,
       }
     }
-    if (IS_DEV_ENV) {
-      if (data.body === '' || data.body === undefined) {
-        return {}
-      }
-      // Return a random number between 0 and 100
-      const score = Math.floor(Math.random() * 100)
-      let label = 'neutral'
-      if (score < 33) {
-        label = 'negative'
-      } else if (score > 66) {
-        label = 'positive'
-      }
-      return {
-        positive: Math.floor(Math.random() * 100),
-        negative: Math.floor(Math.random() * 100),
-        neutral: Math.floor(Math.random() * 100),
-        mixed: Math.floor(Math.random() * 100),
-        sentiment: score,
-        label,
-      }
+
+    if (data.body === '' || data.body === undefined) {
+      return {}
     }
 
     try {
-      data.body = data.body ?? ''
-      data.title = data.title ?? ''
-
-      // Concatenate title and body
-      const text = `${data.title} ${data.body}`.trim()
-
-      return text === '' ? {} : await detectSentiment(text)
-    } catch (err) {
-      this.log.error(
-        { err, data },
-        'Error getting sentiment of activity - Setting sentiment to empty object.',
+      const sentiment = vader.SentimentIntensityAnalyzer.polarity_scores(
+        `${data.title} ${data.body}`,
       )
+
+      let label = 'neutral'
+      if (sentiment.compound < -0.5) {
+        label = 'negative'
+      } else if (sentiment.compound > 0.5) {
+        label = 'positive'
+      }
+      return {
+        positive: sentiment.pos * 100,
+        negative: sentiment.neg * 100,
+        neutral: sentiment.neu * 100,
+        sentiment: sentiment.compound * 100,
+        label,
+      }
+    } catch (err) {
+      this.log.error(err, 'Error getting sentiment')
       return {}
     }
-  }
-
-  /**
-   * Get the sentiment of an array of activities form its' body and title
-   * Only first 5000 bytes of text are passed through because of AWS Comprehend restrictions.
-   * @param activityArray activity array
-   * @returns list of sentiments ordered same as input array
-   */
-  async getSentimentBatch(activityArray) {
-    const ALLOWED_MAX_BYTE_LENGTH = 4500
-    let textArray = await Promise.all(
-      activityArray.map(async (i) => {
-        let text = `${i.title} ${i.body}`.trim()
-        let blob = new Blob([text])
-        if (blob.size > ALLOWED_MAX_BYTE_LENGTH) {
-          blob = blob.slice(0, ALLOWED_MAX_BYTE_LENGTH)
-          text = await blob.text()
-        }
-        return text
-      }),
-    )
-
-    const MAX_BATCH_SIZE = 25
-
-    const promiseArray = []
-
-    if (textArray.length > MAX_BATCH_SIZE) {
-      while (textArray.length > MAX_BATCH_SIZE) {
-        promiseArray.push(detectSentimentBatch(textArray.slice(0, MAX_BATCH_SIZE)))
-        textArray = textArray.slice(MAX_BATCH_SIZE)
-      }
-      // insert last small chunk
-      if (textArray.length > 0) promiseArray.push(detectSentimentBatch(textArray))
-    } else {
-      promiseArray.push(textArray)
-    }
-
-    const values = await logExecutionTime(
-      () => Promise.all(promiseArray),
-      this.log,
-      'sentiment-api-request',
-    )
-
-    return values.reduce((acc, i) => {
-      acc.push(...i)
-      return acc
-    }, [])
   }
 
   /**

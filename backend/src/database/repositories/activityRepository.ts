@@ -84,7 +84,7 @@ class ActivityRepository {
    */
   static _validateSentiment(sentimentData) {
     if (!lodash.isEmpty(sentimentData)) {
-      const moods = ['positive', 'negative', 'mixed', 'neutral']
+      const moods = ['positive', 'negative', 'neutral']
       for (const prop of moods) {
         if (typeof sentimentData[prop] !== 'number') {
           throw new Error400('en', 'activity.error.sentiment.mood')
