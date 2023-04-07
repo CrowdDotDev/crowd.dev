@@ -1,10 +1,13 @@
+import ZapierConnect from "./components/zapier-connect.vue";
+
 export default {
-  enabled: false,
-  name: 'Zapier',
-  backgroundColor: '#FFFFFF',
-  borderColor: '#FFFFFF',
+  enabled: true,
+  name: "Zapier",
+  backgroundColor: "#FFFFFF",
+  borderColor: "#FFFFFF",
   description:
-    "We're currently working on this integration.",
+    "Enable the communication between crowd.dev and Zapier to automate workflows and tasks.",
   image:
-    'https://www.seekpng.com/png/full/67-672759_zapiers-new-cli-tool-for-creating-apps-zapier.png',
+    "https://www.seekpng.com/png/full/67-672759_zapiers-new-cli-tool-for-creating-apps-zapier.png",
+  connectComponent: ZapierConnect,
 };

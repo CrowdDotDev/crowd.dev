@@ -1,28 +1,13 @@
 <template>
   <div class="s panel" :class="computedClass">
     <div class="flex items-center justify-between">
-      <img
-        :alt="integration.name"
-        :src="integration.image"
-        class="h-6 mb-4"
-      />
-      <span
-        v-if="isDone"
-        class="badge badge--green"
-      >Connected</span>
-      <div
-        v-else-if="isError"
-        class="text-red-500 flex items-center text-sm"
-      >
-        <i class="ri-error-warning-line mr-1" /> Failed to
-        connect
+      <img :alt="integration.name" :src="integration.image" class="h-6 mb-4" />
+      <span v-if="isDone" class="badge badge--green">Connected</span>
+      <div v-else-if="isError" class="text-red-500 flex items-center text-sm">
+        <i class="ri-error-warning-line mr-1" /> Failed to connect
       </div>
-      <div
-        v-else-if="isNoData"
-        class="text-red-500 flex items-center text-sm"
-      >
-        <i class="ri-error-warning-line mr-1" /> Not
-        receiving activities
+      <div v-else-if="isNoData" class="text-red-500 flex items-center text-sm">
+        <i class="ri-error-warning-line mr-1" /> Not receiving activities
       </div>
       <div
         v-else-if="isWaitingForAction"
@@ -34,13 +19,9 @@
         v-else-if="isWaitingApproval"
         class="text-gray-500 flex items-center text-sm"
       >
-        <i class="ri-time-line mr-1" /> Waiting for
-        approval
+        <i class="ri-time-line mr-1" /> Waiting for approval
       </div>
-      <div
-        v-else-if="isConnected"
-        class="flex items-center"
-      >
+      <div v-else-if="isConnected" class="flex items-center">
         <div
           v-loading="true"
           class="app-page-spinner !relative h-4 !w-4 mr-2 !min-h-fit"
@@ -57,13 +38,10 @@
     </div>
     <div>
       <div class="flex mb-2">
-        <span class="block font-semibold">{{
-          integration.name
+        <span class="block font-semibold">{{ integration.name }}</span>
+        <span v-if="integration.premium" class="text-2xs text-brand-500 ml-1">{{
+          FeatureFlag.premiumFeatureCopy()
         }}</span>
-        <span
-          v-if="integration.premium"
-          class="text-2xs text-brand-500 ml-1"
-        >{{ FeatureFlag.premiumFeatureCopy() }}</span>
       </div>
       <span class="block mb-6 text-xs text-gray-500">{{
         integration.description
@@ -85,10 +63,11 @@
               @click="connect"
             >
               {{
-                integration.premium === true
-                  && !hasIntegration
-                  ? 'Upgrade Plan'
-                  : 'Connect'
+                integration.premium === true && !hasIntegration
+                  ? "Upgrade Plan"
+                  : integration.platform === "zapier"
+                  ? "Learn how to connect"
+                  : "Connect"
               }}
             </el-button>
             <el-button
@@ -114,10 +93,10 @@
 </template>
 
 <script setup>
-import { useStore } from 'vuex';
-import { defineProps, computed, ref } from 'vue';
-import { FeatureFlag } from '@/featureFlag';
-import AppIntegrationConnect from '@/modules/integration/components/integration-connect.vue';
+import { useStore } from "vuex";
+import { defineProps, computed, ref } from "vue";
+import { FeatureFlag } from "@/featureFlag";
+import AppIntegrationConnect from "@/modules/integration/components/integration-connect.vue";
 
 const store = useStore();
 const props = defineProps({
@@ -128,37 +107,37 @@ const props = defineProps({
 });
 
 const computedClass = computed(() => ({
-  'integration-custom':
-      props.integration.platform === 'custom',
+  "integration-custom": props.integration.platform === "custom",
 }));
 
 const isConnected = computed(() => props.integration.status !== undefined);
 
-const isDone = computed(() => props.integration.status === 'done');
+const isDone = computed(() => props.integration.status === "done");
 
-const isError = computed(() => props.integration.status === 'error');
+const isError = computed(() => props.integration.status === "error");
 
-const isNoData = computed(() => props.integration.status === 'no-data');
+const isNoData = computed(() => props.integration.status === "no-data");
 
-const isWaitingForAction = computed(() => props.integration.status === 'pending-action');
+const isWaitingForAction = computed(
+  () => props.integration.status === "pending-action"
+);
 
-const isWaitingApproval = computed(() => props.integration.status === 'waiting-approval');
+const isWaitingApproval = computed(
+  () => props.integration.status === "waiting-approval"
+);
 
 const loadingDisconnect = ref(false);
 
 const handleDisconnect = async () => {
   loadingDisconnect.value = true;
-  await store.dispatch(
-    'integration/doDestroy',
-    props.integration.id,
-  );
+  await store.dispatch("integration/doDestroy", props.integration.id);
   loadingDisconnect.value = false;
 };
 </script>
 
 <script>
 export default {
-  name: 'AppIntegrationListItem',
+  name: "AppIntegrationListItem",
 };
 </script>
 
