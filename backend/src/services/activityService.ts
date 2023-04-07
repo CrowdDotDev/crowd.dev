@@ -1,5 +1,5 @@
 import { Transaction } from 'sequelize/types'
-import vader from 'vader-sentiment'
+import vader from 'crowd-sentiment'
 import { PlatformType } from '../types/integrationEnums'
 import Error400 from '../errors/Error400'
 import SequelizeRepository from '../database/repositories/sequelizeRepository'
@@ -196,6 +196,7 @@ export default class ActivityService extends LoggingBase {
       } else if (compound > 66) {
         label = 'positive'
       }
+
       return {
         positive: Math.round(sentiment.pos * 100),
         negative: Math.round(sentiment.neg * 100),
