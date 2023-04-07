@@ -17,7 +17,6 @@ import {
   NetlifyConfiguration,
   TenantMode,
   CubeJSConfiguration,
-  ComprehendConfiguration,
   ClearbitConfiguration,
   DevtoConfiguration,
   RedisConfiguration,
@@ -97,18 +96,6 @@ export const SEGMENT_CONFIG: SegmentConfiguration = KUBE_MODE
   ? config.get<SegmentConfiguration>('segment')
   : {
       writeKey: process.env.SEGMENT_WRITE_KEY,
-    }
-
-export const COMPREHEND_CONFIG: ComprehendConfiguration = KUBE_MODE
-  ? config.get<ComprehendConfiguration>('comprehend')
-  : {
-      // can be left blank - aws.ts configuration gets it straight from env
-      aws: {
-        accessKeyId: '',
-        accountId: '',
-        region: '',
-        secretAccessKey: '',
-      },
     }
 
 export const CLEARBIT_CONFIG: ClearbitConfiguration = KUBE_MODE

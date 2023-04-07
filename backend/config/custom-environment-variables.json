@@ -64,14 +64,6 @@
   "segment": {
     "writeKey": "CROWD_SEGMENT_WRITE_KEY"
   },
-  "comprehend": {
-    "aws": {
-      "accountId": "CROWD_COMPREHEND_AWS_ACCOUNT_ID",
-      "accessKeyId": "CROWD_COMPREHEND_AWS_ACCESS_KEY_ID",
-      "secretAccessKey": "CROWD_COMPREHEND_AWS_SECRET_ACCESS_KEY",
-      "region": "CROWD_COMPREHEND_AWS_REGION"
-    }
-  },
   "clearbit": {
     "apiKey": "CROWD_CLEARBIT_API_KEY"
   },

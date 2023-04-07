@@ -41,10 +41,6 @@ export interface S3Configuration {
   aws: AwsCredentials
 }
 
-export interface ComprehendConfiguration {
-  aws: AwsCredentials
-}
-
 export interface ClearbitConfiguration {
   apiKey: string
 }

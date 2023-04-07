@@ -167,7 +167,6 @@ export default class ActivityService extends LoggingBase {
 
   /**
    * Get the sentiment of an activity from its body and title.
-   * Only first 5000 bytes of text are passed through because of AWS Comprehend restrictions.
    * @param data Activity data. Includes body and title.
    * @returns The sentiment of the combination of body and title. Between -1 and 1.
    */
