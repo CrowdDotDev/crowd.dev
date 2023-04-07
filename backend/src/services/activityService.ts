@@ -196,10 +196,10 @@ export default class ActivityService extends LoggingBase {
         label = 'positive'
       }
       return {
-        positive: sentiment.pos * 100,
-        negative: sentiment.neg * 100,
-        neutral: sentiment.neu * 100,
-        sentiment: sentiment.compound * 100,
+        positive: Math.round(sentiment.pos * 100),
+        negative: Math.round(sentiment.neg * 100),
+        neutral: Math.round(sentiment.neu * 100),
+        sentiment: Math.round(sentiment.compound * 100),
         label,
       }
     } catch (err) {
