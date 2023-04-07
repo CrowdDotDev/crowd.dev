@@ -9,6 +9,8 @@ import IncomingWebhookRepository from '../../database/repositories/incomingWebho
 import { WebhookState } from '../../types/webhooks'
 import { NodeWorkerProcessWebhookMessage } from '../../types/mq/nodeWorkerProcessWebhookMessage'
 
+/* eslint-disable no-console */
+
 const banner = fs.readFileSync(path.join(__dirname, 'banner.txt'), 'utf8')
 
 const log = createServiceLogger()
