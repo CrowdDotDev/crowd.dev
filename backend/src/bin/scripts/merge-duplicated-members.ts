@@ -63,32 +63,32 @@ async function check(): Promise<number> {
 
   const seq = SequelizeRepository.getSequelize(dbOptions)
 
+  log.info('Querying database for duplicated members...')
+
   const results = await seq.query(
-    `
-    with activity_counts as (select count(id) as count, "memberId"
-                         from activities
-                         group by "memberId")
-    select keys.platform,
-          m.username ->> keys.platform as username,
-          m."tenantId",
-          count(*)                     as duplicate_count,
-          sum(ac.count)                as total_activitites,
-          json_agg(m.id)               as all_ids,
-          jsonb_agg(m."crowdInfo")     as all_crowd_infos,
-          jsonb_agg(m.emails)          as all_emails,
-          jsonb_agg(m.username)        as all_usernames,
-          jsonb_agg(m.attributes)      as all_attributes
-    from members m
-            inner join activity_counts ac on ac."memberId" = m.id,
-        lateral jsonb_object_keys(m.username) as keys(platform)
-    group by keys.platform,
-            m.username ->> keys.platform,
-            m."tenantId"
-    having count(*) > 1
-    order by duplicate_count desc,
-            keys.platform,
-            m."tenantId";
-  `,
+    `with activity_counts as (select count(id) as count, "memberId"
+                              from activities
+                              group by "memberId")
+      select keys.platform,
+            m.username ->> keys.platform as username,
+            m."tenantId",
+            count(*)                     as duplicate_count,
+            coalesce(sum(ac.count), 0)   as total_activitites,
+            json_agg(m.id)               as all_ids,
+            --jsonb_agg(m."crowdInfo")     as all_crowd_infos,
+            jsonb_agg(m.emails)          as all_emails,
+            --jsonb_agg(m.attributes)      as all_attributes,
+            jsonb_agg(m.username)        as all_usernames            
+      from members m
+              left join activity_counts ac on ac."memberId" = m.id,
+          lateral jsonb_object_keys(m.username) as keys(platform)
+      group by keys.platform,
+              m.username ->> keys.platform,
+              m."tenantId"
+      having count(*) > 1
+      order by duplicate_count desc,
+              keys.platform,
+              m."tenantId";`,
     {
       type: QueryTypes.SELECT,
     },
@@ -137,6 +137,7 @@ async function check(): Promise<number> {
 }
 
 setImmediate(async () => {
+  log.info('Starting merge duplicated members script...')
   let count = await check()
 
   while (count > 0) {

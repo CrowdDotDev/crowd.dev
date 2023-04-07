@@ -48,3 +48,16 @@ set "sourceId" = m.attributes -> 'sourceId' ->> mi.platform
 from members m
 where mi."memberId" = m.id
   and m.attributes -> 'sourceId' ? mi.platform;
+
+alter table activities
+    add column "username" text null;
+
+update activities
+set username = mi.username
+from "memberIdentities" mi
+where activities."memberId" = mi."memberId"
+  and activities."tenantId" = mi."tenantId"
+  and activities.platform = mi.platform;
+
+alter table activities
+    alter column "username" set not null;
