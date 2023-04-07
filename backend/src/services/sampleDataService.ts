@@ -27,6 +27,7 @@ import NoteService from './noteService'
 import TagService from './tagService'
 import { AttributeType } from '../database/attributes/types'
 import { API_CONFIG } from '../config'
+import SequelizeRepository from '../database/repositories/sequelizeRepository'
 
 export default class SampleDataService extends LoggingBase {
   options: IServiceOptions
@@ -161,7 +162,6 @@ export default class SampleDataService extends LoggingBase {
         for (const member of members) {
           const tagList = []
           const noteList = []
-          console.log(member.displayName, member.tags)
           for (const tag of member.tags || []) {
             const found = (await tagService.findAndCountAll({ advancedFilter: { name: tag } }))
               .rows[0]
@@ -248,58 +248,76 @@ export default class SampleDataService extends LoggingBase {
    * Also removes settings for attributes.sample.crowd
    */
   async deleteSampleData(): Promise<void> {
-    const tenantService = new TenantService(this.options)
+    const tx = await SequelizeRepository.createTransaction(this.options)
 
-    const tenant = await tenantService.findById(this.options.currentTenant.id)
+    const txOptions = { ...this.options, transaction: tx }
 
-    if (tenant.hasSampleData) {
-      if (API_CONFIG.edition !== 'crowd-hosted') {
-        const memberService = new MemberService(this.options)
-        const memberAttributeSettingsService = new MemberAttributeSettingsService(this.options)
+    try {
+      const tenantService = new TenantService(txOptions)
 
-        const memberIds = await MemberRepository.findSampleDataMemberIds(this.options)
+      const tenant = await tenantService.findById(this.options.currentTenant.id)
 
-        const organizationService = new OrganizationService(this.options)
+      if (tenant.hasSampleData) {
+        if (API_CONFIG.edition !== 'crowd-hosted') {
+          const memberService = new MemberService(txOptions)
+          const memberAttributeSettingsService = new MemberAttributeSettingsService(txOptions)
 
-        const organizationIds = (
-          await organizationService.findAndCountAll({
-            advancedFilter: {
-              members: memberIds,
-            },
-          })
-        ).rows.map((org) => org.id)
+          const memberIds = await MemberRepository.findSampleDataMemberIds(txOptions)
 
-        await organizationService.destroyBulk(organizationIds)
+          const organizationService = new OrganizationService(txOptions)
 
-        // deleting sample members should cascade to their activities as well
-        await memberService.destroyBulk(memberIds)
+          const organizationIds = (
+            await organizationService.findAndCountAll({
+              advancedFilter: {
+                members: memberIds,
+              },
+            })
+          ).rows.map((org) => org.id)
 
-        const conversationService = new ConversationService(this.options)
-        const conversationIds = (
-          await conversationService.findAndCountAll({
-            advancedFilter: {
-              activityCount: 0,
-            },
-            limit: 200,
-          })
-        ).rows.map((conv) => conv.id)
+          await organizationService.destroyBulk(organizationIds)
 
-        await conversationService.destroyBulk(conversationIds)
+          // deleting sample members should cascade to their activities as well
+          await memberService.destroyBulk(memberIds)
 
-        // delete attribute settings for attributes.sample.crowd as well
-        const sampleAttributeSettings = (
-          await memberAttributeSettingsService.findAndCountAll({
-            filter: { name: MemberAttributeName.SAMPLE },
-          })
-        ).rows[0]
-        await memberAttributeSettingsService.destroyAll([sampleAttributeSettings.id])
+          const conversationService = new ConversationService(txOptions)
+          const conversationIds = (
+            await conversationService.findAndCountAll({
+              advancedFilter: {
+                activityCount: 0,
+              },
+              limit: 200,
+            })
+          ).rows.map((conv) => conv.id)
+
+          await conversationService.destroyBulk(conversationIds)
+
+          // delete attribute settings for attributes.sample.crowd as well
+          const sampleAttributeSettings = (
+            await memberAttributeSettingsService.findAndCountAll({
+              filter: { name: MemberAttributeName.SAMPLE },
+            })
+          ).rows[0]
+          await memberAttributeSettingsService.destroyAll([sampleAttributeSettings.id])
+        }
+
+        await tenantService.update(
+          this.options.currentTenant.id,
+          {
+            hasSampleData: false,
+          },
+          true,
+        )
       }
 
-      await tenantService.update(this.options.currentTenant.id, {
-        hasSampleData: false,
-      })
-    }
+      await SequelizeRepository.commitTransaction(tx)
+      this.log.info(`Sample data for tenant ${this.options.currentTenant.id} deleted succesfully.`)
+    } catch (err) {
+      this.log.error(err, 'Error deleting sample data!')
+      if (tx) {
+        await SequelizeRepository.rollbackTransaction(tx)
+      }
 
-    this.log.info(`Sample data for tenant ${this.options.currentTenant.id} deleted succesfully.`)
+      throw err
+    }
   }
 }

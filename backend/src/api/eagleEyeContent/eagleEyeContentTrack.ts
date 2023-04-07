@@ -12,20 +12,9 @@ export default async (req, res) => {
 
   switch (event) {
     case 'postClicked':
-      console.log('Eagle Eye post clicked', {
-        url: params.url,
-        platform: params.platform,
-      })
       EagleEyeContentService.trackPostClicked(req.body.url, req.body.platform, req)
       break
     case 'generatedReply':
-      console.log('Eagle Eye AI reply generated', {
-        title: params.title,
-        description: params.description,
-        platform: params.platform,
-        reply: params.reply,
-        url: params.url,
-      })
       track(
         'Eagle Eye AI reply generated',
         {
@@ -39,14 +28,6 @@ export default async (req, res) => {
       )
       break
     case 'generatedReplyFeedback':
-      console.log('Eagle Eye AI reply feedback', {
-        type: params.type,
-        title: params.title,
-        description: params.description,
-        platform: params.platform,
-        reply: params.reply,
-        url: params.url,
-      })
       track(
         'Eagle Eye AI reply feedback',
         {
@@ -61,13 +42,6 @@ export default async (req, res) => {
       )
       break
     case 'generatedReplyCopied':
-      console.log('Eagle Eye AI reply copied', {
-        title: params.title,
-        description: params.description,
-        platform: params.platform,
-        url: params.url,
-        reply: params.reply,
-      })
       track(
         'Eagle Eye AI reply copied',
         {
