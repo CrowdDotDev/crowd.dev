@@ -2,6 +2,8 @@ import data from './data.json';
 
 export default (injected) => () => {
   before(() => {
+    cy.visit(`${Cypress.env('appUrl')}/auth/signin`);
+    cy.url().should('include', '/auth/signin');
     cy.contains('Forgot password').click();
     cy.url().should('include', '/auth/forgot-password');
   });

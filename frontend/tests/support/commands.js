@@ -27,12 +27,11 @@ Cypress.Commands.add('login', () => {
     });
 });
 
-const LOCAL_STORAGE_MEMORY = {};
-
 Cypress.Commands.add('clearAllLocalStorage', () => {
   localStorage.clear();
 });
 
+Cypress.on('uncaught:exception', () => false);
 //
 //
 // -- This is a child command --

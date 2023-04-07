@@ -1,6 +1,6 @@
 import signup from './auth/signup';
 import verifyEmail from './auth/verifyEmail';
-import unauth from './auth/unauth';
+import signupExisting from './auth/signup-existing';
 import signin from './auth/signin';
 import onboarding from './auth/onboarding';
 import logout from './auth/logout';
@@ -43,13 +43,10 @@ describe('AUTH', () => {
 
   describe('[Onboarding]', onboarding);
 
-  // Disabled until formbricks issue is resolved
-  // describe(
-  //   '[Auth] Unauth',
-  //   unauth(),
-  // );
-
   describe('[Auth] Logout', logout);
+  describe('[Auth] Logout', signupExisting({
+    email,
+  }));
 
   describe(
     '[Auth] Forgot password',
