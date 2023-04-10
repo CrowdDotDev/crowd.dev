@@ -22,7 +22,7 @@ class SettingsService {
       throw new Error400(options.language, 'settings.activityTypes.errors.typeRequiredWhenCreating')
     }
 
-    const typeKey = getCleanString(data.type).replace(/ +/gi, '-')
+    const typeKey = data.type
 
     const activityTypes = SettingsRepository.getActivityTypes(options)
 
