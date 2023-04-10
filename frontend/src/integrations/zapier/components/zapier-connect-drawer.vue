@@ -13,7 +13,7 @@
       <div class="flex flex-row items-center justify-between w-full">
         <p class="font-bold text-base">Set up crowd.dev in Zapier</p>
         <a
-          href="https://docs.crowd.dev/docs/integrations"
+          href="https://docs.crowd.dev/docs/zapier-integration"
           target="_blank"
           rel="noopener noreferrer"
           class="btn btn--bordered btn--md"
@@ -62,15 +62,22 @@
               >3</span
             >
             <p class="ml-4 text-gray-900">
-              Configure your Zaps using our supported triggers and actions
+              Configure your Zaps using our
+              <a
+                href="https://docs.crowd.dev/docs/zapier-integration#supported-triggers"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="underline underline-offset-4"
+                >supported triggers and actions</a
+              >
             </p>
           </li>
         </ul>
-        <a
+        <!-- <a
           class="btn btn--md btn--primary mt-4 ml-12"
-          href="https://zapier.com/developer/public-invite/180721/f94ad64f963359cd888fa22610c31875/"
+          href=""
           >Explore our Zap templates</a
-        >
+        > -->
       </div>
     </template>
   </app-drawer>
