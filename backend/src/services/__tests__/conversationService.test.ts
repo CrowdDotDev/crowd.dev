@@ -28,13 +28,18 @@ function getConversationStyleActivity(activity) {
   // conversation documents have activity.timestamp as unix timestamps instead of date string
   activity.timestamp = moment(activity.timestamp).unix()
 
+  // since we return parent as well now for display options, dates are casted to string in search engine
+  if (activity.parent) {
+    activity.parent.timestamp = activity.parent.timestamp.toISOString()
+    activity.parent.createdAt = activity.parent.createdAt.toISOString()
+    activity.parent.updatedAt = activity.parent.updatedAt.toISOString()
+  }
+
   // only the username will be returned as author, rest of the member object shouldn't be expected
   activity.author = activity.username
   delete activity.member
-  delete activity.objectMember
 
   // parent and display won't be sent in the activity object to the search engine as well
-  delete activity.parent
   delete activity.display
 
   // search engine returns everything as string
