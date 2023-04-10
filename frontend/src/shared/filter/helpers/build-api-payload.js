@@ -22,7 +22,9 @@ function buildAttributeBlock(attribute) {
         platform: a.value,
       })),
     };
-  } if (attribute.name === 'sentiment') {
+  }
+
+  if (attribute.name === 'sentiment') {
     return attribute.value.reduce(
       (obj, a) => {
         obj.or.push({
@@ -33,7 +35,9 @@ function buildAttributeBlock(attribute) {
       },
       { or: [] },
     );
-  } if (attribute.name === 'averageSentiment') {
+  }
+
+  if (attribute.name === 'averageSentiment') {
     return attribute.value.reduce(
       (obj, a) => {
         obj.or.push({
@@ -44,7 +48,9 @@ function buildAttributeBlock(attribute) {
       },
       { or: [] },
     );
-  } if (attribute.name === 'type' && attribute.value) {
+  }
+
+  if (attribute.name === 'type' && attribute.value) {
     return {
       and: [
         {
@@ -55,7 +61,9 @@ function buildAttributeBlock(attribute) {
         },
       ],
     };
-  } if (attribute.name === 'activityTypes') {
+  }
+
+  if (attribute.name === 'activityTypes') {
     return {
       activityTypes: {
         overlap: [
@@ -63,7 +71,9 @@ function buildAttributeBlock(attribute) {
         ],
       },
     };
-  } if (attribute.name === 'search') {
+  }
+
+  if (attribute.name === 'search') {
     return {
       or: attribute.fields.map((f) => {
         if (f === 'emails') {
@@ -81,7 +91,9 @@ function buildAttributeBlock(attribute) {
         };
       }),
     };
-  } if (attribute.name === 'keywords') {
+  }
+
+  if (attribute.name === 'keywords') {
     // Eagle eye query
     const keywords = attribute.value.filter((k) => k[0] !== '"' && k[k.length - 1] !== '"');
     const exactKeywords = attribute.value
@@ -98,17 +110,9 @@ function buildAttributeBlock(attribute) {
       query.exactKeywords = { overlap: exactKeywords };
     }
     return query;
-  } if (attribute.name === 'activeOn') {
-    rule = {
-      contains: attribute.value.reduce((acc, option) => {
-        acc.push(option.value);
+  }
 
-        return acc;
-      }, []),
-    };
-  } if (attribute.name === 'lastEnriched') {
-    rule = attribute.value ? { ne: null } : { eq: null };
-  } else if (attribute.operator === 'notContains') {
+  if (attribute.operator === 'notContains') {
     return {
       not: {
         [attribute.custom
@@ -118,6 +122,18 @@ function buildAttributeBlock(attribute) {
         },
       },
     };
+  }
+
+  if (attribute.name === 'activeOn') {
+    rule = {
+      contains: attribute.value.reduce((acc, option) => {
+        acc.push(option.value);
+
+        return acc;
+      }, []),
+    };
+  } else if (attribute.name === 'lastEnriched') {
+    rule = attribute.value ? { ne: null } : { eq: null };
   } else if (attribute.name === 'score') {
     rule = {
       in: attribute.value.reduce((acc, option) => {
