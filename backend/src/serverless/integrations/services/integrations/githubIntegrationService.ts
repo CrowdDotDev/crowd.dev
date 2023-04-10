@@ -572,6 +572,9 @@ export class GithubIntegrationService extends IntegrationServiceBase {
     let type: GithubActivityType
     let scoreGrid: gridEntry
     let timestamp: string
+    let sourceParentId: string
+    let sourceId: string
+    let objectMember: Member = null
 
     switch (payload.action) {
       case 'edited':
@@ -580,6 +583,9 @@ export class GithubIntegrationService extends IntegrationServiceBase {
         type = GithubActivityType.PULL_REQUEST_OPENED
         scoreGrid = GitHubGrid.pullRequestOpened
         timestamp = payload.pull_request.created_at
+        sourceId = payload.pull_request.node_id.toString()
+        sourceParentId = null
+        objectMember = null
         break
       }
 
@@ -587,6 +593,49 @@ export class GithubIntegrationService extends IntegrationServiceBase {
         type = GithubActivityType.PULL_REQUEST_CLOSED
         scoreGrid = GitHubGrid.pullRequestClosed
         timestamp = payload.pull_request.closed_at
+        sourceParentId = payload.pull_request.node_id.toString()
+        sourceId = `gen-CE_${payload.pull_request.node_id.toString()}_${
+          payload.pull_request.user.login
+        }_${payload.pull_request.closed_at}`
+        break
+      }
+
+      case 'assigned': {
+        type = GithubActivityType.PULL_REQUEST_ASSIGNED
+        scoreGrid = GitHubGrid.pullRequestAssigned
+        timestamp = payload.pull_request.updated_at
+        sourceParentId = payload.pull_request.node_id.toString()
+        sourceId = `gen-AE_${payload.pull_request.node_id.toString()}_${
+          payload.pull_request.user.login
+        }_${payload.pull_request.assignee.login}_${payload.pull_request.updated_at}`
+        objectMember = await GithubIntegrationService.parseWebhookMember(
+          payload.pull_request.assignee.login,
+          context,
+        )
+        break
+      }
+
+      case 'review_requested': {
+        type = GithubActivityType.PULL_REQUEST_REVIEW_REQUESTED
+        scoreGrid = GitHubGrid.pullRequestReviewRequested
+        timestamp = payload.pull_request.updated_at
+        sourceParentId = payload.pull_request.node_id.toString()
+        sourceId = `gen-RRE_${payload.pull_request.node_id.toString()}_${
+          payload.pull_request.user.login
+        }_${payload.pull_request.requested_reviewer.login}_${payload.pull_request.updated_at}`
+        objectMember = await GithubIntegrationService.parseWebhookMember(
+          payload.pull_request.requested_reviewer.login,
+          context,
+        )
+        break
+      }
+
+      // TODO:
+      case 'reviewed': {
+        break
+      }
+
+      case 'merged': {
         break
       }
 
@@ -602,12 +651,13 @@ export class GithubIntegrationService extends IntegrationServiceBase {
       return {
         member,
         username: member.username[PlatformType.GITHUB].username,
+        objectMember,
         type,
         timestamp: moment(timestamp).utc().toDate(),
         platform: PlatformType.GITHUB,
         tenant: context.integration.tenantId,
-        sourceId: pull.node_id.toString(),
-        sourceParentId: null,
+        sourceId,
+        sourceParentId,
         url: pull.html_url,
         title: pull.title,
         channel: payload.repository.html_url,
@@ -635,7 +685,9 @@ export class GithubIntegrationService extends IntegrationServiceBase {
               tenant: context.integration.tenantId,
               platform: PlatformType.GITHUB,
               type: GithubActivityType.PULL_REQUEST_ASSIGNED,
-              sourceId: record.id,
+              sourceId: `gen-AE_${pullRequest.sourceId}_${record.actor.login}_${
+                record.assignee.login
+              }_${moment(record.createdAt).utc().toISOString()}`,
               sourceParentId: pullRequest.sourceId,
               timestamp: moment(record.createdAt).utc().toDate(),
               body: '',
@@ -664,7 +716,9 @@ export class GithubIntegrationService extends IntegrationServiceBase {
               tenant: context.integration.tenantId,
               platform: PlatformType.GITHUB,
               type: GithubActivityType.PULL_REQUEST_REVIEW_REQUESTED,
-              sourceId: record.id,
+              sourceId: `gen-RRE_${pullRequest.sourceId}_${record.actor.login}_${
+                record.requestedReviewer.login
+              }_${moment(record.createdAt).utc().toISOString()}`,
               sourceParentId: pullRequest.sourceId,
               timestamp: moment(record.createdAt).utc().toDate(),
               body: '',
@@ -696,7 +750,11 @@ export class GithubIntegrationService extends IntegrationServiceBase {
               tenant: context.integration.tenantId,
               platform: PlatformType.GITHUB,
               type: GithubActivityType.PULL_REQUEST_REVIEWED,
-              sourceId: record.id,
+              sourceId: `gen-PRR_${pullRequest.sourceId}_${record.author.login}_${moment(
+                record.submittedAt,
+              )
+                .utc()
+                .toISOString()}`,
               sourceParentId: pullRequest.sourceId,
               timestamp: moment(record.submittedAt).utc().toDate(),
               body: '',
@@ -724,7 +782,11 @@ export class GithubIntegrationService extends IntegrationServiceBase {
               tenant: context.integration.tenantId,
               platform: PlatformType.GITHUB,
               type: GithubActivityType.PULL_REQUEST_MERGED,
-              sourceId: record.id,
+              sourceId: `gen-ME_${pullRequest.sourceId}_${record.actor.login}_${moment(
+                record.createdAt,
+              )
+                .utc()
+                .toISOString()}`,
               sourceParentId: pullRequest.sourceId,
               timestamp: moment(record.createdAt).utc().toDate(),
               body: '',
@@ -752,7 +814,11 @@ export class GithubIntegrationService extends IntegrationServiceBase {
               tenant: context.integration.tenantId,
               platform: PlatformType.GITHUB,
               type: GithubActivityType.PULL_REQUEST_CLOSED,
-              sourceId: record.id,
+              sourceId: `gen-CE_${pullRequest.sourceId}_${record.actor.login}_${moment(
+                record.createdAt,
+              )
+                .utc()
+                .toISOString()}`,
               sourceParentId: pullRequest.sourceId,
               timestamp: moment(record.createdAt).utc().toDate(),
               body: '',
