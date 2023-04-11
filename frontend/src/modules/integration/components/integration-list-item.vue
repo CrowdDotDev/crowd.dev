@@ -65,9 +65,7 @@
               {{
                 integration.premium === true && !hasIntegration
                   ? "Upgrade Plan"
-                  : integration.platform === "zapier"
-                    ? "Learn how to connect"
-                    : "Connect"
+                  : "Connect"
               }}
             </el-button>
             <el-button
