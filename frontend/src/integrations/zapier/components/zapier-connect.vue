@@ -4,8 +4,8 @@
 </template>
 
 <script setup>
-import { ref } from "vue";
-import AppZapierConnectDrawer from "@/integrations/zapier/components/zapier-connect-drawer.vue";
+import { ref } from 'vue';
+import AppZapierConnectDrawer from '@/integrations/zapier/components/zapier-connect-drawer.vue';
 
 const drawerVisible = ref(false);
 const connect = () => {
@@ -15,6 +15,6 @@ const connect = () => {
 
 <script>
 export default {
-  name: "AppZapierConnect",
+  name: 'AppZapierConnect',
 };
 </script>
