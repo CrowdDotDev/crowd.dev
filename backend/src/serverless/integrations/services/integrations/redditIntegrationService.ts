@@ -316,7 +316,7 @@ export class RedditIntegrationService extends IntegrationServiceBase {
     // If the kind is 'more', instead of a comment we have a list of comment IDs to expand. We need to create streams for those and return them.
     if (kind === 'more') {
       comment = comment as RedditMoreChildren
-      logger.info(
+      logger.debug(
         { stream, childrenLength: comment.children.length },
         'Found more children to parse',
       )
