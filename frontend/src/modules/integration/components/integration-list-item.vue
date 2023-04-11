@@ -91,10 +91,10 @@
 </template>
 
 <script setup>
-import { useStore } from "vuex";
-import { defineProps, computed, ref } from "vue";
-import { FeatureFlag } from "@/featureFlag";
-import AppIntegrationConnect from "@/modules/integration/components/integration-connect.vue";
+import { useStore } from 'vuex';
+import { defineProps, computed, ref } from 'vue';
+import { FeatureFlag } from '@/featureFlag';
+import AppIntegrationConnect from '@/modules/integration/components/integration-connect.vue';
 
 const store = useStore();
 const props = defineProps({
@@ -105,37 +105,37 @@ const props = defineProps({
 });
 
 const computedClass = computed(() => ({
-  "integration-custom": props.integration.platform === "custom",
+  'integration-custom': props.integration.platform === 'custom',
 }));
 
 const isConnected = computed(() => props.integration.status !== undefined);
 
-const isDone = computed(() => props.integration.status === "done");
+const isDone = computed(() => props.integration.status === 'done');
 
-const isError = computed(() => props.integration.status === "error");
+const isError = computed(() => props.integration.status === 'error');
 
-const isNoData = computed(() => props.integration.status === "no-data");
+const isNoData = computed(() => props.integration.status === 'no-data');
 
 const isWaitingForAction = computed(
-  () => props.integration.status === "pending-action"
+  () => props.integration.status === 'pending-action',
 );
 
 const isWaitingApproval = computed(
-  () => props.integration.status === "waiting-approval"
+  () => props.integration.status === 'waiting-approval',
 );
 
 const loadingDisconnect = ref(false);
 
 const handleDisconnect = async () => {
   loadingDisconnect.value = true;
-  await store.dispatch("integration/doDestroy", props.integration.id);
+  await store.dispatch('integration/doDestroy', props.integration.id);
   loadingDisconnect.value = false;
 };
 </script>
 
 <script>
 export default {
-  name: "AppIntegrationListItem",
+  name: 'AppIntegrationListItem',
 };
 </script>
 
