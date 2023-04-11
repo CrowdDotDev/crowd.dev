@@ -2,6 +2,28 @@
 
 All notable changes to this project will be documented in this file.
 
+## v0.27.0 - 2023-04-11
+
+### Changes
+
+#### 🚀 Features
+
+- Zapier integration @garrrikkotua (#739)
+
+#### ✨ Improvements
+
+- Allow opening organizations in a new tab @gaspergrom (#725)
+- Support negative filters @joanagmaia (#720)
+- New UX member merging suggestions @gaspergrom (#715)
+
+#### 🐞 Bug Fixes
+
+- Fix an issue when deleting sample data on onboarding integration @themarolt (#733)
+- Fixed member's joined date being overwritten for the Slack and Twitter integrations @joanreyero (#729)
+- Fix the displaying of some activity types @gaspergrom (#731)
+- Fix filtering in reports and list pages @joanagmaia (#730)
+- Discord threads had the wrong channels @joanreyero (#726)
+
 ## v0.26.0 - 2023-04-04
 
 ### Changes
@@ -226,7 +248,6 @@ https://user-images.githubusercontent.com/37874460/220165717-4204605a-260f-41cb-
 - Moved the Discord integration to use web sockets for scalability. @themarolt (#486)
 - Add Formbricks Product-Market-Fit widget. @mattinannt (#467)
 #### 🐞 Bug Fixes
-
 - Added missing identity forms when editing members. @joanreyero (#543)
 - Filtering out team members in the *Active members* widget on the home page. @joanreyero (#541)
 - When members are merged, the new member gets the highest of the two scores. @joanreyero (#542)
@@ -289,7 +310,6 @@ You can now get a detailed view of the members returned by widgets in default re
 ### Changes
 ### 🚀 Features
 #### LinkedIn integration
-
 Introduction the LinkedIn integration! With it, you can bring the comments and reactions to your organization's LinkedIn posts into crowd.dev. This integration is only available for Growth and Custom plans.
 
 <img width="1727" alt="Linkedin" src="https://user-images.githubusercontent.com/37874460/214154195-3e3ba24e-ba70-4eae-9f65-c22f3bd9042e.png">
@@ -312,7 +332,6 @@ Introduction the LinkedIn integration! With it, you can bring the comments and r
 ### 🚀 Features
 #### Template reports
 Introducing our newest feature: Default Reports! These specially crafted reports are designed to give you a deep dive into the inner workings of your community. With absolutely no setup required on your end, you can now access valuable insights about your members, including a breakdown of your active members, a comparison of new vs returning active members, and a list of your top engaged members.
-
 - Members reports @joanagmaia (#418)
 - Default reports backend updates @epipav (#398)
 - Fix home dashboard and reports @joanagmaia (#424)
@@ -339,7 +358,6 @@ Our first external code contribution! @mattinannt and the [Formbricks](https://f
 ### Changes
 ### Features
 #### Exact keyword matching for EagleEye
-
 You can now look for posts by an exact keyword in EagleEye. If you send a query wrapped in quotes, we will look for it exactly rather than performing semantic search.
 
 For example, imagine you want to search for content that talks about *generatice AI*, but that mentions *Stable Diffusion*. You could send the query: `generative ai, "stable diffusion"`.
@@ -364,7 +382,6 @@ Forum channels are now supported as part of the Discord integration. We will get
 ### Changes
 ### 🚀 Features
 #### CSV exports
-
 You can now export your community members as CSV. You can export all members or choose any view to export, and we will send you a document in your email containing all the members that match the filter.
 
 <img width="672" alt="Screenshot 2023-01-02 at 18 47 18" src="https://user-images.githubusercontent.com/37874460/210264594-2f744e43-2b31-4be7-aa28-6f0a6c9dbad5.png">
@@ -395,7 +412,6 @@ The Reddit integration is finally here! It was one of the most wanted integratio
 ![Reddit (2) (1)](https://user-images.githubusercontent.com/37874460/208475828-a1e62b3c-6196-48bb-a362-4281630107a0.png)
 - Reddit integration @mariobalca and @joanreyero (#351)
 #### Plan page
-
 We are advancing in making premium plans possible. This week we introduced a *Plan* page in the workspace's settings. You can use it to upgrade your plan to Growth, our first premium plan. You can learn more about our pricing [here](https://crowd.dev/pricing).
 
 <img width="1055" alt="Screenshot 2022-12-19 at 17 53 44" src="https://user-images.githubusercontent.com/37874460/208478358-6c861f46-51bc-4db6-ba9f-23d7d5435a04.png">
@@ -423,7 +439,6 @@ With this, we have introduced feature flagging, so we can also roll out features
 - Integrate posthog in frontend @joanagmaia (#335)
 - Tenant plans and feature flagging @epipav (#318)
 ### ✨ Improvements
-
 - Upped thresholds for merge suggestions and included `email` and `displayName` in the computation @joanreyero (#336)
 - Add a search button to EagleEye to avoid making too many requests. Before, we searched every time there was a keyword change, causing performance issues. @mariobalca (#321)
 - Render markdown in activities that have a markdown-based body @joanagmaia (#310)
@@ -481,7 +496,6 @@ With the new tasks feature you can create tasks related to your community member
 The notes module allows you to add notes to your community members. You can annotate your chats with the member and leave comments for your colleagues. Oh, and we support markdown!
 ### Bug fixes and improvements
 The feedback has been tremendous after our open-source launch! We have spent this month working on many bug fixes and improvements to make the app better every single day.
-
 ## v0.9.0 - 2022-10-31
 
 ### Changes
@@ -519,7 +533,6 @@ This version introduces breaking API changes. While the API has vastly improved 
 ## v0.7.0 - 2022-09-16
 ### Changes
 ### 🚀 Features
-
 - Automations feature @mariobalca (#49) and @themarolt (#43)
 - We now support webhooks as the first tool in our automations feature.
 - This means you can now set up a webhook automation to be triggered:
@@ -544,7 +557,9 @@ This version introduces breaking API changes. While the API has vastly improved 
 - 
 - 
 - 
+- 
 - - When a new activity is created
+- 
 - 
 - 
 - 
