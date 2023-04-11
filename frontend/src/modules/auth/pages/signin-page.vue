@@ -119,9 +119,9 @@
       </div>
       <div class="pt-6 pb-16">
         <a
+          id="googleLogin"
           :href="socialOauthLink('google')"
           class="btn btn--secondary btn--lg w-full"
-          id="googleLogin"
         >
           <app-svg name="google" class="h-5 w-5" />
           <span class="pl-3 text-gray-600">Sign in with Google</span>

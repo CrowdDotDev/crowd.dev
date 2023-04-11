@@ -84,8 +84,8 @@ export default () => {
     cy.get('@submit').should('not.be.disabled');
     cy.get('@submit').click();
     cy.wait('@apiTenant');
-    cy.wait(3000);
     cy.wait('@apiTenantSampleData');
+    cy.wait(4000);
 
     cy.url().should('not.include', '/onboard');
     cy.location('pathname').should('eq', '/');
