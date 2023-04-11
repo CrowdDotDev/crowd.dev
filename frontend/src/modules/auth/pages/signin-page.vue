@@ -119,6 +119,7 @@
       </div>
       <div class="pt-6 pb-16">
         <a
+          id="googleLogin"
           :href="socialOauthLink('google')"
           class="btn btn--secondary btn--lg w-full"
         >

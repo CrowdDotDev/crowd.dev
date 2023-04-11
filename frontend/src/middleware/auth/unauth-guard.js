@@ -1,3 +1,6 @@
+import { AuthToken } from '@/modules/auth/auth-token';
+import AuthCurrentTenant from '@/modules/auth/auth-current-tenant';
+
 /**
  * Unauth Guard
  *
@@ -10,14 +13,15 @@
  * @param router
  * @returns {Promise<*>}
  */
-export default async function ({ to, store, router }) {
+export default function ({ to, router }) {
   if (!to.meta || !to.meta.unauth) {
     return;
   }
 
-  await store.dispatch('auth/doWaitUntilInit');
+  const token = AuthToken.get();
+  const tenantId = AuthCurrentTenant.get();
 
-  if (store.getters['auth/signedIn']) {
+  if (token && tenantId) {
     router.push('/');
   }
 }
