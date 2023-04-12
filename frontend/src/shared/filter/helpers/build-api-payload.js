@@ -165,7 +165,7 @@ function buildAttributeBlock(attribute) {
     };
   } else if (attribute.operator === 'textContains') {
     rule = {
-      like: `%${attribute.value}%`
+      like: `%${attribute.value}%`,
     };
   } else if (attribute.operator === null) {
     rule = Array.isArray(attribute.value)
