@@ -1,0 +1,51 @@
+import JSONField from '@/shared/fields/json-field';
+import { store } from '@/store';
+import { CrowdIntegrations } from '@/integrations/integrations-config';
+import { computed } from 'vue';
+import { extractRepoNameFromUrl } from '@/utils/string';
+
+export default class ActivityChannelsField extends JSONField {
+  constructor(name, label, config = {}) {
+    super(name, label);
+
+    this.filterable = config.filterable || false;
+    this.custom = config.custom || false;
+  }
+
+  dropdownOptions() {
+    const activityChannels = computed(() => store.getters['auth/currentTenant'].settings[0].activityChannels || {});
+
+    return Object.entries(activityChannels.value).map(([platform, channels]) => ({
+      label: {
+        type: 'platform',
+        key: platform,
+        value: CrowdIntegrations.getConfig(platform).name,
+      },
+      nestedOptions: channels.map((channel) => ({
+        value: channel,
+        label: platform === 'github' ? extractRepoNameFromUrl(channel) : channel,
+      })),
+    }));
+  }
+
+  forFilter() {
+    return {
+      name: this.name,
+      label: this.label,
+      custom: this.custom,
+      props: {
+        options: this.dropdownOptions(),
+        multiple: false,
+        searchable: true,
+        searchPlaceholder: 'Search for channels',
+        searchEmpty: 'No channels found',
+      },
+      defaultValue: null,
+      value: null,
+      defaultOperator: null,
+      operator: null,
+      type: 'select-group',
+      include: true,
+    };
+  }
+}
