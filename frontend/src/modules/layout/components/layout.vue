@@ -226,16 +226,6 @@ export default {
     },
   },
 
-  watch: {
-    // whenever question changes, this function will run
-    showPmfSurvey(newValue) {
-      if (newValue) {
-        setTimeout(() => {
-        }, 3000);
-      }
-    },
-  },
-
   created() {
     if (this.isMobile) {
       this.collapseMenu();
@@ -248,37 +238,6 @@ export default {
   async mounted() {
     identify(this.currentUser);
     this.initPendo();
-
-    // if (
-    //   config.formbricks.url
-    //   && config.formbricks.pmfFormId
-    // ) {
-    //   formbricks.config = {
-    //     formbricksUrl: config.formbricks.url,
-    //     formId: config.formbricks.pmfFormId,
-    //     containerId: 'formbricks-pmf-container',
-    //     onFinished: () => this.doHidePmfBanner(),
-    //     contact: {
-    //       name: 'Jonathan',
-    //       position: 'Co-Founder',
-    //       imgUrl:
-    //         'https://avatars.githubusercontent.com/u/41432658?v=4',
-    //     },
-    //     customer: {
-    //       id: this.$store.getters['auth/currentUser'].id,
-    //       name: this.$store.getters['auth/currentUser']
-    //         .fullName,
-    //       email: this.$store.getters['auth/currentUser'].email,
-    //     },
-    //     style: {
-    //       brandColor: '#e94f2e',
-    //       headerBGColor: '#F9FAFB',
-    //       boxBGColor: '#ffffff',
-    //       textColor: '#140505',
-    //       buttonHoverColor: '#F9FAFB',
-    //     },
-    //   };
-    // }
   },
 
   unmounted() {
