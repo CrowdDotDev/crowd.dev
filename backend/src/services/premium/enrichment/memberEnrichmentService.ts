@@ -54,6 +54,7 @@ export default class MemberEnrichmentService extends LoggingBase {
       [MemberAttributeName.LOCATION]: {
         fields: ['location'],
         default: true,
+        type: AttributeType.MULTI_SELECT,
       },
       [MemberAttributeName.BIO]: {
         fields: ['title', 'work_experiences[0].title'],

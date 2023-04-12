@@ -240,7 +240,7 @@ export class DevtoIntegrationService extends IntegrationServiceBase {
         [PlatformType.DEVTO]: comment.fullUser?.summary || '',
       }
       member.attributes[MemberAttributeName.LOCATION] = {
-        [PlatformType.DEVTO]: comment.fullUser?.location || '',
+        [PlatformType.DEVTO]: comment.fullUser?.location || [],
       }
     }
 

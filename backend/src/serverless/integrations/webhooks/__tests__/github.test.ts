@@ -90,7 +90,7 @@ describe('Github webhooks tests', () => {
             [PlatformType.GITHUB]: '',
           },
           [MemberAttributeName.LOCATION]: {
-            [PlatformType.GITHUB]: '',
+            [PlatformType.GITHUB]: [],
           },
         },
         emails: [],
@@ -127,7 +127,7 @@ describe('Github webhooks tests', () => {
             [PlatformType.GITHUB]: '',
           },
           [MemberAttributeName.LOCATION]: {
-            [PlatformType.GITHUB]: '',
+            [PlatformType.GITHUB]: [],
           },
         },
         emails: [],
@@ -146,7 +146,7 @@ describe('Github webhooks tests', () => {
         email: 'joan@crowd.dev',
         bio: 'Bio goes here',
         company: '@CrowdHQ ',
-        location: 'Cambridge, UK',
+        location: ['Cambridge, UK'],
         twitterUsername: 'reyero',
         followers: {
           totalCount: 10,
@@ -176,7 +176,7 @@ describe('Github webhooks tests', () => {
             [PlatformType.GITHUB]: 'Bio goes here',
           },
           [MemberAttributeName.LOCATION]: {
-            [PlatformType.GITHUB]: 'Cambridge, UK',
+            [PlatformType.GITHUB]: ['Cambridge, UK'],
           },
         },
         reach: { [PlatformType.GITHUB]: 10 },

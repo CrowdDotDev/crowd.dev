@@ -2,6 +2,8 @@ import { Attribute } from '../attribute'
 import { AttributeType } from '../types'
 import { MemberAttributes, MemberAttributeName } from './enums'
 
+const DefaultLocations = ['San Fransico', 'Silicon Valley', 'Berlin', 'London']
+
 export const DefaultMemberAttributes: Attribute[] = [
   {
     name: MemberAttributes[MemberAttributeName.JOB_TITLE].name,
@@ -20,9 +22,10 @@ export const DefaultMemberAttributes: Attribute[] = [
   {
     name: MemberAttributes[MemberAttributeName.LOCATION].name,
     label: MemberAttributes[MemberAttributeName.LOCATION].label,
-    type: AttributeType.STRING,
+    type: AttributeType.MULTI_SELECT,
     canDelete: false,
     show: true,
+    options: DefaultLocations,
   },
   {
     name: MemberAttributes[MemberAttributeName.URL].name,

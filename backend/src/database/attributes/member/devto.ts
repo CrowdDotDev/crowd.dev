@@ -27,7 +27,7 @@ export const DevtoMemberAttributes: Attribute[] = [
   {
     name: MemberAttributes[MemberAttributeName.LOCATION].name,
     label: MemberAttributes[MemberAttributeName.LOCATION].label,
-    type: AttributeType.STRING,
+    type: AttributeType.MULTI_SELECT,
     canDelete: false,
     show: true,
   },

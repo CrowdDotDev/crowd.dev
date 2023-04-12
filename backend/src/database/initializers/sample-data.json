@@ -19,7 +19,7 @@
           "custom": "Systems Architect"
         },
         "location": {
-          "github": "Silicon Valley"
+          "github": ["Silicon Valley"]
         },
         "avatarUrl": {
           "custom": "https://s3.eu-central-1.amazonaws.com/crowd.dev-sample-data/gilfoyle-small.jpg"
@@ -201,7 +201,7 @@
           "custom": "Founder & CEO of Pied Piper"
         },
         "jobTitle": { "custom": "Founder & CEO" },
-        "location": { "github": "Silicon Valley" },
+        "location": { "github": ["Silicon Valley"] },
         "avatarUrl": {
           "custom": "https://s3.eu-central-1.amazonaws.com/crowd.dev-sample-data/richard-small.jpg"
         },
@@ -386,7 +386,7 @@
           "custom": "Ex-CEO of Aviato, creator of startup incubator"
         },
         "jobTitle": { "custom": "Board Member at Pied Piper" },
-        "location": { "github": "Silicon Valley" },
+        "location": { "github": ["Silicon Valley"] },
         "avatarUrl": {
           "custom": "https://s3.eu-central-1.amazonaws.com/crowd.dev-sample-data/erlich-small.jpg"
         },
@@ -529,7 +529,7 @@
           "custom": "Executive at the Hooli XYZ project"
         },
         "jobTitle": { "custom": "Co-head Dreamer" },
-        "location": { "github": "Silicon Valley" },
+        "location": { "github": ["Silicon Valley"] },
         "avatarUrl": {
           "custom": "https://s3.eu-central-1.amazonaws.com/crowd.dev-sample-data/big-head-small.jpg"
         },
@@ -684,7 +684,7 @@
           "custom": "VP of Engineering"
         },
         "location": {
-          "github": "Silicon Valley"
+          "github": ["Silicon Valley"]
         },
         "avatarUrl": {
           "custom": "https://s3.eu-central-1.amazonaws.com/crowd.dev-sample-data/dinesh-small.jpg"
@@ -857,7 +857,7 @@
           "custom": "Founder & Investor at Raviga Capital"
         },
         "jobTitle": { "custom": "Founder & Investor" },
-        "location": { "github": "Silicon Valley" },
+        "location": { "github": ["Silicon Valley"] },
         "avatarUrl": {
           "custom": "https://s3.eu-central-1.amazonaws.com/crowd.dev-sample-data/peter-small.jpg"
         },
@@ -1017,7 +1017,7 @@
           "custom": "VC at Raviga Capital"
         },
         "jobTitle": { "custom": "VC" },
-        "location": { "github": "Silicon Valley" },
+        "location": { "github": ["Silicon Valley"] },
         "avatarUrl": {
           "custom": "https://s3.eu-central-1.amazonaws.com/crowd.dev-sample-data/monica-small.jpg"
         },
@@ -1161,7 +1161,7 @@
           "custom": "COO"
         },
         "location": {
-          "github": "Silicon Valley"
+          "github": ["Silicon Valley"]
         },
         "avatarUrl": {
           "custom": "https://s3.eu-central-1.amazonaws.com/crowd.dev-sample-data/jared.jpg"
@@ -1307,7 +1307,7 @@
           "custom": "CEO"
         },
         "location": {
-          "github": "Silicon Valley"
+          "github": ["Silicon Valley"]
         },
         "avatarUrl": {
           "custom": "https://s3.eu-central-1.amazonaws.com/crowd.dev-sample-data/gavin.jpg"
@@ -1480,7 +1480,7 @@
           "custom": "Founder"
         },
         "location": {
-          "github": "Silicon Valley"
+          "github": ["Silicon Valley"]
         },
         "avatarUrl": {
           "custom": "https://s3.eu-central-1.amazonaws.com/crowd.dev-sample-data/jian_yang.jpg"
@@ -1654,7 +1654,7 @@
           "custom": "VC and Partner at Raviga Capital"
         },
         "jobTitle": { "custom": "VC" },
-        "location": { "github": "Silicon Valley" },
+        "location": { "github": ["Silicon Valley"] },
         "avatarUrl": {
           "custom": "https://s3.eu-central-1.amazonaws.com/crowd.dev-sample-data/laurie.jpg"
         },
@@ -1824,7 +1824,7 @@
           "custom": "Investor in Pied Piper, CEO at 3 Commas. Member of the three-comma club."
         },
         "jobTitle": { "custom": "CEO" },
-        "location": { "github": "Silicon Valley" },
+        "location": { "github": ["Silicon Valley"] },
         "avatarUrl": {
           "custom": "https://s3.eu-central-1.amazonaws.com/crowd.dev-sample-data/russ.jpg"
         },
@@ -1988,7 +1988,7 @@
           "custom": "Head of development at Hooli"
         },
         "jobTitle": { "custom": "Head of development" },
-        "location": { "github": "Silicon Valley" },
+        "location": { "github": ["Silicon Valley"] },
         "avatarUrl": {
           "custom": "https://s3.eu-central-1.amazonaws.com/crowd.dev-sample-data/jack-barker-best.jpg"
         },

@@ -59,7 +59,7 @@ describe('MemberService tests', () => {
             [PlatformType.GITHUB]: 'Lazy geek',
           },
           [MemberAttributeName.LOCATION]: {
-            [PlatformType.GITHUB]: 'Helsinki, Finland',
+            [PlatformType.GITHUB]: ['Helsinki, Finland'],
           },
         },
         joinedAt: '2020-05-28T15:13:30Z',
@@ -96,7 +96,7 @@ describe('MemberService tests', () => {
             [PlatformType.GITHUB]: 'Lazy geek',
           },
           [MemberAttributeName.LOCATION]: {
-            [PlatformType.GITHUB]: 'Helsinki, Finland',
+            [PlatformType.GITHUB]: ['Helsinki, Finland'],
           },
         },
         joinedAt: '2020-05-28T15:13:30Z',
@@ -186,7 +186,7 @@ describe('MemberService tests', () => {
             [PlatformType.GITHUB]: 'Lazy geek',
           },
           [MemberAttributeName.LOCATION]: {
-            [PlatformType.GITHUB]: 'Helsinki, Finland',
+            [PlatformType.GITHUB]: ['Helsinki, Finland'],
           },
           [MemberAttributeName.SOURCE_ID]: {
             [PlatformType.TWITTER]: '#twitterId',
@@ -293,7 +293,7 @@ describe('MemberService tests', () => {
             [PlatformType.GITHUB]: 'Lazy geek',
           },
           [MemberAttributeName.LOCATION]: {
-            [PlatformType.GITHUB]: 'Helsinki, Finland',
+            [PlatformType.GITHUB]: ['Helsinki, Finland'],
           },
         },
         joinedAt: '2020-05-28T15:13:30Z',
@@ -775,7 +775,7 @@ describe('MemberService tests', () => {
             [PlatformType.GITHUB]: 'Lazy geek',
           },
           [MemberAttributeName.LOCATION]: {
-            [PlatformType.GITHUB]: 'Helsinki, Finland',
+            [PlatformType.GITHUB]: ['Helsinki, Finland'],
           },
         },
         joinedAt: '2020-05-28T15:13:30Z',
@@ -891,7 +891,7 @@ describe('MemberService tests', () => {
             [PlatformType.GITHUB]: 'Lazy geek',
           },
           [MemberAttributeName.LOCATION]: {
-            [PlatformType.GITHUB]: 'Helsinki, Finland',
+            [PlatformType.GITHUB]: ['Helsinki, Finland'],
           },
           [MemberAttributeName.URL]: {
             [PlatformType.TWITTER]: 'https://twitter-url',
@@ -982,7 +982,7 @@ describe('MemberService tests', () => {
             [PlatformType.GITHUB]: 'Lazy geek',
           },
           [MemberAttributeName.LOCATION]: {
-            [PlatformType.GITHUB]: 'Helsinki, Finland',
+            [PlatformType.GITHUB]: ['Helsinki, Finland'],
           },
         },
         joinedAt: '2020-05-28T15:13:30Z',
@@ -1080,7 +1080,7 @@ describe('MemberService tests', () => {
             [PlatformType.GITHUB]: 'Lazy geek',
           },
           [MemberAttributeName.LOCATION]: {
-            [PlatformType.GITHUB]: 'Helsinki, Finland',
+            [PlatformType.GITHUB]: ['Helsinki, Finland'],
           },
         },
         joinedAt: '2020-05-28T15:13:30Z',
@@ -1131,7 +1131,7 @@ describe('MemberService tests', () => {
             [PlatformType.GITHUB]: 'Lazy geek',
           },
           [MemberAttributeName.LOCATION]: {
-            [PlatformType.GITHUB]: 'Helsinki, Finland',
+            [PlatformType.GITHUB]: ['Helsinki, Finland'],
           },
         },
         joinedAt: '2020-05-28T15:13:30Z',
@@ -1499,8 +1499,8 @@ describe('MemberService tests', () => {
         joinedAt: '2021-05-30T15:14:30Z',
         attributes: {
           [MemberAttributeName.LOCATION]: {
-            [PlatformType.GITHUB]: 'Crowd.dev',
-            default: 'Crowd.dev',
+            [PlatformType.GITHUB]: ['Crowd.dev'],
+            default: ['Crowd.dev'],
           },
           [MemberAttributeName.SOURCE_ID]: {
             [PlatformType.DISCORD]: '#discordId',
@@ -2203,8 +2203,8 @@ describe('MemberService tests', () => {
           [PlatformType.DEVTO]: 'https://some-devto-url',
         },
         [MemberAttributeName.LOCATION]: {
-          [PlatformType.GITHUB]: 'Berlin',
-          [PlatformType.DEVTO]: 'Istanbul',
+          [PlatformType.GITHUB]: ['Berlin'],
+          [PlatformType.DEVTO]: ['Istanbul'],
         },
         [MemberAttributeName.BIO]: {
           [PlatformType.GITHUB]: 'Assistant to the Regional Manager',
@@ -2257,8 +2257,8 @@ describe('MemberService tests', () => {
         [MemberAttributeName.NAME]: 'Dwight Schrute',
         [MemberAttributeName.URL]: 'https://some-url',
         [MemberAttributeName.LOCATION]: {
-          [PlatformType.GITHUB]: 'Berlin',
-          [PlatformType.DEVTO]: 'Istanbul',
+          [PlatformType.GITHUB]: ['Berlin'],
+          [PlatformType.DEVTO]: ['Istanbul'],
           custom: 'a custom location',
         },
         [MemberAttributeName.BIO]: {
@@ -2282,8 +2282,8 @@ describe('MemberService tests', () => {
           custom: 'https://some-url',
         },
         [MemberAttributeName.LOCATION]: {
-          [PlatformType.GITHUB]: 'Berlin',
-          [PlatformType.DEVTO]: 'Istanbul',
+          [PlatformType.GITHUB]: ['Berlin'],
+          [PlatformType.DEVTO]: ['Istanbul'],
           custom: 'a custom location',
         },
         [MemberAttributeName.BIO]: {
@@ -2384,8 +2384,8 @@ describe('MemberService tests', () => {
           [PlatformType.DEVTO]: 'https://some-devto-url',
         },
         [MemberAttributeName.LOCATION]: {
-          [PlatformType.GITHUB]: 'Berlin',
-          [PlatformType.DEVTO]: 'Istanbul',
+          [PlatformType.GITHUB]: ['Berlin'],
+          [PlatformType.DEVTO]: ['Istanbul'],
         },
         [MemberAttributeName.BIO]: {
           [PlatformType.GITHUB]: 'Assistant to the Regional Manager',
@@ -2456,8 +2456,8 @@ describe('MemberService tests', () => {
           [PlatformType.DEVTO]: 'https://some-devto-url',
         },
         [MemberAttributeName.LOCATION]: {
-          [PlatformType.GITHUB]: 'Berlin',
-          [PlatformType.DEVTO]: 'Istanbul',
+          [PlatformType.GITHUB]: ['Berlin'],
+          [PlatformType.DEVTO]: ['Istanbul'],
         },
         [MemberAttributeName.BIO]: {
           [PlatformType.GITHUB]: 'Assistant to the Regional Manager',
@@ -2547,7 +2547,7 @@ describe('MemberService tests', () => {
             [PlatformType.GITHUB]: 'Lazy geek',
           },
           [MemberAttributeName.LOCATION]: {
-            [PlatformType.GITHUB]: 'Helsinki, Finland',
+            [PlatformType.GITHUB]: ['Helsinki, Finland'],
           },
           [MemberAttributeName.SOURCE_ID]: {
             [PlatformType.TWITTER]: '#twitterId2',
@@ -2597,7 +2597,7 @@ describe('MemberService tests', () => {
             [PlatformType.GITHUB]: 'Dunder & Mifflin Regional Manager',
           },
           [MemberAttributeName.LOCATION]: {
-            [PlatformType.GITHUB]: 'Berlin',
+            [PlatformType.GITHUB]: ['Berlin'],
           },
           [MemberAttributeName.SOURCE_ID]: {
             [PlatformType.TWITTER]: '#twitterId2',
@@ -2647,7 +2647,7 @@ describe('MemberService tests', () => {
             [PlatformType.GITHUB]: 'Sales guy',
           },
           [MemberAttributeName.LOCATION]: {
-            [PlatformType.GITHUB]: 'Scranton',
+            [PlatformType.GITHUB]: ['Scranton'],
           },
           [MemberAttributeName.SOURCE_ID]: {
             [PlatformType.TWITTER]: '#twitterId3',

@@ -745,7 +745,7 @@ describe('ActivityService tests', () => {
             [PlatformType.GITHUB]: 'Lazy geek',
           },
           [MemberAttributeName.LOCATION]: {
-            [PlatformType.GITHUB]: 'Helsinki, Finland',
+            [PlatformType.GITHUB]: ['Helsinki, Finland'],
           },
         },
         organisation: 'Crowd',
@@ -849,7 +849,7 @@ describe('ActivityService tests', () => {
             [PlatformType.GITHUB]: 'Lazy geek',
           },
           [MemberAttributeName.LOCATION]: {
-            [PlatformType.GITHUB]: 'Helsinki, Finland',
+            [PlatformType.GITHUB]: ['Helsinki, Finland'],
           },
         },
         organisation: 'Crowd',
@@ -980,7 +980,7 @@ describe('ActivityService tests', () => {
             [PlatformType.GITHUB]: 'Lazy geek',
           },
           [MemberAttributeName.LOCATION]: {
-            [PlatformType.GITHUB]: 'Helsinki, Finland',
+            [PlatformType.GITHUB]: ['Helsinki, Finland'],
           },
         },
         organisation: 'Crowd',
@@ -1161,7 +1161,7 @@ describe('ActivityService tests', () => {
               [PlatformType.GITHUB]: 'Lazy geek',
             },
             [MemberAttributeName.LOCATION]: {
-              [PlatformType.GITHUB]: 'Helsinki, Finland',
+              [PlatformType.GITHUB]: ['Helsinki, Finland'],
             },
           },
           organisation: 'Crowd',
@@ -1271,7 +1271,7 @@ describe('ActivityService tests', () => {
               [PlatformType.GITHUB]: 'Lazy geek',
             },
             [MemberAttributeName.LOCATION]: {
-              [PlatformType.GITHUB]: 'Helsinki, Finland',
+              [PlatformType.GITHUB]: ['Helsinki, Finland'],
             },
           },
           organisation: 'Crowd',
@@ -1383,7 +1383,7 @@ describe('ActivityService tests', () => {
               [PlatformType.GITHUB]: 'Lazy geek',
             },
             [MemberAttributeName.LOCATION]: {
-              [PlatformType.GITHUB]: 'Helsinki, Finland',
+              [PlatformType.GITHUB]: ['Helsinki, Finland'],
             },
           },
           organisation: 'Crowd',
@@ -1495,7 +1495,7 @@ describe('ActivityService tests', () => {
               [PlatformType.GITHUB]: 'Computer Science',
             },
             [MemberAttributeName.LOCATION]: {
-              [PlatformType.GITHUB]: 'Istanbul',
+              [PlatformType.GITHUB]: ['Istanbul'],
             },
           },
           organisation: 'Crowd',

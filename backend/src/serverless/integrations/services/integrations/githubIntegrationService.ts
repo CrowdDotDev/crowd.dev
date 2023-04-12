@@ -1109,7 +1109,7 @@ export class GithubIntegrationService extends IntegrationServiceBase {
           [PlatformType.GITHUB]: memberFromApi.bio || '',
         },
         [MemberAttributeName.LOCATION]: {
-          [PlatformType.GITHUB]: memberFromApi.location || '',
+          [PlatformType.GITHUB]: memberFromApi.location || [],
         },
         [MemberAttributeName.AVATAR_URL]: {
           [PlatformType.GITHUB]: memberFromApi.avatarUrl || '',
