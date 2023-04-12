@@ -25,6 +25,8 @@ module.exports = {
         : 'off',
     semi: 'warn',
     indent: 'warn',
+    'padded-blocks': 'warn',
+    'space-before-blocks': 'warn',
     'comma-dangle': 'warn',
     'vue/no-unused-components': 'warn',
     'vue/html-indent': 'warn',

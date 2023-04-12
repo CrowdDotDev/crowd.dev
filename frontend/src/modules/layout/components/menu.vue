@@ -368,7 +368,7 @@
 
 <script setup>
 import { useStore } from 'vuex';
-import { computed, onMounted } from 'vue';
+import { computed } from 'vue';
 import { RouterLink, useLink } from 'vue-router';
 import { SettingsPermissions } from '@/modules/settings/settings-permissions';
 import { ReportPermissions } from '@/modules/report/report-permissions';
@@ -380,7 +380,7 @@ import config from '@/config';
 
 import { mapGetters } from '@/shared/vuex/vuex.helpers';
 import { TaskPermissions } from '@/modules/task/task-permissions';
-import formbricks from '@formbricks/js';
+import formbricks from '@formbricks/feedback';
 import AppWorkspaceDropdown from './workspace-dropdown.vue';
 import AppSupportDropdown from './support-dropdown.vue';
 import AppAccountDropdown from './account-dropdown.vue';
@@ -508,11 +508,7 @@ const classFor = (path, exact = false) => {
 };
 
 const openFeedbackWidget = (event) => {
-  window.formbricks.open(event);
-};
-
-onMounted(() => {
-  formbricks.init({
+  formbricks.open(event, {
     hqUrl: config.formbricks.url,
     formId: config.formbricks.formId,
     contact: {
@@ -533,7 +529,7 @@ onMounted(() => {
       buttonHoverColor: '#F9FAFB',
     },
   });
-});
+};
 </script>
 
 <script>
