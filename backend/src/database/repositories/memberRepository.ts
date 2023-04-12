@@ -1,23 +1,24 @@
 import lodash from 'lodash'
 import Sequelize, { QueryTypes } from 'sequelize'
-import SequelizeRepository from './sequelizeRepository'
-import AuditLogRepository from './auditLogRepository'
-import Error404 from '../../errors/Error404'
-import { IRepositoryOptions } from './IRepositoryOptions'
-import QueryParser from './filters/queryParser'
-import { JsonColumnInfo, QueryOutput } from './filters/queryTypes'
-import { AttributeData } from '../attributes/attribute'
-import SequelizeFilterUtils from '../utils/sequelizeFilterUtils'
 import { KUBE_MODE, SERVICE } from '../../config'
 import { ServiceType } from '../../config/configTypes'
-import { AttributeType } from '../attributes/types'
-import TenantRepository from './tenantRepository'
-import { PageData } from '../../types/common'
-import { IActiveMemberData, IActiveMemberFilter } from './types/memberTypes'
-import { ALL_PLATFORM_TYPES } from '../../types/integrationEnums'
-import RawQueryParser from './filters/rawQueryParser'
+import Error404 from '../../errors/Error404'
+import { PlatformIdentities } from '../../serverless/integrations/types/messageTypes'
 import ActivityDisplayService from '../../services/activityDisplayService'
+import { PageData } from '../../types/common'
+import { ALL_PLATFORM_TYPES, PlatformType } from '../../types/integrationEnums'
+import { AttributeData } from '../attributes/attribute'
+import { AttributeType } from '../attributes/types'
+import SequelizeFilterUtils from '../utils/sequelizeFilterUtils'
+import { IRepositoryOptions } from './IRepositoryOptions'
+import AuditLogRepository from './auditLogRepository'
+import QueryParser from './filters/queryParser'
+import { JsonColumnInfo, QueryOutput } from './filters/queryTypes'
+import RawQueryParser from './filters/rawQueryParser'
+import SequelizeRepository from './sequelizeRepository'
 import SettingsRepository from './settingsRepository'
+import TenantRepository from './tenantRepository'
+import { IActiveMemberData, IActiveMemberFilter, IMemberIdentity } from './types/memberTypes'
 
 const { Op } = Sequelize
 
@@ -25,6 +26,10 @@ const log: boolean = false
 
 class MemberRepository {
   static async create(data, options: IRepositoryOptions, doPopulateRelations = true) {
+    if (!data.username) {
+      throw new Error('Username not set when creating member!')
+    }
+
     const currentUser = SequelizeRepository.getCurrentUser(options)
 
     const tenant = SequelizeRepository.getCurrentTenant(options)
@@ -34,7 +39,6 @@ class MemberRepository {
     const record = await options.database.member.create(
       {
         ...lodash.pick(data, [
-          'username',
           'displayName',
           'attributes',
           'emails',
@@ -54,6 +58,31 @@ class MemberRepository {
         transaction,
       },
     )
+
+    const username: PlatformIdentities = data.username
+
+    const seq = SequelizeRepository.getSequelize(options)
+    const query = `
+      insert into "memberIdentities"("memberId", platform, username, "sourceId", "tenantId", "integrationId")
+      values(:memberId, :platform, :username, :sourceId, :tenantId, :integrationId);
+    `
+
+    for (const platform of Object.keys(username) as PlatformType[]) {
+      const identity = username[platform]
+      await seq.query(query, {
+        replacements: {
+          memberId: record.id,
+          platform,
+          username: identity.username,
+          sourceId: identity.sourceId || null,
+          integrationId: identity.integrationId,
+          tenantId: tenant.id,
+        },
+        type: QueryTypes.INSERT,
+        transaction,
+      })
+    }
+
     await record.setActivities(data.activities || [], {
       transaction,
     })
@@ -272,19 +301,40 @@ class MemberRepository {
 
     const currentTenant = SequelizeRepository.getCurrentTenant(options)
 
-    const query =
-      'SELECT "id", "username", "displayName", "attributes", "emails", "score", "lastEnriched", "enrichedBy", "contributions", "reach", "joinedAt", "importHash", "createdAt", "updatedAt", "deletedAt", "tenantId", "createdById", "updatedById" FROM "members" AS "member" WHERE ("member"."deletedAt" IS NULL AND ("member"."tenantId" = $tenantId AND ("member"."username"->>$platform) = $username)) LIMIT 1;'
+    const query = `
+    select  m."id",
+            m."displayName",
+            m."attributes",
+            m."emails",
+            m."score",
+            m."lastEnriched",
+            m."enrichedBy",
+            m."contributions",
+            m."reach",
+            m."joinedAt",
+            m."importHash",
+            m."createdAt",
+            m."updatedAt",
+            m."deletedAt",
+            m."tenantId",
+            m."createdById",
+            m."updatedById"
+      from members m
+              inner join "memberIdentities" mi on m.id = mi."memberId"
+      where mi."tenantId" = :tenantId
+        and mi.platform = :platform
+        and mi.username = :username;  
+    `
 
     const records = await options.database.sequelize.query(query, {
       type: Sequelize.QueryTypes.SELECT,
-      bind: {
+      replacements: {
         tenantId: currentTenant.id,
         platform,
         username,
       },
       transaction,
       model: options.database.member,
-      limit: 1,
     })
     if (records.length === 0) {
       return null
@@ -292,6 +342,7 @@ class MemberRepository {
     if (doPopulateRelations) {
       return this._populateRelations(records[0], options)
     }
+
     return records[0].get({ plain: true })
   }
 
@@ -317,7 +368,6 @@ class MemberRepository {
     record = await record.update(
       {
         ...lodash.pick(data, [
-          'username',
           'displayName',
           'attributes',
           'emails',
@@ -379,6 +429,35 @@ class MemberRepository {
       })
     }
 
+    if (data.username) {
+      const seq = SequelizeRepository.getSequelize(options)
+      const query = `
+      insert into "memberIdentities"("memberId", platform, username, "sourceId", "tenantId", "integrationId")
+      values (:memberId, :platform, :username, :sourceId, :tenantId, :integrationId)
+      on conflict ("memberId", platform) do update
+          set username        = :username,
+              "sourceId"      = :sourceId,
+              "integrationId" = :integrationId;
+      `
+
+      for (const platform of Object.keys(data.username) as PlatformType[]) {
+        const identity = data.username[platform]
+
+        await seq.query(query, {
+          replacements: {
+            memberId: record.id,
+            platform,
+            username: identity.username,
+            sourceId: identity.sourceId || null,
+            integrationId: identity.integrationId,
+            tenantId: currentTenant.id,
+          },
+          type: QueryTypes.UPSERT,
+          transaction,
+        })
+      }
+    }
+
     await this._createAuditLog(AuditLogRepository.UPDATE, record, data, options)
 
     return this.findById(record.id, options, true, doPopulateRelations)
@@ -424,6 +503,47 @@ class MemberRepository {
     })
   }
 
+  static async getIdentities(
+    memberIds: string[],
+    options: IRepositoryOptions,
+  ): Promise<Map<string, IMemberIdentity[]>> {
+    const results = new Map<string, IMemberIdentity[]>()
+
+    const transaction = SequelizeRepository.getTransaction(options)
+    const seq = SequelizeRepository.getSequelize(options)
+
+    const query = `
+      select "memberId", platform, username, "sourceId", "integrationId" from "memberIdentities" where "memberId" in (:memberIds)
+    `
+
+    const data = await seq.query(query, {
+      replacements: {
+        memberIds,
+      },
+      type: QueryTypes.SELECT,
+      transaction,
+    })
+
+    for (const res of data as any[]) {
+      const { memberId, platform, username, sourceId, integrationId } = res
+
+      if (!results.has(memberId)) {
+        results.set(memberId, [])
+      }
+
+      const identities = results.get(memberId)
+
+      identities.push({
+        platform,
+        username,
+        sourceId,
+        integrationId,
+      })
+    }
+
+    return results
+  }
+
   static async findById(
     id,
     options: IRepositoryOptions,
@@ -457,7 +577,16 @@ class MemberRepository {
     if (doPopulateRelations) {
       return this._populateRelations(record, options, returnPlain)
     }
-    return record.get({ plain: returnPlain })
+    const data = record.get({ plain: returnPlain })
+
+    const identities = await this.getIdentities([data.id], options)
+
+    data.username = identities.get(data.id).reduce((data, identity: any) => {
+      data[identity.platform] = identity.username
+      return data
+    }, {} as any)
+
+    return data
   }
 
   static async filterIdInTenant(id, options: IRepositoryOptions) {
@@ -486,7 +615,18 @@ class MemberRepository {
       transaction,
     })
 
-    return records.map((record) => record.id)
+    const results = records.map((record) => record.id)
+
+    const identities = await this.getIdentities(ids, options)
+
+    for (const result of results) {
+      result.username = identities.get(result.id).reduce((data, identity: any) => {
+        data[identity.platform] = identity.username
+        return data
+      }, {} as any)
+    }
+
+    return results
   }
 
   static async count(filter, options: IRepositoryOptions) {
@@ -583,10 +723,14 @@ class MemberRepository {
                                where ${activityConditionsString} and 
                                      timestamp >= :periodStart and 
                                      timestamp < :periodEnd
-                               group by "memberId")
+                               group by "memberId"),
+             identities as (select "memberId",
+                                    jsonb_agg(jsonb_build_object('platform', platform, 'username', username)) as username
+                            from "memberIdentities"
+                            group by "memberId")
           select m.id,
              m."displayName",
-             m.username,
+             i.username,
              m.attributes,
              ad."activityCount",
              ad."activeDaysCount",
@@ -594,6 +738,7 @@ class MemberRepository {
              count(*) over ()                  as "totalCount"
       from members m
                inner join activity_data ad on ad."memberId" = m.id
+               inner join identitites i on i."memberId" = m.id
                left join orgs o on o."memberId" = m.id
       where ${conditionsString}
       order by ${orderString}
@@ -729,7 +874,7 @@ class MemberRepository {
       },
       {
         property: 'username',
-        column: 'm.username',
+        column: 'i.username',
         attributeInfos: ALL_PLATFORM_TYPES.map((p) => ({
           name: p,
           type: AttributeType.STRING,
@@ -800,9 +945,13 @@ class MemberRepository {
                                 and m."deletedAt" is null
                                 and o."tenantId" = :tenantId
                                 and o."deletedAt" is null
-                              group by mo."memberId")
+                              group by mo."memberId"),
+      identities as (select "memberId",
+                            jsonb_agg(jsonb_build_object('platform', platform, 'username', username)) as username
+                    from "memberIdentities"
+                    group by "memberId")
 select m.id,
-       m.username,
+       i.username,
        m."displayName",
        m.attributes,
        m.emails,
@@ -828,6 +977,7 @@ select m.id,
        coalesce(mo.all_organizations, json_build_array()) as organizations
 from members m
          inner join "memberActivityAggregatesMVs" aggs on aggs.id = m.id
+         inner join identities i on m.id = i."memberId"
          left join to_merge_data tmd on m.id = tmd."memberId"
          left join no_merge_data nmd on m.id = nmd."memberId"
          left join member_tags mt on m.id = mt."memberId"
@@ -859,10 +1009,15 @@ with member_tags as (select mt."memberId",
                 and m."deletedAt" is null
                 and o."tenantId" = :tenantId
                 and o."deletedAt" is null
-              group by mo."memberId")
+              group by mo."memberId"),
+    identities as (select "memberId",
+                          jsonb_agg(jsonb_build_object('platform', platform, 'username', username)) as username
+                  from "memberIdentities"
+                  group by "memberId")
 select count(m.id) as "totalCount"
 from members m
          inner join "memberActivityAggregatesMVs" aggs on aggs.id = m.id
+         inner join identities i on m.id = i."memberId"
          left join member_tags mt on m.id = mt."memberId"
          left join member_organizations mo on m.id = mo."memberId"
 where m."deletedAt" is null
@@ -1030,6 +1185,7 @@ where m."deletedAt" is null
           })
         }
 
+        // TODO: member identitites FIX
         if (filter.username) {
           advancedFilter.and.push({ username: { jsonContains: filter.username } })
         }
@@ -1224,7 +1380,7 @@ where m."deletedAt" is null
     const activeOn = Sequelize.literal(`"memberActivityAggregatesMVs"."activeOn"`)
 
     const averageSentiment = Sequelize.literal(`"memberActivityAggregatesMVs"."averageSentiment"`)
-    const identities = Sequelize.literal(`ARRAY(SELECT jsonb_object_keys("member"."username"))`)
+    const identities = Sequelize.literal(`"memberActivityAggregatesMVs"."identities"`)
 
     const toMergeArray = Sequelize.literal(`STRING_AGG( distinct "toMerge"."id"::text, ',')`)
     const noMergeArray = Sequelize.literal(`STRING_AGG( distinct "noMerge"."id"::text, ',')`)
@@ -1246,11 +1402,12 @@ where m."deletedAt" is null
           identities,
           ...dynamicAttributesPlatformNestedFields,
           'reach.total': Sequelize.literal(`("member".reach->'total')::int`),
-          'username.asString': Sequelize.literal(`CAST("member"."username" AS TEXT)`),
+          'username.asString': Sequelize.literal(
+            `CAST("memberActivityAggregatesMVs"."username" AS TEXT)`,
+          ),
           ...SequelizeFilterUtils.getNativeTableFieldAggregations(
             [
               'id',
-              'username',
               'attributes',
               'displayName',
               'emails',
@@ -1289,16 +1446,17 @@ where m."deletedAt" is null
             },
           },
         },
-        customOperators: {
-          username: {
-            model: 'member',
-            column: 'username',
-          },
-          platform: {
-            model: 'member',
-            column: 'username',
-          },
-        },
+        // TODO: member identitites FIX
+        // customOperators: {
+        //   username: {
+        //     model: 'member',
+        //     column: 'username',
+        //   },
+        //   platform: {
+        //     model: 'member',
+        //     column: 'username',
+        //   },
+        // },
         exportMode,
       },
       options,
@@ -1328,7 +1486,6 @@ where m."deletedAt" is null
         ...SequelizeFilterUtils.getLiteralProjections(
           [
             'id',
-            'username',
             'attributes',
             'displayName',
             'emails',
@@ -1370,6 +1527,7 @@ where m."deletedAt" is null
         'memberActivityAggregatesMVs.activeDaysCount',
         'memberActivityAggregatesMVs.lastActive',
         'memberActivityAggregatesMVs.averageSentiment',
+        'memberActivityAggregatesMVs.username',
         'toMerge.id',
       ],
       distinct: true,
@@ -1644,8 +1802,6 @@ where m."deletedAt" is null
 
     output.activeOn = [...new Set(output.activities.map((i) => i.platform))]
 
-    output.identities = Object.keys(output.username)
-
     output.activityCount = output.activities.length
 
     output.activityTypes = [...new Set(output.activities.map((i) => `${i.platform}:${i.type}`))]
@@ -1711,6 +1867,15 @@ where m."deletedAt" is null
         transaction,
       })
     ).map((i) => i.id)
+
+    const identities = await this.getIdentities([record.id], options)
+
+    output.username = identities.get(record.id).reduce((data, identity: any) => {
+      data[identity.platform] = identity.username
+      return data
+    }, {} as any)
+
+    output.identities = Object.keys(output.username)
 
     return output
   }

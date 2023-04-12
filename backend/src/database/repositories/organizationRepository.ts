@@ -341,6 +341,7 @@ class OrganizationRepository {
       `array_agg( distinct  ("members->activities".platform) )  filter (where "members->activities".platform is not null)`,
     )
 
+    // TODO: member identitites FIX
     const identities = Sequelize.literal(
       `array( select distinct jsonb_object_keys(jsonb_array_elements(jsonb_agg( case when "members".username is not null then "members".username else '{}' end))))`,
     )

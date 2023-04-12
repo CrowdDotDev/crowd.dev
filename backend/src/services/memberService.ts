@@ -192,7 +192,7 @@ export default class MemberService extends LoggingBase {
       if (typeof data.username === 'string') {
         data.displayName = data.username
       } else {
-        data.displayName = data.username[data.platform]
+        data.displayName = data.username[data.platform].username
       }
     }
 
@@ -383,7 +383,7 @@ export default class MemberService extends LoggingBase {
         // It is important to call it with doPopulateRelations=false
         // because otherwise the performance is greatly decreased in integrations
         existing = await MemberRepository.memberExists(
-          username[platform],
+          username[platform].username,
           platform,
           {
             ...this.options,
@@ -428,6 +428,8 @@ export default class MemberService extends LoggingBase {
       tx = await SequelizeRepository.createTransaction(this.options)
       const repoOptions: IRepositoryOptions = { ...this.options }
       repoOptions.transaction = tx
+
+      // TODO: member identitites FIX
 
       // Get tags as array of ids (findById returns them as models)
       original.tags = original.tags.map((i) => i.get({ plain: true }).id)

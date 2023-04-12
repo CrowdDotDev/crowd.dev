@@ -1,3 +1,4 @@
+import { PlatformType } from '../../../types/integrationEnums'
 import { State } from './regularTypes'
 
 export type IntegrationsMessage = {
@@ -46,8 +47,18 @@ export interface SlackIntegrationMessage extends IntegrationsMessage {
 
 export interface GithubIntegrationMessage extends IntegrationsMessage {}
 
+export interface MemberIdentity {
+  username: string
+  integrationId: string
+  sourceId?: string
+}
+
+export type PlatformIdentities = {
+  [K in keyof typeof PlatformType]?: MemberIdentity
+}
+
 export type Member = {
-  username: any
+  username: PlatformIdentities
   displayName?: string
   attributes?: any
   emails?: string[]
@@ -63,6 +74,7 @@ export type Member = {
 export type AddActivitiesSingle = {
   timestamp: Date
   type: string
+  username: string
   platform: string
   tenant: string
   member: Member

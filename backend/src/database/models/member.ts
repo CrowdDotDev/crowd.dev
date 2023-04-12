@@ -9,13 +9,6 @@ export default (sequelize) => {
         defaultValue: DataTypes.UUIDV4,
         primaryKey: true,
       },
-      username: {
-        type: DataTypes.JSONB,
-        allowNull: false,
-        validate: {
-          notEmpty: true,
-        },
-      },
       attributes: {
         type: DataTypes.JSONB,
         defaultValue: {},
@@ -74,14 +67,6 @@ export default (sequelize) => {
             deletedAt: null,
           },
         },
-        // Using GIN index so we can index every single platform
-        // in the JSONB field
-        {
-          unique: false,
-          fields: ['username'],
-          using: 'gin',
-          operator: 'jsonb_path_ops',
-        },
         // Below are B-tree indexes for speeding up search in normal fields
         {
           unique: false,
@@ -103,22 +88,6 @@ export default (sequelize) => {
           where: {
             deletedAt: null,
           },
-        },
-        {
-          name: 'slack',
-          fields: [Sequelize.literal('(("username"->>\'slack\')::text)')],
-        },
-        {
-          name: 'github',
-          fields: [Sequelize.literal('(("username"->>\'github\')::text)')],
-        },
-        {
-          name: 'twitter',
-          fields: [Sequelize.literal('(("username"->>\'twitter\')::text)')],
-        },
-        {
-          name: 'discord',
-          fields: [Sequelize.literal('(("username"->>\'discord\')::text)')],
         },
       ],
       timestamps: true,

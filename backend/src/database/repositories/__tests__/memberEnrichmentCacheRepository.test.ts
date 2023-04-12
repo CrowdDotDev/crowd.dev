@@ -4,6 +4,7 @@ import MemberRepository from '../memberRepository'
 import SequelizeTestUtils from '../../utils/sequelizeTestUtils'
 import { PlatformType } from '../../../types/integrationEnums'
 import MemberEnrichmentCacheRepository from '../memberEnrichmentCacheRepository'
+import { generateUUIDv1 } from '../../../utils/uuid'
 
 const db = null
 
@@ -24,7 +25,10 @@ describe('MemberEnrichmentCacheRepository tests', () => {
 
       const member2add = {
         username: {
-          [PlatformType.GITHUB]: 'michael_scott',
+          [PlatformType.GITHUB]: {
+            username: 'michael_scott',
+            integrationId: generateUUIDv1(),
+          },
         },
         displayName: 'Member 1',
         email: 'michael@dd.com',
@@ -56,7 +60,10 @@ describe('MemberEnrichmentCacheRepository tests', () => {
 
       const member2add = {
         username: {
-          [PlatformType.GITHUB]: 'michael_scott',
+          [PlatformType.GITHUB]: {
+            username: 'michael_scott',
+            integrationId: generateUUIDv1(),
+          },
         },
         displayName: 'Member 1',
         email: 'michael@dd.com',
@@ -109,7 +116,10 @@ describe('MemberEnrichmentCacheRepository tests', () => {
 
       const member2add = {
         username: {
-          [PlatformType.GITHUB]: 'michael_scott',
+          [PlatformType.GITHUB]: {
+            username: 'michael_scott',
+            integrationId: generateUUIDv1(),
+          },
         },
         displayName: 'Member 1',
         email: 'michael@dd.com',

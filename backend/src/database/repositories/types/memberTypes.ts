@@ -17,3 +17,10 @@ export interface IActiveMemberFilter {
   activityTimestampFrom: string
   activityTimestampTo: string
 }
+
+export interface IMemberIdentity {
+  platform: string
+  username: string
+  integrationId: string
+  sourceId?: string
+}

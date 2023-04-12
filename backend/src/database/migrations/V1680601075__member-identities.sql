@@ -21,7 +21,7 @@ create table "memberIdentities" (
     unique (platform, username, "tenantId"),
     foreign key ("memberId") references members (id) on delete cascade,
     foreign key ("tenantId") references tenants (id) on delete cascade,
-    primary key ("memberId", platform, username)
+    primary key ("memberId", platform)
 );
 
 create trigger member_identities_updated_at
@@ -61,3 +61,44 @@ where activities."memberId" = mi."memberId"
 
 alter table activities
     alter column "username" set not null;
+
+alter table members
+    alter column username drop not null;
+
+alter table members
+    rename column username to "usernameOld";
+
+drop materialized view "memberActivityAggregatesMVs";
+
+create materialized view "memberActivityAggregatesMVs" as
+with identities as (select "memberId",
+                           array_agg(platform) as identities,
+                           jsonb_object_agg(platform, username) as username
+                    from "memberIdentities"
+                    group by "memberId")
+select m.id,
+       max(a."timestamp")                                                   as "lastActive",
+       i.identities,
+       i.username,
+       count(a.id)                                                          as "activityCount",
+       array_agg(
+       distinct (concat(a.platform, ':', a.type))
+           ) filter (
+           where
+           a.platform is not null
+           )                                                                as "activityTypes",
+       array_agg(distinct a.platform) filter (where a.platform is not null) as "activeOn",
+       count(distinct a.timestamp::date)                                    as "activeDaysCount",
+       round(avg(
+                     case
+                         when (a.sentiment ->> 'sentiment'::text) is not null
+                             then (a.sentiment ->> 'sentiment'::text)::double precision
+                         else null::double precision
+                         end)::numeric, 2)                                  as "averageSentiment"
+from members m
+         inner join identities i on m.id = i."memberId"
+         left join activities a on m.id = a."memberId" and a."deletedAt" is null
+group by m.id, i.identities, i.username;
+
+create unique index ix_memberactivityaggregatesmvs_memberid
+    on "memberActivityAggregatesMVs" (id);
