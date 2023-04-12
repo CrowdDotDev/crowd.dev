@@ -477,15 +477,20 @@ class ConversationRepository {
 
             if (allActivities.length > 0) {
               let neededActivities = []
+              const parentActivity = allActivities.find((a) => a.parent === null)
+
+              if (parentActivity) {
+                neededActivities = [parentActivity]
+              }
 
               if (allActivities.length > 2) {
                 neededActivities = [
-                  allActivities[0],
+                  ...neededActivities,
                   allActivities[allActivities.length - 2],
                   allActivities[allActivities.length - 1],
                 ]
               } else {
-                neededActivities = [allActivities[0], allActivities[allActivities.length - 1]]
+                neededActivities = [...neededActivities, allActivities[allActivities.length - 1]]
               }
 
               const promises = neededActivities.map(async (act) => {
