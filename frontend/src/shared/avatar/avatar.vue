@@ -98,6 +98,7 @@ export default {
   img{
     object-fit: cover;
     z-index: 1;
+    @apply bg-white;
   }
 
   &:after{

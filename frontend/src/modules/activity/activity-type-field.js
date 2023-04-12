@@ -153,7 +153,7 @@ export default class ActivityTypeField extends JSONField {
           options: this.dropdownOptions(),
           multiple: false,
         },
-        defaultValue: null,
+        defaultValue: (this.value || []).map((item) => item.value),
         value: (this.value || []).map((item) => item.value),
         defaultOperator: 'overlap',
         operator: 'overlap',

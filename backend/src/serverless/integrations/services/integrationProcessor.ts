@@ -425,7 +425,18 @@ export class IntegrationProcessor extends LoggingBase {
 
     // delete sample data on onboarding
     if (run.onboarding) {
-      await new SampleDataService(userContext).deleteSampleData()
+      try {
+        await new SampleDataService(userContext).deleteSampleData()
+      } catch (err) {
+        logger.error(err, { tenantId: integration.tenantId }, 'Error deleting sample data!')
+        await this.integrationRunRepository.markError(req.runId, {
+          errorPoint: 'delete_sample_data',
+          message: err.message,
+          stack: err.stack,
+          errorString: JSON.stringify(err),
+        })
+        return
+      }
     }
 
     // keep track of failed streams

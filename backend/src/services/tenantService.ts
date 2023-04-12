@@ -276,7 +276,7 @@ export default class TenantService {
     }
   }
 
-  async update(id, data) {
+  async update(id, data, force = false) {
     const transaction = await SequelizeRepository.createTransaction(this.options)
 
     try {
@@ -290,10 +290,12 @@ export default class TenantService {
         data.hasSampleData = record.hasSampleData
       }
 
-      new PermissionChecker({
-        ...this.options,
-        currentTenant: { id },
-      }).validateHas(Permissions.values.tenantEdit)
+      if (!force) {
+        new PermissionChecker({
+          ...this.options,
+          currentTenant: { id },
+        }).validateHas(Permissions.values.tenantEdit)
+      }
 
       // if tenant already has some published conversations, updating url is not allowed
       if (data.url && data.url !== record.url) {

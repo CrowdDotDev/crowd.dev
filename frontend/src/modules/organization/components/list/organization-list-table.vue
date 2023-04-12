@@ -83,7 +83,6 @@
               border
               :row-class-name="rowClass"
               @sort-change="doChangeSort"
-              @row-click="onRowClick"
             >
               <!-- Checkbox -->
               <el-table-column
@@ -101,31 +100,48 @@
                 fixed
               >
                 <template #default="scope">
-                  <app-organization-name
-                    :organization="scope.row"
-                  />
+                  <router-link
+                    :to="{
+                      name: 'organizationView',
+                      params: { id: scope.row.id },
+                    }"
+                    class="block !px-0"
+                  >
+                    <app-organization-name
+                      class="w-full"
+                      :organization="scope.row"
+                    />
+                  </router-link>
                 </template>
               </el-table-column>
 
               <!-- Website -->
               <el-table-column label="Website" width="220">
                 <template #default="scope">
-                  <div
-                    class="text-sm h-full flex items-center"
+                  <router-link
+                    :to="{
+                      name: 'organizationView',
+                      params: { id: scope.row.id },
+                    }"
+                    class="block"
                   >
-                    <a
-                      v-if="scope.row.website"
-                      class="text-gray-500 hover:!text-brand-500"
-                      :href="withHttp(scope.row.website)"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      @click.stop
-                    >{{ scope.row.website }}</a>
-                    <span
-                      v-else
-                      class="text-gray-500"
-                    >-</span>
-                  </div>
+                    <div
+                      class="text-sm h-full flex items-center"
+                    >
+                      <a
+                        v-if="scope.row.website"
+                        class="text-gray-500 hover:!text-brand-500"
+                        :href="withHttp(scope.row.website)"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        @click.stop
+                      >{{ scope.row.website }}</a>
+                      <span
+                        v-else
+                        class="text-gray-500"
+                      >-</span>
+                    </div>
+                  </router-link>
                 </template>
               </el-table-column>
 
@@ -137,15 +153,23 @@
                 sortable
               >
                 <template #default="scope">
-                  <div
-                    class="text-gray-900 text-sm h-full flex items-center"
+                  <router-link
+                    :to="{
+                      name: 'organizationView',
+                      params: { id: scope.row.id },
+                    }"
+                    class="block"
                   >
-                    {{
-                      formatNumberToCompact(
-                        scope.row.memberCount,
-                      )
-                    }}
-                  </div>
+                    <div
+                      class="text-gray-900 text-sm h-full flex items-center"
+                    >
+                      {{
+                        formatNumberToCompact(
+                          scope.row.memberCount,
+                        )
+                      }}
+                    </div>
+                  </router-link>
                 </template>
               </el-table-column>
 
@@ -176,15 +200,23 @@
                 sortable
               >
                 <template #default="scope">
-                  <div
-                    class="text-gray-900 text-sm h-full flex items-center"
+                  <router-link
+                    :to="{
+                      name: 'organizationView',
+                      params: { id: scope.row.id },
+                    }"
+                    class="block"
                   >
-                    {{
-                      formatNumberToCompact(
-                        scope.row.activityCount,
-                      )
-                    }}
-                  </div>
+                    <div
+                      class="text-gray-900 text-sm h-full flex items-center"
+                    >
+                      {{
+                        formatNumberToCompact(
+                          scope.row.activityCount,
+                        )
+                      }}
+                    </div>
+                  </router-link>
                 </template>
               </el-table-column>
 
@@ -196,20 +228,28 @@
                 sortable
               >
                 <template #default="scope">
-                  <div
-                    v-if="scope.row.joinedAt"
-                    class="text-gray-900 text-sm h-full flex items-center"
+                  <router-link
+                    :to="{
+                      name: 'organizationView',
+                      params: { id: scope.row.id },
+                    }"
+                    class="block"
                   >
-                    {{
-                      formatDateToTimeAgo(
-                        scope.row.joinedAt,
-                      )
-                    }}
-                  </div>
-                  <span
-                    v-else
-                    class="text-gray-900"
-                  >-</span>
+                    <div
+                      v-if="scope.row.joinedAt"
+                      class="text-gray-900 text-sm h-full flex items-center"
+                    >
+                      {{
+                        formatDateToTimeAgo(
+                          scope.row.joinedAt,
+                        )
+                      }}
+                    </div>
+                    <span
+                      v-else
+                      class="text-gray-900"
+                    >-</span>
+                  </router-link>
                 </template>
               </el-table-column>
 
@@ -219,16 +259,24 @@
                 width="240"
               >
                 <template #default="scope">
-                  <div class="h-full flex items-center">
-                    <app-organization-identities
-                      v-if="hasIdentities(scope.row)"
-                      :organization="scope.row"
-                    />
-                    <span
-                      v-else
-                      class="text-gray-900"
-                    >-</span>
-                  </div>
+                  <router-link
+                    :to="{
+                      name: 'organizationView',
+                      params: { id: scope.row.id },
+                    }"
+                    class="block"
+                  >
+                    <div class="h-full flex items-center">
+                      <app-organization-identities
+                        v-if="hasIdentities(scope.row)"
+                        :organization="scope.row"
+                      />
+                      <span
+                        v-else
+                        class="text-gray-900"
+                      >-</span>
+                    </div>
+                  </router-link>
                 </template>
               </el-table-column>
 
@@ -238,51 +286,65 @@
                 :width="emailsColumnWidth"
               >
                 <template #default="scope">
-                  <div
-                    v-if="scope.row.emails?.length"
-                    class="text-sm cursor-auto flex flex-wrap gap-1"
+                  <router-link
+                    :to="{
+                      name: 'organizationView',
+                      params: { id: scope.row.id },
+                    }"
+                    class="block"
                   >
-                    <el-tooltip
-                      v-for="email of scope.row.emails
-                        || []"
-                      :key="email"
-                      :disabled="!email"
-                      popper-class="custom-identity-tooltip"
-                      placement="top"
+                    <div
+                      v-if="scope.row.emails?.length"
+                      class="text-sm cursor-auto flex flex-wrap gap-1"
                     >
-                      <template #content>
-                        <span>Send email
-                          <i
-                            v-if="email"
-                            class="ri-external-link-line text-gray-400"
-                          /></span>
-                      </template>
-                      <div @click.prevent>
-                        <a
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          class="badge--interactive"
-                          :href="`mailto:${email}`"
-                          @click.stop="trackEmailClick"
-                        >{{ email }}</a>
-                      </div>
-                    </el-tooltip>
-                  </div>
-                  <span
-                    v-else
-                    class="text-gray-500"
-                  >-</span>
+                      <el-tooltip
+                        v-for="email of scope.row.emails
+                          || []"
+                        :key="email"
+                        :disabled="!email"
+                        popper-class="custom-identity-tooltip"
+                        placement="top"
+                      >
+                        <template #content>
+                          <span>Send email
+                            <i
+                              v-if="email"
+                              class="ri-external-link-line text-gray-400"
+                            /></span>
+                        </template>
+                        <div @click.prevent>
+                          <a
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            class="badge--interactive"
+                            :href="`mailto:${email}`"
+                            @click.stop="trackEmailClick"
+                          >{{ email }}</a>
+                        </div>
+                      </el-tooltip>
+                    </div>
+                    <span
+                      v-else
+                      class="text-gray-500"
+                    >-</span>
+                  </router-link>
                 </template>
               </el-table-column>
 
               <!-- Actions -->
               <el-table-column fixed="right">
                 <template #default="scope">
-                  <div class="table-actions">
+                  <router-link
+                    :to="{
+                      name: 'organizationView',
+                      params: { id: scope.row.id },
+                    }"
+                    class="flex justify-center"
+                  >
                     <app-organization-dropdown
                       :organization="scope.row"
                     />
-                  </div>
+                  </router-link>
                 </template>
               </el-table-column>
             </el-table>
@@ -387,13 +449,6 @@ document.onmouseup = () => {
 const onCtaClick = () => {
   router.push({
     name: 'organizationCreate',
-  });
-};
-
-const onRowClick = (row) => {
-  router.push({
-    name: 'organizationView',
-    params: { id: row.id },
   });
 };
 
@@ -528,5 +583,24 @@ export default {
   &::-webkit-scrollbar {
     display: none;
   }
+}
+
+#organizations-table
+.el-table__cell:not(.el-table-column--selection) {
+  padding: 0;
+}
+.el-table tbody .cell {
+  display: block !important;
+  @apply p-0;
+  &,
+  & > a {
+    @apply h-full w-full flex items-center;
+  }
+  & > a {
+    @apply px-2.5 py-2;
+  }
+}
+.el-table__body {
+  height: 1px;
 }
 </style>

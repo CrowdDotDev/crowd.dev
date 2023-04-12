@@ -188,7 +188,6 @@ export default class MemberService extends LoggingBase {
     if (!('platform' in data)) {
       throw new Error400(this.options.language, 'activity.platformRequiredWhileUpsert')
     }
-
     if (!data.displayName) {
       if (typeof data.username === 'string') {
         data.displayName = data.username

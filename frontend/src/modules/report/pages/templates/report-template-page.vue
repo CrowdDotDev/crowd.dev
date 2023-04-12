@@ -138,6 +138,7 @@ const platformField = new ActivityPlatformField(
 
 const initialPlatformValue = {
   ...platformField,
+  custom: true,
   expanded: false,
 };
 

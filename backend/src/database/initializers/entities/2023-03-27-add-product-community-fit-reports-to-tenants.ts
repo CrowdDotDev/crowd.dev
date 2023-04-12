@@ -2,6 +2,8 @@ import TenantService from '../../../services/tenantService'
 import getUserContext from '../../utils/getUserContext'
 import ReportService from '../../../services/reportService'
 
+/* eslint-disable no-console */
+
 export default async () => {
   const tenants = await TenantService._findAndCountAllForEveryUser({})
 

@@ -29,7 +29,7 @@
       >
         <div
           ref="nameRef"
-          class="font-semibold text-sm text-gray-900 overflow-hidden whitespace-nowrap text-ellipsis"
+          class="font-semibold text-sm text-gray-900 overflow-hidden whitespace-nowrap text-ellipsis truncate"
           @mouseover="handleOnMouseOver"
           @mouseleave="handleOnMouseLeave"
         >

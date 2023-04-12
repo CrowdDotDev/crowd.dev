@@ -5,6 +5,8 @@ import path from 'path'
 import { createServiceLogger } from '../../utils/logging'
 import SequelizeRepository from '../../database/repositories/sequelizeRepository'
 
+/* eslint-disable no-console */
+
 const banner = fs.readFileSync(path.join(__dirname, 'banner.txt'), 'utf8')
 
 const log = createServiceLogger()
