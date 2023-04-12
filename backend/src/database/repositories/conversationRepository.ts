@@ -477,7 +477,7 @@ class ConversationRepository {
 
             if (allActivities.length > 0) {
               let neededActivities = []
-              const parentActivity = allActivities.find((a) => a.parent === null)
+              const parentActivity = allActivities.find((a) => a.parent === null) || allActivities[0]
 
               if (parentActivity) {
                 neededActivities = [parentActivity]
