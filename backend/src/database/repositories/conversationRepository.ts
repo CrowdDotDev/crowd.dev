@@ -492,6 +492,11 @@ class ConversationRepository {
                 const member = (await act.getMember()).get({ plain: true })
                 act = act.get({ plain: true })
                 act.member = member
+                act.display = ActivityDisplayService.getDisplayOptions(
+                  act,
+                  SettingsRepository.getActivityTypes(options),
+                )
+
                 return act
               })
               const returnedNeededActivities = await Promise.all(promises)
@@ -551,6 +556,10 @@ class ConversationRepository {
       const member = (await act.getMember()).get({ plain: true })
       act = act.get({ plain: true })
       act.member = member
+      act.display = ActivityDisplayService.getDisplayOptions(
+        act,
+        SettingsRepository.getActivityTypes(options),
+      )
       return act
     })
 

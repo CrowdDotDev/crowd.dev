@@ -26,7 +26,7 @@
       />
     </div>
   </article>
-  <article v-else>
+  <article v-else class="h-full">
     <div v-if="!editing" class="flex items-center pb-8">
       <!-- avatar conversation starter -->
       <router-link
@@ -108,35 +108,39 @@
         </button>
       </div>
     </div>
-    <div class="pt-6">
-      <div class="flex items-center">
-        <div class="flex items-center mr-6">
-          <i
-            class="ri-group-line text-base mr-2 text-gray-400"
-          />
-          <p class="text-xs text-gray-600">
-            {{ conversation.memberCount }} participant{{
-              conversation.memberCount > 1 ? 's' : ''
-            }}
-          </p>
-        </div>
-        <div class="flex items-center">
-          <i
-            class="ri-reply-line text-base mr-2 text-gray-400"
-          />
-          <p class="text-xs text-gray-600">
-            {{ conversation.activityCount - 1 }}
-            {{
-              conversation.activityCount > 2
-                ? 'replies'
-                : 'reply'
-            }}
-          </p>
-        </div>
+    <div class="py-6">
+      <app-conversation-details-footer
+        :conversation="conversation"
+      />
+    </div>
+
+    <el-divider class="!my-0 -mx-6 w-auto border-gray-200" />
+
+    <div class="flex justify-between items-center">
+      <h6 class="mb-8 mt-6">
+        Activities
+      </h6>
+
+      <div v-if="conversationTypes.length > 1" class="flex gap-1 items-center text-sm">
+        <span class="text-gray-500">Activity type:</span>
+
+        <app-inline-select-input
+          v-model="sorter"
+          popper-class="sorter-popper-class"
+          placement="bottom-end"
+          :options="sorterOptions"
+          @change="doChangeSort"
+        />
       </div>
     </div>
 
-    <div class="pt-10">
+    <div v-if="loadingActivities">
+      <div
+        v-loading="loadingActivities"
+        class="app-page-spinner h-16 !relative !min-h-5"
+      />
+    </div>
+    <div v-else-if="replies.length">
       <app-conversation-reply
         v-for="(reply, ri) in replies"
         :key="reply.id"
@@ -155,12 +159,16 @@
         </template>
       </app-conversation-reply>
     </div>
+    <div v-else class="text-gray-400">
+      No activities found
+    </div>
   </article>
 </template>
 
 <script>
 import { mapGetters } from 'vuex';
 import { formatDateToTimeAgo } from '@/utils/date';
+import { toSentenceCase } from '@/utils/string';
 import { CrowdIntegrations } from '@/integrations/integrations-config';
 import AppActivityMessage from '@/modules/activity/components/activity-message.vue';
 import AppConversationReply from '@/modules/conversation/components/conversation-reply.vue';
@@ -169,6 +177,10 @@ import AppActivitySentiment from '@/modules/activity/components/activity-sentime
 import AppLoading from '@/shared/loading/loading-placeholder.vue';
 import AppAvatar from '@/shared/avatar/avatar.vue';
 import AppMemberDisplayName from '@/modules/member/components/member-display-name.vue';
+import AppConversationDetailsFooter from '@/modules/conversation/components/conversation-details-footer.vue';
+import { ActivityService } from '@/modules/activity/activity-service';
+import { DEFAULT_ACTIVITY_FILTERS } from '@/modules/activity/store/constants';
+import Message from '@/shared/message/message';
 import { ConversationPermissions } from '../conversation-permissions';
 
 export default {
@@ -181,6 +193,7 @@ export default {
     AppActivityContent,
     AppLoading,
     AppAvatar,
+    AppConversationDetailsFooter,
   },
   props: {
     conversation: {
@@ -199,6 +212,13 @@ export default {
     },
   },
   emits: ['edit-title'],
+  data() {
+    return {
+      sorter: 'all',
+      loadingActivities: false,
+      filteredActivities: [],
+    };
+  },
   computed: {
     ...mapGetters({
       currentTenant: 'auth/currentTenant',
@@ -220,6 +240,10 @@ export default {
       return this.conversation.url;
     },
     replies() {
+      if (this.sorter !== 'all') {
+        return this.filteredActivities;
+      }
+
       return this.editing
         ? this.conversation.activities
         : this.conversation.activities.slice(1);
@@ -230,10 +254,67 @@ export default {
         this.currentUser,
       ).editLockedForSampleData;
     },
+    conversationTypes() {
+      const [, ...activities] = this.conversation.activities;
+
+      return activities.map((a) => a.type);
+    },
+    sorterOptions() {
+      const { platform } = this.conversation;
+      const defaultActivityTypes = this.currentTenant?.settings[0]?.activityTypes?.default;
+
+      const options = [{
+        value: 'all',
+        label: 'All',
+      }];
+
+      options.push(
+        ...Object.entries(defaultActivityTypes[platform])
+          .filter(([key]) => this.conversationTypes.includes(key))
+          .map(([key, value]) => ({
+            value: key,
+            label: toSentenceCase(value.display.short),
+          })),
+      );
+
+      return options;
+    },
   },
   methods: {
     timeAgo(date) {
       return formatDateToTimeAgo(date);
+    },
+    doChangeSort(value) {
+      if (value !== 'all') {
+        this.loadingActivities = true;
+
+        ActivityService.list(
+          {
+            and: [
+              {
+                type: value,
+              },
+              {
+                conversationId: this.conversation.id,
+              },
+            ],
+            ...DEFAULT_ACTIVITY_FILTERS[0],
+          },
+          'timestamp_DESC',
+          null,
+          0,
+          false,
+        ).then((response) => {
+          this.filteredActivities = response.rows;
+        }).catch((error) => {
+          console.error(error);
+          Message.error(
+            'Something went wrong. Please try again',
+          );
+        }).finally(() => {
+          this.loadingActivities = false;
+        });
+      }
     },
   },
 };

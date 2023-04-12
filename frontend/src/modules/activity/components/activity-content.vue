@@ -77,6 +77,16 @@
       </div>
     </div>
   </div>
+  <div v-else-if="activity.display?.default">
+    <div
+      class="first-letter:uppercase font-medium text-gray-900 text-sm"
+      v-html="
+        contentRenderEmojis(
+          $sanitize($marked(activity.display.default)),
+        )
+      "
+    />
+  </div>
 </template>
 
 <script>

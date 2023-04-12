@@ -251,6 +251,66 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
       },
       isContribution: GitHubGrid.unStar.isContribution,
     },
+    [GithubActivityType.PULL_REQUEST_MERGED]: {
+      display: {
+        default: 'merged pull request {self}',
+        short: 'merged a pull request',
+        channel: '{channel}',
+        formatter: {
+          channel: defaultGithubChannelFormatter,
+          self: (activity) => {
+            const prNumberAndTitle = `#${activity.url.split('/')[6]} ${activity.parent.title}`
+            return `<a href="${activity.url}" target="_blank">${prNumberAndTitle}</a>`
+          },
+        },
+      },
+      isContribution: GitHubGrid.pullRequestMerged.isContribution,
+    },
+    [GithubActivityType.PULL_REQUEST_ASSIGNED]: {
+      display: {
+        default: 'assigned pull request {self}',
+        short: 'assigned a pull request',
+        channel: '{channel}',
+        formatter: {
+          channel: defaultGithubChannelFormatter,
+          self: (activity) => {
+            const prNumberAndTitle = `#${activity.url.split('/')[6]} ${activity.parent.title}`
+            return `<a href="${activity.url}" style="max-width:150px" target="_blank">${prNumberAndTitle}</a> to <a href="/members/${activity.objectMemberId}" target="_blank">${activity.objectMember.displayName}</a>`
+          },
+        },
+      },
+      isContribution: GitHubGrid.pullRequestAssigned.isContribution,
+    },
+    [GithubActivityType.PULL_REQUEST_REVIEWED]: {
+      display: {
+        default: 'reviewed pull request {self}',
+        short: 'reviewed a pull request',
+        channel: '{channel}',
+        formatter: {
+          channel: defaultGithubChannelFormatter,
+          self: (activity) => {
+            const prNumberAndTitle = `#${activity.url.split('/')[6]} ${activity.parent.title}`
+            return `<a href="${activity.url}" target="_blank">${prNumberAndTitle}</a>`
+          },
+        },
+      },
+      isContribution: GitHubGrid.pullRequestReviewed.isContribution,
+    },
+    [GithubActivityType.PULL_REQUEST_REVIEW_REQUESTED]: {
+      display: {
+        default: 'requested a review for pull request {self}',
+        short: 'requested a pull request review',
+        channel: '{channel}',
+        formatter: {
+          channel: defaultGithubChannelFormatter,
+          self: (activity) => {
+            const prNumberAndTitle = `#${activity.url.split('/')[6]} ${activity.parent.title}`
+            return `<a href="${activity.url}" style="max-width:150px" target="_blank">${prNumberAndTitle}</a> from <a href="/members/${activity.objectMemberId}" target="_blank">${activity.objectMember.displayName}</a>`
+          },
+        },
+      },
+      isContribution: GitHubGrid.pullRequestReviewRequested.isContribution,
+    },
   },
   [PlatformType.DEVTO]: {
     [DevtoActivityType.COMMENT]: {
