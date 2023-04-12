@@ -3,68 +3,76 @@
     v-model="isVisible"
     custom-class="integration-reddit-drawer"
     title="Zapier"
-    size="600px"
+    size="480px"
     pre-title="Integration"
     :pre-title-img-src="logoUrl"
     pre-title-img-alt="Zapier logo"
+    :show-footer="false"
     @close="isVisible = false"
   >
     <template #content>
       <div class="flex flex-row items-center justify-between w-full">
-        <p class="font-bold text-base">
-          Set up crowd.dev in Zapier
-        </p>
+        <p class="font-bold text-base">Set up crowd.dev in Zapier</p>
         <a
           href="https://docs.crowd.dev/docs/zapier-integration"
           target="_blank"
           rel="noopener noreferrer"
           class="btn btn--bordered btn--md"
-        ><i class="ri-external-link-line mr-2" />Read our docs</a>
+          ><i class="ri-external-link-line mr-2" />Read our docs</a
+        >
       </div>
-      <div class="container mx-auto px-4 py-10">
+      <div class="container flex flex-row w-full items-start py-10">
         <ul class="list-none space-y-4">
           <li class="flex items-start">
             <span
-              class="flex-none w-8 h-8 flex justify-center items-center rounded-full bg-gray-300 text-white font-bold"
-            >1</span>
-            <p class="ml-4 text-gray-900">
+              class="flex-none w-8 h-8 flex justify-center items-center rounded-full bg-gray-300 text-gray-900 font-bold text-sm"
+              >1</span
+            >
+            <p class="ml-4 text-gray-900 text-xs">
               Navigate to Settings >
               <a
                 href="/settings?activeTab=api-keys"
                 target="_blank"
                 rel="noopener noreferrer"
                 class="underline underline-offset-4"
-              >API Keys</a>
-              and get your workspace <b>Tenant ID</b> and <b>Auth token</b>
+                >API Keys</a
+              >
+              and get your workspace
+              <span class="font-medium">Tenant ID</span> and
+              <span class="font-medium">Auth token</span>
             </p>
           </li>
           <li class="flex items-start">
             <span
-              class="flex-none w-8 h-8 flex justify-center items-center rounded-full bg-gray-300 text-white font-bold"
-            >2</span>
-            <p class="ml-4 text-gray-900">
+              class="flex-none w-8 h-8 flex justify-center items-center rounded-full bg-gray-300 text-gray-900 font-bold text-sm"
+              >2</span
+            >
+            <p class="ml-4 text-gray-900 text-xs">
               Go to
               <a
                 href="https://zapier.com/developer/public-invite/180721/f94ad64f963359cd888fa22610c31875/"
                 target="_blank"
                 rel="noopener noreferrer"
                 class="underline underline-offset-4"
-              >Zapier</a>
+                >Zapier</a
+              >
               and connect your crowd.dev account using your workspace API Keys
             </p>
           </li>
           <li class="flex items-center">
             <span
-              class="flex-none w-8 h-8 flex justify-center items-center rounded-full bg-gray-300 text-white font-bold"
-            >3</span>
-            <p class="ml-4 text-gray-900">
+              class="flex-none w-8 h-8 flex justify-center items-center rounded-full bg-gray-300 text-gray-900 font-bold text-sm"
+              >3</span
+            >
+            <p class="ml-4 text-gray-900 text-xs">
               Configure your Zaps using our
               <a
                 href="https://docs.crowd.dev/docs/zapier-integration#supported-triggers"
                 target="_blank"
                 rel="noopener noreferrer"
                 class="underline underline-offset-4"
-              >supported triggers and actions</a>
+                >supported triggers and actions</a
+              >
             </p>
           </li>
         </ul>
@@ -79,8 +87,8 @@
 </template>
 
 <script setup>
-import { computed, defineEmits, defineProps } from 'vue';
-import { CrowdIntegrations } from '@/integrations/integrations-config';
+import { computed, defineEmits, defineProps } from "vue";
+import { CrowdIntegrations } from "@/integrations/integrations-config";
 
 const props = defineProps({
   modelValue: {
@@ -89,22 +97,22 @@ const props = defineProps({
   },
 });
 
-const emit = defineEmits(['update:modelValue']);
+const emit = defineEmits(["update:modelValue"]);
 
-const logoUrl = CrowdIntegrations.getConfig('zapier').image;
+const logoUrl = CrowdIntegrations.getConfig("zapier").image;
 
 const isVisible = computed({
   get() {
     return props.modelValue;
   },
   set(value) {
-    return emit('update:modelValue', value);
+    return emit("update:modelValue", value);
   },
 });
 </script>
 
 <script>
 export default {
-  name: 'AppZapierConnectDrawer',
+  name: "AppZapierConnectDrawer",
 };
 </script>
