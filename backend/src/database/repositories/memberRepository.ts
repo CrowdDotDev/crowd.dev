@@ -684,7 +684,18 @@ class MemberRepository {
       transaction,
     })
 
-    return records.map((record) => record.id)
+    const results = records.map((record) => record.id)
+
+    const identities = await this.getIdentities(ids, options)
+
+    for (const result of results) {
+      result.username = identities.get(result.id).reduce((data, identity: any) => {
+        data[identity.platform] = identity.username
+        return data
+      }, {} as any)
+    }
+
+    return results
   }
 
   static async count(filter, options: IRepositoryOptions) {
@@ -1015,7 +1026,11 @@ class MemberRepository {
                                 and m."deletedAt" is null
                                 and o."tenantId" = :tenantId
                                 and o."deletedAt" is null
-                              group by mo."memberId")
+                              group by mo."memberId"),
+      identities as (select "memberId",
+                            jsonb_agg(jsonb_build_object('platform', platform, 'username', username)) as username
+                    from "memberIdentities"
+                    group by "memberId")
 select m.id,
        m."displayName",
        m.attributes,
@@ -1044,6 +1059,7 @@ select m.id,
        coalesce(jsonb_array_length(m.contributions), 0) as "numberOfOpenSourceContributions"
 from members m
          inner join "memberActivityAggregatesMVs" aggs on aggs.id = m.id
+         inner join identities i on m.id = i."memberId"
          left join to_merge_data tmd on m.id = tmd."memberId"
          left join no_merge_data nmd on m.id = nmd."memberId"
          left join member_tags mt on m.id = mt."memberId"

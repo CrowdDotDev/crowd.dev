@@ -21,7 +21,7 @@ create table "memberIdentities" (
     unique (platform, username, "tenantId"),
     foreign key ("memberId") references members (id) on delete cascade,
     foreign key ("tenantId") references tenants (id) on delete cascade,
-    primary key ("memberId", platform, username)
+    primary key ("memberId", platform)
 );
 
 create trigger member_identities_updated_at

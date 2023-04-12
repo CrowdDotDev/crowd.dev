@@ -1861,7 +1861,12 @@ describe('MemberRepository tests', () => {
 
       await MemberRepository.create(
         {
-          username: { [PlatformType.TWITTER]: 'test1' },
+          username: {
+            [PlatformType.TWITTER]: {
+              username: 'test1',
+              integrationId: generateUUIDv1(),
+            },
+          },
           displayName: 'Member 1',
           score: '1',
           joinedAt: new Date(),
@@ -1908,7 +1913,12 @@ describe('MemberRepository tests', () => {
       )
       await MemberRepository.create(
         {
-          username: { [PlatformType.TWITTER]: 'test2' },
+          username: {
+            [PlatformType.TWITTER]: {
+              username: 'test2',
+              integrationId: generateUUIDv1(),
+            },
+          },
           displayName: 'Member 2',
           score: '6',
           joinedAt: new Date(),
@@ -1937,7 +1947,12 @@ describe('MemberRepository tests', () => {
       )
       await MemberRepository.create(
         {
-          username: { [PlatformType.TWITTER]: 'test3' },
+          username: {
+            [PlatformType.TWITTER]: {
+              username: 'test3',
+              integrationId: generateUUIDv1(),
+            },
+          },
           displayName: 'Member 3',
           score: '7',
           joinedAt: new Date(),
@@ -2099,7 +2114,12 @@ describe('MemberRepository tests', () => {
 
       await MemberRepository.create(
         {
-          username: { [PlatformType.TWITTER]: 'test1' },
+          username: {
+            [PlatformType.TWITTER]: {
+              username: 'test1',
+              integrationId: generateUUIDv1(),
+            },
+          },
           displayName: 'Member 1',
           score: '1',
           joinedAt: new Date(),
@@ -2108,7 +2128,12 @@ describe('MemberRepository tests', () => {
       )
       await MemberRepository.create(
         {
-          username: { [PlatformType.TWITTER]: 'test2' },
+          username: {
+            [PlatformType.TWITTER]: {
+              username: 'test2',
+              integrationId: generateUUIDv1(),
+            },
+          },
           displayName: 'Member 2',
           score: '6',
           joinedAt: new Date(),
@@ -2118,7 +2143,12 @@ describe('MemberRepository tests', () => {
       )
       await MemberRepository.create(
         {
-          username: { [PlatformType.GITHUB]: 'test3' },
+          username: {
+            [PlatformType.GITHUB]: {
+              username: 'test3',
+              integrationId: generateUUIDv1(),
+            },
+          },
           displayName: 'Member 3',
           score: '7',
           joinedAt: new Date(),
@@ -2162,7 +2192,12 @@ describe('MemberRepository tests', () => {
 
       await MemberRepository.create(
         {
-          username: { [PlatformType.GITHUB]: 'test1' },
+          username: {
+            [PlatformType.GITHUB]: {
+              username: 'test1',
+              integrationId: generateUUIDv1(),
+            },
+          },
           displayName: 'Member 1',
           score: '1',
           joinedAt: new Date(),
@@ -2172,7 +2207,12 @@ describe('MemberRepository tests', () => {
       )
       await MemberRepository.create(
         {
-          username: { [PlatformType.GITHUB]: 'test2' },
+          username: {
+            [PlatformType.GITHUB]: {
+              username: 'test2',
+              integrationId: generateUUIDv1(),
+            },
+          },
           displayName: 'Member 2',
           score: '6',
           joinedAt: new Date(),
@@ -2182,7 +2222,12 @@ describe('MemberRepository tests', () => {
       )
       await MemberRepository.create(
         {
-          username: { [PlatformType.GITHUB]: 'test3' },
+          username: {
+            [PlatformType.GITHUB]: {
+              username: 'test3',
+              integrationId: generateUUIDv1(),
+            },
+          },
           displayName: 'Member 3',
           score: '7',
           joinedAt: new Date(),
@@ -2231,7 +2276,12 @@ describe('MemberRepository tests', () => {
 
       await MemberRepository.create(
         {
-          username: { [PlatformType.SLACK]: 'test1' },
+          username: {
+            [PlatformType.SLACK]: {
+              username: 'test1',
+              integrationId: generateUUIDv1(),
+            },
+          },
           displayName: 'Member 1',
           score: '1',
           joinedAt: new Date(),
@@ -2240,7 +2290,12 @@ describe('MemberRepository tests', () => {
       )
       await MemberRepository.create(
         {
-          username: { [PlatformType.SLACK]: 'test2' },
+          username: {
+            [PlatformType.SLACK]: {
+              username: 'test2',
+              integrationId: generateUUIDv1(),
+            },
+          },
           displayName: 'Member 2',
           score: '6',
           joinedAt: new Date(),
@@ -2250,7 +2305,12 @@ describe('MemberRepository tests', () => {
       )
       await MemberRepository.create(
         {
-          username: { [PlatformType.SLACK]: 'test3' },
+          username: {
+            [PlatformType.SLACK]: {
+              username: 'test3',
+              integrationId: generateUUIDv1(),
+            },
+          },
           displayName: 'Member 3',
           score: '7',
           joinedAt: new Date(),
@@ -2284,19 +2344,34 @@ describe('MemberRepository tests', () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
 
       const user1 = {
-        username: { [PlatformType.DISCORD]: 'test1' },
+        username: {
+          [PlatformType.DISCORD]: {
+            username: 'test1',
+            integrationId: generateUUIDv1(),
+          },
+        },
         displayName: 'Member 1',
         score: '1',
         joinedAt: new Date(),
       }
       const user2 = {
-        username: { [PlatformType.DISCORD]: 'test2' },
+        username: {
+          [PlatformType.DISCORD]: {
+            username: 'test2',
+            integrationId: generateUUIDv1(),
+          },
+        },
         displayName: 'Member 2',
         score: '6',
         joinedAt: new Date(),
       }
       const user3 = {
-        username: { [PlatformType.DISCORD]: 'test3' },
+        username: {
+          [PlatformType.DISCORD]: {
+            username: 'test3',
+            integrationId: generateUUIDv1(),
+          },
+        },
         displayName: 'Member 3',
         score: '7',
         joinedAt: new Date(),
@@ -2346,7 +2421,12 @@ describe('MemberRepository tests', () => {
 
       const member1 = await MemberRepository.create(
         {
-          username: { [PlatformType.DISCORD]: 'test1' },
+          username: {
+            [PlatformType.DISCORD]: {
+              username: 'test1',
+              integrationId: generateUUIDv1(),
+            },
+          },
           displayName: 'Member 1',
           score: '1',
           joinedAt: new Date(),
@@ -2359,7 +2439,12 @@ describe('MemberRepository tests', () => {
       )
       const member2 = await MemberRepository.create(
         {
-          username: { [PlatformType.DISCORD]: 'test2' },
+          username: {
+            [PlatformType.DISCORD]: {
+              username: 'test2',
+              integrationId: generateUUIDv1(),
+            },
+          },
           displayName: 'Member 2',
           score: '6',
           joinedAt: new Date(),
@@ -2372,7 +2457,12 @@ describe('MemberRepository tests', () => {
       )
       const member3 = await MemberRepository.create(
         {
-          username: { [PlatformType.DISCORD]: 'test3' },
+          username: {
+            [PlatformType.DISCORD]: {
+              username: 'test3',
+              integrationId: generateUUIDv1(),
+            },
+          },
           displayName: 'Member 3',
           score: '7',
           joinedAt: new Date(),
@@ -2392,6 +2482,7 @@ describe('MemberRepository tests', () => {
           tenantId: mockIRepositoryOptions.currentTenant.id,
           username: 'test1',
           memberId: member1.id,
+          username: member1.username[PlatformType.SLACK].username,
           sourceId: '#sourceId1',
           sentiment: {
             positive: 0.55,
@@ -2409,6 +2500,7 @@ describe('MemberRepository tests', () => {
           tenantId: mockIRepositoryOptions.currentTenant.id,
           username: 'test2',
           memberId: member2.id,
+          username: member2.username[PlatformType.SLACK].username,
           sourceId: '#sourceId2',
           sentiment: {
             positive: 0.01,
@@ -2426,6 +2518,7 @@ describe('MemberRepository tests', () => {
           tenantId: mockIRepositoryOptions.currentTenant.id,
           username: 'test2',
           memberId: member2.id,
+          username: member2.username[PlatformType.SLACK].username,
           sourceId: '#sourceId3',
           sentiment: {
             positive: 0.94,
@@ -2443,6 +2536,7 @@ describe('MemberRepository tests', () => {
           tenantId: mockIRepositoryOptions.currentTenant.id,
           username: 'test3',
           memberId: member3.id,
+          username: member3.username[PlatformType.SLACK].username,
           sourceId: '#sourceId4',
           sentiment: {
             positive: 0.42,
@@ -2460,6 +2554,7 @@ describe('MemberRepository tests', () => {
           tenantId: mockIRepositoryOptions.currentTenant.id,
           username: 'test3',
           memberId: member3.id,
+          username: member3.username[PlatformType.SLACK].username,
           sourceId: '#sourceId5',
           sentiment: {
             positive: 0.42,
@@ -2477,6 +2572,7 @@ describe('MemberRepository tests', () => {
           tenantId: mockIRepositoryOptions.currentTenant.id,
           username: 'test3',
           memberId: member3.id,
+          username: member3.username[PlatformType.SLACK].username,
           sourceId: '#sourceId6',
           sentiment: {
             positive: 0.42,
