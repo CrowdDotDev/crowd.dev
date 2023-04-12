@@ -121,7 +121,7 @@
         Activities
       </h6>
 
-      <div v-if="conversationTypes.length > 1" class="flex gap-1 items-center text-sm">
+      <div v-if="conversationTypes.length > 2" class="flex gap-1 items-center text-sm">
         <span class="text-gray-500">Activity type:</span>
 
         <app-inline-select-input

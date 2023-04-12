@@ -23,6 +23,11 @@ defineProps({
 
 const icons = {
   github: {
+    'issue-comment': {
+      iconClass: 'ri-chat-4-line',
+      color: 'text-black',
+      bgColor: 'bg-gray-200',
+    },
     'pull_request-opened': {
       iconClass: 'ri-git-pull-request-line',
       color: 'text-white',

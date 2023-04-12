@@ -484,6 +484,8 @@ class ConversationRepository {
                   allActivities[allActivities.length - 2],
                   allActivities[allActivities.length - 1],
                 ]
+              } else if(allActivities.length === 1) {
+                neededActivities = [allActivities[0]]
               } else {
                 neededActivities = [allActivities[0], allActivities[allActivities.length - 1]]
               }
