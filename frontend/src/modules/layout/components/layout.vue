@@ -158,6 +158,8 @@
 
 <script>
 import { useStore, mapActions, mapGetters } from 'vuex';
+// eslint-disable-next-line import/no-extraneous-dependencies
+import formbricks from '@formbricks/js';
 import Banner from '@/shared/banner/banner.vue';
 import identify from '@/shared/monitoring/identify';
 import config from '@/config';
@@ -229,8 +231,7 @@ export default {
     showPmfSurvey(newValue) {
       if (newValue) {
         setTimeout(() => {
-          window.formbricksPmf.init();
-          window.formbricksPmf.reset();
+          window.formbricksPmf.open();
         }, 10);
       }
     },
@@ -254,36 +255,34 @@ export default {
       config.formbricks.url
       && config.formbricks.pmfFormId
     ) {
-      window.formbricksPmf = {
-        ...window.formbricksPmf,
-        config: {
-          formbricksUrl: config.formbricks.url,
-          formId: config.formbricks.pmfFormId,
-          containerId: 'formbricks-pmf-container',
-          onFinished: () => this.doHidePmfBanner(),
-          contact: {
-            name: 'Jonathan',
-            position: 'Co-Founder',
-            imgUrl:
-              'https://avatars.githubusercontent.com/u/41432658?v=4',
-          },
-          customer: {
-            id: store.getters['auth/currentUser'].id,
-            name: store.getters['auth/currentUser']
-              .fullName,
-            email: store.getters['auth/currentUser'].email,
-          },
-          style: {
-            brandColor: '#e94f2e',
-            headerBGColor: '#F9FAFB',
-            boxBGColor: '#ffffff',
-            textColor: '#140505',
-            buttonHoverColor: '#F9FAFB',
-          },
+      formbricks.init({
+        formbricksUrl: config.formbricks.url,
+        formId: config.formbricks.pmfFormId,
+        containerId: 'formbricks-pmf-container',
+        onFinished: () => this.doHidePmfBanner(),
+        contact: {
+          name: 'Jonathan',
+          position: 'Co-Founder',
+          imgUrl:
+            'https://avatars.githubusercontent.com/u/41432658?v=4',
         },
+        customer: {
+          id: store.getters['auth/currentUser'].id,
+          name: store.getters['auth/currentUser']
+            .fullName,
+          email: store.getters['auth/currentUser'].email,
+        },
+        style: {
+          brandColor: '#e94f2e',
+          headerBGColor: '#F9FAFB',
+          boxBGColor: '#ffffff',
+          textColor: '#140505',
+          buttonHoverColor: '#F9FAFB',
+        },
+      });
+      window.formbricksPmf = {
+        ...window.formbricks,
       };
-      // eslint-disable-next-line global-require,import/no-unresolved
-      require('@formbricks/pmf');
     }
   },
 
@@ -300,8 +299,7 @@ export default {
     toggleShowPmfSurvey() {
       this.showPmfSurvey = !this.showPmfSurvey;
       if (this.showPmfSurvey) {
-        window.formbricksPmf.init();
-        window.formbricksPmf.reset();
+        window.formbricksPmf.open();
       }
     },
 

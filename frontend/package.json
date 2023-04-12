@@ -20,6 +20,7 @@
   "dependencies": {
     "@cubejs-client/core": "^0.31.63",
     "@cubejs-client/vue3": "^0.31.63",
+    "@formbricks/js": "^0.1.6",
     "@formbricks/pmf": "^0.1.1",
     "@loomhq/loom-embed": "^1.5.0",
     "@nangohq/frontend": "^0.9.0",

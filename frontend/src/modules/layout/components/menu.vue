@@ -380,6 +380,7 @@ import config from '@/config';
 
 import { mapGetters } from '@/shared/vuex/vuex.helpers';
 import { TaskPermissions } from '@/modules/task/task-permissions';
+import formbricks from '@formbricks/js';
 import AppWorkspaceDropdown from './workspace-dropdown.vue';
 import AppSupportDropdown from './support-dropdown.vue';
 import AppAccountDropdown from './account-dropdown.vue';
@@ -511,40 +512,27 @@ const openFeedbackWidget = (event) => {
 };
 
 onMounted(() => {
-  const formbricksFeedbackWidget = document.createElement('script');
-  formbricksFeedbackWidget.setAttribute(
-    'src',
-    'https://cdn.jsdelivr.net/npm/@formbricks/feedback@0.1.5/dist/index.umd.js',
-  );
-  document.head.appendChild(formbricksFeedbackWidget);
-  const formbricksFeedbackConfig = document.createElement('script');
-  formbricksFeedbackConfig.innerHTML = `
-    window.formbricks = {
-      config: {
-        hqUrl: "${config.formbricks.url}",
-        formId: "${config.formbricks.formId}",
-        contact: {
-          name: "Jonathan",
-          position: "Co-Founder",
-          imgUrl: "https://avatars.githubusercontent.com/u/41432658?v=4",
-        },
-        customer: {
-          id: "${store.getters['auth/currentUser'].id}",
-          name: "${store.getters['auth/currentUser'].fullName}",
-          email: "${store.getters['auth/currentUser'].email}",
-        },
-        style: {
-          brandColor: "#e94f2e",
-          headerBGColor: "#F9FAFB",
-          boxBGColor: "#ffffff",
-          textColor: "#140505",
-          buttonHoverColor: "#F9FAFB",
-        },
-      },
-      ...window.formbricks,
-    };
-    `;
-  document.head.appendChild(formbricksFeedbackConfig);
+  formbricks.init({
+    hqUrl: config.formbricks.url,
+    formId: config.formbricks.formId,
+    contact: {
+      name: 'Jonathan',
+      position: 'Co-Founder',
+      imgUrl: 'https://avatars.githubusercontent.com/u/41432658?v=4',
+    },
+    customer: {
+      id: store.getters['auth/currentUser'].id,
+      name: store.getters['auth/currentUser'].fullName,
+      email: store.getters['auth/currentUser'].email,
+    },
+    style: {
+      brandColor: '#e94f2e',
+      headerBGColor: '#F9FAFB',
+      boxBGColor: '#ffffff',
+      textColor: '#140505',
+      buttonHoverColor: '#F9FAFB',
+    },
+  });
 });
 </script>
 

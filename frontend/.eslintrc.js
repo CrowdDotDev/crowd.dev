@@ -24,6 +24,7 @@ module.exports = {
         ? 'warn'
         : 'off',
     semi: 'warn',
+    indent: 'warn',
     'comma-dangle': 'warn',
     'vue/no-unused-components': 'warn',
     'vue/html-indent': 'warn',
