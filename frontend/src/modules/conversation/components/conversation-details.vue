@@ -88,7 +88,7 @@
             ? 'text-sm'
             : 'text-base'
         "
-        title-classes="text-base font-medium"
+        title-classes="text-[18px] font-semibold"
         :activity="conversation.conversationStarter"
         :show-more="true"
       />
@@ -121,7 +121,7 @@
         Activities
       </h6>
 
-      <div v-if="conversationTypes.length > 2" class="flex gap-1 items-center text-sm">
+      <div v-if="sorterOptions.length > 2" class="flex gap-1 items-center text-sm">
         <span class="text-gray-500">Activity type:</span>
 
         <app-inline-select-input

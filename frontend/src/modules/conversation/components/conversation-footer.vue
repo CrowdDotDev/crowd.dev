@@ -34,7 +34,11 @@
             {{ pluralize(replyContent.copy, replyContent.number, true) }}
           </p>
         </div>
-        <div v-if="isGithubConversation && attributes" class="flex items-center">
+        <div
+          v-if="isGithubConversation
+            && (attributes?.changedFiles || attributes?.additions || attributes?.deletions)"
+          class="flex items-center"
+        >
           <div
             class="flex items-center"
           >

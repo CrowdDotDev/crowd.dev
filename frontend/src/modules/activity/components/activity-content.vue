@@ -9,9 +9,16 @@
           && displayTitle
       "
     >
-      <span class="block title" :class="titleClasses">{{
-        activity.title
-      }}</span>
+      <span
+        class="block"
+        :class="{
+          title: !titleClasses,
+          [titleClasses]: titleClasses,
+        }"
+      >
+        {{
+          activity.title
+        }}</span>
     </div>
 
     <div
