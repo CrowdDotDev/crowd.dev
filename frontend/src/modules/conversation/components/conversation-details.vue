@@ -302,6 +302,7 @@ export default {
           null,
           0,
           false,
+          false,
         ).then((response) => {
           this.filteredActivities = response.rows;
         }).catch((error) => {
