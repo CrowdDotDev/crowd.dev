@@ -161,6 +161,32 @@ class MemberRepository {
     return { rows: [], count: 0, limit, offset }
   }
 
+  static async moveActivitiesBetweenMembers(
+    fromMemberId: string,
+    toMemberId: string,
+    options: IRepositoryOptions,
+  ): Promise<void> {
+    const transaction = SequelizeRepository.getTransaction(options)
+
+    const seq = SequelizeRepository.getSequelize(options)
+
+    const tenant = SequelizeRepository.getCurrentTenant(options)
+
+    const query = `
+      update activities set "memberId" = :toMemberId where "memberId" = :fromMemberId and "tenantId" = :tenantId;
+    `
+
+    await seq.query(query, {
+      replacements: {
+        fromMemberId,
+        toMemberId,
+        tenantId: tenant.id,
+      },
+      type: QueryTypes.UPDATE,
+      transaction,
+    })
+  }
+
   static async addToMerge(id, toMergeId, options: IRepositoryOptions) {
     const transaction = SequelizeRepository.getTransaction(options)
 
@@ -403,18 +429,23 @@ class MemberRepository {
     options: IRepositoryOptions,
     returnPlain = true,
     doPopulateRelations = true,
+    ignoreTenant = false,
   ) {
     const transaction = SequelizeRepository.getTransaction(options)
 
     const include = []
 
-    const currentTenant = SequelizeRepository.getCurrentTenant(options)
+    const where: any = {
+      id,
+    }
+
+    if (!ignoreTenant) {
+      const currentTenant = SequelizeRepository.getCurrentTenant(options)
+      where.tenantId = currentTenant.id
+    }
 
     const record = await options.database.member.findOne({
-      where: {
-        id,
-        tenantId: currentTenant.id,
-      },
+      where,
       include,
       transaction,
     })
