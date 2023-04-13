@@ -773,18 +773,7 @@ class MemberRepository {
       transaction,
     })
 
-    const results = records.map((record) => record.id)
-
-    const identities = await this.getIdentities(ids, options)
-
-    for (const result of results) {
-      result.username = identities.get(result.id).reduce((data, identity: any) => {
-        data[identity.platform] = identity.username
-        return data
-      }, {} as any)
-    }
-
-    return results
+    return records.map((record) => record.id)
   }
 
   static async count(filter, options: IRepositoryOptions) {
@@ -1122,7 +1111,7 @@ class MemberRepository {
                                 and o."deletedAt" is null
                               group by mo."memberId"),
       identities as (select "memberId",
-                            jsonb_agg(jsonb_build_object('platform', platform, 'username', username)) as username
+                            jsonb_object_agg(platform, username) as username
                     from "memberIdentities"
                     group by "memberId")
 select m.id,
