@@ -17,6 +17,7 @@ import { LoggingBase } from './loggingBase'
 import MemberAttributeSettingsRepository from '../database/repositories/memberAttributeSettingsRepository'
 import SettingsRepository from '../database/repositories/settingsRepository'
 import SettingsService from './settingsService'
+import { GithubActivityType } from '../types/activityTypes'
 
 export default class ActivityService extends LoggingBase {
   options: IServiceOptions
@@ -185,11 +186,22 @@ export default class ActivityService extends LoggingBase {
     }
 
     try {
-      const sentiment = vader.SentimentIntensityAnalyzer.polarity_scores(
-        `${data.title} ${data.body}`,
-      )
+      const text = data.sourceParentId ? data.body : `${data.title} ${data.body}`
+      const sentiment = vader.SentimentIntensityAnalyzer.polarity_scores(text)
 
-      const compound = Math.round(((sentiment.compound + 1) / 2) * 100)
+      let compound = Math.round(((sentiment.compound + 1) / 2) * 100)
+
+      // Some activities are inherently different, we might want to dampen their sentiment
+      const typesToDamp = [
+        GithubActivityType.PULL_REQUEST_OPENED,
+        GithubActivityType.PULL_REQUEST_OPENED,
+        GithubActivityType.ISSUE_OPENED,
+        GithubActivityType.ISSUE_CLOSED,
+      ]
+      if (data.type.includes(typesToDamp)) {
+        compound *= 0.75
+      }
+
       let label = 'neutral'
       if (compound < 33) {
         label = 'negative'
