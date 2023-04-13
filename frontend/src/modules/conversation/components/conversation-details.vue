@@ -140,7 +140,7 @@
         class="app-page-spinner h-16 !relative !min-h-5"
       />
     </div>
-    <div v-else-if="replies.length">
+    <div v-else-if="replies.length" class="pb-6">
       <app-conversation-reply
         v-for="(reply, ri) in replies"
         :key="reply.id"

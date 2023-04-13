@@ -57,6 +57,7 @@ class ActivityRepository {
           'importHash',
         ]),
         memberId: data.member || null,
+        objectMemberId: data.objectMember || undefined,
         parentId: data.parent || null,
         sourceParentId: data.sourceParentId || null,
         conversationId: data.conversationId || null,
@@ -152,6 +153,7 @@ class ActivityRepository {
           'importHash',
         ]),
         memberId: data.member || undefined,
+        objectMemberId: data.objectMember || undefined,
         parentId: data.parent || undefined,
         sourceParentId: data.sourceParentId || undefined,
         conversationId: data.conversationId || undefined,
@@ -198,6 +200,10 @@ class ActivityRepository {
       {
         model: options.database.member,
         as: 'member',
+      },
+      {
+        model: options.database.member,
+        as: 'objectMember',
       },
       {
         model: options.database.activity,
@@ -345,6 +351,12 @@ class ActivityRepository {
       if (filter.member) {
         advancedFilter.and.push({
           memberId: filter.member,
+        })
+      }
+
+      if (filter.objectMember) {
+        advancedFilter.and.push({
+          objectMemberId: filter.objectMember,
         })
       }
 
@@ -569,6 +581,10 @@ class ActivityRepository {
       {
         model: options.database.activity,
         as: 'parent',
+      },
+      {
+        model: options.database.member,
+        as: 'objectMember',
       },
     ]
 

@@ -50,4 +50,24 @@ export class GitHubGrid {
     score: 4,
     isContribution: false,
   }
+
+  static pullRequestAssigned: gridEntry = {
+    score: 2,
+    isContribution: false,
+  }
+
+  static pullRequestReviewRequested: gridEntry = {
+    score: 2,
+    isContribution: false,
+  }
+
+  static pullRequestReviewed: gridEntry = {
+    score: 8,
+    isContribution: true,
+  }
+
+  static pullRequestMerged: gridEntry = {
+    score: 6,
+    isContribution: true,
+  }
 }

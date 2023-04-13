@@ -10,6 +10,12 @@ import { TwitterGrid } from '../serverless/integrations/grid/twitterGrid'
 import isUrl from '../utils/isUrl'
 import { PlatformType } from './integrationEnums'
 
+export enum ActivityDisplayVariant {
+  DEFAULT = 'default',
+  SHORT = 'short',
+  CHANNEL = 'channel',
+}
+
 export type ActivityTypeSettings = {
   default: DefaultActivityTypes
   custom: CustomActivityTypes
@@ -34,9 +40,9 @@ export type CustomActivityTypes = {
 }
 
 export type ActivityTypeDisplayProperties = {
-  default: string
-  short: string
-  channel: string
+  [ActivityDisplayVariant.DEFAULT]: string
+  [ActivityDisplayVariant.SHORT]: string
+  [ActivityDisplayVariant.CHANNEL]: string
   formatter?: { [key: string]: (input: any) => string }
 }
 
@@ -51,10 +57,22 @@ export enum DiscordtoActivityType {
   THREAD_MESSAGE = 'thread_message',
 }
 
+export enum GithubPullRequestEvents {
+  REQUEST_REVIEW = 'ReviewRequestedEvent',
+  REVIEW = 'PullRequestReview',
+  ASSIGN = 'AssignedEvent',
+  MERGE = 'MergedEvent',
+  CLOSE = 'ClosedEvent',
+}
+
 export enum GithubActivityType {
   DISCUSSION_STARTED = 'discussion-started',
   PULL_REQUEST_OPENED = 'pull_request-opened',
   PULL_REQUEST_CLOSED = 'pull_request-closed',
+  PULL_REQUEST_REVIEW_REQUESTED = 'pull_request-review-requested',
+  PULL_REQUEST_REVIEWED = 'pull_request-reviewed',
+  PULL_REQUEST_ASSIGNED = 'pull_request-assigned',
+  PULL_REQUEST_MERGED = 'pull_request-merged',
   ISSUE_OPENED = 'issues-opened',
   ISSUE_CLOSED = 'issues-closed',
   FORK = 'fork',

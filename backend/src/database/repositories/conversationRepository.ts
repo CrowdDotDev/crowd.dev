@@ -471,13 +471,17 @@ class ConversationRepository {
         const rec = record.get({ plain: true })
         for (const relationship of lazyLoad) {
           if (relationship === 'activities') {
-            const allActivities = await record.getActivities({ order: [['timestamp', 'ASC']] })
+            const allActivities = await record.getActivities({
+              order: [['timestamp', 'ASC']],
+              include: ['parent'],
+            })
 
             rec.memberCount = ConversationRepository.getTotalMemberCount(allActivities)
 
             if (allActivities.length > 0) {
               let neededActivities = []
-              const parentActivity = allActivities.find((a) => a.parent === null) || allActivities[0]
+              const parentActivity =
+                allActivities.find((a) => a.parent === null) || allActivities[0]
 
               if (parentActivity) {
                 neededActivities = [parentActivity]
@@ -495,8 +499,15 @@ class ConversationRepository {
 
               const promises = neededActivities.map(async (act) => {
                 const member = (await act.getMember()).get({ plain: true })
+
+                let objectMember = null
+                if (act.objectMemberId) {
+                  objectMember = (await act.getObjectMember()).get({ plain: true })
+                }
+
                 act = act.get({ plain: true })
                 act.member = member
+                act.objectMember = objectMember
                 act.display = ActivityDisplayService.getDisplayOptions(
                   act,
                   SettingsRepository.getActivityTypes(options),
@@ -552,7 +563,7 @@ class ConversationRepository {
     const transaction = SequelizeRepository.getTransaction(options)
 
     output.activities = await record.getActivities({
-      include: ['member'],
+      include: ['member', 'parent', 'objectMember'],
       order: [['timestamp', 'ASC']],
       transaction,
     })
