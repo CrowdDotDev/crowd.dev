@@ -228,8 +228,11 @@ describe('MemberService tests', () => {
 
       const memberExpected = {
         id: memberCreated.id,
-        username,
-        displayName: username[PlatformType.GITHUB],
+        username: {
+          [PlatformType.GITHUB]: 'anil',
+          [PlatformType.TWITTER]: 'anil_twitter',
+        },
+        displayName: 'anil',
         attributes: {
           [MemberAttributeName.IS_HIREABLE]: {
             [PlatformType.GITHUB]: attributes[MemberAttributeName.IS_HIREABLE][PlatformType.GITHUB],
@@ -931,8 +934,12 @@ describe('MemberService tests', () => {
 
       const memberExpected = {
         id: memberCreated.id,
-        username: member2.username,
-        displayName: member1Username,
+        username: {
+          [PlatformType.GITHUB]: 'anil',
+          [PlatformType.TWITTER]: 'anil_twitter',
+          [PlatformType.DISCORD]: 'anil_discord',
+        },
+        displayName: 'anil',
         attributes: {
           [MemberAttributeName.IS_HIREABLE]: {
             [PlatformType.GITHUB]: attributes[MemberAttributeName.IS_HIREABLE][PlatformType.GITHUB],
@@ -1481,6 +1488,7 @@ describe('MemberService tests', () => {
           sentiment: 0.98,
         },
         isContribution: true,
+        username: 'anil',
         member: returnedMember2.id,
         score: 1,
         sourceId: '#sourceId1',
@@ -1590,13 +1598,13 @@ describe('MemberService tests', () => {
       const expectedMember = {
         id: returnedMember1.id,
         username: {
-          [PlatformType.GITHUB]: member1.username.github,
-          [PlatformType.DISCORD]: member2.username.discord,
+          [PlatformType.GITHUB]: 'anil',
+          [PlatformType.DISCORD]: 'anil',
         },
         lastEnriched: null,
         enrichedBy: [],
         contributions: null,
-        displayName: member1.displayName,
+        displayName: 'Anil',
         identities: [PlatformType.GITHUB, PlatformType.DISCORD],
         activities: [activityCreated],
         attributes: {
@@ -1633,7 +1641,31 @@ describe('MemberService tests', () => {
         lastActivity: activityCreated,
       }
 
-      expect(mergedMember.tasks.sort()).toEqual(expectedMember.tasks.sort())
+      expect(
+        mergedMember.tasks.sort((a, b) => {
+          const nameA = a.name.toLowerCase()
+          const nameB = b.name.toLowerCase()
+          if (nameA < nameB) {
+            return -1
+          }
+          if (nameA > nameB) {
+            return 1
+          }
+          return 0
+        }),
+      ).toEqual(
+        expectedMember.tasks.sort((a, b) => {
+          const nameA = a.name.toLowerCase()
+          const nameB = b.name.toLowerCase()
+          if (nameA < nameB) {
+            return -1
+          }
+          if (nameA > nameB) {
+            return 1
+          }
+          return 0
+        }),
+      )
       delete mergedMember.tasks
       delete expectedMember.tasks
       expect(mergedMember).toStrictEqual(expectedMember)

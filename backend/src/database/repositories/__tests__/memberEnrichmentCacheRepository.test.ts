@@ -27,7 +27,6 @@ describe('MemberEnrichmentCacheRepository tests', () => {
         username: {
           [PlatformType.GITHUB]: {
             username: 'michael_scott',
-            integrationId: generateUUIDv1(),
           },
         },
         displayName: 'Member 1',
@@ -62,7 +61,6 @@ describe('MemberEnrichmentCacheRepository tests', () => {
         username: {
           [PlatformType.GITHUB]: {
             username: 'michael_scott',
-            integrationId: generateUUIDv1(),
           },
         },
         displayName: 'Member 1',
@@ -118,7 +116,6 @@ describe('MemberEnrichmentCacheRepository tests', () => {
         username: {
           [PlatformType.GITHUB]: {
             username: 'michael_scott',
-            integrationId: generateUUIDv1(),
           },
         },
         displayName: 'Member 1',

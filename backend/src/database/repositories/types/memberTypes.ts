@@ -23,4 +23,5 @@ export interface IMemberIdentity {
   username: string
   integrationId: string
   sourceId?: string
+  createdAt: string
 }

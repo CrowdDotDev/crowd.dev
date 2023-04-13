@@ -21,7 +21,7 @@ create table "memberIdentities" (
     unique (platform, username, "tenantId"),
     foreign key ("memberId") references members (id) on delete cascade,
     foreign key ("tenantId") references tenants (id) on delete cascade,
-    primary key ("memberId", platform)
+    primary key ("memberId", platform, username)
 );
 
 create trigger member_identities_updated_at
@@ -72,14 +72,21 @@ drop materialized view "memberActivityAggregatesMVs";
 
 create materialized view "memberActivityAggregatesMVs" as
 with identities as (select "memberId",
-                           array_agg(platform) as identities,
-                           jsonb_object_agg(platform, username) as username
-                    from "memberIdentities"
+                           array_agg(distinct platform)                as identities,
+                           jsonb_object_agg(platform, latest_username) as username,
+                           jsonb_object_agg(platform, usernames)       as "newUsername"
+                    from (select "memberId",
+                                 platform,
+                                 first_value(username)
+                                 over (partition by "memberId", platform order by "createdAt" desc) as latest_username,
+                                 jsonb_agg(username) over (partition by "memberId", platform)       as usernames
+                          from "memberIdentities") ranked
                     group by "memberId")
 select m.id,
        max(a."timestamp")                                                   as "lastActive",
        i.identities,
        i.username,
+       i."newUsername",
        count(a.id)                                                          as "activityCount",
        array_agg(
        distinct (concat(a.platform, ':', a.type))
@@ -98,7 +105,7 @@ select m.id,
 from members m
          inner join identities i on m.id = i."memberId"
          left join activities a on m.id = a."memberId" and a."deletedAt" is null
-group by m.id, i.identities, i.username;
+group by m.id, i.identities, i.username, i."newUsername";
 
 create unique index ix_memberactivityaggregatesmvs_memberid
     on "memberActivityAggregatesMVs" (id);

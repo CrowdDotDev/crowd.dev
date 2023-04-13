@@ -30,6 +30,20 @@ class MemberRepository {
       throw new Error('Username not set when creating member!')
     }
 
+    const platforms = Object.keys(data.username) as PlatformType[]
+    if (platforms.length === 0) {
+      throw new Error('Username not set when creating member!')
+    }
+
+    // fix legacy calls
+    for (const platform of platforms) {
+      if (typeof data.username[platform] === 'string') {
+        data.username[platform] = {
+          username: data.username[platform],
+        }
+      }
+    }
+
     const currentUser = SequelizeRepository.getCurrentUser(options)
 
     const tenant = SequelizeRepository.getCurrentTenant(options)
@@ -75,7 +89,7 @@ class MemberRepository {
           platform,
           username: identity.username,
           sourceId: identity.sourceId || null,
-          integrationId: identity.integrationId,
+          integrationId: identity.integrationId || null,
           tenantId: tenant.id,
         },
         type: QueryTypes.INSERT,
@@ -190,6 +204,49 @@ class MemberRepository {
     return { rows: [], count: 0, limit, offset }
   }
 
+  static async moveIdentitiesBetweenMembers(
+    fromMemberId: string,
+    toMemberId: string,
+    identitiesToMove: any[],
+    options: IRepositoryOptions,
+  ): Promise<void> {
+    const transaction = SequelizeRepository.getTransaction(options)
+
+    const seq = SequelizeRepository.getSequelize(options)
+
+    const tenant = SequelizeRepository.getCurrentTenant(options)
+
+    const query = `
+      update "memberIdentities" 
+      set 
+        "memberId" = :newMemberId
+      where 
+        "tenantId" = :tenantId and 
+        "memberId" = :oldMemberId and 
+        platform = :platform and 
+        username = :username;
+    `
+
+    for (const identity of identitiesToMove) {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const [_, count] = await seq.query(query, {
+        replacements: {
+          tenantId: tenant.id,
+          oldMemberId: fromMemberId,
+          newMemberId: toMemberId,
+          platform: identity.platform,
+          username: identity.username,
+        },
+        type: QueryTypes.UPDATE,
+        transaction,
+      })
+
+      if (count !== 1) {
+        throw new Error('One row should be updated!')
+      }
+    }
+  }
+
   static async moveActivitiesBetweenMembers(
     fromMemberId: string,
     toMemberId: string,
@@ -284,14 +341,16 @@ class MemberRepository {
 
     const query = `
     with identities as (select "memberId",
-                                jsonb_object_agg(platform, latest_username) as username
-                          from (select "memberId",
-                                      platform,
-                                      first_value(username)
-                                      over (partition by "memberId", platform order by "createdAt" desc) as latest_username
-                                from "memberIdentities"
-                                where "tenantId" = :tenantId) ranked
-                          group by "memberId")
+                           array_agg(distinct platform)                as identities,
+                           jsonb_object_agg(platform, latest_username) as username,
+                           jsonb_object_agg(platform, usernames)       as "newUsername"
+                    from (select "memberId",
+                                 platform,
+                                 first_value(username)
+                                 over (partition by "memberId", platform order by "createdAt" desc) as latest_username,
+                                 jsonb_agg(username) over (partition by "memberId", platform)       as usernames
+                          from "memberIdentities") ranked
+                    group by "memberId")
       select m."id",
             m."displayName",
             m."attributes",
@@ -422,28 +481,39 @@ class MemberRepository {
     }
 
     if (data.username) {
-      const seq = SequelizeRepository.getSequelize(options)
-      const query = `
-      insert into "memberIdentities"("memberId", platform, username, "sourceId", "tenantId", "integrationId")
-      values (:memberId, :platform, :username, :sourceId, :tenantId, :integrationId)
-      on conflict("memberId", platform) do nothing;
-      `
+      const platforms = Object.keys(data.username) as PlatformType[]
+      if (platforms.length > 0) {
+        // fix legacy calls
+        for (const platform of platforms) {
+          if (typeof data.username[platform] === 'string') {
+            data.username[platform] = {
+              username: data.username[platform],
+            }
+          }
+        }
 
-      for (const platform of Object.keys(data.username) as PlatformType[]) {
-        const identity = data.username[platform]
+        const seq = SequelizeRepository.getSequelize(options)
+        const query = `
+        insert into "memberIdentities"("memberId", platform, username, "sourceId", "tenantId", "integrationId")
+        values (:memberId, :platform, :username, :sourceId, :tenantId, :integrationId);
+        `
 
-        await seq.query(query, {
-          replacements: {
-            memberId: record.id,
-            platform,
-            username: identity.username,
-            sourceId: identity.sourceId || null,
-            integrationId: identity.integrationId,
-            tenantId: currentTenant.id,
-          },
-          type: QueryTypes.INSERT,
-          transaction,
-        })
+        for (const platform of Object.keys(data.username) as PlatformType[]) {
+          const identity = data.username[platform]
+
+          await seq.query(query, {
+            replacements: {
+              memberId: record.id,
+              platform,
+              username: identity.username,
+              sourceId: identity.sourceId || null,
+              integrationId: identity.integrationId || null,
+              tenantId: currentTenant.id,
+            },
+            type: QueryTypes.INSERT,
+            transaction,
+          })
+        }
       }
     }
 
@@ -502,7 +572,8 @@ class MemberRepository {
     const seq = SequelizeRepository.getSequelize(options)
 
     const query = `
-      select "memberId", platform, username, "sourceId", "integrationId" from "memberIdentities" where "memberId" in (:memberIds)
+      select "memberId", platform, username, "sourceId", "integrationId", "createdAt" from "memberIdentities" where "memberId" in (:memberIds)
+      order by "createdAt" asc;
     `
 
     const data = await seq.query(query, {
@@ -513,13 +584,12 @@ class MemberRepository {
       transaction,
     })
 
+    for (const id of memberIds) {
+      results.set(id, [])
+    }
+
     for (const res of data as any[]) {
-      const { memberId, platform, username, sourceId, integrationId } = res
-
-      if (!results.has(memberId)) {
-        results.set(memberId, [])
-      }
-
+      const { memberId, platform, username, sourceId, integrationId, createdAt } = res
       const identities = results.get(memberId)
 
       identities.push({
@@ -527,6 +597,7 @@ class MemberRepository {
         username,
         sourceId,
         integrationId,
+        createdAt,
       })
     }
 
@@ -574,6 +645,15 @@ class MemberRepository {
       data[identity.platform] = identity.username
       return data
     }, {} as any)
+
+    // data.newUsername = {}
+    // for (const identity of identities.get(data.id)) {
+    //   if (data.newUsername[identity.platform]) {
+    //     data.newUsername[identity.platform].push(identity.username)
+    //   } else {
+    //     data.newUsername[identity.platform] = [identity.username]
+    //   }
+    // }
 
     return data
   }
@@ -702,13 +782,21 @@ class MemberRepository {
                                      timestamp >= :periodStart and 
                                      timestamp < :periodEnd
                                group by "memberId"),
-             identities as (select "memberId",
-                            jsonb_object_agg(platform, username) as username
-                            from "memberIdentities"
+              identities as (select "memberId",
+                                    array_agg(distinct platform)                as identities,
+                                    jsonb_object_agg(platform, latest_username) as username,
+                                    jsonb_object_agg(platform, usernames)       as "newUsername"
+                            from (select "memberId",
+                                          platform,
+                                          first_value(username)
+                                          over (partition by "memberId", platform order by "createdAt" desc) as latest_username,
+                                          jsonb_agg(username) over (partition by "memberId", platform)       as usernames
+                                  from "memberIdentities") ranked
                             group by "memberId")
           select m.id,
              m."displayName",
              i.username,
+             i.identities,
              m.attributes,
              ad."activityCount",
              ad."activeDaysCount",
@@ -852,7 +940,7 @@ class MemberRepository {
       },
       {
         property: 'username',
-        column: 'i.username',
+        column: 'aggs.username',
         attributeInfos: ALL_PLATFORM_TYPES.map((p) => ({
           name: p,
           type: AttributeType.STRING,
@@ -923,13 +1011,8 @@ class MemberRepository {
                                 and m."deletedAt" is null
                                 and o."tenantId" = :tenantId
                                 and o."deletedAt" is null
-                              group by mo."memberId"),
-      identities as (select "memberId",
-                            jsonb_object_agg(platform, username) as username
-                    from "memberIdentities"
-                    group by "memberId")
+                              group by mo."memberId")
 select m.id,
-       i.username,
        m."displayName",
        m.attributes,
        m.emails,
@@ -942,9 +1025,10 @@ select m.id,
        m."createdAt",
        m."updatedAt",
        m.reach,
-       array(select jsonb_object_keys(m.username)) as "identities",
        tmd.to_merge_ids                            as "toMergeIds",
        nmd.no_merge_ids                            as "noMergeIds",
+       aggs.username,
+       aggs.identities,
        aggs."activeOn",
        aggs."activityCount",
        aggs."activityTypes",
@@ -1850,14 +1934,23 @@ where m."deletedAt" is null
       })
     ).map((i) => i.id)
 
-    const identities = await this.getIdentities([record.id], options)
+    const memberIdentities = await this.getIdentities([record.id], options)
 
-    output.username = identities.get(record.id).reduce((data, identity: any) => {
+    output.username = memberIdentities.get(record.id).reduce((data, identity: any) => {
       data[identity.platform] = identity.username
       return data
     }, {} as any)
 
     output.identities = Object.keys(output.username)
+    // output.newUsername = {}
+
+    // for (const identity of memberIdentities.get(record.id)) {
+    //   if (output.newUsername[identity.platform]) {
+    //     output.newUsername[identity.platform].push(identity.username)
+    //   } else {
+    //     output.newUsername[identity.platform] = [identity.username]
+    //   }
+    // }
 
     return output
   }
