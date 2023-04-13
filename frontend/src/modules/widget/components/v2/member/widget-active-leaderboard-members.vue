@@ -1,20 +1,20 @@
 <template>
-  <div class="bg-white pt-5 rounded-lg shadow">
+  <div class="pt-5 bg-white rounded-lg shadow">
     <div class="px-6">
       <!-- Widget Header -->
       <div
-        class="flex grow justify-between items-center pb-5 border-b border-gray-100"
+        class="flex items-center justify-between pb-5 border-b border-gray-100 grow"
         :class="{ 'mb-8': !loading && !error && !empty }"
       >
         <div class="flex gap-1">
           <app-widget-title
-            title="Leaderbord: Most active members"
+            title="Leaderboard: Most active members"
             description="Members who were active on the most days in the selected time period"
           />
         </div>
         <app-widget-period
           template="Members"
-          widget="Leaderbord: Most active members"
+          widget="Leaderboard: Most active members"
           :period="selectedPeriod"
           module="reports"
           @on-update="onUpdatePeriod"
@@ -38,7 +38,7 @@
         />
         <div class="flex justify-end">
           <el-button
-            class="btn btn-link btn-link--primary mt-4 mb-8"
+            class="mt-4 mb-8 btn btn-link btn-link--primary"
             @click="handleDrawerOpen"
           >
             View all
@@ -52,7 +52,7 @@
           `We recommend speaking with these members, as they went above and beyond in the last ${pluralize(
             selectedPeriod.granularity,
             selectedPeriod.value,
-            true,
+            true
           )}. They are probably eager to share their experiences and enthusiasm for your community.`
         }}</span>
       </template>
@@ -74,13 +74,7 @@
 </template>
 
 <script setup>
-import {
-  ref,
-  onMounted,
-  computed,
-  defineProps,
-  watch,
-} from 'vue';
+import { ref, onMounted, computed, defineProps, watch } from 'vue';
 import pluralize from 'pluralize';
 import moment from 'moment';
 import AppWidgetTitle from '@/modules/widget/components/v2/shared/widget-title.vue';
@@ -118,15 +112,13 @@ const error = ref(false);
 const { doExport } = mapActions('member');
 
 const empty = computed(
-  () => !loading.value
-    && !error.value
-    && activeMembers.value.length === 0,
+  () => !loading.value && !error.value && activeMembers.value.length === 0
 );
 
 const getActiveMembers = async (
   period = selectedPeriod.value,
   platforms = props.platforms,
-  teamMembers = props.teamMembers,
+  teamMembers = props.teamMembers
 ) => {
   loading.value = true;
   error.value = false;
@@ -166,28 +158,27 @@ const onUpdatePeriod = async (updatedPeriod) => {
 const getDetailedActiveMembers = ({
   pagination,
   period = selectedPeriod.value,
-}) => MemberService.listActive({
-  platform: props.platforms,
-  isTeamMember: props.teamMembers,
-  activityIsContribution: null,
-  activityTimestampFrom: moment()
-    .utc()
-    .subtract(period.value, period.granularity)
-    .toISOString(),
-  activityTimestampTo: moment().utc(),
-  orderBy: 'activeDaysCount_DESC',
-  offset: !pagination.count
-    ? (pagination.currentPage - 1) * pagination.pageSize
-    : 0,
-  limit: !pagination.count
-    ? pagination.pageSize
-    : pagination.count,
-});
+}) =>
+  MemberService.listActive({
+    platform: props.platforms,
+    isTeamMember: props.teamMembers,
+    activityIsContribution: null,
+    activityTimestampFrom: moment()
+      .utc()
+      .subtract(period.value, period.granularity)
+      .toISOString(),
+    activityTimestampTo: moment().utc(),
+    orderBy: 'activeDaysCount_DESC',
+    offset: !pagination.count
+      ? (pagination.currentPage - 1) * pagination.pageSize
+      : 0,
+    limit: !pagination.count ? pagination.pageSize : pagination.count,
+  });
 
 const onRowClick = () => {
   window.analytics.track('Click table widget row', {
     template: MEMBERS_REPORT.nameAsId,
-    widget: 'Leaderbord: Most active members',
+    widget: 'Leaderboard: Most active members',
   });
 };
 
@@ -195,7 +186,7 @@ const onRowClick = () => {
 const handleDrawerOpen = async () => {
   window.analytics.track('Open report drawer', {
     template: MEMBERS_REPORT.nameAsId,
-    widget: 'Leaderbord: Most active members',
+    widget: 'Leaderboard: Most active members',
     period: selectedPeriod.value,
   });
 
@@ -216,9 +207,7 @@ const onExport = async ({ ids, count }) => {
 };
 
 onMounted(async () => {
-  activeMembers.value = await getActiveMembers(
-    selectedPeriod.value,
-  );
+  activeMembers.value = await getActiveMembers(selectedPeriod.value);
 });
 
 // Each time filter changes, query a new response
@@ -228,9 +217,9 @@ watch(
     activeMembers.value = await getActiveMembers(
       selectedPeriod.value,
       platforms,
-      teamMembers,
+      teamMembers
     );
-  },
+  }
 );
 </script>
 
