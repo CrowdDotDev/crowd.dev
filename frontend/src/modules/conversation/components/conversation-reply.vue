@@ -13,7 +13,7 @@
   </article>
   <article v-else>
     <div class="flex">
-      <div class="flex flex-col items-center">
+      <div class="flex flex-col items-center pt-1">
         <app-avatar :entity="member" size="xs">
           <template v-if="isGithubConversation" #icon>
             <app-activity-icon

@@ -269,7 +269,9 @@ export default {
 
       options.push(
         ...Object.entries(defaultActivityTypes[platform])
-          .filter(([key]) => this.conversationTypes.includes(key))
+          .filter(([key]) => this.conversationTypes.includes(key)
+           || (platform === 'discord'
+            && (key === 'replied_thread' || key === 'replied')))
           .map(([key, value]) => ({
             value: key,
             label: toSentenceCase(value.display.short),
