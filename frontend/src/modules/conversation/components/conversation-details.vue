@@ -179,7 +179,6 @@ import AppAvatar from '@/shared/avatar/avatar.vue';
 import AppMemberDisplayName from '@/modules/member/components/member-display-name.vue';
 import AppConversationDetailsFooter from '@/modules/conversation/components/conversation-details-footer.vue';
 import { ActivityService } from '@/modules/activity/activity-service';
-import { DEFAULT_ACTIVITY_FILTERS } from '@/modules/activity/store/constants';
 import Message from '@/shared/message/message';
 import { ConversationPermissions } from '../conversation-permissions';
 
@@ -298,7 +297,6 @@ export default {
                 conversationId: this.conversation.id,
               },
             ],
-            ...DEFAULT_ACTIVITY_FILTERS[0],
           },
           'timestamp_DESC',
           null,
