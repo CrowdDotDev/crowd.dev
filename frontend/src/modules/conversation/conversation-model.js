@@ -9,6 +9,7 @@ import DateTimeRangeField from '@/shared/fields/date-time-range-field';
 import ActivityPlatformField from '@/modules/activity/activity-platform-field';
 import ActivityDateField from '@/shared/fields/activity-date-field';
 import SearchField from '@/shared/fields/search-field';
+import ActivityChannelsField from '@/shared/fields/activity-channels-field';
 import { ActivityField } from '../activity/activity-field';
 
 function label(name) {
@@ -52,9 +53,7 @@ const fields = {
   search: new SearchField('search', label('search'), {
     fields: ['title'],
   }),
-  channel: new StringField('channel', label('channel'), {
-    filterable: true,
-  }),
+  channel: new StringField('channel', label('channel'), {}),
   activityCount: new IntegerField(
     'activityCount',
     label('activityCount'),
@@ -70,6 +69,13 @@ const fields = {
   createdAt: new ActivityDateField(
     'createdAt',
     label('createdAt'),
+    {
+      filterable: true,
+    },
+  ),
+  activityChannels: new ActivityChannelsField(
+    'channel',
+    'Channel',
     {
       filterable: true,
     },

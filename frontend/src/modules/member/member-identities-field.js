@@ -67,6 +67,7 @@ export default class MemberIdentitiesField extends StringField {
       defaultOperator: 'contains',
       operator: 'contains',
       type: 'select-multi',
+      include: true,
     };
   }
 }

@@ -718,6 +718,114 @@ describe('ActivityService tests', () => {
       expect(activityCreated9.parentId).toBe(activityCreated5.id)
       expect(activityCreated9.conversationId).toStrictEqual(conversationCreated2.id)
     })
+
+    // Tests for checking channel logic when creating activity
+    // Settings should get updated only when a new channel is sent alog while creating activity.
+    it('Should create an activity with a channel which is not present in settings and add it to settings', async () => {
+      const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
+      const memberCreated = await new MemberService(mockIRepositoryOptions).upsert({
+        username: {
+          [PlatformType.GITHUB]: 'test1',
+        },
+        platform: PlatformType.GITHUB,
+        joinedAt: '2020-05-27T15:13:30Z',
+      })
+
+      const activity = {
+        type: 'activity',
+        timestamp: '2020-05-27T15:13:30Z',
+        platform: PlatformType.GITHUB,
+        body: 'Body',
+        title: 'Title',
+        url: 'URL',
+        sentiment: {
+          positive: 0.98,
+          negative: 0.0,
+          neutral: 0.02,
+          mixed: 0.0,
+          label: 'positive',
+          sentiment: 0.98,
+        },
+        channel: 'TestChannel',
+        attributes: {
+          replies: 12,
+        },
+        sourceId: '#sourceId',
+        isContribution: true,
+        member: memberCreated.id,
+        score: 1,
+      }
+
+      await new ActivityService(mockIRepositoryOptions).upsert(activity)
+      const settings = await SettingsRepository.findOrCreateDefault({}, mockIRepositoryOptions)
+
+      expect(settings.activityChannels[activity.platform].includes(activity.channel)).toBe(true)
+    })
+
+    it('Should not create a duplicate channel when a channel is present in settings', async () => {
+      const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
+      const memberCreated = await new MemberService(mockIRepositoryOptions).upsert({
+        username: {
+          [PlatformType.GITHUB]: 'test1',
+        },
+        platform: PlatformType.GITHUB,
+        joinedAt: '2020-05-27T15:13:30Z',
+      })
+      const activity = {
+        type: 'activity',
+        timestamp: '2020-05-27T15:13:30Z',
+        platform: PlatformType.GITHUB,
+        body: 'Body',
+        title: 'Title',
+        url: 'URL',
+        sentiment: {
+          positive: 0.98,
+          negative: 0.0,
+          neutral: 0.02,
+          mixed: 0.0,
+          label: 'positive',
+          sentiment: 0.98,
+        },
+        channel: 'TestChannel',
+        attributes: {
+          replies: 12,
+        },
+        sourceId: '#sourceId',
+        isContribution: true,
+        member: memberCreated.id,
+        score: 1,
+      }
+
+      await new ActivityService(mockIRepositoryOptions).upsert(activity)
+      let settings = await SettingsRepository.findOrCreateDefault({}, mockIRepositoryOptions)
+      const activity1 = {
+        type: 'activity1',
+        timestamp: '2020-05-27T15:13:30Z',
+        platform: PlatformType.GITHUB,
+        body: 'Body',
+        title: 'Title',
+        url: 'URL',
+        sentiment: {
+          positive: 0.98,
+          negative: 0.0,
+          neutral: 0.02,
+          mixed: 0.0,
+          label: 'positive',
+          sentiment: 0.98,
+        },
+        channel: 'TestChannel',
+        attributes: {
+          replies: 12,
+        },
+        sourceId: '#sourceId',
+        isContribution: true,
+        member: memberCreated.id,
+        score: 1,
+      }
+      await new ActivityService(mockIRepositoryOptions).upsert(activity)
+      settings = await SettingsRepository.findOrCreateDefault({}, mockIRepositoryOptions)
+      expect(settings.activityChannels[activity1.platform].length).toBe(1)
+    })
   })
 
   describe('createWithMember method', () => {
@@ -1484,7 +1592,7 @@ describe('ActivityService tests', () => {
         })
       })
 
-      it('It should replace joinedAt if the orginal was in year 1000', async () => {
+      it('It should replace joinedAt if the orginal was in year 1970', async () => {
         const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
         const memberAttributeSettingsService = new MemberAttributeSettingsService(
           mockIRepositoryOptions,
@@ -1519,7 +1627,7 @@ describe('ActivityService tests', () => {
             },
           },
           organisation: 'Crowd',
-          joinedAt: new Date('1000-01-01T00:00:00Z'),
+          joinedAt: new Date('1970-01-01T00:00:00Z'),
         }
 
         await MemberRepository.create(member, mockIRepositoryOptions)
@@ -1597,6 +1705,55 @@ describe('ActivityService tests', () => {
         expect(memberFound.username).toStrictEqual({
           [PlatformType.GITHUB]: 'anil_github',
         })
+      })
+
+      it('Should respect joinedAt when an existing activity comes in with a different timestamp', async () => {
+        // This can happen in cases like the Twitter integration.
+        // For follow activities, if we are onboarding we set the timestamp to 1970,
+        // but if we are not onboarding, we set the timestamp to the current time.
+        // This can cause having 2 activities with different timestamps, but the same sourceId.
+        // The joinedAt should stay untouched in this case.
+        const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
+        const memberAttributeSettingsService = new MemberAttributeSettingsService(
+          mockIRepositoryOptions,
+        )
+
+        await memberAttributeSettingsService.createPredefined(GithubMemberAttributes)
+        await memberAttributeSettingsService.createPredefined(TwitterMemberAttributes)
+
+        const data = {
+          member: {
+            username: 'anil,',
+          },
+          timestamp: '1970-01-01T00:00:00.000Z',
+          type: 'follow',
+          platform: PlatformType.TWITTER,
+          sourceId: '#sourceId1',
+        }
+
+        const activityWithMember = await new ActivityService(
+          mockIRepositoryOptions,
+        ).createWithMember(data)
+
+        const data2 = {
+          member: {
+            username: 'anil,',
+          },
+          timestamp: '2021-09-30T14:20:27.000Z',
+          type: 'follow',
+          platform: PlatformType.TWITTER,
+          sourceId: '#sourceId1',
+        }
+        data.timestamp =
+          // Upsert the same activity with a different timestamp
+          await new ActivityService(mockIRepositoryOptions).createWithMember(data2)
+
+        const memberFound = await MemberRepository.findById(
+          activityWithMember.memberId,
+          mockIRepositoryOptions,
+        )
+        // The joinedAt should stay untouched
+        expect(memberFound.joinedAt).toStrictEqual(new Date('1970-01-01T00:00:00.000Z'))
       })
     })
   })

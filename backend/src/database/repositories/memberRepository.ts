@@ -86,6 +86,7 @@ class MemberRepository {
   }
 
   static async findSampleDataMemberIds(options: IRepositoryOptions) {
+    const transaction = SequelizeRepository.getTransaction(options)
     const currentTenant = SequelizeRepository.getCurrentTenant(options)
     const sampleMemberIds = await options.database.sequelize.query(
       `select m.id from members m
@@ -97,6 +98,7 @@ class MemberRepository {
           tenantId: currentTenant.id,
         },
         type: QueryTypes.SELECT,
+        transaction,
       },
     )
 
@@ -1460,6 +1462,13 @@ where m."deletedAt" is null
       where,
       limit: limit ? Number(limit) : undefined,
       order: [['displayName', 'ASC']],
+      include: [
+        {
+          model: options.database.organization,
+          attributes: ['id', 'name'],
+          as: 'organizations',
+        },
+      ],
     })
 
     return records.map((record) => ({
@@ -1467,6 +1476,10 @@ where m."deletedAt" is null
       label: record.displayName,
       email: record.emails.length > 0 ? record.emails[0] : null,
       avatar: record.attributes?.avatarUrl?.default || null,
+      organizations: record.organizations.map((org) => ({
+        id: org.id,
+        name: org.name,
+      })),
     }))
   }
 

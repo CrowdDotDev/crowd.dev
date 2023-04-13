@@ -107,10 +107,10 @@
               <el-option
                 v-for="(display, type) in activityTypes"
                 :key="type"
-                :label="display.short"
+                :label="display.display.short"
                 :value="type"
               >
-                {{ display.short }}
+                {{ display.display.short }}
               </el-option>
             </template>
           </el-select>

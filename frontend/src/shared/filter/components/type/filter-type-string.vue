@@ -1,12 +1,19 @@
 <template>
   <div class="filter-with-operator-and-input">
-    <app-inline-select-input
-      v-model="operator"
-      popper-placement="bottom-start"
-      prefix="Text:"
-      class="mb-2"
-      :options="computedOperatorOptions"
-    />
+    <div class="flex justify-between items-center">
+      <app-inline-select-input
+        v-model="operator"
+        popper-placement="bottom-start"
+        prefix="Text:"
+        class="mb-2"
+        :options="computedOperatorOptions"
+      />
+      <app-include-toggle
+        v-if="!isCustom"
+        v-model="includeModel"
+        class="mt-0"
+      />
+    </div>
     <el-input
       ref="inputRef"
       v-model="model"
@@ -42,11 +49,20 @@ const props = defineProps({
     type: Boolean,
     default: false,
   },
+  isCustom: {
+    type: Boolean,
+    default: false,
+  },
+  include: {
+    type: Boolean,
+    default: true,
+  },
 });
 
 const emit = defineEmits([
   'update:value',
   'update:operator',
+  'update:include',
 ]);
 const model = computed({
   get() {
@@ -56,6 +72,15 @@ const model = computed({
     emit('update:value', v);
   },
 });
+const includeModel = computed({
+  get() {
+    return props.include;
+  },
+  set(v) {
+    emit('update:include', v);
+  },
+});
+
 const operator = computed({
   get() {
     return props.operator;

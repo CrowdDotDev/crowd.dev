@@ -53,6 +53,7 @@ export default class RelationToManyField extends GenericField {
       defaultOperator: null,
       operator: null,
       type: 'select-async',
+      include: true,
     };
   }
 

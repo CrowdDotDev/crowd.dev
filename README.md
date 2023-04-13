@@ -103,11 +103,11 @@ You can find more features on our [public roadmap](https://crowd.dev/roadmap). F
 
 There are many ways you can contribute to crowd.dev! Here are a few options:
 
-- Star this repo and follow us on <a href="https://crowd.dev/twitter">Twitter</a>.
-- Create issues every time you feel something is missing or goes wrong.
-- Upvote issues with 👍 reaction so we know what's the demand for particular issue to prioritize it within roadmap.
+- Star this repo
+- Create issues every time you feel something is missing or goes wrong
+- Upvote issues with 👍 reaction so we know what's the demand for particular issue to prioritize it within roadmap
 
-If you would like to contribute to the development of the project, you can [book a contributor onboarding call](https://cal.com/team/CrowdDotDev/contributor-onboarding).
+If you would like to contribute to the development of the project, you can [book a 15 min contributor onboarding](https://cal.com/team/CrowdDotDev/contributor-onboarding). You can also find a selection of [good first issues 🥂](https://github.com/CrowdDotDev/crowd.dev/labels/good%20first%20issue%20%F0%9F%A5%82) to get started quickly.
 
 All contributions are highly appreciated. 🙏
 
