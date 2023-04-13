@@ -13,7 +13,7 @@ import {
 } from '../../../../../types/integration/stepResult'
 import { IntegrationType, PlatformType } from '../../../../../types/integrationEnums'
 import { ILinkedInOrganization, ILinkedInOrganizationPost } from '../../../types/linkedinTypes'
-import { AddActivitiesSingle, Member } from '../../../types/messageTypes'
+import { AddActivitiesSingle, Member, PlatformIdentities } from '../../../types/messageTypes'
 import { getMember } from '../../../usecases/linkedin/getMember'
 import { getOrganization } from '../../../usecases/linkedin/getOrganization'
 import { getAllOrganizationPosts } from '../../../usecases/linkedin/getOrganizationPosts'
@@ -161,6 +161,7 @@ export class LinkedinIntegrationService extends IntegrationServiceBase {
       const member = await this.parseMember(comment.authorUrn, context)
 
       activities.push({
+        username: member.username[PlatformType.LINKEDIN].username,
         tenant: context.integration.tenantId,
         platform: PlatformType.LINKEDIN,
         type: 'comment',
@@ -247,6 +248,7 @@ export class LinkedinIntegrationService extends IntegrationServiceBase {
       }
 
       activities.push({
+        username: member.username[PlatformType.LINKEDIN].username,
         tenant: context.integration.tenantId,
         platform: PlatformType.LINKEDIN,
         type: 'reaction',
@@ -327,6 +329,7 @@ export class LinkedinIntegrationService extends IntegrationServiceBase {
       }
 
       activities.push({
+        username: member.username[PlatformType.LINKEDIN].username,
         tenant: context.integration.tenantId,
         platform: PlatformType.LINKEDIN,
         type: 'comment',
@@ -388,8 +391,11 @@ export class LinkedinIntegrationService extends IntegrationServiceBase {
   private async parseMember(memberUrn: string, context: IStepContext): Promise<Member> {
     const member: Member = {
       username: {
-        [PlatformType.LINKEDIN]: '',
-      },
+        [PlatformType.LINKEDIN]: {
+          username: '',
+          integrationId: context.integration.id,
+        },
+      } as PlatformIdentities,
       attributes: {
         [MemberAttributeName.URL]: {
           [PlatformType.LINKEDIN]: '',
@@ -420,11 +426,13 @@ export class LinkedinIntegrationService extends IntegrationServiceBase {
       const user = JSON.parse(userString)
 
       if (user.id === 'private') {
-        member.username[PlatformType.LINKEDIN] = `private-${userId}`
+        member.username[PlatformType.LINKEDIN].username = `private-${userId}`
+        member.username[PlatformType.LINKEDIN].sourceId = userId
         member.displayName = `Unknown #${userId}`
         member.attributes = {}
       } else {
-        member.username[PlatformType.LINKEDIN] = `${user.vanityName}`
+        member.username[PlatformType.LINKEDIN].username = `${user.vanityName}`
+        member.username[PlatformType.LINKEDIN].sourceId = user.id
         member.attributes[MemberAttributeName.URL][
           PlatformType.LINKEDIN
         ] = `https://www.linkedin.com/in/${user.vanityName}`
@@ -456,7 +464,8 @@ export class LinkedinIntegrationService extends IntegrationServiceBase {
 
       const organization = JSON.parse(organizationString)
 
-      member.username[PlatformType.LINKEDIN] = organization.name
+      member.username[PlatformType.LINKEDIN].username = organization.name
+      member.username[PlatformType.LINKEDIN].sourceId = userId
       member.displayName = organization.name
       member.attributes[MemberAttributeName.URL][
         PlatformType.LINKEDIN

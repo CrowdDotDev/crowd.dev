@@ -437,13 +437,7 @@ class TenantRepository {
 
   static async getAvailablePlatforms(id, options: IRepositoryOptions) {
     const query = `
-        SELECT
-        DISTINCT platform
-      FROM (
-        SELECT jsonb_object_keys(username) AS platform
-        FROM members
-        where "tenantId" = :tenantId
-      ) AS subquery
+        select distinct platform from "memberIdentities" where "tenantId" = :tenantId
     `
     const parameters: any = {
       tenantId: id,

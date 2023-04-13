@@ -5,6 +5,7 @@ import Error404 from '../../../errors/Error404'
 import MemberRepository from '../memberRepository'
 import { PlatformType } from '../../../types/integrationEnums'
 import ActivityRepository from '../activityRepository'
+import { generateUUIDv1 } from '../../../utils/uuid'
 
 const db = null
 
@@ -45,7 +46,12 @@ async function createMembers(options) {
     (
       await MemberRepository.create(
         {
-          username: { [PlatformType.GITHUB]: 'gilfoyle' },
+          username: {
+            [PlatformType.GITHUB]: {
+              username: 'gilfoyle',
+              integrationId: generateUUIDv1(),
+            },
+          },
           displayName: 'Member 1',
           joinedAt: '2020-05-27T15:13:30Z',
         },
@@ -55,7 +61,12 @@ async function createMembers(options) {
     (
       await MemberRepository.create(
         {
-          username: { [PlatformType.GITHUB]: 'dinesh' },
+          username: {
+            [PlatformType.GITHUB]: {
+              username: 'dinesh',
+              integrationId: generateUUIDv1(),
+            },
+          },
           displayName: 'Member 2',
           joinedAt: '2020-06-27T15:13:30Z',
         },
@@ -416,7 +427,12 @@ describe('OrganizationRepository tests', () => {
 
       await MemberRepository.create(
         {
-          username: { [PlatformType.GITHUB]: 'test-member' },
+          username: {
+            [PlatformType.GITHUB]: {
+              username: 'test-member',
+              integrationId: generateUUIDv1(),
+            },
+          },
           displayName: 'Member 1',
           joinedAt: moment().toDate(),
           organizations: [
@@ -821,11 +837,17 @@ describe('OrganizationRepository tests', () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
       await createOrganization(crowddev, mockIRepositoryOptions, [
         {
-          username: { github: 'joan' },
+          username: {
+            github: {
+              username: 'joan',
+              integrationId: generateUUIDv1(),
+            },
+          },
           displayName: 'Joan',
           joinedAt: moment().toDate(),
           activities: [
             {
+              username: 'joan',
               type: 'activity',
               timestamp: '2020-05-27T15:13:30Z',
               platform: PlatformType.GITHUB,
@@ -860,12 +882,18 @@ describe('OrganizationRepository tests', () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
       const org1 = await createOrganization(crowddev, mockIRepositoryOptions, [
         {
-          username: { github: 'joan' },
+          username: {
+            github: {
+              username: 'joan',
+              integrationId: generateUUIDv1(),
+            },
+          },
           displayName: 'Joan',
           joinedAt: moment().toDate(),
           activities: [
             {
               type: 'activity',
+              username: 'joan',
               timestamp: '2020-05-27T15:13:30Z',
               platform: PlatformType.GITHUB,
               sourceId: '#sourceId1',
@@ -873,12 +901,18 @@ describe('OrganizationRepository tests', () => {
           ],
         },
         {
-          username: { github: 'anil' },
+          username: {
+            github: {
+              username: 'anil',
+              integrationId: generateUUIDv1(),
+            },
+          },
           displayName: 'anil',
           joinedAt: moment().toDate(),
           activities: [
             {
               type: 'activity',
+              username: 'anil',
               timestamp: '2020-06-27T15:13:30Z',
               platform: PlatformType.TWITTER,
               sourceId: '#sourceId2',
@@ -910,29 +944,54 @@ describe('OrganizationRepository tests', () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
       const org1 = await createOrganization(crowddev, mockIRepositoryOptions, [
         {
-          username: { github: 'joan' },
+          username: {
+            github: {
+              username: 'joan',
+              integrationId: generateUUIDv1(),
+            },
+          },
           displayName: 'Joan',
           joinedAt: moment().toDate(),
         },
         {
-          username: { github: 'anil' },
+          username: {
+            github: {
+              username: 'anil',
+              integrationId: generateUUIDv1(),
+            },
+          },
           displayName: 'anil',
           joinedAt: moment().toDate(),
         },
         {
-          username: { github: 'uros' },
+          username: {
+            github: {
+              username: 'uros',
+              integrationId: generateUUIDv1(),
+            },
+          },
           displayName: 'uros',
           joinedAt: moment().toDate(),
         },
       ])
       const org2 = await createOrganization(piedpiper, mockIRepositoryOptions, [
         {
-          username: { github: 'mario' },
+          username: {
+            github: {
+              username: 'mario',
+              integrationId: generateUUIDv1(),
+            },
+          },
           displayName: 'mario',
           joinedAt: moment().toDate(),
         },
         {
-          username: { github: 'igor' },
+          username: {
+            github: {
+              username: 'igor',
+              integrationId: generateUUIDv1(),
+            },
+          },
           displayName: 'igor',
           joinedAt: moment().toDate(),
         },
@@ -964,12 +1023,18 @@ describe('OrganizationRepository tests', () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
       await createOrganization(crowddev, mockIRepositoryOptions, [
         {
-          username: { github: 'joan' },
+          username: {
+            github: {
+              username: 'joan',
+              integrationId: generateUUIDv1(),
+            },
+          },
           displayName: 'Joan',
           joinedAt: moment().toDate(),
           activities: [
             {
               type: 'activity',
+              username: 'joan',
               timestamp: '2020-05-27T15:13:30Z',
               platform: PlatformType.GITHUB,
               sourceId: '#sourceId1',
@@ -977,11 +1042,17 @@ describe('OrganizationRepository tests', () => {
           ],
         },
         {
-          username: { github: 'anil' },
+          username: {
+            github: {
+              username: 'anil',
+              integrationId: generateUUIDv1(),
+            },
+          },
           displayName: 'anil',
           joinedAt: moment().toDate(),
           activities: [
             {
+              username: 'anil',
               type: 'activity',
               timestamp: '2020-04-27T15:13:30Z',
               platform: PlatformType.SLACK,
@@ -990,12 +1061,18 @@ describe('OrganizationRepository tests', () => {
           ],
         },
         {
-          username: { github: 'uros' },
+          username: {
+            github: {
+              username: 'uros',
+              integrationId: generateUUIDv1(),
+            },
+          },
           displayName: 'uros',
           joinedAt: moment().toDate(),
           activities: [
             {
               type: 'activity',
+              username: 'uros',
               timestamp: '2020-03-27T15:13:30Z',
               platform: PlatformType.TWITTER,
               sourceId: '#sourceId3',
@@ -1005,12 +1082,18 @@ describe('OrganizationRepository tests', () => {
       ])
       const org2 = await createOrganization(piedpiper, mockIRepositoryOptions, [
         {
-          username: { github: 'mario' },
+          username: {
+            github: {
+              username: 'mario',
+              integrationId: generateUUIDv1(),
+            },
+          },
           displayName: 'mario',
           joinedAt: moment().toDate(),
           activities: [
             {
               type: 'activity',
+              username: 'mario',
               timestamp: '2022-03-27T15:13:30Z',
               platform: PlatformType.DEVTO,
               sourceId: '#sourceId4',
@@ -1018,12 +1101,18 @@ describe('OrganizationRepository tests', () => {
           ],
         },
         {
-          username: { github: 'igor' },
+          username: {
+            github: {
+              username: 'igor',
+              integrationId: generateUUIDv1(),
+            },
+          },
           displayName: 'igor',
           joinedAt: moment().toDate(),
           activities: [
             {
               type: 'activity',
+              username: 'igor',
               timestamp: '2022-02-27T15:13:30Z',
               platform: PlatformType.DEVTO,
               sourceId: '#sourceId5',
@@ -1054,7 +1143,12 @@ describe('OrganizationRepository tests', () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
       await createOrganization(crowddev, mockIRepositoryOptions, [
         {
-          username: { github: 'joan' },
+          username: {
+            github: {
+              username: 'joan',
+              integrationId: generateUUIDv1(),
+            },
+          },
           displayName: 'Joan',
           joinedAt: moment().toDate(),
         },
@@ -1233,8 +1327,14 @@ describe('OrganizationRepository tests', () => {
   describe('setOrganizationIsTeam method', () => {
     const member1 = {
       username: {
-        devto: 'iambarker',
-        github: 'barker',
+        devto: {
+          username: 'iambarker',
+          integrationId: generateUUIDv1(),
+        },
+        github: {
+          username: 'barker',
+          integrationId: generateUUIDv1(),
+        },
       },
       displayName: 'Jack Barker',
       attributes: {
@@ -1258,6 +1358,7 @@ describe('OrganizationRepository tests', () => {
           type: 'star',
           timestamp: '2020-05-27T15:13:30Z',
           platform: PlatformType.GITHUB,
+          username: 'barker',
           sourceId: '#sourceId1',
         },
       ],
@@ -1265,11 +1366,26 @@ describe('OrganizationRepository tests', () => {
 
     const member2 = {
       username: {
-        devto: 'thebelson',
-        github: 'gavinbelson',
-        discord: 'gavinbelson',
-        twitter: 'gavin',
-        linkedin: 'gavinbelson',
+        devto: {
+          username: 'thebelson',
+          integrationId: generateUUIDv1(),
+        },
+        github: {
+          username: 'gavinbelson',
+          integrationId: generateUUIDv1(),
+        },
+        discord: {
+          username: 'gavinbelson',
+          integrationId: generateUUIDv1(),
+        },
+        twitter: {
+          username: 'gavin',
+          integrationId: generateUUIDv1(),
+        },
+        linkedin: {
+          username: 'gavinbelson',
+          integrationId: generateUUIDv1(),
+        },
       },
       displayName: 'Gavin Belson',
       attributes: {
@@ -1292,6 +1408,7 @@ describe('OrganizationRepository tests', () => {
         {
           type: 'star',
           timestamp: '2020-05-28T15:13:30Z',
+          username: 'gavinbelson',
           platform: PlatformType.GITHUB,
           sourceId: '#sourceId2',
         },
@@ -1300,8 +1417,14 @@ describe('OrganizationRepository tests', () => {
 
     const member3 = {
       username: {
-        devto: 'bigheader',
-        github: 'bighead',
+        devto: {
+          username: 'bigheader',
+          integrationId: generateUUIDv1(),
+        },
+        github: {
+          username: 'bighead',
+          integrationId: generateUUIDv1(),
+        },
       },
       displayName: 'Big Head',
       attributes: {
@@ -1325,6 +1448,7 @@ describe('OrganizationRepository tests', () => {
           type: 'star',
           timestamp: '2020-05-29T15:13:30Z',
           platform: PlatformType.GITHUB,
+          username: 'bighead',
           sourceId: '#sourceId3',
         },
       ],
