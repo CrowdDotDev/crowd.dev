@@ -116,51 +116,53 @@
 
     <el-divider class="!my-0 -mx-6 w-auto border-gray-200" />
 
-    <div class="flex justify-between items-center">
-      <h6 class="mb-8 mt-6">
-        Activities
-      </h6>
+    <div v-if="replies.length || sorter !== 'all'">
+      <div class="flex justify-between items-center">
+        <h6 class="mb-8 mt-6">
+          Activities
+        </h6>
 
-      <div v-if="sorterOptions.length > 2" class="flex gap-1 items-center text-sm">
-        <span class="text-gray-500">Activity type:</span>
+        <div v-if="sorterOptions.length > 2" class="flex gap-1 items-center text-sm">
+          <span class="text-gray-500">Activity type:</span>
 
-        <app-inline-select-input
-          v-model="sorter"
-          popper-class="sorter-popper-class"
-          placement="bottom-end"
-          :options="sorterOptions"
-          @change="doChangeSort"
+          <app-inline-select-input
+            v-model="sorter"
+            popper-class="sorter-popper-class"
+            placement="bottom-end"
+            :options="sorterOptions"
+            @change="doChangeSort"
+          />
+        </div>
+      </div>
+
+      <div v-if="loadingActivities">
+        <div
+          v-loading="loadingActivities"
+          class="app-page-spinner h-16 !relative !min-h-5"
         />
       </div>
-    </div>
-
-    <div v-if="loadingActivities">
-      <div
-        v-loading="loadingActivities"
-        class="app-page-spinner h-16 !relative !min-h-5"
-      />
-    </div>
-    <div v-else-if="replies.length" class="pb-6">
-      <app-conversation-reply
-        v-for="(reply, ri) in replies"
-        :key="reply.id"
-        :activity="reply"
-        :display-content="true"
-        :body-classes="
-          ri < replies.length - 1 ? 'pb-8' : ''
-        "
-        :show-more="true"
-      >
-        <template #underAvatar>
-          <div
-            v-if="ri < replies.length - 1"
-            class="h-full w-0.5 bg-gray-200 my-2"
-          />
-        </template>
-      </app-conversation-reply>
-    </div>
-    <div v-else class="text-gray-400">
-      No activities found
+      <div v-else-if="replies.length" class="pb-6">
+        <app-conversation-reply
+          v-for="(reply, ri) in replies"
+          :key="reply.id"
+          :activity="reply"
+          :display-content="true"
+          :body-classes="
+            ri < replies.length - 1 ? 'pb-8' : ''
+          "
+          :show-more="true"
+        >
+          <template #underAvatar>
+            <div
+              v-if="ri < replies.length - 1"
+              class="h-full w-0.5 bg-gray-200 my-2"
+            />
+          </template>
+        </app-conversation-reply>
+      </div>
+      <div v-else class="text-gray-400">
+        No activities found
+      </div>
     </div>
   </article>
 </template>
@@ -266,6 +268,10 @@ export default {
         value: 'all',
         label: 'All',
       }];
+
+      if (!platform) {
+        return options;
+      }
 
       options.push(
         ...Object.entries(defaultActivityTypes[platform])

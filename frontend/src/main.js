@@ -52,6 +52,8 @@ i18nInit();
   app.config.errorHandler = (err) => {
     if (config.env === 'production') {
       LogRocket.captureException(err);
+    } else if (config.env === 'local') {
+      console.error(err);
     }
   };
 
