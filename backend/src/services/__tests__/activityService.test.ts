@@ -772,6 +772,7 @@ describe('ActivityService tests', () => {
         },
         sourceId: '#sourceId',
         isContribution: true,
+        username: 'test1',
         member: memberCreated.id,
         score: 1,
       }
@@ -812,6 +813,7 @@ describe('ActivityService tests', () => {
         },
         sourceId: '#sourceId',
         isContribution: true,
+        username: 'test1',
         member: memberCreated.id,
         score: 1,
       }
