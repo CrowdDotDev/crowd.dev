@@ -1109,11 +1109,7 @@ class MemberRepository {
                                 and m."deletedAt" is null
                                 and o."tenantId" = :tenantId
                                 and o."deletedAt" is null
-                              group by mo."memberId"),
-      identities as (select "memberId",
-                            jsonb_object_agg(platform, username) as username
-                    from "memberIdentities"
-                    group by "memberId")
+                              group by mo."memberId")
 select m.id,
        m."displayName",
        m.attributes,
