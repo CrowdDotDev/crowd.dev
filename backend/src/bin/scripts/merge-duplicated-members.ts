@@ -10,12 +10,12 @@ import { timeout } from '../../utils/timing'
 
 const log = createServiceLogger()
 
-function checkUsernames(all_usernames: any[]): boolean {
-  for (let i = 0; i < all_usernames.length; i++) {
-    const usernames = all_usernames[i]
+function checkUsernames(allUsernames: any[]): boolean {
+  for (let i = 0; i < allUsernames.length; i++) {
+    const usernames = allUsernames[i]
     for (const [platform, username] of Object.entries(usernames)) {
-      for (let j = i; j < all_usernames.length; j++) {
-        if (all_usernames[j][platform] && all_usernames[j][platform] !== username) {
+      for (let j = i; j < allUsernames.length; j++) {
+        if (allUsernames[j][platform] && allUsernames[j][platform] !== username) {
           return false
         }
       }
@@ -25,11 +25,11 @@ function checkUsernames(all_usernames: any[]): boolean {
   return true
 }
 
-function checkEmails(all_emails: string[][]): boolean {
-  for (let i = 0; i < all_emails.length; i++) {
-    const emails = all_emails[i]
-    for (let j = i; j < all_emails.length; j++) {
-      const emails2 = all_emails[j]
+function checkEmails(allEmails: string[][]): boolean {
+  for (let i = 0; i < allEmails.length; i++) {
+    const emails = allEmails[i]
+    for (let j = i; j < allEmails.length; j++) {
+      const emails2 = allEmails[j]
       for (let k = 0; k < emails.length; k++) {
         if (emails[k] !== emails2[k]) {
           return false
