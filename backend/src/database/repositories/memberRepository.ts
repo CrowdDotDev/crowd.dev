@@ -272,25 +272,6 @@ class MemberRepository {
     return this.findById(id, options)
   }
 
-  static async findOne(query, options: IRepositoryOptions, doPopulateRelations = true) {
-    const transaction = SequelizeRepository.getTransaction(options)
-
-    const currentTenant = SequelizeRepository.getCurrentTenant(options)
-
-    const record = await options.database.member.findOne({
-      where: {
-        tenantId: currentTenant.id,
-        ...query,
-      },
-      transaction,
-    })
-
-    if (doPopulateRelations) {
-      return this._populateRelations(record, options)
-    }
-    return record.get({ plain: true })
-  }
-
   static async memberExists(
     username,
     platform,
@@ -302,7 +283,16 @@ class MemberRepository {
     const currentTenant = SequelizeRepository.getCurrentTenant(options)
 
     const query = `
-    select  m."id",
+    with identities as (select "memberId",
+                                jsonb_object_agg(platform, latest_username) as username
+                          from (select "memberId",
+                                      platform,
+                                      first_value(username)
+                                      over (partition by "memberId", platform order by "createdAt" desc) as latest_username
+                                from "memberIdentities"
+                                where "tenantId" = :tenantId) ranked
+                          group by "memberId")
+      select m."id",
             m."displayName",
             m."attributes",
             m."emails",
@@ -318,12 +308,14 @@ class MemberRepository {
             m."deletedAt",
             m."tenantId",
             m."createdById",
-            m."updatedById"
+            m."updatedById",
+            i.username
       from members m
               inner join "memberIdentities" mi on m.id = mi."memberId"
+              inner join identities i on i."memberId" = m.id
       where mi."tenantId" = :tenantId
         and mi.platform = :platform
-        and mi.username = :username;  
+        and mi.username = :username
     `
 
     const records = await options.database.sequelize.query(query, {
@@ -434,10 +426,7 @@ class MemberRepository {
       const query = `
       insert into "memberIdentities"("memberId", platform, username, "sourceId", "tenantId", "integrationId")
       values (:memberId, :platform, :username, :sourceId, :tenantId, :integrationId)
-      on conflict ("memberId", platform) do update
-          set username        = :username,
-              "sourceId"      = :sourceId,
-              "integrationId" = :integrationId;
+      on conflict("memberId", platform) do nothing;
       `
 
       for (const platform of Object.keys(data.username) as PlatformType[]) {
@@ -452,7 +441,7 @@ class MemberRepository {
             integrationId: identity.integrationId,
             tenantId: currentTenant.id,
           },
-          type: QueryTypes.UPSERT,
+          type: QueryTypes.INSERT,
           transaction,
         })
       }
@@ -615,18 +604,7 @@ class MemberRepository {
       transaction,
     })
 
-    const results = records.map((record) => record.id)
-
-    const identities = await this.getIdentities(ids, options)
-
-    for (const result of results) {
-      result.username = identities.get(result.id).reduce((data, identity: any) => {
-        data[identity.platform] = identity.username
-        return data
-      }, {} as any)
-    }
-
-    return results
+    return records.map((record) => record.id)
   }
 
   static async count(filter, options: IRepositoryOptions) {
@@ -725,7 +703,7 @@ class MemberRepository {
                                      timestamp < :periodEnd
                                group by "memberId"),
              identities as (select "memberId",
-                                    jsonb_agg(jsonb_build_object('platform', platform, 'username', username)) as username
+                            jsonb_object_agg(platform, username) as username
                             from "memberIdentities"
                             group by "memberId")
           select m.id,
@@ -947,7 +925,7 @@ class MemberRepository {
                                 and o."deletedAt" is null
                               group by mo."memberId"),
       identities as (select "memberId",
-                            jsonb_agg(jsonb_build_object('platform', platform, 'username', username)) as username
+                            jsonb_object_agg(platform, username) as username
                     from "memberIdentities"
                     group by "memberId")
 select m.id,
@@ -1011,7 +989,7 @@ with member_tags as (select mt."memberId",
                 and o."deletedAt" is null
               group by mo."memberId"),
     identities as (select "memberId",
-                          jsonb_agg(jsonb_build_object('platform', platform, 'username', username)) as username
+                          jsonb_object_agg(platform, username) as username
                   from "memberIdentities"
                   group by "memberId")
 select count(m.id) as "totalCount"
@@ -1381,6 +1359,7 @@ where m."deletedAt" is null
 
     const averageSentiment = Sequelize.literal(`"memberActivityAggregatesMVs"."averageSentiment"`)
     const identities = Sequelize.literal(`"memberActivityAggregatesMVs"."identities"`)
+    const username = Sequelize.literal(`"memberActivityAggregatesMVs"."username"`)
 
     const toMergeArray = Sequelize.literal(`STRING_AGG( distinct "toMerge"."id"::text, ',')`)
     const noMergeArray = Sequelize.literal(`STRING_AGG( distinct "noMerge"."id"::text, ',')`)
@@ -1400,6 +1379,7 @@ where m."deletedAt" is null
           averageSentiment,
           activeOn,
           identities,
+          username,
           ...dynamicAttributesPlatformNestedFields,
           'reach.total': Sequelize.literal(`("member".reach->'total')::int`),
           'username.asString': Sequelize.literal(
@@ -1506,6 +1486,7 @@ where m."deletedAt" is null
         ),
         [activeOn, 'activeOn'],
         [identities, 'identities'],
+        [username, 'username'],
         [activityCount, 'activityCount'],
         [activityTypes, 'activityTypes'],
         [activeDaysCount, 'activeDaysCount'],
@@ -1528,6 +1509,7 @@ where m."deletedAt" is null
         'memberActivityAggregatesMVs.lastActive',
         'memberActivityAggregatesMVs.averageSentiment',
         'memberActivityAggregatesMVs.username',
+        'memberActivityAggregatesMVs.identities',
         'toMerge.id',
       ],
       distinct: true,

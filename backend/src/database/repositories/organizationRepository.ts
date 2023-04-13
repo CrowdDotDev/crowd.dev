@@ -333,6 +333,11 @@ class OrganizationRepository {
             as: 'activities',
             attributes: [],
           },
+          {
+            model: options.database.memberIdentity,
+            as: 'memberIdentities',
+            attributes: [],
+          },
         ],
       },
     ]
@@ -343,7 +348,7 @@ class OrganizationRepository {
 
     // TODO: member identitites FIX
     const identities = Sequelize.literal(
-      `array( select distinct jsonb_object_keys(jsonb_array_elements(jsonb_agg( case when "members".username is not null then "members".username else '{}' end))))`,
+      `array_agg( distinct "members->memberIdentities".platform)`,
     )
 
     const lastActive = Sequelize.literal(`MAX("members->activities".timestamp)`)
@@ -747,7 +752,7 @@ class OrganizationRepository {
     const transaction = SequelizeRepository.getTransaction(options)
 
     const members = await record.getMembers({
-      include: ['activities'],
+      include: ['activities', 'memberIdentities'],
       transaction,
     })
 
@@ -771,7 +776,10 @@ class OrganizationRepository {
 
     output.identities = [
       ...new Set(
-        members.reduce((acc, m) => acc.concat(...Object.keys(m.get({ plain: true }).username)), []),
+        members.reduce(
+          (acc, m) => acc.concat(m.get({ plain: true }).memberIdentities.map((i) => i.platform)),
+          [],
+        ),
       ),
     ]
 

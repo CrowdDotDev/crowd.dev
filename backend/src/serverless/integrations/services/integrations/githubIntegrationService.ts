@@ -1188,7 +1188,10 @@ export class GithubIntegrationService extends IntegrationServiceBase {
       member.attributes[MemberAttributeName.URL][
         PlatformType.TWITTER
       ] = `https://twitter.com/${memberFromApi.twitterUsername}`
-      member.username[PlatformType.TWITTER] = memberFromApi.twitterUsername
+      member.username[PlatformType.TWITTER] = {
+        username: memberFromApi.twitterUsername,
+        integrationId: context.integration.id,
+      }
     }
 
     if (memberFromApi.followers && memberFromApi.followers.totalCount > 0) {

@@ -7,16 +7,16 @@ end;
 $$ language 'plpgsql';
 
 create table "memberIdentities" (
-    "memberId"      uuid        not null,
-    platform        text        not null,
-    username        text        not null,
-    "sourceId"      text        null,
+    "memberId"              uuid        not null,
+    platform                text        not null,
+    username                text        not null,
+    "sourceId"              text        null,
 
-    "tenantId"      uuid        not null,
-    "integrationId" uuid        null,
+    "tenantId"              uuid        not null,
+    "integrationId"         uuid        null,
 
-    "createdAt"     timestamptz not null default now(),
-    "updatedAt"     timestamptz not null default now(),
+    "createdAt"             timestamptz not null default now(),
+    "updatedAt"             timestamptz not null default now(),
 
     unique (platform, username, "tenantId"),
     foreign key ("memberId") references members (id) on delete cascade,

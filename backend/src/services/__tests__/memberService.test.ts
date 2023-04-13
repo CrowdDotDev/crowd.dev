@@ -20,6 +20,7 @@ import { SlackMemberAttributes } from '../../database/attributes/member/slack'
 import SettingsRepository from '../../database/repositories/settingsRepository'
 import OrganizationService from '../organizationService'
 import Plans from '../../security/plans'
+import { generateUUIDv1 } from '../../utils/uuid'
 
 const db = null
 
@@ -42,7 +43,12 @@ describe('MemberService tests', () => {
       await mas.createPredefined(GithubMemberAttributes)
 
       const member1 = {
-        username: 'anil',
+        username: {
+          [PlatformType.GITHUB]: {
+            username: 'anil',
+            integrationId: generateUUIDv1(),
+          },
+        },
         emails: ['lala@l.com'],
         score: 10,
         attributes: {
@@ -68,93 +74,6 @@ describe('MemberService tests', () => {
       await expect(() =>
         new MemberService(mockIServiceOptions).upsert(member1),
       ).rejects.toThrowError(new Error400())
-    })
-
-    it('Should create non existent member - string type username', async () => {
-      const mockIServiceOptions = await SequelizeTestUtils.getTestIServiceOptions(db)
-
-      const mas = new MemberAttributeSettingsService(mockIServiceOptions)
-
-      await mas.createPredefined(GithubMemberAttributes)
-
-      const member1 = {
-        username: 'anil',
-        platform: PlatformType.GITHUB,
-        emails: ['lala@l.com'],
-        score: 10,
-        attributes: {
-          [MemberAttributeName.IS_HIREABLE]: {
-            [PlatformType.GITHUB]: true,
-          },
-          [MemberAttributeName.URL]: {
-            [PlatformType.GITHUB]: 'https://github.com/imcvampire',
-          },
-          [MemberAttributeName.WEBSITE_URL]: {
-            [PlatformType.GITHUB]: 'https://imcvampire.js.org/',
-          },
-          [MemberAttributeName.BIO]: {
-            [PlatformType.GITHUB]: 'Lazy geek',
-          },
-          [MemberAttributeName.LOCATION]: {
-            [PlatformType.GITHUB]: 'Helsinki, Finland',
-          },
-        },
-        joinedAt: '2020-05-28T15:13:30Z',
-      }
-
-      // Save some attributes since they get modified in the upsert function
-      const { platform, username, attributes } = member1
-
-      const memberCreated = await new MemberService(mockIServiceOptions).upsert(member1)
-
-      memberCreated.createdAt = memberCreated.createdAt.toISOString().split('T')[0]
-      memberCreated.updatedAt = memberCreated.updatedAt.toISOString().split('T')[0]
-
-      const memberExpected = {
-        id: memberCreated.id,
-        username: {
-          [platform]: username,
-        },
-        displayName: username,
-        attributes: {
-          [MemberAttributeName.IS_HIREABLE]: {
-            [PlatformType.GITHUB]: attributes[MemberAttributeName.IS_HIREABLE][PlatformType.GITHUB],
-            default: attributes[MemberAttributeName.IS_HIREABLE][PlatformType.GITHUB],
-          },
-          [MemberAttributeName.URL]: {
-            [PlatformType.GITHUB]: attributes[MemberAttributeName.URL][PlatformType.GITHUB],
-            default: attributes[MemberAttributeName.URL][PlatformType.GITHUB],
-          },
-          [MemberAttributeName.WEBSITE_URL]: {
-            [PlatformType.GITHUB]: attributes[MemberAttributeName.WEBSITE_URL][PlatformType.GITHUB],
-            default: attributes[MemberAttributeName.WEBSITE_URL][PlatformType.GITHUB],
-          },
-          [MemberAttributeName.BIO]: {
-            [PlatformType.GITHUB]: attributes[MemberAttributeName.BIO][PlatformType.GITHUB],
-            default: attributes[MemberAttributeName.BIO][PlatformType.GITHUB],
-          },
-          [MemberAttributeName.LOCATION]: {
-            [PlatformType.GITHUB]: attributes[MemberAttributeName.LOCATION][PlatformType.GITHUB],
-            default: attributes[MemberAttributeName.LOCATION][PlatformType.GITHUB],
-          },
-        },
-        emails: member1.emails,
-        score: member1.score,
-        importHash: null,
-        createdAt: SequelizeTestUtils.getNowWithoutTime(),
-        updatedAt: SequelizeTestUtils.getNowWithoutTime(),
-        deletedAt: null,
-        tenantId: mockIServiceOptions.currentTenant.id,
-        createdById: mockIServiceOptions.currentUser.id,
-        updatedById: mockIServiceOptions.currentUser.id,
-        reach: { total: -1 },
-        joinedAt: new Date('2020-05-28T15:13:30Z'),
-        lastEnriched: null,
-        enrichedBy: [],
-        contributions: null,
-      }
-
-      expect(memberCreated).toStrictEqual(memberExpected)
     })
 
     it('Should create non existent member - attributes with matching platform', async () => {

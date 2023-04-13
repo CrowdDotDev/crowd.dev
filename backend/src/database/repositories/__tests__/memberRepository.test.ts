@@ -8,11 +8,10 @@ import NoteRepository from '../noteRepository'
 import OrganizationRepository from '../organizationRepository'
 import TagRepository from '../tagRepository'
 import TaskRepository from '../taskRepository'
-import { PlatformIdentities } from '../../../serverless/integrations/types/messageTypes'
 
 const db = null
 
-function mapUsername(data: PlatformIdentities): any {
+function mapUsername(data: any): any {
   const username = {}
   Object.keys(data).forEach((platform) => {
     username[platform] = data[platform].username
@@ -76,7 +75,7 @@ describe('MemberRepository tests', () => {
 
       const expectedMemberCreated = {
         id: memberCreated.id,
-        username: member2add.username,
+        username: mapUsername(member2add.username),
         attributes: member2add.attributes,
         displayName: member2add.displayName,
         emails: member2add.emails,
@@ -156,7 +155,7 @@ describe('MemberRepository tests', () => {
 
       const expectedMemberCreated = {
         id: memberCreated.id,
-        username: member2add.username,
+        username: mapUsername(member2add.username),
         displayName: member2add.displayName,
         attributes: member2add.attributes,
         emails: member2add.emails,
@@ -199,7 +198,7 @@ describe('MemberRepository tests', () => {
 
       const expectedMemberCreated = {
         id: memberCreated.id,
-        username: member2add.username,
+        username: mapUsername(member2add.username),
         displayName: member2add.displayName,
         organizations: [],
         attributes: {},
@@ -361,7 +360,7 @@ describe('MemberRepository tests', () => {
 
       const expectedMemberFound = {
         id: memberCreated.id,
-        username: member2add.username,
+        username: mapUsername(member2add.username),
         displayName: member2add.displayName,
         identities: ['github'],
         attributes: {},
@@ -422,7 +421,7 @@ describe('MemberRepository tests', () => {
 
       const expectedMemberFound = {
         id: memberCreated.id,
-        username: member2add.username,
+        username: mapUsername(member2add.username),
         displayName: member2add.displayName,
         lastEnriched: null,
         enrichedBy: [],
@@ -554,127 +553,6 @@ describe('MemberRepository tests', () => {
     })
   })
 
-  describe('findOne method', () => {
-    it('Should return the created member for a simple query', async () => {
-      const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
-      const member1 = {
-        username: {
-          [PlatformType.GITHUB]: {
-            username: 'test1',
-            integrationId: generateUUIDv1(),
-          },
-        },
-        displayName: 'Member 1',
-        joinedAt: '2020-05-27T15:13:30Z',
-        emails: ['joan@crowd.dev'],
-      }
-      const member1Returned = await MemberRepository.create(member1, mockIRepositoryOptions)
-
-      const found = await MemberRepository.findOne(
-        {
-          emails: {
-            [Op.contains]: ['joan@crowd.dev'],
-          },
-        },
-        mockIRepositoryOptions,
-      )
-
-      expect(found).toStrictEqual(member1Returned)
-    })
-
-    it('Should return a plain object when doPopulateRelations is false', async () => {
-      const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
-      const member1 = {
-        username: {
-          [PlatformType.GITHUB]: {
-            username: 'test1',
-            integrationId: generateUUIDv1(),
-          },
-        },
-        displayName: 'Member 1',
-        joinedAt: '2020-05-27T15:13:30Z',
-        emails: ['joan@crowd.dev'],
-      }
-      const member1Returned = await MemberRepository.create(member1, mockIRepositoryOptions)
-      delete member1Returned.toMerge
-      delete member1Returned.noMerge
-      delete member1Returned.tags
-      delete member1Returned.activities
-      delete member1Returned.organizations
-      delete member1Returned.tasks
-      delete member1Returned.notes
-      delete member1Returned.lastActive
-      delete member1Returned.averageSentiment
-      delete member1Returned.activityCount
-      delete member1Returned.lastActivity
-      delete member1Returned.activeOn
-      delete member1Returned.identities
-      delete member1Returned.activityTypes
-      delete member1Returned.activeDaysCount
-
-      const found = await MemberRepository.findOne(
-        {
-          emails: {
-            [Op.contains]: ['joan@crowd.dev'],
-          },
-        },
-        mockIRepositoryOptions,
-        false,
-      )
-
-      expect(found).toStrictEqual(member1Returned)
-    })
-
-    it('Should return the member for a complex query', async () => {
-      const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
-
-      const member1 = {
-        username: {
-          [PlatformType.DEVTO]: {
-            username: 'test1',
-            integrationId: generateUUIDv1(),
-          },
-        },
-        displayName: 'Member 1',
-        joinedAt: '2020-05-27T15:13:30Z',
-        emails: ['joan@crowd.dev'],
-      }
-      const member1Returned = await MemberRepository.create(member1, mockIRepositoryOptions)
-
-      const memberFilterString = `username.${PlatformType.DEVTO}`
-
-      const found = await MemberRepository.findOne(
-        { [memberFilterString]: 'test1' },
-        mockIRepositoryOptions,
-      )
-
-      expect(found).toStrictEqual(member1Returned)
-    })
-
-    it('Should throw an error when non-existent', async () => {
-      const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
-
-      const member1 = {
-        username: {
-          [PlatformType.DEVTO]: {
-            username: 'test1',
-            integrationId: generateUUIDv1(),
-          },
-        },
-        displayName: 'Member 1',
-        joinedAt: '2020-05-27T15:13:30Z',
-        emails: ['joan@crowd.dev'],
-      }
-      await MemberRepository.create(member1, mockIRepositoryOptions)
-
-      const usernameFilter = `username.${PlatformType.DEVTO}`
-
-      await expect(() =>
-        MemberRepository.findOne({ [usernameFilter]: 'test2' }, mockIRepositoryOptions),
-      )
-    })
-  })
-
   describe('memberExists method', () => {
     it('Should return the created member for a simple query', async () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
@@ -794,7 +672,7 @@ describe('MemberRepository tests', () => {
       const member1 = await MemberRepository.create(
         {
           username: {
-            [PlatformType.TWITTER]: {
+            [PlatformType.SLACK]: {
               username: 'test1',
               integrationId: generateUUIDv1(),
             },
@@ -808,7 +686,7 @@ describe('MemberRepository tests', () => {
       const member2 = await MemberRepository.create(
         {
           username: {
-            [PlatformType.TWITTER]: {
+            [PlatformType.SLACK]: {
               username: 'test2',
               integrationId: generateUUIDv1(),
             },
@@ -822,7 +700,7 @@ describe('MemberRepository tests', () => {
       const member3 = await MemberRepository.create(
         {
           username: {
-            [PlatformType.TWITTER]: {
+            [PlatformType.SLACK]: {
               username: 'test3',
               integrationId: generateUUIDv1(),
             },
@@ -841,6 +719,7 @@ describe('MemberRepository tests', () => {
           timestamp: new Date(),
           tenantId: mockIRepositoryOptions.currentTenant.id,
           memberId: member1.id,
+          username: member1.username[PlatformType.SLACK],
           sourceId: '#sourceId1',
         },
         {
@@ -849,6 +728,7 @@ describe('MemberRepository tests', () => {
           timestamp: new Date(),
           tenantId: mockIRepositoryOptions.currentTenant.id,
           memberId: member2.id,
+          username: member2.username[PlatformType.SLACK],
           sourceId: '#sourceId2',
         },
         {
@@ -857,6 +737,7 @@ describe('MemberRepository tests', () => {
           timestamp: new Date(),
           tenantId: mockIRepositoryOptions.currentTenant.id,
           memberId: member2.id,
+          username: member2.username[PlatformType.SLACK],
           sourceId: '#sourceId3',
         },
         {
@@ -865,6 +746,7 @@ describe('MemberRepository tests', () => {
           timestamp: new Date(),
           tenantId: mockIRepositoryOptions.currentTenant.id,
           memberId: member3.id,
+          username: member3.username[PlatformType.SLACK],
           sourceId: '#sourceId4',
         },
         {
@@ -873,6 +755,7 @@ describe('MemberRepository tests', () => {
           timestamp: new Date(),
           tenantId: mockIRepositoryOptions.currentTenant.id,
           memberId: member3.id,
+          username: member3.username[PlatformType.SLACK],
           sourceId: '#sourceId5',
         },
         {
@@ -881,6 +764,7 @@ describe('MemberRepository tests', () => {
           timestamp: new Date(),
           tenantId: mockIRepositoryOptions.currentTenant.id,
           memberId: member3.id,
+          username: member3.username[PlatformType.SLACK],
           sourceId: '#sourceId6',
         },
       ])
@@ -1228,7 +1112,7 @@ describe('MemberRepository tests', () => {
       const member1 = await MemberRepository.create(
         {
           username: {
-            [PlatformType.DISCORD]: {
+            [PlatformType.SLACK]: {
               username: 'test1',
               integrationId: generateUUIDv1(),
             },
@@ -1246,7 +1130,7 @@ describe('MemberRepository tests', () => {
       const member2 = await MemberRepository.create(
         {
           username: {
-            [PlatformType.DISCORD]: {
+            [PlatformType.SLACK]: {
               username: 'test2',
               integrationId: generateUUIDv1(),
             },
@@ -1264,7 +1148,7 @@ describe('MemberRepository tests', () => {
       const member3 = await MemberRepository.create(
         {
           username: {
-            [PlatformType.DISCORD]: {
+            [PlatformType.SLACK]: {
               username: 'test3',
               integrationId: generateUUIDv1(),
             },
@@ -1287,7 +1171,7 @@ describe('MemberRepository tests', () => {
           timestamp: new Date('2022-09-10'),
           tenantId: mockIRepositoryOptions.currentTenant.id,
           memberId: member1.id,
-          username: member1.username[PlatformType.SLACK].username,
+          username: member1.username[PlatformType.SLACK],
           sourceId: '#sourceId1',
           sentiment: {
             positive: 0.55,
@@ -1304,7 +1188,7 @@ describe('MemberRepository tests', () => {
           timestamp: new Date('2022-09-11'),
           tenantId: mockIRepositoryOptions.currentTenant.id,
           memberId: member2.id,
-          username: member2.username[PlatformType.SLACK].username,
+          username: member2.username[PlatformType.SLACK],
           sourceId: '#sourceId2',
           sentiment: {
             positive: 0.01,
@@ -1321,7 +1205,7 @@ describe('MemberRepository tests', () => {
           timestamp: new Date('2022-09-12'),
           tenantId: mockIRepositoryOptions.currentTenant.id,
           memberId: member2.id,
-          username: member2.username[PlatformType.SLACK].username,
+          username: member2.username[PlatformType.SLACK],
           sourceId: '#sourceId3',
           sentiment: {
             positive: 0.94,
@@ -1338,7 +1222,7 @@ describe('MemberRepository tests', () => {
           timestamp: new Date('2022-09-13'),
           tenantId: mockIRepositoryOptions.currentTenant.id,
           memberId: member3.id,
-          username: member3.username[PlatformType.SLACK].username,
+          username: member3.username[PlatformType.SLACK],
           sourceId: '#sourceId4',
           sentiment: {
             positive: 0.42,
@@ -1355,7 +1239,7 @@ describe('MemberRepository tests', () => {
           timestamp: new Date('2022-09-14'),
           tenantId: mockIRepositoryOptions.currentTenant.id,
           memberId: member3.id,
-          username: member3.username[PlatformType.SLACK].username,
+          username: member3.username[PlatformType.SLACK],
           sourceId: '#sourceId5',
           sentiment: {
             positive: 0.42,
@@ -1372,7 +1256,7 @@ describe('MemberRepository tests', () => {
           timestamp: new Date('2022-09-15'),
           tenantId: mockIRepositoryOptions.currentTenant.id,
           memberId: member3.id,
-          username: member3.username[PlatformType.SLACK].username,
+          username: member3.username[PlatformType.SLACK],
           sourceId: '#sourceId6',
           sentiment: {
             positive: 0.42,
@@ -1541,8 +1425,11 @@ describe('MemberRepository tests', () => {
 
       const expectedMemberCreated = {
         id: returnedMember.id,
-        username: updateFields.username,
-        identities: ['github'],
+        username: mapUsername({
+          ...updateFields.username,
+          ...member1.username,
+        }),
+        identities: ['discord', 'github'],
         displayName: returnedMember.displayName,
         attributes: updateFields.attributes,
         emails: updateFields.emails,
@@ -1642,7 +1529,16 @@ describe('MemberRepository tests', () => {
 
       const expectedMemberCreated = {
         id: returnedMember.id,
-        username: mapUsername(updateFields.username as PlatformIdentities),
+        username: mapUsername({
+          [PlatformType.DISCORD]: {
+            username: 'test1',
+            integrationId: generateUUIDv1(),
+          },
+          [PlatformType.GITHUB]: {
+            username: 'anil_github',
+            integrationId: generateUUIDv1(),
+          },
+        }),
         displayName: returnedMember.displayName,
         attributes: updateFields.attributes,
         lastEnriched: null,

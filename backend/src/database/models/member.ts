@@ -1,4 +1,4 @@
-import Sequelize, { DataTypes } from 'sequelize'
+import { DataTypes } from 'sequelize'
 
 export default (sequelize) => {
   const member = sequelize.define(
@@ -96,6 +96,11 @@ export default (sequelize) => {
   )
 
   member.associate = (models) => {
+    models.member.hasMany(models.memberIdentity, {
+      as: 'memberIdentities',
+      foreignKey: 'memberId',
+    })
+
     models.member.hasOne(models.memberActivityAggregatesMV, {
       as: 'memberActivityAggregatesMVs',
       foreignKey: 'id',

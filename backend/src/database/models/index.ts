@@ -89,6 +89,7 @@ function models() {
     require('./activity').default,
     require('./auditLog').default,
     require('./member').default,
+    require('./memberIdentity').default,
     require('./file').default,
     require('./integration').default,
     require('./report').default,

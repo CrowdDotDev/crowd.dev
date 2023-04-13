@@ -10,13 +10,14 @@ import { IntegrationServiceBase } from '../../services/integrationServiceBase'
 import { GithubIntegrationService } from '../../services/integrations/githubIntegrationService'
 import { IStepContext } from '../../../../types/integration/stepResult'
 import { getServiceLogger } from '../../../../utils/logging'
+import { generateUUIDv1 } from '../../../../utils/uuid'
 
 const db = null
 const installId = '23585816'
 
 const log = getServiceLogger()
 
-async function fakeContext(integration = {}): Promise<IStepContext> {
+async function fakeContext(integration = { id: generateUUIDv1() }): Promise<IStepContext> {
   const options = await SequelizeTestUtils.getTestIRepositoryOptions(db)
 
   return {
@@ -71,10 +72,14 @@ describe('Github webhooks tests', () => {
         name: 'Joan Reyero',
         url: 'https://github.com/joanreyero',
       }
-      const parsedMember = await GithubIntegrationService.parseMember(member, await fakeContext())
+      const context = await fakeContext()
+      const parsedMember = await GithubIntegrationService.parseMember(member, context)
       const expected = {
         username: {
-          [PlatformType.GITHUB]: 'joanreyero',
+          [PlatformType.GITHUB]: {
+            username: 'joanreyero',
+            integrationId: context.integration.id,
+          },
         },
         attributes: {
           [MemberAttributeName.IS_HIREABLE]: {
@@ -106,11 +111,18 @@ describe('Github webhooks tests', () => {
         url: 'https://github.com/joanreyero',
         twitterUsername: 'reyero',
       }
-      const parsedMember = await GithubIntegrationService.parseMember(member, await fakeContext())
+      const context = await fakeContext()
+      const parsedMember = await GithubIntegrationService.parseMember(member, context)
       const expected = {
         username: {
-          [PlatformType.GITHUB]: 'joanreyero',
-          [PlatformType.TWITTER]: 'reyero',
+          [PlatformType.GITHUB]: {
+            username: 'joanreyero',
+            integrationId: context.integration.id,
+          },
+          [PlatformType.TWITTER]: {
+            username: 'reyero',
+            integrationId: context.integration.id,
+          },
         },
         attributes: {
           [MemberAttributeName.IS_HIREABLE]: {
@@ -152,11 +164,18 @@ describe('Github webhooks tests', () => {
           totalCount: 10,
         },
       }
-      const parsedMember = await GithubIntegrationService.parseMember(member, await fakeContext())
+      const context = await fakeContext()
+      const parsedMember = await GithubIntegrationService.parseMember(member, context)
       const expected = {
         username: {
-          [PlatformType.GITHUB]: 'joanreyero',
-          [PlatformType.TWITTER]: 'reyero',
+          [PlatformType.GITHUB]: {
+            username: 'joanreyero',
+            integrationId: context.integration.id,
+          },
+          [PlatformType.TWITTER]: {
+            username: 'reyero',
+            integrationId: context.integration.id,
+          },
         },
         attributes: {
           [MemberAttributeName.IS_HIREABLE]: {
@@ -200,9 +219,13 @@ describe('Github webhooks tests', () => {
       const expected = {
         member: {
           username: {
-            [PlatformType.GITHUB]: 'testMember',
+            [PlatformType.GITHUB]: {
+              username: 'testMember',
+              integrationId: integration.id,
+            },
           },
         },
+        username: 'testMember',
         type: GithubActivityType.ISSUE_OPENED,
         timestamp: new Date(TestEvents.issues.opened.issue.created_at),
         platform: PlatformType.GITHUB,
@@ -234,9 +257,13 @@ describe('Github webhooks tests', () => {
       const expected = {
         member: {
           username: {
-            [PlatformType.GITHUB]: 'testMember',
+            [PlatformType.GITHUB]: {
+              username: 'testMember',
+              integrationId: integration.id,
+            },
           },
         },
+        username: 'testMember',
         type: GithubActivityType.ISSUE_OPENED,
         timestamp: new Date(TestEvents.issues.edited.issue.created_at),
         platform: PlatformType.GITHUB,
@@ -268,9 +295,13 @@ describe('Github webhooks tests', () => {
       const expected = {
         member: {
           username: {
-            [PlatformType.GITHUB]: 'testMember',
+            [PlatformType.GITHUB]: {
+              username: 'testMember',
+              integrationId: integration.id,
+            },
           },
         },
+        username: 'testMember',
         type: GithubActivityType.ISSUE_OPENED,
         timestamp: new Date(TestEvents.issues.reopened.issue.created_at),
         platform: PlatformType.GITHUB,
@@ -302,9 +333,13 @@ describe('Github webhooks tests', () => {
       const expected = {
         member: {
           username: {
-            [PlatformType.GITHUB]: 'testMember',
+            [PlatformType.GITHUB]: {
+              username: 'testMember',
+              integrationId: integration.id,
+            },
           },
         },
+        username: 'testMember',
         type: GithubActivityType.ISSUE_CLOSED,
         timestamp: new Date(TestEvents.issues.closed.issue.closed_at),
         platform: PlatformType.GITHUB,
@@ -374,9 +409,13 @@ describe('Github webhooks tests', () => {
       const expected = {
         member: {
           username: {
-            [PlatformType.GITHUB]: 'testMember',
+            [PlatformType.GITHUB]: {
+              integrationId: integration.id,
+              username: 'testMember',
+            },
           },
         },
+        username: 'testMember',
         type: GithubActivityType.DISCUSSION_STARTED,
         timestamp: new Date(TestEvents.discussion.created.discussion.created_at),
         platform: PlatformType.GITHUB,
@@ -415,9 +454,13 @@ describe('Github webhooks tests', () => {
       const expected = {
         member: {
           username: {
-            [PlatformType.GITHUB]: 'testMember',
+            [PlatformType.GITHUB]: {
+              username: 'testMember',
+              integrationId: integration.id,
+            },
           },
         },
+        username: 'testMember',
         type: GithubActivityType.DISCUSSION_STARTED,
         timestamp: new Date(TestEvents.discussion.edited.discussion.created_at),
         platform: PlatformType.GITHUB,
@@ -454,9 +497,13 @@ describe('Github webhooks tests', () => {
       const expected = {
         member: {
           username: {
-            [PlatformType.GITHUB]: 'testMember',
+            [PlatformType.GITHUB]: {
+              username: 'testMember',
+              integrationId: integration.id,
+            },
           },
         },
+        username: 'testMember',
         type: GithubActivityType.DISCUSSION_COMMENT,
         timestamp: new Date(TestEvents.discussion.answered.answer.created_at),
         platform: PlatformType.GITHUB,
@@ -488,9 +535,13 @@ describe('Github webhooks tests', () => {
       const expected = {
         member: {
           username: {
-            [PlatformType.GITHUB]: 'testMember',
+            [PlatformType.GITHUB]: {
+              username: 'testMember',
+              integrationId: integration.id,
+            },
           },
         },
+        username: 'testMember',
         type: GithubActivityType.PULL_REQUEST_OPENED,
         timestamp: new Date(TestEvents.pullRequests.opened.pull_request.created_at),
         platform: PlatformType.GITHUB,
@@ -518,9 +569,13 @@ describe('Github webhooks tests', () => {
       const expected = {
         member: {
           username: {
-            [PlatformType.GITHUB]: 'testMember',
+            [PlatformType.GITHUB]: {
+              username: 'testMember',
+              integrationId: integration.id,
+            },
           },
         },
+        username: 'testMember',
         type: GithubActivityType.PULL_REQUEST_OPENED,
         timestamp: new Date(TestEvents.pullRequests.edited.pull_request.created_at),
         platform: PlatformType.GITHUB,
@@ -549,9 +604,13 @@ describe('Github webhooks tests', () => {
       const expected = {
         member: {
           username: {
-            [PlatformType.GITHUB]: 'testMember',
+            [PlatformType.GITHUB]: {
+              username: 'testMember',
+              integrationId: integration.id,
+            },
           },
         },
+        username: 'testMember',
         type: GithubActivityType.PULL_REQUEST_OPENED,
         timestamp: new Date(TestEvents.pullRequests.reopened.pull_request.created_at),
         platform: PlatformType.GITHUB,
@@ -580,9 +639,13 @@ describe('Github webhooks tests', () => {
       const expected = {
         member: {
           username: {
-            [PlatformType.GITHUB]: 'testMember',
+            [PlatformType.GITHUB]: {
+              username: 'testMember',
+              integrationId: integration.id,
+            },
           },
         },
+        username: 'testMember',
         type: GithubActivityType.PULL_REQUEST_CLOSED,
         timestamp: new Date(TestEvents.pullRequests.closed.pull_request.closed_at),
         platform: PlatformType.GITHUB,
@@ -646,9 +709,13 @@ describe('Github webhooks tests', () => {
       const expected = {
         member: {
           username: {
-            [PlatformType.GITHUB]: 'testMember',
+            [PlatformType.GITHUB]: {
+              username: 'testMember',
+              integrationId: integration.id,
+            },
           },
         },
+        username: 'testMember',
         type: GithubActivityType.STAR,
         platform: PlatformType.GITHUB,
         tenant: tenantId,
@@ -677,9 +744,13 @@ describe('Github webhooks tests', () => {
       const expected = {
         member: {
           username: {
-            [PlatformType.GITHUB]: 'testMember',
+            [PlatformType.GITHUB]: {
+              username: 'testMember',
+              integrationId: integration.id,
+            },
           },
         },
+        username: 'testMember',
         type: GithubActivityType.UNSTAR,
         platform: PlatformType.GITHUB,
         tenant: tenantId,
@@ -709,9 +780,13 @@ describe('Github webhooks tests', () => {
       const expected = {
         member: {
           username: {
-            [PlatformType.GITHUB]: 'testMember',
+            [PlatformType.GITHUB]: {
+              username: 'testMember',
+              integrationId: integration.id,
+            },
           },
         },
+        username: 'testMember',
         type: GithubActivityType.FORK,
         timestamp: new Date(TestEvents.fork.created.forkee.created_at),
         platform: PlatformType.GITHUB,
@@ -744,9 +819,13 @@ describe('Github webhooks tests', () => {
       const expected = {
         member: {
           username: {
-            [PlatformType.GITHUB]: 'testMember',
+            [PlatformType.GITHUB]: {
+              username: 'testMember',
+              integrationId: integration.id,
+            },
           },
         },
+        username: 'testMember',
         type: GithubActivityType.ISSUE_COMMENT,
         timestamp: new Date(TestEvents.comment.issue.created.comment.created_at),
         platform: PlatformType.GITHUB,
@@ -785,9 +864,13 @@ describe('Github webhooks tests', () => {
       const expected = {
         member: {
           username: {
-            [PlatformType.GITHUB]: 'testMember',
+            [PlatformType.GITHUB]: {
+              username: 'testMember',
+              integrationId: integration.id,
+            },
           },
         },
+        username: 'testMember',
         type: GithubActivityType.ISSUE_COMMENT,
         timestamp: new Date(TestEvents.comment.issue.edited.comment.created_at),
         platform: PlatformType.GITHUB,
@@ -820,9 +903,13 @@ describe('Github webhooks tests', () => {
       const expected = {
         member: {
           username: {
-            [PlatformType.GITHUB]: 'testMember',
+            [PlatformType.GITHUB]: {
+              username: 'testMember',
+              integrationId: integration.id,
+            },
           },
         },
+        username: 'testMember',
         type: GithubActivityType.PULL_REQUEST_COMMENT,
         timestamp: new Date(TestEvents.comment.pullRequest.created.comment.created_at),
         platform: PlatformType.GITHUB,
@@ -860,9 +947,13 @@ describe('Github webhooks tests', () => {
       const expected = {
         member: {
           username: {
-            [PlatformType.GITHUB]: 'testMember',
+            [PlatformType.GITHUB]: {
+              username: 'testMember',
+              integrationId: integration.id,
+            },
           },
         },
+        username: 'testMember',
         type: GithubActivityType.PULL_REQUEST_COMMENT,
         timestamp: new Date(TestEvents.comment.pullRequest.edited.comment.created_at),
         platform: PlatformType.GITHUB,
@@ -918,9 +1009,13 @@ describe('Github webhooks tests', () => {
       const expected = {
         member: {
           username: {
-            [PlatformType.GITHUB]: 'testMember',
+            [PlatformType.GITHUB]: {
+              username: 'testMember',
+              integrationId: integration.id,
+            },
           },
         },
+        username: 'testMember',
         type: GithubActivityType.DISCUSSION_COMMENT,
         timestamp: new Date(TestEvents.discussionComment.created.comment.created_at),
         platform: PlatformType.GITHUB,
@@ -959,9 +1054,13 @@ describe('Github webhooks tests', () => {
       const expected = {
         member: {
           username: {
-            [PlatformType.GITHUB]: 'testMember',
+            [PlatformType.GITHUB]: {
+              username: 'testMember',
+              integrationId: integration.id,
+            },
           },
         },
+        username: 'testMember',
         type: GithubActivityType.DISCUSSION_COMMENT,
         timestamp: new Date(TestEvents.discussionComment.edited.comment.created_at),
         platform: PlatformType.GITHUB,
