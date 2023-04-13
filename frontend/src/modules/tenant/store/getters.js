@@ -70,7 +70,7 @@ export default {
       timestampSignup >= timeStamp2023
       && timestampSignup <= timeStamp4WeeksAgo
       && config.formbricks.url
-      && config.formbricks.pmfFormId
+      && config.formbricks.environmentId
       && !state.hidePmfBanner
     );
   },

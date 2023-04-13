@@ -1,5 +1,4 @@
 import sharedMutations from '@/shared/store/mutations';
-import config from '@/config';
 
 export default {
   ...sharedMutations(),
@@ -18,7 +17,7 @@ export default {
     state.hidePmfBanner = true;
 
     localStorage.setItem(
-      `hidePmfBanner-${config.formbricks.pmfFormId}`,
+      'hidePmfBanner',
       true,
     );
   },

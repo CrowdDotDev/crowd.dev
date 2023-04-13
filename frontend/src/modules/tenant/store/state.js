@@ -21,6 +21,6 @@ export default () => ({
     hasError: false,
   },
   hidePmfBanner: localStorage.getItem(
-    `hidePmfBanner-${config.formbricks.pmfFormId}`,
+    `hidePmfBanner`,
   ),
 });

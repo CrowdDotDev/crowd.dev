@@ -157,11 +157,11 @@
 </template>
 
 <script>
-import { useStore, mapActions, mapGetters } from 'vuex';
+import { mapActions, mapGetters } from 'vuex';
 import Banner from '@/shared/banner/banner.vue';
 import identify from '@/shared/monitoring/identify';
-import config from '@/config';
 import AppMenu from '@/modules/layout/components/menu.vue';
+import formbricks from '@/plugins/formbricks';
 
 export default {
   name: 'AppLayout',
@@ -224,18 +224,6 @@ export default {
     },
   },
 
-  watch: {
-    // whenever question changes, this function will run
-    showPmfSurvey(newValue) {
-      if (newValue) {
-        setTimeout(() => {
-          window.formbricksPmf.init();
-          window.formbricksPmf.reset();
-        }, 10);
-      }
-    },
-  },
-
   created() {
     if (this.isMobile) {
       this.collapseMenu();
@@ -246,45 +234,8 @@ export default {
   },
 
   async mounted() {
-    const store = useStore();
     identify(this.currentUser);
     this.initPendo();
-
-    if (
-      config.formbricks.url
-      && config.formbricks.pmfFormId
-    ) {
-      window.formbricksPmf = {
-        ...window.formbricksPmf,
-        config: {
-          formbricksUrl: config.formbricks.url,
-          formId: config.formbricks.pmfFormId,
-          containerId: 'formbricks-pmf-container',
-          onFinished: () => this.doHidePmfBanner(),
-          contact: {
-            name: 'Jonathan',
-            position: 'Co-Founder',
-            imgUrl:
-              'https://avatars.githubusercontent.com/u/41432658?v=4',
-          },
-          customer: {
-            id: store.getters['auth/currentUser'].id,
-            name: store.getters['auth/currentUser']
-              .fullName,
-            email: store.getters['auth/currentUser'].email,
-          },
-          style: {
-            brandColor: '#e94f2e',
-            headerBGColor: '#F9FAFB',
-            boxBGColor: '#ffffff',
-            textColor: '#140505',
-            buttonHoverColor: '#F9FAFB',
-          },
-        },
-      };
-      // eslint-disable-next-line global-require,import/no-unresolved
-      require('@formbricks/pmf');
-    }
   },
 
   unmounted() {
@@ -299,10 +250,7 @@ export default {
 
     toggleShowPmfSurvey() {
       this.showPmfSurvey = !this.showPmfSurvey;
-      if (this.showPmfSurvey) {
-        window.formbricksPmf.init();
-        window.formbricksPmf.reset();
-      }
+      formbricks.track(this.showPmfSurvey ? 'pmfSurveyOpen' : 'pmfSurveyClose');
     },
 
     initPendo() {
