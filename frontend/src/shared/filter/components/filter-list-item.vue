@@ -64,6 +64,7 @@
           v-if="shouldShowReset"
           class="btn btn-link btn-link--primary"
           @click="handleReset"
+          id="resetFilter"
         >
           Reset filter
         </el-button>
@@ -74,6 +75,7 @@
           <el-button
             class="btn btn--transparent btn--sm mr-3"
             @click="handleCancel"
+            id="closeFilter"
           >
             Cancel
           </el-button>
@@ -81,6 +83,7 @@
             class="btn btn--primary btn--sm"
             :disabled="shouldDisableApplyButton"
             @click="handleApply"
+            id="applyFilter"
           >
             Apply
           </el-button>

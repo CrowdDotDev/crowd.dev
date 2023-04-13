@@ -514,7 +514,7 @@ onMounted(() => {
   const formbricksFeedbackWidget = document.createElement('script');
   formbricksFeedbackWidget.setAttribute(
     'src',
-    'https://cdn.jsdelivr.net/npm/@formbricks/feedback@0.1.5/dist/index.umd.js',
+    'https://cdn.jsdelivr.net/npm/@formbricks/feedback@0.3.2/dist/index.umd.js',
   );
   document.head.appendChild(formbricksFeedbackWidget);
   const formbricksFeedbackConfig = document.createElement('script');

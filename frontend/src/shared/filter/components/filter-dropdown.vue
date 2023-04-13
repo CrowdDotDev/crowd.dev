@@ -17,13 +17,14 @@
         <div class="-m-2 border-b border-gray-100 p-2 mb-2">
           <el-input
             ref="queryInput"
+            id="filterSearch"
             v-model="query"
             placeholder="Search..."
             class="filter-dropdown-search"
             :prefix-icon="SearchIcon"
           />
         </div>
-        <div>
+        <div id="filterList">
           <el-dropdown-item
             v-for="item of computedAttributes"
             :key="item.name"
