@@ -87,7 +87,10 @@ export default class Errors {
       return;
     }
 
-    router.push('/500');
+    Message.error(
+      'Please try again. If the problem remains, reach out to us.',
+      { title: 'Oops, something went wrong' },
+    );
   }
 
   static errorCode(error) {

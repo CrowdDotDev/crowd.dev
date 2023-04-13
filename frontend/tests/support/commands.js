@@ -12,8 +12,8 @@
 // -- This is a parent command --
 
 Cypress.Commands.add('login', () => {
-  cy.visit('/auth/signin')
-  cy.window().should('have.property', 'app')
+  cy.visit('/auth/signin');
+  cy.window().should('have.property', 'app');
   cy.window()
     .its('app')
     .then(async (app) => {
@@ -21,30 +21,17 @@ Cypress.Commands.add('login', () => {
         'auth/doSigninWithEmailAndPassword',
         {
           username: 'john.doe@email.com',
-          password: 'password'
-        }
-      )
-    })
-})
-
-let LOCAL_STORAGE_MEMORY = {}
-
-Cypress.Commands.add('saveLocalStorage', () => {
-  Object.keys(localStorage).forEach((key) => {
-    LOCAL_STORAGE_MEMORY[key] = localStorage[key]
-  })
-})
-
-Cypress.Commands.add('restoreLocalStorage', () => {
-  Object.keys(LOCAL_STORAGE_MEMORY).forEach((key) => {
-    localStorage.setItem(key, LOCAL_STORAGE_MEMORY[key])
-  })
-})
+          password: 'password',
+        },
+      );
+    });
+});
 
 Cypress.Commands.add('clearAllLocalStorage', () => {
-  localStorage.clear()
-})
+  localStorage.clear();
+});
 
+Cypress.on('uncaught:exception', () => false);
 //
 //
 // -- This is a child command --

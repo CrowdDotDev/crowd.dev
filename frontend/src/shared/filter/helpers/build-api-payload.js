@@ -73,6 +73,12 @@ function buildAttributeBlock(attribute) {
     };
   }
 
+  if (attribute.name === 'channel') {
+    return {
+      channel: attribute.value?.value,
+    };
+  }
+
   if (attribute.name === 'search') {
     return {
       or: attribute.fields.map((f) => {
@@ -162,6 +168,10 @@ function buildAttributeBlock(attribute) {
       ...(!!(!bottomLimit && topLimit) && {
         lte: topLimit,
       }),
+    };
+  } else if (attribute.operator === 'textContains') {
+    rule = {
+      like: `%${attribute.value}%`,
     };
   } else if (attribute.operator === null) {
     rule = Array.isArray(attribute.value)
