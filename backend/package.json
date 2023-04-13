@@ -84,7 +84,6 @@
     "he": "^1.2.0",
     "helmet": "4.1.1",
     "html-to-text": "^8.2.1",
-    "jest-html-reporter": "^3.7.1",
     "json2csv": "^5.0.7",
     "jsonwebtoken": "8.5.1",
     "lodash": "4.17.21",

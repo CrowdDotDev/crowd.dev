@@ -7,13 +7,4 @@ module.exports = {
   testRegex: ['__tests__/.*tests?.ts$'],
   bail: false,
   roots: ['./'],
-  reporters: [
-    'default',
-    [
-      './node_modules/jest-html-reporter',
-      {
-        pageTitle: 'Test Report',
-      },
-    ],
-  ],
 }
