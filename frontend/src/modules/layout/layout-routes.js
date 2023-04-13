@@ -23,15 +23,4 @@ export default [
         'Sorry, the page you are looking for doesn’t exist or was removed.',
     },
   },
-  {
-    name: 'error500',
-    path: '/500',
-    component: ErrorPage,
-    props: {
-      code: 500,
-      title: 'Oops, something went wrong',
-      subtitle:
-        'Please try to reload the page. If the problem remains, reach out to us.',
-    },
-  },
 ];

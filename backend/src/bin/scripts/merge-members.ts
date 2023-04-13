@@ -7,6 +7,8 @@ import SequelizeRepository from '../../database/repositories/sequelizeRepository
 import MemberService from '../../services/memberService'
 import { createServiceLogger } from '../../utils/logging'
 
+/* eslint-disable no-console */
+
 const banner = fs.readFileSync(path.join(__dirname, 'banner.txt'), 'utf8')
 
 const log = createServiceLogger()

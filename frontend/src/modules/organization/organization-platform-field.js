@@ -44,8 +44,8 @@ export default class OrganizationPlatformField extends StringField {
       },
       defaultValue: [],
       value: [],
-      defaultOperator: null,
-      operator: null,
+      defaultOperator: 'contains',
+      operator: 'contains',
       type: 'select-multi',
     };
   }

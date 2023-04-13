@@ -27,6 +27,12 @@ const en = {
         notFound: `Activity type with key {0} is not found.`,
       },
     },
+    activityChannels: {
+      errors: {
+        typeRequiredWhenCreating: `Type field is required when creating a custom activity channel.`,
+        notFound: `Activity type with key {0} is not found.`,
+      },
+    },
   },
 
   auth: {
