@@ -1,20 +1,20 @@
 <template>
-  <div class="pt-5 bg-white rounded-lg shadow">
+  <div class="bg-white pt-5 rounded-lg shadow">
     <div class="px-6">
       <!-- Widget Header -->
       <div
-        class="flex items-center justify-between pb-5 border-b border-gray-100 grow"
+        class="flex grow justify-between items-center pb-5 border-b border-gray-100"
         :class="{ 'mb-8': !loading && !error && !empty }"
       >
         <div class="flex gap-1">
           <app-widget-title
-            title="Leaderboard: Most active members"
+            title="Leaderbord: Most active members"
             description="Members who were active on the most days in the selected time period"
           />
         </div>
         <app-widget-period
           template="Members"
-          widget="Leaderboard: Most active members"
+          widget="Leaderbord: Most active members"
           :period="selectedPeriod"
           module="reports"
           @on-update="onUpdatePeriod"
@@ -38,7 +38,7 @@
         />
         <div class="flex justify-end">
           <el-button
-            class="mt-4 mb-8 btn btn-link btn-link--primary"
+            class="btn btn-link btn-link--primary mt-4 mb-8"
             @click="handleDrawerOpen"
           >
             View all
@@ -187,7 +187,7 @@ const getDetailedActiveMembers = ({
 const onRowClick = () => {
   window.analytics.track('Click table widget row', {
     template: MEMBERS_REPORT.nameAsId,
-    widget: 'Leaderboard: Most active members',
+    widget: 'Leaderbord: Most active members',
   });
 };
 
@@ -195,10 +195,10 @@ const onRowClick = () => {
 const handleDrawerOpen = async () => {
   window.analytics.track('Open report drawer', {
     template: MEMBERS_REPORT.nameAsId,
-    widget: 'Leaderboard: Most active members',
+    widget: 'Leaderbord: Most active members',
     period: selectedPeriod.value,
   });
-
+  
   drawerExpanded.value = true;
   drawerTitle.value = 'Most active members';
 };
