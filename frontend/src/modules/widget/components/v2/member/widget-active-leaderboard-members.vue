@@ -52,7 +52,7 @@
           `We recommend speaking with these members, as they went above and beyond in the last ${pluralize(
             selectedPeriod.granularity,
             selectedPeriod.value,
-            true
+            true,
           )}. They are probably eager to share their experiences and enthusiasm for your community.`
         }}</span>
       </template>
@@ -74,7 +74,13 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed, defineProps, watch } from 'vue';
+import {
+  ref,
+  onMounted,
+  computed,
+  defineProps,
+  watch,
+} from 'vue';
 import pluralize from 'pluralize';
 import moment from 'moment';
 import AppWidgetTitle from '@/modules/widget/components/v2/shared/widget-title.vue';
@@ -112,13 +118,15 @@ const error = ref(false);
 const { doExport } = mapActions('member');
 
 const empty = computed(
-  () => !loading.value && !error.value && activeMembers.value.length === 0
+  () => !loading.value
+    && !error.value
+    && activeMembers.value.length === 0,
 );
 
 const getActiveMembers = async (
   period = selectedPeriod.value,
   platforms = props.platforms,
-  teamMembers = props.teamMembers
+  teamMembers = props.teamMembers,
 ) => {
   loading.value = true;
   error.value = false;
@@ -158,22 +166,23 @@ const onUpdatePeriod = async (updatedPeriod) => {
 const getDetailedActiveMembers = ({
   pagination,
   period = selectedPeriod.value,
-}) =>
-  MemberService.listActive({
-    platform: props.platforms,
-    isTeamMember: props.teamMembers,
-    activityIsContribution: null,
-    activityTimestampFrom: moment()
-      .utc()
-      .subtract(period.value, period.granularity)
-      .toISOString(),
-    activityTimestampTo: moment().utc(),
-    orderBy: 'activeDaysCount_DESC',
-    offset: !pagination.count
-      ? (pagination.currentPage - 1) * pagination.pageSize
-      : 0,
-    limit: !pagination.count ? pagination.pageSize : pagination.count,
-  });
+}) => MemberService.listActive({
+  platform: props.platforms,
+  isTeamMember: props.teamMembers,
+  activityIsContribution: null,
+  activityTimestampFrom: moment()
+    .utc()
+    .subtract(period.value, period.granularity)
+    .toISOString(),
+  activityTimestampTo: moment().utc(),
+  orderBy: 'activeDaysCount_DESC',
+  offset: !pagination.count
+    ? (pagination.currentPage - 1) * pagination.pageSize
+    : 0,
+  limit: !pagination.count
+    ? pagination.pageSize
+    : pagination.count,
+});
 
 const onRowClick = () => {
   window.analytics.track('Click table widget row', {
@@ -207,7 +216,9 @@ const onExport = async ({ ids, count }) => {
 };
 
 onMounted(async () => {
-  activeMembers.value = await getActiveMembers(selectedPeriod.value);
+  activeMembers.value = await getActiveMembers(
+    selectedPeriod.value,
+  );
 });
 
 // Each time filter changes, query a new response
@@ -217,9 +228,9 @@ watch(
     activeMembers.value = await getActiveMembers(
       selectedPeriod.value,
       platforms,
-      teamMembers
+      teamMembers,
     );
-  }
+  },
 );
 </script>
 
