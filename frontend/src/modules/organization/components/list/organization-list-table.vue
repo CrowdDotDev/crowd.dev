@@ -11,7 +11,7 @@
         v-if="!hasOrganizations"
         icon="ri-community-line"
         title="No organizations yet"
-        description="We coulnd't track any organizations related to your community members"
+        description="We couldn't track any organizations related to your community members."
         cta-btn="Add organization"
         @cta-click="onCtaClick"
       />
@@ -20,7 +20,7 @@
         v-else-if="hasOrganizations && !count"
         icon="ri-community-line"
         title="No organizations found"
-        description="We couldn't find any results that match your search criteria, please try a different query"
+        description="We couldn't find any results that match your search criteria, please try a different query."
       />
 
       <div v-else>
