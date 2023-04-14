@@ -68,6 +68,11 @@ export default (app) => {
     safeWrap(require('./helpers/discourseValidator').default),
   )
 
+  app.post(
+    '/tenant/:tenantId/discourse-test-webhook',
+    safeWrap(require('./helpers/discourseTestWebhook').default),
+  )
+
   if (TWITTER_CONFIG.clientId) {
     /**
      * Using the passport.authenticate this endpoint forces a
