@@ -20,6 +20,7 @@ import { getOrganizations } from '../serverless/integrations/usecases/linkedin/g
 import Error404 from '../errors/Error404'
 import IntegrationRunRepository from '../database/repositories/integrationRunRepository'
 import { IntegrationRunState } from '../types/integrationRunTypes'
+import { generateWebhookSecret } from '../utils/crypto'
 
 const discordToken = DISCORD_CONFIG.token2 || DISCORD_CONFIG.token
 
@@ -787,6 +788,7 @@ export default class IntegrationService {
     let run
 
     try {
+      const webhookSecret = generateWebhookSecret()
       integration = await this.createOrUpdate(
         {
           platform: PlatformType.DISCOURSE,
@@ -794,6 +796,7 @@ export default class IntegrationService {
             apiKey: integrationData.apiKey,
             apiUserame: integrationData.apiUsername,
             forumHostname: integrationData.forumHostname,
+            webhookSecret, // we can do encryption here
             updateMemberAttributes: true,
           },
           status: 'in-progress',
