@@ -1,11 +1,13 @@
 <template>
   <el-popover
-    placement="right-end"
+    :disabled="!(currentTenant && currentTenant.onboardedAt)"
+    placement="right-start"
     :width="230"
     trigger="click"
     popper-class="account-popover"
     @show="isDropdownOpen = true"
     @hide="isDropdownOpen = false"
+    class="h-min"
   >
     <template #reference>
       <div
@@ -40,26 +42,23 @@
     </template>
 
     <!-- Popover content -->
-    <div
-      v-if="currentTenant && currentTenant.onboardedAt"
-      class="flex flex-col gap-1 mb-1"
-    >
+    <div>
       <div class="popover-item" @click="doEditProfile">
         <i
           class="text-base text-gray-400 ri-account-circle-line"
         />
-        <span class="text-xs text-gray-900"><app-i18n code="auth.profile.title" /></span>
+        <span class="text-xs text-gray-900">Profile settings</span>
       </div>
-    </div>
-    <div
-      id="logout"
-      class="popover-item"
-      @click="doSignout"
-    >
-      <i
-        class="text-base text-gray-400 ri-logout-box-r-line"
-      />
-      <span class="text-xs text-gray-900"><app-i18n code="auth.signout" /></span>
+      <div
+        id="logout"
+        class="popover-item"
+        @click="doSignout"
+      >
+        <i
+          class="text-base text-gray-400 ri-logout-box-r-line"
+        />
+        <span class="text-xs text-gray-900">Sign out</span>
+      </div>
     </div>
   </el-popover>
 </template>
