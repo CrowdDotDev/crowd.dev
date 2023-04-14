@@ -65,7 +65,7 @@
               </h6>
               <i
                 v-if="guide.completed"
-                class="absolute right-0 bg-white z-10 ri-checkbox-circle-fill text-lg text-green-500 h-5 flex items-center"
+                class="absolute right-0 bg-white ri-checkbox-circle-fill text-lg text-green-500 h-5 flex items-center"
               />
             </template>
 
@@ -251,10 +251,17 @@ export default {
       }
     }
 
-    &.is-disabled .el-collapse-item__header {
-      @apply text-gray-400;
-      cursor: auto !important;
+    &.is-disabled {
+      .el-collapse-item__header {
+        @apply text-gray-400;
+        cursor: auto !important;
+      }
+
+      .el-collapse-item__arrow {
+        display: none;
+      }
     }
+
   }
 
   .el-collapse-item__content {
