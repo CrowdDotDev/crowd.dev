@@ -5,9 +5,9 @@
     :width="230"
     trigger="click"
     popper-class="account-popover"
+    class="h-min"
     @show="isDropdownOpen = true"
     @hide="isDropdownOpen = false"
-    class="h-min"
   >
     <template #reference>
       <div
@@ -129,10 +129,11 @@ export default {
 // Override inline style in popover
 .account-popover {
   padding: 8px !important;
-  bottom: 10px !important;
+  transform: translateY(-10px);
   border-radius: 8px !important;
   border: none !important;
   box-shadow: 0px 1px 6px rgba(0, 0, 0, 0.2) !important;
+  height: min-content;
 }
 
 // Smooth disappearance of account information on collapse
