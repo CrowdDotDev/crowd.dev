@@ -1,6 +1,5 @@
 import sharedGetters from '@/shared/store/getters';
 import { router } from '@/router';
-import config from '@/config';
 
 export default {
   ...sharedGetters(),
