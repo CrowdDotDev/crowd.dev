@@ -1039,7 +1039,6 @@ select m.id,
        coalesce(mo.all_organizations, json_build_array()) as organizations
 from members m
          inner join "memberActivityAggregatesMVs" aggs on aggs.id = m.id
-         inner join identities i on m.id = i."memberId"
          left join to_merge_data tmd on m.id = tmd."memberId"
          left join no_merge_data nmd on m.id = nmd."memberId"
          left join member_tags mt on m.id = mt."memberId"

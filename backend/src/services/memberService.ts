@@ -479,7 +479,10 @@ export default class MemberService extends LoggingBase {
       // Performs a merge and returns the fields that were changed so we can update
       const toUpdate: any = await MemberService.membersMerge(original, toMerge)
 
+      // we will handle activities later manually
       delete toUpdate.activities
+      // we already handled identities
+      delete toUpdate.username
 
       // Update original member
       const txService = new MemberService(repoOptions as IServiceOptions)
