@@ -100,7 +100,6 @@ import { mapActions, mapGetters } from 'vuex';
 import Banner from '@/shared/banner/banner.vue';
 import identify from '@/shared/monitoring/identify';
 import AppMenu from '@/modules/layout/components/menu.vue';
-import config from '@/config';
 import formbricks from '@/plugins/formbricks';
 
 export default {
