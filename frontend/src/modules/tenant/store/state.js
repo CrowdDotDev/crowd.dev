@@ -1,5 +1,3 @@
-import config from '@/config';
-
 export default () => ({
   records: {},
   list: {
@@ -20,7 +18,4 @@ export default () => ({
     isReady: false,
     hasError: false,
   },
-  hidePmfBanner: localStorage.getItem(
-    `hidePmfBanner-${config.formbricks.pmfFormId}`,
-  ),
 });

@@ -1,5 +1,4 @@
 import sharedMutations from '@/shared/store/mutations';
-import config from '@/config';
 
 export default {
   ...sharedMutations(),
@@ -12,14 +11,5 @@ export default {
     if (hasError !== null) {
       state.featureFlag.hasError = hasError;
     }
-  },
-
-  HIDE_PMF_BANNER(state) {
-    state.hidePmfBanner = true;
-
-    localStorage.setItem(
-      `hidePmfBanner-${config.formbricks.pmfFormId}`,
-      true,
-    );
   },
 };
