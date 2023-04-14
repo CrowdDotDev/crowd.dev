@@ -215,19 +215,6 @@ export default {
         },
       });
     },
-    triggerPmfSurvey() {
-      const timestampSignup = new Date(
-        this.currentUser.createdAt,
-      ).getTime();
-      const timeStamp4WeeksAgo = new Date().getTime() - 4 * 7 * 24 * 60 * 60 * 1000;
-      const timeStamp2023 = new Date('2023-01-01').getTime();
-
-      if (timestampSignup >= timeStamp2023
-        && timestampSignup <= timeStamp4WeeksAgo && formbricks) {
-        formbricks.track('pmfSurveyOpen');
-        formbricks.refresh();
-      }
-    },
   },
 };
 </script>
