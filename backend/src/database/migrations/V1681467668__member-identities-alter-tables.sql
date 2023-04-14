@@ -4,6 +4,9 @@ alter table members
 alter table members
     rename column username to "usernameOld";
 
+alter table activities
+    alter column username drop default;
+
 drop materialized view "memberActivityAggregatesMVs";
 
 create materialized view "memberActivityAggregatesMVs" as
