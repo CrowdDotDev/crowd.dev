@@ -20,7 +20,4 @@ export default () => ({
     isReady: false,
     hasError: false,
   },
-  hidePmfBanner: localStorage.getItem(
-    `hidePmfBanner`,
-  ),
 });

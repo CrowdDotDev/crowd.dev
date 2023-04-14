@@ -88,72 +88,11 @@
               when it’s done.
             </div>
           </banner>
-          <banner v-if="showPMFSurveyAlert" variant="info">
-            <div
-              class="flex items-center justify-center grow text-sm"
-            >
-              <div class="flex-1" />
-              <div class="">
-                Do you have 1 minute to help us improve
-                crowd.dev for you? 😊
-                <button
-                  type="button"
-                  data-tf-medium="snippet"
-                  class="btn btn--sm btn--primary ml-4"
-                  @click="toggleShowPmfSurvey()"
-                >
-                  Take survey
-                </button>
-              </div>
-              <div class="flex-1">
-                <div class="w-20 ml-auto">
-                  <button type="button" @click="doHidePmfBanner()">
-                    <i
-                      class="ri-close-line text-gray-700"
-                    />
-                  </button>
-                </div>
-              </div>
-            </div>
-          </banner>
         </div>
         <router-view />
       </el-main>
     </el-container>
   </el-container>
-  <!-- PMF Modal -->
-  <div
-    v-show="showPmfSurvey"
-    class="relative z-30"
-    aria-labelledby="modal-title"
-    role="dialog"
-    aria-modal="true"
-  >
-    <div
-      class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"
-    />
-
-    <div class="fixed inset-0 z-10 overflow-y-auto">
-      <div
-        class="flex min-h-full items-center justify-center p-4 text-center sm:items-center sm:p-0"
-      >
-        <div
-          class="relative transform overflow-hidden rounded-lg bg-white px-4 pt-5 pb-4 text-left shadow-xl
-           transition-all sm:my-8 sm:w-full sm:max-w-sm sm:p-6 w-96"
-          @click="(e) => e.stopPropagation()"
-        >
-          <button
-            type="button"
-            class="absolute right-3 top-3"
-            @click="toggleShowPmfSurvey()"
-          >
-            <i class="ri-close-line text-gray-700" />
-          </button>
-          <div id="formbricks-pmf-container" />
-        </div>
-      </div>
-    </div>
-  </div>
 </template>
 
 <script>
@@ -161,7 +100,6 @@ import { mapActions, mapGetters } from 'vuex';
 import Banner from '@/shared/banner/banner.vue';
 import identify from '@/shared/monitoring/identify';
 import AppMenu from '@/modules/layout/components/menu.vue';
-import formbricks from '@/plugins/formbricks';
 
 export default {
   name: 'AppLayout',
@@ -175,7 +113,6 @@ export default {
     return {
       fetchIntegrationTimer: null,
       loading: false,
-      showPmfSurvey: false,
     };
   },
 
@@ -195,7 +132,6 @@ export default {
         'tenant/showIntegrationsNoDataAlert',
       showIntegrationsInProgressAlert:
         'tenant/showIntegrationsInProgressAlert',
-      showPMFSurveyAlert: 'tenant/showPMFSurveyAlert',
       showBanner: 'tenant/showBanner',
     }),
     integrationsInProgressToString() {
@@ -245,13 +181,7 @@ export default {
   methods: {
     ...mapActions({
       collapseMenu: 'layout/collapseMenu',
-      doHidePmfBanner: 'tenant/doHidePmfBanner',
     }),
-
-    toggleShowPmfSurvey() {
-      this.showPmfSurvey = !this.showPmfSurvey;
-      formbricks.track(this.showPmfSurvey ? 'pmfSurveyOpen' : 'pmfSurveyClose');
-    },
 
     initPendo() {
       // This function creates anonymous visitor IDs in Pendo unless you change the visitor id field to use your app's values

@@ -54,32 +54,11 @@ export default {
     return integrationsInProgress.length > 0;
   },
 
-  showPMFSurveyAlert: (
-    state,
-    _getters,
-    _rootState,
-    rootGetters,
-  ) => {
-    const timestampSignup = new Date(
-      rootGetters['auth/currentUser'].createdAt,
-    ).getTime();
-    const timeStamp4WeeksAgo = new Date().getTime() - 4 * 7 * 24 * 60 * 60 * 1000;
-    const timeStamp2023 = new Date('2023-01-01').getTime();
-
-    return (
-      timestampSignup >= timeStamp2023
-      && timestampSignup <= timeStamp4WeeksAgo
-      && config.formbricks.url
-      && config.formbricks.environmentId
-      && !state.hidePmfBanner
-    );
-  },
 
   showBanner: (_state, getters) => (
     getters.showSampleDataAlert
       || getters.showIntegrationsErrorAlert
       || getters.showIntegrationsNoDataAlert
       || getters.showIntegrationsInProgressAlert
-      || getters.showPMFSurveyAlert
   ),
 };

@@ -1,4 +1,5 @@
 import AuthCurrentTenant from '@/modules/auth/auth-current-tenant';
+import formbricks from '@/plugins/formbricks';
 
 export default {
   CURRENT_USER_REFRESH_SUCCESS(state, payload) {
@@ -14,6 +15,9 @@ export default {
 
   AUTH_SUCCESS(state, payload) {
     state.currentUser = payload.currentUser || null;
+    formbricks.setEmail(state.currentUser.email);
+    formbricks.setUserId(state.currentUser.id);
+    formbricks.setAttribute('name', state.currentUser.fullName);
     state.currentTenant = AuthCurrentTenant.selectAndSaveOnStorageFor(
       payload.currentUser,
     );
@@ -21,6 +25,7 @@ export default {
   },
 
   AUTH_ERROR(state) {
+    formbricks.logout();
     state.currentUser = null;
     state.currentTenant = null;
     state.loading = false;
@@ -100,6 +105,9 @@ export default {
 
   AUTH_INIT_SUCCESS(state, payload) {
     state.currentUser = payload.currentUser || null;
+    formbricks.setEmail(state.currentUser.email);
+    formbricks.setUserId(state.currentUser.id);
+    formbricks.setAttribute('name', state.currentUser.fullName);
     state.currentTenant = AuthCurrentTenant.selectAndSaveOnStorageFor(
       payload.currentUser,
     );
@@ -107,6 +115,7 @@ export default {
   },
 
   AUTH_INIT_ERROR(state) {
+    formbricks.logout();
     state.currentUser = null;
     state.currentTenant = null;
     state.loadingInit = false;

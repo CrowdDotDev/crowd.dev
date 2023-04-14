@@ -12,13 +12,4 @@ export default {
       state.featureFlag.hasError = hasError;
     }
   },
-
-  HIDE_PMF_BANNER(state) {
-    state.hidePmfBanner = true;
-
-    localStorage.setItem(
-      'hidePmfBanner',
-      true,
-    );
-  },
 };
