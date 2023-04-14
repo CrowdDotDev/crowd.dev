@@ -306,7 +306,7 @@ export default {
               },
             ],
           },
-          'timestamp_DESC',
+          ['timestamp_ASC', 'createdAt_ASC'],
           null,
           0,
           false,
