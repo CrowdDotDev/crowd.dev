@@ -804,7 +804,7 @@ class MemberRepository {
              count(*) over ()                  as "totalCount"
       from members m
                inner join activity_data ad on ad."memberId" = m.id
-               inner join identitites i on i."memberId" = m.id
+               inner join identities i on i."memberId" = m.id
                left join orgs o on o."memberId" = m.id
       where ${conditionsString}
       order by ${orderString}
