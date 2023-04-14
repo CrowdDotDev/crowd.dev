@@ -487,6 +487,6 @@ export class LinkedinIntegrationService extends IntegrationServiceBase {
   }
 
   private static isPrivateMember(member: Member): boolean {
-    return member.username[PlatformType.LINKEDIN].startsWith('private-')
+    return member.username[PlatformType.LINKEDIN].username.startsWith('private-')
   }
 }
