@@ -52,14 +52,13 @@
       </div>
     </div>
     <div
-      id="logout"
       class="popover-item"
       @click="doSignout"
     >
       <i
         class="text-base text-gray-400 ri-logout-box-r-line"
       />
-      <span class="text-xs text-gray-900"><app-i18n code="auth.signout" /></span>
+      <span class="text-xs text-gray-900">Sign out</span>
     </div>
   </el-popover>
 </template>
