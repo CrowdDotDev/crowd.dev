@@ -56,7 +56,7 @@
       </div>
     </template>
   </query-renderer>
-  <app-widget-drawer
+  <app-widget-api-drawer
     v-if="drawerExpanded"
     v-model="drawerExpanded"
     :fetch-fn="getActiveMembers"
@@ -68,7 +68,11 @@
     :template="MEMBERS_REPORT.nameAsId"
     size="480px"
     @on-export="onExport"
-  />
+  >
+    <template #content="contentProps">
+      <app-widget-members-table v-bind="contentProps" />
+    </template>
+  </app-widget-api-drawer>
 </template>
 
 <script setup>
@@ -94,10 +98,11 @@ import {
 } from '@/modules/widget/widget-queries';
 import AppWidgetLoading from '@/modules/widget/components/v2/shared/widget-loading.vue';
 import AppWidgetError from '@/modules/widget/components/v2/shared/widget-error.vue';
-import AppWidgetDrawer from '@/modules/widget/components/v2/shared/widget-drawer.vue';
+import AppWidgetApiDrawer from '@/modules/widget/components/v2/shared/widget-api-drawer.vue';
 import { MemberService } from '@/modules/member/member-service';
 import { MEMBERS_REPORT } from '@/modules/report/templates/template-reports';
 import { parseAxisLabel } from '@/utils/reports';
+import AppWidgetMembersTable from '@/modules/widget/components/v2/shared/widget-members-table.vue';
 
 const props = defineProps({
   filters: {

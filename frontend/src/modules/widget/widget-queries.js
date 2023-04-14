@@ -292,3 +292,59 @@ export const ACTIVITIES_QUERY = ({
     hasTeamActivities: selectedHasTeamActivities,
   }),
 });
+
+export const LEADERBOARD_ACTIVITIES_TYPES_QUERY = ({
+  period,
+  selectedPlatforms,
+  selectedHasTeamActivities,
+}) => ({
+  measures: ['Activities.count'],
+  order: {
+    'Activities.count': 'desc',
+  },
+  dimensions: ['Activities.platform', 'Activities.type'],
+  timeDimensions: [
+    {
+      dateRange: [
+        moment()
+          .utc()
+          .subtract(period.value, period.granularity)
+          .format('YYYY-MM-DD'),
+        moment().utc().format('YYYY-MM-DD'),
+      ],
+      dimension: 'Activities.date',
+    },
+  ],
+  filters:
+    getCubeFilters({
+      platforms: selectedPlatforms,
+      hasTeamActivities: selectedHasTeamActivities,
+    }),
+
+});
+
+export const LEADERBOARD_ACTIVITIES_COUNT_QUERY = ({
+  period,
+  selectedPlatforms,
+  selectedHasTeamActivities,
+}) => ({
+  measures: ['Activities.count'],
+  timeDimensions: [
+    {
+      dateRange: [
+        moment()
+          .utc()
+          .subtract(period.value, period.granularity)
+          .format('YYYY-MM-DD'),
+        moment().utc().format('YYYY-MM-DD'),
+      ],
+      dimension: 'Activities.date',
+    },
+  ],
+  filters:
+    getCubeFilters({
+      platforms: selectedPlatforms,
+      hasTeamActivities: selectedHasTeamActivities,
+    }),
+
+});

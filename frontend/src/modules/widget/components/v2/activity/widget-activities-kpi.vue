@@ -41,7 +41,7 @@
               v-else
               :current-value="kpiCurrentValue(resultSet, widget)"
               :previous-value="kpiPreviousValue(resultSet)"
-              :vs-label="`vs. last ${widget.period}`"
+              :vs-label="`vs. ${widget.period === 'day' ? 'yesterday' : `last ${widget.period}`}`"
             />
           </template>
         </query-renderer>

@@ -51,13 +51,13 @@
               v-else
               :current-value="kpiCurrentValue(resultSet)"
               :previous-value="kpiPreviousValue(resultSet)"
-              :vs-label="`vs. last ${widget.period}`"
+              :vs-label="`vs. ${widget.period === 'day' ? 'yesterday' : `last ${widget.period}`}`"
             />
           </template>
         </query-renderer>
       </div>
     </div>
-    <app-widget-drawer
+    <app-widget-api-drawer
       v-if="drawerExpanded"
       v-model="drawerExpanded"
       :fetch-fn="getActiveMembers"
@@ -66,7 +66,11 @@
       :template="MEMBERS_REPORT.nameAsId"
       size="480px"
       @on-export="onExport"
-    />
+    >
+      <template #content="contentProps">
+        <app-widget-members-table v-bind="contentProps" />
+      </template>
+    </app-widget-api-drawer>
   </div>
 </template>
 
@@ -83,7 +87,7 @@ import AppWidgetKpi from '@/modules/widget/components/v2/shared/widget-kpi.vue';
 import AppWidgetTitle from '@/modules/widget/components/v2/shared/widget-title.vue';
 import AppWidgetLoading from '@/modules/widget/components/v2/shared/widget-loading.vue';
 import AppWidgetError from '@/modules/widget/components/v2/shared/widget-error.vue';
-import AppWidgetDrawer from '@/modules/widget/components/v2/shared/widget-drawer.vue';
+import AppWidgetApiDrawer from '@/modules/widget/components/v2/shared/widget-api-drawer.vue';
 import {
   ONE_DAY_PERIOD_FILTER,
   FOURTEEN_DAYS_PERIOD_FILTER,
@@ -94,6 +98,7 @@ import {
 } from '@/modules/widget/widget-constants';
 import { MemberService } from '@/modules/member/member-service';
 import { MEMBERS_REPORT } from '@/modules/report/templates/template-reports';
+import AppWidgetMembersTable from '@/modules/widget/components/v2/shared/widget-members-table.vue';
 
 const props = defineProps({
   filters: {

@@ -58,7 +58,7 @@
       </template>
     </app-widget-insight>
   </div>
-  <app-widget-drawer
+  <app-widget-api-drawer
     v-if="drawerExpanded"
     v-model="drawerExpanded"
     :fetch-fn="getDetailedActiveMembers"
@@ -70,7 +70,11 @@
     :template="MEMBERS_REPORT.nameAsId"
     size="480px"
     @on-export="onExport"
-  />
+  >
+    <template #content="contentProps">
+      <app-widget-members-table v-bind="contentProps" />
+    </template>
+  </app-widget-api-drawer>
 </template>
 
 <script setup>
@@ -92,7 +96,7 @@ import { MemberService } from '@/modules/member/member-service';
 import AppWidgetLoading from '@/modules/widget/components/v2/shared/widget-loading.vue';
 import AppWidgetError from '@/modules/widget/components/v2/shared/widget-error.vue';
 import AppWidgetEmpty from '@/modules/widget/components/v2/shared/widget-empty.vue';
-import AppWidgetDrawer from '@/modules/widget/components/v2/shared/widget-drawer.vue';
+import AppWidgetApiDrawer from '@/modules/widget/components/v2/shared/widget-api-drawer.vue';
 import { mapActions } from '@/shared/vuex/vuex.helpers';
 import { MEMBERS_REPORT } from '@/modules/report/templates/template-reports';
 

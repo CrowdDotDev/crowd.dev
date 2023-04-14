@@ -1,6 +1,6 @@
 <template>
   <div
-    v-if="loading"
+    v-if="loading || !currentTemplate"
     v-loading="loading"
     class="app-page-spinner"
   />
@@ -157,7 +157,7 @@ const platform = ref(initialPlatformValue);
 const teamMembers = ref(false);
 const teamActivities = ref(false);
 
-const currentTemplate = computed(() => templates.find((t) => t.nameAsId === report.value.name));
+const currentTemplate = computed(() => templates.find((t) => t.nameAsId === report.value?.name));
 
 const { cubejsApi } = mapGetters('widget');
 const { getCubeToken } = mapActions('widget');
