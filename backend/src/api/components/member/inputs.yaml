@@ -20,6 +20,17 @@ components:
           items:
             $ref: '#/components/schemas/OrganizationNoId'
 
+    MemberOrganizationsUpdate:
+      type: object
+      properties:
+        organizations:
+          description: >-
+            Organizations associated with the member. Each element in the array is the name of the organization, or an organization object.
+            If the organization does not exist, it will be created.
+          type: array
+          items:
+            type: string
+
     MemberInputRelations:
       type: object
       properties:
@@ -50,3 +61,10 @@ components:
         - $ref: '#/components/schemas/MemberNoId'
         - $ref: '#/components/schemas/MemberOrganizations'
         - $ref: '#/components/schemas/MemberInputRelations'
+
+    MemberUpdateInput:
+      allOf:
+        - $ref: '#/components/schemas/MemberPlatformHelper'
+        - $ref: '#/components/schemas/MemberNoId'
+        - $ref: '#/components/schemas/MemberInputRelations'
+        - $ref: '#/components/schemas/MemberOrganizationsUpdate'
