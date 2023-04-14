@@ -1,8 +1,12 @@
 # Contributing to crowd.dev
 
-Contributions are what make the open source community such an amazing place to learn, inspire, and create. Any contributions you make are **greatly appreciated**.
+Contributions are what make the open source community such an amazing place to learn, inspire, and create.
 
-Before jumping into a PR be sure to reach out to us. You can reach us either via [Discord](http://crowd.dev/discord) or [Book a Contributor Onboarding Call](https://cal.com/team/CrowdDotDev/contributor-onboarding?duration=15).
+* For your first contribution we recommend taking a look at our [good first issues 🥂](https://github.com/CrowdDotDev/crowd.dev/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue+%F0%9F%A5%82%22).
+* If you want to contribute to our codebase, you have to first [sign our Contributor License Agreement](https://cla-assistant.io/CrowdDotDev/crowd.dev).
+* If you need help you can reach us either via [Discord](http://crowd.dev/discord) or [Book a Contributor Onboarding Call](https://cal.com/team/CrowdDotDev/contributor-onboarding?duration=15).
+
+Any contributions you make are **greatly appreciated**. ❤️
 
 ## Priorities
 
@@ -17,7 +21,7 @@ Before jumping into a PR be sure to reach out to us. You can reach us either via
   </tr>
    <tr>
     <td>
-      Core Bugs (Login, Integrations, etc)
+      Bug in Critical Features (Login, Integrations, etc)
     </td>
     <td>
       <a href="https://github.com/calcom/cal.com/issues?q=is:issue+is:open+sort:updated-desc+label:Urgent">
@@ -27,7 +31,7 @@ Before jumping into a PR be sure to reach out to us. You can reach us either via
   </tr>
   <tr>
     <td>
-      Core Features (Integrations, Members, Activities, Reports, etc)
+      Bug in Core Features (Home, Members, Organizations, Activities, Reports)
     </td>
     <td>
       <a href="https://github.com/calcom/cal.com/issues?q=is:issue+is:open+sort:updated-desc+label:%22High+priority%22">
