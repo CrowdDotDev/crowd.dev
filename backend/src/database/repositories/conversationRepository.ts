@@ -472,7 +472,10 @@ class ConversationRepository {
         for (const relationship of lazyLoad) {
           if (relationship === 'activities') {
             const allActivities = await record.getActivities({
-              order: [['timestamp', 'ASC'], ['createdAt', 'ASC']],
+              order: [
+                ['timestamp', 'ASC'],
+                ['createdAt', 'ASC'],
+              ],
               include: ['parent'],
             })
 
@@ -564,7 +567,10 @@ class ConversationRepository {
 
     output.activities = await record.getActivities({
       include: ['member', 'parent', 'objectMember'],
-      order: [['timestamp', 'ASC'], ['createdAt', 'ASC']],
+      order: [
+        ['timestamp', 'ASC'],
+        ['createdAt', 'ASC'],
+      ],
       transaction,
     })
 
