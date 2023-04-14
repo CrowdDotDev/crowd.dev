@@ -54,7 +54,6 @@ export default {
     return integrationsInProgress.length > 0;
   },
 
-
   showBanner: (_state, getters) => (
     getters.showSampleDataAlert
       || getters.showIntegrationsErrorAlert

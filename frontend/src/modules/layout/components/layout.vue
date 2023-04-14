@@ -100,6 +100,8 @@ import { mapActions, mapGetters } from 'vuex';
 import Banner from '@/shared/banner/banner.vue';
 import identify from '@/shared/monitoring/identify';
 import AppMenu from '@/modules/layout/components/menu.vue';
+import config from '@/config';
+import formbricks from '@/plugins/formbricks';
 
 export default {
   name: 'AppLayout',
@@ -172,6 +174,7 @@ export default {
   async mounted() {
     identify(this.currentUser);
     this.initPendo();
+    this.triggerPmfSurvey();
   },
 
   unmounted() {
@@ -212,6 +215,19 @@ export default {
           // as long as it's not one of the above reserved names.
         },
       });
+    },
+    triggerPmfSurvey() {
+      const timestampSignup = new Date(
+        this.currentUser.createdAt,
+      ).getTime();
+      const timeStamp4WeeksAgo = new Date().getTime() - 4 * 7 * 24 * 60 * 60 * 1000;
+      const timeStamp2023 = new Date('2023-01-01').getTime();
+
+      if (timestampSignup >= timeStamp2023
+        && timestampSignup <= timeStamp4WeeksAgo && formbricks) {
+        formbricks.track('pmfSurveyOpen');
+        formbricks.refresh();
+      }
     },
   },
 };
