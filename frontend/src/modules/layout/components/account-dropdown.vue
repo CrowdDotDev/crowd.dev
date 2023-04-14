@@ -133,7 +133,7 @@ export default {
   border-radius: 8px !important;
   border: none !important;
   box-shadow: 0px 1px 6px rgba(0, 0, 0, 0.2) !important;
-  height: min-content;
+  height: min-content !important;
 }
 
 // Smooth disappearance of account information on collapse
