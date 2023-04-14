@@ -173,7 +173,6 @@ export default {
   async mounted() {
     identify(this.currentUser);
     this.initPendo();
-    this.triggerPmfSurvey();
   },
 
   unmounted() {
