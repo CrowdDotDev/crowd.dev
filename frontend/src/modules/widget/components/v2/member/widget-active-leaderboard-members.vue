@@ -8,13 +8,13 @@
       >
         <div class="flex gap-1">
           <app-widget-title
-            title="Leaderbord: Most active members"
+            title="Leaderboard: Most active members"
             description="Members who were active on the most days in the selected time period"
           />
         </div>
         <app-widget-period
           template="Members"
-          widget="Leaderbord: Most active members"
+          widget="Leaderboard: Most active members"
           :period="selectedPeriod"
           module="reports"
           @on-update="onUpdatePeriod"
@@ -187,7 +187,7 @@ const getDetailedActiveMembers = ({
 const onRowClick = () => {
   window.analytics.track('Click table widget row', {
     template: MEMBERS_REPORT.nameAsId,
-    widget: 'Leaderbord: Most active members',
+    widget: 'Leaderboard: Most active members',
   });
 };
 
@@ -195,7 +195,7 @@ const onRowClick = () => {
 const handleDrawerOpen = async () => {
   window.analytics.track('Open report drawer', {
     template: MEMBERS_REPORT.nameAsId,
-    widget: 'Leaderbord: Most active members',
+    widget: 'Leaderboard: Most active members',
     period: selectedPeriod.value,
   });
 
