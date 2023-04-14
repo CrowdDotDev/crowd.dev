@@ -49,8 +49,4 @@ export default {
   doUpdateFeatureFlag({ commit }, { isReady, hasError }) {
     commit('UPDATE_FEATURE_FLAG', { isReady, hasError });
   },
-
-  doHidePmfBanner({ commit }) {
-    commit('HIDE_PMF_BANNER');
-  },
 };

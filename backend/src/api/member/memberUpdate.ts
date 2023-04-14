@@ -12,7 +12,7 @@ import PermissionChecker from '../../services/user/permissionChecker'
  * @description Update a member
  * @pathParam {string} tenantId - Your workspace/tenant ID
  * @pathParam {string} id - The ID of the member
- * @bodyContent {MemberUpsertInput} application/json
+ * @bodyContent {MemberUpdateInput} application/json
  * @response 200 - Ok
  * @responseContent {Member} 200.application/json
  * @responseExample {MemberUpsert} 200.application/json.Member
