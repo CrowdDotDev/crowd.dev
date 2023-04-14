@@ -26,8 +26,6 @@
 <!-- BODY -->
 
 ## About crowd.dev
-<a href="https://github.com/CrowdDotDev/crowd.dev/blob/main/LICENSE"><img src="https://img.shields.io/badge/License-Apache%202.0-%23E94F2E"></a>
-[![Open Bounties](https://img.shields.io/endpoint?url=https%3A%2F%2Fconsole.algora.io%2Fapi%2Fshields%2FCrowdDotDev%2Fbounties%3Fstatus%3Dopen)](https://console.algora.io/org/CrowdDotDev/bounties?status=open)
 
 crowd.dev is an open-source suite of community and data tools built to unlock community-led growth for your organization.
 
