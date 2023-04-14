@@ -50,7 +50,7 @@ where mi."memberId" = m.id
   and m.attributes -> 'sourceId' ? mi.platform;
 
 alter table activities
-    add column "username" text null;
+    add column "username" text not null default '';
 
 update activities
 set username = mi.username

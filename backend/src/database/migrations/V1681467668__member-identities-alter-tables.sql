@@ -1,6 +1,3 @@
-alter table activities
-    alter column "username" set not null;
-
 alter table members
     alter column username drop not null;
 
