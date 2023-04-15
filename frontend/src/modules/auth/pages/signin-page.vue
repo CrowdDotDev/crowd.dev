@@ -131,7 +131,7 @@
         <p class="text-sm leading-5 text-center">
           Don't have an account yet?
           <router-link :to="{ name: 'signup' }">
-            Create an Account
+            Create a free account
           </router-link>
         </p>
       </div>
