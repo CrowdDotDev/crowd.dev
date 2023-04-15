@@ -192,14 +192,19 @@ export default class ActivityService extends LoggingBase {
       let compound = Math.round(((sentiment.compound + 1) / 2) * 100)
 
       // Some activities are inherently different, we might want to dampen their sentiment
-      const typesToDamp = [
-        GithubActivityType.PULL_REQUEST_OPENED,
-        GithubActivityType.PULL_REQUEST_OPENED,
-        GithubActivityType.ISSUE_OPENED,
-        GithubActivityType.ISSUE_CLOSED,
-      ]
-      if (data.type.includes(typesToDamp)) {
-        compound *= 0.75
+      const typesToDamp = {
+        [GithubActivityType.PULL_REQUEST_OPENED]: 0.75,
+        [GithubActivityType.PULL_REQUEST_CLOSED]: 0.75,
+        [GithubActivityType.ISSUE_OPENED]: 0.75,
+        [GithubActivityType.DISCUSSION_STARTED]: 0.75,
+        [GithubActivityType.ISSUE_CLOSED]: 0.75,
+        [GithubActivityType.ISSUE_COMMENT]: 0.85,
+        [GithubActivityType.PULL_REQUEST_COMMENT]: 0.85,
+        [GithubActivityType.DISCUSSION_COMMENT]: 0.85,
+        [GithubActivityType.DISCUSSION_STARTED]: 0.75,
+      }
+      if (Object.keys(typesToDamp).includes(data.type)) {
+        compound *= Math.round(compound < 50 ? 1 / typesToDamp[data.type] : typesToDamp[data.type])
       }
 
       let label = 'neutral'
