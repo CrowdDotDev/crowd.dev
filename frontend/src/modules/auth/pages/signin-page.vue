@@ -127,6 +127,14 @@
           <span class="pl-3 text-gray-600">Sign in with Google</span>
         </a>
       </div>
+      <div class="flex justify-center">
+        <p class="text-sm leading-5 text-center">
+          Don't have an account yet?
+          <router-link :to="{ name: 'signup' }">
+            Create an Account
+          </router-link>
+        </p>
+      </div>
     </div>
   </div>
 </template>
