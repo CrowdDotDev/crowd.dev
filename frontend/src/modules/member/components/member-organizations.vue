@@ -22,20 +22,20 @@
           >
             {{ organization.name || '-' }}
           </p>
-          <div
-            v-if="
-              props.showTitle
-                && props.member.attributes.jobTitle?.default
-            "
-            class="text-gray-500 text-2xs truncate pr-4"
-          >
-            {{
-              props.member.attributes.jobTitle?.default
-                || '-'
-            }}
-          </div>
         </div>
       </router-link>
+      <div
+        v-if="
+          props.showTitle
+            && props.member.attributes.jobTitle?.default
+        "
+        class="text-gray-500 text-2xs truncate pr-4"
+      >
+        {{
+          props.member.attributes.jobTitle?.default
+            || '-'
+        }}
+      </div>
     </div>
     <div
       v-else-if="props.member.attributes.jobTitle?.default"
