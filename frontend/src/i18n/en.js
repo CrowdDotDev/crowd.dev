@@ -189,6 +189,7 @@ const en = {
         displayName: 'Display Name',
         activities: 'Activities',
         activityCount: '# of activities',
+        numberOfOpenSourceContributions: '# of open source contributions',
         activityTypes: 'Activity Type',
         location: 'Location',
         organization: 'Organization',

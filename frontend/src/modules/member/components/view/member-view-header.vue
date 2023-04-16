@@ -48,6 +48,19 @@
       </div>
       <div>
         <p class="text-gray-400 font-medium text-2xs">
+          # of open source contributions
+        </p>
+        <p class="mt-1 text-gray-900 text-xs">
+          {{
+            formattedInformation(
+              member.numberOfOpenSourceContributions,
+              'integer',
+            )
+          }}
+        </p>
+      </div>
+      <div>
+        <p class="text-gray-400 font-medium text-2xs">
           Location
         </p>
         <p class="mt-1 text-gray-900 text-xs">

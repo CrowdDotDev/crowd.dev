@@ -111,6 +111,11 @@ const fields = {
     label('activityCount'),
     { filterable: true },
   ),
+  numberOfOpenSourceContributions: new IntegerField(
+    'numberOfOpenSourceContributions',
+    label('numberOfOpenSourceContributions'),
+    { filterable: true },
+  ),
   activityTypes: new ActivityTypeField(
     'activityTypes',
     label('activityTypes'),
