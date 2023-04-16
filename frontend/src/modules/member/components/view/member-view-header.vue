@@ -54,7 +54,7 @@
           {{
             formattedInformation(
               member.numberOfOpenSourceContributions,
-              'integer',
+              'number',
             )
           }}
         </p>

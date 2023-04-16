@@ -282,7 +282,7 @@
 
               <!-- # of Open Source Contributions -->
               <el-table-column
-                label="# of Open Source Contributions"
+                label="# OSS Contributions"
                 width="200"
                 prop="numberOfOpenSourceContributions"
                 sortable
