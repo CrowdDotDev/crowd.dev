@@ -1682,7 +1682,7 @@ where m."deletedAt" is null
 
     output.activityCount = output.activities.length
 
-    output.numberOfOpenSourceContributions = output.contributions.length
+    output.numberOfOpenSourceContributions = output.contributions?.length || 0
 
     output.activityTypes = [...new Set(output.activities.map((i) => `${i.platform}:${i.type}`))]
     output.activeDaysCount =
