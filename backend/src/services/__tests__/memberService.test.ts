@@ -1712,6 +1712,7 @@ describe('MemberService tests', () => {
         averageSentiment: activityCreated.sentiment.sentiment,
         lastActive: activityCreated.timestamp,
         lastActivity: activityCreated,
+        numberOfOpenSourceContributions: 0,
       }
 
       expect(mergedMember.tasks.sort()).toEqual(expectedMember.tasks.sort())
@@ -1933,6 +1934,7 @@ describe('MemberService tests', () => {
       delete returnedMember1.identities
       delete returnedMember1.activityTypes
       delete returnedMember1.activeDaysCount
+      delete returnedMember1.numberOfOpenSourceContributions
 
       const existing = await memberService.memberExists(
         member1.username[PlatformType.GITHUB],
@@ -2030,6 +2032,7 @@ describe('MemberService tests', () => {
       delete returnedMember1.identities
       delete returnedMember1.activityTypes
       delete returnedMember1.activeDaysCount
+      delete returnedMember1.numberOfOpenSourceContributions
 
       const existing = await memberService.memberExists(
         { [PlatformType.DISCORD]: 'some-other-username' },
@@ -2564,22 +2567,22 @@ describe('MemberService tests', () => {
         },
         contributions: [
           {
-            "id": 112529473,
-            "url": "https://github.com/bighead/silicon-valley",
-            "topics": ["TV Shows", "Comedy", "Startups"],
-            "summary": "Silicon Valley: 50 commits in 2 weeks",
-            "numberCommits": 50,
-            "lastCommitDate": "02/01/2023",
-            "firstCommitDate": "01/17/2023"
+            id: 112529473,
+            url: 'https://github.com/bighead/silicon-valley',
+            topics: ['TV Shows', 'Comedy', 'Startups'],
+            summary: 'Silicon Valley: 50 commits in 2 weeks',
+            numberCommits: 50,
+            lastCommitDate: '02/01/2023',
+            firstCommitDate: '01/17/2023',
           },
           {
-            "id": 112529474,
-            "url": "https://github.com/bighead/startup-ideas",
-            "topics": ["Ideas", "Startups"],
-            "summary": "Startup Ideas: 20 commits in 1 week",
-            "numberCommits": 20,
-            "lastCommitDate": "03/01/2023",
-            "firstCommitDate": "02/22/2023"
+            id: 112529474,
+            url: 'https://github.com/bighead/startup-ideas',
+            topics: ['Ideas', 'Startups'],
+            summary: 'Startup Ideas: 20 commits in 1 week',
+            numberCommits: 20,
+            lastCommitDate: '03/01/2023',
+            firstCommitDate: '02/22/2023',
           },
         ],
         joinedAt: '2022-05-28T15:13:30',
@@ -2634,32 +2637,32 @@ describe('MemberService tests', () => {
         },
         contributions: [
           {
-            "id": 112529472,
-            "url": "https://github.com/bachman/pied-piper",
-            "topics": ["compression", "data", "middle-out", "Java"],
-            "summary": "Pied Piper: 10 commits in 1 day",
-            "numberCommits": 10,
-            "lastCommitDate": "2023-03-10",
-            "firstCommitDate": "2023-03-01"
+            id: 112529472,
+            url: 'https://github.com/bachman/pied-piper',
+            topics: ['compression', 'data', 'middle-out', 'Java'],
+            summary: 'Pied Piper: 10 commits in 1 day',
+            numberCommits: 10,
+            lastCommitDate: '2023-03-10',
+            firstCommitDate: '2023-03-01',
           },
           {
-            "id": 112529473,
-            "url": "https://github.com/bachman/aviato",
-            "topics": ["Python", "Django"],
-            "summary": "Aviato: 5 commits in 1 day",
-            "numberCommits": 5,
-            "lastCommitDate": "2023-02-25",
-            "firstCommitDate": "2023-02-20"
+            id: 112529473,
+            url: 'https://github.com/bachman/aviato',
+            topics: ['Python', 'Django'],
+            summary: 'Aviato: 5 commits in 1 day',
+            numberCommits: 5,
+            lastCommitDate: '2023-02-25',
+            firstCommitDate: '2023-02-20',
           },
           {
-            "id": 112529476,
-            "url": "https://github.com/bachman/erlichbot",
-            "topics": ["Python", "Slack API"],
-            "summary": "ErlichBot: 2 commits in 1 day",
-            "numberCommits": 2,
-            "lastCommitDate": "2023-01-25",
-            "firstCommitDate": "2023-01-24"
-          }
+            id: 112529476,
+            url: 'https://github.com/bachman/erlichbot',
+            topics: ['Python', 'Slack API'],
+            summary: 'ErlichBot: 2 commits in 1 day',
+            numberCommits: 2,
+            lastCommitDate: '2023-01-25',
+            firstCommitDate: '2023-01-24',
+          },
         ],
         joinedAt: '2022-09-15T15:13:30',
       }
@@ -2830,7 +2833,7 @@ describe('MemberService tests', () => {
       // filter by numberOfOpenSourceContributions
       members = await ms.findAndCountAll({
         filter: {
-          numberOfOpenSourceContributionsRange:[2, 6],
+          numberOfOpenSourceContributionsRange: [2, 6],
         },
       })
       expect(members.count).toBe(2)
@@ -2839,16 +2842,16 @@ describe('MemberService tests', () => {
       // filter by numberOfOpenSourceContributions only start
       members = await ms.findAndCountAll({
         filter: {
-          numberOfOpenSourceContributionsRange:[3],
+          numberOfOpenSourceContributionsRange: [3],
         },
       })
       expect(members.count).toBe(1)
       expect(members.rows.map((i) => i.id)).toStrictEqual([member2Created.id])
 
-       // filter and sort by numberOfOpenSourceContributions
-       members = await ms.findAndCountAll({
+      // filter and sort by numberOfOpenSourceContributions
+      members = await ms.findAndCountAll({
         filter: {
-          numberOfOpenSourceContributionsRange:[2, 6],
+          numberOfOpenSourceContributionsRange: [2, 6],
         },
         orderBy: 'numberOfOpenSourceContributions_ASC',
       })
@@ -2857,10 +2860,14 @@ describe('MemberService tests', () => {
 
       // sort by numberOfOpenSourceContributions
       members = await ms.findAndCountAll({
-        orderBy: 'numberOfOpenSourceContributions_ASC'
+        orderBy: 'numberOfOpenSourceContributions_ASC',
       })
       expect(members.count).toBe(3)
-      expect(members.rows.map((i) => i.id)).toStrictEqual([member3Created.id, member1Created.id, member2Created.id])
+      expect(members.rows.map((i) => i.id)).toStrictEqual([
+        member3Created.id,
+        member1Created.id,
+        member2Created.id,
+      ])
     })
   })
 })

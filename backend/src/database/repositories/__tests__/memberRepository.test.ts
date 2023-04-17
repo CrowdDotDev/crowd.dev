@@ -94,6 +94,7 @@ describe('MemberRepository tests', () => {
         activeDaysCount: 0,
         lastActive: null,
         averageSentiment: 0,
+        numberOfOpenSourceContributions: 0,
         lastActivity: null,
       }
       expect(memberCreated).toStrictEqual(expectedMemberCreated)
@@ -208,6 +209,7 @@ describe('MemberRepository tests', () => {
         activityCount: 0,
         activeDaysCount: 0,
         averageSentiment: 0,
+        numberOfOpenSourceContributions: 0,
         lastActive: null,
         lastActivity: null,
       }
@@ -350,6 +352,7 @@ describe('MemberRepository tests', () => {
         activityCount: 0,
         activeDaysCount: 0,
         averageSentiment: 0,
+        numberOfOpenSourceContributions: 0,
         lastActive: null,
         lastActivity: null,
       }
@@ -535,6 +538,7 @@ describe('MemberRepository tests', () => {
       delete member1Returned.identities
       delete member1Returned.activityTypes
       delete member1Returned.activeDaysCount
+      delete member1Returned.numberOfOpenSourceContributions
 
       const found = await MemberRepository.findOne(
         {
@@ -633,6 +637,7 @@ describe('MemberRepository tests', () => {
       delete member1Returned.identities
       delete member1Returned.activityTypes
       delete member1Returned.activeDaysCount
+      delete member1Returned.numberOfOpenSourceContributions
 
       const found = await MemberRepository.memberExists(
         'test1',
@@ -788,33 +793,33 @@ describe('MemberRepository tests', () => {
           joinedAt: new Date(),
           contributions: [
             {
-              "id": 112529472,
-              "url": "https://github.com/bachman/pied-piper",
-              "topics": ["compression", "data", "middle-out", "Java"],
-              "summary": "Pied Piper: 10 commits in 1 day",
-              "numberCommits": 10,
-              "lastCommitDate": "2023-03-10",
-              "firstCommitDate": "2023-03-01"
+              id: 112529472,
+              url: 'https://github.com/bachman/pied-piper',
+              topics: ['compression', 'data', 'middle-out', 'Java'],
+              summary: 'Pied Piper: 10 commits in 1 day',
+              numberCommits: 10,
+              lastCommitDate: '2023-03-10',
+              firstCommitDate: '2023-03-01',
             },
             {
-              "id": 112529473,
-              "url": "https://github.com/bachman/aviato",
-              "topics": ["Python", "Django"],
-              "summary": "Aviato: 5 commits in 1 day",
-              "numberCommits": 5,
-              "lastCommitDate": "2023-02-25",
-              "firstCommitDate": "2023-02-20"
+              id: 112529473,
+              url: 'https://github.com/bachman/aviato',
+              topics: ['Python', 'Django'],
+              summary: 'Aviato: 5 commits in 1 day',
+              numberCommits: 5,
+              lastCommitDate: '2023-02-25',
+              firstCommitDate: '2023-02-20',
             },
             {
-              "id": 112529476,
-              "url": "https://github.com/bachman/erlichbot",
-              "topics": ["Python", "Slack API"],
-              "summary": "ErlichBot: 2 commits in 1 day",
-              "numberCommits": 2,
-              "lastCommitDate": "2023-01-25",
-              "firstCommitDate": "2023-01-24"
-            }
-          ]
+              id: 112529476,
+              url: 'https://github.com/bachman/erlichbot',
+              topics: ['Python', 'Slack API'],
+              summary: 'ErlichBot: 2 commits in 1 day',
+              numberCommits: 2,
+              lastCommitDate: '2023-01-25',
+              firstCommitDate: '2023-01-24',
+            },
+          ],
         },
         mockIRepositoryOptions,
       )
@@ -826,24 +831,24 @@ describe('MemberRepository tests', () => {
           joinedAt: new Date(),
           contributions: [
             {
-              "id": 112529473,
-              "url": "https://github.com/bighead/silicon-valley",
-              "topics": ["TV Shows", "Comedy", "Startups"],
-              "summary": "Silicon Valley: 50 commits in 2 weeks",
-              "numberCommits": 50,
-              "lastCommitDate": "02/01/2023",
-              "firstCommitDate": "01/17/2023"
+              id: 112529473,
+              url: 'https://github.com/bighead/silicon-valley',
+              topics: ['TV Shows', 'Comedy', 'Startups'],
+              summary: 'Silicon Valley: 50 commits in 2 weeks',
+              numberCommits: 50,
+              lastCommitDate: '02/01/2023',
+              firstCommitDate: '01/17/2023',
             },
             {
-              "id": 112529474,
-              "url": "https://github.com/bighead/startup-ideas",
-              "topics": ["Ideas", "Startups"],
-              "summary": "Startup Ideas: 20 commits in 1 week",
-              "numberCommits": 20,
-              "lastCommitDate": "03/01/2023",
-              "firstCommitDate": "02/22/2023"
+              id: 112529474,
+              url: 'https://github.com/bighead/startup-ideas',
+              topics: ['Ideas', 'Startups'],
+              summary: 'Startup Ideas: 20 commits in 1 week',
+              numberCommits: 20,
+              lastCommitDate: '03/01/2023',
+              firstCommitDate: '02/22/2023',
             },
-          ]
+          ],
         },
         mockIRepositoryOptions,
       )
@@ -881,42 +886,42 @@ describe('MemberRepository tests', () => {
           joinedAt: new Date(),
           contributions: [
             {
-              "id": 112529472,
-              "url": "https://github.com/bachman/pied-piper",
-              "topics": ["compression", "data", "middle-out", "Java"],
-              "summary": "Pied Piper: 10 commits in 1 day",
-              "numberCommits": 10,
-              "lastCommitDate": "2023-03-10",
-              "firstCommitDate": "2023-03-01"
+              id: 112529472,
+              url: 'https://github.com/bachman/pied-piper',
+              topics: ['compression', 'data', 'middle-out', 'Java'],
+              summary: 'Pied Piper: 10 commits in 1 day',
+              numberCommits: 10,
+              lastCommitDate: '2023-03-10',
+              firstCommitDate: '2023-03-01',
             },
             {
-              "id": 112529473,
-              "url": "https://github.com/bachman/aviato",
-              "topics": ["Python", "Django"],
-              "summary": "Aviato: 5 commits in 1 day",
-              "numberCommits": 5,
-              "lastCommitDate": "2023-02-25",
-              "firstCommitDate": "2023-02-20"
+              id: 112529473,
+              url: 'https://github.com/bachman/aviato',
+              topics: ['Python', 'Django'],
+              summary: 'Aviato: 5 commits in 1 day',
+              numberCommits: 5,
+              lastCommitDate: '2023-02-25',
+              firstCommitDate: '2023-02-20',
             },
             {
-              "id": 112529476,
-              "url": "https://github.com/bachman/erlichbot",
-              "topics": ["Python", "Slack API"],
-              "summary": "ErlichBot: 2 commits in 1 day",
-              "numberCommits": 2,
-              "lastCommitDate": "2023-01-25",
-              "firstCommitDate": "2023-01-24"
+              id: 112529476,
+              url: 'https://github.com/bachman/erlichbot',
+              topics: ['Python', 'Slack API'],
+              summary: 'ErlichBot: 2 commits in 1 day',
+              numberCommits: 2,
+              lastCommitDate: '2023-01-25',
+              firstCommitDate: '2023-01-24',
             },
             {
-              "id": 112529473,
-              "url": "https://github.com/bighead/silicon-valley",
-              "topics": ["TV Shows", "Comedy", "Startups"],
-              "summary": "Silicon Valley: 50 commits in 2 weeks",
-              "numberCommits": 50,
-              "lastCommitDate": "02/01/2023",
-              "firstCommitDate": "01/17/2023"
+              id: 112529473,
+              url: 'https://github.com/bighead/silicon-valley',
+              topics: ['TV Shows', 'Comedy', 'Startups'],
+              summary: 'Silicon Valley: 50 commits in 2 weeks',
+              numberCommits: 50,
+              lastCommitDate: '02/01/2023',
+              firstCommitDate: '01/17/2023',
             },
-          ]
+          ],
         },
         mockIRepositoryOptions,
       )
@@ -928,24 +933,24 @@ describe('MemberRepository tests', () => {
           joinedAt: new Date(),
           contributions: [
             {
-              "id": 112529473,
-              "url": "https://github.com/bighead/silicon-valley",
-              "topics": ["TV Shows", "Comedy", "Startups"],
-              "summary": "Silicon Valley: 50 commits in 2 weeks",
-              "numberCommits": 50,
-              "lastCommitDate": "02/01/2023",
-              "firstCommitDate": "01/17/2023"
+              id: 112529473,
+              url: 'https://github.com/bighead/silicon-valley',
+              topics: ['TV Shows', 'Comedy', 'Startups'],
+              summary: 'Silicon Valley: 50 commits in 2 weeks',
+              numberCommits: 50,
+              lastCommitDate: '02/01/2023',
+              firstCommitDate: '01/17/2023',
             },
             {
-              "id": 112529474,
-              "url": "https://github.com/bighead/startup-ideas",
-              "topics": ["Ideas", "Startups"],
-              "summary": "Startup Ideas: 20 commits in 1 week",
-              "numberCommits": 20,
-              "lastCommitDate": "03/01/2023",
-              "firstCommitDate": "02/22/2023"
+              id: 112529474,
+              url: 'https://github.com/bighead/startup-ideas',
+              topics: ['Ideas', 'Startups'],
+              summary: 'Startup Ideas: 20 commits in 1 week',
+              numberCommits: 20,
+              lastCommitDate: '03/01/2023',
+              firstCommitDate: '02/22/2023',
             },
-          ]
+          ],
         },
         mockIRepositoryOptions,
       )
@@ -981,42 +986,42 @@ describe('MemberRepository tests', () => {
           joinedAt: new Date(),
           contributions: [
             {
-              "id": 112529472,
-              "url": "https://github.com/bachman/pied-piper",
-              "topics": ["compression", "data", "middle-out", "Java"],
-              "summary": "Pied Piper: 10 commits in 1 day",
-              "numberCommits": 10,
-              "lastCommitDate": "2023-03-10",
-              "firstCommitDate": "2023-03-01"
+              id: 112529472,
+              url: 'https://github.com/bachman/pied-piper',
+              topics: ['compression', 'data', 'middle-out', 'Java'],
+              summary: 'Pied Piper: 10 commits in 1 day',
+              numberCommits: 10,
+              lastCommitDate: '2023-03-10',
+              firstCommitDate: '2023-03-01',
             },
             {
-              "id": 112529473,
-              "url": "https://github.com/bachman/aviato",
-              "topics": ["Python", "Django"],
-              "summary": "Aviato: 5 commits in 1 day",
-              "numberCommits": 5,
-              "lastCommitDate": "2023-02-25",
-              "firstCommitDate": "2023-02-20"
+              id: 112529473,
+              url: 'https://github.com/bachman/aviato',
+              topics: ['Python', 'Django'],
+              summary: 'Aviato: 5 commits in 1 day',
+              numberCommits: 5,
+              lastCommitDate: '2023-02-25',
+              firstCommitDate: '2023-02-20',
             },
             {
-              "id": 112529476,
-              "url": "https://github.com/bachman/erlichbot",
-              "topics": ["Python", "Slack API"],
-              "summary": "ErlichBot: 2 commits in 1 day",
-              "numberCommits": 2,
-              "lastCommitDate": "2023-01-25",
-              "firstCommitDate": "2023-01-24"
+              id: 112529476,
+              url: 'https://github.com/bachman/erlichbot',
+              topics: ['Python', 'Slack API'],
+              summary: 'ErlichBot: 2 commits in 1 day',
+              numberCommits: 2,
+              lastCommitDate: '2023-01-25',
+              firstCommitDate: '2023-01-24',
             },
             {
-              "id": 112529473,
-              "url": "https://github.com/bighead/silicon-valley",
-              "topics": ["TV Shows", "Comedy", "Startups"],
-              "summary": "Silicon Valley: 50 commits in 2 weeks",
-              "numberCommits": 50,
-              "lastCommitDate": "02/01/2023",
-              "firstCommitDate": "01/17/2023"
+              id: 112529473,
+              url: 'https://github.com/bighead/silicon-valley',
+              topics: ['TV Shows', 'Comedy', 'Startups'],
+              summary: 'Silicon Valley: 50 commits in 2 weeks',
+              numberCommits: 50,
+              lastCommitDate: '02/01/2023',
+              firstCommitDate: '01/17/2023',
             },
-          ]
+          ],
         },
         mockIRepositoryOptions,
       )
@@ -1028,24 +1033,24 @@ describe('MemberRepository tests', () => {
           joinedAt: new Date(),
           contributions: [
             {
-              "id": 112529473,
-              "url": "https://github.com/bighead/silicon-valley",
-              "topics": ["TV Shows", "Comedy", "Startups"],
-              "summary": "Silicon Valley: 50 commits in 2 weeks",
-              "numberCommits": 50,
-              "lastCommitDate": "02/01/2023",
-              "firstCommitDate": "01/17/2023"
+              id: 112529473,
+              url: 'https://github.com/bighead/silicon-valley',
+              topics: ['TV Shows', 'Comedy', 'Startups'],
+              summary: 'Silicon Valley: 50 commits in 2 weeks',
+              numberCommits: 50,
+              lastCommitDate: '02/01/2023',
+              firstCommitDate: '01/17/2023',
             },
             {
-              "id": 112529474,
-              "url": "https://github.com/bighead/startup-ideas",
-              "topics": ["Ideas", "Startups"],
-              "summary": "Startup Ideas: 20 commits in 1 week",
-              "numberCommits": 20,
-              "lastCommitDate": "03/01/2023",
-              "firstCommitDate": "02/22/2023"
+              id: 112529474,
+              url: 'https://github.com/bighead/startup-ideas',
+              topics: ['Ideas', 'Startups'],
+              summary: 'Startup Ideas: 20 commits in 1 week',
+              numberCommits: 20,
+              lastCommitDate: '03/01/2023',
+              firstCommitDate: '02/22/2023',
             },
-          ]
+          ],
         },
         mockIRepositoryOptions,
       )
@@ -1062,14 +1067,16 @@ describe('MemberRepository tests', () => {
       await SequelizeTestUtils.refreshMaterializedViews(db)
 
       const members = await MemberRepository.findAndCountAll(
-        { filter: { numberOfOpenSourceContributionsRange: [2] } , orderBy: 'numberOfOpenSourceContributions_DESC'},
+        {
+          filter: { numberOfOpenSourceContributionsRange: [2] },
+          orderBy: 'numberOfOpenSourceContributions_DESC',
+        },
         mockIRepositoryOptions,
       )
 
       expect(members.rows.length).toEqual(2)
       expect(members.rows[0].numberOfOpenSourceContributions).toEqual(4)
       expect(members.rows[1].numberOfOpenSourceContributions).toEqual(2)
-
     })
 
     it('is successfully finding and counting all members, and tags [nodejs, vuejs]', async () => {
@@ -1662,33 +1669,33 @@ describe('MemberRepository tests', () => {
           joinedAt: new Date(),
           contributions: [
             {
-              "id": 112529472,
-              "url": "https://github.com/bachman/pied-piper",
-              "topics": ["compression", "data", "middle-out", "Java"],
-              "summary": "Pied Piper: 10 commits in 1 day",
-              "numberCommits": 10,
-              "lastCommitDate": "2023-03-10",
-              "firstCommitDate": "2023-03-01"
+              id: 112529472,
+              url: 'https://github.com/bachman/pied-piper',
+              topics: ['compression', 'data', 'middle-out', 'Java'],
+              summary: 'Pied Piper: 10 commits in 1 day',
+              numberCommits: 10,
+              lastCommitDate: '2023-03-10',
+              firstCommitDate: '2023-03-01',
             },
             {
-              "id": 112529473,
-              "url": "https://github.com/bachman/aviato",
-              "topics": ["Python", "Django"],
-              "summary": "Aviato: 5 commits in 1 day",
-              "numberCommits": 5,
-              "lastCommitDate": "2023-02-25",
-              "firstCommitDate": "2023-02-20"
+              id: 112529473,
+              url: 'https://github.com/bachman/aviato',
+              topics: ['Python', 'Django'],
+              summary: 'Aviato: 5 commits in 1 day',
+              numberCommits: 5,
+              lastCommitDate: '2023-02-25',
+              firstCommitDate: '2023-02-20',
             },
             {
-              "id": 112529476,
-              "url": "https://github.com/bachman/erlichbot",
-              "topics": ["Python", "Slack API"],
-              "summary": "ErlichBot: 2 commits in 1 day",
-              "numberCommits": 2,
-              "lastCommitDate": "2023-01-25",
-              "firstCommitDate": "2023-01-24"
-            }
-          ]
+              id: 112529476,
+              url: 'https://github.com/bachman/erlichbot',
+              topics: ['Python', 'Slack API'],
+              summary: 'ErlichBot: 2 commits in 1 day',
+              numberCommits: 2,
+              lastCommitDate: '2023-01-25',
+              firstCommitDate: '2023-01-24',
+            },
+          ],
         },
         mockIRepositoryOptions,
       )
@@ -1700,24 +1707,24 @@ describe('MemberRepository tests', () => {
           joinedAt: new Date(),
           contributions: [
             {
-              "id": 112529473,
-              "url": "https://github.com/bighead/silicon-valley",
-              "topics": ["TV Shows", "Comedy", "Startups"],
-              "summary": "Silicon Valley: 50 commits in 2 weeks",
-              "numberCommits": 50,
-              "lastCommitDate": "02/01/2023",
-              "firstCommitDate": "01/17/2023"
+              id: 112529473,
+              url: 'https://github.com/bighead/silicon-valley',
+              topics: ['TV Shows', 'Comedy', 'Startups'],
+              summary: 'Silicon Valley: 50 commits in 2 weeks',
+              numberCommits: 50,
+              lastCommitDate: '02/01/2023',
+              firstCommitDate: '01/17/2023',
             },
             {
-              "id": 112529474,
-              "url": "https://github.com/bighead/startup-ideas",
-              "topics": ["Ideas", "Startups"],
-              "summary": "Startup Ideas: 20 commits in 1 week",
-              "numberCommits": 20,
-              "lastCommitDate": "03/01/2023",
-              "firstCommitDate": "02/22/2023"
+              id: 112529474,
+              url: 'https://github.com/bighead/startup-ideas',
+              topics: ['Ideas', 'Startups'],
+              summary: 'Startup Ideas: 20 commits in 1 week',
+              numberCommits: 20,
+              lastCommitDate: '03/01/2023',
+              firstCommitDate: '02/22/2023',
             },
-          ]
+          ],
         },
         mockIRepositoryOptions,
       )
@@ -1737,7 +1744,6 @@ describe('MemberRepository tests', () => {
         { filter: {}, orderBy: 'numberOfOpenSourceContributions_DESC' },
         mockIRepositoryOptions,
       )
-      console.log('MEMEBERS :: ', members);
 
       expect(members.rows.length).toEqual(3)
       expect(members.rows[0].numberOfOpenSourceContributions).toEqual(3)
@@ -1756,42 +1762,42 @@ describe('MemberRepository tests', () => {
           joinedAt: new Date(),
           contributions: [
             {
-              "id": 112529472,
-              "url": "https://github.com/bachman/pied-piper",
-              "topics": ["compression", "data", "middle-out", "Java"],
-              "summary": "Pied Piper: 10 commits in 1 day",
-              "numberCommits": 10,
-              "lastCommitDate": "2023-03-10",
-              "firstCommitDate": "2023-03-01"
+              id: 112529472,
+              url: 'https://github.com/bachman/pied-piper',
+              topics: ['compression', 'data', 'middle-out', 'Java'],
+              summary: 'Pied Piper: 10 commits in 1 day',
+              numberCommits: 10,
+              lastCommitDate: '2023-03-10',
+              firstCommitDate: '2023-03-01',
             },
             {
-              "id": 112529473,
-              "url": "https://github.com/bachman/aviato",
-              "topics": ["Python", "Django"],
-              "summary": "Aviato: 5 commits in 1 day",
-              "numberCommits": 5,
-              "lastCommitDate": "2023-02-25",
-              "firstCommitDate": "2023-02-20"
+              id: 112529473,
+              url: 'https://github.com/bachman/aviato',
+              topics: ['Python', 'Django'],
+              summary: 'Aviato: 5 commits in 1 day',
+              numberCommits: 5,
+              lastCommitDate: '2023-02-25',
+              firstCommitDate: '2023-02-20',
             },
             {
-              "id": 112529476,
-              "url": "https://github.com/bachman/erlichbot",
-              "topics": ["Python", "Slack API"],
-              "summary": "ErlichBot: 2 commits in 1 day",
-              "numberCommits": 2,
-              "lastCommitDate": "2023-01-25",
-              "firstCommitDate": "2023-01-24"
+              id: 112529476,
+              url: 'https://github.com/bachman/erlichbot',
+              topics: ['Python', 'Slack API'],
+              summary: 'ErlichBot: 2 commits in 1 day',
+              numberCommits: 2,
+              lastCommitDate: '2023-01-25',
+              firstCommitDate: '2023-01-24',
             },
             {
-              "id": 112529473,
-              "url": "https://github.com/bighead/silicon-valley",
-              "topics": ["TV Shows", "Comedy", "Startups"],
-              "summary": "Silicon Valley: 50 commits in 2 weeks",
-              "numberCommits": 50,
-              "lastCommitDate": "02/01/2023",
-              "firstCommitDate": "01/17/2023"
+              id: 112529473,
+              url: 'https://github.com/bighead/silicon-valley',
+              topics: ['TV Shows', 'Comedy', 'Startups'],
+              summary: 'Silicon Valley: 50 commits in 2 weeks',
+              numberCommits: 50,
+              lastCommitDate: '02/01/2023',
+              firstCommitDate: '01/17/2023',
             },
-          ]
+          ],
         },
         mockIRepositoryOptions,
       )
@@ -1803,24 +1809,24 @@ describe('MemberRepository tests', () => {
           joinedAt: new Date(),
           contributions: [
             {
-              "id": 112529473,
-              "url": "https://github.com/bighead/silicon-valley",
-              "topics": ["TV Shows", "Comedy", "Startups"],
-              "summary": "Silicon Valley: 50 commits in 2 weeks",
-              "numberCommits": 50,
-              "lastCommitDate": "02/01/2023",
-              "firstCommitDate": "01/17/2023"
+              id: 112529473,
+              url: 'https://github.com/bighead/silicon-valley',
+              topics: ['TV Shows', 'Comedy', 'Startups'],
+              summary: 'Silicon Valley: 50 commits in 2 weeks',
+              numberCommits: 50,
+              lastCommitDate: '02/01/2023',
+              firstCommitDate: '01/17/2023',
             },
             {
-              "id": 112529474,
-              "url": "https://github.com/bighead/startup-ideas",
-              "topics": ["Ideas", "Startups"],
-              "summary": "Startup Ideas: 20 commits in 1 week",
-              "numberCommits": 20,
-              "lastCommitDate": "03/01/2023",
-              "firstCommitDate": "02/22/2023"
+              id: 112529474,
+              url: 'https://github.com/bighead/startup-ideas',
+              topics: ['Ideas', 'Startups'],
+              summary: 'Startup Ideas: 20 commits in 1 week',
+              numberCommits: 20,
+              lastCommitDate: '03/01/2023',
+              firstCommitDate: '02/22/2023',
             },
-          ]
+          ],
         },
         mockIRepositoryOptions,
       )
@@ -1837,15 +1843,21 @@ describe('MemberRepository tests', () => {
       await SequelizeTestUtils.refreshMaterializedViews(db)
 
       const members = await MemberRepository.findAndCountAllv2(
-        { filter: { and: [
-          {
-            and: [{
-              numberOfOpenSourceContributions: {
-                gte: 3
-              }
-            }]
-          }
-        ] } },
+        {
+          filter: {
+            and: [
+              {
+                and: [
+                  {
+                    numberOfOpenSourceContributions: {
+                      gte: 3,
+                    },
+                  },
+                ],
+              },
+            ],
+          },
+        },
         mockIRepositoryOptions,
       )
 
@@ -1864,42 +1876,42 @@ describe('MemberRepository tests', () => {
           joinedAt: new Date(),
           contributions: [
             {
-              "id": 112529472,
-              "url": "https://github.com/bachman/pied-piper",
-              "topics": ["compression", "data", "middle-out", "Java"],
-              "summary": "Pied Piper: 10 commits in 1 day",
-              "numberCommits": 10,
-              "lastCommitDate": "2023-03-10",
-              "firstCommitDate": "2023-03-01"
+              id: 112529472,
+              url: 'https://github.com/bachman/pied-piper',
+              topics: ['compression', 'data', 'middle-out', 'Java'],
+              summary: 'Pied Piper: 10 commits in 1 day',
+              numberCommits: 10,
+              lastCommitDate: '2023-03-10',
+              firstCommitDate: '2023-03-01',
             },
             {
-              "id": 112529473,
-              "url": "https://github.com/bachman/aviato",
-              "topics": ["Python", "Django"],
-              "summary": "Aviato: 5 commits in 1 day",
-              "numberCommits": 5,
-              "lastCommitDate": "2023-02-25",
-              "firstCommitDate": "2023-02-20"
+              id: 112529473,
+              url: 'https://github.com/bachman/aviato',
+              topics: ['Python', 'Django'],
+              summary: 'Aviato: 5 commits in 1 day',
+              numberCommits: 5,
+              lastCommitDate: '2023-02-25',
+              firstCommitDate: '2023-02-20',
             },
             {
-              "id": 112529476,
-              "url": "https://github.com/bachman/erlichbot",
-              "topics": ["Python", "Slack API"],
-              "summary": "ErlichBot: 2 commits in 1 day",
-              "numberCommits": 2,
-              "lastCommitDate": "2023-01-25",
-              "firstCommitDate": "2023-01-24"
+              id: 112529476,
+              url: 'https://github.com/bachman/erlichbot',
+              topics: ['Python', 'Slack API'],
+              summary: 'ErlichBot: 2 commits in 1 day',
+              numberCommits: 2,
+              lastCommitDate: '2023-01-25',
+              firstCommitDate: '2023-01-24',
             },
             {
-              "id": 112529473,
-              "url": "https://github.com/bighead/silicon-valley",
-              "topics": ["TV Shows", "Comedy", "Startups"],
-              "summary": "Silicon Valley: 50 commits in 2 weeks",
-              "numberCommits": 50,
-              "lastCommitDate": "02/01/2023",
-              "firstCommitDate": "01/17/2023"
+              id: 112529473,
+              url: 'https://github.com/bighead/silicon-valley',
+              topics: ['TV Shows', 'Comedy', 'Startups'],
+              summary: 'Silicon Valley: 50 commits in 2 weeks',
+              numberCommits: 50,
+              lastCommitDate: '02/01/2023',
+              firstCommitDate: '01/17/2023',
             },
-          ]
+          ],
         },
         mockIRepositoryOptions,
       )
@@ -1911,24 +1923,24 @@ describe('MemberRepository tests', () => {
           joinedAt: new Date(),
           contributions: [
             {
-              "id": 112529473,
-              "url": "https://github.com/bighead/silicon-valley",
-              "topics": ["TV Shows", "Comedy", "Startups"],
-              "summary": "Silicon Valley: 50 commits in 2 weeks",
-              "numberCommits": 50,
-              "lastCommitDate": "02/01/2023",
-              "firstCommitDate": "01/17/2023"
+              id: 112529473,
+              url: 'https://github.com/bighead/silicon-valley',
+              topics: ['TV Shows', 'Comedy', 'Startups'],
+              summary: 'Silicon Valley: 50 commits in 2 weeks',
+              numberCommits: 50,
+              lastCommitDate: '02/01/2023',
+              firstCommitDate: '01/17/2023',
             },
             {
-              "id": 112529474,
-              "url": "https://github.com/bighead/startup-ideas",
-              "topics": ["Ideas", "Startups"],
-              "summary": "Startup Ideas: 20 commits in 1 week",
-              "numberCommits": 20,
-              "lastCommitDate": "03/01/2023",
-              "firstCommitDate": "02/22/2023"
+              id: 112529474,
+              url: 'https://github.com/bighead/startup-ideas',
+              topics: ['Ideas', 'Startups'],
+              summary: 'Startup Ideas: 20 commits in 1 week',
+              numberCommits: 20,
+              lastCommitDate: '03/01/2023',
+              firstCommitDate: '02/22/2023',
             },
-          ]
+          ],
         },
         mockIRepositoryOptions,
       )
@@ -1944,22 +1956,28 @@ describe('MemberRepository tests', () => {
 
       await SequelizeTestUtils.refreshMaterializedViews(db)
       const members = await MemberRepository.findAndCountAllv2(
-        { filter: { and: [
-          {
-            and: [{
-              numberOfOpenSourceContributions: {
-                gte: 2
-              }
-            }]
-          }
-        ] }, orderBy: 'numberOfOpenSourceContributions_ASC'},
+        {
+          filter: {
+            and: [
+              {
+                and: [
+                  {
+                    numberOfOpenSourceContributions: {
+                      gte: 2,
+                    },
+                  },
+                ],
+              },
+            ],
+          },
+          orderBy: 'numberOfOpenSourceContributions_ASC',
+        },
         mockIRepositoryOptions,
       )
 
       expect(members.rows.length).toEqual(2)
       expect(members.rows[0].numberOfOpenSourceContributions).toEqual(2)
       expect(members.rows[1].numberOfOpenSourceContributions).toEqual(4)
-
     })
 
     it('is successfully finding and counting all members, and tags [nodejs, vuejs]', async () => {
@@ -2006,13 +2024,17 @@ describe('MemberRepository tests', () => {
       await SequelizeTestUtils.refreshMaterializedViews(db)
 
       const members = await MemberRepository.findAndCountAllv2(
-        { filter: { and: [
-          {
-            tags: {
-              contains: [nodeTag.id, vueTag.id]
-            }
-          }
-        ] } },
+        {
+          filter: {
+            and: [
+              {
+                tags: {
+                  contains: [nodeTag.id, vueTag.id],
+                },
+              },
+            ],
+          },
+        },
         mockIRepositoryOptions,
       )
       const member2 = members.rows.find((m) => m.username[PlatformType.TWITTER] === 'test2')
@@ -2066,13 +2088,17 @@ describe('MemberRepository tests', () => {
       await SequelizeTestUtils.refreshMaterializedViews(db)
 
       const members = await MemberRepository.findAndCountAllv2(
-        { filter: { and: [
-          {
-            tags: {
-              contains: [nodeTag.id]
-            }
-          }
-        ] } },
+        {
+          filter: {
+            and: [
+              {
+                tags: {
+                  contains: [nodeTag.id],
+                },
+              },
+            ],
+          },
+        },
         mockIRepositoryOptions,
       )
       const member1 = members.rows.find((m) => m.username[PlatformType.GITHUB] === 'test1')
@@ -2130,13 +2156,17 @@ describe('MemberRepository tests', () => {
       await SequelizeTestUtils.refreshMaterializedViews(db)
 
       const members = await MemberRepository.findAndCountAllv2(
-        { filter: { and: [
-          {
-            organizations: {
-              contains: [crowd.id, pp.id]
-            }
-          }
-        ] } },
+        {
+          filter: {
+            and: [
+              {
+                organizations: {
+                  contains: [crowd.id, pp.id],
+                },
+              },
+            ],
+          },
+        },
         mockIRepositoryOptions,
       )
       const member2 = members.rows.find((m) => m.username[PlatformType.SLACK] === 'test2')
@@ -2173,15 +2203,21 @@ describe('MemberRepository tests', () => {
       await SequelizeTestUtils.refreshMaterializedViews(db)
 
       const members = await MemberRepository.findAndCountAllv2(
-        { filter: { and: [
-          {
-            and: [{
-              score: {
-                gte: 7
-              }
-            }]
-          }
-        ] } },
+        {
+          filter: {
+            and: [
+              {
+                and: [
+                  {
+                    score: {
+                      gte: 7,
+                    },
+                  },
+                ],
+              },
+            ],
+          },
+        },
         mockIRepositoryOptions,
       )
 
@@ -2373,12 +2409,14 @@ describe('MemberRepository tests', () => {
           filter: {
             and: [
               {
-                and: [{
-                  reach: {
-                    gte: 55
-                  }
-                }]
-              }
+                and: [
+                  {
+                    reach: {
+                      gte: 55,
+                    },
+                  },
+                ],
+              },
             ],
           },
           limit: 15,
@@ -2395,15 +2433,19 @@ describe('MemberRepository tests', () => {
       // filter and sort by activity count
       members = await MemberRepository.findAndCountAllv2(
         {
-          filter:{ and: [
-            {
-              and: [{
-                activityCount: {
-                  gte: 2
-                },
-              }]
-            }
-          ] },
+          filter: {
+            and: [
+              {
+                and: [
+                  {
+                    activityCount: {
+                      gte: 2,
+                    },
+                  },
+                ],
+              },
+            ],
+          },
           limit: 15,
           offset: 0,
           orderBy: 'activityCount_DESC',
@@ -2417,15 +2459,19 @@ describe('MemberRepository tests', () => {
       // filter and sort by lastActive
       members = await MemberRepository.findAndCountAllv2(
         {
-          filter: { and: [
-            {
-              and: [{
-                lastActive: {
-                  gte: '2022-09-11'
-                },
-              }]
-            }
-          ] },
+          filter: {
+            and: [
+              {
+                and: [
+                  {
+                    lastActive: {
+                      gte: '2022-09-11',
+                    },
+                  },
+                ],
+              },
+            ],
+          },
           limit: 15,
           offset: 0,
           orderBy: 'lastActive_DESC',
@@ -2439,15 +2485,19 @@ describe('MemberRepository tests', () => {
       // filter and sort by averageSentiment (member1.avgSentiment = 0.1, member2.avgSentiment = 0.2, member3.avgSentiment = 0.34)
       members = await MemberRepository.findAndCountAllv2(
         {
-          filter: { and: [
-            {
-              and: [{
-                averageSentiment: {
-                  gte: 0.2
-                },
-              }]
-            }
-          ] },
+          filter: {
+            and: [
+              {
+                and: [
+                  {
+                    averageSentiment: {
+                      gte: 0.2,
+                    },
+                  },
+                ],
+              },
+            ],
+          },
           limit: 15,
           offset: 0,
           orderBy: 'averageSentiment_ASC',
@@ -2546,6 +2596,7 @@ describe('MemberRepository tests', () => {
         activityCount: 0,
         activeDaysCount: 0,
         averageSentiment: 0,
+        numberOfOpenSourceContributions: 0,
         lastActive: null,
         lastActivity: null,
       }
@@ -2700,6 +2751,7 @@ describe('MemberRepository tests', () => {
         activityCount: 0,
         activeDaysCount: 0,
         averageSentiment: 0,
+        numberOfOpenSourceContributions: 0,
         lastActive: null,
         lastActivity: null,
       }
@@ -2799,6 +2851,7 @@ describe('MemberRepository tests', () => {
         activityCount: 0,
         activeDaysCount: 0,
         averageSentiment: 0,
+        numberOfOpenSourceContributions: 0,
         lastActive: null,
         lastActivity: null,
       }
