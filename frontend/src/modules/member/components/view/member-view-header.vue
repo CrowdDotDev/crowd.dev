@@ -35,26 +35,6 @@
       </div>
       <div>
         <p class="text-gray-400 font-medium text-2xs">
-          <el-tooltip placement="top">
-            <template #content>
-              The total # of open-source code contributions a member did on
-              GitHub.<br />
-              To receive this attribute you have to enrich your members.
-            </template>
-            # of open source contributions
-          </el-tooltip>
-        </p>
-        <p class="mt-1 text-gray-900 text-xs">
-          {{
-            formattedInformation(
-              member.numberOfOpenSourceContributions,
-              'number',
-            )
-          }}
-        </p>
-      </div>
-      <div>
-        <p class="text-gray-400 font-medium text-2xs">
           Location
         </p>
         <p class="mt-1 text-gray-900 text-xs">
