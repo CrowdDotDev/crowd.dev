@@ -54,18 +54,22 @@
           >
             <div class="flex items-center">
               <img
+                v-if="getPlatformDetails(plat)"
                 class="w-4 h-4 mr-3"
                 :src="getPlatformDetails(plat).image"
                 :alt="getPlatformDetails(plat).name"
               />
-              <p class="text-xs leading-5 activity-type">
-                <app-i18n
-                  :code="`entities.activity.${plat}.${type}`"
-                />
+              <i v-else class="ri-radar-line text-base text-gray-400 mr-3" />
+              <p v-if="typeNames && typeNames[plat] && typeNames[plat][type]?.display" class="text-xs leading-5 activity-type">
+                {{ typeNames[plat][type].display.short }}
               </p>
+              <app-i18n
+                v-else-if="getPlatformDetails(plat)"
+                :code="`entities.activity.${plat}.${type}`"
+              />
             </div>
             <p class="text-2xs text-gray-400">
-              {{ total }} activities ・
+              {{ total }} {{ total > 1 ? 'activities' : 'activity' }} ・
               {{
                 Math.round(
                   (total
@@ -104,8 +108,31 @@ import { CrowdIntegrations } from '@/integrations/integrations-config';
 import { mapGetters } from '@/shared/vuex/vuex.helpers';
 import AppCubeRender from '@/shared/cube/cube-render.vue';
 import AppLoading from '@/shared/loading/loading-placeholder.vue';
+import { useActivityTypeStore } from '@/modules/activity/store/type';
+import { storeToRefs } from 'pinia';
+import { computed, watch } from 'vue';
 
 const { period, platform } = mapGetters('dashboard');
+const { currentTenant } = mapGetters('auth');
+
+const activityTypeStore = useActivityTypeStore();
+const { types } = storeToRefs(activityTypeStore);
+const { setTypes } = activityTypeStore;
+
+const typeNames = computed(() => ({
+  ...types.value.default,
+  ...types.value.custom,
+}));
+
+watch(
+  () => currentTenant,
+  (tenant) => {
+    if (tenant.value.settings.length > 0) {
+      setTypes(tenant.value.settings[0].activityTypes);
+    }
+  },
+  { immediate: true, deep: true },
+);
 
 const compileData = (resultSet) => {
   const pivot = resultSet.chartPivot();

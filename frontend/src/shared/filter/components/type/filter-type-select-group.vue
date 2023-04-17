@@ -147,7 +147,7 @@ const additionalOptions = computed(() => {
           .map(([, platformTypes]) => Object.entries(platformTypes))
           .flat()
           .map(([type, display]) => ({
-            label: display.short,
+            label: display.display.short,
             value: type,
           })),
       },
