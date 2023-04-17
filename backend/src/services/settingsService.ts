@@ -4,7 +4,6 @@ import SettingsRepository from '../database/repositories/settingsRepository'
 import Error400 from '../errors/Error400'
 import { ActivityTypeSettings } from '../types/activityTypes'
 import { PlatformType } from '../types/integrationEnums'
-import getCleanString from '../utils/getCleanString'
 
 const DEFAULT_SETTINGS = {}
 
@@ -22,7 +21,7 @@ class SettingsService {
       throw new Error400(options.language, 'settings.activityTypes.errors.typeRequiredWhenCreating')
     }
 
-    const typeKey = getCleanString(data.type).replace(/ +/gi, '-')
+    const typeKey = data.type
 
     const activityTypes = SettingsRepository.getActivityTypes(options)
 
