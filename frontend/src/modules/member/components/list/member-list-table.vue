@@ -93,11 +93,7 @@
               :row-class-name="rowClass"
               @sort-change="doChangeSort"
             >
-              <el-table-column
-                type="selection"
-                width="75"
-                fixed
-              />
+              <el-table-column type="selection" width="75" fixed />
 
               <el-table-column
                 label="Member"
@@ -115,31 +111,20 @@
                     }"
                     class="block"
                   >
-                    <div
-                      class="flex items-center text-black"
-                    >
-                      <app-avatar
-                        :entity="scope.row"
-                        size="sm"
-                        class="mr-2"
+                    <div class="flex items-center text-black">
+                      <app-avatar :entity="scope.row" size="sm" class="mr-2" />
+                      <span
+                        class="font-semibold"
+                        v-html="$sanitize(scope.row.displayName)"
                       />
-                      <span class="font-semibold" v-html="$sanitize(scope.row.displayName)" />
-                      <app-member-sentiment
-                        :member="scope.row"
-                        class="ml-2"
-                      />
-                      <app-member-badge
-                        :member="scope.row"
-                      />
+                      <app-member-sentiment :member="scope.row" class="ml-2" />
+                      <app-member-badge :member="scope.row" />
                     </div>
                   </router-link>
                 </template>
               </el-table-column>
 
-              <el-table-column
-                label="Organization & Title"
-                width="220"
-              >
+              <el-table-column label="Organization & Title" width="220">
                 <template #default="scope">
                   <router-link
                     :to="{
@@ -173,9 +158,7 @@
                   >
                     {{
                       column.formatter
-                        ? column.formatter(
-                          scope.row[column.name],
-                        )
+                        ? column.formatter(scope.row[column.name])
                         : scope.row[column.name]
                     }}
                   </router-link>
@@ -195,9 +178,7 @@
                     }"
                     class="block"
                   >
-                    <app-member-engagement-level
-                      :member="scope.row"
-                    />
+                    <app-member-engagement-level :member="scope.row" />
                   </router-link>
                 </template>
               </el-table-column>
@@ -266,16 +247,9 @@
                       v-if="scope.row.joinedAt"
                       class="text-gray-900 text-sm"
                     >
-                      {{
-                        formatDateToTimeAgo(
-                          scope.row.joinedAt,
-                        )
-                      }}
+                      {{ formatDateToTimeAgo(scope.row.joinedAt) }}
                     </div>
-                    <span
-                      v-else
-                      class="text-gray-900"
-                    >-</span>
+                    <span v-else class="text-gray-900">-</span>
                   </router-link>
                 </template>
               </el-table-column>
@@ -287,6 +261,16 @@
                 prop="numberOfOpenSourceContributions"
                 sortable
               >
+                <template #header>
+                  <el-tooltip placement="top">
+                    <template #content>
+                      The total # of open-source code contributions a member did
+                      on GitHub.<br />
+                      To receive this attribute you have to enrich your members.
+                    </template>
+                    OSS Contributions
+                  </el-tooltip>
+                </template>
                 <template #default="scope">
                   <router-link
                     :to="{
@@ -306,10 +290,7 @@
                 </template>
               </el-table-column>
 
-              <el-table-column
-                label="Identities"
-                width="240"
-              >
+              <el-table-column label="Identities" width="240">
                 <template #default="scope">
                   <router-link
                     :to="{
@@ -318,17 +299,12 @@
                     }"
                     class="block"
                   >
-                    <app-member-channels
-                      :member="scope.row"
-                    />
+                    <app-member-channels :member="scope.row" />
                   </router-link>
                 </template>
               </el-table-column>
 
-              <el-table-column
-                label="Emails"
-                :width="emailsColumnWidth"
-              >
+              <el-table-column label="Emails" :width="emailsColumnWidth">
                 <template #default="scope">
                   <router-link
                     :to="{
@@ -366,19 +342,14 @@
                         </div>
                       </el-tooltip>
                     </div>
-                    <span
-                      v-else
-                      class="text-gray-500"
-                    >-</span>
+                    <span v-else class="text-gray-500">-</span>
                   </router-link>
                 </template>
               </el-table-column>
 
               <el-table-column
                 :width="tagsColumnWidth"
-                :label="
-                  translate('entities.member.fields.tag')
-                "
+                :label="translate('entities.member.fields.tag')"
               >
                 <template #default="scope">
                   <router-link
@@ -402,12 +373,8 @@
                     }"
                     class="block w-full"
                   >
-                    <div
-                      class="h-full flex items-center justify-center w-full"
-                    >
-                      <app-member-dropdown
-                        :member="scope.row"
-                      />
+                    <div class="h-full flex items-center justify-center w-full">
+                      <app-member-dropdown :member="scope.row" />
                     </div>
                   </router-link>
                 </template>
@@ -420,12 +387,8 @@
                 :page-size="Number(pagination.pageSize)"
                 :current-page="pagination.currentPage || 1"
                 module="member"
-                @change-current-page="
-                  doChangePaginationCurrentPage
-                "
-                @change-page-size="
-                  doChangePaginationPageSize
-                "
+                @change-current-page="doChangePaginationCurrentPage"
+                @change-page-size="doChangePaginationPageSize"
               />
             </div>
           </div>
@@ -439,12 +402,7 @@
 import { useStore } from 'vuex';
 import { useRouter } from 'vue-router';
 import {
-  computed,
-  onMounted,
-  onUnmounted,
-  ref,
-  defineProps,
-  watch,
+  computed, onMounted, onUnmounted, ref, defineProps, watch,
 } from 'vue';
 import { i18n } from '@/i18n';
 import AppMemberListToolbar from '@/modules/member/components/list/member-list-toolbar.vue';
@@ -489,9 +447,7 @@ const extraColumns = computed(
   () => store.getters['member/activeView']?.columns || [],
 );
 
-const activeView = computed(
-  () => store.getters['member/activeView'],
-);
+const activeView = computed(() => store.getters['member/activeView']);
 
 const defaultSort = computed(() => {
   if (activeView.value?.sorter) {
@@ -508,10 +464,10 @@ const integrations = computed(
   () => store.getters['integration/activeList'] || {},
 );
 
-const showReach = computed(() => (
-  integrations.value.twitter?.status === 'done'
-    || integrations.value.github?.status === 'done'
-));
+const showReach = computed(
+  () => integrations.value.twitter?.status === 'done'
+    || integrations.value.github?.status === 'done',
+);
 
 const rows = computed(() => store.getters['member/rows']);
 const count = computed(() => store.state.member.count);
@@ -554,12 +510,8 @@ const emailsColumnWidth = computed(() => {
   return maxTabWidth;
 });
 
-const selectedRows = computed(
-  () => store.getters['member/selectedRows'],
-);
-const pagination = computed(
-  () => store.getters['member/pagination'],
-);
+const selectedRows = computed(() => store.getters['member/selectedRows']);
+const pagination = computed(() => store.getters['member/pagination']);
 
 document.onmouseup = () => {
   // As soon as mouse is released, set scrollbar visibility
@@ -573,17 +525,11 @@ function doChangeSort(sorter) {
 }
 
 function doChangePaginationCurrentPage(currentPage) {
-  store.dispatch(
-    'member/doChangePaginationCurrentPage',
-    currentPage,
-  );
+  store.dispatch('member/doChangePaginationCurrentPage', currentPage);
 }
 
 function doChangePaginationPageSize(pageSize) {
-  store.dispatch(
-    'member/doChangePaginationPageSize',
-    pageSize,
-  );
+  store.dispatch('member/doChangePaginationPageSize', pageSize);
 }
 
 function translate(key) {
@@ -591,8 +537,7 @@ function translate(key) {
 }
 
 function rowClass({ row }) {
-  const isSelected = selectedRows.value.find((r) => r.id === row.id)
-    !== undefined;
+  const isSelected = selectedRows.value.find((r) => r.id === row.id) !== undefined;
 
   return isSelected ? 'is-selected' : '';
 }
@@ -616,16 +561,12 @@ const onCustomScrollbarScroll = ({ scrollLeft }) => {
 
 // On table body scroll, set the custom scrollbar scroll with the same value
 const onTableBodyScroll = () => {
-  scrollbarRef.value.setScrollLeft(
-    tableBodyRef.value.scrollLeft,
-  );
+  scrollbarRef.value.setScrollLeft(tableBodyRef.value.scrollLeft);
 };
 
 // On table header scroll, set the custom scrollbar scroll with the same value
 const onTableHeaderScroll = () => {
-  scrollbarRef.value.setScrollLeft(
-    tableHeaderRef.value.scrollLeft,
-  );
+  scrollbarRef.value.setScrollLeft(tableHeaderRef.value.scrollLeft);
   table.value.setScrollLeft(tableHeaderRef.value.scrollLeft);
 };
 
@@ -665,19 +606,13 @@ watch(table, (newValue) => {
 
   if (tableBodyEl) {
     tableBodyRef.value = tableBodyEl;
-    tableBodyRef.value.addEventListener(
-      'scroll',
-      onTableBodyScroll,
-    );
+    tableBodyRef.value.addEventListener('scroll', onTableBodyScroll);
   }
 
   if (tableHeaderEl) {
     tableHeaderEl.style.overflow = 'auto';
     tableHeaderRef.value = tableHeaderEl;
-    tableHeaderRef.value.addEventListener(
-      'scroll',
-      onTableHeaderScroll,
-    );
+    tableHeaderRef.value.addEventListener('scroll', onTableHeaderScroll);
   }
 });
 
@@ -689,14 +624,8 @@ onMounted(async () => {
 
 // Remove listeners on unmount
 onUnmounted(() => {
-  tableBodyRef.value?.removeEventListener(
-    'scroll',
-    onTableBodyScroll,
-  );
-  tableHeaderRef.value?.removeEventListener(
-    'scroll',
-    onTableHeaderScroll,
-  );
+  tableBodyRef.value?.removeEventListener('scroll', onTableBodyScroll);
+  tableHeaderRef.value?.removeEventListener('scroll', onTableHeaderScroll);
 });
 </script>
 
@@ -718,8 +647,7 @@ export default {
     display: none;
   }
 }
-#members-table
-  .el-table__cell:not(.el-table-column--selection) {
+#members-table .el-table__cell:not(.el-table-column--selection) {
   padding: 0;
 }
 
