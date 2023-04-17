@@ -654,7 +654,7 @@ class MemberRepository {
     ['averageSentiment', 'aggs."averageSentiment"'],
     ['identities', 'aggs.identities'],
     ['reach', "(m.reach -> 'total')::integer"],
-    ['numberOfOpenSourceContributions', "coalesce(jsonb_array_length(m.contributions), 0)"],
+    ['numberOfOpenSourceContributions', 'coalesce(jsonb_array_length(m.contributions), 0)'],
 
     ['id', 'm.id'],
     ['displayName', 'm."displayName"'],
@@ -1257,7 +1257,9 @@ where m."deletedAt" is null
     const toMergeArray = Sequelize.literal(`STRING_AGG( distinct "toMerge"."id"::text, ',')`)
     const noMergeArray = Sequelize.literal(`STRING_AGG( distinct "noMerge"."id"::text, ',')`)
 
-    const numberOfOpenSourceContributions = Sequelize.literal(`COALESCE(jsonb_array_length("member"."contributions"), 0)`)
+    const numberOfOpenSourceContributions = Sequelize.literal(
+      `COALESCE(jsonb_array_length("member"."contributions"), 0)`,
+    )
 
     const parser = new QueryParser(
       {
