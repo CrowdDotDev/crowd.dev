@@ -60,8 +60,8 @@
                 :alt="getPlatformDetails(plat).name"
               />
               <i v-else class="ri-radar-line text-base text-gray-400 mr-3" />
-              <p v-if="typeNames && typeNames[plat] && typeNames[plat][type]?.display" class="text-xs leading-5 activity-type">
-                {{ typeNames[plat][type].display.short }}
+              <p v-if="typeNames?.[plat]?.[type]?.display" class="text-xs leading-5 activity-type">
+                {{ typeNames?.[plat]?.[type]?.display?.short }}
               </p>
               <app-i18n
                 v-else-if="getPlatformDetails(plat)"
@@ -69,7 +69,7 @@
               />
             </div>
             <p class="text-2xs text-gray-400">
-              {{ total }} {{ total > 1 ? 'activities' : 'activity' }} ・
+              {{ pluralize('activity', total, true) }} ・
               {{
                 Math.round(
                   (total
@@ -111,6 +111,7 @@ import AppLoading from '@/shared/loading/loading-placeholder.vue';
 import { useActivityTypeStore } from '@/modules/activity/store/type';
 import { storeToRefs } from 'pinia';
 import { computed, watch } from 'vue';
+import pluralize from 'pluralize';
 
 const { period, platform } = mapGetters('dashboard');
 const { currentTenant } = mapGetters('auth');
