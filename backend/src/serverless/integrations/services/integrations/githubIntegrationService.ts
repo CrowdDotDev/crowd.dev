@@ -289,7 +289,7 @@ export class GithubIntegrationService extends IntegrationServiceBase {
   }
 
   async processWebhook(webhook: any, context: IStepContext): Promise<IProcessWebhookResults> {
-    let record: AddActivitiesSingle | undefined
+    let records: AddActivitiesSingle[] | undefined
 
     await GithubIntegrationService.verifyWebhookSignature(
       webhook.payload.signature,
@@ -308,40 +308,54 @@ export class GithubIntegrationService extends IntegrationServiceBase {
 
     switch (event) {
       case 'issues': {
-        record = await GithubIntegrationService.parseWebhookIssue(payload, context)
+        records.push(await GithubIntegrationService.parseWebhookIssue(payload, context))
         break
       }
 
       case 'discussion': {
-        record = await GithubIntegrationService.parseWebhookDiscussion(payload, context)
+        records.push(await GithubIntegrationService.parseWebhookDiscussion(payload, context))
         break
       }
 
       case 'pull_request': {
-        record = await GithubIntegrationService.parseWebhookPullRequest(payload, context)
+        if (payload.action === 'closed' && payload.pull_request.merged) {
+          records.push(
+            await GithubIntegrationService.parseWebhookPullRequest(
+              { ...payload, action: 'merged' },
+              context,
+            ),
+          )
+        }
+
+        records.push(await GithubIntegrationService.parseWebhookPullRequest(payload, context))
+        break
+      }
+
+      case 'pull_request_review': {
+        records.push(await GithubIntegrationService.parseWebhookPullRequestReview(payload, context))
         break
       }
 
       case 'star': {
-        record = await GithubIntegrationService.parseWebhookStar(payload, context)
+        records.push(await GithubIntegrationService.parseWebhookStar(payload, context))
         break
       }
 
       case 'fork': {
-        record = await GithubIntegrationService.parseWebhookFork(payload, context)
+        records.push(await GithubIntegrationService.parseWebhookFork(payload, context))
         break
       }
 
       case 'discussion_comment':
       case 'issue_comment': {
-        record = await GithubIntegrationService.parseWebhookComment(event, payload, context)
+        records.push(await GithubIntegrationService.parseWebhookComment(event, payload, context))
         break
       }
 
       default:
     }
 
-    if (record === undefined) {
+    if (records === undefined) {
       context.logger.warn(
         {
           event,
@@ -359,7 +373,7 @@ export class GithubIntegrationService extends IntegrationServiceBase {
       operations: [
         {
           type: Operations.UPSERT_ACTIVITIES_WITH_MEMBERS,
-          records: [record],
+          records,
         },
       ],
     }
@@ -565,6 +579,62 @@ export class GithubIntegrationService extends IntegrationServiceBase {
     return out
   }
 
+  public static async parseWebhookPullRequestReview(
+    payload: any,
+    context: IStepContext,
+  ): Promise<AddActivitiesSingle | undefined> {
+    let type: GithubActivityType
+    let scoreGrid: gridEntry
+    let timestamp: string
+    let sourceParentId: string
+    let sourceId: string
+
+    switch (payload.action) {
+      case 'submitted': {
+        type = GithubActivityType.PULL_REQUEST_REVIEWED
+        scoreGrid = GitHubGrid.pullRequestReviewed
+        timestamp = payload.review.submitted_at
+        sourceParentId = payload.pull_request.node_id.toString()
+        sourceId = `gen-PRR_${payload.pull_request.node_id.toString()}_${
+          payload.review.user.login
+        }_${payload.review.submitted_at}`
+        break
+      }
+      default: {
+        return undefined
+      }
+    }
+
+    const review = payload.review
+    const pull = payload.pull_request
+    const member = await GithubIntegrationService.parseWebhookMember(review.user.login, context)
+
+    if (member) {
+      return {
+        member,
+        type,
+        timestamp: moment(timestamp).utc().toDate(),
+        platform: PlatformType.GITHUB,
+        tenant: context.integration.tenantId,
+        sourceId,
+        sourceParentId,
+        url: pull.html_url,
+        title: '',
+        channel: payload.repository.html_url,
+        body: '',
+        score: scoreGrid.score,
+        isContribution: scoreGrid.isContribution,
+        attributes: {
+          state: pull.state,
+          authorAssociation: pull.author_association,
+          labels: pull.labels.map((l) => l.name),
+        },
+      }
+    }
+
+    return undefined
+  }
+
   public static async parseWebhookPullRequest(
     payload: any,
     context: IStepContext,
@@ -636,6 +706,13 @@ export class GithubIntegrationService extends IntegrationServiceBase {
       }
 
       case 'merged': {
+        type = GithubActivityType.PULL_REQUEST_MERGED
+        scoreGrid = GitHubGrid.pullRequestMerged
+        timestamp = payload.pull_request.merged_at
+        sourceParentId = payload.pull_request.node_id.toString()
+        sourceId = `gen-ME_${payload.pull_request.node_id.toString()}_${
+          payload.pull_request.merged_by.login
+        }_${payload.pull_request.merged_at}`
         break
       }
 
@@ -664,6 +741,14 @@ export class GithubIntegrationService extends IntegrationServiceBase {
         body: pull.body,
         score: scoreGrid.score,
         isContribution: scoreGrid.isContribution,
+        attributes: {
+          state: pull.state,
+          additions: pull.additions,
+          deletions: pull.deletions,
+          changedFiles: pull.changed_files,
+          authorAssociation: pull.author_association,
+          labels: pull.labels.map((l) => l.name),
+        },
       }
     }
 
