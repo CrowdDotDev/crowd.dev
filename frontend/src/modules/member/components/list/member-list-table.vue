@@ -280,6 +280,32 @@
                 </template>
               </el-table-column>
 
+              <!-- # of Open Source Contributions -->
+              <el-table-column
+                label="# OSS Contributions"
+                width="200"
+                prop="numberOfOpenSourceContributions"
+                sortable
+              >
+                <template #default="scope">
+                  <router-link
+                    :to="{
+                      name: 'memberView',
+                      params: { id: scope.row.id },
+                    }"
+                    class="block"
+                  >
+                    <div class="text-gray-900 text-sm">
+                      {{
+                        formatNumberToCompact(
+                          scope.row.numberOfOpenSourceContributions,
+                        )
+                      }}
+                    </div>
+                  </router-link>
+                </template>
+              </el-table-column>
+
               <el-table-column
                 label="Identities"
                 width="240"
@@ -425,6 +451,7 @@ import AppMemberListToolbar from '@/modules/member/components/list/member-list-t
 import AppMemberOrganizations from '@/modules/member/components/member-organizations.vue';
 import AppTagList from '@/modules/tag/components/tag-list.vue';
 import { formatDateToTimeAgo } from '@/utils/date';
+import { formatNumberToCompact } from '@/utils/number';
 import AppMemberBadge from '../member-badge.vue';
 import AppMemberDropdown from '../member-dropdown.vue';
 import AppMemberChannels from '../member-channels.vue';
