@@ -31,7 +31,12 @@
           />
 
           <!-- Empty -->
-          <!-- <app-widget-empty v-else-if="empty" type="table" /> -->
+          <app-widget-empty
+            v-else-if="!compileData(
+              activityTypesResultSet,
+            ).length"
+            type="table"
+          />
 
           <!-- Error -->
           <app-widget-error
@@ -42,9 +47,7 @@
           <!-- Widget Chart -->
           <div v-else>
             <article
-              v-for="{ total, plat, type } of compileData(
-                activityTypesResultSet,
-              )"
+              v-for="{ total, plat, type } of data"
               :key="`${plat}-${type}`"
               class="border-t border-gray-100 py-4 flex items-center justify-between first:border-none"
             >
@@ -97,6 +100,7 @@ import { LEADERBOARD_ACTIVITIES_TYPES_QUERY, LEADERBOARD_ACTIVITIES_COUNT_QUERY 
 import { CrowdIntegrations } from '@/integrations/integrations-config';
 import AppWidgetLoading from '@/modules/widget/components/v2/shared/widget-loading.vue';
 import AppWidgetError from '@/modules/widget/components/v2/shared/widget-error.vue';
+import AppWidgetEmpty from '@/modules/widget/components/v2/shared/widget-empty.vue';
 
 const props = defineProps({
   filters: {
