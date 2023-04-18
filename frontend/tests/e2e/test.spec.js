@@ -1,5 +1,6 @@
 import auth from './auth';
 import member from './member';
+import signin from './auth/signin';
 
 Cypress.on('uncaught:exception', () => false);
 Cypress.LocalStorage.clear = function () {
@@ -15,9 +16,13 @@ describe('AUTH', () => {
     localStorage.clear();
   });
 
-  describe('AUTH', auth({
+  // describe('AUTH', auth({
+  //   email,
+  //   serverId,
+  // }));
+
+  describe('AUTH', signin({
     email,
-    serverId,
   }));
 
   describe('MEMBER', member);

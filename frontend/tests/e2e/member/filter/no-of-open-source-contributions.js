@@ -2,10 +2,11 @@ export default () => {
   before(() => {
     cy.wait(1000);
     cy.get('.filter-dropdown button').click();
-    cy.get('#filterList li').contains('# of activities').click();
+    cy.get('#filterList li').contains('# of open source contributions').click();
   });
 
   beforeEach(() => {
+    cy.scrollTo(0, 0);
     cy.server();
     cy.route('POST', '/api/tenant/*/member/query').as('apiMemberQuery');
   });
@@ -28,7 +29,8 @@ export default () => {
     cy.get('@apiMemberQuery').then((req) => {
       const { rows } = req.response.body;
       rows.forEach((row) => {
-        cy.wrap(+row.activityCount).should('eq', 3);
+        console.log(row);
+        cy.wrap(+row.numberOfOpenSourceContributions).should('eq', 3);
       });
     });
   });
@@ -44,7 +46,7 @@ export default () => {
     cy.get('@apiMemberQuery').then((req) => {
       const { rows } = req.response.body;
       rows.forEach((row) => {
-        cy.wrap(+row.activityCount).should('be.lt', 3);
+        cy.wrap(+row.numberOfOpenSourceContributions).should('be.lt', 3);
       });
     });
   });
@@ -60,7 +62,7 @@ export default () => {
     cy.get('@apiMemberQuery').then((req) => {
       const { rows } = req.response.body;
       rows.forEach((row) => {
-        cy.wrap(+row.activityCount).should('be.lte', 3);
+        cy.wrap(+row.numberOfOpenSourceContributions).should('be.lte', 3);
       });
     });
   });
@@ -76,7 +78,7 @@ export default () => {
     cy.get('@apiMemberQuery').then((req) => {
       const { rows } = req.response.body;
       rows.forEach((row) => {
-        cy.wrap(+row.activityCount).should('be.gt', 3);
+        cy.wrap(+row.numberOfOpenSourceContributions).should('be.gt', 3);
       });
     });
   });
@@ -92,7 +94,7 @@ export default () => {
     cy.get('@apiMemberQuery').then((req) => {
       const { rows } = req.response.body;
       rows.forEach((row) => {
-        cy.wrap(+row.activityCount).should('be.gte', 3);
+        cy.wrap(+row.numberOfOpenSourceContributions).should('be.gte', 3);
       });
     });
   });
@@ -114,8 +116,8 @@ export default () => {
     cy.get('@apiMemberQuery').then((req) => {
       const { rows } = req.response.body;
       rows.forEach((row) => {
-        cy.wrap(+row.activityCount).should('be.gte', 2);
-        cy.wrap(+row.activityCount).should('be.lte', 6);
+        cy.wrap(+row.numberOfOpenSourceContributions).should('be.gte', 2);
+        cy.wrap(+row.numberOfOpenSourceContributions).should('be.lte', 6);
       });
     });
   });

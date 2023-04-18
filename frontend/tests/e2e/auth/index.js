@@ -13,44 +13,44 @@ export default ({ email, serverId }) => () => {
     cy.url().should('include', '/auth/signin');
   });
 
-  // describe(
-  //   '[Auth] Signup',
-  //   signup({
-  //     email,
-  //   }),
-  // );
-  //
-  // describe(
-  //   '[Auth] Verify email',
-  //   verifyEmail({
-  //     email,
-  //     serverId,
-  //   }),
-  // );
-  //
-  // describe('[Onboarding]', onboarding);
-  //
-  // describe('[Auth] Logout', logout);
-  // describe('[Auth] Logout', signupExisting({
-  //   email,
-  // }));
-  //
-  // describe(
-  //   '[Auth] Forgot password',
-  //   forgotPassword({
-  //     email,
-  //     serverId,
-  //   }),
-  // );
-  //
-  // describe(
-  //   '[Auth] Password reset',
-  //   passwordReset({
-  //     email,
-  //     serverId,
-  //   }),
-  // );
-  //
+  describe(
+    '[Auth] Signup',
+    signup({
+      email,
+    }),
+  );
+
+  describe(
+    '[Auth] Verify email',
+    verifyEmail({
+      email,
+      serverId,
+    }),
+  );
+
+  describe('[Onboarding]', onboarding);
+
+  describe('[Auth] Logout', logout);
+  describe('[Auth] Logout', signupExisting({
+    email,
+  }));
+
+  describe(
+    '[Auth] Forgot password',
+    forgotPassword({
+      email,
+      serverId,
+    }),
+  );
+
+  describe(
+    '[Auth] Password reset',
+    passwordReset({
+      email,
+      serverId,
+    }),
+  );
+
   describe(
     '[Auth] Signin',
     signin({
