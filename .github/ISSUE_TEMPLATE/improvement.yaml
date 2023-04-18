@@ -1,5 +1,5 @@
 name: Improvement
-description: Help us improve our documentation, website, or platform
+description: Help us improve the product, website, our documentation
 labels: ["type:improvement"]
 body:
   - type: markdown
