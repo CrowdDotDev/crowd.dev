@@ -48,23 +48,22 @@ cube(`Members`, {
       },
     },
 
-    // Pre aggregation is causing for duplicated member's count for same ids
-    // MembersActivities: {
-    //   measures: [Members.count],
-    //   dimensions: [
-    //     Members.tenantId,
-    //     Activities.platform,
-    //     Activities.type,
-    //     Members.isTeamMember,
-    //     Members.isBot,
-    //     Members.isOrganization,
-    //   ],
-    //   timeDimension: Activities.date,
-    //   granularity: `day`,
-    //   refreshKey: {
-    //     every: `10 minute`,
-    //   },
-    // },
+    MembersActivities: {
+      measures: [Members.count],
+      dimensions: [
+        Members.tenantId,
+        Activities.platform,
+        Activities.type,
+        Members.isTeamMember,
+        Members.isBot,
+        Members.isOrganization,
+      ],
+      timeDimension: Activities.date,
+      granularity: `day`,
+      refreshKey: {
+        every: `10 minute`,
+      },
+    },
 
     MembersTags: {
       measures: [Members.count],
