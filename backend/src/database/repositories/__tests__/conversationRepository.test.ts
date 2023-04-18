@@ -443,6 +443,7 @@ describe('ConversationRepository tests', () => {
         'activeOn',
         'identities',
         'activeDaysCount',
+        'numberOfOpenSourceContributions',
       ])
 
       const conversation1Expected = {

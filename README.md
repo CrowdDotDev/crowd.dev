@@ -91,6 +91,12 @@ cd scripts
 ./cli start
 ```
 
+For hot reloading, you can run
+```shell
+cd scripts
+./cli clean-start-dev
+```
+
 App will be available at http://localhost:8081
 
 For more information on development, you can <a href="https://docs.crowd.dev/docs/docker-compose-single-machine-development-with-docker-images">check our docs</a>.
@@ -107,7 +113,7 @@ There are many ways you can contribute to crowd.dev! Here are a few options:
 - Create issues every time you feel something is missing or goes wrong
 - Upvote issues with 👍 reaction so we know what's the demand for particular issue to prioritize it within roadmap
 
-If you would like to contribute to the development of the project, you can [book a 15 min contributor onboarding](https://cal.com/team/CrowdDotDev/contributor-onboarding). You can also find a selection of [good first issues 🥂](https://github.com/CrowdDotDev/crowd.dev/labels/good%20first%20issue%20%F0%9F%A5%82) to get started quickly.
+If you would like to contribute to the development of the project, please refer to our [Contributing guide](https://github.com/CrowdDotDev/crowd.dev/blob/main/CONTRIBUTING.md).
 
 All contributions are highly appreciated. 🙏
 

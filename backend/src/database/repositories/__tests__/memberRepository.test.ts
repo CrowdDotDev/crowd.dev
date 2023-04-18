@@ -94,6 +94,7 @@ describe('MemberRepository tests', () => {
         activeDaysCount: 0,
         lastActive: null,
         averageSentiment: 0,
+        numberOfOpenSourceContributions: 0,
         lastActivity: null,
       }
       expect(memberCreated).toStrictEqual(expectedMemberCreated)
@@ -208,6 +209,7 @@ describe('MemberRepository tests', () => {
         activityCount: 0,
         activeDaysCount: 0,
         averageSentiment: 0,
+        numberOfOpenSourceContributions: 0,
         lastActive: null,
         lastActivity: null,
       }
@@ -350,6 +352,7 @@ describe('MemberRepository tests', () => {
         activityCount: 0,
         activeDaysCount: 0,
         averageSentiment: 0,
+        numberOfOpenSourceContributions: 0,
         lastActive: null,
         lastActivity: null,
       }
@@ -535,6 +538,7 @@ describe('MemberRepository tests', () => {
       delete member1Returned.identities
       delete member1Returned.activityTypes
       delete member1Returned.activeDaysCount
+      delete member1Returned.numberOfOpenSourceContributions
 
       const found = await MemberRepository.findOne(
         {
@@ -633,6 +637,7 @@ describe('MemberRepository tests', () => {
       delete member1Returned.identities
       delete member1Returned.activityTypes
       delete member1Returned.activeDaysCount
+      delete member1Returned.numberOfOpenSourceContributions
 
       const found = await MemberRepository.memberExists(
         'test1',
@@ -775,6 +780,303 @@ describe('MemberRepository tests', () => {
       expect(members.rows[0].activityCount).toEqual('3')
       expect(members.rows[1].activityCount).toEqual('2')
       expect(members.rows[2].activityCount).toEqual('1')
+    })
+
+    it('is successfully finding and counting all members, sortedBy numberOfOpenSourceContributions DESC', async () => {
+      const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
+
+      await MemberRepository.create(
+        {
+          username: { [PlatformType.TWITTER]: 'test1' },
+          displayName: 'Member 1',
+          score: '1',
+          joinedAt: new Date(),
+          contributions: [
+            {
+              id: 112529472,
+              url: 'https://github.com/bachman/pied-piper',
+              topics: ['compression', 'data', 'middle-out', 'Java'],
+              summary: 'Pied Piper: 10 commits in 1 day',
+              numberCommits: 10,
+              lastCommitDate: '2023-03-10',
+              firstCommitDate: '2023-03-01',
+            },
+            {
+              id: 112529473,
+              url: 'https://github.com/bachman/aviato',
+              topics: ['Python', 'Django'],
+              summary: 'Aviato: 5 commits in 1 day',
+              numberCommits: 5,
+              lastCommitDate: '2023-02-25',
+              firstCommitDate: '2023-02-20',
+            },
+            {
+              id: 112529476,
+              url: 'https://github.com/bachman/erlichbot',
+              topics: ['Python', 'Slack API'],
+              summary: 'ErlichBot: 2 commits in 1 day',
+              numberCommits: 2,
+              lastCommitDate: '2023-01-25',
+              firstCommitDate: '2023-01-24',
+            },
+          ],
+        },
+        mockIRepositoryOptions,
+      )
+      await MemberRepository.create(
+        {
+          username: { [PlatformType.TWITTER]: 'test2' },
+          displayName: 'Member 2',
+          score: '6',
+          joinedAt: new Date(),
+          contributions: [
+            {
+              id: 112529473,
+              url: 'https://github.com/bighead/silicon-valley',
+              topics: ['TV Shows', 'Comedy', 'Startups'],
+              summary: 'Silicon Valley: 50 commits in 2 weeks',
+              numberCommits: 50,
+              lastCommitDate: '02/01/2023',
+              firstCommitDate: '01/17/2023',
+            },
+            {
+              id: 112529474,
+              url: 'https://github.com/bighead/startup-ideas',
+              topics: ['Ideas', 'Startups'],
+              summary: 'Startup Ideas: 20 commits in 1 week',
+              numberCommits: 20,
+              lastCommitDate: '03/01/2023',
+              firstCommitDate: '02/22/2023',
+            },
+          ],
+        },
+        mockIRepositoryOptions,
+      )
+      await MemberRepository.create(
+        {
+          username: { [PlatformType.TWITTER]: 'test3' },
+          displayName: 'Member 3',
+          score: '7',
+          joinedAt: new Date(),
+        },
+        mockIRepositoryOptions,
+      )
+
+      await SequelizeTestUtils.refreshMaterializedViews(db)
+
+      const members = await MemberRepository.findAndCountAll(
+        { filter: {}, orderBy: 'numberOfOpenSourceContributions_DESC' },
+        mockIRepositoryOptions,
+      )
+
+      expect(members.rows.length).toEqual(3)
+      expect(members.rows[0].numberOfOpenSourceContributions).toEqual(3)
+      expect(members.rows[1].numberOfOpenSourceContributions).toEqual(2)
+      expect(members.rows[2].numberOfOpenSourceContributions).toEqual(0)
+    })
+
+    it('is successfully finding and counting all members, numberOfOpenSourceContributions range gte than 3 and less or equal to 6', async () => {
+      const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
+
+      await MemberRepository.create(
+        {
+          username: { [PlatformType.TWITTER]: 'test1' },
+          displayName: 'Member 1',
+          score: '1',
+          joinedAt: new Date(),
+          contributions: [
+            {
+              id: 112529472,
+              url: 'https://github.com/bachman/pied-piper',
+              topics: ['compression', 'data', 'middle-out', 'Java'],
+              summary: 'Pied Piper: 10 commits in 1 day',
+              numberCommits: 10,
+              lastCommitDate: '2023-03-10',
+              firstCommitDate: '2023-03-01',
+            },
+            {
+              id: 112529473,
+              url: 'https://github.com/bachman/aviato',
+              topics: ['Python', 'Django'],
+              summary: 'Aviato: 5 commits in 1 day',
+              numberCommits: 5,
+              lastCommitDate: '2023-02-25',
+              firstCommitDate: '2023-02-20',
+            },
+            {
+              id: 112529476,
+              url: 'https://github.com/bachman/erlichbot',
+              topics: ['Python', 'Slack API'],
+              summary: 'ErlichBot: 2 commits in 1 day',
+              numberCommits: 2,
+              lastCommitDate: '2023-01-25',
+              firstCommitDate: '2023-01-24',
+            },
+            {
+              id: 112529473,
+              url: 'https://github.com/bighead/silicon-valley',
+              topics: ['TV Shows', 'Comedy', 'Startups'],
+              summary: 'Silicon Valley: 50 commits in 2 weeks',
+              numberCommits: 50,
+              lastCommitDate: '02/01/2023',
+              firstCommitDate: '01/17/2023',
+            },
+          ],
+        },
+        mockIRepositoryOptions,
+      )
+      await MemberRepository.create(
+        {
+          username: { [PlatformType.TWITTER]: 'test2' },
+          displayName: 'Member 2',
+          score: '6',
+          joinedAt: new Date(),
+          contributions: [
+            {
+              id: 112529473,
+              url: 'https://github.com/bighead/silicon-valley',
+              topics: ['TV Shows', 'Comedy', 'Startups'],
+              summary: 'Silicon Valley: 50 commits in 2 weeks',
+              numberCommits: 50,
+              lastCommitDate: '02/01/2023',
+              firstCommitDate: '01/17/2023',
+            },
+            {
+              id: 112529474,
+              url: 'https://github.com/bighead/startup-ideas',
+              topics: ['Ideas', 'Startups'],
+              summary: 'Startup Ideas: 20 commits in 1 week',
+              numberCommits: 20,
+              lastCommitDate: '03/01/2023',
+              firstCommitDate: '02/22/2023',
+            },
+          ],
+        },
+        mockIRepositoryOptions,
+      )
+      await MemberRepository.create(
+        {
+          username: { [PlatformType.TWITTER]: 'test3' },
+          displayName: 'Member 3',
+          score: '7',
+          joinedAt: new Date(),
+        },
+        mockIRepositoryOptions,
+      )
+
+      await SequelizeTestUtils.refreshMaterializedViews(db)
+
+      const members = await MemberRepository.findAndCountAll(
+        { filter: { numberOfOpenSourceContributionsRange: [3, 6] } },
+        mockIRepositoryOptions,
+      )
+
+      expect(members.rows.length).toEqual(1)
+      expect(members.rows[0].numberOfOpenSourceContributions).toEqual(4)
+    })
+
+    it('is successfully finding and counting all members, numberOfOpenSourceContributions range gte 2', async () => {
+      const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
+
+      await MemberRepository.create(
+        {
+          username: { [PlatformType.TWITTER]: 'test1' },
+          displayName: 'Member 1',
+          score: '1',
+          joinedAt: new Date(),
+          contributions: [
+            {
+              id: 112529472,
+              url: 'https://github.com/bachman/pied-piper',
+              topics: ['compression', 'data', 'middle-out', 'Java'],
+              summary: 'Pied Piper: 10 commits in 1 day',
+              numberCommits: 10,
+              lastCommitDate: '2023-03-10',
+              firstCommitDate: '2023-03-01',
+            },
+            {
+              id: 112529473,
+              url: 'https://github.com/bachman/aviato',
+              topics: ['Python', 'Django'],
+              summary: 'Aviato: 5 commits in 1 day',
+              numberCommits: 5,
+              lastCommitDate: '2023-02-25',
+              firstCommitDate: '2023-02-20',
+            },
+            {
+              id: 112529476,
+              url: 'https://github.com/bachman/erlichbot',
+              topics: ['Python', 'Slack API'],
+              summary: 'ErlichBot: 2 commits in 1 day',
+              numberCommits: 2,
+              lastCommitDate: '2023-01-25',
+              firstCommitDate: '2023-01-24',
+            },
+            {
+              id: 112529473,
+              url: 'https://github.com/bighead/silicon-valley',
+              topics: ['TV Shows', 'Comedy', 'Startups'],
+              summary: 'Silicon Valley: 50 commits in 2 weeks',
+              numberCommits: 50,
+              lastCommitDate: '02/01/2023',
+              firstCommitDate: '01/17/2023',
+            },
+          ],
+        },
+        mockIRepositoryOptions,
+      )
+      await MemberRepository.create(
+        {
+          username: { [PlatformType.TWITTER]: 'test2' },
+          displayName: 'Member 2',
+          score: '6',
+          joinedAt: new Date(),
+          contributions: [
+            {
+              id: 112529473,
+              url: 'https://github.com/bighead/silicon-valley',
+              topics: ['TV Shows', 'Comedy', 'Startups'],
+              summary: 'Silicon Valley: 50 commits in 2 weeks',
+              numberCommits: 50,
+              lastCommitDate: '02/01/2023',
+              firstCommitDate: '01/17/2023',
+            },
+            {
+              id: 112529474,
+              url: 'https://github.com/bighead/startup-ideas',
+              topics: ['Ideas', 'Startups'],
+              summary: 'Startup Ideas: 20 commits in 1 week',
+              numberCommits: 20,
+              lastCommitDate: '03/01/2023',
+              firstCommitDate: '02/22/2023',
+            },
+          ],
+        },
+        mockIRepositoryOptions,
+      )
+      await MemberRepository.create(
+        {
+          username: { [PlatformType.TWITTER]: 'test3' },
+          displayName: 'Member 3',
+          score: '7',
+          joinedAt: new Date(),
+        },
+        mockIRepositoryOptions,
+      )
+
+      await SequelizeTestUtils.refreshMaterializedViews(db)
+
+      const members = await MemberRepository.findAndCountAll(
+        {
+          filter: { numberOfOpenSourceContributionsRange: [2] },
+          orderBy: 'numberOfOpenSourceContributions_DESC',
+        },
+        mockIRepositoryOptions,
+      )
+
+      expect(members.rows.length).toEqual(2)
+      expect(members.rows[0].numberOfOpenSourceContributions).toEqual(4)
+      expect(members.rows[1].numberOfOpenSourceContributions).toEqual(2)
     })
 
     it('is successfully finding and counting all members, and tags [nodejs, vuejs]', async () => {
@@ -1260,6 +1562,954 @@ describe('MemberRepository tests', () => {
     })
   })
 
+  describe('findAndCountAllv2 method', () => {
+    it('is successfully finding and counting all members, sortedBy activitiesCount DESC', async () => {
+      const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
+
+      const member1 = await MemberRepository.create(
+        {
+          username: { [PlatformType.TWITTER]: 'test1' },
+          displayName: 'Member 1',
+          score: '1',
+          joinedAt: new Date(),
+        },
+        mockIRepositoryOptions,
+      )
+      const member2 = await MemberRepository.create(
+        {
+          username: { [PlatformType.TWITTER]: 'test2' },
+          displayName: 'Member 2',
+          score: '6',
+          joinedAt: new Date(),
+        },
+        mockIRepositoryOptions,
+      )
+      const member3 = await MemberRepository.create(
+        {
+          username: { [PlatformType.TWITTER]: 'test3' },
+          displayName: 'Member 3',
+          score: '7',
+          joinedAt: new Date(),
+        },
+        mockIRepositoryOptions,
+      )
+
+      await mockIRepositoryOptions.database.activity.bulkCreate([
+        {
+          type: 'message',
+          platform: PlatformType.SLACK,
+          timestamp: new Date(),
+          tenantId: mockIRepositoryOptions.currentTenant.id,
+          memberId: member1.id,
+          sourceId: '#sourceId1',
+        },
+        {
+          type: 'message',
+          platform: PlatformType.SLACK,
+          timestamp: new Date(),
+          tenantId: mockIRepositoryOptions.currentTenant.id,
+          memberId: member2.id,
+          sourceId: '#sourceId2',
+        },
+        {
+          type: 'message',
+          platform: PlatformType.SLACK,
+          timestamp: new Date(),
+          tenantId: mockIRepositoryOptions.currentTenant.id,
+          memberId: member2.id,
+          sourceId: '#sourceId3',
+        },
+        {
+          type: 'message',
+          platform: PlatformType.SLACK,
+          timestamp: new Date(),
+          tenantId: mockIRepositoryOptions.currentTenant.id,
+          memberId: member3.id,
+          sourceId: '#sourceId4',
+        },
+        {
+          type: 'message',
+          platform: PlatformType.SLACK,
+          timestamp: new Date(),
+          tenantId: mockIRepositoryOptions.currentTenant.id,
+          memberId: member3.id,
+          sourceId: '#sourceId5',
+        },
+        {
+          type: 'message',
+          platform: PlatformType.SLACK,
+          timestamp: new Date(),
+          tenantId: mockIRepositoryOptions.currentTenant.id,
+          memberId: member3.id,
+          sourceId: '#sourceId6',
+        },
+      ])
+
+      await SequelizeTestUtils.refreshMaterializedViews(db)
+
+      const members = await MemberRepository.findAndCountAllv2(
+        { filter: {}, orderBy: 'activityCount_DESC' },
+        mockIRepositoryOptions,
+      )
+
+      expect(members.rows.length).toEqual(3)
+      expect(members.rows[0].activityCount).toEqual('3')
+      expect(members.rows[1].activityCount).toEqual('2')
+      expect(members.rows[2].activityCount).toEqual('1')
+    })
+
+    it('is successfully finding and counting all members, sortedBy numberOfOpenSourceContributions DESC', async () => {
+      const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
+
+      await MemberRepository.create(
+        {
+          username: { [PlatformType.TWITTER]: 'test1' },
+          displayName: 'Member 1',
+          score: '1',
+          joinedAt: new Date(),
+          contributions: [
+            {
+              id: 112529472,
+              url: 'https://github.com/bachman/pied-piper',
+              topics: ['compression', 'data', 'middle-out', 'Java'],
+              summary: 'Pied Piper: 10 commits in 1 day',
+              numberCommits: 10,
+              lastCommitDate: '2023-03-10',
+              firstCommitDate: '2023-03-01',
+            },
+            {
+              id: 112529473,
+              url: 'https://github.com/bachman/aviato',
+              topics: ['Python', 'Django'],
+              summary: 'Aviato: 5 commits in 1 day',
+              numberCommits: 5,
+              lastCommitDate: '2023-02-25',
+              firstCommitDate: '2023-02-20',
+            },
+            {
+              id: 112529476,
+              url: 'https://github.com/bachman/erlichbot',
+              topics: ['Python', 'Slack API'],
+              summary: 'ErlichBot: 2 commits in 1 day',
+              numberCommits: 2,
+              lastCommitDate: '2023-01-25',
+              firstCommitDate: '2023-01-24',
+            },
+          ],
+        },
+        mockIRepositoryOptions,
+      )
+      await MemberRepository.create(
+        {
+          username: { [PlatformType.TWITTER]: 'test2' },
+          displayName: 'Member 2',
+          score: '6',
+          joinedAt: new Date(),
+          contributions: [
+            {
+              id: 112529473,
+              url: 'https://github.com/bighead/silicon-valley',
+              topics: ['TV Shows', 'Comedy', 'Startups'],
+              summary: 'Silicon Valley: 50 commits in 2 weeks',
+              numberCommits: 50,
+              lastCommitDate: '02/01/2023',
+              firstCommitDate: '01/17/2023',
+            },
+            {
+              id: 112529474,
+              url: 'https://github.com/bighead/startup-ideas',
+              topics: ['Ideas', 'Startups'],
+              summary: 'Startup Ideas: 20 commits in 1 week',
+              numberCommits: 20,
+              lastCommitDate: '03/01/2023',
+              firstCommitDate: '02/22/2023',
+            },
+          ],
+        },
+        mockIRepositoryOptions,
+      )
+      await MemberRepository.create(
+        {
+          username: { [PlatformType.TWITTER]: 'test3' },
+          displayName: 'Member 3',
+          score: '7',
+          joinedAt: new Date(),
+        },
+        mockIRepositoryOptions,
+      )
+
+      await SequelizeTestUtils.refreshMaterializedViews(db)
+
+      const members = await MemberRepository.findAndCountAllv2(
+        { filter: {}, orderBy: 'numberOfOpenSourceContributions_DESC' },
+        mockIRepositoryOptions,
+      )
+
+      expect(members.rows.length).toEqual(3)
+      expect(members.rows[0].numberOfOpenSourceContributions).toEqual(3)
+      expect(members.rows[1].numberOfOpenSourceContributions).toEqual(2)
+      expect(members.rows[2].numberOfOpenSourceContributions).toEqual(0)
+    })
+
+    it('is successfully finding and counting all members, numberOfOpenSourceContributions range gte 3', async () => {
+      const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
+
+      await MemberRepository.create(
+        {
+          username: { [PlatformType.TWITTER]: 'test1' },
+          displayName: 'Member 1',
+          score: '1',
+          joinedAt: new Date(),
+          contributions: [
+            {
+              id: 112529472,
+              url: 'https://github.com/bachman/pied-piper',
+              topics: ['compression', 'data', 'middle-out', 'Java'],
+              summary: 'Pied Piper: 10 commits in 1 day',
+              numberCommits: 10,
+              lastCommitDate: '2023-03-10',
+              firstCommitDate: '2023-03-01',
+            },
+            {
+              id: 112529473,
+              url: 'https://github.com/bachman/aviato',
+              topics: ['Python', 'Django'],
+              summary: 'Aviato: 5 commits in 1 day',
+              numberCommits: 5,
+              lastCommitDate: '2023-02-25',
+              firstCommitDate: '2023-02-20',
+            },
+            {
+              id: 112529476,
+              url: 'https://github.com/bachman/erlichbot',
+              topics: ['Python', 'Slack API'],
+              summary: 'ErlichBot: 2 commits in 1 day',
+              numberCommits: 2,
+              lastCommitDate: '2023-01-25',
+              firstCommitDate: '2023-01-24',
+            },
+            {
+              id: 112529473,
+              url: 'https://github.com/bighead/silicon-valley',
+              topics: ['TV Shows', 'Comedy', 'Startups'],
+              summary: 'Silicon Valley: 50 commits in 2 weeks',
+              numberCommits: 50,
+              lastCommitDate: '02/01/2023',
+              firstCommitDate: '01/17/2023',
+            },
+          ],
+        },
+        mockIRepositoryOptions,
+      )
+      await MemberRepository.create(
+        {
+          username: { [PlatformType.TWITTER]: 'test2' },
+          displayName: 'Member 2',
+          score: '6',
+          joinedAt: new Date(),
+          contributions: [
+            {
+              id: 112529473,
+              url: 'https://github.com/bighead/silicon-valley',
+              topics: ['TV Shows', 'Comedy', 'Startups'],
+              summary: 'Silicon Valley: 50 commits in 2 weeks',
+              numberCommits: 50,
+              lastCommitDate: '02/01/2023',
+              firstCommitDate: '01/17/2023',
+            },
+            {
+              id: 112529474,
+              url: 'https://github.com/bighead/startup-ideas',
+              topics: ['Ideas', 'Startups'],
+              summary: 'Startup Ideas: 20 commits in 1 week',
+              numberCommits: 20,
+              lastCommitDate: '03/01/2023',
+              firstCommitDate: '02/22/2023',
+            },
+          ],
+        },
+        mockIRepositoryOptions,
+      )
+      await MemberRepository.create(
+        {
+          username: { [PlatformType.TWITTER]: 'test3' },
+          displayName: 'Member 3',
+          score: '7',
+          joinedAt: new Date(),
+        },
+        mockIRepositoryOptions,
+      )
+
+      await SequelizeTestUtils.refreshMaterializedViews(db)
+
+      const members = await MemberRepository.findAndCountAllv2(
+        {
+          filter: {
+            and: [
+              {
+                and: [
+                  {
+                    numberOfOpenSourceContributions: {
+                      gte: 3,
+                    },
+                  },
+                ],
+              },
+            ],
+          },
+        },
+        mockIRepositoryOptions,
+      )
+
+      expect(members.rows.length).toEqual(1)
+      expect(members.rows[0].numberOfOpenSourceContributions).toEqual(4)
+    })
+
+    it('is successfully finding and counting all members, numberOfOpenSourceContributions range gte 2 and sort by asc', async () => {
+      const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
+
+      await MemberRepository.create(
+        {
+          username: { [PlatformType.TWITTER]: 'test1' },
+          displayName: 'Member 1',
+          score: '1',
+          joinedAt: new Date(),
+          contributions: [
+            {
+              id: 112529472,
+              url: 'https://github.com/bachman/pied-piper',
+              topics: ['compression', 'data', 'middle-out', 'Java'],
+              summary: 'Pied Piper: 10 commits in 1 day',
+              numberCommits: 10,
+              lastCommitDate: '2023-03-10',
+              firstCommitDate: '2023-03-01',
+            },
+            {
+              id: 112529473,
+              url: 'https://github.com/bachman/aviato',
+              topics: ['Python', 'Django'],
+              summary: 'Aviato: 5 commits in 1 day',
+              numberCommits: 5,
+              lastCommitDate: '2023-02-25',
+              firstCommitDate: '2023-02-20',
+            },
+            {
+              id: 112529476,
+              url: 'https://github.com/bachman/erlichbot',
+              topics: ['Python', 'Slack API'],
+              summary: 'ErlichBot: 2 commits in 1 day',
+              numberCommits: 2,
+              lastCommitDate: '2023-01-25',
+              firstCommitDate: '2023-01-24',
+            },
+            {
+              id: 112529473,
+              url: 'https://github.com/bighead/silicon-valley',
+              topics: ['TV Shows', 'Comedy', 'Startups'],
+              summary: 'Silicon Valley: 50 commits in 2 weeks',
+              numberCommits: 50,
+              lastCommitDate: '02/01/2023',
+              firstCommitDate: '01/17/2023',
+            },
+          ],
+        },
+        mockIRepositoryOptions,
+      )
+      await MemberRepository.create(
+        {
+          username: { [PlatformType.TWITTER]: 'test2' },
+          displayName: 'Member 2',
+          score: '6',
+          joinedAt: new Date(),
+          contributions: [
+            {
+              id: 112529473,
+              url: 'https://github.com/bighead/silicon-valley',
+              topics: ['TV Shows', 'Comedy', 'Startups'],
+              summary: 'Silicon Valley: 50 commits in 2 weeks',
+              numberCommits: 50,
+              lastCommitDate: '02/01/2023',
+              firstCommitDate: '01/17/2023',
+            },
+            {
+              id: 112529474,
+              url: 'https://github.com/bighead/startup-ideas',
+              topics: ['Ideas', 'Startups'],
+              summary: 'Startup Ideas: 20 commits in 1 week',
+              numberCommits: 20,
+              lastCommitDate: '03/01/2023',
+              firstCommitDate: '02/22/2023',
+            },
+          ],
+        },
+        mockIRepositoryOptions,
+      )
+      await MemberRepository.create(
+        {
+          username: { [PlatformType.TWITTER]: 'test3' },
+          displayName: 'Member 3',
+          score: '7',
+          joinedAt: new Date(),
+        },
+        mockIRepositoryOptions,
+      )
+
+      await SequelizeTestUtils.refreshMaterializedViews(db)
+      const members = await MemberRepository.findAndCountAllv2(
+        {
+          filter: {
+            and: [
+              {
+                and: [
+                  {
+                    numberOfOpenSourceContributions: {
+                      gte: 2,
+                    },
+                  },
+                ],
+              },
+            ],
+          },
+          orderBy: 'numberOfOpenSourceContributions_ASC',
+        },
+        mockIRepositoryOptions,
+      )
+
+      expect(members.rows.length).toEqual(2)
+      expect(members.rows[0].numberOfOpenSourceContributions).toEqual(2)
+      expect(members.rows[1].numberOfOpenSourceContributions).toEqual(4)
+    })
+
+    it('is successfully finding and counting all members, and tags [nodejs, vuejs]', async () => {
+      const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
+
+      const nodeTag = await mockIRepositoryOptions.database.tag.create({
+        name: 'nodejs',
+        tenantId: mockIRepositoryOptions.currentTenant.id,
+      })
+      const vueTag = await mockIRepositoryOptions.database.tag.create({
+        name: 'vuejs',
+        tenantId: mockIRepositoryOptions.currentTenant.id,
+      })
+
+      await MemberRepository.create(
+        {
+          username: { [PlatformType.TWITTER]: 'test1' },
+          displayName: 'Member 1',
+          score: '1',
+          joinedAt: new Date(),
+        },
+        mockIRepositoryOptions,
+      )
+      await MemberRepository.create(
+        {
+          username: { [PlatformType.TWITTER]: 'test2' },
+          displayName: 'Member 2',
+          score: '6',
+          joinedAt: new Date(),
+          tags: [nodeTag.id, vueTag.id],
+        },
+        mockIRepositoryOptions,
+      )
+      await MemberRepository.create(
+        {
+          username: { [PlatformType.GITHUB]: 'test3' },
+          displayName: 'Member 3',
+          score: '7',
+          joinedAt: new Date(),
+        },
+        mockIRepositoryOptions,
+      )
+
+      await SequelizeTestUtils.refreshMaterializedViews(db)
+
+      const members = await MemberRepository.findAndCountAllv2(
+        {
+          filter: {
+            and: [
+              {
+                tags: {
+                  contains: [nodeTag.id, vueTag.id],
+                },
+              },
+            ],
+          },
+        },
+        mockIRepositoryOptions,
+      )
+      const member2 = members.rows.find((m) => m.username[PlatformType.TWITTER] === 'test2')
+      expect(members.rows.length).toEqual(1)
+      expect(member2.tags[0].name).toEqual('nodejs')
+      expect(member2.tags[1].name).toEqual('vuejs')
+    })
+
+    it('is successfully finding and counting all members, and tags [nodejs]', async () => {
+      const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
+
+      const nodeTag = await mockIRepositoryOptions.database.tag.create({
+        name: 'nodejs',
+        tenantId: mockIRepositoryOptions.currentTenant.id,
+      })
+      const vueTag = await mockIRepositoryOptions.database.tag.create({
+        name: 'vuejs',
+        tenantId: mockIRepositoryOptions.currentTenant.id,
+      })
+
+      await MemberRepository.create(
+        {
+          username: { [PlatformType.GITHUB]: 'test1' },
+          displayName: 'Member 1',
+          score: '1',
+          joinedAt: new Date(),
+          tags: [nodeTag.id],
+        },
+        mockIRepositoryOptions,
+      )
+      await MemberRepository.create(
+        {
+          username: { [PlatformType.GITHUB]: 'test2' },
+          displayName: 'Member 2',
+          score: '6',
+          joinedAt: new Date(),
+          tags: [nodeTag.id, vueTag.id],
+        },
+        mockIRepositoryOptions,
+      )
+      await MemberRepository.create(
+        {
+          username: { [PlatformType.GITHUB]: 'test3' },
+          displayName: 'Member 3',
+          score: '7',
+          joinedAt: new Date(),
+        },
+        mockIRepositoryOptions,
+      )
+
+      await SequelizeTestUtils.refreshMaterializedViews(db)
+
+      const members = await MemberRepository.findAndCountAllv2(
+        {
+          filter: {
+            and: [
+              {
+                tags: {
+                  contains: [nodeTag.id],
+                },
+              },
+            ],
+          },
+        },
+        mockIRepositoryOptions,
+      )
+      const member1 = members.rows.find((m) => m.username[PlatformType.GITHUB] === 'test1')
+      const member2 = members.rows.find((m) => m.username[PlatformType.GITHUB] === 'test2')
+
+      expect(members.rows.length).toEqual(2)
+      expect(member1.tags[0].name).toEqual('nodejs')
+      expect(member1.tags[0].name).toEqual('nodejs')
+      expect(member2.tags[1].name).toEqual('vuejs')
+    })
+
+    it('is successfully finding and counting all members, and organisations [crowd.dev, pied piper]', async () => {
+      const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
+
+      const crowd = await mockIRepositoryOptions.database.organization.create({
+        name: 'crowd.dev',
+        url: 'https://crowd.dev',
+        tenantId: mockIRepositoryOptions.currentTenant.id,
+      })
+      const pp = await mockIRepositoryOptions.database.organization.create({
+        name: 'pied piper',
+        url: 'https://piedpiper.com',
+        tenantId: mockIRepositoryOptions.currentTenant.id,
+      })
+
+      await MemberRepository.create(
+        {
+          username: { [PlatformType.SLACK]: 'test1' },
+          displayName: 'Member 1',
+          score: '1',
+          joinedAt: new Date(),
+        },
+        mockIRepositoryOptions,
+      )
+      await MemberRepository.create(
+        {
+          username: { [PlatformType.SLACK]: 'test2' },
+          displayName: 'Member 2',
+          score: '6',
+          joinedAt: new Date(),
+          organizations: [crowd.id, pp.id],
+        },
+        mockIRepositoryOptions,
+      )
+      await MemberRepository.create(
+        {
+          username: { [PlatformType.SLACK]: 'test3' },
+          displayName: 'Member 3',
+          score: '7',
+          joinedAt: new Date(),
+        },
+        mockIRepositoryOptions,
+      )
+
+      await SequelizeTestUtils.refreshMaterializedViews(db)
+
+      const members = await MemberRepository.findAndCountAllv2(
+        {
+          filter: {
+            and: [
+              {
+                organizations: {
+                  contains: [crowd.id, pp.id],
+                },
+              },
+            ],
+          },
+        },
+        mockIRepositoryOptions,
+      )
+      const member2 = members.rows.find((m) => m.username[PlatformType.SLACK] === 'test2')
+      expect(members.rows.length).toEqual(1)
+      expect(member2.organizations[0].name).toEqual('crowd.dev')
+      expect(member2.organizations[1].name).toEqual('pied piper')
+    })
+
+    it('is successfully finding and counting all members, and scoreRange is gte than 7', async () => {
+      const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
+
+      const user1 = {
+        username: { [PlatformType.DISCORD]: 'test1' },
+        displayName: 'Member 1',
+        score: '1',
+        joinedAt: new Date(),
+      }
+      const user2 = {
+        username: { [PlatformType.DISCORD]: 'test2' },
+        displayName: 'Member 2',
+        score: '6',
+        joinedAt: new Date(),
+      }
+      const user3 = {
+        username: { [PlatformType.DISCORD]: 'test3' },
+        displayName: 'Member 3',
+        score: '7',
+        joinedAt: new Date(),
+      }
+      await MemberRepository.create(user1, mockIRepositoryOptions)
+      await MemberRepository.create(user2, mockIRepositoryOptions)
+      await MemberRepository.create(user3, mockIRepositoryOptions)
+
+      await SequelizeTestUtils.refreshMaterializedViews(db)
+
+      const members = await MemberRepository.findAndCountAllv2(
+        {
+          filter: {
+            and: [
+              {
+                and: [
+                  {
+                    score: {
+                      gte: 7,
+                    },
+                  },
+                ],
+              },
+            ],
+          },
+        },
+        mockIRepositoryOptions,
+      )
+
+      expect(members.rows.length).toEqual(1)
+      for (const member of members.rows) {
+        expect(member.score).toBeGreaterThanOrEqual(7)
+      }
+    })
+
+    it('is successfully find and counting members with various filters, computed attributes, and full options (filter, limit, offset and orderBy)', async () => {
+      const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
+
+      const nodeTag = await mockIRepositoryOptions.database.tag.create({
+        name: 'nodejs',
+        tenantId: mockIRepositoryOptions.currentTenant.id,
+      })
+      const vueTag = await mockIRepositoryOptions.database.tag.create({
+        name: 'vuejs',
+        tenantId: mockIRepositoryOptions.currentTenant.id,
+      })
+
+      const member1 = await MemberRepository.create(
+        {
+          username: { [PlatformType.DISCORD]: 'test1' },
+          displayName: 'Member 1',
+          score: '1',
+          joinedAt: new Date(),
+          tags: [nodeTag.id],
+          reach: {
+            total: 15,
+          },
+        },
+        mockIRepositoryOptions,
+      )
+      const member2 = await MemberRepository.create(
+        {
+          username: { [PlatformType.DISCORD]: 'test2' },
+          displayName: 'Member 2',
+          score: '6',
+          joinedAt: new Date(),
+          tags: [nodeTag.id, vueTag.id],
+          reach: {
+            total: 55,
+          },
+        },
+        mockIRepositoryOptions,
+      )
+      const member3 = await MemberRepository.create(
+        {
+          username: { [PlatformType.DISCORD]: 'test3' },
+          displayName: 'Member 3',
+          score: '7',
+          joinedAt: new Date(),
+          tags: [vueTag.id],
+          reach: {
+            total: 124,
+          },
+        },
+        mockIRepositoryOptions,
+      )
+
+      await mockIRepositoryOptions.database.activity.bulkCreate([
+        {
+          type: 'message',
+          platform: PlatformType.SLACK,
+          timestamp: new Date('2022-09-10'),
+          tenantId: mockIRepositoryOptions.currentTenant.id,
+          memberId: member1.id,
+          sourceId: '#sourceId1',
+          sentiment: {
+            positive: 0.55,
+            negative: 0.0,
+            neutral: 0.45,
+            mixed: 0.0,
+            label: 'positive',
+            sentiment: 0.1,
+          },
+        },
+        {
+          type: 'message',
+          platform: PlatformType.SLACK,
+          timestamp: new Date('2022-09-11'),
+          tenantId: mockIRepositoryOptions.currentTenant.id,
+          memberId: member2.id,
+          sourceId: '#sourceId2',
+          sentiment: {
+            positive: 0.01,
+            negative: 0.55,
+            neutral: 0.55,
+            mixed: 0.0,
+            label: 'negative',
+            sentiment: -0.54,
+          },
+        },
+        {
+          type: 'message',
+          platform: PlatformType.SLACK,
+          timestamp: new Date('2022-09-12'),
+          tenantId: mockIRepositoryOptions.currentTenant.id,
+          memberId: member2.id,
+          sourceId: '#sourceId3',
+          sentiment: {
+            positive: 0.94,
+            negative: 0.0,
+            neutral: 0.06,
+            mixed: 0.0,
+            label: 'positive',
+            sentiment: 0.94,
+          },
+        },
+        {
+          type: 'message',
+          platform: PlatformType.SLACK,
+          timestamp: new Date('2022-09-13'),
+          tenantId: mockIRepositoryOptions.currentTenant.id,
+          memberId: member3.id,
+          sourceId: '#sourceId4',
+          sentiment: {
+            positive: 0.42,
+            negative: 0.42,
+            neutral: 0.42,
+            mixed: 0.42,
+            label: 'positive',
+            sentiment: 0.42,
+          },
+        },
+        {
+          type: 'message',
+          platform: PlatformType.SLACK,
+          timestamp: new Date('2022-09-14'),
+          tenantId: mockIRepositoryOptions.currentTenant.id,
+          memberId: member3.id,
+          sourceId: '#sourceId5',
+          sentiment: {
+            positive: 0.42,
+            negative: 0.42,
+            neutral: 0.42,
+            mixed: 0.42,
+            label: 'positive',
+            sentiment: 0.41,
+          },
+        },
+        {
+          type: 'message',
+          platform: PlatformType.SLACK,
+          timestamp: new Date('2022-09-15'),
+          tenantId: mockIRepositoryOptions.currentTenant.id,
+          memberId: member3.id,
+          sourceId: '#sourceId6',
+          sentiment: {
+            positive: 0.42,
+            negative: 0.42,
+            neutral: 0.42,
+            mixed: 0.42,
+            label: 'positive',
+            sentiment: 0.18,
+          },
+        },
+      ])
+
+      await SequelizeTestUtils.refreshMaterializedViews(db)
+
+      let members = await MemberRepository.findAndCountAllv2(
+        {
+          filter: {},
+          limit: 15,
+          offset: 0,
+          orderBy: 'activityCount_DESC',
+        },
+        mockIRepositoryOptions,
+      )
+      expect(members.rows.length).toEqual(3)
+      expect(members.rows[0].activityCount).toEqual('3')
+      expect(members.rows[0].lastActive.toISOString()).toEqual('2022-09-15T00:00:00.000Z')
+
+      expect(members.rows[1].activityCount).toEqual('2')
+      expect(members.rows[1].lastActive.toISOString()).toEqual('2022-09-12T00:00:00.000Z')
+
+      expect(members.rows[2].activityCount).toEqual('1')
+      expect(members.rows[2].tags[0].name).toEqual('nodejs')
+      expect(members.rows[2].lastActive.toISOString()).toEqual('2022-09-10T00:00:00.000Z')
+
+      expect(members.rows[1].tags.map((i) => i.name).sort()).toEqual(['nodejs', 'vuejs'])
+      expect(members.rows[0].tags[0].name).toEqual('vuejs')
+
+      // filter and order by reach
+      members = await MemberRepository.findAndCountAllv2(
+        {
+          filter: {
+            and: [
+              {
+                and: [
+                  {
+                    reach: {
+                      gte: 55,
+                    },
+                  },
+                ],
+              },
+            ],
+          },
+          limit: 15,
+          offset: 0,
+          orderBy: 'reach_DESC',
+        },
+        mockIRepositoryOptions,
+      )
+
+      expect(members.rows.length).toEqual(2)
+      expect(members.rows[0].id).toEqual(member3.id)
+      expect(members.rows[1].id).toEqual(member2.id)
+
+      // filter and sort by activity count
+      members = await MemberRepository.findAndCountAllv2(
+        {
+          filter: {
+            and: [
+              {
+                and: [
+                  {
+                    activityCount: {
+                      gte: 2,
+                    },
+                  },
+                ],
+              },
+            ],
+          },
+          limit: 15,
+          offset: 0,
+          orderBy: 'activityCount_DESC',
+        },
+        mockIRepositoryOptions,
+      )
+
+      expect(members.rows.length).toEqual(2)
+      expect(members.rows.map((i) => i.id)).toEqual([member3.id, member2.id])
+
+      // filter and sort by lastActive
+      members = await MemberRepository.findAndCountAllv2(
+        {
+          filter: {
+            and: [
+              {
+                and: [
+                  {
+                    lastActive: {
+                      gte: '2022-09-11',
+                    },
+                  },
+                ],
+              },
+            ],
+          },
+          limit: 15,
+          offset: 0,
+          orderBy: 'lastActive_DESC',
+        },
+        mockIRepositoryOptions,
+      )
+
+      expect(members.rows.length).toEqual(2)
+      expect(members.rows.map((i) => i.id)).toEqual([member3.id, member2.id])
+
+      // filter and sort by averageSentiment (member1.avgSentiment = 0.1, member2.avgSentiment = 0.2, member3.avgSentiment = 0.34)
+      members = await MemberRepository.findAndCountAllv2(
+        {
+          filter: {
+            and: [
+              {
+                and: [
+                  {
+                    averageSentiment: {
+                      gte: 0.2,
+                    },
+                  },
+                ],
+              },
+            ],
+          },
+          limit: 15,
+          offset: 0,
+          orderBy: 'averageSentiment_ASC',
+        },
+        mockIRepositoryOptions,
+      )
+
+      expect(members.rows.length).toEqual(2)
+      expect(members.rows.map((i) => i.id)).toEqual([member2.id, member3.id])
+    })
+  })
+
   describe('update method', () => {
     it('Should succesfully update previously created member', async () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
@@ -1346,6 +2596,7 @@ describe('MemberRepository tests', () => {
         activityCount: 0,
         activeDaysCount: 0,
         averageSentiment: 0,
+        numberOfOpenSourceContributions: 0,
         lastActive: null,
         lastActivity: null,
       }
@@ -1500,6 +2751,7 @@ describe('MemberRepository tests', () => {
         activityCount: 0,
         activeDaysCount: 0,
         averageSentiment: 0,
+        numberOfOpenSourceContributions: 0,
         lastActive: null,
         lastActivity: null,
       }
@@ -1599,6 +2851,7 @@ describe('MemberRepository tests', () => {
         activityCount: 0,
         activeDaysCount: 0,
         averageSentiment: 0,
+        numberOfOpenSourceContributions: 0,
         lastActive: null,
         lastActivity: null,
       }

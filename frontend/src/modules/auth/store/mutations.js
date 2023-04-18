@@ -1,4 +1,5 @@
 import AuthCurrentTenant from '@/modules/auth/auth-current-tenant';
+import formbricks from '@/plugins/formbricks';
 
 export default {
   CURRENT_USER_REFRESH_SUCCESS(state, payload) {
@@ -14,13 +15,33 @@ export default {
 
   AUTH_SUCCESS(state, payload) {
     state.currentUser = payload.currentUser || null;
+
     state.currentTenant = AuthCurrentTenant.selectAndSaveOnStorageFor(
       payload.currentUser,
     );
     state.loading = false;
+
+    if (state.currentUser) {
+      formbricks.setEmail(state.currentUser.email);
+      formbricks.setUserId(state.currentUser.id);
+      formbricks.setAttribute('name', state.currentUser.fullName);
+      formbricks.setAttribute('registrationDate', state.currentUser.createdAt);
+      const timestampSignup = new Date(
+        state.currentUser.createdAt,
+      ).getTime();
+      const timeStamp4WeeksAgo = new Date().getTime() - 4 * 7 * 24 * 60 * 60 * 1000;
+      const timeStamp2023 = new Date('2023-01-01').getTime();
+
+      if (timestampSignup >= timeStamp2023
+        && timestampSignup <= timeStamp4WeeksAgo && formbricks) {
+        formbricks.track('pmfSurveyOpen');
+        formbricks.refresh();
+      }
+    }
   },
 
   AUTH_ERROR(state) {
+    formbricks.logout();
     state.currentUser = null;
     state.currentTenant = null;
     state.loading = false;
@@ -100,13 +121,33 @@ export default {
 
   AUTH_INIT_SUCCESS(state, payload) {
     state.currentUser = payload.currentUser || null;
+
     state.currentTenant = AuthCurrentTenant.selectAndSaveOnStorageFor(
       payload.currentUser,
     );
     state.loadingInit = false;
+
+    if (state.currentUser) {
+      formbricks.setEmail(state.currentUser.email);
+      formbricks.setUserId(state.currentUser.id);
+      formbricks.setAttribute('name', state.currentUser.fullName);
+      formbricks.setAttribute('registrationDate', state.currentUser.createdAt);
+      const timestampSignup = new Date(
+        state.currentUser.createdAt,
+      ).getTime();
+      const timeStamp4WeeksAgo = new Date().getTime() - 4 * 7 * 24 * 60 * 60 * 1000;
+      const timeStamp2023 = new Date('2023-01-01').getTime();
+
+      if (timestampSignup >= timeStamp2023
+        && timestampSignup <= timeStamp4WeeksAgo && formbricks) {
+        formbricks.track('pmfSurveyOpen');
+        formbricks.refresh();
+      }
+    }
   },
 
   AUTH_INIT_ERROR(state) {
+    formbricks.logout();
     state.currentUser = null;
     state.currentTenant = null;
     state.loadingInit = false;

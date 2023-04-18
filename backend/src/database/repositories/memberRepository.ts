@@ -161,6 +161,32 @@ class MemberRepository {
     return { rows: [], count: 0, limit, offset }
   }
 
+  static async moveActivitiesBetweenMembers(
+    fromMemberId: string,
+    toMemberId: string,
+    options: IRepositoryOptions,
+  ): Promise<void> {
+    const transaction = SequelizeRepository.getTransaction(options)
+
+    const seq = SequelizeRepository.getSequelize(options)
+
+    const tenant = SequelizeRepository.getCurrentTenant(options)
+
+    const query = `
+      update activities set "memberId" = :toMemberId where "memberId" = :fromMemberId and "tenantId" = :tenantId;
+    `
+
+    await seq.query(query, {
+      replacements: {
+        fromMemberId,
+        toMemberId,
+        tenantId: tenant.id,
+      },
+      type: QueryTypes.UPDATE,
+      transaction,
+    })
+  }
+
   static async addToMerge(id, toMergeId, options: IRepositoryOptions) {
     const transaction = SequelizeRepository.getTransaction(options)
 
@@ -403,18 +429,23 @@ class MemberRepository {
     options: IRepositoryOptions,
     returnPlain = true,
     doPopulateRelations = true,
+    ignoreTenant = false,
   ) {
     const transaction = SequelizeRepository.getTransaction(options)
 
     const include = []
 
-    const currentTenant = SequelizeRepository.getCurrentTenant(options)
+    const where: any = {
+      id,
+    }
+
+    if (!ignoreTenant) {
+      const currentTenant = SequelizeRepository.getCurrentTenant(options)
+      where.tenantId = currentTenant.id
+    }
 
     const record = await options.database.member.findOne({
-      where: {
-        id,
-        tenantId: currentTenant.id,
-      },
+      where,
       include,
       transaction,
     })
@@ -623,6 +654,7 @@ class MemberRepository {
     ['averageSentiment', 'aggs."averageSentiment"'],
     ['identities', 'aggs.identities'],
     ['reach', "(m.reach -> 'total')::integer"],
+    ['numberOfOpenSourceContributions', 'coalesce(jsonb_array_length(m.contributions), 0)'],
 
     ['id', 'm.id'],
     ['displayName', 'm."displayName"'],
@@ -683,6 +715,9 @@ class MemberRepository {
         break
       case 'activityCount':
         orderByString = 'aggs."activityCount"'
+        break
+      case 'numberOfOpenSourceContributions':
+        orderByString = '"numberOfOpenSourceContributions"'
         break
 
       default:
@@ -794,7 +829,8 @@ select m.id,
        aggs."lastActive",
        aggs."averageSentiment",
        coalesce(mt.all_tags, json_build_array())   as tags,
-       coalesce(mo.all_organizations, json_build_array()) as organizations
+       coalesce(mo.all_organizations, json_build_array()) as organizations,
+       coalesce(jsonb_array_length(m.contributions), 0) as "numberOfOpenSourceContributions"
 from members m
          inner join "memberActivityAggregatesMVs" aggs on aggs.id = m.id
          left join to_merge_data tmd on m.id = tmd."memberId"
@@ -962,6 +998,10 @@ where m."deletedAt" is null
 
     customOrderBy = customOrderBy.concat(
       SequelizeFilterUtils.customOrderByIfExists('averageSentiment', orderBy),
+    )
+
+    customOrderBy = customOrderBy.concat(
+      SequelizeFilterUtils.customOrderByIfExists('numberOfOpenSourceContributions', orderBy),
     )
 
     if (orderBy.includes('reach')) {
@@ -1177,6 +1217,25 @@ where m."deletedAt" is null
             })
           }
         }
+
+        if (filter.numberOfOpenSourceContributionsRange) {
+          const [start, end] = filter.numberOfOpenSourceContributionsRange
+          if (start !== undefined && start !== null && start !== '') {
+            advancedFilter.and.push({
+              numberOfOpenSourceContributions: {
+                gte: start,
+              },
+            })
+          }
+
+          if (end !== undefined && end !== null && end !== '') {
+            advancedFilter.and.push({
+              numberOfOpenSourceContributions: {
+                lte: end,
+              },
+            })
+          }
+        }
       }
     }
 
@@ -1198,6 +1257,10 @@ where m."deletedAt" is null
     const toMergeArray = Sequelize.literal(`STRING_AGG( distinct "toMerge"."id"::text, ',')`)
     const noMergeArray = Sequelize.literal(`STRING_AGG( distinct "noMerge"."id"::text, ',')`)
 
+    const numberOfOpenSourceContributions = Sequelize.literal(
+      `COALESCE(jsonb_array_length("member"."contributions"), 0)`,
+    )
+
     const parser = new QueryParser(
       {
         nestedFields: {
@@ -1213,6 +1276,7 @@ where m."deletedAt" is null
           averageSentiment,
           activeOn,
           identities,
+          numberOfOpenSourceContributions,
           ...dynamicAttributesPlatformNestedFields,
           'reach.total': Sequelize.literal(`("member".reach->'total')::int`),
           'username.asString': Sequelize.literal(`CAST("member"."username" AS TEXT)`),
@@ -1325,6 +1389,7 @@ where m."deletedAt" is null
         [averageSentiment, 'averageSentiment'],
         [toMergeArray, 'toMergeIds'],
         [noMergeArray, 'noMergeIds'],
+        [numberOfOpenSourceContributions, 'numberOfOpenSourceContributions'],
         ...dynamicAttributesProjection,
       ],
       limit: parsed.limit || 50,
@@ -1616,6 +1681,8 @@ where m."deletedAt" is null
     output.identities = Object.keys(output.username)
 
     output.activityCount = output.activities.length
+
+    output.numberOfOpenSourceContributions = output.contributions?.length ?? 0
 
     output.activityTypes = [...new Set(output.activities.map((i) => `${i.platform}:${i.type}`))]
     output.activeDaysCount =
