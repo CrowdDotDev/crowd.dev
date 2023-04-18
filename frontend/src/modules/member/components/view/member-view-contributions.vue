@@ -1,20 +1,23 @@
 <template>
   <div v-click-away="turnOff" class="panel contributions-panel relative h-80">
     <div class="pt-4 px-6 flex justify-between text-center">
-      <el-tooltip placement="top-start">
-        <template #content>
-          This refers to the total # of open source contributions a member did on GitHub.<br />
-          To receive this attribute you have to enrich your members.
-        </template>
-        <div class="flex align-center">
-          <img
-            alt="Github"
-            src="https://cdn-icons-png.flaticon.com/512/25/25231.png"
-            class="h-5 w-5 mr-2"
-          />
-          <span class="font-medium text-black"> Open source contributions </span>
-        </div>
-      </el-tooltip>
+      <div class="flex align-center">
+        <img
+          alt="Github"
+          src="https://cdn-icons-png.flaticon.com/512/25/25231.png"
+          class="h-5 w-5 mr-2"
+        />
+        <span class="font-medium text-black mr-2"> Open source contributions </span>
+
+        <el-tooltip placement="top">
+          <template #content>
+            This refers to the total # of open source contributions a member did on GitHub.<br />
+            To receive this attribute you have to enrich your members.
+          </template>
+          <span class="ri-question-line text-base text-gray-400" />
+        </el-tooltip>
+      </div>
+
       <div class="text-gray-500 flex align-center italic text-2xs h-5">
         <el-tooltip
           placement="top"
