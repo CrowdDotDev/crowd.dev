@@ -256,7 +256,7 @@
 
               <!-- # of Open Source Contributions -->
               <el-table-column
-                label="# OSS Contributions"
+                label="# of open source contributions"
                 width="200"
                 prop="numberOfOpenSourceContributions"
                 sortable
@@ -264,11 +264,10 @@
                 <template #header>
                   <el-tooltip placement="top">
                     <template #content>
-                      The total # of open-source code contributions a member did
-                      on GitHub.<br />
+                      This refers to the total # of open source contributions a member did on GitHub.<br />
                       To receive this attribute you have to enrich your members.
                     </template>
-                    OSS Contributions
+                    # of open source contributions
                   </el-tooltip>
                 </template>
                 <template #default="scope">
