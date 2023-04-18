@@ -135,7 +135,7 @@ const includeModel = computed({
 });
 
 const additionalOptions = computed(() => {
-  if (props.label === 'Activity type') {
+  if (props.label === 'Activity type' && types.value?.custom) {
     return [
       {
         label: reactive({

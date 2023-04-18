@@ -189,7 +189,7 @@ const en = {
         displayName: 'Display Name',
         activities: 'Activities',
         activityCount: '# of activities',
-        activityTypes: 'Activity Type',
+        activityTypes: 'Activity type',
         location: 'Location',
         organization: 'Organization',
         organizations: 'Organizations',
