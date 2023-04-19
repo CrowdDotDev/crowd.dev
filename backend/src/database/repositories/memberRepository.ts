@@ -32,7 +32,7 @@ class MemberRepository {
 
     const platforms = Object.keys(data.username) as PlatformType[]
     if (platforms.length === 0) {
-      throw new Error('Username not set when creating member!')
+      throw new Error('Username object does not have any platforms!')
     }
 
     // fix legacy calls
