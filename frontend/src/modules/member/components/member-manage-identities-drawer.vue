@@ -78,14 +78,19 @@ const handleCancel = () => {
 
 const handleSubmit = async () => {
   loading.value = true;
-  await MemberService.update(props.member.id, {
+  MemberService.update(props.member.id, {
     attributes: memberModel.value.attributes,
     username: memberModel.value.username,
     emails: memberModel.value.emails,
+  }).then(() => {
+    store.dispatch('member/doFind', props.member.id).then(() => {
+      Message.success('Member identities updated successfully');
+    });
+  }).catch((err) => {
+    Message.error(err.response.data);
+  }).finally(() => {
+    loading.value = false;
   });
-  loading.value = false;
-  await store.dispatch('member/doFind', props.member.id);
-  Message.success('Member identities updated successfully');
   emit('update:modelValue', false);
 };
 </script>
