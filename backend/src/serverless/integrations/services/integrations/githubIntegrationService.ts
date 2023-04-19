@@ -723,9 +723,9 @@ export class GithubIntegrationService extends IntegrationServiceBase {
         sourceParentId = payload.pull_request.node_id.toString()
         sourceId = `gen-RRE_${payload.pull_request.node_id.toString()}_${
           payload.pull_request.user.login
-        }_${payload.pull_request.requested_reviewer.login}_${payload.pull_request.updated_at}`
+        }_${payload.requested_reviewer.login}_${payload.pull_request.updated_at}`
         objectMember = await GithubIntegrationService.parseWebhookMember(
-          payload.pull_request.requested_reviewer.login,
+          payload.requested_reviewer.login,
           context,
         )
         objectMemberUsername = objectMember.username[PlatformType.GITHUB].username
