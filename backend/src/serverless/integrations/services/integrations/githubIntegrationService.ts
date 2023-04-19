@@ -1183,16 +1183,16 @@ export class GithubIntegrationService extends IntegrationServiceBase {
         }
       }
     }
-
-    if (memberFromApi.twitterUsername) {
-      member.attributes[MemberAttributeName.URL][
-        PlatformType.TWITTER
-      ] = `https://twitter.com/${memberFromApi.twitterUsername}`
-      member.username[PlatformType.TWITTER] = {
-        username: memberFromApi.twitterUsername,
-        integrationId: context.integration.id,
-      }
-    }
+    // TODO Fix this (multiple member identities with secondary identities)
+    // if (memberFromApi.twitterUsername) {
+    //   member.attributes[MemberAttributeName.URL][
+    //     PlatformType.TWITTER
+    //   ] = `https://twitter.com/${memberFromApi.twitterUsername}`
+    //   member.username[PlatformType.TWITTER] = {
+    //     username: memberFromApi.twitterUsername,
+    //     integrationId: context.integration.id,
+    //   }
+    // }
 
     if (memberFromApi.followers && memberFromApi.followers.totalCount > 0) {
       member.reach = { [PlatformType.GITHUB]: memberFromApi.followers.totalCount }
