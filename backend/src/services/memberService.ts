@@ -24,7 +24,10 @@ import {
 import { LoggingBase } from './loggingBase'
 import { ExportableEntity } from '../serverless/microservices/nodejs/messageTypes'
 import { AttributeType } from '../database/attributes/types'
-import { IActiveMemberFilter } from '../database/repositories/types/memberTypes'
+import {
+  IActiveMemberFilter,
+  mapUsernameToIdentities,
+} from '../database/repositories/types/memberTypes'
 import { IRepositoryOptions } from '../database/repositories/IRepositoryOptions'
 
 export default class MemberService extends LoggingBase {
@@ -189,26 +192,7 @@ export default class MemberService extends LoggingBase {
       throw new Error400(this.options.language, 'activity.platformRequiredWhileUpsert')
     }
 
-    if (typeof data.username === 'string') {
-      data.username = {
-        [data.platform]: {
-          username: data.username,
-        },
-      }
-    } else {
-      const platforms = Object.keys(data.username)
-      for (const platform of platforms) {
-        if (typeof data.username[platform] === 'string') {
-          data.username[platform] = [
-            {
-              username: data.username[platform],
-            },
-          ]
-        } else if (!Array.isArray(data.username[platform])) {
-          data.username[platform] = [data.username[platform]]
-        }
-      }
-    }
+    data.username = mapUsernameToIdentities(data.username, data.platform)
 
     if (!(data.platform in data.username)) {
       throw new Error400(this.options.language, 'activity.platformAndUsernameNotMatching')
@@ -569,91 +553,30 @@ export default class MemberService extends LoggingBase {
 
         const toKeep: any = {}
 
-        for (const [platform, data] of Object.entries(newUsernames)) {
-          const identities: any[] = []
+        const actualOld = mapUsernameToIdentities(oldUsernames)
+        const actualNew = mapUsernameToIdentities(newUsernames)
 
-          if (Array.isArray(data) && data.length === 0 && typeof data[0] === 'string') {
-            // handle array of usernames
-            identities.push(
-              data.map((d) => ({
-                username: d,
-              })),
-            )
-          } else if (typeof data === 'object') {
-            // handle identity
-            identities.push(data)
-          } else if (typeof data === 'string') {
-            // handle username
-            identities.push({
-              username: data,
-            })
-          } else {
-            throw new Error('Cannot handle username comparison!')
-          }
+        for (const [platform, identities] of Object.entries(actualNew)) {
+          const oldIdentities = actualOld[platform]
 
-          // check if old object already contains an identity
-          if (oldUsernames[platform]) {
-            const oldData = oldUsernames[platform]
-            if (Array.isArray(oldData)) {
-              if (oldData.length > 0) {
-                if (typeof oldData[0] === 'object') {
-                  // handle identities
-                  for (const identity of identities) {
-                    let keep = true
-
-                    for (const existingIdentity of oldData) {
-                      if (identity.username === existingIdentity.username) {
-                        keep = false
-                        break
-                      }
-                    }
-
-                    if (keep) {
-                      if (!toKeep[platform]) {
-                        toKeep[platform] = []
-                      }
-
-                      toKeep[platform].push(identity)
-                    }
-                  }
-                } else {
-                  // handle string array
-                  for (const identity of identities) {
-                    let keep = true
-
-                    for (const existingUsername of oldData) {
-                      if (identity.username === existingUsername) {
-                        keep = false
-                        break
-                      }
-                    }
-
-                    if (keep) {
-                      if (!toKeep[platform]) {
-                        toKeep[platform] = []
-                      }
-
-                      toKeep[platform].push(identity)
-                    }
-                  }
-                }
-              } else {
-                toKeep[platform] = identities
-              }
-            } else if (typeof oldData === 'object') {
-              // handle identity
-              for (const identity of identities) {
-                if (identity.username !== oldData.username) {
-                  toKeep[platform] = identities
+          if (oldIdentities) {
+            const identitiesToKeep = []
+            for (const newIdentity of identities as any[]) {
+              let keep = true
+              for (const oldIdentity of oldIdentities) {
+                if (oldIdentity.username === newIdentity.username) {
+                  keep = false
+                  break
                 }
               }
-            } else if (typeof oldData === 'string') {
-              // handle username as string
-              for (const identity of identities) {
-                if (identity.username !== oldData) {
-                  toKeep[platform] = identities
-                }
+
+              if (keep) {
+                identitiesToKeep.push(newIdentity)
               }
+            }
+
+            if (identitiesToKeep.length > 0) {
+              toKeep[platform] = identitiesToKeep
             }
           } else {
             toKeep[platform] = identities

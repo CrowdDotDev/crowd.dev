@@ -18,15 +18,19 @@ import RawQueryParser from './filters/rawQueryParser'
 import SequelizeRepository from './sequelizeRepository'
 import SettingsRepository from './settingsRepository'
 import TenantRepository from './tenantRepository'
-import { IActiveMemberData, IActiveMemberFilter, IMemberIdentity } from './types/memberTypes'
+import {
+  IActiveMemberData,
+  IActiveMemberFilter,
+  IMemberIdentity,
+  mapUsernameToIdentities,
+} from './types/memberTypes'
 
 const { Op } = Sequelize
 
 const log: boolean = false
 
 class MemberRepository {
-  static async create(obj, options: IRepositoryOptions, doPopulateRelations = true) {
-    const data = lodash.cloneDeep(obj)
+  static async create(data, options: IRepositoryOptions, doPopulateRelations = true) {
     if (!data.username) {
       throw new Error('Username not set when creating member!')
     }
@@ -36,18 +40,7 @@ class MemberRepository {
       throw new Error('Username not set when creating member!')
     }
 
-    // fix legacy calls
-    for (const platform of platforms) {
-      if (typeof data.username[platform] === 'string') {
-        data.username[platform] = [
-          {
-            username: data.username[platform],
-          },
-        ]
-      } else if (!Array.isArray(data.username[platform])) {
-        data.username[platform] = [data.username[platform]]
-      }
-    }
+    data.username = mapUsernameToIdentities(data.username)
 
     const currentUser = SequelizeRepository.getCurrentUser(options)
 
@@ -496,16 +489,7 @@ class MemberRepository {
     if (data.username) {
       const platforms = Object.keys(data.username) as PlatformType[]
       if (platforms.length > 0) {
-        // fix legacy calls
-        for (const platform of platforms) {
-          if (typeof data.username[platform] === 'string') {
-            data.username[platform] = {
-              username: data.username[platform],
-            }
-          } else if (!Array.isArray(data.username[platform])) {
-            data.username[platform] = [data.username[platform]]
-          }
-        }
+        data.username = mapUsernameToIdentities(data.username)
 
         const seq = SequelizeRepository.getSequelize(options)
         const query = `
@@ -513,7 +497,7 @@ class MemberRepository {
         values (:memberId, :platform, :username, :sourceId, :tenantId, :integrationId);
         `
 
-        for (const platform of Object.keys(data.username) as PlatformType[]) {
+        for (const platform of platforms) {
           const identities = data.username[platform]
 
           for (const identity of identities) {

@@ -19,7 +19,7 @@ function mapUsername(data: any): any {
     if (Array.isArray(usernameData)) {
       username[platform] = []
       if (usernameData.length > 0) {
-        for (const entry in usernameData) {
+        for (const entry of usernameData) {
           if (typeof entry === 'string') {
             username[platform].push(entry)
           } else if (typeof entry === 'object') {
