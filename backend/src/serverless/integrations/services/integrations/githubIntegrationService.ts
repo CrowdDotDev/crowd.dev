@@ -676,6 +676,8 @@ export class GithubIntegrationService extends IntegrationServiceBase {
     let sourceId: string
     let objectMember: Member = null
     let objectMemberUsername: string = null
+    let body: string = ''
+    let title: string = ''
 
     switch (payload.action) {
       case 'edited':
@@ -686,6 +688,8 @@ export class GithubIntegrationService extends IntegrationServiceBase {
         timestamp = payload.pull_request.created_at
         sourceId = payload.pull_request.node_id.toString()
         sourceParentId = null
+        body = payload.pull_request.body
+        title = payload.pull_request.title
         break
       }
 
@@ -768,9 +772,9 @@ export class GithubIntegrationService extends IntegrationServiceBase {
         sourceId,
         sourceParentId,
         url: pull.html_url,
-        title: pull.title,
+        title,
         channel: payload.repository.html_url,
-        body: pull.body,
+        body,
         score: scoreGrid.score,
         isContribution: scoreGrid.isContribution,
         attributes: {
