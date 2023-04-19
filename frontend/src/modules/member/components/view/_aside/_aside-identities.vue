@@ -13,53 +13,16 @@
       </el-button>
     </div>
     <div class="-mx-6 mt-6">
-      <a
+      <div
         v-for="platform of Object.keys(socialIdentities)"
         :key="platform"
-        class="px-6 py-2 flex justify-between items-center relative"
-        :class="
-          member.attributes.url?.[platform] !== undefined
-            || platform === 'hackernews'
-            ? 'hover:bg-gray-50 transition-colors cursor-pointer'
-            : ''
-        "
-        :href="identityUrl(platform)"
-        target="_blank"
-        rel="noopener noreferrer"
+        class="px-2"
       >
-        <div class="flex gap-3 items-center">
-          <app-platform :platform="platform" />
-          <div
-            v-if="
-              platform === 'linkedin'
-                && socialIdentities[platform].includes(
-                  'private-',
-                )
-            "
-            class="text-gray-900 text-xs"
-          >
-            *********
-            <el-tooltip
-              placement="top"
-              content="Private profile"
-            >
-              <i
-                class="ri-lock-line text-gray-400 ml-2"
-              />
-            </el-tooltip>
-          </div>
-          <span v-else class="text-gray-900 text-xs">
-            {{ socialIdentities[platform] }}</span>
-        </div>
-        <i
-          v-if="
-            platform === 'hackernews'
-              ? true
-              : member.attributes.url?.[platform]
-          "
-          class="ri-external-link-line text-gray-300"
+        <app-platform-list
+          :username-handles="socialIdentities[platform]"
+          :platform="platform"
         />
-      </a>
+      </div>
     </div>
     <div
       v-if="
@@ -97,9 +60,12 @@
 </template>
 
 <script setup>
-import { computed, defineProps, ref } from 'vue';
+import {
+  computed, defineProps, ref,
+} from 'vue';
 import { MemberPermissions } from '@/modules/member/member-permissions';
 import { mapGetters } from '@/shared/vuex/vuex.helpers';
+import AppPlatformList from '@/shared/platform/platform-list.vue';
 import AppMemberManageIdentitiesDrawer from '../../member-manage-identities-drawer.vue';
 
 const props = defineProps({
@@ -126,16 +92,4 @@ const isEditLockedForSampleData = computed(() => new MemberPermissions(
   currentTenant.value,
   currentUser.value,
 ).editLockedForSampleData);
-
-const identityUrl = (platform) => {
-  if (platform === 'hackernews') {
-    return `https://news.ycombinator.com/user?id=${socialIdentities.value.hackernews}`;
-  } if (
-    platform === 'linkedin'
-    && socialIdentities.value[platform].includes('private-')
-  ) {
-    return null;
-  }
-  return props.member.attributes.url?.[platform];
-};
 </script>

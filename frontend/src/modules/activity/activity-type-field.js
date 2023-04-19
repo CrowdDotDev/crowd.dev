@@ -1,7 +1,7 @@
 import JSONField from '@/shared/fields/json-field';
 import en from '@/i18n/en';
 import activityTypesJson from '@/jsons/activity-types.json';
-import { capitalizeFirstLetter } from '@/utils/string';
+import { toSentenceCase } from '@/utils/string';
 
 export default class ActivityTypeField extends JSONField {
   constructor(name, label, config = {}) {
@@ -27,7 +27,7 @@ export default class ActivityTypeField extends JSONField {
         nestedOptions: activityTypesJson.github.map(
           (activity) => ({
             value: activity,
-            label: capitalizeFirstLetter(en.entities.activity.github[activity]),
+            label: toSentenceCase(en.entities.activity.github[activity]),
           }),
         ),
       },
@@ -40,7 +40,7 @@ export default class ActivityTypeField extends JSONField {
         nestedOptions: activityTypesJson.twitter.map(
           (activity) => ({
             value: activity,
-            label: capitalizeFirstLetter(en.entities.activity.twitter[activity]),
+            label: toSentenceCase(en.entities.activity.twitter[activity]),
           }),
         ),
       },
@@ -53,7 +53,7 @@ export default class ActivityTypeField extends JSONField {
         nestedOptions: activityTypesJson.discord
           .map((activity) => ({
             value: activity,
-            label: capitalizeFirstLetter(en.entities.activity.discord[activity]),
+            label: toSentenceCase(en.entities.activity.discord[activity]),
           }))
           .filter(
             (option) => !['replied_thread', 'replied'].includes(
@@ -70,7 +70,7 @@ export default class ActivityTypeField extends JSONField {
         nestedOptions: activityTypesJson.slack.map(
           (activity) => ({
             value: activity,
-            label: capitalizeFirstLetter(en.entities.activity.slack[activity]),
+            label: toSentenceCase(en.entities.activity.slack[activity]),
           }),
         ),
       },
@@ -83,7 +83,7 @@ export default class ActivityTypeField extends JSONField {
         nestedOptions: activityTypesJson.hackernews.map(
           (activity) => ({
             value: activity,
-            label: capitalizeFirstLetter(en.entities.activity.hackernews[activity]),
+            label: toSentenceCase(en.entities.activity.hackernews[activity]),
           }),
         ),
       },
@@ -96,7 +96,7 @@ export default class ActivityTypeField extends JSONField {
         nestedOptions: activityTypesJson.devto.map(
           (activity) => ({
             value: activity,
-            label: capitalizeFirstLetter(en.entities.activity.devto[activity]),
+            label: toSentenceCase(en.entities.activity.devto[activity]),
           }),
         ),
       },
@@ -109,7 +109,7 @@ export default class ActivityTypeField extends JSONField {
         nestedOptions: activityTypesJson.reddit.map(
           (activity) => ({
             value: activity,
-            label: capitalizeFirstLetter(en.entities.activity.reddit[activity]),
+            label: toSentenceCase(en.entities.activity.reddit[activity]),
           }),
         ),
       },
@@ -122,7 +122,7 @@ export default class ActivityTypeField extends JSONField {
         nestedOptions: activityTypesJson.linkedin.map(
           (activity) => ({
             value: activity,
-            label: capitalizeFirstLetter(en.entities.activity.linkedin[activity]),
+            label: toSentenceCase(en.entities.activity.linkedin[activity]),
           }),
         ),
       },
@@ -136,7 +136,7 @@ export default class ActivityTypeField extends JSONField {
           (activity) => ({
             value: activity,
             label:
-              capitalizeFirstLetter(en.entities.activity.stackoverflow[activity]),
+              toSentenceCase(en.entities.activity.stackoverflow[activity]),
           }),
         ),
       },

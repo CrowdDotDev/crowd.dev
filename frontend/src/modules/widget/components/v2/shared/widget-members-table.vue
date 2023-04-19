@@ -67,7 +67,14 @@
           )"
           :key="platform"
         >
-          <el-tooltip
+          <app-platform-svg-icon
+            :platform="platform"
+            :tooltip-label="tooltipContent(platform)"
+            :as-link="true"
+            :username-handles="member.username[platform]"
+            :show-handles-badge="true"
+          />
+        <!-- <el-tooltip
             popper-class="custom-identity-tooltip"
             placement="top"
           >
@@ -100,7 +107,7 @@
                 color="#D1D5DB"
                 hover-color="#4B5563"
               /> </a>
-          </el-tooltip>
+          </el-tooltip> -->
         </div>
       </div>
 
@@ -117,7 +124,8 @@
 <script setup>
 import { defineProps, defineEmits } from 'vue';
 import pluralize from 'pluralize';
-import AppSvg from '@/shared/svg/svg.vue';
+import AppPlatformSvgIcon from '@/shared/platform/platform-svg-icon.vue';
+import { CrowdIntegrations } from '@/integrations/integrations-config';
 
 const emit = defineEmits(['onRowClick', 'onExportClick']);
 defineProps({
@@ -134,6 +142,12 @@ defineProps({
     default: false,
   },
 });
+
+const tooltipContent = (platform) => {
+  const config = CrowdIntegrations.getConfig(platform);
+
+  return `${config.name} profile`;
+};
 
 const onRowClick = () => {
   emit('onRowClick');

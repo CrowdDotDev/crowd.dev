@@ -299,7 +299,7 @@
                     }"
                     class="block"
                   >
-                    <app-member-channels :member="scope.row" />
+                    <app-member-identities :username="scope.row.username" />
                   </router-link>
                 </template>
               </el-table-column>
@@ -412,7 +412,7 @@ import { formatDateToTimeAgo } from '@/utils/date';
 import { formatNumberToCompact } from '@/utils/number';
 import AppMemberBadge from '../member-badge.vue';
 import AppMemberDropdown from '../member-dropdown.vue';
-import AppMemberChannels from '../member-channels.vue';
+import AppMemberIdentities from '../member-identities.vue';
 import AppMemberReach from '../member-reach.vue';
 import AppMemberEngagementLevel from '../member-engagement-level.vue';
 import AppMemberLastActivity from '../member-last-activity.vue';

@@ -39,32 +39,53 @@
             />
           </el-form-item>
 
-          <el-form-item
-            v-if="value.enabled"
-            :prop="`username.${key}`"
-            required
-            class="mt-1 !mb-6"
-          >
-            <el-input
-              v-model="model.username[key]"
-              placeholder="johndoe"
-              :disabled="editingDisabled(key)"
-              @input="
-                (newValue) =>
-                  onInputChange(newValue, key, value)
-              "
+          <div v-if="value.enabled">
+            <div
+              v-for="(handle, ii) of model.username[key]"
+              :key="ii"
+              class="flex flex-grow gap-2 mt-1 pb-2 last:!mb-6 last:pb-0"
             >
-              <template #prepend>
-                <span>{{ value.urlPrefix }}</span>
-                <span class="text-brand-500">*</span>
-              </template>
-            </el-input>
-            <template #error>
-              <div class="el-form-item__error">
-                Identity profile is required
-              </div>
-            </template>
-          </el-form-item>
+              <el-form-item
+                :prop="`username.${key}.${ii}`"
+                required
+                class="flex-grow"
+              >
+                <el-input
+                  v-model="model.username[key][ii]"
+                  placeholder="johndoe"
+                  :disabled="editingDisabled(key) || key === 'linkedin'
+                    && handle.includes(
+                      'private-',
+                    )"
+                  :type="key === 'linkedin'
+                    && handle.includes(
+                      'private-',
+                    ) ? 'password' : 'text'"
+                  @input="(newValue) =>
+                    onInputChange(newValue, key, value, ii)
+                  "
+                >
+                  <template #prepend>
+                    <span>{{ value.urlPrefix }}</span>
+                    <span class="text-brand-500">*</span>
+                  </template>
+                </el-input>
+                <template #error>
+                  <div class="el-form-item__error">
+                    Identity profile is required
+                  </div>
+                </template>
+              </el-form-item>
+              <el-button
+                v-if="model.username[key]?.length > 1"
+                :disabled="editingDisabled(key)"
+                class="btn btn--md btn--transparent w-10 h-10"
+                @click="removeUsername(key, ii)"
+              >
+                <i class="ri-delete-bin-line text-lg" />
+              </el-button>
+            </div>
+          </div>
         </div>
       </div>
       <div class="flex items-start justify-between mt-24">
@@ -93,6 +114,7 @@ import {
   watch,
 } from 'vue';
 import { CrowdIntegrations } from '@/integrations/integrations-config';
+import { getPlatformUrl } from '@/utils/string';
 
 const emit = defineEmits(['update:modelValue']);
 const props = defineProps({
@@ -241,7 +263,7 @@ function onSwitchChange(value, key) {
       || model.value.username?.[key] === undefined)
     && value
   ) {
-    model.value.username[key] = '';
+    model.value.username[key] = [''];
     return;
   }
 
@@ -258,13 +280,27 @@ function onSwitchChange(value, key) {
   }
 }
 
-function onInputChange(newValue, key, value) {
+function onInputChange(newValue, key, value, index) {
+  if (index === 0) {
+    model.value.attributes = {
+      ...props.modelValue.attributes,
+      url: {
+        ...props.modelValue.attributes?.url,
+        [key]: `https://${value.urlPrefix}${newValue}`,
+      },
+    };
+  }
+}
+
+const removeUsername = (platform, index) => {
+  model.value.username[platform].splice(index, 1);
+
   model.value.attributes = {
     ...props.modelValue.attributes,
     url: {
       ...props.modelValue.attributes?.url,
-      [key]: `https://${value.urlPrefix}${newValue}`,
+      [platform]: getPlatformUrl({ platform, username: model.value.username[platform][0] }),
     },
   };
-}
+};
 </script>

@@ -125,26 +125,51 @@
         </article>
       </div>
       <div class="pt-5">
-        <a
-          v-for="(username, platform) in member.username"
+        <div
+          v-for="(usernameHandles, platform) in member.username"
           :key="platform"
-          :href="identityUrl(platform, username, member)"
-          class="pb-2 pt-3 flex items-center text-gray-900 hover:text-gray-900"
-          target="_blank"
-          rel="noopener noreferrer"
         >
-          <img
-            v-if="platformDetails(platform)"
-            :src="platformDetails(platform).image"
-            class="h5 w-5 mr-4"
-            :alt="platform"
+          <a
+            v-for="handle in usernameHandles"
+            :key="handle"
+            :href="identityUrl(platform, handle)"
+            class="pb-2 pt-3 flex items-center text-gray-900 hover:text-gray-900"
+            target="_blank"
+            rel="noopener noreferrer"
           >
-          <span
-            class="text-xs leading-5"
-            :class="{ 'underline hover:text-brand-500': identityUrl(platform, username, member) }"
-            v-html="$sanitize(username)"
-          />
-        </a>
+            <img
+              v-if="platformDetails(platform)"
+              :src="platformDetails(platform).image"
+              class="h5 w-5 mr-4"
+              :alt="platform"
+            >
+            <div
+              v-if="
+                platform === 'linkedin'
+                  && handle.includes(
+                    'private-',
+                  )
+              "
+              class="text-gray-900 text-xs"
+            >
+              *********
+              <el-tooltip
+                placement="top"
+                content="Private profile"
+              >
+                <i
+                  class="ri-lock-line text-gray-400 ml-2"
+                />
+              </el-tooltip>
+            </div>
+            <span
+              v-else
+              class="text-xs leading-5"
+              :class="{ 'underline hover:text-brand-500': identityUrl(platform, handle) }"
+              v-html="$sanitize(handle)"
+            />
+          </a>
+        </div>
         <a
           v-for="email of member.emails.filter((e) => e.length)"
           :key="email"
@@ -174,6 +199,7 @@ import { CrowdIntegrations } from '@/integrations/integrations-config';
 import { MemberPermissions } from '@/modules/member/member-permissions';
 import moment from 'moment';
 import { mapGetters } from '@/shared/vuex/vuex.helpers';
+import { getPlatformUrl } from '@/utils/string';
 
 const props = defineProps({
   member: {
@@ -216,16 +242,12 @@ const displayShowMore = ref(null);
 const more = ref(null);
 
 const platformDetails = (platform) => CrowdIntegrations.getConfig(platform);
-const identityUrl = (platform, username, member) => {
-  if (platform === 'hackernews') {
-    return `https://news.ycombinator.com/user?id=${username}`;
-  } if (
-    platform === 'linkedin'
-    && username.includes('private-')
-  ) {
+const identityUrl = (platform, username) => {
+  if (platform === 'discord' || platform === 'slack') {
     return null;
   }
-  return member.attributes.url?.[platform];
+
+  return getPlatformUrl({ platform, username });
 };
 
 onMounted(() => {

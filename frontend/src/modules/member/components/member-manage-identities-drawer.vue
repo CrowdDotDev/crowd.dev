@@ -9,6 +9,7 @@
       <el-form :model="memberModel">
         <app-member-form-identities
           v-model="memberModel"
+          :record="member"
           :show-header="false"
         />
       </el-form>
@@ -78,9 +79,11 @@ const handleCancel = () => {
 const handleSubmit = async () => {
   loading.value = true;
   await MemberService.update(props.member.id, {
+    attributes: memberModel.value.attributes,
     username: memberModel.value.username,
     emails: memberModel.value.emails,
   });
+  loading.value = false;
   await store.dispatch('member/doFind', props.member.id);
   Message.success('Member identities updated successfully');
   emit('update:modelValue', false);
