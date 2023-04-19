@@ -1,23 +1,23 @@
 import lodash from 'lodash'
 import Sequelize, { QueryTypes } from 'sequelize'
-import SequelizeRepository from './sequelizeRepository'
-import AuditLogRepository from './auditLogRepository'
-import Error404 from '../../errors/Error404'
-import { IRepositoryOptions } from './IRepositoryOptions'
-import QueryParser from './filters/queryParser'
-import { JsonColumnInfo, QueryOutput } from './filters/queryTypes'
-import { AttributeData } from '../attributes/attribute'
-import SequelizeFilterUtils from '../utils/sequelizeFilterUtils'
 import { KUBE_MODE, SERVICE } from '../../config'
 import { ServiceType } from '../../config/configTypes'
-import { AttributeType } from '../attributes/types'
-import TenantRepository from './tenantRepository'
-import { PageData } from '../../types/common'
-import { IActiveMemberData, IActiveMemberFilter } from './types/memberTypes'
-import { ALL_PLATFORM_TYPES } from '../../types/integrationEnums'
-import RawQueryParser from './filters/rawQueryParser'
+import Error404 from '../../errors/Error404'
 import ActivityDisplayService from '../../services/activityDisplayService'
+import { PageData } from '../../types/common'
+import { ALL_PLATFORM_TYPES } from '../../types/integrationEnums'
+import { AttributeData } from '../attributes/attribute'
+import { AttributeType } from '../attributes/types'
+import SequelizeFilterUtils from '../utils/sequelizeFilterUtils'
+import { IRepositoryOptions } from './IRepositoryOptions'
+import AuditLogRepository from './auditLogRepository'
+import QueryParser from './filters/queryParser'
+import { JsonColumnInfo, QueryOutput } from './filters/queryTypes'
+import RawQueryParser from './filters/rawQueryParser'
+import SequelizeRepository from './sequelizeRepository'
 import SettingsRepository from './settingsRepository'
+import TenantRepository from './tenantRepository'
+import { IActiveMemberData, IActiveMemberFilter } from './types/memberTypes'
 
 const { Op } = Sequelize
 
@@ -1544,6 +1544,40 @@ where m."deletedAt" is null
         name: org.name,
       })),
     }))
+  }
+
+  static async addToWeakIdentities(
+    memberIds: string[],
+    username: string,
+    platform: string,
+    options: IRepositoryOptions,
+  ): Promise<void> {
+    const transaction = SequelizeRepository.getTransaction(options)
+
+    const seq = SequelizeRepository.getSequelize(options)
+
+    const tenant = SequelizeRepository.getCurrentTenant(options)
+
+    const query = `
+    update members
+    set "weakIdentities" = "weakIdentities" || jsonb_build_object('username', :username, 'platform', :platform)::jsonb
+    where id in (:memberIds)
+      and not exists (select 1
+                      from jsonb_array_elements("weakIdentities") as wi
+                      where wi ->> 'username' = :username
+                        and wi ->> 'platform' = :platform);
+    `
+
+    await seq.query(query, {
+      replacements: {
+        memberIds,
+        username,
+        platform,
+        tenantId: tenant.id,
+      },
+      type: QueryTypes.UPDATE,
+      transaction,
+    })
   }
 
   static async _createAuditLog(action, record, data, options: IRepositoryOptions) {
