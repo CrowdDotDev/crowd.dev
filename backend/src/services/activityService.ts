@@ -397,9 +397,11 @@ export default class ActivityService extends LoggingBase {
     try {
       if (typeof data.member.username === 'string') {
         data.member.username = {
-          [data.platform]: {
-            username: data.member.username,
-          },
+          [data.platform]: [
+            {
+              username: data.member.username,
+            },
+          ],
         }
       }
 
@@ -409,14 +411,18 @@ export default class ActivityService extends LoggingBase {
       }
       for (const platform of platforms) {
         if (typeof data.member.username[platform] === 'string') {
-          data.member.username[platform] = {
-            username: data.member.username[platform],
-          }
+          data.member.username[platform] = [
+            {
+              username: data.member.username[platform],
+            },
+          ]
+        } else if (!Array.isArray(data.member.username[platform])) {
+          data.member.username[platform] = [data.member.username[platform]]
         }
       }
 
       if (!data.username) {
-        data.username = data.member.username[data.platform].username
+        data.username = data.member.username[data.platform][0].username
       }
 
       const activityExists = await this._activityExists(data, transaction)

@@ -202,6 +202,8 @@ export default class MemberService extends LoggingBase {
           data.username[platform] = {
             username: data.username[platform],
           }
+        } else if (!Array.isArray(data.username[platform])) {
+          data.username[platform] = [data.username[platform]]
         }
       }
     }
@@ -373,7 +375,7 @@ export default class MemberService extends LoggingBase {
    * Username can be given as a plain string or as dictionary with
    * related platforms.
    * Ie:
-   * username = 'anil' || username = { github: 'anil' } || username = { github: 'anil', twitter: 'some-other-username' }
+   * username = 'anil' || username = { github: 'anil' } || username = { github: 'anil', twitter: 'some-other-username' } || username = { github: { username: 'anil' } } || username = { github: [{ username: 'anil' }] }
    * @param username username of the member
    * @param platform platform of the member
    * @returns null | found member
@@ -381,18 +383,28 @@ export default class MemberService extends LoggingBase {
   async memberExists(username: object | string, platform: string) {
     const fillRelations = false
 
-    let actualUsername
+    const usernames: string[] = []
 
     if (typeof username === 'string') {
-      actualUsername = username
+      usernames.push(username)
     } else if (typeof username === 'object') {
       if ('username' in username) {
-        actualUsername = (username as any).username
+        usernames.push((username as any).username)
       } else if (platform in username) {
         if (typeof username[platform] === 'string') {
-          actualUsername = username[platform]
+          usernames.push(username[platform])
+        } else if (Array.isArray(username[platform])) {
+          if (username[platform].length === 0) {
+            throw new Error400(this.options.language, 'activity.platformAndUsernameNotMatching')
+          } else if (typeof username[platform] === 'string') {
+            usernames.push(...username[platform])
+          } else if (typeof username[platform][0] === 'object') {
+            usernames.push(...username[platform].map((u) => u.username))
+          }
+        } else if (typeof username[platform] === 'object') {
+          usernames.push(username[platform].username)
         } else {
-          actualUsername = username[platform].username
+          throw new Error400(this.options.language, 'activity.platformAndUsernameNotMatching')
         }
       } else {
         throw new Error400(this.options.language, 'activity.platformAndUsernameNotMatching')
@@ -402,7 +414,7 @@ export default class MemberService extends LoggingBase {
     // It is important to call it with doPopulateRelations=false
     // because otherwise the performance is greatly decreased in integrations
     const existing = await MemberRepository.memberExists(
-      actualUsername,
+      usernames,
       platform,
       {
         ...this.options,
@@ -551,15 +563,98 @@ export default class MemberService extends LoggingBase {
         return Array.from(emailSet)
       },
       username: (oldUsernames, newUsernames) => {
-        // old usernames are in a different format than newUsernames
-        // we also want to keep just the usernames that are not already in the oldUsernames
+        // we want to keep just the usernames that are not already in the oldUsernames
 
         const toKeep: any = {}
 
         for (const [platform, data] of Object.entries(newUsernames)) {
-          const identity = data as any
-          if (oldUsernames[platform] !== identity.username) {
-            toKeep[platform] = identity
+          const identities: any[] = []
+
+          if (Array.isArray(data) && data.length === 0 && typeof data[0] === 'string') {
+            // handle array of usernames
+            identities.push(
+              data.map((d) => ({
+                username: d,
+              })),
+            )
+          } else if (typeof data === 'object') {
+            // handle identity
+            identities.push(data)
+          } else if (typeof data === 'string') {
+            // handle username
+            identities.push({
+              username: data,
+            })
+          } else {
+            throw new Error('Cannot handle username comparison!')
+          }
+
+          // check if old object already contains an identity
+          if (oldUsernames[platform]) {
+            const oldData = oldUsernames[platform]
+            if (Array.isArray(oldData)) {
+              if (oldData.length > 0) {
+                if (typeof oldData[0] === 'object') {
+                  // handle identities
+                  for (const identity of identities) {
+                    let keep = true
+
+                    for (const existingIdentity of oldData) {
+                      if (identity.username === existingIdentity.username) {
+                        keep = false
+                        break
+                      }
+                    }
+
+                    if (keep) {
+                      if (!toKeep[platform]) {
+                        toKeep[platform] = []
+                      }
+
+                      toKeep[platform].push(identity)
+                    }
+                  }
+                } else {
+                  // handle string array
+                  for (const identity of identities) {
+                    let keep = true
+
+                    for (const existingUsername of oldData) {
+                      if (identity.username === existingUsername) {
+                        keep = false
+                        break
+                      }
+                    }
+
+                    if (keep) {
+                      if (!toKeep[platform]) {
+                        toKeep[platform] = []
+                      }
+
+                      toKeep[platform].push(identity)
+                    }
+                  }
+                }
+              } else {
+                toKeep[platform] = identities
+              }
+            } else if (typeof oldData === 'object') {
+              // handle identity
+              for (const identity of identities) {
+                if (identity.username !== oldData.username) {
+                  toKeep[platform] = identities
+                }
+              }
+            } else if (typeof oldData === 'string') {
+              // handle username as string
+              for (const identity of identities) {
+                if (identity.username !== oldData) {
+                  toKeep[platform] = identities
+                }
+              }
+            }
+          } else {
+            toKeep[platform] = identities
           }
         }
 

@@ -14,7 +14,7 @@ const db = null
 function mapUsername(data: any): any {
   const username = {}
   Object.keys(data).forEach((platform) => {
-    username[platform] = data[platform].username
+    username[platform] = [data[platform].username]
   })
   return username
 }
@@ -844,7 +844,7 @@ describe('MemberRepository tests', () => {
         { filter: { tags: [nodeTag.id, vueTag.id] } },
         mockIRepositoryOptions,
       )
-      const member2 = members.rows.find((m) => m.username[PlatformType.TWITTER] === 'test2')
+      const member2 = members.rows.find((m) => m.username[PlatformType.TWITTER][0] === 'test2')
       expect(members.rows.length).toEqual(1)
       expect(member2.tags[0].name).toEqual('nodejs')
       expect(member2.tags[1].name).toEqual('vuejs')
@@ -913,8 +913,8 @@ describe('MemberRepository tests', () => {
         { filter: { tags: [nodeTag.id] } },
         mockIRepositoryOptions,
       )
-      const member1 = members.rows.find((m) => m.username[PlatformType.GITHUB] === 'test1')
-      const member2 = members.rows.find((m) => m.username[PlatformType.GITHUB] === 'test2')
+      const member1 = members.rows.find((m) => m.username[PlatformType.GITHUB][0] === 'test1')
+      const member2 = members.rows.find((m) => m.username[PlatformType.GITHUB][0] === 'test2')
 
       expect(members.rows.length).toEqual(2)
       expect(member1.tags[0].name).toEqual('nodejs')
@@ -986,7 +986,7 @@ describe('MemberRepository tests', () => {
         { filter: { organizations: [crowd.id, pp.id] } },
         mockIRepositoryOptions,
       )
-      const member2 = members.rows.find((m) => m.username[PlatformType.SLACK] === 'test2')
+      const member2 = members.rows.find((m) => m.username[PlatformType.SLACK][0] === 'test2')
       expect(members.rows.length).toEqual(1)
       expect(member2.organizations[0].name).toEqual('crowd.dev')
       expect(member2.organizations[1].name).toEqual('pied piper')
@@ -1040,8 +1040,12 @@ describe('MemberRepository tests', () => {
       )
 
       expect(members.rows.length).toEqual(2)
-      expect(members.rows.find((m) => m.username[PlatformType.SLACK] === 'test1').score).toEqual(1)
-      expect(members.rows.find((m) => m.username[PlatformType.SLACK] === 'test2').score).toEqual(6)
+      expect(members.rows.find((m) => m.username[PlatformType.SLACK][0] === 'test1').score).toEqual(
+        1,
+      )
+      expect(members.rows.find((m) => m.username[PlatformType.SLACK][0] === 'test2').score).toEqual(
+        6,
+      )
     })
 
     it('is successfully finding and counting all members, and scoreRange is gte than 7', async () => {

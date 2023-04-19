@@ -38,9 +38,13 @@ class MemberRepository {
     // fix legacy calls
     for (const platform of platforms) {
       if (typeof data.username[platform] === 'string') {
-        data.username[platform] = {
-          username: data.username[platform],
-        }
+        data.username[platform] = [
+          {
+            username: data.username[platform],
+          },
+        ]
+      } else if (!Array.isArray(data.username[platform])) {
+        data.username[platform] = [data.username[platform]]
       }
     }
 
@@ -82,19 +86,21 @@ class MemberRepository {
     `
 
     for (const platform of Object.keys(username) as PlatformType[]) {
-      const identity = username[platform]
-      await seq.query(query, {
-        replacements: {
-          memberId: record.id,
-          platform,
-          username: identity.username,
-          sourceId: identity.sourceId || null,
-          integrationId: identity.integrationId || null,
-          tenantId: tenant.id,
-        },
-        type: QueryTypes.INSERT,
-        transaction,
-      })
+      const identities: any[] = username[platform]
+      for (const identity of identities) {
+        await seq.query(query, {
+          replacements: {
+            memberId: record.id,
+            platform,
+            username: identity.username,
+            sourceId: identity.sourceId || null,
+            integrationId: identity.integrationId || null,
+            tenantId: tenant.id,
+          },
+          type: QueryTypes.INSERT,
+          transaction,
+        })
+      }
     }
 
     await record.setActivities(data.activities || [], {
@@ -342,12 +348,9 @@ class MemberRepository {
     const query = `
     with identities as (select "memberId",
                            array_agg(distinct platform)                as identities,
-                           jsonb_object_agg(platform, latest_username) as username,
-                           jsonb_object_agg(platform, usernames)       as "newUsername"
+                           jsonb_object_agg(platform, usernames)       as username
                     from (select "memberId",
                                  platform,
-                                 first_value(username)
-                                 over (partition by "memberId", platform order by "createdAt" desc) as latest_username,
                                  jsonb_agg(username) over (partition by "memberId", platform)       as usernames
                           from "memberIdentities") ranked
                     group by "memberId")
@@ -374,15 +377,24 @@ class MemberRepository {
               inner join identities i on i."memberId" = m.id
       where mi."tenantId" = :tenantId
         and mi.platform = :platform
-        and mi.username = :username
+        and mi.username in (:usernames)
     `
+
+    const usernames: string[] = []
+    if (typeof username === 'string') {
+      usernames.push(username)
+    } else if (Array.isArray(username)) {
+      usernames.push(...username)
+    } else {
+      throw new Error('Unknown username format!')
+    }
 
     const records = await options.database.sequelize.query(query, {
       type: Sequelize.QueryTypes.SELECT,
       replacements: {
         tenantId: currentTenant.id,
         platform,
-        username,
+        usernames,
       },
       transaction,
       model: options.database.member,
@@ -489,6 +501,8 @@ class MemberRepository {
             data.username[platform] = {
               username: data.username[platform],
             }
+          } else if (!Array.isArray(data.username[platform])) {
+            data.username[platform] = [data.username[platform]]
           }
         }
 
@@ -499,20 +513,22 @@ class MemberRepository {
         `
 
         for (const platform of Object.keys(data.username) as PlatformType[]) {
-          const identity = data.username[platform]
+          const identities = data.username[platform]
 
-          await seq.query(query, {
-            replacements: {
-              memberId: record.id,
-              platform,
-              username: identity.username,
-              sourceId: identity.sourceId || null,
-              integrationId: identity.integrationId || null,
-              tenantId: currentTenant.id,
-            },
-            type: QueryTypes.INSERT,
-            transaction,
-          })
+          for (const identity of identities) {
+            await seq.query(query, {
+              replacements: {
+                memberId: record.id,
+                platform,
+                username: identity.username,
+                sourceId: identity.sourceId || null,
+                integrationId: identity.integrationId || null,
+                tenantId: currentTenant.id,
+              },
+              type: QueryTypes.INSERT,
+              transaction,
+            })
+          }
         }
       }
     }
@@ -641,19 +657,14 @@ class MemberRepository {
 
     const identities = await this.getIdentities([data.id], options)
 
-    data.username = identities.get(data.id).reduce((data, identity: any) => {
-      data[identity.platform] = identity.username
-      return data
-    }, {} as any)
-
-    // data.newUsername = {}
-    // for (const identity of identities.get(data.id)) {
-    //   if (data.newUsername[identity.platform]) {
-    //     data.newUsername[identity.platform].push(identity.username)
-    //   } else {
-    //     data.newUsername[identity.platform] = [identity.username]
-    //   }
-    // }
+    data.username = {}
+    for (const identity of identities.get(data.id)) {
+      if (data.username[identity.platform]) {
+        data.username[identity.platform].push(identity.username)
+      } else {
+        data.username[identity.platform] = [identity.username]
+      }
+    }
 
     return data
   }
@@ -784,12 +795,9 @@ class MemberRepository {
                                group by "memberId"),
               identities as (select "memberId",
                                     array_agg(distinct platform)                as identities,
-                                    jsonb_object_agg(platform, latest_username) as username,
-                                    jsonb_object_agg(platform, usernames)       as "newUsername"
+                                    jsonb_object_agg(platform, usernames)       as username
                             from (select "memberId",
                                           platform,
-                                          first_value(username)
-                                          over (partition by "memberId", platform order by "createdAt" desc) as latest_username,
                                           jsonb_agg(username) over (partition by "memberId", platform)       as usernames
                                   from "memberIdentities") ranked
                             group by "memberId")
@@ -1070,15 +1078,10 @@ with member_tags as (select mt."memberId",
                 and m."deletedAt" is null
                 and o."tenantId" = :tenantId
                 and o."deletedAt" is null
-              group by mo."memberId"),
-    identities as (select "memberId",
-                          jsonb_object_agg(platform, username) as username
-                  from "memberIdentities"
-                  group by "memberId")
+              group by mo."memberId")
 select count(m.id) as "totalCount"
 from members m
          inner join "memberActivityAggregatesMVs" aggs on aggs.id = m.id
-         inner join identities i on m.id = i."memberId"
          left join member_tags mt on m.id = mt."memberId"
          left join member_organizations mo on m.id = mo."memberId"
 where m."deletedAt" is null
@@ -1935,21 +1938,17 @@ where m."deletedAt" is null
 
     const memberIdentities = await this.getIdentities([record.id], options)
 
-    output.username = memberIdentities.get(record.id).reduce((data, identity: any) => {
-      data[identity.platform] = identity.username
-      return data
-    }, {} as any)
+    output.username = {}
+
+    for (const identity of memberIdentities.get(record.id)) {
+      if (output.username[identity.platform]) {
+        output.username[identity.platform].push(identity.username)
+      } else {
+        output.username[identity.platform] = [identity.username]
+      }
+    }
 
     output.identities = Object.keys(output.username)
-    // output.newUsername = {}
-
-    // for (const identity of memberIdentities.get(record.id)) {
-    //   if (output.newUsername[identity.platform]) {
-    //     output.newUsername[identity.platform].push(identity.username)
-    //   } else {
-    //     output.newUsername[identity.platform] = [identity.username]
-    //   }
-    // }
 
     return output
   }
