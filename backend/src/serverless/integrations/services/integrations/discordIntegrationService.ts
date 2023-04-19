@@ -1,6 +1,7 @@
 import moment from 'moment/moment'
 import lodash from 'lodash'
 import { ChannelType, MessageType } from 'discord.js'
+import { v4 as uuid } from 'uuid'
 import {
   DiscordApiChannel,
   DiscordApiMember,
@@ -403,6 +404,12 @@ export class DiscordIntegrationService extends IntegrationServiceBase {
         const joinedAt = moment(record.joined_at).utc().toDate()
         const sourceId = `gen-${record.user.id}-${joinedAt.toISOString()}`
 
+        let username = record.user.username
+
+        if (username === 'Deleted User') {
+          username = `${username}:${uuid()}`
+        }
+
         acc.push({
           tenant: context.integration.tenantId,
           platform: PlatformType.DISCORD,
@@ -410,7 +417,7 @@ export class DiscordIntegrationService extends IntegrationServiceBase {
           sourceId,
           timestamp: joinedAt,
           member: {
-            username: record.user.username,
+            username,
             attributes: {
               [MemberAttributeName.SOURCE_ID]: {
                 [PlatformType.DISCORD]: record.user.id,
@@ -513,6 +520,12 @@ export class DiscordIntegrationService extends IntegrationServiceBase {
       }
 
       if (!record.author.bot && [MessageType.Default, MessageType.Reply].includes(record.type)) {
+        let username = record.author.username
+
+        if (username === 'Deleted User') {
+          username = `${username}:${uuid()}`
+        }
+
         const activityObject = {
           tenant: context.integration.tenantId,
           platform: PlatformType.DISCORD,
@@ -534,7 +547,7 @@ export class DiscordIntegrationService extends IntegrationServiceBase {
             forum: isForum,
           },
           member: {
-            username: record.author.username,
+            username,
             attributes: {
               [MemberAttributeName.SOURCE_ID]: {
                 [PlatformType.DISCORD]: record.author.id,

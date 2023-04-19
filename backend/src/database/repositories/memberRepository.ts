@@ -1546,6 +1546,36 @@ where m."deletedAt" is null
     }))
   }
 
+  static async addToWeakIdentities(
+    memberIds: string[],
+    username: string,
+    platform: string,
+    options: IRepositoryOptions,
+  ): Promise<void> {
+    const transaction = SequelizeRepository.getTransaction(options)
+
+    const seq = SequelizeRepository.getSequelize(options)
+
+    const tenant = SequelizeRepository.getCurrentTenant(options)
+
+    const query = `
+    update members
+    set "weakIdentities" = "weakIdentities" || jsonb_build_object('username', :username, 'platform', :platform)::jsonb
+    where id in (:memberIds) and "tenantId" = :tenantId;
+    `
+
+    await seq.query(query, {
+      replacements: {
+        memberIds,
+        username,
+        platform,
+        tenantId: tenant.id,
+      },
+      type: QueryTypes.UPDATE,
+      transaction,
+    })
+  }
+
   static async _createAuditLog(action, record, data, options: IRepositoryOptions) {
     if (log) {
       let values = {}
