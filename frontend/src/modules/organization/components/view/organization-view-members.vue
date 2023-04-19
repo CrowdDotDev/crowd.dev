@@ -46,7 +46,7 @@
             </router-link>
           </div>
           <div
-            class="flex items-center justify-between gap-6 basis-3/6"
+            class="flex items-center justify-between gap-6 basis-3/6 mr-2"
           >
             <div>
               <app-member-engagement-level
