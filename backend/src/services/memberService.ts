@@ -683,6 +683,25 @@ export default class MemberService extends LoggingBase {
           { ...this.options, transaction },
         )
       }
+      if (data.username) {
+        // need to filter out existing identities from the payload
+        const existingIdentities = (
+          await MemberRepository.getIdentities([id], {
+            ...this.options,
+            transaction,
+          })
+        ).get(id)
+
+        data.username = mapUsernameToIdentities(data.username)
+
+        for (const identity of existingIdentities) {
+          if (identity.platform in data.username) {
+            data.username[identity.platform] = data.username[identity.platform].filter(
+              (i) => i.username !== identity.username,
+            )
+          }
+        }
+      }
 
       const record = await MemberRepository.update(id, data, {
         ...this.options,
