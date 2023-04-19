@@ -334,6 +334,10 @@ const en = {
           'commented on a pull request',
         'discussion-started': 'started a discussion',
         'discussion-comment': 'commented on a discussion',
+        'pull_request-review-requested': 'requested a pull request review',
+        'pull_request-reviewed': 'reviewed a pull request',
+        'pull_request-assigned': 'assigned a pull request',
+        'pull_request-merged': 'merged a pull request',
         contributed_to_community:
           'contributed to community',
         joined_community: 'joined community',
