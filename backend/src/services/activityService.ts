@@ -396,6 +396,30 @@ export default class ActivityService extends LoggingBase {
     const memberService = new MemberService(this.options)
 
     try {
+      if (typeof data.member.username === 'string') {
+        data.member.username = {
+          [data.platform]: {
+            username: data.member.username,
+          },
+        }
+      }
+
+      const platforms = Object.keys(data.member.username)
+      if (platforms.length === 0) {
+        throw new Error('Member must have at least one platform username set!')
+      }
+      for (const platform of platforms) {
+        if (typeof data.member.username[platform] === 'string') {
+          data.member.username[platform] = {
+            username: data.member.username[platform],
+          }
+        }
+      }
+
+      if (!data.username) {
+        data.username = data.member.username[data.platform].username
+      }
+
       const activityExists = await this._activityExists(data, transaction)
 
       const existingMember = activityExists
@@ -412,11 +436,38 @@ export default class ActivityService extends LoggingBase {
       )
 
       if (data.objectMember) {
+        if (typeof data.objectMember.username === 'string') {
+          data.objectMember.username = {
+            [data.platform]: {
+              username: data.objectMember.username,
+            },
+          }
+        }
+
+        const objectMemberPlatforms = Object.keys(data.objectMember.username)
+
+        if (objectMemberPlatforms.length === 0) {
+          throw new Error('Object member must have at least one platform username set!')
+        }
+
+        for (const platform of objectMemberPlatforms) {
+          if (typeof data.objectMember.username[platform] === 'string') {
+            data.objectMember.username[platform] = {
+              username: data.objectMember.username[platform],
+            }
+          }
+        }
+
         const objectMember = await memberService.upsert({
           ...data.objectMember,
           platform: data.platform,
           joinedAt: data.timestamp,
         })
+
+        if (!data.objectMemberUsername) {
+          data.objectMemberUsername = data.objectMember.username[data.platform].username
+        }
+
         data.objectMember = objectMember.id
       }
 

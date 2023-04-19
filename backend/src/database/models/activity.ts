@@ -46,6 +46,12 @@ export default (sequelize) => {
       sourceParentId: {
         type: DataTypes.STRING(255),
       },
+      username: {
+        type: DataTypes.TEXT,
+      },
+      objectMemberUsername: {
+        type: DataTypes.TEXT,
+      },
       attributes: {
         type: DataTypes.JSONB,
         allowNull: false,

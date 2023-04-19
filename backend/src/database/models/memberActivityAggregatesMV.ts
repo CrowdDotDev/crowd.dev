@@ -24,6 +24,12 @@ export default (sequelize) => {
     activeDaysCount: {
       type: DataTypes.INTEGER,
     },
+    identities: {
+      type: DataTypes.ARRAY(DataTypes.STRING),
+    },
+    username: {
+      type: DataTypes.JSONB,
+    },
   })
 
   return memberActivityAggregatesMV

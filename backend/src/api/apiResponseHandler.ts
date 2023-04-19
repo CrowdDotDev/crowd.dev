@@ -23,7 +23,22 @@ export default class ApiResponseHandler extends LoggingBase {
   }
 
   async error(req, res, error) {
-    if (error && [400, 401, 403, 404].includes(error.code)) {
+    if (error && error.name === 'SequelizeDatabaseError') {
+      req.log.error(
+        error,
+        {
+          code: 500,
+          url: req.url,
+          method: req.method,
+          query: error.sql,
+          body: req.body,
+          errorMessage: error.original.message,
+        },
+        'Database error while processing REST API request!',
+      )
+      io.notifyError(error)
+      res.status(500).send('Internal Server Error')
+    } else if (error && [400, 401, 403, 404].includes(error.code)) {
       req.log.error(
         error,
         { code: error.code, url: req.url, method: req.method, query: req.query, body: req.body },

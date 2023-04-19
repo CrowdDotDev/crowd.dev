@@ -188,12 +188,30 @@ export default class MemberService extends LoggingBase {
     if (!('platform' in data)) {
       throw new Error400(this.options.language, 'activity.platformRequiredWhileUpsert')
     }
-    if (!data.displayName) {
-      if (typeof data.username === 'string') {
-        data.displayName = data.username
-      } else {
-        data.displayName = data.username[data.platform]
+
+    if (typeof data.username === 'string') {
+      data.username = {
+        [data.platform]: {
+          username: data.username,
+        },
       }
+    } else {
+      const platforms = Object.keys(data.username)
+      for (const platform of platforms) {
+        if (typeof data.username[platform] === 'string') {
+          data.username[platform] = {
+            username: data.username[platform],
+          }
+        }
+      }
+    }
+
+    if (!(data.platform in data.username)) {
+      throw new Error400(this.options.language, 'activity.platformAndUsernameNotMatching')
+    }
+
+    if (!data.displayName) {
+      data.displayName = data.username[data.platform].username
     }
 
     const transaction = await SequelizeRepository.createTransaction(this.options)
@@ -244,9 +262,6 @@ export default class MemberService extends LoggingBase {
       }
 
       existing = existing || (await this.memberExists(data.username, platform))
-      if (typeof data.username === 'string') {
-        data.username = { [platform]: data.username }
-      }
 
       // If organizations are sent
       if (data.organizations) {
@@ -364,36 +379,36 @@ export default class MemberService extends LoggingBase {
    * @returns null | found member
    */
   async memberExists(username: object | string, platform: string) {
-    let existing = null
     const fillRelations = false
 
+    let actualUsername
+
     if (typeof username === 'string') {
-      // It is important to call it with doPopulateRelations=false
-      // because otherwise the performance is greatly decreased in integrations
-      existing = await MemberRepository.memberExists(
-        username,
-        platform,
-        {
-          ...this.options,
-        },
-        fillRelations,
-      )
+      actualUsername = username
     } else if (typeof username === 'object') {
-      if (platform in username) {
-        // It is important to call it with doPopulateRelations=false
-        // because otherwise the performance is greatly decreased in integrations
-        existing = await MemberRepository.memberExists(
-          username[platform],
-          platform,
-          {
-            ...this.options,
-          },
-          fillRelations,
-        )
+      if ('username' in username) {
+        actualUsername = (username as any).username
+      } else if (platform in username) {
+        if (typeof username[platform] === 'string') {
+          actualUsername = username[platform]
+        } else {
+          actualUsername = username[platform].username
+        }
       } else {
         throw new Error400(this.options.language, 'activity.platformAndUsernameNotMatching')
       }
     }
+
+    // It is important to call it with doPopulateRelations=false
+    // because otherwise the performance is greatly decreased in integrations
+    const existing = await MemberRepository.memberExists(
+      actualUsername,
+      platform,
+      {
+        ...this.options,
+      },
+      fillRelations,
+    )
 
     return existing
   }
@@ -429,21 +444,52 @@ export default class MemberService extends LoggingBase {
       const repoOptions: IRepositoryOptions = { ...this.options }
       repoOptions.transaction = tx
 
-      // Get tags and activities as array of ids (findById returns them as models)
-      original.tags = original.tags.map((i) => i.get({ plain: true }).id)
-      original.activities = original.activities.map((i) => i.get({ plain: true }))
+      const allIdentities = await MemberRepository.getIdentities(
+        [originalId, toMergeId],
+        repoOptions,
+      )
+      const originalIdentities = allIdentities.get(originalId)
+      const toMergeIdentities = allIdentities.get(toMergeId)
+      const identitiesToMove = []
+      for (const identity of toMergeIdentities) {
+        if (
+          !originalIdentities.find(
+            (i) => i.platform === identity.platform && i.username === identity.username,
+          )
+        ) {
+          identitiesToMove.push(identity)
+        }
+      }
 
+      await MemberRepository.moveIdentitiesBetweenMembers(
+        toMergeId,
+        originalId,
+        identitiesToMove,
+        repoOptions,
+      )
+
+      // Get tags as array of ids (findById returns them as models)
+      original.tags = original.tags.map((i) => i.get({ plain: true }).id)
       toMerge.tags = toMerge.tags.map((i) => i.get({ plain: true }).id)
-      toMerge.activities = toMerge.activities.map((i) => i.get({ plain: true }))
+
+      // leave member activities alone - we will update them with a single query later
+      delete original.activities
+      delete toMerge.activities
 
       // Performs a merge and returns the fields that were changed so we can update
-      const toUpdate = MemberService.membersMerge(original, toMerge)
-      if (toUpdate.activities) {
-        toUpdate.activities = toUpdate.activities.map((a) => a.id)
-      }
+      const toUpdate: any = await MemberService.membersMerge(original, toMerge)
+
+      // we will handle activities later manually
+      delete toUpdate.activities
+      // we already handled identities
+      delete toUpdate.username
+
       // Update original member
       const txService = new MemberService(repoOptions as IServiceOptions)
       await txService.update(originalId, toUpdate)
+
+      // update activities to belong to the originalId member
+      await MemberRepository.moveActivitiesBetweenMembers(toMergeId, originalId, repoOptions)
 
       // Remove toMerge from original member
       await MemberRepository.removeToMerge(originalId, toMergeId, repoOptions)
@@ -456,7 +502,9 @@ export default class MemberService extends LoggingBase {
       return { status: 200, mergedId: originalId }
     } catch (err) {
       this.options.log.error(err, 'Error while merging members!')
-      await SequelizeRepository.rollbackTransaction(tx)
+      if (tx) {
+        await SequelizeRepository.rollbackTransaction(tx)
+      }
       throw err
     }
   }
@@ -502,13 +550,20 @@ export default class MemberService extends LoggingBase {
 
         return Array.from(emailSet)
       },
-      // Get rid of activities that are the same and were in both members
-      activities: (_oldActivities, newActivities) => {
-        newActivities = newActivities || []
-        // A member cannot 2 different activities with same timestamp and platform and type
-        const uniq = lodash.uniqWith(newActivities, (act1, act2) => act1.sourceId === act2.sourceId)
+      username: (oldUsernames, newUsernames) => {
+        // old usernames are in a different format than newUsernames
+        // we also want to keep just the usernames that are not already in the oldUsernames
 
-        return uniq.length > 0 ? uniq : null
+        const toKeep: any = {}
+
+        for (const [platform, data] of Object.entries(newUsernames)) {
+          const identity = data as any
+          if (oldUsernames[platform] !== identity.username) {
+            toKeep[platform] = identity
+          }
+        }
+
+        return toKeep
       },
     })
   }
