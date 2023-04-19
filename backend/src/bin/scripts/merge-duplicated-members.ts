@@ -1,6 +1,5 @@
 import { QueryTypes } from 'sequelize'
 import { v4 as uuid } from 'uuid'
-import MemberRepository from '../../database/repositories/memberRepository'
 import SequelizeRepository from '../../database/repositories/sequelizeRepository'
 import MemberService from '../../services/memberService'
 import { Logger, createChildLogger, createServiceLogger } from '../../utils/logging'
@@ -67,27 +66,29 @@ async function check(): Promise<number> {
   log.info('Querying database for duplicated members...')
 
   const results = await seq.query(
-    `  with activity_counts as (select count(id) as count, "memberId"
-                             from activities
-                            group by "memberId")
+    `with activity_counts as (select count(id) as count, "memberId"
+                              from activities
+                              group by "memberId")
       select keys.platform,
             m.username ->> keys.platform as username,
             m."tenantId",
             count(*)                     as duplicate_count,
             coalesce(sum(ac.count), 0)   as total_activitites,
             json_agg(m.id)               as all_ids,
+            --jsonb_agg(m."crowdInfo")     as all_crowd_infos,
             jsonb_agg(m.emails)          as all_emails,
-            jsonb_agg(m.username)        as all_usernames
-        from members m
-                left join activity_counts ac on ac."memberId" = m.id,
-            lateral jsonb_object_keys(m.username) as keys(platform)
+            --jsonb_agg(m.attributes)      as all_attributes,
+            jsonb_agg(m.username)        as all_usernames            
+      from members m
+              left join activity_counts ac on ac."memberId" = m.id,
+          lateral jsonb_object_keys(m.username) as keys(platform)
       group by keys.platform,
-                m.username ->> keys.platform,
-                m."tenantId"
+              m.username ->> keys.platform,
+              m."tenantId"
       having count(*) > 1
       order by duplicate_count desc,
-                keys.platform,
-                m."tenantId";`,
+              keys.platform,
+              m."tenantId";`,
     {
       type: QueryTypes.SELECT,
     },
@@ -102,17 +103,9 @@ async function check(): Promise<number> {
   for (const [i, data] of results.entries() as any) {
     log.info(`Processing ${i + 1}/${results.length}...`)
 
-    if (data.username.toLowerCase().includes('deleted')) {
-      log.warn('Skipping deleted member...')
-      continue
-    }
-
     if (checkUsernames(data.all_usernames) && checkEmails(data.all_emails)) {
       const logger = createChildLogger('merger', log, {
         requestId: uuid(),
-        platform: data.platform,
-        tenantId: data.tenantId,
-        username: data.username,
       })
       logger.info(`Found ${data.all_ids.length} duplicated members with same usernames and emails.`)
 
@@ -136,67 +129,6 @@ async function check(): Promise<number> {
           }),
       )
       count++
-    } else {
-      const logger = createChildLogger('fixer', log, {
-        requestId: uuid(),
-        platform: data.platform,
-        tenantId: data.tenantId,
-        username: data.username,
-      })
-      logger.info(
-        'Can not automatically merge - first member in the group by joinedAt will get the identity and the rest will get them as weakIdentities.',
-      )
-
-      const options = { ...dbOptions, log: logger, tenant: { id: data.tenantId } }
-
-      let transaction
-      try {
-        transaction = await SequelizeRepository.createTransaction(options)
-        const txOptions = { ...options, transaction }
-
-        const allMembers = []
-        for (const id of data.all_ids) {
-          const member = await MemberRepository.findById(id, txOptions)
-          allMembers.push(member)
-        }
-
-        // sort so the oldest members by joinedAt are first
-        allMembers.sort((a, b) => new Date(a.joinedAt).getTime() - new Date(b.joinedAt).getTime())
-
-        // first member stays the same - it will keep the identity
-        // these ones will get the duplicated identity as weakIdentities
-        const otherMembers = allMembers.slice(1)
-
-        for (const member of otherMembers) {
-          logger.info({ memberId: member.id }, 'Removing identity from member.username column!')
-          // let's remove this identity from the member.username column
-          delete member.username[data.platform]
-          await MemberRepository.update(
-            member.id,
-            {
-              username: member.username,
-            },
-            txOptions,
-          )
-        }
-
-        logger.info('Adding duplicated identity to other members as weakIdentity...')
-        // finally let's add the duplicated identity as weakIdentity
-        await MemberRepository.addToWeakIdentities(
-          otherMembers.map((m) => m.id),
-          data.username,
-          data.platform,
-          txOptions,
-        )
-
-        await SequelizeRepository.commitTransaction(transaction)
-        count++
-      } catch (err) {
-        logger.error(err, 'Error while merging members that can not be automatically merged!')
-        if (transaction) {
-          await SequelizeRepository.rollbackTransaction(transaction)
-        }
-      }
     }
   }
 
