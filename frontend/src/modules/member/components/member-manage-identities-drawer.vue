@@ -24,6 +24,7 @@
         </el-button>
         <el-button
           type="primary"
+          :disabled="isSubmitBtnDisabled || loading"
           class="btn btn--md btn--primary"
           :loading="loading"
           @click="handleSubmit"
@@ -42,9 +43,14 @@ import {
   defineEmits,
   defineProps,
   computed,
+  reactive,
 } from 'vue';
 import Message from '@/shared/message/message';
 import { MemberService } from '@/modules/member/member-service';
+import cloneDeep from 'lodash/cloneDeep';
+import { MemberModel } from '@/modules/member/member-model';
+import { FormSchema } from '@/shared/form/form-schema';
+import isEqual from 'lodash/isEqual';
 import AppMemberFormIdentities from './form/member-form-identities.vue';
 
 const store = useStore();
@@ -69,8 +75,20 @@ const drawerModel = computed({
   },
 });
 
-const memberModel = computed(() => props.member);
+const memberModel = reactive(cloneDeep(props.member));
 const loading = ref(false);
+
+const { fields } = MemberModel;
+const formSchema = computed(
+  () => new FormSchema([
+    fields.username,
+  ]),
+);
+const isFormValid = computed(() => formSchema.value.isValidSync(memberModel));
+const hasFormChanged = computed(() => !isEqual(cloneDeep(props.member), memberModel));
+const isSubmitBtnDisabled = computed(
+  () => !isFormValid.value || !hasFormChanged.value,
+);
 
 const handleCancel = () => {
   emit('update:modelValue', false);
@@ -79,9 +97,9 @@ const handleCancel = () => {
 const handleSubmit = async () => {
   loading.value = true;
   MemberService.update(props.member.id, {
-    attributes: memberModel.value.attributes,
-    username: memberModel.value.username,
-    emails: memberModel.value.emails,
+    attributes: memberModel.attributes,
+    username: memberModel.username,
+    emails: memberModel.emails,
   }).then(() => {
     store.dispatch('member/doFind', props.member.id).then(() => {
       Message.success('Member identities updated successfully');

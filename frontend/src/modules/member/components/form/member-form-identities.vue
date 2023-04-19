@@ -43,7 +43,7 @@
             <div
               v-for="(handle, ii) of model.username[key]"
               :key="ii"
-              class="flex flex-grow gap-2 mt-1 pb-2 last:!mb-6 last:pb-0"
+              class="flex flex-grow gap-2 mt-1 pb-3 last:!mb-6 last:pb-0"
             >
               <el-form-item
                 :prop="`username.${key}.${ii}`"

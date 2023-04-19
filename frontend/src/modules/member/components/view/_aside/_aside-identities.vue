@@ -53,6 +53,7 @@
       </div>
     </div>
     <app-member-manage-identities-drawer
+      v-if="identitiesDrawer"
       v-model="identitiesDrawer"
       :member="member"
     />

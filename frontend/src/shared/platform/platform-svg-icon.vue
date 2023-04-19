@@ -12,7 +12,7 @@
           class="w-3.5 h-3.5 rounded-full bg-gray-500 text-white flex justify-center
           items-center outline outline-2 outline-white absolute top-[-7px] right-[-7px]"
         >
-          <span class="text-3xs font-semibold">2</span>
+          <span class="text-3xs font-semibold">{{ usernameHandles.length }}</span>
         </div>
         <a
           :aria-label="platform"
