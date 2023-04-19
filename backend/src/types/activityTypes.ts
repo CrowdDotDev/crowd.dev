@@ -272,7 +272,7 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
     [GithubActivityType.PULL_REQUEST_MERGED]: {
       display: {
         default: 'merged pull request {self}',
-        short: 'merged pull request',
+        short: 'merged a pull request',
         channel: '{channel}',
         formatter: {
           channel: defaultGithubChannelFormatter,
@@ -287,7 +287,7 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
     [GithubActivityType.PULL_REQUEST_ASSIGNED]: {
       display: {
         default: 'assigned pull request {self}',
-        short: 'merged pull request',
+        short: 'assigned a pull request',
         channel: '{channel}',
         formatter: {
           channel: defaultGithubChannelFormatter,
@@ -302,7 +302,7 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
     [GithubActivityType.PULL_REQUEST_REVIEWED]: {
       display: {
         default: 'reviewed pull request {self}',
-        short: 'reviewed pull request',
+        short: 'reviewed a pull request',
         channel: '{channel}',
         formatter: {
           channel: defaultGithubChannelFormatter,
@@ -317,7 +317,7 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
     [GithubActivityType.PULL_REQUEST_REVIEW_REQUESTED]: {
       display: {
         default: 'requested a review for pull request {self}',
-        short: 'reviewed pull request',
+        short: 'requested a pull request review',
         channel: '{channel}',
         formatter: {
           channel: defaultGithubChannelFormatter,

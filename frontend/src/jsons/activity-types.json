@@ -10,7 +10,11 @@
     "unstar",
     "pull_request-comment",
     "issue-comment",
-    "discussion-comment"
+    "discussion-comment",
+    "pull_request-review-requested",
+    "pull_request-reviewed",
+    "pull_request-assigned",
+    "pull_request-merged"
   ],
   "discord": [
     "message",
