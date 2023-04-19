@@ -542,6 +542,7 @@ describe('Github webhooks tests', () => {
           },
         },
         username: 'testMember',
+        objectMemberUsername: null,
         objectMember: null,
         type: GithubActivityType.PULL_REQUEST_OPENED,
         timestamp: new Date(TestEvents.pullRequests.opened.pull_request.created_at),
@@ -555,6 +556,14 @@ describe('Github webhooks tests', () => {
         body: TestEvents.pullRequests.opened.pull_request.body,
         score: GitHubGrid.pullRequestOpened.score,
         isContribution: GitHubGrid.pullRequestOpened.isContribution,
+        attributes: {
+          additions: TestEvents.pullRequests.opened.pull_request.additions,
+          authorAssociation: TestEvents.pullRequests.opened.pull_request.author_association,
+          changedFiles: TestEvents.pullRequests.opened.pull_request.changed_files,
+          deletions: TestEvents.pullRequests.opened.pull_request.deletions,
+          labels: TestEvents.pullRequests.opened.pull_request.labels,
+          state: TestEvents.pullRequests.opened.pull_request.state,
+        },
       }
       expect(pr).toStrictEqual(expected)
     })
@@ -577,6 +586,7 @@ describe('Github webhooks tests', () => {
           },
         },
         username: 'testMember',
+        objectMemberUsername: null,
         objectMember: null,
         type: GithubActivityType.PULL_REQUEST_OPENED,
         timestamp: new Date(TestEvents.pullRequests.edited.pull_request.created_at),
@@ -590,6 +600,14 @@ describe('Github webhooks tests', () => {
         body: TestEvents.pullRequests.edited.pull_request.body,
         score: GitHubGrid.pullRequestOpened.score,
         isContribution: GitHubGrid.pullRequestOpened.isContribution,
+        attributes: {
+          additions: TestEvents.pullRequests.edited.pull_request.additions,
+          authorAssociation: TestEvents.pullRequests.edited.pull_request.author_association,
+          changedFiles: TestEvents.pullRequests.edited.pull_request.changed_files,
+          deletions: TestEvents.pullRequests.edited.pull_request.deletions,
+          labels: TestEvents.pullRequests.edited.pull_request.labels.map((l) => l.name),
+          state: TestEvents.pullRequests.edited.pull_request.state,
+        },
       }
 
       expect(pr).toStrictEqual(expected)
@@ -613,6 +631,7 @@ describe('Github webhooks tests', () => {
           },
         },
         username: 'testMember',
+        objectMemberUsername: null,
         objectMember: null,
         type: GithubActivityType.PULL_REQUEST_OPENED,
         timestamp: new Date(TestEvents.pullRequests.reopened.pull_request.created_at),
@@ -624,9 +643,16 @@ describe('Github webhooks tests', () => {
         title: TestEvents.pullRequests.reopened.pull_request.title,
         body: TestEvents.pullRequests.reopened.pull_request.body,
         channel: TestEvents.pullRequests.reopened.repository.html_url,
-
         score: GitHubGrid.pullRequestOpened.score,
         isContribution: GitHubGrid.pullRequestOpened.isContribution,
+        attributes: {
+          additions: TestEvents.pullRequests.reopened.pull_request.additions,
+          authorAssociation: TestEvents.pullRequests.reopened.pull_request.author_association,
+          changedFiles: TestEvents.pullRequests.reopened.pull_request.changed_files,
+          deletions: TestEvents.pullRequests.reopened.pull_request.deletions,
+          labels: TestEvents.pullRequests.reopened.pull_request.labels.map((l) => l.name),
+          state: TestEvents.pullRequests.reopened.pull_request.state,
+        },
       }
       expect(pr).toStrictEqual(expected)
     })
@@ -649,6 +675,7 @@ describe('Github webhooks tests', () => {
           },
         },
         username: 'testMember',
+        objectMemberUsername: null,
         objectMember: null,
         type: GithubActivityType.PULL_REQUEST_CLOSED,
         timestamp: new Date(TestEvents.pullRequests.closed.pull_request.closed_at),
@@ -662,6 +689,14 @@ describe('Github webhooks tests', () => {
         channel: TestEvents.pullRequests.closed.repository.html_url,
         score: GitHubGrid.pullRequestClosed.score,
         isContribution: GitHubGrid.pullRequestClosed.isContribution,
+        attributes: {
+          additions: TestEvents.pullRequests.closed.pull_request.additions,
+          authorAssociation: TestEvents.pullRequests.closed.pull_request.author_association,
+          changedFiles: TestEvents.pullRequests.closed.pull_request.changed_files,
+          deletions: TestEvents.pullRequests.closed.pull_request.deletions,
+          labels: TestEvents.pullRequests.closed.pull_request.labels.map((l) => l.name),
+          state: TestEvents.pullRequests.closed.pull_request.state,
+        },
       }
       expect(pr).toStrictEqual(expected)
     })
