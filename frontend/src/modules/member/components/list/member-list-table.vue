@@ -279,7 +279,7 @@
                     }"
                     class="block"
                   >
-                    <div class="text-gray-900 text-sm">
+                    <div class="text-gray-900 text-sm member-oss-contributions">
                       {{
                         formatNumberToCompact(
                           scope.row.numberOfOpenSourceContributions,

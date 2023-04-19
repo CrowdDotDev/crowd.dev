@@ -1,6 +1,12 @@
 import search from './filter/search';
 import noOfActivities from './filter/no-of-activities';
 import noOfOpenSourceContributions from './filter/no-of-open-source-contributions';
+import activeOn from './filter/active-on';
+import activityType from './filter/activity-type';
+import avgSentiment from './filter/avg-sentiment';
+import engagementLevel from './filter/engagement-level';
+import identities from './filter/identities';
+import reach from './filter/reach';
 
 export default () => {
   // it('Searches inside filter', () => {
@@ -9,9 +15,16 @@ export default () => {
   //   cy.get('#filterList li').each((filter) => {
   //     cy.wrap(filter.text().toLowerCase()).should('contain', 'activi');
   //   });
+  //   cy.get('#filterSearch').clear()
   // });
 
   // describe('Search', search);
   // describe('# of activities', noOfActivities);
-  describe('# of open source contributions', noOfOpenSourceContributions);
+  // describe('# of open source contributions', noOfOpenSourceContributions);
+  // describe('Active on', activeOn);
+  // describe('Activity type', activityType);
+  // describe('Avg. sentiment', avgSentiment);
+  // describe('Engagement level', engagementLevel);
+  // describe('Identities', identities);
+  // describe('Reach', reach);
 };

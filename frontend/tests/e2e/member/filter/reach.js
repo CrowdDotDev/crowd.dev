@@ -2,7 +2,7 @@ export default () => {
   before(() => {
     cy.wait(1000);
     cy.get('.filter-dropdown button').click();
-    cy.get('#filterList li').contains('# of open source contributions').click();
+    cy.get('#filterList li').contains('Reach').click();
   });
 
   beforeEach(() => {
@@ -21,12 +21,12 @@ export default () => {
   });
 
   it('has apply button disabled if negative value', () => {
-    cy.get('.filter-type-number input[type="number"]').type('{selectall}').type(-3);
+    cy.get('.filter-type-number input[type="number"]').type('{selectall}').type(-621);
     cy.get('.filter-type-number + div button.btn--primary').should('be.disabled');
   });
 
-  it('fetches members with exactly 3 contributions', () => {
-    cy.get('.filter-type-number input[type="number"]').type('{selectall}').type(3);
+  it('fetches members with exactly 621 reach', () => {
+    cy.get('.filter-type-number input[type="number"]').type('{selectall}').type(621);
 
     cy.get('.filter-type-number + div button.btn--primary').click();
     cy.wait('@apiMemberQuery');
@@ -34,15 +34,12 @@ export default () => {
     cy.get('@apiMemberQuery').then((req) => {
       const { rows } = req.response.body;
       rows.forEach((row) => {
-        cy.wrap(+row.numberOfOpenSourceContributions).should('eq', 3);
-      });
-      cy.get('.member-oss-contributions').each((oss) => {
-        cy.wrap(+oss.text()).should('eq', 3);
+        cy.wrap(+row.reach.total).should('eq', 621);
       });
     });
   });
 
-  it('fetches members with less than 3 contributions', () => {
+  it('fetches members with less than 621 reach', () => {
     cy.get('.filter-list .filter-list-item:first-child button:first-child').click();
     cy.get('.filter-type-number .inline-select-input').click();
     cy.get('li.el-dropdown-menu__item').contains('<').click();
@@ -53,16 +50,12 @@ export default () => {
     cy.get('@apiMemberQuery').then((req) => {
       const { rows } = req.response.body;
       rows.forEach((row) => {
-        cy.wrap(+row.numberOfOpenSourceContributions).should('be.lt', 3);
-      });
-
-      cy.get('.member-oss-contributions').each((oss) => {
-        cy.wrap(+oss.text()).should('be.lt', 3);
+        cy.wrap(+row.reach.total).should('be.lt', 621);
       });
     });
   });
 
-  it('fetches members with less than or equal 3 contributions', () => {
+  it('fetches members with less than or equal 621 reach', () => {
     cy.get('.filter-list .filter-list-item:first-child button:first-child').click();
     cy.get('.filter-type-number .inline-select-input').click();
     cy.get('li.el-dropdown-menu__item').contains('<=').click();
@@ -73,16 +66,12 @@ export default () => {
     cy.get('@apiMemberQuery').then((req) => {
       const { rows } = req.response.body;
       rows.forEach((row) => {
-        cy.wrap(+row.numberOfOpenSourceContributions).should('be.lte', 3);
-      });
-
-      cy.get('.member-oss-contributions').each((oss) => {
-        cy.wrap(+oss.text()).should('be.lte', 3);
+        cy.wrap(+row.reach.total).should('be.lte', 621);
       });
     });
   });
 
-  it('fetches members with more than 3 contributions', () => {
+  it('fetches members with more than 621 reach', () => {
     cy.get('.filter-list .filter-list-item:first-child button:first-child').click();
     cy.get('.filter-type-number .inline-select-input').click();
     cy.get('li.el-dropdown-menu__item').contains('>').click();
@@ -93,12 +82,12 @@ export default () => {
     cy.get('@apiMemberQuery').then((req) => {
       const { rows } = req.response.body;
       rows.forEach((row) => {
-        cy.wrap(+row.numberOfOpenSourceContributions).should('be.gt', 3);
+        cy.wrap(+row.reach.total).should('be.gt', 621);
       });
     });
   });
 
-  it('fetches members with more than or equal 3 contributions', () => {
+  it('fetches members with more than or equal 621 reach', () => {
     cy.get('.filter-list .filter-list-item:first-child button:first-child').click();
     cy.get('.filter-type-number .inline-select-input').click();
     cy.get('li.el-dropdown-menu__item').contains('>=').click();
@@ -109,11 +98,7 @@ export default () => {
     cy.get('@apiMemberQuery').then((req) => {
       const { rows } = req.response.body;
       rows.forEach((row) => {
-        cy.wrap(+row.numberOfOpenSourceContributions).should('be.gte', 3);
-      });
-
-      cy.get('.member-oss-contributions').each((oss) => {
-        cy.wrap(+oss.text()).should('be.gte', 3);
+        cy.wrap(+row.reach.total).should('be.gte', 621);
       });
     });
   });
@@ -122,34 +107,29 @@ export default () => {
     cy.get('.filter-list .filter-list-item:first-child button:first-child').click();
     cy.get('.filter-type-number .inline-select-input').click();
     cy.get('li.el-dropdown-menu__item').contains('between').click();
-    cy.get('.filter-type-number input[type="number"]').eq(0).type('{selectall}').type(2);
+    cy.get('.filter-type-number input[type="number"]').eq(0).type('{selectall}').type(200);
     cy.get('.filter-type-number + div button.btn--primary').should('be.disabled');
   });
 
-  it('fetches members with contribution count between 2 and 6', () => {
-    cy.get('.filter-type-number input[type="number"]').eq(0).type('{selectall}').type(2);
-    cy.get('.filter-type-number input[type="number"]').eq(1).type('{selectall}').type(6);
+  it('fetches members with activity count between 2 and 6', () => {
+    cy.get('.filter-type-number input[type="number"]').eq(0).type('{selectall}').type(200);
+    cy.get('.filter-type-number input[type="number"]').eq(1).type('{selectall}').type(1000);
     cy.get('.filter-type-number + div button.btn--primary').as('filterApply').click();
     cy.wait('@apiMemberQuery');
 
     cy.get('@apiMemberQuery').then((req) => {
       const { rows } = req.response.body;
       rows.forEach((row) => {
-        cy.wrap(+row.numberOfOpenSourceContributions).should('be.gte', 2);
-        cy.wrap(+row.numberOfOpenSourceContributions).should('be.lte', 6);
-      });
-
-      cy.get('.member-oss-contributions').each((oss) => {
-        cy.wrap(+oss.text()).should('be.gte', 2);
-        cy.wrap(+oss.text()).should('be.lte', 6);
+        cy.wrap(+row.reach.total).should('be.gte', 200);
+        cy.wrap(+row.reach.total).should('be.lte', 1000);
       });
     });
   });
 
   it('has apply button disabled if range is invalid', () => {
     cy.get('.filter-list .filter-list-item:first-child button:first-child').click();
-    cy.get('.filter-type-number input[type="number"]').eq(0).type('{selectall}').type(22);
-    cy.get('.filter-type-number input[type="number"]').eq(1).type('{selectall}').type(6);
+    cy.get('.filter-type-number input[type="number"]').eq(0).type('{selectall}').type(1000);
+    cy.get('.filter-type-number input[type="number"]').eq(1).type('{selectall}').type(200);
     cy.get('.filter-type-number + div button.btn--primary').should('be.disabled');
   });
 };

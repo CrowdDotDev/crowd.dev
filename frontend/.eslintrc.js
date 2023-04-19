@@ -26,6 +26,7 @@ module.exports = {
     semi: 'warn',
     'comma-dangle': 'warn',
     'vue/no-unused-components': 'warn',
+    'vue/html-closing-bracket-spacing': 'warn',
     'vue/html-indent': 'warn',
     'vue/html-self-closing': 'warn',
     'object-curly-spacing': 'warn',

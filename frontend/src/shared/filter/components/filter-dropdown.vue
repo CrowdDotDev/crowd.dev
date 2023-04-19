@@ -16,8 +16,8 @@
       <template #dropdown>
         <div class="-m-2 border-b border-gray-100 p-2 mb-2">
           <el-input
-            ref="queryInput"
             id="filterSearch"
+            ref="queryInput"
             v-model="query"
             placeholder="Search..."
             class="filter-dropdown-search"

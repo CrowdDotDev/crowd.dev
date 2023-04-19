@@ -62,28 +62,26 @@
       >
         <el-button
           v-if="shouldShowReset"
+          id="resetFilter"
           class="btn btn-link btn-link--primary"
           @click="handleReset"
-          id="resetFilter"
         >
           Reset filter
         </el-button>
-        <div v-else>
-&nbsp;
-        </div>
+        <div v-else>&nbsp;</div>
         <div class="flex items-center">
           <el-button
+            id="closeFilter"
             class="btn btn--transparent btn--sm mr-3"
             @click="handleCancel"
-            id="closeFilter"
           >
             Cancel
           </el-button>
           <el-button
+            id="applyFilter"
             class="btn btn--primary btn--sm"
             :disabled="shouldDisableApplyButton"
             @click="handleApply"
-            id="applyFilter"
           >
             Apply
           </el-button>

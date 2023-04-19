@@ -6,8 +6,14 @@ export default () => {
   });
 
   beforeEach(() => {
+    cy.scrollTo(0, 0);
     cy.server();
     cy.route('POST', '/api/tenant/*/member/query').as('apiMemberQuery');
+  });
+
+  after(() => {
+    cy.scrollTo(0, 0);
+    cy.get('.filter-list .filter-list-item:first-child button:last-child').click({ force: true });
   });
 
   it('has apply button disabled if empty field', () => {
