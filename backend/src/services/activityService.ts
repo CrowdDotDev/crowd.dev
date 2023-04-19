@@ -437,11 +437,38 @@ export default class ActivityService extends LoggingBase {
       )
 
       if (data.objectMember) {
+        if (typeof data.objectMember.username === 'string') {
+          data.objectMember.username = {
+            [data.platform]: {
+              username: data.objectMember.username,
+            },
+          }
+        }
+
+        const objectMemberPlatforms = Object.keys(data.objectMember.username)
+
+        if (objectMemberPlatforms.length === 0) {
+          throw new Error('Object member must have at least one platform username set!')
+        }
+
+        for (const platform of objectMemberPlatforms) {
+          if (typeof data.objectMember.username[platform] === 'string') {
+            data.objectMember.username[platform] = {
+              username: data.objectMember.username[platform],
+            }
+          }
+        }
+
         const objectMember = await memberService.upsert({
           ...data.objectMember,
           platform: data.platform,
           joinedAt: data.timestamp,
         })
+
+        if (!data.objectMemberUsername) {
+          data.objectMemberUsername = data.objectMember.username[data.platform].username
+        }
+
         data.objectMember = objectMember.id
       }
 

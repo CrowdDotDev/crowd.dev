@@ -79,6 +79,7 @@ export type AddActivitiesSingle = {
   tenant: string
   member: Member
   objectMember?: Member
+  objectMemberUsername?: string
   sourceId?: string
   sourceParentId?: string
   attributes?: object
