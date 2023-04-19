@@ -472,7 +472,10 @@ class ConversationRepository {
         for (const relationship of lazyLoad) {
           if (relationship === 'activities') {
             const allActivities = await record.getActivities({
-              order: [['timestamp', 'ASC']],
+              order: [
+                ['timestamp', 'ASC'],
+                ['createdAt', 'ASC'],
+              ],
               include: ['parent'],
             })
 
@@ -480,18 +483,21 @@ class ConversationRepository {
 
             if (allActivities.length > 0) {
               let neededActivities = []
+              const parentActivity =
+                allActivities.find((a) => a.parent === null) || allActivities[0]
+
+              if (parentActivity) {
+                neededActivities = [parentActivity]
+              }
 
               if (allActivities.length > 2) {
                 neededActivities = [
-                  allActivities.find((a) => a.parent === null),
+                  ...neededActivities,
                   allActivities[allActivities.length - 2],
                   allActivities[allActivities.length - 1],
                 ]
               } else {
-                neededActivities = [
-                  allActivities.find((a) => a.parent === null),
-                  allActivities[allActivities.length - 1],
-                ]
+                neededActivities = [...neededActivities, allActivities[allActivities.length - 1]]
               }
 
               const promises = neededActivities.map(async (act) => {
@@ -505,6 +511,10 @@ class ConversationRepository {
                 act = act.get({ plain: true })
                 act.member = member
                 act.objectMember = objectMember
+                act.display = ActivityDisplayService.getDisplayOptions(
+                  act,
+                  SettingsRepository.getActivityTypes(options),
+                )
 
                 return act
               })
@@ -557,7 +567,10 @@ class ConversationRepository {
 
     output.activities = await record.getActivities({
       include: ['member', 'parent', 'objectMember'],
-      order: [['timestamp', 'ASC']],
+      order: [
+        ['timestamp', 'ASC'],
+        ['createdAt', 'ASC'],
+      ],
       transaction,
     })
 
@@ -565,6 +578,10 @@ class ConversationRepository {
       const member = (await act.getMember()).get({ plain: true })
       act = act.get({ plain: true })
       act.member = member
+      act.display = ActivityDisplayService.getDisplayOptions(
+        act,
+        SettingsRepository.getActivityTypes(options),
+      )
       return act
     })
 

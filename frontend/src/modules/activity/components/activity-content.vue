@@ -9,9 +9,16 @@
           && displayTitle
       "
     >
-      <span class="block title" :class="titleClasses">{{
-        activity.title
-      }}</span>
+      <span
+        class="block"
+        :class="{
+          title: !titleClasses,
+          [titleClasses]: titleClasses,
+        }"
+      >
+        {{
+          activity.title
+        }}</span>
     </div>
 
     <div
@@ -50,13 +57,13 @@
         <span
           v-else-if="displayBody"
           ref="body"
-          class="block whitespace-pre-wrap custom-break-all activity-body parsed-body c-content"
+          class="block custom-break-all activity-body parsed-body c-content"
           :class="
             showMore && !more ? `line-clamp-${limit}` : ''
           "
           v-html="
             contentRenderEmojis(
-              $sanitize($marked(activity.body)),
+              $sanitize($marked(`<div class='whitespace-pre-wrap'>${activity.body}</div>`)),
             )
           "
         />
@@ -76,6 +83,16 @@
         <slot />
       </div>
     </div>
+  </div>
+  <div v-else-if="activity.display?.default">
+    <div
+      class="first-letter:uppercase font-medium text-gray-900 text-sm"
+      v-html="
+        contentRenderEmojis(
+          $sanitize($marked(activity.display.default)),
+        )
+      "
+    />
   </div>
 </template>
 
