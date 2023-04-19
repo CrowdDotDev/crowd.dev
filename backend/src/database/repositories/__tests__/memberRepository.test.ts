@@ -14,7 +14,28 @@ const db = null
 function mapUsername(data: any): any {
   const username = {}
   Object.keys(data).forEach((platform) => {
-    username[platform] = [data[platform].username]
+    const usernameData = data[platform]
+
+    if (Array.isArray(usernameData)) {
+      username[platform] = []
+      if (usernameData.length > 0) {
+        for (const entry in usernameData) {
+          if (typeof entry === 'string') {
+            username[platform].push(entry)
+          } else if (typeof entry === 'object') {
+            username[platform].push((entry as any).username)
+          } else {
+            throw new Error('Invalid username type')
+          }
+        }
+      }
+    } else if (typeof usernameData === 'object') {
+      username[platform] = [usernameData.username]
+    } else if (typeof usernameData === 'string') {
+      username[platform] = [usernameData]
+    } else {
+      throw new Error('Invalid username type')
+    }
   })
   return username
 }

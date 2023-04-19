@@ -199,9 +199,11 @@ export default class MemberService extends LoggingBase {
       const platforms = Object.keys(data.username)
       for (const platform of platforms) {
         if (typeof data.username[platform] === 'string') {
-          data.username[platform] = {
-            username: data.username[platform],
-          }
+          data.username[platform] = [
+            {
+              username: data.username[platform],
+            },
+          ]
         } else if (!Array.isArray(data.username[platform])) {
           data.username[platform] = [data.username[platform]]
         }
@@ -213,7 +215,7 @@ export default class MemberService extends LoggingBase {
     }
 
     if (!data.displayName) {
-      data.displayName = data.username[data.platform].username
+      data.displayName = data.username[data.platform][0].username
     }
 
     const transaction = await SequelizeRepository.createTransaction(this.options)

@@ -25,7 +25,8 @@ const { Op } = Sequelize
 const log: boolean = false
 
 class MemberRepository {
-  static async create(data, options: IRepositoryOptions, doPopulateRelations = true) {
+  static async create(obj, options: IRepositoryOptions, doPopulateRelations = true) {
+    const data = lodash.cloneDeep(obj)
     if (!data.username) {
       throw new Error('Username not set when creating member!')
     }
