@@ -188,12 +188,30 @@ export default class MemberService extends LoggingBase {
     if (!('platform' in data)) {
       throw new Error400(this.options.language, 'activity.platformRequiredWhileUpsert')
     }
-    if (!data.displayName) {
-      if (typeof data.username === 'string') {
-        data.displayName = data.username
-      } else {
-        data.displayName = data.username[data.platform]
+
+    if (typeof data.username === 'string') {
+      data.username = {
+        [data.platform]: {
+          username: data.username,
+        },
       }
+    } else {
+      const platforms = Object.keys(data.username)
+      for (const platform of platforms) {
+        if (typeof data.username[platform] === 'string') {
+          data.username[platform] = {
+            username: data.username[platform],
+          }
+        }
+      }
+    }
+
+    if (!(data.platform in data.username)) {
+      throw new Error400(this.options.language, 'activity.platformAndUsernameNotMatching')
+    }
+
+    if (!data.displayName) {
+      data.displayName = data.username[data.platform].username
     }
 
     const transaction = await SequelizeRepository.createTransaction(this.options)
@@ -244,9 +262,6 @@ export default class MemberService extends LoggingBase {
       }
 
       existing = existing || (await this.memberExists(data.username, platform))
-      if (typeof data.username === 'string') {
-        data.username = { [platform]: data.username }
-      }
 
       // If organizations are sent
       if (data.organizations) {
@@ -364,36 +379,36 @@ export default class MemberService extends LoggingBase {
    * @returns null | found member
    */
   async memberExists(username: object | string, platform: string) {
-    let existing = null
     const fillRelations = false
 
+    let actualUsername
+
     if (typeof username === 'string') {
-      // It is important to call it with doPopulateRelations=false
-      // because otherwise the performance is greatly decreased in integrations
-      existing = await MemberRepository.memberExists(
-        username,
-        platform,
-        {
-          ...this.options,
-        },
-        fillRelations,
-      )
+      actualUsername = username
     } else if (typeof username === 'object') {
-      if (platform in username) {
-        // It is important to call it with doPopulateRelations=false
-        // because otherwise the performance is greatly decreased in integrations
-        existing = await MemberRepository.memberExists(
-          username[platform],
-          platform,
-          {
-            ...this.options,
-          },
-          fillRelations,
-        )
+      if ('username' in username) {
+        actualUsername = (username as any).username
+      } else if (platform in username) {
+        if (typeof username[platform] === 'string') {
+          actualUsername = username[platform]
+        } else {
+          actualUsername = username[platform].username
+        }
       } else {
         throw new Error400(this.options.language, 'activity.platformAndUsernameNotMatching')
       }
     }
+
+    // It is important to call it with doPopulateRelations=false
+    // because otherwise the performance is greatly decreased in integrations
+    const existing = await MemberRepository.memberExists(
+      actualUsername,
+      platform,
+      {
+        ...this.options,
+      },
+      fillRelations,
+    )
 
     return existing
   }
@@ -429,6 +444,30 @@ export default class MemberService extends LoggingBase {
       const repoOptions: IRepositoryOptions = { ...this.options }
       repoOptions.transaction = tx
 
+      const allIdentities = await MemberRepository.getIdentities(
+        [originalId, toMergeId],
+        repoOptions,
+      )
+      const originalIdentities = allIdentities.get(originalId)
+      const toMergeIdentities = allIdentities.get(toMergeId)
+      const identitiesToMove = []
+      for (const identity of toMergeIdentities) {
+        if (
+          !originalIdentities.find(
+            (i) => i.platform === identity.platform && i.username === identity.username,
+          )
+        ) {
+          identitiesToMove.push(identity)
+        }
+      }
+
+      await MemberRepository.moveIdentitiesBetweenMembers(
+        toMergeId,
+        originalId,
+        identitiesToMove,
+        repoOptions,
+      )
+
       // Get tags as array of ids (findById returns them as models)
       original.tags = original.tags.map((i) => i.get({ plain: true }).id)
       toMerge.tags = toMerge.tags.map((i) => i.get({ plain: true }).id)
@@ -440,7 +479,10 @@ export default class MemberService extends LoggingBase {
       // Performs a merge and returns the fields that were changed so we can update
       const toUpdate: any = await MemberService.membersMerge(original, toMerge)
 
+      // we will handle activities later manually
       delete toUpdate.activities
+      // we already handled identities
+      delete toUpdate.username
 
       // Update original member
       const txService = new MemberService(repoOptions as IServiceOptions)
@@ -460,7 +502,9 @@ export default class MemberService extends LoggingBase {
       return { status: 200, mergedId: originalId }
     } catch (err) {
       this.options.log.error(err, 'Error while merging members!')
-      await SequelizeRepository.rollbackTransaction(tx)
+      if (tx) {
+        await SequelizeRepository.rollbackTransaction(tx)
+      }
       throw err
     }
   }
@@ -505,6 +549,21 @@ export default class MemberService extends LoggingBase {
         newEmails.forEach((email) => emailSet.add(email))
 
         return Array.from(emailSet)
+      },
+      username: (oldUsernames, newUsernames) => {
+        // old usernames are in a different format than newUsernames
+        // we also want to keep just the usernames that are not already in the oldUsernames
+
+        const toKeep: any = {}
+
+        for (const [platform, data] of Object.entries(newUsernames)) {
+          const identity = data as any
+          if (oldUsernames[platform] !== identity.username) {
+            toKeep[platform] = identity
+          }
+        }
+
+        return toKeep
       },
     })
   }

@@ -19,7 +19,7 @@ import {
   HackerNewsIntegrationSettings,
   HackerNewsSearchResult,
 } from '../../types/hackerNewsTypes'
-import { AddActivitiesSingle } from '../../types/messageTypes'
+import { AddActivitiesSingle, Member, PlatformIdentities } from '../../types/messageTypes'
 import getPostsByKeywords from '../../usecases/hackerNews/getPostsByKeywords'
 
 import { IntegrationServiceBase } from '../integrationServiceBase'
@@ -100,6 +100,7 @@ export class HackerNewsIntegrationService extends IntegrationServiceBase {
         post,
         stream.metadata.parentId,
         stream.metadata.parentTitle,
+        context,
       )
       activities = [parsedPost]
     }
@@ -128,6 +129,7 @@ export class HackerNewsIntegrationService extends IntegrationServiceBase {
     post: HackerNewsResponse,
     parentId,
     parentTitle,
+    context: IStepContext,
   ): AddActivitiesSingle {
     const type = post.parent ? HackerNewsActivityType.COMMENT : HackerNewsActivityType.POST
     const url = `https://news.ycombinator.com/item?id=${post.parent ? post.parent : post.id}`
@@ -136,6 +138,7 @@ export class HackerNewsIntegrationService extends IntegrationServiceBase {
         ? sanitizeHtml(post.text)
         : `<a href="${post.url}" target="_blank">${post.url}</a>`
     const activity = {
+      username: post.user.id,
       tenant: tenantId,
       sourceId: post.id.toString(),
       ...(post.parent && { sourceParentId: post.parent.toString() }),
@@ -160,9 +163,13 @@ export class HackerNewsIntegrationService extends IntegrationServiceBase {
       },
     }
 
-    const member = {
-      username: post.user.id,
-      platform: PlatformType.HACKERNEWS,
+    const member: Member = {
+      username: {
+        [PlatformType.HACKERNEWS]: {
+          username: post.user.id,
+          integrationId: context.integration.id,
+        },
+      } as PlatformIdentities,
       displayName: post.user.id,
       attributes: {
         [MemberAttributeName.SOURCE_ID]: {
