@@ -242,7 +242,6 @@ import isEqual from 'lodash/isEqual';
 import { AutomationModel } from '@/modules/automation/automation-model';
 import { FormSchema } from '@/shared/form/form-schema';
 import { i18n } from '@/i18n';
-import activityTypesJson from '@/jsons/activity-types.json';
 import UrlField from '@/shared/fields/url-field';
 import { onSelectMouseLeave } from '@/utils/select';
 import { CrowdIntegrations } from '@/integrations/integrations-config';
@@ -297,6 +296,7 @@ export default {
       loading: 'automation/loading',
       integrationsActive: 'integration/active',
       integrationsCount: 'integration/count',
+      currentTenant: 'auth/currentTenant',
     }),
     fields() {
       return fields;
@@ -335,7 +335,8 @@ export default {
 
       return this.model.settings.platforms.reduce(
         (acc, platform) => {
-          const platformActivityTypes = activityTypesJson[platform];
+          const platformActivityTypes = Object.keys(this.currentTenant.settings[0].activityTypes.default[platform]);
+
           acc.push(
             ...platformActivityTypes.map((activityType) => ({
               value: activityType,
