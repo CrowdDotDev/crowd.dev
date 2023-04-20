@@ -2,9 +2,9 @@ import filters from './filters';
 
 export default () => {
   it('Redirects to member page', () => {
-    cy.wait(500);
+    cy.wait(130000);
     cy.get('#menu-members').click();
-    cy.wait(120000);
+    cy.wait(500);
     cy.url().should('include', '/members');
   });
 
