@@ -190,7 +190,7 @@ const en = {
         activities: 'Activities',
         activityCount: '# of activities',
         numberOfOpenSourceContributions: '# of open source contributions',
-        activityTypes: 'Activity Type',
+        activityTypes: 'Activity type',
         location: 'Location',
         organization: 'Organization',
         organizations: 'Organizations',

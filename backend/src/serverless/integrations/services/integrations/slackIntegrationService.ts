@@ -19,7 +19,7 @@ import getMessagesThreads from '../../usecases/slack/getMessagesInThreads'
 import getMessages from '../../usecases/slack/getMessages'
 import getTeam from '../../usecases/slack/getTeam'
 import { timeout } from '../../../../utils/timing'
-import { AddActivitiesSingle, Member } from '../../types/messageTypes'
+import { AddActivitiesSingle, Member, PlatformIdentities } from '../../types/messageTypes'
 import { MemberAttributeName } from '../../../../database/attributes/member/enums'
 import { SlackGrid } from '../../grid/slackGrid'
 import Operations from '../../../dbOperations/operations'
@@ -275,10 +275,16 @@ export class SlackIntegrationService extends IntegrationServiceBase {
     return `${pipelineData.teamUrl}archives/${channelId}/p${record.ts.replace('.', '')}`
   }
 
-  private static parseMember(record: any): Member {
+  private static parseMember(record: any, context: IStepContext): Member {
     const member: Member = {
       displayName: record.profile.real_name,
-      username: record.name,
+      username: {
+        [PlatformType.SLACK]: {
+          username: record.name,
+          integrationId: context.integration.id,
+          sourceId: record.id,
+        },
+      } as PlatformIdentities,
       emails: record.profile.email ? [record.profile.email] : [],
       attributes: {
         [MemberAttributeName.SOURCE_ID]: {
@@ -344,7 +350,7 @@ export class SlackIntegrationService extends IntegrationServiceBase {
         return undefined
       }
 
-      return SlackIntegrationService.parseMember(record)
+      return SlackIntegrationService.parseMember(record, context)
     } catch (e) {
       context.logger.error('Error getting member in Slack', { userId })
       throw e
@@ -391,6 +397,7 @@ export class SlackIntegrationService extends IntegrationServiceBase {
           sourceId = record.ts
         }
         activities.push({
+          username: member.username[PlatformType.SLACK].username,
           tenant: context.integration.tenantId,
           platform: PlatformType.SLACK,
           type: activityType,
@@ -444,9 +451,10 @@ export class SlackIntegrationService extends IntegrationServiceBase {
         continue
       }
 
-      const member = SlackIntegrationService.parseMember(record)
+      const member = SlackIntegrationService.parseMember(record, context)
 
       activities.push({
+        username: member.username[PlatformType.SLACK].username,
         tenant: context.integration.tenantId,
         platform: PlatformType.SLACK,
         type: 'channel_joined',
@@ -487,6 +495,7 @@ export class SlackIntegrationService extends IntegrationServiceBase {
           ? await SlackIntegrationService.removeMentions(record.text, context)
           : ''
         activities.push({
+          username: member.username[PlatformType.SLACK].username,
           tenant: context.integration.tenantId,
           platform: PlatformType.SLACK,
           type: 'message',

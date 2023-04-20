@@ -122,7 +122,6 @@ const fields = {
     {
       required: true,
       filterable: true,
-      fromMembers: true,
     },
   ),
   engagementLevel: new MemberEngagementLevelField(

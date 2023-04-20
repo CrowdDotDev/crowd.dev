@@ -368,7 +368,7 @@
 
 <script setup>
 import { useStore } from 'vuex';
-import { computed } from 'vue';
+import { computed, watch } from 'vue';
 import { RouterLink, useLink } from 'vue-router';
 import { SettingsPermissions } from '@/modules/settings/settings-permissions';
 import { ReportPermissions } from '@/modules/report/report-permissions';
@@ -381,20 +381,31 @@ import config from '@/config';
 import { mapGetters } from '@/shared/vuex/vuex.helpers';
 import { TaskPermissions } from '@/modules/task/task-permissions';
 import formbricks from '@/plugins/formbricks';
+import { useActivityTypeStore } from '@/modules/activity/store/type';
 import AppWorkspaceDropdown from './workspace-dropdown.vue';
 import AppSupportDropdown from './support-dropdown.vue';
 import AppAccountDropdown from './account-dropdown.vue';
 
 const store = useStore();
+const { currentTenant } = mapGetters('auth');
+const { setTypes } = useActivityTypeStore();
+
+watch(
+  () => currentTenant,
+  (tenant) => {
+    if (tenant.value.settings.length > 0) {
+      setTypes(tenant.value.settings[0].activityTypes);
+    }
+  },
+  { immediate: true, deep: true },
+);
+
 const { route } = useLink(RouterLink.props);
 const isCollapsed = computed(
   () => store.getters['layout/menuCollapsed'],
 );
 const currentUser = computed(
   () => store.getters['auth/currentUser'],
-);
-const currentTenant = computed(
-  () => store.getters['auth/currentTenant'],
 );
 
 function toggleMenu() {
