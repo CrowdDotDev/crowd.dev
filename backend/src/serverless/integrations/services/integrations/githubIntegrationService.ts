@@ -437,7 +437,7 @@ export class GithubIntegrationService extends IntegrationServiceBase {
 
       case 'pull_request_review_comment': {
         const record = await GithubIntegrationService.parseWebhookPullRequestReviewThreadComment(
-          event,
+          payload,
           context,
         )
         if (record) {
