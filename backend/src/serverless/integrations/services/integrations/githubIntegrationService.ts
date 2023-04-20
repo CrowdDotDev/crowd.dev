@@ -752,10 +752,7 @@ export class GithubIntegrationService extends IntegrationServiceBase {
       }
     }
 
-    const member = await GithubIntegrationService.parseWebhookMember(
-      payload.sender.login,
-      context,
-    )
+    const member = await GithubIntegrationService.parseWebhookMember(payload.sender.login, context)
 
     const pull = payload.pull_request
 
