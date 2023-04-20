@@ -339,7 +339,7 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
           channel: defaultGithubChannelFormatter,
           self: (activity) => {
             const prNumberAndTitle = `#${activity.url.split('/')[6].split('#')[0]} ${
-              activity.attributes.prTitle
+              activity.parent.title
             }`
             return `<a href="${activity.url}" style="max-width:150px" target="_blank">${prNumberAndTitle}</a>`
           },
