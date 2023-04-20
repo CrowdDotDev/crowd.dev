@@ -1,8 +1,8 @@
 import JSONField from '@/shared/fields/json-field';
 import { capitalizeFirstLetter } from '@/utils/string';
-import { store } from '@/store';
-import { computed } from 'vue';
 import { CrowdIntegrations } from '@/integrations/integrations-config';
+import { storeToRefs } from 'pinia';
+import { useActivityTypeStore } from '@/modules/activity/store/type';
 
 export default class ActivityTypeField extends JSONField {
   constructor(name, label, config = {}) {
@@ -32,14 +32,13 @@ export default class ActivityTypeField extends JSONField {
   }
 
   dropdownOptions() {
-    const currentTenant = computed(
-      () => store.getters['auth/currentTenant'],
-    );
+    const activityTypeStore = useActivityTypeStore();
+    const { types } = storeToRefs(activityTypeStore);
 
     const {
       default: defaultActivityTypes,
       custom: customActivityTypes,
-    } = currentTenant.value.settings[0].activityTypes;
+    } = types.value;
 
     const defaultOptions = this.getActivityTypes(defaultActivityTypes);
     const customOptions = this.getActivityTypes(customActivityTypes);
