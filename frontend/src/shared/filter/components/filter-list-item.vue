@@ -68,7 +68,9 @@
         >
           Reset filter
         </el-button>
-        <div v-else>&nbsp;</div>
+        <div v-else>
+          &nbsp;
+        </div>
         <div class="flex items-center">
           <el-button
             id="closeFilter"
