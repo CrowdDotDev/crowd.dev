@@ -39,7 +39,7 @@
 
 <script setup>
 import { defineProps, computed } from 'vue';
-import { getPlatformUrl } from '@/utils/string';
+import { CrowdIntegrations } from '@/integrations/integrations-config';
 import AppSvg from '@/shared/svg/svg.vue';
 import AppPlatformPopover from './platform-popover.vue';
 
@@ -66,10 +66,7 @@ const props = defineProps({
   },
 });
 
-const href = computed(() => (props.usernameHandles.length === 1 ? getPlatformUrl({
-  platform: props.platform,
-  username: props.usernameHandles[0],
-}) : null));
+const href = computed(() => (props.usernameHandles.length === 1 ? CrowdIntegrations.getConfig(props.platform)?.url(props.usernameHandles[0]) : null));
 </script>
 
 <script>

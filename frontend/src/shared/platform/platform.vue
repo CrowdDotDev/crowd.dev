@@ -51,7 +51,6 @@
 <script setup>
 import { defineProps, computed } from 'vue';
 import { CrowdIntegrations } from '@/integrations/integrations-config';
-import { getPlatformUrl } from '@/utils/string';
 import AppPlatformPopover from './platform-popover.vue';
 
 const props = defineProps({
@@ -86,10 +85,7 @@ const props = defineProps({
 });
 
 const imageProperties = computed(() => CrowdIntegrations.getConfig(props.platform));
-const href = computed(() => (props.usernameHandles.length === 1 ? getPlatformUrl({
-  platform: props.platform,
-  username: props.usernameHandles[0],
-}) : null));
+const href = computed(() => (props.usernameHandles.length === 1 ? CrowdIntegrations.getConfig(props.platform)?.url(props.usernameHandles[0]) : null));
 
 const trackClick = () => {
   window.analytics.track(props.trackEventName, {

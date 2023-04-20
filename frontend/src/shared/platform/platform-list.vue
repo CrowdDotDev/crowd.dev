@@ -43,8 +43,8 @@
 </template>
 
 <script setup>
-import { getPlatformUrl } from '@/utils/string';
 import { computed } from 'vue';
+import { CrowdIntegrations } from '@/integrations/integrations-config';
 
 const props = defineProps({
   usernameHandles: {
@@ -58,6 +58,7 @@ const props = defineProps({
 });
 
 const asLink = computed(() => props.platform !== 'slack' && props.platform !== 'discord');
+const getPlatformUrl = ({ platform, username }) => CrowdIntegrations.getConfig(platform)?.url(username);
 </script>
 
 <script>

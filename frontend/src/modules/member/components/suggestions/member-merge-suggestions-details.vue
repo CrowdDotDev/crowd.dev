@@ -199,7 +199,6 @@ import { CrowdIntegrations } from '@/integrations/integrations-config';
 import { MemberPermissions } from '@/modules/member/member-permissions';
 import moment from 'moment';
 import { mapGetters } from '@/shared/vuex/vuex.helpers';
-import { getPlatformUrl } from '@/utils/string';
 
 const props = defineProps({
   member: {
@@ -247,7 +246,7 @@ const identityUrl = (platform, username) => {
     return null;
   }
 
-  return getPlatformUrl({ platform, username });
+  return CrowdIntegrations.getConfig(platform)?.url(username);
 };
 
 onMounted(() => {

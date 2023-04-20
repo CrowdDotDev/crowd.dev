@@ -114,7 +114,6 @@ import {
   watch,
 } from 'vue';
 import { CrowdIntegrations } from '@/integrations/integrations-config';
-import { getPlatformUrl } from '@/utils/string';
 
 const emit = defineEmits(['update:modelValue']);
 const props = defineProps({
@@ -299,7 +298,7 @@ const removeUsername = (platform, index) => {
     ...props.modelValue.attributes,
     url: {
       ...props.modelValue.attributes?.url,
-      [platform]: getPlatformUrl({ platform, username: model.value.username[platform][0] }),
+      [platform]: CrowdIntegrations.getConfig(platform)?.url(model.value.username[platform][0]),
     },
   };
 };
