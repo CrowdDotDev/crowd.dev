@@ -2168,7 +2168,7 @@ describe('MemberRepository tests', () => {
         },
         mockIRepositoryOptions,
       )
-      const member2 = members.rows.find((m) => m.username[PlatformType.TWITTER] === 'test2')
+      const member2 = members.rows.find((m) => m.username[PlatformType.TWITTER].includes('test2'))
       expect(members.rows.length).toEqual(1)
       expect(member2.tags[0].name).toEqual('nodejs')
       expect(member2.tags[1].name).toEqual('vuejs')
@@ -2232,8 +2232,8 @@ describe('MemberRepository tests', () => {
         },
         mockIRepositoryOptions,
       )
-      const member1 = members.rows.find((m) => m.username[PlatformType.GITHUB] === 'test1')
-      const member2 = members.rows.find((m) => m.username[PlatformType.GITHUB] === 'test2')
+      const member1 = members.rows.find((m) => m.username[PlatformType.GITHUB].includes('test1'))
+      const member2 = members.rows.find((m) => m.username[PlatformType.GITHUB].includes('test2'))
 
       expect(members.rows.length).toEqual(2)
       expect(member1.tags[0].name).toEqual('nodejs')
@@ -2300,7 +2300,7 @@ describe('MemberRepository tests', () => {
         },
         mockIRepositoryOptions,
       )
-      const member2 = members.rows.find((m) => m.username[PlatformType.SLACK] === 'test2')
+      const member2 = members.rows.find((m) => m.username[PlatformType.SLACK].includes('test2'))
       expect(members.rows.length).toEqual(1)
       expect(member2.organizations[0].name).toEqual('crowd.dev')
       expect(member2.organizations[1].name).toEqual('pied piper')
