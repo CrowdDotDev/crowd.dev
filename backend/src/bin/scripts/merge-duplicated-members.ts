@@ -147,7 +147,7 @@ async function check(): Promise<number> {
         'Can not automatically merge - first member in the group by joinedAt will get the identity and the rest will get them as weakIdentities.',
       )
 
-      const options = { ...dbOptions, log: logger, tenant: { id: data.tenantId } }
+      const options = { ...dbOptions, log: logger, currentTenant: { id: data.tenantId } }
 
       let transaction
       try {
