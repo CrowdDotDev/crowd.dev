@@ -725,7 +725,7 @@ export class GithubIntegrationService extends IntegrationServiceBase {
         tenant: context.integration.tenantId,
         sourceId,
         sourceParentId,
-        url: payload.comment.url,
+        url: payload.comment.html_url,
         title: '',
         channel: payload.repository.html_url,
         body,
