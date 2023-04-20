@@ -640,10 +640,10 @@ class MemberRepository {
     }
     const data = record.get({ plain: returnPlain })
 
-    const identities = await this.getIdentities([data.id], options)
+    const identities = (await this.getIdentities([data.id], options)).get(data.id)
 
     data.username = {}
-    for (const identity of identities.get(data.id)) {
+    for (const identity of identities) {
       if (data.username[identity.platform]) {
         data.username[identity.platform].push(identity.username)
       } else {
@@ -858,6 +858,7 @@ class MemberRepository {
     ['averageSentiment', 'aggs."averageSentiment"'],
     ['identities', 'aggs.identities'],
     ['reach', "(m.reach -> 'total')::integer"],
+    ['numberOfOpenSourceContributions', 'coalesce(jsonb_array_length(m.contributions), 0)'],
 
     ['id', 'm.id'],
     ['displayName', 'm."displayName"'],
@@ -918,6 +919,9 @@ class MemberRepository {
         break
       case 'activityCount':
         orderByString = 'aggs."activityCount"'
+        break
+      case 'numberOfOpenSourceContributions':
+        orderByString = '"numberOfOpenSourceContributions"'
         break
 
       default:
@@ -1029,7 +1033,8 @@ select m.id,
        aggs."lastActive",
        aggs."averageSentiment",
        coalesce(mt.all_tags, json_build_array())   as tags,
-       coalesce(mo.all_organizations, json_build_array()) as organizations
+       coalesce(mo.all_organizations, json_build_array()) as organizations,
+       coalesce(jsonb_array_length(m.contributions), 0) as "numberOfOpenSourceContributions"
 from members m
          inner join "memberActivityAggregatesMVs" aggs on aggs.id = m.id
          left join to_merge_data tmd on m.id = tmd."memberId"
@@ -1063,10 +1068,15 @@ with member_tags as (select mt."memberId",
                 and m."deletedAt" is null
                 and o."tenantId" = :tenantId
                 and o."deletedAt" is null
-              group by mo."memberId")
+              group by mo."memberId"),
+    identities as (select "memberId",
+                          jsonb_object_agg(platform, username) as username
+                  from "memberIdentities"
+                  group by "memberId")
 select count(m.id) as "totalCount"
 from members m
          inner join "memberActivityAggregatesMVs" aggs on aggs.id = m.id
+         inner join identities i on m.id = i."memberId"
          left join member_tags mt on m.id = mt."memberId"
          left join member_organizations mo on m.id = mo."memberId"
 where m."deletedAt" is null
@@ -1197,6 +1207,10 @@ where m."deletedAt" is null
 
     customOrderBy = customOrderBy.concat(
       SequelizeFilterUtils.customOrderByIfExists('averageSentiment', orderBy),
+    )
+
+    customOrderBy = customOrderBy.concat(
+      SequelizeFilterUtils.customOrderByIfExists('numberOfOpenSourceContributions', orderBy),
     )
 
     if (orderBy.includes('reach')) {
@@ -1413,6 +1427,25 @@ where m."deletedAt" is null
             })
           }
         }
+
+        if (filter.numberOfOpenSourceContributionsRange) {
+          const [start, end] = filter.numberOfOpenSourceContributionsRange
+          if (start !== undefined && start !== null && start !== '') {
+            advancedFilter.and.push({
+              numberOfOpenSourceContributions: {
+                gte: start,
+              },
+            })
+          }
+
+          if (end !== undefined && end !== null && end !== '') {
+            advancedFilter.and.push({
+              numberOfOpenSourceContributions: {
+                lte: end,
+              },
+            })
+          }
+        }
       }
     }
 
@@ -1435,6 +1468,10 @@ where m."deletedAt" is null
     const toMergeArray = Sequelize.literal(`STRING_AGG( distinct "toMerge"."id"::text, ',')`)
     const noMergeArray = Sequelize.literal(`STRING_AGG( distinct "noMerge"."id"::text, ',')`)
 
+    const numberOfOpenSourceContributions = Sequelize.literal(
+      `COALESCE(jsonb_array_length("member"."contributions"), 0)`,
+    )
+
     const parser = new QueryParser(
       {
         nestedFields: {
@@ -1451,6 +1488,7 @@ where m."deletedAt" is null
           activeOn,
           identities,
           username,
+          numberOfOpenSourceContributions,
           ...dynamicAttributesPlatformNestedFields,
           'reach.total': Sequelize.literal(`("member".reach->'total')::int`),
           'username.asString': Sequelize.literal(
@@ -1565,6 +1603,7 @@ where m."deletedAt" is null
         [averageSentiment, 'averageSentiment'],
         [toMergeArray, 'toMergeIds'],
         [noMergeArray, 'noMergeIds'],
+        [numberOfOpenSourceContributions, 'numberOfOpenSourceContributions'],
         ...dynamicAttributesProjection,
       ],
       limit: parsed.limit || 50,
@@ -1723,6 +1762,40 @@ where m."deletedAt" is null
     }))
   }
 
+  static async addToWeakIdentities(
+    memberIds: string[],
+    username: string,
+    platform: string,
+    options: IRepositoryOptions,
+  ): Promise<void> {
+    const transaction = SequelizeRepository.getTransaction(options)
+
+    const seq = SequelizeRepository.getSequelize(options)
+
+    const tenant = SequelizeRepository.getCurrentTenant(options)
+
+    const query = `
+    update members
+    set "weakIdentities" = "weakIdentities" || jsonb_build_object('username', :username, 'platform', :platform)::jsonb
+    where id in (:memberIds)
+      and not exists (select 1
+                      from jsonb_array_elements("weakIdentities") as wi
+                      where wi ->> 'username' = :username
+                        and wi ->> 'platform' = :platform);
+    `
+
+    await seq.query(query, {
+      replacements: {
+        memberIds,
+        username,
+        platform,
+        tenantId: tenant.id,
+      },
+      type: QueryTypes.UPDATE,
+      transaction,
+    })
+  }
+
   static async _createAuditLog(action, record, data, options: IRepositoryOptions) {
     if (log) {
       let values = {}
@@ -1857,6 +1930,8 @@ where m."deletedAt" is null
 
     output.activityCount = output.activities.length
 
+    output.numberOfOpenSourceContributions = output.contributions?.length ?? 0
+
     output.activityTypes = [...new Set(output.activities.map((i) => `${i.platform}:${i.type}`))]
     output.activeDaysCount =
       output.activities.reduce((acc, activity) => {
@@ -1921,11 +1996,11 @@ where m."deletedAt" is null
       })
     ).map((i) => i.id)
 
-    const memberIdentities = await this.getIdentities([record.id], options)
+    const memberIdentities = (await this.getIdentities([record.id], options)).get(record.id)
 
     output.username = {}
 
-    for (const identity of memberIdentities.get(record.id)) {
+    for (const identity of memberIdentities) {
       if (output.username[identity.platform]) {
         output.username[identity.platform].push(identity.username)
       } else {

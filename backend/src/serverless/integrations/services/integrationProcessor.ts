@@ -52,6 +52,7 @@ import {
   DbIntegrationStreamCreateData,
   IntegrationStreamState,
 } from '../../../types/integrationStreamTypes'
+import { twitterFollowers } from '../../../database/utils/keys/microserviceTypes'
 
 export class IntegrationProcessor extends LoggingBase {
   private readonly integrationServices: IntegrationServiceBase[]
@@ -192,9 +193,7 @@ export class IntegrationProcessor extends LoggingBase {
 
             await sendNodeWorkerMessage(
               microservice.tenantId,
-              new NodeWorkerIntegrationProcessMessage(run.id, {
-                platform: PlatformType.TWITTER,
-              }),
+              new NodeWorkerIntegrationProcessMessage(run.id),
             )
           }
         }
@@ -338,10 +337,27 @@ export class IntegrationProcessor extends LoggingBase {
 
     const userContext = await getUserContext(run.tenantId)
 
-    // load integration from database
-    const integration = run.integrationId
-      ? await IntegrationRepository.findById(run.integrationId, userContext)
-      : await IntegrationRepository.findByPlatform(req.metadata.platform, userContext)
+    let integration
+
+    if (run.integrationId) {
+      integration = await IntegrationRepository.findById(run.integrationId, userContext)
+    } else if (run.microserviceId) {
+      const microservice = await MicroserviceRepository.findById(run.microserviceId, userContext)
+
+      switch (microservice.type) {
+        case twitterFollowers:
+          integration = await IntegrationRepository.findByPlatform(
+            PlatformType.TWITTER,
+            userContext,
+          )
+          break
+        default:
+          throw new Error(`Microservice type '${microservice.type}' is not supported!`)
+      }
+    } else {
+      this.log.error({ runId: req.runId }, 'Integration run has no integration or microservice!')
+      throw new Error(`Integration run '${req.runId}' has no integration or microservice!`)
+    }
 
     const logger = createChildLogger('process', this.log, {
       runId: req.runId,

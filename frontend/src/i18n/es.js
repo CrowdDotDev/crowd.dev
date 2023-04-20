@@ -167,6 +167,7 @@ const es = {
         score: 'Score',
         estimatedReach: 'Estimated Reach',
         numberActivities: '# of Activities',
+        numberOfOpenSourceContributions: '# of open source contributions',
         contact: 'Contact',
         tag: 'Tags',
         username: 'Username',

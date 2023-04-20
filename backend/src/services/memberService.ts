@@ -348,6 +348,19 @@ export default class MemberService extends LoggingBase {
 
       return record
     } catch (error) {
+      if (error.name && error.name.includes('Sequelize')) {
+        this.log.error(
+          error,
+          {
+            query: error.sql,
+            errorMessage: error.original.message,
+          },
+          'Error during member upsert!',
+        )
+      } else {
+        this.log.error(error, 'Error during member upsert!')
+      }
+
       await SequelizeRepository.rollbackTransaction(transaction)
 
       SequelizeRepository.handleUniqueFieldError(error, this.options.language, 'member')
