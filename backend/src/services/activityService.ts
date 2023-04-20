@@ -395,6 +395,30 @@ export default class ActivityService extends LoggingBase {
     const transaction = await SequelizeRepository.createTransaction(this.options)
 
     try {
+      if (typeof data.member.username === 'string') {
+        data.member.username = {
+          [data.platform]: {
+            username: data.member.username,
+          },
+        }
+      }
+
+      const platforms = Object.keys(data.member.username)
+      if (platforms.length === 0) {
+        throw new Error('Member must have at least one platform username set!')
+      }
+      for (const platform of platforms) {
+        if (typeof data.member.username[platform] === 'string') {
+          data.member.username[platform] = {
+            username: data.member.username[platform],
+          }
+        }
+      }
+
+      if (!data.username) {
+        data.username = data.member.username[data.platform].username
+      }
+
       const activityExists = await this._activityExists(data, transaction)
 
       const existingMember = activityExists

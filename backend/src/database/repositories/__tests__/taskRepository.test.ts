@@ -5,6 +5,7 @@ import Error404 from '../../../errors/Error404'
 import MemberRepository from '../memberRepository'
 import ActivityRepository from '../activityRepository'
 import { PlatformType } from '../../../types/integrationEnums'
+import { generateUUIDv1 } from '../../../utils/uuid'
 
 const db = null
 
@@ -18,17 +19,32 @@ const toCreate = {
 
 const sampleMembers = [
   {
-    username: { [PlatformType.GITHUB]: 'harry_potter' },
+    username: {
+      [PlatformType.GITHUB]: {
+        username: 'harry_potter',
+        integrationId: generateUUIDv1(),
+      },
+    },
     displayName: 'Harry Potter',
     joinedAt: new Date(),
   },
   {
-    username: { [PlatformType.GITHUB]: 'hermione' },
+    username: {
+      [PlatformType.GITHUB]: {
+        username: 'hermione',
+        integrationId: generateUUIDv1(),
+      },
+    },
     displayName: 'Hermione Granger',
     joinedAt: new Date(),
   },
   {
-    username: { [PlatformType.GITHUB]: 'ron_weasley' },
+    username: {
+      [PlatformType.GITHUB]: {
+        username: 'ron_weasley',
+        integrationId: generateUUIDv1(),
+      },
+    },
     displayName: 'Ron Weasley',
     joinedAt: new Date(),
   },
@@ -64,10 +80,36 @@ async function getToCreate(task, options, from = { fromMembers: [], fromActiviti
   for (const sampleMember of fromMembers) {
     task.members.push((await MemberRepository.create(sampleMember, options)).id)
   }
+
   for (const sampleActivity of fromActivities) {
-    const memberId = (await MemberRepository.create(sampleMembers[0], options)).id
-    sampleActivity.member = memberId
-    task.activities.push((await ActivityRepository.create(sampleActivity, options)).id)
+    let username: string
+
+    const existing = await MemberRepository.memberExists(
+      sampleMembers[0].username[PlatformType.GITHUB].username,
+      PlatformType.GITHUB,
+      options,
+    )
+
+    if (existing) {
+      sampleActivity.member = existing.id
+      username = sampleMembers[0].username[PlatformType.GITHUB].username
+    } else {
+      const member = await MemberRepository.create(sampleMembers[0], options)
+      sampleActivity.member = member.id
+      username = sampleMembers[0].username[PlatformType.GITHUB].username
+    }
+
+    task.activities.push(
+      (
+        await ActivityRepository.create(
+          {
+            ...sampleActivity,
+            username,
+          },
+          options,
+        )
+      ).id,
+    )
   }
   task.assignees.push(options.currentUser.id)
   return task
