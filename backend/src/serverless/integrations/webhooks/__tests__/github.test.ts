@@ -130,7 +130,7 @@ describe('Github webhooks tests', () => {
           },
           [MemberAttributeName.URL]: {
             [PlatformType.GITHUB]: 'https://github.com/joanreyero',
-            // [PlatformType.TWITTER]: 'https://twitter.com/reyero',
+            [PlatformType.TWITTER]: 'https://twitter.com/reyero',
           },
           [MemberAttributeName.AVATAR_URL]: {
             [PlatformType.GITHUB]: '',
@@ -183,7 +183,7 @@ describe('Github webhooks tests', () => {
           },
           [MemberAttributeName.URL]: {
             [PlatformType.GITHUB]: 'https://github.com/joanreyero',
-            // [PlatformType.TWITTER]: 'https://twitter.com/reyero',
+            [PlatformType.TWITTER]: 'https://twitter.com/reyero',
           },
           [MemberAttributeName.WEBSITE_URL]: {
             [PlatformType.GITHUB]: 'https://crowd.dev',
