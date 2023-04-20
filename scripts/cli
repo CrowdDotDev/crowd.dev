@@ -356,8 +356,8 @@ function up_scaffold() {
 
 function post_up_scaffold() {
     migrate_local
-    bash nango-integrations.sh
-    check_init_premium
+    # bash nango-integrations.sh
+    # check_init_premium
 }
 
 function down_scaffold() {
