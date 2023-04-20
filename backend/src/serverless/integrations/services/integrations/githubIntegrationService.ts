@@ -1155,7 +1155,6 @@ export class GithubIntegrationService extends IntegrationServiceBase {
           changedFiles: record.pullRequest.changedFiles,
           authorAssociation: record.pullRequest.authorAssociation,
           labels: record.pullRequest.labels?.nodes.map((l) => l.name),
-          prTitle: record.pullRequest.title,
         },
         member,
         score: GitHubGrid.comment.score,
