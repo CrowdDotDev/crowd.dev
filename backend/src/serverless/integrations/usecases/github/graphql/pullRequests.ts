@@ -51,6 +51,7 @@ class PullRequestsQuery extends BaseQuery {
                           id
                           state
                           submittedAt
+                          body
                           author {
                             ... on User ${BaseQuery.USER_SELECT}
                           }

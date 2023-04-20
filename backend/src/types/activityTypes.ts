@@ -79,6 +79,7 @@ export enum GithubActivityType {
   STAR = 'star',
   UNSTAR = 'unstar',
   PULL_REQUEST_COMMENT = 'pull_request-comment',
+  PULL_REQUEST_REVIEW_THREAD_COMMENT = 'pull_request-review-thread-comment',
   ISSUE_COMMENT = 'issue-comment',
   DISCUSSION_COMMENT = 'discussion-comment',
 }
@@ -324,6 +325,23 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
           self: (activity) => {
             const prNumberAndTitle = `#${activity.url.split('/')[6]} ${activity.parent.title}`
             return `<a href="${activity.url}" style="max-width:150px" target="_blank">${prNumberAndTitle}</a> from <a href="/members/${activity.objectMemberId}" target="_blank">${activity.objectMember.displayName}</a>`
+          },
+        },
+      },
+      isContribution: GitHubGrid.pullRequestReviewRequested.isContribution,
+    },
+    [GithubActivityType.PULL_REQUEST_REVIEW_THREAD_COMMENT]: {
+      display: {
+        default: 'commented while reviewing pull request {self}',
+        short: 'commented on a pull request review',
+        channel: '{channel}',
+        formatter: {
+          channel: defaultGithubChannelFormatter,
+          self: (activity) => {
+            const prNumberAndTitle = `#${activity.url.split('/')[6].split('#')[0]} ${
+              activity.attributes.prTitle
+            }`
+            return `<a href="${activity.url}" style="max-width:150px" target="_blank">${prNumberAndTitle}</a>`
           },
         },
       },
