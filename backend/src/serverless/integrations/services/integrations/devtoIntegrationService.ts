@@ -223,22 +223,23 @@ export class DevtoIntegrationService extends IntegrationServiceBase {
       },
     }
 
-    if (comment.user.twitter_username) {
-      member.attributes[MemberAttributeName.URL][
-        PlatformType.TWITTER
-      ] = `https://twitter.com/${comment.user.twitter_username}`
-      member.username[PlatformType.TWITTER] = comment.user.twitter_username
-    }
+    // TODO Fix this (multiple member identities with secondary identities)
+    // if (comment.user.twitter_username) {
+    //   member.attributes[MemberAttributeName.URL][
+    //     PlatformType.TWITTER
+    //   ] = `https://twitter.com/${comment.user.twitter_username}`
+    //   member.username[PlatformType.TWITTER] = comment.user.twitter_username
+    // }
 
-    if (comment.user.github_username) {
-      member.attributes[MemberAttributeName.NAME] = {
-        [PlatformType.GITHUB]: comment.user.name,
-      }
-      member.attributes[MemberAttributeName.URL][
-        PlatformType.GITHUB
-      ] = `https://github.com/${comment.user.github_username}`
-      member.username[PlatformType.GITHUB] = comment.user.github_username
-    }
+    // if (comment.user.github_username) {
+    //   member.attributes[MemberAttributeName.NAME] = {
+    //     [PlatformType.GITHUB]: comment.user.name,
+    //   }
+    //   member.attributes[MemberAttributeName.URL][
+    //     PlatformType.GITHUB
+    //   ] = `https://github.com/${comment.user.github_username}`
+    //   member.username[PlatformType.GITHUB] = comment.user.github_username
+    // }
 
     if (comment.fullUser) {
       member.attributes[MemberAttributeName.BIO] = {

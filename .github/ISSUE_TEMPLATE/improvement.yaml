@@ -1,0 +1,47 @@
+name: Improvement
+description: Help us improve the product, website, our documentation
+labels: ["type:improvement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to suggest an improvement!
+  - type: dropdown
+    id: crowd-edition
+    attributes:
+      label: crowd.dev edition
+      description: Which crowd.dev edition are you reporting on?
+      options:
+        - Community (self hosted)
+        - Cloud (hosted)
+    validations:
+      required: true
+  - type: input
+    id: community-version
+    attributes:
+      label: Version
+      description: (community edition only) which version you are reporting on?
+  - type: input
+    id: link
+    attributes:
+      label: Link
+      description: Add a link to the page which needs improvement (if relevant)
+  - type: textarea
+    id: problem
+    attributes:
+      label: Describe the problem
+      description: Is the documentation missing? Or What is confusing? Why is it confusing?
+    validations:
+      required: true
+  - type: textarea
+    id: improvement
+    attributes:
+      label: Describe the improvement
+      description: A clear and concise description of the improvement.
+    validations:
+      required: true
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional context
+      description: Add any other context or screenshots that help clarify the improvement.

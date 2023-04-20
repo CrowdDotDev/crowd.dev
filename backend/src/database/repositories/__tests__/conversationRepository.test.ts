@@ -455,6 +455,7 @@ describe('ConversationRepository tests', () => {
         'identities',
         'activeDaysCount',
         'username',
+        'numberOfOpenSourceContributions',
       ])
 
       const conversation1Expected = {

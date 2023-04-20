@@ -23,7 +23,7 @@ export default class ApiResponseHandler extends LoggingBase {
   }
 
   async error(req, res, error) {
-    if (error && error.name === 'SequelizeDatabaseError') {
+    if (error && error.name && error.name.includes('Sequelize')) {
       req.log.error(
         error,
         {

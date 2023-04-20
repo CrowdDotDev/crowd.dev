@@ -1,22 +1,24 @@
 <template>
-  <div
-    v-click-away="turnOff"
-    class="panel contributions-panel relative h-80"
-  >
-    <div class="py-4 px-6 flex justify-between text-center">
-      <p class="flex align-center">
+  <div v-click-away="turnOff" class="panel contributions-panel relative h-80">
+    <div class="pt-4 px-6 flex justify-between text-center">
+      <div class="flex align-center">
         <img
           alt="Github"
           src="https://cdn-icons-png.flaticon.com/512/25/25231.png"
           class="h-5 w-5 mr-2"
         />
-        <span class="font-medium text-black">
-          OSS contributions
-        </span>
-      </p>
-      <div
-        class="text-gray-500 flex align-center italic text-2xs h-5"
-      >
+        <span class="font-medium text-black mr-2"> Open source contributions </span>
+
+        <el-tooltip placement="top">
+          <template #content>
+            This refers to the total # of open source contributions a member did on GitHub.<br />
+            To receive this attribute you have to enrich your members.
+          </template>
+          <span class="ri-question-line text-base text-gray-400" />
+        </el-tooltip>
+      </div>
+
+      <div class="text-gray-500 flex align-center italic text-2xs h-5">
         <el-tooltip
           placement="top"
           content="The size of a repository represents the number of contributions made."
@@ -25,9 +27,7 @@
             <i
               class="ri-checkbox-blank-circle-fill text-gray-200 pr-2 my-auto cursor-default"
             />
-            <span class="pr-4 my-auto cursor-default">
-              Repository
-            </span>
+            <span class="pr-4 my-auto cursor-default"> Repository </span>
           </p>
         </el-tooltip>
         <el-tooltip
@@ -40,12 +40,15 @@
             >
               —
             </span>
-            <span class="my-auto cursor-default">
-              Topics
-            </span>
+            <span class="my-auto cursor-default"> Topics </span>
           </p>
         </el-tooltip>
       </div>
+    </div>
+    <div class="pb-4 pl-13 flex justify-between text-center">
+      <p class="mt-1 text-gray-900 text-xs">
+        Total: {{ contributions.length }} contributions
+      </p>
     </div>
     <div class="background-dotted rounded-lg h-64">
       <v-network-graph
@@ -85,12 +88,9 @@
           <p class="key">
             Topics
           </p>
-          <div
-            class="flex flex-wrap h-24 overflow-y-scroll pr-4"
-          >
+          <div class="flex flex-wrap h-24 overflow-y-scroll pr-4">
             <div
-              v-for="topic in nodes[targetNodeId]?.topics
-                ?? []"
+              v-for="topic in nodes[targetNodeId]?.topics ?? []"
               :key="topic"
               class="topic"
             >
@@ -120,12 +120,9 @@
         }"
       >
         <span class="font-medium"> Topics </span>
-        <div
-          class="text-xs h-20 overflow-scroll flex flex-wrap mt-2"
-        >
+        <div class="text-xs h-20 overflow-scroll flex flex-wrap mt-2">
           <div
-            v-for="topic in edges[targetEdgeId]?.topics
-              ?? []"
+            v-for="topic in edges[targetEdgeId]?.topics ?? []"
             :key="topic"
             class="topic"
           >
@@ -215,9 +212,7 @@ function listsOverlap(list1, list2, percentage) {
 // The nodeColor computed property is used to calculate the color of a node
 function nodeColor(node) {
   if (!hoveredNode.value) return '#E5E7EB';
-  return node.name === hoveredNode.value
-    ? '#E5E7EB'
-    : '#F3F4F6';
+  return node.name === hoveredNode.value ? '#E5E7EB' : '#F3F4F6';
 }
 
 // The edgeColor computed property is used to calculate the color of an edge
@@ -225,11 +220,7 @@ function edgeColor(edge) {
   if (hoveredNode.value) return '#FBDCD5';
   if (!hoveredEdge.value) return '#F6B9AB';
   // if the hovered edge and the current edge share any topic
-  const sharedTopics = listsOverlap(
-    hoveredEdge.value.topics,
-    edge.topics,
-    0.5,
-  );
+  const sharedTopics = listsOverlap(hoveredEdge.value.topics, edge.topics, 0.5);
   return sharedTopics ? '#E94F2E' : '#F6B9AB';
 }
 
@@ -237,11 +228,7 @@ function edgeColor(edge) {
 function edgeSize(edge) {
   if (!hoveredEdge.value) return edge.size;
   // if the hovered edge and the current edge share any topic
-  const sharedTopics = listsOverlap(
-    hoveredEdge.value.topics,
-    edge.topics,
-    0.5,
-  );
+  const sharedTopics = listsOverlap(hoveredEdge.value.topics, edge.topics, 0.5);
   return sharedTopics ? edge.size + 0.5 : edge.size;
 }
 
@@ -255,20 +242,12 @@ const configs = reactive(
         createSimulation: (d3, nodes, edges) => {
           // This creates the simulation for the graph using D3
           // you can learn more here: https://github.com/d3/d3-force#forces
-          const forceLink = d3
-            .forceLink(edges)
-            .id((d) => d.id);
+          const forceLink = d3.forceLink(edges).id((d) => d.id);
           return d3
             .forceSimulation(nodes)
             .force('edge', forceLink.distance(140))
-            .force(
-              'charge',
-              d3.forceManyBody().strength(20),
-            )
-            .force(
-              'collide',
-              d3.forceCollide(40).strength(0.1),
-            )
+            .force('charge', d3.forceManyBody().strength(20))
+            .force('collide', d3.forceCollide(40).strength(0.1))
             .force('center', d3.forceCenter().strength(0.1))
             .alphaMin(0.001);
         },
@@ -323,20 +302,15 @@ const nodes = computed(() => {
     // Check if the node for this contribution already exists
 
     // Calculate the size of the node based on the number of commits and the reduceFactor ref
-    const size = Math.max(
-      Math.min(contribution.numberCommits, maxSize),
-      minSize,
-    ) * reduceFactor.value;
+    const size = Math.max(Math.min(contribution.numberCommits, maxSize), minSize)
+      * reduceFactor.value;
 
     if (!nodeList[name]) {
       // If the node does not exist, create a new node object
       // Add the new node to the nodes object
       nodeList[name] = {
         name,
-        fullName: contribution.url
-          .split('/')
-          .slice(-2)
-          .join('/'),
+        fullName: contribution.url.split('/').slice(-2).join('/'),
         size,
         topics: contribution.topics,
         numberCommits: contribution.numberCommits,
@@ -345,13 +319,9 @@ const nodes = computed(() => {
     } else {
       // If the node already exists, update its size, number of commits, and topics
       nodeList[name].size = size;
-      nodeList[name].numberCommits
-        += contribution.numberCommits;
+      nodeList[name].numberCommits += contribution.numberCommits;
       nodeList[name].topics = [
-        ...new Set([
-          ...nodeList[name].topics,
-          ...contribution.topics,
-        ]),
+        ...new Set([...nodeList[name].topics, ...contribution.topics]),
       ];
     }
   });
@@ -406,9 +376,7 @@ const edges = computed(() => {
             edgeObject[id].topics.push(topic);
           }
           edgeObject[id].size = Math.min(
-            ((3 - 1) / (10 - 1))
-            * (edgeObject[id].topics.length - 1)
-            + 1,
+            ((3 - 1) / (10 - 1)) * (edgeObject[id].topics.length - 1) + 1,
             3,
           );
         }
@@ -435,20 +403,18 @@ const edgeCenterPos = computed(() => {
   // by taking the average of the x and y values of the source and target nodes.
   return {
     x:
-      (layouts.value.nodes[sourceNode].x
-        + layouts.value.nodes[targetNode].x)
+      (layouts.value.nodes[sourceNode].x + layouts.value.nodes[targetNode].x)
       / 2,
     y:
-      (layouts.value.nodes[sourceNode].y
-        + layouts.value.nodes[targetNode].y)
+      (layouts.value.nodes[sourceNode].y + layouts.value.nodes[targetNode].y)
       / 2,
   };
 });
 
 // If either we are on a node or an edge, the graph is disabled
-const isDisabled = computed(() => (
-  targetNodeId.value !== '' || targetEdgeId.value !== ''
-));
+const isDisabled = computed(
+  () => targetNodeId.value !== '' || targetEdgeId.value !== '',
+);
 
 // The targetNodePos computed property is used to calculate the position
 // of the target node on the graph.
@@ -481,11 +447,10 @@ watch(
     );
 
     tooltipPos.value = {
-      left:
-        `${domPoint.x
-        - tooltip.value.offsetWidth / 2
+      left: `${
+        domPoint.x - tooltip.value.offsetWidth / 2
         // left +
-        }px`,
+      }px`,
       top: `${domPoint.y - targetNodeRadius.value - 320}px`,
     };
   },
@@ -504,10 +469,7 @@ watch(
     );
     // calculates top-left position of the tooltip.
     edgeToolTipPos.value = {
-      left:
-        `${domPoint.x
-        - edgeTooltip.value.offsetWidth / 2
-        }px`,
+      left: `${domPoint.x - edgeTooltip.value.offsetWidth / 2}px`,
       top: `${domPoint.y - edgeMarginTop - 60 - 10}px`,
     };
     return null;
@@ -596,10 +558,7 @@ const eventHandlers = {
 
 .background-dotted {
   background: white;
-  background-image: radial-gradient(
-    #d4d4d4 1px,
-    transparent 0
-  );
+  background-image: radial-gradient(#d4d4d4 1px, transparent 0);
   background-size: 20px 20px;
   background-position: -19px -19px;
 }
