@@ -50,6 +50,7 @@
             :key="item.name"
             :class="item.selected ? 'is-selected' : ''"
             :command="item"
+            class="custom-attribute"
           >
             {{ item.label }}
           </el-dropdown-item>

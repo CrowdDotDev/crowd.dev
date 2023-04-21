@@ -18,12 +18,12 @@ export default () => {
   });
 
   it('has apply button disabled if no option selected', () => {
-    cy.get('.filter-type-select + div button.btn--primary').should('be.disabled');
+    cy.get('.filter-type-boolean + div button.btn--primary').should('be.disabled');
   });
 
   it('Filters by member enrichment True', () => {
-    cy.get('.filter-type-select .filter-type-select-option').contains('True').click();
-    cy.get('.filter-type-select + div button.btn--primary').click();
+    cy.get('.filter-type-boolean .filter-type-select-option').contains('True').click();
+    cy.get('.filter-type-boolean + div button.btn--primary').click();
     cy.wait('@apiMemberQuery');
     cy.get('@apiMemberQuery').then((req) => {
       const { rows } = req.response.body;
@@ -40,7 +40,7 @@ export default () => {
     cy.wait(100);
     cy.get('@filterItem').click();
     cy.get('.filter-list-item-popper .el-switch').click();
-    cy.get('.filter-type-select + div button.btn--primary').click();
+    cy.get('.filter-type-boolean + div button.btn--primary').click();
     cy.wait('@apiMemberQuery');
     cy.get('@apiMemberQuery').then((req) => {
       const { rows } = req.response.body;
@@ -56,9 +56,9 @@ export default () => {
     cy.get('@filterItem').click();
     cy.wait(100);
     cy.get('@filterItem').click();
-    cy.get('.filter-type-select .filter-type-select-option').contains('False').click();
+    cy.get('.filter-type-boolean .filter-type-select-option').contains('False').click();
     cy.get('.filter-list-item-popper .el-switch').click();
-    cy.get('.filter-type-select + div button.btn--primary').click();
+    cy.get('.filter-type-boolean + div button.btn--primary').click();
     cy.wait('@apiMemberQuery');
     cy.get('@apiMemberQuery').then((req) => {
       const { rows } = req.response.body;
@@ -74,9 +74,9 @@ export default () => {
     cy.get('@filterItem').click();
     cy.wait(100);
     cy.get('@filterItem').click();
-    cy.get('.filter-type-select .filter-type-select-option').contains('False').click();
+    cy.get('.filter-type-boolean .filter-type-select-option').contains('False').click();
     cy.get('.filter-list-item-popper .el-switch').click();
-    cy.get('.filter-type-select + div button.btn--primary').click();
+    cy.get('.filter-type-boolean + div button.btn--primary').click();
     cy.wait('@apiMemberQuery');
     cy.get('@apiMemberQuery').then((req) => {
       const { rows } = req.response.body;

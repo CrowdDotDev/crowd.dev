@@ -10,6 +10,7 @@ import identities from './filter/identities';
 import reach from './filter/reach';
 import joinedDate from './filter/joined-date';
 import lastActivityDate from './filter/last-activity-date';
+import customAttributes from './filter/custom-attributes';
 
 export default () => {
   it('Searches inside filter', () => {
@@ -18,7 +19,7 @@ export default () => {
     cy.get('#filterList li').each((filter) => {
       cy.wrap(filter.text().toLowerCase()).should('contain', 'activi');
     });
-    cy.get('#filterSearch').clear()
+    cy.get('#filterSearch').clear();
   });
 
   describe('Search', search);
@@ -33,4 +34,5 @@ export default () => {
   describe('Reach', reach);
   describe('Joined date', joinedDate);
   describe('Last activity date', lastActivityDate);
+  describe('Custom attributes', customAttributes);
 };

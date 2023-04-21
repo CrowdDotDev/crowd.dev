@@ -3,7 +3,7 @@
     v-if="!isCustom"
     v-model="includeModel"
   />
-  <div class="filter-type-select px-2 pb-4 pt-2">
+  <div class="filter-type-boolean px-2 pb-4 pt-2">
     <div class="text-gray-500 mb-2 font-medium text-2xs">
       {{ label }}
     </div>

@@ -31,7 +31,7 @@ export default ({ email, serverId }) => () => {
   describe('[Onboarding]', onboarding);
 
   describe('[Auth] Logout', logout);
-  describe('[Auth] Logout', signupExisting({
+  describe('[Auth] Signup existing', signupExisting({
     email,
   }));
 

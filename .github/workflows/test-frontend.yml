@@ -25,8 +25,12 @@ jobs:
           echo CROWD_SENDGRID_WEEKLY_ANALYTICS_UNSUBSCRIBE_GROUP_ID=${{ secrets.CROWD_SENDGRID_WEEKLY_ANALYTICS_UNSUBSCRIBE_GROUP_ID }} >> .env.override.local
         working-directory: backend
 
-      - name: Start all services
-        run: ./cli start-e2e
+      - name: Start scaffold
+        run: ./cli scaffold up
+        working-directory: scripts
+
+      - name: Start services
+        run: ./cli service api restart && ./cli service nodejs-worker restart && ./cli service job-generator restart &&  ./cli service frontend restart
         working-directory: scripts
 
       - name: Cypress run

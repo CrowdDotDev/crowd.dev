@@ -3,7 +3,7 @@
     v-if="!isCustom"
     v-model="includeModel"
   />
-  <div class="filter-type-select filter-content-wrapper">
+  <div class="filter-type-select filter-type-select-multi filter-content-wrapper">
     <div
       v-for="option of computedOptions"
       :key="option.name"

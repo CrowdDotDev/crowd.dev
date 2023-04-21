@@ -2,7 +2,7 @@ export default () => {
   before(() => {
     cy.wait(1000);
     cy.get('.filter-dropdown button').click();
-    cy.get('#filterList li').contains('Activity Type').click();
+    cy.get('#filterList li').contains('Activity type').click();
   });
 
   beforeEach(() => {
