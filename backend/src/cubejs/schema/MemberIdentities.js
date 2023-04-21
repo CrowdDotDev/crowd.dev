@@ -1,5 +1,5 @@
 cube(`MemberIdentities`, {
-  sql: `select m.id as "memberId", unnest(ARRAY(SELECT jsonb_object_keys(m.username))) AS "identityName" from members m`,
+  sql: `select distinct "memberId", platform AS "identityName" from "memberIdentities"`,
 
   preAggregations: {},
 

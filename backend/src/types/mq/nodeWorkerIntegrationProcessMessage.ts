@@ -9,7 +9,7 @@ export interface IIntegrationStreamRetry {
 }
 
 export class NodeWorkerIntegrationProcessMessage extends NodeWorkerMessageBase {
-  constructor(public readonly runId: string, public readonly metadata?: any) {
+  constructor(public readonly runId: string) {
     super(NodeWorkerMessageType.INTEGRATION_PROCESS)
   }
 }

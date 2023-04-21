@@ -9,6 +9,7 @@ import MemberAttributeSettingsService from '../memberAttributeSettingsService'
 import { MemberAttributeName } from '../../database/attributes/member/enums'
 import TaskService from '../taskService'
 import Plans from '../../security/plans'
+import { generateUUIDv1 } from '../../utils/uuid'
 
 const db = null
 
@@ -29,28 +30,48 @@ describe('TenantService tests', () => {
       const tenantService = new TenantService(mockIServiceOptions)
 
       const memberToCreate1 = {
-        username: 'member 1',
+        username: {
+          [PlatformType.SLACK]: {
+            username: 'member 1',
+            integrationId: generateUUIDv1(),
+          },
+        },
         platform: PlatformType.SLACK,
         email: 'member.1@email.com',
         joinedAt: '2020-05-27T15:13:30Z',
       }
 
       const memberToCreate2 = {
-        username: 'member 2',
+        username: {
+          [PlatformType.DISCORD]: {
+            username: 'member 2',
+            integrationId: generateUUIDv1(),
+          },
+        },
         platform: PlatformType.DISCORD,
         email: 'member.2@email.com',
         joinedAt: '2020-05-26T15:13:30Z',
       }
 
       const memberToCreate3 = {
-        username: 'member 3',
+        username: {
+          [PlatformType.GITHUB]: {
+            username: 'member 3',
+            integrationId: generateUUIDv1(),
+          },
+        },
         platform: PlatformType.GITHUB,
         email: 'member.3@email.com',
         joinedAt: '2020-05-25T15:13:30Z',
       }
 
       const memberToCreate4 = {
-        username: 'member 4',
+        username: {
+          [PlatformType.TWITTER]: {
+            username: 'member 4',
+            integrationId: generateUUIDv1(),
+          },
+        },
         platform: PlatformType.TWITTER,
         email: 'member.4@email.com',
         joinedAt: '2020-05-24T15:13:30Z',

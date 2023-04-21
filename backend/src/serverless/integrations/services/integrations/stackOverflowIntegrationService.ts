@@ -18,7 +18,7 @@ import getQuestionsByTags from '../../usecases/stackoverflow/getQuestions'
 import getQuestionsByKeyword from '../../usecases/stackoverflow/getQuestionsByKeyword'
 import getAnswers from '../../usecases/stackoverflow/getAnswers'
 import Operations from '../../../dbOperations/operations'
-import { AddActivitiesSingle, Member } from '../../types/messageTypes'
+import { AddActivitiesSingle, Member, PlatformIdentities } from '../../types/messageTypes'
 import { StackOverflowGrid } from '../../grid/stackOverflowGrid'
 import getUser from '../../usecases/stackoverflow/getUser'
 import MemberAttributeSettingsService from '../../../../services/memberAttributeSettingsService'
@@ -334,7 +334,23 @@ export class StackOverlflowIntegrationService extends IntegrationServiceBase {
     const body = question.body
       ? sanitizeHtml(he.decode(question.body))
       : `<a href="${question.link}" target="__blank">${question.link}</a>`
+
+    let member: Member | undefined = await this.parseMember(question.owner.user_id, context)
+
+    if (member === undefined && question.owner.display_name) {
+      member = {
+        username: {
+          [PlatformType.STACKOVERFLOW]: {
+            username: question.owner.display_name,
+            integrationId: context.integration.id,
+          },
+        } as PlatformIdentities,
+      }
+    }
+
     const activity = {
+      member,
+      username: member.username[PlatformType.STACKOVERFLOW].username,
       tenant: tenantId,
       sourceId: question.question_id.toString(),
       type: StackOverflowActivityType.QUESTION,
@@ -355,20 +371,7 @@ export class StackOverlflowIntegrationService extends IntegrationServiceBase {
       },
     }
 
-    let member: Member | undefined = await this.parseMember(question.owner.user_id, context)
-
-    if (member === undefined && question.owner.display_name) {
-      member = {
-        username: {
-          [PlatformType.STACKOVERFLOW]: question.owner.display_name,
-        },
-      }
-    }
-
-    return {
-      ...activity,
-      member,
-    }
+    return activity
   }
 
   /**
@@ -394,10 +397,14 @@ export class StackOverlflowIntegrationService extends IntegrationServiceBase {
       if (member === undefined && answer.owner.display_name) {
         member = {
           username: {
-            [PlatformType.STACKOVERFLOW]: answer.owner.display_name,
-          },
+            [PlatformType.STACKOVERFLOW]: {
+              username: answer.owner.display_name,
+              integrationId: context.integration.id,
+            },
+          } as PlatformIdentities,
         }
       }
+
       activities.push({
         tenant: tenantId,
         sourceId: answer.answer_id.toString(),
@@ -414,6 +421,7 @@ export class StackOverlflowIntegrationService extends IntegrationServiceBase {
           ...(tag && { tagMentioned: tag }),
         },
         member,
+        username: member.username[PlatformType.STACKOVERFLOW].username,
       })
     }
     return activities
@@ -458,8 +466,12 @@ export class StackOverlflowIntegrationService extends IntegrationServiceBase {
     )
     return {
       username: {
-        [PlatformType.STACKOVERFLOW]: user.display_name,
-      },
+        [PlatformType.STACKOVERFLOW]: {
+          username: user.display_name,
+          integrationId: context.integration.id,
+          sourceId: user.user_id.toString(),
+        },
+      } as PlatformIdentities,
       attributes: {
         [MemberAttributeName.SOURCE_ID]: {
           [PlatformType.STACKOVERFLOW]: user.user_id.toString(),
