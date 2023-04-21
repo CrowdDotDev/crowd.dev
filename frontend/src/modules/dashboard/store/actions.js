@@ -30,7 +30,7 @@ export default {
   // fetch conversations data
   async getConversations({ dispatch }) {
     dispatch('getTrendingConversations');
-    dispatch('getConversationCount');
+    // dispatch('getConversationCount');
   },
   // Fetch trending conversations
   async getTrendingConversations({ commit, state }) {
@@ -78,23 +78,7 @@ export default {
   // fetch conversations total
   async getConversationCount({ state }) {
     const { platform } = state.filters;
-    return ConversationService.query(
-      (platform === 'all' ? {}
-        : {
-          and: [
-            ...(platform !== 'all'
-              ? [
-                {
-                  platform,
-                },
-              ]
-              : []),
-          ],
-        }),
-      '',
-      1,
-      0,
-    )
+    return ConversationService.list({}, '', 1, 0)
       .then(({ count }) => {
         state.conversations.total = count;
         return Promise.resolve(count);
