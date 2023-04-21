@@ -158,7 +158,7 @@ export default {
     const { platform, period } = state.filters;
     state.members.loadingActive = true;
     return MemberService.listActive({
-      platform: platform !== 'all' ? platform : [],
+      platform: platform !== 'all' ? [{ value: platform }] : [],
       isTeamMember: false,
       activityIsContribution: null,
       activityTimestampFrom: moment()
