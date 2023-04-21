@@ -14,13 +14,7 @@ export default () => ({
     all: {
       id: 'all',
       label: 'All members',
-      columns: [
-        {
-          name: 'activityCount',
-          label: '# of Activities',
-          sortable: true,
-        },
-      ],
+      columns: [],
       initialFilter: INITIAL_VIEW_ALL_FILTER,
       filter: JSON.parse(
         JSON.stringify(INITIAL_VIEW_ALL_FILTER),
@@ -42,13 +36,7 @@ export default () => ({
     'new-and-active': {
       id: 'new-and-active',
       label: 'New and active',
-      columns: [
-        {
-          name: 'activityCount',
-          label: '# of Activities',
-          sortable: true,
-        },
-      ],
+      columns: [],
       initialFilter: INITIAL_VIEW_RECENT_FILTER,
       filter: JSON.parse(
         JSON.stringify(INITIAL_VIEW_RECENT_FILTER),
@@ -70,13 +58,7 @@ export default () => ({
     'slipping-away': {
       id: 'slipping-away',
       label: 'Slipping away',
-      columns: [
-        {
-          name: 'activityCount',
-          label: '# of Activities',
-          sortable: true,
-        },
-      ],
+      columns: [],
       initialFilter: INITIAL_VIEW_SLIPPING_AWAY_FILTER,
       filter: JSON.parse(
         JSON.stringify(INITIAL_VIEW_SLIPPING_AWAY_FILTER),
@@ -98,13 +80,7 @@ export default () => ({
     'most-engaged': {
       id: 'most-engaged',
       label: 'Most engaged',
-      columns: [
-        {
-          name: 'activityCount',
-          label: '# of Activities',
-          sortable: true,
-        },
-      ],
+      columns: [],
       initialFilter: INITIAL_VIEW_ACTIVE_FILTER,
       filter: JSON.parse(
         JSON.stringify(INITIAL_VIEW_ACTIVE_FILTER),
@@ -148,13 +124,7 @@ export default () => ({
     team: {
       id: 'team',
       label: 'Team members',
-      columns: [
-        {
-          name: 'activityCount',
-          label: '# of Activities',
-          sortable: true,
-        },
-      ],
+      columns: [],
       initialFilter: INITIAL_VIEW_TEAM_MEMBERS_FILTER,
       filter: JSON.parse(
         JSON.stringify(INITIAL_VIEW_TEAM_MEMBERS_FILTER),
