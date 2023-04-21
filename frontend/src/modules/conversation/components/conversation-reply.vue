@@ -49,6 +49,7 @@
             :activity="activity"
             :display-thread="false"
             :display-title="false"
+            :display-title-body="displayTitleBody"
             class="text-sm"
             :class="{
               'line-clamp-1': !displayContent && !showMore,
@@ -129,6 +130,9 @@ export default {
     },
     isGithubConversation() {
       return this.activity.platform === 'github';
+    },
+    displayTitleBody() {
+      return this.activity.type === 'pull_request-review-thread-comment';
     },
   },
   methods: {

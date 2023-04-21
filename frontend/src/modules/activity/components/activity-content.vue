@@ -1,5 +1,5 @@
 <template>
-  <div v-if="activity.title || activity.body">
+  <div v-if="(activity.title || displayTitleBody) || activity.body">
     <div
       v-if="
         activity.title
@@ -19,6 +19,17 @@
         {{
           activity.title
         }}</span>
+    </div>
+
+    <div v-if="activity.display?.default && displayTitleBody">
+      <div
+        class="first-letter:uppercase font-medium text-gray-900 text-sm"
+        v-html="
+          contentRenderEmojis(
+            $sanitize($marked(activity.display.default)),
+          )
+        "
+      />
     </div>
 
     <div
@@ -142,6 +153,11 @@ export default {
       type: Boolean,
       required: false,
       default: true,
+    },
+    displayTitleBody: {
+      type: Boolean,
+      required: false,
+      default: false,
     },
   },
   data() {
