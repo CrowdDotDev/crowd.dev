@@ -21,6 +21,7 @@ import SettingsRepository from '../../database/repositories/settingsRepository'
 import OrganizationService from '../organizationService'
 import Plans from '../../security/plans'
 import { generateUUIDv1 } from '../../utils/uuid'
+import lodash from 'lodash'
 
 const db = null
 
@@ -1869,7 +1870,8 @@ describe('MemberService tests', () => {
         attributes: {},
       }
 
-      const returnedMember1 = await MemberRepository.create(member1, mockIRepositoryOptions)
+      const cloned = lodash.cloneDeep(member1)
+      const returnedMember1 = await MemberRepository.create(cloned, mockIRepositoryOptions)
       delete returnedMember1.toMerge
       delete returnedMember1.noMerge
       delete returnedMember1.tags

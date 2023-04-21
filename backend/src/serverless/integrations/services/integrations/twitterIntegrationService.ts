@@ -293,6 +293,7 @@ export class TwitterIntegrationService extends IntegrationServiceBase {
   ): Array<AddActivitiesSingle> {
     return records.map((record) => {
       const out: any = {
+        username: record.member.username,
         tenant: context.integration.tenantId,
         platform: PlatformType.TWITTER,
         type: stream.value === 'mentions' ? 'mention' : 'hashtag',
