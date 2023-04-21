@@ -22,9 +22,6 @@ export default () => {
         }
         return text.toLowerCase();
       }).join('');
-      if (!['Skills'].includes(attributeText)) {
-        return;
-      }
       cy.get('.filter-dropdown button').click();
       cy.wrap(attribute).click();
       cy.get('.filter-list-item-popper').then(($filter) => {

@@ -24,7 +24,7 @@ export default () => {
     cy.get('.filter-type-select .filter-type-select-option').each((option) => {
       const platform = option.text().trim();
       const platformId = platform.replaceAll(' ', '').toLowerCase();
-      cy.get('.filter-type-select .filter-type-select-option').contains(platform).click();
+      cy.wrap(option).click();
       cy.get('.filter-type-select + div button.btn--primary').click();
       cy.wait('@apiMemberQuery');
       cy.get('@apiMemberQuery').then((req) => {
@@ -33,11 +33,10 @@ export default () => {
           cy.wrap(row.activeOn.some((ap) => ap.includes(platformId))).should('eq', true);
         });
       });
-      cy.scrollTo(0, 0);
       cy.wait(300);
-      cy.get('.filter-list .filter-list-item:first-child button:first-child').click({ force: true });
-      cy.get('.filter-list .filter-list-item:first-child button:first-child').click({ force: true });
-      cy.get('.filter-type-select .filter-type-select-option').contains(platform).click();
+      cy.get('.filter-list .filter-list-item-btn__open').eq(0).click();
+      cy.wait(200);
+      cy.wrap(option).click();
     });
   });
 
@@ -46,7 +45,7 @@ export default () => {
     cy.get('.filter-type-select .filter-type-select-option').each((option) => {
       const platform = option.text().trim();
       const platformId = platform.replaceAll(' ', '').toLowerCase();
-      cy.get('.filter-type-select .filter-type-select-option').contains(platform).click();
+      cy.wrap(option).click();
       cy.get('.filter-type-select + div button.btn--primary').click();
       cy.wait('@apiMemberQuery');
       cy.get('@apiMemberQuery').then((req) => {
@@ -57,9 +56,8 @@ export default () => {
       });
       cy.scrollTo(0, 0);
       cy.wait(300);
-      cy.get('.filter-list .filter-list-item:first-child button:first-child').click({ force: true });
-      cy.get('.filter-list .filter-list-item:first-child button:first-child').click({ force: true });
-      cy.get('.filter-type-select .filter-type-select-option').contains(platform).click();
+      cy.get('.filter-list .filter-list-item-btn__open').eq(0).click({ force: true });
+      cy.wrap(option).click();
     });
   });
 };

@@ -12,7 +12,7 @@
         <slot name="button">
           <el-button-group class="btn-group">
             <el-button
-              class="filter-list-item-btn"
+              class="filter-list-item-btn filter-list-item-btn-open"
               :class="`${
                 filter.expanded ? 'is-expanded' : ''
               } ${hasValue ? 'is-active' : ''}`"
