@@ -15,10 +15,12 @@
           title: !titleClasses,
           [titleClasses]: titleClasses,
         }"
-      >
-        {{
-          activity.title
-        }}</span>
+        v-html="
+          contentRenderEmojis(
+            $sanitize($marked(activity.title),
+            ))
+        "
+      />
     </div>
 
     <div v-if="activity.display?.default && displayTitleBody">
