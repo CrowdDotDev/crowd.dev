@@ -166,7 +166,7 @@ export default {
         .subtract(period.value, period.granularity)
         .toISOString(),
       activityTimestampTo: moment().utc(),
-      orderBy: 'activeDaysCount_DESC',
+      orderBy: 'activityCount_DESC',
       offset: 0,
       limit: 5,
     })
