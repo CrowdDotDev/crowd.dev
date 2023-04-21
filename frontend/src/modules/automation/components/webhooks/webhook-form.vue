@@ -245,6 +245,7 @@ import { i18n } from '@/i18n';
 import UrlField from '@/shared/fields/url-field';
 import { onSelectMouseLeave } from '@/utils/select';
 import { CrowdIntegrations } from '@/integrations/integrations-config';
+import { capitalizeFirstLetter } from '@/utils/string';
 
 const { fields } = AutomationModel;
 const formSchema = new FormSchema([
@@ -335,14 +336,12 @@ export default {
 
       return this.model.settings.platforms.reduce(
         (acc, platform) => {
-          const platformActivityTypes = Object.keys(this.currentTenant.settings[0].activityTypes.default[platform]);
+          const platformActivityTypes = this.currentTenant?.settings?.[0].activityTypes.default[platform] || {};
 
           acc.push(
-            ...platformActivityTypes.map((activityType) => ({
-              value: activityType,
-              label: i18n(
-                `entities.activity.${platform}.${activityType}`,
-              ),
+            ...Object.entries(platformActivityTypes).map(([activityKey, activityValue]) => ({
+              value: activityKey,
+              label: capitalizeFirstLetter(activityValue.display.short),
             })),
           );
           return acc;
