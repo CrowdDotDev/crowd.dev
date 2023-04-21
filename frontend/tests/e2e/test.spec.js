@@ -9,20 +9,14 @@ Cypress.LocalStorage.clear = function () {
 
 describe('Crowd.dev', () => {
   const serverId = Cypress.env('MAILOSAUR_SERVER_ID');
-  // const email = `${Date.now()}@${serverId}.mailosaur.net`;
-  const email = `crowd@${serverId}.mailosaur.net`;
+  const email = `${Date.now()}@${serverId}.mailosaur.net`;
 
   before(() => {
     cy.visit(Cypress.env('appUrl'));
     localStorage.clear();
   });
 
-  // describe('AUTH', auth({
-  //   email,
-  //   serverId,
-  // }));
-
-  describe('Signin', signin({
+  describe('AUTH', auth({
     email,
     serverId,
   }));
