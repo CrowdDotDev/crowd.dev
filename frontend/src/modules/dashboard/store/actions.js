@@ -77,7 +77,6 @@ export default {
   },
   // fetch conversations total
   async getConversationCount({ state }) {
-    const { platform } = state.filters;
     return ConversationService.list({}, '', 1, 0)
       .then(({ count }) => {
         state.conversations.total = count;
