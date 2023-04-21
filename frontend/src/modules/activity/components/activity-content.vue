@@ -25,7 +25,7 @@
 
     <div v-if="activity.display?.default && displayTitleBody">
       <div
-        class="first-letter:uppercase font-medium text-gray-900 text-sm"
+        class="first-letter:uppercase font-semibold text-gray-900 text-sm mb-1"
         v-html="
           contentRenderEmojis(
             $sanitize($marked(activity.display.default)),
@@ -99,7 +99,7 @@
   </div>
   <div v-else-if="activity.display?.default">
     <div
-      class="first-letter:uppercase font-medium text-gray-900 text-sm"
+      class="first-letter:uppercase font-semibold text-gray-900 text-sm"
       v-html="
         contentRenderEmojis(
           $sanitize($marked(activity.display.default)),
@@ -225,6 +225,6 @@ export default {
 }
 
 .title {
-  @apply text-sm font-medium;
+  @apply text-sm font-semibold;
 }
 </style>

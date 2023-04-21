@@ -70,8 +70,8 @@ const icons = {
     },
     'pull_request-review-thread-comment': {
       iconClass: 'ri-chat-4-line',
-      color: 'text-white',
-      bgColor: 'bg-green-600',
+      color: 'text-black',
+      bgColor: 'bg-gray-200',
     },
   },
 };
