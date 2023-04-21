@@ -70,13 +70,13 @@
         <span
           v-else-if="displayBody"
           ref="body"
-          class="block whitespace-pre-wrap custom-break-all activity-body parsed-body c-content"
+          class="block custom-break-all activity-body parsed-body c-content"
           :class="
             showMore && !more ? `line-clamp-${limit}` : ''
           "
           v-html="
             contentRenderEmojis(
-              $sanitize($marked(activity.body)),
+              $sanitize($marked(`<div class='whitespace-pre-wrap'>${activity.body}</div>`)),
             )
           "
         />

@@ -246,6 +246,8 @@ import UrlField from '@/shared/fields/url-field';
 import { onSelectMouseLeave } from '@/utils/select';
 import { CrowdIntegrations } from '@/integrations/integrations-config';
 import { capitalizeFirstLetter } from '@/utils/string';
+import { storeToRefs } from 'pinia';
+import { useActivityTypeStore } from '@/modules/activity/store/type';
 
 const { fields } = AutomationModel;
 const formSchema = new FormSchema([
@@ -336,7 +338,9 @@ export default {
 
       return this.model.settings.platforms.reduce(
         (acc, platform) => {
-          const platformActivityTypes = this.currentTenant?.settings?.[0].activityTypes.default[platform] || {};
+          const activityTypeStore = useActivityTypeStore();
+          const { types } = storeToRefs(activityTypeStore);
+          const platformActivityTypes = types.value?.default[platform] || {};
 
           acc.push(
             ...Object.entries(platformActivityTypes).map(([activityKey, activityValue]) => ({

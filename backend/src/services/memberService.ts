@@ -214,6 +214,14 @@ export default class MemberService extends LoggingBase {
       data.displayName = data.username[data.platform].username
     }
 
+    if (!(data.platform in data.username)) {
+      throw new Error400(this.options.language, 'activity.platformAndUsernameNotMatching')
+    }
+
+    if (!data.displayName) {
+      data.displayName = data.username[data.platform].username
+    }
+
     const transaction = await SequelizeRepository.createTransaction(this.options)
 
     try {

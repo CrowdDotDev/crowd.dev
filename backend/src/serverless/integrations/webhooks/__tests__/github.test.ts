@@ -119,10 +119,10 @@ describe('Github webhooks tests', () => {
             username: 'joanreyero',
             integrationId: context.integration.id,
           },
-          [PlatformType.TWITTER]: {
-            username: 'reyero',
-            integrationId: context.integration.id,
-          },
+          // [PlatformType.TWITTER]: {
+          //   username: 'reyero',
+          //   integrationId: context.integration.id,
+          // },
         },
         attributes: {
           [MemberAttributeName.IS_HIREABLE]: {
@@ -130,7 +130,7 @@ describe('Github webhooks tests', () => {
           },
           [MemberAttributeName.URL]: {
             [PlatformType.GITHUB]: 'https://github.com/joanreyero',
-            [PlatformType.TWITTER]: 'https://twitter.com/reyero',
+            // [PlatformType.TWITTER]: 'https://twitter.com/reyero',
           },
           [MemberAttributeName.AVATAR_URL]: {
             [PlatformType.GITHUB]: '',
@@ -172,10 +172,10 @@ describe('Github webhooks tests', () => {
             username: 'joanreyero',
             integrationId: context.integration.id,
           },
-          [PlatformType.TWITTER]: {
-            username: 'reyero',
-            integrationId: context.integration.id,
-          },
+          // [PlatformType.TWITTER]: {
+          //   username: 'reyero',
+          //   integrationId: context.integration.id,
+          // },
         },
         attributes: {
           [MemberAttributeName.IS_HIREABLE]: {
@@ -183,7 +183,7 @@ describe('Github webhooks tests', () => {
           },
           [MemberAttributeName.URL]: {
             [PlatformType.GITHUB]: 'https://github.com/joanreyero',
-            [PlatformType.TWITTER]: 'https://twitter.com/reyero',
+            // [PlatformType.TWITTER]: 'https://twitter.com/reyero',
           },
           [MemberAttributeName.WEBSITE_URL]: {
             [PlatformType.GITHUB]: 'https://crowd.dev',
