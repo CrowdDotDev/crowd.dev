@@ -18,7 +18,12 @@ import RawQueryParser from './filters/rawQueryParser'
 import SequelizeRepository from './sequelizeRepository'
 import SettingsRepository from './settingsRepository'
 import TenantRepository from './tenantRepository'
-import { IActiveMemberData, IActiveMemberFilter, IMemberIdentity } from './types/memberTypes'
+import {
+  IActiveMemberData,
+  IActiveMemberFilter,
+  IMemberIdentity,
+  mapUsernameToIdentities,
+} from './types/memberTypes'
 
 const { Op } = Sequelize
 
@@ -35,14 +40,7 @@ class MemberRepository {
       throw new Error('Username object does not have any platforms!')
     }
 
-    // fix legacy calls
-    for (const platform of platforms) {
-      if (typeof data.username[platform] === 'string') {
-        data.username[platform] = {
-          username: data.username[platform],
-        }
-      }
-    }
+    data.username = mapUsernameToIdentities(data.username)
 
     const currentUser = SequelizeRepository.getCurrentUser(options)
 
@@ -374,15 +372,24 @@ class MemberRepository {
               inner join identities i on i."memberId" = m.id
       where mi."tenantId" = :tenantId
         and mi.platform = :platform
-        and mi.username = :username
+        and mi.username in (:usernames)
     `
+
+    const usernames: string[] = []
+    if (typeof username === 'string') {
+      usernames.push(username)
+    } else if (Array.isArray(username)) {
+      usernames.push(...username)
+    } else {
+      throw new Error('Unknown username format!')
+    }
 
     const records = await options.database.sequelize.query(query, {
       type: Sequelize.QueryTypes.SELECT,
       replacements: {
         tenantId: currentTenant.id,
         platform,
-        username,
+        usernames,
       },
       transaction,
       model: options.database.member,
@@ -483,14 +490,7 @@ class MemberRepository {
     if (data.username) {
       const platforms = Object.keys(data.username) as PlatformType[]
       if (platforms.length > 0) {
-        // fix legacy calls
-        for (const platform of platforms) {
-          if (typeof data.username[platform] === 'string') {
-            data.username[platform] = {
-              username: data.username[platform],
-            }
-          }
-        }
+        data.username = mapUsernameToIdentities(data.username)
 
         const seq = SequelizeRepository.getSequelize(options)
         const query = `
@@ -498,21 +498,23 @@ class MemberRepository {
         values (:memberId, :platform, :username, :sourceId, :tenantId, :integrationId);
         `
 
-        for (const platform of Object.keys(data.username) as PlatformType[]) {
-          const identity = data.username[platform]
+        for (const platform of platforms) {
+          const identities = data.username[platform]
 
-          await seq.query(query, {
-            replacements: {
-              memberId: record.id,
-              platform,
-              username: identity.username,
-              sourceId: identity.sourceId || null,
-              integrationId: identity.integrationId || null,
-              tenantId: currentTenant.id,
-            },
-            type: QueryTypes.INSERT,
-            transaction,
-          })
+          for (const identity of identities) {
+            await seq.query(query, {
+              replacements: {
+                memberId: record.id,
+                platform,
+                username: identity.username,
+                sourceId: identity.sourceId || null,
+                integrationId: identity.integrationId || null,
+                tenantId: currentTenant.id,
+              },
+              type: QueryTypes.INSERT,
+              transaction,
+            })
+          }
         }
       }
     }

@@ -24,7 +24,10 @@ import {
 import { LoggingBase } from './loggingBase'
 import { ExportableEntity } from '../serverless/microservices/nodejs/messageTypes'
 import { AttributeType } from '../database/attributes/types'
-import { IActiveMemberFilter } from '../database/repositories/types/memberTypes'
+import {
+  IActiveMemberFilter,
+  mapUsernameToIdentities,
+} from '../database/repositories/types/memberTypes'
 import { IRepositoryOptions } from '../database/repositories/IRepositoryOptions'
 
 export default class MemberService extends LoggingBase {
@@ -189,22 +192,7 @@ export default class MemberService extends LoggingBase {
       throw new Error400(this.options.language, 'activity.platformRequiredWhileUpsert')
     }
 
-    if (typeof data.username === 'string') {
-      data.username = {
-        [data.platform]: {
-          username: data.username,
-        },
-      }
-    } else {
-      const platforms = Object.keys(data.username)
-      for (const platform of platforms) {
-        if (typeof data.username[platform] === 'string') {
-          data.username[platform] = {
-            username: data.username[platform],
-          }
-        }
-      }
-    }
+    data.username = mapUsernameToIdentities(data.username, data.platform)
 
     if (!(data.platform in data.username)) {
       throw new Error400(this.options.language, 'activity.platformAndUsernameNotMatching')
@@ -394,18 +382,28 @@ export default class MemberService extends LoggingBase {
   async memberExists(username: object | string, platform: string) {
     const fillRelations = false
 
-    let actualUsername
+    const usernames: string[] = []
 
     if (typeof username === 'string') {
-      actualUsername = username
+      usernames.push(username)
     } else if (typeof username === 'object') {
       if ('username' in username) {
-        actualUsername = (username as any).username
+        usernames.push((username as any).username)
       } else if (platform in username) {
         if (typeof username[platform] === 'string') {
-          actualUsername = username[platform]
+          usernames.push(username[platform])
+        } else if (Array.isArray(username[platform])) {
+          if (username[platform].length === 0) {
+            throw new Error400(this.options.language, 'activity.platformAndUsernameNotMatching')
+          } else if (typeof username[platform] === 'string') {
+            usernames.push(...username[platform])
+          } else if (typeof username[platform][0] === 'object') {
+            usernames.push(...username[platform].map((u) => u.username))
+          }
+        } else if (typeof username[platform] === 'object') {
+          usernames.push(username[platform].username)
         } else {
-          actualUsername = username[platform].username
+          throw new Error400(this.options.language, 'activity.platformAndUsernameNotMatching')
         }
       } else {
         throw new Error400(this.options.language, 'activity.platformAndUsernameNotMatching')
@@ -415,7 +413,7 @@ export default class MemberService extends LoggingBase {
     // It is important to call it with doPopulateRelations=false
     // because otherwise the performance is greatly decreased in integrations
     const existing = await MemberRepository.memberExists(
-      actualUsername,
+      usernames,
       platform,
       {
         ...this.options,
@@ -564,15 +562,37 @@ export default class MemberService extends LoggingBase {
         return Array.from(emailSet)
       },
       username: (oldUsernames, newUsernames) => {
-        // old usernames are in a different format than newUsernames
-        // we also want to keep just the usernames that are not already in the oldUsernames
+        // we want to keep just the usernames that are not already in the oldUsernames
 
         const toKeep: any = {}
 
-        for (const [platform, data] of Object.entries(newUsernames)) {
-          const identity = data as any
-          if (oldUsernames[platform] !== identity.username) {
-            toKeep[platform] = identity
+        const actualOld = mapUsernameToIdentities(oldUsernames)
+        const actualNew = mapUsernameToIdentities(newUsernames)
+
+        for (const [platform, identities] of Object.entries(actualNew)) {
+          const oldIdentities = actualOld[platform]
+
+          if (oldIdentities) {
+            const identitiesToKeep = []
+            for (const newIdentity of identities as any[]) {
+              let keep = true
+              for (const oldIdentity of oldIdentities) {
+                if (oldIdentity.username === newIdentity.username) {
+                  keep = false
+                  break
+                }
+              }
+
+              if (keep) {
+                identitiesToKeep.push(newIdentity)
+              }
+            }
+
+            if (identitiesToKeep.length > 0) {
+              toKeep[platform] = identitiesToKeep
+            }
+          } else {
+            toKeep[platform] = identities
           }
         }
 
@@ -677,6 +697,26 @@ export default class MemberService extends LoggingBase {
         )
       }
 
+      if (data.username) {
+        // need to filter out existing identities from the payload
+        const existingIdentities = (
+          await MemberRepository.getIdentities([id], {
+            ...this.options,
+            transaction,
+          })
+        ).get(id)
+
+        data.username = mapUsernameToIdentities(data.username)
+
+        for (const identity of existingIdentities) {
+          if (identity.platform in data.username) {
+            data.username[identity.platform] = data.username[identity.platform].filter(
+              (i) => i.username !== identity.username,
+            )
+          }
+        }
+      }
+
       const record = await MemberRepository.update(id, data, {
         ...this.options,
         transaction,
@@ -686,6 +726,18 @@ export default class MemberService extends LoggingBase {
 
       return record
     } catch (error) {
+      if (error.name && error.name.includes('Sequelize')) {
+        this.log.error(
+          error,
+          {
+            query: error.sql,
+            errorMessage: error.original.message,
+          },
+          'Error during member update!',
+        )
+      } else {
+        this.log.error(error, 'Error during member update!')
+      }
       await SequelizeRepository.rollbackTransaction(transaction)
 
       SequelizeRepository.handleUniqueFieldError(error, this.options.language, 'member')
