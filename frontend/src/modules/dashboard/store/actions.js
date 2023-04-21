@@ -30,7 +30,7 @@ export default {
   // fetch conversations data
   async getConversations({ dispatch }) {
     dispatch('getTrendingConversations');
-    dispatch('getConversationCount')
+    dispatch('getConversationCount');
   },
   // Fetch trending conversations
   async getTrendingConversations({ commit, state }) {
