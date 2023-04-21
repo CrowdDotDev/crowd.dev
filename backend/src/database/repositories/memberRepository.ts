@@ -485,17 +485,17 @@ class MemberRepository {
         transaction,
       })
     }
+    const seq = SequelizeRepository.getSequelize(options)
 
     if (data.username) {
       const platforms = Object.keys(data.username) as PlatformType[]
       if (platforms.length > 0) {
         data.username = mapUsernameToIdentities(data.username)
 
-        const seq = SequelizeRepository.getSequelize(options)
         const query = `
-        insert into "memberIdentities"("memberId", platform, username, "sourceId", "tenantId", "integrationId")
-        values (:memberId, :platform, :username, :sourceId, :tenantId, :integrationId);
-        `
+          insert into "memberIdentities"("memberId", platform, username, "sourceId", "tenantId", "integrationId")
+          values (:memberId, :platform, :username, :sourceId, :tenantId, :integrationId);
+          `
 
         for (const platform of platforms) {
           const identities = data.username[platform]
@@ -516,6 +516,39 @@ class MemberRepository {
           }
         }
       }
+    }
+
+    if (data.identitiesToDelete && data.identitiesToDelete.length > 0) {
+      const deleteQuery = `
+        delete from "memberIdentities"
+        where ("memberId", "tenantId", "platform", "username") in
+              (select mi."memberId", mi."tenantId", mi."platform", mi."username"
+              from "memberIdentities" mi
+                        join (select :memberId::uuid            as memberid,
+                                    :tenantId::uuid            as tenantid,
+                                    unnest(:platforms::text[]) as platform,
+                                    unnest(:usernames::text[]) as username) as combinations
+                            on mi."memberId" = combinations.memberid
+                                and mi."tenantId" = combinations.tenantid
+                                and mi."platform" = combinations.platform
+                                and mi."username" = combinations.username);`
+      const platforms: string[] = []
+      const usernames: string[] = []
+      for (const identity of data.identitiesToDelete) {
+        platforms.push(identity.platform)
+        usernames.push(identity.username)
+      }
+
+      await seq.query(deleteQuery, {
+        replacements: {
+          tenantId: currentTenant.id,
+          memberId: record.id,
+          platforms,
+          usernames,
+        },
+        type: QueryTypes.DELETE,
+        transaction,
+      })
     }
 
     await this._createAuditLog(AuditLogRepository.UPDATE, record, data, options)

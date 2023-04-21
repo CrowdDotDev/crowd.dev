@@ -706,12 +706,29 @@ export default class MemberService extends LoggingBase {
         ).get(id)
 
         data.username = mapUsernameToIdentities(data.username)
+        data.identitiesToDelete = []
 
         for (const identity of existingIdentities) {
           if (identity.platform in data.username) {
-            data.username[identity.platform] = data.username[identity.platform].filter(
-              (i) => i.username !== identity.username,
-            )
+            // new username also has this platform
+            let found = false
+            for (const newIdentity of data.username[identity.platform]) {
+              if (newIdentity.username === identity.username) {
+                found = true
+                break
+              }
+            }
+
+            if (!found) {
+              // new username doesn't have this identity - we can delete it
+              data.username[identity.platform] = data.username[identity.platform].filter(
+                (i) => i.username !== identity.username,
+              )
+              data.identitiesToDelete.push(identity)
+            }
+          } else {
+            // new username doesn't have this platform - we can delete the existing identity
+            data.identitiesToDelete.push(identity)
           }
         }
       }
