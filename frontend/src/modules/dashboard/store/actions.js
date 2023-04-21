@@ -30,7 +30,7 @@ export default {
   // fetch conversations data
   async getConversations({ dispatch }) {
     dispatch('getTrendingConversations');
-    // dispatch('getConversationCount')
+    dispatch('getConversationCount')
   },
   // Fetch trending conversations
   async getTrendingConversations({ commit, state }) {
@@ -77,7 +77,24 @@ export default {
   },
   // fetch conversations total
   async getConversationCount({ state }) {
-    return ConversationService.list({}, '', 1, 0)
+    const { platform } = state.filters;
+    return ConversationService.query(
+      (platform === 'all' ? {}
+        : {
+          and: [
+            ...(platform !== 'all'
+              ? [
+                {
+                  platform,
+                },
+              ]
+              : []),
+          ],
+        }),
+      '',
+      1,
+      0,
+    )
       .then(({ count }) => {
         state.conversations.total = count;
         return Promise.resolve(count);
@@ -145,7 +162,7 @@ export default {
             ...(platform !== 'all'
               ? [
                 {
-                  platform
+                  platform,
                 },
               ]
               : []),
@@ -154,7 +171,7 @@ export default {
       '',
       1,
       0,
-      false
+      false,
     )
       .then(({ count }) => {
         state.activities.total = count;
@@ -287,7 +304,7 @@ export default {
       1,
       0,
       false,
-      true
+      true,
     )
       .then(({ count }) => {
         state.members.total = count;
@@ -397,7 +414,27 @@ export default {
 
   // Fetch  organizations count
   async getOrganizationsCount({ state }) {
-    return OrganizationService.list(null, '', 1, 0, false)
+    const { platform } = state.filters;
+    return OrganizationService.list(
+      (platform === 'all' ? null
+        : {
+          and: [
+            ...(platform !== 'all'
+              ? [
+                {
+                  identities: {
+                    contains: [platform],
+                  },
+                },
+              ]
+              : []),
+          ],
+        }),
+      '',
+      1,
+      0,
+      false,
+    )
       .then(({ count }) => {
         state.organizations.total = count;
         return Promise.resolve(count);
