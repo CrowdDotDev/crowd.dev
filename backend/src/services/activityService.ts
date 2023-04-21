@@ -19,6 +19,7 @@ import { LoggingBase } from './loggingBase'
 import MemberAttributeSettingsRepository from '../database/repositories/memberAttributeSettingsRepository'
 import SettingsRepository from '../database/repositories/settingsRepository'
 import SettingsService from './settingsService'
+import { mapUsernameToIdentities } from '../database/repositories/types/memberTypes'
 
 export default class ActivityService extends LoggingBase {
   options: IServiceOptions
@@ -164,6 +165,19 @@ export default class ActivityService extends LoggingBase {
 
       return record
     } catch (error) {
+      if (error.name && error.name.includes('Sequelize')) {
+        this.log.error(
+          error,
+          {
+            query: error.sql,
+            errorMessage: error.original.message,
+          },
+          'Error during activity upsert!',
+        )
+      } else {
+        this.log.error(error, 'Error during activity upsert!')
+      }
+
       await SequelizeRepository.rollbackTransaction(transaction)
 
       SequelizeRepository.handleUniqueFieldError(error, this.options.language, 'activity')
@@ -395,28 +409,15 @@ export default class ActivityService extends LoggingBase {
     const transaction = await SequelizeRepository.createTransaction(this.options)
 
     try {
-      if (typeof data.member.username === 'string') {
-        data.member.username = {
-          [data.platform]: {
-            username: data.member.username,
-          },
-        }
-      }
+      data.member.username = mapUsernameToIdentities(data.member.username, data.platform)
 
       const platforms = Object.keys(data.member.username)
       if (platforms.length === 0) {
         throw new Error('Member must have at least one platform username set!')
       }
-      for (const platform of platforms) {
-        if (typeof data.member.username[platform] === 'string') {
-          data.member.username[platform] = {
-            username: data.member.username[platform],
-          }
-        }
-      }
 
       if (!data.username) {
-        data.username = data.member.username[data.platform].username
+        data.username = data.member.username[data.platform][0].username
       }
 
       const activityExists = await this._activityExists(data, transaction)
@@ -442,6 +443,18 @@ export default class ActivityService extends LoggingBase {
 
       return record
     } catch (error) {
+      if (error.name && error.name.includes('Sequelize')) {
+        this.log.error(
+          error,
+          {
+            query: error.sql,
+            errorMessage: error.original.message,
+          },
+          'Error during activity create with member!',
+        )
+      } else {
+        this.log.error(error, 'Error during activity create with member!')
+      }
       await SequelizeRepository.rollbackTransaction(transaction)
 
       SequelizeRepository.handleUniqueFieldError(error, this.options.language, 'activity')
@@ -475,6 +488,18 @@ export default class ActivityService extends LoggingBase {
 
       return record
     } catch (error) {
+      if (error.name && error.name.includes('Sequelize')) {
+        this.log.error(
+          error,
+          {
+            query: error.sql,
+            errorMessage: error.original.message,
+          },
+          'Error during activity update!',
+        )
+      } else {
+        this.log.error(error, 'Error during activity update!')
+      }
       await SequelizeRepository.rollbackTransaction(transaction)
 
       SequelizeRepository.handleUniqueFieldError(error, this.options.language, 'activity')
