@@ -1,4 +1,4 @@
-import lodash from 'lodash'
+import lodash, { chunk } from 'lodash'
 import Sequelize, { QueryTypes } from 'sequelize'
 import { KUBE_MODE, SERVICE } from '../../config'
 import { ServiceType } from '../../config/configTypes'
@@ -23,6 +23,7 @@ import {
   IActiveMemberFilter,
   IMemberIdentity,
   mapUsernameToIdentities,
+  IMemberMergeSuggestion,
 } from './types/memberTypes'
 
 const { Op } = Sequelize
@@ -273,18 +274,34 @@ class MemberRepository {
     })
   }
 
-  static async addToMerge(id, toMergeId, options: IRepositoryOptions) {
+  static async addToMerge(
+    suggestions: IMemberMergeSuggestion[],
+    options: IRepositoryOptions,
+  ): Promise<void> {
     const transaction = SequelizeRepository.getTransaction(options)
+    const seq = SequelizeRepository.getSequelize(options)
 
-    const returnPlain = false
+    // Process suggestions in chunks of 100 or less
+    const suggestionChunks = chunk(suggestions, 100)
 
-    const member = await this.findById(id, options, returnPlain)
+    const insertValues = (memberId: string, toMergeId: string, similarity: number | null) =>
+      `('${memberId}', '${toMergeId}', ${similarity === null ? 'NULL' : similarity}, NOW(), NOW())`
 
-    const toMergeMember = await this.findById(toMergeId, options, returnPlain)
+    for (const suggestionChunk of suggestionChunks) {
+      const query = `
+      INSERT INTO "memberToMerge" ("memberId", "toMergeId", "similarity", "createdAt", "updatedAt")
+      VALUES ${suggestionChunk
+        .map((suggestion) =>
+          insertValues(suggestion.members[0], suggestion.members[1], suggestion.similarity),
+        )
+        .join(', ')};
+    `
 
-    await member.addToMerge(toMergeMember, { transaction })
-
-    return this.findById(id, options)
+      await seq.query(query, {
+        type: QueryTypes.INSERT,
+        transaction,
+      })
+    }
   }
 
   static async removeToMerge(id, toMergeId, options: IRepositoryOptions) {
@@ -1772,6 +1789,92 @@ where m."deletedAt" is null
         id: org.id,
         name: org.name,
       })),
+    }))
+  }
+
+  static async mergeSuggestionsBySimilarity(
+    numberOfHours,
+    options: IRepositoryOptions,
+  ): Promise<IMemberMergeSuggestion[]> {
+    const transaction = SequelizeRepository.getTransaction(options)
+
+    const seq = SequelizeRepository.getSequelize(options)
+
+    const tenant = SequelizeRepository.getCurrentTenant(options)
+
+    const query = `
+    -- Define a CTE named "new_members" to get members created in the last 7 days with a specific tenantId
+    WITH new_members AS (
+      SELECT *
+      FROM members
+      WHERE "createdAt" >= now() - INTERVAL :numberOfHours
+      AND "tenantId" = :tenantId
+      LIMIT 1000
+    ),
+    -- Define a CTE named "identity_join" to find similar identities across platforms
+    identity_join AS (
+      -- Select distinct pairs of memberIds and relevant information, along with the similarity score
+      SELECT DISTINCT ON(m1_id, m2_id)
+        m1.id AS m1_id,
+        m2.id AS m2_id,
+        similarity(i1.username, i2.username) AS similarity
+      FROM new_members m1
+      -- Join memberIdentities and members to get related records
+      JOIN "memberIdentities" i1 ON m1.id = i1."memberId"
+      JOIN "memberIdentities" i2 ON i1.platform <> i2.platform
+      JOIN members m2 ON m2.id = i2."memberId"
+      -- Filter out records where tenantId is different and memberIds are the same
+      WHERE m1."tenantId" = m2."tenantId"
+      AND m1.id <> m2.id
+      -- Consider only records with similarity > 0.5 (adjust this threshold as needed)
+      AND similarity(i1.username, i2.username) > 0.5
+      -- Order by similarity descending to get the most similar records first
+      ORDER BY m1_id, m2_id, similarity DESC
+    ),
+    -- Define a CTE named "exclude_already_processed" to remove the already processed members
+    exclude_already_processed AS (
+      SELECT *
+      FROM identity_join
+      -- Filter out records present in memberToMerge table
+      WHERE NOT EXISTS (
+        SELECT 1
+        FROM "memberToMerge"
+        WHERE (
+          "memberId" = identity_join.m1_id
+          AND "toMergeId" = identity_join.m2_id
+        ) OR (
+          "memberId" = identity_join.m2_id
+          AND "toMergeId" = identity_join.m1_id
+        )
+        -- Filter out records present in memberNoMerge table
+      ) AND NOT EXISTS (
+        SELECT 1
+        FROM "memberNoMerge"
+        WHERE (
+          "memberId" = identity_join.m1_id
+          AND "noMergeId" = identity_join.m2_id
+        ) OR (
+          "memberId" = identity_join.m2_id
+          AND "noMergeId" = identity_join.m1_id
+        )
+      )
+    )
+    -- Select everything from the final CTE "exclude_already_processed"
+    SELECT *
+    FROM exclude_already_processed;`
+
+    const suggestions = await seq.query(query, {
+      replacements: {
+        tenantId: tenant.id,
+        numberOfHours: `${numberOfHours} hours`,
+      },
+      type: QueryTypes.SELECT,
+      transaction,
+    })
+
+    return suggestions.map((suggestion: any) => ({
+      members: [suggestion.m1_id, suggestion.m2_id],
+      similarity: suggestion.similarity,
     }))
   }
 

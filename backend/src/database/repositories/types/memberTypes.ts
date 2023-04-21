@@ -67,3 +67,7 @@ export const mapUsernameToIdentities = (username: any, platform?: string): any =
 
   return mapped
 }
+export interface IMemberMergeSuggestion {
+  similarity: number
+  members: [string, string]
+}

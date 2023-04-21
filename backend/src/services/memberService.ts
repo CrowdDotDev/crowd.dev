@@ -27,6 +27,7 @@ import { AttributeType } from '../database/attributes/types'
 import {
   IActiveMemberFilter,
   mapUsernameToIdentities,
+  IMemberMergeSuggestion,
 } from '../database/repositories/types/memberTypes'
 import { IRepositoryOptions } from '../database/repositories/IRepositoryOptions'
 
@@ -609,21 +610,12 @@ export default class MemberService extends LoggingBase {
    * @param memberTwoId ID of the second member
    * @returns Success/Error message
    */
-  async addToMerge(memberOneId, memberTwoId) {
+  async addToMerge(suggestions: IMemberMergeSuggestion[]) {
     const transaction = await SequelizeRepository.createTransaction(this.options)
 
     try {
-      await MemberRepository.addToMerge(memberOneId, memberTwoId, {
-        ...this.options,
-        transaction,
-      })
-      await MemberRepository.addToMerge(memberTwoId, memberOneId, {
-        ...this.options,
-        transaction,
-      })
-
+      await MemberRepository.addToMerge(suggestions, { ...this.options, transaction })
       await SequelizeRepository.commitTransaction(transaction)
-
       return { status: 200 }
     } catch (error) {
       await SequelizeRepository.rollbackTransaction(transaction)
@@ -666,6 +658,17 @@ export default class MemberService extends LoggingBase {
 
       throw error
     }
+  }
+
+  async getMergeSuggestions(): Promise<IMemberMergeSuggestion[]> {
+    const numberOfHours = 1.2
+    const mergeSuggestionsBySimilarity = await MemberRepository.mergeSuggestionsBySimilarity(
+      numberOfHours,
+      {
+        ...this.options,
+      },
+    )
+    return mergeSuggestionsBySimilarity
   }
 
   async update(id, data) {
