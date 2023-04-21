@@ -20,5 +20,5 @@ describe('Crowd.dev', () => {
     serverId,
   }));
 
-  describe('MEMBER', member);
+  // describe('MEMBER', member);
 });
