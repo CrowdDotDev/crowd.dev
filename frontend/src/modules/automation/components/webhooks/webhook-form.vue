@@ -242,10 +242,12 @@ import isEqual from 'lodash/isEqual';
 import { AutomationModel } from '@/modules/automation/automation-model';
 import { FormSchema } from '@/shared/form/form-schema';
 import { i18n } from '@/i18n';
-import activityTypesJson from '@/jsons/activity-types.json';
 import UrlField from '@/shared/fields/url-field';
 import { onSelectMouseLeave } from '@/utils/select';
 import { CrowdIntegrations } from '@/integrations/integrations-config';
+import { capitalizeFirstLetter } from '@/utils/string';
+import { storeToRefs } from 'pinia';
+import { useActivityTypeStore } from '@/modules/activity/store/type';
 
 const { fields } = AutomationModel;
 const formSchema = new FormSchema([
@@ -297,6 +299,7 @@ export default {
       loading: 'automation/loading',
       integrationsActive: 'integration/active',
       integrationsCount: 'integration/count',
+      currentTenant: 'auth/currentTenant',
     }),
     fields() {
       return fields;
@@ -335,13 +338,14 @@ export default {
 
       return this.model.settings.platforms.reduce(
         (acc, platform) => {
-          const platformActivityTypes = activityTypesJson[platform];
+          const activityTypeStore = useActivityTypeStore();
+          const { types } = storeToRefs(activityTypeStore);
+          const platformActivityTypes = types.value?.default[platform] || {};
+
           acc.push(
-            ...platformActivityTypes.map((activityType) => ({
-              value: activityType,
-              label: i18n(
-                `entities.activity.${platform}.${activityType}`,
-              ),
+            ...Object.entries(platformActivityTypes).map(([activityKey, activityValue]) => ({
+              value: activityKey,
+              label: capitalizeFirstLetter(activityValue.display.short),
             })),
           );
           return acc;

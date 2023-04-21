@@ -1,5 +1,5 @@
 <template>
-  <div v-if="activity.title || activity.body">
+  <div v-if="(activity.title || displayTitleBody) || activity.body">
     <div
       v-if="
         activity.title
@@ -15,10 +15,23 @@
           title: !titleClasses,
           [titleClasses]: titleClasses,
         }"
-      >
-        {{
-          activity.title
-        }}</span>
+        v-html="
+          contentRenderEmojis(
+            $sanitize($marked(activity.title),
+            ))
+        "
+      />
+    </div>
+
+    <div v-if="activity.display?.default && displayTitleBody">
+      <div
+        class="first-letter:uppercase font-semibold text-gray-900 text-sm mb-1"
+        v-html="
+          contentRenderEmojis(
+            $sanitize($marked(activity.display.default)),
+          )
+        "
+      />
     </div>
 
     <div
@@ -86,7 +99,7 @@
   </div>
   <div v-else-if="activity.display?.default">
     <div
-      class="first-letter:uppercase font-medium text-gray-900 text-sm"
+      class="first-letter:uppercase font-semibold text-gray-900 text-sm"
       v-html="
         contentRenderEmojis(
           $sanitize($marked(activity.display.default)),
@@ -142,6 +155,11 @@ export default {
       type: Boolean,
       required: false,
       default: true,
+    },
+    displayTitleBody: {
+      type: Boolean,
+      required: false,
+      default: false,
     },
   },
   data() {
