@@ -199,7 +199,7 @@ export default class MemberService extends LoggingBase {
     }
 
     if (!data.displayName) {
-      data.displayName = data.username[data.platform].username
+      data.displayName = data.username[data.platform][0].username
     }
 
     const transaction = await SequelizeRepository.createTransaction(this.options)

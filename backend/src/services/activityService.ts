@@ -417,7 +417,7 @@ export default class ActivityService extends LoggingBase {
       }
 
       if (!data.username) {
-        data.username = data.member.username[data.platform].username
+        data.username = data.member.username[data.platform][0].username
       }
 
       const activityExists = await this._activityExists(data, transaction)

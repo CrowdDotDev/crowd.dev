@@ -80,19 +80,21 @@ class MemberRepository {
     `
 
     for (const platform of Object.keys(username) as PlatformType[]) {
-      const identity = username[platform]
-      await seq.query(query, {
-        replacements: {
-          memberId: record.id,
-          platform,
-          username: identity.username,
-          sourceId: identity.sourceId || null,
-          integrationId: identity.integrationId || null,
-          tenantId: tenant.id,
-        },
-        type: QueryTypes.INSERT,
-        transaction,
-      })
+      const identities: any[] = username[platform]
+      for (const identity of identities) {
+        await seq.query(query, {
+          replacements: {
+            memberId: record.id,
+            platform,
+            username: identity.username,
+            sourceId: identity.sourceId || null,
+            integrationId: identity.integrationId || null,
+            tenantId: tenant.id,
+          },
+          type: QueryTypes.INSERT,
+          transaction,
+        })
+      }
     }
 
     await record.setActivities(data.activities || [], {
@@ -381,7 +383,9 @@ class MemberRepository {
     } else if (Array.isArray(username)) {
       usernames.push(...username)
     } else {
-      throw new Error('Unknown username format!')
+      throw new Error(
+        'Unknown username format! Allowed formats are string or string[]. For example: "username" or ["username1", "username2"]',
+      )
     }
 
     const records = await options.database.sequelize.query(query, {
