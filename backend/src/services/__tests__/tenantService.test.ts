@@ -98,16 +98,16 @@ describe('TenantService tests', () => {
       // But this function should not return duplicates, so we should get
       // only two pairs: [m2, m1] and [m4, m3]
 
-      expect(memberToMergeSuggestions.count).toEqual(2)
+      expect(memberToMergeSuggestions.count).toEqual(1)
 
       expect(
-        memberToMergeSuggestions.rows[0]
+        memberToMergeSuggestions.rows[0].members
           .sort((a, b) => (a.createdAt > b.createdAt ? 1 : -1))
           .map((m) => m.id),
       ).toStrictEqual([member1.id, member2.id])
 
       expect(
-        memberToMergeSuggestions.rows[1]
+        memberToMergeSuggestions.rows[1].members
           .sort((a, b) => (a.createdAt > b.createdAt ? 1 : -1))
           .map((m) => m.id),
       ).toStrictEqual([member3.id, member4.id])

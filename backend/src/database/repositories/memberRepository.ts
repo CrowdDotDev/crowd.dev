@@ -156,16 +156,18 @@ class MemberRepository {
 
     const mems = await options.database.sequelize.query(
       `SELECT 
-      "membersToMerge".id, 
-      "membersToMerge"."toMergeId",
-      "membersToMerge"."total_count"
-       FROM 
-       (
+        "membersToMerge".id, 
+        "membersToMerge"."toMergeId",
+        "membersToMerge"."total_count",
+        "membersToMerge"."similarity"
+      FROM 
+      (
         SELECT DISTINCT ON (Greatest(Hashtext(Concat(mem.id, mtm."toMergeId")), Hashtext(Concat(mtm."toMergeId", mem.id)))) 
             mem.id, 
             mtm."toMergeId", 
             mem."joinedAt", 
-            COUNT(*) OVER() AS total_count 
+            COUNT(*) OVER() AS total_count,
+            mtm."similarity"
           FROM 
             members mem 
             INNER JOIN "memberToMerge" mtm ON mem.id = mtm."memberId" 
@@ -198,7 +200,10 @@ class MemberRepository {
       const memberResults = await Promise.all(memberPromises)
       const memberToMergeResults = await Promise.all(toMergePromises)
 
-      const result = memberResults.map((i, idx) => [i, memberToMergeResults[idx]])
+      const result = memberResults.map((i, idx) => ({
+        members: [i, memberToMergeResults[idx]],
+        similarity: mems[idx].similarity,
+      }))
       return { rows: result, count: mems[0].total_count / 2, limit, offset }
     }
 

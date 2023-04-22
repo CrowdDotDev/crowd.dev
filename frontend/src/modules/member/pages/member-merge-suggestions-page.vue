@@ -10,14 +10,19 @@
       Merging suggestions
     </h4>
     <div class="text-xs text-gray-600 pb-6">
-      crowd.dev is constantly checking your community for duplicate members. Here you can check all the merging
-      suggestions.
+      crowd.dev is constantly checking your community for duplicate members.
+      Here you can check all the merging suggestions.
     </div>
 
     <div v-if="loading || count > 0" class="panel">
       <!-- Header -->
       <header class="flex items-center justify-between pb-4">
-        <button type="button" class="btn btn--transparent btn--md" :disabled="loading || offset <= 0" @click="fetch(offset - 1)">
+        <button
+          type="button"
+          class="btn btn--transparent btn--md"
+          :disabled="loading || offset <= 0"
+          @click="fetch(offset - 1)"
+        >
           <span class="ri-arrow-left-s-line text-lg mr-2" />
           <span>Previous</span>
         </button>
@@ -28,7 +33,7 @@
         <button
           type="button"
           class="btn btn--transparent btn--md"
-          :disabled="loading || offset >= (count - 1)"
+          :disabled="loading || offset >= count - 1"
           @click="fetch(offset + 1)"
         >
           <span>Next</span>
@@ -40,21 +45,32 @@
       <!-- Loading -->
       <div v-if="loading" class="flex -mx-3">
         <div class="w-1/2 px-3">
-          <app-member-merge-suggestions-details member="null" :loading="true" :is-primary="true" />
+          <app-member-merge-suggestions-details
+            member="null"
+            :loading="true"
+            :is-primary="true"
+          />
         </div>
         <div class="w-1/2 px-3">
           <app-member-merge-suggestions-details member="null" :loading="true" />
         </div>
       </div>
       <div v-else class="flex -mx-3">
-        <div v-for="(member, mi) of membersToMerge" :key="member.id" class="w-1/2 px-3">
+        <div
+          v-for="(member, mi) of membersToMerge.members"
+          :key="member.id"
+          class="w-1/2 px-3"
+        >
           <app-member-merge-suggestions-details
             :member="member"
-            :compare-member="membersToMerge[(mi + 1) % membersToMerge.length]"
+            :compare-member="
+              membersToMerge[(mi + 1) % membersToMerge.members.length]
+            "
+            :similarity="membersToMerge.similarity"
             :is-primary="mi === primary"
             :extend-bio="bioHeight"
             @make-primary="primary = mi"
-            @bio-height="$event > bioHeight ? bioHeight = $event : null"
+            @bio-height="$event > bioHeight ? (bioHeight = $event) : null"
           />
         </div>
       </div>
@@ -85,7 +101,9 @@
     </div>
     <!-- Empty state -->
     <div v-else class="pt-20 flex flex-col items-center">
-      <div class="ri-shuffle-line text-gray-200 text-10xl h-40 flex items-center mb-8" />
+      <div
+        class="ri-shuffle-line text-gray-200 text-10xl h-40 flex items-center mb-8"
+      />
       <h5 class="text-center text-lg font-semibold mb-4">
         No merge suggestions
       </h5>
@@ -97,14 +115,11 @@
 </template>
 
 <script setup>
-import {
-  ref, onMounted, computed,
-} from 'vue';
+import { ref, onMounted, computed } from 'vue';
 import Message from '@/shared/message/message';
 import { mapGetters } from '@/shared/vuex/vuex.helpers';
 import AppLoading from '@/shared/loading/loading-placeholder.vue';
-import AppMemberMergeSuggestionsDetails
-  from '@/modules/member/components/suggestions/member-merge-suggestions-details.vue';
+import AppMemberMergeSuggestionsDetails from '@/modules/member/components/suggestions/member-merge-suggestions-details.vue';
 import { MemberService } from '../member-service';
 import { MemberPermissions } from '../member-permissions';
 
@@ -121,10 +136,10 @@ const sendingMerge = ref(false);
 
 const bioHeight = ref(0);
 
-const isEditLockedForSampleData = computed(() => new MemberPermissions(
-  currentTenant.value,
-  currentUser.value,
-).editLockedForSampleData);
+const isEditLockedForSampleData = computed(
+  () => new MemberPermissions(currentTenant.value, currentUser.value)
+    .editLockedForSampleData,
+);
 
 const fetch = (page) => {
   primary.value = 0;
@@ -133,17 +148,17 @@ const fetch = (page) => {
   }
   loading.value = true;
 
-  MemberService.fetchMergeSuggestions(
-    1,
-    offset.value,
-  )
+  MemberService.fetchMergeSuggestions(1, offset.value)
     .then((res) => {
       offset.value = +res.offset;
       count.value = res.count;
       [membersToMerge.value] = res.rows;
+      console.log(JSON.parse(JSON.stringify(membersToMerge.value)));
     })
     .catch(() => {
-      Message.error('There was an error fetching merge suggestion, please try again later');
+      Message.error(
+        'There was an error fetching merge suggestion, please try again later',
+      );
     })
     .finally(() => {
       loading.value = false;
@@ -157,15 +172,11 @@ const ignoreSuggestion = () => {
   sendingIgnore.value = true;
   MemberService.addToNoMerge(...membersToMerge.value)
     .then(() => {
-      Message.success(
-        'Merging suggestion ignored successfuly',
-      );
+      Message.success('Merging suggestion ignored successfuly');
       fetch();
     })
     .catch(() => {
-      Message.error(
-        'There was an error ignoring the merging suggestion',
-      );
+      Message.error('There was an error ignoring the merging suggestion');
     })
     .finally(() => {
       sendingIgnore.value = false;

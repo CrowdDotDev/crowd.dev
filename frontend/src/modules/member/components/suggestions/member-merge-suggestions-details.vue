@@ -1,6 +1,9 @@
 <template>
   <section v-if="props.loading">
-    <div class="rounded p-6 transition pb-40" :class="{ 'bg-gray-50': props.isPrimary }">
+    <div
+      class="rounded p-6 transition pb-40"
+      :class="{ 'bg-gray-50': props.isPrimary }"
+    >
       <app-loading height="48px" width="48px" radius="50%" class="mb-6" />
 
       <app-loading height="16px" width="172px" radius="3px" class="mb-6" />
@@ -16,10 +19,16 @@
     </div>
   </section>
   <section v-else class="h-full">
-    <div class="rounded p-6 transition h-full" :class="{ 'bg-gray-50': props.isPrimary }">
+    <div
+      class="rounded p-6 transition h-full"
+      :class="{ 'bg-gray-50': props.isPrimary }"
+    >
       <!-- primary member -->
       <div class="h-13 flex justify-between items-start">
-        <div v-if="props.isPrimary" class="bg-brand-500 rounded-full py-0.5 px-2 text-white inline-block text-xs leading-5 font-medium">
+        <div
+          v-if="props.isPrimary"
+          class="bg-brand-500 rounded-full py-0.5 px-2 text-white inline-block text-xs leading-5 font-medium"
+        >
           Primary member
         </div>
         <button
@@ -32,11 +41,25 @@
           <span class="ri-arrow-left-right-fill text-base text-gray-600 mr-2" />
           <span>Make primary</span>
         </button>
+        <div
+          v-if="props.isPrimary && props.similarity"
+          class="rounded-full py-0.5 px-2 text-white inline-block text-xs leading-5 font-medium"
+          :class="{
+            'bg-green-500': props.similarity >= 0.8,
+            'bg-orange-500': props.similarity >= 0.6 && props.similarity < 0.8,
+            'bg-yellow-500': props.similarity < 0.6,
+          }"
+        >
+          {{ Math.round(props.similarity * 100) }}% confidence
+        </div>
         <slot name="action" />
       </div>
       <app-avatar :entity="member" class="mb-3" />
       <div class="pb-4">
-        <h6 class="text-base text-black font-semibold" v-html="$sanitize(member.displayName)" />
+        <h6
+          class="text-base text-black font-semibold"
+          v-html="$sanitize(member.displayName)"
+        />
         <div
           v-if="member.attributes.bio?.default"
           ref="bio"
@@ -62,14 +85,19 @@
       </div>
 
       <div>
-        <article class="flex items-center justify-between h-12 border-b border-gray-200">
+        <article
+          class="flex items-center justify-between h-12 border-b border-gray-200"
+        >
           <p class="text-2xs font-medium text-gray-500 pr-4">
             Engagement level
           </p>
           <app-community-engagement-level :member="member" />
         </article>
         <article
-          v-if="member.attributes.location?.default || compareMember?.attributes.location?.default"
+          v-if="
+            member.attributes.location?.default
+              || compareMember?.attributes.location?.default
+          "
           class="flex items-center justify-between h-12 border-b border-gray-200"
         >
           <p class="text-2xs font-medium text-gray-500 pr-4">
@@ -80,19 +108,21 @@
           </p>
         </article>
         <article
-          v-if="member.organizations.length || compareMember?.organizations.length"
+          v-if="
+            member.organizations.length || compareMember?.organizations.length
+          "
           class="flex items-center justify-between h-12 border-b border-gray-200"
         >
           <p class="text-2xs font-medium text-gray-500 pr-4">
             Organization
           </p>
-          <app-member-organizations
-            :member="member"
-            :show-title="false"
-          />
+          <app-member-organizations :member="member" :show-title="false" />
         </article>
         <article
-          v-if="member.attributes.jobTitle?.default || compareMember?.attributes.jobTitle?.default"
+          v-if="
+            member.attributes.jobTitle?.default
+              || compareMember?.attributes.jobTitle?.default
+          "
           class="flex items-center justify-between h-12 border-b border-gray-200"
         >
           <p class="text-2xs font-medium text-gray-500 pr-4">
@@ -120,7 +150,12 @@
           <p class="text-2xs font-medium text-gray-500 pr-4">
             Tags
           </p>
-          <app-tags v-if="member.tags.length > 0" :member="member" :editable="false" tag-classes="!bg-white !text-xs !leading-5 !py-0.5 !px-1.5" />
+          <app-tags
+            v-if="member.tags.length > 0"
+            :member="member"
+            :editable="false"
+            tag-classes="!bg-white !text-xs !leading-5 !py-0.5 !px-1.5"
+          />
           <span v-else>-</span>
         </article>
       </div>
@@ -138,10 +173,16 @@
             :src="platformDetails(platform).image"
             class="h5 w-5 mr-4"
             :alt="platform"
-          >
+          />
           <span
             class="text-xs leading-5"
-            :class="{ 'underline hover:text-brand-500': identityUrl(platform, username, member) }"
+            :class="{
+              'underline hover:text-brand-500': identityUrl(
+                platform,
+                username,
+                member,
+              ),
+            }"
             v-html="$sanitize(username)"
           />
         </a>
@@ -153,8 +194,12 @@
           target="_blank"
           rel="noopener noreferrer"
         >
-          <span class="ri-mail-line text-lg text-gray-600 mr-4 h-5 flex items-center" />
-          <span class="text-xs leading-5 underline hover:text-brand-500">{{ email }}</span>
+          <span
+            class="ri-mail-line text-lg text-gray-600 mr-4 h-5 flex items-center"
+          />
+          <span class="text-xs leading-5 underline hover:text-brand-500">{{
+            email
+          }}</span>
         </a>
       </div>
     </div>
@@ -165,6 +210,7 @@
 import {
   computed, defineProps, onMounted, ref, defineExpose,
 } from 'vue';
+import moment from 'moment';
 import AppMemberOrganizations from '@/modules/member/components/member-organizations.vue';
 import AppAvatar from '@/shared/avatar/avatar.vue';
 import AppCommunityEngagementLevel from '@/modules/member/components/member-engagement-level.vue';
@@ -172,7 +218,6 @@ import AppTags from '@/modules/tag/components/tag-list.vue';
 import AppLoading from '@/shared/loading/loading-placeholder.vue';
 import { CrowdIntegrations } from '@/integrations/integrations-config';
 import { MemberPermissions } from '@/modules/member/member-permissions';
-import moment from 'moment';
 import { mapGetters } from '@/shared/vuex/vuex.helpers';
 
 const props = defineProps({
@@ -200,16 +245,21 @@ const props = defineProps({
     required: false,
     default: 0,
   },
+  similarity: {
+    type: Number,
+    required: false,
+    default: null,
+  },
 });
 
 const emit = defineEmits(['makePrimary', 'bioHeight']);
 
 const { currentTenant, currentUser } = mapGetters('auth');
 
-const isEditLockedForSampleData = computed(() => new MemberPermissions(
-  currentTenant.value,
-  currentUser.value,
-).editLockedForSampleData);
+const isEditLockedForSampleData = computed(
+  () => new MemberPermissions(currentTenant.value, currentUser.value)
+    .editLockedForSampleData,
+);
 
 const bio = ref(null);
 const displayShowMore = ref(null);
@@ -219,10 +269,8 @@ const platformDetails = (platform) => CrowdIntegrations.getConfig(platform);
 const identityUrl = (platform, username, member) => {
   if (platform === 'hackernews') {
     return `https://news.ycombinator.com/user?id=${username}`;
-  } if (
-    platform === 'linkedin'
-    && username.includes('private-')
-  ) {
+  }
+  if (platform === 'linkedin' && username.includes('private-')) {
     return null;
   }
   return member.attributes.url?.[platform];
@@ -252,7 +300,7 @@ export default {
 </script>
 
 <style lang="scss">
-.merge-member-bio *{
+.merge-member-bio * {
   @apply text-xs;
 }
 </style>
