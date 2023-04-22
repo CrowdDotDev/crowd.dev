@@ -153,6 +153,7 @@ const fetch = (page) => {
       offset.value = +res.offset;
       count.value = res.count;
       [membersToMerge.value] = res.rows;
+      console.log(JSON.parse(JSON.stringify(membersToMerge.value)));
     })
     .catch(() => {
       Message.error(
