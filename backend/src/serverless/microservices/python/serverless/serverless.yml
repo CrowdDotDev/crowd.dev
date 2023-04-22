@@ -196,7 +196,6 @@ package:
     - '../crowd-backend/**'
     - '../crowd-github/**'
     - '../crowd-members-score/**'
-    - '../crowd-check-merge-members/**'
   patterns:
     - '!venv*/**'
 
