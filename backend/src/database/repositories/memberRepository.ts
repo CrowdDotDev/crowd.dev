@@ -1860,7 +1860,7 @@ where m."deletedAt" is null
 
     return suggestions.map((suggestion: any) => ({
       members: [suggestion.m1_id, suggestion.m2_id],
-      similarity: suggestion.similarity,
+      similarity: 1,
     }))
   }
 
