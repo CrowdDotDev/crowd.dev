@@ -130,7 +130,7 @@ describe('MemberService tests', () => {
       const memberExpected = {
         id: memberCreated.id,
         username: {
-          [platform]: username,
+          [platform]: [username],
         },
         displayName: username,
         attributes: {
@@ -230,8 +230,8 @@ describe('MemberService tests', () => {
       const memberExpected = {
         id: memberCreated.id,
         username: {
-          [PlatformType.GITHUB]: 'anil',
-          [PlatformType.TWITTER]: 'anil_twitter',
+          [PlatformType.GITHUB]: ['anil'],
+          [PlatformType.TWITTER]: ['anil_twitter'],
         },
         displayName: 'anil',
         attributes: {
@@ -301,7 +301,7 @@ describe('MemberService tests', () => {
       const memberExpected = {
         id: memberCreated.id,
         username: {
-          [platform]: username,
+          [platform]: [username],
         },
         displayName: username,
         attributes: {},
@@ -349,7 +349,7 @@ describe('MemberService tests', () => {
       const memberExpected = {
         id: memberCreated.id,
         username: {
-          [platform]: username,
+          [platform]: [username],
         },
         displayName: username,
         attributes: {},
@@ -397,7 +397,7 @@ describe('MemberService tests', () => {
       const memberExpected = {
         id: memberCreated.id,
         username: {
-          [platform]: username,
+          [platform]: [username],
         },
         displayName: username,
         attributes: {},
@@ -727,7 +727,7 @@ describe('MemberService tests', () => {
       const memberExpected = {
         id: memberCreated.id,
         username: {
-          [PlatformType.GITHUB]: member1Username,
+          [PlatformType.GITHUB]: [member1Username],
         },
         displayName: member1Username,
         attributes: {
@@ -832,7 +832,7 @@ describe('MemberService tests', () => {
       const memberExpected = {
         id: memberCreated.id,
         username: {
-          [PlatformType.GITHUB]: member1Username,
+          [PlatformType.GITHUB]: [member1Username],
         },
         displayName: member1Username,
         attributes: {
@@ -936,9 +936,9 @@ describe('MemberService tests', () => {
       const memberExpected = {
         id: memberCreated.id,
         username: {
-          [PlatformType.GITHUB]: 'anil',
-          [PlatformType.TWITTER]: 'anil_twitter',
-          [PlatformType.DISCORD]: 'anil_discord',
+          [PlatformType.GITHUB]: ['anil'],
+          [PlatformType.TWITTER]: ['anil_twitter'],
+          [PlatformType.DISCORD]: ['anil_discord'],
         },
         displayName: 'anil',
         attributes: {
@@ -1102,7 +1102,7 @@ describe('MemberService tests', () => {
         id: memberCreated.id,
         joinedAt: new Date('2020-05-28T15:13:30Z'),
         username: {
-          [PlatformType.TWITTER]: member1Username,
+          [PlatformType.TWITTER]: [member1Username],
         },
         displayName: member1Username,
         attributes: {
@@ -1188,7 +1188,7 @@ describe('MemberService tests', () => {
         id: memberCreated.id,
         joinedAt: new Date('2020-05-28T15:13:30Z'),
         username: {
-          [PlatformType.GITHUB]: member1Username,
+          [PlatformType.GITHUB]: [member1Username],
         },
         displayName: member1Username,
         lastEnriched: null,
@@ -1242,7 +1242,7 @@ describe('MemberService tests', () => {
         id: memberCreated.id,
         joinedAt: new Date('2020-05-28T15:13:30Z'),
         username: {
-          [PlatformType.GITHUB]: member1Username,
+          [PlatformType.GITHUB]: [member1Username],
         },
         lastEnriched: null,
         enrichedBy: [],
@@ -1297,7 +1297,7 @@ describe('MemberService tests', () => {
         id: memberCreated.id,
         joinedAt: new Date('2020-05-28T15:13:30Z'),
         username: {
-          [PlatformType.GITHUB]: member1Username,
+          [PlatformType.GITHUB]: [member1Username],
         },
         lastEnriched: null,
         enrichedBy: [],
@@ -1352,7 +1352,7 @@ describe('MemberService tests', () => {
         id: memberCreated.id,
         joinedAt: new Date('2020-05-28T15:13:30Z'),
         username: {
-          [PlatformType.GITHUB]: member1Username,
+          [PlatformType.GITHUB]: [member1Username],
         },
         displayName: member1Username,
         lastEnriched: null,
@@ -1595,8 +1595,8 @@ describe('MemberService tests', () => {
       const expectedMember = {
         id: returnedMember1.id,
         username: {
-          [PlatformType.GITHUB]: 'anil',
-          [PlatformType.DISCORD]: 'anil',
+          [PlatformType.GITHUB]: ['anil'],
+          [PlatformType.DISCORD]: ['anil'],
         },
         lastEnriched: null,
         enrichedBy: [],

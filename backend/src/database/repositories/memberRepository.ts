@@ -364,12 +364,9 @@ class MemberRepository {
     const query = `
     with identities as (select "memberId",
                            array_agg(distinct platform)                as identities,
-                           jsonb_object_agg(platform, latest_username) as username,
-                           jsonb_object_agg(platform, usernames)       as "newUsername"
+                           jsonb_object_agg(platform, usernames)       as username
                     from (select "memberId",
                                  platform,
-                                 first_value(username)
-                                 over (partition by "memberId", platform order by "createdAt" desc) as latest_username,
                                  jsonb_agg(username) over (partition by "memberId", platform)       as usernames
                           from "memberIdentities") ranked
                     group by "memberId")
@@ -512,17 +509,17 @@ class MemberRepository {
         transaction,
       })
     }
+    const seq = SequelizeRepository.getSequelize(options)
 
     if (data.username) {
       const platforms = Object.keys(data.username) as PlatformType[]
       if (platforms.length > 0) {
         data.username = mapUsernameToIdentities(data.username)
 
-        const seq = SequelizeRepository.getSequelize(options)
         const query = `
-        insert into "memberIdentities"("memberId", platform, username, "sourceId", "tenantId", "integrationId")
-        values (:memberId, :platform, :username, :sourceId, :tenantId, :integrationId);
-        `
+          insert into "memberIdentities"("memberId", platform, username, "sourceId", "tenantId", "integrationId")
+          values (:memberId, :platform, :username, :sourceId, :tenantId, :integrationId);
+          `
 
         for (const platform of platforms) {
           const identities = data.username[platform]
@@ -543,6 +540,39 @@ class MemberRepository {
           }
         }
       }
+    }
+
+    if (data.identitiesToDelete && data.identitiesToDelete.length > 0) {
+      const deleteQuery = `
+        delete from "memberIdentities"
+        where ("memberId", "tenantId", "platform", "username") in
+              (select mi."memberId", mi."tenantId", mi."platform", mi."username"
+              from "memberIdentities" mi
+                        join (select :memberId::uuid            as memberid,
+                                    :tenantId::uuid            as tenantid,
+                                    unnest(:platforms::text[]) as platform,
+                                    unnest(:usernames::text[]) as username) as combinations
+                            on mi."memberId" = combinations.memberid
+                                and mi."tenantId" = combinations.tenantid
+                                and mi."platform" = combinations.platform
+                                and mi."username" = combinations.username);`
+      const platforms: string[] = []
+      const usernames: string[] = []
+      for (const identity of data.identitiesToDelete) {
+        platforms.push(identity.platform)
+        usernames.push(identity.username)
+      }
+
+      await seq.query(deleteQuery, {
+        replacements: {
+          tenantId: currentTenant.id,
+          memberId: record.id,
+          platforms,
+          usernames,
+        },
+        type: QueryTypes.DELETE,
+        transaction,
+      })
     }
 
     await this._createAuditLog(AuditLogRepository.UPDATE, record, data, options)
@@ -667,21 +697,16 @@ class MemberRepository {
     }
     const data = record.get({ plain: returnPlain })
 
-    const identities = await this.getIdentities([data.id], options)
+    const identities = (await this.getIdentities([data.id], options)).get(data.id)
 
-    data.username = identities.get(data.id).reduce((data, identity: any) => {
-      data[identity.platform] = identity.username
-      return data
-    }, {} as any)
-
-    // data.newUsername = {}
-    // for (const identity of identities.get(data.id)) {
-    //   if (data.newUsername[identity.platform]) {
-    //     data.newUsername[identity.platform].push(identity.username)
-    //   } else {
-    //     data.newUsername[identity.platform] = [identity.username]
-    //   }
-    // }
+    data.username = {}
+    for (const identity of identities) {
+      if (data.username[identity.platform]) {
+        data.username[identity.platform].push(identity.username)
+      } else {
+        data.username[identity.platform] = [identity.username]
+      }
+    }
 
     return data
   }
@@ -812,12 +837,9 @@ class MemberRepository {
                                group by "memberId"),
               identities as (select "memberId",
                                     array_agg(distinct platform)                as identities,
-                                    jsonb_object_agg(platform, latest_username) as username,
-                                    jsonb_object_agg(platform, usernames)       as "newUsername"
+                                    jsonb_object_agg(platform, usernames)       as username
                             from (select "memberId",
                                           platform,
-                                          first_value(username)
-                                          over (partition by "memberId", platform order by "createdAt" desc) as latest_username,
                                           jsonb_agg(username) over (partition by "memberId", platform)       as usernames
                                   from "memberIdentities") ranked
                             group by "memberId")
@@ -2190,23 +2212,19 @@ where m."deletedAt" is null
       })
     ).map((i) => i.id)
 
-    const memberIdentities = await this.getIdentities([record.id], options)
+    const memberIdentities = (await this.getIdentities([record.id], options)).get(record.id)
 
-    output.username = memberIdentities.get(record.id).reduce((data, identity: any) => {
-      data[identity.platform] = identity.username
-      return data
-    }, {} as any)
+    output.username = {}
+
+    for (const identity of memberIdentities) {
+      if (output.username[identity.platform]) {
+        output.username[identity.platform].push(identity.username)
+      } else {
+        output.username[identity.platform] = [identity.username]
+      }
+    }
 
     output.identities = Object.keys(output.username)
-    // output.newUsername = {}
-
-    // for (const identity of memberIdentities.get(record.id)) {
-    //   if (output.newUsername[identity.platform]) {
-    //     output.newUsername[identity.platform].push(identity.username)
-    //   } else {
-    //     output.newUsername[identity.platform] = [identity.username]
-    //   }
-    // }
 
     return output
   }

@@ -376,7 +376,7 @@ export default class MemberService extends LoggingBase {
    * Username can be given as a plain string or as dictionary with
    * related platforms.
    * Ie:
-   * username = 'anil' || username = { github: 'anil' } || username = { github: 'anil', twitter: 'some-other-username' }
+   * username = 'anil' || username = { github: 'anil' } || username = { github: 'anil', twitter: 'some-other-username' } || username = { github: { username: 'anil' } } || username = { github: [{ username: 'anil' }] }
    * @param username username of the member
    * @param platform platform of the member
    * @returns null | found member
@@ -706,6 +706,42 @@ export default class MemberService extends LoggingBase {
           data.toMerge.filter((i) => i !== id),
           { ...this.options, transaction },
         )
+      }
+      if (data.username) {
+        // need to filter out existing identities from the payload
+        const existingIdentities = (
+          await MemberRepository.getIdentities([id], {
+            ...this.options,
+            transaction,
+          })
+        ).get(id)
+
+        data.username = mapUsernameToIdentities(data.username)
+        data.identitiesToDelete = []
+
+        for (const identity of existingIdentities) {
+          if (identity.platform in data.username) {
+            // new username also has this platform
+            let found = false
+            for (const newIdentity of data.username[identity.platform]) {
+              if (newIdentity.username === identity.username) {
+                found = true
+                break
+              }
+            }
+
+            if (!found) {
+              // new username doesn't have this identity - we can delete it
+              data.username[identity.platform] = data.username[identity.platform].filter(
+                (i) => i.username !== identity.username,
+              )
+              data.identitiesToDelete.push(identity)
+            }
+          } else {
+            // new username doesn't have this platform - we can delete the existing identity
+            data.identitiesToDelete.push(identity)
+          }
+        }
       }
 
       if (data.username) {

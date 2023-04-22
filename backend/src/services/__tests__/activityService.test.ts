@@ -1377,7 +1377,7 @@ describe('ActivityService tests', () => {
         expect(activityWithMember).toStrictEqual(expectedActivityCreated)
         expect(memberFound.joinedAt).toStrictEqual(expectedActivityCreated.timestamp)
         expect(memberFound.username).toStrictEqual({
-          [PlatformType.GITHUB]: 'anil_github',
+          [PlatformType.GITHUB]: ['anil_github'],
         })
       })
 
@@ -1490,7 +1490,7 @@ describe('ActivityService tests', () => {
         expect(activityWithMember).toStrictEqual(expectedActivityCreated)
         expect(memberFound.joinedAt).toStrictEqual(expectedActivityCreated.timestamp)
         expect(memberFound.username).toStrictEqual({
-          [PlatformType.GITHUB]: 'anil_github',
+          [PlatformType.GITHUB]: ['anil_github'],
         })
       })
 
@@ -1603,7 +1603,7 @@ describe('ActivityService tests', () => {
         expect(activityWithMember).toStrictEqual(expectedActivityCreated)
         expect(memberFound.joinedAt).toStrictEqual(new Date('2020-05-27T15:13:30Z'))
         expect(memberFound.username).toStrictEqual({
-          [PlatformType.GITHUB]: 'anil_github',
+          [PlatformType.GITHUB]: ['anil_github'],
         })
       })
 
@@ -1717,7 +1717,7 @@ describe('ActivityService tests', () => {
         expect(activityWithMember).toStrictEqual(expectedActivityCreated)
         expect(memberFound.joinedAt).toStrictEqual(expectedActivityCreated.timestamp)
         expect(memberFound.username).toStrictEqual({
-          [PlatformType.GITHUB]: 'anil_github',
+          [PlatformType.GITHUB]: ['anil_github'],
         })
       })
 
