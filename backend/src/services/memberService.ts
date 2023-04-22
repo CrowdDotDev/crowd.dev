@@ -662,7 +662,7 @@ export default class MemberService extends LoggingBase {
   }
 
   async getMergeSuggestions(): Promise<IMemberMergeAllSuggestions> {
-    const numberOfHours = 24
+    const numberOfHours = 24 * 30
     const mergeSuggestionsByEmail = await MemberRepository.mergeSuggestionsByEmail(numberOfHours, {
       ...this.options,
     })
