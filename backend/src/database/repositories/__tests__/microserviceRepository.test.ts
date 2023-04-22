@@ -174,7 +174,7 @@ describe('MicroserviceRepository tests', () => {
         mockIRepositoryOptions,
       )
       const microservice2Created = await MicroserviceRepository.create(
-        { type: 'members_score' },
+        { type: 'second' },
         mockIRepositoryOptions,
       )
 
@@ -234,7 +234,7 @@ describe('MicroserviceRepository tests', () => {
       )
 
       const microservice2Created = await MicroserviceRepository.create(
-        { type: 'members_score', variant: 'premium' },
+        { type: 'second', variant: 'premium' },
         mockIRepositoryOptions,
       )
 
