@@ -8,6 +8,7 @@ import NoteRepository from '../noteRepository'
 import OrganizationRepository from '../organizationRepository'
 import TagRepository from '../tagRepository'
 import TaskRepository from '../taskRepository'
+import lodash from 'lodash'
 
 const db = null
 
@@ -88,7 +89,8 @@ describe('MemberRepository tests', () => {
         joinedAt: '2020-05-27T15:13:30Z',
       }
 
-      const memberCreated = await MemberRepository.create(member2add, mockIRepositoryOptions)
+      const cloned = lodash.cloneDeep(member2add)
+      const memberCreated = await MemberRepository.create(cloned, mockIRepositoryOptions)
 
       // Trim the hour part from timestamp so we can atleast test if the day is correct for createdAt and joinedAt
       memberCreated.createdAt = memberCreated.createdAt.toISOString().split('T')[0]
@@ -169,7 +171,8 @@ describe('MemberRepository tests', () => {
         joinedAt: '2020-05-27T15:13:30Z',
       }
 
-      const memberCreated = await MemberRepository.create(member2add, mockIRepositoryOptions, false)
+      const cloned = lodash.cloneDeep(member2add)
+      const memberCreated = await MemberRepository.create(cloned, mockIRepositoryOptions, false)
 
       // Trim the hour part from timestamp so we can atleast test if the day is correct for createdAt and joinedAt
       memberCreated.createdAt = memberCreated.createdAt.toISOString().split('T')[0]
@@ -212,7 +215,8 @@ describe('MemberRepository tests', () => {
         joinedAt: '2020-05-27T15:13:30Z',
       }
 
-      const memberCreated = await MemberRepository.create(member2add, mockIRepositoryOptions)
+      const cloned = lodash.cloneDeep(member2add)
+      const memberCreated = await MemberRepository.create(cloned, mockIRepositoryOptions)
 
       // Trim the hour part from timestamp so we can atleast test if the day is correct for createdAt and joinedAt
       memberCreated.createdAt = memberCreated.createdAt.toISOString().split('T')[0]
@@ -379,7 +383,8 @@ describe('MemberRepository tests', () => {
         joinedAt: '2020-05-27T15:13:30Z',
       }
 
-      const memberCreated = await MemberRepository.create(member2add, mockIRepositoryOptions)
+      const cloned = lodash.cloneDeep(member2add)
+      const memberCreated = await MemberRepository.create(cloned, mockIRepositoryOptions)
 
       const expectedMemberFound = {
         id: memberCreated.id,
@@ -441,7 +446,8 @@ describe('MemberRepository tests', () => {
         joinedAt: '2020-05-27T15:13:30Z',
       }
 
-      const memberCreated = await MemberRepository.create(member2add, mockIRepositoryOptions)
+      const cloned = lodash.cloneDeep(member2add)
+      const memberCreated = await MemberRepository.create(cloned, mockIRepositoryOptions)
 
       const expectedMemberFound = {
         id: memberCreated.id,
@@ -2662,7 +2668,8 @@ describe('MemberRepository tests', () => {
         score: '1',
         joinedAt: '2021-05-27T15:14:30Z',
       }
-      const returnedMember = await MemberRepository.create(member1, mockIRepositoryOptions)
+      let cloned = lodash.cloneDeep(member1)
+      const returnedMember = await MemberRepository.create(cloned, mockIRepositoryOptions)
 
       const updateFields = {
         username: {
@@ -2697,9 +2704,10 @@ describe('MemberRepository tests', () => {
         location: 'Istanbul',
       }
 
+      cloned = lodash.cloneDeep(updateFields)
       const updatedMember = await MemberRepository.update(
         returnedMember.id,
-        updateFields,
+        cloned,
         mockIRepositoryOptions,
       )
 

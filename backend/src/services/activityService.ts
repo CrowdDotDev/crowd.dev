@@ -165,6 +165,19 @@ export default class ActivityService extends LoggingBase {
 
       return record
     } catch (error) {
+      if (error.name && error.name.includes('Sequelize')) {
+        this.log.error(
+          error,
+          {
+            query: error.sql,
+            errorMessage: error.original.message,
+          },
+          'Error during activity upsert!',
+        )
+      } else {
+        this.log.error(error, 'Error during activity upsert!')
+      }
+
       await SequelizeRepository.rollbackTransaction(transaction)
 
       SequelizeRepository.handleUniqueFieldError(error, this.options.language, 'activity')
@@ -430,6 +443,18 @@ export default class ActivityService extends LoggingBase {
 
       return record
     } catch (error) {
+      if (error.name && error.name.includes('Sequelize')) {
+        this.log.error(
+          error,
+          {
+            query: error.sql,
+            errorMessage: error.original.message,
+          },
+          'Error during activity create with member!',
+        )
+      } else {
+        this.log.error(error, 'Error during activity create with member!')
+      }
       await SequelizeRepository.rollbackTransaction(transaction)
 
       SequelizeRepository.handleUniqueFieldError(error, this.options.language, 'activity')
@@ -463,6 +488,18 @@ export default class ActivityService extends LoggingBase {
 
       return record
     } catch (error) {
+      if (error.name && error.name.includes('Sequelize')) {
+        this.log.error(
+          error,
+          {
+            query: error.sql,
+            errorMessage: error.original.message,
+          },
+          'Error during activity update!',
+        )
+      } else {
+        this.log.error(error, 'Error during activity update!')
+      }
       await SequelizeRepository.rollbackTransaction(transaction)
 
       SequelizeRepository.handleUniqueFieldError(error, this.options.language, 'activity')

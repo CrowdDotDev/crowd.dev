@@ -380,7 +380,9 @@ class MemberRepository {
     } else if (Array.isArray(username)) {
       usernames.push(...username)
     } else {
-      throw new Error('Unknown username format!')
+      throw new Error(
+        'Unknown username format! Allowed formats are string or string[]. For example: "username" or ["username1", "username2"]',
+      )
     }
 
     const records = await options.database.sequelize.query(query, {

@@ -733,6 +733,26 @@ export default class MemberService extends LoggingBase {
         }
       }
 
+      if (data.username) {
+        // need to filter out existing identities from the payload
+        const existingIdentities = (
+          await MemberRepository.getIdentities([id], {
+            ...this.options,
+            transaction,
+          })
+        ).get(id)
+
+        data.username = mapUsernameToIdentities(data.username)
+
+        for (const identity of existingIdentities) {
+          if (identity.platform in data.username) {
+            data.username[identity.platform] = data.username[identity.platform].filter(
+              (i) => i.username !== identity.username,
+            )
+          }
+        }
+      }
+
       const record = await MemberRepository.update(id, data, {
         ...this.options,
         transaction,
@@ -742,6 +762,18 @@ export default class MemberService extends LoggingBase {
 
       return record
     } catch (error) {
+      if (error.name && error.name.includes('Sequelize')) {
+        this.log.error(
+          error,
+          {
+            query: error.sql,
+            errorMessage: error.original.message,
+          },
+          'Error during member update!',
+        )
+      } else {
+        this.log.error(error, 'Error during member update!')
+      }
       await SequelizeRepository.rollbackTransaction(transaction)
 
       SequelizeRepository.handleUniqueFieldError(error, this.options.language, 'member')
