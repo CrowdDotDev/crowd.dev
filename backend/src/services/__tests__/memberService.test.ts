@@ -1375,6 +1375,106 @@ describe('MemberService tests', () => {
     })
   })
 
+  describe('update method', () => {
+    it('Should update existent member succesfully - removing identities with simple string format', async () => {
+      const mockIServiceOptions = await SequelizeTestUtils.getTestIServiceOptions(db)
+
+      const member1 = {
+        username: 'anil',
+        type: 'member',
+        platform: PlatformType.GITHUB,
+        joinedAt: '2020-05-28T15:13:30Z',
+      }
+
+      const memberCreated = await new MemberService(mockIServiceOptions).upsert(member1)
+
+      const toUpdate = {
+        username: 'anil_new',
+        platform: PlatformType.GITHUB,
+      }
+
+      const memberUpdated = await new MemberService(mockIServiceOptions).update(
+        memberCreated.id,
+        toUpdate,
+      )
+
+      expect(memberUpdated.username[PlatformType.GITHUB]).toStrictEqual(['anil_new'])
+    })
+
+    it('Should update existent member succesfully - removing identities with simple identity format', async () => {
+      const mockIServiceOptions = await SequelizeTestUtils.getTestIServiceOptions(db)
+
+      const member1 = {
+        username: {
+          [PlatformType.GITHUB]: {
+            username: 'anil',
+          },
+        },
+        platform: PlatformType.GITHUB,
+        type: 'member',
+        joinedAt: '2020-05-28T15:13:30Z',
+      }
+
+      const memberCreated = await new MemberService(mockIServiceOptions).upsert(member1)
+
+      const toUpdate = {
+        username: {
+          [PlatformType.GITHUB]: {
+            username: 'anil_new',
+          },
+        },
+        platform: PlatformType.GITHUB,
+      }
+
+      const memberUpdated = await new MemberService(mockIServiceOptions).update(
+        memberCreated.id,
+        toUpdate,
+      )
+
+      expect(memberUpdated.username[PlatformType.GITHUB]).toStrictEqual(['anil_new'])
+    })
+
+    it('Should update existent member succesfully - removing identities with array identity format', async () => {
+      const mockIServiceOptions = await SequelizeTestUtils.getTestIServiceOptions(db)
+
+      const member1 = {
+        username: {
+          [PlatformType.GITHUB]: [
+            {
+              username: 'anil',
+            },
+          ],
+        },
+        platform: PlatformType.GITHUB,
+        type: 'member',
+        joinedAt: '2020-05-28T15:13:30Z',
+      }
+
+      const memberCreated = await new MemberService(mockIServiceOptions).upsert(member1)
+
+      const toUpdate = {
+        username: {
+          [PlatformType.GITHUB]: [
+            {
+              username: 'anil_new',
+            },
+            {
+              username: 'anil_new2',
+            },
+          ],
+        },
+        platform: PlatformType.GITHUB,
+      }
+
+      const memberUpdated = await new MemberService(mockIServiceOptions).update(
+        memberCreated.id,
+        toUpdate,
+      )
+
+      expect(memberUpdated.username[PlatformType.GITHUB]).toStrictEqual(['anil_new', 'anil_new2'])
+    })
+  })
+
   describe('merge method', () => {
     it('Should merge', async () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)

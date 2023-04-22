@@ -563,7 +563,6 @@ export default class MemberService extends LoggingBase {
       },
       username: (oldUsernames, newUsernames) => {
         // we want to keep just the usernames that are not already in the oldUsernames
-
         const toKeep: any = {}
 
         const actualOld = mapUsernameToIdentities(oldUsernames)
@@ -705,12 +704,11 @@ export default class MemberService extends LoggingBase {
           })
         ).get(id)
 
-        data.username = mapUsernameToIdentities(data.username)
-        data.identitiesToDelete = []
+        data.username = mapUsernameToIdentities(data.username, data.platform)
 
         for (const identity of existingIdentities) {
           if (identity.platform in data.username) {
-            // new username also has this platform
+            // new username has this platform - we need to check if it also has the username
             let found = false
             for (const newIdentity of data.username[identity.platform]) {
               if (newIdentity.username === identity.username) {
@@ -720,35 +718,11 @@ export default class MemberService extends LoggingBase {
             }
 
             if (!found) {
-              // new username doesn't have this identity - we can delete it
-              data.username[identity.platform] = data.username[identity.platform].filter(
-                (i) => i.username !== identity.username,
-              )
-              data.identitiesToDelete.push(identity)
+              data.username[identity.platform].push({ ...identity, delete: true })
             }
           } else {
             // new username doesn't have this platform - we can delete the existing identity
-            data.identitiesToDelete.push(identity)
-          }
-        }
-      }
-
-      if (data.username) {
-        // need to filter out existing identities from the payload
-        const existingIdentities = (
-          await MemberRepository.getIdentities([id], {
-            ...this.options,
-            transaction,
-          })
-        ).get(id)
-
-        data.username = mapUsernameToIdentities(data.username)
-
-        for (const identity of existingIdentities) {
-          if (identity.platform in data.username) {
-            data.username[identity.platform] = data.username[identity.platform].filter(
-              (i) => i.username !== identity.username,
-            )
+            data.username[identity.platform] = { ...identity, delete: true }
           }
         }
       }

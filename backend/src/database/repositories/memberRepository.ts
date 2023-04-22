@@ -490,67 +490,68 @@ class MemberRepository {
     const seq = SequelizeRepository.getSequelize(options)
 
     if (data.username) {
+      data.username = mapUsernameToIdentities(data.username)
+
       const platforms = Object.keys(data.username) as PlatformType[]
       if (platforms.length > 0) {
-        data.username = mapUsernameToIdentities(data.username)
-
         const query = `
           insert into "memberIdentities"("memberId", platform, username, "sourceId", "tenantId", "integrationId")
           values (:memberId, :platform, :username, :sourceId, :tenantId, :integrationId);
           `
+        const deleteQuery = `
+          delete from "memberIdentities"
+          where ("memberId", "tenantId", "platform", "username") in
+                (select mi."memberId", mi."tenantId", mi."platform", mi."username"
+                from "memberIdentities" mi
+                          join (select :memberId::uuid            as memberid,
+                                      :tenantId::uuid            as tenantid,
+                                      unnest(:platforms::text[]) as platform,
+                                      unnest(:usernames::text[]) as username) as combinations
+                              on mi."memberId" = combinations.memberid
+                                  and mi."tenantId" = combinations.tenantid
+                                  and mi."platform" = combinations.platform
+                                  and mi."username" = combinations.username);`
+
+        const platformsToDelete: string[] = []
+        const usernamesToDelete: string[] = []
 
         for (const platform of platforms) {
           const identities = data.username[platform]
 
           for (const identity of identities) {
-            await seq.query(query, {
-              replacements: {
-                memberId: record.id,
-                platform,
-                username: identity.username,
-                sourceId: identity.sourceId || null,
-                integrationId: identity.integrationId || null,
-                tenantId: currentTenant.id,
-              },
-              type: QueryTypes.INSERT,
-              transaction,
-            })
+            if (identity.delete) {
+              platformsToDelete.push(identity.platform)
+              usernamesToDelete.push(identity.username)
+            } else {
+              await seq.query(query, {
+                replacements: {
+                  memberId: record.id,
+                  platform,
+                  username: identity.username,
+                  sourceId: identity.sourceId || null,
+                  integrationId: identity.integrationId || null,
+                  tenantId: currentTenant.id,
+                },
+                type: QueryTypes.INSERT,
+                transaction,
+              })
+            }
           }
         }
-      }
-    }
 
-    if (data.identitiesToDelete && data.identitiesToDelete.length > 0) {
-      const deleteQuery = `
-        delete from "memberIdentities"
-        where ("memberId", "tenantId", "platform", "username") in
-              (select mi."memberId", mi."tenantId", mi."platform", mi."username"
-              from "memberIdentities" mi
-                        join (select :memberId::uuid            as memberid,
-                                    :tenantId::uuid            as tenantid,
-                                    unnest(:platforms::text[]) as platform,
-                                    unnest(:usernames::text[]) as username) as combinations
-                            on mi."memberId" = combinations.memberid
-                                and mi."tenantId" = combinations.tenantid
-                                and mi."platform" = combinations.platform
-                                and mi."username" = combinations.username);`
-      const platforms: string[] = []
-      const usernames: string[] = []
-      for (const identity of data.identitiesToDelete) {
-        platforms.push(identity.platform)
-        usernames.push(identity.username)
+        if (platformsToDelete.length > 0) {
+          await seq.query(deleteQuery, {
+            replacements: {
+              tenantId: currentTenant.id,
+              memberId: record.id,
+              platforms: `{${platformsToDelete.join(',')}}`,
+              usernames: `{${usernamesToDelete.join(',')}}`,
+            },
+            type: QueryTypes.DELETE,
+            transaction,
+          })
+        }
       }
-
-      await seq.query(deleteQuery, {
-        replacements: {
-          tenantId: currentTenant.id,
-          memberId: record.id,
-          platforms,
-          usernames,
-        },
-        type: QueryTypes.DELETE,
-        transaction,
-      })
     }
 
     await this._createAuditLog(AuditLogRepository.UPDATE, record, data, options)
