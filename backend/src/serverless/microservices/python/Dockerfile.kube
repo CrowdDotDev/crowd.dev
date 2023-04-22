@@ -6,7 +6,6 @@ WORKDIR /var/task
 
 COPY ./requirements.txt ./requirements.dev.txt ./
 COPY ./crowd-backend/setup.py ./crowd-backend/
-COPY ./crowd-check-merge-members/setup.py ./crowd-check-merge-members/
 COPY ./crowd-members-score/setup.py ./crowd-members-score/
 
 RUN python -m venv --copies ./venv
