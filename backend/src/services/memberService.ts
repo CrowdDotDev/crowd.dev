@@ -654,20 +654,43 @@ export default class MemberService extends LoggingBase {
   }
 
   async getMergeSuggestions(): Promise<IMemberMergeAllSuggestions> {
-    const numberOfHours = 24
-    const mergeSuggestionsByEmail = await MemberRepository.mergeSuggestionsByEmail(numberOfHours, {
-      ...this.options,
-    })
-    const mergeSuggestionsBySimilarity = await MemberRepository.mergeSuggestionsBySimilarity(
-      numberOfHours,
-      {
-        ...this.options,
-      },
-    )
-    return {
-      bySameUsername: [],
-      byEmail: mergeSuggestionsByEmail,
-      bySimilarity: mergeSuggestionsBySimilarity,
+    const transaction = await SequelizeRepository.createTransaction(this.options)
+
+    try {
+      const numberOfHours = 24
+
+      const mergeSuggestionsbyUsername = await MemberRepository.mergeSuggestionsByUsername(
+        numberOfHours,
+        {
+          ...this.options,
+          transaction,
+        },
+      )
+      const mergeSuggestionsByEmail = await MemberRepository.mergeSuggestionsByEmail(
+        numberOfHours,
+        {
+          ...this.options,
+          transaction,
+        },
+      )
+      const mergeSuggestionsBySimilarity = await MemberRepository.mergeSuggestionsBySimilarity(
+        numberOfHours,
+        {
+          ...this.options,
+          transaction,
+        },
+      )
+
+      await SequelizeRepository.commitTransaction(transaction)
+      return {
+        byUsername: mergeSuggestionsbyUsername,
+        byEmail: mergeSuggestionsByEmail,
+        bySimilarity: mergeSuggestionsBySimilarity,
+      }
+    } catch (error) {
+      await SequelizeRepository.rollbackTransaction(transaction)
+      this.log.error(error)
+      throw error
     }
   }
 
