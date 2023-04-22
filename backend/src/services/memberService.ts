@@ -28,6 +28,7 @@ import {
   IActiveMemberFilter,
   mapUsernameToIdentities,
   IMemberMergeSuggestion,
+  IMemberMergeAllSuggestions,
 } from '../database/repositories/types/memberTypes'
 import { IRepositoryOptions } from '../database/repositories/IRepositoryOptions'
 
@@ -660,15 +661,22 @@ export default class MemberService extends LoggingBase {
     }
   }
 
-  async getMergeSuggestions(): Promise<IMemberMergeSuggestion[]> {
-    const numberOfHours = 1.2
+  async getMergeSuggestions(): Promise<IMemberMergeAllSuggestions> {
+    const numberOfHours = 24
+    const mergeSuggestionsByEmail = await MemberRepository.mergeSuggestionsByEmail(numberOfHours, {
+      ...this.options,
+    })
     const mergeSuggestionsBySimilarity = await MemberRepository.mergeSuggestionsBySimilarity(
       numberOfHours,
       {
         ...this.options,
       },
     )
-    return mergeSuggestionsBySimilarity
+    return {
+      bySameUsername: [],
+      byEmail: mergeSuggestionsByEmail,
+      bySimilarity: mergeSuggestionsBySimilarity,
+    }
   }
 
   async update(id, data) {

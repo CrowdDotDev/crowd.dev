@@ -71,3 +71,9 @@ export interface IMemberMergeSuggestion {
   similarity: number
   members: [string, string]
 }
+
+export interface IMemberMergeAllSuggestions {
+  bySameUsername: IMemberMergeSuggestion[]
+  byEmail: IMemberMergeSuggestion[]
+  bySimilarity: IMemberMergeSuggestion[]
+}

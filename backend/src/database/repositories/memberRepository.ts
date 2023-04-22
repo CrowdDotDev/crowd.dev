@@ -285,7 +285,7 @@ class MemberRepository {
     const suggestionChunks = chunk(suggestions, 100)
 
     const insertValues = (memberId: string, toMergeId: string, similarity: number | null) =>
-      `('${memberId}', '${toMergeId}', ${similarity === null ? 'NULL' : similarity}, NOW(), NOW())`
+      `('${memberId}', '${toMergeId}', ${!similarity ? 'NULL' : similarity}, NOW(), NOW())`
 
     for (const suggestionChunk of suggestionChunks) {
       const query = `
@@ -1129,8 +1129,6 @@ where m."deletedAt" is null
       }
     }
 
-    // console.log('QUERY: ', query)
-
     const [results, countResults] = await Promise.all([
       seq.query(query, {
         replacements: params,
@@ -1789,6 +1787,80 @@ where m."deletedAt" is null
         id: org.id,
         name: org.name,
       })),
+    }))
+  }
+
+  static async mergeSuggestionsByEmail(
+    numberOfHours,
+    options: IRepositoryOptions,
+  ): Promise<IMemberMergeSuggestion[]> {
+    const transaction = SequelizeRepository.getTransaction(options)
+
+    const seq = SequelizeRepository.getSequelize(options)
+
+    const tenant = SequelizeRepository.getCurrentTenant(options)
+
+    const query = `
+    -- Define a CTE named "new_members" to get members created in the last 7 days with a specific tenantId and their emails
+    WITH new_members AS (
+      SELECT id, "tenantId", emails
+      FROM members
+      WHERE "createdAt" >= now() - INTERVAL :numberOfHours
+      AND "tenantId" = :tenantId
+    ),
+    -- Define a CTE named "email_join" to find overlapping emails across different members
+    email_join AS (
+      SELECT
+        m1.id AS m1_id,            -- Member 1 ID
+        m2.id AS m2_id,            -- Member 2 ID
+        m1.emails AS m1_emails,    -- Member 1 emails
+        m2.emails AS m2_emails     -- Member 2 emails
+      FROM new_members m1
+      -- Join the members table on the tenantId field and ensuring the IDs are different
+      JOIN members m2 ON m1."tenantId" = m2."tenantId" AND m1.id <> m2.id
+      -- Filter for overlapping emails
+      WHERE m1.emails && m2.emails
+      -- Exclude pairs that are already in the memberToMerge table
+      AND NOT EXISTS (
+        SELECT 1
+        FROM "memberToMerge"
+        WHERE (
+          "memberId" = m1.id
+          AND "toMergeId" = m2.id
+        ) OR (
+          "memberId" = m2.id
+          AND "toMergeId" = m1.id
+        )
+      )
+      -- Exclude pairs that are in the memberNoMerge table
+      AND NOT EXISTS (
+        SELECT 1
+        FROM "memberNoMerge"
+        WHERE (
+          "memberId" = m1.id
+          AND "noMergeId" = m2.id
+        ) OR (
+          "memberId" = m2.id
+          AND "noMergeId" = m1.id
+        )
+      )
+    )
+    -- Select all columns from the email_join CTE
+    SELECT *
+    FROM email_join;`
+
+    const suggestions = await seq.query(query, {
+      replacements: {
+        tenantId: tenant.id,
+        numberOfHours: `${numberOfHours} hours`,
+      },
+      type: QueryTypes.SELECT,
+      transaction,
+    })
+
+    return suggestions.map((suggestion: any) => ({
+      members: [suggestion.m1_id, suggestion.m2_id],
+      similarity: suggestion.similarity,
     }))
   }
 
