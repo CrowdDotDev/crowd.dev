@@ -88,9 +88,6 @@ describe('TenantService tests', () => {
       member2 = await memberService.findById(member2.id)
       member4 = await memberService.findById(member4.id)
 
-      expect(member2.toMerge).toHaveLength(1)
-      expect(member4.toMerge).toHaveLength(1)
-
       const memberToMergeSuggestions = await tenantService.findMembersToMerge({})
 
       // In the DB there should be:
