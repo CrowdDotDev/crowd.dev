@@ -73,7 +73,7 @@ export interface IMemberMergeSuggestion {
 }
 
 export interface IMemberMergeAllSuggestions {
-  bySameUsername: IMemberMergeSuggestion[]
+  byUsername: IMemberMergeSuggestion[]
   byEmail: IMemberMergeSuggestion[]
   bySimilarity: IMemberMergeSuggestion[]
 }

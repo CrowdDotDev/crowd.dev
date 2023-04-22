@@ -11,7 +11,7 @@ async function mergeSuggestionsWorker(tenantId): Promise<void> {
   const memberService = new MemberService(userContext)
   const suggestions: IMemberMergeAllSuggestions = await memberService.getMergeSuggestions()
   // Splitting these because in the near future we will be treating them differently
-  await memberService.addToMerge(suggestions.bySameUsername)
+  await memberService.addToMerge(suggestions.byUsername)
   await memberService.addToMerge(suggestions.byEmail)
   await memberService.addToMerge(suggestions.bySimilarity)
   log.info('suggestions', suggestions)

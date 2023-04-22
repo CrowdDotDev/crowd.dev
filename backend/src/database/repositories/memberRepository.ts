@@ -1817,6 +1817,86 @@ where m."deletedAt" is null
     }))
   }
 
+  static async mergeSuggestionsByUsername(
+    numberOfHours,
+    options: IRepositoryOptions,
+  ): Promise<IMemberMergeSuggestion[]> {
+    const transaction = SequelizeRepository.getTransaction(options)
+
+    const seq = SequelizeRepository.getSequelize(options)
+
+    const tenant = SequelizeRepository.getCurrentTenant(options)
+
+    const query = `
+    -- Define a CTE named "new_members" to get members created in the last 2 hours with a specific tenantId
+    WITH new_members AS (
+      SELECT id, "tenantId"
+      FROM members
+      WHERE "createdAt" >= now() - INTERVAL :numberOfHours
+      AND "tenantId" = :tenantId
+    ),
+    -- Define a CTE named "identity_join" to find members with the same usernames across different platforms
+    identity_join AS (
+      SELECT
+        m1.id AS m1_id,
+        m2.id AS m2_id,
+        i1.platform AS i1_platform,
+        i2.platform AS i2_platform,
+        i1.username AS i1_username,
+        i2.username AS i2_username
+      FROM new_members m1
+      -- Join memberIdentities and members to get related records
+      JOIN "memberIdentities" i1 ON m1.id = i1."memberId"
+      JOIN "memberIdentities" i2 ON i1.username = i2.username AND i1.platform <> i2.platform
+      JOIN members m2 ON m2.id = i2."memberId"
+      -- Filter out records where tenantId is different and memberIds are the same
+      WHERE m1."tenantId" = m2."tenantId"
+      AND m1.id <> m2.id
+      -- Filter out records present in memberToMerge table
+      AND NOT EXISTS (
+        SELECT 1
+        FROM "memberToMerge"
+        WHERE (
+          "memberId" = m1.id
+          AND "toMergeId" = m2.id
+        ) OR (
+          "memberId" = m2.id
+          AND "toMergeId" = m1.id
+        )
+      )
+      -- Filter out records present in memberNoMerge table
+      AND NOT EXISTS (
+        SELECT 1
+        FROM "memberNoMerge"
+        WHERE (
+          "memberId" = m1.id
+          AND "noMergeId" = m2.id
+        ) OR (
+          "memberId" = m2.id
+          AND "noMergeId" = m1.id
+        )
+      )
+    )
+    -- Select everything from the final CTE "identity_join"
+    SELECT *
+    FROM identity_join;`
+
+    const suggestions = await seq.query(query, {
+      replacements: {
+        tenantId: tenant.id,
+        numberOfHours: `${numberOfHours} hours`,
+      },
+      type: QueryTypes.SELECT,
+      transaction,
+    })
+
+    return suggestions.map((suggestion: any) => ({
+      members: [suggestion.m1_id, suggestion.m2_id],
+      // 100% confidence only from emails
+      similarity: suggestion.similarity > 0.95 ? 0.95 : suggestion.similarity,
+    }))
+  }
+
   static async mergeSuggestionsByEmail(
     numberOfHours,
     options: IRepositoryOptions,
