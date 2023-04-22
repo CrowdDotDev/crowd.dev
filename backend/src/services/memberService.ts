@@ -15,8 +15,6 @@ import MemberAttributeSettingsRepository from '../database/repositories/memberAt
 import MemberAttributeSettingsService from './memberAttributeSettingsService'
 import SettingsService from './settingsService'
 import OrganizationService from './organizationService'
-import { sendPythonWorkerMessage } from '../serverless/utils/pythonWorkerSQS'
-import { PythonWorkerMessageType } from '../serverless/types/workerTypes'
 import {
   sendExportCSVNodeSQSMessage,
   sendNewMemberNodeSQSMessage,
@@ -319,12 +317,6 @@ export default class MemberService extends LoggingBase {
           },
           fillRelations,
         )
-
-        await sendPythonWorkerMessage(this.options.currentTenant.id, {
-          type: PythonWorkerMessageType.CHECK_MERGE,
-          member: record.id,
-          tenant: this.options.currentTenant.id,
-        })
 
         telemetryTrack(
           'Member created',

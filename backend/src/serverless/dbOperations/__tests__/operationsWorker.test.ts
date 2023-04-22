@@ -354,7 +354,7 @@ describe('Serverless database operations worker tests', () => {
       const tenantId = mockIRepositoryOptions.currentTenant.dataValues.id
 
       const microservice = {
-        type: 'check_merge',
+        type: 'other',
         running: false,
         init: true,
         variant: 'default',
@@ -382,7 +382,7 @@ describe('Serverless database operations worker tests', () => {
 
       const microservices = [
         {
-          type: 'check_merge',
+          type: 'other',
           running: false,
           init: true,
           variant: 'default',

@@ -191,15 +191,14 @@ describe('TenantService tests', () => {
 
       expect(tenantCreatedPlain).toStrictEqual(tenantExpected)
 
-      // Check microservices (check_merge and members_score should be created with tenantService.create)
+      // Check microservices (members_score should be created with tenantService.create)
       const ms = new MicroserviceService({ ...options, currentTenant: tenantCreated })
       const microservicesOfTenant = await ms.findAndCountAll({})
 
-      expect(microservicesOfTenant.count).toEqual(2)
+      expect(microservicesOfTenant.count).toEqual(1)
 
       // findAndCountAll returns sorted by createdAt (desc) by default, so first one should be members_score
       expect(microservicesOfTenant.rows[0].type).toEqual('members_score')
-      expect(microservicesOfTenant.rows[1].type).toEqual('check_merge')
 
       // Check default member attributes
       const mas = new MemberAttributeSettingsService({ ...options, currentTenant: tenantCreated })

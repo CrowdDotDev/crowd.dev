@@ -74,10 +74,6 @@ functions:
           rate: rate(2 hours)
           input:
             service: members_score
-      - schedule:
-          rate: rate(2 hours)
-          input:
-            service: check_merge
     environment:
       NODE_ENV: ${env:NODE_ENV}
       EDITION: ${env:EDITION}
