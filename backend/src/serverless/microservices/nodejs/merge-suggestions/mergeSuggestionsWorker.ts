@@ -14,7 +14,6 @@ async function mergeSuggestionsWorker(tenantId): Promise<void> {
   await memberService.addToMerge(suggestions.byUsername)
   await memberService.addToMerge(suggestions.byEmail)
   await memberService.addToMerge(suggestions.bySimilarity)
-  log.info('suggestions', suggestions)
 }
 
 export { mergeSuggestionsWorker }
