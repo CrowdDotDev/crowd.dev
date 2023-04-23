@@ -46,13 +46,16 @@
       <div v-if="loading" class="flex -mx-3">
         <div class="w-1/2 px-3">
           <app-member-merge-suggestions-details
-            member="null"
+            :member="null"
             :loading="true"
             :is-primary="true"
           />
         </div>
         <div class="w-1/2 px-3">
-          <app-member-merge-suggestions-details member="null" :loading="true" />
+          <app-member-merge-suggestions-details
+            :member="null"
+            :loading="true"
+          />
         </div>
       </div>
       <div v-else class="flex -mx-3">
@@ -169,7 +172,7 @@ const ignoreSuggestion = () => {
     return;
   }
   sendingIgnore.value = true;
-  MemberService.addToNoMerge(...membersToMerge.value)
+  MemberService.addToNoMerge(...membersToMerge.value.members)
     .then(() => {
       Message.success('Merging suggestion ignored successfuly');
       fetch();
@@ -189,8 +192,8 @@ const mergeSuggestion = () => {
   sendingMerge.value = true;
   primary.value = 0;
   MemberService.merge(
-    membersToMerge.value[primary.value],
-    membersToMerge.value[(primary.value + 1) % 2],
+    membersToMerge.value.members[primary.value],
+    membersToMerge.value.members[(primary.value + 1) % 2],
   )
     .then(() => {
       Message.success('Members merged successfuly');
