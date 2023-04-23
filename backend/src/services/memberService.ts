@@ -605,14 +605,13 @@ export default class MemberService extends LoggingBase {
    */
   async addToMerge(suggestions: IMemberMergeSuggestion[]) {
     const transaction = await SequelizeRepository.createTransaction(this.options)
-
     try {
       await MemberRepository.addToMerge(suggestions, { ...this.options, transaction })
       await SequelizeRepository.commitTransaction(transaction)
       return { status: 200 }
     } catch (error) {
       await SequelizeRepository.rollbackTransaction(transaction)
-
+      this.log.error(error, 'Error while adding members to merge')
       throw error
     }
   }

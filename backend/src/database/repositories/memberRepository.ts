@@ -1871,7 +1871,7 @@ where m."deletedAt" is null
     return suggestions.map((suggestion: any) => ({
       members: [suggestion.m1_id, suggestion.m2_id],
       // 100% confidence only from emails
-      similarity: suggestion.similarity > 0.95 ? 0.95 : suggestion.similarity,
+      similarity: 0.95,
     }))
   }
 
