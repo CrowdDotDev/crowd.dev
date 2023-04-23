@@ -207,7 +207,7 @@ class MemberRepository {
       return { rows: result, count: mems[0].total_count / 2, limit, offset }
     }
 
-    return { rows: [], count: 0, limit, offset }
+    return { rows: [{ members: [], similarity: 0 }], count: 0, limit, offset }
   }
 
   static async moveIdentitiesBetweenMembers(
