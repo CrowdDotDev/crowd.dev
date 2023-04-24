@@ -157,41 +157,19 @@ export default {
   async getActiveMembers({ commit, state }) {
     const { platform, period } = state.filters;
     state.members.loadingActive = true;
-    return MemberService.list(
-      {
-        and: [
-          {
-            lastActive: {
-              gte: moment()
-                .startOf('day')
-                .subtract(
-                  period.granularity === 'day'
-                    ? period.value - 1
-                    : period.value,
-                  period.granularity,
-                )
-                .toISOString(),
-            },
-            isTeamMember: {
-              not: true,
-            },
-          },
-          ...(platform !== 'all'
-            ? [
-              {
-                activeOn: {
-                  contains: [platform],
-                },
-              },
-            ]
-            : []),
-        ],
-      },
-      'activityCount_DESC',
-      5,
-      0,
-      false,
-    )
+    return MemberService.listActive({
+      platform: platform !== 'all' ? [{ value: platform }] : [],
+      isTeamMember: false,
+      activityIsContribution: null,
+      activityTimestampFrom: moment()
+        .utc()
+        .subtract(period.value, period.granularity)
+        .toISOString(),
+      activityTimestampTo: moment().utc(),
+      orderBy: 'activityCount_DESC',
+      offset: 0,
+      limit: 5,
+    })
       .then((data) => {
         commit('SET_ACTIVE_MEMBERS', data);
         return Promise.resolve(data);
