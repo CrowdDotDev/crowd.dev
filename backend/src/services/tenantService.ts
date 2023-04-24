@@ -205,10 +205,6 @@ export default class TenantService {
 
       // create default microservices for the tenant
       await MicroserviceRepository.create(
-        { type: microserviceTypes.checkMerge },
-        { ...this.options, transaction, currentTenant: record },
-      )
-      await MicroserviceRepository.create(
         { type: microserviceTypes.membersScore },
         { ...this.options, transaction, currentTenant: record },
       )

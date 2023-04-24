@@ -1,7 +1,6 @@
 from crowd.backend.utils.coordinator import base_coordinator
 from crowd.backend.enums import Services
 from crowd.members_score import members_score_worker
-from crowd.check_merge_members import check_merge_members_worker
 from crowd.backend.infrastructure import StateMachine
 from datetime import datetime
 import json
@@ -25,10 +24,6 @@ def coordinator(event, context):
     if service == Services.MEMBERS_SCORE.value:
         return base_coordinator(service)
 
-    elif service == Services.CHECK_MERGE.value:
-        return base_coordinator(service)
-
-
 def worker(msg, context):
     events = msg["Records"]
     for event in events:
@@ -40,9 +35,6 @@ def worker(msg, context):
 
         if service == Services.MEMBERS_SCORE.value:
             members_score_worker(tenant_id)
-
-        elif service == Services.CHECK_MERGE.value:
-            check_merge_members_worker(tenant_id, microservice_id, params)
 
 
 if __name__ == "__main__":

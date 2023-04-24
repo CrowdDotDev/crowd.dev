@@ -354,7 +354,7 @@ describe('Serverless database operations worker tests', () => {
       const tenantId = mockIRepositoryOptions.currentTenant.dataValues.id
 
       const microservice = {
-        type: 'check_merge',
+        type: 'other',
         running: false,
         init: true,
         variant: 'default',
@@ -382,7 +382,7 @@ describe('Serverless database operations worker tests', () => {
 
       const microservices = [
         {
-          type: 'check_merge',
+          type: 'other',
           running: false,
           init: true,
           variant: 'default',
@@ -428,101 +428,6 @@ describe('Serverless database operations worker tests', () => {
       ).rows
 
       expect(dbIntegrations.length).toBe(0)
-    })
-  })
-
-  describe('Add members to merge method', () => {
-    it('Should add members to merge in bulk', async () => {
-      const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
-      const tenantId = mockIRepositoryOptions.currentTenant.dataValues.id
-
-      const members = [
-        {
-          username: {
-            [PlatformType.GITHUB]: {
-              username: 'member1',
-              integrationId: generateUUIDv1(),
-            },
-          },
-          platform: PlatformType.GITHUB,
-          score: 1,
-        },
-        {
-          username: {
-            [PlatformType.TWITTER]: {
-              username: 'member2',
-              integrationId: generateUUIDv1(),
-            },
-          },
-          platform: PlatformType.TWITTER,
-          score: 2,
-        },
-      ]
-
-      const memberIds = []
-      for (const member of members) {
-        const { id } = await new MemberService(mockIRepositoryOptions).upsert(member)
-        memberIds.push(id)
-      }
-
-      await worker(tenantId, 'update_members_to_merge', [
-        [memberIds[0], memberIds[1]],
-        [memberIds[1], memberIds[0]],
-      ])
-
-      await SequelizeTestUtils.refreshMaterializedViews(db)
-
-      const dbMergeMembers = (await new MemberService(mockIRepositoryOptions).findAndCountAll({}))
-        .rows
-
-      expect(dbMergeMembers.length).toBe(2)
-      expect(dbMergeMembers[0].toMerge[0]).toStrictEqual(memberIds[0])
-      expect(dbMergeMembers[1].toMerge[0]).toStrictEqual(memberIds[1])
-    })
-
-    it('Should work for an empty addToMerge list', async () => {
-      const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
-      const tenantId = mockIRepositoryOptions.currentTenant.dataValues.id
-
-      const members = [
-        {
-          username: {
-            [PlatformType.GITHUB]: {
-              username: 'member1',
-              integrationId: generateUUIDv1(),
-            },
-          },
-          platform: PlatformType.GITHUB,
-          score: 1,
-        },
-        {
-          username: {
-            [PlatformType.SLACK]: {
-              username: 'member2',
-              integrationId: generateUUIDv1(),
-            },
-          },
-          platform: PlatformType.SLACK,
-          score: 2,
-        },
-      ]
-
-      const memberIds = []
-      for (const member of members) {
-        const { id } = await new MemberService(mockIRepositoryOptions).upsert(member)
-        memberIds.push(id)
-      }
-
-      await worker(tenantId, 'update_members_to_merge', [])
-
-      await SequelizeTestUtils.refreshMaterializedViews(db)
-
-      const dbMergeMembers = (await new MemberService(mockIRepositoryOptions).findAndCountAll({}))
-        .rows
-
-      expect(dbMergeMembers.length).toBe(2)
-      expect(dbMergeMembers[0].toMerge).toStrictEqual([])
-      expect(dbMergeMembers[1].toMerge).toStrictEqual([])
     })
   })
 
