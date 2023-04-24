@@ -6,6 +6,7 @@ import IntegrationService from '../../../services/integrationService'
 import MicroserviceService from '../../../services/microserviceService'
 import worker from '../operationsWorker'
 import { PlatformType } from '../../../types/integrationEnums'
+import { generateUUIDv1 } from '../../../utils/uuid'
 
 const db = null
 
@@ -24,7 +25,12 @@ describe('Serverless database operations worker tests', () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
       const tenantId = mockIRepositoryOptions.currentTenant.dataValues.id
       const member = {
-        username: 'member1',
+        username: {
+          [PlatformType.GITHUB]: {
+            username: 'member1',
+            integrationId: generateUUIDv1(),
+          },
+        },
         platform: PlatformType.GITHUB,
       }
 
@@ -35,7 +41,7 @@ describe('Serverless database operations worker tests', () => {
       const dbMembers = (await new MemberService(mockIRepositoryOptions).findAndCountAll({})).rows
 
       expect(dbMembers.length).toBe(1)
-      expect(dbMembers[0].username[PlatformType.GITHUB]).toBe('member1')
+      expect(dbMembers[0].username[PlatformType.GITHUB]).toEqual(['member1'])
     })
 
     it('Should add a list of members', async () => {
@@ -44,11 +50,21 @@ describe('Serverless database operations worker tests', () => {
 
       const members = [
         {
-          username: 'member1',
+          username: {
+            [PlatformType.GITHUB]: {
+              username: 'member1',
+              integrationId: generateUUIDv1(),
+            },
+          },
           platform: PlatformType.GITHUB,
         },
         {
-          username: 'member2',
+          username: {
+            [PlatformType.SLACK]: {
+              username: 'member2',
+              integrationId: generateUUIDv1(),
+            },
+          },
           platform: PlatformType.SLACK,
         },
       ]
@@ -83,8 +99,14 @@ describe('Serverless database operations worker tests', () => {
         timestamp: ts,
         type: 'message',
         platform: 'api',
+        username: 'member1',
         member: {
-          username: 'member1',
+          username: {
+            api: {
+              username: 'member1',
+              integrationId: generateUUIDv1(),
+            },
+          },
         },
         sourceId: '#sourceId1',
       }
@@ -109,8 +131,14 @@ describe('Serverless database operations worker tests', () => {
           timestamp: ts,
           type: 'message',
           platform: 'api',
+          username: 'member1',
           member: {
-            username: 'member1',
+            username: {
+              api: {
+                username: 'member1',
+                integrationId: generateUUIDv1(),
+              },
+            },
           },
           sourceId: '#sourceId1',
         },
@@ -118,8 +146,14 @@ describe('Serverless database operations worker tests', () => {
           timestamp: ts2,
           type: 'message',
           platform: 'api',
+          username: 'member2',
           member: {
-            username: 'member2',
+            username: {
+              api: {
+                username: 'member2',
+                integrationId: generateUUIDv1(),
+              },
+            },
           },
           sourceId: '#sourceId2',
         },
@@ -151,7 +185,12 @@ describe('Serverless database operations worker tests', () => {
       const tenantId = mockIRepositoryOptions.currentTenant.dataValues.id
 
       const member = {
-        username: 'member1',
+        username: {
+          [PlatformType.GITHUB]: {
+            username: 'member1',
+            integrationId: generateUUIDv1(),
+          },
+        },
         platform: PlatformType.GITHUB,
         score: 1,
       }
@@ -166,7 +205,7 @@ describe('Serverless database operations worker tests', () => {
       const dbMembers = (await new MemberService(mockIRepositoryOptions).findAndCountAll({})).rows
 
       expect(dbMembers.length).toBe(1)
-      expect(dbMembers[0].username[PlatformType.GITHUB]).toBe('member1')
+      expect(dbMembers[0].username[PlatformType.GITHUB]).toEqual(['member1'])
       expect(dbMembers[0].score).toBe(10)
     })
 
@@ -176,12 +215,22 @@ describe('Serverless database operations worker tests', () => {
 
       const members = [
         {
-          username: 'member1',
+          username: {
+            [PlatformType.GITHUB]: {
+              username: 'member1',
+              integrationId: generateUUIDv1(),
+            },
+          },
           platform: PlatformType.GITHUB,
           score: 1,
         },
         {
-          username: 'member2',
+          username: {
+            [PlatformType.DISCORD]: {
+              username: 'member2',
+              integrationId: generateUUIDv1(),
+            },
+          },
           platform: PlatformType.DISCORD,
           score: 2,
         },
@@ -389,12 +438,22 @@ describe('Serverless database operations worker tests', () => {
 
       const members = [
         {
-          username: 'member1',
+          username: {
+            [PlatformType.GITHUB]: {
+              username: 'member1',
+              integrationId: generateUUIDv1(),
+            },
+          },
           platform: PlatformType.GITHUB,
           score: 1,
         },
         {
-          username: 'member2',
+          username: {
+            [PlatformType.TWITTER]: {
+              username: 'member2',
+              integrationId: generateUUIDv1(),
+            },
+          },
           platform: PlatformType.TWITTER,
           score: 2,
         },
@@ -427,12 +486,22 @@ describe('Serverless database operations worker tests', () => {
 
       const members = [
         {
-          username: 'member1',
+          username: {
+            [PlatformType.GITHUB]: {
+              username: 'member1',
+              integrationId: generateUUIDv1(),
+            },
+          },
           platform: PlatformType.GITHUB,
           score: 1,
         },
         {
-          username: 'member2',
+          username: {
+            [PlatformType.SLACK]: {
+              username: 'member2',
+              integrationId: generateUUIDv1(),
+            },
+          },
           platform: PlatformType.SLACK,
           score: 2,
         },

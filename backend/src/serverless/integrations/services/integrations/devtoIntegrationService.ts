@@ -15,7 +15,7 @@ import { single, singleOrDefault } from '../../../../utils/arrays'
 import Operations from '../../../dbOperations/operations'
 import { DevtoGrid } from '../../grid/devtoGrid'
 import { DevtoArticleSettings, DevtoIntegrationSettings } from '../../types/devtoTypes'
-import { AddActivitiesSingle, Member } from '../../types/messageTypes'
+import { AddActivitiesSingle, Member, PlatformIdentities } from '../../types/messageTypes'
 import { getArticleComments } from '../../usecases/devto/getArticleComments'
 import { getAllOrganizationArticles } from '../../usecases/devto/getOrganizationArticles'
 import { getUserById } from '../../usecases/devto/getUser'
@@ -137,6 +137,7 @@ export class DevtoIntegrationService extends IntegrationServiceBase {
           articleId,
           comment,
           context.pipelineData.articles,
+          context,
         ),
       )
     }
@@ -197,6 +198,7 @@ export class DevtoIntegrationService extends IntegrationServiceBase {
     articleId: number,
     comment: DevtoComment,
     articles: DevtoArticle[],
+    context: IStepContext,
     parentCommentId?: string,
   ): AddActivitiesSingle[] {
     const article = single(articles, (a) => a.id === articleId)
@@ -209,8 +211,11 @@ export class DevtoIntegrationService extends IntegrationServiceBase {
 
     const member: Member = {
       username: {
-        [PlatformType.DEVTO]: comment.user.username,
-      },
+        [PlatformType.DEVTO]: {
+          username: comment.user.username,
+          integrationId: context.integration.id,
+        },
+      } as PlatformIdentities,
       attributes: {
         [MemberAttributeName.URL]: {
           [PlatformType.DEVTO]: `https://dev.to/${encodeURIComponent(comment.fullUser.username)}`,
@@ -218,22 +223,23 @@ export class DevtoIntegrationService extends IntegrationServiceBase {
       },
     }
 
-    if (comment.user.twitter_username) {
-      member.attributes[MemberAttributeName.URL][
-        PlatformType.TWITTER
-      ] = `https://twitter.com/${comment.user.twitter_username}`
-      member.username[PlatformType.TWITTER] = comment.user.twitter_username
-    }
+    // TODO Fix this (multiple member identities with secondary identities)
+    // if (comment.user.twitter_username) {
+    //   member.attributes[MemberAttributeName.URL][
+    //     PlatformType.TWITTER
+    //   ] = `https://twitter.com/${comment.user.twitter_username}`
+    //   member.username[PlatformType.TWITTER] = comment.user.twitter_username
+    // }
 
-    if (comment.user.github_username) {
-      member.attributes[MemberAttributeName.NAME] = {
-        [PlatformType.GITHUB]: comment.user.name,
-      }
-      member.attributes[MemberAttributeName.URL][
-        PlatformType.GITHUB
-      ] = `https://github.com/${comment.user.github_username}`
-      member.username[PlatformType.GITHUB] = comment.user.github_username
-    }
+    // if (comment.user.github_username) {
+    //   member.attributes[MemberAttributeName.NAME] = {
+    //     [PlatformType.GITHUB]: comment.user.name,
+    //   }
+    //   member.attributes[MemberAttributeName.URL][
+    //     PlatformType.GITHUB
+    //   ] = `https://github.com/${comment.user.github_username}`
+    //   member.username[PlatformType.GITHUB] = comment.user.github_username
+    // }
 
     if (comment.fullUser) {
       member.attributes[MemberAttributeName.BIO] = {
@@ -246,6 +252,7 @@ export class DevtoIntegrationService extends IntegrationServiceBase {
 
     activities.push({
       tenant: tenantId,
+      username: comment.user.username,
       platform: PlatformType.DEVTO,
       type: 'comment',
       timestamp: new Date(comment.created_at),
@@ -267,7 +274,9 @@ export class DevtoIntegrationService extends IntegrationServiceBase {
     })
 
     for (const child of comment.children) {
-      activities.push(...this.parseComment(tenantId, articleId, child, articles, comment.id_code))
+      activities.push(
+        ...this.parseComment(tenantId, articleId, child, articles, context, comment.id_code),
+      )
     }
 
     return activities

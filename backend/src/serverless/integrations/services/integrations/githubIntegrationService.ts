@@ -25,7 +25,7 @@ import IssueCommentsQuery from '../../usecases/github/graphql/issueComments'
 import ForksQuery from '../../usecases/github/graphql/forks'
 import DiscussionsQuery from '../../usecases/github/graphql/discussions'
 import DiscussionCommentsQuery from '../../usecases/github/graphql/discussionComments'
-import { AddActivitiesSingle, Member } from '../../types/messageTypes'
+import { AddActivitiesSingle, Member, PlatformIdentities } from '../../types/messageTypes'
 import Operations from '../../../dbOperations/operations'
 import { GithubActivityType } from '../../../../types/activityTypes'
 import { GitHubGrid } from '../../grid/githubGrid'
@@ -129,7 +129,7 @@ export class GithubIntegrationService extends IntegrationServiceBase {
     return context.pipelineData.repos.reduce((acc, repo) => {
       for (const endpoint of [
         GithubStreamType.STARGAZERS,
-        // GithubStreamType.FORKS,
+        GithubStreamType.FORKS,
         GithubStreamType.PULLS,
         GithubStreamType.ISSUES,
         GithubStreamType.DISCUSSIONS,
@@ -460,6 +460,7 @@ export class GithubIntegrationService extends IntegrationServiceBase {
 
       return {
         member,
+        username: member.username[PlatformType.GITHUB].username,
         type,
         timestamp: starredAt.toDate(),
         platform: PlatformType.GITHUB,
@@ -487,8 +488,10 @@ export class GithubIntegrationService extends IntegrationServiceBase {
   ): Promise<AddActivitiesSingle[]> {
     const out: AddActivitiesSingle[] = []
     for (const record of records) {
+      const member = await GithubIntegrationService.parseMember(record.node, context)
       out.push({
         tenant: context.integration.tenantId,
+        username: member.username[PlatformType.GITHUB].username,
         platform: PlatformType.GITHUB,
         type: GithubActivityType.STAR,
         sourceId: IntegrationServiceBase.generateSourceIdHash(
@@ -500,7 +503,7 @@ export class GithubIntegrationService extends IntegrationServiceBase {
         sourceParentId: '',
         timestamp: moment(record.starredAt).utc().toDate(),
         channel: repo.url,
-        member: await GithubIntegrationService.parseMember(record.node, context),
+        member,
         score: GitHubGrid.star.score,
         isContribution: GitHubGrid.star.isContribution,
       })
@@ -520,6 +523,7 @@ export class GithubIntegrationService extends IntegrationServiceBase {
     if (member) {
       return {
         member,
+        username: member.username[PlatformType.GITHUB].username,
         type: GithubActivityType.FORK,
         timestamp: moment(payload.forkee.created_at).utc().toDate(),
         platform: PlatformType.GITHUB,
@@ -542,7 +546,9 @@ export class GithubIntegrationService extends IntegrationServiceBase {
     const out: AddActivitiesSingle[] = []
 
     for (const record of records) {
+      const member = await GithubIntegrationService.parseMember(record.owner, context)
       out.push({
+        username: member.username[PlatformType.GITHUB].username,
         tenant: context.integration.tenantId,
         platform: PlatformType.GITHUB,
         type: GithubActivityType.FORK,
@@ -550,7 +556,7 @@ export class GithubIntegrationService extends IntegrationServiceBase {
         sourceParentId: '',
         timestamp: moment(record.createdAt).utc().toDate(),
         channel: repo.url,
-        member: await GithubIntegrationService.parseMember(record.owner, context),
+        member,
         score: GitHubGrid.fork.score,
         isContribution: GitHubGrid.fork.isContribution,
       })
@@ -595,6 +601,7 @@ export class GithubIntegrationService extends IntegrationServiceBase {
     if (member) {
       return {
         member,
+        username: member.username[PlatformType.GITHUB].username,
         type,
         timestamp: moment(timestamp).utc().toDate(),
         platform: PlatformType.GITHUB,
@@ -621,8 +628,10 @@ export class GithubIntegrationService extends IntegrationServiceBase {
     const out: AddActivitiesSingle[] = []
 
     for (const record of records) {
+      const member = await GithubIntegrationService.parseMember(record.author, context)
       out.push({
         tenant: context.integration.tenantId,
+        username: member.username[PlatformType.GITHUB].username,
         platform: PlatformType.GITHUB,
         type: GithubActivityType.PULL_REQUEST_OPENED,
         sourceId: record.id,
@@ -635,7 +644,7 @@ export class GithubIntegrationService extends IntegrationServiceBase {
         attributes: {
           state: record.state.toLowerCase(),
         },
-        member: await GithubIntegrationService.parseMember(record.author, context),
+        member,
         score: GitHubGrid.pullRequestOpened.score,
         isContribution: GitHubGrid.pullRequestOpened.isContribution,
       })
@@ -695,6 +704,7 @@ export class GithubIntegrationService extends IntegrationServiceBase {
       const comment = payload.comment
       return {
         member,
+        username: member.username[PlatformType.GITHUB].username,
         type,
         timestamp: moment(comment.created_at).utc().toDate(),
         platform: PlatformType.GITHUB,
@@ -719,7 +729,9 @@ export class GithubIntegrationService extends IntegrationServiceBase {
   ): Promise<AddActivitiesSingle[]> {
     const out: AddActivitiesSingle[] = []
     for (const record of records) {
+      const member = await GithubIntegrationService.parseMember(record.author, context)
       out.push({
+        username: member.username[PlatformType.GITHUB].username,
         tenant: context.integration.tenantId,
         platform: PlatformType.GITHUB,
         type: GithubActivityType.PULL_REQUEST_COMMENT,
@@ -729,7 +741,7 @@ export class GithubIntegrationService extends IntegrationServiceBase {
         url: record.url,
         body: record.bodyText,
         channel: repo.url,
-        member: await GithubIntegrationService.parseMember(record.author, context),
+        member,
         score: GitHubGrid.comment.score,
         isContribution: GitHubGrid.comment.isContribution,
       })
@@ -770,6 +782,7 @@ export class GithubIntegrationService extends IntegrationServiceBase {
     if (member) {
       return {
         member,
+        username: member.username[PlatformType.GITHUB].username,
         type,
         timestamp: moment(timestamp).utc().toDate(),
         platform: PlatformType.GITHUB,
@@ -799,8 +812,10 @@ export class GithubIntegrationService extends IntegrationServiceBase {
     const out: AddActivitiesSingle[] = []
 
     for (const record of records) {
+      const member = await GithubIntegrationService.parseMember(record.author, context)
       out.push({
         tenant: context.integration.tenantId,
+        username: member.username[PlatformType.GITHUB].username,
         platform: PlatformType.GITHUB,
         type: GithubActivityType.ISSUE_OPENED,
         sourceId: record.id,
@@ -813,7 +828,7 @@ export class GithubIntegrationService extends IntegrationServiceBase {
         attributes: {
           state: record.state.toLowerCase(),
         },
-        member: await GithubIntegrationService.parseMember(record.author, context),
+        member,
         score: GitHubGrid.issueOpened.score,
         isContribution: GitHubGrid.issueOpened.isContribution,
       })
@@ -829,8 +844,10 @@ export class GithubIntegrationService extends IntegrationServiceBase {
   ): Promise<AddActivitiesSingle[]> {
     const out: AddActivitiesSingle[] = []
     for (const record of records) {
+      const member = await GithubIntegrationService.parseMember(record.author, context)
       out.push({
         tenant: context.integration.tenantId,
+        username: member.username[PlatformType.GITHUB].username,
         platform: PlatformType.GITHUB,
         type: GithubActivityType.ISSUE_COMMENT,
         sourceId: record.id,
@@ -839,7 +856,7 @@ export class GithubIntegrationService extends IntegrationServiceBase {
         url: record.url,
         body: record.bodyText,
         channel: repo.url,
-        member: await GithubIntegrationService.parseMember(record.author, context),
+        member,
         score: GitHubGrid.comment.score,
         isContribution: GitHubGrid.comment.isContribution,
       })
@@ -865,6 +882,7 @@ export class GithubIntegrationService extends IntegrationServiceBase {
     if (member) {
       return {
         member,
+        username: member.username[PlatformType.GITHUB].username,
         type: GithubActivityType.DISCUSSION_STARTED,
         timestamp: moment(discussion.created_at).utc().toDate(),
         platform: PlatformType.GITHUB,
@@ -901,7 +919,9 @@ export class GithubIntegrationService extends IntegrationServiceBase {
     const out: AddActivitiesSingle[] = []
 
     for (const record of records) {
+      const member = await GithubIntegrationService.parseMember(record.author, context)
       out.push({
+        username: member.username[PlatformType.GITHUB].username,
         tenant: context.integration.tenantId,
         platform: PlatformType.GITHUB,
         type: GithubActivityType.DISCUSSION_STARTED,
@@ -922,7 +942,7 @@ export class GithubIntegrationService extends IntegrationServiceBase {
             description: record.category.description,
           },
         },
-        member: await GithubIntegrationService.parseMember(record.author, context),
+        member,
         score: GitHubGrid.discussionOpened.score,
         isContribution: GitHubGrid.discussionOpened.isContribution,
       })
@@ -940,6 +960,7 @@ export class GithubIntegrationService extends IntegrationServiceBase {
       const answer = payload.answer
       return {
         member,
+        username: member.username[PlatformType.GITHUB].username,
         type: GithubActivityType.DISCUSSION_COMMENT,
         timestamp: moment(answer.created_at).utc().toDate(),
         platform: PlatformType.GITHUB,
@@ -969,8 +990,10 @@ export class GithubIntegrationService extends IntegrationServiceBase {
 
     for (const record of records) {
       const commentId = record.id
+      const member = await GithubIntegrationService.parseMember(record.author, context)
 
       out.push({
+        username: member.username[PlatformType.GITHUB].username,
         tenant: context.integration.tenantId,
         platform: PlatformType.GITHUB,
         type: GithubActivityType.DISCUSSION_COMMENT,
@@ -983,7 +1006,7 @@ export class GithubIntegrationService extends IntegrationServiceBase {
         attributes: {
           isAnswer: record.isAnswer ?? undefined,
         },
-        member: await GithubIntegrationService.parseMember(record.author, context),
+        member,
         score: record.isAnswer ? GitHubGrid.selectedAnswer.score : GitHubGrid.comment.score,
         isContribution: record.isAnswer
           ? GitHubGrid.selectedAnswer.isContribution
@@ -993,6 +1016,7 @@ export class GithubIntegrationService extends IntegrationServiceBase {
       for (const reply of record.replies.nodes) {
         const member = await GithubIntegrationService.parseMember(reply.author, context)
         out.push({
+          username: member.username[PlatformType.GITHUB].username,
           tenant: context.integration.tenantId,
           platform: PlatformType.GITHUB,
           type: GithubActivityType.DISCUSSION_COMMENT,
@@ -1079,8 +1103,11 @@ export class GithubIntegrationService extends IntegrationServiceBase {
     if (IS_TEST_ENV) {
       return {
         username: {
-          [PlatformType.GITHUB]: 'testMember',
-        },
+          [PlatformType.GITHUB]: {
+            username: 'testMember',
+            integrationId: context.integration.id,
+          },
+        } as PlatformIdentities,
       }
     }
 
@@ -1096,7 +1123,12 @@ export class GithubIntegrationService extends IntegrationServiceBase {
     const email = await this.getMemberEmail(context, memberFromApi.login)
 
     const member: Member = {
-      username: { [PlatformType.GITHUB]: memberFromApi.login },
+      username: {
+        [PlatformType.GITHUB]: {
+          username: memberFromApi.login,
+          integrationId: context.integration.id,
+        },
+      } as PlatformIdentities,
       displayName: memberFromApi.name,
       attributes: {
         [MemberAttributeName.IS_HIREABLE]: {
@@ -1151,13 +1183,16 @@ export class GithubIntegrationService extends IntegrationServiceBase {
         }
       }
     }
-
-    if (memberFromApi.twitterUsername) {
-      member.attributes[MemberAttributeName.URL][
-        PlatformType.TWITTER
-      ] = `https://twitter.com/${memberFromApi.twitterUsername}`
-      member.username[PlatformType.TWITTER] = memberFromApi.twitterUsername
-    }
+    // TODO Fix this (multiple member identities with secondary identities)
+    // if (memberFromApi.twitterUsername) {
+    //   member.attributes[MemberAttributeName.URL][
+    //     PlatformType.TWITTER
+    //   ] = `https://twitter.com/${memberFromApi.twitterUsername}`
+    //   member.username[PlatformType.TWITTER] = {
+    //     username: memberFromApi.twitterUsername,
+    //     integrationId: context.integration.id,
+    //   }
+    // }
 
     if (memberFromApi.followers && memberFromApi.followers.totalCount > 0) {
       member.reach = { [PlatformType.GITHUB]: memberFromApi.followers.totalCount }

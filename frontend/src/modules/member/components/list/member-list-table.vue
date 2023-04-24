@@ -141,12 +141,10 @@
                 </template>
               </el-table-column>
               <el-table-column
-                v-for="column of extraColumns"
-                :key="column.name"
-                :prop="column.name"
-                :label="column.label"
-                :width="column.width || 200"
-                :sortable="column.sortable ? 'custom' : ''"
+                label="# of Activities"
+                prop="activityCount"
+                width="200"
+                sortable="custom"
               >
                 <template #default="scope">
                   <router-link
@@ -156,11 +154,7 @@
                     }"
                     class="block !text-gray-500"
                   >
-                    {{
-                      column.formatter
-                        ? column.formatter(scope.row[column.name])
-                        : scope.row[column.name]
-                    }}
+                    {{ formatNumber(scope.row.activityCount) }}
                   </router-link>
                 </template>
               </el-table-column>
@@ -256,7 +250,7 @@
 
               <!-- # of Open Source Contributions -->
               <el-table-column
-                label="# OSS Contributions"
+                label="# of open source contributions"
                 width="200"
                 prop="numberOfOpenSourceContributions"
                 sortable
@@ -264,11 +258,10 @@
                 <template #header>
                   <el-tooltip placement="top">
                     <template #content>
-                      The total # of open-source code contributions a member did
-                      on GitHub.<br />
+                      This refers to the total # of open source contributions a member did on GitHub.<br />
                       To receive this attribute you have to enrich your members.
                     </template>
-                    OSS Contributions
+                    # of open source contributions
                   </el-tooltip>
                 </template>
                 <template #default="scope">
@@ -329,7 +322,7 @@
                             <i
                               v-if="email"
                               class="ri-external-link-line text-gray-400"
-                            /></span>
+                          /></span>
                         </template>
                         <div @click.prevent>
                           <a
@@ -338,7 +331,7 @@
                             class="badge--interactive"
                             :href="`mailto:${email}`"
                             @click.stop="trackEmailClick"
-                          >{{ email }}</a>
+                            >{{ email }}</a>
                         </div>
                       </el-tooltip>
                     </div>
@@ -409,7 +402,7 @@ import AppMemberListToolbar from '@/modules/member/components/list/member-list-t
 import AppMemberOrganizations from '@/modules/member/components/member-organizations.vue';
 import AppTagList from '@/modules/tag/components/tag-list.vue';
 import { formatDateToTimeAgo } from '@/utils/date';
-import { formatNumberToCompact } from '@/utils/number';
+import { formatNumberToCompact, formatNumber } from '@/utils/number';
 import AppMemberBadge from '../member-badge.vue';
 import AppMemberDropdown from '../member-dropdown.vue';
 import AppMemberIdentities from '../member-identities.vue';
@@ -442,10 +435,6 @@ const props = defineProps({
     default: () => true,
   },
 });
-
-const extraColumns = computed(
-  () => store.getters['member/activeView']?.columns || [],
-);
 
 const activeView = computed(() => store.getters['member/activeView']);
 

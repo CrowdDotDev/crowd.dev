@@ -46,7 +46,7 @@
   bottom: -4px;
 }
 .el-table .ascending .sort-caret.ascending {
-  @apply border-b-gray-900;
+  @apply border-b-gray-900 #{!important};
 }
 .el-table .descending .sort-caret.descending {
   @apply border-t-gray-900 #{!important};
