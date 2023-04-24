@@ -1500,23 +1500,19 @@ describe('MemberService tests', () => {
       // toMerge[1] = [(1,2),(1,4)] toMerge[2] = [(2,1)] toMerge[4] = [(4,1)]
       // noMerge[2] = [3]
       await MemberRepository.addToMerge(
-        returnedMember1.id,
-        returnedMember2.id,
+        [{ members: [returnedMember1.id, returnedMember2.id], similarity: null }],
         mockIRepositoryOptions,
       )
       await MemberRepository.addToMerge(
-        returnedMember1.id,
-        returnedMember4.id,
+        [{ members: [returnedMember1.id, returnedMember4.id], similarity: null }],
         mockIRepositoryOptions,
       )
       await MemberRepository.addToMerge(
-        returnedMember2.id,
-        returnedMember1.id,
+        [{ members: [returnedMember2.id, returnedMember1.id], similarity: null }],
         mockIRepositoryOptions,
       )
       await MemberRepository.addToMerge(
-        returnedMember4.id,
-        returnedMember1.id,
+        [{ members: [returnedMember4.id, returnedMember1.id], similarity: null }],
         mockIRepositoryOptions,
       )
 
@@ -1754,35 +1750,28 @@ describe('MemberService tests', () => {
 
       // toMerge[1] = [(1,2),(1,3)] toMerge[2] = [(2,1),(2,3)] toMerge[3] = [(3,1),(3,2)]
       await MemberRepository.addToMerge(
-        returnedMember1.id,
-        returnedMember2.id,
+        [{ members: [returnedMember1.id, returnedMember2.id], similarity: null }],
         mockIRepositoryOptions,
       )
       await MemberRepository.addToMerge(
-        returnedMember2.id,
-        returnedMember1.id,
-        mockIRepositoryOptions,
-      )
-
-      await MemberRepository.addToMerge(
-        returnedMember1.id,
-        returnedMember3.id,
-        mockIRepositoryOptions,
-      )
-      await MemberRepository.addToMerge(
-        returnedMember3.id,
-        returnedMember1.id,
+        [{ members: [returnedMember2.id, returnedMember1.id], similarity: null }],
         mockIRepositoryOptions,
       )
 
       await MemberRepository.addToMerge(
-        returnedMember2.id,
-        returnedMember3.id,
+        [{ members: [returnedMember1.id, returnedMember3.id], similarity: null }],
         mockIRepositoryOptions,
       )
       await MemberRepository.addToMerge(
-        returnedMember3.id,
-        returnedMember2.id,
+        [{ members: [returnedMember3.id, returnedMember1.id], similarity: null }],
+        mockIRepositoryOptions,
+      )
+      await MemberRepository.addToMerge(
+        [{ members: [returnedMember2.id, returnedMember3.id], similarity: null }],
+        mockIRepositoryOptions,
+      )
+      await MemberRepository.addToMerge(
+        [{ members: [returnedMember3.id, returnedMember2.id], similarity: null }],
         mockIRepositoryOptions,
       )
 

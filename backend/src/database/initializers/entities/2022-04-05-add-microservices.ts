@@ -15,15 +15,6 @@ export default async () => {
     const ws = new WidgetService(userContext)
     const is = new IntegrationService(userContext)
 
-    // add check_merge microservice
-    const checkMergeMicroservice = {
-      init: true,
-      running: false,
-      type: microserviceTypes.checkMerge,
-      variant: 'default',
-    }
-    await ms.create(checkMergeMicroservice)
-
     // add members_score microservice
     const membersScoreMicroservice = {
       init: true,

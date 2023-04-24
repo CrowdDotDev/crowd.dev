@@ -34,20 +34,6 @@ async function upsertMembers(tenantId: string, records: Array<any>): Promise<any
 }
 
 /**
- * Update members to merge for a set of members
- * @param tenantId Tenant ID
- * @param records The records to perform the operation to
- * @returns Success/error message
- */
-async function updateMembersToMerge(tenantId: string, records: Array<any>): Promise<any> {
-  const userContext = await getUserContext(tenantId)
-  const memberService = new MemberService(userContext)
-  for (const record of records) {
-    await memberService.addToMerge(record[0], record[1])
-  }
-}
-
-/**
  * Upsert a bulk of activities with members
  * @param tenantId Tenant ID
  * @param records The records to perform the operation to
@@ -106,9 +92,6 @@ async function bulkOperations(
 
     case Operations.UPSERT_MEMBERS:
       return upsertMembers(tenantId, records)
-
-    case Operations.UPDATE_MEMBERS_TO_MERGE:
-      return updateMembersToMerge(tenantId, records)
 
     case Operations.UPSERT_ACTIVITIES_WITH_MEMBERS:
       return upsertActivityWithMembers(tenantId, records)

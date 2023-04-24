@@ -15,8 +15,6 @@ import MemberAttributeSettingsRepository from '../database/repositories/memberAt
 import MemberAttributeSettingsService from './memberAttributeSettingsService'
 import SettingsService from './settingsService'
 import OrganizationService from './organizationService'
-import { sendPythonWorkerMessage } from '../serverless/utils/pythonWorkerSQS'
-import { PythonWorkerMessageType } from '../serverless/types/workerTypes'
 import {
   sendExportCSVNodeSQSMessage,
   sendNewMemberNodeSQSMessage,
@@ -27,6 +25,8 @@ import { AttributeType } from '../database/attributes/types'
 import {
   IActiveMemberFilter,
   mapUsernameToIdentities,
+  IMemberMergeSuggestion,
+  IMemberMergeAllSuggestions,
 } from '../database/repositories/types/memberTypes'
 import { IRepositoryOptions } from '../database/repositories/IRepositoryOptions'
 
@@ -318,12 +318,6 @@ export default class MemberService extends LoggingBase {
           fillRelations,
         )
 
-        await sendPythonWorkerMessage(this.options.currentTenant.id, {
-          type: PythonWorkerMessageType.CHECK_MERGE,
-          member: record.id,
-          tenant: this.options.currentTenant.id,
-        })
-
         telemetryTrack(
           'Member created',
           {
@@ -609,25 +603,15 @@ export default class MemberService extends LoggingBase {
    * @param memberTwoId ID of the second member
    * @returns Success/Error message
    */
-  async addToMerge(memberOneId, memberTwoId) {
+  async addToMerge(suggestions: IMemberMergeSuggestion[]) {
     const transaction = await SequelizeRepository.createTransaction(this.options)
-
     try {
-      await MemberRepository.addToMerge(memberOneId, memberTwoId, {
-        ...this.options,
-        transaction,
-      })
-      await MemberRepository.addToMerge(memberTwoId, memberOneId, {
-        ...this.options,
-        transaction,
-      })
-
+      await MemberRepository.addToMerge(suggestions, { ...this.options, transaction })
       await SequelizeRepository.commitTransaction(transaction)
-
       return { status: 200 }
     } catch (error) {
       await SequelizeRepository.rollbackTransaction(transaction)
-
+      this.log.error(error, 'Error while adding members to merge')
       throw error
     }
   }
@@ -664,6 +648,48 @@ export default class MemberService extends LoggingBase {
     } catch (error) {
       await SequelizeRepository.rollbackTransaction(transaction)
 
+      throw error
+    }
+  }
+
+  async getMergeSuggestions(): Promise<IMemberMergeAllSuggestions> {
+    // Adding a transaction so it will use the write database
+    const transaction = await SequelizeRepository.createTransaction(this.options)
+
+    try {
+      const numberOfHours = 24
+
+      const mergeSuggestionsbyUsername = await MemberRepository.mergeSuggestionsByUsername(
+        numberOfHours,
+        {
+          ...this.options,
+          transaction,
+        },
+      )
+      const mergeSuggestionsByEmail = await MemberRepository.mergeSuggestionsByEmail(
+        numberOfHours,
+        {
+          ...this.options,
+          transaction,
+        },
+      )
+      const mergeSuggestionsBySimilarity = await MemberRepository.mergeSuggestionsBySimilarity(
+        numberOfHours,
+        {
+          ...this.options,
+          transaction,
+        },
+      )
+
+      await SequelizeRepository.commitTransaction(transaction)
+      return {
+        byUsername: mergeSuggestionsbyUsername,
+        byEmail: mergeSuggestionsByEmail,
+        bySimilarity: mergeSuggestionsBySimilarity,
+      }
+    } catch (error) {
+      await SequelizeRepository.rollbackTransaction(transaction)
+      this.log.error(error)
       throw error
     }
   }
