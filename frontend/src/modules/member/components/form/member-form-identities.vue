@@ -77,7 +77,6 @@
                 </template>
               </el-form-item>
               <el-button
-                v-if="model.username[key]?.length > 1"
                 :disabled="editingDisabled(key)"
                 class="btn btn--md btn--transparent w-10 h-10"
                 @click="removeUsername(key, ii)"
@@ -114,6 +113,7 @@ import {
   watch,
 } from 'vue';
 import { CrowdIntegrations } from '@/integrations/integrations-config';
+import cloneDeep from 'lodash/cloneDeep';
 
 const emit = defineEmits(['update:modelValue']);
 const props = defineProps({
@@ -262,7 +262,7 @@ function onSwitchChange(value, key) {
       || model.value.username?.[key] === undefined)
     && value
   ) {
-    model.value.username[key] = [''];
+    model.value.username[key] = props.record.username[key]?.length ? cloneDeep(props.record.username[key]) : [''];
     return;
   }
 
@@ -294,12 +294,18 @@ function onInputChange(newValue, key, value, index) {
 const removeUsername = (platform, index) => {
   model.value.username[platform].splice(index, 1);
 
-  model.value.attributes = {
-    ...props.modelValue.attributes,
-    url: {
-      ...props.modelValue.attributes?.url,
-      [platform]: CrowdIntegrations.getConfig(platform)?.url(model.value.username[platform][0]),
-    },
-  };
+  if (!model.value.username[platform]?.length) {
+    delete model.value.username?.[platform];
+    delete model.value.attributes?.url?.[platform];
+    identitiesForm[platform].enabled = false;
+  } else {
+    model.value.attributes = {
+      ...props.modelValue.attributes,
+      url: {
+        ...props.modelValue.attributes?.url,
+        [platform]: CrowdIntegrations.getConfig(platform)?.url(model.value.username[platform][0]),
+      },
+    };
+  }
 };
 </script>
