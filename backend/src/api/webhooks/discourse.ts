@@ -27,20 +27,20 @@ export default async (req, res) => {
 
     try {
       if (!signature) {
-        req.log.error({ signature }, 'Discourse Webhook signature header missing!');
-        await req.responseHandler.success(req, res, 'Discourse Webhook signature header missing!', 200);
-        return;
+        req.log.error({ signature }, 'Discourse Webhook signature header missing!')
+        await req.responseHandler.success(req, res, 'Discourse Webhook signature header missing!', 200)
+        return
       }
 
       if (!verifyWebhookSignature(JSON.stringify(data), integration.settings.webhookSecret, signature)) {
-        req.log.error({ signature }, 'Discourse Webhook signature verification failed!');
-        await req.responseHandler.success(req, res, 'Discourse Webhook signature verification failed!', 200);
-        return;
+        req.log.error({ signature }, 'Discourse Webhook signature verification failed!')
+        await req.responseHandler.success(req, res, 'Discourse Webhook signature verification failed!', 200)
+        return
       }
     } catch (error) {
-        req.log.error({ signature, error }, 'Internal error when verifying discourse webhook');
-        await req.responseHandler.success(req, res, 'Internal error when verifying discourse webhook', 200);
-        return;
+        req.log.error({ signature, error }, 'Internal error when verifying discourse webhook')
+        await req.responseHandler.success(req, res, 'Internal error when verifying discourse webhook', 200)
+        return
     }
 
 

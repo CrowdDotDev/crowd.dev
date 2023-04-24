@@ -10,7 +10,7 @@ export default async (req, res) => {
     Permissions.values.integrationEdit,
   ])
 
-  const {apiKey, apiUsername, forumHostname} = req.body;
+  const {apiKey, apiUsername, forumHostname} = req.body
 
     if (apiKey && apiUsername && forumHostname) {
         try {
