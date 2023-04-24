@@ -289,20 +289,47 @@ class MemberRepository {
     // Process suggestions in chunks of 100 or less
     const suggestionChunks = chunk(suggestions, 100)
 
-    const insertValues = (memberId: string, toMergeId: string, similarity: number | null) =>
-      `('${memberId}', '${toMergeId}', ${!similarity ? 'NULL' : similarity}, NOW(), NOW())`
+    const insertValues = (
+      memberId: string,
+      toMergeId: string,
+      similarity: number | null,
+      index: number,
+    ) => {
+      const idPlaceholder = (key: string) => `${key}${index}`
+      return {
+        query: `(:${idPlaceholder('memberId')}, :${idPlaceholder('toMergeId')}, :${idPlaceholder(
+          'similarity',
+        )}, NOW(), NOW())`,
+        replacements: {
+          [idPlaceholder('memberId')]: memberId,
+          [idPlaceholder('toMergeId')]: toMergeId,
+          [idPlaceholder('similarity')]: similarity === null ? null : similarity,
+        },
+      }
+    }
 
     for (const suggestionChunk of suggestionChunks) {
-      const query = `
-      INSERT INTO "memberToMerge" ("memberId", "toMergeId", "similarity", "createdAt", "updatedAt")
-      VALUES ${suggestionChunk
-        .map((suggestion) =>
-          insertValues(suggestion.members[0], suggestion.members[1], suggestion.similarity),
+      const placeholders: string[] = []
+      let replacements: Record<string, unknown> = {}
+
+      suggestionChunk.forEach((suggestion, index) => {
+        const { query, replacements: chunkReplacements } = insertValues(
+          suggestion.members[0],
+          suggestion.members[1],
+          suggestion.similarity,
+          index,
         )
-        .join(', ')};
-    `
+        placeholders.push(query)
+        replacements = { ...replacements, ...chunkReplacements }
+      })
+
+      const query = `
+        INSERT INTO "memberToMerge" ("memberId", "toMergeId", "similarity", "createdAt", "updatedAt")
+        VALUES ${placeholders.join(', ')};
+      `
 
       await seq.query(query, {
+        replacements,
         type: QueryTypes.INSERT,
         transaction,
       })

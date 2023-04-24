@@ -41,17 +41,6 @@
           <span class="ri-arrow-left-right-fill text-base text-gray-600 mr-2" />
           <span>Make primary</span>
         </button>
-        <div
-          v-if="props.isPrimary && props.similarity"
-          class="rounded-full py-0.5 px-2 text-white inline-block text-xs leading-5 font-medium"
-          :class="{
-            'bg-green-500': props.similarity >= 0.8,
-            'bg-orange-500': props.similarity >= 0.6 && props.similarity < 0.8,
-            'bg-yellow-500': props.similarity < 0.6,
-          }"
-        >
-          {{ Math.round(props.similarity * 100) }}% confidence
-        </div>
         <slot name="action" />
       </div>
       <app-avatar :entity="member" class="mb-3" />
@@ -244,11 +233,6 @@ const props = defineProps({
     type: Number,
     required: false,
     default: 0,
-  },
-  similarity: {
-    type: Number,
-    required: false,
-    default: null,
   },
 });
 
