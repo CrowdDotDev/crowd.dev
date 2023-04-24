@@ -262,7 +262,7 @@ function onSwitchChange(value, key) {
       || model.value.username?.[key] === undefined)
     && value
   ) {
-    model.value.username[key] = props.record.username[key]?.length ? cloneDeep(props.record.username[key]) : [''];
+    model.value.username[key] = props.record?.username?.[key]?.length ? cloneDeep(props.record.username[key]) : [''];
     return;
   }
 
