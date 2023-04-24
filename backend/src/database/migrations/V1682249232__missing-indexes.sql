@@ -55,5 +55,3 @@ create index "ix_taskAssignees_userId" on "taskAssignees" ("userId");
 create index "ix_files_tenantId" on files ("tenantId");
 
 create index "ix_activityTasks_taskId" on "activityTasks" ("taskId");
-
-create index "ix_repos_tenantId" on repos ("tenantId");

@@ -55,5 +55,3 @@ drop index "ix_taskAssignees_userId";
 drop index "ix_files_tenantId";
 
 drop index "ix_activityTasks_taskId";
-
-drop index "ix_repos_tenantId";
