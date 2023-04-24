@@ -1,12 +1,3 @@
-alter table members
-    alter column username drop not null;
-
-alter table members
-    rename column username to "usernameOld";
-
-alter table activities
-    alter column username drop default;
-
 drop materialized view "memberActivityAggregatesMVs";
 
 create materialized view "memberActivityAggregatesMVs" as
