@@ -3169,107 +3169,6 @@ describe('MemberRepository tests', () => {
     })
   })
 
-  describe('addToMerge method', () => {
-    it('Should add a member to other members toMerge list', async () => {
-      const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
-
-      const member1 = {
-        username: {
-          [PlatformType.DISCORD]: {
-            username: 'anil',
-            integrationId: generateUUIDv1(),
-          },
-        },
-        displayName: 'Member 1',
-        joinedAt: '2020-05-27T15:13:30Z',
-      }
-
-      const member2 = {
-        username: {
-          [PlatformType.DISCORD]: {
-            username: 'anil2',
-            integrationId: generateUUIDv1(),
-          },
-        },
-        displayName: 'Member 2',
-        joinedAt: '2020-05-27T15:13:30Z',
-      }
-
-      const memberCreated1 = await MemberRepository.create(member1, mockIRepositoryOptions)
-      const memberCreated2 = await MemberRepository.create(member2, mockIRepositoryOptions)
-
-      const memberUpdated1 = await MemberRepository.addToMerge(
-        memberCreated1.id,
-        memberCreated2.id,
-        mockIRepositoryOptions,
-      )
-      const memberUpdated2 = await MemberRepository.addToMerge(
-        memberCreated2.id,
-        memberCreated1.id,
-        mockIRepositoryOptions,
-      )
-
-      expect(memberUpdated1.toMerge[0]).toBe(memberUpdated2.id)
-      expect(memberUpdated2.toMerge[0]).toBe(memberUpdated1.id)
-    })
-
-    it('Should return same result for multiple addToMerge calls for the same member', async () => {
-      const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
-
-      const member1 = {
-        username: {
-          [PlatformType.DISCORD]: {
-            username: 'anil',
-            integrationId: generateUUIDv1(),
-          },
-        },
-        displayName: 'Member 1',
-        joinedAt: '2020-05-27T15:13:30Z',
-      }
-
-      const member2 = {
-        username: {
-          [PlatformType.DISCORD]: {
-            username: 'anil2',
-            integrationId: generateUUIDv1(),
-          },
-        },
-        displayName: 'Member 2',
-        joinedAt: '2020-05-27T15:13:30Z',
-      }
-
-      const memberCreated1 = await MemberRepository.create(member1, mockIRepositoryOptions)
-      const memberCreated2 = await MemberRepository.create(member2, mockIRepositoryOptions)
-
-      const memberUpdated1 = await MemberRepository.addToMerge(
-        memberCreated1.id,
-        memberCreated2.id,
-        mockIRepositoryOptions,
-      )
-      const memberUpdated2 = await MemberRepository.addToMerge(
-        memberCreated2.id,
-        memberCreated1.id,
-        mockIRepositoryOptions,
-      )
-
-      // multiple calls to for same (member, mergeMember) should result in no change
-      await MemberRepository.addToMerge(
-        memberCreated2.id,
-        memberCreated1.id,
-        mockIRepositoryOptions,
-      )
-      await MemberRepository.addToMerge(
-        memberCreated2.id,
-        memberCreated1.id,
-        mockIRepositoryOptions,
-      )
-
-      expect(memberUpdated1.toMerge.length).toBe(1)
-      expect(memberUpdated1.toMerge[0]).toBe(memberUpdated2.id)
-      expect(memberUpdated2.toMerge[0]).toBe(memberUpdated1.id)
-    })
-  })
-
   describe('removeToMerge method', () => {
     it('Should remove a member from other members toMerge list', async () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
@@ -3299,28 +3198,28 @@ describe('MemberRepository tests', () => {
       const memberCreated1 = await MemberRepository.create(member1, mockIRepositoryOptions)
       const memberCreated2 = await MemberRepository.create(member2, mockIRepositoryOptions)
 
-      let memberUpdated1 = await MemberRepository.addToMerge(
-        memberCreated1.id,
-        memberCreated2.id,
+      await MemberRepository.addToMerge(
+        [{ members: [memberCreated1.id, memberCreated2.id], similarity: null }],
         mockIRepositoryOptions,
       )
-      const memberUpdated2 = await MemberRepository.addToMerge(
-        memberCreated2.id,
-        memberCreated1.id,
+      await MemberRepository.addToMerge(
+        [{ members: [memberCreated2.id, memberCreated1.id], similarity: null }],
         mockIRepositoryOptions,
       )
 
-      memberUpdated1 = await MemberRepository.removeToMerge(
+      let m1 = await MemberRepository.findById(memberCreated1.id, mockIRepositoryOptions)
+      const m2 = await MemberRepository.findById(memberCreated2.id, mockIRepositoryOptions)
+      m1 = await MemberRepository.removeToMerge(
         memberCreated1.id,
         memberCreated2.id,
         mockIRepositoryOptions,
       )
 
       // Member2 should be removed from Member1.toMerge
-      expect(memberUpdated1.toMerge.length).toBe(0)
+      expect(m1.toMerge.length).toBe(0)
 
       // Member1 is still in member2.toMerge list
-      expect(memberUpdated2.toMerge[0]).toBe(memberUpdated1.id)
+      expect(m2.toMerge[0]).toBe(m1.id)
     })
   })
 

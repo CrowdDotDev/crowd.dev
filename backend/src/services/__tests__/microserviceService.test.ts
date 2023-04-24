@@ -18,7 +18,7 @@ describe('MicroService Service tests', () => {
     it('Should create a microservice succesfully with default values', async () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
 
-      const microservice2Add = { type: 'check_merge' }
+      const microservice2Add = { type: 'members_score' }
 
       const microserviceCreated = await new MicroserviceService(
         mockIRepositoryOptions,
@@ -47,7 +47,7 @@ describe('MicroService Service tests', () => {
     it('Should return the existing if it does not exist', async () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
 
-      const microservice2Add = { type: 'check_merge' }
+      const microservice2Add = { type: 'members_score' }
 
       const microserviceCreated = await new MicroserviceService(mockIRepositoryOptions).create(
         microservice2Add,

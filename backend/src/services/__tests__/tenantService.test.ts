@@ -82,14 +82,11 @@ describe('TenantService tests', () => {
       const member3 = await memberService.upsert(memberToCreate3)
       let member4 = await memberService.upsert(memberToCreate4)
 
-      await memberService.addToMerge(member1.id, member2.id)
-      await memberService.addToMerge(member3.id, member4.id)
+      await memberService.addToMerge([{ members: [member1.id, member2.id], similarity: null }])
+      await memberService.addToMerge([{ members: [member3.id, member4.id], similarity: null }])
 
       member2 = await memberService.findById(member2.id)
       member4 = await memberService.findById(member4.id)
-
-      expect(member2.toMerge).toHaveLength(1)
-      expect(member4.toMerge).toHaveLength(1)
 
       const memberToMergeSuggestions = await tenantService.findMembersToMerge({})
 
@@ -101,16 +98,16 @@ describe('TenantService tests', () => {
       // But this function should not return duplicates, so we should get
       // only two pairs: [m2, m1] and [m4, m3]
 
-      expect(memberToMergeSuggestions.count).toEqual(2)
+      expect(memberToMergeSuggestions.count).toEqual(1)
 
       expect(
-        memberToMergeSuggestions.rows[0]
+        memberToMergeSuggestions.rows[0].members
           .sort((a, b) => (a.createdAt > b.createdAt ? 1 : -1))
           .map((m) => m.id),
       ).toStrictEqual([member1.id, member2.id])
 
       expect(
-        memberToMergeSuggestions.rows[1]
+        memberToMergeSuggestions.rows[1].members
           .sort((a, b) => (a.createdAt > b.createdAt ? 1 : -1))
           .map((m) => m.id),
       ).toStrictEqual([member3.id, member4.id])
@@ -194,15 +191,14 @@ describe('TenantService tests', () => {
 
       expect(tenantCreatedPlain).toStrictEqual(tenantExpected)
 
-      // Check microservices (check_merge and members_score should be created with tenantService.create)
+      // Check microservices (members_score should be created with tenantService.create)
       const ms = new MicroserviceService({ ...options, currentTenant: tenantCreated })
       const microservicesOfTenant = await ms.findAndCountAll({})
 
-      expect(microservicesOfTenant.count).toEqual(2)
+      expect(microservicesOfTenant.count).toEqual(1)
 
       // findAndCountAll returns sorted by createdAt (desc) by default, so first one should be members_score
       expect(microservicesOfTenant.rows[0].type).toEqual('members_score')
-      expect(microservicesOfTenant.rows[1].type).toEqual('check_merge')
 
       // Check default member attributes
       const mas = new MemberAttributeSettingsService({ ...options, currentTenant: tenantCreated })
