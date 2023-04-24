@@ -5,6 +5,7 @@ import { SearchCriteria } from './common'
 
 export enum AutomationType {
   WEBHOOK = 'webhook',
+  SLACK = 'slack',
 }
 
 /**
