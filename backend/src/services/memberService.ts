@@ -717,7 +717,12 @@ export default class MemberService extends LoggingBase {
               }
             }
 
-            if (!found) {
+            if (found) {
+              // remove from data.username
+              data.username[identity.platform] = data.username[identity.platform].filter(
+                (i) => i.username !== identity.username,
+              )
+            } else {
               data.username[identity.platform].push({ ...identity, delete: true })
             }
           } else {
