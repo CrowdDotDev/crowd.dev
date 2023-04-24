@@ -97,6 +97,11 @@ export enum StackOverflowActivityType {
   ANSWER = 'answer',
 }
 
+export enum DiscourseActivityType {
+  POST = 'post',
+  REPLY = 'reply',
+}
+
 const githubUrl = 'https://github.com'
 
 const defaultGithubChannelFormatter = (channel) => {
