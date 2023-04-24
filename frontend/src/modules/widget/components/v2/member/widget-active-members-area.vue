@@ -169,8 +169,8 @@ const query = computed(() => [
 
 // Fetch function to pass to detail drawer
 const getActiveMembers = async ({ pagination }) => {
-  const startDate = moment(drawerDate.value).startOf('day');
-  const endDate = moment(drawerDate.value);
+  const startDate = moment.utc(drawerDate.value).startOf('day');
+  const endDate = moment.utc(drawerDate.value);
 
   if (granularity.value.value === 'day') {
     endDate.endOf('day');

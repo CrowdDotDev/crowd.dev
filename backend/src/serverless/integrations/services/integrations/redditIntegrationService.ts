@@ -25,7 +25,7 @@ import {
   RedditMoreChildren,
   RedditMoreCommentsResponse,
 } from '../../types/redditTypes'
-import { AddActivitiesSingle } from '../../types/messageTypes'
+import { AddActivitiesSingle, PlatformIdentities } from '../../types/messageTypes'
 import { IntegrationServiceBase } from '../integrationServiceBase'
 import { Logger } from '../../../../utils/logging'
 import getMoreComments from '../../usecases/reddit/getMoreComments'
@@ -129,7 +129,7 @@ export class RedditIntegrationService extends IntegrationServiceBase {
     const nextPage = posts[posts.length - 1].data.name
 
     const activities = posts.map((post) =>
-      this.parsePost(context.integration.tenantId, subreddit, post.data),
+      this.parsePost(context.integration.tenantId, subreddit, post.data, context),
     )
     const lastRecord = activities.length > 0 ? activities[activities.length - 1] : undefined
 
@@ -354,6 +354,7 @@ export class RedditIntegrationService extends IntegrationServiceBase {
         comment,
         sourceParentId,
         stream,
+        context,
       ),
     )
 
@@ -388,11 +389,15 @@ export class RedditIntegrationService extends IntegrationServiceBase {
    * @param post the post from the Reddit API
    * @returns a post parsed as a crowd.dev activity
    */
-  parsePost(tenantId, channel, post: RedditPost): AddActivitiesSingle {
+  parsePost(tenantId, channel, post: RedditPost, context: IStepContext): AddActivitiesSingle {
     const body = post.selftext_html
       ? sanitizeHtml(he.decode(post.selftext_html))
       : `<a href="${post.url}" target="__blank">${post.url}</a>`
+
+    const member = this.getMember(post, context)
     const activity = {
+      member,
+      username: member.username[PlatformType.REDDIT].username,
       tenant: tenantId,
       sourceId: post.id.toString(),
       type: RedditActivityType.POST,
@@ -413,10 +418,8 @@ export class RedditIntegrationService extends IntegrationServiceBase {
         thubmnail: post.thumbnail,
       },
     }
-    return {
-      ...activity,
-      member: this.getMember(post),
-    }
+
+    return activity
   }
 
   /**
@@ -433,9 +436,14 @@ export class RedditIntegrationService extends IntegrationServiceBase {
     comment: RedditComment,
     sourceParentId: string,
     stream: IIntegrationStream,
+    context: IStepContext,
   ): AddActivitiesSingle {
+    const member = this.getMember(comment, context)
+
     const activity = {
       tenant: tenantId,
+      member,
+      username: member.username[PlatformType.REDDIT].username,
       sourceId: comment.id.toString(),
       type: RedditActivityType.COMMENT,
       platform: PlatformType.REDDIT,
@@ -459,10 +467,8 @@ export class RedditIntegrationService extends IntegrationServiceBase {
         thubmnail: comment.thumbnail,
       },
     }
-    return {
-      ...activity,
-      member: this.getMember(comment),
-    }
+
+    return activity
   }
 
   /**
@@ -470,17 +476,28 @@ export class RedditIntegrationService extends IntegrationServiceBase {
    * @param activity either a post or a comment
    * @returns a crowd.dev community member
    */
-  getMember(activity) {
+  getMember(activity, context: IStepContext) {
     if (activity.author === '[deleted]') {
       const uniqueId = `deleted:${uuid()}`
 
       return {
-        username: uniqueId,
+        username: {
+          [PlatformType.REDDIT]: {
+            username: uniqueId,
+            integrationId: context.integration.id,
+          },
+        } as PlatformIdentities,
         displayName: 'Deleted User',
       }
     }
     return {
-      username: activity.author,
+      username: {
+        [PlatformType.REDDIT]: {
+          username: activity.author,
+          integrationId: context.integration.id,
+          sourceId: activity.author_fullname,
+        },
+      } as PlatformIdentities,
       platform: PlatformType.REDDIT,
       displayName: activity.author,
       attributes: {

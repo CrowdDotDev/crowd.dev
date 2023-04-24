@@ -306,7 +306,7 @@ export default class ConversationService extends LoggingBase {
     let plainActivities = conversation.activities
       .map((act) => {
         act.timestamp = moment(act.timestamp).unix()
-        act.author = act.member.username[act.platform]
+        act.author = act.username
         delete act.member
         delete act.display
         return act

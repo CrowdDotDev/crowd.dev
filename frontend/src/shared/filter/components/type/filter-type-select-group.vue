@@ -135,7 +135,7 @@ const includeModel = computed({
 });
 
 const additionalOptions = computed(() => {
-  if (props.label === 'Activity type') {
+  if (props.label === 'Activity type' && types.value?.custom) {
     return [
       {
         label: reactive({
@@ -147,7 +147,7 @@ const additionalOptions = computed(() => {
           .map(([, platformTypes]) => Object.entries(platformTypes))
           .flat()
           .map(([type, display]) => ({
-            label: display.short,
+            label: display.display.short,
             value: type,
           })),
       },

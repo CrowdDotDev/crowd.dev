@@ -1,4 +1,4 @@
-import Sequelize, { DataTypes } from 'sequelize'
+import { DataTypes } from 'sequelize'
 
 export default (sequelize) => {
   const member = sequelize.define(
@@ -8,13 +8,6 @@ export default (sequelize) => {
         type: DataTypes.UUID,
         defaultValue: DataTypes.UUIDV4,
         primaryKey: true,
-      },
-      username: {
-        type: DataTypes.JSONB,
-        allowNull: false,
-        validate: {
-          notEmpty: true,
-        },
       },
       attributes: {
         type: DataTypes.JSONB,
@@ -74,14 +67,6 @@ export default (sequelize) => {
             deletedAt: null,
           },
         },
-        // Using GIN index so we can index every single platform
-        // in the JSONB field
-        {
-          unique: false,
-          fields: ['username'],
-          using: 'gin',
-          operator: 'jsonb_path_ops',
-        },
         // Below are B-tree indexes for speeding up search in normal fields
         {
           unique: false,
@@ -104,22 +89,6 @@ export default (sequelize) => {
             deletedAt: null,
           },
         },
-        {
-          name: 'slack',
-          fields: [Sequelize.literal('(("username"->>\'slack\')::text)')],
-        },
-        {
-          name: 'github',
-          fields: [Sequelize.literal('(("username"->>\'github\')::text)')],
-        },
-        {
-          name: 'twitter',
-          fields: [Sequelize.literal('(("username"->>\'twitter\')::text)')],
-        },
-        {
-          name: 'discord',
-          fields: [Sequelize.literal('(("username"->>\'discord\')::text)')],
-        },
       ],
       timestamps: true,
       paranoid: true,
@@ -127,6 +96,11 @@ export default (sequelize) => {
   )
 
   member.associate = (models) => {
+    models.member.hasMany(models.memberIdentity, {
+      as: 'memberIdentities',
+      foreignKey: 'memberId',
+    })
+
     models.member.hasOne(models.memberActivityAggregatesMV, {
       as: 'memberActivityAggregatesMVs',
       foreignKey: 'id',

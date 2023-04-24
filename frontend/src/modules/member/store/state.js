@@ -80,13 +80,7 @@ export default () => ({
     'most-engaged': {
       id: 'most-engaged',
       label: 'Most engaged',
-      columns: [
-        {
-          name: 'activityCount',
-          label: '# of Activities',
-          sortable: true,
-        },
-      ],
+      columns: [],
       initialFilter: INITIAL_VIEW_ACTIVE_FILTER,
       filter: JSON.parse(
         JSON.stringify(INITIAL_VIEW_ACTIVE_FILTER),
@@ -130,6 +124,7 @@ export default () => ({
     team: {
       id: 'team',
       label: 'Team members',
+      columns: [],
       initialFilter: INITIAL_VIEW_TEAM_MEMBERS_FILTER,
       filter: JSON.parse(
         JSON.stringify(INITIAL_VIEW_TEAM_MEMBERS_FILTER),

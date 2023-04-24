@@ -17,7 +17,7 @@ import { TwitterMembers, TwitterParsedPosts } from '../../types/twitterTypes'
 import getFollowers from '../../usecases/twitter/getFollowers'
 import findPostsByMention from '../../usecases/twitter/getPostsByMention'
 import findPostsByHashtag from '../../usecases/twitter/getPostsByHashtag'
-import { AddActivitiesSingle } from '../../types/messageTypes'
+import { AddActivitiesSingle, PlatformIdentities } from '../../types/messageTypes'
 import { MemberAttributeName } from '../../../../database/attributes/member/enums'
 import { TwitterGrid } from '../../grid/twitterGrid'
 import Operations from '../../../dbOperations/operations'
@@ -216,6 +216,7 @@ export class TwitterIntegrationService extends IntegrationServiceBase {
       ? moment('1970-01-01T00:00:00+00:00').utc()
       : moment().utc()
     let out = records.map((record) => ({
+      username: record.username,
       tenant: context.integration.tenantId,
       platform: PlatformType.TWITTER,
       type: 'follow',
@@ -229,7 +230,13 @@ export class TwitterIntegrationService extends IntegrationServiceBase {
       timestamp: timestampObj.toDate(),
       url: `https://twitter.com/${record.username}`,
       member: {
-        username: record.username,
+        username: {
+          [PlatformType.TWITTER]: {
+            username: record.username,
+            integrationId: context.integration.id,
+            sourceId: record.id,
+          },
+        } as PlatformIdentities,
         reach: { [PlatformType.TWITTER]: record.public_metrics.followers_count },
         attributes: {
           [MemberAttributeName.SOURCE_ID]: {
@@ -286,6 +293,7 @@ export class TwitterIntegrationService extends IntegrationServiceBase {
   ): Array<AddActivitiesSingle> {
     return records.map((record) => {
       const out: any = {
+        username: record.member.username,
         tenant: context.integration.tenantId,
         platform: PlatformType.TWITTER,
         type: stream.value === 'mentions' ? 'mention' : 'hashtag',

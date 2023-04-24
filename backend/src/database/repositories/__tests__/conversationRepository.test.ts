@@ -5,6 +5,7 @@ import MemberRepository from '../memberRepository'
 import SequelizeTestUtils from '../../utils/sequelizeTestUtils'
 import Error404 from '../../../errors/Error404'
 import { PlatformType } from '../../../types/integrationEnums'
+import { generateUUIDv1 } from '../../../utils/uuid'
 
 const db = null
 
@@ -256,10 +257,13 @@ describe('ConversationRepository tests', () => {
       const memberCreated = await MemberRepository.create(
         {
           username: {
-            [PlatformType.GITHUB]: 'test',
+            [PlatformType.SLACK]: {
+              username: 'test',
+              integrationId: generateUUIDv1(),
+            },
           },
           displayName: 'Member 1',
-          platform: PlatformType.GITHUB,
+          platform: PlatformType.SLACK,
           joinedAt: '2020-05-27T15:13:30Z',
         },
         mockIRepositoryOptions,
@@ -282,6 +286,7 @@ describe('ConversationRepository tests', () => {
           channel: 'general',
           isContribution: true,
           member: memberCreated.id,
+          username: 'test',
           conversationId: conversation1Created.id,
           score: 1,
           sourceId: '#sourceId1',
@@ -301,6 +306,7 @@ describe('ConversationRepository tests', () => {
           channel: 'general',
           isContribution: true,
           member: memberCreated.id,
+          username: 'test',
           score: 1,
           parent: activity1Created.id,
           conversationId: conversation1Created.id,
@@ -321,6 +327,7 @@ describe('ConversationRepository tests', () => {
           channel: 'general',
           isContribution: true,
           member: memberCreated.id,
+          username: 'test',
           score: 1,
           parent: activity1Created.id,
           conversationId: conversation1Created.id,
@@ -343,6 +350,7 @@ describe('ConversationRepository tests', () => {
           body: 'conversation activity 1',
           channel: 'Some-Channel',
           isContribution: true,
+          username: 'test',
           member: memberCreated.id,
           score: 1,
           conversationId: conversation2Created.id,
@@ -359,6 +367,7 @@ describe('ConversationRepository tests', () => {
           body: 'conversation activity 2',
           channel: 'Some-Channel',
           isContribution: true,
+          username: 'test',
           member: memberCreated.id,
           score: 1,
           conversationId: conversation2Created.id,
@@ -380,6 +389,7 @@ describe('ConversationRepository tests', () => {
           body: 'conversation activity 1',
           channel: 'Some-Channel',
           isContribution: true,
+          username: 'test',
           member: memberCreated.id,
           score: 1,
           conversationId: conversation3Created.id,
@@ -397,6 +407,7 @@ describe('ConversationRepository tests', () => {
           body: 'conversation activity 7',
           channel: 'Some-Channel',
           isContribution: true,
+          username: 'test',
           member: memberCreated.id,
           score: 1,
           conversationId: conversation3Created.id,
@@ -443,6 +454,8 @@ describe('ConversationRepository tests', () => {
         'activeOn',
         'identities',
         'activeDaysCount',
+        'username',
+        'numberOfOpenSourceContributions',
       ])
 
       const conversation1Expected = {

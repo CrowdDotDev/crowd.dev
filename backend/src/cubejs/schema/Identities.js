@@ -1,7 +1,6 @@
 /* eslint-disable no-restricted-globals */
 cube(`Identities`, {
-  sql: `select distinct unnest(ARRAY(SELECT jsonb_object_keys(m.username))) AS name, "m"."tenantId" as "tenantId"
-    from members m`,
+  sql: `select distinct platform as name, "tenantId" from "memberIdentities"`,
 
   preAggregations: {},
 
@@ -19,7 +18,7 @@ cube(`Identities`, {
   },
   dimensions: {
     name: {
-      sql: `name`,
+      sql: `${CUBE}.name`,
       type: `string`,
       primaryKey: true,
       shown: true,
