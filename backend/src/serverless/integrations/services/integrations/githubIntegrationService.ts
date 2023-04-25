@@ -843,7 +843,7 @@ export class GithubIntegrationService extends IntegrationServiceBase {
         sourceParentId = payload.pull_request.node_id.toString()
         sourceId = `gen-CE_${payload.pull_request.node_id.toString()}_${
           payload.pull_request.user.login
-        }_${payload.pull_request.closed_at}`
+        }_${moment(payload.pull_request.closed_at).utc().toISOString()}`
         break
       }
 
@@ -854,7 +854,9 @@ export class GithubIntegrationService extends IntegrationServiceBase {
         sourceParentId = payload.pull_request.node_id.toString()
         sourceId = `gen-AE_${payload.pull_request.node_id.toString()}_${
           payload.pull_request.user.login
-        }_${payload.pull_request.assignee.login}_${payload.pull_request.updated_at}`
+        }_${payload.pull_request.assignee.login}_${moment(payload.pull_request.updated_at)
+          .utc()
+          .toISOString()}`
         objectMember = await GithubIntegrationService.parseWebhookMember(
           payload.pull_request.assignee.login,
           context,
@@ -870,7 +872,9 @@ export class GithubIntegrationService extends IntegrationServiceBase {
         sourceParentId = payload.pull_request.node_id.toString()
         sourceId = `gen-RRE_${payload.pull_request.node_id.toString()}_${
           payload.pull_request.user.login
-        }_${payload.requested_reviewer.login}_${payload.pull_request.updated_at}`
+        }_${payload.requested_reviewer.login}_${moment(payload.pull_request.updated_at)
+          .utc()
+          .toISOString()}`
         objectMember = await GithubIntegrationService.parseWebhookMember(
           payload.requested_reviewer.login,
           context,
@@ -886,7 +890,7 @@ export class GithubIntegrationService extends IntegrationServiceBase {
         sourceParentId = payload.pull_request.node_id.toString()
         sourceId = `gen-ME_${payload.pull_request.node_id.toString()}_${
           payload.pull_request.merged_by.login
-        }_${payload.pull_request.merged_at}`
+        }_${moment(payload.pull_request.merged_at).utc().toISOString()}`
         break
       }
 
