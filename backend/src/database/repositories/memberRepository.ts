@@ -871,14 +871,22 @@ class MemberRepository {
                                      timestamp >= :periodStart and 
                                      timestamp < :periodEnd
                                group by "memberId"),
-              identities as (select "memberId",
-                                    array_agg(distinct platform)                as identities,
-                                    jsonb_object_agg(platform, usernames)       as username
-                            from (select "memberId",
-                                          platform,
-                                          jsonb_agg(username) over (partition by "memberId", platform)       as usernames
-                                  from "memberIdentities") ranked
-                            group by "memberId")
+              identities as (select mi."memberId",
+                                        array_agg(distinct mi.platform)             as identities,
+                                        jsonb_object_agg(mi.platform, mi.usernames) as username
+                                  from (select "memberId",
+                                              platform,
+                                              array_agg(username) as usernames
+                                        from (select "memberId",
+                                                    platform,
+                                                    username,
+                                                    "createdAt",
+                                                    row_number() over (partition by "memberId", platform order by "createdAt" desc) =
+                                                    1 as is_latest
+                                              from "memberIdentities" where "tenantId" = :tenantId) sub
+                                        where is_latest
+                                        group by "memberId", platform) mi
+                                  group by mi."memberId")
           select m.id,
              m."displayName",
              i.username,
@@ -1161,15 +1169,10 @@ with member_tags as (select mt."memberId",
                 and m."deletedAt" is null
                 and o."tenantId" = :tenantId
                 and o."deletedAt" is null
-              group by mo."memberId"),
-    identities as (select "memberId",
-                          jsonb_object_agg(platform, username) as username
-                  from "memberIdentities"
-                  group by "memberId")
+              group by mo."memberId")    
 select count(m.id) as "totalCount"
 from members m
          inner join "memberActivityAggregatesMVs" aggs on aggs.id = m.id
-         inner join identities i on m.id = i."memberId"
          left join member_tags mt on m.id = mt."memberId"
          left join member_organizations mo on m.id = mo."memberId"
 where m."deletedAt" is null
