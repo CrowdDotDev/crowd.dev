@@ -29,8 +29,6 @@ import {
   IMemberMergeAllSuggestions,
 } from '../database/repositories/types/memberTypes'
 import { IRepositoryOptions } from '../database/repositories/IRepositoryOptions'
-import { createChildLogger } from '../utils/logging'
-import { generateUUIDv4 } from '../utils/uuid'
 
 export default class MemberService extends LoggingBase {
   options: IServiceOptions
@@ -190,9 +188,7 @@ export default class MemberService extends LoggingBase {
    * @returns The created member
    */
   async upsert(data, existing: boolean | any = false) {
-    const logger = createChildLogger('MemberService.upsert', this.options.log, {
-      requestId: generateUUIDv4(),
-    })
+    const logger = this.options.log
 
     const errorDetails: any = {}
 
@@ -268,7 +264,7 @@ export default class MemberService extends LoggingBase {
             { existingMemberId: existing.id },
             'We have received an existing member but actually we could not find him by username and platform!',
           )
-          errorDetails.reason = 'existing_member_not_found'
+          errorDetails.reason = 'member_service_upsert_existing_member_not_found'
           errorDetails.details = {
             existingMemberId: existing.id,
             username: data.username,
@@ -279,7 +275,7 @@ export default class MemberService extends LoggingBase {
             { existingMemberId: existing.id, actualExistingMemberId: tempExisting.id },
             'We found a member with the same username and platform but different id!',
           )
-          errorDetails.reason = 'existing_member_mismatch'
+          errorDetails.reason = 'member_service_upsert_existing_member_mismatch'
           errorDetails.details = {
             existingMemberId: existing.id,
             actualExistingMemberId: tempExisting.id,
@@ -402,7 +398,7 @@ export default class MemberService extends LoggingBase {
 
       SequelizeRepository.handleUniqueFieldError(error, this.options.language, 'member')
 
-      throw error
+      throw { ...error, reason, details }
     }
   }
 
