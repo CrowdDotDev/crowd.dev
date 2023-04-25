@@ -467,7 +467,7 @@ export default class ActivityService extends LoggingBase {
             'We found a member with the same username and platform but different id! Deleting the activity and continuing as if the activity did not exist.',
           )
 
-          await ActivityRepository.destroy(activityExists.id, this.options)
+          await ActivityRepository.destroy(activityExists.id, this.options, true)
           activityExists = false
           existingMember = false
         }
