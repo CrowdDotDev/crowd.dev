@@ -29,8 +29,6 @@ import {
   IMemberMergeAllSuggestions,
 } from '../database/repositories/types/memberTypes'
 import { IRepositoryOptions } from '../database/repositories/IRepositoryOptions'
-import { createChildLogger } from '../utils/logging'
-import { generateUUIDv4 } from '../utils/uuid'
 
 export default class MemberService extends LoggingBase {
   options: IServiceOptions
