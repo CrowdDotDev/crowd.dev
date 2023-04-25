@@ -465,12 +465,9 @@ export class GithubIntegrationService extends IntegrationServiceBase {
         timestamp: starredAt.toDate(),
         platform: PlatformType.GITHUB,
         tenant: context.integration.tenantId,
-        sourceId: IntegrationServiceBase.generateSourceIdHash(
-          payload.sender.login,
-          type,
-          starredAt.unix().toString(),
-          PlatformType.GITHUB,
-        ),
+        sourceId: `gen-${payload.sender.login}_${type}_${starredAt.toISOString()}_${
+          PlatformType.GITHUB
+        }`,
         sourceParentId: null,
         channel: payload.repository.html_url,
         score: type === 'star' ? GitHubGrid.star.score : GitHubGrid.unStar.score,
@@ -494,12 +491,9 @@ export class GithubIntegrationService extends IntegrationServiceBase {
         username: member.username[PlatformType.GITHUB].username,
         platform: PlatformType.GITHUB,
         type: GithubActivityType.STAR,
-        sourceId: IntegrationServiceBase.generateSourceIdHash(
-          record.node.login,
-          GithubActivityType.STAR,
-          moment(record.starredAt).utc().unix().toString(),
-          PlatformType.GITHUB,
-        ),
+        sourceId: `gen-${record.node.login}_${GithubActivityType.STAR}_${moment(record.starredAt)
+          .utc()
+          .toISOString()}_${PlatformType.GITHUB}`,
         sourceParentId: '',
         timestamp: moment(record.starredAt).utc().toDate(),
         channel: repo.url,

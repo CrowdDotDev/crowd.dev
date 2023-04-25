@@ -720,12 +720,9 @@ describe('Github webhooks tests', () => {
         platform: PlatformType.GITHUB,
         tenant: tenantId,
         timestamp: moment(TestEvents.star.created.starred_at).toDate(),
-        sourceId: IntegrationServiceBase.generateSourceIdHash(
-          'joanreyero',
-          GithubActivityType.STAR,
-          moment(TestEvents.star.created.starred_at).unix().toString(),
-          PlatformType.GITHUB,
-        ),
+        sourceId: `gen-joanreyero_${GithubActivityType.STAR}_${moment(
+          TestEvents.star.created.starred_at,
+        ).toISOString()}_${PlatformType.GITHUB}`,
         sourceParentId: null,
         channel: TestEvents.star.created.repository.html_url,
         score: 2,
@@ -754,12 +751,9 @@ describe('Github webhooks tests', () => {
         type: GithubActivityType.UNSTAR,
         platform: PlatformType.GITHUB,
         tenant: tenantId,
-        sourceId: IntegrationServiceBase.generateSourceIdHash(
-          'joanreyero',
-          GithubActivityType.UNSTAR,
-          moment(starTimestamp).unix().toString(),
-          PlatformType.GITHUB,
-        ),
+        sourceId: `gen-joanreyero_${GithubActivityType.UNSTAR}_${moment(
+          starTimestamp,
+        ).toISOString()}_${PlatformType.GITHUB}`,
         sourceParentId: null,
         channel: TestEvents.star.deleted.repository.html_url,
         score: -2,

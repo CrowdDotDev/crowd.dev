@@ -220,12 +220,9 @@ export class TwitterIntegrationService extends IntegrationServiceBase {
       tenant: context.integration.tenantId,
       platform: PlatformType.TWITTER,
       type: 'follow',
-      sourceId: IntegrationServiceBase.generateSourceIdHash(
-        record.username,
-        'follow',
-        moment('1970-01-01T00:00:00+00:00').utc().unix().toString(),
-        PlatformType.TWITTER,
-      ),
+      sourceId: `gen-${record.username}_follow_${timestampObj.toISOString()}_${
+        PlatformType.TWITTER
+      }`,
       // When onboarding we need an old date. Otherwise, we can place it in a 2h window
       timestamp: timestampObj.toDate(),
       url: `https://twitter.com/${record.username}`,

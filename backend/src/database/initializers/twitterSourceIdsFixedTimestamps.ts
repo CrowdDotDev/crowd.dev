@@ -48,12 +48,7 @@ async function twitterFollowsFixSourceIdsWithTimestamp() {
       for (const activity of activities.rows) {
         log.info({ activity }, 'Activity')
         // calculate sourceId with fixed timestamps
-        const sourceIdRegenerated = IntegrationServiceBase.generateSourceIdHash(
-          activity.communityMember.username.twitter,
-          'follow',
-          '1970-01-01T00:00:00+00:00',
-          'twitter',
-        )
+        const sourceIdRegenerated = `gen-${activity.communityMember.username.twitter}_follow_1970-01-01T00:00:00+00:00_twitter`
         await actService.update(activity.id, { sourceId: sourceIdRegenerated })
       }
     }
