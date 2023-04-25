@@ -20,6 +20,7 @@ import MemberAttributeSettingsRepository from '../database/repositories/memberAt
 import SettingsRepository from '../database/repositories/settingsRepository'
 import SettingsService from './settingsService'
 import { mapUsernameToIdentities } from '../database/repositories/types/memberTypes'
+import { GithubActivityType, TwitterActivityType } from '../types/activityTypes'
 
 export default class ActivityService extends LoggingBase {
   options: IServiceOptions
@@ -151,7 +152,7 @@ export default class ActivityService extends LoggingBase {
 
       await SequelizeRepository.commitTransaction(transaction)
 
-      if (!existing) {
+      if (!existing && record.type !== GithubActivityType.STAR && record.type !== TwitterActivityType.FOLLOW) {
         try {
           await sendNewActivityNodeSQSMessage(this.options.currentTenant.id, record)
         } catch (err) {
