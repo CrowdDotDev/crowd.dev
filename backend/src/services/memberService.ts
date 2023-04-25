@@ -29,6 +29,8 @@ import {
   IMemberMergeAllSuggestions,
 } from '../database/repositories/types/memberTypes'
 import { IRepositoryOptions } from '../database/repositories/IRepositoryOptions'
+import { createChildLogger } from '../utils/logging'
+import { generateUUIDv4 } from '../utils/uuid'
 
 export default class MemberService extends LoggingBase {
   options: IServiceOptions
@@ -188,6 +190,12 @@ export default class MemberService extends LoggingBase {
    * @returns The created member
    */
   async upsert(data, existing: boolean | any = false) {
+    const logger = createChildLogger('MemberService.upsert', this.options.log, {
+      requestId: generateUUIDv4(),
+    })
+
+    const errorDetails: any = {}
+
     if (!('platform' in data)) {
       throw new Error400(this.options.language, 'activity.platformRequiredWhileUpsert')
     }
@@ -249,7 +257,37 @@ export default class MemberService extends LoggingBase {
         data.joinedAt = moment.tz('Europe/London').toDate()
       }
 
-      existing = existing || (await this.memberExists(data.username, platform))
+      if (!existing) {
+        existing = await this.memberExists(data.username, platform)
+      } else {
+        // let's look just in case for an existing member and if they are different we should log them because they will probably fail to insert
+        const tempExisting = await this.memberExists(data.username, platform)
+
+        if (!tempExisting) {
+          logger.warn(
+            { existingMemberId: existing.id },
+            'We have received an existing member but actually we could not find him by username and platform!',
+          )
+          errorDetails.reason = 'existing_member_not_found'
+          errorDetails.details = {
+            existingMemberId: existing.id,
+            username: data.username,
+            platform,
+          }
+        } else if (existing.id !== tempExisting.id) {
+          logger.warn(
+            { existingMemberId: existing.id, actualExistingMemberId: tempExisting.id },
+            'We found a member with the same username and platform but different id!',
+          )
+          errorDetails.reason = 'existing_member_mismatch'
+          errorDetails.details = {
+            existingMemberId: existing.id,
+            actualExistingMemberId: tempExisting.id,
+            username: data.username,
+            platform,
+          }
+        }
+      }
 
       // If organizations are sent
       if (data.organizations) {
@@ -336,23 +374,28 @@ export default class MemberService extends LoggingBase {
         try {
           await sendNewMemberNodeSQSMessage(this.options.currentTenant.id, record)
         } catch (err) {
-          this.log.error(err, `Error triggering new member automation - ${record.id}!`)
+          logger.error(err, `Error triggering new member automation - ${record.id}!`)
         }
       }
 
       return record
     } catch (error) {
+      const reason = errorDetails.reason || undefined
+      const details = errorDetails.details || undefined
+
       if (error.name && error.name.includes('Sequelize')) {
-        this.log.error(
+        logger.error(
           error,
           {
             query: error.sql,
             errorMessage: error.original.message,
+            reason,
+            details,
           },
           'Error during member upsert!',
         )
       } else {
-        this.log.error(error, 'Error during member upsert!')
+        logger.error(error, { reason, details }, 'Error during member upsert!')
       }
 
       await SequelizeRepository.rollbackTransaction(transaction)
