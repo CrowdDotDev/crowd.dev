@@ -152,7 +152,11 @@ export default class ActivityService extends LoggingBase {
 
       await SequelizeRepository.commitTransaction(transaction)
 
-      if (!existing && record.type !== GithubActivityType.STAR && record.type !== TwitterActivityType.FOLLOW) {
+      if (
+        !existing &&
+        !(record.platform === PlatformType.GITHUB && record.type === GithubActivityType.STAR) &&
+        !(record.platform === PlatformType.TWITTER && record.type === TwitterActivityType.FOLLOW)
+      ) {
         try {
           await sendNewActivityNodeSQSMessage(this.options.currentTenant.id, record)
         } catch (err) {
