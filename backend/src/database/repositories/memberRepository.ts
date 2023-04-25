@@ -389,14 +389,22 @@ class MemberRepository {
     const currentTenant = SequelizeRepository.getCurrentTenant(options)
 
     const query = `
-    with identities as (select "memberId",
-                           array_agg(distinct platform)                as identities,
-                           jsonb_object_agg(platform, usernames)       as username
+    with identities as (select mi."memberId",
+                           array_agg(distinct mi.platform)             as identities,
+                           jsonb_object_agg(mi.platform, mi.usernames) as username
                     from (select "memberId",
                                  platform,
-                                 jsonb_agg(username) over (partition by "memberId", platform)       as usernames
-                          from "memberIdentities") ranked
-                    group by "memberId")
+                                 array_agg(username) as usernames
+                          from (select "memberId",
+                                       platform,
+                                       username,
+                                       "createdAt",
+                                       row_number() over (partition by "memberId", platform order by "createdAt" desc) =
+                                       1 as is_latest
+                                from "memberIdentities" where "tenantId" = :tenantId) sub
+                          where is_latest
+                          group by "memberId", platform) mi
+                    group by mi."memberId")
       select m."id",
             m."displayName",
             m."attributes",
