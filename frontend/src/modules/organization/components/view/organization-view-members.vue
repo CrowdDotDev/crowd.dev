@@ -46,15 +46,15 @@
             </router-link>
           </div>
           <div
-            class="flex items-center justify-between gap-6 basis-3/6"
+            class="flex items-center justify-between gap-6 basis-3/6 mr-2"
           >
             <div>
               <app-member-engagement-level
                 :member="member"
               />
             </div>
-            <app-member-channels
-              :member="member"
+            <app-member-identities
+              :username="member.username"
             />
           </div>
         </div>
@@ -95,8 +95,8 @@ import {
 import debounce from 'lodash/debounce';
 import authAxios from '@/shared/axios/auth-axios';
 import AppMemberEngagementLevel from '@/modules/member/components/member-engagement-level.vue';
-import AppMemberChannels from '@/modules/member/components/member-channels.vue';
 import AppMemberDisplayName from '@/modules/member/components/member-display-name.vue';
+import AppMemberIdentities from '@/modules/member/components/member-identities.vue';
 
 const SearchIcon = h(
   'i', // type

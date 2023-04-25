@@ -1,3 +1,4 @@
+import { Op } from 'sequelize'
 import Error404 from '../../../errors/Error404'
 import { PlatformType } from '../../../types/integrationEnums'
 import { generateUUIDv1 } from '../../../utils/uuid'
@@ -14,7 +15,28 @@ const db = null
 function mapUsername(data: any): any {
   const username = {}
   Object.keys(data).forEach((platform) => {
-    username[platform] = data[platform].username
+    const usernameData = data[platform]
+
+    if (Array.isArray(usernameData)) {
+      username[platform] = []
+      if (usernameData.length > 0) {
+        for (const entry of usernameData) {
+          if (typeof entry === 'string') {
+            username[platform].push(entry)
+          } else if (typeof entry === 'object') {
+            username[platform].push((entry as any).username)
+          } else {
+            throw new Error('Invalid username type')
+          }
+        }
+      }
+    } else if (typeof usernameData === 'object') {
+      username[platform] = [usernameData.username]
+    } else if (typeof usernameData === 'string') {
+      username[platform] = [usernameData]
+    } else {
+      throw new Error('Invalid username type')
+    }
   })
   return username
 }
@@ -1150,7 +1172,7 @@ describe('MemberRepository tests', () => {
         { filter: { tags: [nodeTag.id, vueTag.id] } },
         mockIRepositoryOptions,
       )
-      const member2 = members.rows.find((m) => m.username[PlatformType.TWITTER] === 'test2')
+      const member2 = members.rows.find((m) => m.username[PlatformType.TWITTER][0] === 'test2')
       expect(members.rows.length).toEqual(1)
       expect(member2.tags[0].name).toEqual('nodejs')
       expect(member2.tags[1].name).toEqual('vuejs')
@@ -1219,8 +1241,8 @@ describe('MemberRepository tests', () => {
         { filter: { tags: [nodeTag.id] } },
         mockIRepositoryOptions,
       )
-      const member1 = members.rows.find((m) => m.username[PlatformType.GITHUB] === 'test1')
-      const member2 = members.rows.find((m) => m.username[PlatformType.GITHUB] === 'test2')
+      const member1 = members.rows.find((m) => m.username[PlatformType.GITHUB][0] === 'test1')
+      const member2 = members.rows.find((m) => m.username[PlatformType.GITHUB][0] === 'test2')
 
       expect(members.rows.length).toEqual(2)
       expect(member1.tags[0].name).toEqual('nodejs')
@@ -1292,7 +1314,7 @@ describe('MemberRepository tests', () => {
         { filter: { organizations: [crowd.id, pp.id] } },
         mockIRepositoryOptions,
       )
-      const member2 = members.rows.find((m) => m.username[PlatformType.SLACK] === 'test2')
+      const member2 = members.rows.find((m) => m.username[PlatformType.SLACK][0] === 'test2')
       expect(members.rows.length).toEqual(1)
       expect(member2.organizations[0].name).toEqual('crowd.dev')
       expect(member2.organizations[1].name).toEqual('pied piper')
@@ -1346,8 +1368,12 @@ describe('MemberRepository tests', () => {
       )
 
       expect(members.rows.length).toEqual(2)
-      expect(members.rows.find((m) => m.username[PlatformType.SLACK] === 'test1').score).toEqual(1)
-      expect(members.rows.find((m) => m.username[PlatformType.SLACK] === 'test2').score).toEqual(6)
+      expect(members.rows.find((m) => m.username[PlatformType.SLACK][0] === 'test1').score).toEqual(
+        1,
+      )
+      expect(members.rows.find((m) => m.username[PlatformType.SLACK][0] === 'test2').score).toEqual(
+        6,
+      )
     })
 
     it('is successfully finding and counting all members, and scoreRange is gte than 7', async () => {
@@ -2148,7 +2174,7 @@ describe('MemberRepository tests', () => {
         },
         mockIRepositoryOptions,
       )
-      const member2 = members.rows.find((m) => m.username[PlatformType.TWITTER] === 'test2')
+      const member2 = members.rows.find((m) => m.username[PlatformType.TWITTER].includes('test2'))
       expect(members.rows.length).toEqual(1)
       expect(member2.tags[0].name).toEqual('nodejs')
       expect(member2.tags[1].name).toEqual('vuejs')
@@ -2212,8 +2238,8 @@ describe('MemberRepository tests', () => {
         },
         mockIRepositoryOptions,
       )
-      const member1 = members.rows.find((m) => m.username[PlatformType.GITHUB] === 'test1')
-      const member2 = members.rows.find((m) => m.username[PlatformType.GITHUB] === 'test2')
+      const member1 = members.rows.find((m) => m.username[PlatformType.GITHUB].includes('test1'))
+      const member2 = members.rows.find((m) => m.username[PlatformType.GITHUB].includes('test2'))
 
       expect(members.rows.length).toEqual(2)
       expect(member1.tags[0].name).toEqual('nodejs')
@@ -2280,7 +2306,7 @@ describe('MemberRepository tests', () => {
         },
         mockIRepositoryOptions,
       )
-      const member2 = members.rows.find((m) => m.username[PlatformType.SLACK] === 'test2')
+      const member2 = members.rows.find((m) => m.username[PlatformType.SLACK].includes('test2'))
       expect(members.rows.length).toEqual(1)
       expect(member2.organizations[0].name).toEqual('crowd.dev')
       expect(member2.organizations[1].name).toEqual('pied piper')
@@ -3169,107 +3195,6 @@ describe('MemberRepository tests', () => {
     })
   })
 
-  describe('addToMerge method', () => {
-    it('Should add a member to other members toMerge list', async () => {
-      const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
-
-      const member1 = {
-        username: {
-          [PlatformType.DISCORD]: {
-            username: 'anil',
-            integrationId: generateUUIDv1(),
-          },
-        },
-        displayName: 'Member 1',
-        joinedAt: '2020-05-27T15:13:30Z',
-      }
-
-      const member2 = {
-        username: {
-          [PlatformType.DISCORD]: {
-            username: 'anil2',
-            integrationId: generateUUIDv1(),
-          },
-        },
-        displayName: 'Member 2',
-        joinedAt: '2020-05-27T15:13:30Z',
-      }
-
-      const memberCreated1 = await MemberRepository.create(member1, mockIRepositoryOptions)
-      const memberCreated2 = await MemberRepository.create(member2, mockIRepositoryOptions)
-
-      const memberUpdated1 = await MemberRepository.addToMerge(
-        memberCreated1.id,
-        memberCreated2.id,
-        mockIRepositoryOptions,
-      )
-      const memberUpdated2 = await MemberRepository.addToMerge(
-        memberCreated2.id,
-        memberCreated1.id,
-        mockIRepositoryOptions,
-      )
-
-      expect(memberUpdated1.toMerge[0]).toBe(memberUpdated2.id)
-      expect(memberUpdated2.toMerge[0]).toBe(memberUpdated1.id)
-    })
-
-    it('Should return same result for multiple addToMerge calls for the same member', async () => {
-      const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
-
-      const member1 = {
-        username: {
-          [PlatformType.DISCORD]: {
-            username: 'anil',
-            integrationId: generateUUIDv1(),
-          },
-        },
-        displayName: 'Member 1',
-        joinedAt: '2020-05-27T15:13:30Z',
-      }
-
-      const member2 = {
-        username: {
-          [PlatformType.DISCORD]: {
-            username: 'anil2',
-            integrationId: generateUUIDv1(),
-          },
-        },
-        displayName: 'Member 2',
-        joinedAt: '2020-05-27T15:13:30Z',
-      }
-
-      const memberCreated1 = await MemberRepository.create(member1, mockIRepositoryOptions)
-      const memberCreated2 = await MemberRepository.create(member2, mockIRepositoryOptions)
-
-      const memberUpdated1 = await MemberRepository.addToMerge(
-        memberCreated1.id,
-        memberCreated2.id,
-        mockIRepositoryOptions,
-      )
-      const memberUpdated2 = await MemberRepository.addToMerge(
-        memberCreated2.id,
-        memberCreated1.id,
-        mockIRepositoryOptions,
-      )
-
-      // multiple calls to for same (member, mergeMember) should result in no change
-      await MemberRepository.addToMerge(
-        memberCreated2.id,
-        memberCreated1.id,
-        mockIRepositoryOptions,
-      )
-      await MemberRepository.addToMerge(
-        memberCreated2.id,
-        memberCreated1.id,
-        mockIRepositoryOptions,
-      )
-
-      expect(memberUpdated1.toMerge.length).toBe(1)
-      expect(memberUpdated1.toMerge[0]).toBe(memberUpdated2.id)
-      expect(memberUpdated2.toMerge[0]).toBe(memberUpdated1.id)
-    })
-  })
-
   describe('removeToMerge method', () => {
     it('Should remove a member from other members toMerge list', async () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
@@ -3299,28 +3224,28 @@ describe('MemberRepository tests', () => {
       const memberCreated1 = await MemberRepository.create(member1, mockIRepositoryOptions)
       const memberCreated2 = await MemberRepository.create(member2, mockIRepositoryOptions)
 
-      let memberUpdated1 = await MemberRepository.addToMerge(
-        memberCreated1.id,
-        memberCreated2.id,
+      await MemberRepository.addToMerge(
+        [{ members: [memberCreated1.id, memberCreated2.id], similarity: null }],
         mockIRepositoryOptions,
       )
-      const memberUpdated2 = await MemberRepository.addToMerge(
-        memberCreated2.id,
-        memberCreated1.id,
+      await MemberRepository.addToMerge(
+        [{ members: [memberCreated2.id, memberCreated1.id], similarity: null }],
         mockIRepositoryOptions,
       )
 
-      memberUpdated1 = await MemberRepository.removeToMerge(
+      let m1 = await MemberRepository.findById(memberCreated1.id, mockIRepositoryOptions)
+      const m2 = await MemberRepository.findById(memberCreated2.id, mockIRepositoryOptions)
+      m1 = await MemberRepository.removeToMerge(
         memberCreated1.id,
         memberCreated2.id,
         mockIRepositoryOptions,
       )
 
       // Member2 should be removed from Member1.toMerge
-      expect(memberUpdated1.toMerge.length).toBe(0)
+      expect(m1.toMerge.length).toBe(0)
 
       // Member1 is still in member2.toMerge list
-      expect(memberUpdated2.toMerge[0]).toBe(memberUpdated1.id)
+      expect(m2.toMerge[0]).toBe(m1.id)
     })
   })
 

@@ -6,8 +6,6 @@ export default class Operations {
 
   static UPSERT_MEMBERS: string = 'upsert_members'
 
-  static UPDATE_MEMBERS_TO_MERGE: string = 'update_members_to_merge'
-
   static UPSERT_ACTIVITIES_WITH_MEMBERS: string = 'upsert_activities_with_members'
 
   static UPDATE_INTEGRATIONS: string = 'update_integrations'

@@ -67,40 +67,13 @@
           )"
           :key="platform"
         >
-          <el-tooltip
-            popper-class="custom-identity-tooltip"
-            placement="top"
-          >
-            <template #content>
-              <span><span class="capitalize">{{
-                platform
-              }}</span>profile
-                <i
-                  v-if="member.attributes?.url?.[platform]"
-                  class="ri-external-link-line text-gray-400"
-                /></span>
-            </template>
-
-            <a
-              :aria-label="platform"
-              :href="
-                member.attributes?.url?.[platform] || null
-              "
-              target="_blank"
-              rel="noopener noreferrer"
-              class="hover:cursor-pointer"
-              :style="{
-                minWidth: '32px',
-              }"
-              @click.stop
-            >
-              <app-svg
-                :name="platform"
-                class="max-w-[16px] h-4"
-                color="#D1D5DB"
-                hover-color="#4B5563"
-              /> </a>
-          </el-tooltip>
+          <app-platform-svg-icon
+            :platform="platform"
+            :tooltip-label="tooltipContent(platform)"
+            :as-link="true"
+            :username-handles="member.username[platform]"
+            :show-handles-badge="true"
+          />
         </div>
       </div>
 
@@ -117,7 +90,8 @@
 <script setup>
 import { defineProps, defineEmits } from 'vue';
 import pluralize from 'pluralize';
-import AppSvg from '@/shared/svg/svg.vue';
+import AppPlatformSvgIcon from '@/shared/platform/platform-svg-icon.vue';
+import { CrowdIntegrations } from '@/integrations/integrations-config';
 
 const emit = defineEmits(['onRowClick', 'onExportClick']);
 defineProps({
@@ -134,6 +108,12 @@ defineProps({
     default: false,
   },
 });
+
+const tooltipContent = (platform) => {
+  const config = CrowdIntegrations.getConfig(platform);
+
+  return `${config.name} profile`;
+};
 
 const onRowClick = () => {
   emit('onRowClick');

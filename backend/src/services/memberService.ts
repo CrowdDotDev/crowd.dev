@@ -15,8 +15,6 @@ import MemberAttributeSettingsRepository from '../database/repositories/memberAt
 import MemberAttributeSettingsService from './memberAttributeSettingsService'
 import SettingsService from './settingsService'
 import OrganizationService from './organizationService'
-import { sendPythonWorkerMessage } from '../serverless/utils/pythonWorkerSQS'
-import { PythonWorkerMessageType } from '../serverless/types/workerTypes'
 import {
   sendExportCSVNodeSQSMessage,
   sendNewMemberNodeSQSMessage,
@@ -27,6 +25,8 @@ import { AttributeType } from '../database/attributes/types'
 import {
   IActiveMemberFilter,
   mapUsernameToIdentities,
+  IMemberMergeSuggestion,
+  IMemberMergeAllSuggestions,
 } from '../database/repositories/types/memberTypes'
 import { IRepositoryOptions } from '../database/repositories/IRepositoryOptions'
 
@@ -188,6 +188,10 @@ export default class MemberService extends LoggingBase {
    * @returns The created member
    */
   async upsert(data, existing: boolean | any = false) {
+    const logger = this.options.log
+
+    const errorDetails: any = {}
+
     if (!('platform' in data)) {
       throw new Error400(this.options.language, 'activity.platformRequiredWhileUpsert')
     }
@@ -249,7 +253,37 @@ export default class MemberService extends LoggingBase {
         data.joinedAt = moment.tz('Europe/London').toDate()
       }
 
-      existing = existing || (await this.memberExists(data.username, platform))
+      if (!existing) {
+        existing = await this.memberExists(data.username, platform)
+      } else {
+        // let's look just in case for an existing member and if they are different we should log them because they will probably fail to insert
+        const tempExisting = await this.memberExists(data.username, platform)
+
+        if (!tempExisting) {
+          logger.warn(
+            { existingMemberId: existing.id },
+            'We have received an existing member but actually we could not find him by username and platform!',
+          )
+          errorDetails.reason = 'member_service_upsert_existing_member_not_found'
+          errorDetails.details = {
+            existingMemberId: existing.id,
+            username: data.username,
+            platform,
+          }
+        } else if (existing.id !== tempExisting.id) {
+          logger.warn(
+            { existingMemberId: existing.id, actualExistingMemberId: tempExisting.id },
+            'We found a member with the same username and platform but different id!',
+          )
+          errorDetails.reason = 'member_service_upsert_existing_member_mismatch'
+          errorDetails.details = {
+            existingMemberId: existing.id,
+            actualExistingMemberId: tempExisting.id,
+            username: data.username,
+            platform,
+          }
+        }
+      }
 
       // If organizations are sent
       if (data.organizations) {
@@ -318,12 +352,6 @@ export default class MemberService extends LoggingBase {
           fillRelations,
         )
 
-        await sendPythonWorkerMessage(this.options.currentTenant.id, {
-          type: PythonWorkerMessageType.CHECK_MERGE,
-          member: record.id,
-          tenant: this.options.currentTenant.id,
-        })
-
         telemetryTrack(
           'Member created',
           {
@@ -342,30 +370,35 @@ export default class MemberService extends LoggingBase {
         try {
           await sendNewMemberNodeSQSMessage(this.options.currentTenant.id, record)
         } catch (err) {
-          this.log.error(err, `Error triggering new member automation - ${record.id}!`)
+          logger.error(err, `Error triggering new member automation - ${record.id}!`)
         }
       }
 
       return record
     } catch (error) {
+      const reason = errorDetails.reason || undefined
+      const details = errorDetails.details || undefined
+
       if (error.name && error.name.includes('Sequelize')) {
-        this.log.error(
+        logger.error(
           error,
           {
             query: error.sql,
             errorMessage: error.original.message,
+            reason,
+            details,
           },
           'Error during member upsert!',
         )
       } else {
-        this.log.error(error, 'Error during member upsert!')
+        logger.error(error, { reason, details }, 'Error during member upsert!')
       }
 
       await SequelizeRepository.rollbackTransaction(transaction)
 
       SequelizeRepository.handleUniqueFieldError(error, this.options.language, 'member')
 
-      throw error
+      throw { ...error, reason, details }
     }
   }
 
@@ -374,7 +407,7 @@ export default class MemberService extends LoggingBase {
    * Username can be given as a plain string or as dictionary with
    * related platforms.
    * Ie:
-   * username = 'anil' || username = { github: 'anil' } || username = { github: 'anil', twitter: 'some-other-username' }
+   * username = 'anil' || username = { github: 'anil' } || username = { github: 'anil', twitter: 'some-other-username' } || username = { github: { username: 'anil' } } || username = { github: [{ username: 'anil' }] }
    * @param username username of the member
    * @param platform platform of the member
    * @returns null | found member
@@ -563,7 +596,6 @@ export default class MemberService extends LoggingBase {
       },
       username: (oldUsernames, newUsernames) => {
         // we want to keep just the usernames that are not already in the oldUsernames
-
         const toKeep: any = {}
 
         const actualOld = mapUsernameToIdentities(oldUsernames)
@@ -609,25 +641,15 @@ export default class MemberService extends LoggingBase {
    * @param memberTwoId ID of the second member
    * @returns Success/Error message
    */
-  async addToMerge(memberOneId, memberTwoId) {
+  async addToMerge(suggestions: IMemberMergeSuggestion[]) {
     const transaction = await SequelizeRepository.createTransaction(this.options)
-
     try {
-      await MemberRepository.addToMerge(memberOneId, memberTwoId, {
-        ...this.options,
-        transaction,
-      })
-      await MemberRepository.addToMerge(memberTwoId, memberOneId, {
-        ...this.options,
-        transaction,
-      })
-
+      await MemberRepository.addToMerge(suggestions, { ...this.options, transaction })
       await SequelizeRepository.commitTransaction(transaction)
-
       return { status: 200 }
     } catch (error) {
       await SequelizeRepository.rollbackTransaction(transaction)
-
+      this.log.error(error, 'Error while adding members to merge')
       throw error
     }
   }
@@ -668,6 +690,48 @@ export default class MemberService extends LoggingBase {
     }
   }
 
+  async getMergeSuggestions(): Promise<IMemberMergeAllSuggestions> {
+    // Adding a transaction so it will use the write database
+    const transaction = await SequelizeRepository.createTransaction(this.options)
+
+    try {
+      const numberOfHours = 24
+
+      const mergeSuggestionsbyUsername = await MemberRepository.mergeSuggestionsByUsername(
+        numberOfHours,
+        {
+          ...this.options,
+          transaction,
+        },
+      )
+      const mergeSuggestionsByEmail = await MemberRepository.mergeSuggestionsByEmail(
+        numberOfHours,
+        {
+          ...this.options,
+          transaction,
+        },
+      )
+      const mergeSuggestionsBySimilarity = await MemberRepository.mergeSuggestionsBySimilarity(
+        numberOfHours,
+        {
+          ...this.options,
+          transaction,
+        },
+      )
+
+      await SequelizeRepository.commitTransaction(transaction)
+      return {
+        byUsername: mergeSuggestionsbyUsername,
+        byEmail: mergeSuggestionsByEmail,
+        bySimilarity: mergeSuggestionsBySimilarity,
+      }
+    } catch (error) {
+      await SequelizeRepository.rollbackTransaction(transaction)
+      this.log.error(error)
+      throw error
+    }
+  }
+
   async update(id, data) {
     const transaction = await SequelizeRepository.createTransaction(this.options)
 
@@ -696,7 +760,6 @@ export default class MemberService extends LoggingBase {
           { ...this.options, transaction },
         )
       }
-
       if (data.username) {
         // need to filter out existing identities from the payload
         const existingIdentities = (
@@ -706,13 +769,30 @@ export default class MemberService extends LoggingBase {
           })
         ).get(id)
 
-        data.username = mapUsernameToIdentities(data.username)
+        data.username = mapUsernameToIdentities(data.username, data.platform)
 
         for (const identity of existingIdentities) {
           if (identity.platform in data.username) {
-            data.username[identity.platform] = data.username[identity.platform].filter(
-              (i) => i.username !== identity.username,
-            )
+            // new username has this platform - we need to check if it also has the username
+            let found = false
+            for (const newIdentity of data.username[identity.platform]) {
+              if (newIdentity.username === identity.username) {
+                found = true
+                break
+              }
+            }
+
+            if (found) {
+              // remove from data.username
+              data.username[identity.platform] = data.username[identity.platform].filter(
+                (i) => i.username !== identity.username,
+              )
+            } else {
+              data.username[identity.platform].push({ ...identity, delete: true })
+            }
+          } else {
+            // new username doesn't have this platform - we can delete the existing identity
+            data.username[identity.platform] = { ...identity, delete: true }
           }
         }
       }

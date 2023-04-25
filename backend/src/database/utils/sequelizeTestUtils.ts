@@ -94,11 +94,14 @@ export default class SequelizeTestUtils {
       bypassPermissionValidation: true,
     } as IRepositoryOptions)
 
+    const log = getServiceLogger()
+
     return {
       language: 'en',
       currentUser: user,
       currentTenant: tenant,
       database: db,
+      log,
     } as IServiceOptions
   }
 
@@ -128,13 +131,15 @@ export default class SequelizeTestUtils {
       database: db,
     } as IRepositoryOptions)
 
+    const log = getServiceLogger()
+
     return {
       language: 'en',
       currentUser: user,
       currentTenant: tenant,
       database: db,
       bypassPermissionValidation: true,
-      log: getServiceLogger(),
+      log,
     } as IRepositoryOptions
   }
 

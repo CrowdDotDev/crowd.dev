@@ -194,7 +194,7 @@ export default {
     },
     isEnrichmentDisabled() {
       return (
-        !this.member.username?.github
+        !this.member.username?.github?.length
         && !this.member.emails?.length
       );
     },

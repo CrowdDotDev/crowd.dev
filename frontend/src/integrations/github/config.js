@@ -10,4 +10,5 @@ export default {
   image:
     'https://cdn-icons-png.flaticon.com/512/25/25231.png',
   connectComponent: GithubConnect,
+  url: (username) => `https://github.com/${username}`,
 };
