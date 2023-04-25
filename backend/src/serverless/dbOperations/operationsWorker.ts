@@ -1,19 +1,17 @@
 import MemberService from '../../services/memberService'
-import getUserContext from '../../database/utils/getUserContext'
 import Operations from './operations'
 import ActivityService from '../../services/activityService'
 import IntegrationService from '../../services/integrationService'
 import MicroserviceService from '../../services/microserviceService'
+import { IServiceOptions } from '../../services/IServiceOptions'
 
 /**
  * Update a bulk of members
- * @param tenantId Tenant ID
  * @param records The records to perform the operation to
  * @returns Success/error message
  */
-async function updateMembers(tenantId: string, records: Array<any>): Promise<any> {
-  const userContext = await getUserContext(tenantId)
-  const memberService = new MemberService(userContext)
+async function updateMembers(records: Array<any>, options: IServiceOptions): Promise<any> {
+  const memberService = new MemberService(options)
   for (const record of records) {
     await memberService.update(record.id, record.update)
   }
@@ -21,13 +19,11 @@ async function updateMembers(tenantId: string, records: Array<any>): Promise<any
 
 /**
  * Upsert a bulk of members
- * @param tenantId Tenant ID
  * @param records The records to perform the operation to
  * @returns Success/error message
  */
-async function upsertMembers(tenantId: string, records: Array<any>): Promise<any> {
-  const userContext = await getUserContext(tenantId)
-  const memberService = new MemberService(userContext)
+async function upsertMembers(records: Array<any>, options: IServiceOptions): Promise<any> {
+  const memberService = new MemberService(options)
   for (const record of records) {
     await memberService.upsert(record)
   }
@@ -35,13 +31,14 @@ async function upsertMembers(tenantId: string, records: Array<any>): Promise<any
 
 /**
  * Upsert a bulk of activities with members
- * @param tenantId Tenant ID
  * @param records The records to perform the operation to
  * @returns Success/error message
  */
-async function upsertActivityWithMembers(tenantId: string, records: Array<any>): Promise<any> {
-  const userContext = await getUserContext(tenantId)
-  const activityService = new ActivityService(userContext)
+async function upsertActivityWithMembers(
+  records: Array<any>,
+  options: IServiceOptions,
+): Promise<any> {
+  const activityService = new ActivityService(options)
   for (const record of records) {
     await activityService.createWithMember(record)
   }
@@ -49,13 +46,11 @@ async function upsertActivityWithMembers(tenantId: string, records: Array<any>):
 
 /**
  * Update a bulk of integrations
- * @param tenantId Tenant ID
  * @param records The records to perform the operation to
  * @returns Success/error message
  */
-async function updateIntegrations(tenantId: string, records: Array<any>): Promise<any> {
-  const userContext = await getUserContext(tenantId)
-  const integrationService = new IntegrationService(userContext)
+async function updateIntegrations(records: Array<any>, options: IServiceOptions): Promise<any> {
+  const integrationService = new IntegrationService(options)
   for (const record of records) {
     await integrationService.update(record.id, record.update)
   }
@@ -63,12 +58,10 @@ async function updateIntegrations(tenantId: string, records: Array<any>): Promis
 
 /**
  * Update a bulk of microservices
- * @param tenantId Tenant ID
  * @param records The records to perform the operation to
  */
-async function updateMicroservice(tenantId: string, records: Array<any>): Promise<any> {
-  const userContext = await getUserContext(tenantId)
-  const microserviceService = new MicroserviceService(userContext)
+async function updateMicroservice(records: Array<any>, options: IServiceOptions): Promise<any> {
+  const microserviceService = new MicroserviceService(options)
   for (const record of records) {
     await microserviceService.update(record.id, record.update)
   }
@@ -76,31 +69,30 @@ async function updateMicroservice(tenantId: string, records: Array<any>): Promis
 
 /**
  * Worker function to choose an operation to perform
- * @param tenantId Tenant ID
  * @param operation Operation to perform, one in the list of Operations
  * @param records Records to perform the operation to
  * @returns
  */
 async function bulkOperations(
-  tenantId: string,
   operation: string,
   records: Array<any>,
+  options: IServiceOptions,
 ): Promise<any> {
   switch (operation) {
     case Operations.UPDATE_MEMBERS:
-      return updateMembers(tenantId, records)
+      return updateMembers(records, options)
 
     case Operations.UPSERT_MEMBERS:
-      return upsertMembers(tenantId, records)
+      return upsertMembers(records, options)
 
     case Operations.UPSERT_ACTIVITIES_WITH_MEMBERS:
-      return upsertActivityWithMembers(tenantId, records)
+      return upsertActivityWithMembers(records, options)
 
     case Operations.UPDATE_INTEGRATIONS:
-      return updateIntegrations(tenantId, records)
+      return updateIntegrations(records, options)
 
     case Operations.UPDATE_MICROSERVICE:
-      return updateMicroservice(tenantId, records)
+      return updateMicroservice(records, options)
 
     default:
       throw new Error(`Operation ${operation} not found`)
