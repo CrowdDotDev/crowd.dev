@@ -25,6 +25,8 @@ module.exports = {
         : 'off',
     semi: 'warn',
     'comma-dangle': 'warn',
+    indent: 'warn',
+    'no-trailing-spaces': 'warn',
     'vue/no-unused-components': 'warn',
     'vue/html-indent': 'warn',
     'vue/html-self-closing': 'warn',

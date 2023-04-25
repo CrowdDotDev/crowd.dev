@@ -1,34 +1,34 @@
 import config from 'config'
 import {
-  SQSConfiguration,
-  S3Configuration,
-  DbConfiguration,
-  PlansConfiguration,
-  TwitterConfiguration,
-  ApiConfiguration,
-  SlackConfiguration,
-  GoogleConfiguration,
-  DiscordConfiguration,
-  ServiceType,
-  SearchEngineConfiguration,
-  SegmentConfiguration,
-  GithubConfiguration,
-  SendgridConfiguration,
-  NetlifyConfiguration,
-  TenantMode,
-  CubeJSConfiguration,
-  ComprehendConfiguration,
-  ClearbitConfiguration,
-  DevtoConfiguration,
-  RedisConfiguration,
-  NangoConfiguration,
-  EnrichmentConfiguration,
-  EagleEyeConfiguration,
-  UnleashConfiguration,
-  StackExchangeConfiguration,
-  SlackAlertingConfiguration,
-  SampleDataConfiguration,
-  IntegrationProcessingConfiguration,
+    SQSConfiguration,
+    S3Configuration,
+    DbConfiguration,
+    PlansConfiguration,
+    TwitterConfiguration,
+    ApiConfiguration,
+    SlackConfiguration,
+    GoogleConfiguration,
+    DiscordConfiguration,
+    ServiceType,
+    SearchEngineConfiguration,
+    SegmentConfiguration,
+    GithubConfiguration,
+    SendgridConfiguration,
+    NetlifyConfiguration,
+    TenantMode,
+    CubeJSConfiguration,
+    ComprehendConfiguration,
+    ClearbitConfiguration,
+    DevtoConfiguration,
+    RedisConfiguration,
+    NangoConfiguration,
+    EnrichmentConfiguration,
+    EagleEyeConfiguration,
+    UnleashConfiguration,
+    StackExchangeConfiguration,
+    SlackAlertingConfiguration,
+    SampleDataConfiguration,
+    IntegrationProcessingConfiguration, SlackNotifierConfiguration,
 } from './configTypes'
 
 // TODO-kube
@@ -155,6 +155,8 @@ export const TWITTER_CONFIG: TwitterConfiguration = KUBE_MODE
     }
 
 export const SLACK_CONFIG: SlackConfiguration = config.get<SlackConfiguration>('slack')
+
+export const SLACK_NOTIFIER_CONFIG: SlackNotifierConfiguration = config.get<SlackNotifierConfiguration>('slack-notifier')
 
 export const GOOGLE_CONFIG: GoogleConfiguration = KUBE_MODE
   ? config.get<GoogleConfiguration>('google')
