@@ -72,7 +72,7 @@ const { doEnrich } = mapActions('member');
 const { currentTenant, currentUser } = mapGetters('auth');
 
 const isEnrichmentDisabled = computed(
-  () => !props.member.username?.github
+  () => !props.member.username?.github?.length
     && !props.member.emails?.length,
 );
 

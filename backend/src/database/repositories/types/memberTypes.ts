@@ -21,7 +21,7 @@ export interface IActiveMemberFilter {
 export interface IMemberIdentity {
   platform: string
   username: string
-  integrationId: string
+  integrationId?: string
   sourceId?: string
   createdAt: string
 }

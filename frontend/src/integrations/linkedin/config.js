@@ -19,4 +19,5 @@ export default {
     entertainment: 'Funny',
   },
   premium: true,
+  url: (username) => (!username.includes('private-') ? `https://linkedin.com/in/${username}` : null),
 };
