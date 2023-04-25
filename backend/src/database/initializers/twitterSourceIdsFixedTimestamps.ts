@@ -11,7 +11,6 @@ import IntegrationService from '../../services/integrationService'
 import TenantService from '../../services/tenantService'
 import { PlatformType } from '../../types/integrationEnums'
 import getUserContext from '../utils/getUserContext'
-import { IntegrationServiceBase } from '../../serverless/integrations/services/integrationServiceBase'
 
 const path = require('path')
 
