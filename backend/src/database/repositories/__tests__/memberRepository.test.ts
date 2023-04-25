@@ -2454,7 +2454,7 @@ describe('MemberRepository tests', () => {
       const member1 = await MemberRepository.create(
         {
           username: {
-            [PlatformType.DISCORD]: {
+            [PlatformType.SLACK]: {
               username: 'test1',
               integrationId: generateUUIDv1(),
             },
@@ -2472,7 +2472,7 @@ describe('MemberRepository tests', () => {
       const member2 = await MemberRepository.create(
         {
           username: {
-            [PlatformType.DISCORD]: {
+            [PlatformType.SLACK]: {
               username: 'test2',
               integrationId: generateUUIDv1(),
             },
@@ -2490,7 +2490,7 @@ describe('MemberRepository tests', () => {
       const member3 = await MemberRepository.create(
         {
           username: {
-            [PlatformType.DISCORD]: {
+            [PlatformType.SLACK]: {
               username: 'test3',
               integrationId: generateUUIDv1(),
             },
@@ -2513,7 +2513,7 @@ describe('MemberRepository tests', () => {
           timestamp: new Date('2022-09-10'),
           tenantId: mockIRepositoryOptions.currentTenant.id,
           memberId: member1.id,
-          username: member1.username[PlatformType.SLACK].username,
+          username: member1.username[PlatformType.SLACK],
           sourceId: '#sourceId1',
           sentiment: {
             positive: 0.55,
@@ -2530,7 +2530,7 @@ describe('MemberRepository tests', () => {
           timestamp: new Date('2022-09-11'),
           tenantId: mockIRepositoryOptions.currentTenant.id,
           memberId: member2.id,
-          username: member2.username[PlatformType.SLACK].username,
+          username: member2.username[PlatformType.SLACK],
           sourceId: '#sourceId2',
           sentiment: {
             positive: 0.01,
@@ -2547,7 +2547,7 @@ describe('MemberRepository tests', () => {
           timestamp: new Date('2022-09-12'),
           tenantId: mockIRepositoryOptions.currentTenant.id,
           memberId: member2.id,
-          username: member2.username[PlatformType.SLACK].username,
+          username: member2.username[PlatformType.SLACK],
           sourceId: '#sourceId3',
           sentiment: {
             positive: 0.94,
@@ -2564,7 +2564,7 @@ describe('MemberRepository tests', () => {
           timestamp: new Date('2022-09-13'),
           tenantId: mockIRepositoryOptions.currentTenant.id,
           memberId: member3.id,
-          username: member3.username[PlatformType.SLACK].username,
+          username: member3.username[PlatformType.SLACK],
           sourceId: '#sourceId4',
           sentiment: {
             positive: 0.42,
@@ -2581,7 +2581,7 @@ describe('MemberRepository tests', () => {
           timestamp: new Date('2022-09-14'),
           tenantId: mockIRepositoryOptions.currentTenant.id,
           memberId: member3.id,
-          username: member3.username[PlatformType.SLACK].username,
+          username: member3.username[PlatformType.SLACK],
           sourceId: '#sourceId5',
           sentiment: {
             positive: 0.42,
@@ -2598,7 +2598,7 @@ describe('MemberRepository tests', () => {
           timestamp: new Date('2022-09-15'),
           tenantId: mockIRepositoryOptions.currentTenant.id,
           memberId: member3.id,
-          username: member3.username[PlatformType.SLACK].username,
+          username: member3.username[PlatformType.SLACK],
           sourceId: '#sourceId6',
           sentiment: {
             positive: 0.42,
