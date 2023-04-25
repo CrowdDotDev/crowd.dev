@@ -300,7 +300,7 @@ export class IntegrationProcessor extends LoggingBase {
             { operationType: operation.type },
             `Processing bulk operation with ${operation.records.length} records!`,
           )
-          await bulkOperations(integration.tenantId, operation.type, operation.records)
+          await bulkOperations(operation.type, operation.records, userContext)
         }
       }
       await repo.markCompleted(webhook.id)
@@ -650,7 +650,7 @@ export class IntegrationProcessor extends LoggingBase {
                     `Processing bulk operation with ${operation.records.length} records!`,
                   )
                   stepContext.limitCount += operation.records.length
-                  await bulkOperations(integration.tenantId, operation.type, operation.records)
+                  await bulkOperations(operation.type, operation.records, userContext)
                 }
               }
 

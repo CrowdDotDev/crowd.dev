@@ -169,7 +169,7 @@ class ActivityRepository {
     return this.findById(record.id, options)
   }
 
-  static async destroy(id, options: IRepositoryOptions) {
+  static async destroy(id, options: IRepositoryOptions, force = false) {
     const transaction = SequelizeRepository.getTransaction(options)
 
     const currentTenant = SequelizeRepository.getCurrentTenant(options)
@@ -188,6 +188,7 @@ class ActivityRepository {
 
     await record.destroy({
       transaction,
+      force,
     })
 
     await this._createAuditLog(AuditLogRepository.DELETE, record, record, options)
