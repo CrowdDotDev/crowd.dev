@@ -54,7 +54,7 @@ export interface MemberIdentity {
 }
 
 export type PlatformIdentities = {
-  [K in keyof typeof PlatformType]?: MemberIdentity
+  [K in keyof typeof PlatformType]?: [MemberIdentity]
 }
 
 export type Member = {

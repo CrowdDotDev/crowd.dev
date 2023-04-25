@@ -10,4 +10,5 @@ export default {
   image:
     'https://cdn-icons-png.flaticon.com/512/5969/5969051.png',
   connectComponent: DevtoConnect,
+  url: (username) => `https://dev.to/${username}`,
 };

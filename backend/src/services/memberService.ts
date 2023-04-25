@@ -368,7 +368,7 @@ export default class MemberService extends LoggingBase {
    * Username can be given as a plain string or as dictionary with
    * related platforms.
    * Ie:
-   * username = 'anil' || username = { github: 'anil' } || username = { github: 'anil', twitter: 'some-other-username' }
+   * username = 'anil' || username = { github: 'anil' } || username = { github: 'anil', twitter: 'some-other-username' } || username = { github: { username: 'anil' } } || username = { github: [{ username: 'anil' }] }
    * @param username username of the member
    * @param platform platform of the member
    * @returns null | found member
@@ -557,7 +557,6 @@ export default class MemberService extends LoggingBase {
       },
       username: (oldUsernames, newUsernames) => {
         // we want to keep just the usernames that are not already in the oldUsernames
-
         const toKeep: any = {}
 
         const actualOld = mapUsernameToIdentities(oldUsernames)
@@ -722,7 +721,6 @@ export default class MemberService extends LoggingBase {
           { ...this.options, transaction },
         )
       }
-
       if (data.username) {
         // need to filter out existing identities from the payload
         const existingIdentities = (
@@ -732,13 +730,30 @@ export default class MemberService extends LoggingBase {
           })
         ).get(id)
 
-        data.username = mapUsernameToIdentities(data.username)
+        data.username = mapUsernameToIdentities(data.username, data.platform)
 
         for (const identity of existingIdentities) {
           if (identity.platform in data.username) {
-            data.username[identity.platform] = data.username[identity.platform].filter(
-              (i) => i.username !== identity.username,
-            )
+            // new username has this platform - we need to check if it also has the username
+            let found = false
+            for (const newIdentity of data.username[identity.platform]) {
+              if (newIdentity.username === identity.username) {
+                found = true
+                break
+              }
+            }
+
+            if (found) {
+              // remove from data.username
+              data.username[identity.platform] = data.username[identity.platform].filter(
+                (i) => i.username !== identity.username,
+              )
+            } else {
+              data.username[identity.platform].push({ ...identity, delete: true })
+            }
+          } else {
+            // new username doesn't have this platform - we can delete the existing identity
+            data.username[identity.platform] = { ...identity, delete: true }
           }
         }
       }
