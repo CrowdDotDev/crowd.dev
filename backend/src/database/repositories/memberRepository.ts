@@ -25,6 +25,7 @@ import {
   mapUsernameToIdentities,
   IMemberMergeSuggestion,
 } from './types/memberTypes'
+import { ActivityDisplayVariant } from '../../types/activityTypes'
 
 const { Op } = Sequelize
 
@@ -1233,6 +1234,7 @@ where m."deletedAt" is null
           r.lastActivity.display = ActivityDisplayService.getDisplayOptions(
             r.lastActivity,
             SettingsRepository.getActivityTypes(options),
+            [ActivityDisplayVariant.SHORT, ActivityDisplayVariant.CHANNEL],
           )
         }
       }

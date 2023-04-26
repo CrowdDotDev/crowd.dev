@@ -1,5 +1,5 @@
 <template>
-  <div v-if="activity.title || activity.body">
+  <div v-if="(activity.title || displayTitleBody) || activity.body">
     <div
       v-if="
         activity.title
@@ -9,9 +9,29 @@
           && displayTitle
       "
     >
-      <span class="block title" :class="titleClasses">{{
-        activity.title
-      }}</span>
+      <span
+        class="block"
+        :class="{
+          title: !titleClasses,
+          [titleClasses]: titleClasses,
+        }"
+        v-html="
+          contentRenderEmojis(
+            $sanitize($marked(activity.title),
+            ))
+        "
+      />
+    </div>
+
+    <div v-if="activity.display?.default && displayTitleBody">
+      <div
+        class="first-letter:uppercase font-semibold text-gray-900 text-sm mb-1"
+        v-html="
+          contentRenderEmojis(
+            $sanitize($marked(activity.display.default)),
+          )
+        "
+      />
     </div>
 
     <div
@@ -50,13 +70,13 @@
         <span
           v-else-if="displayBody"
           ref="body"
-          class="block whitespace-pre-wrap custom-break-all activity-body parsed-body c-content"
+          class="block custom-break-all activity-body parsed-body c-content"
           :class="
             showMore && !more ? `line-clamp-${limit}` : ''
           "
           v-html="
             contentRenderEmojis(
-              $sanitize($marked(activity.body)),
+              $sanitize($marked(`<div class='whitespace-pre-wrap'>${activity.body}</div>`)),
             )
           "
         />
@@ -76,6 +96,16 @@
         <slot />
       </div>
     </div>
+  </div>
+  <div v-else-if="activity.display?.default">
+    <div
+      class="first-letter:uppercase font-semibold text-gray-900 text-sm"
+      v-html="
+        contentRenderEmojis(
+          $sanitize($marked(activity.display.default)),
+        )
+      "
+    />
   </div>
 </template>
 
@@ -125,6 +155,11 @@ export default {
       type: Boolean,
       required: false,
       default: true,
+    },
+    displayTitleBody: {
+      type: Boolean,
+      required: false,
+      default: false,
     },
   },
   data() {
