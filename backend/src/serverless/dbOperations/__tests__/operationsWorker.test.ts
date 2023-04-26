@@ -23,7 +23,6 @@ describe('Serverless database operations worker tests', () => {
   describe('Bulk upsert method for members', () => {
     it('Should add a single simple member', async () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
-      const tenantId = mockIRepositoryOptions.currentTenant.dataValues.id
       const member = {
         username: {
           [PlatformType.GITHUB]: {
@@ -34,7 +33,7 @@ describe('Serverless database operations worker tests', () => {
         platform: PlatformType.GITHUB,
       }
 
-      await worker(tenantId, 'upsert_members', [member])
+      await worker('upsert_members', [member], mockIRepositoryOptions)
 
       await SequelizeTestUtils.refreshMaterializedViews(db)
 
@@ -46,7 +45,6 @@ describe('Serverless database operations worker tests', () => {
 
     it('Should add a list of members', async () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
-      const tenantId = mockIRepositoryOptions.currentTenant.dataValues.id
 
       const members = [
         {
@@ -69,7 +67,7 @@ describe('Serverless database operations worker tests', () => {
         },
       ]
 
-      await worker(tenantId, 'upsert_members', members)
+      await worker('upsert_members', members, mockIRepositoryOptions)
 
       await SequelizeTestUtils.refreshMaterializedViews(db)
 
@@ -80,9 +78,8 @@ describe('Serverless database operations worker tests', () => {
 
     it('Should work for an empty list', async () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
-      const tenantId = mockIRepositoryOptions.currentTenant.dataValues.id
 
-      await worker(tenantId, 'upsert_members', [])
+      await worker('upsert_members', [], mockIRepositoryOptions)
 
       const dbMembers = (await new MemberService(mockIRepositoryOptions).findAndCountAll({})).rows
 
@@ -93,7 +90,6 @@ describe('Serverless database operations worker tests', () => {
   describe('Bulk upsert method for activities with members', () => {
     it('Should add a single simple activity with members', async () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
-      const tenantId = mockIRepositoryOptions.currentTenant.dataValues.id
       const ts = moment().toDate()
       const activity = {
         timestamp: ts,
@@ -111,7 +107,7 @@ describe('Serverless database operations worker tests', () => {
         sourceId: '#sourceId1',
       }
 
-      await worker(tenantId, 'upsert_activities_with_members', [activity])
+      await worker('upsert_activities_with_members', [activity], mockIRepositoryOptions)
 
       const dbActivities = (await new ActivityService(mockIRepositoryOptions).findAndCountAll({}))
         .rows
@@ -122,7 +118,6 @@ describe('Serverless database operations worker tests', () => {
 
     it('Should add a list of activities with members', async () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
-      const tenantId = mockIRepositoryOptions.currentTenant.dataValues.id
       const ts = moment().toDate()
       const ts2 = moment().subtract(2, 'days').toDate()
 
@@ -159,7 +154,7 @@ describe('Serverless database operations worker tests', () => {
         },
       ]
 
-      await worker(tenantId, 'upsert_activities_with_members', activities)
+      await worker('upsert_activities_with_members', activities, mockIRepositoryOptions)
 
       const dbActivities = (await new ActivityService(mockIRepositoryOptions).findAndCountAll({}))
         .rows
@@ -168,9 +163,8 @@ describe('Serverless database operations worker tests', () => {
 
     it('Should work for an empty list', async () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
-      const tenantId = mockIRepositoryOptions.currentTenant.dataValues.id
 
-      await worker(tenantId, 'upsert_activities_with_members', [])
+      await worker('upsert_activities_with_members', [], mockIRepositoryOptions)
 
       const dbActivities = (await new ActivityService(mockIRepositoryOptions).findAndCountAll({}))
         .rows
@@ -182,7 +176,6 @@ describe('Serverless database operations worker tests', () => {
   describe('Bulk update method for members', () => {
     it('Should update a single member', async () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
-      const tenantId = mockIRepositoryOptions.currentTenant.dataValues.id
 
       const member = {
         username: {
@@ -198,7 +191,11 @@ describe('Serverless database operations worker tests', () => {
       const dbMember = await new MemberService(mockIRepositoryOptions).upsert(member)
       const memberId = dbMember.id
 
-      await worker(tenantId, 'update_members', [{ id: memberId, update: { score: 10 } }])
+      await worker(
+        'update_members',
+        [{ id: memberId, update: { score: 10 } }],
+        mockIRepositoryOptions,
+      )
 
       await SequelizeTestUtils.refreshMaterializedViews(db)
 
@@ -211,7 +208,6 @@ describe('Serverless database operations worker tests', () => {
 
     it('Should update a list of members', async () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
-      const tenantId = mockIRepositoryOptions.currentTenant.dataValues.id
 
       const members = [
         {
@@ -242,10 +238,14 @@ describe('Serverless database operations worker tests', () => {
         memberIds.push(id)
       }
 
-      await worker(tenantId, 'update_members', [
-        { id: memberIds[0], update: { score: 10 } },
-        { id: memberIds[1], update: { score: 3 } },
-      ])
+      await worker(
+        'update_members',
+        [
+          { id: memberIds[0], update: { score: 10 } },
+          { id: memberIds[1], update: { score: 3 } },
+        ],
+        mockIRepositoryOptions,
+      )
 
       await SequelizeTestUtils.refreshMaterializedViews(db)
 
@@ -258,9 +258,8 @@ describe('Serverless database operations worker tests', () => {
 
     it('Should work for an empty list', async () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
-      const tenantId = mockIRepositoryOptions.currentTenant.dataValues.id
 
-      await worker(tenantId, 'update_members', [])
+      await worker('update_members', [], mockIRepositoryOptions)
 
       const dbMembers = (await new MemberService(mockIRepositoryOptions).findAndCountAll({})).rows
 
@@ -271,7 +270,6 @@ describe('Serverless database operations worker tests', () => {
   describe('Bulk update method for integrations', () => {
     it('Should update a single integration', async () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
-      const tenantId = mockIRepositoryOptions.currentTenant.dataValues.id
 
       const integration = {
         platform: PlatformType.SLACK,
@@ -281,12 +279,16 @@ describe('Serverless database operations worker tests', () => {
 
       const dbIntegration = await new IntegrationService(mockIRepositoryOptions).create(integration)
 
-      await worker(tenantId, 'update_integrations', [
-        {
-          id: dbIntegration.id,
-          update: { status: 'done' },
-        },
-      ])
+      await worker(
+        'update_integrations',
+        [
+          {
+            id: dbIntegration.id,
+            update: { status: 'done' },
+          },
+        ],
+        mockIRepositoryOptions,
+      )
 
       const dbIntegrations = (
         await new IntegrationService(mockIRepositoryOptions).findAndCountAll({})
@@ -297,7 +299,6 @@ describe('Serverless database operations worker tests', () => {
 
     it('Should update a list of integrations', async () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
-      const tenantId = mockIRepositoryOptions.currentTenant.dataValues.id
 
       const integrations = [
         {
@@ -318,12 +319,16 @@ describe('Serverless database operations worker tests', () => {
         integrationIds.push(id)
       }
 
-      await worker(tenantId, 'update_integrations', [
-        {
-          id: integrationIds[0],
-          update: { status: 'done' },
-        },
-      ])
+      await worker(
+        'update_integrations',
+        [
+          {
+            id: integrationIds[0],
+            update: { status: 'done' },
+          },
+        ],
+        mockIRepositoryOptions,
+      )
 
       const dbIntegrations = (
         await new IntegrationService(mockIRepositoryOptions).findAndCountAll({})
@@ -336,9 +341,8 @@ describe('Serverless database operations worker tests', () => {
 
     it('Should work with an empty list', async () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
-      const tenantId = mockIRepositoryOptions.currentTenant.dataValues.id
 
-      await worker(tenantId, 'update_integrations', [])
+      await worker('update_integrations', [], mockIRepositoryOptions)
 
       const dbIntegrations = (
         await new IntegrationService(mockIRepositoryOptions).findAndCountAll({})
@@ -351,7 +355,6 @@ describe('Serverless database operations worker tests', () => {
   describe('Bulk update method for microservice', () => {
     it('Should update a single microservice', async () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
-      const tenantId = mockIRepositoryOptions.currentTenant.dataValues.id
 
       const microservice = {
         type: 'other',
@@ -362,12 +365,16 @@ describe('Serverless database operations worker tests', () => {
 
       const dbMs = await new MicroserviceService(mockIRepositoryOptions).create(microservice)
 
-      await worker(tenantId, 'update_microservices', [
-        {
-          id: dbMs.id,
-          update: { running: true },
-        },
-      ])
+      await worker(
+        'update_microservices',
+        [
+          {
+            id: dbMs.id,
+            update: { running: true },
+          },
+        ],
+        mockIRepositoryOptions,
+      )
 
       const dbIntegrations = (
         await new MicroserviceService(mockIRepositoryOptions).findAndCountAll({})
@@ -378,7 +385,6 @@ describe('Serverless database operations worker tests', () => {
 
     it('Should update a list of microservices', async () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
-      const tenantId = mockIRepositoryOptions.currentTenant.dataValues.id
 
       const microservices = [
         {
@@ -398,16 +404,20 @@ describe('Serverless database operations worker tests', () => {
       const dbMs = await new MicroserviceService(mockIRepositoryOptions).create(microservices[0])
       const dbMs2 = await new MicroserviceService(mockIRepositoryOptions).create(microservices[1])
 
-      await worker(tenantId, 'update_microservices', [
-        {
-          id: dbMs.id,
-          update: { running: true },
-        },
-        {
-          id: dbMs2.id,
-          update: { running: true },
-        },
-      ])
+      await worker(
+        'update_microservices',
+        [
+          {
+            id: dbMs.id,
+            update: { running: true },
+          },
+          {
+            id: dbMs2.id,
+            update: { running: true },
+          },
+        ],
+        mockIRepositoryOptions,
+      )
 
       const dbIntegrations = (
         await new MicroserviceService(mockIRepositoryOptions).findAndCountAll({})
@@ -419,9 +429,8 @@ describe('Serverless database operations worker tests', () => {
 
     it('Should work with an empty list', async () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
-      const tenantId = mockIRepositoryOptions.currentTenant.dataValues.id
 
-      await worker(tenantId, 'update_microservices', [])
+      await worker('update_microservices', [], mockIRepositoryOptions)
 
       const dbIntegrations = (
         await new MicroserviceService(mockIRepositoryOptions).findAndCountAll({})
@@ -434,9 +443,8 @@ describe('Serverless database operations worker tests', () => {
   describe('Unknown operation', () => {
     it('Should throw an error', async () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
-      const tenantId = mockIRepositoryOptions.currentTenant.dataValues.id
 
-      await expect(worker(tenantId, 'unknownOperation', [])).rejects.toThrow(
+      await expect(worker('unknownOperation', [], mockIRepositoryOptions)).rejects.toThrow(
         'Operation unknownOperation not found',
       )
     })
