@@ -1,3 +1,4 @@
+import Error400 from '../../errors/Error400'
 import Permissions from '../../security/permissions'
 import track from '../../segment/track'
 import MemberService from '../../services/memberService'
@@ -25,15 +26,18 @@ export default async (req, res) => {
   const newVersion = req.headers['x-crowd-api-version'] === '1'
 
   const memberService = new MemberService(req)
-
-  if (newVersion) {
-    payload = await memberService.queryV2(req.body)
-  } else {
-    payload = await memberService.query(req.body)
-  }
-
   if (req.body.filter && Object.keys(req.body.filter).length > 0) {
     track('Member Advanced Fitler', { ...req.body }, { ...req })
+  }
+
+  try {
+    if (newVersion) {
+      payload = await memberService.queryV2(req.body)
+    } else {
+      payload = await memberService.query(req.body)
+    }
+  } catch (error) {
+    throw new Error400()
   }
 
   await req.responseHandler.success(req, res, payload)
