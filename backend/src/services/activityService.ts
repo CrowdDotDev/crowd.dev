@@ -436,8 +436,6 @@ export default class ActivityService extends LoggingBase {
 
       let activityExists = await this._activityExists(data, transaction)
 
-      const memberService = new MemberService(this.options)
-
       let existingMember = activityExists
         ? await memberService.findById(activityExists.memberId, true, false)
         : false
