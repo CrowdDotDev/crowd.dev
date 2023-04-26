@@ -245,7 +245,7 @@ import { i18n } from '@/i18n';
 import UrlField from '@/shared/fields/url-field';
 import { onSelectMouseLeave } from '@/utils/select';
 import { CrowdIntegrations } from '@/integrations/integrations-config';
-import { capitalizeFirstLetter } from '@/utils/string';
+import { toSentenceCase } from '@/utils/string';
 import { storeToRefs } from 'pinia';
 import { useActivityTypeStore } from '@/modules/activity/store/type';
 
@@ -345,7 +345,7 @@ export default {
           acc.push(
             ...Object.entries(platformActivityTypes).map(([activityKey, activityValue]) => ({
               value: activityKey,
-              label: capitalizeFirstLetter(activityValue.display.short),
+              label: toSentenceCase(activityValue.display.short),
             })),
           );
           return acc;
