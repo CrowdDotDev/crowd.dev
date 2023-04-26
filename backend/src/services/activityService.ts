@@ -106,6 +106,15 @@ export default class ActivityService extends LoggingBase {
           data.sentiment = sentiment
         }
 
+        if (!data.username && data.platform === PlatformType.OTHER) {
+          const { displayName } = await MemberRepository.findById(data.member, {
+            ...this.options,
+            transaction,
+          })
+          // Get the first key of the username object as a string
+          data.username = displayName
+        }
+
         record = await ActivityRepository.create(data, {
           ...this.options,
           transaction,
