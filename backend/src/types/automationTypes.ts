@@ -66,6 +66,7 @@ export type AutomationSettings = WebhookSettings | NewActivitySettings | NewMemb
  */
 export interface AutomationData {
   id: string
+  name: string,
   type: AutomationType
   tenantId: string
   trigger: AutomationTrigger
@@ -81,6 +82,7 @@ export interface AutomationData {
  * This data is used to create a new automation
  */
 export interface CreateAutomationRequest {
+  name: string
   type: AutomationType
   trigger: AutomationTrigger
   settings: AutomationSettings
@@ -90,6 +92,7 @@ export interface CreateAutomationRequest {
  * This data is used to update an existing automation
  */
 export interface UpdateAutomationRequest {
+  name: string
   trigger: AutomationTrigger
   settings: AutomationSettings
   state: AutomationState

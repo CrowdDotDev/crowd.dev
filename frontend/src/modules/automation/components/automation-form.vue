@@ -38,7 +38,7 @@
             Trigger
           </h5>
           <p v-if="props.modelValue === 'webhook'" class="text-2xs text-gray-500">
-            Define the event that triggers your webkook
+            Define the event that triggers your webhook
           </p>
           <p v-else-if="props.modelValue === 'slack'" class="text-2xs text-gray-500">
             Define the event that triggers your Slack notification.
@@ -57,6 +57,8 @@
             v-model="form.trigger"
             placeholder="Select option"
             class="w-full"
+            @change="collapseOpen = 'filterOptions'"
+            @blur="$v.trigger.$touch"
           >
             <el-option
               v-for="{ value, label } of triggerOptions"
@@ -66,223 +68,70 @@
             />
           </el-select>
         </app-form-item>
-        <div class="filter-options">
-          <el-collapse v-if="form.trigger">
+        <div class="filter-options pb-8">
+          <el-collapse v-if="form.trigger" v-model="collapseOpen">
             <el-collapse-item
               title="Filter options"
               name="filterOptions"
             >
               <app-new-activity-filter-options v-if="form.trigger === 'new_activity'" v-model="form.settings" />
-              <!--            <div class="flex items-start gap-4 mb-2">-->
-              <!--              <el-form-item-->
-              <!--                label="Matching activity platform(s)"-->
-              <!--                class="grow"-->
-              <!--              >-->
-              <!--                <el-select-->
-              <!--                  v-model="model.settings.platforms"-->
-              <!--                  multiple-->
-              <!--                  placeholder="Select option"-->
-              <!--                >-->
-              <!--                  <el-option-->
-              <!--                    v-for="platform of computedPlatformOptions"-->
-              <!--                    :key="platform.value"-->
-              <!--                    :value="platform.value"-->
-              <!--                    :label="platform.label"-->
-              <!--                    @mouseleave="onSelectMouseLeave"-->
-              <!--                  >-->
-              <!--                    <div class="flex items-center">-->
-              <!--                      <img-->
-              <!--                        :alt="-->
-              <!--                          getPlatformDetails(-->
-              <!--                            platform.value,-->
-              <!--                          ).name-->
-              <!--                        "-->
-              <!--                        :src="-->
-              <!--                          getPlatformDetails(-->
-              <!--                            platform.value,-->
-              <!--                          ).image-->
-              <!--                        "-->
-              <!--                        class="w-4 h-4 mr-2"-->
-              <!--                      />-->
-              <!--                      {{ platform.label }}-->
-              <!--                    </div>-->
-              <!--                  </el-option>-->
-              <!--                </el-select>-->
-              <!--              </el-form-item>-->
-              <!--              <el-form-item-->
-              <!--                label="Matching activity type(s)"-->
-              <!--                class="grow"-->
-              <!--              >-->
-              <!--                <el-select-->
-              <!--                  v-model="model.settings.types"-->
-              <!--                  multiple-->
-              <!--                  placeholder="Select option"-->
-              <!--                  :disabled="-->
-              <!--                    model.settings.platforms.length === 0-->
-              <!--                  "-->
-              <!--                >-->
-              <!--                  <el-option-->
-              <!--                    v-for="platform of computedActivityTypeOptions"-->
-              <!--                    :key="platform.value"-->
-              <!--                    :value="platform.value"-->
-              <!--                    :label="platform.label"-->
-              <!--                    @mouseleave="onSelectMouseLeave"-->
-              <!--                  />-->
-              <!--                </el-select>-->
-              <!--              </el-form-item>-->
-              <!--            </div>-->
-              <!--            <el-form-item label="Including keyword(s)">-->
-              <!--              <app-keywords-input-->
-              <!--                v-model="model.settings.keywords"-->
-              <!--              />-->
-              <!--            </el-form-item>-->
-              <!--            <el-checkbox-->
-              <!--              v-model="-->
-              <!--                model.settings.teamMemberActivities-->
-              <!--              "-->
-              <!--              class="text-gray-900"-->
-              <!--              label="Include activities from team members"-->
-              <!--            />-->
+              <app-new-member-filter-options v-if="form.trigger === 'new_member'" v-model="form.settings" />
             </el-collapse-item>
           </el-collapse>
         </div>
+        <hr>
+        <div class="py-6">
+          <h5 class="text-base leading-5 text-brand-500 font-semibold mb-1">
+            Action
+          </h5>
+          <p v-if="props.modelValue === 'webhook'" class="text-2xs text-gray-500">
+            Define the endpoint where the webhook payload should be sent to
+          </p>
+          <p v-else-if="props.modelValue === 'slack'" class="text-2xs text-gray-500">
+            Receive a notification in your Slack workspace every time the event is triggered.
+          </p>
+        </div>
+        <div>
+          <app-automation-webhook-action v-if="props.modelValue === 'webhook'" v-model="form.action" />
+          <app-automation-slack-action v-else-if="props.modelValue === 'slack'" v-model="form.action" />
+        </div>
       </div>
-      <!--      <el-form-->
-      <!--        v-if="model"-->
-      <!--        ref="form"-->
-      <!--        label-position="top"-->
-      <!--        :model="model"-->
-      <!--        :rules="rules"-->
-      <!--        class="form automation-form"-->
-      <!--        @submit.prevent="doSubmit"-->
-      <!--      >-->
-      <!--        <div v-else class="flex flex-col">-->
-
-      <!--          <el-form-item-->
-      <!--            :label="fields.trigger.label"-->
-      <!--            :prop="fields.trigger.name"-->
-      <!--            :required="fields.trigger.required"-->
-      <!--            class="w-full"-->
-      <!--          >-->
-      <!--            <el-select-->
-      <!--              v-model="model.trigger"-->
-      <!--              placeholder="Select option"-->
-      <!--            >-->
-      <!--              <el-option-->
-      <!--                key="new_activity"-->
-      <!--                value="new_activity"-->
-      <!--                :label="-->
-      <!--                  translate(-->
-      <!--                    'entities.automation.triggers.new_activity',-->
-      <!--                  )-->
-      <!--                "-->
-      <!--                @mouseleave="onSelectMouseLeave"-->
-      <!--              />-->
-      <!--              <el-option-->
-      <!--                key="new_member"-->
-      <!--                value="new_member"-->
-      <!--                :label="-->
-      <!--                  translate(-->
-      <!--                    'entities.automation.triggers.new_member',-->
-      <!--                  )-->
-      <!--                "-->
-      <!--                @mouseleave="onSelectMouseLeave"-->
-      <!--              />-->
-      <!--            </el-select>-->
-      <!--          </el-form-item>-->
-
-      <!--          <el-collapse-->
-      <!--            v-if="model.trigger === 'new_member'"-->
-      <!--            v-model="newMemberFilters"-->
-      <!--          >-->
-      <!--            <el-collapse-item-->
-      <!--              title="Filter options"-->
-      <!--              name="memberFilters"-->
-      <!--            >-->
-      <!--              <el-form-item-->
-      <!--                label="Matching member platform(s)"-->
-      <!--                class="w-full"-->
-      <!--              >-->
-      <!--                <el-select-->
-      <!--                  v-model="model.settings.platforms"-->
-      <!--                  multiple-->
-      <!--                  placeholder="Select option"-->
-      <!--                >-->
-      <!--                  <el-option-->
-      <!--                    v-for="platform of computedPlatformOptions"-->
-      <!--                    :key="platform.value"-->
-      <!--                    :value="platform.value"-->
-      <!--                    :label="platform.label"-->
-      <!--                    @mouseleave="onSelectMouseLeave"-->
-      <!--                  />-->
-      <!--                </el-select>-->
-      <!--              </el-form-item>-->
-      <!--            </el-collapse-item>-->
-      <!--          </el-collapse>-->
-
-      <!--          <el-divider-->
-      <!--            class="border-gray-200 mt-4 mb-6"-->
-      <!--          />-->
-
-      <!--          <div class="flex flex-col gap-1 mb-6">-->
-      <!--            <span-->
-      <!--              class="text-base font-semibold text-brand-500"-->
-      <!--            >Action</span>-->
-      <!--            <span class="text-gray-500 text-2xs">Define the endpoint where the webhook payload-->
-      <!--              should be sent to</span>-->
-      <!--          </div>-->
-
-      <!--          <el-form-item-->
-      <!--            label="Webhook URL"-->
-      <!--            required-->
-      <!--            prop="settings.url"-->
-      <!--          >-->
-      <!--            <el-input-->
-      <!--              v-model="model.settings.url"-->
-      <!--              type="text"-->
-      <!--              placholder="https://somewebhook.url"-->
-      <!--            />-->
-      <!--          </el-form-item>-->
-      <!--        </div>-->
-      <!--      </el-form>-->
     </template>
 
     <template #footer>
-      <!--      <div-->
-      <!--        class="flex grow items-center"-->
-      <!--        :class="-->
-      <!--          isEditing && isDirty-->
-      <!--            ? 'justify-between'-->
-      <!--            : 'justify-end'-->
-      <!--        "-->
-      <!--      >-->
-      <!--        <el-button-->
-      <!--          v-if="isEditing && isDirty"-->
-      <!--          class="btn btn-link btn-link&#45;&#45;primary"-->
-      <!--          @click="doReset"-->
-      <!--        >-->
-      <!--          <i class="ri-arrow-go-back-line" />-->
-      <!--          <span>Reset changes</span>-->
-      <!--        </el-button>-->
+      <div class="flex justify-between">
+        <div>
+          <!--                <el-button-->
+          <!--                        v-if="isEditing && isDirty"-->
+          <!--                        class="btn btn-link btn-link&#45;&#45;primary"-->
+          <!--                        @click="doReset"-->
+          <!--                >-->
+          <!--                    <i class="ri-arrow-go-back-line" />-->
+          <!--                    <span>Reset changes</span>-->
+          <!--                </el-button>-->
+        </div>
+        <div class="flex items-center">
+          <el-button
+            :disabled="sending"
+            class="btn btn--md btn--bordered mr-4"
+            @click="emit('update:modelValue', null)"
+          >
+            Cancel
+          </el-button>
 
-      <!--        <div class="flex gap-4">-->
-      <!--          <el-button-->
-      <!--            :disabled="saveLoading"-->
-      <!--            class="btn btn&#45;&#45;md btn&#45;&#45;bordered"-->
-      <!--            @click="doCancel"-->
-      <!--          >-->
-      <!--            <app-i18n code="common.cancel" />-->
-      <!--          </el-button>-->
-
-      <!--          <el-button-->
-      <!--            :disabled="saveLoading || !isFilled || !isDirty"-->
-      <!--            class="btn btn&#45;&#45;md btn&#45;&#45;primary"-->
-      <!--            @click="doSubmit"-->
-      <!--          >-->
-      <!--            {{ isEditing ? 'Update' : 'Add webhook' }}-->
-      <!--          </el-button>-->
-      <!--        </div>-->
-      <!--      </div>-->
+          <el-button
+            :disabled="$v.$invalid || sending"
+            :loading="sending"
+            class="btn btn--md btn--primary"
+            @click="doSubmit"
+          >
+            <span v-if="isEdit">Update</span>
+            <span v-else-if="props.modelValue === 'webhook'">Add webhook</span>
+            <span v-else-if="props.modelValue === 'slack'">Add Slack notification</span>
+            <span v-else>Add automation</span>
+          </el-button>
+        </div>
+      </div>
     </template>
   </app-drawer>
 </template>
@@ -297,6 +146,13 @@ import useVuelidate from '@vuelidate/core';
 import AppFormItem from '@/shared/form/form-item.vue';
 import AppNewActivityFilterOptions
   from '@/modules/automation/components/filter-options/new-activity-filter-options.vue';
+import AppNewMemberFilterOptions from '@/modules/automation/components/filter-options/new-member-filter-options.vue';
+import AppAutomationWebhookAction from '@/modules/automation/components/action/webhook-action.vue';
+import AppAutomationSlackAction from '@/modules/automation/components/action/slack-action.vue';
+import { mapActions } from '@/shared/vuex/vuex.helpers';
+import { useAutomationStore } from '@/modules/automation/store';
+import Message from '@/shared/message/message';
+import { i18n } from '@/i18n';
 
 const props = defineProps({
   modelValue: {
@@ -312,6 +168,8 @@ const props = defineProps({
 });
 
 const emit = defineEmits(['update:modelValue']);
+
+const { createAutomation } = useAutomationStore();
 
 const isDrawerOpen = computed({
   get() {
@@ -339,6 +197,8 @@ const triggerOptions = ref([
   },
 ]);
 
+const collapseOpen = ref('filterOptions');
+
 const form = reactive({
   name: '',
   trigger: '',
@@ -353,6 +213,36 @@ const rules = {
 };
 
 const $v = useVuelidate(rules, form);
+
+const sending = ref(false);
+
+const doSubmit = () => {
+  if ($v.value.$invalid) {
+    return;
+  }
+  sending.value = true;
+  const data = {
+    name: form.name ?? i18n(`entities.automation.triggers.${form.trigger}`),
+    type: props.modelValue,
+    trigger: form.trigger,
+    settings: {
+      ...form.settings,
+      ...form.action,
+    },
+  };
+  if (!isEdit.value) {
+    createAutomation(data)
+      .then(() => {
+        emit('update:modelValue', null);
+      })
+      .catch(() => {
+        Message.error('There was an error creating automation, please try again later.');
+      })
+      .finally(() => {
+        sending.value = false;
+      });
+  }
+};
 
 </script>
 
@@ -434,30 +324,30 @@ export default {
 <!--      );-->
 <!--    },-->
 
-    computedActivityTypeOptions() {
-      if (
-        !this.model.settings.platforms
-        || this.model.settings.platforms.length === 0
-      ) {
-        return [];
-      }
+<!--    computedActivityTypeOptions() {-->
+<!--      if (-->
+<!--        !this.model.settings.platforms-->
+<!--        || this.model.settings.platforms.length === 0-->
+<!--      ) {-->
+<!--        return [];-->
+<!--      }-->
 
-      return this.model.settings.platforms.reduce(
-        (acc, platform) => {
-          const platformActivityTypes = activityTypesJson[platform];
-          acc.push(
-            ...platformActivityTypes.map((activityType) => ({
-              value: activityType,
-              label: i18n(
-                `entities.activity.${platform}.${activityType}`,
-              ),
-            })),
-          );
-          return acc;
-        },
-        [],
-      );
-    },
+<!--      return this.model.settings.platforms.reduce(-->
+<!--        (acc, platform) => {-->
+<!--          const platformActivityTypes = activityTypesJson[platform];-->
+<!--          acc.push(-->
+<!--            ...platformActivityTypes.map((activityType) => ({-->
+<!--              value: activityType,-->
+<!--              label: i18n(-->
+<!--                `entities.activity.${platform}.${activityType}`,-->
+<!--              ),-->
+<!--            })),-->
+<!--          );-->
+<!--          return acc;-->
+<!--        },-->
+<!--        [],-->
+<!--      );-->
+<!--    },-->
 <!--  },-->
 
 <!--  async created() {-->
@@ -471,8 +361,7 @@ export default {
 <!--  methods: {-->
 <!--    ...mapActions({-->
 <!--      doFetchIntegrations: 'integration/doFetch',-->
-<!--      doUpdate: 'automation/doUpdate',-->
-<!--      doCreate: 'automation/doCreate',-->
+
 <!--    }),-->
 <!--    translate(key) {-->
 <!--      return i18n(key);-->
@@ -525,7 +414,7 @@ export default {
     }
 
     .el-collapse-item__header {
-      @apply text-gray-600 bg-gray-50 text-xs flex flex-row-reverse justify-end leading-tight h-6 font-medium border-none;
+      @apply text-gray-600 bg-gray-50 text-xs flex flex-row-reverse justify-end leading-tight h-6 p-0 font-medium border-none;
       .el-collapse-item__arrow {
         margin: 0 8px 0 0;
       }

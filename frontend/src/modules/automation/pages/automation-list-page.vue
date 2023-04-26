@@ -1,12 +1,6 @@
 <template>
   <div class="pt-6">
-    <!--    <el-button-->
-    <!--      class="btn btn&#45;&#45;primary btn&#45;&#45;sm !h-8"-->
-    <!--      @click="authenticateSlack"-->
-    <!--    >-->
-    <!--      Connect slack-->
-    <!--    </el-button>-->
-    <div class="flex justify-between pb-3">
+    <div class="flex justify-between pb-6">
       <div class="flex items-center">
         <div class="flex text-xs text-gray-600">
           <div
@@ -75,14 +69,14 @@
       v-loading="loading"
       class="app-page-spinner"
     />
-    <!--    <app-automation-list-table-->
-    <!--      v-else-if="totalAutomations > 0"-->
-    <!--      class="pt-4"-->
-    <!--    />-->
-    <!--      @open-executions-drawer="onOpenExecutionsDrawer"-->
-    <!--      @open-edit-automation-drawer="-->
-    <!--        onOpenEditAutomationDrawer-->
-    <!--      "-->
+    <app-automation-list-table
+      v-else-if="totalAutomations > 0"
+      class="pt-4"
+    />
+    <!--    @open-executions-drawer="onOpenExecutionsDrawer"-->
+    <!--    @open-edit-automation-drawer="-->
+    <!--    onOpenEditAutomationDrawer-->
+    <!--    "-->
     <!--    />-->
 
     <!-- Empty state for no automations configured -->
@@ -119,6 +113,7 @@ import { useAutomationStore } from '@/modules/automation/store';
 import { storeToRefs } from 'pinia';
 import pluralize from 'pluralize';
 import AppAutomationForm from '@/modules/automation/components/automation-form.vue';
+import AppAutomationListTable from '@/modules/automation/components/list/automation-list-table.vue';
 
 const loading = ref(false);
 const type = ref('all');
@@ -136,7 +131,7 @@ const options = ref([
     value: 'webhooks',
   },
 ]);
-const createAutomation = ref('webhook');
+const createAutomation = ref(null);
 
 const automationStore = useAutomationStore();
 const { totalAutomations } = storeToRefs(automationStore);

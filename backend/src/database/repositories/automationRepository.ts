@@ -29,6 +29,7 @@ export default class AutomationRepository extends RepositoryBase<
 
     const record = await this.database.automation.create(
       {
+        name: data.name,
         type: data.type,
         trigger: data.trigger,
         settings: data.settings,
@@ -172,6 +173,7 @@ export default class AutomationRepository extends RepositoryBase<
                                 from "automationExecutions"
                                 order by "automationId", "executedAt" desc)
       select a.id,
+            a.name,
             a.type,
             a."tenantId",
             a.trigger,
@@ -209,6 +211,7 @@ export default class AutomationRepository extends RepositoryBase<
       const row = r as any
       return {
         id: row.id,
+        name: row.name,
         type: row.type,
         tenantId: row.tenantId,
         trigger: row.trigger,

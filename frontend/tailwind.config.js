@@ -97,6 +97,9 @@ module.exports = {
         100: '#DCFCE7',
         50: '#F0FDF4'
       },
+      darkgreen: {
+        900: '#059669'
+      },
       teal: {
         900: '#134E4A',
         800: '#115E59',
