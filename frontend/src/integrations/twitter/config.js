@@ -10,4 +10,5 @@ export default {
   image:
     'https://cdn-icons-png.flaticon.com/512/733/733579.png',
   connectComponent: TwitterConnect,
+  chartColor: '#1D9BF0',
 };

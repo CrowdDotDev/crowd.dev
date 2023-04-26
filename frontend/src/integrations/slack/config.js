@@ -10,4 +10,5 @@ export default {
   image:
     'https://cdn-icons-png.flaticon.com/512/3800/3800024.png',
   connectComponent: SlackConnect,
+  chartColor: '#E41756',
 };

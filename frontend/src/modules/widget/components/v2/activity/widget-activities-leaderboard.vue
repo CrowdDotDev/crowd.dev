@@ -82,11 +82,11 @@ const drawerTitle = ref('Leaderboard: Activities by type');
 const selectedPeriod = ref(SEVEN_DAYS_PERIOD_FILTER);
 const drawerSelectedPeriod = ref(SEVEN_DAYS_PERIOD_FILTER);
 
-const onUpdatePeriod = async (updatedPeriod) => {
+const onUpdatePeriod = (updatedPeriod) => {
   selectedPeriod.value = updatedPeriod;
 };
 
-const onDrawerUpdatePeriod = async (updatedPeriod) => {
+const onDrawerUpdatePeriod = (updatedPeriod) => {
   drawerSelectedPeriod.value = updatedPeriod;
 };
 

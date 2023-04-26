@@ -9,4 +9,5 @@ export default {
     'Connect Hacker News to get posts as well as their comments mentioning your community.',
   image: '/images/integrations/hackernews.svg',
   connectComponent: HackerNewsConnect,
+  chartColor: '#FF712E',
 };

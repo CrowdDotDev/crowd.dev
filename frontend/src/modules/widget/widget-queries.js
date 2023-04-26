@@ -348,3 +348,37 @@ export const LEADERBOARD_ACTIVITIES_COUNT_QUERY = ({
     }),
 
 });
+
+export const TOTAL_ACTIVITIES_QUERY = ({
+  period,
+  granularity,
+  selectedPlatforms,
+  selectedHasTeamActivities,
+}) => {
+  const dateRange = (periodValue) => {
+    const end = moment().utc().format('YYYY-MM-DD');
+    const start = moment()
+      .utc()
+      .subtract(periodValue.value, periodValue.granularity)
+      // we're subtracting one more day, to get the last value of the previous period within the same request
+      .subtract(1, 'day')
+      .format('YYYY-MM-DD');
+
+    return [start, end];
+  };
+
+  return {
+    measures: ['Activities.cumulativeCount'],
+    timeDimensions: [
+      {
+        dimension: 'Activities.date',
+        granularity: granularity.value,
+        dateRange: dateRange(period),
+      },
+    ],
+    filters: getCubeFilters({
+      platforms: selectedPlatforms,
+      hasTeamMembers: selectedHasTeamActivities,
+    }),
+  };
+};

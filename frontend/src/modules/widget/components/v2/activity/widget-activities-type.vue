@@ -68,14 +68,14 @@
                   </span>
                 </p>
               </div>
-              <p class="text-2xs text-gray-400">
+              <p class="text-xs text-gray-500">
                 {{ total }} activities ・
                 {{
-                  Math.round(
+                  (
                     (total
                       / computedScore(activityCountResultSet))
-                      * 100,
-                  )
+                    * 100
+                  ).toFixed(1)
                 }}%
               </p>
             </article>

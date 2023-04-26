@@ -19,4 +19,5 @@ export default {
     entertainment: 'Funny',
   },
   premium: true,
+  chartColor: '#2867B2',
 };
