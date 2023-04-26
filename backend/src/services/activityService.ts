@@ -420,6 +420,7 @@ export default class ActivityService extends LoggingBase {
     const errorDetails: any = {}
 
     const transaction = await SequelizeRepository.createTransaction(this.options)
+    const memberService = new MemberService(this.options)
 
     try {
       data.member.username = mapUsernameToIdentities(data.member.username, data.platform)
@@ -434,8 +435,6 @@ export default class ActivityService extends LoggingBase {
       }
 
       let activityExists = await this._activityExists(data, transaction)
-
-      const memberService = new MemberService(this.options)
 
       let existingMember = activityExists
         ? await memberService.findById(activityExists.memberId, true, false)
@@ -490,6 +489,42 @@ export default class ActivityService extends LoggingBase {
         },
         existingMember,
       )
+
+      if (data.objectMember) {
+        if (typeof data.objectMember.username === 'string') {
+          data.objectMember.username = {
+            [data.platform]: {
+              username: data.objectMember.username,
+            },
+          }
+        }
+
+        const objectMemberPlatforms = Object.keys(data.objectMember.username)
+
+        if (objectMemberPlatforms.length === 0) {
+          throw new Error('Object member must have at least one platform username set!')
+        }
+
+        for (const platform of objectMemberPlatforms) {
+          if (typeof data.objectMember.username[platform] === 'string') {
+            data.objectMember.username[platform] = {
+              username: data.objectMember.username[platform],
+            }
+          }
+        }
+
+        const objectMember = await memberService.upsert({
+          ...data.objectMember,
+          platform: data.platform,
+          joinedAt: data.timestamp,
+        })
+
+        if (!data.objectMemberUsername) {
+          data.objectMemberUsername = data.objectMember.username[data.platform].username
+        }
+
+        data.objectMember = objectMember.id
+      }
 
       data.member = member.id
 

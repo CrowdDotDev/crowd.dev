@@ -1,7 +1,8 @@
 import JSONField from '@/shared/fields/json-field';
-import en from '@/i18n/en';
-import activityTypesJson from '@/jsons/activity-types.json';
 import { toSentenceCase } from '@/utils/string';
+import { CrowdIntegrations } from '@/integrations/integrations-config';
+import { storeToRefs } from 'pinia';
+import { useActivityTypeStore } from '@/modules/activity/store/type';
 
 export default class ActivityTypeField extends JSONField {
   constructor(name, label, config = {}) {
@@ -16,131 +17,33 @@ export default class ActivityTypeField extends JSONField {
     this.fromMembers = config.fromMembers || false;
   }
 
+  getActivityTypes(activityTypes) {
+    return Object.entries(activityTypes).map(([key, value]) => ({
+      label: {
+        type: 'platform',
+        key,
+        value: CrowdIntegrations.getConfig(key).name,
+      },
+      nestedOptions: Object.entries(value).map(([activityKey, activityValue]) => ({
+        value: activityKey,
+        label: toSentenceCase(activityValue.display.short),
+      })),
+    }));
+  }
+
   dropdownOptions() {
-    return [
-      {
-        label: {
-          type: 'platform',
-          key: 'github',
-          value: 'GitHub',
-        },
-        nestedOptions: activityTypesJson.github.map(
-          (activity) => ({
-            value: activity,
-            label: toSentenceCase(en.entities.activity.github[activity]),
-          }),
-        ),
-      },
-      {
-        label: {
-          type: 'platform',
-          key: 'twitter',
-          value: 'Twitter',
-        },
-        nestedOptions: activityTypesJson.twitter.map(
-          (activity) => ({
-            value: activity,
-            label: toSentenceCase(en.entities.activity.twitter[activity]),
-          }),
-        ),
-      },
-      {
-        label: {
-          type: 'platform',
-          key: 'discord',
-          value: 'Discord',
-        },
-        nestedOptions: activityTypesJson.discord
-          .map((activity) => ({
-            value: activity,
-            label: toSentenceCase(en.entities.activity.discord[activity]),
-          }))
-          .filter(
-            (option) => !['replied_thread', 'replied'].includes(
-              option.value,
-            ),
-          ),
-      },
-      {
-        label: {
-          type: 'platform',
-          key: 'slack',
-          value: 'Slack',
-        },
-        nestedOptions: activityTypesJson.slack.map(
-          (activity) => ({
-            value: activity,
-            label: toSentenceCase(en.entities.activity.slack[activity]),
-          }),
-        ),
-      },
-      {
-        label: {
-          type: 'platform',
-          key: 'hackernews',
-          value: 'Hacker News',
-        },
-        nestedOptions: activityTypesJson.hackernews.map(
-          (activity) => ({
-            value: activity,
-            label: toSentenceCase(en.entities.activity.hackernews[activity]),
-          }),
-        ),
-      },
-      {
-        label: {
-          type: 'platform',
-          key: 'devto',
-          value: 'DEV',
-        },
-        nestedOptions: activityTypesJson.devto.map(
-          (activity) => ({
-            value: activity,
-            label: toSentenceCase(en.entities.activity.devto[activity]),
-          }),
-        ),
-      },
-      {
-        label: {
-          type: 'platform',
-          key: 'reddit',
-          value: 'Reddit',
-        },
-        nestedOptions: activityTypesJson.reddit.map(
-          (activity) => ({
-            value: activity,
-            label: toSentenceCase(en.entities.activity.reddit[activity]),
-          }),
-        ),
-      },
-      {
-        label: {
-          type: 'platform',
-          key: 'linkedin',
-          value: 'LinkedIn',
-        },
-        nestedOptions: activityTypesJson.linkedin.map(
-          (activity) => ({
-            value: activity,
-            label: toSentenceCase(en.entities.activity.linkedin[activity]),
-          }),
-        ),
-      },
-      {
-        label: {
-          type: 'platform',
-          key: 'stackoverflow',
-          value: 'Stack Overflow',
-        },
-        nestedOptions: activityTypesJson.stackoverflow.map(
-          (activity) => ({
-            value: activity,
-            label:
-              toSentenceCase(en.entities.activity.stackoverflow[activity]),
-          }),
-        ),
-      },
-    ];
+    const activityTypeStore = useActivityTypeStore();
+    const { types } = storeToRefs(activityTypeStore);
+
+    const {
+      default: defaultActivityTypes,
+      custom: customActivityTypes,
+    } = types.value;
+
+    const defaultOptions = this.getActivityTypes(defaultActivityTypes);
+    const customOptions = this.getActivityTypes(customActivityTypes);
+
+    return [...defaultOptions, ...customOptions];
   }
 
   forFilter() {

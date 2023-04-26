@@ -49,6 +49,9 @@ export default (sequelize) => {
       username: {
         type: DataTypes.TEXT,
       },
+      objectMemberUsername: {
+        type: DataTypes.TEXT,
+      },
       attributes: {
         type: DataTypes.JSONB,
         allowNull: false,
@@ -151,6 +154,10 @@ export default (sequelize) => {
       foreignKey: {
         allowNull: false,
       },
+    })
+
+    models.activity.belongsTo(models.member, {
+      as: 'objectMember',
     })
 
     models.activity.belongsTo(models.conversation, {
