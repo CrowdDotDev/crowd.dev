@@ -89,6 +89,44 @@ export default class IntegrationRunRepository extends RepositoryBase<
     return results as IntegrationRun[]
   }
 
+  async findLastRun(integrationId: string): Promise<IntegrationRun | undefined> {
+    const transaction = this.transaction
+
+    const seq = this.seq
+
+    const query = `
+    select  id,
+            "tenantId",
+            "integrationId",
+            "microserviceId",
+            onboarding,
+            state,
+            "delayedUntil",
+            "processedAt",
+            error,
+            "createdAt",
+            "updatedAt"
+    from "integrationRuns"
+    where "integrationId" = :integrationId
+    order by "createdAt" desc
+    limit 1
+    `
+
+    const results = await seq.query(query, {
+      replacements: {
+        integrationId,
+      },
+      type: QueryTypes.SELECT,
+      transaction,
+    })
+
+    if (results.length === 0) {
+      return undefined
+    }
+
+    return results[0] as IntegrationRun
+  }
+
   async findLastProcessingRun(
     integrationId?: string,
     microserviceId?: string,

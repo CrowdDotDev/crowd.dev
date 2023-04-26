@@ -1,5 +1,5 @@
 import lodash from 'lodash'
-import Sequelize from 'sequelize'
+import Sequelize, { QueryTypes } from 'sequelize'
 import SequelizeRepository from './sequelizeRepository'
 import AuditLogRepository from './auditLogRepository'
 import SequelizeFilterUtils from '../utils/sequelizeFilterUtils'
@@ -162,6 +162,26 @@ class IntegrationRepository {
     }
 
     return Promise.all(records.map((record) => this._populateRelations(record)))
+  }
+
+  static async findByStatus(status: string, options: IRepositoryOptions): Promise<any[]> {
+    const query = `
+      select * from integrations where status = :status
+    `
+
+    const seq = SequelizeRepository.getSequelize(options)
+
+    const transaction = SequelizeRepository.getTransaction(options)
+
+    const integrations = await seq.query(query, {
+      replacements: {
+        status,
+      },
+      type: QueryTypes.SELECT,
+      transaction,
+    })
+
+    return integrations as any[]
   }
 
   /**

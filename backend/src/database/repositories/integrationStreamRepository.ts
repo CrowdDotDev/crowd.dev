@@ -57,7 +57,10 @@ export default class IntegrationStreamRepository extends RepositoryBase<
     return result[0] as IntegrationStream
   }
 
-  async findByRunId(runId: string, state?: IntegrationStreamState): Promise<IntegrationStream[]> {
+  async findByRunId(
+    runId: string,
+    states?: IntegrationStreamState[],
+  ): Promise<IntegrationStream[]> {
     const transaction = this.transaction
 
     const seq = this.seq
@@ -67,9 +70,9 @@ export default class IntegrationStreamRepository extends RepositoryBase<
     }
 
     let condition = `1=1`
-    if (state) {
-      condition = `"state" = :state`
-      replacements.state = state
+    if (states && states.length > 0) {
+      condition = `"state" in (:states)`
+      replacements.states = states
     }
 
     const query = `
