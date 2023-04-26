@@ -179,7 +179,7 @@ export default class ActivityService extends LoggingBase {
           error,
           {
             query: error.sql,
-            errorMessage: error,
+            errorMessage: error.original.message,
           },
           'Error during activity upsert!',
         )
