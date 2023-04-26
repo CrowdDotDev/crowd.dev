@@ -681,7 +681,9 @@ describe('Github webhooks tests', () => {
         timestamp: new Date(TestEvents.pullRequests.closed.pull_request.closed_at),
         platform: PlatformType.GITHUB,
         tenant: tenantId,
-        sourceId: `gen-CE_${TestEvents.pullRequests.closed.pull_request.node_id}_${TestEvents.pullRequests.closed.pull_request.user.login}_${TestEvents.pullRequests.closed.pull_request.updated_at}`,
+        sourceId: `gen-CE_${TestEvents.pullRequests.closed.pull_request.node_id}_${
+          TestEvents.pullRequests.closed.pull_request.user.login
+        }_${new Date(TestEvents.pullRequests.closed.pull_request.updated_at).toISOString()}`,
         sourceParentId: TestEvents.pullRequests.closed.pull_request.node_id,
         url: TestEvents.pullRequests.closed.pull_request.html_url,
         title: '',
