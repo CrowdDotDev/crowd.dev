@@ -953,7 +953,7 @@ class MemberRepository {
     ['isBot', "coalesce((m.attributes -> 'isBot' -> 'default')::boolean, false)"],
     ['activeOn', 'aggs."activeOn"'],
     ['activityCount', 'aggs."activityCount"'],
-    ['channel', 'member_interactions."channel"'],
+    ['activityChannel', 'member_interactions."channel"'],
     ['activityTypes', 'aggs."activityTypes"'],
     ['activeDaysCount', 'aggs."activeDaysCount"'],
     ['lastActive', 'aggs."lastActive"'],
