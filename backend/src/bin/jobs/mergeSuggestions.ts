@@ -15,7 +15,6 @@ const job: CrowdJob = {
     const tenants = await TenantService._findAndCountAllForEveryUser({})
     for (const tenant of tenants.rows) {
       if (tenant.id === '6fe453b9-3ce0-4db9-b5c2-0a7cc52d91ca') {
-        console.log('\n\n SENDING FOR THE SPECIFIED TENANT \n\n')
         await sendNodeWorkerMessage(tenant.id, {
           type: NodeWorkerMessageType.NODE_MICROSERVICE,
           tenant: tenant.id,
