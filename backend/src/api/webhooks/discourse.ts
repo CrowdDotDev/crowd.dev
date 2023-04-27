@@ -11,6 +11,7 @@ export default async (req, res) => {
   const signature = req.headers['x-discourse-event-signature']
   const eventId = req.headers['x-discourse-event-id']
   const eventType = req.headers['x-discourse-event-type']
+  const event = req.headers['x-discourse-event']
   const data = req.body
 
   const integrationId = req.params.integrationId as string
@@ -56,6 +57,7 @@ export default async (req, res) => {
         signature,
         eventId,
         eventType,
+        event,
         data,
       },
     })

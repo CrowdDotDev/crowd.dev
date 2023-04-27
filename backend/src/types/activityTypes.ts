@@ -98,8 +98,10 @@ export enum StackOverflowActivityType {
 }
 
 export enum DiscourseActivityType {
-  POST = 'post',
-  REPLY = 'reply',
+  CREATE_TOPIC = 'create_topic',
+  MESSAGE_IN_TOPIC = 'message_in_topic',
+  JOIN = 'join',
+  LIKE = 'like',
 }
 
 const githubUrl = 'https://github.com'

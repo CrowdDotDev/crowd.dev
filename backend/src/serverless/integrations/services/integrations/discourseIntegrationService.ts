@@ -8,7 +8,7 @@ import {
   IPendingStream,
   IProcessStreamResults,
   IStepContext,
-} from '../../../../types/integration/stepResult'
+ IProcessWebhookResults } from '../../../../types/integration/stepResult'
 import {
   DiscourseConnectionParams,
   DiscourseCategoryResponse,
@@ -17,7 +17,11 @@ import {
   DiscoursePostsInput,
   DiscoursePostsFromTopicResponse,
   DiscoursePostsByIdsInput,
-  DiscoursePostsByIdsResponse
+  DiscoursePostsByIdsResponse,
+  DiscourseWebhookPost,
+  DiscourseWebhookUser,
+  DiscourseUserResponse,
+  DiscourseWebhookNotification
 } from '../../types/discourseTypes'
 import { getDiscourseCategories } from '../../usecases/discourse/getCategories'
 import { getDiscourseTopics } from '../../usecases/discourse/getTopics'
@@ -37,6 +41,12 @@ enum DiscourseStreamType {
   TOPICS_FROM_CATEGORY = 'topicsFromCategory',
   POSTS_FROM_TOPIC = 'postsFromTopic',
   POSTS_BY_IDS = 'postsByIds',
+}
+
+enum DiscourseWebhookType {
+  POST_CREATED = 'post_created',
+  USER_CREATED = 'user_created',
+  LIKED_A_POST = 'notification_created',
 }
 
 interface DiscourseProcessResult {
@@ -188,48 +198,28 @@ export class DiscourseIntegrationService extends IntegrationServiceBase {
             context.logger,
           )
 
-          const member: Member = {
-            username: {
-              [PlatformType.DISCOURSE]: post.username,
-            },
-            displayName: user.user.name,
-            attributes: {
-              [MemberAttributeName.URL]: {
-                [PlatformType.DISCOURSE]: `https://${context.pipelineData.forumHostname}/u/${post.username}`,
-              },
-              [MemberAttributeName.WEBSITE_URL]: {
-                [PlatformType.DISCOURSE]: user.user.website || '',
-              },
-              [MemberAttributeName.LOCATION]: {
-                [PlatformType.DISCOURSE]: user.user.location || '',
-              },
-              [MemberAttributeName.BIO]: {
-                [PlatformType.DISCOURSE]: sanitizeHtml(he.decode(user.user.bio_cooked)) || '',
-              },
-              [MemberAttributeName.AVATAR_URL]: {
-                [PlatformType.DISCOURSE]:
-                  `https://${context.pipelineData.forumHostname}${user.user.avatar_template.replace(
-                    '{size}',
-                    '200',
-                  )}` || '',
-              },
-            },
-            emails: user.user.email ? [user.user.email] : [],
-          }
-          
+          const member = DiscourseIntegrationService.parseUserIntoMember(user, context.pipelineData.forumHostname)
+
           const activity: AddActivitiesSingle = {
             member,
             platform: PlatformType.DISCOURSE,
             tenant: context.integration.tenantId,
-            sourceId: `${post.id}`,
-            sourceParentId: lastIdInPreviousBatch || null,
-            type: post.post_number === 1 ? DiscourseActivityType.POST : DiscourseActivityType.REPLY,
+            sourceId: `${topicId}-${post.post_number}`,
+            sourceParentId: post.post_number === 1 ? null : `${topicId}-${post.post_number - 1}`,
+            type: post.post_number === 1 ? DiscourseActivityType.CREATE_TOPIC : DiscourseActivityType.MESSAGE_IN_TOPIC,
             timestamp: moment(post.created_at).utc().toDate(),
             body: sanitizeHtml(he.decode(post.cooked)),
             title: post.post_number === 1 ? stream.metadata.topicTitle : null,
             url: `https://${context.pipelineData.forumHostname}/t/${stream.metadata.topicSlug}/${topicId}/${post.post_number}`,
-            score: post.post_number === 1 ? DiscourseGrid[DiscourseActivityType.POST].score : DiscourseGrid[DiscourseActivityType.REPLY].score,
-            isContribution: post.post_number === 1 ? DiscourseGrid[DiscourseActivityType.POST].isContribution : DiscourseGrid[DiscourseActivityType.REPLY].isContribution,
+            channel: stream.metadata.topicTitle,
+            score:
+              post.post_number === 1
+                ? DiscourseGrid[DiscourseActivityType.CREATE_TOPIC].score
+                : DiscourseGrid[DiscourseActivityType.MESSAGE_IN_TOPIC].score,
+            isContribution:
+              post.post_number === 1
+                ? DiscourseGrid[DiscourseActivityType.CREATE_TOPIC].isContribution
+                : DiscourseGrid[DiscourseActivityType.MESSAGE_IN_TOPIC].isContribution,
           }
           activities.push(activity)
         }
@@ -337,4 +327,213 @@ export class DiscourseIntegrationService extends IntegrationServiceBase {
       data: discoursePosts,
     }
   }
+
+  async processWebhook(webhook: any, context: IStepContext): Promise<IProcessWebhookResults> {
+    const { event, data } = webhook.payload
+
+    switch (event) {
+      case DiscourseWebhookType.POST_CREATED:
+        return this.processPostCreatedWebhook(data as DiscourseWebhookPost, context)
+      case DiscourseWebhookType.USER_CREATED:
+        return this.processUserCreatedWebhook(data as DiscourseWebhookUser, context)
+      case DiscourseWebhookType.LIKED_A_POST:
+        const localData = data as DiscourseWebhookNotification
+        if (localData.notification.notification_type === 5) {
+          return this.processLikedAPostWebhook(localData, context)
+        }
+        break
+      default:
+         context.logger.warn(
+        {
+          event,
+          data,
+        },
+        'No record created for event!',
+      )
+
+      return {
+        operations: [],
+      }
+    }
+
+     return {
+       operations: [],
+     }
+  }
+
+  async processPostCreatedWebhook(
+    data: DiscourseWebhookPost,
+    context: IStepContext,
+  ): Promise<IProcessWebhookResults> {
+    const post = data.post
+    const user = await getDiscourseUserByUsername(
+      {
+        forumHostname: context.integration.settings.forumHostname,
+        apiKey: context.integration.settings.apiKey,
+        apiUsername: context.integration.settings.apiUsername,
+      },
+      { username: post.username },
+      context.logger,
+    )
+
+    const member = DiscourseIntegrationService.parseUserIntoMember(
+      user,
+      context.integration.settings.forumHostname,
+    )
+
+    const activity: AddActivitiesSingle = {
+      member,
+      platform: PlatformType.DISCOURSE,
+      tenant: context.integration.tenantId,
+      sourceId: `${post.id}`,
+      sourceParentId: post.post_number === 1 ? null : `${post.topic_id}-${post.post_number - 1}`,
+      type: post.post_number === 1 ? DiscourseActivityType.CREATE_TOPIC : DiscourseActivityType.MESSAGE_IN_TOPIC,
+      timestamp: moment(post.created_at).utc().toDate(),
+      body: sanitizeHtml(he.decode(post.cooked)),
+      title: post.post_number === 1 ? post.topic_title : null,
+      url: `https://${context.pipelineData.forumHostname}/t/${post.topic_slug}/${post.topic_id}/${post.post_number}`,
+      channel: post.topic_title,
+      score:
+        post.post_number === 1
+          ? DiscourseGrid[DiscourseActivityType.CREATE_TOPIC].score
+          : DiscourseGrid[DiscourseActivityType.MESSAGE_IN_TOPIC].score,
+      isContribution:
+        post.post_number === 1
+          ? DiscourseGrid[DiscourseActivityType.CREATE_TOPIC].isContribution
+          : DiscourseGrid[DiscourseActivityType.MESSAGE_IN_TOPIC].isContribution,
+    }
+
+    return {
+      operations: [
+        {
+          type: Operations.UPSERT_ACTIVITIES_WITH_MEMBERS,
+          records: [activity],
+        }
+      ]
+    }
+    
+  }
+
+  async processUserCreatedWebhook(
+    data: DiscourseWebhookUser,
+    context: IStepContext,
+  ): Promise<IProcessWebhookResults> {
+    const user = data.user
+    const member = DiscourseIntegrationService.parseUserIntoMember(
+      {
+        user: user as any,
+        user_badges: [],
+        badges: [],
+        badge_types: [],
+        users: [],
+      },
+      context.integration.settings.forumHostname,
+    )
+
+    const activity: AddActivitiesSingle = {
+      member,
+      platform: PlatformType.DISCOURSE,
+      tenant: context.integration.tenantId,
+      sourceId: `${user.id}`,
+      type: DiscourseActivityType.JOIN,
+      timestamp: moment(user.created_at).utc().toDate(),
+      body: null,
+      title: null,
+      url: `https://${context.pipelineData.forumHostname}/u/${user.username}`,
+      channel: null,
+      score: DiscourseGrid[DiscourseActivityType.JOIN].score,
+      isContribution: DiscourseGrid[DiscourseActivityType.JOIN].isContribution,
+    }
+
+    return {
+      operations: [
+        {
+          type: Operations.UPSERT_ACTIVITIES_WITH_MEMBERS,
+          records: [activity],
+        }
+      ]
+    }
+  }
+
+  async processLikedAPostWebhook(
+    data: DiscourseWebhookNotification,
+    context: IStepContext,
+  ): Promise<IProcessWebhookResults> {
+    const notification = data.notification
+    const username = notification.data.username
+    const user = await getDiscourseUserByUsername(
+      {
+        forumHostname: context.integration.settings.forumHostname,
+        apiKey: context.integration.settings.apiKey,
+        apiUsername: context.integration.settings.apiUsername,
+      },
+      { username },
+      context.logger,
+    )
+
+     const member = DiscourseIntegrationService.parseUserIntoMember(
+       {
+         user: user as any,
+         user_badges: [],
+         badges: [],
+         badge_types: [],
+         users: [],
+       },
+       context.integration.settings.forumHostname,
+     )
+
+     const activity: AddActivitiesSingle = {
+       member,
+       platform: PlatformType.DISCOURSE,
+       tenant: context.integration.tenantId,
+       sourceId: `${notification.id}`,
+       type: DiscourseActivityType.LIKE,
+       timestamp: moment(notification.created_at).utc().toDate(),
+       body: null,
+       title: null,
+       score: DiscourseGrid[DiscourseActivityType.LIKE].score,
+       isContribution: DiscourseGrid[DiscourseActivityType.LIKE].isContribution,
+     }
+
+      return {
+        operations: [
+          {
+            type: Operations.UPSERT_ACTIVITIES_WITH_MEMBERS,
+            records: [activity],
+          },
+        ],
+      }
+  } 
+
+
+  static parseUserIntoMember(user: DiscourseUserResponse, forumHostname: string): Member {
+    return {
+      username: {
+        [PlatformType.DISCOURSE]: user.user.username,
+      },
+      displayName: user.user.name,
+      attributes: {
+        [MemberAttributeName.URL]: {
+          [PlatformType.DISCOURSE]: `https://${forumHostname}/u/${user.user.username}`,
+        },
+        [MemberAttributeName.WEBSITE_URL]: {
+          [PlatformType.DISCOURSE]: user.user.website || '',
+        },
+        [MemberAttributeName.LOCATION]: {
+          [PlatformType.DISCOURSE]: user.user.location || '',
+        },
+        [MemberAttributeName.BIO]: {
+          [PlatformType.DISCOURSE]: sanitizeHtml(he.decode(user.user.bio_cooked)) || '',
+        },
+        [MemberAttributeName.AVATAR_URL]: {
+          [PlatformType.DISCOURSE]:
+            `https://${forumHostname}${user.user.avatar_template.replace(
+              '{size}',
+              '200',
+            )}` || '',
+        },
+      },
+      emails: user.user.email ? [user.user.email] : [],
+    }
+}
 }

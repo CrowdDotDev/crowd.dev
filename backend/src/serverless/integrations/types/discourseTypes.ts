@@ -40,6 +40,125 @@ export interface DiscoursePostsByIdsResponse {
   id: number // this is the id of the topic
 }
 
+export interface DiscourseWebhookPost {
+  post: Post
+}
+
+export interface DiscourseWebhookNotification {
+  notification: {
+    id: number;
+    user_id: number;
+    notification_type: number;
+    read: boolean;
+    created_at: string;
+    post_number: number;
+    topic_id: number;
+    slug: string;
+    data: {
+      group_id: number;
+      group_name: string;
+      inbox_count: number;
+      username: string;
+    }
+  }
+}
+
+export interface DiscourseWebhookUser {
+  user: {
+    id: number;
+    username: string;
+    name: string;
+    avatar_template: string;
+    email: string;
+    secondary_emails: any;
+    last_posted_at: any;
+    last_seen_at: string;
+    created_at: string;
+    muted: boolean;
+    trust_level: number;
+    moderator: boolean;
+    admin: boolean;
+    title: any;
+    badge_count: number;
+    time_read: number;
+    recent_time_read: number;
+    primary_group_id: any;
+    primary_group_name: any;
+    primary_group_flair_url: any;
+    primary_group_flair_bg_color: any;
+    primary_group_flair_color: any;
+    featured_topic: any;
+    staged: boolean;
+    pending_count: number;
+    profile_view_count: number;
+    second_factor_enabled: boolean;
+    can_upload_profile_header: boolean;
+    can_upload_user_card_background: boolean;
+    post_count: number;
+    locale: any;
+    muted_category_ids: any;
+    regular_category_ids: any;
+    watched_tags: any;
+    watching_first_post_tags: any;
+    tracked_tags: any;
+    muted_tags: any;
+    tracked_category_ids: any;
+    watched_category_ids: any;
+    watched_first_post_category_ids: any;
+    system_avatar_template: string;
+    muted_usernames: any;
+    ignored_usernames: any;
+    allowed_pm_usernames: any;
+    mailing_list_posts_per_day: number;
+    featured_user_badge_ids: any;
+    invited_by: any;
+    groups: any;
+    user_option: any;
+  };
+}
+
+interface CreatedByLastPoster {
+  id: number;
+  username: string;
+  name: string;
+  avatar_template: string;
+}
+
+export interface DiscourseWebhookTopic {
+  id: number;
+  title: string;
+  fancy_title: string;
+  posts_count: number;
+  created_at: string;
+  views: number;
+  reply_count: number;
+  like_count: number;
+  last_posted_at: string;
+  visible: boolean;
+  closed: boolean;
+  archived: boolean;
+  archetype: string;
+  slug: string;
+  category_id: number;
+  word_count: number;
+  deleted_at: null;
+  user_id: number;
+  featured_link: string;
+  pinned_globally: boolean;
+  pinned_at: string;
+  pinned_until: string;
+  unpinned: string;
+  pinned: boolean;
+  highest_post_number: number;
+  deleted_by: any;
+  has_deleted: boolean;
+  bookmarked: boolean;
+  participant_count: number;
+  thumbnails: any;
+  created_by: CreatedByLastPoster;
+  last_poster: CreatedByLastPoster;
+}
+
 export interface DiscourseCategory {
   id: number
   name: string
@@ -257,6 +376,7 @@ interface Post {
   yours: boolean;
   topic_id: number;
   topic_slug: string;
+  topic_title?: string;
   display_username: string;
   primary_group_name: string;
   flair_name: string;
