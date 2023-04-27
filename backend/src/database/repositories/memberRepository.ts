@@ -314,6 +314,7 @@ class MemberRepository {
       let replacements: Record<string, unknown> = {}
 
       suggestionChunk.forEach((suggestion, index) => {
+        options.log.info('Merge suggestions: ', suggestion.members[0], suggestion.members[1])
         const { query, replacements: chunkReplacements } = insertValues(
           suggestion.members[0],
           suggestion.members[1],
@@ -328,12 +329,15 @@ class MemberRepository {
         INSERT INTO "memberToMerge" ("memberId", "toMergeId", "similarity", "createdAt", "updatedAt")
         VALUES ${placeholders.join(', ')};
       `
-
-      await seq.query(query, {
-        replacements,
-        type: QueryTypes.INSERT,
-        transaction,
-      })
+      try {
+        await seq.query(query, {
+          replacements,
+          type: QueryTypes.INSERT,
+          transaction,
+        })
+      } catch (error) {
+        options.log.error('Merge suggestions: error adding members to merge', error)
+      }
     }
   }
 
