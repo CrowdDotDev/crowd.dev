@@ -46,19 +46,26 @@ export interface DiscourseWebhookPost {
 
 export interface DiscourseWebhookNotification {
   notification: {
-    id: number;
-    user_id: number;
-    notification_type: number;
-    read: boolean;
-    created_at: string;
-    post_number: number;
-    topic_id: number;
-    slug: string;
+    id: number
+    user_id: number
+    notification_type: number
+    read: boolean
+    created_at: string
+    post_number: number
+    topic_id: number
+    slug: string
+    fancy_title?: string
     data: {
-      group_id: number;
-      group_name: string;
-      inbox_count: number;
-      username: string;
+      group_id: number
+      group_name: string
+      inbox_count: number
+      username?: string
+      topic_title?: string
+      original_post_id?: number
+      original_post_type?: number
+      original_username?: string
+      revision_number: any
+      display_username?: string
     }
   }
 }

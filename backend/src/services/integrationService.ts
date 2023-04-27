@@ -794,7 +794,7 @@ export default class IntegrationService {
           platform: PlatformType.DISCOURSE,
           settings: {
             apiKey: integrationData.apiKey,
-            apiUserame: integrationData.apiUsername,
+            apiUsername: integrationData.apiUsername,
             forumHostname: integrationData.forumHostname,
             webhookSecret, // we can do encryption here
             updateMemberAttributes: true,

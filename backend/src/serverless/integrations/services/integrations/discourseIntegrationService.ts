@@ -460,7 +460,8 @@ export class DiscourseIntegrationService extends IntegrationServiceBase {
     context: IStepContext,
   ): Promise<IProcessWebhookResults> {
     const notification = data.notification
-    const username = notification.data.username
+    const username = notification.data.username ? notification.data.username : notification.data.original_username
+    const channel = notification.fancy_title ? notification.fancy_title : notification.data.topic_title
     const user = await getDiscourseUserByUsername(
       {
         forumHostname: context.integration.settings.forumHostname,
@@ -472,13 +473,7 @@ export class DiscourseIntegrationService extends IntegrationServiceBase {
     )
 
      const member = DiscourseIntegrationService.parseUserIntoMember(
-       {
-         user: user as any,
-         user_badges: [],
-         badges: [],
-         badge_types: [],
-         users: [],
-       },
+       user,
        context.integration.settings.forumHostname,
      )
 
@@ -491,6 +486,7 @@ export class DiscourseIntegrationService extends IntegrationServiceBase {
        timestamp: moment(notification.created_at).utc().toDate(),
        body: null,
        title: null,
+       channel,
        score: DiscourseGrid[DiscourseActivityType.LIKE].score,
        isContribution: DiscourseGrid[DiscourseActivityType.LIKE].isContribution,
      }
@@ -523,7 +519,7 @@ export class DiscourseIntegrationService extends IntegrationServiceBase {
           [PlatformType.DISCOURSE]: user.user.location || '',
         },
         [MemberAttributeName.BIO]: {
-          [PlatformType.DISCOURSE]: sanitizeHtml(he.decode(user.user.bio_cooked)) || '',
+          [PlatformType.DISCOURSE]: user.user.bio_cooked ? sanitizeHtml(he.decode(user.user.bio_cooked)) : '',
         },
         [MemberAttributeName.AVATAR_URL]: {
           [PlatformType.DISCOURSE]:
