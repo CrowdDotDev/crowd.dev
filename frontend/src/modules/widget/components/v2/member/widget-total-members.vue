@@ -50,6 +50,7 @@
                 :chart-options="widgetChartOptions"
                 :granularity="granularity"
                 :is-grid-min-max="true"
+                :show-min-as-value="true"
                 @on-view-more-click="onViewMoreClick"
               />
             </div>

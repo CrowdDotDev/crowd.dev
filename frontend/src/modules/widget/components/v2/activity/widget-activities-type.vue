@@ -59,13 +59,7 @@
                   :alt="getPlatformDetails(plat)?.name"
                 />
                 <p class="text-xs leading-5 activity-type first-letter:uppercase">
-                  <app-i18n
-                    v-if="plat !== 'other'"
-                    :code="`entities.activity.${plat}.${type}`"
-                  />
-                  <span v-else>
-                    {{ otherActivityTypes[type].display.short }}
-                  </span>
+                  {{ displayActivityType(plat, type) }}
                 </p>
               </div>
               <p class="text-xs text-gray-500">
@@ -101,6 +95,8 @@ import { CrowdIntegrations } from '@/integrations/integrations-config';
 import AppWidgetLoading from '@/modules/widget/components/v2/shared/widget-loading.vue';
 import AppWidgetError from '@/modules/widget/components/v2/shared/widget-error.vue';
 import AppWidgetEmpty from '@/modules/widget/components/v2/shared/widget-empty.vue';
+import { useActivityTypeStore } from '@/modules/activity/store/type';
+import { storeToRefs } from 'pinia';
 
 const props = defineProps({
   filters: {
@@ -118,7 +114,9 @@ const props = defineProps({
 });
 
 const { cubejsApi } = mapGetters('widget');
-const { currentTenant } = mapGetters('auth');
+
+const activityTypeStore = useActivityTypeStore();
+const { types } = storeToRefs(activityTypeStore);
 
 const data = ref([]);
 
@@ -133,14 +131,6 @@ const ActivityCountQuery = computed(() => LEADERBOARD_ACTIVITIES_COUNT_QUERY({
   selectedPlatforms: props.filters.platform.value,
   selectedHasTeamActivities: props.filters.teamActivities,
 }));
-
-const otherActivityTypes = computed(() => {
-  if (!currentTenant.value) {
-    return {};
-  }
-
-  return currentTenant.value.settings[0].customActivityTypes.other;
-});
 
 const compileData = (resultSet) => {
   if (!resultSet) {
@@ -178,6 +168,9 @@ const computedScore = (resultSet) => {
 };
 
 const getPlatformDetails = (plat) => CrowdIntegrations.getConfig(plat);
+
+const displayActivityType = (plat, type) => types.value.default[plat]?.[type]?.display.short
+          || types.value.custom[plat]?.[type]?.display.short || 'Conducted an activity';
 </script>
 
 <script>

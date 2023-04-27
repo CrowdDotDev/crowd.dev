@@ -1,6 +1,6 @@
 <template>
   <app-widget-loading v-if="loading" />
-  <app-widget-empty v-else-if="!Object.keys(resultSetData).length" />
+  <app-widget-empty v-else-if="!Object.keys(resultSetData).length" type="table" />
   <div v-else>
     <div class="mb-8 flex items-center w-full">
       <el-tooltip
@@ -134,8 +134,8 @@ const resultSetData = computed(() => {
     total += el['Activities.count'];
     activities.push({
       name: toSentenceCase(
-        types.value.default[platform]?.[type].display.short
-          || types.value.custom[platform]?.[type].display.short,
+        types.value.default[platform]?.[type]?.display.short
+          || types.value.custom[platform]?.[type]?.display.short || 'Conducted an activity',
       ),
       type,
       count,

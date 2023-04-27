@@ -49,6 +49,7 @@
                 :chart-options="widgetChartOptions"
                 :granularity="granularity"
                 :is-grid-min-max="true"
+                :show-min-as-value="true"
               />
             </div>
           </div>
