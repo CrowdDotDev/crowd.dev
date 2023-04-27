@@ -403,7 +403,6 @@ class MemberRepository {
                                        row_number() over (partition by "memberId", platform order by "createdAt" desc) =
                                        1 as is_latest
                                 from "memberIdentities" where "tenantId" = :tenantId) sub
-                          where is_latest
                           group by "memberId", platform) mi
                     group by mi."memberId")
       select m."id",
