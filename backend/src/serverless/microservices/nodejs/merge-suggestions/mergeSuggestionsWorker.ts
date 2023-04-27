@@ -31,6 +31,7 @@ async function mergeSuggestionsWorker(tenantId): Promise<void> {
     hours,
   )
   log.info(`Merge suggestions: Found ${bySimilarity.length} merge suggestions by similarity`)
+  log.info('Done')
   await memberService.addToMerge(bySimilarity)
 }
 
