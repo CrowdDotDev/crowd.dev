@@ -62,7 +62,7 @@
           :show-team-members="
             currentTemplate.filters?.teamMembers
           "
-          :show-team-activities="currentTemplate.filters.teamActivities"
+          :show-team-activities="currentTemplate.filters?.teamActivities"
           @open="onPlatformFilterOpen"
           @reset="onPlatformFilterReset"
           @track-filters="onTrackFilters"
@@ -96,7 +96,7 @@
             }"
           />
           <app-report-activity-template
-            v-else-if="currentTemplate.name === ACTIVITIES_REPORT.nameAsId"
+            v-else-if="currentTemplate.nameAsId === ACTIVITIES_REPORT.nameAsId"
             :filters="{
               platform,
               teamActivities,

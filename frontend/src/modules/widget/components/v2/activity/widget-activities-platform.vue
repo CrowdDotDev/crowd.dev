@@ -1,0 +1,72 @@
+<template>
+  <div class="bg-white pt-5 rounded-lg shadow">
+    <div class="px-6 pb-8">
+      <!-- Widget Header -->
+      <div
+        class="flex grow justify-between items-center pb-5 border-b border-gray-100 mb-8"
+      >
+        <div class="flex gap-1">
+          <app-widget-title title="Activities by platform" />
+        </div>
+        <app-widget-period
+          template="Activities"
+          widget="Activities by platform"
+          :period="selectedPeriod"
+          module="reports"
+          @on-update="onUpdatePeriod"
+        />
+      </div>
+
+      <query-renderer
+        v-if="cubejsApi"
+        :cubejs-api="cubejsApi"
+        :query="query"
+      >
+        <template #default="{ resultSet, loading }">
+          <app-widget-activities-platform-content
+            :loading="loading"
+            :result-set="resultSet"
+          />
+        </template>
+      </query-renderer>
+    </div>
+  </div>
+</template>
+
+<script setup>
+import { SEVEN_DAYS_PERIOD_FILTER } from '@/modules/widget/widget-constants';
+import { computed, ref } from 'vue';
+import AppWidgetTitle from '@/modules/widget/components/v2/shared/widget-title.vue';
+import AppWidgetPeriod from '@/modules/widget/components/v2/shared/widget-period.vue';
+import { QueryRenderer } from '@cubejs-client/vue3';
+import { mapGetters } from '@/shared/vuex/vuex.helpers';
+import { LEADERBOARD_ACTIVITIES_TYPES_QUERY } from '@/modules/widget/widget-queries';
+import AppWidgetActivitiesPlatformContent from './widget-activities-platform-content.vue';
+
+const props = defineProps({
+  filters: {
+    type: Object,
+    default: null,
+  },
+});
+
+const { cubejsApi } = mapGetters('widget');
+
+const selectedPeriod = ref(SEVEN_DAYS_PERIOD_FILTER);
+
+const query = computed(() => LEADERBOARD_ACTIVITIES_TYPES_QUERY({
+  period: selectedPeriod.value,
+  selectedPlatforms: props.filters.platform.value,
+  selectedHasTeamActivities: props.filters.teamActivities,
+}));
+
+const onUpdatePeriod = (updatedPeriod) => {
+  selectedPeriod.value = updatedPeriod;
+};
+
+</script>
+<script>
+export default {
+  name: 'AppWidgetActivitiesPlatform',
+};
+</script>

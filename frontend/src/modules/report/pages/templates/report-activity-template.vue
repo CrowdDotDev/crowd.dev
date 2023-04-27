@@ -6,10 +6,17 @@
       class="app-page-spinner"
     />
     <div v-else class="flex flex-col gap-8">
+      <app-widget-total-activities
+        :filters="filters"
+      />
       <app-widget-activities-kpi
         :filters="filters"
       />
       <app-widget-new-activities
+        :filters="filters"
+      />
+      <app-widget-activities-platform
+        v-if="filters.platform.value.length !== 1"
         :filters="filters"
       />
       <app-widget-activities-leaderboard
@@ -24,6 +31,8 @@ import { mapActions, mapGetters } from '@/shared/vuex/vuex.helpers';
 import AppWidgetActivitiesKpi from '@/modules/widget/components/v2/activity/widget-activities-kpi.vue';
 import AppWidgetNewActivities from '@/modules/widget/components/v2/activity/widget-new-activities.vue';
 import AppWidgetActivitiesLeaderboard from '@/modules/widget/components/v2/activity/widget-activities-leaderboard.vue';
+import AppWidgetActivitiesPlatform from '@/modules/widget/components/v2/activity/widget-activities-platform.vue';
+import AppWidgetTotalActivities from '@/modules/widget/components/v2/activity/widget-total-activities.vue';
 
 defineProps({
   filters: {
