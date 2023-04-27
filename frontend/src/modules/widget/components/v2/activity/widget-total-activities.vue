@@ -22,7 +22,7 @@
         <template #default="{ resultSet, loading, error }">
           <!-- Loading -->
           <app-widget-loading
-            v-if="loading"
+            v-if="loading || error === undefined"
             size="small"
           />
 

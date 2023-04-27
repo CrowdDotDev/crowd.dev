@@ -19,7 +19,7 @@
         />
       </div>
 
-      <app-widget-activities-type
+      <app-widget-activities-type-list
         :filters="filters"
         :selected-period="selectedPeriod"
         :limit="10"
@@ -37,25 +37,24 @@
             </el-button>
           </div>
         </template>
-        <template #drawer>
-          <app-widget-cube-drawer
-            v-if="drawerExpanded"
-            v-model="drawerExpanded"
-            :title="drawerTitle"
-            :period="drawerSelectedPeriod"
-            :template="ACTIVITIES_REPORT.nameAsId"
-            size="480px"
-            @on-period-update="onDrawerUpdatePeriod"
-          >
-            <template #drawerContent>
-              <app-widget-activities-type
-                :filters="filters"
-                :selected-period="drawerSelectedPeriod"
-              />
-            </template>
-          </app-widget-cube-drawer>
+      </app-widget-activities-type-list>
+
+      <app-widget-cube-drawer
+        v-if="drawerExpanded"
+        v-model="drawerExpanded"
+        :title="drawerTitle"
+        :period="drawerSelectedPeriod"
+        :template="ACTIVITIES_REPORT.nameAsId"
+        size="480px"
+        @on-period-update="onDrawerUpdatePeriod"
+      >
+        <template #drawerContent>
+          <app-widget-activities-type-list
+            :filters="filters"
+            :selected-period="drawerSelectedPeriod"
+          />
         </template>
-      </app-widget-activities-type>
+      </app-widget-cube-drawer>
     </div>
   </div>
 </template>
@@ -67,7 +66,7 @@ import AppWidgetTitle from '@/modules/widget/components/v2/shared/widget-title.v
 import AppWidgetPeriod from '@/modules/widget/components/v2/shared/widget-period.vue';
 import AppWidgetCubeDrawer from '@/modules/widget/components/v2/shared/widget-cube-drawer.vue';
 import { ACTIVITIES_REPORT } from '@/modules/report/templates/template-reports';
-import AppWidgetActivitiesType from '@/modules/widget/components/v2/activity/widget-activities-type.vue';
+import AppWidgetActivitiesTypeList from '@/modules/widget/components/v2/activity/widget-activities-type-list.vue';
 
 defineProps({
   filters: {
