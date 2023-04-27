@@ -1,10 +1,9 @@
 <template>
   <div class="widget-total-activities">
-    <div class="flex justify-between items-center mb-4">
+    <div class="flex justify-between items-center pb-5 mb-4 border-b border-gray-100">
       <app-widget-title
         text-size="text-base"
         title="Total activities"
-        class="mb-5"
       />
       <app-widget-period
         :period="period"
@@ -161,7 +160,7 @@ const chartResultSet = (resultSet) => {
 
 <style lang="scss" scoped>
 .widget-total-activities {
-  @apply bg-white shadow rounded-lg p-6;
+  @apply bg-white shadow rounded-lg p-5;
   :deep(.chart) {
     div {
       line-height: 100px !important;

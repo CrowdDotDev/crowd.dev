@@ -1,11 +1,10 @@
 <template>
   <div class="widget-total-members">
-    <div class="flex justify-between items-center mb-4">
+    <div class="flex justify-between items-center pb-5 mb-4 border-b border-gray-100">
       <app-widget-title
         text-size="text-base"
         description="All members who did at least one activity in your community and its evolution over time"
         title="Total members"
-        class="mb-5"
       />
       <app-widget-period
         :period="period"
@@ -249,7 +248,7 @@ const onExport = async ({ count }) => {
 
 <style lang="scss" scoped>
 .widget-total-members {
-  @apply bg-white shadow rounded-lg p-6;
+  @apply bg-white shadow rounded-lg p-5;
   :deep(.chart) {
     div {
       line-height: 100px !important;
