@@ -69,6 +69,7 @@ describe('ActivityService tests', () => {
       activityCreated.createdAt = activityCreated.createdAt.toISOString().split('T')[0]
       activityCreated.updatedAt = activityCreated.updatedAt.toISOString().split('T')[0]
       delete activityCreated.member
+      delete activityCreated.objectMember
 
       const expectedActivityCreated = {
         id: activityCreated.id,
@@ -79,7 +80,9 @@ describe('ActivityService tests', () => {
         isContribution: true,
         score: 1,
         username: 'test',
+        objectMemberUsername: null,
         memberId: memberCreated.id,
+        objectMemberId: null,
         createdAt: SequelizeTestUtils.getNowWithoutTime(),
         updatedAt: SequelizeTestUtils.getNowWithoutTime(),
         deletedAt: null,
@@ -163,6 +166,8 @@ describe('ActivityService tests', () => {
 
       delete activityCreated2.member
       delete activityCreated2.parent
+      delete activityCreated2.objectMember
+
       // Trim the hour part from timestamp so we can atleast test if the day is correct for createdAt and joinedAt
       activityCreated2.createdAt = activityCreated2.createdAt.toISOString().split('T')[0]
       activityCreated2.updatedAt = activityCreated2.updatedAt.toISOString().split('T')[0]
@@ -188,7 +193,9 @@ describe('ActivityService tests', () => {
         isContribution: activity2.isContribution,
         score: activity2.score,
         username: 'test',
+        objectMemberUsername: null,
         memberId: memberCreated.id,
+        objectMemberId: null,
         tasks: [],
         createdAt: SequelizeTestUtils.getNowWithoutTime(),
         updatedAt: SequelizeTestUtils.getNowWithoutTime(),
@@ -279,6 +286,7 @@ describe('ActivityService tests', () => {
       // delete models before expect because we already have ids (memberId, parentId)
       delete activityUpserted.member
       delete activityUpserted.parent
+      delete activityUpserted.objectMember
 
       const attributesExpected = {
         ...activity1.attributes,
@@ -295,7 +303,6 @@ describe('ActivityService tests', () => {
         platform: activity2.platform,
         isContribution: activity2.isContribution,
         score: activity2.score,
-
         title: activity1.title,
         sentiment: {
           positive: 0.42,
@@ -309,7 +316,9 @@ describe('ActivityService tests', () => {
         body: activity2.body,
         channel: null,
         username: 'test',
+        objectMemberUsername: null,
         memberId: memberCreated.id,
+        objectMemberId: null,
         createdAt: SequelizeTestUtils.getNowWithoutTime(),
         updatedAt: SequelizeTestUtils.getNowWithoutTime(),
         tasks: [],
@@ -916,6 +925,7 @@ describe('ActivityService tests', () => {
 
       delete activityWithMember.member
       delete activityWithMember.display
+      delete activityWithMember.objectMember
 
       activityWithMember.createdAt = activityWithMember.createdAt.toISOString().split('T')[0]
       activityWithMember.updatedAt = activityWithMember.updatedAt.toISOString().split('T')[0]
@@ -939,7 +949,9 @@ describe('ActivityService tests', () => {
         isContribution: data.isContribution,
         score: data.score,
         username: 'anil_github',
+        objectMemberUsername: null,
         memberId: memberFound.id,
+        objectMemberId: null,
         createdAt: SequelizeTestUtils.getNowWithoutTime(),
         updatedAt: SequelizeTestUtils.getNowWithoutTime(),
         tasks: [],
@@ -1041,6 +1053,7 @@ describe('ActivityService tests', () => {
       delete activityWithMember2.member
       delete activityWithMember2.parent
       delete activityWithMember2.display
+      delete activityWithMember2.objectMember
 
       activityWithMember2.createdAt = activityWithMember2.createdAt.toISOString().split('T')[0]
       activityWithMember2.updatedAt = activityWithMember2.updatedAt.toISOString().split('T')[0]
@@ -1072,7 +1085,9 @@ describe('ActivityService tests', () => {
         isContribution: data2.isContribution,
         score: data2.score,
         username: 'anil_github',
+        objectMemberUsername: null,
         memberId: memberFound.id,
+        objectMemberId: null,
         createdAt: SequelizeTestUtils.getNowWithoutTime(),
         updatedAt: SequelizeTestUtils.getNowWithoutTime(),
         deletedAt: null,
@@ -1171,9 +1186,11 @@ describe('ActivityService tests', () => {
       delete activityWithMemberChild.member
       delete activityWithMemberChild.parent
       delete activityWithMemberChild.display
+      delete activityWithMemberChild.objectMember
       delete activityWithMemberParent.member
       delete activityWithMemberParent.parent
       delete activityWithMemberParent.display
+      delete activityWithMemberParent.objectMember
 
       activityWithMemberChild.createdAt = activityWithMemberChild.createdAt
         .toISOString()
@@ -1215,7 +1232,9 @@ describe('ActivityService tests', () => {
         tasks: [],
         score: dataParent.score,
         username: 'anil_github',
+        objectMemberUsername: null,
         memberId: memberFound.id,
+        objectMemberId: null,
         createdAt: SequelizeTestUtils.getNowWithoutTime(),
         updatedAt: SequelizeTestUtils.getNowWithoutTime(),
         deletedAt: null,
@@ -1252,7 +1271,9 @@ describe('ActivityService tests', () => {
         isContribution: dataChild.isContribution,
         score: dataChild.score,
         username: 'anil_github',
+        objectMemberUsername: null,
         memberId: memberFound.id,
+        objectMemberId: null,
         createdAt: SequelizeTestUtils.getNowWithoutTime(),
         tasks: [],
         updatedAt: SequelizeTestUtils.getNowWithoutTime(),
@@ -1328,6 +1349,7 @@ describe('ActivityService tests', () => {
 
         delete activityWithMember.member
         delete activityWithMember.display
+        delete activityWithMember.objectMember
 
         activityWithMember.createdAt = activityWithMember.createdAt.toISOString().split('T')[0]
         activityWithMember.updatedAt = activityWithMember.updatedAt.toISOString().split('T')[0]
@@ -1358,7 +1380,9 @@ describe('ActivityService tests', () => {
           isContribution: data.isContribution,
           score: data.score,
           username: 'anil_github',
+          objectMemberUsername: null,
           memberId: memberFound.id,
+          objectMemberId: null,
           createdAt: SequelizeTestUtils.getNowWithoutTime(),
           tasks: [],
           updatedAt: SequelizeTestUtils.getNowWithoutTime(),
@@ -1377,7 +1401,7 @@ describe('ActivityService tests', () => {
         expect(activityWithMember).toStrictEqual(expectedActivityCreated)
         expect(memberFound.joinedAt).toStrictEqual(expectedActivityCreated.timestamp)
         expect(memberFound.username).toStrictEqual({
-          [PlatformType.GITHUB]: 'anil_github',
+          [PlatformType.GITHUB]: ['anil_github'],
         })
       })
 
@@ -1441,6 +1465,7 @@ describe('ActivityService tests', () => {
 
         delete activityWithMember.member
         delete activityWithMember.display
+        delete activityWithMember.objectMember
 
         activityWithMember.createdAt = activityWithMember.createdAt.toISOString().split('T')[0]
         activityWithMember.updatedAt = activityWithMember.updatedAt.toISOString().split('T')[0]
@@ -1471,7 +1496,9 @@ describe('ActivityService tests', () => {
           isContribution: data.isContribution,
           score: data.score,
           username: 'anil_github',
+          objectMemberUsername: null,
           memberId: memberFound.id,
+          objectMemberId: null,
           createdAt: SequelizeTestUtils.getNowWithoutTime(),
           updatedAt: SequelizeTestUtils.getNowWithoutTime(),
           deletedAt: null,
@@ -1490,7 +1517,7 @@ describe('ActivityService tests', () => {
         expect(activityWithMember).toStrictEqual(expectedActivityCreated)
         expect(memberFound.joinedAt).toStrictEqual(expectedActivityCreated.timestamp)
         expect(memberFound.username).toStrictEqual({
-          [PlatformType.GITHUB]: 'anil_github',
+          [PlatformType.GITHUB]: ['anil_github'],
         })
       })
 
@@ -1554,6 +1581,7 @@ describe('ActivityService tests', () => {
 
         delete activityWithMember.member
         delete activityWithMember.display
+        delete activityWithMember.objectMember
 
         activityWithMember.createdAt = activityWithMember.createdAt.toISOString().split('T')[0]
         activityWithMember.updatedAt = activityWithMember.updatedAt.toISOString().split('T')[0]
@@ -1584,7 +1612,9 @@ describe('ActivityService tests', () => {
           isContribution: data.isContribution,
           score: data.score,
           username: 'anil_github',
+          objectMemberUsername: null,
           memberId: memberFound.id,
+          objectMemberId: null,
           createdAt: SequelizeTestUtils.getNowWithoutTime(),
           updatedAt: SequelizeTestUtils.getNowWithoutTime(),
           tasks: [],
@@ -1603,7 +1633,7 @@ describe('ActivityService tests', () => {
         expect(activityWithMember).toStrictEqual(expectedActivityCreated)
         expect(memberFound.joinedAt).toStrictEqual(new Date('2020-05-27T15:13:30Z'))
         expect(memberFound.username).toStrictEqual({
-          [PlatformType.GITHUB]: 'anil_github',
+          [PlatformType.GITHUB]: ['anil_github'],
         })
       })
 
@@ -1668,6 +1698,7 @@ describe('ActivityService tests', () => {
 
         delete activityWithMember.member
         delete activityWithMember.display
+        delete activityWithMember.objectMember
 
         activityWithMember.createdAt = activityWithMember.createdAt.toISOString().split('T')[0]
         activityWithMember.updatedAt = activityWithMember.updatedAt.toISOString().split('T')[0]
@@ -1698,7 +1729,9 @@ describe('ActivityService tests', () => {
           isContribution: data.isContribution,
           score: data.score,
           username: 'anil_github',
+          objectMemberUsername: null,
           memberId: memberFound.id,
+          objectMemberId: null,
           createdAt: SequelizeTestUtils.getNowWithoutTime(),
           updatedAt: SequelizeTestUtils.getNowWithoutTime(),
           deletedAt: null,
@@ -1717,7 +1750,7 @@ describe('ActivityService tests', () => {
         expect(activityWithMember).toStrictEqual(expectedActivityCreated)
         expect(memberFound.joinedAt).toStrictEqual(expectedActivityCreated.timestamp)
         expect(memberFound.username).toStrictEqual({
-          [PlatformType.GITHUB]: 'anil_github',
+          [PlatformType.GITHUB]: ['anil_github'],
         })
       })
 

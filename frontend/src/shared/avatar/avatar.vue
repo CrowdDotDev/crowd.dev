@@ -1,11 +1,14 @@
 <template>
-  <div
-    v-if="entity"
-    class="avatar"
-    :style="computedStyle"
-    :aria-label="computedInitials"
-  >
-    <img :src="url" alt="">
+  <div class="relative">
+    <div
+      v-if="entity"
+      class="avatar"
+      :style="computedStyle"
+      :aria-label="computedInitials"
+    >
+      <img :src="url" alt="">
+    </div>
+    <slot name="icon" />
   </div>
 </template>
 

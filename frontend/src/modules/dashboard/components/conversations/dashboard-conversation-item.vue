@@ -136,42 +136,8 @@
         </div>
       </div>
     </div>
-    <div class="flex justify-between items-center pt-10">
-      <div class="flex items-center">
-        <div class="flex items-center mr-6">
-          <i
-            class="ri-group-line text-base mr-2 text-gray-500"
-          />
-          <p class="text-xs text-gray-600">
-            {{ conversation.memberCount }} participant{{
-              conversation.memberCount > 1 ? 's' : ''
-            }}
-          </p>
-        </div>
-        <div class="flex items-center">
-          <i
-            class="ri-reply-line text-base mr-2 text-gray-500"
-          />
-          <p class="text-xs text-gray-600">
-            {{ conversation.activityCount - 1 }}
-            {{
-              conversation.activityCount > 2
-                ? 'replies'
-                : 'reply'
-            }}
-          </p>
-        </div>
-      </div>
-      <div>
-        <a
-          v-if="url"
-          :href="url"
-          class="text-2xs text-gray-600 font-medium flex items-center"
-          target="_blank"
-          rel="noopener noreferrer"
-        ><i class="ri-lg ri-external-link-line mr-1" />
-          <span class="block">Open on {{ platform.name }}</span></a>
-      </div>
+    <div class="flex flex-wrap justify-between items-center pt-10 gap-2">
+      <app-conversation-footer :conversation="conversation" />
     </div>
   </article>
 </template>
@@ -187,6 +153,7 @@ import AppConversationReply from '@/modules/conversation/components/conversation
 import AppActivitySentiment from '@/modules/activity/components/activity-sentiment.vue';
 import AppMemberDisplayName from '@/modules/member/components/member-display-name.vue';
 import AppActivityMessage from '@/modules/activity/components/activity-message.vue';
+import AppConversationFooter from '@/modules/conversation/components/conversation-footer.vue';
 
 export default {
   name: 'AppDashboardConversationItem',
@@ -199,6 +166,7 @@ export default {
     AppConversationDropdown,
     AppAvatar,
     AppActivitySentiment,
+    AppConversationFooter,
   },
   props: {
     conversation: {

@@ -160,7 +160,7 @@ export default {
     elegibleEnrichmentMembersIds() {
       return this.selectedRows
         .filter(
-          (r) => r.username?.github || r.emails?.length,
+          (r) => r.username?.github?.length || r.emails?.length,
         )
         .map((item) => item.id);
     },

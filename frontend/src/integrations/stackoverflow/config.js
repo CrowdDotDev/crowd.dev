@@ -10,5 +10,6 @@ export default {
   image:
     'https://cdn-icons-png.flaticon.com/512/2111/2111628.png',
   connectComponent: StackOverflowConnect,
+  url: (username) => `https://stackoverflow.com/users/${username}`,
   chartColor: '#FF9845',
 };

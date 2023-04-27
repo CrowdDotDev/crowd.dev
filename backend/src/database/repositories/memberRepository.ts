@@ -1,4 +1,4 @@
-import lodash from 'lodash'
+import lodash, { chunk } from 'lodash'
 import Sequelize, { QueryTypes } from 'sequelize'
 import { KUBE_MODE, SERVICE } from '../../config'
 import { ServiceType } from '../../config/configTypes'
@@ -23,7 +23,9 @@ import {
   IActiveMemberFilter,
   IMemberIdentity,
   mapUsernameToIdentities,
+  IMemberMergeSuggestion,
 } from './types/memberTypes'
+import { ActivityDisplayVariant } from '../../types/activityTypes'
 
 const { Op } = Sequelize
 
@@ -155,16 +157,18 @@ class MemberRepository {
 
     const mems = await options.database.sequelize.query(
       `SELECT 
-      "membersToMerge".id, 
-      "membersToMerge"."toMergeId",
-      "membersToMerge"."total_count"
-       FROM 
-       (
+        "membersToMerge".id, 
+        "membersToMerge"."toMergeId",
+        "membersToMerge"."total_count",
+        "membersToMerge"."similarity"
+      FROM 
+      (
         SELECT DISTINCT ON (Greatest(Hashtext(Concat(mem.id, mtm."toMergeId")), Hashtext(Concat(mtm."toMergeId", mem.id)))) 
             mem.id, 
             mtm."toMergeId", 
             mem."joinedAt", 
-            COUNT(*) OVER() AS total_count 
+            COUNT(*) OVER() AS total_count,
+            mtm."similarity"
           FROM 
             members mem 
             INNER JOIN "memberToMerge" mtm ON mem.id = mtm."memberId" 
@@ -197,11 +201,14 @@ class MemberRepository {
       const memberResults = await Promise.all(memberPromises)
       const memberToMergeResults = await Promise.all(toMergePromises)
 
-      const result = memberResults.map((i, idx) => [i, memberToMergeResults[idx]])
+      const result = memberResults.map((i, idx) => ({
+        members: [i, memberToMergeResults[idx]],
+        similarity: mems[idx].similarity,
+      }))
       return { rows: result, count: mems[0].total_count / 2, limit, offset }
     }
 
-    return { rows: [], count: 0, limit, offset }
+    return { rows: [{ members: [], similarity: 0 }], count: 0, limit, offset }
   }
 
   static async moveIdentitiesBetweenMembers(
@@ -273,18 +280,61 @@ class MemberRepository {
     })
   }
 
-  static async addToMerge(id, toMergeId, options: IRepositoryOptions) {
+  static async addToMerge(
+    suggestions: IMemberMergeSuggestion[],
+    options: IRepositoryOptions,
+  ): Promise<void> {
     const transaction = SequelizeRepository.getTransaction(options)
+    const seq = SequelizeRepository.getSequelize(options)
 
-    const returnPlain = false
+    // Process suggestions in chunks of 100 or less
+    const suggestionChunks = chunk(suggestions, 100)
 
-    const member = await this.findById(id, options, returnPlain)
+    const insertValues = (
+      memberId: string,
+      toMergeId: string,
+      similarity: number | null,
+      index: number,
+    ) => {
+      const idPlaceholder = (key: string) => `${key}${index}`
+      return {
+        query: `(:${idPlaceholder('memberId')}, :${idPlaceholder('toMergeId')}, :${idPlaceholder(
+          'similarity',
+        )}, NOW(), NOW())`,
+        replacements: {
+          [idPlaceholder('memberId')]: memberId,
+          [idPlaceholder('toMergeId')]: toMergeId,
+          [idPlaceholder('similarity')]: similarity === null ? null : similarity,
+        },
+      }
+    }
 
-    const toMergeMember = await this.findById(toMergeId, options, returnPlain)
+    for (const suggestionChunk of suggestionChunks) {
+      const placeholders: string[] = []
+      let replacements: Record<string, unknown> = {}
 
-    await member.addToMerge(toMergeMember, { transaction })
+      suggestionChunk.forEach((suggestion, index) => {
+        const { query, replacements: chunkReplacements } = insertValues(
+          suggestion.members[0],
+          suggestion.members[1],
+          suggestion.similarity,
+          index,
+        )
+        placeholders.push(query)
+        replacements = { ...replacements, ...chunkReplacements }
+      })
 
-    return this.findById(id, options)
+      const query = `
+        INSERT INTO "memberToMerge" ("memberId", "toMergeId", "similarity", "createdAt", "updatedAt")
+        VALUES ${placeholders.join(', ')};
+      `
+
+      await seq.query(query, {
+        replacements,
+        type: QueryTypes.INSERT,
+        transaction,
+      })
+    }
   }
 
   static async removeToMerge(id, toMergeId, options: IRepositoryOptions) {
@@ -340,17 +390,22 @@ class MemberRepository {
     const currentTenant = SequelizeRepository.getCurrentTenant(options)
 
     const query = `
-    with identities as (select "memberId",
-                           array_agg(distinct platform)                as identities,
-                           jsonb_object_agg(platform, latest_username) as username,
-                           jsonb_object_agg(platform, usernames)       as "newUsername"
+    with identities as (select mi."memberId",
+                           array_agg(distinct mi.platform)             as identities,
+                           jsonb_object_agg(mi.platform, mi.usernames) as username
                     from (select "memberId",
                                  platform,
-                                 first_value(username)
-                                 over (partition by "memberId", platform order by "createdAt" desc) as latest_username,
-                                 jsonb_agg(username) over (partition by "memberId", platform)       as usernames
-                          from "memberIdentities") ranked
-                    group by "memberId")
+                                 array_agg(username) as usernames
+                          from (select "memberId",
+                                       platform,
+                                       username,
+                                       "createdAt",
+                                       row_number() over (partition by "memberId", platform order by "createdAt" desc) =
+                                       1 as is_latest
+                                from "memberIdentities" where "tenantId" = :tenantId) sub
+                          where is_latest
+                          group by "memberId", platform) mi
+                    group by mi."memberId")
       select m."id",
             m."displayName",
             m."attributes",
@@ -490,35 +545,69 @@ class MemberRepository {
         transaction,
       })
     }
+    const seq = SequelizeRepository.getSequelize(options)
 
     if (data.username) {
+      data.username = mapUsernameToIdentities(data.username)
+
       const platforms = Object.keys(data.username) as PlatformType[]
       if (platforms.length > 0) {
-        data.username = mapUsernameToIdentities(data.username)
-
-        const seq = SequelizeRepository.getSequelize(options)
         const query = `
-        insert into "memberIdentities"("memberId", platform, username, "sourceId", "tenantId", "integrationId")
-        values (:memberId, :platform, :username, :sourceId, :tenantId, :integrationId);
-        `
+          insert into "memberIdentities"("memberId", platform, username, "sourceId", "tenantId", "integrationId")
+          values (:memberId, :platform, :username, :sourceId, :tenantId, :integrationId);
+          `
+        const deleteQuery = `
+          delete from "memberIdentities"
+          where ("memberId", "tenantId", "platform", "username") in
+                (select mi."memberId", mi."tenantId", mi."platform", mi."username"
+                from "memberIdentities" mi
+                          join (select :memberId::uuid            as memberid,
+                                      :tenantId::uuid            as tenantid,
+                                      unnest(:platforms::text[]) as platform,
+                                      unnest(:usernames::text[]) as username) as combinations
+                              on mi."memberId" = combinations.memberid
+                                  and mi."tenantId" = combinations.tenantid
+                                  and mi."platform" = combinations.platform
+                                  and mi."username" = combinations.username);`
+
+        const platformsToDelete: string[] = []
+        const usernamesToDelete: string[] = []
 
         for (const platform of platforms) {
           const identities = data.username[platform]
 
           for (const identity of identities) {
-            await seq.query(query, {
-              replacements: {
-                memberId: record.id,
-                platform,
-                username: identity.username,
-                sourceId: identity.sourceId || null,
-                integrationId: identity.integrationId || null,
-                tenantId: currentTenant.id,
-              },
-              type: QueryTypes.INSERT,
-              transaction,
-            })
+            if (identity.delete) {
+              platformsToDelete.push(identity.platform)
+              usernamesToDelete.push(identity.username)
+            } else {
+              await seq.query(query, {
+                replacements: {
+                  memberId: record.id,
+                  platform,
+                  username: identity.username,
+                  sourceId: identity.sourceId || null,
+                  integrationId: identity.integrationId || null,
+                  tenantId: currentTenant.id,
+                },
+                type: QueryTypes.INSERT,
+                transaction,
+              })
+            }
           }
+        }
+
+        if (platformsToDelete.length > 0) {
+          await seq.query(deleteQuery, {
+            replacements: {
+              tenantId: currentTenant.id,
+              memberId: record.id,
+              platforms: `{${platformsToDelete.join(',')}}`,
+              usernames: `{${usernamesToDelete.join(',')}}`,
+            },
+            type: QueryTypes.DELETE,
+            transaction,
+          })
         }
       }
     }
@@ -645,21 +734,16 @@ class MemberRepository {
     }
     const data = record.get({ plain: returnPlain })
 
-    const identities = await this.getIdentities([data.id], options)
+    const identities = (await this.getIdentities([data.id], options)).get(data.id)
 
-    data.username = identities.get(data.id).reduce((data, identity: any) => {
-      data[identity.platform] = identity.username
-      return data
-    }, {} as any)
-
-    // data.newUsername = {}
-    // for (const identity of identities.get(data.id)) {
-    //   if (data.newUsername[identity.platform]) {
-    //     data.newUsername[identity.platform].push(identity.username)
-    //   } else {
-    //     data.newUsername[identity.platform] = [identity.username]
-    //   }
-    // }
+    data.username = {}
+    for (const identity of identities) {
+      if (data.username[identity.platform]) {
+        data.username[identity.platform].push(identity.username)
+      } else {
+        data.username[identity.platform] = [identity.username]
+      }
+    }
 
     return data
   }
@@ -788,17 +872,22 @@ class MemberRepository {
                                      timestamp >= :periodStart and 
                                      timestamp < :periodEnd
                                group by "memberId"),
-              identities as (select "memberId",
-                                    array_agg(distinct platform)                as identities,
-                                    jsonb_object_agg(platform, latest_username) as username,
-                                    jsonb_object_agg(platform, usernames)       as "newUsername"
-                            from (select "memberId",
-                                          platform,
-                                          first_value(username)
-                                          over (partition by "memberId", platform order by "createdAt" desc) as latest_username,
-                                          jsonb_agg(username) over (partition by "memberId", platform)       as usernames
-                                  from "memberIdentities") ranked
-                            group by "memberId")
+              identities as (select mi."memberId",
+                                        array_agg(distinct mi.platform)             as identities,
+                                        jsonb_object_agg(mi.platform, mi.usernames) as username
+                                  from (select "memberId",
+                                              platform,
+                                              array_agg(username) as usernames
+                                        from (select "memberId",
+                                                    platform,
+                                                    username,
+                                                    "createdAt",
+                                                    row_number() over (partition by "memberId", platform order by "createdAt" desc) =
+                                                    1 as is_latest
+                                              from "memberIdentities" where "tenantId" = :tenantId) sub
+                                        where is_latest
+                                        group by "memberId", platform) mi
+                                  group by mi."memberId")
           select m.id,
              m."displayName",
              i.username,
@@ -1081,15 +1170,10 @@ with member_tags as (select mt."memberId",
                 and m."deletedAt" is null
                 and o."tenantId" = :tenantId
                 and o."deletedAt" is null
-              group by mo."memberId"),
-    identities as (select "memberId",
-                          jsonb_object_agg(platform, username) as username
-                  from "memberIdentities"
-                  group by "memberId")
+              group by mo."memberId")    
 select count(m.id) as "totalCount"
 from members m
          inner join "memberActivityAggregatesMVs" aggs on aggs.id = m.id
-         inner join identities i on m.id = i."memberId"
          left join member_tags mt on m.id = mt."memberId"
          left join member_organizations mo on m.id = mo."memberId"
 where m."deletedAt" is null
@@ -1111,8 +1195,6 @@ where m."deletedAt" is null
         offset,
       }
     }
-
-    // console.log('QUERY: ', query)
 
     const [results, countResults] = await Promise.all([
       seq.query(query, {
@@ -1152,6 +1234,7 @@ where m."deletedAt" is null
           r.lastActivity.display = ActivityDisplayService.getDisplayOptions(
             r.lastActivity,
             SettingsRepository.getActivityTypes(options),
+            [ActivityDisplayVariant.SHORT, ActivityDisplayVariant.CHANNEL],
           )
         }
       }
@@ -1775,6 +1858,247 @@ where m."deletedAt" is null
     }))
   }
 
+  static async mergeSuggestionsByUsername(
+    numberOfHours,
+    options: IRepositoryOptions,
+  ): Promise<IMemberMergeSuggestion[]> {
+    const transaction = SequelizeRepository.getTransaction(options)
+
+    const seq = SequelizeRepository.getSequelize(options)
+
+    const tenant = SequelizeRepository.getCurrentTenant(options)
+
+    const query = `
+    -- Define a CTE named "new_members" to get members created in the last 2 hours with a specific tenantId
+    WITH new_members AS (
+      SELECT id, "tenantId"
+      FROM members
+      WHERE "createdAt" >= now() - INTERVAL :numberOfHours
+      AND "tenantId" = :tenantId
+    ),
+    -- Define a CTE named "identity_join" to find members with the same usernames across different platforms
+    identity_join AS (
+      SELECT
+        m1.id AS m1_id,
+        m2.id AS m2_id,
+        i1.platform AS i1_platform,
+        i2.platform AS i2_platform,
+        i1.username AS i1_username,
+        i2.username AS i2_username
+      FROM new_members m1
+      -- Join memberIdentities and members to get related records
+      JOIN "memberIdentities" i1 ON m1.id = i1."memberId"
+      JOIN "memberIdentities" i2 ON i1.username = i2.username AND i1.platform <> i2.platform
+      JOIN members m2 ON m2.id = i2."memberId"
+      -- Filter out records where tenantId is different and memberIds are the same
+      WHERE m1."tenantId" = m2."tenantId"
+      AND m1.id <> m2.id
+      -- Filter out records present in memberToMerge table
+      AND NOT EXISTS (
+        SELECT 1
+        FROM "memberToMerge"
+        WHERE (
+          "memberId" = m1.id
+          AND "toMergeId" = m2.id
+        ) OR (
+          "memberId" = m2.id
+          AND "toMergeId" = m1.id
+        )
+      )
+      -- Filter out records present in memberNoMerge table
+      AND NOT EXISTS (
+        SELECT 1
+        FROM "memberNoMerge"
+        WHERE (
+          "memberId" = m1.id
+          AND "noMergeId" = m2.id
+        ) OR (
+          "memberId" = m2.id
+          AND "noMergeId" = m1.id
+        )
+      )
+    )
+    -- Select everything from the final CTE "identity_join"
+    SELECT *
+    FROM identity_join;`
+
+    const suggestions = await seq.query(query, {
+      replacements: {
+        tenantId: tenant.id,
+        numberOfHours: `${numberOfHours} hours`,
+      },
+      type: QueryTypes.SELECT,
+      transaction,
+    })
+
+    return suggestions.map((suggestion: any) => ({
+      members: [suggestion.m1_id, suggestion.m2_id],
+      // 100% confidence only from emails
+      similarity: 0.95,
+    }))
+  }
+
+  static async mergeSuggestionsByEmail(
+    numberOfHours,
+    options: IRepositoryOptions,
+  ): Promise<IMemberMergeSuggestion[]> {
+    const transaction = SequelizeRepository.getTransaction(options)
+
+    const seq = SequelizeRepository.getSequelize(options)
+
+    const tenant = SequelizeRepository.getCurrentTenant(options)
+
+    const query = `
+    -- Define a CTE named "new_members" to get members created in the last 7 days with a specific tenantId and their emails
+    WITH new_members AS (
+      SELECT id, "tenantId", emails
+      FROM members
+      WHERE "createdAt" >= now() - INTERVAL :numberOfHours
+      AND "tenantId" = :tenantId
+    ),
+    -- Define a CTE named "email_join" to find overlapping emails across different members
+    email_join AS (
+      SELECT
+        m1.id AS m1_id,            -- Member 1 ID
+        m2.id AS m2_id,            -- Member 2 ID
+        m1.emails AS m1_emails,    -- Member 1 emails
+        m2.emails AS m2_emails     -- Member 2 emails
+      FROM new_members m1
+      -- Join the members table on the tenantId field and ensuring the IDs are different
+      JOIN members m2 ON m1."tenantId" = m2."tenantId" AND m1.id <> m2.id
+      -- Filter for overlapping emails
+      WHERE m1.emails && m2.emails
+      -- Exclude pairs that are already in the memberToMerge table
+      AND NOT EXISTS (
+        SELECT 1
+        FROM "memberToMerge"
+        WHERE (
+          "memberId" = m1.id
+          AND "toMergeId" = m2.id
+        ) OR (
+          "memberId" = m2.id
+          AND "toMergeId" = m1.id
+        )
+      )
+      -- Exclude pairs that are in the memberNoMerge table
+      AND NOT EXISTS (
+        SELECT 1
+        FROM "memberNoMerge"
+        WHERE (
+          "memberId" = m1.id
+          AND "noMergeId" = m2.id
+        ) OR (
+          "memberId" = m2.id
+          AND "noMergeId" = m1.id
+        )
+      )
+    )
+    -- Select all columns from the email_join CTE
+    SELECT *
+    FROM email_join;`
+
+    const suggestions = await seq.query(query, {
+      replacements: {
+        tenantId: tenant.id,
+        numberOfHours: `${numberOfHours} hours`,
+      },
+      type: QueryTypes.SELECT,
+      transaction,
+    })
+
+    return suggestions.map((suggestion: any) => ({
+      members: [suggestion.m1_id, suggestion.m2_id],
+      similarity: 1,
+    }))
+  }
+
+  static async mergeSuggestionsBySimilarity(
+    numberOfHours,
+    options: IRepositoryOptions,
+  ): Promise<IMemberMergeSuggestion[]> {
+    const transaction = SequelizeRepository.getTransaction(options)
+
+    const seq = SequelizeRepository.getSequelize(options)
+
+    const tenant = SequelizeRepository.getCurrentTenant(options)
+
+    const query = `
+    -- Define a CTE named "new_members" to get members created in the last 7 days with a specific tenantId
+    WITH new_members AS (
+      SELECT *
+      FROM members
+      WHERE "createdAt" >= now() - INTERVAL :numberOfHours
+      AND "tenantId" = :tenantId
+      LIMIT 1000
+    ),
+    -- Define a CTE named "identity_join" to find similar identities across platforms
+    identity_join AS (
+      -- Select distinct pairs of memberIds and relevant information, along with the similarity score
+      SELECT DISTINCT ON(m1_id, m2_id)
+        m1.id AS m1_id,
+        m2.id AS m2_id,
+        similarity(i1.username, i2.username) AS similarity
+      FROM new_members m1
+      -- Join memberIdentities and members to get related records
+      JOIN "memberIdentities" i1 ON m1.id = i1."memberId"
+      JOIN "memberIdentities" i2 ON i1.platform <> i2.platform
+      JOIN members m2 ON m2.id = i2."memberId"
+      -- Filter out records where tenantId is different and memberIds are the same
+      WHERE m1."tenantId" = m2."tenantId"
+      AND m1.id <> m2.id
+      -- Consider only records with similarity > 0.5 (adjust this threshold as needed)
+      AND similarity(i1.username, i2.username) > 0.5
+      -- Order by similarity descending to get the most similar records first
+      ORDER BY m1_id, m2_id, similarity DESC
+    ),
+    -- Define a CTE named "exclude_already_processed" to remove the already processed members
+    exclude_already_processed AS (
+      SELECT *
+      FROM identity_join
+      -- Filter out records present in memberToMerge table
+      WHERE NOT EXISTS (
+        SELECT 1
+        FROM "memberToMerge"
+        WHERE (
+          "memberId" = identity_join.m1_id
+          AND "toMergeId" = identity_join.m2_id
+        ) OR (
+          "memberId" = identity_join.m2_id
+          AND "toMergeId" = identity_join.m1_id
+        )
+        -- Filter out records present in memberNoMerge table
+      ) AND NOT EXISTS (
+        SELECT 1
+        FROM "memberNoMerge"
+        WHERE (
+          "memberId" = identity_join.m1_id
+          AND "noMergeId" = identity_join.m2_id
+        ) OR (
+          "memberId" = identity_join.m2_id
+          AND "noMergeId" = identity_join.m1_id
+        )
+      )
+    )
+    -- Select everything from the final CTE "exclude_already_processed"
+    SELECT *
+    FROM exclude_already_processed;`
+
+    const suggestions = await seq.query(query, {
+      replacements: {
+        tenantId: tenant.id,
+        numberOfHours: `${numberOfHours} hours`,
+      },
+      type: QueryTypes.SELECT,
+      transaction,
+    })
+
+    return suggestions.map((suggestion: any) => ({
+      members: [suggestion.m1_id, suggestion.m2_id],
+      // 100% confidence only from emails
+      similarity: suggestion.similarity > 0.95 ? 0.95 : suggestion.similarity,
+    }))
+  }
+
   static async addToWeakIdentities(
     memberIds: string[],
     username: string,
@@ -2009,23 +2333,19 @@ where m."deletedAt" is null
       })
     ).map((i) => i.id)
 
-    const memberIdentities = await this.getIdentities([record.id], options)
+    const memberIdentities = (await this.getIdentities([record.id], options)).get(record.id)
 
-    output.username = memberIdentities.get(record.id).reduce((data, identity: any) => {
-      data[identity.platform] = identity.username
-      return data
-    }, {} as any)
+    output.username = {}
+
+    for (const identity of memberIdentities) {
+      if (output.username[identity.platform]) {
+        output.username[identity.platform].push(identity.username)
+      } else {
+        output.username[identity.platform] = [identity.username]
+      }
+    }
 
     output.identities = Object.keys(output.username)
-    // output.newUsername = {}
-
-    // for (const identity of memberIdentities.get(record.id)) {
-    //   if (output.newUsername[identity.platform]) {
-    //     output.newUsername[identity.platform].push(identity.username)
-    //   } else {
-    //     output.newUsername[identity.platform] = [identity.username]
-    //   }
-    // }
 
     return output
   }

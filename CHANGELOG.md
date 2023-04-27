@@ -2,6 +2,35 @@
 
 All notable changes to this project will be documented in this file.
 
+## v0.29.0 - 2023-04-25
+
+### Changes
+
+For more details, see [changelog.crowd.dev](https://changelog.crowd.dev/changelogs/enhanced-merge-suggestions)
+
+#### 🚀 Features
+
+- Multiple members identities for one platform @joanagmaia (#787) and @themarolt (#735)
+- Improved merge suggestions with confidence scoring @joanreyero (#797)
+
+#### ✨ Improvements
+
+- Add a column to show the number of activities column to all member views @peoray (#789)
+- Added a tooltip when displaying OSS contributions @gaspergrom (#778)
+
+#### 🐞 Bug Fixes
+
+- Optimized the materialized view for members for higher performance @themarolt (#803)
+- Updated the Formbricks version @joanagmaia (#801)
+- Fixed the timeframe in the members' report drawers @joanagmaia (#776)
+- Fixed the count values in the platform filters on the homepage @peoray (#781)
+- The number of activities for the active members' view is now timeframe-dependent @yeganathan18 (#792)
+- Re-enabled the GitHub forms stream @epipav (#796)
+- Added missing indexes and removed the unused ones @themarolt (#798)
+- The member upsert doesn't always work when called from integrations @themarolt (#793)
+- Merged duplicated members that have extra identities @themarolt (#783)
+- Fixed the copy and colors for the number of OSS contributions filter @gaspergrom (#777)
+
 ## v0.28.0 - 2023-04-18
 
 ### Changes
@@ -289,7 +318,6 @@ https://user-images.githubusercontent.com/37874460/220165717-4204605a-260f-41cb-
 - Preventing rapid-fire of the same messages over discord websockets @themarolt (#532)
 - Fix Export to CSV functionality @joanagmaia (#533)
 ## v0.19.0 - 2023-02-13
-
 ### Changes
 
 ### ✨ Improvements
@@ -391,7 +419,6 @@ Our first external code contribution! @mattinannt and the [Formbricks](https://f
 #### Exact keyword matching for EagleEye
 You can now look for posts by an exact keyword in EagleEye. If you send a query wrapped in quotes, we will look for it exactly rather than performing semantic search.
 For example, imagine you want to search for content that talks about *generatice AI*, but that mentions *Stable Diffusion*. You could send the query: `generative ai, "stable diffusion"`.
-
 <img width="1067" alt="Screenshot 2023-01-09 at 13 14 50" src="https://user-images.githubusercontent.com/37874460/211305723-24aec737-7edf-4c4d-bcd4-deab5e64a968.png">
 - EagleEye exact keyword matching @mariobalca @joanreyero (#383)
 #### Discord forum channels
@@ -472,7 +499,6 @@ With this, we have introduced feature flagging, so we can also roll out features
 - Render markdown in activities that have a markdown-based body @joanagmaia (#310)
 - Decreased the pre-aggregation frequency in Cube.js to 10 minutes @epipav (#342)
 ### 🐞 Bug Fixes
-
 - Remove the *index attributes* call when creating a document in Meilisearch @epipav (#346)
 - Better logging for the Python Eagle Eye API for debugging purposes @joanreyero (#316)
 - Fix type when trimming members' emails @epipav (#347)
@@ -525,7 +551,6 @@ The notes module allows you to add notes to your community members. You can anno
 The feedback has been tremendous after our open-source launch! We have spent this month working on many bug fixes and improvements to make the app better every single day.
 ## v0.9.0 - 2022-10-31
 ### Changes
-
 :fire: A brand-new user interface.
 We completely overhauled our design and user experience (you may not even recognize the app). crowd.dev is now much more intuitive to use, and the product feels more polished.
 
