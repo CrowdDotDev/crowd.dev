@@ -47,7 +47,9 @@
           <!-- Widget Chart -->
           <div v-else>
             <article
-              v-for="{ total, plat, type } of data"
+              v-for="{ total, plat, type } of compileData(
+                activityTypesResultSet,
+              )"
               :key="`${plat}-${type}`"
               class="border-t border-gray-100 py-4 flex items-center justify-between first:border-none"
             >
@@ -75,7 +77,9 @@
             </article>
             <slot
               name="button"
-              :show-button="data.length > limit"
+              :show-button="compileData(
+                activityTypesResultSet,
+              ).length > limit"
             />
           </div>
 
@@ -89,7 +93,7 @@
 <script setup>
 import { QueryRenderer } from '@cubejs-client/vue3';
 import { mapGetters } from '@/shared/vuex/vuex.helpers';
-import { computed, ref } from 'vue';
+import { computed } from 'vue';
 import { LEADERBOARD_ACTIVITIES_TYPES_QUERY, LEADERBOARD_ACTIVITIES_COUNT_QUERY } from '@/modules/widget/widget-queries';
 import { CrowdIntegrations } from '@/integrations/integrations-config';
 import AppWidgetLoading from '@/modules/widget/components/v2/shared/widget-loading.vue';
@@ -118,8 +122,6 @@ const { cubejsApi } = mapGetters('widget');
 const activityTypeStore = useActivityTypeStore();
 const { types } = storeToRefs(activityTypeStore);
 
-const data = ref([]);
-
 const ActivityTypesQuery = computed(() => LEADERBOARD_ACTIVITIES_TYPES_QUERY({
   period: props.selectedPeriod,
   selectedPlatforms: props.filters.platform.value,
@@ -139,7 +141,7 @@ const compileData = (resultSet) => {
 
   const pivot = resultSet.chartPivot();
 
-  data.value = (pivot.map((el) => {
+  const data = (pivot.map((el) => {
     const [plat, type] = el.x.split(',');
     return {
       total: el['Activities.count'],
@@ -149,10 +151,10 @@ const compileData = (resultSet) => {
   }));
 
   if (props.limit) {
-    return data.value.slice(0, props.limit);
+    return data.slice(0, props.limit);
   }
 
-  return data.value;
+  return data;
 };
 
 const computedScore = (resultSet) => {
