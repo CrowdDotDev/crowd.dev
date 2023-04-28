@@ -97,6 +97,7 @@ const handleDrawerOpen = () => {
   });
 
   drawerExpanded.value = true;
+  drawerSelectedPeriod.value = SEVEN_DAYS_PERIOD_FILTER;
 };
 </script>
 

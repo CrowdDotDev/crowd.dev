@@ -79,7 +79,7 @@
 </template>
 
 <script setup>
-import { computed, onMounted, ref } from 'vue';
+import { computed, ref } from 'vue';
 import AppWidgetLoading from '@/modules/widget/components/shared/widget-loading.vue';
 import AppWidgetEmpty from '@/modules/widget/components/shared/widget-empty.vue';
 import { CrowdIntegrations } from '@/integrations/integrations-config';
@@ -87,7 +87,6 @@ import { useActivityTypeStore } from '@/modules/activity/store/type';
 import { storeToRefs } from 'pinia';
 import { toSentenceCase } from '@/utils/string';
 import pluralize from 'pluralize';
-import { ActivityTypeService } from '@/modules/activity/services/activity-type-service';
 
 const props = defineProps({
   loading: {
@@ -101,7 +100,6 @@ const props = defineProps({
 });
 
 const activityTypeStore = useActivityTypeStore();
-const { setTypes } = activityTypeStore;
 const { types } = storeToRefs(activityTypeStore);
 
 const platformChartRef = ref([]);
@@ -156,12 +154,6 @@ const resultSetData = computed(() => {
   return Object.fromEntries(
     Object.entries(data).sort(([, a], [, b]) => b.total - a.total),
   );
-});
-
-onMounted(async () => {
-  ActivityTypeService.get().then((activityTypes) => {
-    setTypes(activityTypes);
-  });
 });
 
 const calculatePercentage = (count, total) => Math.round((count / total) * 100);

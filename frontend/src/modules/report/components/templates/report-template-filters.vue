@@ -33,11 +33,12 @@
         </template>
         <template #optionPrefix="{ item }">
           <img
-            v-if="item.value && platformOptions(item.value)"
+            v-if="item.value && platformOptions(item.value) && platformOptions(item.value).image"
             :src="platformOptions(item.value).image"
             :alt="platformOptions(item.value).name"
             class="w-4 h-4 mr-2"
           />
+          <i v-else class="ri-radar-line text-base text-gray-400" />
         </template>
       </app-filter-list-item>
 

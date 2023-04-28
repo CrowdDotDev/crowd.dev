@@ -74,34 +74,23 @@
         size="narrow"
       >
         <div class="w-full mt-8">
-          <app-report-member-template
-            v-if="
-              currentTemplate.nameAsId
-                === MEMBERS_REPORT.nameAsId
-            "
-            :is-public-view="true"
-            :filters="{
-              platform,
-              teamMembers,
-            }"
-          />
-          <app-report-product-community-fit-template
-            v-else-if="
-              currentTemplate.nameAsId
-                === PRODUCT_COMMUNITY_FIT_REPORT.nameAsId
-            "
-            :is-public-view="true"
-            :filters="{
-              teamMembers,
-            }"
-          />
-          <app-report-activity-template
-            v-else-if="currentTemplate.nameAsId === ACTIVITIES_REPORT.nameAsId"
-            :filters="{
-              platform,
-              teamActivities,
-            }"
-          />
+          <div
+            v-for="template in templates"
+            :key="template.config.nameAsId"
+          >
+            <component
+              :is="template.component"
+              v-if="
+                currentTemplate.nameAsId
+                  === template.config.nameAsId
+              "
+              :filters="{
+                platform,
+                teamMembers,
+                teamActivities,
+              }"
+            />
+          </div>
         </div>
       </app-page-wrapper>
       <!-- Custom Report -->
@@ -173,12 +162,9 @@
 <script>
 import { mapState, mapGetters, mapActions } from 'vuex';
 import ReportGridLayout from '@/modules/report/components/report-grid-layout.vue';
-import AppReportMemberTemplate from '@/modules/report/pages/templates/report-member-template.vue';
-import AppReportProductCommunityFitTemplate from '@/modules/report/pages/templates/report-product-community-fit-template.vue';
 import AuthCurrentTenant from '@/modules/auth/auth-current-tenant';
 import { TenantService } from '@/modules/tenant/tenant-service';
 import AppReportTemplateFilters from '@/modules/report/components/templates/report-template-filters.vue';
-import AppReportActivityTemplate from '@/modules/report/pages/templates/report-activity-template.vue';
 import ActivityPlatformField from '@/modules/activity/activity-platform-field';
 import MEMBERS_REPORT from '@/modules/report/templates/config/members';
 import PRODUCT_COMMUNITY_FIT_REPORT from '@/modules/report/templates/config/productCommunityFit';
@@ -202,9 +188,6 @@ export default {
 
   components: {
     'app-report-grid-layout': ReportGridLayout,
-    AppReportMemberTemplate,
-    AppReportProductCommunityFitTemplate,
-    AppReportActivityTemplate,
     AppReportTemplateFilters,
   },
 
@@ -250,7 +233,7 @@ export default {
     currentTemplate() {
       return this.templates.find(
         (t) => t.config.nameAsId === this.report.name,
-      );
+      )?.config;
     },
   },
 

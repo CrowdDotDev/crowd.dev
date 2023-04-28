@@ -11,6 +11,7 @@
         :src="getPlatformDetails(plat)?.image"
         :alt="getPlatformDetails(plat)?.name"
       />
+      <i v-else class="ri-radar-line text-base text-gray-400" />
       <p class="text-xs leading-5 activity-type first-letter:uppercase">
         {{ displayActivityType(plat, type) }}
       </p>
