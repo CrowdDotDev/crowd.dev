@@ -1068,9 +1068,10 @@ class MemberRepository {
     }
 
     const query = `
-    with to_activities as (SELECT DISTINCT ON (acts."memberId") acts."channel", acts."memberId"
+    with to_activities as (SELECT acts."channel", acts."memberId"
                       FROM activities acts
                       RIGHT JOIN members m ON m.id=acts."memberId"
+                      group by acts."memberId", acts."channel"
     ),
     to_merge_data as (select mtm."memberId", string_agg(distinct mtm."toMergeId"::text, ',') as to_merge_ids
                        from "memberToMerge" mtm
@@ -1156,9 +1157,10 @@ limit :limit offset :offset;
     `
 
     const countQuery = `
-with to_activities as (SELECT DISTINCT ON (acts."memberId") acts."channel", acts."memberId"
+with to_activities as (SELECT acts."channel", acts."memberId"
   FROM activities acts
   RIGHT JOIN members m ON m.id=acts."memberId"
+  group by acts."memberId", acts."channel"
 ),
   member_tags as (select mt."memberId",
                             jsonb_agg(t.id) as all_ids
