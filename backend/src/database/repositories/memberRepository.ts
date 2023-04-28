@@ -287,6 +287,11 @@ class MemberRepository {
     const transaction = SequelizeRepository.getTransaction(options)
     const seq = SequelizeRepository.getSequelize(options)
 
+    // Remove possible duplicates
+    suggestions = lodash.uniqWith(suggestions, (a, b) =>
+      lodash.isEqual(lodash.sortBy(a.members), lodash.sortBy(b.members)),
+    )
+
     // Process suggestions in chunks of 100 or less
     const suggestionChunks = chunk(suggestions, 100)
 
@@ -328,12 +333,16 @@ class MemberRepository {
         INSERT INTO "memberToMerge" ("memberId", "toMergeId", "similarity", "createdAt", "updatedAt")
         VALUES ${placeholders.join(', ')};
       `
-
-      await seq.query(query, {
-        replacements,
-        type: QueryTypes.INSERT,
-        transaction,
-      })
+      try {
+        await seq.query(query, {
+          replacements,
+          type: QueryTypes.INSERT,
+          transaction,
+        })
+      } catch (error) {
+        options.log.error('error adding members to merge', error)
+        throw error
+      }
     }
   }
 
@@ -2006,7 +2015,6 @@ where m."deletedAt" is null
       type: QueryTypes.SELECT,
       transaction,
     })
-
     return suggestions.map((suggestion: any) => ({
       members: [suggestion.m1_id, suggestion.m2_id],
       similarity: 1,
