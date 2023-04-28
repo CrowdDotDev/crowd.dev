@@ -894,6 +894,7 @@ class MemberRepository {
              m.attributes,
              ad."activityCount",
              ad."activeDaysCount",
+             m."joinedAt",
              coalesce(o.organizations, json_build_array()) as organizations,
              count(*) over ()                  as "totalCount"
       from members m
@@ -936,6 +937,7 @@ class MemberRepository {
         organizations: row.organizations,
         activityCount: parseInt(row.activityCount, 10),
         activeDaysCount: parseInt(row.activeDaysCount, 10),
+        joinedAt: row.joinedAt,
       }
     })
 
