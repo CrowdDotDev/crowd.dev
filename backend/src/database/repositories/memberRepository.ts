@@ -287,6 +287,11 @@ class MemberRepository {
     const transaction = SequelizeRepository.getTransaction(options)
     const seq = SequelizeRepository.getSequelize(options)
 
+    // Remove possible duplicates
+    suggestions = lodash.uniqWith(suggestions, (a, b) =>
+      lodash.isEqual(lodash.sortBy(a.members), lodash.sortBy(b.members)),
+    )
+
     // Process suggestions in chunks of 100 or less
     const suggestionChunks = chunk(suggestions, 100)
 
@@ -314,7 +319,6 @@ class MemberRepository {
       let replacements: Record<string, unknown> = {}
 
       suggestionChunk.forEach((suggestion, index) => {
-        options.log.info('Merge suggestions: ', suggestion.members[0], suggestion.members[1])
         const { query, replacements: chunkReplacements } = insertValues(
           suggestion.members[0],
           suggestion.members[1],
@@ -336,7 +340,8 @@ class MemberRepository {
           transaction,
         })
       } catch (error) {
-        options.log.error('Merge suggestions: error adding members to merge', error)
+        options.log.error('error adding members to merge', error)
+        throw error
       }
     }
   }
@@ -1999,20 +2004,25 @@ where m."deletedAt" is null
     -- Select all columns from the email_join CTE
     SELECT *
     FROM email_join;`
-
-    const suggestions = await seq.query(query, {
-      replacements: {
-        tenantId: tenant.id,
-        numberOfHours: `${numberOfHours} hours`,
-      },
-      type: QueryTypes.SELECT,
-      transaction,
-    })
-
-    return suggestions.map((suggestion: any) => ({
-      members: [suggestion.m1_id, suggestion.m2_id],
-      similarity: 1,
-    }))
+    try {
+      console.log('about to query')
+      const suggestions = await seq.query(query, {
+        replacements: {
+          tenantId: tenant.id,
+          numberOfHours: `${numberOfHours} hours`,
+        },
+        type: QueryTypes.SELECT,
+        transaction,
+      })
+      console.log('suggestions', suggestions)
+      return suggestions.map((suggestion: any) => ({
+        members: [suggestion.m1_id, suggestion.m2_id],
+        similarity: 1,
+      }))
+    } catch (error) {
+      console.log(error)
+      throw error
+    }
   }
 
   static async mergeSuggestionsBySimilarity(

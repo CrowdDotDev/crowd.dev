@@ -700,7 +700,7 @@ export default class MemberService extends LoggingBase {
 
   async getMergeSuggestions(
     type: IMemberMergeSuggestionsType,
-    numberOfHours: Number = 1.5,
+    numberOfHours: Number = 1.2,
   ): Promise<IMemberMergeSuggestion[]> {
     // Adding a transaction so it will use the write database
     const transaction = await SequelizeRepository.createTransaction(this.options)

@@ -8,22 +8,18 @@ import { timeout } from '../../utils/timing'
 const job: CrowdJob = {
   name: 'Merge suggestions',
   // every hour
-  // cronTime: '0 * * * *',
-  // every 1 minutes
-  cronTime: '*/5 * * * *',
+  cronTime: '0 * * * *',
   onTrigger: async () => {
     const tenants = await TenantService._findAndCountAllForEveryUser({})
     for (const tenant of tenants.rows) {
-      if (tenant.id === '6fe453b9-3ce0-4db9-b5c2-0a7cc52d91ca') {
-        await sendNodeWorkerMessage(tenant.id, {
-          type: NodeWorkerMessageType.NODE_MICROSERVICE,
-          tenant: tenant.id,
-          service: 'merge-suggestions',
-        } as NodeWorkerMessageBase)
+      await sendNodeWorkerMessage(tenant.id, {
+        type: NodeWorkerMessageType.NODE_MICROSERVICE,
+        tenant: tenant.id,
+        service: 'merge-suggestions',
+      } as NodeWorkerMessageBase)
 
-        // Wait 1 second between messages to potentially reduce spike load on cube between each tenant runs
-        await timeout(1000)
-      }
+      // Wait 1 second between messages to potentially reduce spike load on cube between each tenant runs
+      await timeout(1000)
     }
   },
 }
