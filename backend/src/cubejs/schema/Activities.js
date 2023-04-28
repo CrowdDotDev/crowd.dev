@@ -20,12 +20,23 @@ cube(`Activities`, {
         every: `10 minute`,
       },
     },
-  },
-
-  joins: {
-    Members: {
-      sql: `${CUBE}."memberId" = ${Members}."id"`,
-      relationship: `belongsTo`,
+    ActivitiesCumulative: {
+      measures: [Activities.cumulativeCount],
+      dimensions: [
+        Activities.platform,
+        Activities.type,
+        Members.score,
+        Members.location,
+        Members.tenantId,
+        Members.isTeamMember,
+        Members.isBot,
+        Activities.tenantId,
+      ],
+      timeDimension: Activities.date,
+      granularity: `day`,
+      refreshKey: {
+        every: `10 minute`,
+      },
     },
   },
 
@@ -44,6 +55,12 @@ cube(`Activities`, {
         updatedat,
         date,
       ],
+    },
+    cumulativeCount: {
+      type: `count`,
+      rollingWindow: {
+        trailing: `unbounded`,
+      },
     },
   },
 
