@@ -2004,25 +2004,19 @@ where m."deletedAt" is null
     -- Select all columns from the email_join CTE
     SELECT *
     FROM email_join;`
-    try {
-      console.log('about to query')
-      const suggestions = await seq.query(query, {
-        replacements: {
-          tenantId: tenant.id,
-          numberOfHours: `${numberOfHours} hours`,
-        },
-        type: QueryTypes.SELECT,
-        transaction,
-      })
-      console.log('suggestions', suggestions)
-      return suggestions.map((suggestion: any) => ({
-        members: [suggestion.m1_id, suggestion.m2_id],
-        similarity: 1,
-      }))
-    } catch (error) {
-      console.log(error)
-      throw error
-    }
+
+    const suggestions = await seq.query(query, {
+      replacements: {
+        tenantId: tenant.id,
+        numberOfHours: `${numberOfHours} hours`,
+      },
+      type: QueryTypes.SELECT,
+      transaction,
+    })
+    return suggestions.map((suggestion: any) => ({
+      members: [suggestion.m1_id, suggestion.m2_id],
+      similarity: 1,
+    }))
   }
 
   static async mergeSuggestionsBySimilarity(
