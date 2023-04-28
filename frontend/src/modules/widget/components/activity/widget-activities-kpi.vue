@@ -39,7 +39,7 @@
 
             <app-widget-kpi
               v-else
-              :current-value="kpiCurrentValue(resultSet, widget)"
+              :current-value="kpiCurrentValue(resultSet)"
               :previous-value="kpiPreviousValue(resultSet)"
               :vs-label="`vs. ${widget.period === 'day' ? 'yesterday' : `last ${widget.period}`}`"
             />
@@ -63,10 +63,11 @@ import {
   WEEKLY_GRANULARITY_FILTER,
 } from '@/modules/widget/widget-constants';
 import { mapGetters } from '@/shared/vuex/vuex.helpers';
-import AppWidgetKpi from '@/modules/widget/components/v2/shared/widget-kpi.vue';
-import AppWidgetTitle from '@/modules/widget/components/v2/shared/widget-title.vue';
-import AppWidgetLoading from '@/modules/widget/components/v2/shared/widget-loading.vue';
-import AppWidgetError from '@/modules/widget/components/v2/shared/widget-error.vue';
+import AppWidgetKpi from '@/modules/widget/components/shared/widget-kpi.vue';
+import AppWidgetTitle from '@/modules/widget/components/shared/widget-title.vue';
+import AppWidgetLoading from '@/modules/widget/components/shared/widget-loading.vue';
+import AppWidgetError from '@/modules/widget/components/shared/widget-error.vue';
+import { ACTIVITIES_KPI_WIDGET } from '@/modules/report/templates/config/activities';
 
 const props = defineProps({
   filters: {
@@ -86,7 +87,7 @@ const query = (period, granularity) => ACTIVITIES_QUERY({
 
 const widgets = computed(() => [
   {
-    title: 'Activities today',
+    title: `${ACTIVITIES_KPI_WIDGET.name} today`,
     query: query(
       ONE_DAY_PERIOD_FILTER,
       DAILY_GRANULARITY_FILTER,
@@ -94,7 +95,7 @@ const widgets = computed(() => [
     period: 'day',
   },
   {
-    title: 'Activities this week',
+    title: `${ACTIVITIES_KPI_WIDGET.name} this week`,
     query: query(
       FOURTEEN_DAYS_PERIOD_FILTER,
       WEEKLY_GRANULARITY_FILTER,
@@ -102,7 +103,7 @@ const widgets = computed(() => [
     period: 'week',
   },
   {
-    title: 'Activities this month',
+    title: `${ACTIVITIES_KPI_WIDGET.name} this month`,
     query: query(
       THIRTY_DAYS_PERIOD_FILTER,
       MONTHLY_GRANULARITY_FILTER,

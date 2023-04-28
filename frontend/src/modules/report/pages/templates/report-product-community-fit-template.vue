@@ -31,15 +31,16 @@
         </el-button>
       </div>
 
-      <app-widget-monthly-active-contributors
-        :filters="filters"
-        :is-public-view="isPublicView"
-      />
-
-      <app-widget-benchmark
-        :filters="filters"
-        :is-public-view="isPublicView"
-      />
+      <div
+        v-for="widget in PRODUCT_COMMUNITY_FIT_REPORT.widgets"
+        :key="widget.id"
+      >
+        <component
+          :is="widget.component"
+          :filters="filters"
+          :is-public-view="isPublicView"
+        />
+      </div>
     </div>
   </div>
   <app-dialog
@@ -78,8 +79,6 @@ import {
   computed, onMounted, defineProps, ref,
 } from 'vue';
 import { useStore } from 'vuex';
-import AppWidgetMonthlyActiveContributors from '@/modules/widget/components/v2/product-community-fit/widget-monthly-active-contributors.vue';
-import AppWidgetBenchmark from '@/modules/widget/components/v2/product-community-fit/widget-benchmark.vue';
 import { CrowdIntegrations } from '@/integrations/integrations-config';
 import AppActivityTypeListItem from '@/modules/activity/components/type/activity-type-list-item.vue';
 import {
@@ -87,6 +86,7 @@ import {
   mapActions,
 } from '@/shared/vuex/vuex.helpers';
 import { toSentenceCase } from '@/utils/string';
+import PRODUCT_COMMUNITY_FIT_REPORT from '@/modules/report/templates/config/productCommunityFit';
 
 defineProps({
   filters: {

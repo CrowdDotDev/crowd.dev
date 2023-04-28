@@ -67,32 +67,23 @@
     </div>
     <app-page-wrapper size="narrow">
       <div class="w-full mt-8">
-        <app-report-member-template
-          v-if="
-            currentTemplate.nameAsId
-              === MEMBERS_REPORT.nameAsId
-          "
-          :filters="{
-            platform,
-            teamMembers,
-          }"
-        />
-        <app-report-product-community-fit-template
-          v-else-if="
-            currentTemplate.nameAsId
-              === PRODUCT_COMMUNITY_FIT_REPORT.nameAsId
-          "
-          :filters="{
-            teamMembers,
-          }"
-        />
-        <app-report-activity-template
-          v-else-if="currentTemplate.nameAsId === ACTIVITIES_REPORT.nameAsId"
-          :filters="{
-            platform,
-            teamActivities,
-          }"
-        />
+        <div
+          v-for="template in templates"
+          :key="template.config.nameAsId"
+        >
+          <component
+            :is="template.component"
+            v-if="
+              currentTemplate.nameAsId
+                === template.config.nameAsId
+            "
+            :filters="{
+              platform,
+              teamMembers,
+              teamActivities,
+            }"
+          />
+        </div>
       </div>
     </app-page-wrapper>
   </div>
@@ -109,18 +100,10 @@ import {
 } from 'vue';
 import { useStore } from 'vuex';
 import AppReportShareButton from '@/modules/report/components/report-share-button.vue';
-import {
-  MEMBERS_REPORT,
-  PRODUCT_COMMUNITY_FIT_REPORT,
-  ACTIVITIES_REPORT,
-  templates,
-} from '@/modules/report/templates/template-reports';
+import templates from '@/modules/report/templates/config';
 import AppReportTemplateFilters from '@/modules/report/components/templates/report-template-filters.vue';
 import ActivityPlatformField from '@/modules/activity/activity-platform-field';
 import { mapActions, mapGetters } from '@/shared/vuex/vuex.helpers';
-import AppReportMemberTemplate from './report-member-template.vue';
-import AppReportProductCommunityFitTemplate from './report-product-community-fit-template.vue';
-import AppReportActivityTemplate from './report-activity-template.vue';
 
 const props = defineProps({
   id: {
@@ -157,7 +140,7 @@ const platform = ref(initialPlatformValue);
 const teamMembers = ref(false);
 const teamActivities = ref(false);
 
-const currentTemplate = computed(() => templates.find((t) => t.nameAsId === report.value?.name));
+const currentTemplate = computed(() => templates.find((t) => t.config.nameAsId === report.value?.name)?.config);
 
 const { cubejsApi } = mapGetters('widget');
 const { getCubeToken } = mapActions('widget');

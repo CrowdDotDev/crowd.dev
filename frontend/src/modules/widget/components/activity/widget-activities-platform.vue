@@ -6,11 +6,13 @@
         class="flex grow justify-between items-center pb-5 border-b border-gray-100 mb-8"
       >
         <div class="flex gap-1">
-          <app-widget-title title="Activities by platform" />
+          <app-widget-title
+            :title="ACTIVITIES_PLATFORM_WIDGET.name"
+          />
         </div>
         <app-widget-period
-          template="Activities"
-          widget="Activities by platform"
+          :template="ACTIVITIES_REPORT.nameAsId"
+          :widget="ACTIVITIES_PLATFORM_WIDGET.name"
           :period="selectedPeriod"
           module="reports"
           @on-update="onUpdatePeriod"
@@ -36,11 +38,12 @@
 <script setup>
 import { SEVEN_DAYS_PERIOD_FILTER } from '@/modules/widget/widget-constants';
 import { computed, ref } from 'vue';
-import AppWidgetTitle from '@/modules/widget/components/v2/shared/widget-title.vue';
-import AppWidgetPeriod from '@/modules/widget/components/v2/shared/widget-period.vue';
+import AppWidgetTitle from '@/modules/widget/components/shared/widget-title.vue';
+import AppWidgetPeriod from '@/modules/widget/components/shared/widget-period.vue';
 import { QueryRenderer } from '@cubejs-client/vue3';
 import { mapGetters } from '@/shared/vuex/vuex.helpers';
 import { LEADERBOARD_ACTIVITIES_TYPES_QUERY } from '@/modules/widget/widget-queries';
+import ACTIVITIES_REPORT, { ACTIVITIES_PLATFORM_WIDGET } from '@/modules/report/templates/config/activities';
 import AppWidgetActivitiesPlatformContent from './widget-activities-platform-content.vue';
 
 const props = defineProps({

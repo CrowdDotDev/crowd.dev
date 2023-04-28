@@ -1,4 +1,4 @@
-import { defaultChartConfig } from './template-default-config';
+import { defaultChartConfig } from './template-chart-default-config';
 
 const defaultChartOptions = (config) => ({
   legend: false,

@@ -180,12 +180,10 @@ import { TenantService } from '@/modules/tenant/tenant-service';
 import AppReportTemplateFilters from '@/modules/report/components/templates/report-template-filters.vue';
 import AppReportActivityTemplate from '@/modules/report/pages/templates/report-activity-template.vue';
 import ActivityPlatformField from '@/modules/activity/activity-platform-field';
-import {
-  MEMBERS_REPORT,
-  PRODUCT_COMMUNITY_FIT_REPORT,
-  ACTIVITIES_REPORT,
-  templates,
-} from '@/modules/report/templates/template-reports';
+import MEMBERS_REPORT from '@/modules/report/templates/config/members';
+import PRODUCT_COMMUNITY_FIT_REPORT from '@/modules/report/templates/config/productCommunityFit';
+import ACTIVITIES_REPORT from '@/modules/report/templates/config/activities';
+import templates from '@/modules/report/templates/config';
 
 const platformField = new ActivityPlatformField(
   'activeOn',
@@ -251,7 +249,7 @@ export default {
     },
     currentTemplate() {
       return this.templates.find(
-        (t) => t.nameAsId === this.report.name,
+        (t) => t.config.nameAsId === this.report.name,
       );
     },
   },

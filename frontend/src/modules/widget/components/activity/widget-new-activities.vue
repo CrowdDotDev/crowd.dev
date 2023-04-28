@@ -13,8 +13,8 @@
         >
           <div class="flex gap-1">
             <app-widget-granularity
-              template="Activities"
-              widget="New activities"
+              :template="ACTIVITIES_REPORT.nameAsId"
+              :widget="NEW_ACTIVITIES_WIDGET.name"
               :granularity="granularity"
               @on-update="
                 (updatedGranularity) =>
@@ -22,12 +22,12 @@
               "
             />
             <app-widget-title
-              title="New activities"
+              :title="NEW_ACTIVITIES_WIDGET.name"
             />
           </div>
           <app-widget-period
-            template="Activities"
-            widget="New activities"
+            :template="ACTIVITIES_REPORT.nameAsId"
+            :widget="NEW_ACTIVITIES_WIDGET.name"
             :period="period"
             :granularity="granularity"
             module="reports"
@@ -59,16 +59,17 @@
 <script setup>import { computed, ref } from 'vue';
 import { QueryRenderer } from '@cubejs-client/vue3';
 import { DAILY_GRANULARITY_FILTER, SEVEN_DAYS_PERIOD_FILTER } from '@/modules/widget/widget-constants';
-import { chartOptions } from '@/modules/report/templates/template-report-charts';
+import { chartOptions } from '@/modules/report/templates/template-chart-config';
 import { parseAxisLabel } from '@/utils/reports';
 import { mapGetters } from '@/shared/vuex/vuex.helpers';
 import { ACTIVITIES_QUERY } from '@/modules/widget/widget-queries';
-import AppWidgetTitle from '@/modules/widget/components/v2/shared/widget-title.vue';
-import AppWidgetPeriod from '@/modules/widget/components/v2/shared/widget-period.vue';
-import AppWidgetGranularity from '@/modules/widget/components/v2/shared/widget-granularity.vue';
-import AppWidgetArea from '@/modules/widget/components/v2/shared/widget-area.vue';
-import AppWidgetLoading from '@/modules/widget/components/v2/shared/widget-loading.vue';
-import AppWidgetError from '@/modules/widget/components/v2/shared/widget-error.vue';
+import AppWidgetTitle from '@/modules/widget/components/shared/widget-title.vue';
+import AppWidgetPeriod from '@/modules/widget/components/shared/widget-period.vue';
+import AppWidgetGranularity from '@/modules/widget/components/shared/widget-granularity.vue';
+import AppWidgetArea from '@/modules/widget/components/shared/widget-area.vue';
+import AppWidgetLoading from '@/modules/widget/components/shared/widget-loading.vue';
+import AppWidgetError from '@/modules/widget/components/shared/widget-error.vue';
+import ACTIVITIES_REPORT, { NEW_ACTIVITIES_WIDGET } from '@/modules/report/templates/config/activities';
 
 const props = defineProps({
   filters: {
@@ -90,7 +91,7 @@ const { cubejsApi } = mapGetters('widget');
 
 const datasets = computed(() => [
   {
-    name: 'New activities',
+    name: NEW_ACTIVITIES_WIDGET.name,
     borderColor: '#E94F2E',
     measure: 'Activities.count',
     granularity: granularity.value.value,

@@ -7,12 +7,12 @@
       >
         <div class="flex gap-1">
           <app-widget-title
-            title="Leaderboard: Activities by type"
+            :title="ACTIVITIES_LEADERBOARD_WIDGET.name"
           />
         </div>
         <app-widget-period
-          template="Activities"
-          widget="Leaderboard: Activities by type"
+          :template="ACTIVITIES_REPORT.nameAsId"
+          :widget="ACTIVITIES_LEADERBOARD_WIDGET.name"
           :period="selectedPeriod"
           module="reports"
           @on-update="onUpdatePeriod"
@@ -62,11 +62,11 @@
 <script setup>
 import { SEVEN_DAYS_PERIOD_FILTER } from '@/modules/widget/widget-constants';
 import { ref } from 'vue';
-import AppWidgetTitle from '@/modules/widget/components/v2/shared/widget-title.vue';
-import AppWidgetPeriod from '@/modules/widget/components/v2/shared/widget-period.vue';
-import AppWidgetCubeDrawer from '@/modules/widget/components/v2/shared/widget-cube-drawer.vue';
-import { ACTIVITIES_REPORT } from '@/modules/report/templates/template-reports';
-import AppWidgetActivitiesTypeList from '@/modules/widget/components/v2/activity/widget-activities-type-list.vue';
+import AppWidgetTitle from '@/modules/widget/components/shared/widget-title.vue';
+import AppWidgetPeriod from '@/modules/widget/components/shared/widget-period.vue';
+import AppWidgetCubeDrawer from '@/modules/widget/components/shared/widget-cube-drawer.vue';
+import ACTIVITIES_REPORT, { ACTIVITIES_LEADERBOARD_WIDGET } from '@/modules/report/templates/config/activities';
+import AppWidgetActivitiesTypeList from '@/modules/widget/components/activity/widget-activities-type-list.vue';
 
 defineProps({
   filters: {
@@ -90,6 +90,12 @@ const onDrawerUpdatePeriod = (updatedPeriod) => {
 };
 
 const handleDrawerOpen = () => {
+  window.analytics.track('Open report drawer', {
+    template: ACTIVITIES_REPORT.nameAsId,
+    widget: ACTIVITIES_LEADERBOARD_WIDGET.name,
+    period: drawerSelectedPeriod.value,
+  });
+
   drawerExpanded.value = true;
 };
 </script>

@@ -13,8 +13,8 @@
         >
           <div class="flex gap-1">
             <app-widget-granularity
-              template="Members"
-              widget="Active members"
+              :template="MEMBERS_REPORT.nameAsId"
+              :widget="ACTIVE_MEMBERS_KPI_WIDGET.name"
               :granularity="granularity"
               @on-update="
                 (updatedGranularity) =>
@@ -22,8 +22,8 @@
               "
             />
             <app-widget-title
-              title="Active members"
-              description="Members who performed any kind of activity in a given time period"
+              :title="ACTIVE_MEMBERS_KPI_WIDGET.name"
+              :description="ACTIVE_MEMBERS_KPI_WIDGET.description"
             />
           </div>
           <app-widget-period
@@ -79,10 +79,10 @@
 import { computed, ref, defineProps } from 'vue';
 import { QueryRenderer } from '@cubejs-client/vue3';
 import moment from 'moment';
-import AppWidgetTitle from '@/modules/widget/components/v2/shared/widget-title.vue';
-import AppWidgetPeriod from '@/modules/widget/components/v2/shared/widget-period.vue';
-import AppWidgetGranularity from '@/modules/widget/components/v2/shared/widget-granularity.vue';
-import AppWidgetArea from '@/modules/widget/components/v2/shared/widget-area.vue';
+import AppWidgetTitle from '@/modules/widget/components/shared/widget-title.vue';
+import AppWidgetPeriod from '@/modules/widget/components/shared/widget-period.vue';
+import AppWidgetGranularity from '@/modules/widget/components/shared/widget-granularity.vue';
+import AppWidgetArea from '@/modules/widget/components/shared/widget-area.vue';
 import {
   DAILY_GRANULARITY_FILTER,
   SEVEN_DAYS_PERIOD_FILTER,
@@ -91,18 +91,18 @@ import {
   mapGetters,
   mapActions,
 } from '@/shared/vuex/vuex.helpers';
-import { chartOptions } from '@/modules/report/templates/template-report-charts';
+import { chartOptions } from '@/modules/report/templates/template-chart-config';
 import {
   TOTAL_ACTIVE_MEMBERS_QUERY,
   TOTAL_ACTIVE_RETURNING_MEMBERS_QUERY,
 } from '@/modules/widget/widget-queries';
-import AppWidgetLoading from '@/modules/widget/components/v2/shared/widget-loading.vue';
-import AppWidgetError from '@/modules/widget/components/v2/shared/widget-error.vue';
-import AppWidgetApiDrawer from '@/modules/widget/components/v2/shared/widget-api-drawer.vue';
+import AppWidgetLoading from '@/modules/widget/components/shared/widget-loading.vue';
+import AppWidgetError from '@/modules/widget/components/shared/widget-error.vue';
+import AppWidgetApiDrawer from '@/modules/widget/components/shared/widget-api-drawer.vue';
 import { MemberService } from '@/modules/member/member-service';
-import { MEMBERS_REPORT } from '@/modules/report/templates/template-reports';
+import MEMBERS_REPORT, { ACTIVE_MEMBERS_KPI_WIDGET } from '@/modules/report/templates/config/members';
 import { parseAxisLabel } from '@/utils/reports';
-import AppWidgetMembersTable from '@/modules/widget/components/v2/shared/widget-members-table.vue';
+import AppWidgetMembersTable from '@/modules/widget/components/shared/widget-members-table.vue';
 
 const props = defineProps({
   filters: {

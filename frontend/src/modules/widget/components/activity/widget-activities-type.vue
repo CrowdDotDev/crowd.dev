@@ -18,11 +18,11 @@
     <p class="text-xs text-gray-500">
       {{ total }} activities ・
       {{
-        (
+        Math.round(
           (total
             / activityCountData)
-          * 100
-        ).toFixed(1)
+            * 100,
+        )
       }}%
     </p>
   </article>

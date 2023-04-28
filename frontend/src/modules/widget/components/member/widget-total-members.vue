@@ -3,10 +3,12 @@
     <div class="flex justify-between items-center pb-5 mb-4 border-b border-gray-100">
       <app-widget-title
         text-size="text-base"
-        description="All members who did at least one activity in your community and its evolution over time"
-        title="Total members"
+        :description="TOTAL_MEMBERS_WIDGET.description"
+        :title="TOTAL_MEMBERS_WIDGET.name"
       />
       <app-widget-period
+        :template="MEMBERS_REPORT.nameAsId"
+        :widget="TOTAL_MEMBERS_WIDGET.name"
         :period="period"
         module="report"
         @on-update="
@@ -81,14 +83,14 @@ import cloneDeep from 'lodash/cloneDeep';
 import { ref, computed, defineProps } from 'vue';
 import { QueryRenderer } from '@cubejs-client/vue3';
 import { SEVEN_DAYS_PERIOD_FILTER } from '@/modules/widget/widget-constants';
-import { chartOptions } from '@/modules/report/templates/template-report-charts';
+import { chartOptions } from '@/modules/report/templates/template-chart-config';
 
-import AppWidgetKpi from '@/modules/widget/components/v2/shared/widget-kpi.vue';
-import AppWidgetTitle from '@/modules/widget/components/v2/shared/widget-title.vue';
-import AppWidgetPeriod from '@/modules/widget/components/v2/shared/widget-period.vue';
-import AppWidgetArea from '@/modules/widget/components/v2/shared/widget-area.vue';
-import AppWidgetLoading from '@/modules/widget/components/v2/shared/widget-loading.vue';
-import AppWidgetError from '@/modules/widget/components/v2/shared/widget-error.vue';
+import AppWidgetKpi from '@/modules/widget/components/shared/widget-kpi.vue';
+import AppWidgetTitle from '@/modules/widget/components/shared/widget-title.vue';
+import AppWidgetPeriod from '@/modules/widget/components/shared/widget-period.vue';
+import AppWidgetArea from '@/modules/widget/components/shared/widget-area.vue';
+import AppWidgetLoading from '@/modules/widget/components/shared/widget-loading.vue';
+import AppWidgetError from '@/modules/widget/components/shared/widget-error.vue';
 
 import {
   mapGetters,
@@ -100,9 +102,9 @@ import {
   TOTAL_MEMBERS_FILTER,
 } from '@/modules/widget/widget-queries';
 import { MemberService } from '@/modules/member/member-service';
-import AppWidgetApiDrawer from '@/modules/widget/components/v2/shared/widget-api-drawer.vue';
-import { MEMBERS_REPORT } from '@/modules/report/templates/template-reports';
-import AppWidgetMembersTable from '@/modules/widget/components/v2/shared/widget-members-table.vue';
+import AppWidgetApiDrawer from '@/modules/widget/components/shared/widget-api-drawer.vue';
+import MEMBERS_REPORT, { TOTAL_MEMBERS_WIDGET } from '@/modules/report/templates/config/members';
+import AppWidgetMembersTable from '@/modules/widget/components/shared/widget-members-table.vue';
 
 const props = defineProps({
   filters: {

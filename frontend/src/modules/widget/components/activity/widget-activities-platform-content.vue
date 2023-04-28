@@ -80,8 +80,8 @@
 
 <script setup>
 import { computed, onMounted, ref } from 'vue';
-import AppWidgetLoading from '@/modules/widget/components/v2/shared/widget-loading.vue';
-import AppWidgetEmpty from '@/modules/widget/components/v2/shared/widget-empty.vue';
+import AppWidgetLoading from '@/modules/widget/components/shared/widget-loading.vue';
+import AppWidgetEmpty from '@/modules/widget/components/shared/widget-empty.vue';
 import { CrowdIntegrations } from '@/integrations/integrations-config';
 import { useActivityTypeStore } from '@/modules/activity/store/type';
 import { storeToRefs } from 'pinia';
@@ -164,7 +164,7 @@ onMounted(async () => {
   });
 });
 
-const calculatePercentage = (count, total) => ((count / total) * 100).toFixed(1);
+const calculatePercentage = (count, total) => Math.round((count / total) * 100);
 
 const handleOnMouseOver = (index) => {
   if (!platformChartRef.value) {

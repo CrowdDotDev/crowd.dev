@@ -13,8 +13,8 @@
           >
             <div class="flex gap-1">
               <app-widget-title
-                title="Benchmark"
-                description="Compare your community with the contribution history of over 150,000 open-source repositories"
+                :title="BENCHMARK_WIDGET.name"
+                :description="BENCHMARK_WIDGET.description"
               />
             </div>
 
@@ -22,7 +22,7 @@
               :template="
                 PRODUCT_COMMUNITY_FIT_REPORT.nameAsId
               "
-              widget="Benchmark"
+              :widget="BENCHMARK_WIDGET.name"
               :period="period"
               :granularity="granularity"
               :options="MONTHLY_WIDGET_PERIOD_OPTIONS"
@@ -81,13 +81,13 @@
 import { computed, ref, defineProps } from 'vue';
 import pluralize from 'pluralize';
 import { QueryRenderer } from '@cubejs-client/vue3';
-import AppWidgetTitle from '@/modules/widget/components/v2/shared/widget-title.vue';
-import AppWidgetPeriod from '@/modules/widget/components/v2/shared/widget-period.vue';
-import AppWidgetInsight from '@/modules/widget/components/v2/shared/widget-insight.vue';
-import AppWidgetAverageKpi from '@/modules/widget/components/v2/shared/widget-average-kpi.vue';
-import AppWidgetBar from '@/modules/widget/components/v2/shared/widget-bar.vue';
-import AppWidgetLoading from '@/modules/widget/components/v2/shared/widget-loading.vue';
-import AppWidgetError from '@/modules/widget/components/v2/shared/widget-error.vue';
+import AppWidgetTitle from '@/modules/widget/components/shared/widget-title.vue';
+import AppWidgetPeriod from '@/modules/widget/components/shared/widget-period.vue';
+import AppWidgetInsight from '@/modules/widget/components/shared/widget-insight.vue';
+import AppWidgetAverageKpi from '@/modules/widget/components/shared/widget-average-kpi.vue';
+import AppWidgetBar from '@/modules/widget/components/shared/widget-bar.vue';
+import AppWidgetLoading from '@/modules/widget/components/shared/widget-loading.vue';
+import AppWidgetError from '@/modules/widget/components/shared/widget-error.vue';
 import {
   MONTHLY_GRANULARITY_FILTER,
   SIX_MONTHS_PERIOD_FILTER,
@@ -95,8 +95,8 @@ import {
 } from '@/modules/widget/widget-constants';
 import { mapGetters } from '@/shared/vuex/vuex.helpers';
 import { TOTAL_MONTHLY_ACTIVE_CONTRIBUTORS } from '@/modules/widget/widget-queries';
-import { chartOptions } from '@/modules/report/templates/template-report-charts';
-import { PRODUCT_COMMUNITY_FIT_REPORT } from '@/modules/report/templates/template-reports';
+import { chartOptions } from '@/modules/report/templates/template-chart-config';
+import PRODUCT_COMMUNITY_FIT_REPORT, { BENCHMARK_WIDGET } from '@/modules/report/templates/config/productCommunityFit';
 
 const props = defineProps({
   filters: {
@@ -106,6 +106,10 @@ const props = defineProps({
   isPublicView: {
     type: Boolean,
     default: false,
+  },
+  widget: {
+    type: Object,
+    default: null,
   },
 });
 

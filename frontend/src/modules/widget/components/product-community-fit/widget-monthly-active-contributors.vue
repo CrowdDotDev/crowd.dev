@@ -13,14 +13,14 @@
         >
           <div class="flex gap-1">
             <app-widget-title
-              title="Monthly active contributors"
+              :title="MONTHLY_ACTIVE_CONTRIBUTORS_WIDGET.name"
             />
           </div>
           <app-widget-period
             :template="
               PRODUCT_COMMUNITY_FIT_REPORT.nameAsId
             "
-            widget="Monthly active contributors"
+            :widget="MONTHLY_ACTIVE_CONTRIBUTORS_WIDGET.name"
             :period="period"
             :granularity="granularity"
             :options="MONTHLY_WIDGET_PERIOD_OPTIONS"
@@ -71,27 +71,27 @@
 import { computed, ref, defineProps } from 'vue';
 import { QueryRenderer } from '@cubejs-client/vue3';
 import moment from 'moment';
-import AppWidgetTitle from '@/modules/widget/components/v2/shared/widget-title.vue';
-import AppWidgetPeriod from '@/modules/widget/components/v2/shared/widget-period.vue';
-import AppWidgetArea from '@/modules/widget/components/v2/shared/widget-area.vue';
+import AppWidgetTitle from '@/modules/widget/components/shared/widget-title.vue';
+import AppWidgetPeriod from '@/modules/widget/components/shared/widget-period.vue';
+import AppWidgetArea from '@/modules/widget/components/shared/widget-area.vue';
 import {
   MONTHLY_GRANULARITY_FILTER,
   MONTHLY_WIDGET_PERIOD_OPTIONS,
   SIX_MONTHS_PERIOD_FILTER,
 } from '@/modules/widget/widget-constants';
-import { chartOptions } from '@/modules/report/templates/template-report-charts';
-import AppWidgetLoading from '@/modules/widget/components/v2/shared/widget-loading.vue';
-import AppWidgetError from '@/modules/widget/components/v2/shared/widget-error.vue';
+import { chartOptions } from '@/modules/report/templates/template-chart-config';
+import AppWidgetLoading from '@/modules/widget/components/shared/widget-loading.vue';
+import AppWidgetError from '@/modules/widget/components/shared/widget-error.vue';
 import { TOTAL_MONTHLY_ACTIVE_CONTRIBUTORS } from '@/modules/widget/widget-queries';
 import {
   mapActions,
   mapGetters,
 } from '@/shared/vuex/vuex.helpers';
-import AppWidgetApiDrawer from '@/modules/widget/components/v2/shared/widget-api-drawer.vue';
+import AppWidgetApiDrawer from '@/modules/widget/components/shared/widget-api-drawer.vue';
 import { MemberService } from '@/modules/member/member-service';
-import { PRODUCT_COMMUNITY_FIT_REPORT } from '@/modules/report/templates/template-reports';
+import PRODUCT_COMMUNITY_FIT_REPORT, { MONTHLY_ACTIVE_CONTRIBUTORS_WIDGET } from '@/modules/report/templates/config/productCommunityFit';
 import { parseAxisLabel } from '@/utils/reports';
-import AppWidgetMembersTable from '@/modules/widget/components/v2/shared/widget-members-table.vue';
+import AppWidgetMembersTable from '@/modules/widget/components/shared/widget-members-table.vue';
 
 const props = defineProps({
   filters: {
@@ -203,7 +203,7 @@ const { doExport } = mapActions('member');
 
 const datasets = computed(() => [
   {
-    name: 'Monthly active contributors',
+    name: MONTHLY_ACTIVE_CONTRIBUTORS_WIDGET.name,
     borderColor: '#E94F2E',
     backgroundColor: 'transparent',
     measure: 'Members.count',
@@ -267,14 +267,14 @@ const getActiveMembers = async ({ pagination }) => {
 const onViewMoreClick = (date) => {
   window.analytics.track('Open report drawer', {
     template: PRODUCT_COMMUNITY_FIT_REPORT.nameAsId,
-    widget: 'Monthly active contributors',
+    widget: MONTHLY_ACTIVE_CONTRIBUTORS_WIDGET.name,
     date,
     granularity: granularity.value,
   });
 
   drawerExpanded.value = true;
   drawerDate.value = date;
-  drawerTitle.value = 'Monthly active contributors';
+  drawerTitle.value = MONTHLY_ACTIVE_CONTRIBUTORS_WIDGET.name;
 };
 
 const onExport = async ({ ids, count }) => {

@@ -69,10 +69,10 @@ import { QueryRenderer } from '@cubejs-client/vue3';
 import { mapGetters } from '@/shared/vuex/vuex.helpers';
 import { computed, ref } from 'vue';
 import { LEADERBOARD_ACTIVITIES_TYPES_QUERY, LEADERBOARD_ACTIVITIES_COUNT_QUERY } from '@/modules/widget/widget-queries';
-import AppWidgetLoading from '@/modules/widget/components/v2/shared/widget-loading.vue';
-import AppWidgetError from '@/modules/widget/components/v2/shared/widget-error.vue';
-import AppWidgetEmpty from '@/modules/widget/components/v2/shared/widget-empty.vue';
-import AppWidgetActivitiesType from '@/modules/widget/components/v2/activity/widget-activities-type.vue';
+import AppWidgetLoading from '@/modules/widget/components/shared/widget-loading.vue';
+import AppWidgetError from '@/modules/widget/components/shared/widget-error.vue';
+import AppWidgetEmpty from '@/modules/widget/components/shared/widget-empty.vue';
+import AppWidgetActivitiesType from '@/modules/widget/components/activity/widget-activities-type.vue';
 
 const props = defineProps({
   filters: {

@@ -16,7 +16,7 @@ import {
 } from 'vue';
 import cloneDeep from 'lodash/cloneDeep';
 import { externalTooltipHandler } from '@/modules/report/tooltip';
-import AppWidgetEmpty from '@/modules/widget/components/v2/shared/widget-empty.vue';
+import AppWidgetEmpty from '@/modules/widget/components/shared/widget-empty.vue';
 
 const componentType = 'area-chart';
 
