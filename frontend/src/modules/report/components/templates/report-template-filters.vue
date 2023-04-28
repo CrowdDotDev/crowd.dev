@@ -38,7 +38,7 @@
             :alt="platformOptions(item.value).name"
             class="w-4 h-4 mr-2"
           />
-          <i v-else class="ri-radar-line text-base text-gray-400" />
+          <i v-else class="ri-radar-line text-base !text-gray-400 !mr-2" />
         </template>
       </app-filter-list-item>
 
