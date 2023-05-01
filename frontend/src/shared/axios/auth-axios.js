@@ -31,10 +31,10 @@ authAxios.interceptors.request.use(
         options
           .url.replace(
             /\/[^/]*$/,
-            `/${encodeURIComponent(options.url.split('/').at(-1))}`
+            `/${encodeURIComponent(options.url.split('/').at(-1))}`,
           )
-      )
-      Object.assign(options, {url: encodedUrl})
+      );
+      Object.assign(options, { url: encodedUrl });
     }
     const token = options.headers?.Authorization || AuthToken.get();
 
