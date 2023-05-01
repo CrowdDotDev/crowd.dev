@@ -953,7 +953,7 @@ class MemberRepository {
     ['isBot', "coalesce((m.attributes -> 'isBot' -> 'default')::boolean, false)"],
     ['activeOn', 'aggs."activeOn"'],
     ['activityCount', 'aggs."activityCount"'],
-    ['activityChannel', 'member_interactions."channel"'],
+    ['activityChannels', 'aggs."activityChannels"'],
     ['activityTypes', 'aggs."activityTypes"'],
     ['activeDaysCount', 'aggs."activeDaysCount"'],
     ['lastActive', 'aggs."lastActive"'],
@@ -1068,12 +1068,7 @@ class MemberRepository {
     }
 
     const query = `
-    with to_activities as (SELECT acts."channel", acts."memberId"
-                      FROM activities acts
-                      RIGHT JOIN members m ON m.id=acts."memberId"
-                      group by acts."memberId", acts."channel"
-    ),
-    to_merge_data as (select mtm."memberId", string_agg(distinct mtm."toMergeId"::text, ',') as to_merge_ids
+    with to_merge_data as (select mtm."memberId", string_agg(distinct mtm."toMergeId"::text, ',') as to_merge_ids
                        from "memberToMerge" mtm
                                 inner join members m on mtm."memberId" = m.id
                                 inner join members m2 on mtm."toMergeId" = m2.id
@@ -1148,7 +1143,6 @@ from members m
          left join no_merge_data nmd on m.id = nmd."memberId"
          left join member_tags mt on m.id = mt."memberId"
          left join member_organizations mo on m.id = mo."memberId"
-         left join to_activities member_interactions ON m.id = member_interactions."memberId"
 where m."deletedAt" is null
   and m."tenantId" = :tenantId
   and ${filterString}
@@ -1157,12 +1151,7 @@ limit :limit offset :offset;
     `
 
     const countQuery = `
-with to_activities as (SELECT acts."channel", acts."memberId"
-  FROM activities acts
-  RIGHT JOIN members m ON m.id=acts."memberId"
-  group by acts."memberId", acts."channel"
-),
-  member_tags as (select mt."memberId",
+with member_tags as (select mt."memberId",
                             jsonb_agg(t.id) as all_ids
                      from "memberTags" mt
                               inner join members m on mt."memberId" = m.id
@@ -1187,7 +1176,6 @@ from members m
          inner join "memberActivityAggregatesMVs" aggs on aggs.id = m.id
          left join member_tags mt on m.id = mt."memberId"
          left join member_organizations mo on m.id = mo."memberId"
-         left join to_activities member_interactions ON m.id = member_interactions."memberId"
 where m."deletedAt" is null
   and m."tenantId" = :tenantId
   and ${filterString};

@@ -15,6 +15,9 @@ export default (sequelize) => {
     activeOn: {
       type: DataTypes.ARRAY(DataTypes.STRING),
     },
+    activityChannels: {
+      type: DataTypes.ARRAY(DataTypes.STRING),
+    },
     averageSentiment: {
       type: DataTypes.FLOAT,
     },
