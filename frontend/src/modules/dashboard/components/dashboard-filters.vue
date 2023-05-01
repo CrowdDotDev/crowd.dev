@@ -68,7 +68,7 @@
 <script>
 import { mapGetters, mapActions } from 'vuex';
 import { CrowdIntegrations } from '@/integrations/integrations-config';
-import AppWidgetPeriod from '@/modules/widget/components/v2/shared/widget-period.vue';
+import AppWidgetPeriod from '@/modules/widget/components/shared/widget-period.vue';
 
 export default {
   name: 'AppDashboardFilters',

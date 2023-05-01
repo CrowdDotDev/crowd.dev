@@ -322,7 +322,7 @@
                             <i
                               v-if="email"
                               class="ri-external-link-line text-gray-400"
-                          /></span>
+                            /></span>
                         </template>
                         <div @click.prevent>
                           <a
@@ -331,7 +331,7 @@
                             class="badge--interactive"
                             :href="`mailto:${email}`"
                             @click.stop="trackEmailClick"
-                            >{{ email }}</a>
+                          >{{ email }}</a>
                         </div>
                       </el-tooltip>
                     </div>

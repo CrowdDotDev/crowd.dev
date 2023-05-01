@@ -11,4 +11,5 @@ export default {
     'https://cdn-icons-png.flaticon.com/512/5968/5968756.png',
   connectComponent: DiscordConnect,
   url: (username) => `https://discord.com/${username}`,
+  chartColor: '#6875FF',
 };
