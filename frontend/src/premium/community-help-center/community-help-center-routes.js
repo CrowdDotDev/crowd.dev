@@ -15,7 +15,7 @@ export default [
     name: '',
     path: '',
     component: Layout,
-    meta: { auth: true },
+    meta: { auth: true, title: 'Community Help Center' },
     children: [
       {
         name: 'communityHelpCenter',

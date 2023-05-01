@@ -32,6 +32,16 @@ export default {
     AppResizePage,
   },
 
+  beforeCreate() {
+    this.$router.beforeEach((to, from, next) => {
+      
+      // TODO: For now we are just attaching static data from each route.
+      // Once translation story implemented we will replace below code with translator function
+      document.title = `crowd.dev${to.meta.title ? ` | ${to.meta.title}` : ''}`;
+      next();
+    });
+  },
+
   computed: {
     ...mapGetters({
       loadingInit: 'auth/loadingInit',

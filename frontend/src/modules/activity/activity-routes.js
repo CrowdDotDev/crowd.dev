@@ -9,7 +9,7 @@ export default [
     name: '',
     path: '',
     component: Layout,
-    meta: { auth: true },
+    meta: { auth: true, title: 'Activities'},
     children: [
       {
         name: 'activity',

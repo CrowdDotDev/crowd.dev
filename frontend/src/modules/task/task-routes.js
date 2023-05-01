@@ -7,7 +7,7 @@ export default [
     path: '',
     exact: true,
     component: Layout,
-    meta: { auth: true },
+    meta: { auth: true, title: 'Tasks' },
     children: [
       {
         name: 'task',
