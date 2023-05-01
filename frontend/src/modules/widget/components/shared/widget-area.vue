@@ -16,7 +16,7 @@ import {
 } from 'vue';
 import cloneDeep from 'lodash/cloneDeep';
 import { externalTooltipHandler } from '@/modules/report/tooltip';
-import AppWidgetEmpty from '@/modules/widget/components/v2/shared/widget-empty.vue';
+import AppWidgetEmpty from '@/modules/widget/components/shared/widget-empty.vue';
 
 const componentType = 'area-chart';
 
@@ -42,9 +42,14 @@ const props = defineProps({
     type: Boolean,
     default: false,
   },
+  showMinAsValue: {
+    type: Boolean,
+    default: false,
+  },
 });
 
 const highestValue = ref(0);
+const lowestValue = ref(0);
 const dataset = ref({});
 const loading = computed(
   () => !props.resultSet?.loadResponses,
@@ -111,6 +116,7 @@ const series = (resultSet) => {
       ]);
 
       highestValue.value = Math.max(...computedData.map((d) => d[1]));
+      lowestValue.value = Math.min(...computedData.map((d) => d[1]));
 
       emit('on-highest-number-calculation', highestValue.value);
       computedSeries.push({
@@ -170,7 +176,21 @@ const customChartOptions = computed(() => {
   // Only show bottom and top grid lines by setting
   // the stepSize to be the maxValue
   if (props.isGridMinMax) {
+    options.library.scales.y.max = highestValue.value;
     options.library.scales.y.ticks.stepSize = highestValue.value;
+  }
+
+  // Min value of the graph should be the min data point
+  if (props.showMinAsValue) {
+    if (lowestValue.value !== highestValue.value) {
+      options.library.scales.y.min = lowestValue.value;
+    } else if (lowestValue.value !== 0) {
+      options.library.scales.y.afterBuildTicks = (axis) => {
+        Object.assign(axis, {
+          ticks: axis.ticks.filter((t) => t.value !== 0),
+        });
+      };
+    }
   }
 
   return options;

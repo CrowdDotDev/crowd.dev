@@ -83,9 +83,9 @@
       />
 
       <!-- Table component -->
-      <component
-        :is="listComponent"
+      <slot
         v-else
+        name="content"
         :list="list"
         :is-detailed-view="true"
         :show-active-days="showActiveDays"
@@ -124,10 +124,9 @@ import {
   ref,
 } from 'vue';
 import pluralize from 'pluralize';
-import AppWidgetMembersTable from '@/modules/widget/components/v2/shared/widget-members-table.vue';
-import AppWidgetLoading from '@/modules/widget/components/v2/shared/widget-loading.vue';
-import AppWidgetError from '@/modules/widget/components/v2/shared/widget-error.vue';
-import AppWidgetEmpty from '@/modules/widget/components/v2/shared/widget-empty.vue';
+import AppWidgetLoading from '@/modules/widget/components/shared/widget-loading.vue';
+import AppWidgetError from '@/modules/widget/components/shared/widget-error.vue';
+import AppWidgetEmpty from '@/modules/widget/components/shared/widget-empty.vue';
 import { parseAxisLabel } from '@/utils/reports';
 import { WIDGET_PERIOD_OPTIONS } from '@/modules/widget/widget-constants';
 
@@ -200,9 +199,6 @@ const periodOptions = computed(() => WIDGET_PERIOD_OPTIONS.map((o) => ({
         JSON.stringify(selectedPeriod.value.label)
         === JSON.stringify(o.label),
 })));
-
-// Render list table component for each specific module
-const listComponent = computed(() => AppWidgetMembersTable);
 
 const model = computed({
   get() {

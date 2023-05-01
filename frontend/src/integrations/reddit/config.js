@@ -10,4 +10,5 @@ export default {
   image: '/images/integrations/reddit.svg',
   connectComponent: RedditConnect,
   url: (username) => `https://reddit.com/user/${username}`,
+  chartColor: '#FF4500',
 };
