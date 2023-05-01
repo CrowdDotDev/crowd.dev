@@ -69,7 +69,7 @@ import ReportListTable from '@/modules/report/components/report-list-table.vue';
 import AppReportCreateDialog from '@/modules/report/components/report-create-dialog.vue';
 import { ReportPermissions } from '@/modules/report/report-permissions';
 import AppReportTemplateItem from '@/modules/report/components/templates/report-template-item.vue';
-import { templates } from '@/modules/report/templates/template-reports';
+import templates from '@/modules/report/templates/config';
 
 export default {
   name: 'AppReportListPage',
@@ -112,16 +112,18 @@ export default {
         (r) => r.isTemplate,
       );
 
+      // List all templates that exist in the backend
+      // (have an id)
       return this.templates.map((t) => {
         const rowTemplate = templateRows.find(
-          (r) => r.name === t.nameAsId,
+          (r) => r.name === t.config.nameAsId,
         );
         return {
-          ...t,
+          ...t.config,
           public: rowTemplate?.public || false,
           id: rowTemplate?.id,
         };
-      });
+      }).filter((t) => !!t.id);
     },
     customReportsCount() {
       return this.count - this.computedTemplates.length;

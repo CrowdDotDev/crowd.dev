@@ -11,4 +11,5 @@ export default {
     'https://cdn-icons-png.flaticon.com/512/733/733579.png',
   connectComponent: TwitterConnect,
   url: (username) => `https://twitter.com/${username}`,
+  chartColor: '#1D9BF0',
 };

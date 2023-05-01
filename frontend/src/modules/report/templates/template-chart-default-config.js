@@ -33,7 +33,7 @@ export const defaultChartConfig = {
     x0: 0,
     y0: 150,
     x1: 0,
-    y1: 350,
+    y1: 300,
     stops: [
       {
         offset: 0,

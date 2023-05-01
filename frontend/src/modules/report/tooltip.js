@@ -123,6 +123,7 @@ export const externalTooltipHandler = (
     let footerBtn = document.getElementById(
       'custom-tooltip-footer-btn',
     );
+
     if (!footerBtn && tooltip.footer) {
       footerBtn = document.createElement('el-button');
       footerBtn.id = 'custom-tooltip-footer-btn';
@@ -131,6 +132,10 @@ export const externalTooltipHandler = (
         footerBtn.innerText = lines;
         tooltipEl.appendChild(footerBtn);
       });
+    }
+
+    if (footerBtn && !tooltip.footer?.length) {
+      document.getElementById('custom-tooltip-footer-btn')?.remove();
     }
 
     // Add clickFn to footerBtn

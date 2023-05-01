@@ -18,8 +18,8 @@
 import { defineProps } from 'vue';
 import { mapGetters } from '@/shared/vuex/vuex.helpers';
 import AppCubeRender from '@/shared/cube/cube-render.vue';
-import AppWidgetArea from '@/modules/widget/components/v2/shared/widget-area.vue';
-import { chartOptions } from '@/modules/report/templates/template-report-charts';
+import AppWidgetArea from '@/modules/widget/components/shared/widget-area.vue';
+import { chartOptions } from '@/modules/report/templates/template-chart-config';
 import { dashboardChartOptions } from '@/modules/dashboard/dashboard.cube';
 import { DAILY_GRANULARITY_FILTER } from '@/modules/widget/widget-constants';
 
