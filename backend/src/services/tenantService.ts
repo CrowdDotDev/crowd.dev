@@ -238,6 +238,16 @@ export default class TenantService {
         { ...this.options, transaction, currentTenant: record },
       )
 
+      // create activities template report
+      await ReportRepository.create(
+        {
+          name: 'Activities report',
+          public: false,
+          isTemplate: true,
+        },
+        { ...this.options, transaction, currentTenant: record },
+      )
+
       for (const widgetToCreate of defaultReport.widgets) {
         await WidgetRepository.create(
           {

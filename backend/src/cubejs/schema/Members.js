@@ -55,6 +55,16 @@ cube(`Members`, {
 
     MembersActivities: {
       measures: [Members.count],
+      dimensions: [Members.tenantId, Members.isTeamMember, Members.isBot, Members.isOrganization],
+      timeDimension: Activities.date,
+      granularity: `day`,
+      refreshKey: {
+        every: `10 minute`,
+      },
+    },
+
+    MActivitiesDupDimensions: {
+      measures: [Members.count],
       dimensions: [
         Members.tenantId,
         Activities.platform,

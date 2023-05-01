@@ -69,6 +69,8 @@ describe('ActivityRepository tests', () => {
       activityCreated.createdAt = activityCreated.createdAt.toISOString().split('T')[0]
       activityCreated.updatedAt = activityCreated.updatedAt.toISOString().split('T')[0]
       delete activityCreated.member
+      delete activityCreated.objectMember
+
       const expectedActivityCreated = {
         id: activityCreated.id,
         attributes: activity.attributes,
@@ -90,7 +92,9 @@ describe('ActivityRepository tests', () => {
         isContribution: true,
         score: 1,
         username: 'test',
+        objectMemberUsername: null,
         memberId: memberCreated.id,
+        objectMemberId: null,
         createdAt: SequelizeTestUtils.getNowWithoutTime(),
         updatedAt: SequelizeTestUtils.getNowWithoutTime(),
         deletedAt: null,
@@ -138,6 +142,7 @@ describe('ActivityRepository tests', () => {
       activityCreated.createdAt = activityCreated.createdAt.toISOString().split('T')[0]
       activityCreated.updatedAt = activityCreated.updatedAt.toISOString().split('T')[0]
       delete activityCreated.member
+      delete activityCreated.objectMember
 
       const expectedActivityCreated = {
         id: activityCreated.id,
@@ -153,7 +158,9 @@ describe('ActivityRepository tests', () => {
         isContribution: false,
         score: 2,
         username: 'test',
+        objectMemberUsername: null,
         memberId: memberCreated.id,
+        objectMemberId: null,
         tasks: [],
         createdAt: SequelizeTestUtils.getNowWithoutTime(),
         updatedAt: SequelizeTestUtils.getNowWithoutTime(),
@@ -394,6 +401,8 @@ describe('ActivityRepository tests', () => {
       activityCreated.createdAt = activityCreated.createdAt.toISOString().split('T')[0]
       activityCreated.updatedAt = activityCreated.updatedAt.toISOString().split('T')[0]
       delete activityCreated.member
+      delete activityCreated.objectMember
+
       const expectedActivityCreated = {
         id: activityCreated.id,
         attributes: {},
@@ -409,7 +418,9 @@ describe('ActivityRepository tests', () => {
         score: 1,
         tasks: [],
         username: 'test',
+        objectMemberUsername: null,
         memberId: memberCreated.id,
+        objectMemberId: null,
         createdAt: SequelizeTestUtils.getNowWithoutTime(),
         updatedAt: SequelizeTestUtils.getNowWithoutTime(),
         deletedAt: null,
@@ -462,6 +473,8 @@ describe('ActivityRepository tests', () => {
       activityCreated.createdAt = activityCreated.createdAt.toISOString().split('T')[0]
       activityCreated.updatedAt = activityCreated.updatedAt.toISOString().split('T')[0]
       delete activityCreated.member
+      delete activityCreated.objectMember
+
       const expectedActivityCreated = {
         id: activityCreated.id,
         attributes: {},
@@ -477,7 +490,9 @@ describe('ActivityRepository tests', () => {
         isContribution: true,
         score: 1,
         username: 'test',
+        objectMemberUsername: null,
         memberId: memberCreated.id,
+        objectMemberId: null,
         createdAt: SequelizeTestUtils.getNowWithoutTime(),
         updatedAt: SequelizeTestUtils.getNowWithoutTime(),
         deletedAt: null,
@@ -598,7 +613,9 @@ describe('ActivityRepository tests', () => {
         isContribution: true,
         score: 1,
         username: 'test',
+        objectMemberUsername: null,
         memberId: memberCreated.id,
+        objectMemberId: null,
         tasks: [],
         createdAt: SequelizeTestUtils.getNowWithoutTime(),
         updatedAt: SequelizeTestUtils.getNowWithoutTime(),
@@ -624,6 +641,7 @@ describe('ActivityRepository tests', () => {
       activityFound.createdAt = activityFound.createdAt.toISOString().split('T')[0]
       activityFound.updatedAt = activityFound.updatedAt.toISOString().split('T')[0]
       delete activityFound.member
+      delete activityFound.objectMember
 
       expect(activityFound).toStrictEqual(expectedActivityFound)
     })
@@ -923,6 +941,8 @@ describe('ActivityRepository tests', () => {
       updatedActivity.createdAt = updatedActivity.createdAt.toISOString().split('T')[0]
       updatedActivity.updatedAt = updatedActivity.updatedAt.toISOString().split('T')[0]
       delete updatedActivity.member
+      delete updatedActivity.objectMember
+
       const expectedActivityUpdated = {
         id: activityReturned.id,
         body: activityReturned.body,
@@ -937,7 +957,9 @@ describe('ActivityRepository tests', () => {
         isContribution: true,
         score: 1,
         username: 'test',
+        objectMemberUsername: null,
         memberId: memberCreated.id,
+        objectMemberId: null,
         createdAt: SequelizeTestUtils.getNowWithoutTime(),
         updatedAt: SequelizeTestUtils.getNowWithoutTime(),
         deletedAt: null,
@@ -1033,6 +1055,8 @@ describe('ActivityRepository tests', () => {
       updatedActivity.createdAt = updatedActivity.createdAt.toISOString().split('T')[0]
       updatedActivity.updatedAt = updatedActivity.updatedAt.toISOString().split('T')[0]
       delete updatedActivity.member
+      delete updatedActivity.objectMember
+
       const expectedActivityUpdated = {
         id: activityReturned.id,
         attributes: activityReturned.attributes,
@@ -1048,7 +1072,9 @@ describe('ActivityRepository tests', () => {
         isContribution: true,
         score: 1,
         username: 'test2',
+        objectMemberUsername: null,
         memberId: memberCreated2.id,
+        objectMemberId: null,
         createdAt: SequelizeTestUtils.getNowWithoutTime(),
         updatedAt: SequelizeTestUtils.getNowWithoutTime(),
         deletedAt: null,

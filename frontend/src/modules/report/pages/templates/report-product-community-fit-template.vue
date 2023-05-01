@@ -31,15 +31,16 @@
         </el-button>
       </div>
 
-      <app-widget-monthly-active-contributors
-        :filters="filters"
-        :is-public-view="isPublicView"
-      />
-
-      <app-widget-benchmark
-        :filters="filters"
-        :is-public-view="isPublicView"
-      />
+      <div
+        v-for="widget in PRODUCT_COMMUNITY_FIT_REPORT.widgets"
+        :key="widget.id"
+      >
+        <component
+          :is="widget.component"
+          :filters="filters"
+          :is-public-view="isPublicView"
+        />
+      </div>
     </div>
   </div>
   <app-dialog
@@ -78,8 +79,6 @@ import {
   computed, onMounted, defineProps, ref,
 } from 'vue';
 import { useStore } from 'vuex';
-import AppWidgetMonthlyActiveContributors from '@/modules/widget/components/v2/product-community-fit/widget-monthly-active-contributors.vue';
-import AppWidgetBenchmark from '@/modules/widget/components/v2/product-community-fit/widget-benchmark.vue';
 import { CrowdIntegrations } from '@/integrations/integrations-config';
 import AppActivityTypeListItem from '@/modules/activity/components/type/activity-type-list-item.vue';
 import {
@@ -87,6 +86,10 @@ import {
   mapActions,
 } from '@/shared/vuex/vuex.helpers';
 import { toSentenceCase } from '@/utils/string';
+import PRODUCT_COMMUNITY_FIT_REPORT from '@/modules/report/templates/config/productCommunityFit';
+import { useActivityTypeStore } from '@/modules/activity/store/type';
+import { ActivityTypeService } from '@/modules/activity/services/activity-type-service';
+import { storeToRefs } from 'pinia';
 
 defineProps({
   filters: {
@@ -100,9 +103,13 @@ defineProps({
 });
 
 const store = useStore();
-const { currentTenant } = mapGetters('auth');
+
 const { cubejsApi, cubejsToken } = mapGetters('widget');
 const { getCubeToken } = mapActions('widget');
+
+const activityTypeStore = useActivityTypeStore();
+const { setTypes } = activityTypeStore;
+const { types } = storeToRefs(activityTypeStore);
 
 const isContributionTypeModalOpen = ref(false);
 
@@ -111,8 +118,8 @@ const loadingCube = computed(
 );
 
 const contributions = computed(() => {
-  if (currentTenant.value.settings.length > 0) {
-    return Object.entries(currentTenant.value.settings[0].activityTypes.default).reduce((platformAcc, [platformKey, platformValue]) => {
+  if (types.value) {
+    return Object.entries(types.value.default).reduce((platformAcc, [platformKey, platformValue]) => {
       const activities = Object.entries(platformValue).reduce((activityAcc, [activityKey, activityValue]) => ({
         ...activityAcc,
         ...(activityValue.isContribution && {
@@ -136,6 +143,10 @@ onMounted(async () => {
   if (cubejsApi.value === null) {
     await getCubeToken();
   }
+
+  ActivityTypeService.get().then((activityTypes) => {
+    setTypes(activityTypes);
+  });
 });
 
 const onContributionTypesClick = () => {

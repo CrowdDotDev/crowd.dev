@@ -26,7 +26,7 @@ import {
   IActiveMemberFilter,
   mapUsernameToIdentities,
   IMemberMergeSuggestion,
-  IMemberMergeAllSuggestions,
+  IMemberMergeSuggestionsType,
 } from '../database/repositories/types/memberTypes'
 import { IRepositoryOptions } from '../database/repositories/IRepositoryOptions'
 
@@ -204,6 +204,14 @@ export default class MemberService extends LoggingBase {
 
     if (!data.displayName) {
       data.displayName = data.username[data.platform][0].username
+    }
+
+    if (!(data.platform in data.username)) {
+      throw new Error400(this.options.language, 'activity.platformAndUsernameNotMatching')
+    }
+
+    if (!data.displayName) {
+      data.displayName = data.username[data.platform].username
     }
 
     const transaction = await SequelizeRepository.createTransaction(this.options)
@@ -690,41 +698,35 @@ export default class MemberService extends LoggingBase {
     }
   }
 
-  async getMergeSuggestions(): Promise<IMemberMergeAllSuggestions> {
+  async getMergeSuggestions(
+    type: IMemberMergeSuggestionsType,
+    numberOfHours: Number = 1.2,
+  ): Promise<IMemberMergeSuggestion[]> {
     // Adding a transaction so it will use the write database
     const transaction = await SequelizeRepository.createTransaction(this.options)
 
     try {
-      const numberOfHours = 24
-
-      const mergeSuggestionsbyUsername = await MemberRepository.mergeSuggestionsByUsername(
-        numberOfHours,
-        {
+      let out = []
+      if (type === IMemberMergeSuggestionsType.USERNAME) {
+        out = await MemberRepository.mergeSuggestionsByUsername(numberOfHours, {
           ...this.options,
           transaction,
-        },
-      )
-      const mergeSuggestionsByEmail = await MemberRepository.mergeSuggestionsByEmail(
-        numberOfHours,
-        {
-          ...this.options,
-          transaction,
-        },
-      )
-      const mergeSuggestionsBySimilarity = await MemberRepository.mergeSuggestionsBySimilarity(
-        numberOfHours,
-        {
-          ...this.options,
-          transaction,
-        },
-      )
-
-      await SequelizeRepository.commitTransaction(transaction)
-      return {
-        byUsername: mergeSuggestionsbyUsername,
-        byEmail: mergeSuggestionsByEmail,
-        bySimilarity: mergeSuggestionsBySimilarity,
+        })
       }
+      if (type === IMemberMergeSuggestionsType.EMAIL) {
+        out = await MemberRepository.mergeSuggestionsByEmail(numberOfHours, {
+          ...this.options,
+          transaction,
+        })
+      }
+      if (type === IMemberMergeSuggestionsType.SIMILARITY) {
+        out = await MemberRepository.mergeSuggestionsBySimilarity(numberOfHours, {
+          ...this.options,
+          transaction,
+        })
+      }
+      await SequelizeRepository.commitTransaction(transaction)
+      return out
     } catch (error) {
       await SequelizeRepository.rollbackTransaction(transaction)
       this.log.error(error)

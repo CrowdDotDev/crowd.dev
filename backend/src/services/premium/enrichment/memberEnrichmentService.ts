@@ -228,7 +228,9 @@ export default class MemberEnrichmentService extends LoggingBase {
     // If the member has a GitHub handle, use it to make a request to the Enrichment API
     if (member.username[PlatformType.GITHUB]) {
       enrichedFrom = 'github'
-      enrichmentData = await this.getEnrichmentByGithubHandle(member.username[PlatformType.GITHUB])
+      enrichmentData = await this.getEnrichmentByGithubHandle(
+        member.username[PlatformType.GITHUB][0],
+      )
     } else if (member.emails.length > 0) {
       enrichedFrom = 'email'
       // If the member has an email address, use it to make a request to the Enrichment API

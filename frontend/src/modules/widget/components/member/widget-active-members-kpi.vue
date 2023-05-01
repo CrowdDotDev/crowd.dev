@@ -51,13 +51,13 @@
               v-else
               :current-value="kpiCurrentValue(resultSet)"
               :previous-value="kpiPreviousValue(resultSet)"
-              :vs-label="`vs. last ${widget.period}`"
+              :vs-label="`vs. ${widget.period === 'day' ? 'yesterday' : `last ${widget.period}`}`"
             />
           </template>
         </query-renderer>
       </div>
     </div>
-    <app-widget-drawer
+    <app-widget-api-drawer
       v-if="drawerExpanded"
       v-model="drawerExpanded"
       :fetch-fn="getActiveMembers"
@@ -66,7 +66,11 @@
       :template="MEMBERS_REPORT.nameAsId"
       size="480px"
       @on-export="onExport"
-    />
+    >
+      <template #content="contentProps">
+        <app-widget-members-table v-bind="contentProps" />
+      </template>
+    </app-widget-api-drawer>
   </div>
 </template>
 
@@ -79,11 +83,11 @@ import {
   mapActions,
 } from '@/shared/vuex/vuex.helpers';
 import { TOTAL_ACTIVE_MEMBERS_QUERY } from '@/modules/widget/widget-queries';
-import AppWidgetKpi from '@/modules/widget/components/v2/shared/widget-kpi.vue';
-import AppWidgetTitle from '@/modules/widget/components/v2/shared/widget-title.vue';
-import AppWidgetLoading from '@/modules/widget/components/v2/shared/widget-loading.vue';
-import AppWidgetError from '@/modules/widget/components/v2/shared/widget-error.vue';
-import AppWidgetDrawer from '@/modules/widget/components/v2/shared/widget-drawer.vue';
+import AppWidgetKpi from '@/modules/widget/components/shared/widget-kpi.vue';
+import AppWidgetTitle from '@/modules/widget/components/shared/widget-title.vue';
+import AppWidgetLoading from '@/modules/widget/components/shared/widget-loading.vue';
+import AppWidgetError from '@/modules/widget/components/shared/widget-error.vue';
+import AppWidgetApiDrawer from '@/modules/widget/components/shared/widget-api-drawer.vue';
 import {
   ONE_DAY_PERIOD_FILTER,
   FOURTEEN_DAYS_PERIOD_FILTER,
@@ -93,7 +97,8 @@ import {
   MONTHLY_GRANULARITY_FILTER,
 } from '@/modules/widget/widget-constants';
 import { MemberService } from '@/modules/member/member-service';
-import { MEMBERS_REPORT } from '@/modules/report/templates/template-reports';
+import MEMBERS_REPORT, { ACTIVE_MEMBERS_KPI_WIDGET } from '@/modules/report/templates/config/members';
+import AppWidgetMembersTable from '@/modules/widget/components/shared/widget-members-table.vue';
 
 const props = defineProps({
   filters: {
@@ -123,7 +128,7 @@ const query = (period, granularity) => TOTAL_ACTIVE_MEMBERS_QUERY({
 
 const widgets = computed(() => [
   {
-    title: 'Active members today',
+    title: `${ACTIVE_MEMBERS_KPI_WIDGET.name} today`,
     query: query(
       ONE_DAY_PERIOD_FILTER,
       DAILY_GRANULARITY_FILTER,
@@ -131,7 +136,7 @@ const widgets = computed(() => [
     period: 'day',
   },
   {
-    title: 'Active members this week',
+    title: `${ACTIVE_MEMBERS_KPI_WIDGET.name} this week`,
     query: query(
       FOURTEEN_DAYS_PERIOD_FILTER,
       WEEKLY_GRANULARITY_FILTER,
@@ -139,7 +144,7 @@ const widgets = computed(() => [
     period: 'week',
   },
   {
-    title: 'Active members this month',
+    title: `${ACTIVE_MEMBERS_KPI_WIDGET.name} this month`,
     query: query(
       THIRTY_DAYS_PERIOD_FILTER,
       MONTHLY_GRANULARITY_FILTER,

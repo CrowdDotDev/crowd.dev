@@ -307,7 +307,7 @@
                     class="block"
                   >
                     <div
-                      v-if="scope.row.emails.length"
+                      v-if="scope.row.emails?.length && scope.row.emails?.some((e) => !!e)"
                       class="text-sm cursor-auto flex flex-wrap gap-1"
                     >
                       <el-tooltip
@@ -322,7 +322,7 @@
                             <i
                               v-if="email"
                               class="ri-external-link-line text-gray-400"
-                          /></span>
+                            /></span>
                         </template>
                         <div @click.prevent>
                           <a
@@ -331,7 +331,7 @@
                             class="badge--interactive"
                             :href="`mailto:${email}`"
                             @click.stop="trackEmailClick"
-                            >{{ email }}</a>
+                          >{{ email }}</a>
                         </div>
                       </el-tooltip>
                     </div>
@@ -488,7 +488,7 @@ const emailsColumnWidth = computed(() => {
 
   rows.value.forEach((row) => {
     const tabWidth = row.emails
-      .map((email) => email.length * 12)
+      .map((email) => (email ? email.length * 12 : 0))
       .reduce((a, b) => a + b, 0);
 
     if (tabWidth > maxTabWidth) {

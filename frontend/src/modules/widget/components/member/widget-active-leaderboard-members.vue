@@ -8,13 +8,13 @@
       >
         <div class="flex gap-1">
           <app-widget-title
-            title="Leaderboard: Most active members"
-            description="Members who were active on the most days in the selected time period"
+            :title="ACTIVE_LEADERBOARD_MEMBERS_WIDGET.name"
+            :description="ACTIVE_LEADERBOARD_MEMBERS_WIDGET.description"
           />
         </div>
         <app-widget-period
-          template="Members"
-          widget="Leaderboard: Most active members"
+          :template="MEMBERS_REPORT.nameAsId"
+          :widget="ACTIVE_LEADERBOARD_MEMBERS_WIDGET.name"
           :period="selectedPeriod"
           module="reports"
           @on-update="onUpdatePeriod"
@@ -58,7 +58,7 @@
       </template>
     </app-widget-insight>
   </div>
-  <app-widget-drawer
+  <app-widget-api-drawer
     v-if="drawerExpanded"
     v-model="drawerExpanded"
     :fetch-fn="getDetailedActiveMembers"
@@ -70,7 +70,11 @@
     :template="MEMBERS_REPORT.nameAsId"
     size="480px"
     @on-export="onExport"
-  />
+  >
+    <template #content="contentProps">
+      <app-widget-members-table v-bind="contentProps" />
+    </template>
+  </app-widget-api-drawer>
 </template>
 
 <script setup>
@@ -83,27 +87,23 @@ import {
 } from 'vue';
 import pluralize from 'pluralize';
 import moment from 'moment';
-import AppWidgetTitle from '@/modules/widget/components/v2/shared/widget-title.vue';
-import AppWidgetPeriod from '@/modules/widget/components/v2/shared/widget-period.vue';
-import AppWidgetInsight from '@/modules/widget/components/v2/shared/widget-insight.vue';
-import AppWidgetMembersTable from '@/modules/widget/components/v2/shared/widget-members-table.vue';
+import AppWidgetTitle from '@/modules/widget/components/shared/widget-title.vue';
+import AppWidgetPeriod from '@/modules/widget/components/shared/widget-period.vue';
+import AppWidgetInsight from '@/modules/widget/components/shared/widget-insight.vue';
+import AppWidgetMembersTable from '@/modules/widget/components/shared/widget-members-table.vue';
 import { SEVEN_DAYS_PERIOD_FILTER } from '@/modules/widget/widget-constants';
 import { MemberService } from '@/modules/member/member-service';
-import AppWidgetLoading from '@/modules/widget/components/v2/shared/widget-loading.vue';
-import AppWidgetError from '@/modules/widget/components/v2/shared/widget-error.vue';
-import AppWidgetEmpty from '@/modules/widget/components/v2/shared/widget-empty.vue';
-import AppWidgetDrawer from '@/modules/widget/components/v2/shared/widget-drawer.vue';
+import AppWidgetLoading from '@/modules/widget/components/shared/widget-loading.vue';
+import AppWidgetError from '@/modules/widget/components/shared/widget-error.vue';
+import AppWidgetEmpty from '@/modules/widget/components/shared/widget-empty.vue';
+import AppWidgetApiDrawer from '@/modules/widget/components/shared/widget-api-drawer.vue';
 import { mapActions } from '@/shared/vuex/vuex.helpers';
-import { MEMBERS_REPORT } from '@/modules/report/templates/template-reports';
+import MEMBERS_REPORT, { ACTIVE_LEADERBOARD_MEMBERS_WIDGET } from '@/modules/report/templates/config/members';
 
 const props = defineProps({
-  platforms: {
-    type: Array,
-    default: () => [],
-  },
-  teamMembers: {
-    type: Boolean,
-    default: false,
+  filters: {
+    type: Object,
+    default: null,
   },
 });
 
@@ -125,8 +125,8 @@ const empty = computed(
 
 const getActiveMembers = async (
   period = selectedPeriod.value,
-  platforms = props.platforms,
-  teamMembers = props.teamMembers,
+  platforms = props.filters.platform.value,
+  teamMembers = props.filters.teamMembers,
 ) => {
   loading.value = true;
   error.value = false;
@@ -167,8 +167,8 @@ const getDetailedActiveMembers = ({
   pagination,
   period = selectedPeriod.value,
 }) => MemberService.listActive({
-  platform: props.platforms,
-  isTeamMember: props.teamMembers,
+  platform: props.filters.platform.value,
+  isTeamMember: props.filters.teamMembers,
   activityIsContribution: null,
   activityTimestampFrom: moment()
     .utc()
@@ -187,7 +187,7 @@ const getDetailedActiveMembers = ({
 const onRowClick = () => {
   window.analytics.track('Click table widget row', {
     template: MEMBERS_REPORT.nameAsId,
-    widget: 'Leaderboard: Most active members',
+    widget: ACTIVE_LEADERBOARD_MEMBERS_WIDGET.name,
   });
 };
 
@@ -195,7 +195,7 @@ const onRowClick = () => {
 const handleDrawerOpen = async () => {
   window.analytics.track('Open report drawer', {
     template: MEMBERS_REPORT.nameAsId,
-    widget: 'Leaderboard: Most active members',
+    widget: ACTIVE_LEADERBOARD_MEMBERS_WIDGET.name,
     period: selectedPeriod.value,
   });
 
@@ -223,7 +223,7 @@ onMounted(async () => {
 
 // Each time filter changes, query a new response
 watch(
-  () => [props.platforms, props.teamMembers],
+  () => [props.filters.platform.value, props.filters.teamMembers],
   async ([platforms, teamMembers]) => {
     activeMembers.value = await getActiveMembers(
       selectedPeriod.value,

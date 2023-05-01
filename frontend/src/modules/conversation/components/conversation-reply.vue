@@ -13,8 +13,15 @@
   </article>
   <article v-else>
     <div class="flex">
-      <div class="flex flex-col items-center">
-        <app-avatar :entity="member" size="xs" />
+      <div class="flex flex-col items-center pt-1">
+        <app-avatar :entity="member" size="xs">
+          <template v-if="isGithubConversation" #icon>
+            <app-activity-icon
+              :type="activity.type"
+              :platform="activity.platform"
+            />
+          </template>
+        </app-avatar>
         <slot name="underAvatar" />
       </div>
       <div class="flex-grow pl-3" :class="bodyClasses">
@@ -30,7 +37,7 @@
             />
             <span class="mx-1">·</span>
             <span>{{ timeAgo(activity.timestamp) }}</span>
-            <span class="mx-1">·</span>
+            <span v-if="sentiment" class="mx-1">·</span>
           </p>
           <app-activity-sentiment
             v-if="sentiment"
@@ -42,6 +49,7 @@
             :activity="activity"
             :display-thread="false"
             :display-title="false"
+            :display-title-body="displayTitleBody"
             class="text-sm"
             :class="{
               'line-clamp-1': !displayContent && !showMore,
@@ -62,6 +70,7 @@ import AppLoading from '@/shared/loading/loading-placeholder.vue';
 import AppMemberDisplayName from '@/modules/member/components/member-display-name.vue';
 import AppActivityContent from '@/modules/activity/components/activity-content.vue';
 import AppActivitySentiment from '@/modules/activity/components/activity-sentiment.vue';
+import AppActivityIcon from '@/modules/activity/components/activity-icon.vue';
 
 export default {
   name: 'AppConversationReply',
@@ -71,6 +80,7 @@ export default {
     AppActivitySentiment,
     AppLoading,
     AppAvatar,
+    AppActivityIcon,
   },
   props: {
     activity: {
@@ -117,6 +127,12 @@ export default {
         return this.activity.sentiment.sentiment;
       }
       return 0;
+    },
+    isGithubConversation() {
+      return this.activity.platform === 'github';
+    },
+    displayTitleBody() {
+      return this.activity.type === 'pull_request-review-thread-comment';
     },
   },
   methods: {
