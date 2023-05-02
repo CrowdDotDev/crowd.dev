@@ -1,3 +1,4 @@
+<!-- eslint-disable vue/max-len -->
 <template>
   <app-widget-loading v-if="loading" />
   <app-widget-empty
