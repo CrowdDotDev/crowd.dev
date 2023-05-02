@@ -146,7 +146,9 @@ const resultSetData = computed(() => {
       count,
     });
 
-    console.log(platform);
+    if (!CrowdIntegrations.getConfig(platform)) {
+      return acc;
+    }
 
     return {
       ...acc,
