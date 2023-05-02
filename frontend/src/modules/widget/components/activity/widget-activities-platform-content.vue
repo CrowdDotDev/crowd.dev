@@ -146,16 +146,7 @@ const resultSetData = computed(() => {
       count,
     });
 
-    console.log({
-      ...acc,
-      [platform]: {
-        name: CrowdIntegrations.getConfig(platform).name,
-        activities,
-        total,
-        color: CrowdIntegrations.getConfig(platform).chartColor,
-        image: CrowdIntegrations.getConfig(platform).image,
-      },
-    });
+    console.log(platform);
 
     return {
       ...acc,
