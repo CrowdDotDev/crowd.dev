@@ -531,7 +531,7 @@ export class IntegrationProcessor extends LoggingBase {
       let processedCount = 0
       let notifyCount = 0
 
-      const nextStream = await this.integrationStreamRepository.getNextStreamToProcess(req.runId)
+      let nextStream = await this.integrationStreamRepository.getNextStreamToProcess(req.runId)
       while (nextStream) {
         if ((req as any).exiting) {
           if (!run.onboarding) {
@@ -698,6 +698,8 @@ export class IntegrationProcessor extends LoggingBase {
 
             await this.integrationStreamRepository.markProcessed(stream.id)
             await this.integrationRunRepository.touch(run.id)
+
+            nextStream = await this.integrationStreamRepository.getNextStreamToProcess(req.runId)
           } catch (err) {
             logger.error(
               err,
