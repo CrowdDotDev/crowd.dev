@@ -96,7 +96,7 @@ async function handleDelayedMessages() {
 }
 
 let processingMessages = 0
-const isWorkerAvailable = (): boolean => processingMessages <= 5
+const isWorkerAvailable = (): boolean => processingMessages <= 2
 const addWorkerJob = (): void => {
   processingMessages++
 }
