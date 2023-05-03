@@ -22,6 +22,9 @@ import { getUserById } from '../../usecases/devto/getUser'
 import { getAllUserArticles } from '../../usecases/devto/getUserArticles'
 import { DevtoArticle, DevtoComment, DevtoUser } from '../../usecases/devto/types'
 import { IntegrationServiceBase } from '../integrationServiceBase'
+import { processPaginated } from '../../../../utils/paginationProcessing'
+import IntegrationStreamRepository from '../../../../database/repositories/integrationStreamRepository'
+import { IntegrationStreamState } from '../../../../types/integrationStreamTypes'
 
 /* eslint class-methods-use-this: 0 */
 
@@ -159,11 +162,7 @@ export class DevtoIntegrationService extends IntegrationServiceBase {
     }
   }
 
-  async postprocess(
-    context: IStepContext,
-    failedStreams?: IIntegrationStream[],
-    remainingStreams?: IIntegrationStream[],
-  ): Promise<void> {
+  async postprocess(context: IStepContext): Promise<void> {
     const articles: DevtoArticleSettings[] = []
 
     for (const article of context.pipelineData.articlesFromAPI) {
@@ -176,19 +175,33 @@ export class DevtoIntegrationService extends IntegrationServiceBase {
       }
     }
 
-    for (const failedStream of failedStreams) {
-      const article = singleOrDefault(articles, (a) => a.id.toString() === failedStream.value)
-      if (article) {
-        article.lastCommentAt = undefined
-      }
-    }
+    const streamsRepo = new IntegrationStreamRepository(context.repoContext)
 
-    for (const remainingStream of remainingStreams) {
-      const article = singleOrDefault(articles, (a) => a.id.toString() === remainingStream.value)
-      if (article) {
-        article.lastCommentAt = undefined
-      }
-    }
+    await processPaginated(
+      async (page) =>
+        streamsRepo.findByRunId(context.runId, page, 10, [IntegrationStreamState.ERROR]),
+      async (failedStreams) => {
+        for (const failedStream of failedStreams) {
+          const article = singleOrDefault(articles, (a) => a.id.toString() === failedStream.name)
+          if (article) {
+            article.lastCommentAt = undefined
+          }
+        }
+      },
+    )
+
+    await processPaginated(
+      async (page) =>
+        streamsRepo.findByRunId(context.runId, page, 10, [IntegrationStreamState.PENDING]),
+      async (remainingStreams) => {
+        for (const remainingStream of remainingStreams) {
+          const article = singleOrDefault(articles, (a) => a.id.toString() === remainingStream.name)
+          if (article) {
+            article.lastCommentAt = undefined
+          }
+        }
+      },
+    )
 
     context.integration.settings.articles = articles
   }

@@ -21,7 +21,7 @@ export default class IntegrationRunRepository extends RepositoryBase<
     super(options, true)
   }
 
-  async findDelayedRuns(): Promise<IntegrationRun[]> {
+  async findDelayedRuns(page: number, perPage: number): Promise<IntegrationRun[]> {
     const transaction = this.transaction
 
     const seq = this.seq
@@ -41,6 +41,7 @@ export default class IntegrationRunRepository extends RepositoryBase<
       from "integrationRuns"
       where state = :delayedState and "delayedUntil" <= now()
       order by "createdAt" desc
+      limit ${perPage} offset ${(page - 1) * perPage}
     `
 
     const results = await seq.query(query, {
@@ -54,7 +55,11 @@ export default class IntegrationRunRepository extends RepositoryBase<
     return results as IntegrationRun[]
   }
 
-  async findIntegrationsByState(states: IntegrationRunState[]): Promise<IntegrationRun[]> {
+  async findIntegrationsByState(
+    states: IntegrationRunState[],
+    page: number,
+    perPage: number,
+  ): Promise<IntegrationRun[]> {
     const seq = this.seq
 
     const replacements: any = {}
@@ -79,6 +84,7 @@ export default class IntegrationRunRepository extends RepositoryBase<
       from "integrationRuns"
       where state in (${stateParams.join(', ')})
       order by "createdAt" desc
+      limit ${perPage} offset ${(page - 1) * perPage}
     `
 
     const results = await seq.query(query, {

@@ -219,11 +219,7 @@ export class SlackIntegrationService extends IntegrationServiceBase {
     }
   }
 
-  async postprocess(
-    context: IStepContext,
-    failedStreams?: IIntegrationStream[],
-    remainingStreams?: IIntegrationStream[],
-  ): Promise<void> {
+  async postprocess(context: IStepContext): Promise<void> {
     // Strip the new property from channels
     context.integration.settings.channels = context.pipelineData.channels.map((ch) => {
       const { new: _, ...raw } = ch
