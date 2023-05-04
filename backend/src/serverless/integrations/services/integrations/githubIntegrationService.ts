@@ -39,6 +39,12 @@ import { gridEntry } from '../../grid/grid'
 import PullRequestReviewThreadsQuery from '../../usecases/github/graphql/pullRequestReviewThreads'
 import PullRequestReviewThreadCommentsQuery from '../../usecases/github/graphql/pullRequestReviewThreadComments'
 import PullRequestCommitsQuery, {PullRequestCommit} from '../../usecases/github/graphql/pullRequestCommits'
+import IntegrationRunRepository from '../../../../database/repositories/integrationRunRepository'
+import { IntegrationRunState } from '../../../../types/integrationRunTypes'
+import IntegrationStreamRepository from '../../../../database/repositories/integrationStreamRepository'
+import { DbIntegrationStreamCreateData } from '../../../../types/integrationStreamTypes'
+import { sendNodeWorkerMessage } from '../../../utils/nodeWorkerSQS'
+import { NodeWorkerIntegrationProcessMessage } from '../../../../types/mq/nodeWorkerIntegrationProcessMessage'
 
 /* eslint class-methods-use-this: 0 */
 
@@ -919,6 +925,54 @@ export class GithubIntegrationService extends IntegrationServiceBase {
           payload.pull_request.merged_by.login
         }_${moment(payload.pull_request.merged_at).utc().toISOString()}`
         break
+      }
+
+      // this event is triggered whdn a head branch of PR receives a new commit
+      case 'synchronize': {
+        if (!IS_GITHUB_COMMIT_DATA_ENABLED) {
+          return undefined
+        }
+        const prNumber = payload.number
+        const integrationId = context.integration.id
+        const tenantId = context.integration.tenantId
+        const repoContext = context.repoContext
+        const runRepo = new IntegrationRunRepository(repoContext)
+
+        const run = await runRepo.create({
+          integrationId,
+          tenantId,
+          onboarding: false,
+          state: IntegrationRunState.PENDING,
+        })
+
+        const githubRepo: Repo = {
+          name: payload.repository.name,
+          owner: payload.repository.owner.login,
+          url: payload.repository.url,
+          createdAt: payload.repository.created_at,
+        }
+
+        const streamRepo = new IntegrationStreamRepository(repoContext)
+        const stream: DbIntegrationStreamCreateData = {
+          runId: run.id,
+          tenantId,
+          integrationId,
+          name: GithubStreamType.PULL_COMMITS,
+          metadata: {
+            page: '',
+            repo: githubRepo,
+            prNumber,
+          },
+        }
+
+        await streamRepo.create(stream)
+
+        await sendNodeWorkerMessage(
+          tenantId,
+          new NodeWorkerIntegrationProcessMessage(run.id),
+        )
+        return undefined
+
       }
 
       default: {
