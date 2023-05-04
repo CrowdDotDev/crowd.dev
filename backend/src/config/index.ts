@@ -54,6 +54,8 @@ export const LOG_LEVEL: string = process.env.LOG_LEVEL || 'info'
 
 export const IS_CLOUD_ENV: boolean = IS_PROD_ENV || IS_STAGING_ENV
 
+export const IS_GITHUB_COMMIT_DATA_ENABLED: boolean = process.env.GITHUB_COMMIT_DATA_ENABLED === 'true'
+
 export const SQS_CONFIG: SQSConfiguration = config.get<SQSConfiguration>('sqs')
 
 export const REDIS_CONFIG: RedisConfiguration = config.get<RedisConfiguration>('redis')
