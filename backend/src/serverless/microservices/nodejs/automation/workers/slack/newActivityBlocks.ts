@@ -82,7 +82,7 @@ export const newActivityBlocks = (activity) => {
             "type": "section",
             "text": {
                 "type": "mrkdwn",
-                "text": `${activity.title ? `>*${activity.title}* \n> ` : ''}${activity.body}`
+                "text": `${activity.title ? `>*${htmlToMrkdwn(activity.title)}* \n> ` : ''}${htmlToMrkdwn(activity.body)}`
             }
         }] : []),
     ]
