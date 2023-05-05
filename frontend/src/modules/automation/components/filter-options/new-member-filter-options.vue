@@ -79,7 +79,7 @@ const computedPlatformOptions = computed(() => active.value.map((item) => ({
 const getPlatformDetails = (platform) => CrowdIntegrations.getConfig(platform);
 
 onMounted(() => {
-    if (Object.keys(props.modelValue).length === 0) {
+  if (Object.keys(props.modelValue).length === 0) {
     emit('update:modelValue', defaultValue);
   }
 });

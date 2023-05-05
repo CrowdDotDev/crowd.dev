@@ -69,6 +69,7 @@ export default class AutomationRepository extends RepositoryBase<
 
     record = await record.update(
       {
+        name: data.name,
         trigger: data.trigger,
         settings: data.settings,
         state: data.state,

@@ -33,6 +33,8 @@ module.exports = {
     'object-curly-spacing': 'warn',
     'vue/html-button-has-type': 'warn',
     'import/order': 'warn',
+    'keyword-spacing': 'warn',
+    'space-before-blocks': 'warn',
     quotes: 'warn',
     'no-unused-vars': 'warn',
     'no-multiple-empty-lines': 'warn',

@@ -83,10 +83,10 @@
                 <app-automation-dropdown
                   :automation="scope.row"
                   @open-executions-drawer="
-                    $emit('openExecutionsDrawer', scope.row)
+                    emit('openExecutionsDrawer', scope.row)
                   "
                   @open-edit-automation-drawer="
-                    $emit(
+                    emit(
                       'openEditAutomationDrawer',
                       scope.row,
                     )

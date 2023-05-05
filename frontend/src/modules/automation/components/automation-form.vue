@@ -2,16 +2,17 @@
   <app-drawer
     v-model="isDrawerOpen"
     title=""
+    :size="600"
   >
     <template #header>
       <div>
-        <div v-if="props.modelValue === 'webhook'" class="flex items-center">
+        <div v-if="type === 'webhook'" class="flex items-center">
           <img alt="Webhook" src="/images/automation/webhook.png" class="w-4 max-w-4">
           <p class="pl-2 text-xs text-gray-900">
             Webhook
           </p>
         </div>
-        <div v-else-if="props.modelValue === 'slack'" class="flex items-center">
+        <div v-else-if="type === 'slack'" class="flex items-center">
           <img alt="Slack" src="https://cdn-icons-png.flaticon.com/512/3800/3800024.png" class="w-4 max-w-4">
           <p class="pl-2 text-xs text-gray-900">
             Slack notification
@@ -37,10 +38,10 @@
           <h5 class="text-base leading-5 text-brand-500 font-semibold mb-1">
             Trigger
           </h5>
-          <p v-if="props.modelValue === 'webhook'" class="text-2xs text-gray-500">
+          <p v-if="type === 'webhook'" class="text-2xs text-gray-500">
             Define the event that triggers your webhook
           </p>
-          <p v-else-if="props.modelValue === 'slack'" class="text-2xs text-gray-500">
+          <p v-else-if="type === 'slack'" class="text-2xs text-gray-500">
             Define the event that triggers your Slack notification.
           </p>
         </div>
@@ -84,16 +85,16 @@
           <h5 class="text-base leading-5 text-brand-500 font-semibold mb-1">
             Action
           </h5>
-          <p v-if="props.modelValue === 'webhook'" class="text-2xs text-gray-500">
+          <p v-if="type === 'webhook'" class="text-2xs text-gray-500">
             Define the endpoint where the webhook payload should be sent to
           </p>
-          <p v-else-if="props.modelValue === 'slack'" class="text-2xs text-gray-500">
+          <p v-else-if="type === 'slack'" class="text-2xs text-gray-500">
             Receive a notification in your Slack workspace every time the event is triggered.
           </p>
         </div>
         <div>
-          <app-automation-webhook-action v-if="props.modelValue === 'webhook'" v-model="form.action" />
-          <app-automation-slack-action v-else-if="props.modelValue === 'slack'" v-model="form.action" />
+          <app-automation-webhook-action v-if="type === 'webhook'" v-model="form.settings" />
+          <app-automation-slack-action v-else-if="type === 'slack'" v-model="form.settings" />
         </div>
       </div>
     </template>
@@ -101,14 +102,14 @@
     <template #footer>
       <div class="flex justify-between">
         <div>
-          <!--                <el-button-->
-          <!--                        v-if="isEditing && isDirty"-->
-          <!--                        class="btn btn-link btn-link&#45;&#45;primary"-->
-          <!--                        @click="doReset"-->
-          <!--                >-->
-          <!--                    <i class="ri-arrow-go-back-line" />-->
-          <!--                    <span>Reset changes</span>-->
-          <!--                </el-button>-->
+          <el-button
+            v-if="isEdit && hasFormChanged"
+            class="btn btn-link btn-link--primary"
+            @click="fillForm(automation)"
+          >
+            <i class="ri-arrow-go-back-line" />
+            <span>Reset changes</span>
+          </el-button>
         </div>
         <div class="flex items-center">
           <el-button
@@ -120,14 +121,14 @@
           </el-button>
 
           <el-button
-            :disabled="$v.$invalid || sending"
+            :disabled="$v.$invalid || sending || !hasFormChanged"
             :loading="sending"
             class="btn btn--md btn--primary"
             @click="doSubmit"
           >
             <span v-if="isEdit">Update</span>
-            <span v-else-if="props.modelValue === 'webhook'">Add webhook</span>
-            <span v-else-if="props.modelValue === 'slack'">Add Slack notification</span>
+            <span v-else-if="type === 'webhook'">Add webhook</span>
+            <span v-else-if="type === 'slack'">Add Slack notification</span>
             <span v-else>Add automation</span>
           </el-button>
         </div>
@@ -138,7 +139,7 @@
 
 <script setup>
 import {
-  computed, defineProps, defineEmits, reactive, ref,
+  computed, defineProps, defineEmits, reactive, ref, watch,
 } from 'vue';
 import AppDrawer from '@/shared/drawer/drawer.vue';
 import { required } from '@vuelidate/validators';
@@ -149,16 +150,21 @@ import AppNewActivityFilterOptions
 import AppNewMemberFilterOptions from '@/modules/automation/components/filter-options/new-member-filter-options.vue';
 import AppAutomationWebhookAction from '@/modules/automation/components/action/webhook-action.vue';
 import AppAutomationSlackAction from '@/modules/automation/components/action/slack-action.vue';
-import { mapActions } from '@/shared/vuex/vuex.helpers';
 import { useAutomationStore } from '@/modules/automation/store';
 import Message from '@/shared/message/message';
 import { i18n } from '@/i18n';
+import formChangeDetector from '@/shared/form/form-change';
 
 const props = defineProps({
   modelValue: {
+    type: Boolean,
+    required: false,
+    default: false,
+  },
+  type: {
     type: String,
     required: false,
-    default: null,
+    default: 'webhook',
   },
   automation: {
     type: Object,
@@ -167,22 +173,21 @@ const props = defineProps({
   },
 });
 
-const emit = defineEmits(['update:modelValue']);
+const emit = defineEmits(['update:modelValue', 'update:automation']);
 
-const { createAutomation } = useAutomationStore();
+const { createAutomation, updateAutomation } = useAutomationStore();
 
 const isDrawerOpen = computed({
   get() {
-    return props.modelValue !== null;
+    return props.modelValue;
   },
-  set(val) {
-    if (!val) {
-      emit('update:modelValue', null);
-    } else {
-      emit('update:modelValue', props.modelValue);
-    }
+  set() {
+    emit('update:modelValue', false);
+    emit('update:automation', null);
   },
 });
+
+const type = computed(() => props.automation?.type || props.type);
 
 const isEdit = computed(() => props.automation !== null);
 
@@ -199,11 +204,11 @@ const triggerOptions = ref([
 
 const collapseOpen = ref('filterOptions');
 
+// Setup and validation
 const form = reactive({
   name: '',
   trigger: '',
   settings: {},
-  action: {},
 });
 
 const rules = {
@@ -214,6 +219,32 @@ const rules = {
 
 const $v = useVuelidate(rules, form);
 
+const { hasFormChanged, formSnapshot } = formChangeDetector(form);
+
+// Prefill form
+const fillForm = (automation) => {
+  form.name = automation.name || '';
+  form.trigger = automation.trigger || '';
+  form.settings = automation.settings || {};
+  formSnapshot();
+};
+
+const reset = () => {
+  form.name = '';
+  form.trigger = '';
+  form.settings = {};
+  formSnapshot();
+};
+
+watch(() => props.modelValue, () => {
+  if (type.value && props.automation) {
+    fillForm(props.automation);
+  } else {
+    reset();
+  }
+});
+
+// Submit form
 const sending = ref(false);
 
 const doSubmit = () => {
@@ -223,12 +254,9 @@ const doSubmit = () => {
   sending.value = true;
   const data = {
     name: form.name ?? i18n(`entities.automation.triggers.${form.trigger}`),
-    type: props.modelValue,
+    type,
     trigger: form.trigger,
-    settings: {
-      ...form.settings,
-      ...form.action,
-    },
+    settings: form.settings,
   };
   if (!isEdit.value) {
     createAutomation(data)
@@ -237,6 +265,17 @@ const doSubmit = () => {
       })
       .catch(() => {
         Message.error('There was an error creating automation, please try again later.');
+      })
+      .finally(() => {
+        sending.value = false;
+      });
+  } else {
+    updateAutomation(props.automation.id, data)
+      .then(() => {
+        emit('update:modelValue', null);
+      })
+      .catch(() => {
+        Message.error('There was an error updating automation, please try again later.');
       })
       .finally(() => {
         sending.value = false;
@@ -251,157 +290,6 @@ export default {
   name: 'AppAutomationForm',
 };
 </script>
-
-<!--<script>-->
-<!--import { mapGetters, mapActions } from 'vuex';-->
-<!--import isEqual from 'lodash/isEqual';-->
-<!--import { AutomationModel } from '@/modules/automation/automation-model';-->
-<!--import { FormSchema } from '@/shared/form/form-schema';-->
-<!--import { i18n } from '@/i18n';-->
-<!--import activityTypesJson from '@/jsons/activity-types.json';-->
-<!--import UrlField from '@/shared/fields/url-field';-->
-<!--import { onSelectMouseLeave } from '@/utils/select';-->
-<!--import { CrowdIntegrations } from '@/integrations/integrations-config';-->
-
-<!--const { fields } = AutomationModel;-->
-<!--const formSchema = new FormSchema([-->
-<!--  fields.id,-->
-<!--  fields.type,-->
-<!--  fields.trigger,-->
-<!--  fields.status,-->
-<!--  fields.settings,-->
-<!--  new UrlField('settings.url', 'Webhook URL', {-->
-<!--    required: true,-->
-<!--  }),-->
-<!--]);-->
-
-<!--  emits: ['cancel', 'success', 'close'],-->
-<!--  data() {-->
-<!--    return {-->
-<!--      rules: formSchema.rules(),-->
-<!--      newActivityFilters: 'activityFilters',-->
-<!--      newMemberFilters: 'memberFilters',-->
-<!--      loadingIntegrations: false,-->
-<!--      model: formSchema.initialValues(-->
-<!--        JSON.parse(JSON.stringify(this.modelValue)),-->
-<!--      ),-->
-<!--    };-->
-<!--  },-->
-
-<!--  computed: {-->
-<!--    isDrawerOpenComputed: {-->
-<!--      get() {-->
-<!--        return this.isDrawerOpen;-->
-<!--      },-->
-<!--      set(value) {-->
-<!--        this.$emit('close');-->
-<!--        return value;-->
-<!--      },-->
-<!--    },-->
-<!--    ...mapGetters({-->
-<!--      loading: 'automation/loading',-->
-<!--      integrationsActive: 'integration/active',-->
-<!--      integrationsCount: 'integration/count',-->
-<!--    }),-->
-<!--    fields() {-->
-<!--      return fields;-->
-<!--    },-->
-<!--    isEditing() {-->
-<!--      return this.modelValue.id !== undefined;-->
-<!--    },-->
-<!--    saveLoading() {-->
-<!--      return this.loading('submit');-->
-<!--    },-->
-<!--    isFilled() {-->
-<!--      return this.model.trigger && this.model.settings.url;-->
-<!--    },-->
-<!--    isDirty() {-->
-<!--      return !isEqual(-->
-<!--        formSchema.initialValues(-->
-<!--          JSON.parse(JSON.stringify(this.modelValue)),-->
-<!--        ),-->
-<!--        this.model,-->
-<!--      );-->
-<!--    },-->
-
-<!--    computedActivityTypeOptions() {-->
-<!--      if (-->
-<!--        !this.model.settings.platforms-->
-<!--        || this.model.settings.platforms.length === 0-->
-<!--      ) {-->
-<!--        return [];-->
-<!--      }-->
-
-<!--      return this.model.settings.platforms.reduce(-->
-<!--        (acc, platform) => {-->
-<!--          const platformActivityTypes = activityTypesJson[platform];-->
-<!--          acc.push(-->
-<!--            ...platformActivityTypes.map((activityType) => ({-->
-<!--              value: activityType,-->
-<!--              label: i18n(-->
-<!--                `entities.activity.${platform}.${activityType}`,-->
-<!--              ),-->
-<!--            })),-->
-<!--          );-->
-<!--          return acc;-->
-<!--        },-->
-<!--        [],-->
-<!--      );-->
-<!--    },-->
-<!--  },-->
-
-<!--  async created() {-->
-<!--    if (this.integrationsCount === 0) {-->
-<!--      this.loadingIntegrations = true;-->
-<!--      await this.doFetchIntegrations();-->
-<!--      this.loadingIntegrations = false;-->
-<!--    }-->
-<!--  },-->
-
-<!--  methods: {-->
-<!--    ...mapActions({-->
-<!--      doFetchIntegrations: 'integration/doFetch',-->
-
-<!--    }),-->
-<!--    translate(key) {-->
-<!--      return i18n(key);-->
-<!--    },-->
-<!--    async doSubmit() {-->
-<!--      try {-->
-<!--        await this.$refs.form.validate();-->
-<!--      } catch (error) {-->
-<!--        console.error(error);-->
-<!--        return;-->
-<!--      }-->
-
-<!--      if (this.isEditing) {-->
-<!--        await this.doUpdate({-->
-<!--          id: this.model.id,-->
-<!--          values: formSchema.cast(this.model),-->
-<!--        });-->
-<!--      } else {-->
-<!--        await this.doCreate(formSchema.cast(this.model));-->
-<!--      }-->
-
-<!--      this.$emit('success');-->
-<!--    },-->
-<!--    doReset() {-->
-<!--      this.model = formSchema.initialValues(-->
-<!--        JSON.parse(JSON.stringify(this.modelValue)),-->
-<!--      );-->
-<!--    },-->
-<!--    getPlatformDetails(platform) {-->
-<!--      return CrowdIntegrations.getConfig(platform);-->
-<!--    },-->
-
-<!--    doCancel() {-->
-<!--      this.$emit('cancel');-->
-<!--    },-->
-
-<!--    onSelectMouseLeave,-->
-<!--  },-->
-<!--};-->
-<!--</script>-->
 
 <style lang="scss">
 .filter-options {

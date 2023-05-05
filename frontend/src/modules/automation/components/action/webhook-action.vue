@@ -59,7 +59,7 @@ const rules = {
 const $v = useVuelidate(rules, form);
 
 onMounted(() => {
-    if (Object.keys(props.modelValue).length === 0) {
+  if (Object.keys(props.modelValue).length === 0) {
     emit('update:modelValue', defaultValue);
   }
 });

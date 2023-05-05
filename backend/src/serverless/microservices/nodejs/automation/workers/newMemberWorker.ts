@@ -8,9 +8,9 @@ import {
   NewMemberSettings,
 } from '../../../../../types/automationTypes'
 import MemberRepository from '../../../../../database/repositories/memberRepository'
-import { sendWebhookProcessRequest } from './util'
-import { MemberAutomationData } from '../../messageTypes'
-import { createServiceChildLogger } from '../../../../../utils/logging'
+import {sendWebhookProcessRequest} from './util'
+import {MemberAutomationData} from '../../messageTypes'
+import {createServiceChildLogger} from '../../../../../utils/logging'
 import AutomationExecutionRepository from '../../../../../database/repositories/automationExecutionRepository'
 import SequelizeRepository from '../../../../../database/repositories/sequelizeRepository'
 
@@ -118,6 +118,16 @@ export default async (
                 automation,
                 member.id,
                 prepareMemberPayload(member),
+                AutomationType.WEBHOOK,
+              )
+              break
+            case AutomationType.SLACK:
+              await sendWebhookProcessRequest(
+                tenantId,
+                automation,
+                member.id,
+                prepareMemberPayload(member),
+                AutomationType.SLACK,
               )
               break
             default:

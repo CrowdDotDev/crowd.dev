@@ -619,7 +619,13 @@ class MemberRepository {
   ) {
     const transaction = SequelizeRepository.getTransaction(options)
 
-    const include = []
+    const include = [
+      {
+        model: options.database.organization,
+        attributes: ['id', 'name'],
+        as: 'organizations',
+      },
+    ]
 
     const where: any = {
       id,
