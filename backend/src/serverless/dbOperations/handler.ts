@@ -1,6 +1,7 @@
 import { createServiceChildLogger } from '../../utils/logging'
 import { KUBE_MODE } from '../../config/index'
 import bulkOperations from './operationsWorker'
+import getUserContext from '../../database/utils/getUserContext'
 
 const log = createServiceChildLogger('dbOperations.handler')
 
@@ -20,7 +21,9 @@ export async function consumer(event) {
     throw new Error('Records is required')
   }
 
-  const result = await bulkOperations(tenantId, event.operation, event.records)
+  const context = await getUserContext(tenantId)
+
+  const result = await bulkOperations(event.operation, event.records, context)
 
   return result
 }

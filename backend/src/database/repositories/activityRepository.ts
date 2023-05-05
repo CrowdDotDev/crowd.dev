@@ -39,6 +39,14 @@ class ActivityRepository {
       this._validateSentiment(data.sentiment)
     }
 
+    // type and platform to lowercase
+    if (data.type) {
+      data.type = data.type.toLowerCase()
+    }
+    if (data.platform) {
+      data.platform = data.platform.toLowerCase()
+    }
+
     const record = await options.database.activity.create(
       {
         ...lodash.pick(data, [
@@ -56,8 +64,10 @@ class ActivityRepository {
           'sourceId',
           'importHash',
           'username',
+          'objectMemberUsername',
         ]),
         memberId: data.member || null,
+        objectMemberId: data.objectMember || undefined,
         parentId: data.parent || null,
         sourceParentId: data.sourceParentId || null,
         conversationId: data.conversationId || null,
@@ -152,8 +162,10 @@ class ActivityRepository {
           'sourceId',
           'importHash',
           'username',
+          'objectMemberUsername',
         ]),
         memberId: data.member || undefined,
+        objectMemberId: data.objectMember || undefined,
         parentId: data.parent || undefined,
         sourceParentId: data.sourceParentId || undefined,
         conversationId: data.conversationId || undefined,
@@ -169,7 +181,7 @@ class ActivityRepository {
     return this.findById(record.id, options)
   }
 
-  static async destroy(id, options: IRepositoryOptions) {
+  static async destroy(id, options: IRepositoryOptions, force = false) {
     const transaction = SequelizeRepository.getTransaction(options)
 
     const currentTenant = SequelizeRepository.getCurrentTenant(options)
@@ -188,6 +200,7 @@ class ActivityRepository {
 
     await record.destroy({
       transaction,
+      force,
     })
 
     await this._createAuditLog(AuditLogRepository.DELETE, record, record, options)
@@ -200,6 +213,10 @@ class ActivityRepository {
       {
         model: options.database.member,
         as: 'member',
+      },
+      {
+        model: options.database.member,
+        as: 'objectMember',
       },
       {
         model: options.database.activity,
@@ -347,6 +364,12 @@ class ActivityRepository {
       if (filter.member) {
         advancedFilter.and.push({
           memberId: filter.member,
+        })
+      }
+
+      if (filter.objectMember) {
+        advancedFilter.and.push({
+          objectMemberId: filter.objectMember,
         })
       }
 
@@ -571,6 +594,10 @@ class ActivityRepository {
       {
         model: options.database.activity,
         as: 'parent',
+      },
+      {
+        model: options.database.member,
+        as: 'objectMember',
       },
     ]
 

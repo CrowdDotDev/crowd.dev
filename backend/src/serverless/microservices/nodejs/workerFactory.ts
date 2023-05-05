@@ -24,6 +24,7 @@ import { bulkEnrichmentWorker } from './bulk-enrichment/bulkEnrichmentWorker'
 import { eagleEyeEmailDigestWorker } from './eagle-eye-email-digest/eagleEyeEmailDigestWorker'
 import { integrationDataCheckerWorker } from './integration-data-checker/integrationDataCheckerWorker'
 import { refreshSampleDataWorker } from './integration-data-checker/refreshSampleDataWorker'
+import { mergeSuggestionsWorker } from './merge-suggestions/mergeSuggestionsWorker'
 
 /**
  * Worker factory for spawning different microservices
@@ -34,7 +35,6 @@ import { refreshSampleDataWorker } from './integration-data-checker/refreshSampl
 
 async function workerFactory(event: NodeMicroserviceMessage): Promise<any> {
   const { service, tenant } = event as any
-
   switch (service.toLowerCase()) {
     case 'stripe-webhooks':
       return processStripeWebhook(event)
@@ -51,6 +51,9 @@ async function workerFactory(event: NodeMicroserviceMessage): Promise<any> {
         integrationDataCheckerMessage.integrationId,
         integrationDataCheckerMessage.tenantId,
       )
+    case 'merge-suggestions':
+      return mergeSuggestionsWorker(tenant)
+
     case 'refresh-sample-data':
       return refreshSampleDataWorker()
 

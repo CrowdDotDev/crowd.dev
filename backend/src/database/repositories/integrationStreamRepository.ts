@@ -8,6 +8,7 @@ import {
 } from '../../types/integrationStreamTypes'
 import { IRepositoryOptions } from './IRepositoryOptions'
 import { RepositoryBase } from './repositoryBase'
+import { INTEGRATION_PROCESSING_CONFIG } from '../../config'
 
 export default class IntegrationStreamRepository extends RepositoryBase<
   IntegrationStream,
@@ -57,7 +58,14 @@ export default class IntegrationStreamRepository extends RepositoryBase<
     return result[0] as IntegrationStream
   }
 
-  async findByRunId(runId: string, state?: IntegrationStreamState): Promise<IntegrationStream[]> {
+  async findByRunId(
+    runId: string,
+    page: number,
+    perPage: number,
+    states?: IntegrationStreamState[],
+    orderBy?: string,
+    additionalConditions?: string[],
+  ): Promise<IntegrationStream[]> {
     const transaction = this.transaction
 
     const seq = this.seq
@@ -67,9 +75,18 @@ export default class IntegrationStreamRepository extends RepositoryBase<
     }
 
     let condition = `1=1`
-    if (state) {
-      condition = `"state" = :state`
-      replacements.state = state
+    if (states && states.length > 0) {
+      condition = `"state" in (:states)`
+      replacements.states = states
+    }
+
+    let orderByCondition = 'order by id'
+    if (orderBy) {
+      orderByCondition = `order by ${orderBy}`
+    }
+
+    if (additionalConditions && additionalConditions.length > 0) {
+      condition = `${condition} and ${additionalConditions.join(' and ')}`
     }
 
     const query = `
@@ -87,8 +104,8 @@ export default class IntegrationStreamRepository extends RepositoryBase<
           "createdAt",
           "updatedAt"
       from "integrationStreams" where "runId" = :runId and ${condition}
-      -- we are using uuid v1 so we can sort by it
-      order by "id";
+      ${orderByCondition}
+      limit ${perPage} offset ${(page - 1) * perPage};
     `
 
     const result = await seq.query(query, {
@@ -339,5 +356,57 @@ export default class IntegrationStreamRepository extends RepositoryBase<
     if (count !== 1) {
       throw new Error(`Expected 1 row to be updated, got ${count} rows instead.`)
     }
+  }
+
+  async getNextStreamToProcess(runId: string): Promise<IntegrationStream | null> {
+    const transaction = this.transaction
+
+    const seq = this.seq
+
+    const query = `
+    select  id,
+            "runId",
+            "tenantId",
+            "integrationId",
+            "microserviceId",
+            state,
+            name,
+            metadata,
+            "processedAt",
+            error,
+            retries,
+            "createdAt",
+            "updatedAt"
+        from "integrationStreams" 
+        where 
+          "runId" = :runId and
+          (
+            state = :pending or
+            (
+              state = :error and
+              retries < :maxRetriesLimit and
+              "updatedAt" < now() - make_interval(mins := 5 * retries)              
+            )
+          )
+        order by "createdAt" asc
+        limit 1;
+    `
+
+    const results = await seq.query(query, {
+      replacements: {
+        runId,
+        pending: IntegrationStreamState.PENDING,
+        error: IntegrationStreamState.ERROR,
+        maxRetriesLimit: INTEGRATION_PROCESSING_CONFIG.maxRetries,
+      },
+      type: QueryTypes.SELECT,
+      transaction,
+    })
+
+    if (results.length === 0) {
+      return null
+    }
+
+    return results[0] as IntegrationStream
   }
 }

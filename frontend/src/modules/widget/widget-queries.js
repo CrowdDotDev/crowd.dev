@@ -4,6 +4,7 @@ import moment from 'moment';
 const getCubeFilters = ({
   platforms,
   hasTeamMembers,
+  hasTeamActivities,
   isContribution,
 }) => {
   const filters = [
@@ -22,8 +23,8 @@ const getCubeFilters = ({
     });
   }
 
-  // Only add filter if team members are excluded
-  if (hasTeamMembers === false) {
+  // Only add filter if team members or team activities are excluded
+  if (hasTeamMembers === false || hasTeamActivities === false) {
     filters.push({
       member: 'Members.isTeamMember',
       operator: 'equals',
@@ -265,3 +266,119 @@ export const TOTAL_MONTHLY_ACTIVE_CONTRIBUTORS = ({
     isContribution: true,
   }),
 });
+
+export const ACTIVITIES_QUERY = ({
+  period,
+  granularity,
+  selectedPlatforms,
+  selectedHasTeamActivities,
+}) => ({
+  measures: ['Activities.count'],
+  timeDimensions: [
+    {
+      dateRange: [
+        moment()
+          .utc()
+          .subtract(period.value, period.granularity)
+          .format('YYYY-MM-DD'),
+        moment().utc().format('YYYY-MM-DD'),
+      ],
+      dimension: 'Activities.date',
+      granularity: granularity.value,
+    },
+  ],
+  filters: getCubeFilters({
+    platforms: selectedPlatforms,
+    hasTeamActivities: selectedHasTeamActivities,
+  }),
+});
+
+export const LEADERBOARD_ACTIVITIES_TYPES_QUERY = ({
+  period,
+  selectedPlatforms,
+  selectedHasTeamActivities,
+}) => ({
+  measures: ['Activities.count'],
+  order: {
+    'Activities.count': 'desc',
+  },
+  dimensions: ['Activities.platform', 'Activities.type'],
+  timeDimensions: [
+    {
+      dateRange: [
+        moment()
+          .utc()
+          .subtract(period.value, period.granularity)
+          .format('YYYY-MM-DD'),
+        moment().utc().format('YYYY-MM-DD'),
+      ],
+      dimension: 'Activities.date',
+    },
+  ],
+  filters:
+    getCubeFilters({
+      platforms: selectedPlatforms,
+      hasTeamActivities: selectedHasTeamActivities,
+    }),
+
+});
+
+export const LEADERBOARD_ACTIVITIES_COUNT_QUERY = ({
+  period,
+  selectedPlatforms,
+  selectedHasTeamActivities,
+}) => ({
+  measures: ['Activities.count'],
+  timeDimensions: [
+    {
+      dateRange: [
+        moment()
+          .utc()
+          .subtract(period.value, period.granularity)
+          .format('YYYY-MM-DD'),
+        moment().utc().format('YYYY-MM-DD'),
+      ],
+      dimension: 'Activities.date',
+    },
+  ],
+  filters:
+    getCubeFilters({
+      platforms: selectedPlatforms,
+      hasTeamActivities: selectedHasTeamActivities,
+    }),
+
+});
+
+export const TOTAL_ACTIVITIES_QUERY = ({
+  period,
+  granularity,
+  selectedPlatforms,
+  selectedHasTeamActivities,
+}) => {
+  const dateRange = (periodValue) => {
+    const end = moment().utc().format('YYYY-MM-DD');
+    const start = moment()
+      .utc()
+      .subtract(periodValue.value, periodValue.granularity)
+      // we're subtracting one more day, to get the last value of the previous period within the same request
+      .subtract(1, 'day')
+      .format('YYYY-MM-DD');
+
+    return [start, end];
+  };
+
+  return {
+    measures: ['Activities.cumulativeCount'],
+    timeDimensions: [
+      {
+        dimension: 'Activities.date',
+        granularity: granularity.value,
+        dateRange: dateRange(period),
+      },
+    ],
+    filters: getCubeFilters({
+      platforms: selectedPlatforms,
+      hasTeamMembers: selectedHasTeamActivities,
+    }),
+  };
+};

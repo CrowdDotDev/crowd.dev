@@ -33,4 +33,14 @@ export class ActivityTypeService {
 
     return response.data;
   }
+
+  static async get() {
+    const tenantId = AuthCurrentTenant.get();
+
+    const response = await authAxios.get(
+      `/tenant/${tenantId}/settings/activity/types`,
+    );
+
+    return response.data;
+  }
 }

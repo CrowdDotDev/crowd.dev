@@ -141,12 +141,10 @@
                 </template>
               </el-table-column>
               <el-table-column
-                v-for="column of extraColumns"
-                :key="column.name"
-                :prop="column.name"
-                :label="column.label"
-                :width="column.width || 200"
-                :sortable="column.sortable ? 'custom' : ''"
+                label="# of Activities"
+                prop="activityCount"
+                width="200"
+                sortable="custom"
               >
                 <template #default="scope">
                   <router-link
@@ -156,11 +154,7 @@
                     }"
                     class="block !text-gray-500"
                   >
-                    {{
-                      column.formatter
-                        ? column.formatter(scope.row[column.name])
-                        : scope.row[column.name]
-                    }}
+                    {{ formatNumber(scope.row.activityCount) }}
                   </router-link>
                 </template>
               </el-table-column>
@@ -298,7 +292,7 @@
                     }"
                     class="block"
                   >
-                    <app-member-channels :member="scope.row" />
+                    <app-member-identities :username="scope.row.username" />
                   </router-link>
                 </template>
               </el-table-column>
@@ -313,7 +307,7 @@
                     class="block"
                   >
                     <div
-                      v-if="scope.row.emails.length"
+                      v-if="scope.row.emails?.length && scope.row.emails?.some((e) => !!e)"
                       class="text-sm cursor-auto flex flex-wrap gap-1"
                     >
                       <el-tooltip
@@ -408,10 +402,10 @@ import AppMemberListToolbar from '@/modules/member/components/list/member-list-t
 import AppMemberOrganizations from '@/modules/member/components/member-organizations.vue';
 import AppTagList from '@/modules/tag/components/tag-list.vue';
 import { formatDateToTimeAgo } from '@/utils/date';
-import { formatNumberToCompact } from '@/utils/number';
+import { formatNumberToCompact, formatNumber } from '@/utils/number';
 import AppMemberBadge from '../member-badge.vue';
 import AppMemberDropdown from '../member-dropdown.vue';
-import AppMemberChannels from '../member-channels.vue';
+import AppMemberIdentities from '../member-identities.vue';
 import AppMemberReach from '../member-reach.vue';
 import AppMemberEngagementLevel from '../member-engagement-level.vue';
 import AppMemberLastActivity from '../member-last-activity.vue';
@@ -441,10 +435,6 @@ const props = defineProps({
     default: () => true,
   },
 });
-
-const extraColumns = computed(
-  () => store.getters['member/activeView']?.columns || [],
-);
 
 const activeView = computed(() => store.getters['member/activeView']);
 
@@ -498,7 +488,7 @@ const emailsColumnWidth = computed(() => {
 
   rows.value.forEach((row) => {
     const tabWidth = row.emails
-      .map((email) => email.length * 12)
+      .map((email) => (email ? email.length * 12 : 0))
       .reduce((a, b) => a + b, 0);
 
     if (tabWidth > maxTabWidth) {

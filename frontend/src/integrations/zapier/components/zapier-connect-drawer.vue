@@ -48,7 +48,7 @@
             <p class="ml-4 text-gray-900 text-xs">
               Go to
               <a
-                href="https://zapier.com/developer/public-invite/180721/f94ad64f963359cd888fa22610c31875/"
+                href="https://zapier.com/apps/crowddev/integrations"
                 target="_blank"
                 rel="noopener noreferrer"
                 class="underline underline-offset-4"
@@ -61,7 +61,7 @@
               class="flex-none w-8 h-8 flex justify-center items-center rounded-full bg-gray-300 text-gray-900 font-bold text-sm"
             >3</span>
             <p class="ml-4 text-gray-900 text-xs">
-              Configure your Zaps using our
+              Learn more about our
               <a
                 href="https://docs.crowd.dev/docs/zapier-integration#supported-triggers"
                 target="_blank"

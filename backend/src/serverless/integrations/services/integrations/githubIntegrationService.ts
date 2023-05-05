@@ -27,7 +27,7 @@ import DiscussionsQuery from '../../usecases/github/graphql/discussions'
 import DiscussionCommentsQuery from '../../usecases/github/graphql/discussionComments'
 import { AddActivitiesSingle, Member, PlatformIdentities } from '../../types/messageTypes'
 import Operations from '../../../dbOperations/operations'
-import { GithubActivityType } from '../../../../types/activityTypes'
+import { GithubActivityType, GithubPullRequestEvents } from '../../../../types/activityTypes'
 import { GitHubGrid } from '../../grid/githubGrid'
 import getOrganization from '../../usecases/github/graphql/organizations'
 import { singleOrDefault } from '../../../../utils/arrays'
@@ -36,6 +36,8 @@ import getMember from '../../usecases/github/graphql/members'
 import { createRedisClient } from '../../../../utils/redis'
 import { RedisCache } from '../../../../utils/redis/redisCache'
 import { gridEntry } from '../../grid/grid'
+import PullRequestReviewThreadsQuery from '../../usecases/github/graphql/pullRequestReviewThreads'
+import PullRequestReviewThreadCommentsQuery from '../../usecases/github/graphql/pullRequestReviewThreadComments'
 
 /* eslint class-methods-use-this: 0 */
 
@@ -48,6 +50,8 @@ enum GithubStreamType {
   FORKS = 'forks',
   PULLS = 'pulls',
   PULL_COMMENTS = 'pull-comments',
+  PULL_REVIEW_THREADS = 'pull-review-threads',
+  PULL_REVIEW_THREAD_COMMENTS = 'pull-review-thread-comments',
   ISSUES = 'issues',
   ISSUE_COMMENTS = 'issue-comments',
   DISCUSSIONS = 'discussions',
@@ -129,7 +133,7 @@ export class GithubIntegrationService extends IntegrationServiceBase {
     return context.pipelineData.repos.reduce((acc, repo) => {
       for (const endpoint of [
         GithubStreamType.STARGAZERS,
-        // GithubStreamType.FORKS,
+        GithubStreamType.FORKS,
         GithubStreamType.PULLS,
         GithubStreamType.ISSUES,
         GithubStreamType.DISCUSSIONS,
@@ -187,8 +191,8 @@ export class GithubIntegrationService extends IntegrationServiceBase {
         // filter out activities without authors (such as bots)
         result.data = result.data.filter((i) => (i as any).author?.login)
 
-        // add each PR as separate stream
-        newStreams = result.data.map((pr) => ({
+        // add new stream for each PR comments
+        const prCommentStreams = result.data.map((pr) => ({
           value: GithubStreamType.PULL_COMMENTS,
           metadata: {
             page: '',
@@ -196,8 +200,20 @@ export class GithubIntegrationService extends IntegrationServiceBase {
             prNumber: pr.number,
           },
         }))
+
+        // add new stream for each PR review thread comments
+        const prReviewThreads = result.data.map((pr) => ({
+          value: GithubStreamType.PULL_REVIEW_THREADS,
+          metadata: {
+            page: '',
+            repo: stream.metadata.repo,
+            prNumber: pr.number,
+          },
+        }))
+
+        newStreams = [...prCommentStreams, ...prReviewThreads]
         break
-      case GithubStreamType.PULL_COMMENTS:
+      case GithubStreamType.PULL_COMMENTS: {
         const pullRequestNumber = stream.metadata.prNumber
         const pullRequestCommentsQuery = new PullRequestCommentsQuery(
           repo,
@@ -208,6 +224,44 @@ export class GithubIntegrationService extends IntegrationServiceBase {
         result = await pullRequestCommentsQuery.getSinglePage(stream.metadata.page)
         result.data = result.data.filter((i) => (i as any).author?.login)
         break
+      }
+      case GithubStreamType.PULL_REVIEW_THREADS: {
+        const pullRequestNumber = stream.metadata.prNumber
+        const pullRequestReviewThreadsQuery = new PullRequestReviewThreadsQuery(
+          repo,
+          pullRequestNumber,
+          context.integration.token,
+        )
+
+        result = await pullRequestReviewThreadsQuery.getSinglePage(stream.metadata.page)
+
+        // add each review thread as separate stream for comments inside
+        newStreams = result.data.map((reviewThread) => ({
+          value: GithubStreamType.PULL_REVIEW_THREAD_COMMENTS,
+          metadata: {
+            page: '',
+            repo: stream.metadata.repo,
+            reviewThreadId: reviewThread.id,
+          },
+        }))
+
+        break
+      }
+      case GithubStreamType.PULL_REVIEW_THREAD_COMMENTS: {
+        const reviewThreadId = stream.metadata.reviewThreadId
+        const pullRequestReviewThreadCommentsQuery = new PullRequestReviewThreadCommentsQuery(
+          repo,
+          reviewThreadId,
+          context.integration.token,
+        )
+
+        result = await pullRequestReviewThreadCommentsQuery.getSinglePage(stream.metadata.page)
+
+        // filter out activities without authors (such as bots)
+        result.data = result.data.filter((i) => (i as any).author?.login)
+
+        break
+      }
       case GithubStreamType.ISSUES:
         const issuesQuery = new IssuesQuery(repo, context.integration.token)
         result = await issuesQuery.getSinglePage(stream.metadata.page)
@@ -289,7 +343,7 @@ export class GithubIntegrationService extends IntegrationServiceBase {
   }
 
   async processWebhook(webhook: any, context: IStepContext): Promise<IProcessWebhookResults> {
-    let record: AddActivitiesSingle | undefined
+    const records: AddActivitiesSingle[] | undefined = []
 
     await GithubIntegrationService.verifyWebhookSignature(
       webhook.payload.signature,
@@ -308,40 +362,94 @@ export class GithubIntegrationService extends IntegrationServiceBase {
 
     switch (event) {
       case 'issues': {
-        record = await GithubIntegrationService.parseWebhookIssue(payload, context)
+        const record = await GithubIntegrationService.parseWebhookIssue(payload, context)
+        if (record) {
+          records.push(record)
+        }
         break
       }
 
       case 'discussion': {
-        record = await GithubIntegrationService.parseWebhookDiscussion(payload, context)
+        const record = await GithubIntegrationService.parseWebhookDiscussion(payload, context)
+        if (record) {
+          records.push(record)
+        }
         break
       }
 
       case 'pull_request': {
-        record = await GithubIntegrationService.parseWebhookPullRequest(payload, context)
+        if (payload.action === 'closed' && payload.pull_request.merged) {
+          const prMergedRecord = await GithubIntegrationService.parseWebhookPullRequest(
+            { ...payload, action: 'merged' },
+            context,
+          )
+          if (prMergedRecord) {
+            records.push(prMergedRecord)
+          }
+        }
+
+        const prClosedRecord = await GithubIntegrationService.parseWebhookPullRequest(
+          payload,
+          context,
+        )
+        if (prClosedRecord) {
+          records.push(prClosedRecord)
+        }
+
+        break
+      }
+
+      case 'pull_request_review': {
+        const record = await GithubIntegrationService.parseWebhookPullRequestReview(
+          payload,
+          context,
+        )
+        if (record) {
+          records.push(record)
+        }
         break
       }
 
       case 'star': {
-        record = await GithubIntegrationService.parseWebhookStar(payload, context)
+        const record = await GithubIntegrationService.parseWebhookStar(payload, context)
+        if (record) {
+          records.push(record)
+        }
         break
       }
 
       case 'fork': {
-        record = await GithubIntegrationService.parseWebhookFork(payload, context)
+        const record = await GithubIntegrationService.parseWebhookFork(payload, context)
+        if (record) {
+          records.push(record)
+        }
         break
       }
 
       case 'discussion_comment':
       case 'issue_comment': {
-        record = await GithubIntegrationService.parseWebhookComment(event, payload, context)
+        const record = await GithubIntegrationService.parseWebhookComment(event, payload, context)
+        if (record) {
+          records.push(record)
+        }
+        break
+      }
+
+      case 'pull_request_review_comment': {
+        const record = await GithubIntegrationService.parseWebhookPullRequestReviewThreadComment(
+          payload,
+          context,
+        )
+        if (record) {
+          records.push(record)
+        }
         break
       }
 
       default:
     }
 
-    if (record === undefined) {
+    if (records.length === 0) {
       context.logger.warn(
         {
           event,
@@ -359,7 +467,7 @@ export class GithubIntegrationService extends IntegrationServiceBase {
       operations: [
         {
           type: Operations.UPSERT_ACTIVITIES_WITH_MEMBERS,
-          records: [record],
+          records,
         },
       ],
     }
@@ -424,6 +532,17 @@ export class GithubIntegrationService extends IntegrationServiceBase {
         break
       case GithubStreamType.DISCUSSION_COMMENTS:
         activities = await GithubIntegrationService.parseDiscussionComments(records, repo, context)
+        break
+      case GithubStreamType.PULL_REVIEW_THREADS:
+        // empty result data, we only care about comments inside review threads, this stream won't generate any activities
+        activities = []
+        break
+      case GithubStreamType.PULL_REVIEW_THREAD_COMMENTS:
+        activities = await GithubIntegrationService.parsePullRequestReviewThreadComments(
+          records,
+          repo,
+          context,
+        )
         break
       default:
         throw new Error(`Event not supported '${event}'!`)
@@ -565,38 +684,36 @@ export class GithubIntegrationService extends IntegrationServiceBase {
     return out
   }
 
-  public static async parseWebhookPullRequest(
+  public static async parseWebhookPullRequestReviewThreadComment(
     payload: any,
     context: IStepContext,
   ): Promise<AddActivitiesSingle | undefined> {
     let type: GithubActivityType
     let scoreGrid: gridEntry
     let timestamp: string
+    let sourceParentId: string
+    let sourceId: string
+    let body: string = ''
 
     switch (payload.action) {
-      case 'edited':
-      case 'opened':
-      case 'reopened': {
-        type = GithubActivityType.PULL_REQUEST_OPENED
-        scoreGrid = GitHubGrid.pullRequestOpened
-        timestamp = payload.pull_request.created_at
+      case 'created': {
+        type = GithubActivityType.PULL_REQUEST_REVIEW_THREAD_COMMENT
+        scoreGrid = GitHubGrid.comment
+        timestamp = payload.comment.created_at
+        sourceParentId = payload.pull_request.node_id
+        sourceId = payload.comment.node_id
+        body = payload.comment.body
         break
       }
-
-      case 'closed': {
-        type = GithubActivityType.PULL_REQUEST_CLOSED
-        scoreGrid = GitHubGrid.pullRequestClosed
-        timestamp = payload.pull_request.closed_at
-        break
-      }
-
       default: {
         return undefined
       }
     }
 
-    const pull = payload.pull_request
-    const member = await GithubIntegrationService.parseWebhookMember(pull.user.login, context)
+    const member = await GithubIntegrationService.parseWebhookMember(
+      payload.comment.user.login,
+      context,
+    )
 
     if (member) {
       return {
@@ -606,18 +723,450 @@ export class GithubIntegrationService extends IntegrationServiceBase {
         timestamp: moment(timestamp).utc().toDate(),
         platform: PlatformType.GITHUB,
         tenant: context.integration.tenantId,
-        sourceId: pull.node_id.toString(),
-        sourceParentId: null,
-        url: pull.html_url,
-        title: pull.title,
+        sourceId,
+        sourceParentId,
+        url: payload.comment.html_url,
+        title: '',
         channel: payload.repository.html_url,
-        body: pull.body,
+        body,
         score: scoreGrid.score,
         isContribution: scoreGrid.isContribution,
+        attributes: {
+          state: payload.pull_request.state,
+          authorAssociation: payload.pull_request.author_association,
+          labels: payload.pull_request.labels.map((l) => l.name),
+        },
       }
     }
 
     return undefined
+  }
+
+  public static async parseWebhookPullRequestReview(
+    payload: any,
+    context: IStepContext,
+  ): Promise<AddActivitiesSingle | undefined> {
+    let type: GithubActivityType
+    let scoreGrid: gridEntry
+    let timestamp: string
+    let sourceParentId: string
+    let sourceId: string
+    let body: string = ''
+
+    switch (payload.action) {
+      case 'submitted': {
+        // additional comments to existing review threads also result in submitted events
+        // since these will be handled in pull_request_review_comment.created events
+        // we're ignoring when state is commented and it has no body.
+        if (payload.review.state === 'commented' && payload.review.body === null) {
+          return undefined
+        }
+
+        type = GithubActivityType.PULL_REQUEST_REVIEWED
+        scoreGrid = GitHubGrid.pullRequestReviewed
+        timestamp = payload.review.submitted_at
+        sourceParentId = payload.pull_request.node_id.toString()
+        sourceId = `gen-PRR_${payload.pull_request.node_id.toString()}_${
+          payload.review.user.login
+        }_${payload.review.submitted_at}`
+        body = payload.review.body
+        break
+      }
+      default: {
+        return undefined
+      }
+    }
+
+    const review = payload.review
+    const pull = payload.pull_request
+    const member = await GithubIntegrationService.parseWebhookMember(review.user.login, context)
+
+    if (member) {
+      return {
+        member,
+        username: member.username[PlatformType.GITHUB].username,
+        type,
+        timestamp: moment(timestamp).utc().toDate(),
+        platform: PlatformType.GITHUB,
+        tenant: context.integration.tenantId,
+        sourceId,
+        sourceParentId,
+        url: pull.html_url,
+        title: '',
+        channel: payload.repository.html_url,
+        body,
+        score: scoreGrid.score,
+        isContribution: scoreGrid.isContribution,
+        attributes: {
+          state: pull.state,
+          authorAssociation: pull.author_association,
+          labels: pull.labels.map((l) => l.name),
+        },
+      }
+    }
+
+    return undefined
+  }
+
+  public static async parseWebhookPullRequest(
+    payload: any,
+    context: IStepContext,
+  ): Promise<AddActivitiesSingle | undefined> {
+    let type: GithubActivityType
+    let scoreGrid: gridEntry
+    let timestamp: string
+    let sourceParentId: string
+    let sourceId: string
+    let objectMember: Member = null
+    let objectMemberUsername: string = null
+    let body: string = ''
+    let title: string = ''
+
+    switch (payload.action) {
+      case 'edited':
+      case 'opened':
+      case 'reopened': {
+        type = GithubActivityType.PULL_REQUEST_OPENED
+        scoreGrid = GitHubGrid.pullRequestOpened
+        timestamp = payload.pull_request.created_at
+        sourceId = payload.pull_request.node_id.toString()
+        sourceParentId = null
+        body = payload.pull_request.body
+        title = payload.pull_request.title
+        break
+      }
+
+      case 'closed': {
+        type = GithubActivityType.PULL_REQUEST_CLOSED
+        scoreGrid = GitHubGrid.pullRequestClosed
+        timestamp = payload.pull_request.closed_at
+        sourceParentId = payload.pull_request.node_id.toString()
+        sourceId = `gen-CE_${payload.pull_request.node_id.toString()}_${
+          payload.pull_request.user.login
+        }_${moment(payload.pull_request.closed_at).utc().toISOString()}`
+        break
+      }
+
+      case 'assigned': {
+        type = GithubActivityType.PULL_REQUEST_ASSIGNED
+        scoreGrid = GitHubGrid.pullRequestAssigned
+        timestamp = payload.pull_request.updated_at
+        sourceParentId = payload.pull_request.node_id.toString()
+        sourceId = `gen-AE_${payload.pull_request.node_id.toString()}_${
+          payload.pull_request.user.login
+        }_${payload.pull_request.assignee.login}_${moment(payload.pull_request.updated_at)
+          .utc()
+          .toISOString()}`
+        objectMember = await GithubIntegrationService.parseWebhookMember(
+          payload.pull_request.assignee.login,
+          context,
+        )
+        objectMemberUsername = objectMember.username[PlatformType.GITHUB].username
+        break
+      }
+
+      case 'review_requested': {
+        type = GithubActivityType.PULL_REQUEST_REVIEW_REQUESTED
+        scoreGrid = GitHubGrid.pullRequestReviewRequested
+        timestamp = payload.pull_request.updated_at
+        sourceParentId = payload.pull_request.node_id.toString()
+        sourceId = `gen-RRE_${payload.pull_request.node_id.toString()}_${
+          payload.pull_request.user.login
+        }_${payload.requested_reviewer.login}_${moment(payload.pull_request.updated_at)
+          .utc()
+          .toISOString()}`
+        objectMember = await GithubIntegrationService.parseWebhookMember(
+          payload.requested_reviewer.login,
+          context,
+        )
+        objectMemberUsername = objectMember.username[PlatformType.GITHUB].username
+        break
+      }
+
+      case 'merged': {
+        type = GithubActivityType.PULL_REQUEST_MERGED
+        scoreGrid = GitHubGrid.pullRequestMerged
+        timestamp = payload.pull_request.merged_at
+        sourceParentId = payload.pull_request.node_id.toString()
+        sourceId = `gen-ME_${payload.pull_request.node_id.toString()}_${
+          payload.pull_request.merged_by.login
+        }_${moment(payload.pull_request.merged_at).utc().toISOString()}`
+        break
+      }
+
+      default: {
+        return undefined
+      }
+    }
+
+    const member = await GithubIntegrationService.parseWebhookMember(payload.sender.login, context)
+
+    const pull = payload.pull_request
+
+    if (member) {
+      return {
+        member,
+        username: member.username[PlatformType.GITHUB].username,
+        objectMemberUsername,
+        objectMember,
+        type,
+        timestamp: moment(timestamp).utc().toDate(),
+        platform: PlatformType.GITHUB,
+        tenant: context.integration.tenantId,
+        sourceId,
+        sourceParentId,
+        url: pull.html_url,
+        title,
+        channel: payload.repository.html_url,
+        body,
+        score: scoreGrid.score,
+        isContribution: scoreGrid.isContribution,
+        attributes: {
+          state: pull.state,
+          additions: pull.additions,
+          deletions: pull.deletions,
+          changedFiles: pull.changed_files,
+          authorAssociation: pull.author_association,
+          labels: pull.labels.map((l) => l.name),
+        },
+      }
+    }
+
+    return undefined
+  }
+
+  private static async parsePullRequestEvents(
+    records: any[],
+    pullRequest: AddActivitiesSingle,
+    context: IStepContext,
+  ): Promise<AddActivitiesSingle[]> {
+    const out: AddActivitiesSingle[] = []
+
+    for (const record of records) {
+      switch (record.__typename) {
+        case GithubPullRequestEvents.ASSIGN:
+          if (record.actor.login && record.assignee.login) {
+            const member = await GithubIntegrationService.parseMember(record.actor, context)
+            const objectMember = await GithubIntegrationService.parseMember(
+              record.assignee,
+              context,
+            )
+            out.push({
+              username: member.username[PlatformType.GITHUB].username,
+              objectMemberUsername: objectMember.username[PlatformType.GITHUB].username,
+              tenant: context.integration.tenantId,
+              platform: PlatformType.GITHUB,
+              type: GithubActivityType.PULL_REQUEST_ASSIGNED,
+              sourceId: `gen-AE_${pullRequest.sourceId}_${record.actor.login}_${
+                record.assignee.login
+              }_${moment(record.createdAt).utc().toISOString()}`,
+              sourceParentId: pullRequest.sourceId,
+              timestamp: moment(record.createdAt).utc().toDate(),
+              body: '',
+              url: pullRequest.url,
+              channel: pullRequest.channel,
+              title: '',
+              attributes: {
+                state: (pullRequest.attributes as any).state,
+                additions: (pullRequest.attributes as any).additions,
+                deletions: (pullRequest.attributes as any).deletions,
+                changedFiles: (pullRequest.attributes as any).changedFiles,
+                authorAssociation: (pullRequest.attributes as any).authorAssociation,
+                labels: (pullRequest.attributes as any).labels,
+              },
+              member,
+              objectMember,
+              score: GitHubGrid.pullRequestAssigned.score,
+              isContribution: GitHubGrid.pullRequestAssigned.isContribution,
+            })
+          }
+
+          break
+        case GithubPullRequestEvents.REQUEST_REVIEW:
+          if (record.actor.login && record.requestedReviewer.login) {
+            const member = await GithubIntegrationService.parseMember(record.actor, context)
+            const objectMember = await GithubIntegrationService.parseMember(
+              record.requestedReviewer,
+              context,
+            )
+            out.push({
+              username: member.username[PlatformType.GITHUB].username,
+              objectMemberUsername: objectMember.username[PlatformType.GITHUB].username,
+              tenant: context.integration.tenantId,
+              platform: PlatformType.GITHUB,
+              type: GithubActivityType.PULL_REQUEST_REVIEW_REQUESTED,
+              sourceId: `gen-RRE_${pullRequest.sourceId}_${record.actor.login}_${
+                record.requestedReviewer.login
+              }_${moment(record.createdAt).utc().toISOString()}`,
+              sourceParentId: pullRequest.sourceId,
+              timestamp: moment(record.createdAt).utc().toDate(),
+              body: '',
+              url: pullRequest.url,
+              channel: pullRequest.channel,
+              title: '',
+              attributes: {
+                state: (pullRequest.attributes as any).state,
+                additions: (pullRequest.attributes as any).additions,
+                deletions: (pullRequest.attributes as any).deletions,
+                changedFiles: (pullRequest.attributes as any).changedFiles,
+                authorAssociation: (pullRequest.attributes as any).authorAssociation,
+                labels: (pullRequest.attributes as any).labels,
+              },
+              member,
+              objectMember,
+              score: GitHubGrid.pullRequestReviewRequested.score,
+              isContribution: GitHubGrid.pullRequestReviewRequested.isContribution,
+            })
+          }
+
+          break
+        case GithubPullRequestEvents.REVIEW:
+          if (record.author.login) {
+            const member = await GithubIntegrationService.parseMember(record.author, context)
+            out.push({
+              username: member.username[PlatformType.GITHUB].username,
+              tenant: context.integration.tenantId,
+              platform: PlatformType.GITHUB,
+              type: GithubActivityType.PULL_REQUEST_REVIEWED,
+              sourceId: `gen-PRR_${pullRequest.sourceId}_${record.author.login}_${moment(
+                record.submittedAt,
+              )
+                .utc()
+                .toISOString()}`,
+              sourceParentId: pullRequest.sourceId,
+              timestamp: moment(record.submittedAt).utc().toDate(),
+              body: record.body,
+              url: pullRequest.url,
+              channel: pullRequest.channel,
+              title: '',
+              attributes: {
+                state: (pullRequest.attributes as any).state,
+                additions: (pullRequest.attributes as any).additions,
+                deletions: (pullRequest.attributes as any).deletions,
+                changedFiles: (pullRequest.attributes as any).changedFiles,
+                authorAssociation: (pullRequest.attributes as any).authorAssociation,
+                labels: (pullRequest.attributes as any).labels,
+              },
+              member,
+              score: GitHubGrid.pullRequestReviewed.score,
+              isContribution: GitHubGrid.pullRequestReviewed.isContribution,
+            })
+          }
+
+          break
+        case GithubPullRequestEvents.MERGE:
+          if (record.actor.login) {
+            const member = await GithubIntegrationService.parseMember(record.actor, context)
+            out.push({
+              username: member.username[PlatformType.GITHUB].username,
+              tenant: context.integration.tenantId,
+              platform: PlatformType.GITHUB,
+              type: GithubActivityType.PULL_REQUEST_MERGED,
+              sourceId: `gen-ME_${pullRequest.sourceId}_${record.actor.login}_${moment(
+                record.createdAt,
+              )
+                .utc()
+                .toISOString()}`,
+              sourceParentId: pullRequest.sourceId,
+              timestamp: moment(record.createdAt).utc().toDate(),
+              body: '',
+              url: pullRequest.url,
+              channel: pullRequest.channel,
+              title: '',
+              attributes: {
+                state: (pullRequest.attributes as any).state,
+                additions: (pullRequest.attributes as any).additions,
+                deletions: (pullRequest.attributes as any).deletions,
+                changedFiles: (pullRequest.attributes as any).changedFiles,
+                authorAssociation: (pullRequest.attributes as any).authorAssociation,
+                labels: (pullRequest.attributes as any).labels,
+              },
+              member,
+              score: GitHubGrid.pullRequestMerged.score,
+              isContribution: GitHubGrid.pullRequestMerged.isContribution,
+            })
+          }
+
+          break
+        case GithubPullRequestEvents.CLOSE:
+          if (record.actor.login) {
+            const member = await GithubIntegrationService.parseMember(record.actor, context)
+            out.push({
+              username: member.username[PlatformType.GITHUB].username,
+              tenant: context.integration.tenantId,
+              platform: PlatformType.GITHUB,
+              type: GithubActivityType.PULL_REQUEST_CLOSED,
+              sourceId: `gen-CE_${pullRequest.sourceId}_${record.actor.login}_${moment(
+                record.createdAt,
+              )
+                .utc()
+                .toISOString()}`,
+              sourceParentId: pullRequest.sourceId,
+              timestamp: moment(record.createdAt).utc().toDate(),
+              body: '',
+              url: pullRequest.url,
+              channel: pullRequest.channel,
+              title: '',
+              attributes: {
+                state: (pullRequest.attributes as any).state,
+                additions: (pullRequest.attributes as any).additions,
+                deletions: (pullRequest.attributes as any).deletions,
+                changedFiles: (pullRequest.attributes as any).changedFiles,
+                authorAssociation: (pullRequest.attributes as any).authorAssociation,
+                labels: (pullRequest.attributes as any).labels,
+              },
+              member,
+              score: GitHubGrid.pullRequestClosed.score,
+              isContribution: GitHubGrid.pullRequestClosed.isContribution,
+            })
+          }
+
+          break
+        default:
+          context.logger.warn(
+            `Unsupported pull request event:  ${record.__typename}. This event will not be parsed.`,
+          )
+      }
+    }
+    return out
+  }
+
+  private static async parsePullRequestReviewThreadComments(
+    records: any[],
+    repo: Repo,
+    context: IStepContext,
+  ): Promise<AddActivitiesSingle[]> {
+    const out: AddActivitiesSingle[] = []
+
+    for (const record of records) {
+      const member = await GithubIntegrationService.parseMember(record.author, context)
+      out.push({
+        tenant: context.integration.tenantId,
+        username: member.username[PlatformType.GITHUB].username,
+        platform: PlatformType.GITHUB,
+        type: GithubActivityType.PULL_REQUEST_REVIEW_THREAD_COMMENT,
+        sourceId: record.id,
+        sourceParentId: record.pullRequest.id,
+        timestamp: moment(record.createdAt).utc().toDate(),
+        body: record.bodyText,
+        url: record.url,
+        channel: record.pullRequest.url,
+        title: '',
+        attributes: {
+          state: record.pullRequest.state.toLowerCase(),
+          additions: record.pullRequest.additions,
+          deletions: record.pullRequest.deletions,
+          changedFiles: record.pullRequest.changedFiles,
+          authorAssociation: record.pullRequest.authorAssociation,
+          labels: record.pullRequest.labels?.nodes.map((l) => l.name),
+        },
+        member,
+        score: GitHubGrid.comment.score,
+        isContribution: GitHubGrid.comment.isContribution,
+      })
+    }
+
+    return out
   }
 
   private static async parsePullRequests(
@@ -643,11 +1192,25 @@ export class GithubIntegrationService extends IntegrationServiceBase {
         title: record.title,
         attributes: {
           state: record.state.toLowerCase(),
+          additions: record.additions,
+          deletions: record.deletions,
+          changedFiles: record.changedFiles,
+          authorAssociation: record.authorAssociation,
+          labels: record.labels?.nodes.map((l) => l.name),
         },
         member,
         score: GitHubGrid.pullRequestOpened.score,
         isContribution: GitHubGrid.pullRequestOpened.isContribution,
       })
+
+      // parse pr events
+      out.push(
+        ...(await GithubIntegrationService.parsePullRequestEvents(
+          record.timelineItems.nodes,
+          out[out.length - 1],
+          context,
+        )),
+      )
     }
 
     return out
@@ -1086,7 +1649,7 @@ export class GithubIntegrationService extends IntegrationServiceBase {
     }
 
     const member = await this.getMemberData(context, login)
-    const email = (member.email || '').trim()
+    const email = (member && member.email ? member.email : '').trim()
     if (email && email.length > 0) {
       await cache.setValue(login, email, 60 * 60)
       return email

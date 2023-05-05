@@ -21,7 +21,7 @@ export interface IActiveMemberFilter {
 export interface IMemberIdentity {
   platform: string
   username: string
-  integrationId: string
+  integrationId?: string
   sourceId?: string
   createdAt: string
 }
@@ -66,4 +66,14 @@ export const mapUsernameToIdentities = (username: any, platform?: string): any =
   }
 
   return mapped
+}
+export interface IMemberMergeSuggestion {
+  similarity: number
+  members: [string, string]
+}
+
+export enum IMemberMergeSuggestionsType {
+  USERNAME = 'username',
+  EMAIL = 'email',
+  SIMILARITY = 'similarity',
 }
