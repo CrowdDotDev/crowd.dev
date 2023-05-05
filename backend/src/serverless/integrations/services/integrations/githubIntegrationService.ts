@@ -14,7 +14,7 @@ import MemberAttributeSettingsService from '../../../../services/memberAttribute
 import { GithubMemberAttributes } from '../../../../database/attributes/member/github'
 import { MemberAttributeName } from '../../../../database/attributes/member/enums'
 import { TwitterMemberAttributes } from '../../../../database/attributes/member/twitter'
-import { GITHUB_CONFIG, IS_TEST_ENV, IS_GITHUB_COMMIT_DATA_ENABLED } from '../../../../config'
+import { GITHUB_CONFIG, IS_TEST_ENV } from '../../../../config'
 import StargazersQuery from '../../usecases/github/graphql/stargazers'
 import { IntegrationServiceBase } from '../integrationServiceBase'
 import { timeout } from '../../../../utils/timing'
@@ -220,7 +220,7 @@ export class GithubIntegrationService extends IntegrationServiceBase {
         }))
 
         let prCommitsStreams: IPendingStream[] = []
-        if (IS_GITHUB_COMMIT_DATA_ENABLED) {
+        if (GITHUB_CONFIG.isCommitDataEnabled) {
           prCommitsStreams = result.data.map((pr) => ({
             value: GithubStreamType.PULL_COMMITS,
             metadata: {
@@ -929,7 +929,7 @@ export class GithubIntegrationService extends IntegrationServiceBase {
 
       // this event is triggered whdn a head branch of PR receives a new commit
       case 'synchronize': {
-        if (!IS_GITHUB_COMMIT_DATA_ENABLED) {
+        if (GITHUB_CONFIG.isCommitDataEnabled) {
           return undefined
         }
         const prNumber = payload.number

@@ -54,8 +54,6 @@ export const LOG_LEVEL: string = process.env.LOG_LEVEL || 'info'
 
 export const IS_CLOUD_ENV: boolean = IS_PROD_ENV || IS_STAGING_ENV
 
-export const IS_GITHUB_COMMIT_DATA_ENABLED: boolean = process.env.GITHUB_COMMIT_DATA_ENABLED === 'true'
-
 export const SQS_CONFIG: SQSConfiguration = config.get<SQSConfiguration>('sqs')
 
 export const REDIS_CONFIG: RedisConfiguration = config.get<RedisConfiguration>('redis')
@@ -183,6 +181,7 @@ export const GITHUB_CONFIG: GithubConfiguration = KUBE_MODE
       clientId: process.env.GITHUB_CLIENT_ID,
       clientSecret: process.env.GITHUB_CLIENT_SECRET,
       webhookSecret: process.env.GITHUB_WEBHOOK_SECRET,
+      isCommitDataEnabled: process.env.GITHUB_IS_COMMIT_DATA_ENABLED === 'true',
     }
 
 export const SENDGRID_CONFIG: SendgridConfiguration = KUBE_MODE
