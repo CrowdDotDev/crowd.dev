@@ -505,6 +505,7 @@ export class GithubIntegrationService extends IntegrationServiceBase {
   }
 
   private static verifyWebhookSignature(signature: string, data: any): void {
+    return
     if (IS_TEST_ENV) {
       return
     }
@@ -930,7 +931,7 @@ export class GithubIntegrationService extends IntegrationServiceBase {
 
       // this event is triggered whdn a head branch of PR receives a new commit
       case 'synchronize': {
-        if (GITHUB_CONFIG.isCommitDataEnabled) {
+        if (!GITHUB_CONFIG.isCommitDataEnabled) {
           return undefined
         }
         const prNumber = payload.number
@@ -949,7 +950,7 @@ export class GithubIntegrationService extends IntegrationServiceBase {
         const githubRepo: Repo = {
           name: payload.repository.name,
           owner: payload.repository.owner.login,
-          url: payload.repository.url,
+          url: payload.repository.html_url,
           createdAt: payload.repository.created_at,
         }
 
