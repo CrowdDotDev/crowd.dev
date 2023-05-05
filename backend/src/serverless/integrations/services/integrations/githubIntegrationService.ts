@@ -220,7 +220,6 @@ export class GithubIntegrationService extends IntegrationServiceBase {
         }))
 
         let prCommitsStreams: IPendingStream[] = []
-        console.log('GITHUB_CONFIG.isCommitDataEnabled', GITHUB_CONFIG.isCommitDataEnabled)
         if (GITHUB_CONFIG.isCommitDataEnabled) {
           prCommitsStreams = result.data.map((pr) => ({
             value: GithubStreamType.PULL_COMMITS,
@@ -1222,8 +1221,6 @@ export class GithubIntegrationService extends IntegrationServiceBase {
     const out: AddActivitiesSingle[] = []
     const data = records[0] as PullRequestCommit
     const commits = data.repository.pullRequest.commits.nodes
-
-    console.log("DATA", data)
 
     for (const record of commits) {
       for (const author of record.commit.authors.nodes) {
