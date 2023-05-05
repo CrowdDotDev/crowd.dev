@@ -314,7 +314,6 @@ const submit = () => {
     platform:
       platformsForActivityType.value[form.activityType],
     ...form.config,
-    username: 'gaspergrom',
   };
 
   if (!isEdit.value) {
