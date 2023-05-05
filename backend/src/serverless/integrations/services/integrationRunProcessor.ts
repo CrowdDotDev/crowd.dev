@@ -123,6 +123,7 @@ export class IntegrationRunProcessor extends LoggingBase {
       if (existingRun) {
         logger.info('Integration is already being processed!')
         await this.integrationRunRepository.markError(req.runId, {
+          errorPoint: 'check_existing_run',
           message: 'Integration is already being processed!',
           existingRunId: existingRun.id,
         })
@@ -211,7 +212,14 @@ export class IntegrationRunProcessor extends LoggingBase {
           return
         }
 
-        throw err
+        logger.error(err, 'Error preprocessing integration!')
+        await this.integrationRunRepository.markError(req.runId, {
+          errorPoint: 'preprocessing',
+          message: err.message,
+          stack: err.stack,
+          errorString: JSON.stringify(err),
+        })
+        return
       }
 
       // detect streams to process for this integration

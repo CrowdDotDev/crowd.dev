@@ -10,6 +10,9 @@ import { IntegrationStreamState } from '../../types/integrationStreamTypes'
 import { CrowdJob } from '../../types/jobTypes'
 import { Logger, createChildLogger, createServiceChildLogger } from '../../utils/logging'
 import { processPaginated } from '../../utils/paginationProcessing'
+import IncomingWebhookRepository from '../../database/repositories/incomingWebhookRepository'
+import { sendNodeWorkerMessage } from '../../serverless/utils/nodeWorkerSQS'
+import { NodeWorkerProcessWebhookMessage } from '../../types/mq/nodeWorkerProcessWebhookMessage'
 
 const log = createServiceChildLogger('checkStuckIntegrationRuns')
 
@@ -18,7 +21,7 @@ const THRESHOLD_HOURS = 1
 
 let running = false
 
-async function checkStuckIntegrations(): Promise<void> {
+export const checkStuckIntegrations = async (): Promise<void> => {
   // find integrations that are in-progress but their last integration run is:
   // in final state (processed or error) and it has no streams
   // this happens when integration run is triggered but for some reason fails before streams are generated
@@ -170,7 +173,7 @@ export const isRunStuck = async (
   return stuck
 }
 
-async function checkRuns(): Promise<void> {
+export const checkRuns = async (): Promise<void> => {
   const dbOptions = await SequelizeRepository.getDefaultIRepositoryOptions()
   const runsRepo = new IntegrationRunRepository(dbOptions)
   const streamsRepo = new IntegrationStreamRepository(dbOptions)
@@ -196,6 +199,24 @@ async function checkRuns(): Promise<void> {
   )
 }
 
+export const checkStuckWebhooks = async (): Promise<void> => {
+  const dbOptions = await SequelizeRepository.getDefaultIRepositoryOptions()
+  const repo = new IncomingWebhookRepository(dbOptions)
+
+  await processPaginated(
+    async (page) => repo.findPending(page, 20),
+    async (webhooks) => {
+      for (const webhook of webhooks) {
+        log.warn({ id: webhook.id }, 'Found stuck webhook! Restarting it!')
+        await sendNodeWorkerMessage(
+          webhook.tenantId,
+          new NodeWorkerProcessWebhookMessage(webhook.tenantId, webhook.id),
+        )
+      }
+    },
+  )
+}
+
 const job: CrowdJob = {
   name: 'Detect & Fix Stuck Integration Runs',
   cronTime: cronGenerator.every(30).minutes(),
@@ -203,7 +224,7 @@ const job: CrowdJob = {
     if (!running) {
       running = true
       try {
-        await Promise.all([checkRuns(), checkStuckIntegrations()])
+        await Promise.all([checkRuns(), checkStuckIntegrations(), checkStuckWebhooks()])
       } finally {
         running = false
       }
