@@ -38,7 +38,9 @@ import { RedisCache } from '../../../../utils/redis/redisCache'
 import { gridEntry } from '../../grid/grid'
 import PullRequestReviewThreadsQuery from '../../usecases/github/graphql/pullRequestReviewThreads'
 import PullRequestReviewThreadCommentsQuery from '../../usecases/github/graphql/pullRequestReviewThreadComments'
-import PullRequestCommitsQuery, {PullRequestCommit} from '../../usecases/github/graphql/pullRequestCommits'
+import PullRequestCommitsQuery, {
+  PullRequestCommit,
+} from '../../usecases/github/graphql/pullRequestCommits'
 import IntegrationRunRepository from '../../../../database/repositories/integrationRunRepository'
 import { IntegrationRunState } from '../../../../types/integrationRunTypes'
 import IntegrationStreamRepository from '../../../../database/repositories/integrationStreamRepository'
@@ -968,12 +970,8 @@ export class GithubIntegrationService extends IntegrationServiceBase {
 
         await streamRepo.create(stream)
 
-        await sendNodeWorkerMessage(
-          tenantId,
-          new NodeWorkerIntegrationProcessMessage(run.id),
-        )
+        await sendNodeWorkerMessage(tenantId, new NodeWorkerIntegrationProcessMessage(run.id))
         return undefined
-
       }
 
       default: {
