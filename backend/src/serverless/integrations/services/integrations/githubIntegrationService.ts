@@ -220,6 +220,7 @@ export class GithubIntegrationService extends IntegrationServiceBase {
         }))
 
         let prCommitsStreams: IPendingStream[] = []
+        console.log('GITHUB_CONFIG.isCommitDataEnabled', GITHUB_CONFIG.isCommitDataEnabled)
         if (GITHUB_CONFIG.isCommitDataEnabled) {
           prCommitsStreams = result.data.map((pr) => ({
             value: GithubStreamType.PULL_COMMITS,
@@ -1221,13 +1222,15 @@ export class GithubIntegrationService extends IntegrationServiceBase {
     const data = records[0] as PullRequestCommit
     const commits = data.repository.pullRequest.commits.nodes
 
+    console.log("DATA", data)
+
     for (const record of commits) {
       for (const author of record.commit.authors.nodes) {
         const member = await GithubIntegrationService.parseMember(author, context)
         out.push({
           tenant: context.integration.tenantId,
-          username: member.username[PlatformType.GITHUB].username,
-          platform: 'git',
+          username: author.user.login,
+          platform: PlatformType.GIT,
           channel: `${repo.owner}/${repo.name}`,
           type: 'authored-commit',
           sourceId: record.commit.oid,
@@ -1236,12 +1239,24 @@ export class GithubIntegrationService extends IntegrationServiceBase {
           attributes: {
             insertions: record.commit.additions,
             deletions: record.commit.deletions,
-            lines: record.commit.changedFiles,
+            changedFiles: record.commit.changedFiles,
             isMerge: record.commit.parents.totalCount > 1,
-            isMainBranch: data.repository.pullRequest.baseRefName in ['master', 'main'],
-            branches: [data.repository.pullRequest.baseRefName, data.repository.pullRequest.headRefName],
+            isMainBranch: ['master', 'main'].includes(data.repository.pullRequest.baseRefName),
+            branches: [
+              data.repository.pullRequest.baseRefName,
+              data.repository.pullRequest.headRefName,
+            ],
           },
-          member,
+          member: {
+            username: {
+              [PlatformType.GIT]: {
+                username: author.user.login,
+                integrationId: context.integration.id,
+              },
+            } as PlatformIdentities,
+            displayName: member.displayName,
+            emails: member.emails,
+          },
         })
       }
     }

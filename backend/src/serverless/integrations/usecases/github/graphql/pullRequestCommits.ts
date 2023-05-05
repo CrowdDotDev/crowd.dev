@@ -89,8 +89,7 @@ class PullRequestCommitsQuery extends BaseQuery {
                 }
                 authors(first: ${maxAuthors}) {
                   nodes {
-                    user {
-                      ${BaseQuery.USER_SELECT}
+                    user ${BaseQuery.USER_SELECT}
                   }
                 }
               }
