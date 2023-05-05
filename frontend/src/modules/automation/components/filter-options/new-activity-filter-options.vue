@@ -143,7 +143,7 @@ const computedActivityTypeOptions = computed(() => {
 const getPlatformDetails = (platform) => CrowdIntegrations.getConfig(platform);
 
 onMounted(() => {
-    if (Object.keys(props.modelValue).length === 0) {
+  if (Object.keys(props.modelValue).length === 0) {
     emit('update:modelValue', defaultValue);
   }
 });

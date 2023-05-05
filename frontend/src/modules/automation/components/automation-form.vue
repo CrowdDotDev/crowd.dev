@@ -254,16 +254,19 @@ const doSubmit = () => {
   sending.value = true;
   const data = {
     name: form.name ?? i18n(`entities.automation.triggers.${form.trigger}`),
-    type,
+    type: type.value,
     trigger: form.trigger,
-    settings: form.settings,
+    settings: {
+      ...form.settings,
+    },
   };
   if (!isEdit.value) {
     createAutomation(data)
       .then(() => {
         emit('update:modelValue', null);
       })
-      .catch(() => {
+      .catch((err) => {
+        console.log(err);
         Message.error('There was an error creating automation, please try again later.');
       })
       .finally(() => {
