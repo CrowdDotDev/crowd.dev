@@ -27,9 +27,11 @@
         </div>
       </div>
     </div>
-    <div v-if="sourceId" class="text-gray-500 text-xs overflow-hidden text-ellipsis">
-      <span class="font-semibold">ID/Hash:</span> {{ sourceId }}
-    </div>
+    <el-tooltip v-if="sourceId" placement="top" :content="sourceId">
+      <div class="text-gray-500 text-xs max-w-sm whitespace-nowrap overflow-hidden text-ellipsis">
+        <span class="font-semibold">ID/Hash:</span> {{ sourceId }}
+      </div>
+    </el-tooltip>
   </div>
 </template>
 
