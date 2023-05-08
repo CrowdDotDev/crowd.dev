@@ -21,7 +21,7 @@ class SettingsService {
       throw new Error400(options.language, 'settings.activityTypes.errors.typeRequiredWhenCreating')
     }
 
-    const typeKey = data.type
+    const typeKey = data.type.toLowerCase()
 
     const activityTypes = SettingsRepository.getActivityTypes(options)
 
