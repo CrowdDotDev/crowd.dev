@@ -4,5 +4,4 @@ export default () => ({
   filter: {
     type: 'all',
   },
-  totalAutomations: 0,
 });

@@ -16,13 +16,6 @@ export default {
         return Promise.reject(err);
       });
   },
-  getAutomationCount() {
-    return AutomationService.list({}, null, 1, 0)
-      .then(({ count }) => {
-        this.totalAutomations = count;
-        return Promise.resolve(count);
-      });
-  },
   changeAutomationFilter(filter) {
     this.filter = filter;
     this.getAutomations();

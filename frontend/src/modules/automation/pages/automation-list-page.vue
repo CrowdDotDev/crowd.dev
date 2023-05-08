@@ -15,7 +15,7 @@
           </div>
         </div>
         <p class="pl-4 text-xs leading-5 text-gray-500">
-          {{ pluralize('automation', totalAutomations, true) }}
+          {{ pluralize('automation', automations.length, true) }}
         </p>
       </div>
       <div>
@@ -153,9 +153,9 @@ const editAutomation = ref(null);
 
 const automationStore = useAutomationStore();
 const {
-  totalAutomations, filter, loadingAutomations, automations,
+  filter, loadingAutomations, automations,
 } = storeToRefs(automationStore);
-const { getAutomations, getAutomationCount, changeAutomationFilter } = automationStore;
+const { getAutomations, changeAutomationFilter } = automationStore;
 
 const { currentTenant } = mapGetters('auth');
 
@@ -194,7 +194,6 @@ const createSlackAutomation = () => {
 };
 
 onMounted(() => {
-  getAutomationCount();
   getAutomations();
 });
 
