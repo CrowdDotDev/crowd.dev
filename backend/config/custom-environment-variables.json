@@ -114,7 +114,7 @@
     "appId": "CROWD_SLACK_APP_ID",
     "appToken": "CROWD_SLACK_APP_TOKEN"
   },
-  "slack-notifier": {
+  "slackNotifier": {
     "clientId": "CROWD_SLACK_NOTIFIER_CLIENT_ID",
     "clientSecret": "CROWD_SLACK_NOTIFIER_CLIENT_SECRET"
   },

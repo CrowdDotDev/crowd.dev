@@ -158,7 +158,7 @@ export const TWITTER_CONFIG: TwitterConfiguration = KUBE_MODE
 export const SLACK_CONFIG: SlackConfiguration = config.get<SlackConfiguration>('slack')
 
 export const SLACK_NOTIFIER_CONFIG: SlackNotifierConfiguration =
-  config.get<SlackNotifierConfiguration>('slack-notifier')
+  config.get<SlackNotifierConfiguration>('slackNotifier')
 
 export const GOOGLE_CONFIG: GoogleConfiguration = KUBE_MODE
   ? config.get<GoogleConfiguration>('google')
