@@ -27,7 +27,7 @@
         </div>
       </div>
     </div>
-    <div v-if="sourceId" class="text-gray-500 text-xs">
+    <div v-if="sourceId" class="text-gray-500 text-xs overflow-hidden text-ellipsis">
       <span class="font-semibold">ID/Hash:</span> {{ sourceId }}
     </div>
   </div>

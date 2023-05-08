@@ -92,7 +92,7 @@
       </app-conversation-reply>
     </div>
     <div
-      class="-mx-6 -mb-6 px-6 py-4 flex items-center justify-between bg-gray-50"
+      class="-mx-6 -mb-6 px-6 py-4 flex items-center justify-between bg-gray-50 whitespace-nowrap"
     >
       <app-conversation-item-footer :conversation="conversation" />
     </div>

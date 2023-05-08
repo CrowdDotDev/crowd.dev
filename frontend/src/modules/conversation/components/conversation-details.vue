@@ -108,7 +108,7 @@
         </button>
       </div>
     </div>
-    <div class="py-6">
+    <div class="py-6 whitespace-nowrap">
       <app-conversation-details-footer
         :conversation="conversation"
       />

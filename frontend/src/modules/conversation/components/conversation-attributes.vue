@@ -1,7 +1,7 @@
 <template>
   <div
     v-if="changes || insertions || deletions"
-    class="flex items-center"
+    class="flex items-center overflow-hidden"
   >
     <div
       :class="classes.container"
@@ -23,9 +23,15 @@
         -{{ deletions || 0 }}
       </div>
     </div>
-    <div v-if="sourceId" class="text-gray-500 text-xs">
-      <span class="font-semibold">ID/Hash:</span> {{ sourceId }}
-    </div>
+    <el-tooltip
+      v-if="sourceId"
+      :content="sourceId"
+      placement="top"
+    >
+      <div :class="classes.sourceId">
+        <span class="font-semibold">ID/Hash:</span> {{ sourceId }}
+      </div>
+    </el-tooltip>
   </div>
 </template>
 
@@ -66,6 +72,7 @@ const classes = computed(() => {
       container: 'flex items-center',
       changes: 'text-xs text-gray-600',
       changesNumbers: 'rounded-r-md flex items-center gap-1 text-xs ml-2',
+      sourceId: 'text-gray-500 text-xs overflow-hidden ml-8 text-ellipsis',
     };
   }
 
@@ -73,6 +80,7 @@ const classes = computed(() => {
     container: 'flex items-center tag h-8 !rounded-l-md !rounded-r-none',
     changes: 'text-xs text-gray-900',
     changesNumbers: 'bg-gray-50 h-8 rounded-r-md flex items-center gap-2 text-xs px-3 border-y border-r border-gray-200',
+    sourceId: 'text-gray-500 text-xs overflow-hidden ml-3 text-ellipsis',
   };
 });
 </script>

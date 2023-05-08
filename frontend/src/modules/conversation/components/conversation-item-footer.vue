@@ -10,7 +10,7 @@
       }"
     >
       <div
-        class="flex items-center gap-6"
+        class="flex items-center gap-8 w-9/12"
       >
         <div
           class="flex items-center"
