@@ -1,20 +1,26 @@
+<!-- eslint-disable vue/max-len -->
 <template>
   <app-widget-loading v-if="loading" />
-  <app-widget-empty v-else-if="!Object.keys(resultSetData).length" type="table" />
+  <app-widget-empty
+    v-else-if="!Object.keys(resultSetData).length"
+    type="table"
+  />
   <div v-else>
     <div class="mb-8 flex items-center w-full">
       <el-tooltip
         v-for="(value, platform, i) in resultSetData"
         :key="platform"
-        :content="`${value.name} ・ ${calculatePercentage(value.total, totalActivities)}%`"
+        :content="`${value.name} ・ ${calculatePercentage(
+          value.total,
+          totalActivities,
+        )}%`"
         :disabled="!showPlatformTooltip"
         effect="dark"
         placement="top"
       >
         <div
           ref="platformChartRef"
-          class="h-8 px-2 text-white text-center font-medium text-xs first:rounded-l-md last:rounded-r-md
-                  overflow-hidden whitespace-nowrap text-ellipsis truncate self-center leading-8"
+          class="h-8 px-2 text-white text-center font-medium text-xs first:rounded-l-md last:rounded-r-md overflow-hidden whitespace-nowrap text-ellipsis truncate self-center leading-8"
           :style="{
             backgroundColor: value.color,
             width: `${calculatePercentage(value.total, totalActivities)}%`,
@@ -56,7 +62,7 @@
             </div>
           </div>
           <div class="text-xs text-gray-500 font-normal">
-            {{ pluralize("activity", value.total, true) }} ・
+            {{ pluralize('activity', value.total, true) }} ・
             {{ calculatePercentage(value.total, totalActivities) }}%
           </div>
         </template>
@@ -69,7 +75,7 @@
             {{ activity.name }}
           </div>
           <div class="text-xs text-gray-500">
-            {{ pluralize("activity", activity.count, true) }} ・
+            {{ pluralize('activity', activity.count, true) }} ・
             {{ calculatePercentage(activity.count, totalActivities) }}%
           </div>
         </div>
@@ -80,13 +86,13 @@
 
 <script setup>
 import { computed, ref } from 'vue';
+import { storeToRefs } from 'pinia';
+import pluralize from 'pluralize';
 import AppWidgetLoading from '@/modules/widget/components/shared/widget-loading.vue';
 import AppWidgetEmpty from '@/modules/widget/components/shared/widget-empty.vue';
 import { CrowdIntegrations } from '@/integrations/integrations-config';
 import { useActivityTypeStore } from '@/modules/activity/store/type';
-import { storeToRefs } from 'pinia';
 import { toSentenceCase } from '@/utils/string';
-import pluralize from 'pluralize';
 
 const props = defineProps({
   loading: {
@@ -133,11 +139,16 @@ const resultSetData = computed(() => {
     activities.push({
       name: toSentenceCase(
         types.value.default[platform]?.[type]?.display.short
-          || types.value.custom[platform]?.[type]?.display.short || 'Conducted an activity',
+          || types.value.custom[platform]?.[type]?.display.short
+          || 'Conducted an activity',
       ),
       type,
       count,
     });
+
+    if (!CrowdIntegrations.getConfig(platform)) {
+      return acc;
+    }
 
     return {
       ...acc,
