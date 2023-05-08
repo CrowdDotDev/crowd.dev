@@ -605,7 +605,7 @@ export default class IntegrationService {
           settings: {
             remotes: integrationData.remotes,
           },
-          status: 'in-progress',
+          status: 'done',
         },
         transaction,
       )
