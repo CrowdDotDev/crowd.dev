@@ -1,11 +1,7 @@
 <template>
   <article v-if="loading || !activity">
     <div class="flex items-center">
-      <app-loading
-        height="32px"
-        width="32px"
-        radius="50%"
-      />
+      <app-loading height="32px" width="32px" radius="50%" />
       <div class="flex-grow pl-3">
         <app-loading height="12px" width="400px" />
       </div>
@@ -21,14 +17,15 @@
               :platform="activity.platform"
             />
           </template>
+          <template v-else-if="isGitConversation" #icon>
+            <app-activity-icon type="commit" :platform="activity.platform" />
+          </template>
         </app-avatar>
         <slot name="underAvatar" />
       </div>
       <div class="flex-grow pl-3" :class="bodyClasses">
         <div class="flex items-center h-5">
-          <p
-            class="text-2xs leading-5 text-gray-500 flex items-center"
-          >
+          <p class="text-2xs leading-5 text-gray-500 flex items-center">
             <app-member-display-name
               class="inline-flex items-center"
               custom-class="text-gray-500"
@@ -39,10 +36,7 @@
             <span>{{ timeAgo(activity.timestamp) }}</span>
             <span v-if="sentiment" class="mx-1">·</span>
           </p>
-          <app-activity-sentiment
-            v-if="sentiment"
-            :sentiment="sentiment"
-          />
+          <app-activity-sentiment v-if="sentiment" :sentiment="sentiment" />
         </div>
         <div>
           <app-activity-content
@@ -56,7 +50,16 @@
             }"
             :show-more="showMore"
             :limit="limit"
-          />
+          >
+            <template v-if="isGitConversation && activity.attributes" #details>
+              <app-conversation-reply-attributes
+                :changes="activity.attributes.lines"
+                changes-copy="line"
+                :insertions="activity.attributes.insertions"
+                :deletions="activity.attributes.deletions"
+              />
+            </template>
+          </app-activity-content>
         </div>
       </div>
     </div>
@@ -71,6 +74,8 @@ import AppMemberDisplayName from '@/modules/member/components/member-display-nam
 import AppActivityContent from '@/modules/activity/components/activity-content.vue';
 import AppActivitySentiment from '@/modules/activity/components/activity-sentiment.vue';
 import AppActivityIcon from '@/modules/activity/components/activity-icon.vue';
+import pluralize from 'pluralize';
+import AppConversationReplyAttributes from '@/modules/conversation/components/conversation-reply-attributes.vue';
 
 export default {
   name: 'AppConversationReply',
@@ -81,6 +86,7 @@ export default {
     AppLoading,
     AppAvatar,
     AppActivityIcon,
+    AppConversationReplyAttributes,
   },
   props: {
     activity: {
@@ -131,14 +137,23 @@ export default {
     isGithubConversation() {
       return this.activity.platform === 'github';
     },
+    isGitConversation() {
+      return this.activity.platform === 'git';
+    },
+    // Show activity for activity types coming from git
+    // and comment on PR reviews from github
     displayTitleBody() {
-      return this.activity.type === 'pull_request-review-thread-comment';
+      return (
+        this.activity.type === 'pull_request-review-thread-comment'
+        || this.activity.type.includes('commit')
+      );
     },
   },
   methods: {
     timeAgo(date) {
       return formatDateToTimeAgo(date);
     },
+    pluralize,
   },
 };
 </script>

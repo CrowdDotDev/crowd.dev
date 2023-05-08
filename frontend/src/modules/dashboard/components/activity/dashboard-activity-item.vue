@@ -90,17 +90,44 @@
             :show-more="true"
             :display-thread="false"
           >
-            <div v-if="activity.url" class="pt-6">
-              <a
-                :href="activity.url"
-                class="text-2xs text-gray-600 font-medium flex items-center"
-                target="_blank"
-                rel="noopener noreferrer"
-              ><i
-                 class="ri-lg ri-external-link-line mr-1"
-               />
-                <span class="block">Open on {{ platform.name }}</span></a>
-            </div>
+            <template v-if="isGitPlatform" #details>
+              <div v-if="activity.attributes">
+                <app-activity-content-footer
+                  :source-id="activity.sourceId"
+                  :changes="activity.attributes.lines"
+                  changes-copy="line"
+                  :insertions="activity.attributes.insertions"
+                  :deletions="activity.attributes.deletions"
+                />
+              </div>
+            </template>
+
+            <template v-if="isGitPlatform" #sideLink>
+              <div v-if="activity.url">
+                <a
+                  :href="activity.url"
+                  class="text-2xs text-gray-600 font-medium flex items-center"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                ><i
+                   class="ri-lg ri-external-link-line mr-1"
+                 />
+                  <span class="block">Open on {{ platform.name }}</span></a>
+              </div>
+            </template>
+            <template v-else #bottomLink>
+              <div v-if="activity.url" class="pt-6">
+                <a
+                  :href="activity.url"
+                  class="text-2xs text-gray-600 font-medium flex items-center"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                ><i
+                   class="ri-lg ri-external-link-line mr-1"
+                 />
+                  <span class="block">Open on {{ platform.name }}</span></a>
+              </div>
+            </template>
           </app-activity-content>
         </div>
       </div>
@@ -118,6 +145,7 @@ import AppActivityContent from '@/modules/activity/components/activity-content.v
 import AppActivityMessage from '@/modules/activity/components/activity-message.vue';
 import AppMemberDisplayName from '@/modules/member/components/member-display-name.vue';
 import AppActivitySentiment from '@/modules/activity/components/activity-sentiment.vue';
+import AppActivityContentFooter from '@/modules/activity/components/activity-content-footer.vue';
 
 export default {
   name: 'AppDashboardActivityItem',
@@ -129,6 +157,7 @@ export default {
     AppLoading,
     AppActivityDropdown,
     AppAvatar,
+    AppActivityContentFooter,
   },
   props: {
     activity: {
@@ -150,6 +179,9 @@ export default {
     },
     timeAgo() {
       return formatDateToTimeAgo(this.activity.timestamp);
+    },
+    isGitPlatform() {
+      return this.activity.platform === 'git';
     },
   },
 };

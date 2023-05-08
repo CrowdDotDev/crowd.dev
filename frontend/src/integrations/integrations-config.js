@@ -12,6 +12,7 @@ import zapier from './zapier';
 import crunchbase from './crunchbase';
 import make from './make';
 import other from './other';
+import git from './git';
 
 class IntegrationsConfig {
   get integrations() {
@@ -26,6 +27,7 @@ class IntegrationsConfig {
       linkedin,
       stackoverflow,
       zapier,
+      git,
       crunchbase,
       make,
       other,

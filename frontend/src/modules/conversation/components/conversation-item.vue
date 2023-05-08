@@ -94,7 +94,7 @@
     <div
       class="-mx-6 -mb-6 px-6 py-4 flex items-center justify-between bg-gray-50"
     >
-      <app-conversation-footer :conversation="conversation" />
+      <app-conversation-item-footer :conversation="conversation" />
     </div>
   </article>
 </template>
@@ -109,7 +109,7 @@ import AppActivityContent from '@/modules/activity/components/activity-content.v
 import AppConversationReply from '@/modules/conversation/components/conversation-reply.vue';
 import AppActivityMessage from '@/modules/activity/components/activity-message.vue';
 import AppActivitySentiment from '@/modules/activity/components/activity-sentiment.vue';
-import AppConversationFooter from '@/modules/conversation/components/conversation-footer.vue';
+import AppConversationItemFooter from '@/modules/conversation/components/conversation-item-footer.vue';
 import pluralize from 'pluralize';
 
 export default {
@@ -122,7 +122,7 @@ export default {
     AppActivitySentiment,
     AppLoading,
     AppAvatar,
-    AppConversationFooter,
+    AppConversationItemFooter,
   },
   props: {
     conversation: {

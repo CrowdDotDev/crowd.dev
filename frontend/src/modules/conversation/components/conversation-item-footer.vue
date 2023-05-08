@@ -2,8 +2,10 @@
   <app-conversation-footer-wrapper :conversation="conversation">
     <template
       #footer="{
+        sourceId,
         attributes,
         isGithubConversation,
+        isGitConversation,
         replyContent,
       }"
     >
@@ -23,6 +25,7 @@
           </p>
         </div>
         <div
+          v-if="replyContent"
           class="flex items-center"
         >
           <i
@@ -34,32 +37,14 @@
             {{ pluralize(replyContent.copy, replyContent.number, true) }}
           </p>
         </div>
-        <div
-          v-if="isGithubConversation
-            && (attributes?.changedFiles || attributes?.additions || attributes?.deletions)"
-          class="flex items-center"
-        >
-          <div
-            class="flex items-center"
-          >
-            <i
-              class="ri-file-edit-line text-base mr-2 text-gray-500"
-            />
-            <p
-              class="text-xs text-gray-600"
-            >
-              {{ pluralize('file change', attributes.changedFiles || 0, true) }}
-            </p>
-          </div>
-          <div class="rounded-r-md flex items-center gap-1 text-xs ml-2">
-            <div class="text-green-600">
-              +{{ attributes.additions || 0 }}
-            </div>
-            <div class="text-red-600">
-              -{{ attributes.deletions || 0 }}
-            </div>
-          </div>
-        </div>
+        <app-conversation-attributes
+          v-if="isGithubConversation || isGitConversation"
+          :changes="footerContent().changes"
+          :changes-copy="footerContent().changesCopy"
+          :insertions="footerContent().insertions"
+          :deletions="footerContent().deletions"
+          :source-id="isGitConversation && sourceId"
+        />
 
         <div v-if="isGithubConversation && attributes.labels?.length">
           <el-tooltip
@@ -93,17 +78,44 @@
 import pluralize from 'pluralize';
 import AppActivityLink from '@/modules/activity/components/activity-link.vue';
 import AppConversationFooterWrapper from '@/modules/conversation/components/conversation-footer-wrapper.vue';
+import AppConversationAttributes from '@/modules/conversation/components/conversation-attributes.vue';
 
-defineProps({
+const props = defineProps({
   conversation: {
     type: Object,
     required: true,
   },
 });
+
+const footerContent = () => {
+  const { attributes } = props.conversation.conversationStarter;
+  const isGitConversation = props.conversation.platform === 'git';
+  const isGithubConversation = props.conversation.platform === 'github';
+
+  if (isGitConversation) {
+    return {
+      changes: attributes.lines,
+      changesCopy: 'line',
+      insertions: attributes.insertions,
+      deletions: attributes.deletions,
+    };
+  }
+
+  if (isGithubConversation) {
+    return {
+      changes: attributes.changedFiles,
+      changesCopy: 'file change',
+      insertions: attributes.additions,
+      deletions: attributes.deletions,
+    };
+  }
+
+  return {};
+};
 </script>
 
 <script>
 export default {
-  name: 'AppConversationParentFooter',
+  name: 'AppConversationItemFooter',
 };
 </script>

@@ -2,8 +2,10 @@
   <slot
     name="footer"
     v-bind="{
+      sourceId,
       attributes,
       isGithubConversation,
+      isGitConversation,
       replyContent,
     }"
   />
@@ -20,8 +22,14 @@ const props = defineProps({
 });
 
 const attributes = computed(() => props.conversation.conversationStarter.attributes);
+const sourceId = computed(() => props.conversation.conversationStarter.sourceId);
 const isGithubConversation = computed(() => props.conversation.platform === 'github');
+const isGitConversation = computed(() => props.conversation.platform === 'git');
 const replyContent = computed(() => {
+  if (isGitConversation.value) {
+    return null;
+  }
+
   if (isGithubConversation.value) {
     const activities = props.conversation.lastReplies || props.conversation.activities;
     return {

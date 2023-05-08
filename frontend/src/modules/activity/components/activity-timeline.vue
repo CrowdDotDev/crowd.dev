@@ -91,11 +91,32 @@
               :activity="activity"
               :show-more="true"
             >
-              <div v-if="activity.url" class="pt-6">
-                <app-activity-link
-                  :activity="activity"
-                />
-              </div>
+              <template v-if="isGitPlatform(activity.platform)" #details>
+                <div v-if="activity.attributes">
+                  <app-activity-content-footer
+                    :source-id="activity.sourceId"
+                    :changes="activity.attributes.lines"
+                    changes-copy="line"
+                    :insertions="activity.attributes.insertions"
+                    :deletions="activity.attributes.deletions"
+                  />
+                </div>
+              </template>
+
+              <template v-if="isGitPlatform(activity.platform)" #sideLink>
+                <div v-if="activity.url">
+                  <app-activity-link
+                    :activity="activity"
+                  />
+                </div>
+              </template>
+              <template v-else #bottomLink>
+                <div v-if="activity.url" class="pt-6">
+                  <app-activity-link
+                    :activity="activity"
+                  />
+                </div>
+              </template>
             </app-activity-content>
           </div>
           <template #dot>
@@ -161,6 +182,7 @@ import { CrowdIntegrations } from '@/integrations/integrations-config';
 import AppMemberDisplayName from '@/modules/member/components/member-display-name.vue';
 import AppActivityLink from '@/modules/activity/components/activity-link.vue';
 import AuthCurrentTenant from '@/modules/auth/auth-current-tenant';
+import AppActivityContentFooter from '@/modules/activity/components/activity-content-footer.vue';
 
 const SearchIcon = h(
   'i', // type
@@ -197,6 +219,8 @@ const offset = ref(0);
 const noMore = ref(false);
 
 let filter = {};
+
+const isGitPlatform = (activityPlatform) => activityPlatform === 'git';
 
 const fetchActivities = async () => {
   const filterToApply = {

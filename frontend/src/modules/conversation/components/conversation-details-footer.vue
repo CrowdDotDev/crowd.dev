@@ -2,8 +2,10 @@
   <app-conversation-footer-wrapper :conversation="conversation">
     <template
       #footer="{
+        sourceId,
         attributes,
         isGithubConversation,
+        isGitConversation,
         replyContent,
       }"
     >
@@ -23,6 +25,7 @@
           </p>
         </div>
         <div
+          v-if="replyContent"
           class="flex items-center tag h-8 !rounded-md"
         >
           <i
@@ -34,32 +37,15 @@
             {{ pluralize(replyContent.copy, replyContent.number, true) }}
           </p>
         </div>
-        <div
-          v-if="isGithubConversation
-            && (attributes?.changedFiles || attributes?.additions || attributes?.deletions)"
-          class="flex items-center"
-        >
-          <div
-            class="flex items-center tag h-8 !rounded-l-md !rounded-r-none"
-          >
-            <i
-              class="ri-file-edit-line text-base mr-2 text-gray-400"
-            />
-            <p
-              class="text-xs text-gray-900"
-            >
-              {{ pluralize('file change', attributes.changedFiles || 0, true) }}
-            </p>
-          </div>
-          <div class="bg-gray-50 h-8 rounded-r-md flex items-center gap-2 text-xs px-3 border-y border-r border-gray-200">
-            <div class="text-green-600">
-              +{{ attributes.additions || 0 }}
-            </div>
-            <div class="text-red-600">
-              -{{ attributes.deletions || 0 }}
-            </div>
-          </div>
-        </div>
+        <app-conversation-attributes
+          v-if="isGithubConversation || isGitConversation"
+          :changes="footerContent().changes"
+          :changes-copy="footerContent().changesCopy"
+          :insertions="footerContent().insertions"
+          :deletions="footerContent().deletions"
+          :source-id="isGitConversation && sourceId"
+          display="drawer"
+        />
       </div>
       <div v-if="isGithubConversation && attributes.labels?.length" class="mt-5">
         <div class="uppercase font-semibold text-2xs tracking-1 text-gray-400 mb-2">
@@ -82,13 +68,40 @@
 <script setup>
 import pluralize from 'pluralize';
 import AppConversationFooterWrapper from '@/modules/conversation/components/conversation-footer-wrapper.vue';
+import AppConversationAttributes from '@/modules/conversation/components/conversation-attributes.vue';
 
-defineProps({
+const props = defineProps({
   conversation: {
     type: Object,
     required: true,
   },
 });
+
+const footerContent = () => {
+  const { attributes } = props.conversation.conversationStarter;
+  const isGitConversation = props.conversation.platform === 'git';
+  const isGithubConversation = props.conversation.platform === 'github';
+
+  if (isGitConversation) {
+    return {
+      changes: attributes.lines,
+      changesCopy: 'line',
+      insertions: attributes.insertions,
+      deletions: attributes.deletions,
+    };
+  }
+
+  if (isGithubConversation) {
+    return {
+      changes: attributes.changedFiles,
+      changesCopy: 'file change',
+      insertions: attributes.additions,
+      deletions: attributes.deletions,
+    };
+  }
+
+  return {};
+};
 </script>
 
 <script>

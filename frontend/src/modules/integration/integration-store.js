@@ -460,5 +460,34 @@ export default {
         commit('CREATE_ERROR');
       }
     },
+
+    async doGitConnect(
+      { commit },
+      { remotes },
+    ) {
+      try {
+        commit('CREATE_STARTED');
+
+        const integration = await IntegrationService.gitConnect(
+          remotes,
+        );
+
+        commit('CREATE_SUCCESS', integration);
+
+        Message.success(
+          'The first activities will show up in a couple of seconds. <br /> <br /> '
+          + 'This process might take a few minutes to finish, depending on the amount of data.',
+          {
+            title:
+              'Git integration created successfully',
+          },
+        );
+
+        router.push('/integrations');
+      } catch (error) {
+        Errors.handle(error);
+        commit('CREATE_ERROR');
+      }
+    },
   },
 };

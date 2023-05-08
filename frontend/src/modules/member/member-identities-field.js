@@ -50,6 +50,10 @@ export default class MemberIdentitiesField extends StringField {
         value: 'stackoverflow',
         label: 'Stack Overflow',
       },
+      {
+        value: 'git',
+        label: 'Git',
+      },
     ];
   }
 
