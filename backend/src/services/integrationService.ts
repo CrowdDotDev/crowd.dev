@@ -599,7 +599,7 @@ export default class IntegrationService {
     const transaction = await SequelizeRepository.createTransaction(this.options)
     let integration
     try {
-      await this.createOrUpdate(
+      integration = await this.createOrUpdate(
         {
           platform: PlatformType.GIT,
           settings: {
