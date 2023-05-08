@@ -9,7 +9,6 @@ export default async (req, res) => {
 
   const { url } = req.account
 
-  console.log('slack automation callback')
   await SettingsService.save({ slackWebHook: url }, req)
   await Axios.post(url, {
     text: 'Crowd.dev Notifier has been successfully connected.',

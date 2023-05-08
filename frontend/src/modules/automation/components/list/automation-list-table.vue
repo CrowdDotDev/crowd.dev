@@ -7,13 +7,7 @@
         :data="automations"
         row-key="id"
         border
-        :default-sort="{
-          prop: 'lastActive',
-          order: 'descending',
-        }"
       >
-        <!--        @sort-change="doChangeSort"-->
-        <!--      >-->
         <el-table-column label="Name">
           <template #default="scope">
             <div class="flex items-center py-4">

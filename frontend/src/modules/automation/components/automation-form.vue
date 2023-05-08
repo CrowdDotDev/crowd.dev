@@ -275,6 +275,7 @@ const doSubmit = () => {
   } else {
     updateAutomation(props.automation.id, data)
       .then(() => {
+        getAutomations();
         emit('update:modelValue', null);
       })
       .catch(() => {

@@ -12,7 +12,7 @@ import { shouldProcessActivity } from '../newActivityWorker'
 function createAutomationData(settings: NewActivitySettings): AutomationData {
   return {
     id: uuid(),
-    name: 'Test automation',
+    name: 'Activity test',
     state: AutomationState.ACTIVE,
     trigger: AutomationTrigger.NEW_ACTIVITY,
     settings,

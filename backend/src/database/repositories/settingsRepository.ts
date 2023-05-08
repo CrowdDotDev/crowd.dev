@@ -117,8 +117,6 @@ export default class SettingsRepository {
     settings.activityTypes = this.buildActivityTypes(record)
     settings.slackWebHook = !!settings.slackWebHook
 
-    console.log('populating relation')
-
     return settings
   }
 }

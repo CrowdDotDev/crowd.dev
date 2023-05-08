@@ -25,7 +25,6 @@ export const newActivityBlocks = (activity) => {
   const display = htmlToMrkdwn(`${activity.display.default}`)
   const reach = activity.member.reach?.[activity.platform] || activity.member.reach?.total
   const memberProperties = []
-  console.log(activity.member)
   if (activity.member.attributes.jobTitle?.default) {
     memberProperties.push(activity.member.attributes.jobTitle?.default)
   }
