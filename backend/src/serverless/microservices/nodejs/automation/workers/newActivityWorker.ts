@@ -8,12 +8,12 @@ import {
   AutomationType,
   NewActivitySettings,
 } from '../../../../../types/automationTypes'
-import {sendWebhookProcessRequest} from './util'
-import {prepareMemberPayload} from './newMemberWorker'
-import {createServiceChildLogger} from '../../../../../utils/logging'
+import { sendWebhookProcessRequest } from './util'
+import { prepareMemberPayload } from './newMemberWorker'
+import { createServiceChildLogger } from '../../../../../utils/logging'
 import AutomationExecutionRepository from '../../../../../database/repositories/automationExecutionRepository'
 import SequelizeRepository from '../../../../../database/repositories/sequelizeRepository'
-import MemberRepository from "../../../../../database/repositories/memberRepository";
+import MemberRepository from '../../../../../database/repositories/memberRepository'
 
 const log = createServiceChildLogger('newActivityWorker')
 
@@ -143,11 +143,12 @@ export default async (tenantId: string, activityId?: string, activityData?: any)
       if (activity === undefined) {
         activity = await ActivityRepository.findById(activityId, userContext)
       }
-      if(activity.member?.id){
+      if (activity.member?.id) {
         const member = await MemberRepository.findById(activity.member.id, userContext)
         activity = {
           ...activity,
           member,
+          engagement: member.score,
         }
       }
 

@@ -104,7 +104,7 @@
         <div>
           <el-button
             v-if="isEdit && hasFormChanged"
-            class="btn btn-link btn-link--primary"
+            class="btn btn-link btn-link--primary btn--md"
             @click="fillForm(automation)"
           >
             <i class="ri-arrow-go-back-line" />
@@ -175,7 +175,7 @@ const props = defineProps({
 
 const emit = defineEmits(['update:modelValue', 'update:automation']);
 
-const { createAutomation, updateAutomation } = useAutomationStore();
+const { createAutomation, updateAutomation, getAutomations } = useAutomationStore();
 
 const isDrawerOpen = computed({
   get() {
@@ -263,10 +263,10 @@ const doSubmit = () => {
   if (!isEdit.value) {
     createAutomation(data)
       .then(() => {
+        getAutomations();
         emit('update:modelValue', null);
       })
-      .catch((err) => {
-        console.log(err);
+      .catch(() => {
         Message.error('There was an error creating automation, please try again later.');
       })
       .finally(() => {

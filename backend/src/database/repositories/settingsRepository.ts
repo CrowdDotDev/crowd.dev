@@ -2,8 +2,8 @@ import lodash from 'lodash'
 import _get from 'lodash/get'
 import SequelizeRepository from './sequelizeRepository'
 import AuditLogRepository from './auditLogRepository'
-import {IRepositoryOptions} from './IRepositoryOptions'
-import {ActivityTypeSettings, DEFAULT_ACTIVITY_TYPE_SETTINGS} from '../../types/activityTypes'
+import { IRepositoryOptions } from './IRepositoryOptions'
+import { ActivityTypeSettings, DEFAULT_ACTIVITY_TYPE_SETTINGS } from '../../types/activityTypes'
 
 export default class SettingsRepository {
   static async findOrCreateDefault(defaults, options: IRepositoryOptions) {
@@ -66,7 +66,7 @@ export default class SettingsRepository {
     const transaction = SequelizeRepository.getTransaction(options)
 
     const settings = await options.database.settings.findOne({
-      where: {tenantId},
+      where: { tenantId },
       transaction,
     })
 

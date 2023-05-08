@@ -54,11 +54,11 @@ export function getSlackNotifierStrategy(): SlackStrategy {
         )
       }
       return done(null, {
-          accessToken: webhookData.access_token,
-          url: webhookData.incoming_webhook.url,
-          configurationUrl: webhookData.incoming_webhook.url,
-          channelId: webhookData.incoming_webhook.url,
-          channelName: webhookData.incoming_webhook.channel
+        accessToken: webhookData.access_token,
+        url: webhookData.incoming_webhook.url,
+        configurationUrl: webhookData.incoming_webhook.url,
+        channelId: webhookData.incoming_webhook.url,
+        channelName: webhookData.incoming_webhook.channel,
       })
     },
   )

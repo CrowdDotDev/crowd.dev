@@ -72,8 +72,7 @@ const { active } = mapGetters('integration');
 
 const computedPlatformOptions = computed(() => active.value.map((item) => ({
   value: item.platform,
-  label: CrowdIntegrations.getConfig(item.platform)
-    .name,
+  label: CrowdIntegrations.getConfig(item.platform)?.name || 'Custom',
 })));
 
 const getPlatformDetails = (platform) => CrowdIntegrations.getConfig(platform);

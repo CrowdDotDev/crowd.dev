@@ -1,7 +1,7 @@
 import passport from 'passport'
 import Permissions from '../../security/permissions'
 import PermissionChecker from '../../services/user/permissionChecker'
-import {getSlackNotifierStrategy} from "../../services/auth/passportStrategies/slackStrategy";
+import { getSlackNotifierStrategy } from '../../services/auth/passportStrategies/slackStrategy'
 
 export default async (req, res, next) => {
   new PermissionChecker(req).validateHas(Permissions.values.automationCreate)
@@ -12,9 +12,7 @@ export default async (req, res, next) => {
   }
 
   const authenticator = passport.authenticate(getSlackNotifierStrategy(), {
-    scope: [
-      'incoming-webhook',
-    ],
+    scope: ['incoming-webhook'],
     state: Buffer.from(JSON.stringify(state)).toString('base64'),
   })
 

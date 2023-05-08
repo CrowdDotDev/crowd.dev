@@ -16,7 +16,7 @@
         <!--      >-->
         <el-table-column label="Name">
           <template #default="scope">
-            <div class="flex items-center py-4 pl-2">
+            <div class="flex items-center py-4">
               <div class="w-6">
                 <img v-if="scope.row.type === 'webhook'" alt="Webhook" src="/images/automation/webhook.png" class="w-6">
                 <img v-else-if="scope.row.type === 'slack'" alt="Slack" src="https://cdn-icons-png.flaticon.com/512/3800/3800024.png" class="w-6">
@@ -40,7 +40,7 @@
         </el-table-column>
         <el-table-column label="Created on" width="150">
           <template #default="scope">
-            <div class="h-full flex items-center pl-3">
+            <div class="h-full flex items-center">
               <el-tooltip
                 :content="formattedDate(scope.row.createdAt)"
                 placement="top"
@@ -52,7 +52,7 @@
         </el-table-column>
         <el-table-column label="Last execution" width="155">
           <template #default="scope">
-            <div class="h-full flex items-center pl-3">
+            <div class="h-full flex items-center">
               <el-tooltip
                 :disabled="!scope.row.lastExecutionAt"
                 :content="
@@ -71,7 +71,7 @@
         </el-table-column>
         <el-table-column label="Status" width="130">
           <template #default="scope">
-            <div class="h-full flex items-center pl-3">
+            <div class="h-full flex items-center">
               <app-automation-toggle :automation="scope.row" />
             </div>
           </template>

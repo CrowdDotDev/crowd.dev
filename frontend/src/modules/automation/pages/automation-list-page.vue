@@ -40,13 +40,17 @@
                 <h6 class="text-xs leading-5 font-medium mb-0.5 text-gray-900">
                   Webhook
                 </h6>
-                <p class="text-2xs leading-4.5 text-gray-500 break-words">
+                <p class="text-2xs leading-4.5 text-gray-500 text-left break-normal">
                   Send webhook payloads to automate workflows
                 </p>
               </div>
             </div>
           </div>
-          <div class="popover-item h-auto py-2 px-2.5" @click="authenticateSlack">
+          <div
+            class="popover-item  h-auto py-2 px-2.5"
+            :class="{ 'hover:bg-white !cursor-default': !slackConnected }"
+            @click="createSlackAutomation"
+          >
             <div class="flex">
               <div class="mt-0.5">
                 <img alt="Slack" src="https://cdn-icons-png.flaticon.com/512/3800/3800024.png" class="w-4 max-w-4">
@@ -55,12 +59,13 @@
                 <h6 class="text-xs leading-5 font-medium mb-0.5 text-gray-900">
                   Slack notification
                 </h6>
-                <p class="text-2xs leading-4.5 text-gray-500 break-words">
+                <p class="text-2xs leading-4.5 text-gray-500 text-left break-normal">
                   Send notifications to your Slack workspace
                 </p>
                 <el-button
                   v-if="!slackConnected"
                   class="btn btn--primary btn--sm !h-8 mt-3"
+                  @click="authenticateSlack"
                 >
                   Install app
                 </el-button>
@@ -76,7 +81,7 @@
       class="app-page-spinner"
     />
     <app-automation-list-table
-      v-else-if="totalAutomations > 0"
+      v-else-if="automations.length > 0"
       class="pt-4"
       @open-executions-drawer="showAutomationExecutions = $event"
       @open-edit-automation-drawer="updateAutomation($event)"
@@ -84,10 +89,22 @@
 
     <!-- Empty state for no automations configured -->
     <app-empty-state-cta
+      v-else-if="filter.type === 'slack'"
+      icon="ri-flow-chart"
+      title="No Slack notifications yet"
+      description="Send Slack notifications when a new activity happens, or a new member joins your community"
+    />
+    <app-empty-state-cta
+      v-else-if="filter.type === 'webhooks'"
+      icon="ri-flow-chart"
+      title="No Webhooks yet"
+      description="Create webhook actions when a new activity happens, or a new member joins your community"
+    />
+    <app-empty-state-cta
       v-else
       icon="ri-flow-chart"
       title="Start to automate manual tasks"
-      description="Create webhook actions or send Slack notifications when a new activity happens, or a new member joins your community"
+      description="Create webhook actions or send Slack notifications when a new activity happens, or a new member joins your community "
     />
 
     <!-- Add/Edit Webhook form drawer -->
@@ -135,7 +152,9 @@ const showAutomationExecutions = ref(null);
 const editAutomation = ref(null);
 
 const automationStore = useAutomationStore();
-const { totalAutomations, filter, loadingAutomations } = storeToRefs(automationStore);
+const {
+  totalAutomations, filter, loadingAutomations, automations,
+} = storeToRefs(automationStore);
 const { getAutomations, getAutomationCount, changeAutomationFilter } = automationStore;
 
 const { currentTenant } = mapGetters('auth');
@@ -165,9 +184,11 @@ const slackConnectUrl = computed(() => {
 });
 
 const authenticateSlack = () => {
-  if (!slackConnected.value) {
-    window.open(slackConnectUrl.value, '_self');
-  } else {
+  window.open(slackConnectUrl.value, '_self');
+};
+
+const createSlackAutomation = () => {
+  if (slackConnected.value) {
     createAutomation('slack');
   }
 };

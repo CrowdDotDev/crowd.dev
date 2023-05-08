@@ -1,7 +1,7 @@
 import Axios from 'axios'
 import Permissions from '../../security/permissions'
 import PermissionChecker from '../../services/user/permissionChecker'
-import SettingsService from "../../services/settingsService";
+import SettingsService from '../../services/settingsService'
 
 export default async (req, res) => {
   new PermissionChecker(req).validateHas(Permissions.values.automationCreate)
@@ -10,9 +10,9 @@ export default async (req, res) => {
   const { url } = req.account
 
   console.log('slack automation callback')
-  await SettingsService.save({slackWebHook: url}, req)
+  await SettingsService.save({ slackWebHook: url }, req)
   await Axios.post(url, {
-    "text": "Crowd.dev Notifier has been successfully connected."
+    text: 'Crowd.dev Notifier has been successfully connected.',
   })
 
   res.redirect(redirectUrl)

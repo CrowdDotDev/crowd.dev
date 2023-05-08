@@ -8,9 +8,9 @@ import {
   NewMemberSettings,
 } from '../../../../../types/automationTypes'
 import MemberRepository from '../../../../../database/repositories/memberRepository'
-import {sendWebhookProcessRequest} from './util'
-import {MemberAutomationData} from '../../messageTypes'
-import {createServiceChildLogger} from '../../../../../utils/logging'
+import { sendWebhookProcessRequest } from './util'
+import { MemberAutomationData } from '../../messageTypes'
+import { createServiceChildLogger } from '../../../../../utils/logging'
 import AutomationExecutionRepository from '../../../../../database/repositories/automationExecutionRepository'
 import SequelizeRepository from '../../../../../database/repositories/sequelizeRepository'
 
