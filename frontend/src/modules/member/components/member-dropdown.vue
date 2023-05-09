@@ -124,6 +124,19 @@
             class="text-xs"
           >Mark as bot</span>
         </el-dropdown-item>
+        <el-dropdown-item
+          v-if="member.attributes.isBot?.default"
+          class="h-10"
+          :command="{
+            action: 'memberUnmarkAsBot',
+            member: member,
+          }"
+          :disabled="isEditLockedForSampleData"
+        >
+          <i class="ri-robot-line text-base mr-2" /><span
+            class="text-xs"
+          >Unmark as bot</span>
+        </el-dropdown-item>
         <el-divider class="border-gray-200" />
         <el-dropdown-item
           class="h-10"
@@ -263,12 +276,12 @@ export default {
         } else {
           this.doFind(command.member.id);
         }
-      } else if (command.action === 'memberMarkAsBot') {
+      } else if (command.action === 'memberMarkAsBot' || command.action === 'memberUnmarkAsBot') {
         await MemberService.update(command.member.id, {
           attributes: {
             ...command.member.attributes,
             isBot: {
-              default: true,
+              default: command.action === 'memberMarkAsBot',
             },
           },
         });
