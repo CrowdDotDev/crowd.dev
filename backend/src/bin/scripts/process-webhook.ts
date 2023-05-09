@@ -75,8 +75,8 @@ if (parameters.help || (!parameters.webhook && !parameters.processErrors)) {
     const options = await SequelizeRepository.getDefaultIRepositoryOptions()
     const repo = new IncomingWebhookRepository(options)
     let currentPage = 1
-    const PROCESS_QUEUE_THRESHOLD = 2
-    const PAGE_SIZE = 10000
+    const PROCESS_QUEUE_THRESHOLD = 100
+    const PAGE_SIZE = 1000
 
     if (parameters.processPlatformErrors) {
       let webhookType: WebhookType
