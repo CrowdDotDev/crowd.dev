@@ -1,6 +1,4 @@
-import Permissions from '../../security/permissions'
 import SettingsService from '../../services/settingsService'
-import PermissionChecker from '../../services/user/permissionChecker'
 
 /**
  * GET /tenant/{tenantId}/settings/activity/types
@@ -17,8 +15,6 @@ import PermissionChecker from '../../services/user/permissionChecker'
  * @response 429 - Too many requests
  */
 export default async (req, res) => {
-  new PermissionChecker(req).validateHas(Permissions.values.settingsRead)
-
   const payload = SettingsService.listActivityTypes(req)
 
   await req.responseHandler.success(req, res, payload)

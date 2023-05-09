@@ -6,37 +6,28 @@
       class="app-page-spinner"
     />
     <div v-else class="flex flex-col gap-8">
-      <app-widget-total-members
-        :filters="filters"
-        :is-public-view="isPublicView"
-      />
-      <app-widget-active-members
-        :filters="filters"
-        :is-public-view="isPublicView"
-      />
-      <app-widget-active-members-area
-        :filters="filters"
-        :is-public-view="isPublicView"
-      />
-      <app-widget-active-leaderboard-members
-        v-if="!isPublicView"
-        :platforms="filters.platform.value"
-        :team-members="filters.teamMembers"
-      />
+      <div
+        v-for="widget in MEMBERS_REPORT.widgets"
+        :key="widget.id"
+      >
+        <component
+          :is="widget.component"
+          v-if="!(widget.hideInPublicView && isPublicView)"
+          :filters="filters"
+          :is-public-view="isPublicView"
+        />
+      </div>
     </div>
   </div>
 </template>
 
 <script setup>
 import { computed, onMounted, defineProps } from 'vue';
-import AppWidgetActiveMembers from '@/modules/widget/components/v2/member/widget-active-members.vue';
-import AppWidgetTotalMembers from '@/modules/widget/components/v2/member/widget-total-members.vue';
-import AppWidgetActiveMembersArea from '@/modules/widget/components/v2/member/widget-active-members-area.vue';
-import AppWidgetActiveLeaderboardMembers from '@/modules/widget/components/v2/member/widget-active-leaderboard-members.vue';
 import {
   mapGetters,
   mapActions,
 } from '@/shared/vuex/vuex.helpers';
+import MEMBERS_REPORT from '@/modules/report/templates/config/members';
 
 defineProps({
   filters: {

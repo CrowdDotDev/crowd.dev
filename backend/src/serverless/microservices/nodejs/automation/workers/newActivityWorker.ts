@@ -13,6 +13,7 @@ import { prepareMemberPayload } from './newMemberWorker'
 import { createServiceChildLogger } from '../../../../../utils/logging'
 import AutomationExecutionRepository from '../../../../../database/repositories/automationExecutionRepository'
 import SequelizeRepository from '../../../../../database/repositories/sequelizeRepository'
+import MemberRepository from '../../../../../database/repositories/memberRepository'
 
 const log = createServiceChildLogger('newActivityWorker')
 
@@ -142,6 +143,14 @@ export default async (tenantId: string, activityId?: string, activityData?: any)
       if (activity === undefined) {
         activity = await ActivityRepository.findById(activityId, userContext)
       }
+      if (activity.member?.id) {
+        const member = await MemberRepository.findById(activity.member.id, userContext)
+        activity = {
+          ...activity,
+          member,
+          engagement: member?.score || 0,
+        }
+      }
 
       for (const automation of automations) {
         if (await shouldProcessActivity(activity, automation)) {
@@ -154,6 +163,16 @@ export default async (tenantId: string, activityId?: string, activityData?: any)
                 automation,
                 activity.id,
                 prepareActivityPayload(activity),
+                AutomationType.WEBHOOK,
+              )
+              break
+            case AutomationType.SLACK:
+              await sendWebhookProcessRequest(
+                tenantId,
+                automation,
+                activity.id,
+                prepareActivityPayload(activity),
+                AutomationType.SLACK,
               )
               break
             default:

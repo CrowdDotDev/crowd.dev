@@ -10,4 +10,5 @@ export default {
   image: '/images/integrations/hackernews.svg',
   connectComponent: HackerNewsConnect,
   url: (username) => `https://news.ycombinator.com/user?id=${username}`,
+  chartColor: '#FF712E',
 };
