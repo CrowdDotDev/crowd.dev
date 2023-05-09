@@ -148,7 +148,7 @@ export default async (tenantId: string, activityId?: string, activityData?: any)
         activity = {
           ...activity,
           member,
-          engagement: member.score,
+          engagement: member?.score || 0,
         }
       }
 

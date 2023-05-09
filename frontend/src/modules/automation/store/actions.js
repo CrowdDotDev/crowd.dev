@@ -20,6 +20,15 @@ export default {
     this.filter = filter;
     this.getAutomations();
   },
+  changePublishState(id, published) {
+    AutomationService.update(id, {
+      state: published ? 'active' : 'disabled',
+    })
+      .then((res) => {
+        this.getAutomations();
+        return Promise.resolve(res);
+      });
+  },
   createAutomation(data) {
     return AutomationService.create(data)
       .then((res) => {
