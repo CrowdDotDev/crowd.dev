@@ -1,8 +1,8 @@
 export default () => {
   before(() => {
     cy.wait(1000);
-    cy.get('.filter-dropdown button').click();
-    cy.get('#filterList li').contains('Activity type').click();
+    cy.get('[data-qa="filter-dropdown"]').click();
+    cy.get('[data-qa="filter-list-item"]').contains('Activity type').click();
   });
 
   beforeEach(() => {
@@ -13,36 +13,51 @@ export default () => {
 
   after(() => {
     cy.scrollTo(0, 0);
-    cy.get('.filter-list .filter-list-item:first-child button:last-child').click({ force: true });
+    cy.get('[data-qa="filter-list-chip-close"]').click({ force: true });
   });
 
   it('has apply button disabled if no activity type selected', () => {
-    cy.get('.filter-type-select + div button.btn--primary').should('be.disabled');
+    cy.get('[data-qa="filter-apply"]').should('be.disabled');
   });
 
   it('Filters by each activity type', () => {
-    cy.get('.filter-type-select .filter-type-select-option').each((option) => {
-      const optionTypeText = option.text().trim();
-      const optionTypeWords = optionTypeText.toLowerCase().split(' ').filter((word) => word.length > 1);
-      cy.get('.filter-type-select .filter-type-select-option').contains(optionTypeText).click();
-      cy.get('.filter-type-select + div button.btn--primary').click();
+    cy.get('[data-qa="filter-select-option"]').each((option) => {
+      const optionValue = option.attr('data-qa-value');
+      cy.wrap(option).click();
+      cy.get('[data-qa="filter-apply"]').click();
       cy.wait('@apiMemberQuery');
       cy.get('@apiMemberQuery').then((req) => {
         const { rows } = req.response.body;
         rows.forEach((row) => {
-          const activity = row.activityTypes.some((type) => {
-            const [, activityType] = type.split(':');
-            const activityTypeWords = activityType.toLowerCase().split(/[-_]/).filter((word) => word.length > 1);
-            return optionTypeWords.some((word) => activityTypeWords.some((aword) => word.includes(aword)));
-          });
-          cy.wrap(activity).should('eq', true);
+          cy.wrap(row.activityTypes).should('include', optionValue);
         });
       });
       cy.scrollTo(0, 0);
       cy.wait(300);
-      cy.get('.filter-list .filter-list-item:first-child button:first-child').click({ force: true });
-      cy.get('.filter-list .filter-list-item:first-child button:first-child').click({ force: true });
-      cy.get('.filter-type-select .filter-type-select-option').contains(optionTypeText).click();
+      cy.get('[data-qa="filter-list-chip"]').click({ force: true });
+      cy.get('[data-qa="filter-list-chip"]').click({ force: true });
+      cy.wrap(option).click();
+    });
+  });
+
+  it('Filters by each activity type - exclude', () => {
+    cy.get('[data-qa="filter-include-switch"]').click();
+    cy.get('[data-qa="filter-select-option"]').each((option) => {
+      const optionValue = option.attr('data-qa-value');
+      cy.wrap(option).click();
+      cy.get('[data-qa="filter-apply"]').click();
+      cy.wait('@apiMemberQuery');
+      cy.get('@apiMemberQuery').then((req) => {
+        const { rows } = req.response.body;
+        rows.forEach((row) => {
+          cy.wrap(row.activityTypes).should('not.include', optionValue);
+        });
+      });
+      cy.scrollTo(0, 0);
+      cy.wait(300);
+      cy.get('[data-qa="filter-list-chip"]').click({ force: true });
+      cy.get('[data-qa="filter-list-chip"]').click({ force: true });
+      cy.wrap(option).click();
     });
   });
 };

@@ -8,6 +8,7 @@
     >
       <el-button
         class="filter-dropdown-trigger"
+        data-qa="filter-dropdown"
         :class="isExpanded ? 'is-expanded' : ''"
       >
         <i class="ri-lg ri-filter-3-line mr-2" />
@@ -22,6 +23,7 @@
             placeholder="Search..."
             class="filter-dropdown-search"
             :prefix-icon="SearchIcon"
+            data-qa="filter-list-search"
           />
         </div>
         <div id="filterList">
@@ -30,6 +32,7 @@
             :key="item.name"
             :class="item.selected ? 'is-selected' : ''"
             :command="item"
+            data-qa="filter-list-item"
           >
             <div class="flex items-center justify-between">
               <span class="block">{{ item.label }}</span>

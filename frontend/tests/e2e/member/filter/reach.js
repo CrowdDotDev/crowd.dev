@@ -1,36 +1,36 @@
 export default () => {
   before(() => {
     cy.wait(1000);
-    cy.get('.filter-dropdown button').click();
-    cy.get('#filterList li').contains('Reach').click();
+    cy.get('[data-qa="filter-dropdown"]').click();
+    cy.get('[data-qa="filter-list-item"]').contains('Reach').click();
   });
 
   beforeEach(() => {
     cy.scrollTo(0, 0);
     cy.server();
     cy.route('POST', '/api/tenant/*/member/query').as('apiMemberQuery');
-    cy.get('.filter-list .filter-list-item:first-child button:first-child').as('filterItem');
+    cy.get('[data-qa="filter-list-chip"]').as('filterItem');
   });
 
   after(() => {
     cy.scrollTo(0, 0);
-    cy.get('.filter-list .filter-list-item:first-child button:last-child').click({ force: true });
+    cy.get('[data-qa="filter-list-chip-close"]').click({ force: true });
   });
 
   it('has apply button disabled if empty field', () => {
-    cy.get('.filter-type-number + div button.btn--primary').should('be.disabled');
+    cy.get('[data-qa="filter-apply"]').should('be.disabled');
   });
 
   // TODO: uncomment when bug is fixed
   // it('has apply button disabled if negative value', () => {
-  //   cy.get('.filter-type-number input[type="number"]').type('{selectall}').type(-621);
-  //   cy.get('.filter-type-number + div button.btn--primary').should('be.disabled');
+  //   cy.get('[data-qa="filter-number-from"]').type('{selectall}').type(-621);
+  //   cy.get('[data-qa="filter-apply"]').should('be.disabled');
   // });
 
   it('fetches members with exactly 621 reach', () => {
-    cy.get('.filter-type-number input[type="number"]').type('{selectall}').type(621);
+    cy.get('[data-qa="filter-number-from"]').type('{selectall}').type(621);
 
-    cy.get('.filter-type-number + div button.btn--primary').click();
+    cy.get('[data-qa="filter-apply"]').click();
     cy.wait('@apiMemberQuery');
 
     cy.get('@apiMemberQuery').then((req) => {
@@ -45,9 +45,9 @@ export default () => {
     cy.get('@filterItem').click();
     cy.wait(100);
     cy.get('@filterItem').click();
-    cy.get('.filter-type-number input[type="number"]').type('{selectall}').type(621);
-    cy.get('.filter-type-number .el-switch').click();
-    cy.get('.filter-type-number + div button.btn--primary').click();
+    cy.get('[data-qa="filter-number-from"]').type('{selectall}').type(621);
+    cy.get('[data-qa="filter-include-switch"]').click();
+    cy.get('[data-qa="filter-apply"]').click();
     cy.wait('@apiMemberQuery');
 
     cy.get('@apiMemberQuery').then((req) => {
@@ -62,11 +62,11 @@ export default () => {
     cy.get('@filterItem').click();
     cy.wait(100);
     cy.get('@filterItem').click();
-    cy.get('.filter-type-number .inline-select-input').click();
-    cy.get('li.el-dropdown-menu__item').contains('<').click();
-    cy.get('.filter-type-number .el-switch').click();
+    cy.get('.filter-list-item-popper [data-qa="filter-inline-select"]').click();
+    cy.get('[data-qa="filter-inline-select-option"]').contains('<').click();
+    cy.get('[data-qa="filter-include-switch"]').click();
 
-    cy.get('.filter-type-number + div button.btn--primary').as('filterApply').click();
+    cy.get('[data-qa="filter-apply"]').as('filterApply').click();
     cy.wait('@apiMemberQuery');
 
     cy.get('@apiMemberQuery').then((req) => {
@@ -81,11 +81,11 @@ export default () => {
     cy.get('@filterItem').click();
     cy.wait(100);
     cy.get('@filterItem').click();
-    cy.get('.filter-type-number .inline-select-input').click();
-    cy.get('li.el-dropdown-menu__item').contains('<').click();
-    cy.get('.filter-type-number .el-switch').click();
+    cy.get('.filter-list-item-popper [data-qa="filter-inline-select"]').click();
+    cy.get('[data-qa="filter-inline-select-option"]').contains('<').click();
+    cy.get('[data-qa="filter-include-switch"]').click();
 
-    cy.get('.filter-type-number + div button.btn--primary').as('filterApply').click();
+    cy.get('[data-qa="filter-apply"]').as('filterApply').click();
     cy.wait('@apiMemberQuery');
 
     cy.get('@apiMemberQuery').then((req) => {
@@ -100,10 +100,10 @@ export default () => {
     cy.get('@filterItem').click();
     cy.wait(100);
     cy.get('@filterItem').click();
-    cy.get('.filter-type-number .inline-select-input').click();
-    cy.get('li.el-dropdown-menu__item').contains('<=').click();
-    cy.get('.filter-type-number .el-switch').click();
-    cy.get('.filter-type-number + div button.btn--primary').as('filterApply').click();
+    cy.get('.filter-list-item-popper [data-qa="filter-inline-select"]').click();
+    cy.get('[data-qa="filter-inline-select-option"]').contains('<=').click();
+    cy.get('[data-qa="filter-include-switch"]').click();
+    cy.get('[data-qa="filter-apply"]').as('filterApply').click();
     cy.wait('@apiMemberQuery');
 
     cy.get('@apiMemberQuery').then((req) => {
@@ -118,10 +118,10 @@ export default () => {
     cy.get('@filterItem').click();
     cy.wait(100);
     cy.get('@filterItem').click();
-    cy.get('.filter-type-number .inline-select-input').click();
-    cy.get('li.el-dropdown-menu__item').contains('<=').click();
-    cy.get('.filter-type-number .el-switch').click();
-    cy.get('.filter-type-number + div button.btn--primary').as('filterApply').click();
+    cy.get('.filter-list-item-popper [data-qa="filter-inline-select"]').click();
+    cy.get('[data-qa="filter-inline-select-option"]').contains('<=').click();
+    cy.get('[data-qa="filter-include-switch"]').click();
+    cy.get('[data-qa="filter-apply"]').as('filterApply').click();
     cy.wait('@apiMemberQuery');
 
     cy.get('@apiMemberQuery').then((req) => {
@@ -136,10 +136,10 @@ export default () => {
     cy.get('@filterItem').click();
     cy.wait(100);
     cy.get('@filterItem').click();
-    cy.get('.filter-type-number .inline-select-input').click();
-    cy.get('li.el-dropdown-menu__item').contains('>').click();
-    cy.get('.filter-type-number .el-switch').click();
-    cy.get('.filter-type-number + div button.btn--primary').as('filterApply').click();
+    cy.get('.filter-list-item-popper [data-qa="filter-inline-select"]').click();
+    cy.get('[data-qa="filter-inline-select-option"]').contains('>').click();
+    cy.get('[data-qa="filter-include-switch"]').click();
+    cy.get('[data-qa="filter-apply"]').as('filterApply').click();
     cy.wait('@apiMemberQuery');
 
     cy.get('@apiMemberQuery').then((req) => {
@@ -154,10 +154,10 @@ export default () => {
     cy.get('@filterItem').click();
     cy.wait(100);
     cy.get('@filterItem').click();
-    cy.get('.filter-type-number .inline-select-input').click();
-    cy.get('li.el-dropdown-menu__item').contains('>').click();
-    cy.get('.filter-type-number .el-switch').click();
-    cy.get('.filter-type-number + div button.btn--primary').as('filterApply').click();
+    cy.get('.filter-list-item-popper [data-qa="filter-inline-select"]').click();
+    cy.get('[data-qa="filter-inline-select-option"]').contains('>').click();
+    cy.get('[data-qa="filter-include-switch"]').click();
+    cy.get('[data-qa="filter-apply"]').as('filterApply').click();
     cy.wait('@apiMemberQuery');
 
     cy.get('@apiMemberQuery').then((req) => {
@@ -172,10 +172,10 @@ export default () => {
     cy.get('@filterItem').click();
     cy.wait(100);
     cy.get('@filterItem').click();
-    cy.get('.filter-type-number .inline-select-input').click();
-    cy.get('li.el-dropdown-menu__item').contains('>=').click();
-    cy.get('.filter-type-number .el-switch').click();
-    cy.get('.filter-type-number + div button.btn--primary').as('filterApply').click();
+    cy.get('.filter-list-item-popper [data-qa="filter-inline-select"]').click();
+    cy.get('[data-qa="filter-inline-select-option"]').contains('>=').click();
+    cy.get('[data-qa="filter-include-switch"]').click();
+    cy.get('[data-qa="filter-apply"]').as('filterApply').click();
     cy.wait('@apiMemberQuery');
 
     cy.get('@apiMemberQuery').then((req) => {
@@ -190,10 +190,10 @@ export default () => {
     cy.get('@filterItem').click();
     cy.wait(100);
     cy.get('@filterItem').click();
-    cy.get('.filter-type-number .inline-select-input').click();
-    cy.get('li.el-dropdown-menu__item').contains('>=').click();
-    cy.get('.filter-type-number .el-switch').click();
-    cy.get('.filter-type-number + div button.btn--primary').as('filterApply').click();
+    cy.get('.filter-list-item-popper [data-qa="filter-inline-select"]').click();
+    cy.get('[data-qa="filter-inline-select-option"]').contains('>=').click();
+    cy.get('[data-qa="filter-include-switch"]').click();
+    cy.get('[data-qa="filter-apply"]').as('filterApply').click();
     cy.wait('@apiMemberQuery');
 
     cy.get('@apiMemberQuery').then((req) => {
@@ -205,18 +205,18 @@ export default () => {
   });
 
   it('has apply button disabled if range end value is empty', () => {
-    cy.get('.filter-list .filter-list-item:first-child button:first-child').click();
-    cy.get('.filter-type-number .inline-select-input').click();
-    cy.get('li.el-dropdown-menu__item').contains('between').click();
-    cy.get('.filter-type-number input[type="number"]').eq(0).type('{selectall}').type(200);
-    cy.get('.filter-type-number + div button.btn--primary').should('be.disabled');
+    cy.get('[data-qa="filter-list-chip"]').click();
+    cy.get('.filter-list-item-popper [data-qa="filter-inline-select"]').click();
+    cy.get('[data-qa="filter-inline-select-option"]').contains('between').click();
+    cy.get('[data-qa="filter-number-from"]').type('{selectall}').type(200);
+    cy.get('[data-qa="filter-apply"]').should('be.disabled');
   });
 
   it('fetches members with activity count between 2 and 6', () => {
-    cy.get('.filter-type-number input[type="number"]').eq(0).type('{selectall}').type(200);
-    cy.get('.filter-type-number input[type="number"]').eq(1).type('{selectall}').type(1000);
-    cy.get('.filter-type-number .el-switch').click();
-    cy.get('.filter-type-number + div button.btn--primary').as('filterApply').click();
+    cy.get('[data-qa="filter-number-from"]').type('{selectall}').type(200);
+    cy.get('[data-qa="filter-number-to"]').type('{selectall}').type(1000);
+    cy.get('[data-qa="filter-include-switch"]').click();
+    cy.get('[data-qa="filter-apply"]').as('filterApply').click();
     cy.wait('@apiMemberQuery');
 
     cy.get('@apiMemberQuery').then((req) => {
@@ -232,10 +232,10 @@ export default () => {
     cy.get('@filterItem').click();
     cy.wait(100);
     cy.get('@filterItem').click();
-    cy.get('.filter-type-number input[type="number"]').eq(0).type('{selectall}').type(200);
-    cy.get('.filter-type-number input[type="number"]').eq(1).type('{selectall}').type(1000);
-    cy.get('.filter-type-number .el-switch').click();
-    cy.get('.filter-type-number + div button.btn--primary').as('filterApply').click();
+    cy.get('[data-qa="filter-number-from"]').type('{selectall}').type(200);
+    cy.get('[data-qa="filter-number-to"]').type('{selectall}').type(1000);
+    cy.get('[data-qa="filter-include-switch"]').click();
+    cy.get('[data-qa="filter-apply"]').as('filterApply').click();
     cy.wait('@apiMemberQuery');
 
     cy.get('@apiMemberQuery').then((req) => {
@@ -248,9 +248,9 @@ export default () => {
 
   // TODO: uncomment when bug is fixed
   // it('has apply button disabled if range is invalid', () => {
-  //   cy.get('.filter-list .filter-list-item:first-child button:first-child').click();
-  //   cy.get('.filter-type-number input[type="number"]').eq(0).type('{selectall}').type(1000);
-  //   cy.get('.filter-type-number input[type="number"]').eq(1).type('{selectall}').type(200);
-  //   cy.get('.filter-type-number + div button.btn--primary').should('be.disabled');
+  //   cy.get('[data-qa="filter-list-chip"]').click();
+  //   cy.get('[data-qa="filter-number-from"]').type('{selectall}').type(1000);
+  //   cy.get('[data-qa="filter-number-to"]').type('{selectall}').type(200);
+  //   cy.get('[data-qa="filter-apply"]').should('be.disabled');
   // });
 };

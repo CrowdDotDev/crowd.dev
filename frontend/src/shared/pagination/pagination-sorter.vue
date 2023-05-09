@@ -6,6 +6,7 @@
     <span
       v-if="total"
       id="totalCount"
+      data-qa="members-total"
       class="text-gray-500 text-sm"
     ><span v-if="hasPageCounter">{{ count.minimum.toLocaleString('en') }}-{{
        count.maximum.toLocaleString('en')

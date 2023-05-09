@@ -14,12 +14,13 @@ import customAttributes from './filter/custom-attributes';
 
 export default () => {
   it('Searches inside filter', () => {
-    cy.get('.filter-dropdown button').click();
-    cy.get('#filterSearch').clear().type('activi');
-    cy.get('#filterList li').each((filter) => {
+    cy.get('[data-qa="filter-dropdown"]').click();
+    cy.get('[data-qa="filter-list-search"]').clear().type('activi');
+    cy.get('[data-qa="filter-list-item"]').each((filter) => {
       cy.wrap(filter.text().toLowerCase()).should('contain', 'activi');
     });
-    cy.get('#filterSearch').clear();
+    cy.get('[data-qa="filter-list-search"]').clear();
+    cy.get('[data-qa="filter-dropdown"]').click();
   });
 
   describe('Search', search);

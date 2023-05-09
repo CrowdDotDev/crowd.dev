@@ -13,6 +13,7 @@
           <el-button-group class="btn-group">
             <el-button
               class="filter-list-item-btn filter-list-item-btn-open"
+              data-qa="filter-list-chip"
               :class="`${
                 filter.expanded ? 'is-expanded' : ''
               } ${hasValue ? 'is-active' : ''}`"
@@ -29,6 +30,7 @@
             <el-button
               class="filter-list-item-btn filter-list-item-btn__close"
               :class="hasValue ? 'is-active' : ''"
+              data-qa="filter-list-chip-close"
               @click.stop="handleDestroy"
             >
               <i class="ri-close-line" />
@@ -83,6 +85,7 @@
             id="applyFilter"
             class="btn btn--primary btn--sm"
             :disabled="shouldDisableApplyButton"
+            data-qa="filter-apply"
             @click="handleApply"
           >
             Apply

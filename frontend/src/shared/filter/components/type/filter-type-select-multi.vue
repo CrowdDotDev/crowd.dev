@@ -11,6 +11,8 @@
       :class="`${option.selected ? 'is-selected' : ''} ${
         option.soon ? 'is-disabled' : ''
       }`"
+      data-qa="filter-select-option"
+      :data-qa-value="option.value"
       @click="handleOptionClick(option)"
     >
       <div class="flex items-center justify-between h-4">

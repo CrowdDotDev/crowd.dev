@@ -1,8 +1,8 @@
 export default () => {
   before(() => {
     cy.wait(1000);
-    cy.get('.filter-dropdown button').click();
-    cy.get('#filterList li').contains('Avg. sentiment').click();
+    cy.get('[data-qa="filter-dropdown"]').click();
+    cy.get('[data-qa="filter-list-item"]').contains('Avg. sentiment').click();
   });
 
   beforeEach(() => {
@@ -13,16 +13,16 @@ export default () => {
 
   after(() => {
     cy.scrollTo(0, 0);
-    cy.get('.filter-list .filter-list-item:first-child button:last-child').click({ force: true });
+    cy.get('[data-qa="filter-list-chip-close"]').click({ force: true });
   });
 
   it('has apply button disabled if no sentiment selected', () => {
-    cy.get('.filter-type-select + div button.btn--primary').should('be.disabled');
+    cy.get('[data-qa="filter-apply"]').should('be.disabled');
   });
 
   it('Filters by positive sentiment', () => {
-    cy.get('.filter-type-select .filter-type-select-option').contains('Positive').click();
-    cy.get('.filter-type-select + div button.btn--primary').click();
+    cy.get('[data-qa="filter-select-option"]').contains('Positive').click();
+    cy.get('[data-qa="filter-apply"]').click();
     cy.wait('@apiMemberQuery');
     cy.get('@apiMemberQuery').then((req) => {
       const { rows } = req.response.body;
@@ -32,15 +32,15 @@ export default () => {
     });
     cy.scrollTo(0, 0);
     cy.wait(300);
-    cy.get('.filter-list .filter-list-item:first-child button:first-child').click({ force: true });
-    cy.get('.filter-list .filter-list-item:first-child button:first-child').click({ force: true });
-    cy.get('.filter-type-select .filter-type-select-option').contains('Positive').click();
+    cy.get('[data-qa="filter-list-chip"]').click({ force: true });
+    cy.get('[data-qa="filter-list-chip"]').click({ force: true });
+    cy.get('[data-qa="filter-select-option"]').contains('Positive').click();
   });
 
   it('Filters by positive sentiment - exclude', () => {
-    cy.get('.filter-type-select .filter-type-select-option').contains('Positive').click();
-    cy.get('.filter-list-item-popper .el-switch').click();
-    cy.get('.filter-type-select + div button.btn--primary').click();
+    cy.get('[data-qa="filter-select-option"]').contains('Positive').click();
+    cy.get('[data-qa="filter-include-switch"]').click();
+    cy.get('[data-qa="filter-apply"]').click();
     cy.wait('@apiMemberQuery');
     cy.get('@apiMemberQuery').then((req) => {
       const { rows } = req.response.body;
@@ -50,15 +50,15 @@ export default () => {
     });
     cy.scrollTo(0, 0);
     cy.wait(300);
-    cy.get('.filter-list .filter-list-item:first-child button:first-child').click({ force: true });
-    cy.get('.filter-list .filter-list-item:first-child button:first-child').click({ force: true });
-    cy.get('.filter-type-select .filter-type-select-option').contains('Positive').click();
+    cy.get('[data-qa="filter-list-chip"]').click({ force: true });
+    cy.get('[data-qa="filter-list-chip"]').click({ force: true });
+    cy.get('[data-qa="filter-select-option"]').contains('Positive').click();
   });
 
   it('Filters by neutral sentiment', () => {
-    cy.get('.filter-type-select .filter-type-select-option').contains('Neutral').click();
-    cy.get('.filter-list-item-popper .el-switch').click();
-    cy.get('.filter-type-select + div button.btn--primary').click();
+    cy.get('[data-qa="filter-select-option"]').contains('Neutral').click();
+    cy.get('[data-qa="filter-include-switch"]').click();
+    cy.get('[data-qa="filter-apply"]').click();
     cy.wait('@apiMemberQuery');
     cy.get('@apiMemberQuery').then((req) => {
       const { rows } = req.response.body;
@@ -69,15 +69,15 @@ export default () => {
     });
     cy.scrollTo(0, 0);
     cy.wait(300);
-    cy.get('.filter-list .filter-list-item:first-child button:first-child').click({ force: true });
-    cy.get('.filter-list .filter-list-item:first-child button:first-child').click({ force: true });
-    cy.get('.filter-type-select .filter-type-select-option').contains('Neutral').click();
+    cy.get('[data-qa="filter-list-chip"]').click({ force: true });
+    cy.get('[data-qa="filter-list-chip"]').click({ force: true });
+    cy.get('[data-qa="filter-select-option"]').contains('Neutral').click();
   });
 
   it('Filters by neutral sentiment - exclude', () => {
-    cy.get('.filter-type-select .filter-type-select-option').contains('Neutral').click();
-    cy.get('.filter-list-item-popper .el-switch').click();
-    cy.get('.filter-type-select + div button.btn--primary').click();
+    cy.get('[data-qa="filter-select-option"]').contains('Neutral').click();
+    cy.get('[data-qa="filter-include-switch"]').click();
+    cy.get('[data-qa="filter-apply"]').click();
     cy.wait('@apiMemberQuery');
     cy.get('@apiMemberQuery').then((req) => {
       const { rows } = req.response.body;
@@ -87,15 +87,15 @@ export default () => {
     });
     cy.scrollTo(0, 0);
     cy.wait(300);
-    cy.get('.filter-list .filter-list-item:first-child button:first-child').click({ force: true });
-    cy.get('.filter-list .filter-list-item:first-child button:first-child').click({ force: true });
-    cy.get('.filter-type-select .filter-type-select-option').contains('Neutral').click();
+    cy.get('[data-qa="filter-list-chip"]').click({ force: true });
+    cy.get('[data-qa="filter-list-chip"]').click({ force: true });
+    cy.get('[data-qa="filter-select-option"]').contains('Neutral').click();
   });
 
   it('Filters by negative sentiment', () => {
-    cy.get('.filter-type-select .filter-type-select-option').contains('Negative').click();
-    cy.get('.filter-list-item-popper .el-switch').click();
-    cy.get('.filter-type-select + div button.btn--primary').click();
+    cy.get('[data-qa="filter-select-option"]').contains('Negative').click();
+    cy.get('[data-qa="filter-include-switch"]').click();
+    cy.get('[data-qa="filter-apply"]').click();
     cy.wait('@apiMemberQuery');
     cy.get('@apiMemberQuery').then((req) => {
       const { rows } = req.response.body;
@@ -105,15 +105,15 @@ export default () => {
     });
     cy.scrollTo(0, 0);
     cy.wait(300);
-    cy.get('.filter-list .filter-list-item:first-child button:first-child').click({ force: true });
-    cy.get('.filter-list .filter-list-item:first-child button:first-child').click({ force: true });
-    cy.get('.filter-type-select .filter-type-select-option').contains('Negative').click();
+    cy.get('[data-qa="filter-list-chip"]').click({ force: true });
+    cy.get('[data-qa="filter-list-chip"]').click({ force: true });
+    cy.get('[data-qa="filter-select-option"]').contains('Negative').click();
   });
 
   it('Filters by negative sentiment - exclude', () => {
-    cy.get('.filter-type-select .filter-type-select-option').contains('Negative').click();
-    cy.get('.filter-list-item-popper .el-switch').click();
-    cy.get('.filter-type-select + div button.btn--primary').click();
+    cy.get('[data-qa="filter-select-option"]').contains('Negative').click();
+    cy.get('[data-qa="filter-include-switch"]').click();
+    cy.get('[data-qa="filter-apply"]').click();
     cy.wait('@apiMemberQuery');
     cy.get('@apiMemberQuery').then((req) => {
       const { rows } = req.response.body;
@@ -123,8 +123,8 @@ export default () => {
     });
     cy.scrollTo(0, 0);
     cy.wait(300);
-    cy.get('.filter-list .filter-list-item:first-child button:first-child').click({ force: true });
-    cy.get('.filter-list .filter-list-item:first-child button:first-child').click({ force: true });
-    cy.get('.filter-type-select .filter-type-select-option').contains('Negative').click();
+    cy.get('[data-qa="filter-list-chip"]').click({ force: true });
+    cy.get('[data-qa="filter-list-chip"]').click({ force: true });
+    cy.get('[data-qa="filter-select-option"]').contains('Negative').click();
   });
 };

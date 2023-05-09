@@ -2,6 +2,7 @@
   <div
     v-if="hasSocialIdentities"
     class="flex items-center gap-3 identities"
+    data-qa="member-identities"
   >
     <div class="flex gap-2 items-center">
       <app-platform

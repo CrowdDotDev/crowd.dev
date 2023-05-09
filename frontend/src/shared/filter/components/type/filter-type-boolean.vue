@@ -10,6 +10,7 @@
     <div
       class="filter-type-select-option"
       :class="model === true ? 'is-selected' : ''"
+      data-qa="filter-boolean-true"
       @click="handleOptionClick(true)"
     >
       True
@@ -21,6 +22,7 @@
     <div
       class="filter-type-select-option"
       :class="model === false ? 'is-selected' : ''"
+      data-qa="filter-boolean-false"
       @click="handleOptionClick(false)"
     >
       False

@@ -1,29 +1,29 @@
 export default () => {
   before(() => {
     cy.wait(1000);
-    cy.get('.filter-dropdown button').click();
-    cy.get('#filterList li').contains('Enriched member').click();
+    cy.get('[data-qa="filter-dropdown"]').click();
+    cy.get('[data-qa="filter-list-item"]').contains('Enriched member').click();
   });
 
   beforeEach(() => {
     cy.scrollTo(0, 0);
     cy.server();
     cy.route('POST', '/api/tenant/*/member/query').as('apiMemberQuery');
-    cy.get('.filter-list .filter-list-item:first-child button:first-child').as('filterItem')
+    cy.get('[data-qa="filter-list-chip"]').as('filterItem')
   });
 
   after(() => {
     cy.scrollTo(0, 0);
-    cy.get('.filter-list .filter-list-item:first-child button:last-child').click({ force: true });
+    cy.get('[data-qa="filter-list-chip-close"]').click({ force: true });
   });
 
   it('has apply button disabled if no option selected', () => {
-    cy.get('.filter-type-boolean + div button.btn--primary').should('be.disabled');
+    cy.get('[data-qa="filter-apply"]').should('be.disabled');
   });
 
   it('Filters by member enrichment True', () => {
-    cy.get('.filter-type-boolean .filter-type-select-option').contains('True').click();
-    cy.get('.filter-type-boolean + div button.btn--primary').click();
+    cy.get('[data-qa="filter-boolean-true"]').click();
+    cy.get('[data-qa="filter-apply"]').click();
     cy.wait('@apiMemberQuery');
     cy.get('@apiMemberQuery').then((req) => {
       const { rows } = req.response.body;
@@ -39,8 +39,8 @@ export default () => {
     cy.get('@filterItem').click();
     cy.wait(100);
     cy.get('@filterItem').click();
-    cy.get('.filter-list-item-popper .el-switch').click();
-    cy.get('.filter-type-boolean + div button.btn--primary').click();
+    cy.get('[data-qa="filter-include-switch"]').click();
+    cy.get('[data-qa="filter-apply"]').click();
     cy.wait('@apiMemberQuery');
     cy.get('@apiMemberQuery').then((req) => {
       const { rows } = req.response.body;
@@ -56,9 +56,9 @@ export default () => {
     cy.get('@filterItem').click();
     cy.wait(100);
     cy.get('@filterItem').click();
-    cy.get('.filter-type-boolean .filter-type-select-option').contains('False').click();
-    cy.get('.filter-list-item-popper .el-switch').click();
-    cy.get('.filter-type-boolean + div button.btn--primary').click();
+    cy.get('[data-qa="filter-boolean-false"]').click();
+    cy.get('[data-qa="filter-include-switch"]').click();
+    cy.get('[data-qa="filter-apply"]').click();
     cy.wait('@apiMemberQuery');
     cy.get('@apiMemberQuery').then((req) => {
       const { rows } = req.response.body;
@@ -74,9 +74,9 @@ export default () => {
     cy.get('@filterItem').click();
     cy.wait(100);
     cy.get('@filterItem').click();
-    cy.get('.filter-type-boolean .filter-type-select-option').contains('False').click();
-    cy.get('.filter-list-item-popper .el-switch').click();
-    cy.get('.filter-type-boolean + div button.btn--primary').click();
+    cy.get('[data-qa="filter-boolean-false"]').contains('False').click();
+    cy.get('[data-qa="filter-include-switch"]').click();
+    cy.get('[data-qa="filter-apply"]').click();
     cy.wait('@apiMemberQuery');
     cy.get('@apiMemberQuery').then((req) => {
       const { rows } = req.response.body;
