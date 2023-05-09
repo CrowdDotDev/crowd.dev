@@ -76,6 +76,8 @@ export interface PendingWebhook {
   tenantId: string
 }
 
+export interface ErrorWebhook extends PendingWebhook {}
+
 export class WebhookError extends BaseError {
   public webhookId: string
 
