@@ -68,7 +68,7 @@ const sections = [
 const usage = commandLineUsage(sections)
 const parameters = commandLineArgs(options)
 
-if (parameters.help || (!parameters.webhook && !parameters.processErrors)) {
+if (parameters.help || (!parameters.webhook && !parameters.processPlatformErrors)) {
   console.log(usage)
 } else {
   setImmediate(async () => {
