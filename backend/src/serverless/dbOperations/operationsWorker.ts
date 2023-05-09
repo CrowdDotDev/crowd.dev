@@ -12,7 +12,9 @@ import { IServiceOptions } from '../../services/IServiceOptions'
  */
 async function updateMembers(records: Array<any>, options: IServiceOptions): Promise<any> {
   const memberService = new MemberService(options)
-  for (const record of records) {
+
+  while (records.length > 0) {
+    const record = records.shift()
     await memberService.update(record.id, record.update)
   }
 }
@@ -24,7 +26,9 @@ async function updateMembers(records: Array<any>, options: IServiceOptions): Pro
  */
 async function upsertMembers(records: Array<any>, options: IServiceOptions): Promise<any> {
   const memberService = new MemberService(options)
-  for (const record of records) {
+
+  while (records.length > 0) {
+    const record = records.shift()
     await memberService.upsert(record)
   }
 }
@@ -39,7 +43,9 @@ async function upsertActivityWithMembers(
   options: IServiceOptions,
 ): Promise<any> {
   const activityService = new ActivityService(options)
-  for (const record of records) {
+
+  while (records.length > 0) {
+    const record = records.shift()
     await activityService.createWithMember(record)
   }
 }
@@ -51,7 +57,9 @@ async function upsertActivityWithMembers(
  */
 async function updateIntegrations(records: Array<any>, options: IServiceOptions): Promise<any> {
   const integrationService = new IntegrationService(options)
-  for (const record of records) {
+
+  while (records.length > 0) {
+    const record = records.shift()
     await integrationService.update(record.id, record.update)
   }
 }
@@ -62,7 +70,9 @@ async function updateIntegrations(records: Array<any>, options: IServiceOptions)
  */
 async function updateMicroservice(records: Array<any>, options: IServiceOptions): Promise<any> {
   const microserviceService = new MicroserviceService(options)
-  for (const record of records) {
+
+  while (records.length > 0) {
+    const record = records.shift()
     await microserviceService.update(record.id, record.update)
   }
 }

@@ -60,6 +60,8 @@ export interface IStepContext {
   // data that an individual integration service can use across the whole integration processing pipeline
   pipelineData: any
 
+  runId?: string
+
   // integration that we are currently processing
   integration?: any
 

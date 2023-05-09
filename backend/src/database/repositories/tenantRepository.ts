@@ -258,6 +258,7 @@ class TenantRepository {
       record.settings[0].dataValues.activityTypes = SettingsRepository.buildActivityTypes(
         record.settings[0].dataValues,
       )
+      record.settings[0].dataValues.slackWebHook = !!record.settings[0].dataValues.slackWebHook
     }
 
     return record
@@ -273,6 +274,10 @@ class TenantRepository {
       include,
       transaction,
     })
+
+    if (record && record.settings && record.settings[0] && record.settings[0].dataValues) {
+      record.settings[0].dataValues.slackWebHook = !!record.settings[0].dataValues.slackWebHook
+    }
 
     return record
   }

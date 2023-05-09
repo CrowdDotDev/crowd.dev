@@ -9,6 +9,7 @@ import { NodeWorkerIntegrationProcessMessage } from '../../types/mq/nodeWorkerIn
 import IntegrationRepository from '../../database/repositories/integrationRepository'
 import IntegrationRunRepository from '../../database/repositories/integrationRunRepository'
 import { IntegrationRunState } from '../../types/integrationRunTypes'
+import { processPaginated } from '../../utils/paginationProcessing'
 
 /* eslint-disable no-console */
 
@@ -72,30 +73,34 @@ if (parameters.help || (!parameters.integration && !parameters.platform)) {
     const runRepo = new IntegrationRunRepository(options)
 
     if (parameters.platform) {
-      const integrations = await IntegrationRepository.findAllActive(parameters.platform)
-      for (const i of integrations) {
-        const integration = i as any
-        log.info({ integrationId: integration.id, onboarding }, 'Triggering SQS message!')
+      await processPaginated(
+        async (page) => IntegrationRepository.findAllActive(parameters.platform, page, 10),
+        async (integrations) => {
+          for (const i of integrations) {
+            const integration = i as any
+            log.info({ integrationId: integration.id, onboarding }, 'Triggering SQS message!')
 
-        const existingRun = await runRepo.findLastProcessingRun(integration.id)
+            const existingRun = await runRepo.findLastProcessingRun(integration.id)
 
-        if (existingRun && existingRun.onboarding) {
-          log.error('Integration is already processing, skipping!')
-          return
-        }
+            if (existingRun && existingRun.onboarding) {
+              log.error('Integration is already processing, skipping!')
+              return
+            }
 
-        const run = await runRepo.create({
-          integrationId: integration.id,
-          tenantId: integration.tenantId,
-          onboarding,
-          state: IntegrationRunState.PENDING,
-        })
+            const run = await runRepo.create({
+              integrationId: integration.id,
+              tenantId: integration.tenantId,
+              onboarding,
+              state: IntegrationRunState.PENDING,
+            })
 
-        await sendNodeWorkerMessage(
-          integration.tenantId,
-          new NodeWorkerIntegrationProcessMessage(run.id),
-        )
-      }
+            await sendNodeWorkerMessage(
+              integration.tenantId,
+              new NodeWorkerIntegrationProcessMessage(run.id),
+            )
+          }
+        },
+      )
     } else {
       const integrationIds = parameters.integration.split(',')
       for (const integrationId of integrationIds) {

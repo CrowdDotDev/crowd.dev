@@ -32,7 +32,7 @@ export default class ApiResponseHandler extends LoggingBase {
           method: req.method,
           query: error.sql,
           body: req.body,
-          errorMessage: error.original.message,
+          errorMessage: error.original?.message,
         },
         'Database error while processing REST API request!',
       )

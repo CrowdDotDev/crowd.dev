@@ -12,6 +12,7 @@ import { shouldProcessMember } from '../newMemberWorker'
 function createAutomationData(settings: NewMemberSettings): AutomationData {
   return {
     id: uuid(),
+    name: 'Member test',
     state: AutomationState.ACTIVE,
     trigger: AutomationTrigger.NEW_MEMBER,
     settings,
