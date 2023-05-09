@@ -132,9 +132,9 @@ export default class ActivityDisplayService extends LoggingBase {
 
       return this.interpolateVariables(displayOptions, activity, selectedDisplayVariants)
     } catch (error) {
-      log.error(
+      log.debug(
         { error },
-        'Error in getDisplayOptions, falling back to UNKNOWN_ACTIVITY_TYPE_DISPLAY.',
+        'Error while getting display options, falling back to UNKNOWN_ACTIVITY_TYPE_DISPLAY.',
       )
       return UNKNOWN_ACTIVITY_TYPE_DISPLAY
     }

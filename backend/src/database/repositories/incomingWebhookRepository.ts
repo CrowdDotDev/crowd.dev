@@ -2,10 +2,12 @@ import { v4 as uuid } from 'uuid'
 import { QueryTypes } from 'sequelize'
 import {
   DbIncomingWebhookInsertData,
+  ErrorWebhook,
   IncomingWebhookData,
   PendingWebhook,
   WebhookError,
   WebhookState,
+  WebhookType,
 } from '../../types/webhooks'
 import { IRepositoryOptions } from './IRepositoryOptions'
 import { RepositoryBase } from './repositoryBase'
@@ -160,6 +162,33 @@ export default class IncomingWebhookRepository extends RepositoryBase<
     if (rowCount !== 1) {
       throw new Error(`Failed to mark webhook '${id}' as error!`)
     }
+  }
+
+  async findError(type: WebhookType, page: number, perPage: number): Promise<ErrorWebhook[]> {
+    const transaction = this.transaction
+
+    const seq = this.seq
+
+    const query = `
+      select id, "tenantId"
+      from "incomingWebhooks"
+      where state = :error
+      and type = :type
+      and error->>'originalMessage' <> 'Bad credentials'
+      order by "createdAt" desc
+      limit ${perPage} offset ${(page - 1) * perPage};
+    `
+
+    const results = await seq.query(query, {
+      replacements: {
+        error: WebhookState.ERROR,
+        type,
+      },
+      type: QueryTypes.SELECT,
+      transaction,
+    })
+
+    return results as ErrorWebhook[]
   }
 
   async findPending(page: number, perPage: number): Promise<PendingWebhook[]> {
