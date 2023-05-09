@@ -38,6 +38,8 @@ import { RedisCache } from '../../../../utils/redis/redisCache'
 import { gridEntry } from '../../grid/grid'
 import PullRequestReviewThreadsQuery from '../../usecases/github/graphql/pullRequestReviewThreads'
 import PullRequestReviewThreadCommentsQuery from '../../usecases/github/graphql/pullRequestReviewThreadComments'
+import TeamsQuery from '../../usecases/github/graphql/teams'
+import { GithubWebhookTeam } from '../../usecases/github/graphql/types'
 
 /* eslint class-methods-use-this: 0 */
 
@@ -378,6 +380,67 @@ export class GithubIntegrationService extends IntegrationServiceBase {
       }
 
       case 'pull_request': {
+        // handle case of multiple reviewers (either by assigning a team to it, or with multiple selection in one go)
+        if (
+          payload.action === 'review_requested' &&
+          (payload.pull_request.requested_reviewers.length > 0 ||
+            payload.pull_request.requested_teams.length > 0)
+        ) {
+          if (payload.pull_request.requested_reviewers.length > 0) {
+            // multiple reviewers sent in one payload
+            for (const reviewer of payload.pull_request.requested_reviewers) {
+              const reviewRequestActivity = await GithubIntegrationService.parseWebhookPullRequest(
+                { ...payload, requested_reviewer: reviewer },
+                context,
+              )
+
+              if (reviewRequestActivity) {
+                records.push(reviewRequestActivity)
+              }
+            }
+          } else if (payload.pull_request.requested_teams.length > 0) {
+            // a team sent as reviewer, first we need to find members in this team
+            for (const team of payload.pull_request.requested_teams as GithubWebhookTeam[]) {
+              const teamMembers = await new TeamsQuery(
+                team.node_id,
+                context.integration.token,
+              ).getSinglePage('')
+
+              for (const teamMember of teamMembers.data) {
+                const reviewRequestActivity =
+                  await GithubIntegrationService.parseWebhookPullRequest(
+                    { ...payload, requested_reviewer: teamMember },
+                    context,
+                  )
+
+                if (reviewRequestActivity) {
+                  records.push(reviewRequestActivity)
+                }
+              }
+            }
+          }
+
+          break
+        }
+
+        // handle case of multiple assignees
+        if (payload.action === 'assigned' && payload.pull_request.assignees.length > 0) {
+          for (const assignee of payload.pull_request.assignees) {
+            payload.pull_request.assignee = assignee
+
+            const assignedActivity = await GithubIntegrationService.parseWebhookPullRequest(
+              payload,
+              context,
+            )
+
+            if (assignedActivity) {
+              records.push(assignedActivity)
+            }
+          }
+
+          break
+        }
+
         if (payload.action === 'closed' && payload.pull_request.merged) {
           const prMergedRecord = await GithubIntegrationService.parseWebhookPullRequest(
             { ...payload, action: 'merged' },
@@ -388,12 +451,9 @@ export class GithubIntegrationService extends IntegrationServiceBase {
           }
         }
 
-        const prClosedRecord = await GithubIntegrationService.parseWebhookPullRequest(
-          payload,
-          context,
-        )
-        if (prClosedRecord) {
-          records.push(prClosedRecord)
+        const prRecord = await GithubIntegrationService.parseWebhookPullRequest(payload, context)
+        if (prRecord) {
+          records.push(prRecord)
         }
 
         break
@@ -573,7 +633,11 @@ export class GithubIntegrationService extends IntegrationServiceBase {
     }
     const member = await GithubIntegrationService.parseWebhookMember(payload.sender.login, context)
 
-    if (member) {
+    if (
+      member &&
+      (type === GithubActivityType.UNSTAR ||
+        (type === GithubActivityType.STAR && payload.starred_at !== null))
+    ) {
       const starredAt =
         type === GithubActivityType.STAR ? moment(payload.starred_at).utc() : moment().utc()
 
@@ -983,40 +1047,82 @@ export class GithubIntegrationService extends IntegrationServiceBase {
 
           break
         case GithubPullRequestEvents.REQUEST_REVIEW:
-          if (record.actor.login && record.requestedReviewer.login) {
-            const member = await GithubIntegrationService.parseMember(record.actor, context)
-            const objectMember = await GithubIntegrationService.parseMember(
-              record.requestedReviewer,
-              context,
-            )
-            out.push({
-              username: member.username[PlatformType.GITHUB].username,
-              objectMemberUsername: objectMember.username[PlatformType.GITHUB].username,
-              tenant: context.integration.tenantId,
-              platform: PlatformType.GITHUB,
-              type: GithubActivityType.PULL_REQUEST_REVIEW_REQUESTED,
-              sourceId: `gen-RRE_${pullRequest.sourceId}_${record.actor.login}_${
-                record.requestedReviewer.login
-              }_${moment(record.createdAt).utc().toISOString()}`,
-              sourceParentId: pullRequest.sourceId,
-              timestamp: moment(record.createdAt).utc().toDate(),
-              body: '',
-              url: pullRequest.url,
-              channel: pullRequest.channel,
-              title: '',
-              attributes: {
-                state: (pullRequest.attributes as any).state,
-                additions: (pullRequest.attributes as any).additions,
-                deletions: (pullRequest.attributes as any).deletions,
-                changedFiles: (pullRequest.attributes as any).changedFiles,
-                authorAssociation: (pullRequest.attributes as any).authorAssociation,
-                labels: (pullRequest.attributes as any).labels,
-              },
-              member,
-              objectMember,
-              score: GitHubGrid.pullRequestReviewRequested.score,
-              isContribution: GitHubGrid.pullRequestReviewRequested.isContribution,
-            })
+          if (
+            record.actor.login &&
+            (record.requestedReviewer.login || record.requestedReviewer.members)
+          ) {
+            // Requested review from single member
+            if (record.requestedReviewer.login) {
+              const member = await GithubIntegrationService.parseMember(record.actor, context)
+              const objectMember = await GithubIntegrationService.parseMember(
+                record.requestedReviewer,
+                context,
+              )
+              out.push({
+                username: member.username[PlatformType.GITHUB].username,
+                objectMemberUsername: objectMember.username[PlatformType.GITHUB].username,
+                tenant: context.integration.tenantId,
+                platform: PlatformType.GITHUB,
+                type: GithubActivityType.PULL_REQUEST_REVIEW_REQUESTED,
+                sourceId: `gen-RRE_${pullRequest.sourceId}_${record.actor.login}_${
+                  record.requestedReviewer.login
+                }_${moment(record.createdAt).utc().toISOString()}`,
+                sourceParentId: pullRequest.sourceId,
+                timestamp: moment(record.createdAt).utc().toDate(),
+                body: '',
+                url: pullRequest.url,
+                channel: pullRequest.channel,
+                title: '',
+                attributes: {
+                  state: (pullRequest.attributes as any).state,
+                  additions: (pullRequest.attributes as any).additions,
+                  deletions: (pullRequest.attributes as any).deletions,
+                  changedFiles: (pullRequest.attributes as any).changedFiles,
+                  authorAssociation: (pullRequest.attributes as any).authorAssociation,
+                  labels: (pullRequest.attributes as any).labels,
+                },
+                member,
+                objectMember,
+                score: GitHubGrid.pullRequestReviewRequested.score,
+                isContribution: GitHubGrid.pullRequestReviewRequested.isContribution,
+              })
+            } else if (record.requestedReviewer.members) {
+              // review is requested from a team
+              const member = await GithubIntegrationService.parseMember(record.actor, context)
+
+              for (const teamMember of record.requestedReviewer.members.nodes) {
+                const objectMember = await GithubIntegrationService.parseMember(teamMember, context)
+
+                out.push({
+                  username: member.username[PlatformType.GITHUB].username,
+                  objectMemberUsername: objectMember.username[PlatformType.GITHUB].username,
+                  tenant: context.integration.tenantId,
+                  platform: PlatformType.GITHUB,
+                  type: GithubActivityType.PULL_REQUEST_REVIEW_REQUESTED,
+                  sourceId: `gen-RRE_${pullRequest.sourceId}_${record.actor.login}_${
+                    objectMember.username[PlatformType.GITHUB].username
+                  }_${moment(record.createdAt).utc().toISOString()}`,
+                  sourceParentId: pullRequest.sourceId,
+                  timestamp: moment(record.createdAt).utc().toDate(),
+                  body: '',
+                  url: pullRequest.url,
+                  channel: pullRequest.channel,
+                  title: '',
+                  attributes: {
+                    state: (pullRequest.attributes as any).state,
+                    additions: (pullRequest.attributes as any).additions,
+                    deletions: (pullRequest.attributes as any).deletions,
+                    changedFiles: (pullRequest.attributes as any).changedFiles,
+                    authorAssociation: (pullRequest.attributes as any).authorAssociation,
+                    labels: (pullRequest.attributes as any).labels,
+                  },
+                  member,
+                  objectMember,
+                  score: GitHubGrid.pullRequestReviewRequested.score,
+                  isContribution: GitHubGrid.pullRequestReviewRequested.isContribution,
+                })
+              }
+            }
           }
 
           break
