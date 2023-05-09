@@ -92,6 +92,7 @@ if (parameters.help || (!parameters.webhook && !parameters.processPlatformErrors
 
       log.debug('Processing error state webhooks!')
       let webhooks = await repo.findError(webhookType, currentPage, PAGE_SIZE)
+
       log.info(webhooks.map((w) => w.id))
 
       while (webhooks.length > 0) {
@@ -99,7 +100,7 @@ if (parameters.help || (!parameters.webhook && !parameters.processPlatformErrors
           log.info({ webhook }, 'Webhook found - triggering SQS message!')
           await sendNodeWorkerMessage(
             webhook.tenantId,
-            new NodeWorkerProcessWebhookMessage(webhook.tenantId, webhook.id, true),
+            new NodeWorkerProcessWebhookMessage(webhook.tenantId, webhook.id, true, false),
           )
         }
 

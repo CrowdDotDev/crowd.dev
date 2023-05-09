@@ -45,5 +45,5 @@ export const processWebhook = async (
   messageLogger: Logger,
 ): Promise<void> => {
   const processor = await getIntegrationProcessor(messageLogger)
-  await processor.processWebhook(msg.webhookId, msg.force)
+  await processor.processWebhook(msg.webhookId, msg.force, msg.fireCrowdWebhooks)
 }

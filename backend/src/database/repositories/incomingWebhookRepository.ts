@@ -150,6 +150,7 @@ export default class IncomingWebhookRepository extends RepositoryBase<
           state: WebhookState.ERROR,
           error: JSON.stringify({
             message: error.message,
+            originalError: JSON.stringify(error.originalError),
             originalMessage: error.originalError.message,
             stack: error.stack,
           }),
@@ -170,12 +171,14 @@ export default class IncomingWebhookRepository extends RepositoryBase<
     const seq = this.seq
 
     const query = `
-      select id, "tenantId"
-      from "incomingWebhooks"
-      where state = :error
-      and type = :type
-      and error->>'originalMessage' <> 'Bad credentials'
-      order by "createdAt" desc
+      select iw.id, iw."tenantId"
+      from "incomingWebhooks" iw
+      left join integrations i on i.id = iw."integrationId"
+      where iw.state = :error
+      and iw.type = :type
+      and iw.error->>'originalMessage' <> 'Bad credentials'
+      and i.id is not null
+      order by iw."createdAt" desc
       limit ${perPage} offset ${(page - 1) * perPage};
     `
 
