@@ -45,6 +45,7 @@
             <div class="flex items-center">
               <div class="pr-2">
                 <el-tooltip
+                  v-if="platform"
                   effect="dark"
                   :content="platform.name"
                   placement="top"

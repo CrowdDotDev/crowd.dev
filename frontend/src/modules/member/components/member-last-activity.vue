@@ -3,7 +3,7 @@
     <div class="flex gap-2 items-center">
       <el-tooltip
         effect="dark"
-        :content="platform.name"
+        :content="platform?.name"
         class="text-gray-400"
         placement="top"
       >

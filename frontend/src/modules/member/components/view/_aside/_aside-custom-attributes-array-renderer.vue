@@ -1,5 +1,5 @@
 <template>
-  <div v-if="attribute?.default.length > 0">
+  <div v-if="attribute?.default?.length > 0">
     <div :class="wrapperClass">
       <div
         v-for="item of slicedValues"
@@ -12,7 +12,7 @@
 
     <div>
       <el-popover
-        v-if="attribute?.default.length > sliceSize"
+        v-if="attribute?.default?.length > sliceSize"
         placement="top"
         width="240px"
       >
@@ -54,8 +54,8 @@ import { defineProps, computed } from 'vue';
 
 const props = defineProps({
   attribute: {
-    type: Array,
-    default: () => [],
+    type: Object,
+    default: () => {},
   },
   title: {
     type: String,
@@ -81,11 +81,11 @@ const props = defineProps({
 });
 
 const slicedValues = computed(() => (
-  props.attribute?.default.slice(0, props.sliceSize) || []
+  props.attribute?.default?.slice(0, props.sliceSize) || []
 ));
 
 const restOfValues = computed(() => (
-  props.attribute?.default.slice(
+  props.attribute?.default?.slice(
     props.sliceSize,
     props.attribute.length,
   ) || []

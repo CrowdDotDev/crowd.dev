@@ -5,7 +5,7 @@
         <app-avatar
           :entity="{
             avatar: organization.logo,
-            displayName: organization.name.replace('@', ''),
+            displayName: organization.name?.replace('@', ''),
           }"
           size="xl"
           class="mr-4"

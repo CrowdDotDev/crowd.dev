@@ -265,9 +265,9 @@ const props = defineProps({
 const { currentUser, currentTenant } = mapGetters('auth');
 
 const eagleEyeSettings = computed(
-  () => currentUser?.value.tenants.find(
+  () => currentUser?.value?.tenants.find(
     (tu) => tu.tenantId === currentTenant?.value.id,
-  ).settings.eagleEye,
+  )?.settings.eagleEye,
 );
 
 const { doUpdateSettings } = mapActions('eagleEye');

@@ -19,7 +19,7 @@ const props = defineProps({
   },
 });
 
-const attributes = computed(() => props.conversation.conversationStarter.attributes);
+const attributes = computed(() => props.conversation.conversationStarter?.attributes);
 const isGithubConversation = computed(() => props.conversation.platform === 'github');
 const replyContent = computed(() => {
   if (isGithubConversation.value) {
