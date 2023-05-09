@@ -196,6 +196,7 @@ describe('MemberRepository tests', () => {
         createdById: mockIRepositoryOptions.currentUser.id,
         updatedById: mockIRepositoryOptions.currentUser.id,
         reach: { total: -1 },
+        organizations: [],
         joinedAt: new Date('2020-05-27T15:13:30Z'),
       }
       expect(memberCreated).toStrictEqual(expectedMemberCreated)
@@ -467,6 +468,7 @@ describe('MemberRepository tests', () => {
         createdById: mockIRepositoryOptions.currentUser.id,
         updatedById: mockIRepositoryOptions.currentUser.id,
         reach: { total: -1 },
+        organizations: [],
         joinedAt: new Date('2020-05-27T15:13:30Z'),
       }
 
@@ -2928,6 +2930,7 @@ describe('MemberRepository tests', () => {
         attributes: updateFields.attributes,
         lastEnriched: null,
         enrichedBy: [],
+        organizations: [],
         contributions: null,
         emails: updateFields.emails,
         score: updateFields.score,

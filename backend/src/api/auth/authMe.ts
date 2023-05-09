@@ -34,6 +34,7 @@ export default async (req, res) => {
         activityTypes: await SettingsRepository.buildActivityTypes(
           tenantUser.tenant.settings[0].dataValues,
         ),
+        slackWebHook: !!tenantUser.tenant.settings[0].dataValues.slackWebHook,
       }
 
       return tenantUser

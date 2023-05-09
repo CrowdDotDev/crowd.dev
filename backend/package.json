@@ -84,6 +84,7 @@
     "formidable-serverless": "1.1.1",
     "he": "^1.2.0",
     "helmet": "4.1.1",
+    "html-to-mrkdwn-ts": "^1.1.0",
     "html-to-text": "^8.2.1",
     "json2csv": "^5.0.7",
     "jsonwebtoken": "8.5.1",
