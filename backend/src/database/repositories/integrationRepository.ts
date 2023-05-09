@@ -1,5 +1,5 @@
 import lodash from 'lodash'
-import Sequelize from 'sequelize'
+import Sequelize, { QueryTypes } from 'sequelize'
 import SequelizeRepository from './sequelizeRepository'
 import AuditLogRepository from './auditLogRepository'
 import SequelizeFilterUtils from '../utils/sequelizeFilterUtils'
@@ -147,7 +147,7 @@ class IntegrationRepository {
    * @param platform The platform we want to find all active integrations for
    * @returns All active integrations for the platform
    */
-  static async findAllActive(platform: string): Promise<Array<Object>> {
+  static async findAllActive(platform: string, page: number, perPage: number): Promise<any[]> {
     const options = await SequelizeRepository.getDefaultIRepositoryOptions()
 
     const records = await options.database.integration.findAll({
@@ -155,6 +155,8 @@ class IntegrationRepository {
         status: 'done',
         platform,
       },
+      limit: perPage,
+      offset: (page - 1) * perPage,
     })
 
     if (!records) {
@@ -162,6 +164,32 @@ class IntegrationRepository {
     }
 
     return Promise.all(records.map((record) => this._populateRelations(record)))
+  }
+
+  static async findByStatus(
+    status: string,
+    page: number,
+    perPage: number,
+    options: IRepositoryOptions,
+  ): Promise<any[]> {
+    const query = `
+      select * from integrations where status = :status
+      limit ${perPage} offset ${(page - 1) * perPage}
+    `
+
+    const seq = SequelizeRepository.getSequelize(options)
+
+    const transaction = SequelizeRepository.getTransaction(options)
+
+    const integrations = await seq.query(query, {
+      replacements: {
+        status,
+      },
+      type: QueryTypes.SELECT,
+      transaction,
+    })
+
+    return integrations as any[]
   }
 
   /**

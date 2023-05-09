@@ -97,6 +97,9 @@ module.exports = {
         100: '#DCFCE7',
         50: '#F0FDF4'
       },
+      darkgreen: {
+        900: '#059669'
+      },
       teal: {
         900: '#134E4A',
         800: '#115E59',
@@ -780,6 +783,7 @@ module.exports = {
     maxWidth: ({ theme, breakpoints }) => ({
       none: 'none',
       0: '0rem',
+      4: '1rem',
       '3.5xs': '10rem',
       '3xs': '12rem',
       '2xs': '16rem',

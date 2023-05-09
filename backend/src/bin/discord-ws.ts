@@ -13,6 +13,7 @@ import { NodeWorkerProcessWebhookMessage } from '../types/mq/nodeWorkerProcessWe
 import { createRedisClient } from '../utils/redis'
 import { RedisCache } from '../utils/redis/redisCache'
 import { DiscordIntegrationService } from '../serverless/integrations/services/integrations/discordIntegrationService'
+import { processPaginated } from '../utils/paginationProcessing'
 
 const log = getServiceLogger()
 
@@ -223,14 +224,14 @@ setImmediate(async () => {
   if (triggerCheck) {
     const repoOptions = await SequelizeRepository.getDefaultIRepositoryOptions()
 
-    const integrations = await IntegrationRepository.findAllActive(PlatformType.DISCORD)
-    if (integrations.length > 0) {
-      log.warn(`Found ${integrations.length} integrations to trigger check for!`)
-      const service = new DiscordIntegrationService()
-      await service.triggerIntegrationCheck(integrations, repoOptions)
-    } else {
-      log.warn('Found no integrations to trigger check for!')
-    }
+    await processPaginated(
+      async (page) => IntegrationRepository.findAllActive(PlatformType.DISCORD, page, 10),
+      async (integrations) => {
+        log.warn(`Found ${integrations.length} integrations to trigger check for!`)
+        const service = new DiscordIntegrationService()
+        await service.triggerIntegrationCheck(integrations, repoOptions)
+      },
+    )
   }
 
   await spawnClient(

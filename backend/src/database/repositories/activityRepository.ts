@@ -39,6 +39,14 @@ class ActivityRepository {
       this._validateSentiment(data.sentiment)
     }
 
+    // type and platform to lowercase
+    if (data.type) {
+      data.type = data.type.toLowerCase()
+    }
+    if (data.platform) {
+      data.platform = data.platform.toLowerCase()
+    }
+
     const record = await options.database.activity.create(
       {
         ...lodash.pick(data, [

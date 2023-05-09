@@ -17,7 +17,7 @@ export const getPostReactions = async (
     url: `https://api.linkedin.com/v2/reactions/(entity:${encodeURIComponent(postId)})`,
     params: {
       q: 'entity',
-      count: 10,
+      count: 20,
       sort: 'REVERSE_CHRONOLOGICAL',
       start,
     },

@@ -434,6 +434,11 @@ export default class ActivityService extends LoggingBase {
         data.username = data.member.username[data.platform][0].username
       }
 
+      logger.trace(
+        { type: data.type, platform: data.platform, username: data.username },
+        'Creating activity with member!',
+      )
+
       let activityExists = await this._activityExists(data, transaction)
 
       let existingMember = activityExists
