@@ -117,7 +117,7 @@ if (parameters.help || (!parameters.webhook && !parameters.processPlatformErrors
           log.info(
             `Queue size(${queueSize}) is bigger than threshold(${PROCESS_QUEUE_THRESHOLD}), waiting 30 seconds before retrying.`,
           )
-          await timeout(5000)
+          await timeout(30000)
           queueSize = await getCurrentQueueSize(sqs, SQS_CONFIG.nodejsWorkerQueue)
         }
 
