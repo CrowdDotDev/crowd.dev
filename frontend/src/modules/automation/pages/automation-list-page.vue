@@ -95,7 +95,7 @@
       description="Send Slack notifications when a new activity happens, or a new member joins your community"
     />
     <app-empty-state-cta
-      v-else-if="filter.type === 'webhooks'"
+      v-else-if="filter.type === 'webhook'"
       icon="ri-flow-chart"
       title="No Webhooks yet"
       description="Create webhook actions when a new activity happens, or a new member joins your community"
@@ -143,7 +143,7 @@ const options = ref([
   },
   {
     label: 'Webhooks',
-    value: 'webhooks',
+    value: 'webhook',
   },
 ]);
 const openAutomationForm = ref(false);
