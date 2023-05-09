@@ -22,19 +22,20 @@ class SettingsService {
     }
 
     const typeKey = data.type.toLowerCase()
+    const platformKey = platform.toLowerCase()
 
     const activityTypes = SettingsRepository.getActivityTypes(options)
 
-    if (!activityTypes.custom[platform]) {
-      activityTypes.custom[platform] = {}
+    if (!activityTypes.custom[platformKey]) {
+      activityTypes.custom[platformKey] = {}
     }
 
     // check key already exists
-    if (activityTypes.custom && activityTypes.custom[platform][typeKey]) {
+    if (activityTypes.custom && activityTypes.custom[platformKey][typeKey]) {
       return activityTypes
     }
 
-    activityTypes.custom[platform][typeKey] = {
+    activityTypes.custom[platformKey][typeKey] = {
       display: {
         default: data.type,
         short: data.type,
