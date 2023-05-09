@@ -15,7 +15,7 @@ export const getCommentComments = async (
     method: 'get',
     url: `https://api.linkedin.com/v2/socialActions/${commentId}/comments`,
     params: {
-      count: 10,
+      count: 20,
       start,
     },
   }

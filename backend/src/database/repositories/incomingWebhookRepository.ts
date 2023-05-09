@@ -3,6 +3,7 @@ import { QueryTypes } from 'sequelize'
 import {
   DbIncomingWebhookInsertData,
   IncomingWebhookData,
+  PendingWebhook,
   WebhookError,
   WebhookState,
 } from '../../types/webhooks'
@@ -159,5 +160,44 @@ export default class IncomingWebhookRepository extends RepositoryBase<
     if (rowCount !== 1) {
       throw new Error(`Failed to mark webhook '${id}' as error!`)
     }
+  }
+
+  async findPending(page: number, perPage: number): Promise<PendingWebhook[]> {
+    const transaction = this.transaction
+
+    const seq = this.seq
+
+    const query = `
+      select id, "tenantId"
+      from "incomingWebhooks"
+      where state = :pending
+        and "createdAt" < now() - interval '1 hour'
+      limit ${perPage} offset ${(page - 1) * perPage};
+    `
+
+    const results = await seq.query(query, {
+      replacements: {
+        pending: WebhookState.PENDING,
+      },
+      type: QueryTypes.SELECT,
+      transaction,
+    })
+
+    return results as PendingWebhook[]
+  }
+
+  async cleanUpOldWebhooks(months: number): Promise<void> {
+    const seq = this.seq
+
+    const cleanQuery = `
+        delete from "incomingWebhooks" where state = :processed and "processedAt" < now() - interval '${months} months';                     
+    `
+
+    await seq.query(cleanQuery, {
+      replacements: {
+        processed: WebhookState.PROCESSED,
+      },
+      type: QueryTypes.DELETE,
+    })
   }
 }

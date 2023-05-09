@@ -477,10 +477,13 @@ export default class IntegrationRunRepository extends RepositoryBase<
     const seq = this.seq
 
     const cleanQuery = `
-        delete from "integrationRuns" where state = 'processed' and "processedAt" < now() - interval '${months} months';                     
+        delete from "integrationRuns" where state = :processed and "processedAt" < now() - interval '${months} months';                     
     `
 
     await seq.query(cleanQuery, {
+      replacements: {
+        processed: IntegrationRunState.PROCESSED,
+      },
       type: QueryTypes.DELETE,
     })
   }
