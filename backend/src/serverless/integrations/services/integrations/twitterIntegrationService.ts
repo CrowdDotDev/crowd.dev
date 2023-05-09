@@ -154,11 +154,7 @@ export class TwitterIntegrationService extends IntegrationServiceBase {
     }
   }
 
-  async postprocess(
-    context: IStepContext,
-    failedStreams?: IIntegrationStream[],
-    remainingStreams?: IIntegrationStream[],
-  ): Promise<void> {
+  async postprocess(context: IStepContext): Promise<void> {
     if (context.onboarding) {
       // When we are onboarding we reset the frequency to RESET_FREQUENCY_DAYS.in_hours - 6 hours.
       // This is because the tweets allowed during onboarding are free. Like this, the limit will reset 6h after the onboarding.
@@ -293,6 +289,7 @@ export class TwitterIntegrationService extends IntegrationServiceBase {
   ): Array<AddActivitiesSingle> {
     return records.map((record) => {
       const out: any = {
+        username: record.member.username,
         tenant: context.integration.tenantId,
         platform: PlatformType.TWITTER,
         type: stream.value === 'mentions' ? 'mention' : 'hashtag',

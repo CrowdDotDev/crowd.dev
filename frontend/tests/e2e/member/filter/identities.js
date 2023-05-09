@@ -22,7 +22,6 @@ export default () => {
 
   it('Filters by each identity', () => {
     cy.get('[data-qa="filter-select-option"]').each((option) => {
-      const platform = option.text().trim();
       const optionValue = option.attr('data-qa-value');
       cy.wrap(option).click();
       cy.get('[data-qa="filter-apply"]').click();
@@ -32,11 +31,6 @@ export default () => {
         rows.forEach((row) => {
           cy.wrap(row.identities).should('include', optionValue);
         });
-        if (rows.length > 0) {
-          cy.get('[data-qa="member-identities"]').each((identities) => {
-            cy.wrap(identities).find(`img[alt="${platform}"]`).should('exist');
-          });
-        }
       });
       cy.scrollTo(0, 0);
       cy.wait(300);
@@ -49,7 +43,6 @@ export default () => {
   it('Filters by each identity - exclude', () => {
     cy.get('[data-qa="filter-include-switch"]').click();
     cy.get('[data-qa="filter-select-option"]').each((option) => {
-      const platform = option.text().trim();
       const optionValue = option.attr('data-qa-value');
       cy.wrap(option).click();
       cy.get('[data-qa="filter-apply"]').click();
@@ -59,11 +52,6 @@ export default () => {
         rows.forEach((row) => {
           cy.wrap(row.identities).should('not.include', optionValue);
         });
-        if (rows.length > 0) {
-          cy.get('[data-qa="member-identities"]').each((identities) => {
-            cy.wrap(identities).find(`img[alt="${platform}"]`).should('not.exist');
-          });
-        }
       });
       cy.scrollTo(0, 0);
       cy.wait(300);

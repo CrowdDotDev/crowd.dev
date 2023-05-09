@@ -73,7 +73,7 @@
               with-link
               class="bl"
             />
-            <div class="flex items-center">
+            <div class="flex items-center mt-0.5">
               <app-activity-message :activity="activity" />
               <span class="whitespace-nowrap text-gray-500"><span class="mx-1">·</span>{{ timeAgo(activity) }}</span>
               <span
@@ -86,6 +86,7 @@
               />
             </div>
             <app-activity-content
+              v-if="activity.title || activity.body"
               class="text-sm bg-gray-50 rounded-lg p-4"
               :activity="activity"
               :show-more="true"

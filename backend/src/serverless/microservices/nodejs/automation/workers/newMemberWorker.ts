@@ -118,6 +118,16 @@ export default async (
                 automation,
                 member.id,
                 prepareMemberPayload(member),
+                AutomationType.WEBHOOK,
+              )
+              break
+            case AutomationType.SLACK:
+              await sendWebhookProcessRequest(
+                tenantId,
+                automation,
+                member.id,
+                prepareMemberPayload(member),
+                AutomationType.SLACK,
               )
               break
             default:

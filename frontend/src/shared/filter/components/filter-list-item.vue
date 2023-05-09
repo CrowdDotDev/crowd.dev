@@ -214,7 +214,7 @@ const shouldDisableApplyButton = computed(() => {
   }
 
   return Array.isArray(model.value)
-    ? model.value.length === 0
+    ? (model.value.length === 0 && !shouldShowReset.value)
     : model.value === '' || model.value === null;
 });
 

@@ -102,11 +102,7 @@ export abstract class IntegrationServiceBase {
     return false
   }
 
-  async postprocess(
-    context: IStepContext,
-    failedStreams?: IIntegrationStream[],
-    remainingStreams?: IIntegrationStream[],
-  ): Promise<void> {
+  async postprocess(context: IStepContext): Promise<void> {
     // do nothing - override if something is needed
   }
 

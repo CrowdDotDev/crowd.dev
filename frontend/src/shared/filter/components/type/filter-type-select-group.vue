@@ -65,12 +65,9 @@ import {
   defineProps,
   defineEmits,
   computed,
-  reactive,
   ref,
   watch,
 } from 'vue';
-import { storeToRefs } from 'pinia';
-import { useActivityTypeStore } from '@/modules/activity/store/type';
 
 const props = defineProps({
   options: {
@@ -116,8 +113,6 @@ const emit = defineEmits(['update:value', 'update:include']);
 const query = ref('');
 const searchRef = ref(null);
 
-const { types } = storeToRefs(useActivityTypeStore());
-
 const model = computed({
   get() {
     return props.value;
@@ -136,30 +131,7 @@ const includeModel = computed({
   },
 });
 
-const additionalOptions = computed(() => {
-  if (props.label === 'Activity type' && types.value?.custom) {
-    return [
-      {
-        label: reactive({
-          key: 'other',
-          type: 'platform',
-          value: 'Custom',
-        }),
-        nestedOptions: Object.entries(types.value.custom)
-          .map(([, platformTypes]) => Object.entries(platformTypes))
-          .flat()
-          .map(([type, display]) => ({
-            label: display.display.short,
-            value: type,
-          })),
-      },
-    ];
-  }
-  return [];
-});
-
-const initialOptions = [...props.options, ...additionalOptions.value];
-const displayOptions = ref(initialOptions);
+const displayOptions = ref(props.options);
 const computedOptions = computed(() => displayOptions.value.map(
   (o) => ({
     ...o,
@@ -174,7 +146,7 @@ const computedOptions = computed(() => displayOptions.value.map(
 
 watch(query, async (newValue, oldValue) => {
   if (newValue !== oldValue) {
-    displayOptions.value = initialOptions.map((item) => {
+    displayOptions.value = props.options.map((item) => {
       const nestedOptions = item.nestedOptions.filter(
         (option) => option.label.includes(newValue),
       );

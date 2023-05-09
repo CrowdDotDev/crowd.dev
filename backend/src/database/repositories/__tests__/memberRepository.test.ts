@@ -1,3 +1,4 @@
+import { Op } from 'sequelize'
 import Error404 from '../../../errors/Error404'
 import { PlatformType } from '../../../types/integrationEnums'
 import { generateUUIDv1 } from '../../../utils/uuid'
@@ -7,13 +8,35 @@ import NoteRepository from '../noteRepository'
 import OrganizationRepository from '../organizationRepository'
 import TagRepository from '../tagRepository'
 import TaskRepository from '../taskRepository'
+import lodash from 'lodash'
 
 const db = null
 
 function mapUsername(data: any): any {
   const username = {}
   Object.keys(data).forEach((platform) => {
-    username[platform] = data[platform].username
+    const usernameData = data[platform]
+
+    if (Array.isArray(usernameData)) {
+      username[platform] = []
+      if (usernameData.length > 0) {
+        for (const entry of usernameData) {
+          if (typeof entry === 'string') {
+            username[platform].push(entry)
+          } else if (typeof entry === 'object') {
+            username[platform].push((entry as any).username)
+          } else {
+            throw new Error('Invalid username type')
+          }
+        }
+      }
+    } else if (typeof usernameData === 'object') {
+      username[platform] = [usernameData.username]
+    } else if (typeof usernameData === 'string') {
+      username[platform] = [usernameData]
+    } else {
+      throw new Error('Invalid username type')
+    }
   })
   return username
 }
@@ -66,7 +89,8 @@ describe('MemberRepository tests', () => {
         joinedAt: '2020-05-27T15:13:30Z',
       }
 
-      const memberCreated = await MemberRepository.create(member2add, mockIRepositoryOptions)
+      const cloned = lodash.cloneDeep(member2add)
+      const memberCreated = await MemberRepository.create(cloned, mockIRepositoryOptions)
 
       // Trim the hour part from timestamp so we can atleast test if the day is correct for createdAt and joinedAt
       memberCreated.createdAt = memberCreated.createdAt.toISOString().split('T')[0]
@@ -147,7 +171,8 @@ describe('MemberRepository tests', () => {
         joinedAt: '2020-05-27T15:13:30Z',
       }
 
-      const memberCreated = await MemberRepository.create(member2add, mockIRepositoryOptions, false)
+      const cloned = lodash.cloneDeep(member2add)
+      const memberCreated = await MemberRepository.create(cloned, mockIRepositoryOptions, false)
 
       // Trim the hour part from timestamp so we can atleast test if the day is correct for createdAt and joinedAt
       memberCreated.createdAt = memberCreated.createdAt.toISOString().split('T')[0]
@@ -171,6 +196,7 @@ describe('MemberRepository tests', () => {
         createdById: mockIRepositoryOptions.currentUser.id,
         updatedById: mockIRepositoryOptions.currentUser.id,
         reach: { total: -1 },
+        organizations: [],
         joinedAt: new Date('2020-05-27T15:13:30Z'),
       }
       expect(memberCreated).toStrictEqual(expectedMemberCreated)
@@ -190,7 +216,8 @@ describe('MemberRepository tests', () => {
         joinedAt: '2020-05-27T15:13:30Z',
       }
 
-      const memberCreated = await MemberRepository.create(member2add, mockIRepositoryOptions)
+      const cloned = lodash.cloneDeep(member2add)
+      const memberCreated = await MemberRepository.create(cloned, mockIRepositoryOptions)
 
       // Trim the hour part from timestamp so we can atleast test if the day is correct for createdAt and joinedAt
       memberCreated.createdAt = memberCreated.createdAt.toISOString().split('T')[0]
@@ -357,7 +384,8 @@ describe('MemberRepository tests', () => {
         joinedAt: '2020-05-27T15:13:30Z',
       }
 
-      const memberCreated = await MemberRepository.create(member2add, mockIRepositoryOptions)
+      const cloned = lodash.cloneDeep(member2add)
+      const memberCreated = await MemberRepository.create(cloned, mockIRepositoryOptions)
 
       const expectedMemberFound = {
         id: memberCreated.id,
@@ -419,7 +447,8 @@ describe('MemberRepository tests', () => {
         joinedAt: '2020-05-27T15:13:30Z',
       }
 
-      const memberCreated = await MemberRepository.create(member2add, mockIRepositoryOptions)
+      const cloned = lodash.cloneDeep(member2add)
+      const memberCreated = await MemberRepository.create(cloned, mockIRepositoryOptions)
 
       const expectedMemberFound = {
         id: memberCreated.id,
@@ -439,6 +468,7 @@ describe('MemberRepository tests', () => {
         createdById: mockIRepositoryOptions.currentUser.id,
         updatedById: mockIRepositoryOptions.currentUser.id,
         reach: { total: -1 },
+        organizations: [],
         joinedAt: new Date('2020-05-27T15:13:30Z'),
       }
 
@@ -1144,7 +1174,7 @@ describe('MemberRepository tests', () => {
         { filter: { tags: [nodeTag.id, vueTag.id] } },
         mockIRepositoryOptions,
       )
-      const member2 = members.rows.find((m) => m.username[PlatformType.TWITTER] === 'test2')
+      const member2 = members.rows.find((m) => m.username[PlatformType.TWITTER][0] === 'test2')
       expect(members.rows.length).toEqual(1)
       expect(member2.tags[0].name).toEqual('nodejs')
       expect(member2.tags[1].name).toEqual('vuejs')
@@ -1213,8 +1243,8 @@ describe('MemberRepository tests', () => {
         { filter: { tags: [nodeTag.id] } },
         mockIRepositoryOptions,
       )
-      const member1 = members.rows.find((m) => m.username[PlatformType.GITHUB] === 'test1')
-      const member2 = members.rows.find((m) => m.username[PlatformType.GITHUB] === 'test2')
+      const member1 = members.rows.find((m) => m.username[PlatformType.GITHUB][0] === 'test1')
+      const member2 = members.rows.find((m) => m.username[PlatformType.GITHUB][0] === 'test2')
 
       expect(members.rows.length).toEqual(2)
       expect(member1.tags[0].name).toEqual('nodejs')
@@ -1286,7 +1316,7 @@ describe('MemberRepository tests', () => {
         { filter: { organizations: [crowd.id, pp.id] } },
         mockIRepositoryOptions,
       )
-      const member2 = members.rows.find((m) => m.username[PlatformType.SLACK] === 'test2')
+      const member2 = members.rows.find((m) => m.username[PlatformType.SLACK][0] === 'test2')
       expect(members.rows.length).toEqual(1)
       expect(member2.organizations[0].name).toEqual('crowd.dev')
       expect(member2.organizations[1].name).toEqual('pied piper')
@@ -1340,8 +1370,12 @@ describe('MemberRepository tests', () => {
       )
 
       expect(members.rows.length).toEqual(2)
-      expect(members.rows.find((m) => m.username[PlatformType.SLACK] === 'test1').score).toEqual(1)
-      expect(members.rows.find((m) => m.username[PlatformType.SLACK] === 'test2').score).toEqual(6)
+      expect(members.rows.find((m) => m.username[PlatformType.SLACK][0] === 'test1').score).toEqual(
+        1,
+      )
+      expect(members.rows.find((m) => m.username[PlatformType.SLACK][0] === 'test2').score).toEqual(
+        6,
+      )
     })
 
     it('is successfully finding and counting all members, and scoreRange is gte than 7', async () => {
@@ -1861,7 +1895,12 @@ describe('MemberRepository tests', () => {
 
       await MemberRepository.create(
         {
-          username: { [PlatformType.TWITTER]: 'test1' },
+          username: {
+            [PlatformType.TWITTER]: {
+              username: 'test1',
+              integrationId: generateUUIDv1(),
+            },
+          },
           displayName: 'Member 1',
           score: '1',
           joinedAt: new Date(),
@@ -1908,7 +1947,12 @@ describe('MemberRepository tests', () => {
       )
       await MemberRepository.create(
         {
-          username: { [PlatformType.TWITTER]: 'test2' },
+          username: {
+            [PlatformType.TWITTER]: {
+              username: 'test2',
+              integrationId: generateUUIDv1(),
+            },
+          },
           displayName: 'Member 2',
           score: '6',
           joinedAt: new Date(),
@@ -1937,7 +1981,12 @@ describe('MemberRepository tests', () => {
       )
       await MemberRepository.create(
         {
-          username: { [PlatformType.TWITTER]: 'test3' },
+          username: {
+            [PlatformType.TWITTER]: {
+              username: 'test3',
+              integrationId: generateUUIDv1(),
+            },
+          },
           displayName: 'Member 3',
           score: '7',
           joinedAt: new Date(),
@@ -2099,7 +2148,12 @@ describe('MemberRepository tests', () => {
 
       await MemberRepository.create(
         {
-          username: { [PlatformType.TWITTER]: 'test1' },
+          username: {
+            [PlatformType.TWITTER]: {
+              username: 'test1',
+              integrationId: generateUUIDv1(),
+            },
+          },
           displayName: 'Member 1',
           score: '1',
           joinedAt: new Date(),
@@ -2108,7 +2162,12 @@ describe('MemberRepository tests', () => {
       )
       await MemberRepository.create(
         {
-          username: { [PlatformType.TWITTER]: 'test2' },
+          username: {
+            [PlatformType.TWITTER]: {
+              username: 'test2',
+              integrationId: generateUUIDv1(),
+            },
+          },
           displayName: 'Member 2',
           score: '6',
           joinedAt: new Date(),
@@ -2118,7 +2177,12 @@ describe('MemberRepository tests', () => {
       )
       await MemberRepository.create(
         {
-          username: { [PlatformType.GITHUB]: 'test3' },
+          username: {
+            [PlatformType.GITHUB]: {
+              username: 'test3',
+              integrationId: generateUUIDv1(),
+            },
+          },
           displayName: 'Member 3',
           score: '7',
           joinedAt: new Date(),
@@ -2142,7 +2206,7 @@ describe('MemberRepository tests', () => {
         },
         mockIRepositoryOptions,
       )
-      const member2 = members.rows.find((m) => m.username[PlatformType.TWITTER] === 'test2')
+      const member2 = members.rows.find((m) => m.username[PlatformType.TWITTER].includes('test2'))
       expect(members.rows.length).toEqual(1)
       expect(member2.tags[0].name).toEqual('nodejs')
       expect(member2.tags[1].name).toEqual('vuejs')
@@ -2162,7 +2226,12 @@ describe('MemberRepository tests', () => {
 
       await MemberRepository.create(
         {
-          username: { [PlatformType.GITHUB]: 'test1' },
+          username: {
+            [PlatformType.GITHUB]: {
+              username: 'test1',
+              integrationId: generateUUIDv1(),
+            },
+          },
           displayName: 'Member 1',
           score: '1',
           joinedAt: new Date(),
@@ -2172,7 +2241,12 @@ describe('MemberRepository tests', () => {
       )
       await MemberRepository.create(
         {
-          username: { [PlatformType.GITHUB]: 'test2' },
+          username: {
+            [PlatformType.GITHUB]: {
+              username: 'test2',
+              integrationId: generateUUIDv1(),
+            },
+          },
           displayName: 'Member 2',
           score: '6',
           joinedAt: new Date(),
@@ -2182,7 +2256,12 @@ describe('MemberRepository tests', () => {
       )
       await MemberRepository.create(
         {
-          username: { [PlatformType.GITHUB]: 'test3' },
+          username: {
+            [PlatformType.GITHUB]: {
+              username: 'test3',
+              integrationId: generateUUIDv1(),
+            },
+          },
           displayName: 'Member 3',
           score: '7',
           joinedAt: new Date(),
@@ -2206,8 +2285,8 @@ describe('MemberRepository tests', () => {
         },
         mockIRepositoryOptions,
       )
-      const member1 = members.rows.find((m) => m.username[PlatformType.GITHUB] === 'test1')
-      const member2 = members.rows.find((m) => m.username[PlatformType.GITHUB] === 'test2')
+      const member1 = members.rows.find((m) => m.username[PlatformType.GITHUB].includes('test1'))
+      const member2 = members.rows.find((m) => m.username[PlatformType.GITHUB].includes('test2'))
 
       expect(members.rows.length).toEqual(2)
       expect(member1.tags[0].name).toEqual('nodejs')
@@ -2231,7 +2310,12 @@ describe('MemberRepository tests', () => {
 
       await MemberRepository.create(
         {
-          username: { [PlatformType.SLACK]: 'test1' },
+          username: {
+            [PlatformType.SLACK]: {
+              username: 'test1',
+              integrationId: generateUUIDv1(),
+            },
+          },
           displayName: 'Member 1',
           score: '1',
           joinedAt: new Date(),
@@ -2240,7 +2324,12 @@ describe('MemberRepository tests', () => {
       )
       await MemberRepository.create(
         {
-          username: { [PlatformType.SLACK]: 'test2' },
+          username: {
+            [PlatformType.SLACK]: {
+              username: 'test2',
+              integrationId: generateUUIDv1(),
+            },
+          },
           displayName: 'Member 2',
           score: '6',
           joinedAt: new Date(),
@@ -2250,7 +2339,12 @@ describe('MemberRepository tests', () => {
       )
       await MemberRepository.create(
         {
-          username: { [PlatformType.SLACK]: 'test3' },
+          username: {
+            [PlatformType.SLACK]: {
+              username: 'test3',
+              integrationId: generateUUIDv1(),
+            },
+          },
           displayName: 'Member 3',
           score: '7',
           joinedAt: new Date(),
@@ -2274,7 +2368,7 @@ describe('MemberRepository tests', () => {
         },
         mockIRepositoryOptions,
       )
-      const member2 = members.rows.find((m) => m.username[PlatformType.SLACK] === 'test2')
+      const member2 = members.rows.find((m) => m.username[PlatformType.SLACK].includes('test2'))
       expect(members.rows.length).toEqual(1)
       expect(member2.organizations[0].name).toEqual('crowd.dev')
       expect(member2.organizations[1].name).toEqual('pied piper')
@@ -2284,19 +2378,34 @@ describe('MemberRepository tests', () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
 
       const user1 = {
-        username: { [PlatformType.DISCORD]: 'test1' },
+        username: {
+          [PlatformType.DISCORD]: {
+            username: 'test1',
+            integrationId: generateUUIDv1(),
+          },
+        },
         displayName: 'Member 1',
         score: '1',
         joinedAt: new Date(),
       }
       const user2 = {
-        username: { [PlatformType.DISCORD]: 'test2' },
+        username: {
+          [PlatformType.DISCORD]: {
+            username: 'test2',
+            integrationId: generateUUIDv1(),
+          },
+        },
         displayName: 'Member 2',
         score: '6',
         joinedAt: new Date(),
       }
       const user3 = {
-        username: { [PlatformType.DISCORD]: 'test3' },
+        username: {
+          [PlatformType.DISCORD]: {
+            username: 'test3',
+            integrationId: generateUUIDv1(),
+          },
+        },
         displayName: 'Member 3',
         score: '7',
         joinedAt: new Date(),
@@ -2346,7 +2455,12 @@ describe('MemberRepository tests', () => {
 
       const member1 = await MemberRepository.create(
         {
-          username: { [PlatformType.DISCORD]: 'test1' },
+          username: {
+            [PlatformType.SLACK]: {
+              username: 'test1',
+              integrationId: generateUUIDv1(),
+            },
+          },
           displayName: 'Member 1',
           score: '1',
           joinedAt: new Date(),
@@ -2359,7 +2473,12 @@ describe('MemberRepository tests', () => {
       )
       const member2 = await MemberRepository.create(
         {
-          username: { [PlatformType.DISCORD]: 'test2' },
+          username: {
+            [PlatformType.SLACK]: {
+              username: 'test2',
+              integrationId: generateUUIDv1(),
+            },
+          },
           displayName: 'Member 2',
           score: '6',
           joinedAt: new Date(),
@@ -2372,7 +2491,12 @@ describe('MemberRepository tests', () => {
       )
       const member3 = await MemberRepository.create(
         {
-          username: { [PlatformType.DISCORD]: 'test3' },
+          username: {
+            [PlatformType.SLACK]: {
+              username: 'test3',
+              integrationId: generateUUIDv1(),
+            },
+          },
           displayName: 'Member 3',
           score: '7',
           joinedAt: new Date(),
@@ -2390,8 +2514,8 @@ describe('MemberRepository tests', () => {
           platform: PlatformType.SLACK,
           timestamp: new Date('2022-09-10'),
           tenantId: mockIRepositoryOptions.currentTenant.id,
-          username: 'test1',
           memberId: member1.id,
+          username: member1.username[PlatformType.SLACK],
           sourceId: '#sourceId1',
           sentiment: {
             positive: 0.55,
@@ -2407,8 +2531,8 @@ describe('MemberRepository tests', () => {
           platform: PlatformType.SLACK,
           timestamp: new Date('2022-09-11'),
           tenantId: mockIRepositoryOptions.currentTenant.id,
-          username: 'test2',
           memberId: member2.id,
+          username: member2.username[PlatformType.SLACK],
           sourceId: '#sourceId2',
           sentiment: {
             positive: 0.01,
@@ -2424,8 +2548,8 @@ describe('MemberRepository tests', () => {
           platform: PlatformType.SLACK,
           timestamp: new Date('2022-09-12'),
           tenantId: mockIRepositoryOptions.currentTenant.id,
-          username: 'test2',
           memberId: member2.id,
+          username: member2.username[PlatformType.SLACK],
           sourceId: '#sourceId3',
           sentiment: {
             positive: 0.94,
@@ -2441,8 +2565,8 @@ describe('MemberRepository tests', () => {
           platform: PlatformType.SLACK,
           timestamp: new Date('2022-09-13'),
           tenantId: mockIRepositoryOptions.currentTenant.id,
-          username: 'test3',
           memberId: member3.id,
+          username: member3.username[PlatformType.SLACK],
           sourceId: '#sourceId4',
           sentiment: {
             positive: 0.42,
@@ -2458,8 +2582,8 @@ describe('MemberRepository tests', () => {
           platform: PlatformType.SLACK,
           timestamp: new Date('2022-09-14'),
           tenantId: mockIRepositoryOptions.currentTenant.id,
-          username: 'test3',
           memberId: member3.id,
+          username: member3.username[PlatformType.SLACK],
           sourceId: '#sourceId5',
           sentiment: {
             positive: 0.42,
@@ -2475,8 +2599,8 @@ describe('MemberRepository tests', () => {
           platform: PlatformType.SLACK,
           timestamp: new Date('2022-09-15'),
           tenantId: mockIRepositoryOptions.currentTenant.id,
-          username: 'test3',
           memberId: member3.id,
+          username: member3.username[PlatformType.SLACK],
           sourceId: '#sourceId6',
           sentiment: {
             positive: 0.42,
@@ -2636,7 +2760,8 @@ describe('MemberRepository tests', () => {
         score: '1',
         joinedAt: '2021-05-27T15:14:30Z',
       }
-      const returnedMember = await MemberRepository.create(member1, mockIRepositoryOptions)
+      let cloned = lodash.cloneDeep(member1)
+      const returnedMember = await MemberRepository.create(cloned, mockIRepositoryOptions)
 
       const updateFields = {
         username: {
@@ -2671,9 +2796,10 @@ describe('MemberRepository tests', () => {
         location: 'Istanbul',
       }
 
+      cloned = lodash.cloneDeep(updateFields)
       const updatedMember = await MemberRepository.update(
         returnedMember.id,
-        updateFields,
+        cloned,
         mockIRepositoryOptions,
       )
 
@@ -2804,6 +2930,7 @@ describe('MemberRepository tests', () => {
         attributes: updateFields.attributes,
         lastEnriched: null,
         enrichedBy: [],
+        organizations: [],
         contributions: null,
         emails: updateFields.emails,
         score: updateFields.score,
@@ -3161,107 +3288,6 @@ describe('MemberRepository tests', () => {
     })
   })
 
-  describe('addToMerge method', () => {
-    it('Should add a member to other members toMerge list', async () => {
-      const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
-
-      const member1 = {
-        username: {
-          [PlatformType.DISCORD]: {
-            username: 'anil',
-            integrationId: generateUUIDv1(),
-          },
-        },
-        displayName: 'Member 1',
-        joinedAt: '2020-05-27T15:13:30Z',
-      }
-
-      const member2 = {
-        username: {
-          [PlatformType.DISCORD]: {
-            username: 'anil2',
-            integrationId: generateUUIDv1(),
-          },
-        },
-        displayName: 'Member 2',
-        joinedAt: '2020-05-27T15:13:30Z',
-      }
-
-      const memberCreated1 = await MemberRepository.create(member1, mockIRepositoryOptions)
-      const memberCreated2 = await MemberRepository.create(member2, mockIRepositoryOptions)
-
-      const memberUpdated1 = await MemberRepository.addToMerge(
-        memberCreated1.id,
-        memberCreated2.id,
-        mockIRepositoryOptions,
-      )
-      const memberUpdated2 = await MemberRepository.addToMerge(
-        memberCreated2.id,
-        memberCreated1.id,
-        mockIRepositoryOptions,
-      )
-
-      expect(memberUpdated1.toMerge[0]).toBe(memberUpdated2.id)
-      expect(memberUpdated2.toMerge[0]).toBe(memberUpdated1.id)
-    })
-
-    it('Should return same result for multiple addToMerge calls for the same member', async () => {
-      const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
-
-      const member1 = {
-        username: {
-          [PlatformType.DISCORD]: {
-            username: 'anil',
-            integrationId: generateUUIDv1(),
-          },
-        },
-        displayName: 'Member 1',
-        joinedAt: '2020-05-27T15:13:30Z',
-      }
-
-      const member2 = {
-        username: {
-          [PlatformType.DISCORD]: {
-            username: 'anil2',
-            integrationId: generateUUIDv1(),
-          },
-        },
-        displayName: 'Member 2',
-        joinedAt: '2020-05-27T15:13:30Z',
-      }
-
-      const memberCreated1 = await MemberRepository.create(member1, mockIRepositoryOptions)
-      const memberCreated2 = await MemberRepository.create(member2, mockIRepositoryOptions)
-
-      const memberUpdated1 = await MemberRepository.addToMerge(
-        memberCreated1.id,
-        memberCreated2.id,
-        mockIRepositoryOptions,
-      )
-      const memberUpdated2 = await MemberRepository.addToMerge(
-        memberCreated2.id,
-        memberCreated1.id,
-        mockIRepositoryOptions,
-      )
-
-      // multiple calls to for same (member, mergeMember) should result in no change
-      await MemberRepository.addToMerge(
-        memberCreated2.id,
-        memberCreated1.id,
-        mockIRepositoryOptions,
-      )
-      await MemberRepository.addToMerge(
-        memberCreated2.id,
-        memberCreated1.id,
-        mockIRepositoryOptions,
-      )
-
-      expect(memberUpdated1.toMerge.length).toBe(1)
-      expect(memberUpdated1.toMerge[0]).toBe(memberUpdated2.id)
-      expect(memberUpdated2.toMerge[0]).toBe(memberUpdated1.id)
-    })
-  })
-
   describe('removeToMerge method', () => {
     it('Should remove a member from other members toMerge list', async () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
@@ -3291,28 +3317,28 @@ describe('MemberRepository tests', () => {
       const memberCreated1 = await MemberRepository.create(member1, mockIRepositoryOptions)
       const memberCreated2 = await MemberRepository.create(member2, mockIRepositoryOptions)
 
-      let memberUpdated1 = await MemberRepository.addToMerge(
-        memberCreated1.id,
-        memberCreated2.id,
+      await MemberRepository.addToMerge(
+        [{ members: [memberCreated1.id, memberCreated2.id], similarity: null }],
         mockIRepositoryOptions,
       )
-      const memberUpdated2 = await MemberRepository.addToMerge(
-        memberCreated2.id,
-        memberCreated1.id,
+      await MemberRepository.addToMerge(
+        [{ members: [memberCreated2.id, memberCreated1.id], similarity: null }],
         mockIRepositoryOptions,
       )
 
-      memberUpdated1 = await MemberRepository.removeToMerge(
+      let m1 = await MemberRepository.findById(memberCreated1.id, mockIRepositoryOptions)
+      const m2 = await MemberRepository.findById(memberCreated2.id, mockIRepositoryOptions)
+      m1 = await MemberRepository.removeToMerge(
         memberCreated1.id,
         memberCreated2.id,
         mockIRepositoryOptions,
       )
 
       // Member2 should be removed from Member1.toMerge
-      expect(memberUpdated1.toMerge.length).toBe(0)
+      expect(m1.toMerge.length).toBe(0)
 
       // Member1 is still in member2.toMerge list
-      expect(memberUpdated2.toMerge[0]).toBe(memberUpdated1.id)
+      expect(m2.toMerge[0]).toBe(m1.id)
     })
   })
 

@@ -10,4 +10,6 @@ export default {
   image:
     'https://cdn-icons-png.flaticon.com/512/3800/3800024.png',
   connectComponent: SlackConnect,
+  url: (username) => `https://slack.com/${username}`,
+  chartColor: '#E41756',
 };

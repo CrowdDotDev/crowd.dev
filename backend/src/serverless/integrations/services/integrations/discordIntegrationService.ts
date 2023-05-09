@@ -345,11 +345,7 @@ export class DiscordIntegrationService extends IntegrationServiceBase {
     }
   }
 
-  async postprocess(
-    context: IStepContext,
-    failedStreams?: IIntegrationStream[],
-    remainingStreams?: IIntegrationStream[],
-  ): Promise<void> {
+  async postprocess(context: IStepContext): Promise<void> {
     context.integration.settings.channels = context.pipelineData.channels.map((c) => ({
       id: c.id,
       name: c.name,
@@ -416,8 +412,15 @@ export class DiscordIntegrationService extends IntegrationServiceBase {
           type: 'joined_guild',
           sourceId,
           timestamp: joinedAt,
+          username,
           member: {
-            username,
+            username: {
+              [PlatformType.DISCORD]: {
+                username,
+                integrationId: context.integration.id,
+                sourceId: record.user.id,
+              },
+            },
             attributes: {
               [MemberAttributeName.SOURCE_ID]: {
                 [PlatformType.DISCORD]: record.user.id,
@@ -546,8 +549,14 @@ export class DiscordIntegrationService extends IntegrationServiceBase {
             attachments: record.attachments ? record.attachments : [],
             forum: isForum,
           },
+          username,
           member: {
-            username,
+            username: {
+              [PlatformType.DISCORD]: {
+                username,
+                integrationId: context.integration.id,
+              },
+            },
             attributes: {
               [MemberAttributeName.SOURCE_ID]: {
                 [PlatformType.DISCORD]: record.author.id,

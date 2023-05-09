@@ -19,7 +19,7 @@ describe('MicroserviceRepository tests', () => {
     it('Should create a microservice succesfully with default values', async () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
 
-      const microservice2Add = { type: 'check_merge' }
+      const microservice2Add = { type: 'members_score' }
 
       const microserviceCreated = await MicroserviceRepository.create(
         microservice2Add,
@@ -53,7 +53,7 @@ describe('MicroserviceRepository tests', () => {
       const microservice2Add = {
         init: true,
         running: true,
-        type: 'check_merge',
+        type: 'members_score',
         variant: 'premium',
         settings: { testSettingsField: 'test' },
       }
@@ -90,7 +90,7 @@ describe('MicroserviceRepository tests', () => {
       const microservice1 = {
         init: true,
         running: true,
-        type: 'check_merge',
+        type: 'members_score',
         variant: 'premium',
         settings: { testSettingsField: 'test' },
       }
@@ -98,7 +98,7 @@ describe('MicroserviceRepository tests', () => {
       await MicroserviceRepository.create(microservice1, mockIRepositoryOptions)
 
       await expect(() =>
-        MicroserviceRepository.create({ type: 'check_merge' }, mockIRepositoryOptions),
+        MicroserviceRepository.create({ type: 'members_score' }, mockIRepositoryOptions),
       ).rejects.toThrow()
     })
 
@@ -122,7 +122,7 @@ describe('MicroserviceRepository tests', () => {
     it('Should successfully find created microservice by id', async () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
 
-      const microservice2Add = { type: 'check_merge' }
+      const microservice2Add = { type: 'members_score' }
 
       const microserviceCreated = await MicroserviceRepository.create(
         microservice2Add,
@@ -170,11 +170,11 @@ describe('MicroserviceRepository tests', () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
 
       const microservice1Created = await MicroserviceRepository.create(
-        { type: 'check_merge' },
+        { type: 'members_score' },
         mockIRepositoryOptions,
       )
       const microservice2Created = await MicroserviceRepository.create(
-        { type: 'members_score' },
+        { type: 'second' },
         mockIRepositoryOptions,
       )
 
@@ -190,7 +190,7 @@ describe('MicroserviceRepository tests', () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
 
       const microserviceCreated = await MicroserviceRepository.create(
-        { type: 'check_merge' },
+        { type: 'members_score' },
         mockIRepositoryOptions,
       )
 
@@ -208,7 +208,7 @@ describe('MicroserviceRepository tests', () => {
       let mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
 
       const microserviceCreated = await MicroserviceRepository.create(
-        { type: 'check_merge' },
+        { type: 'members_score' },
         mockIRepositoryOptions,
       )
 
@@ -229,18 +229,18 @@ describe('MicroserviceRepository tests', () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
 
       const microservice1Created = await MicroserviceRepository.create(
-        { type: 'check_merge', variant: 'premium' },
+        { type: 'members_score', variant: 'premium' },
         mockIRepositoryOptions,
       )
 
       const microservice2Created = await MicroserviceRepository.create(
-        { type: 'members_score', variant: 'premium' },
+        { type: 'second', variant: 'premium' },
         mockIRepositoryOptions,
       )
 
       // Filter by type
       let microservices = await MicroserviceRepository.findAndCountAll(
-        { filter: { type: 'check_merge' } },
+        { filter: { type: 'members_score' } },
         mockIRepositoryOptions,
       )
 
@@ -329,7 +329,7 @@ describe('MicroserviceRepository tests', () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
 
       const microserviceCreated = await MicroserviceRepository.create(
-        { type: 'check_merge', variant: 'premium' },
+        { type: 'members_score', variant: 'premium' },
         mockIRepositoryOptions,
       )
 
@@ -364,7 +364,7 @@ describe('MicroserviceRepository tests', () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
       await MicroserviceRepository.create(ms1, mockIRepositoryOptions)
 
-      const found: any = await MicroserviceRepository.findAllByType('twitter-followers')
+      const found: any = await MicroserviceRepository.findAllByType('twitter-followers', 1, 100)
       expect(found[0].tenantId).toBeDefined()
       expect(found.length).toBe(1)
     })
@@ -383,7 +383,7 @@ describe('MicroserviceRepository tests', () => {
       const mockIRepositoryOptions2 = await SequelizeTestUtils.getTestIRepositoryOptions(db)
       await MicroserviceRepository.create(ms1, mockIRepositoryOptions2)
 
-      const found = await MicroserviceRepository.findAllByType('twitter-followers')
+      const found = await MicroserviceRepository.findAllByType('twitter-followers', 1, 100)
       expect(found.length).toBe(2)
     })
 
@@ -421,7 +421,7 @@ describe('MicroserviceRepository tests', () => {
       const mockIRepositoryOptions3 = await SequelizeTestUtils.getTestIRepositoryOptions(db)
       await MicroserviceRepository.create(ms3, mockIRepositoryOptions3)
 
-      const found = await MicroserviceRepository.findAllByType('twitter-followers')
+      const found = await MicroserviceRepository.findAllByType('twitter-followers', 1, 100)
       expect(found.length).toBe(2)
     })
 
@@ -435,7 +435,7 @@ describe('MicroserviceRepository tests', () => {
       }
 
       const ms2 = {
-        type: 'check_merge',
+        type: 'members_score',
         running: false,
         init: false,
         variant: 'default',
@@ -451,12 +451,12 @@ describe('MicroserviceRepository tests', () => {
       const mockIRepositoryOptions3 = await SequelizeTestUtils.getTestIRepositoryOptions(db)
       await MicroserviceRepository.create(ms2, mockIRepositoryOptions3)
 
-      const found = await MicroserviceRepository.findAllByType('twitter-followers')
+      const found = await MicroserviceRepository.findAllByType('twitter-followers', 1, 100)
       expect(found.length).toBe(2)
     })
 
     it('Should return an empty list if no integrations are found', async () => {
-      const found = await MicroserviceRepository.findAllByType('twitter-followers')
+      const found = await MicroserviceRepository.findAllByType('twitter-followers', 1, 100)
       expect(found.length).toBe(0)
     })
   })

@@ -6,6 +6,7 @@ import MemberRepository from '../memberRepository'
 import ActivityRepository from '../activityRepository'
 import { PlatformType } from '../../../types/integrationEnums'
 import { generateUUIDv1 } from '../../../utils/uuid'
+import lodash from 'lodash'
 
 const db = null
 
@@ -78,12 +79,11 @@ async function getToCreate(task, options, from = { fromMembers: [], fromActiviti
   task.assignees = []
 
   for (const sampleMember of fromMembers) {
-    task.members.push((await MemberRepository.create(sampleMember, options)).id)
+    const cloned = lodash.cloneDeep(sampleMember)
+    task.members.push((await MemberRepository.create(cloned, options)).id)
   }
 
   for (const sampleActivity of fromActivities) {
-    let username: string
-
     const existing = await MemberRepository.memberExists(
       sampleMembers[0].username[PlatformType.GITHUB].username,
       PlatformType.GITHUB,
@@ -92,24 +92,15 @@ async function getToCreate(task, options, from = { fromMembers: [], fromActiviti
 
     if (existing) {
       sampleActivity.member = existing.id
-      username = sampleMembers[0].username[PlatformType.GITHUB].username
+      sampleActivity.username = sampleMembers[0].username[PlatformType.GITHUB].username
     } else {
-      const member = await MemberRepository.create(sampleMembers[0], options)
+      const cloned = lodash.cloneDeep(sampleMembers[0])
+      const member = await MemberRepository.create(cloned, options)
       sampleActivity.member = member.id
-      username = sampleMembers[0].username[PlatformType.GITHUB].username
+      sampleActivity.username = sampleMembers[0].username[PlatformType.GITHUB].username
     }
 
-    task.activities.push(
-      (
-        await ActivityRepository.create(
-          {
-            ...sampleActivity,
-            username,
-          },
-          options,
-        )
-      ).id,
-    )
+    task.activities.push((await ActivityRepository.create(sampleActivity, options)).id)
   }
   task.assignees.push(options.currentUser.id)
   return task

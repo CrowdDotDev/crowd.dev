@@ -16,6 +16,7 @@ import { AutomationTrigger, AutomationType } from '../../../types/automationType
 import newActivityWorker from './automation/workers/newActivityWorker'
 import newMemberWorker from './automation/workers/newMemberWorker'
 import webhookWorker from './automation/workers/webhookWorker'
+import slackWorker from './automation/workers/slackWorker'
 import { csvExportWorker } from './csv-export/csvExportWorker'
 import { processStripeWebhook } from '../../integrations/workers/stripeWebhookWorker'
 import { processSendgridWebhook } from '../../integrations/workers/sendgridWebhookWorker'
@@ -23,6 +24,7 @@ import { bulkEnrichmentWorker } from './bulk-enrichment/bulkEnrichmentWorker'
 import { eagleEyeEmailDigestWorker } from './eagle-eye-email-digest/eagleEyeEmailDigestWorker'
 import { integrationDataCheckerWorker } from './integration-data-checker/integrationDataCheckerWorker'
 import { refreshSampleDataWorker } from './integration-data-checker/refreshSampleDataWorker'
+import { mergeSuggestionsWorker } from './merge-suggestions/mergeSuggestionsWorker'
 
 /**
  * Worker factory for spawning different microservices
@@ -33,7 +35,6 @@ import { refreshSampleDataWorker } from './integration-data-checker/refreshSampl
 
 async function workerFactory(event: NodeMicroserviceMessage): Promise<any> {
   const { service, tenant } = event as any
-
   switch (service.toLowerCase()) {
     case 'stripe-webhooks':
       return processStripeWebhook(event)
@@ -50,6 +51,9 @@ async function workerFactory(event: NodeMicroserviceMessage): Promise<any> {
         integrationDataCheckerMessage.integrationId,
         integrationDataCheckerMessage.tenantId,
       )
+    case 'merge-suggestions':
+      return mergeSuggestionsWorker(tenant)
+
     case 'refresh-sample-data':
       return refreshSampleDataWorker()
 
@@ -77,6 +81,15 @@ async function workerFactory(event: NodeMicroserviceMessage): Promise<any> {
             webhookProcessRequest.automation,
             webhookProcessRequest.eventId,
             webhookProcessRequest.payload,
+          )
+        case AutomationType.SLACK:
+          const slackProcessRequest = event as ProcessWebhookAutomationMessage
+          return slackWorker(
+            tenant,
+            slackProcessRequest.automationId,
+            slackProcessRequest.automation,
+            slackProcessRequest.eventId,
+            slackProcessRequest.payload,
           )
         default:
           throw new Error(`Invalid automation type ${automationProcessRequest.automationType}!`)

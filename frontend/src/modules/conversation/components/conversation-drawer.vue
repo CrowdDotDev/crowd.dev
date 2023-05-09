@@ -19,7 +19,7 @@
         v-if="loading"
         :loading="true"
       />
-      <div v-else>
+      <div v-else class="h-full">
         <app-conversation-details
           v-if="conversation"
           :conversation="conversation"

@@ -78,7 +78,7 @@
           </div>
         </div>
         <!-- Content -->
-        <div class="pt-4">
+        <div v-if="activity.title || activity.body" class="pt-4">
           <app-activity-content
             :activity="activity"
             :display-body="false"

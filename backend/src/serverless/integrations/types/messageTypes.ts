@@ -54,7 +54,7 @@ export interface MemberIdentity {
 }
 
 export type PlatformIdentities = {
-  [K in keyof typeof PlatformType]?: MemberIdentity
+  [K in keyof typeof PlatformType]?: [MemberIdentity]
 }
 
 export type Member = {
@@ -78,6 +78,8 @@ export type AddActivitiesSingle = {
   platform: string
   tenant: string
   member: Member
+  objectMember?: Member
+  objectMemberUsername?: string
   sourceId?: string
   sourceParentId?: string
   attributes?: object

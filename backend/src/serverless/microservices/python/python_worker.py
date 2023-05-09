@@ -5,7 +5,6 @@ from crowd.backend.infrastructure import SQS
 from crowd.backend.infrastructure.config import PYTHON_WORKER_QUEUE
 from crowd.backend.infrastructure.logging import get_logger
 from crowd.backend.utils.coordinator import base_coordinator
-from crowd.check_merge_members.merge_suggestions_worker import merge_suggestions_worker
 from crowd.members_score import members_score_worker
 
 logger = get_logger(__name__)
@@ -27,20 +26,10 @@ while True:
         member = body.get('member', '')
         params = body.get('params', None)
 
-        if service == Services.CHECK_MERGE.value:
-            sqs.delete_message(msg_receipt)
-            logger.info("triggering merge_suggestions_worker")
-            merge_suggestions_worker(tenant_id, member, params)
-
-        elif service == Services.MEMBERS_SCORE.value:
+        if service == Services.MEMBERS_SCORE.value:
             sqs.delete_message(msg_receipt)
             logger.info("triggering members_score")
             members_score_worker(tenant_id)
-
-        elif msg_type == Services.CHECK_MERGE.value:
-            sqs.delete_message(msg_receipt)
-            logger.info("triggering merge_suggestions_worker")
-            merge_suggestions_worker(tenant_id, member, params)
 
         elif msg_type == Services.MEMBERS_SCORE.value:
             sqs.delete_message(msg_receipt)

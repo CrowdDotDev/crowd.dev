@@ -57,10 +57,12 @@
           v-if="report.isTemplate"
           v-model:platform="platform"
           v-model:team-members="teamMembers"
+          v-model:team-activities="teamActivities"
           :show-platform="currentTemplate.filters?.platform"
           :show-team-members="
             currentTemplate.filters?.teamMembers
           "
+          :show-team-activities="currentTemplate.filters?.teamActivities"
           @open="onPlatformFilterOpen"
           @reset="onPlatformFilterReset"
           @track-filters="onTrackFilters"
@@ -72,27 +74,23 @@
         size="narrow"
       >
         <div class="w-full mt-8">
-          <app-report-member-template
-            v-if="
-              currentTemplate.nameAsId
-                === MEMBERS_REPORT.nameAsId
-            "
-            :is-public-view="true"
-            :filters="{
-              platform,
-              teamMembers,
-            }"
-          />
-          <app-report-product-community-fit-template
-            v-if="
-              currentTemplate.nameAsId
-                === PRODUCT_COMMUNITY_FIT_REPORT.nameAsId
-            "
-            :is-public-view="true"
-            :filters="{
-              teamMembers,
-            }"
-          />
+          <div
+            v-for="template in templates"
+            :key="template.config.nameAsId"
+          >
+            <component
+              :is="template.component"
+              v-if="
+                currentTemplate.nameAsId
+                  === template.config.nameAsId
+              "
+              :filters="{
+                platform,
+                teamMembers,
+                teamActivities,
+              }"
+            />
+          </div>
         </div>
       </app-page-wrapper>
       <!-- Custom Report -->
@@ -164,17 +162,14 @@
 <script>
 import { mapState, mapGetters, mapActions } from 'vuex';
 import ReportGridLayout from '@/modules/report/components/report-grid-layout.vue';
-import AppReportMemberTemplate from '@/modules/report/pages/templates/report-member-template.vue';
-import AppReportProductCommunityFitTemplate from '@/modules/report/pages/templates/report-product-community-fit-template.vue';
 import AuthCurrentTenant from '@/modules/auth/auth-current-tenant';
 import { TenantService } from '@/modules/tenant/tenant-service';
 import AppReportTemplateFilters from '@/modules/report/components/templates/report-template-filters.vue';
 import ActivityPlatformField from '@/modules/activity/activity-platform-field';
-import {
-  MEMBERS_REPORT,
-  PRODUCT_COMMUNITY_FIT_REPORT,
-  templates,
-} from '@/modules/report/templates/template-reports';
+import MEMBERS_REPORT from '@/modules/report/templates/config/members';
+import PRODUCT_COMMUNITY_FIT_REPORT from '@/modules/report/templates/config/productCommunityFit';
+import ACTIVITIES_REPORT from '@/modules/report/templates/config/activities';
+import templates from '@/modules/report/templates/config';
 
 const platformField = new ActivityPlatformField(
   'activeOn',
@@ -193,8 +188,6 @@ export default {
 
   components: {
     'app-report-grid-layout': ReportGridLayout,
-    AppReportMemberTemplate,
-    AppReportProductCommunityFitTemplate,
     AppReportTemplateFilters,
   },
 
@@ -215,10 +208,12 @@ export default {
       currentTenant: null,
       platform: initialPlatformValue,
       teamMembers: false,
+      teamActivities: false,
       isHeaderOnTop: false,
       templates,
       MEMBERS_REPORT,
       PRODUCT_COMMUNITY_FIT_REPORT,
+      ACTIVITIES_REPORT,
     };
   },
 
@@ -237,8 +232,8 @@ export default {
     },
     currentTemplate() {
       return this.templates.find(
-        (t) => t.nameAsId === this.report.name,
-      );
+        (t) => t.config.nameAsId === this.report.name,
+      )?.config;
     },
   },
 
@@ -295,6 +290,7 @@ export default {
         public: true,
         platforms: this.platform.value.map((p) => p.value),
         includeTeamMembers: this.teamMembers,
+        includeTeamActivities: this.teamActivities,
       });
     },
     onPageScroll() {

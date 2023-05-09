@@ -1,7 +1,7 @@
 import * as yup from 'yup';
 import GenericField from '@/shared/fields/generic-field';
 
-function isJsonEmpty(required, json) {
+function isJsonEmpty(nonEmptyValues, required, json) {
   if (!required && !json) {
     return true;
   }
@@ -10,6 +10,7 @@ function isJsonEmpty(required, json) {
     !!json
     && Object.keys(json).length !== 0
     && Object.keys(json).every((k) => !!k && !!json[k])
+    && (nonEmptyValues && !Object.keys(json).some((k) => json[k].some((v) => !v)))
   );
 }
 
@@ -20,6 +21,7 @@ export default class JsonField extends GenericField {
     this.required = config.required;
     this.requiredUnless = config.requiredUnless;
     this.nonEmpty = config.nonEmpty;
+    this.nonEmptyValues = config.nonEmptyValues;
   }
 
   forPresenter(value) {
@@ -40,14 +42,14 @@ export default class JsonField extends GenericField {
     if (this.nonEmpty && !this.requiredUnless) {
       yupChain = yupChain.test({
         name: 'valid required json',
-        test: (json) => isJsonEmpty(this.required, json),
+        test: (json) => isJsonEmpty(this.nonEmptyValues, this.required, json),
       });
     }
 
     if (this.requiredUnless) {
       yupChain = yupChain.when(this.requiredUnless, {
         is: (value) => !value || value === '',
-        then: (schema) => schema.test((json) => isJsonEmpty(schema.required(), json)),
+        then: (schema) => schema.test((json) => isJsonEmpty(this.nonEmptyValues, schema.required(), json)),
       });
     }
 
@@ -64,14 +66,14 @@ export default class JsonField extends GenericField {
     if (this.nonEmpty && !this.requiredUnless) {
       yupChain = yupChain.test({
         name: 'valid required json',
-        test: (json) => isJsonEmpty(this.required, json),
+        test: (json) => isJsonEmpty(this.nonEmptyValues, this.required, json),
       });
     }
 
     if (this.requiredUnless) {
       yupChain = yupChain.when(this.requiredUnless, {
         is: (value) => !value || value === '',
-        then: (schema) => schema.test((json) => isJsonEmpty(schema.required(), json)),
+        then: (schema) => schema.test((json) => isJsonEmpty(this.nonEmptyValues, schema.required(), json)),
       });
     }
 
