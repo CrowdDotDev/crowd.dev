@@ -62,6 +62,7 @@ describe('New Activity Automation Worker tests', () => {
       member: {
         attributes: {
           isTeamMember: {
+            default: true,
             custom: true,
           },
         },
@@ -143,6 +144,7 @@ describe('New Activity Automation Worker tests', () => {
       member: {
         attributes: {
           isTeamMember: {
+            default: true,
             custom: true,
           },
         },
