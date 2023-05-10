@@ -173,7 +173,7 @@ const updateAutomation = (automation) => {
 };
 
 // Slack connect
-const slackConnected = computed(() => currentTenant.value.settings[0].slackWebHook);
+const slackConnected = computed(() => currentTenant.value?.settings[0].slackWebHook);
 
 const slackConnectUrl = computed(() => {
   const redirectUrl = `${window.location.protocol}//${window.location.host}${window.location.pathname}?activeTab=automations&success=true`;

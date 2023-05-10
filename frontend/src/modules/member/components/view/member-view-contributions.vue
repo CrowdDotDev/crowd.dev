@@ -419,7 +419,12 @@ const isDisabled = computed(
 // The targetNodePos computed property is used to calculate the position
 // of the target node on the graph.
 const targetNodePos = computed(() => {
+  if (!targetNodeId.value) {
+    return { x: 0, y: 0 };
+  }
+
   const nodePos = layouts.value.nodes[targetNodeId.value];
+
   return nodePos || { x: 0, y: 0 };
 });
 
