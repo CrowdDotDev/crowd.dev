@@ -11,7 +11,7 @@ export default async (req, res) => {
 
   await SettingsService.save({ slackWebHook: url }, req)
   await Axios.post(url, {
-    text: 'Crowd.dev Notifier has been successfully connected.',
+    text: 'crowd.dev notifier has been successfully connected.',
   })
 
   res.redirect(redirectUrl)
