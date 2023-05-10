@@ -71,7 +71,7 @@ export const shouldProcessActivity = async (
     process &&
     !settings.teamMemberActivities &&
     activity.member.attributes.isTeamMember &&
-    activity.member.attributes.isTeamMember.custom
+    activity.member.attributes.isTeamMember.default
   ) {
     log.warn(
       `Ignoring automation ${automation.id} - Activity ${activity.id} belongs to a team member!`,
