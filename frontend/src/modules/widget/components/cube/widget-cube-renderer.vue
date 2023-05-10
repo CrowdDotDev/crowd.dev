@@ -77,11 +77,17 @@ export default {
         operator: 'equals',
         values: ['0'],
       };
+      const isBot = {
+        member: 'Members.isBot',
+        operator: 'equals',
+        values: ['0'],
+      };
 
       if (!widgetQuery.filters) {
-        widgetQuery.filters = [isTeamMemberFilter];
+        widgetQuery.filters = [isTeamMemberFilter, isBot];
       } else {
         widgetQuery.filters.push(isTeamMemberFilter);
+        widgetQuery.filters.push(isBot);
       }
 
       return widgetQuery;
