@@ -28,6 +28,7 @@ module.exports = {
     indent: 'warn',
     'no-trailing-spaces': 'warn',
     'vue/no-unused-components': 'warn',
+    'vue/html-closing-bracket-spacing': 'warn',
     'vue/html-indent': 'warn',
     'vue/html-self-closing': 'warn',
     'object-curly-spacing': 'warn',

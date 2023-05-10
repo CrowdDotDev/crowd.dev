@@ -35,6 +35,8 @@
           :key="nestedOption.value"
           class="filter-type-select-option group"
           :class="nestedOption.selected ? 'is-selected' : ''"
+          :data-qa-value="`${option.label.key}:${nestedOption.value}`"
+          data-qa="filter-select-option"
           @click="
             handleOptionClick(nestedOption, option.label)
           "
