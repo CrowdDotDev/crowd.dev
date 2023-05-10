@@ -179,7 +179,7 @@ const clickOutsideListener = (event) => {
     // clicks outside
     !(
       component === event.target
-      || component.contains(event.target)
+      || component?.contains(event.target)
       // we need the following condition to validate clicks
       // on popovers that are not DOM children of this component,
       // since popper is adding fixed components to the body directly

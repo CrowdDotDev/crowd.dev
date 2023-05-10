@@ -117,10 +117,10 @@ const eagleEyeModalOpened = ref(false);
 const onboardingGuidesDismissed = ref(false);
 
 const hasSampleData = computed(
-  () => currentTenant.value.hasSampleData,
+  () => currentTenant.value?.hasSampleData,
 );
 const minCommunitySize = computed(() => {
-  if (!currentTenant.value.communitySize) {
+  if (!currentTenant.value?.communitySize) {
     return null;
   }
   // If community size bigger than 5000
@@ -156,8 +156,7 @@ const dismissGuides = () => {
 
 const showModals = () => {
   if (
-    !currentTenantUser.value
-    || !currentTenantUser.value.settings
+    !currentTenantUser.value?.settings
   ) {
     return;
   }

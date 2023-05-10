@@ -144,7 +144,7 @@ export default {
       );
     },
     member() {
-      return this.conversation.conversationStarter.member;
+      return this.conversation.conversationStarter?.member;
     },
     sentiment() {
       return this.conversation.conversationStarter.sentiment
