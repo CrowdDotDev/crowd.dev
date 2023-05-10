@@ -2,7 +2,7 @@ import { API_CONFIG } from '../../../../../../config'
 import { integrationLabel } from '../../../../../../types/integrationEnums'
 
 export const newMemberBlocks = (member) => {
-  const platforms = Object.keys(member.username).filter((platform) => !['email'].includes(platform))
+  const platforms = member.activeOn
   const reach = member.reach?.[platforms[0]] || member.reach?.total
   return {
     blocks: [

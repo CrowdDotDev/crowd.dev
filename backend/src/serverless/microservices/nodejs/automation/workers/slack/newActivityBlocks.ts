@@ -40,9 +40,7 @@ const replaceHeadline = (text) => {
 }
 
 export const newActivityBlocks = (activity) => {
-  const isCustomActivity = activity.display.default === "Conducted an activity" && activity.title?.length > 0
-  const headline = isCustomActivity ? activity.title : activity.display.default
-  const display = htmlToMrkdwn(replaceHeadline(`${headline}`))
+  const display = htmlToMrkdwn(replaceHeadline(`${activity.display.default}`))
   const reach = activity.member.reach?.[activity.platform] || activity.member.reach?.total
   const memberProperties = []
   if (activity.member.attributes.jobTitle?.default) {
@@ -55,9 +53,8 @@ export const newActivityBlocks = (activity) => {
   if (engagementLevel.length > 0) {
     memberProperties.push(`*Engagement level:* ${engagementLevel}`)
   }
-  if (activity.member.username) {
-    const platforms = Object.keys(activity.member.username)
-      .filter((platform) => !['email'].includes(platform))
+  if (activity.member.activeOn) {
+    const platforms = activity.member.activeOn
       .map((platform) => integrationLabel[platform] || platform)
       .join(' | ')
     memberProperties.push(`*Active on:* ${platforms}`)
@@ -79,7 +76,7 @@ export const newActivityBlocks = (activity) => {
         type: 'section',
         text: {
           type: 'mrkdwn',
-          text: `*<${API_CONFIG.frontendUrl}/members/${activity.member.id}|${activity.member.displayName}>* \n*${display.text}*`,
+          text: `*<${API_CONFIG.frontendUrl}/members/${activity.member.id}|${activity.member.displayName}>* \n *${display.text}*`,
         },
         ...(activity.url
           ? {
@@ -119,7 +116,7 @@ export const newActivityBlocks = (activity) => {
                   type: 'section',
                   text: {
                     type: 'mrkdwn',
-                    text: `${activity.title && !isCustomActivity ? `*${htmlToMrkdwn(activity.title).text}* \n ` : ''}${
+                    text: `${activity.title && activity.title !== activity.display.default ? `*${htmlToMrkdwn(activity.title).text}* \n ` : ''}${
                       htmlToMrkdwn(activity.body).text
                     }`,
                   },
