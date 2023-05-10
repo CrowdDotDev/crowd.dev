@@ -55,7 +55,7 @@ export default [
         name: 'verifyEmail',
         path: 'verify-email',
         component: VerifyEmailPage,
-        meta: { title: 'Signup' }
+        meta: { title: 'Signup' },
       },
       {
         name: 'emptyPermissions',
@@ -67,7 +67,7 @@ export default [
         name: 'invitation',
         path: 'invitation',
         component: InvitationPage,
-        meta: { title: 'Invitation'},
+        meta: { title: 'Invitation' },
       },
     ],
   },
@@ -75,7 +75,7 @@ export default [
     name: '',
     path: '',
     component: Layout,
-    meta: { auth: true },
+    meta: { auth: true, title: 'Profile Settings' },
     children: [
       {
         name: 'editProfile',
