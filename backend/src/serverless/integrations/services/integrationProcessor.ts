@@ -111,8 +111,8 @@ export class IntegrationProcessor extends LoggingBase {
     await this.checkProcessor.processCheck(type)
   }
 
-  async processWebhook(webhookId: string, force?: boolean) {
-    await this.webhookProcessor.processWebhook(webhookId, force)
+  async processWebhook(webhookId: string, force?: boolean, fireCrowdWebhooks?: boolean) {
+    await this.webhookProcessor.processWebhook(webhookId, force, fireCrowdWebhooks)
   }
 
   async process(req: NodeWorkerIntegrationProcessMessage) {
