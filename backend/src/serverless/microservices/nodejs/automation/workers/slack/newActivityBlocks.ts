@@ -116,9 +116,11 @@ export const newActivityBlocks = (activity) => {
                   type: 'section',
                   text: {
                     type: 'mrkdwn',
-                    text: `${activity.title && activity.title !== activity.display.default ? `*${htmlToMrkdwn(activity.title).text}* \n ` : ''}${
-                      htmlToMrkdwn(activity.body).text
-                    }`,
+                    text: `${
+                      activity.title && activity.title !== activity.display.default
+                        ? `*${htmlToMrkdwn(activity.title).text}* \n `
+                        : ''
+                    }${htmlToMrkdwn(activity.body).text}`,
                   },
                 },
               ],
