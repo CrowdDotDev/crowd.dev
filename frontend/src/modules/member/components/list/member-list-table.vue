@@ -115,6 +115,7 @@
                       <app-avatar :entity="scope.row" size="sm" class="mr-2" />
                       <span
                         class="font-semibold"
+                        data-qa="members-name"
                         v-html="$sanitize(scope.row.displayName)"
                       />
                       <app-member-sentiment :member="scope.row" class="ml-2" />
@@ -272,7 +273,7 @@
                     }"
                     class="block"
                   >
-                    <div class="text-gray-900 text-sm">
+                    <div data-qa="member-oss-contributions" class="text-gray-900 text-sm member-oss-contributions">
                       {{
                         formatNumberToCompact(
                           scope.row.numberOfOpenSourceContributions,
@@ -322,7 +323,7 @@
                             <i
                               v-if="email"
                               class="ri-external-link-line text-gray-400"
-                          /></span>
+                            /></span>
                         </template>
                         <div @click.prevent>
                           <a
@@ -331,7 +332,7 @@
                             class="badge--interactive"
                             :href="`mailto:${email}`"
                             @click.stop="trackEmailClick"
-                            >{{ email }}</a>
+                          >{{ email }}</a>
                         </div>
                       </el-tooltip>
                     </div>

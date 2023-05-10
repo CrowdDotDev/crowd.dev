@@ -393,7 +393,7 @@ const { setTypes } = useActivityTypeStore();
 watch(
   () => currentTenant,
   (tenant) => {
-    if (tenant.value.settings.length > 0) {
+    if (tenant.value?.settings.length > 0) {
       setTypes(tenant.value.settings[0].activityTypes);
     }
   },
@@ -423,7 +423,7 @@ const hasPermissionToSettings = computed(
   () => new SettingsPermissions(
     currentTenant.value,
     currentUser.value,
-  ).edit || currentTenant.value.hasSampleData,
+  ).edit || currentTenant.value?.hasSampleData,
 );
 
 const hasPermissionToCommunityMember = computed(

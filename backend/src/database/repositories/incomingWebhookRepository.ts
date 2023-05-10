@@ -2,9 +2,12 @@ import { v4 as uuid } from 'uuid'
 import { QueryTypes } from 'sequelize'
 import {
   DbIncomingWebhookInsertData,
+  ErrorWebhook,
   IncomingWebhookData,
+  PendingWebhook,
   WebhookError,
   WebhookState,
+  WebhookType,
 } from '../../types/webhooks'
 import { IRepositoryOptions } from './IRepositoryOptions'
 import { RepositoryBase } from './repositoryBase'
@@ -147,6 +150,7 @@ export default class IncomingWebhookRepository extends RepositoryBase<
           state: WebhookState.ERROR,
           error: JSON.stringify({
             message: error.message,
+            originalError: JSON.stringify(error.originalError),
             originalMessage: error.originalError.message,
             stack: error.stack,
           }),
@@ -159,5 +163,73 @@ export default class IncomingWebhookRepository extends RepositoryBase<
     if (rowCount !== 1) {
       throw new Error(`Failed to mark webhook '${id}' as error!`)
     }
+  }
+
+  async findError(type: WebhookType, page: number, perPage: number): Promise<ErrorWebhook[]> {
+    const transaction = this.transaction
+
+    const seq = this.seq
+
+    const query = `
+      select iw.id, iw."tenantId"
+      from "incomingWebhooks" iw
+      left join integrations i on i.id = iw."integrationId"
+      where iw.state = :error
+      and iw.type = :type
+      and iw.error->>'originalMessage' <> 'Bad credentials'
+      and i.id is not null
+      order by iw."createdAt" desc
+      limit ${perPage} offset ${(page - 1) * perPage};
+    `
+
+    const results = await seq.query(query, {
+      replacements: {
+        error: WebhookState.ERROR,
+        type,
+      },
+      type: QueryTypes.SELECT,
+      transaction,
+    })
+
+    return results as ErrorWebhook[]
+  }
+
+  async findPending(page: number, perPage: number): Promise<PendingWebhook[]> {
+    const transaction = this.transaction
+
+    const seq = this.seq
+
+    const query = `
+      select id, "tenantId"
+      from "incomingWebhooks"
+      where state = :pending
+        and "createdAt" < now() - interval '1 hour'
+      limit ${perPage} offset ${(page - 1) * perPage};
+    `
+
+    const results = await seq.query(query, {
+      replacements: {
+        pending: WebhookState.PENDING,
+      },
+      type: QueryTypes.SELECT,
+      transaction,
+    })
+
+    return results as PendingWebhook[]
+  }
+
+  async cleanUpOldWebhooks(months: number): Promise<void> {
+    const seq = this.seq
+
+    const cleanQuery = `
+        delete from "incomingWebhooks" where state = :processed and "processedAt" < now() - interval '${months} months';                     
+    `
+
+    await seq.query(cleanQuery, {
+      replacements: {
+        processed: WebhookState.PROCESSED,
+      },
+      type: QueryTypes.DELETE,
+    })
   }
 }

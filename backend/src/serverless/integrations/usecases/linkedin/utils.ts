@@ -1,7 +1,9 @@
 import { LinkedInAuthorType } from '../../types/linkedinTypes'
 
 export const isLinkedInOrganization = (urn: string): boolean =>
-  urn.startsWith('urn:li:organization:') || urn.startsWith('urn:li:company:')
+  urn.startsWith('urn:li:organization:') ||
+  urn.startsWith('urn:li:company:') ||
+  urn.startsWith('urn:li:organizationBrand:')
 
 export const isLinkedInUser = (urn: string): boolean => urn.startsWith('urn:li:person:')
 
@@ -18,4 +20,7 @@ export const getLinkedInMemberType = (urn: string): LinkedInAuthorType => {
 export const getLinkedInUserId = (urn: string): string => urn.replace('urn:li:person:', '')
 
 export const getLinkedInOrganizationId = (urn: string): string =>
-  urn.replace('urn:li:organization:', '').replace('urn:li:company:', '')
+  urn
+    .replace('urn:li:organization:', '')
+    .replace('urn:li:company:', '')
+    .replace('urn:li:organizationBrand:', '')

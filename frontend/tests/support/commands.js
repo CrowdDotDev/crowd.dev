@@ -32,6 +32,14 @@ Cypress.Commands.add('clearAllLocalStorage', () => {
 });
 
 Cypress.on('uncaught:exception', () => false);
+
+Cypress.on('before:browser:launch', (browser, launchOptions) => {
+  if (browser.family === 'chromium') {
+    console.log('Adding Chrome flag: --disable-dev-shm-usage');
+    launchOptions.args.push('--disable-dev-shm-usage');
+  }
+  return launchOptions;
+});
 //
 //
 // -- This is a child command --

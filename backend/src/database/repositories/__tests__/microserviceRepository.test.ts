@@ -364,7 +364,7 @@ describe('MicroserviceRepository tests', () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
       await MicroserviceRepository.create(ms1, mockIRepositoryOptions)
 
-      const found: any = await MicroserviceRepository.findAllByType('twitter-followers')
+      const found: any = await MicroserviceRepository.findAllByType('twitter-followers', 1, 100)
       expect(found[0].tenantId).toBeDefined()
       expect(found.length).toBe(1)
     })
@@ -383,7 +383,7 @@ describe('MicroserviceRepository tests', () => {
       const mockIRepositoryOptions2 = await SequelizeTestUtils.getTestIRepositoryOptions(db)
       await MicroserviceRepository.create(ms1, mockIRepositoryOptions2)
 
-      const found = await MicroserviceRepository.findAllByType('twitter-followers')
+      const found = await MicroserviceRepository.findAllByType('twitter-followers', 1, 100)
       expect(found.length).toBe(2)
     })
 
@@ -421,7 +421,7 @@ describe('MicroserviceRepository tests', () => {
       const mockIRepositoryOptions3 = await SequelizeTestUtils.getTestIRepositoryOptions(db)
       await MicroserviceRepository.create(ms3, mockIRepositoryOptions3)
 
-      const found = await MicroserviceRepository.findAllByType('twitter-followers')
+      const found = await MicroserviceRepository.findAllByType('twitter-followers', 1, 100)
       expect(found.length).toBe(2)
     })
 
@@ -451,12 +451,12 @@ describe('MicroserviceRepository tests', () => {
       const mockIRepositoryOptions3 = await SequelizeTestUtils.getTestIRepositoryOptions(db)
       await MicroserviceRepository.create(ms2, mockIRepositoryOptions3)
 
-      const found = await MicroserviceRepository.findAllByType('twitter-followers')
+      const found = await MicroserviceRepository.findAllByType('twitter-followers', 1, 100)
       expect(found.length).toBe(2)
     })
 
     it('Should return an empty list if no integrations are found', async () => {
-      const found = await MicroserviceRepository.findAllByType('twitter-followers')
+      const found = await MicroserviceRepository.findAllByType('twitter-followers', 1, 100)
       expect(found.length).toBe(0)
     })
   })

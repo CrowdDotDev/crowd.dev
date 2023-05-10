@@ -2,6 +2,30 @@
 
 All notable changes to this project will be documented in this file.
 
+## v0.30.0 - 2023-05-02
+
+### Changes
+
+For all details, visit our [changelog](https://changelog.crowd.dev/changelogs/activities-report)!
+
+#### 🚀 Features
+
+- Support activities report @joanagmaia (#724) and @epipav (#810)
+
+#### ✨ Improvements
+
+- GitHub pull request events @epipav (#734)
+
+#### 🐞 Bug Fixes
+
+- Fix a rendering issue in the members' list when emails were null @joanagmaia (#817)
+- Fix the handle that was sent when getting enrichments with GitHub @joanreyero (#820)
+- Detecting existing and actual member mismatch when upserting members @themarolt (#804)
+- Fix merge suggestions failing due to new database index @joanreyero (#816)
+- Fix new badge in the dashboard for active members @joanagmaia (#815)
+- Removed filtering by is_latest when getting existing member to solve upsert issues @epipav (#814)
+- Creating custom activities from the frontend was not working because we were missing a username field @joanreyero (#808)
+
 ## v0.29.0 - 2023-04-25
 
 ### Changes
@@ -319,7 +343,6 @@ https://user-images.githubusercontent.com/37874460/220165717-4204605a-260f-41cb-
 - Fix Export to CSV functionality @joanagmaia (#533)
 ## v0.19.0 - 2023-02-13
 ### Changes
-
 ### ✨ Improvements
 
 - Added LinkedIn to sample data @joanreyero (#481)
@@ -511,7 +534,6 @@ With this, we have introduced feature flagging, so we can also roll out features
 - Exclude our internal tenants from telemetry, and add telemetry events for organizations and integrations @joanreyero (#317)
 - Make sure that we call AWS Comprehend API with a `utf-8` string. @themarolt (#315)
 - Properly handle GitHub's rate limit @themarolt (#311)
-
 ## v0.11.0 - 2022-12-05
 
 ### Changes
@@ -553,7 +575,6 @@ The feedback has been tremendous after our open-source launch! We have spent thi
 ### Changes
 :fire: A brand-new user interface.
 We completely overhauled our design and user experience (you may not even recognize the app). crowd.dev is now much more intuitive to use, and the product feels more polished.
-
 <img width="1103" alt="Screenshot 2022-10-28 at 15 51 31" src="https://user-images.githubusercontent.com/37874460/198659098-cf43074c-1607-41a5-adf7-47635e247639.png">
 :bust_in_silhouette: Richer member profiles
 Member profiles now show you everything you need to know about an individual in one place, with even richer information on their activity history, tags, engagement level, and much more.

@@ -55,7 +55,7 @@ export const getMember = async (
       profilePictureUrl,
     }
   } catch (err) {
-    if (err.response?.status === 403) {
+    if (err.response?.status === 403 || err.response?.status === 404) {
       // we can't access this profile because of visibility settings
       return {
         id: 'private',

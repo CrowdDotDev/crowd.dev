@@ -345,11 +345,7 @@ export class DiscordIntegrationService extends IntegrationServiceBase {
     }
   }
 
-  async postprocess(
-    context: IStepContext,
-    failedStreams?: IIntegrationStream[],
-    remainingStreams?: IIntegrationStream[],
-  ): Promise<void> {
+  async postprocess(context: IStepContext): Promise<void> {
     context.integration.settings.channels = context.pipelineData.channels.map((c) => ({
       id: c.id,
       name: c.name,

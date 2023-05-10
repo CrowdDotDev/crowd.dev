@@ -43,7 +43,7 @@ export default class ActivityService extends LoggingBase {
    * @param existing If the activity already exists, the activity. If it doesn't or we don't know, false
    * @returns The upserted activity
    */
-  async upsert(data, existing: boolean | any = false) {
+  async upsert(data, existing: boolean | any = false, fireCrowdWebhooks: boolean = false) {
     const transaction = await SequelizeRepository.createTransaction(this.options)
 
     try {
@@ -160,7 +160,7 @@ export default class ActivityService extends LoggingBase {
 
       await SequelizeRepository.commitTransaction(transaction)
 
-      if (!existing) {
+      if (!existing && fireCrowdWebhooks) {
         try {
           await sendNewActivityNodeSQSMessage(this.options.currentTenant.id, record)
         } catch (err) {
@@ -414,7 +414,7 @@ export default class ActivityService extends LoggingBase {
     return exists || false
   }
 
-  async createWithMember(data) {
+  async createWithMember(data, fireCrowdWebhooks: boolean = true) {
     const logger = this.options.log
 
     const errorDetails: any = {}
@@ -433,6 +433,11 @@ export default class ActivityService extends LoggingBase {
       if (!data.username) {
         data.username = data.member.username[data.platform][0].username
       }
+
+      logger.trace(
+        { type: data.type, platform: data.platform, username: data.username },
+        'Creating activity with member!',
+      )
 
       let activityExists = await this._activityExists(data, transaction)
 
@@ -488,6 +493,7 @@ export default class ActivityService extends LoggingBase {
           joinedAt: activityExists ? activityExists.timestamp : data.timestamp,
         },
         existingMember,
+        fireCrowdWebhooks,
       )
 
       if (data.objectMember) {
@@ -513,11 +519,15 @@ export default class ActivityService extends LoggingBase {
           }
         }
 
-        const objectMember = await memberService.upsert({
-          ...data.objectMember,
-          platform: data.platform,
-          joinedAt: data.timestamp,
-        })
+        const objectMember = await memberService.upsert(
+          {
+            ...data.objectMember,
+            platform: data.platform,
+            joinedAt: data.timestamp,
+          },
+          false,
+          fireCrowdWebhooks,
+        )
 
         if (!data.objectMemberUsername) {
           data.objectMemberUsername = data.objectMember.username[data.platform].username
@@ -528,7 +538,7 @@ export default class ActivityService extends LoggingBase {
 
       data.member = member.id
 
-      const record = await this.upsert(data, activityExists)
+      const record = await this.upsert(data, activityExists, fireCrowdWebhooks)
 
       await SequelizeRepository.commitTransaction(transaction)
 

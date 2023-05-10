@@ -7,6 +7,7 @@ import {
 } from '../../../types/automationTypes'
 
 export interface DbAutomationInsertData {
+  name: string
   type: AutomationType
   trigger: AutomationTrigger
   settings: AutomationSettings
@@ -14,6 +15,7 @@ export interface DbAutomationInsertData {
 }
 
 export interface DbAutomationUpdateData {
+  name: string
   trigger: AutomationTrigger
   settings: AutomationSettings
   state: AutomationState

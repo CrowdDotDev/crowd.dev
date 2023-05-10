@@ -45,6 +45,7 @@
             <div class="flex items-center">
               <div class="pr-2">
                 <el-tooltip
+                  v-if="platform"
                   effect="dark"
                   :content="platform.name"
                   placement="top"
@@ -55,6 +56,10 @@
                     :src="platform.image"
                   />
                 </el-tooltip>
+                <i
+                  v-else
+                  class="ri-radar-line text-base text-gray-400"
+                />
               </div>
               <div class="flex-grow">
                 <div class="flex items-center">

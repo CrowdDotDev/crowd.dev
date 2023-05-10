@@ -31,7 +31,7 @@
         <!-- Conversation item list -->
         <app-conversation-item
           v-for="conversation of conversations"
-          :key="conversation.id"
+          :key="conversation?.id"
           :conversation="conversation"
           @details="conversationId = conversation.id"
         />
@@ -78,7 +78,7 @@ const conversationId = ref(null);
 defineProps({
   conversations: {
     type: Array,
-    default: () => {},
+    default: () => [],
   },
   loading: {
     type: Boolean,
