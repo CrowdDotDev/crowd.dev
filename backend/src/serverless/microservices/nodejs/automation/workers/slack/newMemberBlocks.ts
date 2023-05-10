@@ -39,81 +39,88 @@ export const newMemberBlocks = (member) => {
       {
         type: 'divider',
       },
-        ...(member.attributes.jobTitle?.default
-            ? [{
-          type: 'section',
-          fields: [
+      ...(member.attributes.jobTitle?.default
+        ? [
             {
-              type: 'mrkdwn',
-              text: '*Title/Role:*',
-            },
-            {
-              type: 'mrkdwn',
-              text: member.attributes.jobTitle?.default || '-',
-            },
-          ],
-        },
-          {
-            type: 'divider',
-          },]
-            : []),
-        ...(member.organizations.length > 0
-            ? [{
-            type: 'section',
-            fields: [
+              type: 'section',
+              fields: [
                 {
-                    type: 'mrkdwn',
-                    text: '*Organization:*',
+                  type: 'mrkdwn',
+                  text: '*Title/Role:*',
                 },
                 {
-                    type: 'mrkdwn',
-                    text: `<${`${API_CONFIG.frontendUrl}/organizations/${member.organizations[0].id}`}|${
-                                member.organizations[0].name
-                            }>`,
+                  type: 'mrkdwn',
+                  text: member.attributes.jobTitle?.default || '-',
                 },
-            ],
-        },
+              ],
+            },
             {
-                type: 'divider',
-            }]
-            : []),
-        ...(reach > 0
-            ? [{
-                type: 'section',
-                fields: [
-                    {
-                        type: 'mrkdwn',
-                        text: '*Followers:*',
-                    },
-                    {
-                        type: 'mrkdwn',
-                        text: reach > 0 ? `${reach}` : '-',
-                    },
-                ],
+              type: 'divider',
             },
+          ]
+        : []),
+      ...(member.organizations.length > 0
+        ? [
+            {
+              type: 'section',
+              fields: [
                 {
-                    type: 'divider',
-                }]
-            : []
-        ),
-        ...(member.attributes?.location?.default
-            ? [{
-                type: 'section',
-                fields: [
-                    {
-                        type: 'mrkdwn',
-                        text: '*Location:*',
-                    },
-                    {
-                        type: 'mrkdwn',
-                        text: member.attributes?.location?.default || '-',
-                    },
-                ],
+                  type: 'mrkdwn',
+                  text: '*Organization:*',
+                },
+                {
+                  type: 'mrkdwn',
+                  text: `<${`${API_CONFIG.frontendUrl}/organizations/${member.organizations[0].id}`}|${
+                    member.organizations[0].name
+                  }>`,
+                },
+              ],
             },
+            {
+              type: 'divider',
+            },
+          ]
+        : []),
+      ...(reach > 0
+        ? [
+            {
+              type: 'section',
+              fields: [
                 {
-                    type: 'divider',
-                }]
-            : []),
+                  type: 'mrkdwn',
+                  text: '*Followers:*',
+                },
+                {
+                  type: 'mrkdwn',
+                  text: reach > 0 ? `${reach}` : '-',
+                },
+              ],
+            },
+            {
+              type: 'divider',
+            },
+          ]
+        : []),
+      ...(member.attributes?.location?.default
+        ? [
+            {
+              type: 'section',
+              fields: [
+                {
+                  type: 'mrkdwn',
+                  text: '*Location:*',
+                },
+                {
+                  type: 'mrkdwn',
+                  text: member.attributes?.location?.default || '-',
+                },
+              ],
+            },
+            {
+              type: 'divider',
+            },
+          ]
+        : []),
       {
         type: 'actions',
         elements: [
