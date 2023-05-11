@@ -8,11 +8,7 @@
     @close="cancel"
   >
     <template #beforeTitle>
-      <img
-        class="w-6 h-6 mr-2"
-        :src="logoUrl"
-        alt="Git logo"
-      />
+      <img class="w-6 h-6 mr-2" :src="logoUrl" alt="Git logo" />
     </template>
     <template #content>
       <div class="text-gray-900 text-sm font-medium">
@@ -41,10 +37,7 @@
         </app-array-input>
       </el-form>
 
-      <el-button
-        class="btn btn-link btn-link--primary"
-        @click="addRemote()"
-      >
+      <el-button class="btn btn-link btn-link--primary" @click="addRemote()">
         + Add remote URL
       </el-button>
     </template>
@@ -65,7 +58,7 @@
           :loading="loading"
           @click="connect"
         >
-          Connect
+          {{ integration.settings?.remotes?.length ? "Update" : "Connect" }}
         </el-button>
       </div>
     </template>
@@ -114,6 +107,9 @@ const isVisible = computed({
 const logoUrl = computed(() => CrowdIntegrations.getConfig('git').image);
 
 onMounted(() => {
+  if (props.integration?.settings?.remotes?.length) {
+    form.remotes = props.integration.settings.remotes;
+  }
   formSnapshot();
 });
 
@@ -132,11 +128,16 @@ const cancel = () => {
 const connect = async () => {
   loading.value = true;
 
-  doGitConnect({ remotes: form.remotes }).then(() => {
-    isVisible.value = false;
-  }).finally(() => {
-    loading.value = false;
-  });
+  doGitConnect({
+    remotes: form.remotes,
+    isUpdate: props.integration?.settings?.remotes?.length,
+  })
+    .then(() => {
+      isVisible.value = false;
+    })
+    .finally(() => {
+      loading.value = false;
+    });
 };
 </script>
 

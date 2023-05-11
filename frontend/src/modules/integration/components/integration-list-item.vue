@@ -58,7 +58,7 @@
         >
           <div class="flex items-center justify-between">
             <el-button
-              v-if="!connected || isGitIntegration"
+              v-if="!connected"
               class="btn btn--secondary btn--md"
               @click="connect"
             >
@@ -107,8 +107,6 @@ const props = defineProps({
 const computedClass = computed(() => ({
   'integration-custom': props.integration.platform === 'custom',
 }));
-
-const isGitIntegration = computed(() => props.integration.platform === 'git');
 
 const isConnected = computed(() => props.integration.status !== undefined);
 

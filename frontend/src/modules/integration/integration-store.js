@@ -463,7 +463,7 @@ export default {
 
     async doGitConnect(
       { commit },
-      { remotes },
+      { remotes, isUpdate },
     ) {
       try {
         commit('CREATE_STARTED');
@@ -479,7 +479,7 @@ export default {
           + 'This process might take a few minutes to finish, depending on the amount of data.',
           {
             title:
-              'Git integration created successfully',
+              `Git integration ${isUpdate ? 'updated' : 'created'} successfully`,
           },
         );
 
