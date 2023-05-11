@@ -533,6 +533,16 @@ class Permissions {
         allowedRoles: [roles.admin, roles.readonly],
         allowedPlans: [plans.essential, plans.growth, plans.eagleEye],
       },
+      segmentRead: {
+        id: 'segmentRead',
+        allowedRoles: [roles.admin, roles.readonly],
+        allowedPlans: [plans.essential, plans.growth, plans.eagleEye],
+      },
+      segmentCreate: {
+        id: 'segmenCreate',
+        allowedRoles: [roles.admin, roles.readonly],
+        allowedPlans: [plans.essential, plans.growth, plans.eagleEye],
+      },
     }
   }
 
