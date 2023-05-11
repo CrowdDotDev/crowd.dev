@@ -47,6 +47,7 @@
         />
         <div class="flex items-center">
           <el-tooltip
+            v-if="platform"
             effect="dark"
             :content="platform.name"
             placement="top"
@@ -274,7 +275,7 @@ export default {
       }
 
       options.push(
-        ...Object.entries(defaultActivityTypes[platform])
+        ...Object.entries(defaultActivityTypes[platform] || {})
           .filter(([key]) => this.conversationTypes.includes(key)
            || (platform === 'discord'
             && (key === 'replied_thread' || key === 'replied')))

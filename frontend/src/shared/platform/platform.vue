@@ -37,7 +37,7 @@
             class="ri-phone-fill"
           />
           <img
-            v-else
+            v-else-if="imageProperties"
             :src="imageProperties.image"
             :alt="imageProperties.name"
             class="channels-icon"

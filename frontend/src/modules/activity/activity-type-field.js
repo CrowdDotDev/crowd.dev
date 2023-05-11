@@ -22,7 +22,7 @@ export default class ActivityTypeField extends JSONField {
       label: {
         type: 'platform',
         key,
-        value: CrowdIntegrations.getConfig(key).name,
+        value: CrowdIntegrations.getConfig(key)?.name || 'Custom',
       },
       nestedOptions: Object.entries(value).map(([activityKey, activityValue]) => ({
         value: activityKey,
@@ -72,8 +72,8 @@ export default class ActivityTypeField extends JSONField {
         options: this.dropdownOptions(),
         multiple: false,
       },
-      defaultValue: null,
-      value: null,
+      defaultValue: [],
+      value: [],
       defaultOperator: null,
       operator: null,
       type: 'select-group',

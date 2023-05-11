@@ -183,25 +183,78 @@ class OrganizationRepository {
 
   static async findById(id, options: IRepositoryOptions) {
     const transaction = SequelizeRepository.getTransaction(options)
-
-    const include = []
-
+    const sequelize = SequelizeRepository.getSequelize(options)
     const currentTenant = SequelizeRepository.getCurrentTenant(options)
 
-    const record = await options.database.organization.findOne({
-      where: {
-        id,
-        tenantId: currentTenant.id,
+    const results = await sequelize.query(
+      `
+    WITH activity_counts AS (
+        SELECT "organizationId", COUNT(a.id) AS "activityCount"
+        FROM "memberOrganizations" mo
+        left JOIN activities a ON a."memberId" = mo."memberId"
+        WHERE mo."organizationId" = :id 
+        GROUP BY "organizationId"
+    ),
+    member_counts AS (
+        SELECT "organizationId", COUNT(DISTINCT "memberId") AS "memberCount"
+        FROM "memberOrganizations"
+        WHERE "organizationId" = :id
+        GROUP BY "organizationId"
+    ),
+    active_on AS (
+        SELECT "organizationId", ARRAY_AGG(DISTINCT platform) AS "activeOn"
+        FROM "memberOrganizations" mo
+        JOIN activities a ON a."memberId" = mo."memberId"
+        WHERE mo."organizationId" = :id
+        GROUP BY "organizationId"
+    ),
+    identities AS (
+        SELECT "organizationId", ARRAY_AGG(DISTINCT platform) AS "identities"
+        FROM "memberOrganizations" mo
+        JOIN "memberIdentities" mi ON mi."memberId" = mo."memberId"
+        WHERE mo."organizationId" = :id
+        GROUP BY "organizationId"
+    ),
+    last_active AS (
+        SELECT "organizationId", MAX(timestamp) AS "lastActive", MIN(timestamp) AS "joinedAt"
+        FROM "memberOrganizations" mo
+        JOIN activities a ON a."memberId" = mo."memberId"
+        WHERE mo."organizationId" = :id
+        GROUP BY "organizationId"
+    )
+    SELECT
+        o.*,
+    COALESCE(ac."activityCount", 0)::integer AS "activityCount",
+            COALESCE(mc."memberCount", 0)::integer AS "memberCount",
+            COALESCE(ao."activeOn", '{}') AS "activeOn",
+            COALESCE(id."identities", '{}') AS "identities",
+            a."lastActive", a."joinedAt"
+    FROM
+        organizations o
+        LEFT JOIN activity_counts ac ON ac."organizationId" = o.id
+        LEFT JOIN member_counts mc ON mc."organizationId" = o.id
+        LEFT JOIN active_on ao ON ao."organizationId" = o.id
+        LEFT JOIN identities id ON id."organizationId" = o.id
+        LEFT JOIN last_active a ON a."organizationId" = o.id
+    WHERE
+        o.id = :id and
+        o."tenantId"  = :tenantId;
+    `,
+      {
+        replacements: {
+          id,
+          tenantId: currentTenant.id,
+        },
+        type: QueryTypes.SELECT,
+        transaction,
       },
-      include,
-      transaction,
-    })
+    )
 
-    if (!record) {
+    if (results.length === 0) {
       throw new Error404()
     }
 
-    return this._populateRelations(record, options)
+    return results[0] as any
   }
 
   static async findByName(name, options: IRepositoryOptions) {
@@ -738,56 +791,6 @@ class OrganizationRepository {
       rec.activeOn = rec.activeOn ?? []
       return rec
     })
-  }
-
-  static async _populateRelations(record, options: IRepositoryOptions) {
-    if (!record) {
-      return record
-    }
-
-    const output = record.get({ plain: true })
-
-    delete output.organizationCacheId
-
-    const transaction = SequelizeRepository.getTransaction(options)
-
-    const members = await record.getMembers({
-      include: ['activities', 'memberIdentities'],
-      transaction,
-    })
-
-    output.activeOn = [
-      ...new Set(
-        members
-          .reduce((acc, m) => acc.concat(...m.get({ plain: true }).activities), [])
-          .map((a) => a.platform),
-      ),
-    ]
-
-    const activityTimestamps = members
-      .reduce((acc, m) => acc.concat(...m.get({ plain: true }).activities), [])
-      .map((i) => i.timestamp)
-
-    output.lastActive =
-      activityTimestamps.length > 0 ? new Date(Math.max(...activityTimestamps)) : null
-
-    output.joinedAt =
-      activityTimestamps.length > 0 ? new Date(Math.min(...activityTimestamps)) : null
-
-    output.identities = [
-      ...new Set(
-        members.reduce(
-          (acc, m) => acc.concat(m.get({ plain: true }).memberIdentities.map((i) => i.platform)),
-          [],
-        ),
-      ),
-    ]
-
-    output.memberCount = members.length
-
-    output.activityCount = activityTimestamps.length
-
-    return output
   }
 }
 

@@ -38,7 +38,7 @@ const props = defineProps({
 });
 
 const platformContent = (platform) => {
-  const config = CrowdIntegrations.getConfig(platform);
+  const config = CrowdIntegrations.getConfig(platform) || {};
 
   return {
     trackEventName: 'Click Member Contact',

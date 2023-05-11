@@ -11,9 +11,9 @@ import { mapGetters } from '@/shared/vuex/vuex.helpers';
 const { currentUser, currentTenant } = mapGetters('auth');
 
 const eagleEyeSettings = computed(
-  () => currentUser?.value.tenants.find(
+  () => currentUser?.value?.tenants.find(
     (tu) => tu.tenantId === currentTenant?.value.id,
-  ).settings?.eagleEye,
+  )?.settings?.eagleEye,
 );
 
 const AppEagleEyePage = defineAsyncComponent({

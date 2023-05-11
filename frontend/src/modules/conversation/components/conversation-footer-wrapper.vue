@@ -1,4 +1,4 @@
-<template>
+Z<template>
   <slot
     name="footer"
     v-bind="{
@@ -21,8 +21,8 @@ const props = defineProps({
   },
 });
 
-const attributes = computed(() => props.conversation.conversationStarter.attributes);
-const sourceId = computed(() => props.conversation.conversationStarter.sourceId);
+const attributes = computed(() => props.conversation.conversationStarter?.attributes);
+const sourceId = computed(() => props.conversation.conversationStarter?.sourceId);
 const isGithubConversation = computed(() => props.conversation.platform === 'github');
 const isGitConversation = computed(() => props.conversation.platform === 'git');
 const replyContent = computed(() => {
