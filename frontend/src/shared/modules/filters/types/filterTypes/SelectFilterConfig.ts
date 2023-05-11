@@ -5,12 +5,12 @@ interface SelectFilterOption {
   label: string;
   value: string;
 }
-interface SelectFilterOptionGroup {
+export interface SelectFilterOptionGroup {
   label: string;
   options: SelectFilterOption[];
 }
 
-interface SelectFilterOptions {
+export interface SelectFilterOptions {
   options: SelectFilterOptionGroup[]
 }
 

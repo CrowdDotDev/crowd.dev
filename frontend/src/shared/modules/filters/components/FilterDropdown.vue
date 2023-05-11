@@ -1,5 +1,5 @@
 <template>
-  <el-dropdown>
+  <el-dropdown placement="bottom-end">
     <el-button class="btn btn--bordered btn--md">
       <i class="ri-lg ri-filter-3-line mr-2" /> Filters
     </el-button>

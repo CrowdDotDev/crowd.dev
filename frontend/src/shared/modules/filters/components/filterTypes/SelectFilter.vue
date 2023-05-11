@@ -9,13 +9,16 @@
 import {
   defineProps, defineEmits, computed, onMounted,
 } from 'vue';
-import { SelectFilterValue } from '@/shared/modules/filters/types/filterTypes/SelectFilterConfig';
+import {
+  SelectFilterOptions,
+  SelectFilterValue,
+} from '@/shared/modules/filters/types/filterTypes/SelectFilterConfig';
 import { required } from '@vuelidate/validators';
 import useVuelidate from '@vuelidate/core';
 
 const props = defineProps<{
-  modelValue: SelectFilterValue
-}>();
+  modelValue: SelectFilterValue,
+} & SelectFilterOptions>();
 
 const emit = defineEmits<{(e: 'update:modelValue', value: SelectFilterValue)}>();
 
@@ -35,7 +38,7 @@ const rules: any = {
   },
 };
 
-const $v = useVuelidate(rules, form);
+useVuelidate(rules, form);
 
 onMounted(() => {
   if (!form.value) {

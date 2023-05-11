@@ -5,20 +5,16 @@ const options: MultiSelectFilterOptionGroup[] = [
     label: '',
     options: [
       {
-        label: 'Github',
-        value: 'github',
+        label: 'Positive',
+        value: 'positive',
       },
       {
-        label: 'LinkedIn',
-        value: 'linkedin',
+        label: 'Neutral',
+        value: 'neutral',
       },
       {
-        label: 'Twitter',
-        value: 'twitter',
-      },
-      {
-        label: 'Crunchbase',
-        value: 'crunchbase',
+        label: 'Negative',
+        value: 'negative',
       },
     ],
   },

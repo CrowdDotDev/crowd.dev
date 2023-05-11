@@ -5,8 +5,12 @@ interface MultiSelectFilterOption {
   label: string;
   value: string;
 }
-interface MultiSelectFilterOptions {
-  options: MultiSelectFilterOption[]
+export interface MultiSelectFilterOptionGroup {
+  label: string;
+  options: MultiSelectFilterOption[];
+}
+export interface MultiSelectFilterOptions {
+  options: MultiSelectFilterOptionGroup[]
 }
 
 export interface MultiSelectFilterValue {

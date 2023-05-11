@@ -9,13 +9,13 @@
 import {
   defineProps, defineEmits, computed, onMounted,
 } from 'vue';
-import { BooleanFilterValue } from '@/shared/modules/filters/types/filterTypes/BooleanFilterConfig';
+import { BooleanFilterValue, BooleanFilterOptions } from '@/shared/modules/filters/types/filterTypes/BooleanFilterConfig';
 import { required } from '@vuelidate/validators';
 import useVuelidate from '@vuelidate/core';
 
 const props = defineProps<{
   modelValue: BooleanFilterValue
-}>();
+} & BooleanFilterOptions>();
 
 const emit = defineEmits<{(e: 'update:modelValue', value: BooleanFilterValue)}>();
 
@@ -35,7 +35,7 @@ const rules: any = {
   },
 };
 
-const $v = useVuelidate(rules, form);
+useVuelidate(rules, form);
 
 onMounted(() => {
   if (!form.value) {

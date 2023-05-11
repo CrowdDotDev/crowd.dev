@@ -59,7 +59,7 @@
     "unleash-proxy-client": "^2.4.3",
     "uuid": "8.3.0",
     "v-network-graph": "^0.8.2",
-    "vue": "^3.2.45",
+    "vue": "^3.3.1",
     "vue-3-sanitize": "^0.1.4",
     "vue-grid-layout": "3.0.0-beta1",
     "vue-json-pretty": "^2.2.4",
@@ -68,7 +68,7 @@
     "vue3-lazyload": "^0.3.6",
     "vuedraggable": "^4.1.0",
     "vuex": "^4.1.0",
-    "webpack": "^5.82.1",
+    "webpack": "^5.0.0",
     "yup": "^0.32.11"
   },
   "devDependencies": {

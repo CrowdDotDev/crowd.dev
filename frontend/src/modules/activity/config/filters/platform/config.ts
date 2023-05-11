@@ -1,0 +1,35 @@
+import { FilterConfigType } from '@/shared/modules/filters/types/FilterConfig';
+import { MultiSelectFilterConfig, MultiSelectFilterValue } from '@/shared/modules/filters/types/filterTypes/MultiSelectFilterConfig';
+import { CrowdIntegrations } from '@/integrations/integrations-config';
+
+const platform: MultiSelectFilterConfig = {
+  id: 'platform',
+  label: 'Platform',
+  type: FilterConfigType.MULTISELECT,
+  options: {
+    options: [
+      {
+        label: '',
+        options: [
+          ...(CrowdIntegrations.configs.map((platform) => ({
+            label: (platform as any).name,
+            value: platform.platform,
+          }))),
+          {
+            label: 'Other',
+            value: 'other',
+          },
+        ],
+      },
+    ],
+  },
+  itemLabelRenderer(value: MultiSelectFilterValue): string {
+    return `<b>Platform</b> ${value?.value.join(',') || '...'}`;
+  },
+  queryRenderer(value: MultiSelectFilterValue): string {
+    console.log(value);
+    return '';
+  },
+};
+
+export default platform;

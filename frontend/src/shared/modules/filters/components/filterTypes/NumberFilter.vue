@@ -8,13 +8,13 @@
 import {
   defineProps, defineEmits, computed, onMounted,
 } from 'vue';
-import { NumberFilterValue } from '@/shared/modules/filters/types/filterTypes/NumberFilterConfig';
+import { NumberFilterOptions, NumberFilterValue } from '@/shared/modules/filters/types/filterTypes/NumberFilterConfig';
 import useVuelidate from '@vuelidate/core';
 import { required } from '@vuelidate/validators';
 
 const props = defineProps<{
   modelValue: NumberFilterValue
-}>();
+} & NumberFilterOptions>();
 
 const emit = defineEmits<{(e: 'update:modelValue', value: NumberFilterValue)}>();
 
@@ -38,7 +38,7 @@ const rules: any = {
   },
 };
 
-const $v = useVuelidate(rules, form);
+useVuelidate(rules, form);
 
 onMounted(() => {
   if (!form.value) {

@@ -1,11 +1,11 @@
 <template>
-  <cr-select-filter v-model="form" :options="options" />
+  <cr-multi-select-filter v-model="form" :options="options" />
 </template>
 
 <script setup lang="ts">
 import { defineProps, defineEmits, computed } from 'vue';
-import CrSelectFilter from '@/shared/modules/filters/components/filterTypes/SelectFilter.vue';
-import { SelectFilterOptionGroup } from '@/shared/modules/filters/types/filterTypes/SelectFilterConfig';
+import CrMultiSelectFilter from '@/shared/modules/filters/components/filterTypes/MultiSelectFilter.vue';
+import { MultiSelectFilterOptionGroup } from '@/shared/modules/filters/types/filterTypes/MultiSelectFilterConfig';
 
 const props = defineProps<{
   modelValue: string
@@ -19,5 +19,5 @@ const form = computed({
 });
 
 // TODO: fetch activity types
-const options: SelectFilterOptionGroup[] = [];
+const options: MultiSelectFilterOptionGroup[] = [];
 </script>

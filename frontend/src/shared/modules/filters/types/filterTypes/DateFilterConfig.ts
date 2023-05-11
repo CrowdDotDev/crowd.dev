@@ -1,7 +1,7 @@
 /* eslint-disable no-unused-vars */
 import { BaseFilterConfig, FilterConfigType } from "@/shared/modules/filters/types/FilterConfig";
 
-interface DateFilterOptions {
+export interface DateFilterOptions {
 
 }
 export interface DateFilterValue {

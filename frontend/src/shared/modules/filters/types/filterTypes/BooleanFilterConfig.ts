@@ -1,7 +1,8 @@
 /* eslint-disable no-unused-vars */
 import { BaseFilterConfig, FilterConfigType } from '@/shared/modules/filters/types/FilterConfig';
 
-interface BooleanFilterOptions {}
+export interface BooleanFilterOptions {
+}
 
 export interface BooleanFilterValue {
   value: boolean,
