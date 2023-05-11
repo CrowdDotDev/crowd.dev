@@ -107,7 +107,7 @@
             </template>
 
             <template #bottomLink>
-              <div v-if="activity.url" class="pt-6">
+              <div v-if="activity.url && !isGitPlatform" class="pt-6">
                 <a
                   :href="activity.url"
                   class="text-2xs text-gray-600 font-medium flex items-center"

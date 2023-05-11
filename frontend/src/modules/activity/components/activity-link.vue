@@ -33,7 +33,7 @@ export default {
       );
     },
     isGitPlatform() {
-      return this.platform === 'git';
+      return this.activity.platform === 'git';
     },
   },
 };
