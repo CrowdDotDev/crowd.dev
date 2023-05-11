@@ -18,17 +18,25 @@ export default class ActivityTypeField extends JSONField {
   }
 
   getActivityTypes(activityTypes) {
-    return Object.entries(activityTypes).map(([key, value]) => ({
-      label: {
-        type: 'platform',
-        key,
-        value: CrowdIntegrations.getConfig(key)?.name || 'Custom',
-      },
-      nestedOptions: Object.entries(value).map(([activityKey, activityValue]) => ({
-        value: activityKey,
-        label: toSentenceCase(activityValue.display.short),
-      })),
-    }));
+    return Object.entries(activityTypes).map(([key, value]) => {
+      let platformName = CrowdIntegrations.getConfig(key)?.name;
+
+      if (!platformName) {
+        platformName = key === 'other' ? 'Custom' : key;
+      }
+
+      return {
+        label: {
+          type: 'platform',
+          key,
+          value: platformName,
+        },
+        nestedOptions: Object.entries(value).map(([activityKey, activityValue]) => ({
+          value: activityKey,
+          label: toSentenceCase(activityValue.display.short),
+        })),
+      };
+    });
   }
 
   dropdownOptions() {
