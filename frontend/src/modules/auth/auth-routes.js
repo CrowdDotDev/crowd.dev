@@ -26,7 +26,7 @@ export default [
         name: 'signup',
         path: 'signup',
         component: SignupPage,
-        meta: { unauth: true, title: 'Signup' },
+        meta: { unauth: true, title: 'Sign up' },
       },
       {
         name: 'signin',
