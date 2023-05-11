@@ -8,10 +8,12 @@ module.exports = {
   extends: [
     'plugin:vue/vue3-recommended',
     '@vue/airbnb',
+    '@vue/typescript',
   ],
 
   parserOptions: {
     ecmaVersion: 2020,
+    parser: '@typescript-eslint/parser',
   },
 
   rules: {
@@ -36,11 +38,13 @@ module.exports = {
     'keyword-spacing': 'warn',
     'space-before-blocks': 'warn',
     quotes: 'warn',
-    'no-unused-vars': 'warn',
+    'no-unused-vars': 'off',
     'no-multiple-empty-lines': 'warn',
     'vue/no-v-html': 'off',
     'import/prefer-default-export': 'off',
+    'import/no-named-as-default': 'off',
     'class-methods-use-this': 'off',
+    'no-shadow': 'off',
     'vuejs-accessibility/mouse-events-have-key-events': 'off',
     'vuejs-accessibility/click-events-have-key-events': 'off',
     'func-names': 'off',
@@ -64,6 +68,7 @@ module.exports = {
       },
     ],
   },
+
   settings: {
     'import/resolver': {
       alias: {
@@ -72,6 +77,7 @@ module.exports = {
           ['@', './src'],
         ],
       },
+      typescript: {},
     },
   },
 };

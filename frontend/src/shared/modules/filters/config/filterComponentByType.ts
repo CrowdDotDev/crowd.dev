@@ -1,0 +1,16 @@
+import { FilterConfigType } from '@/shared/modules/filters/types/FilterConfig';
+import { Component } from 'vue';
+import BooleanFilter from '@/shared/modules/filters/components/filterTypes/BooleanFilter.vue';
+import MultiSelectFilter from '@/shared/modules/filters/components/filterTypes/MultiSelectFilter.vue';
+import SelectFilter from '@/shared/modules/filters/components/filterTypes/SelectFilter.vue';
+import DateFilter from '@/shared/modules/filters/components/filterTypes/DateFilter.vue';
+import NumberFilter from '@/shared/modules/filters/components/filterTypes/NumberFilter.vue';
+
+export const filterComponentByType: Record<FilterConfigType, Component | null> = {
+  [FilterConfigType.BOOLEAN]: BooleanFilter,
+  [FilterConfigType.NUMBER]: NumberFilter,
+  [FilterConfigType.DATE]: DateFilter,
+  [FilterConfigType.SELECT]: SelectFilter,
+  [FilterConfigType.MULTISELECT]: MultiSelectFilter,
+  [FilterConfigType.CUSTOM]: null,
+};
