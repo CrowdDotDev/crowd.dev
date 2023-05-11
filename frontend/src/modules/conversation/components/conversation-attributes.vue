@@ -29,7 +29,7 @@
       placement="top"
     >
       <div :class="classes.sourceId">
-        <span class="font-semibold">ID/Hash:</span> {{ sourceId }}
+        <span class="font-semibold">SHA:</span> {{ sourceId }}
       </div>
     </el-tooltip>
   </div>

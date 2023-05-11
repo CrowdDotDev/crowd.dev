@@ -106,20 +106,7 @@
               </div>
             </template>
 
-            <template v-if="isGitPlatform" #sideLink>
-              <div v-if="activity.url">
-                <a
-                  :href="activity.url"
-                  class="text-2xs text-gray-600 font-medium flex items-center"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                ><i
-                   class="ri-lg ri-external-link-line mr-1"
-                 />
-                  <span class="block">Open on {{ platform?.name || 'platform' }}</span></a>
-              </div>
-            </template>
-            <template v-else #bottomLink>
+            <template #bottomLink>
               <div v-if="activity.url" class="pt-6">
                 <a
                   :href="activity.url"

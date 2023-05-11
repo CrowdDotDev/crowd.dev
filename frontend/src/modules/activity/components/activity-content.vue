@@ -113,7 +113,6 @@
         />
       </div>
     </div>
-    <slot name="sideLink" />
   </div>
 </template>
 

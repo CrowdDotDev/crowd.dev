@@ -103,14 +103,7 @@
                 </div>
               </template>
 
-              <template v-if="isGitPlatform(activity.platform)" #sideLink>
-                <div v-if="activity.url">
-                  <app-activity-link
-                    :activity="activity"
-                  />
-                </div>
-              </template>
-              <template v-else #bottomLink>
+              <template #bottomLink>
                 <div v-if="activity.url" class="pt-6">
                   <app-activity-link
                     :activity="activity"

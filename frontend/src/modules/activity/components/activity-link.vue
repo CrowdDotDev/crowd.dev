@@ -1,6 +1,6 @@
 <template>
   <a
-    v-if="activity && activity.url"
+    v-if="activity && activity.url && !isGitPlatform"
     :href="activity.url"
     class="text-xs text-gray-600 font-medium flex items-center"
     target="_blank"
@@ -31,6 +31,9 @@ export default {
       return CrowdIntegrations.getConfig(
         this.activity.platform,
       );
+    },
+    isGitPlatform() {
+      return this.platform === 'git';
     },
   },
 };
