@@ -85,7 +85,17 @@ export enum GithubActivityType {
 }
 
 export enum GitActivityType {
-  AUTHORED_COMMIT = 'authored_commit',
+  AUTHORED_COMMIT = 'authored-commit',
+  REVIEWED_COMMIT = 'reviewed-commit',
+  TESTED_COMMIT = 'tested-commit',
+  CO_AUTHORED_COMMIT = 'co-authored-commit',
+  INFORMED_COMMIT = 'informed-commit',
+  INFLUENCED_COMMIT = 'influenced-commit',
+  APPROVED_COMMIT = 'approved-commit',
+  COMMITTED_COMMIT = 'committed-commit',
+  REPORTED_COMMIT = 'reported-commit',
+  RESOLVED_COMMIT = 'resolved-commit',
+  SIGNED_OFF_COMMIT = 'signed-off-commit',
 }
 
 export enum HackerNewsActivityType {
@@ -351,10 +361,92 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
       },
       isContribution: GitHubGrid.pullRequestReviewRequested.isContribution,
     },
+  },
+  [PlatformType.GIT]: {
     [GitActivityType.AUTHORED_COMMIT]: {
       display: {
         default: 'authored a commit in {channel}',
         short: 'authored a commit',
+        channel: '{channel}',
+      },
+      isContribution: true,
+    },
+    [GitActivityType.REVIEWED_COMMIT]: {
+      display: {
+        default: 'reviewed a commit in {channel}',
+        short: 'reviewed a commit',
+        channel: '{channel}',
+      },
+      isContribution: true,
+    },
+    [GitActivityType.TESTED_COMMIT]: {
+      display: {
+        default: 'tested a commit in {channel}',
+        short: 'tested a commit',
+        channel: '{channel}',
+      },
+      isContribution: true,
+    },
+    [GitActivityType.CO_AUTHORED_COMMIT]: {
+      display: {
+        default: 'co-authored a commit in {channel}',
+        short: 'co-authored a commit',
+        channel: '{channel}',
+      },
+      isContribution: true,
+    },
+    [GitActivityType.INFORMED_COMMIT]: {
+      display: {
+        default: 'informed a commit in {channel}',
+        short: 'informed a commit',
+        channel: '{channel}',
+      },
+      isContribution: true,
+    },
+    [GitActivityType.INFLUENCED_COMMIT]: {
+      display: {
+        default: 'influenced a commit in {channel}',
+        short: 'influenced a commit',
+        channel: '{channel}',
+      },
+      isContribution: true,
+    },
+    [GitActivityType.APPROVED_COMMIT]: {
+      display: {
+        default: 'approved a commit in {channel}',
+        short: 'approved a commit',
+        channel: '{channel}',
+      },
+      isContribution: true,
+    },
+    [GitActivityType.COMMITTED_COMMIT]: {
+      display: {
+        default: 'committed a commit in {channel}',
+        short: 'committed a commit',
+        channel: '{channel}',
+      },
+      isContribution: true,
+    },
+    [GitActivityType.REPORTED_COMMIT]: {
+      display: {
+        default: 'reported a commit in {channel}',
+        short: 'reported a commit',
+        channel: '{channel}',
+      },
+      isContribution: true,
+    },
+    [GitActivityType.RESOLVED_COMMIT]: {
+      display: {
+        default: 'resolved a commit in {channel}',
+        short: 'resolved a commit',
+        channel: '{channel}',
+      },
+      isContribution: true,
+    },
+    [GitActivityType.SIGNED_OFF_COMMIT]: {
+      display: {
+        default: 'signed off a commit in {channel}',
+        short: 'signed off a commit',
         channel: '{channel}',
       },
       isContribution: true,
