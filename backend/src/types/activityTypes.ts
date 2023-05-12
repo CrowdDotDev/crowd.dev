@@ -84,6 +84,10 @@ export enum GithubActivityType {
   DISCUSSION_COMMENT = 'discussion-comment',
 }
 
+export enum GitActivityType {
+  AUTHORED_COMMIT = 'authored_commit',
+}
+
 export enum HackerNewsActivityType {
   POST = 'post',
   COMMENT = 'comment',
@@ -346,6 +350,14 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
         },
       },
       isContribution: GitHubGrid.pullRequestReviewRequested.isContribution,
+    },
+    [GitActivityType.AUTHORED_COMMIT]: {
+      display: {
+        default: 'authored a commit in {channel}',
+        short: 'authored a commit',
+        channel: '{channel}',
+      },
+      isContribution: true,
     },
   },
   [PlatformType.DEVTO]: {
