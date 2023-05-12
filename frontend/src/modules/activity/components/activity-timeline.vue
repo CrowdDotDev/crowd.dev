@@ -91,7 +91,7 @@
               :activity="activity"
               :show-more="true"
             >
-              <template v-if="isGitPlatform(activity.platform)" #details>
+              <template v-if="platformDetails(activity.platform)?.activityDisplay?.showContentDetails" #details>
                 <div v-if="activity.attributes">
                   <app-activity-content-footer
                     :source-id="activity.sourceId"
@@ -212,8 +212,6 @@ const offset = ref(0);
 const noMore = ref(false);
 
 let filter = {};
-
-const isGitPlatform = (activityPlatform) => activityPlatform === 'git';
 
 const fetchActivities = async () => {
   const filterToApply = {

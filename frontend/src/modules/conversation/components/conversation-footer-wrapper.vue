@@ -4,8 +4,6 @@ Z<template>
     v-bind="{
       sourceId,
       attributes,
-      isGithubConversation,
-      isGitConversation,
       replyContent,
     }"
   />
@@ -13,6 +11,7 @@ Z<template>
 
 <script setup>
 import { computed } from 'vue';
+import { CrowdIntegrations } from '@/integrations/integrations-config';
 
 const props = defineProps({
   conversation: {
@@ -23,34 +22,12 @@ const props = defineProps({
 
 const attributes = computed(() => props.conversation.conversationStarter?.attributes);
 const sourceId = computed(() => props.conversation.conversationStarter?.sourceId);
-const isGithubConversation = computed(() => props.conversation.platform === 'github');
-const isGitConversation = computed(() => props.conversation.platform === 'git');
-const replyContent = computed(() => {
-  if (isGitConversation.value) {
-    return null;
-  }
 
-  if (isGithubConversation.value) {
-    const activities = props.conversation.lastReplies || props.conversation.activities;
-    return {
-      icon: 'ri-chat-4-line',
-      copy: 'comment',
-      number: activities.reduce((acc, activity) => {
-        if (activity.type.includes('comment')) {
-          return acc + 1;
-        }
+const platformConfig = computed(() => CrowdIntegrations.getConfig(
+  props.conversation.platform,
+));
 
-        return acc;
-      }, 0),
-    };
-  }
-
-  return {
-    icon: 'ri-reply-line',
-    copy: 'reply',
-    number: props.conversation.activityCount - 1,
-  };
-});
+const replyContent = computed(() => platformConfig.value?.conversationDisplay?.replyContent(props.conversation));
 </script>
 
 <script>

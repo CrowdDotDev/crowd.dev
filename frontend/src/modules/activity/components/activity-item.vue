@@ -109,7 +109,7 @@
               :show-more="true"
               :display-thread="false"
             >
-              <template v-if="isGitPlatform" #details>
+              <template v-if="platform?.activityDisplay?.showContentDetails" #details>
                 <div v-if="activity.attributes">
                   <app-activity-content-footer
                     :source-id="activity.sourceId"
@@ -198,9 +198,6 @@ export default {
         return this.activity.sentiment.sentiment;
       }
       return 0;
-    },
-    isGitPlatform() {
-      return this.activity.platform === 'git';
     },
   },
   methods: {

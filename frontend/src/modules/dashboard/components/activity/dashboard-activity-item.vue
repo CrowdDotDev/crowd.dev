@@ -94,7 +94,7 @@
             :show-more="true"
             :display-thread="false"
           >
-            <template v-if="isGitPlatform" #details>
+            <template v-if="platform.activityDisplay?.showContentDetails" #details>
               <div v-if="activity.attributes">
                 <app-activity-content-footer
                   :source-id="activity.sourceId"
@@ -107,7 +107,7 @@
             </template>
 
             <template #bottomLink>
-              <div v-if="activity.url && !isGitPlatform" class="pt-6">
+              <div v-if="activity.url && platform?.activityDisplay?.showLinkToUrl" class="pt-6">
                 <a
                   :href="activity.url"
                   class="text-2xs text-gray-600 font-medium flex items-center"
@@ -170,9 +170,6 @@ export default {
     },
     timeAgo() {
       return formatDateToTimeAgo(this.activity.timestamp);
-    },
-    isGitPlatform() {
-      return this.activity.platform === 'git';
     },
   },
 };

@@ -11,4 +11,14 @@ export default {
   connectComponent: ZapierConnect,
   url: () => null,
   chartColor: '#FF9676',
+  activityDisplay: {
+    showLinkToUrl: true,
+  },
+  conversationDisplay: {
+    replyContent: (conversation) => ({
+      icon: 'ri-reply-line',
+      copy: 'reply',
+      number: conversation.activityCount - 1,
+    }),
+  },
 };

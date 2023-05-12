@@ -12,4 +12,14 @@ export default {
   connectComponent: DevtoConnect,
   url: (username) => `https://dev.to/${username}`,
   chartColor: '#9CA3AF',
+  activityDisplay: {
+    showLinkToUrl: true,
+  },
+  conversationDisplay: {
+    replyContent: (conversation) => ({
+      icon: 'ri-reply-line',
+      copy: 'reply',
+      number: conversation.activityCount - 1,
+    }),
+  },
 };

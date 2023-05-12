@@ -11,4 +11,14 @@ export default {
   connectComponent: HackerNewsConnect,
   url: (username) => `https://news.ycombinator.com/user?id=${username}`,
   chartColor: '#FF712E',
+  activityDisplay: {
+    showLinkToUrl: true,
+  },
+  conversationDisplay: {
+    replyContent: (conversation) => ({
+      icon: 'ri-reply-line',
+      copy: 'reply',
+      number: conversation.activityCount - 1,
+    }),
+  },
 };

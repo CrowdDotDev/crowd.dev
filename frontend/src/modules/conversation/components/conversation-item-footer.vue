@@ -4,8 +4,6 @@
       #footer="{
         sourceId,
         attributes,
-        isGithubConversation,
-        isGitConversation,
         replyContent,
       }"
     >
@@ -38,15 +36,15 @@
           </p>
         </div>
         <app-conversation-attributes
-          v-if="isGithubConversation || isGitConversation"
+          v-if="platformConfig?.conversationDisplay?.showConversationAttributes"
           :changes="footerContent().changes"
           :changes-copy="footerContent().changesCopy"
           :insertions="footerContent().insertions"
           :deletions="footerContent().deletions"
-          :source-id="isGitConversation && sourceId"
+          :source-id="platformConfig?.activityDisplay?.showSourceId && sourceId"
         />
 
-        <div v-if="isGithubConversation && attributes.labels?.length">
+        <div v-if="platformConfig?.conversationDisplay?.showLabels && attributes.labels?.length">
           <el-tooltip
             :content="attributes.labels.join(' ・ ')"
             placement="top"
@@ -79,6 +77,8 @@ import pluralize from 'pluralize';
 import AppActivityLink from '@/modules/activity/components/activity-link.vue';
 import AppConversationFooterWrapper from '@/modules/conversation/components/conversation-footer-wrapper.vue';
 import AppConversationAttributes from '@/modules/conversation/components/conversation-attributes.vue';
+import { computed } from 'vue';
+import { CrowdIntegrations } from '@/integrations/integrations-config';
 
 const props = defineProps({
   conversation: {
@@ -87,30 +87,18 @@ const props = defineProps({
   },
 });
 
+const platformConfig = computed(() => CrowdIntegrations.getConfig(
+  props.conversation.platform,
+));
+
 const footerContent = () => {
   const { attributes } = props.conversation.conversationStarter;
-  const isGitConversation = props.conversation.platform === 'git';
-  const isGithubConversation = props.conversation.platform === 'github';
 
-  if (isGitConversation) {
-    return {
-      changes: attributes.lines,
-      changesCopy: 'line',
-      insertions: attributes.insertions,
-      deletions: attributes.deletions,
-    };
+  if (!platformConfig.value?.conversationDisplay?.showConversationAttributes) {
+    return {};
   }
 
-  if (isGithubConversation) {
-    return {
-      changes: attributes.changedFiles,
-      changesCopy: 'file change',
-      insertions: attributes.additions,
-      deletions: attributes.deletions,
-    };
-  }
-
-  return {};
+  return platformConfig.value?.conversationDisplay?.attributes(attributes);
 };
 </script>
 

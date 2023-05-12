@@ -56,6 +56,7 @@ const defaultConfig = {
     id: process.env.VUE_APP_SAMPLE_TENANT_ID,
     token: process.env.VUE_APP_SAMPLE_TENANT_TOKEN,
   },
+  isGitEnabled: process.env.VUE_APP_IS_GIT_ENABLED,
 };
 
 const composedConfig = {
@@ -104,6 +105,7 @@ const composedConfig = {
     id: 'CROWD_VUE_APP_SAMPLE_TENANT_ID',
     token: 'CROWD_VUE_APP_SAMPLE_TENANT_TOKEN',
   },
+  isGitEnabled: 'CROWD_VUE_APP_IS_GIT_ENABLED',
 };
 
 const config = defaultConfig.backendUrl

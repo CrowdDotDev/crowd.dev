@@ -12,4 +12,14 @@ export default {
   connectComponent: DiscordConnect,
   url: (username) => `https://discord.com/${username}`,
   chartColor: '#6875FF',
+  activityDisplay: {
+    showLinkToUrl: true,
+  },
+  conversationDisplay: {
+    replyContent: (conversation) => ({
+      icon: 'ri-reply-line',
+      copy: 'reply',
+      number: conversation.activityCount - 1,
+    }),
+  },
 };

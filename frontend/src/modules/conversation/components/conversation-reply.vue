@@ -11,14 +11,11 @@
     <div class="flex">
       <div class="flex flex-col items-center pt-1">
         <app-avatar :entity="member" size="xs">
-          <template v-if="isGithubConversation" #icon>
+          <template #icon>
             <app-activity-icon
-              :type="activity.type"
+              :type="platform?.activityDisplay?.typeIcon || activity.type"
               :platform="activity.platform"
             />
-          </template>
-          <template v-else-if="isGitConversation" #icon>
-            <app-activity-icon type="commit" :platform="activity.platform" />
           </template>
         </app-avatar>
         <slot name="underAvatar" />
@@ -51,7 +48,7 @@
             :show-more="showMore"
             :limit="limit"
           >
-            <template v-if="isGitConversation && activity.attributes" #details>
+            <template v-if="platform?.activityDisplay?.showContentDetails && activity.attributes" #details>
               <app-conversation-reply-attributes
                 :changes="activity.attributes.lines"
                 changes-copy="line"
@@ -76,6 +73,7 @@ import AppActivitySentiment from '@/modules/activity/components/activity-sentime
 import AppActivityIcon from '@/modules/activity/components/activity-icon.vue';
 import pluralize from 'pluralize';
 import AppConversationReplyAttributes from '@/modules/conversation/components/conversation-reply-attributes.vue';
+import { CrowdIntegrations } from '@/integrations/integrations-config';
 
 export default {
   name: 'AppConversationReply',
@@ -134,11 +132,10 @@ export default {
       }
       return 0;
     },
-    isGithubConversation() {
-      return this.activity.platform === 'github';
-    },
-    isGitConversation() {
-      return this.activity.platform === 'git';
+    platform() {
+      return CrowdIntegrations.getConfig(
+        this.activity.platform,
+      );
     },
     // Show activity for activity types coming from git
     // and comment on PR reviews from github

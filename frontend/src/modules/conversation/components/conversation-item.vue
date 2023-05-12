@@ -155,7 +155,7 @@ export default {
     },
     separatorContent() {
       const remainingActivitiesCount = this.conversation.activityCount - 3;
-      const copy = this.conversation.platform === 'github' ? 'activity' : 'reply';
+      const copy = this.platform?.conversationDisplay?.separatorContent || 'reply';
 
       return pluralize(`more ${copy}`, remainingActivitiesCount, true);
     },
