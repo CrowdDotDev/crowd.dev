@@ -29,6 +29,7 @@
             v-model="model[attribute.name]"
             disabled
             input-class="w-full multi-select-field"
+            placeholder=" "
             :collapse-tags="true"
           />
           <el-input

@@ -8,6 +8,7 @@ import SearchField from '@/shared/fields/search-field';
 import JsonField from '@/shared/fields/json-field';
 import StringArrayField from '@/shared/fields/string-array-field';
 import IntegerField from '@/shared/fields/integer-field';
+import BooleanField from '@/shared/fields/boolean-field';
 import OrganizationEmployeesField from './organization-employees-field';
 import OrganizationPlatformField from './organization-platform-field';
 
@@ -97,6 +98,9 @@ const fields = {
   type: new StringField('type', 'Type'),
   address: new StringField('industry', 'Industry'),
   profiles: new StringArrayField('profiles', 'Profiles'),
+  lastEnrichedAt: new BooleanField('lastEnrichedAt', 'Enriched organization', {
+    filterable: true,
+  }),
 };
 
 export class OrganizationModel extends GenericModel {

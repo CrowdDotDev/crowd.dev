@@ -406,7 +406,7 @@
                     >
                       <span v-if="scope.row.industry" class="text-gray-900">
                         {{
-                          scope.row.industry
+                          toSentenceCase(scope.row.industry)
                         }}
                       </span>
                       <span v-else class="text-gray-500">-</span>
@@ -546,7 +546,7 @@ import {
 } from '@/shared/vuex/vuex.helpers';
 import { formatDateToTimeAgo } from '@/utils/date';
 import { formatNumberToCompact, formatNumber } from '@/utils/number';
-import { withHttp } from '@/utils/string';
+import { withHttp, toSentenceCase } from '@/utils/string';
 import AppOrganizationIdentities from '../organization-identities.vue';
 import AppOrganizationListToolbar from './organization-list-toolbar.vue';
 import AppOrganizationName from '../organization-name.vue';

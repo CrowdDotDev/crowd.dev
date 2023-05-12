@@ -1,7 +1,7 @@
 <template>
   <div>
     <div
-      v-for="attribute in enrichmentAttributes"
+      v-for="attribute in visibleAttributes"
       :key="attribute.name"
       class="last:border-0"
       :class="{
@@ -27,10 +27,20 @@
             }}
           </span>
           <div v-else-if="attribute.type === attributesTypes.multiSelect" class="flex flex-col gap-1">
-            <span
+            <div
               v-for="value in organization[attribute.name]"
               :key="value"
-            >{{ value }}</span>
+            >
+              <a
+                v-if="isValidUrl(value)"
+                :href="value"
+                target="_blank"
+                rel="noopener noreferrer"
+              >{{ value }}</a>
+              <span v-else>
+                {{ value }}
+              </span>
+            </div>
           </div>
           <span v-else>
             {{ attribute.type === attributesTypes.string ? toSentenceCase(organization[attribute.name]) : organization[attribute.name] }}
@@ -42,15 +52,17 @@
 </template>
 
 <script setup>
-import { defineProps } from 'vue';
+import { computed, defineProps } from 'vue';
 import enrichmentAttributes, { attributesTypes } from '@/modules/organization/config/organization-enrichment-attributes';
 import { formatDate } from '@/utils/date';
-import { toSentenceCase } from '@/utils/string';
+import { toSentenceCase, isValidUrl } from '@/utils/string';
 
-defineProps({
+const props = defineProps({
   organization: {
     type: Object,
     default: () => {},
   },
 });
+
+const visibleAttributes = computed(() => enrichmentAttributes.filter((a) => props.organization[a.name]));
 </script>

@@ -138,7 +138,7 @@ function buildAttributeBlock(attribute) {
         return acc;
       }, []),
     };
-  } else if (attribute.name === 'lastEnriched') {
+  } else if (attribute.name === 'lastEnriched' || attribute.name === 'lastEnrichedAt') {
     rule = attribute.value ? { ne: null } : { eq: null };
   } else if (attribute.name === 'score') {
     rule = {
