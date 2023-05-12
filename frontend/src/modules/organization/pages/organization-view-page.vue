@@ -17,9 +17,11 @@
           :organization="organization"
           class="col-span-2"
         />
-        <app-organization-view-aside
-          :organization="organization"
-        />
+        <div class="row-span-4">
+          <app-organization-view-aside
+            :organization="organization"
+          />
+        </div>
         <div class="panel w-full col-span-2">
           <el-tabs v-model="tab">
             <el-tab-pane

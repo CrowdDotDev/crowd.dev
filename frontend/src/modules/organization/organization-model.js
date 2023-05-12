@@ -28,7 +28,7 @@ const fields = {
   ),
   url: new StringField('url', label('url')),
   website: new StringField('website', label('website')),
-  location: new StringField('location', label('location')),
+  location: new StringField('location', label('location'), { filterable: true }),
   createdAt: new DateTimeField(
     'createdAt',
     label('createdAt'),
@@ -45,6 +45,7 @@ const fields = {
   employees: new OrganizationEmployeesField(
     'employees',
     '# of employees',
+    { filterable: true },
   ),
   activityCount: new IntegerField(
     'activityCount',
@@ -90,6 +91,12 @@ const fields = {
   search: new SearchField('search', label('search'), {
     fields: ['name'],
   }),
+  size: new StringField('size', 'Size', { filterable: true }),
+  industry: new StringField('industry', 'Industry', { filterable: true }),
+  founded: new IntegerField('founded', 'Founded', { filterable: true }),
+  type: new StringField('type', 'Type'),
+  address: new StringField('industry', 'Industry'),
+  profiles: new StringArrayField('profiles', 'Profiles'),
 };
 
 export class OrganizationModel extends GenericModel {

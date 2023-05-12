@@ -1,6 +1,6 @@
 <template>
   <app-page-wrapper
-    :container-class="'md:col-start-1 md:col-span-6 lg:col-start-2 lg:col-span-10'"
+    :container-class="'col-start-1 col-span-12'"
   >
     <div class="organization-form-page">
       <el-button
@@ -42,6 +42,15 @@
               v-model="formModel"
               :record="record"
             />
+            <div v-if="record?.lastEnrichedAt">
+              <el-divider
+                class="!mb-6 !mt-8 !border-gray-200"
+              />
+              <app-organization-form-attributes
+                v-model="formModel"
+                :organization="record"
+              />
+            </div>
           </el-form>
         </el-main>
         <el-footer
@@ -118,6 +127,7 @@ import { FormSchema } from '@/shared/form/form-schema';
 import ConfirmDialog from '@/shared/dialog/confirm-dialog';
 import AppOrganizationFormIdentities from '@/modules/organization/components/form/organization-form-identities.vue';
 import AppOrganizationFormDetails from '@/modules/organization/components/form/organization-form-details.vue';
+import AppOrganizationFormAttributes from '@/modules/organization/components/form/organization-form-attributes.vue';
 
 const LoaderIcon = h(
   'i',
@@ -155,6 +165,11 @@ const formSchema = new FormSchema([
   fields.crunchbase,
   fields.emails,
   fields.phoneNumbers,
+  fields.type,
+  fields.size,
+  fields.industry,
+  fields.founded,
+  fields.profiles,
 ]);
 
 const router = useRouter();
@@ -196,6 +211,11 @@ function getInitialModel(record) {
           record && record.phoneNumbers?.length > 0
             ? record.phoneNumbers
             : [''],
+        type: record ? record.type : null,
+        size: record ? record.size : null,
+        industry: record ? record.industry : null,
+        founded: record ? record.founded : null,
+        profiles: record ? record.profiles : null,
       }),
     ),
   );

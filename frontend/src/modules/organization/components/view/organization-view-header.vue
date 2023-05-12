@@ -57,9 +57,13 @@
       </div>
     </div>
     <div
-      class="text-sm text-gray-600 py-6 border-b border-gray-200 mb-4"
+      class="py-6 border-b border-gray-200 mb-4"
     >
-      {{ organization.description }}
+      <app-organization-headline :organization="organization" />
+
+      <div v-if="organization.description" class="mt-2 text-sm text-gray-600">
+        {{ organization.description }}
+      </div>
     </div>
 
     <div class="grid grid-rows-2 grid-flow-col gap-4">
@@ -160,6 +164,7 @@ import {
 import { withHttp } from '@/utils/string';
 import AppOrganizationBadge from '@/modules/organization/components/organization-badge.vue';
 import AppOrganizationDropdown from '@/modules/organization/components/organization-dropdown.vue';
+import AppOrganizationHeadline from '@/modules/organization/components/organization-headline..vue';
 
 defineProps({
   organization: {

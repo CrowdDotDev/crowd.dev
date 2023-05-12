@@ -148,12 +148,25 @@
           </router-link>
         </div>
       </div>
+
+      <div v-if="organization.lastEnrichedAt">
+        <div class="mt-10">
+          <div class="font-medium text-black">
+            Attributes
+          </div>
+
+          <app-organization-aside-enriched
+            :organization="organization"
+          />
+        </div>
+      </div>
     </div>
   </div>
 </template>
 
 <script setup>
 import { defineProps, computed } from 'vue';
+import AppOrganizationAsideEnriched from './_aside/_aside-enriched.vue';
 
 const props = defineProps({
   organization: {

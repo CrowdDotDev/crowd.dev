@@ -173,24 +173,24 @@
                 </template>
               </el-table-column>
 
-              <!-- Number of employees
-              TODO: Uncomment when we support enrichment
+              <!-- Number of employees -->
               <el-table-column
                 label="# Employees"
                 width="150"
                 prop="employees"
                 sortable
-                ><template #default="scope">
-                  <div class="text-gray-900 text-sm">
-                    {{
-                      formatNumberToRange(
-                        scope.row.employees
-                      )
-                    }}
-                  </div></template
-                ></el-table-column
               >
-              -->
+                <template #default="scope">
+                  <div class="text-sm h-full flex items-center">
+                    <span v-if="scope.row.employees" class="text-gray-900">
+                      {{
+                        formatNumber(scope.row.employees)
+                      }}
+                    </span>
+                    <span v-else class="text-gray-500">-</span>
+                  </div>
+                </template>
+              </el-table-column>
 
               <!-- Number of activities -->
               <el-table-column
@@ -331,6 +331,163 @@
                 </template>
               </el-table-column>
 
+              <el-table-column
+                label="Location"
+                width="150"
+                prop="location"
+                sortable
+              >
+                <template #default="scope">
+                  <router-link
+                    :to="{
+                      name: 'organizationView',
+                      params: { id: scope.row.id },
+                    }"
+                    class="block"
+                  >
+                    <div
+                      class="text-sm h-full flex items-center"
+                    >
+                      <span v-if="scope.row.location" class="text-gray-900">
+                        {{
+                          scope.row.location
+                        }}
+                      </span>
+                      <span v-else class="text-gray-500">-</span>
+                    </div>
+                  </router-link>
+                </template>
+              </el-table-column>
+
+              <el-table-column
+                label="Size"
+                width="150"
+                prop="size"
+                sortable
+              >
+                <template #default="scope">
+                  <router-link
+                    :to="{
+                      name: 'organizationView',
+                      params: { id: scope.row.id },
+                    }"
+                    class="block"
+                  >
+                    <div
+                      class="text-sm h-full flex items-center"
+                    >
+                      <span v-if="scope.row.size" class="text-gray-900">
+                        {{
+                          scope.row.size
+                        }}
+                      </span>
+                      <span v-else class="text-gray-500">-</span>
+                    </div>
+                  </router-link>
+                </template>
+              </el-table-column>
+
+              <el-table-column
+                label="Industry"
+                width="150"
+                prop="industry"
+                sortable
+              >
+                <template #default="scope">
+                  <router-link
+                    :to="{
+                      name: 'organizationView',
+                      params: { id: scope.row.id },
+                    }"
+                    class="block"
+                  >
+                    <div
+                      class="text-sm h-full flex items-center"
+                    >
+                      <span v-if="scope.row.industry" class="text-gray-900">
+                        {{
+                          scope.row.industry
+                        }}
+                      </span>
+                      <span v-else class="text-gray-500">-</span>
+                    </div>
+                  </router-link>
+                </template>
+              </el-table-column>
+
+              <el-table-column
+                label="Founded"
+                width="150"
+                prop="founded"
+                sortable
+              >
+                <template #default="scope">
+                  <router-link
+                    :to="{
+                      name: 'organizationView',
+                      params: { id: scope.row.id },
+                    }"
+                    class="block"
+                  >
+                    <div
+                      class="text-sm h-full flex items-center"
+                    >
+                      <span v-if="scope.row.founded" class="text-gray-900">
+                        {{
+                          scope.row.founded
+                        }}
+                      </span>
+                      <span v-else class="text-gray-500">-</span>
+                    </div>
+                  </router-link>
+                </template>
+              </el-table-column>
+
+              <!-- Profiles -->
+              <el-table-column
+                label="Profiles"
+                :width="profilesColumnWidth"
+              >
+                <template #default="scope">
+                  <router-link
+                    :to="{
+                      name: 'organizationView',
+                      params: { id: scope.row.id },
+                    }"
+                    class="block"
+                  >
+                    <div
+                      v-if="scope.row.profiles?.length && scope.row.profiles?.some((e) => !!e)"
+                      class="text-sm cursor-auto flex flex-wrap gap-1"
+                    >
+                      <el-tooltip
+                        v-for="profile of scope.row.profiles
+                          || []"
+                        :key="profile"
+                        :disabled="!profile"
+                        popper-class="custom-identity-tooltip"
+                        placement="top"
+                      >
+                        <template #content>
+                          <span>Open profile
+                            <i
+                              v-if="profile"
+                              class="ri-external-link-line text-gray-400"
+                            /></span>
+                        </template>
+                        <div class="badge--interactive" @click.prevent>
+                          {{ profile }}
+                        </div>
+                      </el-tooltip>
+                    </div>
+                    <span
+                      v-else
+                      class="text-gray-500"
+                    >-</span>
+                  </router-link>
+                </template>
+              </el-table-column>
+
               <!-- Actions -->
               <el-table-column fixed="right">
                 <template #default="scope">
@@ -388,7 +545,7 @@ import {
   mapActions,
 } from '@/shared/vuex/vuex.helpers';
 import { formatDateToTimeAgo } from '@/utils/date';
-import { formatNumberToCompact } from '@/utils/number';
+import { formatNumberToCompact, formatNumber } from '@/utils/number';
 import { withHttp } from '@/utils/string';
 import AppOrganizationIdentities from '../organization-identities.vue';
 import AppOrganizationListToolbar from './organization-list-toolbar.vue';
@@ -512,6 +669,22 @@ const emailsColumnWidth = computed(() => {
       maxTabWidth = tabWidth > 400 ? 400 : tabWidth;
     }
   });
+  return maxTabWidth;
+});
+
+const profilesColumnWidth = computed(() => {
+  let maxTabWidth = 150;
+
+  rows.value.forEach((row) => {
+    const tabWidth = row.profiles
+      ?.map((profile) => (profile ? profile.length * 12 : 0))
+      .reduce((a, b) => a + b, 0);
+
+    if (tabWidth > maxTabWidth) {
+      maxTabWidth = tabWidth > 400 ? 400 : tabWidth;
+    }
+  });
+
   return maxTabWidth;
 });
 
