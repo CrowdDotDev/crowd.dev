@@ -33,6 +33,12 @@ export default class SettingsRepository {
 
     data.backgroundImageUrl = _get(data, 'backgroundImages[0].downloadUrl', null)
     data.logoUrl = _get(data, 'logos[0].downloadUrl', null)
+    if (
+      typeof data.slackWebhook !== 'string' ||
+      (typeof data.slackWebhook === 'string' && !data.slackWebHook?.startsWith('https://'))
+    ) {
+      data.slackWebHook = undefined
+    }
 
     const [settings] = await options.database.settings.findOrCreate({
       where: { id: tenant.id, tenantId: tenant.id },
