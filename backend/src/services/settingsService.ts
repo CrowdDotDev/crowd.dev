@@ -47,6 +47,7 @@ class SettingsService {
     const updated = await SettingsRepository.save(
       {
         ...options.currentTenant.settings[0].dataValues,
+        slackWebHook: undefined,
         customActivityTypes: activityTypes.custom,
       },
       options,
@@ -140,6 +141,7 @@ class SettingsService {
     const updated = await SettingsRepository.save(
       {
         ...options.currentTenant.settings[0].dataValues,
+        slackWebHook: undefined,
         customActivityTypes: activityTypes.custom,
       },
       options,
@@ -158,6 +160,7 @@ class SettingsService {
       const updated = await SettingsRepository.save(
         {
           ...options.currentTenant.settings[0].dataValues,
+          slackWebHook: undefined,
           customActivityTypes: activityTypes.custom,
         },
         options,
