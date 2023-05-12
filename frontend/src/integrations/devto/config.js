@@ -12,7 +12,7 @@ export default {
   connectComponent: DevtoConnect,
   url: (username) => `https://dev.to/${username}`,
   chartColor: '#9CA3AF',
-  asLink: true,
+  showProfileLink: true,
   activityDisplay: {
     showLinkToUrl: true,
   },

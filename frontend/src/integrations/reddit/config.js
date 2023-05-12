@@ -11,7 +11,7 @@ export default {
   connectComponent: RedditConnect,
   url: (username) => `https://reddit.com/user/${username}`,
   chartColor: '#FF4500',
-  asLink: true,
+  showProfileLink: true,
   activityDisplay: {
     showLinkToUrl: true,
   },

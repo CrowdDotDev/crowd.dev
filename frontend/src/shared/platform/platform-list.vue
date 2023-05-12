@@ -57,7 +57,7 @@ const props = defineProps({
   },
 });
 
-const asLink = computed(() => props.platform !== 'slack' && props.platform !== 'discord');
+const asLink = computed(() => CrowdIntegrations.getConfig(props.platform)?.showProfileLink);
 const getPlatformUrl = ({ platform, username }) => CrowdIntegrations.getConfig(platform)?.url(username);
 </script>
 

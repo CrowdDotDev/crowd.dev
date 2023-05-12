@@ -12,7 +12,7 @@ export default {
   connectComponent: GithubConnect,
   url: (username) => `https://github.com/${username}`,
   chartColor: '#111827',
-  asLink: true,
+  showProfileLink: true,
   activityDisplay: {
     showLinkToUrl: true,
   },

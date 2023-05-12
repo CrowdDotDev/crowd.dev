@@ -44,7 +44,7 @@ const platformContent = (platform) => {
     trackEventName: 'Click Member Contact',
     trackEventChannel: config.name,
     tooltipLabel: `${config.name} profile`,
-    asLink: config.asLink,
+    asLink: config.showProfileLink,
   };
 };
 

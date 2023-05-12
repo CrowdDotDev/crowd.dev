@@ -13,7 +13,7 @@ export default {
     '/images/integrations/git.png',
   connectComponent: GitConnect,
   url: () => null,
-  asLink: false,
+  showProfileLink: false,
   chartColor: '#E5512C',
   activityDisplay: {
     showContentDetails: true,
