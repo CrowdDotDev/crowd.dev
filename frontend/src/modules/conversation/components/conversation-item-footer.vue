@@ -2,13 +2,13 @@
   <app-conversation-footer-wrapper :conversation="conversation">
     <template
       #footer="{
+        sourceId,
         attributes,
-        isGithubConversation,
         replyContent,
       }"
     >
       <div
-        class="flex items-center gap-6"
+        class="flex items-center gap-8 w-9/12"
       >
         <div
           class="flex items-center"
@@ -23,6 +23,7 @@
           </p>
         </div>
         <div
+          v-if="replyContent"
           class="flex items-center"
         >
           <i
@@ -34,34 +35,16 @@
             {{ pluralize(replyContent.copy, replyContent.number, true) }}
           </p>
         </div>
-        <div
-          v-if="isGithubConversation
-            && (attributes?.changedFiles || attributes?.additions || attributes?.deletions)"
-          class="flex items-center"
-        >
-          <div
-            class="flex items-center"
-          >
-            <i
-              class="ri-file-edit-line text-base mr-2 text-gray-500"
-            />
-            <p
-              class="text-xs text-gray-600"
-            >
-              {{ pluralize('file change', attributes.changedFiles || 0, true) }}
-            </p>
-          </div>
-          <div class="rounded-r-md flex items-center gap-1 text-xs ml-2">
-            <div class="text-green-600">
-              +{{ attributes.additions || 0 }}
-            </div>
-            <div class="text-red-600">
-              -{{ attributes.deletions || 0 }}
-            </div>
-          </div>
-        </div>
+        <app-conversation-attributes
+          v-if="platformConfig?.conversationDisplay?.showConversationAttributes"
+          :changes="footerContent().changes"
+          :changes-copy="footerContent().changesCopy"
+          :insertions="footerContent().insertions"
+          :deletions="footerContent().deletions"
+          :source-id="platformConfig?.activityDisplay?.showSourceId && sourceId"
+        />
 
-        <div v-if="isGithubConversation && attributes.labels?.length">
+        <div v-if="platformConfig?.conversationDisplay?.showLabels && attributes.labels?.length">
           <el-tooltip
             :content="attributes.labels.join(' ・ ')"
             placement="top"
@@ -93,17 +76,34 @@
 import pluralize from 'pluralize';
 import AppActivityLink from '@/modules/activity/components/activity-link.vue';
 import AppConversationFooterWrapper from '@/modules/conversation/components/conversation-footer-wrapper.vue';
+import AppConversationAttributes from '@/modules/conversation/components/conversation-attributes.vue';
+import { computed } from 'vue';
+import { CrowdIntegrations } from '@/integrations/integrations-config';
 
-defineProps({
+const props = defineProps({
   conversation: {
     type: Object,
     required: true,
   },
 });
+
+const platformConfig = computed(() => CrowdIntegrations.getConfig(
+  props.conversation.platform,
+));
+
+const footerContent = () => {
+  const { attributes } = props.conversation.conversationStarter;
+
+  if (!platformConfig.value?.conversationDisplay?.showConversationAttributes) {
+    return {};
+  }
+
+  return platformConfig.value?.conversationDisplay?.attributes(attributes);
+};
 </script>
 
 <script>
 export default {
-  name: 'AppConversationParentFooter',
+  name: 'AppConversationItemFooter',
 };
 </script>

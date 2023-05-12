@@ -12,4 +12,15 @@ export default {
   connectComponent: StackOverflowConnect,
   url: (username) => `https://stackoverflow.com/users/${username}`,
   chartColor: '#FF9845',
+  showProfileLink: true,
+  activityDisplay: {
+    showLinkToUrl: true,
+  },
+  conversationDisplay: {
+    replyContent: (conversation) => ({
+      icon: 'ri-reply-line',
+      copy: 'reply',
+      number: conversation.activityCount - 1,
+    }),
+  },
 };

@@ -5,10 +5,16 @@
     title="LinkedIn"
     size="600px"
     pre-title="Integration"
-    :pre-title-img-src="logoUrl"
-    pre-title-img-alt="LinkedIn logo"
+    has-border
     @close="isVisible = false"
   >
+    <template #beforeTitle>
+      <img
+        class="w-6 h-6 mr-2"
+        :src="logoUrl"
+        alt="LinkedIn logo"
+      />
+    </template>
     <template #content>
       <div
         class="flex flex-col gap-2 items-start mb-2"
