@@ -547,7 +547,7 @@ export default class ActivityService extends LoggingBase {
       const reason = errorDetails.reason || undefined
       const details = errorDetails.details || undefined
 
-      if (error.name && error.name.includes('Sequelize')) {
+      if (error.name && error.name.includes('Sequelize') && error.original) {
         this.log.error(
           error,
           {
