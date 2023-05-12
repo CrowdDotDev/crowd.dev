@@ -11,7 +11,7 @@ const activityType: CustomFilterConfig = {
   options: {
   },
   itemLabelRenderer(value: SelectFilterValue): string {
-    return `<b>Active on</b> ${value || '...'}`;
+    return `<b>Activity type</b> ${value || '...'}`;
   },
   queryRenderer(value: SelectFilterValue): string {
     console.log(value);
