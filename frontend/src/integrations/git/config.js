@@ -12,7 +12,8 @@ export default {
   image:
     '/images/integrations/git.png',
   connectComponent: GitConnect,
-  url: (username) => `https://github.com/${username}`,
+  url: () => null,
+  asLink: false,
   chartColor: '#E5512C',
   activityDisplay: {
     showContentDetails: true,

@@ -12,6 +12,7 @@ export default {
   connectComponent: SlackConnect,
   url: (username) => `https://slack.com/${username}`,
   chartColor: '#E41756',
+  asLink: false,
   activityDisplay: {
     showLinkToUrl: true,
   },

@@ -12,6 +12,7 @@ export default {
   connectComponent: DiscordConnect,
   url: (username) => `https://discord.com/${username}`,
   chartColor: '#6875FF',
+  asLink: false,
   activityDisplay: {
     showLinkToUrl: true,
   },
