@@ -52,9 +52,7 @@
       </div>
 
       <app-member-list-tabs />
-      <app-member-list-filter
-        v-if="hasMembers"
-      />
+      <cr-filter :config="memberFilters" />
       <app-member-list-table
         :has-integrations="hasIntegrations"
         :has-members="hasMembers"
@@ -67,18 +65,21 @@
 <script>
 import { mapGetters, mapActions, mapMutations } from 'vuex';
 import moment from 'moment';
-import MemberListFilter from '@/modules/member/components/list/member-list-filter.vue';
+// import MemberListFilter from '@/modules/member/components/list/member-list-filter.vue';
 import MemberListTable from '@/modules/member/components/list/member-list-table.vue';
 import MemberListTabs from '@/modules/member/components/list/member-list-tabs.vue';
 import PageWrapper from '@/shared/layout/page-wrapper.vue';
+import CrFilter from '@/shared/modules/filters/components/Filter.vue';
 import { MemberService } from '../member-service';
 import { MemberPermissions } from '../member-permissions';
+import { memberFilters } from '../config/filters/main';
 
 export default {
   name: 'AppMemberListPage',
 
   components: {
-    'app-member-list-filter': MemberListFilter,
+    CrFilter,
+    // 'app-member-list-filter': MemberListFilter,
     'app-member-list-table': MemberListTable,
     'app-member-list-tabs': MemberListTabs,
     'app-page-wrapper': PageWrapper,
@@ -89,6 +90,7 @@ export default {
       membersToMergeCount: 0,
       hasMembers: false,
       isPageLoading: true,
+      memberFilters,
     };
   },
 

@@ -450,7 +450,7 @@ const replyTooltip = computed(() => {
 });
 
 // eslint-disable-next-line no-unused-vars
-watch(replyInClipboard, (newValue, _) => {
+watch(replyInClipboard, (newValue) => {
   if (newValue) {
     setTimeout(() => {
       replyInClipboard.value = false;

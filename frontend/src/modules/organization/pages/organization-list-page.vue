@@ -33,7 +33,8 @@
       </div>
 
       <app-organization-list-tabs />
-      <app-organization-list-filter />
+      <!--      <app-organization-list-filter />-->
+      <cr-filter :config="organizationFilters" />
       <app-organization-list-table
         :has-organizations="hasOrganizations"
         :is-page-loading="isPageLoading"
@@ -48,12 +49,14 @@ import { useRoute } from 'vue-router';
 import moment from 'moment/moment';
 import AppPageWrapper from '@/shared/layout/page-wrapper.vue';
 import AppOrganizationListTabs from '@/modules/organization/components/list/organization-list-tabs.vue';
-import AppOrganizationListFilter from '@/modules/organization/components/list/organization-list-filter.vue';
+// import AppOrganizationListFilter from '@/modules/organization/components/list/organization-list-filter.vue';
 import AppOrganizationListTable from '@/modules/organization/components/list/organization-list-table.vue';
 import {
   mapGetters,
   mapActions,
 } from '@/shared/vuex/vuex.helpers';
+import CrFilter from '@/shared/modules/filters/components/Filter.vue';
+import { organizationFilters } from '../config/filters/main';
 import { OrganizationPermissions } from '../organization-permissions';
 import { OrganizationService } from '../organization-service';
 

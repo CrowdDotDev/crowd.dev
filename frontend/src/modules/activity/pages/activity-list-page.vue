@@ -29,9 +29,7 @@
       </div>
 
       <app-activity-list-tabs />
-      <app-activity-list-filter
-        :module="activeView.type"
-      />
+      <cr-filter :config="activityFilters" />
       <app-activity-list
         v-if="activeView.type === 'activities'"
         :activities="recordsArray"
@@ -64,25 +62,28 @@
 <script>
 import { mapState, mapGetters } from 'vuex';
 import { ActivityPermissions } from '@/modules/activity/activity-permissions';
-import AppActivityListFilter from '@/modules/activity/components/list/activity-list-filter.vue';
+// import AppActivityListFilter from '@/modules/activity/components/list/activity-list-filter.vue';
 import AppActivityTypeListDrawer from '@/modules/activity/components/type/activity-type-list-drawer.vue';
 import AppActivityFormDrawer from '@/modules/activity/components/activity-form-drawer.vue';
 import AppActivityTypeFormModal from '@/modules/activity/components/type/activity-type-form-modal.vue';
 import AppActivityList from '@/modules/activity/components/activity-list.vue';
 import AppConversationList from '@/modules/conversation/components/conversation-list.vue';
 import AppActivityListTabs from '@/modules/activity/components/activity-list-tabs.vue';
+import CrFilter from '@/shared/modules/filters/components/Filter.vue';
+import { activityFilters } from '../config/filters/main';
 
 export default {
   name: 'AppActivityListPage',
 
   components: {
+    CrFilter,
     AppActivityTypeFormModal,
     AppActivityFormDrawer,
     AppActivityTypeListDrawer,
     AppActivityList,
     AppConversationList,
     AppActivityListTabs,
-    AppActivityListFilter,
+    // AppActivityListFilter,
   },
 
   data() {
@@ -92,6 +93,7 @@ export default {
       isActivityDrawerOpen: false,
       isActivityTypeFormVisible: false,
       editableActivity: null,
+      activityFilters,
     };
   },
   computed: {

@@ -19,7 +19,7 @@ import communityHelpCenter from '@/premium/community-help-center/community-help-
 import eagleEye from '@/premium/eagle-eye/eagle-eye-module';
 import user from '@/modules/user/user-module';
 
-const modules = {
+const modules: Record<string, any> = {
   shared,
   dashboard,
   onboard,
