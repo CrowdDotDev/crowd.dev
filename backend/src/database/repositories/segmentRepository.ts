@@ -2,9 +2,11 @@ import { v4 as uuid } from 'uuid'
 import { QueryTypes } from 'sequelize'
 import { IRepositoryOptions } from './IRepositoryOptions'
 import { RepositoryBase } from './repositoryBase'
-import { SegmentCriteria, SegmentData, SegmentStatus } from '../../types/segmentTypes'
+import { SegmentCriteria, SegmentData, SegmentStatus, SegmentUpdateData } from '../../types/segmentTypes'
 import SequelizeTestUtils from '../utils/sequelizeTestUtils'
 import { PageData } from '../../types/common'
+import Error404 from '../../errors/Error404'
+import SequelizeFilterUtils from '../utils/sequelizeFilterUtils'
 
 class SegmentRepository extends RepositoryBase<
     SegmentData,
@@ -23,6 +25,8 @@ class SegmentRepository extends RepositoryBase<
      * @returns
      */
     async create(data: SegmentData): Promise<SegmentData> {
+        const transaction = this.transaction
+
         const segmentInsertResult = await this.options.database.sequelize.query(
             `INSERT INTO "segments" ("id", "name", "slug", "parentSlug", "grandparentSlug", "status", "parentName", "sourceId", "sourceParentId", "tenantId")
           VALUES
@@ -43,6 +47,7 @@ class SegmentRepository extends RepositoryBase<
                     tenantId: data.tenantId,
                 },
                 type: QueryTypes.INSERT,
+                transaction,
             },
         )
 
@@ -50,15 +55,61 @@ class SegmentRepository extends RepositoryBase<
         return segment
     }
 
-    async getChildrenOfProjectGroups(slug: string) {
+
+    override async update(id: string, data: SegmentUpdateData): Promise<SegmentData> {
+        const transaction = this.transaction
+
+        const segment = await this.findById(id)
+
+        if (!segment){
+            throw new Error404()
+        }
+
+        // strip arbitrary fields
+        const updateFields = Object.keys(data).filter( (key) => (['name', 'slug', 'parentSlug', 'grandparentSlug', 'status', 'parentName', 'sourceId', 'sourceParentId'].includes(key)))
+
+        let segmentUpdateQuery = `UPDATE segments SET `
+        const replacements = {} as SegmentData
+
+        for (const field of updateFields){
+
+            segmentUpdateQuery += ` "${field}" = :${field} `
+            replacements[field] = data[field]
+
+            if (updateFields[updateFields.length - 1] !== field){
+                segmentUpdateQuery += ', '
+            }
+
+        }
+
+        segmentUpdateQuery += ` WHERE id = :id and "tenantId" = :tenantId `
+        replacements.tenantId = this.options.currentTenant.id
+        replacements.id = id
+
+
+        await this.options.database.sequelize.query(segmentUpdateQuery,
+            {
+                replacements,
+                type: QueryTypes.UPDATE,
+                transaction,
+            },
+        )
+
+        return this.findById(id)
+
+    }
+
+    async  getChildrenOfProjectGroups(slug: string) {
         const records = await this.options.database.sequelize.query(
             `
                 select * from segments s
-                where s."grandparentSlug" = :slug;
+                where s."grandparentSlug" = :slug and
+                s."tenantId" = :tenantId;
             `,
             {
                 replacements: {
                     slug,
+                    tenantId: this.options.currentTenant.id
                 },
                 type: QueryTypes.SELECT,
             },
@@ -71,11 +122,13 @@ class SegmentRepository extends RepositoryBase<
         const records = await this.options.database.sequelize.query(
             `
                 select * from segments s
-                where s."parentSlug" = :slug;
+                where s."parentSlug" = :slug
+                and s."tenantId" = :tenantId;
             `,
             {
                 replacements: {
                     slug,
+                    tenantId: this.options.currentTenant.id
                 },
                 type: QueryTypes.SELECT,
             },
@@ -88,11 +141,13 @@ class SegmentRepository extends RepositoryBase<
         const records = await this.options.database.sequelize.query(
             `SELECT *
              FROM segments
-             WHERE id = :id;
+             WHERE id = :id
+             and "tenantId" = :tenantId;
             `,
             {
                 replacements: {
                     id,
+                    tenantId: this.options.currentTenant.id
                 },
                 type: QueryTypes.SELECT,
             },

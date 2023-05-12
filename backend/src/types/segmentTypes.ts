@@ -17,6 +17,17 @@ export interface SegmentData {
     tenantId: string
 }
 
+export interface SegmentUpdateData {
+    name:string
+    slug: string
+    parentSlug: string
+    grandparentSlug: string
+    status: SegmentStatus
+    parentName: string
+    sourceId: string
+    sourceParentId: string
+}
+
 export enum SegmentStatus {
     ACTIVE = 'active',
     ARCHIVED = 'archived',
