@@ -115,5 +115,6 @@ const config = defaultConfig.backendUrl
 config.isCommunityVersion = config.edition === 'community';
 config.hasPremiumModules = !config.isCommunityVersion
   || config.communityPremium === 'true';
+config.isGitIntegrationEnabled = config.isGitEnabled === 'true';
 
 export default config;
