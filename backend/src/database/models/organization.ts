@@ -135,6 +135,10 @@ export default (sequelize) => {
         allowNull: true,
         comment: "granular information about the location of the company's current headquarters.",
       },
+      profiles: {
+        type: DataTypes.ARRAY(DataTypes.TEXT),
+        allowNull: true,
+      },
       lastEnrichedAt: {
         type: DataTypes.DATE,
         allowNull: true,
