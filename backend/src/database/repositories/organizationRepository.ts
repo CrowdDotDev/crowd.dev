@@ -49,7 +49,7 @@ class OrganizationRepository {
       JOIN "organizationCaches" cach ON org."name" = cach."name"
       JOIN orgActivities activity ON activity."organizationId" = org."id"
       WHERE :tenantId = org."tenantId" AND (org."lastEnrichedAt" IS NULL OR DATE_PART('month', AGE(NOW(), org."lastEnrichedAt")) >= 6)
-      ORDER BY org."lastEnrichedAt" ASC, activity."orgActivityCount" DESC, org."createdAt" DESC
+      ORDER BY org."lastEnrichedAt" ASC, org."website", activity."orgActivityCount" DESC, org."createdAt" DESC
       LIMIT :limit
     ;
     `
