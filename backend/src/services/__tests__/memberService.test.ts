@@ -1783,9 +1783,9 @@ describe('MemberService tests', () => {
         tasks: [task1, task2, task3],
         notes: [note1, note2, note3],
         organizations: [
-          SequelizeTestUtils.objectWithoutKey(o1, ['activeOn', 'identities', 'lastActive']),
-          SequelizeTestUtils.objectWithoutKey(o2, ['activeOn', 'identities', 'lastActive']),
-          SequelizeTestUtils.objectWithoutKey(o3, ['activeOn', 'identities', 'lastActive']),
+          SequelizeTestUtils.objectWithoutKey(o1, ['activeOn', 'identities', 'lastActive', 'profiles',]),
+          SequelizeTestUtils.objectWithoutKey(o2, ['activeOn', 'identities', 'lastActive', 'profiles',]),
+          SequelizeTestUtils.objectWithoutKey(o3, ['activeOn', 'identities', 'lastActive', 'profiles',]),
         ],
         noMerge: [returnedMember3.id],
         toMerge: [returnedMember4.id],

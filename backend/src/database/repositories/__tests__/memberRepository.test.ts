@@ -3111,6 +3111,7 @@ describe('MemberRepository tests', () => {
             'activeOn',
             'joinedAt',
             'activityCount',
+            'profiles',
           ]),
           SequelizeTestUtils.objectWithoutKey(org2Plain, [
             'lastActive',
@@ -3118,6 +3119,7 @@ describe('MemberRepository tests', () => {
             'activeOn',
             'joinedAt',
             'activityCount',
+            'profiles',
           ]),
         ],
         noMerge: [],
@@ -3131,7 +3133,7 @@ describe('MemberRepository tests', () => {
         lastActive: null,
         lastActivity: null,
       }
-
+      
       expect(member1).toStrictEqual(expectedMemberCreated)
     })
 

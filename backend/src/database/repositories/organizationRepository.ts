@@ -101,8 +101,6 @@ class OrganizationRepository {
           'industry',
           'founded',
           'size',
-          'employees',
-          'twitter',
           'lastEnrichedAt',
         ]),
 
