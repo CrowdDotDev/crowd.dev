@@ -11,7 +11,7 @@ export default {
   connectComponent: ZapierConnect,
   url: () => null,
   chartColor: '#FF9676',
-  asLink: true,
+  showProfileLink: true,
   activityDisplay: {
     showLinkToUrl: true,
   },

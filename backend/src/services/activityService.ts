@@ -43,7 +43,7 @@ export default class ActivityService extends LoggingBase {
    * @param existing If the activity already exists, the activity. If it doesn't or we don't know, false
    * @returns The upserted activity
    */
-  async upsert(data, existing: boolean | any = false, fireCrowdWebhooks: boolean = false) {
+  async upsert(data, existing: boolean | any = false, fireCrowdWebhooks: boolean = true) {
     const transaction = await SequelizeRepository.createTransaction(this.options)
 
     try {
@@ -547,7 +547,7 @@ export default class ActivityService extends LoggingBase {
       const reason = errorDetails.reason || undefined
       const details = errorDetails.details || undefined
 
-      if (error.name && error.name.includes('Sequelize')) {
+      if (error.name && error.name.includes('Sequelize') && error.original) {
         this.log.error(
           error,
           {

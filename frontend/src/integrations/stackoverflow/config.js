@@ -12,7 +12,7 @@ export default {
   connectComponent: StackOverflowConnect,
   url: (username) => `https://stackoverflow.com/users/${username}`,
   chartColor: '#FF9845',
-  asLink: true,
+  showProfileLink: true,
   activityDisplay: {
     showLinkToUrl: true,
   },

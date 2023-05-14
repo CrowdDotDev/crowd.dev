@@ -12,7 +12,7 @@ export default {
   connectComponent: TwitterConnect,
   url: (username) => `https://twitter.com/${username}`,
   chartColor: '#1D9BF0',
-  asLink: true,
+  showProfileLink: true,
   activityDisplay: {
     showLinkToUrl: true,
   },

@@ -11,7 +11,7 @@ export default {
   connectComponent: HackerNewsConnect,
   url: (username) => `https://news.ycombinator.com/user?id=${username}`,
   chartColor: '#FF712E',
-  asLink: true,
+  showProfileLink: true,
   activityDisplay: {
     showLinkToUrl: true,
   },

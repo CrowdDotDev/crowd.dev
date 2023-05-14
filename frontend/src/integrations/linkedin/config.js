@@ -21,7 +21,7 @@ export default {
   premium: true,
   url: (username) => (!username.includes('private-') ? `https://linkedin.com/in/${username}` : null),
   chartColor: '#2867B2',
-  asLink: true,
+  showProfileLink: true,
   activityDisplay: {
     showLinkToUrl: true,
   },
