@@ -591,6 +591,50 @@ export default class IntegrationService {
   }
 
   /**
+   * Adds/updates Git integration
+   * @param integrationData  to create the integration object
+   * @returns integration object
+   */
+  async gitConnectOrUpdate(integrationData) {
+    const transaction = await SequelizeRepository.createTransaction(this.options)
+    let integration
+    try {
+      integration = await this.createOrUpdate(
+        {
+          platform: PlatformType.GIT,
+          settings: {
+            remotes: integrationData.remotes,
+          },
+          status: 'done',
+        },
+        transaction,
+      )
+
+      await SequelizeRepository.commitTransaction(transaction)
+    } catch (err) {
+      await SequelizeRepository.rollbackTransaction(transaction)
+      throw err
+    }
+    return integration
+  }
+
+  /**
+   * Get all remotes for the Git integration, by segment
+   * @returns Remotes for the Git integration
+   */
+  async gitGetRemotes() {
+    try {
+      const integration = await this.findByPlatform(PlatformType.GIT)
+      return {
+        // We are returning this until we have segments
+        default: integration.settings.remotes,
+      }
+    } catch (err) {
+      throw new Error400(this.options.language, 'errors.git.noIntegration')
+    }
+  }
+
+  /**
    * Adds/updates Hacker News integration
    * @param integrationData  to create the integration object
    * @returns integration object

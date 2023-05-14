@@ -4,10 +4,16 @@
     custom-class="integration-hackerNews-drawer"
     title="Hacker News"
     pre-title="Integration"
-    :pre-title-img-src="logoUrl"
-    pre-title-img-alt="Hacker News logo"
+    has-border
     @close="cancel"
   >
+    <template #beforeTitle>
+      <img
+        class="w-6 h-6 mr-2"
+        :src="logoUrl"
+        alt="Hacker News logo"
+      />
+    </template>
     <template #content>
       <div class="flex flex-col gap-2 items-start mb-2">
         <span class="text-xs font-light mb-2 text-gray-900">

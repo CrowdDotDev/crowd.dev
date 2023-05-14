@@ -282,6 +282,20 @@ export class IntegrationService {
         keywords,
       },
     );
+
+    return response.data;
+  }
+
+  static async gitConnect(remotes) {
+    const tenantId = AuthCurrentTenant.get();
+
+    const response = await authAxios.put(
+      `/tenant/${tenantId}/git-connect`,
+      {
+        remotes,
+      },
+    );
+
     return response.data;
   }
 }

@@ -142,7 +142,7 @@
       </div>
     </div>
     <div class="flex flex-wrap justify-between items-center pt-10 gap-2">
-      <app-conversation-footer :conversation="conversation" />
+      <app-conversation-item-footer :conversation="conversation" />
     </div>
   </article>
 </template>
@@ -158,7 +158,7 @@ import AppConversationReply from '@/modules/conversation/components/conversation
 import AppActivitySentiment from '@/modules/activity/components/activity-sentiment.vue';
 import AppMemberDisplayName from '@/modules/member/components/member-display-name.vue';
 import AppActivityMessage from '@/modules/activity/components/activity-message.vue';
-import AppConversationFooter from '@/modules/conversation/components/conversation-footer.vue';
+import AppConversationItemFooter from '@/modules/conversation/components/conversation-item-footer.vue';
 
 export default {
   name: 'AppDashboardConversationItem',
@@ -171,7 +171,7 @@ export default {
     AppConversationDropdown,
     AppAvatar,
     AppActivitySentiment,
-    AppConversationFooter,
+    AppConversationItemFooter,
   },
   props: {
     conversation: {

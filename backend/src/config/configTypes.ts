@@ -186,6 +186,10 @@ export interface EnrichmentConfiguration {
   apiKey: string
 }
 
+export interface OrganizationEnrichmentConfiguration {
+  apiKey: string
+}
+
 export interface EagleEyeConfiguration {
   url: string
   apiKey: string

@@ -109,7 +109,7 @@
         </button>
       </div>
     </div>
-    <div class="py-6">
+    <div class="py-6 whitespace-nowrap">
       <app-conversation-details-footer
         :conversation="conversation"
       />
@@ -264,7 +264,6 @@ export default {
     sorterOptions() {
       const { platform } = this.conversation;
       const defaultActivityTypes = this.currentTenant?.settings[0]?.activityTypes?.default;
-
       const options = [{
         value: 'all',
         label: 'All',

@@ -14,6 +14,7 @@ export const PLAN_LIMITS = {
     [FeatureFlag.AUTOMATIONS]: 10,
     [FeatureFlag.CSV_EXPORT]: 10,
     [FeatureFlag.MEMBER_ENRICHMENT]: 1000,
+    [FeatureFlag.ORGANIZATION_ENRICHMENT]: 200,
   },
 }
 
