@@ -50,6 +50,7 @@ const toCreate = {
   founded: null,
   employeeCountByCountry: null,
   address: null,
+  profiles: null,
 }
 
 async function createMembers(options) {
