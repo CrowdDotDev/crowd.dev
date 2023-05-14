@@ -3133,7 +3133,7 @@ describe('MemberRepository tests', () => {
         lastActive: null,
         lastActivity: null,
       }
-      
+
       expect(member1).toStrictEqual(expectedMemberCreated)
     })
 
