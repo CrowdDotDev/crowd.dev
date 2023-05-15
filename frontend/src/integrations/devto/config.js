@@ -10,4 +10,17 @@ export default {
   image:
     'https://cdn-icons-png.flaticon.com/512/5969/5969051.png',
   connectComponent: DevtoConnect,
+  url: (username) => `https://dev.to/${username}`,
+  chartColor: '#9CA3AF',
+  showProfileLink: true,
+  activityDisplay: {
+    showLinkToUrl: true,
+  },
+  conversationDisplay: {
+    replyContent: (conversation) => ({
+      icon: 'ri-reply-line',
+      copy: 'reply',
+      number: conversation.activityCount - 1,
+    }),
+  },
 };

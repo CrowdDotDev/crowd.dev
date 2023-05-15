@@ -7,8 +7,9 @@ import refreshMaterializedViews from './refreshMaterializedViews'
 import downgradeExpiredPlans from './downgradeExpiredPlans'
 import eagleEyeEmailDigestTicks from './eagleEyeEmailDigestTicks'
 import integrationDataChecker from './integrationDataChecker'
+import mergeSuggestions from './mergeSuggestions'
 import refreshSampleData from './refreshSampleData'
-import cleanUpIntegrationRuns from './cleanUpIntegrationRuns'
+import cleanUp from './cleanUp'
 import checkStuckIntegrationRuns from './checkStuckIntegrationRuns'
 
 const jobs: CrowdJob[] = [
@@ -20,8 +21,9 @@ const jobs: CrowdJob[] = [
   downgradeExpiredPlans,
   eagleEyeEmailDigestTicks,
   integrationDataChecker,
+  mergeSuggestions,
   refreshSampleData,
-  cleanUpIntegrationRuns,
+  cleanUp,
   checkStuckIntegrationRuns,
 ]
 

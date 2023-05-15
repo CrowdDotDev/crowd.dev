@@ -38,8 +38,7 @@ const defaultConfig = {
   },
   formbricks: {
     url: process.env.VUE_APP_FORMBRICKS_URL,
-    formId: process.env.VUE_APP_FORMBRICKS_FORM_ID,
-    pmfFormId: process.env.VUE_APP_FORMBRICKS_PMF_FORM_ID,
+    environmentId: process.env.VUE_APP_FORMBRICKS_ENVIRONMENT_ID,
   },
   stripe: {
     publishableKey:
@@ -57,6 +56,7 @@ const defaultConfig = {
     id: process.env.VUE_APP_SAMPLE_TENANT_ID,
     token: process.env.VUE_APP_SAMPLE_TENANT_TOKEN,
   },
+  isGitEnabled: process.env.VUE_APP_IS_GIT_ENABLED,
 };
 
 const composedConfig = {
@@ -88,8 +88,7 @@ const composedConfig = {
   },
   formbricks: {
     url: 'CROWD_VUE_APP_FORMBRICKS_URL',
-    formId: 'CROWD_VUE_APP_FORMBRICKS_FORM_ID',
-    pmfFormId: 'CROWD_VUE_APP_FORMBRICKS_PMF_FORM_ID',
+    environmentId: 'CROWD_VUE_APP_FORMBRICKS_ENVIRONMENT_ID',
   },
   stripe: {
     publishableKey:
@@ -106,6 +105,7 @@ const composedConfig = {
     id: 'CROWD_VUE_APP_SAMPLE_TENANT_ID',
     token: 'CROWD_VUE_APP_SAMPLE_TENANT_TOKEN',
   },
+  isGitEnabled: 'CROWD_VUE_APP_IS_GIT_ENABLED',
 };
 
 const config = defaultConfig.backendUrl
@@ -115,5 +115,6 @@ const config = defaultConfig.backendUrl
 config.isCommunityVersion = config.edition === 'community';
 config.hasPremiumModules = !config.isCommunityVersion
   || config.communityPremium === 'true';
+config.isGitIntegrationEnabled = config.isGitEnabled === 'true';
 
 export default config;

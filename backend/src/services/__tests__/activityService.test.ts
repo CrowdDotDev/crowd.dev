@@ -58,6 +58,7 @@ describe('ActivityService tests', () => {
         },
         sourceId: '#sourceId',
         isContribution: true,
+        username: 'test',
         member: memberCreated.id,
         score: 1,
       }
@@ -68,6 +69,7 @@ describe('ActivityService tests', () => {
       activityCreated.createdAt = activityCreated.createdAt.toISOString().split('T')[0]
       activityCreated.updatedAt = activityCreated.updatedAt.toISOString().split('T')[0]
       delete activityCreated.member
+      delete activityCreated.objectMember
 
       const expectedActivityCreated = {
         id: activityCreated.id,
@@ -77,7 +79,10 @@ describe('ActivityService tests', () => {
         platform: PlatformType.GITHUB,
         isContribution: true,
         score: 1,
+        username: 'test',
+        objectMemberUsername: null,
         memberId: memberCreated.id,
+        objectMemberId: null,
         createdAt: SequelizeTestUtils.getNowWithoutTime(),
         updatedAt: SequelizeTestUtils.getNowWithoutTime(),
         deletedAt: null,
@@ -126,6 +131,7 @@ describe('ActivityService tests', () => {
       const activity1 = {
         type: 'question',
         timestamp: '2020-05-27T15:13:30Z',
+        username: 'test',
         member: memberCreated.id,
         platform: 'non-existing-platform',
         body: 'What is love?',
@@ -142,6 +148,7 @@ describe('ActivityService tests', () => {
         platform: 'non-existing-platform',
         body: 'Baby dont hurt me',
         isContribution: true,
+        username: 'test',
         member: memberCreated.id,
         score: 2,
         sourceId: 'sourceId#2',
@@ -159,6 +166,8 @@ describe('ActivityService tests', () => {
 
       delete activityCreated2.member
       delete activityCreated2.parent
+      delete activityCreated2.objectMember
+
       // Trim the hour part from timestamp so we can atleast test if the day is correct for createdAt and joinedAt
       activityCreated2.createdAt = activityCreated2.createdAt.toISOString().split('T')[0]
       activityCreated2.updatedAt = activityCreated2.updatedAt.toISOString().split('T')[0]
@@ -183,7 +192,10 @@ describe('ActivityService tests', () => {
         platform: activity2.platform,
         isContribution: activity2.isContribution,
         score: activity2.score,
+        username: 'test',
+        objectMemberUsername: null,
         memberId: memberCreated.id,
+        objectMemberId: null,
         tasks: [],
         createdAt: SequelizeTestUtils.getNowWithoutTime(),
         updatedAt: SequelizeTestUtils.getNowWithoutTime(),
@@ -219,6 +231,7 @@ describe('ActivityService tests', () => {
       const activity1 = {
         type: 'question',
         timestamp: '2020-05-27T15:13:30Z',
+        username: 'test',
         member: memberCreated.id,
         body: 'What is love?',
         title: 'Song',
@@ -242,6 +255,7 @@ describe('ActivityService tests', () => {
       const activity2 = {
         type: 'question',
         timestamp: '2020-05-27T15:13:30Z',
+        username: 'test',
         member: memberCreated.id,
         platform: 'non-existing-platform',
         body: 'Test',
@@ -272,6 +286,7 @@ describe('ActivityService tests', () => {
       // delete models before expect because we already have ids (memberId, parentId)
       delete activityUpserted.member
       delete activityUpserted.parent
+      delete activityUpserted.objectMember
 
       const attributesExpected = {
         ...activity1.attributes,
@@ -288,7 +303,6 @@ describe('ActivityService tests', () => {
         platform: activity2.platform,
         isContribution: activity2.isContribution,
         score: activity2.score,
-
         title: activity1.title,
         sentiment: {
           positive: 0.42,
@@ -301,7 +315,10 @@ describe('ActivityService tests', () => {
         url: null,
         body: activity2.body,
         channel: null,
+        username: 'test',
+        objectMemberUsername: null,
         memberId: memberCreated.id,
+        objectMemberId: null,
         createdAt: SequelizeTestUtils.getNowWithoutTime(),
         updatedAt: SequelizeTestUtils.getNowWithoutTime(),
         tasks: [],
@@ -349,6 +366,7 @@ describe('ActivityService tests', () => {
       const activity1 = {
         type: 'message',
         timestamp: '2020-05-27T15:13:30Z',
+        username: 'test',
         member: member1Created.id,
         platform: PlatformType.DISCORD,
         body: 'What is love?',
@@ -365,6 +383,7 @@ describe('ActivityService tests', () => {
         platform: PlatformType.DISCORD,
         body: 'Baby dont hurt me',
         isContribution: true,
+        username: 'test2',
         member: member2Created.id,
         score: 2,
         sourceId: 'sourceId#2',
@@ -379,6 +398,7 @@ describe('ActivityService tests', () => {
         platform: PlatformType.DISCORD,
         body: 'Dont hurt me',
         isContribution: true,
+        username: 'test',
         member: member1Created.id,
         score: 2,
         sourceId: 'sourceId#3',
@@ -393,6 +413,7 @@ describe('ActivityService tests', () => {
         platform: PlatformType.DISCORD,
         body: 'No more',
         isContribution: true,
+        username: 'test2',
         member: member2Created.id,
         score: 2,
         sourceId: 'sourceId#4',
@@ -426,6 +447,7 @@ describe('ActivityService tests', () => {
         platform: PlatformType.DISCORD,
         body: 'Never gonna give you up',
         isContribution: true,
+        username: 'test',
         member: member1Created.id,
         score: 2,
         sourceId: 'sourceId#5',
@@ -438,6 +460,7 @@ describe('ActivityService tests', () => {
         platform: PlatformType.DISCORD,
         body: 'Never gonna let you down',
         isContribution: true,
+        username: 'test2',
         member: member2Created.id,
         score: 2,
         sourceId: 'sourceId#6',
@@ -451,6 +474,7 @@ describe('ActivityService tests', () => {
         platform: PlatformType.DISCORD,
         body: 'Never gonna run around and desert you',
         isContribution: true,
+        username: 'test',
         member: member1Created.id,
         score: 2,
         sourceId: 'sourceId#7',
@@ -487,6 +511,7 @@ describe('ActivityService tests', () => {
       const activity1 = {
         type: 'message',
         timestamp: '2020-05-27T15:13:30Z',
+        username: 'test',
         member: cm.id,
         platform: PlatformType.DISCORD,
         sourceId: 'sourceId#1',
@@ -497,6 +522,7 @@ describe('ActivityService tests', () => {
       const activity2 = {
         type: 'message',
         timestamp: '2022-05-27T15:13:30Z',
+        username: 'test',
         member: cm.id,
         platform: PlatformType.DISCORD,
         sourceId: 'sourceId#1',
@@ -538,6 +564,7 @@ describe('ActivityService tests', () => {
         platform: PlatformType.DISCORD,
         body: 'No more',
         isContribution: true,
+        username: 'test2',
         member: member2Created.id,
         score: 2,
         sourceId: 'sourceId#4',
@@ -552,6 +579,7 @@ describe('ActivityService tests', () => {
         platform: PlatformType.DISCORD,
         body: 'Dont hurt me',
         isContribution: true,
+        username: 'test',
         member: member1Created.id,
         score: 2,
         sourceId: 'sourceId#3',
@@ -566,6 +594,7 @@ describe('ActivityService tests', () => {
         platform: PlatformType.DISCORD,
         body: 'Baby dont hurt me',
         isContribution: true,
+        username: 'test2',
         member: member2Created.id,
         score: 2,
         sourceId: 'sourceId#2',
@@ -577,6 +606,7 @@ describe('ActivityService tests', () => {
       const activity1 = {
         type: 'message',
         timestamp: '2020-05-27T15:13:30Z',
+        username: 'test',
         member: member1Created.id,
         platform: PlatformType.DISCORD,
         body: 'What is love?',
@@ -620,6 +650,7 @@ describe('ActivityService tests', () => {
         platform: PlatformType.DISCORD,
         body: 'Never gonna let you down',
         isContribution: true,
+        username: 'test2',
         member: member2Created.id,
         score: 2,
         sourceId: 'sourceId#6',
@@ -634,6 +665,7 @@ describe('ActivityService tests', () => {
         body: 'Never gonna run around and desert you',
 
         isContribution: true,
+        username: 'test',
         member: member1Created.id,
         score: 2,
         sourceId: 'sourceId#7',
@@ -647,6 +679,7 @@ describe('ActivityService tests', () => {
         platform: PlatformType.DISCORD,
         body: 'Never gonna give you up',
         isContribution: true,
+        username: 'test',
         member: member1Created.id,
         score: 2,
         sourceId: 'sourceId#5',
@@ -683,6 +716,7 @@ describe('ActivityService tests', () => {
         platform: PlatformType.DISCORD,
         body: 'additional reply to the reply chain',
         isContribution: true,
+        username: 'test2',
         member: member2Created.id,
         score: 2,
         sourceId: 'sourceId#8',
@@ -701,6 +735,7 @@ describe('ActivityService tests', () => {
         platform: PlatformType.DISCORD,
         body: 'additional message to the thread',
         isContribution: true,
+        username: 'test2',
         member: member2Created.id,
         score: 2,
         sourceId: 'sourceId#9',
@@ -746,6 +781,7 @@ describe('ActivityService tests', () => {
         },
         sourceId: '#sourceId',
         isContribution: true,
+        username: 'test1',
         member: memberCreated.id,
         score: 1,
       }
@@ -786,6 +822,7 @@ describe('ActivityService tests', () => {
         },
         sourceId: '#sourceId',
         isContribution: true,
+        username: 'test1',
         member: memberCreated.id,
         score: 1,
       }
@@ -888,6 +925,7 @@ describe('ActivityService tests', () => {
 
       delete activityWithMember.member
       delete activityWithMember.display
+      delete activityWithMember.objectMember
 
       activityWithMember.createdAt = activityWithMember.createdAt.toISOString().split('T')[0]
       activityWithMember.updatedAt = activityWithMember.updatedAt.toISOString().split('T')[0]
@@ -910,7 +948,10 @@ describe('ActivityService tests', () => {
         platform: data.platform,
         isContribution: data.isContribution,
         score: data.score,
+        username: 'anil_github',
+        objectMemberUsername: null,
         memberId: memberFound.id,
+        objectMemberId: null,
         createdAt: SequelizeTestUtils.getNowWithoutTime(),
         updatedAt: SequelizeTestUtils.getNowWithoutTime(),
         tasks: [],
@@ -1012,6 +1053,7 @@ describe('ActivityService tests', () => {
       delete activityWithMember2.member
       delete activityWithMember2.parent
       delete activityWithMember2.display
+      delete activityWithMember2.objectMember
 
       activityWithMember2.createdAt = activityWithMember2.createdAt.toISOString().split('T')[0]
       activityWithMember2.updatedAt = activityWithMember2.updatedAt.toISOString().split('T')[0]
@@ -1042,7 +1084,10 @@ describe('ActivityService tests', () => {
         tasks: [],
         isContribution: data2.isContribution,
         score: data2.score,
+        username: 'anil_github',
+        objectMemberUsername: null,
         memberId: memberFound.id,
+        objectMemberId: null,
         createdAt: SequelizeTestUtils.getNowWithoutTime(),
         updatedAt: SequelizeTestUtils.getNowWithoutTime(),
         deletedAt: null,
@@ -1141,9 +1186,11 @@ describe('ActivityService tests', () => {
       delete activityWithMemberChild.member
       delete activityWithMemberChild.parent
       delete activityWithMemberChild.display
+      delete activityWithMemberChild.objectMember
       delete activityWithMemberParent.member
       delete activityWithMemberParent.parent
       delete activityWithMemberParent.display
+      delete activityWithMemberParent.objectMember
 
       activityWithMemberChild.createdAt = activityWithMemberChild.createdAt
         .toISOString()
@@ -1184,7 +1231,10 @@ describe('ActivityService tests', () => {
         isContribution: dataParent.isContribution,
         tasks: [],
         score: dataParent.score,
+        username: 'anil_github',
+        objectMemberUsername: null,
         memberId: memberFound.id,
+        objectMemberId: null,
         createdAt: SequelizeTestUtils.getNowWithoutTime(),
         updatedAt: SequelizeTestUtils.getNowWithoutTime(),
         deletedAt: null,
@@ -1220,7 +1270,10 @@ describe('ActivityService tests', () => {
         platform: dataChild.platform,
         isContribution: dataChild.isContribution,
         score: dataChild.score,
+        username: 'anil_github',
+        objectMemberUsername: null,
         memberId: memberFound.id,
+        objectMemberId: null,
         createdAt: SequelizeTestUtils.getNowWithoutTime(),
         tasks: [],
         updatedAt: SequelizeTestUtils.getNowWithoutTime(),
@@ -1296,6 +1349,7 @@ describe('ActivityService tests', () => {
 
         delete activityWithMember.member
         delete activityWithMember.display
+        delete activityWithMember.objectMember
 
         activityWithMember.createdAt = activityWithMember.createdAt.toISOString().split('T')[0]
         activityWithMember.updatedAt = activityWithMember.updatedAt.toISOString().split('T')[0]
@@ -1325,7 +1379,10 @@ describe('ActivityService tests', () => {
           platform: data.platform,
           isContribution: data.isContribution,
           score: data.score,
+          username: 'anil_github',
+          objectMemberUsername: null,
           memberId: memberFound.id,
+          objectMemberId: null,
           createdAt: SequelizeTestUtils.getNowWithoutTime(),
           tasks: [],
           updatedAt: SequelizeTestUtils.getNowWithoutTime(),
@@ -1344,7 +1401,7 @@ describe('ActivityService tests', () => {
         expect(activityWithMember).toStrictEqual(expectedActivityCreated)
         expect(memberFound.joinedAt).toStrictEqual(expectedActivityCreated.timestamp)
         expect(memberFound.username).toStrictEqual({
-          [PlatformType.GITHUB]: 'anil_github',
+          [PlatformType.GITHUB]: ['anil_github'],
         })
       })
 
@@ -1408,6 +1465,7 @@ describe('ActivityService tests', () => {
 
         delete activityWithMember.member
         delete activityWithMember.display
+        delete activityWithMember.objectMember
 
         activityWithMember.createdAt = activityWithMember.createdAt.toISOString().split('T')[0]
         activityWithMember.updatedAt = activityWithMember.updatedAt.toISOString().split('T')[0]
@@ -1437,7 +1495,10 @@ describe('ActivityService tests', () => {
           platform: data.platform,
           isContribution: data.isContribution,
           score: data.score,
+          username: 'anil_github',
+          objectMemberUsername: null,
           memberId: memberFound.id,
+          objectMemberId: null,
           createdAt: SequelizeTestUtils.getNowWithoutTime(),
           updatedAt: SequelizeTestUtils.getNowWithoutTime(),
           deletedAt: null,
@@ -1456,7 +1517,7 @@ describe('ActivityService tests', () => {
         expect(activityWithMember).toStrictEqual(expectedActivityCreated)
         expect(memberFound.joinedAt).toStrictEqual(expectedActivityCreated.timestamp)
         expect(memberFound.username).toStrictEqual({
-          [PlatformType.GITHUB]: 'anil_github',
+          [PlatformType.GITHUB]: ['anil_github'],
         })
       })
 
@@ -1520,6 +1581,7 @@ describe('ActivityService tests', () => {
 
         delete activityWithMember.member
         delete activityWithMember.display
+        delete activityWithMember.objectMember
 
         activityWithMember.createdAt = activityWithMember.createdAt.toISOString().split('T')[0]
         activityWithMember.updatedAt = activityWithMember.updatedAt.toISOString().split('T')[0]
@@ -1549,7 +1611,10 @@ describe('ActivityService tests', () => {
           platform: data.platform,
           isContribution: data.isContribution,
           score: data.score,
+          username: 'anil_github',
+          objectMemberUsername: null,
           memberId: memberFound.id,
+          objectMemberId: null,
           createdAt: SequelizeTestUtils.getNowWithoutTime(),
           updatedAt: SequelizeTestUtils.getNowWithoutTime(),
           tasks: [],
@@ -1568,7 +1633,7 @@ describe('ActivityService tests', () => {
         expect(activityWithMember).toStrictEqual(expectedActivityCreated)
         expect(memberFound.joinedAt).toStrictEqual(new Date('2020-05-27T15:13:30Z'))
         expect(memberFound.username).toStrictEqual({
-          [PlatformType.GITHUB]: 'anil_github',
+          [PlatformType.GITHUB]: ['anil_github'],
         })
       })
 
@@ -1633,6 +1698,7 @@ describe('ActivityService tests', () => {
 
         delete activityWithMember.member
         delete activityWithMember.display
+        delete activityWithMember.objectMember
 
         activityWithMember.createdAt = activityWithMember.createdAt.toISOString().split('T')[0]
         activityWithMember.updatedAt = activityWithMember.updatedAt.toISOString().split('T')[0]
@@ -1662,7 +1728,10 @@ describe('ActivityService tests', () => {
           platform: data.platform,
           isContribution: data.isContribution,
           score: data.score,
+          username: 'anil_github',
+          objectMemberUsername: null,
           memberId: memberFound.id,
+          objectMemberId: null,
           createdAt: SequelizeTestUtils.getNowWithoutTime(),
           updatedAt: SequelizeTestUtils.getNowWithoutTime(),
           deletedAt: null,
@@ -1681,7 +1750,7 @@ describe('ActivityService tests', () => {
         expect(activityWithMember).toStrictEqual(expectedActivityCreated)
         expect(memberFound.joinedAt).toStrictEqual(expectedActivityCreated.timestamp)
         expect(memberFound.username).toStrictEqual({
-          [PlatformType.GITHUB]: 'anil_github',
+          [PlatformType.GITHUB]: ['anil_github'],
         })
       })
 
@@ -1701,7 +1770,7 @@ describe('ActivityService tests', () => {
 
         const data = {
           member: {
-            username: 'anil,',
+            username: 'anil',
           },
           timestamp: '1970-01-01T00:00:00.000Z',
           type: 'follow',
@@ -1715,16 +1784,15 @@ describe('ActivityService tests', () => {
 
         const data2 = {
           member: {
-            username: 'anil,',
+            username: 'anil',
           },
           timestamp: '2021-09-30T14:20:27.000Z',
           type: 'follow',
           platform: PlatformType.TWITTER,
           sourceId: '#sourceId1',
         }
-        data.timestamp =
-          // Upsert the same activity with a different timestamp
-          await new ActivityService(mockIRepositoryOptions).createWithMember(data2)
+        // Upsert the same activity with a different timestamp
+        await new ActivityService(mockIRepositoryOptions).createWithMember(data2)
 
         const memberFound = await MemberRepository.findById(
           activityWithMember.memberId,
@@ -1755,6 +1823,7 @@ describe('ActivityService tests', () => {
         platform: PlatformType.GITHUB,
         channel: 'https://github.com/CrowdDevHQ/crowd-web',
         isContribution: true,
+        username: 'test',
         member: memberCreated.id,
         score: 1,
         sourceId: '#sourceId1',
@@ -1771,6 +1840,7 @@ describe('ActivityService tests', () => {
         platform: PlatformType.GITHUB,
         channel: 'https://github.com/CrowdDevHQ/crowd-web',
         isContribution: true,
+        username: 'test',
         member: memberCreated.id,
         score: 1,
         parent: activityParentCreated.id,
@@ -1831,6 +1901,7 @@ describe('ActivityService tests', () => {
         platform: PlatformType.GITHUB,
         channel: 'https://github.com/CrowdDevHQ/crowd-web',
         isContribution: true,
+        username: 'test',
         member: memberCreated.id,
         score: 1,
         conversationId: conversation.id,
@@ -1848,6 +1919,7 @@ describe('ActivityService tests', () => {
         platform: PlatformType.GITHUB,
         channel: 'https://github.com/CrowdDevHQ/crowd-web',
         isContribution: true,
+        username: 'test',
         member: memberCreated.id,
         score: 1,
         parent: activityParentCreated.id,
@@ -1902,6 +1974,7 @@ describe('ActivityService tests', () => {
         channel: 'https://github.com/CrowdDevHQ/crowd-web',
         body: 'Some Parent Activity',
         isContribution: true,
+        username: 'test',
         member: memberCreated.id,
         score: 1,
         sourceId: '#sourceId1',
@@ -1917,6 +1990,7 @@ describe('ActivityService tests', () => {
         timestamp: '2020-05-27T15:13:30Z',
         platform: PlatformType.GITHUB,
         isContribution: true,
+        username: 'test',
         member: memberCreated.id,
         score: 1,
         parent: activityParentCreated.id,
@@ -1983,8 +2057,8 @@ describe('ActivityService tests', () => {
         platform: PlatformType.GITHUB,
         body: 'Some Parent Activity',
         channel: 'https://github.com/CrowdDevHQ/crowd-web',
-
         isContribution: true,
+        username: 'test',
         member: memberCreated.id,
         score: 1,
         sourceId: '#sourceId1',
@@ -2002,6 +2076,7 @@ describe('ActivityService tests', () => {
         body: 'Here',
         channel: 'https://github.com/CrowdDevHQ/crowd-web',
         isContribution: true,
+        username: 'test',
         member: memberCreated.id,
         score: 1,
         parent: activityParentCreated.id,
@@ -2074,6 +2149,7 @@ describe('ActivityService tests', () => {
         body: 'Some Parent Activity',
         channel: 'https://github.com/CrowdDevHQ/crowd-web',
         isContribution: true,
+        username: 'test',
         member: memberCreated.id,
         score: 1,
         sourceId: '#sourceId1',
@@ -2091,6 +2167,7 @@ describe('ActivityService tests', () => {
         body: 'Here',
         channel: 'https://github.com/CrowdDevHQ/crowd-web',
         isContribution: true,
+        username: 'test',
         member: memberCreated.id,
         score: 1,
         parent: activityParentCreated.id,
@@ -2164,6 +2241,7 @@ describe('ActivityService tests', () => {
         body: 'Some Parent Activity',
         channel: 'https://github.com/CrowdDevHQ/crowd-web',
         isContribution: true,
+        username: 'test',
         member: memberCreated.id,
         score: 1,
         sourceId: '#sourceId1',
@@ -2181,6 +2259,7 @@ describe('ActivityService tests', () => {
         body: 'Here',
         channel: 'https://github.com/CrowdDevHQ/crowd-web',
         isContribution: true,
+        username: 'test',
         member: memberCreated.id,
         score: 1,
         parent: activityParentCreated.id,
@@ -2257,6 +2336,7 @@ describe('ActivityService tests', () => {
         body: 'Some Parent Activity',
         channel: 'https://github.com/CrowdDevHQ/crowd-web',
         isContribution: true,
+        username: 'test',
         member: memberCreated.id,
         score: 1,
         sourceId: '#sourceId1',
@@ -2274,6 +2354,7 @@ describe('ActivityService tests', () => {
         body: 'Here',
         channel: 'https://github.com/CrowdDevHQ/crowd-web',
         isContribution: true,
+        username: 'test',
         member: memberCreated.id,
         score: 1,
         parent: activityParentCreated.id,
@@ -2350,6 +2431,7 @@ describe('ActivityService tests', () => {
         body: 'Some Parent Activity',
         channel: 'https://github.com/CrowdDevHQ/crowd-web',
         isContribution: true,
+        username: 'test',
         member: memberCreated.id,
         score: 1,
         sourceId: '#sourceId1',
@@ -2366,6 +2448,7 @@ describe('ActivityService tests', () => {
         platform: PlatformType.GITHUB,
         body: 'Here',
         isContribution: true,
+        username: 'test',
         member: memberCreated.id,
         score: 1,
         parent: activityParentCreated.id,

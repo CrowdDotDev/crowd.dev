@@ -28,6 +28,8 @@ export default (app) => {
   app.put(`/reddit-onboard/:tenantId`, safeWrap(require('./helpers/redditOnboard').default))
   app.put('/linkedin-connect/:tenantId', safeWrap(require('./helpers/linkedinConnect').default))
   app.post('/linkedin-onboard/:tenantId', safeWrap(require('./helpers/linkedinOnboard').default))
+  app.put(`/tenant/:tenantId/git-connect`, safeWrap(require('./helpers/gitAuthenticate').default))
+  app.get('/tenant/:tenantId/git', safeWrap(require('./helpers/gitGetRemotes').default))
   app.get(
     '/tenant/:tenantId/devto-validate',
     safeWrap(require('./helpers/devtoValidators').default),

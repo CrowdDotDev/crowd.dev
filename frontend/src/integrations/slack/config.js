@@ -10,4 +10,17 @@ export default {
   image:
     'https://cdn-icons-png.flaticon.com/512/3800/3800024.png',
   connectComponent: SlackConnect,
+  url: (username) => `https://slack.com/${username}`,
+  chartColor: '#E41756',
+  showProfileLink: false,
+  activityDisplay: {
+    showLinkToUrl: true,
+  },
+  conversationDisplay: {
+    replyContent: (conversation) => ({
+      icon: 'ri-reply-line',
+      copy: 'reply',
+      number: conversation.activityCount - 1,
+    }),
+  },
 };

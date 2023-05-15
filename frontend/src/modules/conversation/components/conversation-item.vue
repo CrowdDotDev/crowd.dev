@@ -70,16 +70,10 @@
     <div class="flex items-center py-6">
       <div class="flex-grow border-b border-gray-200" />
       <div
-        v-if="conversation.activityCount.length > 3"
+        v-if="conversation.activityCount > 3"
         class="text-xs h-6 flex items-center px-3 rounded-3xl border border-gray-200 text-gray-500"
       >
-        {{ conversation.activityCount.length - 3 }}
-        more
-        {{
-          conversation.activityCount.length > 4
-            ? 'replies'
-            : 'reply'
-        }}
+        {{ separatorContent }}
       </div>
       <div class="flex-grow border-b border-gray-200" />
     </div>
@@ -98,38 +92,9 @@
       </app-conversation-reply>
     </div>
     <div
-      class="-mx-6 -mb-6 px-6 py-4 flex items-center justify-between bg-gray-50"
+      class="-mx-6 -mb-6 px-6 py-4 flex items-center justify-between bg-gray-50 whitespace-nowrap"
     >
-      <div class="flex items-center">
-        <div class="flex items-center mr-6">
-          <i
-            class="ri-group-line text-base mr-2 text-gray-400"
-          />
-          <p class="text-xs text-gray-600">
-            {{ conversation.memberCount }} participant{{
-              conversation.memberCount > 1 ? 's' : ''
-            }}
-          </p>
-        </div>
-        <div class="flex items-center">
-          <i
-            class="ri-reply-line text-base mr-2 text-gray-400"
-          />
-          <p class="text-xs text-gray-600">
-            {{ conversation.activityCount - 1 }}
-            {{
-              conversation.activityCount > 2
-                ? 'replies'
-                : 'reply'
-            }}
-          </p>
-        </div>
-      </div>
-      <div>
-        <app-activity-link
-          :activity="conversation.conversationStarter"
-        />
-      </div>
+      <app-conversation-item-footer :conversation="conversation" />
     </div>
   </article>
 </template>
@@ -143,20 +108,21 @@ import AppMemberDisplayName from '@/modules/member/components/member-display-nam
 import AppActivityContent from '@/modules/activity/components/activity-content.vue';
 import AppConversationReply from '@/modules/conversation/components/conversation-reply.vue';
 import AppActivityMessage from '@/modules/activity/components/activity-message.vue';
-import AppActivityLink from '@/modules/activity/components/activity-link.vue';
 import AppActivitySentiment from '@/modules/activity/components/activity-sentiment.vue';
+import AppConversationItemFooter from '@/modules/conversation/components/conversation-item-footer.vue';
+import pluralize from 'pluralize';
 
 export default {
   name: 'AppConversationItem',
   components: {
     AppMemberDisplayName,
-    AppActivityLink,
     AppActivityMessage,
     AppConversationReply,
     AppActivityContent,
     AppActivitySentiment,
     AppLoading,
     AppAvatar,
+    AppConversationItemFooter,
   },
   props: {
     conversation: {
@@ -178,7 +144,7 @@ export default {
       );
     },
     member() {
-      return this.conversation.conversationStarter.member;
+      return this.conversation.conversationStarter?.member;
     },
     sentiment() {
       return this.conversation.conversationStarter.sentiment
@@ -186,6 +152,12 @@ export default {
     },
     url() {
       return this.conversation.url;
+    },
+    separatorContent() {
+      const remainingActivitiesCount = this.conversation.activityCount - 3;
+      const copy = this.platform?.conversationDisplay?.separatorContent || 'reply';
+
+      return pluralize(`more ${copy}`, remainingActivitiesCount, true);
     },
   },
   methods: {

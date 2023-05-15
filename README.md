@@ -37,14 +37,10 @@ With crowd.dev, you get full visibility into all online platforms and can take a
 
 
 ## ✨ Features
-### Core Features
 - Integrate with platforms like GitHub, Discord, Slack, Twitter, DEV or HackerNews to track community activities
 - Get background information about your community members & the companies they belong to and manage them with tags and automated segmentation
 - Analyze your community, create custom metrics, organize them in reports and share them publicly with your community, your investors, or your team
 - Use webhooks to automate routine tasks
-
-### Growth Apps
-- [Community Help Center](https://www.crowd.dev/community-help-center): Detect relevant conversations and publish them in a community help center to reduce duplicate questions and get your community's content listed on search engines
 - [Eagle Eye](https://www.crowd.dev/eagle-eye): Monitor dev-focussed community platforms to find relevant content to engage with, helping you to gain developers’ mindshare and grow your community organically
 
 ## 🔔 Stay up-to-date
@@ -91,6 +87,12 @@ cd scripts
 ./cli start
 ```
 
+For hot reloading, you can run
+```shell
+cd scripts
+./cli clean-start-dev
+```
+
 App will be available at http://localhost:8081
 
 For more information on development, you can <a href="https://docs.crowd.dev/docs/docker-compose-single-machine-development-with-docker-images">check our docs</a>.
@@ -107,7 +109,7 @@ There are many ways you can contribute to crowd.dev! Here are a few options:
 - Create issues every time you feel something is missing or goes wrong
 - Upvote issues with 👍 reaction so we know what's the demand for particular issue to prioritize it within roadmap
 
-If you would like to contribute to the development of the project, you can [book a 15 min contributor onboarding](https://cal.com/team/CrowdDotDev/contributor-onboarding). You can also find a selection of [good first issues 🥂](https://github.com/CrowdDotDev/crowd.dev/labels/good%20first%20issue%20%F0%9F%A5%82) to get started quickly.
+If you would like to contribute to the development of the project, please refer to our [Contributing guide](https://github.com/CrowdDotDev/crowd.dev/blob/main/CONTRIBUTING.md).
 
 All contributions are highly appreciated. 🙏
 

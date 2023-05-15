@@ -12,6 +12,8 @@ import plugins from '@/plugins';
 import modules from '@/modules';
 import config from '@/config';
 
+import formbricks from '@/plugins/formbricks';
+
 import { init as i18nInit } from '@/i18n';
 
 import { AuthToken } from '@/modules/auth/auth-token';
@@ -52,6 +54,8 @@ i18nInit();
   app.config.errorHandler = (err) => {
     if (config.env === 'production') {
       LogRocket.captureException(err);
+    } else if (config.env === 'local') {
+      console.error(err);
     }
   };
 
@@ -64,6 +68,12 @@ i18nInit();
         app.component(name, components[name]);
       });
     });
+
+  router.afterEach(() => {
+    if (typeof formbricks !== 'undefined') {
+      formbricks.registerRouteChange();
+    }
+  });
 
   Object.values(plugins).map((plugin) => app.use(plugin));
   app.use(VNetworkGraph);

@@ -170,6 +170,9 @@ const en = {
         activityTimestampTo: 'activityTimestampTo is required query parameter!',
       },
     },
+    git: {
+      noIntegration: 'The Git integration is not configured.',
+    },
   },
 
   email: {
@@ -186,6 +189,7 @@ const en = {
         unique: {
           username: 'Username must be unique',
           email: 'Email must be unique',
+          platform: 'Member with the same platform and username already exists in this tenant.',
         },
       },
     },

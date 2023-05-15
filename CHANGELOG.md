@@ -2,6 +2,93 @@
 
 All notable changes to this project will be documented in this file.
 
+## v0.30.0 - 2023-05-02
+
+### Changes
+
+For all details, visit our [changelog](https://changelog.crowd.dev/changelogs/activities-report)!
+
+#### 🚀 Features
+
+- Support activities report @joanagmaia (#724) and @epipav (#810)
+
+#### ✨ Improvements
+
+- GitHub pull request events @epipav (#734)
+
+#### 🐞 Bug Fixes
+
+- Fix a rendering issue in the members' list when emails were null @joanagmaia (#817)
+- Fix the handle that was sent when getting enrichments with GitHub @joanreyero (#820)
+- Detecting existing and actual member mismatch when upserting members @themarolt (#804)
+- Fix merge suggestions failing due to new database index @joanreyero (#816)
+- Fix new badge in the dashboard for active members @joanagmaia (#815)
+- Removed filtering by is_latest when getting existing member to solve upsert issues @epipav (#814)
+- Creating custom activities from the frontend was not working because we were missing a username field @joanreyero (#808)
+
+## v0.29.0 - 2023-04-25
+
+### Changes
+
+For more details, see [changelog.crowd.dev](https://changelog.crowd.dev/changelogs/enhanced-merge-suggestions)
+
+#### 🚀 Features
+
+- Multiple members identities for one platform @joanagmaia (#787) and @themarolt (#735)
+- Improved merge suggestions with confidence scoring @joanreyero (#797)
+
+#### ✨ Improvements
+
+- Add a column to show the number of activities column to all member views @peoray (#789)
+- Added a tooltip when displaying OSS contributions @gaspergrom (#778)
+
+#### 🐞 Bug Fixes
+
+- Optimized the materialized view for members for higher performance @themarolt (#803)
+- Updated the Formbricks version @joanagmaia (#801)
+- Fixed the timeframe in the members' report drawers @joanagmaia (#776)
+- Fixed the count values in the platform filters on the homepage @peoray (#781)
+- The number of activities for the active members' view is now timeframe-dependent @yeganathan18 (#792)
+- Re-enabled the GitHub forms stream @epipav (#796)
+- Added missing indexes and removed the unused ones @themarolt (#798)
+- The member upsert doesn't always work when called from integrations @themarolt (#793)
+- Merged duplicated members that have extra identities @themarolt (#783)
+- Fixed the copy and colors for the number of OSS contributions filter @gaspergrom (#777)
+
+## v0.28.0 - 2023-04-18
+
+### Changes
+
+For the full changelog, see: [https://changelog.crowd.dev](https://changelog.crowd.dev/changelogs/number-open-source-contributions)
+
+#### 🚀 Features
+
+- Feature: number of open source contributions attribute @akhill10 (#768)
+- Add filters for activity channels @prathik-kaliyambath (#721)
+
+#### ✨ Improvements
+
+- Fix duplicate job titles for multiple organization members @peoray (#765)
+- Fix typo in active leadership members widget @peoray (#761)
+- Added link to signup from sign-in page @yeganathan18 (#767)
+- Add issue template for improvements @yeganathan18 (#775)
+- Add channel filter in the frontend @joanagmaia (#727)
+- Improved end-to-end test for auth and onboarding @gaspergrom (#728)
+
+#### 🐞 Bug Fixes
+
+- Corrected typos @erinmikailstaples (#753)
+- Removed a redundant type sanitization on creating activity types @epipav (#737)
+- Fix displaying of activity types @gaspergrom (#769)
+- Migrate to the new version of Formbricks @gaspergrom (#756)
+- Fixed API docs for member update @joanreyero (#763)
+- Scripts to merge duplicated members @themarolt (#754)
+- 500 errors are now displayed in a non-invasive toast message @gaspergrom (#744)
+- Fix activity types filter's 500 error when the filter was reset @joanagmaia (#741)
+- Fix organizations' platform filter @joanagmaia (#738)
+- Change copy for Zapier connect button @garrrikkotua (#740)
+- UI tweaks for the Zapier connector @garrrikkotua (#749)
+
 ## v0.27.0 - 2023-04-11
 
 ### Changes
@@ -254,11 +341,8 @@ https://user-images.githubusercontent.com/37874460/220165717-4204605a-260f-41cb-
 - Fix a message duplication issue when a Discord server has both crowd.dev apps connected @themarolt (#538)
 - Preventing rapid-fire of the same messages over discord websockets @themarolt (#532)
 - Fix Export to CSV functionality @joanagmaia (#533)
-
 ## v0.19.0 - 2023-02-13
-
 ### Changes
-
 ### ✨ Improvements
 
 - Added LinkedIn to sample data @joanreyero (#481)
@@ -311,7 +395,6 @@ You can now get a detailed view of the members returned by widgets in default re
 ### 🚀 Features
 #### LinkedIn integration
 Introduction the LinkedIn integration! With it, you can bring the comments and reactions to your organization's LinkedIn posts into crowd.dev. This integration is only available for Growth and Custom plans.
-
 <img width="1727" alt="Linkedin" src="https://user-images.githubusercontent.com/37874460/214154195-3e3ba24e-ba70-4eae-9f65-c22f3bd9042e.png">
 - Linkedin integration @mariobalca (#442)
 ### ✨ Improvements
@@ -335,7 +418,6 @@ Introducing our newest feature: Default Reports! These specially crafted reports
 - Members reports @joanagmaia (#418)
 - Default reports backend updates @epipav (#398)
 - Fix home dashboard and reports @joanagmaia (#424)
-
 <img width="1727" alt="Reports 1" src="https://user-images.githubusercontent.com/37874460/212732237-8e46b294-8d60-433a-b76b-a3f45c1bf895.png">
 #### Formbricks feedback
 Our first external code contribution! @mattinannt and the [Formbricks](https://formbricks.com/) team added an in-app feedback box to our menu. If you have an idea, something needs to be fixed, or want to point out which features you like, you can leave us feedback there!
@@ -359,9 +441,7 @@ Our first external code contribution! @mattinannt and the [Formbricks](https://f
 ### Features
 #### Exact keyword matching for EagleEye
 You can now look for posts by an exact keyword in EagleEye. If you send a query wrapped in quotes, we will look for it exactly rather than performing semantic search.
-
 For example, imagine you want to search for content that talks about *generatice AI*, but that mentions *Stable Diffusion*. You could send the query: `generative ai, "stable diffusion"`.
-
 <img width="1067" alt="Screenshot 2023-01-09 at 13 14 50" src="https://user-images.githubusercontent.com/37874460/211305723-24aec737-7edf-4c4d-bcd4-deab5e64a968.png">
 - EagleEye exact keyword matching @mariobalca @joanreyero (#383)
 #### Discord forum channels
@@ -383,7 +463,6 @@ Forum channels are now supported as part of the Discord integration. We will get
 ### 🚀 Features
 #### CSV exports
 You can now export your community members as CSV. You can export all members or choose any view to export, and we will send you a document in your email containing all the members that match the filter.
-
 <img width="672" alt="Screenshot 2023-01-02 at 18 47 18" src="https://user-images.githubusercontent.com/37874460/210264594-2f744e43-2b31-4be7-aa28-6f0a6c9dbad5.png">
 - Members CSV exports @epipav (#356)
 ### ✨ Improvements
@@ -413,7 +492,6 @@ The Reddit integration is finally here! It was one of the most wanted integratio
 - Reddit integration @mariobalca and @joanreyero (#351)
 #### Plan page
 We are advancing in making premium plans possible. This week we introduced a *Plan* page in the workspace's settings. You can use it to upgrade your plan to Growth, our first premium plan. You can learn more about our pricing [here](https://crowd.dev/pricing).
-
 <img width="1055" alt="Screenshot 2022-12-19 at 17 53 44" src="https://user-images.githubusercontent.com/37874460/208478358-6c861f46-51bc-4db6-ba9f-23d7d5435a04.png">
 - Plan page @joanagmaia (#350)
 - Organizations paywall @joanagmaia (#357)
@@ -443,9 +521,7 @@ With this, we have introduced feature flagging, so we can also roll out features
 - Add a search button to EagleEye to avoid making too many requests. Before, we searched every time there was a keyword change, causing performance issues. @mariobalca (#321)
 - Render markdown in activities that have a markdown-based body @joanagmaia (#310)
 - Decreased the pre-aggregation frequency in Cube.js to 10 minutes @epipav (#342)
-
 ### 🐞 Bug Fixes
-
 - Remove the *index attributes* call when creating a document in Meilisearch @epipav (#346)
 - Better logging for the Python Eagle Eye API for debugging purposes @joanreyero (#316)
 - Fix type when trimming members' emails @epipav (#347)
@@ -458,7 +534,6 @@ With this, we have introduced feature flagging, so we can also roll out features
 - Exclude our internal tenants from telemetry, and add telemetry events for organizations and integrations @joanreyero (#317)
 - Make sure that we call AWS Comprehend API with a `utf-8` string. @themarolt (#315)
 - Properly handle GitHub's rate limit @themarolt (#311)
-
 ## v0.11.0 - 2022-12-05
 
 ### Changes
@@ -497,12 +572,9 @@ The notes module allows you to add notes to your community members. You can anno
 ### Bug fixes and improvements
 The feedback has been tremendous after our open-source launch! We have spent this month working on many bug fixes and improvements to make the app better every single day.
 ## v0.9.0 - 2022-10-31
-
 ### Changes
-
 :fire: A brand-new user interface.
 We completely overhauled our design and user experience (you may not even recognize the app). crowd.dev is now much more intuitive to use, and the product feels more polished.
-
 <img width="1103" alt="Screenshot 2022-10-28 at 15 51 31" src="https://user-images.githubusercontent.com/37874460/198659098-cf43074c-1607-41a5-adf7-47635e247639.png">
 :bust_in_silhouette: Richer member profiles
 Member profiles now show you everything you need to know about an individual in one place, with even richer information on their activity history, tags, engagement level, and much more.
@@ -582,7 +654,6 @@ This version introduces breaking API changes. While the API has vastly improved 
 - 
 - With some additional optional filters.
 - 
-
 <p align="center">
 <img width="500" alt="Automations preview" src="https://user-images.githubusercontent.com/59081450/190612890-147658b8-f7ac-4379-9313-b6c01573e062.png">
 </p>

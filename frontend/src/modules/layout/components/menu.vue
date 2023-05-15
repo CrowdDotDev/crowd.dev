@@ -368,7 +368,7 @@
 
 <script setup>
 import { useStore } from 'vuex';
-import { computed, onMounted } from 'vue';
+import { computed, watch } from 'vue';
 import { RouterLink, useLink } from 'vue-router';
 import { SettingsPermissions } from '@/modules/settings/settings-permissions';
 import { ReportPermissions } from '@/modules/report/report-permissions';
@@ -380,20 +380,32 @@ import config from '@/config';
 
 import { mapGetters } from '@/shared/vuex/vuex.helpers';
 import { TaskPermissions } from '@/modules/task/task-permissions';
+import formbricks from '@/plugins/formbricks';
+import { useActivityTypeStore } from '@/modules/activity/store/type';
 import AppWorkspaceDropdown from './workspace-dropdown.vue';
 import AppSupportDropdown from './support-dropdown.vue';
 import AppAccountDropdown from './account-dropdown.vue';
 
 const store = useStore();
+const { currentTenant } = mapGetters('auth');
+const { setTypes } = useActivityTypeStore();
+
+watch(
+  () => currentTenant,
+  (tenant) => {
+    if (tenant.value?.settings.length > 0) {
+      setTypes(tenant.value.settings[0].activityTypes);
+    }
+  },
+  { immediate: true, deep: true },
+);
+
 const { route } = useLink(RouterLink.props);
 const isCollapsed = computed(
   () => store.getters['layout/menuCollapsed'],
 );
 const currentUser = computed(
   () => store.getters['auth/currentUser'],
-);
-const currentTenant = computed(
-  () => store.getters['auth/currentTenant'],
 );
 
 function toggleMenu() {
@@ -402,8 +414,7 @@ function toggleMenu() {
 
 const formbricksEnabled = computed(
   () => i18n('feedback.menu') !== 'feedback.menu'
-    && config.formbricks.url
-    && config.formbricks.formId,
+    && config.formbricks.url && config.formbricks.environmentId,
 );
 
 const { myOpenTasksCount } = mapGetters('task');
@@ -412,7 +423,7 @@ const hasPermissionToSettings = computed(
   () => new SettingsPermissions(
     currentTenant.value,
     currentUser.value,
-  ).edit || currentTenant.value.hasSampleData,
+  ).edit || currentTenant.value?.hasSampleData,
 );
 
 const hasPermissionToCommunityMember = computed(
@@ -506,46 +517,10 @@ const classFor = (path, exact = false) => {
   };
 };
 
-const openFeedbackWidget = (event) => {
-  window.formbricks.open(event);
+const openFeedbackWidget = () => {
+  formbricks.track('openFeedback');
+  formbricks.refresh();
 };
-
-onMounted(() => {
-  const formbricksFeedbackWidget = document.createElement('script');
-  formbricksFeedbackWidget.setAttribute(
-    'src',
-    'https://cdn.jsdelivr.net/npm/@formbricks/feedback@0.1.5/dist/index.umd.js',
-  );
-  document.head.appendChild(formbricksFeedbackWidget);
-  const formbricksFeedbackConfig = document.createElement('script');
-  formbricksFeedbackConfig.innerHTML = `
-    window.formbricks = {
-      config: {
-        hqUrl: "${config.formbricks.url}",
-        formId: "${config.formbricks.formId}",
-        contact: {
-          name: "Jonathan",
-          position: "Co-Founder",
-          imgUrl: "https://avatars.githubusercontent.com/u/41432658?v=4",
-        },
-        customer: {
-          id: "${store.getters['auth/currentUser'].id}",
-          name: "${store.getters['auth/currentUser'].fullName}",
-          email: "${store.getters['auth/currentUser'].email}",
-        },
-        style: {
-          brandColor: "#e94f2e",
-          headerBGColor: "#F9FAFB",
-          boxBGColor: "#ffffff",
-          textColor: "#140505",
-          buttonHoverColor: "#F9FAFB",
-        },
-      },
-      ...window.formbricks,
-    };
-    `;
-  document.head.appendChild(formbricksFeedbackConfig);
-});
 </script>
 
 <script>

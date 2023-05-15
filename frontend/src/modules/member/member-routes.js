@@ -14,7 +14,7 @@ export default [
     name: '',
     path: '',
     component: Layout,
-    meta: { auth: true },
+    meta: { auth: true, title: 'Members' },
     children: [
       {
         name: 'member',

@@ -1,9 +1,11 @@
 <template>
   <el-popover
-    placement="right-end"
+    :disabled="!currentTenant?.onboardedAt"
+    placement="right-start"
     :width="230"
     trigger="click"
     popper-class="account-popover"
+    class="h-min"
     @show="isDropdownOpen = true"
     @hide="isDropdownOpen = false"
   >
@@ -40,26 +42,23 @@
     </template>
 
     <!-- Popover content -->
-    <div
-      v-if="currentTenant && currentTenant.onboardedAt"
-      class="flex flex-col gap-1 mb-1"
-    >
+    <div>
       <div class="popover-item" @click="doEditProfile">
         <i
           class="text-base text-gray-400 ri-account-circle-line"
         />
-        <span class="text-xs text-gray-900"><app-i18n code="auth.profile.title" /></span>
+        <span class="text-xs text-gray-900">Profile settings</span>
       </div>
-    </div>
-    <div
-      id="logout"
-      class="popover-item"
-      @click="doSignout"
-    >
-      <i
-        class="text-base text-gray-400 ri-logout-box-r-line"
-      />
-      <span class="text-xs text-gray-900"><app-i18n code="auth.signout" /></span>
+      <div
+        id="logout"
+        class="popover-item"
+        @click="doSignout"
+      >
+        <i
+          class="text-base text-gray-400 ri-logout-box-r-line"
+        />
+        <span class="text-xs text-gray-900">Sign out</span>
+      </div>
     </div>
   </el-popover>
 </template>
@@ -84,7 +83,7 @@ const currentUserAvatar = computed(
   () => store.getters['auth/currentUserAvatar'],
 );
 const currentTenant = computed(
-  () => store.getters['auth/currentTenant'],
+  () => store.getters['auth/currentTenant'] || {},
 );
 
 const computedAvatarEntity = computed(() => ({
@@ -130,10 +129,11 @@ export default {
 // Override inline style in popover
 .account-popover {
   padding: 8px !important;
-  bottom: 10px !important;
+  transform: translateY(-10px);
   border-radius: 8px !important;
   border: none !important;
   box-shadow: 0px 1px 6px rgba(0, 0, 0, 0.2) !important;
+  height: min-content !important;
 }
 
 // Smooth disappearance of account information on collapse

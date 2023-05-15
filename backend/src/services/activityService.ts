@@ -19,6 +19,7 @@ import { LoggingBase } from './loggingBase'
 import MemberAttributeSettingsRepository from '../database/repositories/memberAttributeSettingsRepository'
 import SettingsRepository from '../database/repositories/settingsRepository'
 import SettingsService from './settingsService'
+import { mapUsernameToIdentities } from '../database/repositories/types/memberTypes'
 
 export default class ActivityService extends LoggingBase {
   options: IServiceOptions
@@ -42,7 +43,7 @@ export default class ActivityService extends LoggingBase {
    * @param existing If the activity already exists, the activity. If it doesn't or we don't know, false
    * @returns The upserted activity
    */
-  async upsert(data, existing: boolean | any = false) {
+  async upsert(data, existing: boolean | any = false, fireCrowdWebhooks: boolean = true) {
     const transaction = await SequelizeRepository.createTransaction(this.options)
 
     try {
@@ -105,6 +106,15 @@ export default class ActivityService extends LoggingBase {
           data.sentiment = sentiment
         }
 
+        if (!data.username && data.platform === PlatformType.OTHER) {
+          const { displayName } = await MemberRepository.findById(data.member, {
+            ...this.options,
+            transaction,
+          })
+          // Get the first key of the username object as a string
+          data.username = displayName
+        }
+
         record = await ActivityRepository.create(data, {
           ...this.options,
           transaction,
@@ -150,7 +160,7 @@ export default class ActivityService extends LoggingBase {
 
       await SequelizeRepository.commitTransaction(transaction)
 
-      if (!existing) {
+      if (!existing && fireCrowdWebhooks) {
         try {
           await sendNewActivityNodeSQSMessage(this.options.currentTenant.id, record)
         } catch (err) {
@@ -164,6 +174,19 @@ export default class ActivityService extends LoggingBase {
 
       return record
     } catch (error) {
+      if (error.name && error.name.includes('Sequelize')) {
+        this.log.error(
+          error,
+          {
+            query: error.sql,
+            errorMessage: error.original.message,
+          },
+          'Error during activity upsert!',
+        )
+      } else {
+        this.log.error(error, 'Error during activity upsert!')
+      }
+
       await SequelizeRepository.rollbackTransaction(transaction)
 
       SequelizeRepository.handleUniqueFieldError(error, this.options.language, 'activity')
@@ -391,38 +414,158 @@ export default class ActivityService extends LoggingBase {
     return exists || false
   }
 
-  async createWithMember(data) {
+  async createWithMember(data, fireCrowdWebhooks: boolean = true) {
+    const logger = this.options.log
+
+    const errorDetails: any = {}
+
     const transaction = await SequelizeRepository.createTransaction(this.options)
+    const memberService = new MemberService(this.options)
 
     try {
-      const activityExists = await this._activityExists(data, transaction)
+      data.member.username = mapUsernameToIdentities(data.member.username, data.platform)
 
-      const existingMember = activityExists
-        ? await new MemberService(this.options).findById(activityExists.memberId, true, false)
+      const platforms = Object.keys(data.member.username)
+      if (platforms.length === 0) {
+        throw new Error('Member must have at least one platform username set!')
+      }
+
+      if (!data.username) {
+        data.username = data.member.username[data.platform][0].username
+      }
+
+      logger.trace(
+        { type: data.type, platform: data.platform, username: data.username },
+        'Creating activity with member!',
+      )
+
+      let activityExists = await this._activityExists(data, transaction)
+
+      let existingMember = activityExists
+        ? await memberService.findById(activityExists.memberId, true, false)
         : false
 
-      const member = await new MemberService(this.options).upsert(
+      if (existingMember) {
+        // let's look just in case for an existing member and if they are different we should log them because they will probably fail to insert
+        const tempExisting = await memberService.memberExists(data.member.username, data.platform)
+
+        if (!tempExisting) {
+          logger.warn(
+            {
+              existingMemberId: existingMember.id,
+              username: data.username,
+              platform: data.platform,
+              activityType: data.type,
+            },
+            'We have found an existing member but actually we could not find him by username and platform!',
+          )
+          errorDetails.reason = 'activity_service_createWithMember_existing_member_not_found'
+          errorDetails.details = {
+            existingMemberId: existingMember.id,
+            existingActivityId: activityExists.id,
+            username: data.username,
+            platform: data.platform,
+            activityType: data.type,
+          }
+        } else if (existingMember.id !== tempExisting.id) {
+          logger.warn(
+            {
+              existingMemberId: existingMember.id,
+              actualExistingMemberId: tempExisting.id,
+              existingActivityId: activityExists.id,
+              username: data.username,
+              platform: data.platform,
+              activityType: data.type,
+            },
+            'We found a member with the same username and platform but different id! Deleting the activity and continuing as if the activity did not exist.',
+          )
+
+          await ActivityRepository.destroy(activityExists.id, this.options, true)
+          activityExists = false
+          existingMember = false
+        }
+      }
+
+      const member = await memberService.upsert(
         {
           ...data.member,
           platform: data.platform,
           joinedAt: activityExists ? activityExists.timestamp : data.timestamp,
         },
         existingMember,
+        fireCrowdWebhooks,
       )
+
+      if (data.objectMember) {
+        if (typeof data.objectMember.username === 'string') {
+          data.objectMember.username = {
+            [data.platform]: {
+              username: data.objectMember.username,
+            },
+          }
+        }
+
+        const objectMemberPlatforms = Object.keys(data.objectMember.username)
+
+        if (objectMemberPlatforms.length === 0) {
+          throw new Error('Object member must have at least one platform username set!')
+        }
+
+        for (const platform of objectMemberPlatforms) {
+          if (typeof data.objectMember.username[platform] === 'string') {
+            data.objectMember.username[platform] = {
+              username: data.objectMember.username[platform],
+            }
+          }
+        }
+
+        const objectMember = await memberService.upsert(
+          {
+            ...data.objectMember,
+            platform: data.platform,
+            joinedAt: data.timestamp,
+          },
+          false,
+          fireCrowdWebhooks,
+        )
+
+        if (!data.objectMemberUsername) {
+          data.objectMemberUsername = data.objectMember.username[data.platform].username
+        }
+
+        data.objectMember = objectMember.id
+      }
 
       data.member = member.id
 
-      const record = await this.upsert(data, activityExists)
+      const record = await this.upsert(data, activityExists, fireCrowdWebhooks)
 
       await SequelizeRepository.commitTransaction(transaction)
 
       return record
     } catch (error) {
+      const reason = errorDetails.reason || undefined
+      const details = errorDetails.details || undefined
+
+      if (error.name && error.name.includes('Sequelize') && error.original) {
+        this.log.error(
+          error,
+          {
+            query: error.sql,
+            errorMessage: error.original.message,
+            reason,
+            details,
+          },
+          'Error during activity create with member!',
+        )
+      } else {
+        this.log.error(error, { reason, details }, 'Error during activity create with member!')
+      }
       await SequelizeRepository.rollbackTransaction(transaction)
 
       SequelizeRepository.handleUniqueFieldError(error, this.options.language, 'activity')
 
-      throw error
+      throw { ...error, reason, details }
     }
   }
 
@@ -451,6 +594,18 @@ export default class ActivityService extends LoggingBase {
 
       return record
     } catch (error) {
+      if (error.name && error.name.includes('Sequelize')) {
+        this.log.error(
+          error,
+          {
+            query: error.sql,
+            errorMessage: error.original.message,
+          },
+          'Error during activity update!',
+        )
+      } else {
+        this.log.error(error, 'Error during activity update!')
+      }
       await SequelizeRepository.rollbackTransaction(transaction)
 
       SequelizeRepository.handleUniqueFieldError(error, this.options.language, 'activity')

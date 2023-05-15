@@ -2675,6 +2675,10 @@
             "description": "Averge sentiment of member's activities.",
             "type": "number"
           },
+          "numberOfOpenSourceContributions": {
+            "description": "Number of open source contributions by the member.",
+            "type": "integer"
+          },
           "lastActivity": {
             "description": "The last activity of a member",
             "type": "object",
@@ -2747,7 +2751,9 @@
               "organisation_ASC",
               "organisation_DESC",
               "location_ASC",
-              "location_DESC"
+              "location_DESC",
+              "numberOfOpenSourceContributions_ASC",
+              "numberOfOpenSourceContributions_DESC"
             ]
           },
           "limit": {
@@ -2790,6 +2796,10 @@
           "averageSentiment": {
             "description": "Average sentiment of the member. From 0 to 100.",
             "type": "number"
+          },
+          "numberOfOpenSourceContributions": {
+            "description": "Number of open source contributions by the member.",
+            "type": "integer"
           }
         }
       },
@@ -4710,6 +4720,7 @@
               "activityCount": "2",
               "lastActive": "2021-07-27T20:22:30.000Z",
               "averageSentiment": "82.50",
+              "numberOfOpenSourceContributions": 10,
               "noMerge": [],
               "toMerge": [],
               "lastActivity": {
@@ -4825,6 +4836,7 @@
               "activityCount": "3",
               "lastActive": "2021-07-27T20:23:30.000Z",
               "averageSentiment": "34.67",
+              "numberOfOpenSourceContributions": 5,
               "noMerge": [],
               "toMerge": [],
               "lastActivity": {

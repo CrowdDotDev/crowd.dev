@@ -1,13 +1,17 @@
 import lodash from 'lodash'
 import {
+  ActivityDisplayVariant,
   ActivityTypeDisplayProperties,
   ActivityTypeSettings,
   DiscordtoActivityType,
   UNKNOWN_ACTIVITY_TYPE_DISPLAY,
 } from '../types/activityTypes'
 import { PlatformType } from '../types/integrationEnums'
+import { createServiceChildLogger } from '../utils/logging'
 import { IServiceOptions } from './IServiceOptions'
 import { LoggingBase } from './loggingBase'
+
+const log = createServiceChildLogger('ActivityDisplayService')
 
 export default class ActivityDisplayService extends LoggingBase {
   options: IServiceOptions
@@ -41,9 +45,10 @@ export default class ActivityDisplayService extends LoggingBase {
   static interpolateVariables(
     displayOptions: ActivityTypeDisplayProperties,
     activity: any,
+    selectedDisplayVariants: string[],
   ): ActivityTypeDisplayProperties {
     for (const key of Object.keys(displayOptions)) {
-      if (typeof displayOptions[key] === 'string') {
+      if (typeof displayOptions[key] === 'string' && selectedDisplayVariants.includes(key)) {
         const displayVariables = this.getInterpolatableVariables(displayOptions[key])
 
         for (const dv of displayVariables) {
@@ -93,32 +98,45 @@ export default class ActivityDisplayService extends LoggingBase {
   static getDisplayOptions(
     activity: any,
     activityTypes: ActivityTypeSettings,
+    selectedDisplayVariants: ActivityDisplayVariant[] = [
+      ActivityDisplayVariant.DEFAULT,
+      ActivityDisplayVariant.SHORT,
+      ActivityDisplayVariant.CHANNEL,
+    ],
   ): ActivityTypeDisplayProperties {
-    if (!activity || !activity.platform || !activity.type) {
+    try {
+      if (!activity || !activity.platform || !activity.type) {
+        return UNKNOWN_ACTIVITY_TYPE_DISPLAY
+      }
+
+      const allActivityTypes = lodash.merge(activityTypes.custom, activityTypes.default)
+
+      if (
+        activity.platform === PlatformType.DISCORD &&
+        activity.type === DiscordtoActivityType.MESSAGE &&
+        activity.attributes.thread === true
+      ) {
+        activity.type = DiscordtoActivityType.THREAD_MESSAGE
+      }
+
+      // we're cloning because we'll use the same object to do the interpolation
+      const displayOptions: ActivityTypeDisplayProperties =
+        allActivityTypes[activity.platform] && allActivityTypes[activity.platform][activity.type]
+          ? lodash.cloneDeep(allActivityTypes[activity.platform][activity.type].display)
+          : null
+
+      if (!displayOptions) {
+        // return default display
+        return UNKNOWN_ACTIVITY_TYPE_DISPLAY
+      }
+
+      return this.interpolateVariables(displayOptions, activity, selectedDisplayVariants)
+    } catch (error) {
+      log.debug(
+        { error },
+        'Error while getting display options, falling back to UNKNOWN_ACTIVITY_TYPE_DISPLAY.',
+      )
       return UNKNOWN_ACTIVITY_TYPE_DISPLAY
     }
-
-    const allActivityTypes = lodash.merge(activityTypes.custom, activityTypes.default)
-
-    if (
-      activity.platform === PlatformType.DISCORD &&
-      activity.type === DiscordtoActivityType.MESSAGE &&
-      activity.attributes.thread === true
-    ) {
-      activity.type = DiscordtoActivityType.THREAD_MESSAGE
-    }
-
-    // we're cloning because we'll use the same object to do the interpolation
-    const displayOptions: ActivityTypeDisplayProperties =
-      allActivityTypes[activity.platform] && allActivityTypes[activity.platform][activity.type]
-        ? lodash.cloneDeep(allActivityTypes[activity.platform][activity.type].display)
-        : null
-
-    if (!displayOptions) {
-      // return default display
-      return UNKNOWN_ACTIVITY_TYPE_DISPLAY
-    }
-
-    return this.interpolateVariables(displayOptions, activity)
   }
 }

@@ -12,6 +12,7 @@ import { shouldProcessActivity } from '../newActivityWorker'
 function createAutomationData(settings: NewActivitySettings): AutomationData {
   return {
     id: uuid(),
+    name: 'Activity test',
     state: AutomationState.ACTIVE,
     trigger: AutomationTrigger.NEW_ACTIVITY,
     settings,
@@ -61,6 +62,7 @@ describe('New Activity Automation Worker tests', () => {
       member: {
         attributes: {
           isTeamMember: {
+            default: true,
             custom: true,
           },
         },
@@ -142,6 +144,7 @@ describe('New Activity Automation Worker tests', () => {
       member: {
         attributes: {
           isTeamMember: {
+            default: true,
             custom: true,
           },
         },

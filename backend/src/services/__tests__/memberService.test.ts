@@ -20,6 +20,8 @@ import { SlackMemberAttributes } from '../../database/attributes/member/slack'
 import SettingsRepository from '../../database/repositories/settingsRepository'
 import OrganizationService from '../organizationService'
 import Plans from '../../security/plans'
+import { generateUUIDv1 } from '../../utils/uuid'
+import lodash from 'lodash'
 
 const db = null
 
@@ -42,7 +44,12 @@ describe('MemberService tests', () => {
       await mas.createPredefined(GithubMemberAttributes)
 
       const member1 = {
-        username: 'anil',
+        username: {
+          [PlatformType.GITHUB]: {
+            username: 'anil',
+            integrationId: generateUUIDv1(),
+          },
+        },
         emails: ['lala@l.com'],
         score: 10,
         attributes: {
@@ -68,93 +75,6 @@ describe('MemberService tests', () => {
       await expect(() =>
         new MemberService(mockIServiceOptions).upsert(member1),
       ).rejects.toThrowError(new Error400())
-    })
-
-    it('Should create non existent member - string type username', async () => {
-      const mockIServiceOptions = await SequelizeTestUtils.getTestIServiceOptions(db)
-
-      const mas = new MemberAttributeSettingsService(mockIServiceOptions)
-
-      await mas.createPredefined(GithubMemberAttributes)
-
-      const member1 = {
-        username: 'anil',
-        platform: PlatformType.GITHUB,
-        emails: ['lala@l.com'],
-        score: 10,
-        attributes: {
-          [MemberAttributeName.IS_HIREABLE]: {
-            [PlatformType.GITHUB]: true,
-          },
-          [MemberAttributeName.URL]: {
-            [PlatformType.GITHUB]: 'https://github.com/imcvampire',
-          },
-          [MemberAttributeName.WEBSITE_URL]: {
-            [PlatformType.GITHUB]: 'https://imcvampire.js.org/',
-          },
-          [MemberAttributeName.BIO]: {
-            [PlatformType.GITHUB]: 'Lazy geek',
-          },
-          [MemberAttributeName.LOCATION]: {
-            [PlatformType.GITHUB]: 'Helsinki, Finland',
-          },
-        },
-        joinedAt: '2020-05-28T15:13:30Z',
-      }
-
-      // Save some attributes since they get modified in the upsert function
-      const { platform, username, attributes } = member1
-
-      const memberCreated = await new MemberService(mockIServiceOptions).upsert(member1)
-
-      memberCreated.createdAt = memberCreated.createdAt.toISOString().split('T')[0]
-      memberCreated.updatedAt = memberCreated.updatedAt.toISOString().split('T')[0]
-
-      const memberExpected = {
-        id: memberCreated.id,
-        username: {
-          [platform]: username,
-        },
-        displayName: username,
-        attributes: {
-          [MemberAttributeName.IS_HIREABLE]: {
-            [PlatformType.GITHUB]: attributes[MemberAttributeName.IS_HIREABLE][PlatformType.GITHUB],
-            default: attributes[MemberAttributeName.IS_HIREABLE][PlatformType.GITHUB],
-          },
-          [MemberAttributeName.URL]: {
-            [PlatformType.GITHUB]: attributes[MemberAttributeName.URL][PlatformType.GITHUB],
-            default: attributes[MemberAttributeName.URL][PlatformType.GITHUB],
-          },
-          [MemberAttributeName.WEBSITE_URL]: {
-            [PlatformType.GITHUB]: attributes[MemberAttributeName.WEBSITE_URL][PlatformType.GITHUB],
-            default: attributes[MemberAttributeName.WEBSITE_URL][PlatformType.GITHUB],
-          },
-          [MemberAttributeName.BIO]: {
-            [PlatformType.GITHUB]: attributes[MemberAttributeName.BIO][PlatformType.GITHUB],
-            default: attributes[MemberAttributeName.BIO][PlatformType.GITHUB],
-          },
-          [MemberAttributeName.LOCATION]: {
-            [PlatformType.GITHUB]: attributes[MemberAttributeName.LOCATION][PlatformType.GITHUB],
-            default: attributes[MemberAttributeName.LOCATION][PlatformType.GITHUB],
-          },
-        },
-        emails: member1.emails,
-        score: member1.score,
-        importHash: null,
-        createdAt: SequelizeTestUtils.getNowWithoutTime(),
-        updatedAt: SequelizeTestUtils.getNowWithoutTime(),
-        deletedAt: null,
-        tenantId: mockIServiceOptions.currentTenant.id,
-        createdById: mockIServiceOptions.currentUser.id,
-        updatedById: mockIServiceOptions.currentUser.id,
-        reach: { total: -1 },
-        joinedAt: new Date('2020-05-28T15:13:30Z'),
-        lastEnriched: null,
-        enrichedBy: [],
-        contributions: null,
-      }
-
-      expect(memberCreated).toStrictEqual(memberExpected)
     })
 
     it('Should create non existent member - attributes with matching platform', async () => {
@@ -210,7 +130,7 @@ describe('MemberService tests', () => {
       const memberExpected = {
         id: memberCreated.id,
         username: {
-          [platform]: username,
+          [platform]: [username],
         },
         displayName: username,
         attributes: {
@@ -252,6 +172,7 @@ describe('MemberService tests', () => {
         createdAt: SequelizeTestUtils.getNowWithoutTime(),
         updatedAt: SequelizeTestUtils.getNowWithoutTime(),
         deletedAt: null,
+        organizations: [],
         tenantId: mockIServiceOptions.currentTenant.id,
         createdById: mockIServiceOptions.currentUser.id,
         updatedById: mockIServiceOptions.currentUser.id,
@@ -309,8 +230,11 @@ describe('MemberService tests', () => {
 
       const memberExpected = {
         id: memberCreated.id,
-        username,
-        displayName: username[PlatformType.GITHUB],
+        username: {
+          [PlatformType.GITHUB]: ['anil'],
+          [PlatformType.TWITTER]: ['anil_twitter'],
+        },
+        displayName: 'anil',
         attributes: {
           [MemberAttributeName.IS_HIREABLE]: {
             [PlatformType.GITHUB]: attributes[MemberAttributeName.IS_HIREABLE][PlatformType.GITHUB],
@@ -343,6 +267,7 @@ describe('MemberService tests', () => {
         createdById: mockIServiceOptions.currentUser.id,
         updatedById: mockIServiceOptions.currentUser.id,
         lastEnriched: null,
+        organizations: [],
         enrichedBy: [],
         contributions: null,
         reach: { total: -1 },
@@ -378,12 +303,13 @@ describe('MemberService tests', () => {
       const memberExpected = {
         id: memberCreated.id,
         username: {
-          [platform]: username,
+          [platform]: [username],
         },
         displayName: username,
         attributes: {},
         emails: member1.emails,
         lastEnriched: null,
+        organizations: [],
         enrichedBy: [],
         contributions: null,
         score: member1.score,
@@ -426,11 +352,12 @@ describe('MemberService tests', () => {
       const memberExpected = {
         id: memberCreated.id,
         username: {
-          [platform]: username,
+          [platform]: [username],
         },
         displayName: username,
         attributes: {},
         lastEnriched: null,
+        organizations: [],
         enrichedBy: [],
         contributions: null,
         emails: member1.emails,
@@ -474,13 +401,14 @@ describe('MemberService tests', () => {
       const memberExpected = {
         id: memberCreated.id,
         username: {
-          [platform]: username,
+          [platform]: [username],
         },
         displayName: username,
         attributes: {},
         emails: member1.emails,
         score: member1.score,
         lastEnriched: null,
+        organizations: [],
         enrichedBy: [],
         contributions: null,
         importHash: null,
@@ -804,7 +732,7 @@ describe('MemberService tests', () => {
       const memberExpected = {
         id: memberCreated.id,
         username: {
-          [PlatformType.GITHUB]: member1Username,
+          [PlatformType.GITHUB]: [member1Username],
         },
         displayName: member1Username,
         attributes: {
@@ -830,6 +758,7 @@ describe('MemberService tests', () => {
           },
         },
         lastEnriched: null,
+        organizations: [],
         enrichedBy: [],
         contributions: null,
         emails: ['lala@l.com', 'test@email.com', 'test2@email.com'],
@@ -909,7 +838,7 @@ describe('MemberService tests', () => {
       const memberExpected = {
         id: memberCreated.id,
         username: {
-          [PlatformType.GITHUB]: member1Username,
+          [PlatformType.GITHUB]: [member1Username],
         },
         displayName: member1Username,
         attributes: {
@@ -938,6 +867,7 @@ describe('MemberService tests', () => {
           },
         },
         lastEnriched: null,
+        organizations: [],
         enrichedBy: [],
         contributions: null,
         emails: member1.emails,
@@ -1012,8 +942,12 @@ describe('MemberService tests', () => {
 
       const memberExpected = {
         id: memberCreated.id,
-        username: member2.username,
-        displayName: member1Username,
+        username: {
+          [PlatformType.GITHUB]: ['anil'],
+          [PlatformType.TWITTER]: ['anil_twitter'],
+          [PlatformType.DISCORD]: ['anil_discord'],
+        },
+        displayName: 'anil',
         attributes: {
           [MemberAttributeName.IS_HIREABLE]: {
             [PlatformType.GITHUB]: attributes[MemberAttributeName.IS_HIREABLE][PlatformType.GITHUB],
@@ -1038,6 +972,7 @@ describe('MemberService tests', () => {
         },
         emails: member1.emails,
         lastEnriched: null,
+        organizations: [],
         enrichedBy: [],
         contributions: null,
         score: member1.score,
@@ -1175,7 +1110,7 @@ describe('MemberService tests', () => {
         id: memberCreated.id,
         joinedAt: new Date('2020-05-28T15:13:30Z'),
         username: {
-          [PlatformType.TWITTER]: member1Username,
+          [PlatformType.TWITTER]: [member1Username],
         },
         displayName: member1Username,
         attributes: {
@@ -1214,6 +1149,7 @@ describe('MemberService tests', () => {
         },
         emails: member1.emails,
         lastEnriched: null,
+        organizations: [],
         enrichedBy: [],
         contributions: null,
         score: member1.score,
@@ -1261,10 +1197,11 @@ describe('MemberService tests', () => {
         id: memberCreated.id,
         joinedAt: new Date('2020-05-28T15:13:30Z'),
         username: {
-          [PlatformType.GITHUB]: member1Username,
+          [PlatformType.GITHUB]: [member1Username],
         },
         displayName: member1Username,
         lastEnriched: null,
+        organizations: [],
         enrichedBy: [],
         contributions: null,
         reach: { total: 10, [PlatformType.GITHUB]: 10 },
@@ -1315,9 +1252,10 @@ describe('MemberService tests', () => {
         id: memberCreated.id,
         joinedAt: new Date('2020-05-28T15:13:30Z'),
         username: {
-          [PlatformType.GITHUB]: member1Username,
+          [PlatformType.GITHUB]: [member1Username],
         },
         lastEnriched: null,
+        organizations: [],
         enrichedBy: [],
         contributions: null,
         displayName: member1Username,
@@ -1370,9 +1308,10 @@ describe('MemberService tests', () => {
         id: memberCreated.id,
         joinedAt: new Date('2020-05-28T15:13:30Z'),
         username: {
-          [PlatformType.GITHUB]: member1Username,
+          [PlatformType.GITHUB]: [member1Username],
         },
         lastEnriched: null,
+        organizations: [],
         enrichedBy: [],
         contributions: null,
         displayName: member1Username,
@@ -1425,10 +1364,11 @@ describe('MemberService tests', () => {
         id: memberCreated.id,
         joinedAt: new Date('2020-05-28T15:13:30Z'),
         username: {
-          [PlatformType.GITHUB]: member1Username,
+          [PlatformType.GITHUB]: [member1Username],
         },
         displayName: member1Username,
         lastEnriched: null,
+        organizations: [],
         enrichedBy: [],
         contributions: null,
         reach: { total: 50, [PlatformType.GITHUB]: 30, linkedin: 10, [PlatformType.TWITTER]: 10 },
@@ -1445,6 +1385,106 @@ describe('MemberService tests', () => {
       }
 
       expect(memberUpdated).toStrictEqual(memberExpected)
+    })
+  })
+
+  describe('update method', () => {
+    it('Should update existent member succesfully - removing identities with simple string format', async () => {
+      const mockIServiceOptions = await SequelizeTestUtils.getTestIServiceOptions(db)
+
+      const member1 = {
+        username: 'anil',
+        type: 'member',
+        platform: PlatformType.GITHUB,
+        joinedAt: '2020-05-28T15:13:30Z',
+      }
+
+      const memberCreated = await new MemberService(mockIServiceOptions).upsert(member1)
+
+      const toUpdate = {
+        username: 'anil_new',
+        platform: PlatformType.GITHUB,
+      }
+
+      const memberUpdated = await new MemberService(mockIServiceOptions).update(
+        memberCreated.id,
+        toUpdate,
+      )
+
+      expect(memberUpdated.username[PlatformType.GITHUB]).toStrictEqual(['anil_new'])
+    })
+
+    it('Should update existent member succesfully - removing identities with simple identity format', async () => {
+      const mockIServiceOptions = await SequelizeTestUtils.getTestIServiceOptions(db)
+
+      const member1 = {
+        username: {
+          [PlatformType.GITHUB]: {
+            username: 'anil',
+          },
+        },
+        platform: PlatformType.GITHUB,
+        type: 'member',
+        joinedAt: '2020-05-28T15:13:30Z',
+      }
+
+      const memberCreated = await new MemberService(mockIServiceOptions).upsert(member1)
+
+      const toUpdate = {
+        username: {
+          [PlatformType.GITHUB]: {
+            username: 'anil_new',
+          },
+        },
+        platform: PlatformType.GITHUB,
+      }
+
+      const memberUpdated = await new MemberService(mockIServiceOptions).update(
+        memberCreated.id,
+        toUpdate,
+      )
+
+      expect(memberUpdated.username[PlatformType.GITHUB]).toStrictEqual(['anil_new'])
+    })
+
+    it('Should update existent member succesfully - removing identities with array identity format', async () => {
+      const mockIServiceOptions = await SequelizeTestUtils.getTestIServiceOptions(db)
+
+      const member1 = {
+        username: {
+          [PlatformType.GITHUB]: [
+            {
+              username: 'anil',
+            },
+          ],
+        },
+        platform: PlatformType.GITHUB,
+        type: 'member',
+        joinedAt: '2020-05-28T15:13:30Z',
+      }
+
+      const memberCreated = await new MemberService(mockIServiceOptions).upsert(member1)
+
+      const toUpdate = {
+        username: {
+          [PlatformType.GITHUB]: [
+            {
+              username: 'anil_new',
+            },
+            {
+              username: 'anil_new2',
+            },
+          ],
+        },
+        platform: PlatformType.GITHUB,
+      }
+
+      const memberUpdated = await new MemberService(mockIServiceOptions).update(
+        memberCreated.id,
+        toUpdate,
+      )
+
+      expect(memberUpdated.username[PlatformType.GITHUB]).toStrictEqual(['anil_new', 'anil_new2'])
     })
   })
 
@@ -1562,6 +1602,7 @@ describe('MemberService tests', () => {
           sentiment: 0.98,
         },
         isContribution: true,
+        username: 'anil',
         member: returnedMember2.id,
         score: 1,
         sourceId: '#sourceId1',
@@ -1572,23 +1613,19 @@ describe('MemberService tests', () => {
       // toMerge[1] = [(1,2),(1,4)] toMerge[2] = [(2,1)] toMerge[4] = [(4,1)]
       // noMerge[2] = [3]
       await MemberRepository.addToMerge(
-        returnedMember1.id,
-        returnedMember2.id,
+        [{ members: [returnedMember1.id, returnedMember2.id], similarity: null }],
         mockIRepositoryOptions,
       )
       await MemberRepository.addToMerge(
-        returnedMember1.id,
-        returnedMember4.id,
+        [{ members: [returnedMember1.id, returnedMember4.id], similarity: null }],
         mockIRepositoryOptions,
       )
       await MemberRepository.addToMerge(
-        returnedMember2.id,
-        returnedMember1.id,
+        [{ members: [returnedMember2.id, returnedMember1.id], similarity: null }],
         mockIRepositoryOptions,
       )
       await MemberRepository.addToMerge(
-        returnedMember4.id,
-        returnedMember1.id,
+        [{ members: [returnedMember4.id, returnedMember1.id], similarity: null }],
         mockIRepositoryOptions,
       )
 
@@ -1621,6 +1658,7 @@ describe('MemberService tests', () => {
       // we don't need activity.member because we're already expecting member->activities
       activityCreated = SequelizeTestUtils.objectWithoutKey(activityCreated, [
         'member',
+        'objectMember',
         'parent',
         'tasks',
         'display',
@@ -1671,13 +1709,13 @@ describe('MemberService tests', () => {
       const expectedMember = {
         id: returnedMember1.id,
         username: {
-          [PlatformType.GITHUB]: member1.username.github,
-          [PlatformType.DISCORD]: member2.username.discord,
+          [PlatformType.GITHUB]: ['anil'],
+          [PlatformType.DISCORD]: ['anil'],
         },
         lastEnriched: null,
         enrichedBy: [],
         contributions: null,
-        displayName: member1.displayName,
+        displayName: 'Anil',
         identities: [PlatformType.GITHUB, PlatformType.DISCORD],
         activities: [activityCreated],
         attributes: {
@@ -1712,9 +1750,34 @@ describe('MemberService tests', () => {
         averageSentiment: activityCreated.sentiment.sentiment,
         lastActive: activityCreated.timestamp,
         lastActivity: activityCreated,
+        numberOfOpenSourceContributions: 0,
       }
 
-      expect(mergedMember.tasks.sort()).toEqual(expectedMember.tasks.sort())
+      expect(
+        mergedMember.tasks.sort((a, b) => {
+          const nameA = a.name.toLowerCase()
+          const nameB = b.name.toLowerCase()
+          if (nameA < nameB) {
+            return -1
+          }
+          if (nameA > nameB) {
+            return 1
+          }
+          return 0
+        }),
+      ).toEqual(
+        expectedMember.tasks.sort((a, b) => {
+          const nameA = a.name.toLowerCase()
+          const nameB = b.name.toLowerCase()
+          if (nameA < nameB) {
+            return -1
+          }
+          if (nameA > nameB) {
+            return 1
+          }
+          return 0
+        }),
+      )
       delete mergedMember.tasks
       delete expectedMember.tasks
       expect(mergedMember).toStrictEqual(expectedMember)
@@ -1801,35 +1864,28 @@ describe('MemberService tests', () => {
 
       // toMerge[1] = [(1,2),(1,3)] toMerge[2] = [(2,1),(2,3)] toMerge[3] = [(3,1),(3,2)]
       await MemberRepository.addToMerge(
-        returnedMember1.id,
-        returnedMember2.id,
+        [{ members: [returnedMember1.id, returnedMember2.id], similarity: null }],
         mockIRepositoryOptions,
       )
       await MemberRepository.addToMerge(
-        returnedMember2.id,
-        returnedMember1.id,
-        mockIRepositoryOptions,
-      )
-
-      await MemberRepository.addToMerge(
-        returnedMember1.id,
-        returnedMember3.id,
-        mockIRepositoryOptions,
-      )
-      await MemberRepository.addToMerge(
-        returnedMember3.id,
-        returnedMember1.id,
+        [{ members: [returnedMember2.id, returnedMember1.id], similarity: null }],
         mockIRepositoryOptions,
       )
 
       await MemberRepository.addToMerge(
-        returnedMember2.id,
-        returnedMember3.id,
+        [{ members: [returnedMember1.id, returnedMember3.id], similarity: null }],
         mockIRepositoryOptions,
       )
       await MemberRepository.addToMerge(
-        returnedMember3.id,
-        returnedMember2.id,
+        [{ members: [returnedMember3.id, returnedMember1.id], similarity: null }],
+        mockIRepositoryOptions,
+      )
+      await MemberRepository.addToMerge(
+        [{ members: [returnedMember2.id, returnedMember3.id], similarity: null }],
+        mockIRepositoryOptions,
+      )
+      await MemberRepository.addToMerge(
+        [{ members: [returnedMember3.id, returnedMember2.id], similarity: null }],
         mockIRepositoryOptions,
       )
 
@@ -1917,7 +1973,8 @@ describe('MemberService tests', () => {
         attributes: {},
       }
 
-      const returnedMember1 = await MemberRepository.create(member1, mockIRepositoryOptions)
+      const cloned = lodash.cloneDeep(member1)
+      const returnedMember1 = await MemberRepository.create(cloned, mockIRepositoryOptions)
       delete returnedMember1.toMerge
       delete returnedMember1.noMerge
       delete returnedMember1.tags
@@ -1933,6 +1990,7 @@ describe('MemberService tests', () => {
       delete returnedMember1.identities
       delete returnedMember1.activityTypes
       delete returnedMember1.activeDaysCount
+      delete returnedMember1.numberOfOpenSourceContributions
 
       const existing = await memberService.memberExists(
         member1.username[PlatformType.GITHUB],
@@ -2030,6 +2088,7 @@ describe('MemberService tests', () => {
       delete returnedMember1.identities
       delete returnedMember1.activityTypes
       delete returnedMember1.activeDaysCount
+      delete returnedMember1.numberOfOpenSourceContributions
 
       const existing = await memberService.memberExists(
         { [PlatformType.DISCORD]: 'some-other-username' },
@@ -2562,6 +2621,26 @@ describe('MemberService tests', () => {
             [PlatformType.DISCORD]: 300000,
           },
         },
+        contributions: [
+          {
+            id: 112529473,
+            url: 'https://github.com/bighead/silicon-valley',
+            topics: ['TV Shows', 'Comedy', 'Startups'],
+            summary: 'Silicon Valley: 50 commits in 2 weeks',
+            numberCommits: 50,
+            lastCommitDate: '02/01/2023',
+            firstCommitDate: '01/17/2023',
+          },
+          {
+            id: 112529474,
+            url: 'https://github.com/bighead/startup-ideas',
+            topics: ['Ideas', 'Startups'],
+            summary: 'Startup Ideas: 20 commits in 1 week',
+            numberCommits: 20,
+            lastCommitDate: '03/01/2023',
+            firstCommitDate: '02/22/2023',
+          },
+        ],
         joinedAt: '2022-05-28T15:13:30',
       }
 
@@ -2612,6 +2691,35 @@ describe('MemberService tests', () => {
             [PlatformType.DISCORD]: 2,
           },
         },
+        contributions: [
+          {
+            id: 112529472,
+            url: 'https://github.com/bachman/pied-piper',
+            topics: ['compression', 'data', 'middle-out', 'Java'],
+            summary: 'Pied Piper: 10 commits in 1 day',
+            numberCommits: 10,
+            lastCommitDate: '2023-03-10',
+            firstCommitDate: '2023-03-01',
+          },
+          {
+            id: 112529473,
+            url: 'https://github.com/bachman/aviato',
+            topics: ['Python', 'Django'],
+            summary: 'Aviato: 5 commits in 1 day',
+            numberCommits: 5,
+            lastCommitDate: '2023-02-25',
+            firstCommitDate: '2023-02-20',
+          },
+          {
+            id: 112529476,
+            url: 'https://github.com/bachman/erlichbot',
+            topics: ['Python', 'Slack API'],
+            summary: 'ErlichBot: 2 commits in 1 day',
+            numberCommits: 2,
+            lastCommitDate: '2023-01-25',
+            firstCommitDate: '2023-01-24',
+          },
+        ],
         joinedAt: '2022-09-15T15:13:30',
       }
 
@@ -2777,6 +2885,45 @@ describe('MemberService tests', () => {
       })
       expect(members.count).toBe(2)
       expect(members.rows.map((i) => i.id)).toStrictEqual([member3Created.id, member1Created.id])
+
+      // filter by numberOfOpenSourceContributions
+      members = await ms.findAndCountAll({
+        filter: {
+          numberOfOpenSourceContributionsRange: [2, 6],
+        },
+      })
+      expect(members.count).toBe(2)
+      expect(members.rows.map((i) => i.id)).toEqual([member2Created.id, member1Created.id])
+
+      // filter by numberOfOpenSourceContributions only start
+      members = await ms.findAndCountAll({
+        filter: {
+          numberOfOpenSourceContributionsRange: [3],
+        },
+      })
+      expect(members.count).toBe(1)
+      expect(members.rows.map((i) => i.id)).toStrictEqual([member2Created.id])
+
+      // filter and sort by numberOfOpenSourceContributions
+      members = await ms.findAndCountAll({
+        filter: {
+          numberOfOpenSourceContributionsRange: [2, 6],
+        },
+        orderBy: 'numberOfOpenSourceContributions_ASC',
+      })
+      expect(members.count).toBe(2)
+      expect(members.rows.map((i) => i.id)).toStrictEqual([member1Created.id, member2Created.id])
+
+      // sort by numberOfOpenSourceContributions
+      members = await ms.findAndCountAll({
+        orderBy: 'numberOfOpenSourceContributions_ASC',
+      })
+      expect(members.count).toBe(3)
+      expect(members.rows.map((i) => i.id)).toStrictEqual([
+        member3Created.id,
+        member1Created.id,
+        member2Created.id,
+      ])
     })
   })
 })

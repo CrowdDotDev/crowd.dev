@@ -258,6 +258,7 @@ class TenantRepository {
       record.settings[0].dataValues.activityTypes = SettingsRepository.buildActivityTypes(
         record.settings[0].dataValues,
       )
+      record.settings[0].dataValues.slackWebHook = !!record.settings[0].dataValues.slackWebHook
     }
 
     return record
@@ -273,6 +274,10 @@ class TenantRepository {
       include,
       transaction,
     })
+
+    if (record && record.settings && record.settings[0] && record.settings[0].dataValues) {
+      record.settings[0].dataValues.slackWebHook = !!record.settings[0].dataValues.slackWebHook
+    }
 
     return record
   }
@@ -437,13 +442,7 @@ class TenantRepository {
 
   static async getAvailablePlatforms(id, options: IRepositoryOptions) {
     const query = `
-        SELECT
-        DISTINCT platform
-      FROM (
-        SELECT jsonb_object_keys(username) AS platform
-        FROM members
-        where "tenantId" = :tenantId
-      ) AS subquery
+        select distinct platform from "memberIdentities" where "tenantId" = :tenantId
     `
     const parameters: any = {
       tenantId: id,

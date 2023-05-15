@@ -7,7 +7,7 @@
         {{ props.title }}
       </h5>
       <app-loading
-        v-if="props.loading"
+        v-if="props.totalLoading"
         height="20px"
         width="60px"
       />

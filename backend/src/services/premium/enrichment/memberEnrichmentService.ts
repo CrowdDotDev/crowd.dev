@@ -228,7 +228,9 @@ export default class MemberEnrichmentService extends LoggingBase {
     // If the member has a GitHub handle, use it to make a request to the Enrichment API
     if (member.username[PlatformType.GITHUB]) {
       enrichedFrom = 'github'
-      enrichmentData = await this.getEnrichmentByGithubHandle(member.username[PlatformType.GITHUB])
+      enrichmentData = await this.getEnrichmentByGithubHandle(
+        member.username[PlatformType.GITHUB][0],
+      )
     } else if (member.emails.length > 0) {
       enrichedFrom = 'email'
       // If the member has an email address, use it to make a request to the Enrichment API
@@ -306,7 +308,8 @@ export default class MemberEnrichmentService extends LoggingBase {
   fillPlatformData(member: Member, enrichmentData: EnrichmentAPIMember) {
     if (enrichmentData.github_handle) {
       // Set 'member.username.github' to be equal to 'enrichmentData.github_handle' (if it is not already set)
-      member.username.github = member.username.github || enrichmentData.github_handle
+      member.username[PlatformType.GITHUB] =
+        member.username[PlatformType.GITHUB] || enrichmentData.github_handle
       if (!member.attributes.url) {
         // If it does not exist, initialize it as an empty object
         member.attributes.url = {}
@@ -317,8 +320,8 @@ export default class MemberEnrichmentService extends LoggingBase {
     }
 
     if (enrichmentData.linkedin_url) {
-      member.username.linkedin =
-        member.username.linkedin || enrichmentData.linkedin_url.split('/').pop()
+      member.username[PlatformType.LINKEDIN] =
+        member.username[PlatformType.LINKEDIN] || enrichmentData.linkedin_url.split('/').pop()
 
       if (!member.attributes.url) {
         member.attributes.url = {}
@@ -328,7 +331,8 @@ export default class MemberEnrichmentService extends LoggingBase {
     }
 
     if (enrichmentData.twitter_handle) {
-      member.username.twitter = member.username.twitter || enrichmentData.twitter_handle
+      member.username[PlatformType.TWITTER] =
+        member.username[PlatformType.TWITTER] || enrichmentData.twitter_handle
 
       if (!member.attributes.url) {
         member.attributes.url = {}

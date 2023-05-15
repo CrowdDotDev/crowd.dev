@@ -16,6 +16,7 @@ import { PlatformType } from '../../types/integrationEnums'
 import ActivityService from '../activityService'
 import ConversationSettingsRepository from '../../database/repositories/conversationSettingsRepository'
 import MemberService from '../memberService'
+import { generateUUIDv1 } from '../../utils/uuid'
 
 const db = null
 
@@ -27,12 +28,18 @@ function getConversationStyleActivity(activity) {
   // conversation documents have activity.timestamp as unix timestamps instead of date string
   activity.timestamp = moment(activity.timestamp).unix()
 
+  // since we return parent as well now for display options, dates are casted to string in search engine
+  if (activity.parent) {
+    activity.parent.timestamp = activity.parent.timestamp.toISOString()
+    activity.parent.createdAt = activity.parent.createdAt.toISOString()
+    activity.parent.updatedAt = activity.parent.updatedAt.toISOString()
+  }
+
   // only the username will be returned as author, rest of the member object shouldn't be expected
-  activity.author = activity.member.username[activity.platform]
+  activity.author = activity.username
   delete activity.member
 
   // parent and display won't be sent in the activity object to the search engine as well
-  delete activity.parent
   delete activity.display
 
   // search engine returns everything as string
@@ -214,7 +221,10 @@ describe('ConversationService tests', () => {
       const memberCreated = await MemberRepository.create(
         {
           username: {
-            [PlatformType.DISCORD]: 'test',
+            [PlatformType.DISCORD]: {
+              username: 'test',
+              integrationId: generateUUIDv1(),
+            },
           },
           displayName: 'Member 1',
           joinedAt: '2020-05-27T15:13:30Z',
@@ -231,6 +241,7 @@ describe('ConversationService tests', () => {
           body: 'conversation activity 1',
           channel: 'some-channel',
           isContribution: true,
+          username: 'test',
           member: memberCreated.id,
           score: 1,
           conversationId: conversationCreated.id,
@@ -247,6 +258,7 @@ describe('ConversationService tests', () => {
           body: 'conversation activity 2',
           channel: 'some-channel',
           isContribution: true,
+          username: 'test',
           member: memberCreated.id,
           score: 1,
           conversationId: conversationCreated.id,
@@ -263,6 +275,7 @@ describe('ConversationService tests', () => {
           channel: 'some-channel',
           body: 'conversation activity 3',
           isContribution: true,
+          username: 'test',
           member: memberCreated.id,
           score: 1,
           conversationId: conversationCreated.id,
@@ -321,6 +334,7 @@ describe('ConversationService tests', () => {
           platform: PlatformType.DISCORD,
           body: 'conversation activity 4',
           isContribution: true,
+          username: 'test',
           member: memberCreated.id,
           score: 1,
           conversationId: conversationCreated.id,
@@ -389,6 +403,7 @@ describe('ConversationService tests', () => {
             ],
           },
           isContribution: true,
+          username: 'test',
           member: memberCreated.id,
           score: 1,
           conversationId: conversationCreated.id,
@@ -459,6 +474,7 @@ describe('ConversationService tests', () => {
           },
           body: '',
           isContribution: true,
+          username: 'test',
           member: memberCreated.id,
           score: 1,
           conversationId: conversationCreated.id,
@@ -510,7 +526,10 @@ describe('ConversationService tests', () => {
 
       const memberCreated = await new MemberService(mockIRepositoryOptions).upsert({
         username: {
-          [PlatformType.GITHUB]: 'test',
+          [PlatformType.GITHUB]: {
+            username: 'test',
+            integrationId: generateUUIDv1(),
+          },
         },
         displayName: 'Member 1',
         platform: PlatformType.GITHUB,
@@ -527,6 +546,7 @@ describe('ConversationService tests', () => {
         body: 'Some Parent Activity',
         channel: 'https://github.com/CrowdDevHQ/crowd-web',
         isContribution: true,
+        username: 'test',
         member: memberCreated.id,
         score: 1,
         sourceId: '#sourceId1',
@@ -547,6 +567,7 @@ describe('ConversationService tests', () => {
         body: 'Here',
         channel: 'https://github.com/CrowdDevHQ/crowd-web',
         isContribution: true,
+        username: 'test',
         member: memberCreated.id,
         score: 1,
         parent: activityParentCreated.id,
@@ -666,7 +687,10 @@ describe('ConversationService tests', () => {
       const memberCreated = await MemberRepository.create(
         {
           username: {
-            [PlatformType.DISCORD]: 'test',
+            [PlatformType.DISCORD]: {
+              username: 'test',
+              integrationId: generateUUIDv1(),
+            },
           },
           displayName: 'Member 1',
           joinedAt: '2020-05-27T15:13:30Z',
@@ -682,6 +706,7 @@ describe('ConversationService tests', () => {
           channel: 'some-channel',
           body: 'conversation activity 1',
           isContribution: true,
+          username: 'test',
           member: memberCreated.id,
           score: 1,
           conversationId: conversationCreated.id,
@@ -768,7 +793,10 @@ describe('ConversationService tests', () => {
       const memberCreated = await MemberRepository.create(
         {
           username: {
-            [PlatformType.DISCORD]: 'test',
+            [PlatformType.DISCORD]: {
+              username: 'test',
+              integrationId: generateUUIDv1(),
+            },
           },
           displayName: 'Member 1',
           joinedAt: '2020-05-27T15:13:30Z',
@@ -785,6 +813,7 @@ describe('ConversationService tests', () => {
           body: 'conversation activity 1',
           channel: 'some-channel',
           isContribution: true,
+          username: 'test',
           member: memberCreated.id,
           score: 1,
           conversationId: conversationCreated.id,
@@ -1089,7 +1118,14 @@ describe('ConversationService tests', () => {
 
       const memberCreated = await new MemberService(mockIRepositoryOptions).upsert({
         username: {
-          [PlatformType.GITHUB]: 'test',
+          [PlatformType.GITHUB]: {
+            username: 'test',
+            integrationId: generateUUIDv1(),
+          },
+          [PlatformType.DISCORD]: {
+            username: 'test',
+            integrationId: generateUUIDv1(),
+          },
         },
         platform: 'github',
         joinedAt: '2020-05-27T10:13:30Z',
@@ -1102,6 +1138,7 @@ describe('ConversationService tests', () => {
         body: 'Some Github Parent Activity',
         channel: 'https://github.com/CrowdDevHQ/crowd-web',
         isContribution: true,
+        username: 'test',
         member: memberCreated.id,
         score: 1,
         sourceId: '#githubSourceId1',
@@ -1119,6 +1156,7 @@ describe('ConversationService tests', () => {
         body: 'Here',
         channel: 'https://github.com/CrowdDevHQ/crowd-web',
         isContribution: true,
+        username: 'test',
         member: memberCreated.id,
         score: 1,
         parent: githubActivityParentCreated.id,
@@ -1145,6 +1183,7 @@ describe('ConversationService tests', () => {
         body: 'Some Discord Parent Activity',
         channel: 'channel',
         isContribution: true,
+        username: 'test',
         member: memberCreated.id,
         score: 1,
         sourceId: '#discordSourceId1',
@@ -1162,6 +1201,7 @@ describe('ConversationService tests', () => {
         body: 'Here',
         channel: 'channel',
         isContribution: true,
+        username: 'test',
         member: memberCreated.id,
         score: 1,
         parent: discordActivityParentCreated.id,

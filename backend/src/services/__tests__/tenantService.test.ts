@@ -9,6 +9,7 @@ import MemberAttributeSettingsService from '../memberAttributeSettingsService'
 import { MemberAttributeName } from '../../database/attributes/member/enums'
 import TaskService from '../taskService'
 import Plans from '../../security/plans'
+import { generateUUIDv1 } from '../../utils/uuid'
 
 const db = null
 
@@ -29,28 +30,48 @@ describe('TenantService tests', () => {
       const tenantService = new TenantService(mockIServiceOptions)
 
       const memberToCreate1 = {
-        username: 'member 1',
+        username: {
+          [PlatformType.SLACK]: {
+            username: 'member 1',
+            integrationId: generateUUIDv1(),
+          },
+        },
         platform: PlatformType.SLACK,
         email: 'member.1@email.com',
         joinedAt: '2020-05-27T15:13:30Z',
       }
 
       const memberToCreate2 = {
-        username: 'member 2',
+        username: {
+          [PlatformType.DISCORD]: {
+            username: 'member 2',
+            integrationId: generateUUIDv1(),
+          },
+        },
         platform: PlatformType.DISCORD,
         email: 'member.2@email.com',
         joinedAt: '2020-05-26T15:13:30Z',
       }
 
       const memberToCreate3 = {
-        username: 'member 3',
+        username: {
+          [PlatformType.GITHUB]: {
+            username: 'member 3',
+            integrationId: generateUUIDv1(),
+          },
+        },
         platform: PlatformType.GITHUB,
         email: 'member.3@email.com',
         joinedAt: '2020-05-25T15:13:30Z',
       }
 
       const memberToCreate4 = {
-        username: 'member 4',
+        username: {
+          [PlatformType.TWITTER]: {
+            username: 'member 4',
+            integrationId: generateUUIDv1(),
+          },
+        },
         platform: PlatformType.TWITTER,
         email: 'member.4@email.com',
         joinedAt: '2020-05-24T15:13:30Z',
@@ -61,14 +82,11 @@ describe('TenantService tests', () => {
       const member3 = await memberService.upsert(memberToCreate3)
       let member4 = await memberService.upsert(memberToCreate4)
 
-      await memberService.addToMerge(member1.id, member2.id)
-      await memberService.addToMerge(member3.id, member4.id)
+      await memberService.addToMerge([{ members: [member1.id, member2.id], similarity: null }])
+      await memberService.addToMerge([{ members: [member3.id, member4.id], similarity: null }])
 
       member2 = await memberService.findById(member2.id)
       member4 = await memberService.findById(member4.id)
-
-      expect(member2.toMerge).toHaveLength(1)
-      expect(member4.toMerge).toHaveLength(1)
 
       const memberToMergeSuggestions = await tenantService.findMembersToMerge({})
 
@@ -80,16 +98,16 @@ describe('TenantService tests', () => {
       // But this function should not return duplicates, so we should get
       // only two pairs: [m2, m1] and [m4, m3]
 
-      expect(memberToMergeSuggestions.count).toEqual(2)
+      expect(memberToMergeSuggestions.count).toEqual(1)
 
       expect(
-        memberToMergeSuggestions.rows[0]
+        memberToMergeSuggestions.rows[0].members
           .sort((a, b) => (a.createdAt > b.createdAt ? 1 : -1))
           .map((m) => m.id),
       ).toStrictEqual([member1.id, member2.id])
 
       expect(
-        memberToMergeSuggestions.rows[1]
+        memberToMergeSuggestions.rows[1].members
           .sort((a, b) => (a.createdAt > b.createdAt ? 1 : -1))
           .map((m) => m.id),
       ).toStrictEqual([member3.id, member4.id])
@@ -173,15 +191,14 @@ describe('TenantService tests', () => {
 
       expect(tenantCreatedPlain).toStrictEqual(tenantExpected)
 
-      // Check microservices (check_merge and members_score should be created with tenantService.create)
+      // Check microservices (members_score should be created with tenantService.create)
       const ms = new MicroserviceService({ ...options, currentTenant: tenantCreated })
       const microservicesOfTenant = await ms.findAndCountAll({})
 
-      expect(microservicesOfTenant.count).toEqual(2)
+      expect(microservicesOfTenant.count).toEqual(1)
 
       // findAndCountAll returns sorted by createdAt (desc) by default, so first one should be members_score
       expect(microservicesOfTenant.rows[0].type).toEqual('members_score')
-      expect(microservicesOfTenant.rows[1].type).toEqual('check_merge')
 
       // Check default member attributes
       const mas = new MemberAttributeSettingsService({ ...options, currentTenant: tenantCreated })

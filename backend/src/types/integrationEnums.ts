@@ -16,6 +16,7 @@ export enum PlatformType {
   YOUTUBE = 'youtube',
   STACKOVERFLOW = 'stackoverflow',
   DISCOURSE = 'discourse',
+  GIT= 'git',
   OTHER = 'other',
 }
 
@@ -34,4 +35,19 @@ export enum IntegrationType {
   CROWD = 'crowd',
   STACKOVERFLOW = 'stackoverflow',
   DISCOURSE = 'discourse',
+}
+
+export const integrationLabel: Record<IntegrationType, string> = {
+  [IntegrationType.DEVTO]: 'DEV',
+  [IntegrationType.SLACK]: 'Slack',
+  [IntegrationType.REDDIT]: 'Reddit',
+  [IntegrationType.DISCORD]: 'Discord',
+  [IntegrationType.GITHUB]: 'GitHub',
+  [IntegrationType.TWITTER]: 'Twitter',
+  [IntegrationType.TWITTER_REACH]: 'Twitter',
+  [IntegrationType.HACKER_NEWS]: 'Hacker news',
+  [IntegrationType.LINKEDIN]: 'LinkedIn',
+  [IntegrationType.CROWD]: 'Crowd',
+  [IntegrationType.STACKOVERFLOW]: 'Stack Overflow',
+  [IntegrationType.DISCOURSE]: 'Discourse',
 }

@@ -471,27 +471,51 @@ class ConversationRepository {
         const rec = record.get({ plain: true })
         for (const relationship of lazyLoad) {
           if (relationship === 'activities') {
-            const allActivities = await record.getActivities({ order: [['timestamp', 'ASC']] })
+            const allActivities = await record.getActivities({
+              order: [
+                ['timestamp', 'ASC'],
+                ['createdAt', 'ASC'],
+              ],
+              include: ['parent'],
+            })
 
             rec.memberCount = ConversationRepository.getTotalMemberCount(allActivities)
 
             if (allActivities.length > 0) {
               let neededActivities = []
+              const parentActivity =
+                allActivities.find((a) => a.parent === null) || allActivities[0]
+
+              if (parentActivity) {
+                neededActivities = [parentActivity]
+              }
 
               if (allActivities.length > 2) {
                 neededActivities = [
-                  allActivities[0],
+                  ...neededActivities,
                   allActivities[allActivities.length - 2],
                   allActivities[allActivities.length - 1],
                 ]
               } else {
-                neededActivities = [allActivities[0], allActivities[allActivities.length - 1]]
+                neededActivities = [...neededActivities, allActivities[allActivities.length - 1]]
               }
 
               const promises = neededActivities.map(async (act) => {
                 const member = (await act.getMember()).get({ plain: true })
+
+                let objectMember = null
+                if (act.objectMemberId) {
+                  objectMember = (await act.getObjectMember()).get({ plain: true })
+                }
+
                 act = act.get({ plain: true })
                 act.member = member
+                act.objectMember = objectMember
+                act.display = ActivityDisplayService.getDisplayOptions(
+                  act,
+                  SettingsRepository.getActivityTypes(options),
+                )
+
                 return act
               })
               const returnedNeededActivities = await Promise.all(promises)
@@ -542,8 +566,11 @@ class ConversationRepository {
     const transaction = SequelizeRepository.getTransaction(options)
 
     output.activities = await record.getActivities({
-      include: ['member'],
-      order: [['timestamp', 'ASC']],
+      include: ['member', 'parent', 'objectMember'],
+      order: [
+        ['timestamp', 'ASC'],
+        ['createdAt', 'ASC'],
+      ],
       transaction,
     })
 
@@ -551,6 +578,10 @@ class ConversationRepository {
       const member = (await act.getMember()).get({ plain: true })
       act = act.get({ plain: true })
       act.member = member
+      act.display = ActivityDisplayService.getDisplayOptions(
+        act,
+        SettingsRepository.getActivityTypes(options),
+      )
       return act
     })
 

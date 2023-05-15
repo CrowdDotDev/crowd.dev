@@ -18,6 +18,9 @@ export default (sequelize, DataTypes) => {
       logoUrl: {
         type: DataTypes.STRING(1024),
       },
+      slackWebHook: {
+        type: DataTypes.STRING(1024),
+      },
       customActivityTypes: {
         type: DataTypes.JSONB,
         allowNull: false,

@@ -5,11 +5,17 @@
     title="Zapier"
     size="480px"
     pre-title="Integration"
-    :pre-title-img-src="logoUrl"
-    pre-title-img-alt="Zapier logo"
     :show-footer="false"
+    has-border
     @close="isVisible = false"
   >
+    <template #beforeTitle>
+      <img
+        class="w-6 h-6 mr-2"
+        :src="logoUrl"
+        alt="Zapier logo"
+      />
+    </template>
     <template #content>
       <div class="flex flex-row items-center justify-between w-full">
         <p class="font-bold text-base">
@@ -48,7 +54,7 @@
             <p class="ml-4 text-gray-900 text-xs">
               Go to
               <a
-                href="https://zapier.com/developer/public-invite/180721/f94ad64f963359cd888fa22610c31875/"
+                href="https://zapier.com/apps/crowddev/integrations"
                 target="_blank"
                 rel="noopener noreferrer"
                 class="underline underline-offset-4"
@@ -61,7 +67,7 @@
               class="flex-none w-8 h-8 flex justify-center items-center rounded-full bg-gray-300 text-gray-900 font-bold text-sm"
             >3</span>
             <p class="ml-4 text-gray-900 text-xs">
-              Configure your Zaps using our
+              Learn more about our
               <a
                 href="https://docs.crowd.dev/docs/zapier-integration#supported-triggers"
                 target="_blank"

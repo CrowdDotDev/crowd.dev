@@ -72,6 +72,13 @@ export interface DbIncomingWebhookInsertData {
   payload: any
 }
 
+export interface PendingWebhook {
+  id: string
+  tenantId: string
+}
+
+export interface ErrorWebhook extends PendingWebhook {}
+
 export class WebhookError extends BaseError {
   public webhookId: string
 

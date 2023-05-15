@@ -10,4 +10,17 @@ export default {
   image:
     'https://cdn-icons-png.flaticon.com/512/2111/2111628.png',
   connectComponent: StackOverflowConnect,
+  url: (username) => `https://stackoverflow.com/users/${username}`,
+  chartColor: '#FF9845',
+  showProfileLink: true,
+  activityDisplay: {
+    showLinkToUrl: true,
+  },
+  conversationDisplay: {
+    replyContent: (conversation) => ({
+      icon: 'ri-reply-line',
+      copy: 'reply',
+      number: conversation.activityCount - 1,
+    }),
+  },
 };

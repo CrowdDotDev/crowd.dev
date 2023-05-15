@@ -26,6 +26,7 @@ const fields = {
   jobTitle: new StringField('jobTitle', label('jobTitle')),
   username: new JsonField('username', label('username'), {
     nonEmpty: true,
+    nonEmptyValues: true,
     requiredUnless: 'email',
     customFilterPreview: (record) => record,
   }),
@@ -111,13 +112,17 @@ const fields = {
     label('activityCount'),
     { filterable: true },
   ),
+  numberOfOpenSourceContributions: new IntegerField(
+    'numberOfOpenSourceContributions',
+    label('numberOfOpenSourceContributions'),
+    { filterable: true },
+  ),
   activityTypes: new ActivityTypeField(
     'activityTypes',
     label('activityTypes'),
     {
       required: true,
       filterable: true,
-      fromMembers: true,
     },
   ),
   engagementLevel: new MemberEngagementLevelField(

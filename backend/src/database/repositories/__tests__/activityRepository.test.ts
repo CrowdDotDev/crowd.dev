@@ -29,7 +29,7 @@ describe('ActivityRepository tests', () => {
       const memberCreated = await MemberRepository.create(
         {
           username: {
-            [PlatformType.GITHUB]: test,
+            [PlatformType.GITHUB]: 'test',
           },
           displayName: 'Member 1',
           joinedAt: '2020-05-27T15:13:30Z',
@@ -57,6 +57,7 @@ describe('ActivityRepository tests', () => {
           sentiment: 0.98,
         },
         isContribution: true,
+        username: 'test',
         member: memberCreated.id,
         score: 1,
         sourceId: '#sourceId1',
@@ -68,6 +69,8 @@ describe('ActivityRepository tests', () => {
       activityCreated.createdAt = activityCreated.createdAt.toISOString().split('T')[0]
       activityCreated.updatedAt = activityCreated.updatedAt.toISOString().split('T')[0]
       delete activityCreated.member
+      delete activityCreated.objectMember
+
       const expectedActivityCreated = {
         id: activityCreated.id,
         attributes: activity.attributes,
@@ -88,7 +91,10 @@ describe('ActivityRepository tests', () => {
         platform: PlatformType.GITHUB,
         isContribution: true,
         score: 1,
+        username: 'test',
+        objectMemberUsername: null,
         memberId: memberCreated.id,
+        objectMemberId: null,
         createdAt: SequelizeTestUtils.getNowWithoutTime(),
         updatedAt: SequelizeTestUtils.getNowWithoutTime(),
         deletedAt: null,
@@ -126,6 +132,7 @@ describe('ActivityRepository tests', () => {
         timestamp: '2020-05-27T15:13:30Z',
         platform: PlatformType.GITHUB,
         member: memberCreated.id,
+        username: 'test',
         sourceId: '#sourceId1',
       }
 
@@ -135,6 +142,7 @@ describe('ActivityRepository tests', () => {
       activityCreated.createdAt = activityCreated.createdAt.toISOString().split('T')[0]
       activityCreated.updatedAt = activityCreated.updatedAt.toISOString().split('T')[0]
       delete activityCreated.member
+      delete activityCreated.objectMember
 
       const expectedActivityCreated = {
         id: activityCreated.id,
@@ -149,7 +157,10 @@ describe('ActivityRepository tests', () => {
         platform: PlatformType.GITHUB,
         isContribution: false,
         score: 2,
+        username: 'test',
+        objectMemberUsername: null,
         memberId: memberCreated.id,
+        objectMemberId: null,
         tasks: [],
         createdAt: SequelizeTestUtils.getNowWithoutTime(),
         updatedAt: SequelizeTestUtils.getNowWithoutTime(),
@@ -190,6 +201,7 @@ describe('ActivityRepository tests', () => {
         },
         body: 'Here',
         isContribution: true,
+        username: 'test',
         member: memberCreated.id,
         score: 1,
       }
@@ -218,6 +230,7 @@ describe('ActivityRepository tests', () => {
         attributes: {
           replies: 12,
         },
+        username: 'test',
         body: 'Here',
         isContribution: true,
         member: memberCreated.id,
@@ -248,6 +261,7 @@ describe('ActivityRepository tests', () => {
         attributes: {
           replies: 12,
         },
+        username: 'test',
         body: 'Here',
         isContribution: true,
         member: memberCreated.id,
@@ -284,6 +298,7 @@ describe('ActivityRepository tests', () => {
               sentiment: 'positive',
               score: 1,
             },
+            username: 'test',
             member: memberCreated.id,
             sourceId: '#sourceId1',
           },
@@ -305,6 +320,7 @@ describe('ActivityRepository tests', () => {
               neutral: 0,
               sentiment: 'positive',
             },
+            username: 'test',
             member: memberCreated.id,
             sourceId: '#sourceId1',
           },
@@ -327,6 +343,7 @@ describe('ActivityRepository tests', () => {
               score: 0.1,
               sentiment: 'smth',
             },
+            username: 'test',
             member: memberCreated.id,
             sourceId: '#sourceId1',
           },
@@ -341,6 +358,7 @@ describe('ActivityRepository tests', () => {
           timestamp: '2020-05-27T15:13:30Z',
           platform: PlatformType.GITHUB,
           sentiment: {},
+          username: 'test',
           member: memberCreated.id,
           sourceId: '#sourceId1',
         },
@@ -371,6 +389,7 @@ describe('ActivityRepository tests', () => {
         url: 'https://github.com',
         channel: 'channel',
         isContribution: true,
+        username: 'test',
         member: memberCreated.id,
         score: 1,
         sourceId: '#sourceId1',
@@ -382,6 +401,8 @@ describe('ActivityRepository tests', () => {
       activityCreated.createdAt = activityCreated.createdAt.toISOString().split('T')[0]
       activityCreated.updatedAt = activityCreated.updatedAt.toISOString().split('T')[0]
       delete activityCreated.member
+      delete activityCreated.objectMember
+
       const expectedActivityCreated = {
         id: activityCreated.id,
         attributes: {},
@@ -396,7 +417,10 @@ describe('ActivityRepository tests', () => {
         isContribution: true,
         score: 1,
         tasks: [],
+        username: 'test',
+        objectMemberUsername: null,
         memberId: memberCreated.id,
+        objectMemberId: null,
         createdAt: SequelizeTestUtils.getNowWithoutTime(),
         updatedAt: SequelizeTestUtils.getNowWithoutTime(),
         deletedAt: null,
@@ -437,6 +461,7 @@ describe('ActivityRepository tests', () => {
         url: 'https://github.com',
         channel: 'channel',
         isContribution: true,
+        username: 'test',
         member: memberCreated.id,
         score: 1,
         sourceId: '#sourceId1',
@@ -448,6 +473,8 @@ describe('ActivityRepository tests', () => {
       activityCreated.createdAt = activityCreated.createdAt.toISOString().split('T')[0]
       activityCreated.updatedAt = activityCreated.updatedAt.toISOString().split('T')[0]
       delete activityCreated.member
+      delete activityCreated.objectMember
+
       const expectedActivityCreated = {
         id: activityCreated.id,
         attributes: {},
@@ -462,7 +489,10 @@ describe('ActivityRepository tests', () => {
         platform: PlatformType.GITHUB,
         isContribution: true,
         score: 1,
+        username: 'test',
+        objectMemberUsername: null,
         memberId: memberCreated.id,
+        objectMemberId: null,
         createdAt: SequelizeTestUtils.getNowWithoutTime(),
         updatedAt: SequelizeTestUtils.getNowWithoutTime(),
         deletedAt: null,
@@ -528,6 +558,7 @@ describe('ActivityRepository tests', () => {
           sentiment: 0.98,
         },
         isContribution: true,
+        username: 'test',
         member: memberCreated.id,
         score: 1,
         tasks: [tasks1.id, task2.id],
@@ -560,6 +591,7 @@ describe('ActivityRepository tests', () => {
         timestamp: '2020-05-27T15:13:30Z',
         platform: PlatformType.GITHUB,
         isContribution: true,
+        username: 'test',
         member: memberCreated.id,
         score: 1,
         sourceId: '#sourceId1',
@@ -580,7 +612,10 @@ describe('ActivityRepository tests', () => {
         platform: PlatformType.GITHUB,
         isContribution: true,
         score: 1,
+        username: 'test',
+        objectMemberUsername: null,
         memberId: memberCreated.id,
+        objectMemberId: null,
         tasks: [],
         createdAt: SequelizeTestUtils.getNowWithoutTime(),
         updatedAt: SequelizeTestUtils.getNowWithoutTime(),
@@ -606,6 +641,7 @@ describe('ActivityRepository tests', () => {
       activityFound.createdAt = activityFound.createdAt.toISOString().split('T')[0]
       activityFound.updatedAt = activityFound.updatedAt.toISOString().split('T')[0]
       delete activityFound.member
+      delete activityFound.objectMember
 
       expect(activityFound).toStrictEqual(expectedActivityFound)
     })
@@ -640,6 +676,7 @@ describe('ActivityRepository tests', () => {
           type: 'activity',
           timestamp: '2020-05-27T15:13:30Z',
           platform: PlatformType.GITHUB,
+          username: 'test',
           member: memberCreated.id,
           sourceId: '#sourceId1',
         },
@@ -651,6 +688,7 @@ describe('ActivityRepository tests', () => {
           type: 'activity-2',
           timestamp: '2020-06-27T15:13:30Z',
           platform: PlatformType.GITHUB,
+          username: 'test',
           member: memberCreated.id,
           sourceId: '#sourceId2',
         },
@@ -684,6 +722,7 @@ describe('ActivityRepository tests', () => {
           type: 'activity',
           timestamp: '2020-05-27T15:13:30Z',
           platform: PlatformType.GITHUB,
+          username: 'test',
           member: memberCreated.id,
           sourceId: '#sourceId1',
         },
@@ -719,6 +758,7 @@ describe('ActivityRepository tests', () => {
           type: 'activity',
           timestamp: '2020-05-27T15:13:30Z',
           platform: PlatformType.GITHUB,
+          username: 'test',
           member: memberCreated.id,
           sourceId: '#sourceId1',
         },
@@ -758,6 +798,7 @@ describe('ActivityRepository tests', () => {
           timestamp: '2020-05-27T15:13:30Z',
           platform: PlatformType.GITHUB,
           isContribution: true,
+          username: 'test',
           member: memberCreated.id,
           score: 1,
           sourceId: '#sourceId1',
@@ -794,6 +835,7 @@ describe('ActivityRepository tests', () => {
           },
           body: 'Here',
           isContribution: true,
+          username: 'test',
           member: memberCreated.id,
           score: 1,
           sourceId: '#sourceId1',
@@ -833,6 +875,7 @@ describe('ActivityRepository tests', () => {
           },
           body: 'Here',
           isContribution: true,
+          username: 'test',
           member: memberCreated.id,
           score: 1,
           sourceId: '#sourceId1',
@@ -871,6 +914,7 @@ describe('ActivityRepository tests', () => {
           },
           body: 'Here',
           isContribution: true,
+          username: 'test',
           member: memberCreated.id,
           score: 1,
           sourceId: '#sourceId1',
@@ -897,6 +941,8 @@ describe('ActivityRepository tests', () => {
       updatedActivity.createdAt = updatedActivity.createdAt.toISOString().split('T')[0]
       updatedActivity.updatedAt = updatedActivity.updatedAt.toISOString().split('T')[0]
       delete updatedActivity.member
+      delete updatedActivity.objectMember
+
       const expectedActivityUpdated = {
         id: activityReturned.id,
         body: activityReturned.body,
@@ -910,7 +956,10 @@ describe('ActivityRepository tests', () => {
         platform: PlatformType.GITHUB,
         isContribution: true,
         score: 1,
+        username: 'test',
+        objectMemberUsername: null,
         memberId: memberCreated.id,
+        objectMemberId: null,
         createdAt: SequelizeTestUtils.getNowWithoutTime(),
         updatedAt: SequelizeTestUtils.getNowWithoutTime(),
         deletedAt: null,
@@ -965,6 +1014,7 @@ describe('ActivityRepository tests', () => {
           },
           body: 'Here',
           isContribution: true,
+          username: 'test',
           member: memberCreated.id,
           score: 1,
           sourceId: '#sourceId1',
@@ -987,6 +1037,7 @@ describe('ActivityRepository tests', () => {
           label: 'positive',
           sentiment: 0.98,
         },
+        username: 'test2',
         member: memberCreated2.id,
       }
 
@@ -1004,6 +1055,8 @@ describe('ActivityRepository tests', () => {
       updatedActivity.createdAt = updatedActivity.createdAt.toISOString().split('T')[0]
       updatedActivity.updatedAt = updatedActivity.updatedAt.toISOString().split('T')[0]
       delete updatedActivity.member
+      delete updatedActivity.objectMember
+
       const expectedActivityUpdated = {
         id: activityReturned.id,
         attributes: activityReturned.attributes,
@@ -1018,7 +1071,10 @@ describe('ActivityRepository tests', () => {
         platform: PlatformType.GITHUB,
         isContribution: true,
         score: 1,
+        username: 'test2',
+        objectMemberUsername: null,
         memberId: memberCreated2.id,
+        objectMemberId: null,
         createdAt: SequelizeTestUtils.getNowWithoutTime(),
         updatedAt: SequelizeTestUtils.getNowWithoutTime(),
         deletedAt: null,
@@ -1061,6 +1117,7 @@ describe('ActivityRepository tests', () => {
           },
           body: 'Here',
           isContribution: true,
+          username: 'test',
           member: memberCreated.id,
           score: 1,
           sourceId: '#sourceId1',
@@ -1121,6 +1178,7 @@ describe('ActivityRepository tests', () => {
           },
           body: 'Here',
           isContribution: true,
+          username: 'test',
           member: memberCreated.id,
           score: 1,
           sourceId: '#sourceId1',
@@ -1167,6 +1225,7 @@ describe('ActivityRepository tests', () => {
           },
           body: 'Here',
           isContribution: true,
+          username: 'test',
           member: memberCreated.id,
           score: 1,
           sourceId: '#sourceId1',
@@ -1216,6 +1275,7 @@ describe('ActivityRepository tests', () => {
           label: 'positive',
           sentiment: 0.98,
         },
+        username: 'test',
         member: memberCreated.id,
         sourceId: '#sourceId1',
       }
@@ -1232,6 +1292,7 @@ describe('ActivityRepository tests', () => {
           label: 'neutral',
           sentiment: 0.55,
         },
+        username: 'test',
         member: memberCreated.id,
         sourceId: '#sourceId2',
       }
@@ -1297,6 +1358,7 @@ describe('ActivityRepository tests', () => {
           label: 'positive',
           sentiment: 0.98,
         },
+        username: 'test',
         member: memberCreated.id,
         sourceId: '#sourceId1',
       }
@@ -1313,6 +1375,7 @@ describe('ActivityRepository tests', () => {
           label: 'negative',
           sentiment: -0.54,
         },
+        username: 'test',
         member: memberCreated.id,
         sourceId: '#sourceId2',
       }
@@ -1360,7 +1423,7 @@ describe('ActivityRepository tests', () => {
       const memberCreated = await MemberRepository.create(
         {
           username: {
-            github: test,
+            github: 'test',
           },
           displayName: 'Member 1',
           joinedAt: '2020-05-27T15:13:30Z',
@@ -1380,6 +1443,7 @@ describe('ActivityRepository tests', () => {
           label: 'positive',
           sentiment: 0.98,
         },
+        username: 'test',
         member: memberCreated.id,
         sourceId: '#sourceId1',
       }
@@ -1396,6 +1460,7 @@ describe('ActivityRepository tests', () => {
           label: 'neutral',
           sentiment: 0.55,
         },
+        username: 'test',
         member: memberCreated.id,
         sourceId: '#sourceId2',
       }
@@ -1494,6 +1559,7 @@ describe('ActivityRepository tests', () => {
           label: 'positive',
           sentiment: 0.98,
         },
+        username: 'test',
         member: memberCreated1.id,
         sourceId: '#sourceId1',
       }
@@ -1510,6 +1576,7 @@ describe('ActivityRepository tests', () => {
           label: 'neutral',
           sentiment: 0.55,
         },
+        username: 'Michael',
         member: memberCreated2.id,
         sourceId: '#sourceId2',
       }

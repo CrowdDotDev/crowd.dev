@@ -92,11 +92,12 @@ export class ActivityService {
     limit,
     offset,
     buildFilter = true,
+    buildWithDefaultRootFilters = true,
   ) {
     const body = {
       filter: buildApiPayload({
         customFilters: filter,
-        defaultRootFilters: DEFAULT_ACTIVITY_FILTERS,
+        defaultRootFilters: buildWithDefaultRootFilters ? DEFAULT_ACTIVITY_FILTERS : [],
         buildFilter,
       }),
       orderBy,

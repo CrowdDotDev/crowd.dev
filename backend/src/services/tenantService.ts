@@ -205,10 +205,6 @@ export default class TenantService {
 
       // create default microservices for the tenant
       await MicroserviceRepository.create(
-        { type: microserviceTypes.checkMerge },
-        { ...this.options, transaction, currentTenant: record },
-      )
-      await MicroserviceRepository.create(
         { type: microserviceTypes.membersScore },
         { ...this.options, transaction, currentTenant: record },
       )
@@ -236,6 +232,16 @@ export default class TenantService {
       await ReportRepository.create(
         {
           name: 'Product-community fit report',
+          public: false,
+          isTemplate: true,
+        },
+        { ...this.options, transaction, currentTenant: record },
+      )
+
+      // create activities template report
+      await ReportRepository.create(
+        {
+          name: 'Activities report',
           public: false,
           isTemplate: true,
         },

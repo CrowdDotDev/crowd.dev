@@ -18,7 +18,7 @@
               class="leading-8 font-semibold transition-all duration-100"
               :class="scrolled ? 'text-base' : 'text-xl'"
             >
-              {{ currentTenant.name }} team overview
+              {{ currentTenant?.name }} team overview
             </h4>
           </div>
 

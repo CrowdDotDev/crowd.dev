@@ -28,6 +28,16 @@ components:
         averageSentiment:
           description: Average sentiment of the member. From 0 to 100.
           type: number
+        identities:
+          description: List of platforms the member has identities in.
+          type: array
+          items:
+            type: string
+        activeOn:
+          description: List of platforms the member is active on.
+          type: array
+          items:
+            type: string
 
     MemberRelationsResponse:
       description: Relations of a member.

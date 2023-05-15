@@ -1,6 +1,6 @@
 import sanitizeHtml from 'sanitize-html'
 import moment from 'moment'
-import { getAllCommentComments } from '../../../usecases/linkedin/getCommentComments'
+import { getCommentComments } from '../../../usecases/linkedin/getCommentComments'
 import { LinkedInGrid } from '../../../grid/linkedinGrid'
 import { MemberAttributeName } from '../../../../../database/attributes/member/enums'
 import { LinkedInMemberAttributes } from '../../../../../database/attributes/member/linkedin'
@@ -12,15 +12,19 @@ import {
   IStepContext,
 } from '../../../../../types/integration/stepResult'
 import { IntegrationType, PlatformType } from '../../../../../types/integrationEnums'
-import { ILinkedInOrganization, ILinkedInOrganizationPost } from '../../../types/linkedinTypes'
-import { AddActivitiesSingle, Member } from '../../../types/messageTypes'
+import {
+  ILinkedInOrganization,
+  ILinkedInOrganizationPost,
+  ILinkedInPostComment,
+} from '../../../types/linkedinTypes'
+import { AddActivitiesSingle, Member, PlatformIdentities } from '../../../types/messageTypes'
 import { getMember } from '../../../usecases/linkedin/getMember'
 import { getOrganization } from '../../../usecases/linkedin/getOrganization'
 import { getAllOrganizationPosts } from '../../../usecases/linkedin/getOrganizationPosts'
-import { getAllPostComments } from '../../../usecases/linkedin/getPostComments'
+import { getPostComments } from '../../../usecases/linkedin/getPostComments'
 import { IntegrationServiceBase } from '../../integrationServiceBase'
 import Operations from '../../../../dbOperations/operations'
-import { getAllPostReactions } from '../../../usecases/linkedin/getPostReactions'
+import { getPostReactions } from '../../../usecases/linkedin/getPostReactions'
 import {
   getLinkedInOrganizationId,
   getLinkedInUserId,
@@ -149,11 +153,26 @@ export class LinkedinIntegrationService extends IntegrationServiceBase {
     stream: IIntegrationStream,
     context: IStepContext,
   ): Promise<IProcessStreamResults> {
-    const comments = await getAllCommentComments(
+    let nextPageStream: IPendingStream | undefined
+
+    const data = await getCommentComments(
       context.pipelineData.nangoId,
       stream.metadata.urnId,
       context.logger,
+      stream.metadata.start,
     )
+
+    if (data.start !== undefined) {
+      nextPageStream = {
+        value: stream.value,
+        metadata: {
+          ...stream.metadata,
+          start: data.start,
+        },
+      }
+    }
+
+    const comments = data.elements
 
     const activities: AddActivitiesSingle[] = []
 
@@ -161,6 +180,7 @@ export class LinkedinIntegrationService extends IntegrationServiceBase {
       const member = await this.parseMember(comment.authorUrn, context)
 
       activities.push({
+        username: member.username[PlatformType.LINKEDIN].username,
         tenant: context.integration.tenantId,
         platform: PlatformType.LINKEDIN,
         type: 'comment',
@@ -204,6 +224,7 @@ export class LinkedinIntegrationService extends IntegrationServiceBase {
         ],
         lastRecord,
         lastRecordTimestamp: lastRecord.timestamp.getTime(),
+        nextPageStream,
       }
     }
 
@@ -227,12 +248,26 @@ export class LinkedinIntegrationService extends IntegrationServiceBase {
       }
     }
 
-    const reactions = await getAllPostReactions(
+    const data = await getPostReactions(
       context.pipelineData.nangoId,
       stream.metadata.urnId,
       context.logger,
+      stream.metadata.start,
       lastReactionTs,
     )
+
+    let nextPageStream: IPendingStream | undefined
+    if (data.start !== undefined) {
+      nextPageStream = {
+        value: stream.value,
+        metadata: {
+          ...stream.metadata,
+          start: data.start,
+        },
+      }
+    }
+
+    const reactions = data.elements
 
     const activities: AddActivitiesSingle[] = []
 
@@ -247,6 +282,7 @@ export class LinkedinIntegrationService extends IntegrationServiceBase {
       }
 
       activities.push({
+        username: member.username[PlatformType.LINKEDIN].username,
         tenant: context.integration.tenantId,
         platform: PlatformType.LINKEDIN,
         type: 'reaction',
@@ -280,6 +316,7 @@ export class LinkedinIntegrationService extends IntegrationServiceBase {
         ],
         lastRecord,
         lastRecordTimestamp: lastRecord.timestamp.getTime(),
+        nextPageStream,
       }
     }
 
@@ -310,12 +347,27 @@ export class LinkedinIntegrationService extends IntegrationServiceBase {
       }
     }
 
-    const comments = await getAllPostComments(
+    let nextPageStream: IPendingStream | undefined
+
+    const data = await getPostComments(
       context.pipelineData.nangoId,
       stream.metadata.urnId,
       context.logger,
+      stream.metadata.start,
       lastCommentTs,
     )
+
+    if (data.start !== undefined) {
+      nextPageStream = {
+        value: stream.value,
+        metadata: {
+          ...stream.metadata,
+          start: data.start,
+        },
+      }
+    }
+
+    const comments: ILinkedInPostComment[] = data.elements
 
     const activities: AddActivitiesSingle[] = []
     const newStreams: IPendingStream[] = []
@@ -327,6 +379,7 @@ export class LinkedinIntegrationService extends IntegrationServiceBase {
       }
 
       activities.push({
+        username: member.username[PlatformType.LINKEDIN].username,
         tenant: context.integration.tenantId,
         platform: PlatformType.LINKEDIN,
         type: 'comment',
@@ -377,6 +430,7 @@ export class LinkedinIntegrationService extends IntegrationServiceBase {
         lastRecord,
         lastRecordTimestamp: lastRecord.timestamp.getTime(),
         newStreams,
+        nextPageStream,
       }
     }
 
@@ -388,8 +442,11 @@ export class LinkedinIntegrationService extends IntegrationServiceBase {
   private async parseMember(memberUrn: string, context: IStepContext): Promise<Member> {
     const member: Member = {
       username: {
-        [PlatformType.LINKEDIN]: '',
-      },
+        [PlatformType.LINKEDIN]: {
+          username: '',
+          integrationId: context.integration.id,
+        },
+      } as PlatformIdentities,
       attributes: {
         [MemberAttributeName.URL]: {
           [PlatformType.LINKEDIN]: '',
@@ -420,11 +477,13 @@ export class LinkedinIntegrationService extends IntegrationServiceBase {
       const user = JSON.parse(userString)
 
       if (user.id === 'private') {
-        member.username[PlatformType.LINKEDIN] = `private-${userId}`
+        member.username[PlatformType.LINKEDIN].username = `private-${userId}`
+        member.username[PlatformType.LINKEDIN].sourceId = userId
         member.displayName = `Unknown #${userId}`
         member.attributes = {}
       } else {
-        member.username[PlatformType.LINKEDIN] = `${user.vanityName}`
+        member.username[PlatformType.LINKEDIN].username = `${user.vanityName}`
+        member.username[PlatformType.LINKEDIN].sourceId = user.id
         member.attributes[MemberAttributeName.URL][
           PlatformType.LINKEDIN
         ] = `https://www.linkedin.com/in/${user.vanityName}`
@@ -456,7 +515,8 @@ export class LinkedinIntegrationService extends IntegrationServiceBase {
 
       const organization = JSON.parse(organizationString)
 
-      member.username[PlatformType.LINKEDIN] = organization.name
+      member.username[PlatformType.LINKEDIN].username = organization.name
+      member.username[PlatformType.LINKEDIN].sourceId = userId
       member.displayName = organization.name
       member.attributes[MemberAttributeName.URL][
         PlatformType.LINKEDIN
@@ -478,6 +538,6 @@ export class LinkedinIntegrationService extends IntegrationServiceBase {
   }
 
   private static isPrivateMember(member: Member): boolean {
-    return member.username[PlatformType.LINKEDIN].startsWith('private-')
+    return member.username[PlatformType.LINKEDIN].username.startsWith('private-')
   }
 }

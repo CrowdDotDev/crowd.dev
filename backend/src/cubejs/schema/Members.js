@@ -1,5 +1,9 @@
 cube(`Members`, {
-  sql: `SELECT M.*, 
+  sql: `
+    with identities as (
+      select string_agg(platform, '|') as platforms, "memberId" from "memberIdentities" group by "memberId"
+    )
+    SELECT M.*, 
 		  CASE 
 		 	    WHEN DATE_PART('day', MIN(a.timestamp)::timestamp - M."joinedAt"::TIMESTAMP) < 0 THEN 0
 		 	    WHEN MIN(M."joinedAt") < '1980-01-01' THEN 0
@@ -7,10 +11,11 @@ cube(`Members`, {
 		 	ELSE
 		 	    DATE_PART('day', MIN(a.timestamp)::timestamp - M."joinedAt"::TIMESTAMP)
 		 	END AS time_to_first_interaction,
-      ARRAY_TO_STRING(ARRAY(SELECT jsonb_object_keys(m.username)), '|') AS identities
+      i.platforms AS identities
       FROM "members" m
+      INNER JOIN identities i ON i."memberId" = m.id
       LEFT JOIN activities a ON (a."memberId" = m.id AND a."isContribution"=TRUE)
-      GROUP BY m.id`,
+      GROUP BY m.id, i.platforms`,
 
   preAggregations: {
     MembersCumulative: {
@@ -49,6 +54,16 @@ cube(`Members`, {
     },
 
     MembersActivities: {
+      measures: [Members.count],
+      dimensions: [Members.tenantId, Members.isTeamMember, Members.isBot, Members.isOrganization],
+      timeDimension: Activities.date,
+      granularity: `day`,
+      refreshKey: {
+        every: `10 minute`,
+      },
+    },
+
+    MActivitiesDupDimensions: {
       measures: [Members.count],
       dimensions: [
         Members.tenantId,
