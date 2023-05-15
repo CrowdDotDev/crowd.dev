@@ -48,3 +48,5 @@ api-test/__pycache__/api_test.cpython-39-pytest-6.2.4.pyc
 
 /backend/superface/**
 docker/volume
+
+services/libs/*/dist

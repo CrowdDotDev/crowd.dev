@@ -314,8 +314,8 @@ function migrate_local() {
 
 function up_test_scaffold() {
     scaffold_set_up_network "${PROJECT_NAME}-bridge-test" $DOCKET_TEST_NETWORK_SUBNET $DOCKER_TEST_NETWORK_GATEWAY
-    $_DC -p "$PROJECT_NAME-test" -f $CLI_HOME/../docker/docker-compose.test.yaml down
-    $_DC -p "$PROJECT_NAME-test" -f $CLI_HOME/../docker/docker-compose.test.yaml up -d
+    $_DC -p "$PROJECT_NAME-test" -f $CLI_HOME/../backend/docker-compose.test.yaml down
+    $_DC -p "$PROJECT_NAME-test" -f $CLI_HOME/../backend/docker-compose.test.yaml up -d
     migrate_test
 }
 

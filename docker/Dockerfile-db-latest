@@ -1,6 +1,0 @@
-# syntax = docker/dockerfile:experimental
-## Can be built and pushed to docker.hub using npm script `npm run db:publish -- tagName`
-FROM postgres:13
-COPY staging_dump /db-data-init/staging_dump
-COPY initialize-data.sh /docker-entrypoint-initdb.d/initialize-data.sh
-RUN chmod o+x /docker-entrypoint-initdb.d/initialize-data.sh

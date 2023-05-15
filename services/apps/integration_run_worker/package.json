@@ -1,0 +1,33 @@
+{
+  "name": "@crowd/integration-run-worker",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "start": "node -r ts-node/register src/main.ts --transpile-only",
+    "start:debug": "node --inspect -r ts-node/register src/main.ts --transpile-only",
+    "start:watch": "nodemon --watch src --ext ts --exec npm run start:debug",
+    "watch:libs": "chokidar '../../libs/*/src/**/*.ts' --ignore '../../libs/*/dist/**/*' -c 'npm run build:libs && touch src/main.ts' --debounce 500 --polling",
+    "dev": "../../build_libs.sh && concurrently \"npm run start:watch\" \"npm run watch:libs\"",
+    "build:libs": "../../build_libs.sh"
+  },
+  "dependencies": {
+    "@crowd/common": "file:../../libs/common",
+    "@crowd/database": "file:../../libs/database",
+    "@crowd/logging": "file:../../libs/logging",
+    "@crowd/sqs": "file:../../libs/sqs",
+    "@types/config": "^3.3.0",
+    "@types/node": "^18.16.3",
+    "config": "^3.3.9",
+    "ts-node": "^10.9.1",
+    "typescript": "^5.0.4"
+  },
+  "devDependencies": {
+    "chokidar-cli": "^3.0.0",
+    "concurrently": "^8.0.1",
+    "eslint": "^8.39.0",
+    "eslint-config-prettier": "^8.8.0",
+    "eslint-plugin-prettier": "^4.2.1",
+    "nodemon": "^2.0.22",
+    "prettier": "^2.8.8"
+  }
+}
