@@ -118,6 +118,13 @@ export default class OrganizationEnrichmentService extends LoggingBase {
       delete data.address.geo
       location = `${data.address.street_address} ${data.address.address_line_2} ${data.address.name}`
     }
+    if (data.employee_count_by_country && !data.employee_count) {
+      const employees = Object.values(data.employee_count_by_country).reduce(
+        (acc, size) => acc + size,
+        0,
+      )
+      Object.assign(data, { employees: employees || instance.employees })
+    }
     return lodash.pick(
       { ...data, location, lastEnrichedAt: new Date() },
       this.selectFieldsForEnrichment(instance),
