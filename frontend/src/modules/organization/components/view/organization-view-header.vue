@@ -64,17 +64,14 @@
       <div
         v-if="organization.description"
         ref="descriptionRef"
-        class="mt-2 text-sm text-gray-600"
-        :class="{
-          'line-clamp-4': displayShowMore && !showMore,
-        }"
+        class="mt-2 text-sm text-gray-600 line-clamp-4"
         v-html="$sanitize(organization.description)"
       />
       <!-- show more/less button -->
       <div
         v-if="displayShowMore"
         class="text-2xs text-brand-500 mt-3 cursor-pointer"
-        @click.stop="showMore = !showMore"
+        @click.stop="toggleContent"
       >
         Show {{ showMore ? 'less' : 'more' }}
       </div>
@@ -164,7 +161,9 @@
 </template>
 
 <script setup>
-import { defineProps, onMounted, ref } from 'vue';
+import {
+  defineProps, ref, computed,
+} from 'vue';
 import moment from 'moment';
 import {
   formatDate,
@@ -180,7 +179,7 @@ import AppOrganizationBadge from '@/modules/organization/components/organization
 import AppOrganizationDropdown from '@/modules/organization/components/organization-dropdown.vue';
 import AppOrganizationHeadline from '@/modules/organization/components/organization-headline..vue';
 
-defineProps({
+const props = defineProps({
   organization: {
     type: Object,
     default: () => {},
@@ -188,19 +187,23 @@ defineProps({
 });
 
 const showMore = ref(false);
-const displayShowMore = ref(true);
 const descriptionRef = ref(null);
-
-onMounted(() => {
-  const body = descriptionRef.value;
-  if (body) {
-    const height = body.clientHeight;
-    const { scrollHeight } = body;
-    displayShowMore.value = scrollHeight > height;
-  } else {
-    displayShowMore.value = false;
+const displayShowMore = computed(() => {
+  if (!props.organization.description) {
+    return false;
   }
+
+  return descriptionRef.value?.scrollHeight > descriptionRef.value?.clientHeight;
 });
+
+const toggleContent = () => {
+  showMore.value = !showMore.value;
+  if (showMore.value) {
+    descriptionRef.value?.classList.remove('line-clamp-4');
+  } else {
+    descriptionRef.value?.classList.add('line-clamp-4');
+  }
+};
 
 const formattedInformation = (value, type) => {
   // Show dash for empty information
