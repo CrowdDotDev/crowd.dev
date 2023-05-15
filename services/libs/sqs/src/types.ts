@@ -35,7 +35,3 @@ export interface ISqsQueueConfig {
   highThroughputFifo?: boolean
   fifoThroughputLimit?: SqsFifoThroughputLimitType
 }
-
-export interface IQueueMessage {
-  type: string
-}

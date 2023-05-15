@@ -1,23 +1,21 @@
-import { timeout } from '@crowd/common'
+import { DbConnection } from '@crowd/database'
 import { Logger } from '@crowd/logging'
 import {
   INTEGRATION_RUN_WORKER_QUEUE_SETTINGS,
   INTEGRATION_STREAM_WORKER_QUEUE_SETTINGS,
-  IQueueMessage,
   SqsClient,
   SqsQueueReceiver,
   SqsQueueSender,
 } from '@crowd/sqs'
+import { IQueueMessage } from '@crowd/types'
 
 export class WorkerQueueReceiver extends SqsQueueReceiver {
-  constructor(client: SqsClient, parentLog: Logger) {
+  constructor(client: SqsClient, private readonly dbConn: DbConnection, parentLog: Logger) {
     super(client, INTEGRATION_RUN_WORKER_QUEUE_SETTINGS, 2, parentLog)
   }
 
   override async processMessage(message: IQueueMessage): Promise<void> {
-    this.log.info({ message }, 'Processing message!')
-    await timeout(2000)
-    this.log.info({ message }, 'Finished processing message!')
+    this.log.trace({ messageType: message.type }, 'Processing message!')
   }
 }
 

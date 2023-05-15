@@ -9,7 +9,7 @@ import {
 } from './types'
 import { lockTable, lockTableRow } from './locking'
 
-export default class DbStore extends LoggerBase {
+export class DbStore extends LoggerBase {
   constructor(
     public readonly dbInstance: DbInstance,
     parentLog?: Logger,

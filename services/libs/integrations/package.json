@@ -1,5 +1,5 @@
 {
-  "name": "@crowd/sqs",
+  "name": "@crowd/integrations",
   "version": "1.0.0",
   "private": true,
   "scripts": {
@@ -27,8 +27,6 @@
   "dependencies": {
     "@crowd/types": "file:../types",
     "@crowd/logging": "file:../logging",
-    "@crowd/common": "file:../common",
-    "@aws-sdk/client-sqs": "^3.332.0",
-    "@aws-sdk/types": "^3.329.0"
+    "@crowd/common": "file:../common"
   }
 }

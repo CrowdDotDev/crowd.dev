@@ -8,7 +8,8 @@ import {
 import { timeout } from '@crowd/common'
 import { Logger, LoggerBase } from '@crowd/logging'
 import { deleteMessage, receiveMessage, sendMessage } from './client'
-import { IQueueMessage, ISqsQueueConfig, SqsClient, SqsMessage, SqsQueueType } from './types'
+import { ISqsQueueConfig, SqsClient, SqsMessage, SqsQueueType } from './types'
+import { IQueueMessage } from '@crowd/types'
 
 export abstract class SqsQueueBase extends LoggerBase {
   private queueUrl: string | undefined
@@ -91,20 +92,14 @@ export abstract class SqsQueueReceiver extends SqsQueueBase {
   }
 
   private isAvailable(): boolean {
-    this.log.trace(
-      { current: this.processingMessages, max: this.maxConcurrentMessageProcessing },
-      'Checking if queue is available...',
-    )
     return this.processingMessages < this.maxConcurrentMessageProcessing
   }
 
   private addJob() {
-    this.log.trace({ current: this.processingMessages }, 'Adding job...')
     this.processingMessages++
   }
 
   private removeJob() {
-    this.log.trace({ current: this.processingMessages }, 'Removing job...')
     this.processingMessages--
   }
 
@@ -112,27 +107,23 @@ export abstract class SqsQueueReceiver extends SqsQueueBase {
     await this.init()
 
     this.started = true
-    setImmediate(async () => {
-      this.log.info('Starting listening to queue...')
-      while (this.started) {
-        if (this.isAvailable()) {
-          const message = await this.receiveMessage()
-          if (message) {
-            this.log.trace({ messageId: message.MessageId }, 'Received message from queue!')
-            this.addJob()
-            await this.deleteMessage(message.ReceiptHandle)
-            this.processMessage(JSON.parse(message.Body))
-              .then(() => this.removeJob())
-              .catch(() => this.removeJob())
-          }
-        } else {
-          this.log.trace('Queue is busy, waiting...')
-          await timeout(500)
+    this.log.info('Starting listening to queue...')
+    while (this.started) {
+      if (this.isAvailable()) {
+        const message = await this.receiveMessage()
+        if (message) {
+          this.log.trace({ messageId: message.MessageId }, 'Received message from queue!')
+          this.addJob()
+          await this.deleteMessage(message.ReceiptHandle)
+          this.processMessage(JSON.parse(message.Body))
+            .then(() => this.removeJob())
+            .catch(() => this.removeJob())
         }
+      } else {
+        this.log.trace('Queue is busy, waiting...')
+        await timeout(1000)
       }
-
-      this.log.info('Stopping listening to queue...')
-    })
+    }
   }
 
   public stop() {

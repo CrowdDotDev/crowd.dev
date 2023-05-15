@@ -4,13 +4,14 @@
   "private": true,
   "scripts": {
     "start": "node -r ts-node/register src/main.ts --transpile-only",
-    "start:debug": "node --inspect -r ts-node/register src/main.ts --transpile-only",
+    "start:debug": "SERVICE=integration-run-worker LOG_LEVEL=trace node --inspect -r ts-node/register src/main.ts --transpile-only",
     "start:watch": "nodemon --watch src --ext ts --exec npm run start:debug",
     "watch:libs": "chokidar '../../libs/*/src/**/*.ts' --ignore '../../libs/*/dist/**/*' -c 'npm run build:libs && touch src/main.ts' --debounce 500 --polling",
-    "dev": "../../build_libs.sh && concurrently \"npm run start:watch\" \"npm run watch:libs\"",
-    "build:libs": "../../build_libs.sh"
+    "dev": "../../libs/build_libs.sh && concurrently \"npm run start:watch\" \"npm run watch:libs\"",
+    "build:libs": "../../libs/build_libs.sh"
   },
   "dependencies": {
+    "@crowd/types": "file:../../libs/types",
     "@crowd/common": "file:../../libs/common",
     "@crowd/database": "file:../../libs/database",
     "@crowd/logging": "file:../../libs/logging",

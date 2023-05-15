@@ -1,8 +1,8 @@
-import { timeout } from '@crowd/common'
+import { getDbConnection } from '@crowd/database'
 import { getServiceLogger } from '@crowd/logging'
 import { getSqsClient } from '@crowd/sqs'
+import { DB_CONFIG, SQS_CONFIG } from './config'
 import { WorkerQueueReceiver } from './queue'
-import { SQS_CONFIG } from './config'
 
 const log = getServiceLogger()
 
@@ -11,14 +11,11 @@ setImmediate(async () => {
 
   const client = getSqsClient(SQS_CONFIG())
 
-  const queue = new WorkerQueueReceiver(client, log)
+  const dbConnection = getDbConnection(DB_CONFIG())
+  const queue = new WorkerQueueReceiver(client, dbConnection, log)
 
   try {
     await queue.start()
-
-    while (true) {
-      await timeout(500)
-    }
   } catch (err) {
     log.error({ err }, 'Failed to start queue')
   }
