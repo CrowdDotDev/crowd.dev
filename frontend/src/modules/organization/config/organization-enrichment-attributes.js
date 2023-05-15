@@ -22,14 +22,14 @@ export default [
     showInForm: true,
   },
   {
-    name: 'type',
-    label: 'Type',
+    name: 'size',
+    label: 'Size',
     type: attributesTypes.string,
     showInForm: true,
   },
   {
-    name: 'size',
-    label: 'Size',
+    name: 'type',
+    label: 'Type',
     type: attributesTypes.string,
     showInForm: true,
   },

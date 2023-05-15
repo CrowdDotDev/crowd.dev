@@ -9,7 +9,17 @@
     <template #content>
       <slot name="tagTooltipContent" />
     </template>
-    <div class="badge--interactive !block" @click.prevent>
+    <a
+      v-if="interactive"
+      class="badge--interactive !block"
+      :href="withHttp(tag)"
+      target="_blank"
+      rel="noopener noreferrer"
+      @click.stop
+    >
+      {{ tag }}
+    </a>
+    <div v-else class="badge--border !block" @click.prevent>
       {{ tag }}
     </div>
   </el-tooltip>
@@ -20,21 +30,30 @@
     :disabled="!collapseTagsTooltip"
   >
     <template #reference>
-      <div v-if="hiddenTags.length" class="badge--border">
+      <div v-if="!!hiddenTags.length" class="badge--border">
         +{{ hiddenTags.length }}
       </div>
     </template>
     <template #default>
       <div class="flex flex-wrap gap-1">
-        <a
+        <div
           v-for="hiddenTag in hiddenTags"
           :key="hiddenTag"
-          class="badge--border"
-          :href="hiddenTag"
-          @click.prevent
         >
-          {{ hiddenTag }}
-        </a>
+          <a
+            v-if="interactive"
+            class="badge--border"
+            target="_blank"
+            rel="noopener noreferrer"
+            :href="withHttp(hiddenTag)"
+            @click.stop
+          >
+            {{ hiddenTag }}
+          </a>
+          <div v-else class="badge--border !block" @click.prevent>
+            {{ hiddenTag }}
+          </div>
+        </div>
       </div>
     </template>
   </el-popover>
@@ -42,6 +61,7 @@
 
 <script setup>
 import { computed } from 'vue';
+import { withHttp } from '@/utils/string';
 
 const props = defineProps({
   tags: {
@@ -72,7 +92,7 @@ const visibleTags = computed(() => {
   }
 
   if (props.maximumVisibleTags < props.tags.length) {
-    return [...props.tags].splice(props.maximumVisibleTags + 1);
+    return [...props.tags].slice(0, props.maximumVisibleTags);
   }
 
   return props.tags;
@@ -84,10 +104,10 @@ const hiddenTags = computed(() => {
   }
 
   if (props.maximumVisibleTags < props.tags.length) {
-    return [...props.tags].splice(0, props.maximumVisibleTags + 1);
+    return [...props.tags].slice(props.maximumVisibleTags);
   }
 
-  return props.tags;
+  return [];
 });
 </script>
 

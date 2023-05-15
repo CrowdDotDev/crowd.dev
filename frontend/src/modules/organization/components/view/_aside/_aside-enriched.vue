@@ -26,21 +26,20 @@
               })
             }}
           </span>
-          <div v-else-if="attribute.type === attributesTypes.multiSelect" class="flex flex-col gap-1">
-            <div
-              v-for="value in organization[attribute.name]"
-              :key="value"
+          <div v-else-if="attribute.type === attributesTypes.multiSelect" class="flex gap-1">
+            <app-tags
+              :tags="organization[attribute.name]"
+              :interactive="attribute.isUrl"
+              :collapse-tags="true"
+              :collapse-tags-tooltip="true"
             >
-              <a
-                v-if="attribute.isUrl"
-                :href="withHttp(value)"
-                target="_blank"
-                rel="noopener noreferrer"
-              >{{ value }}</a>
-              <span v-else>
-                {{ value }}
-              </span>
-            </div>
+              <template v-if="attribute.isUrl" #tagTooltipContent>
+                <span>Open profile
+                  <i
+                    class="ri-external-link-line text-gray-400"
+                  /></span>
+              </template>
+            </app-tags>
           </div>
           <span v-else>
             {{ attribute.type === attributesTypes.string ? toSentenceCase(organization[attribute.name]) : organization[attribute.name] }}
@@ -55,7 +54,8 @@
 import { computed, defineProps } from 'vue';
 import enrichmentAttributes, { attributesTypes } from '@/modules/organization/config/organization-enrichment-attributes';
 import { formatDate } from '@/utils/date';
-import { toSentenceCase, withHttp } from '@/utils/string';
+import { toSentenceCase } from '@/utils/string';
+import AppTags from '@/shared/tags/tags.vue';
 
 const props = defineProps({
   organization: {
