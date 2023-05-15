@@ -35,6 +35,7 @@ import MemberAttributeSettingsService from '../../../../services/memberAttribute
 import { MemberAttributeName } from '../../../../database/attributes/member/enums'
 import { DiscourseActivityType } from '../../../../types/activityTypes'
 import { DiscourseGrid } from '../../grid/discourseGrid'
+import type { PlatformIdentities } from '../../types/messageTypes'
 
 enum DiscourseStreamType {
   CATEGORIES = 'categories',
@@ -198,10 +199,11 @@ export class DiscourseIntegrationService extends IntegrationServiceBase {
             context.logger,
           )
 
-          const member = DiscourseIntegrationService.parseUserIntoMember(user, context.pipelineData.forumHostname)
+          const member = DiscourseIntegrationService.parseUserIntoMember(user, context.pipelineData.forumHostname, context)
 
           const activity: AddActivitiesSingle = {
             member,
+            username: member.username[PlatformType.DISCOURSE].username,
             platform: PlatformType.DISCOURSE,
             tenant: context.integration.tenantId,
             sourceId: `${topicId}-${post.post_number}`,
@@ -379,10 +381,12 @@ export class DiscourseIntegrationService extends IntegrationServiceBase {
     const member = DiscourseIntegrationService.parseUserIntoMember(
       user,
       context.integration.settings.forumHostname,
+      context
     )
 
     const activity: AddActivitiesSingle = {
       member,
+      username: member.username[PlatformType.DISCOURSE].username,
       platform: PlatformType.DISCOURSE,
       tenant: context.integration.tenantId,
       sourceId: `${post.id}`,
@@ -428,10 +432,12 @@ export class DiscourseIntegrationService extends IntegrationServiceBase {
         users: [],
       },
       context.integration.settings.forumHostname,
+      context
     )
 
     const activity: AddActivitiesSingle = {
       member,
+      username: member.username[PlatformType.DISCOURSE].username,
       platform: PlatformType.DISCOURSE,
       tenant: context.integration.tenantId,
       sourceId: `${user.id}`,
@@ -475,10 +481,12 @@ export class DiscourseIntegrationService extends IntegrationServiceBase {
      const member = DiscourseIntegrationService.parseUserIntoMember(
        user,
        context.integration.settings.forumHostname,
+       context
      )
 
      const activity: AddActivitiesSingle = {
        member,
+       username: member.username[PlatformType.DISCOURSE].username,
        platform: PlatformType.DISCOURSE,
        tenant: context.integration.tenantId,
        sourceId: `${notification.id}`,
@@ -502,11 +510,14 @@ export class DiscourseIntegrationService extends IntegrationServiceBase {
   } 
 
 
-  static parseUserIntoMember(user: DiscourseUserResponse, forumHostname: string): Member {
+  static parseUserIntoMember(user: DiscourseUserResponse, forumHostname: string, context: IStepContext): Member {
     return {
       username: {
-        [PlatformType.DISCOURSE]: user.user.username,
-      },
+        [PlatformType.DISCOURSE]: {
+          username: user.user.username,
+          integrationId: context.integration.id,
+        },
+      } as PlatformIdentities,
       displayName: user.user.name,
       attributes: {
         [MemberAttributeName.URL]: {
@@ -519,14 +530,13 @@ export class DiscourseIntegrationService extends IntegrationServiceBase {
           [PlatformType.DISCOURSE]: user.user.location || '',
         },
         [MemberAttributeName.BIO]: {
-          [PlatformType.DISCOURSE]: user.user.bio_cooked ? sanitizeHtml(he.decode(user.user.bio_cooked)) : '',
+          [PlatformType.DISCOURSE]: user.user.bio_cooked
+            ? sanitizeHtml(he.decode(user.user.bio_cooked))
+            : '',
         },
         [MemberAttributeName.AVATAR_URL]: {
           [PlatformType.DISCOURSE]:
-            `https://${forumHostname}${user.user.avatar_template.replace(
-              '{size}',
-              '200',
-            )}` || '',
+            `https://${forumHostname}${user.user.avatar_template.replace('{size}', '200')}` || '',
         },
       },
       emails: user.user.email ? [user.user.email] : [],
