@@ -61,8 +61,22 @@
     >
       <app-organization-headline :organization="organization" />
 
-      <div v-if="organization.description" class="mt-2 text-sm text-gray-600">
-        {{ organization.description }}
+      <div
+        v-if="organization.description"
+        ref="descriptionRef"
+        class="mt-2 text-sm text-gray-600"
+        :class="{
+          'line-clamp-4': displayShowMore && !showMore,
+        }"
+        v-html="$sanitize(organization.description)"
+      />
+      <!-- show more/less button -->
+      <div
+        v-if="displayShowMore"
+        class="text-2xs text-brand-500 mt-3 cursor-pointer"
+        @click.stop="showMore = !showMore"
+      >
+        Show {{ showMore ? 'less' : 'more' }}
       </div>
     </div>
 
@@ -150,7 +164,7 @@
 </template>
 
 <script setup>
-import { defineProps } from 'vue';
+import { defineProps, onMounted, ref } from 'vue';
 import moment from 'moment';
 import {
   formatDate,
@@ -171,6 +185,21 @@ defineProps({
     type: Object,
     default: () => {},
   },
+});
+
+const showMore = ref(false);
+const displayShowMore = ref(true);
+const descriptionRef = ref(null);
+
+onMounted(() => {
+  const body = descriptionRef.value;
+  if (body) {
+    const height = body.clientHeight;
+    const { scrollHeight } = body;
+    displayShowMore.value = scrollHeight > height;
+  } else {
+    displayShowMore.value = false;
+  }
 });
 
 const formattedInformation = (value, type) => {
