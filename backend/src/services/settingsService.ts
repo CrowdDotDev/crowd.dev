@@ -104,15 +104,20 @@ class SettingsService {
    *
    */
   static unnestActivityTypes(activityTypes: ActivityTypeSettings): UnnestedActivityTypes {
-    return Object.keys(activityTypes.custom).reduce((acc, platform) => {
-      const unnestWithPlatform = Object.keys(activityTypes.custom[platform]).reduce((acc2, key) => {
-        acc2[key] = { ...activityTypes.custom[platform][key], platform }
-        return acc2
-      }, {})
+    return Object.keys(activityTypes.custom)
+      .filter((k) => activityTypes.custom[k])
+      .reduce((acc, platform) => {
+        const unnestWithPlatform = Object.keys(activityTypes.custom[platform]).reduce(
+          (acc2, key) => {
+            acc2[key] = { ...activityTypes.custom[platform][key], platform }
+            return acc2
+          },
+          {},
+        )
 
-      acc = { ...acc, ...unnestWithPlatform }
-      return acc
-    }, {})
+        acc = { ...acc, ...unnestWithPlatform }
+        return acc
+      }, {})
   }
 
   static async updateActivityType(key: string, data, options: IRepositoryOptions) {
