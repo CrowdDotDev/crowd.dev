@@ -43,7 +43,7 @@
         >
           <a
             v-if="interactive"
-            class="badge--border"
+            class="badge--border !overflow-visible"
             target="_blank"
             rel="noopener noreferrer"
             :href="withHttp(hiddenTag)"

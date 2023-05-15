@@ -26,7 +26,7 @@
               })
             }}
           </span>
-          <div v-else-if="attribute.type === attributesTypes.multiSelect" class="flex gap-1">
+          <div v-else-if="attribute.type === attributesTypes.multiSelect" class="flex flex-wrap gap-1">
             <app-tags
               :tags="organization[attribute.name]"
               :interactive="attribute.isUrl"
