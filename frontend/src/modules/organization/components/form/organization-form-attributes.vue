@@ -23,6 +23,7 @@
           :key="attribute.name"
           :type="attribute.type"
           :label="attribute.label"
+          :is-enrichment-field="true"
         >
           <app-autocomplete-many-input
             v-if="attribute.type === attributesTypes.multiSelect"

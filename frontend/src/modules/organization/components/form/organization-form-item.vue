@@ -10,6 +10,7 @@
           {{ label }}
         </div>
         <el-tooltip
+          v-if="isEnrichmentField"
           content="Organization enrichment"
           placement="top"
         >
@@ -39,6 +40,10 @@ defineProps({
   type: {
     type: String,
     default: null,
+  },
+  isEnrichmentField: {
+    type: Boolean,
+    default: false,
   },
 });
 </script>
