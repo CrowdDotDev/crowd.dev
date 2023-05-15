@@ -35,10 +35,11 @@
       </div>
     </template>
     <template #default>
-      <div class="flex flex-wrap gap-1">
+      <div class="flex flex-wrap gap-1 overflow-hidden">
         <div
           v-for="hiddenTag in hiddenTags"
           :key="hiddenTag"
+          class="truncate"
         >
           <a
             v-if="interactive"

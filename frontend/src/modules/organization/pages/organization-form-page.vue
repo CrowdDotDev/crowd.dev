@@ -42,7 +42,7 @@
               v-model="formModel"
               :record="record"
             />
-            <div v-if="record?.lastEnrichedAt">
+            <div v-if="shouldShowAttributes">
               <el-divider
                 class="!mb-6 !mt-8 !border-gray-200"
               />
@@ -128,6 +128,7 @@ import ConfirmDialog from '@/shared/dialog/confirm-dialog';
 import AppOrganizationFormIdentities from '@/modules/organization/components/form/organization-form-identities.vue';
 import AppOrganizationFormDetails from '@/modules/organization/components/form/organization-form-details.vue';
 import AppOrganizationFormAttributes from '@/modules/organization/components/form/organization-form-attributes.vue';
+import enrichmentAttributes, { attributesTypes } from '@/modules/organization/config/organization-enrichment-attributes';
 
 const LoaderIcon = h(
   'i',
@@ -248,6 +249,18 @@ const isSubmitBtnDisabled = computed(
     || isFormSubmitting.value
     || (isEditPage.value && !hasFormChanged.value),
 );
+
+const shouldShowAttributes = computed(() => enrichmentAttributes.some((a) => {
+  if (!a.showInForm) {
+    return false;
+  }
+
+  if (a.type === attributesTypes.multiSelect) {
+    return !!record.value?.[a.name]?.length;
+  }
+
+  return !!record.value?.[a.name];
+}));
 
 // Prevent lost data on route change
 onBeforeRouteLeave((to) => {
