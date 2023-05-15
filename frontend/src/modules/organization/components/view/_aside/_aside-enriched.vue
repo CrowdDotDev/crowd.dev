@@ -32,8 +32,8 @@
               :key="value"
             >
               <a
-                v-if="isValidUrl(value)"
-                :href="value"
+                v-if="attribute.isUrl"
+                :href="withHttp(value)"
                 target="_blank"
                 rel="noopener noreferrer"
               >{{ value }}</a>
@@ -55,7 +55,7 @@
 import { computed, defineProps } from 'vue';
 import enrichmentAttributes, { attributesTypes } from '@/modules/organization/config/organization-enrichment-attributes';
 import { formatDate } from '@/utils/date';
-import { toSentenceCase, isValidUrl } from '@/utils/string';
+import { toSentenceCase, withHttp } from '@/utils/string';
 
 const props = defineProps({
   organization: {

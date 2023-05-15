@@ -44,5 +44,6 @@ export default [
     label: 'Profiles',
     type: attributesTypes.multiSelect,
     showInForm: true,
+    isUrl: true,
   },
 ];
