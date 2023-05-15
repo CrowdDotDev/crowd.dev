@@ -331,6 +331,7 @@
                 </template>
               </el-table-column>
 
+              <!-- Location -->
               <el-table-column
                 label="Location"
                 width="150"
@@ -359,34 +360,7 @@
                 </template>
               </el-table-column>
 
-              <el-table-column
-                label="Size"
-                width="150"
-                prop="size"
-                sortable
-              >
-                <template #default="scope">
-                  <router-link
-                    :to="{
-                      name: 'organizationView',
-                      params: { id: scope.row.id },
-                    }"
-                    class="block"
-                  >
-                    <div
-                      class="text-sm h-full flex items-center"
-                    >
-                      <span v-if="scope.row.size" class="text-gray-900">
-                        {{
-                          scope.row.size
-                        }}
-                      </span>
-                      <span v-else class="text-gray-500">-</span>
-                    </div>
-                  </router-link>
-                </template>
-              </el-table-column>
-
+              <!-- Industry -->
               <el-table-column
                 label="Industry"
                 width="150"
@@ -415,6 +389,36 @@
                 </template>
               </el-table-column>
 
+              <!-- Size -->
+              <el-table-column
+                label="Size"
+                width="150"
+                prop="size"
+                sortable
+              >
+                <template #default="scope">
+                  <router-link
+                    :to="{
+                      name: 'organizationView',
+                      params: { id: scope.row.id },
+                    }"
+                    class="block"
+                  >
+                    <div
+                      class="text-sm h-full flex items-center"
+                    >
+                      <span v-if="scope.row.size" class="text-gray-900">
+                        {{
+                          scope.row.size
+                        }}
+                      </span>
+                      <span v-else class="text-gray-500">-</span>
+                    </div>
+                  </router-link>
+                </template>
+              </el-table-column>
+
+              <!-- Founded -->
               <el-table-column
                 label="Founded"
                 width="150"

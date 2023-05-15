@@ -16,6 +16,12 @@ export default [
     showInForm: false,
   },
   {
+    name: 'industry',
+    label: 'Industry',
+    type: attributesTypes.string,
+    showInForm: true,
+  },
+  {
     name: 'type',
     label: 'Type',
     type: attributesTypes.string,
@@ -24,12 +30,6 @@ export default [
   {
     name: 'size',
     label: 'Size',
-    type: attributesTypes.string,
-    showInForm: true,
-  },
-  {
-    name: 'industry',
-    label: 'Industry',
     type: attributesTypes.string,
     showInForm: true,
   },
