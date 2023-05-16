@@ -24,11 +24,11 @@ export default () => ({
         pageSize: INITIAL_PAGE_SIZE,
       },
       initialSorter: {
-        prop: 'joinedAt',
+        prop: 'activityCount',
         order: 'descending',
       },
       sorter: {
-        prop: 'joinedAt',
+        prop: 'activityCount',
         order: 'descending',
       },
       active: true,
