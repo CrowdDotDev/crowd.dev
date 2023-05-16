@@ -1,4 +1,6 @@
 import { Logger, LoggerBase, logError } from '@crowd/logging'
+import { getDbInstance } from './connection'
+import { lockTable, lockTableRow } from './locking'
 import {
   DbConnection,
   DbInstance,
@@ -7,16 +9,17 @@ import {
   RowLockStrength,
   TableLockLevel,
 } from './types'
-import { lockTable, lockTableRow } from './locking'
 
 export class DbStore extends LoggerBase {
+  public readonly dbInstance: DbInstance
   constructor(
-    public readonly dbInstance: DbInstance,
     parentLog?: Logger,
     private readonly dbConnection?: DbConnection,
     private readonly dbTransaction?: DbTransaction,
   ) {
     super(parentLog, { transactional: dbTransaction !== undefined })
+
+    this.dbInstance = getDbInstance()
   }
 
   private checkValid() {
@@ -56,7 +59,7 @@ export class DbStore extends LoggerBase {
     if (this.dbConnection !== undefined) {
       this.log.info()
       return this.dbConnection.tx((t: DbTransaction) => {
-        return inTransaction(new DbStore(this.dbInstance, this.log, undefined, t))
+        return inTransaction(new DbStore(this.log, undefined, t))
       })
     }
 

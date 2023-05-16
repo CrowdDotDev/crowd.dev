@@ -1,17 +1,9 @@
-import { IntegrationState, MemberAttributeType } from './enums/integrations'
-
-export interface IMemberAttribute {
-  type: MemberAttributeType
-  canDelete: boolean
-  show: boolean
-  label: string
-  name: string
-  options?: string[]
-}
+import { IntegrationState, IntegrationStreamType } from './enums/integrations'
 
 export interface IIntegrationStream {
-  name: string
-  metadata: unknown
+  identifier: string
+  type: IntegrationStreamType
+  metadata?: unknown
 }
 
 export interface IIntegration {

@@ -9,6 +9,7 @@
     "moduleResolution": "node",
     "sourceMap": true,
     "experimentalDecorators": true,
+    "esModuleInterop": true,
     "baseUrl": ".",
     "paths": {
       "@crowd/*": ["../*/dist"]

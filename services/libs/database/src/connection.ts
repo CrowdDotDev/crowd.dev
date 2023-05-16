@@ -53,6 +53,10 @@ export const getDbConnection = (config: IDatabaseConfig): DbConnection => {
     { database: config.database, host: config.host, port: config.port },
     'Connecting to database!',
   )
-  dbConnection = getDbInstance()(config)
+
+  const dbInstance = getDbInstance()
+
+  dbConnection = dbInstance(config)
+
   return dbConnection
 }

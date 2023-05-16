@@ -45,6 +45,7 @@ export abstract class SqsQueueBase extends LoggerBase {
             : this.queueConf.name,
       })
       const result = await this.sqsClient.send(cmd)
+      this.log.info('Queue exists!')
       this.queueUrl = result.QueueUrl
     } catch (err) {
       if (err.name === 'QueueDoesNotExist') {

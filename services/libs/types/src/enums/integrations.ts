@@ -14,13 +14,14 @@ export enum IntegrationRunState {
   ERROR = 'error',
 }
 
-export enum MemberAttributeType {
-  BOOLEAN = 'boolean',
-  NUMBER = 'number',
-  EMAIL = 'email',
-  STRING = 'string',
-  URL = 'url',
-  DATE = 'date',
-  MULTI_SELECT = 'multiSelect',
-  SPECIAL = 'special',
+export enum IntegrationStreamState {
+  PENDING = 'pending',
+  PROCESSING = 'processing',
+  PROCESSED = 'processed',
+  ERROR = 'error',
+}
+
+export enum IntegrationStreamType {
+  ROOT = 'root',
+  CHILD = 'child',
 }

@@ -1,0 +1,31 @@
+{
+  "name": "@crowd/redis",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "build": "rm -rf dist && tsc",
+    "lint": "eslint --ext .ts src",
+    "format": "prettier --write \"src/**/*.ts\""
+  },
+  "exports": {
+    ".": {
+      "require": "./dist/index.js",
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "devDependencies": {
+    "@types/node": "^18.16.3",
+    "eslint": "^8.39.0",
+    "eslint-config-prettier": "^8.8.0",
+    "eslint-plugin-prettier": "^4.2.1",
+    "prettier": "^2.8.8",
+    "typescript": "^5.0.4"
+  },
+  "dependencies": {
+    "@crowd/common": "file:../common",
+    "@crowd/types": "file:../types",
+    "@crowd/logging": "file:../logging",
+    "redis": "^4.6.6"
+  }
+}

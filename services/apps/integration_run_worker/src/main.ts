@@ -1,18 +1,21 @@
 import { getDbConnection } from '@crowd/database'
 import { getServiceLogger } from '@crowd/logging'
 import { getSqsClient } from '@crowd/sqs'
-import { DB_CONFIG, SQS_CONFIG } from './config'
+import { DB_CONFIG, REDIS_CONFIG, SQS_CONFIG } from './config'
 import { WorkerQueueReceiver } from './queue'
+import { getRedisClient } from '@crowd/redis'
 
 const log = getServiceLogger()
 
 setImmediate(async () => {
   log.info('Starting integration run worker...')
 
-  const client = getSqsClient(SQS_CONFIG())
+  const sqsClient = getSqsClient(SQS_CONFIG())
 
   const dbConnection = getDbConnection(DB_CONFIG())
-  const queue = new WorkerQueueReceiver(client, dbConnection, log)
+  const redisClient = await getRedisClient(REDIS_CONFIG(), true)
+
+  const queue = new WorkerQueueReceiver(sqsClient, redisClient, dbConnection, log)
 
   try {
     await queue.start()

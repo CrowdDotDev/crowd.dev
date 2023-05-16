@@ -2,7 +2,7 @@ import { getChildLogger, getServiceChildLogger } from './logger'
 import { Logger } from './types'
 
 export abstract class LoggerBase {
-  protected readonly log: Logger
+  protected log: Logger
 
   protected constructor()
   protected constructor(logProperties: Record<string, unknown>)
