@@ -148,12 +148,26 @@
           </router-link>
         </div>
       </div>
+
+      <div v-if="shouldShowAttributes">
+        <div class="mt-10">
+          <div class="font-medium text-black">
+            Attributes
+          </div>
+
+          <app-organization-aside-enriched
+            :organization="organization"
+          />
+        </div>
+      </div>
     </div>
   </div>
 </template>
 
 <script setup>
 import { defineProps, computed } from 'vue';
+import enrichmentAttributes, { attributesTypes } from '@/modules/organization/config/organization-enrichment-attributes';
+import AppOrganizationAsideEnriched from './_aside/_aside-enriched.vue';
 
 const props = defineProps({
   organization: {
@@ -181,6 +195,14 @@ const noIdentities = computed(() => (
     && (!props.organization.phoneNumbers
       || props.organization.phoneNumbers.length === 0)
 ));
+
+const shouldShowAttributes = computed(() => enrichmentAttributes.some((a) => {
+  if (a.type === attributesTypes.multiSelect) {
+    return !!props.organization[a.name]?.length;
+  }
+
+  return !!props.organization[a.name];
+}));
 
 const getIdentityLink = (platform) => {
   if (props.organization[platform]?.url) {
