@@ -2,6 +2,38 @@
 
 All notable changes to this project will be documented in this file.
 
+## v0.32.0 - 2023-05-16
+
+### Changes
+
+For more details, see our changelog: [changelog.crowd.dev](https://changelog.crowd.dev/changelogs/organization-enrichment).
+
+### 🚀 Features
+
+- Organization enrichment frontend @joanagmaia and @elayira (#864 #825)
+
+### ✨ Improvements
+
+- Soft-delete integrations when removing them @sausage-todd (#855)
+- Change all tab titles to match page titles @keshari1arya (#819)
+- Replaced the Twitter connection flow to use Zapier @gaspergrom (#846)
+- Added test for members' filters  @gaspergrom (#790)
+- Align the member profile icon and copy @yeganathan18 (#822)
+
+### 🐞 Bug Fixes
+
+- Fix how activity types were being displayed @joanagmaia (#851)
+- Fix the filter for custom activity types @joanagmaia (#843)
+- Fix an issue where the Slack notifier webhook was being overwritten @gaspergrom (#856)
+- Move all activity types and platforms to lowercase @epipav (#849)
+- Replaced the Nango CLI with an API call @themarolt (#850)
+- Fix how activity types were displayed in the dashboard @joanagmaia (#847)
+- Fix some type errors that were causing problems in the frontend @joanagmaia (#841)
+- Check if team members did activities for automation @epipav (#845)
+- Bug fixes and improvements in the automation feature @gaspergrom (#840)
+- Fix the URL encoding @elayira (#818)
+- Fix activities parsed from GitHub webhooks  @epipav (#839)
+
 ## v0.30.0 - 2023-05-02
 
 ### Changes
@@ -344,7 +376,6 @@ https://user-images.githubusercontent.com/37874460/220165717-4204605a-260f-41cb-
 ## v0.19.0 - 2023-02-13
 ### Changes
 ### ✨ Improvements
-
 - Added LinkedIn to sample data @joanreyero (#481)
 - Moved the organizations' module to the essential plan @themarolt (#514)
 
@@ -535,7 +566,6 @@ With this, we have introduced feature flagging, so we can also roll out features
 - Make sure that we call AWS Comprehend API with a `utf-8` string. @themarolt (#315)
 - Properly handle GitHub's rate limit @themarolt (#311)
 ## v0.11.0 - 2022-12-05
-
 ### Changes
 
 ### 🚀 Features
