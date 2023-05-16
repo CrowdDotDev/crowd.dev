@@ -479,6 +479,18 @@ describe('MemberService tests', () => {
         createdById: mockIServiceOptions.currentUser.id,
         updatedById: mockIServiceOptions.currentUser.id,
         isTeamOrganization: false,
+        type: null,
+        ticker: null,
+        size: null,
+        naics: null,
+        lastEnrichedAt: null,
+        industry: null,
+        headline: null,
+        geoLocation: null,
+        founded: null,
+        employeeCountByCountry: null,
+        address: null,
+        profiles: null,
       })
     })
 
@@ -536,6 +548,18 @@ describe('MemberService tests', () => {
         createdById: mockIServiceOptions.currentUser.id,
         updatedById: mockIServiceOptions.currentUser.id,
         isTeamOrganization: false,
+        type: null,
+        ticker: null,
+        size: null,
+        naics: null,
+        lastEnrichedAt: null,
+        industry: null,
+        headline: null,
+        geoLocation: null,
+        founded: null,
+        employeeCountByCountry: null,
+        address: null,
+        profiles: null,
       })
     })
 
@@ -597,6 +621,18 @@ describe('MemberService tests', () => {
         createdById: mockIServiceOptions.currentUser.id,
         updatedById: mockIServiceOptions.currentUser.id,
         isTeamOrganization: false,
+        type: null,
+        ticker: null,
+        size: null,
+        naics: null,
+        lastEnrichedAt: null,
+        industry: null,
+        headline: null,
+        geoLocation: null,
+        founded: null,
+        employeeCountByCountry: null,
+        address: null,
+        profiles: null,
       })
     })
 
@@ -674,6 +710,18 @@ describe('MemberService tests', () => {
         createdById: mockIServiceOptions.currentUser.id,
         updatedById: mockIServiceOptions.currentUser.id,
         isTeamOrganization: false,
+        type: null,
+        ticker: null,
+        size: null,
+        naics: null,
+        lastEnrichedAt: null,
+        industry: null,
+        headline: null,
+        geoLocation: null,
+        founded: null,
+        employeeCountByCountry: null,
+        address: null,
+        profiles: null,
       })
     })
 

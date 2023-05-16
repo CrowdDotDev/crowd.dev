@@ -10,12 +10,34 @@ import { isUserInTenant } from '../utils/userTenantUtils'
 import { IRepositoryOptions } from './IRepositoryOptions'
 import getCleanString from '../../utils/getCleanString'
 import SettingsRepository from './settingsRepository'
+import Plans from '../../security/plans'
 
 const { Op } = Sequelize
 
 const forbiddenTenantUrls = ['www']
 
 class TenantRepository {
+  static async getPayingTenantIds(options: IRepositoryOptions): Promise<({ id: string } & {})[]> {
+    const database = SequelizeRepository.getSequelize(options)
+    const plans = Plans.values
+    const transaction = SequelizeRepository.getTransaction(options)
+
+    const query = `
+      SELECT "id"
+      FROM "tenants"
+      WHERE tenants."plan" IN (:growth)
+        OR (tenants."isTrialPlan" is true AND tenants."plan" = :growth)
+      ;
+    `
+    return database.query(query, {
+      type: QueryTypes.SELECT,
+      transaction,
+      replacements: {
+        growth: plans.growth,
+      },
+    })
+  }
+
   static async create(data, options: IRepositoryOptions) {
     const currentUser = SequelizeRepository.getCurrentUser(options)
 

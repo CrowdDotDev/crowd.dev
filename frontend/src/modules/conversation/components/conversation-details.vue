@@ -264,7 +264,6 @@ export default {
     sorterOptions() {
       const { platform } = this.conversation;
       const defaultActivityTypes = this.currentTenant?.settings[0]?.activityTypes?.default;
-
       const options = [{
         value: 'all',
         label: 'All',
