@@ -102,33 +102,27 @@ export default class OrganizationEnrichmentService extends LoggingBase {
     return OrganizationRepository.bulkUpdate(orgs, [...this.fields], this.options)
   }
 
-  private convertEnrichedDataToOrg(
-    pdlData: Awaited<IEnrichmentResponse>,
-    instance: IEnrichableOrganization,
-  ): IOrganization {
-    let location = null
-    const data = <IEnrichableOrganization>renameKeys(pdlData, {
-      summary: 'description',
-      employee_count_by_country: 'employeeCountByCountry',
-      twitter_url: 'twitter',
-      employee_count: 'employees'
-    })
+  private static sanitize(data: IEnrichableOrganization): IEnrichableOrganization {
     if (data.address) {
       data.geoLocation = data.address.geo ?? null
       delete data.address.geo
-      location = `${data.address.street_address ?? ""} ${data.address.address_line_2 ?? ""} ${data.address.name ?? ""}`
+      data.location = data.location
+        ? data.location
+        : `${data.address.street_address ?? ''} ${data.address.address_line_2 ?? ''} ${
+            data.address.name ?? ''
+          }`
     }
     if (data.employeeCountByCountry && !data.employees) {
       const employees = Object.values(data.employeeCountByCountry).reduce(
         (acc, size) => acc + size,
         0,
       )
-      Object.assign(data, { employees: employees || instance.employees })
+      Object.assign(data, { employees: employees || data.employees })
     }
-    if(data.description) {
+    if (data.description) {
       let description = data.description[0].toUpperCase()
-      for(let char of data.description.slice(1)) {
-        if(description.length > 1 && description.slice(-2) === '. ') {
+      for (let char of data.description.slice(1)) {
+        if (description.length > 1 && description.slice(-2) === '. ') {
           char = char.toUpperCase()
         }
         description += char
@@ -136,8 +130,24 @@ export default class OrganizationEnrichmentService extends LoggingBase {
       data.description = description
     }
 
+    return data
+  }
+
+  private convertEnrichedDataToOrg(
+    pdlData: Awaited<IEnrichmentResponse>,
+    instance: IEnrichableOrganization,
+  ): IOrganization {
+    let data = <IEnrichableOrganization>renameKeys(pdlData, {
+      summary: 'description',
+      employee_count_by_country: 'employeeCountByCountry',
+      twitter_url: 'twitter',
+      employee_count: 'employees',
+    })
+
+    data = OrganizationEnrichmentService.sanitize(data)
+
     return lodash.pick(
-      { location, ...data, lastEnrichedAt: new Date() },
+      { ...data, lastEnrichedAt: new Date() },
       this.selectFieldsForEnrichment(instance),
     )
   }
