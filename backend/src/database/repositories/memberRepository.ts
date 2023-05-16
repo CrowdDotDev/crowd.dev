@@ -16,7 +16,6 @@ import QueryParser from './filters/queryParser'
 import { JsonColumnInfo, QueryOutput } from './filters/queryTypes'
 import RawQueryParser from './filters/rawQueryParser'
 import SequelizeRepository from './sequelizeRepository'
-import SettingsRepository from './settingsRepository'
 import TenantRepository from './tenantRepository'
 import {
   IActiveMemberData,
@@ -26,6 +25,7 @@ import {
   IMemberMergeSuggestion,
 } from './types/memberTypes'
 import { ActivityDisplayVariant } from '../../types/activityTypes'
+import SegmentRepository from './segmentRepository'
 
 const { Op } = Sequelize
 
@@ -1243,7 +1243,7 @@ where m."deletedAt" is null
         if (r.lastActivity) {
           r.lastActivity.display = ActivityDisplayService.getDisplayOptions(
             r.lastActivity,
-            SettingsRepository.getActivityTypes(options),
+            SegmentRepository.getActivityTypes(options),
             [ActivityDisplayVariant.SHORT, ActivityDisplayVariant.CHANNEL],
           )
         }

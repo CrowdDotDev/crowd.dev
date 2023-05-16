@@ -5,7 +5,7 @@ import PermissionChecker from '../../services/user/permissionChecker'
 export default async (req, res) => {
     new PermissionChecker(req).validateHas(Permissions.values.segmentRead)
 
-    const payload = await new SegmentService(req).query(req.body)
+    const payload = await new SegmentService(req).querySubprojects(req.body)
 
     await req.responseHandler.success(req, res, payload)
 }

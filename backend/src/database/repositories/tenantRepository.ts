@@ -9,7 +9,6 @@ import Error400 from '../../errors/Error400'
 import { isUserInTenant } from '../utils/userTenantUtils'
 import { IRepositoryOptions } from './IRepositoryOptions'
 import getCleanString from '../../utils/getCleanString'
-import SettingsRepository from './settingsRepository'
 
 const { Op } = Sequelize
 
@@ -247,6 +246,8 @@ class TenantRepository {
   static async findById(id, options: IRepositoryOptions) {
     const transaction = SequelizeRepository.getTransaction(options)
 
+    const segment = SequelizeRepository.getStrictlySingleActiveSegment(options)
+
     const include = ['settings', 'conversationSettings']
 
     const record = await options.database.tenant.findByPk(id, {
@@ -255,9 +256,7 @@ class TenantRepository {
     })
 
     if (record && record.settings && record.settings[0] && record.settings[0].dataValues) {
-      record.settings[0].dataValues.activityTypes = SettingsRepository.buildActivityTypes(
-        record.settings[0].dataValues,
-      )
+      record.settings[0].dataValues.activityTypes = segment.activityTypes
     }
 
     return record

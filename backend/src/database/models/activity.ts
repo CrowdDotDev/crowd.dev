@@ -156,6 +156,13 @@ export default (sequelize) => {
       },
     })
 
+    models.activity.belongsTo(models.segment, {
+      as: 'segment',
+      foreignKey: {
+        allowNull: false,
+      },
+    })
+
     models.activity.belongsTo(models.member, {
       as: 'objectMember',
     })

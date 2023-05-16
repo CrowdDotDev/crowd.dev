@@ -10,7 +10,7 @@ import { PlatformType } from '../../types/integrationEnums'
 import snakeCaseNames from '../../utils/snakeCaseNames'
 import QueryParser from './filters/queryParser'
 import ActivityDisplayService from '../../services/activityDisplayService'
-import SettingsRepository from './settingsRepository'
+import SegmentRepository from './segmentRepository'
 
 const Op = Sequelize.Op
 
@@ -513,7 +513,7 @@ class ConversationRepository {
                 act.objectMember = objectMember
                 act.display = ActivityDisplayService.getDisplayOptions(
                   act,
-                  SettingsRepository.getActivityTypes(options),
+                  SegmentRepository.getActivityTypes(options),
                 )
 
                 return act
@@ -529,7 +529,7 @@ class ConversationRepository {
             if (rec.conversationStarter) {
               rec.conversationStarter.display = ActivityDisplayService.getDisplayOptions(
                 rec.conversationStarter,
-                SettingsRepository.getActivityTypes(options),
+                SegmentRepository.getActivityTypes(options),
               )
             }
           } else {
@@ -580,7 +580,7 @@ class ConversationRepository {
       act.member = member
       act.display = ActivityDisplayService.getDisplayOptions(
         act,
-        SettingsRepository.getActivityTypes(options),
+        SegmentRepository.getActivityTypes(options),
       )
       return act
     })
@@ -619,7 +619,7 @@ class ConversationRepository {
       output.channel = output.activities[0].channel ? output.activities[0].channel : null
       output.conversationStarter.display = ActivityDisplayService.getDisplayOptions(
         output.conversationStarter,
-        SettingsRepository.getActivityTypes(options),
+        SegmentRepository.getActivityTypes(options),
       )
     }
 

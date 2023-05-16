@@ -81,6 +81,7 @@ export default (sequelize, DataTypes) => {
       },
     })
 
+
     models.settings.belongsTo(models.user, {
       as: 'createdBy',
     })

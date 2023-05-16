@@ -1,4 +1,4 @@
-import SettingsService from '../../services/settingsService'
+import SegmentService from '../../services/segmentService'
 
 /**
  * GET /tenant/{tenantId}/settings/activity/types
@@ -15,7 +15,7 @@ import SettingsService from '../../services/settingsService'
  * @response 429 - Too many requests
  */
 export default async (req, res) => {
-  const payload = SettingsService.listActivityTypes(req)
+  const payload = SegmentService.listActivityTypes(req)
 
   await req.responseHandler.success(req, res, payload)
 }

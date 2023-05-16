@@ -19,6 +19,8 @@ class IntegrationRepository {
 
     const transaction = SequelizeRepository.getTransaction(options)
 
+    const segment = SequelizeRepository.getStrictlySingleActiveSegment(options)
+
     const record = await options.database.integration.create(
       {
         ...lodash.pick(data, [
@@ -33,7 +35,7 @@ class IntegrationRepository {
           'importHash',
           'emailSentAt',
         ]),
-
+        segmentId: segment.id,
         tenantId: tenant.id,
         createdById: currentUser.id,
         updatedById: currentUser.id,
@@ -55,10 +57,13 @@ class IntegrationRepository {
 
     const currentTenant = SequelizeRepository.getCurrentTenant(options)
 
+    const segment = SequelizeRepository.getStrictlySingleActiveSegment(options)
+
     let record = await options.database.integration.findOne({
       where: {
         id,
         tenantId: currentTenant.id,
+        segmentId: segment.id
       },
       transaction,
     })
@@ -122,6 +127,8 @@ class IntegrationRepository {
   static async findByPlatform(platform, options: IRepositoryOptions) {
     const transaction = SequelizeRepository.getTransaction(options)
 
+    const segment = SequelizeRepository.getStrictlySingleActiveSegment(options)
+    
     const include = []
 
     const currentTenant = SequelizeRepository.getCurrentTenant(options)
@@ -130,6 +137,7 @@ class IntegrationRepository {
       where: {
         platform,
         tenantId: currentTenant.id,
+        segmentId: segment.id
       },
       include,
       transaction,

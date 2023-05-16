@@ -1,5 +1,5 @@
 import Permissions from '../../security/permissions'
-import SettingsService from '../../services/settingsService'
+import SegmentService from '../../services/segmentService'
 import PermissionChecker from '../../services/user/permissionChecker'
 
 /**
@@ -19,9 +19,9 @@ import PermissionChecker from '../../services/user/permissionChecker'
  * @response 429 - Too many requests
  */
 export default async (req, res) => {
-  new PermissionChecker(req).validateHas(Permissions.values.settingsEdit)
+  new PermissionChecker(req).validateHas(Permissions.values.segmentEdit)
 
-  const payload = await SettingsService.updateActivityType(req.params.key, req.body, req)
+  const payload = await new SegmentService(req).updateActivityType(req.params.key, req.body)
 
   await req.responseHandler.success(req, res, payload)
 }
