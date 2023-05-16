@@ -12,10 +12,15 @@ export default async (req, res) => {
 
   const {apiKey, apiUsername, forumHostname} = req.body
 
+  console.log('apiKey', apiKey)
+  console.log('apiUsername', apiUsername)
+  console.log('forumHostname', forumHostname)
+
     if (apiKey && apiUsername && forumHostname) {
+      console.log('here inside if')
         try {
             const result = await axios.get(
-            `https://${forumHostname}/admin/users/list/active.json`,
+            `${forumHostname}/admin/users/list/active.json`,
             {
                 headers: {
                 'Api-Key': apiKey,
@@ -28,11 +33,14 @@ export default async (req, res) => {
             result.data &&
             result.data.length > 0
             ) {
+              console.log('here inside if - request success')
             return req.responseHandler.success(req, res, result.data)
             }
         } catch (e) {
+            console.log('here inside catch')
             return req.responseHandler.error(req, res, new Error400(req.language))
         }
     }
+    console.log('here inside else')
   return req.responseHandler.error(req, res, new Error400(req.language))
 }
