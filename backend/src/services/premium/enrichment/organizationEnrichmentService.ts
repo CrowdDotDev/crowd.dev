@@ -103,30 +103,41 @@ export default class OrganizationEnrichmentService extends LoggingBase {
   }
 
   private convertEnrichedDataToOrg(
-    data: Awaited<IEnrichmentResponse>,
+    pdlData: Awaited<IEnrichmentResponse>,
     instance: IEnrichableOrganization,
   ): IOrganization {
     let location = null
-    data = renameKeys(data, {
+    const data = <IEnrichableOrganization>renameKeys(pdlData, {
       summary: 'description',
       employee_count_by_country: 'employeeCountByCountry',
       twitter_url: 'twitter',
-      location: 'address',
+      employee_count: 'employees'
     })
     if (data.address) {
       data.geoLocation = data.address.geo ?? null
       delete data.address.geo
       location = `${data.address.street_address ?? ""} ${data.address.address_line_2 ?? ""} ${data.address.name ?? ""}`
     }
-    if (data.employee_count_by_country && !data.employee_count) {
-      const employees = Object.values(data.employee_count_by_country).reduce(
+    if (data.employeeCountByCountry && !data.employees) {
+      const employees = Object.values(data.employeeCountByCountry).reduce(
         (acc, size) => acc + size,
         0,
       )
       Object.assign(data, { employees: employees || instance.employees })
     }
+    if(data.description) {
+      let description = data.description[0].toUpperCase()
+      for(let char of data.description.slice(1)) {
+        if(description.length > 1 && description.slice(-2) === '. ') {
+          char = char.toUpperCase()
+        }
+        description += char
+      }
+      data.description = description
+    }
+
     return lodash.pick(
-      { ...data, location, lastEnrichedAt: new Date() },
+      { location, ...data, lastEnrichedAt: new Date() },
       this.selectFieldsForEnrichment(instance),
     )
   }
