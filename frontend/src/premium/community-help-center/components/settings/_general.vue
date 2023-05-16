@@ -67,7 +67,7 @@
         <div class="app-form-hint">
           Custom domain/url for the help center —
           <a
-            href="https://docs.crowd.dev/docs/conversations#4-set-up-custom-domain-premium-only"
+            href="https://docs.crowd.dev/docs/community-help-center#custom-domain-set-up-premium-only"
             target="_blank"
             rel="noopener noreferrer"
             class="font-semibold"
