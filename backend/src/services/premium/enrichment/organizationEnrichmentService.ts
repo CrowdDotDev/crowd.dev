@@ -106,9 +106,7 @@ export default class OrganizationEnrichmentService extends LoggingBase {
     if (data.address) {
       data.geoLocation = data.address.geo ?? null
       delete data.address.geo
-      data.location = data.location
-        ? data.location
-        : `${data.address.street_address ?? ''} ${data.address.address_line_2 ?? ''} ${
+      data.location = `${data.address.street_address ?? ''} ${data.address.address_line_2 ?? ''} ${
             data.address.name ?? ''
           }`
     }
@@ -142,6 +140,7 @@ export default class OrganizationEnrichmentService extends LoggingBase {
       employee_count_by_country: 'employeeCountByCountry',
       twitter_url: 'twitter',
       employee_count: 'employees',
+      location: 'address',
     })
 
     data = OrganizationEnrichmentService.sanitize(data)
