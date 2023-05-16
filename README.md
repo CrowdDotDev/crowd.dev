@@ -41,11 +41,11 @@ With crowd.dev, you get full visibility into all platforms and can take actions 
 - **Identity resolution & automated segmentation** to effortlessly understand activities and profiles across platforms.
 - **Opinionated analytics & reports** on topics like product-market-fit and open-source community activity to further inform your GTM strategy.
 - **Workflows automation** with webhooks.
-- **2-way CRM sync & Slack alerts** to get notified about intent events in real-time. (cloud only)
-- **User enrichment** with 25+ attributes, including emails, social profiles, work experience, and technical skills. (cloud only)
-- **Organization enrichment** with 50+ attributes, including industry, headcount, and revenue. (cloud only)
-- **Sentiment analysis and conversation detection** to stay on top of what's going on in your open source community. (cloud only)
-- **[Eagle Eye]**(https://www.crowd.dev/eagle-eye): Monitor dev-focussed community platforms to find relevant content to engage with, helping you to gain developers’ mindshare and grow your community organically (cloud only)
+- **2-way CRM sync & Slack alerts** to get notified about intent events in real-time. [cloud only]
+- **User enrichment** with 25+ attributes, including emails, social profiles, work experience, and technical skills. [cloud only]
+- **Organization enrichment** with 50+ attributes, including industry, headcount, and revenue. [cloud only]
+- **Sentiment analysis and conversation detection** to stay on top of what's going on in your open source community. [cloud only]
+- **[Eagle Eye](https://www.crowd.dev/eagle-eye)**: Monitor dev-focussed community platforms to find relevant content to engage with, helping you to gain developers’ mindshare and grow your community organically [cloud only]
 
 ## 🔔 Stay up-to-date
 
