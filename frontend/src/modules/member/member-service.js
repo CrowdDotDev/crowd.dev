@@ -252,7 +252,7 @@ export class MemberService {
       offset,
     };
 
-    const response = await authAxios.get(
+    return authAxios.get(
       `/tenant/${tenantId}/membersToMerge`,
       {
         params,
@@ -260,9 +260,8 @@ export class MemberService {
           Authorization: sampleTenant?.token,
         },
       },
-    );
-
-    return response.data;
+    )
+      .then(({ data }) => Promise.resolve(data));
   }
 
   static async getCustomAttribute(id) {

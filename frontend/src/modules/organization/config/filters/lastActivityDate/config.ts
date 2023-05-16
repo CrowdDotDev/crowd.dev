@@ -9,9 +9,9 @@ const lastActivityDate: DateFilterConfig = {
   itemLabelRenderer(value): string {
     return `<b>Last activity date</b> ${value.value || '...'}`;
   },
-  queryRenderer(value): string {
+  apiFilterRenderer(value): any[] {
     console.log(value);
-    return '';
+    return [];
   },
 };
 

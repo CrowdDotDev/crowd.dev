@@ -7,12 +7,12 @@ const noOfActivities: NumberFilterConfig = {
   type: FilterConfigType.NUMBER,
   options: {},
   itemLabelRenderer(value): string {
-    return `<b># of activities</b> ${value?.value || '...'}`;
+    return `# of activities ${value?.value || '...'}`;
   },
-  queryRenderer(value) {
-    return {
-      activityCount: value,
-    };
+  apiFilterRenderer({ value }): any[] {
+    return [
+      { activityCount: { eq: value } },
+    ];
   },
 };
 

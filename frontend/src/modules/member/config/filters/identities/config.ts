@@ -20,11 +20,11 @@ const identities: MultiSelectFilterConfig = {
     ],
   },
   itemLabelRenderer(value: MultiSelectFilterValue): string {
-    return `<b>Identities</b> ${value?.value.join(',') || '...'}`;
+    return `Identities ${value?.value.join(',') || '...'}`;
   },
-  queryRenderer(value: MultiSelectFilterValue): string {
+  apiFilterRenderer(value): any[] {
     console.log(value);
-    return '';
+    return [];
   },
 };
 

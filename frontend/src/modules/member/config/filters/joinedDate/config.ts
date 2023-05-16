@@ -7,11 +7,11 @@ const joinedDate: DateFilterConfig = {
   type: FilterConfigType.DATE,
   options: {},
   itemLabelRenderer(value): string {
-    return `<b>Joined date</b> ${value.value || '...'}`;
+    return `Joined date ${value.value || '...'}`;
   },
-  queryRenderer(value): string {
+  apiFilterRenderer(value): any[] {
     console.log(value);
-    return '';
+    return [];
   },
 };
 

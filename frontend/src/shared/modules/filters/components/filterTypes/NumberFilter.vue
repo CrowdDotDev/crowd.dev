@@ -1,6 +1,6 @@
 <template>
   <div v-if="form">
-    <el-input v-model="form.value" type="text" placeholder="Pick number" />
+    <el-input v-model="form.value" type="number" placeholder="Pick number" />
   </div>
 </template>
 
@@ -41,7 +41,7 @@ const rules: any = {
 useVuelidate(rules, form);
 
 onMounted(() => {
-  if (!form.value) {
+  if (!form.value || Object.keys(form.value).length === 0) {
     form.value = defaultForm;
   }
 });

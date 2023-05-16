@@ -22,5 +22,5 @@ export interface MultiSelectFilterConfig extends BaseFilterConfig {
   type: FilterConfigType.MULTISELECT;
   options: MultiSelectFilterOptions;
   itemLabelRenderer: (value: MultiSelectFilterValue) => string;
-  queryRenderer: (value: MultiSelectFilterValue) => any;
+  apiFilterRenderer: (value: MultiSelectFilterValue) => any[];
 }

@@ -20,11 +20,11 @@ const activeOn: MultiSelectFilterConfig = {
     ],
   },
   itemLabelRenderer(value: MultiSelectFilterValue): string {
-    return `<b>Active On</b> ${value?.value.join(',') || '...'}`;
+    return `Active On ${value?.value.join(',') || '...'}`;
   },
-  queryRenderer(value: MultiSelectFilterValue): string {
+  apiFilterRenderer(value): any[] {
     console.log(value);
-    return '';
+    return [];
   },
 };
 

@@ -25,3 +25,19 @@ export type FilterConfig = NumberFilterConfig
   | BooleanFilterConfig
   | DateFilterConfig
   | CustomFilterConfig
+
+interface FilterObject {
+  search: string;
+  relation: 'and' | 'or',
+  order: {
+    prop: string,
+    order: 'descending' | 'ascending'
+  },
+  pagination: {
+    page: number,
+    perPage: number
+  },
+  config: Record<string, any>
+}
+
+export type Filter = FilterObject & Record<string, any>

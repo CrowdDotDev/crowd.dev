@@ -12,9 +12,9 @@ const member: MultiSelectFilterConfig = {
   itemLabelRenderer(value: MultiSelectFilterValue): string {
     return `<b>Member</b> ${value?.value.join(',') || '...'}`;
   },
-  queryRenderer(value: MultiSelectFilterValue): string {
+  apiFilterRenderer(value): any[] {
     console.log(value);
-    return '';
+    return [];
   },
 };
 

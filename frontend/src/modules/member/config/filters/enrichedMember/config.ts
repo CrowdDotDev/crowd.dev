@@ -7,12 +7,11 @@ const enrichedMember: BooleanFilterConfig = {
   type: FilterConfigType.BOOLEAN,
   options: {},
   itemLabelRenderer(value): string {
-    return `<b>Enriched member</b> ${value?.value ? 'True' : 'False'}`;
+    return `Enriched member ${value?.value ? 'True' : 'False'}`;
   },
-  queryRenderer(value) {
-    return {
-      activityCount: value,
-    };
+  apiFilterRenderer(value): any[] {
+    console.log(value);
+    return [];
   },
 };
 

@@ -7,12 +7,13 @@ const noOfOSSContributions: NumberFilterConfig = {
   type: FilterConfigType.NUMBER,
   options: {},
   itemLabelRenderer(value): string {
-    return `<b># of open source contributions</b> ${value?.value || '...'}`;
+    return `# of open source contributions ${value?.value || '...'}`;
   },
-  queryRenderer(value) {
-    return {
-      activityCount: value,
-    };
+  apiFilterRenderer({ value }): any[] {
+    console.log(value);
+    return [
+      { numberOfOpenSourceContributions: { eq: value } },
+    ];
   },
 };
 
