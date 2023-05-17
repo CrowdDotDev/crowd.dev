@@ -3,6 +3,7 @@ import { includeFilterRenderer } from '@/modules/member/config/saved-views/setti
 import { IncludeEnum } from '@/modules/member/config/saved-views/settings/types/IncludeEnum';
 
 const organization: SavedViewsSetting<IncludeEnum> = {
+  defaultValue: IncludeEnum.EXCLUDE,
   queryUrlParser(value: string): IncludeEnum {
     return value as IncludeEnum;
   },

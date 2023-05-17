@@ -3,6 +3,7 @@ import { IncludeEnum } from '@/modules/member/config/saved-views/settings/types/
 import { includeFilterRenderer } from '@/modules/member/config/saved-views/settings/common/includeFilterRenderer';
 
 const bot: SavedViewsSetting<IncludeEnum> = {
+  defaultValue: IncludeEnum.EXCLUDE,
   queryUrlParser(value: string): IncludeEnum {
     return value as IncludeEnum;
   },

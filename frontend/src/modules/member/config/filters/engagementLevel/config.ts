@@ -1,5 +1,7 @@
 import { FilterConfigType } from '@/shared/modules/filters/types/FilterConfig';
 import { MultiSelectFilterConfig, MultiSelectFilterValue } from '@/shared/modules/filters/types/filterTypes/MultiSelectFilterConfig';
+import { itemLabelRendererByType } from '@/shared/modules/filters/config/itemLabelRendererByType';
+import { apiFilterRendererByType } from '@/shared/modules/filters/config/apiFilterRendererByType';
 import options from './options';
 
 const engagementLevel: MultiSelectFilterConfig = {
@@ -10,10 +12,10 @@ const engagementLevel: MultiSelectFilterConfig = {
     options,
   },
   itemLabelRenderer(value: MultiSelectFilterValue): string {
-    return `Engagement level ${value?.value.join(',') || '...'}`;
+    return itemLabelRendererByType[FilterConfigType.MULTISELECT]('Engagement level', value);
   },
-  apiFilterRenderer(): any[] {
-    return [];
+  apiFilterRenderer(value: MultiSelectFilterValue): any[] {
+    return apiFilterRendererByType[FilterConfigType.MULTISELECT]('score', value);
   },
 };
 

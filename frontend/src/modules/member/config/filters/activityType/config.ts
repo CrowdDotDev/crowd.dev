@@ -3,6 +3,8 @@ import { CustomFilterConfig } from '@/shared/modules/filters/types/filterTypes/C
 import ActivityTypeFilter from '@/modules/activity/config/filters/activityType/ActivityTypeFilter.vue';
 import { SelectFilterValue } from '@/shared/modules/filters/types/filterTypes/SelectFilterConfig';
 import { queryUrlParserByType } from '@/shared/modules/filters/config/queryUrlParserByType';
+import { itemLabelRendererByType } from '@/shared/modules/filters/config/itemLabelRendererByType';
+import { apiFilterRendererByType } from '@/shared/modules/filters/config/apiFilterRendererByType';
 
 const activityType: CustomFilterConfig = {
   id: 'activityType',
@@ -13,10 +15,10 @@ const activityType: CustomFilterConfig = {
   },
   queryUrlParser: queryUrlParserByType[FilterConfigType.SELECT],
   itemLabelRenderer(value: SelectFilterValue): string {
-    return `Active on ${value || '...'}`;
+    return itemLabelRendererByType[FilterConfigType.SELECT]('Activity type', value);
   },
-  apiFilterRenderer(): any[] {
-    return [];
+  apiFilterRenderer(value: SelectFilterValue): any[] {
+    return apiFilterRendererByType[FilterConfigType.SELECT]('activityTypes', value);
   },
 };
 
