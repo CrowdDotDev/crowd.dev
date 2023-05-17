@@ -18,6 +18,7 @@ import task from '@/modules/task/task-module';
 import communityHelpCenter from '@/premium/community-help-center/community-help-center-module';
 import eagleEye from '@/premium/eagle-eye/eagle-eye-module';
 import user from '@/modules/user/user-module';
+import lf from '@/modules/lf/lf-modules';
 
 const modules = {
   shared,
@@ -39,6 +40,7 @@ const modules = {
   eagleEye,
   communityHelpCenter,
   organization,
+  lf,
 };
 
 export default modules;
