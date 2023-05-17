@@ -17,6 +17,9 @@ export default (sequelize) => {
           notEmpty: true,
         },
       },
+      name: {
+        type: DataTypes.STRING(255),
+      },
       tenantId: {
         type: DataTypes.UUID,
         allowNull: false,

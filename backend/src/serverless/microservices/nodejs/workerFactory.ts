@@ -16,6 +16,7 @@ import { AutomationTrigger, AutomationType } from '../../../types/automationType
 import newActivityWorker from './automation/workers/newActivityWorker'
 import newMemberWorker from './automation/workers/newMemberWorker'
 import webhookWorker from './automation/workers/webhookWorker'
+import slackWorker from './automation/workers/slackWorker'
 import { csvExportWorker } from './csv-export/csvExportWorker'
 import { processStripeWebhook } from '../../integrations/workers/stripeWebhookWorker'
 import { processSendgridWebhook } from '../../integrations/workers/sendgridWebhookWorker'
@@ -80,6 +81,15 @@ async function workerFactory(event: NodeMicroserviceMessage): Promise<any> {
             webhookProcessRequest.automation,
             webhookProcessRequest.eventId,
             webhookProcessRequest.payload,
+          )
+        case AutomationType.SLACK:
+          const slackProcessRequest = event as ProcessWebhookAutomationMessage
+          return slackWorker(
+            tenant,
+            slackProcessRequest.automationId,
+            slackProcessRequest.automation,
+            slackProcessRequest.eventId,
+            slackProcessRequest.payload,
           )
         default:
           throw new Error(`Invalid automation type ${automationProcessRequest.automationType}!`)

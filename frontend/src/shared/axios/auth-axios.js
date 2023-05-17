@@ -26,6 +26,16 @@ const authAxios = Axios.create({
 
 authAxios.interceptors.request.use(
   async (options) => {
+    if (['delete', 'put'].includes(options.method)) {
+      const encodedUrl = (
+        options
+          .url.replace(
+            /\/[^/]*$/,
+            `/${encodeURIComponent(options.url.split('/').at(-1))}`,
+          )
+      );
+      Object.assign(options, { url: encodedUrl });
+    }
     const token = options.headers?.Authorization || AuthToken.get();
 
     const setOptions = { ...options };

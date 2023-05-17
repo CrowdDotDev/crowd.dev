@@ -24,9 +24,11 @@ function create_nango_integration() {
         printf "The variables needed are: \n- CROWD_${KEY}_CLIENT_ID \n- CROWD_${KEY}_CLIENT_SECRET \n- CROWD_${KEY}_SCOPES"
         return
     else
-        export NANGO_SECRET_KEY=$CROWD_NANGO_SECRET_KEY
-        printf "\nCreating $1 Integration with client ID: $clientId"    
-        npx nango config:create $1 $1 $clientId $clientSecret "$scopes"
+        printf "\nCreating $1 Integration with client ID: $clientId\n"
+        curl    -u "$CROWD_NANGO_SECRET_KEY:" \
+                --location 'http://localhost:3003/config' \
+                --header 'Content-Type: application/json' \
+                --data "{\"provider_config_key\": \"$1\",\"provider\": \"$1\",\"oauth_client_id\": \"$clientId\",\"oauth_client_secret\": \"$clientSecret\",\"oauth_scopes\": \"$scopes\"}"
     fi
 
 }

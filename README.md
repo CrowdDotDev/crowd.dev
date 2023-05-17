@@ -37,14 +37,10 @@ With crowd.dev, you get full visibility into all online platforms and can take a
 
 
 ## ✨ Features
-### Core Features
 - Integrate with platforms like GitHub, Discord, Slack, Twitter, DEV or HackerNews to track community activities
 - Get background information about your community members & the companies they belong to and manage them with tags and automated segmentation
 - Analyze your community, create custom metrics, organize them in reports and share them publicly with your community, your investors, or your team
 - Use webhooks to automate routine tasks
-
-### Growth Apps
-- [Community Help Center](https://www.crowd.dev/community-help-center): Detect relevant conversations and publish them in a community help center to reduce duplicate questions and get your community's content listed on search engines
 - [Eagle Eye](https://www.crowd.dev/eagle-eye): Monitor dev-focussed community platforms to find relevant content to engage with, helping you to gain developers’ mindshare and grow your community organically
 
 ## 🔔 Stay up-to-date

@@ -47,6 +47,7 @@
         />
         <div class="flex items-center">
           <el-tooltip
+            v-if="platform"
             effect="dark"
             :content="platform.name"
             placement="top"
@@ -108,7 +109,7 @@
         </button>
       </div>
     </div>
-    <div class="py-6">
+    <div class="py-6 whitespace-nowrap">
       <app-conversation-details-footer
         :conversation="conversation"
       />
@@ -274,7 +275,7 @@ export default {
       }
 
       options.push(
-        ...Object.entries(defaultActivityTypes[platform])
+        ...Object.entries(defaultActivityTypes[platform] || {})
           .filter(([key]) => this.conversationTypes.includes(key)
            || (platform === 'discord'
             && (key === 'replied_thread' || key === 'replied')))

@@ -64,9 +64,9 @@ import AppEagleEyeEmailDigestDrawer from '@/premium/eagle-eye/components/list/ea
 const { currentUser, currentTenant } = mapGetters('auth');
 
 const eagleEyeSettings = computed(
-  () => currentUser.value.tenants.find(
+  () => currentUser.value?.tenants.find(
     (tu) => tu.tenantId === currentTenant.value.id,
-  ).settings.eagleEye,
+  )?.settings.eagleEye,
 );
 
 const isEmailDigestDrawerOpen = ref(false);

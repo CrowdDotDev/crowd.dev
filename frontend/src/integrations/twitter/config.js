@@ -12,4 +12,15 @@ export default {
   connectComponent: TwitterConnect,
   url: (username) => `https://twitter.com/${username}`,
   chartColor: '#1D9BF0',
+  showProfileLink: true,
+  activityDisplay: {
+    showLinkToUrl: true,
+  },
+  conversationDisplay: {
+    replyContent: (conversation) => ({
+      icon: 'ri-reply-line',
+      copy: 'reply',
+      number: conversation.activityCount - 1,
+    }),
+  },
 };

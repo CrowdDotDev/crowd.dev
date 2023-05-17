@@ -23,7 +23,7 @@ export class WebhookProcessor extends LoggingBase {
     super(options)
   }
 
-  async processWebhook(webhookId: string, force?: boolean) {
+  async processWebhook(webhookId: string, force?: boolean, fireCrowdWebhooks?: boolean) {
     const options = (await SequelizeRepository.getDefaultIRepositoryOptions()) as IRepositoryOptions
     const repo = new IncomingWebhookRepository(options)
     const webhook = await repo.findById(webhookId)
@@ -98,7 +98,7 @@ export class WebhookProcessor extends LoggingBase {
             { operationType: operation.type },
             `Processing bulk operation with ${operation.records.length} records!`,
           )
-          await bulkOperations(operation.type, operation.records, userContext)
+          await bulkOperations(operation.type, operation.records, userContext, fireCrowdWebhooks)
         }
       }
       await repo.markCompleted(webhook.id)

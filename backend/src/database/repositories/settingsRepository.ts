@@ -33,6 +33,12 @@ export default class SettingsRepository {
 
     data.backgroundImageUrl = _get(data, 'backgroundImages[0].downloadUrl', null)
     data.logoUrl = _get(data, 'logos[0].downloadUrl', null)
+    if (
+      typeof data.slackWebhook !== 'string' ||
+      (typeof data.slackWebhook === 'string' && !data.slackWebHook?.startsWith('https://'))
+    ) {
+      data.slackWebHook = undefined
+    }
 
     const [settings] = await options.database.settings.findOrCreate({
       where: { id: tenant.id, tenantId: tenant.id },
@@ -60,6 +66,17 @@ export default class SettingsRepository {
     )
 
     return this._populateRelations(settings)
+  }
+
+  static async getTenantSettings(tenantId: string, options: IRepositoryOptions) {
+    const transaction = SequelizeRepository.getTransaction(options)
+
+    const settings = await options.database.settings.findOne({
+      where: { tenantId },
+      transaction,
+    })
+
+    return settings
   }
 
   static buildActivityTypes(record: any): ActivityTypeSettings {
@@ -104,6 +121,7 @@ export default class SettingsRepository {
     const settings = record.get({ plain: true })
 
     settings.activityTypes = this.buildActivityTypes(record)
+    settings.slackWebHook = !!settings.slackWebHook
 
     return settings
   }

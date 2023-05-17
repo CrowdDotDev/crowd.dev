@@ -63,7 +63,9 @@ export default class AutomationExecutionRepository extends RepositoryBase<
       from "automationExecutions"
       where "tenantId" = :tenantId
         and "automationId" = :automationId
+      order by "executedAt" desc
       limit ${criteria.limit} offset ${criteria.offset}
+      
     `
 
     const results = await seq.query(query, {

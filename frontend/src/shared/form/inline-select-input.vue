@@ -6,7 +6,7 @@
       trigger="click"
       @visible-change="handleDropdownVisibleChange"
     >
-      <div class="flex items-center">
+      <div class="flex items-center" data-qa="filter-inline-select">
         <span class="inline-select-input-prefix mr-1">{{
           prefix
         }}</span>
@@ -30,6 +30,7 @@
             '!h-fit !py-2.5': option.description,
             'is-selected': option.selected,
           }"
+          data-qa="filter-inline-select-option"
           @click="handleOptionClick(option)"
         >
           <div class="flex flex-col">

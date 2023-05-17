@@ -353,7 +353,9 @@
   &--linkedin,
   &--linkedin:hover,
   &--stackoverflow,
-  &--stackoverflow:hover {
+  &--stackoverflow:hover,
+  &--git,
+  &--git:hover {
     @apply bg-white border border-gray-200;
   }
 }
