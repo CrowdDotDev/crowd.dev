@@ -62,7 +62,10 @@ export default class ActivityService extends LoggingBase {
         data.type &&
         !SegmentRepository.activityTypeExists(data.platform, data.type, this.options)
       ) {
-        await new SegmentService(this.options).createActivityType({ type: data.type }, data.platform)
+        await new SegmentService(this.options).createActivityType(
+          { type: data.type },
+          data.platform,
+        )
       }
 
       // check if channel exists in settings for respective platform. If not, update by adding channel to settings

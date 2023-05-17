@@ -60,7 +60,6 @@ export default class SettingsRepository {
     return this._populateRelations(settings, options)
   }
 
-
   static getActivityChannels(options: IRepositoryOptions) {
     return options.currentTenant?.settings[0]?.activityChannels
   }

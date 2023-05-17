@@ -5,11 +5,10 @@ import { SegmentData } from '../types/segmentTypes'
 
 export async function segmentMiddleware(req, res, next) {
   try {
-
     let segments: SegmentData[] = []
     const segmentRepository = new SegmentRepository(req)
 
-    if (!await isFeatureEnabled(FeatureFlag.SEGMENTS, req)){
+    if (!(await isFeatureEnabled(FeatureFlag.SEGMENTS, req))) {
       // return default segment
       const segments = await segmentRepository.querySubprojects({})
       req.currentSegments = segments.rows
@@ -18,15 +17,11 @@ export async function segmentMiddleware(req, res, next) {
     }
 
     if (req.query.segments) {
-
       // for get requests, segments will be in query
       segments = await segmentRepository.findInIds(req.query.segments)
-
-    }
-    else if (req.body.segments) {
+    } else if (req.body.segments) {
       // for post and put requests, segments will be in body
       segments = await new SegmentRepository(req).findInIds(req.body.segments)
-
     }
 
     req.currentSegments = segments.filter((s) => SegmentRepository.isSubproject(s))

@@ -63,7 +63,7 @@ class IntegrationRepository {
       where: {
         id,
         tenantId: currentTenant.id,
-        segmentId: segment.id
+        segmentId: segment.id,
       },
       transaction,
     })
@@ -128,7 +128,7 @@ class IntegrationRepository {
     const transaction = SequelizeRepository.getTransaction(options)
 
     const segment = SequelizeRepository.getStrictlySingleActiveSegment(options)
-    
+
     const include = []
 
     const currentTenant = SequelizeRepository.getCurrentTenant(options)
@@ -137,7 +137,7 @@ class IntegrationRepository {
       where: {
         platform,
         tenantId: currentTenant.id,
-        segmentId: segment.id
+        segmentId: segment.id,
       },
       include,
       transaction,

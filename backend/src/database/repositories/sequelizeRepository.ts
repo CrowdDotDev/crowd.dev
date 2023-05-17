@@ -25,7 +25,11 @@ export default class SequelizeRepository {
     await database.sequelize.sync({ force: true })
   }
 
-  static async getDefaultIRepositoryOptions(user?, tenant?, segments?): Promise<IRepositoryOptions> {
+  static async getDefaultIRepositoryOptions(
+    user?,
+    tenant?,
+    segments?,
+  ): Promise<IRepositoryOptions> {
     return {
       log: getServiceLogger(),
       database: await databaseInit(),
@@ -56,15 +60,17 @@ export default class SequelizeRepository {
     return (options && options.currentSegments) || []
   }
 
-  static getStrictlySingleActiveSegment(options: IRepositoryOptions | IServiceOptions): SegmentData{
-    if (options.currentSegments.length !== 1){
-      throw new Error(`This operation can have exactly one segment. Found ${options.currentSegments.length} segments.`)
+  static getStrictlySingleActiveSegment(
+    options: IRepositoryOptions | IServiceOptions,
+  ): SegmentData {
+    if (options.currentSegments.length !== 1) {
+      throw new Error(
+        `This operation can have exactly one segment. Found ${options.currentSegments.length} segments.`,
+      )
     }
 
     return options.currentSegments[0]
-
   }
-
 
   /**
    * Returns the transaction if it exists on the options.

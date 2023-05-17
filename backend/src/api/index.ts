@@ -128,7 +128,6 @@ setImmediate(async () => {
   // to set the currentUser to the requests
   app.use(authMiddleware)
 
-
   // Setup the Documentation
   setupSwaggerUI(app)
 
@@ -194,7 +193,6 @@ setImmediate(async () => {
   // Loads the Tenant if the :tenantId param is passed
   routes.param('tenantId', tenantMiddleware)
   routes.param('tenantId', segmentMiddleware)
-
 
   app.use('/', routes)
 

@@ -113,7 +113,6 @@ function models() {
     require('./note').default,
     require('./memberActivityAggregatesMV').default,
     require('./segment').default,
-
   ]
 
   for (const notInitmodel of modelClasses) {

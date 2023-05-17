@@ -279,9 +279,13 @@ export default class TenantService {
       })
 
       // create default segment (if segments feature is not enabled)
-      if (!await isFeatureEnabled(FeatureFlag.SEGMENTS, this.options)){
-        const slug = data.url || (await TenantRepository.generateTenantUrl(data.name, this.options)) 
-        const segment = await new SegmentRepository({...this.options, currentTenant: record, transaction}).create({
+      if (!(await isFeatureEnabled(FeatureFlag.SEGMENTS, this.options))) {
+        const slug = data.url || (await TenantRepository.generateTenantUrl(data.name, this.options))
+        const segment = await new SegmentRepository({
+          ...this.options,
+          currentTenant: record,
+          transaction,
+        }).create({
           name: data.name,
           parentName: data.name,
           grandparentName: data.name,
@@ -290,13 +294,9 @@ export default class TenantService {
           grandparentSlug: slug,
           status: SegmentStatus.ACTIVE,
           sourceId: null,
-          sourceParentId: null
+          sourceParentId: null,
         })
-
-
-  
       }
-      
 
       await SequelizeRepository.commitTransaction(transaction)
 

@@ -18,8 +18,7 @@ export const PLAN_LIMITS = {
 }
 
 export default async (featureFlag: FeatureFlag, req: any): Promise<boolean> => {
-
-  if (featureFlag === FeatureFlag.SEGMENTS){
+  if (featureFlag === FeatureFlag.SEGMENTS) {
     return API_CONFIG.edition === Edition.LFX
   }
 

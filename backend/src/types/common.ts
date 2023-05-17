@@ -24,7 +24,7 @@ export enum FeatureFlag {
   CSV_EXPORT = 'csv-export',
   LINKEDIN = 'linkedin',
   MEMBER_ENRICHMENT = 'member-enrichment',
-  SEGMENTS = 'segments'
+  SEGMENTS = 'segments',
 }
 
 export enum FeatureFlagRedisKey {
@@ -35,5 +35,5 @@ export enum FeatureFlagRedisKey {
 export enum Edition {
   COMMUNITY = 'community',
   CROWD_HOSTED = 'crowd-hosted',
-  LFX = 'linux-foundation-ee'
+  LFX = 'linux-foundation-ee',
 }

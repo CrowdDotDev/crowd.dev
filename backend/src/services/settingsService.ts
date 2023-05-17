@@ -9,7 +9,6 @@ class SettingsService {
     return SettingsRepository.findOrCreateDefault(DEFAULT_SETTINGS, options)
   }
 
-
   /**
    * update activity channels after checking for duplicates with platform key
    */
@@ -40,7 +39,6 @@ class SettingsService {
     )
     return updated.activityChannels
   }
-
 
   static async save(data, options) {
     const transaction = await SequelizeRepository.createTransaction(options)

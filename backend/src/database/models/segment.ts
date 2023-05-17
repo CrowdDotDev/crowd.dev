@@ -31,8 +31,8 @@ export default (sequelize) => {
       status: {
         type: DataTypes.TEXT,
         validate: {
-            isIn: [['active', 'archived', 'formation', 'prospect']],
-          },
+          isIn: [['active', 'archived', 'formation', 'prospect']],
+        },
       },
       description: {
         type: DataTypes.TEXT,
@@ -98,15 +98,14 @@ export default (sequelize) => {
     {
       indexes: [
         {
-            unique: true,
-            fields: ['slug', 'parentSlug', 'grandparentSlug', 'tenantId'],
-          }
+          unique: true,
+          fields: ['slug', 'parentSlug', 'grandparentSlug', 'tenantId'],
+        },
       ],
       timestamps: true,
       paranoid: true,
     },
   )
-
 
   return activity
 }
