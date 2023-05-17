@@ -111,7 +111,7 @@
         <p class="mt-1 text-gray-900 text-xs">
           {{
             formattedInformation(
-              organization.headcount,
+              organization.size,
               'string',
             )
           }}
