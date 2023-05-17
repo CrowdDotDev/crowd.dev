@@ -57,9 +57,9 @@ const filters = computed<Filter>({
   },
   set(value: Filter) {
     const {
-      config, search, relation, order, pagination, ...rest
+      config, search, relation, order, pagination, ...filterValues
     } = value;
-    filterList.value = Object.keys(rest);
+    filterList.value = Object.keys(filterValues);
     emit('update:modelValue', value);
   },
 });

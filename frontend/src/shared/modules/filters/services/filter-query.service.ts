@@ -3,19 +3,23 @@ import { queryUrlParserByType } from '@/shared/modules/filters/config/queryUrlPa
 import { CustomFilterConfig } from '@/shared/modules/filters/types/filterTypes/CustomFilterConfig';
 
 export const filterQueryService = () => {
+  // Parses url query params and puts them in nested object format
   function parseQuery(query: Record<string, any>, config: Record<string, FilterConfig>) {
     const object: Record<string, any> = {};
     Object.entries(query).forEach(([key, value]) => {
       const [mainKey, subKey] = key.split('.');
       if (subKey) {
+        // If nested value something.test=123 --> {something: {test: 123}}
         if (!(mainKey in object)) {
           object[mainKey] = {};
         }
         object[mainKey][subKey] = value;
       } else {
+        // If value not nested something=123 --> {something: 123}
         object[mainKey] = value;
       }
     });
+    // Url params come out as strings so we need to transform them to boolean, number or array
     Object.keys(object).forEach((key) => {
       if (key in config) {
         const { type } = config[key];
@@ -28,6 +32,7 @@ export const filterQueryService = () => {
     return object;
   }
 
+  // Transforms value to be used in url query. Transforms array to string
   function setQueryValue(value: any) {
     if (Array.isArray(value)) {
       return value.join(',');
@@ -35,6 +40,7 @@ export const filterQueryService = () => {
     return value;
   }
 
+  // Prepares query object to be only one level nested for query params to be more readable
   function setQuery(value: Filter) {
     const query: Record<string, any> = {};
     Object.entries(value).forEach(([key, filterValue]) => {

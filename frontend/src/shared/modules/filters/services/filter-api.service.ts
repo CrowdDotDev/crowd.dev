@@ -10,7 +10,7 @@ export const filterApiService = () => {
       order,
       pagination,
       config,
-      ...rest
+      ...filterValues
     } = values;
 
     // Remove when saved views done
@@ -28,7 +28,7 @@ export const filterApiService = () => {
 
     // TODO: config filter parsing
 
-    Object.entries(rest).forEach(([key, values]) => {
+    Object.entries(filterValues).forEach(([key, values]) => {
       const filter = configuration[key]?.apiFilterRenderer(values);
       if (filter && filter.length > 0) {
         filters = [
