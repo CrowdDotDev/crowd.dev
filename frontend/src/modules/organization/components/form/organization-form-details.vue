@@ -14,6 +14,13 @@
           </div>
         </template>
       </el-form-item>
+      <el-form-item :label="fields.headline.label">
+        <el-input
+          v-model="model[fields.headline.name]"
+          disabled
+          type="textarea"
+        />
+      </el-form-item>
       <el-form-item :label="fields.description.label">
         <el-input
           v-model="model[fields.description.name]"
