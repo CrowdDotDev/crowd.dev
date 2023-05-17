@@ -5,7 +5,7 @@
 
   </a>
 
-  <h2 align="center">Connect Community, Product, and Customer Data in One Place</h2>
+  <h2 align="center">Connect community, product, and customer data in one place</h2>
   
   <p align="center">
     <br>
