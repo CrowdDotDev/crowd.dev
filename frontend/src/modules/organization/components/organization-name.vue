@@ -20,7 +20,7 @@
         />
       </div>
     </div>
-    <div class="overflow-hidden">
+    <div class="overflow-hidden mr-6">
       <el-tooltip
         :content="organization.name"
         effect="dark"

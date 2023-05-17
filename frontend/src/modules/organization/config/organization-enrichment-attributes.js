@@ -23,7 +23,7 @@ export default [
   },
   {
     name: 'size',
-    label: 'Size',
+    label: 'Headcount',
     type: attributesTypes.string,
     showInForm: true,
   },
