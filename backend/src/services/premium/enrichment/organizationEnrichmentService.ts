@@ -16,6 +16,7 @@ import OrganizationCacheRepository from '../../../database/repositories/organiza
 import { ApiWebsocketMessage } from '../../../types/mq/apiWebsocketMessage'
 import { createRedisClient } from '../../../utils/redis'
 import RedisPubSubEmitter from '../../../utils/redis/pubSubEmitter'
+import { PlatformType } from '../../../types/integrationEnums'
 
 export default class OrganizationEnrichmentService extends LoggingBase {
   tenantId: string
@@ -107,8 +108,8 @@ export default class OrganizationEnrichmentService extends LoggingBase {
       data.geoLocation = data.address.geo ?? null
       delete data.address.geo
       data.location = `${data.address.street_address ?? ''} ${data.address.address_line_2 ?? ''} ${
-            data.address.name ?? ''
-          }`
+        data.address.name ?? ''
+      }`
     }
     if (data.employeeCountByCountry && !data.employees) {
       const employees = Object.values(data.employeeCountByCountry).reduce(
@@ -131,6 +132,53 @@ export default class OrganizationEnrichmentService extends LoggingBase {
     return data
   }
 
+  private static enrichSocialNetworks(
+    data: IEnrichableOrganization,
+    socialNetworks: {
+      profiles: IEnrichmentResponse['profiles']
+      linkedin_id: IEnrichmentResponse['linkedin_id']
+    },
+  ): IEnrichableOrganization {
+    const socials = socialNetworks.profiles.reduce((acc, social) => {
+      const platform = social.split('.')[0]
+      switch (platform) {
+        case PlatformType.CRUNCHBASE:
+          acc[platform] = {
+            handle: social.split('/').splice(-1)[0],
+            url: social,
+          }
+          break
+        case PlatformType.GITHUB:
+          acc[platform] = {
+            handle: social.split('/').splice(-1)[0],
+            url: social,
+          }
+          break
+        case PlatformType.TWITTER:
+          acc[platform] = {
+            handle: social.split('/').splice(-1)[0],
+            url: social,
+          }
+          break
+        case PlatformType.LINKEDIN: {
+          const handle = social.split('/').splice(-1)[0]
+          if (handle !== socialNetworks.linkedin_id) {
+            acc[platform] = {
+              handle: `company/${handle}`,
+              url: social,
+            }
+          }
+          break
+        }
+        default:
+          break
+      }
+      return acc
+    }, {})
+
+    return { ...data, ...socials }
+  }
+
   private convertEnrichedDataToOrg(
     pdlData: Awaited<IEnrichmentResponse>,
     instance: IEnrichableOrganization,
@@ -138,12 +186,15 @@ export default class OrganizationEnrichmentService extends LoggingBase {
     let data = <IEnrichableOrganization>renameKeys(pdlData, {
       summary: 'description',
       employee_count_by_country: 'employeeCountByCountry',
-      twitter_url: 'twitter',
       employee_count: 'employees',
       location: 'address',
     })
-
     data = OrganizationEnrichmentService.sanitize(data)
+
+    data = OrganizationEnrichmentService.enrichSocialNetworks(data, {
+      profiles: pdlData.profiles,
+      linkedin_id: pdlData.linkedin_id,
+    })
 
     return lodash.pick(
       { ...data, lastEnrichedAt: new Date() },
