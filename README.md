@@ -5,7 +5,7 @@
 
   </a>
 
-  <h2 align="center">A Data Platform for Open-Source Companies & Communities</h2>
+  <h2 align="center">Centralize Community, Product, and Customer Data in One Place</h2>
   
   <p align="center">
     <br>
