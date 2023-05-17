@@ -16,6 +16,7 @@ import formbricks from '@/plugins/formbricks';
 
 import { init as i18nInit } from '@/i18n';
 
+import { AuthService } from '@/modules/auth/auth-service';
 import { AuthToken } from '@/modules/auth/auth-token';
 import { TenantService } from '@/modules/tenant/tenant-service';
 import 'v-network-graph/lib/style.css';
@@ -40,8 +41,13 @@ i18nInit();
   const router = await createRouter();
   const store = await createStore(LogRocket);
 
+  const isSocialOnboardRequested = AuthService.isSocialOnboardRequested();
+
   AuthToken.applyFromLocationUrlIfExists();
   await TenantService.fetchAndApply();
+  if (isSocialOnboardRequested) {
+    await AuthService.socialOnboard();
+  }
 
   app.use(VueGridLayout);
   app.use(Vue3Sanitize, vueSanitizeOptions);
