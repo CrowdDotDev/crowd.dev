@@ -10,11 +10,11 @@ const avgSentiment: MultiSelectFilterConfig = {
     options,
   },
   itemLabelRenderer(value: MultiSelectFilterValue): string {
-    return `<b>Avg. sentiment</b> ${value?.value.join(',') || '...'}`;
+    return `Avg. sentiment ${value?.value.join(',') || '...'}`;
   },
-  queryRenderer(value: MultiSelectFilterValue): string {
+  apiFilterRenderer(value): any[] {
     console.log(value);
-    return '';
+    return [];
   },
 };
 

@@ -13,5 +13,5 @@ export interface BooleanFilterConfig extends BaseFilterConfig {
   type: FilterConfigType.BOOLEAN;
   options: BooleanFilterOptions;
   itemLabelRenderer: (value: BooleanFilterValue) => string;
-  queryRenderer: (value: BooleanFilterValue) => any;
+  apiFilterRenderer: (value: BooleanFilterValue) => any[];
 }

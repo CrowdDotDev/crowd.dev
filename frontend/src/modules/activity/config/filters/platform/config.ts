@@ -26,9 +26,9 @@ const platform: MultiSelectFilterConfig = {
   itemLabelRenderer(value: MultiSelectFilterValue): string {
     return `<b>Platform</b> ${value?.value.join(',') || '...'}`;
   },
-  queryRenderer(value: MultiSelectFilterValue): string {
+  apiFilterRenderer(value): any[] {
     console.log(value);
-    return '';
+    return [];
   },
 };
 

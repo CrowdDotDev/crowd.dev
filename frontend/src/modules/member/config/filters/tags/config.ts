@@ -10,11 +10,11 @@ const tags: MultiSelectFilterConfig = {
     options: [],
   },
   itemLabelRenderer(value: MultiSelectFilterValue): string {
-    return `<b>Tags</b> ${value?.value.join(',') || '...'}`;
+    return `Tags ${value?.value.join(',') || '...'}`;
   },
-  queryRenderer(value: MultiSelectFilterValue): string {
+  apiFilterRenderer(value): any[] {
     console.log(value);
-    return '';
+    return [];
   },
 };
 

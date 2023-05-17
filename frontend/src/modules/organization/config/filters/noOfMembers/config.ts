@@ -9,9 +9,9 @@ const noOfMembers: NumberFilterConfig = {
   itemLabelRenderer(value): string {
     return `<b># of members</b> ${value.value || '...'}`;
   },
-  queryRenderer(value): string {
+  apiFilterRenderer(value): any[] {
     console.log(value);
-    return '';
+    return [];
   },
 };
 

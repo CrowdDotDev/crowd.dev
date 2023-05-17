@@ -7,11 +7,11 @@ const lastActivityDate: DateFilterConfig = {
   type: FilterConfigType.DATE,
   options: {},
   itemLabelRenderer(value): string {
-    return `<b>Last activity date</b> ${value.value || '...'}`;
+    return `Last activity date ${value.value || '...'}`;
   },
-  queryRenderer(value): string {
+  apiFilterRenderer(value): any[] {
     console.log(value);
-    return '';
+    return [];
   },
 };
 

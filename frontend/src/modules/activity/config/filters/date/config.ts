@@ -12,9 +12,9 @@ const date: SelectFilterConfig = {
   itemLabelRenderer(value: SelectFilterValue): string {
     return `<b>Date</b> ${value || '...'}`;
   },
-  queryRenderer(value: SelectFilterValue): string {
+  apiFilterRenderer(value): any[] {
     console.log(value);
-    return '';
+    return [];
   },
 };
 

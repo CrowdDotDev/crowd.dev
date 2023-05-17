@@ -9,10 +9,9 @@ const noOfActivities: NumberFilterConfig = {
   itemLabelRenderer(value): string {
     return `<b># of activities</b> ${value?.value || '...'}`;
   },
-  queryRenderer(value) {
-    return {
-      activityCount: value,
-    };
+  apiFilterRenderer(value): any[] {
+    console.log(value);
+    return [];
   },
 };
 

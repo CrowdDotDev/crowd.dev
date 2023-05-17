@@ -1,14 +1,22 @@
 <template>
   <div class="mb-8">
-    <div class="flex justify-end">
-      <cr-filter-dropdown :config="props.config" @open="filterList.push($event)" />
+    <div class="flex justify-end pb-4">
+      <cr-filter-search v-model="filters.search" :placeholder="props.searchConfig.placeholder">
+        <template #append>
+          <cr-filter-dropdown v-model="filterList" :config="props.config" :custom-config="props.customConfig || {}" />
+        </template>
+      </cr-filter-search>
     </div>
     <div class="flex items-center flex-wrap">
       <template v-for="(filter, fi) of filterList" :key="filter">
-        <el-button v-if="fi > 0" class="btn btn--bordered btn--md mr-4 w-12" @click="switchOperator">
-          {{ operator }}
+        <el-button
+          v-if="fi > 0"
+          class="btn btn--bordered !h-8 p-2 !border !outline-none mr-4 w-11 font-medium text-xs lowercase"
+          @click="switchOperator"
+        >
+          {{ filters.relation }}
         </el-button>
-        <cr-filter-item v-model="filters[filter]" :config="config[filter]" class="mr-4" @remove="removeFilter(filter)" />
+        <cr-filter-item v-model="filters[filter]" v-model:open="open" :config="config[filter]" class="mr-4" @remove="removeFilter(filter)" />
       </template>
     </div>
   </div>
@@ -19,40 +27,85 @@ import {
   computed,
   defineProps, ref, watch,
 } from 'vue';
-import { FilterConfig } from '@/shared/modules/filters/types/FilterConfig';
+import { Filter, FilterConfig } from '@/shared/modules/filters/types/FilterConfig';
 import CrFilterDropdown from '@/shared/modules/filters/components/FilterDropdown.vue';
 import CrFilterItem from '@/shared/modules/filters/components/FilterItem.vue';
+import CrFilterSearch from '@/shared/modules/filters/components/FilterSearch.vue';
+import { filterQueryService } from '@/shared/modules/filters/services/filter-query.service';
+import { SearchFilterConfig } from '@/shared/modules/filters/types/filterTypes/SearchFilterConfig';
+import { useRoute, useRouter } from 'vue-router';
+import { filterApiService } from '@/shared/modules/filters/services/filter-api.service';
+import { FilterQuery } from '@/shared/modules/filters/types/FilterQuery';
 
 const props = defineProps<{
+  modelValue: Filter,
   config: Record<string, FilterConfig>,
+  customConfig?: Record<string, FilterConfig>,
+  searchConfig: SearchFilterConfig,
 }>();
 
-const filters = ref({});
+const emit = defineEmits<{(e: 'update:modelValue', value: Filter), (e: 'fetch', value: FilterQuery),}>();
 
-const operator = ref<'AND' | 'OR'>('AND');
+const router = useRouter();
+const route = useRoute();
+
+const open = ref('');
+
+const filters = computed<Filter>({
+  get() {
+    return props.modelValue;
+  },
+  set(value: Filter) {
+    const {
+      config, search, relation, order, pagination, ...filterValues
+    } = value;
+    filterList.value = Object.keys(filterValues);
+    emit('update:modelValue', value);
+  },
+});
+
 const filterList = ref<string[]>([]);
 
-const relation = computed(() => filterList.value.join(`-${operator.value}-`));
-
-const filtersObject = computed(() => ({
-  ...filters.value,
-  relation: relation.value,
-}));
-
 const switchOperator = () => {
-  operator.value = operator.value === 'AND' ? 'OR' : 'AND';
+  filters.value.relation = filters.value.relation === 'and' ? 'or' : 'and';
 };
 
 const removeFilter = (key) => {
+  open.value = '';
   filterList.value = filterList.value.filter((el) => el !== key);
   filters.value[key] = undefined;
 };
 
-watch(() => filtersObject.value, (value) => {
-  // TODO: sync with store
-  // TODO: sync with query
-  console.log(value);
-});
+const { setQuery, parseQuery } = filterQueryService();
+const { buildApiFilter } = filterApiService();
+
+const fetch = (value: Filter) => {
+  const data = buildApiFilter(value, { ...props.config, ...props.customConfig }, props.searchConfig);
+  emit('fetch', data);
+  console.log('fetch', data);
+};
+
+watch(() => filters.value, (value: Filter) => {
+  fetch(value);
+  const query = setQuery(value);
+  router.push({ query });
+}, { deep: true });
+
+// Watch for query change
+watch(() => route.query, (query) => {
+  const parsed = parseQuery(query, {
+    ...props.config,
+    ...props.customConfig,
+  });
+  if (!parsed || Object.keys(parsed).length === 0) {
+    const query = setQuery(props.modelValue);
+    router.push({ query });
+    return;
+  }
+  if (JSON.stringify(parsed) !== JSON.stringify(filters.value)) {
+    filters.value = parsed as Filter;
+  }
+}, { immediate: true });
 </script>
 
 <script lang="ts">

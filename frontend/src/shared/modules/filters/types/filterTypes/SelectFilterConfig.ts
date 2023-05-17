@@ -23,5 +23,5 @@ export interface SelectFilterConfig extends BaseFilterConfig {
   type: FilterConfigType.SELECT;
   options: SelectFilterOptions;
   itemLabelRenderer: (value: SelectFilterValue) => string;
-  queryRenderer: (value: SelectFilterValue) => any;
+  apiFilterRenderer: (value: SelectFilterValue) => any[];
 }

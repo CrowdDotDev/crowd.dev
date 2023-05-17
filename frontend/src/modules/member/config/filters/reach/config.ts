@@ -7,12 +7,11 @@ const reach: NumberFilterConfig = {
   type: FilterConfigType.NUMBER,
   options: {},
   itemLabelRenderer(value): string {
-    return `<b>Reach</b> ${value?.value || '...'}`;
+    return `Reach ${value?.value || '...'}`;
   },
-  queryRenderer(value) {
-    return {
-      activityCount: value,
-    };
+  apiFilterRenderer(value): any[] {
+    console.log(value);
+    return [];
   },
 };
 

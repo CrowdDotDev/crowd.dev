@@ -5,6 +5,7 @@ export interface CustomFilterConfig extends BaseFilterConfig {
   type: FilterConfigType.CUSTOM;
   component: any;
   options: any;
+  queryUrlParser: ((value: any) => Record<string, any>) | null;
   itemLabelRenderer: (value: any) => string;
-  queryRenderer: (value: any) => any;
+  apiFilterRenderer: (value: any) => any[];
 }

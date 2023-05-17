@@ -3,15 +3,14 @@
     <el-button-group>
       <!-- Settings -->
       <el-popover
-        ref="popover"
-        v-model:visible="open"
+        v-model:visible="isOpen"
         teleported
         placement="bottom-start"
         width="320"
         trigger="click"
       >
         <template #reference>
-          <el-button ref="chip" class="btn btn--bordered btn--md">
+          <el-button ref="chip" class="btn btn--bordered !h-8 p-2 !border !outline-none font-medium text-xs">
             <span v-html="$sanitize(config.itemLabelRenderer(props.modelValue) || config.label)" />
           </el-button>
         </template>
@@ -30,8 +29,8 @@
       </el-popover>
 
       <!-- Cancel -->
-      <el-button class="btn btn--bordered btn--md w-4" @click="emit('remove')">
-        <span class="ri-close-line" />
+      <el-button class="btn btn--bordered !w-8 !h-8 p-2 !border !outline-none font-medium text-xs" @click="emit('remove')">
+        <span class="ri-close-line block" />
       </el-button>
     </el-button-group>
   </div>
@@ -48,15 +47,26 @@ import useVuelidate from '@vuelidate/core';
 
 const props = defineProps<{
   modelValue: string,
+  open: string;
   config: FilterConfig,
 }>();
 
-const emit = defineEmits<{(e: 'update:modelValue', value: string), (e: 'remove')}>();
-
-const open = ref(true);
-const popover = ref();
+const emit = defineEmits<{(e: 'update:modelValue', value: any), (e: 'remove'), (e: 'update:open', value: string)}>();
 
 const form = ref({});
+
+const isOpen = computed({
+  get() {
+    return props.open === props.config.id;
+  },
+  set(value) {
+    if (value) {
+      emit('update:open', props.config.id);
+    } else if (props.config.id === props.open) {
+      emit('update:open', '');
+    }
+  },
+});
 
 const getComponent = computed(() => {
   const { type, component } = props.config;
@@ -67,17 +77,17 @@ const getComponent = computed(() => {
 });
 
 const apply = () => {
-  emit('update:modelValue', form.value);
+  emit('update:modelValue', { ...form.value });
   close();
 };
 const close = () => {
-  popover.value.hide();
+  isOpen.value = false;
 };
 
 const $v = useVuelidate();
 
 watch(() => props.modelValue, (value) => {
-  form.value = value;
+  form.value = { ...value };
 }, { immediate: true, deep: true });
 </script>
 
