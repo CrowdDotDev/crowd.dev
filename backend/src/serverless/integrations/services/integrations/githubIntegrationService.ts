@@ -1333,7 +1333,7 @@ export class GithubIntegrationService extends IntegrationServiceBase {
           tenant: context.integration.tenantId,
           username: author.user.login,
           platform: PlatformType.GIT,
-          channel: `${repo.owner}/${repo.name}`,
+          channel: repo.name,
           type: 'authored-commit',
           sourceId: record.commit.oid,
           sourceParentId: `${data.repository.pullRequest.number}`,
@@ -1341,13 +1341,9 @@ export class GithubIntegrationService extends IntegrationServiceBase {
           attributes: {
             insertions: record.commit.additions,
             deletions: record.commit.deletions,
-            changedFiles: record.commit.changedFiles,
+            lines: record.commit.additions - record.commit.deletions,
             isMerge: record.commit.parents.totalCount > 1,
             isMainBranch: ['master', 'main'].includes(data.repository.pullRequest.baseRefName),
-            branches: [
-              data.repository.pullRequest.baseRefName,
-              data.repository.pullRequest.headRefName,
-            ],
           },
           member: {
             username: {
