@@ -22,8 +22,7 @@ const identities: MultiSelectFilterConfig = {
   itemLabelRenderer(value: MultiSelectFilterValue): string {
     return `Identities ${value?.value.join(',') || '...'}`;
   },
-  apiFilterRenderer(value): any[] {
-    console.log(value);
+  apiFilterRenderer(): any[] {
     return [];
   },
 };

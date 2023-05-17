@@ -10,7 +10,6 @@ const noOfOSSContributions: NumberFilterConfig = {
     return `# of open source contributions ${value?.value || '...'}`;
   },
   apiFilterRenderer({ value }): any[] {
-    console.log(value);
     return [
       { numberOfOpenSourceContributions: { eq: value } },
     ];

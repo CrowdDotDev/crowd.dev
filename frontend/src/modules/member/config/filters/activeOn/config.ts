@@ -22,8 +22,7 @@ const activeOn: MultiSelectFilterConfig = {
   itemLabelRenderer(value: MultiSelectFilterValue): string {
     return `Active On ${value?.value.join(',') || '...'}`;
   },
-  apiFilterRenderer(value): any[] {
-    console.log(value);
+  apiFilterRenderer(): any[] {
     return [];
   },
 };

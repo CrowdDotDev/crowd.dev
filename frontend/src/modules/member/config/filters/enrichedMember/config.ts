@@ -9,8 +9,7 @@ const enrichedMember: BooleanFilterConfig = {
   itemLabelRenderer(value): string {
     return `Enriched member ${value?.value ? 'True' : 'False'}`;
   },
-  apiFilterRenderer(value): any[] {
-    console.log(value);
+  apiFilterRenderer(): any[] {
     return [];
   },
 };

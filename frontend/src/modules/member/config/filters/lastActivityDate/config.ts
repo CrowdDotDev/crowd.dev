@@ -9,8 +9,7 @@ const lastActivityDate: DateFilterConfig = {
   itemLabelRenderer(value): string {
     return `Last activity date ${value.value || '...'}`;
   },
-  apiFilterRenderer(value): any[] {
-    console.log(value);
+  apiFilterRenderer(): any[] {
     return [];
   },
 };

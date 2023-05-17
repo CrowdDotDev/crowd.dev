@@ -9,8 +9,7 @@ const joinedDate: DateFilterConfig = {
   itemLabelRenderer(value): string {
     return `Joined date ${value.value || '...'}`;
   },
-  apiFilterRenderer(value): any[] {
-    console.log(value);
+  apiFilterRenderer(): any[] {
     return [];
   },
 };

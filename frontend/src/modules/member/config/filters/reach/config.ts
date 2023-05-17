@@ -9,8 +9,7 @@ const reach: NumberFilterConfig = {
   itemLabelRenderer(value): string {
     return `Reach ${value?.value || '...'}`;
   },
-  apiFilterRenderer(value): any[] {
-    console.log(value);
+  apiFilterRenderer(): any[] {
     return [];
   },
 };

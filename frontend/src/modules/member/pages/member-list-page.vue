@@ -51,11 +51,12 @@
         </div>
       </div>
 
-      <!--      <app-member-list-tabs />-->
+      <cr-saved-views v-model="filters" :config="memberSavedViews" :views="memberViews" />
       <cr-filter
         v-model="filters"
         :config="memberFilters"
         :search-config="memberSearchFilter"
+        :saved-views-config="memberSavedViews"
         @fetch="fetch($event)"
       />
       <!--      <app-member-list-table-->
@@ -77,7 +78,9 @@ import { MemberService } from '@/modules/member/member-service';
 import { MemberPermissions } from '@/modules/member/member-permissions';
 import { mapGetters } from '@/shared/vuex/vuex.helpers';
 import { FilterQuery } from '@/shared/modules/filters/types/FilterQuery';
+import CrSavedViews from '@/shared/modules/saved-views/components/SavedViews.vue';
 import { memberFilters, memberSearchFilter } from '../config/filters/main';
+import { memberSavedViews, memberViews } from '../config/saved-views/main';
 // import MemberListFilter from '@/modules/member/components/list/member-list-filter.vue';
 // import MemberListTable from '@/modules/member/components/list/member-list-table.vue';
 // import MemberListTabs from '@/modules/member/components/list/member-list-tabs.vue';

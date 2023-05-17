@@ -12,8 +12,7 @@ const engagementLevel: MultiSelectFilterConfig = {
   itemLabelRenderer(value: MultiSelectFilterValue): string {
     return `Engagement level ${value?.value.join(',') || '...'}`;
   },
-  apiFilterRenderer(value): any[] {
-    console.log(value);
+  apiFilterRenderer(): any[] {
     return [];
   },
 };

@@ -11,7 +11,7 @@
       >
         <template #reference>
           <el-button ref="chip" class="btn btn--bordered !h-8 p-2 !border !outline-none font-medium text-xs">
-            <span v-html="$sanitize(config.itemLabelRenderer(props.modelValue) || config.label)" />
+            <span v-html="$sanitize((props.modelValue && config.itemLabelRenderer(props.modelValue)) || config.label)" />
           </el-button>
         </template>
 

@@ -15,8 +15,7 @@ const activityType: CustomFilterConfig = {
   itemLabelRenderer(value: SelectFilterValue): string {
     return `Active on ${value || '...'}`;
   },
-  apiFilterRenderer(value): any[] {
-    console.log(value);
+  apiFilterRenderer(): any[] {
     return [];
   },
 };

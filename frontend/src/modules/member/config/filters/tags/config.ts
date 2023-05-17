@@ -12,8 +12,7 @@ const tags: MultiSelectFilterConfig = {
   itemLabelRenderer(value: MultiSelectFilterValue): string {
     return `Tags ${value?.value.join(',') || '...'}`;
   },
-  apiFilterRenderer(value): any[] {
-    console.log(value);
+  apiFilterRenderer(): any[] {
     return [];
   },
 };
