@@ -1,4 +1,3 @@
-import cronGenerator from 'cron-time-generator'
 import SequelizeRepository from '../../database/repositories/sequelizeRepository'
 import { CrowdJob } from '../../types/jobTypes'
 import { sendNodeWorkerMessage } from '../../serverless/utils/nodeWorkerSQS'
