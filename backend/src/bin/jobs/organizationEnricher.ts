@@ -1,4 +1,3 @@
-import cronGenerator from 'cron-time-generator'
 import SequelizeRepository from '../../database/repositories/sequelizeRepository'
 import { CrowdJob } from '../../types/jobTypes'
 import { sendNodeWorkerMessage } from '../../serverless/utils/nodeWorkerSQS'
@@ -9,7 +8,7 @@ import { getServiceLogger } from '../../utils/logging'
 
 const job: CrowdJob = {
   name: 'organization enricher',
-  cronTime: "*/5 * * * *", //  cronGenerator.everyDay(),
+  cronTime: '*/5 * * * *', //  cronGenerator.everyDay(),
   onTrigger: sendWorkerMessage,
 }
 
