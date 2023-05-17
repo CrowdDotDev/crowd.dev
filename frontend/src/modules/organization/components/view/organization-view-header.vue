@@ -106,13 +106,13 @@
       </div>
       <div>
         <p class="text-gray-400 font-medium text-2xs">
-          # of employees
+          Headcount
         </p>
         <p class="mt-1 text-gray-900 text-xs">
           {{
             formattedInformation(
-              organization.employees,
-              'number',
+              organization.headcount,
+              'string',
             )
           }}
         </p>
