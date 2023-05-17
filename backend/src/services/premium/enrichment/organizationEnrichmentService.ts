@@ -141,41 +141,18 @@ export default class OrganizationEnrichmentService extends LoggingBase {
   ): IEnrichableOrganization {
     const socials = socialNetworks.profiles.reduce((acc, social) => {
       const platform = social.split('.')[0]
-      switch (platform) {
-        case PlatformType.CRUNCHBASE:
-          acc[platform] = {
-            handle: social.split('/').splice(-1)[0],
-            url: social,
-          }
-          break
-        case PlatformType.GITHUB:
-          acc[platform] = {
-            handle: social.split('/').splice(-1)[0],
-            url: social,
-          }
-          break
-        case PlatformType.TWITTER:
-          acc[platform] = {
-            handle: social.split('/').splice(-1)[0],
-            url: social,
-          }
-          break
-        case PlatformType.LINKEDIN: {
-          const handle = social.split('/').splice(-1)[0]
-          if (handle !== socialNetworks.linkedin_id) {
-            acc[platform] = {
-              handle: `company/${handle}`,
-              url: social,
-            }
-          }
-          break
+      const handle = social.split('/').splice(-1)[0]
+      if (
+        Object.values(PlatformType).includes(platform as any) &&
+        handle !== socialNetworks.linkedin_id
+      ) {
+        acc[platform] = {
+          handle,
+          url: social,
         }
-        default:
-          break
       }
       return acc
     }, {})
-
     return { ...data, ...socials }
   }
 
@@ -249,6 +226,8 @@ export default class OrganizationEnrichmentService extends LoggingBase {
           this.fields.add(field)
         }
       }
+    } else {
+      Object.keys(org).forEach((field) => this.fields.add(field))
     }
 
     return ['id', 'cachId', ...this.fields]
