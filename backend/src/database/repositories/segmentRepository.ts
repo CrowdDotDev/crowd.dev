@@ -18,7 +18,7 @@ import {
 import { PageData } from '../../types/common'
 import Error404 from '../../errors/Error404'
 import { ActivityTypeSettings, DEFAULT_ACTIVITY_TYPE_SETTINGS } from '../../types/activityTypes'
-import SequelizeTestUtils from '../utils/sequelizeTestUtils'
+import removeFieldsFromObject from '../../utils/getObjectWithoutKey'
 
 class SegmentRepository extends RepositoryBase<
   SegmentData,
@@ -203,6 +203,10 @@ class SegmentRepository extends RepositoryBase<
 
     if (replacements.customActivityTypes) {
       replacements.customActivityTypes = JSON.stringify(replacements.customActivityTypes)
+    }
+
+    if (replacements.activityChannels) {
+      replacements.activityChannels = JSON.stringify(replacements.activityChannels)
     }
 
     await this.options.database.sequelize.query(segmentUpdateQuery, {
@@ -442,7 +446,7 @@ class SegmentRepository extends RepositoryBase<
 
     const count = projectGroups.length > 0 ? projectGroups[0].totalCount : 0
 
-    const rows = projectGroups.map((i) => SequelizeTestUtils.objectWithoutKey(i, 'totalCount'))
+    const rows = projectGroups.map((i) => removeFieldsFromObject(i, 'totalCount'))
 
     // TODO: Add member count to segments after implementing member relations
     return { count, rows, limit: criteria.limit, offset: criteria.offset }
@@ -486,11 +490,16 @@ class SegmentRepository extends RepositoryBase<
 
     const count = projects.length > 0 ? projects[0].totalCount : 0
 
-    const rows = projects.map((i) => SequelizeTestUtils.objectWithoutKey(i, 'totalCount'))
+    const rows = projects.map((i) => removeFieldsFromObject(i, 'totalCount'))
 
     // TODO: Add member count to segments after implementing member relations
     // TODO: Add segment settings to payload
     return { count, rows, limit: criteria.limit, offset: criteria.offset }
+  }
+
+  async getDefaultSegment() {
+    const segments = await this.querySubprojects({})
+    return segments.rows[0] || null
   }
 
   async querySubprojects(criteria: SegmentCriteria): Promise<PageData<SegmentData[]>> {
@@ -529,7 +538,7 @@ class SegmentRepository extends RepositoryBase<
     const count = subprojects.length > 0 ? subprojects[0].totalCount : 0
 
     const rows = subprojects.map((i) => {
-      const subproject = SequelizeTestUtils.objectWithoutKey(i, 'totalCount')
+      const subproject = removeFieldsFromObject(i, 'totalCount')
       return SegmentRepository.populateRelations(subproject)
     })
 
@@ -556,12 +565,27 @@ class SegmentRepository extends RepositoryBase<
   }
 
   static getActivityTypes(options: IRepositoryOptions): ActivityTypeSettings {
-    // return options.currentTenant?.settings[0]?.dataValues.activityTypes
     return options.currentSegments.reduce((acc, s) => lodash.merge(acc, s.activityTypes), {})
   }
 
   static getActivityChannels(options: IRepositoryOptions) {
-    return options.currentSegments.reduce((acc, s) => lodash.merge(acc, s.activityChannels), {})
+    const channels = {}
+    for (const segment of options.currentSegments) {
+      for (const platform of Object.keys(segment.activityChannels)) {
+        if (!channels[platform]) {
+          channels[platform] = new Set<string>(segment.activityChannels[platform])
+        } else {
+          segment.activityChannels[platform].forEach((ch) =>
+            (channels[platform] as Set<string>).add(ch),
+          )
+        }
+      }
+    }
+
+    return Object.keys(channels).reduce((acc, platform) => {
+      acc[platform] = Array.from(channels[platform])
+      return acc
+    }, {})
   }
 
   static activityTypeExists(platform: string, key: string, options: IRepositoryOptions): boolean {

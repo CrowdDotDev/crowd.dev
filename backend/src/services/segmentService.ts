@@ -282,4 +282,36 @@ export default class SegmentService extends LoggingBase {
   static listActivityTypes(options): ActivityTypeSettings {
     return SegmentRepository.getActivityTypes(options)
   }
+
+  /**
+   * update activity channels after checking for duplicates with platform key
+   */
+  async updateActivityChannels(data) {
+    if (!data.channel) {
+      throw new Error400(
+        this.options.language,
+        'settings.activityChannels.errors.typeRequiredWhenCreating',
+      )
+    }
+
+    const segment = SequelizeRepository.getStrictlySingleActiveSegment(this.options)
+
+    const activityChannels = SegmentRepository.getActivityChannels(this.options)
+
+    if (activityChannels[data.platform]) {
+      const channelList = activityChannels[data.platform]
+      if (!channelList.includes(data.channel)) {
+        const updatedChannelList = [...channelList, data.channel]
+        activityChannels[data.platform] = updatedChannelList
+      }
+    } else {
+      activityChannels[data.platform] = [data.channel]
+    }
+
+    const updated = await new SegmentRepository(this.options).update(segment.id, {
+      activityChannels,
+    })
+
+    return updated.activityChannels
+  }
 }

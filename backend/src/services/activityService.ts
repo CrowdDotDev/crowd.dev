@@ -70,7 +70,7 @@ export default class ActivityService extends LoggingBase {
 
       // check if channel exists in settings for respective platform. If not, update by adding channel to settings
       if (data.platform && data.channel) {
-        await SettingsService.updateActivityChannels(data, this.options)
+        await new SegmentService(this.options).updateActivityChannels(data)
       }
 
       // If a sourceParentId is sent, try to find it in our db

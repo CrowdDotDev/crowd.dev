@@ -26,6 +26,8 @@ class ActivityRepository {
 
     const transaction = SequelizeRepository.getTransaction(options)
 
+    const segment = SequelizeRepository.getStrictlySingleActiveSegment(options)
+
     // Data and body will be displayed as HTML. We need to sanitize them.
     if (data.body) {
       data.body = sanitizeHtml(data.body).trim()
@@ -71,6 +73,7 @@ class ActivityRepository {
         parentId: data.parent || null,
         sourceParentId: data.sourceParentId || null,
         conversationId: data.conversationId || null,
+        segmentId: segment.id,
         tenantId: tenant.id,
         createdById: currentUser.id,
         updatedById: currentUser.id,
@@ -117,10 +120,13 @@ class ActivityRepository {
 
     const currentTenant = SequelizeRepository.getCurrentTenant(options)
 
+    const segment = SequelizeRepository.getStrictlySingleActiveSegment(options)
+
     let record = await options.database.activity.findOne({
       where: {
         id,
         tenantId: currentTenant.id,
+        segmentId: segment.id,
       },
       transaction,
     })
@@ -186,10 +192,13 @@ class ActivityRepository {
 
     const currentTenant = SequelizeRepository.getCurrentTenant(options)
 
+    const segment = SequelizeRepository.getStrictlySingleActiveSegment(options)
+
     const record = await options.database.activity.findOne({
       where: {
         id,
         tenantId: currentTenant.id,
+        segmentId: segment.id,
       },
       transaction,
     })
@@ -208,6 +217,8 @@ class ActivityRepository {
 
   static async findById(id, options: IRepositoryOptions) {
     const transaction = SequelizeRepository.getTransaction(options)
+
+    const segment = SequelizeRepository.getStrictlySingleActiveSegment(options)
 
     const include = [
       {
@@ -230,6 +241,7 @@ class ActivityRepository {
       where: {
         id,
         tenantId: currentTenant.id,
+        segmentId: segment.id,
       },
       include,
       transaction,
@@ -253,9 +265,12 @@ class ActivityRepository {
 
     const currentTenant = SequelizeRepository.getCurrentTenant(options)
 
+    const segment = SequelizeRepository.getStrictlySingleActiveSegment(options)
+
     const record = await options.database.activity.findOne({
       where: {
         tenantId: currentTenant.id,
+        segmentId: segment.id,
         ...query,
       },
       transaction,
@@ -295,10 +310,13 @@ class ActivityRepository {
 
     const tenant = SequelizeRepository.getCurrentTenant(options)
 
+    const segment = SequelizeRepository.getStrictlySingleActiveSegment(options)
+
     return options.database.activity.count({
       where: {
         ...filter,
         tenantId: tenant.id,
+        segmentId: segment.id,
       },
       transaction,
     })
