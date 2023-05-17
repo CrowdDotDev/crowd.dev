@@ -107,8 +107,8 @@ export default class OrganizationEnrichmentService extends LoggingBase {
       data.geoLocation = data.address.geo ?? null
       delete data.address.geo
       data.location = `${data.address.street_address ?? ''} ${data.address.address_line_2 ?? ''} ${
-            data.address.name ?? ''
-          }`
+        data.address.name ?? ''
+      }`
     }
     if (data.employeeCountByCountry && !data.employees) {
       const employees = Object.values(data.employeeCountByCountry).reduce(

@@ -8,7 +8,7 @@ import { getServiceLogger } from '../../utils/logging'
 
 const job: CrowdJob = {
   name: 'organization enricher',
-  cronTime: "*/5 * * * *", //  cronGenerator.everyDay(),
+  cronTime: '*/5 * * * *', //  cronGenerator.everyDay(),
   onTrigger: sendWorkerMessage,
 }
 
