@@ -5,11 +5,11 @@ import { dateQueryUrlParser } from '@/shared/modules/filters/config/queryUrlPars
 import { selectQueryUrlParser } from '@/shared/modules/filters/config/queryUrlParser/select.parser';
 import { multiSelectQueryUrlParser } from '@/shared/modules/filters/config/queryUrlParser/multiselect.parser';
 
-export const queryUrlParserByType: Record<FilterConfigType, ((query: any) => any) | null> = {
+export const queryUrlParserByType: Record<FilterConfigType, (query: any) => any> = {
   [FilterConfigType.BOOLEAN]: booleanQueryUrlParser,
   [FilterConfigType.NUMBER]: numberQueryUrlParser,
   [FilterConfigType.DATE]: dateQueryUrlParser,
   [FilterConfigType.SELECT]: selectQueryUrlParser,
   [FilterConfigType.MULTISELECT]: multiSelectQueryUrlParser,
-  [FilterConfigType.CUSTOM]: null,
+  [FilterConfigType.CUSTOM]: () => null,
 };

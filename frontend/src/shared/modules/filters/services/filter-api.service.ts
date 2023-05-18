@@ -1,24 +1,28 @@
 import { Filter, FilterConfig } from '@/shared/modules/filters/types/FilterConfig';
 import { SearchFilterConfig } from '@/shared/modules/filters/types/filterTypes/SearchFilterConfig';
 import { FilterQuery } from '@/shared/modules/filters/types/FilterQuery';
+import { SavedViewsConfig } from '@/shared/modules/saved-views/types/SavedViewsConfig';
 
 export const filterApiService = () => {
-  function buildApiFilter(values: Filter, configuration: Record<string, FilterConfig>, searchConfig: SearchFilterConfig): FilterQuery {
+  function buildApiFilter(
+    values: Filter,
+    configuration: Record<string, FilterConfig>,
+    searchConfig: SearchFilterConfig,
+    savedViewsConfig?: SavedViewsConfig,
+  ): FilterQuery {
     const {
       search,
       relation,
       order,
       pagination,
-      config,
+      settings,
       ...filterValues
     } = values;
-
-    // Remove when saved views done
-    console.log(config);
 
     let baseFilters: any[] = [];
     let filters: any[] = [];
 
+    // Search
     if (search.length > 0) {
       baseFilters = [
         ...baseFilters,
@@ -26,8 +30,20 @@ export const filterApiService = () => {
       ];
     }
 
-    // TODO: config filter parsing
+    // Settings
+    if (savedViewsConfig) {
+      Object.entries(settings).forEach(([setting, value]) => {
+        const filter = savedViewsConfig.settings[setting]?.apiFilterRenderer(value);
+        if (filter) {
+          baseFilters = [
+            ...baseFilters,
+            ...filter,
+          ];
+        }
+      });
+    }
 
+    // Filter values
     Object.entries(filterValues).forEach(([key, values]) => {
       const filter = configuration[key]?.apiFilterRenderer(values);
       if (filter && filter.length > 0) {
@@ -38,6 +54,7 @@ export const filterApiService = () => {
       }
     });
 
+    // build object
     const filter = {
       and: [
         ...baseFilters,

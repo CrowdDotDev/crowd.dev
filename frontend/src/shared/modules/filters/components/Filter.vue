@@ -36,12 +36,14 @@ import { SearchFilterConfig } from '@/shared/modules/filters/types/filterTypes/S
 import { useRoute, useRouter } from 'vue-router';
 import { filterApiService } from '@/shared/modules/filters/services/filter-api.service';
 import { FilterQuery } from '@/shared/modules/filters/types/FilterQuery';
+import { SavedViewsConfig } from '@/shared/modules/saved-views/types/SavedViewsConfig';
 
 const props = defineProps<{
   modelValue: Filter,
   config: Record<string, FilterConfig>,
   customConfig?: Record<string, FilterConfig>,
   searchConfig: SearchFilterConfig,
+  savedViewsConfig?: SavedViewsConfig,
 }>();
 
 const emit = defineEmits<{(e: 'update:modelValue', value: Filter), (e: 'fetch', value: FilterQuery),}>();
@@ -57,7 +59,7 @@ const filters = computed<Filter>({
   },
   set(value: Filter) {
     const {
-      config, search, relation, order, pagination, ...filterValues
+      settings, search, relation, order, pagination, ...filterValues
     } = value;
     filterList.value = Object.keys(filterValues);
     emit('update:modelValue', value);
@@ -73,20 +75,23 @@ const switchOperator = () => {
 const removeFilter = (key) => {
   open.value = '';
   filterList.value = filterList.value.filter((el) => el !== key);
-  filters.value[key] = undefined;
+  delete filters.value[key];
 };
 
 const { setQuery, parseQuery } = filterQueryService();
 const { buildApiFilter } = filterApiService();
 
 const fetch = (value: Filter) => {
-  const data = buildApiFilter(value, { ...props.config, ...props.customConfig }, props.searchConfig);
+  const data = buildApiFilter(value, { ...props.config, ...props.customConfig }, props.searchConfig, props.savedViewsConfig);
   emit('fetch', data);
-  console.log('fetch', data);
 };
 
 watch(() => filters.value, (value: Filter) => {
   fetch(value);
+  const {
+    settings, search, relation, order, pagination, ...filterValues
+  } = value;
+  filterList.value = Object.keys(filterValues);
   const query = setQuery(value);
   router.push({ query });
 }, { deep: true });
@@ -96,7 +101,7 @@ watch(() => route.query, (query) => {
   const parsed = parseQuery(query, {
     ...props.config,
     ...props.customConfig,
-  });
+  }, props.savedViewsConfig);
   if (!parsed || Object.keys(parsed).length === 0) {
     const query = setQuery(props.modelValue);
     router.push({ query });

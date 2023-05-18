@@ -1,6 +1,8 @@
 import { FilterConfigType } from '@/shared/modules/filters/types/FilterConfig';
 import { MultiSelectFilterConfig, MultiSelectFilterValue } from '@/shared/modules/filters/types/filterTypes/MultiSelectFilterConfig';
 import { CrowdIntegrations } from '@/integrations/integrations-config';
+import { itemLabelRendererByType } from '@/shared/modules/filters/config/itemLabelRendererByType';
+import { apiFilterRendererByType } from '@/shared/modules/filters/config/apiFilterRendererByType';
 
 const identities: MultiSelectFilterConfig = {
   id: 'identities',
@@ -20,11 +22,10 @@ const identities: MultiSelectFilterConfig = {
     ],
   },
   itemLabelRenderer(value: MultiSelectFilterValue): string {
-    return `Identities ${value?.value.join(',') || '...'}`;
+    return itemLabelRendererByType[FilterConfigType.MULTISELECT]('Identities', value);
   },
-  apiFilterRenderer(value): any[] {
-    console.log(value);
-    return [];
+  apiFilterRenderer(value: MultiSelectFilterValue): any[] {
+    return apiFilterRendererByType[FilterConfigType.MULTISELECT]('identities', value);
   },
 };
 

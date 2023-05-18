@@ -1,10 +1,11 @@
 import { Filter, FilterConfig } from '@/shared/modules/filters/types/FilterConfig';
 import { queryUrlParserByType } from '@/shared/modules/filters/config/queryUrlParserByType';
 import { CustomFilterConfig } from '@/shared/modules/filters/types/filterTypes/CustomFilterConfig';
+import { SavedViewsConfig } from '@/shared/modules/saved-views/types/SavedViewsConfig';
 
 export const filterQueryService = () => {
   // Parses url query params and puts them in nested object format
-  function parseQuery(query: Record<string, any>, config: Record<string, FilterConfig>) {
+  function parseQuery(query: Record<string, any>, config: Record<string, FilterConfig>, savedViewsConfig?: SavedViewsConfig) {
     const object: Record<string, any> = {};
     Object.entries(query).forEach(([key, value]) => {
       const [mainKey, subKey] = key.split('.');
@@ -21,7 +22,15 @@ export const filterQueryService = () => {
     });
     // Url params come out as strings so we need to transform them to boolean, number or array
     Object.keys(object).forEach((key) => {
-      if (key in config) {
+      if (key === 'settings' && savedViewsConfig) {
+        Object.keys(object[key]).forEach((setting) => {
+          object[key][setting] = savedViewsConfig.settings[setting].queryUrlParser(object[key][setting]);
+        });
+      } else if (key === 'pagination') {
+        Object.keys(object[key]).forEach((paginationProperty) => {
+          object[key][paginationProperty] = +object[key][paginationProperty];
+        });
+      } else if (key in config) {
         const { type } = config[key];
         const queryUrlParser = queryUrlParserByType[type] ?? (config[key] as CustomFilterConfig).queryUrlParser;
         if (queryUrlParser) {

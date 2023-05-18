@@ -1,17 +1,18 @@
-import { NumberFilterConfig } from '@/shared/modules/filters/types/filterTypes/NumberFilterConfig';
+import { NumberFilterConfig, NumberFilterValue } from '@/shared/modules/filters/types/filterTypes/NumberFilterConfig';
 import { FilterConfigType } from '@/shared/modules/filters/types/FilterConfig';
+import { itemLabelRendererByType } from '@/shared/modules/filters/config/itemLabelRendererByType';
+import { apiFilterRendererByType } from '@/shared/modules/filters/config/apiFilterRendererByType';
 
 const reach: NumberFilterConfig = {
   id: 'reach',
   label: 'Reach',
   type: FilterConfigType.NUMBER,
   options: {},
-  itemLabelRenderer(value): string {
-    return `Reach ${value?.value || '...'}`;
+  itemLabelRenderer(value: NumberFilterValue): string {
+    return itemLabelRendererByType[FilterConfigType.NUMBER]('Reach', value);
   },
-  apiFilterRenderer(value): any[] {
-    console.log(value);
-    return [];
+  apiFilterRenderer(value: NumberFilterValue): any[] {
+    return apiFilterRendererByType[FilterConfigType.NUMBER]('reach', value);
   },
 };
 

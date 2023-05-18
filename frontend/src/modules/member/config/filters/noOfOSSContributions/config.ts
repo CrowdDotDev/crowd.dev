@@ -1,19 +1,18 @@
-import { NumberFilterConfig } from '@/shared/modules/filters/types/filterTypes/NumberFilterConfig';
+import { NumberFilterConfig, NumberFilterValue } from '@/shared/modules/filters/types/filterTypes/NumberFilterConfig';
 import { FilterConfigType } from '@/shared/modules/filters/types/FilterConfig';
+import { itemLabelRendererByType } from '@/shared/modules/filters/config/itemLabelRendererByType';
+import { apiFilterRendererByType } from '@/shared/modules/filters/config/apiFilterRendererByType';
 
 const noOfOSSContributions: NumberFilterConfig = {
   id: 'noOfOSSContributions',
   label: '# of open source contributions',
   type: FilterConfigType.NUMBER,
   options: {},
-  itemLabelRenderer(value): string {
-    return `# of open source contributions ${value?.value || '...'}`;
+  itemLabelRenderer(value: NumberFilterValue): string {
+    return itemLabelRendererByType[FilterConfigType.NUMBER]('# of OSS contributions', value);
   },
-  apiFilterRenderer({ value }): any[] {
-    console.log(value);
-    return [
-      { numberOfOpenSourceContributions: { eq: value } },
-    ];
+  apiFilterRenderer(value: NumberFilterValue): any[] {
+    return apiFilterRendererByType[FilterConfigType.NUMBER]('numberOfOpenSourceContributions', value);
   },
 };
 
