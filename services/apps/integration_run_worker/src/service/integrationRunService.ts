@@ -95,11 +95,7 @@ export default class IntegrationRunService extends LoggerBase {
       },
 
       publishStream: async (identifier: string, data?: unknown) => {
-        await this.publishStream(runInfo.tenantId, runId, {
-          identifier,
-          type: IntegrationStreamType.ROOT,
-          data,
-        })
+        await this.publishStream(runInfo.tenantId, runId, identifier, data)
       },
 
       updateIntegrationSettings: async (settings: unknown) => {
@@ -137,11 +133,12 @@ export default class IntegrationRunService extends LoggerBase {
   private async publishStream(
     tenantId: string,
     runId: string,
-    stream: IIntegrationStream,
+    identifier: string,
+    data?: unknown,
   ): Promise<void> {
     try {
       this.log.debug('Publishing new root stream!')
-      const streamId = await this.repo.publishStream(runId, stream)
+      const streamId = await this.repo.publishStream(runId, identifier, data)
       await this.streamWorkerSender.triggerStreamProcessing(tenantId, streamId)
     } catch (err) {
       await this.triggerRunError(

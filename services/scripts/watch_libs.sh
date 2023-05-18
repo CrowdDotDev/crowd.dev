@@ -74,7 +74,9 @@ function watch_src_files() {
   local package=$1
   local package_path="$CLI_HOME/../libs/$package"
 
-  npx chokidar-cli "${package_path}/src/**/*.ts" --ignore-initial --ignore "*.dist/*" -c "echo 'File change detected in src: {event} {path}' && $0 build_package $package && $0 build_dependent_packages $package && $0 touch_services $SERVICE_FLAG"
+  npx chokidar-cli "${package_path}/src/**/*.ts" --ignore-initial --ignore "*.dist/*" -c "echo 'File change detected in src: {event} {path}' && $0 build_package $package && $0 build_dependent_packages $package && $0 touch_services $SERVICE_FLAG" &
+  sleep 5
+  touch "$package_path/src/index.ts"
 }
 
 function watch_package_json() {
@@ -82,6 +84,20 @@ function watch_package_json() {
   local package_path="$CLI_HOME/../libs/$package"
 
   npx chokidar-cli "${package_path}/package.json" --ignore-initial -c "echo 'File change detected in package.json: {event} {path}' && $0 install_package $package && $0 build_package $package && $0 build_dependent_packages $package && $0 touch_services $SERVICE_FLAG"
+}
+
+function start() {
+  for library_path in "$CLI_HOME/../libs/"*; do
+    if [ -d "$library_path" ] && [ -f "$library_path/package.json" ]; then
+      library=$(basename "$library_path")
+      say "Watching library: $library"
+      watch_src_files "$library" &
+      watch_package_json "$library" &
+    fi
+  done
+
+  # Wait for all background tasks to complete
+  wait
 }
 
 if [ "$#" -gt 0 ]; then
@@ -102,31 +118,11 @@ if [ "$#" -gt 0 ]; then
       touch_services
       ;;
     *)
-      for library_path in "$CLI_HOME/../libs/"*; do
-        if [ -d "$library_path" ] && [ -f "$library_path/package.json" ]; then
-          library=$(basename "$library_path")
-          say "Watching library: $library"
-          watch_src_files "$library" &
-          watch_package_json "$library" &
-        fi
-      done
-
-      # Wait for all background tasks to complete
-      wait
+      start
       ;;
   esac
 
   exit 0
 fi
 
-for library_path in "$CLI_HOME/../libs/"*; do
-  if [ -d "$library_path" ] && [ -f "$library_path/package.json" ]; then
-    library=$(basename "$library_path")
-    say "Watching library: $library"
-    watch_src_files "$library" &
-    watch_package_json "$library" &
-  fi
-done
-
-# Wait for all background tasks to complete
-wait
+start

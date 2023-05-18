@@ -235,16 +235,13 @@ export default class IntegrationRunRepository extends RepositoryBase<
 
     const seq = this.seq
 
-    const id = uuidV1()
-
     const query = `
-      insert into integration.runs(id, "tenantId", "integrationId", "microserviceId", onboarding, state)
-      values(:id, :tenantId, :integrationId, :microserviceId, :onboarding, :state);
+      insert into integration.runs("tenantId", "integrationId", "microserviceId", onboarding, state)
+      values(:tenantId, :integrationId, :microserviceId, :onboarding, :state) returning id;
     `
 
-    await seq.query(query, {
+    const result = await seq.query(query, {
       replacements: {
-        id,
         tenantId: data.tenantId,
         integrationId: data.integrationId || null,
         microserviceId: data.microserviceId || null,
@@ -255,7 +252,11 @@ export default class IntegrationRunRepository extends RepositoryBase<
       transaction,
     })
 
-    return id
+    if (result.length !== 1) {
+      throw new Error(`Expected 1 row to be inserted, got ${result.length} rows instead.`)
+    }
+
+    return (result[0] as any).id
   }
 
   override async create(data: DbIntegrationRunCreateData): Promise<IntegrationRun> {

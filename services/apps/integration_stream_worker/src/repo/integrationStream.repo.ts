@@ -28,10 +28,9 @@ export default class IntegrationStreamRepository extends RepositoryBase<Integrat
           s.state,
           s."parentId",
           s.identifier,
-          s.type,
           s.data,
           s.retries
-    from integration."runStreams" s
+    from integration.streams s
             inner join integrations i on s."integrationId" = i.id
             inner join integration.runs r on r.id = s."runId"
     where s.id = $(streamId);
@@ -64,7 +63,7 @@ export default class IntegrationStreamRepository extends RepositoryBase<Integrat
 
   public async resetStream(streamId: string): Promise<void> {
     const result = await this.db().result(
-      `update integration."runStreams"
+      `update integration.streams
        set  state = $(state),
             error = null,
             "delayedUntil" = null,
@@ -82,7 +81,7 @@ export default class IntegrationStreamRepository extends RepositoryBase<Integrat
 
   public async markStreamInProgress(streamId: string): Promise<void> {
     const result = await this.db().result(
-      `update integration."runStreams"
+      `update integration.streams
        set  state = $(state),
             "updatedAt" = now()
        where id = $(streamId)`,
@@ -97,7 +96,7 @@ export default class IntegrationStreamRepository extends RepositoryBase<Integrat
 
   public async markStreamProcessed(streamId: string): Promise<void> {
     const result = await this.db().result(
-      `update integration."runStreams"
+      `update integration.streams
        set  state = $(state),
             "processedAt" = now(),
             "updatedAt" = now()
@@ -113,7 +112,7 @@ export default class IntegrationStreamRepository extends RepositoryBase<Integrat
 
   public async delayStream(streamId: string, until: Date): Promise<void> {
     const result = await this.db().result(
-      `update integration."runStreams"
+      `update integration.streams
        set  state = $(state),
             "delayedUntil" = $(until),
             "updatedAt" = now()
@@ -147,7 +146,7 @@ export default class IntegrationStreamRepository extends RepositoryBase<Integrat
 
   public async markStreamError(streamId: string, error: unknown): Promise<void> {
     const result = await this.db().result(
-      `update integration."runStreams"
+      `update integration.streams
          set state = $(state),
              "processedAt" = now(),
              error = $(error),
@@ -185,7 +184,7 @@ export default class IntegrationStreamRepository extends RepositoryBase<Integrat
       update "integrations"
          set settings = settings || $(settings)::jsonb,
             "updatedAt" = now()
-       where id = (select "integrationId" from integration."runStreams" where id = $(streamId) limit 1)
+       where id = (select "integrationId" from integration.streams where id = $(streamId) limit 1)
     `,
       {
         streamId,
@@ -201,7 +200,7 @@ export default class IntegrationStreamRepository extends RepositoryBase<Integrat
 
     const result = await this.db().result(
       `
-    insert into integration."streamData"(id, state, data, "streamId", "runId", "tenantId", "integrationId", "microserviceId")
+    insert into integration."apiData"(id, state, data, "streamId", "runId", "tenantId", "integrationId", "microserviceId")
     select $(id)::uuid,
            $(state),
            $(data)::json,
@@ -210,7 +209,7 @@ export default class IntegrationStreamRepository extends RepositoryBase<Integrat
            "tenantId",
            "integrationId",
            "microserviceId"
-    from integration."runStreams" where id = $(streamId);
+    from integration.streams where id = $(streamId);
     `,
       {
         id,
@@ -228,19 +227,17 @@ export default class IntegrationStreamRepository extends RepositoryBase<Integrat
   public async publishStream(
     parentId: string,
     runId: string,
-    stream: IIntegrationStream,
+    identifier: string,
+    data?: unknown,
   ): Promise<string> {
-    const id = generateUUIDv1()
-
-    const result = await this.db().result(
+    const result = await this.db().one(
       `
-    insert into integration."runStreams"(id, "parentId", "runId", state, identifier, type, data, "tenantId", "integrationId", "microserviceId")
+    insert into integration.streams(id, "parentId", "runId", state, identifier, data, "tenantId", "integrationId", "microserviceId")
     select $(id)::uuid,
            $(parentId)::uuid,
            $(runId)::uuid,
            $(state),
            $(identifier),
-           $(type),
            $(data)::json,
            "tenantId",
            "integrationId",
@@ -248,18 +245,14 @@ export default class IntegrationStreamRepository extends RepositoryBase<Integrat
     from integration.runs where id = $(runId);
     `,
       {
-        id,
         parentId,
         runId,
         state: IntegrationStreamState.PENDING,
-        identifier: stream.identifier,
-        type: stream.type,
-        data: stream.data ? JSON.stringify(stream.data) : null,
+        identifier: identifier,
+        data: data ? JSON.stringify(data) : null,
       },
     )
 
-    this.checkUpdateRowCount(result.rowCount, 1)
-
-    return id
+    return result.id
   }
 }

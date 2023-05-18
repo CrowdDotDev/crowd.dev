@@ -2,7 +2,6 @@ import { DbStore, RepositoryBase } from '@crowd/database'
 import { Logger } from '@crowd/logging'
 import { IGenerateStreamsData } from './integrationRun.data'
 import { IIntegrationStream, IntegrationRunState, IntegrationStreamState } from '@crowd/types'
-import { generateUUIDv1 } from '@crowd/common'
 
 export default class IntegrationRunRepository extends RepositoryBase<IntegrationRunRepository> {
   constructor(dbStore: DbStore, parentLog: Logger) {
@@ -104,35 +103,28 @@ export default class IntegrationRunRepository extends RepositoryBase<Integration
     this.checkUpdateRowCount(result.rowCount, 1)
   }
 
-  public async publishStream(runId: string, stream: IIntegrationStream): Promise<string> {
-    const id = generateUUIDv1()
-
-    const result = await this.db().result(
+  public async publishStream(runId: string, identifier: string, data?: unknown): Promise<string> {
+    const result = await this.db().one(
       `
-    insert into integration."runStreams"(id, "runId", state, identifier, type, data, "tenantId", "integrationId", "microserviceId")
-    select $(id)::uuid,
-           $(runId)::uuid,
+    insert into integration.streams("runId", state, identifier, data, "tenantId", "integrationId", "microserviceId")
+    select $(runId)::uuid,
            $(state),
            $(identifier),
-           $(type),
            $(data)::json,
            "tenantId",
            "integrationId",
            "microserviceId"
-    from integration.runs where id = $(runId);
+    from integration.runs where id = $(runId)
+    returning id;
     `,
       {
-        id,
         runId,
         state: IntegrationStreamState.PENDING,
-        identifier: stream.identifier,
-        type: stream.type,
-        data: stream.data ? JSON.stringify(stream.data) : null,
+        identifier: identifier,
+        data: data ? JSON.stringify(data) : null,
       },
     )
 
-    this.checkUpdateRowCount(result.rowCount, 1)
-
-    return id
+    return result.id
   }
 }

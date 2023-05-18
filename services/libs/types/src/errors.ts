@@ -16,3 +16,13 @@ export class BaseError extends Error {
     Object.setPrototypeOf(this, BaseError.prototype)
   }
 }
+
+export class RateLimitError extends BaseError {
+  public rateLimitResetSeconds: number
+
+  constructor(rateLimitResetSeconds: number, endpoint: string, origError?: any) {
+    super(`Endpoint: '${endpoint}' rate limit exceeded`, origError)
+    this.rateLimitResetSeconds = rateLimitResetSeconds
+    Object.setPrototypeOf(this, RateLimitError.prototype)
+  }
+}

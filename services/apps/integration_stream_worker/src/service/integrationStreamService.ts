@@ -117,7 +117,7 @@ export default class IntegrationStreamService extends LoggerBase {
 
       stream: {
         identifier: streamInfo.identifier,
-        type: streamInfo.type,
+        type: streamInfo.parentId ? IntegrationStreamType.CHILD : IntegrationStreamType.ROOT,
         data: streamInfo.data,
       },
 
@@ -128,11 +128,7 @@ export default class IntegrationStreamService extends LoggerBase {
         await this.publishData(streamInfo.tenantId, streamInfo.runId, streamId, data)
       },
       publishStream: async (identifier, data) => {
-        await this.publishStream(streamId, streamInfo.tenantId, streamInfo.runId, {
-          identifier,
-          type: IntegrationStreamType.CHILD,
-          data,
-        })
+        await this.publishStream(streamId, streamInfo.tenantId, streamInfo.runId, identifier, data)
       },
       updateIntegrationSettings: async (settings) => {
         await this.updateIntegrationSettings(streamId, settings)
@@ -218,11 +214,12 @@ export default class IntegrationStreamService extends LoggerBase {
     parentId: string,
     tenantId: string,
     runId: string,
-    stream: IIntegrationStream,
+    identifier: string,
+    data?: unknown,
   ): Promise<void> {
     try {
       this.log.debug('Publishing new child stream!')
-      const streamId = await this.repo.publishStream(parentId, runId, stream)
+      const streamId = await this.repo.publishStream(parentId, runId, identifier, data)
       await this.streamWorkerSender.triggerStreamProcessing(tenantId, streamId)
     } catch (err) {
       await this.triggerRunError(

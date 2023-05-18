@@ -20,7 +20,6 @@ export interface IStreamData {
   state: IntegrationStreamState
   parentId: string | null
   identifier: string
-  type: IntegrationStreamType
   data: unknown
   retries: number | null
 }
