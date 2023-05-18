@@ -21,8 +21,7 @@ export interface PullRequestCommit {
             changedFiles: number
             deletions: number
             oid: string
-            messageBody: string
-            messageHeadline: string
+            message: string
             url: string
             parents: {
               totalCount: number
@@ -83,8 +82,7 @@ class PullRequestCommitsQuery extends BaseQuery {
                 changedFiles
                 deletions
                 oid
-                messageBody
-                messageHeadline
+                message
                 url
                 parents(first: 2) {
                 	totalCount
