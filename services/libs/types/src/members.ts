@@ -8,3 +8,14 @@ export interface IMemberAttribute {
   name: string
   options?: string[]
 }
+
+export interface IMemberIdentity {
+  platform: string
+  username: string
+}
+
+export interface IMemberData {
+  emails?: string[]
+  identities: IMemberIdentity[]
+  attributes: Record<string, unknown>
+}

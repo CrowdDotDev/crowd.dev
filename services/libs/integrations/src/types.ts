@@ -1,36 +1,40 @@
-import { IMemberAttribute } from '@crowd/types'
+import { IMemberAttribute, IActivityData } from '@crowd/types'
 import { Logger } from '@crowd/logging'
 import { ICache, IIntegration, IIntegrationStream } from '@crowd/types'
 
-export interface IGenerateStreamsContext {
+export interface IIntegrationContext {
   onboarding: boolean
   integration: IIntegration
+  log: Logger
+  cache: ICache
 
   publishStream: (identifier: string, metadata?: unknown) => Promise<void>
   updateIntegrationSettings: (settings: unknown) => Promise<void>
 
-  abortWithError: (message: string, metadata?: unknown) => Promise<void>
-
-  log: Logger
-  cache: ICache
+  abortRunWithError: (message: string, metadata?: unknown) => Promise<void>
 }
 
-export interface IProcessStreamContext {
-  integration: IIntegration
+export type IGenerateStreamsContext = IIntegrationContext
+
+export interface IProcessStreamContext extends IIntegrationContext {
   stream: IIntegrationStream
 
   publishData: (data: unknown) => Promise<void>
-  publishStream: (identifier: string, metadata?: unknown) => Promise<void>
-  updateIntegrationSettings: (settings: unknown) => Promise<void>
+
+  abortWithError: (message: string, metadata?: unknown) => Promise<void>
+}
+
+export interface IProcessDataContext extends IIntegrationContext {
+  data: unknown
 
   abortWithError: (message: string, metadata?: unknown) => Promise<void>
 
-  log: Logger
-  cache: ICache
+  publishActivity: (activity: IActivityData) => Promise<void>
 }
 
 export type GenerateStreamsHandler = (ctx: IGenerateStreamsContext) => Promise<void>
 export type ProcessStreamHandler = (ctx: IProcessStreamContext) => Promise<void>
+export type ProcessDataHandler = (ctx: IProcessDataContext) => Promise<void>
 
 export interface IIntegrationDescriptor {
   /**
@@ -46,13 +50,22 @@ export interface IIntegrationDescriptor {
   /**
    * Function that will be called to process a single stream.
    * The results of this function should be raw data fetched from external API
-   * that will be processed later by the processStreamData function.
+   * that will be processed later by the processData function.
    *
    * Use ctx.publishData to store data for later processing
    * Use ctx.publishStream to create a new stream if needed
    * @param ctx Everything that is needed to process a single stream
    */
   processStream: ProcessStreamHandler
+
+  /**
+   * Function that will be called to process a single stream data.
+   * The results of this function should be activities (with member information).
+   *
+   * Use ctx.publishActivity to publish an activity
+   * @param ctx Everything that is needed to process a single stream data
+   */
+  processData: ProcessDataHandler
 
   // type of integration service
   type: string

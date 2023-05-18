@@ -5,7 +5,7 @@ export interface IGenerateStreamsData {
   integrationId: string
   integrationType: string
   integrationState: IntegrationState
-  integrationIdentifier: string
+  integrationIdentifier: string | null
   runState: IntegrationRunState
   runId: string
   tenantId: string

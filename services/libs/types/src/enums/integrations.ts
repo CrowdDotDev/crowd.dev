@@ -15,6 +15,7 @@ export enum IntegrationRunState {
 }
 
 export enum IntegrationStreamState {
+  DELAYED = 'delayed',
   PENDING = 'pending',
   PROCESSING = 'processing',
   PROCESSED = 'processed',
@@ -24,4 +25,11 @@ export enum IntegrationStreamState {
 export enum IntegrationStreamType {
   ROOT = 'root',
   CHILD = 'child',
+}
+
+export enum IntegrationStreamDataState {
+  PENDING = 'pending',
+  PROCESSING = 'processing',
+  PROCESSED = 'processed',
+  ERROR = 'error',
 }

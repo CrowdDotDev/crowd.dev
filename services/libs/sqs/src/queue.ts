@@ -28,12 +28,16 @@ export abstract class SqsQueueBase extends LoggerBase {
     this.isFifo = queueConf.type === SqsQueueType.FIFO
   }
 
+  public isInitialized(): boolean {
+    return this.queueUrl !== undefined
+  }
+
   protected getQueueUrl(): string {
     if (this.queueUrl) {
       return this.queueUrl
     }
 
-    throw new Error('Queue URL not set - please call start() first!')
+    throw new Error('Queue URL not set - please call init() first!')
   }
 
   public async init() {
@@ -111,13 +115,20 @@ export abstract class SqsQueueReceiver extends SqsQueueBase {
     this.log.info('Starting listening to queue...')
     while (this.started) {
       if (this.isAvailable()) {
+        // first receive the message
         const message = await this.receiveMessage()
         if (message) {
+          // process it and then delete it otherwise MessageGroupId does not work properly with FIFO queues
+          // we also have 15 minuts to process the message otherwise it will be visible again and taken by a consumer again
           this.log.trace({ messageId: message.MessageId }, 'Received message from queue!')
           this.addJob()
-          await this.deleteMessage(message.ReceiptHandle)
           this.processMessage(JSON.parse(message.Body))
-            .then(() => this.removeJob())
+            // when the message is processed, delete it from the queue
+            .then(async () => {
+              await this.deleteMessage(message.ReceiptHandle)
+              this.removeJob()
+            })
+            // if error is detected don't delete the message from the queue
             .catch(() => this.removeJob())
         }
       } else {

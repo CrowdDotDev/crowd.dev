@@ -1,8 +1,6 @@
--- recreating the tables with new columns and better column order for easier querying
-drop table "integrationStreams";
-drop table "integrationRuns";
+create schema integration;
 
-create table "integrationRuns" (
+create table integration.runs (
     id               uuid         not null,
     onboarding       boolean      not null,
     state            varchar(255) not null,
@@ -25,11 +23,11 @@ create table "integrationRuns" (
     primary key (id)
 );
 
-create index "ix_integrationRuns_tenantId" on "integrationRuns" ("tenantId");
-create index "ix_integrationRuns_integrationId" on "integrationRuns" ("integrationId");
-create index "ix_integrationRuns_microserviceId" on "integrationRuns" ("microserviceId");
+create index "ix_integration_runs_tenantId" on integration.runs ("tenantId");
+create index "ix_integration_runs_integrationId" on integration.runs ("integrationId");
+create index "ix_integration_runs_microserviceId" on integration.runs ("microserviceId");
 
-create table "integrationStreams" (
+create table integration."runStreams" (
     id               uuid         not null,
     state            varchar(255) not null,
 
@@ -37,7 +35,9 @@ create table "integrationStreams" (
     identifier       varchar(255) not null,
     type             text         not null,
 
-    data             json         not null,
+    data             json         null,
+
+    "delayedUntil"   timestamptz  null,
 
     "processedAt"    timestamptz  null,
     error            json         null,
@@ -52,22 +52,22 @@ create table "integrationStreams" (
     "microserviceId" uuid         null,
 
     unique ("runId", identifier),
-    foreign key ("runId") references "integrationRuns" (id) on delete cascade,
+    foreign key ("runId") references integration.runs (id) on delete cascade,
     foreign key ("tenantId") references tenants (id) on delete cascade,
     foreign key ("integrationId") references integrations (id) on delete cascade,
     foreign key ("microserviceId") references microservices (id) on delete cascade,
-    foreign key ("parentId") references "integrationStreams" (id) on delete cascade,
+    foreign key ("parentId") references integration."runStreams" (id) on delete cascade,
     primary key (id)
 );
 
-create index "ix_integrationStreams_runId" on "integrationStreams" ("runId");
-create index "ix_integrationStreams_tenantId" on "integrationStreams" ("tenantId");
-create index "ix_integrationStreams_integrationId" on "integrationStreams" ("integrationId");
-create index "ix_integrationStreams_microserviceId" on "integrationStreams" ("microserviceId");
-create index "ix_integrationStreams_identifier" on "integrationStreams" ("identifier");
-create index "ix_integrationStreams_parentId" on "integrationStreams" ("parentId");
+create index "ix_integration_runStreams_runId" on integration."runStreams" ("runId");
+create index "ix_integration_runStreams_tenantId" on integration."runStreams" ("tenantId");
+create index "ix_integration_runStreams_integrationId" on integration."runStreams" ("integrationId");
+create index "ix_integration_runStreams_microserviceId" on integration."runStreams" ("microserviceId");
+create index "ix_integration_runStreams_identifier" on integration."runStreams" ("identifier");
+create index "ix_integration_runStreams_parentId" on integration."runStreams" ("parentId");
 
-create table "integrationStreamData" (
+create table integration."streamData" (
     id               uuid         not null,
     state            varchar(255) not null,
     data             json         not null,
@@ -85,16 +85,16 @@ create table "integrationStreamData" (
     "integrationId"  uuid         null,
     "microserviceId" uuid         null,
 
-    foreign key ("streamId") references "integrationStreams" (id) on delete cascade,
-    foreign key ("runId") references "integrationRuns" (id) on delete cascade,
+    foreign key ("streamId") references integration."runStreams" (id) on delete cascade,
+    foreign key ("runId") references integration.runs (id) on delete cascade,
     foreign key ("tenantId") references tenants (id) on delete cascade,
     foreign key ("integrationId") references integrations (id) on delete cascade,
     foreign key ("microserviceId") references microservices (id) on delete cascade,
     primary key (id)
 );
 
-create index "ix_integrationStreamData_streamId" on "integrationStreamData" ("streamId");
-create index "ix_integrationStreamData_runId" on "integrationStreamData" ("runId");
-create index "ix_integrationStreamData_tenantId" on "integrationStreamData" ("tenantId");
-create index "ix_integrationStreamData_integrationId" on "integrationStreamData" ("integrationId");
-create index "ix_integrationStreamData_microserviceId" on "integrationStreamData" ("microserviceId");
+create index "ix_integration_streamData_streamId" on integration."streamData" ("streamId");
+create index "ix_integration_streamData_runId" on integration."streamData" ("runId");
+create index "ix_integration_streamData_tenantId" on integration."streamData" ("tenantId");
+create index "ix_integration_streamData_integrationId" on integration."streamData" ("integrationId");
+create index "ix_integration_streamData_microserviceId" on integration."streamData" ("microserviceId");

@@ -20,6 +20,7 @@ import { getOrganizations } from '../serverless/integrations/usecases/linkedin/g
 import Error404 from '../errors/Error404'
 import IntegrationRunRepository from '../database/repositories/integrationRunRepository'
 import { IntegrationRunState } from '../types/integrationRunTypes'
+import { sendGenerateRunStreamsMessage } from '../serverless/utils/integrationRunWorkerSQS'
 
 const discordToken = DISCORD_CONFIG.token2 || DISCORD_CONFIG.token
 
@@ -553,7 +554,7 @@ export default class IntegrationService {
   async devtoConnectOrUpdate(integrationData) {
     const transaction = await SequelizeRepository.createTransaction(this.options)
     let integration
-    let run
+    let runId
 
     try {
       integration = await this.createOrUpdate(
@@ -570,7 +571,10 @@ export default class IntegrationService {
         transaction,
       )
 
-      run = await new IntegrationRunRepository({ ...this.options, transaction }).create({
+      runId = await new IntegrationRunRepository({
+        ...this.options,
+        transaction,
+      }).createInNewFramework({
         integrationId: integration.id,
         tenantId: integration.tenantId,
         onboarding: true,
@@ -582,10 +586,7 @@ export default class IntegrationService {
       throw err
     }
 
-    await sendNodeWorkerMessage(
-      integration.tenantId,
-      new NodeWorkerIntegrationProcessMessage(run.id),
-    )
+    await sendGenerateRunStreamsMessage(integration.tenantId, runId)
 
     return integration
   }

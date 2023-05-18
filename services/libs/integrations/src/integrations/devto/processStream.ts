@@ -1,13 +1,14 @@
 import { IntegrationStreamType } from '@crowd/types'
 import { IProcessStreamContext, ProcessStreamHandler } from '../../types'
-import { DevToRootStream, IDevToIntegrationSettings } from './types'
-import { getOrganizationArticles, getUserArticles } from './api/articles'
-import { getArticle } from './api/articles'
+import { IDevToArticle, getArticle, getOrganizationArticles, getUserArticles } from './api/articles'
 import { getArticleComments } from './api/comments'
+import { IDevToUser, getUser } from './api/user'
+import { DevToRootStream } from './types'
 import { getUserIdsFromComments, setFullUser } from './utils'
-import { getUser } from './api/user'
 
-const getDevToArticle = async (ctx: IProcessStreamContext, id: number) => {
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
+const getDevToArticle = async (ctx: IProcessStreamContext, id: number): Promise<IDevToArticle> => {
   const cached = await ctx.cache.get(`article:${id}`)
   if (cached) {
     return JSON.parse(cached)
@@ -18,7 +19,7 @@ const getDevToArticle = async (ctx: IProcessStreamContext, id: number) => {
   return article
 }
 
-const getDevToUser = async (ctx: IProcessStreamContext, userId: number) => {
+const getDevToUser = async (ctx: IProcessStreamContext, userId: number): Promise<IDevToUser> => {
   const cached = await ctx.cache.get(`user:${userId}`)
   if (cached) {
     return JSON.parse(cached)
@@ -31,48 +32,35 @@ const getDevToUser = async (ctx: IProcessStreamContext, userId: number) => {
 
 const processRootStream: ProcessStreamHandler = async (ctx) => {
   // no data here just new streams
-  const settings = ctx.integration.settings as IDevToIntegrationSettings
-
   switch (ctx.stream.identifier) {
     case DevToRootStream.ORGANIZATION_ARTICLES: {
-      if (settings.organizations.length === 0) {
-        await ctx.abortWithError('No organizations configured!')
-        return
-      }
-
-      for (const organization of settings.organizations) {
-        let page = 1
-        let articles = await getOrganizationArticles(organization, page, 20)
-        while (articles.length > 0) {
-          for (const article of articles) {
-            ctx.log.info(`Creating organization article stream with identifier ${article.id}!`)
-            await ctx.cache.set(`article:${article.id}`, JSON.stringify(article), 7 * 24 * 60 * 60) // store for 7 days
-            await ctx.publishStream(`${article.id}`)
-          }
-          articles = await getOrganizationArticles(organization, ++page, 20)
+      const organization = (ctx.stream.data as any).organization
+      let page = 1
+      let articles = await getOrganizationArticles(organization, page, 20)
+      while (articles.length > 0) {
+        for (const article of articles) {
+          ctx.log.info(`Creating organization article stream with identifier ${article.id}!`)
+          await ctx.cache.set(`article:${article.id}`, JSON.stringify(article), 7 * 24 * 60 * 60) // store for 7 days
+          await ctx.publishStream(`${article.id}`)
         }
+        articles = await getOrganizationArticles(organization, ++page, 20)
       }
       break
     }
 
     case DevToRootStream.USER_ARTICLES: {
-      if (settings.users.length === 0) {
-        await ctx.abortWithError('No users configured!')
-        return
+      const user = (ctx.stream.data as any).user
+      let page = 1
+      let articles = await getUserArticles(user, page, 20)
+      while (articles.length > 0) {
+        for (const article of articles) {
+          ctx.log.info(`Creating user article stream with identifier ${article.id}!`)
+          await ctx.cache.set(`article:${article.id}`, JSON.stringify(article), 7 * 24 * 60 * 60) // store for 7 days
+          await ctx.publishStream(`${article.id}`)
+        }
+        articles = await getUserArticles(user, ++page, 20)
       }
 
-      for (const user of settings.users) {
-        let page = 1
-        let articles = await getUserArticles(user, page, 20)
-        while (articles.length > 0) {
-          for (const article of articles) {
-            ctx.log.info(`Creating user article stream with identifier ${article.id}!`)
-            await ctx.cache.set(`article:${article.id}`, JSON.stringify(article), 7 * 24 * 60 * 60) // store for 7 days
-            await ctx.publishStream(`${article.id}`)
-          }
-          articles = await getUserArticles(user, ++page, 20)
-        }
-      }
       break
     }
 
@@ -85,22 +73,30 @@ const processRootStream: ProcessStreamHandler = async (ctx) => {
 const processArticleStream: ProcessStreamHandler = async (ctx) => {
   const articleId = parseInt(ctx.stream.identifier, 10)
 
-  ctx.log.info(`Processing article stream with id ${articleId}!`)
+  ctx.log.info({ devtoArticleId: articleId }, 'Processing article stream!')
 
   const comments = await getArticleComments(articleId)
 
-  const userIds = getUserIdsFromComments(comments)
-  for (const userId of userIds) {
-    const fullUser = await getDevToUser(ctx, userId)
-    if (fullUser) {
-      setFullUser(comments, fullUser)
+  if (comments.length > 0) {
+    ctx.log.info(
+      { devtoArticleId: articleId, nComments: comments.length },
+      'We have found comments for this article!',
+    )
+    const userIds = getUserIdsFromComments(comments)
+    for (const userId of userIds) {
+      const fullUser = await getDevToUser(ctx, userId)
+      if (fullUser) {
+        setFullUser(comments, fullUser)
+      }
     }
-  }
 
-  await ctx.publishData({
-    article: await getDevToArticle(ctx, articleId),
-    comments,
-  })
+    await ctx.publishData({
+      article: await getDevToArticle(ctx, articleId),
+      comments,
+    })
+  } else {
+    ctx.log.info({ devtoArticleId: articleId }, 'No comments found for this article!')
+  }
 }
 
 const handler: ProcessStreamHandler = async (ctx) => {

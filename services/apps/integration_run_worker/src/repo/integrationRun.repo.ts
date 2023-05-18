@@ -2,7 +2,7 @@ import { DbStore, RepositoryBase } from '@crowd/database'
 import { Logger } from '@crowd/logging'
 import { IGenerateStreamsData } from './integrationRun.data'
 import { IIntegrationStream, IntegrationRunState, IntegrationStreamState } from '@crowd/types'
-import { generateUUIDv1 } from '../utils/uuid'
+import { generateUUIDv1 } from '@crowd/common'
 
 export default class IntegrationRunRepository extends RepositoryBase<IntegrationRunRepository> {
   constructor(dbStore: DbStore, parentLog: Logger) {
@@ -11,25 +11,25 @@ export default class IntegrationRunRepository extends RepositoryBase<Integration
 
   private readonly getGenerateStreamDataQuery = `
     with stream_count as (select "runId", count(id) as stream_count
-                          from "integrationStreams"
+                          from integration."runStreams"
                          where "runId" = $(runId)
                          group by "runId")
-select r."integrationId",
-       i."integrationIdentifier",
-       r."tenantId",
-       r.onboarding,
-       i.platform                  as "integrationType", 
-       i.status                    as "integrationState",
-       r.state                     as "runState",
-       r.id                        as "runId",
-       i.settings                  as "integrationSettings",
-       coalesce(c.stream_count, 0) as "streamCount"
-  from "integrationRuns" r
-           inner join integrations i on (r."integrationId" = i.id and i."deletedAt" is null)
-           left join stream_count c on c."runId" = r.id
- where r.id = $(runId);
+    select r."integrationId",
+          i."integrationIdentifier",
+          r."tenantId",
+          r.onboarding,
+          i.platform                  as "integrationType", 
+          i.status                    as "integrationState",
+          r.state                     as "runState",
+          r.id                        as "runId",
+          i.settings                  as "integrationSettings",
+          coalesce(c.stream_count, 0) as "streamCount"
+      from integration.runs r
+              inner join integrations i on (r."integrationId" = i.id and i."deletedAt" is null)
+              left join stream_count c on c."runId" = r.id
+    where r.id = $(runId);
   `
-  public async getGenerateStreamData(runId: string): Promise<IGenerateStreamsData | undefined> {
+  public async getGenerateStreamData(runId: string): Promise<IGenerateStreamsData | null> {
     const results = await this.db().oneOrNone(this.getGenerateStreamDataQuery, {
       runId,
     })
@@ -39,7 +39,7 @@ select r."integrationId",
 
   public async markRunError(runId: string, error: unknown): Promise<void> {
     const result = await this.db().result(
-      `update "integrationRuns"
+      `update integration.runs
          set state = $(state),
              "processedAt" = now(),
              error = $(error),
@@ -58,7 +58,7 @@ select r."integrationId",
   public async markRunInProgress(runId: string): Promise<void> {
     const result = await this.db().result(
       `
-      update "integrationRuns"
+      update integration.runs
          set state = $(state),
             "updatedAt" = now()
        where id = $(runId)
@@ -75,7 +75,7 @@ select r."integrationId",
   public async touchRun(runId: string): Promise<void> {
     const result = await this.db().result(
       `
-      update "integrationRuns"
+      update integration.runs
          set "updatedAt" = now()
        where id = $(runId)
     `,
@@ -93,7 +93,7 @@ select r."integrationId",
       update "integrations"
          set settings = settings || $(settings)::jsonb,
             "updatedAt" = now()
-       where id = (select "integrationId" from "integrationRuns" where id = $(runId) limit 1)
+       where id = (select "integrationId" from integration.runs where id = $(runId) limit 1)
     `,
       {
         runId,
@@ -109,7 +109,7 @@ select r."integrationId",
 
     const result = await this.db().result(
       `
-    insert into "integrationStreams"(id, state, identifier, type, data, "tenantId", "integrationId", "microserviceId")
+    insert into integration."runStreams"(id, "runId", state, identifier, type, data, "tenantId", "integrationId", "microserviceId")
     select $(id)::uuid,
            $(runId)::uuid,
            $(state),
@@ -119,7 +119,7 @@ select r."integrationId",
            "tenantId",
            "integrationId",
            "microserviceId"
-    from "integrationRuns" where id = $(runId);
+    from integration.runs where id = $(runId);
     `,
       {
         id,
@@ -127,7 +127,7 @@ select r."integrationId",
         state: IntegrationStreamState.PENDING,
         identifier: stream.identifier,
         type: stream.type,
-        data: JSON.stringify(stream.metadata),
+        data: stream.data ? JSON.stringify(stream.data) : null,
       },
     )
 

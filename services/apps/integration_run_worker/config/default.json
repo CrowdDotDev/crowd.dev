@@ -2,7 +2,7 @@
   "db": {
     "host": "localhost",
     "port": 5432,
-    "name": "crowd-web",
+    "database": "crowd-web",
     "user": "postgres",
     "password": "example"
   },

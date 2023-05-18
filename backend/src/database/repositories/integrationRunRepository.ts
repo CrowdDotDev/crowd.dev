@@ -230,6 +230,34 @@ export default class IntegrationRunRepository extends RepositoryBase<
     return result[0] as IntegrationRun
   }
 
+  async createInNewFramework(data: DbIntegrationRunCreateData): Promise<string> {
+    const transaction = this.transaction
+
+    const seq = this.seq
+
+    const id = uuidV1()
+
+    const query = `
+      insert into integration.runs(id, "tenantId", "integrationId", "microserviceId", onboarding, state)
+      values(:id, :tenantId, :integrationId, :microserviceId, :onboarding, :state);
+    `
+
+    await seq.query(query, {
+      replacements: {
+        id,
+        tenantId: data.tenantId,
+        integrationId: data.integrationId || null,
+        microserviceId: data.microserviceId || null,
+        onboarding: data.onboarding,
+        state: data.state,
+      },
+      type: QueryTypes.SELECT,
+      transaction,
+    })
+
+    return id
+  }
+
   override async create(data: DbIntegrationRunCreateData): Promise<IntegrationRun> {
     const transaction = this.transaction
 

@@ -6,7 +6,7 @@
     "start": "node -r ts-node/register src/main.ts --transpile-only",
     "start:debug": "SERVICE=integration-run-worker LOG_LEVEL=trace node --inspect -r ts-node/register src/main.ts --transpile-only",
     "start:watch": "nodemon --watch src --ext ts --exec npm run start:debug",
-    "dev": "../../install_packages.sh && npm run start:watch"
+    "dev": "../../scripts/install_packages.sh && concurrently \"npm run start:watch\" \"../../scripts/watch_libs.sh --service integration_run_worker\""
   },
   "dependencies": {
     "@crowd/common": "file:../../libs/common",
@@ -24,7 +24,6 @@
     "uuid": "^9.0.0"
   },
   "devDependencies": {
-    "chokidar-cli": "^3.0.0",
     "concurrently": "^8.0.1",
     "eslint": "^8.39.0",
     "eslint-config-prettier": "^8.8.0",

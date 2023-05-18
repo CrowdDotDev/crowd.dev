@@ -14,7 +14,7 @@ export class RedisCache extends LoggerBase implements ICache {
     private readonly client: RedisClient,
     parentLog: Logger,
   ) {
-    super(parentLog, { name })
+    super(parentLog, { cacheName: name })
 
     this.directory = `cache_${name}`
     this.prefixRegex = new RegExp(`^${this.directory}:`)

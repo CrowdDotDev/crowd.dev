@@ -2,7 +2,7 @@ import { getDbConnection } from '@crowd/database'
 import { getServiceLogger } from '@crowd/logging'
 import { getSqsClient } from '@crowd/sqs'
 import { DB_CONFIG, REDIS_CONFIG, SQS_CONFIG } from './config'
-import { WorkerQueueReceiver } from './queue'
+import { StreamWorkerSender, WorkerQueueReceiver } from './queue'
 import { getRedisClient } from '@crowd/redis'
 
 const log = getServiceLogger()
@@ -15,11 +15,20 @@ setImmediate(async () => {
   const dbConnection = getDbConnection(DB_CONFIG())
   const redisClient = await getRedisClient(REDIS_CONFIG(), true)
 
-  const queue = new WorkerQueueReceiver(sqsClient, redisClient, dbConnection, log)
+  const streamWorkerSender = new StreamWorkerSender(sqsClient, log)
+
+  const queue = new WorkerQueueReceiver(
+    sqsClient,
+    redisClient,
+    dbConnection,
+    streamWorkerSender,
+    log,
+  )
 
   try {
+    await streamWorkerSender.init()
     await queue.start()
   } catch (err) {
-    log.error({ err }, 'Failed to start queue')
+    log.error({ err }, 'Failed to start queues!')
   }
 })

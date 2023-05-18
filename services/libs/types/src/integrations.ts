@@ -1,9 +1,10 @@
 import { IntegrationState, IntegrationStreamType } from './enums/integrations'
+import { BaseError } from './errors'
 
 export interface IIntegrationStream {
   identifier: string
   type: IntegrationStreamType
-  metadata?: unknown
+  data?: unknown
 }
 
 export interface IIntegration {
@@ -12,4 +13,14 @@ export interface IIntegration {
   platform: string
   status: IntegrationState
   settings: unknown
+}
+
+export class RateLimitError extends BaseError {
+  public rateLimitResetSeconds: number
+
+  constructor(rateLimitResetSeconds: number, endpoint: string, origError?: any) {
+    super(`Endpoint: '${endpoint}' rate limit exceeded`, origError)
+    this.rateLimitResetSeconds = rateLimitResetSeconds
+    Object.setPrototypeOf(this, RateLimitError.prototype)
+  }
 }

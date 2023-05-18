@@ -35,7 +35,7 @@ export const receiveMessage = async (
 ): Promise<SqsMessage | undefined> => {
   params.MaxNumberOfMessages = 1
   params.WaitTimeSeconds = 15
-  params.VisibilityTimeout = 15
+  params.VisibilityTimeout = 15 * 60 // 15 minutes
 
   const result = await client.send(new ReceiveMessageCommand(params))
 
