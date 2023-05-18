@@ -1048,6 +1048,7 @@ export class GithubIntegrationService extends IntegrationServiceBase {
 
         if (!isExistingRun) {
           // if we created a new run, we need to notify the node worker
+          // test again
           await sendNodeWorkerMessage(tenantId, new NodeWorkerIntegrationProcessMessage(run.id))
         }
         return undefined
