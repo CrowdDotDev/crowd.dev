@@ -105,12 +105,43 @@
                       name: 'organizationView',
                       params: { id: scope.row.id },
                     }"
-                    class="block !px-0"
+                    class="block mr-4"
                   >
                     <app-organization-name
                       class="w-full"
                       :organization="scope.row"
                     />
+                  </router-link>
+                </template>
+              </el-table-column>
+
+              <!-- Headline -->
+              <el-table-column
+                label="Headline"
+                prop="headline"
+                width="300"
+                sortable
+              >
+                <template #default="scope">
+                  <router-link
+                    :to="{
+                      name: 'organizationView',
+                      params: { id: scope.row.id },
+                    }"
+                    class="block"
+                  >
+                    <div class="mr-4">
+                      <span
+                        v-if="scope.row.headline"
+                        class="text-sm h-full flex items-center text-gray-900"
+                      >
+                        {{ scope.row.headline }}
+                      </span>
+                      <span
+                        v-else
+                        class="text-gray-500"
+                      >-</span>
+                    </div>
                   </router-link>
                 </template>
               </el-table-column>
@@ -170,25 +201,6 @@
                       }}
                     </div>
                   </router-link>
-                </template>
-              </el-table-column>
-
-              <!-- Number of employees -->
-              <el-table-column
-                label="# Employees"
-                width="150"
-                prop="employees"
-                sortable
-              >
-                <template #default="scope">
-                  <div class="text-sm h-full flex items-center">
-                    <span v-if="scope.row.employees" class="text-gray-900">
-                      {{
-                        formatNumber(scope.row.employees)
-                      }}
-                    </span>
-                    <span v-else class="text-gray-500">-</span>
-                  </div>
                 </template>
               </el-table-column>
 
@@ -391,7 +403,7 @@
 
               <!-- Size -->
               <el-table-column
-                label="Size"
+                label="Headcount"
                 width="150"
                 prop="size"
                 sortable
@@ -410,6 +422,35 @@
                       <span v-if="scope.row.size" class="text-gray-900">
                         {{
                           scope.row.size
+                        }}
+                      </span>
+                      <span v-else class="text-gray-500">-</span>
+                    </div>
+                  </router-link>
+                </template>
+              </el-table-column>
+
+              <!-- Type -->
+              <el-table-column
+                label="Type"
+                width="150"
+                prop="type"
+                sortable
+              >
+                <template #default="scope">
+                  <router-link
+                    :to="{
+                      name: 'organizationView',
+                      params: { id: scope.row.id },
+                    }"
+                    class="block"
+                  >
+                    <div
+                      class="text-sm h-full flex items-center"
+                    >
+                      <span v-if="scope.row.type" class="text-gray-900">
+                        {{
+                          toSentenceCase(scope.row.type)
                         }}
                       </span>
                       <span v-else class="text-gray-500">-</span>
@@ -543,7 +584,7 @@ import {
   mapActions,
 } from '@/shared/vuex/vuex.helpers';
 import { formatDateToTimeAgo } from '@/utils/date';
-import { formatNumberToCompact, formatNumber } from '@/utils/number';
+import { formatNumberToCompact } from '@/utils/number';
 import { withHttp, toSentenceCase } from '@/utils/string';
 import AppTags from '@/shared/tags/tags.vue';
 import AppOrganizationIdentities from '../organization-identities.vue';
