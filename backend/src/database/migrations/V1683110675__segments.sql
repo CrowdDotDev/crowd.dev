@@ -25,3 +25,5 @@ create table "segments" (
 ALTER TABLE "activities" ADD COLUMN "segmentId" uuid;
 
 ALTER TABLE "integrations" ADD COLUMN "segmentId" uuid;
+
+ALTER TABLE "conversations" ADD COLUMN "segmentId" uuid;

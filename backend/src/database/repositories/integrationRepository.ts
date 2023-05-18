@@ -57,13 +57,11 @@ class IntegrationRepository {
 
     const currentTenant = SequelizeRepository.getCurrentTenant(options)
 
-    const segment = SequelizeRepository.getStrictlySingleActiveSegment(options)
-
     let record = await options.database.integration.findOne({
       where: {
         id,
         tenantId: currentTenant.id,
-        segmentId: segment.id,
+        segmentId: options.currentSegments.map((s) => s.id),
       },
       transaction,
     })

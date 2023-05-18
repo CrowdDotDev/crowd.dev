@@ -64,7 +64,7 @@ export default class SequelizeRepository {
     options: IRepositoryOptions | IServiceOptions,
   ): SegmentData {
     if (options.currentSegments.length !== 1) {
-      throw new Error(
+      throw new Error400(
         `This operation can have exactly one segment. Found ${options.currentSegments.length} segments.`,
       )
     }

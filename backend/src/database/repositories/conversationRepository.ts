@@ -22,11 +22,14 @@ class ConversationRepository {
 
     const transaction = SequelizeRepository.getTransaction(options)
 
+    const segment = SequelizeRepository.getStrictlySingleActiveSegment(options)
+
     const record = await options.database.conversation.create(
       {
         ...lodash.pick(data, ['title', 'slug', 'published']),
 
         tenantId: tenant.id,
+        segmentId: segment.id,
         createdById: currentUser.id,
         updatedById: currentUser.id,
       },
@@ -55,6 +58,7 @@ class ConversationRepository {
       where: {
         id,
         tenantId: currentTenant.id,
+        segmentId: options.currentSegments.map((s) => s.id),
       },
       transaction,
     })
@@ -94,6 +98,7 @@ class ConversationRepository {
       where: {
         id,
         tenantId: currentTenant.id,
+        segmentId: options.currentSegments.map((s) => s.id),
       },
       transaction,
     })
@@ -120,6 +125,7 @@ class ConversationRepository {
       where: {
         id,
         tenantId: currentTenant.id,
+        segmentId: options.currentSegments.map((s) => s.id),
       },
       include,
       transaction,
@@ -167,6 +173,7 @@ class ConversationRepository {
       where: {
         id: ids,
         tenantId: currentTenant.id,
+        segmentId: options.currentSegments.map((s) => s.id),
       },
       force,
       transaction,
@@ -182,6 +189,7 @@ class ConversationRepository {
       where: {
         ...filter,
         tenantId: tenant.id,
+        segmentId: options.currentSegments.map((s) => s.id),
       },
       transaction,
     })
@@ -354,6 +362,7 @@ class ConversationRepository {
               'createdAt',
               'updatedAt',
               'tenantId',
+              'segmentId',
               'createdById',
               'updatedById',
             ],
@@ -394,6 +403,7 @@ class ConversationRepository {
             'published',
             'createdAt',
             'tenantId',
+            'segmentId',
             'updatedAt',
             'createdById',
             'updatedById',
