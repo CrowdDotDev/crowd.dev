@@ -21,6 +21,7 @@ export interface PullRequestCommit {
             changedFiles: number
             deletions: number
             oid: string
+            messageBody: string
             messageHeadline: string
             url: string
             parents: {
@@ -82,6 +83,7 @@ class PullRequestCommitsQuery extends BaseQuery {
                 changedFiles
                 deletions
                 oid
+                messageBody
                 messageHeadline
                 url
                 parents(first: 2) {
