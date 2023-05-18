@@ -162,7 +162,7 @@ export abstract class SqsQueueReceiver extends SqsQueueBase {
   }
 }
 
-export abstract class SqsQueueSender extends SqsQueueBase {
+export abstract class SqsQueueEmitter extends SqsQueueBase {
   constructor(sqsClient: SqsClient, queueConf: ISqsQueueConfig, parentLog: Logger) {
     super(sqsClient, queueConf, parentLog)
   }

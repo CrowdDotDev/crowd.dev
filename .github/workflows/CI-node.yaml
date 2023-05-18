@@ -19,18 +19,6 @@ jobs:
       - name: Install root dependencies
         run: npm ci
 
-      - name: Install serverless integrations dependencies
-        working-directory: ./backend/src/serverless/integrations
-        run: npm ci
-
-      - name: Install serverless dbOperations dependencies
-        working-directory: ./backend/src/serverless/dbOperations
-        run: npm ci
-
-      - name: Install serverless nodeMicroservices dependencies
-        working-directory: ./backend/src/serverless/microservices/nodejs
-        run: npm ci
-
       - name: Check linting
         run: npx eslint .
 
@@ -39,6 +27,20 @@ jobs:
 
       - name: Check typescript
         run: npx tsc
+
+  lint-format-services:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
+        working-directory: ./services
+
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v2
+
+      - name: Install packages
+        run: ./scripts/install_packages.sh
 
   tests-main:
     needs: lint-format
@@ -72,7 +74,7 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Install dependencies
-        run: npm ci && cd ./src/serverless/integrations && npm ci && cd ./../dbOperations && npm ci && cd ./../microservices/nodejs && npm ci
+        run: npm ci
 
       - name: Run tests
         working-directory: ./backend

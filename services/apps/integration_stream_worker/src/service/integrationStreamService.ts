@@ -28,11 +28,15 @@ export default class IntegrationStreamService extends LoggerBase {
     location: string,
     message: string,
     metadata?: unknown,
+    error?: Error,
   ): Promise<void> {
     await this.repo.markRunError(runId, {
       location,
       message,
       metadata,
+      errorMessage: error?.message,
+      errorStack: error?.stack,
+      errorString: error ? JSON.stringify(error) : undefined,
     })
   }
 
@@ -41,11 +45,15 @@ export default class IntegrationStreamService extends LoggerBase {
     location: string,
     message: string,
     metadata?: unknown,
+    error?: Error,
   ): Promise<void> {
     await this.repo.markStreamError(streamId, {
       location,
       message,
       metadata,
+      errorMessage: error?.message,
+      errorStack: error?.stack,
+      errorString: error ? JSON.stringify(error) : undefined,
     })
   }
 
@@ -59,9 +67,10 @@ export default class IntegrationStreamService extends LoggerBase {
       return
     }
 
-    this.log = getChildLogger(`integration-stream-${streamId}`, this.log, {
+    this.log = getChildLogger('stream-processor', this.log, {
       streamId,
       runId: streamInfo.runId,
+      integrationId: streamInfo.integrationId,
       onboarding: streamInfo.onboarding,
       platform: streamInfo.integrationType,
     })
@@ -142,18 +151,19 @@ export default class IntegrationStreamService extends LoggerBase {
         await this.updateIntegrationSettings(streamId, settings)
       },
 
-      abortWithError: async (message: string, metadata?: unknown) => {
+      abortWithError: async (message: string, metadata?: unknown, error?: Error) => {
         this.log.error({ message }, 'Aborting stream processing with error!')
-        await this.triggerStreamError(streamId, 'stream-abort', message, metadata)
+        await this.triggerStreamError(streamId, 'stream-abort', message, metadata, error)
       },
-      abortRunWithError: async (message: string, metadata?: unknown) => {
+      abortRunWithError: async (message: string, metadata?: unknown, error?: Error) => {
         this.log.error({ message }, 'Aborting run with error!')
-        await this.triggerRunError(streamInfo.runId, 'stream-run-abort', message, metadata)
+        await this.triggerRunError(streamInfo.runId, 'stream-run-abort', message, metadata, error)
       },
     }
 
     this.log.debug('Marking stream as in progress!')
     await this.repo.markStreamInProgress(streamId)
+    await this.repo.touchRun(streamInfo.runId)
 
     this.log.debug('Processing stream!')
     try {
@@ -175,9 +185,8 @@ export default class IntegrationStreamService extends LoggerBase {
           streamId,
           'stream-process',
           'Error while processing stream!',
-          {
-            error: err,
-          },
+          undefined,
+          err,
         )
 
         if (streamInfo.retries + 1 <= WORKER_SETTINGS().maxStreamRetries) {
@@ -199,6 +208,8 @@ export default class IntegrationStreamService extends LoggerBase {
           )
         }
       }
+    } finally {
+      await this.repo.touchRun(streamInfo.runId)
     }
   }
 
@@ -211,9 +222,8 @@ export default class IntegrationStreamService extends LoggerBase {
         streamId,
         'run-stream-update-settings',
         'Error while updating settings!',
-        {
-          error: err,
-        },
+        undefined,
+        err,
       )
       throw err
     }
@@ -240,9 +250,8 @@ export default class IntegrationStreamService extends LoggerBase {
         runId,
         'run-publish-child-stream',
         'Error while publishing child stream!',
-        {
-          error: err,
-        },
+        undefined,
+        err,
       )
       throw err
     }
@@ -264,9 +273,8 @@ export default class IntegrationStreamService extends LoggerBase {
         runId,
         'run-publish-stream-data',
         'Error while publishing stream data!',
-        {
-          error: err,
-        },
+        undefined,
+        err,
       )
       throw err
     }

@@ -38,7 +38,7 @@ const processRootStream: ProcessStreamHandler = async (ctx) => {
     let articles = await getOrganizationArticles(organization, page, 20)
     while (articles.length > 0) {
       for (const article of articles) {
-        ctx.log.info(`Creating organization article stream with identifier ${article.id}!`)
+        ctx.log.debug(`Creating organization article stream with identifier ${article.id}!`)
         await ctx.cache.set(`article:${article.id}`, JSON.stringify(article), 7 * 24 * 60 * 60) // store for 7 days
         await ctx.publishStream(`${article.id}`)
       }
@@ -50,7 +50,7 @@ const processRootStream: ProcessStreamHandler = async (ctx) => {
     let articles = await getUserArticles(user, page, 20)
     while (articles.length > 0) {
       for (const article of articles) {
-        ctx.log.info(`Creating user article stream with identifier ${article.id}!`)
+        ctx.log.debug(`Creating user article stream with identifier ${article.id}!`)
         await ctx.cache.set(`article:${article.id}`, JSON.stringify(article), 7 * 24 * 60 * 60) // store for 7 days
         await ctx.publishStream(`${article.id}`)
       }
@@ -64,12 +64,12 @@ const processRootStream: ProcessStreamHandler = async (ctx) => {
 const processArticleStream: ProcessStreamHandler = async (ctx) => {
   const articleId = parseInt(ctx.stream.identifier, 10)
 
-  ctx.log.info({ devtoArticleId: articleId }, 'Processing article stream!')
+  ctx.log.debug({ devtoArticleId: articleId }, 'Processing article stream!')
 
   const comments = await getArticleComments(articleId)
 
   if (comments.length > 0) {
-    ctx.log.info(
+    ctx.log.debug(
       { devtoArticleId: articleId, nComments: comments.length },
       'We have found comments for this article!',
     )
@@ -86,7 +86,7 @@ const processArticleStream: ProcessStreamHandler = async (ctx) => {
       comments,
     })
   } else {
-    ctx.log.info({ devtoArticleId: articleId }, 'No comments found for this article!')
+    ctx.log.debug({ devtoArticleId: articleId }, 'No comments found for this article!')
   }
 }
 

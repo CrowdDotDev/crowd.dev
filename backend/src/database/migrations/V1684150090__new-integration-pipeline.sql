@@ -107,7 +107,6 @@ create table integration.results (
 
     "processedAt"    timestamptz  null,
     error            json         null,
-    retries          int          null,
 
     "createdAt"      timestamptz  not null default now(),
     "updatedAt"      timestamptz  not null default now(),

@@ -34,3 +34,14 @@ export enum IntegrationStreamDataState {
   PROCESSED = 'processed',
   ERROR = 'error',
 }
+
+export enum IntegrationResultState {
+  PENDING = 'pending',
+  PROCESSING = 'processing',
+  PROCESSED = 'processed',
+  ERROR = 'error',
+}
+
+export enum IntegrationResultType {
+  ACTIVITY = 'activity',
+}

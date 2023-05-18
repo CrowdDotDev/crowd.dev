@@ -17,6 +17,7 @@ export default class IntegrationRunRepository extends RepositoryBase<Integration
           i."integrationIdentifier",
           r."tenantId",
           r.onboarding,
+          t."hasSampleData",
           i.platform                  as "integrationType", 
           i.status                    as "integrationState",
           r.state                     as "runState",
@@ -25,6 +26,7 @@ export default class IntegrationRunRepository extends RepositoryBase<Integration
           coalesce(c.stream_count, 0) as "streamCount"
       from integration.runs r
               inner join integrations i on (r."integrationId" = i.id and i."deletedAt" is null)
+              inner join tenants t on r."tenantId" = t.id
               left join stream_count c on c."runId" = r.id
     where r.id = $(runId);
   `

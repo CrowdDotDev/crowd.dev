@@ -2,7 +2,7 @@ import { DbStore } from '@crowd/database'
 import { Logger, LoggerBase, getChildLogger } from '@crowd/logging'
 import { RedisCache, RedisClient } from '@crowd/redis'
 import IntegrationDataRepository from '../repo/integrationData.repo'
-import { IActivityData, IntegrationRunState } from '@crowd/types'
+import { IActivityData, IntegrationResultType, IntegrationRunState } from '@crowd/types'
 import { addSeconds, singleOrDefault } from '@crowd/common'
 import { INTEGRATION_SERVICES, IProcessDataContext } from '@crowd/integrations'
 import { DataSinkWorkerSender, StreamWorkerSender } from '../queue'
@@ -28,11 +28,15 @@ export default class IntegrationDataService extends LoggerBase {
     location: string,
     message: string,
     metadata?: unknown,
+    error?: Error,
   ): Promise<void> {
     await this.repo.markRunError(runId, {
       location,
       message,
       metadata,
+      errorMessage: error?.message,
+      errorStack: error?.stack,
+      errorString: error ? JSON.stringify(error) : undefined,
     })
   }
 
@@ -41,16 +45,20 @@ export default class IntegrationDataService extends LoggerBase {
     location: string,
     message: string,
     metadata?: unknown,
+    error?: Error,
   ): Promise<void> {
     await this.repo.markDataError(dataId, {
       location,
       message,
       metadata,
+      errorMessage: error?.message,
+      errorStack: error?.stack,
+      errorString: error ? JSON.stringify(error) : undefined,
     })
   }
 
   public async processData(dataId: string): Promise<void> {
-    this.log.info({ dataId }, 'Trying to process stream data!')
+    this.log.debug({ dataId }, 'Trying to process stream data!')
 
     const dataInfo = await this.repo.getDataInfo(dataId)
 
@@ -59,10 +67,11 @@ export default class IntegrationDataService extends LoggerBase {
       return
     }
 
-    this.log = getChildLogger(`integration-data-${dataId}`, this.log, {
+    this.log = getChildLogger('stream-data-processor', this.log, {
       dataId,
       streamId: dataInfo.streamId,
       runId: dataInfo.runId,
+      integrationId: dataInfo.integrationId,
       onboarding: dataInfo.onboarding,
       platform: dataInfo.integrationType,
     })
@@ -133,19 +142,19 @@ export default class IntegrationDataService extends LoggerBase {
         await this.updateIntegrationSettings(dataId, settings)
       },
 
-      abortWithError: async (message: string, metadata?: unknown) => {
+      abortWithError: async (message: string, metadata?: unknown, error?: Error) => {
         this.log.error({ message }, 'Aborting stream processing with error!')
-        await this.triggerDataError(dataId, 'data-abort', message, metadata)
+        await this.triggerDataError(dataId, 'data-abort', message, metadata, error)
       },
-      abortRunWithError: async (message: string, metadata?: unknown) => {
+      abortRunWithError: async (message: string, metadata?: unknown, error?: Error) => {
         this.log.error({ message }, 'Aborting run with error!')
-        await this.triggerRunError(dataInfo.runId, 'data-run-abort', message, metadata)
+        await this.triggerRunError(dataInfo.runId, 'data-run-abort', message, metadata, error)
       },
     }
 
     this.log.debug('Marking data as in progress!')
     await this.repo.markDataInProgress(dataId)
-
+    await this.repo.touchRun(dataInfo.runId)
     this.log.debug('Processing data!')
     try {
       await integrationService.processData(context)
@@ -153,9 +162,13 @@ export default class IntegrationDataService extends LoggerBase {
       await this.repo.markDataProcessed(dataId)
     } catch (err) {
       this.log.error(err, 'Error while processing stream!')
-      await this.triggerDataError(dataId, 'data-process', 'Error while processing data!', {
-        error: err,
-      })
+      await this.triggerDataError(
+        dataId,
+        'data-process',
+        'Error while processing data!',
+        undefined,
+        err,
+      )
 
       if (dataInfo.retries + 1 <= WORKER_SETTINGS().maxDataRetries) {
         // delay for #retries * 15 minutes
@@ -175,6 +188,8 @@ export default class IntegrationDataService extends LoggerBase {
           },
         )
       }
+    } finally {
+      await this.repo.touchRun(dataInfo.runId)
     }
   }
 
@@ -186,7 +201,10 @@ export default class IntegrationDataService extends LoggerBase {
   ): Promise<void> {
     try {
       this.log.debug('Publishing activity!')
-      const resultId = await this.repo.publishResult(dataId, activity)
+      const resultId = await this.repo.publishResult(dataId, {
+        type: IntegrationResultType.ACTIVITY,
+        data: activity,
+      })
       await this.dataSinkWorkerSender.triggerResultProcessing(`${tenantId}-${platform}`, resultId)
     } catch (err) {
       await this.triggerDataError(
@@ -209,9 +227,8 @@ export default class IntegrationDataService extends LoggerBase {
         dataId,
         'run-data-update-settings',
         'Error while updating settings!',
-        {
-          error: err,
-        },
+        undefined,
+        err,
       )
       throw err
     }
@@ -238,9 +255,8 @@ export default class IntegrationDataService extends LoggerBase {
         runId,
         'run-data-publish-child-stream',
         'Error while publishing child stream!',
-        {
-          error: err,
-        },
+        undefined,
+        err,
       )
       throw err
     }

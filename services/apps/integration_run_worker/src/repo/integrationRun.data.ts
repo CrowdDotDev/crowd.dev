@@ -9,6 +9,7 @@ export interface IGenerateStreamsData {
   runState: IntegrationRunState
   runId: string
   tenantId: string
+  hasSampleData: boolean
   integrationSettings: unknown
   streamCount: number
 }

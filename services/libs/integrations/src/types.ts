@@ -11,7 +11,7 @@ export interface IIntegrationContext {
   publishStream: (identifier: string, metadata?: unknown) => Promise<void>
   updateIntegrationSettings: (settings: unknown) => Promise<void>
 
-  abortRunWithError: (message: string, metadata?: unknown) => Promise<void>
+  abortRunWithError: (message: string, metadata?: unknown, error?: Error) => Promise<void>
 }
 
 export type IGenerateStreamsContext = IIntegrationContext
@@ -21,13 +21,13 @@ export interface IProcessStreamContext extends IIntegrationContext {
 
   publishData: (data: unknown) => Promise<void>
 
-  abortWithError: (message: string, metadata?: unknown) => Promise<void>
+  abortWithError: (message: string, metadata?: unknown, error?: Error) => Promise<void>
 }
 
 export interface IProcessDataContext extends IIntegrationContext {
   data: unknown
 
-  abortWithError: (message: string, metadata?: unknown) => Promise<void>
+  abortWithError: (message: string, metadata?: unknown, error?: Error) => Promise<void>
 
   publishActivity: (activity: IActivityData) => Promise<void>
 }

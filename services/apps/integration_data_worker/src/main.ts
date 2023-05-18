@@ -8,7 +8,7 @@ import { DataSinkWorkerSender, StreamWorkerSender, WorkerQueueReceiver } from '.
 const log = getServiceLogger()
 
 setImmediate(async () => {
-  log.info('Starting integration stream worker...')
+  log.info('Starting integration data worker...')
 
   const sqsClient = getSqsClient(SQS_CONFIG())
 

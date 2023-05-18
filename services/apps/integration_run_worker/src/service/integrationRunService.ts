@@ -1,14 +1,16 @@
 import { singleOrDefault } from '@crowd/common'
 import { DbStore } from '@crowd/database'
-import { INTEGRATION_SERVICES, IGenerateStreamsContext } from '@crowd/integrations'
+import { IGenerateStreamsContext, INTEGRATION_SERVICES } from '@crowd/integrations'
 import { Logger, LoggerBase, getChildLogger } from '@crowd/logging'
 import { RedisCache, RedisClient } from '@crowd/redis'
-import { IIntegrationStream, IntegrationRunState, IntegrationStreamType } from '@crowd/types'
-import IntegrationRunRepository from '../repo/integrationRun.repo'
+import { IntegrationRunState } from '@crowd/types'
 import { StreamWorkerSender } from '../queue'
+import IntegrationRunRepository from '../repo/integrationRun.repo'
+import SampleDataRepository from '../repo/sampleData.repo'
 
 export default class IntegrationRunService extends LoggerBase {
   private readonly repo: IntegrationRunRepository
+  private readonly sampleDataRepo: SampleDataRepository
 
   constructor(
     private readonly redisClient: RedisClient,
@@ -19,6 +21,7 @@ export default class IntegrationRunService extends LoggerBase {
     super(parentLog)
 
     this.repo = new IntegrationRunRepository(store, this.log)
+    this.sampleDataRepo = new SampleDataRepository(store, this.log)
   }
 
   public async generateStreams(runId: string): Promise<void> {
@@ -33,8 +36,9 @@ export default class IntegrationRunService extends LoggerBase {
     }
 
     // we can do this because this service instance is only used for one run
-    this.log = getChildLogger(`integration-run-${runId}`, this.log, {
+    this.log = getChildLogger('run-processor', this.log, {
       runId,
+      integrationId: runInfo.integrationId,
       onboarding: runInfo.onboarding,
       platform: runInfo.integrationType,
     })
@@ -73,6 +77,25 @@ export default class IntegrationRunService extends LoggerBase {
       return
     }
 
+    if (runInfo.onboarding && runInfo.hasSampleData) {
+      this.log.warn('Tenant still has sample data - deleting it now!')
+      try {
+        await this.sampleDataRepo.transactionally(async (txRepo) => {
+          await txRepo.deleteSampleData(runInfo.tenantId)
+        })
+      } catch (err) {
+        this.log.error({ err }, 'Error while deleting sample data!')
+        await this.triggerRunError(
+          runId,
+          'run-delete-sample-data',
+          'Error while deleting sample data!',
+          undefined,
+          err,
+        )
+        return
+      }
+    }
+
     const cache = new RedisCache(`integration-run-${runId}`, this.redisClient, this.log)
 
     const context: IGenerateStreamsContext = {
@@ -89,9 +112,9 @@ export default class IntegrationRunService extends LoggerBase {
       log: this.log,
       cache,
 
-      abortRunWithError: async (message: string, metadata?: unknown) => {
+      abortRunWithError: async (message: string, metadata?: unknown, error?: Error) => {
         this.log.error({ message }, 'Aborting run with error!')
-        await this.triggerRunError(runId, 'run-abort', message, metadata)
+        await this.triggerRunError(runId, 'run-abort', message, metadata, error)
       },
 
       publishStream: async (identifier: string, data?: unknown) => {
@@ -103,8 +126,9 @@ export default class IntegrationRunService extends LoggerBase {
       },
     }
 
-    this.log.info('Marking run as in progress!')
+    this.log.debug('Marking run as in progress!')
     await this.repo.markRunInProgress(runId)
+    await this.repo.touchRun(runId)
 
     this.log.info('Generating streams!')
     try {
@@ -112,9 +136,15 @@ export default class IntegrationRunService extends LoggerBase {
       this.log.info('Finished generating streams!')
     } catch (err) {
       this.log.error({ err }, 'Error while generating streams!')
-      await this.triggerRunError(runId, 'run-gen-streams', 'Error while generating streams!', {
-        error: err,
-      })
+      await this.triggerRunError(
+        runId,
+        'run-gen-streams',
+        'Error while generating streams!',
+        undefined,
+        err,
+      )
+    } finally {
+      await this.repo.touchRun(runId)
     }
   }
 
@@ -123,9 +153,13 @@ export default class IntegrationRunService extends LoggerBase {
       this.log.debug('Updating integration settings!')
       await this.repo.updateIntegrationSettings(runId, settings)
     } catch (err) {
-      await this.triggerRunError(runId, 'run-update-settings', 'Error while updating settings!', {
-        error: err,
-      })
+      await this.triggerRunError(
+        runId,
+        'run-update-settings',
+        'Error while updating settings!',
+        undefined,
+        err,
+      )
       throw err
     }
   }
@@ -146,9 +180,8 @@ export default class IntegrationRunService extends LoggerBase {
         runId,
         'run-publish-root-stream',
         'Error while publishing root stream!',
-        {
-          error: err,
-        },
+        undefined,
+        err,
       )
       throw err
     }
@@ -159,11 +192,15 @@ export default class IntegrationRunService extends LoggerBase {
     location: string,
     message: string,
     metadata?: unknown,
+    error?: Error,
   ): Promise<void> {
     await this.repo.markRunError(runId, {
       location,
       message,
       metadata,
+      errorMessage: error?.message,
+      errorStack: error?.stack,
+      errorString: error ? JSON.stringify(error) : undefined,
     })
   }
 }

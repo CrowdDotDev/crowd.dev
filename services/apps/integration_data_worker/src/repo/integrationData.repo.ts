@@ -1,11 +1,13 @@
 import { DbStore, RepositoryBase } from '@crowd/database'
 import { Logger } from '@crowd/logging'
-import { IApiDataInfo } from './integrationData.data'
 import {
+  IIntegrationResult,
+  IntegrationResultState,
   IntegrationRunState,
   IntegrationStreamDataState,
   IntegrationStreamState,
 } from '@crowd/types'
+import { IApiDataInfo } from './integrationData.data'
 
 export default class IntegrationDataRepository extends RepositoryBase<IntegrationDataRepository> {
   constructor(dbStore: DbStore, parentLog: Logger) {
@@ -95,8 +97,8 @@ export default class IntegrationDataRepository extends RepositoryBase<Integratio
     this.checkUpdateRowCount(result.rowCount, 1)
   }
 
-  public async publishResult(dataId: string, data: unknown): Promise<string> {
-    const result = await this.db().oneOrNone(
+  public async publishResult(dataId: string, result: IIntegrationResult): Promise<string> {
+    const results = await this.db().oneOrNone(
       `
     insert into integration.results(state, data, "apiDataId", "streamId", "runId", "tenantId", "integrationId", "microserviceId")
     select $(state),
@@ -112,13 +114,13 @@ export default class IntegrationDataRepository extends RepositoryBase<Integratio
     `,
       {
         dataId,
-        state: IntegrationStreamDataState.PENDING,
-        data: JSON.stringify(data),
+        state: IntegrationResultState.PENDING,
+        data: JSON.stringify(result),
       },
     )
 
-    if (result) {
-      return result.id
+    if (results) {
+      return results.id
     }
 
     return null
@@ -203,6 +205,21 @@ export default class IntegrationDataRepository extends RepositoryBase<Integratio
         dataId,
         until,
         state: IntegrationStreamDataState.DELAYED,
+      },
+    )
+
+    this.checkUpdateRowCount(result.rowCount, 1)
+  }
+
+  public async touchRun(runId: string): Promise<void> {
+    const result = await this.db().result(
+      `
+      update integration.runs
+         set "updatedAt" = now()
+       where id = $(runId)
+    `,
+      {
+        runId,
       },
     )
 
