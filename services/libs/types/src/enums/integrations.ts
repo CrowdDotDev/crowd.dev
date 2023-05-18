@@ -28,6 +28,7 @@ export enum IntegrationStreamType {
 }
 
 export enum IntegrationStreamDataState {
+  DELAYED = 'delayed',
   PENDING = 'pending',
   PROCESSING = 'processing',
   PROCESSED = 'processed',

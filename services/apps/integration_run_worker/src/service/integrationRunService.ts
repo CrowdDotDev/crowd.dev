@@ -36,7 +36,7 @@ export default class IntegrationRunService extends LoggerBase {
     this.log = getChildLogger(`integration-run-${runId}`, this.log, {
       runId,
       onboarding: runInfo.onboarding,
-      type: runInfo.integrationType,
+      platform: runInfo.integrationType,
     })
 
     if (runInfo.streamCount > 0) {
@@ -95,7 +95,7 @@ export default class IntegrationRunService extends LoggerBase {
       },
 
       publishStream: async (identifier: string, data?: unknown) => {
-        await this.publishStream(runInfo.tenantId, runId, identifier, data)
+        await this.publishStream(runInfo.tenantId, runInfo.integrationType, runId, identifier, data)
       },
 
       updateIntegrationSettings: async (settings: unknown) => {
@@ -132,6 +132,7 @@ export default class IntegrationRunService extends LoggerBase {
 
   private async publishStream(
     tenantId: string,
+    platform: string,
     runId: string,
     identifier: string,
     data?: unknown,
@@ -139,7 +140,7 @@ export default class IntegrationRunService extends LoggerBase {
     try {
       this.log.debug('Publishing new root stream!')
       const streamId = await this.repo.publishStream(runId, identifier, data)
-      await this.streamWorkerSender.triggerStreamProcessing(tenantId, streamId)
+      await this.streamWorkerSender.triggerStreamProcessing(`${tenantId}-${platform}`, streamId)
     } catch (err) {
       await this.triggerRunError(
         runId,

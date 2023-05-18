@@ -58,8 +58,8 @@ export class DataWorkerSender extends SqsQueueSender {
     super(client, INTEGRATION_DATA_WORKER_QUEUE_SETTINGS, parentLog)
   }
 
-  public async triggerDataProcessing(tenantId: string, dataId: string) {
-    await this.sendMessage(tenantId, new ProcessStreamDataQueueMessage(dataId))
+  public async triggerDataProcessing(groupId: string, dataId: string) {
+    await this.sendMessage(groupId, new ProcessStreamDataQueueMessage(dataId))
   }
 }
 
@@ -68,7 +68,7 @@ export class StreamWorkerSender extends SqsQueueSender {
     super(client, INTEGRATION_STREAM_WORKER_QUEUE_SETTINGS, parentLog)
   }
 
-  public async triggerStreamProcessing(tenantId: string, streamId: string) {
-    await this.sendMessage(tenantId, new ProcessStreamQueueMessage(streamId))
+  public async triggerStreamProcessing(groupId: string, streamId: string) {
+    await this.sendMessage(groupId, new ProcessStreamQueueMessage(streamId))
   }
 }

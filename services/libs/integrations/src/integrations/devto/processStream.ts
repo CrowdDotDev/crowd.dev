@@ -32,41 +32,32 @@ const getDevToUser = async (ctx: IProcessStreamContext, userId: number): Promise
 
 const processRootStream: ProcessStreamHandler = async (ctx) => {
   // no data here just new streams
-  switch (ctx.stream.identifier) {
-    case DevToRootStream.ORGANIZATION_ARTICLES: {
-      const organization = (ctx.stream.data as any).organization
-      let page = 1
-      let articles = await getOrganizationArticles(organization, page, 20)
-      while (articles.length > 0) {
-        for (const article of articles) {
-          ctx.log.info(`Creating organization article stream with identifier ${article.id}!`)
-          await ctx.cache.set(`article:${article.id}`, JSON.stringify(article), 7 * 24 * 60 * 60) // store for 7 days
-          await ctx.publishStream(`${article.id}`)
-        }
-        articles = await getOrganizationArticles(organization, ++page, 20)
+  if (ctx.stream.identifier.startsWith(DevToRootStream.ORGANIZATION_ARTICLES)) {
+    const organization = (ctx.stream.data as any).organization
+    let page = 1
+    let articles = await getOrganizationArticles(organization, page, 20)
+    while (articles.length > 0) {
+      for (const article of articles) {
+        ctx.log.info(`Creating organization article stream with identifier ${article.id}!`)
+        await ctx.cache.set(`article:${article.id}`, JSON.stringify(article), 7 * 24 * 60 * 60) // store for 7 days
+        await ctx.publishStream(`${article.id}`)
       }
-      break
+      articles = await getOrganizationArticles(organization, ++page, 20)
     }
-
-    case DevToRootStream.USER_ARTICLES: {
-      const user = (ctx.stream.data as any).user
-      let page = 1
-      let articles = await getUserArticles(user, page, 20)
-      while (articles.length > 0) {
-        for (const article of articles) {
-          ctx.log.info(`Creating user article stream with identifier ${article.id}!`)
-          await ctx.cache.set(`article:${article.id}`, JSON.stringify(article), 7 * 24 * 60 * 60) // store for 7 days
-          await ctx.publishStream(`${article.id}`)
-        }
-        articles = await getUserArticles(user, ++page, 20)
+  } else if (ctx.stream.identifier.startsWith(DevToRootStream.USER_ARTICLES)) {
+    const user = (ctx.stream.data as any).user
+    let page = 1
+    let articles = await getUserArticles(user, page, 20)
+    while (articles.length > 0) {
+      for (const article of articles) {
+        ctx.log.info(`Creating user article stream with identifier ${article.id}!`)
+        await ctx.cache.set(`article:${article.id}`, JSON.stringify(article), 7 * 24 * 60 * 60) // store for 7 days
+        await ctx.publishStream(`${article.id}`)
       }
-
-      break
+      articles = await getUserArticles(user, ++page, 20)
     }
-
-    default: {
-      await ctx.abortWithError(`Unknown root stream identifier: ${ctx.stream.identifier}`)
-    }
+  } else {
+    await ctx.abortWithError(`Unknown root stream identifier: ${ctx.stream.identifier}`)
   }
 }
 
@@ -103,7 +94,7 @@ const handler: ProcessStreamHandler = async (ctx) => {
   if (ctx.stream.type === IntegrationStreamType.ROOT) {
     await processRootStream(ctx)
   } else {
-    processArticleStream(ctx)
+    await processArticleStream(ctx)
   }
 }
 

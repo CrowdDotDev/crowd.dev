@@ -47,13 +47,13 @@ function touch_services() {
 
 function build_package() {
   local package=$1
-  say "Building package: $package"
+  yell "Building package: $package"
   (cd "$CLI_HOME/../libs/$package" && npm run build && say "Package built: $package!")
 }
 
 function install_package() {
   local package=$1
-  say "Installing dependencies for package: $package"
+  yell "Installing dependencies for package: $package"
   (cd "$CLI_HOME/../libs/$package" && npm install && say "Package dependencies installed: $package!")
 }
 
@@ -74,9 +74,7 @@ function watch_src_files() {
   local package=$1
   local package_path="$CLI_HOME/../libs/$package"
 
-  npx chokidar-cli "${package_path}/src/**/*.ts" --ignore-initial --ignore "*.dist/*" -c "echo 'File change detected in src: {event} {path}' && $0 build_package $package && $0 build_dependent_packages $package && $0 touch_services $SERVICE_FLAG" &
-  sleep 5
-  touch "$package_path/src/index.ts"
+  npx chokidar-cli "${package_path}/src/**/*.ts" --ignore-initial --ignore "*.dist/*" -c "echo 'File change detected in src: {event} {path}' && $0 build_package $package && $0 build_dependent_packages $package && $0 touch_services $SERVICE_FLAG"
 }
 
 function watch_package_json() {

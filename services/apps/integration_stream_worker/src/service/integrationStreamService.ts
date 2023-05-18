@@ -4,12 +4,7 @@ import { Logger, LoggerBase, getChildLogger } from '@crowd/logging'
 import { RedisCache, RedisClient } from '@crowd/redis'
 import { DataWorkerSender, StreamWorkerSender } from '../queue'
 import IntegrationStreamRepository from '../repo/integrationStream.repo'
-import {
-  IIntegrationStream,
-  IntegrationRunState,
-  IntegrationStreamType,
-  RateLimitError,
-} from '@crowd/types'
+import { IntegrationRunState, IntegrationStreamType, RateLimitError } from '@crowd/types'
 import { INTEGRATION_SERVICES, IProcessStreamContext } from '@crowd/integrations'
 import { WORKER_SETTINGS } from '../config'
 
@@ -55,7 +50,7 @@ export default class IntegrationStreamService extends LoggerBase {
   }
 
   public async processStream(streamId: string): Promise<void> {
-    this.log.info({ streamId }, 'Trying to process stream!')
+    this.log.debug({ streamId }, 'Trying to process stream!')
 
     const streamInfo = await this.repo.getStreamData(streamId)
 
@@ -68,7 +63,7 @@ export default class IntegrationStreamService extends LoggerBase {
       streamId,
       runId: streamInfo.runId,
       onboarding: streamInfo.onboarding,
-      type: streamInfo.integrationType,
+      platform: streamInfo.integrationType,
     })
 
     if (streamInfo.runState !== IntegrationRunState.PROCESSING) {
@@ -125,10 +120,23 @@ export default class IntegrationStreamService extends LoggerBase {
       cache,
 
       publishData: async (data) => {
-        await this.publishData(streamInfo.tenantId, streamInfo.runId, streamId, data)
+        await this.publishData(
+          streamInfo.tenantId,
+          streamInfo.integrationType,
+          streamInfo.runId,
+          streamId,
+          data,
+        )
       },
       publishStream: async (identifier, data) => {
-        await this.publishStream(streamId, streamInfo.tenantId, streamInfo.runId, identifier, data)
+        await this.publishStream(
+          streamInfo.tenantId,
+          streamInfo.integrationType,
+          streamId,
+          streamInfo.runId,
+          identifier,
+          data,
+        )
       },
       updateIntegrationSettings: async (settings) => {
         await this.updateIntegrationSettings(streamId, settings)
@@ -144,12 +152,13 @@ export default class IntegrationStreamService extends LoggerBase {
       },
     }
 
-    this.log.info('Marking stream as in progress!')
+    this.log.debug('Marking stream as in progress!')
     await this.repo.markStreamInProgress(streamId)
 
-    this.log.info('Processing stream!')
+    this.log.debug('Processing stream!')
     try {
       await integrationService.processStream(context)
+      this.log.debug('Finished processing stream!')
       await this.repo.markStreamProcessed(streamId)
     } catch (err) {
       if (err instanceof RateLimitError) {
@@ -211,16 +220,21 @@ export default class IntegrationStreamService extends LoggerBase {
   }
 
   private async publishStream(
-    parentId: string,
     tenantId: string,
+    platform: string,
+    parentId: string,
     runId: string,
     identifier: string,
     data?: unknown,
   ): Promise<void> {
     try {
-      this.log.debug('Publishing new child stream!')
+      this.log.debug({ identifier }, 'Publishing new child stream!')
       const streamId = await this.repo.publishStream(parentId, runId, identifier, data)
-      await this.streamWorkerSender.triggerStreamProcessing(tenantId, streamId)
+      if (streamId) {
+        await this.streamWorkerSender.triggerStreamProcessing(`${tenantId}-${platform}`, streamId)
+      } else {
+        this.log.debug({ identifier }, 'Child stream already exists!')
+      }
     } catch (err) {
       await this.triggerRunError(
         runId,
@@ -236,6 +250,7 @@ export default class IntegrationStreamService extends LoggerBase {
 
   private async publishData(
     tenantId: string,
+    platform: string,
     runId: string,
     streamId: string,
     data: unknown,
@@ -243,7 +258,7 @@ export default class IntegrationStreamService extends LoggerBase {
     try {
       this.log.debug('Publishing new stream data!')
       const dataId = await this.repo.publishData(streamId, data)
-      await this.dataWorkerSender.triggerDataProcessing(tenantId, dataId)
+      await this.dataWorkerSender.triggerDataProcessing(`${tenantId}-${platform}`, dataId)
     } catch (err) {
       await this.triggerRunError(
         runId,

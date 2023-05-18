@@ -17,7 +17,7 @@ fi
 for lib_dir in $CLI_HOME/../libs/*/; do
   if [ -f "${lib_dir}package.json" ]; then
     lib=$(basename $lib_dir)
-    echo "Installing packages for library: $lib!"
+    yell "Installing packages for library: $lib!"
     (cd $lib_dir && npm i $FLAGS) &
   fi
 done
@@ -25,7 +25,7 @@ done
 for app_dir in $CLI_HOME/../apps/*/; do
   if [ -f "${app_dir}package.json" ]; then
     app=$(basename $app_dir)
-    echo "Installing packages for service: $app!"
+    yell "Installing packages for service: $app!"
     (cd $app_dir && npm i $FLAGS) &
   fi
 done

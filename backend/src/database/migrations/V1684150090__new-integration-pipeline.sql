@@ -71,6 +71,8 @@ create table integration."apiData" (
     state            varchar(255) not null,
     data             json         not null,
 
+    "delayedUntil"   timestamptz  null,
+
     "processedAt"    timestamptz  null,
     error            json         null,
     retries          int          null,

@@ -1,7 +1,7 @@
 import { DbStore, RepositoryBase } from '@crowd/database'
 import { Logger } from '@crowd/logging'
 import { IGenerateStreamsData } from './integrationRun.data'
-import { IIntegrationStream, IntegrationRunState, IntegrationStreamState } from '@crowd/types'
+import { IntegrationRunState, IntegrationStreamState } from '@crowd/types'
 
 export default class IntegrationRunRepository extends RepositoryBase<IntegrationRunRepository> {
   constructor(dbStore: DbStore, parentLog: Logger) {
@@ -10,7 +10,7 @@ export default class IntegrationRunRepository extends RepositoryBase<Integration
 
   private readonly getGenerateStreamDataQuery = `
     with stream_count as (select "runId", count(id) as stream_count
-                          from integration."runStreams"
+                          from integration.streams
                          where "runId" = $(runId)
                          group by "runId")
     select r."integrationId",

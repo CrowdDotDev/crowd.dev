@@ -3,7 +3,6 @@ import { DbStore, RepositoryBase } from '@crowd/database'
 import { Logger } from '@crowd/logging'
 import { IStreamData } from './integrationStream.data'
 import {
-  IIntegrationStream,
   IntegrationRunState,
   IntegrationStreamDataState,
   IntegrationStreamState,
@@ -29,7 +28,7 @@ export default class IntegrationStreamRepository extends RepositoryBase<Integrat
           s."parentId",
           s.identifier,
           s.data,
-          s.retries
+          coalesce(s.retries, 0) as retries
     from integration.streams s
             inner join integrations i on s."integrationId" = i.id
             inner join integration.runs r on r.id = s."runId"
@@ -152,7 +151,7 @@ export default class IntegrationStreamRepository extends RepositoryBase<Integrat
              error = $(error),
              retries = retries + 1,
              "updatedAt" = now()
-       where id = $(runId)`,
+       where id = $(streamId)`,
       {
         streamId,
         state: IntegrationStreamState.ERROR,
@@ -229,12 +228,11 @@ export default class IntegrationStreamRepository extends RepositoryBase<Integrat
     runId: string,
     identifier: string,
     data?: unknown,
-  ): Promise<string> {
-    const result = await this.db().one(
+  ): Promise<string | null> {
+    const result = await this.db().oneOrNone(
       `
-    insert into integration.streams(id, "parentId", "runId", state, identifier, data, "tenantId", "integrationId", "microserviceId")
-    select $(id)::uuid,
-           $(parentId)::uuid,
+    insert into integration.streams("parentId", "runId", state, identifier, data, "tenantId", "integrationId", "microserviceId")
+    select $(parentId)::uuid,
            $(runId)::uuid,
            $(state),
            $(identifier),
@@ -242,7 +240,9 @@ export default class IntegrationStreamRepository extends RepositoryBase<Integrat
            "tenantId",
            "integrationId",
            "microserviceId"
-    from integration.runs where id = $(runId);
+    from integration.runs where id = $(runId)
+    on conflict ("runId", identifier) do nothing
+    returning id;
     `,
       {
         parentId,
@@ -253,6 +253,10 @@ export default class IntegrationStreamRepository extends RepositoryBase<Integrat
       },
     )
 
-    return result.id
+    if (result) {
+      return result.id
+    }
+
+    return null
   }
 }

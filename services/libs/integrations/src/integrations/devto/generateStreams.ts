@@ -11,14 +11,14 @@ const handler: GenerateStreamsHandler = async (ctx) => {
 
   if (settings.organizations.length > 0) {
     for (const organization of settings.organizations) {
-      await ctx.publishStream(DevToRootStream.ORGANIZATION_ARTICLES, {
+      await ctx.publishStream(`${DevToRootStream.ORGANIZATION_ARTICLES}-${organization}`, {
         organization,
       })
     }
   }
   if (settings.users.length > 0) {
     for (const user of settings.users) {
-      await ctx.publishStream(DevToRootStream.USER_ARTICLES, {
+      await ctx.publishStream(`${DevToRootStream.USER_ARTICLES}-${user}`, {
         user,
       })
     }

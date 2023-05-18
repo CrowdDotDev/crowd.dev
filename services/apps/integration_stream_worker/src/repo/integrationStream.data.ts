@@ -1,9 +1,4 @@
-import {
-  IntegrationRunState,
-  IntegrationState,
-  IntegrationStreamState,
-  IntegrationStreamType,
-} from '@crowd/types'
+import { IntegrationRunState, IntegrationState, IntegrationStreamState } from '@crowd/types'
 
 export interface IStreamData {
   onboarding: boolean
@@ -21,5 +16,5 @@ export interface IStreamData {
   parentId: string | null
   identifier: string
   data: unknown
-  retries: number | null
+  retries: number
 }
