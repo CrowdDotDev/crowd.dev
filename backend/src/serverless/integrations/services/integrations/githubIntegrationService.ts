@@ -1350,7 +1350,7 @@ export class GithubIntegrationService extends IntegrationServiceBase {
           platform: PlatformType.GIT,
           channel: repo.name,
           url: `https://github.com/${repo.owner}/${repo.name}.git`,
-          body: record.commit.messageBody,
+          body: record.commit.message,
           type: 'authored-commit',
           sourceId: record.commit.oid,
           sourceParentId: `${data.repository.pullRequest.number}`,
