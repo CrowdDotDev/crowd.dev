@@ -1005,12 +1005,24 @@ export class GithubIntegrationService extends IntegrationServiceBase {
         const repoContext = context.repoContext
         const runRepo = new IntegrationRunRepository(repoContext)
 
-        const run = await runRepo.create({
-          integrationId,
-          tenantId,
-          onboarding: false,
-          state: IntegrationRunState.PENDING,
-        })
+        let run
+        let isExistingRun = false
+
+        const existingRun = await runRepo.findLastProcessingRun(integrationId)
+
+        // if there is existing delayed, pending or processing run, use it
+        if (existingRun) {
+          run = existingRun
+          isExistingRun = true
+        } else {
+          // otherwise create a new run
+          run = await runRepo.create({
+            integrationId,
+            tenantId,
+            onboarding: false,
+            state: IntegrationRunState.PENDING,
+          })
+        }
 
         const githubRepo: Repo = {
           name: payload.repository.name,
@@ -1021,7 +1033,7 @@ export class GithubIntegrationService extends IntegrationServiceBase {
 
         const streamRepo = new IntegrationStreamRepository(repoContext)
         const stream: DbIntegrationStreamCreateData = {
-          runId: run.id,
+          runId: run.id, // we tie up a stream to an existing run or to a new one
           tenantId,
           integrationId,
           name: GithubStreamType.PULL_COMMITS,
@@ -1034,7 +1046,10 @@ export class GithubIntegrationService extends IntegrationServiceBase {
 
         await streamRepo.create(stream)
 
-        await sendNodeWorkerMessage(tenantId, new NodeWorkerIntegrationProcessMessage(run.id))
+        if (!isExistingRun) {
+          // if we created a new run, we need to notify node worker
+          await sendNodeWorkerMessage(tenantId, new NodeWorkerIntegrationProcessMessage(run.id))
+        }
         return undefined
       }
 
