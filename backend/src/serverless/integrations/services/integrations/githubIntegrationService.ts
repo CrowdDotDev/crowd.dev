@@ -1047,7 +1047,7 @@ export class GithubIntegrationService extends IntegrationServiceBase {
         await streamRepo.create(stream)
 
         if (!isExistingRun) {
-          // if we created a new run, we need to notify node worker
+          // if we created a new run, we need to notify the worker
           await sendNodeWorkerMessage(tenantId, new NodeWorkerIntegrationProcessMessage(run.id))
         }
         return undefined
