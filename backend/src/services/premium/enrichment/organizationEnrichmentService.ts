@@ -148,7 +148,7 @@ export default class OrganizationEnrichmentService extends LoggingBase {
       ) {
         acc[platform] = {
           handle,
-          url: social,
+          [platform === PlatformType.TWITTER? "site": "url"]: social,
         }
       }
       return acc
