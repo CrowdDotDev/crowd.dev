@@ -242,7 +242,7 @@ const getIdentityLink = (platform) => {
     } else if (platform === 'twitter') {
       url = 'https://twitter.com/';
     } else if (platform === 'crunchbase') {
-      url = 'https://www.crunchbase.com/';
+      url = 'https://www.crunchbase.com/organization/';
     } else if (platform === 'facebook') {
       url = 'https://www.facebook.com/';
     } else {
