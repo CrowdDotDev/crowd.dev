@@ -55,7 +55,7 @@ Crowd.dev is still in beta and we ship new features every week. To stay in the l
 
 ### Cloud version
 
-Our <a href="https://crowd.dev/#waitlist">cloud version</a> is a fast, easy and free way to get started with crowd.dev. We're currently still in closed beta but onboard new communities every week.
+Our <a href="https://crowd.dev/#waitlist">cloud version</a> is a fast, easy and free way to get started with crowd.dev. 
 
 ### Self-hosted version
 
