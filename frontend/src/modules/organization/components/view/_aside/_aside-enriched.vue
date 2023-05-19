@@ -65,5 +65,5 @@ const props = defineProps({
   },
 });
 
-const visibleAttributes = computed(() => enrichmentAttributes.filter((a) => props.organization[a.name]));
+const visibleAttributes = computed(() => enrichmentAttributes.filter((a) => props.organization[a.name] && a.showInAttributes));
 </script>

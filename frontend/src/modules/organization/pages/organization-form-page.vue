@@ -155,6 +155,7 @@ const props = defineProps({
 const { fields } = OrganizationModel;
 const formSchema = new FormSchema([
   fields.name,
+  fields.headline,
   fields.description,
   fields.website,
   fields.location,
@@ -182,6 +183,7 @@ function getInitialModel(record) {
     JSON.stringify(
       formSchema.initialValues({
         name: record ? record.name : '',
+        headline: record ? record.headline : '',
         description: record ? record.description : '',
         joinedAt: record ? record.joinedAt : '',
         employees: record ? record.employees : null,

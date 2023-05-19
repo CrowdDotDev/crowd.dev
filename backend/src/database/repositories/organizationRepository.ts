@@ -719,6 +719,7 @@ class OrganizationRepository {
               'createdById',
               'updatedById',
               'isTeamOrganization',
+              'type',
             ],
             'organization',
           ),

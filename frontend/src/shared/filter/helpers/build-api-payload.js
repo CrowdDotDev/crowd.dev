@@ -63,6 +63,14 @@ function buildAttributeBlock(attribute) {
     };
   }
 
+  if (attribute.name === 'organizationType') {
+    return {
+      type: {
+        eq: attribute.value,
+      },
+    };
+  }
+
   if (attribute.name === 'activityTypes') {
     return {
       activityTypes: {

@@ -9,7 +9,9 @@ import JsonField from '@/shared/fields/json-field';
 import StringArrayField from '@/shared/fields/string-array-field';
 import IntegerField from '@/shared/fields/integer-field';
 import BooleanField from '@/shared/fields/boolean-field';
+import OrganizationHeadcountField from './organization-headcount-field';
 import OrganizationEmployeesField from './organization-employees-field';
+import OrganizationTypeField from './organization-type-field';
 import OrganizationPlatformField from './organization-platform-field';
 
 function label(name) {
@@ -46,7 +48,6 @@ const fields = {
   employees: new OrganizationEmployeesField(
     'employees',
     '# of employees',
-    { filterable: true },
   ),
   activityCount: new IntegerField(
     'activityCount',
@@ -92,10 +93,11 @@ const fields = {
   search: new SearchField('search', label('search'), {
     fields: ['name'],
   }),
-  size: new StringField('size', 'Size', { filterable: true }),
+  headline: new StringField('headline', 'Headline', { filterable: true }),
+  size: new OrganizationHeadcountField('size', 'Headcount', { filterable: true }),
   industry: new StringField('industry', 'Industry', { filterable: true }),
   founded: new IntegerField('founded', 'Founded', { filterable: true }),
-  type: new StringField('type', 'Type'),
+  type: new OrganizationTypeField('organizationType', 'Type', { filterable: true }),
   address: new StringField('industry', 'Industry'),
   profiles: new StringArrayField('profiles', 'Profiles'),
   lastEnrichedAt: new BooleanField('lastEnrichedAt', 'Enriched organization', {
