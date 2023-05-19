@@ -1,7 +1,7 @@
 <template>
   <app-drawer
     v-model="model"
-    title="Add project group"
+    title="Add sub-project"
     has-border
     @close="model = false"
   >
@@ -24,9 +24,10 @@
         >
           <el-input
             v-model="form.name"
-            placeholder="E.g. Cloud Native Computing Foundation"
+            placeholder="E.g. Kubernetes"
           />
         </app-form-item>
+
         <!-- Slug -->
         <app-form-item
           label="Slug"
@@ -39,7 +40,7 @@
         >
           <el-input
             v-model="form.slug"
-            placeholder="E.g. cnfc"
+            placeholder="E.g. kubernetes"
           />
         </app-form-item>
 
@@ -55,21 +56,6 @@
         >
           <el-input
             v-model="form.sourceId"
-          />
-        </app-form-item>
-
-        <!-- Logo URL -->
-        <app-form-item
-          label="Logo URL"
-          class="mb-6"
-          :required="true"
-          :validation="$v.url"
-          :error-messages="{
-            required: 'Logo URL is required',
-          }"
-        >
-          <el-input
-            v-model="form.url"
           />
         </app-form-item>
 
@@ -115,7 +101,7 @@
         :disabled="!hasFormChanged || $v.$invalid || loading"
         @click="onSubmit"
       >
-        {{ isEditForm ? 'Update' : 'Add project group' }}
+        {{ isEditForm ? 'Update' : 'Add sub-project' }}
       </el-button>
     </template>
   </app-drawer>
@@ -142,13 +128,21 @@ const props = defineProps({
     type: String,
     default: () => null,
   },
+  parentSlug: {
+    type: String,
+    default: () => null,
+  },
+  grandparentSlug: {
+    type: String,
+    default: () => null,
+  },
 });
 
 const lsSegmentsStore = useLfSegmentsStore();
 const {
-  createProjectGroup,
-  updateProjectGroup,
-  findProjectGroup,
+  createSubProject,
+  updateSubProject,
+  findSubProject,
 } = lsSegmentsStore;
 
 const loading = ref(false);
@@ -157,16 +151,18 @@ const form = reactive({
   name: '',
   slug: '',
   sourceId: '',
-  url: '',
   status: '',
+  parentSlug: props.parentSlug,
+  grandparentSlug: props.grandparentSlug,
 });
 
 const rules = {
   name: { required },
   slug: { required },
   sourceId: { required },
-  url: { required },
   status: { required },
+  parentSlug: { required },
+  grandparentSlug: { required },
 };
 
 const $v = useVuelidate(rules, form);
@@ -196,7 +192,7 @@ onMounted(() => {
   if (props.id) {
     loading.value = true;
 
-    findProjectGroup(props.id)
+    findSubProject(props.id)
       .then((response) => {
         fillForm(response);
       })
@@ -216,13 +212,13 @@ const onSubmit = () => {
   submitLoading.value = true;
 
   if (isEditForm.value) {
-    updateProjectGroup(props.id, form)
+    updateSubProject(props.id, form)
       .finally(() => {
         submitLoading.value = false;
         model.value = false;
       });
   } else {
-    createProjectGroup(form)
+    createSubProject(form)
       .finally(() => {
         submitLoading.value = false;
         model.value = false;
@@ -233,6 +229,6 @@ const onSubmit = () => {
 
 <script>
 export default {
-  name: 'AppLfProjectGroupForm',
+  name: 'AppLfSubProjectForm',
 };
 </script>

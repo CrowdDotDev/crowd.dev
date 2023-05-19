@@ -32,6 +32,7 @@
               :interactive="attribute.isUrl"
               :collapse-tags="true"
               :collapse-tags-tooltip="true"
+              :tag-tooltip-content="true"
             >
               <template v-if="attribute.isUrl" #tagTooltipContent>
                 <span>Open profile

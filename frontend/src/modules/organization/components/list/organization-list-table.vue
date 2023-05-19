@@ -469,6 +469,7 @@
                         :interactive="true"
                         :collapse-tags="true"
                         :collapse-tags-tooltip="true"
+                        :tag-tooltip-content="true"
                       >
                         <template #tagTooltipContent>
                           <span>Open profile

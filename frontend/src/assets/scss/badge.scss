@@ -29,6 +29,10 @@
     @apply bg-gray-900 text-white;
   }
 
+  &--gray-light {
+    @apply bg-gray-100 text-gray-900 border border-gray-200;
+  }
+  
   &--gray {
     @apply bg-gray-400 text-white;
   }
