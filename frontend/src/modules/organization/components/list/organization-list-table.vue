@@ -621,6 +621,7 @@ const hasIdentities = (row) => (
     || !!row.linkedin
     || !!row.twitter
     || !!row.crunchbase
+    || !!row.facebook
     || !!row.phoneNumbers?.length
 );
 
