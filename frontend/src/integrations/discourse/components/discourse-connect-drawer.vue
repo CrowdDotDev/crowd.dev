@@ -5,7 +5,7 @@
     title="Discourse"
     size="600px"
     pre-title="Integration"
-    :show-footer="false"
+    :show-footer="true"
     has-border
     @close="isVisible = false"
   >
@@ -19,10 +19,10 @@
     <template #content>
       <el-form
         label-position="top"
-        class="form pt-6 pb-10"
+        class="form"
       >
         <app-form-item
-          class="col-span-2 mb-6"
+          class="mb-6"
           :validation="$v.discourseURL"
           label="Discourse URL"
           :required="true"
@@ -31,9 +31,11 @@
             url: 'Enter valid URL',
           }"
         >
-          <span class="text-2xs font-light text-gray-600">
+          <div
+            class="text-2xs text-gray-500 leading-normal mb-1"
+          >
             Hostname of your community instance in Discourse.
-          </span>
+          </div>
           <el-input
             ref="focus"
             v-model="form.discourseURL"
@@ -42,7 +44,7 @@
           />
         </app-form-item>
         <app-form-item
-          class="col-span-2 mb-6"
+          class="mb-6"
           :validation="$v.apiKey"
           label="API Key"
           :required="true"
@@ -50,9 +52,11 @@
             required: 'This field is required',
           }"
         >
-          <span class="text-2xs font-light text-gray-600 leading-none">
+          <div
+            class="text-2xs text-gray-500 leading-normal mb-1"
+          >
             Create a new API key in your Discourse account's settings page. You must be an admin user to connect your acount. Read more
-          </span>
+          </div>
           <el-input
             ref="focus"
             v-model="form.apiKey"
@@ -68,76 +72,117 @@
           </el-input>
         </app-form-item>
       </el-form>
-      <el-form>
-        <el-form
-          class="col-span-2 api-keys-form flex flex-col gap-2"
-          label-position="top"
+      <el-divider />
+      <div class="w-full flex flex-col mb-6" :class="isAPIConnectionValid ? 'opacity-100' : 'opacity-50'">
+        <p class="text-[16px] font-semibold">
+          Connect webhooks
+        </p>
+        <div
+          class="text-2xs text-gray-500 leading-normal mb-1"
         >
-          <el-form-item label="Tenant ID">
-            <div
-              class="text-2xs text-gray-500 leading-normal mb-1"
-            >
-              Workspace identifier
-            </div>
-            <el-input :value="tenantId" :readonly="true">
-              <template #append>
-                <el-tooltip
-                  content="Copy to clipboard"
-                  placement="top"
+          Create new webhooks in your Discourse account's settings page with the following credentials. Read more
+        </div>
+      </div>
+      <el-form
+        class="flex flex-col"
+        label-position="top"
+        :class="isAPIConnectionValid ? 'opacity-100' : 'opacity-50'"
+      >
+        <app-form-item label="Payload URL">
+          <el-input :value="payloadURL" :readonly="true" :disabled="!isAPIConnectionValid">
+            <template #append>
+              <el-tooltip
+                content="Copy to clipboard"
+                placement="top"
+              >
+                <el-button
+                  class="append-icon"
+                  :disabled="!isAPIConnectionValid"
+                  @click="copyToClipboard('url')"
                 >
-                  <el-button
-                    class="append-icon"
-                    @click="copyToClipboard('tenantId')"
-                  >
-                    <i class="ri-file-copy-line" />
-                  </el-button>
-                </el-tooltip>
-              </template>
-            </el-input>
-          </el-form-item>
-          <el-form-item label="Auth Token">
-            <el-input
-              ref="inputRef"
-              :value="jwtToken"
-              readonly
-              :type="showToken ? 'text' : 'password'"
-            >
-              <template #append>
-                <el-tooltip
-                  v-if="!showToken"
-                  content="Show Auth Token"
-                  placement="top"
+                  <i class="ri-file-copy-line" />
+                </el-button>
+              </el-tooltip>
+            </template>
+          </el-input>
+        </app-form-item>
+        <app-form-item label="Webhook Secret">
+          <el-input
+            ref="inputRef"
+            :value="webhookSecret"
+            readonly
+            :disabled="!isAPIConnectionValid"
+            :type="showToken ? 'text' : 'password'"
+          >
+            <template #append>
+              <el-tooltip
+                v-if="!showToken"
+                content="Show Webhook Secret"
+                placement="top"
+              >
+                <el-button
+                  class="append-icon"
+                  :disabled="!isAPIConnectionValid"
+                  @click="onShowToken"
                 >
-                  <el-button
-                    class="append-icon"
-                    @click="onShowToken"
-                  >
-                    <i class="ri-eye-line" />
-                  </el-button>
-                </el-tooltip>
-                <el-tooltip
-                  v-else
-                  content="Copy to clipboard"
-                  placement="top"
-                >
-                  <el-button @click="copyToClipboard('token')">
-                    <i class="ri-file-copy-line" />
-                  </el-button>
-                </el-tooltip>
-              </template>
-            </el-input>
-          </el-form-item>
-        </el-form>
+                  <i class="ri-eye-line" />
+                </el-button>
+              </el-tooltip>
+              <el-tooltip
+                v-else
+                content="Copy to clipboard"
+                placement="top"
+              >
+                <el-button :disabled="!isAPIConnectionValid" @click="copyToClipboard('secret')">
+                  <i class="ri-file-copy-line" />
+                </el-button>
+              </el-tooltip>
+            </template>
+          </el-input>
+        </app-form-item>
       </el-form>
+      <el-card v-if="isAPIConnectionValid" shadow="never" class="rounded-[6px]">
+        <div class="mb-3">
+          <el-button :disabled="isWebhookVerifying" :loading="isWebhookVerifying" @click="verifyWebhook()">
+            Verify webhook
+          </el-button>
+        </div>
+        <div
+          class="text-2xs text-gray-500 leading-normal mb-1"
+        >
+          Confirm if your webhooks are properly configured and crowd.dev is receiving data from Discourse.
+        </div>
+      </el-card>
     </template>
 
-    <template #footer />
+    <template #footer>
+      <div style="flex: auto">
+        <el-button
+          class="btn btn--md btn--transparent mr-3"
+          :disabled="loading"
+          @click="handleCancel"
+        >
+          Cancel
+        </el-button>
+        <el-button
+          type="primary"
+          class="btn btn--md btn--primary"
+          :disabled="
+            $v.$invalid
+              || !hasFormChanged || loading"
+          :loading="loading"
+          @click="connect()"
+        >
+          {{ integration.settings?.forumHostname ? "Update" : "Connect" }}
+        </el-button>
+      </div>
+    </template>
   </app-drawer>
 </template>
 
 <script setup>
 import {
-  ref, reactive, onMounted, watch, computed, defineEmits, defineProps,
+  ref, reactive, onMounted, computed, defineEmits, defineProps,
 } from 'vue';
 import { CrowdIntegrations } from '@/integrations/integrations-config';
 import { required, url } from '@vuelidate/validators';
@@ -145,28 +190,31 @@ import useVuelidate from '@vuelidate/core';
 import AppDrawer from '@/shared/drawer/drawer.vue';
 import {
   mapActions,
-  mapGetters,
-  mapState,
 } from '@/shared/vuex/vuex.helpers';
 import AppFormItem from '@/shared/form/form-item.vue';
 import formChangeDetector from '@/shared/form/form-change';
-import elementChangeDetector from '@/shared/form/element-change';
+// import elementChangeDetector from '@/shared/form/element-change';
 import { IntegrationService } from '@/modules/integration/integration-service';
 import Message from '@/shared/message/message';
+import AuthCurrentTenant from '@/modules/auth/auth-current-tenant';
+
+const tenantId = AuthCurrentTenant.get();
 
 const inputRef = ref();
 const showToken = ref(false);
 
-const tenantId = 'fokfobkfbmfk';
-const jwtToken = 'slf,blfbfbijfsb[fb]';
+const payloadURL = ref(undefined);
+const webhookSecret = ref(undefined);
+
+const { doDiscourseConnect } = mapActions('integration');
 
 const copyToClipboard = async (type) => {
-  const toCopy = type === 'token' ? jwtToken : tenantId;
-  await navigator.clipboard.writeText(toCopy);
+  const toCopy = type === 'url' ? payloadURL : webhookSecret;
+  await navigator.clipboard.writeText(toCopy.value);
 
   Message.success(
     `${
-      type === 'token' ? 'Auth Token' : 'Tenant ID'
+      type === 'url' ? 'Payload URL' : 'Webhook Secret'
     } successfully copied to your clipboard`,
   );
 };
@@ -176,7 +224,17 @@ const onShowToken = () => {
   inputRef.value.focus();
 };
 
+function generateRandomSecret(length) {
+  const array = new Uint8Array(length);
+  window.crypto.getRandomValues(array);
+  return Array.from(array).map((b) => b.toString(16).padStart(2, '0')).join('');
+}
+
 const props = defineProps({
+  integration: {
+    type: Object,
+    default: null,
+  },
   modelValue: {
     type: Boolean,
     default: false,
@@ -190,6 +248,8 @@ const form = reactive({
 
 const isValidating = ref(false);
 const isAPIConnectionValid = ref(false);
+const loading = ref(false);
+const isWebhookVerifying = ref(false);
 
 const rules = {
   discourseURL: {
@@ -215,6 +275,12 @@ async function validate() {
   try {
     await IntegrationService.discourseValidateAPI(form.discourseURL, form.apiKey);
     isAPIConnectionValid.value = true;
+    if (!payloadURL.value) {
+      payloadURL.value = `${window.location.origin}/api/webhooks/discourse/${tenantId}`;
+    }
+    if (!webhookSecret.value) {
+      webhookSecret.value = generateRandomSecret(32);
+    }
   } catch {
     const errors = {
       apiKey: 'Invalid credentials',
@@ -228,6 +294,8 @@ async function validate() {
 
 const emit = defineEmits(['update:modelValue']);
 
+const { hasFormChanged, formSnapshot } = formChangeDetector(form);
+
 const logoUrl = CrowdIntegrations.getConfig('discourse').image;
 
 const isVisible = computed({
@@ -238,6 +306,59 @@ const isVisible = computed({
     return emit('update:modelValue', value);
   },
 });
+
+const handleCancel = () => {
+  emit('update:modelValue', false);
+};
+
+onMounted(() => {
+  if (props.integration?.settings?.forumHostname) {
+    form.discourseURL = props.integration.settings.forumHostname;
+    form.apiKey = props.integration.settings.apiKey;
+    webhookSecret.value = props.integration.settings.webhookSecret;
+    payloadURL.value = `${window.location.origin}/api/webhooks/discourse/${tenantId}`;
+    isAPIConnectionValid.value = true;
+  }
+  formSnapshot();
+});
+
+const verifyWebhook = async () => {
+  isWebhookVerifying.value = true;
+  try {
+    const integrationId = await IntegrationService.discourseSoftConnect(
+      form.discourseURL,
+      form.apiKey,
+      webhookSecret.value,
+    );
+    const webhookVerified = await IntegrationService.discourseVerifyWebhook(integrationId);
+    if (webhookVerified) {
+      Message.success('Webhook verified successfully');
+    } else {
+      Message.error('Webhook verification failed');
+    }
+  } catch {
+    Message.error('Webhook verification failed');
+  } finally {
+    isWebhookVerifying.value = false;
+  }
+};
+
+const connect = async () => {
+  loading.value = true;
+
+  doDiscourseConnect({
+    forumHostname: form.discourseURL,
+    apiKey: form.apiKey,
+    webhookSecret: webhookSecret.value,
+    isUpdate: props.integration?.settings?.remotes?.length,
+  })
+    .then(() => {
+      isVisible.value = false;
+    })
+    .finally(() => {
+      loading.value = false;
+    });
+};
 </script>
 
 <script>

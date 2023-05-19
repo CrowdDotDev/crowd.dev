@@ -20,7 +20,6 @@ import { getOrganizations } from '../serverless/integrations/usecases/linkedin/g
 import Error404 from '../errors/Error404'
 import IntegrationRunRepository from '../database/repositories/integrationRunRepository'
 import { IntegrationRunState } from '../types/integrationRunTypes'
-import { generateWebhookSecret } from '../utils/crypto'
 
 const discordToken = DISCORD_CONFIG.token2 || DISCORD_CONFIG.token
 
@@ -832,7 +831,6 @@ export default class IntegrationService {
     let run
 
     try {
-      const webhookSecret = generateWebhookSecret()
       integration = await this.createOrUpdate(
         {
           platform: PlatformType.DISCOURSE,
@@ -840,7 +838,7 @@ export default class IntegrationService {
             apiKey: integrationData.apiKey,
             apiUsername: integrationData.apiUsername,
             forumHostname: integrationData.forumHostname,
-            webhookSecret, // we can do encryption here
+            webhookSecret: integrationData.webhookSecret,
             updateMemberAttributes: true,
           },
           status: 'in-progress',
@@ -864,6 +862,34 @@ export default class IntegrationService {
       integration.tenantId,
       new NodeWorkerIntegrationProcessMessage(run.id),
     )
+
+    return integration
+  }
+
+  async discourseSoftConnect(integrationData) {
+    const transaction = await SequelizeRepository.createTransaction(this.options)
+    let integration
+
+    try {
+      integration = await this.createOrUpdate(
+        {
+          platform: PlatformType.DISCOURSE,
+          settings: {
+            apiKey: integrationData.apiKey,
+            apiUsername: integrationData.apiUsername,
+            forumHostname: integrationData.forumHostname,
+            webhookSecret: integrationData.webhookSecret,
+            updateMemberAttributes: true,
+          },
+          status: 'discourse-soft-connect',
+        },
+        transaction,
+      )
+      await SequelizeRepository.commitTransaction(transaction)
+    } catch (err) {
+      await SequelizeRepository.rollbackTransaction(transaction)
+      throw err
+    }
 
     return integration
   }

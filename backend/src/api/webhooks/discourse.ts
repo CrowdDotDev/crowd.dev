@@ -6,6 +6,7 @@ import { WebhookType } from '../../types/webhooks'
 import { sendNodeWorkerMessage } from '../../serverless/utils/nodeWorkerSQS'
 import { NodeWorkerProcessWebhookMessage } from '../../types/mq/nodeWorkerProcessWebhookMessage'
 import { verifyWebhookSignature } from '../../utils/crypto'
+import { PlatformType } from '../../types/integrationEnums'
 
 export default async (req, res) => {
   const signature = req.headers['x-discourse-event-signature']
@@ -14,12 +15,11 @@ export default async (req, res) => {
   const event = req.headers['x-discourse-event']
   const data = req.body
 
-  const integrationId = req.params.integrationId as string
   const options = await SequelizeRepository.getDefaultIRepositoryOptions()
   const tenant = await TenantRepository.findById(req.params.tenantId, options)
   const optionsWithTenant = await SequelizeRepository.getDefaultIRepositoryOptions(null, tenant)
-  const integration = (await IntegrationRepository.findById(
-    integrationId,
+  const integration = (await IntegrationRepository.findByPlatform(
+    PlatformType.DISCOURSE,
     optionsWithTenant,
   )) as any
 
@@ -69,7 +69,7 @@ export default async (req, res) => {
 
     await req.responseHandler.success(req, res, {}, 204)
   } else {
-    req.log.error({ integrationId }, 'No integration found for incoming Discourse Webhook!')
+    req.log.error({ tenant }, 'No integration found for incoming Discourse Webhook!')
     await req.responseHandler.success(req, res, {}, 200)
   }
 }

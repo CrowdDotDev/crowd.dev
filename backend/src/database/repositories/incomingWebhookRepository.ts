@@ -232,4 +232,26 @@ export default class IncomingWebhookRepository extends RepositoryBase<
       type: QueryTypes.DELETE,
     })
   }
+
+  async checkWebhooksExistForIntegration(integrationId: string): Promise<boolean> {
+    const transaction = this.transaction
+
+    const results = await this.seq.query(
+      `
+      select count(*) as count
+      from "incomingWebhooks"
+      where "integrationId" = :integrationId
+      limit 1
+    `,
+      {
+        replacements: {
+          integrationId,
+        },
+        type: QueryTypes.SELECT,
+        transaction,
+      },
+    )
+
+    return results[0].count > 0
+  }
 }

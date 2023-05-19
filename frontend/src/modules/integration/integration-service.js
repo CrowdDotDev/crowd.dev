@@ -279,12 +279,60 @@ export class IntegrationService {
   static async discourseValidateAPI(forumHostname, apiKey) {
     const tenantId = AuthCurrentTenant.get();
 
-    const response = await authAxios.post(`/tenant/${tenantId}/discourse-validate`, {
-      forumHostname,
-      apiKey,
-      apiUsername: 'system',
-    });
+    const response = await authAxios.post(
+      `/tenant/${tenantId}/discourse-validate`,
+      {
+        forumHostname,
+        apiKey,
+        apiUsername: 'system',
+      },
+    );
 
     return response.status === 200;
+  }
+
+  static async discourseConnect(forumHostname, apiKey, webhookSecret) {
+    const tenantId = AuthCurrentTenant.get();
+
+    const response = await authAxios.post(
+      `/tenant/${tenantId}/discourse-connect`,
+      {
+        forumHostname,
+        apiKey,
+        apiUsername: 'system',
+        webhookSecret,
+      },
+    );
+
+    return response.status === 200;
+  }
+
+  static async discourseSoftConnect(forumHostname, apiKey, webhookSecret) {
+    const tenantId = AuthCurrentTenant.get();
+
+    const response = await authAxios.post(
+      `/tenant/${tenantId}/discourse-soft-connect`,
+      {
+        forumHostname,
+        apiKey,
+        apiUsername: 'system',
+        webhookSecret,
+      },
+    );
+
+    return response.data.id;
+  }
+
+  static async discourseVerifyWebhook(integrationId) {
+    const tenantId = AuthCurrentTenant.get();
+
+    const response = await authAxios.post(
+      `/tenant/${tenantId}/discourse-test-webhook`,
+      {
+        integrationId,
+      },
+    );
+
+    return response.data.isWebhooksReceived;
   }
 }
