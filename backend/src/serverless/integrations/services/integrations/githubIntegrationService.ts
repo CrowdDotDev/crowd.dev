@@ -1354,7 +1354,7 @@ export class GithubIntegrationService extends IntegrationServiceBase {
           body: record.commit.message,
           type: 'authored-commit',
           sourceId: record.commit.oid,
-          sourceParentId: `${data.repository.pullRequest.number}`,
+          sourceParentId: `${data.repository.pullRequest.id}`,
           timestamp: moment(record.commit.authoredDate).utc().toDate(),
           attributes: {
             insertions: record.commit.additions,
