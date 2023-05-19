@@ -2,6 +2,7 @@ create type public."segmentsStatus_type" AS ENUM ('active', 'archived', 'formati
 
 create table "segments" (
     "id" uuid not null,
+    url text null,
     name text null,
     "parentName" text null,
     "grandparentName" text null,
@@ -27,3 +28,26 @@ ALTER TABLE "activities" ADD COLUMN "segmentId" uuid;
 ALTER TABLE "integrations" ADD COLUMN "segmentId" uuid;
 
 ALTER TABLE "conversations" ADD COLUMN "segmentId" uuid;
+
+ALTER TABLE "tags" ADD COLUMN "segmentId" uuid;
+
+ALTER TABLE "tasks" ADD COLUMN "segmentId" uuid;
+
+ALTER TABLE "reports" ADD COLUMN "segmentId" uuid;
+
+ALTER TABLE "widgets" ADD COLUMN "segmentId" uuid;
+
+
+CREATE TABLE public."memberSegments" (
+    "memberId" uuid NOT NULL,
+    "segmentId" uuid NOT NULL,
+    "tenantId" uuid NOT NULL,
+    "createdAt" timestamp with time zone NOT NULL,
+    foreign key ("tenantId") references tenants (id),
+    foreign key ("segmentId") references segments (id),
+    foreign key ("memberId") references members (id),
+    unique("memberId", "segmentId", "tenantId")
+    -- create index for memberId, segmentId and tenantId
+);
+
+

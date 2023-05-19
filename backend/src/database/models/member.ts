@@ -101,6 +101,11 @@ export default (sequelize) => {
       foreignKey: 'memberId',
     })
 
+    models.member.belongsToMany(models.segment, {
+      as: 'segments',
+      through: 'memberSegments',
+    })
+
     models.member.hasOne(models.memberActivityAggregatesMV, {
       as: 'memberActivityAggregatesMVs',
       foreignKey: 'id',

@@ -82,6 +82,13 @@ export default (sequelize) => {
       },
     })
 
+    models.task.belongsTo(models.segment, {
+      as: 'segment',
+      foreignKey: {
+        allowNull: false,
+      },
+    })
+
     models.task.belongsToMany(models.user, {
       as: 'assignees',
       through: 'taskAssignees',

@@ -15,7 +15,7 @@ import {
   SegmentUpdateChildrenPartialData,
   SegmentUpdateData,
 } from '../../types/segmentTypes'
-import { PageData } from '../../types/common'
+import { PageData, QueryData } from '../../types/common'
 import Error404 from '../../errors/Error404'
 import { ActivityTypeSettings, DEFAULT_ACTIVITY_TYPE_SETTINGS } from '../../types/activityTypes'
 import removeFieldsFromObject from '../../utils/getObjectWithoutKey'
@@ -40,14 +40,15 @@ class SegmentRepository extends RepositoryBase<
     const transaction = this.transaction
 
     const segmentInsertResult = await this.options.database.sequelize.query(
-      `INSERT INTO "segments" ("id", "name", "slug", "parentSlug", "grandparentSlug", "status", "parentName", "sourceId", "sourceParentId", "tenantId", "grandparentName")
+      `INSERT INTO "segments" ("id", "url", "name", "slug", "parentSlug", "grandparentSlug", "status", "parentName", "sourceId", "sourceParentId", "tenantId", "grandparentName")
           VALUES
-              (:id, :name, :slug, :parentSlug, :grandparentSlug, :status, :parentName, :sourceId, :sourceParentId, :tenantId, :grandparentName)
+              (:id, :url, :name, :slug, :parentSlug, :grandparentSlug, :status, :parentName, :sourceId, :sourceParentId, :tenantId, :grandparentName)
           RETURNING "id"
         `,
       {
         replacements: {
           id: uuid(),
+          url: data.url,
           name: data.name,
           parentName: data.parentName || null,
           grandparentName: data.grandparentName || null,
@@ -173,6 +174,7 @@ class SegmentRepository extends RepositoryBase<
     const updateFields = Object.keys(data).filter((key) =>
       [
         'name',
+        'url',
         'slug',
         'parentSlug',
         'grandparentSlug',
@@ -392,15 +394,15 @@ class SegmentRepository extends RepositoryBase<
    * Query project groups with their children
    * @returns
    */
-  async queryProjectGroups(criteria: SegmentCriteria): Promise<PageData<SegmentData[]>> {
+  async queryProjectGroups(criteria: QueryData): Promise<PageData<SegmentData[]>> {
     let searchQuery = 'WHERE 1=1'
 
-    if (criteria.status) {
+    if (criteria.filter?.status) {
       searchQuery += `AND s.status = :status`
     }
 
-    if (criteria.name) {
-      searchQuery += `AND s.name like ':name%'`
+    if (criteria.filter?.name) {
+      searchQuery += `AND s.name like :name`
     }
 
     const projectGroups = await this.options.database.sequelize.query(
@@ -417,7 +419,7 @@ class SegmentRepository extends RepositoryBase<
                             p.name as project_name,
                             p.id as project_id,
                             COUNT(DISTINCT sp.id) AS subproject_count,
-                            jsonb_agg(jsonb_build_object('id', sp.id ,'name', sp.name)) as subprojects
+                            jsonb_agg(jsonb_build_object('id', sp.id ,'name', sp.name, 'status', sp.status)) as subprojects
                      FROM segments f
                               JOIN segments p ON p."parentSlug" = f."slug" AND p."grandparentSlug" IS NULL
                               JOIN segments sp ON sp."parentSlug" = p."slug" and sp."grandparentSlug" is not null
@@ -426,7 +428,8 @@ class SegmentRepository extends RepositoryBase<
             SELECT s.*,
                    count(*) over () as "totalCount",  
                    jsonb_agg(jsonb_build_object('id', f.project_id ,
-                                                'name', f.project_name, 
+                                                'name', f.project_name,
+                                                'status', f.status, 
                                                 'subprojects', f.subprojects)
                                                 ) as projects
             FROM segments s
@@ -437,8 +440,8 @@ class SegmentRepository extends RepositoryBase<
             `,
       {
         replacements: {
-          name: criteria.name,
-          status: criteria.status,
+          name: `${criteria.filter?.name}%`,
+          status: criteria.filter?.status,
         },
         type: QueryTypes.SELECT,
       },
@@ -452,15 +455,16 @@ class SegmentRepository extends RepositoryBase<
     return { count, rows, limit: criteria.limit, offset: criteria.offset }
   }
 
-  async queryProjects(criteria: SegmentCriteria): Promise<PageData<SegmentData[]>> {
+  // TODO:: add connected integrations
+  async queryProjects(criteria: QueryData): Promise<PageData<SegmentData[]>> {
     let searchQuery = ''
 
-    if (criteria.status) {
+    if (criteria.filter?.status) {
       searchQuery += ` AND s.status = :status`
     }
 
-    if (criteria.name) {
-      searchQuery += ` AND s.name like ':name%'`
+    if (criteria.filter?.name) {
+      searchQuery += ` AND s.name like :name`
     }
 
     const projects = await this.options.database.sequelize.query(
@@ -468,7 +472,7 @@ class SegmentRepository extends RepositoryBase<
             SELECT 
                 s.*,
                 COUNT(DISTINCT sp.id)                                       AS subproject_count,
-                jsonb_agg(jsonb_build_object('id', sp.id, 'name', sp.name)) as subprojects,
+                jsonb_agg(jsonb_build_object('id', sp.id, 'name', sp.name, 'status', sp.status)) as subprojects,
                 count(*) over () as "totalCount"
             FROM segments s
                 JOIN segments sp ON sp."parentSlug" = s."slug" and sp."grandparentSlug" is not null
@@ -481,8 +485,8 @@ class SegmentRepository extends RepositoryBase<
             `,
       {
         replacements: {
-          name: criteria.name,
-          status: criteria.status,
+          name: `${criteria.filter?.name}%`,
+          status: criteria.filter?.status,
         },
         type: QueryTypes.SELECT,
       },
@@ -502,15 +506,15 @@ class SegmentRepository extends RepositoryBase<
     return segments.rows[0] || null
   }
 
-  async querySubprojects(criteria: SegmentCriteria): Promise<PageData<SegmentData[]>> {
+  async querySubprojects(criteria: QueryData): Promise<PageData<SegmentData[]>> {
     let searchQuery = ''
 
-    if (criteria.status) {
+    if (criteria.filter?.status) {
       searchQuery += ` AND s.status = :status`
     }
 
-    if (criteria.name) {
-      searchQuery += ` AND s.name like ':name%'`
+    if (criteria.filter?.name) {
+      searchQuery += ` AND s.name like :name`
     }
 
     const subprojects = await this.options.database.sequelize.query(
@@ -528,8 +532,8 @@ class SegmentRepository extends RepositoryBase<
       {
         replacements: {
           tenantId: this.currentTenant.id,
-          name: criteria.name,
-          status: criteria.status,
+          name: `${criteria.filter?.name}%`,
+          status: criteria.filter?.status,
         },
         type: QueryTypes.SELECT,
       },

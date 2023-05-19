@@ -26,6 +26,7 @@ import {
 } from './types/memberTypes'
 import { ActivityDisplayVariant } from '../../types/activityTypes'
 import SegmentRepository from './segmentRepository'
+import { SegmentData } from '../../types/segmentTypes'
 
 const { Op } = Sequelize
 
@@ -99,6 +100,8 @@ class MemberRepository {
       }
     }
 
+    await MemberRepository.includeMemberToSegments(record.id, options)
+
     await record.setActivities(data.activities || [], {
       transaction,
     })
@@ -127,6 +130,36 @@ class MemberRepository {
     await this._createAuditLog(AuditLogRepository.CREATE, record, data, options)
 
     return this.findById(record.id, options, true, doPopulateRelations)
+  }
+
+  static async includeMemberToSegments(memberId: string, options: IRepositoryOptions) {
+    const seq = SequelizeRepository.getSequelize(options)
+
+    const transaction = SequelizeRepository.getTransaction(options)
+
+    let bulkInsertMemberSegments = `INSERT INTO "memberSegments" ("memberId","segmentId", "tenantId", "createdAt") VALUES `
+    const replacements = {
+      memberId,
+      tenantId: options.currentTenant.id,
+    }
+
+    for (let idx = 0; idx < options.currentSegments.length; idx++) {
+      bulkInsertMemberSegments += ` (:memberId, :segmentId${idx}, :tenantId, now()) `
+
+      replacements[`segmentId${idx}`] = options.currentSegments[idx].id
+
+      if (idx !== options.currentSegments.length - 1) {
+        bulkInsertMemberSegments += `,`
+      }
+    }
+
+    bulkInsertMemberSegments += ` ON CONFLICT DO NOTHING`
+
+    await seq.query(bulkInsertMemberSegments, {
+      replacements,
+      type: QueryTypes.INSERT,
+      transaction,
+    })
   }
 
   static async findSampleDataMemberIds(options: IRepositoryOptions) {
@@ -482,6 +515,7 @@ class MemberRepository {
       where: {
         id,
         tenantId: currentTenant.id,
+        segmentId: options.currentSegments.map((s) => s.id),
       },
       transaction,
     })
@@ -634,6 +668,7 @@ class MemberRepository {
       where: {
         id,
         tenantId: currentTenant.id,
+        segmentId: options.currentSegments.map((s) => s.id),
       },
       transaction,
     })
@@ -659,10 +694,37 @@ class MemberRepository {
       where: {
         id: ids,
         tenantId: currentTenant.id,
+        segmentId: options.currentSegments.map((s) => s.id),
       },
       force,
       transaction,
     })
+  }
+
+  static async getSegments(
+    memberIds: string[],
+    options: IRepositoryOptions,
+  ): Promise<Map<string, SegmentData[]>> {
+    const results = new Map<string, SegmentData[]>()
+
+    const transaction = SequelizeRepository.getTransaction(options)
+    const seq = SequelizeRepository.getSequelize(options)
+
+    const query = `
+      select "memberId", "segmentId", "tenantId", "createdAt" from "memberSegments" where "memberId" in (:memberIds) order by "createdAt" asc;
+    `
+
+    await seq.query(query, {
+      replacements: {
+        memberIds,
+      },
+      type: QueryTypes.SELECT,
+      transaction,
+    })
+
+    // TODO: complete
+
+    return results
   }
 
   static async getIdentities(
@@ -725,6 +787,7 @@ class MemberRepository {
     if (!ignoreTenant) {
       const currentTenant = SequelizeRepository.getCurrentTenant(options)
       where.tenantId = currentTenant.id
+      where.segmentId = options.currentSegments.map((s) => s.id)
     }
 
     const record = await options.database.member.findOne({

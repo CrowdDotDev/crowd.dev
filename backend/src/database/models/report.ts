@@ -64,6 +64,13 @@ export default (sequelize) => {
       },
     })
 
+    models.report.belongsTo(models.segment, {
+      as: 'segment',
+      foreignKey: {
+        allowNull: false,
+      },
+    })
+
     models.report.belongsTo(models.user, {
       as: 'createdBy',
     })

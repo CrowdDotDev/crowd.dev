@@ -200,6 +200,7 @@ export default class TenantService {
           transaction,
         }).create({
           name: data.name,
+          url: data.url,
           parentName: data.name,
           grandparentName: data.name,
           slug,
@@ -211,10 +212,11 @@ export default class TenantService {
         })
       }
 
+      this.options.currentSegments = segment ? [segment] : []
+
       await SettingsService.findOrCreateDefault({
         ...this.options,
         currentTenant: record,
-        currentSegments: [segment],
         transaction,
       })
 

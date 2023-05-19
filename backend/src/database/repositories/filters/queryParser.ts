@@ -404,6 +404,7 @@ class QueryParser {
     const dbQuery: any = {
       where: {
         tenantId: SequelizeRepository.getCurrentTenant(this.options).id,
+        segmentId: this.options.currentSegments.map((s) => s.id),
       },
       limit: QueryParser.defaultPageSize,
       offset: 0,

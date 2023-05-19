@@ -69,11 +69,15 @@ export default class SettingsRepository {
       return record
     }
 
-    const segment = SequelizeRepository.getStrictlySingleActiveSegment(options)
+    let segment = null
+
+    if (options.currentSegments?.length > 0) {
+      segment = SequelizeRepository.getStrictlySingleActiveSegment(options)
+    }
 
     const settings = record.get({ plain: true })
 
-    settings.activityTypes = segment.activityTypes
+    settings.activityTypes = segment ? segment.activityTypes : null
 
     return settings
   }

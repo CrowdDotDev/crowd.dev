@@ -9,6 +9,9 @@ export default (sequelize) => {
         defaultValue: DataTypes.UUIDV4,
         primaryKey: true,
       },
+      url: {
+        type: DataTypes.TEXT,
+      },
       name: {
         type: DataTypes.TEXT,
       },

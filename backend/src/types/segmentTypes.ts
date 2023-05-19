@@ -11,6 +11,7 @@ export interface SegmentProjectGroupNestedData extends SegmentData {
 
 export interface SegmentBase {
   name: string
+  url: string
   parentName: string
   grandparentName: string
   slug: string
