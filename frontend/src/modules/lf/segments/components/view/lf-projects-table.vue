@@ -4,7 +4,7 @@
     ref="table"
     :data="project.subprojects"
     row-key="id"
-    border
+    :resizable="false"
   >
     <!-- Name -->
     <el-table-column
@@ -14,7 +14,7 @@
       class-name="table-columns"
     >
       <template #header>
-        <div class="truncate">
+        <div>
           <span class="pt-1.5 pb-3 block">Project</span>
           <div class="text-base font-semibold text-gray-900 normal-case flex items-center h-8 mb-4">
             {{ project.name }}
@@ -114,9 +114,15 @@
       </template>
       <template #default="scope">
         <div class="h-10 items-center flex justify-end gap-3">
-          <el-button class="btn btn--bordered" disabled>
-            Manage integrations
-          </el-button>
+          <router-link
+            :to="{
+              name: 'integration',
+            }"
+          >
+            <el-button class="btn btn--bordered">
+              Manage integrations
+            </el-button>
+          </router-link>
           <app-lf-sub-projects-dropdown
             @on-edit-sub-project="emit('onEditSubProject', scope.row.id)"
           />
@@ -167,7 +173,7 @@ export default {
 
 <style lang="scss">
 #projects-table {
-  @apply rounded-lg;
+  @apply rounded-lg shadow;
 
   thead .table-columns {
     @apply align-top h-auto;

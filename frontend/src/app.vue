@@ -52,6 +52,14 @@ export default {
 
   beforeCreate() {
     this.$router.beforeEach((to, from, next) => {
+      const isSegmentsFeatureEnabled = FeatureFlag.isFlagEnabled(
+        FeatureFlag.flags.segments,
+      );
+
+      if (to.meta.requiresSegmentsFeatureFlagEnabled && !isSegmentsFeatureEnabled) {
+        next('/404');
+      }
+
       document.title = `crowd.dev${to.meta.title ? ` | ${to.meta.title}` : ''}`;
       next();
     });

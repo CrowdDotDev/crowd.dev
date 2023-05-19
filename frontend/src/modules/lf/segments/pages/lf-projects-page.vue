@@ -125,10 +125,10 @@ onMounted(() => {
   findProjectGroup(route.params.id)
     .then((response) => {
       Object.assign(projectGroup, response);
-      listProjects(projectGroup.slug);
-    })
-    .finally(() => {
-      loading.value = false;
+      listProjects(projectGroup.slug)
+        .finally(() => {
+          loading.value = false;
+        });
     });
 });
 

@@ -8,13 +8,16 @@ const ProjectsPage = () => import(
   '@/modules/lf/segments/pages/lf-projects-page.vue'
 );
 
-// TODO: Send to 404 if not for linux
 export default [
   {
     name: '',
     path: '',
     component: Layout,
-    meta: { auth: true, title: 'Admin Panel' },
+    meta: {
+      auth: true,
+      title: 'Admin Panel',
+      requiresSegmentsFeatureFlagEnabled: true,
+    },
     children: [
       {
         name: 'segmentsProjectGroups',

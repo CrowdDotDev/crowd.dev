@@ -16,14 +16,13 @@
     ref="table"
     :data="projectGroups.list"
     row-key="id"
-    border
+    :resizable="false"
   >
     <!-- Name -->
     <el-table-column
       label="Project Group"
       prop="name"
       min-width="25"
-      sortable
       fixed
       class-name="table-columns"
     >
@@ -56,7 +55,6 @@
       label="Status"
       prop="status"
       min-width="15"
-      sortable
       class-name="table-columns"
     >
       <template #default="scope">
@@ -124,6 +122,8 @@ export default {
 
 <style lang="scss">
 #project-groups-table {
+  @apply rounded-lg shadow;
+
   thead .table-columns {
     @apply align-middle h-14;
   }
