@@ -3,8 +3,8 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "start": "node -r ts-node/register src/main.ts --transpile-only",
-    "start:debug": "SERVICE=data-sink-worker LOG_LEVEL=trace node --inspect=0.0.0.0:9233 -r ts-node/register src/main.ts --transpile-only",
+    "start": "node -r tsconfig-paths/register -r ts-node/register src/main.ts --transpile-only",
+    "start:debug": "SERVICE=data-sink-worker LOG_LEVEL=trace node --inspect=0.0.0.0:9233 -r tsconfig-paths/register -r ts-node/register src/main.ts --transpile-only",
     "start:watch": "nodemon --watch src --ext ts --exec npm run start:debug",
     "dev": "../../scripts/install_packages.sh && ../../scripts/build_libs.sh && concurrently \"npm run start:watch\" \"../../scripts/watch_libs.sh --service data_sink_worker\""
   },
@@ -19,6 +19,7 @@
     "@types/node": "^18.16.3",
     "config": "^3.3.9",
     "ts-node": "^10.9.1",
+    "tsconfig-paths": "^4.2.0",
     "typescript": "^5.0.4"
   },
   "devDependencies": {

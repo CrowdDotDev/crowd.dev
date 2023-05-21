@@ -5,7 +5,7 @@ import {
   INTEGRATION_STREAM_WORKER_QUEUE_SETTINGS,
   SqsClient,
   SqsQueueReceiver,
-  SqsQueueSender,
+  SqsQueueEmitter,
 } from '@crowd/sqs'
 import {
   GenerateRunStreamsRunQueueMessage,
@@ -21,7 +21,7 @@ export class WorkerQueueReceiver extends SqsQueueReceiver {
     client: SqsClient,
     private readonly redisClient: RedisClient,
     private readonly dbConn: DbConnection,
-    private readonly streamWorkerSender: StreamWorkerSender,
+    private readonly streamWorkerEmitter: StreamWorkerEmitter,
     parentLog: Logger,
   ) {
     super(client, INTEGRATION_RUN_WORKER_QUEUE_SETTINGS, 2, parentLog)
@@ -33,7 +33,7 @@ export class WorkerQueueReceiver extends SqsQueueReceiver {
 
       const service = new IntegrationRunService(
         this.redisClient,
-        this.streamWorkerSender,
+        this.streamWorkerEmitter,
         new DbStore(this.log, this.dbConn),
         this.log,
       )
@@ -51,12 +51,15 @@ export class WorkerQueueReceiver extends SqsQueueReceiver {
   }
 }
 
-export class StreamWorkerSender extends SqsQueueSender {
+export class StreamWorkerEmitter extends SqsQueueEmitter {
   constructor(client: SqsClient, parentLog: Logger) {
     super(client, INTEGRATION_STREAM_WORKER_QUEUE_SETTINGS, parentLog)
   }
 
-  public async triggerStreamProcessing(groupId: string, streamId: string) {
-    await this.sendMessage(groupId, new ProcessStreamQueueMessage(streamId))
+  public async triggerStreamProcessing(tenantId: string, platform: string, streamId: string) {
+    await this.sendMessage(
+      `streams-${tenantId}-${platform}`,
+      new ProcessStreamQueueMessage(streamId),
+    )
   }
 }

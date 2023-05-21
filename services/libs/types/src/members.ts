@@ -17,5 +17,6 @@ export interface IMemberIdentity {
 export interface IMemberData {
   emails?: string[]
   identities: IMemberIdentity[]
-  attributes: Record<string, unknown>
+  attributes?: Record<string, unknown>
+  joinedAt?: string
 }

@@ -52,3 +52,15 @@ export const DATA_SINK_WORKER_QUEUE_SETTINGS: ISqsQueueConfig = {
   highThroughputFifo: true,
   fifoThroughputLimit: SqsFifoThroughputLimitType.PER_MESSAGE_GROUP_ID,
 }
+
+export const NODEJS_WORKER_QUEUE_SETTINGS: ISqsQueueConfig = {
+  name: 'nodejs-worker',
+  type: SqsQueueType.FIFO,
+  waitTimeSeconds: 20, // seconds
+  visibilityTimeout: 30, // seconds
+  messageRetentionPeriod: 345600, // 4 days
+  deliveryDelay: 0,
+  deduplicationScope: SqsQueueDeduplicationType.MESSAGE_GROUP,
+  highThroughputFifo: true,
+  fifoThroughputLimit: SqsFifoThroughputLimitType.PER_MESSAGE_GROUP_ID,
+}

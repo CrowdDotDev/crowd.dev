@@ -8,6 +8,7 @@ export interface IResultData {
   runId: string
   streamId: string
   apiDataId: string
+  tenantId: string
   integrationId: string
   platform: PlatformType
 }

@@ -5,7 +5,7 @@ import IntegrationDataRepository from '../repo/integrationData.repo'
 import { IActivityData, IntegrationResultType, IntegrationRunState } from '@crowd/types'
 import { addSeconds, singleOrDefault } from '@crowd/common'
 import { INTEGRATION_SERVICES, IProcessDataContext } from '@crowd/integrations'
-import { DataSinkWorkerSender, StreamWorkerSender } from '../queue'
+import { DataSinkWorkerEmitter, StreamWorkerEmitter } from '../queue'
 import { WORKER_SETTINGS } from '../config'
 
 export default class IntegrationDataService extends LoggerBase {
@@ -13,8 +13,8 @@ export default class IntegrationDataService extends LoggerBase {
 
   constructor(
     private readonly redisClient: RedisClient,
-    private readonly streamWorkerSender: StreamWorkerSender,
-    private readonly dataSinkWorkerSender: DataSinkWorkerSender,
+    private readonly streamWorkerEmitter: StreamWorkerEmitter,
+    private readonly dataSinkWorkerEmitter: DataSinkWorkerEmitter,
     store: DbStore,
     parentLog: Logger,
   ) {
@@ -105,7 +105,11 @@ export default class IntegrationDataService extends LoggerBase {
       return
     }
 
-    const cache = new RedisCache(`integration-run-${dataInfo.runId}`, this.redisClient, this.log)
+    const cache = new RedisCache(
+      `int-${dataInfo.tenantId}-${dataInfo.integrationType}`,
+      this.redisClient,
+      this.log,
+    )
 
     const context: IProcessDataContext = {
       onboarding: dataInfo.onboarding,
@@ -205,7 +209,7 @@ export default class IntegrationDataService extends LoggerBase {
         type: IntegrationResultType.ACTIVITY,
         data: activity,
       })
-      await this.dataSinkWorkerSender.triggerResultProcessing(`${tenantId}-${platform}`, resultId)
+      await this.dataSinkWorkerEmitter.triggerResultProcessing(`${tenantId}-${platform}`, resultId)
     } catch (err) {
       await this.triggerDataError(
         dataId,
@@ -246,7 +250,7 @@ export default class IntegrationDataService extends LoggerBase {
       this.log.debug({ identifier }, 'Publishing new child stream!')
       const streamId = await this.repo.publishStream(parentId, runId, identifier, data)
       if (streamId) {
-        await this.streamWorkerSender.triggerStreamProcessing(`${tenantId}-${platform}`, streamId)
+        await this.streamWorkerEmitter.triggerStreamProcessing(`${tenantId}-${platform}`, streamId)
       } else {
         this.log.debug({ identifier }, 'Child stream already exists!')
       }

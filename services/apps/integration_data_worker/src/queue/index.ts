@@ -7,7 +7,7 @@ import {
   INTEGRATION_STREAM_WORKER_QUEUE_SETTINGS,
   SqsClient,
   SqsQueueReceiver,
-  SqsQueueSender,
+  SqsQueueEmitter,
 } from '@crowd/sqs'
 import {
   IQueueMessage,
@@ -23,8 +23,8 @@ export class WorkerQueueReceiver extends SqsQueueReceiver {
     client: SqsClient,
     private readonly redisClient: RedisClient,
     private readonly dbConn: DbConnection,
-    private readonly streamWorkerSender: StreamWorkerSender,
-    private readonly dataSinkWorkerSender: DataSinkWorkerSender,
+    private readonly streamWorkerEmitter: StreamWorkerEmitter,
+    private readonly dataSinkWorkerEmitter: DataSinkWorkerEmitter,
     parentLog: Logger,
   ) {
     super(client, INTEGRATION_DATA_WORKER_QUEUE_SETTINGS, 2, parentLog)
@@ -36,8 +36,8 @@ export class WorkerQueueReceiver extends SqsQueueReceiver {
 
       const service = new IntegrationStreamService(
         this.redisClient,
-        this.streamWorkerSender,
-        this.dataSinkWorkerSender,
+        this.streamWorkerEmitter,
+        this.dataSinkWorkerEmitter,
         new DbStore(this.log, this.dbConn),
         this.log,
       )
@@ -55,22 +55,28 @@ export class WorkerQueueReceiver extends SqsQueueReceiver {
   }
 }
 
-export class StreamWorkerSender extends SqsQueueSender {
+export class StreamWorkerEmitter extends SqsQueueEmitter {
   constructor(client: SqsClient, parentLog: Logger) {
     super(client, INTEGRATION_STREAM_WORKER_QUEUE_SETTINGS, parentLog)
   }
 
-  public async triggerStreamProcessing(groupId: string, streamId: string) {
-    await this.sendMessage(groupId, new ProcessStreamQueueMessage(streamId))
+  public async triggerStreamProcessing(tenantId: string, platform: string, streamId: string) {
+    await this.sendMessage(
+      `streams-${tenantId}-${platform}`,
+      new ProcessStreamQueueMessage(streamId),
+    )
   }
 }
 
-export class DataSinkWorkerSender extends SqsQueueSender {
+export class DataSinkWorkerEmitter extends SqsQueueEmitter {
   constructor(client: SqsClient, parentLog: Logger) {
     super(client, DATA_SINK_WORKER_QUEUE_SETTINGS, parentLog)
   }
 
-  public async triggerResultProcessing(groupId: string, resultId: string) {
-    await this.sendMessage(groupId, new ProcessIntegrationResultQueueMessage(resultId))
+  public async triggerResultProcessing(tenantId: string, platform: string, resultId: string) {
+    await this.sendMessage(
+      `results-${tenantId}-${platform}`,
+      new ProcessIntegrationResultQueueMessage(resultId),
+    )
   }
 }

@@ -13,6 +13,7 @@ export default class DataSinkRepository extends RepositoryBase<DataSinkRepositor
            r.state,
            r.data,
            
+           r."tenantId",
            r."runId",
            r."streamId",
            r."apiDataId",

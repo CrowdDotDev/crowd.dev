@@ -4,7 +4,7 @@ import { IGenerateStreamsContext, INTEGRATION_SERVICES } from '@crowd/integratio
 import { Logger, LoggerBase, getChildLogger } from '@crowd/logging'
 import { RedisCache, RedisClient } from '@crowd/redis'
 import { IntegrationRunState } from '@crowd/types'
-import { StreamWorkerSender } from '../queue'
+import { StreamWorkerEmitter } from '../queue'
 import IntegrationRunRepository from '../repo/integrationRun.repo'
 import SampleDataRepository from '../repo/sampleData.repo'
 
@@ -14,7 +14,7 @@ export default class IntegrationRunService extends LoggerBase {
 
   constructor(
     private readonly redisClient: RedisClient,
-    private readonly streamWorkerSender: StreamWorkerSender,
+    private readonly streamWorkerEmitter: StreamWorkerEmitter,
     store: DbStore,
     parentLog: Logger,
   ) {
@@ -96,7 +96,11 @@ export default class IntegrationRunService extends LoggerBase {
       }
     }
 
-    const cache = new RedisCache(`integration-run-${runId}`, this.redisClient, this.log)
+    const cache = new RedisCache(
+      `int-${runInfo.tenantId}-${runInfo.integrationType}`,
+      this.redisClient,
+      this.log,
+    )
 
     const context: IGenerateStreamsContext = {
       onboarding: runInfo.onboarding,
@@ -174,7 +178,7 @@ export default class IntegrationRunService extends LoggerBase {
     try {
       this.log.debug('Publishing new root stream!')
       const streamId = await this.repo.publishStream(runId, identifier, data)
-      await this.streamWorkerSender.triggerStreamProcessing(`${tenantId}-${platform}`, streamId)
+      await this.streamWorkerEmitter.triggerStreamProcessing(`${tenantId}-${platform}`, streamId)
     } catch (err) {
       await this.triggerRunError(
         runId,
