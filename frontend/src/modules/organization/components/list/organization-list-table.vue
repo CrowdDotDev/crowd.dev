@@ -673,22 +673,6 @@ const emailsColumnWidth = computed(() => {
   return maxTabWidth;
 });
 
-const profilesColumnWidth = computed(() => {
-  let maxTabWidth = 150;
-
-  rows.value.forEach((row) => {
-    const tabWidth = row.profiles
-      ?.map((profile) => (profile ? profile.length * 12 : 0))
-      .reduce((a, b) => a + b, 0);
-
-    if (tabWidth > maxTabWidth) {
-      maxTabWidth = tabWidth > 400 ? 400 : tabWidth;
-    }
-  });
-
-  return maxTabWidth;
-});
-
 const trackEmailClick = () => {
   window.analytics.track('Click Organization Contact', {
     channel: 'Email',
