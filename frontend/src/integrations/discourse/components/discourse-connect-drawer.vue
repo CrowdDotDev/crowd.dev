@@ -319,6 +319,8 @@ const isVisible = computed({
 
 const handleCancel = () => {
   emit('update:modelValue', false);
+  form.apiKey = '';
+  form.discourseURL = '';
 };
 
 onMounted(() => {
@@ -361,7 +363,7 @@ const connect = async () => {
     forumHostname: form.discourseURL,
     apiKey: form.apiKey,
     webhookSecret: webhookSecret.value,
-    isUpdate: props.integration?.settings?.remotes?.length,
+    isUpdate: props.integration.settings?.forumHostname,
   })
     .then(() => {
       isVisible.value = false;

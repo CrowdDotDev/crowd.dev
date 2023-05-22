@@ -304,7 +304,7 @@ export class IntegrationService {
       },
     );
 
-    return response.status === 200;
+    return response.data;
   }
 
   static async discourseSoftConnect(forumHostname, apiKey, webhookSecret) {
