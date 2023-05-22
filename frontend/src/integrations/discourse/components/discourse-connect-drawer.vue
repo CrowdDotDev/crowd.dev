@@ -185,7 +185,7 @@ import {
   ref, reactive, onMounted, computed, defineEmits, defineProps,
 } from 'vue';
 import { CrowdIntegrations } from '@/integrations/integrations-config';
-import { required, url } from '@vuelidate/validators';
+import { required, url, helpers } from '@vuelidate/validators';
 import useVuelidate from '@vuelidate/core';
 import AppDrawer from '@/shared/drawer/drawer.vue';
 import {
@@ -251,9 +251,19 @@ const isAPIConnectionValid = ref(false);
 const loading = ref(false);
 const isWebhookVerifying = ref(false);
 
+// validate that url doesn't end with a slash
+const validateURL = (value) => {
+  if (value && value.endsWith('/')) {
+    return false;
+  }
+  return true;
+};
+
 const rules = {
   discourseURL: {
-    required, url,
+    required,
+    url,
+    noSlash: helpers.withMessage('URL cannot end with a slash', validateURL),
   },
   apiKey: {
     required,
@@ -330,11 +340,12 @@ const verifyWebhook = async () => {
       form.apiKey,
       webhookSecret.value,
     );
+
     const webhookVerified = await IntegrationService.discourseVerifyWebhook(integrationId);
     if (webhookVerified) {
       Message.success('Webhook verified successfully');
     } else {
-      Message.error('Webhook verification failed');
+      Message.info('No webhook received yet. You can manually trigger (ping) a webhook from your Discourse admin panel.');
     }
   } catch {
     Message.error('Webhook verification failed');

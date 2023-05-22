@@ -871,6 +871,16 @@ export default class IntegrationService {
     let integration
 
     try {
+      const existingIntegration = await this.findByPlatform(PlatformType.DISCOURSE)
+      if (existingIntegration) {
+        return existingIntegration
+      }
+    }
+    catch (err) {
+      // we didn't find an existing integration, so we can continue
+    }
+
+    try {
       integration = await this.createOrUpdate(
         {
           platform: PlatformType.DISCOURSE,
@@ -881,7 +891,7 @@ export default class IntegrationService {
             webhookSecret: integrationData.webhookSecret,
             updateMemberAttributes: true,
           },
-          status: 'discourse-soft-connect',
+          status: 'pending-action',
         },
         transaction,
       )

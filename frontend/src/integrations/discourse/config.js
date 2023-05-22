@@ -9,4 +9,8 @@ export default {
     'Connect Discourse to sync topics, posts, and replies from your account forums.',
   image: '/images/integrations/discourse.png',
   connectComponent: DiscourseConnect,
+  activityDisplay: {
+    showLinkToUrl: true,
+  },
+  url: (attributes) => attributes.url.discourse,
 };

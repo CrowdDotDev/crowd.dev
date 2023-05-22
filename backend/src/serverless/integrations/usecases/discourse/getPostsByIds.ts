@@ -39,7 +39,7 @@ export const getDiscoursePostsByIds = async (
 
   const config: AxiosRequestConfig<any> = {
     method: 'get',
-    url: `https://${params.forumHostname}/t/${input.topic_id}/posts.json?${queryString}`,
+    url: `${params.forumHostname}/t/${input.topic_id}/posts.json?${queryString}`,
     headers: {
       'Api-Key': params.apiKey,
       'Api-Username': params.apiUsername,

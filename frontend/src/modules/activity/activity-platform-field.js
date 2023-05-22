@@ -55,6 +55,10 @@ export default class ActivityPlatformField extends StringField {
         value: 'stackoverflow',
         label: 'Stack Overflow',
       },
+      {
+        value: 'discourse',
+        label: 'Discourse',
+      },
     ];
 
     if (appConfig.isGitIntegrationEnabled) {

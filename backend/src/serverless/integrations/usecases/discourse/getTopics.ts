@@ -14,7 +14,7 @@ export const getDiscourseTopics = async (
   })
   const config: AxiosRequestConfig<any> = {
     method: 'get',
-    url: `https://${params.forumHostname}/c/${input.category_slug}/${input.category_id}.json`,
+    url: `${params.forumHostname}/c/${input.category_slug}/${input.category_id}.json`,
     headers: {
       'Api-Key': params.apiKey,
       'Api-Username': params.apiUsername,

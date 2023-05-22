@@ -7,6 +7,7 @@ import { RedditGrid } from '../serverless/integrations/grid/redditGrid'
 import { SlackGrid } from '../serverless/integrations/grid/slackGrid'
 import { StackOverflowGrid } from '../serverless/integrations/grid/stackOverflowGrid'
 import { TwitterGrid } from '../serverless/integrations/grid/twitterGrid'
+import { DiscourseGrid } from '../serverless/integrations/grid/discourseGrid'
 import isUrl from '../utils/isUrl'
 import { PlatformType } from './integrationEnums'
 
@@ -161,6 +162,7 @@ const defaultStackoverflowFormatter = (activity) => {
 
   return ''
 }
+
 
 export const UNKNOWN_ACTIVITY_TYPE_DISPLAY: ActivityTypeDisplayProperties = {
   default: 'Conducted an activity',
@@ -665,6 +667,41 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
         },
       },
       isContribution: StackOverflowGrid.answer.isContribution,
+    },
+  },
+  [PlatformType.DISCOURSE]: {
+    [DiscourseActivityType.CREATE_TOPIC]: {
+      display: {
+        default: 'Created a topic',
+        short: 'created a topic',
+        channel: '<span class="text-brand-500 truncate max-w-2xs">#{channel}</span>',
+      },
+      isContribution: DiscourseGrid.create_topic.isContribution,
+    },
+    [DiscourseActivityType.MESSAGE_IN_TOPIC]: {
+      display: {
+        default:
+          'Posted a message in <span class="text-brand-500 truncate max-w-2xs">#{channel}</span>',
+        short: 'posted a message',
+        channel: '<span class="text-brand-500 truncate max-w-2xs">#{channel}</span>',
+      },
+      isContribution: DiscourseGrid.message_in_topic.isContribution,
+    },
+    [DiscourseActivityType.JOIN]: {
+      display: {
+        default: 'Joined a forum',
+        short: 'joined a forum',
+        channel: '',
+      },
+      isContribution: DiscourseGrid.join.isContribution,
+    },
+    [DiscourseActivityType.LIKE]: {
+      display: {
+        default: 'Liked a post',
+        short: 'liked a post',
+        channel: '<span class="text-brand-500 truncate max-w-2xs">#{channel}</span>',
+      },
+      isContribution: DiscourseGrid.like.isContribution,
     },
   },
 }

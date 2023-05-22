@@ -17,7 +17,7 @@ export const getDiscourseUserByUsername = async (
   })
   const config: AxiosRequestConfig<any> = {
     method: 'get',
-    url: `https://${params.forumHostname}/u/${input.username}.json`,
+    url: `${params.forumHostname}/u/${input.username}.json`,
     headers: {
       'Api-Key': params.apiKey,
       'Api-Username': params.apiUsername,

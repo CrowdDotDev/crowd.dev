@@ -212,7 +212,7 @@ export class DiscourseIntegrationService extends IntegrationServiceBase {
             timestamp: moment(post.created_at).utc().toDate(),
             body: sanitizeHtml(he.decode(post.cooked)),
             title: post.post_number === 1 ? stream.metadata.topicTitle : null,
-            url: `https://${context.pipelineData.forumHostname}/t/${stream.metadata.topicSlug}/${topicId}/${post.post_number}`,
+            url: `${context.pipelineData.forumHostname}/t/${stream.metadata.topicSlug}/${topicId}/${post.post_number}`,
             channel: stream.metadata.topicTitle,
             score:
               post.post_number === 1
@@ -395,7 +395,7 @@ export class DiscourseIntegrationService extends IntegrationServiceBase {
       timestamp: moment(post.created_at).utc().toDate(),
       body: sanitizeHtml(he.decode(post.cooked)),
       title: post.post_number === 1 ? post.topic_title : null,
-      url: `https://${context.pipelineData.forumHostname}/t/${post.topic_slug}/${post.topic_id}/${post.post_number}`,
+      url: `${context.pipelineData.forumHostname}/t/${post.topic_slug}/${post.topic_id}/${post.post_number}`,
       channel: post.topic_title,
       score:
         post.post_number === 1
@@ -445,7 +445,7 @@ export class DiscourseIntegrationService extends IntegrationServiceBase {
       timestamp: moment(user.created_at).utc().toDate(),
       body: null,
       title: null,
-      url: `https://${context.pipelineData.forumHostname}/u/${user.username}`,
+      url: `${context.pipelineData.forumHostname}/u/${user.username}`,
       channel: null,
       score: DiscourseGrid[DiscourseActivityType.JOIN].score,
       isContribution: DiscourseGrid[DiscourseActivityType.JOIN].isContribution,
@@ -521,7 +521,7 @@ export class DiscourseIntegrationService extends IntegrationServiceBase {
       displayName: user.user.name,
       attributes: {
         [MemberAttributeName.URL]: {
-          [PlatformType.DISCOURSE]: `https://${forumHostname}/u/${user.user.username}`,
+          [PlatformType.DISCOURSE]: `${forumHostname}/u/${user.user.username}`,
         },
         [MemberAttributeName.WEBSITE_URL]: {
           [PlatformType.DISCOURSE]: user.user.website || '',
@@ -536,7 +536,7 @@ export class DiscourseIntegrationService extends IntegrationServiceBase {
         },
         [MemberAttributeName.AVATAR_URL]: {
           [PlatformType.DISCOURSE]:
-            `https://${forumHostname}${user.user.avatar_template.replace('{size}', '200')}` || '',
+            `${forumHostname}${user.user.avatar_template.replace('{size}', '200')}` || '',
         },
       },
       emails: user.user.email ? [user.user.email] : [],

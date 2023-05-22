@@ -11,7 +11,7 @@ export const getDiscourseCategories = async (
   logger.info({ message: 'Fetching categories from Discourse', forumHostName: params.forumHostname })
   const config: AxiosRequestConfig<any> = {
     method: 'get',
-    url: `https://${params.forumHostname}/categories.json`,
+    url: `${params.forumHostname}/categories.json`,
     headers: {
         'Api-Key': params.apiKey,
         'Api-Username': params.apiUsername,
