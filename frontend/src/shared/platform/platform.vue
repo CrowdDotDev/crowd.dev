@@ -93,10 +93,20 @@ const props = defineProps({
     type: Boolean,
     default: false,
   },
+  href: {
+    type: String,
+    default: null,
+  },
 });
 
 const imageProperties = computed(() => CrowdIntegrations.getConfig(props.platform));
-const href = computed(() => (props.usernameHandles.length === 1 ? CrowdIntegrations.getConfig(props.platform)?.url(props.usernameHandles[0]) : null));
+const href = computed(() => {
+  if (props.href) {
+    return props.href;
+  }
+
+  return (props.usernameHandles.length === 1 ? CrowdIntegrations.getConfig(props.platform)?.url(props.usernameHandles[0]) : null);
+});
 
 const trackClick = () => {
   window.analytics.track(props.trackEventName, {
