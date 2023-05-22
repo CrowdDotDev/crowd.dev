@@ -49,7 +49,7 @@ With crowd.dev, you get full visibility into all platforms and can take actions 
 
 ## 🔔 Stay up-to-date
 
-Crowd.dev is still in beta and we ship new features every week. To stay in the loop, leave us a star and subscribe to our <a href="https://crowd.dev/newsletter-sign-up">monthly newsletter</a>. Thanks a lot! ❤️
+crowd.dev is still in beta and we ship new features every week. To stay in the loop, leave us a star and subscribe to our <a href="https://crowd.dev/newsletter-sign-up">monthly newsletter</a>. Thanks a lot! ❤️
 
 ## 🚀 Getting started
 
@@ -129,7 +129,7 @@ We take security very seriously. If you come across any security vulnerabilities
 
 ## 💌 Acknowledgements
 
-Crowd.dev is powered by these awesome projects:
+crowd.dev is powered by these awesome projects:
 
 - <a href="https://github.com/vuejs/vue">Vue.js</a>
 - <a href="https://github.com/tailwindlabs/tailwindcss">Tailwind CSS</a>
