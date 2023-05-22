@@ -339,7 +339,9 @@
   &--phone,
   &--phone:hover,
   &--custom-platform,
-  &--custom-platform:hover {
+  &--custom-platform:hover,
+  &--facebook,
+  &--facebook:hover {
     @apply leading-none cursor-pointer bg-white text-gray-600 border border-gray-200;
   }
 

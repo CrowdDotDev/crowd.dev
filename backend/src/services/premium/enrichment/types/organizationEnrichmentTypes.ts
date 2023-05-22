@@ -21,10 +21,18 @@ export interface IOrganization {
   industry?: IEnrichmentResponse['industry']
   founded?: IEnrichmentResponse['founded']
   employees?: IEnrichmentResponse['size']
-  twitter?: IEnrichmentResponse['twitter_url']
+  twitter?: ISocialNetwork
+  github?: ISocialNetwork
+  linkedin?: ISocialNetwork
+  crunchbase?: ISocialNetwork
   lastEnrichedAt?: Date
   geoLocation?: String
   address?: IEnrichmentResponse['location']
+}
+
+interface ISocialNetwork {
+  url: string
+  handle: string
 }
 
 export interface IEnrichableOrganization extends IOrganization {

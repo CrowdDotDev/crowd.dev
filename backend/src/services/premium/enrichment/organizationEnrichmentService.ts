@@ -16,6 +16,7 @@ import OrganizationCacheRepository from '../../../database/repositories/organiza
 import { ApiWebsocketMessage } from '../../../types/mq/apiWebsocketMessage'
 import { createRedisClient } from '../../../utils/redis'
 import RedisPubSubEmitter from '../../../utils/redis/pubSubEmitter'
+import { PlatformType } from '../../../types/integrationEnums'
 
 export default class OrganizationEnrichmentService extends LoggingBase {
   tenantId: string
@@ -131,6 +132,30 @@ export default class OrganizationEnrichmentService extends LoggingBase {
     return data
   }
 
+  private static enrichSocialNetworks(
+    data: IEnrichableOrganization,
+    socialNetworks: {
+      profiles: IEnrichmentResponse['profiles']
+      linkedin_id: IEnrichmentResponse['linkedin_id']
+    },
+  ): IEnrichableOrganization {
+    const socials = socialNetworks.profiles.reduce((acc, social) => {
+      const platform = social.split('.')[0]
+      const handle = social.split('/').splice(-1)[0]
+      if (
+        Object.values(PlatformType).includes(platform as any) &&
+        handle !== socialNetworks.linkedin_id
+      ) {
+        acc[platform] = {
+          handle,
+          [platform === PlatformType.TWITTER? "site": "url"]: social,
+        }
+      }
+      return acc
+    }, {})
+    return { ...data, ...socials }
+  }
+
   private convertEnrichedDataToOrg(
     pdlData: Awaited<IEnrichmentResponse>,
     instance: IEnrichableOrganization,
@@ -138,12 +163,15 @@ export default class OrganizationEnrichmentService extends LoggingBase {
     let data = <IEnrichableOrganization>renameKeys(pdlData, {
       summary: 'description',
       employee_count_by_country: 'employeeCountByCountry',
-      twitter_url: 'twitter',
       employee_count: 'employees',
       location: 'address',
     })
-
     data = OrganizationEnrichmentService.sanitize(data)
+
+    data = OrganizationEnrichmentService.enrichSocialNetworks(data, {
+      profiles: pdlData.profiles,
+      linkedin_id: pdlData.linkedin_id,
+    })
 
     return lodash.pick(
       { ...data, lastEnrichedAt: new Date() },
@@ -198,6 +226,8 @@ export default class OrganizationEnrichmentService extends LoggingBase {
           this.fields.add(field)
         }
       }
+    } else {
+      Object.keys(org).forEach((field) => this.fields.add(field))
     }
 
     return ['id', 'cachId', ...this.fields]
