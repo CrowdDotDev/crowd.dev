@@ -261,7 +261,8 @@ class TenantRepository {
 
     if (!(await isFeatureEnabled(FeatureFlag.SEGMENTS, { ...options, currentTenant: record }))) {
       // return default segment
-      segmentsFound = [await segmentRepository.getDefaultSegment()]
+      const defaultSegment = await segmentRepository.getDefaultSegment()
+      segmentsFound = defaultSegment ? [defaultSegment] : []
     } else if (segments.length > 0) {
       segmentsFound = await segmentRepository.findInIds(segments)
     } else {
@@ -269,7 +270,13 @@ class TenantRepository {
       segmentsFound = (await segmentRepository.querySubprojects({})).rows
     }
 
-    if (record && record.settings && record.settings[0] && record.settings[0].dataValues) {
+    if (
+      record &&
+      record.settings &&
+      record.settings[0] &&
+      record.settings[0].dataValues &&
+      segmentsFound.length > 0
+    ) {
       record.settings[0].dataValues.activityTypes = SegmentRepository.getActivityTypes({
         ...options,
         currentTenant: record,

@@ -5,7 +5,6 @@ import { IRepositoryOptions } from './IRepositoryOptions'
 import { RepositoryBase } from './repositoryBase'
 import {
   SegmentCreateData,
-  SegmentCriteria,
   SegmentData,
   SegmentLevel,
   SegmentProjectGroupNestedData,
@@ -48,7 +47,7 @@ class SegmentRepository extends RepositoryBase<
       {
         replacements: {
           id: uuid(),
-          url: data.url,
+          url: data.url || null,
           name: data.name,
           parentName: data.parentName || null,
           grandparentName: data.grandparentName || null,
@@ -402,7 +401,7 @@ class SegmentRepository extends RepositoryBase<
     }
 
     if (criteria.filter?.name) {
-      searchQuery += `AND s.name like :name`
+      searchQuery += `AND s.name ilike :name`
     }
 
     const projectGroups = await this.options.database.sequelize.query(
@@ -447,7 +446,7 @@ class SegmentRepository extends RepositoryBase<
       },
     )
 
-    const count = projectGroups.length > 0 ? projectGroups[0].totalCount : 0
+    const count = projectGroups.length > 0 ? Number.parseInt(projectGroups[0].totalCount, 10) : 0
 
     const rows = projectGroups.map((i) => removeFieldsFromObject(i, 'totalCount'))
 
@@ -464,7 +463,11 @@ class SegmentRepository extends RepositoryBase<
     }
 
     if (criteria.filter?.name) {
-      searchQuery += ` AND s.name like :name`
+      searchQuery += ` AND s.name ilike :name`
+    }
+
+    if (criteria.filter?.parentSlug) {
+      searchQuery += ` AND s."parentSlug" ilike :parent_slug `
     }
 
     const projects = await this.options.database.sequelize.query(
@@ -487,12 +490,13 @@ class SegmentRepository extends RepositoryBase<
         replacements: {
           name: `${criteria.filter?.name}%`,
           status: criteria.filter?.status,
+          parent_slug: `${criteria.filter?.parentSlug}%`,
         },
         type: QueryTypes.SELECT,
       },
     )
 
-    const count = projects.length > 0 ? projects[0].totalCount : 0
+    const count = projects.length > 0 ? Number.parseInt(projects[0].totalCount, 10) : 0
 
     const rows = projects.map((i) => removeFieldsFromObject(i, 'totalCount'))
 
@@ -514,7 +518,15 @@ class SegmentRepository extends RepositoryBase<
     }
 
     if (criteria.filter?.name) {
-      searchQuery += ` AND s.name like :name`
+      searchQuery += ` AND s.name ilike :name`
+    }
+
+    if (criteria.filter?.parentSlug) {
+      searchQuery += ` AND s."parentSlug" ilike :parent_slug `
+    }
+
+    if (criteria.filter?.grandparentSlug) {
+      searchQuery += ` AND s."grandparentSlug" ilike :grandparent_slug `
     }
 
     const subprojects = await this.options.database.sequelize.query(
@@ -534,12 +546,14 @@ class SegmentRepository extends RepositoryBase<
           tenantId: this.currentTenant.id,
           name: `${criteria.filter?.name}%`,
           status: criteria.filter?.status,
+          parent_slug: `${criteria.filter?.parentSlug}%`,
+          grandparent_slug: `${criteria.filter?.grandparentSlug}%`,
         },
         type: QueryTypes.SELECT,
       },
     )
 
-    const count = subprojects.length > 0 ? subprojects[0].totalCount : 0
+    const count = subprojects.length > 0 ? Number.parseInt(subprojects[0].totalCount, 10) : 0
 
     const rows = subprojects.map((i) => {
       const subproject = removeFieldsFromObject(i, 'totalCount')
