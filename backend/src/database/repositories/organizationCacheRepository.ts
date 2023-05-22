@@ -29,6 +29,17 @@ class OrganizationCacheRepository {
           'website',
           'github',
           'location',
+          'employeeCountByCountry',
+          'type',
+          'ticker',
+          'headline',
+          'profiles',
+          'naics',
+          'industry',
+          'founded',
+          'address',
+          'size',
+          'lastEnrichedAt',
         ]),
       },
       {
@@ -76,6 +87,21 @@ class OrganizationCacheRepository {
           'website',
           'github',
           'location',
+          'geoLocation',
+          'employeeCountByCountry',
+          'geoLocation',
+          'address',
+          'type',
+          'ticker',
+          'headline',
+          'profiles',
+          'naics',
+          'industry',
+          'founded',
+          'size',
+          'employees',
+          'twitter',
+          'lastEnrichedAt',
         ]),
       },
       {
@@ -83,9 +109,19 @@ class OrganizationCacheRepository {
       },
     )
 
+    if (!record) {
+      throw new Error404()
+    }
+
     await this._createAuditLog(AuditLogRepository.UPDATE, record, data, options)
 
     return this.findById(record.id, options)
+  }
+
+  static async bulkUpdate(data: any[], options: IRepositoryOptions): Promise<void> {
+    for (const org of data) {
+      this.update(org.id, org, options)
+    }
   }
 
   static async destroy(id, options: IRepositoryOptions, force = false) {

@@ -35,6 +35,7 @@ export enum IntegrationType {
   CROWD = 'crowd',
   STACKOVERFLOW = 'stackoverflow',
   DISCOURSE = 'discourse',
+  GIT = 'git',
 }
 
 export const integrationLabel: Record<IntegrationType, string> = {
@@ -50,4 +51,5 @@ export const integrationLabel: Record<IntegrationType, string> = {
   [IntegrationType.CROWD]: 'Crowd',
   [IntegrationType.STACKOVERFLOW]: 'Stack Overflow',
   [IntegrationType.DISCOURSE]: 'Discourse',
+  [IntegrationType.GIT]: 'Git',
 }

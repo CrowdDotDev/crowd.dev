@@ -39,6 +39,17 @@ const toCreate = {
     min: 10,
     max: 50,
   },
+  type: null,
+  ticker: null,
+  size: null,
+  naics: null,
+  lastEnrichedAt: null,
+  industry: null,
+  headline: null,
+  geoLocation: null,
+  founded: null,
+  employeeCountByCountry: null,
+  address: null,
 }
 
 describe('OrganizationCacheCacheRepository tests', () => {

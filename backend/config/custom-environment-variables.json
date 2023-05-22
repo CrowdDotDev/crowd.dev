@@ -145,6 +145,9 @@
     "url": "CROWD_ENRICHMENT_URL",
     "apiKey": "CROWD_ENRICHMENT_API_KEY"
   },
+  "organizationEnrichment": {
+    "apiKey": "CROWD_ORGANIZATION_ENRICHMENT_API_KEY"
+  },
   "eagleEye": {
     "url": "CROWD_EAGLE_EYE_URL",
     "apiKey": "CROWD_EAGLE_EYE_API_KEY"
