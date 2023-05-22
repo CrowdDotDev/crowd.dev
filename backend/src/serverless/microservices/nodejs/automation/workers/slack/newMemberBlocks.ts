@@ -2,7 +2,7 @@ import { API_CONFIG } from '../../../../../../config'
 import { integrationLabel } from '../../../../../../types/integrationEnums'
 
 export const newMemberBlocks = (member) => {
-  const platforms = Object.keys(member.username)
+  const platforms = member.activeOn
   const reach = member.reach?.[platforms[0]] || member.reach?.total
   return {
     blocks: [
@@ -39,75 +39,88 @@ export const newMemberBlocks = (member) => {
       {
         type: 'divider',
       },
-      {
-        type: 'section',
-        fields: [
-          {
-            type: 'mrkdwn',
-            text: '*Title/Role:*',
-          },
-          {
-            type: 'mrkdwn',
-            text: member.attributes.jobTitle?.default || '-',
-          },
-        ],
-      },
-      {
-        type: 'divider',
-      },
-      {
-        type: 'section',
-        fields: [
-          {
-            type: 'mrkdwn',
-            text: '*Organization:*',
-          },
-          {
-            type: 'mrkdwn',
-            text:
-              member.organizations.length > 0
-                ? `<${`${API_CONFIG.frontendUrl}/organizations/${member.organizations[0].id}`}|${
+      ...(member.attributes.jobTitle?.default
+        ? [
+            {
+              type: 'section',
+              fields: [
+                {
+                  type: 'mrkdwn',
+                  text: '*Title/Role:*',
+                },
+                {
+                  type: 'mrkdwn',
+                  text: member.attributes.jobTitle?.default || '-',
+                },
+              ],
+            },
+            {
+              type: 'divider',
+            },
+          ]
+        : []),
+      ...(member.organizations.length > 0
+        ? [
+            {
+              type: 'section',
+              fields: [
+                {
+                  type: 'mrkdwn',
+                  text: '*Organization:*',
+                },
+                {
+                  type: 'mrkdwn',
+                  text: `<${`${API_CONFIG.frontendUrl}/organizations/${member.organizations[0].id}`}|${
                     member.organizations[0].name
-                  }>`
-                : '-',
-          },
-        ],
-      },
-      {
-        type: 'divider',
-      },
-      {
-        type: 'section',
-        fields: [
-          {
-            type: 'mrkdwn',
-            text: '*Followers:*',
-          },
-          {
-            type: 'mrkdwn',
-            text: reach > 0 ? `${reach}` : '-',
-          },
-        ],
-      },
-      {
-        type: 'divider',
-      },
-      {
-        type: 'section',
-        fields: [
-          {
-            type: 'mrkdwn',
-            text: '*Location:*',
-          },
-          {
-            type: 'mrkdwn',
-            text: member.attributes?.location?.default || '-',
-          },
-        ],
-      },
-      {
-        type: 'divider',
-      },
+                  }>`,
+                },
+              ],
+            },
+            {
+              type: 'divider',
+            },
+          ]
+        : []),
+      ...(reach > 0
+        ? [
+            {
+              type: 'section',
+              fields: [
+                {
+                  type: 'mrkdwn',
+                  text: '*Followers:*',
+                },
+                {
+                  type: 'mrkdwn',
+                  text: reach > 0 ? `${reach}` : '-',
+                },
+              ],
+            },
+            {
+              type: 'divider',
+            },
+          ]
+        : []),
+      ...(member.attributes?.location?.default
+        ? [
+            {
+              type: 'section',
+              fields: [
+                {
+                  type: 'mrkdwn',
+                  text: '*Location:*',
+                },
+                {
+                  type: 'mrkdwn',
+                  text: member.attributes?.location?.default || '-',
+                },
+              ],
+            },
+            {
+              type: 'divider',
+            },
+          ]
+        : []),
       {
         type: 'actions',
         elements: [

@@ -38,13 +38,13 @@ const props = defineProps({
 });
 
 const platformContent = (platform) => {
-  const config = CrowdIntegrations.getConfig(platform);
+  const config = CrowdIntegrations.getConfig(platform) || {};
 
   return {
     trackEventName: 'Click Member Contact',
-    trackEventChannel: config.name,
-    tooltipLabel: `${config.name} profile`,
-    asLink: !(platform === 'discord' || platform === 'slack'),
+    trackEventChannel: config.name || platform,
+    tooltipLabel: `${config.name || platform} profile`,
+    asLink: config.showProfileLink,
   };
 };
 

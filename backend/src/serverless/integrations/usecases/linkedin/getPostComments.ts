@@ -17,6 +17,7 @@ export const getPostComments = async (
     url: `https://api.linkedin.com/v2/socialActions/${postId}/comments`,
     params: {
       count: 20,
+      start,
     },
   }
 

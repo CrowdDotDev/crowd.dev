@@ -5,7 +5,7 @@
       v-loading="loading"
       class="app-page-spinner"
     />
-    <div v-else>
+    <div v-else-if="organization">
       <router-link
         class="text-gray-600 btn-link--md btn-link--secondary p-0 inline-flex items-center"
         :to="{ path: '/organizations' }"
@@ -17,9 +17,11 @@
           :organization="organization"
           class="col-span-2"
         />
-        <app-organization-view-aside
-          :organization="organization"
-        />
+        <div class="row-span-4">
+          <app-organization-view-aside
+            :organization="organization"
+          />
+        </div>
         <div class="panel w-full col-span-2">
           <el-tabs v-model="tab">
             <el-tab-pane

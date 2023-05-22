@@ -11,6 +11,7 @@ import {
   BulkEnrichMessage,
   EagleEyeEmailDigestMessage,
   IntegrationDataCheckerMessage,
+  OrganizationBulkEnrichMessage,
 } from './messageTypes'
 import { AutomationTrigger, AutomationType } from '../../../types/automationTypes'
 import newActivityWorker from './automation/workers/newActivityWorker'
@@ -25,6 +26,7 @@ import { eagleEyeEmailDigestWorker } from './eagle-eye-email-digest/eagleEyeEmai
 import { integrationDataCheckerWorker } from './integration-data-checker/integrationDataCheckerWorker'
 import { refreshSampleDataWorker } from './integration-data-checker/refreshSampleDataWorker'
 import { mergeSuggestionsWorker } from './merge-suggestions/mergeSuggestionsWorker'
+import { BulkorganizationEnrichmentWorker } from './bulk-enrichment/bulkOrganizationEnrichmentWorker'
 
 /**
  * Worker factory for spawning different microservices
@@ -68,6 +70,10 @@ async function workerFactory(event: NodeMicroserviceMessage): Promise<any> {
     case 'bulk-enrich':
       const bulkEnrichMessage = event as BulkEnrichMessage
       return bulkEnrichmentWorker(bulkEnrichMessage.tenant, bulkEnrichMessage.memberIds)
+    case 'enrich-organizations': {
+      const bulkEnrichMessage = event as OrganizationBulkEnrichMessage
+      return BulkorganizationEnrichmentWorker(bulkEnrichMessage.tenantId)
+    }
 
     case 'automation-process':
       const automationProcessRequest = event as ProcessAutomationMessage

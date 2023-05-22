@@ -19,10 +19,11 @@ runs:
   steps:
     - name: Initialize kubernetes kubectl context
       shell: bash
-      run: aws eks --region ${{ env.AWS_REGION }} update-kubeconfig --name ${{ inputs.cluster }}
+      run: aws eks update-kubeconfig --name ${{ inputs.cluster }} --role-arn ${{ env.CROWD_ROLE_ARN }}
       env:
         AWS_ACCESS_KEY_ID: ${{ env.AWS_ACCESS_KEY_ID }}
         AWS_SECRET_ACCESS_KEY: ${{ env.AWS_SECRET_ACCESS_KEY }}
+        AWS_REGION: ${{ env.AWS_REGION }}
 
     - name: Deploy image
       shell: bash

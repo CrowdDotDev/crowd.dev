@@ -21,8 +21,26 @@ const computeEngagementLevel = (score) => {
   return ''
 }
 
+const replacements: Record<string, string> = {
+  '/images/integrations/linkedin-reactions/like.svg': ':thumbsup:',
+  '/images/integrations/linkedin-reactions/maybe.svg': ':thinking_face:',
+  '/images/integrations/linkedin-reactions/praise.svg': ':clap:',
+  '/images/integrations/linkedin-reactions/appreciation.svg': ':heart_hands:',
+  '/images/integrations/linkedin-reactions/empathy.svg': ':heart:',
+  '/images/integrations/linkedin-reactions/entertainment.svg': ':laughing:',
+  '/images/integrations/linkedin-reactions/interest.svg': ':bulb:',
+  'href="/': `href="${API_CONFIG.frontendUrl}/`,
+}
+
+const replaceHeadline = (text) => {
+  Object.keys(replacements).forEach((key) => {
+    text = text.replaceAll(key, replacements[key])
+  })
+  return text
+}
+
 export const newActivityBlocks = (activity) => {
-  const display = htmlToMrkdwn(`${activity.display.default}`)
+  const display = htmlToMrkdwn(replaceHeadline(`${activity.display.default}`))
   const reach = activity.member.reach?.[activity.platform] || activity.member.reach?.total
   const memberProperties = []
   if (activity.member.attributes.jobTitle?.default) {
@@ -35,8 +53,8 @@ export const newActivityBlocks = (activity) => {
   if (engagementLevel.length > 0) {
     memberProperties.push(`*Engagement level:* ${engagementLevel}`)
   }
-  if (activity.member.username) {
-    const platforms = Object.keys(activity.member.username)
+  if (activity.member.activeOn) {
+    const platforms = activity.member.activeOn
       .map((platform) => integrationLabel[platform] || platform)
       .join(' | ')
     memberProperties.push(`*Active on:* ${platforms}`)
@@ -98,9 +116,11 @@ export const newActivityBlocks = (activity) => {
                   type: 'section',
                   text: {
                     type: 'mrkdwn',
-                    text: `${activity.title ? `*${htmlToMrkdwn(activity.title).text}* \n ` : ''}${
-                      htmlToMrkdwn(activity.body).text
-                    }`,
+                    text: `${
+                      activity.title && activity.title !== activity.display.default
+                        ? `*${htmlToMrkdwn(activity.title).text}* \n `
+                        : ''
+                    }${htmlToMrkdwn(activity.body).text}`,
                   },
                 },
               ],

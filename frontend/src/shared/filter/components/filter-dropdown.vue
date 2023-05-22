@@ -8,6 +8,7 @@
     >
       <el-button
         class="filter-dropdown-trigger"
+        data-qa="filter-dropdown"
         :class="isExpanded ? 'is-expanded' : ''"
       >
         <i class="ri-lg ri-filter-3-line mr-2" />
@@ -16,19 +17,22 @@
       <template #dropdown>
         <div class="-m-2 border-b border-gray-100 p-2 mb-2">
           <el-input
+            id="filterSearch"
             ref="queryInput"
             v-model="query"
             placeholder="Search..."
             class="filter-dropdown-search"
             :prefix-icon="SearchIcon"
+            data-qa="filter-list-search"
           />
         </div>
-        <div>
+        <div id="filterList">
           <el-dropdown-item
             v-for="item of computedAttributes"
             :key="item.name"
             :class="item.selected ? 'is-selected' : ''"
             :command="item"
+            data-qa="filter-list-item"
           >
             <div class="flex items-center justify-between">
               <span class="block">{{ item.label }}</span>
@@ -49,6 +53,7 @@
             :key="item.name"
             :class="item.selected ? 'is-selected' : ''"
             :command="item"
+            class="custom-attribute"
           >
             {{ item.label }}
           </el-dropdown-item>

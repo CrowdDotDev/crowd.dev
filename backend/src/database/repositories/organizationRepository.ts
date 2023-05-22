@@ -11,6 +11,64 @@ import { QueryOutput } from './filters/queryTypes'
 const { Op } = Sequelize
 
 class OrganizationRepository {
+  static async filterByPayingTenant<T extends object>(
+    tenantId: string,
+    limit: number,
+    options: IRepositoryOptions,
+  ): Promise<T[]> {
+    const database = SequelizeRepository.getSequelize(options)
+    const transaction = SequelizeRepository.getTransaction(options)
+    const query = `
+      with orgActivities as (
+        SELECT memOrgs."organizationId", SUM(actAgg."activityCount") "orgActivityCount"
+        FROM "memberActivityAggregatesMVs" actAgg
+        INNER JOIN "memberOrganizations" memOrgs ON actAgg."id"=memOrgs."memberId"
+        GROUP BY memOrgs."organizationId"
+      ) 
+      SELECT org.id "id"
+      ,cach.id "cachId"
+      ,org."name"
+      ,org."location"
+      ,org."website"
+      ,org."lastEnrichedAt"
+      ,org."twitter"
+      ,org."employees"
+      ,org."size"
+      ,org."founded"
+      ,org."industry"
+      ,org."naics"
+      ,org."profiles"
+      ,org."headline"
+      ,org."ticker"
+      ,org."type"
+      ,org."address"
+      ,org."geoLocation"
+      ,org."employeeCountByCountry"
+      ,org."twitter"
+      ,org."linkedin"
+      ,org."linkedin"
+      ,org."crunchbase"
+      ,org."github"
+      ,org."description"
+      FROM "organizations" as org
+      JOIN "organizationCaches" cach ON org."name" = cach."name"
+      JOIN orgActivities activity ON activity."organizationId" = org."id"
+      WHERE :tenantId = org."tenantId" AND (org."lastEnrichedAt" IS NULL OR DATE_PART('month', AGE(NOW(), org."lastEnrichedAt")) >= 6)
+      ORDER BY org."lastEnrichedAt" ASC, org."website", activity."orgActivityCount" DESC, org."createdAt" DESC
+      LIMIT :limit
+    ;
+    `
+    const orgs: T[] = await database.query(query, {
+      type: QueryTypes.SELECT,
+      transaction,
+      replacements: {
+        tenantId,
+        limit,
+      },
+    })
+    return orgs
+  }
+
   static async create(data, options: IRepositoryOptions) {
     const currentUser = SequelizeRepository.getCurrentUser(options)
 
@@ -39,6 +97,16 @@ class OrganizationRepository {
           'revenueRange',
           'importHash',
           'isTeamOrganization',
+          'employeeCountByCountry',
+          'type',
+          'ticker',
+          'headline',
+          'profiles',
+          'naics',
+          'industry',
+          'founded',
+          'size',
+          'lastEnrichedAt',
         ]),
 
         tenantId: tenant.id,
@@ -57,6 +125,24 @@ class OrganizationRepository {
     await this._createAuditLog(AuditLogRepository.CREATE, record, data, options)
 
     return this.findById(record.id, options)
+  }
+
+  static async bulkUpdate<T extends any[]>(
+    data: T,
+    fields: string[],
+    options: IRepositoryOptions,
+  ): Promise<T> {
+    // Ensure every organization has a non-undefine primary ID
+    const isValid = new Set(data.filter((org) => org.id).map((org) => org.id)).size !== data.length
+    if (isValid) return [] as T
+
+    // Using bulk insert to update on duplicate primary ID
+    const orgs = await options.database.organization.bulkCreate(data, {
+      fields: ['id', 'tenantId', ...fields],
+      updateOnDuplicate: fields,
+      returning: fields,
+    })
+    return orgs
   }
 
   static async update(id, data, options: IRepositoryOptions) {
@@ -99,6 +185,18 @@ class OrganizationRepository {
           'revenueRange',
           'importHash',
           'isTeamOrganization',
+          'employeeCountByCountry',
+          'type',
+          'ticker',
+          'headline',
+          'profiles',
+          'naics',
+          'industry',
+          'founded',
+          'size',
+          'employees',
+          'twitter',
+          'lastEnrichedAt',
         ]),
         updatedById: currentUser.id,
       },
@@ -183,25 +281,78 @@ class OrganizationRepository {
 
   static async findById(id, options: IRepositoryOptions) {
     const transaction = SequelizeRepository.getTransaction(options)
-
-    const include = []
-
+    const sequelize = SequelizeRepository.getSequelize(options)
     const currentTenant = SequelizeRepository.getCurrentTenant(options)
 
-    const record = await options.database.organization.findOne({
-      where: {
-        id,
-        tenantId: currentTenant.id,
+    const results = await sequelize.query(
+      `
+    WITH activity_counts AS (
+        SELECT "organizationId", COUNT(a.id) AS "activityCount"
+        FROM "memberOrganizations" mo
+        left JOIN activities a ON a."memberId" = mo."memberId"
+        WHERE mo."organizationId" = :id 
+        GROUP BY "organizationId"
+    ),
+    member_counts AS (
+        SELECT "organizationId", COUNT(DISTINCT "memberId") AS "memberCount"
+        FROM "memberOrganizations"
+        WHERE "organizationId" = :id
+        GROUP BY "organizationId"
+    ),
+    active_on AS (
+        SELECT "organizationId", ARRAY_AGG(DISTINCT platform) AS "activeOn"
+        FROM "memberOrganizations" mo
+        JOIN activities a ON a."memberId" = mo."memberId"
+        WHERE mo."organizationId" = :id
+        GROUP BY "organizationId"
+    ),
+    identities AS (
+        SELECT "organizationId", ARRAY_AGG(DISTINCT platform) AS "identities"
+        FROM "memberOrganizations" mo
+        JOIN "memberIdentities" mi ON mi."memberId" = mo."memberId"
+        WHERE mo."organizationId" = :id
+        GROUP BY "organizationId"
+    ),
+    last_active AS (
+        SELECT "organizationId", MAX(timestamp) AS "lastActive", MIN(timestamp) AS "joinedAt"
+        FROM "memberOrganizations" mo
+        JOIN activities a ON a."memberId" = mo."memberId"
+        WHERE mo."organizationId" = :id
+        GROUP BY "organizationId"
+    )
+    SELECT
+        o.*,
+    COALESCE(ac."activityCount", 0)::integer AS "activityCount",
+            COALESCE(mc."memberCount", 0)::integer AS "memberCount",
+            COALESCE(ao."activeOn", '{}') AS "activeOn",
+            COALESCE(id."identities", '{}') AS "identities",
+            a."lastActive", a."joinedAt"
+    FROM
+        organizations o
+        LEFT JOIN activity_counts ac ON ac."organizationId" = o.id
+        LEFT JOIN member_counts mc ON mc."organizationId" = o.id
+        LEFT JOIN active_on ao ON ao."organizationId" = o.id
+        LEFT JOIN identities id ON id."organizationId" = o.id
+        LEFT JOIN last_active a ON a."organizationId" = o.id
+    WHERE
+        o.id = :id and
+        o."tenantId"  = :tenantId;
+    `,
+      {
+        replacements: {
+          id,
+          tenantId: currentTenant.id,
+        },
+        type: QueryTypes.SELECT,
+        transaction,
       },
-      include,
-      transaction,
-    })
+    )
 
-    if (!record) {
+    if (results.length === 0) {
       throw new Error404()
     }
 
-    return this._populateRelations(record, options)
+    return results[0] as any
   }
 
   static async findByName(name, options: IRepositoryOptions) {
@@ -573,6 +724,7 @@ class OrganizationRepository {
               'createdById',
               'updatedById',
               'isTeamOrganization',
+              'type',
             ],
             'organization',
           ),
@@ -647,6 +799,18 @@ class OrganizationRepository {
             'createdById',
             'updatedById',
             'isTeamOrganization',
+            'type',
+            'ticker',
+            'size',
+            'naics',
+            'lastEnrichedAt',
+            'industry',
+            'headline',
+            'geoLocation',
+            'founded',
+            'employeeCountByCountry',
+            'address',
+            'profiles',
           ],
           'organization',
         ),
@@ -738,56 +902,6 @@ class OrganizationRepository {
       rec.activeOn = rec.activeOn ?? []
       return rec
     })
-  }
-
-  static async _populateRelations(record, options: IRepositoryOptions) {
-    if (!record) {
-      return record
-    }
-
-    const output = record.get({ plain: true })
-
-    delete output.organizationCacheId
-
-    const transaction = SequelizeRepository.getTransaction(options)
-
-    const members = await record.getMembers({
-      include: ['activities', 'memberIdentities'],
-      transaction,
-    })
-
-    output.activeOn = [
-      ...new Set(
-        members
-          .reduce((acc, m) => acc.concat(...m.get({ plain: true }).activities), [])
-          .map((a) => a.platform),
-      ),
-    ]
-
-    const activityTimestamps = members
-      .reduce((acc, m) => acc.concat(...m.get({ plain: true }).activities), [])
-      .map((i) => i.timestamp)
-
-    output.lastActive =
-      activityTimestamps.length > 0 ? new Date(Math.max(...activityTimestamps)) : null
-
-    output.joinedAt =
-      activityTimestamps.length > 0 ? new Date(Math.min(...activityTimestamps)) : null
-
-    output.identities = [
-      ...new Set(
-        members.reduce(
-          (acc, m) => acc.concat(m.get({ plain: true }).memberIdentities.map((i) => i.platform)),
-          [],
-        ),
-      ),
-    ]
-
-    output.memberCount = members.length
-
-    output.activityCount = activityTimestamps.length
-
-    return output
   }
 }
 

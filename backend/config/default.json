@@ -39,6 +39,7 @@
   "github": {},
   "stackexchange": {},
   "enrichment": {},
+  "organizationEnrichment": {},
   "eagleEye": {},
   "unleash": {
     "db": {}

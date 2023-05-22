@@ -3,12 +3,12 @@
     <div class="flex gap-2 items-center">
       <el-tooltip
         effect="dark"
-        :content="platform.name"
+        :content="platform?.name || member.lastActivity.platform"
         class="text-gray-400"
         placement="top"
       >
         <i
-          v-if="member.lastActivity.platform === 'other'"
+          v-if="!platform"
           class="ri-radar-line text-base"
         />
         <app-svg

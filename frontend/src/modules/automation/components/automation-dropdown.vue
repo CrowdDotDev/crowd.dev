@@ -21,7 +21,7 @@
       >
         <i class="ri-pencil-line mr-2" /><span
           class="text-xs"
-        >Edit webhook</span>
+        >Edit automation</span>
       </el-dropdown-item>
       <el-divider class="border-gray-200 my-2" />
       <el-dropdown-item
@@ -30,7 +30,7 @@
       >
         <i
           class="ri-delete-bin-line mr-2 text-red-500"
-        /><span class="text-xs text-red-500">Delete webhook</span>
+        /><span class="text-xs text-red-500">Delete automation</span>
       </el-dropdown-item>
     </template>
   </el-dropdown>
@@ -68,7 +68,7 @@ const isReadOnly = computed(() => new AutomationPermissions(
 
 const doDestroyWithConfirm = () => ConfirmDialog({
   type: 'danger',
-  title: 'Delete webhook',
+  title: 'Delete automation',
   message:
             "Are you sure you want to proceed? You can't undo this action",
   confirmButtonText: 'Confirm',

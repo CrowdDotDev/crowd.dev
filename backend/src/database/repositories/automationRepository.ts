@@ -181,6 +181,7 @@ export default class AutomationRepository extends RepositoryBase<
             a.settings,
             a.state,
             a."createdAt",
+            a."updatedAt",
             le."executedAt" as "lastExecutionAt",
             le.state        as "lastExecutionState",
             le.error        as "lastExecutionError",
@@ -189,6 +190,7 @@ export default class AutomationRepository extends RepositoryBase<
               left join latest_executions le on a.id = le."automationId"
       where ${conditionsString}
       ${this.getPaginationString(criteria)}
+      order by "updatedAt" desc
     `
     // fetch all automations for a tenant
     // and include the latest execution data if available
@@ -219,6 +221,7 @@ export default class AutomationRepository extends RepositoryBase<
         settings: row.settings,
         state: row.state,
         createdAt: row.createdAt,
+        updatedAt: row.updatedAt,
         lastExecutionAt: row.lastExecutionAt,
         lastExecutionState: row.lastExecutionState,
         lastExecutionError: row.lastExecutionError,

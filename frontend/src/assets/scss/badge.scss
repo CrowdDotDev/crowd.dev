@@ -53,6 +53,10 @@
     }
   }
 
+  &--border {
+    @apply text-gray-900 gap-1.5 border px-1.5 rounded-md h-6 truncate block;
+  }
+
   &--interactive {
     @apply text-gray-900 hover:text-brand-500 transition text-ellipsis truncate flex items-center hover:cursor-pointer gap-1.5 border px-1.5 rounded-md h-6;
   }

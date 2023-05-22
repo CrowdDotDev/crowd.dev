@@ -46,7 +46,7 @@
               with-link
             />
             <div class="flex items-center">
-              <div>
+              <div v-if="platform">
                 <el-tooltip
                   effect="dark"
                   :content="platform.name"
@@ -59,6 +59,10 @@
                   />
                 </el-tooltip>
               </div>
+              <i
+                v-else
+                class="ri-radar-line text-base text-gray-400"
+              />
               <p class="flex text-2xs leading-4 pl-2">
                 <app-activity-message
                   :activity="activity"
@@ -90,17 +94,31 @@
             :show-more="true"
             :display-thread="false"
           >
-            <div v-if="activity.url" class="pt-6">
-              <a
-                :href="activity.url"
-                class="text-2xs text-gray-600 font-medium flex items-center"
-                target="_blank"
-                rel="noopener noreferrer"
-              ><i
-                 class="ri-lg ri-external-link-line mr-1"
-               />
-                <span class="block">Open on {{ platform.name }}</span></a>
-            </div>
+            <template v-if="platform.activityDisplay?.showContentDetails" #details>
+              <div v-if="activity.attributes">
+                <app-activity-content-footer
+                  :source-id="activity.sourceId"
+                  :changes="activity.attributes.lines"
+                  changes-copy="line"
+                  :insertions="activity.attributes.insertions"
+                  :deletions="activity.attributes.deletions"
+                />
+              </div>
+            </template>
+
+            <template #bottomLink>
+              <div v-if="activity.url && platform?.activityDisplay?.showLinkToUrl" class="pt-6">
+                <a
+                  :href="activity.url"
+                  class="text-2xs text-gray-600 font-medium flex items-center"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                ><i
+                   class="ri-lg ri-external-link-line mr-1"
+                 />
+                  <span class="block">Open on {{ platform?.name || 'platform' }}</span></a>
+              </div>
+            </template>
           </app-activity-content>
         </div>
       </div>
@@ -118,6 +136,7 @@ import AppActivityContent from '@/modules/activity/components/activity-content.v
 import AppActivityMessage from '@/modules/activity/components/activity-message.vue';
 import AppMemberDisplayName from '@/modules/member/components/member-display-name.vue';
 import AppActivitySentiment from '@/modules/activity/components/activity-sentiment.vue';
+import AppActivityContentFooter from '@/modules/activity/components/activity-content-footer.vue';
 
 export default {
   name: 'AppDashboardActivityItem',
@@ -129,6 +148,7 @@ export default {
     AppLoading,
     AppActivityDropdown,
     AppAvatar,
+    AppActivityContentFooter,
   },
   props: {
     activity: {

@@ -7,8 +7,9 @@
         :data="automations"
         row-key="id"
         border
+        :default-sort="{ prop: 'updatedAt', order: 'descending' }"
       >
-        <el-table-column label="Name">
+        <el-table-column label="Name" prop="name" sortable>
           <template #default="scope">
             <div class="flex items-center py-4">
               <div class="w-6">
@@ -32,7 +33,7 @@
             </div>
           </template>
         </el-table-column>
-        <el-table-column label="Created on" width="150">
+        <el-table-column label="Created on" width="150" prop="createdAt" sortable>
           <template #default="scope">
             <div class="h-full flex items-center">
               <el-tooltip
@@ -44,7 +45,19 @@
             </div>
           </template>
         </el-table-column>
-        <el-table-column label="Last execution" width="155">
+        <el-table-column label="Last updated" width="150" prop="updatedAt" sortable>
+          <template #default="scope">
+            <div class="h-full flex items-center">
+              <el-tooltip
+                :content="formattedDate(scope.row.updatedAt)"
+                placement="top"
+              >
+                {{ timeAgo(scope.row.updatedAt) }}
+              </el-tooltip>
+            </div>
+          </template>
+        </el-table-column>
+        <el-table-column label="Last execution" width="165" prop="lastExecutionAt" sortable>
           <template #default="scope">
             <div class="h-full flex items-center">
               <el-tooltip
@@ -63,7 +76,7 @@
             </div>
           </template>
         </el-table-column>
-        <el-table-column label="Status" width="130">
+        <el-table-column label="Status" width="130" prop="status" sortable>
           <template #default="scope">
             <div class="h-full flex items-center">
               <app-automation-toggle :automation="scope.row" />
@@ -113,6 +126,7 @@ const { automations } = storeToRefs(automationsStore);
 const timeAgo = (date) => formatDateToTimeAgo(date);
 const formattedDate = (date) => moment(date).format('YYYY-MM-DD HH:mm:ss');
 const translate = (key) => i18n(key);
+
 </script>
 
 <script>

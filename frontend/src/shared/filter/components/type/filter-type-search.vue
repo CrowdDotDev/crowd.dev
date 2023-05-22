@@ -5,6 +5,7 @@
       :placeholder="placeholder"
       :prefix-icon="SearchIcon"
       clearable
+      data-qa="filter-search"
       @input="debouncedChange"
     >
       <template #append>

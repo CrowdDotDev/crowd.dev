@@ -11,7 +11,7 @@ export default {
   ) => {
     const currentTenant = rootGetters['auth/currentTenant'];
 
-    return currentTenant.hasSampleData;
+    return currentTenant?.hasSampleData;
   },
 
   showIntegrationsErrorAlert: (
@@ -34,7 +34,7 @@ export default {
     _rootState,
     rootGetters,
   ) => {
-    const integrationsWithNoData = rootGetters['integration/withNoData'];
+    const integrationsWithNoData = rootGetters['integration/withNoData'] || [];
 
     return (
       integrationsWithNoData.length > 0

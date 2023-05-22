@@ -187,7 +187,7 @@ export default class MemberService extends LoggingBase {
    * @param existing If the member already exists. If it does not, false. Othwerwise, the member.
    * @returns The created member
    */
-  async upsert(data, existing: boolean | any = false) {
+  async upsert(data, existing: boolean | any = false, fireCrowdWebhooks: boolean = true) {
     const logger = this.options.log
 
     const errorDetails: any = {}
@@ -374,7 +374,7 @@ export default class MemberService extends LoggingBase {
 
       await SequelizeRepository.commitTransaction(transaction)
 
-      if (!existing) {
+      if (!existing && fireCrowdWebhooks) {
         try {
           await sendNewMemberNodeSQSMessage(this.options.currentTenant.id, record)
         } catch (err) {
@@ -637,6 +637,27 @@ export default class MemberService extends LoggingBase {
         }
 
         return toKeep
+      },
+      organizations: (oldOrganizations, newOrganizations) => {
+        oldOrganizations = oldOrganizations
+          ? oldOrganizations.map((o) => {
+              if (o.id) {
+                return o.id
+              }
+              return o
+            })
+          : []
+
+        newOrganizations = newOrganizations
+          ? newOrganizations.map((o) => {
+              if (o.id) {
+                return o.id
+              }
+              return o
+            })
+          : []
+
+        return Array.from(new Set<string>([...oldOrganizations, ...newOrganizations]))
       },
     })
   }

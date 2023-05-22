@@ -13,7 +13,7 @@ export default class ActivityChannelsField extends JSONField {
   }
 
   dropdownOptions() {
-    const activityChannels = computed(() => store.getters['auth/currentTenant'].settings[0].activityChannels || {});
+    const activityChannels = computed(() => store.getters['auth/currentTenant']?.settings[0].activityChannels || {});
 
     return Object.entries(activityChannels.value).map(([platform, channels]) => ({
       label: {

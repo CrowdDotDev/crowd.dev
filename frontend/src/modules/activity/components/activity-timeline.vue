@@ -73,7 +73,7 @@
               with-link
               class="bl"
             />
-            <div class="flex items-center">
+            <div class="flex items-center mt-0.5">
               <app-activity-message :activity="activity" />
               <span class="whitespace-nowrap text-gray-500"><span class="mx-1">·</span>{{ timeAgo(activity) }}</span>
               <span
@@ -91,11 +91,25 @@
               :activity="activity"
               :show-more="true"
             >
-              <div v-if="activity.url" class="pt-6">
-                <app-activity-link
-                  :activity="activity"
-                />
-              </div>
+              <template v-if="platformDetails(activity.platform)?.activityDisplay?.showContentDetails" #details>
+                <div v-if="activity.attributes">
+                  <app-activity-content-footer
+                    :source-id="activity.sourceId"
+                    :changes="activity.attributes.lines"
+                    changes-copy="line"
+                    :insertions="activity.attributes.insertions"
+                    :deletions="activity.attributes.deletions"
+                  />
+                </div>
+              </template>
+
+              <template #bottomLink>
+                <div v-if="activity.url" class="pt-6">
+                  <app-activity-link
+                    :activity="activity"
+                  />
+                </div>
+              </template>
             </app-activity-content>
           </div>
           <template #dot>
@@ -161,6 +175,7 @@ import { CrowdIntegrations } from '@/integrations/integrations-config';
 import AppMemberDisplayName from '@/modules/member/components/member-display-name.vue';
 import AppActivityLink from '@/modules/activity/components/activity-link.vue';
 import AuthCurrentTenant from '@/modules/auth/auth-current-tenant';
+import AppActivityContentFooter from '@/modules/activity/components/activity-content-footer.vue';
 
 const SearchIcon = h(
   'i', // type

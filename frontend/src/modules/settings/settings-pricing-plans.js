@@ -30,6 +30,7 @@ export const plans = {
       features: [
         'Community growth (e.g. Eagle Eye)',
         '1,000 member enrichments per month (manual)',
+        '200 organization enrichments per month (automated)',
         '10 active workflows & CSV exports per month',
         'Slack connect support',
         'LinkedIn integration',

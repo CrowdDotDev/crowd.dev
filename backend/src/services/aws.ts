@@ -185,6 +185,21 @@ export async function detectSentimentBatch(textArray) {
   return {}
 }
 
+export const getCurrentQueueSize = async (sqs: SQS, queue: string): Promise<number> => {
+  const result = await sqs
+    .getQueueAttributes({
+      QueueUrl: queue,
+      AttributeNames: ['ApproximateNumberOfMessages'],
+    })
+    .promise()
+
+  if (result.Attributes) {
+    return parseInt(result.Attributes.ApproximateNumberOfMessages, 10)
+  }
+
+  return null
+}
+
 export const sqs: SQS = sqsInstance
 export const s3 = s3Instance
 export const lambda = lambdaInstance
