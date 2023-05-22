@@ -5,6 +5,7 @@ import MultiSelectFilter from '@/shared/modules/filters/components/filterTypes/M
 import SelectFilter from '@/shared/modules/filters/components/filterTypes/SelectFilter.vue';
 import DateFilter from '@/shared/modules/filters/components/filterTypes/DateFilter.vue';
 import NumberFilter from '@/shared/modules/filters/components/filterTypes/NumberFilter.vue';
+import StringFilter from '@/shared/modules/filters/components/filterTypes/StringFilter.vue';
 
 export const filterComponentByType: Record<FilterConfigType, Component | null> = {
   [FilterConfigType.BOOLEAN]: BooleanFilter,
@@ -12,5 +13,6 @@ export const filterComponentByType: Record<FilterConfigType, Component | null> =
   [FilterConfigType.DATE]: DateFilter,
   [FilterConfigType.SELECT]: SelectFilter,
   [FilterConfigType.MULTISELECT]: MultiSelectFilter,
+  [FilterConfigType.STRING]: StringFilter,
   [FilterConfigType.CUSTOM]: null,
 };

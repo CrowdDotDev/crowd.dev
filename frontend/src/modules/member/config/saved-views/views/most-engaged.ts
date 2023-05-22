@@ -18,7 +18,7 @@ const mostEngaged: SavedView = {
 
     engagementLevel: {
       value: ['fan', 'ultra'],
-      exclude: false,
+      include: true,
     },
   },
 };

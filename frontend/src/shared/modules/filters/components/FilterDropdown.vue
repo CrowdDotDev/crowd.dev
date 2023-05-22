@@ -19,46 +19,51 @@
           </template>
         </el-input>
       </div>
-      <template v-for="(configuration, key) in props.config" :key="key">
-        <el-dropdown-item
-          v-if="matchesSearch(configuration.label, search)"
-          :class="{ 'is-selected': isSelected(key) }"
-          :disabled="isSelected(key)"
-          @click="add(key)"
-        >
-          <div class="flex justify-between w-full">
-            <span>{{ configuration.label }}</span>
-            <i :class="isSelected(key) ? 'opacity-100' : 'opacity-0'" class="ri-check-line !text-brand-600 !mr-0 ml-1" />
-          </div>
-        </el-dropdown-item>
-      </template>
+      <el-dropdown-item
+        v-for="{ key, label } in filteredOptions"
+        :key="key"
+        :class="{ 'is-selected': isSelected(key) }"
+        :disabled="isSelected(key)"
+        @click="add(key)"
+      >
+        <div class="flex justify-between w-full">
+          <span>{{ label }}</span>
+          <i :class="isSelected(key) ? 'opacity-100' : 'opacity-0'" class="ri-check-line !text-brand-600 !mr-0 ml-1" />
+        </div>
+      </el-dropdown-item>
       <!-- CUSTOM ATTRIBUTES -->
-      <template v-if="props.customConfig && Object.keys(props.customConfig).length > 0">
+      <template v-if="props.customConfig && Object.keys(props.customConfig).length > 0 && filteredCustomOptions.length > 0">
         <div
-
           class="el-dropdown-title"
         >
           Custom Attributes
         </div>
-        <template v-for="(configuration, key) in props.customConfig" :key="key">
-          <el-dropdown-item
-            v-if="matchesSearch(configuration.label, search)"
-            :class="{ 'is-selected': isSelected(key) }"
-            @click="add(key)"
-          >
-            <div class="flex justify-between w-full">
-              <span>{{ configuration.label }}</span>
-              <i :class="isSelected(key) ? 'opacity-100' : 'opacity-0'" class="ri-check-line !text-brand-600 !mr-0 ml-1" />
-            </div>
-          </el-dropdown-item>
-        </template>
+        <el-dropdown-item
+          v-for="{ key, label } in filteredCustomOptions"
+          :key="key"
+          :class="{ 'is-selected': isSelected(key) }"
+          @click="add(key)"
+        >
+          <div class="flex justify-between w-full">
+            <span>{{ label }}</span>
+            <i :class="isSelected(key) ? 'opacity-100' : 'opacity-0'" class="ri-check-line !text-brand-600 !mr-0 ml-1" />
+          </div>
+        </el-dropdown-item>
       </template>
+
+      <div
+        v-if="filteredOptions.length === 0 && filteredCustomOptions.length === 0"
+        class="el-dropdown-title"
+      >
+        No results
+      </div>
     </template>
   </el-dropdown>
 </template>
 
 <script setup lang="ts">
 import {
+  computed,
   defineProps, ref,
 } from 'vue';
 import { FilterConfig } from '@/shared/modules/filters/types/FilterConfig';
@@ -69,18 +74,33 @@ const props = defineProps<{
   modelValue: string[]
 }>();
 
-const emit = defineEmits<{(e: 'update:modelValue', value: string[])}>();
+const emit = defineEmits<{(e: 'update:modelValue', value: string[]), (e: 'open', value: string)}>();
 
 const search = ref('');
 
-const matchesSearch = (label: string, search: string): boolean => label.toLowerCase().includes(search.toLowerCase());
+const matchesSearch = (label: string, query: string): boolean => label.toLowerCase().includes(query.toLowerCase());
 const isSelected = (key: string): boolean => props.modelValue.includes(key);
+
+const options = computed(() => Object.entries(props.config).map(([key, configuration]: [string, FilterConfig]) => ({
+  ...configuration,
+  key,
+})));
+
+const customOptions = computed(() => Object.entries(props.customConfig).map(([key, configuration]: [string, FilterConfig]) => ({
+  ...configuration,
+  key,
+})));
+
+const filteredOptions = computed(() => options.value.filter((filter) => matchesSearch(filter.label, search.value)));
+
+const filteredCustomOptions = computed(() => customOptions.value.filter((filter) => matchesSearch(filter.label, search.value)));
 
 const add = (key: string) => {
   if (isSelected(key)) {
     return;
   }
   search.value = '';
+  emit('open', key);
   emit('update:modelValue', [...props.modelValue, key]);
 };
 

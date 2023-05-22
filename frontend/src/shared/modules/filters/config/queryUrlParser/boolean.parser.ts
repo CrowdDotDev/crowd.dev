@@ -2,10 +2,10 @@ import { BooleanFilterValue } from '@/shared/modules/filters/types/filterTypes/B
 
 interface QueryUrlBooleanValue {
   value: string,
-  exclude: string,
+  include: string,
 }
 
 export const booleanQueryUrlParser = (query: QueryUrlBooleanValue): BooleanFilterValue => ({
-  exclude: query.exclude === 'true',
+  include: query.include === 'true',
   value: query.value === 'true',
 });

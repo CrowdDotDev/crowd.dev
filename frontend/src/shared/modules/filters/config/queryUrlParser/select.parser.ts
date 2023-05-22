@@ -2,10 +2,10 @@ import { SelectFilterValue } from '@/shared/modules/filters/types/filterTypes/Se
 
 interface QueryUrlSelectValue {
   value: string,
-  exclude: string,
+  include: string,
 }
 
 export const selectQueryUrlParser = (query: QueryUrlSelectValue): SelectFilterValue => ({
   ...query,
-  exclude: query.exclude === 'true',
+  include: query.include === 'true',
 });

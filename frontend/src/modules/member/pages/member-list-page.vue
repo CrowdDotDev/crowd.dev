@@ -53,10 +53,12 @@
 
       <cr-saved-views v-model="filters" :config="memberSavedViews" :views="memberViews" />
       <cr-filter
+        v-if="customAttributes"
         v-model="filters"
         :config="memberFilters"
         :search-config="memberSearchFilter"
         :saved-views-config="memberSavedViews"
+        :custom-config="customAttributes"
         @fetch="fetch($event)"
       />
       <!--      <app-member-list-table-->
@@ -86,7 +88,8 @@ import { memberSavedViews, memberViews } from '../config/saved-views/main';
 // import MemberListTabs from '@/modules/member/components/list/member-list-tabs.vue';
 
 const memberStore = useMemberStore();
-const { filters } = storeToRefs(memberStore);
+const { getMemberCustomAttributes } = memberStore;
+const { filters, customAttributes } = storeToRefs(memberStore);
 
 const membersCount = ref(0);
 const membersToMergeCount = ref(0);
@@ -142,6 +145,7 @@ const fetch = ({
 onMounted(() => {
   fetchMembersToMergeCount();
   doGetMembersCount();
+  getMemberCustomAttributes();
   (window as any).analytics.page('Members');
 });
 </script>

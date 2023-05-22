@@ -19,7 +19,7 @@ const influential: SavedView = {
     reach: {
       operator: '>=',
       value: 500,
-      exclude: false,
+      include: true,
     },
   },
 };

@@ -29,7 +29,7 @@ const form = computed({
 
 const defaultForm: MultiSelectFilterValue = {
   value: [],
-  exclude: false,
+  include: true,
 };
 
 const rules: any = {

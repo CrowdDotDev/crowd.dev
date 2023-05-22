@@ -1,4 +1,5 @@
 import { FilterConfigType } from '@/shared/modules/filters/types/FilterConfig';
+import { stringApiFilterRenderer } from '@/shared/modules/filters/config/apiFilterRenderer/string.filter.renderer';
 import { booleanApiFilterRenderer } from './apiFilterRenderer/boolean.filter.renderer';
 import { numberApiFilterRenderer } from './apiFilterRenderer/number.filter.renderer';
 import { dateApiFilterRenderer } from './apiFilterRenderer/date.filter.renderer';
@@ -13,5 +14,6 @@ export const apiFilterRendererByType: Record<FilterConfigType, (property: string
   [FilterConfigType.DATE]: dateApiFilterRenderer,
   [FilterConfigType.SELECT]: selectApiFilterRenderer,
   [FilterConfigType.MULTISELECT]: multiSelectApiFilterRenderer,
+  [FilterConfigType.STRING]: stringApiFilterRenderer,
   [FilterConfigType.CUSTOM]: () => [],
 };

@@ -3,11 +3,11 @@ import { NumberFilterValue } from '@/shared/modules/filters/types/filterTypes/Nu
 interface QueryUrlNumberValue {
   operator: string,
   value: string,
-  exclude: string,
+  include: string,
 }
 
 export const numberQueryUrlParser = (query: QueryUrlNumberValue): NumberFilterValue => ({
   ...query,
-  exclude: query.exclude === 'true',
+  include: query.include === 'true',
   value: +query.value,
 });

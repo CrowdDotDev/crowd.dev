@@ -2,12 +2,12 @@
 import { BaseFilterConfig, FilterConfigType } from '@/shared/modules/filters/types/FilterConfig';
 
 export interface NumberFilterOptions {
-
+  hideIncludeSwitch?: boolean;
 }
 export interface NumberFilterValue {
   operator: string,
   value: number | '',
-  exclude: boolean,
+  include: boolean,
 }
 export interface NumberFilterConfig extends BaseFilterConfig {
   type: FilterConfigType.NUMBER;

@@ -6,7 +6,7 @@ interface MultiSelectFilterOption {
   value: string;
 }
 export interface MultiSelectFilterOptionGroup {
-  label: string;
+  label?: string;
   options: MultiSelectFilterOption[];
 }
 export interface MultiSelectFilterOptions {
@@ -15,7 +15,7 @@ export interface MultiSelectFilterOptions {
 
 export interface MultiSelectFilterValue {
   value: string[],
-  exclude: boolean,
+  include: boolean,
 }
 
 export interface MultiSelectFilterConfig extends BaseFilterConfig {

@@ -1,5 +1,6 @@
 <template>
   <div v-if="form">
+    Number Filter
     <el-input v-model="form.value" type="number" placeholder="Pick number" />
   </div>
 </template>
@@ -26,7 +27,7 @@ const form = computed<NumberFilterValue>({
 const defaultForm: NumberFilterValue = {
   value: '',
   operator: 'eq',
-  exclude: false,
+  include: true,
 };
 
 const rules: any = {

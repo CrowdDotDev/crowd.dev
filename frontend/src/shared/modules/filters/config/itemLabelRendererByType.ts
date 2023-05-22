@@ -1,4 +1,5 @@
 import { FilterConfigType } from '@/shared/modules/filters/types/FilterConfig';
+import { stringItemLabelRenderer } from '@/shared/modules/filters/config/itemLabelRenderer/string.label.renderer';
 import { booleanItemLabelRenderer } from './itemLabelRenderer/boolean.label.renderer';
 import { numberItemLabelRenderer } from './itemLabelRenderer/number.label.renderer';
 import { dateItemLabelRenderer } from './itemLabelRenderer/date.label.renderer';
@@ -13,5 +14,6 @@ export const itemLabelRendererByType: Record<FilterConfigType, (property: string
   [FilterConfigType.DATE]: dateItemLabelRenderer,
   [FilterConfigType.SELECT]: selectItemLabelRenderer,
   [FilterConfigType.MULTISELECT]: multiSelectItemLabelRenderer,
+  [FilterConfigType.STRING]: stringItemLabelRenderer,
   [FilterConfigType.CUSTOM]: () => '',
 };

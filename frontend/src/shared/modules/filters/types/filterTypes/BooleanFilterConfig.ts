@@ -2,11 +2,12 @@
 import { BaseFilterConfig, FilterConfigType } from '@/shared/modules/filters/types/FilterConfig';
 
 export interface BooleanFilterOptions {
+  hideIncludeSwitch?: boolean;
 }
 
 export interface BooleanFilterValue {
   value: boolean,
-  exclude: boolean,
+  include: boolean,
 }
 
 export interface BooleanFilterConfig extends BaseFilterConfig {

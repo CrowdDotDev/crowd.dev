@@ -6,17 +6,18 @@ interface SelectFilterOption {
   value: string;
 }
 export interface SelectFilterOptionGroup {
-  label: string;
+  label?: string;
   options: SelectFilterOption[];
 }
 
 export interface SelectFilterOptions {
+  hideIncludeSwitch?: boolean;
   options: SelectFilterOptionGroup[]
 }
 
 export interface SelectFilterValue {
   value: string,
-  exclude: boolean,
+  include: boolean,
 }
 
 export interface SelectFilterConfig extends BaseFilterConfig {

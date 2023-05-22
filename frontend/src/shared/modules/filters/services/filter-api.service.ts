@@ -31,7 +31,7 @@ export const filterApiService = () => {
     }
 
     // Settings
-    if (savedViewsConfig) {
+    if (savedViewsConfig && settings) {
       Object.entries(settings).forEach(([setting, value]) => {
         const filter = savedViewsConfig.settings[setting]?.apiFilterRenderer(value);
         if (filter) {
