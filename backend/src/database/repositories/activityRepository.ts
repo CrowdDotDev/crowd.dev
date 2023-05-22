@@ -562,6 +562,15 @@ class ActivityRepository {
                 to: 'tagId',
               },
             },
+            segments: {
+              table: 'members',
+              model: 'member',
+              relationTable: {
+                name: 'memberSegments',
+                from: 'memberId',
+                to: 'segmentId',
+              },
+            },
             organizations: {
               table: 'members',
               model: 'member',

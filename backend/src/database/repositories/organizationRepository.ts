@@ -54,9 +54,63 @@ class OrganizationRepository {
       transaction,
     })
 
+    await OrganizationRepository.includeOrganizationToSegments(record.id, options)
+
     await this._createAuditLog(AuditLogRepository.CREATE, record, data, options)
 
     return this.findById(record.id, options)
+  }
+
+  static async includeOrganizationToSegments(organizationId: string, options: IRepositoryOptions) {
+    const seq = SequelizeRepository.getSequelize(options)
+
+    const transaction = SequelizeRepository.getTransaction(options)
+
+    let bulkInsertOrganizationSegments = `INSERT INTO "organizationSegments" ("organizationId","segmentId", "tenantId", "createdAt") VALUES `
+    const replacements = {
+      organizationId,
+      tenantId: options.currentTenant.id,
+    }
+
+    for (let idx = 0; idx < options.currentSegments.length; idx++) {
+      bulkInsertOrganizationSegments += ` (:organizationId, :segmentId${idx}, :tenantId, now()) `
+
+      replacements[`segmentId${idx}`] = options.currentSegments[idx].id
+
+      if (idx !== options.currentSegments.length - 1) {
+        bulkInsertOrganizationSegments += `,`
+      }
+    }
+
+    bulkInsertOrganizationSegments += ` ON CONFLICT DO NOTHING`
+
+    await seq.query(bulkInsertOrganizationSegments, {
+      replacements,
+      type: QueryTypes.INSERT,
+      transaction,
+    })
+  }
+
+  static async excludeOrganizationFromSegments(
+    organizationId: string,
+    options: IRepositoryOptions,
+  ) {
+    const seq = SequelizeRepository.getSequelize(options)
+
+    const transaction = SequelizeRepository.getTransaction(options)
+
+    const bulkDeleteOrganizationSegments = `DELETE FROM "organizationSegments" WHERE "organizationId" = :organizationId and "segmentId" in (:segmentIds);`
+
+    await seq.query(bulkDeleteOrganizationSegments, {
+      replacements: {
+        organizationId,
+        segmentIds: options.currentSegments.map((s) => s.id),
+      },
+      type: QueryTypes.DELETE,
+      transaction,
+    })
+
+    return this.findById(organizationId, options)
   }
 
   static async update(id, data, options: IRepositoryOptions) {
@@ -121,6 +175,13 @@ class OrganizationRepository {
       await this.setOrganizationIsTeam(record.id, data.isTeamOrganization, options)
     }
 
+    if (data.segments) {
+      await OrganizationRepository.includeOrganizationToSegments(record.id, {
+        ...options,
+        transaction,
+      })
+    }
+
     await this._createAuditLog(AuditLogRepository.UPDATE, record, data, options)
 
     return this.findById(record.id, options)
@@ -161,30 +222,45 @@ class OrganizationRepository {
 
     const currentTenant = SequelizeRepository.getCurrentTenant(options)
 
-    const record = await options.database.organization.findOne({
-      where: {
-        id,
-        tenantId: currentTenant.id,
-      },
+    const org = await OrganizationRepository.excludeOrganizationFromSegments(id, {
+      ...options,
       transaction,
     })
 
-    if (!record) {
-      throw new Error404()
+    if (org.segments.length === 0) {
+      const record = await options.database.organization.findOne({
+        where: {
+          id,
+          tenantId: currentTenant.id,
+        },
+        transaction,
+      })
+
+      if (!record) {
+        throw new Error404()
+      }
+
+      await record.destroy({
+        transaction,
+        force,
+      })
+
+      await this._createAuditLog(AuditLogRepository.DELETE, record, record, options)
     }
-
-    await record.destroy({
-      transaction,
-      force,
-    })
-
-    await this._createAuditLog(AuditLogRepository.DELETE, record, record, options)
   }
 
   static async findById(id, options: IRepositoryOptions) {
     const transaction = SequelizeRepository.getTransaction(options)
 
-    const include = []
+    const include = [
+      {
+        model: options.database.segment,
+        as: 'segments',
+        through: {
+          attributes: [],
+        },
+      },
+    ]
 
     const currentTenant = SequelizeRepository.getCurrentTenant(options)
 

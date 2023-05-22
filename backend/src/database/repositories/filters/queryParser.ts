@@ -401,13 +401,37 @@ class QueryParser {
     // eslint-disable-next-line prefer-const
     let { filter, orderBy, limit, offset, include, fields } = query
 
-    const dbQuery: any = {
-      where: {
-        tenantId: SequelizeRepository.getCurrentTenant(this.options).id,
-        segmentId: this.options.currentSegments.map((s) => s.id),
-      },
-      limit: QueryParser.defaultPageSize,
-      offset: 0,
+    let dbQuery: any
+
+    if (this.manyToMany.segments) {
+      const segmentsQuery = this.replaceWithManyToMany(
+        {
+          segments: this.options.currentSegments.map((s) => s.id),
+        },
+        'segments',
+      )
+
+      dbQuery = {
+        where: {
+          [Op.and]: [
+            {
+              tenantId: SequelizeRepository.getCurrentTenant(this.options).id,
+            },
+            segmentsQuery,
+          ],
+        },
+        limit: QueryParser.defaultPageSize,
+        offset: 0,
+      }
+    } else {
+      dbQuery = {
+        where: {
+          tenantId: SequelizeRepository.getCurrentTenant(this.options).id,
+          segmentId: this.options.currentSegments.map((s) => s.id),
+        },
+        limit: QueryParser.defaultPageSize,
+        offset: 0,
+      }
     }
 
     if (fields) {

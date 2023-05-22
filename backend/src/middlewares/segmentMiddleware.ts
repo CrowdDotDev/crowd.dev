@@ -10,7 +10,7 @@ export async function segmentMiddleware(req, res, next) {
 
     if (!(await isFeatureEnabled(FeatureFlag.SEGMENTS, req))) {
       // return default segment
-      const segments = await segmentRepository.querySubprojects({})
+      const segments = await segmentRepository.querySubprojects({ limit: 1 })
       req.currentSegments = segments.rows
       next()
       return

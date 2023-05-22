@@ -37,6 +37,19 @@ ALTER TABLE "reports" ADD COLUMN "segmentId" uuid;
 
 ALTER TABLE "widgets" ADD COLUMN "segmentId" uuid;
 
+ALTER TABLE "memberToMerge" ADD COLUMN "segmentId" uuid;
+
+ALTER TABLE "memberToMerge" DROP CONSTRAINT "memberToMerge_pkey";
+
+ALTER TABLE public."memberToMerge" ADD CONSTRAINT "memberToMerge_pkey" PRIMARY KEY ("memberId", "toMergeId", "segmentId");
+
+
+ALTER TABLE "memberNoMerge" ADD COLUMN "segmentId" uuid;
+
+ALTER TABLE "memberNoMerge" DROP CONSTRAINT "memberNoMerge_pkey";
+
+ALTER TABLE public."memberNoMerge" ADD CONSTRAINT "memberNoMerge_pkey" PRIMARY KEY ("memberId", "noMergeId", "segmentId");
+
 
 CREATE TABLE public."memberSegments" (
     "memberId" uuid NOT NULL,
@@ -49,5 +62,21 @@ CREATE TABLE public."memberSegments" (
     unique("memberId", "segmentId", "tenantId")
     -- create index for memberId, segmentId and tenantId
 );
+
+CREATE TABLE public."organizationSegments" (
+    "organizationId" uuid NOT NULL,
+    "segmentId" uuid NOT NULL,
+    "tenantId" uuid NOT NULL,
+    "createdAt" timestamp with time zone NOT NULL,
+    foreign key ("tenantId") references tenants (id),
+    foreign key ("segmentId") references segments (id),
+    foreign key ("organizationId") references organizations (id),
+    unique("organizationId", "segmentId", "tenantId")
+    -- create index for organizationId, segmentId and tenantId
+);
+
+
+
+
 
 

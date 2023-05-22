@@ -46,57 +46,6 @@ export default (sequelize) => {
       sourceParentId: {
         type: DataTypes.TEXT,
       },
-
-      platform: {
-        type: DataTypes.TEXT,
-        allowNull: false,
-        validate: {
-          notEmpty: true,
-        },
-      },
-      isContribution: {
-        type: DataTypes.BOOLEAN,
-        allowNull: false,
-        defaultValue: false,
-      },
-      score: {
-        type: DataTypes.INTEGER,
-        defaultValue: 2,
-      },
-      username: {
-        type: DataTypes.TEXT,
-      },
-      objectMemberUsername: {
-        type: DataTypes.TEXT,
-      },
-      attributes: {
-        type: DataTypes.JSONB,
-        allowNull: false,
-        defaultValue: {},
-      },
-      channel: {
-        type: DataTypes.TEXT,
-      },
-      body: {
-        type: DataTypes.TEXT,
-      },
-      title: {
-        type: DataTypes.TEXT,
-      },
-      url: {
-        type: DataTypes.TEXT,
-      },
-      sentiment: {
-        type: DataTypes.JSONB,
-        defaultValue: {},
-      },
-      importHash: {
-        type: DataTypes.STRING(255),
-        allowNull: true,
-        validate: {
-          len: [0, 255],
-        },
-      },
     },
     {
       indexes: [
@@ -105,8 +54,8 @@ export default (sequelize) => {
           fields: ['slug', 'parentSlug', 'grandparentSlug', 'tenantId'],
         },
       ],
-      timestamps: true,
-      paranoid: true,
+      timestamps: false,
+      paranoid: false,
     },
   )
 

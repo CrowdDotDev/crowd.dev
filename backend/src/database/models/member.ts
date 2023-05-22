@@ -104,6 +104,7 @@ export default (sequelize) => {
     models.member.belongsToMany(models.segment, {
       as: 'segments',
       through: 'memberSegments',
+      timestamps: false,
     })
 
     models.member.hasOne(models.memberActivityAggregatesMV, {

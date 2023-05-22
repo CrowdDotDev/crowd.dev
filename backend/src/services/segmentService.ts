@@ -110,7 +110,8 @@ export default class SegmentService extends LoggingBase {
       // create subproject counterpart
       await segmentRepository.create({
         ...data,
-        grandparentSlug: data.slug,
+        parentSlug: data.slug,
+        grandparentSlug: data.parentSlug,
         name: data.name,
         parentName: data.name,
       })
