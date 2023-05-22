@@ -16,7 +16,7 @@
         Manage projects
       </h4>
       <el-button
-        v-if="projects.list.length && !loading"
+        v-if="pagination.total"
         class="btn btn--md btn--primary"
         @click="onAddProject"
       >
@@ -24,21 +24,22 @@
       </el-button>
     </div>
 
+    <!-- Search input -->
+    <app-lf-search-input
+      v-if="pagination.total"
+      placeholder="Search projects..."
+      @on-change="searchProject"
+    />
+
     <div
       v-if="loading"
       v-loading="loading"
-      class="app-page-spinner h-16 !relative !min-h-5"
+      class="app-page-spinner h-16 !relative !min-h-5 mt-10"
     />
     <div v-else>
-      <!-- Search input -->
-      <app-lf-search-input
-        v-model="searchProjects"
-        placeholder="Search projects..."
-        :update-fn="searchProject"
-      />
-
+      <!-- Empty state -->
       <app-empty-state-cta
-        v-if="!projects.list.length"
+        v-if="!pagination.total"
         class="mt-20"
         icon="ri-stack-line"
         title="No projects yet"
@@ -48,7 +49,7 @@
       />
 
       <app-empty-state-cta
-        v-else-if="false"
+        v-else-if="!pagination.count"
         icon="ri-stack-line"
         title="No projects found"
         description="We couldn't find any results that match your search criteria, please try a different query"
@@ -57,11 +58,13 @@
       <div v-else class="mt-6 flex flex-col gap-6">
         <div class="h-10 flex items-center">
           <app-pagination-sorter
-            :total="projects.list.length"
+            :page-size="pagination.pageSize"
+            :total="pagination.total"
+            :current-page="pagination.currentPage"
             :has-page-counter="false"
-            :sorter="false"
             position="top"
             module="project"
+            @change-sorter="onPageSizeChange"
           />
         </div>
 
@@ -78,17 +81,17 @@
 
     <app-lf-project-form
       v-if="isProjectFormDrawerOpen"
-      :id="projectId"
+      :id="projectForm.id"
       v-model="isProjectFormDrawerOpen"
-      :parent-slug="projectGroup.slug"
+      :parent-slug="projectGroupForm.slug"
     />
 
     <app-lf-sub-project-form
       v-if="isSubProjectFormDrawerOpen"
-      :id="subprojectId"
+      :id="subProjectForm.id"
       v-model="isSubProjectFormDrawerOpen"
-      :parent-slug="projectSlug"
-      :grandparent-slug="projectGroup.slug"
+      :parent-slug="projectForm.slug"
+      :grandparent-slug="projectGroupForm.slug"
     />
   </app-page-wrapper>
 </template>
@@ -96,7 +99,9 @@
 <script setup>
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import { useRoute } from 'vue-router';
-import { onMounted, reactive, ref } from 'vue';
+import {
+  computed, onMounted, reactive, ref,
+} from 'vue';
 import AppLfProjectForm from '@/modules/lf/segments/components/form/lf-project-form.vue';
 import AppLfSubProjectForm from '@/modules/lf/segments/components/form/lf-sub-project-form.vue';
 import AppLfProjectsTable from '@/modules/lf/segments/components/view/lf-projects-table.vue';
@@ -105,53 +110,63 @@ import { storeToRefs } from 'pinia';
 
 const route = useRoute();
 const lsSegmentsStore = useLfSegmentsStore();
-const { searchProjects, projects } = storeToRefs(lsSegmentsStore);
-const { findProjectGroup, searchProject, listProjects } = lsSegmentsStore;
+const { projects } = storeToRefs(lsSegmentsStore);
+const {
+  findProjectGroup, searchProject, listProjects, updateProjectsPageSize,
+} = lsSegmentsStore;
 
-const loading = ref(true);
-const projectId = ref();
-const projectSlug = ref();
-const subprojectId = ref();
+const loadingProjectGroup = ref(true);
+const projectGroupForm = reactive({
+  slug: null,
+});
+const projectForm = reactive({
+  id: null,
+  slug: null,
+});
+const subProjectForm = reactive({
+  id: null,
+});
 const isProjectFormDrawerOpen = ref(false);
 const isSubProjectFormDrawerOpen = ref(false);
 
-const projectGroup = reactive({
-  name: '',
-  projects: [],
-  slug: '',
-});
+const loading = computed(() => projects.value.loading || loadingProjectGroup.value);
+const pagination = computed(() => projects.value.pagination);
 
 onMounted(() => {
   findProjectGroup(route.params.id)
     .then((response) => {
-      Object.assign(projectGroup, response);
-      listProjects(projectGroup.slug)
-        .finally(() => {
-          loading.value = false;
-        });
+      Object.assign(projectGroupForm, response);
+
+      listProjects({ parentSlug: projectGroupForm.slug });
+    }).finally(() => {
+      loadingProjectGroup.value = false;
     });
 });
 
 const onAddProject = () => {
-  projectId.value = null;
+  projectForm.id = null;
   isProjectFormDrawerOpen.value = true;
 };
 
 const onEditProject = (id) => {
-  projectId.value = id;
+  projectForm.id = id;
   isProjectFormDrawerOpen.value = true;
 };
 
 const onEditSubProject = (id, parentSlug) => {
-  subprojectId.value = id;
-  projectSlug.value = parentSlug;
+  subProjectForm.id = id;
+  projectForm.slug = parentSlug;
   isSubProjectFormDrawerOpen.value = true;
 };
 
 const onAddSubProject = (parentSlug) => {
-  subprojectId.value = null;
-  projectSlug.value = parentSlug;
+  subProjectForm.id = null;
+  projectForm.slug = parentSlug;
   isSubProjectFormDrawerOpen.value = true;
+};
+
+const onPageSizeChange = (pageSize) => {
+  updateProjectsPageSize(pageSize);
 };
 </script>
 

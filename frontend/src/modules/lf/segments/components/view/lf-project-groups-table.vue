@@ -1,9 +1,9 @@
 <template>
   <div class="mb-6 h-10 flex items-center">
     <app-pagination-sorter
-      :page-size="Number(projectGroups.pagination.pageSize)"
-      :total="projectGroups.pagination.total"
-      :current-page="projectGroups.pagination.currentPage"
+      :page-size="pagination.pageSize"
+      :total="pagination.total"
+      :current-page="pagination.currentPage"
       :has-page-counter="false"
       position="top"
       module="project group"
@@ -14,7 +14,7 @@
   <el-table
     id="project-groups-table"
     ref="table"
-    :data="projectGroups.list"
+    :data="list"
     row-key="id"
     :resizable="false"
   >
@@ -26,8 +26,8 @@
       fixed
       class-name="table-columns"
     >
-      <template #default="scope">
-        <span class="text-gray-900 text-sm font-semibold">{{ scope.row.name }}</span>
+      <template #default="{ row }">
+        <span class="text-gray-900 text-sm font-semibold">{{ row.name }}</span>
       </template>
     </el-table-column>
 
@@ -38,11 +38,12 @@
       min-width="25"
       class-name="table-columns"
     >
-      <template #default="scope">
-        <div v-if="scope.row.projects.length" class="flex flex-wrap gap-2">
+      <template #default="{ row }">
+        <div v-if="row.projects.length" class="flex flex-wrap gap-2">
           <app-tags
-            :tags="scope.row.projects.map((p) => p.name)"
+            :tags="row.projects.map((p) => p.name)"
             :collapse-tags="true"
+            :collapse-tags-tooltip="true"
             tag-class="badge--gray-light h-6 text-xs"
           />
         </div>
@@ -57,25 +58,25 @@
       min-width="15"
       class-name="table-columns"
     >
-      <template #default="scope">
+      <template #default="{ row }">
         <div class="flex items-center gap-3">
           <span
             class="w-1.5 h-1.5 rounded-full"
-            :class="statusDisplay(scope.row.status).color"
+            :class="statusDisplay(row.status).color"
           />
-          {{ statusDisplay(scope.row.status).label }}
+          {{ statusDisplay(row.status).label }}
         </div>
       </template>
     </el-table-column>
 
     <el-table-column fixed="right" min-width="25">
-      <template #default="scope">
+      <template #default="{ row }">
         <div class="flex justify-end gap-3">
           <router-link
             class="h-10 flex items-center"
             :to="{
               name: 'segmentsProjects',
-              params: { id: scope.row.id },
+              params: { id: row.id },
             }"
           >
             <el-button class="btn btn--bordered">
@@ -84,9 +85,9 @@
             </el-button>
           </router-link>
           <app-lf-project-groups-dropdown
-            :id="scope.row.id"
-            @on-edit-project-group="emit('onEditProjectGroup', scope.row.id)"
-            @on-add-project="emit('onAddProject', scope.row.slug)"
+            :id="row.id"
+            @on-edit-project-group="emit('onEditProjectGroup', row.id)"
+            @on-add-project="emit('onAddProject', row.slug)"
           />
         </div>
       </template>
@@ -100,17 +101,21 @@ import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import statusOptions from '@/modules/lf/config/status';
 import AppLfProjectGroupsDropdown from '@/modules/lf/segments/components/lf-project-groups-dropdown.vue';
 import AppTags from '@/shared/tags/tags.vue';
+import { computed } from 'vue';
 
 const emit = defineEmits(['onEditProjectGroup', 'onAddProject']);
 
 const lsSegmentsStore = useLfSegmentsStore();
 const { projectGroups } = storeToRefs(lsSegmentsStore);
-const { updatePageSize } = lsSegmentsStore;
+const { updateProjectGroupsPageSize } = lsSegmentsStore;
+
+const pagination = computed(() => projectGroups.value.pagination);
+const list = computed(() => projectGroups.value.list);
 
 const statusDisplay = (status) => statusOptions.find((s) => s.value === status);
 
 const onPageSizeChange = (pageSize) => {
-  updatePageSize(pageSize);
+  updateProjectGroupsPageSize(pageSize);
 };
 </script>
 

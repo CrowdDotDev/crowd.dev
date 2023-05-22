@@ -3,12 +3,14 @@ import Message from '@/shared/message/message';
 
 export default {
   // Project Groups
-  listProjectGroups() {
-    return LfService.queryProjectGroups({
+  listProjectGroups({ search = null } = {}) {
+    this.projectGroups.loading = true;
+
+    LfService.queryProjectGroups({
       limit: this.projectGroups.pagination.pageSize,
       offset: this.offset,
       filter: {
-        name: this.searchProjectGroups,
+        name: search,
       },
     })
       .then((response) => {
@@ -16,7 +18,7 @@ export default {
 
         this.projectGroups.list = response.rows;
 
-        if (!this.searchProjectGroups) {
+        if (!search) {
           this.projectGroups.pagination.total = count;
         }
 
@@ -25,7 +27,9 @@ export default {
       .catch(() => {
         Message.error('Something went wrong while fetching project groups');
       })
-      .finally(() => Promise.resolve());
+      .finally(() => {
+        this.projectGroups.loading = false;
+      });
   },
   findProjectGroup(id) {
     return LfService.findSegment(id)
@@ -58,21 +62,21 @@ export default {
       .finally(() => Promise.resolve());
   },
   searchProjectGroup(search) {
-    this.searchProjectGroups = search;
-
-    this.listProjectGroups();
+    this.listProjectGroups({ search });
   },
   // Projects
-  listProjects(parentSlug) {
+  listProjects({ parentSlug = null, search = null } = {}) {
+    this.projects.loading = true;
+
     if (parentSlug) {
       this.projects.parentSlug = parentSlug;
     }
 
-    return LfService.queryProjects({
+    LfService.queryProjects({
       limit: this.projects.pagination.pageSize,
       offset: this.offset,
       filter: {
-        name: this.searchProjects,
+        name: search,
         parentSlug: this.projects.parentSlug,
       },
     })
@@ -81,7 +85,7 @@ export default {
 
         this.projects.list = response.rows;
 
-        if (!this.searchProjects) {
+        if (!search) {
           this.projects.pagination.total = count;
         }
 
@@ -90,7 +94,9 @@ export default {
       .catch(() => {
         Message.error('Something went wrong while fetching projects');
       })
-      .finally(() => Promise.resolve());
+      .finally(() => {
+        this.projects.loading = false;
+      });
   },
   findProject(id) {
     return LfService.findSegment(id)
@@ -104,6 +110,7 @@ export default {
     return LfService.createProject(data)
       .then(() => {
         Message.success('Project created successfully');
+        this.listProjects();
       })
       .catch(() => {
         Message.error('Something went wrong while creating the project');
@@ -114,6 +121,7 @@ export default {
     return LfService.updateSegment(id, data)
       .then(() => {
         Message.success('Project updated successfully');
+        this.listProjects();
       })
       .catch(() => {
         Message.error('Something went wrong while updating the project');
@@ -121,9 +129,7 @@ export default {
       .finally(() => Promise.resolve());
   },
   searchProject(search) {
-    this.searchProjects = search;
-
-    this.listProjects();
+    this.listProjects({ search });
   },
   findSubProject(id) {
     return LfService.findSegment(id)
@@ -138,6 +144,7 @@ export default {
     return LfService.createSubProject(data)
       .then(() => {
         Message.success('Sub-project created successfully');
+        this.listProjects();
       })
       .catch(() => {
         Message.error('Something went wrong while creating the sub-project');
@@ -148,6 +155,7 @@ export default {
     return LfService.updateSegment(id, data)
       .then(() => {
         Message.success('Sub-project updated successfully');
+        this.listProjects();
       })
       .catch(() => {
         Message.error('Something went wrong while updating the sub-project');
@@ -155,9 +163,14 @@ export default {
       .finally(() => Promise.resolve());
   },
   // Pagination
-  updatePageSize(pageSize) {
+  updateProjectGroupsPageSize(pageSize) {
     this.projectGroups.pagination.pageSize = pageSize;
 
     this.listProjectGroups();
+  },
+  updateProjectsPageSize(pageSize) {
+    this.projects.pagination.pageSize = pageSize;
+
+    this.listProjects();
   },
 };

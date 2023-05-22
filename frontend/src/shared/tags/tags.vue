@@ -49,6 +49,7 @@
           <a
             v-if="interactive"
             class="badge--border !overflow-visible"
+            :class="tagClass"
             target="_blank"
             rel="noopener noreferrer"
             :href="withHttp(hiddenTag)"
@@ -56,7 +57,7 @@
           >
             {{ hiddenTag }}
           </a>
-          <div v-else class="badge--border !block" @click.prevent>
+          <div v-else class="badge--border !block" :class="tagClass" @click.prevent>
             {{ hiddenTag }}
           </div>
         </div>

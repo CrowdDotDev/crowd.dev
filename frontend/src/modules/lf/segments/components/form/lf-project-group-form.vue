@@ -39,7 +39,7 @@
         >
           <el-input
             v-model="form.slug"
-            placeholder="E.g. cnfc"
+            placeholder="E.g. cncf"
           />
         </app-form-item>
 
@@ -89,6 +89,12 @@
             class="w-full"
             @blur="$v.status.$touch"
           >
+            <template v-if="form.status" #prefix>
+              <span
+                class="w-1.5 h-1.5 rounded-full mr-1"
+                :class="statusOptions.find((o) => o.value === form.status).color"
+              />
+            </template>
             <el-option
               v-for="status of statusOptions"
               :key="status.value"

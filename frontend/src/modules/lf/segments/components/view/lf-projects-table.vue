@@ -21,8 +21,8 @@
           </div>
         </div>
       </template>
-      <template #default="scope">
-        <span class="text-gray-900 text-sm">{{ scope.row.name }}</span>
+      <template #default="{ row }">
+        <span class="text-gray-900 text-sm">{{ row.name }}</span>
       </template>
     </el-table-column>
 
@@ -52,13 +52,13 @@
           </div>
         </div>
       </template>
-      <template #default="scope">
+      <template #default="{ row }">
         <div
-          v-if="scope.row.integrations?.length"
+          v-if="row.integrations?.length"
           class="flex gap-3 items-center"
         >
           <div
-            v-for="platform in scope.row.integrations"
+            v-for="platform in row.integrations"
             :key="platform"
           >
             <app-platform-svg-icon
@@ -89,14 +89,14 @@
           </div>
         </div>
       </template>
-      <template #default="scope">
+      <template #default="{ row }">
         <div class="flex items-center gap-3">
           <span
             class="w-1.5 h-1.5 rounded-full"
-            :class="statusDisplay(scope.row.status)?.color"
+            :class="statusDisplay(row.status)?.color"
           />
           <span class="text-gray-900">
-            {{ statusDisplay(scope.row.status)?.label }}
+            {{ statusDisplay(row.status)?.label }}
           </span>
         </div>
       </template>
@@ -112,7 +112,7 @@
           />
         </div>
       </template>
-      <template #default="scope">
+      <template #default="{ row }">
         <div class="h-10 items-center flex justify-end gap-3">
           <router-link
             :to="{
@@ -124,7 +124,7 @@
             </el-button>
           </router-link>
           <app-lf-sub-projects-dropdown
-            @on-edit-sub-project="emit('onEditSubProject', scope.row.id)"
+            @on-edit-sub-project="emit('onEditSubProject', row.id)"
           />
         </div>
       </template>

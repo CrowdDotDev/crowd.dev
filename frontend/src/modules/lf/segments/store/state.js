@@ -1,6 +1,7 @@
 export default () => ({
   projectGroups: {
     list: [],
+    loading: true,
     pagination: {
       pageSize: 20,
       currentPage: 1,
@@ -11,6 +12,7 @@ export default () => ({
   projects: {
     list: [],
     parentSlug: '',
+    loading: true,
     pagination: {
       pageSize: 20,
       currentPage: 1,
@@ -18,6 +20,4 @@ export default () => ({
       count: 0,
     },
   },
-  searchProjectGroups: '',
-  searchProjects: '',
 });

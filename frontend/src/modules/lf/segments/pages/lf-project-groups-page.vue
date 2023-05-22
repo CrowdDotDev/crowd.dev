@@ -5,7 +5,7 @@
         Admin panel
       </h4>
       <el-button
-        v-if="projectGroups.pagination.total && !loading"
+        v-if="pagination.total"
         class="btn btn--md btn--primary"
         @click="onAddProjectGroup"
       >
@@ -13,23 +13,22 @@
       </el-button>
     </div>
 
+    <!-- Search input -->
+    <app-lf-search-input
+      v-if="pagination.total"
+      placeholder="Search project groups..."
+      @on-change="searchProjectGroup"
+    />
+
     <div
       v-if="loading"
       v-loading="loading"
-      class="app-page-spinner h-16 !relative !min-h-5"
+      class="app-page-spinner h-16 !relative !min-h-5 mt-10"
     />
     <div v-else>
-      <!-- Search input -->
-      <app-lf-search-input
-        v-if="projectGroups.pagination.total"
-        v-model="searchProjectGroups"
-        placeholder="Search project groups..."
-        :update-fn="searchProjectGroup"
-      />
-
       <!-- Empty state -->
       <app-empty-state-cta
-        v-if="!projectGroups.pagination.total"
+        v-if="!pagination.total"
         class="mt-20"
         icon="ri-folder-5-line"
         title="No project groups yet"
@@ -39,7 +38,7 @@
       />
 
       <app-empty-state-cta
-        v-else-if="!projectGroups.pagination.count"
+        v-else-if="!pagination.count"
         icon="ri-folder-5-line"
         title="No project groups found"
         description="We couldn't find any results that match your search criteria, please try a different query"
@@ -56,21 +55,23 @@
 
     <app-lf-project-group-form
       v-if="isProjectGroupFormDrawerOpen"
-      :id="projectGroupId"
+      :id="projectGroupForm.id"
       v-model="isProjectGroupFormDrawerOpen"
     />
 
     <app-lf-project-form
       v-if="isProjectFormDrawerOpen"
       v-model="isProjectFormDrawerOpen"
-      :parent-slug="projectGroupSlug"
+      :parent-slug="projectGroupForm.parentSlug"
     />
   </app-page-wrapper>
 </template>
 
 <script setup>
 import { storeToRefs } from 'pinia';
-import { onMounted, ref } from 'vue';
+import {
+  computed, onMounted, reactive, ref,
+} from 'vue';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import AppLfProjectGroupForm from '@/modules/lf/segments/components/form/lf-project-group-form.vue';
 import AppLfProjectForm from '@/modules/lf/segments/components/form/lf-project-form.vue';
@@ -78,33 +79,35 @@ import AppLfProjectGroupsTable from '@/modules/lf/segments/components/view/lf-pr
 import AppLfSearchInput from '@/modules/lf/segments/components/view/lf-search-input.vue';
 
 const lsSegmentsStore = useLfSegmentsStore();
-const { projectGroups, searchProjectGroups } = storeToRefs(lsSegmentsStore);
+const { projectGroups } = storeToRefs(lsSegmentsStore);
 const { listProjectGroups, searchProjectGroup } = lsSegmentsStore;
 
-const loading = ref(true);
-const projectGroupId = ref();
-const projectGroupSlug = ref();
+const loading = computed(() => projectGroups.value.loading);
+const pagination = computed(() => projectGroups.value.pagination);
+
+const projectGroupForm = reactive({
+  id: null,
+  parentSlug: null,
+});
 const isProjectGroupFormDrawerOpen = ref(false);
 const isProjectFormDrawerOpen = ref(false);
 
 onMounted(() => {
-  listProjectGroups().finally(() => {
-    loading.value = false;
-  });
+  listProjectGroups();
 });
 
 const onAddProject = (parentSlug) => {
-  projectGroupSlug.value = parentSlug;
+  projectGroupForm.parentSlug = parentSlug;
   isProjectFormDrawerOpen.value = true;
 };
 
 const onAddProjectGroup = () => {
-  projectGroupId.value = null;
+  projectGroupForm.id = null;
   isProjectGroupFormDrawerOpen.value = true;
 };
 
 const onEditProjectGroup = (id) => {
-  projectGroupId.value = id;
+  projectGroupForm.id = id;
   isProjectGroupFormDrawerOpen.value = true;
 };
 </script>

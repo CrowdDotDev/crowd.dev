@@ -1,43 +1,36 @@
 <template>
   <el-input
     v-model="searchInput"
+    clearable
     :placeholder="placeholder"
     :prefix-icon="SearchIcon"
+    @input="debouncedChange"
   />
 </template>
 
 <script setup>
-import { h, computed } from 'vue';
+import { h, ref } from 'vue';
+import debounce from 'lodash/debounce';
 
-const props = defineProps({
-  modelValue: {
-    type: String,
-    required: true,
-  },
+const emit = defineEmits(['onChange']);
+defineProps({
   placeholder: {
     type: String,
     default: () => null,
   },
-  updateFn: {
-    type: Function,
-    default: () => {},
-  },
 });
 
-const searchInput = computed({
-  get() {
-    return props.modelValue;
-  },
-  set(v) {
-    props.updateFn(v);
-  },
-});
+const searchInput = ref();
 
 const SearchIcon = h(
   'i', // type
   { class: 'ri-search-line' }, // props
   [],
 );
+
+const debouncedChange = debounce((value) => {
+  emit('onChange', value);
+}, 300);
 </script>
 
 <script>
