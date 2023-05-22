@@ -55,7 +55,7 @@
           <div
             class="text-2xs text-gray-500 leading-normal mb-1"
           >
-            Create a new API key in your Discourse account's settings page. You must be an admin user to connect your acount. Read more
+            Create a new API key in your Discourse account's settings page. You must be an admin user to connect your acount. <a href="https://docs.crowd.dev/docs/discourse-integration#api-key" target="_blank" rel="noopener noreferrer">Read more</a>
           </div>
           <el-input
             ref="focus"
@@ -80,7 +80,7 @@
         <div
           class="text-2xs text-gray-500 leading-normal mb-1"
         >
-          Create new webhooks in your Discourse account's settings page with the following credentials. Read more
+          Create new webhooks in your Discourse account's settings page with the following credentials. <a href="https://docs.crowd.dev/docs/discourse-integration#webhooks" target="_blank" rel="noopener noreferrer">Read more</a>
         </div>
       </div>
       <el-form
@@ -141,11 +141,24 @@
           </el-input>
         </app-form-item>
       </el-form>
-      <el-card v-if="isAPIConnectionValid" shadow="never" class="rounded-[6px]">
-        <div class="mb-3">
-          <el-button :disabled="isWebhookVerifying" :loading="isWebhookVerifying" @click="verifyWebhook()">
+      <el-card v-if="isAPIConnectionValid && props.integration?.settings?.forumHostname" shadow="never" class="rounded-[6px]">
+        <div class="mb-3 flex flex-row w-full justify-between">
+          <el-button :disabled="isWebhookVerifying" @click="verifyWebhook()">
             Verify webhook
           </el-button>
+          <div v-if="isWebhookVerifying == null" />
+          <div v-else-if="isWebhookVerifying">
+            <i class="ri-loader-4-line animate-spin text-gray-900 w-[14px] mr-2" />
+            <span class="text-gray-900 text-[13px]">Verifying</span>
+          </div>
+          <div v-else-if="isWebhookValid">
+            <i class="ri-check-line text-green-500 w-[14px] mr-2" />
+            <span class="text-green-500 text-[13px]">Succesfully verified</span>
+          </div>
+          <div v-else>
+            <i class="ri-error-warning-line text-red-500 w-[14px] mr-2" />
+            <span class="text-red-500 text-[13px]">No webhooks received yet</span>
+          </div>
         </div>
         <div
           class="text-2xs text-gray-500 leading-normal mb-1"
@@ -249,7 +262,8 @@ const form = reactive({
 const isValidating = ref(false);
 const isAPIConnectionValid = ref(false);
 const loading = ref(false);
-const isWebhookVerifying = ref(false);
+const isWebhookVerifying = ref(null);
+const isWebhookValid = ref(false);
 
 // validate that url doesn't end with a slash
 const validateURL = (value) => {
@@ -319,8 +333,26 @@ const isVisible = computed({
 
 const handleCancel = () => {
   emit('update:modelValue', false);
-  form.apiKey = '';
-  form.discourseURL = '';
+  if (!props.integration?.settings.forumHostname) {
+    form.apiKey = '';
+    form.discourseURL = '';
+    isValidating.value = false;
+    isAPIConnectionValid.value = false;
+    loading.value = false;
+    isWebhookVerifying.value = null;
+    isWebhookValid.value = false;
+    $externalResults.value = {};
+  } else {
+    form.discourseURL = props.integration.settings.forumHostname;
+    form.apiKey = props.integration.settings.apiKey;
+    webhookSecret.value = props.integration.settings.webhookSecret;
+    payloadURL.value = `${window.location.origin}/api/webhooks/discourse/${tenantId}`;
+    isAPIConnectionValid.value = true;
+    isWebhookVerifying.value = null;
+    isWebhookValid.value = false;
+    $externalResults.value = {};
+  }
+  formSnapshot();
 };
 
 onMounted(() => {
@@ -337,20 +369,20 @@ onMounted(() => {
 const verifyWebhook = async () => {
   isWebhookVerifying.value = true;
   try {
-    const integrationId = await IntegrationService.discourseSoftConnect(
-      form.discourseURL,
-      form.apiKey,
-      webhookSecret.value,
-    );
+    // const integrationId = await IntegrationService.discourseSoftConnect(
+    //   form.discourseURL,
+    //   form.apiKey,
+    //   webhookSecret.value,
+    // );
 
-    const webhookVerified = await IntegrationService.discourseVerifyWebhook(integrationId);
+    const webhookVerified = await IntegrationService.discourseVerifyWebhook(props.integration?.id);
     if (webhookVerified) {
-      Message.success('Webhook verified successfully');
+      isWebhookValid.value = true;
     } else {
-      Message.info('No webhook received yet. You can manually trigger (ping) a webhook from your Discourse admin panel.');
+      isWebhookValid.value = false;
     }
   } catch {
-    Message.error('Webhook verification failed');
+    isWebhookValid.value = false;
   } finally {
     isWebhookVerifying.value = false;
   }
@@ -371,6 +403,8 @@ const connect = async () => {
     .finally(() => {
       loading.value = false;
     });
+
+  formSnapshot();
 };
 </script>
 
