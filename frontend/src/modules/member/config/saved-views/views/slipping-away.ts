@@ -19,13 +19,13 @@ const slippingAway: SavedView = {
 
     engagementLevel: {
       value: ['fan', 'ultra'],
-      exclude: false,
+      include: true,
     },
 
     lastActivityDate: {
       operator: 'after',
       value: moment().subtract(1, 'month').format('YYYY-MM-DD'),
-      exclude: false,
+      include: true,
     },
   },
 };
