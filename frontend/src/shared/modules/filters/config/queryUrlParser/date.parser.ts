@@ -3,10 +3,10 @@ import { DateFilterValue } from '@/shared/modules/filters/types/filterTypes/Date
 interface QueryUrlDateValue {
   operator: string,
   value: string,
-  exclude: string,
+  include: string,
 }
 
 export const dateQueryUrlParser = (query: QueryUrlDateValue): DateFilterValue => ({
   ...query,
-  exclude: query.exclude === 'true',
+  include: query.include === 'true',
 });

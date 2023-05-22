@@ -2,11 +2,11 @@ import { MultiSelectFilterValue } from '@/shared/modules/filters/types/filterTyp
 
 interface QueryUrlMultiSelectValue {
   value: string,
-  exclude: string,
+  include: string,
 }
 
 export const multiSelectQueryUrlParser = (query: QueryUrlMultiSelectValue): MultiSelectFilterValue => ({
   ...query,
   value: query.value.split(','),
-  exclude: query.exclude === 'true',
+  include: query.include === 'true',
 });

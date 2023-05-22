@@ -3,7 +3,7 @@
     <div class="flex justify-end pb-4">
       <cr-filter-search v-model="filters.search" :placeholder="props.searchConfig.placeholder">
         <template #append>
-          <cr-filter-dropdown v-model="filterList" :config="props.config" :custom-config="props.customConfig || {}" />
+          <cr-filter-dropdown v-model="filterList" :config="props.config" :custom-config="props.customConfig || {}" @open="open = $event" />
         </template>
       </cr-filter-search>
     </div>
@@ -16,7 +16,7 @@
         >
           {{ filters.relation }}
         </el-button>
-        <cr-filter-item v-model="filters[filter]" v-model:open="open" :config="config[filter]" class="mr-4" @remove="removeFilter(filter)" />
+        <cr-filter-item v-model="filters[filter]" v-model:open="open" :config="configuration[filter]" class="mr-4" @remove="removeFilter(filter)" />
       </template>
     </div>
   </div>
@@ -65,6 +65,11 @@ const filters = computed<Filter>({
     emit('update:modelValue', value);
   },
 });
+
+const configuration = computed(() => ({
+  ...props.config,
+  ...props.customConfig,
+}));
 
 const filterList = ref<string[]>([]);
 

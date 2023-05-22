@@ -1,7 +1,6 @@
 <template>
   <div v-if="form">
-    Date filter
-    <!-- TODO: prepare date filter -->
+    String filter
   </div>
 </template>
 
@@ -9,24 +8,24 @@
 import {
   defineProps, defineEmits, computed, onMounted,
 } from 'vue';
-import { DateFilterValue, DateFilterOptions } from '@/shared/modules/filters/types/filterTypes/DateFilterConfig';
-import { required } from '@vuelidate/validators';
 import useVuelidate from '@vuelidate/core';
+import { required } from '@vuelidate/validators';
+import { StringFilterOptions, StringFilterValue } from '@/shared/modules/filters/types/filterTypes/StringFilterConfig';
 
 const props = defineProps<{
-  modelValue: DateFilterValue
-} & DateFilterOptions>();
+  modelValue: StringFilterValue
+} & StringFilterOptions>();
 
-const emit = defineEmits<{(e: 'update:modelValue', value: DateFilterValue)}>();
+const emit = defineEmits<{(e: 'update:modelValue', value: StringFilterValue)}>();
 
-const form = computed({
+const form = computed<StringFilterValue>({
   get: () => props.modelValue,
-  set: (value: DateFilterValue) => emit('update:modelValue', value),
+  set: (value: StringFilterValue) => emit('update:modelValue', value),
 });
 
-const defaultForm: DateFilterValue = {
-  operator: '',
+const defaultForm: StringFilterValue = {
   value: '',
+  operator: 'eq',
   include: true,
 };
 
@@ -50,6 +49,6 @@ onMounted(() => {
 
 <script lang="ts">
 export default {
-  name: 'CrDateFilter',
+  name: 'CrStringFilter',
 };
 </script>

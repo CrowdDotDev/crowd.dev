@@ -2,12 +2,13 @@
 import { BaseFilterConfig, FilterConfigType } from '@/shared/modules/filters/types/FilterConfig';
 
 export interface DateFilterOptions {
-
+  hideIncludeSwitch?: boolean;
 }
+
 export interface DateFilterValue {
   operator: string,
   value: string,
-  exclude: boolean,
+  include: boolean,
 }
 
 export interface DateFilterConfig extends BaseFilterConfig {

@@ -1,7 +1,8 @@
-import { Filter } from '@/shared/modules/filters/types/FilterConfig';
+import { Filter, FilterConfig } from '@/shared/modules/filters/types/FilterConfig';
 
-interface MemberState {
-  filters: Filter
+export interface MemberState {
+  filters: Filter,
+  customAttributes: Record<string, FilterConfig>
 }
 
 export default () => ({
@@ -17,4 +18,5 @@ export default () => ({
       order: 'descending',
     },
   } as Filter,
+  customAttributes: {},
 } as MemberState);

@@ -3,7 +3,6 @@ import moment from 'moment';
 
 const options: SelectFilterOptionGroup[] = [
   {
-    label: '',
     options: [
       {
         label: 'Last 24 hours',

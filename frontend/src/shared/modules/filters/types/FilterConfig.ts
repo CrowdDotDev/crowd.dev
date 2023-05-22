@@ -4,6 +4,7 @@ import { SelectFilterConfig } from '@/shared/modules/filters/types/filterTypes/S
 import { BooleanFilterConfig } from '@/shared/modules/filters/types/filterTypes/BooleanFilterConfig';
 import { DateFilterConfig } from '@/shared/modules/filters/types/filterTypes/DateFilterConfig';
 import { CustomFilterConfig } from '@/shared/modules/filters/types/filterTypes/CustomFilterConfig';
+import { StringFilterConfig } from '@/shared/modules/filters/types/filterTypes/StringFilterConfig';
 
 export enum FilterConfigType {
   NUMBER = 'number',
@@ -11,6 +12,7 @@ export enum FilterConfigType {
   MULTISELECT = 'multiselect',
   BOOLEAN = 'boolean',
   DATE = 'date',
+  STRING = 'string',
   CUSTOM = 'custom',
 }
 
@@ -24,6 +26,7 @@ export type FilterConfig = NumberFilterConfig
   | SelectFilterConfig
   | BooleanFilterConfig
   | DateFilterConfig
+  | StringFilterConfig
   | CustomFilterConfig
 
 export interface FilterStatic {

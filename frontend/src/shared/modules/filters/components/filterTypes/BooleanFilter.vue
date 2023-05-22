@@ -1,6 +1,6 @@
 <template>
   <div v-if="form">
-    Boolean
+    Boolean filter
     <!-- TODO: prepare boolean filter -->
   </div>
 </template>
@@ -26,7 +26,7 @@ const form = computed({
 
 const defaultForm: BooleanFilterValue = {
   value: true,
-  exclude: false,
+  include: true,
 };
 
 const rules: any = {

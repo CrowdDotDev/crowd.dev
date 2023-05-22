@@ -2,7 +2,6 @@ import { MultiSelectFilterOptionGroup } from '@/shared/modules/filters/types/fil
 
 const options: MultiSelectFilterOptionGroup[] = [
   {
-    label: '',
     options: [
       {
         label: 'Positive',
