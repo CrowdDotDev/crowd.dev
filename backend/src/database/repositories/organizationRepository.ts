@@ -44,6 +44,11 @@ class OrganizationRepository {
       ,org."address"
       ,org."geoLocation"
       ,org."employeeCountByCountry"
+      ,org."twitter"
+      ,org."linkedin"
+      ,org."linkedin"
+      ,org."crunchbase"
+      ,org."github"
       ,org."description"
       FROM "organizations" as org
       JOIN "organizationCaches" cach ON org."name" = cach."name"

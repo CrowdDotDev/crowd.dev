@@ -16,6 +16,7 @@ export enum PlatformType {
   YOUTUBE = 'youtube',
   STACKOVERFLOW = 'stackoverflow',
   GIT = 'git',
+  CRUNCHBASE = 'crunchbase',
   OTHER = 'other',
 }
 

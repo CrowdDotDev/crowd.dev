@@ -488,46 +488,6 @@
                 </template>
               </el-table-column>
 
-              <!-- Profiles -->
-              <el-table-column
-                label="Profiles"
-                :width="profilesColumnWidth"
-              >
-                <template #default="scope">
-                  <router-link
-                    :to="{
-                      name: 'organizationView',
-                      params: { id: scope.row.id },
-                    }"
-                    class="block"
-                  >
-                    <div
-                      v-if="scope.row.profiles?.length && scope.row.profiles?.some((e) => !!e)"
-                      class="text-sm cursor-auto flex flex-wrap gap-1"
-                    >
-                      <app-tags
-                        :tags="scope.row.profiles"
-                        :interactive="true"
-                        :collapse-tags="true"
-                        :collapse-tags-tooltip="true"
-                        :tag-tooltip-content="true"
-                      >
-                        <template #tagTooltipContent>
-                          <span>Open profile
-                            <i
-                              class="ri-external-link-line text-gray-400"
-                            /></span>
-                        </template>
-                      </app-tags>
-                    </div>
-                    <span
-                      v-else
-                      class="text-gray-500"
-                    >-</span>
-                  </router-link>
-                </template>
-              </el-table-column>
-
               <!-- Actions -->
               <el-table-column fixed="right">
                 <template #default="scope">
@@ -587,7 +547,6 @@ import {
 import { formatDateToTimeAgo } from '@/utils/date';
 import { formatNumberToCompact } from '@/utils/number';
 import { withHttp, toSentenceCase } from '@/utils/string';
-import AppTags from '@/shared/tags/tags.vue';
 import AppOrganizationIdentities from '../organization-identities.vue';
 import AppOrganizationListToolbar from './organization-list-toolbar.vue';
 import AppOrganizationName from '../organization-name.vue';
@@ -662,6 +621,7 @@ const hasIdentities = (row) => (
     || !!row.linkedin
     || !!row.twitter
     || !!row.crunchbase
+    || !!row.facebook
     || !!row.phoneNumbers?.length
 );
 
@@ -710,22 +670,6 @@ const emailsColumnWidth = computed(() => {
       maxTabWidth = tabWidth > 400 ? 400 : tabWidth;
     }
   });
-  return maxTabWidth;
-});
-
-const profilesColumnWidth = computed(() => {
-  let maxTabWidth = 150;
-
-  rows.value.forEach((row) => {
-    const tabWidth = row.profiles
-      ?.map((profile) => (profile ? profile.length * 12 : 0))
-      .reduce((a, b) => a + b, 0);
-
-    if (tabWidth > maxTabWidth) {
-      maxTabWidth = tabWidth > 400 ? 400 : tabWidth;
-    }
-  });
-
   return maxTabWidth;
 });
 

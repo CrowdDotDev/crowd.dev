@@ -131,6 +131,8 @@ import config from '@/config';
 import { AuthToken } from '@/modules/auth/auth-token';
 import { mapGetters } from '@/shared/vuex/vuex.helpers';
 import AppAutomationExecutions from '@/modules/automation/components/automation-executions.vue';
+import { FeatureFlag } from '@/featureFlag';
+import { getWorkflowMax, showWorkflowLimitDialog } from '@/modules/automation/automation-limit';
 
 const options = ref([
   {
@@ -159,8 +161,31 @@ const { getAutomations, changeAutomationFilter } = automationStore;
 
 const { currentTenant } = mapGetters('auth');
 
+/**
+ * Check if tenant has feature flag enabled
+ */
+const canAddAutomation = () => {
+  const isFeatureEnabled = FeatureFlag.isFlagEnabled(
+    FeatureFlag.flags.automations,
+  );
+
+  if (!isFeatureEnabled) {
+    const planWorkflowCountMax = getWorkflowMax(
+      currentTenant.value.plan,
+    );
+
+    showWorkflowLimitDialog({ planWorkflowCountMax });
+  }
+
+  return isFeatureEnabled;
+};
+
 // Executions drawer
 const createAutomation = (type) => {
+  if (!canAddAutomation()) {
+    return;
+  }
+
   openAutomationForm.value = true;
   editAutomation.value = null;
   automationFormType.value = type;
@@ -189,6 +214,10 @@ const authenticateSlack = () => {
 
 const createSlackAutomation = () => {
   if (slackConnected.value) {
+    if (!canAddAutomation()) {
+      return;
+    }
+
     createAutomation('slack');
   }
 };
