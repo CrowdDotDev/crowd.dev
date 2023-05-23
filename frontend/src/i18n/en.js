@@ -501,6 +501,10 @@ const en = {
         count: '[Organizations] Count',
         createdat: '[Organizations] Date',
       },
+      Segments: {
+        count: '[Segments] Count',
+        name: '[Segments] Name',
+      },
       Sentiment: {
         averageSentiment: '[Sentiment] Average',
         date: '[Sentiment] Date',
