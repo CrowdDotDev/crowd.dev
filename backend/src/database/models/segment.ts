@@ -1,7 +1,7 @@
 import { DataTypes } from 'sequelize'
 
 export default (sequelize) => {
-  const activity = sequelize.define(
+  const segment = sequelize.define(
     'segment',
     {
       id: {
@@ -59,5 +59,13 @@ export default (sequelize) => {
     },
   )
 
-  return activity
+  segment.associate = (models) => {
+    models.segment.belongsTo(models.tenant, {
+      foreignKey: {
+        allowNull: false,
+      },
+    })
+  }
+
+  return segment
 }
