@@ -1,7 +1,7 @@
 import { IDbActivity, IDbActivityUpdateData } from '@/repo/activity.data'
 import MemberRepository from '@/repo/member.repo'
-import { singleOrDefault } from '@crowd/common'
-import { DbStore } from '@crowd/database'
+import { isObjectEmpty, singleOrDefault } from '@crowd/common'
+import { DbStore, arePrimitivesDbEqual } from '@crowd/database'
 import { Logger, LoggerBase, getChildLogger } from '@crowd/logging'
 import { ISentimentAnalysisResult, getSentiment } from '@crowd/sentiment'
 import { IActivityData, PlatformType } from '@crowd/types'
@@ -27,7 +27,6 @@ export default class ActivityService extends LoggerBase {
 
         // TODO update settings.activityTypes
         // TODO update settings.activityChannels
-        // TODO set parentId (can be done in the repo query)
 
         return txRepo.create(tenantId, {
           type: activity.type,
@@ -65,21 +64,32 @@ export default class ActivityService extends LoggerBase {
       await this.store.transactionally(async (txStore) => {
         const txRepo = new ActivityRepository(txStore, this.log)
 
-        const data = await this.mergeActivityData(activity, original)
+        const toUpdate = await this.mergeActivityData(activity, original)
 
         // TODO update settings.activityTypes
         // TODO update settings.activityChannels
-        // TODO set parentId (can be done in the repo query)
 
-        if (Object.keys(data).length > 0) {
+        if (!isObjectEmpty(toUpdate)) {
           this.log.debug({ activityId: id }, 'Updating activity.')
-          await txRepo.update(id, tenantId, data)
+          await txRepo.update(id, tenantId, {
+            type: toUpdate.type || original.type,
+            isContribution: toUpdate.isContribution || original.isContribution,
+            score: toUpdate.score || original.score,
+            sourceId: toUpdate.sourceId || original.sourceId,
+            sourceParentId: toUpdate.sourceParentId || original.sourceParentId,
+            memberId: toUpdate.memberId || original.memberId,
+            username: toUpdate.username || original.username,
+            sentiment: toUpdate.sentiment || original.sentiment,
+            attributes: toUpdate.attributes || original.attributes,
+            body: toUpdate.body || original.body,
+            title: toUpdate.title || original.title,
+            channel: toUpdate.channel || original.channel,
+            url: toUpdate.url || original.url,
+          })
         } else {
           this.log.debug({ activityId: id }, 'No changes to update in an activity.')
         }
       })
-
-      throw new Error('Method not implemented.')
     } catch (err) {
       this.log.error(err, { activityId: id }, 'Error while updating an activity!')
       throw err
@@ -93,13 +103,13 @@ export default class ActivityService extends LoggerBase {
     let calcSentiment = false
 
     let body: string | undefined
-    if (original.body !== data.body) {
+    if (!arePrimitivesDbEqual(original.body, data.body)) {
       body = data.body
       calcSentiment = true
     }
 
     let title: string | undefined
-    if (original.title !== data.title) {
+    if (!arePrimitivesDbEqual(original.title, data.title)) {
       title = data.title
       calcSentiment = true
     }
@@ -112,37 +122,37 @@ export default class ActivityService extends LoggerBase {
     }
 
     let type: string | undefined
-    if (original.type !== data.type) {
+    if (!arePrimitivesDbEqual(original.type, data.type)) {
       type = data.type
     }
 
     let isContribution: boolean | undefined
-    if (original.isContribution !== data.isContribution) {
+    if (!arePrimitivesDbEqual(original.isContribution, data.isContribution)) {
       isContribution = data.isContribution
     }
 
     let score: number | undefined
-    if (original.score !== data.score) {
+    if (!arePrimitivesDbEqual(original.score, data.score)) {
       score = data.score
     }
 
     let sourceId: string | undefined
-    if (original.sourceId !== data.sourceId) {
+    if (!arePrimitivesDbEqual(original.sourceId, data.sourceId)) {
       sourceId = data.sourceId
     }
 
     let sourceParentId: string | undefined
-    if (original.sourceParentId !== data.sourceParentId) {
+    if (!arePrimitivesDbEqual(original.sourceParentId, data.sourceParentId)) {
       sourceParentId = data.sourceParentId
     }
 
     let memberId: string | undefined
-    if (original.memberId !== data.memberId) {
+    if (!arePrimitivesDbEqual(original.memberId, data.memberId)) {
       memberId = data.memberId
     }
 
     let username: string | undefined
-    if (original.username !== data.username) {
+    if (!arePrimitivesDbEqual(original.username, data.username)) {
       username = data.username
     }
 
@@ -156,12 +166,12 @@ export default class ActivityService extends LoggerBase {
     }
 
     let channel: string | undefined
-    if (original.channel !== data.channel) {
+    if (!arePrimitivesDbEqual(original.channel, data.channel)) {
       channel = data.channel
     }
 
     let url: string | undefined
-    if (original.url !== data.url) {
+    if (!arePrimitivesDbEqual(original.url, data.url)) {
       url = data.url
     }
 
@@ -325,8 +335,10 @@ export default class ActivityService extends LoggerBase {
             dbActivity.id,
             tenantId,
             {
+              type: activity.type,
               isContribution: activity.isContribution,
               score: activity.score,
+              sourceId: activity.sourceId,
               sourceParentId: activity.sourceParentId,
               memberId: dbActivity.memberId,
               username,
@@ -400,6 +412,7 @@ export default class ActivityService extends LoggerBase {
       })
     } catch (err) {
       this.log.error(err, 'Error while processing an activity!')
+      throw err
     }
   }
 }

@@ -1,6 +1,6 @@
 import { getServiceLogger } from '../utils/logging'
 import server from '../api'
-import { API_CONFIG } from '../config'
+import { API_CONFIG } from '../conf'
 import { timeout } from '../utils/timing'
 
 const PORT = API_CONFIG.port || 8080

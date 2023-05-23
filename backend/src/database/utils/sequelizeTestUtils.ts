@@ -9,7 +9,7 @@ import Roles from '../../security/roles'
 import UserRepository from '../repositories/userRepository'
 import TenantRepository from '../repositories/tenantRepository'
 import Plans from '../../security/plans'
-import { API_CONFIG } from '../../config'
+import { API_CONFIG } from '../../conf'
 import SettingsRepository from '../repositories/settingsRepository'
 
 export default class SequelizeTestUtils {

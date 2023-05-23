@@ -1,6 +1,6 @@
 import { createClient, RedisClientType, RedisDefaultModules } from 'redis'
 import { createServiceChildLogger } from '../logging'
-import { IS_DEV_ENV, IS_TEST_ENV, REDIS_CONFIG } from '../../config'
+import { IS_DEV_ENV, IS_TEST_ENV, REDIS_CONFIG } from '../../conf'
 import { timeout } from '../timing'
 
 const log = createServiceChildLogger('redis')

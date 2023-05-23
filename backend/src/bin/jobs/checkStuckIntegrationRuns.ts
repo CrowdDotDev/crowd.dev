@@ -1,6 +1,6 @@
 import cronGenerator from 'cron-time-generator'
 import moment from 'moment'
-import { INTEGRATION_PROCESSING_CONFIG } from '../../config'
+import { INTEGRATION_PROCESSING_CONFIG } from '../../conf'
 import IntegrationRepository from '../../database/repositories/integrationRepository'
 import IntegrationRunRepository from '../../database/repositories/integrationRunRepository'
 import IntegrationStreamRepository from '../../database/repositories/integrationStreamRepository'

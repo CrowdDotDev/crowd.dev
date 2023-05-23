@@ -26,7 +26,7 @@ import { LinkedInMemberAttributes } from '../database/attributes/member/linkedin
 import NoteService from './noteService'
 import TagService from './tagService'
 import { AttributeType } from '../database/attributes/types'
-import { API_CONFIG } from '../config'
+import { API_CONFIG } from '../conf'
 import SequelizeRepository from '../database/repositories/sequelizeRepository'
 
 export default class SampleDataService extends LoggingBase {

@@ -1,3 +1,4 @@
+import { PlatformType } from './enums/platforms'
 import { IMemberData } from './members'
 
 export interface IActivityData {
@@ -69,4 +70,45 @@ export interface IActivityData {
    * Mutually exclusive with username field.
    */
   member?: IMemberData
+}
+
+export interface IActivityScoringGrid {
+  score: number
+  isContribution: boolean
+}
+
+export enum ActivityDisplayVariant {
+  DEFAULT = 'default',
+  SHORT = 'short',
+  CHANNEL = 'channel',
+}
+
+export type ActivityTypeSettings = {
+  default: DefaultActivityTypes
+  custom: CustomActivityTypes
+}
+
+export type DefaultActivityTypes = {
+  [key in PlatformType]?: {
+    [key: string]: {
+      display: ActivityTypeDisplayProperties
+      isContribution: boolean
+    }
+  }
+}
+
+export type CustomActivityTypes = {
+  [key: string]: {
+    [key: string]: {
+      display: ActivityTypeDisplayProperties
+      isContribution: boolean
+    }
+  }
+}
+
+export type ActivityTypeDisplayProperties = {
+  [ActivityDisplayVariant.DEFAULT]: string
+  [ActivityDisplayVariant.SHORT]: string
+  [ActivityDisplayVariant.CHANNEL]: string
+  formatter?: { [key: string]: (input: any) => string }
 }

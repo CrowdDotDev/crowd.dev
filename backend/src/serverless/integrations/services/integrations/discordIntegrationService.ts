@@ -2,6 +2,7 @@ import moment from 'moment/moment'
 import lodash from 'lodash'
 import { ChannelType, MessageType } from 'discord.js'
 import { v4 as uuid } from 'uuid'
+import { DISCORD_GRID, DiscordActivityType } from '@crowd/integrations'
 import {
   DiscordApiChannel,
   DiscordApiMember,
@@ -9,7 +10,7 @@ import {
   DiscordApiUser,
   DiscordStreamProcessResult,
 } from '../../types/discordTypes'
-import { DISCORD_CONFIG } from '../../../../config'
+import { DISCORD_CONFIG } from '../../../../conf'
 import { DiscordMemberAttributes } from '../../../../database/attributes/member/discord'
 import { MemberAttributeName } from '../../../../database/attributes/member/enums'
 import MemberAttributeSettingsService from '../../../../services/memberAttributeSettingsService'
@@ -24,7 +25,6 @@ import {
 import { IntegrationType, PlatformType } from '../../../../types/integrationEnums'
 import { timeout } from '../../../../utils/timing'
 import Operations from '../../../dbOperations/operations'
-import { DiscordGrid } from '../../grid/discordGrid'
 import getChannels from '../../usecases/discord/getChannels'
 import getMembers from '../../usecases/discord/getMembers'
 import getMessages from '../../usecases/discord/getMessages'
@@ -432,8 +432,8 @@ export class DiscordIntegrationService extends IntegrationServiceBase {
               }),
             },
           },
-          score: DiscordGrid.join.score,
-          isContribution: DiscordGrid.join.isContribution,
+          score: DISCORD_GRID[DiscordActivityType.JOINED_GUILD].score,
+          isContribution: DISCORD_GRID[DiscordActivityType.JOINED_GUILD].isContribution,
         })
       }
       return acc
@@ -568,8 +568,8 @@ export class DiscordIntegrationService extends IntegrationServiceBase {
               }),
             },
           },
-          score: DiscordGrid.message.score,
-          isContribution: DiscordGrid.message.isContribution,
+          score: DISCORD_GRID[DiscordActivityType.MESSAGE].score,
+          isContribution: DISCORD_GRID[DiscordActivityType.MESSAGE].isContribution,
         } as any
 
         activities.push(activityObject)

@@ -1,6 +1,6 @@
 import { get } from 'lodash'
 import GoogleStrategy from 'passport-google-oauth20'
-import { GOOGLE_CONFIG } from '../../../config'
+import { GOOGLE_CONFIG } from '../../../conf'
 import { databaseInit } from '../../../database/databaseConnection'
 import AuthService from '../authService'
 import { createServiceChildLogger } from '../../../utils/logging'

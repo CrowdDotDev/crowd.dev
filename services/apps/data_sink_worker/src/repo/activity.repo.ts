@@ -52,6 +52,44 @@ export default class ActivityRepository extends RepositoryBase<ActivityRepositor
     await this.db().none('delete from activities where id = $(id)', { id })
   }
 
+  private async updateParentIds(
+    tenantId: string,
+    id: string,
+    data: IDbActivityCreateData | IDbActivityUpdateData,
+  ): Promise<void> {
+    const promises: Promise<void>[] = [
+      this.db().none(
+        `
+        update activities set "parentId" = $(id)
+        where "tenantId" = $(tenantId) and "sourceParentId" = $(sourceId)
+      `,
+        {
+          id,
+          tenantId,
+          sourceId: data.sourceId,
+        },
+      ),
+    ]
+
+    if (data.sourceParentId) {
+      promises.push(
+        this.db().none(
+          `
+          update activities set "parentId" = (select id from activities where "tenantId" = $(tenantId) and "sourceId" = $(sourceParentId) limit 1)
+          where "id" = $(id) and "tenantId" = $(tenantId)
+          `,
+          {
+            id,
+            tenantId,
+            sourceParentId: data.sourceParentId,
+          },
+        ),
+      )
+    }
+
+    await Promise.all(promises)
+  }
+
   public async create(tenantId: string, data: IDbActivityCreateData): Promise<string> {
     const id = generateUUIDv1()
     const ts = new Date()
@@ -62,6 +100,9 @@ export default class ActivityRepository extends RepositoryBase<ActivityRepositor
     const query = this.dbInstance.helpers.insert(prepared, this.insertActivityColumnSet)
 
     await this.db().none(query)
+
+    await this.updateParentIds(tenantId, id, data)
+
     return id
   }
 
@@ -80,5 +121,7 @@ export default class ActivityRepository extends RepositoryBase<ActivityRepositor
     )
 
     this.checkUpdateRowCount(result.rowCount, 1)
+
+    await this.updateParentIds(tenantId, id, data)
   }
 }

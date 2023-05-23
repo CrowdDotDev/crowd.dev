@@ -59,24 +59,40 @@ export default class MemberRepository extends RepositoryBase<MemberRepository> {
   public async findIdentities(
     tenantId: string,
     identities: IMemberIdentity[],
-  ): Promise<Map<IMemberIdentity, string>> {
-    const identityParams = identities.map((identity) => [identity.platform, identity.username])
+    memberId?: string,
+  ): Promise<Map<string, string>> {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const params: any = {
+      tenantId,
+    }
+
+    let condition = ''
+    if (memberId) {
+      condition = 'and "memberId" <> $(memberId)'
+      params.memberId = memberId
+    }
+
+    const identityParams = identities
+      .map((identity) => `('${identity.platform}', '${identity.username}')`)
+      .join(', ')
 
     const result = await this.db().any(
       `
-      select "memberId", platform, username fom "memberIdentities"
-      where "tenantId" = $(tenantId) and (platform, username) = any($(identityParams)::text[][]);
+      with input_identities (platform, username) as (
+        values ${identityParams}
+      )
+      select "memberId", i.platform, i.username
+      from "memberIdentities" mi
+        inner join input_identities i on mi.platform = i.platform and mi.username = i.username
+      where mi."tenantId" = $(tenantId) ${condition}
     `,
-      {
-        tenantId,
-        identityParams,
-      },
+      params,
     )
 
     // Map the result to a Map<IMemberIdentity, string>
-    const resultMap = new Map<IMemberIdentity, string>()
+    const resultMap = new Map<string, string>()
     result.forEach((row) => {
-      resultMap.set({ platform: row.platform, username: row.username }, row.memberId)
+      resultMap.set(`${row.platform}:${row.username}`, row.memberId)
     })
 
     return resultMap
@@ -97,6 +113,7 @@ export default class MemberRepository extends RepositoryBase<MemberRepository> {
         reach: {
           total: -1,
         },
+        weakIdentities: JSON.stringify(data.weakIdentities || []),
         createdAt: ts,
         updatedAt: ts,
       },
@@ -109,7 +126,11 @@ export default class MemberRepository extends RepositoryBase<MemberRepository> {
 
   public async update(id: string, tenantId: string, data: IDbMemberUpdateData): Promise<void> {
     const prepared = RepositoryBase.prepare(
-      { ...data, updatedAt: new Date() },
+      {
+        ...data,
+        weakIdentities: JSON.stringify(data.weakIdentities || []),
+        updatedAt: new Date(),
+      },
       this.updateMemberColumnSet,
     )
     const query = this.dbInstance.helpers.update(prepared, this.updateMemberColumnSet)

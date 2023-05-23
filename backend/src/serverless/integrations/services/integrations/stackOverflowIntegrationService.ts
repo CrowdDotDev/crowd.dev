@@ -1,5 +1,6 @@
 import sanitizeHtml from 'sanitize-html'
 import he from 'he'
+import { StackOverflowActivityType, STACKOVERFLOW_GRID } from '@crowd/integrations'
 import {
   IStepContext,
   IIntegrationStream,
@@ -19,14 +20,12 @@ import getQuestionsByKeyword from '../../usecases/stackoverflow/getQuestionsByKe
 import getAnswers from '../../usecases/stackoverflow/getAnswers'
 import Operations from '../../../dbOperations/operations'
 import { AddActivitiesSingle, Member, PlatformIdentities } from '../../types/messageTypes'
-import { StackOverflowGrid } from '../../grid/stackOverflowGrid'
 import getUser from '../../usecases/stackoverflow/getUser'
 import MemberAttributeSettingsService from '../../../../services/memberAttributeSettingsService'
 import { StackOverflowMemberAttributes } from '../../../../database/attributes/member/stackOverflow'
 import { MemberAttributeName } from '../../../../database/attributes/member/enums'
 import { createRedisClient } from '../../../../utils/redis'
 import { RedisCache } from '../../../../utils/redis/redisCache'
-import { StackOverflowActivityType } from '../../../../types/activityTypes'
 
 /* eslint class-methods-use-this: 0 */
 
@@ -359,8 +358,8 @@ export class StackOverlflowIntegrationService extends IntegrationServiceBase {
       body,
       title: question.title,
       url: `https://stackoverflow.com/questions/${question.question_id}`,
-      score: StackOverflowGrid[StackOverflowActivityType.QUESTION].score,
-      isContribution: StackOverflowGrid[StackOverflowActivityType.QUESTION].isContribution,
+      score: STACKOVERFLOW_GRID[StackOverflowActivityType.QUESTION].score,
+      isContribution: STACKOVERFLOW_GRID[StackOverflowActivityType.QUESTION].isContribution,
       attributes: {
         tags: question.tags,
         answerCount: question.answer_count,
@@ -414,8 +413,8 @@ export class StackOverlflowIntegrationService extends IntegrationServiceBase {
         platform: PlatformType.STACKOVERFLOW,
         timestamp: new Date(answer.creation_date * 1000),
         body,
-        score: StackOverflowGrid[StackOverflowActivityType.ANSWER].score,
-        isContribution: StackOverflowGrid[StackOverflowActivityType.ANSWER].isContribution,
+        score: STACKOVERFLOW_GRID[StackOverflowActivityType.ANSWER].score,
+        isContribution: STACKOVERFLOW_GRID[StackOverflowActivityType.ANSWER].isContribution,
         attributes: {
           ...(keyword && { keywordMentioned: keyword }),
           ...(tag && { tagMentioned: tag }),

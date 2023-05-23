@@ -1,6 +1,6 @@
 import Axios from 'axios'
 import lodash from 'lodash'
-import { NETLIFY_CONFIG } from '../config/index'
+import { NETLIFY_CONFIG } from '../conf/index'
 import { IServiceOptions } from './IServiceOptions'
 import ConversationSettingsRepository from '../database/repositories/conversationSettingsRepository'
 import SequelizeRepository from '../database/repositories/sequelizeRepository'

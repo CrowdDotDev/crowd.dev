@@ -1,5 +1,5 @@
 import htmlToMrkdwn from 'html-to-mrkdwn-ts'
-import { API_CONFIG } from '../../../../../../config'
+import { API_CONFIG } from '../../../../../../conf'
 import { integrationLabel } from '../../../../../../types/integrationEnums'
 
 const computeEngagementLevel = (score) => {

@@ -4,7 +4,7 @@ import {
   StackOverflowQuestionsResponse,
 } from '../../types/stackOverflowTypes'
 import { Logger } from '../../../../utils/logging'
-import { STACKEXCHANGE_CONFIG } from '../../../../config'
+import { STACKEXCHANGE_CONFIG } from '../../../../conf'
 import getToken from '../nango/getToken'
 import { timeout } from '../../../../utils/timing'
 import { RateLimitError } from '../../../../types/integration/rateLimitError'

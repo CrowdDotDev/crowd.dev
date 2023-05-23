@@ -1,6 +1,7 @@
 import moment from 'moment/moment'
 import sanitizeHtml from 'sanitize-html'
-import { SLACK_CONFIG } from '../../../../config'
+import { SLACK_GRID, SlackActivityType } from '@crowd/integrations'
+import { SLACK_CONFIG } from '../../../../conf'
 import {
   IIntegrationStream,
   IPendingStream,
@@ -21,7 +22,6 @@ import getTeam from '../../usecases/slack/getTeam'
 import { timeout } from '../../../../utils/timing'
 import { AddActivitiesSingle, Member, PlatformIdentities } from '../../types/messageTypes'
 import { MemberAttributeName } from '../../../../database/attributes/member/enums'
-import { SlackGrid } from '../../grid/slackGrid'
 import Operations from '../../../dbOperations/operations'
 import getMember from '../../usecases/slack/getMember'
 import getMembers from '../../usecases/slack/getMembers'
@@ -382,14 +382,14 @@ export class SlackIntegrationService extends IntegrationServiceBase {
         let sourceId
         if (record.subtype === 'channel_join') {
           activityType = 'channel_joined'
-          score = SlackGrid.join.score
-          isContribution = SlackGrid.join.isContribution
+          score = SLACK_GRID[SlackActivityType.JOINED_CHANNEL].score
+          isContribution = SLACK_GRID[SlackActivityType.JOINED_CHANNEL].isContribution
           body = undefined
           sourceId = record.user
         } else {
           activityType = 'message'
-          score = SlackGrid.message.score
-          isContribution = SlackGrid.message.isContribution
+          score = SLACK_GRID[SlackActivityType.MESSAGE].score
+          isContribution = SLACK_GRID[SlackActivityType.MESSAGE].isContribution
           sourceId = record.ts
         }
         activities.push({
@@ -462,8 +462,8 @@ export class SlackIntegrationService extends IntegrationServiceBase {
           reactions: record.reactions ? record.reactions : [],
           attachments: record.attachments ? record.attachments : [],
         },
-        score: SlackGrid.join.score,
-        isContribution: SlackGrid.join.isContribution,
+        score: SLACK_GRID[SlackActivityType.JOINED_CHANNEL].score,
+        isContribution: SLACK_GRID[SlackActivityType.JOINED_CHANNEL].isContribution,
         member,
       })
     }
@@ -512,8 +512,8 @@ export class SlackIntegrationService extends IntegrationServiceBase {
             attachments: record.attachments ? record.attachments : [],
           },
           member,
-          score: SlackGrid.message.score,
-          isContribution: SlackGrid.message.isContribution,
+          score: SLACK_GRID[SlackActivityType.MESSAGE].score,
+          isContribution: SLACK_GRID[SlackActivityType.MESSAGE].isContribution,
         })
       }
     }

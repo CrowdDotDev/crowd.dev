@@ -1,5 +1,5 @@
 import TwitterStrategy from '@superfaceai/passport-twitter-oauth2'
-import { API_CONFIG, TWITTER_CONFIG } from '../../../config'
+import { API_CONFIG, TWITTER_CONFIG } from '../../../conf'
 import RedisPKCEStore from './redisPKCEStore'
 import { RedisClient } from '../../../utils/redis'
 import { RedisCache } from '../../../utils/redis/redisCache'

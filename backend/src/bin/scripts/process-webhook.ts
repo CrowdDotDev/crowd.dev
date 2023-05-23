@@ -9,7 +9,7 @@ import IncomingWebhookRepository from '../../database/repositories/incomingWebho
 import { WebhookState, WebhookType } from '../../types/webhooks'
 import { NodeWorkerProcessWebhookMessage } from '../../types/mq/nodeWorkerProcessWebhookMessage'
 import { sqs, getCurrentQueueSize } from '../../services/aws'
-import { SQS_CONFIG } from '../../config'
+import { SQS_CONFIG } from '../../conf'
 import { timeout } from '../../utils/timing'
 
 /* eslint-disable no-console */

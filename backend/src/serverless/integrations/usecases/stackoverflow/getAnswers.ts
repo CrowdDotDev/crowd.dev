@@ -7,7 +7,7 @@ import { Logger } from '../../../../utils/logging'
 import getToken from '../nango/getToken'
 import { timeout } from '../../../../utils/timing'
 import { RateLimitError } from '../../../../types/integration/rateLimitError'
-import { STACKEXCHANGE_CONFIG } from '../../../../config'
+import { STACKEXCHANGE_CONFIG } from '../../../../conf'
 
 /**
  * Get paginated questions from StackOverflow given a set of tags

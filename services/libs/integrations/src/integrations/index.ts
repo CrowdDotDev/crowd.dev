@@ -1,32 +1,30 @@
-import { getServiceChildLogger } from '@crowd/logging'
-import fs from 'fs'
-import path from 'path'
-import { IIntegrationDescriptor } from '../types'
-import devto from './devto'
+export * from './activityTypes'
+export * from './prettyActivityTypes'
+export * from './loader'
 
-const log = getServiceChildLogger('integrations')
+export * from './devto/grid'
+export * from './devto/types'
 
-export const INTEGRATION_SERVICES: IIntegrationDescriptor[] = [devto]
+export * from './github/grid'
+export * from './github/types'
 
-log.info(
-  { types: INTEGRATION_SERVICES.map((i) => i.type) },
-  `Loaded ${INTEGRATION_SERVICES.length} integrations`,
-)
+export * from './twitter/grid'
+export * from './twitter/types'
 
-// add premium integrations - check for js because library is compiled to javascript
-const premiumIndexFile = path.resolve(`${__dirname}/premium/index.js`)
-log.info({ premiumIndexFile }, 'Checking for premium integrations!')
+export * from './slack/grid'
+export * from './slack/types'
 
-if (fs.existsSync(premiumIndexFile)) {
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
-  const premiumIntegrations: IIntegrationDescriptor[] = require('./premium').default
+export * from './reddit/grid'
+export * from './reddit/types'
 
-  if (premiumIntegrations.length > 0) {
-    INTEGRATION_SERVICES.push(...premiumIntegrations)
+export * from './discord/grid'
+export * from './discord/types'
 
-    log.info(
-      { types: premiumIntegrations.map((i) => i.type) },
-      `Loaded ${premiumIntegrations.length} premium integrations`,
-    )
-  }
-}
+export * from './hackernews/grid'
+export * from './hackernews/types'
+
+export * from './stackoverflow/grid'
+export * from './stackoverflow/types'
+
+export * from './premium/linkedin/grid'
+export * from './premium/linkedin/types'

@@ -1,4 +1,4 @@
-import { SEARCH_ENGINE_CONFIG } from '../config/index'
+import { SEARCH_ENGINE_CONFIG } from '../conf/index'
 import { searchEngineInit } from '../search-engine/searchEngineConnection'
 import { getServiceLogger } from '../utils/logging'
 

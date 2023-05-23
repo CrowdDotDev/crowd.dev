@@ -1,5 +1,5 @@
 import { createServiceChildLogger } from '../../utils/logging'
-import { KUBE_MODE } from '../../config/index'
+import { KUBE_MODE } from '../../conf/index'
 import bulkOperations from './operationsWorker'
 import getUserContext from '../../database/utils/getUserContext'
 

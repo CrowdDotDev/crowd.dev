@@ -1,5 +1,5 @@
 import passport from 'passport'
-import { TWITTER_CONFIG, SLACK_CONFIG, GOOGLE_CONFIG } from '../config'
+import { TWITTER_CONFIG, SLACK_CONFIG, GOOGLE_CONFIG } from '../conf'
 import { getTwitterStrategy } from '../services/auth/passportStrategies/twitterStrategy'
 import { getSlackStrategy } from '../services/auth/passportStrategies/slackStrategy'
 import { getServiceLogger } from '../utils/logging'

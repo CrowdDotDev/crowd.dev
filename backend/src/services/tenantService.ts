@@ -1,4 +1,4 @@
-import { TENANT_MODE } from '../config/index'
+import { TENANT_MODE } from '../conf/index'
 import TenantRepository from '../database/repositories/tenantRepository'
 import TenantUserRepository from '../database/repositories/tenantUserRepository'
 import Error400 from '../errors/Error400'
@@ -21,7 +21,7 @@ import MicroserviceRepository from '../database/repositories/microserviceReposit
 import ConversationRepository from '../database/repositories/conversationRepository'
 import MemberAttributeSettingsService from './memberAttributeSettingsService'
 import { DefaultMemberAttributes } from '../database/attributes/member/default'
-import { TenantMode } from '../config/configTypes'
+import { TenantMode } from '../conf/configTypes'
 import TaskRepository from '../database/repositories/taskRepository'
 
 export default class TenantService {

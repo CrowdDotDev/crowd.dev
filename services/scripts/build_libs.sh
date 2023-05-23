@@ -12,6 +12,7 @@ LIBRARIES=(
   "database"
   "redis"
   "sqs"
+  "sentiment"
   "integrations"
 )
 

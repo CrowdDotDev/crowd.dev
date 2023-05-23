@@ -1,6 +1,6 @@
 import fetch from 'node-fetch'
 import SlackStrategy from 'passport-slack'
-import { SLACK_CONFIG, API_CONFIG, SLACK_NOTIFIER_CONFIG } from '../../../config'
+import { SLACK_CONFIG, API_CONFIG, SLACK_NOTIFIER_CONFIG } from '../../../conf'
 import { PlatformType } from '../../../types/integrationEnums'
 
 export function getSlackStrategy(): SlackStrategy {

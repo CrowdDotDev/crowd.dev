@@ -28,6 +28,7 @@ export interface IDbActivityCreateData {
   score: number
   sourceId: string
   sourceParentId?: string
+  parentId?: string
   tenantId: string
   memberId: string
   username: string
@@ -78,14 +79,14 @@ export const getInsertActivityColumnSet = (instance: DbInstance): DbColumnSet =>
 }
 
 export interface IDbActivityUpdateData {
-  type?: string
-  isContribution?: boolean
-  score?: number
-  sourceId?: string
+  type: string
+  isContribution: boolean
+  score: number
+  sourceId: string
   sourceParentId?: string
-  memberId?: string
-  username?: string
-  sentiment?: ISentimentAnalysisResult
+  memberId: string
+  username: string
+  sentiment: ISentimentAnalysisResult
   attributes?: Record<string, unknown>
   body?: string
   title?: string

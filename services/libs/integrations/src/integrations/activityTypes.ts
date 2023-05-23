@@ -1,119 +1,28 @@
-import { DevtoGrid } from '../serverless/integrations/grid/devtoGrid'
-import { DiscordGrid } from '../serverless/integrations/grid/discordGrid'
-import { GitHubGrid } from '../serverless/integrations/grid/githubGrid'
-import { HackerNewsGrid } from '../serverless/integrations/grid/hackerNewsGrid'
-import { LinkedInGrid } from '../serverless/integrations/grid/linkedinGrid'
-import { RedditGrid } from '../serverless/integrations/grid/redditGrid'
-import { SlackGrid } from '../serverless/integrations/grid/slackGrid'
-import { StackOverflowGrid } from '../serverless/integrations/grid/stackOverflowGrid'
-import { TwitterGrid } from '../serverless/integrations/grid/twitterGrid'
-import isUrl from '../utils/isUrl'
-import { PlatformType } from './integrationEnums'
+import { ActivityTypeDisplayProperties, DefaultActivityTypes, PlatformType } from '@crowd/types'
+import { DevToActivityType } from './devto/types'
+import { GithubActivityType } from './github/types'
+import { LinkedinActivityType } from './premium/linkedin/types'
+import { StackOverflowActivityType } from './stackoverflow/types'
+import { TwitterActivityType } from './twitter/types'
+import { SlackActivityType } from './slack/types'
+import { RedditActivityType } from './reddit/types'
+import { HackerNewsActivityType } from './hackernews/types'
+import { isUrl } from '@crowd/common'
+import { DiscordActivityType } from './discord/types'
+import { GITHUB_GRID } from './github/grid'
+import { DEVTO_GRID } from './devto/grid'
+import { DISCORD_GRID } from './discord/grid'
+import { HACKERNEWS_GRID } from './hackernews/grid'
+import { LINKEDIN_GRID } from './premium/linkedin/grid'
+import { REDDIT_GRID } from './reddit/grid'
+import { SLACK_GRID } from './slack/grid'
+import { TWITTER_GRID } from './twitter/grid'
+import { STACKOVERFLOW_GRID } from './stackoverflow/grid'
 
-export enum ActivityDisplayVariant {
-  DEFAULT = 'default',
-  SHORT = 'short',
-  CHANNEL = 'channel',
-}
-
-export type ActivityTypeSettings = {
-  default: DefaultActivityTypes
-  custom: CustomActivityTypes
-}
-
-export type DefaultActivityTypes = {
-  [key in PlatformType]?: {
-    [key: string]: {
-      display: ActivityTypeDisplayProperties
-      isContribution: boolean
-    }
-  }
-}
-
-export type CustomActivityTypes = {
-  [key: string]: {
-    [key: string]: {
-      display: ActivityTypeDisplayProperties
-      isContribution: boolean
-    }
-  }
-}
-
-export type ActivityTypeDisplayProperties = {
-  [ActivityDisplayVariant.DEFAULT]: string
-  [ActivityDisplayVariant.SHORT]: string
-  [ActivityDisplayVariant.CHANNEL]: string
-  formatter?: { [key: string]: (input: any) => string }
-}
-
-export enum DevtoActivityType {
-  COMMENT = 'comment',
-}
-
-export enum DiscordtoActivityType {
-  JOINED_GUILD = 'joined_guild',
-  MESSAGE = 'message',
-  THREAD_STARTED = 'thread_started',
-  THREAD_MESSAGE = 'thread_message',
-}
-
-export enum GithubPullRequestEvents {
-  REQUEST_REVIEW = 'ReviewRequestedEvent',
-  REVIEW = 'PullRequestReview',
-  ASSIGN = 'AssignedEvent',
-  MERGE = 'MergedEvent',
-  CLOSE = 'ClosedEvent',
-}
-
-export enum GithubActivityType {
-  DISCUSSION_STARTED = 'discussion-started',
-  PULL_REQUEST_OPENED = 'pull_request-opened',
-  PULL_REQUEST_CLOSED = 'pull_request-closed',
-  PULL_REQUEST_REVIEW_REQUESTED = 'pull_request-review-requested',
-  PULL_REQUEST_REVIEWED = 'pull_request-reviewed',
-  PULL_REQUEST_ASSIGNED = 'pull_request-assigned',
-  PULL_REQUEST_MERGED = 'pull_request-merged',
-  ISSUE_OPENED = 'issues-opened',
-  ISSUE_CLOSED = 'issues-closed',
-  FORK = 'fork',
-  STAR = 'star',
-  UNSTAR = 'unstar',
-  PULL_REQUEST_COMMENT = 'pull_request-comment',
-  PULL_REQUEST_REVIEW_THREAD_COMMENT = 'pull_request-review-thread-comment',
-  ISSUE_COMMENT = 'issue-comment',
-  DISCUSSION_COMMENT = 'discussion-comment',
-}
-
-export enum HackerNewsActivityType {
-  POST = 'post',
-  COMMENT = 'comment',
-}
-
-export enum LinkedinActivityType {
-  MESSAGE = 'message',
-  COMMENT = 'comment',
-  REACTION = 'reaction',
-}
-
-export enum RedditActivityType {
-  POST = 'post',
-  COMMENT = 'comment',
-}
-
-export enum SlackActivityType {
-  JOINED_CHANNEL = 'channel_joined',
-  MESSAGE = 'message',
-}
-
-export enum TwitterActivityType {
-  HASHTAG = 'hashtag',
-  MENTION = 'mention',
-  FOLLOW = 'follow',
-}
-
-export enum StackOverflowActivityType {
-  QUESTION = 'question',
-  ANSWER = 'answer',
+export const UNKNOWN_ACTIVITY_TYPE_DISPLAY: ActivityTypeDisplayProperties = {
+  default: 'Conducted an activity',
+  short: 'conducted an activity',
+  channel: '',
 }
 
 const githubUrl = 'https://github.com'
@@ -141,12 +50,6 @@ const defaultStackoverflowFormatter = (activity) => {
   return ''
 }
 
-export const UNKNOWN_ACTIVITY_TYPE_DISPLAY: ActivityTypeDisplayProperties = {
-  default: 'Conducted an activity',
-  short: 'conducted an activity',
-  channel: '',
-}
-
 export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
   [PlatformType.GITHUB]: {
     [GithubActivityType.DISCUSSION_STARTED]: {
@@ -158,7 +61,7 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
           channel: defaultGithubChannelFormatter,
         },
       },
-      isContribution: GitHubGrid.discussionOpened.isContribution,
+      isContribution: GITHUB_GRID[GithubActivityType.DISCUSSION_STARTED].isContribution,
     },
     [GithubActivityType.DISCUSSION_COMMENT]: {
       display: {
@@ -169,7 +72,7 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
           channel: defaultGithubChannelFormatter,
         },
       },
-      isContribution: GitHubGrid.comment.isContribution,
+      isContribution: GITHUB_GRID[GithubActivityType.DISCUSSION_COMMENT].isContribution,
     },
     [GithubActivityType.FORK]: {
       display: {
@@ -180,7 +83,7 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
           channel: defaultGithubChannelFormatter,
         },
       },
-      isContribution: GitHubGrid.fork.isContribution,
+      isContribution: GITHUB_GRID.fork.isContribution,
     },
     [GithubActivityType.ISSUE_CLOSED]: {
       display: {
@@ -191,7 +94,7 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
           channel: defaultGithubChannelFormatter,
         },
       },
-      isContribution: GitHubGrid.issueClosed.isContribution,
+      isContribution: GITHUB_GRID[GithubActivityType.ISSUE_CLOSED].isContribution,
     },
     [GithubActivityType.ISSUE_OPENED]: {
       display: {
@@ -202,7 +105,7 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
           channel: defaultGithubChannelFormatter,
         },
       },
-      isContribution: GitHubGrid.issueOpened.isContribution,
+      isContribution: GITHUB_GRID[GithubActivityType.ISSUE_OPENED].isContribution,
     },
     [GithubActivityType.ISSUE_COMMENT]: {
       display: {
@@ -213,7 +116,7 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
           channel: defaultGithubChannelFormatter,
         },
       },
-      isContribution: GitHubGrid.comment.isContribution,
+      isContribution: GITHUB_GRID[GithubActivityType.ISSUE_COMMENT].isContribution,
     },
     [GithubActivityType.PULL_REQUEST_CLOSED]: {
       display: {
@@ -224,7 +127,7 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
           channel: defaultGithubChannelFormatter,
         },
       },
-      isContribution: GitHubGrid.pullRequestClosed.isContribution,
+      isContribution: GITHUB_GRID[GithubActivityType.PULL_REQUEST_CLOSED].isContribution,
     },
     [GithubActivityType.PULL_REQUEST_OPENED]: {
       display: {
@@ -235,7 +138,7 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
           channel: defaultGithubChannelFormatter,
         },
       },
-      isContribution: GitHubGrid.pullRequestOpened.isContribution,
+      isContribution: GITHUB_GRID[GithubActivityType.PULL_REQUEST_OPENED].isContribution,
     },
     [GithubActivityType.PULL_REQUEST_COMMENT]: {
       display: {
@@ -246,7 +149,7 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
           channel: defaultGithubChannelFormatter,
         },
       },
-      isContribution: GitHubGrid.comment.isContribution,
+      isContribution: GITHUB_GRID[GithubActivityType.PULL_REQUEST_COMMENT].isContribution,
     },
     [GithubActivityType.STAR]: {
       display: {
@@ -257,7 +160,7 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
           channel: defaultGithubChannelFormatter,
         },
       },
-      isContribution: GitHubGrid.star.isContribution,
+      isContribution: GITHUB_GRID[GithubActivityType.STAR].isContribution,
     },
     [GithubActivityType.UNSTAR]: {
       display: {
@@ -268,7 +171,7 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
           channel: defaultGithubChannelFormatter,
         },
       },
-      isContribution: GitHubGrid.unStar.isContribution,
+      isContribution: GITHUB_GRID[GithubActivityType.UNSTAR].isContribution,
     },
     [GithubActivityType.PULL_REQUEST_MERGED]: {
       display: {
@@ -283,7 +186,7 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
           },
         },
       },
-      isContribution: GitHubGrid.pullRequestMerged.isContribution,
+      isContribution: GITHUB_GRID[GithubActivityType.PULL_REQUEST_MERGED].isContribution,
     },
     [GithubActivityType.PULL_REQUEST_ASSIGNED]: {
       display: {
@@ -298,7 +201,7 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
           },
         },
       },
-      isContribution: GitHubGrid.pullRequestAssigned.isContribution,
+      isContribution: GITHUB_GRID[GithubActivityType.PULL_REQUEST_ASSIGNED].isContribution,
     },
     [GithubActivityType.PULL_REQUEST_REVIEWED]: {
       display: {
@@ -313,7 +216,7 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
           },
         },
       },
-      isContribution: GitHubGrid.pullRequestReviewed.isContribution,
+      isContribution: GITHUB_GRID[GithubActivityType.PULL_REQUEST_REVIEWED].isContribution,
     },
     [GithubActivityType.PULL_REQUEST_REVIEW_REQUESTED]: {
       display: {
@@ -328,7 +231,7 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
           },
         },
       },
-      isContribution: GitHubGrid.pullRequestReviewRequested.isContribution,
+      isContribution: GITHUB_GRID[GithubActivityType.PULL_REQUEST_REVIEW_REQUESTED].isContribution,
     },
     [GithubActivityType.PULL_REQUEST_REVIEW_THREAD_COMMENT]: {
       display: {
@@ -345,11 +248,12 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
           },
         },
       },
-      isContribution: GitHubGrid.pullRequestReviewRequested.isContribution,
+      isContribution:
+        GITHUB_GRID[GithubActivityType.PULL_REQUEST_REVIEW_THREAD_COMMENT].isContribution,
     },
   },
   [PlatformType.DEVTO]: {
-    [DevtoActivityType.COMMENT]: {
+    [DevToActivityType.COMMENT]: {
       display: {
         default:
           'commented on <a href="{attributes.articleUrl}" class="truncate max-w-2xs">{attributes.articleTitle}</a>',
@@ -357,36 +261,36 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
         channel:
           '<a href="{attributes.articleUrl}" class="truncate max-w-2xs">{attributes.articleTitle}</a>',
       },
-      isContribution: DevtoGrid.comment.isContribution,
+      isContribution: DEVTO_GRID[DevToActivityType.COMMENT].isContribution,
     },
   },
   [PlatformType.DISCORD]: {
-    [DiscordtoActivityType.JOINED_GUILD]: {
+    [DiscordActivityType.JOINED_GUILD]: {
       display: {
         default: 'joined server',
         short: 'joined server',
         channel: '',
       },
-      isContribution: DiscordGrid.join.isContribution,
+      isContribution: DISCORD_GRID[DiscordActivityType.JOINED_GUILD].isContribution,
     },
-    [DiscordtoActivityType.MESSAGE]: {
+    [DiscordActivityType.MESSAGE]: {
       display: {
         default:
           'sent a message in <span class="text-brand-500 truncate max-w-2xs">#{channel}</span>',
         short: 'sent a message',
         channel: '<span class="text-brand-500 truncate max-w-2xs">#{channel}</span>',
       },
-      isContribution: DiscordGrid.message.isContribution,
+      isContribution: DISCORD_GRID[DiscordActivityType.MESSAGE].isContribution,
     },
-    [DiscordtoActivityType.THREAD_STARTED]: {
+    [DiscordActivityType.THREAD_STARTED]: {
       display: {
         default: 'started a new thread',
         short: 'started a new thread',
         channel: '',
       },
-      isContribution: DiscordGrid.message.isContribution,
+      isContribution: DISCORD_GRID[DiscordActivityType.THREAD_STARTED].isContribution,
     },
-    [DiscordtoActivityType.THREAD_MESSAGE]: {
+    [DiscordActivityType.THREAD_MESSAGE]: {
       display: {
         default:
           'replied to a message in thread <span class="text-brand-500 truncate max-w-2xs">#{channel}</span> -> <span class="text-brand-500">{attributes.childChannel}</span>',
@@ -394,7 +298,7 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
         channel:
           '<span class="text-brand-500 truncate max-w-2xs">thread #{channel}</span> -> <span class="text-brand-500">#{attributes.childChannel}</span>',
       },
-      isContribution: DiscordGrid.message.isContribution,
+      isContribution: DISCORD_GRID[DiscordActivityType.THREAD_MESSAGE].isContribution,
     },
   },
   [PlatformType.HACKERNEWS]: {
@@ -413,7 +317,7 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
           },
         },
       },
-      isContribution: HackerNewsGrid.comment.isContribution,
+      isContribution: HACKERNEWS_GRID[HackerNewsActivityType.COMMENT].isContribution,
     },
     [HackerNewsActivityType.POST]: {
       display: {
@@ -429,7 +333,7 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
           },
         },
       },
-      isContribution: HackerNewsGrid.post.isContribution,
+      isContribution: HACKERNEWS_GRID[HackerNewsActivityType.POST].isContribution,
     },
   },
   [PlatformType.LINKEDIN]: {
@@ -440,7 +344,7 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
         short: 'commented',
         channel: '<a href="{attributes.postUrl}" target="_blank">{attributes.postBody}</a>',
       },
-      isContribution: LinkedInGrid.comment.isContribution,
+      isContribution: LINKEDIN_GRID[LinkedinActivityType.COMMENT].isContribution,
     },
     [LinkedinActivityType.REACTION]: {
       display: {
@@ -449,7 +353,7 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
         short: 'reacted',
         channel: '<a href="{attributes.postUrl}" target="_blank">{attributes.postBody}</a>',
       },
-      isContribution: LinkedInGrid.reaction.isContribution,
+      isContribution: LINKEDIN_GRID[LinkedinActivityType.REACTION].isContribution,
     },
   },
   [PlatformType.REDDIT]: {
@@ -460,7 +364,7 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
         short: 'commented on a post',
         channel: '<a href="https://reddit.com/r/{channel}" target="_blank">r/{channel}</a>',
       },
-      isContribution: RedditGrid.comment.isContribution,
+      isContribution: REDDIT_GRID[RedditActivityType.COMMENT].isContribution,
     },
     [RedditActivityType.POST]: {
       display: {
@@ -469,7 +373,7 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
         short: 'posted in subreddit',
         channel: '<a href="https://reddit.com/r/{channel}" target="_blank">r/{channel}</a>',
       },
-      isContribution: RedditGrid.post.isContribution,
+      isContribution: REDDIT_GRID[RedditActivityType.POST].isContribution,
     },
   },
   [PlatformType.SLACK]: {
@@ -487,7 +391,7 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
           },
         },
       },
-      isContribution: SlackGrid.join.isContribution,
+      isContribution: SLACK_GRID[SlackActivityType.JOINED_CHANNEL].isContribution,
     },
     [SlackActivityType.MESSAGE]: {
       display: {
@@ -503,7 +407,7 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
           },
         },
       },
-      isContribution: SlackGrid.message.isContribution,
+      isContribution: SLACK_GRID[SlackActivityType.MESSAGE].isContribution,
     },
   },
   [PlatformType.TWITTER]: {
@@ -513,7 +417,7 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
         short: 'posted a tweet',
         channel: '',
       },
-      isContribution: TwitterGrid.hashtag.isContribution,
+      isContribution: TWITTER_GRID[TwitterActivityType.HASHTAG].isContribution,
     },
     [TwitterActivityType.FOLLOW]: {
       display: {
@@ -521,7 +425,7 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
         short: 'followed you',
         channel: '',
       },
-      isContribution: TwitterGrid.follow.isContribution,
+      isContribution: TWITTER_GRID[TwitterActivityType.FOLLOW].isContribution,
     },
     [TwitterActivityType.MENTION]: {
       display: {
@@ -529,7 +433,7 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
         short: 'mentioned you',
         channel: '',
       },
-      isContribution: TwitterGrid.mention.isContribution,
+      isContribution: TWITTER_GRID[TwitterActivityType.MENTION].isContribution,
     },
   },
   [PlatformType.STACKOVERFLOW]: {
@@ -542,7 +446,7 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
           self: defaultStackoverflowFormatter,
         },
       },
-      isContribution: StackOverflowGrid.question.isContribution,
+      isContribution: STACKOVERFLOW_GRID[StackOverflowActivityType.QUESTION].isContribution,
     },
     [StackOverflowActivityType.ANSWER]: {
       display: {
@@ -553,7 +457,7 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
           self: defaultStackoverflowFormatter,
         },
       },
-      isContribution: StackOverflowGrid.answer.isContribution,
+      isContribution: STACKOVERFLOW_GRID[StackOverflowActivityType.ANSWER].isContribution,
     },
   },
 }

@@ -1,6 +1,6 @@
 import moment from 'moment'
 import axios from 'axios'
-import { EAGLE_EYE_CONFIG } from '../config'
+import { EAGLE_EYE_CONFIG } from '../conf'
 import { IServiceOptions } from './IServiceOptions'
 import EagleEyeContentRepository from '../database/repositories/eagleEyeContentRepository'
 import { LoggingBase } from './loggingBase'

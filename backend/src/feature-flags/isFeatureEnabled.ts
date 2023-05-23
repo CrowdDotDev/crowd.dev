@@ -1,5 +1,5 @@
 import { Unleash } from 'unleash-client'
-import { API_CONFIG } from '../config'
+import { API_CONFIG } from '../conf'
 import { FeatureFlag, Edition } from '../types/common'
 import getFeatureFlagTenantContext from './getFeatureFlagTenantContext'
 import Plans from '../security/plans'

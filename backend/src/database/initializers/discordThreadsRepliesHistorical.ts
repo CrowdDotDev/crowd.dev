@@ -10,7 +10,7 @@ import { getServiceLogger } from '../../utils/logging'
 import TenantService from '../../services/tenantService'
 import ActivityService from '../../services/activityService'
 import IntegrationService from '../../services/integrationService'
-import { DISCORD_CONFIG } from '../../config'
+import { DISCORD_CONFIG } from '../../conf'
 import getUserContext from '../utils/getUserContext'
 import { PlatformType } from '../../types/integrationEnums'
 

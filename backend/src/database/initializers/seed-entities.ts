@@ -12,7 +12,7 @@ import { getServiceLogger } from '../../utils/logging'
 
 import conversations from './entities/2022-04-27-add-conversations'
 import microservices from './entities/2022-04-05-add-microservices'
-import { IS_DEV_ENV } from '../../config/index'
+import { IS_DEV_ENV } from '../../conf/index'
 
 const log = getServiceLogger()
 

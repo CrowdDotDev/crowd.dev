@@ -10,7 +10,6 @@ import { RedisClient } from '../../../utils/redis'
 import RedisPubSubEmitter from '../../../utils/redis/pubSubEmitter'
 import { IntegrationCheckProcessor } from './integrationCheckProcessor'
 import { IntegrationRunProcessor } from './integrationRunProcessor'
-import { DevtoIntegrationService } from './integrations/devtoIntegrationService'
 import { DiscordIntegrationService } from './integrations/discordIntegrationService'
 import { GithubIntegrationService } from './integrations/githubIntegrationService'
 import { HackerNewsIntegrationService } from './integrations/hackerNewsIntegrationService'
@@ -36,7 +35,6 @@ export class IntegrationProcessor extends LoggingBase {
     super(options)
 
     const integrationServices = [
-      new DevtoIntegrationService(),
       new DiscordIntegrationService(),
       new HackerNewsIntegrationService(),
       new RedditIntegrationService(),

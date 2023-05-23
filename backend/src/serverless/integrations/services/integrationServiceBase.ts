@@ -12,7 +12,7 @@ import {
   IStreamResultOperation,
 } from '../../../types/integration/stepResult'
 import { IntegrationType } from '../../../types/integrationEnums'
-import { IS_TEST_ENV } from '../../../config'
+import { IS_TEST_ENV } from '../../../conf'
 import { sendNodeWorkerMessage } from '../../utils/nodeWorkerSQS'
 import { NodeWorkerIntegrationProcessMessage } from '../../../types/mq/nodeWorkerIntegrationProcessMessage'
 import IntegrationRunRepository from '../../../database/repositories/integrationRunRepository'

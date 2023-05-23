@@ -2,7 +2,7 @@ import * as Bunyan from 'bunyan'
 import BunyanFormat from 'bunyan-format'
 import { performance } from 'perf_hooks'
 import moment from 'moment'
-import { LOG_LEVEL, IS_DEV_ENV, IS_TEST_ENV, SERVICE } from '../config'
+import { LOG_LEVEL, IS_DEV_ENV, IS_TEST_ENV, SERVICE } from '../conf'
 
 export type Logger = Bunyan
 

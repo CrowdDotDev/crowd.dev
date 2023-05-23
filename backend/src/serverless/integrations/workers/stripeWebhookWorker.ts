@@ -1,6 +1,6 @@
 import moment from 'moment'
 import { Stripe } from 'stripe'
-import { PLANS_CONFIG } from '../../../config'
+import { PLANS_CONFIG } from '../../../conf'
 import SequelizeRepository from '../../../database/repositories/sequelizeRepository'
 import Plans from '../../../security/plans'
 import { ApiWebsocketMessage } from '../../../types/mq/apiWebsocketMessage'

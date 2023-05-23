@@ -49,6 +49,7 @@ export class WorkerQueueReceiver extends SqsQueueReceiver {
       }
     } catch (err) {
       this.log.error(err, 'Error while processing message!')
+      throw err
     }
   }
 }

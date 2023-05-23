@@ -8,7 +8,7 @@ import { MemberAttributeName } from '../../attributes/member/enums'
 import MemberAttributeSettingsRepository from '../memberAttributeSettingsRepository'
 import MemberAttributeSettingsService from '../../../services/memberAttributeSettingsService'
 import { DefaultMemberAttributes } from '../../attributes/member/default'
-import { UNKNOWN_ACTIVITY_TYPE_DISPLAY } from '../../../types/activityTypes'
+import { UNKNOWN_ACTIVITY_TYPE_DISPLAY } from '@crowd/integrations'
 
 const db = null
 

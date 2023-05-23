@@ -1,4 +1,5 @@
 import config from 'config'
+
 import {
   SQSConfiguration,
   S3Configuration,

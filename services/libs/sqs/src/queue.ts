@@ -5,13 +5,14 @@ import {
   ReceiveMessageRequest,
   SendMessageRequest,
 } from '@aws-sdk/client-sqs'
-import { timeout } from '@crowd/common'
+import { IS_PROD_ENV, IS_STAGING_ENV, timeout } from '@crowd/common'
 import { Logger, LoggerBase } from '@crowd/logging'
 import { deleteMessage, receiveMessage, sendMessage } from './client'
 import { ISqsQueueConfig, SqsClient, SqsMessage, SqsQueueType } from './types'
 import { IQueueMessage } from '@crowd/types'
 
 export abstract class SqsQueueBase extends LoggerBase {
+  private readonly queueName: string
   private queueUrl: string | undefined
   protected readonly isFifo: boolean
 
@@ -26,6 +27,19 @@ export abstract class SqsQueueBase extends LoggerBase {
     })
 
     this.isFifo = queueConf.type === SqsQueueType.FIFO
+
+    let env = ''
+    if (IS_STAGING_ENV) {
+      env = '-staging'
+    } else if (IS_PROD_ENV) {
+      env = '-production'
+    }
+
+    if (this.isFifo) {
+      this.queueName = `${queueConf.name}${env}.fifo`
+    } else {
+      this.queueName = `${queueConf.name}${env}`
+    }
   }
 
   public isInitialized(): boolean {
@@ -43,10 +57,7 @@ export abstract class SqsQueueBase extends LoggerBase {
   public async init() {
     try {
       const cmd = new GetQueueUrlCommand({
-        QueueName:
-          this.queueConf.type === SqsQueueType.FIFO
-            ? `${this.queueConf.name}.fifo`
-            : this.queueConf.name,
+        QueueName: this.queueName,
       })
       const result = await this.sqsClient.send(cmd)
       this.log.info('Queue exists!')
@@ -55,10 +66,7 @@ export abstract class SqsQueueBase extends LoggerBase {
       if (err.name === 'QueueDoesNotExist') {
         this.log.info('Queue does not exist, creating...')
         const createCommand = new CreateQueueCommand({
-          QueueName:
-            this.queueConf.type === SqsQueueType.FIFO
-              ? `${this.queueConf.name}.fifo`
-              : this.queueConf.name,
+          QueueName: this.queueName,
           Attributes: {
             ReceiveMessageWaitTimeSeconds: `${this.queueConf.waitTimeSeconds}`,
             VisibilityTimeout: `${this.queueConf.visibilityTimeout}`,

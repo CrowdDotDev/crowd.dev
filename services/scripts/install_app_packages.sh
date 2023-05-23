@@ -14,22 +14,14 @@ else
 fi
 
 
-for lib_dir in $CLI_HOME/../libs/*/; do
-  if [ -f "${lib_dir}package.json" ]; then
-    lib=$(basename $lib_dir)
-    yell "Installing packages for library: $lib!"
-    (cd $lib_dir && npm i $FLAGS) &
-  fi
-done
-
 for app_dir in $CLI_HOME/../apps/*/; do
   if [ -f "${app_dir}package.json" ]; then
     app=$(basename $app_dir)
-    yell "Installing packages for service: $app!"
+    yell "Installing packages for app: $app!"
     (cd $app_dir && npm i $FLAGS) &
   fi
 done
 
 wait
 
-say "All packages installed!"
+say "All app packages installed!"

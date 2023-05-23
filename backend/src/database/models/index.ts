@@ -4,8 +4,8 @@ import { createServiceChildLogger } from '../../utils/logging'
  * This module creates the Sequelize to the database and
  * exports all the models.
  */
-import { DB_CONFIG, SERVICE } from '../../config'
-import * as configTypes from '../../config/configTypes'
+import { DB_CONFIG, SERVICE } from '../../conf'
+import * as configTypes from '../../conf/configTypes'
 
 const { highlight } = require('cli-highlight')
 

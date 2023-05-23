@@ -2,7 +2,7 @@ import MemberAttributeSettingsRepository from '@/repo/memberAttributeSettings.re
 import { DbStore } from '@crowd/database'
 import { Logger, LoggerBase } from '@crowd/logging'
 import { MemberAttributeType } from '@crowd/types'
-
+import { isUrl } from '@crowd/common'
 export default class MemberAttributeService extends LoggerBase {
   private readonly repo: MemberAttributeSettingsRepository
 
@@ -153,7 +153,7 @@ export default class MemberAttributeService extends LoggerBase {
   }
 
   static isUrl(value: unknown): boolean {
-    return MemberAttributeService.isString(value)
+    return MemberAttributeService.isString(value) && isUrl(value as string)
   }
 
   private static DATE_REGEXP =

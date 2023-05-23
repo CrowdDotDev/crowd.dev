@@ -1,7 +1,7 @@
 import sanitizeHtml from 'sanitize-html'
 import moment from 'moment'
+import { LINKEDIN_GRID, LinkedinActivityType } from '@crowd/integrations'
 import { getCommentComments } from '../../../usecases/linkedin/getCommentComments'
-import { LinkedInGrid } from '../../../grid/linkedinGrid'
 import { MemberAttributeName } from '../../../../../database/attributes/member/enums'
 import { LinkedInMemberAttributes } from '../../../../../database/attributes/member/linkedin'
 import MemberAttributeSettingsService from '../../../../../services/memberAttributeSettingsService'
@@ -204,8 +204,8 @@ export class LinkedinIntegrationService extends IntegrationServiceBase {
           imageUrl: comment.imageUrl,
         },
         member,
-        score: LinkedInGrid.comment.score,
-        isContribution: LinkedInGrid.comment.isContribution,
+        score: LINKEDIN_GRID[LinkedinActivityType.COMMENT].score,
+        isContribution: LINKEDIN_GRID[LinkedinActivityType.COMMENT].isContribution,
       })
 
       if (comment.childComments > 0) {
@@ -300,8 +300,8 @@ export class LinkedinIntegrationService extends IntegrationServiceBase {
           reactionType: reaction.reaction,
         },
         member,
-        score: LinkedInGrid.reaction.score,
-        isContribution: LinkedInGrid.reaction.isContribution,
+        score: LINKEDIN_GRID[LinkedinActivityType.REACTION].score,
+        isContribution: LINKEDIN_GRID[LinkedinActivityType.REACTION].isContribution,
       })
     }
 
@@ -402,8 +402,8 @@ export class LinkedinIntegrationService extends IntegrationServiceBase {
           imageUrl: comment.imageUrl,
         },
         member,
-        score: LinkedInGrid.comment.score,
-        isContribution: LinkedInGrid.comment.isContribution,
+        score: LINKEDIN_GRID[LinkedinActivityType.COMMENT].score,
+        isContribution: LINKEDIN_GRID[LinkedinActivityType.COMMENT].isContribution,
       })
 
       if (comment.childComments > 0) {

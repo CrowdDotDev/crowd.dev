@@ -1,5 +1,7 @@
-import { GithubActivityType, HackerNewsActivityType, RedditActivityType } from './activityTypes'
-import { PlatformType } from './integrationEnums'
+import { PlatformType } from '@crowd/types'
+import { GithubActivityType } from './github/types'
+import { HackerNewsActivityType } from './hackernews/types'
+import { RedditActivityType } from './reddit/types'
 
 export const prettyActivityTypes = {
   [PlatformType.GITHUB]: {

@@ -1,4 +1,4 @@
-import { API_CONFIG } from '../config'
+import { API_CONFIG } from '../conf'
 
 const express = require('express')
 const fs = require('fs')

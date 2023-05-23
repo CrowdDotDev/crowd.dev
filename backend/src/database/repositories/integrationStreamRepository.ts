@@ -8,7 +8,7 @@ import {
 } from '../../types/integrationStreamTypes'
 import { IRepositoryOptions } from './IRepositoryOptions'
 import { RepositoryBase } from './repositoryBase'
-import { INTEGRATION_PROCESSING_CONFIG } from '../../config'
+import { INTEGRATION_PROCESSING_CONFIG } from '../../conf'
 
 export default class IntegrationStreamRepository extends RepositoryBase<
   IntegrationStream,

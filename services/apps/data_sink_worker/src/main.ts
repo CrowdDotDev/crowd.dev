@@ -24,5 +24,6 @@ setImmediate(async () => {
     await queue.start()
   } catch (err) {
     log.error({ err }, 'Failed to start queues!')
+    process.exit(1)
   }
 })

@@ -1,5 +1,5 @@
 import { createServiceChildLogger } from '../utils/logging'
-import { SEGMENT_CONFIG, API_CONFIG, IS_TEST_ENV } from '../config'
+import { SEGMENT_CONFIG, API_CONFIG, IS_TEST_ENV } from '../conf'
 import getTenatUser from './trackHelper'
 import SequelizeRepository from '../database/repositories/sequelizeRepository'
 import { Edition } from '../types/common'

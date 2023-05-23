@@ -1,7 +1,7 @@
 import { MessageBodyAttributeMap } from 'aws-sdk/clients/sqs'
 import moment from 'moment'
 import { NodeWorkerMessageBase } from '../../types/mq/nodeWorkerMessageBase'
-import { IS_TEST_ENV, SQS_CONFIG } from '../../config'
+import { IS_TEST_ENV, SQS_CONFIG } from '../../conf'
 import { sendMessage } from '../../utils/sqs'
 import { NodeWorkerMessageType } from '../types/workerTypes'
 import { AutomationTrigger } from '../../types/automationTypes'

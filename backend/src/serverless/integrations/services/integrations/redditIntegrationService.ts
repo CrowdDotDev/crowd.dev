@@ -1,10 +1,10 @@
 import sanitizeHtml from 'sanitize-html'
 import he from 'he'
 import { v4 as uuid } from 'uuid'
+import { RedditActivityType, REDDIT_GRID } from '@crowd/integrations'
 import { MemberAttributeName } from '../../../../database/attributes/member/enums'
 import { RedditMemberAttributes } from '../../../../database/attributes/member/reddit'
 import MemberAttributeSettingsService from '../../../../services/memberAttributeSettingsService'
-import { RedditActivityType } from '../../../../types/activityTypes'
 import {
   IIntegrationStream,
   IPendingStream,
@@ -15,7 +15,6 @@ import { IntegrationType, PlatformType } from '../../../../types/integrationEnum
 import Operations from '../../../dbOperations/operations'
 import getPosts from '../../usecases/reddit/getPosts'
 import getComments from '../../usecases/reddit/getComments'
-import { RedditGrid } from '../../grid/redditGrid'
 import {
   RedditCommentsResponse,
   RedditPostsResponse,
@@ -407,8 +406,8 @@ export class RedditIntegrationService extends IntegrationServiceBase {
       title: post.title,
       url: `https://www.reddit.com${post.permalink}`,
       channel,
-      score: RedditGrid[RedditActivityType.POST].score,
-      isContribution: RedditGrid[RedditActivityType.POST].isContribution,
+      score: REDDIT_GRID[RedditActivityType.POST].score,
+      isContribution: REDDIT_GRID[RedditActivityType.POST].isContribution,
       attributes: {
         url: post.url,
         name: post.name,
@@ -453,8 +452,8 @@ export class RedditIntegrationService extends IntegrationServiceBase {
       title: comment.title,
       url: `https://www.reddit.com${comment.permalink}`,
       channel,
-      score: RedditGrid[RedditActivityType.COMMENT].score,
-      isContribution: RedditGrid[RedditActivityType.COMMENT].isContribution,
+      score: REDDIT_GRID[RedditActivityType.COMMENT].score,
+      isContribution: REDDIT_GRID[RedditActivityType.COMMENT].isContribution,
       attributes: {
         url: comment.url,
         name: comment.name,

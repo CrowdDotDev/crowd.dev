@@ -1,6 +1,6 @@
 import { IDbMember, IDbMemberUpdateData } from '@/repo/member.data'
 import MemberRepository from '@/repo/member.repo'
-import { areArraysEqual } from '@crowd/common'
+import { areArraysEqual, isObjectEmpty } from '@crowd/common'
 import { DbStore } from '@crowd/database'
 import { Logger, LoggerBase } from '@crowd/logging'
 import { IMemberIdentity } from '@crowd/types'
@@ -80,10 +80,10 @@ export default class MemberService extends LoggerBase {
           )
         }
 
-        const toUpdate = MemberService.mergeData(original, dbIdentities, data)
-
         // check if any weak identities are actually strong
-        await this.checkForStrongWeakIdentities(txRepo, tenantId, data)
+        await this.checkForStrongWeakIdentities(txRepo, tenantId, data, id)
+
+        const toUpdate = MemberService.mergeData(original, dbIdentities, data)
 
         if (toUpdate.attributes) {
           toUpdate.attributes = await txMemberAttributeService.setAttributesDefaultValues(
@@ -92,9 +92,16 @@ export default class MemberService extends LoggerBase {
           )
         }
 
-        if (Object.keys(toUpdate).length > 0) {
+        if (!isObjectEmpty(toUpdate)) {
           this.log.debug({ memberId: id }, 'Updating a member!')
-          await txRepo.update(id, tenantId, toUpdate)
+          await txRepo.update(id, tenantId, {
+            emails: toUpdate.emails || original.emails,
+            joinedAt: toUpdate.joinedAt || original.joinedAt,
+            attributes: toUpdate.attributes || original.attributes,
+            weakIdentities: toUpdate.weakIdentities || original.weakIdentities,
+            // leave this one empty if nothing changed - we are only adding up new identities not removing them
+            identities: toUpdate.identities,
+          })
         } else {
           this.log.debug({ memberId: id }, 'Nothing to update in a member!')
         }
@@ -113,14 +120,15 @@ export default class MemberService extends LoggerBase {
     repo: MemberRepository,
     tenantId: string,
     data: IMemberCreateData | IMemberUpdateData,
+    memberId?: string,
   ): Promise<void> {
     if (data.weakIdentities && data.weakIdentities.length > 0) {
-      const results = await repo.findIdentities(tenantId, data.weakIdentities)
+      const results = await repo.findIdentities(tenantId, data.weakIdentities, memberId)
 
       const strongIdentities = []
 
       for (const weakIdentity of data.weakIdentities) {
-        if (!results.has(weakIdentity)) {
+        if (!results.has(`${weakIdentity.platform}:${weakIdentity.username}`)) {
           strongIdentities.push(weakIdentity)
         }
       }

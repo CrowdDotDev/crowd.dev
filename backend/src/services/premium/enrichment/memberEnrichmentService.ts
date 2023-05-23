@@ -11,7 +11,7 @@ import {
   EnrichmentAPICertification,
   EnrichmentAPIWorkExperience,
 } from './types/memberEnrichmentTypes'
-import { ENRICHMENT_CONFIG } from '../../../config'
+import { ENRICHMENT_CONFIG } from '../../../conf'
 import Error400 from '../../../errors/Error400'
 import MemberService from '../../memberService'
 import { PlatformType } from '../../../types/integrationEnums'

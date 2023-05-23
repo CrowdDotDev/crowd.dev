@@ -1,5 +1,5 @@
 import moment from 'moment-timezone'
-import { S3_CONFIG } from '../../../../config'
+import { S3_CONFIG } from '../../../../conf'
 import RecurringEmailsHistoryRepository from '../../../../database/repositories/recurringEmailsHistoryRepository'
 import SequelizeRepository from '../../../../database/repositories/sequelizeRepository'
 import TenantUserRepository from '../../../../database/repositories/tenantUserRepository'

@@ -3,6 +3,8 @@ import { IDevToArticle } from './api/articles'
 import { IDevToComment } from './api/comments'
 import { IActivityData, IMemberData, MemberAttributeName, PlatformType } from '@crowd/types'
 import sanitizeHtml from 'sanitize-html'
+import { DevToActivityType } from './types'
+import { DEVTO_GRID } from './grid'
 
 const getMember = (comment: IDevToComment): IMemberData => {
   const member: IMemberData = {
@@ -74,11 +76,13 @@ const processComment = async (
 
   const member = getMember(comment)
 
+  const scoring = DEVTO_GRID[DevToActivityType.COMMENT]
+
   const activity: IActivityData = {
-    type: 'comment',
+    type: DevToActivityType.COMMENT,
     timestamp: comment.created_at,
-    score: 6,
-    isContribution: true,
+    score: scoring.score,
+    isContribution: scoring.isContribution,
     sourceId: comment.id_code,
     sourceParentId: parentCommentId,
     body: sanitizeHtml(comment.body_html),

@@ -1,6 +1,6 @@
 import assert from 'assert'
 import sendgridMail from '@sendgrid/mail'
-import { API_CONFIG, SENDGRID_CONFIG } from '../config'
+import { API_CONFIG, SENDGRID_CONFIG } from '../conf'
 import { AdvancedSuppressionManager } from './helpers/sendgridAsmType'
 import { LoggingBase } from './loggingBase'
 

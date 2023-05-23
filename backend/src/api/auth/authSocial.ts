@@ -1,5 +1,5 @@
 import passport from 'passport'
-import { API_CONFIG, GOOGLE_CONFIG } from '../../config'
+import { API_CONFIG, GOOGLE_CONFIG } from '../../conf'
 import AuthService from '../../services/auth/authService'
 import { createServiceChildLogger } from '../../utils/logging'
 

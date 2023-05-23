@@ -63,11 +63,11 @@ export function getInsertMemberColumnSet(instance: DbInstance): DbColumnSet {
 }
 
 export interface IDbMemberUpdateData {
-  emails?: string[]
-  joinedAt?: string
-  attributes?: Record<string, unknown>
-  weakIdentities?: IMemberIdentity[]
-  identities?: IMemberIdentity[]
+  emails: string[]
+  joinedAt: string
+  attributes: Record<string, unknown>
+  weakIdentities: IMemberIdentity[]
+  identities: IMemberIdentity[]
 }
 
 let updateMemberColumnSet: DbColumnSet

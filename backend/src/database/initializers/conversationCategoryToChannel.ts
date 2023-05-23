@@ -3,7 +3,7 @@
  */
 
 import { MeiliSearch } from 'meilisearch'
-import { SEARCH_ENGINE_CONFIG } from '../../config/index'
+import { SEARCH_ENGINE_CONFIG } from '../../conf/index'
 
 async function conversationInit() {
   const client = new MeiliSearch({

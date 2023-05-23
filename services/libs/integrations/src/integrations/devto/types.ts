@@ -13,3 +13,7 @@ export enum DevToRootStream {
   ORGANIZATION_ARTICLES = 'organization_articles',
   USER_ARTICLES = 'user_articles',
 }
+
+export enum DevToActivityType {
+  COMMENT = 'comment',
+}

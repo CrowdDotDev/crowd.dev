@@ -3,6 +3,7 @@ import { initializeSentimentAnalysis } from '@crowd/sentiment'
 import { DB_CONFIG, SENTIMENT_CONFIG } from './conf'
 import DataSinkService from './service/dataSink.service'
 import { getServiceLogger } from '@crowd/logging'
+import { IntegrationResultState } from '@crowd/types'
 
 const log = getServiceLogger()
 
@@ -15,5 +16,13 @@ setImmediate(async () => {
 
   const service = new DataSinkService(new DbStore(log, dbConnection), log)
 
-  await service.processResult('4f81d320-f885-11ed-a781-02420a5a0007')
+  const id = '2abfed6a-f943-11ed-b2ff-02420a5a0007'
+  await dbConnection.none(
+    `update integration.results set state = '${IntegrationResultState.PENDING}' where id = $(id)`,
+    {
+      id,
+    },
+  )
+
+  await service.processResult(id)
 })

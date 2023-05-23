@@ -1,5 +1,5 @@
 import Sequelize, { DataTypes } from 'sequelize'
-import { DB_CONFIG } from '../../config'
+import { DB_CONFIG } from '../../conf'
 
 export default class SequelizeArrayUtils {
   // MySQL doesn't have Array Field

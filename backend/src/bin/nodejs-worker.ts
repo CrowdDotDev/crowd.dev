@@ -1,6 +1,6 @@
 import { DeleteMessageRequest, Message, ReceiveMessageRequest } from 'aws-sdk/clients/sqs'
 import moment from 'moment'
-import { SQS_CONFIG } from '../config'
+import { SQS_CONFIG } from '../conf'
 import { NodeWorkerMessageType } from '../serverless/types/workerTypes'
 import { processNodeMicroserviceMessage } from '../serverless/microservices/nodejs/workDispatcher'
 import { processDbOperationsMessage } from '../serverless/dbOperations/workDispatcher'

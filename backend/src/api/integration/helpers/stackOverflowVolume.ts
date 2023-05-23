@@ -2,7 +2,7 @@ import axios from 'axios'
 import Error400 from '../../../errors/Error400'
 import Permissions from '../../../security/permissions'
 import PermissionChecker from '../../../services/user/permissionChecker'
-import { STACKEXCHANGE_CONFIG } from '../../../config'
+import { STACKEXCHANGE_CONFIG } from '../../../conf'
 
 export default async (req, res) => {
   new PermissionChecker(req).validateHasAny([

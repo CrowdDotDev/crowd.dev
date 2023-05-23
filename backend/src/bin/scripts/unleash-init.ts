@@ -1,7 +1,7 @@
 import Sequelize, { QueryTypes } from 'sequelize'
 import { v4 as uuid } from 'uuid'
 import { UnleashContextField } from '../../types/unleashContext'
-import { UNLEASH_CONFIG } from '../../config'
+import { UNLEASH_CONFIG } from '../../conf'
 import { getServiceLogger } from '../../utils/logging'
 import Plans from '../../security/plans'
 import { FeatureFlag } from '../../types/common'

@@ -1,5 +1,5 @@
-import { API_CONFIG, TENANT_MODE } from '../config'
-import { TenantMode } from '../config/configTypes'
+import { API_CONFIG, TENANT_MODE } from '../conf'
+import { TenantMode } from '../conf/configTypes'
 
 export const tenantSubdomain = {
   frontendUrl(tenant) {

@@ -1,7 +1,7 @@
 import { Client, Events, GatewayIntentBits, MessageType } from 'discord.js'
 import moment from 'moment'
 import { timeout } from '../utils/timing'
-import { DISCORD_CONFIG } from '../config'
+import { DISCORD_CONFIG } from '../conf'
 import { createChildLogger, getServiceLogger } from '../utils/logging'
 import SequelizeRepository from '../database/repositories/sequelizeRepository'
 import IntegrationRepository from '../database/repositories/integrationRepository'

@@ -1,5 +1,5 @@
 import { WebClient } from '@slack/web-api'
-import { SLACK_CONFIG } from '../config'
+import { SLACK_CONFIG } from '../conf'
 import { createServiceChildLogger } from './logging'
 
 const log = createServiceChildLogger('slackClient')
