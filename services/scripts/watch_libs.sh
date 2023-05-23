@@ -26,6 +26,7 @@ DEPENDENCIES=(
   ["redis"]="common logging types"
   ["database"]="common logging"
   ["sqs"]="common logging types"
+  ["sentiment"]="logging"
   ["integrations"]="common logging types"
 )
 

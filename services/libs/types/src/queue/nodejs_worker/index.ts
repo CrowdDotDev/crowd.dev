@@ -5,7 +5,7 @@ export enum NodejsWorkerQueueMessageType {
 }
 
 export class ProcessActivityConversationsQueueMessage implements IQueueMessage {
-  public readonly type: string = NodejsWorkerQueueMessageType.CALCULATE_SENTIMENT
+  public readonly type: string = NodejsWorkerQueueMessageType.PROCESS_ACTIVITY_CONVERSATIONS
 
   constructor(public readonly activityId: string) {}
 }

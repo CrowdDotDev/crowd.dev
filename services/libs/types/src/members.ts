@@ -10,6 +10,7 @@ export interface IMemberAttribute {
 }
 
 export interface IMemberIdentity {
+  sourceId?: string
   platform: string
   username: string
 }
@@ -17,6 +18,7 @@ export interface IMemberIdentity {
 export interface IMemberData {
   emails?: string[]
   identities: IMemberIdentity[]
+  weakIdentities?: IMemberIdentity[]
   attributes?: Record<string, unknown>
   joinedAt?: string
 }

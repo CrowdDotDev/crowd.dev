@@ -9,8 +9,9 @@ export interface IActivityData {
 
   /**
    * Timestamp of the activity.
+   * ISO 8601 format string.
    */
-  timestamp: Date
+  timestamp: string
 
   /**
    * How much does this activity matter.

@@ -178,7 +178,7 @@ export default class IntegrationRunService extends LoggerBase {
     try {
       this.log.debug('Publishing new root stream!')
       const streamId = await this.repo.publishStream(runId, identifier, data)
-      await this.streamWorkerEmitter.triggerStreamProcessing(`${tenantId}-${platform}`, streamId)
+      await this.streamWorkerEmitter.triggerStreamProcessing(tenantId, platform, streamId)
     } catch (err) {
       await this.triggerRunError(
         runId,

@@ -108,3 +108,20 @@ export const averageBy = <T>(list: T[], selector: (obj: T) => number): number =>
   if (list.length === 0) return 0
   return sumBy(list, selector) / list.length
 }
+
+export const areArraysEqual = <T>(a: T[], b: T[]): boolean => {
+  if (a.length !== b.length) {
+    return false
+  }
+
+  const sortedArr1 = a.slice().sort()
+  const sortedArr2 = b.slice().sort()
+
+  for (let i = 0; i < sortedArr1.length; i++) {
+    if (sortedArr1[i] !== sortedArr2[i]) {
+      return false
+    }
+  }
+
+  return true
+}

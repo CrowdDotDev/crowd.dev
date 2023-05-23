@@ -1,5 +1,5 @@
 {
-  "name": "@crowd/logging",
+  "name": "@crowd/sentiment",
   "version": "1.0.0",
   "private": true,
   "scripts": {
@@ -15,8 +15,6 @@
     }
   },
   "devDependencies": {
-    "@types/bunyan": "^1.8.8",
-    "@types/bunyan-format": "^0.2.5",
     "@types/node": "^18.16.3",
     "@typescript-eslint/eslint-plugin": "^5.59.2",
     "@typescript-eslint/parser": "^5.59.2",
@@ -27,8 +25,8 @@
     "typescript": "^5.0.4"
   },
   "dependencies": {
+    "@aws-sdk/client-comprehend": "^3.335.0",
     "@crowd/common": "file:../common",
-    "bunyan": "^1.8.15",
-    "bunyan-format": "^0.2.1"
+    "@crowd/logging": "file:../logging"
   }
 }

@@ -1,22 +1,57 @@
 import { IDbMember, IDbMemberUpdateData } from '@/repo/member.data'
 import MemberRepository from '@/repo/member.repo'
+import { areArraysEqual } from '@crowd/common'
 import { DbStore } from '@crowd/database'
 import { Logger, LoggerBase } from '@crowd/logging'
-import { IMemberData } from '@crowd/types'
+import { IMemberIdentity } from '@crowd/types'
+import mergeWith from 'lodash.mergewith'
+import isEqual from 'lodash.isequal'
 import { IMemberCreateData, IMemberUpdateData } from './member.data'
+import MemberAttributeService from './memberAttribute.service'
 
 export default class MemberService extends LoggerBase {
   constructor(private readonly store: DbStore, parentLog: Logger) {
     super(parentLog)
   }
 
-  public async create(data: IMemberCreateData): Promise<string> {
+  public async create(
+    tenantId: string,
+    integrationId: string,
+    data: IMemberCreateData,
+  ): Promise<string> {
     try {
       this.log.debug('Creating a new member!')
+
+      if (data.identities.length === 0) {
+        throw new Error('Member must have at least one identity!')
+      }
+
       return await this.store.transactionally(async (txStore) => {
         const txRepo = new MemberRepository(txStore, this.log)
+        const txMemberAttributeService = new MemberAttributeService(txStore, this.log)
 
-        const id = await txRepo.create(data)
+        let attributes = await txMemberAttributeService.validateAttributes(
+          tenantId,
+          data.attributes,
+        )
+
+        attributes = await txMemberAttributeService.setAttributesDefaultValues(tenantId, attributes)
+
+        // check if any weak identities are actually strong
+        await this.checkForStrongWeakIdentities(txRepo, tenantId, data)
+
+        const id = await txRepo.create(tenantId, {
+          displayName: data.displayName,
+          emails: data.emails,
+          joinedAt: data.joinedAt.toISOString(),
+          attributes,
+          weakIdentities: data.weakIdentities || [],
+          identities: data.identities,
+        })
+
+        await txRepo.insertIdentities(id, tenantId, integrationId, data.identities)
+
+        return id
       })
     } catch (err) {
       this.log.error(err, 'Error while creating a new member!')
@@ -24,34 +59,165 @@ export default class MemberService extends LoggerBase {
     }
   }
 
-  public async update(id: string, data: IMemberUpdateData, original?: IDbMember): Promise<void> {
+  public async update(
+    id: string,
+    tenantId: string,
+    integrationId: string,
+    data: IMemberUpdateData,
+    original: IDbMember,
+  ): Promise<void> {
     try {
       this.log.debug({ memberId: id }, 'Updating a member.')
-      let dbData = original
-      if (!dbData) {
-        dbData = await this.repo.findById(id)
-      }
+      await this.store.transactionally(async (txStore) => {
+        const txRepo = new MemberRepository(txStore, this.log)
+        const txMemberAttributeService = new MemberAttributeService(txStore, this.log)
+        const dbIdentities = await txRepo.getIdentities(id, tenantId)
 
-      if (!dbData) {
-        this.log.error({ id }, 'Member not found!')
-        throw new Error(`Member not found: ${id}!`)
-      }
+        if (data.attributes) {
+          data.attributes = await txMemberAttributeService.validateAttributes(
+            tenantId,
+            data.attributes,
+          )
+        }
 
-      const toUpdate = MemberService.mergeData(dbData, data)
+        const toUpdate = MemberService.mergeData(original, dbIdentities, data)
 
-      await this.repo.update(id, toUpdate)
+        // check if any weak identities are actually strong
+        await this.checkForStrongWeakIdentities(txRepo, tenantId, data)
+
+        if (toUpdate.attributes) {
+          toUpdate.attributes = await txMemberAttributeService.setAttributesDefaultValues(
+            tenantId,
+            toUpdate.attributes,
+          )
+        }
+
+        if (Object.keys(toUpdate).length > 0) {
+          this.log.debug({ memberId: id }, 'Updating a member!')
+          await txRepo.update(id, tenantId, toUpdate)
+        } else {
+          this.log.debug({ memberId: id }, 'Nothing to update in a member!')
+        }
+
+        if (toUpdate.identities) {
+          await txRepo.insertIdentities(id, tenantId, integrationId, toUpdate.identities)
+        }
+      })
     } catch (err) {
       this.log.error(err, { memberId: id }, 'Error while updating a member!')
       throw err
     }
   }
 
-  private static mergeData(dbMember: IDbMember, member: IMemberData): IDbMemberUpdateData {
-    let joinedAt: Date
-    if (!member.joinedAt) {
-      joinedAt = new Date(dbMember.joinedAt)
-    } else {
+  private async checkForStrongWeakIdentities(
+    repo: MemberRepository,
+    tenantId: string,
+    data: IMemberCreateData | IMemberUpdateData,
+  ): Promise<void> {
+    if (data.weakIdentities && data.weakIdentities.length > 0) {
+      const results = await repo.findIdentities(tenantId, data.weakIdentities)
+
+      const strongIdentities = []
+
+      for (const weakIdentity of data.weakIdentities) {
+        if (!results.has(weakIdentity)) {
+          strongIdentities.push(weakIdentity)
+        }
+      }
+
+      if (strongIdentities.length > 0) {
+        data.weakIdentities = data.weakIdentities.filter(
+          (i) =>
+            strongIdentities.find((s) => s.platform === i.platform && s.username === i.username) ===
+            undefined,
+        )
+
+        for (const identity of strongIdentities) {
+          if (
+            data.identities.find(
+              (i) => i.platform === identity.platform && i.username === identity.username,
+            ) === undefined
+          ) {
+            data.identities.push(identity)
+          }
+        }
+      }
     }
-    return undefined
+  }
+
+  private static mergeData(
+    dbMember: IDbMember,
+    dbIdentities: IMemberIdentity[],
+    member: IMemberUpdateData,
+  ): IDbMemberUpdateData {
+    let joinedAt: string | undefined
+    if (member.joinedAt) {
+      const newDate = member.joinedAt
+      const oldDate = new Date(dbMember.joinedAt)
+
+      if (newDate.getTime() !== oldDate.getTime()) {
+        // pick the oldest
+        joinedAt = newDate < oldDate ? newDate.toISOString() : oldDate.toISOString()
+      }
+    }
+
+    let emails: string[] | undefined
+    if (member.emails) {
+      if (!areArraysEqual(member.emails, dbMember.emails)) {
+        emails = [...new Set([...member.emails, ...dbMember.emails])]
+      }
+    }
+
+    let weakIdentities: IMemberIdentity[] | undefined
+    if (member.weakIdentities && member.weakIdentities.length > 0) {
+      const newWeakIdentities: IMemberIdentity[] = []
+      for (const identity of member.weakIdentities) {
+        if (
+          !dbMember.weakIdentities.find(
+            (t) => t.platform === identity.platform && t.username === identity.username,
+          )
+        ) {
+          newWeakIdentities.push(identity)
+        }
+      }
+
+      if (newWeakIdentities.length > 0) {
+        weakIdentities = newWeakIdentities
+      }
+    }
+
+    let identities: IMemberIdentity[] | undefined
+    if (member.identities && member.identities.length > 0) {
+      const newIdentities: IMemberIdentity[] = []
+      for (const identity of member.identities) {
+        if (
+          !dbIdentities.find(
+            (t) => t.platform === identity.platform && t.username === identity.username,
+          )
+        ) {
+          newIdentities.push(identity)
+        }
+      }
+
+      if (newIdentities.length > 0) {
+        identities = newIdentities
+      }
+    }
+
+    let attributes: Record<string, unknown> | undefined
+    if (member.attributes) {
+      const temp = mergeWith({}, dbMember.attributes, member.attributes)
+      if (!isEqual(temp, dbMember.attributes)) {
+        attributes = temp
+      }
+    }
+
+    return {
+      emails,
+      joinedAt,
+      attributes,
+      weakIdentities,
+      identities,
+    }
   }
 }

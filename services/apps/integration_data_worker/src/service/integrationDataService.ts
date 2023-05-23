@@ -209,7 +209,7 @@ export default class IntegrationDataService extends LoggerBase {
         type: IntegrationResultType.ACTIVITY,
         data: activity,
       })
-      await this.dataSinkWorkerEmitter.triggerResultProcessing(`${tenantId}-${platform}`, resultId)
+      await this.dataSinkWorkerEmitter.triggerResultProcessing(tenantId, platform, resultId)
     } catch (err) {
       await this.triggerDataError(
         dataId,
@@ -250,7 +250,7 @@ export default class IntegrationDataService extends LoggerBase {
       this.log.debug({ identifier }, 'Publishing new child stream!')
       const streamId = await this.repo.publishStream(parentId, runId, identifier, data)
       if (streamId) {
-        await this.streamWorkerEmitter.triggerStreamProcessing(`${tenantId}-${platform}`, streamId)
+        await this.streamWorkerEmitter.triggerStreamProcessing(tenantId, platform, streamId)
       } else {
         this.log.debug({ identifier }, 'Child stream already exists!')
       }

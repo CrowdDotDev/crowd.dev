@@ -11,7 +11,7 @@ export default class SampleDataRepository extends RepositoryBase<SampleDataRepos
     const results = await this.db().any(
       `
       select id from members
-      where (m.attributes ->'sample' -> 'default')::boolean = true
+      where (attributes ->'sample' -> 'default')::boolean = true
       and "tenantId" = $(tenantId)
     `,
       {

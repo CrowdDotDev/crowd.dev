@@ -1,4 +1,3 @@
-import { format } from 'util'
 import { Logger } from './types'
 
 export const logError = (log: Logger, error: Error): Error => {

@@ -6,23 +6,31 @@
     "start": "node -r tsconfig-paths/register -r ts-node/register src/main.ts --transpile-only",
     "start:debug": "SERVICE=data-sink-worker LOG_LEVEL=trace node --inspect=0.0.0.0:9233 -r tsconfig-paths/register -r ts-node/register src/main.ts --transpile-only",
     "start:watch": "nodemon --watch src --ext ts --exec npm run start:debug",
-    "dev": "../../scripts/install_packages.sh && ../../scripts/build_libs.sh && concurrently \"npm run start:watch\" \"../../scripts/watch_libs.sh --service data_sink_worker\""
+    "dev": "../../scripts/install_packages.sh && ../../scripts/build_libs.sh && concurrently \"npm run start:watch\" \"../../scripts/watch_libs.sh --service data_sink_worker\"",
+    "lint": "eslint --ext .ts src",
+    "format": "prettier --write \"src/**/*.ts\""
   },
   "dependencies": {
     "@crowd/common": "file:../../libs/common",
     "@crowd/database": "file:../../libs/database",
     "@crowd/integrations": "file:../../libs/integrations",
     "@crowd/logging": "file:../../libs/logging",
+    "@crowd/sentiment": "file:../../libs/sentiment",
     "@crowd/sqs": "file:../../libs/sqs",
     "@crowd/types": "file:../../libs/types",
     "@types/config": "^3.3.0",
     "@types/node": "^18.16.3",
     "config": "^3.3.9",
+    "lodash.clonedeep": "^4.5.0",
+    "lodash.isequal": "^4.5.0",
+    "lodash.mergewith": "^4.6.2",
     "ts-node": "^10.9.1",
     "tsconfig-paths": "^4.2.0",
     "typescript": "^5.0.4"
   },
   "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^5.59.2",
+    "@typescript-eslint/parser": "^5.59.2",
     "concurrently": "^8.0.1",
     "eslint": "^8.39.0",
     "eslint-config-prettier": "^8.8.0",

@@ -1,7 +1,18 @@
-import { IMemberData } from '@crowd/types'
+import { IMemberIdentity } from '@crowd/types'
 
-export interface IMemberModifyData {}
+export interface IMemberUpdateData {
+  attributes?: Record<string, unknown>
+  emails?: string[]
+  joinedAt?: Date
+  weakIdentities?: IMemberIdentity[]
+  identities: IMemberIdentity[]
+}
 
-export interface IMemberUpdateData extends IMemberModifyData {}
-
-export interface IMemberCreateData extends IMemberModifyData {}
+export interface IMemberCreateData {
+  attributes: Record<string, unknown>
+  displayName: string
+  emails: string[]
+  joinedAt: Date
+  weakIdentities?: IMemberIdentity[]
+  identities: IMemberIdentity[]
+}

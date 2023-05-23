@@ -245,7 +245,7 @@ export default class IntegrationStreamService extends LoggerBase {
       this.log.debug({ identifier }, 'Publishing new child stream!')
       const streamId = await this.repo.publishStream(parentId, runId, identifier, data)
       if (streamId) {
-        await this.streamWorkerEmitter.triggerStreamProcessing(`${tenantId}-${platform}`, streamId)
+        await this.streamWorkerEmitter.triggerStreamProcessing(tenantId, platform, streamId)
       } else {
         this.log.debug({ identifier }, 'Child stream already exists!')
       }
@@ -271,7 +271,7 @@ export default class IntegrationStreamService extends LoggerBase {
     try {
       this.log.debug('Publishing new stream data!')
       const dataId = await this.repo.publishData(streamId, data)
-      await this.dataWorkerEmitter.triggerDataProcessing(`${tenantId}-${platform}`, dataId)
+      await this.dataWorkerEmitter.triggerDataProcessing(tenantId, platform, dataId)
     } catch (err) {
       await this.triggerRunError(
         runId,

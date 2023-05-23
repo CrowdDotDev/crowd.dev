@@ -24,7 +24,10 @@ const getMember = (comment: IDevToComment): IMemberData => {
       PlatformType.TWITTER
     ] = `https://twitter.com/${comment.user.twitter_username}`
 
-    member.identities.push({
+    if (!member.weakIdentities) {
+      member.weakIdentities = []
+    }
+    member.weakIdentities.push({
       platform: PlatformType.TWITTER,
       username: comment.user.twitter_username,
     })
@@ -38,7 +41,10 @@ const getMember = (comment: IDevToComment): IMemberData => {
       PlatformType.GITHUB
     ] = `https://github.com/${comment.user.github_username}`
 
-    member.identities.push({
+    if (!member.weakIdentities) {
+      member.weakIdentities = []
+    }
+    member.weakIdentities.push({
       platform: PlatformType.GITHUB,
       username: comment.user.github_username,
     })
@@ -70,7 +76,7 @@ const processComment = async (
 
   const activity: IActivityData = {
     type: 'comment',
-    timestamp: new Date(comment.created_at),
+    timestamp: comment.created_at,
     score: 6,
     isContribution: true,
     sourceId: comment.id_code,

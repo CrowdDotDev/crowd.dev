@@ -6,7 +6,9 @@
     "start": "node -r ts-node/register src/main.ts --transpile-only",
     "start:debug": "SERVICE=integration-data-worker LOG_LEVEL=trace node --inspect=0.0.0.0:9232 -r ts-node/register src/main.ts --transpile-only",
     "start:watch": "nodemon --watch src --ext ts --exec npm run start:debug",
-    "dev": "../../scripts/install_packages.sh && ../../scripts/build_libs.sh && concurrently \"npm run start:watch\" \"../../scripts/watch_libs.sh --service integration_data_worker\""
+    "dev": "../../scripts/install_packages.sh && ../../scripts/build_libs.sh && concurrently \"npm run start:watch\" \"../../scripts/watch_libs.sh --service integration_data_worker\"",
+    "lint": "eslint --ext .ts src",
+    "format": "prettier --write \"src/**/*.ts\""
   },
   "dependencies": {
     "@crowd/common": "file:../../libs/common",
@@ -24,6 +26,8 @@
   },
   "devDependencies": {
     "concurrently": "^8.0.1",
+    "@typescript-eslint/eslint-plugin": "^5.59.2",
+    "@typescript-eslint/parser": "^5.59.2",
     "eslint": "^8.39.0",
     "eslint-config-prettier": "^8.8.0",
     "eslint-plugin-prettier": "^4.2.1",
