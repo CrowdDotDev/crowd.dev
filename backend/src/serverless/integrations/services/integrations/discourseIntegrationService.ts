@@ -389,9 +389,12 @@ export class DiscourseIntegrationService extends IntegrationServiceBase {
       username: member.username[PlatformType.DISCOURSE].username,
       platform: PlatformType.DISCOURSE,
       tenant: context.integration.tenantId,
-      sourceId: `${post.id}`,
+      sourceId: `${post.topic_id}-${post.post_number}`,
       sourceParentId: post.post_number === 1 ? null : `${post.topic_id}-${post.post_number - 1}`,
-      type: post.post_number === 1 ? DiscourseActivityType.CREATE_TOPIC : DiscourseActivityType.MESSAGE_IN_TOPIC,
+      type:
+        post.post_number === 1
+          ? DiscourseActivityType.CREATE_TOPIC
+          : DiscourseActivityType.MESSAGE_IN_TOPIC,
       timestamp: moment(post.created_at).utc().toDate(),
       body: sanitizeHtml(he.decode(post.cooked)),
       title: post.post_number === 1 ? post.topic_title : null,
