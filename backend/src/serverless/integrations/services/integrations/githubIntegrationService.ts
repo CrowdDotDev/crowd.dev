@@ -906,7 +906,7 @@ export class GithubIntegrationService extends IntegrationServiceBase {
         timestamp = payload.pull_request.closed_at
         sourceParentId = payload.pull_request.node_id.toString()
         sourceId = `gen-CE_${payload.pull_request.node_id.toString()}_${
-          payload.pull_request.user.login
+          payload.sender.login
         }_${moment(payload.pull_request.closed_at).utc().toISOString()}`
         break
       }
@@ -916,11 +916,9 @@ export class GithubIntegrationService extends IntegrationServiceBase {
         scoreGrid = GitHubGrid.pullRequestAssigned
         timestamp = payload.pull_request.updated_at
         sourceParentId = payload.pull_request.node_id.toString()
-        sourceId = `gen-AE_${payload.pull_request.node_id.toString()}_${
-          payload.pull_request.user.login
-        }_${payload.pull_request.assignee.login}_${moment(payload.pull_request.updated_at)
-          .utc()
-          .toISOString()}`
+        sourceId = `gen-AE_${payload.pull_request.node_id.toString()}_${payload.sender.login}_${
+          payload.pull_request.assignee.login
+        }_${moment(payload.pull_request.updated_at).utc().toISOString()}`
         objectMember = await GithubIntegrationService.parseWebhookMember(
           payload.pull_request.assignee.login,
           context,
@@ -934,11 +932,9 @@ export class GithubIntegrationService extends IntegrationServiceBase {
         scoreGrid = GitHubGrid.pullRequestReviewRequested
         timestamp = payload.pull_request.updated_at
         sourceParentId = payload.pull_request.node_id.toString()
-        sourceId = `gen-RRE_${payload.pull_request.node_id.toString()}_${
-          payload.pull_request.user.login
-        }_${payload.requested_reviewer.login}_${moment(payload.pull_request.updated_at)
-          .utc()
-          .toISOString()}`
+        sourceId = `gen-RRE_${payload.pull_request.node_id.toString()}_${payload.sender.login}_${
+          payload.requested_reviewer.login
+        }_${moment(payload.pull_request.updated_at).utc().toISOString()}`
         objectMember = await GithubIntegrationService.parseWebhookMember(
           payload.requested_reviewer.login,
           context,
@@ -1425,6 +1421,10 @@ export class GithubIntegrationService extends IntegrationServiceBase {
     let type: GithubActivityType
     let scoreGrid: gridEntry
     let timestamp: string
+    let sourceId: string
+    let sourceParentId: string
+    let body: string = ''
+    let title: string = ''
 
     switch (payload.action) {
       case 'edited':
@@ -1433,12 +1433,22 @@ export class GithubIntegrationService extends IntegrationServiceBase {
         type = GithubActivityType.ISSUE_OPENED
         scoreGrid = GitHubGrid.issueOpened
         timestamp = payload.issue.created_at
+        sourceParentId = null
+        sourceId = payload.issue.node_id.toString()
+        body = payload.issue.body
+        title = payload.issue.title
         break
 
       case 'closed':
         type = GithubActivityType.ISSUE_CLOSED
         scoreGrid = GitHubGrid.issueClosed
         timestamp = payload.issue.closed_at
+        sourceParentId = payload.issue.node_id.toString()
+        sourceId = `gen-CE_${payload.issue.node_id.toString()}_${payload.sender.login}_${moment(
+          payload.issue.closed_at,
+        )
+          .utc()
+          .toISOString()}`
         break
 
       default:
@@ -1446,7 +1456,7 @@ export class GithubIntegrationService extends IntegrationServiceBase {
     }
 
     const issue = payload.issue
-    const member = await GithubIntegrationService.parseWebhookMember(issue.user.login, context)
+    const member = await GithubIntegrationService.parseWebhookMember(payload.sender.login, context)
 
     if (member) {
       return {
@@ -1456,12 +1466,12 @@ export class GithubIntegrationService extends IntegrationServiceBase {
         timestamp: moment(timestamp).utc().toDate(),
         platform: PlatformType.GITHUB,
         tenant: context.integration.tenantId,
-        sourceId: issue.node_id.toString(),
-        sourceParentId: null,
+        sourceId,
+        sourceParentId,
         url: issue.html_url,
-        title: issue.title,
+        title,
         channel: payload.repository.html_url,
-        body: issue.body,
+        body,
         attributes: {
           state: issue.state,
         },
@@ -1501,8 +1511,62 @@ export class GithubIntegrationService extends IntegrationServiceBase {
         score: GitHubGrid.issueOpened.score,
         isContribution: GitHubGrid.issueOpened.isContribution,
       })
+
+      // parse issue events
+      out.push(
+        ...(await GithubIntegrationService.parseIssueEvents(
+          record.timelineItems.nodes,
+          out[out.length - 1],
+          context,
+        )),
+      )
     }
 
+    return out
+  }
+
+  private static async parseIssueEvents(
+    records: any[],
+    issue: AddActivitiesSingle,
+    context: IStepContext,
+  ): Promise<AddActivitiesSingle[]> {
+    const out: AddActivitiesSingle[] = []
+
+    for (const record of records) {
+      switch (record.__typename) {
+        case GithubPullRequestEvents.CLOSE:
+          if (record.actor.login) {
+            const member = await GithubIntegrationService.parseMember(record.actor, context)
+            out.push({
+              username: member.username[PlatformType.GITHUB].username,
+              tenant: context.integration.tenantId,
+              platform: PlatformType.GITHUB,
+              type: GithubActivityType.ISSUE_CLOSED,
+              sourceId: `gen-CE_${issue.sourceId}_${record.actor.login}_${moment(record.createdAt)
+                .utc()
+                .toISOString()}`,
+              sourceParentId: issue.sourceId,
+              timestamp: moment(record.createdAt).utc().toDate(),
+              body: '',
+              url: issue.url,
+              channel: issue.channel,
+              title: '',
+              attributes: {
+                state: (issue.attributes as any).state,
+              },
+              member,
+              score: GitHubGrid.issueClosed.score,
+              isContribution: GitHubGrid.issueClosed.isContribution,
+            })
+          }
+
+          break
+        default:
+          context.logger.warn(
+            `Unsupported issue event:  ${record.__typename}. This event will not be parsed.`,
+          )
+      }
+    }
     return out
   }
 
