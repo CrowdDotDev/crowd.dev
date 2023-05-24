@@ -28,8 +28,8 @@ class IntegrationsConfig {
       zapier,
       git,
       crunchbase,
-      make,
       discourse,
+      make,
     };
   }
 
