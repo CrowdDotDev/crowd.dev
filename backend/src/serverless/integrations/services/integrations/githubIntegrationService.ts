@@ -380,61 +380,23 @@ export class GithubIntegrationService extends IntegrationServiceBase {
       }
 
       case 'pull_request': {
-        // handle case of multiple reviewers (either by assigning a team to it, or with multiple selection in one go)
-        if (
-          payload.action === 'review_requested' &&
-          (payload.pull_request.requested_reviewers.length > 0 ||
-            payload.pull_request.requested_teams.length > 0)
-        ) {
-          if (payload.pull_request.requested_reviewers.length > 0) {
-            // multiple reviewers sent in one payload
-            for (const reviewer of payload.pull_request.requested_reviewers) {
-              const reviewRequestActivity = await GithubIntegrationService.parseWebhookPullRequest(
-                { ...payload, requested_reviewer: reviewer },
-                context,
-              )
+        // handle case of multiple reviewers (by assigning a team as a reviewer)
+        if (payload.action === 'review_requested' && payload.requested_team) {
+          // a team sent as reviewer, first we need to find members in this team
+          const team: GithubWebhookTeam = payload.requested_team
+          const teamMembers = await new TeamsQuery(
+            team.node_id,
+            context.integration.token,
+          ).getSinglePage('')
 
-              if (reviewRequestActivity) {
-                records.push(reviewRequestActivity)
-              }
-            }
-          } else if (payload.pull_request.requested_teams.length > 0) {
-            // a team sent as reviewer, first we need to find members in this team
-            for (const team of payload.pull_request.requested_teams as GithubWebhookTeam[]) {
-              const teamMembers = await new TeamsQuery(
-                team.node_id,
-                context.integration.token,
-              ).getSinglePage('')
-
-              for (const teamMember of teamMembers.data) {
-                const reviewRequestActivity =
-                  await GithubIntegrationService.parseWebhookPullRequest(
-                    { ...payload, requested_reviewer: teamMember },
-                    context,
-                  )
-
-                if (reviewRequestActivity) {
-                  records.push(reviewRequestActivity)
-                }
-              }
-            }
-          }
-
-          break
-        }
-
-        // handle case of multiple assignees
-        if (payload.action === 'assigned' && payload.pull_request.assignees.length > 0) {
-          for (const assignee of payload.pull_request.assignees) {
-            payload.pull_request.assignee = assignee
-
-            const assignedActivity = await GithubIntegrationService.parseWebhookPullRequest(
-              payload,
+          for (const teamMember of teamMembers.data) {
+            const reviewRequestActivity = await GithubIntegrationService.parseWebhookPullRequest(
+              { ...payload, requested_reviewer: teamMember },
               context,
             )
 
-            if (assignedActivity) {
-              records.push(assignedActivity)
+            if (reviewRequestActivity) {
+              records.push(reviewRequestActivity)
             }
           }
 
@@ -442,8 +404,11 @@ export class GithubIntegrationService extends IntegrationServiceBase {
         }
 
         if (payload.action === 'closed' && payload.pull_request.merged) {
+          const revisedPayload = { ...payload, action: 'merged' }
+          revisedPayload.pull_request.state = 'merged'
+
           const prMergedRecord = await GithubIntegrationService.parseWebhookPullRequest(
-            { ...payload, action: 'merged' },
+            revisedPayload,
             context,
           )
           if (prMergedRecord) {
@@ -917,10 +882,10 @@ export class GithubIntegrationService extends IntegrationServiceBase {
         timestamp = payload.pull_request.updated_at
         sourceParentId = payload.pull_request.node_id.toString()
         sourceId = `gen-AE_${payload.pull_request.node_id.toString()}_${payload.sender.login}_${
-          payload.pull_request.assignee.login
+          payload.assignee.login
         }_${moment(payload.pull_request.updated_at).utc().toISOString()}`
         objectMember = await GithubIntegrationService.parseWebhookMember(
-          payload.pull_request.assignee.login,
+          payload.assignee.login,
           context,
         )
         objectMemberUsername = objectMember.username[PlatformType.GITHUB].username
