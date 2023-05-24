@@ -10,10 +10,15 @@ import {
 } from 'vue';
 import useVuelidate from '@vuelidate/core';
 import { required } from '@vuelidate/validators';
-import { StringFilterOptions, StringFilterValue } from '@/shared/modules/filters/types/filterTypes/StringFilterConfig';
+import {
+  StringFilterConfig,
+  StringFilterOptions,
+  StringFilterValue
+} from "@/shared/modules/filters/types/filterTypes/StringFilterConfig";
 
 const props = defineProps<{
-  modelValue: StringFilterValue
+  modelValue: StringFilterValue,
+  config: StringFilterConfig
 } & StringFilterOptions>();
 
 const emit = defineEmits<{(e: 'update:modelValue', value: StringFilterValue)}>();

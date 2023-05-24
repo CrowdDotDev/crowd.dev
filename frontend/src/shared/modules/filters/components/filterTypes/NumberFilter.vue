@@ -9,12 +9,17 @@
 import {
   defineProps, defineEmits, computed, onMounted,
 } from 'vue';
-import { NumberFilterOptions, NumberFilterValue } from '@/shared/modules/filters/types/filterTypes/NumberFilterConfig';
+import {
+  NumberFilterConfig,
+  NumberFilterOptions,
+  NumberFilterValue
+} from "@/shared/modules/filters/types/filterTypes/NumberFilterConfig";
 import useVuelidate from '@vuelidate/core';
 import { required } from '@vuelidate/validators';
 
 const props = defineProps<{
-  modelValue: NumberFilterValue
+  modelValue: NumberFilterValue,
+  config: NumberFilterConfig
 } & NumberFilterOptions>();
 
 const emit = defineEmits<{(e: 'update:modelValue', value: NumberFilterValue)}>();

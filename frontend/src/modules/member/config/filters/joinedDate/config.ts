@@ -9,10 +9,10 @@ const joinedDate: DateFilterConfig = {
   type: FilterConfigType.DATE,
   options: {},
   itemLabelRenderer(value: DateFilterValue): string {
-    return itemLabelRendererByType[FilterConfigType.BOOLEAN]('Joined date', value);
+    return itemLabelRendererByType[FilterConfigType.DATE]('Joined date', value);
   },
   apiFilterRenderer(value: DateFilterValue): any[] {
-    return apiFilterRendererByType[FilterConfigType.BOOLEAN]('joinedAt', value);
+    return apiFilterRendererByType[FilterConfigType.DATE]('joinedAt', value);
   },
 };
 

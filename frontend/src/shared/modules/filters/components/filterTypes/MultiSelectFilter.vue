@@ -11,13 +11,14 @@ import {
 } from 'vue';
 import {
   MultiSelectFilterValue,
-  MultiSelectFilterOptions,
-} from '@/shared/modules/filters/types/filterTypes/MultiSelectFilterConfig';
+  MultiSelectFilterOptions, MultiSelectFilterConfig
+} from "@/shared/modules/filters/types/filterTypes/MultiSelectFilterConfig";
 import { required } from '@vuelidate/validators';
 import useVuelidate from '@vuelidate/core';
 
 const props = defineProps<{
-  modelValue: MultiSelectFilterValue
+  modelValue: MultiSelectFilterValue,
+  config: MultiSelectFilterConfig
 } & MultiSelectFilterOptions>();
 
 const emit = defineEmits<{(e: 'update:modelValue', value: MultiSelectFilterValue)}>();

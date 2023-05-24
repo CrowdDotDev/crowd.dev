@@ -9,10 +9,10 @@ const lastActivityDate: DateFilterConfig = {
   type: FilterConfigType.DATE,
   options: {},
   itemLabelRenderer(value: DateFilterValue): string {
-    return itemLabelRendererByType[FilterConfigType.BOOLEAN]('Last activity date', value);
+    return itemLabelRendererByType[FilterConfigType.DATE]('Last activity date', value);
   },
   apiFilterRenderer(value: DateFilterValue): any[] {
-    return apiFilterRendererByType[FilterConfigType.BOOLEAN]('lastActive', value);
+    return apiFilterRendererByType[FilterConfigType.DATE]('lastActive', value);
   },
 };
 
