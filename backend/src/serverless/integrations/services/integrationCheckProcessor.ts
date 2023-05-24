@@ -1,3 +1,4 @@
+import { processPaginated } from '@crowd/common'
 import { IRepositoryOptions } from '../../../database/repositories/IRepositoryOptions'
 import IntegrationRepository from '../../../database/repositories/integrationRepository'
 import IntegrationRunRepository from '../../../database/repositories/integrationRunRepository'
@@ -10,7 +11,6 @@ import { IntegrationRunState } from '../../../types/integrationRunTypes'
 import { NodeWorkerIntegrationProcessMessage } from '../../../types/mq/nodeWorkerIntegrationProcessMessage'
 import { singleOrDefault } from '../../../utils/arrays'
 import { createChildLogger } from '../../../utils/logging'
-import { processPaginated } from '../../../utils/paginationProcessing'
 import { sendNodeWorkerMessage } from '../../utils/nodeWorkerSQS'
 import { IntegrationServiceBase } from './integrationServiceBase'
 

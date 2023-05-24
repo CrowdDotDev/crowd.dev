@@ -1,5 +1,6 @@
 import { Client, Events, GatewayIntentBits, MessageType } from 'discord.js'
 import moment from 'moment'
+import { processPaginated } from '@crowd/common'
 import { timeout } from '../utils/timing'
 import { DISCORD_CONFIG } from '../conf'
 import { createChildLogger, getServiceLogger } from '../utils/logging'
@@ -13,7 +14,6 @@ import { NodeWorkerProcessWebhookMessage } from '../types/mq/nodeWorkerProcessWe
 import { createRedisClient } from '../utils/redis'
 import { RedisCache } from '../utils/redis/redisCache'
 import { DiscordIntegrationService } from '../serverless/integrations/services/integrations/discordIntegrationService'
-import { processPaginated } from '../utils/paginationProcessing'
 
 const log = getServiceLogger()
 

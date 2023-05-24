@@ -1,10 +1,10 @@
+import { processPaginated } from '@crowd/common'
 import IntegrationRunRepository from '../../../database/repositories/integrationRunRepository'
 import { IServiceOptions } from '../../../services/IServiceOptions'
 import { LoggingBase } from '../../../services/loggingBase'
 import { IntegrationType } from '../../../types/integrationEnums'
 import { NodeWorkerIntegrationCheckMessage } from '../../../types/mq/nodeWorkerIntegrationCheckMessage'
 import { NodeWorkerIntegrationProcessMessage } from '../../../types/mq/nodeWorkerIntegrationProcessMessage'
-import { processPaginated } from '../../../utils/paginationProcessing'
 import { sendNodeWorkerMessage } from '../../utils/nodeWorkerSQS'
 import { IntegrationServiceBase } from './integrationServiceBase'
 

@@ -2,6 +2,7 @@ import commandLineArgs from 'command-line-args'
 import commandLineUsage from 'command-line-usage'
 import * as fs from 'fs'
 import path from 'path'
+import { processPaginated } from '@crowd/common'
 import { createServiceLogger } from '../../utils/logging'
 import SequelizeRepository from '../../database/repositories/sequelizeRepository'
 import { sendNodeWorkerMessage } from '../../serverless/utils/nodeWorkerSQS'
@@ -9,7 +10,6 @@ import { NodeWorkerIntegrationProcessMessage } from '../../types/mq/nodeWorkerIn
 import IntegrationRepository from '../../database/repositories/integrationRepository'
 import IntegrationRunRepository from '../../database/repositories/integrationRunRepository'
 import { IntegrationRunState } from '../../types/integrationRunTypes'
-import { processPaginated } from '../../utils/paginationProcessing'
 
 /* eslint-disable no-console */
 
