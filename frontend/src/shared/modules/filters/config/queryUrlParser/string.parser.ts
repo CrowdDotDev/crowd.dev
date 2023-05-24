@@ -1,7 +1,8 @@
 import { StringFilterValue } from '@/shared/modules/filters/types/filterTypes/StringFilterConfig';
+import { FilterOperator } from '@/shared/modules/filters/types/FilterConfig';
 
 interface QueryUrlStringValue {
-  operator: string,
+  operator: FilterOperator,
   value: string,
   include: string,
 }

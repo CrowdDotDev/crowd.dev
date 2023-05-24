@@ -21,7 +21,7 @@ const props = defineProps<{
   value: boolean,
 }>();
 
-const emit = defineEmits<{(e: 'update:modelValue', value: boolean)}>();
+const emit = defineEmits<{(e: 'update:modelValue', value: boolean): void}>();
 
 const selected = computed(() => props.modelValue === props.value);
 

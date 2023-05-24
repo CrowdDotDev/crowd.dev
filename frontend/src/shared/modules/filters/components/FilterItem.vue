@@ -8,6 +8,7 @@
         placement="bottom-start"
         width="320"
         trigger="click"
+        popper-class="!p-0"
       >
         <template #reference>
           <el-button ref="chip" class="btn btn--bordered !h-8 p-2 !border !outline-none font-medium text-xs">
@@ -15,10 +16,10 @@
           </el-button>
         </template>
 
-        <div class="px-1">
+        <div class="p-3">
           <component :is="getComponent" v-if="getComponent" v-model="form" :config="props.config" v-bind="props.config.options" />
         </div>
-        <div class="flex justify-end items-center border-t pt-2">
+        <div class="flex justify-end items-center border-t p-3">
           <el-button class="btn btn--transparent btn--sm mr-2" @click="close">
             Cancel
           </el-button>
@@ -37,10 +38,7 @@
 </template>
 
 <script setup lang="ts">
-import {
-  computed,
-  defineEmits, defineProps, ref, watch,
-} from 'vue';
+import { computed, ref, watch } from 'vue';
 import { FilterConfig, FilterConfigType } from '@/shared/modules/filters/types/FilterConfig';
 import { filterComponentByType } from '@/shared/modules/filters/config/filterComponentByType';
 import useVuelidate from '@vuelidate/core';
@@ -51,7 +49,7 @@ const props = defineProps<{
   config: FilterConfig,
 }>();
 
-const emit = defineEmits<{(e: 'update:modelValue', value: any), (e: 'remove'), (e: 'update:open', value: string)}>();
+const emit = defineEmits<{(e: 'update:modelValue', value: any): void, (e: 'remove'): void, (e: 'update:open', value: string): void}>();
 
 const form = ref({});
 

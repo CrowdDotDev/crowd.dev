@@ -6,14 +6,12 @@
 </template>
 
 <script setup lang="ts">
-import {
-  defineProps, defineEmits, computed, onMounted,
-} from 'vue';
+import { computed, onMounted } from 'vue';
 import {
   NumberFilterConfig,
   NumberFilterOptions,
-  NumberFilterValue
-} from "@/shared/modules/filters/types/filterTypes/NumberFilterConfig";
+  NumberFilterValue,
+} from '@/shared/modules/filters/types/filterTypes/NumberFilterConfig';
 import useVuelidate from '@vuelidate/core';
 import { required } from '@vuelidate/validators';
 
@@ -22,7 +20,7 @@ const props = defineProps<{
   config: NumberFilterConfig
 } & NumberFilterOptions>();
 
-const emit = defineEmits<{(e: 'update:modelValue', value: NumberFilterValue)}>();
+const emit = defineEmits<{(e: 'update:modelValue', value: NumberFilterValue): void}>();
 
 const form = computed<NumberFilterValue>({
   get: () => props.modelValue,

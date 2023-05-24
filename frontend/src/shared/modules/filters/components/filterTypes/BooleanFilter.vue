@@ -1,6 +1,6 @@
 <template>
-  <div v-if="form" class="filter-base-boolean pb-4 pt-2">
-    <cr-filter-include-switch v-if="!props.hideIncludeSwitch" v-model="form.include" />
+  <div v-if="form" class="filter-base-boolean pt-2">
+    <cr-filter-include-switch v-if="!props.config.options.hideIncludeSwitch" v-model="form.include" />
     <p class="text-gray-500 mb-2 font-medium text-2xs pt-3 pb-1">
       {{ props.config.label }}
     </p>
@@ -14,9 +14,7 @@
 </template>
 
 <script setup lang="ts">
-import {
-  defineProps, defineEmits, computed, onMounted,
-} from 'vue';
+import { computed, onMounted } from 'vue';
 import {
   BooleanFilterValue,
   BooleanFilterOptions,
@@ -32,7 +30,7 @@ const props = defineProps<{
   config: BooleanFilterConfig,
 } & BooleanFilterOptions>();
 
-const emit = defineEmits<{(e: 'update:modelValue', value: BooleanFilterValue)}>();
+const emit = defineEmits<{(e: 'update:modelValue', value: BooleanFilterValue): void}>();
 
 const form = computed({
   get: () => props.modelValue,
