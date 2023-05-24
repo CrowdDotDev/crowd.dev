@@ -1,3 +1,4 @@
+import { RunWorkerEmitter } from './queue/index'
 import { getServiceLogger } from '@crowd/logging'
 import { DB_CONFIG, REDIS_CONFIG, SQS_CONFIG } from './config'
 import { getRedisClient } from '@crowd/redis'
@@ -15,6 +16,7 @@ setImmediate(async () => {
   const dbConnection = getDbConnection(DB_CONFIG())
   const redisClient = await getRedisClient(REDIS_CONFIG(), true)
 
+  const runWorkerEmiiter = new RunWorkerEmitter(sqsClient, log)
   const dataWorkerEmitter = new DataWorkerEmitter(sqsClient, log)
   const streamWorkerEmitter = new StreamWorkerEmitter(sqsClient, log)
 
@@ -22,12 +24,14 @@ setImmediate(async () => {
     sqsClient,
     redisClient,
     dbConnection,
+    runWorkerEmiiter,
     dataWorkerEmitter,
     streamWorkerEmitter,
     log,
   )
 
   try {
+    await runWorkerEmiiter.init()
     await dataWorkerEmitter.init()
     await streamWorkerEmitter.init()
     await queue.start()

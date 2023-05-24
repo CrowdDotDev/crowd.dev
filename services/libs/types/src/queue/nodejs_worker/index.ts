@@ -1,11 +1,21 @@
 import { IQueueMessage } from '../'
 
 export enum NodejsWorkerQueueMessageType {
-  PROCESS_ACTIVITY_CONVERSATIONS = 'process_activity_conversations',
+  NODE_MICROSERVICE = 'node_microservice',
 }
 
-export class ProcessActivityConversationsQueueMessage implements IQueueMessage {
-  public readonly type: string = NodejsWorkerQueueMessageType.PROCESS_ACTIVITY_CONVERSATIONS
+export class NewActivityAutomationQueueMessage implements IQueueMessage {
+  public readonly type: string = NodejsWorkerQueueMessageType.NODE_MICROSERVICE
+  public readonly trigger = 'new_activity'
+  public readonly service = 'automation'
 
-  constructor(public readonly activityId: string) {}
+  constructor(public readonly tenant: string, public readonly activityId: unknown) {}
+}
+
+export class NewMemberAutomationQueueMessage implements IQueueMessage {
+  public readonly type: string = NodejsWorkerQueueMessageType.NODE_MICROSERVICE
+  public readonly trigger = 'new_member'
+  public readonly service = 'automation'
+
+  constructor(public readonly tenant: string, public readonly memberId: unknown) {}
 }

@@ -3,10 +3,11 @@ import { DbStore } from '@crowd/database'
 import { IGenerateStreamsContext, INTEGRATION_SERVICES } from '@crowd/integrations'
 import { Logger, LoggerBase, getChildLogger } from '@crowd/logging'
 import { RedisCache, RedisClient } from '@crowd/redis'
-import { IntegrationRunState } from '@crowd/types'
+import { IntegrationRunState, IntegrationStreamState } from '@crowd/types'
 import { StreamWorkerEmitter } from '../queue'
 import IntegrationRunRepository from '../repo/integrationRun.repo'
 import SampleDataRepository from '../repo/sampleData.repo'
+import MemberAttributeSettingsRepository from '../repo/memberAttributeSettings.repo'
 
 export default class IntegrationRunService extends LoggerBase {
   private readonly repo: IntegrationRunRepository
@@ -15,13 +16,82 @@ export default class IntegrationRunService extends LoggerBase {
   constructor(
     private readonly redisClient: RedisClient,
     private readonly streamWorkerEmitter: StreamWorkerEmitter,
-    store: DbStore,
+    private readonly store: DbStore,
     parentLog: Logger,
   ) {
     super(parentLog)
 
     this.repo = new IntegrationRunRepository(store, this.log)
     this.sampleDataRepo = new SampleDataRepository(store, this.log)
+  }
+
+  public async handleStreamProcessed(runId: string): Promise<void> {
+    this.log = getChildLogger('stream-processed', this.log, {
+      runId,
+    })
+
+    this.log.info('Checking whether run is processed or not!')
+
+    const counts = await this.repo.getStreamCountsByState(runId)
+
+    let count = 0
+    let finishedCount = 0
+    let error = false
+    for (const [state, stateCount] of counts.entries()) {
+      count += stateCount
+
+      if (state === IntegrationStreamState.ERROR) {
+        finishedCount += stateCount
+        error = true
+      } else if (state === IntegrationStreamState.PROCESSED) {
+        finishedCount += stateCount
+      }
+    }
+
+    if (count === 0) {
+      this.log.error('This run has no streams!')
+      throw new Error(`Run ${runId} has no streams!`)
+    }
+
+    if (count === finishedCount) {
+      if (error) {
+        this.log.warn('Some streams have resulted in error!')
+
+        const pendingRetry = await this.repo.getErrorStreamsPendingRetry(runId)
+        if (pendingRetry === 0) {
+          this.log.error('No streams pending retry and all are in final state - run failed!')
+          await this.repo.markRunError(runId, {
+            location: 'all-streams-processed',
+            message: 'Some streams failed!',
+          })
+
+          const runInfo = await this.repo.getGenerateStreamData(runId)
+
+          if (runInfo.onboarding) {
+            this.log.warn('Onboarding - marking integration as failed!')
+            await this.repo.markIntegration(runId, 'error')
+          } else {
+            const last5RunStates = await this.repo.getLastRuns(runId, 3)
+            if (
+              last5RunStates.length === 3 &&
+              last5RunStates.find((s) => s !== IntegrationRunState.ERROR) === undefined
+            ) {
+              this.log.warn(
+                'Last 3 runs have all failed and now this one has failed - marking integration as failed!',
+              )
+              await this.repo.markIntegration(runId, 'error')
+            }
+          }
+        } else {
+          this.log.debug('Some streams are pending retry - run is not finished yet!')
+        }
+      } else {
+        this.log.info('Run finished successfully!')
+
+        await this.repo.markRunProcessed(runId)
+        await this.repo.markIntegration(runId, 'done')
+      }
+    }
   }
 
   public async generateStreams(runId: string): Promise<void> {
@@ -94,6 +164,32 @@ export default class IntegrationRunService extends LoggerBase {
         )
         return
       }
+    }
+
+    if (
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (runInfo.integrationSettings as any).updateMemberAttributes &&
+      integrationService.memberAttributes.length > 0
+    ) {
+      this.log.warn('Integration settings contain updateMemberAttributes - updating it now!')
+      await this.store.transactionally(async (txStore) => {
+        const txMemberAttributeSettingsRepo = new MemberAttributeSettingsRepository(
+          txStore,
+          this.log,
+        )
+        const txRunRepo = new IntegrationRunRepository(txStore, this.log)
+
+        await txMemberAttributeSettingsRepo.createPredefined(
+          runInfo.tenantId,
+          integrationService.memberAttributes,
+        )
+
+        await txRunRepo.updateIntegrationSettings(runId, {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          ...(runInfo.integrationSettings as any),
+          updateMemberAttributes: false,
+        })
+      })
     }
 
     const cache = new RedisCache(

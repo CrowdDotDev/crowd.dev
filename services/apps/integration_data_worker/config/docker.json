@@ -1,0 +1,12 @@
+{
+  "db": {
+    "host": "db",
+    "port": 5432
+  },
+  "sqs": {
+    "host": "sqs"
+  },
+  "redis": {
+    "host": "redis"
+  }
+}

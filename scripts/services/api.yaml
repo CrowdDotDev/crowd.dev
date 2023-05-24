@@ -4,12 +4,13 @@ x-env-args: &env-args
   DOCKER_BUILDKIT: 1
   NODE_ENV: docker
   SERVICE: api
+  SHELL: /bin/sh
 
 services:
   api:
     build:
       context: ../../
-      dockerfile: ./scripts/services/Dockerfile.backend
+      dockerfile: ./scripts/services/docker/Dockerfile.backend
     command: 'npm run start:api'
     working_dir: /usr/crowd/app/backend
     env_file:
@@ -28,7 +29,7 @@ services:
   api-dev:
     build:
       context: ../../
-      dockerfile: ./scripts/services/Dockerfile.backend
+      dockerfile: ./scripts/services/docker/Dockerfile.backend
     command: 'npm run start:api:dev'
     working_dir: /usr/crowd/app/backend
     # user: '${USER_ID}:${GROUP_ID}'

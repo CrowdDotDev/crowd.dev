@@ -3,11 +3,16 @@ import { Logger, LoggerBase, getChildLogger } from '@crowd/logging'
 import { IActivityData, IntegrationResultState, IntegrationResultType } from '@crowd/types'
 import DataSinkRepository from '../repo/dataSink.repo'
 import ActivityService from './activity.service'
+import { NodejsWorkerEmitter } from '@/queue'
 
 export default class DataSinkService extends LoggerBase {
   private readonly repo: DataSinkRepository
 
-  constructor(private readonly store: DbStore, parentLog: Logger) {
+  constructor(
+    private readonly store: DbStore,
+    private readonly nodejsWorkerEmitter: NodejsWorkerEmitter,
+    parentLog: Logger,
+  ) {
     super(parentLog)
 
     this.repo = new DataSinkRepository(store, this.log)
@@ -65,7 +70,7 @@ export default class DataSinkService extends LoggerBase {
       const data = resultInfo.data
       switch (data.type) {
         case IntegrationResultType.ACTIVITY: {
-          const service = new ActivityService(this.store, this.log)
+          const service = new ActivityService(this.store, this.nodejsWorkerEmitter, this.log)
           const activityData = data.data as IActivityData
 
           await service.processActivity(

@@ -2,6 +2,7 @@ import { DbStore, RepositoryBase } from '@crowd/database'
 import { Logger } from '@crowd/logging'
 import { IGenerateStreamsData } from './integrationRun.data'
 import { IntegrationRunState, IntegrationStreamState } from '@crowd/types'
+import { WORKER_CONFIG } from '../config'
 
 export default class IntegrationRunRepository extends RepositoryBase<IntegrationRunRepository> {
   constructor(dbStore: DbStore, parentLog: Logger) {
@@ -73,6 +74,53 @@ export default class IntegrationRunRepository extends RepositoryBase<Integration
     this.checkUpdateRowCount(result.rowCount, 1)
   }
 
+  public async markRunProcessed(runId: string): Promise<void> {
+    const result = await this.db().result(
+      `
+      update integration.runs
+         set state = $(state),
+             "processedAt" = now(),
+             "updatedAt" = now()
+       where id = $(runId)
+    `,
+      {
+        runId,
+        state: IntegrationRunState.PROCESSED,
+      },
+    )
+
+    this.checkUpdateRowCount(result.rowCount, 1)
+  }
+
+  public async getLastRuns(runId: string, limit: number): Promise<IntegrationRunState[]> {
+    const results = await this.db().any(
+      `
+        select state from integration.runs where "integrationId" = (select "integrationId" from integration.runs where id = $(runId) limit 1)
+        where id != $(runId)
+        order by "createdAt" desc
+        limit $(limit)
+      `,
+      {
+        runId,
+        limit,
+      },
+    )
+
+    return results.map((r) => r.state)
+  }
+
+  public async markIntegration(runId: string, state: string): Promise<void> {
+    const result = await this.db().result(
+      `update integrations set status = $(state) where id = (select "integrationId" from integration.runs where id = $(runId) limit 1)`,
+      {
+        runId,
+        state,
+      },
+    )
+
+    this.checkUpdateRowCount(result.rowCount, 1)
+  }
+
   public async touchRun(runId: string): Promise<void> {
     const result = await this.db().result(
       `
@@ -128,5 +176,48 @@ export default class IntegrationRunRepository extends RepositoryBase<Integration
     )
 
     return result.id
+  }
+
+  public async getStreamCountsByState(runId: string): Promise<Map<IntegrationStreamState, number>> {
+    const results = await this.db().any(
+      `
+      select state, count(id) as count from integration.streams
+                                      where "runId" = $(runId)
+      group by state;
+      `,
+      {
+        runId,
+      },
+    )
+
+    const map = new Map<IntegrationStreamState, number>()
+    if (results.length === 0) {
+      return map
+    }
+
+    for (const result of results) {
+      map.set(result.state, result.count)
+    }
+
+    return map
+  }
+
+  public async getErrorStreamsPendingRetry(runId: string): Promise<number> {
+    const result = await this.db().one(
+      `
+      select count(id) as count
+      from integration.streams
+      where "runId" = $(runId)
+        and state = $(errorState)
+        and retries < $(maxRetries)
+      `,
+      {
+        runId,
+        errorState: IntegrationStreamState.ERROR,
+        maxRetries: WORKER_CONFIG().maxRetries,
+      },
+    )
+
+    return result.count
   }
 }

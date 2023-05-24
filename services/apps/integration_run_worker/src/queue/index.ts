@@ -12,6 +12,7 @@ import {
   IQueueMessage,
   IntegrationRunWorkerQueueMessageType,
   ProcessStreamQueueMessage,
+  StreamProcessedQueueMessage,
 } from '@crowd/types'
 import IntegrationRunService from '../service/integrationRunService'
 import { RedisClient } from '@crowd/redis'
@@ -41,6 +42,9 @@ export class WorkerQueueReceiver extends SqsQueueReceiver {
       switch (message.type) {
         case IntegrationRunWorkerQueueMessageType.GENERATE_RUN_STREAMS:
           await service.generateStreams((message as GenerateRunStreamsRunQueueMessage).runId)
+          break
+        case IntegrationRunWorkerQueueMessageType.STREAM_PROCESSED:
+          await service.handleStreamProcessed((message as StreamProcessedQueueMessage).runId)
           break
         default:
           throw new Error(`Unknown message type: ${message.type}`)

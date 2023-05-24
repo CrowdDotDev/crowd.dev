@@ -26,3 +26,15 @@ export const REDIS_CONFIG = (): IRedisConfiguration => {
   redisConfig = config.get<IRedisConfiguration>('redis')
   return redisConfig
 }
+
+export interface IWorkerConfig {
+  maxRetries: number
+}
+
+let workerConfig: IWorkerConfig
+export const WORKER_CONFIG = (): IWorkerConfig => {
+  if (workerConfig) return workerConfig
+
+  workerConfig = config.get<IWorkerConfig>('worker')
+  return workerConfig
+}

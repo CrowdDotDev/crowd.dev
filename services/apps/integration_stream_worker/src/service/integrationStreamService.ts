@@ -2,7 +2,7 @@ import { singleOrDefault, addSeconds } from '@crowd/common'
 import { DbStore } from '@crowd/database'
 import { Logger, LoggerBase, getChildLogger } from '@crowd/logging'
 import { RedisCache, RedisClient } from '@crowd/redis'
-import { DataWorkerEmitter, StreamWorkerEmitter } from '../queue'
+import { DataWorkerEmitter, RunWorkerEmitter, StreamWorkerEmitter } from '../queue'
 import IntegrationStreamRepository from '../repo/integrationStream.repo'
 import { IntegrationRunState, IntegrationStreamType, RateLimitError } from '@crowd/types'
 import { INTEGRATION_SERVICES, IProcessStreamContext } from '@crowd/integrations'
@@ -13,6 +13,7 @@ export default class IntegrationStreamService extends LoggerBase {
 
   constructor(
     private readonly redisClient: RedisClient,
+    private readonly runWorkerEmitter: RunWorkerEmitter,
     private readonly dataWorkerEmitter: DataWorkerEmitter,
     private readonly streamWorkerEmitter: StreamWorkerEmitter,
     store: DbStore,
@@ -214,6 +215,11 @@ export default class IntegrationStreamService extends LoggerBase {
       }
     } finally {
       await this.repo.touchRun(streamInfo.runId)
+      await this.runWorkerEmitter.streamProcessed(
+        streamInfo.tenantId,
+        streamInfo.integrationType,
+        streamInfo.runId,
+      )
     }
   }
 

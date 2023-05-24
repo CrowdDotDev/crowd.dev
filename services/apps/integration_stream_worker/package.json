@@ -6,7 +6,7 @@
     "start": "node -r ts-node/register src/main.ts --transpile-only",
     "start:debug": "SERVICE=integration-stream-worker LOG_LEVEL=trace node --inspect=0.0.0.0:9231 -r ts-node/register src/main.ts --transpile-only",
     "start:watch": "nodemon --watch src --ext ts --exec npm run start:debug",
-    "dev": "../../scripts/install_packages.sh && ../../scripts/build_libs.sh && concurrently \"npm run start:watch\" \"../../scripts/watch_libs.sh --service integration_stream_worker\"",
+    "dev": "concurrently \"npm run start:watch\" \"../../scripts/watch_libs.sh --service integration_stream_worker\"",
     "lint": "eslint --ext .ts src",
     "format": "prettier --write \"src/**/*.ts\""
   },

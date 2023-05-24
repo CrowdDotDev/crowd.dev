@@ -7,14 +7,8 @@ source $CLI_HOME/utils.sh
 
 input_param=$1
 
-if [ ! -z "$input_param" ]; then
-  FLAGS="--${input_param}"
-else
-  FLAGS=""
-fi
-
-./install_lib_packages.sh $input_param &
-./install_app_packages.sh $input_param &
+$CLI_HOME/install_lib_packages.sh $input_param &
+$CLI_HOME/install_app_packages.sh $input_param &
 
 wait
 

@@ -8,9 +8,14 @@ import mergeWith from 'lodash.mergewith'
 import isEqual from 'lodash.isequal'
 import { IMemberCreateData, IMemberUpdateData } from './member.data'
 import MemberAttributeService from './memberAttribute.service'
+import { NodejsWorkerEmitter } from '@/queue'
 
 export default class MemberService extends LoggerBase {
-  constructor(private readonly store: DbStore, parentLog: Logger) {
+  constructor(
+    private readonly store: DbStore,
+    private readonly nodejsWorkerEmitter: NodejsWorkerEmitter,
+    parentLog: Logger,
+  ) {
     super(parentLog)
   }
 
@@ -51,6 +56,8 @@ export default class MemberService extends LoggerBase {
 
         await txRepo.insertIdentities(id, tenantId, integrationId, data.identities)
 
+        await this.nodejsWorkerEmitter.processAutomationForNewMember(tenantId, id)
+
         return id
       })
     } catch (err) {
@@ -67,7 +74,6 @@ export default class MemberService extends LoggerBase {
     original: IDbMember,
   ): Promise<void> {
     try {
-      this.log.debug({ memberId: id }, 'Updating a member.')
       await this.store.transactionally(async (txStore) => {
         const txRepo = new MemberRepository(txStore, this.log)
         const txMemberAttributeService = new MemberAttributeService(txStore, this.log)

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
 
-DOCKERFILE="../backend/Dockerfile.kube"
-CONTEXT="../backend"
+DOCKERFILE="./services/docker/Dockerfile.backend"
+CONTEXT="../"
 REPO="crowddotdev/backend"

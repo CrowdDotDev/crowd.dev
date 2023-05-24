@@ -3,6 +3,7 @@ import { ISentimentAnalysisResult } from '@crowd/sentiment'
 
 export interface IDbActivity {
   id: string
+  platform: string
   type: string
   timestamp: string
   isContribution: boolean

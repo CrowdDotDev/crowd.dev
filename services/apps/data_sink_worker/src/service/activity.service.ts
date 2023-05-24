@@ -10,9 +10,15 @@ import { IActivityCreateData, IActivityUpdateData } from './activity.data'
 import MemberService from './member.service'
 import mergeWith from 'lodash.mergewith'
 import isEqual from 'lodash.isequal'
+import { NodejsWorkerEmitter } from '@/queue'
+import SettingsRepository from './settings.repo'
 
 export default class ActivityService extends LoggerBase {
-  constructor(private readonly store: DbStore, parentLog: Logger) {
+  constructor(
+    private readonly store: DbStore,
+    private readonly nodejsWorkerEmitter: NodejsWorkerEmitter,
+    parentLog: Logger,
+  ) {
     super(parentLog)
   }
 
@@ -24,11 +30,19 @@ export default class ActivityService extends LoggerBase {
 
       return await this.store.transactionally(async (txStore) => {
         const txRepo = new ActivityRepository(txStore, this.log)
+        const txSettingsRepo = new SettingsRepository(txStore, this.log)
 
-        // TODO update settings.activityTypes
-        // TODO update settings.activityChannels
+        await txSettingsRepo.createActivityType(
+          tenantId,
+          activity.platform as PlatformType,
+          activity.type,
+        )
 
-        return txRepo.create(tenantId, {
+        if (activity.channel) {
+          await txSettingsRepo.createActivityChannel(tenantId, activity.platform, activity.channel)
+        }
+
+        const id = await txRepo.create(tenantId, {
           type: activity.type,
           timestamp: activity.timestamp.toISOString(),
           platform: activity.platform,
@@ -46,6 +60,9 @@ export default class ActivityService extends LoggerBase {
           channel: activity.channel,
           url: activity.url,
         })
+
+        await this.nodejsWorkerEmitter.processAutomationForNewActivity(tenantId, id)
+        return id
       })
     } catch (err) {
       this.log.error(err, 'Error while creating an activity!')
@@ -60,14 +77,23 @@ export default class ActivityService extends LoggerBase {
     original: IDbActivity,
   ): Promise<void> {
     try {
-      this.log.debug({ activityId: id }, 'Updating an activity.')
       await this.store.transactionally(async (txStore) => {
         const txRepo = new ActivityRepository(txStore, this.log)
+        const txSettingsRepo = new SettingsRepository(txStore, this.log)
 
         const toUpdate = await this.mergeActivityData(activity, original)
 
-        // TODO update settings.activityTypes
-        // TODO update settings.activityChannels
+        if (toUpdate.type) {
+          await txSettingsRepo.createActivityType(
+            tenantId,
+            original.platform as PlatformType,
+            toUpdate.type,
+          )
+        }
+
+        if (toUpdate.channel) {
+          await txSettingsRepo.createActivityChannel(tenantId, original.platform, toUpdate.channel)
+        }
 
         if (!isObjectEmpty(toUpdate)) {
           this.log.debug({ activityId: id }, 'Updating activity.')
@@ -243,8 +269,8 @@ export default class ActivityService extends LoggerBase {
       await this.store.transactionally(async (txStore) => {
         const txRepo = new ActivityRepository(txStore, this.log)
         const txMemberRepo = new MemberRepository(txStore, this.log)
-        const txMemberService = new MemberService(txStore, this.log)
-        const txActivityService = new ActivityService(txStore, this.log)
+        const txMemberService = new MemberService(txStore, this.nodejsWorkerEmitter, this.log)
+        const txActivityService = new ActivityService(txStore, this.nodejsWorkerEmitter, this.log)
 
         // find existing activity
         const dbActivity = await txRepo.findExisting(tenantId, activity.sourceId)

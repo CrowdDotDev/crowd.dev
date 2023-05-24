@@ -23,6 +23,7 @@ export default class ActivityRepository extends RepositoryBase<ActivityRepositor
   private readonly findExistingActivityQuery = `
     select  id,
             type,
+            platform,
             timestamp,
             "isContribution",
             score,

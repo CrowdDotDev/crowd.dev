@@ -52,12 +52,12 @@ export class DbStore extends LoggerBase {
     this.checkValid()
 
     if (this.isTransaction()) {
-      this.log.info('Using an existing transaction!')
+      this.log.debug('Using an existing transaction!')
       return inTransaction(this)
     }
 
     if (this.dbConnection !== undefined) {
-      this.log.info()
+      this.log.debug('Creating a new transaction!')
       return this.dbConnection.tx((t: DbTransaction) => {
         return inTransaction(new DbStore(this.log, undefined, t))
       })

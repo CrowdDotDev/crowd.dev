@@ -16,6 +16,8 @@ for ((i=1; i<=$#; i++)); do
   fi
 done
 
+$(npx --yes chokidar-cli --version >/dev/null 2>&1)
+
 # Define dependencies as an associative array
 declare -A DEPENDENCIES
 

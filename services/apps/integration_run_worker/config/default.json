@@ -18,5 +18,8 @@
     "password": "crowdtest",
     "host": "localhost",
     "port": "6379"
+  },
+  "worker": {
+    "maxRetries": 5
   }
 }

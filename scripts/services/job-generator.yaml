@@ -4,13 +4,15 @@ x-env-args: &env-args
   DOCKER_BUILDKIT: 1
   NODE_ENV: docker
   SERVICE: job-generator
+  SHELL: /bin/sh
 
 services:
   job-generator:
     build:
-      context: ../backend
-      dockerfile: Dockerfile.kube
+      context: ../../
+      dockerfile: ./scripts/services/docker/Dockerfile.backend
     command: 'npm run start:job-generator'
+    working_dir: /usr/crowd/app/backend
     env_file:
       - ../../backend/.env.dist.local
       - ../../backend/.env.dist.composed
@@ -24,9 +26,10 @@ services:
 
   job-generator-dev:
     build:
-      context: ../backend
-      dockerfile: Dockerfile.kube
+      context: ../../
+      dockerfile: ./scripts/services/docker/Dockerfile.backend
     command: 'npm run start:job-generator:dev'
+    working_dir: /usr/crowd/app/backend
     # user: '${USER_ID}:${GROUP_ID}'
     env_file:
       - ../../backend/.env.dist.local
@@ -39,8 +42,8 @@ services:
     networks:
       - crowd-bridge
     volumes:
-      - ../../backend:/usr/crowd/backend
-      - /usr/crowd/backend/node_modules
+      - ../../backend:/usr/crowd/app/backend
+      - /usr/crowd/app/backend/node_modules
 
 networks:
   crowd-bridge:
