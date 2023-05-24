@@ -398,7 +398,7 @@ export class DiscourseIntegrationService extends IntegrationServiceBase {
       timestamp: moment(post.created_at).utc().toDate(),
       body: sanitizeHtml(he.decode(post.cooked)),
       title: post.post_number === 1 ? post.topic_title : null,
-      url: `${context.pipelineData.forumHostname}/t/${post.topic_slug}/${post.topic_id}/${post.post_number}`,
+      url: `${context.integration.settings.forumHostname}/t/${post.topic_slug}/${post.topic_id}/${post.post_number}`,
       channel: post.topic_title,
       score:
         post.post_number === 1
@@ -448,7 +448,7 @@ export class DiscourseIntegrationService extends IntegrationServiceBase {
       timestamp: moment(user.created_at).utc().toDate(),
       body: null,
       title: null,
-      url: `${context.pipelineData.forumHostname}/u/${user.username}`,
+      url: `${context.integration.settings.forumHostname}/u/${user.username}`,
       channel: null,
       score: DiscourseGrid[DiscourseActivityType.JOIN].score,
       isContribution: DiscourseGrid[DiscourseActivityType.JOIN].isContribution,
