@@ -19,6 +19,10 @@
     "host": "localhost",
     "port": "6379"
   },
+  "nango": {
+    "url": "http://localhost:3003",
+    "secretKey": 424242
+  },
   "worker": {
     "maxStreamRetries": 5
   }

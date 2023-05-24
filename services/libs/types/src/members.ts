@@ -16,6 +16,7 @@ export interface IMemberIdentity {
 }
 
 export interface IMemberData {
+  displayName?: string
   emails?: string[]
   identities: IMemberIdentity[]
   weakIdentities?: IMemberIdentity[]

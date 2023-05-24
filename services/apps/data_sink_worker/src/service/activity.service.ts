@@ -412,7 +412,7 @@ export default class ActivityService extends LoggerBase {
               'We did not find a member for the identity provided! Creating a new one.',
             )
             memberId = await txMemberService.create(tenantId, integrationId, {
-              displayName: username,
+              displayName: member.displayName || username,
               attributes: member.attributes,
               emails: member.emails || [],
               joinedAt: member.joinedAt ? new Date(member.joinedAt) : new Date(activity.timestamp),

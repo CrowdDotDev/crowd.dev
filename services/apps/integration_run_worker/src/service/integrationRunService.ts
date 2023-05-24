@@ -8,6 +8,7 @@ import { StreamWorkerEmitter } from '../queue'
 import IntegrationRunRepository from '../repo/integrationRun.repo'
 import SampleDataRepository from '../repo/sampleData.repo'
 import MemberAttributeSettingsRepository from '../repo/memberAttributeSettings.repo'
+import { NANGO_CONFIG } from 'src/config'
 
 export default class IntegrationRunService extends LoggerBase {
   private readonly repo: IntegrationRunRepository
@@ -198,9 +199,15 @@ export default class IntegrationRunService extends LoggerBase {
       this.log,
     )
 
+    const nangoConfig = NANGO_CONFIG()
+
     const context: IGenerateStreamsContext = {
       onboarding: runInfo.onboarding,
-
+      serviceSettings: {
+        nangoUrl: nangoConfig.url,
+        nangoSecretKey: nangoConfig.secretKey,
+        nangoId: `${runInfo.tenantId}-${runInfo.integrationType}`,
+      },
       integration: {
         id: runInfo.integrationId,
         identifier: runInfo.integrationIdentifier,

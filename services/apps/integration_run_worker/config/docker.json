@@ -8,5 +8,8 @@
   },
   "redis": {
     "host": "redis"
+  },
+  "nango": {
+    "url": "http://nango:3003"
   }
 }

@@ -3,6 +3,11 @@ import { IRedisConfiguration } from '@crowd/redis'
 import { ISqsClientConfig } from '@crowd/sqs'
 import config = require('config')
 
+export interface INangoConfig {
+  url: string
+  secretKey: string
+}
+
 let sqsConfig: ISqsClientConfig
 export const SQS_CONFIG = (): ISqsClientConfig => {
   if (sqsConfig) return sqsConfig
@@ -37,4 +42,12 @@ export const WORKER_CONFIG = (): IWorkerConfig => {
 
   workerConfig = config.get<IWorkerConfig>('worker')
   return workerConfig
+}
+
+let nangoConfig: INangoConfig
+export const NANGO_CONFIG = (): INangoConfig => {
+  if (nangoConfig) return nangoConfig
+
+  nangoConfig = config.get<INangoConfig>('nango')
+  return nangoConfig
 }

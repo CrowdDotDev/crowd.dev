@@ -14,10 +14,13 @@ export interface IIntegrationContext {
   abortRunWithError: (message: string, metadata?: unknown, error?: Error) => Promise<void>
 }
 
-export type IGenerateStreamsContext = IIntegrationContext
+export interface IGenerateStreamsContext extends IIntegrationContext {
+  serviceSettings: IIntegrationServiceSettings
+}
 
 export interface IProcessStreamContext extends IIntegrationContext {
   stream: IIntegrationStream
+  serviceSettings: IIntegrationServiceSettings
 
   publishData: (data: unknown) => Promise<void>
 
@@ -77,4 +80,10 @@ export interface IIntegrationDescriptor {
   // if undefined it will never check
   // if 0 it will check the same as if it was 1 - every minute
   checkEvery?: number
+}
+
+export interface IIntegrationServiceSettings {
+  nangoUrl: string
+  nangoSecretKey: string
+  nangoId: string
 }

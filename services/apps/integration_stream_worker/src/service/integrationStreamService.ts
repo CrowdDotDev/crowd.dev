@@ -6,7 +6,7 @@ import { DataWorkerEmitter, RunWorkerEmitter, StreamWorkerEmitter } from '../que
 import IntegrationStreamRepository from '../repo/integrationStream.repo'
 import { IntegrationRunState, IntegrationStreamType, RateLimitError } from '@crowd/types'
 import { INTEGRATION_SERVICES, IProcessStreamContext } from '@crowd/integrations'
-import { WORKER_SETTINGS } from '../config'
+import { NANGO_CONFIG, WORKER_SETTINGS } from '../config'
 
 export default class IntegrationStreamService extends LoggerBase {
   private readonly repo: IntegrationStreamRepository
@@ -113,8 +113,15 @@ export default class IntegrationStreamService extends LoggerBase {
       this.log,
     )
 
+    const nangoConfig = NANGO_CONFIG()
+
     const context: IProcessStreamContext = {
       onboarding: streamInfo.onboarding,
+      serviceSettings: {
+        nangoUrl: nangoConfig.url,
+        nangoSecretKey: nangoConfig.secretKey,
+        nangoId: `${streamInfo.tenantId}-${streamInfo.integrationType}`,
+      },
 
       integration: {
         id: streamInfo.integrationId,
