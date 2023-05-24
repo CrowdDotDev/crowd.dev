@@ -34,8 +34,8 @@ export default class SettingsRepository {
     data.backgroundImageUrl = _get(data, 'backgroundImages[0].downloadUrl', null)
     data.logoUrl = _get(data, 'logos[0].downloadUrl', null)
     if (
-      typeof data.slackWebhook !== 'string' ||
-      (typeof data.slackWebhook === 'string' && !data.slackWebHook?.startsWith('https://'))
+      typeof data.slackWebHook !== 'string' ||
+      (typeof data.slackWebHook === 'string' && !data.slackWebHook?.startsWith('https://'))
     ) {
       data.slackWebHook = undefined
     }

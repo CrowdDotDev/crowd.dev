@@ -17,6 +17,7 @@ export enum PlatformType {
   STACKOVERFLOW = 'stackoverflow',
   DISCOURSE = 'discourse',
   GIT = 'git',
+  CRUNCHBASE = 'crunchbase',
   OTHER = 'other',
 }
 

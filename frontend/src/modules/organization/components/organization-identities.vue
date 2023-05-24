@@ -10,8 +10,9 @@
         platform="github"
         track-event-name="Click Organization Contact"
         track-event-channel="GitHub"
-        :has-tooltip="true"
         tooltip-label="GitHub profile"
+        :username-handles="[organization['github']?.handle]"
+        :has-tooltip="true"
         :href="getIdentityLink('github')"
         :as-link="
           !!(
@@ -27,8 +28,9 @@
         platform="linkedin"
         track-event-name="Click Organization Contact"
         track-event-channel="LinkedIn"
-        :has-tooltip="true"
         tooltip-label="LinkedIn profile"
+        :username-handles="[organization['linkedin']?.handle]"
+        :has-tooltip="true"
         :href="getIdentityLink('linkedin')"
         :as-link="
           !!(
@@ -44,8 +46,9 @@
         platform="twitter"
         track-event-name="Click Organization Contact"
         track-event-channel="Twitter"
-        :has-tooltip="true"
         tooltip-label="Twitter profile"
+        :username-handles="[organization['twitter']?.handle]"
+        :has-tooltip="true"
         :href="getIdentityLink('twitter')"
         :as-link="
           !!(
@@ -61,8 +64,9 @@
         platform="crunchbase"
         track-event-name="Click Organization Contact"
         track-event-channel="Crunchbase"
-        :has-tooltip="true"
         tooltip-label="Crunchbase profile"
+        :username-handles="[organization['crunchbase']?.handle]"
+        :has-tooltip="true"
         :href="getIdentityLink('crunchbase')"
         :as-link="
           !!(
@@ -72,6 +76,24 @@
         "
       />
     </div>
+
+    <!-- Facebook -->
+    <app-platform
+      v-if="!!organization.facebook"
+      platform="facebook"
+      track-event-name="Click Organization Contact"
+      track-event-channel="Facebook"
+      tooltip-label="Facebook profile"
+      :username-handles="[organization['facebook']?.handle]"
+      :has-tooltip="true"
+      :href="getIdentityLink('facebook')"
+      :as-link="
+        !!(
+          organization['facebook']?.url
+          || organization['facebook']?.handle
+        )
+      "
+    />
 
     <el-divider
       v-if="showDivider"
@@ -103,6 +125,7 @@
 </template>
 
 <script setup>
+import { withHttp } from '@/utils/string';
 import { defineProps, computed } from 'vue';
 
 const props = defineProps({
@@ -116,7 +139,8 @@ const hasSocialIdentities = computed(
   () => !!props.organization.github
     || !!props.organization.linkedin
     || !!props.organization.twitter
-    || !!props.organization.crunchbase,
+    || !!props.organization.crunchbase
+    || !!props.organization.facebook,
 );
 const showDivider = computed(
   () => !!props.organization.phoneNumbers?.length
@@ -125,24 +149,27 @@ const showDivider = computed(
 
 const getIdentityLink = (platform) => {
   if (props.organization[platform]?.url) {
-    return props.organization[platform]?.url;
+    return withHttp(props.organization[platform]?.url);
   } if (props.organization[platform]?.handle) {
     let url;
 
     if (platform === 'linkedin') {
-      url = 'https://www.linkedin.com/';
+      url = 'https://www.linkedin.com/company/';
     } else if (platform === 'github') {
       url = 'https://github.com/';
     } else if (platform === 'twitter') {
       url = 'https://twitter.com/';
     } else if (platform === 'crunchbase') {
-      url = 'https://www.crunchbase.com/';
+      url = 'https://www.crunchbase.com/organization/';
+    } else if (platform === 'facebook') {
+      url = 'https://www.facebook.com/';
     } else {
       return null;
     }
 
     return `${url}${props.organization[platform].handle}`;
   }
+
   return null;
 };
 </script>

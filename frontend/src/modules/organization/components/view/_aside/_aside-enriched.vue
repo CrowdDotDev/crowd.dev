@@ -26,21 +26,6 @@
               })
             }}
           </span>
-          <div v-else-if="attribute.type === attributesTypes.multiSelect" class="flex flex-wrap gap-1">
-            <app-tags
-              :tags="organization[attribute.name]"
-              :interactive="attribute.isUrl"
-              :collapse-tags="true"
-              :collapse-tags-tooltip="true"
-            >
-              <template v-if="attribute.isUrl" #tagTooltipContent>
-                <span>Open profile
-                  <i
-                    class="ri-external-link-line text-gray-400"
-                  /></span>
-              </template>
-            </app-tags>
-          </div>
           <span v-else>
             {{ attribute.type === attributesTypes.string ? toSentenceCase(organization[attribute.name]) : organization[attribute.name] }}
           </span>
@@ -55,7 +40,6 @@ import { computed, defineProps } from 'vue';
 import enrichmentAttributes, { attributesTypes } from '@/modules/organization/config/organization-enrichment-attributes';
 import { formatDate } from '@/utils/date';
 import { toSentenceCase } from '@/utils/string';
-import AppTags from '@/shared/tags/tags.vue';
 
 const props = defineProps({
   organization: {
