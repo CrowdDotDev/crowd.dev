@@ -38,6 +38,10 @@ import { DiscourseActivityType } from '../../../../types/activityTypes'
 import { DiscourseGrid } from '../../grid/discourseGrid'
 import type { PlatformIdentities } from '../../types/messageTypes'
 
+const BOT_USERNAMES = ['system', 'discobot']
+
+const usernameIsBot = (username: string): boolean => BOT_USERNAMES.includes(username)
+
 enum DiscourseStreamType {
   CATEGORIES = 'categories',
   TOPICS_FROM_CATEGORY = 'topicsFromCategory',
@@ -190,6 +194,10 @@ export class DiscourseIntegrationService extends IntegrationServiceBase {
         const { topicId, lastIdInPreviousBatch } = stream.metadata
         const posts = data4.post_stream.posts
         for (const post of posts) {
+          if (usernameIsBot(post.username)) {
+            /* eslint-disable no-continue */
+            continue
+          }
           const user = await getDiscourseUserByUsername(
             {
               forumHostname: context.pipelineData.forumHostname,
@@ -376,6 +384,11 @@ export class DiscourseIntegrationService extends IntegrationServiceBase {
     context: IStepContext,
   ): Promise<IProcessWebhookResults> {
     const post = data.post
+    if (usernameIsBot(post.username)) {
+      return {
+        operations: [],
+      }
+    }
     const user = await getDiscourseUserByUsername(
       {
         forumHostname: context.integration.settings.forumHostname,
@@ -433,6 +446,11 @@ export class DiscourseIntegrationService extends IntegrationServiceBase {
     context: IStepContext,
   ): Promise<IProcessWebhookResults> {
     const user = data.user
+    if (usernameIsBot(user.username)) {
+      return {
+        operations: [],
+      }
+    }
     const member = DiscourseIntegrationService.parseUserIntoMember(
       {
         user: user as any,
@@ -482,6 +500,13 @@ export class DiscourseIntegrationService extends IntegrationServiceBase {
     const channel = notification.fancy_title
       ? notification.fancy_title
       : notification.data.topic_title
+
+    if (usernameIsBot(username)) {
+      return {
+        operations: [],
+      }
+    }
+
     const user = await getDiscourseUserByUsername(
       {
         forumHostname: context.integration.settings.forumHostname,
