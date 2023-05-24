@@ -26,7 +26,6 @@ import TaskRepository from '../database/repositories/taskRepository'
 import isFeatureEnabled from '../feature-flags/isFeatureEnabled'
 import { FeatureFlag } from '../types/common'
 import SegmentRepository from '../database/repositories/segmentRepository'
-import SegmentService from './segmentService'
 import { SegmentStatus } from '../types/segmentTypes'
 
 export default class TenantService {
