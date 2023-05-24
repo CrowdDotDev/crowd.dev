@@ -406,7 +406,10 @@ export default class IntegrationService {
           transaction,
         )
 
-        run = await new IntegrationRunRepository({ ...this.options, transaction }).create({
+        run = await new IntegrationRunRepository({
+          ...this.options,
+          transaction,
+        }).createInNewFramework({
           integrationId: integration.id,
           tenantId: integration.tenantId,
           onboarding: true,
@@ -419,10 +422,8 @@ export default class IntegrationService {
         throw err
       }
 
-      await sendNodeWorkerMessage(
-        integration.tenantId,
-        new NodeWorkerIntegrationProcessMessage(run.id),
-      )
+      await sendGenerateRunStreamsMessage(integration.tenantId, run.id)
+
       return integration
     }
 
