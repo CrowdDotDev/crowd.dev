@@ -248,7 +248,7 @@ const processPostCommentsStream: ProcessStreamHandler = async (ctx) => {
       type: 'comment',
       comment,
       postUrnId,
-      postBody
+      postBody,
       author,
     })
   }

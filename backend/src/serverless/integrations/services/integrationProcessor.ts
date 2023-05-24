@@ -45,19 +45,6 @@ export class IntegrationProcessor extends LoggingBase {
       new StackOverlflowIntegrationService(),
     ]
 
-    // add premium integrations
-    const premiumIndexFile = path.resolve(`${__dirname}/integrations/premium/index.ts`)
-
-    if (fs.existsSync(premiumIndexFile)) {
-      const premiumIntegrations: IntegrationServiceBase[] =
-        require('./integrations/premium').default
-
-      if (premiumIntegrations.length > 0) {
-        integrationServices.push(...premiumIntegrations)
-        this.log.info(`Loaded ${premiumIntegrations.length} premium integrations!`)
-      }
-    }
-
     this.log.debug(
       { supportedIntegrations: integrationServices.map((i) => i.type) },
       'Successfully detected supported integrations!',
