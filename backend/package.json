@@ -39,6 +39,7 @@
     "script:unleash-init": "SERVICE=script ts-node ./src/bin/scripts/unleash-init.ts"
   },
   "dependencies": {
+    "@crowd/common": "file:../services/libs/common",
     "@crowd/types": "file:../services/libs/types",
     "@crowd/integrations": "file:../services/libs/integrations",
     "@aws-sdk/client-comprehend": "^3.159.0",

@@ -14,6 +14,7 @@
     "@crowd/common": "file:../../libs/common",
     "@crowd/database": "file:../../libs/database",
     "@crowd/integrations": "file:../../libs/integrations",
+    "@crowd/conversations": "file:../../libs/conversations",
     "@crowd/logging": "file:../../libs/logging",
     "@crowd/sentiment": "file:../../libs/sentiment",
     "@crowd/sqs": "file:../../libs/sqs",

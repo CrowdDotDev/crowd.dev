@@ -19,3 +19,10 @@ export class NewMemberAutomationQueueMessage implements IQueueMessage {
 
   constructor(public readonly tenant: string, public readonly memberId: unknown) {}
 }
+
+export class LoadConversationIntoSearchEngineQueueMessage implements IQueueMessage {
+  public readonly type: string = NodejsWorkerQueueMessageType.NODE_MICROSERVICE
+  public readonly service = 'search-engine-update'
+
+  constructor(public readonly tenant: string, public readonly conversationId: string) {}
+}

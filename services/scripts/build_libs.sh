@@ -13,6 +13,7 @@ LIBRARIES=(
   "redis"
   "sqs"
   "sentiment"
+  "conversations"
   "integrations"
 )
 

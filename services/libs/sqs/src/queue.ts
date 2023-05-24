@@ -9,7 +9,7 @@ import { IS_PROD_ENV, IS_STAGING_ENV, timeout } from '@crowd/common'
 import { Logger, LoggerBase } from '@crowd/logging'
 import { deleteMessage, receiveMessage, sendMessage } from './client'
 import { ISqsQueueConfig, SqsClient, SqsMessage, SqsQueueType } from './types'
-import { IQueueMessage } from '@crowd/types'
+import { IQueueMessage, ISqsQueueEmitter, ISqsQueueReceiver } from '@crowd/types'
 
 export abstract class SqsQueueBase extends LoggerBase {
   private readonly queueName: string
@@ -170,12 +170,12 @@ export abstract class SqsQueueReceiver extends SqsQueueBase {
   }
 }
 
-export abstract class SqsQueueEmitter extends SqsQueueBase {
+export abstract class SqsQueueEmitter extends SqsQueueBase implements ISqsQueueEmitter {
   constructor(sqsClient: SqsClient, queueConf: ISqsQueueConfig, parentLog: Logger) {
     super(sqsClient, queueConf, parentLog)
   }
 
-  protected async sendMessage(groupId: string, message: IQueueMessage): Promise<void> {
+  public async sendMessage(groupId: string, message: IQueueMessage): Promise<void> {
     const params: SendMessageRequest = {
       QueueUrl: this.getQueueUrl(),
       MessageGroupId: groupId,

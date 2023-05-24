@@ -25,6 +25,7 @@ import { eagleEyeEmailDigestWorker } from './eagle-eye-email-digest/eagleEyeEmai
 import { integrationDataCheckerWorker } from './integration-data-checker/integrationDataCheckerWorker'
 import { refreshSampleDataWorker } from './integration-data-checker/refreshSampleDataWorker'
 import { mergeSuggestionsWorker } from './merge-suggestions/mergeSuggestionsWorker'
+import { searchEngineUpdate } from './searchEngineUpdate/searchEngineUpdate'
 
 /**
  * Worker factory for spawning different microservices
@@ -36,6 +37,8 @@ import { mergeSuggestionsWorker } from './merge-suggestions/mergeSuggestionsWork
 async function workerFactory(event: NodeMicroserviceMessage): Promise<any> {
   const { service, tenant } = event as any
   switch (service.toLowerCase()) {
+    case 'search-engine-update':
+      return searchEngineUpdate(tenant, (event as any).conversationId)
     case 'stripe-webhooks':
       return processStripeWebhook(event)
     case 'sendgrid-webhooks':

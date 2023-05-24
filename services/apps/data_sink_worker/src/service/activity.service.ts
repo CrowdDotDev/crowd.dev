@@ -12,14 +12,18 @@ import mergeWith from 'lodash.mergewith'
 import isEqual from 'lodash.isequal'
 import { NodejsWorkerEmitter } from '@/queue'
 import SettingsRepository from './settings.repo'
+import { ConversationService } from '@crowd/conversations'
 
 export default class ActivityService extends LoggerBase {
+  private readonly conversationService: ConversationService
+
   constructor(
     private readonly store: DbStore,
     private readonly nodejsWorkerEmitter: NodejsWorkerEmitter,
     parentLog: Logger,
   ) {
     super(parentLog)
+    this.conversationService = new ConversationService(store, nodejsWorkerEmitter, parentLog)
   }
 
   public async create(tenantId: string, activity: IActivityCreateData): Promise<string> {
@@ -62,6 +66,7 @@ export default class ActivityService extends LoggerBase {
         })
 
         await this.nodejsWorkerEmitter.processAutomationForNewActivity(tenantId, id)
+        await this.conversationService.processActivity(tenantId, id)
         return id
       })
     } catch (err) {
@@ -112,6 +117,8 @@ export default class ActivityService extends LoggerBase {
             channel: toUpdate.channel || original.channel,
             url: toUpdate.url || original.url,
           })
+
+          await this.conversationService.processActivity(tenantId, id)
         } else {
           this.log.debug({ activityId: id }, 'No changes to update in an activity.')
         }

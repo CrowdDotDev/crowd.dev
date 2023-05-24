@@ -3,6 +3,7 @@ import { Transaction } from 'sequelize/types'
 import emoji from 'emoji-dictionary'
 import fetch from 'node-fetch'
 import { convert as convertHtmlToText } from 'html-to-text'
+import { getCleanString } from '@crowd/common'
 import { IS_TEST_ENV, S3_CONFIG } from '../conf/index'
 import SequelizeRepository from '../database/repositories/sequelizeRepository'
 import { IServiceOptions } from './IServiceOptions'
@@ -20,7 +21,6 @@ import getStage from './helpers/getStage'
 import { s3 } from './aws'
 import { PlatformType } from '../types/integrationEnums'
 import { LoggingBase } from './loggingBase'
-import getCleanString from '../utils/getCleanString'
 
 export default class ConversationService extends LoggingBase {
   static readonly MAX_SLUG_WORD_LENGTH = 10
@@ -298,7 +298,7 @@ export default class ConversationService extends LoggingBase {
    * @param transaction db transaction
    * @returns search index client index object
    */
-  async loadIntoSearchEngine(id: String, transaction: Transaction): Promise<void> {
+  async loadIntoSearchEngine(id: String, transaction?: Transaction): Promise<void> {
     const conversation = await ConversationRepository.findById(id, { ...this.options, transaction })
 
     this.log.info({ conversation }, 'Found conversation!')
@@ -521,24 +521,6 @@ export default class ConversationService extends LoggingBase {
     }
 
     return title
-  }
-
-  /**
-   * Generates a cleaned string from given string by:
-   * Removing non alphanumeric characters from a string
-   * Converting dashes into spaces
-   * Removing extraneous whitespaces between words
-   * @param title string to be cleaned
-   * @returns cleaned string
-   *
-   */
-  static getCleanString(string: String): String {
-    return string
-      .replace(/[^-0-9A-Z ]+/gi, '') // only get alphanumeric characters and dashes
-      .replace(/-+/gi, ' ') // convert dashes into spaces
-      .replace(/\s+/g, ' ') // get rid of excessive spaces between words
-      .toLowerCase()
-      .trim()
   }
 
   async destroyBulk(ids) {
