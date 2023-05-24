@@ -1,21 +1,33 @@
 <template>
   <div
-    :class="props.selected ? 'is-selected' : ''"
+    :class="selected ? 'is-selected' : ''"
     v-bind="$attrs"
     class="filter-select-option"
+    @click="selectOption()"
   >
     <slot />
     <i
-      v-if="props.selected"
+      v-if="selected"
       class="ri-check-line text-brand-600 absolute right-0 mr-4"
     />
   </div>
 </template>
 
 <script setup lang="ts">
+import { computed } from 'vue';
+
 const props = defineProps<{
-  selected: boolean,
+  modelValue: boolean,
+  value: boolean,
 }>();
+
+const emit = defineEmits<{(e: 'update:modelValue', value: boolean)}>();
+
+const selected = computed(() => props.modelValue === props.value);
+
+const selectOption = () => {
+  emit('update:modelValue', props.value);
+};
 
 </script>
 
