@@ -827,6 +827,7 @@ export class GithubIntegrationService extends IntegrationServiceBase {
         score: scoreGrid.score,
         isContribution: scoreGrid.isContribution,
         attributes: {
+          reviewState: (payload.review?.state as string).toUpperCase(),
           state: pull.state,
           authorAssociation: pull.author_association,
           labels: pull.labels.map((l) => l.name),
@@ -1107,6 +1108,7 @@ export class GithubIntegrationService extends IntegrationServiceBase {
               channel: pullRequest.channel,
               title: '',
               attributes: {
+                reviewState: record.state,
                 state: (pullRequest.attributes as any).state,
                 additions: (pullRequest.attributes as any).additions,
                 deletions: (pullRequest.attributes as any).deletions,
