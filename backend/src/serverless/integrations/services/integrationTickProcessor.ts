@@ -1,4 +1,5 @@
 import { processPaginated } from '@crowd/common'
+import { INTEGRATION_SERVICES } from '@crowd/integrations'
 import IntegrationRunRepository from '../../../database/repositories/integrationRunRepository'
 import { IServiceOptions } from '../../../services/IServiceOptions'
 import { LoggingBase } from '../../../services/loggingBase'
@@ -31,7 +32,19 @@ export class IntegrationTickProcessor extends LoggingBase {
   private async processCheckTick() {
     this.log.trace('Processing integration processor tick!')
 
-    for (const intService of this.integrationServices) {
+    const tickers: IIntTicker[] = this.integrationServices.map((i) => ({
+      type: i.type,
+      ticksBetweenChecks: i.ticksBetweenChecks,
+    }))
+
+    for (const service of INTEGRATION_SERVICES) {
+      tickers.push({
+        type: service.type,
+        ticksBetweenChecks: service.checkEvery || -1,
+      })
+    }
+
+    for (const intService of tickers) {
       let trigger = false
 
       if (intService.ticksBetweenChecks < 0) {
@@ -56,7 +69,7 @@ export class IntegrationTickProcessor extends LoggingBase {
         this.log.info({ type: intService.type }, 'Triggering integration check!')
         await sendNodeWorkerMessage(
           new Date().toISOString(),
-          new NodeWorkerIntegrationCheckMessage(intService.type),
+          new NodeWorkerIntegrationCheckMessage(intService.type as IntegrationType),
         )
       }
     }
@@ -79,4 +92,9 @@ export class IntegrationTickProcessor extends LoggingBase {
       },
     )
   }
+}
+
+interface IIntTicker {
+  type: string
+  ticksBetweenChecks: number
 }

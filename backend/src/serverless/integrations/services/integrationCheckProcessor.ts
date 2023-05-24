@@ -1,4 +1,6 @@
 import { processPaginated } from '@crowd/common'
+import { INTEGRATION_SERVICES } from '@crowd/integrations'
+import { sendGenerateRunStreamsMessage } from 'serverless/utils/integrationRunWorkerSQS'
 import { IRepositoryOptions } from '../../../database/repositories/IRepositoryOptions'
 import IntegrationRepository from '../../../database/repositories/integrationRepository'
 import IntegrationRunRepository from '../../../database/repositories/integrationRunRepository'
@@ -58,27 +60,59 @@ export class IntegrationCheckProcessor extends LoggingBase {
         },
       )
     } else {
-      // get the relevant integration service that is supposed to be configured already
-      const intService = singleOrDefault(this.integrationServices, (s) => s.type === type)
       const options =
         (await SequelizeRepository.getDefaultIRepositoryOptions()) as IRepositoryOptions
 
-      await processPaginated(
-        async (page) => IntegrationRepository.findAllActive(type, page, 10),
-        async (integrations) => {
-          logger.debug({ count: integrations.length }, 'Found integrations to check!')
-          const inactiveIntegrations: any[] = []
-          for (const integration of integrations as any[]) {
-            const existingRun = await this.integrationRunRepository.findLastProcessingRun(
-              integration.id,
-            )
-            if (!existingRun) {
-              inactiveIntegrations.push(integration)
+      // get the relevant integration service that is supposed to be configured already
+      const intService = singleOrDefault(this.integrationServices, (s) => s.type === type)
+
+      if (intService) {
+        await processPaginated(
+          async (page) => IntegrationRepository.findAllActive(type, page, 10),
+          async (integrations) => {
+            logger.debug({ count: integrations.length }, 'Found integrations to check!')
+            const inactiveIntegrations: any[] = []
+            for (const integration of integrations as any[]) {
+              const existingRun = await this.integrationRunRepository.findLastProcessingRun(
+                integration.id,
+              )
+              if (!existingRun) {
+                inactiveIntegrations.push(integration)
+              }
             }
-          }
-          await intService.triggerIntegrationCheck(inactiveIntegrations, options)
-        },
-      )
+            await intService.triggerIntegrationCheck(inactiveIntegrations, options)
+          },
+        )
+      } else {
+        const newIntService = singleOrDefault(INTEGRATION_SERVICES, (i) => i.type === type)
+
+        if (!newIntService) {
+          throw new Error(`No integration service found for type ${type}!`)
+        }
+
+        await processPaginated(
+          async (page) => IntegrationRepository.findAllActive(type, page, 10),
+          async (integrations) => {
+            logger.debug({ count: integrations.length }, 'Found integrations to check!')
+            for (const integration of integrations as any[]) {
+              const existingRun =
+                await this.integrationRunRepository.findLastProcessingRunInNewFramework(
+                  integration.id,
+                )
+              if (!existingRun) {
+                const runId = await this.integrationRunRepository.createInNewFramework({
+                  integrationId: integration.id,
+                  tenantId: integration.tenantId,
+                  onboarding: false,
+                  state: IntegrationRunState.PENDING,
+                })
+
+                await sendGenerateRunStreamsMessage(integration.tenantId, runId)
+              }
+            }
+          },
+        )
+      }
     }
   }
 }
