@@ -1,12 +1,10 @@
 import axios, { AxiosRequestConfig } from 'axios'
 import type { DiscourseConnectionParams } from '../../types/discourseTypes'
 import { Logger } from '../../../../utils/logging'
-import {
-  DiscoursePostsByIdsResponse,
-  DiscoursePostsByIdsInput,
-} from '../../types/discourseTypes'
+import { DiscoursePostsByIdsResponse, DiscoursePostsByIdsInput } from '../../types/discourseTypes'
 
-const serializeArrayToQueryString = (params: Object) => Object.entries(params)
+const serializeArrayToQueryString = (params: Object) =>
+  Object.entries(params)
     .map(([key, value]) => {
       if (Array.isArray(value)) {
         return value
@@ -29,7 +27,6 @@ export const getDiscoursePostsByIds = async (
     params,
     input,
   })
-
 
   const queryParameters = {
     post_ids: input.post_ids,

@@ -20,8 +20,8 @@ export const getDiscourseTopics = async (
       'Api-Username': params.apiUsername,
     },
     params: {
-        page: input.page,
-    }
+      page: input.page,
+    },
   }
 
   try {

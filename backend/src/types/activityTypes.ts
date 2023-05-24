@@ -163,7 +163,6 @@ const defaultStackoverflowFormatter = (activity) => {
   return ''
 }
 
-
 export const UNKNOWN_ACTIVITY_TYPE_DISPLAY: ActivityTypeDisplayProperties = {
   default: 'Conducted an activity',
   short: 'conducted an activity',

@@ -7,10 +7,9 @@ export default async (req, res) => {
   new PermissionChecker(req).validateHas(Permissions.values.tenantEdit)
 
   const options = await SequelizeRepository.getDefaultIRepositoryOptions()
-  const repo = new IncomingWebhookRepository(options)  
-  
+  const repo = new IncomingWebhookRepository(options)
+
   const isWebhooksReceived = await repo.checkWebhooksExistForIntegration(req.body.integrationId)
 
-  await req.responseHandler.success(req, res, {isWebhooksReceived})
-  
+  await req.responseHandler.success(req, res, { isWebhooksReceived })
 }

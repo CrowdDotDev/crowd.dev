@@ -875,8 +875,7 @@ export default class IntegrationService {
       if (existingIntegration) {
         return existingIntegration
       }
-    }
-    catch (err) {
+    } catch (err) {
       // we didn't find an existing integration, so we can continue
     }
 
@@ -904,4 +903,3 @@ export default class IntegrationService {
     return integration
   }
 }
-
