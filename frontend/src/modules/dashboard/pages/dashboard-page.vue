@@ -1,5 +1,5 @@
 <template>
-  <div class="flex -m-5">
+  <div v-if="currentTenant" class="flex -m-5">
     <div
       class="flex-grow overflow-auto"
       :style="{
@@ -79,7 +79,10 @@ const handleScroll = (event) => {
 
 onMounted(() => {
   window.analytics.page('Dashboard');
-  doFetch({});
+
+  if (currentTenant.value) {
+    doFetch({});
+  }
 
   storeUnsubscribe.value = store.subscribeAction(
     (action) => {

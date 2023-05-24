@@ -117,38 +117,7 @@
                 <template #default="scope">
                   <div class="flex items-center">
                     <app-platform
-                      v-if="scope.row.platform === 'github'"
-                      platform="github"
-                    />
-                    <app-platform
-                      v-else-if="
-                        scope.row.platform === 'discord'
-                      "
-                      platform="discord"
-                    />
-                    <app-platform
-                      v-else-if="
-                        scope.row.platform === 'slack'
-                      "
-                      platform="slack"
-                    />
-                    <app-platform
-                      v-else-if="
-                        scope.row.platform === 'devto'
-                      "
-                      platform="devto"
-                    />
-                    <app-platform
-                      v-else-if="
-                        scope.row.platform === 'twitter'
-                      "
-                      platform="twitter"
-                    />
-                    <app-platform
-                      v-else-if="
-                        scope.row.platform === 'hackernews'
-                      "
-                      platform="hackernews"
+                      :platform="scope.row.platform"
                     />
                     <span class="ml-2">{{
                       scope.row.channel

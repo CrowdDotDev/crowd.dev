@@ -12,7 +12,7 @@
     rel="noopener noreferrer"
   >
     <div class="flex gap-3 items-center">
-      <app-platform :platform="platform" />
+      <app-platform :platform="platform" :show-tooltip="true" />
       <div
         v-if="
           platform === 'linkedin'

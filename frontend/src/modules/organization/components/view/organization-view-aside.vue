@@ -95,6 +95,28 @@
             class="ri-external-link-line text-gray-300"
           />
         </a>
+        <a
+          v-if="getIdentityLink('facebook')"
+          class="px-6 py-2 flex justify-between items-center relative"
+          :class="
+            getIdentityLink('facebook')
+              ? 'hover:bg-gray-50 transition-colors cursor-pointer'
+              : ''
+          "
+          :href="getIdentityLink('facebook')"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          <div class="flex gap-3 items-center">
+            <app-platform platform="facebook" />
+            <span class="text-gray-900 text-xs">
+              Facebook</span>
+          </div>
+          <i
+            v-if="getIdentityLink('facebook')"
+            class="ri-external-link-line text-gray-300"
+          />
+        </a>
         <el-divider
           v-if="showDivider"
           class="border-t-gray-200"
@@ -148,12 +170,27 @@
           </router-link>
         </div>
       </div>
+
+      <div v-if="shouldShowAttributes">
+        <div class="mt-10">
+          <div class="font-medium text-black">
+            Attributes
+          </div>
+
+          <app-organization-aside-enriched
+            :organization="organization"
+          />
+        </div>
+      </div>
     </div>
   </div>
 </template>
 
 <script setup>
 import { defineProps, computed } from 'vue';
+import enrichmentAttributes, { attributesTypes } from '@/modules/organization/config/organization-enrichment-attributes';
+import { withHttp } from '@/utils/string';
+import AppOrganizationAsideEnriched from './_aside/_aside-enriched.vue';
 
 const props = defineProps({
   organization: {
@@ -168,7 +205,8 @@ const showDivider = computed(
     && (!!props.organization.github
       || !!props.organization.linkedin
       || !!props.organization.twitter
-      || !!props.organization.crunchbase),
+      || !!props.organization.crunchbase
+      || !!props.organization.facebook),
 );
 
 const noIdentities = computed(() => (
@@ -176,26 +214,37 @@ const noIdentities = computed(() => (
     && !props.organization.linkedin?.url
     && !props.organization.twitter?.url
     && !props.organization.crunchbase?.url
+    && !props.organization.facebook?.url
     && (!props.organization.emails
       || props.organization.emails.length === 0)
     && (!props.organization.phoneNumbers
       || props.organization.phoneNumbers.length === 0)
 ));
 
+const shouldShowAttributes = computed(() => enrichmentAttributes.some((a) => {
+  if (a.type === attributesTypes.multiSelect) {
+    return !!props.organization[a.name]?.length;
+  }
+
+  return !!props.organization[a.name];
+}));
+
 const getIdentityLink = (platform) => {
   if (props.organization[platform]?.url) {
-    return props.organization[platform]?.url;
+    return withHttp(props.organization[platform]?.url);
   } if (props.organization[platform]?.handle) {
     let url;
 
     if (platform === 'linkedin') {
-      url = 'https://www.linkedin.com/';
+      url = 'https://www.linkedin.com/company';
     } else if (platform === 'github') {
       url = 'https://github.com/';
     } else if (platform === 'twitter') {
       url = 'https://twitter.com/';
     } else if (platform === 'crunchbase') {
-      url = 'https://www.crunchbase.com/';
+      url = 'https://www.crunchbase.com/organization/';
+    } else if (platform === 'facebook') {
+      url = 'https://www.facebook.com/';
     } else {
       return null;
     }
