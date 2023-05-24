@@ -10,14 +10,16 @@ import {
   defineProps, defineEmits, computed, onMounted,
 } from 'vue';
 import {
+  SelectFilterConfig,
   SelectFilterOptions,
-  SelectFilterValue,
-} from '@/shared/modules/filters/types/filterTypes/SelectFilterConfig';
+  SelectFilterValue
+} from "@/shared/modules/filters/types/filterTypes/SelectFilterConfig";
 import { required } from '@vuelidate/validators';
 import useVuelidate from '@vuelidate/core';
 
 const props = defineProps<{
   modelValue: SelectFilterValue,
+  config: SelectFilterConfig
 } & SelectFilterOptions>();
 
 const emit = defineEmits<{(e: 'update:modelValue', value: SelectFilterValue)}>();

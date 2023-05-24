@@ -9,12 +9,17 @@
 import {
   defineProps, defineEmits, computed, onMounted,
 } from 'vue';
-import { DateFilterValue, DateFilterOptions } from '@/shared/modules/filters/types/filterTypes/DateFilterConfig';
+import {
+  DateFilterValue,
+  DateFilterOptions,
+  DateFilterConfig,
+} from '@/shared/modules/filters/types/filterTypes/DateFilterConfig';
 import { required } from '@vuelidate/validators';
 import useVuelidate from '@vuelidate/core';
 
 const props = defineProps<{
-  modelValue: DateFilterValue
+  modelValue: DateFilterValue,
+  config: DateFilterConfig
 } & DateFilterOptions>();
 
 const emit = defineEmits<{(e: 'update:modelValue', value: DateFilterValue)}>();

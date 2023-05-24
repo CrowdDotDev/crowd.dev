@@ -15,8 +15,8 @@
           </el-button>
         </template>
 
-        <div>
-          <component :is="getComponent" v-if="getComponent" v-model="form" v-bind="props.config.options" />
+        <div class="px-1">
+          <component :is="getComponent" v-if="getComponent" v-model="form" :config="props.config" v-bind="props.config.options" />
         </div>
         <div class="flex justify-end items-center border-t pt-2">
           <el-button class="btn btn--transparent btn--sm mr-2" @click="close">

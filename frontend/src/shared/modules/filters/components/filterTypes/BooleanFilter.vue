@@ -1,7 +1,15 @@
 <template>
-  <div v-if="form">
-    Boolean filter
-    <!-- TODO: prepare boolean filter -->
+  <div v-if="form" class="filter-base-boolean pb-4 pt-2">
+    <cr-filter-include-switch v-if="!props.hideIncludeSwitch" v-model="form.include" />
+    <p class="text-gray-500 mb-2 font-medium text-2xs pt-3 pb-1">
+      {{ props.config.label }}
+    </p>
+    <cr-filter-select-option v-model="form.value" :value="true">
+      True
+    </cr-filter-select-option>
+    <cr-filter-select-option v-model="form.value" :value="false">
+      False
+    </cr-filter-select-option>
   </div>
 </template>
 
@@ -9,12 +17,19 @@
 import {
   defineProps, defineEmits, computed, onMounted,
 } from 'vue';
-import { BooleanFilterValue, BooleanFilterOptions } from '@/shared/modules/filters/types/filterTypes/BooleanFilterConfig';
+import {
+  BooleanFilterValue,
+  BooleanFilterOptions,
+  BooleanFilterConfig,
+} from '@/shared/modules/filters/types/filterTypes/BooleanFilterConfig';
 import { required } from '@vuelidate/validators';
 import useVuelidate from '@vuelidate/core';
+import CrFilterIncludeSwitch from '@/shared/modules/filters/components/partials/FilterIncludeSwitch.vue';
+import CrFilterSelectOption from '@/shared/modules/filters/components/partials/select/FilterSelectOption.vue';
 
 const props = defineProps<{
-  modelValue: BooleanFilterValue
+  modelValue: BooleanFilterValue,
+  config: BooleanFilterConfig,
 } & BooleanFilterOptions>();
 
 const emit = defineEmits<{(e: 'update:modelValue', value: BooleanFilterValue)}>();
