@@ -40,7 +40,7 @@
             ref="focus"
             v-model="form.discourseURL"
             placeholder="https://community.crowd.dev"
-            @blur="$v.discourseURL.$touch && validate()"
+            @blur="onBlurDiscourseURL()"
           />
         </app-form-item>
         <app-form-item
@@ -60,7 +60,7 @@
           <el-input
             ref="focus"
             v-model="form.apiKey"
-            @blur="$v.apiKey.$touch && validate()"
+            @blur="onBlurAPIKey()"
           >
             <template #suffix>
               <div
@@ -292,7 +292,7 @@ const $v = useVuelidate(rules, form, { $externalResults });
 async function validate() {
   $v.value.$clearExternalResults();
   // check if everything is valid
-  if (!await $v.value.$validate()) return;
+  if ($v.value.$error) return;
 
   isValidating.value = true;
 
@@ -315,6 +315,16 @@ async function validate() {
 
   isValidating.value = false;
 }
+
+const onBlurDiscourseURL = async () => {
+  $v.value.discourseURL.$touch();
+  await validate();
+};
+
+const onBlurAPIKey = async () => {
+  $v.value.apiKey.$touch();
+  await validate();
+};
 
 const emit = defineEmits(['update:modelValue']);
 
