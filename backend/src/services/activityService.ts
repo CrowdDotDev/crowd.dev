@@ -172,6 +172,10 @@ export default class ActivityService extends LoggingBase {
         }
       }
 
+      if (!fireCrowdWebhooks) {
+        this.log.info('Ignoring outgoing webhooks because of fireCrowdWebhooks!')
+      }
+
       return record
     } catch (error) {
       if (error.name && error.name.includes('Sequelize')) {
