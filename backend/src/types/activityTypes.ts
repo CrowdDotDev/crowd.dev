@@ -163,6 +163,18 @@ const defaultStackoverflowFormatter = (activity) => {
   return ''
 }
 
+const cleanDiscourseUrl = (url) => {
+  // https://discourse-web-aah2.onrender.com/t/test-webhook-topic-cool/26/5 -> remove /5 so only url to topic remains
+  const urlSplit = url.split('/')
+  urlSplit.pop()
+  return urlSplit.join('/')
+}
+
+const defaultDiscourseFormatter = (activity) => {
+  const topicUrl = cleanDiscourseUrl(activity.url)
+  return `<a href="${topicUrl}" target="_blank">#${activity.channel}</a>`
+}
+
 export const UNKNOWN_ACTIVITY_TYPE_DISPLAY: ActivityTypeDisplayProperties = {
   default: 'Conducted an activity',
   short: 'conducted an activity',
@@ -671,18 +683,24 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
   [PlatformType.DISCOURSE]: {
     [DiscourseActivityType.CREATE_TOPIC]: {
       display: {
-        default: 'Created a topic',
+        default: 'Created a topic {self}',
         short: 'created a topic',
         channel: '<span class="text-brand-500 truncate max-w-2xs">#{channel}</span>',
+        formatter: {
+          self: defaultDiscourseFormatter,
+        },
       },
       isContribution: DiscourseGrid.create_topic.isContribution,
     },
     [DiscourseActivityType.MESSAGE_IN_TOPIC]: {
       display: {
         default:
-          'Posted a message in <span class="text-brand-500 truncate max-w-2xs">#{channel}</span>',
+          'Posted a message in {self}',
         short: 'posted a message',
         channel: '<span class="text-brand-500 truncate max-w-2xs">#{channel}</span>',
+        formatter: {
+          self: defaultDiscourseFormatter,
+        },
       },
       isContribution: DiscourseGrid.message_in_topic.isContribution,
     },
@@ -696,9 +714,12 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
     },
     [DiscourseActivityType.LIKE]: {
       display: {
-        default: 'Liked a post',
+        default: 'Liked a post in {self}',
         short: 'liked a post',
         channel: '<span class="text-brand-500 truncate max-w-2xs">#{channel}</span>',
+        formatter: {
+          self: (activity) => `<a href="${activity.attributes.topicURL}" target="_blank">#${activity.channel}</a>`
+        },
       },
       isContribution: DiscourseGrid.like.isContribution,
     },

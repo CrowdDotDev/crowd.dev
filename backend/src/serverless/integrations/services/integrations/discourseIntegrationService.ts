@@ -536,6 +536,9 @@ export class DiscourseIntegrationService extends IntegrationServiceBase {
       channel,
       score: DiscourseGrid[DiscourseActivityType.LIKE].score,
       isContribution: DiscourseGrid[DiscourseActivityType.LIKE].isContribution,
+      attributes: {
+        topicURL: `${context.integration.settings.forumHostname}/t/${notification.slug}/${notification.topic_id}`,
+      }
     }
 
     return {
