@@ -9,19 +9,14 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 
-const emit = defineEmits<{(e: 'update:modelValue', value: string): void}>();
-const props = defineProps({
-  modelValue: {
-    type: String,
-    required: true,
-  },
-  placeholder: {
-    type: String,
-    default: null,
-  },
-});
+const props = defineProps<{
+  modelValue: string,
+  placeholder?: string,
+}>();
 
-const model = computed({
+const emit = defineEmits<{(e: 'update:modelValue', value: string): void}>();
+
+const model = computed<string>({
   get() {
     return props.modelValue;
   },

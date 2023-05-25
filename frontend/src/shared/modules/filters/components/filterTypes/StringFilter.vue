@@ -1,12 +1,12 @@
 <template>
   <div v-if="form">
-    <cr-filter-include-switch v-if="!props.config.options.hideIncludeSwitch" v-model="form.include" />
+    <cr-filter-include-switch v-if="!props.hideIncludeSwitch" v-model="form.include" />
 
     <cr-filter-inline-select
       v-model="form.operator"
       prefix="Text:"
       class="mb-2"
-      :options="computedOperatorOptions"
+      :options="stringFilterOperators"
     />
 
     <cr-filter-input
@@ -22,15 +22,15 @@ import { computed, onMounted } from 'vue';
 import useVuelidate from '@vuelidate/core';
 import { required } from '@vuelidate/validators';
 import {
+  FilterStringOperator,
   StringFilterConfig,
   StringFilterOptions,
   StringFilterValue,
 } from '@/shared/modules/filters/types/filterTypes/StringFilterConfig';
 import CrFilterIncludeSwitch from '@/shared/modules/filters/components/partials/FilterIncludeSwitch.vue';
-import CrFilterInlineSelect from '@/shared/modules/filters/components/partials/select/FilterInlineSelect.vue';
-import CrFilterInput from '@/shared/modules/filters/components/partials/input/FilterInput.vue';
-import { stringOperatorFilterRenderer } from '@/shared/modules/filters/config/operatorFilterRenderer/string.operator.filter.renderer';
-import { FilterOperator } from '@/shared/modules/filters/types/FilterConfig';
+import CrFilterInlineSelect from '@/shared/modules/filters/components/partials/FilterInlineSelect.vue';
+import CrFilterInput from '@/shared/modules/filters/components/partials/string/FilterInput.vue';
+import { stringFilterOperators } from '@/shared/modules/filters/config/constants/string.constants';
 
 const props = defineProps<{
   modelValue: StringFilterValue,
@@ -46,11 +46,9 @@ const form = computed<StringFilterValue>({
 
 const defaultForm: StringFilterValue = {
   value: '',
-  operator: FilterOperator.LIKE,
+  operator: FilterStringOperator.LIKE,
   include: true,
 };
-
-const computedOperatorOptions = computed(() => stringOperatorFilterRenderer(form.value.operator));
 
 const rules: any = {
   value: {

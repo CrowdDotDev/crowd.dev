@@ -3,7 +3,7 @@
     <el-dropdown
       placement="bottom-start"
       trigger="click"
-      @visible-change="handleDropdownVisibleChange"
+      @visible-change="dropdownExpanded = $event"
     >
       <div class="flex items-center">
         <span class="filter-select-option-prefix mr-1">{{
@@ -24,9 +24,9 @@
           v-for="option of options"
           :key="`option-${option.value}`"
           :class="{
-            'is-selected': option.selected,
+            'is-selected': props.modelValue === option.value,
           }"
-          @click="handleOptionClick(option)"
+          @click="model = option.value"
         >
           <div class="flex flex-col">
             <span>{{ option.label }}</span>
@@ -45,14 +45,13 @@ const props = defineProps<{
   modelValue: string,
   options: {
     value: string,
-    selected: boolean,
     label: string,
   }[],
   prefix: string
 }>();
 
-const dropdownExpanded = ref(false);
-const model = computed({
+const dropdownExpanded = ref<boolean>(false);
+const model = computed<string>({
   get() {
     return props.modelValue;
   },
@@ -61,20 +60,8 @@ const model = computed({
   },
 });
 
-const selectOptionLabel = computed(() => props.options.find((o) => o.value === model.value)
+const selectOptionLabel = computed<string>(() => props.options.find((o) => o.value === model.value)
   ?.label);
-
-const handleDropdownVisibleChange = (value: boolean) => {
-  dropdownExpanded.value = value;
-};
-
-const handleOptionClick = (option: {
-    value: string,
-    selected: boolean,
-    label: string,
-  }) => {
-  model.value = option.value;
-};
 </script>
 
 <script  lang="ts">

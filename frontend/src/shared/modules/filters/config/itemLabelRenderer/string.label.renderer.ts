@@ -1,5 +1,5 @@
 import { StringFilterValue } from '@/shared/modules/filters/types/filterTypes/StringFilterConfig';
-import { labelOperatorRenderer } from '../operatorFilterRenderer/label.operator.filter.renderer';
+import { stringOperatorLabels } from '@/shared/modules/filters/config/constants/string.constants';
 
 export const stringItemLabelRenderer = (
   property: string,
@@ -7,5 +7,5 @@ export const stringItemLabelRenderer = (
 ): string => {
   const excludeText = !include ? ' (exclude)' : '';
 
-  return `<b>${property}${excludeText}:</b> ${labelOperatorRenderer[operator]} ${value}`;
+  return `<b>${property}${excludeText}:</b> ${stringOperatorLabels[operator]} ${value}`;
 };

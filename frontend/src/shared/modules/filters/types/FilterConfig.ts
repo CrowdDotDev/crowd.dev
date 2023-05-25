@@ -6,13 +6,6 @@ import { DateFilterConfig } from '@/shared/modules/filters/types/filterTypes/Dat
 import { CustomFilterConfig } from '@/shared/modules/filters/types/filterTypes/CustomFilterConfig';
 import { StringFilterConfig } from '@/shared/modules/filters/types/filterTypes/StringFilterConfig';
 
-export enum FilterOperator {
-  LIKE = 'like',
-  NLIKE = 'nlike',
-  EQ = 'is',
-  NE = 'ne',
-}
-
 export enum FilterConfigType {
   NUMBER = 'number',
   SELECT = 'select',

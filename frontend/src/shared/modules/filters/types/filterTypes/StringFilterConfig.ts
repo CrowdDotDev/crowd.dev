@@ -1,11 +1,13 @@
 /* eslint-disable no-unused-vars */
-import { BaseFilterConfig, FilterConfigType, FilterOperator } from '@/shared/modules/filters/types/FilterConfig';
+import { BaseFilterConfig, FilterConfigType } from '@/shared/modules/filters/types/FilterConfig';
+import { FilterStringOperator } from '@/shared/modules/filters/config/constants/string.constants';
 
 export interface StringFilterOptions {
   hideIncludeSwitch?: boolean;
 }
+
 export interface StringFilterValue {
-  operator: FilterOperator,
+  operator: FilterStringOperator,
   value: string,
   include: boolean,
 }
