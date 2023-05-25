@@ -4,7 +4,7 @@ import { Logger, LoggerBase, getChildLogger } from '@crowd/logging'
 import { RedisCache, RedisClient } from '@crowd/redis'
 import { DataWorkerEmitter, RunWorkerEmitter, StreamWorkerEmitter } from '../queue'
 import IntegrationStreamRepository from '../repo/integrationStream.repo'
-import { IntegrationRunState, IntegrationStreamType, RateLimitError } from '@crowd/types'
+import { IntegrationStreamType, RateLimitError } from '@crowd/types'
 import { INTEGRATION_SERVICES, IProcessStreamContext } from '@crowd/integrations'
 import { NANGO_CONFIG, WORKER_SETTINGS } from '../config'
 

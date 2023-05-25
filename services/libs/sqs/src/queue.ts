@@ -9,7 +9,7 @@ import { IS_PROD_ENV, IS_STAGING_ENV, timeout } from '@crowd/common'
 import { Logger, LoggerBase } from '@crowd/logging'
 import { deleteMessage, receiveMessage, sendMessage } from './client'
 import { ISqsQueueConfig, SqsClient, SqsMessage, SqsQueueType } from './types'
-import { IQueueMessage, ISqsQueueEmitter, ISqsQueueReceiver } from '@crowd/types'
+import { IQueueMessage, ISqsQueueEmitter } from '@crowd/types'
 
 export abstract class SqsQueueBase extends LoggerBase {
   private readonly queueName: string
