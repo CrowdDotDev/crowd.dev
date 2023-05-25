@@ -76,19 +76,6 @@ export default class IntegrationStreamService extends LoggerBase {
       platform: streamInfo.integrationType,
     })
 
-    if (streamInfo.runState !== IntegrationRunState.PROCESSING) {
-      this.log.error({ actualState: streamInfo.runState }, 'Run is not in processing state!')
-      await this.triggerStreamError(
-        streamId,
-        'check-stream-run-state',
-        'Run is not in processing state!',
-        {
-          actualState: streamInfo.runState,
-        },
-      )
-      return
-    }
-
     const integrationService = singleOrDefault(
       INTEGRATION_SERVICES,
       (i) => i.type === streamInfo.integrationType,

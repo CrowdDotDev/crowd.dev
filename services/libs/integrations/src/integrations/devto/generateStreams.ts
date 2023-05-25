@@ -1,5 +1,10 @@
 import { GenerateStreamsHandler } from '../../types'
-import { DevToRootStream, IDevToIntegrationSettings } from './types'
+import {
+  DevToRootStream,
+  IDevToIntegrationSettings,
+  IDevToRootOrganizationStreamData,
+  IDevToRootUserStreamData,
+} from './types'
 
 const handler: GenerateStreamsHandler = async (ctx) => {
   const settings = ctx.integration.settings as IDevToIntegrationSettings
@@ -11,16 +16,22 @@ const handler: GenerateStreamsHandler = async (ctx) => {
 
   if (settings.organizations.length > 0) {
     for (const organization of settings.organizations) {
-      await ctx.publishStream(`${DevToRootStream.ORGANIZATION_ARTICLES}-${organization}`, {
-        organization,
-      })
+      await ctx.publishStream<IDevToRootOrganizationStreamData>(
+        `${DevToRootStream.ORGANIZATION_ARTICLES}-${organization}`,
+        {
+          organization,
+        },
+      )
     }
   }
   if (settings.users.length > 0) {
     for (const user of settings.users) {
-      await ctx.publishStream(`${DevToRootStream.USER_ARTICLES}-${user}`, {
-        user,
-      })
+      await ctx.publishStream<IDevToRootUserStreamData>(
+        `${DevToRootStream.USER_ARTICLES}-${user}`,
+        {
+          user,
+        },
+      )
     }
   }
 }

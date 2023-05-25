@@ -8,7 +8,7 @@ export interface IIntegrationContext {
   log: Logger
   cache: ICache
 
-  publishStream: (identifier: string, metadata?: unknown) => Promise<void>
+  publishStream: <T>(identifier: string, metadata?: T) => Promise<void>
   updateIntegrationSettings: (settings: unknown) => Promise<void>
 
   abortRunWithError: (message: string, metadata?: unknown, error?: Error) => Promise<void>
@@ -22,7 +22,7 @@ export interface IProcessStreamContext extends IIntegrationContext {
   stream: IIntegrationStream
   serviceSettings: IIntegrationServiceSettings
 
-  publishData: (data: unknown) => Promise<void>
+  publishData: <T>(data: T) => Promise<void>
 
   abortWithError: (message: string, metadata?: unknown, error?: Error) => Promise<void>
 }

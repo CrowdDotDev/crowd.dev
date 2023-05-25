@@ -1,6 +1,16 @@
 import sanitizeHtml from 'sanitize-html'
-import { IProcessDataContext, ProcessDataHandler } from 'src/types'
-import { ILinkedInAuthor, LinkedinActivityType, LinkedinStreamType } from './types'
+import { IProcessDataContext, ProcessDataHandler } from '../../../types'
+import {
+  ILinkedInAuthor,
+  ILinkedInCachedMember,
+  ILinkedInCachedOrganization,
+  ILinkedInChildCommentData,
+  ILinkedInCommentData,
+  ILinkedInData,
+  ILinkedInReactionData,
+  LinkedinActivityType,
+  LinkedinStreamType,
+} from './types'
 import { IMemberData, MemberAttributeName, PlatformType } from '@crowd/types'
 import {
   ILinkedInMember,
@@ -11,8 +21,6 @@ import {
 import { LINKEDIN_GRID } from './grid'
 import { isPrivateLinkedInMember } from './utils'
 import { single } from '@crowd/common'
-
-/* eslint-disable @typescript-eslint/no-explicit-any */
 
 const getMember = async (
   author: ILinkedInAuthor,
@@ -26,7 +34,7 @@ const getMember = async (
 
   if (author.type === 'user') {
     const user = author.data as ILinkedInMember
-    const userId = (user as any).userId
+    const userId = (user as ILinkedInCachedMember).userId
 
     if (user.id === 'private') {
       username = `private-${userId}`
@@ -48,7 +56,7 @@ const getMember = async (
     }
   } else if (author.type === 'organization') {
     const organization = author.data as ILinkedInOrganization
-    const userId = (organization as any).userId
+    const userId = (organization as ILinkedInCachedOrganization).userId
 
     username = organization.name
     sourceId = userId
@@ -86,7 +94,7 @@ const getMember = async (
 }
 
 const processReaction: ProcessDataHandler = async (ctx) => {
-  const data = ctx.data as any
+  const data = ctx.data as ILinkedInReactionData
   const author = data.author as ILinkedInAuthor
   const reaction = data.reaction as ILinkedInPostReaction
   const postUrnId = data.postUrnId
@@ -115,7 +123,7 @@ const processReaction: ProcessDataHandler = async (ctx) => {
   })
 }
 const processComment: ProcessDataHandler = async (ctx) => {
-  const data = ctx.data as any
+  const data = ctx.data as ILinkedInCommentData
   const author = data.author as ILinkedInAuthor
   const comment = data.comment as ILinkedInPostComment
   const postUrnId = data.postUrnId
@@ -154,7 +162,7 @@ const processComment: ProcessDataHandler = async (ctx) => {
 }
 
 const processChildComment: ProcessDataHandler = async (ctx) => {
-  const data = ctx.data as any
+  const data = ctx.data as ILinkedInChildCommentData
   const author = data.author as ILinkedInAuthor
   const parrentCommentUrnId = data.parentCommentUrnId
   const comment = data.comment as ILinkedInPostComment
@@ -194,7 +202,7 @@ const processChildComment: ProcessDataHandler = async (ctx) => {
 }
 
 const handler: ProcessDataHandler = async (ctx) => {
-  const data = ctx.data as any
+  const data = ctx.data as ILinkedInData
   if (data.type === 'reaction') {
     await processReaction(ctx)
   } else if (data.type === 'comment') {

@@ -3,10 +3,13 @@ import { IProcessStreamContext, ProcessStreamHandler } from '../../types'
 import { IDevToArticle, getArticle, getOrganizationArticles, getUserArticles } from './api/articles'
 import { getArticleComments } from './api/comments'
 import { IDevToUser, getUser } from './api/user'
-import { DevToRootStream } from './types'
+import {
+  DevToRootStream,
+  IDevToArticleData,
+  IDevToRootOrganizationStreamData,
+  IDevToRootUserStreamData,
+} from './types'
 import { getUserIdsFromComments, setFullUser } from './utils'
-
-/* eslint-disable @typescript-eslint/no-explicit-any */
 
 const getDevToArticle = async (ctx: IProcessStreamContext, id: number): Promise<IDevToArticle> => {
   const cached = await ctx.cache.get(`article:${id}`)
@@ -33,7 +36,7 @@ const getDevToUser = async (ctx: IProcessStreamContext, userId: number): Promise
 const processRootStream: ProcessStreamHandler = async (ctx) => {
   // no data here just new streams
   if (ctx.stream.identifier.startsWith(DevToRootStream.ORGANIZATION_ARTICLES)) {
-    const organization = (ctx.stream.data as any).organization
+    const organization = (ctx.stream.data as IDevToRootOrganizationStreamData).organization
     let page = 1
     let articles = await getOrganizationArticles(organization, page, 20)
     while (articles.length > 0) {
@@ -45,7 +48,7 @@ const processRootStream: ProcessStreamHandler = async (ctx) => {
       articles = await getOrganizationArticles(organization, ++page, 20)
     }
   } else if (ctx.stream.identifier.startsWith(DevToRootStream.USER_ARTICLES)) {
-    const user = (ctx.stream.data as any).user
+    const user = (ctx.stream.data as IDevToRootUserStreamData).user
     let page = 1
     let articles = await getUserArticles(user, page, 20)
     while (articles.length > 0) {
@@ -81,7 +84,7 @@ const processArticleStream: ProcessStreamHandler = async (ctx) => {
       }
     }
 
-    await ctx.publishData({
+    await ctx.publishData<IDevToArticleData>({
       article: await getDevToArticle(ctx, articleId),
       comments,
     })

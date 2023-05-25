@@ -1,6 +1,6 @@
 import { processPaginated } from '@crowd/common'
 import { INTEGRATION_SERVICES } from '@crowd/integrations'
-import { sendGenerateRunStreamsMessage } from 'serverless/utils/integrationRunWorkerSQS'
+import { sendGenerateRunStreamsMessage } from '../../utils/integrationRunWorkerSQS'
 import { IRepositoryOptions } from '../../../database/repositories/IRepositoryOptions'
 import IntegrationRepository from '../../../database/repositories/integrationRepository'
 import IntegrationRunRepository from '../../../database/repositories/integrationRunRepository'

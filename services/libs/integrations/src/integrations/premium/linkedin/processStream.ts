@@ -6,7 +6,19 @@ import { getOrganization } from './api/organization'
 import { getOrganizationPosts } from './api/organizationPosts'
 import { getPostComments } from './api/postComments'
 import { getPostReactions } from './api/postReactions'
-import { ILinkedInAuthor, LinkedinStreamType } from './types'
+import {
+  ILinkedInAuthor,
+  ILinkedInCachedMember,
+  ILinkedInCachedOrganization,
+  ILinkedInChildCommentCommentsStream,
+  ILinkedInChildCommentData,
+  ILinkedInChildPostCommentsStream,
+  ILinkedInChildPostReactionsStream,
+  ILinkedInCommentData,
+  ILinkedInReactionData,
+  ILinkedInRootOrganizationStream,
+  LinkedinStreamType,
+} from './types'
 import {
   getLinkedInOrganizationId,
   getLinkedInUserId,
@@ -14,12 +26,11 @@ import {
   isLinkedInUser,
 } from './utils'
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
-
 const getLastReactionTs = async (
   ctx: IProcessStreamContext,
   postUrnId: string,
 ): Promise<number | undefined> => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const posts = (ctx.integration.settings as any).posts || []
   const cachedPost = posts.find((p) => p.id === postUrnId)
   return cachedPost?.lastReactionTs
@@ -29,12 +40,14 @@ const getLastCommentTs = async (
   ctx: IProcessStreamContext,
   postUrnId: string,
 ): Promise<number | undefined> => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const posts = (ctx.integration.settings as any).posts || []
   const cachedPost = posts.find((p) => p.id === postUrnId)
   return cachedPost?.lastCommentTs
 }
 
 const setLastReactionTs = async (ctx: IProcessStreamContext, postUrnId: string, ts: number) => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const posts = (ctx.integration.settings as any).posts || []
   const cachedPost = posts.find((p) => p.id === postUrnId)
   if (cachedPost) {
@@ -47,12 +60,14 @@ const setLastReactionTs = async (ctx: IProcessStreamContext, postUrnId: string, 
   }
 
   await ctx.updateIntegrationSettings({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     ...(ctx.integration.settings as any),
     posts,
   })
 }
 
 const setLastCommentTs = async (ctx: IProcessStreamContext, postUrnId: string, ts: number) => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const posts = (ctx.integration.settings as any).posts || []
   const cachedPost = posts.find((p) => p.id === postUrnId)
   if (cachedPost) {
@@ -65,6 +80,7 @@ const setLastCommentTs = async (ctx: IProcessStreamContext, postUrnId: string, t
   }
 
   await ctx.updateIntegrationSettings({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     ...(ctx.integration.settings as any),
     posts,
   })
@@ -89,7 +105,7 @@ const parseAuthor = async (
         data: {
           ...data,
           userId,
-        } as any,
+        } as ILinkedInCachedMember,
       }
       await ctx.cache.set(`user-${userId}`, JSON.stringify(data), 7 * 24 * 60 * 60) // store for 7 days
     }
@@ -106,7 +122,7 @@ const parseAuthor = async (
         data: {
           ...data,
           userId,
-        } as any,
+        } as ILinkedInCachedOrganization,
       }
       await ctx.cache.set(`user-${userId}`, JSON.stringify(data), 7 * 24 * 60 * 60) // store for 7 days
     }
@@ -119,21 +135,26 @@ const parseAuthor = async (
 }
 
 const processRootStream: ProcessStreamHandler = async (ctx) => {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const organizationUrn = (ctx.stream.data as any).organizationUrn
+  const organizationUrn = (ctx.stream.data as ILinkedInRootOrganizationStream).organizationUrn
   let posts = await getOrganizationPosts(ctx.serviceSettings.nangoId, organizationUrn, ctx)
 
   while (posts.elements.length > 0) {
     for (const post of posts.elements) {
       await ctx.cache.set(`post-${post.urnId}`, JSON.stringify(post), 2 * 24 * 60 * 60) // store for 2 days
-      await ctx.publishStream(`${LinkedinStreamType.POST_COMMENTS}-${post.urnId}`, {
-        postUrnId: post.urnId,
-        postBody: post.body,
-      })
-      await ctx.publishStream(`${LinkedinStreamType.POST_REACTIONS}-${post.urnId}`, {
-        postUrnId: post.urnId,
-        postBody: post.body,
-      })
+      await ctx.publishStream<ILinkedInChildPostCommentsStream>(
+        `${LinkedinStreamType.POST_COMMENTS}-${post.urnId}`,
+        {
+          postUrnId: post.urnId,
+          postBody: post.body,
+        },
+      )
+      await ctx.publishStream<ILinkedInChildPostReactionsStream>(
+        `${LinkedinStreamType.POST_REACTIONS}-${post.urnId}`,
+        {
+          postUrnId: post.urnId,
+          postBody: post.body,
+        },
+      )
     }
 
     if (posts.start !== undefined) {
@@ -150,8 +171,9 @@ const processRootStream: ProcessStreamHandler = async (ctx) => {
 }
 
 const processPostReactionsStream: ProcessStreamHandler = async (ctx) => {
-  const postUrnId = (ctx.stream.data as any).postUrnId
-  const postBody = (ctx.stream.data as any).postBody
+  const stream = ctx.stream.data as ILinkedInChildPostReactionsStream
+  const postUrnId = stream.postUrnId
+  const postBody = stream.postBody
 
   let lastReactionTs = await getLastReactionTs(ctx, postUrnId)
   if (!lastReactionTs && !ctx.onboarding) {
@@ -188,7 +210,7 @@ const processPostReactionsStream: ProcessStreamHandler = async (ctx) => {
 
     const author = await parseAuthor(reaction.authorUrn, ctx)
 
-    await ctx.publishData({
+    await ctx.publishData<ILinkedInReactionData>({
       type: 'reaction',
       postUrnId,
       postBody,
@@ -198,10 +220,14 @@ const processPostReactionsStream: ProcessStreamHandler = async (ctx) => {
   }
 
   if (data.start !== undefined) {
-    await ctx.publishStream(`${LinkedinStreamType.POST_REACTIONS}-${postUrnId}`, {
-      postUrnId,
-      start: data.start,
-    })
+    await ctx.publishStream<ILinkedInChildPostReactionsStream>(
+      `${LinkedinStreamType.POST_REACTIONS}-${postUrnId}`,
+      {
+        postUrnId,
+        postBody,
+        start: data.start,
+      },
+    )
   }
 }
 
@@ -244,7 +270,7 @@ const processPostCommentsStream: ProcessStreamHandler = async (ctx) => {
 
     const author = await parseAuthor(comment.authorUrn, ctx)
 
-    await ctx.publishData({
+    await ctx.publishData<ILinkedInCommentData>({
       type: 'comment',
       comment,
       postUrnId,
@@ -254,23 +280,25 @@ const processPostCommentsStream: ProcessStreamHandler = async (ctx) => {
   }
 
   if (data.start !== undefined) {
-    await ctx.publishStream(`${LinkedinStreamType.POST_COMMENTS}-${postUrnId}`, {
-      postUrnId,
-      start: data.start,
-    })
+    await ctx.publishStream<ILinkedInChildPostCommentsStream>(
+      `${LinkedinStreamType.POST_COMMENTS}-${postUrnId}`,
+      {
+        postUrnId,
+        postBody,
+        start: data.start,
+      },
+    )
   }
 }
 
 const processCommentCommentsStream: ProcessStreamHandler = async (ctx) => {
-  const commentUrnId = (ctx.stream.data as any).commentUrnId
-  const postUrnId = (ctx.stream.data as any).postUrnId
-  const postBody = (ctx.stream.data as any).postBody
+  const stream = ctx.stream.data as ILinkedInChildCommentCommentsStream
 
   const data = await getCommentComments(
     ctx.serviceSettings.nangoId,
-    commentUrnId,
+    stream.commentUrnId,
     ctx,
-    (ctx.stream.data as any).start,
+    stream.start,
   )
 
   const comments = data.elements
@@ -280,21 +308,26 @@ const processCommentCommentsStream: ProcessStreamHandler = async (ctx) => {
 
     const author = await parseAuthor(comment.authorUrn, ctx)
 
-    await ctx.publishData({
+    await ctx.publishData<ILinkedInChildCommentData>({
       type: 'child_comment',
-      parentCommentUrnId: commentUrnId,
+      parentCommentUrnId: stream.commentUrnId,
       comment,
-      postUrnId,
-      postBody,
+      postUrnId: stream.postUrnId,
+      postBody: stream.postBody,
       author,
     })
   }
 
   if (data.start !== undefined) {
-    await ctx.publishStream(`${LinkedinStreamType.COMMENT_COMMENTS}-${commentUrnId}`, {
-      commentUrnId,
-      start: data.start,
-    })
+    await ctx.publishStream<ILinkedInChildCommentCommentsStream>(
+      `${LinkedinStreamType.COMMENT_COMMENTS}-${stream.commentUrnId}`,
+      {
+        postUrnId: stream.postUrnId,
+        postBody: stream.postBody,
+        commentUrnId: stream.commentUrnId,
+        start: data.start,
+      },
+    )
   }
 }
 

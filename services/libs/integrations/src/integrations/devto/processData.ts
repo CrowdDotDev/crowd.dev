@@ -1,9 +1,9 @@
-import { IProcessDataContext, ProcessDataHandler } from 'src/types'
+import { IProcessDataContext, ProcessDataHandler } from '../../types'
 import { IDevToArticle } from './api/articles'
 import { IDevToComment } from './api/comments'
 import { IActivityData, IMemberData, MemberAttributeName, PlatformType } from '@crowd/types'
 import sanitizeHtml from 'sanitize-html'
-import { DevToActivityType } from './types'
+import { DevToActivityType, IDevToArticleData } from './types'
 import { DEVTO_GRID } from './grid'
 
 const getMember = (comment: IDevToComment): IMemberData => {
@@ -107,8 +107,7 @@ const processComment = async (
 }
 
 const handler: ProcessDataHandler = async (ctx) => {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const data = ctx.data as any
+  const data = ctx.data as IDevToArticleData
 
   const article = data.article as IDevToArticle
   const comments = data.comments as IDevToComment[]

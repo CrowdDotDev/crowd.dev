@@ -8,7 +8,7 @@ import { StreamWorkerEmitter } from '../queue'
 import IntegrationRunRepository from '../repo/integrationRun.repo'
 import SampleDataRepository from '../repo/sampleData.repo'
 import MemberAttributeSettingsRepository from '../repo/memberAttributeSettings.repo'
-import { NANGO_CONFIG } from 'src/config'
+import { NANGO_CONFIG } from '../config'
 
 export default class IntegrationRunService extends LoggerBase {
   private readonly repo: IntegrationRunRepository

@@ -76,17 +76,6 @@ export default class IntegrationDataService extends LoggerBase {
       platform: dataInfo.integrationType,
     })
 
-    if (dataInfo.runState !== IntegrationRunState.PROCESSING) {
-      this.log.error({ actualState: dataInfo.runState }, 'Run is not in processing state!')
-      await this.triggerDataError(
-        dataId,
-        'check-data-run-state',
-        'Run is not in processing state!',
-        { actualState: dataInfo.runState },
-      )
-      return
-    }
-
     const integrationService = singleOrDefault(
       INTEGRATION_SERVICES,
       (i) => i.type === dataInfo.integrationType,

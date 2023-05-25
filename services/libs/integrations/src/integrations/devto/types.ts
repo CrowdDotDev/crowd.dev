@@ -1,3 +1,6 @@
+import { IDevToArticle } from './api/articles'
+import { IDevToComment } from './api/comments'
+
 export interface IDevToArticleSettings {
   id: number
   lastCommentAt: string | null
@@ -16,4 +19,17 @@ export enum DevToRootStream {
 
 export enum DevToActivityType {
   COMMENT = 'comment',
+}
+
+export interface IDevToRootOrganizationStreamData {
+  organization: string
+}
+
+export interface IDevToRootUserStreamData {
+  user: string
+}
+
+export interface IDevToArticleData {
+  article: IDevToArticle
+  comments: IDevToComment[]
 }

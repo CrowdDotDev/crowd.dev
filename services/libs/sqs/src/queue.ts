@@ -120,7 +120,7 @@ export abstract class SqsQueueReceiver extends SqsQueueBase {
     await this.init()
 
     this.started = true
-    this.log.info('Starting listening to queue...')
+    this.log.info({ url: this.getQueueUrl() }, 'Starting listening to queue...')
     while (this.started) {
       if (this.isAvailable()) {
         // first receive the message

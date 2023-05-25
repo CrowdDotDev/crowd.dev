@@ -394,7 +394,7 @@ export default class IntegrationService {
 
     if (integration.status === 'pending-action') {
       const transaction = await SequelizeRepository.createTransaction(this.options)
-      let run
+      let runId
 
       try {
         integration = await this.createOrUpdate(
@@ -406,7 +406,7 @@ export default class IntegrationService {
           transaction,
         )
 
-        run = await new IntegrationRunRepository({
+        runId = await new IntegrationRunRepository({
           ...this.options,
           transaction,
         }).createInNewFramework({
@@ -421,8 +421,7 @@ export default class IntegrationService {
         await SequelizeRepository.rollbackTransaction(transaction)
         throw err
       }
-
-      await sendGenerateRunStreamsMessage(integration.tenantId, run.id)
+      await sendGenerateRunStreamsMessage(integration.tenantId, runId)
 
       return integration
     }
@@ -468,7 +467,7 @@ export default class IntegrationService {
     }
 
     const transaction = await SequelizeRepository.createTransaction(this.options)
-    let run
+    let runId
     let integration
 
     try {
@@ -482,7 +481,10 @@ export default class IntegrationService {
       )
 
       if (status === 'in-progress') {
-        run = await new IntegrationRunRepository({ ...this.options, transaction }).create({
+        runId = await new IntegrationRunRepository({
+          ...this.options,
+          transaction,
+        }).createInNewFramework({
           integrationId: integration.id,
           tenantId: integration.tenantId,
           onboarding: true,
@@ -495,11 +497,8 @@ export default class IntegrationService {
       throw err
     }
 
-    if (run) {
-      await sendNodeWorkerMessage(
-        integration.tenantId,
-        new NodeWorkerIntegrationProcessMessage(run.id),
-      )
+    if (runId) {
+      await sendGenerateRunStreamsMessage(integration.tenantId, runId)
     }
 
     return integration

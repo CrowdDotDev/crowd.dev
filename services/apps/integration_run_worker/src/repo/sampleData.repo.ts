@@ -22,22 +22,35 @@ export default class SampleDataRepository extends RepositoryBase<SampleDataRepos
     return results.map((r) => r.id)
   }
 
-  private async destroyOrganizations(memberIds: string[]): Promise<void> {
+  private async destroyOrganizations(tenantId: string, memberIds: string[]): Promise<void> {
     await this.db().none(
       `delete from organizations where id in (
-        select "organizationId" from "memberOrganizations" where "memberId" in ($(memberIds:csv))
+        select "organizationId" from "memberOrganizations" where "tenantId" = $(tenantId) and "memberId" in ($(memberIds:csv))
       )`,
       {
+        tenantId,
         memberIds,
       },
     )
   }
 
-  private async destroyMembers(memberIds: string[]): Promise<void> {
+  private async destroyMembers(tenantId: string, memberIds: string[]): Promise<void> {
     // should also destroy activities
-    await this.db().none(`delete from members where id in ($(memberIds:csv))`, {
-      memberIds,
-    })
+    await this.db().none(
+      `delete from members where "tenantId" = $(tenantId) and id in ($(memberIds:csv))`,
+      {
+        tenantId,
+        memberIds,
+      },
+    )
+
+    // delete members that don't have activities
+    await this.db().none(
+      `delete from members m where m."tenantId" = $(tenantId) and not exists(select 1 from activities where "tenantId" = $(tenantId) and "memberId" = m.id)`,
+      {
+        tenantId,
+      },
+    )
   }
 
   private async destroyConversations(tenantId: string): Promise<void> {
@@ -65,8 +78,8 @@ export default class SampleDataRepository extends RepositoryBase<SampleDataRepos
 
   public async deleteSampleData(tenantId: string): Promise<void> {
     const memberIds = await this.getSampleDataMemberIds(tenantId)
-    await this.destroyOrganizations(memberIds)
-    await this.destroyMembers(memberIds)
+    await this.destroyOrganizations(tenantId, memberIds)
+    await this.destroyMembers(tenantId, memberIds)
     await this.destroyConversations(tenantId)
     await this.destroySampleAttributeSettings(tenantId)
 
