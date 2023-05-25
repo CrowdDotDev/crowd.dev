@@ -3,15 +3,15 @@
     <el-button-group>
       <!-- Settings -->
       <el-popover
-        :visible="isOpen"
+        v-model:visible="isOpen"
         teleported
         placement="bottom-start"
         width="320"
         trigger="click"
-        popper-class="filter-popover !p-0"
+        popper-class="!p-0"
       >
         <template #reference>
-          <el-button ref="chip" class="filter-item-reference btn btn--bordered !h-8 p-2 !border !outline-none font-medium text-xs" @click="open">
+          <el-button ref="chip" class="btn btn--bordered !h-8 p-2 !border !outline-none font-medium text-xs">
             <span
               v-html="$sanitize(
                 (props.modelValue && config.itemLabelRenderer(props.modelValue, props.config.options))
@@ -21,7 +21,7 @@
           </el-button>
         </template>
 
-        <div class="filter-base p-3">
+        <div class="p-3">
           <component :is="getComponent" v-if="getComponent" v-model="form" :config="props.config" v-bind="props.config.options" />
         </div>
         <div class="flex justify-end items-center border-t p-3">
@@ -44,7 +44,7 @@
 
 <script setup lang="ts">
 import {
-  computed, onMounted, onUnmounted, ref, watch,
+  computed, ref, watch,
 } from 'vue';
 import { FilterConfig, FilterConfigType } from '@/shared/modules/filters/types/FilterConfig';
 import { filterComponentByType } from '@/shared/modules/filters/config/filterComponentByType';
@@ -81,40 +81,6 @@ const getComponent = computed(() => {
   return filterComponentByType[props.config.type];
 });
 
-const clickOutsideListener = (event: MouseEvent) => {
-  const popoverComponent = document.querySelector('.filter-popover');
-  const filterBaseComponent = document.querySelector('.filter-base');
-  const referenceComponent = document.querySelector('.filter-item-reference');
-
-  if (
-    !(
-      popoverComponent === event.target
-        || filterBaseComponent?.contains(event.target)
-        || referenceComponent?.contains(event.target)
-        // we need the following condition to validate clicks
-        // on popovers that are not DOM children of this component,
-        // since popper is adding fixed components to the body directly
-        || event
-          .composedPath()
-          .some(
-            (o) => (o.className
-                && typeof o.className.includes !== 'undefined'
-                && o.className?.includes('el-popper'))
-              || false,
-          )
-    )
-  ) {
-    close();
-  }
-};
-
-onMounted(() => {
-  document.addEventListener('click', clickOutsideListener);
-});
-onUnmounted(() => {
-  document.removeEventListener('click', clickOutsideListener);
-});
-
 const apply = () => {
   emit('update:modelValue', { ...form.value });
   close();
@@ -122,10 +88,6 @@ const apply = () => {
 
 const close = () => {
   isOpen.value = false;
-};
-
-const open = () => {
-  isOpen.value = true;
 };
 
 const $v = useVuelidate();

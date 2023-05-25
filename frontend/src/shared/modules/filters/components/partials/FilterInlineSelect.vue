@@ -3,6 +3,7 @@
     <el-dropdown
       placement="bottom-start"
       trigger="click"
+      :teleported="false"
       @visible-change="dropdownExpanded = $event"
     >
       <div class="flex items-center">
