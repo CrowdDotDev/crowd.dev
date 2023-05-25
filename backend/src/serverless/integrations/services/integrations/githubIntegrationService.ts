@@ -1219,7 +1219,7 @@ export class GithubIntegrationService extends IntegrationServiceBase {
         timestamp: moment(record.createdAt).utc().toDate(),
         body: record.bodyText,
         url: record.url,
-        channel: record.pullRequest.url,
+        channel: repo.url,
         title: '',
         attributes: {
           state: record.pullRequest.state.toLowerCase(),
