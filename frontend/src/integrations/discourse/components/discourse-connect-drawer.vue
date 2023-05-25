@@ -7,7 +7,7 @@
     pre-title="Integration"
     :show-footer="true"
     has-border
-    @close="isVisible = false"
+    @close="handleCancel()"
   >
     <template #beforeTitle>
       <img
@@ -333,7 +333,8 @@ const isVisible = computed({
 
 const handleCancel = () => {
   emit('update:modelValue', false);
-  if (!props.integration?.settings.forumHostname) {
+  if (!props.integration?.settings?.forumHostname) {
+    console.log('resetting form');
     form.apiKey = '';
     form.discourseURL = '';
     isValidating.value = false;
@@ -342,8 +343,10 @@ const handleCancel = () => {
     isWebhookVerifying.value = null;
     isWebhookValid.value = false;
     $externalResults.value = {};
+    $v.value.$reset();
   } else {
-    form.discourseURL = props.integration.settings.forumHostname;
+    console.log('resetting form 2');
+    form.discourseURL = props.integration?.settings?.forumHostname;
     form.apiKey = props.integration.settings.apiKey;
     webhookSecret.value = props.integration.settings.webhookSecret;
     payloadURL.value = `${window.location.origin}/api/webhooks/discourse/${tenantId}`;
@@ -351,6 +354,7 @@ const handleCancel = () => {
     isWebhookVerifying.value = null;
     isWebhookValid.value = false;
     $externalResults.value = {};
+    $v.value.$reset();
   }
   formSnapshot();
 };
