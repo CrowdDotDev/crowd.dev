@@ -382,6 +382,10 @@ export default class MemberService extends LoggingBase {
         }
       }
 
+      if (!fireCrowdWebhooks) {
+        this.log.info('Ignoring outgoing webhooks because of fireCrowdWebhooks!')
+      }
+
       return record
     } catch (error) {
       const reason = errorDetails.reason || undefined
