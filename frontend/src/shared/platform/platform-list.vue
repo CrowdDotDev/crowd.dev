@@ -12,7 +12,7 @@
     rel="noopener noreferrer"
   >
     <div class="flex gap-3 items-center">
-      <app-platform :platform="platform" />
+      <app-platform :platform="platform" :show-tooltip="true" />
       <div
         v-if="
           platform === 'linkedin'
@@ -57,7 +57,7 @@ const props = defineProps({
   },
 });
 
-const asLink = computed(() => props.platform !== 'slack' && props.platform !== 'discord');
+const asLink = computed(() => CrowdIntegrations.getConfig(props.platform)?.showProfileLink);
 const getPlatformUrl = ({ platform, username }) => CrowdIntegrations.getConfig(platform)?.url(username);
 </script>
 

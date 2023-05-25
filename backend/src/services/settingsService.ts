@@ -21,20 +21,21 @@ class SettingsService {
       throw new Error400(options.language, 'settings.activityTypes.errors.typeRequiredWhenCreating')
     }
 
-    const typeKey = data.type
+    const typeKey = data.type.toLowerCase()
+    const platformKey = platform.toLowerCase()
 
     const activityTypes = SettingsRepository.getActivityTypes(options)
 
-    if (!activityTypes.custom[platform]) {
-      activityTypes.custom[platform] = {}
+    if (!activityTypes.custom[platformKey]) {
+      activityTypes.custom[platformKey] = {}
     }
 
     // check key already exists
-    if (activityTypes.custom && activityTypes.custom[platform][typeKey]) {
+    if (activityTypes.custom && activityTypes.custom[platformKey][typeKey]) {
       return activityTypes
     }
 
-    activityTypes.custom[platform][typeKey] = {
+    activityTypes.custom[platformKey][typeKey] = {
       display: {
         default: data.type,
         short: data.type,
@@ -46,6 +47,7 @@ class SettingsService {
     const updated = await SettingsRepository.save(
       {
         ...options.currentTenant.settings[0].dataValues,
+        slackWebHook: undefined,
         customActivityTypes: activityTypes.custom,
       },
       options,
@@ -102,15 +104,20 @@ class SettingsService {
    *
    */
   static unnestActivityTypes(activityTypes: ActivityTypeSettings): UnnestedActivityTypes {
-    return Object.keys(activityTypes.custom).reduce((acc, platform) => {
-      const unnestWithPlatform = Object.keys(activityTypes.custom[platform]).reduce((acc2, key) => {
-        acc2[key] = { ...activityTypes.custom[platform][key], platform }
-        return acc2
-      }, {})
+    return Object.keys(activityTypes.custom)
+      .filter((k) => activityTypes.custom[k])
+      .reduce((acc, platform) => {
+        const unnestWithPlatform = Object.keys(activityTypes.custom[platform]).reduce(
+          (acc2, key) => {
+            acc2[key] = { ...activityTypes.custom[platform][key], platform }
+            return acc2
+          },
+          {},
+        )
 
-      acc = { ...acc, ...unnestWithPlatform }
-      return acc
-    }, {})
+        acc = { ...acc, ...unnestWithPlatform }
+        return acc
+      }, {})
   }
 
   static async updateActivityType(key: string, data, options: IRepositoryOptions) {
@@ -139,6 +146,7 @@ class SettingsService {
     const updated = await SettingsRepository.save(
       {
         ...options.currentTenant.settings[0].dataValues,
+        slackWebHook: undefined,
         customActivityTypes: activityTypes.custom,
       },
       options,
@@ -157,6 +165,7 @@ class SettingsService {
       const updated = await SettingsRepository.save(
         {
           ...options.currentTenant.settings[0].dataValues,
+          slackWebHook: undefined,
           customActivityTypes: activityTypes.custom,
         },
         options,

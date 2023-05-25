@@ -113,7 +113,6 @@ class IntegrationRepository {
 
     await record.destroy({
       transaction,
-      force: true,
     })
 
     await this._createAuditLog(AuditLogRepository.DELETE, record, record, options)

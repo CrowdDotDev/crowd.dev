@@ -110,9 +110,9 @@ defineProps({
 });
 
 const tooltipContent = (platform) => {
-  const config = CrowdIntegrations.getConfig(platform);
+  const config = CrowdIntegrations.getConfig(platform) || {};
 
-  return `${config.name} profile`;
+  return `${config.name || platform} profile`;
 };
 
 const onRowClick = () => {

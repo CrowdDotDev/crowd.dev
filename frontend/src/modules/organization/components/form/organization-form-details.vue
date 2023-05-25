@@ -14,6 +14,26 @@
           </div>
         </template>
       </el-form-item>
+      <el-form-item>
+        <template #label>
+          <div class="flex gap-2">
+            {{ fields.headline.label }}
+            <el-tooltip
+              content="Organization enrichment"
+              placement="top"
+            >
+              <div class="form-enrichment-badge">
+                <app-svg name="enrichment" />
+              </div>
+            </el-tooltip>
+          </div>
+        </template>
+        <el-input
+          v-model="model[fields.headline.name]"
+          disabled
+          type="textarea"
+        />
+      </el-form-item>
       <el-form-item :label="fields.description.label">
         <el-input
           v-model="model[fields.description.name]"
@@ -60,6 +80,7 @@
 
 <script setup>
 import { defineEmits, defineProps, computed } from 'vue';
+import AppSvg from '@/shared/svg/svg.vue';
 
 const emit = defineEmits(['update:modelValue']);
 const props = defineProps({

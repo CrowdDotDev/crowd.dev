@@ -105,6 +105,7 @@
     "passport-google-oauth": "2.0.0",
     "passport-google-oauth20": "^2.0.0",
     "passport-slack": "0.0.7",
+    "peopledatalabs": "^5.0.3",
     "pg": "^8.7.3",
     "pm2": "^5.2.0",
     "redis": "^4.5.0",

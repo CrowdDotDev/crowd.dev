@@ -110,5 +110,6 @@ export type ActivityTypeDisplayProperties = {
   [ActivityDisplayVariant.DEFAULT]: string
   [ActivityDisplayVariant.SHORT]: string
   [ActivityDisplayVariant.CHANNEL]: string
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   formatter?: { [key: string]: (input: any) => string }
 }

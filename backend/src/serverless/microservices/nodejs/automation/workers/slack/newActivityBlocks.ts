@@ -39,6 +39,13 @@ const replaceHeadline = (text) => {
   return text
 }
 
+const truncateText = (text: string, characters: number = 60): string => {
+  if (text.length > characters) {
+    return `${text.substring(0, characters)}...`
+  }
+  return text
+}
+
 export const newActivityBlocks = (activity) => {
   const display = htmlToMrkdwn(replaceHeadline(`${activity.display.default}`))
   const reach = activity.member.reach?.[activity.platform] || activity.member.reach?.total
@@ -76,7 +83,9 @@ export const newActivityBlocks = (activity) => {
         type: 'section',
         text: {
           type: 'mrkdwn',
-          text: `*<${API_CONFIG.frontendUrl}/members/${activity.member.id}|${activity.member.displayName}>* \n *${display.text}*`,
+          text: `*<${API_CONFIG.frontendUrl}/members/${activity.member.id}|${
+            activity.member.displayName
+          }>* \n *${truncateText(display.text)}*`,
         },
         ...(activity.url
           ? {

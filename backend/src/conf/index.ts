@@ -31,6 +31,7 @@ import {
   SampleDataConfiguration,
   IntegrationProcessingConfiguration,
   SlackNotifierConfiguration,
+  OrganizationEnrichmentConfiguration,
 } from './configTypes'
 
 // TODO-kube
@@ -103,6 +104,9 @@ export const NANGO_CONFIG: NangoConfiguration = config.get<NangoConfiguration>('
 
 export const ENRICHMENT_CONFIG: EnrichmentConfiguration =
   config.get<EnrichmentConfiguration>('enrichment')
+
+export const ORGANIZATION_ENRICHMENT_CONFIG: OrganizationEnrichmentConfiguration =
+  config.get<OrganizationEnrichmentConfiguration>('organizationEnrichment')
 
 export const EAGLE_EYE_CONFIG: EagleEyeConfiguration = config.get<EagleEyeConfiguration>('eagleEye')
 

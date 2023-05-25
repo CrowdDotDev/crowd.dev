@@ -11,6 +11,64 @@ import { QueryOutput } from './filters/queryTypes'
 const { Op } = Sequelize
 
 class OrganizationRepository {
+  static async filterByPayingTenant<T extends object>(
+    tenantId: string,
+    limit: number,
+    options: IRepositoryOptions,
+  ): Promise<T[]> {
+    const database = SequelizeRepository.getSequelize(options)
+    const transaction = SequelizeRepository.getTransaction(options)
+    const query = `
+      with orgActivities as (
+        SELECT memOrgs."organizationId", SUM(actAgg."activityCount") "orgActivityCount"
+        FROM "memberActivityAggregatesMVs" actAgg
+        INNER JOIN "memberOrganizations" memOrgs ON actAgg."id"=memOrgs."memberId"
+        GROUP BY memOrgs."organizationId"
+      ) 
+      SELECT org.id "id"
+      ,cach.id "cachId"
+      ,org."name"
+      ,org."location"
+      ,org."website"
+      ,org."lastEnrichedAt"
+      ,org."twitter"
+      ,org."employees"
+      ,org."size"
+      ,org."founded"
+      ,org."industry"
+      ,org."naics"
+      ,org."profiles"
+      ,org."headline"
+      ,org."ticker"
+      ,org."type"
+      ,org."address"
+      ,org."geoLocation"
+      ,org."employeeCountByCountry"
+      ,org."twitter"
+      ,org."linkedin"
+      ,org."linkedin"
+      ,org."crunchbase"
+      ,org."github"
+      ,org."description"
+      FROM "organizations" as org
+      JOIN "organizationCaches" cach ON org."name" = cach."name"
+      JOIN orgActivities activity ON activity."organizationId" = org."id"
+      WHERE :tenantId = org."tenantId" AND (org."lastEnrichedAt" IS NULL OR DATE_PART('month', AGE(NOW(), org."lastEnrichedAt")) >= 6)
+      ORDER BY org."lastEnrichedAt" ASC, org."website", activity."orgActivityCount" DESC, org."createdAt" DESC
+      LIMIT :limit
+    ;
+    `
+    const orgs: T[] = await database.query(query, {
+      type: QueryTypes.SELECT,
+      transaction,
+      replacements: {
+        tenantId,
+        limit,
+      },
+    })
+    return orgs
+  }
+
   static async create(data, options: IRepositoryOptions) {
     const currentUser = SequelizeRepository.getCurrentUser(options)
 
@@ -39,6 +97,16 @@ class OrganizationRepository {
           'revenueRange',
           'importHash',
           'isTeamOrganization',
+          'employeeCountByCountry',
+          'type',
+          'ticker',
+          'headline',
+          'profiles',
+          'naics',
+          'industry',
+          'founded',
+          'size',
+          'lastEnrichedAt',
         ]),
 
         tenantId: tenant.id,
@@ -57,6 +125,24 @@ class OrganizationRepository {
     await this._createAuditLog(AuditLogRepository.CREATE, record, data, options)
 
     return this.findById(record.id, options)
+  }
+
+  static async bulkUpdate<T extends any[]>(
+    data: T,
+    fields: string[],
+    options: IRepositoryOptions,
+  ): Promise<T> {
+    // Ensure every organization has a non-undefine primary ID
+    const isValid = new Set(data.filter((org) => org.id).map((org) => org.id)).size !== data.length
+    if (isValid) return [] as T
+
+    // Using bulk insert to update on duplicate primary ID
+    const orgs = await options.database.organization.bulkCreate(data, {
+      fields: ['id', 'tenantId', ...fields],
+      updateOnDuplicate: fields,
+      returning: fields,
+    })
+    return orgs
   }
 
   static async update(id, data, options: IRepositoryOptions) {
@@ -99,6 +185,18 @@ class OrganizationRepository {
           'revenueRange',
           'importHash',
           'isTeamOrganization',
+          'employeeCountByCountry',
+          'type',
+          'ticker',
+          'headline',
+          'profiles',
+          'naics',
+          'industry',
+          'founded',
+          'size',
+          'employees',
+          'twitter',
+          'lastEnrichedAt',
         ]),
         updatedById: currentUser.id,
       },
@@ -626,6 +724,7 @@ class OrganizationRepository {
               'createdById',
               'updatedById',
               'isTeamOrganization',
+              'type',
             ],
             'organization',
           ),
@@ -700,6 +799,18 @@ class OrganizationRepository {
             'createdById',
             'updatedById',
             'isTeamOrganization',
+            'type',
+            'ticker',
+            'size',
+            'naics',
+            'lastEnrichedAt',
+            'industry',
+            'headline',
+            'geoLocation',
+            'founded',
+            'employeeCountByCountry',
+            'address',
+            'profiles',
           ],
           'organization',
         ),

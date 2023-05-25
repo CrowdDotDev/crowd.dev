@@ -170,6 +170,9 @@ const en = {
         activityTimestampTo: 'activityTimestampTo is required query parameter!',
       },
     },
+    git: {
+      noIntegration: 'The Git integration is not configured.',
+    },
   },
 
   email: {

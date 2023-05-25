@@ -1,5 +1,5 @@
 <template>
-  <div class="flex -m-5">
+  <div v-if="currentTenant" class="flex -m-5">
     <div
       class="flex-grow overflow-auto"
       :style="{
@@ -18,7 +18,7 @@
               class="leading-8 font-semibold transition-all duration-100"
               :class="scrolled ? 'text-base' : 'text-xl'"
             >
-              {{ currentTenant.name }} team overview
+              {{ currentTenant?.name }} team overview
             </h4>
           </div>
 
@@ -79,7 +79,10 @@ const handleScroll = (event) => {
 
 onMounted(() => {
   window.analytics.page('Dashboard');
-  doFetch({});
+
+  if (currentTenant.value) {
+    doFetch({});
+  }
 
   storeUnsubscribe.value = store.subscribeAction(
     (action) => {

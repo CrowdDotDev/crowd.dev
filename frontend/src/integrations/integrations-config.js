@@ -4,6 +4,7 @@ import slack from './slack';
 import twitter from './twitter';
 import devto from './devto';
 import hackernews from './hackernews';
+import hubspot from './hubspot';
 // import discourse from './discourse'
 import stackoverflow from './stackoverflow';
 import reddit from './reddit';
@@ -11,6 +12,8 @@ import linkedin from './linkedin';
 import zapier from './zapier';
 import crunchbase from './crunchbase';
 import make from './make';
+import git from './git';
+import facebook from './facebook';
 
 class IntegrationsConfig {
   get integrations() {
@@ -25,8 +28,11 @@ class IntegrationsConfig {
       linkedin,
       stackoverflow,
       zapier,
+      git,
       crunchbase,
+      hubspot,
       make,
+      facebook,
     };
   }
 

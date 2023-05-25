@@ -63,10 +63,9 @@
               <p v-if="typeNames?.[plat]?.[type]?.display" class="text-xs leading-5 activity-type">
                 {{ typeNames?.[plat]?.[type]?.display?.short }}
               </p>
-              <app-i18n
-                v-else-if="getPlatformDetails(plat)"
-                :code="`entities.activity.${plat}.${type}`"
-              />
+              <div v-else class="text-xs leading-5 activity-type">
+                Conducted an activity
+              </div>
             </div>
             <p class="text-2xs text-gray-400">
               {{ pluralize('activity', total, true) }} ・
@@ -112,6 +111,7 @@ import { useActivityTypeStore } from '@/modules/activity/store/type';
 import { storeToRefs } from 'pinia';
 import { computed, watch } from 'vue';
 import pluralize from 'pluralize';
+import merge from 'lodash/merge';
 
 const { period, platform } = mapGetters('dashboard');
 const { currentTenant } = mapGetters('auth');
@@ -120,10 +120,7 @@ const activityTypeStore = useActivityTypeStore();
 const { types } = storeToRefs(activityTypeStore);
 const { setTypes } = activityTypeStore;
 
-const typeNames = computed(() => ({
-  ...types.value.default,
-  ...types.value.custom,
-}));
+const typeNames = computed(() => (merge(types.value.default, types.value.custom)));
 
 watch(
   () => currentTenant,

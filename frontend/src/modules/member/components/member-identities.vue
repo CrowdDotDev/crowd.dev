@@ -42,9 +42,9 @@ const platformContent = (platform) => {
 
   return {
     trackEventName: 'Click Member Contact',
-    trackEventChannel: config.name,
-    tooltipLabel: `${config.name} profile`,
-    asLink: !(platform === 'discord' || platform === 'slack'),
+    trackEventChannel: config.name || platform,
+    tooltipLabel: `${config.name || platform} profile`,
+    asLink: config.showProfileLink,
   };
 };
 
