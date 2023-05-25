@@ -18,10 +18,10 @@ import { computed } from 'vue';
 
 const props = defineProps<{
   modelValue: boolean,
-  value: boolean,
+  value: boolean | string,
 }>();
 
-const emit = defineEmits<{(e: 'update:modelValue', value: boolean): void}>();
+const emit = defineEmits<{(e: 'update:modelValue', value: boolean | string): void}>();
 
 const selected = computed(() => props.modelValue === props.value);
 

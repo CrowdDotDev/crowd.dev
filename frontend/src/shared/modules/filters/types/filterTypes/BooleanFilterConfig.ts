@@ -13,6 +13,6 @@ export interface BooleanFilterValue {
 export interface BooleanFilterConfig extends BaseFilterConfig {
   type: FilterConfigType.BOOLEAN;
   options: BooleanFilterOptions;
-  itemLabelRenderer: (value: BooleanFilterValue) => string;
+  itemLabelRenderer: (value: BooleanFilterValue, options: BooleanFilterOptions) => string;
   apiFilterRenderer: (value: BooleanFilterValue) => any[];
 }

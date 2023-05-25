@@ -1,6 +1,6 @@
 import { FilterConfigType } from '@/shared/modules/filters/types/FilterConfig';
 import {
-  BooleanFilterConfig,
+  BooleanFilterConfig, BooleanFilterOptions,
   BooleanFilterValue,
 } from '@/shared/modules/filters/types/filterTypes/BooleanFilterConfig';
 import { itemLabelRendererByType } from '@/shared/modules/filters/config/itemLabelRendererByType';
@@ -10,8 +10,8 @@ const enrichedMember: BooleanFilterConfig = {
   label: 'Enriched member',
   type: FilterConfigType.BOOLEAN,
   options: {},
-  itemLabelRenderer(value: BooleanFilterValue): string {
-    return itemLabelRendererByType[FilterConfigType.BOOLEAN]('Enriched member', value);
+  itemLabelRenderer(value: BooleanFilterValue, options: BooleanFilterOptions): string {
+    return itemLabelRendererByType[FilterConfigType.BOOLEAN]('Enriched member', value, options);
   },
   apiFilterRenderer({ value, include }: BooleanFilterValue): any[] {
     const filter = {

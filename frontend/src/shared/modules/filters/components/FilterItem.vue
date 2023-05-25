@@ -12,7 +12,12 @@
       >
         <template #reference>
           <el-button ref="chip" class="filter-item-reference btn btn--bordered !h-8 p-2 !border !outline-none font-medium text-xs" @click="open">
-            <span v-html="$sanitize((props.modelValue && config.itemLabelRenderer(props.modelValue)) || config.label)" />
+            <span
+              v-html="$sanitize(
+                (props.modelValue && config.itemLabelRenderer(props.modelValue, props.config.options))
+                  || `<b>${config.label}:</b> ...`,
+              )"
+            />
           </el-button>
         </template>
 
@@ -112,7 +117,6 @@ onUnmounted(() => {
 
 const apply = () => {
   emit('update:modelValue', { ...form.value });
-  console.log('apply');
   close();
 };
 
