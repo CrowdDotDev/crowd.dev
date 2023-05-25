@@ -9,7 +9,7 @@ export const stringOperatorLabels: Record<FilterStringOperator, string> = {
   [FilterStringOperator.EQ]: 'is',
   [FilterStringOperator.NE]: 'is not',
   [FilterStringOperator.LIKE]: 'contains',
-  [FilterStringOperator.NLIKE]: 'not contains',
+  [FilterStringOperator.NLIKE]: 'does not contain',
 };
 
 export const stringFilterOperators: {label: string, value: string}[] = [
