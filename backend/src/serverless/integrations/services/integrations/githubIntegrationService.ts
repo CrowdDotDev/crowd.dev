@@ -796,8 +796,8 @@ export class GithubIntegrationService extends IntegrationServiceBase {
         timestamp = payload.review.submitted_at
         sourceParentId = payload.pull_request.node_id.toString()
         sourceId = `gen-PRR_${payload.pull_request.node_id.toString()}_${
-          payload.review.user.login
-        }_${payload.review.submitted_at}`
+          payload.sender.login
+        }_${moment(payload.review.submitted_at).utc().toISOString()}`
         body = payload.review.body
         break
       }
@@ -808,7 +808,7 @@ export class GithubIntegrationService extends IntegrationServiceBase {
 
     const review = payload.review
     const pull = payload.pull_request
-    const member = await GithubIntegrationService.parseWebhookMember(review.user.login, context)
+    const member = await GithubIntegrationService.parseWebhookMember(payload.sender.login, context)
 
     if (member) {
       return {

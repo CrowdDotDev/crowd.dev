@@ -344,12 +344,14 @@ describe('Github webhooks tests', () => {
         timestamp: new Date(TestEvents.issues.closed.issue.closed_at),
         platform: PlatformType.GITHUB,
         tenant: tenantId,
-        sourceId: TestEvents.issues.closed.issue.node_id,
-        sourceParentId: null,
+        sourceId: `gen-CE_${TestEvents.issues.closed.issue.node_id}_${
+          TestEvents.issues.closed.sender.login
+        }_${new Date(TestEvents.issues.closed.issue.closed_at).toISOString()}`,
+        sourceParentId: TestEvents.issues.closed.issue.node_id,
         url: TestEvents.issues.closed.issue.html_url,
-        title: TestEvents.issues.closed.issue.title,
+        title: '',
         channel: TestEvents.issues.closed.repository.html_url,
-        body: TestEvents.issues.closed.issue.body,
+        body: '',
         attributes: {
           state: TestEvents.issues.closed.issue.state,
         },
@@ -682,7 +684,7 @@ describe('Github webhooks tests', () => {
         platform: PlatformType.GITHUB,
         tenant: tenantId,
         sourceId: `gen-CE_${TestEvents.pullRequests.closed.pull_request.node_id}_${
-          TestEvents.pullRequests.closed.pull_request.user.login
+          TestEvents.pullRequests.closed.sender.login
         }_${new Date(TestEvents.pullRequests.closed.pull_request.updated_at).toISOString()}`,
         sourceParentId: TestEvents.pullRequests.closed.pull_request.node_id,
         url: TestEvents.pullRequests.closed.pull_request.html_url,
@@ -698,6 +700,248 @@ describe('Github webhooks tests', () => {
           deletions: TestEvents.pullRequests.closed.pull_request.deletions,
           labels: TestEvents.pullRequests.closed.pull_request.labels.map((l) => l.name),
           state: TestEvents.pullRequests.closed.pull_request.state,
+        },
+      }
+      expect(pr).toStrictEqual(expected)
+    })
+
+    it('It should parse an assigned PR coming from the GitHub API', async () => {
+      const { tenantId, integration } = await init(true)
+      const context = await fakeContext(integration)
+      const pr = await GithubIntegrationService.parseWebhookPullRequest(
+        TestEvents.pullRequests.assigned,
+        context,
+      )
+
+      const expected = {
+        member: {
+          username: {
+            [PlatformType.GITHUB]: {
+              username: 'testMember',
+              integrationId: integration.id,
+            },
+          },
+        },
+        username: 'testMember',
+        objectMemberUsername: 'testMember',
+        objectMember: {
+          username: {
+            [PlatformType.GITHUB]: {
+              username: 'testMember',
+              integrationId: integration.id,
+            },
+          },
+        },
+        type: GithubActivityType.PULL_REQUEST_ASSIGNED,
+        timestamp: new Date(TestEvents.pullRequests.assigned.pull_request.updated_at),
+        platform: PlatformType.GITHUB,
+        tenant: tenantId,
+        sourceId: `gen-AE_${TestEvents.pullRequests.assigned.pull_request.node_id}_${
+          TestEvents.pullRequests.assigned.sender.login
+        }_${TestEvents.pullRequests.assigned.assignee.login}_${new Date(
+          TestEvents.pullRequests.assigned.pull_request.updated_at,
+        ).toISOString()}`,
+        sourceParentId: TestEvents.pullRequests.assigned.pull_request.node_id,
+        url: TestEvents.pullRequests.assigned.pull_request.html_url,
+        title: '',
+        body: '',
+        channel: TestEvents.pullRequests.assigned.repository.html_url,
+        score: GitHubGrid.pullRequestAssigned.score,
+        isContribution: GitHubGrid.pullRequestAssigned.isContribution,
+        attributes: {
+          additions: TestEvents.pullRequests.assigned.pull_request.additions,
+          authorAssociation: TestEvents.pullRequests.assigned.pull_request.author_association,
+          changedFiles: TestEvents.pullRequests.assigned.pull_request.changed_files,
+          deletions: TestEvents.pullRequests.assigned.pull_request.deletions,
+          labels: TestEvents.pullRequests.assigned.pull_request.labels.map((l) => l.name),
+          state: TestEvents.pullRequests.assigned.pull_request.state,
+        },
+      }
+      expect(pr).toStrictEqual(expected)
+    })
+
+    it('It should parse a review requested event coming from the GitHub API', async () => {
+      const { tenantId, integration } = await init(true)
+      const context = await fakeContext(integration)
+      const pr = await GithubIntegrationService.parseWebhookPullRequest(
+        TestEvents.pullRequests.review_requested,
+        context,
+      )
+
+      const expected = {
+        member: {
+          username: {
+            [PlatformType.GITHUB]: {
+              username: 'testMember',
+              integrationId: integration.id,
+            },
+          },
+        },
+        username: 'testMember',
+        objectMemberUsername: 'testMember',
+        objectMember: {
+          username: {
+            [PlatformType.GITHUB]: {
+              username: 'testMember',
+              integrationId: integration.id,
+            },
+          },
+        },
+        type: GithubActivityType.PULL_REQUEST_REVIEW_REQUESTED,
+        timestamp: new Date(TestEvents.pullRequests.review_requested.pull_request.updated_at),
+        platform: PlatformType.GITHUB,
+        tenant: tenantId,
+        sourceId: `gen-RRE_${TestEvents.pullRequests.review_requested.pull_request.node_id}_${
+          TestEvents.pullRequests.review_requested.sender.login
+        }_${TestEvents.pullRequests.review_requested.requested_reviewer.login}_${new Date(
+          TestEvents.pullRequests.review_requested.pull_request.updated_at,
+        ).toISOString()}`,
+        sourceParentId: TestEvents.pullRequests.review_requested.pull_request.node_id,
+        url: TestEvents.pullRequests.review_requested.pull_request.html_url,
+        title: '',
+        body: '',
+        channel: TestEvents.pullRequests.review_requested.repository.html_url,
+        score: GitHubGrid.pullRequestAssigned.score,
+        isContribution: GitHubGrid.pullRequestAssigned.isContribution,
+        attributes: {
+          additions: TestEvents.pullRequests.review_requested.pull_request.additions,
+          authorAssociation:
+            TestEvents.pullRequests.review_requested.pull_request.author_association,
+          changedFiles: TestEvents.pullRequests.review_requested.pull_request.changed_files,
+          deletions: TestEvents.pullRequests.review_requested.pull_request.deletions,
+          labels: TestEvents.pullRequests.review_requested.pull_request.labels.map((l) => l.name),
+          state: TestEvents.pullRequests.review_requested.pull_request.state,
+        },
+      }
+      expect(pr).toStrictEqual(expected)
+    })
+
+    it('It should parse a merged PR coming from the GitHub API', async () => {
+      const { tenantId, integration } = await init(true)
+      const context = await fakeContext(integration)
+      const pr = await GithubIntegrationService.parseWebhookPullRequest(
+        TestEvents.pullRequests.merged,
+        context,
+      )
+
+      const expected = {
+        member: {
+          username: {
+            [PlatformType.GITHUB]: {
+              username: 'testMember',
+              integrationId: integration.id,
+            },
+          },
+        },
+        username: 'testMember',
+        objectMemberUsername: null,
+        objectMember: null,
+        type: GithubActivityType.PULL_REQUEST_MERGED,
+        timestamp: new Date(TestEvents.pullRequests.merged.pull_request.merged_at),
+        platform: PlatformType.GITHUB,
+        tenant: tenantId,
+        sourceId: `gen-ME_${TestEvents.pullRequests.merged.pull_request.node_id}_${
+          TestEvents.pullRequests.merged.sender.login
+        }_${new Date(TestEvents.pullRequests.merged.pull_request.merged_at).toISOString()}`,
+        sourceParentId: TestEvents.pullRequests.merged.pull_request.node_id,
+        url: TestEvents.pullRequests.merged.pull_request.html_url,
+        title: '',
+        body: '',
+        channel: TestEvents.pullRequests.merged.repository.html_url,
+        score: GitHubGrid.pullRequestMerged.score,
+        isContribution: GitHubGrid.pullRequestMerged.isContribution,
+        attributes: {
+          additions: TestEvents.pullRequests.merged.pull_request.additions,
+          authorAssociation: TestEvents.pullRequests.merged.pull_request.author_association,
+          changedFiles: TestEvents.pullRequests.merged.pull_request.changed_files,
+          deletions: TestEvents.pullRequests.merged.pull_request.deletions,
+          labels: TestEvents.pullRequests.merged.pull_request.labels.map((l) => l.name),
+          state: TestEvents.pullRequests.merged.pull_request.state,
+        },
+      }
+      expect(pr).toStrictEqual(expected)
+    })
+
+    it('It should parse a PR reviewed event coming from the GitHub API', async () => {
+      const { tenantId, integration } = await init(true)
+      const context = await fakeContext(integration)
+      const pr = await GithubIntegrationService.parseWebhookPullRequestReview(
+        TestEvents.pullRequestReviews.submitted,
+        context,
+      )
+
+      const expected = {
+        member: {
+          username: {
+            [PlatformType.GITHUB]: {
+              username: 'testMember',
+              integrationId: integration.id,
+            },
+          },
+        },
+        username: 'testMember',
+        type: GithubActivityType.PULL_REQUEST_REVIEWED,
+        timestamp: new Date(TestEvents.pullRequestReviews.submitted.review.submitted_at),
+        platform: PlatformType.GITHUB,
+        tenant: tenantId,
+        sourceId: `gen-PRR_${TestEvents.pullRequestReviews.submitted.pull_request.node_id}_${
+          TestEvents.pullRequestReviews.submitted.sender.login
+        }_${new Date(TestEvents.pullRequestReviews.submitted.review.submitted_at).toISOString()}`,
+        sourceParentId: TestEvents.pullRequestReviews.submitted.pull_request.node_id,
+        url: TestEvents.pullRequestReviews.submitted.pull_request.html_url,
+        title: '',
+        body: TestEvents.pullRequestReviews.submitted.review.body,
+        channel: TestEvents.pullRequestReviews.submitted.repository.html_url,
+        score: GitHubGrid.pullRequestReviewed.score,
+        isContribution: GitHubGrid.pullRequestReviewed.isContribution,
+        attributes: {
+          reviewState: TestEvents.pullRequestReviews.submitted.review.state.toUpperCase(),
+          authorAssociation:
+            TestEvents.pullRequestReviews.submitted.pull_request.author_association,
+          labels: TestEvents.pullRequestReviews.submitted.pull_request.labels.map((l) => l.name),
+          state: TestEvents.pullRequestReviews.submitted.pull_request.state,
+        },
+      }
+      expect(pr).toStrictEqual(expected)
+    })
+
+    it('It should parse a PR review comment created event coming from the GitHub API', async () => {
+      const { tenantId, integration } = await init(true)
+      const context = await fakeContext(integration)
+      const pr = await GithubIntegrationService.parseWebhookPullRequestReviewThreadComment(
+        TestEvents.pullRequestReviewThreadComment.created,
+        context,
+      )
+
+      const expected = {
+        member: {
+          username: {
+            [PlatformType.GITHUB]: {
+              username: 'testMember',
+              integrationId: integration.id,
+            },
+          },
+        },
+        username: 'testMember',
+        type: GithubActivityType.PULL_REQUEST_REVIEW_THREAD_COMMENT,
+        timestamp: new Date(TestEvents.pullRequestReviewThreadComment.created.comment.created_at),
+        platform: PlatformType.GITHUB,
+        tenant: tenantId,
+        sourceId: TestEvents.pullRequestReviewThreadComment.created.comment.node_id,
+        sourceParentId: TestEvents.pullRequestReviewThreadComment.created.pull_request.node_id,
+        url: TestEvents.pullRequestReviewThreadComment.created.comment.html_url,
+        title: '',
+        body: TestEvents.pullRequestReviewThreadComment.created.comment.body,
+        channel: TestEvents.pullRequestReviewThreadComment.created.repository.html_url,
+        score: GitHubGrid.comment.score,
+        isContribution: GitHubGrid.comment.isContribution,
+        attributes: {
+          authorAssociation:
+            TestEvents.pullRequestReviewThreadComment.created.pull_request.author_association,
+          labels: TestEvents.pullRequestReviewThreadComment.created.pull_request.labels.map(
+            (l) => l.name,
+          ),
+          state: TestEvents.pullRequestReviewThreadComment.created.pull_request.state,
         },
       }
       expect(pr).toStrictEqual(expected)
