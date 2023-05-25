@@ -53,6 +53,7 @@ import {
   IntegrationStreamState,
 } from '../../../types/integrationStreamTypes'
 import { twitterFollowers } from '../../../database/utils/keys/microserviceTypes'
+import SegmentRepository from '../../../database/repositories/segmentRepository'
 
 export class IntegrationProcessor extends LoggingBase {
   private readonly integrationServices: IntegrationServiceBase[]
@@ -358,6 +359,9 @@ export class IntegrationProcessor extends LoggingBase {
       this.log.error({ runId: req.runId }, 'Integration run has no integration or microservice!')
       throw new Error(`Integration run '${req.runId}' has no integration or microservice!`)
     }
+
+    const segmentRepository = new SegmentRepository(userContext)
+    userContext.currentSegments = [await segmentRepository.findById(integration.segmentId)]
 
     const logger = createChildLogger('process', this.log, {
       runId: req.runId,

@@ -161,23 +161,21 @@ class MemberRepository {
     })
   }
 
-  static async excludeMemberFromSegments(memberId: string, options: IRepositoryOptions) {
+  static async excludeMembersFromSegments(memberIds: string[], options: IRepositoryOptions) {
     const seq = SequelizeRepository.getSequelize(options)
 
     const transaction = SequelizeRepository.getTransaction(options)
 
-    const bulkDeleteMemberSegments = `DELETE FROM "memberSegments" WHERE "memberId" = :memberId and "segmentId" in (:segmentIds);`
+    const bulkDeleteMemberSegments = `DELETE FROM "memberSegments" WHERE "memberId" in (:memberIds) and "segmentId" in (:segmentIds);`
 
     await seq.query(bulkDeleteMemberSegments, {
       replacements: {
-        memberId,
+        memberIds,
         segmentIds: options.currentSegments.map((s) => s.id),
       },
       type: QueryTypes.DELETE,
       transaction,
     })
-
-    return this.findById(memberId, options, true, false)
   }
 
   static async findSampleDataMemberIds(options: IRepositoryOptions) {
@@ -694,7 +692,8 @@ class MemberRepository {
 
     const currentTenant = SequelizeRepository.getCurrentTenant(options)
 
-    const member = await MemberRepository.excludeMemberFromSegments(id, { ...options, transaction })
+    await MemberRepository.excludeMembersFromSegments([id], { ...options, transaction })
+    const member = await this.findById(id, options, true, false)
 
     // if member doesn't belong to any other segment anymore, remove it
 
@@ -725,11 +724,11 @@ class MemberRepository {
 
     const currentTenant = SequelizeRepository.getCurrentTenant(options)
 
+    await MemberRepository.excludeMembersFromSegments(ids, { ...options, transaction })
     await options.database.member.destroy({
       where: {
         id: ids,
         tenantId: currentTenant.id,
-        segmentId: options.currentSegments.map((s) => s.id),
       },
       force,
       transaction,
