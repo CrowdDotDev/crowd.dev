@@ -669,6 +669,15 @@ class OrganizationRepository {
               to: 'memberId',
             },
           },
+          segments: {
+            table: 'organizations',
+            model: 'organization',
+            relationTable: {
+              name: 'organizationSegments',
+              from: 'organizationId',
+              to: 'segmentId',
+            },
+          },
         },
       },
       options,
