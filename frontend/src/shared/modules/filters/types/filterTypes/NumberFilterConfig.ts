@@ -12,6 +12,6 @@ export interface NumberFilterValue {
 export interface NumberFilterConfig extends BaseFilterConfig {
   type: FilterConfigType.NUMBER;
   options: NumberFilterOptions;
-  itemLabelRenderer: (value: NumberFilterValue) => string;
+  itemLabelRenderer: (value: NumberFilterValue, options: NumberFilterOptions) => string;
   apiFilterRenderer: (value: NumberFilterValue) => any[];
 }

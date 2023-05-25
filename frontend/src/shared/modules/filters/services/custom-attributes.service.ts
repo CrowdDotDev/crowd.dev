@@ -1,18 +1,30 @@
 import { FilterConfig, FilterConfigType } from '@/shared/modules/filters/types/FilterConfig';
 import { FilterCustomAttribute, FilterCustomAttributeType } from '@/shared/modules/filters/types/FilterCustomAttribute';
-import { NumberFilterConfig, NumberFilterValue } from '@/shared/modules/filters/types/filterTypes/NumberFilterConfig';
+import {
+  NumberFilterConfig,
+  NumberFilterOptions,
+  NumberFilterValue,
+} from '@/shared/modules/filters/types/filterTypes/NumberFilterConfig';
 import { apiFilterRendererByType } from '@/shared/modules/filters/config/apiFilterRendererByType';
 import { itemLabelRendererByType } from '@/shared/modules/filters/config/itemLabelRendererByType';
 import {
-  BooleanFilterConfig,
+  BooleanFilterConfig, BooleanFilterOptions,
   BooleanFilterValue,
 } from '@/shared/modules/filters/types/filterTypes/BooleanFilterConfig';
-import { DateFilterConfig, DateFilterValue } from '@/shared/modules/filters/types/filterTypes/DateFilterConfig';
 import {
-  MultiSelectFilterConfig,
+  DateFilterConfig,
+  DateFilterOptions,
+  DateFilterValue,
+} from '@/shared/modules/filters/types/filterTypes/DateFilterConfig';
+import {
+  MultiSelectFilterConfig, MultiSelectFilterOptions,
   MultiSelectFilterValue,
 } from '@/shared/modules/filters/types/filterTypes/MultiSelectFilterConfig';
-import { StringFilterConfig, StringFilterValue } from '@/shared/modules/filters/types/filterTypes/StringFilterConfig';
+import {
+  StringFilterConfig,
+  StringFilterOptions,
+  StringFilterValue,
+} from '@/shared/modules/filters/types/filterTypes/StringFilterConfig';
 
 export const customAttributesService = () => {
   function buildFilterFromAttributes(
@@ -31,8 +43,8 @@ export const customAttributesService = () => {
             options: {
               hideIncludeSwitch: true,
             },
-            itemLabelRenderer(value: NumberFilterValue): string {
-              return itemLabelRendererByType[FilterConfigType.NUMBER](attribute.label, value);
+            itemLabelRenderer(value: NumberFilterValue, options: NumberFilterOptions): string {
+              return itemLabelRendererByType[FilterConfigType.NUMBER](attribute.label, value, options);
             },
             apiFilterRenderer(value: NumberFilterValue): any[] {
               return apiFilterRendererByType[FilterConfigType.NUMBER](`attributes.${attribute.name}.default`, value);
@@ -49,8 +61,8 @@ export const customAttributesService = () => {
             options: {
               hideIncludeSwitch: true,
             },
-            itemLabelRenderer(value: BooleanFilterValue): string {
-              return itemLabelRendererByType[FilterConfigType.BOOLEAN](attribute.label, value);
+            itemLabelRenderer(value: BooleanFilterValue, options: BooleanFilterOptions): string {
+              return itemLabelRendererByType[FilterConfigType.BOOLEAN](attribute.label, value, options);
             },
             apiFilterRenderer(value: BooleanFilterValue): any[] {
               return apiFilterRendererByType[FilterConfigType.BOOLEAN](`attributes.${attribute.name}.default`, value);
@@ -67,8 +79,8 @@ export const customAttributesService = () => {
             options: {
               hideIncludeSwitch: true,
             },
-            itemLabelRenderer(value: StringFilterValue): string {
-              return itemLabelRendererByType[FilterConfigType.STRING](attribute.label, value);
+            itemLabelRenderer(value: StringFilterValue, options: StringFilterOptions): string {
+              return itemLabelRendererByType[FilterConfigType.STRING](attribute.label, value, options);
             },
             apiFilterRenderer(value: StringFilterValue): any[] {
               return apiFilterRendererByType[FilterConfigType.STRING](`attributes.${attribute.name}.default`, value);
@@ -85,8 +97,8 @@ export const customAttributesService = () => {
             options: {
               hideIncludeSwitch: true,
             },
-            itemLabelRenderer(value: DateFilterValue): string {
-              return itemLabelRendererByType[FilterConfigType.DATE](attribute.label, value);
+            itemLabelRenderer(value: DateFilterValue, options: DateFilterOptions): string {
+              return itemLabelRendererByType[FilterConfigType.DATE](attribute.label, value, options);
             },
             apiFilterRenderer(value: DateFilterValue): any[] {
               return apiFilterRendererByType[FilterConfigType.DATE](`attributes.${attribute.name}.default`, value);
@@ -112,8 +124,8 @@ export const customAttributesService = () => {
                 },
               ],
             },
-            itemLabelRenderer(value: MultiSelectFilterValue): string {
-              return itemLabelRendererByType[FilterConfigType.MULTISELECT](attribute.label, value);
+            itemLabelRenderer(value: MultiSelectFilterValue, options: MultiSelectFilterOptions): string {
+              return itemLabelRendererByType[FilterConfigType.MULTISELECT](attribute.label, value, options);
             },
             apiFilterRenderer(value: MultiSelectFilterValue): any[] {
               return apiFilterRendererByType[FilterConfigType.MULTISELECT](`attributes.${attribute.name}.default`, value);

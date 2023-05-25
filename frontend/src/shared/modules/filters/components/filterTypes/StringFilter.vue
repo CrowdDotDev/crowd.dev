@@ -13,8 +13,8 @@ import { required } from '@vuelidate/validators';
 import {
   StringFilterConfig,
   StringFilterOptions,
-  StringFilterValue
-} from "@/shared/modules/filters/types/filterTypes/StringFilterConfig";
+  StringFilterValue,
+} from '@/shared/modules/filters/types/filterTypes/StringFilterConfig';
 
 const props = defineProps<{
   modelValue: StringFilterValue,

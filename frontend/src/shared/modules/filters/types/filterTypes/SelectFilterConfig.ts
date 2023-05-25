@@ -23,6 +23,6 @@ export interface SelectFilterValue {
 export interface SelectFilterConfig extends BaseFilterConfig {
   type: FilterConfigType.SELECT;
   options: SelectFilterOptions;
-  itemLabelRenderer: (value: SelectFilterValue) => string;
+  itemLabelRenderer: (value: SelectFilterValue, options: SelectFilterOptions) => string;
   apiFilterRenderer: (value: SelectFilterValue) => any[];
 }

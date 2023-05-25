@@ -21,6 +21,6 @@ export interface MultiSelectFilterValue {
 export interface MultiSelectFilterConfig extends BaseFilterConfig {
   type: FilterConfigType.MULTISELECT;
   options: MultiSelectFilterOptions;
-  itemLabelRenderer: (value: MultiSelectFilterValue) => string;
+  itemLabelRenderer: (value: MultiSelectFilterValue, options: MultiSelectFilterOptions) => string;
   apiFilterRenderer: (value: MultiSelectFilterValue) => any[];
 }

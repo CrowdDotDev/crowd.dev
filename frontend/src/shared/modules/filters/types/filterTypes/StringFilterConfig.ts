@@ -12,6 +12,6 @@ export interface StringFilterValue {
 export interface StringFilterConfig extends BaseFilterConfig {
   type: FilterConfigType.STRING;
   options: StringFilterOptions;
-  itemLabelRenderer: (value: StringFilterValue) => string;
+  itemLabelRenderer: (value: StringFilterValue, options: StringFilterOptions) => string;
   apiFilterRenderer: (value: StringFilterValue) => any[];
 }
