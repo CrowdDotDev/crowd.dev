@@ -1,7 +1,7 @@
 <template>
   <div v-if="form" class="filter-base-select">
-    <cr-filter-include-switch v-if="!props.hideIncludeSwitch" v-model="form.include" />
-    <div class="max-h-58 overflow-auto pt-2 pb-3">
+    <cr-filter-include-switch v-if="!props.hideIncludeSwitch" v-model="form.include" class="mb-2" />
+    <div class="max-h-58 overflow-auto pb-3">
       <template v-for="(group, gi) of props.options" :key="gi">
         <div
           v-if="group.label"
