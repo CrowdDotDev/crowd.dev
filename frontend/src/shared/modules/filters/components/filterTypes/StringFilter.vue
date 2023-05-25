@@ -22,7 +22,6 @@ import { computed, onMounted } from 'vue';
 import useVuelidate from '@vuelidate/core';
 import { required } from '@vuelidate/validators';
 import {
-  FilterStringOperator,
   StringFilterConfig,
   StringFilterOptions,
   StringFilterValue,
@@ -30,7 +29,7 @@ import {
 import CrFilterIncludeSwitch from '@/shared/modules/filters/components/partials/FilterIncludeSwitch.vue';
 import CrFilterInlineSelect from '@/shared/modules/filters/components/partials/FilterInlineSelect.vue';
 import CrFilterInput from '@/shared/modules/filters/components/partials/string/FilterInput.vue';
-import { stringFilterOperators } from '@/shared/modules/filters/config/constants/string.constants';
+import { stringFilterOperators, FilterStringOperator } from '@/shared/modules/filters/config/constants/string.constants';
 
 const props = defineProps<{
   modelValue: StringFilterValue,
