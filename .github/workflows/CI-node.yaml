@@ -4,6 +4,7 @@ on:
   pull_request:
     paths:
       - 'backend/**'
+      - 'services/**'
 jobs:
   lint-format:
     runs-on: ubuntu-latest
@@ -16,17 +17,20 @@ jobs:
       - name: Check out repository code
         uses: actions/checkout@v2
 
+      - name: Install and build libraries
+        run: ../services/scripts/install_lib_packages.sh && ../services/scripts/build_libs.sh
+
       - name: Install root dependencies
         run: npm ci
 
       - name: Check linting
-        run: npx eslint .
+        run: npm run lint
 
       - name: Check formatting
-        run: npx prettier --check .
+        run: npm run format-check
 
       - name: Check typescript
-        run: npx tsc
+        run: npm run tsc-check
 
   lint-format-services:
     runs-on: ubuntu-latest
@@ -40,7 +44,13 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Install packages
-        run: ./scripts/install_packages.sh
+        run: ./scripts/install_packages.sh && ./scripts/build_libs.sh
+
+      - name: Check library linting, format and typescript
+        run: ./scripts/lint_libs.sh
+
+      - name: Check app linting, format and typescript
+        run: ./script/lint_apps.sh
 
   tests-main:
     needs: lint-format
@@ -53,6 +63,9 @@ jobs:
     steps:
       - name: Check out repository code
         uses: actions/checkout@v2
+
+      - name: Install and build libraries
+        run: ../services/scripts/install_lib_packages.sh && ../services/scripts/build_libs.sh
 
       - name: Install root dependencies
         run: npm ci
@@ -72,6 +85,9 @@ jobs:
     steps:
       - name: Check out repository code
         uses: actions/checkout@v2
+
+      - name: Install and build libraries
+        run: ../services/scripts/install_lib_packages.sh && ../services/scripts/build_libs.sh
 
       - name: Install dependencies
         run: npm ci

@@ -5,7 +5,9 @@
   "scripts": {
     "build": "rm -rf dist && tsc",
     "lint": "eslint --ext .ts src",
-    "format": "prettier --write \"src/**/*.ts\""
+    "format": "prettier --write \"src/**/*.ts\"",
+    "format-check": "prettier --check .",
+    "tsc-check": "tsc --noEmit"
   },
   "exports": {
     ".": {
