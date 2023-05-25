@@ -228,7 +228,7 @@ export default {
     }),
     platform() {
       return CrowdIntegrations.getConfig(
-        this.conversation.platform,
+        this.conversation.conversationStarter?.platform,
       );
     },
     member() {
