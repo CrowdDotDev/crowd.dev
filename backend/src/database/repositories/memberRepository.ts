@@ -1765,6 +1765,15 @@ where m."deletedAt" is null
               to: 'organizationId',
             },
           },
+          segments: {
+            table: 'members',
+            model: 'member',
+            relationTable: {
+              name: 'memberSegments',
+              from: 'memberId',
+              to: 'segmentId',
+            },
+          },
         },
         // TODO: member identitites FIX
         // customOperators: {
