@@ -6,9 +6,7 @@
 </template>
 
 <script setup lang="ts">
-import {
-  defineProps, defineEmits, computed, onMounted,
-} from 'vue';
+import { computed, onMounted } from 'vue';
 import {
   DateFilterValue,
   DateFilterOptions,
@@ -22,7 +20,7 @@ const props = defineProps<{
   config: DateFilterConfig
 } & DateFilterOptions>();
 
-const emit = defineEmits<{(e: 'update:modelValue', value: DateFilterValue)}>();
+const emit = defineEmits<{(e: 'update:modelValue', value: DateFilterValue): void}>();
 
 const form = computed({
   get: () => props.modelValue,

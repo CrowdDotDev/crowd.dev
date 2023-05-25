@@ -1,13 +1,24 @@
 <template>
   <div v-if="form">
-    String filter
+    <cr-filter-include-switch v-if="!props.hideIncludeSwitch" v-model="form.include" />
+
+    <cr-filter-inline-select
+      v-model="form.operator"
+      prefix="Text:"
+      class="mb-2"
+      :options="stringFilterOperators"
+    />
+
+    <cr-filter-input
+      v-model="form.value"
+      class="mb-1"
+      placeholder="Enter a value"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
-import {
-  defineProps, defineEmits, computed, onMounted,
-} from 'vue';
+import { computed, onMounted } from 'vue';
 import useVuelidate from '@vuelidate/core';
 import { required } from '@vuelidate/validators';
 import {
@@ -15,13 +26,17 @@ import {
   StringFilterOptions,
   StringFilterValue,
 } from '@/shared/modules/filters/types/filterTypes/StringFilterConfig';
+import CrFilterIncludeSwitch from '@/shared/modules/filters/components/partials/FilterIncludeSwitch.vue';
+import CrFilterInlineSelect from '@/shared/modules/filters/components/partials/FilterInlineSelect.vue';
+import CrFilterInput from '@/shared/modules/filters/components/partials/string/FilterInput.vue';
+import { stringFilterOperators, FilterStringOperator } from '@/shared/modules/filters/config/constants/string.constants';
 
 const props = defineProps<{
   modelValue: StringFilterValue,
   config: StringFilterConfig
 } & StringFilterOptions>();
 
-const emit = defineEmits<{(e: 'update:modelValue', value: StringFilterValue)}>();
+const emit = defineEmits<{(e: 'update:modelValue', value: StringFilterValue): void}>();
 
 const form = computed<StringFilterValue>({
   get: () => props.modelValue,
@@ -30,7 +45,7 @@ const form = computed<StringFilterValue>({
 
 const defaultForm: StringFilterValue = {
   value: '',
-  operator: 'eq',
+  operator: FilterStringOperator.LIKE,
   include: true,
 };
 

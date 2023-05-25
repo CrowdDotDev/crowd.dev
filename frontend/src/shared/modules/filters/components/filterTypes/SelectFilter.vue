@@ -18,9 +18,7 @@
 </template>
 
 <script setup lang="ts">
-import {
-  defineProps, defineEmits, computed, onMounted,
-} from 'vue';
+import { computed, onMounted } from 'vue';
 import {
   SelectFilterConfig,
   SelectFilterOptions,
@@ -36,7 +34,7 @@ const props = defineProps<{
   config: SelectFilterConfig
 } & SelectFilterOptions>();
 
-const emit = defineEmits<{(e: 'update:modelValue', value: SelectFilterValue)}>();
+const emit = defineEmits<{(e: 'update:modelValue', value: SelectFilterValue): void}>();
 
 const form = computed({
   get: () => props.modelValue,

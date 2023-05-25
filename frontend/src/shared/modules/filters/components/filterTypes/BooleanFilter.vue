@@ -14,9 +14,7 @@
 </template>
 
 <script setup lang="ts">
-import {
-  defineProps, defineEmits, computed, onMounted,
-} from 'vue';
+import { computed, onMounted } from 'vue';
 import {
   BooleanFilterValue,
   BooleanFilterOptions,
@@ -32,7 +30,7 @@ const props = defineProps<{
   config: BooleanFilterConfig,
 } & BooleanFilterOptions>();
 
-const emit = defineEmits<{(e: 'update:modelValue', value: BooleanFilterValue)}>();
+const emit = defineEmits<{(e: 'update:modelValue', value: BooleanFilterValue): void}>();
 
 const form = computed({
   get: () => props.modelValue,

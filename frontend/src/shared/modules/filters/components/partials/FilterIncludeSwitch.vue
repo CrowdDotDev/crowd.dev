@@ -10,18 +10,15 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { computed } from 'vue';
 
 const emit = defineEmits(['update:modelValue']);
-const props = defineProps({
-  modelValue: {
-    type: Boolean,
-    required: true,
-  },
-});
+const props = defineProps<{
+  modelValue: boolean
+}>();
 
-const model = computed({
+const model = computed<boolean>({
   get() {
     return props.modelValue;
   },
@@ -31,7 +28,7 @@ const model = computed({
 });
 </script>
 
-<script>
+<script lang="ts">
 export default {
   name: 'CrFilterIncludeSwitch',
 };
