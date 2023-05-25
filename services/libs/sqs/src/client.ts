@@ -1,3 +1,4 @@
+import { IS_DEV_ENV } from '@crowd/common'
 import { getServiceChildLogger } from '@crowd/logging'
 import {
   DeleteMessageCommand,
@@ -35,7 +36,8 @@ export const receiveMessage = async (
 ): Promise<SqsMessage | undefined> => {
   params.MaxNumberOfMessages = 1
   params.WaitTimeSeconds = 15
-  params.VisibilityTimeout = 15 * 60 // 15 minutes
+
+  params.VisibilityTimeout = IS_DEV_ENV ? 60 : 15 * 60 // 15 minutes
 
   const result = await client.send(new ReceiveMessageCommand(params))
 

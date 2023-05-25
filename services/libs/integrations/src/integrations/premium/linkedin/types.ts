@@ -23,7 +23,9 @@ export interface ILinkedInAuthor {
 }
 
 export interface ILinkedInRootOrganizationStream {
+  organization: string
   organizationUrn: string
+  start?: number
 }
 
 export interface ILinkedInChildPostCommentsStream {

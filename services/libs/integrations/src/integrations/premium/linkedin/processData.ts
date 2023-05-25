@@ -1,5 +1,13 @@
+import { IMemberData, MemberAttributeName, PlatformType } from '@crowd/types'
 import sanitizeHtml from 'sanitize-html'
 import { IProcessDataContext, ProcessDataHandler } from '../../../types'
+import {
+  ILinkedInMember,
+  ILinkedInOrganization,
+  ILinkedInPostComment,
+  ILinkedInPostReaction,
+} from './api/types'
+import { LINKEDIN_GRID } from './grid'
 import {
   ILinkedInAuthor,
   ILinkedInCachedMember,
@@ -11,16 +19,7 @@ import {
   LinkedinActivityType,
   LinkedinStreamType,
 } from './types'
-import { IMemberData, MemberAttributeName, PlatformType } from '@crowd/types'
-import {
-  ILinkedInMember,
-  ILinkedInOrganization,
-  ILinkedInPostComment,
-  ILinkedInPostReaction,
-} from './api/types'
-import { LINKEDIN_GRID } from './grid'
 import { isPrivateLinkedInMember } from './utils'
-import { single } from '@crowd/common'
 
 const getMember = async (
   author: ILinkedInAuthor,
@@ -109,7 +108,6 @@ const processReaction: ProcessDataHandler = async (ctx) => {
     score: LINKEDIN_GRID[LinkedinActivityType.REACTION].score,
     isContribution: LINKEDIN_GRID[LinkedinActivityType.REACTION].isContribution,
     member,
-    username: single(member.identities, (i) => i.platform === PlatformType.LINKEDIN).username,
     url: `https://www.linkedin.com/feed/update/${encodeURIComponent(postUrnId)}`,
     attributes: {
       userUrl: !isPrivateLinkedInMember(member)
@@ -119,7 +117,6 @@ const processReaction: ProcessDataHandler = async (ctx) => {
       postBody,
       reactionType: reaction.reaction,
     },
-    body: reaction.reaction,
   })
 }
 const processComment: ProcessDataHandler = async (ctx) => {
@@ -149,7 +146,7 @@ const processComment: ProcessDataHandler = async (ctx) => {
       postBody,
       imageUrl: comment.imageUrl,
     },
-    username: single(member.identities, (i) => i.platform === PlatformType.LINKEDIN).username,
+    member,
   })
 
   if (comment.childComments > 0) {
@@ -192,7 +189,7 @@ const processChildComment: ProcessDataHandler = async (ctx) => {
       postBody,
       imageUrl: comment.imageUrl,
     },
-    username: single(member.identities, (i) => i.platform === PlatformType.LINKEDIN).username,
+    member,
   })
 
   if (comment.childComments > 0) {

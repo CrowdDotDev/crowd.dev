@@ -47,7 +47,7 @@ export interface IActivityData {
   /**
    * Activity content.
    */
-  body: string
+  body?: string
 
   /**
    * Activity title if available.

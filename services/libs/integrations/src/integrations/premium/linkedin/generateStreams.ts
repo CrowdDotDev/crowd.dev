@@ -16,6 +16,7 @@ const handler: GenerateStreamsHandler = async (ctx) => {
   await ctx.publishStream<ILinkedInRootOrganizationStream>(
     `${LinkedinStreamType.ORGANIZATION}-${organization.name}`,
     {
+      organization: organization.name,
       organizationUrn: organization.organizationUrn,
     },
   )

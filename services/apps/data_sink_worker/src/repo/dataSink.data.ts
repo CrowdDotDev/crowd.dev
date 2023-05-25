@@ -12,3 +12,9 @@ export interface IResultData {
   integrationId: string
   platform: PlatformType
 }
+
+export interface IFailedResultData {
+  id: string
+  tenantId: string
+  platform: string
+}

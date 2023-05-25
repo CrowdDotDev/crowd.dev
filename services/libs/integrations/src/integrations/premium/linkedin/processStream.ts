@@ -97,7 +97,13 @@ const parseAuthor = async (
     const userString = await ctx.cache.get(`user-${userId}`)
 
     if (userString) {
-      user = JSON.parse(userString)
+      user = {
+        type: 'user',
+        data: {
+          ...JSON.parse(userString),
+          userId,
+        } as ILinkedInCachedMember,
+      }
     } else {
       const data = await getMember(ctx.serviceSettings.nangoId, userId, ctx)
       user = {
@@ -114,7 +120,13 @@ const parseAuthor = async (
     const userString = await ctx.cache.get(`user-${userId}`)
 
     if (userString) {
-      user = JSON.parse(userString)
+      user = {
+        type: 'organization',
+        data: {
+          ...JSON.parse(userString),
+          userId,
+        } as ILinkedInCachedOrganization,
+      }
     } else {
       const data = await getOrganization(ctx.serviceSettings.nangoId, userId, ctx)
       user = {
@@ -135,38 +147,47 @@ const parseAuthor = async (
 }
 
 const processRootStream: ProcessStreamHandler = async (ctx) => {
-  const organizationUrn = (ctx.stream.data as ILinkedInRootOrganizationStream).organizationUrn
-  let posts = await getOrganizationPosts(ctx.serviceSettings.nangoId, organizationUrn, ctx)
+  const data = ctx.stream.data as ILinkedInRootOrganizationStream
+  const organizationUrn = data.organizationUrn
+  const organization = data.organization
 
-  while (posts.elements.length > 0) {
-    for (const post of posts.elements) {
-      await ctx.cache.set(`post-${post.urnId}`, JSON.stringify(post), 2 * 24 * 60 * 60) // store for 2 days
-      await ctx.publishStream<ILinkedInChildPostCommentsStream>(
-        `${LinkedinStreamType.POST_COMMENTS}-${post.urnId}`,
-        {
-          postUrnId: post.urnId,
-          postBody: post.body,
-        },
-      )
-      await ctx.publishStream<ILinkedInChildPostReactionsStream>(
-        `${LinkedinStreamType.POST_REACTIONS}-${post.urnId}`,
-        {
-          postUrnId: post.urnId,
-          postBody: post.body,
-        },
-      )
-    }
+  const results = await getOrganizationPosts(
+    ctx.serviceSettings.nangoId,
+    organizationUrn,
+    ctx,
+    data.start,
+  )
 
-    if (posts.start !== undefined) {
-      posts = await getOrganizationPosts(
-        ctx.serviceSettings.nangoId,
-        ctx.stream.identifier,
-        ctx,
-        posts.start,
-      )
-    } else {
-      break
-    }
+  const posts = results.elements
+
+  while (posts.length > 0) {
+    const post = posts.shift()
+    await ctx.cache.set(`post-${post.urnId}`, JSON.stringify(post), 2 * 24 * 60 * 60) // store for 2 days
+    await ctx.publishStream<ILinkedInChildPostCommentsStream>(
+      `${LinkedinStreamType.POST_COMMENTS}-${post.urnId}`,
+      {
+        postUrnId: post.urnId,
+        postBody: post.body,
+      },
+    )
+    await ctx.publishStream<ILinkedInChildPostReactionsStream>(
+      `${LinkedinStreamType.POST_REACTIONS}-${post.urnId}`,
+      {
+        postUrnId: post.urnId,
+        postBody: post.body,
+      },
+    )
+  }
+
+  if (results.start !== undefined) {
+    await ctx.publishStream<ILinkedInRootOrganizationStream>(
+      `${LinkedinStreamType.ORGANIZATION}-${organization}-${results.start}`,
+      {
+        organization,
+        organizationUrn,
+        start: results.start,
+      },
+    )
   }
 }
 
@@ -195,7 +216,7 @@ const processPostReactionsStream: ProcessStreamHandler = async (ctx) => {
     ctx.serviceSettings.nangoId,
     postUrnId,
     ctx,
-    (ctx.stream.data as any).start,
+    stream.start,
     lastReactionTs,
   )
 
@@ -221,7 +242,7 @@ const processPostReactionsStream: ProcessStreamHandler = async (ctx) => {
 
   if (data.start !== undefined) {
     await ctx.publishStream<ILinkedInChildPostReactionsStream>(
-      `${LinkedinStreamType.POST_REACTIONS}-${postUrnId}`,
+      `${LinkedinStreamType.POST_REACTIONS}-${postUrnId}-${data.start}`,
       {
         postUrnId,
         postBody,
@@ -232,8 +253,10 @@ const processPostReactionsStream: ProcessStreamHandler = async (ctx) => {
 }
 
 const processPostCommentsStream: ProcessStreamHandler = async (ctx) => {
-  const postUrnId = (ctx.stream.data as any).postUrnId
-  const postBody = (ctx.stream.data as any).postBody
+  const stream = ctx.stream.data as ILinkedInChildPostCommentsStream
+
+  const postUrnId = stream.postUrnId
+  const postBody = stream.postBody
 
   let lastCommentTs = await getLastCommentTs(ctx, postUrnId)
   if (!lastCommentTs && !ctx.onboarding) {
@@ -255,7 +278,7 @@ const processPostCommentsStream: ProcessStreamHandler = async (ctx) => {
     ctx.serviceSettings.nangoId,
     postUrnId,
     ctx,
-    (ctx.stream.data as any).start,
+    stream.start,
     lastCommentTs,
   )
 
@@ -281,7 +304,7 @@ const processPostCommentsStream: ProcessStreamHandler = async (ctx) => {
 
   if (data.start !== undefined) {
     await ctx.publishStream<ILinkedInChildPostCommentsStream>(
-      `${LinkedinStreamType.POST_COMMENTS}-${postUrnId}`,
+      `${LinkedinStreamType.POST_COMMENTS}-${postUrnId}-${data.start}`,
       {
         postUrnId,
         postBody,
@@ -320,7 +343,7 @@ const processCommentCommentsStream: ProcessStreamHandler = async (ctx) => {
 
   if (data.start !== undefined) {
     await ctx.publishStream<ILinkedInChildCommentCommentsStream>(
-      `${LinkedinStreamType.COMMENT_COMMENTS}-${stream.commentUrnId}`,
+      `${LinkedinStreamType.COMMENT_COMMENTS}-${stream.commentUrnId}-${data.start}`,
       {
         postUrnId: stream.postUrnId,
         postBody: stream.postBody,
@@ -332,7 +355,10 @@ const processCommentCommentsStream: ProcessStreamHandler = async (ctx) => {
 }
 
 const handler: ProcessStreamHandler = async (ctx) => {
-  if (ctx.stream.type === IntegrationStreamType.ROOT) {
+  if (
+    ctx.stream.type === IntegrationStreamType.ROOT ||
+    ctx.stream.identifier.startsWith(LinkedinStreamType.ORGANIZATION)
+  ) {
     await processRootStream(ctx)
   } else {
     if (ctx.stream.identifier.startsWith(LinkedinStreamType.POST_COMMENTS)) {

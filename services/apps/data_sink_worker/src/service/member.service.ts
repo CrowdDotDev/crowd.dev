@@ -35,12 +35,15 @@ export default class MemberService extends LoggerBase {
         const txRepo = new MemberRepository(txStore, this.log)
         const txMemberAttributeService = new MemberAttributeService(txStore, this.log)
 
-        let attributes = await txMemberAttributeService.validateAttributes(
-          tenantId,
-          data.attributes,
-        )
+        let attributes: Record<string, unknown> = {}
+        if (data.attributes) {
+          attributes = await txMemberAttributeService.validateAttributes(tenantId, data.attributes)
 
-        attributes = await txMemberAttributeService.setAttributesDefaultValues(tenantId, attributes)
+          attributes = await txMemberAttributeService.setAttributesDefaultValues(
+            tenantId,
+            attributes,
+          )
+        }
 
         // check if any weak identities are actually strong
         await this.checkForStrongWeakIdentities(txRepo, tenantId, data)

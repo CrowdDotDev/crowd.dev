@@ -66,3 +66,9 @@ export class NodejsWorkerEmitter extends SqsQueueEmitter {
     await this.sendMessage(tenantId, new NewMemberAutomationQueueMessage(tenantId, memberId))
   }
 }
+
+export class DataSinkWorkerEmitter extends SqsQueueEmitter {
+  constructor(client: SqsClient, parentLog: Logger) {
+    super(client, DATA_SINK_WORKER_QUEUE_SETTINGS, parentLog)
+  }
+}

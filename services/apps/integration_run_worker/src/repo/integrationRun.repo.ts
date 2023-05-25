@@ -196,7 +196,7 @@ export default class IntegrationRunRepository extends RepositoryBase<Integration
     }
 
     for (const result of results) {
-      map.set(result.state, result.count)
+      map.set(result.state, parseInt(result.count, 10))
     }
 
     return map
