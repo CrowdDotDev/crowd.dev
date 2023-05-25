@@ -21,6 +21,18 @@ class IssuesQuery extends BaseQuery {
                     url
                     createdAt
                     number
+                    timelineItems(first: 100, itemTypes: [CLOSED_EVENT]) {
+                      nodes {
+                        ... on ClosedEvent {
+                          __typename
+                          id
+                          actor {
+                            ... on User ${BaseQuery.USER_SELECT}
+                          }
+                          createdAt
+                        }
+                      }
+                    }
                 }
             }
         }
