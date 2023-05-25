@@ -11,8 +11,8 @@ import {
 } from 'vue';
 import {
   MultiSelectFilterValue,
-  MultiSelectFilterOptions, MultiSelectFilterConfig
-} from "@/shared/modules/filters/types/filterTypes/MultiSelectFilterConfig";
+  MultiSelectFilterOptions, MultiSelectFilterConfig,
+} from '@/shared/modules/filters/types/filterTypes/MultiSelectFilterConfig';
 import { required } from '@vuelidate/validators';
 import useVuelidate from '@vuelidate/core';
 

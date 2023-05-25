@@ -12,8 +12,8 @@ import {
 import {
   NumberFilterConfig,
   NumberFilterOptions,
-  NumberFilterValue
-} from "@/shared/modules/filters/types/filterTypes/NumberFilterConfig";
+  NumberFilterValue,
+} from '@/shared/modules/filters/types/filterTypes/NumberFilterConfig';
 import useVuelidate from '@vuelidate/core';
 import { required } from '@vuelidate/validators';
 

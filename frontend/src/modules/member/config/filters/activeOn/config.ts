@@ -1,5 +1,9 @@
 import { FilterConfigType } from '@/shared/modules/filters/types/FilterConfig';
-import { MultiSelectFilterConfig, MultiSelectFilterValue } from '@/shared/modules/filters/types/filterTypes/MultiSelectFilterConfig';
+import {
+  MultiSelectFilterConfig,
+  MultiSelectFilterOptions,
+  MultiSelectFilterValue,
+} from '@/shared/modules/filters/types/filterTypes/MultiSelectFilterConfig';
 import { CrowdIntegrations } from '@/integrations/integrations-config';
 import { apiFilterRendererByType } from '@/shared/modules/filters/config/apiFilterRendererByType';
 import { itemLabelRendererByType } from '@/shared/modules/filters/config/itemLabelRendererByType';
@@ -20,8 +24,8 @@ const activeOn: MultiSelectFilterConfig = {
       },
     ],
   },
-  itemLabelRenderer(value: MultiSelectFilterValue): string {
-    return itemLabelRendererByType[FilterConfigType.MULTISELECT]('Active on', value);
+  itemLabelRenderer(value: MultiSelectFilterValue, options: MultiSelectFilterOptions): string {
+    return itemLabelRendererByType[FilterConfigType.MULTISELECT]('Active on', value, options);
   },
   apiFilterRenderer(value: MultiSelectFilterValue): any[] {
     return apiFilterRendererByType[FilterConfigType.MULTISELECT]('activeOn', value);

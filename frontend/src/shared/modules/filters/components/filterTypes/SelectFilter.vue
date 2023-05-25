@@ -1,7 +1,19 @@
 <template>
-  <div v-if="form">
-    Select filter
-    <!-- TODO: prepare select filter -->
+  <div v-if="form" class="filter-base-select">
+    <cr-filter-include-switch v-if="!props.hideIncludeSwitch" v-model="form.include" class="mb-2" />
+    <div class="max-h-58 overflow-auto pb-3">
+      <template v-for="(group, gi) of props.options" :key="gi">
+        <div
+          v-if="group.label"
+          class="text-2xs text-gray-400 font-semibold tracking-wide leading-6 uppercase px-3 my-1"
+        >
+          {{ group.label }}
+        </div>
+        <cr-filter-select-option v-for="(option, oi) of group.options" :key="oi" v-model="form.value" :value="option.value">
+          {{ option.label }}
+        </cr-filter-select-option>
+      </template>
+    </div>
   </div>
 </template>
 
@@ -12,10 +24,12 @@ import {
 import {
   SelectFilterConfig,
   SelectFilterOptions,
-  SelectFilterValue
-} from "@/shared/modules/filters/types/filterTypes/SelectFilterConfig";
+  SelectFilterValue,
+} from '@/shared/modules/filters/types/filterTypes/SelectFilterConfig';
 import { required } from '@vuelidate/validators';
 import useVuelidate from '@vuelidate/core';
+import CrFilterIncludeSwitch from '@/shared/modules/filters/components/partials/FilterIncludeSwitch.vue';
+import CrFilterSelectOption from '@/shared/modules/filters/components/partials/select/FilterSelectOption.vue';
 
 const props = defineProps<{
   modelValue: SelectFilterValue,

@@ -1,5 +1,9 @@
 import { FilterConfigType } from '@/shared/modules/filters/types/FilterConfig';
-import { MultiSelectFilterConfig, MultiSelectFilterValue } from '@/shared/modules/filters/types/filterTypes/MultiSelectFilterConfig';
+import {
+  MultiSelectFilterConfig,
+  MultiSelectFilterOptions,
+  MultiSelectFilterValue,
+} from '@/shared/modules/filters/types/filterTypes/MultiSelectFilterConfig';
 import { itemLabelRendererByType } from '@/shared/modules/filters/config/itemLabelRendererByType';
 import { apiFilterRendererByType } from '@/shared/modules/filters/config/apiFilterRendererByType';
 
@@ -11,8 +15,8 @@ const tags: MultiSelectFilterConfig = {
     // TODO: load this options remote
     options: [],
   },
-  itemLabelRenderer(value: MultiSelectFilterValue): string {
-    return itemLabelRendererByType[FilterConfigType.MULTISELECT]('Active on', value);
+  itemLabelRenderer(value: MultiSelectFilterValue, options: MultiSelectFilterOptions): string {
+    return itemLabelRendererByType[FilterConfigType.MULTISELECT]('Active on', value, options);
   },
   apiFilterRenderer(value: MultiSelectFilterValue): any[] {
     return apiFilterRendererByType[FilterConfigType.MULTISELECT]('tags', value);
