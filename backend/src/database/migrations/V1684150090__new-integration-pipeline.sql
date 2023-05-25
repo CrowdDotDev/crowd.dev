@@ -1,3 +1,5 @@
+create extension if not exists "uuid-ossp";
+
 create schema integration;
 
 create table integration.runs (
