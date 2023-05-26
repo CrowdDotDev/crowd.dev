@@ -1,7 +1,10 @@
 <template>
   <div v-if="form">
-    Date filter
-    <!-- TODO: prepare date filter -->
+    <cr-filter-include-switch v-if="!props.hideIncludeSwitch" v-model="form.include" />
+    <div class="p-4">
+      Date filter
+      <!-- TODO: prepare date filter -->
+    </div>
   </div>
 </template>
 
@@ -14,6 +17,7 @@ import {
 } from '@/shared/modules/filters/types/filterTypes/DateFilterConfig';
 import { required } from '@vuelidate/validators';
 import useVuelidate from '@vuelidate/core';
+import CrFilterIncludeSwitch from '@/shared/modules/filters/components/partials/FilterIncludeSwitch.vue';
 
 const props = defineProps<{
   modelValue: DateFilterValue,

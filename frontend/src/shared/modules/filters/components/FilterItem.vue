@@ -1,44 +1,50 @@
 <template>
-  <div>
-    <el-button-group>
-      <!-- Settings -->
-      <el-popover
-        v-model:visible="isOpen"
-        teleported
-        placement="bottom-start"
-        width="320"
-        trigger="click"
-        popper-class="!p-0"
-      >
-        <template #reference>
-          <el-button ref="chip" class="btn btn--bordered !h-8 p-2 !border !outline-none font-medium text-xs">
-            <span
-              v-html="$sanitize(
-                (props.modelValue && config.itemLabelRenderer(props.modelValue, props.config.options))
-                  || `<b>${config.label}:</b> ...`,
-              )"
-            />
-          </el-button>
-        </template>
-
-        <div class="p-3">
-          <component :is="getComponent" v-if="getComponent" v-model="form" :config="props.config" v-bind="props.config.options" />
+  <div class="flex items-center shadow rounded-md">
+    <!-- Settings -->
+    <el-popover
+      v-model:visible="isOpen"
+      teleported
+      placement="bottom-start"
+      width="320"
+      trigger="click"
+      popper-class="!p-0"
+    >
+      <template #reference>
+        <div
+          class="border border-gray-100 rounded-l-md h-8 flex items-center py-1 px-2 bg-white cursor-pointer hover:bg-gray-100 transition"
+          :class="{ '!bg-gray-100': isOpen }"
+        >
+          <i class="text-base text-black mr-2" :class="config.iconClass" />
+          <span
+            class="text-xs text-gray-600 filter-item-text leading-6"
+            v-html="$sanitize(
+              (props.modelValue && config.itemLabelRenderer(props.modelValue, props.config.options))
+                || `<span class='!text-gray-500'>${config.label}...</span>`,
+            )"
+          />
         </div>
-        <div class="flex justify-end items-center border-t p-3">
-          <el-button class="btn btn--transparent btn--sm mr-2" @click="close">
-            Cancel
-          </el-button>
-          <el-button class="btn btn--primary btn--sm" :disabled="$v.$invalid" @click="apply">
-            Apply
-          </el-button>
-        </div>
-      </el-popover>
+      </template>
 
-      <!-- Cancel -->
-      <el-button class="btn btn--bordered !w-8 !h-8 p-2 !border !outline-none font-medium text-xs" @click="emit('remove')">
-        <span class="ri-close-line block" />
-      </el-button>
-    </el-button-group>
+      <div>
+        <component :is="getComponent" v-if="getComponent" v-model="form" :config="props.config" v-bind="props.config.options" />
+      </div>
+      <div class="flex justify-end items-center border-t py-3 px-4">
+        <el-button class="btn btn--transparent btn--sm !h-8 mr-2" @click="close">
+          Cancel
+        </el-button>
+        <el-button class="btn btn--primary btn--sm !h-8" :disabled="$v.$invalid" @click="apply">
+          Apply
+        </el-button>
+      </div>
+    </el-popover>
+
+    <!-- Cancel -->
+    <div
+      class="border border-gray-100 rounded-r-md h-8 flex items-center p-2 bg-white -ml-px hover:bg-gray-100 transition cursor-pointer group"
+      @click="emit('remove')"
+    >
+      <span class="ri-close-line text-base flex items-center h-4 text-gray-500 group-hover:text-gray-900" />
+    </div>
   </div>
 </template>
 
@@ -102,3 +108,11 @@ export default {
   name: 'CrFilterItem',
 };
 </script>
+
+<style lang="scss">
+.filter-item-text{
+  b{
+    @apply font-medium text-gray-900 mr-2;
+  }
+}
+</style>

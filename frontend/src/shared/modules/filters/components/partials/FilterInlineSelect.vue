@@ -78,10 +78,10 @@ export default {
     transition: transform 0.2s ease;
   }
   &-prefix {
-    @apply text-gray-500 text-2xs;
+    @apply text-gray-500 text-xs leading-4.5;
   }
   &-value {
-    @apply text-black text-2xs;
+    @apply text-gray-900 text-xs leading-4.5;
   }
 }
 </style>

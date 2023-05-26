@@ -10,6 +10,7 @@ export interface MultiSelectFilterOptionGroup {
   options: MultiSelectFilterOption[];
 }
 export interface MultiSelectFilterOptions {
+  hideIncludeSwitch?: boolean;
   options: MultiSelectFilterOptionGroup[]
 }
 

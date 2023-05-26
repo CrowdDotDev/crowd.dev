@@ -5,6 +5,7 @@ import options from './options';
 const activeOn: MultiSelectFilterConfig = {
   id: 'activeOn',
   label: 'Active on',
+  iconClass: 'ri-apps-2-line',
   type: FilterConfigType.MULTISELECT,
   options: {
     options,

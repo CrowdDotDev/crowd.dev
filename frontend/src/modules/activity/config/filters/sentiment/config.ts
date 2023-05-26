@@ -5,6 +5,7 @@ import options from './options';
 const sentiment: MultiSelectFilterConfig = {
   id: 'sentiment',
   label: 'Sentiment',
+  iconClass: 'ri-speed-up-line',
   type: FilterConfigType.MULTISELECT,
   options: {
     options,

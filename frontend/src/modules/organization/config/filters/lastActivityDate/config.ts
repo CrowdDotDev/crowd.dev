@@ -4,6 +4,7 @@ import { DateFilterConfig } from '@/shared/modules/filters/types/filterTypes/Dat
 const lastActivityDate: DateFilterConfig = {
   id: 'lastActivityDate',
   label: 'Last activity date',
+  iconClass: 'ri-calendar-event-line',
   type: FilterConfigType.DATE,
   options: {},
   itemLabelRenderer(value): string {

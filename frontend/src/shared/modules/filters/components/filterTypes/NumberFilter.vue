@@ -1,7 +1,10 @@
 <template>
   <div v-if="form">
-    Number Filter
-    <el-input v-model="form.value" type="number" placeholder="Pick number" />
+    <cr-filter-include-switch v-if="!props.hideIncludeSwitch" v-model="form.include" />
+    <div class="p-4">
+      Number filter
+      <!-- TODO: prepare number filter -->
+    </div>
   </div>
 </template>
 
@@ -14,6 +17,7 @@ import {
 } from '@/shared/modules/filters/types/filterTypes/NumberFilterConfig';
 import useVuelidate from '@vuelidate/core';
 import { required } from '@vuelidate/validators';
+import CrFilterIncludeSwitch from '@/shared/modules/filters/components/partials/FilterIncludeSwitch.vue';
 
 const props = defineProps<{
   modelValue: NumberFilterValue,

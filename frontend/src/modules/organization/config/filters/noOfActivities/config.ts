@@ -4,6 +4,7 @@ import { FilterConfigType } from '@/shared/modules/filters/types/FilterConfig';
 const noOfActivities: NumberFilterConfig = {
   id: 'noOfActivities',
   label: '# of activities',
+  iconClass: 'ri-radar-line',
   type: FilterConfigType.NUMBER,
   options: {},
   itemLabelRenderer(value): string {

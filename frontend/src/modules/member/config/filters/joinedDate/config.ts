@@ -10,6 +10,7 @@ import { apiFilterRendererByType } from '@/shared/modules/filters/config/apiFilt
 const joinedDate: DateFilterConfig = {
   id: 'joinedDate',
   label: 'Joined date',
+  iconClass: 'ri-calendar-event-line',
   type: FilterConfigType.DATE,
   options: {},
   itemLabelRenderer(value: DateFilterValue, options: DateFilterOptions): string {

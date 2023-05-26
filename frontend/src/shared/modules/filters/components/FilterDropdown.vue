@@ -20,14 +20,14 @@
         </el-input>
       </div>
       <el-dropdown-item
-        v-for="{ key, label } in filteredOptions"
+        v-for="{ key, label, iconClass } in filteredOptions"
         :key="key"
         :class="{ 'is-selected': isSelected(key) }"
         :disabled="isSelected(key)"
         @click="add(key)"
       >
         <div class="flex justify-between w-full">
-          <span>{{ label }}</span>
+          <span><i :class="iconClass" class="text-base text-black mr-2" />{{ label }}</span>
           <i :class="isSelected(key) ? 'opacity-100' : 'opacity-0'" class="ri-check-line !text-brand-600 !mr-0 ml-1" />
         </div>
       </el-dropdown-item>

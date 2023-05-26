@@ -8,6 +8,7 @@ import { itemLabelRendererByType } from '@/shared/modules/filters/config/itemLab
 const enrichedMember: BooleanFilterConfig = {
   id: 'enrichedMember',
   label: 'Enriched member',
+  iconClass: 'ri-sparkling-line',
   type: FilterConfigType.BOOLEAN,
   options: {},
   itemLabelRenderer(value: BooleanFilterValue, options: BooleanFilterOptions): string {

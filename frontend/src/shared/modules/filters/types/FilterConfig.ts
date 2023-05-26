@@ -19,6 +19,7 @@ export enum FilterConfigType {
 export interface BaseFilterConfig {
   id: string;
   label: string;
+  iconClass: string;
 }
 
 export type FilterConfig = NumberFilterConfig
