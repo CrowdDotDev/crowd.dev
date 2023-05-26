@@ -694,8 +694,7 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
     },
     [DiscourseActivityType.MESSAGE_IN_TOPIC]: {
       display: {
-        default:
-          'Posted a message in {self}',
+        default: 'Posted a message in {self}',
         short: 'posted a message',
         channel: '<span class="text-brand-500 truncate max-w-2xs">#{channel}</span>',
         formatter: {
@@ -718,7 +717,8 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
         short: 'liked a post',
         channel: '<span class="text-brand-500 truncate max-w-2xs">#{channel}</span>',
         formatter: {
-          self: (activity) => `<a href="${activity.attributes.topicURL}" target="_blank">#${activity.channel}</a>`
+          self: (activity) =>
+            `<a href="${activity.attributes.topicURL}" target="_blank">#${activity.channel}</a>`,
         },
       },
       isContribution: DiscourseGrid.like.isContribution,
