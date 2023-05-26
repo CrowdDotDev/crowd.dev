@@ -39,6 +39,7 @@ export const customAttributesService = () => {
           filters[attribute.name] = {
             id: attribute.name,
             label: attribute.label,
+            iconClass: 'ri-hashtag',
             type: FilterConfigType.NUMBER,
             options: {
               hideIncludeSwitch: true,
@@ -57,6 +58,7 @@ export const customAttributesService = () => {
           filters[attribute.name] = {
             id: attribute.name,
             label: attribute.label,
+            iconClass: 'ri-toggle-line',
             type: FilterConfigType.BOOLEAN,
             options: {
               hideIncludeSwitch: true,
@@ -75,6 +77,7 @@ export const customAttributesService = () => {
           filters[attribute.name] = {
             id: attribute.name,
             label: attribute.label,
+            iconClass: 'ri-menu-2-line',
             type: FilterConfigType.STRING,
             options: {
               hideIncludeSwitch: true,
@@ -93,6 +96,7 @@ export const customAttributesService = () => {
           filters[attribute.name] = {
             id: attribute.name,
             label: attribute.label,
+            iconClass: 'ri-calendar-2-line',
             type: FilterConfigType.DATE,
             options: {
               hideIncludeSwitch: true,
@@ -112,6 +116,7 @@ export const customAttributesService = () => {
           filters[attribute.name] = {
             id: attribute.name,
             label: attribute.label,
+            iconClass: 'ri-list-unordered',
             type: FilterConfigType.MULTISELECT,
             options: {
               hideIncludeSwitch: true,

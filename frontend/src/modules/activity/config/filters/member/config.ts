@@ -4,6 +4,7 @@ import { MultiSelectFilterConfig, MultiSelectFilterValue } from '@/shared/module
 const member: MultiSelectFilterConfig = {
   id: 'member',
   label: 'Member',
+  iconClass: 'ri-account-circle-line',
   type: FilterConfigType.MULTISELECT,
   options: {
     // TODO: load this options remote

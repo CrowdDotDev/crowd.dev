@@ -10,6 +10,7 @@ import { apiFilterRendererByType } from '@/shared/modules/filters/config/apiFilt
 const tags: MultiSelectFilterConfig = {
   id: 'tags',
   label: 'Tags',
+  iconClass: 'ri-bookmark-line',
   type: FilterConfigType.MULTISELECT,
   options: {
     // TODO: load this options remote

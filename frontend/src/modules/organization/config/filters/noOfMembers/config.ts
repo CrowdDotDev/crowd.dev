@@ -4,6 +4,7 @@ import { FilterConfigType } from '@/shared/modules/filters/types/FilterConfig';
 const noOfMembers: NumberFilterConfig = {
   id: 'noOfMembers',
   label: '# of members',
+  iconClass: 'ri-group-2-line',
   type: FilterConfigType.NUMBER,
   options: {},
   itemLabelRenderer(value): string {

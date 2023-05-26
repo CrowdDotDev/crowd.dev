@@ -2,18 +2,19 @@
   <div v-if="form">
     <cr-filter-include-switch v-if="!props.hideIncludeSwitch" v-model="form.include" />
 
-    <cr-filter-inline-select
-      v-model="form.operator"
-      prefix="Text:"
-      class="mb-2"
-      :options="stringFilterOperators"
-    />
+    <div class="p-4 pb-5">
+      <cr-filter-inline-select
+        v-model="form.operator"
+        :prefix="`${props.config.label}:`"
+        class="mb-3"
+        :options="stringFilterOperators"
+      />
 
-    <cr-filter-input
-      v-model="form.value"
-      class="mb-1"
-      placeholder="Enter a value"
-    />
+      <cr-filter-input
+        v-model="form.value"
+        placeholder="Enter a value"
+      />
+    </div>
   </div>
 </template>
 

@@ -11,12 +11,13 @@ import { itemLabelRendererByType } from '@/shared/modules/filters/config/itemLab
 const activeOn: MultiSelectFilterConfig = {
   id: 'activeOn',
   label: 'Active On',
+  iconClass: 'ri-apps-2-line',
   type: FilterConfigType.MULTISELECT,
   options: {
     options: [
       {
         options: [
-          ...(CrowdIntegrations.configs.map((platform) => ({
+          ...(CrowdIntegrations.enabledConfigs.map((platform) => ({
             label: (platform as any).name,
             value: platform.platform,
           }))),

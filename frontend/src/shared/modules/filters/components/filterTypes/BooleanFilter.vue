@@ -1,15 +1,19 @@
 <template>
-  <div v-if="form" class="filter-base-boolean pb-4">
-    <cr-filter-include-switch v-if="!props.hideIncludeSwitch" v-model="form.include" class="mb-3" />
-    <p class="text-gray-500 mb-2 font-medium text-2xs pb-1">
-      {{ props.config.label }}
-    </p>
-    <cr-filter-select-option v-model="form.value" :value="true">
-      True
-    </cr-filter-select-option>
-    <cr-filter-select-option v-model="form.value" :value="false">
-      False
-    </cr-filter-select-option>
+  <div v-if="form">
+    <cr-filter-include-switch v-if="!props.hideIncludeSwitch" v-model="form.include" />
+    <div class="p-4">
+      <p class="text-xs text-gray-500 pb-3">
+        {{ props.config.label }}
+      </p>
+      <el-radio-group v-model="form.value" class="flex-col !items-start">
+        <el-radio :label="true" size="large" class="!mr-0 !h-6 !font-normal !mb-3 flex items-center">
+          True
+        </el-radio>
+        <el-radio :label="false" size="large" class="!mr-0 !h-5 !font-normal">
+          False
+        </el-radio>
+      </el-radio-group>
+    </div>
   </div>
 </template>
 
@@ -23,7 +27,6 @@ import {
 import { required } from '@vuelidate/validators';
 import useVuelidate from '@vuelidate/core';
 import CrFilterIncludeSwitch from '@/shared/modules/filters/components/partials/FilterIncludeSwitch.vue';
-import CrFilterSelectOption from '@/shared/modules/filters/components/partials/select/FilterSelectOption.vue';
 
 const props = defineProps<{
   modelValue: BooleanFilterValue,

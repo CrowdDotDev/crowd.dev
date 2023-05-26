@@ -5,6 +5,7 @@ import { CrowdIntegrations } from '@/integrations/integrations-config';
 const platform: MultiSelectFilterConfig = {
   id: 'platform',
   label: 'Platform',
+  iconClass: 'ri-apps-2-line',
   type: FilterConfigType.MULTISELECT,
   options: {
     options: [

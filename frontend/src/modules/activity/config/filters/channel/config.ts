@@ -7,6 +7,7 @@ import { queryUrlParserByType } from '@/shared/modules/filters/config/queryUrlPa
 const channel: CustomFilterConfig = {
   id: 'channel',
   label: 'Channel',
+  iconClass: 'ri-discuss-line',
   type: FilterConfigType.CUSTOM,
   component: ChannelFilter,
   options: {

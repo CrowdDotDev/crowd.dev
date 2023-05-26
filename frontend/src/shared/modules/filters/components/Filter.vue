@@ -9,14 +9,23 @@
     </div>
     <div class="flex items-center flex-wrap">
       <template v-for="(filter, fi) of filterList" :key="filter">
-        <el-button
+        <!-- Operator -->
+        <div
           v-if="fi > 0"
-          class="btn btn--bordered !h-8 p-2 !border !outline-none mr-4 w-11 font-medium text-xs lowercase"
+          class="border text-xs border-gray-100 rounded-md shadow uppercase
+          h-8 flex font-medium items-center py-1 px-2 bg-white cursor-pointer hover:bg-gray-100 transition mr-4 mb-2"
           @click="switchOperator"
         >
           {{ filters.relation }}
-        </el-button>
-        <cr-filter-item v-model="filters[filter]" v-model:open="open" :config="configuration[filter]" class="mr-4" @remove="removeFilter(filter)" />
+        </div>
+        <!-- Filter -->
+        <cr-filter-item
+          v-model="filters[filter]"
+          v-model:open="open"
+          :config="configuration[filter]"
+          class="mr-4 mb-2"
+          @remove="removeFilter(filter)"
+        />
       </template>
     </div>
   </div>

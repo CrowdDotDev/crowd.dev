@@ -38,7 +38,7 @@ export default {
   .el-input__wrapper.is-focus,
   .el-input__wrapper:hover {
     border: none !important;
-    @apply h-8 bg-gray-50 shadow-none rounded-md;
+    @apply bg-gray-50 shadow-none rounded-md;
 
     input {
       &,

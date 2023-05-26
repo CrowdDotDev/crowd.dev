@@ -7,6 +7,7 @@ import { queryUrlParserByType } from '@/shared/modules/filters/config/queryUrlPa
 const activityType: CustomFilterConfig = {
   id: 'activityType',
   label: 'Activity type',
+  iconClass: 'ri-radar-line',
   type: FilterConfigType.CUSTOM,
   component: ActivityTypeFilter,
   options: {

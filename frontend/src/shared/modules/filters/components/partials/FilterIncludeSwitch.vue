@@ -1,9 +1,9 @@
 <template>
-  <div class="flex justify-start">
+  <div class="flex justify-start border-b border-gray-100 p-4">
     <el-switch
       v-model="model"
       :active-text="modelValue ? 'Include' : 'Exclude'"
-      class="w-fit flex !justify-start !m-0"
+      class="w-fit flex !justify-start !m-0 filter-include-switch"
       size="small"
       data-qa="filter-include-switch"
     />
@@ -33,3 +33,11 @@ export default {
   name: 'CrFilterIncludeSwitch',
 };
 </script>
+
+<style lang="scss">
+.filter-include-switch{
+ .el-switch__label{
+   font-weight: normal !important;
+ }
+}
+</style>

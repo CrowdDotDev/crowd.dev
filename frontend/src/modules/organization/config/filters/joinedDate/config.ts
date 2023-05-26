@@ -4,6 +4,7 @@ import { DateFilterConfig } from '@/shared/modules/filters/types/filterTypes/Dat
 const joinedDate: DateFilterConfig = {
   id: 'joinedDate',
   label: 'Joined date',
+  iconClass: 'ri-calendar-event-line',
   type: FilterConfigType.DATE,
   options: {},
   itemLabelRenderer(value): string {
