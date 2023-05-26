@@ -34,6 +34,14 @@ const options = [
     defaultValue: false,
   },
   {
+    name: 'disableFiringCrowdWebhooks',
+    alias: 'd',
+    typeLabel: '{underline disableFiringCrowdWebhooks}',
+    type: Boolean,
+    defaultOption: false,
+    description: 'Should it disable firing outgoing crowd webhooks?',
+  },
+  {
     name: 'platform',
     alias: 'p',
     description: 'The platform for which we should run all integrations.',
@@ -70,6 +78,8 @@ if (parameters.help || (!parameters.integration && !parameters.platform)) {
     const onboarding = parameters.onboarding
     const options = await SequelizeRepository.getDefaultIRepositoryOptions()
 
+    const fireCrowdWebhooks = !parameters.disableFiringCrowdWebhooks
+
     const runRepo = new IntegrationRunRepository(options)
 
     if (parameters.platform) {
@@ -96,7 +106,7 @@ if (parameters.help || (!parameters.integration && !parameters.platform)) {
 
             await sendNodeWorkerMessage(
               integration.tenantId,
-              new NodeWorkerIntegrationProcessMessage(run.id),
+              new NodeWorkerIntegrationProcessMessage(run.id, null, fireCrowdWebhooks),
             )
           }
         },
@@ -128,7 +138,7 @@ if (parameters.help || (!parameters.integration && !parameters.platform)) {
 
             await sendNodeWorkerMessage(
               integration.tenantId,
-              new NodeWorkerIntegrationProcessMessage(run.id),
+              new NodeWorkerIntegrationProcessMessage(run.id, null, fireCrowdWebhooks),
             )
           }
         }

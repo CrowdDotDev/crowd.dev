@@ -25,6 +25,14 @@ const options = [
       'The unique ID of integration run that you would like to continue processing. Use comma delimiter when sending multiple integration runs.',
   },
   {
+    name: 'disableFiringCrowdWebhooks',
+    alias: 'd',
+    typeLabel: '{underline disableFiringCrowdWebhooks}',
+    type: Boolean,
+    defaultOption: false,
+    description: 'Should it disable firing outgoing crowd webhooks?',
+  },
+  {
     name: 'help',
     alias: 'h',
     type: Boolean,
@@ -55,6 +63,8 @@ if (parameters.help && !parameters.run) {
   setImmediate(async () => {
     const options = await SequelizeRepository.getDefaultIRepositoryOptions()
 
+    const fireCrowdWebhooks = !parameters.disableFiringCrowdWebhooks
+
     const runRepo = new IntegrationRunRepository(options)
 
     const runIds = parameters.run.split(',')
@@ -75,7 +85,16 @@ if (parameters.help && !parameters.run) {
           await runRepo.restart(run.id)
         }
 
-        await sendNodeWorkerMessage(run.tenantId, new NodeWorkerIntegrationProcessMessage(run.id))
+        if (!fireCrowdWebhooks) {
+          log.info(
+            'fireCrowdWebhooks is false - This continue-run will not trigger outgoing crowd webhooks!',
+          )
+        }
+
+        await sendNodeWorkerMessage(
+          run.tenantId,
+          new NodeWorkerIntegrationProcessMessage(run.id, null, fireCrowdWebhooks),
+        )
       }
     }
 
