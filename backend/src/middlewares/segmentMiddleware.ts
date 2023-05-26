@@ -21,9 +21,12 @@ export async function segmentMiddleware(req, res, next) {
       segments = await segmentRepository.findInIds(req.query.segments)
     } else if (req.body.segments) {
       // for post and put requests, segments will be in body
-      segments = await new SegmentRepository(req).findInIds(req.body.segments)
+      segments = await segmentRepository.findInIds(req.body.segments)
     } else {
-      // TODO:: Return all segments that currentUser has access
+      const segments = await segmentRepository.querySubprojects({ limit: 1 })
+      req.currentSegments = segments.rows
+      next()
+      return
     }
 
     req.currentSegments = segments.filter((s) => SegmentRepository.isSubproject(s))
