@@ -153,6 +153,7 @@ const constaintConfiguration = {
       },
     ],
   ],
+  [FeatureFlag.SEGMENTS]: [],
 }
 
 let seq: any
