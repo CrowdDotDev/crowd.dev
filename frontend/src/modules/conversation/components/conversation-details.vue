@@ -183,6 +183,7 @@ import AppMemberDisplayName from '@/modules/member/components/member-display-nam
 import AppConversationDetailsFooter from '@/modules/conversation/components/conversation-details-footer.vue';
 import { ActivityService } from '@/modules/activity/activity-service';
 import Message from '@/shared/message/message';
+import config from '@/config';
 import { ConversationPermissions } from '../conversation-permissions';
 
 export default {
@@ -268,6 +269,15 @@ export default {
         value: 'all',
         label: 'All',
       }];
+
+      if (config.isGitEnabled && (platform === 'github' || platform === 'git')) {
+        if (this.conversationTypes.includes('authored-commit')) {
+          options.push({
+            value: 'authored-commit',
+            label: 'Authored a commit',
+          });
+        }
+      }
 
       if (!platform) {
         return options;
