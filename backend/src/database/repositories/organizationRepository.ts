@@ -91,26 +91,24 @@ class OrganizationRepository {
     })
   }
 
-  static async excludeOrganizationFromSegments(
-    organizationId: string,
+  static async excludeOrganizationsFromSegments(
+    organizationIds: string[],
     options: IRepositoryOptions,
   ) {
     const seq = SequelizeRepository.getSequelize(options)
 
     const transaction = SequelizeRepository.getTransaction(options)
 
-    const bulkDeleteOrganizationSegments = `DELETE FROM "organizationSegments" WHERE "organizationId" = :organizationId and "segmentId" in (:segmentIds);`
+    const bulkDeleteOrganizationSegments = `DELETE FROM "organizationSegments" WHERE "organizationId" in (:organizationIds) and "segmentId" in (:segmentIds);`
 
     await seq.query(bulkDeleteOrganizationSegments, {
       replacements: {
-        organizationId,
+        organizationIds,
         segmentIds: options.currentSegments.map((s) => s.id),
       },
       type: QueryTypes.DELETE,
       transaction,
     })
-
-    return this.findById(organizationId, options)
   }
 
   static async update(id, data, options: IRepositoryOptions) {
@@ -222,10 +220,11 @@ class OrganizationRepository {
 
     const currentTenant = SequelizeRepository.getCurrentTenant(options)
 
-    const org = await OrganizationRepository.excludeOrganizationFromSegments(id, {
+    await OrganizationRepository.excludeOrganizationsFromSegments([id], {
       ...options,
       transaction,
     })
+    const org = await this.findById(id, options)
 
     if (org.segments.length === 0) {
       const record = await options.database.organization.findOne({
@@ -356,6 +355,11 @@ class OrganizationRepository {
     const transaction = SequelizeRepository.getTransaction(options)
 
     const currentTenant = SequelizeRepository.getCurrentTenant(options)
+
+    await OrganizationRepository.excludeOrganizationsFromSegments(ids, {
+      ...options,
+      transaction,
+    })
 
     await options.database.organization.destroy({
       where: {
@@ -667,6 +671,15 @@ class OrganizationRepository {
               name: 'memberOrganizations',
               from: 'organizationId',
               to: 'memberId',
+            },
+          },
+          segments: {
+            table: 'organizations',
+            model: 'organization',
+            relationTable: {
+              name: 'organizationSegments',
+              from: 'organizationId',
+              to: 'segmentId',
             },
           },
         },
