@@ -1530,8 +1530,8 @@ export class GithubIntegrationService extends IntegrationServiceBase {
                 state: (issue.attributes as any).state,
               },
               member,
-              score: GitHubGrid.issueClosed.score,
-              isContribution: GitHubGrid.issueClosed.isContribution,
+              score: GITHUB_GRID[GithubActivityType.ISSUE_CLOSED].score,
+              isContribution: GITHUB_GRID[GithubActivityType.ISSUE_CLOSED].isContribution,
             })
           }
 
