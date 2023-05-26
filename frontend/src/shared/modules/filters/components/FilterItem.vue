@@ -14,7 +14,7 @@
           class="border border-gray-100 rounded-l-md h-8 flex items-center py-1 px-2 bg-white cursor-pointer hover:bg-gray-100 transition"
           :class="{ '!bg-gray-100': isOpen }"
         >
-          <span class="text-base text-black mr-2" :class="config.iconClass" />
+          <i class="text-base text-black mr-2" :class="config.iconClass" />
           <span
             class="text-xs text-gray-600 filter-item-text leading-6"
             v-html="$sanitize(
