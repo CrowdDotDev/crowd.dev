@@ -251,7 +251,7 @@ export default class IncomingWebhookRepository extends RepositoryBase<
         transaction,
       },
     )
-    
+
     // @ts-ignore
     return results[0].count > 0
   }
