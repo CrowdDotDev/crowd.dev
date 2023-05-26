@@ -263,19 +263,22 @@ export default {
           noDimension: [
             'Activities.platform',
             'Activities.type',
+            'Segments.name',
           ],
           Activities: [
             'Activities.platform',
             'Activities.type',
             'Activities.date',
+            'Segments.name',
           ],
           Members: [
             'Members.score',
             'Members.joinedAt',
             'Members.location',
             'Members.organization',
+            'Segments.name',
           ],
-          Tags: ['Tags.name'],
+          Tags: ['Tags.name', 'Segments.name'],
         },
         'Members.count': {
           noDimension: [
@@ -283,18 +286,21 @@ export default {
             'Members.joinedAt',
             'Members.location',
             'Members.organization',
+            'Segments.name',
           ],
           Activities: [
             'Activities.platform',
             'Activities.type',
             'Activities.date',
+            'Segments.name',
           ],
           Members: [
             'Members.score',
             'Members.location',
             'Members.organization',
+            'Segments.name',
           ],
-          Tags: ['Tags.name'],
+          Tags: ['Tags.name', 'Segments.name'],
         },
       },
       actionItems: [
@@ -332,7 +338,7 @@ export default {
         },
       ],
       localFilters: [],
-    };
+    }
   },
   computed: {
     computedFilters() {

@@ -70,6 +70,7 @@ export default {
           'Members.location',
           'Members.joinedAt',
           'Members.organization',
+          'Segments.name',
           'Tags.name',
         ],
         'Members.count': [
@@ -81,6 +82,7 @@ export default {
           'Members.location',
           'Members.joinedAt',
           'Members.organization',
+          'Segments.name',
           'Tags.name',
         ],
         'Conversations.count': [
@@ -97,6 +99,7 @@ export default {
           'Members.location',
           'Members.joinedAt',
           'Members.organization',
+          'Segments.name',
           'Tags.name',
         ],
         'Sentiment.averageSentiment': ['Sentiment.platform'],
