@@ -1,9 +1,34 @@
 <template>
   <div v-if="form">
     <cr-filter-include-switch v-if="!props.hideIncludeSwitch" v-model="form.include" />
-    <div class="p-4">
-      Number filter
-      <!-- TODO: prepare number filter -->
+
+    <div class="p-4 pb-5">
+      <cr-filter-inline-select
+        v-model="form.operator"
+        :prefix="`${props.config.label}:`"
+        class="mb-3"
+        :options="numberFilterOperators"
+      />
+      <div class="flex -mx-1">
+        <div class="flex-grow px-1">
+          <app-form-item :validation="$v.value" class="mb-0">
+            <cr-filter-input
+              v-model="form.value"
+              type="number"
+              :placeholder="form.operator !== FilterNumberOperator.BETWEEN ? 'Enter value' : 'From'"
+            />
+          </app-form-item>
+        </div>
+        <div v-if="form.operator === FilterNumberOperator.BETWEEN" class="flex-grow px-1">
+          <app-form-item :validation="$v.valueTo" class="mb-0">
+            <cr-filter-input
+              v-model="form.valueTo"
+              type="number"
+              placeholder="To"
+            />
+          </app-form-item>
+        </div>
+      </div>
     </div>
   </div>
 </template>
@@ -16,8 +41,15 @@ import {
   NumberFilterValue,
 } from '@/shared/modules/filters/types/filterTypes/NumberFilterConfig';
 import useVuelidate from '@vuelidate/core';
-import { required } from '@vuelidate/validators';
+import { minValue, numeric, required } from '@vuelidate/validators';
 import CrFilterIncludeSwitch from '@/shared/modules/filters/components/partials/FilterIncludeSwitch.vue';
+import {
+  FilterNumberOperator,
+  numberFilterOperators,
+} from '@/shared/modules/filters/config/constants/number.constants';
+import CrFilterInput from '@/shared/modules/filters/components/partials/string/FilterInput.vue';
+import CrFilterInlineSelect from '@/shared/modules/filters/components/partials/FilterInlineSelect.vue';
+import AppFormItem from '@/shared/form/form-item.vue';
 
 const props = defineProps<{
   modelValue: NumberFilterValue,
@@ -33,20 +65,30 @@ const form = computed<NumberFilterValue>({
 
 const defaultForm: NumberFilterValue = {
   value: '',
-  operator: 'eq',
+  valueTo: '',
+  operator: FilterNumberOperator.EQ,
   include: true,
 };
 
-const rules: any = {
+const rules: any = computed(() => ({
   value: {
     required,
+    numeric,
+    minValue: minValue(0),
   },
+  ...(form.value.operator === FilterNumberOperator.BETWEEN ? {
+    valueTo: {
+      required,
+      numeric,
+      minValue: minValue((form.value.value) || 0),
+    },
+  } : {}),
   operator: {
     required,
   },
-};
+}));
 
-useVuelidate(rules, form);
+const $v = useVuelidate(rules, form);
 
 onMounted(() => {
   if (!form.value || Object.keys(form.value).length === 0) {
