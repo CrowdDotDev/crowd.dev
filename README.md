@@ -5,7 +5,7 @@
 
   </a>
 
-  <h2 align="center">Centralize community, product, and customer data in one place</h2>
+  <h2 align="center">Centralize community, product, and customer data to understand who is engaging with your open source project.</h2>
   
   <p align="center">
     <br>
