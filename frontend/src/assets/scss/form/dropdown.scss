@@ -42,6 +42,15 @@
     }
   }
 
+  // Active state
+  &.is-active,
+  &:focus.is-active {
+    @apply relative bg-gray-50 text-gray-400 cursor-default;
+    i {
+      @apply mr-3 text-gray-400;
+    }
+  }
+
   // Focus state
   &:not(.is-selected):not(.is-disabled):not(:hover):focus {
     @apply text-black bg-white;

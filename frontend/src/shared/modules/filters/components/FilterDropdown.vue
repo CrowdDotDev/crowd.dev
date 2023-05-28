@@ -1,64 +1,65 @@
 <template>
-  <el-dropdown placement="bottom-end" trigger="click" size="large">
-    <el-button
-      class="filter-dropdown-trigger"
-    >
-      <i class="ri-lg ri-filter-3-line mr-2" />
-      Filters
-    </el-button>
-    <template #dropdown>
-      <div class="-m-2 border-b border-gray-100 p-2 mb-2">
-        <el-input
-          ref="queryInput"
-          v-model="search"
-          placeholder="Search..."
-          class="filter-dropdown-search"
-        >
-          <template #prefix>
-            <i class="ri-search-line" />
-          </template>
-        </el-input>
-      </div>
-      <el-dropdown-item
+  <el-popover v-model:visible="open" placement="bottom-end" size="large" width="20rem" popper-class="!p-0">
+    <template #reference>
+      <el-button
+        class="filter-dropdown-trigger"
+        @click="open = true"
+      >
+        <i class="ri-lg ri-filter-3-line mr-2" />
+        Filters
+      </el-button>
+    </template>
+
+    <div class="border-b border-gray-100 p-2">
+      <el-input
+        ref="queryInput"
+        v-model="search"
+        placeholder="Search..."
+        class="filter-dropdown-search"
+      >
+        <template #prefix>
+          <i class="ri-search-line" />
+        </template>
+      </el-input>
+    </div>
+    <div class="max-h-80 overflow-auto px-2 py-3">
+      <article
         v-for="{ key, label, iconClass } in filteredOptions"
         :key="key"
-        :class="{ 'is-selected': isSelected(key) }"
-        :disabled="isSelected(key)"
+        class="mb-1 p-3 rounded flex justify-between items-center transition whitespace-nowrap h-10 hover:bg-gray-50 text-xs"
+        :class="isSelected(key) ? 'bg-gray-50 text-gray-400' : 'text-gray-900 cursor-pointer'"
         @click="add(key)"
       >
-        <div class="flex justify-between w-full">
-          <span><i :class="iconClass" class="text-base text-black mr-2" />{{ label }}</span>
-          <i :class="isSelected(key) ? 'opacity-100' : 'opacity-0'" class="ri-check-line !text-brand-600 !mr-0 ml-1" />
-        </div>
-      </el-dropdown-item>
+        <span><i :class="iconClass" class="text-base text-gray-400 mr-3" />{{ label }}</span>
+        <i :class="isSelected(key) ? 'opacity-100' : 'opacity-0'" class="ri-check-line !text-gray-400 !mr-0 ml-1" />
+      </article>
+
       <!-- CUSTOM ATTRIBUTES -->
       <template v-if="props.customConfig && Object.keys(props.customConfig).length > 0 && filteredCustomOptions.length > 0">
         <div
-          class="el-dropdown-title"
+          class="el-dropdown-title !my-3"
         >
           Custom Attributes
         </div>
-        <el-dropdown-item
+        <article
           v-for="{ key, label } in filteredCustomOptions"
           :key="key"
-          :class="{ 'is-selected': isSelected(key) }"
+          class="mb-1 p-3 rounded flex justify-between items-center transition whitespace-nowrap h-10 hover:bg-gray-50 text-xs"
+          :class="isSelected(key) ? 'bg-gray-50 text-gray-400' : 'text-gray-900 cursor-pointer'"
           @click="add(key)"
         >
-          <div class="flex justify-between w-full">
-            <span>{{ label }}</span>
-            <i :class="isSelected(key) ? 'opacity-100' : 'opacity-0'" class="ri-check-line !text-brand-600 !mr-0 ml-1" />
-          </div>
-        </el-dropdown-item>
+          <span>{{ label }}</span>
+          <i :class="isSelected(key) ? 'opacity-100' : 'opacity-0'" class="ri-check-line !text-gray-400 !mr-0 ml-1" />
+        </article>
       </template>
-
       <div
         v-if="filteredOptions.length === 0 && filteredCustomOptions.length === 0"
-        class="el-dropdown-title"
+        class="el-dropdown-title !mt-2"
       >
         No results
       </div>
-    </template>
-  </el-dropdown>
+    </div>
+  </el-popover>
 </template>
 
 <script setup lang="ts">
@@ -76,7 +77,8 @@ const props = defineProps<{
 
 const emit = defineEmits<{(e: 'update:modelValue', value: string[]), (e: 'open', value: string)}>();
 
-const search = ref('');
+const open = ref<boolean>(false);
+const search = ref<string>('');
 
 const matchesSearch = (label: string, query: string): boolean => label.toLowerCase().includes(query.toLowerCase());
 const isSelected = (key: string): boolean => props.modelValue.includes(key);
@@ -100,6 +102,7 @@ const add = (key: string) => {
     return;
   }
   search.value = '';
+  open.value = false;
   emit('open', key);
   emit('update:modelValue', [...props.modelValue, key]);
 };
