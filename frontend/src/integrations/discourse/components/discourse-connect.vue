@@ -34,6 +34,6 @@ const settings = () => {
 
 <script>
 export default {
-  name: 'AppGitConnect',
+  name: 'AppDiscourseConnect',
 };
 </script>

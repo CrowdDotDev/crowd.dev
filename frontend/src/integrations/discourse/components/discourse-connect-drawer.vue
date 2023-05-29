@@ -344,7 +344,6 @@ const isVisible = computed({
 const handleCancel = () => {
   emit('update:modelValue', false);
   if (!props.integration?.settings?.forumHostname) {
-    console.log('resetting form');
     form.apiKey = '';
     form.discourseURL = '';
     isValidating.value = false;
@@ -355,7 +354,6 @@ const handleCancel = () => {
     $externalResults.value = {};
     $v.value.$reset();
   } else {
-    console.log('resetting form 2');
     form.discourseURL = props.integration?.settings?.forumHostname;
     form.apiKey = props.integration.settings.apiKey;
     webhookSecret.value = props.integration.settings.webhookSecret;
@@ -383,12 +381,6 @@ onMounted(() => {
 const verifyWebhook = async () => {
   isWebhookVerifying.value = true;
   try {
-    // const integrationId = await IntegrationService.discourseSoftConnect(
-    //   form.discourseURL,
-    //   form.apiKey,
-    //   webhookSecret.value,
-    // );
-
     const webhookVerified = await IntegrationService.discourseVerifyWebhook(props.integration?.id);
     if (webhookVerified) {
       isWebhookValid.value = true;
@@ -424,6 +416,6 @@ const connect = async () => {
 
 <script>
 export default {
-  name: 'AppZapierConnectDrawer',
+  name: 'AppDiscourseConnectDrawer',
 };
 </script>
