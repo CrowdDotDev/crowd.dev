@@ -19,6 +19,7 @@ import { SlackIntegrationService } from './integrations/slackIntegrationService'
 import { StackOverlflowIntegrationService } from './integrations/stackOverflowIntegrationService'
 import { TwitterIntegrationService } from './integrations/twitterIntegrationService'
 import { TwitterReachIntegrationService } from './integrations/twitterReachIntegrationService'
+import { DiscourseIntegrationService } from './integrations/discourseIntegrationService'
 import { IntegrationServiceBase } from './integrationServiceBase'
 import { IntegrationTickProcessor } from './integrationTickProcessor'
 import { WebhookProcessor } from './webhookProcessor'
@@ -45,6 +46,7 @@ export class IntegrationProcessor extends LoggingBase {
       new SlackIntegrationService(),
       new GithubIntegrationService(),
       new StackOverlflowIntegrationService(),
+      new DiscourseIntegrationService(),
     ]
 
     // add premium integrations

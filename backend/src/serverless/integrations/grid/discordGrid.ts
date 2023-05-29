@@ -10,4 +10,9 @@ export class DiscordGrid {
     score: 6,
     isContribution: true,
   }
+
+  static topic: gridEntry = {
+    score: 8,
+    isContribution: true,
+  }
 }
