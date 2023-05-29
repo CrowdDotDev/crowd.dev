@@ -41,7 +41,7 @@ jobs:
         id: image
         run: echo "IMAGE=${{ steps.image-builder.outputs.image }}" >> $GITHUB_OUTPUT
 
-  deploy-data-sink-worker:
+  deploy-integration-stream-worker:
     needs: build-and-push
     runs-on: ubuntu-latest
     defaults:
