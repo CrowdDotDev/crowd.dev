@@ -17,6 +17,11 @@ jobs:
       - name: Check out repository code
         uses: actions/checkout@v2
 
+      - name: Setup Node
+        uses: actions/setup-node@v3
+        with:
+          node-version: 16
+
       - name: Install and build libraries
         run: ../services/scripts/install_lib_packages.sh && ../services/scripts/build_libs.sh
 
@@ -43,6 +48,11 @@ jobs:
       - name: Check out repository code
         uses: actions/checkout@v2
 
+      - name: Setup Node
+        uses: actions/setup-node@v3
+        with:
+          node-version: 16
+
       - name: Install packages
         run: ./scripts/install_all_packages.sh && ./scripts/build_libs.sh
 
@@ -63,6 +73,11 @@ jobs:
     steps:
       - name: Check out repository code
         uses: actions/checkout@v2
+
+      - name: Setup Node
+        uses: actions/setup-node@v3
+        with:
+          node-version: 16
 
       - name: Node version
         run: node --version
@@ -88,6 +103,11 @@ jobs:
     steps:
       - name: Check out repository code
         uses: actions/checkout@v2
+
+      - name: Setup Node
+        uses: actions/setup-node@v3
+        with:
+          node-version: 16
 
       - name: Install and build libraries
         run: ../services/scripts/install_lib_packages.sh && ../services/scripts/build_libs.sh
