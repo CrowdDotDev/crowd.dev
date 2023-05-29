@@ -2,8 +2,8 @@ import { singleOrDefault } from '@crowd/common'
 import { DbStore } from '@crowd/database'
 import { IGenerateStreamsContext, INTEGRATION_SERVICES } from '@crowd/integrations'
 import { Logger, LoggerBase, getChildLogger } from '@crowd/logging'
-import { RedisCache, RedisClient } from '@crowd/redis'
-import { IntegrationRunState, IntegrationStreamState } from '@crowd/types'
+import { ApiPubSubEmitter, RedisCache, RedisClient } from '@crowd/redis'
+import { ApiWebsocketMessage, IntegrationRunState, IntegrationStreamState } from '@crowd/types'
 import IntegrationRunRepository from '../repo/integrationRun.repo'
 import SampleDataRepository from '../repo/sampleData.repo'
 import MemberAttributeSettingsRepository from '../repo/memberAttributeSettings.repo'
@@ -17,6 +17,7 @@ export default class IntegrationRunService extends LoggerBase {
   constructor(
     private readonly redisClient: RedisClient,
     private readonly streamWorkerEmitter: IntegrationStreamWorkerEmitter,
+    private readonly apiPubSubEmitter: ApiPubSubEmitter,
     private readonly store: DbStore,
     parentLog: Logger,
   ) {
@@ -55,6 +56,8 @@ export default class IntegrationRunService extends LoggerBase {
     }
 
     if (count === finishedCount) {
+      const runInfo = await this.repo.getGenerateStreamData(runId)
+
       if (error) {
         this.log.warn('Some streams have resulted in error!')
 
@@ -66,11 +69,15 @@ export default class IntegrationRunService extends LoggerBase {
             message: 'Some streams failed!',
           })
 
-          const runInfo = await this.repo.getGenerateStreamData(runId)
-
           if (runInfo.onboarding) {
             this.log.warn('Onboarding - marking integration as failed!')
             await this.repo.markIntegration(runId, 'error')
+
+            this.apiPubSubEmitter.emitIntegrationCompleted(
+              runInfo.tenantId,
+              runInfo.integrationId,
+              'error',
+            )
           } else {
             const last5RunStates = await this.repo.getLastRuns(runId, 3)
             if (
@@ -91,6 +98,14 @@ export default class IntegrationRunService extends LoggerBase {
 
         await this.repo.markRunProcessed(runId)
         await this.repo.markIntegration(runId, 'done')
+
+        if (runInfo.onboarding) {
+          this.apiPubSubEmitter.emitIntegrationCompleted(
+            runInfo.tenantId,
+            runInfo.integrationId,
+            'done',
+          )
+        }
       }
     }
   }

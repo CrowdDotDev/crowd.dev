@@ -1,6 +1,6 @@
 import { DbConnection, DbStore } from '@crowd/database'
 import { Logger } from '@crowd/logging'
-import { RedisClient } from '@crowd/redis'
+import { ApiPubSubEmitter, RedisClient } from '@crowd/redis'
 import {
   INTEGRATION_RUN_WORKER_QUEUE_SETTINGS,
   IntegrationStreamWorkerEmitter,
@@ -21,6 +21,7 @@ export class WorkerQueueReceiver extends SqsQueueReceiver {
     private readonly redisClient: RedisClient,
     private readonly dbConn: DbConnection,
     private readonly streamWorkerEmitter: IntegrationStreamWorkerEmitter,
+    private readonly apiPubSubEmitter: ApiPubSubEmitter,
     parentLog: Logger,
   ) {
     super(client, INTEGRATION_RUN_WORKER_QUEUE_SETTINGS, 2, parentLog)
@@ -33,6 +34,7 @@ export class WorkerQueueReceiver extends SqsQueueReceiver {
       const service = new IntegrationRunService(
         this.redisClient,
         this.streamWorkerEmitter,
+        this.apiPubSubEmitter,
         new DbStore(this.log, this.dbConn),
         this.log,
       )

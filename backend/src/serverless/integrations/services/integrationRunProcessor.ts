@@ -1,5 +1,5 @@
 import moment from 'moment'
-import { IRedisPubSubEmitter } from '@crowd/redis'
+import { ApiPubSubEmitter } from '@crowd/redis'
 import { Logger, getChildLogger, LoggerBase } from '@crowd/logging'
 import { singleOrDefault } from '@crowd/common'
 import IntegrationRepository from '../../../database/repositories/integrationRepository'
@@ -30,7 +30,6 @@ import EmailSender from '../../../services/emailSender'
 import { i18n } from '../../../i18n'
 import { API_CONFIG } from '../../../conf'
 import { SlackAlertTypes, sendSlackAlert } from '../../../utils/slackAlerts'
-import { ApiWebsocketMessage } from '../../../types/mq/apiWebsocketMessage'
 
 export class IntegrationRunProcessor extends LoggerBase {
   constructor(
@@ -38,7 +37,7 @@ export class IntegrationRunProcessor extends LoggerBase {
     private readonly integrationServices: IntegrationServiceBase[],
     private readonly integrationRunRepository: IntegrationRunRepository,
     private readonly integrationStreamRepository: IntegrationStreamRepository,
-    private readonly apiPubSubEmitter?: IRedisPubSubEmitter,
+    private readonly apiPubSubEmitter?: ApiPubSubEmitter,
   ) {
     super(options.log)
   }
@@ -531,18 +530,7 @@ export class IntegrationRunProcessor extends LoggerBase {
       }
 
       if (run.onboarding && this.apiPubSubEmitter) {
-        this.apiPubSubEmitter.emit(
-          'user',
-          new ApiWebsocketMessage(
-            'integration-completed',
-            JSON.stringify({
-              integrationId: integration.id,
-              status,
-            }),
-            undefined,
-            integration.tenantId,
-          ),
-        )
+        this.apiPubSubEmitter.emitIntegrationCompleted(integration.tenantId, integration.id, status)
       }
     }
   }

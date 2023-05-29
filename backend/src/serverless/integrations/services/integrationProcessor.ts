@@ -1,5 +1,5 @@
-import { RedisClient, RedisPubSubEmitter } from '@crowd/redis'
 import { LoggerBase } from '@crowd/logging'
+import { ApiPubSubEmitter, IRedisPubSubEmitter, RedisClient } from '@crowd/redis'
 import IntegrationRunRepository from '../../../database/repositories/integrationRunRepository'
 import IntegrationStreamRepository from '../../../database/repositories/integrationStreamRepository'
 import { IServiceOptions } from '../../../services/IServiceOptions'
@@ -46,17 +46,10 @@ export class IntegrationProcessor extends LoggerBase {
       'Successfully detected supported integrations!',
     )
 
-    let apiPubSubEmitter: RedisPubSubEmitter | undefined
+    let apiPubSubEmitter: IRedisPubSubEmitter | undefined
 
     if (redisEmitterClient) {
-      apiPubSubEmitter = new RedisPubSubEmitter(
-        'api-pubsub',
-        redisEmitterClient,
-        (err) => {
-          this.log.error({ err }, 'Error in api-ws emitter!')
-        },
-        this.log,
-      )
+      apiPubSubEmitter = new ApiPubSubEmitter(redisEmitterClient, this.log)
     }
 
     const integrationRunRepository = new IntegrationRunRepository(options)

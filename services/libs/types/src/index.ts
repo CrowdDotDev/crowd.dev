@@ -19,3 +19,5 @@ export * from './caching'
 export * from './errors'
 
 export * from './enums/platforms'
+
+export * from './pubsub'
