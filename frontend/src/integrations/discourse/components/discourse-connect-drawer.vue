@@ -171,7 +171,7 @@
     <template #footer>
       <div style="flex: auto">
         <el-button
-          class="btn btn--md btn--transparent mr-3"
+          class="btn btn--md btn--bordered mr-3"
           :disabled="loading"
           @click="handleCancel"
         >
