@@ -12,6 +12,7 @@ export enum IntegrationRunState {
   PROCESSING = 'processing',
   PROCESSED = 'processed',
   ERROR = 'error',
+  INTEGRATION_DELETED = 'integration-deleted',
 }
 
 export enum IntegrationStreamState {
