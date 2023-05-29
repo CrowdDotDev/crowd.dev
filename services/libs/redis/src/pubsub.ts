@@ -49,7 +49,9 @@ export class RedisPubSubReceiver extends RedisPubSubBase implements IRedisPubSub
       const infos = this.subscriptionMap.get(channel)
       if (infos) {
         for (const info of infos) {
-          info.handler(data).catch(() => {})
+          info.handler(data).catch(() => {
+            // ignore errors
+          })
         }
       }
     })
