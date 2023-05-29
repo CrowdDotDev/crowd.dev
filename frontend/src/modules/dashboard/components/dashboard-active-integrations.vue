@@ -47,7 +47,13 @@
             </p>
           </div>
           <div>
-            <div v-if="integration.status === 'done'">
+            <div
+              v-if="
+                integration.status === 'done'
+                  || (integration.status === 'error'
+                    && !isCurrentDateAfterGivenWorkingDays(integration.updatedAt, 3))
+              "
+            >
               <el-tooltip
                 effect="dark"
                 content="Connected"
@@ -58,15 +64,18 @@
                 />
               </el-tooltip>
             </div>
-            <div v-else-if="integration.status === 'error'">
+            <div
+              v-else-if="
+                integration.status === 'error'
+                  && isCurrentDateAfterGivenWorkingDays(integration.updatedAt, 3)
+              "
+            >
               <el-tooltip
                 effect="dark"
                 content="Failed to connect"
                 placement="top-start"
               >
-                <div
-                  class="ri-error-warning-line text-base text-red-500"
-                />
+                <div class="ri-error-warning-line text-base text-red-500" />
               </el-tooltip>
             </div>
             <div
@@ -157,49 +166,49 @@
   </section>
 </template>
 
-<script>
-import { mapActions, mapGetters } from 'vuex';
+<script setup>
+import { useStore } from 'vuex';
 import { CrowdIntegrations } from '@/integrations/integrations-config';
 import AppLoading from '@/shared/loading/loading-placeholder.vue';
+import { isCurrentDateAfterGivenWorkingDays } from '@/utils/date';
+import {
+  computed, onBeforeUnmount, onMounted, ref,
+} from 'vue';
 
+const store = useStore();
+const storeUnsubscribe = ref(() => {});
+
+const loadingFetch = computed(() => store.getters['integration/loadingFetch']);
+const activeIntegrations = computed(() => CrowdIntegrations.mappedEnabledConfigs(
+  store,
+).filter((integration) => integration.status));
+
+const fetchIntegrations = () => store.dispatch('integration/doFetch');
+
+onMounted(async () => {
+  window.analytics.page('Dashboard');
+
+  await fetchIntegrations();
+
+  storeUnsubscribe.value = store.subscribeAction(async (action) => {
+    if (action.type === 'auth/doRefreshCurrentUser') {
+      await fetchIntegrations();
+    }
+  });
+});
+
+onBeforeUnmount(() => {
+  storeUnsubscribe.value();
+});
+
+const platformDetails = (platform) => CrowdIntegrations.getMappedConfig(
+  platform,
+  store,
+);
+</script>
+
+<script>
 export default {
   name: 'AppDashboardIntegrations',
-  components: { AppLoading },
-  data() {
-    return {
-      storeUnsubscribe: () => {},
-    };
-  },
-  computed: {
-    ...mapGetters('integration', ['array', 'loadingFetch']),
-    activeIntegrations() {
-      return CrowdIntegrations.mappedEnabledConfigs(
-        this.$store,
-      ).filter((integration) => integration.status);
-    },
-  },
-  async mounted() {
-    window.analytics.page('Dashboard');
-    await this.fetchIntegrations();
-    this.storeUnsubscribe = await this.$store.subscribeAction(async (action) => {
-      if (action.type === 'auth/doRefreshCurrentUser') {
-        await this.fetchIntegrations();
-      }
-    });
-  },
-  beforeUnmount() {
-    this.storeUnsubscribe();
-  },
-  methods: {
-    ...mapActions('integration', {
-      fetchIntegrations: 'doFetch',
-    }),
-    platformDetails(platform) {
-      return CrowdIntegrations.getMappedConfig(
-        platform,
-        this.$store,
-      );
-    },
-  },
 };
 </script>

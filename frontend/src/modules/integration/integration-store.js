@@ -2,6 +2,7 @@ import { IntegrationService } from '@/modules/integration/integration-service';
 import Errors from '@/shared/error/errors';
 import { router } from '@/router';
 import { CrowdIntegrations } from '@/integrations/integrations-config';
+import { isCurrentDateAfterGivenWorkingDays } from '@/utils/date';
 import Message from '../../shared/message/message';
 
 export default {
@@ -66,7 +67,7 @@ export default {
     ),
 
     withErrors: (state, getters) => getters.array.filter(
-      (i) => i.status === 'error',
+      (i) => i.status === 'error' && isCurrentDateAfterGivenWorkingDays(i.updatedAt, 3),
     ),
 
     withNoData: (state, getters) => getters.array.filter(
