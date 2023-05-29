@@ -75,11 +75,6 @@ export default (app) => {
     safeWrap(require('./helpers/discourseTestWebhook').default),
   )
 
-  app.post(
-    '/tenant/:tenantId/discourse-soft-connect',
-    safeWrap(require('./helpers/discourseSoftConnect').default),
-  )
-
   if (TWITTER_CONFIG.clientId) {
     /**
      * Using the passport.authenticate this endpoint forces a

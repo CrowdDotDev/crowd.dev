@@ -865,41 +865,4 @@ export default class IntegrationService {
 
     return integration
   }
-
-  async discourseSoftConnect(integrationData) {
-    const transaction = await SequelizeRepository.createTransaction(this.options)
-    let integration
-
-    try {
-      const existingIntegration = await this.findByPlatform(PlatformType.DISCOURSE)
-      if (existingIntegration) {
-        return existingIntegration
-      }
-    } catch (err) {
-      // we didn't find an existing integration, so we can continue
-    }
-
-    try {
-      integration = await this.createOrUpdate(
-        {
-          platform: PlatformType.DISCOURSE,
-          settings: {
-            apiKey: integrationData.apiKey,
-            apiUsername: integrationData.apiUsername,
-            forumHostname: integrationData.forumHostname,
-            webhookSecret: integrationData.webhookSecret,
-            updateMemberAttributes: true,
-          },
-          status: 'pending-action',
-        },
-        transaction,
-      )
-      await SequelizeRepository.commitTransaction(transaction)
-    } catch (err) {
-      await SequelizeRepository.rollbackTransaction(transaction)
-      throw err
-    }
-
-    return integration
-  }
 }
