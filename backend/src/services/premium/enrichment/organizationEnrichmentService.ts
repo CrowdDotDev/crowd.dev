@@ -1,9 +1,15 @@
-import PDLJS from 'peopledatalabs'
-import moment from 'moment'
-import lodash from 'lodash'
+import { LoggerBase } from '@crowd/logging'
 import { getRedisClient, RedisPubSubEmitter } from '@crowd/redis'
 import { REDIS_CONFIG } from 'conf'
-import { LoggingBase } from '../../loggingBase'
+import lodash from 'lodash'
+import moment from 'moment'
+import PDLJS from 'peopledatalabs'
+import OrganizationCacheRepository from '../../../database/repositories/organizationCacheRepository'
+import OrganizationRepository from '../../../database/repositories/organizationRepository'
+import { PlatformType } from '../../../types/integrationEnums'
+import { ApiWebsocketMessage } from '../../../types/mq/apiWebsocketMessage'
+import { renameKeys } from '../../../utils/renameKeys'
+import { IServiceOptions } from '../../IServiceOptions'
 import {
   EnrichmentParams,
   IEnrichableOrganization,
@@ -11,14 +17,8 @@ import {
   IOrganization,
   IOrganizations,
 } from './types/organizationEnrichmentTypes'
-import { IServiceOptions } from '../../IServiceOptions'
-import { renameKeys } from '../../../utils/renameKeys'
-import OrganizationRepository from '../../../database/repositories/organizationRepository'
-import OrganizationCacheRepository from '../../../database/repositories/organizationCacheRepository'
-import { ApiWebsocketMessage } from '../../../types/mq/apiWebsocketMessage'
-import { PlatformType } from '../../../types/integrationEnums'
 
-export default class OrganizationEnrichmentService extends LoggingBase {
+export default class OrganizationEnrichmentService extends LoggerBase {
   tenantId: string
 
   fields = new Set<string>(['name', 'lastEnrichedAt'])
@@ -40,7 +40,7 @@ export default class OrganizationEnrichmentService extends LoggingBase {
     tenantId: string
     limit: number
   }) {
-    super(options)
+    super(options.log)
     this.options = options
     this.apiKey = apiKey
     this.maxOrganizationsLimit = limit
@@ -183,9 +183,14 @@ export default class OrganizationEnrichmentService extends LoggingBase {
     const redis = await getRedisClient(REDIS_CONFIG, true)
     const organizationIds = organizations.map((org) => org.id)
 
-    const apiPubSubEmitter = new RedisPubSubEmitter('api-pubsub', redis, (err) => {
-      this.log.error({ err }, 'Error in api-ws emitter!')
-    }, this.log)
+    const apiPubSubEmitter = new RedisPubSubEmitter(
+      'api-pubsub',
+      redis,
+      (err) => {
+        this.log.error({ err }, 'Error in api-ws emitter!')
+      },
+      this.log,
+    )
     if (!organizations.length) {
       apiPubSubEmitter.emit(
         'user',

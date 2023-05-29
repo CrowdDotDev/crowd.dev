@@ -1,31 +1,30 @@
-import { Transaction } from 'sequelize/types'
+import { LoggerBase, logExecutionTime } from '@crowd/logging'
 import { Blob } from 'buffer'
-import { PlatformType } from '../types/integrationEnums'
-import Error400 from '../errors/Error400'
-import SequelizeRepository from '../database/repositories/sequelizeRepository'
-import { detectSentiment, detectSentimentBatch } from './aws'
-import { IServiceOptions } from './IServiceOptions'
-import merge from './helpers/merge'
+import { Transaction } from 'sequelize/types'
+import { IS_DEV_ENV, IS_TEST_ENV } from '../conf'
 import ActivityRepository from '../database/repositories/activityRepository'
-import MemberRepository from '../database/repositories/memberRepository'
-import MemberService from './memberService'
-import ConversationService from './conversationService'
-import telemetryTrack from '../segment/telemetryTrack'
-import ConversationSettingsService from './conversationSettingsService'
-import { IS_TEST_ENV, IS_DEV_ENV } from '../conf'
-import { logExecutionTime } from '../utils/logging'
-import { sendNewActivityNodeSQSMessage } from '../serverless/utils/nodeWorkerSQS'
-import { LoggingBase } from './loggingBase'
 import MemberAttributeSettingsRepository from '../database/repositories/memberAttributeSettingsRepository'
+import MemberRepository from '../database/repositories/memberRepository'
+import SequelizeRepository from '../database/repositories/sequelizeRepository'
 import SettingsRepository from '../database/repositories/settingsRepository'
-import SettingsService from './settingsService'
 import { mapUsernameToIdentities } from '../database/repositories/types/memberTypes'
+import Error400 from '../errors/Error400'
+import telemetryTrack from '../segment/telemetryTrack'
+import { sendNewActivityNodeSQSMessage } from '../serverless/utils/nodeWorkerSQS'
+import { PlatformType } from '../types/integrationEnums'
+import { IServiceOptions } from './IServiceOptions'
+import { detectSentiment, detectSentimentBatch } from './aws'
+import ConversationService from './conversationService'
+import ConversationSettingsService from './conversationSettingsService'
+import merge from './helpers/merge'
+import MemberService from './memberService'
+import SettingsService from './settingsService'
 
-export default class ActivityService extends LoggingBase {
+export default class ActivityService extends LoggerBase {
   options: IServiceOptions
 
   constructor(options: IServiceOptions) {
-    super(options)
+    super(options.log)
     this.options = options
   }
 
@@ -317,7 +316,10 @@ export default class ActivityService extends LoggingBase {
   async addToConversation(id: string, parentId: string, transaction: Transaction) {
     const parent = await ActivityRepository.findById(parentId, { ...this.options, transaction })
     const child = await ActivityRepository.findById(id, { ...this.options, transaction })
-    const conversationService = new ConversationService({ ...this.options, transaction })
+    const conversationService = new ConversationService({
+      ...this.options,
+      transaction,
+    } as IServiceOptions)
 
     let record
     let conversation

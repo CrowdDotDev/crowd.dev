@@ -1,7 +1,7 @@
 import moment from 'moment'
 import jwt from 'jsonwebtoken'
 import bcrypt from 'bcrypt'
-import { getServiceLogger } from '../../utils/logging'
+import { getServiceLogger } from '@crowd/logging'
 import { databaseInit } from '../databaseConnection'
 import { IRepositoryOptions } from '../repositories/IRepositoryOptions'
 import { IServiceOptions } from '../../services/IServiceOptions'

@@ -1,6 +1,6 @@
 import axios from 'axios'
+import { Logger } from '@crowd/logging'
 import { NANGO_CONFIG } from '../../../../conf'
-import { Logger } from '../../../../utils/logging'
 
 async function getToken(connectionId: string, providerConfigKey: string, logger: Logger) {
   try {

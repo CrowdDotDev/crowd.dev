@@ -1,6 +1,6 @@
+import { getServiceLogger } from '@crowd/logging'
 import { SEARCH_ENGINE_CONFIG } from '../conf/index'
 import { searchEngineInit } from '../search-engine/searchEngineConnection'
-import { getServiceLogger } from '../utils/logging'
 
 const log = getServiceLogger()
 

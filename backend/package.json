@@ -47,6 +47,7 @@
     "@aws-sdk/url-parser": "^3.226.0",
     "@aws-sdk/util-format-url": "^3.226.0",
     "@crowd/common": "file:../services/libs/common",
+    "@crowd/logging": "file:../services/libs/logging",
     "@crowd/redis": "file:../services/libs/redis",
     "@crowd/integrations": "file:../services/libs/integrations",
     "@crowd/types": "file:../services/libs/types",
@@ -119,7 +120,6 @@
     "swagger-ui-dist": "4.1.3",
     "unleash-client": "^3.18.1",
     "utf-8-validate": "^5.0.10",
-    "uuid": "^8.3.2",
     "validator": "^13.7.0",
     "verify-github-webhook": "^1.0.1",
     "zlib-sync": "^0.1.8"

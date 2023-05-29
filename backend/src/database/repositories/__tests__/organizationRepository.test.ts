@@ -5,7 +5,7 @@ import Error404 from '../../../errors/Error404'
 import MemberRepository from '../memberRepository'
 import { PlatformType } from '../../../types/integrationEnums'
 import ActivityRepository from '../activityRepository'
-import { generateUUIDv1 } from '../../../utils/uuid'
+import { generateUUIDv1 } from '@crowd/common'
 
 const db = null
 

@@ -1,19 +1,15 @@
-import moment from 'moment/moment'
-import lodash from 'lodash'
-import { ChannelType, MessageType } from 'discord.js'
-import { v4 as uuid } from 'uuid'
 import { DISCORD_GRID, DiscordActivityType } from '@crowd/integrations'
+import { getServiceChildLogger } from '@crowd/logging'
 import { RedisCache, getRedisClient } from '@crowd/redis'
-import {
-  DiscordApiChannel,
-  DiscordApiMember,
-  DiscordApiMessage,
-  DiscordApiUser,
-  DiscordStreamProcessResult,
-} from '../../types/discordTypes'
+import { ChannelType, MessageType } from 'discord.js'
+import lodash from 'lodash'
+import moment from 'moment/moment'
+import { generateUUIDv1, timeout } from '@crowd/common'
 import { DISCORD_CONFIG, REDIS_CONFIG } from '../../../../conf'
 import { DiscordMemberAttributes } from '../../../../database/attributes/member/discord'
 import { MemberAttributeName } from '../../../../database/attributes/member/enums'
+import { IRepositoryOptions } from '../../../../database/repositories/IRepositoryOptions'
+import IntegrationRunRepository from '../../../../database/repositories/integrationRunRepository'
 import MemberAttributeSettingsService from '../../../../services/memberAttributeSettingsService'
 import {
   IIntegrationStream,
@@ -24,30 +20,33 @@ import {
   IStreamResultOperation,
 } from '../../../../types/integration/stepResult'
 import { IntegrationType, PlatformType } from '../../../../types/integrationEnums'
-import { timeout } from '../../../../utils/timing'
-import Operations from '../../../dbOperations/operations'
-import getChannels from '../../usecases/discord/getChannels'
-import getMembers from '../../usecases/discord/getMembers'
-import getMessages from '../../usecases/discord/getMessages'
-import { IntegrationServiceBase } from '../integrationServiceBase'
-import { sendNodeWorkerMessage } from '../../../utils/nodeWorkerSQS'
-import { NodeWorkerIntegrationProcessMessage } from '../../../../types/mq/nodeWorkerIntegrationProcessMessage'
-import { AddActivitiesSingle } from '../../types/messageTypes'
-import getThreads from '../../usecases/discord/getThreads'
-import { DiscordWebsocketEvent, DiscordWebsocketPayload } from '../../../../types/webhooks'
-import { getMember } from '../../usecases/discord/getMember'
-import { getMessage } from '../../usecases/discord/getMessage'
-import { getChannel } from '../../usecases/discord/getChannel'
-import { IRepositoryOptions } from '../../../../database/repositories/IRepositoryOptions'
-import IntegrationRunRepository from '../../../../database/repositories/integrationRunRepository'
 import { IntegrationRunState } from '../../../../types/integrationRunTypes'
-import { createServiceChildLogger } from '../../../../utils/logging'
+import { NodeWorkerIntegrationProcessMessage } from '../../../../types/mq/nodeWorkerIntegrationProcessMessage'
+import { DiscordWebsocketEvent, DiscordWebsocketPayload } from '../../../../types/webhooks'
+import Operations from '../../../dbOperations/operations'
+import { sendNodeWorkerMessage } from '../../../utils/nodeWorkerSQS'
+import {
+  DiscordApiChannel,
+  DiscordApiMember,
+  DiscordApiMessage,
+  DiscordApiUser,
+  DiscordStreamProcessResult,
+} from '../../types/discordTypes'
+import { AddActivitiesSingle } from '../../types/messageTypes'
+import { getChannel } from '../../usecases/discord/getChannel'
+import getChannels from '../../usecases/discord/getChannels'
+import { getMember } from '../../usecases/discord/getMember'
+import getMembers from '../../usecases/discord/getMembers'
+import { getMessage } from '../../usecases/discord/getMessage'
+import getMessages from '../../usecases/discord/getMessages'
+import getThreads from '../../usecases/discord/getThreads'
+import { IntegrationServiceBase } from '../integrationServiceBase'
 
 /* eslint class-methods-use-this: 0 */
 
 /* eslint-disable @typescript-eslint/no-unused-vars */
 
-const logger = createServiceChildLogger('discordIntegrationService')
+const logger = getServiceChildLogger('discordIntegrationService')
 
 export class DiscordIntegrationService extends IntegrationServiceBase {
   static readonly ENDPOINT_MAX_RETRY = 5
@@ -402,7 +401,7 @@ export class DiscordIntegrationService extends IntegrationServiceBase {
         let username = record.user.username
 
         if (username === 'Deleted User') {
-          username = `${username}:${uuid()}`
+          username = `${username}:${generateUUIDv1()}`
         }
 
         acc.push({
@@ -525,7 +524,7 @@ export class DiscordIntegrationService extends IntegrationServiceBase {
         let username = record.author.username
 
         if (username === 'Deleted User') {
-          username = `${username}:${uuid()}`
+          username = `${username}:${generateUUIDv1()}`
         }
 
         const activityObject = {

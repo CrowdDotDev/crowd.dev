@@ -1,3 +1,4 @@
+import { getServiceChildLogger } from '@crowd/logging'
 import getUserContext from '../../../../../database/utils/getUserContext'
 import ActivityRepository from '../../../../../database/repositories/activityRepository'
 import AutomationRepository from '../../../../../database/repositories/automationRepository'
@@ -10,12 +11,11 @@ import {
 } from '../../../../../types/automationTypes'
 import { sendWebhookProcessRequest } from './util'
 import { prepareMemberPayload } from './newMemberWorker'
-import { createServiceChildLogger } from '../../../../../utils/logging'
 import AutomationExecutionRepository from '../../../../../database/repositories/automationExecutionRepository'
 import SequelizeRepository from '../../../../../database/repositories/sequelizeRepository'
 import MemberRepository from '../../../../../database/repositories/memberRepository'
 
-const log = createServiceChildLogger('newActivityWorker')
+const log = getServiceChildLogger('newActivityWorker')
 
 /**
  * Helper function to check whether a single activity should be processed by automation

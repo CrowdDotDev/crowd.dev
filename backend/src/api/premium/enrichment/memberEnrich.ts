@@ -1,14 +1,14 @@
 import { RedisCache } from '@crowd/redis'
+import { getServiceLogger } from '@crowd/logging'
+import { getSecondsTillEndOfMonth } from '@crowd/common'
 import Permissions from '../../../security/permissions'
 import identifyTenant from '../../../segment/identifyTenant'
 import MemberEnrichmentService from '../../../services/premium/enrichment/memberEnrichmentService'
 import PermissionChecker from '../../../services/user/permissionChecker'
 import { FeatureFlagRedisKey } from '../../../types/common'
 import track from '../../../segment/track'
-import { createServiceLogger } from '../../../utils/logging'
-import { getSecondsTillEndOfMonth } from '../../../utils/timing'
 
-const log = createServiceLogger()
+const log = getServiceLogger()
 
 export default async (req, res) => {
   new PermissionChecker(req).validateHas(Permissions.values.memberEdit)

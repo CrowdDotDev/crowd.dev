@@ -1,6 +1,6 @@
 import axios, { AxiosRequestConfig } from 'axios'
+import { Logger } from '@crowd/logging'
 import { RedditGetPostsInput, RedditPostsResponse } from '../../types/redditTypes'
-import { Logger } from '../../../../utils/logging'
 import { PlatformType } from '../../../../types/integrationEnums'
 import getToken from '../nango/getToken'
 

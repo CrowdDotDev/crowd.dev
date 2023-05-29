@@ -1,3 +1,4 @@
+import { IServiceOptions } from './../IServiceOptions'
 import moment from 'moment'
 import ConversationService from '../conversationService'
 import ActivityRepository from '../../database/repositories/activityRepository'
@@ -16,7 +17,7 @@ import { PlatformType } from '../../types/integrationEnums'
 import ActivityService from '../activityService'
 import ConversationSettingsRepository from '../../database/repositories/conversationSettingsRepository'
 import MemberService from '../memberService'
-import { generateUUIDv1 } from '../../utils/uuid'
+import { generateUUIDv1 } from '@crowd/common'
 
 const db = null
 
@@ -592,7 +593,10 @@ describe('ConversationService tests', () => {
       )
 
       const conversationCreated = (
-        await new ConversationService({ ...mockIRepositoryOptions, transaction }).findAndCountAll({
+        await new ConversationService({
+          ...mockIRepositoryOptions,
+          transaction,
+        } as IServiceOptions).findAndCountAll({
           filter: {
             slug: 'some-parent-activity',
           },

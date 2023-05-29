@@ -4,7 +4,7 @@ import MemberRepository from '../memberRepository'
 import SequelizeTestUtils from '../../utils/sequelizeTestUtils'
 import { PlatformType } from '../../../types/integrationEnums'
 import MemberEnrichmentCacheRepository from '../memberEnrichmentCacheRepository'
-import { generateUUIDv1 } from '../../../utils/uuid'
+import { generateUUIDv1 } from '@crowd/common'
 
 const db = null
 

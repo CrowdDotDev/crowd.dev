@@ -1,15 +1,15 @@
 import { processPaginated } from '@crowd/common'
 import { INTEGRATION_SERVICES } from '@crowd/integrations'
+import { LoggerBase } from '@crowd/logging'
 import IntegrationRunRepository from '../../../database/repositories/integrationRunRepository'
 import { IServiceOptions } from '../../../services/IServiceOptions'
-import { LoggingBase } from '../../../services/loggingBase'
 import { IntegrationType } from '../../../types/integrationEnums'
 import { NodeWorkerIntegrationCheckMessage } from '../../../types/mq/nodeWorkerIntegrationCheckMessage'
 import { NodeWorkerIntegrationProcessMessage } from '../../../types/mq/nodeWorkerIntegrationProcessMessage'
 import { sendNodeWorkerMessage } from '../../utils/nodeWorkerSQS'
 import { IntegrationServiceBase } from './integrationServiceBase'
 
-export class IntegrationTickProcessor extends LoggingBase {
+export class IntegrationTickProcessor extends LoggerBase {
   private tickTrackingMap: Map<IntegrationType, number> = new Map()
 
   constructor(
@@ -17,7 +17,7 @@ export class IntegrationTickProcessor extends LoggingBase {
     private readonly integrationServices: IntegrationServiceBase[],
     private readonly integrationRunRepository: IntegrationRunRepository,
   ) {
-    super(options)
+    super(options.log)
 
     for (const intService of this.integrationServices) {
       this.tickTrackingMap[intService.type] = 0

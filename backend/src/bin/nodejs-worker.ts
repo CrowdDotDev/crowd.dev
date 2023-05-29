@@ -1,14 +1,14 @@
+import { Logger, getChildLogger, getServiceLogger } from '@crowd/logging'
 import { DeleteMessageRequest, Message, ReceiveMessageRequest } from 'aws-sdk/clients/sqs'
 import moment from 'moment'
+import { timeout } from '@crowd/common'
 import { SQS_CONFIG } from '../conf'
-import { NodeWorkerMessageType } from '../serverless/types/workerTypes'
-import { processNodeMicroserviceMessage } from '../serverless/microservices/nodejs/workDispatcher'
 import { processDbOperationsMessage } from '../serverless/dbOperations/workDispatcher'
+import { processNodeMicroserviceMessage } from '../serverless/microservices/nodejs/workDispatcher'
+import { NodeWorkerMessageType } from '../serverless/types/workerTypes'
 import { sendNodeWorkerMessage } from '../serverless/utils/nodeWorkerSQS'
 import { NodeWorkerMessageBase } from '../types/mq/nodeWorkerMessageBase'
-import { createChildLogger, getServiceLogger, Logger } from '../utils/logging'
 import { deleteMessage, receiveMessage, sendMessage } from '../utils/sqs'
-import { timeout } from '../utils/timing'
 import { processIntegration, processIntegrationCheck, processWebhook } from './worker/integrations'
 
 /* eslint-disable no-constant-condition */
@@ -45,7 +45,7 @@ const removeFromQueue = (receiptHandle: string, delayed?: boolean): Promise<void
 }
 
 async function handleDelayedMessages() {
-  const delayedHandlerLogger = createChildLogger('delayedMessages', serviceLogger, {
+  const delayedHandlerLogger = getChildLogger('delayedMessages', serviceLogger, {
     queue: SQS_CONFIG.nodejsWorkerDelayableQueue,
   })
   delayedHandlerLogger.info('Listing for delayed messages!')
@@ -56,7 +56,7 @@ async function handleDelayedMessages() {
 
     if (message) {
       const msg: NodeWorkerMessageBase = JSON.parse(message.Body)
-      const messageLogger = createChildLogger('messageHandler', serviceLogger, {
+      const messageLogger = getChildLogger('messageHandler', serviceLogger, {
         messageId: message.MessageId,
         type: msg.type,
       })
@@ -105,7 +105,7 @@ const removeWorkerJob = (): void => {
 }
 
 async function handleMessages() {
-  const handlerLogger = createChildLogger('messages', serviceLogger, {
+  const handlerLogger = getChildLogger('messages', serviceLogger, {
     queue: SQS_CONFIG.nodejsWorkerQueue,
   })
   handlerLogger.info('Listening for messages!')
@@ -113,7 +113,7 @@ async function handleMessages() {
   const processSingleMessage = async (message: Message): Promise<void> => {
     const msg: NodeWorkerMessageBase = JSON.parse(message.Body)
 
-    const messageLogger = createChildLogger('messageHandler', serviceLogger, {
+    const messageLogger = getChildLogger('messageHandler', serviceLogger, {
       messageId: message.MessageId,
       type: msg.type,
     })

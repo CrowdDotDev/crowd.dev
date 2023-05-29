@@ -1,33 +1,32 @@
+import { LoggerBase, getChildLogger } from '@crowd/logging'
 import moment from 'moment'
+import { singleOrDefault } from '@crowd/common'
 import { IRepositoryOptions } from '../../../database/repositories/IRepositoryOptions'
 import IncomingWebhookRepository from '../../../database/repositories/incomingWebhookRepository'
 import IntegrationRepository from '../../../database/repositories/integrationRepository'
 import SequelizeRepository from '../../../database/repositories/sequelizeRepository'
 import getUserContext from '../../../database/utils/getUserContext'
 import { IServiceOptions } from '../../../services/IServiceOptions'
-import { LoggingBase } from '../../../services/loggingBase'
 import { IStepContext } from '../../../types/integration/stepResult'
+import { NodeWorkerProcessWebhookMessage } from '../../../types/mq/nodeWorkerProcessWebhookMessage'
 import { WebhookError, WebhookState } from '../../../types/webhooks'
-import { singleOrDefault } from '../../../utils/arrays'
-import { createChildLogger } from '../../../utils/logging'
 import bulkOperations from '../../dbOperations/operationsWorker'
 import { sendNodeWorkerMessage } from '../../utils/nodeWorkerSQS'
-import { NodeWorkerProcessWebhookMessage } from '../../../types/mq/nodeWorkerProcessWebhookMessage'
 import { IntegrationServiceBase } from './integrationServiceBase'
 
-export class WebhookProcessor extends LoggingBase {
+export class WebhookProcessor extends LoggerBase {
   constructor(
     options: IServiceOptions,
     private readonly integrationServices: IntegrationServiceBase[],
   ) {
-    super(options)
+    super(options.log)
   }
 
   async processWebhook(webhookId: string, force?: boolean, fireCrowdWebhooks?: boolean) {
     const options = (await SequelizeRepository.getDefaultIRepositoryOptions()) as IRepositoryOptions
     const repo = new IncomingWebhookRepository(options)
     const webhook = await repo.findById(webhookId)
-    let logger = createChildLogger('processWebhook', this.log, { webhookId })
+    let logger = getChildLogger('processWebhook', this.log, { webhookId })
 
     if (webhook === null || webhook === undefined) {
       logger.error('Webhook not found!')
@@ -36,7 +35,7 @@ export class WebhookProcessor extends LoggingBase {
 
     logger.debug('Processing webhook!')
 
-    logger = createChildLogger('processWebhook', this.log, {
+    logger = getChildLogger('processWebhook', this.log, {
       type: webhook.type,
       tenantId: webhook.tenantId,
       integrationId: webhook.integrationId,

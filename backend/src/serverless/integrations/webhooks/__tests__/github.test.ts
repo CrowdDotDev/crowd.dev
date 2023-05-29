@@ -8,8 +8,8 @@ import { MemberAttributeName } from '../../../../database/attributes/member/enum
 import { IntegrationServiceBase } from '../../services/integrationServiceBase'
 import { GithubIntegrationService } from '../../services/integrations/githubIntegrationService'
 import { IStepContext } from '../../../../types/integration/stepResult'
-import { getServiceLogger } from '../../../../utils/logging'
-import { generateUUIDv1 } from '../../../../utils/uuid'
+import { getServiceLogger } from '@crowd/logging'
+import { generateUUIDv1 } from '@crowd/common'
 
 const db = null
 const installId = '23585816'

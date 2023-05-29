@@ -5,7 +5,7 @@ export const searchEngineUpdate = async (
   tenantId: string,
   conversationId: string,
 ): Promise<void> => {
-  const options = SequelizeRepository.getDefaultIRepositoryOptions(undefined, {
+  const options = await SequelizeRepository.getDefaultIRepositoryOptions(undefined, {
     id: tenantId,
   })
   const conversationService = new ConversationService(options)

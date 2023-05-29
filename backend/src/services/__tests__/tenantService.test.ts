@@ -9,7 +9,7 @@ import MemberAttributeSettingsService from '../memberAttributeSettingsService'
 import { MemberAttributeName } from '../../database/attributes/member/enums'
 import TaskService from '../taskService'
 import Plans from '../../security/plans'
-import { generateUUIDv1 } from '../../utils/uuid'
+import { generateUUIDv1 } from '@crowd/common'
 
 const db = null
 

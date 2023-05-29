@@ -20,7 +20,7 @@ import { SlackMemberAttributes } from '../../database/attributes/member/slack'
 import SettingsRepository from '../../database/repositories/settingsRepository'
 import OrganizationService from '../organizationService'
 import Plans from '../../security/plans'
-import { generateUUIDv1 } from '../../utils/uuid'
+import { generateUUIDv1 } from '@crowd/common'
 import lodash from 'lodash'
 
 const db = null

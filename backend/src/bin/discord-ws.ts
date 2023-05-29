@@ -1,10 +1,9 @@
 import { Client, Events, GatewayIntentBits, MessageType } from 'discord.js'
 import moment from 'moment'
-import { processPaginated } from '@crowd/common'
+import { processPaginated, timeout } from '@crowd/common'
 import { RedisCache, getRedisClient } from '@crowd/redis'
-import { timeout } from '../utils/timing'
+import { getChildLogger, getServiceLogger } from '@crowd/logging'
 import { DISCORD_CONFIG, REDIS_CONFIG } from '../conf'
-import { createChildLogger, getServiceLogger } from '../utils/logging'
 import SequelizeRepository from '../database/repositories/sequelizeRepository'
 import IntegrationRepository from '../database/repositories/integrationRepository'
 import { PlatformType } from '../types/integrationEnums'
@@ -39,7 +38,7 @@ async function spawnClient(
   cache: RedisCache,
   delayMilliseconds?: number,
 ) {
-  const logger = createChildLogger('discord-ws', log, { clientName: name })
+  const logger = getChildLogger('discord-ws', log, { clientName: name })
 
   const repoOptions = await SequelizeRepository.getDefaultIRepositoryOptions()
   const repo = new IncomingWebhookRepository(repoOptions)

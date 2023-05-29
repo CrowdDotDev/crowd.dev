@@ -1,5 +1,5 @@
 import { QueryTypes } from 'sequelize'
-import { v1 as uuidV1 } from 'uuid'
+import { generateUUIDv1 } from '@crowd/common'
 import {
   IntegrationRunState,
   IntegrationRun,
@@ -299,7 +299,7 @@ export default class IntegrationRunRepository extends RepositoryBase<
 
     const seq = this.seq
 
-    const id = uuidV1()
+    const id = generateUUIDv1()
 
     const query = `
       insert into "integrationRuns"(id, "tenantId", "integrationId", "microserviceId", onboarding, state)

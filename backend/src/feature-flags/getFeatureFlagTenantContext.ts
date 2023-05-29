@@ -1,8 +1,8 @@
 import { RedisCache, RedisClient } from '@crowd/redis'
 import { Logger } from '@crowd/logging'
+import { getSecondsTillEndOfMonth } from '@crowd/common'
 import AutomationRepository from '../database/repositories/automationRepository'
 import { FeatureFlagRedisKey } from '../types/common'
-import { getSecondsTillEndOfMonth } from '../utils/timing'
 
 export default async function getFeatureFlagTenantContext(
   tenant: any,

@@ -1,44 +1,44 @@
+import { LoggerBase } from '@crowd/logging'
+import { RedisPubSubEmitter, getRedisClient } from '@crowd/redis'
 import axios from 'axios'
 import lodash from 'lodash'
-import { RedisPubSubEmitter, getRedisClient } from '@crowd/redis'
-import { IServiceOptions } from '../../IServiceOptions'
-import { LoggingBase } from '../../loggingBase'
-import {
-  EnrichmentAPIResponse,
-  EnrichmentAPIMember,
-  EnrichmentAPIContribution,
-  EnrichmentAPISkills,
-  EnrichmentAPIEducation,
-  EnrichmentAPICertification,
-  EnrichmentAPIWorkExperience,
-} from './types/memberEnrichmentTypes'
 import { ENRICHMENT_CONFIG, REDIS_CONFIG } from '../../../conf'
-import Error400 from '../../../errors/Error400'
-import MemberService from '../../memberService'
-import { PlatformType } from '../../../types/integrationEnums'
-import MemberAttributeSettingsService from '../../memberAttributeSettingsService'
 import { AttributeData } from '../../../database/attributes/attribute'
-import { Member } from '../../../serverless/integrations/types/messageTypes'
 import {
   MemberAttributeName,
   MemberEnrichmentAttributeName,
   MemberEnrichmentAttributes,
 } from '../../../database/attributes/member/enums'
 import { AttributeType } from '../../../database/attributes/types'
-import { i18n } from '../../../i18n'
-import { ApiWebsocketMessage } from '../../../types/mq/apiWebsocketMessage'
 import MemberEnrichmentCacheRepository from '../../../database/repositories/memberEnrichmentCacheRepository'
+import Error400 from '../../../errors/Error400'
+import { i18n } from '../../../i18n'
 import track from '../../../segment/track'
+import { Member } from '../../../serverless/integrations/types/messageTypes'
+import { PlatformType } from '../../../types/integrationEnums'
+import { ApiWebsocketMessage } from '../../../types/mq/apiWebsocketMessage'
+import { IServiceOptions } from '../../IServiceOptions'
+import MemberAttributeSettingsService from '../../memberAttributeSettingsService'
+import MemberService from '../../memberService'
+import {
+  EnrichmentAPICertification,
+  EnrichmentAPIContribution,
+  EnrichmentAPIEducation,
+  EnrichmentAPIMember,
+  EnrichmentAPIResponse,
+  EnrichmentAPISkills,
+  EnrichmentAPIWorkExperience,
+} from './types/memberEnrichmentTypes'
 
-export default class MemberEnrichmentService extends LoggingBase {
+export default class MemberEnrichmentService extends LoggerBase {
   options: IServiceOptions
 
   attributes: AttributeData[] | undefined
 
   attributeSettings: any
 
-  constructor(options) {
-    super(options)
+  constructor(options: IServiceOptions) {
+    super(options.log)
     this.options = options
     this.attributes = undefined
 

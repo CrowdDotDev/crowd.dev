@@ -1,22 +1,21 @@
-import lodash from 'lodash'
-import { UNKNOWN_ACTIVITY_TYPE_DISPLAY, DiscordActivityType } from '@crowd/integrations'
+import { DiscordActivityType, UNKNOWN_ACTIVITY_TYPE_DISPLAY } from '@crowd/integrations'
+import { LoggerBase, getServiceChildLogger } from '@crowd/logging'
 import {
+  ActivityDisplayVariant,
   ActivityTypeDisplayProperties,
   ActivityTypeSettings,
-  ActivityDisplayVariant,
 } from '@crowd/types'
+import lodash from 'lodash'
 import { PlatformType } from '../types/integrationEnums'
-import { createServiceChildLogger } from '../utils/logging'
 import { IServiceOptions } from './IServiceOptions'
-import { LoggingBase } from './loggingBase'
 
-const log = createServiceChildLogger('ActivityDisplayService')
+const log = getServiceChildLogger('ActivityDisplayService')
 
-export default class ActivityDisplayService extends LoggingBase {
+export default class ActivityDisplayService extends LoggerBase {
   options: IServiceOptions
 
   constructor(options: IServiceOptions) {
-    super(options)
+    super(options.log)
     this.options = options
   }
 

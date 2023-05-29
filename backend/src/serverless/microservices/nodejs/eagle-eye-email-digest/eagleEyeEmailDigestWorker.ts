@@ -1,4 +1,5 @@
 import moment from 'moment-timezone'
+import { getServiceChildLogger } from '@crowd/logging'
 import { S3_CONFIG } from '../../../../conf'
 import RecurringEmailsHistoryRepository from '../../../../database/repositories/recurringEmailsHistoryRepository'
 import SequelizeRepository from '../../../../database/repositories/sequelizeRepository'
@@ -9,9 +10,8 @@ import EagleEyeSettingsService from '../../../../services/eagleEyeSettingsServic
 import EmailSender from '../../../../services/emailSender'
 import getStage from '../../../../services/helpers/getStage'
 import { RecurringEmailType } from '../../../../types/recurringEmailsHistoryTypes'
-import { createServiceChildLogger } from '../../../../utils/logging'
 
-const log = createServiceChildLogger('eagleEyeEmailDigestWorker')
+const log = getServiceChildLogger('eagleEyeEmailDigestWorker')
 
 async function eagleEyeEmailDigestWorker(userId: string, tenantId: string): Promise<void> {
   const s3Url = `https://${

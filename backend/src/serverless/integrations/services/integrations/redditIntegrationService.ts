@@ -1,7 +1,8 @@
 import sanitizeHtml from 'sanitize-html'
 import he from 'he'
-import { v4 as uuid } from 'uuid'
+import { generateUUIDv4 as uuid } from '@crowd/common'
 import { RedditActivityType, REDDIT_GRID } from '@crowd/integrations'
+import { Logger } from '@crowd/logging'
 import { MemberAttributeName } from '../../../../database/attributes/member/enums'
 import { RedditMemberAttributes } from '../../../../database/attributes/member/reddit'
 import MemberAttributeSettingsService from '../../../../services/memberAttributeSettingsService'
@@ -26,7 +27,6 @@ import {
 } from '../../types/redditTypes'
 import { AddActivitiesSingle, PlatformIdentities } from '../../types/messageTypes'
 import { IntegrationServiceBase } from '../integrationServiceBase'
-import { Logger } from '../../../../utils/logging'
 import getMoreComments from '../../usecases/reddit/getMoreComments'
 
 /* eslint class-methods-use-this: 0 */

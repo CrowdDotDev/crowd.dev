@@ -2,7 +2,8 @@ import commandLineArgs from 'command-line-args'
 import commandLineUsage from 'command-line-usage'
 import * as fs from 'fs'
 import path from 'path'
-import { createServiceLogger } from '../../utils/logging'
+import { getServiceLogger } from '@crowd/logging'
+import { timeout } from '@crowd/common'
 import SequelizeRepository from '../../database/repositories/sequelizeRepository'
 import { sendNodeWorkerMessage } from '../../serverless/utils/nodeWorkerSQS'
 import IncomingWebhookRepository from '../../database/repositories/incomingWebhookRepository'
@@ -10,13 +11,12 @@ import { WebhookState, WebhookType } from '../../types/webhooks'
 import { NodeWorkerProcessWebhookMessage } from '../../types/mq/nodeWorkerProcessWebhookMessage'
 import { sqs, getCurrentQueueSize } from '../../services/aws'
 import { SQS_CONFIG } from '../../conf'
-import { timeout } from '../../utils/timing'
 
 /* eslint-disable no-console */
 
 const banner = fs.readFileSync(path.join(__dirname, 'banner.txt'), 'utf8')
 
-const log = createServiceLogger()
+const log = getServiceLogger()
 
 const options = [
   {

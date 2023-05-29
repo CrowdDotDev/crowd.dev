@@ -1,5 +1,5 @@
 /* eslint-disable no-case-declarations */
-import { validate as uuidValidate } from 'uuid'
+import { validateUUID as uuidValidate } from '@crowd/common'
 import moment from 'moment'
 import { Section, Message, SlackMessageDto, Divider } from 'slack-block-builder'
 import { IS_DEV_ENV, IS_STAGING_ENV, IS_PROD_ENV } from '../conf'

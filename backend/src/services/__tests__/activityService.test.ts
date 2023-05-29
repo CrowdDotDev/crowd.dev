@@ -13,6 +13,7 @@ import { MemberAttributeName } from '../../database/attributes/member/enums'
 import MemberAttributeSettingsService from '../memberAttributeSettingsService'
 import { GithubMemberAttributes } from '../../database/attributes/member/github'
 import { TwitterMemberAttributes } from '../../database/attributes/member/twitter'
+import { IServiceOptions } from '../../services/IServiceOptions'
 
 const db = null
 const searchEngine = null
@@ -2188,7 +2189,10 @@ describe('ActivityService tests', () => {
       )
 
       const conversationCreated = (
-        await new ConversationService({ ...mockIRepositoryOptions, transaction }).findAndCountAll({
+        await new ConversationService({
+          ...mockIRepositoryOptions,
+          transaction,
+        } as IServiceOptions).findAndCountAll({
           slug: 'some-parent-activity',
         })
       ).rows[0]
@@ -2280,7 +2284,10 @@ describe('ActivityService tests', () => {
       )
 
       const conversationCreated = (
-        await new ConversationService({ ...mockIRepositoryOptions, transaction }).findAndCountAll({
+        await new ConversationService({
+          ...mockIRepositoryOptions,
+          transaction,
+        } as IServiceOptions).findAndCountAll({
           slug: 'some-parent-activity',
         })
       ).rows[0]
@@ -2375,7 +2382,10 @@ describe('ActivityService tests', () => {
       )
 
       const conversationCreated = (
-        await new ConversationService({ ...mockIRepositoryOptions, transaction }).findAndCountAll({
+        await new ConversationService({
+          ...mockIRepositoryOptions,
+          transaction,
+        } as IServiceOptions).findAndCountAll({
           slug: 'some-parent-activity',
         })
       ).rows[0]
@@ -2471,7 +2481,7 @@ describe('ActivityService tests', () => {
       const conversations = await new ConversationService({
         ...mockIRepositoryOptions,
         transaction,
-      }).findAndCountAll({
+      } as IServiceOptions).findAndCountAll({
         slug: 'some-parent-activity',
       })
 

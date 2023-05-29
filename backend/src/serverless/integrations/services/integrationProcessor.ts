@@ -1,8 +1,8 @@
 import { RedisClient, RedisPubSubEmitter } from '@crowd/redis'
+import { LoggerBase } from '@crowd/logging'
 import IntegrationRunRepository from '../../../database/repositories/integrationRunRepository'
 import IntegrationStreamRepository from '../../../database/repositories/integrationStreamRepository'
 import { IServiceOptions } from '../../../services/IServiceOptions'
-import { LoggingBase } from '../../../services/loggingBase'
 import { IntegrationType } from '../../../types/integrationEnums'
 import { NodeWorkerIntegrationProcessMessage } from '../../../types/mq/nodeWorkerIntegrationProcessMessage'
 import { IntegrationCheckProcessor } from './integrationCheckProcessor'
@@ -18,7 +18,7 @@ import { TwitterIntegrationService } from './integrations/twitterIntegrationServ
 import { TwitterReachIntegrationService } from './integrations/twitterReachIntegrationService'
 import { WebhookProcessor } from './webhookProcessor'
 
-export class IntegrationProcessor extends LoggingBase {
+export class IntegrationProcessor extends LoggerBase {
   private readonly tickProcessor: IntegrationTickProcessor
 
   private readonly checkProcessor: IntegrationCheckProcessor
@@ -28,7 +28,7 @@ export class IntegrationProcessor extends LoggingBase {
   private readonly runProcessor: IntegrationRunProcessor | undefined
 
   constructor(options: IServiceOptions, redisEmitterClient?: RedisClient) {
-    super(options)
+    super(options.log)
 
     const integrationServices = [
       new DiscordIntegrationService(),

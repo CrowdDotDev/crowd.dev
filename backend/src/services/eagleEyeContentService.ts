@@ -1,32 +1,32 @@
-import moment from 'moment'
+import { LoggerBase } from '@crowd/logging'
 import axios from 'axios'
+import moment from 'moment'
 import { EAGLE_EYE_CONFIG } from '../conf'
-import { IServiceOptions } from './IServiceOptions'
 import EagleEyeContentRepository from '../database/repositories/eagleEyeContentRepository'
-import { LoggingBase } from './loggingBase'
+import SequelizeRepository from '../database/repositories/sequelizeRepository'
+import TenantUserRepository from '../database/repositories/tenantUserRepository'
+import Error400 from '../errors/Error400'
+import track from '../segment/track'
+import { PageData, QueryData } from '../types/common'
 import {
-  EagleEyeContent,
   EagleEyeAction,
-  EagleEyeSettings,
+  EagleEyeContent,
+  EagleEyePostWithActions,
   EagleEyePublishedDates,
   EagleEyeRawPost,
-  EagleEyePostWithActions,
+  EagleEyeSettings,
 } from '../types/eagleEyeTypes'
-import { PageData, QueryData } from '../types/common'
-import Error400 from '../errors/Error400'
-import SequelizeRepository from '../database/repositories/sequelizeRepository'
-import track from '../segment/track'
-import TenantUserRepository from '../database/repositories/tenantUserRepository'
+import { IServiceOptions } from './IServiceOptions'
 
 export interface EagleEyeContentUpsertData extends EagleEyeAction {
   content: EagleEyeContent
 }
 
-export default class EagleEyeContentService extends LoggingBase {
+export default class EagleEyeContentService extends LoggerBase {
   options: IServiceOptions
 
-  constructor(options) {
-    super(options)
+  constructor(options: IServiceOptions) {
+    super(options.log)
     this.options = options
   }
 

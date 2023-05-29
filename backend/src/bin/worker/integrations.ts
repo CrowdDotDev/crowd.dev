@@ -1,12 +1,12 @@
 import { getRedisClient } from '@crowd/redis'
 import { REDIS_CONFIG } from 'conf'
+import { Logger } from '@crowd/logging'
 import SequelizeRepository from '../../database/repositories/sequelizeRepository'
 import { IntegrationProcessor } from '../../serverless/integrations/services/integrationProcessor'
 import { IServiceOptions } from '../../services/IServiceOptions'
 import { NodeWorkerIntegrationCheckMessage } from '../../types/mq/nodeWorkerIntegrationCheckMessage'
 import { NodeWorkerIntegrationProcessMessage } from '../../types/mq/nodeWorkerIntegrationProcessMessage'
 import { NodeWorkerProcessWebhookMessage } from '../../types/mq/nodeWorkerProcessWebhookMessage'
-import { Logger } from '../../utils/logging'
 
 let integrationProcessorInstance: IntegrationProcessor
 

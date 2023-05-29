@@ -1,4 +1,4 @@
-import { getServiceLogger } from '../../utils/logging'
+import { getServiceLogger } from '@crowd/logging'
 /**
  * This script is responsible for seeding entity data to database.
  * It has two modes through arguments. `all` OR `seederFileName`

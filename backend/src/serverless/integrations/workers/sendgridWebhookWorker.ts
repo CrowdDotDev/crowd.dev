@@ -1,3 +1,4 @@
+import { getServiceChildLogger } from '@crowd/logging'
 import { EventWebhook, EventWebhookHeader } from '@sendgrid/eventwebhook'
 import { IS_PROD_ENV, SENDGRID_CONFIG } from '../../../conf'
 import SequelizeRepository from '../../../database/repositories/sequelizeRepository'
@@ -7,11 +8,10 @@ import EagleEyeContentService from '../../../services/eagleEyeContentService'
 import { PlatformType } from '../../../types/integrationEnums'
 import { NodeWorkerMessageBase } from '../../../types/mq/nodeWorkerMessageBase'
 import { SendgridWebhookEvent, SendgridWebhookEventType } from '../../../types/webhooks'
-import { createServiceChildLogger } from '../../../utils/logging'
 import { NodeWorkerMessageType } from '../../types/workerTypes'
 import { sendNodeWorkerMessage } from '../../utils/nodeWorkerSQS'
 
-const log = createServiceChildLogger('sendgridWebhookWorker')
+const log = getServiceChildLogger('sendgridWebhookWorker')
 
 export default async function sendgridWebhookWorker(req) {
   if (!SENDGRID_CONFIG.webhookSigningSecret) {

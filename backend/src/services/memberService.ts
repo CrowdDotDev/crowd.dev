@@ -1,40 +1,40 @@
 /* eslint-disable no-continue */
 
-import moment from 'moment-timezone'
+import { LoggerBase } from '@crowd/logging'
 import lodash from 'lodash'
+import moment from 'moment-timezone'
 import validator from 'validator'
-import Error400 from '../errors/Error400'
-import SequelizeRepository from '../database/repositories/sequelizeRepository'
-import { IServiceOptions } from './IServiceOptions'
-import merge from './helpers/merge'
-import MemberRepository from '../database/repositories/memberRepository'
+import { AttributeType } from '../database/attributes/types'
+import { IRepositoryOptions } from '../database/repositories/IRepositoryOptions'
 import ActivityRepository from '../database/repositories/activityRepository'
-import TagRepository from '../database/repositories/tagRepository'
-import telemetryTrack from '../segment/telemetryTrack'
 import MemberAttributeSettingsRepository from '../database/repositories/memberAttributeSettingsRepository'
-import MemberAttributeSettingsService from './memberAttributeSettingsService'
-import SettingsService from './settingsService'
-import OrganizationService from './organizationService'
+import MemberRepository from '../database/repositories/memberRepository'
+import SequelizeRepository from '../database/repositories/sequelizeRepository'
+import TagRepository from '../database/repositories/tagRepository'
+import {
+  IActiveMemberFilter,
+  IMemberMergeSuggestion,
+  IMemberMergeSuggestionsType,
+  mapUsernameToIdentities,
+} from '../database/repositories/types/memberTypes'
+import Error400 from '../errors/Error400'
+import telemetryTrack from '../segment/telemetryTrack'
+import { ExportableEntity } from '../serverless/microservices/nodejs/messageTypes'
 import {
   sendExportCSVNodeSQSMessage,
   sendNewMemberNodeSQSMessage,
 } from '../serverless/utils/nodeWorkerSQS'
-import { LoggingBase } from './loggingBase'
-import { ExportableEntity } from '../serverless/microservices/nodejs/messageTypes'
-import { AttributeType } from '../database/attributes/types'
-import {
-  IActiveMemberFilter,
-  mapUsernameToIdentities,
-  IMemberMergeSuggestion,
-  IMemberMergeSuggestionsType,
-} from '../database/repositories/types/memberTypes'
-import { IRepositoryOptions } from '../database/repositories/IRepositoryOptions'
+import { IServiceOptions } from './IServiceOptions'
+import merge from './helpers/merge'
+import MemberAttributeSettingsService from './memberAttributeSettingsService'
+import OrganizationService from './organizationService'
+import SettingsService from './settingsService'
 
-export default class MemberService extends LoggingBase {
+export default class MemberService extends LoggerBase {
   options: IServiceOptions
 
-  constructor(options) {
-    super(options)
+  constructor(options: IServiceOptions) {
+    super(options.log)
     this.options = options
   }
 

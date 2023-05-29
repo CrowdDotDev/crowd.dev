@@ -1,13 +1,13 @@
 import axios, { AxiosRequestConfig } from 'axios'
+import { Logger } from '@crowd/logging'
+import { timeout } from '@crowd/common'
 import {
   StackOverflowUserResponse,
   StackOverflowUser,
   StackOverflowUserInput,
 } from '../../types/stackOverflowTypes'
-import { Logger } from '../../../../utils/logging'
 import { STACKEXCHANGE_CONFIG } from '../../../../conf'
 import getToken from '../nango/getToken'
-import { timeout } from '../../../../utils/timing'
 import { RateLimitError } from '../../../../types/integration/rateLimitError'
 
 /**

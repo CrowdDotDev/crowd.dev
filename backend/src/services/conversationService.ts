@@ -1,34 +1,34 @@
-import moment from 'moment'
-import { Transaction } from 'sequelize/types'
-import emoji from 'emoji-dictionary'
-import fetch from 'node-fetch'
-import { convert as convertHtmlToText } from 'html-to-text'
 import { getCleanString } from '@crowd/common'
+import { LoggerBase } from '@crowd/logging'
+import emoji from 'emoji-dictionary'
+import { convert as convertHtmlToText } from 'html-to-text'
+import moment from 'moment'
+import fetch from 'node-fetch'
+import { Transaction } from 'sequelize/types'
 import { IS_TEST_ENV, S3_CONFIG } from '../conf/index'
-import SequelizeRepository from '../database/repositories/sequelizeRepository'
-import { IServiceOptions } from './IServiceOptions'
 import ConversationRepository from '../database/repositories/conversationRepository'
-import ConversationSearchEngineRepository from '../search-engine/repositories/conversationSearchEngineRepository'
-import telemetryTrack from '../segment/telemetryTrack'
-import TenantService from './tenantService'
+import SequelizeRepository from '../database/repositories/sequelizeRepository'
 import Error403 from '../errors/Error403'
+import ConversationSearchEngineRepository from '../search-engine/repositories/conversationSearchEngineRepository'
+import SettingsSearchEngineRepository from '../search-engine/repositories/settingsSearchEngineRepository'
+import telemetryTrack from '../segment/telemetryTrack'
+import track from '../segment/track'
+import { PlatformType } from '../types/integrationEnums'
+import { IServiceOptions } from './IServiceOptions'
+import { s3 } from './aws'
+import ConversationSettingsService from './conversationSettingsService'
+import getStage from './helpers/getStage'
 import IntegrationService from './integrationService'
 import SettingsService from './settingsService'
-import ConversationSettingsService from './conversationSettingsService'
-import SettingsSearchEngineRepository from '../search-engine/repositories/settingsSearchEngineRepository'
-import track from '../segment/track'
-import getStage from './helpers/getStage'
-import { s3 } from './aws'
-import { PlatformType } from '../types/integrationEnums'
-import { LoggingBase } from './loggingBase'
+import TenantService from './tenantService'
 
-export default class ConversationService extends LoggingBase {
+export default class ConversationService extends LoggerBase {
   static readonly MAX_SLUG_WORD_LENGTH = 10
 
   options: IServiceOptions
 
-  constructor(options) {
-    super(options)
+  constructor(options: IServiceOptions) {
+    super(options.log)
     this.options = options
   }
 

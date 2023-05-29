@@ -1,8 +1,8 @@
 import { SuperfaceClient } from '@superfaceai/one-sdk'
 import moment from 'moment'
 import crypto from 'crypto'
+import { getServiceChildLogger } from '@crowd/logging'
 import { IRepositoryOptions } from '../../../database/repositories/IRepositoryOptions'
-import { createServiceChildLogger } from '../../../utils/logging'
 import {
   IIntegrationStream,
   IPendingStream,
@@ -18,7 +18,7 @@ import { NodeWorkerIntegrationProcessMessage } from '../../../types/mq/nodeWorke
 import IntegrationRunRepository from '../../../database/repositories/integrationRunRepository'
 import { IntegrationRunState } from '../../../types/integrationRunTypes'
 
-const logger = createServiceChildLogger('integrationService')
+const logger = getServiceChildLogger('integrationService')
 
 /* eslint class-methods-use-this: 0 */
 

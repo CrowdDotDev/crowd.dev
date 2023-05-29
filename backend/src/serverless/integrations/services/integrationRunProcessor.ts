@@ -1,5 +1,7 @@
 import moment from 'moment'
 import { IRedisPubSubEmitter } from '@crowd/redis'
+import { Logger, getChildLogger, LoggerBase } from '@crowd/logging'
+import { singleOrDefault } from '@crowd/common'
 import IntegrationRepository from '../../../database/repositories/integrationRepository'
 import IntegrationRunRepository from '../../../database/repositories/integrationRunRepository'
 import IntegrationStreamRepository from '../../../database/repositories/integrationStreamRepository'
@@ -7,7 +9,6 @@ import MicroserviceRepository from '../../../database/repositories/microserviceR
 import getUserContext from '../../../database/utils/getUserContext'
 import { twitterFollowers } from '../../../database/utils/keys/microserviceTypes'
 import { IServiceOptions } from '../../../services/IServiceOptions'
-import { LoggingBase } from '../../../services/loggingBase'
 import {
   IIntegrationStream,
   IProcessStreamResults,
@@ -16,8 +17,6 @@ import {
 import { PlatformType } from '../../../types/integrationEnums'
 import { IntegrationRun, IntegrationRunState } from '../../../types/integrationRunTypes'
 import { NodeWorkerIntegrationProcessMessage } from '../../../types/mq/nodeWorkerIntegrationProcessMessage'
-import { singleOrDefault } from '../../../utils/arrays'
-import { Logger, createChildLogger } from '../../../utils/logging'
 import { IntegrationServiceBase } from './integrationServiceBase'
 import SampleDataService from '../../../services/sampleDataService'
 import {
@@ -33,7 +32,7 @@ import { API_CONFIG } from '../../../conf'
 import { SlackAlertTypes, sendSlackAlert } from '../../../utils/slackAlerts'
 import { ApiWebsocketMessage } from '../../../types/mq/apiWebsocketMessage'
 
-export class IntegrationRunProcessor extends LoggingBase {
+export class IntegrationRunProcessor extends LoggerBase {
   constructor(
     options: IServiceOptions,
     private readonly integrationServices: IntegrationServiceBase[],
@@ -41,7 +40,7 @@ export class IntegrationRunProcessor extends LoggingBase {
     private readonly integrationStreamRepository: IntegrationStreamRepository,
     private readonly apiPubSubEmitter?: IRedisPubSubEmitter,
   ) {
-    super(options)
+    super(options.log)
   }
 
   async process(req: NodeWorkerIntegrationProcessMessage) {
@@ -78,7 +77,7 @@ export class IntegrationRunProcessor extends LoggingBase {
       throw new Error(`Integration run '${req.runId}' has no integration or microservice!`)
     }
 
-    const logger = createChildLogger('process', this.log, {
+    const logger = getChildLogger('process', this.log, {
       runId: req.runId,
       type: integration.platform,
       tenantId: integration.tenantId,

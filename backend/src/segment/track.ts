@@ -1,9 +1,9 @@
-import { createServiceChildLogger } from '../utils/logging'
-import { SEGMENT_CONFIG, API_CONFIG, IS_TEST_ENV } from '../conf'
-import getTenatUser from './trackHelper'
+import { getServiceChildLogger } from '@crowd/logging'
+import { API_CONFIG, IS_TEST_ENV, SEGMENT_CONFIG } from '../conf'
 import { Edition } from '../types/common'
+import getTenatUser from './trackHelper'
 
-const log = createServiceChildLogger('segment')
+const log = getServiceChildLogger('segment')
 
 export default function identify(
   event,

@@ -4,7 +4,7 @@
  */
 import dotenv from 'dotenv'
 import dotenvExpand from 'dotenv-expand'
-import { getServiceLogger } from '../../utils/logging'
+import { getServiceLogger } from '@crowd/logging'
 import TenantService from '../../services/tenantService'
 import ActivityService from '../../services/activityService'
 import getUserContext from '../utils/getUserContext'
