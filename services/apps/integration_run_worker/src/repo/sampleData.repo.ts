@@ -23,6 +23,10 @@ export default class SampleDataRepository extends RepositoryBase<SampleDataRepos
   }
 
   private async destroyOrganizations(tenantId: string, memberIds: string[]): Promise<void> {
+    if (memberIds.length === 0) {
+      return
+    }
+
     await this.db().none(
       `delete from organizations where id in (
         select "organizationId" from "memberOrganizations" where "tenantId" = $(tenantId) and "memberId" in ($(memberIds:csv))
@@ -35,6 +39,10 @@ export default class SampleDataRepository extends RepositoryBase<SampleDataRepos
   }
 
   private async destroyMembers(tenantId: string, memberIds: string[]): Promise<void> {
+    if (memberIds.length === 0) {
+      return
+    }
+
     // should also destroy activities
     await this.db().none(
       `delete from members where "tenantId" = $(tenantId) and id in ($(memberIds:csv))`,
