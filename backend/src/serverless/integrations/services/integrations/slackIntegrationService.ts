@@ -1,7 +1,8 @@
 import moment from 'moment/moment'
 import sanitizeHtml from 'sanitize-html'
 import { SLACK_GRID, SlackActivityType } from '@crowd/integrations'
-import { SLACK_CONFIG } from '../../../../conf'
+import { RedisCache, getRedisClient } from '@crowd/redis'
+import { SLACK_CONFIG, REDIS_CONFIG } from '../../../../conf'
 import {
   IIntegrationStream,
   IPendingStream,
@@ -25,8 +26,6 @@ import { MemberAttributeName } from '../../../../database/attributes/member/enum
 import Operations from '../../../dbOperations/operations'
 import getMember from '../../usecases/slack/getMember'
 import getMembers from '../../usecases/slack/getMembers'
-import { createRedisClient } from '../../../../utils/redis'
-import { RedisCache } from '../../../../utils/redis/redisCache'
 
 /* eslint class-methods-use-this: 0 */
 
@@ -44,8 +43,8 @@ export class SlackIntegrationService extends IntegrationServiceBase {
   }
 
   async preprocess(context: IStepContext): Promise<void> {
-    const redis = await createRedisClient(true)
-    const membersCache = new RedisCache('slack-members', redis)
+    const redis = await getRedisClient(REDIS_CONFIG, true)
+    const membersCache = new RedisCache('slack-members', redis, context.logger)
 
     let channelsFromSlackAPI = await getChannels(
       { token: context.integration.token },
@@ -312,7 +311,7 @@ export class SlackIntegrationService extends IntegrationServiceBase {
   private static async getMember(userId: string, context: IStepContext): Promise<any> {
     const membersCache: RedisCache = context.pipelineData.membersCache
 
-    const cached = await membersCache.getValue(userId)
+    const cached = await membersCache.get(userId)
     if (cached) {
       if (cached === 'null') {
         return undefined
@@ -325,12 +324,12 @@ export class SlackIntegrationService extends IntegrationServiceBase {
     const member = result.records
 
     if (member) {
-      await membersCache.setValue(userId, JSON.stringify(member), 24 * 60 * 60)
+      await membersCache.set(userId, JSON.stringify(member), 24 * 60 * 60)
 
       return member
     }
 
-    await membersCache.setValue(userId, 'null', 24 * 60 * 60)
+    await membersCache.set(userId, 'null', 24 * 60 * 60)
     return undefined
   }
 

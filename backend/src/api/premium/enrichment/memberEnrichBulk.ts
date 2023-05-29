@@ -1,3 +1,4 @@
+import { RedisCache } from '@crowd/redis'
 import Error403 from '../../../errors/Error403'
 import Permissions from '../../../security/permissions'
 import identifyTenant from '../../../segment/identifyTenant'
@@ -5,7 +6,6 @@ import { sendBulkEnrichMessage } from '../../../serverless/utils/nodeWorkerSQS'
 import PermissionChecker from '../../../services/user/permissionChecker'
 import { FeatureFlag, FeatureFlagRedisKey } from '../../../types/common'
 import { createServiceLogger } from '../../../utils/logging'
-import { RedisCache } from '../../../utils/redis/redisCache'
 import track from '../../../segment/track'
 import { getSecondsTillEndOfMonth } from '../../../utils/timing'
 import { PLAN_LIMITS } from '../../../feature-flags/isFeatureEnabled'
@@ -20,8 +20,9 @@ export default async (req, res) => {
   const memberEnrichmentCountCache = new RedisCache(
     FeatureFlagRedisKey.MEMBER_ENRICHMENT_COUNT,
     req.redis,
+    req.log,
   )
-  const memberEnrichmentCount = await memberEnrichmentCountCache.getValue(req.currentTenant.id)
+  const memberEnrichmentCount = await memberEnrichmentCountCache.get(req.currentTenant.id)
 
   log.info(parseInt(memberEnrichmentCount, 10) + membersToEnrich.length, 'Total: ')
 
@@ -57,13 +58,9 @@ export default async (req, res) => {
   const secondsRemainingUntilEndOfMonth = getSecondsTillEndOfMonth()
 
   if (!memberEnrichmentCount) {
-    await memberEnrichmentCountCache.setValue(
-      req.currentTenant.id,
-      '0',
-      secondsRemainingUntilEndOfMonth,
-    )
+    await memberEnrichmentCountCache.set(req.currentTenant.id, '0', secondsRemainingUntilEndOfMonth)
   } else {
-    await memberEnrichmentCountCache.setValue(
+    await memberEnrichmentCountCache.set(
       req.currentTenant.id,
       (parseInt(memberEnrichmentCount, 10) + membersToEnrich.length).toString(),
       secondsRemainingUntilEndOfMonth,

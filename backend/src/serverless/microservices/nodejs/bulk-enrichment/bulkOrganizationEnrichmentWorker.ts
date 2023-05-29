@@ -1,21 +1,21 @@
-import { ORGANIZATION_ENRICHMENT_CONFIG } from '../../../../conf'
+import { getRedisClient, RedisCache } from '@crowd/redis'
+import { ORGANIZATION_ENRICHMENT_CONFIG, REDIS_CONFIG } from '../../../../conf'
 import getUserContext from '../../../../database/utils/getUserContext'
 import { PLAN_LIMITS } from '../../../../feature-flags/isFeatureEnabled'
 import OrganizationEnrichmentService from '../../../../services/premium/enrichment/organizationEnrichmentService'
 import { FeatureFlag, FeatureFlagRedisKey } from '../../../../types/common'
-import { createRedisClient } from '../../../../utils/redis'
-import { RedisCache } from '../../../../utils/redis/redisCache'
 import { getSecondsTillEndOfMonth } from '../../../../utils/timing'
 
 export async function BulkorganizationEnrichmentWorker(tenantId: string) {
   const userContext = await getUserContext(tenantId)
-  const redis = await createRedisClient(true)
+  const redis = await getRedisClient(REDIS_CONFIG, true)
   const organizationEnrichmentCountCache = new RedisCache(
     FeatureFlagRedisKey.ORGANIZATION_ENRICHMENT_COUNT,
     redis,
+    userContext.log,
   )
   const usedEnrichmentCount = parseInt(
-    (await organizationEnrichmentCountCache.getValue(userContext.currentTenant.id)) ?? '0',
+    (await organizationEnrichmentCountCache.get(userContext.currentTenant.id)) ?? '0',
     10,
   )
   const remainderEnrichmentLimit =
@@ -33,7 +33,7 @@ export async function BulkorganizationEnrichmentWorker(tenantId: string) {
     enrichedOrgs = await enrichmentService.enrichOrganizationsAndSignalDone()
   }
 
-  await organizationEnrichmentCountCache.setValue(
+  await organizationEnrichmentCountCache.set(
     userContext.currentTenant.id,
     (usedEnrichmentCount + enrichedOrgs.length).toString(),
     getSecondsTillEndOfMonth(),

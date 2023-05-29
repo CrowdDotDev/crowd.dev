@@ -23,7 +23,12 @@ export default async (featureFlag: FeatureFlag, req: any): Promise<boolean> => {
     return true
   }
 
-  const context = await getFeatureFlagTenantContext(req.currentTenant, req.database, req.redis)
+  const context = await getFeatureFlagTenantContext(
+    req.currentTenant,
+    req.database,
+    req.redis,
+    req.log,
+  )
 
   const unleash: Unleash = req.unleash
 

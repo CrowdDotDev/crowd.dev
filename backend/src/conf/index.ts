@@ -1,5 +1,5 @@
 import config from 'config'
-
+import { IRedisConfiguration } from '@crowd/redis'
 import {
   SQSConfiguration,
   S3Configuration,
@@ -21,7 +21,6 @@ import {
   ComprehendConfiguration,
   ClearbitConfiguration,
   DevtoConfiguration,
-  RedisConfiguration,
   NangoConfiguration,
   EnrichmentConfiguration,
   EagleEyeConfiguration,
@@ -59,7 +58,7 @@ export const IS_CLOUD_ENV: boolean = IS_PROD_ENV || IS_STAGING_ENV
 
 export const SQS_CONFIG: SQSConfiguration = config.get<SQSConfiguration>('sqs')
 
-export const REDIS_CONFIG: RedisConfiguration = config.get<RedisConfiguration>('redis')
+export const REDIS_CONFIG: IRedisConfiguration = config.get<IRedisConfiguration>('redis')
 
 export const S3_CONFIG: S3Configuration = config.get<S3Configuration>('s3')
 

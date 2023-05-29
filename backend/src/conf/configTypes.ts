@@ -10,13 +10,6 @@ export enum TenantMode {
   MULTI_WITH_SUBDOMAIN = 'multi-with-subdomain',
 }
 
-export interface RedisConfiguration {
-  username: string
-  password: string
-  host: string
-  port: string
-}
-
 export interface AwsCredentials {
   accountId: string
   accessKeyId: string

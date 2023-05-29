@@ -1,6 +1,8 @@
 import sanitizeHtml from 'sanitize-html'
 import he from 'he'
 import { StackOverflowActivityType, STACKOVERFLOW_GRID } from '@crowd/integrations'
+import { getRedisClient, RedisCache } from '@crowd/redis'
+import { REDIS_CONFIG } from 'conf'
 import {
   IStepContext,
   IIntegrationStream,
@@ -24,8 +26,6 @@ import getUser from '../../usecases/stackoverflow/getUser'
 import MemberAttributeSettingsService from '../../../../services/memberAttributeSettingsService'
 import { StackOverflowMemberAttributes } from '../../../../database/attributes/member/stackOverflow'
 import { MemberAttributeName } from '../../../../database/attributes/member/enums'
-import { createRedisClient } from '../../../../utils/redis'
-import { RedisCache } from '../../../../utils/redis/redisCache'
 
 /* eslint class-methods-use-this: 0 */
 
@@ -49,8 +49,8 @@ export class StackOverlflowIntegrationService extends IntegrationServiceBase {
    */
   async preprocess(context: IStepContext): Promise<void> {
     const settings = context.integration.settings
-    const redis = await createRedisClient(true)
-    const membersCache = new RedisCache('stackoverflow-members', redis)
+    const redis = await getRedisClient(REDIS_CONFIG, true)
+    const membersCache = new RedisCache('stackoverflow-members', redis, context.logger)
     context.pipelineData = {
       tags: settings.tags,
       keywords: settings.keywords,
@@ -435,7 +435,7 @@ export class StackOverlflowIntegrationService extends IntegrationServiceBase {
 
     context.logger.info(`Parsing member ${userId}`)
 
-    const cached = await membersCache.getValue(userId.toString())
+    const cached = await membersCache.get(userId.toString())
     if (cached) {
       if (cached === 'null') {
         return undefined
@@ -446,12 +446,12 @@ export class StackOverlflowIntegrationService extends IntegrationServiceBase {
     const member = await this.getMember(userId, context)
 
     if (member) {
-      await membersCache.setValue(userId.toString(), JSON.stringify(member), 24 * 60 * 60)
+      await membersCache.set(userId.toString(), JSON.stringify(member), 24 * 60 * 60)
 
       return member
     }
 
-    await membersCache.setValue(userId.toString(), 'null', 24 * 60 * 60)
+    await membersCache.set(userId.toString(), 'null', 24 * 60 * 60)
     return undefined
   }
 

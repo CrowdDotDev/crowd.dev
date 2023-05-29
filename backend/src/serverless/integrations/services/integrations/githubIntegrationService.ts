@@ -3,6 +3,7 @@ import { createAppAuth } from '@octokit/auth-app'
 import verifyGithubWebhook from 'verify-github-webhook'
 import { GITHUB_GRID, GithubActivityType, GithubPullRequestEvents } from '@crowd/integrations'
 import { IActivityScoringGrid } from '@crowd/types'
+import { RedisCache, getRedisClient } from '@crowd/redis'
 import { Repo, Repos } from '../../types/regularTypes'
 import { IntegrationType, PlatformType } from '../../../../types/integrationEnums'
 import {
@@ -16,7 +17,7 @@ import MemberAttributeSettingsService from '../../../../services/memberAttribute
 import { GithubMemberAttributes } from '../../../../database/attributes/member/github'
 import { MemberAttributeName } from '../../../../database/attributes/member/enums'
 import { TwitterMemberAttributes } from '../../../../database/attributes/member/twitter'
-import { GITHUB_CONFIG, IS_TEST_ENV } from '../../../../conf'
+import { GITHUB_CONFIG, IS_TEST_ENV, REDIS_CONFIG } from '../../../../conf'
 import StargazersQuery from '../../usecases/github/graphql/stargazers'
 import { IntegrationServiceBase } from '../integrationServiceBase'
 import { timeout } from '../../../../utils/timing'
@@ -33,8 +34,6 @@ import getOrganization from '../../usecases/github/graphql/organizations'
 import { singleOrDefault } from '../../../../utils/arrays'
 import { AppTokenResponse, getAppToken } from '../../usecases/github/rest/getAppToken'
 import getMember from '../../usecases/github/graphql/members'
-import { createRedisClient } from '../../../../utils/redis'
-import { RedisCache } from '../../../../utils/redis/redisCache'
 import PullRequestReviewThreadsQuery from '../../usecases/github/graphql/pullRequestReviewThreads'
 import PullRequestReviewThreadCommentsQuery from '../../usecases/github/graphql/pullRequestReviewThreadComments'
 import TeamsQuery from '../../usecases/github/graphql/teams'
@@ -91,8 +90,8 @@ export class GithubIntegrationService extends IntegrationServiceBase {
   }
 
   async preprocess(context: IStepContext): Promise<void> {
-    const redis = await createRedisClient(true)
-    const emailCache = new RedisCache('github-emails', redis)
+    const redis = await getRedisClient(REDIS_CONFIG, true)
+    const emailCache = new RedisCache('github-emails', redis, context.logger)
 
     const repos: Repos = []
     const unavailableRepos: Repos = []
@@ -354,8 +353,8 @@ export class GithubIntegrationService extends IntegrationServiceBase {
     const event = webhook.payload.event
     const payload = webhook.payload.data
 
-    const redis = await createRedisClient(true)
-    const emailCache = new RedisCache('github-emails', redis)
+    const redis = await getRedisClient(REDIS_CONFIG, true)
+    const emailCache = new RedisCache('github-emails', redis, context.logger)
 
     context.pipelineData = {
       emailCache,
@@ -1784,7 +1783,7 @@ export class GithubIntegrationService extends IntegrationServiceBase {
 
     const cache: RedisCache = context.pipelineData.emailCache
 
-    const existing = await cache.getValue(login)
+    const existing = await cache.get(login)
     if (existing) {
       if (existing === 'null') {
         return ''
@@ -1796,11 +1795,11 @@ export class GithubIntegrationService extends IntegrationServiceBase {
     const member = await this.getMemberData(context, login)
     const email = (member && member.email ? member.email : '').trim()
     if (email && email.length > 0) {
-      await cache.setValue(login, email, 60 * 60)
+      await cache.set(login, email, 60 * 60)
       return email
     }
 
-    await cache.setValue(login, 'null', 60 * 60)
+    await cache.set(login, 'null', 60 * 60)
     return ''
   }
 

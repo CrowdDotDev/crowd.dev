@@ -1,6 +1,8 @@
 import PDLJS from 'peopledatalabs'
 import moment from 'moment'
 import lodash from 'lodash'
+import { getRedisClient, RedisPubSubEmitter } from '@crowd/redis'
+import { REDIS_CONFIG } from 'conf'
 import { LoggingBase } from '../../loggingBase'
 import {
   EnrichmentParams,
@@ -14,8 +16,6 @@ import { renameKeys } from '../../../utils/renameKeys'
 import OrganizationRepository from '../../../database/repositories/organizationRepository'
 import OrganizationCacheRepository from '../../../database/repositories/organizationCacheRepository'
 import { ApiWebsocketMessage } from '../../../types/mq/apiWebsocketMessage'
-import { createRedisClient } from '../../../utils/redis'
-import RedisPubSubEmitter from '../../../utils/redis/pubSubEmitter'
 import { PlatformType } from '../../../types/integrationEnums'
 
 export default class OrganizationEnrichmentService extends LoggingBase {
@@ -180,12 +180,12 @@ export default class OrganizationEnrichmentService extends LoggingBase {
   }
 
   private async sendDoneSignal(organizations: IOrganizations) {
-    const redis = await createRedisClient(true)
+    const redis = await getRedisClient(REDIS_CONFIG, true)
     const organizationIds = organizations.map((org) => org.id)
 
     const apiPubSubEmitter = new RedisPubSubEmitter('api-pubsub', redis, (err) => {
       this.log.error({ err }, 'Error in api-ws emitter!')
-    })
+    }, this.log)
     if (!organizations.length) {
       apiPubSubEmitter.emit(
         'user',

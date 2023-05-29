@@ -1,4 +1,5 @@
 import moment from 'moment'
+import { IRedisPubSubEmitter } from '@crowd/redis'
 import IntegrationRepository from '../../../database/repositories/integrationRepository'
 import IntegrationRunRepository from '../../../database/repositories/integrationRunRepository'
 import IntegrationStreamRepository from '../../../database/repositories/integrationStreamRepository'
@@ -31,7 +32,6 @@ import { i18n } from '../../../i18n'
 import { API_CONFIG } from '../../../conf'
 import { SlackAlertTypes, sendSlackAlert } from '../../../utils/slackAlerts'
 import { ApiWebsocketMessage } from '../../../types/mq/apiWebsocketMessage'
-import { IRedisPubSubEmitter } from '../../../utils/redis'
 
 export class IntegrationRunProcessor extends LoggingBase {
   constructor(

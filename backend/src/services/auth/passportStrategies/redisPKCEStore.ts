@@ -1,8 +1,8 @@
+import { v4 as uuid } from 'uuid'
+import { RedisCache } from '@crowd/redis'
+
 /* eslint-disable class-methods-use-this */
 /* eslint-disable consistent-return */
-
-import { v4 as uuid } from 'uuid'
-import { RedisCache } from '../../../utils/redis/redisCache'
 
 /**
  * This class is a re-implementation of
@@ -55,7 +55,7 @@ class RedisPKCEStore {
       redirectUrl: state.redirectUrl,
     }).toString()
 
-    this.cache.setValue(req.currentUser.id, JSON.stringify(sstate), 300).then(() => {
+    this.cache.set(req.currentUser.id, JSON.stringify(sstate), 300).then(() => {
       callback(null, stateSearchParams)
     })
   }
@@ -69,7 +69,7 @@ class RedisPKCEStore {
     const handle = params.get('handle')
     const userId = params.get('userId')
 
-    this.cache.getValue(userId).then((existingValue) => {
+    this.cache.get(userId).then((existingValue) => {
       if (!existingValue) {
         return callback(null, false, { message: 'Unable to verify authorization request state.' })
       }

@@ -3,6 +3,7 @@ import lodash from 'lodash'
 import { ChannelType, MessageType } from 'discord.js'
 import { v4 as uuid } from 'uuid'
 import { DISCORD_GRID, DiscordActivityType } from '@crowd/integrations'
+import { RedisCache, getRedisClient } from '@crowd/redis'
 import {
   DiscordApiChannel,
   DiscordApiMember,
@@ -10,7 +11,7 @@ import {
   DiscordApiUser,
   DiscordStreamProcessResult,
 } from '../../types/discordTypes'
-import { DISCORD_CONFIG } from '../../../../conf'
+import { DISCORD_CONFIG, REDIS_CONFIG } from '../../../../conf'
 import { DiscordMemberAttributes } from '../../../../database/attributes/member/discord'
 import { MemberAttributeName } from '../../../../database/attributes/member/enums'
 import MemberAttributeSettingsService from '../../../../services/memberAttributeSettingsService'
@@ -36,8 +37,6 @@ import getThreads from '../../usecases/discord/getThreads'
 import { DiscordWebsocketEvent, DiscordWebsocketPayload } from '../../../../types/webhooks'
 import { getMember } from '../../usecases/discord/getMember'
 import { getMessage } from '../../usecases/discord/getMessage'
-import { createRedisClient } from '../../../../utils/redis'
-import { RedisCache } from '../../../../utils/redis/redisCache'
 import { getChannel } from '../../usecases/discord/getChannel'
 import { IRepositoryOptions } from '../../../../database/repositories/IRepositoryOptions'
 import IntegrationRunRepository from '../../../../database/repositories/integrationRunRepository'
@@ -633,24 +632,24 @@ export class DiscordIntegrationService extends IntegrationServiceBase {
     context: IStepContext,
   ): Promise<void> {
     if (!context.pipelineData.channelCache) {
-      const redis = await createRedisClient(true)
-      context.pipelineData.channelCache = new RedisCache('discord-channels', redis)
+      const redis = await getRedisClient(REDIS_CONFIG, true)
+      context.pipelineData.channelCache = new RedisCache('discord-channels', redis, context.logger)
     }
 
     const cache = context.pipelineData.channelCache as RedisCache
 
-    await cache.setValue(channel.id, JSON.stringify(channel), 24 * 60 * 60)
+    await cache.set(channel.id, JSON.stringify(channel), 24 * 60 * 60)
   }
 
   private static async getChannel(id: string, context: IStepContext): Promise<DiscordApiChannel> {
     if (!context.pipelineData.channelCache) {
-      const redis = await createRedisClient(true)
-      context.pipelineData.channelCache = new RedisCache('discord-channels', redis)
+      const redis = await getRedisClient(REDIS_CONFIG, true)
+      context.pipelineData.channelCache = new RedisCache('discord-channels', redis, context.logger)
     }
 
     const cache = context.pipelineData.channelCache as RedisCache
 
-    const cached = await cache.getValue(id)
+    const cached = await cache.get(id)
 
     if (cached) {
       return JSON.parse(cached)
@@ -661,7 +660,7 @@ export class DiscordIntegrationService extends IntegrationServiceBase {
       DiscordIntegrationService.getToken(context),
       context.logger,
     )
-    await cache.setValue(id, JSON.stringify(channel), 24 * 60 * 60)
+    await cache.set(id, JSON.stringify(channel), 24 * 60 * 60)
 
     return channel
   }

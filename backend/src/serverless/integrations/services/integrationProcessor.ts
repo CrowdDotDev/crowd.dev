@@ -1,11 +1,10 @@
+import { RedisClient, RedisPubSubEmitter } from '@crowd/redis'
 import IntegrationRunRepository from '../../../database/repositories/integrationRunRepository'
 import IntegrationStreamRepository from '../../../database/repositories/integrationStreamRepository'
 import { IServiceOptions } from '../../../services/IServiceOptions'
 import { LoggingBase } from '../../../services/loggingBase'
 import { IntegrationType } from '../../../types/integrationEnums'
 import { NodeWorkerIntegrationProcessMessage } from '../../../types/mq/nodeWorkerIntegrationProcessMessage'
-import { RedisClient } from '../../../utils/redis'
-import RedisPubSubEmitter from '../../../utils/redis/pubSubEmitter'
 import { IntegrationCheckProcessor } from './integrationCheckProcessor'
 import { IntegrationRunProcessor } from './integrationRunProcessor'
 import { IntegrationTickProcessor } from './integrationTickProcessor'
@@ -50,9 +49,14 @@ export class IntegrationProcessor extends LoggingBase {
     let apiPubSubEmitter: RedisPubSubEmitter | undefined
 
     if (redisEmitterClient) {
-      apiPubSubEmitter = new RedisPubSubEmitter('api-pubsub', redisEmitterClient, (err) => {
-        this.log.error({ err }, 'Error in api-ws emitter!')
-      })
+      apiPubSubEmitter = new RedisPubSubEmitter(
+        'api-pubsub',
+        redisEmitterClient,
+        (err) => {
+          this.log.error({ err }, 'Error in api-ws emitter!')
+        },
+        this.log,
+      )
     }
 
     const integrationRunRepository = new IntegrationRunRepository(options)

@@ -10,7 +10,7 @@ const log = getServiceLogger()
 export async function passportStrategyMiddleware(req, res, next) {
   try {
     if (TWITTER_CONFIG.clientId) {
-      passport.use(getTwitterStrategy(req.redis))
+      passport.use(getTwitterStrategy(req.redis, req.log))
     }
 
     if (SLACK_CONFIG.clientId) {

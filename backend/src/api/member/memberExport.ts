@@ -1,10 +1,10 @@
+import { RedisCache } from '@crowd/redis'
 import Permissions from '../../security/permissions'
 import identifyTenant from '../../segment/identifyTenant'
 import track from '../../segment/track'
 import MemberService from '../../services/memberService'
 import PermissionChecker from '../../services/user/permissionChecker'
 import { FeatureFlagRedisKey } from '../../types/common'
-import { RedisCache } from '../../utils/redis/redisCache'
 import { getSecondsTillEndOfMonth } from '../../utils/timing'
 
 /**
@@ -25,16 +25,16 @@ export default async (req, res) => {
 
   const payload = await new MemberService(req).export(req.body)
 
-  const csvCountCache = new RedisCache(FeatureFlagRedisKey.CSV_EXPORT_COUNT, req.redis)
+  const csvCountCache = new RedisCache(FeatureFlagRedisKey.CSV_EXPORT_COUNT, req.redis, req.log)
 
-  const csvCount = await csvCountCache.getValue(req.currentTenant.id)
+  const csvCount = await csvCountCache.get(req.currentTenant.id)
 
   const secondsRemainingUntilEndOfMonth = getSecondsTillEndOfMonth()
 
   if (!csvCount) {
-    await csvCountCache.setValue(req.currentTenant.id, '0', secondsRemainingUntilEndOfMonth)
+    await csvCountCache.set(req.currentTenant.id, '0', secondsRemainingUntilEndOfMonth)
   } else {
-    await csvCountCache.setValue(
+    await csvCountCache.set(
       req.currentTenant.id,
       (parseInt(csvCount, 10) + 1).toString(),
       secondsRemainingUntilEndOfMonth,
