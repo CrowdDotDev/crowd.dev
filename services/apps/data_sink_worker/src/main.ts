@@ -1,8 +1,8 @@
 import { getDbConnection } from '@crowd/database'
 import { getServiceLogger } from '@crowd/logging'
-import { getSqsClient } from '@crowd/sqs'
+import { NodejsWorkerEmitter, getSqsClient } from '@crowd/sqs'
 import { DB_CONFIG, SENTIMENT_CONFIG, SQS_CONFIG } from './conf'
-import { NodejsWorkerEmitter, WorkerQueueReceiver } from './queue'
+import { WorkerQueueReceiver } from './queue'
 import { initializeSentimentAnalysis } from '@crowd/sentiment'
 
 const log = getServiceLogger()

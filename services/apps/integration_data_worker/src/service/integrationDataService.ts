@@ -5,15 +5,15 @@ import IntegrationDataRepository from '../repo/integrationData.repo'
 import { IActivityData, IntegrationResultType } from '@crowd/types'
 import { addSeconds, singleOrDefault } from '@crowd/common'
 import { INTEGRATION_SERVICES, IProcessDataContext } from '@crowd/integrations'
-import { DataSinkWorkerEmitter, StreamWorkerEmitter } from '../queue'
 import { WORKER_SETTINGS } from '../config'
+import { DataSinkWorkerEmitter, IntegrationStreamWorkerEmitter } from '@crowd/sqs'
 
 export default class IntegrationDataService extends LoggerBase {
   private readonly repo: IntegrationDataRepository
 
   constructor(
     private readonly redisClient: RedisClient,
-    private readonly streamWorkerEmitter: StreamWorkerEmitter,
+    private readonly streamWorkerEmitter: IntegrationStreamWorkerEmitter,
     private readonly dataSinkWorkerEmitter: DataSinkWorkerEmitter,
     store: DbStore,
     parentLog: Logger,

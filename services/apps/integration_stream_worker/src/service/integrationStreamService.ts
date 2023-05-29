@@ -2,20 +2,24 @@ import { singleOrDefault, addSeconds } from '@crowd/common'
 import { DbStore } from '@crowd/database'
 import { Logger, LoggerBase, getChildLogger } from '@crowd/logging'
 import { RedisCache, RedisClient } from '@crowd/redis'
-import { DataWorkerEmitter, RunWorkerEmitter, StreamWorkerEmitter } from '../queue'
 import IntegrationStreamRepository from '../repo/integrationStream.repo'
 import { IntegrationStreamType, RateLimitError } from '@crowd/types'
 import { INTEGRATION_SERVICES, IProcessStreamContext } from '@crowd/integrations'
 import { NANGO_CONFIG, WORKER_SETTINGS } from '../config'
+import {
+  IntegrationDataWorkerEmitter,
+  IntegrationRunWorkerEmitter,
+  IntegrationStreamWorkerEmitter,
+} from '@crowd/sqs'
 
 export default class IntegrationStreamService extends LoggerBase {
   private readonly repo: IntegrationStreamRepository
 
   constructor(
     private readonly redisClient: RedisClient,
-    private readonly runWorkerEmitter: RunWorkerEmitter,
-    private readonly dataWorkerEmitter: DataWorkerEmitter,
-    private readonly streamWorkerEmitter: StreamWorkerEmitter,
+    private readonly runWorkerEmitter: IntegrationRunWorkerEmitter,
+    private readonly dataWorkerEmitter: IntegrationDataWorkerEmitter,
+    private readonly streamWorkerEmitter: IntegrationStreamWorkerEmitter,
     store: DbStore,
     parentLog: Logger,
   ) {

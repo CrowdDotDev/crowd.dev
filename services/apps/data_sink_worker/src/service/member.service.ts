@@ -8,7 +8,7 @@ import mergeWith from 'lodash.mergewith'
 import isEqual from 'lodash.isequal'
 import { IMemberCreateData, IMemberUpdateData } from './member.data'
 import MemberAttributeService from './memberAttribute.service'
-import { NodejsWorkerEmitter } from '@/queue'
+import { NodejsWorkerEmitter } from '@crowd/sqs'
 
 export default class MemberService extends LoggerBase {
   constructor(

@@ -2,16 +2,13 @@ import { DbConnection, DbStore } from '@crowd/database'
 import { Logger } from '@crowd/logging'
 import {
   DATA_SINK_WORKER_QUEUE_SETTINGS,
-  NODEJS_WORKER_QUEUE_SETTINGS,
+  NodejsWorkerEmitter,
   SqsClient,
-  SqsQueueEmitter,
   SqsQueueReceiver,
 } from '@crowd/sqs'
 import {
   DataSinkWorkerQueueMessageType,
   IQueueMessage,
-  NewActivityAutomationQueueMessage,
-  NewMemberAutomationQueueMessage,
   ProcessIntegrationResultQueueMessage,
 } from '@crowd/types'
 import DataSinkService from '../service/dataSink.service'
@@ -47,28 +44,5 @@ export class WorkerQueueReceiver extends SqsQueueReceiver {
       this.log.error(err, 'Error while processing message!')
       throw err
     }
-  }
-}
-
-export class NodejsWorkerEmitter extends SqsQueueEmitter {
-  constructor(client: SqsClient, parentLog: Logger) {
-    super(client, NODEJS_WORKER_QUEUE_SETTINGS, parentLog)
-  }
-
-  public async processAutomationForNewActivity(
-    tenantId: string,
-    activityId: string,
-  ): Promise<void> {
-    await this.sendMessage(tenantId, new NewActivityAutomationQueueMessage(tenantId, activityId))
-  }
-
-  public async processAutomationForNewMember(tenantId: string, memberId: string): Promise<void> {
-    await this.sendMessage(tenantId, new NewMemberAutomationQueueMessage(tenantId, memberId))
-  }
-}
-
-export class DataSinkWorkerEmitter extends SqsQueueEmitter {
-  constructor(client: SqsClient, parentLog: Logger) {
-    super(client, DATA_SINK_WORKER_QUEUE_SETTINGS, parentLog)
   }
 }

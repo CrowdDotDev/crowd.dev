@@ -2,8 +2,8 @@ import { getServiceLogger } from '@crowd/logging'
 import { DB_CONFIG, REDIS_CONFIG, SQS_CONFIG } from './config'
 import { getRedisClient } from '@crowd/redis'
 import { getDbConnection } from '@crowd/database'
-import { getSqsClient } from '@crowd/sqs'
-import { DataSinkWorkerEmitter, StreamWorkerEmitter, WorkerQueueReceiver } from './queue'
+import { DataSinkWorkerEmitter, IntegrationStreamWorkerEmitter, getSqsClient } from '@crowd/sqs'
+import { WorkerQueueReceiver } from './queue'
 
 const log = getServiceLogger()
 
@@ -15,7 +15,7 @@ setImmediate(async () => {
   const dbConnection = getDbConnection(DB_CONFIG())
   const redisClient = await getRedisClient(REDIS_CONFIG(), true)
 
-  const streamWorkerEmitter = new StreamWorkerEmitter(sqsClient, log)
+  const streamWorkerEmitter = new IntegrationStreamWorkerEmitter(sqsClient, log)
   const dataSinkWorkerEmitter = new DataSinkWorkerEmitter(sqsClient, log)
 
   const queue = new WorkerQueueReceiver(

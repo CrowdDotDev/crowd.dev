@@ -2,28 +2,25 @@ import { DbConnection, DbStore } from '@crowd/database'
 import { Logger } from '@crowd/logging'
 import { RedisClient } from '@crowd/redis'
 import {
-  DATA_SINK_WORKER_QUEUE_SETTINGS,
   INTEGRATION_DATA_WORKER_QUEUE_SETTINGS,
-  INTEGRATION_STREAM_WORKER_QUEUE_SETTINGS,
+  IntegrationStreamWorkerEmitter,
+  DataSinkWorkerEmitter,
   SqsClient,
   SqsQueueReceiver,
-  SqsQueueEmitter,
 } from '@crowd/sqs'
 import {
   IQueueMessage,
   IntegrationDataWorkerQueueMessageType,
   ProcessStreamDataQueueMessage,
-  ProcessStreamQueueMessage,
 } from '@crowd/types'
 import IntegrationStreamService from '../service/integrationDataService'
-import { ProcessIntegrationResultQueueMessage } from '@crowd/types'
 
 export class WorkerQueueReceiver extends SqsQueueReceiver {
   constructor(
     client: SqsClient,
     private readonly redisClient: RedisClient,
     private readonly dbConn: DbConnection,
-    private readonly streamWorkerEmitter: StreamWorkerEmitter,
+    private readonly streamWorkerEmitter: IntegrationStreamWorkerEmitter,
     private readonly dataSinkWorkerEmitter: DataSinkWorkerEmitter,
     parentLog: Logger,
   ) {
@@ -53,31 +50,5 @@ export class WorkerQueueReceiver extends SqsQueueReceiver {
       this.log.error(err, 'Error while processing message!')
       throw err
     }
-  }
-}
-
-export class StreamWorkerEmitter extends SqsQueueEmitter {
-  constructor(client: SqsClient, parentLog: Logger) {
-    super(client, INTEGRATION_STREAM_WORKER_QUEUE_SETTINGS, parentLog)
-  }
-
-  public async triggerStreamProcessing(tenantId: string, platform: string, streamId: string) {
-    await this.sendMessage(
-      `streams-${tenantId}-${platform}`,
-      new ProcessStreamQueueMessage(streamId),
-    )
-  }
-}
-
-export class DataSinkWorkerEmitter extends SqsQueueEmitter {
-  constructor(client: SqsClient, parentLog: Logger) {
-    super(client, DATA_SINK_WORKER_QUEUE_SETTINGS, parentLog)
-  }
-
-  public async triggerResultProcessing(tenantId: string, platform: string, resultId: string) {
-    await this.sendMessage(
-      `results-${tenantId}-${platform}`,
-      new ProcessIntegrationResultQueueMessage(resultId),
-    )
   }
 }

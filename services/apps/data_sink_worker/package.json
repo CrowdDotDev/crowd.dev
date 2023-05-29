@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "start": "node -r tsconfig-paths/register -r ts-node/register src/main.ts --transpile-only",
-    "start:debug": "set -a && ../../../backend/.env.dist.local && . ./../../backend/.env.override.local && set +a && echo \"test $CROWD_REDIS_HOST\" && SERVICE=data-sink-worker LOG_LEVEL=trace node --inspect=0.0.0.0:9233 -r tsconfig-paths/register -r ts-node/register src/main.ts --transpile-only",
+    "start:debug": "set -a && . ../../../backend/.env.dist.local && . ../../../backend/.env.override.local && set +a && SERVICE=data-sink-worker LOG_LEVEL=trace node --inspect=0.0.0.0:9233 -r tsconfig-paths/register -r ts-node/register src/main.ts --transpile-only",
     "start:watch": "nodemon --watch src --ext ts --exec npm run start:debug",
     "dev": "concurrently \"npm run start:watch\" \"../../scripts/watch_libs.sh --service data_sink_worker\"",
     "lint": "eslint --ext .ts src --max-warnings=0",

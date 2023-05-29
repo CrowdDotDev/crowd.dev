@@ -3,7 +3,7 @@ import { Logger, LoggerBase, getChildLogger } from '@crowd/logging'
 import { IActivityData, IntegrationResultState, IntegrationResultType } from '@crowd/types'
 import DataSinkRepository from '../repo/dataSink.repo'
 import ActivityService from './activity.service'
-import { NodejsWorkerEmitter } from '@/queue'
+import { NodejsWorkerEmitter } from '@crowd/sqs'
 
 export default class DataSinkService extends LoggerBase {
   private readonly repo: DataSinkRepository
