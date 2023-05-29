@@ -1120,10 +1120,12 @@ class MemberRepository {
     options: IRepositoryOptions,
   ): Promise<PageData<any>> {
     const tenant = SequelizeRepository.getCurrentTenant(options)
+    const segmentIds = options.currentSegments.map((s) => s.id)
     const seq = SequelizeRepository.getSequelize(options)
 
     const params: any = {
       tenantId: tenant.id,
+      segmentIds,
       limit,
       offset,
     }
@@ -1210,6 +1212,7 @@ class MemberRepository {
                 INNER JOIN members m2 ON mtm."toMergeId" = m2.id
                 WHERE m."tenantId" = :tenantId
                   AND m2."deletedAt" IS NULL
+                  AND mtm."segmentId" IN (:segmentIds)
                 GROUP BY mtm."memberId"
             ),
             no_merge_data AS (
@@ -1219,6 +1222,7 @@ class MemberRepository {
                 INNER JOIN members m2 ON mnm."noMergeId" = m2.id
                 WHERE m."tenantId" = :tenantId
                   AND m2."deletedAt" IS NULL
+                  AND mnm."segmentId" IN (:segmentIds)
                 GROUP BY mnm."memberId"
             ),
             member_tags AS (
@@ -1233,11 +1237,14 @@ class MemberRepository {
                     JSONB_AGG(t.id) AS all_ids
                 FROM "memberTags" mt
                 INNER JOIN members m ON mt."memberId" = m.id
+                JOIN "memberSegments" ms ON ms."memberId" = m.id
                 INNER JOIN tags t ON mt."tagId" = t.id
                 WHERE m."tenantId" = :tenantId
                   AND m."deletedAt" IS NULL
+                  AND ms."segmentId" IN (:segmentIds)
                   AND t."tenantId" = :tenantId
                   AND t."deletedAt" IS NULL
+                  AND t."segmentId" IN (:segmentIds)
                 GROUP BY mt."memberId"
             ),
             member_organizations AS (
@@ -1250,11 +1257,30 @@ class MemberRepository {
                 FROM "memberOrganizations" mo
                 INNER JOIN members m ON mo."memberId" = m.id
                 INNER JOIN organizations o ON mo."organizationId" = o.id
+                JOIN "memberSegments" ms ON ms."memberId" = m.id
+                JOIN "organizationSegments" os ON o.id = os."organizationId"
                 WHERE m."tenantId" = :tenantId
                   AND m."deletedAt" IS NULL
+                  AND ms."segmentId" IN (:segmentIds)
                   AND o."tenantId" = :tenantId
                   AND o."deletedAt" IS NULL
+                  AND os."segmentId" IN (:segmentIds)
                 GROUP BY mo."memberId"
+            ),
+            aggs AS (
+                SELECT
+                    id,
+                    MAX("lastActive") AS "lastActive",
+                    ARRAY(SELECT DISTINCT UNNEST(ARRAY_AGG(identities))) AS identities,
+                    jsonb_merge_agg(username) AS username,
+                    SUM("activityCount") AS "activityCount",
+                    ARRAY(SELECT DISTINCT UNNEST(array_accum("activityTypes"))) AS "activityTypes",
+                    ARRAY(SELECT DISTINCT UNNEST(array_accum("activeOn"))) AS "activeOn",
+                    SUM("activeDaysCount") AS "activeDaysCount",
+                    ROUND(SUM("averageSentiment") / SUM("activityCount"), 2) AS "averageSentiment"
+                FROM "memberActivityAggregatesMVs"
+                WHERE "segmentId" IN (:segmentIds)
+                GROUP BY id
             )
         SELECT
             m.id,
@@ -1284,7 +1310,7 @@ class MemberRepository {
             COALESCE(mo.all_organizations, JSON_BUILD_ARRAY()) AS organizations,
             COALESCE(JSONB_ARRAY_LENGTH(m.contributions), 0) AS "numberOfOpenSourceContributions"
         FROM members m
-        INNER JOIN "memberActivityAggregatesMVs" aggs ON aggs.id = m.id
+        INNER JOIN aggs ON aggs.id = m.id
         LEFT JOIN to_merge_data tmd ON m.id = tmd."memberId"
         LEFT JOIN no_merge_data nmd ON m.id = nmd."memberId"
         LEFT JOIN member_tags mt ON m.id = mt."memberId"
@@ -1304,11 +1330,14 @@ class MemberRepository {
                     JSONB_AGG(t.id) AS all_ids
                 FROM "memberTags" mt
                 INNER JOIN members m ON mt."memberId" = m.id
+                JOIN "memberSegments" ms ON ms."memberId" = m.id
                 INNER JOIN tags t ON mt."tagId" = t.id
                 WHERE m."tenantId" = :tenantId
                   AND m."deletedAt" IS NULL
+                  AND ms."segmentId" IN (:segmentIds)
                   AND t."tenantId" = :tenantId
                   AND t."deletedAt" IS NULL
+                  AND t."segmentId" IN (:segmentIds)
                 GROUP BY mt."memberId"
             ),
             member_organizations AS (
@@ -1318,10 +1347,14 @@ class MemberRepository {
                 FROM "memberOrganizations" mo
                 INNER JOIN members m ON mo."memberId" = m.id
                 INNER JOIN organizations o ON mo."organizationId" = o.id
+                JOIN "memberSegments" ms ON ms."memberId" = m.id
+                JOIN "organizationSegments" os ON o.id = os."organizationId"
                 WHERE m."tenantId" = :tenantId
                   AND m."deletedAt" IS NULL
+                  AND ms."segmentId" IN (:segmentIds)
                   AND o."tenantId" = :tenantId
                   AND o."deletedAt" IS NULL
+                  AND os."segmentId" IN (:segmentIds)
                 GROUP BY mo."memberId"
             )
         SELECT COUNT(m.id) AS "totalCount"
@@ -1370,6 +1403,7 @@ class MemberRepository {
                     FROM activities
                     WHERE "tenantId" = :tenantId
                       AND "memberId" IN (:memberIds)
+                      AND "segmentId" IN (:segmentIds)
                 )
             SELECT *
             FROM raw_data
@@ -1378,6 +1412,7 @@ class MemberRepository {
         {
           replacements: {
             tenantId: tenant.id,
+            segmentIds,
             memberIds,
           },
           type: QueryTypes.SELECT,
