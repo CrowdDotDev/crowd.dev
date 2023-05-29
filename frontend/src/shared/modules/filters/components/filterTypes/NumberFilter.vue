@@ -11,24 +11,51 @@
       />
       <div class="flex -mx-1">
         <div class="flex-grow px-1">
-          <app-form-item :validation="$v.value" class="mb-0">
+          <app-form-item
+            :validation="$v.value"
+            class="mb-0"
+            :show-error="false"
+          >
             <cr-filter-input
               v-model="form.value"
               type="number"
+              min="0"
               :placeholder="form.operator !== FilterNumberOperator.BETWEEN ? 'Enter value' : 'From'"
+              @blur="$v.value.$touch"
+              @change="$v.value.$touch"
             />
           </app-form-item>
         </div>
         <div v-if="form.operator === FilterNumberOperator.BETWEEN" class="flex-grow px-1">
-          <app-form-item :validation="$v.valueTo" class="mb-0">
+          <app-form-item
+            :validation="$v.valueTo"
+            class="mb-0"
+            :show-error="false"
+          >
             <cr-filter-input
               v-model="form.valueTo"
               type="number"
               placeholder="To"
+              min="0"
+              @blur="$v.valueTo.$touch"
+              @change="$v.valueTo.$touch"
             />
           </app-form-item>
         </div>
       </div>
+      <app-form-errors
+        :validation="$v"
+        error-icon="ri-error-warning-line"
+        error-class="relative top-1"
+        :error-messages="{
+          'value-required': `${form.operator === FilterNumberOperator.BETWEEN ? 'From field' : 'This field'} is required`,
+          'value-numeric': `${form.operator === FilterNumberOperator.BETWEEN ? 'From field' : 'This field'} is invalid`,
+          'value-minValue': `${form.operator === FilterNumberOperator.BETWEEN ? 'From field' : 'This field'} value has to be positive`,
+          'valueTo-required': `To field is required`,
+          'valueTo-numeric': `To field is invalid`,
+          'valueTo-minValue': `Number should be higher than “From” field`,
+        }"
+      />
     </div>
   </div>
 </template>
@@ -50,6 +77,7 @@ import {
 import CrFilterInput from '@/shared/modules/filters/components/partials/string/FilterInput.vue';
 import CrFilterInlineSelect from '@/shared/modules/filters/components/partials/FilterInlineSelect.vue';
 import AppFormItem from '@/shared/form/form-item.vue';
+import AppFormErrors from '@/shared/form/form-errors.vue';
 
 const props = defineProps<{
   modelValue: NumberFilterValue,

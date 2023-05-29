@@ -1,7 +1,7 @@
 <template>
   <el-input
     v-model="model"
-    class="filter-input"
+    class="filter-input-field"
     :placeholder="placeholder"
   />
 </template>
@@ -32,13 +32,12 @@ export default {
 };
 </script>
 
-<style scope lang="scss">
-.filter-input {
+<style lang="scss">
+.filter-input-field {
   .el-input__wrapper,
   .el-input__wrapper.is-focus,
   .el-input__wrapper:hover {
-    border: none !important;
-    @apply bg-gray-50 shadow-none rounded-md;
+    @apply bg-gray-50 shadow-none rounded-md border border-gray-50 transition #{!important};
 
     input {
       &,
@@ -50,4 +49,15 @@ export default {
     }
   }
 }
+
+.el-form-item.is-error {
+  .filter-input-field {
+    .el-input__wrapper,
+    .el-input__wrapper.is-focus,
+    .el-input__wrapper:hover{
+      border-color: var(--el-color-danger) !important;
+    }
+  }
+}
+
 </style>

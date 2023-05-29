@@ -6,7 +6,7 @@
       :teleported="false"
       @visible-change="dropdownExpanded = $event"
     >
-      <div class="flex items-center">
+      <div class="flex items-center flex-wrap">
         <span class="filter-select-option-prefix mr-1">{{
           prefix
         }}</span>
