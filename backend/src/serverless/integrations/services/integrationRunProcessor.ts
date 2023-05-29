@@ -364,7 +364,12 @@ export class IntegrationRunProcessor extends LoggingBase {
                   `Processing bulk operation with ${operation.records.length} records!`,
                 )
                 stepContext.limitCount += operation.records.length
-                await bulkOperations(operation.type, operation.records, userContext)
+                await bulkOperations(
+                  operation.type,
+                  operation.records,
+                  userContext,
+                  req.fireCrowdWebhooks ?? true,
+                )
               }
             }
 
