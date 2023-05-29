@@ -136,9 +136,9 @@ const doGetMembersCount = () => {
 };
 
 const fetch = ({
-  filter, offset, limit, orderBy,
+  filter, offset, limit, orderBy, body,
 }: FilterQuery) => {
-  console.log(filter, offset, limit, orderBy);
+  console.log(filter, offset, limit, orderBy, body);
   // TODO: fetch members
 };
 

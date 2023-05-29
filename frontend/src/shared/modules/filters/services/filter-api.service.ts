@@ -21,6 +21,7 @@ export const filterApiService = () => {
 
     let baseFilters: any[] = [];
     let filters: any[] = [];
+    let body: any = {};
 
     // Search
     if (search.length > 0) {
@@ -45,13 +46,32 @@ export const filterApiService = () => {
 
     // Filter values
     Object.entries(filterValues).forEach(([key, values]) => {
-      const filter = configuration[key]?.apiFilterRenderer(values);
+      const config: FilterConfig = configuration[key];
+      if (!config || config.inBody) {
+        return;
+      }
+      const filter = config?.apiFilterRenderer(values);
       if (filter && filter.length > 0) {
         filters = [
           ...filters,
           ...filter,
         ];
       }
+    });
+
+    // In body filters
+    Object.entries(filterValues).forEach(([key, values]) => {
+      const config: FilterConfig = configuration[key];
+      if (!config || !config.inBody) {
+        return;
+      }
+      const filter: any[] = configuration[key]?.apiFilterRenderer(values) || [];
+      filter.forEach((obj) => {
+        body = {
+          ...body,
+          ...obj,
+        };
+      });
     });
 
     // build object
@@ -74,6 +94,7 @@ export const filterApiService = () => {
       limit,
       offset,
       orderBy,
+      body,
     };
   }
 

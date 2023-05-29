@@ -20,6 +20,7 @@ export interface BaseFilterConfig {
   id: string;
   label: string;
   iconClass: string;
+  inBody?: boolean;
 }
 
 export type FilterConfig = NumberFilterConfig
