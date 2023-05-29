@@ -1,5 +1,5 @@
 import { LoggerBase } from '@crowd/logging'
-import { ApiPubSubEmitter, IRedisPubSubEmitter, RedisClient } from '@crowd/redis'
+import { ApiPubSubEmitter, RedisClient } from '@crowd/redis'
 import IntegrationRunRepository from '../../../database/repositories/integrationRunRepository'
 import IntegrationStreamRepository from '../../../database/repositories/integrationStreamRepository'
 import { IServiceOptions } from '../../../services/IServiceOptions'
@@ -46,7 +46,7 @@ export class IntegrationProcessor extends LoggerBase {
       'Successfully detected supported integrations!',
     )
 
-    let apiPubSubEmitter: IRedisPubSubEmitter | undefined
+    let apiPubSubEmitter: ApiPubSubEmitter | undefined
 
     if (redisEmitterClient) {
       apiPubSubEmitter = new ApiPubSubEmitter(redisEmitterClient, this.log)
