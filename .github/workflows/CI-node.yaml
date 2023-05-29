@@ -64,6 +64,9 @@ jobs:
       - name: Check out repository code
         uses: actions/checkout@v2
 
+      - name: Node version
+        run: node --version
+
       - name: Install and build libraries
         run: ../services/scripts/install_lib_packages.sh && ../services/scripts/build_libs.sh
 
