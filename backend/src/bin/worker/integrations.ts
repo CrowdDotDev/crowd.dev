@@ -1,6 +1,6 @@
 import { getRedisClient } from '@crowd/redis'
-import { REDIS_CONFIG } from 'conf'
 import { Logger } from '@crowd/logging'
+import { REDIS_CONFIG } from '../../conf'
 import SequelizeRepository from '../../database/repositories/sequelizeRepository'
 import { IntegrationProcessor } from '../../serverless/integrations/services/integrationProcessor'
 import { IServiceOptions } from '../../services/IServiceOptions'

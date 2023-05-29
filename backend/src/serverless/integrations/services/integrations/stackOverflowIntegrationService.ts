@@ -2,7 +2,7 @@ import sanitizeHtml from 'sanitize-html'
 import he from 'he'
 import { StackOverflowActivityType, STACKOVERFLOW_GRID } from '@crowd/integrations'
 import { getRedisClient, RedisCache } from '@crowd/redis'
-import { REDIS_CONFIG } from 'conf'
+import { REDIS_CONFIG } from '../../../../conf'
 import {
   IStepContext,
   IIntegrationStream,
