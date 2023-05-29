@@ -1,5 +1,5 @@
 import { DB_CONFIG, SQS_CONFIG } from '@/conf'
-import { DataSinkWorkerEmitter } from '@/queue'
+import { DataSinkWorkerEmitter } from '@crowd/sqs'
 import DataSinkRepository from '@/repo/dataSink.repo'
 import { processPaginated } from '@crowd/common'
 import { DbStore, getDbConnection } from '@crowd/database'
