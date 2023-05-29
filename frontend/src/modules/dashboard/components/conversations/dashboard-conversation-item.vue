@@ -189,7 +189,7 @@ export default {
   computed: {
     platform() {
       return CrowdIntegrations.getConfig(
-        this.conversation.platform,
+        this.conversation.conversationStarter?.platform,
       );
     },
     member() {

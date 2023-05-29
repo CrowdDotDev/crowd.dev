@@ -565,7 +565,22 @@ class ConversationRepository {
 
     const transaction = SequelizeRepository.getTransaction(options)
 
-    output.activities = await record.getActivities({
+    // Fetch the first activity with parent = null
+    const firstActivity = await record.getActivities({
+      where: {
+        parentId: null,
+      },
+      include: ['member', 'parent', 'objectMember'],
+      transaction,
+    })
+
+    // Fetch remaining activities with parent != null
+    const remainingActivities = await record.getActivities({
+      where: {
+        parentId: {
+          [Sequelize.Op.not]: null,
+        },
+      },
       include: ['member', 'parent', 'objectMember'],
       order: [
         ['timestamp', 'ASC'],
@@ -573,6 +588,8 @@ class ConversationRepository {
       ],
       transaction,
     })
+
+    output.activities = [...firstActivity, ...remainingActivities]
 
     let memberPromises = output.activities.map(async (act) => {
       const member = (await act.getMember()).get({ plain: true })

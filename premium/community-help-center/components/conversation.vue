@@ -15,7 +15,7 @@
           <div class="flex text-sm">
             <div class="flex mr-1 flex-shrink-0 font-normal h-4 w-4 my-auto">
               <platform-icon
-                :platform="conversation.platform"
+                :platform="conversation.conversationStarter?.platform"
                 :styles="styles"
               />
             </div>
@@ -180,7 +180,7 @@
         />
         <span>
           Join conversation on
-          <span class="capitalize"> {{ conversation.platform }} </span>
+          <span class="capitalize"> {{ conversation.conversationStarter?.platform }} </span>
         </span>
       </a>
     </div>
