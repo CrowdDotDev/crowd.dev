@@ -15,6 +15,7 @@ export enum PlatformType {
   PRODUCTHUNT = 'producthunt',
   YOUTUBE = 'youtube',
   STACKOVERFLOW = 'stackoverflow',
+  DISCOURSE = 'discourse',
   GIT = 'git',
   CRUNCHBASE = 'crunchbase',
   OTHER = 'other',
@@ -34,6 +35,7 @@ export enum IntegrationType {
   LINKEDIN = 'linkedin',
   CROWD = 'crowd',
   STACKOVERFLOW = 'stackoverflow',
+  DISCOURSE = 'discourse',
   GIT = 'git',
 }
 
@@ -49,5 +51,6 @@ export const integrationLabel: Record<IntegrationType, string> = {
   [IntegrationType.LINKEDIN]: 'LinkedIn',
   [IntegrationType.CROWD]: 'Crowd',
   [IntegrationType.STACKOVERFLOW]: 'Stack Overflow',
+  [IntegrationType.DISCOURSE]: 'Discourse',
   [IntegrationType.GIT]: 'Git',
 }

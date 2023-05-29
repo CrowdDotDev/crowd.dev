@@ -819,4 +819,50 @@ export default class IntegrationService {
 
     return integration
   }
+
+  /**
+   * Adds/updates Discourse integration
+   * @param integrationData  to create the integration object
+   * @returns integration object
+   */
+  async discourseConnectOrUpdate(integrationData) {
+    const transaction = await SequelizeRepository.createTransaction(this.options)
+    let integration
+    let run
+
+    try {
+      integration = await this.createOrUpdate(
+        {
+          platform: PlatformType.DISCOURSE,
+          settings: {
+            apiKey: integrationData.apiKey,
+            apiUsername: integrationData.apiUsername,
+            forumHostname: integrationData.forumHostname,
+            webhookSecret: integrationData.webhookSecret,
+            updateMemberAttributes: true,
+          },
+          status: 'in-progress',
+        },
+        transaction,
+      )
+
+      run = await new IntegrationRunRepository({ ...this.options, transaction }).create({
+        integrationId: integration.id,
+        tenantId: integration.tenantId,
+        onboarding: true,
+        state: IntegrationRunState.PENDING,
+      })
+      await SequelizeRepository.commitTransaction(transaction)
+    } catch (err) {
+      await SequelizeRepository.rollbackTransaction(transaction)
+      throw err
+    }
+
+    await sendNodeWorkerMessage(
+      integration.tenantId,
+      new NodeWorkerIntegrationProcessMessage(run.id),
+    )
+
+    return integration
+  }
 }

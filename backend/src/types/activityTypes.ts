@@ -7,6 +7,7 @@ import { RedditGrid } from '../serverless/integrations/grid/redditGrid'
 import { SlackGrid } from '../serverless/integrations/grid/slackGrid'
 import { StackOverflowGrid } from '../serverless/integrations/grid/stackOverflowGrid'
 import { TwitterGrid } from '../serverless/integrations/grid/twitterGrid'
+import { DiscourseGrid } from '../serverless/integrations/grid/discourseGrid'
 import isUrl from '../utils/isUrl'
 import { PlatformType } from './integrationEnums'
 
@@ -130,6 +131,13 @@ export enum StackOverflowActivityType {
   ANSWER = 'answer',
 }
 
+export enum DiscourseActivityType {
+  CREATE_TOPIC = 'create_topic',
+  MESSAGE_IN_TOPIC = 'message_in_topic',
+  JOIN = 'join',
+  LIKE = 'like',
+}
+
 const githubUrl = 'https://github.com'
 
 const defaultGithubChannelFormatter = (channel) => {
@@ -153,6 +161,18 @@ const defaultStackoverflowFormatter = (activity) => {
   }
 
   return ''
+}
+
+const cleanDiscourseUrl = (url) => {
+  // https://discourse-web-aah2.onrender.com/t/test-webhook-topic-cool/26/5 -> remove /5 so only url to topic remains
+  const urlSplit = url.split('/')
+  urlSplit.pop()
+  return urlSplit.join('/')
+}
+
+const defaultDiscourseFormatter = (activity) => {
+  const topicUrl = cleanDiscourseUrl(activity.url)
+  return `<a href="${topicUrl}" target="_blank">#${activity.channel}</a>`
 }
 
 export const UNKNOWN_ACTIVITY_TYPE_DISPLAY: ActivityTypeDisplayProperties = {
@@ -658,6 +678,50 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
         },
       },
       isContribution: StackOverflowGrid.answer.isContribution,
+    },
+  },
+  [PlatformType.DISCOURSE]: {
+    [DiscourseActivityType.CREATE_TOPIC]: {
+      display: {
+        default: 'Created a topic {self}',
+        short: 'created a topic',
+        channel: '<span class="text-brand-500 truncate max-w-2xs">#{channel}</span>',
+        formatter: {
+          self: defaultDiscourseFormatter,
+        },
+      },
+      isContribution: DiscourseGrid.create_topic.isContribution,
+    },
+    [DiscourseActivityType.MESSAGE_IN_TOPIC]: {
+      display: {
+        default: 'Posted a message in {self}',
+        short: 'posted a message',
+        channel: '<span class="text-brand-500 truncate max-w-2xs">#{channel}</span>',
+        formatter: {
+          self: defaultDiscourseFormatter,
+        },
+      },
+      isContribution: DiscourseGrid.message_in_topic.isContribution,
+    },
+    [DiscourseActivityType.JOIN]: {
+      display: {
+        default: 'Joined a forum',
+        short: 'joined a forum',
+        channel: '',
+      },
+      isContribution: DiscourseGrid.join.isContribution,
+    },
+    [DiscourseActivityType.LIKE]: {
+      display: {
+        default: 'Liked a post in {self}',
+        short: 'liked a post',
+        channel: '<span class="text-brand-500 truncate max-w-2xs">#{channel}</span>',
+        formatter: {
+          self: (activity) =>
+            `<a href="${activity.attributes.topicURL}" target="_blank">#${activity.channel}</a>`,
+        },
+      },
+      isContribution: DiscourseGrid.like.isContribution,
     },
   },
 }
