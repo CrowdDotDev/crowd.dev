@@ -1,16 +1,4 @@
 {
-  "db": {
-    "host": "localhost",
-    "port": 5432,
-    "database": "crowd-web",
-    "user": "postgres",
-    "password": "example"
-  },
-  "sqs": {
-    "region": "elasticmq",
-    "host": "localhost",
-    "port": 9324,
-    "accessKeyId": "x",
-    "secretAccessKey": "x"
-  }
+  "db": {},
+  "sqs": {}
 }

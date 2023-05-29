@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "start": "node -r ts-node/register src/main.ts --transpile-only",
-    "start:debug": "SERVICE=integration-run-worker LOG_LEVEL=trace node --inspect=0.0.0.0:9230 -r ts-node/register src/main.ts --transpile-only",
+    "start:debug": "set -a && ../../../backend/.env.dist.local && . ../../../backend/.env.override.local && set +a && echo \"test $CROWD_REDIS_HOST\" &&  SERVICE=integration-run-worker LOG_LEVEL=trace node --inspect=0.0.0.0:9230 -r ts-node/register src/main.ts --transpile-only",
     "start:watch": "nodemon --watch src --ext ts --exec npm run start:debug",
     "dev": "concurrently \"npm run start:watch\" \"../../scripts/watch_libs.sh --service integration_run_worker\"",
     "lint": "eslint --ext .ts src --max-warnings=0",

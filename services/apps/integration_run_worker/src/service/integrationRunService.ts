@@ -4,11 +4,11 @@ import { IGenerateStreamsContext, INTEGRATION_SERVICES } from '@crowd/integratio
 import { Logger, LoggerBase, getChildLogger } from '@crowd/logging'
 import { RedisCache, RedisClient } from '@crowd/redis'
 import { IntegrationRunState, IntegrationStreamState } from '@crowd/types'
-import { StreamWorkerEmitter } from '../queue'
 import IntegrationRunRepository from '../repo/integrationRun.repo'
 import SampleDataRepository from '../repo/sampleData.repo'
 import MemberAttributeSettingsRepository from '../repo/memberAttributeSettings.repo'
 import { NANGO_CONFIG } from '../config'
+import { IntegrationStreamWorkerEmitter } from '@crowd/sqs'
 
 export default class IntegrationRunService extends LoggerBase {
   private readonly repo: IntegrationRunRepository
@@ -16,7 +16,7 @@ export default class IntegrationRunService extends LoggerBase {
 
   constructor(
     private readonly redisClient: RedisClient,
-    private readonly streamWorkerEmitter: StreamWorkerEmitter,
+    private readonly streamWorkerEmitter: IntegrationStreamWorkerEmitter,
     private readonly store: DbStore,
     parentLog: Logger,
   ) {
@@ -31,7 +31,7 @@ export default class IntegrationRunService extends LoggerBase {
       runId,
     })
 
-    this.log.info('Checking whether run is processed or not!')
+    this.log.debug('Checking whether run is processed or not!')
 
     const counts = await this.repo.getStreamCountsByState(runId)
 
@@ -51,7 +51,7 @@ export default class IntegrationRunService extends LoggerBase {
 
     if (count === 0) {
       this.log.error('This run has no streams!')
-      throw new Error(`Run ${runId} has no streams!`)
+      return
     }
 
     if (count === finishedCount) {
@@ -102,7 +102,6 @@ export default class IntegrationRunService extends LoggerBase {
 
     if (!runInfo) {
       this.log.error({ runId }, 'Could not find run info!')
-      await this.triggerRunError(runId, 'check-run-exists', 'Could not find run info!')
       return
     }
 

@@ -2,6 +2,7 @@ import { DbColumnSet, DbStore, RepositoryBase } from '@crowd/database'
 import { Logger } from '@crowd/logging'
 import { IMemberAttribute } from '@crowd/types'
 import { getInsertMemberAttributeSettingColumnSet } from './memberAttributeSettings.data'
+import { generateUUIDv1 } from '@crowd/common'
 
 export default class MemberAttributeSettingsRepository extends RepositoryBase<MemberAttributeSettingsRepository> {
   private readonly insertMemberAttributeSettingColumnSet: DbColumnSet
@@ -36,6 +37,7 @@ export default class MemberAttributeSettingsRepository extends RepositoryBase<Me
         newAttributes.map((a) => {
           return {
             ...a,
+            id: generateUUIDv1(),
             tenantId,
             createdAt: now,
             updatedAt: now,

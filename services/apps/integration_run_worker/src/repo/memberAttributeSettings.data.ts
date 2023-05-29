@@ -7,11 +7,24 @@ export const getInsertMemberAttributeSettingColumnSet = (instance: DbInstance): 
   }
 
   insertMemberAttributeSettingColumnSet = new instance.helpers.ColumnSet(
-    ['type', 'name', 'label', 'canDelete', 'show', 'options', 'tenantId', 'createdAt', 'updatedAt'],
+    [
+      'id',
+      'type',
+      'name',
+      'label',
+      'canDelete',
+      'show',
+      'options',
+      'tenantId',
+      'createdAt',
+      'updatedAt',
+    ],
     {
       table: {
         table: 'memberAttributeSettings',
       },
     },
   )
+
+  return insertMemberAttributeSettingColumnSet
 }

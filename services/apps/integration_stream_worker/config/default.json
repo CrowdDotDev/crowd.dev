@@ -1,28 +1,8 @@
 {
-  "db": {
-    "host": "localhost",
-    "port": 5432,
-    "database": "crowd-web",
-    "user": "postgres",
-    "password": "example"
-  },
-  "sqs": {
-    "region": "elasticmq",
-    "host": "localhost",
-    "port": 9324,
-    "accessKeyId": "x",
-    "secretAccessKey": "x"
-  },
-  "redis": {
-    "username": "default",
-    "password": "crowdtest",
-    "host": "localhost",
-    "port": "6379"
-  },
-  "nango": {
-    "url": "http://localhost:3003",
-    "secretKey": 424242
-  },
+  "db": {},
+  "sqs": {},
+  "redis": {},
+  "nango": {},
   "worker": {
     "maxStreamRetries": 5
   }

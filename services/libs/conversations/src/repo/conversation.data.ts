@@ -34,4 +34,6 @@ export const getInsertConversationColumnSet = (instance: DbInstance): DbColumnSe
       },
     },
   )
+
+  return insertConversationColumnSet
 }

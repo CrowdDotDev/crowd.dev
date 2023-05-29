@@ -1,4 +1,4 @@
-import { IS_DEV_ENV } from '@crowd/common'
+import { IS_DEV_ENV, IS_STAGING_ENV } from '@crowd/common'
 import { getServiceChildLogger } from '@crowd/logging'
 import {
   DeleteMessageCommand,
@@ -18,7 +18,10 @@ let client: SqsClient | undefined
 export const getSqsClient = (config: ISqsClientConfig): SqsClient => {
   if (client) return client
 
-  log.info('Creating new SQS client...')
+  log.info(
+    { host: config.host, port: config.port, region: config.region },
+    'Creating new SQS client...',
+  )
   client = new SQSClient({
     region: config.region,
     endpoint: config.host ? `http://${config.host}:${config.port}` : undefined,
@@ -37,7 +40,10 @@ export const receiveMessage = async (
   params.MaxNumberOfMessages = 1
   params.WaitTimeSeconds = 15
 
-  params.VisibilityTimeout = IS_DEV_ENV ? 60 : 15 * 60 // 15 minutes
+  params.VisibilityTimeout =
+    IS_DEV_ENV || IS_STAGING_ENV
+      ? 2 * 60 // 2 minutes for dev environments
+      : 10 * 60 // 10 minutes for production environment
 
   const result = await client.send(new ReceiveMessageCommand(params))
 

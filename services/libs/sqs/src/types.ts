@@ -17,11 +17,11 @@ export enum SqsQueueType {
 }
 
 export enum SqsQueueDeduplicationType {
-  MESSAGE_GROUP = 'MessageGroup',
+  MESSAGE_GROUP = 'messageGroup',
 }
 
 export enum SqsFifoThroughputLimitType {
-  PER_MESSAGE_GROUP_ID = 'PerMessageGroupId',
+  PER_MESSAGE_GROUP_ID = 'perMessageGroupId',
 }
 
 export interface ISqsQueueConfig {
@@ -32,6 +32,5 @@ export interface ISqsQueueConfig {
   messageRetentionPeriod: number
   deliveryDelay: number
   deduplicationScope?: SqsQueueDeduplicationType
-  highThroughputFifo?: boolean
   fifoThroughputLimit?: SqsFifoThroughputLimitType
 }

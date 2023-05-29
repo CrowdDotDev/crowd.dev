@@ -13,7 +13,6 @@ export const INTEGRATION_RUN_WORKER_QUEUE_SETTINGS: ISqsQueueConfig = {
   messageRetentionPeriod: 345600, // 4 days
   deliveryDelay: 0,
   deduplicationScope: SqsQueueDeduplicationType.MESSAGE_GROUP,
-  highThroughputFifo: true,
   fifoThroughputLimit: SqsFifoThroughputLimitType.PER_MESSAGE_GROUP_ID,
 }
 
@@ -25,7 +24,6 @@ export const INTEGRATION_STREAM_WORKER_QUEUE_SETTINGS: ISqsQueueConfig = {
   messageRetentionPeriod: 345600, // 4 days
   deliveryDelay: 0,
   deduplicationScope: SqsQueueDeduplicationType.MESSAGE_GROUP,
-  highThroughputFifo: true,
   fifoThroughputLimit: SqsFifoThroughputLimitType.PER_MESSAGE_GROUP_ID,
 }
 
@@ -37,7 +35,6 @@ export const INTEGRATION_DATA_WORKER_QUEUE_SETTINGS: ISqsQueueConfig = {
   messageRetentionPeriod: 345600, // 4 days
   deliveryDelay: 0,
   deduplicationScope: SqsQueueDeduplicationType.MESSAGE_GROUP,
-  highThroughputFifo: true,
   fifoThroughputLimit: SqsFifoThroughputLimitType.PER_MESSAGE_GROUP_ID,
 }
 
@@ -49,7 +46,6 @@ export const DATA_SINK_WORKER_QUEUE_SETTINGS: ISqsQueueConfig = {
   messageRetentionPeriod: 345600, // 4 days
   deliveryDelay: 0,
   deduplicationScope: SqsQueueDeduplicationType.MESSAGE_GROUP,
-  highThroughputFifo: true,
   fifoThroughputLimit: SqsFifoThroughputLimitType.PER_MESSAGE_GROUP_ID,
 }
 
@@ -61,6 +57,5 @@ export const NODEJS_WORKER_QUEUE_SETTINGS: ISqsQueueConfig = {
   messageRetentionPeriod: 345600, // 4 days
   deliveryDelay: 0,
   deduplicationScope: SqsQueueDeduplicationType.MESSAGE_GROUP,
-  highThroughputFifo: true,
   fifoThroughputLimit: SqsFifoThroughputLimitType.PER_MESSAGE_GROUP_ID,
 }

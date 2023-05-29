@@ -82,6 +82,8 @@ export function getUpdateMemberColumnSet(instance: DbInstance): DbColumnSet {
       },
     },
   )
+
+  return updateMemberColumnSet
 }
 
 let insertMemberIdentityColumnSet: DbColumnSet
@@ -96,4 +98,6 @@ export function getInsertMemberIdentityColumnSet(instance: DbInstance): DbColumn
       },
     },
   )
+
+  return insertMemberIdentityColumnSet
 }

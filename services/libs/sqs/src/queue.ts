@@ -75,8 +75,8 @@ export abstract class SqsQueueBase extends LoggerBase {
             ...(this.queueConf.type === SqsQueueType.FIFO && {
               FifoQueue: 'true',
               ContentBasedDeduplication: 'false',
-              HighThroughputFifoEnabled: this.queueConf.highThroughputFifo ? 'true' : 'false',
-              FifoThroughputLimit: this.queueConf.fifoThroughputLimit || 'PerMessageGroupId',
+              FifoThroughputLimit: this.queueConf.fifoThroughputLimit || 'perMessageGroupId',
+              DeduplicationScope: this.queueConf.deduplicationScope || 'messageGroup',
             }),
           },
         })

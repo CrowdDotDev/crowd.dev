@@ -557,6 +557,7 @@ export default class IntegrationService {
     let runId
 
     try {
+      this.options.log.info('Creating devto integration!')
       integration = await this.createOrUpdate(
         {
           platform: PlatformType.DEVTO,
@@ -571,6 +572,8 @@ export default class IntegrationService {
         transaction,
       )
 
+      this.options.log.info({ integrationId: integration.id }, 'Creating devto run!')
+
       runId = await new IntegrationRunRepository({
         ...this.options,
         transaction,
@@ -580,12 +583,17 @@ export default class IntegrationService {
         onboarding: true,
         state: IntegrationRunState.PENDING,
       })
+
       await SequelizeRepository.commitTransaction(transaction)
     } catch (err) {
       await SequelizeRepository.rollbackTransaction(transaction)
       throw err
     }
 
+    this.options.log.info(
+      { tenantId: integration.tenantId, runId },
+      'Sending devto message to int-run-worker!',
+    )
     await sendGenerateRunStreamsMessage(integration.tenantId, runId)
 
     return integration
