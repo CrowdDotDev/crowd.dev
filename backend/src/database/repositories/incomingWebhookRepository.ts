@@ -234,11 +234,15 @@ export default class IncomingWebhookRepository extends RepositoryBase<
   }
 
   async checkWebhooksExistForIntegration(integrationId: string): Promise<boolean> {
+    interface QueryResult {
+      count: number
+    }
+
     const transaction = this.transaction
 
-    const results = await this.seq.query(
+    const results: QueryResult[] = await this.seq.query(
       `
-      select count(*) as count
+      select count(*)::int as count
       from "incomingWebhooks"
       where "integrationId" = :integrationId
       limit 1
@@ -252,7 +256,6 @@ export default class IncomingWebhookRepository extends RepositoryBase<
       },
     )
 
-    // @ts-ignore
-    return results[0].count > 0
+    return results.length > 0 && results[0].count > 0
   }
 }
