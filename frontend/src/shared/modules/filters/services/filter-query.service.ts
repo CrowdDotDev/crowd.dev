@@ -56,13 +56,13 @@ export const filterQueryService = () => {
       if (typeof filterValue === 'object') {
         Object.entries(filterValue).forEach(([subKey, subFilterValue]) => {
           const value = setQueryValue(subFilterValue);
-          if (value) {
+          if (value !== undefined) {
             query[`${key}.${subKey}`] = value;
           }
         });
       } else {
         const value = setQueryValue(filterValue);
-        if (value) {
+        if (value !== undefined) {
           query[key] = value;
         }
       }

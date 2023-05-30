@@ -87,11 +87,13 @@ export const vueSanitizeOptions = {
       'height',
       'loading',
     ],
+    i: ['class'],
     input: ['checked', 'disabled', 'type'],
     span: ['class', 'style'],
   },
   selfClosing: [
     'img',
+    'i',
     'br',
     'hr',
     'area',

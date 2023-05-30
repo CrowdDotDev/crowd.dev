@@ -7,7 +7,7 @@ export interface DateFilterOptions {
 
 export interface DateFilterValue {
   operator: string,
-  value: string,
+  value: string | string[],
   include: boolean,
 }
 
