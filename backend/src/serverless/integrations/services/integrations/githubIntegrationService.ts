@@ -70,6 +70,8 @@ enum GithubStreamType {
   DISCUSSION_COMMENTS = 'discussion-comments',
 }
 
+const IS_GITHUB_COMMIT_DATA_ENABLED = GITHUB_CONFIG.isCommitDataEnabled === 'true'
+
 const privateKey = GITHUB_CONFIG.privateKey
   ? Buffer.from(GITHUB_CONFIG.privateKey, 'base64').toString('ascii')
   : undefined
@@ -224,7 +226,7 @@ export class GithubIntegrationService extends IntegrationServiceBase {
         }))
 
         let prCommitsStreams: IPendingStream[] = []
-        if (GITHUB_CONFIG.isCommitDataEnabled) {
+        if (IS_GITHUB_COMMIT_DATA_ENABLED) {
           prCommitsStreams = result.data.map((pr) => ({
             value: GithubStreamType.PULL_COMMITS,
             metadata: {
@@ -957,7 +959,7 @@ export class GithubIntegrationService extends IntegrationServiceBase {
 
       // this event is triggered whdn a head branch of PR receives a new commit
       case 'synchronize': {
-        if (!GITHUB_CONFIG.isCommitDataEnabled) {
+        if (!IS_GITHUB_COMMIT_DATA_ENABLED) {
           return undefined
         }
         const prNumber = payload.number
