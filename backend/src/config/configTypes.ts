@@ -147,7 +147,7 @@ export interface GithubConfiguration {
   clientSecret: string
   privateKey: string
   webhookSecret: string
-  isCommitDataEnabled: boolean
+  isCommitDataEnabled: string
   globalLimit?: number
 }
 
