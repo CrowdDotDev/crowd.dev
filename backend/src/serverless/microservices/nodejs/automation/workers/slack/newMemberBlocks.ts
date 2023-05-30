@@ -1,5 +1,5 @@
+import { integrationLabel } from '@crowd/types'
 import { API_CONFIG } from '../../../../../../conf'
-import { integrationLabel } from '../../../../../../types/integrationEnums'
 
 export const newMemberBlocks = (member) => {
   const platforms = member.activeOn

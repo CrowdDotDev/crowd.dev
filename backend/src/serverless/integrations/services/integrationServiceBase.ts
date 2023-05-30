@@ -2,6 +2,7 @@ import { SuperfaceClient } from '@superfaceai/one-sdk'
 import moment from 'moment'
 import crypto from 'crypto'
 import { getServiceChildLogger } from '@crowd/logging'
+import { IntegrationType } from '@crowd/types'
 import { IRepositoryOptions } from '../../../database/repositories/IRepositoryOptions'
 import {
   IIntegrationStream,
@@ -11,7 +12,6 @@ import {
   IStepContext,
   IStreamResultOperation,
 } from '../../../types/integration/stepResult'
-import { IntegrationType } from '../../../types/integrationEnums'
 import { IS_TEST_ENV } from '../../../conf'
 import { sendNodeWorkerMessage } from '../../utils/nodeWorkerSQS'
 import { NodeWorkerIntegrationProcessMessage } from '../../../types/mq/nodeWorkerIntegrationProcessMessage'

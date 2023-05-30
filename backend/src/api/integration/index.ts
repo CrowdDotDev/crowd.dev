@@ -60,6 +60,21 @@ export default (app) => {
     safeWrap(require('./helpers/stackOverflowVolume').default),
   )
 
+  app.post(
+    '/tenant/:tenantId/discourse-connect',
+    safeWrap(require('./helpers/discourseCreateOrUpdate').default),
+  )
+
+  app.post(
+    '/tenant/:tenantId/discourse-validate',
+    safeWrap(require('./helpers/discourseValidator').default),
+  )
+
+  app.post(
+    '/tenant/:tenantId/discourse-test-webhook',
+    safeWrap(require('./helpers/discourseTestWebhook').default),
+  )
+
   if (TWITTER_CONFIG.clientId) {
     /**
      * Using the passport.authenticate this endpoint forces a

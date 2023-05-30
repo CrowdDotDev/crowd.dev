@@ -1,9 +1,8 @@
-import { ActivityTypeSettings } from '@crowd/types'
+import { ActivityTypeSettings, PlatformType } from '@crowd/types'
 import { IRepositoryOptions } from '../database/repositories/IRepositoryOptions'
 import SequelizeRepository from '../database/repositories/sequelizeRepository'
 import SettingsRepository from '../database/repositories/settingsRepository'
 import Error400 from '../errors/Error400'
-import { PlatformType } from '../types/integrationEnums'
 
 const DEFAULT_SETTINGS = {}
 

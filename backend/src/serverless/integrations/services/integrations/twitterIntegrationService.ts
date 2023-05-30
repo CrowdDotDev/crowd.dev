@@ -1,8 +1,8 @@
 import moment from 'moment'
 import lodash from 'lodash'
 import { TWITTER_GRID, TwitterActivityType } from '@crowd/integrations'
+import { IntegrationType, PlatformType } from '@crowd/types'
 import { IntegrationServiceBase } from '../integrationServiceBase'
-import { IntegrationType, PlatformType } from '../../../../types/integrationEnums'
 import { TWITTER_CONFIG } from '../../../../conf'
 import {
   IIntegrationStream,

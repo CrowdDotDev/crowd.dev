@@ -2,7 +2,7 @@ import { LoggerBase } from '@crowd/logging'
 import { RedisPubSubEmitter, getRedisClient } from '@crowd/redis'
 import axios from 'axios'
 import lodash from 'lodash'
-import { ApiWebsocketMessage } from '@crowd/types'
+import { ApiWebsocketMessage, PlatformType } from '@crowd/types'
 import { ENRICHMENT_CONFIG, REDIS_CONFIG } from '../../../conf'
 import { AttributeData } from '../../../database/attributes/attribute'
 import {
@@ -16,7 +16,6 @@ import Error400 from '../../../errors/Error400'
 import { i18n } from '../../../i18n'
 import track from '../../../segment/track'
 import { Member } from '../../../serverless/integrations/types/messageTypes'
-import { PlatformType } from '../../../types/integrationEnums'
 import { IServiceOptions } from '../../IServiceOptions'
 import MemberAttributeSettingsService from '../../memberAttributeSettingsService'
 import MemberService from '../../memberService'
@@ -267,7 +266,7 @@ export default class MemberEnrichmentService extends LoggerBase {
         this.options,
       )
 
-      return memberService.upsert({ ...normalized, platform: PlatformType.GITHUB })
+      return memberService.upsert({ ...normalized, platform: Object.keys(member.username)[0] })
     }
     return null
   }
@@ -489,7 +488,7 @@ export default class MemberEnrichmentService extends LoggerBase {
       // Make the GET request and extract the profile data from the response
       const response: EnrichmentAPIResponse = (await axios(config)).data
 
-      if (response.error) {
+      if (response.error || response.profile === undefined) {
         this.log.error(githubHandle, `Member not found using github handle.`)
         throw new Error400(this.options.language, 'enrichment.errors.memberNotFound')
       }

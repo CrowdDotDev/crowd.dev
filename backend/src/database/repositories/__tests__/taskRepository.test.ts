@@ -4,7 +4,7 @@ import SequelizeTestUtils from '../../utils/sequelizeTestUtils'
 import Error404 from '../../../errors/Error404'
 import MemberRepository from '../memberRepository'
 import ActivityRepository from '../activityRepository'
-import { PlatformType } from '../../../types/integrationEnums'
+import { PlatformType } from '@crowd/types'
 import { generateUUIDv1 } from '@crowd/common'
 import lodash from 'lodash'
 

@@ -1,8 +1,8 @@
 import axios, { AxiosRequestConfig } from 'axios'
 import { Logger } from '@crowd/logging'
+import { PlatformType } from '@crowd/types'
 import { handleLinkedinError } from './errorHandler'
 import { ILinkedInOrganization } from '../../types/linkedinTypes'
-import { PlatformType } from '../../../../types/integrationEnums'
 import getToken from '../nango/getToken'
 
 export const getOrganizations = async (

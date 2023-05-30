@@ -1,6 +1,7 @@
 import sanitizeHtml from 'sanitize-html'
 import moment from 'moment'
 import { HackerNewsActivityType, HACKERNEWS_GRID } from '@crowd/integrations'
+import { IntegrationType, PlatformType } from '@crowd/types'
 import { MemberAttributeName } from '../../../../database/attributes/member/enums'
 import { HackerNewsMemberAttributes } from '../../../../database/attributes/member/hackerNews'
 import MemberAttributeSettingsService from '../../../../services/memberAttributeSettingsService'
@@ -10,7 +11,6 @@ import {
   IProcessStreamResults,
   IStepContext,
 } from '../../../../types/integration/stepResult'
-import { IntegrationType, PlatformType } from '../../../../types/integrationEnums'
 import Operations from '../../../dbOperations/operations'
 import getPost from '../../usecases/hackerNews/getPost'
 import {

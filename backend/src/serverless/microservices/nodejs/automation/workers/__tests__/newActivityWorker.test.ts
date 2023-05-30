@@ -6,7 +6,7 @@ import {
   AutomationType,
   NewActivitySettings,
 } from '../../../../../../types/automationTypes'
-import { PlatformType } from '../../../../../../types/integrationEnums'
+import { PlatformType } from '@crowd/types'
 import { shouldProcessActivity } from '../newActivityWorker'
 
 function createAutomationData(settings: NewActivitySettings): AutomationData {

@@ -2,6 +2,7 @@ import sanitizeHtml from 'sanitize-html'
 import he from 'he'
 import { StackOverflowActivityType, STACKOVERFLOW_GRID } from '@crowd/integrations'
 import { getRedisClient, RedisCache } from '@crowd/redis'
+import { IntegrationType, PlatformType } from '@crowd/types'
 import { REDIS_CONFIG } from '../../../../conf'
 import {
   IStepContext,
@@ -9,7 +10,6 @@ import {
   IProcessStreamResults,
   IPendingStream,
 } from '../../../../types/integration/stepResult'
-import { IntegrationType, PlatformType } from '../../../../types/integrationEnums'
 import { IntegrationServiceBase } from '../integrationServiceBase'
 import {
   StackOverflowAnswer,

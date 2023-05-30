@@ -2,6 +2,7 @@
 import lodash from 'lodash'
 import moment from 'moment'
 import { LoggerBase } from '@crowd/logging'
+import { PlatformType } from '@crowd/types'
 import { IServiceOptions } from './IServiceOptions'
 import ActivityService from './activityService'
 import MemberService from './memberService'
@@ -18,7 +19,6 @@ import {
   MemberEnrichmentAttributeName,
   MemberEnrichmentAttributes,
 } from '../database/attributes/member/enums'
-import { PlatformType } from '../types/integrationEnums'
 import OrganizationService from './organizationService'
 import ConversationService from './conversationService'
 import MemberRepository from '../database/repositories/memberRepository'

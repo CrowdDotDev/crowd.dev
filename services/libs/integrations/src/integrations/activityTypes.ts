@@ -19,6 +19,8 @@ import { REDDIT_GRID } from './reddit/grid'
 import { SLACK_GRID } from './slack/grid'
 import { TWITTER_GRID } from './twitter/grid'
 import { STACKOVERFLOW_GRID } from './stackoverflow/grid'
+import { DiscourseActivityType } from './discourse/types'
+import { DISCOURSE_GRID } from './discourse/grid'
 
 export const UNKNOWN_ACTIVITY_TYPE_DISPLAY: ActivityTypeDisplayProperties = {
   default: 'Conducted an activity',
@@ -49,6 +51,18 @@ const defaultStackoverflowFormatter = (activity) => {
   }
 
   return ''
+}
+
+const cleanDiscourseUrl = (url) => {
+  // https://discourse-web-aah2.onrender.com/t/test-webhook-topic-cool/26/5 -> remove /5 so only url to topic remains
+  const urlSplit = url.split('/')
+  urlSplit.pop()
+  return urlSplit.join('/')
+}
+
+const defaultDiscourseFormatter = (activity) => {
+  const topicUrl = cleanDiscourseUrl(activity.url)
+  return `<a href="${topicUrl}" target="_blank">#${activity.channel}</a>`
 }
 
 export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
@@ -549,6 +563,50 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
         },
       },
       isContribution: STACKOVERFLOW_GRID[StackOverflowActivityType.ANSWER].isContribution,
+    },
+  },
+  [PlatformType.DISCOURSE]: {
+    [DiscourseActivityType.CREATE_TOPIC]: {
+      display: {
+        default: 'Created a topic {self}',
+        short: 'created a topic',
+        channel: '<span class="text-brand-500 truncate max-w-2xs">#{channel}</span>',
+        formatter: {
+          self: defaultDiscourseFormatter,
+        },
+      },
+      isContribution: DISCOURSE_GRID[DiscourseActivityType.CREATE_TOPIC].isContribution,
+    },
+    [DiscourseActivityType.MESSAGE_IN_TOPIC]: {
+      display: {
+        default: 'Posted a message in {self}',
+        short: 'posted a message',
+        channel: '<span class="text-brand-500 truncate max-w-2xs">#{channel}</span>',
+        formatter: {
+          self: defaultDiscourseFormatter,
+        },
+      },
+      isContribution: DISCOURSE_GRID[DiscourseActivityType.MESSAGE_IN_TOPIC].isContribution,
+    },
+    [DiscourseActivityType.JOIN]: {
+      display: {
+        default: 'Joined a forum',
+        short: 'joined a forum',
+        channel: '',
+      },
+      isContribution: DISCOURSE_GRID[DiscourseActivityType.JOIN].isContribution,
+    },
+    [DiscourseActivityType.LIKE]: {
+      display: {
+        default: 'Liked a post in {self}',
+        short: 'liked a post',
+        channel: '<span class="text-brand-500 truncate max-w-2xs">#{channel}</span>',
+        formatter: {
+          self: (activity) =>
+            `<a href="${activity.attributes.topicURL}" target="_blank">#${activity.channel}</a>`,
+        },
+      },
+      isContribution: DISCOURSE_GRID[DiscourseActivityType.LIKE].isContribution,
     },
   },
 }

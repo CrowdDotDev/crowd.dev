@@ -1,4 +1,4 @@
-import { PlatformType } from '../../types/integrationEnums'
+import { PlatformType } from '@crowd/types'
 
 export default (sequelize, DataTypes) => {
   const settings = sequelize.define(

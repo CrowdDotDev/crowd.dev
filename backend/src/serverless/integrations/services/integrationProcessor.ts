@@ -1,14 +1,15 @@
 import { LoggerBase } from '@crowd/logging'
 import { ApiPubSubEmitter, RedisClient } from '@crowd/redis'
+import { IntegrationType } from '@crowd/types'
 import IntegrationRunRepository from '../../../database/repositories/integrationRunRepository'
 import IntegrationStreamRepository from '../../../database/repositories/integrationStreamRepository'
 import { IServiceOptions } from '../../../services/IServiceOptions'
-import { IntegrationType } from '../../../types/integrationEnums'
 import { NodeWorkerIntegrationProcessMessage } from '../../../types/mq/nodeWorkerIntegrationProcessMessage'
 import { IntegrationCheckProcessor } from './integrationCheckProcessor'
 import { IntegrationRunProcessor } from './integrationRunProcessor'
 import { IntegrationTickProcessor } from './integrationTickProcessor'
 import { DiscordIntegrationService } from './integrations/discordIntegrationService'
+import { DiscourseIntegrationService } from './integrations/discourseIntegrationService'
 import { GithubIntegrationService } from './integrations/githubIntegrationService'
 import { HackerNewsIntegrationService } from './integrations/hackerNewsIntegrationService'
 import { RedditIntegrationService } from './integrations/redditIntegrationService'
@@ -39,6 +40,7 @@ export class IntegrationProcessor extends LoggerBase {
       new SlackIntegrationService(),
       new GithubIntegrationService(),
       new StackOverlflowIntegrationService(),
+      new DiscourseIntegrationService(),
     ]
 
     this.log.debug(

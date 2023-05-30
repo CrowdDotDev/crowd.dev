@@ -1,6 +1,6 @@
 import { Op } from 'sequelize'
 import Error404 from '../../../errors/Error404'
-import { PlatformType } from '../../../types/integrationEnums'
+import { PlatformType } from '@crowd/types'
 import { generateUUIDv1 } from '@crowd/common'
 import SequelizeTestUtils from '../../utils/sequelizeTestUtils'
 import MemberRepository from '../memberRepository'

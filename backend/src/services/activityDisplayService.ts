@@ -4,9 +4,9 @@ import {
   ActivityDisplayVariant,
   ActivityTypeDisplayProperties,
   ActivityTypeSettings,
+  PlatformType,
 } from '@crowd/types'
 import lodash from 'lodash'
-import { PlatformType } from '../types/integrationEnums'
 import { IServiceOptions } from './IServiceOptions'
 
 const log = getServiceChildLogger('ActivityDisplayService')
