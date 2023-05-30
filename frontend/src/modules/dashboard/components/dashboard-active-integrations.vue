@@ -48,11 +48,7 @@
           </div>
           <div>
             <div
-              v-if="
-                integration.status === 'done'
-                  || (integration.status === 'error'
-                    && !isCurrentDateAfterGivenWorkingDays(integration.updatedAt, 3))
-              "
+              v-if="showIsConnectedIntegration(integration)"
             >
               <el-tooltip
                 effect="dark"
@@ -65,10 +61,7 @@
               </el-tooltip>
             </div>
             <div
-              v-else-if="
-                integration.status === 'error'
-                  && isCurrentDateAfterGivenWorkingDays(integration.updatedAt, 3)
-              "
+              v-else-if="showIsFailedIntegration(integration)"
             >
               <el-tooltip
                 effect="dark"
@@ -174,6 +167,7 @@ import { isCurrentDateAfterGivenWorkingDays } from '@/utils/date';
 import {
   computed, onBeforeUnmount, onMounted, ref,
 } from 'vue';
+import { ERROR_BANNER_WORKING_DAYS_DISPLAY } from '@/modules/integration/integration-store';
 
 const store = useStore();
 const storeUnsubscribe = ref(() => {});
@@ -205,6 +199,19 @@ const platformDetails = (platform) => CrowdIntegrations.getMappedConfig(
   platform,
   store,
 );
+
+const showIsConnectedIntegration = (integration) => integration.status === 'done'
+  || (integration.status === 'error'
+    && !isCurrentDateAfterGivenWorkingDays(
+      integration.updatedAt,
+      ERROR_BANNER_WORKING_DAYS_DISPLAY,
+    ));
+
+const showIsFailedIntegration = (integration) => integration.status === 'error'
+  && isCurrentDateAfterGivenWorkingDays(
+    integration.updatedAt,
+    ERROR_BANNER_WORKING_DAYS_DISPLAY,
+  );
 </script>
 
 <script>
