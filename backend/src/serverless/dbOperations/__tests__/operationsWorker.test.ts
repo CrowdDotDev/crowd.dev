@@ -5,7 +5,7 @@ import MemberService from '../../../services/memberService'
 import IntegrationService from '../../../services/integrationService'
 import MicroserviceService from '../../../services/microserviceService'
 import worker from '../operationsWorker'
-import { PlatformType } from '../../../types/integrationEnums'
+import { PlatformType } from '@crowd/types'
 import { generateUUIDv1 } from '@crowd/common'
 
 const db = null

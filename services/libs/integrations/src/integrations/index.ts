@@ -26,5 +26,8 @@ export * from './hackernews/types'
 export * from './stackoverflow/grid'
 export * from './stackoverflow/types'
 
+export * from './discourse/grid'
+export * from './discourse/types'
+
 export * from './premium/linkedin/grid'
 export * from './premium/linkedin/types'

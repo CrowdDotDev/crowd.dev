@@ -1,7 +1,7 @@
 import fetch from 'node-fetch'
 import SlackStrategy from 'passport-slack'
+import { PlatformType } from '@crowd/types'
 import { SLACK_CONFIG, API_CONFIG, SLACK_NOTIFIER_CONFIG } from '../../../conf'
-import { PlatformType } from '../../../types/integrationEnums'
 
 export function getSlackStrategy(): SlackStrategy {
   return new SlackStrategy.Strategy(

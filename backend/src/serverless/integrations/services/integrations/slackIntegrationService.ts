@@ -3,6 +3,7 @@ import sanitizeHtml from 'sanitize-html'
 import { SLACK_GRID, SlackActivityType } from '@crowd/integrations'
 import { RedisCache, getRedisClient } from '@crowd/redis'
 import { timeout } from '@crowd/common'
+import { IntegrationType, PlatformType } from '@crowd/types'
 import { SLACK_CONFIG, REDIS_CONFIG } from '../../../../conf'
 import {
   IIntegrationStream,
@@ -12,7 +13,6 @@ import {
   IStreamResultOperation,
 } from '../../../../types/integration/stepResult'
 import { SlackMessages } from '../../types/slackTypes'
-import { IntegrationType, PlatformType } from '../../../../types/integrationEnums'
 import { IntegrationServiceBase } from '../integrationServiceBase'
 import MemberAttributeSettingsService from '../../../../services/memberAttributeSettingsService'
 import { SlackMemberAttributes } from '../../../../database/attributes/member/slack'

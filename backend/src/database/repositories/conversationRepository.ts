@@ -1,12 +1,12 @@
 import lodash from 'lodash'
 import Sequelize from 'sequelize'
+import { PlatformType } from '@crowd/types'
 import { QueryOutput } from './filters/queryTypes'
 import SequelizeRepository from './sequelizeRepository'
 import AuditLogRepository from './auditLogRepository'
 import SequelizeFilterUtils from '../utils/sequelizeFilterUtils'
 import Error404 from '../../errors/Error404'
 import { IRepositoryOptions } from './IRepositoryOptions'
-import { PlatformType } from '../../types/integrationEnums'
 import snakeCaseNames from '../../utils/snakeCaseNames'
 import QueryParser from './filters/queryParser'
 import ActivityDisplayService from '../../services/activityDisplayService'
@@ -565,7 +565,22 @@ class ConversationRepository {
 
     const transaction = SequelizeRepository.getTransaction(options)
 
-    output.activities = await record.getActivities({
+    // Fetch the first activity with parent = null
+    const firstActivity = await record.getActivities({
+      where: {
+        parentId: null,
+      },
+      include: ['member', 'parent', 'objectMember'],
+      transaction,
+    })
+
+    // Fetch remaining activities with parent != null
+    const remainingActivities = await record.getActivities({
+      where: {
+        parentId: {
+          [Sequelize.Op.not]: null,
+        },
+      },
       include: ['member', 'parent', 'objectMember'],
       order: [
         ['timestamp', 'ASC'],
@@ -573,6 +588,8 @@ class ConversationRepository {
       ],
       transaction,
     })
+
+    output.activities = [...firstActivity, ...remainingActivities]
 
     let memberPromises = output.activities.map(async (act) => {
       const member = (await act.getMember()).get({ plain: true })

@@ -3,6 +3,7 @@ import he from 'he'
 import { generateUUIDv4 as uuid } from '@crowd/common'
 import { RedditActivityType, REDDIT_GRID } from '@crowd/integrations'
 import { Logger } from '@crowd/logging'
+import { IntegrationType, PlatformType } from '@crowd/types'
 import { MemberAttributeName } from '../../../../database/attributes/member/enums'
 import { RedditMemberAttributes } from '../../../../database/attributes/member/reddit'
 import MemberAttributeSettingsService from '../../../../services/memberAttributeSettingsService'
@@ -12,7 +13,6 @@ import {
   IProcessStreamResults,
   IStepContext,
 } from '../../../../types/integration/stepResult'
-import { IntegrationType, PlatformType } from '../../../../types/integrationEnums'
 import Operations from '../../../dbOperations/operations'
 import getPosts from '../../usecases/reddit/getPosts'
 import getComments from '../../usecases/reddit/getComments'

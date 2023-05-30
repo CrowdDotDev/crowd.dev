@@ -2,6 +2,7 @@ import moment from 'moment'
 import { ApiPubSubEmitter } from '@crowd/redis'
 import { Logger, getChildLogger, LoggerBase } from '@crowd/logging'
 import { singleOrDefault } from '@crowd/common'
+import { PlatformType } from '@crowd/types'
 import IntegrationRepository from '../../../database/repositories/integrationRepository'
 import IntegrationRunRepository from '../../../database/repositories/integrationRunRepository'
 import IntegrationStreamRepository from '../../../database/repositories/integrationStreamRepository'
@@ -14,7 +15,6 @@ import {
   IProcessStreamResults,
   IStepContext,
 } from '../../../types/integration/stepResult'
-import { PlatformType } from '../../../types/integrationEnums'
 import { IntegrationRun, IntegrationRunState } from '../../../types/integrationRunTypes'
 import { NodeWorkerIntegrationProcessMessage } from '../../../types/mq/nodeWorkerIntegrationProcessMessage'
 import { IntegrationServiceBase } from './integrationServiceBase'

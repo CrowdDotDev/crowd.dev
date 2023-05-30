@@ -1,6 +1,6 @@
 import lodash from 'lodash'
+import { IntegrationType, PlatformType } from '@crowd/types'
 import { IntegrationServiceBase } from '../integrationServiceBase'
-import { IntegrationType, PlatformType } from '../../../../types/integrationEnums'
 import {
   IIntegrationStream,
   IProcessStreamResults,

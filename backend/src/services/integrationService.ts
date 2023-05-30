@@ -2,6 +2,7 @@ import { createAppAuth } from '@octokit/auth-app'
 import { request } from '@octokit/request'
 import moment from 'moment'
 import axios from 'axios'
+import { PlatformType } from '@crowd/types'
 import { ILinkedInOrganization } from '../serverless/integrations/types/linkedinTypes'
 import { DISCORD_CONFIG, GITHUB_CONFIG, IS_TEST_ENV, KUBE_MODE } from '../conf/index'
 import Error400 from '../errors/Error400'
@@ -10,7 +11,6 @@ import SequelizeRepository from '../database/repositories/sequelizeRepository'
 import IntegrationRepository from '../database/repositories/integrationRepository'
 import Error542 from '../errors/Error542'
 import track from '../segment/track'
-import { PlatformType } from '../types/integrationEnums'
 import { getInstalledRepositories } from '../serverless/integrations/usecases/github/rest/getInstalledRepositories'
 import { sendNodeWorkerMessage } from '../serverless/utils/nodeWorkerSQS'
 import { NodeWorkerIntegrationProcessMessage } from '../types/mq/nodeWorkerIntegrationProcessMessage'
@@ -802,6 +802,52 @@ export default class IntegrationService {
           settings: {
             tags: integrationData.tags,
             keywords: integrationData.keywords,
+            updateMemberAttributes: true,
+          },
+          status: 'in-progress',
+        },
+        transaction,
+      )
+
+      run = await new IntegrationRunRepository({ ...this.options, transaction }).create({
+        integrationId: integration.id,
+        tenantId: integration.tenantId,
+        onboarding: true,
+        state: IntegrationRunState.PENDING,
+      })
+      await SequelizeRepository.commitTransaction(transaction)
+    } catch (err) {
+      await SequelizeRepository.rollbackTransaction(transaction)
+      throw err
+    }
+
+    await sendNodeWorkerMessage(
+      integration.tenantId,
+      new NodeWorkerIntegrationProcessMessage(run.id),
+    )
+
+    return integration
+  }
+
+  /**
+   * Adds/updates Discourse integration
+   * @param integrationData  to create the integration object
+   * @returns integration object
+   */
+  async discourseConnectOrUpdate(integrationData) {
+    const transaction = await SequelizeRepository.createTransaction(this.options)
+    let integration
+    let run
+
+    try {
+      integration = await this.createOrUpdate(
+        {
+          platform: PlatformType.DISCOURSE,
+          settings: {
+            apiKey: integrationData.apiKey,
+            apiUsername: integrationData.apiUsername,
+            forumHostname: integrationData.forumHostname,
+            webhookSecret: integrationData.webhookSecret,
             updateMemberAttributes: true,
           },
           status: 'in-progress',

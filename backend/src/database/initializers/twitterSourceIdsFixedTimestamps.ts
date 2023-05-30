@@ -6,10 +6,10 @@
 import dotenv from 'dotenv'
 import dotenvExpand from 'dotenv-expand'
 import { getServiceLogger } from '@crowd/logging'
+import { PlatformType } from '@crowd/types'
 import ActivityService from '../../services/activityService'
 import IntegrationService from '../../services/integrationService'
 import TenantService from '../../services/tenantService'
-import { PlatformType } from '../../types/integrationEnums'
 import getUserContext from '../utils/getUserContext'
 import { IntegrationServiceBase } from '../../serverless/integrations/services/integrationServiceBase'
 

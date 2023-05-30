@@ -1,5 +1,5 @@
+import { PlatformType } from '@crowd/types'
 import IntegrationRepository from '../../database/repositories/integrationRepository'
-import { PlatformType } from '../../types/integrationEnums'
 import SequelizeRepository from '../../database/repositories/sequelizeRepository'
 import IncomingWebhookRepository from '../../database/repositories/incomingWebhookRepository'
 import { WebhookType } from '../../types/webhooks'

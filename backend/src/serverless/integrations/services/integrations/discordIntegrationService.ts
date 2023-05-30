@@ -5,6 +5,7 @@ import { ChannelType, MessageType } from 'discord.js'
 import lodash from 'lodash'
 import moment from 'moment/moment'
 import { generateUUIDv1, timeout } from '@crowd/common'
+import { IntegrationType, PlatformType } from '@crowd/types'
 import { DISCORD_CONFIG, REDIS_CONFIG } from '../../../../conf'
 import { DiscordMemberAttributes } from '../../../../database/attributes/member/discord'
 import { MemberAttributeName } from '../../../../database/attributes/member/enums'
@@ -19,7 +20,6 @@ import {
   IStepContext,
   IStreamResultOperation,
 } from '../../../../types/integration/stepResult'
-import { IntegrationType, PlatformType } from '../../../../types/integrationEnums'
 import { IntegrationRunState } from '../../../../types/integrationRunTypes'
 import { NodeWorkerIntegrationProcessMessage } from '../../../../types/mq/nodeWorkerIntegrationProcessMessage'
 import { DiscordWebsocketEvent, DiscordWebsocketPayload } from '../../../../types/webhooks'

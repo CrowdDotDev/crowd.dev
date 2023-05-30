@@ -16,11 +16,13 @@ export interface IIntegrationContext {
 
 export interface IGenerateStreamsContext extends IIntegrationContext {
   serviceSettings: IIntegrationServiceSettings
+  platformSettings?: unknown
 }
 
 export interface IProcessStreamContext extends IIntegrationContext {
   stream: IIntegrationStream
   serviceSettings: IIntegrationServiceSettings
+  platformSettings?: unknown
 
   publishData: <T>(data: T) => Promise<void>
 
@@ -29,6 +31,7 @@ export interface IProcessStreamContext extends IIntegrationContext {
 
 export interface IProcessDataContext extends IIntegrationContext {
   data: unknown
+  platformSettings?: unknown
 
   abortWithError: (message: string, metadata?: unknown, error?: Error) => Promise<void>
 

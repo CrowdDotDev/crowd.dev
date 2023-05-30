@@ -216,6 +216,7 @@ const en = {
         discord: 'Discord',
         slack: 'Slack',
         hackernews: 'Hacker News',
+        discourse: 'Discourse',
       },
     },
     automation: {

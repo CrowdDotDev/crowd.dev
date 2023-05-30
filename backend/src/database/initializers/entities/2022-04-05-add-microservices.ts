@@ -1,10 +1,10 @@
+import { PlatformType } from '@crowd/types'
 import TenantService from '../../../services/tenantService'
 import MicroserviceService from '../../../services/microserviceService'
 import WidgetService from '../../../services/widgetService'
 import IntegrationService from '../../../services/integrationService'
 import getUserContext from '../../utils/getUserContext'
 import * as microserviceTypes from '../../utils/keys/microserviceTypes'
-import { PlatformType } from '../../../types/integrationEnums'
 
 export default async () => {
   const tenants = (await TenantService._findAndCountAllForEveryUser({ filter: {} })).rows

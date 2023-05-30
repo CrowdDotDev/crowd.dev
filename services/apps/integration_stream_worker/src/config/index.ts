@@ -51,3 +51,16 @@ export const NANGO_CONFIG = (): INangoConfig => {
   nangoConfig = config.get<INangoConfig>('nango')
   return nangoConfig
 }
+
+let platformConfig: unknown | null | undefined = null
+export const PLATFORM_CONFIG = (platform: string): unknown | undefined => {
+  if (platformConfig === null) {
+    if (config.has(platform)) {
+      platformConfig = config.get(platform)
+    } else {
+      platformConfig = undefined
+    }
+  }
+
+  return platformConfig
+}

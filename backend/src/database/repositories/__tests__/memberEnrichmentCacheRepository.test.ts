@@ -2,7 +2,7 @@ import { randomUUID } from 'crypto'
 
 import MemberRepository from '../memberRepository'
 import SequelizeTestUtils from '../../utils/sequelizeTestUtils'
-import { PlatformType } from '../../../types/integrationEnums'
+import { PlatformType } from '@crowd/types'
 import MemberEnrichmentCacheRepository from '../memberEnrichmentCacheRepository'
 import { generateUUIDv1 } from '@crowd/common'
 
