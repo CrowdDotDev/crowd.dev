@@ -23,7 +23,7 @@ export const filterApiService = () => {
     let filters: any[] = [];
 
     // Search
-    if (search.length > 0) {
+    if (search?.length > 0) {
       baseFilters = [
         ...baseFilters,
         ...searchConfig.apiFilterRenderer(search),

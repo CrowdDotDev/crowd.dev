@@ -10,20 +10,27 @@
     <div class="flex items-center flex-wrap">
       <template v-for="(filter, fi) of filterList" :key="filter">
         <!-- Operator -->
-        <div
-          v-if="fi > 0"
-          class="border text-xs border-gray-100 rounded-md shadow uppercase
-          h-8 flex font-medium items-center py-1 px-2 bg-white cursor-pointer hover:bg-gray-100 transition mr-4 mb-2"
-          @click="switchOperator"
+        <el-tooltip
+          effect="dark"
+          :content="`${filters.relation} → ${filters.relation === 'and' ? 'or' : 'and'}`"
+          placement="top"
         >
-          {{ filters.relation }}
-        </div>
+          <div
+            v-if="fi > 0"
+            class="border text-xs border-gray-100 rounded-md shadow w-10 justify-center
+          h-8 flex font-medium items-center py-1 px-2 bg-white cursor-pointer hover:bg-gray-100 transition mr-3 mb-4"
+            @click="switchOperator"
+          >
+            {{ filters.relation }}
+          </div>
+        </el-tooltip>
+
         <!-- Filter -->
         <cr-filter-item
           v-model="filters[filter]"
           v-model:open="open"
           :config="configuration[filter]"
-          class="mr-4 mb-2"
+          class="mr-3 mb-4"
           @remove="removeFilter(filter)"
         />
       </template>
@@ -67,10 +74,7 @@ const filters = computed<Filter>({
     return props.modelValue;
   },
   set(value: Filter) {
-    const {
-      settings, search, relation, order, pagination, ...filterValues
-    } = value;
-    filterList.value = Object.keys(filterValues);
+    alignFilterList(value);
     emit('update:modelValue', value);
   },
 });
@@ -81,9 +85,21 @@ const configuration = computed(() => ({
 }));
 
 const filterList = ref<string[]>([]);
+const cachedRelation = ref<'and' | 'or'>('and');
 
 const switchOperator = () => {
   filters.value.relation = filters.value.relation === 'and' ? 'or' : 'and';
+};
+
+const alignFilterList = (value: Filter) => {
+  const {
+    settings, search, relation, order, pagination, ...filterValues
+  } = value;
+  if (JSON.stringify(relation) !== JSON.stringify(cachedRelation.value)) {
+    cachedRelation.value = relation;
+    return;
+  }
+  filterList.value = Object.keys(filterValues);
 };
 
 const removeFilter = (key) => {
@@ -102,10 +118,7 @@ const fetch = (value: Filter) => {
 
 watch(() => filters.value, (value: Filter) => {
   fetch(value);
-  const {
-    settings, search, relation, order, pagination, ...filterValues
-  } = value;
-  filterList.value = Object.keys(filterValues);
+  alignFilterList(value);
   const query = setQuery(value);
   router.push({ query });
 }, { deep: true });

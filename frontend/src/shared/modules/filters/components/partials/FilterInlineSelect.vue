@@ -6,7 +6,7 @@
       :teleported="false"
       @visible-change="dropdownExpanded = $event"
     >
-      <div class="flex items-center">
+      <div class="flex items-center flex-wrap">
         <span class="filter-select-option-prefix mr-1">{{
           prefix
         }}</span>
@@ -27,11 +27,11 @@
           :class="{
             'is-selected': props.modelValue === option.value,
           }"
+          class="flex justify-between"
           @click="model = option.value"
         >
-          <div class="flex flex-col">
-            <span>{{ option.label }}</span>
-          </div>
+          <span>{{ option.label }}</span>
+          <span v-if="option.subLabel" class="text-gray-400 pl-8">{{ option.subLabel }}</span>
         </el-dropdown-item>
       </template>
     </el-dropdown>
@@ -40,14 +40,12 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue';
+import { FilterOperator } from '@/shared/modules/filters/types/FilterOperator';
 
 const emit = defineEmits<{(e: 'update:modelValue', value: string): void}>();
 const props = defineProps<{
   modelValue: string,
-  options: {
-    value: string,
-    label: string,
-  }[],
+  options: FilterOperator[],
   prefix: string
 }>();
 
