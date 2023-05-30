@@ -531,7 +531,6 @@ export class GithubIntegrationService extends IntegrationServiceBase {
   }
 
   private static verifyWebhookSignature(signature: string, data: any): void {
-    return
     if (IS_TEST_ENV) {
       return
     }
