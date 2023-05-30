@@ -1,22 +1,23 @@
 <template>
   <div v-if="form">
     <cr-filter-include-switch v-if="!props.hideIncludeSwitch" v-model="form.include" />
-    <div v-if="allOptions.length <= 70">
-      <div class="max-h-58 overflow-auto py-3 px-2">
-        <template v-for="(group, gi) of props.options" :key="gi">
-          <div
-            v-if="group.label && group.options.length > 0"
-            class="text-2xs text-gray-400 font-semibold tracking-wide leading-6 uppercase px-3 my-1"
-          >
-            {{ group.label }}
-          </div>
-          <cr-filter-multi-select-option v-for="(option, oi) of group.options" :key="oi" v-model="form.value" :value="option.value">
-            {{ option.label }}
-          </cr-filter-multi-select-option>
-        </template>
-      </div>
+    <div v-if="allOptions.length <= 7 && !props.remote">
+      <cr-multi-select-checkbox-filter
+        v-model="form.value"
+        :config="props.config"
+        :options="props.options"
+      />
     </div>
-    <div v-else />
+    <div v-else>
+      <cr-multi-select-tags-filter
+        v-model="form.value"
+        :config="props.config"
+        :options="props.options"
+        :remote="props.remote"
+        :remote-method="props.remoteMethod"
+        :remote-populate-items="props.remotePopulateItems"
+      />
+    </div>
   </div>
 </template>
 
@@ -30,15 +31,17 @@ import {
 import { required } from '@vuelidate/validators';
 import useVuelidate from '@vuelidate/core';
 import CrFilterIncludeSwitch from '@/shared/modules/filters/components/partials/FilterIncludeSwitch.vue';
-import CrFilterMultiSelectOption
-  from '@/shared/modules/filters/components/partials/multiselect/FilterMultiSelectOption.vue';
+import CrMultiSelectCheckboxFilter
+  from '@/shared/modules/filters/components/filterTypes/multiselect/MultiSelectCheckboxFilter.vue';
+import CrMultiSelectTagsFilter
+  from '@/shared/modules/filters/components/filterTypes/multiselect/MultiSelectTagsFilter.vue';
 
 const props = defineProps<{
   modelValue: MultiSelectFilterValue,
   config: MultiSelectFilterConfig
 } & MultiSelectFilterOptions>();
 
-const emit = defineEmits<{(e: 'update:modelValue', value: MultiSelectFilterValue): void}>();
+const emit = defineEmits<{(e: 'update:modelValue', value: MultiSelectFilterValue): void, (e: 'update:data', value: any): void}>();
 
 const allOptions = computed(() => props.options.map((g) => g.options).flat());
 

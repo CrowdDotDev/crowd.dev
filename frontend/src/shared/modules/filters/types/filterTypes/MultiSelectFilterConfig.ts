@@ -11,6 +11,9 @@ export interface MultiSelectFilterOptionGroup {
 }
 export interface MultiSelectFilterOptions {
   hideIncludeSwitch?: boolean;
+  remote?: boolean;
+  remoteMethod?: (query: string) => Promise<MultiSelectFilterOption[]>
+  remotePopulateItems?: (ids: string[]) => Promise<MultiSelectFilterOption[]>
   options: MultiSelectFilterOptionGroup[]
 }
 
@@ -22,6 +25,6 @@ export interface MultiSelectFilterValue {
 export interface MultiSelectFilterConfig extends BaseFilterConfig {
   type: FilterConfigType.MULTISELECT;
   options: MultiSelectFilterOptions;
-  itemLabelRenderer: (value: MultiSelectFilterValue, options: MultiSelectFilterOptions) => string;
+  itemLabelRenderer: (value: MultiSelectFilterValue, options: MultiSelectFilterOptions, data: any) => string;
   apiFilterRenderer: (value: MultiSelectFilterValue) => any[];
 }

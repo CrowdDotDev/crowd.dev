@@ -14,6 +14,6 @@ export interface DateFilterValue {
 export interface DateFilterConfig extends BaseFilterConfig {
   type: FilterConfigType.DATE;
   options: DateFilterOptions;
-  itemLabelRenderer: (value: DateFilterValue, options: DateFilterOptions) => string;
+  itemLabelRenderer: (value: DateFilterValue, options: DateFilterOptions, data: any) => string;
   apiFilterRenderer: (value: DateFilterValue) => any[];
 }

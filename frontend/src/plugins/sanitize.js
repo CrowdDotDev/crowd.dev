@@ -88,7 +88,7 @@ export const vueSanitizeOptions = {
       'loading',
     ],
     input: ['checked', 'disabled', 'type'],
-    span: ['class', 'style'],
+    span: ['class', 'style', 'data-tooltip'],
   },
   selfClosing: [
     'img',

@@ -8,7 +8,7 @@ import {
   multiSelectItemLabelRenderer,
 } from './itemLabelRenderer/multiselect.label.renderer';
 
-export const itemLabelRendererByType: Record<FilterConfigType, (property: string, value: any, options: any) => string> = {
+export const itemLabelRendererByType: Record<FilterConfigType, (property: string, value: any, options: any, data?: any) => string> = {
   [FilterConfigType.BOOLEAN]: booleanItemLabelRenderer,
   [FilterConfigType.NUMBER]: numberItemLabelRenderer,
   [FilterConfigType.DATE]: dateItemLabelRenderer,

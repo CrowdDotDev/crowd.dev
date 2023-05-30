@@ -6,6 +6,7 @@
     @click="selectOption()"
   >
     <el-checkbox
+      v-if="checkbox"
       :model-value="selected"
       class="filter-checkbox h-4"
     />
@@ -16,10 +17,11 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 
-const props = defineProps<{
+const props = withDefaults(defineProps<{
   modelValue: string[],
   value: string,
-}>();
+  checkbox: boolean
+}>(), { checkbox: true });
 
 const emit = defineEmits<{(e: 'update:modelValue', value: string[]): void}>();
 

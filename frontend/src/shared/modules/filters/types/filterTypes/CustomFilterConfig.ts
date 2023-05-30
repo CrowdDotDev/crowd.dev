@@ -6,6 +6,6 @@ export interface CustomFilterConfig extends BaseFilterConfig {
   component: any;
   options: any;
   queryUrlParser: ((value: any) => Record<string, any>) | null;
-  itemLabelRenderer: (value: any, options: any) => string;
+  itemLabelRenderer: (value: any, options: any, data: any) => string;
   apiFilterRenderer: (value: any) => any[];
 }
