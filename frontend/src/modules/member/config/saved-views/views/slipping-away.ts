@@ -23,7 +23,7 @@ const slippingAway: SavedView = {
     },
 
     lastActivityDate: {
-      operator: 'after',
+      operator: 'gt',
       value: moment().subtract(1, 'month').format('YYYY-MM-DD'),
       include: true,
     },

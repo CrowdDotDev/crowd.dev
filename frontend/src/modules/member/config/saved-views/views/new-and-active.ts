@@ -18,13 +18,13 @@ const newAndActive: SavedView = {
     },
 
     joinedDate: {
-      operator: 'after',
+      operator: 'gt',
       value: moment().subtract(1, 'month').format('YYYY-MM-DD'),
       include: true,
     },
 
     lastActivityDate: {
-      operator: 'after',
+      operator: 'gt',
       value: moment().subtract(1, 'month').format('YYYY-MM-DD'),
       include: true,
     },
