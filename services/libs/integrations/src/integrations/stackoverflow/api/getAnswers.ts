@@ -1,13 +1,9 @@
 import axios, { AxiosRequestConfig } from 'axios'
 import { timeout } from '@crowd/common'
-import {
-  StackOverflowAnswersInput,
-  StackOverflowAnswerResponse,
-} from '../../types/stackOverflowTypes'
-import { STACKEXCHANGE_CONFIG } from '../../../../conf'
 import { RateLimitError } from '@crowd/types'
 import { getNangoToken } from 'src/integrations/nango'
 import { IProcessStreamContext } from 'src/types'
+import { StackOverflowAnswersInput, StackOverflowAnswerResponse } from '../types'
 
 /**
  * Get paginated questions from StackOverflow given a set of tags
@@ -25,6 +21,9 @@ async function getAnswers(
     // Gett an access token from Pizzly
     const accessToken = await getNangoToken(input.nangoId, 'stackexchange', ctx)
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const key = (ctx.platformSettings as any)?.key
+
     // we sort by creation date ascending (old first), so we can get the first answer and then relate answers to each other based on their order
     const config: AxiosRequestConfig = {
       method: 'get',
@@ -37,7 +36,7 @@ async function getAnswers(
         site: 'stackoverflow',
         filter: 'withbody',
         access_token: accessToken,
-        key: STACKEXCHANGE_CONFIG.key,
+        key,
       },
     }
 
