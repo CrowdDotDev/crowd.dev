@@ -1,7 +1,7 @@
 /* eslint-disable no-unused-vars */
 import { BaseFilterConfig, FilterConfigType } from '@/shared/modules/filters/types/FilterConfig';
 
-interface MultiSelectFilterOption {
+export interface MultiSelectFilterOption {
   label: string;
   value: string;
 }
@@ -11,9 +11,6 @@ export interface MultiSelectFilterOptionGroup {
 }
 export interface MultiSelectFilterOptions {
   hideIncludeSwitch?: boolean;
-  remote?: boolean;
-  remoteMethod?: (query: string) => Promise<MultiSelectFilterOption[]>
-  remotePopulateItems?: (ids: string[]) => Promise<MultiSelectFilterOption[]>
   options: MultiSelectFilterOptionGroup[]
 }
 

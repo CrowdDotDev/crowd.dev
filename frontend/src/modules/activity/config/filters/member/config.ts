@@ -1,21 +1,36 @@
 import { FilterConfigType } from '@/shared/modules/filters/types/FilterConfig';
-import { MultiSelectFilterConfig, MultiSelectFilterValue } from '@/shared/modules/filters/types/filterTypes/MultiSelectFilterConfig';
+import { itemLabelRendererByType } from '@/shared/modules/filters/config/itemLabelRendererByType';
+import { apiFilterRendererByType } from '@/shared/modules/filters/config/apiFilterRendererByType';
+import {
+  MultiSelectAsyncFilterConfig,
+  MultiSelectAsyncFilterOptions, MultiSelectAsyncFilterValue,
+} from '@/shared/modules/filters/types/filterTypes/MultiSelectAsyncFilterConfig';
+import { MemberService } from '@/modules/member/member-service';
 
-const member: MultiSelectFilterConfig = {
+const member: MultiSelectAsyncFilterConfig = {
   id: 'member',
   label: 'Member',
   iconClass: 'ri-account-circle-line',
-  type: FilterConfigType.MULTISELECT,
+  type: FilterConfigType.MULTISELECT_ASYNC,
   options: {
-    // TODO: load this options remote
-    options: [],
+    remoteMethod: (query) => MemberService.listAutocomplete(query, 10)
+      .then((data: any[]) => data.map((member) => ({
+        label: member.label,
+        value: member.id,
+      }))),
+    remotePopulateItems: (ids: string[]) => MemberService.list({
+      id: { in: ids },
+    }, null, ids.length, 0, false)
+      .then(({ rows }: any) => rows.map((member: any) => ({
+        label: member.displayName,
+        value: member.id,
+      }))),
   },
-  itemLabelRenderer(value: MultiSelectFilterValue): string {
-    return `<b>Member</b> ${value?.value.join(',') || '...'}`;
+  itemLabelRenderer(value: MultiSelectAsyncFilterValue, options: MultiSelectAsyncFilterOptions, data: any): string {
+    return itemLabelRendererByType[FilterConfigType.MULTISELECT_ASYNC]('Member', value, options, data);
   },
-  apiFilterRenderer(value): any[] {
-    console.log(value);
-    return [];
+  apiFilterRenderer(value: MultiSelectAsyncFilterValue): any[] {
+    return apiFilterRendererByType[FilterConfigType.MULTISELECT_ASYNC]('member', value);
   },
 };
 

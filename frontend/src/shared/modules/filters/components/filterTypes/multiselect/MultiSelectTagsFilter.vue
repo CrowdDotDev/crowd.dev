@@ -12,16 +12,7 @@
         :teleported="false"
         class="filter-multiselect"
         popper-class="filter-multiselect-popper"
-        :loading="loading"
-        @change="selected"
       >
-        <el-option
-          v-for="option of selectedOptions"
-          :key="option.value"
-          :label="option.label"
-          :value="option.value"
-          class="!hidden"
-        />
         <template v-for="(group, gi) of filteredOptions" :key="gi">
           <div
             v-if="group.label && group.options.length > 0"
@@ -56,66 +47,27 @@ import {
 
 const props = defineProps<{
   modelValue: string[],
-  data: any,
   config: MultiSelectFilterConfig
 } & MultiSelectFilterOptions>();
 
-const emit = defineEmits<{(e: 'update:modelValue', value: string[]): void, (e: 'update:data', value:any): void}>();
-
-const loading = ref(false);
+const emit = defineEmits<{(e: 'update:modelValue', value: string[]): void}>();
 
 const form = computed<string[]>({
   get: () => props.modelValue,
   set: (value: string[]) => emit('update:modelValue', value),
 });
 
-const selectedOptions = ref([]);
-
 const filteredOptions = ref<MultiSelectFilterOptionGroup[]>(props.options);
 
 const searchOptions = (query: string) => {
-  loading.value = true;
-  if (props.remote && props.remoteMethod) {
-    props.remoteMethod(query)
-      .then((options) => {
-        filteredOptions.value = [
-          {
-            options,
-          },
-        ];
-      })
-      .finally(() => {
-        loading.value = false;
-      });
-  } else {
-    filteredOptions.value = props.options.map((g) => ({
-      ...g,
-      options: g.options.filter((o) => o.label.toLowerCase().includes(query.toLowerCase())),
-    }));
-
-    loading.value = false;
-  }
-};
-
-const populate = () => {
-  if (!props.remotePopulateItems) {
-    return;
-  }
-  props.remotePopulateItems(props.modelValue)
-    .then((options) => {
-      selectedOptions.value = options;
-    });
-};
-
-const selected = (any) => {
-  console.log(any);
+  filteredOptions.value = props.options.map((g) => ({
+    ...g,
+    options: g.options.filter((o) => o.label.toLowerCase().includes(query.toLowerCase())),
+  }));
 };
 
 onMounted(() => {
   searchOptions('');
-  if (props.remote && props.modelValue.length > 0) {
-    populate();
-  }
 });
 </script>
 
@@ -143,6 +95,25 @@ export default {
     &:after{
       @apply hidden;
     }
+  }
+
+  .el-input__wrapper,
+  .el-input__wrapper.is-focus,
+  .el-input__wrapper:hover {
+    @apply bg-gray-50 shadow-none rounded-md border border-gray-50 transition #{!important};
+
+    input {
+      &,
+      &:hover,
+      &:focus {
+        border: none !important;
+        @apply bg-gray-50 shadow-none outline-none h-full min-h-8;
+      }
+    }
+  }
+
+  .el-tag{
+    @apply bg-white #{!important};
   }
 }
 .filter-multiselect-popper {

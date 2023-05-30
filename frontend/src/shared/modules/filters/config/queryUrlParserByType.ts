@@ -12,6 +12,7 @@ export const queryUrlParserByType: Record<FilterConfigType, (query: any) => any>
   [FilterConfigType.DATE]: dateQueryUrlParser,
   [FilterConfigType.SELECT]: selectQueryUrlParser,
   [FilterConfigType.MULTISELECT]: multiSelectQueryUrlParser,
+  [FilterConfigType.MULTISELECT_ASYNC]: multiSelectQueryUrlParser,
   [FilterConfigType.STRING]: stringQueryUrlParser,
   [FilterConfigType.CUSTOM]: () => null,
 };

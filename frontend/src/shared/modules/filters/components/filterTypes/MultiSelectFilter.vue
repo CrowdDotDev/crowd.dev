@@ -1,7 +1,7 @@
 <template>
   <div v-if="form">
     <cr-filter-include-switch v-if="!props.hideIncludeSwitch" v-model="form.include" />
-    <div v-if="allOptions.length <= 7 && !props.remote">
+    <div v-if="allOptions.length <= 7">
       <cr-multi-select-checkbox-filter
         v-model="form.value"
         :config="props.config"
@@ -13,9 +13,6 @@
         v-model="form.value"
         :config="props.config"
         :options="props.options"
-        :remote="props.remote"
-        :remote-method="props.remoteMethod"
-        :remote-populate-items="props.remotePopulateItems"
       />
     </div>
   </div>

@@ -49,9 +49,7 @@
 </template>
 
 <script setup lang="ts">
-import {
-  computed, ref, watch,
-} from 'vue';
+import { computed, ref, watch } from 'vue';
 import { FilterConfig, FilterConfigType } from '@/shared/modules/filters/types/FilterConfig';
 import { filterComponentByType } from '@/shared/modules/filters/config/filterComponentByType';
 import useVuelidate from '@vuelidate/core';
