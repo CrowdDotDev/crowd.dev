@@ -5,7 +5,7 @@ import { Logger, LoggerBase, getChildLogger } from '@crowd/logging'
 import { ApiPubSubEmitter, RedisCache, RedisClient } from '@crowd/redis'
 import { IntegrationStreamWorkerEmitter } from '@crowd/sqs'
 import { IntegrationRunState, IntegrationStreamState } from '@crowd/types'
-import { NANGO_CONFIG } from '../config'
+import { NANGO_CONFIG, PLATFORM_CONFIG } from '../config'
 import IntegrationRunRepository from '../repo/integrationRun.repo'
 import MemberAttributeSettingsRepository from '../repo/memberAttributeSettings.repo'
 import SampleDataRepository from '../repo/sampleData.repo'
@@ -222,6 +222,7 @@ export default class IntegrationRunService extends LoggerBase {
         nangoSecretKey: nangoConfig.secretKey,
         nangoId: `${runInfo.tenantId}-${runInfo.integrationType}`,
       },
+      platformSettings: PLATFORM_CONFIG(runInfo.integrationType),
       integration: {
         id: runInfo.integrationId,
         identifier: runInfo.integrationIdentifier,

@@ -5,7 +5,7 @@ import { RedisCache, RedisClient } from '@crowd/redis'
 import IntegrationStreamRepository from '../repo/integrationStream.repo'
 import { IntegrationStreamType, RateLimitError } from '@crowd/types'
 import { INTEGRATION_SERVICES, IProcessStreamContext } from '@crowd/integrations'
-import { NANGO_CONFIG, WORKER_SETTINGS } from '../config'
+import { NANGO_CONFIG, WORKER_SETTINGS, PLATFORM_CONFIG } from '../config'
 import {
   IntegrationDataWorkerEmitter,
   IntegrationRunWorkerEmitter,
@@ -113,6 +113,8 @@ export default class IntegrationStreamService extends LoggerBase {
         nangoSecretKey: nangoConfig.secretKey,
         nangoId: `${streamInfo.tenantId}-${streamInfo.integrationType}`,
       },
+
+      platformSettings: PLATFORM_CONFIG(streamInfo.integrationType),
 
       integration: {
         id: streamInfo.integrationId,
