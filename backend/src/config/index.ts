@@ -188,6 +188,8 @@ export const GITHUB_CONFIG: GithubConfiguration = KUBE_MODE
       webhookSecret: process.env.GITHUB_WEBHOOK_SECRET,
       isCommitDataEnabled: process.env.GITHUB_IS_COMMIT_DATA_ENABLED === 'true',
     }
+  
+GITHUB_CONFIG.isCommitDataEnabled = process.env.GITHUB_IS_COMMIT_DATA_ENABLED === 'true'
 
 export const SENDGRID_CONFIG: SendgridConfiguration = KUBE_MODE
   ? config.get<SendgridConfiguration>('sendgrid')

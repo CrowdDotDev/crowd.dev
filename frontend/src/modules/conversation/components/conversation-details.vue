@@ -270,7 +270,7 @@ export default {
         label: 'All',
       }];
 
-      if (config.isGitEnabled && (platform === 'github' || platform === 'git')) {
+      if (config.isGitIntegrationEnabled && (platform === 'github' || platform === 'git')) {
         if (this.conversationTypes.includes('authored-commit')) {
           options.push({
             value: 'authored-commit',
