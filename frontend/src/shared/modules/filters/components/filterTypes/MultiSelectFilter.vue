@@ -1,10 +1,22 @@
 <template>
   <div v-if="form">
     <cr-filter-include-switch v-if="!props.hideIncludeSwitch" v-model="form.include" />
-    <div class="p-4">
-      Multi select filter
-      <!-- TODO: prepare multiselect filter -->
+    <div v-if="allOptions.length <= 70">
+      <div class="max-h-58 overflow-auto py-3 px-2">
+        <template v-for="(group, gi) of props.options" :key="gi">
+          <div
+            v-if="group.label && group.options.length > 0"
+            class="text-2xs text-gray-400 font-semibold tracking-wide leading-6 uppercase px-3 my-1"
+          >
+            {{ group.label }}
+          </div>
+          <cr-filter-multi-select-option v-for="(option, oi) of group.options" :key="oi" v-model="form.value" :value="option.value">
+            {{ option.label }}
+          </cr-filter-multi-select-option>
+        </template>
+      </div>
     </div>
+    <div v-else />
   </div>
 </template>
 
@@ -18,6 +30,8 @@ import {
 import { required } from '@vuelidate/validators';
 import useVuelidate from '@vuelidate/core';
 import CrFilterIncludeSwitch from '@/shared/modules/filters/components/partials/FilterIncludeSwitch.vue';
+import CrFilterMultiSelectOption
+  from '@/shared/modules/filters/components/partials/multiselect/FilterMultiSelectOption.vue';
 
 const props = defineProps<{
   modelValue: MultiSelectFilterValue,
@@ -25,6 +39,8 @@ const props = defineProps<{
 } & MultiSelectFilterOptions>();
 
 const emit = defineEmits<{(e: 'update:modelValue', value: MultiSelectFilterValue): void}>();
+
+const allOptions = computed(() => props.options.map((g) => g.options).flat());
 
 const form = computed({
   get: () => props.modelValue,
