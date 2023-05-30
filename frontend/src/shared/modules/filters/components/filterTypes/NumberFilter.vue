@@ -61,7 +61,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted } from 'vue';
+import { computed, onMounted, watch } from 'vue';
 import {
   NumberFilterConfig,
   NumberFilterOptions,
@@ -117,6 +117,15 @@ const rules: any = computed(() => ({
 }));
 
 const $v = useVuelidate(rules, form);
+
+watch(() => form.value.operator, (operator) => {
+  console.log(operator);
+  if (operator !== FilterNumberOperator.BETWEEN) {
+    form.value.valueTo = undefined;
+  } else {
+    form.value.valueTo = '';
+  }
+});
 
 onMounted(() => {
   if (!form.value || Object.keys(form.value).length === 0) {

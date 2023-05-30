@@ -8,7 +8,7 @@ export interface NumberFilterOptions {
 export interface NumberFilterValue {
   operator: FilterNumberOperator,
   value: number | '',
-  valueTo: number | '',
+  valueTo?: number | '',
   include: boolean,
 }
 export interface NumberFilterConfig extends BaseFilterConfig {

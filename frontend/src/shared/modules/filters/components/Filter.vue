@@ -74,10 +74,7 @@ const filters = computed<Filter>({
     return props.modelValue;
   },
   set(value: Filter) {
-    const {
-      settings, search, relation, order, pagination, ...filterValues
-    } = value;
-    filterList.value = Object.keys(filterValues);
+    alignFilterList(value);
     emit('update:modelValue', value);
   },
 });
@@ -88,9 +85,21 @@ const configuration = computed(() => ({
 }));
 
 const filterList = ref<string[]>([]);
+const cachedRelation = ref<'and' | 'or'>('and');
 
 const switchOperator = () => {
   filters.value.relation = filters.value.relation === 'and' ? 'or' : 'and';
+};
+
+const alignFilterList = (value: Filter) => {
+  const {
+    settings, search, relation, order, pagination, ...filterValues
+  } = value;
+  if (JSON.stringify(relation) !== JSON.stringify(cachedRelation.value)) {
+    cachedRelation.value = relation;
+    return;
+  }
+  filterList.value = Object.keys(filterValues);
 };
 
 const removeFilter = (key) => {
@@ -109,10 +118,7 @@ const fetch = (value: Filter) => {
 
 watch(() => filters.value, (value: Filter) => {
   fetch(value);
-  const {
-    settings, search, relation, order, pagination, ...filterValues
-  } = value;
-  filterList.value = Object.keys(filterValues);
+  alignFilterList(value);
   const query = setQuery(value);
   router.push({ query });
 }, { deep: true });
