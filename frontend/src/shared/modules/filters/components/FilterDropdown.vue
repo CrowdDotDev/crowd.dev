@@ -67,6 +67,7 @@ import {
   defineProps, ref,
 } from 'vue';
 import { FilterConfig } from '@/shared/modules/filters/types/FilterConfig';
+import { FeatureFlag } from '@/featureFlag';
 
 const props = defineProps<{
   config: Record<string, FilterConfig>,
@@ -81,10 +82,14 @@ const search = ref('');
 const matchesSearch = (label: string, query: string): boolean => label.toLowerCase().includes(query.toLowerCase());
 const isSelected = (key: string): boolean => props.modelValue.includes(key);
 
-const options = computed(() => Object.entries(props.config).map(([key, configuration]: [string, FilterConfig]) => ({
-  ...configuration,
-  key,
-})));
+const options = computed(() => Object.entries(props.config)
+  .map(([key, configuration]: [string, FilterConfig]) => ({
+    ...configuration,
+    key,
+  }))
+  .filter((config) => (config.featureFlag ? FeatureFlag.isFlagEnabled(
+    config.featureFlag,
+  ) : true)));
 
 const customOptions = computed(() => Object.entries(props.customConfig).map(([key, configuration]: [string, FilterConfig]) => ({
   ...configuration,

@@ -21,6 +21,7 @@ export interface BaseFilterConfig {
   label: string;
   iconClass: string;
   inBody?: boolean;
+  featureFlag?: string;
 }
 
 export type FilterConfig = NumberFilterConfig
