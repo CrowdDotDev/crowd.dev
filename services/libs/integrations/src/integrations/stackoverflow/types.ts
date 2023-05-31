@@ -3,6 +3,10 @@ export enum StackOverflowActivityType {
   ANSWER = 'answer',
 }
 
+export interface StackOverflowPlatformSettings {
+  key: string
+}
+
 export interface IStackOverflowIntegrationSettings {
   tags: string[]
   keywords: string[]
