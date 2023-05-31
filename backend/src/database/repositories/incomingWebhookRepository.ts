@@ -204,7 +204,7 @@ export default class IncomingWebhookRepository extends RepositoryBase<
       left join integrations i on i.id = iw."integrationId"
       where iw.state = :error
       and iw.retries < ${retryLimit}
-      and iw.error->>'originalMessage' <> 'Bad credentials'
+      and ( not (iw.error::jsonb ? 'originalMessage') or ((iw.error::jsonb ? 'originalMessage') and iw.error->>'originalMessage' <> 'Bad credentials'))
       and i.id is not null
     `
 
