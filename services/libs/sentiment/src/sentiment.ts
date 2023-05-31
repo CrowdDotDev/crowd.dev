@@ -54,7 +54,7 @@ export const getSentiment = async (text: string): Promise<ISentimentAnalysisResu
   }
 
   const params = {
-    Text: prepareText,
+    Text: preparedText,
     LanguageCode: 'en',
   }
 
