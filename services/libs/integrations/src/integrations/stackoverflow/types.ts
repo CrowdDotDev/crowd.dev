@@ -12,9 +12,36 @@ export interface IStackOverflowIntegrationSettings {
   keywords: string[]
 }
 
+export interface IStackOverflowPublishQuestion {
+  question: StackOverflowShallowQuestion
+  user: StackOverflowUser
+  tag: string | null
+  keyword: string | null
+}
+
+export interface IStackOverflowPublishData {
+  question: IStackOverflowPublishQuestion | null
+  answer: IStackOverflowPublishAnswer | null
+}
+
+export interface IStackOverflowPublishAnswer {
+  answer: StackOverflowAnswer
+  user: StackOverflowUser
+  tag: string | null
+  keyword: string | null
+  previousAnswerId: string | null
+}
+
 export interface IStackOverflowTagStreamData {
   tags: string[]
   page: number
+}
+
+export interface IStackOverflowAnswerStreamData {
+  questionId: string
+  page: number
+  tag: string | null
+  keyword: string | null
 }
 
 export interface IStackOverflowKeywordStreamData {
@@ -25,6 +52,7 @@ export interface IStackOverflowKeywordStreamData {
 export enum StackOverflowRootStream {
   QUESTIONS_BY_TAG = 'questions_by_tag',
   QUESTIONS_BY_KEYWORD = 'questions_by_keyword',
+  ANSWERS_TO_QUESTION = 'answers_to_question',
 }
 
 interface StackOverflowBase {

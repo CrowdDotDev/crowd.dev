@@ -9,7 +9,6 @@ const descriptor: IIntegrationDescriptor = {
   type: PlatformType.STACKOVERFLOW,
   memberAttributes,
   checkEvery: 60,
-
   generateStreams,
   processStream,
   processData,
