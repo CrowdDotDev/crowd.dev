@@ -2,6 +2,28 @@
 
 All notable changes to this project will be documented in this file.
 
+## v0.33.0 - 2023-05-30
+
+### Changes
+
+For more detailed information, see our [changelog](https://changelog.crowd.dev/changelogs/discourse-integration).
+
+#### 🚀 Features
+
+- GitHub Commit Data @garrrikkotua (#834)
+- Discourse integration @garrrikkotua (#890)
+
+#### ✨ Improvements
+
+- Github issue closed support and improvements @epipav (#898)
+- Added a filter for the deleted users @joanreyero (#911)
+- Added CTA to book a call for the Hubspot integration @gaspergrom (#896)
+
+#### 🐞 Bug Fixes
+
+- Member enrichment upsert by existing platform instead of GitHub @epipav (#906)
+- Fix the z-index for tables @gaspergrom (#904)
+
 ## v0.32.1 - 2023-05-23
 
 ### Changes
@@ -407,7 +429,6 @@ https://user-images.githubusercontent.com/37874460/220165717-4204605a-260f-41cb-
 - Added LinkedIn to sample data @joanreyero (#481)
 - Moved the organizations' module to the essential plan @themarolt (#514)
 ### 🐞 Bug Fixes
-
 - Fix global attributes not showing in the Edit attributes drawer. @joanagmaia (#488)
 - Fix filters for custom attributes. @joanagmaia (#492)
 - Fix the reach filter on the members' page. @joanagmaia (#491)
@@ -595,7 +616,6 @@ With this, we have introduced feature flagging, so we can also roll out features
 ## v0.11.0 - 2022-12-05
 ### Changes
 ### 🚀 Features
-
 #### Hacker News integration
 
 The Hacker News integration will detect any post that mentions your community in the *Top* or *Best* of Hacker News. It works for any post published after the 1st of December 2022. The post will become a community activity, and so will any comment on those posts.

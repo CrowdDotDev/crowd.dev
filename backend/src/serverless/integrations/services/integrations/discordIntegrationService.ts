@@ -564,6 +564,12 @@ export class DiscordIntegrationService extends IntegrationServiceBase {
                   [PlatformType.DISCORD]: avatarUrl,
                 },
               }),
+              // Add isBot attribute for deleted users to exclude from search. Add if username contains Deleted User
+              ...(username.includes('Deleted User') && {
+                [MemberAttributeName.IS_BOT]: {
+                  [PlatformType.DISCORD]: true,
+                },
+              }),
             },
           },
           score: DISCORD_GRID[DiscordActivityType.MESSAGE].score,
