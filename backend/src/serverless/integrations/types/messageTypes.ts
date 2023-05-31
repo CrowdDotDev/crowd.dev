@@ -1,4 +1,4 @@
-import { PlatformType } from '../../../types/integrationEnums'
+import { PlatformType } from '@crowd/types'
 import { State } from './regularTypes'
 
 export type IntegrationsMessage = {

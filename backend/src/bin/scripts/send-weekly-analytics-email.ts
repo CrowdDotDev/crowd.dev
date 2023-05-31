@@ -3,9 +3,9 @@ import commandLineUsage from 'command-line-usage'
 import * as fs from 'fs'
 import moment from 'moment'
 import path from 'path'
-import { createServiceLogger } from '../../utils/logging'
+import { getServiceLogger } from '@crowd/logging'
+import { timeout } from '@crowd/common'
 import SequelizeRepository from '../../database/repositories/sequelizeRepository'
-import { timeout } from '../../utils/timing'
 import { sendNodeWorkerMessage } from '../../serverless/utils/nodeWorkerSQS'
 import { NodeWorkerMessageType } from '../../serverless/types/workerTypes'
 import { NodeWorkerMessageBase } from '../../types/mq/nodeWorkerMessageBase'
@@ -16,7 +16,7 @@ import { RecurringEmailType } from '../../types/recurringEmailsHistoryTypes'
 
 const banner = fs.readFileSync(path.join(__dirname, 'banner.txt'), 'utf8')
 
-const log = createServiceLogger()
+const log = getServiceLogger()
 
 const options = [
   {

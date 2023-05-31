@@ -1,23 +1,21 @@
-import lodash from 'lodash'
+import { DiscordActivityType, UNKNOWN_ACTIVITY_TYPE_DISPLAY } from '@crowd/integrations'
+import { LoggerBase, getServiceChildLogger } from '@crowd/logging'
 import {
   ActivityDisplayVariant,
   ActivityTypeDisplayProperties,
   ActivityTypeSettings,
-  DiscordtoActivityType,
-  UNKNOWN_ACTIVITY_TYPE_DISPLAY,
-} from '../types/activityTypes'
-import { PlatformType } from '../types/integrationEnums'
-import { createServiceChildLogger } from '../utils/logging'
+  PlatformType,
+} from '@crowd/types'
+import lodash from 'lodash'
 import { IServiceOptions } from './IServiceOptions'
-import { LoggingBase } from './loggingBase'
 
-const log = createServiceChildLogger('ActivityDisplayService')
+const log = getServiceChildLogger('ActivityDisplayService')
 
-export default class ActivityDisplayService extends LoggingBase {
+export default class ActivityDisplayService extends LoggerBase {
   options: IServiceOptions
 
   constructor(options: IServiceOptions) {
-    super(options)
+    super(options.log)
     this.options = options
   }
 
@@ -113,10 +111,10 @@ export default class ActivityDisplayService extends LoggingBase {
 
       if (
         activity.platform === PlatformType.DISCORD &&
-        activity.type === DiscordtoActivityType.MESSAGE &&
+        activity.type === DiscordActivityType.MESSAGE &&
         activity.attributes.thread === true
       ) {
-        activity.type = DiscordtoActivityType.THREAD_MESSAGE
+        activity.type = DiscordActivityType.THREAD_MESSAGE
       }
 
       // we're cloning because we'll use the same object to do the interpolation

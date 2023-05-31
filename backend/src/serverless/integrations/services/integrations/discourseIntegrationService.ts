@@ -1,42 +1,41 @@
-import sanitizeHtml from 'sanitize-html'
+import { DISCOURSE_GRID, DiscourseActivityType } from '@crowd/integrations'
+import { PlatformType, IntegrationType } from '@crowd/types'
 import he from 'he'
 import moment from 'moment/moment'
-import { IntegrationServiceBase } from '../integrationServiceBase'
-import { IntegrationType, PlatformType } from '../../../../types/integrationEnums'
+import sanitizeHtml from 'sanitize-html'
+import { DiscourseMemberAttributes } from '../../../../database/attributes/member/discourse'
+import { MemberAttributeName } from '../../../../database/attributes/member/enums'
+import MemberAttributeSettingsService from '../../../../services/memberAttributeSettingsService'
 import {
   IIntegrationStream,
   IPendingStream,
   IProcessStreamResults,
-  IStepContext,
   IProcessWebhookResults,
+  IStepContext,
 } from '../../../../types/integration/stepResult'
+import Operations from '../../../dbOperations/operations'
 import {
-  DiscourseConnectionParams,
   DiscourseCategoryResponse,
-  DiscourseTopicResponse,
-  DiscourseTopicsInput,
-  DiscoursePostsInput,
-  DiscoursePostsFromTopicResponse,
+  DiscourseConnectionParams,
   DiscoursePostsByIdsInput,
   DiscoursePostsByIdsResponse,
-  DiscourseWebhookPost,
-  DiscourseWebhookUser,
+  DiscoursePostsFromTopicResponse,
+  DiscoursePostsInput,
+  DiscourseTopicResponse,
+  DiscourseTopicsInput,
   DiscourseUserResponse,
   DiscourseWebhookNotification,
+  DiscourseWebhookPost,
+  DiscourseWebhookUser,
 } from '../../types/discourseTypes'
-import { getDiscourseCategories } from '../../usecases/discourse/getCategories'
-import { getDiscourseTopics } from '../../usecases/discourse/getTopics'
-import { getDiscoursePostsFromTopic } from '../../usecases/discourse/getPostsFromTopic'
-import { getDiscoursePostsByIds } from '../../usecases/discourse/getPostsByIds'
-import { getDiscourseUserByUsername } from '../../usecases/discourse/getUser'
-import { AddActivitiesSingle, Member } from '../../types/messageTypes'
-import Operations from '../../../dbOperations/operations'
-import { DiscourseMemberAttributes } from '../../../../database/attributes/member/discourse'
-import MemberAttributeSettingsService from '../../../../services/memberAttributeSettingsService'
-import { MemberAttributeName } from '../../../../database/attributes/member/enums'
-import { DiscourseActivityType } from '../../../../types/activityTypes'
-import { DiscourseGrid } from '../../grid/discourseGrid'
 import type { PlatformIdentities } from '../../types/messageTypes'
+import { AddActivitiesSingle, Member } from '../../types/messageTypes'
+import { getDiscourseCategories } from '../../usecases/discourse/getCategories'
+import { getDiscoursePostsByIds } from '../../usecases/discourse/getPostsByIds'
+import { getDiscoursePostsFromTopic } from '../../usecases/discourse/getPostsFromTopic'
+import { getDiscourseTopics } from '../../usecases/discourse/getTopics'
+import { getDiscourseUserByUsername } from '../../usecases/discourse/getUser'
+import { IntegrationServiceBase } from '../integrationServiceBase'
 
 const BOT_USERNAMES = ['system', 'discobot']
 
@@ -232,12 +231,12 @@ export class DiscourseIntegrationService extends IntegrationServiceBase {
             channel: stream.metadata.topicTitle,
             score:
               post.post_number === 1
-                ? DiscourseGrid[DiscourseActivityType.CREATE_TOPIC].score
-                : DiscourseGrid[DiscourseActivityType.MESSAGE_IN_TOPIC].score,
+                ? DISCOURSE_GRID[DiscourseActivityType.CREATE_TOPIC].score
+                : DISCOURSE_GRID[DiscourseActivityType.MESSAGE_IN_TOPIC].score,
             isContribution:
               post.post_number === 1
-                ? DiscourseGrid[DiscourseActivityType.CREATE_TOPIC].isContribution
-                : DiscourseGrid[DiscourseActivityType.MESSAGE_IN_TOPIC].isContribution,
+                ? DISCOURSE_GRID[DiscourseActivityType.CREATE_TOPIC].isContribution
+                : DISCOURSE_GRID[DiscourseActivityType.MESSAGE_IN_TOPIC].isContribution,
           }
           activities.push(activity)
         }
@@ -407,7 +406,7 @@ export class DiscourseIntegrationService extends IntegrationServiceBase {
 
     const activity: AddActivitiesSingle = {
       member,
-      username: member.username[PlatformType.DISCOURSE].username,
+      username: member.username[PlatformType.DISCOURSE][0].username,
       platform: PlatformType.DISCOURSE,
       tenant: context.integration.tenantId,
       sourceId: `${post.topic_id}-${post.post_number}`,
@@ -423,12 +422,12 @@ export class DiscourseIntegrationService extends IntegrationServiceBase {
       channel: post.topic_title,
       score:
         post.post_number === 1
-          ? DiscourseGrid[DiscourseActivityType.CREATE_TOPIC].score
-          : DiscourseGrid[DiscourseActivityType.MESSAGE_IN_TOPIC].score,
+          ? DISCOURSE_GRID[DiscourseActivityType.CREATE_TOPIC].score
+          : DISCOURSE_GRID[DiscourseActivityType.MESSAGE_IN_TOPIC].score,
       isContribution:
         post.post_number === 1
-          ? DiscourseGrid[DiscourseActivityType.CREATE_TOPIC].isContribution
-          : DiscourseGrid[DiscourseActivityType.MESSAGE_IN_TOPIC].isContribution,
+          ? DISCOURSE_GRID[DiscourseActivityType.CREATE_TOPIC].isContribution
+          : DISCOURSE_GRID[DiscourseActivityType.MESSAGE_IN_TOPIC].isContribution,
     }
 
     return {
@@ -465,7 +464,7 @@ export class DiscourseIntegrationService extends IntegrationServiceBase {
 
     const activity: AddActivitiesSingle = {
       member,
-      username: member.username[PlatformType.DISCOURSE].username,
+      username: member.username[PlatformType.DISCOURSE][0].username,
       platform: PlatformType.DISCOURSE,
       tenant: context.integration.tenantId,
       sourceId: `${user.id}`,
@@ -475,8 +474,8 @@ export class DiscourseIntegrationService extends IntegrationServiceBase {
       title: null,
       url: `${context.integration.settings.forumHostname}/u/${user.username}`,
       channel: null,
-      score: DiscourseGrid[DiscourseActivityType.JOIN].score,
-      isContribution: DiscourseGrid[DiscourseActivityType.JOIN].isContribution,
+      score: DISCOURSE_GRID[DiscourseActivityType.JOIN].score,
+      isContribution: DISCOURSE_GRID[DiscourseActivityType.JOIN].isContribution,
     }
 
     return {
@@ -525,7 +524,7 @@ export class DiscourseIntegrationService extends IntegrationServiceBase {
 
     const activity: AddActivitiesSingle = {
       member,
-      username: member.username[PlatformType.DISCOURSE].username,
+      username: member.username[PlatformType.DISCOURSE][0].username,
       platform: PlatformType.DISCOURSE,
       tenant: context.integration.tenantId,
       sourceId: `${notification.id}`,
@@ -534,8 +533,8 @@ export class DiscourseIntegrationService extends IntegrationServiceBase {
       body: null,
       title: null,
       channel,
-      score: DiscourseGrid[DiscourseActivityType.LIKE].score,
-      isContribution: DiscourseGrid[DiscourseActivityType.LIKE].isContribution,
+      score: DISCOURSE_GRID[DiscourseActivityType.LIKE].score,
+      isContribution: DISCOURSE_GRID[DiscourseActivityType.LIKE].isContribution,
       attributes: {
         topicURL: `${context.integration.settings.forumHostname}/t/${notification.slug}/${notification.topic_id}`,
       },
@@ -558,10 +557,12 @@ export class DiscourseIntegrationService extends IntegrationServiceBase {
   ): Member {
     return {
       username: {
-        [PlatformType.DISCOURSE]: {
-          username: user.user.username,
-          integrationId: context.integration.id,
-        },
+        [PlatformType.DISCOURSE]: [
+          {
+            username: user.user.username,
+            integrationId: context.integration.id,
+          },
+        ],
       } as PlatformIdentities,
       displayName: user.user.name,
       attributes: {

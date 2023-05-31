@@ -1,3 +1,4 @@
+import { LoggerBase } from '@crowd/logging'
 import lodash from 'lodash'
 import moment from 'moment'
 import SequelizeRepository from '../database/repositories/sequelizeRepository'
@@ -5,23 +6,22 @@ import TenantUserRepository from '../database/repositories/tenantUserRepository'
 import Error400 from '../errors/Error400'
 import track from '../segment/track'
 import {
-  EagleEyeSettings,
+  EagleEyeEmailDigestFrequency,
+  EagleEyeEmailDigestSettings,
   EagleEyeFeedSettings,
   EagleEyePlatforms,
   EagleEyePublishedDates,
-  EagleEyeEmailDigestSettings,
-  EagleEyeEmailDigestFrequency,
+  EagleEyeSettings,
 } from '../types/eagleEyeTypes'
 import { IServiceOptions } from './IServiceOptions'
-import { LoggingBase } from './loggingBase'
 
 /* eslint-disable no-case-declarations */
 
-export default class EagleEyeSettingsService extends LoggingBase {
+export default class EagleEyeSettingsService extends LoggerBase {
   options: IServiceOptions
 
-  constructor(options) {
-    super(options)
+  constructor(options: IServiceOptions) {
+    super(options.log)
     this.options = options
   }
 

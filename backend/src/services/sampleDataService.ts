@@ -1,6 +1,8 @@
 // import { membersScore } from './../database/utils/keys/microserviceTypes'
 import lodash from 'lodash'
 import moment from 'moment'
+import { LoggerBase } from '@crowd/logging'
+import { PlatformType } from '@crowd/types'
 import { IServiceOptions } from './IServiceOptions'
 import ActivityService from './activityService'
 import MemberService from './memberService'
@@ -17,23 +19,21 @@ import {
   MemberEnrichmentAttributeName,
   MemberEnrichmentAttributes,
 } from '../database/attributes/member/enums'
-import { PlatformType } from '../types/integrationEnums'
 import OrganizationService from './organizationService'
 import ConversationService from './conversationService'
-import { LoggingBase } from './loggingBase'
 import MemberRepository from '../database/repositories/memberRepository'
 import { LinkedInMemberAttributes } from '../database/attributes/member/linkedin'
 import NoteService from './noteService'
 import TagService from './tagService'
 import { AttributeType } from '../database/attributes/types'
-import { API_CONFIG } from '../config'
+import { API_CONFIG } from '../conf'
 import SequelizeRepository from '../database/repositories/sequelizeRepository'
 
-export default class SampleDataService extends LoggingBase {
+export default class SampleDataService extends LoggerBase {
   options: IServiceOptions
 
-  constructor(options) {
-    super(options)
+  constructor(options: IServiceOptions) {
+    super(options.log)
     this.options = options
   }
 

@@ -1,21 +1,20 @@
 import Axios from 'axios'
 import lodash from 'lodash'
-import { NETLIFY_CONFIG } from '../config/index'
+import { LoggerBase, getServiceChildLogger } from '@crowd/logging'
+import { NETLIFY_CONFIG } from '../conf/index'
 import { IServiceOptions } from './IServiceOptions'
 import ConversationSettingsRepository from '../database/repositories/conversationSettingsRepository'
 import SequelizeRepository from '../database/repositories/sequelizeRepository'
-import { LoggingBase } from './loggingBase'
-import { createServiceChildLogger } from '../utils/logging'
 
 const DEFAULT_CONVERSATION_SETTINGS = {}
 
-const log = createServiceChildLogger('ConversationSettingsService')
+const log = getServiceChildLogger('ConversationSettingsService')
 
-export default class ConversationSettingsService extends LoggingBase {
+export default class ConversationSettingsService extends LoggerBase {
   options: IServiceOptions
 
-  constructor(options) {
-    super(options)
+  constructor(options: IServiceOptions) {
+    super(options.log)
     this.options = options
   }
 

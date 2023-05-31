@@ -2,7 +2,10 @@ import { IntegrationService } from '@/modules/integration/integration-service';
 import Errors from '@/shared/error/errors';
 import { router } from '@/router';
 import { CrowdIntegrations } from '@/integrations/integrations-config';
+import { isCurrentDateAfterGivenWorkingDays } from '@/utils/date';
 import Message from '../../shared/message/message';
+
+export const ERROR_BANNER_WORKING_DAYS_DISPLAY = 3;
 
 export default {
   namespaced: true,
@@ -66,7 +69,7 @@ export default {
     ),
 
     withErrors: (state, getters) => getters.array.filter(
-      (i) => i.status === 'error',
+      (i) => i.status === 'error' && isCurrentDateAfterGivenWorkingDays(i.updatedAt, ERROR_BANNER_WORKING_DAYS_DISPLAY),
     ),
 
     withNoData: (state, getters) => getters.array.filter(

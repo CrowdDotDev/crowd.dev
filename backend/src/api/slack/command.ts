@@ -1,4 +1,4 @@
-import { SLACK_CONFIG } from '../../config/index'
+import { SLACK_CONFIG } from '../../conf/index'
 import SlackCommandService from '../../services/slackCommandService'
 
 export default async (req, res) => {

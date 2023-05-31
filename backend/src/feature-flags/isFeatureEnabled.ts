@@ -1,5 +1,5 @@
 import { Unleash } from 'unleash-client'
-import { API_CONFIG } from '../config'
+import { API_CONFIG } from '../conf'
 import { FeatureFlag, Edition } from '../types/common'
 import getFeatureFlagTenantContext from './getFeatureFlagTenantContext'
 import Plans from '../security/plans'
@@ -23,7 +23,12 @@ export default async (featureFlag: FeatureFlag, req: any): Promise<boolean> => {
     return true
   }
 
-  const context = await getFeatureFlagTenantContext(req.currentTenant, req.database, req.redis)
+  const context = await getFeatureFlagTenantContext(
+    req.currentTenant,
+    req.database,
+    req.redis,
+    req.log,
+  )
 
   const unleash: Unleash = req.unleash
 

@@ -1,8 +1,8 @@
+import { RedisCache } from '@crowd/redis'
 import AutomationRepository from '../../database/repositories/automationRepository'
 import SettingsRepository from '../../database/repositories/settingsRepository'
 import Error403 from '../../errors/Error403'
 import { FeatureFlagRedisKey } from '../../types/common'
-import { RedisCache } from '../../utils/redis/redisCache'
 
 export default async (req, res) => {
   if (!req.currentUser || !req.currentUser.id) {
@@ -12,21 +12,26 @@ export default async (req, res) => {
 
   const payload = req.currentUser
 
-  const csvExportCountCache = new RedisCache(FeatureFlagRedisKey.CSV_EXPORT_COUNT, req.redis)
+  const csvExportCountCache = new RedisCache(
+    FeatureFlagRedisKey.CSV_EXPORT_COUNT,
+    req.redis,
+    req.log,
+  )
   const memberEnrichmentCountCache = new RedisCache(
     FeatureFlagRedisKey.MEMBER_ENRICHMENT_COUNT,
     req.redis,
+    req.log,
   )
 
   payload.tenants = await Promise.all(
     payload.tenants.map(async (tenantUser) => {
       tenantUser.tenant.dataValues = {
         ...tenantUser.tenant.dataValues,
-        csvExportCount: Number(await csvExportCountCache.getValue(tenantUser.tenant.id)) || 0,
+        csvExportCount: Number(await csvExportCountCache.get(tenantUser.tenant.id)) || 0,
         automationCount:
           Number(await AutomationRepository.countAll(req.database, tenantUser.tenant.id)) || 0,
         memberEnrichmentCount:
-          Number(await memberEnrichmentCountCache.getValue(tenantUser.tenant.id)) || 0,
+          Number(await memberEnrichmentCountCache.get(tenantUser.tenant.id)) || 0,
       }
 
       tenantUser.tenant.dataValues.settings[0].dataValues = {
