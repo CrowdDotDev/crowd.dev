@@ -251,6 +251,19 @@ export default class IncomingWebhookRepository extends RepositoryBase<
     return results as PendingWebhook[]
   }
 
+  async cleanUpOrphanedWebhooks(): Promise<void> {
+    const seq = this.seq
+
+    const cleanQuery = `
+    delete from "incomingWebhooks" iw
+    where not exists(select 1 from integrations i where (i.id = iw."integrationId" and i."deletedAt" is null));                   
+    `
+
+    await seq.query(cleanQuery, {
+      type: QueryTypes.DELETE,
+    })
+  }
+
   async cleanUpOldWebhooks(months: number): Promise<void> {
     const seq = this.seq
 
