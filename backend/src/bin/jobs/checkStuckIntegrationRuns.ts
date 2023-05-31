@@ -205,12 +205,12 @@ export const checkStuckWebhooks = async (): Promise<void> => {
   const repo = new IncomingWebhookRepository(dbOptions)
 
   // update retryable error state webhooks to pending state
-  await processPaginated(
-    async (page) => repo.findError(page, 20, WebhookProcessor.MAX_RETRY_LIMIT),
-    async (webhooks) => {
-      await repo.markAllPending(webhooks.map((w) => w.id))
-    },
-  )
+  let errorWebhooks = await repo.findError(1, 20, WebhookProcessor.MAX_RETRY_LIMIT)
+
+  while (errorWebhooks.length > 0){
+    await repo.markAllPending(errorWebhooks.map( (w) => w.id))
+    errorWebhooks = await repo.findError(1, 20, WebhookProcessor.MAX_RETRY_LIMIT)
+  }
 
   await processPaginated(
     async (page) => repo.findPending(page, 20),
