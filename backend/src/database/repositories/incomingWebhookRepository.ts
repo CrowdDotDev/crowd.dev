@@ -133,6 +133,28 @@ export default class IncomingWebhookRepository extends RepositoryBase<
     }
   }
 
+  async markAllPending(ids: string[]): Promise<void> {
+    const transaction = this.transaction
+
+    await this.seq.query(
+      `
+      update "incomingWebhooks"
+      set state = :state,
+          error = null,
+          "processedAt" = now()
+      where id in (:ids)
+    `,
+      {
+        replacements: {
+          ids,
+          state: WebhookState.PENDING,
+        },
+        type: QueryTypes.UPDATE,
+        transaction,
+      },
+    )
+  }
+
   async markError(id: string, error: WebhookError): Promise<void> {
     const transaction = this.transaction
 
@@ -141,7 +163,8 @@ export default class IncomingWebhookRepository extends RepositoryBase<
       update "incomingWebhooks"
       set state = :state,
           error = :error,
-          "processedAt" = now()
+          "processedAt" = now(),
+          retries = retries + 1
           where id = :id
     `,
       {
@@ -165,22 +188,32 @@ export default class IncomingWebhookRepository extends RepositoryBase<
     }
   }
 
-  async findError(type: WebhookType, page: number, perPage: number): Promise<ErrorWebhook[]> {
+  async findError(
+    page: number,
+    perPage: number,
+    retryLimit: number = 5,
+    type?: WebhookType,
+  ): Promise<ErrorWebhook[]> {
     const transaction = this.transaction
 
     const seq = this.seq
 
-    const query = `
+    let query = `
       select iw.id, iw."tenantId"
       from "incomingWebhooks" iw
       left join integrations i on i.id = iw."integrationId"
       where iw.state = :error
-      and iw.type = :type
+      and iw.retries < ${retryLimit}
       and iw.error->>'originalMessage' <> 'Bad credentials'
       and i.id is not null
-      order by iw."createdAt" desc
-      limit ${perPage} offset ${(page - 1) * perPage};
     `
+
+    if (type) {
+      query += ` and iw.type = :type `
+    }
+
+    query += ` order by iw."createdAt" desc
+    limit ${perPage} offset ${(page - 1) * perPage};`
 
     const results = await seq.query(query, {
       replacements: {

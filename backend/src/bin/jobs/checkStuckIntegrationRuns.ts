@@ -13,6 +13,7 @@ import { processPaginated } from '../../utils/paginationProcessing'
 import IncomingWebhookRepository from '../../database/repositories/incomingWebhookRepository'
 import { sendNodeWorkerMessage } from '../../serverless/utils/nodeWorkerSQS'
 import { NodeWorkerProcessWebhookMessage } from '../../types/mq/nodeWorkerProcessWebhookMessage'
+import { WebhookProcessor } from '../../serverless/integrations/services/webhookProcessor'
 
 const log = createServiceChildLogger('checkStuckIntegrationRuns')
 
@@ -203,6 +204,14 @@ export const checkStuckWebhooks = async (): Promise<void> => {
   const dbOptions = await SequelizeRepository.getDefaultIRepositoryOptions()
   const repo = new IncomingWebhookRepository(dbOptions)
 
+  // update retryable error state webhooks to pending state
+  await processPaginated(
+    async (page) => repo.findError(page, 20, WebhookProcessor.MAX_RETRY_LIMIT),
+    async (webhooks) => {
+      await repo.markAllPending(webhooks.map((w) => w.id))
+    },
+  )
+
   await processPaginated(
     async (page) => repo.findPending(page, 20),
     async (webhooks) => {
@@ -219,7 +228,7 @@ export const checkStuckWebhooks = async (): Promise<void> => {
 
 const job: CrowdJob = {
   name: 'Detect & Fix Stuck Integration Runs',
-  cronTime: cronGenerator.every(30).minutes(),
+  cronTime: cronGenerator.every(5).minutes(),
   onTrigger: async () => {
     if (!running) {
       running = true

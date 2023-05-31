@@ -23,6 +23,8 @@ export class WebhookProcessor extends LoggingBase {
     super(options)
   }
 
+  static readonly MAX_RETRY_LIMIT = 5
+
   async processWebhook(webhookId: string, force?: boolean, fireCrowdWebhooks?: boolean) {
     const options = (await SequelizeRepository.getDefaultIRepositoryOptions()) as IRepositoryOptions
     const repo = new IncomingWebhookRepository(options)
