@@ -1,6 +1,6 @@
 import { Server as SocketServer } from 'socket.io'
 import { Server } from 'http'
-import { createServiceChildLogger, Logger } from '../../utils/logging'
+import { Logger, getServiceChildLogger } from '@crowd/logging'
 import WebSocketNamespace from './namespace'
 import { IAuthenticatedSocket } from './types'
 
@@ -10,7 +10,7 @@ export default class WebSockets {
   private readonly socketIo: SocketServer
 
   public constructor(server: Server) {
-    this.log = createServiceChildLogger('websockets')
+    this.log = getServiceChildLogger('websockets')
     this.socketIo = new SocketServer(server)
 
     this.log.info('Socket.IO server initialized!')

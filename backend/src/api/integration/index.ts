@@ -1,5 +1,5 @@
 import passport from 'passport'
-import { TWITTER_CONFIG, SLACK_CONFIG, API_CONFIG } from '../../config'
+import { TWITTER_CONFIG, SLACK_CONFIG, API_CONFIG } from '../../conf'
 import { authMiddleware } from '../../middlewares/authMiddleware'
 import TenantService from '../../services/tenantService'
 import { safeWrap } from '../../middlewares/errorMiddleware'

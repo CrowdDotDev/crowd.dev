@@ -58,3 +58,21 @@ export const getTrialDate = (tenant) => {
 
   return `Trial (${daysLeft < 0 ? 0 : daysLeft} days left)`;
 };
+
+export const isCurrentDateAfterGivenWorkingDays = (date, workingDays = 3) => {
+  const givenDate = new Date(date);
+  let workingDaysAdded = 0;
+
+  while (workingDaysAdded < workingDays) {
+    givenDate.setDate(givenDate.getDate() + 1);
+
+    // Check if the current day is a weekend day (Saturday or Sunday)
+    const isWeekendDay = givenDate.getDay() === 0 || givenDate.getDay() === 6;
+
+    if (!isWeekendDay) {
+      workingDaysAdded += 1;
+    }
+  }
+
+  return new Date() > givenDate;
+};

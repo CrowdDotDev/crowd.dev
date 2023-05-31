@@ -1,24 +1,24 @@
 import bcrypt from 'bcrypt'
 import jwt from 'jsonwebtoken'
 import moment from 'moment'
-import { TenantMode } from '../../config/configTypes'
+import { getServiceChildLogger } from '@crowd/logging'
+import { TenantMode } from '../../conf/configTypes'
 import UserRepository from '../../database/repositories/userRepository'
 import Error400 from '../../errors/Error400'
 import EmailSender from '../emailSender'
 import TenantUserRepository from '../../database/repositories/tenantUserRepository'
 import SequelizeRepository from '../../database/repositories/sequelizeRepository'
-import { API_CONFIG, TENANT_MODE } from '../../config'
+import { API_CONFIG, TENANT_MODE } from '../../conf'
 import TenantService from '../tenantService'
 import TenantRepository from '../../database/repositories/tenantRepository'
 import { tenantSubdomain } from '../tenantSubdomain'
 import Error401 from '../../errors/Error401'
 import identify from '../../segment/identify'
 import track from '../../segment/track'
-import { createServiceChildLogger } from '../../utils/logging'
 
 const BCRYPT_SALT_ROUNDS = 12
 
-const log = createServiceChildLogger('AuthService')
+const log = getServiceChildLogger('AuthService')
 
 class AuthService {
   static async signup(

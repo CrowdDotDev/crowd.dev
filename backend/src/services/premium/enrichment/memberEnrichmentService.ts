@@ -1,45 +1,43 @@
+import { LoggerBase } from '@crowd/logging'
+import { RedisPubSubEmitter, getRedisClient } from '@crowd/redis'
 import axios from 'axios'
 import lodash from 'lodash'
-import { IServiceOptions } from '../../IServiceOptions'
-import { LoggingBase } from '../../loggingBase'
-import {
-  EnrichmentAPIResponse,
-  EnrichmentAPIMember,
-  EnrichmentAPIContribution,
-  EnrichmentAPISkills,
-  EnrichmentAPIEducation,
-  EnrichmentAPICertification,
-  EnrichmentAPIWorkExperience,
-} from './types/memberEnrichmentTypes'
-import { ENRICHMENT_CONFIG } from '../../../config'
-import Error400 from '../../../errors/Error400'
-import MemberService from '../../memberService'
-import { PlatformType } from '../../../types/integrationEnums'
-import MemberAttributeSettingsService from '../../memberAttributeSettingsService'
+import { ApiWebsocketMessage, PlatformType } from '@crowd/types'
+import { ENRICHMENT_CONFIG, REDIS_CONFIG } from '../../../conf'
 import { AttributeData } from '../../../database/attributes/attribute'
-import { Member } from '../../../serverless/integrations/types/messageTypes'
 import {
   MemberAttributeName,
   MemberEnrichmentAttributeName,
   MemberEnrichmentAttributes,
 } from '../../../database/attributes/member/enums'
 import { AttributeType } from '../../../database/attributes/types'
-import { i18n } from '../../../i18n'
-import RedisPubSubEmitter from '../../../utils/redis/pubSubEmitter'
-import { createRedisClient } from '../../../utils/redis'
-import { ApiWebsocketMessage } from '../../../types/mq/apiWebsocketMessage'
 import MemberEnrichmentCacheRepository from '../../../database/repositories/memberEnrichmentCacheRepository'
+import Error400 from '../../../errors/Error400'
+import { i18n } from '../../../i18n'
 import track from '../../../segment/track'
+import { Member } from '../../../serverless/integrations/types/messageTypes'
+import { IServiceOptions } from '../../IServiceOptions'
+import MemberAttributeSettingsService from '../../memberAttributeSettingsService'
+import MemberService from '../../memberService'
+import {
+  EnrichmentAPICertification,
+  EnrichmentAPIContribution,
+  EnrichmentAPIEducation,
+  EnrichmentAPIMember,
+  EnrichmentAPIResponse,
+  EnrichmentAPISkills,
+  EnrichmentAPIWorkExperience,
+} from './types/memberEnrichmentTypes'
 
-export default class MemberEnrichmentService extends LoggingBase {
+export default class MemberEnrichmentService extends LoggerBase {
   options: IServiceOptions
 
   attributes: AttributeData[] | undefined
 
   attributeSettings: any
 
-  constructor(options) {
-    super(options)
+  constructor(options: IServiceOptions) {
+    super(options.log)
     this.options = options
     this.attributes = undefined
 
@@ -137,11 +135,16 @@ export default class MemberEnrichmentService extends LoggingBase {
   }
 
   async bulkEnrich(memberIds: string[]) {
-    const redis = await createRedisClient(true)
+    const redis = await getRedisClient(REDIS_CONFIG, true)
 
-    const apiPubSubEmitter = new RedisPubSubEmitter('api-pubsub', redis, (err) => {
-      this.log.error({ err }, 'Error in api-ws emitter!')
-    })
+    const apiPubSubEmitter = new RedisPubSubEmitter(
+      'api-pubsub',
+      redis,
+      (err) => {
+        this.log.error({ err }, 'Error in api-ws emitter!')
+      },
+      this.log,
+    )
     let enrichedMembers = 0
     for (const memberId of memberIds) {
       try {

@@ -1,12 +1,12 @@
 import lodash, { chunk } from 'lodash'
 import Sequelize, { QueryTypes } from 'sequelize'
-import { KUBE_MODE, SERVICE } from '../../config'
-import { ServiceType } from '../../config/configTypes'
+import { ActivityDisplayVariant, ALL_PLATFORM_TYPES, PlatformType } from '@crowd/types'
+import { KUBE_MODE, SERVICE } from '../../conf'
+import { ServiceType } from '../../conf/configTypes'
 import Error404 from '../../errors/Error404'
 import { PlatformIdentities } from '../../serverless/integrations/types/messageTypes'
 import ActivityDisplayService from '../../services/activityDisplayService'
 import { PageData } from '../../types/common'
-import { ALL_PLATFORM_TYPES, PlatformType } from '../../types/integrationEnums'
 import { AttributeData } from '../attributes/attribute'
 import { AttributeType } from '../attributes/types'
 import SequelizeFilterUtils from '../utils/sequelizeFilterUtils'
@@ -25,7 +25,6 @@ import {
   mapUsernameToIdentities,
   IMemberMergeSuggestion,
 } from './types/memberTypes'
-import { ActivityDisplayVariant } from '../../types/activityTypes'
 
 const { Op } = Sequelize
 

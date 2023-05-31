@@ -1,6 +1,10 @@
 import moment from 'moment/moment'
 import sanitizeHtml from 'sanitize-html'
-import { SLACK_CONFIG } from '../../../../config'
+import { SLACK_GRID, SlackActivityType } from '@crowd/integrations'
+import { RedisCache, getRedisClient } from '@crowd/redis'
+import { timeout } from '@crowd/common'
+import { IntegrationType, PlatformType } from '@crowd/types'
+import { SLACK_CONFIG, REDIS_CONFIG } from '../../../../conf'
 import {
   IIntegrationStream,
   IPendingStream,
@@ -9,7 +13,6 @@ import {
   IStreamResultOperation,
 } from '../../../../types/integration/stepResult'
 import { SlackMessages } from '../../types/slackTypes'
-import { IntegrationType, PlatformType } from '../../../../types/integrationEnums'
 import { IntegrationServiceBase } from '../integrationServiceBase'
 import MemberAttributeSettingsService from '../../../../services/memberAttributeSettingsService'
 import { SlackMemberAttributes } from '../../../../database/attributes/member/slack'
@@ -18,15 +21,11 @@ import { Thread } from '../../types/iteratorTypes'
 import getMessagesThreads from '../../usecases/slack/getMessagesInThreads'
 import getMessages from '../../usecases/slack/getMessages'
 import getTeam from '../../usecases/slack/getTeam'
-import { timeout } from '../../../../utils/timing'
 import { AddActivitiesSingle, Member, PlatformIdentities } from '../../types/messageTypes'
 import { MemberAttributeName } from '../../../../database/attributes/member/enums'
-import { SlackGrid } from '../../grid/slackGrid'
 import Operations from '../../../dbOperations/operations'
 import getMember from '../../usecases/slack/getMember'
 import getMembers from '../../usecases/slack/getMembers'
-import { createRedisClient } from '../../../../utils/redis'
-import { RedisCache } from '../../../../utils/redis/redisCache'
 
 /* eslint class-methods-use-this: 0 */
 
@@ -44,8 +43,8 @@ export class SlackIntegrationService extends IntegrationServiceBase {
   }
 
   async preprocess(context: IStepContext): Promise<void> {
-    const redis = await createRedisClient(true)
-    const membersCache = new RedisCache('slack-members', redis)
+    const redis = await getRedisClient(REDIS_CONFIG, true)
+    const membersCache = new RedisCache('slack-members', redis, context.logger)
 
     let channelsFromSlackAPI = await getChannels(
       { token: context.integration.token },
@@ -312,7 +311,7 @@ export class SlackIntegrationService extends IntegrationServiceBase {
   private static async getMember(userId: string, context: IStepContext): Promise<any> {
     const membersCache: RedisCache = context.pipelineData.membersCache
 
-    const cached = await membersCache.getValue(userId)
+    const cached = await membersCache.get(userId)
     if (cached) {
       if (cached === 'null') {
         return undefined
@@ -325,12 +324,12 @@ export class SlackIntegrationService extends IntegrationServiceBase {
     const member = result.records
 
     if (member) {
-      await membersCache.setValue(userId, JSON.stringify(member), 24 * 60 * 60)
+      await membersCache.set(userId, JSON.stringify(member), 24 * 60 * 60)
 
       return member
     }
 
-    await membersCache.setValue(userId, 'null', 24 * 60 * 60)
+    await membersCache.set(userId, 'null', 24 * 60 * 60)
     return undefined
   }
 
@@ -382,14 +381,14 @@ export class SlackIntegrationService extends IntegrationServiceBase {
         let sourceId
         if (record.subtype === 'channel_join') {
           activityType = 'channel_joined'
-          score = SlackGrid.join.score
-          isContribution = SlackGrid.join.isContribution
+          score = SLACK_GRID[SlackActivityType.JOINED_CHANNEL].score
+          isContribution = SLACK_GRID[SlackActivityType.JOINED_CHANNEL].isContribution
           body = undefined
           sourceId = record.user
         } else {
           activityType = 'message'
-          score = SlackGrid.message.score
-          isContribution = SlackGrid.message.isContribution
+          score = SLACK_GRID[SlackActivityType.MESSAGE].score
+          isContribution = SLACK_GRID[SlackActivityType.MESSAGE].isContribution
           sourceId = record.ts
         }
         activities.push({
@@ -462,8 +461,8 @@ export class SlackIntegrationService extends IntegrationServiceBase {
           reactions: record.reactions ? record.reactions : [],
           attachments: record.attachments ? record.attachments : [],
         },
-        score: SlackGrid.join.score,
-        isContribution: SlackGrid.join.isContribution,
+        score: SLACK_GRID[SlackActivityType.JOINED_CHANNEL].score,
+        isContribution: SLACK_GRID[SlackActivityType.JOINED_CHANNEL].isContribution,
         member,
       })
     }
@@ -512,8 +511,8 @@ export class SlackIntegrationService extends IntegrationServiceBase {
             attachments: record.attachments ? record.attachments : [],
           },
           member,
-          score: SlackGrid.message.score,
-          isContribution: SlackGrid.message.isContribution,
+          score: SLACK_GRID[SlackActivityType.MESSAGE].score,
+          isContribution: SLACK_GRID[SlackActivityType.MESSAGE].isContribution,
         })
       }
     }

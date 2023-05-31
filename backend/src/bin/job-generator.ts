@@ -1,5 +1,5 @@
 import { CronJob } from 'cron'
-import { getServiceLogger } from '../utils/logging'
+import { getServiceLogger } from '@crowd/logging'
 import jobs from './jobs'
 
 const log = getServiceLogger()

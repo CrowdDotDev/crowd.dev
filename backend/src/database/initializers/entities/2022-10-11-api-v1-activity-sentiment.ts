@@ -1,7 +1,7 @@
 import { QueryTypes } from 'sequelize'
+import { timeout } from '@crowd/common'
 import ActivityService from '../../../services/activityService'
 import SequelizeRepository from '../../repositories/sequelizeRepository'
-import { timeout } from '../../../utils/timing'
 
 /**
  * Since requests to aws activity sentiment api creates a bottleneck,

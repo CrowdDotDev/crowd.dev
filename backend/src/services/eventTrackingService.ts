@@ -1,13 +1,13 @@
-import { IServiceOptions } from './IServiceOptions'
-import { LoggingBase } from './loggingBase'
+import { LoggerBase } from '@crowd/logging'
 import track from '../segment/track'
 import { Event } from '../types/eventTrackingTypes'
+import { IServiceOptions } from './IServiceOptions'
 
-export default class EventTrackingService extends LoggingBase {
+export default class EventTrackingService extends LoggerBase {
   options: IServiceOptions
 
-  constructor(options) {
-    super(options)
+  constructor(options: IServiceOptions) {
+    super(options.log)
     this.options = options
   }
 

@@ -1,17 +1,17 @@
+import { LoggerBase } from '@crowd/logging'
 import EagleEyeActionRepository from '../database/repositories/eagleEyeActionRepository'
 import EagleEyeContentRepository from '../database/repositories/eagleEyeContentRepository'
 import SequelizeRepository from '../database/repositories/sequelizeRepository'
 import Error404 from '../errors/Error404'
+import track from '../segment/track'
 import { EagleEyeAction, EagleEyeActionType } from '../types/eagleEyeTypes'
 import { IServiceOptions } from './IServiceOptions'
-import { LoggingBase } from './loggingBase'
-import track from '../segment/track'
 
-export default class EagleEyeActionService extends LoggingBase {
+export default class EagleEyeActionService extends LoggerBase {
   options: IServiceOptions
 
-  constructor(options) {
-    super(options)
+  constructor(options: IServiceOptions) {
+    super(options.log)
     this.options = options
   }
 

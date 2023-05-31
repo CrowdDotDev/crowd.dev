@@ -5,17 +5,17 @@ import { S3RequestPresigner } from '@aws-sdk/s3-request-presigner'
 import { Hash } from '@aws-sdk/hash-node'
 import { parseUrl } from '@aws-sdk/url-parser'
 import { formatUrl } from '@aws-sdk/util-format-url'
+import { getServiceChildLogger } from '@crowd/logging'
 import getUserContext from '../../../../database/utils/getUserContext'
 import EmailSender from '../../../../services/emailSender'
-import { S3_CONFIG } from '../../../../config'
+import { S3_CONFIG } from '../../../../conf'
 import { BaseOutput, ExportableEntity } from '../messageTypes'
 import getStage from '../../../../services/helpers/getStage'
 import { s3 } from '../../../../services/aws'
-import { createServiceChildLogger } from '../../../../utils/logging'
 import MemberService from '../../../../services/memberService'
 import UserRepository from '../../../../database/repositories/userRepository'
 
-const log = createServiceChildLogger('csvExportWorker')
+const log = getServiceChildLogger('csvExportWorker')
 
 /**
  * Sends weekly analytics emails of a given tenant

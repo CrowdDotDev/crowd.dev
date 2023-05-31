@@ -1,7 +1,7 @@
+import { getServiceChildLogger } from '@crowd/logging'
 import axios, { AxiosRequestConfig } from 'axios'
-import { createServiceChildLogger } from '../../../../../utils/logging'
 
-const log = createServiceChildLogger('getAppToken')
+const log = getServiceChildLogger('getAppToken')
 
 export interface AppTokenResponse {
   token: string

@@ -1,5 +1,5 @@
 import axios from 'axios'
-import { timeout } from '../../../../utils/timing'
+import { timeout } from '@crowd/common'
 import { DevtoArticle } from './types'
 
 /**

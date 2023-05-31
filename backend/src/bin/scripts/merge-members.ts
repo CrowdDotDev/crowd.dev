@@ -2,16 +2,16 @@ import commandLineArgs from 'command-line-args'
 import commandLineUsage from 'command-line-usage'
 import * as fs from 'fs'
 import path from 'path'
+import { getServiceLogger } from '@crowd/logging'
 import MemberRepository from '../../database/repositories/memberRepository'
 import SequelizeRepository from '../../database/repositories/sequelizeRepository'
 import MemberService from '../../services/memberService'
-import { createServiceLogger } from '../../utils/logging'
 
 /* eslint-disable no-console */
 
 const banner = fs.readFileSync(path.join(__dirname, 'banner.txt'), 'utf8')
 
-const log = createServiceLogger()
+const log = getServiceLogger()
 
 const options = [
   {

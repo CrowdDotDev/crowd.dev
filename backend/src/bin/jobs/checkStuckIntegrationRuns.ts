@@ -1,21 +1,21 @@
+import { processPaginated } from '@crowd/common'
+import { Logger, getChildLogger, getServiceChildLogger } from '@crowd/logging'
 import cronGenerator from 'cron-time-generator'
 import moment from 'moment'
-import { INTEGRATION_PROCESSING_CONFIG } from '../../config'
+import { INTEGRATION_PROCESSING_CONFIG } from '../../conf'
+import IncomingWebhookRepository from '../../database/repositories/incomingWebhookRepository'
 import IntegrationRepository from '../../database/repositories/integrationRepository'
 import IntegrationRunRepository from '../../database/repositories/integrationRunRepository'
 import IntegrationStreamRepository from '../../database/repositories/integrationStreamRepository'
 import SequelizeRepository from '../../database/repositories/sequelizeRepository'
+import { sendNodeWorkerMessage } from '../../serverless/utils/nodeWorkerSQS'
 import { IntegrationRun, IntegrationRunState } from '../../types/integrationRunTypes'
 import { IntegrationStreamState } from '../../types/integrationStreamTypes'
 import { CrowdJob } from '../../types/jobTypes'
-import { Logger, createChildLogger, createServiceChildLogger } from '../../utils/logging'
-import { processPaginated } from '../../utils/paginationProcessing'
-import IncomingWebhookRepository from '../../database/repositories/incomingWebhookRepository'
-import { sendNodeWorkerMessage } from '../../serverless/utils/nodeWorkerSQS'
 import { NodeWorkerProcessWebhookMessage } from '../../types/mq/nodeWorkerProcessWebhookMessage'
 import { WebhookProcessor } from '../../serverless/integrations/services/webhookProcessor'
 
-const log = createServiceChildLogger('checkStuckIntegrationRuns')
+const log = getServiceChildLogger('checkStuckIntegrationRuns')
 
 // we are checking "integrationRuns"."updatedAt" column
 const THRESHOLD_HOURS = 1
@@ -188,7 +188,7 @@ export const checkRuns = async (): Promise<void> => {
       ),
     async (runsToCheck) => {
       for (const run of runsToCheck) {
-        const logger = createChildLogger('fixer', log, { runId: run.id })
+        const logger = getChildLogger('fixer', log, { runId: run.id })
         const stuck = await isRunStuck(run, streamsRepo, runsRepo, logger)
         if (stuck) {
           logger.warn('Delaying integration for 1 second to restart it!')

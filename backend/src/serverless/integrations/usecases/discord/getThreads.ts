@@ -1,6 +1,6 @@
 import axios from 'axios'
+import { Logger } from '@crowd/logging'
 import { DiscordApiChannel, DiscordGetChannelsInput } from '../../types/discordTypes'
-import { Logger } from '../../../../utils/logging'
 
 async function getThreads(
   input: DiscordGetChannelsInput,

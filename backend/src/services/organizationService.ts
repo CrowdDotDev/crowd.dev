@@ -1,20 +1,20 @@
-import Error400 from '../errors/Error400'
-import SequelizeRepository from '../database/repositories/sequelizeRepository'
-import { IServiceOptions } from './IServiceOptions'
-import OrganizationRepository from '../database/repositories/organizationRepository'
+import { LoggerBase } from '@crowd/logging'
+import { CLEARBIT_CONFIG, IS_TEST_ENV } from '../conf'
 import MemberRepository from '../database/repositories/memberRepository'
-import { CLEARBIT_CONFIG, IS_TEST_ENV } from '../config'
-import telemetryTrack from '../segment/telemetryTrack'
 import organizationCacheRepository from '../database/repositories/organizationCacheRepository'
-import { enrichOrganization } from './helpers/enrichment'
-import { LoggingBase } from './loggingBase'
+import OrganizationRepository from '../database/repositories/organizationRepository'
+import SequelizeRepository from '../database/repositories/sequelizeRepository'
+import Error400 from '../errors/Error400'
 import Plans from '../security/plans'
+import telemetryTrack from '../segment/telemetryTrack'
+import { IServiceOptions } from './IServiceOptions'
+import { enrichOrganization } from './helpers/enrichment'
 
-export default class OrganizationService extends LoggingBase {
+export default class OrganizationService extends LoggerBase {
   options: IServiceOptions
 
-  constructor(options) {
-    super(options)
+  constructor(options: IServiceOptions) {
+    super(options.log)
     this.options = options
   }
 
