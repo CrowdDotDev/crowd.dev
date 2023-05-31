@@ -95,6 +95,8 @@ import { useStore } from 'vuex';
 import { defineProps, computed, ref } from 'vue';
 import { FeatureFlag } from '@/featureFlag';
 import AppIntegrationConnect from '@/modules/integration/components/integration-connect.vue';
+import { isCurrentDateAfterGivenWorkingDays } from '@/utils/date';
+import { ERROR_BANNER_WORKING_DAYS_DISPLAY } from '@/modules/integration/integration-store';
 
 const store = useStore();
 const props = defineProps({
@@ -110,9 +112,16 @@ const computedClass = computed(() => ({
 
 const isConnected = computed(() => props.integration.status !== undefined);
 
-const isDone = computed(() => props.integration.status === 'done');
+const isDone = computed(
+  () => props.integration.status === 'done'
+    || (props.integration.status === 'error'
+      && !isCurrentDateAfterGivenWorkingDays(props.integration.updatedAt, ERROR_BANNER_WORKING_DAYS_DISPLAY)),
+);
 
-const isError = computed(() => props.integration.status === 'error');
+const isError = computed(
+  () => props.integration.status === 'error'
+    && isCurrentDateAfterGivenWorkingDays(props.integration.updatedAt, ERROR_BANNER_WORKING_DAYS_DISPLAY),
+);
 
 const isNoData = computed(() => props.integration.status === 'no-data');
 
