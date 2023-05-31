@@ -1,4 +1,4 @@
-import { RedisClient } from '../utils/redis'
+import { RedisClient } from '@crowd/redis'
 
 export function redisMiddleware(redis: RedisClient) {
   return async (req, res, next) => {

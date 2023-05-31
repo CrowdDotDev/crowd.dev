@@ -2,7 +2,7 @@ import axios from 'axios'
 import { IntegrationDataCheckerSettings } from '../serverless/microservices/nodejs/integration-data-checker/integrationDataCheckerTypes'
 import { IRepositoryOptions } from '../database/repositories/IRepositoryOptions'
 import { IntegrationDataCheckerSettingsType } from '../serverless/microservices/nodejs/integration-data-checker/integrationDataCheckerSettings'
-import { SLACK_ALERTING_CONFIG } from '../config'
+import { SLACK_ALERTING_CONFIG } from '../conf'
 
 export enum SlackAlertTypes {
   DATA_CHECKER = 'data-checker',

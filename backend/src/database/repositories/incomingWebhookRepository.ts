@@ -1,5 +1,5 @@
-import { v4 as uuid } from 'uuid'
 import { QueryTypes } from 'sequelize'
+import { generateUUIDv1 } from '@crowd/common'
 import {
   DbIncomingWebhookInsertData,
   ErrorWebhook,
@@ -28,7 +28,7 @@ export default class IncomingWebhookRepository extends RepositoryBase<
   async create(data: DbIncomingWebhookInsertData): Promise<IncomingWebhookData> {
     const transaction = this.transaction
 
-    const id = uuid()
+    const id = generateUUIDv1()
 
     const results = await this.seq.query(
       `

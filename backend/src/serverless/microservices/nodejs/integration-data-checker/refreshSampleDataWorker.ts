@@ -1,5 +1,5 @@
 import { QueryTypes } from 'sequelize'
-import { API_CONFIG, SAMPLE_DATA_CONFIG } from '../../../../config'
+import { API_CONFIG, SAMPLE_DATA_CONFIG } from '../../../../conf'
 import getUserContext from '../../../../database/utils/getUserContext'
 
 async function refreshSampleDataWorker(): Promise<void> {

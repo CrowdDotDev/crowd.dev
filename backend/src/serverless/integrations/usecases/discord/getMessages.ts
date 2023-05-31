@@ -1,10 +1,10 @@
 import axios from 'axios'
+import { Logger } from '@crowd/logging'
 import {
   DiscordApiMessage,
   DiscordParsedReponse,
   DiscordGetMessagesInput,
 } from '../../types/discordTypes'
-import { Logger } from '../../../../utils/logging'
 
 async function getMessages(
   input: DiscordGetMessagesInput,

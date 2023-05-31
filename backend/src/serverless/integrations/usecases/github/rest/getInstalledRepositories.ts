@@ -1,8 +1,8 @@
+import { getServiceChildLogger } from '@crowd/logging'
 import axios, { AxiosRequestConfig } from 'axios'
-import { createServiceChildLogger } from '../../../../../utils/logging'
 import { Repos } from '../../../types/regularTypes'
 
-const log = createServiceChildLogger('getInstalledRepositories')
+const log = getServiceChildLogger('getInstalledRepositories')
 
 const getRepositoriesFromGH = async (page: number, installToken: string): Promise<any> => {
   const REPOS_PER_PAGE = 100

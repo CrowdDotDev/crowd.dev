@@ -1,6 +1,6 @@
 import axios, { AxiosRequestConfig } from 'axios'
+import { Logger } from '@crowd/logging'
 import type { DiscourseConnectionParams } from '../../types/discourseTypes'
-import { Logger } from '../../../../utils/logging'
 import { DiscoursePostsFromTopicResponse, DiscoursePostsInput } from '../../types/discourseTypes'
 
 // this methods returns ids of posts in a topic

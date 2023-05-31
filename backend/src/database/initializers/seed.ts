@@ -7,7 +7,7 @@
 
 import dotenv from 'dotenv'
 import dotenvExpand from 'dotenv-expand'
-import { getServiceLogger } from '../../utils/logging'
+import { getServiceLogger } from '@crowd/logging'
 import SequelizeTestUtils from '../utils/sequelizeTestUtils'
 import ActivityService from '../../services/activityService'
 import TagService from '../../services/tagService'

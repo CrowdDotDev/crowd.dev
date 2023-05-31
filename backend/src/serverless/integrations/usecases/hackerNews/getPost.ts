@@ -1,6 +1,6 @@
 import axios from 'axios'
+import { Logger } from '@crowd/logging'
 import { HackerNewsPost, HackerNewsResponse, HackerNewsUser } from '../../types/hackerNewsTypes'
-import { Logger } from '../../../../utils/logging'
 
 async function getPost(input: string, logger: Logger): Promise<HackerNewsResponse> {
   try {

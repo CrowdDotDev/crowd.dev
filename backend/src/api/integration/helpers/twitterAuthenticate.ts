@@ -1,7 +1,7 @@
 import passport from 'passport'
+import { PlatformType } from '@crowd/types'
 import Permissions from '../../../security/permissions'
 import PermissionChecker from '../../../services/user/permissionChecker'
-import { PlatformType } from '../../../types/integrationEnums'
 
 export default async (req, res, next) => {
   // Checking we have permision to edit the project

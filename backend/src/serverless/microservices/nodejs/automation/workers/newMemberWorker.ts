@@ -1,3 +1,4 @@
+import { getServiceChildLogger } from '@crowd/logging'
 import getUserContext from '../../../../../database/utils/getUserContext'
 import AutomationRepository from '../../../../../database/repositories/automationRepository'
 import {
@@ -10,11 +11,10 @@ import {
 import MemberRepository from '../../../../../database/repositories/memberRepository'
 import { sendWebhookProcessRequest } from './util'
 import { MemberAutomationData } from '../../messageTypes'
-import { createServiceChildLogger } from '../../../../../utils/logging'
 import AutomationExecutionRepository from '../../../../../database/repositories/automationExecutionRepository'
 import SequelizeRepository from '../../../../../database/repositories/sequelizeRepository'
 
-const log = createServiceChildLogger('newMemberWorker')
+const log = getServiceChildLogger('newMemberWorker')
 
 /**
  * Helper function to check whether a single member should be processed by automation

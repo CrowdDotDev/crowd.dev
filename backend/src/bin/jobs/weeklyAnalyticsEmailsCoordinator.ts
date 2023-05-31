@@ -1,9 +1,9 @@
+import { timeout } from '@crowd/common'
 import { CrowdJob } from '../../types/jobTypes'
 import TenantService from '../../services/tenantService'
 import { sendNodeWorkerMessage } from '../../serverless/utils/nodeWorkerSQS'
 import { NodeWorkerMessageBase } from '../../types/mq/nodeWorkerMessageBase'
 import { NodeWorkerMessageType } from '../../serverless/types/workerTypes'
-import { timeout } from '../../utils/timing'
 
 const job: CrowdJob = {
   name: 'Weekly Analytics Emails coordinator',

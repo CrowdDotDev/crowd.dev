@@ -1,3 +1,4 @@
+import { PlatformType } from '@crowd/types'
 import IntegrationRepository from '../../database/repositories/integrationRepository'
 import TenantRepository from '../../database/repositories/tenantRepository'
 import SequelizeRepository from '../../database/repositories/sequelizeRepository'
@@ -6,7 +7,6 @@ import { WebhookType } from '../../types/webhooks'
 import { sendNodeWorkerMessage } from '../../serverless/utils/nodeWorkerSQS'
 import { NodeWorkerProcessWebhookMessage } from '../../types/mq/nodeWorkerProcessWebhookMessage'
 import { verifyWebhookSignature } from '../../utils/crypto'
-import { PlatformType } from '../../types/integrationEnums'
 
 export default async (req, res) => {
   const signature = req.headers['x-discourse-event-signature']

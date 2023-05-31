@@ -1,6 +1,6 @@
 import axios, { AxiosRequestConfig } from 'axios'
+import { Logger } from '@crowd/logging'
 import type { DiscourseConnectionParams } from '../../types/discourseTypes'
-import { Logger } from '../../../../utils/logging'
 import { DiscourseCategoryResponse } from '../../types/discourseTypes'
 
 export const getDiscourseCategories = async (

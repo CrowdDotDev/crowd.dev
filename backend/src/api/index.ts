@@ -5,7 +5,10 @@ import helmet from 'helmet'
 import bunyanMiddleware from 'bunyan-middleware'
 import * as http from 'http'
 import { Unleash } from 'unleash-client'
-import { API_CONFIG, UNLEASH_CONFIG } from '../config'
+import { getRedisClient, getRedisPubSubPair, RedisPubSubReceiver } from '@crowd/redis'
+import { getServiceLogger } from '@crowd/logging'
+import { ApiWebsocketMessage } from '@crowd/types'
+import { API_CONFIG, REDIS_CONFIG, UNLEASH_CONFIG } from '../conf'
 import { authMiddleware } from '../middlewares/authMiddleware'
 import { tenantMiddleware } from '../middlewares/tenantMiddleware'
 import { databaseMiddleware } from '../middlewares/databaseMiddleware'
@@ -14,33 +17,34 @@ import { createRateLimiter } from './apiRateLimiter'
 import { languageMiddleware } from '../middlewares/languageMiddleware'
 import authSocial from './auth/authSocial'
 import setupSwaggerUI from './apiDocumentation'
-import { createServiceLogger } from '../utils/logging'
 import { responseHandlerMiddleware } from '../middlewares/responseHandlerMiddleware'
 import { errorMiddleware } from '../middlewares/errorMiddleware'
 import { passportStrategyMiddleware } from '../middlewares/passportStrategyMiddleware'
 import { redisMiddleware } from '../middlewares/redisMiddleware'
-import { createRedisClient, createRedisPubSubPair } from '../utils/redis'
 import WebSockets from './websockets'
-import RedisPubSubReceiver from '../utils/redis/pubSubReceiver'
-import { ApiWebsocketMessage } from '../types/mq/apiWebsocketMessage'
 import { Edition } from '../types/common'
 
-const serviceLogger = createServiceLogger()
+const serviceLogger = getServiceLogger()
 
 const app = express()
 
 const server = http.createServer(app)
 
 setImmediate(async () => {
-  const redis = await createRedisClient(true)
+  const redis = await getRedisClient(REDIS_CONFIG, true)
 
-  const redisPubSubPair = await createRedisPubSubPair()
+  const redisPubSubPair = await getRedisPubSubPair(REDIS_CONFIG)
   const userNamespace = await WebSockets.initialize(server)
 
-  const pubSubReceiver = new RedisPubSubReceiver('api-pubsub', redisPubSubPair.subClient, (err) => {
-    serviceLogger.error(err, 'Error while listening to Redis Pub/Sub api-ws channel!')
-    process.exit(1)
-  })
+  const pubSubReceiver = new RedisPubSubReceiver(
+    'api-pubsub',
+    redisPubSubPair.subClient,
+    (err) => {
+      serviceLogger.error(err, 'Error while listening to Redis Pub/Sub api-ws channel!')
+      process.exit(1)
+    },
+    serviceLogger,
+  )
 
   pubSubReceiver.subscribe('user', async (message) => {
     const data = message as ApiWebsocketMessage

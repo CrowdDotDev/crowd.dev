@@ -2,15 +2,15 @@ import { createAppAuth } from '@octokit/auth-app'
 import { request } from '@octokit/request'
 import moment from 'moment'
 import axios from 'axios'
+import { PlatformType } from '@crowd/types'
 import { ILinkedInOrganization } from '../serverless/integrations/types/linkedinTypes'
-import { DISCORD_CONFIG, GITHUB_CONFIG, IS_TEST_ENV, KUBE_MODE } from '../config/index'
+import { DISCORD_CONFIG, GITHUB_CONFIG, IS_TEST_ENV, KUBE_MODE } from '../conf/index'
 import Error400 from '../errors/Error400'
 import { IServiceOptions } from './IServiceOptions'
 import SequelizeRepository from '../database/repositories/sequelizeRepository'
 import IntegrationRepository from '../database/repositories/integrationRepository'
 import Error542 from '../errors/Error542'
 import track from '../segment/track'
-import { PlatformType } from '../types/integrationEnums'
 import { getInstalledRepositories } from '../serverless/integrations/usecases/github/rest/getInstalledRepositories'
 import { sendNodeWorkerMessage } from '../serverless/utils/nodeWorkerSQS'
 import { NodeWorkerIntegrationProcessMessage } from '../types/mq/nodeWorkerIntegrationProcessMessage'
@@ -20,6 +20,7 @@ import { getOrganizations } from '../serverless/integrations/usecases/linkedin/g
 import Error404 from '../errors/Error404'
 import IntegrationRunRepository from '../database/repositories/integrationRunRepository'
 import { IntegrationRunState } from '../types/integrationRunTypes'
+import { sendGenerateRunStreamsMessage } from '../serverless/utils/integrationRunWorkerSQS'
 
 const discordToken = DISCORD_CONFIG.token2 || DISCORD_CONFIG.token
 
@@ -393,7 +394,7 @@ export default class IntegrationService {
 
     if (integration.status === 'pending-action') {
       const transaction = await SequelizeRepository.createTransaction(this.options)
-      let run
+      let runId
 
       try {
         integration = await this.createOrUpdate(
@@ -405,7 +406,10 @@ export default class IntegrationService {
           transaction,
         )
 
-        run = await new IntegrationRunRepository({ ...this.options, transaction }).create({
+        runId = await new IntegrationRunRepository({
+          ...this.options,
+          transaction,
+        }).createInNewFramework({
           integrationId: integration.id,
           tenantId: integration.tenantId,
           onboarding: true,
@@ -417,11 +421,8 @@ export default class IntegrationService {
         await SequelizeRepository.rollbackTransaction(transaction)
         throw err
       }
+      await sendGenerateRunStreamsMessage(integration.tenantId, runId)
 
-      await sendNodeWorkerMessage(
-        integration.tenantId,
-        new NodeWorkerIntegrationProcessMessage(run.id),
-      )
       return integration
     }
 
@@ -466,7 +467,7 @@ export default class IntegrationService {
     }
 
     const transaction = await SequelizeRepository.createTransaction(this.options)
-    let run
+    let runId
     let integration
 
     try {
@@ -480,7 +481,10 @@ export default class IntegrationService {
       )
 
       if (status === 'in-progress') {
-        run = await new IntegrationRunRepository({ ...this.options, transaction }).create({
+        runId = await new IntegrationRunRepository({
+          ...this.options,
+          transaction,
+        }).createInNewFramework({
           integrationId: integration.id,
           tenantId: integration.tenantId,
           onboarding: true,
@@ -493,11 +497,8 @@ export default class IntegrationService {
       throw err
     }
 
-    if (run) {
-      await sendNodeWorkerMessage(
-        integration.tenantId,
-        new NodeWorkerIntegrationProcessMessage(run.id),
-      )
+    if (runId) {
+      await sendGenerateRunStreamsMessage(integration.tenantId, runId)
     }
 
     return integration
@@ -553,9 +554,10 @@ export default class IntegrationService {
   async devtoConnectOrUpdate(integrationData) {
     const transaction = await SequelizeRepository.createTransaction(this.options)
     let integration
-    let run
+    let runId
 
     try {
+      this.options.log.info('Creating devto integration!')
       integration = await this.createOrUpdate(
         {
           platform: PlatformType.DEVTO,
@@ -570,22 +572,29 @@ export default class IntegrationService {
         transaction,
       )
 
-      run = await new IntegrationRunRepository({ ...this.options, transaction }).create({
+      this.options.log.info({ integrationId: integration.id }, 'Creating devto run!')
+
+      runId = await new IntegrationRunRepository({
+        ...this.options,
+        transaction,
+      }).createInNewFramework({
         integrationId: integration.id,
         tenantId: integration.tenantId,
         onboarding: true,
         state: IntegrationRunState.PENDING,
       })
+
       await SequelizeRepository.commitTransaction(transaction)
     } catch (err) {
       await SequelizeRepository.rollbackTransaction(transaction)
       throw err
     }
 
-    await sendNodeWorkerMessage(
-      integration.tenantId,
-      new NodeWorkerIntegrationProcessMessage(run.id),
+    this.options.log.info(
+      { tenantId: integration.tenantId, runId },
+      'Sending devto message to int-run-worker!',
     )
+    await sendGenerateRunStreamsMessage(integration.tenantId, runId)
 
     return integration
   }
