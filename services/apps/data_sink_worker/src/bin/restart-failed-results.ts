@@ -28,21 +28,17 @@ setImmediate(async () => {
 
   const repo = new DataSinkRepository(store, log)
 
-  await repo.transactionally(async (txRepo) => {
-    await processPaginated(
-      async (page) => {
-        return txRepo.getFailedResults(runId, page, 20)
-      },
-      async (results) => {
-        await txRepo.resetFailedResults(results.map((r) => r.id))
+  let results = await repo.getFailedResults(runId, 1, 20)
+  while (results.length > 0) {
+    await repo.resetFailedResults(results.map((r) => r.id))
 
-        for (const result of results) {
-          await emitter.sendMessage(
-            `results-${result.tenantId}-${result.platform}`,
-            new ProcessIntegrationResultQueueMessage(result.id),
-          )
-        }
-      },
-    )
-  })
+    for (const result of results) {
+      await emitter.sendMessage(
+        `results-${result.tenantId}-${result.platform}`,
+        new ProcessIntegrationResultQueueMessage(result.id),
+      )
+    }
+
+    results = await repo.getFailedResults(runId, 1, 20)
+  }
 })
