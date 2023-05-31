@@ -47,8 +47,14 @@ export const getSentiment = async (text: string): Promise<ISentimentAnalysisResu
     )
   }
 
+  const preparedText = prepareText(text)
+
+  if (preparedText.length === 0) {
+    return undefined
+  }
+
   const params = {
-    Text: prepareText(text),
+    Text: prepareText,
     LanguageCode: 'en',
   }
 
@@ -155,5 +161,5 @@ const prepareText = (text: string): string => {
   // trim down to max allowed byte length
   prepared = trimUtf8ToMaxByteLength(prepared, ALLOWED_MAX_BYTE_LENGTH)
 
-  return prepared
+  return prepared.trim()
 }
