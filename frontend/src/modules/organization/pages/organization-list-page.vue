@@ -81,12 +81,12 @@ const isPageLoading = ref(false);
 
 const doGetOrganizationsCount = async () => {
   try {
-    const response = await OrganizationService.list(
-      {},
-      '',
-      1,
-      0,
-    );
+    const response = await OrganizationService.list({
+      filter: {},
+      orderBy: '',
+      limit: 1,
+      offset: 0,
+    });
 
     return response.rows;
   } catch (e) {

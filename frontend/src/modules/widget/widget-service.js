@@ -7,7 +7,10 @@ export class WidgetService {
 
     const response = await authAxios.put(
       `/tenant/${tenantId}/widget/${id}`,
-      data,
+      {
+        ...data,
+        excludeSegments: true,
+      },
     );
 
     return response.data;
@@ -16,6 +19,7 @@ export class WidgetService {
   static async destroyAll(ids) {
     const params = {
       ids,
+      excludeSegments: true,
     };
 
     const tenantId = AuthCurrentTenant.get();
@@ -35,7 +39,10 @@ export class WidgetService {
 
     const response = await authAxios.post(
       `/tenant/${tenantId}/widget`,
-      data,
+      {
+        ...data,
+        excludeSegments: true,
+      },
     );
 
     return response.data;
@@ -51,6 +58,9 @@ export class WidgetService {
         headers: {
           Authorization: sampleTenant?.token,
         },
+        params: {
+          excludeSegments: true,
+        },
       },
     );
 
@@ -63,6 +73,7 @@ export class WidgetService {
       orderBy,
       limit,
       offset,
+      excludeSegments: true,
     };
 
     const sampleTenant = AuthCurrentTenant.getSampleTenantData();
@@ -85,6 +96,7 @@ export class WidgetService {
     const params = {
       query,
       limit,
+      excludeSegments: true,
     };
 
     const tenantId = AuthCurrentTenant.get();
@@ -108,6 +120,9 @@ export class WidgetService {
       {
         headers: {
           Authorization: sampleTenant?.token,
+        },
+        params: {
+          excludeSegments: true,
         },
       },
     );

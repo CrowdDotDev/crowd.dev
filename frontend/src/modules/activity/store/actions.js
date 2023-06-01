@@ -25,22 +25,22 @@ export default {
       let response;
 
       if (getters.activeView.type === 'conversations') {
-        response = await ConversationService.query(
-          buildApiPayload({
+        response = await ConversationService.query({
+          filter: buildApiPayload({
             customFilters: getters.activeView.filter,
             buildFilter: true,
           }),
-          getters.orderBy,
-          getters.limit,
-          getters.offset,
-        );
+          orderBy: getters.orderBy,
+          limit: getters.limit,
+          offset: getters.offset,
+        });
       } else {
-        response = await ActivityService.list(
-          getters.activeView.filter,
-          getters.orderBy,
-          getters.limit,
-          getters.offset,
-        );
+        response = await ActivityService.list({
+          filter: getters.activeView.filter,
+          orderBy: getters.orderBy,
+          limit: getters.limit,
+          offset: getters.offset,
+        });
       }
 
       commit('FETCH_SUCCESS', {

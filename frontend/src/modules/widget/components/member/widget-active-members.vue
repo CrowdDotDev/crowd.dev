@@ -158,12 +158,14 @@ const query = computed(() => [
     granularity: granularity.value,
     selectedPlatforms: props.filters.platform.value,
     selectedHasTeamMembers: props.filters.teamMembers,
+    selectedSegments: props.filters.segments,
   }),
   TOTAL_ACTIVE_RETURNING_MEMBERS_QUERY({
     period: period.value,
     granularity: granularity.value,
     selectedPlatforms: props.filters.platform.value,
     selectedHasTeamMembers: props.filters.teamMembers,
+    selectedSegments: props.filters.segments,
   }),
 ]);
 
@@ -193,6 +195,7 @@ const getActiveMembers = async ({ pagination }) => {
     limit: !pagination.count
       ? pagination.pageSize
       : pagination.count,
+    segments: props.filters.segments,
   });
 
   return res;

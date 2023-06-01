@@ -9,6 +9,9 @@ export class LfService {
 
     const response = await authAxios.get(
       `/tenant/${tenantId}/segment/${id}`,
+      {
+        excludeSegments: true,
+      },
     );
 
     return response.data;
@@ -19,7 +22,10 @@ export class LfService {
 
     const response = await authAxios.put(
       `/tenant/${tenantId}/segment/${id}`,
-      data,
+      {
+        ...data,
+        excludeSegments: true,
+      },
     );
 
     return response.data;
@@ -32,7 +38,10 @@ export class LfService {
 
     const response = await authAxios.post(
       `/tenant/${tenantId}/segment/projectGroup/query`,
-      body,
+      {
+        ...body,
+        excludeSegments: true,
+      },
     );
 
     return response.data;
@@ -43,7 +52,10 @@ export class LfService {
 
     const response = await authAxios.post(
       `/tenant/${tenantId}/segment/projectGroup`,
-      body,
+      {
+        ...body,
+        excludeSegments: true,
+      },
     );
 
     return response.data;
@@ -56,7 +68,10 @@ export class LfService {
 
     const response = await authAxios.post(
       `/tenant/${tenantId}/segment/project/query`,
-      body,
+      {
+        ...body,
+        excludeSegments: true,
+      },
     );
 
     return response.data;
@@ -67,7 +82,10 @@ export class LfService {
 
     const response = await authAxios.post(
       `/tenant/${tenantId}/segment/project`,
-      body,
+      {
+        ...body,
+        excludeSegments: true,
+      },
     );
 
     return response.data;
@@ -80,7 +98,10 @@ export class LfService {
 
     const response = await authAxios.post(
       `/tenant/${tenantId}/segment/subproject`,
-      body,
+      {
+        ...body,
+        excludeSegments: true,
+      },
     );
 
     return response.data;

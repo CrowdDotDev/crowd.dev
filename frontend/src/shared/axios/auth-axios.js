@@ -32,27 +32,47 @@ authAxios.interceptors.request.use(
     const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);
     const setOptions = { ...options };
 
-    // Add segments to requests if lfx version
-    if (config.isLfxVersion && selectedProjectGroup.value) {
-      const segments = config.data?.segments || selectedProjectGroup.value.projects.reduce((acc, project) => {
-        project.subprojects.forEach((subproject) => {
-          acc.push(subproject.id);
-        });
+    // TODO: Improve this logic
 
-        return acc;
-      }, []);
+    // Add segments to requests
+    if ((selectedProjectGroup.value
+      || options.data?.segments?.length || options.params?.segments?.length) && !options.data?.excludeSegments
+        && !options.params?.excludeSegments) {
+      let segments;
 
-      if (setOptions.method === 'get') {
+      if (options.data?.segments?.length) {
+        segments = options.data.segments;
+      } else if (options.params?.segments?.length) {
+        segments = options.params.segments;
+      } else if (selectedProjectGroup.value.projects.length) {
+        segments = selectedProjectGroup.value.projects.reduce((acc, project) => {
+          project.subprojects.forEach((subproject) => {
+            acc.push(subproject.id);
+          });
+
+          return acc;
+        }, []);
+      }
+
+      if (options.method === 'get') {
         setOptions.params = {
           ...setOptions.params || {},
           segments,
         };
       } else {
         setOptions.data = {
-          ...setOptions.data,
+          ...setOptions.data || {},
           segments,
         };
       }
+    }
+
+    if (setOptions.data?.excludeSegments) {
+      delete setOptions.data.excludeSegments;
+    }
+
+    if (setOptions.params?.excludeSegments) {
+      delete setOptions.params.excludeSegments;
     }
 
     if (['delete', 'put'].includes(setOptions.method)) {

@@ -12,9 +12,7 @@
         icon="ri-contacts-line"
         title="No community members yet"
         description="Please connect with one of our available data sources in order to start pulling data from a certain platform"
-        cta-btn="Connect integrations"
         secondary-btn="Add member"
-        @cta-click="onCtaClick"
         @secondary-click="onSecondaryBtnClick"
       />
 
@@ -530,12 +528,6 @@ function rowClass({ row }) {
   const isSelected = selectedRows.value.find((r) => r.id === row.id) !== undefined;
 
   return isSelected ? 'is-selected' : '';
-}
-
-function onCtaClick() {
-  router.push({
-    path: '/integrations',
-  });
 }
 
 function onSecondaryBtnClick() {

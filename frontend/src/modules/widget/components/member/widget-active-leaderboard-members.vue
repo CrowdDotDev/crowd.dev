@@ -127,6 +127,7 @@ const getActiveMembers = async (
   period = selectedPeriod.value,
   platforms = props.filters.platform.value,
   teamMembers = props.filters.teamMembers,
+  segments = props.filters.segments,
 ) => {
   loading.value = true;
   error.value = false;
@@ -144,6 +145,7 @@ const getActiveMembers = async (
       orderBy: 'activeDaysCount_DESC',
       offset: 0,
       limit: 10,
+      segments,
     });
 
     loading.value = false;
@@ -182,6 +184,7 @@ const getDetailedActiveMembers = ({
   limit: !pagination.count
     ? pagination.pageSize
     : pagination.count,
+  segments: props.filters.segments,
 });
 
 const onRowClick = () => {
@@ -223,12 +226,13 @@ onMounted(async () => {
 
 // Each time filter changes, query a new response
 watch(
-  () => [props.filters.platform.value, props.filters.teamMembers],
-  async ([platforms, teamMembers]) => {
+  () => [props.filters.platform.value, props.filters.teamMembers, props.filters.segments],
+  async ([platforms, teamMembers, segments]) => {
     activeMembers.value = await getActiveMembers(
       selectedPeriod.value,
       platforms,
       teamMembers,
+      segments,
     );
   },
 );

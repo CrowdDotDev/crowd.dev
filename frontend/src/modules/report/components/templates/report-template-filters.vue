@@ -42,6 +42,11 @@
         </template>
       </app-filter-list-item>
 
+      <app-lf-project-filter-button
+        :segments="segments"
+        :set-segments="onSegmentsChange"
+      />
+
       <div
         v-if="showTeamMembers"
         class="flex gap-2 items-center"
@@ -75,11 +80,13 @@
 import { computed, defineEmits, defineProps } from 'vue';
 import AppFilterListItem from '@/shared/filter/components/filter-list-item.vue';
 import { CrowdIntegrations } from '@/integrations/integrations-config';
+import AppLfProjectFilterButton from '@/modules/lf/segments/components/filter/lf-project-filter-button.vue';
 
 const emit = defineEmits([
   'update:platform',
   'update:teamMembers',
   'update:teamActivities',
+  'update:segments',
   'trackFilters',
   'reset',
   'open',
@@ -109,6 +116,10 @@ const props = defineProps({
     type: Boolean,
     defaul: false,
   },
+  segments: {
+    type: Array,
+    default: () => [],
+  },
 });
 
 const hasSelectedPlatform = computed(() => !!props.platform.value.length);
@@ -134,6 +145,10 @@ const onTeamMembersChange = (value) => {
 };
 const onTeamActivitiesChange = (value) => {
   emit('update:teamActivities', value);
+  emit('trackFilters');
+};
+const onSegmentsChange = (value) => {
+  emit('update:segments', value);
   emit('trackFilters');
 };
 

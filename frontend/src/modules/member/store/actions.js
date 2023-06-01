@@ -28,6 +28,7 @@ export default {
       customIds = [],
       customFilter = null,
       count = null,
+      segments = [],
     } = {},
   ) {
     let filter;
@@ -67,13 +68,14 @@ export default {
           : `View: ${getters.activeView.label}`,
       });
 
-      await MemberService.export(
+      await MemberService.export({
         filter,
-        getters.orderBy,
-        0,
-        null,
-        !selected && !customFilter, // build API payload if selected === false || !customFilter
-      );
+        orderBy: getters.orderBy,
+        limit: 0,
+        offset: null,
+        segments,
+        buildFilter: !selected && !customFilter, // build API payload if selected === false || !customFilter
+      });
 
       await dispatch('auth/doRefreshCurrentUser', null, {
         root: true,

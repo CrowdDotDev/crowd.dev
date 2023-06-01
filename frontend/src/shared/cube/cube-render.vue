@@ -50,12 +50,15 @@ export default {
         operator: 'equals',
         values: ['0'],
       };
+      const segments = ['4e6ec25b-877c-4746-8ae1-bba8fa40b2ec'];
 
       if (!widgetQuery.filters) {
+        widgetQuery.segments = segments;
         widgetQuery.filters = [isTeamMemberFilter, isBot];
       } else {
         widgetQuery.filters.push(isTeamMemberFilter);
         widgetQuery.filters.push(isBot);
+        widgetQuery.segments = segments;
       }
 
       return widgetQuery;

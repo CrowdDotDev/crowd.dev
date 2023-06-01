@@ -8,6 +8,7 @@ export default {
   namespaced: true,
 
   state: () => ({
+    segmentId: null,
     byId: {},
     allIds: [],
     count: 0,
@@ -85,12 +86,20 @@ export default {
 
     FETCH_SUCCESS(state, payload) {
       state.loading = false;
+
+      const byId = {};
+      const allIds = [];
+
       payload.rows.forEach((integration) => {
-        state.byId[integration.id] = integration;
-        if (state.allIds.indexOf(integration.id) === -1) {
-          state.allIds.push(integration.id);
+        byId[integration.id] = integration;
+        if (allIds.indexOf(integration.id) === -1) {
+          allIds.push(integration.id);
         }
       });
+
+      state.segmentId = router.currentRoute.value.params.id;
+      state.byId = byId;
+      state.allIds = allIds;
       state.count = payload.count;
       state.loaded = true;
     },
@@ -261,7 +270,12 @@ export default {
             title: 'GitHub integration created successfully',
           },
         );
-        router.push('/integrations');
+        router.push({
+          name: 'integration',
+          params: {
+            id: integration.segmentId,
+          },
+        });
       } catch (error) {
         Errors.handle(error);
         commit('CREATE_ERROR');
@@ -283,7 +297,12 @@ export default {
             title: 'Reddit integration created successfully',
           },
         );
-        router.push('/integrations');
+        router.push({
+          name: 'integration',
+          params: {
+            id: integration.segmentId,
+          },
+        });
       } catch (error) {
         Errors.handle(error);
         commit('CREATE_ERROR');
@@ -309,7 +328,12 @@ export default {
             },
           );
         }
-        router.push('/integrations');
+        router.push({
+          name: 'integration',
+          params: {
+            id: integration.segmentId,
+          },
+        });
       } catch (error) {
         Errors.handle(error);
         commit('CREATE_ERROR');
@@ -333,7 +357,12 @@ export default {
               'LinkedIn integration updated successfully',
           },
         );
-        router.push('/integrations');
+        router.push({
+          name: 'integration',
+          params: {
+            id: integration.segmentId,
+          },
+        });
       } catch (error) {
         Errors.handle(error);
         commit('UPDATE_ERROR');
@@ -357,7 +386,12 @@ export default {
               'Discord integration created successfully',
           },
         );
-        router.push('/integrations');
+        router.push({
+          name: 'integration',
+          params: {
+            id: integration.segmentId,
+          },
+        });
       } catch (error) {
         Errors.handle(error);
         commit('CREATE_ERROR');
@@ -389,7 +423,12 @@ export default {
           },
         );
 
-        router.push('/integrations');
+        router.push({
+          name: 'integration',
+          params: {
+            id: integration.segmentId,
+          },
+        });
       } catch (error) {
         Errors.handle(error);
         commit('CREATE_ERROR');
@@ -422,7 +461,12 @@ export default {
           },
         );
 
-        router.push('/integrations');
+        router.push({
+          name: 'integration',
+          params: {
+            id: integration.segmentId,
+          },
+        });
       } catch (error) {
         Errors.handle(error);
         commit('CREATE_ERROR');
@@ -454,7 +498,12 @@ export default {
           },
         );
 
-        router.push('/integrations');
+        router.push({
+          name: 'integration',
+          params: {
+            id: integration.segmentId,
+          },
+        });
       } catch (error) {
         Errors.handle(error);
         commit('CREATE_ERROR');
@@ -483,7 +532,12 @@ export default {
           },
         );
 
-        router.push('/integrations');
+        router.push({
+          name: 'integration',
+          params: {
+            id: integration.segmentId,
+          },
+        });
       } catch (error) {
         Errors.handle(error);
         commit('CREATE_ERROR');

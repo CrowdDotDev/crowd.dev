@@ -62,14 +62,15 @@ const isCreateLockedForSampleData = computed(() => new NotePermissions(
 
 const fetchNotes = (page = 0) => {
   notesPage.value = page;
-  NoteService.list(
-    {
+  NoteService.list({
+    filter: {
       members: [props.member.id],
     },
-    'createdAt_DESC',
-    notesLimit,
-    notesPage.value * notesLimit,
-  ).then(({ rows, count }) => {
+    orderBy: 'createdAt_DESC',
+    limit: notesLimit,
+    offset: notesPage.value * notesLimit,
+    segments: [],
+  }).then(({ rows, count }) => {
     if (notesPage.value > 0) {
       notes.value = [...notes.value, ...rows];
     } else {

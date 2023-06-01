@@ -1,10 +1,14 @@
 import authAxios from '@/shared/axios/auth-axios';
 import AuthCurrentTenant from '@/modules/auth/auth-current-tenant';
+import { router } from '@/router';
+
+const getSegments = () => ({ segments: [router.currentRoute.value.params.id] });
 
 export class IntegrationService {
   static async update(id, data) {
     const body = {
       data,
+      ...getSegments(),
     };
 
     const tenantId = AuthCurrentTenant.get();
@@ -20,6 +24,7 @@ export class IntegrationService {
   static async destroyAll(ids) {
     const params = {
       ids,
+      ...getSegments(),
     };
 
     const tenantId = AuthCurrentTenant.get();
@@ -37,6 +42,7 @@ export class IntegrationService {
   static async create(data) {
     const body = {
       data,
+      ...getSegments(),
     };
 
     const tenantId = AuthCurrentTenant.get();
@@ -54,6 +60,9 @@ export class IntegrationService {
 
     const response = await authAxios.get(
       `/tenant/${tenantId}/integration/${id}`,
+      {
+        params: getSegments(),
+      },
     );
 
     return response.data;
@@ -65,6 +74,7 @@ export class IntegrationService {
       orderBy,
       limit,
       offset,
+      ...getSegments(),
     };
 
     const tenantId = AuthCurrentTenant.get();
@@ -83,6 +93,7 @@ export class IntegrationService {
     const params = {
       query,
       limit,
+      ...getSegments(),
     };
 
     const tenantId = AuthCurrentTenant.get();
@@ -107,6 +118,7 @@ export class IntegrationService {
       {
         users,
         organizations,
+        ...getSegments(),
       },
     );
 
@@ -123,6 +135,7 @@ export class IntegrationService {
       {
         keywords,
         urls,
+        ...getSegments(),
       },
     );
 
@@ -135,6 +148,7 @@ export class IntegrationService {
     const body = {
       installId,
       setupAction,
+      ...getSegments(),
     };
     // Getting the tenant_id
     const tenantId = AuthCurrentTenant.get();
@@ -151,6 +165,7 @@ export class IntegrationService {
     // Install_id is the GitHub app installation id.
     const body = {
       subreddits,
+      ...getSegments(),
     };
     // Getting the tenant_id
     const tenantId = AuthCurrentTenant.get();
@@ -166,6 +181,7 @@ export class IntegrationService {
     const tenantId = AuthCurrentTenant.get();
     const response = await authAxios.put(
       `/linkedin-connect/${tenantId}`,
+      getSegments(),
     );
 
     return response.data;
@@ -174,6 +190,7 @@ export class IntegrationService {
   static async linkedinOnboard(organizationId) {
     const body = {
       organizationId,
+      ...getSegments(),
     };
 
     const tenantId = AuthCurrentTenant.get();
@@ -192,6 +209,7 @@ export class IntegrationService {
     // Calling the authenticate function in the backend.
     const response = await authAxios.put(
       `/discord-authenticate/${tenantId}/${guildId}`,
+      getSegments(),
     );
     return response.data;
   }
@@ -204,6 +222,7 @@ export class IntegrationService {
       {
         params: {
           username,
+          ...getSegments(),
         },
       },
     );
@@ -219,6 +238,7 @@ export class IntegrationService {
       {
         params: {
           organization,
+          ...getSegments(),
         },
       },
     );
@@ -234,6 +254,7 @@ export class IntegrationService {
       {
         params: {
           subreddit,
+          ...getSegments(),
         },
       },
     );
@@ -249,6 +270,7 @@ export class IntegrationService {
       {
         params: {
           tag,
+          ...getSegments(),
         },
       },
     );
@@ -264,6 +286,7 @@ export class IntegrationService {
       {
         params: {
           keywords,
+          ...getSegments(),
         },
       },
     );
@@ -280,6 +303,7 @@ export class IntegrationService {
       {
         tags,
         keywords,
+        ...getSegments(),
       },
     );
 
@@ -293,6 +317,7 @@ export class IntegrationService {
       `/tenant/${tenantId}/git-connect`,
       {
         remotes,
+        ...getSegments(),
       },
     );
 

@@ -209,14 +209,15 @@ export default {
 
     async doGetMembersCount() {
       try {
-        const response = await MemberService.list(
-          {},
-          '',
-          1,
-          0,
-          undefined,
-          true,
-        );
+        const response = await MemberService.list({
+          customFilters: {},
+          orderBy: '',
+          limit: 1,
+          offset: 0,
+          segments: [],
+          buildFilter: undefined,
+          countOnly: true,
+        });
 
         return response;
       } catch (e) {

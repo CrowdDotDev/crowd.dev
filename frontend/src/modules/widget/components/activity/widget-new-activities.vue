@@ -105,6 +105,7 @@ const query = computed(() => ACTIVITIES_QUERY({
   granularity: granularity.value,
   selectedPlatforms: props.filters.platform.value,
   selectedHasTeamActivities: props.filters.teamActivities,
+  selectedSegments: props.filters.segments,
 }));
 </script>
 
