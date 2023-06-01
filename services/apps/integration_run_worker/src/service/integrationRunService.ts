@@ -112,7 +112,24 @@ export default class IntegrationRunService extends LoggerBase {
   }
 
   public async checkRuns(): Promise<void> {
-    this.log.info('Checking for delayed/stuck/retryable runs!')
+    this.log.info('Checking for delayed runs!')
+
+    let runs = await this.repo.getPendingDelayedRuns(1, 10)
+    while (runs.length > 0) {
+      this.log.info({ runCount: runs.length }, 'Found delayed runs that need to be started!')
+
+      for (const run of runs) {
+        this.log.info({ runId: run.id }, 'Restarting delayed run!')
+        await this.repo.resetDelayedRun(run.id)
+        await this.streamWorkerEmitter.continueProcessingRunStreams(
+          run.tenantId,
+          run.integrationType,
+          run.id,
+        )
+      }
+
+      runs = await this.repo.getPendingDelayedRuns(1, 10)
+    }
   }
 
   public async startIntegrationRun(integrationId: string, onboarding: boolean): Promise<void> {

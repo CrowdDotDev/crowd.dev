@@ -1,9 +1,9 @@
-import { singleOrDefault, addSeconds } from '@crowd/common'
+import { singleOrDefault, addSeconds, processPaginated } from '@crowd/common'
 import { DbStore } from '@crowd/database'
 import { Logger, LoggerBase, getChildLogger } from '@crowd/logging'
 import { RedisCache, RedisClient } from '@crowd/redis'
 import IntegrationStreamRepository from '../repo/integrationStream.repo'
-import { IntegrationStreamType, RateLimitError } from '@crowd/types'
+import { IntegrationRunState, IntegrationStreamType, RateLimitError } from '@crowd/types'
 import { INTEGRATION_SERVICES, IProcessStreamContext } from '@crowd/integrations'
 import { NANGO_CONFIG, WORKER_SETTINGS, PLATFORM_CONFIG } from '../conf'
 import {
@@ -26,6 +26,25 @@ export default class IntegrationStreamService extends LoggerBase {
     super(parentLog)
 
     this.repo = new IntegrationStreamRepository(store, this.log)
+  }
+
+  public async continueProcessingRunStreams(runId: string): Promise<void> {
+    this.log.info('Continuing processing run streams!')
+
+    this.log.info('Fetching pending streams!')
+    await processPaginated(
+      (page) => this.repo.getPendingStreams(runId, page, 10),
+      async (streams) => {
+        for (const stream of streams) {
+          this.log.info({ streamId: stream.id }, 'Triggering stream processing!')
+          this.streamWorkerEmitter.triggerStreamProcessing(
+            stream.tenantId,
+            stream.integrationType,
+            stream.id,
+          )
+        }
+      },
+    )
   }
 
   private async triggerRunError(
@@ -69,6 +88,11 @@ export default class IntegrationStreamService extends LoggerBase {
 
     if (!streamInfo) {
       this.log.error({ streamId }, 'Stream not found!')
+      return
+    }
+
+    if (streamInfo.runState === IntegrationRunState.DELAYED) {
+      this.log.warn('Run is delayed! Skipping stream processing!')
       return
     }
 

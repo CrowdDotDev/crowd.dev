@@ -33,3 +33,11 @@ export const sendStartIntegrationRunMessage = async (
   }
   await sendIntegrationRunWorkerMessage(tenant, payload as NodeWorkerMessageBase)
 }
+
+export const checkRunsMessage = async (): Promise<void> => {
+  const payload = {
+    type: 'check_runs',
+  }
+
+  await sendIntegrationRunWorkerMessage(`${moment().valueOf()}`, payload as NodeWorkerMessageBase)
+}

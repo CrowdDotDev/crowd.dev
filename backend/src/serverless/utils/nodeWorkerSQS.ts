@@ -1,11 +1,14 @@
 import { MessageBodyAttributeMap } from 'aws-sdk/clients/sqs'
 import moment from 'moment'
+import { getServiceChildLogger } from '@crowd/logging'
 import { NodeWorkerMessageBase } from '../../types/mq/nodeWorkerMessageBase'
 import { IS_TEST_ENV, SQS_CONFIG } from '../../conf'
 import { sendMessage } from '../../utils/sqs'
 import { NodeWorkerMessageType } from '../types/workerTypes'
 import { AutomationTrigger } from '../../types/automationTypes'
 import { ExportableEntity } from '../microservices/nodejs/messageTypes'
+
+const log = getServiceChildLogger('nodeWorkerSQS')
 
 // 15 minute limit for delaying is max for SQS
 const limitSeconds = 15 * 60
@@ -68,6 +71,12 @@ export const sendNodeWorkerMessage = async (
     DelaySeconds: delay,
   }
 
+  log.info(
+    {
+      messageType: body.type,
+    },
+    'Sending nodejs-worker sqs message!',
+  )
   await sendMessage(params)
 }
 

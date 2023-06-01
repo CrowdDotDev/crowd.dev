@@ -21,3 +21,9 @@ export interface IStartIntegrationRunData {
   identifier: string | null
   tenantId: string
 }
+
+export interface IPendingDelayedRun {
+  id: string
+  tenantId: string
+  integrationType: string
+}

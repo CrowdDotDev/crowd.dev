@@ -1,12 +1,54 @@
 import { DbStore, RepositoryBase } from '@crowd/database'
 import { Logger } from '@crowd/logging'
-import { IGenerateStreamsData, IStartIntegrationRunData } from './integrationRun.data'
 import { IntegrationRunState, IntegrationStreamState } from '@crowd/types'
 import { WORKER_CONFIG } from '../conf'
+import {
+  IGenerateStreamsData,
+  IPendingDelayedRun,
+  IStartIntegrationRunData,
+} from './integrationRun.data'
 
 export default class IntegrationRunRepository extends RepositoryBase<IntegrationRunRepository> {
   constructor(dbStore: DbStore, parentLog: Logger) {
     super(dbStore, parentLog)
+  }
+
+  public async getPendingDelayedRuns(page: number, perPage: number): Promise<IPendingDelayedRun[]> {
+    const results = await this.db().any(
+      `
+      select r.id,
+             r."tenantId",
+             i.platform as "integrationType"
+      from integration.runs r
+      inner join integrations i on r."integrationId" = i.id
+      where r.state = $(delayedState) and r."delayedUntil" < now()
+       order by r."delayedUntil" asc
+       limit ${perPage} offset ${(page - 1) * perPage}
+      `,
+      {
+        delayedState: IntegrationRunState.DELAYED,
+      },
+    )
+
+    return results
+  }
+
+  public async resetDelayedRun(runId: string): Promise<void> {
+    const result = await this.db().result(
+      `
+      update integration.runs
+      set state = $(state),
+          "delayedUntil" = null,
+          "updatedAt" = now()
+      where id = $(runId)
+      `,
+      {
+        runId,
+        state: IntegrationRunState.PENDING,
+      },
+    )
+
+    this.checkUpdateRowCount(result.rowCount, 1)
   }
 
   public async createRun(
