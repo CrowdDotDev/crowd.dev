@@ -1,9 +1,19 @@
 <template>
   <div v-if="form">
     <cr-filter-include-switch v-if="!props.hideIncludeSwitch" v-model="form.include" />
-    <div class="p-4">
-      Multi select filter
-      <!-- TODO: prepare multiselect filter -->
+    <div v-if="allOptions.length <= 7">
+      <cr-multi-select-checkbox-filter
+        v-model="form.value"
+        :config="props.config"
+        :options="props.options"
+      />
+    </div>
+    <div v-else>
+      <cr-multi-select-tags-filter
+        v-model="form.value"
+        :config="props.config"
+        :options="props.options"
+      />
     </div>
   </div>
 </template>
@@ -18,13 +28,19 @@ import {
 import { required } from '@vuelidate/validators';
 import useVuelidate from '@vuelidate/core';
 import CrFilterIncludeSwitch from '@/shared/modules/filters/components/partials/FilterIncludeSwitch.vue';
+import CrMultiSelectCheckboxFilter
+  from '@/shared/modules/filters/components/filterTypes/multiselect/MultiSelectCheckboxFilter.vue';
+import CrMultiSelectTagsFilter
+  from '@/shared/modules/filters/components/filterTypes/multiselect/MultiSelectTagsFilter.vue';
 
 const props = defineProps<{
   modelValue: MultiSelectFilterValue,
   config: MultiSelectFilterConfig
 } & MultiSelectFilterOptions>();
 
-const emit = defineEmits<{(e: 'update:modelValue', value: MultiSelectFilterValue): void}>();
+const emit = defineEmits<{(e: 'update:modelValue', value: MultiSelectFilterValue): void, (e: 'update:data', value: any): void}>();
+
+const allOptions = computed(() => props.options.map((g) => g.options).flat());
 
 const form = computed({
   get: () => props.modelValue,

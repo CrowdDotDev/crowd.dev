@@ -5,11 +5,13 @@ import { BooleanFilterConfig } from '@/shared/modules/filters/types/filterTypes/
 import { DateFilterConfig } from '@/shared/modules/filters/types/filterTypes/DateFilterConfig';
 import { CustomFilterConfig } from '@/shared/modules/filters/types/filterTypes/CustomFilterConfig';
 import { StringFilterConfig } from '@/shared/modules/filters/types/filterTypes/StringFilterConfig';
+import { MultiSelectAsyncFilterConfig } from '@/shared/modules/filters/types/filterTypes/MultiSelectAsyncFilterConfig';
 
 export enum FilterConfigType {
   NUMBER = 'number',
   SELECT = 'select',
   MULTISELECT = 'multiselect',
+  MULTISELECT_ASYNC = 'multiselect-async',
   BOOLEAN = 'boolean',
   DATE = 'date',
   STRING = 'string',
@@ -26,6 +28,7 @@ export interface BaseFilterConfig {
 
 export type FilterConfig = NumberFilterConfig
   | MultiSelectFilterConfig
+  | MultiSelectAsyncFilterConfig
   | SelectFilterConfig
   | BooleanFilterConfig
   | DateFilterConfig

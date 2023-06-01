@@ -14,6 +14,7 @@ export const apiFilterRendererByType: Record<FilterConfigType, (property: string
   [FilterConfigType.DATE]: dateApiFilterRenderer,
   [FilterConfigType.SELECT]: selectApiFilterRenderer,
   [FilterConfigType.MULTISELECT]: multiSelectApiFilterRenderer,
+  [FilterConfigType.MULTISELECT_ASYNC]: multiSelectApiFilterRenderer,
   [FilterConfigType.STRING]: stringApiFilterRenderer,
   [FilterConfigType.CUSTOM]: () => [],
 };

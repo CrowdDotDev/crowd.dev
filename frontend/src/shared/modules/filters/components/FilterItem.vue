@@ -18,7 +18,7 @@
           <span
             class="text-xs text-gray-600 filter-item-text leading-6"
             v-html="$sanitize(
-              (props.modelValue && config.itemLabelRenderer(props.modelValue, props.config.options))
+              (props.modelValue && config.itemLabelRenderer(props.modelValue, props.config.options, data))
                 || `<span class='!text-gray-500'>${config.label}...</span>`,
             )"
           />
@@ -26,7 +26,7 @@
       </template>
 
       <div>
-        <component :is="getComponent" v-if="getComponent" v-model="form" :config="props.config" v-bind="props.config.options" />
+        <component :is="getComponent" v-if="getComponent" v-model="form" v-model:data="data" :config="props.config" v-bind="props.config.options" />
       </div>
       <div class="flex justify-end items-center border-t py-3 px-4">
         <el-button class="btn btn--transparent btn--sm !h-8 mr-2" @click="close">
@@ -49,9 +49,7 @@
 </template>
 
 <script setup lang="ts">
-import {
-  computed, ref, watch,
-} from 'vue';
+import { computed, ref, watch } from 'vue';
 import { FilterConfig, FilterConfigType } from '@/shared/modules/filters/types/FilterConfig';
 import { filterComponentByType } from '@/shared/modules/filters/config/filterComponentByType';
 import useVuelidate from '@vuelidate/core';
@@ -65,6 +63,7 @@ const props = defineProps<{
 const emit = defineEmits<{(e: 'update:modelValue', value: any): void, (e: 'remove'): void, (e: 'update:open', value: string): void}>();
 
 const form = ref({});
+const data = ref({});
 
 const isOpen = computed({
   get() {

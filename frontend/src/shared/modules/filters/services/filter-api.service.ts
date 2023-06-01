@@ -24,7 +24,7 @@ export const filterApiService = () => {
     let body: any = {};
 
     // Search
-    if (search?.length > 0) {
+    if (search && search.length > 0) {
       baseFilters = [
         ...baseFilters,
         ...searchConfig.apiFilterRenderer(search),
