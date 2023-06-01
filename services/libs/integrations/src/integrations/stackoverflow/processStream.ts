@@ -7,8 +7,6 @@ import {
   StackOverflowQuestionsResponse,
   StackOverflowAnswerResponse,
   StackOverflowUser,
-  IStackOverflowPublishQuestion,
-  IStackOverflowPublishAnswer,
   IStackOverflowPublishData,
 } from './types'
 import getQuestionsByTags from './api/getQuestions'
@@ -51,7 +49,7 @@ const processTagStream: ProcessStreamHandler = async (ctx) => {
   // If there are more pages, we need to create a new stream to get the next page
   if (questions.length > 0 && hasMore) {
     await ctx.publishStream<IStackOverflowTagStreamData>(
-      `${StackOverflowRootStream.QUESTIONS_BY_TAG}:${tags[0]}`,
+      `${StackOverflowRootStream.QUESTIONS_BY_TAG}:${tags[0]}:${page + 1}`,
       {
         tags: tags,
         page: page + 1,
@@ -74,7 +72,7 @@ const processTagStream: ProcessStreamHandler = async (ctx) => {
     })
 
     await ctx.publishStream<IStackOverflowAnswerStreamData>(
-      `${StackOverflowRootStream.ANSWERS_TO_QUESTION}:${question.question_id}`,
+      `${StackOverflowRootStream.ANSWERS_TO_QUESTION}:${question.question_id}:${1}`,
       {
         questionId: question.question_id.toString(),
         tag: tags[0],
@@ -107,7 +105,7 @@ const processKeywordStream: ProcessStreamHandler = async (ctx) => {
   // If there are more pages, we need to create a new stream to get the next page
   if (questions.length > 0 && hasMore) {
     await ctx.publishStream<IStackOverflowKeywordStreamData>(
-      `${StackOverflowRootStream.QUESTIONS_BY_KEYWORD}:${keyword}`,
+      `${StackOverflowRootStream.QUESTIONS_BY_KEYWORD}:${keyword}:${page + 1}`,
       {
         keyword,
         page: page + 1,
@@ -130,7 +128,7 @@ const processKeywordStream: ProcessStreamHandler = async (ctx) => {
     })
 
     await ctx.publishStream<IStackOverflowAnswerStreamData>(
-      `${StackOverflowRootStream.ANSWERS_TO_QUESTION}:${question.question_id}`,
+      `${StackOverflowRootStream.ANSWERS_TO_QUESTION}:${question.question_id}:${1}`,
       {
         questionId: question.question_id.toString(),
         tag: null,
@@ -163,7 +161,7 @@ const processAnswerStream: ProcessStreamHandler = async (ctx) => {
   // If there are more pages, we need to create a new stream to get the next page
   if (answers.length > 0 && hasMore) {
     await ctx.publishStream<IStackOverflowAnswerStreamData>(
-      `${StackOverflowRootStream.ANSWERS_TO_QUESTION}:${questionId}`,
+      `${StackOverflowRootStream.ANSWERS_TO_QUESTION}:${questionId}:${page + 1}`,
       {
         questionId,
         tag,

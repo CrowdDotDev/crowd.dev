@@ -17,7 +17,7 @@ const handler: GenerateStreamsHandler = async (ctx) => {
   if (settings.tags.length > 0) {
     for (const tag of settings.tags) {
       await ctx.publishStream<IStackOverflowTagStreamData>(
-        `${StackOverflowRootStream.QUESTIONS_BY_TAG}:${tag}`,
+        `${StackOverflowRootStream.QUESTIONS_BY_TAG}:${tag}:${1}`,
         {
           tags: [tag],
           page: 1,
@@ -28,7 +28,7 @@ const handler: GenerateStreamsHandler = async (ctx) => {
   if (settings.keywords.length > 0) {
     for (const keyword of settings.keywords) {
       await ctx.publishStream<IStackOverflowKeywordStreamData>(
-        `${StackOverflowRootStream.QUESTIONS_BY_KEYWORD}:${keyword}`,
+        `${StackOverflowRootStream.QUESTIONS_BY_KEYWORD}:${keyword}:${1}`,
         {
           keyword,
           page: 1,

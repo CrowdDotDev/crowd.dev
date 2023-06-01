@@ -7,6 +7,8 @@ import {
   StackOverflowPlatformSettings,
   StackOverflowQuestionsResponse,
   StackOverflowGetQuestionsInput,
+  MAX_RETROSPECT_IN_HOURS,
+  LAST_MAX_PAGES,
 } from '../types'
 
 /**
@@ -21,6 +23,27 @@ async function getQuestions(
 ): Promise<StackOverflowQuestionsResponse> {
   try {
     ctx.log.info({ message: 'Fetching questions from StackOverflow', input })
+
+    const isOnboarding = ctx.onboarding
+
+    let now: Date = null
+    let toDate: number = null
+    let fromDate: Date = null
+    let fromTimestamp: number = null
+
+    if (!isOnboarding) {
+      now = new Date()
+      toDate = Math.floor(now.getTime() / 1000) // Unix timestamp for now
+      fromDate = new Date(
+        Date.UTC(
+          now.getUTCFullYear(),
+          now.getUTCMonth(),
+          now.getUTCDate(),
+          now.getUTCHours() - MAX_RETROSPECT_IN_HOURS,
+        ),
+      )
+      fromTimestamp = Math.floor(fromDate.getTime() / 1000)
+    }
 
     const platformSettings = ctx.platformSettings as StackOverflowPlatformSettings
     const key = platformSettings.key
@@ -40,6 +63,8 @@ async function getQuestions(
         site: 'stackoverflow',
         filter: 'withbody',
         access_token: accessToken,
+        fromdate: fromTimestamp,
+        todate: toDate,
         key,
       },
     }
@@ -54,6 +79,17 @@ async function getQuestions(
         throw new RateLimitError(backoff, 'stackoverflow/getQuestions')
       }
     }
+
+    // If we are onboarding, we want to get the last MAX_PAGES pages of questions
+    if (isOnboarding) {
+      if (input.page < LAST_MAX_PAGES) {
+        return response
+      } else {
+        response.has_more = false
+        return response
+      }
+    }
+
     return response
   } catch (err) {
     ctx.log.error({ err, input }, 'Error while getting StackOverflow questions tagged with tags')
