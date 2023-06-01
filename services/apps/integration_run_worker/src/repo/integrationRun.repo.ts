@@ -44,7 +44,7 @@ export default class IntegrationRunRepository extends RepositoryBase<Integration
       `,
       {
         runId,
-        state: IntegrationRunState.PENDING,
+        state: IntegrationRunState.PROCESSING,
       },
     )
 

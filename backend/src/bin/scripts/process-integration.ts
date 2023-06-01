@@ -173,7 +173,7 @@ if (parameters.help || (!parameters.integration && !parameters.platform)) {
 
           let inNewFramework = false
 
-          if (singleOrDefault(INTEGRATION_SERVICES, (s) => s.type === parameters.platform)) {
+          if (singleOrDefault(INTEGRATION_SERVICES, (s) => s.type === integration.platform)) {
             inNewFramework = true
           }
 

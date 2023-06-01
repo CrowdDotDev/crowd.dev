@@ -31,20 +31,20 @@ export default class IntegrationStreamService extends LoggerBase {
   public async continueProcessingRunStreams(runId: string): Promise<void> {
     this.log.info('Continuing processing run streams!')
 
-    this.log.info('Fetching pending streams!')
-    await processPaginated(
-      (page) => this.repo.getPendingStreams(runId, page, 10),
-      async (streams) => {
-        for (const stream of streams) {
-          this.log.info({ streamId: stream.id }, 'Triggering stream processing!')
-          this.streamWorkerEmitter.triggerStreamProcessing(
-            stream.tenantId,
-            stream.integrationType,
-            stream.id,
-          )
-        }
-      },
-    )
+    let streams = await this.repo.getPendingStreams(runId, 1, 20)
+    while (streams.length > 0) {
+      for (const stream of streams) {
+        this.log.info({ streamId: stream.id }, 'Triggering stream processing!')
+        await this.repo.markStreamInProgress(stream.id)
+        this.streamWorkerEmitter.triggerStreamProcessing(
+          stream.tenantId,
+          stream.integrationType,
+          stream.id,
+        )
+      }
+
+      streams = await this.repo.getPendingStreams(runId, 1, 20)
+    }
   }
 
   private async triggerRunError(

@@ -112,7 +112,7 @@ export default class IntegrationRunService extends LoggerBase {
   }
 
   public async checkRuns(): Promise<void> {
-    this.log.info('Checking for delayed runs!')
+    this.log.debug('Checking for delayed runs!')
 
     let runs = await this.repo.getPendingDelayedRuns(1, 10)
     while (runs.length > 0) {
