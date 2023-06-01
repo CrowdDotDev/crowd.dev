@@ -1,17 +1,22 @@
 import { IDatabaseConfig } from '@crowd/database'
 import { IRedisConfiguration } from '@crowd/redis'
 import { ISqsClientConfig } from '@crowd/sqs'
-import config = require('config')
+import config from 'config'
 
-export interface IWorkerSettings {
-  maxDataRetries: number
+export interface IWorkerConfig {
+  maxStreamRetries: number
 }
 
-let workerSettings: IWorkerSettings
-export const WORKER_SETTINGS = (): IWorkerSettings => {
+export interface INangoConfig {
+  url: string
+  secretKey: string
+}
+
+let workerSettings: IWorkerConfig
+export const WORKER_SETTINGS = (): IWorkerConfig => {
   if (workerSettings) return workerSettings
 
-  workerSettings = config.get<IWorkerSettings>('worker')
+  workerSettings = config.get<IWorkerConfig>('worker')
   return workerSettings
 }
 
@@ -37,6 +42,14 @@ export const REDIS_CONFIG = (): IRedisConfiguration => {
 
   redisConfig = config.get<IRedisConfiguration>('redis')
   return redisConfig
+}
+
+let nangoConfig: INangoConfig
+export const NANGO_CONFIG = (): INangoConfig => {
+  if (nangoConfig) return nangoConfig
+
+  nangoConfig = config.get<INangoConfig>('nango')
+  return nangoConfig
 }
 
 let platformConfig: unknown | null | undefined = null

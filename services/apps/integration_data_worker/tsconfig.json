@@ -9,9 +9,11 @@
     "sourceMap": true,
     "moduleResolution": "node16",
     "experimentalDecorators": true,
-    "baseUrl": ".",
+    "esModuleInterop": true,
+    "baseUrl": "./src",
     "paths": {
-      "@crowd/*": ["../../libs/*/dist"]
+      "@crowd/*": ["../../../libs/*/dist"],
+      "@/*": ["./*"]
     }
   },
   "include": ["src/**/*"]
