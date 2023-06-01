@@ -1,6 +1,6 @@
 import { RedisCache } from '@crowd/redis'
 import { getServiceLogger } from '@crowd/logging'
-import { getSecondsTillEndOfMonth } from '@crowd/common'
+import { getSecondsTillEndOfMonth } from '../../../utils/timing'
 import Error403 from '../../../errors/Error403'
 import Permissions from '../../../security/permissions'
 import identifyTenant from '../../../segment/identifyTenant'
