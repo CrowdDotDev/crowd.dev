@@ -10,11 +10,14 @@ export default [
     name: '',
     path: '',
     component: Layout,
-    meta: { auth: true, title: 'Integrations' },
+    meta: {
+      auth: true,
+      title: 'Integrations',
+    },
     children: [
       {
         name: 'integration',
-        path: '/integrations',
+        path: '/integrations/:id',
         component: IntegrationListPage,
         meta: {
           auth: true,

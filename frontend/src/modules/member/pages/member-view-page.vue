@@ -36,18 +36,6 @@
                 entity-type="member"
               />
             </el-tab-pane>
-            <el-tab-pane
-              v-if="hasPermissionToTask || isTaskLocked"
-              :label="`Tasks (${
-                (tasksTab && tasksTab.openTaskCount) || 0
-              })`"
-              name="tasks"
-            >
-              <app-member-view-tasks
-                ref="tasksTab"
-                :member="member"
-              />
-            </el-tab-pane>
             <el-tab-pane label="Notes" name="notes">
               <app-member-view-notes :member="member" />
             </el-tab-pane>
@@ -68,14 +56,11 @@ import {
   defineExpose,
 } from 'vue';
 
-import { mapGetters } from '@/shared/vuex/vuex.helpers';
-import { TaskPermissions } from '@/modules/task/task-permissions';
 import AppActivityTimeline from '@/modules/activity/components/activity-timeline.vue';
 import AppMemberViewHeader from '@/modules/member/components/view/member-view-header.vue';
 import AppMemberViewAside from '@/modules/member/components/view/member-view-aside.vue';
 import AppMemberViewNotes from '@/modules/member/components/view/member-view-notes.vue';
 import AppMemberViewContributions from '@/modules/member/components/view/member-view-contributions.vue';
-import AppMemberViewTasks from '@/modules/member/components/view/member-view-tasks.vue';
 
 const store = useStore();
 const props = defineProps({
@@ -85,22 +70,7 @@ const props = defineProps({
   },
 });
 
-const { currentTenant, currentUser } = mapGetters('auth');
-
 const member = computed(() => store.getters['member/find'](props.id) || {});
-
-const isTaskLocked = computed(
-  () => new TaskPermissions(
-    currentTenant.value,
-    currentUser.value,
-  ).lockedForCurrentPlan,
-);
-const hasPermissionToTask = computed(
-  () => new TaskPermissions(
-    currentTenant.value,
-    currentUser.value,
-  ).read,
-);
 
 const tasksTab = ref(null);
 

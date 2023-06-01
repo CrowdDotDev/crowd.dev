@@ -2,6 +2,7 @@
   <app-page-wrapper size="full-width">
     <div class="member-list-page">
       <div class="mb-10">
+        <app-lf-page-header text-class="text-sm text-brand-500 mb-2.5" />
         <div class="flex items-center justify-between">
           <div class="flex items-center">
             <h4>Organizations</h4>
@@ -54,6 +55,7 @@ import {
   mapGetters,
   mapActions,
 } from '@/shared/vuex/vuex.helpers';
+import AppLfPageHeader from '@/modules/lf/layout/components/lf-page-header.vue';
 import { OrganizationPermissions } from '../organization-permissions';
 import { OrganizationService } from '../organization-service';
 

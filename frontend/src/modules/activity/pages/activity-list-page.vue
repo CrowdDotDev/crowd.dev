@@ -1,6 +1,7 @@
 <template>
   <app-page-wrapper size="narrow">
     <div class="activity-list-page">
+      <app-lf-page-header text-class="text-sm text-brand-500 mb-2.5" />
       <div class="flex justify-between">
         <div>
           <h4>
@@ -71,6 +72,7 @@ import AppActivityTypeFormModal from '@/modules/activity/components/type/activit
 import AppActivityList from '@/modules/activity/components/activity-list.vue';
 import AppConversationList from '@/modules/conversation/components/conversation-list.vue';
 import AppActivityListTabs from '@/modules/activity/components/activity-list-tabs.vue';
+import AppLfPageHeader from '@/modules/lf/layout/components/lf-page-header.vue';
 
 export default {
   name: 'AppActivityListPage',
@@ -83,6 +85,7 @@ export default {
     AppConversationList,
     AppActivityListTabs,
     AppActivityListFilter,
+    AppLfPageHeader,
   },
 
   data() {

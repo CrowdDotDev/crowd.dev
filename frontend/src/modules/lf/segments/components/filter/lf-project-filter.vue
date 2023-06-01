@@ -1,0 +1,67 @@
+<template>
+  <el-input
+    id="filterSearch"
+    ref="searchQueryInput"
+    v-model="searchQuery"
+    placeholder="Search..."
+    class="lf-filter-input filter-dropdown-search"
+    :prefix-icon="SearchIcon"
+    data-qa="filter-list-search"
+    @input="(value) => emit('onSearchChange', value)"
+  />
+  <app-lf-checkbox-cascader
+    v-model:options="modelOptions"
+    empty-text="No projects found"
+    @on-change="(value) => emit('onChange', value)"
+  />
+</template>
+
+<script setup>
+import {
+  ref, h, computed,
+} from 'vue';
+import AppLfCheckboxCascader from '@/modules/lf/segments/components/filter/lf-checkbox-cascader.vue';
+
+const SearchIcon = h(
+  'i', // type
+  { class: 'ri-search-line' }, // props
+  [],
+);
+
+const emit = defineEmits(['update:options', 'onChange', 'onSearchChange']);
+
+const props = defineProps({
+  options: {
+    type: Array,
+    default: () => [],
+  },
+});
+
+const modelOptions = computed({
+  get() {
+    return props.options;
+  },
+  set(v) {
+    emit('update:options', v);
+  },
+});
+
+const searchQuery = ref('');
+const searchQueryInput = ref(null);
+</script>
+
+<script>
+export default {
+  name: 'AppLfProjectFilter',
+};
+</script>
+
+<style lang="scss">
+.lf-filter-input {
+  @apply h-8;
+
+  .el-input__wrapper {
+    @apply px-2;
+  }
+}
+</style>

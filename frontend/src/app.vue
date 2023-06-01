@@ -24,6 +24,8 @@ import AppResizePage from '@/modules/layout/pages/resize-page.vue';
 import { FeatureFlag } from '@/featureFlag';
 import config from '@/config';
 import { AuthToken } from '@/modules/auth/auth-token';
+import { storeToRefs } from 'pinia';
+import { useLfSegmentsStore } from './modules/lf/segments/store';
 
 export default {
   name: 'App',
@@ -50,13 +52,6 @@ export default {
     },
   },
 
-  beforeCreate() {
-    this.$router.beforeEach((to, from, next) => {
-      document.title = `crowd.dev${to.meta.title ? ` | ${to.meta.title}` : ''}`;
-      next();
-    });
-  },
-
   async created() {
     await this.doInit();
 
@@ -72,6 +67,20 @@ export default {
       if (ref && ref === 'eagle-eye') {
         localStorage.setItem('onboardType', 'eagle-eye');
       }
+    });
+
+    this.$router.beforeEach((to, from, next) => {
+      const lsSegmentsStore = useLfSegmentsStore();
+      const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);
+
+      if (to.meta.segments?.requireSelectedProjectGroup) {
+        if (!selectedProjectGroup.value) {
+          return next('/project-groups');
+        }
+      }
+
+      document.title = `crowd.dev${to.meta.title ? ` | ${to.meta.title}` : ''}`;
+      return next();
     });
   },
 

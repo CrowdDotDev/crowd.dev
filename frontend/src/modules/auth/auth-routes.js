@@ -26,19 +26,28 @@ export default [
         name: 'signup',
         path: 'signup',
         component: SignupPage,
-        meta: { unauth: true, title: 'Sign up' },
+        meta: {
+          unauth: true,
+          title: 'Sign up',
+        },
       },
       {
         name: 'signin',
         path: 'signin',
         component: SigninPage,
-        meta: { unauth: true, title: 'Sign in' },
+        meta: {
+          unauth: true,
+          title: 'Sign in',
+        },
       },
       {
         name: 'forgotPassword',
         path: 'forgot-password',
         component: ForgotPasswordPage,
-        meta: { unauth: true, title: 'Forgot Password' },
+        meta: {
+          unauth: true,
+          title: 'Forgot Password',
+        },
       },
       {
         name: 'passwordReset',
@@ -49,25 +58,36 @@ export default [
         name: 'emailUnverified',
         path: 'email-unverified',
         component: EmailUnverifiedPage,
-        meta: { auth: true, emailAlreadyVerified: true, title: 'Verify Email' },
+        meta: {
+          auth: true,
+          emailAlreadyVerified: true,
+          title: 'Verify Email',
+        },
       },
       {
         name: 'verifyEmail',
         path: 'verify-email',
         component: VerifyEmailPage,
-        meta: { title: 'Signup' },
+        meta: {
+          title: 'Signup',
+        },
       },
       {
         name: 'emptyPermissions',
         path: 'empty-permissions',
         component: EmptyPermissionsPage,
-        meta: { auth: true, notEmptyPermissions: true },
+        meta: {
+          auth: true,
+          notEmptyPermissions: true,
+        },
       },
       {
         name: 'invitation',
         path: 'invitation',
         component: InvitationPage,
-        meta: { title: 'Invitation' },
+        meta: {
+          title: 'Invitation',
+        },
       },
     ],
   },
@@ -75,7 +95,10 @@ export default [
     name: '',
     path: '',
     component: Layout,
-    meta: { auth: true, title: 'Profile Settings' },
+    meta: {
+      auth: true,
+      title: 'Profile Settings',
+    },
     children: [
       {
         name: 'editProfile',

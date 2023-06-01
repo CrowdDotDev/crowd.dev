@@ -1,6 +1,7 @@
 <template>
   <app-page-wrapper>
     <div class="mb-12">
+      <app-lf-page-header text-class="text-sm text-brand-500 mb-2.5" />
       <div class="flex items-center justify-between">
         <h4>Reports</h4>
         <el-button
@@ -70,6 +71,7 @@ import AppReportCreateDialog from '@/modules/report/components/report-create-dia
 import { ReportPermissions } from '@/modules/report/report-permissions';
 import AppReportTemplateItem from '@/modules/report/components/templates/report-template-item.vue';
 import templates from '@/modules/report/templates/config';
+import AppLfPageHeader from '@/modules/lf/layout/components/lf-page-header.vue';
 
 export default {
   name: 'AppReportListPage',
@@ -78,6 +80,7 @@ export default {
     AppReportCreateDialog,
     AppReportTemplateItem,
     'app-report-list-table': ReportListTable,
+    AppLfPageHeader,
   },
 
   data() {

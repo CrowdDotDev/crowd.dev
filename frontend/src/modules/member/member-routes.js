@@ -14,7 +14,13 @@ export default [
     name: '',
     path: '',
     component: Layout,
-    meta: { auth: true, title: 'Members' },
+    meta: {
+      auth: true,
+      title: 'Members',
+      segments: {
+        requireSelectedProjectGroup: true,
+      },
+    },
     children: [
       {
         name: 'member',

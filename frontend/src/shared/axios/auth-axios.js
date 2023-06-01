@@ -4,6 +4,8 @@ import moment from 'moment';
 import { AuthToken } from '@/modules/auth/auth-token';
 import config from '@/config';
 import { getLanguageCode } from '@/i18n';
+import { storeToRefs } from 'pinia';
+import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 
 const authAxios = Axios.create({
   baseURL: config.backendUrl,
@@ -26,19 +28,45 @@ const authAxios = Axios.create({
 
 authAxios.interceptors.request.use(
   async (options) => {
-    if (['delete', 'put'].includes(options.method)) {
+    const lsSegmentsStore = useLfSegmentsStore();
+    const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);
+    const setOptions = { ...options };
+
+    // Add segments to requests if lfx version
+    if (config.isLfxVersion && selectedProjectGroup.value) {
+      const segments = config.data?.segments || selectedProjectGroup.value.projects.reduce((acc, project) => {
+        project.subprojects.forEach((subproject) => {
+          acc.push(subproject.id);
+        });
+
+        return acc;
+      }, []);
+
+      if (setOptions.method === 'get') {
+        setOptions.params = {
+          ...setOptions.params || {},
+          segments,
+        };
+      } else {
+        setOptions.data = {
+          ...setOptions.data,
+          segments,
+        };
+      }
+    }
+
+    if (['delete', 'put'].includes(setOptions.method)) {
       const encodedUrl = (
-        options
+        setOptions
           .url.replace(
             /\/[^/]*$/,
-            `/${encodeURIComponent(options.url.split('/').at(-1))}`,
+            `/${encodeURIComponent(setOptions.url.split('/').at(-1))}`,
           )
       );
-      Object.assign(options, { url: encodedUrl });
+      Object.assign(setOptions, { url: encodedUrl });
     }
-    const token = options.headers?.Authorization || AuthToken.get();
 
-    const setOptions = { ...options };
+    const token = setOptions.headers?.Authorization || AuthToken.get();
 
     if (token) {
       setOptions.headers.Authorization = `Bearer ${token}`;
@@ -50,6 +78,7 @@ authAxios.interceptors.request.use(
   },
   (error) => {
     console.error('Request error: ', error);
+
     return Promise.reject(error);
   },
 );

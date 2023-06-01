@@ -13,6 +13,10 @@ export default {
     });
   },
 
+  setSegments({ commit }, { segments }) {
+    commit('SET_SEGMENTS', { segments });
+  },
+
   // Set new filters & fetch new data
   async setFilters(
     { commit, dispatch },

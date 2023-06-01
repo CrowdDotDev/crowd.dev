@@ -41,6 +41,8 @@ i18nInit();
   const router = await createRouter();
   const store = await createStore(LogRocket);
 
+  app.use(pinia);
+
   const isSocialOnboardRequested = AuthService.isSocialOnboardRequested();
 
   AuthToken.applyFromLocationUrlIfExists();
@@ -84,7 +86,6 @@ i18nInit();
   Object.values(plugins).map((plugin) => app.use(plugin));
   app.use(VNetworkGraph);
 
-  app.use(pinia);
   app.use(store).use(router).mount('#app');
 
   if (window.Cypress) {

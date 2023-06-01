@@ -3,7 +3,7 @@
     v-for="tag of visibleTags
       || []"
     :key="tag"
-    :disabled="!tag"
+    :disabled="!tag || !tagTooltipContent"
     placement="top"
   >
     <template #content>
@@ -19,7 +19,12 @@
     >
       {{ tag }}
     </a>
-    <div v-else class="badge--border !block" @click.prevent>
+    <div
+      v-else
+      class="badge--border !block"
+      :class="tagClass"
+      @click.prevent
+    >
       {{ tag }}
     </div>
   </el-tooltip>
@@ -44,6 +49,7 @@
           <a
             v-if="interactive"
             class="badge--border !overflow-visible"
+            :class="tagClass"
             target="_blank"
             rel="noopener noreferrer"
             :href="withHttp(hiddenTag)"
@@ -51,7 +57,7 @@
           >
             {{ hiddenTag }}
           </a>
-          <div v-else class="badge--border !block" @click.prevent>
+          <div v-else class="badge--border !block" :class="tagClass" @click.prevent>
             {{ hiddenTag }}
           </div>
         </div>
@@ -84,6 +90,14 @@ const props = defineProps({
   maximumVisibleTags: {
     type: Number,
     default: 2,
+  },
+  tagTooltipContent: {
+    type: Boolean,
+    default: false,
+  },
+  tagClass: {
+    type: String,
+    default: null,
   },
 });
 

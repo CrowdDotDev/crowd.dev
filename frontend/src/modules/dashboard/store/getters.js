@@ -2,6 +2,7 @@ export default {
   // Filters
   period: (state) => state.filters.period,
   platform: (state) => state.filters.platform,
+  segments: (state) => state.filters.segments,
 
   // Conversations
   trendingConversations: (state) => state.conversations.trending,

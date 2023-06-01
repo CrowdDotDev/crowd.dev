@@ -2,6 +2,7 @@
   <app-page-wrapper size="full-width">
     <div class="member-list-page">
       <div class="mb-10">
+        <app-lf-page-header text-class="text-sm text-brand-500 mb-2.5" />
         <div class="flex items-center justify-between">
           <h4>
             Members
@@ -71,6 +72,7 @@ import MemberListFilter from '@/modules/member/components/list/member-list-filte
 import MemberListTable from '@/modules/member/components/list/member-list-table.vue';
 import MemberListTabs from '@/modules/member/components/list/member-list-tabs.vue';
 import PageWrapper from '@/shared/layout/page-wrapper.vue';
+import AppLfPageHeader from '@/modules/lf/layout/components/lf-page-header.vue';
 import { MemberService } from '../member-service';
 import { MemberPermissions } from '../member-permissions';
 
@@ -82,6 +84,7 @@ export default {
     'app-member-list-table': MemberListTable,
     'app-member-list-tabs': MemberListTabs,
     'app-page-wrapper': PageWrapper,
+    AppLfPageHeader,
   },
 
   data() {
