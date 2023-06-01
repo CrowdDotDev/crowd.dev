@@ -46,6 +46,9 @@ export class WorkerQueueReceiver extends SqsQueueReceiver {
       )
 
       switch (message.type) {
+        case IntegrationRunWorkerQueueMessageType.CHECK_RUNS:
+          await service.checkRuns()
+          break
         case IntegrationRunWorkerQueueMessageType.START_INTEGRATION_RUN:
           const msg = message as StartIntegrationRunQueueMessage
           await service.startIntegrationRun(msg.integrationId, msg.onboarding)

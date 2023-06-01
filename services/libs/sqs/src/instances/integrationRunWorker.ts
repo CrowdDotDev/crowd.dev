@@ -6,11 +6,16 @@ import {
   StreamProcessedQueueMessage,
   GenerateRunStreamsQueueMessage,
   StartIntegrationRunQueueMessage,
+  CheckRunsQueueMessage,
 } from '@crowd/types'
 
 export class IntegrationRunWorkerEmitter extends SqsQueueEmitter {
   constructor(client: SqsClient, parentLog: Logger) {
     super(client, INTEGRATION_RUN_WORKER_QUEUE_SETTINGS, parentLog)
+  }
+
+  public async checkRuns(tenantId: string) {
+    await this.sendMessage(`runs-${tenantId}`, new CheckRunsQueueMessage())
   }
 
   public async triggerIntegrationRun(
