@@ -10,9 +10,10 @@
     "sourceMap": true,
     "experimentalDecorators": true,
     "esModuleInterop": true,
-    "baseUrl": ".",
+    "baseUrl": "./src",
     "paths": {
-      "@crowd/*": ["../*/dist"]
+      "@crowd/*": ["../../*/dist"],
+      "@/*": ["./*"]
     }
   },
   "include": ["src/**/*"]

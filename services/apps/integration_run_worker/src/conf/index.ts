@@ -1,7 +1,7 @@
 import { IDatabaseConfig } from '@crowd/database'
 import { IRedisConfiguration } from '@crowd/redis'
 import { ISqsClientConfig } from '@crowd/sqs'
-import config = require('config')
+import config from 'config'
 
 export interface INangoConfig {
   url: string
