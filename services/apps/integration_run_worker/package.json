@@ -6,7 +6,7 @@
     "start": "node -r ts-node/register src/main.ts --transpile-only",
     "start:debug:local": "set -a && . ../../../backend/.env.dist.local && . ../../../backend/.env.override.local && set +a && SERVICE=integration-run-worker LOG_LEVEL=trace node --inspect=0.0.0.0:9230 -r ts-node/register src/main.ts --transpile-only",
     "start:debug": "SERVICE=integration-run-worker LOG_LEVEL=trace node --inspect=0.0.0.0:9230 -r ts-node/register src/main.ts --transpile-only",
-    "start:watc:local": "nodemon --watch src --ext ts --exec npm run start:debug:local",
+    "start:watch:local": "nodemon --watch src --ext ts --exec npm run start:debug:local",
     "start:watch": "nodemon --watch src --ext ts --exec npm run start:debug",
     "dev:local": "concurrently \"npm run start:watch:local\" \"../../scripts/watch_libs.sh --service integration_run_worker\"",
     "dev": "concurrently \"npm run start:watch\" \"../../scripts/watch_libs.sh --service integration_run_worker\"",
