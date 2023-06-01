@@ -1,16 +1,16 @@
-import { singleOrDefault, addSeconds, processPaginated } from '@crowd/common'
+import { addSeconds, singleOrDefault } from '@crowd/common'
 import { DbStore } from '@crowd/database'
+import { INTEGRATION_SERVICES, IProcessStreamContext } from '@crowd/integrations'
 import { Logger, LoggerBase, getChildLogger } from '@crowd/logging'
 import { RedisCache, RedisClient } from '@crowd/redis'
-import IntegrationStreamRepository from '../repo/integrationStream.repo'
-import { IntegrationRunState, IntegrationStreamType, RateLimitError } from '@crowd/types'
-import { INTEGRATION_SERVICES, IProcessStreamContext } from '@crowd/integrations'
-import { NANGO_CONFIG, WORKER_SETTINGS, PLATFORM_CONFIG } from '../conf'
 import {
   IntegrationDataWorkerEmitter,
   IntegrationRunWorkerEmitter,
   IntegrationStreamWorkerEmitter,
 } from '@crowd/sqs'
+import { IntegrationRunState, IntegrationStreamType, RateLimitError } from '@crowd/types'
+import { NANGO_CONFIG, PLATFORM_CONFIG, WORKER_SETTINGS } from '../conf'
+import IntegrationStreamRepository from '../repo/integrationStream.repo'
 
 export default class IntegrationStreamService extends LoggerBase {
   private readonly repo: IntegrationStreamRepository
