@@ -13,18 +13,10 @@
         <div>
           <div class="flex">
             <h5>{{ organization.name }}</h5>
-            <app-organization-badge
-              class="ml-2"
-              :organization="organization"
-            />
+            <app-organization-badge class="ml-2" :organization="organization" />
           </div>
-          <div
-            class="text-sm text-gray-600 flex items-center"
-          >
-            <div
-              v-if="organization.website"
-              class="flex items-center"
-            >
+          <div class="text-sm text-gray-600 flex items-center">
+            <div v-if="organization.website" class="flex items-center">
               <i class="ri-link mr-1" />
               <a
                 :href="withHttp(organization.website)"
@@ -34,16 +26,10 @@
               >{{ organization.website }}</a>
             </div>
             <span
-              v-if="
-                organization.website
-                  && organization.location
-              "
+              v-if="organization.website && organization.location"
               class="mx-2"
             >·</span>
-            <div
-              v-if="organization.location"
-              class="flex items-center"
-            >
+            <div v-if="organization.location" class="flex items-center">
               <i class="ri-map-pin-2-line mr-1" />
               <span>{{ organization.location }}</span>
             </div>
@@ -51,14 +37,10 @@
         </div>
       </div>
       <div class="flex items-center">
-        <app-organization-dropdown
-          :organization="organization"
-        />
+        <app-organization-dropdown :organization="organization" />
       </div>
     </div>
-    <div
-      class="py-6 border-b border-gray-200 mb-4"
-    >
+    <div class="py-6 border-b border-gray-200 mb-4">
       <app-organization-headline :organization="organization" />
 
       <div
@@ -73,7 +55,7 @@
         class="text-2xs text-brand-500 mt-3 cursor-pointer"
         @click.stop="toggleContent"
       >
-        Show {{ showMore ? 'less' : 'more' }}
+        Show {{ showMore ? "less" : "more" }}
       </div>
     </div>
 
@@ -83,12 +65,7 @@
           # of members
         </p>
         <p class="mt-1 text-gray-900 text-xs">
-          {{
-            formattedInformation(
-              organization.memberCount,
-              'number',
-            )
-          }}
+          {{ formattedInformation(organization.memberCount, "number") }}
         </p>
       </div>
       <div>
@@ -96,12 +73,7 @@
           # of Activities
         </p>
         <p class="mt-1 text-gray-900 text-xs">
-          {{
-            formattedInformation(
-              organization.activityCount,
-              'number',
-            )
-          }}
+          {{ formattedInformation(organization.activityCount, "number") }}
         </p>
       </div>
       <div>
@@ -109,12 +81,7 @@
           Headcount
         </p>
         <p class="mt-1 text-gray-900 text-xs">
-          {{
-            formattedInformation(
-              organization.size,
-              'string',
-            )
-          }}
+          {{ formattedInformation(organization.size, "string") }}
         </p>
       </div>
       <div>
@@ -122,12 +89,7 @@
           Joined date
         </p>
         <p class="mt-1 text-gray-900 text-xs">
-          {{
-            formattedInformation(
-              organization.joinedAt,
-              'relative',
-            )
-          }}
+          {{ formattedInformation(allMembers[1].joinedAt, "relative") }}
         </p>
       </div>
       <div>
@@ -135,12 +97,7 @@
           Annual Revenue
         </p>
         <p class="mt-1 text-gray-900 text-xs">
-          {{
-            formattedInformation(
-              organization.revenueRange,
-              'revenueRange',
-            )
-          }}
+          {{ formattedInformation(organization.revenueRange, "revenueRange") }}
         </p>
       </div>
       <div>
@@ -148,12 +105,7 @@
           Last active
         </p>
         <p class="mt-1 text-gray-900 text-xs">
-          {{
-            formattedInformation(
-              organization.lastActive,
-              'relative',
-            )
-          }}
+          {{ formattedInformation(organization.lastActive, "relative") }}
         </p>
       </div>
     </div>
@@ -162,13 +114,12 @@
 
 <script setup>
 import {
-  defineProps, ref, computed,
+  defineProps, ref, computed, reactive, onMounted,
 } from 'vue';
 import moment from 'moment';
-import {
-  formatDate,
-  formatDateToTimeAgo,
-} from '@/utils/date';
+import { useStore } from 'vuex';
+import authAxios from '@/shared/axios/auth-axios';
+import { formatDate, formatDateToTimeAgo } from '@/utils/date';
 import {
   formatNumber,
   formatNumberToCompact,
@@ -187,13 +138,22 @@ const props = defineProps({
 });
 
 const showMore = ref(false);
+const query = ref('');
+const allMembers = reactive([]);
+const limit = ref(20);
+const offset = ref(0);
+const store = useStore();
+
+let filter = {};
 const descriptionRef = ref(null);
 const displayShowMore = computed(() => {
   if (!props.organization.description) {
     return false;
   }
 
-  return descriptionRef.value?.scrollHeight > descriptionRef.value?.clientHeight;
+  return (
+    descriptionRef.value?.scrollHeight > descriptionRef.value?.clientHeight
+  );
 });
 
 const toggleContent = () => {
@@ -213,9 +173,7 @@ const formattedInformation = (value, type) => {
     || value === -1
     // If the timestamp is 1970, we show "-"
     || (type === 'date'
-      && moment(value).isBefore(
-        moment().subtract(40, 'years'),
-      ))
+      && moment(value).isBefore(moment().subtract(40, 'years')))
     // If range is not set for revenue
     || (type === 'revenueRange'
       && (value.min === undefined
@@ -229,18 +187,75 @@ const formattedInformation = (value, type) => {
   // Render inforamation depending on type
   if (type === 'date') {
     return formatDate({ timestamp: value });
-  } if (type === 'number') {
+  }
+  if (type === 'number') {
     return formatNumber(value);
-  } if (type === 'relative') {
+  }
+  if (type === 'relative') {
     return formatDateToTimeAgo(value);
-  } if (type === 'compact') {
+  }
+  if (type === 'compact') {
     return formatNumberToCompact(value);
-  } if (type === 'revenueRange') {
+  }
+  if (type === 'revenueRange') {
     return formatRevenueRange(value);
   }
 
   return value;
 };
+
+const fetchMembers = async () => {
+  const filterToApply = {
+    organizations: [props.organization.id],
+  };
+
+  if (query.value && query.value !== '') {
+    filterToApply.or = [
+      {
+        name: {
+          textContains: query.value,
+        },
+      },
+      {
+        bio: {
+          textContains: query.value,
+        },
+      },
+      {
+        email: {
+          textContains: query.value,
+        },
+      },
+    ];
+  }
+
+  const { data } = await authAxios.post(
+    `/tenant/${store.getters['auth/currentTenant'].id}/member/query`,
+    {
+      filter: filterToApply,
+      orderBy: 'joinedAt_DESC',
+      limit: limit.value,
+      offset: offset.value,
+    },
+    {
+      headers: {
+        'x-crowd-api-version': '1',
+      },
+    },
+  );
+
+  filter = { ...filterToApply };
+  if (data.rows.length < limit.value) {
+    allMembers.push(...data.rows);
+  } else {
+    offset.value += limit.value;
+    allMembers.push(...data.rows);
+  }
+};
+
+onMounted(async () => {
+  await fetchMembers();
+});
 </script>
 
 <script>
