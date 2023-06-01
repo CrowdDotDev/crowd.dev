@@ -1,8 +1,8 @@
 import {
   MultiSelectAsyncFilterOption,
   MultiSelectAsyncFilterOptions,
-  MultiSelectAsyncFilterValue
-} from "@/shared/modules/filters/types/filterTypes/MultiSelectAsyncFilterConfig";
+  MultiSelectAsyncFilterValue,
+} from '@/shared/modules/filters/types/filterTypes/MultiSelectAsyncFilterConfig';
 
 export const multiSelectAsyncItemLabelRenderer = (
   property: string,
