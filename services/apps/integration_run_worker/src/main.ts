@@ -5,7 +5,7 @@ import {
   IntegrationStreamWorkerEmitter,
   getSqsClient,
 } from '@crowd/sqs'
-import { DB_CONFIG, REDIS_CONFIG, SQS_CONFIG } from './config'
+import { DB_CONFIG, REDIS_CONFIG, SQS_CONFIG } from './conf'
 import { WorkerQueueReceiver } from './queue'
 import { ApiPubSubEmitter, getRedisClient } from '@crowd/redis'
 

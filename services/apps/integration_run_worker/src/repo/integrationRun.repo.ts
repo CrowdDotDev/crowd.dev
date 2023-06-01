@@ -2,7 +2,7 @@ import { DbStore, RepositoryBase } from '@crowd/database'
 import { Logger } from '@crowd/logging'
 import { IGenerateStreamsData, IStartIntegrationRunData } from './integrationRun.data'
 import { IntegrationRunState, IntegrationStreamState } from '@crowd/types'
-import { WORKER_CONFIG } from '../config'
+import { WORKER_CONFIG } from '../conf'
 
 export default class IntegrationRunRepository extends RepositoryBase<IntegrationRunRepository> {
   constructor(dbStore: DbStore, parentLog: Logger) {
