@@ -3,7 +3,8 @@ import { API_CONFIG } from '../../../../../../conf'
 
 export const newMemberBlocks = (member) => {
   const platforms = member.activeOn
-  const reach = platforms && platforms.length > 0 ? member.reach?.[platforms[0]] : member.reach?.total
+  const reach =
+    platforms && platforms.length > 0 ? member.reach?.[platforms[0]] : member.reach?.total
   return {
     blocks: [
       {

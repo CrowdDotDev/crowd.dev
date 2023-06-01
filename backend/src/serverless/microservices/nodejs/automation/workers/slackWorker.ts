@@ -43,7 +43,6 @@ export default async (
   let slackMessage = null
   let success = false
   try {
-
     if (automation.trigger === 'new_member') {
       slackMessage = {
         text: `${payload.displayName} has joined your community!`,
