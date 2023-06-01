@@ -161,7 +161,7 @@ export default class ActivityService extends LoggerBase {
 
       if (!existing && fireCrowdWebhooks) {
         try {
-          await sendNewActivityNodeSQSMessage(this.options.currentTenant.id, record)
+          await sendNewActivityNodeSQSMessage(this.options.currentTenant.id, record.id)
         } catch (err) {
           this.log.error(
             err,
