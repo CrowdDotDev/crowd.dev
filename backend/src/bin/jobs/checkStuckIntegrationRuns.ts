@@ -178,25 +178,29 @@ export const checkRuns = async (): Promise<void> => {
   const runsRepo = new IntegrationRunRepository(dbOptions)
   const streamsRepo = new IntegrationStreamRepository(dbOptions)
 
-  await processPaginated(
-    async (page) =>
-      runsRepo.findIntegrationsByState(
-        [IntegrationRunState.PENDING, IntegrationRunState.PROCESSING],
-        page,
-        10,
-      ),
-    async (runsToCheck) => {
-      for (const run of runsToCheck) {
-        const logger = getChildLogger('fixer', log, { runId: run.id })
-        const stuck = await isRunStuck(run, streamsRepo, runsRepo, logger)
-        if (stuck) {
-          logger.warn('Delaying integration for 1 second to restart it!')
-          const delayUntil = moment().add(1, 'second').toDate()
-          await runsRepo.delay(run.id, delayUntil)
-        }
-      }
-    },
+  let runs = await runsRepo.findIntegrationsByState(
+    [IntegrationRunState.PENDING, IntegrationRunState.PROCESSING],
+    1,
+    10,
   )
+
+  while (runs.length > 0) {
+    for (const run of runs) {
+      const logger = getChildLogger('fixer', log, { runId: run.id })
+      const stuck = await isRunStuck(run, streamsRepo, runsRepo, logger)
+      if (stuck) {
+        logger.warn('Delaying integration for 1 second to restart it!')
+        const delayUntil = moment().add(1, 'second').toDate()
+        await runsRepo.delay(run.id, delayUntil)
+      }
+    }
+
+    runs = await runsRepo.findIntegrationsByState(
+      [IntegrationRunState.PENDING, IntegrationRunState.PROCESSING],
+      1,
+      10,
+    )
+  }
 }
 
 export const checkStuckWebhooks = async (): Promise<void> => {

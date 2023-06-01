@@ -112,7 +112,7 @@ export default class IntegrationRunService extends LoggerBase {
   }
 
   public async checkRuns(): Promise<void> {
-    this.log.info('Checking for delayed/stuck runs!')
+    this.log.info('Checking for delayed/stuck/retryable runs!')
   }
 
   public async startIntegrationRun(integrationId: string, onboarding: boolean): Promise<void> {
