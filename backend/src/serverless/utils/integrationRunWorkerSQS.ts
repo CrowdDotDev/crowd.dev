@@ -21,13 +21,15 @@ export const sendIntegrationRunWorkerMessage = async (
   await sendMessage(params)
 }
 
-export const sendGenerateRunStreamsMessage = async (
+export const sendStartIntegrationRunMessage = async (
   tenant: string,
-  runId: string,
+  integrationId: string,
+  onboarding: boolean,
 ): Promise<void> => {
   const payload = {
-    type: 'generate_run_streams',
-    runId,
+    type: 'start_integration_run',
+    integrationId,
+    onboarding,
   }
   await sendIntegrationRunWorkerMessage(tenant, payload as NodeWorkerMessageBase)
 }

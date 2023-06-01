@@ -13,3 +13,11 @@ export interface IGenerateStreamsData {
   integrationSettings: unknown
   streamCount: number
 }
+
+export interface IStartIntegrationRunData {
+  id: string
+  type: string
+  state: IntegrationState
+  identifier: string | null
+  tenantId: string
+}

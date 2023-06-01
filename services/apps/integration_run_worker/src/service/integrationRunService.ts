@@ -3,7 +3,7 @@ import { DbStore } from '@crowd/database'
 import { IGenerateStreamsContext, INTEGRATION_SERVICES } from '@crowd/integrations'
 import { Logger, LoggerBase, getChildLogger } from '@crowd/logging'
 import { ApiPubSubEmitter, RedisCache, RedisClient } from '@crowd/redis'
-import { IntegrationStreamWorkerEmitter } from '@crowd/sqs'
+import { IntegrationRunWorkerEmitter, IntegrationStreamWorkerEmitter } from '@crowd/sqs'
 import { IntegrationRunState, IntegrationStreamState } from '@crowd/types'
 import { NANGO_CONFIG, PLATFORM_CONFIG } from '../config'
 import IntegrationRunRepository from '../repo/integrationRun.repo'
@@ -17,6 +17,7 @@ export default class IntegrationRunService extends LoggerBase {
   constructor(
     private readonly redisClient: RedisClient,
     private readonly streamWorkerEmitter: IntegrationStreamWorkerEmitter,
+    private readonly runWorkerEmitter: IntegrationRunWorkerEmitter,
     private readonly apiPubSubEmitter: ApiPubSubEmitter,
     private readonly store: DbStore,
     parentLog: Logger,
@@ -108,6 +109,54 @@ export default class IntegrationRunService extends LoggerBase {
         }
       }
     }
+  }
+
+  public async startIntegrationRun(integrationId: string, onboarding: boolean): Promise<void> {
+    this.log = getChildLogger('start-integration-run', this.log, {
+      integrationId,
+      onboarding,
+    })
+
+    this.log.info('Trying to start integration run!')
+
+    const integrationInfo = await this.repo.getIntegrationData(integrationId)
+
+    if (!integrationInfo) {
+      this.log.error('Could not find integration info!')
+      return
+    }
+
+    this.log = getChildLogger('start-integration-run', this.log, {
+      integrationId,
+      onboarding,
+      integrationType: integrationInfo.type,
+    })
+
+    const service = singleOrDefault(INTEGRATION_SERVICES, (s) => s.type === integrationInfo.type)
+
+    if (!service) {
+      this.log.error('Integration type/platform not supported by this worker!')
+      return
+    }
+
+    if (!onboarding) {
+      const isAlreadyProcessing = await this.repo.isIntegrationBeingProcessed(integrationId)
+
+      if (isAlreadyProcessing) {
+        this.log.warn('Integration is already being processed!')
+        return
+      }
+    }
+
+    this.log.info('Creating new integration run!')
+    const runId = await this.repo.createRun(integrationInfo.tenantId, integrationId, onboarding)
+
+    this.log.info('Triggering run processing!')
+    await this.runWorkerEmitter.triggerRunProcessing(
+      integrationInfo.tenantId,
+      integrationInfo.type,
+      runId,
+    )
   }
 
   public async generateStreams(runId: string): Promise<void> {
