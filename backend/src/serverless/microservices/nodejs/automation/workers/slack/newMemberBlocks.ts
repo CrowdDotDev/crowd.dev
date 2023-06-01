@@ -3,7 +3,7 @@ import { API_CONFIG } from '../../../../../../conf'
 
 export const newMemberBlocks = (member) => {
   const platforms = member.activeOn
-  const reach = member.reach?.[platforms[0]] || member.reach?.total
+  const reach = platforms && platforms.length > 0 ? member.reach?.[platforms[0]] : member.reach?.total
   return {
     blocks: [
       {
@@ -21,7 +21,7 @@ export const newMemberBlocks = (member) => {
           emoji: true,
         },
       },
-      ...(platforms.length > 0
+      ...(platforms && platforms.length > 0
         ? [
             {
               type: 'context',
@@ -133,7 +133,7 @@ export const newMemberBlocks = (member) => {
             },
             url: `${API_CONFIG.frontendUrl}/members/${member.id}`,
           },
-          ...platforms
+          ...(platforms || [])
             .map((platform) => ({
               type: 'button',
               text: {

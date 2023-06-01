@@ -103,7 +103,7 @@ export default async (
       log.info(`Found ${automations.length} automations to process!`)
 
       let member: any | undefined = memberData
-      if (member === undefined) {
+      if (memberId) {
         member = await MemberRepository.findById(memberId, userContext)
       }
 
