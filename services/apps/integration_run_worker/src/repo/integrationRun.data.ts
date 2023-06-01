@@ -1,4 +1,4 @@
-import { IntegrationState, IntegrationRunState } from '@crowd/types'
+import { IntegrationRunState, IntegrationState } from '@crowd/types'
 
 export interface IGenerateStreamsData {
   onboarding: boolean

@@ -3,9 +3,9 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "start": "node -r ts-node/register src/main.ts --transpile-only",
-    "start:debug:local": "set -a && . ../../../backend/.env.dist.local && . ../../../backend/.env.override.local && set +a && SERVICE=integration-data-worker LOG_LEVEL=trace node --inspect=0.0.0.0:9232 -r ts-node/register src/main.ts --transpile-only",
-    "start:debug": "SERVICE=integration-data-worker LOG_LEVEL=trace node --inspect=0.0.0.0:9232 -r ts-node/register src/main.ts --transpile-only",
+    "start": "node -r tsconfig-paths/register -r ts-node/register src/main.ts --transpile-only",
+    "start:debug:local": "set -a && . ../../../backend/.env.dist.local && . ../../../backend/.env.override.local && set +a && SERVICE=integration-data-worker LOG_LEVEL=trace node --inspect=0.0.0.0:9232 -r tsconfig-paths/register -r ts-node/register src/main.ts --transpile-only",
+    "start:debug": "SERVICE=integration-data-worker LOG_LEVEL=trace node --inspect=0.0.0.0:9232 -r tsconfig-paths/register -r ts-node/register src/main.ts --transpile-only",
     "start:watch:local": "nodemon --watch src --ext ts --exec npm run start:debug:local",
     "start:watch": "nodemon --watch src --ext ts --exec npm run start:debug",
     "dev:local": "concurrently \"npm run start:watch:local\" \"../../scripts/watch_libs.sh --service integration_data_worker\"",
@@ -27,6 +27,7 @@
     "@types/node": "^18.16.3",
     "config": "^3.3.9",
     "ts-node": "^10.9.1",
+    "tsconfig-paths": "^4.2.0",
     "typescript": "^5.0.4"
   },
   "devDependencies": {
