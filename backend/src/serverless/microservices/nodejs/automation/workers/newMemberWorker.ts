@@ -1,6 +1,9 @@
 import { getServiceChildLogger } from '@crowd/logging'
-import getUserContext from '../../../../../database/utils/getUserContext'
+import AutomationExecutionRepository from '../../../../../database/repositories/automationExecutionRepository'
 import AutomationRepository from '../../../../../database/repositories/automationRepository'
+import MemberRepository from '../../../../../database/repositories/memberRepository'
+import SequelizeRepository from '../../../../../database/repositories/sequelizeRepository'
+import getUserContext from '../../../../../database/utils/getUserContext'
 import {
   AutomationData,
   AutomationState,
@@ -8,11 +11,7 @@ import {
   AutomationType,
   NewMemberSettings,
 } from '../../../../../types/automationTypes'
-import MemberRepository from '../../../../../database/repositories/memberRepository'
 import { sendWebhookProcessRequest } from './util'
-import { MemberAutomationData } from '../../messageTypes'
-import AutomationExecutionRepository from '../../../../../database/repositories/automationExecutionRepository'
-import SequelizeRepository from '../../../../../database/repositories/sequelizeRepository'
 
 const log = getServiceChildLogger('newMemberWorker')
 
@@ -85,11 +84,7 @@ export const prepareMemberPayload = (member: any): any => {
  * @param memberId tenant member ID
  * @param memberData community member data
  */
-export default async (
-  tenantId: string,
-  memberId?: string,
-  memberData?: MemberAutomationData,
-): Promise<void> => {
+export default async (tenantId: string, memberId?: string): Promise<void> => {
   const userContext = await getUserContext(tenantId)
 
   try {
@@ -102,10 +97,7 @@ export default async (
     if (automations.length > 0) {
       log.info(`Found ${automations.length} automations to process!`)
 
-      let member: any | undefined = memberData
-      if (member === undefined) {
-        member = await MemberRepository.findById(memberId, userContext)
-      }
+      const member = await MemberRepository.findById(memberId, userContext)
 
       for (const automation of automations) {
         if (await shouldProcessMember(member, automation)) {
