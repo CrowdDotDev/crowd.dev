@@ -23,7 +23,7 @@
     "url": "CROWD_NANGO_URL",
     "secretKey": "CROWD_NANGO_SECRET_KEY"
   },
-  "stackexchange": {
+  "stackoverflow": {
     "key": "CROWD_STACKEXCHANGE_KEY"
   }
 }
