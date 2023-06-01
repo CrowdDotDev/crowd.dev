@@ -73,23 +73,26 @@ export const sendNodeWorkerMessage = async (
 
 export const sendNewActivityNodeSQSMessage = async (
   tenant: string,
-  activity: any,
+  activityId: string,
 ): Promise<void> => {
   const payload = {
     type: NodeWorkerMessageType.NODE_MICROSERVICE,
     tenant,
-    activity,
+    activityId,
     trigger: AutomationTrigger.NEW_ACTIVITY,
     service: 'automation',
   }
   await sendNodeWorkerMessage(tenant, payload as NodeWorkerMessageBase)
 }
 
-export const sendNewMemberNodeSQSMessage = async (tenant: string, member: any): Promise<void> => {
+export const sendNewMemberNodeSQSMessage = async (
+  tenant: string,
+  memberId: string,
+): Promise<void> => {
   const payload = {
     type: NodeWorkerMessageType.NODE_MICROSERVICE,
     tenant,
-    member,
+    memberId,
     trigger: AutomationTrigger.NEW_MEMBER,
     service: 'automation',
   }
