@@ -106,6 +106,14 @@ export default class IntegrationStreamService extends LoggerBase {
 
     const nangoConfig = NANGO_CONFIG()
 
+    this.log.info(
+      {
+        platform: streamInfo.integrationType,
+        settings: PLATFORM_CONFIG(streamInfo.integrationType),
+      },
+      'Platform settings',
+    )
+
     const context: IProcessStreamContext = {
       onboarding: streamInfo.onboarding,
       serviceSettings: {

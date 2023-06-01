@@ -18,8 +18,5 @@
     "password": "CROWD_REDIS_PASSWORD",
     "host": "CROWD_REDIS_HOST",
     "port": "CROWD_REDIS_PORT"
-  },
-  "stackexchange": {
-    "key": "CROWD_STACKEXCHANGE_KEY"
   }
 }
