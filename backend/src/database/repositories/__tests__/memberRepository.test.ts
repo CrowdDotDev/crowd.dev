@@ -628,7 +628,6 @@ describe('MemberRepository tests', () => {
       delete member1Returned.noMerge
       delete member1Returned.tags
       delete member1Returned.activities
-      delete member1Returned.organizations
       delete member1Returned.notes
       delete member1Returned.tasks
       delete member1Returned.lastActive
@@ -1257,11 +1256,13 @@ describe('MemberRepository tests', () => {
 
       const crowd = await mockIRepositoryOptions.database.organization.create({
         name: 'crowd.dev',
+        displayName: 'crowd.dev',
         url: 'https://crowd.dev',
         tenantId: mockIRepositoryOptions.currentTenant.id,
       })
       const pp = await mockIRepositoryOptions.database.organization.create({
         name: 'pied piper',
+        displayName: 'pied piper',
         url: 'https://piedpiper.com',
         tenantId: mockIRepositoryOptions.currentTenant.id,
       })
@@ -2299,11 +2300,13 @@ describe('MemberRepository tests', () => {
 
       const crowd = await mockIRepositoryOptions.database.organization.create({
         name: 'crowd.dev',
+        displayName: 'crowd.dev',
         url: 'https://crowd.dev',
         tenantId: mockIRepositoryOptions.currentTenant.id,
       })
       const pp = await mockIRepositoryOptions.database.organization.create({
         name: 'pied piper',
+        displayName: 'pied piper',
         url: 'https://piedpiper.com',
         tenantId: mockIRepositoryOptions.currentTenant.id,
       })

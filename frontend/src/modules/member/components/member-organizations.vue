@@ -20,7 +20,7 @@
           <p
             class="text-gray-900 text-sm text-ellipsis truncate hover:text-brand-500 transition leading-relaxed"
           >
-            {{ organization.name || '-' }}
+            {{ organization.displayName || '-' }}
           </p>
         </div>
       </router-link>
@@ -89,7 +89,7 @@
           class="w-3.5"
         />
         <span class="text-xs">{{
-          organization.name || '-'
+          organization.displayName || '-'
         }}</span>
       </router-link>
     </div>

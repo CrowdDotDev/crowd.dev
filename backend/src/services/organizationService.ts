@@ -100,7 +100,11 @@ export default class OrganizationService extends LoggerBase {
       if (existingByName) {
         record = await this.update(existingByName.id, cache)
       } else {
-        record = await OrganizationRepository.create(cache, {
+        const organization = {
+          ...cache,
+          displayName: cache.name
+        }
+        record = await OrganizationRepository.create(organization, {
           ...this.options,
           transaction,
         })

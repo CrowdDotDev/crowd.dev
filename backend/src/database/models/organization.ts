@@ -13,6 +13,13 @@ export default (sequelize) => {
         type: DataTypes.TEXT,
         allowNull: false,
       },
+      displayName: {
+        type: DataTypes.TEXT,
+        allowNull: false,
+        validate: {
+          notEmpty: true,
+        },
+      },
       website: {
         type: DataTypes.TEXT,
         allowNull: true,
