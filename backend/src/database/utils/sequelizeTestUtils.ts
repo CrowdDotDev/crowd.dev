@@ -1,7 +1,7 @@
 import moment from 'moment'
 import jwt from 'jsonwebtoken'
 import bcrypt from 'bcrypt'
-import { getServiceLogger } from '../../utils/logging'
+import { getServiceLogger } from '@crowd/logging'
 import { databaseInit } from '../databaseConnection'
 import { IRepositoryOptions } from '../repositories/IRepositoryOptions'
 import { IServiceOptions } from '../../services/IServiceOptions'
@@ -9,7 +9,7 @@ import Roles from '../../security/roles'
 import UserRepository from '../repositories/userRepository'
 import TenantRepository from '../repositories/tenantRepository'
 import Plans from '../../security/plans'
-import { API_CONFIG } from '../../config'
+import { API_CONFIG } from '../../conf'
 import SettingsRepository from '../repositories/settingsRepository'
 
 export default class SequelizeTestUtils {

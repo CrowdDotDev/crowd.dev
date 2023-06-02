@@ -1,4 +1,4 @@
-import { Logger } from '../utils/logging'
+import { Logger } from '@crowd/logging'
 
 export interface IServiceOptions {
   log: Logger

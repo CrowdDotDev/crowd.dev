@@ -1,6 +1,6 @@
 import jwt, { JsonWebTokenError } from 'jsonwebtoken'
 import cubejs from '@cubejs-client/core'
-import { CUBEJS_CONFIG } from '../../config'
+import { CUBEJS_CONFIG } from '../../conf'
 import Error400 from '../../errors/Error400'
 
 export default class CubeJsService {

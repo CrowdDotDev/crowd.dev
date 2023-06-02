@@ -1,19 +1,17 @@
 import { Client, Events, GatewayIntentBits, MessageType } from 'discord.js'
 import moment from 'moment'
-import { timeout } from '../utils/timing'
-import { DISCORD_CONFIG } from '../config'
-import { createChildLogger, getServiceLogger } from '../utils/logging'
+import { processPaginated, timeout } from '@crowd/common'
+import { RedisCache, getRedisClient } from '@crowd/redis'
+import { getChildLogger, getServiceLogger } from '@crowd/logging'
+import { PlatformType } from '@crowd/types'
+import { DISCORD_CONFIG, REDIS_CONFIG } from '../conf'
 import SequelizeRepository from '../database/repositories/sequelizeRepository'
 import IntegrationRepository from '../database/repositories/integrationRepository'
-import { PlatformType } from '../types/integrationEnums'
 import IncomingWebhookRepository from '../database/repositories/incomingWebhookRepository'
 import { DiscordWebsocketEvent, DiscordWebsocketPayload, WebhookType } from '../types/webhooks'
 import { sendNodeWorkerMessage } from '../serverless/utils/nodeWorkerSQS'
 import { NodeWorkerProcessWebhookMessage } from '../types/mq/nodeWorkerProcessWebhookMessage'
-import { createRedisClient } from '../utils/redis'
-import { RedisCache } from '../utils/redis/redisCache'
 import { DiscordIntegrationService } from '../serverless/integrations/services/integrations/discordIntegrationService'
-import { processPaginated } from '../utils/paginationProcessing'
 
 const log = getServiceLogger()
 
@@ -27,10 +25,10 @@ async function executeIfNotExists(
     await timeout(delayMilliseconds)
   }
 
-  const exists = await cache.getValue(key)
+  const exists = await cache.get(key)
   if (!exists) {
     await fn()
-    await cache.setValue(key, '1', 2 * 60 * 60)
+    await cache.set(key, '1', 2 * 60 * 60)
   }
 }
 
@@ -40,7 +38,7 @@ async function spawnClient(
   cache: RedisCache,
   delayMilliseconds?: number,
 ) {
-  const logger = createChildLogger('discord-ws', log, { clientName: name })
+  const logger = getChildLogger('discord-ws', log, { clientName: name })
 
   const repoOptions = await SequelizeRepository.getDefaultIRepositoryOptions()
   const repo = new IncomingWebhookRepository(repoOptions)
@@ -203,10 +201,10 @@ setImmediate(async () => {
   // we are saving heartbeat timestamps in redis every 2 seconds
   // on boot if we detect that there has been a downtime we should trigger discord integration checks
   // so we don't miss anything
-  const redis = await createRedisClient(true)
-  const cache = new RedisCache('discord-ws', redis)
+  const redis = await getRedisClient(REDIS_CONFIG, true)
+  const cache = new RedisCache('discord-ws', redis, log)
 
-  const lastHeartbeat = await cache.getValue('heartbeat')
+  const lastHeartbeat = await cache.get('heartbeat')
   let triggerCheck = false
   if (!lastHeartbeat) {
     log.info('No heartbeat found, triggering check!')
@@ -246,6 +244,6 @@ setImmediate(async () => {
   }
 
   setInterval(async () => {
-    await cache.setValue('heartbeat', new Date().toISOString())
+    await cache.set('heartbeat', new Date().toISOString())
   }, 2 * 1000)
 })

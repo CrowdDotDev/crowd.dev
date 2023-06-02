@@ -1,7 +1,7 @@
 import axios, { AxiosRequestConfig } from 'axios'
+import { Logger } from '@crowd/logging'
+import { timeout } from '@crowd/common'
 import { SlackGetMemberInput, SlackGetMemberOutput } from '../../types/slackTypes'
-import { Logger } from '../../../../utils/logging'
-import { timeout } from '../../../../utils/timing'
 import { handleSlackError } from './errorHandler'
 
 async function getMembers(

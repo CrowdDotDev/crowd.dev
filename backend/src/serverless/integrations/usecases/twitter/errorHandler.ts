@@ -1,6 +1,6 @@
 import { AxiosError, AxiosRequestConfig } from 'axios'
+import { Logger } from '@crowd/logging'
 import { RateLimitError } from '../../../../types/integration/rateLimitError'
-import { Logger } from '../../../../utils/logging'
 
 export const handleTwitterError = (
   err: AxiosError,

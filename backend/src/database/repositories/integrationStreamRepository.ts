@@ -1,6 +1,6 @@
 import { QueryTypes } from 'sequelize'
-import { v1 as uuidV1 } from 'uuid'
 import lodash from 'lodash'
+import { generateUUIDv1 } from '@crowd/common'
 import {
   DbIntegrationStreamCreateData,
   IntegrationStream,
@@ -8,7 +8,7 @@ import {
 } from '../../types/integrationStreamTypes'
 import { IRepositoryOptions } from './IRepositoryOptions'
 import { RepositoryBase } from './repositoryBase'
-import { INTEGRATION_PROCESSING_CONFIG } from '../../config'
+import { INTEGRATION_PROCESSING_CONFIG } from '../../conf'
 
 export default class IntegrationStreamRepository extends RepositoryBase<
   IntegrationStream,
@@ -137,7 +137,7 @@ export default class IntegrationStreamRepository extends RepositoryBase<
       const replacements: any = {}
 
       for (const item of batch) {
-        const id = uuidV1()
+        const id = generateUUIDv1()
         values.push(
           `(:id${i}, :runId${i}, :tenantId${i}, :integrationId${i}, :microserviceId${i}, :state${i}, :name${i}, :metadata${i})`,
         )
@@ -195,7 +195,7 @@ export default class IntegrationStreamRepository extends RepositoryBase<
 
     const seq = this.seq
 
-    const id = uuidV1()
+    const id = generateUUIDv1()
 
     const query = `
       insert into "integrationStreams"(id, "runId", "tenantId", "integrationId", "microserviceId", state, name, metadata)

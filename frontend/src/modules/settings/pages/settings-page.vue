@@ -83,7 +83,7 @@ export default {
 
     this.activeTab = this.hasUsersModule
       ? params.activeTab || 'users'
-      : 'api-keys';
+      : params.activeTab;
   },
 };
 </script>

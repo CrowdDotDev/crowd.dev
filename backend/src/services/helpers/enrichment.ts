@@ -1,4 +1,4 @@
-import { CLEARBIT_CONFIG, IS_TEST_ENV } from '../../config'
+import { CLEARBIT_CONFIG, IS_TEST_ENV } from '../../conf'
 
 interface enrichedOrganization {
   name: string

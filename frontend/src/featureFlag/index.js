@@ -5,7 +5,6 @@ import { store } from '@/store';
 
 export const FEATURE_FLAGS = {
   eagleEye: 'eagle-eye',
-  communityCenterPro: 'community-help-center-pro',
   organizations: 'organizations',
   automations: 'automations',
   linkedin: 'linkedin',

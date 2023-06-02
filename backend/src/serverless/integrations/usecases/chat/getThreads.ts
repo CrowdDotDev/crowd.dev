@@ -1,10 +1,10 @@
+import { getServiceChildLogger } from '@crowd/logging'
 import { SuperfaceClient } from '@superfaceai/one-sdk'
-import isInvalid from '../isInvalid'
-import { PlatformType } from '../../../../types/integrationEnums'
-import { createServiceChildLogger } from '../../../../utils/logging'
+import { PlatformType } from '@crowd/types'
 import { cleanSuperfaceError } from '../cleanError'
+import isInvalid from '../isInvalid'
 
-const log = createServiceChildLogger('getThreads')
+const log = getServiceChildLogger('getThreads')
 
 async function getChannels(
   client: SuperfaceClient,

@@ -1,4 +1,4 @@
-import { PlatformType } from './integrationEnums'
+import { PlatformType } from '@crowd/types'
 
 export const platformDisplayNames = {
   [PlatformType.GITHUB]: 'GitHub',

@@ -1,20 +1,20 @@
+import { processPaginated } from '@crowd/common'
+import { Logger, getChildLogger, getServiceChildLogger } from '@crowd/logging'
 import cronGenerator from 'cron-time-generator'
 import moment from 'moment'
-import { INTEGRATION_PROCESSING_CONFIG } from '../../config'
+import { INTEGRATION_PROCESSING_CONFIG } from '../../conf'
+import IncomingWebhookRepository from '../../database/repositories/incomingWebhookRepository'
 import IntegrationRepository from '../../database/repositories/integrationRepository'
 import IntegrationRunRepository from '../../database/repositories/integrationRunRepository'
 import IntegrationStreamRepository from '../../database/repositories/integrationStreamRepository'
 import SequelizeRepository from '../../database/repositories/sequelizeRepository'
+import { sendNodeWorkerMessage } from '../../serverless/utils/nodeWorkerSQS'
 import { IntegrationRun, IntegrationRunState } from '../../types/integrationRunTypes'
 import { IntegrationStreamState } from '../../types/integrationStreamTypes'
 import { CrowdJob } from '../../types/jobTypes'
-import { Logger, createChildLogger, createServiceChildLogger } from '../../utils/logging'
-import { processPaginated } from '../../utils/paginationProcessing'
-import IncomingWebhookRepository from '../../database/repositories/incomingWebhookRepository'
-import { sendNodeWorkerMessage } from '../../serverless/utils/nodeWorkerSQS'
 import { NodeWorkerProcessWebhookMessage } from '../../types/mq/nodeWorkerProcessWebhookMessage'
 
-const log = createServiceChildLogger('checkStuckIntegrationRuns')
+const log = getServiceChildLogger('checkStuckIntegrationRuns')
 
 // we are checking "integrationRuns"."updatedAt" column
 const THRESHOLD_HOURS = 1
@@ -29,31 +29,41 @@ export const checkStuckIntegrations = async (): Promise<void> => {
   const runsRepo = new IntegrationRunRepository(dbOptions)
   const streamsRepo = new IntegrationStreamRepository(dbOptions)
 
-  await processPaginated(
-    async (page: number) => IntegrationRepository.findByStatus('in-progress', page, 10, dbOptions),
-    async (inProgressIntegrations) => {
-      log.info(`Found ${inProgressIntegrations.length} integrations in progress!`)
-      for (const integration of inProgressIntegrations) {
-        const lastRun = await runsRepo.findLastRun(integration.id)
+  let inProgressIntegrations = await IntegrationRepository.findByStatus(
+    'in-progress',
+    1,
+    10,
+    dbOptions,
+  )
+  while (inProgressIntegrations.length > 0) {
+    log.info(`Found ${inProgressIntegrations.length} integrations in progress!`)
+    for (const integration of inProgressIntegrations) {
+      const lastRun = await runsRepo.findLastRun(integration.id)
 
-        if (
-          lastRun.state === IntegrationRunState.PROCESSED ||
-          lastRun.state === IntegrationRunState.ERROR
-        ) {
-          const streams = await streamsRepo.findByRunId(lastRun.id, 1, 1)
-          if (streams.length === 0) {
-            log.info(
-              `Found integration ${integration.id} in progress but last run ${lastRun.id} is in final state and has no streams! Restarting the run!`,
-            )
+      if (
+        lastRun.state === IntegrationRunState.PROCESSED ||
+        lastRun.state === IntegrationRunState.ERROR
+      ) {
+        const streams = await streamsRepo.findByRunId(lastRun.id, 1, 1)
+        if (streams.length === 0) {
+          log.info(
+            `Found integration ${integration.id} in progress but last run ${lastRun.id} is in final state and has no streams! Restarting the run!`,
+          )
 
-            await runsRepo.restart(lastRun.id)
-            const delayUntil = moment().add(1, 'second').toDate()
-            await runsRepo.delay(lastRun.id, delayUntil)
-          }
+          await runsRepo.restart(lastRun.id)
+          const delayUntil = moment().add(1, 'second').toDate()
+          await runsRepo.delay(lastRun.id, delayUntil)
         }
       }
-    },
-  )
+    }
+
+    inProgressIntegrations = await IntegrationRepository.findByStatus(
+      'in-progress',
+      1,
+      10,
+      dbOptions,
+    )
+  }
 }
 
 export const isRunStuck = async (
@@ -99,15 +109,18 @@ export const isRunStuck = async (
     )
     stuck = true
 
-    await processPaginated(
-      async (page: number) =>
-        streamsRepo.findByRunId(run.id, page, 10, [IntegrationStreamState.PROCESSING]),
-      async (streams) => {
-        for (const stream of streams) {
-          await streamsRepo.reset(stream.id)
-        }
-      },
-    )
+    let streamsToRestart = await streamsRepo.findByRunId(run.id, 1, 10, [
+      IntegrationStreamState.PROCESSING,
+    ])
+
+    while (streamsToRestart.length > 0) {
+      for (const stream of streamsToRestart) {
+        await streamsRepo.reset(stream.id)
+      }
+      streamsToRestart = await streamsRepo.findByRunId(run.id, 1, 10, [
+        IntegrationStreamState.PROCESSING,
+      ])
+    }
   }
 
   // if there were no processing streams lets check if we have pending streams that are older than 3 hours
@@ -178,25 +191,29 @@ export const checkRuns = async (): Promise<void> => {
   const runsRepo = new IntegrationRunRepository(dbOptions)
   const streamsRepo = new IntegrationStreamRepository(dbOptions)
 
-  await processPaginated(
-    async (page) =>
-      runsRepo.findIntegrationsByState(
-        [IntegrationRunState.PENDING, IntegrationRunState.PROCESSING],
-        page,
-        10,
-      ),
-    async (runsToCheck) => {
-      for (const run of runsToCheck) {
-        const logger = createChildLogger('fixer', log, { runId: run.id })
-        const stuck = await isRunStuck(run, streamsRepo, runsRepo, logger)
-        if (stuck) {
-          logger.warn('Delaying integration for 1 second to restart it!')
-          const delayUntil = moment().add(1, 'second').toDate()
-          await runsRepo.delay(run.id, delayUntil)
-        }
-      }
-    },
+  let runs = await runsRepo.findIntegrationsByState(
+    [IntegrationRunState.PENDING, IntegrationRunState.PROCESSING],
+    1,
+    10,
   )
+
+  while (runs.length > 0) {
+    for (const run of runs) {
+      const logger = getChildLogger('fixer', log, { runId: run.id })
+      const stuck = await isRunStuck(run, streamsRepo, runsRepo, logger)
+      if (stuck) {
+        logger.warn('Delaying integration for 1 second to restart it!')
+        const delayUntil = moment().add(1, 'second').toDate()
+        await runsRepo.delay(run.id, delayUntil)
+      }
+    }
+
+    runs = await runsRepo.findIntegrationsByState(
+      [IntegrationRunState.PENDING, IntegrationRunState.PROCESSING],
+      1,
+      10,
+    )
+  }
 }
 
 export const checkStuckWebhooks = async (): Promise<void> => {

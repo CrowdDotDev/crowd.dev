@@ -29,12 +29,9 @@ export class IntegrationService {
 
     const tenantId = AuthCurrentTenant.get();
 
-    const response = await authAxios.delete(
-      `/tenant/${tenantId}/integration`,
-      {
-        params,
-      },
-    );
+    const response = await authAxios.delete(`/tenant/${tenantId}/integration`, {
+      params,
+    });
 
     return response.data;
   }
@@ -79,12 +76,9 @@ export class IntegrationService {
 
     const tenantId = AuthCurrentTenant.get();
 
-    const response = await authAxios.get(
-      `/tenant/${tenantId}/integration`,
-      {
-        params,
-      },
-    );
+    const response = await authAxios.get(`/tenant/${tenantId}/integration`, {
+      params,
+    });
 
     return response.data;
   }
@@ -170,10 +164,7 @@ export class IntegrationService {
     // Getting the tenant_id
     const tenantId = AuthCurrentTenant.get();
     // Calling the authenticate function in the backend.
-    const response = await authAxios.put(
-      `/reddit-onboard/${tenantId}`,
-      body,
-    );
+    const response = await authAxios.put(`/reddit-onboard/${tenantId}`, body);
     return response.data;
   }
 
@@ -313,14 +304,72 @@ export class IntegrationService {
   static async gitConnect(remotes) {
     const tenantId = AuthCurrentTenant.get();
 
-    const response = await authAxios.put(
-      `/tenant/${tenantId}/git-connect`,
+    const response = await authAxios.put(`/tenant/${tenantId}/git-connect`, {
+      remotes,
+    });
+
+    return response.data;
+  }
+
+  static async discourseValidateAPI(forumHostname, apiKey) {
+    const tenantId = AuthCurrentTenant.get();
+
+    const response = await authAxios.post(
+      `/tenant/${tenantId}/discourse-validate`,
       {
-        remotes,
+        forumHostname,
+        apiKey,
+        apiUsername: 'system',
+        ...getSegments(),
+      },
+    );
+
+    return response.status === 200;
+  }
+
+  static async discourseConnect(forumHostname, apiKey, webhookSecret) {
+    const tenantId = AuthCurrentTenant.get();
+
+    const response = await authAxios.post(
+      `/tenant/${tenantId}/discourse-connect`,
+      {
+        forumHostname,
+        apiKey,
+        apiUsername: 'system',
+        webhookSecret,
         ...getSegments(),
       },
     );
 
     return response.data;
+  }
+
+  static async discourseSoftConnect(forumHostname, apiKey, webhookSecret) {
+    const tenantId = AuthCurrentTenant.get();
+
+    const response = await authAxios.post(
+      `/tenant/${tenantId}/discourse-soft-connect`,
+      {
+        forumHostname,
+        apiKey,
+        apiUsername: 'system',
+        webhookSecret,
+      },
+    );
+
+    return response.data.id;
+  }
+
+  static async discourseVerifyWebhook(integrationId) {
+    const tenantId = AuthCurrentTenant.get();
+
+    const response = await authAxios.post(
+      `/tenant/${tenantId}/discourse-test-webhook`,
+      {
+        integrationId,
+      },
+    );
+
+    return response.data.isWebhooksReceived;
   }
 }

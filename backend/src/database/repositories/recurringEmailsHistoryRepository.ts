@@ -1,4 +1,4 @@
-import { v4 as uuid } from 'uuid'
+import { generateUUIDv1 as uuid } from '@crowd/common'
 import { QueryTypes } from 'sequelize'
 import {
   RecurringEmailsHistoryData,

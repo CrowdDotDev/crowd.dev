@@ -1,5 +1,5 @@
+import { singleOrDefault } from '@crowd/common'
 import { JsonColumnInfo, Operator, ParsedJsonColumn } from './queryTypes'
-import { singleOrDefault } from '../../../utils/arrays'
 import { AttributeType } from '../../attributes/types'
 
 export default class RawQueryParser {

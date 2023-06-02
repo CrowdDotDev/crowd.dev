@@ -1,9 +1,0 @@
-{
-   "conversations": 100,
-   "activityRange": [5, 35],
-   "platforms": {
-        "discord": ["general", "dev1", "dev2", "random"],
-        "github": ["repo1", "repo2"]
-   },
-   "tenant": "crowd"
-}

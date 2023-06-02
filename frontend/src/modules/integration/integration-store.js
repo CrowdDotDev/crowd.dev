@@ -2,7 +2,10 @@ import { IntegrationService } from '@/modules/integration/integration-service';
 import Errors from '@/shared/error/errors';
 import { router } from '@/router';
 import { CrowdIntegrations } from '@/integrations/integrations-config';
+import { isCurrentDateAfterGivenWorkingDays } from '@/utils/date';
 import Message from '../../shared/message/message';
+
+export const ERROR_BANNER_WORKING_DAYS_DISPLAY = 3;
 
 export default {
   namespaced: true,
@@ -67,7 +70,7 @@ export default {
     ),
 
     withErrors: (state, getters) => getters.array.filter(
-      (i) => i.status === 'error',
+      (i) => i.status === 'error' && isCurrentDateAfterGivenWorkingDays(i.updatedAt, ERROR_BANNER_WORKING_DAYS_DISPLAY),
     ),
 
     withNoData: (state, getters) => getters.array.filter(
@@ -538,6 +541,39 @@ export default {
             id: integration.segmentId,
           },
         });
+      } catch (error) {
+        Errors.handle(error);
+        commit('CREATE_ERROR');
+      }
+    },
+
+    async doDiscourseConnect(
+      { commit },
+      {
+        forumHostname, apiKey, webhookSecret, isUpdate,
+      },
+    ) {
+      try {
+        commit('CREATE_STARTED');
+
+        const integration = await IntegrationService.discourseConnect(
+          forumHostname,
+          apiKey,
+          webhookSecret,
+        );
+
+        commit('CREATE_SUCCESS', integration);
+
+        Message.success(
+          'The first activities will show up in a couple of seconds. <br /> <br /> '
+          + 'This process might take a few minutes to finish, depending on the amount of data.',
+          {
+            title:
+              `Discourse integration ${isUpdate ? 'updated' : 'created'} successfully`,
+          },
+        );
+
+        router.push('/integrations');
       } catch (error) {
         Errors.handle(error);
         commit('CREATE_ERROR');

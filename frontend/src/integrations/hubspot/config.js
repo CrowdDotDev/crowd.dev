@@ -5,7 +5,7 @@ export default {
   name: 'HubSpot',
   backgroundColor: '#FFFFFF',
   borderColor: '#FFFFFF',
-  description: 'Connect HubSpot account and allow crowd.dev attributes to be synced via Automations.',
+  description: 'Create a 2-way sync with HubSpot.',
   image:
     '/images/integrations/hubspot.png',
   connectComponent: HubSpotBookCall,

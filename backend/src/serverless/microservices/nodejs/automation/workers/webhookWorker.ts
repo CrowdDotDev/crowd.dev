@@ -1,11 +1,11 @@
 import request from 'superagent'
+import { getServiceChildLogger } from '@crowd/logging'
 import getUserContext from '../../../../../database/utils/getUserContext'
 import AutomationRepository from '../../../../../database/repositories/automationRepository'
 import { AutomationExecutionState, WebhookSettings } from '../../../../../types/automationTypes'
 import AutomationExecutionService from '../../../../../services/automationExecutionService'
-import { createServiceChildLogger } from '../../../../../utils/logging'
 
-const log = createServiceChildLogger('webhookWorker')
+const log = getServiceChildLogger('webhookWorker')
 
 /**
  * Actually fire the webhook with the relevant payload

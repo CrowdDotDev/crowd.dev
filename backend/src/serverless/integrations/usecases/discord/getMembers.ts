@@ -1,10 +1,10 @@
 import axios from 'axios'
+import { Logger } from '@crowd/logging'
 import {
   DiscordApiMember,
   DiscordGetMembersInput,
   DiscordGetMembersOutput,
 } from '../../types/discordTypes'
-import { Logger } from '../../../../utils/logging'
 
 async function getMembers(
   input: DiscordGetMembersInput,

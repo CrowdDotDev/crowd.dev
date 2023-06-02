@@ -1,5 +1,5 @@
-import { v4 as uuid } from 'uuid'
 import { QueryTypes } from 'sequelize'
+import { generateUUIDv1 } from '@crowd/common'
 import {
   DbIncomingWebhookInsertData,
   ErrorWebhook,
@@ -28,7 +28,7 @@ export default class IncomingWebhookRepository extends RepositoryBase<
   async create(data: DbIncomingWebhookInsertData): Promise<IncomingWebhookData> {
     const transaction = this.transaction
 
-    const id = uuid()
+    const id = generateUUIDv1()
 
     const results = await this.seq.query(
       `
@@ -231,5 +231,31 @@ export default class IncomingWebhookRepository extends RepositoryBase<
       },
       type: QueryTypes.DELETE,
     })
+  }
+
+  async checkWebhooksExistForIntegration(integrationId: string): Promise<boolean> {
+    interface QueryResult {
+      count: number
+    }
+
+    const transaction = this.transaction
+
+    const results: QueryResult[] = await this.seq.query(
+      `
+      select count(*)::int as count
+      from "incomingWebhooks"
+      where "integrationId" = :integrationId
+      limit 1
+    `,
+      {
+        replacements: {
+          integrationId,
+        },
+        type: QueryTypes.SELECT,
+        transaction,
+      },
+    )
+
+    return results.length > 0 && results[0].count > 0
   }
 }

@@ -1,10 +1,10 @@
+import { getServiceChildLogger } from '@crowd/logging'
 import { SuperfaceClient } from '@superfaceai/one-sdk'
+import { timeout } from '@crowd/common'
 import { cleanSuperfaceError } from '../cleanError'
-import { createServiceChildLogger } from '../../../../utils/logging'
 import isInvalid from '../isInvalid'
-import { timeout } from '../../../../utils/timing'
 
-const log = createServiceChildLogger('getChannels')
+const log = getServiceChildLogger('getChannels')
 
 /**
  * Try if a channel is readable

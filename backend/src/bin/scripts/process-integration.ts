@@ -1,21 +1,23 @@
+import { processPaginated, singleOrDefault } from '@crowd/common'
+import { INTEGRATION_SERVICES } from '@crowd/integrations'
+import { getServiceLogger } from '@crowd/logging'
 import commandLineArgs from 'command-line-args'
 import commandLineUsage from 'command-line-usage'
 import * as fs from 'fs'
 import path from 'path'
-import { createServiceLogger } from '../../utils/logging'
-import SequelizeRepository from '../../database/repositories/sequelizeRepository'
-import { sendNodeWorkerMessage } from '../../serverless/utils/nodeWorkerSQS'
-import { NodeWorkerIntegrationProcessMessage } from '../../types/mq/nodeWorkerIntegrationProcessMessage'
 import IntegrationRepository from '../../database/repositories/integrationRepository'
 import IntegrationRunRepository from '../../database/repositories/integrationRunRepository'
+import SequelizeRepository from '../../database/repositories/sequelizeRepository'
+import { getIntegrationRunWorkerEmitter } from '../../serverless/utils/serviceSQS'
+import { sendNodeWorkerMessage } from '../../serverless/utils/nodeWorkerSQS'
 import { IntegrationRunState } from '../../types/integrationRunTypes'
-import { processPaginated } from '../../utils/paginationProcessing'
+import { NodeWorkerIntegrationProcessMessage } from '../../types/mq/nodeWorkerIntegrationProcessMessage'
 
 /* eslint-disable no-console */
 
 const banner = fs.readFileSync(path.join(__dirname, 'banner.txt'), 'utf8')
 
-const log = createServiceLogger()
+const log = getServiceLogger()
 
 const options = [
   {
@@ -71,6 +73,56 @@ const sections = [
 const usage = commandLineUsage(sections)
 const parameters = commandLineArgs(options)
 
+const triggerIntegrationRun = async (
+  runRepo: IntegrationRunRepository,
+  tenantId: string,
+  integrationId: string,
+  onboarding: boolean,
+  fireCrowdWebhooks: boolean,
+) => {
+  const existingRun = await runRepo.findLastProcessingRun(integrationId)
+
+  if (existingRun && existingRun.onboarding) {
+    log.error('Integration is already processing, skipping!')
+    return
+  }
+
+  log.info(
+    { integrationId, onboarding },
+    'Integration found - creating a new run in the old framework!',
+  )
+  const run = await runRepo.create({
+    integrationId,
+    tenantId,
+    onboarding,
+    state: IntegrationRunState.PENDING,
+  })
+
+  log.info(
+    { integrationId, onboarding },
+    'Triggering SQS message for the old framework integration!',
+  )
+  await sendNodeWorkerMessage(
+    tenantId,
+    new NodeWorkerIntegrationProcessMessage(run.id, null, fireCrowdWebhooks),
+  )
+}
+
+const triggerNewIntegrationRun = async (
+  tenantId: string,
+  integrationId: string,
+  platform: string,
+  onboarding: boolean,
+) => {
+  log.info(
+    { integrationId, onboarding },
+    'Triggering SQS message for the new framework integration!',
+  )
+
+  const emitter = await getIntegrationRunWorkerEmitter()
+  await emitter.triggerIntegrationRun(tenantId, platform, integrationId, onboarding)
+}
+
 if (parameters.help || (!parameters.integration && !parameters.platform)) {
   console.log(usage)
 } else {
@@ -83,31 +135,34 @@ if (parameters.help || (!parameters.integration && !parameters.platform)) {
     const runRepo = new IntegrationRunRepository(options)
 
     if (parameters.platform) {
+      let inNewFramework = false
+
+      if (singleOrDefault(INTEGRATION_SERVICES, (s) => s.type === parameters.platform)) {
+        inNewFramework = true
+      }
+
       await processPaginated(
         async (page) => IntegrationRepository.findAllActive(parameters.platform, page, 10),
         async (integrations) => {
           for (const i of integrations) {
             const integration = i as any
-            log.info({ integrationId: integration.id, onboarding }, 'Triggering SQS message!')
 
-            const existingRun = await runRepo.findLastProcessingRun(integration.id)
-
-            if (existingRun && existingRun.onboarding) {
-              log.error('Integration is already processing, skipping!')
-              return
+            if (inNewFramework) {
+              await triggerNewIntegrationRun(
+                integration.tenantId,
+                integration.id,
+                integration.platform,
+                onboarding,
+              )
+            } else {
+              await triggerIntegrationRun(
+                runRepo,
+                integration.tenantId,
+                integration.id,
+                onboarding,
+                fireCrowdWebhooks,
+              )
             }
-
-            const run = await runRepo.create({
-              integrationId: integration.id,
-              tenantId: integration.tenantId,
-              onboarding,
-              state: IntegrationRunState.PENDING,
-            })
-
-            await sendNodeWorkerMessage(
-              integration.tenantId,
-              new NodeWorkerIntegrationProcessMessage(run.id, null, fireCrowdWebhooks),
-            )
           }
         },
       )
@@ -124,21 +179,26 @@ if (parameters.help || (!parameters.integration && !parameters.platform)) {
         } else {
           log.info({ integrationId, onboarding }, 'Integration found - triggering SQS message!')
 
-          const existingRun = await runRepo.findLastProcessingRun(integration.id)
+          let inNewFramework = false
 
-          if (existingRun && existingRun.onboarding) {
-            log.error('Integration is already processing, skipping!')
-          } else {
-            const run = await runRepo.create({
-              integrationId: integration.id,
-              tenantId: integration.tenantId,
-              onboarding,
-              state: IntegrationRunState.PENDING,
-            })
+          if (singleOrDefault(INTEGRATION_SERVICES, (s) => s.type === integration.platform)) {
+            inNewFramework = true
+          }
 
-            await sendNodeWorkerMessage(
+          if (inNewFramework) {
+            await triggerNewIntegrationRun(
               integration.tenantId,
-              new NodeWorkerIntegrationProcessMessage(run.id, null, fireCrowdWebhooks),
+              integration.id,
+              integration.platform,
+              onboarding,
+            )
+          } else {
+            await triggerIntegrationRun(
+              runRepo,
+              integration.tenantId,
+              integration.id,
+              onboarding,
+              fireCrowdWebhooks,
             )
           }
         }
