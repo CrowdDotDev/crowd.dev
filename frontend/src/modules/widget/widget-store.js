@@ -222,7 +222,9 @@ export default {
     async getCubeToken({ commit }) {
       try {
         commit('GET_CUBE_TOKEN_STARTED');
+
         const token = await WidgetService.getCubeToken();
+
         commit('GET_CUBE_TOKEN_SUCCESS', token);
       } catch (error) {
         Errors.handle(error);

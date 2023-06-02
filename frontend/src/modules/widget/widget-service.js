@@ -121,9 +121,6 @@ export class WidgetService {
         headers: {
           Authorization: sampleTenant?.token,
         },
-        params: {
-          excludeSegments: true,
-        },
       },
     );
 

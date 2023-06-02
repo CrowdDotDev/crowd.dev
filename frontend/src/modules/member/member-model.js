@@ -23,7 +23,7 @@ function label(name) {
 
 const fields = {
   id: new IdField('id', label('id')),
-  jobTitle: new StringField('jobTitle', label('jobTitle')),
+  jobTitle: new StringField('jobTitle', 'Job title'),
   username: new JsonField('username', label('username'), {
     nonEmpty: true,
     nonEmptyValues: true,
@@ -36,7 +36,7 @@ const fields = {
   ),
   displayName: new StringField(
     'displayName',
-    label('fullName'),
+    'Full name',
   ),
   identities: new MemberIdentitiesField(
     'identities',
@@ -62,7 +62,7 @@ const fields = {
     filterable: true,
   }),
   info: new JsonField('info', label('info')),
-  tags: TagField.relationToMany('tags', label('tags'), {
+  tags: TagField.relationToMany('tags', 'Tags', {
     filterable: true,
   }),
   emails: new StringArrayField('emails', 'Emails'),
@@ -71,10 +71,10 @@ const fields = {
     label('noMerge'),
     {},
   ),
-  bio: new StringField('bio', label('bio')),
+  bio: new StringField('bio', 'Bio'),
   location: new StringField(
     'location',
-    label('location'),
+    'Location',
     {},
   ),
   organizations: OrganizationField.relationToMany(

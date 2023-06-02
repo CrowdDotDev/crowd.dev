@@ -1,5 +1,5 @@
 <template>
-  <app-cube-render :query="activityTypes(period, platform)">
+  <app-cube-render :query="activityTypes(period, platform, segments)">
     <template #loading>
       <div
         v-for="i in 3"
@@ -22,7 +22,7 @@
     <template #default="{ resultSet }">
       <app-cube-render
         :query="
-          activitiesCount(dateRange(period), platform)
+          activitiesCount(dateRange(period), platform, segments)
         "
       >
         <template #loading>
@@ -113,7 +113,7 @@ import { computed, watch } from 'vue';
 import pluralize from 'pluralize';
 import merge from 'lodash/merge';
 
-const { period, platform } = mapGetters('dashboard');
+const { period, platform, segments } = mapGetters('dashboard');
 const { currentTenant } = mapGetters('auth');
 
 const activityTypeStore = useActivityTypeStore();

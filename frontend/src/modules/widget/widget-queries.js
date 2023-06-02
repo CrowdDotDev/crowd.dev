@@ -42,7 +42,11 @@ const getCubeFilters = ({
   }
 
   if (segments.length) {
-    // TODO
+    filters.push({
+      member: 'Segments.id',
+      operator: 'equals',
+      values: segments,
+    });
   }
 
   return filters;
