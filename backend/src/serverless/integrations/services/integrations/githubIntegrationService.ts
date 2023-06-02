@@ -1312,6 +1312,10 @@ export class GithubIntegrationService extends IntegrationServiceBase {
 
     for (const record of commits) {
       for (const author of record.commit.authors.nodes) {
+        if (!author || !author.user || !author.user.login) {
+          // eslint-disable-next-line no-continue
+          continue
+        }
         const member = await GithubIntegrationService.parseMember(author, context)
         out.push({
           tenant: context.integration.tenantId,
