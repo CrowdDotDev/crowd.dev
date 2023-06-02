@@ -10,7 +10,6 @@ export const FEATURE_FLAGS = {
   linkedin: 'linkedin',
   memberEnrichment: 'member-enrichment',
   csvExport: 'csv-export',
-  segments: 'segments',
 };
 
 class FeatureFlagService {
