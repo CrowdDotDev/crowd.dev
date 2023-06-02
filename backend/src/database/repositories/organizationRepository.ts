@@ -77,7 +77,7 @@ class OrganizationRepository {
 
     const transaction = SequelizeRepository.getTransaction(options)
 
-    if (!data.displayName){
+    if (!data.displayName) {
       data.displayName = data.name
     }
 

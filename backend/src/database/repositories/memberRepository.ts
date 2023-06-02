@@ -467,34 +467,35 @@ class MemberRepository {
       return this._populateRelations(records[0], options)
     }
 
-    const plainMember = records[0].get({ plain: true }) 
+    const plainMember = records[0].get({ plain: true })
 
     plainMember.organizations = await this.getOrganizationIds(records[0].id, options)
 
     return plainMember
   }
 
-  
   static async getOrganizationIds(id: string, options: IRepositoryOptions) {
     const transaction = SequelizeRepository.getTransaction(options)
 
-    const results = await options.database.sequelize.query(`
+    const results = await options.database.sequelize.query(
+      `
     select array_agg(mo."organizationId") as "organizationIds" from "memberOrganizations" mo
     where mo."memberId" = :memberId
-    group by mo."memberId";`, {
-      type: Sequelize.QueryTypes.SELECT,
-      replacements: {
-        memberId: id,
+    group by mo."memberId";`,
+      {
+        type: Sequelize.QueryTypes.SELECT,
+        replacements: {
+          memberId: id,
+        },
+        transaction,
       },
-      transaction,
-    })
+    )
 
-    if (results.length > 0){
+    if (results.length > 0) {
       return results[0].organizationIds
     }
 
     return []
-    
   }
 
   static async update(id, data, options: IRepositoryOptions, doPopulateRelations = true) {
@@ -732,7 +733,6 @@ class MemberRepository {
 
     return results
   }
-
 
   static async findById(
     id,

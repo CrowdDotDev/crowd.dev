@@ -102,7 +102,7 @@ export default class OrganizationService extends LoggerBase {
       } else {
         const organization = {
           ...cache,
-          displayName: cache.name
+          displayName: cache.name,
         }
         record = await OrganizationRepository.create(organization, {
           ...this.options,
