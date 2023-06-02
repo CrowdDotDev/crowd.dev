@@ -546,6 +546,12 @@ export default class MemberService extends LoggingBase {
       // Remove toMerge from original member
       await MemberRepository.removeToMerge(originalId, toMergeId, repoOptions)
 
+      const secondMemberSegments = await MemberRepository.getMemberSegments(toMergeId, repoOptions)
+      await MemberRepository.includeMemberToSegments(toMergeId, {
+        ...repoOptions,
+        currentSegments: secondMemberSegments,
+      })
+
       // Delete toMerge member
       await MemberRepository.destroy(toMergeId, repoOptions, true)
 
@@ -645,8 +651,6 @@ export default class MemberService extends LoggingBase {
    * Given two members, add them to the toMerge fields of each other.
    * It will also update the tenant's toMerge list, removing any entry that contains
    * the pair.
-   * @param memberOneId ID of the first member
-   * @param memberTwoId ID of the second member
    * @returns Success/Error message
    */
   async addToMerge(suggestions: IMemberMergeSuggestion[]) {

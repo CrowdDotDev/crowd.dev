@@ -5,6 +5,7 @@ import Sequelize from 'sequelize'
 import { IRepositoryOptions } from '../IRepositoryOptions'
 import SequelizeRepository from '../sequelizeRepository'
 import { QueryInput, ManyToManyType } from './queryTypes'
+import SegmentRepository from '../segmentRepository'
 
 const { Op } = Sequelize
 
@@ -406,7 +407,7 @@ class QueryParser {
     if (this.manyToMany.segments) {
       const segmentsQuery = this.replaceWithManyToMany(
         {
-          segments: this.options.currentSegments.map((s) => s.id),
+          segments: SegmentRepository.getSegmentIds(this.options),
         },
         'segments',
       )
@@ -427,7 +428,7 @@ class QueryParser {
       dbQuery = {
         where: {
           tenantId: SequelizeRepository.getCurrentTenant(this.options).id,
-          segmentId: this.options.currentSegments.map((s) => s.id),
+          segmentId: SegmentRepository.getSegmentIds(this.options),
         },
         limit: QueryParser.defaultPageSize,
         offset: 0,

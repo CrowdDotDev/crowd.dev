@@ -7,6 +7,7 @@ import Error404 from '../../errors/Error404'
 import { IRepositoryOptions } from './IRepositoryOptions'
 import QueryParser from './filters/queryParser'
 import { QueryOutput } from './filters/queryTypes'
+import SegmentRepository from './segmentRepository'
 
 const { Op } = Sequelize
 const log: boolean = false
@@ -61,7 +62,7 @@ class IntegrationRepository {
       where: {
         id,
         tenantId: currentTenant.id,
-        segmentId: options.currentSegments.map((s) => s.id),
+        segmentId: SegmentRepository.getSegmentIds(options),
       },
       transaction,
     })

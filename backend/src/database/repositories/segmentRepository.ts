@@ -393,7 +393,7 @@ class SegmentRepository extends RepositoryBase<
    * Query project groups with their children
    * @returns
    */
-  async queryProjectGroups(criteria: QueryData): Promise<PageData<SegmentData[]>> {
+  async queryProjectGroups(criteria: QueryData): Promise<PageData<SegmentData>> {
     let searchQuery = 'WHERE 1=1'
 
     if (criteria.filter?.status) {
@@ -455,7 +455,7 @@ class SegmentRepository extends RepositoryBase<
   }
 
   // TODO:: add connected integrations
-  async queryProjects(criteria: QueryData): Promise<PageData<SegmentData[]>> {
+  async queryProjects(criteria: QueryData): Promise<PageData<SegmentData>> {
     let searchQuery = ''
 
     if (criteria.filter?.status) {
@@ -510,7 +510,7 @@ class SegmentRepository extends RepositoryBase<
     return segments.rows[0] || null
   }
 
-  async querySubprojects(criteria: QueryData): Promise<PageData<SegmentData[]>> {
+  async querySubprojects(criteria: QueryData): Promise<PageData<SegmentData>> {
     let searchQuery = ''
 
     if (criteria.filter?.status) {
@@ -617,6 +617,10 @@ class SegmentRepository extends RepositoryBase<
     }
 
     return false
+  }
+
+  static getSegmentIds(options: IRepositoryOptions): string[] {
+    return options.currentSegments.map((s) => s.id)
   }
 }
 

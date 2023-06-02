@@ -26,6 +26,7 @@ import {
 } from './types/memberTypes'
 import { ActivityDisplayVariant } from '../../types/activityTypes'
 import SegmentRepository from './segmentRepository'
+import { SegmentData } from '../../types/segmentTypes'
 
 const { Op } = Sequelize
 
@@ -171,7 +172,7 @@ class MemberRepository {
     await seq.query(bulkDeleteMemberSegments, {
       replacements: {
         memberIds,
-        segmentIds: options.currentSegments.map((s) => s.id),
+        segmentIds: SegmentRepository.getSegmentIds(options),
       },
       type: QueryTypes.DELETE,
       transaction,
@@ -203,6 +204,7 @@ class MemberRepository {
     options: IRepositoryOptions,
   ) {
     const currentTenant = SequelizeRepository.getCurrentTenant(options)
+    const segmentIds = SegmentRepository.getSegmentIds(options)
 
     const mems = await options.database.sequelize.query(
       `SELECT 
@@ -218,11 +220,11 @@ class MemberRepository {
             mem."joinedAt", 
             COUNT(*) OVER() AS total_count,
             mtm."similarity"
-          FROM 
-            members mem 
-            INNER JOIN "memberToMerge" mtm ON mem.id = mtm."memberId" 
-          WHERE 
-            mem."tenantId" = :tenantId
+          FROM members mem
+          INNER JOIN "memberToMerge" mtm ON mem.id = mtm."memberId"
+          JOIN "memberSegments" ms ON ms."memberId" = mem.id
+          WHERE mem."tenantId" = :tenantId
+            AND ms."segmentId" IN (:segmentIds)
         ) AS "membersToMerge" 
       ORDER BY 
         "membersToMerge"."joinedAt" DESC 
@@ -231,6 +233,7 @@ class MemberRepository {
       {
         replacements: {
           tenantId: currentTenant.id,
+          segmentIds,
           limit,
           offset,
         },
@@ -702,7 +705,6 @@ class MemberRepository {
         where: {
           id,
           tenantId: currentTenant.id,
-          segmentId: options.currentSegments.map((s) => s.id),
         },
         transaction,
       })
@@ -780,6 +782,35 @@ class MemberRepository {
     return results
   }
   */
+
+  static async getMemberSegments(
+    memberId: string,
+    options: IRepositoryOptions,
+  ): Promise<SegmentData[]> {
+    const transaction = SequelizeRepository.getTransaction(options)
+    const seq = SequelizeRepository.getSequelize(options)
+    const segmentRepository = new SegmentRepository(options)
+
+    const query = `
+        SELECT "segmentId"
+        FROM "memberSegments"
+        WHERE "memberId" = :memberId
+        ORDER BY "createdAt";
+    `
+
+    const data = await seq.query(query, {
+      replacements: {
+        memberId,
+      },
+      type: QueryTypes.SELECT,
+      transaction,
+    })
+
+    const segmentIds = (data as any[]).map((item) => item.segmentId)
+    const segments = await segmentRepository.findInIds(segmentIds)
+
+    return segments
+  }
 
   static async getIdentities(
     memberIds: string[],
@@ -1120,7 +1151,7 @@ class MemberRepository {
     options: IRepositoryOptions,
   ): Promise<PageData<any>> {
     const tenant = SequelizeRepository.getCurrentTenant(options)
-    const segmentIds = options.currentSegments.map((s) => s.id)
+    const segmentIds = SegmentRepository.getSegmentIds(options)
     const seq = SequelizeRepository.getSequelize(options)
 
     const params: any = {
@@ -1210,9 +1241,12 @@ class MemberRepository {
                 FROM "memberToMerge" mtm
                 INNER JOIN members m ON mtm."memberId" = m.id
                 INNER JOIN members m2 ON mtm."toMergeId" = m2.id
+                JOIN "memberSegments" ms ON m.id = ms."memberId"
+                JOIN "memberSegments" ms2 ON m2.id = ms2."memberId"
                 WHERE m."tenantId" = :tenantId
                   AND m2."deletedAt" IS NULL
-                  AND mtm."segmentId" IN (:segmentIds)
+                  AND ms."segmentId" IN (:segmentIds)
+                  AND ms2."segmentId" IN (:segmentIds)
                 GROUP BY mtm."memberId"
             ),
             no_merge_data AS (
@@ -1220,9 +1254,12 @@ class MemberRepository {
                 FROM "memberNoMerge" mnm
                 INNER JOIN members m ON mnm."memberId" = m.id
                 INNER JOIN members m2 ON mnm."noMergeId" = m2.id
+                JOIN "memberSegments" ms ON m.id = ms."memberId"
+                JOIN "memberSegments" ms2 ON m2.id = ms2."memberId"
                 WHERE m."tenantId" = :tenantId
                   AND m2."deletedAt" IS NULL
-                  AND mnm."segmentId" IN (:segmentIds)
+                  AND ms."segmentId" IN (:segmentIds)
+                  AND ms2."segmentId" IN (:segmentIds)
                 GROUP BY mnm."memberId"
             ),
             member_tags AS (
@@ -2069,13 +2106,17 @@ class MemberRepository {
 
     const tenant = SequelizeRepository.getCurrentTenant(options)
 
+    const segmentIds = SegmentRepository.getSegmentIds(options)
+
     const query = `
     -- Define a CTE named "new_members" to get members created in the last 2 hours with a specific tenantId
     WITH new_members AS (
-      SELECT id, "tenantId"
-      FROM members
-      WHERE "createdAt" >= now() - INTERVAL :numberOfHours
-      AND "tenantId" = :tenantId
+      SELECT m.id, m."tenantId"
+      FROM members m
+      JOIN "memberSegments" ms ON ms."memberId" = m.id
+      WHERE m."createdAt" >= now() - INTERVAL :numberOfHours
+      AND m."tenantId" = :tenantId
+      AND ms."segmentId" IN (:segmentIds)
     ),
     -- Define a CTE named "identity_join" to find members with the same usernames across different platforms
     identity_join AS (
@@ -2126,6 +2167,7 @@ class MemberRepository {
     const suggestions = await seq.query(query, {
       replacements: {
         tenantId: tenant.id,
+        segmentIds,
         numberOfHours: `${numberOfHours} hours`,
       },
       type: QueryTypes.SELECT,
@@ -2149,13 +2191,17 @@ class MemberRepository {
 
     const tenant = SequelizeRepository.getCurrentTenant(options)
 
+    const segmentIds = SegmentRepository.getSegmentIds(options)
+
     const query = `
     -- Define a CTE named "new_members" to get members created in the last 7 days with a specific tenantId and their emails
     WITH new_members AS (
-      SELECT id, "tenantId", emails
-      FROM members
-      WHERE "createdAt" >= now() - INTERVAL :numberOfHours
-      AND "tenantId" = :tenantId
+      SELECT m.id, m."tenantId", m.emails
+      FROM members m
+      JOIN "memberSegments" ms ON ms."memberId" = m.id
+      WHERE m."createdAt" >= now() - INTERVAL :numberOfHours
+      AND m."tenantId" = :tenantId
+      AND ms."segmentId" IN (:segmentIds)
     ),
     -- Define a CTE named "email_join" to find overlapping emails across different members
     email_join AS (
@@ -2166,7 +2212,8 @@ class MemberRepository {
         m2.emails AS m2_emails     -- Member 2 emails
       FROM new_members m1
       -- Join the members table on the tenantId field and ensuring the IDs are different
-      JOIN members m2 ON m1."tenantId" = m2."tenantId" AND m1.id <> m2.id
+      JOIN members m2 ON m1."tenantId" = m2."tenantId"
+        AND m1.id <> m2.id
       -- Filter for overlapping emails
       WHERE m1.emails && m2.emails
       -- Exclude pairs that are already in the memberToMerge table
@@ -2201,6 +2248,7 @@ class MemberRepository {
     const suggestions = await seq.query(query, {
       replacements: {
         tenantId: tenant.id,
+        segmentIds,
         numberOfHours: `${numberOfHours} hours`,
       },
       type: QueryTypes.SELECT,
@@ -2222,13 +2270,17 @@ class MemberRepository {
 
     const tenant = SequelizeRepository.getCurrentTenant(options)
 
+    const segmentIds = SegmentRepository.getSegmentIds(options)
+
     const query = `
     -- Define a CTE named "new_members" to get members created in the last 7 days with a specific tenantId
     WITH new_members AS (
-      SELECT *
-      FROM members
-      WHERE "createdAt" >= now() - INTERVAL :numberOfHours
-      AND "tenantId" = :tenantId
+      SELECT m.*
+      FROM members m
+      JOIN "memberSegments" ms ON ms."memberId" = m.id
+      WHERE m."createdAt" >= now() - INTERVAL :numberOfHours
+      AND m."tenantId" = :tenantId
+      AND ms."segmentId" IN (:segmentIds)
       LIMIT 1000
     ),
     -- Define a CTE named "identity_join" to find similar identities across platforms
@@ -2286,6 +2338,7 @@ class MemberRepository {
     const suggestions = await seq.query(query, {
       replacements: {
         tenantId: tenant.id,
+        segmentIds,
         numberOfHours: `${numberOfHours} hours`,
       },
       type: QueryTypes.SELECT,

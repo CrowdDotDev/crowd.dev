@@ -20,6 +20,7 @@ export default async function getUserContext(
   const tenant = await TenantRepository.findById(tenantId, {
     ...options,
   })
+  options.currentTenant = tenant
 
   let user = null
 
