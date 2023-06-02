@@ -14,8 +14,8 @@ export class IntegrationRunWorkerEmitter extends SqsQueueEmitter {
     super(client, INTEGRATION_RUN_WORKER_QUEUE_SETTINGS, parentLog)
   }
 
-  public async checkRuns(tenantId: string) {
-    await this.sendMessage(`runs-${tenantId}`, new CheckRunsQueueMessage())
+  public async checkRuns() {
+    await this.sendMessage('global', new CheckRunsQueueMessage())
   }
 
   public async triggerIntegrationRun(

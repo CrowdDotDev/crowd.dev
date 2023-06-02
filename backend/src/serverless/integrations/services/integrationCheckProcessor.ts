@@ -10,7 +10,7 @@ import SequelizeRepository from '../../../database/repositories/sequelizeReposit
 import { IServiceOptions } from '../../../services/IServiceOptions'
 import { IntegrationRunState } from '../../../types/integrationRunTypes'
 import { NodeWorkerIntegrationProcessMessage } from '../../../types/mq/nodeWorkerIntegrationProcessMessage'
-import { sendStartIntegrationRunMessage } from '../../utils/integrationRunWorkerSQS'
+import { getIntegrationRunWorkerEmitter } from '../../utils/serviceSQS'
 import { sendNodeWorkerMessage } from '../../utils/nodeWorkerSQS'
 import { IntegrationServiceBase } from './integrationServiceBase'
 
@@ -88,6 +88,8 @@ export class IntegrationCheckProcessor extends LoggerBase {
           throw new Error(`No integration service found for type ${type}!`)
         }
 
+        const emitter = await getIntegrationRunWorkerEmitter()
+
         await processPaginated(
           async (page) => IntegrationRepository.findAllActive(type, page, 10),
           async (integrations) => {
@@ -98,7 +100,12 @@ export class IntegrationCheckProcessor extends LoggerBase {
                   integration.id,
                 )
               if (!existingRun) {
-                await sendStartIntegrationRunMessage(integration.tenantId, integration.id, false)
+                await emitter.triggerIntegrationRun(
+                  integration.tenantId,
+                  integration.platform,
+                  integration.id,
+                  false,
+                )
               }
             }
           },

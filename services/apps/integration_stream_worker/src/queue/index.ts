@@ -44,6 +44,9 @@ export class WorkerQueueReceiver extends SqsQueueReceiver {
       )
 
       switch (message.type) {
+        case IntegrationStreamWorkerQueueMessageType.CHECK_STREAMS:
+          await service.checkStreams()
+          break
         case IntegrationStreamWorkerQueueMessageType.CONTINUE_PROCESSING_RUN_STREAMS:
           await service.continueProcessingRunStreams(
             (message as ContinueProcessingRunStreamsQueueMessage).runId,

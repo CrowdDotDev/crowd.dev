@@ -1,17 +1,17 @@
+import { processPaginated, singleOrDefault } from '@crowd/common'
+import { INTEGRATION_SERVICES } from '@crowd/integrations'
+import { getServiceLogger } from '@crowd/logging'
 import commandLineArgs from 'command-line-args'
 import commandLineUsage from 'command-line-usage'
 import * as fs from 'fs'
 import path from 'path'
-import { processPaginated, singleOrDefault } from '@crowd/common'
-import { getServiceLogger } from '@crowd/logging'
-import { INTEGRATION_SERVICES } from '@crowd/integrations'
-import SequelizeRepository from '../../database/repositories/sequelizeRepository'
-import { sendNodeWorkerMessage } from '../../serverless/utils/nodeWorkerSQS'
-import { NodeWorkerIntegrationProcessMessage } from '../../types/mq/nodeWorkerIntegrationProcessMessage'
 import IntegrationRepository from '../../database/repositories/integrationRepository'
 import IntegrationRunRepository from '../../database/repositories/integrationRunRepository'
+import SequelizeRepository from '../../database/repositories/sequelizeRepository'
+import { getIntegrationRunWorkerEmitter } from '../../serverless/utils/serviceSQS'
+import { sendNodeWorkerMessage } from '../../serverless/utils/nodeWorkerSQS'
 import { IntegrationRunState } from '../../types/integrationRunTypes'
-import { sendStartIntegrationRunMessage } from '../../serverless/utils/integrationRunWorkerSQS'
+import { NodeWorkerIntegrationProcessMessage } from '../../types/mq/nodeWorkerIntegrationProcessMessage'
 
 /* eslint-disable no-console */
 
@@ -111,13 +111,16 @@ const triggerIntegrationRun = async (
 const triggerNewIntegrationRun = async (
   tenantId: string,
   integrationId: string,
+  platform: string,
   onboarding: boolean,
 ) => {
   log.info(
     { integrationId, onboarding },
     'Triggering SQS message for the new framework integration!',
   )
-  await sendStartIntegrationRunMessage(tenantId, integrationId, onboarding)
+
+  const emitter = await getIntegrationRunWorkerEmitter()
+  await emitter.triggerIntegrationRun(tenantId, platform, integrationId, onboarding)
 }
 
 if (parameters.help || (!parameters.integration && !parameters.platform)) {
@@ -145,7 +148,12 @@ if (parameters.help || (!parameters.integration && !parameters.platform)) {
             const integration = i as any
 
             if (inNewFramework) {
-              await triggerNewIntegrationRun(integration.tenantId, integration.id, onboarding)
+              await triggerNewIntegrationRun(
+                integration.tenantId,
+                integration.id,
+                integration.platform,
+                onboarding,
+              )
             } else {
               await triggerIntegrationRun(
                 runRepo,
@@ -178,7 +186,12 @@ if (parameters.help || (!parameters.integration && !parameters.platform)) {
           }
 
           if (inNewFramework) {
-            await triggerNewIntegrationRun(integration.tenantId, integration.id, onboarding)
+            await triggerNewIntegrationRun(
+              integration.tenantId,
+              integration.id,
+              integration.platform,
+              onboarding,
+            )
           } else {
             await triggerIntegrationRun(
               runRepo,
