@@ -13,6 +13,7 @@ import { AttributeData } from '../attributes/attribute'
 import MemberRepository from './memberRepository'
 import { ActivityTypeSettings } from '../../types/activityTypes'
 import ActivityDisplayService from '../../services/activityDisplayService'
+import SegmentRepository from './segmentRepository'
 
 const { Op } = Sequelize
 
@@ -124,7 +125,7 @@ class ActivityRepository {
       where: {
         id,
         tenantId: currentTenant.id,
-        segmentId: options.currentSegments.map((s) => s.id),
+        segmentId: SegmentRepository.getSegmentIds(options),
       },
       transaction,
     })
@@ -194,7 +195,7 @@ class ActivityRepository {
       where: {
         id,
         tenantId: currentTenant.id,
-        segmentId: options.currentSegments.map((s) => s.id),
+        segmentId: SegmentRepository.getSegmentIds(options),
       },
       transaction,
     })
@@ -235,7 +236,7 @@ class ActivityRepository {
       where: {
         id,
         tenantId: currentTenant.id,
-        segmentId: options.currentSegments.map((s) => s.id),
+        segmentId: SegmentRepository.getSegmentIds(options),
       },
       include,
       transaction,
@@ -262,7 +263,7 @@ class ActivityRepository {
     const record = await options.database.activity.findOne({
       where: {
         tenantId: currentTenant.id,
-        segmentId: options.currentSegments.map((s) => s.id),
+        segmentId: SegmentRepository.getSegmentIds(options),
         ...query,
       },
       transaction,
@@ -306,7 +307,7 @@ class ActivityRepository {
       where: {
         ...filter,
         tenantId: tenant.id,
-        segmentId: options.currentSegments.map((s) => s.id),
+        segmentId: SegmentRepository.getSegmentIds(options),
       },
       transaction,
     })

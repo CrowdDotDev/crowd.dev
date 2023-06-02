@@ -7,6 +7,7 @@ import Error404 from '../../errors/Error404'
 import { IRepositoryOptions } from './IRepositoryOptions'
 import { QueryOutput } from './filters/queryTypes'
 import QueryParser from './filters/queryParser'
+import SegmentRepository from './segmentRepository'
 
 const { Op } = Sequelize
 
@@ -54,7 +55,7 @@ class ReportRepository {
       where: {
         id,
         tenantId: currentTenant.id,
-        segmentId: options.currentSegments.map((s) => s.id),
+        segmentId: SegmentRepository.getSegmentIds(options),
       },
       transaction,
     })
@@ -94,7 +95,7 @@ class ReportRepository {
       where: {
         id,
         tenantId: currentTenant.id,
-        segmentId: options.currentSegments.map((s) => s.id),
+        segmentId: SegmentRepository.getSegmentIds(options),
       },
       transaction,
     })
@@ -121,7 +122,7 @@ class ReportRepository {
       where: {
         id,
         tenantId: currentTenant.id,
-        segmentId: options.currentSegments.map((s) => s.id),
+        segmentId: SegmentRepository.getSegmentIds(options),
       },
       include,
       transaction,
@@ -169,7 +170,7 @@ class ReportRepository {
       where: {
         ...filter,
         tenantId: tenant.id,
-        segmentId: options.currentSegments.map((s) => s.id),
+        segmentId: SegmentRepository.getSegmentIds(options),
       },
       transaction,
     })
@@ -267,7 +268,7 @@ class ReportRepository {
         tenantId: tenant.id,
       },
       {
-        segmentId: options.currentSegments.map((s) => s.id),
+        segmentId: SegmentRepository.getSegmentIds(options),
       },
     ]
 

@@ -58,7 +58,7 @@ class ConversationRepository {
       where: {
         id,
         tenantId: currentTenant.id,
-        segmentId: options.currentSegments.map((s) => s.id),
+        segmentId: SegmentRepository.getSegmentIds(options),
       },
       transaction,
     })
@@ -98,7 +98,7 @@ class ConversationRepository {
       where: {
         id,
         tenantId: currentTenant.id,
-        segmentId: options.currentSegments.map((s) => s.id),
+        segmentId: SegmentRepository.getSegmentIds(options),
       },
       transaction,
     })
@@ -125,7 +125,7 @@ class ConversationRepository {
       where: {
         id,
         tenantId: currentTenant.id,
-        segmentId: options.currentSegments.map((s) => s.id),
+        segmentId: SegmentRepository.getSegmentIds(options),
       },
       include,
       transaction,
@@ -173,7 +173,7 @@ class ConversationRepository {
       where: {
         id: ids,
         tenantId: currentTenant.id,
-        segmentId: options.currentSegments.map((s) => s.id),
+        segmentId: SegmentRepository.getSegmentIds(options),
       },
       force,
       transaction,
@@ -189,7 +189,7 @@ class ConversationRepository {
       where: {
         ...filter,
         tenantId: tenant.id,
-        segmentId: options.currentSegments.map((s) => s.id),
+        segmentId: SegmentRepository.getSegmentIds(options),
       },
       transaction,
     })

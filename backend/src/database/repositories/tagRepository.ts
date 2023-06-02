@@ -7,6 +7,7 @@ import { IRepositoryOptions } from './IRepositoryOptions'
 import QueryParser from './filters/queryParser'
 import { QueryOutput } from './filters/queryTypes'
 import SequelizeFilterUtils from '../utils/sequelizeFilterUtils'
+import SegmentRepository from './segmentRepository'
 
 const { Op } = Sequelize
 
@@ -54,7 +55,7 @@ class TagRepository {
       where: {
         id,
         tenantId: currentTenant.id,
-        segmentId: options.currentSegments.map((s) => s.id),
+        segmentId: SegmentRepository.getSegmentIds(options),
       },
       transaction,
     })
@@ -92,7 +93,7 @@ class TagRepository {
       where: {
         id: ids,
         tenantId: currentTenant.id,
-        segmentId: options.currentSegments.map((s) => s.id),
+        segmentId: SegmentRepository.getSegmentIds(options),
       },
       force,
       transaction,
@@ -108,7 +109,7 @@ class TagRepository {
       where: {
         id,
         tenantId: currentTenant.id,
-        segmentId: options.currentSegments.map((s) => s.id),
+        segmentId: SegmentRepository.getSegmentIds(options),
       },
       transaction,
     })
@@ -136,7 +137,7 @@ class TagRepository {
       where: {
         id,
         tenantId: currentTenant.id,
-        segmentId: options.currentSegments.map((s) => s.id),
+        segmentId: SegmentRepository.getSegmentIds(options),
       },
       include,
       transaction,
@@ -184,7 +185,7 @@ class TagRepository {
       where: {
         ...filter,
         tenantId: tenant.id,
-        segmentId: options.currentSegments.map((s) => s.id),
+        segmentId: SegmentRepository.getSegmentIds(options),
       },
       transaction,
     })
@@ -284,7 +285,7 @@ class TagRepository {
         tenantId: tenant.id,
       },
       {
-        segmentId: options.currentSegments.map((s) => s.id),
+        segmentId: SegmentRepository.getSegmentIds(options),
       },
     ]
 

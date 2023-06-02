@@ -171,7 +171,7 @@ class MemberRepository {
     await seq.query(bulkDeleteMemberSegments, {
       replacements: {
         memberIds,
-        segmentIds: options.currentSegments.map((s) => s.id),
+        segmentIds: SegmentRepository.getSegmentIds(options),
       },
       type: QueryTypes.DELETE,
       transaction,
@@ -1120,7 +1120,7 @@ class MemberRepository {
     options: IRepositoryOptions,
   ): Promise<PageData<any>> {
     const tenant = SequelizeRepository.getCurrentTenant(options)
-    const segmentIds = options.currentSegments.map((s) => s.id)
+    const segmentIds = SegmentRepository.getSegmentIds(options)
     const seq = SequelizeRepository.getSequelize(options)
 
     const params: any = {
