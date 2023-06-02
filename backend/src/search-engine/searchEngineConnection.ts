@@ -1,5 +1,5 @@
 import { MeiliSearch } from 'meilisearch'
-import { SEARCH_ENGINE_CONFIG } from '../config'
+import { SEARCH_ENGINE_CONFIG } from '../conf'
 
 /**
  * Initializes the connection to the Meilisearch search engine

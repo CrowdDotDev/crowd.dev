@@ -1,16 +1,15 @@
 import moment from 'moment'
 import IntegrationRepository from '../../../../database/repositories/integrationRepository'
 import SequelizeTestUtils from '../../../../database/utils/sequelizeTestUtils'
-import { GitHubGrid } from '../../grid/githubGrid'
 import TestEvents from './events'
-import { PlatformType } from '../../../../types/integrationEnums'
-import { GithubActivityType } from '../../../../types/activityTypes'
+import { PlatformType } from '@crowd/types'
+import { GithubActivityType, GITHUB_GRID } from '@crowd/integrations'
 import { MemberAttributeName } from '../../../../database/attributes/member/enums'
 import { IntegrationServiceBase } from '../../services/integrationServiceBase'
 import { GithubIntegrationService } from '../../services/integrations/githubIntegrationService'
 import { IStepContext } from '../../../../types/integration/stepResult'
-import { getServiceLogger } from '../../../../utils/logging'
-import { generateUUIDv1 } from '../../../../utils/uuid'
+import { getServiceLogger } from '@crowd/logging'
+import { generateUUIDv1 } from '@crowd/common'
 
 const db = null
 const installId = '23585816'
@@ -239,8 +238,8 @@ describe('Github webhooks tests', () => {
         attributes: {
           state: TestEvents.issues.opened.issue.state,
         },
-        score: GitHubGrid.issueOpened.score,
-        isContribution: GitHubGrid.issueOpened.isContribution,
+        score: GITHUB_GRID[GithubActivityType.ISSUE_OPENED].score,
+        isContribution: GITHUB_GRID[GithubActivityType.ISSUE_OPENED].isContribution,
       }
       expect(issue).toStrictEqual(expected)
     })
@@ -277,8 +276,8 @@ describe('Github webhooks tests', () => {
         attributes: {
           state: TestEvents.issues.edited.issue.state,
         },
-        score: GitHubGrid.issueOpened.score,
-        isContribution: GitHubGrid.issueOpened.isContribution,
+        score: GITHUB_GRID[GithubActivityType.ISSUE_OPENED].score,
+        isContribution: GITHUB_GRID[GithubActivityType.ISSUE_OPENED].isContribution,
       }
       expect(issue).toStrictEqual(expected)
     })
@@ -315,8 +314,8 @@ describe('Github webhooks tests', () => {
         attributes: {
           state: TestEvents.issues.opened.issue.state,
         },
-        score: GitHubGrid.issueOpened.score,
-        isContribution: GitHubGrid.issueOpened.isContribution,
+        score: GITHUB_GRID[GithubActivityType.ISSUE_OPENED].score,
+        isContribution: GITHUB_GRID[GithubActivityType.ISSUE_OPENED].isContribution,
       }
       expect(issue).toStrictEqual(expected)
     })
@@ -355,8 +354,8 @@ describe('Github webhooks tests', () => {
         attributes: {
           state: TestEvents.issues.closed.issue.state,
         },
-        score: GitHubGrid.issueClosed.score,
-        isContribution: GitHubGrid.issueClosed.isContribution,
+        score: GITHUB_GRID[GithubActivityType.ISSUE_CLOSED].score,
+        isContribution: GITHUB_GRID[GithubActivityType.ISSUE_CLOSED].isContribution,
       }
       expect(issue).toStrictEqual(expected)
     })
@@ -438,8 +437,8 @@ describe('Github webhooks tests', () => {
             description: TestEvents.discussion.created.discussion.category.description,
           },
         },
-        score: GitHubGrid.discussionOpened.score,
-        isContribution: GitHubGrid.discussionOpened.isContribution,
+        score: GITHUB_GRID[GithubActivityType.DISCUSSION_STARTED].score,
+        isContribution: GITHUB_GRID[GithubActivityType.DISCUSSION_STARTED].isContribution,
       }
 
       expect(discussion).toStrictEqual(expected)
@@ -483,8 +482,8 @@ describe('Github webhooks tests', () => {
             description: TestEvents.discussion.edited.discussion.category.description,
           },
         },
-        score: GitHubGrid.discussionOpened.score,
-        isContribution: GitHubGrid.discussionOpened.isContribution,
+        score: GITHUB_GRID[GithubActivityType.DISCUSSION_STARTED].score,
+        isContribution: GITHUB_GRID[GithubActivityType.DISCUSSION_STARTED].isContribution,
       }
       expect(discussion).toStrictEqual(expected)
     })
@@ -518,8 +517,8 @@ describe('Github webhooks tests', () => {
         attributes: {
           isSelectedAnswer: true,
         },
-        score: GitHubGrid.discussionOpened.score,
-        isContribution: GitHubGrid.discussionOpened.isContribution,
+        score: GITHUB_GRID[GithubActivityType.DISCUSSION_STARTED].score,
+        isContribution: GITHUB_GRID[GithubActivityType.DISCUSSION_STARTED].isContribution,
       }
       expect(discussion).toStrictEqual(expected)
     })
@@ -556,8 +555,8 @@ describe('Github webhooks tests', () => {
         channel: TestEvents.pullRequests.opened.repository.html_url,
         title: TestEvents.pullRequests.opened.pull_request.title,
         body: TestEvents.pullRequests.opened.pull_request.body,
-        score: GitHubGrid.pullRequestOpened.score,
-        isContribution: GitHubGrid.pullRequestOpened.isContribution,
+        score: GITHUB_GRID[GithubActivityType.PULL_REQUEST_OPENED].score,
+        isContribution: GITHUB_GRID[GithubActivityType.PULL_REQUEST_OPENED].isContribution,
         attributes: {
           additions: TestEvents.pullRequests.opened.pull_request.additions,
           authorAssociation: TestEvents.pullRequests.opened.pull_request.author_association,
@@ -600,8 +599,8 @@ describe('Github webhooks tests', () => {
         channel: TestEvents.pullRequests.edited.repository.html_url,
         title: TestEvents.pullRequests.edited.pull_request.title,
         body: TestEvents.pullRequests.edited.pull_request.body,
-        score: GitHubGrid.pullRequestOpened.score,
-        isContribution: GitHubGrid.pullRequestOpened.isContribution,
+        score: GITHUB_GRID[GithubActivityType.PULL_REQUEST_OPENED].score,
+        isContribution: GITHUB_GRID[GithubActivityType.PULL_REQUEST_OPENED].isContribution,
         attributes: {
           additions: TestEvents.pullRequests.edited.pull_request.additions,
           authorAssociation: TestEvents.pullRequests.edited.pull_request.author_association,
@@ -645,8 +644,8 @@ describe('Github webhooks tests', () => {
         title: TestEvents.pullRequests.reopened.pull_request.title,
         body: TestEvents.pullRequests.reopened.pull_request.body,
         channel: TestEvents.pullRequests.reopened.repository.html_url,
-        score: GitHubGrid.pullRequestOpened.score,
-        isContribution: GitHubGrid.pullRequestOpened.isContribution,
+        score: GITHUB_GRID[GithubActivityType.PULL_REQUEST_OPENED].score,
+        isContribution: GITHUB_GRID[GithubActivityType.PULL_REQUEST_OPENED].isContribution,
         attributes: {
           additions: TestEvents.pullRequests.reopened.pull_request.additions,
           authorAssociation: TestEvents.pullRequests.reopened.pull_request.author_association,
@@ -691,8 +690,8 @@ describe('Github webhooks tests', () => {
         title: '',
         body: '',
         channel: TestEvents.pullRequests.closed.repository.html_url,
-        score: GitHubGrid.pullRequestClosed.score,
-        isContribution: GitHubGrid.pullRequestClosed.isContribution,
+        score: GITHUB_GRID[GithubActivityType.PULL_REQUEST_CLOSED].score,
+        isContribution: GITHUB_GRID[GithubActivityType.PULL_REQUEST_CLOSED].isContribution,
         attributes: {
           additions: TestEvents.pullRequests.closed.pull_request.additions,
           authorAssociation: TestEvents.pullRequests.closed.pull_request.author_association,
@@ -746,8 +745,8 @@ describe('Github webhooks tests', () => {
         title: '',
         body: '',
         channel: TestEvents.pullRequests.assigned.repository.html_url,
-        score: GitHubGrid.pullRequestAssigned.score,
-        isContribution: GitHubGrid.pullRequestAssigned.isContribution,
+        score: GITHUB_GRID[GithubActivityType.PULL_REQUEST_ASSIGNED].score,
+        isContribution: GITHUB_GRID[GithubActivityType.PULL_REQUEST_ASSIGNED].isContribution,
         attributes: {
           additions: TestEvents.pullRequests.assigned.pull_request.additions,
           authorAssociation: TestEvents.pullRequests.assigned.pull_request.author_association,
@@ -801,8 +800,9 @@ describe('Github webhooks tests', () => {
         title: '',
         body: '',
         channel: TestEvents.pullRequests.review_requested.repository.html_url,
-        score: GitHubGrid.pullRequestAssigned.score,
-        isContribution: GitHubGrid.pullRequestAssigned.isContribution,
+        score: GITHUB_GRID[GithubActivityType.PULL_REQUEST_REVIEW_REQUESTED].score,
+        isContribution:
+          GITHUB_GRID[GithubActivityType.PULL_REQUEST_REVIEW_REQUESTED].isContribution,
         attributes: {
           additions: TestEvents.pullRequests.review_requested.pull_request.additions,
           authorAssociation:
@@ -848,8 +848,8 @@ describe('Github webhooks tests', () => {
         title: '',
         body: '',
         channel: TestEvents.pullRequests.merged.repository.html_url,
-        score: GitHubGrid.pullRequestMerged.score,
-        isContribution: GitHubGrid.pullRequestMerged.isContribution,
+        score: GITHUB_GRID[GithubActivityType.PULL_REQUEST_MERGED].score,
+        isContribution: GITHUB_GRID[GithubActivityType.PULL_REQUEST_MERGED].isContribution,
         attributes: {
           additions: TestEvents.pullRequests.merged.pull_request.additions,
           authorAssociation: TestEvents.pullRequests.merged.pull_request.author_association,
@@ -892,8 +892,8 @@ describe('Github webhooks tests', () => {
         title: '',
         body: TestEvents.pullRequestReviews.submitted.review.body,
         channel: TestEvents.pullRequestReviews.submitted.repository.html_url,
-        score: GitHubGrid.pullRequestReviewed.score,
-        isContribution: GitHubGrid.pullRequestReviewed.isContribution,
+        score: GITHUB_GRID[GithubActivityType.PULL_REQUEST_REVIEWED].score,
+        isContribution: GITHUB_GRID[GithubActivityType.PULL_REQUEST_REVIEWED].isContribution,
         attributes: {
           reviewState: TestEvents.pullRequestReviews.submitted.review.state.toUpperCase(),
           authorAssociation:
@@ -933,8 +933,9 @@ describe('Github webhooks tests', () => {
         title: '',
         body: TestEvents.pullRequestReviewThreadComment.created.comment.body,
         channel: TestEvents.pullRequestReviewThreadComment.created.repository.html_url,
-        score: GitHubGrid.comment.score,
-        isContribution: GitHubGrid.comment.isContribution,
+        score: GITHUB_GRID[GithubActivityType.PULL_REQUEST_REVIEW_THREAD_COMMENT].score,
+        isContribution:
+          GITHUB_GRID[GithubActivityType.PULL_REQUEST_REVIEW_THREAD_COMMENT].isContribution,
         attributes: {
           authorAssociation:
             TestEvents.pullRequestReviewThreadComment.created.pull_request.author_association,
@@ -1117,8 +1118,8 @@ describe('Github webhooks tests', () => {
         url: TestEvents.comment.issue.created.comment.html_url,
         body: TestEvents.comment.issue.created.comment.body,
         channel: TestEvents.comment.issue.created.repository.html_url,
-        score: GitHubGrid.comment.score,
-        isContribution: GitHubGrid.comment.isContribution,
+        score: GITHUB_GRID[GithubActivityType.ISSUE_COMMENT].score,
+        isContribution: GITHUB_GRID[GithubActivityType.ISSUE_COMMENT].isContribution,
       }
       expect(comment).toStrictEqual(expected)
     })
@@ -1162,8 +1163,8 @@ describe('Github webhooks tests', () => {
         url: TestEvents.comment.issue.edited.comment.html_url,
         body: TestEvents.comment.issue.edited.comment.body,
         channel: TestEvents.comment.issue.edited.repository.html_url,
-        score: GitHubGrid.comment.score,
-        isContribution: GitHubGrid.comment.isContribution,
+        score: GITHUB_GRID[GithubActivityType.ISSUE_COMMENT].score,
+        isContribution: GITHUB_GRID[GithubActivityType.ISSUE_COMMENT].isContribution,
       }
       expect(comment).toStrictEqual(expected)
     })
@@ -1201,8 +1202,8 @@ describe('Github webhooks tests', () => {
         url: TestEvents.comment.pullRequest.created.comment.html_url,
         body: TestEvents.comment.pullRequest.created.comment.body,
         channel: TestEvents.comment.pullRequest.created.repository.html_url,
-        score: GitHubGrid.comment.score,
-        isContribution: GitHubGrid.comment.isContribution,
+        score: GITHUB_GRID[GithubActivityType.ISSUE_COMMENT].score,
+        isContribution: GITHUB_GRID[GithubActivityType.ISSUE_COMMENT].isContribution,
       }
       expect(comment).toStrictEqual(expected)
     })
@@ -1245,8 +1246,8 @@ describe('Github webhooks tests', () => {
         url: TestEvents.comment.pullRequest.edited.comment.html_url,
         body: TestEvents.comment.pullRequest.edited.comment.body,
         channel: TestEvents.comment.pullRequest.edited.repository.html_url,
-        score: GitHubGrid.comment.score,
-        isContribution: GitHubGrid.comment.isContribution,
+        score: GITHUB_GRID[GithubActivityType.ISSUE_COMMENT].score,
+        isContribution: GITHUB_GRID[GithubActivityType.ISSUE_COMMENT].isContribution,
       }
       expect(comment).toStrictEqual(expected)
     })
@@ -1307,8 +1308,8 @@ describe('Github webhooks tests', () => {
         url: TestEvents.discussionComment.created.comment.html_url,
         body: TestEvents.discussionComment.created.comment.body,
         channel: TestEvents.discussionComment.created.repository.html_url,
-        score: GitHubGrid.comment.score,
-        isContribution: GitHubGrid.comment.isContribution,
+        score: GITHUB_GRID[GithubActivityType.ISSUE_COMMENT].score,
+        isContribution: GITHUB_GRID[GithubActivityType.ISSUE_COMMENT].isContribution,
       }
       expect(comment).toStrictEqual(expected)
     })
@@ -1352,8 +1353,8 @@ describe('Github webhooks tests', () => {
         url: TestEvents.discussionComment.edited.comment.html_url,
         body: TestEvents.discussionComment.edited.comment.body,
         channel: TestEvents.discussionComment.edited.repository.html_url,
-        score: GitHubGrid.comment.score,
-        isContribution: GitHubGrid.comment.isContribution,
+        score: GITHUB_GRID[GithubActivityType.ISSUE_COMMENT].score,
+        isContribution: GITHUB_GRID[GithubActivityType.ISSUE_COMMENT].isContribution,
       }
       expect(comment).toStrictEqual(expected)
     })

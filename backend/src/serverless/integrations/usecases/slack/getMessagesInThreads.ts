@@ -1,6 +1,6 @@
 import axios, { AxiosRequestConfig } from 'axios'
-import { Logger } from '../../../../utils/logging'
-import { timeout } from '../../../../utils/timing'
+import { Logger } from '@crowd/logging'
+import { timeout } from '@crowd/common'
 import {
   SlackGetMessagesInThreadsInput,
   SlackMessages,

@@ -1,5 +1,5 @@
 import validator from 'validator'
-import { v4 as uuid } from 'uuid'
+import { generateUUIDv4 as uuid } from '@crowd/common'
 import Sequelize from 'sequelize'
 import { Col } from 'sequelize/types/utils'
 

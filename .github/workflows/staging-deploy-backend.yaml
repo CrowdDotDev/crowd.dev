@@ -6,6 +6,7 @@ on:
       - 'staging/**'
     paths:
       - 'backend/**'
+      - 'services/libs/**'
       - '!backend/src/serverless/microservices/python/**'
 
 env:

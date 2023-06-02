@@ -1,18 +1,17 @@
+import { getServiceChildLogger } from '@crowd/logging'
+import { getRedisClient, RedisPubSubEmitter } from '@crowd/redis'
 import moment from 'moment'
 import { Stripe } from 'stripe'
-import { PLANS_CONFIG } from '../../../config'
+import { timeout } from '@crowd/common'
+import { ApiWebsocketMessage } from '@crowd/types'
+import { PLANS_CONFIG, REDIS_CONFIG } from '../../../conf'
 import SequelizeRepository from '../../../database/repositories/sequelizeRepository'
 import Plans from '../../../security/plans'
-import { ApiWebsocketMessage } from '../../../types/mq/apiWebsocketMessage'
 import { NodeWorkerMessageBase } from '../../../types/mq/nodeWorkerMessageBase'
-import { createServiceChildLogger } from '../../../utils/logging'
-import { createRedisClient } from '../../../utils/redis'
-import RedisPubSubEmitter from '../../../utils/redis/pubSubEmitter'
-import { timeout } from '../../../utils/timing'
 import { NodeWorkerMessageType } from '../../types/workerTypes'
 import { sendNodeWorkerMessage } from '../../utils/nodeWorkerSQS'
 
-const log = createServiceChildLogger('stripeWebhookWorker')
+const log = getServiceChildLogger('stripeWebhookWorker')
 
 const stripe = new Stripe(PLANS_CONFIG.stripeSecretKey, {
   apiVersion: '2022-08-01',
@@ -47,11 +46,16 @@ export const processStripeWebhook = async (message: any) => {
   log.warn(message)
 
   const options = await SequelizeRepository.getDefaultIRepositoryOptions()
-  const redis = await createRedisClient(true)
+  const redis = await getRedisClient(REDIS_CONFIG, true)
 
-  const apiPubSubEmitter = new RedisPubSubEmitter('api-pubsub', redis, (err) => {
-    log.error({ err }, 'Error in api-ws emitter!')
-  })
+  const apiPubSubEmitter = new RedisPubSubEmitter(
+    'api-pubsub',
+    redis,
+    (err) => {
+      log.error({ err }, 'Error in api-ws emitter!')
+    },
+    log,
+  )
   const stripeWebhookMessage = message.event
 
   switch (stripeWebhookMessage.type) {

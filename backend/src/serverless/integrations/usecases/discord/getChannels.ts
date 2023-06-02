@@ -1,12 +1,12 @@
 import axios from 'axios'
+import { timeout } from '@crowd/common'
+import { Logger } from '@crowd/logging'
 import {
   DiscordApiChannel,
   DiscordGetChannelsInput,
   DiscordGetMessagesInput,
 } from '../../types/discordTypes'
 import getMessages from './getMessages'
-import { timeout } from '../../../../utils/timing'
-import { Logger } from '../../../../utils/logging'
 
 /**
  * Try if a channel is readable

@@ -1,9 +1,9 @@
+import { timeout } from '@crowd/common'
 import TenantService from '../../services/tenantService'
 import { CrowdJob } from '../../types/jobTypes'
 import { sendNodeWorkerMessage } from '../../serverless/utils/nodeWorkerSQS'
 import { NodeWorkerMessageType } from '../../serverless/types/workerTypes'
 import { NodeWorkerMessageBase } from '../../types/mq/nodeWorkerMessageBase'
-import { timeout } from '../../utils/timing'
 
 const job: CrowdJob = {
   name: 'Merge suggestions',

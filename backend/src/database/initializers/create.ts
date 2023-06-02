@@ -1,4 +1,4 @@
-import { getServiceLogger } from '../../utils/logging'
+import { getServiceLogger } from '@crowd/logging'
 import models from '../models'
 
 const log = getServiceLogger()

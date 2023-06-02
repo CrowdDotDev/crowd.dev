@@ -1,4 +1,4 @@
-import { v4 as uuid } from 'uuid'
+import { generateUUIDv4 as uuid } from '@crowd/common'
 import {
   AutomationData,
   AutomationState,
@@ -6,7 +6,7 @@ import {
   AutomationType,
   NewMemberSettings,
 } from '../../../../../../types/automationTypes'
-import { PlatformType } from '../../../../../../types/integrationEnums'
+import { PlatformType } from '@crowd/types'
 import { shouldProcessMember } from '../newMemberWorker'
 
 function createAutomationData(settings: NewMemberSettings): AutomationData {

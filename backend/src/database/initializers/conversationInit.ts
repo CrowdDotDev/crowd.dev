@@ -4,12 +4,12 @@
  */
 import dotenv from 'dotenv'
 import dotenvExpand from 'dotenv-expand'
-import { getServiceLogger } from '../../utils/logging'
+import { getServiceLogger } from '@crowd/logging'
+import { PlatformType } from '@crowd/types'
 import TenantService from '../../services/tenantService'
 import ActivityService from '../../services/activityService'
 import getUserContext from '../utils/getUserContext'
 import SequelizeRepository from '../repositories/sequelizeRepository'
-import { PlatformType } from '../../types/integrationEnums'
 
 const path = require('path')
 

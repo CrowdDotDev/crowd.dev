@@ -1,11 +1,11 @@
 import cronGenerator from 'cron-time-generator'
+import { getServiceLogger } from '@crowd/logging'
 import SequelizeRepository from '../../database/repositories/sequelizeRepository'
 import { CrowdJob } from '../../types/jobTypes'
 import { sendNodeWorkerMessage } from '../../serverless/utils/nodeWorkerSQS'
 import { NodeWorkerMessageBase } from '../../types/mq/nodeWorkerMessageBase'
 import { NodeWorkerMessageType } from '../../serverless/types/workerTypes'
 import TenantRepository from '../../database/repositories/tenantRepository'
-import { getServiceLogger } from '../../utils/logging'
 
 const job: CrowdJob = {
   name: 'organization enricher',

@@ -1,7 +1,7 @@
 <template>
   <div class="organization-view-header panel relative">
-    <div class="flex items-start justify-between">
-      <div class="flex items-start">
+    <div class="flex justify-between">
+      <div class="flex items-center">
         <app-avatar
           :entity="{
             avatar: organization.logo,

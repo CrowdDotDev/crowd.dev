@@ -1,9 +1,9 @@
-import { createServiceChildLogger } from '../../utils/logging'
-import { KUBE_MODE } from '../../config/index'
+import { getServiceChildLogger } from '@crowd/logging'
+import { KUBE_MODE } from '../../conf/index'
 import bulkOperations from './operationsWorker'
 import getUserContext from '../../database/utils/getUserContext'
 
-const log = createServiceChildLogger('dbOperations.handler')
+const log = getServiceChildLogger('dbOperations.handler')
 
 export async function consumer(event) {
   if (!KUBE_MODE) {

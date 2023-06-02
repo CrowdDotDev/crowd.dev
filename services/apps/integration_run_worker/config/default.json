@@ -1,0 +1,9 @@
+{
+  "db": {},
+  "sqs": {},
+  "redis": {},
+  "nango": {},
+  "worker": {
+    "maxRetries": 5
+  }
+}

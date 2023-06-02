@@ -1,12 +1,12 @@
-import { CrowdJob } from '../../types/jobTypes'
-import SequelizeRepository from '../../database/repositories/sequelizeRepository'
-import IntegrationRunRepository from '../../database/repositories/integrationRunRepository'
-import { createServiceChildLogger } from '../../utils/logging'
+import { getServiceChildLogger } from '@crowd/logging'
 import IncomingWebhookRepository from '../../database/repositories/incomingWebhookRepository'
+import IntegrationRunRepository from '../../database/repositories/integrationRunRepository'
+import SequelizeRepository from '../../database/repositories/sequelizeRepository'
+import { CrowdJob } from '../../types/jobTypes'
 
 const MAX_MONTHS_TO_KEEP = 3
 
-const log = createServiceChildLogger('cleanUp')
+const log = getServiceChildLogger('cleanUp')
 
 export const cleanUpOldRuns = async () => {
   const dbOptions = await SequelizeRepository.getDefaultIRepositoryOptions()

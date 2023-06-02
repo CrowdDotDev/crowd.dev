@@ -1,19 +1,18 @@
 import sanitizeHtml from 'sanitize-html'
 import moment from 'moment'
+import { HackerNewsActivityType, HACKERNEWS_GRID } from '@crowd/integrations'
+import { IntegrationType, PlatformType } from '@crowd/types'
 import { MemberAttributeName } from '../../../../database/attributes/member/enums'
 import { HackerNewsMemberAttributes } from '../../../../database/attributes/member/hackerNews'
 import MemberAttributeSettingsService from '../../../../services/memberAttributeSettingsService'
-import { HackerNewsActivityType } from '../../../../types/activityTypes'
 import {
   IIntegrationStream,
   IPendingStream,
   IProcessStreamResults,
   IStepContext,
 } from '../../../../types/integration/stepResult'
-import { IntegrationType, PlatformType } from '../../../../types/integrationEnums'
 import Operations from '../../../dbOperations/operations'
 import getPost from '../../usecases/hackerNews/getPost'
-import { HackerNewsGrid } from '../../grid/hackerNewsGrid'
 import {
   HackerNewsResponse,
   HackerNewsIntegrationSettings,
@@ -149,8 +148,8 @@ export class HackerNewsIntegrationService extends IntegrationServiceBase {
       title: post.title,
       url,
       channel,
-      score: HackerNewsGrid[type].score,
-      isContribution: HackerNewsGrid[type].isContribution,
+      score: HACKERNEWS_GRID[type].score,
+      isContribution: HACKERNEWS_GRID[type].isContribution,
       attributes: {
         commentsCount: post.descendants,
         destinationUrl: post.url,

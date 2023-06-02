@@ -1,8 +1,8 @@
 import axios, { AxiosRequestConfig } from 'axios'
+import { Logger } from '@crowd/logging'
+import { timeout } from '@crowd/common'
 import { handleSlackError } from './errorHandler'
 import { SlackChannels, SlackGetChannelsInput } from '../../types/slackTypes'
-import { Logger } from '../../../../utils/logging'
-import { timeout } from '../../../../utils/timing'
 
 async function getChannels(input: SlackGetChannelsInput, logger: Logger): Promise<any[]> {
   await timeout(2000)
