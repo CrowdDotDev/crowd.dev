@@ -335,6 +335,7 @@ function migrate_test() {
 
 function source_edition() {
     __CROWD_EDITION=$(source $CLI_HOME/../backend/.env.dist.local && source $CLI_HOME/../backend/.env.override.local && echo $CROWD_EDITION)
+    echo "Crowd edition detected: $__CROWD_EDITION"
 }
 
 function check_init_premium() {
@@ -345,7 +346,12 @@ function check_init_premium() {
     fi
 }
 
+function install_libs() {
+    (cd $CLI_HOME/../services/scripts && ./install_lib_packages.sh && ./build_libs.sh)
+}
+
 function init_unleash() {
+    install_libs
     (cd $CLI_HOME/../backend && source source-local.sh && npm i && npm run script:unleash-init)
 }
 

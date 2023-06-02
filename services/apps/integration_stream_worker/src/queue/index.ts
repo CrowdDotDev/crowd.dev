@@ -9,6 +9,7 @@ import {
   SqsQueueReceiver,
 } from '@crowd/sqs'
 import {
+  ContinueProcessingRunStreamsQueueMessage,
   IQueueMessage,
   IntegrationStreamWorkerQueueMessageType,
   ProcessStreamQueueMessage,
@@ -43,6 +44,11 @@ export class WorkerQueueReceiver extends SqsQueueReceiver {
       )
 
       switch (message.type) {
+        case IntegrationStreamWorkerQueueMessageType.CONTINUE_PROCESSING_RUN_STREAMS:
+          await service.continueProcessingRunStreams(
+            (message as ContinueProcessingRunStreamsQueueMessage).runId,
+          )
+          break
         case IntegrationStreamWorkerQueueMessageType.PROCESS_STREAM:
           await service.processStream((message as ProcessStreamQueueMessage).streamId)
           break

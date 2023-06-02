@@ -5,7 +5,7 @@ import IntegrationDataRepository from '../repo/integrationData.repo'
 import { IActivityData, IntegrationResultType } from '@crowd/types'
 import { addSeconds, singleOrDefault } from '@crowd/common'
 import { INTEGRATION_SERVICES, IProcessDataContext } from '@crowd/integrations'
-import { WORKER_SETTINGS, PLATFORM_CONFIG } from '../config'
+import { WORKER_SETTINGS, PLATFORM_CONFIG } from '@/conf'
 import { DataSinkWorkerEmitter, IntegrationStreamWorkerEmitter } from '@crowd/sqs'
 
 export default class IntegrationDataService extends LoggerBase {

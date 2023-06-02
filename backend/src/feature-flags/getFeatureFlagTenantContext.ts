@@ -1,6 +1,6 @@
 import { RedisCache, RedisClient } from '@crowd/redis'
 import { Logger } from '@crowd/logging'
-import { getSecondsTillEndOfMonth } from '@crowd/common'
+import { getSecondsTillEndOfMonth } from '../utils/timing'
 import AutomationRepository from '../database/repositories/automationRepository'
 import { FeatureFlagRedisKey } from '../types/common'
 

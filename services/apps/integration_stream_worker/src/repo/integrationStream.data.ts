@@ -18,3 +18,9 @@ export interface IStreamData {
   data: unknown
   retries: number
 }
+
+export interface IProcessableStream {
+  id: string
+  tenantId: string
+  integrationType: string
+}
