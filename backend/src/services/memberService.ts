@@ -645,8 +645,6 @@ export default class MemberService extends LoggingBase {
    * Given two members, add them to the toMerge fields of each other.
    * It will also update the tenant's toMerge list, removing any entry that contains
    * the pair.
-   * @param memberOneId ID of the first member
-   * @param memberTwoId ID of the second member
    * @returns Success/Error message
    */
   async addToMerge(suggestions: IMemberMergeSuggestion[]) {
