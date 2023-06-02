@@ -2,7 +2,7 @@ import { DbStore } from '@crowd/database'
 import { Logger, LoggerBase, getChildLogger } from '@crowd/logging'
 import { RedisCache, RedisClient } from '@crowd/redis'
 import IntegrationDataRepository from '../repo/integrationData.repo'
-import { IActivityData, IntegrationResultType } from '@crowd/types'
+import { IActivityData, IntegrationResultType, IntegrationRunState } from '@crowd/types'
 import { addSeconds, singleOrDefault } from '@crowd/common'
 import { INTEGRATION_SERVICES, IProcessDataContext } from '@crowd/integrations'
 import { WORKER_SETTINGS, PLATFORM_CONFIG } from '@/conf'
@@ -64,6 +64,11 @@ export default class IntegrationDataService extends LoggerBase {
 
     if (!dataInfo) {
       this.log.error({ dataId }, 'Data not found!')
+      return
+    }
+
+    if (dataInfo.runState === IntegrationRunState.INTEGRATION_DELETED) {
+      this.log.warn('Integration was deleted! Skipping data processing!')
       return
     }
 

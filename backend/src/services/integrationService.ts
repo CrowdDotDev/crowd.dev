@@ -20,7 +20,7 @@ import { getOrganizations } from '../serverless/integrations/usecases/linkedin/g
 import Error404 from '../errors/Error404'
 import IntegrationRunRepository from '../database/repositories/integrationRunRepository'
 import { IntegrationRunState } from '../types/integrationRunTypes'
-import { sendStartIntegrationRunMessage } from '../serverless/utils/integrationRunWorkerSQS'
+import { getIntegrationRunWorkerEmitter } from '../serverless/utils/serviceSQS'
 
 const discordToken = DISCORD_CONFIG.token2 || DISCORD_CONFIG.token
 
@@ -405,7 +405,13 @@ export default class IntegrationService {
           transaction,
         )
 
-        await sendStartIntegrationRunMessage(integration.tenantId, integration.id, true)
+        const emitter = await getIntegrationRunWorkerEmitter()
+        await emitter.triggerIntegrationRun(
+          integration.tenantId,
+          integration.platform,
+          integration.id,
+          true,
+        )
 
         await SequelizeRepository.commitTransaction(transaction)
       } catch (err) {
@@ -470,7 +476,13 @@ export default class IntegrationService {
       )
 
       if (status === 'in-progress') {
-        await sendStartIntegrationRunMessage(integration.tenantId, integration.id, true)
+        const emitter = await getIntegrationRunWorkerEmitter()
+        await emitter.triggerIntegrationRun(
+          integration.tenantId,
+          integration.platform,
+          integration.id,
+          true,
+        )
       }
       await SequelizeRepository.commitTransaction(transaction)
     } catch (err) {
@@ -552,8 +564,13 @@ export default class IntegrationService {
         { tenantId: integration.tenantId },
         'Sending devto message to int-run-worker!',
       )
-      await sendStartIntegrationRunMessage(integration.tenantId, integration.id, true)
-
+      const emitter = await getIntegrationRunWorkerEmitter()
+      await emitter.triggerIntegrationRun(
+        integration.tenantId,
+        integration.platform,
+        integration.id,
+        true,
+      )
       await SequelizeRepository.commitTransaction(transaction)
     } catch (err) {
       await SequelizeRepository.rollbackTransaction(transaction)

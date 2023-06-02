@@ -57,20 +57,26 @@ const getMember = async (
     const organization = author.data as ILinkedInOrganization
     const userId = (organization as ILinkedInCachedOrganization).userId
 
-    username = organization.name
-    sourceId = userId
-    displayName = organization.name
-    attributes[MemberAttributeName.URL] = {
-      [PlatformType.LINKEDIN]: `https://www.linkedin.com/company/${organization.vanityName}`,
-    }
-    attributes[MemberAttributeName.IS_ORGANIZATION] = {
-      [PlatformType.LINKEDIN]: true,
+    if (organization.name === 'private') {
+      username = `private-organization-${userId}`
+      displayName = `Unknown organization #${userId}`
+    } else {
+      username = organization.name
+      displayName = organization.name
+      attributes[MemberAttributeName.URL] = {
+        [PlatformType.LINKEDIN]: `https://www.linkedin.com/company/${organization.vanityName}`,
+      }
+
+      if (organization.profilePictureUrl) {
+        attributes[MemberAttributeName.AVATAR_URL] = {
+          [PlatformType.LINKEDIN]: organization.profilePictureUrl,
+        }
+      }
     }
 
-    if (organization.profilePictureUrl) {
-      attributes[MemberAttributeName.AVATAR_URL] = {
-        [PlatformType.LINKEDIN]: organization.profilePictureUrl,
-      }
+    sourceId = userId
+    attributes[MemberAttributeName.IS_ORGANIZATION] = {
+      [PlatformType.LINKEDIN]: true,
     }
   } else {
     await ctx.abortRunWithError(`Unknown author type: ${author.type}`)
