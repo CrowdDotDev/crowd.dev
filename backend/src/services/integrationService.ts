@@ -20,7 +20,7 @@ import { getOrganizations } from '../serverless/integrations/usecases/linkedin/g
 import Error404 from '../errors/Error404'
 import IntegrationRunRepository from '../database/repositories/integrationRunRepository'
 import { IntegrationRunState } from '../types/integrationRunTypes'
-import { sendGenerateRunStreamsMessage } from '../serverless/utils/integrationRunWorkerSQS'
+import { sendStartIntegrationRunMessage } from '../serverless/utils/integrationRunWorkerSQS'
 
 const discordToken = DISCORD_CONFIG.token2 || DISCORD_CONFIG.token
 
@@ -394,7 +394,6 @@ export default class IntegrationService {
 
     if (integration.status === 'pending-action') {
       const transaction = await SequelizeRepository.createTransaction(this.options)
-      let runId
 
       try {
         integration = await this.createOrUpdate(
@@ -406,22 +405,13 @@ export default class IntegrationService {
           transaction,
         )
 
-        runId = await new IntegrationRunRepository({
-          ...this.options,
-          transaction,
-        }).createInNewFramework({
-          integrationId: integration.id,
-          tenantId: integration.tenantId,
-          onboarding: true,
-          state: IntegrationRunState.PENDING,
-        })
+        await sendStartIntegrationRunMessage(integration.tenantId, integration.id, true)
 
         await SequelizeRepository.commitTransaction(transaction)
       } catch (err) {
         await SequelizeRepository.rollbackTransaction(transaction)
         throw err
       }
-      await sendGenerateRunStreamsMessage(integration.tenantId, runId)
 
       return integration
     }
@@ -467,7 +457,6 @@ export default class IntegrationService {
     }
 
     const transaction = await SequelizeRepository.createTransaction(this.options)
-    let runId
     let integration
 
     try {
@@ -481,24 +470,12 @@ export default class IntegrationService {
       )
 
       if (status === 'in-progress') {
-        runId = await new IntegrationRunRepository({
-          ...this.options,
-          transaction,
-        }).createInNewFramework({
-          integrationId: integration.id,
-          tenantId: integration.tenantId,
-          onboarding: true,
-          state: IntegrationRunState.PENDING,
-        })
+        await sendStartIntegrationRunMessage(integration.tenantId, integration.id, true)
       }
       await SequelizeRepository.commitTransaction(transaction)
     } catch (err) {
       await SequelizeRepository.rollbackTransaction(transaction)
       throw err
-    }
-
-    if (runId) {
-      await sendGenerateRunStreamsMessage(integration.tenantId, runId)
     }
 
     return integration
@@ -554,7 +531,6 @@ export default class IntegrationService {
   async devtoConnectOrUpdate(integrationData) {
     const transaction = await SequelizeRepository.createTransaction(this.options)
     let integration
-    let runId
 
     try {
       this.options.log.info('Creating devto integration!')
@@ -572,29 +548,17 @@ export default class IntegrationService {
         transaction,
       )
 
-      this.options.log.info({ integrationId: integration.id }, 'Creating devto run!')
-
-      runId = await new IntegrationRunRepository({
-        ...this.options,
-        transaction,
-      }).createInNewFramework({
-        integrationId: integration.id,
-        tenantId: integration.tenantId,
-        onboarding: true,
-        state: IntegrationRunState.PENDING,
-      })
+      this.options.log.info(
+        { tenantId: integration.tenantId },
+        'Sending devto message to int-run-worker!',
+      )
+      await sendStartIntegrationRunMessage(integration.tenantId, integration.id, true)
 
       await SequelizeRepository.commitTransaction(transaction)
     } catch (err) {
       await SequelizeRepository.rollbackTransaction(transaction)
       throw err
     }
-
-    this.options.log.info(
-      { tenantId: integration.tenantId, runId },
-      'Sending devto message to int-run-worker!',
-    )
-    await sendGenerateRunStreamsMessage(integration.tenantId, runId)
 
     return integration
   }

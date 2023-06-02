@@ -265,35 +265,6 @@ export default class IntegrationRunRepository extends RepositoryBase<
     return result[0] as IntegrationRun
   }
 
-  async createInNewFramework(data: DbIntegrationRunCreateData): Promise<string> {
-    const transaction = this.transaction
-
-    const seq = this.seq
-
-    const query = `
-      insert into integration.runs("tenantId", "integrationId", "microserviceId", onboarding, state)
-      values(:tenantId, :integrationId, :microserviceId, :onboarding, :state) returning id;
-    `
-
-    const result = await seq.query(query, {
-      replacements: {
-        tenantId: data.tenantId,
-        integrationId: data.integrationId || null,
-        microserviceId: data.microserviceId || null,
-        onboarding: data.onboarding,
-        state: data.state,
-      },
-      type: QueryTypes.SELECT,
-      transaction,
-    })
-
-    if (result.length !== 1) {
-      throw new Error(`Expected 1 row to be inserted, got ${result.length} rows instead.`)
-    }
-
-    return (result[0] as any).id
-  }
-
   override async create(data: DbIntegrationRunCreateData): Promise<IntegrationRun> {
     const transaction = this.transaction
 

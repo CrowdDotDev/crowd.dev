@@ -126,7 +126,7 @@ export const prepareActivityPayload = (activity: any): any => {
  * @param activityId activity unique ID
  * @param activityData activity data
  */
-export default async (tenantId: string, activityId?: string, activityData?: any): Promise<void> => {
+export default async (tenantId: string, activityId: string): Promise<void> => {
   const userContext = await getUserContext(tenantId)
 
   try {
@@ -138,11 +138,8 @@ export default async (tenantId: string, activityId?: string, activityData?: any)
 
     if (automations.length > 0) {
       log.info(`Found ${automations.length} automations to process!`)
-      let activity: any | undefined = activityData
+      let activity = await ActivityRepository.findById(activityId, userContext)
 
-      if (activity === undefined) {
-        activity = await ActivityRepository.findById(activityId, userContext)
-      }
       if (activity.member?.id) {
         const member = await MemberRepository.findById(activity.member.id, userContext)
         activity = {

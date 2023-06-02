@@ -376,7 +376,7 @@ export default class MemberService extends LoggerBase {
 
       if (!existing && fireCrowdWebhooks) {
         try {
-          await sendNewMemberNodeSQSMessage(this.options.currentTenant.id, record)
+          await sendNewMemberNodeSQSMessage(this.options.currentTenant.id, record.id)
         } catch (err) {
           logger.error(err, `Error triggering new member automation - ${record.id}!`)
         }

@@ -1,16 +1,16 @@
-import { singleOrDefault, addSeconds } from '@crowd/common'
+import { addSeconds, singleOrDefault } from '@crowd/common'
 import { DbStore } from '@crowd/database'
+import { INTEGRATION_SERVICES, IProcessStreamContext } from '@crowd/integrations'
 import { Logger, LoggerBase, getChildLogger } from '@crowd/logging'
 import { RedisCache, RedisClient } from '@crowd/redis'
-import IntegrationStreamRepository from '../repo/integrationStream.repo'
-import { IntegrationStreamType, RateLimitError } from '@crowd/types'
-import { INTEGRATION_SERVICES, IProcessStreamContext } from '@crowd/integrations'
-import { NANGO_CONFIG, WORKER_SETTINGS, PLATFORM_CONFIG } from '../config'
 import {
   IntegrationDataWorkerEmitter,
   IntegrationRunWorkerEmitter,
   IntegrationStreamWorkerEmitter,
 } from '@crowd/sqs'
+import { IntegrationRunState, IntegrationStreamType, RateLimitError } from '@crowd/types'
+import { NANGO_CONFIG, PLATFORM_CONFIG, WORKER_SETTINGS } from '../conf'
+import IntegrationStreamRepository from '../repo/integrationStream.repo'
 
 export default class IntegrationStreamService extends LoggerBase {
   private readonly repo: IntegrationStreamRepository
@@ -26,6 +26,25 @@ export default class IntegrationStreamService extends LoggerBase {
     super(parentLog)
 
     this.repo = new IntegrationStreamRepository(store, this.log)
+  }
+
+  public async continueProcessingRunStreams(runId: string): Promise<void> {
+    this.log.info('Continuing processing run streams!')
+
+    let streams = await this.repo.getPendingStreams(runId, 1, 20)
+    while (streams.length > 0) {
+      for (const stream of streams) {
+        this.log.info({ streamId: stream.id }, 'Triggering stream processing!')
+        await this.repo.markStreamInProgress(stream.id)
+        this.streamWorkerEmitter.triggerStreamProcessing(
+          stream.tenantId,
+          stream.integrationType,
+          stream.id,
+        )
+      }
+
+      streams = await this.repo.getPendingStreams(runId, 1, 20)
+    }
   }
 
   private async triggerRunError(
@@ -69,6 +88,11 @@ export default class IntegrationStreamService extends LoggerBase {
 
     if (!streamInfo) {
       this.log.error({ streamId }, 'Stream not found!')
+      return
+    }
+
+    if (streamInfo.runState === IntegrationRunState.DELAYED) {
+      this.log.warn('Run is delayed! Skipping stream processing!')
       return
     }
 

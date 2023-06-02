@@ -153,6 +153,42 @@ const constaintConfiguration = {
       },
     ],
   ],
+  [FeatureFlag.ORGANIZATION_ENRICHMENT]: [
+    [
+      {
+        values: [Plans.values.growth],
+        inverted: false,
+        operator: 'IN',
+        contextName: 'plan',
+        caseInsensitive: false,
+      },
+      {
+        value: PLAN_LIMITS[Plans.values.growth][FeatureFlag.ORGANIZATION_ENRICHMENT].toString(),
+        values: [],
+        inverted: false,
+        operator: 'NUM_LT',
+        contextName: 'organizationEnrichmentCount',
+        caseInsensitive: false,
+      },
+    ],
+    [
+      {
+        values: [Plans.values.essential],
+        inverted: false,
+        operator: 'IN',
+        contextName: 'plan',
+        caseInsensitive: false,
+      },
+      {
+        value: PLAN_LIMITS[Plans.values.essential][FeatureFlag.ORGANIZATION_ENRICHMENT].toString(),
+        values: [],
+        inverted: false,
+        operator: 'NUM_LT',
+        contextName: 'organizationEnrichmentCount',
+        caseInsensitive: false,
+      },
+    ],
+  ],
 }
 
 let seq: any

@@ -7,7 +7,5 @@ export default {
     'Identify sales opportunities',
   track_product_feedback: 'Track product feedback',
   share_community_reports: 'Share community reports',
-  create_community_help_center:
-    'Create a community help center',
   other: 'Other',
 };
