@@ -1,7 +1,7 @@
 import { generateUUIDv1 } from '@crowd/common'
 import { DbStore, RepositoryBase } from '@crowd/database'
 import { Logger } from '@crowd/logging'
-import { IStreamData } from './integrationStream.data'
+import { IProcessableStream, IStreamData } from './integrationStream.data'
 import {
   IntegrationRunState,
   IntegrationStreamDataState,
@@ -13,31 +13,58 @@ export default class IntegrationStreamRepository extends RepositoryBase<Integrat
     super(dbStore, parentLog)
   }
 
-  private readonly getStreamDataQuery = `
-  select  r.onboarding,
-          s."integrationId",
-          i.platform as "integrationType",
-          i.status   as "integrationState",
-          i."integrationIdentifier",
-          r.state    as "runState",
-          s."runId",
-          s."tenantId",
-          i.settings as "integrationSettings",
-          s.id,
-          s.state,
-          s."parentId",
-          s.identifier,
-          s.data,
-          coalesce(s.retries, 0) as retries
-    from integration.streams s
-            inner join integrations i on s."integrationId" = i.id
-            inner join integration.runs r on r.id = s."runId"
-    where s.id = $(streamId);
-  `
+  public async getPendingStreams(
+    runId: string,
+    page: number,
+    perPage: number,
+  ): Promise<IProcessableStream[]> {
+    const results = await this.db().any(
+      `
+        select s.id,
+               s."tenantId",
+               i.platform as "integrationType"
+        from integration.streams s
+        inner join integrations i on i.id = s."integrationId"
+        where s."runId" = $(runId) and s.state = $(state)
+        order by s."createdAt" asc
+        limit ${perPage} offset ${(page - 1) * perPage}
+      `,
+      {
+        runId,
+        state: IntegrationStreamState.PENDING,
+      },
+    )
+
+    return results
+  }
+
   public async getStreamData(streamId: string): Promise<IStreamData | null> {
-    const results = await this.db().oneOrNone(this.getStreamDataQuery, {
-      streamId,
-    })
+    const results = await this.db().oneOrNone(
+      `
+    select  r.onboarding,
+            s."integrationId",
+            i.platform as "integrationType",
+            i.status   as "integrationState",
+            i."integrationIdentifier",
+            r.state    as "runState",
+            s."runId",
+            s."tenantId",
+            i.settings as "integrationSettings",
+            s.id,
+            s.state,
+            s."parentId",
+            s.identifier,
+            s.data,
+            coalesce(s.retries, 0) as retries
+      from integration.streams s
+              inner join integrations i on s."integrationId" = i.id
+              inner join integration.runs r on r.id = s."runId"
+      where s.id = $(streamId);
+    `,
+      {
+        streamId,
+      },
+    )
 
     return results
   }

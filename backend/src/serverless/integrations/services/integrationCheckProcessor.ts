@@ -10,7 +10,7 @@ import SequelizeRepository from '../../../database/repositories/sequelizeReposit
 import { IServiceOptions } from '../../../services/IServiceOptions'
 import { IntegrationRunState } from '../../../types/integrationRunTypes'
 import { NodeWorkerIntegrationProcessMessage } from '../../../types/mq/nodeWorkerIntegrationProcessMessage'
-import { sendGenerateRunStreamsMessage } from '../../utils/integrationRunWorkerSQS'
+import { sendStartIntegrationRunMessage } from '../../utils/integrationRunWorkerSQS'
 import { sendNodeWorkerMessage } from '../../utils/nodeWorkerSQS'
 import { IntegrationServiceBase } from './integrationServiceBase'
 
@@ -98,14 +98,7 @@ export class IntegrationCheckProcessor extends LoggerBase {
                   integration.id,
                 )
               if (!existingRun) {
-                const runId = await this.integrationRunRepository.createInNewFramework({
-                  integrationId: integration.id,
-                  tenantId: integration.tenantId,
-                  onboarding: false,
-                  state: IntegrationRunState.PENDING,
-                })
-
-                await sendGenerateRunStreamsMessage(integration.tenantId, runId)
+                await sendStartIntegrationRunMessage(integration.tenantId, integration.id, false)
               }
             }
           },
