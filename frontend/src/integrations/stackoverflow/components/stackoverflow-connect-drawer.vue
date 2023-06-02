@@ -178,7 +178,7 @@ import AuthCurrentTenant from '@/modules/auth/auth-current-tenant';
 import config from '@/config';
 import { IntegrationService } from '@/modules/integration/integration-service';
 
-const MAX_STACK_OVERFLOW_QUESTIONS_PER_TAG = 1100;
+const MAX_STACK_OVERFLOW_QUESTIONS_PER_TAG = 350000;
 const MAX_STACK_OVERFLOW_QUESTIONS_FOR_KEYWORDS = 1100;
 
 const store = useStore();

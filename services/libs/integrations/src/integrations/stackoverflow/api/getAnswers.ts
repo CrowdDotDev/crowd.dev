@@ -1,13 +1,13 @@
 import axios, { AxiosRequestConfig } from 'axios'
-import { Logger } from '@crowd/logging'
 import { timeout } from '@crowd/common'
+import { RateLimitError } from '@crowd/types'
+import { getNangoToken } from '../../nango'
+import { IProcessStreamContext } from '@/types'
 import {
   StackOverflowAnswersInput,
   StackOverflowAnswerResponse,
-} from '../../types/stackOverflowTypes'
-import getToken from '../nango/getToken'
-import { RateLimitError } from '../../../../types/integration/rateLimitError'
-import { STACKEXCHANGE_CONFIG } from '../../../../conf'
+  StackOverflowPlatformSettings,
+} from '../types'
 
 /**
  * Get paginated questions from StackOverflow given a set of tags
@@ -17,16 +17,19 @@ import { STACKEXCHANGE_CONFIG } from '../../../../conf'
  */
 async function getAnswers(
   input: StackOverflowAnswersInput,
-  logger: Logger,
+  ctx: IProcessStreamContext,
 ): Promise<StackOverflowAnswerResponse> {
   try {
-    logger.info({ message: 'Fetching answers from StackOverflow', input })
+    ctx.log.info({ message: 'Fetching answers from StackOverflow', input })
 
     // Gett an access token from Pizzly
-    const accessToken = await getToken(input.nangoId, 'stackexchange', logger)
+    const accessToken = await getNangoToken(input.nangoId, 'stackexchange', ctx)
+
+    const platformSettings = ctx.platformSettings as StackOverflowPlatformSettings
+    const key = platformSettings.key
 
     // we sort by creation date ascending (old first), so we can get the first answer and then relate answers to each other based on their order
-    const config: AxiosRequestConfig<any> = {
+    const config: AxiosRequestConfig = {
       method: 'get',
       url: `https://api.stackexchange.com/2.3/questions/${input.questionId}/answers`,
       params: {
@@ -37,7 +40,7 @@ async function getAnswers(
         site: 'stackoverflow',
         filter: 'withbody',
         access_token: accessToken,
-        key: STACKEXCHANGE_CONFIG.key,
+        key,
       },
     }
 
@@ -54,7 +57,7 @@ async function getAnswers(
     }
     return response
   } catch (err) {
-    logger.error(
+    ctx.log.error(
       { err, input },
       'Error while getting StackOverflow answers corresponding to a question',
     )
