@@ -14,7 +14,6 @@ import { GithubIntegrationService } from './integrations/githubIntegrationServic
 import { HackerNewsIntegrationService } from './integrations/hackerNewsIntegrationService'
 import { RedditIntegrationService } from './integrations/redditIntegrationService'
 import { SlackIntegrationService } from './integrations/slackIntegrationService'
-import { StackOverlflowIntegrationService } from './integrations/stackOverflowIntegrationService'
 import { TwitterIntegrationService } from './integrations/twitterIntegrationService'
 import { TwitterReachIntegrationService } from './integrations/twitterReachIntegrationService'
 import { WebhookProcessor } from './webhookProcessor'
@@ -39,7 +38,6 @@ export class IntegrationProcessor extends LoggerBase {
       new TwitterReachIntegrationService(),
       new SlackIntegrationService(),
       new GithubIntegrationService(),
-      new StackOverlflowIntegrationService(),
       new DiscourseIntegrationService(),
     ]
 
