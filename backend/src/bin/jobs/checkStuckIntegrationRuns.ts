@@ -207,8 +207,8 @@ export const checkStuckWebhooks = async (): Promise<void> => {
   // update retryable error state webhooks to pending state
   let errorWebhooks = await repo.findError(1, 20, WebhookProcessor.MAX_RETRY_LIMIT)
 
-  while (errorWebhooks.length > 0){
-    await repo.markAllPending(errorWebhooks.map( (w) => w.id))
+  while (errorWebhooks.length > 0) {
+    await repo.markAllPending(errorWebhooks.map((w) => w.id))
     errorWebhooks = await repo.findError(1, 20, WebhookProcessor.MAX_RETRY_LIMIT)
   }
 
