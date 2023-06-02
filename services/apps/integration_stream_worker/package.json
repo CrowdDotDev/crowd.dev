@@ -13,7 +13,8 @@
     "lint": "eslint --ext .ts src --max-warnings=0",
     "format": "prettier --write \"src/**/*.ts\"",
     "format-check": "prettier --check .",
-    "tsc-check": "tsc --noEmit"
+    "tsc-check": "tsc --noEmit",
+    "script:process-stream": "node -r tsconfig-paths/register -r ts-node/register src/bin/process-stream.ts --transpile-only"
   },
   "dependencies": {
     "@crowd/common": "file:../../libs/common",

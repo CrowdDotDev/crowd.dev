@@ -13,6 +13,28 @@ export default class IntegrationStreamRepository extends RepositoryBase<Integrat
     super(dbStore, parentLog)
   }
 
+  public async getPendingDelayedStreams(
+    page: number,
+    perPage: number,
+  ): Promise<IProcessableStream[]> {
+    const results = await this.db().any(
+      `
+        select s.id,
+               s."tenantId",
+               i.platform as "integrationType"
+        from integration.streams s
+        where s.state = $(delayedState) and s."delayedUntil" < now()
+        order by s."delayedUntil" asc
+        limit ${perPage} offset ${(page - 1) * perPage}
+      `,
+      {
+        delayedState: IntegrationStreamState.DELAYED,
+      },
+    )
+
+    return results
+  }
+
   public async getPendingStreams(
     runId: string,
     page: number,
@@ -141,6 +163,7 @@ export default class IntegrationStreamRepository extends RepositoryBase<Integrat
       `update integration.streams
        set  state = $(state),
             "delayedUntil" = $(until),
+            retries = coalesce(retries, 0) + 1,
             "updatedAt" = now()
        where id = $(streamId)`,
       {
@@ -176,7 +199,7 @@ export default class IntegrationStreamRepository extends RepositoryBase<Integrat
          set state = $(state),
              "processedAt" = now(),
              error = $(error),
-             retries = retries + 1,
+             retries = coalesce(retries, 0) + 1,
              "updatedAt" = now()
        where id = $(streamId)`,
       {

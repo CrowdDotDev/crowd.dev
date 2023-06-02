@@ -51,6 +51,7 @@
     "@crowd/redis": "file:../services/libs/redis",
     "@crowd/integrations": "file:../services/libs/integrations",
     "@crowd/types": "file:../services/libs/types",
+    "@crowd/sqs": "file:../services/libs/sqs",
     "@cubejs-client/core": "^0.30.4",
     "@google-cloud/storage": "5.3.0",
     "@octokit/auth-app": "^3.6.1",

@@ -11,6 +11,7 @@ import {
 import { IntegrationRunState, IntegrationStreamType, RateLimitError } from '@crowd/types'
 import { NANGO_CONFIG, PLATFORM_CONFIG, WORKER_SETTINGS } from '../conf'
 import IntegrationStreamRepository from '../repo/integrationStream.repo'
+import { IStreamData } from '@/repo/integrationStream.data'
 
 export default class IntegrationStreamService extends LoggerBase {
   private readonly repo: IntegrationStreamRepository
@@ -26,6 +27,27 @@ export default class IntegrationStreamService extends LoggerBase {
     super(parentLog)
 
     this.repo = new IntegrationStreamRepository(store, this.log)
+  }
+
+  public async checkStreams(): Promise<void> {
+    this.log.info('Checking for delayed streams!')
+
+    let streams = await this.repo.getPendingDelayedStreams(1, 10)
+    while (streams.length > 0) {
+      this.log.info({ streamCount: streams.length }, 'Found delayed streams!')
+
+      for (const stream of streams) {
+        this.log.info({ streamId: stream.id }, 'Restarting delayed stream!')
+        await this.repo.resetStream(stream.id)
+        await this.streamWorkerEmitter.triggerStreamProcessing(
+          stream.tenantId,
+          stream.integrationType,
+          stream.id,
+        )
+      }
+
+      streams = await this.repo.getPendingDelayedStreams(1, 10)
+    }
   }
 
   public async continueProcessingRunStreams(runId: string): Promise<void> {
@@ -65,19 +87,45 @@ export default class IntegrationStreamService extends LoggerBase {
   }
 
   private async triggerStreamError(
-    streamId: string,
+    stream: IStreamData,
     location: string,
     message: string,
     metadata?: unknown,
-    error?: Error,
+    err?: Error,
   ): Promise<void> {
-    await this.repo.markStreamError(streamId, {
+    if (err instanceof RateLimitError) {
+      const until = addSeconds(new Date(), err.rateLimitResetSeconds)
+      this.log.error(
+        { until: until.toISOString() },
+        'Rate limit error detected - pausing entire run!',
+      )
+      await this.repo.resetStream(stream.id)
+      await this.repo.delayRun(stream.runId, until)
+      return
+    }
+
+    if (stream.retries + 1 <= WORKER_SETTINGS().maxStreamRetries) {
+      // delay for #retries * 15 minutes
+      const until = addSeconds(new Date(), (stream.retries + 1) * 15 * 60)
+      this.log.warn({ until: until.toISOString() }, 'Retrying stream!')
+      await this.repo.delayStream(stream.id, until)
+      return
+    }
+
+    await this.repo.markStreamError(stream.id, {
       location,
       message,
       metadata,
-      errorMessage: error?.message,
-      errorStack: error?.stack,
-      errorString: error ? JSON.stringify(error) : undefined,
+      errorMessage: err?.message,
+      errorStack: err?.stack,
+      errorString: err ? JSON.stringify(err) : undefined,
+    })
+
+    // stop run because of stream error
+    this.log.warn('Reached maximum retries for stream! Stopping the run!')
+    await this.triggerRunError(stream.runId, 'stream-run-stop', 'Stream reached maximum retries!', {
+      retries: stream.retries + 1,
+      maxRetries: WORKER_SETTINGS().maxStreamRetries,
     })
   }
 
@@ -93,6 +141,11 @@ export default class IntegrationStreamService extends LoggerBase {
 
     if (streamInfo.runState === IntegrationRunState.DELAYED) {
       this.log.warn('Run is delayed! Skipping stream processing!')
+      return
+    }
+
+    if (streamInfo.runState === IntegrationRunState.INTEGRATION_DELETED) {
+      this.log.warn('Integration was deleted! Skipping stream processing!')
       return
     }
 
@@ -112,7 +165,7 @@ export default class IntegrationStreamService extends LoggerBase {
     if (!integrationService) {
       this.log.error({ type: streamInfo.integrationType }, 'Could not find integration service!')
       await this.triggerStreamError(
-        streamId,
+        streamInfo,
         'check-stream-int-service',
         'Could not find integration service!',
         {
@@ -190,7 +243,7 @@ export default class IntegrationStreamService extends LoggerBase {
 
       abortWithError: async (message: string, metadata?: unknown, error?: Error) => {
         this.log.error({ message }, 'Aborting stream processing with error!')
-        await this.triggerStreamError(streamId, 'stream-abort', message, metadata, error)
+        await this.triggerStreamError(streamInfo, 'stream-abort', message, metadata, error)
       },
       abortRunWithError: async (message: string, metadata?: unknown, error?: Error) => {
         this.log.error({ message }, 'Aborting run with error!')
@@ -208,43 +261,14 @@ export default class IntegrationStreamService extends LoggerBase {
       this.log.debug('Finished processing stream!')
       await this.repo.markStreamProcessed(streamId)
     } catch (err) {
-      if (err instanceof RateLimitError) {
-        const until = addSeconds(new Date(), err.rateLimitResetSeconds)
-        this.log.error(
-          { until: until.toISOString() },
-          'Rate limit error detected - pausing entire run!',
-        )
-        await this.repo.resetStream(streamId)
-        await this.repo.delayRun(streamInfo.runId, until)
-      } else {
-        this.log.error(err, 'Error while processing stream!')
-        await this.triggerStreamError(
-          streamId,
-          'stream-process',
-          'Error while processing stream!',
-          undefined,
-          err,
-        )
-
-        if (streamInfo.retries + 1 <= WORKER_SETTINGS().maxStreamRetries) {
-          // delay for #retries * 15 minutes
-          const until = addSeconds(new Date(), (streamInfo.retries + 1) * 15 * 60)
-          this.log.warn({ until: until.toISOString() }, 'Retrying stream!')
-          await this.repo.delayStream(streamId, until)
-        } else {
-          // stop run because of stream error
-          this.log.warn('Reached maximum retries for stream! Stopping the run!')
-          await this.triggerRunError(
-            streamInfo.runId,
-            'stream-run-stop',
-            'Stream reached maximum retries!',
-            {
-              retries: streamInfo.retries + 1,
-              maxRetries: WORKER_SETTINGS().maxStreamRetries,
-            },
-          )
-        }
-      }
+      this.log.error(err, 'Error while processing stream!')
+      await this.triggerStreamError(
+        streamInfo,
+        'stream-process',
+        'Error while processing stream!',
+        undefined,
+        err,
+      )
     } finally {
       await this.repo.touchRun(streamInfo.runId)
       await this.runWorkerEmitter.streamProcessed(
