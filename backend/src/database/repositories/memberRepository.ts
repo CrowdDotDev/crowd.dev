@@ -1120,10 +1120,12 @@ class MemberRepository {
     options: IRepositoryOptions,
   ): Promise<PageData<any>> {
     const tenant = SequelizeRepository.getCurrentTenant(options)
+    const segmentIds = options.currentSegments.map((s) => s.id)
     const seq = SequelizeRepository.getSequelize(options)
 
     const params: any = {
       tenantId: tenant.id,
+      segmentIds,
       limit,
       offset,
     }
@@ -1202,117 +1204,167 @@ class MemberRepository {
     }
 
     const query = `
-    with to_merge_data as (select mtm."memberId", string_agg(distinct mtm."toMergeId"::text, ',') as to_merge_ids
-                       from "memberToMerge" mtm
-                                inner join members m on mtm."memberId" = m.id
-                                inner join members m2 on mtm."toMergeId" = m2.id
-                       where m."tenantId" = :tenantId
-                         and m2."deletedAt" is null
-                       group by mtm."memberId"),
-     no_merge_data as (select mnm."memberId", string_agg(distinct mnm."noMergeId"::text, ',') as no_merge_ids
-                       from "memberNoMerge" mnm
-                                inner join members m on mnm."memberId" = m.id
-                                inner join members m2 on mnm."noMergeId" = m2.id
-                       where m."tenantId" = :tenantId
-                         and m2."deletedAt" is null
-                       group by mnm."memberId"),
-     member_tags as (select mt."memberId",
-                            json_agg(
-                                    json_build_object(
-                                            'id', t.id,
-                                            'name', t.name
-                                        )
-                                ) as all_tags,
-                            jsonb_agg(t.id) as all_ids
-                     from "memberTags" mt
-                              inner join members m on mt."memberId" = m.id
-                              inner join tags t on mt."tagId" = t.id
-                     where m."tenantId" = :tenantId
-                       and m."deletedAt" is null
-                       and t."tenantId" = :tenantId
-                       and t."deletedAt" is null
-                     group by mt."memberId"),
-     member_organizations as (select mo."memberId",
-                                     json_agg(
-                                             row_to_json(o.*)
-                                         ) as all_organizations,
-                                     jsonb_agg(o.id) as all_ids
-                              from "memberOrganizations" mo
-                                       inner join members m on mo."memberId" = m.id
-                                       inner join organizations o on mo."organizationId" = o.id
-                              where m."tenantId" = :tenantId
-                                and m."deletedAt" is null
-                                and o."tenantId" = :tenantId
-                                and o."deletedAt" is null
-                              group by mo."memberId")
-select m.id,
-       m."displayName",
-       m.attributes,
-       m.emails,
-       m."tenantId",
-       m.score,
-       m."lastEnriched",
-       m.contributions,
-       m."joinedAt",
-       m."importHash",
-       m."createdAt",
-       m."updatedAt",
-       m.reach,
-       tmd.to_merge_ids                            as "toMergeIds",
-       nmd.no_merge_ids                            as "noMergeIds",
-       aggs.username,
-       aggs.identities,
-       aggs."activeOn",
-       aggs."activityCount",
-       aggs."activityTypes",
-       aggs."activeDaysCount",
-       aggs."lastActive",
-       aggs."averageSentiment",
-       coalesce(mt.all_tags, json_build_array())   as tags,
-       coalesce(mo.all_organizations, json_build_array()) as organizations,
-       coalesce(jsonb_array_length(m.contributions), 0) as "numberOfOpenSourceContributions"
-from members m
-         inner join "memberActivityAggregatesMVs" aggs on aggs.id = m.id
-         left join to_merge_data tmd on m.id = tmd."memberId"
-         left join no_merge_data nmd on m.id = nmd."memberId"
-         left join member_tags mt on m.id = mt."memberId"
-         left join member_organizations mo on m.id = mo."memberId"
-where m."deletedAt" is null
-  and m."tenantId" = :tenantId
-  and ${filterString}
-order by ${orderByString}
-limit :limit offset :offset;
+        WITH
+            to_merge_data AS (
+                SELECT mtm."memberId", STRING_AGG(DISTINCT mtm."toMergeId"::TEXT, ',') AS to_merge_ids
+                FROM "memberToMerge" mtm
+                INNER JOIN members m ON mtm."memberId" = m.id
+                INNER JOIN members m2 ON mtm."toMergeId" = m2.id
+                WHERE m."tenantId" = :tenantId
+                  AND m2."deletedAt" IS NULL
+                  AND mtm."segmentId" IN (:segmentIds)
+                GROUP BY mtm."memberId"
+            ),
+            no_merge_data AS (
+                SELECT mnm."memberId", STRING_AGG(DISTINCT mnm."noMergeId"::TEXT, ',') AS no_merge_ids
+                FROM "memberNoMerge" mnm
+                INNER JOIN members m ON mnm."memberId" = m.id
+                INNER JOIN members m2 ON mnm."noMergeId" = m2.id
+                WHERE m."tenantId" = :tenantId
+                  AND m2."deletedAt" IS NULL
+                  AND mnm."segmentId" IN (:segmentIds)
+                GROUP BY mnm."memberId"
+            ),
+            member_tags AS (
+                SELECT
+                    mt."memberId",
+                    JSON_AGG(
+                            JSON_BUILD_OBJECT(
+                                    'id', t.id,
+                                    'name', t.name
+                                )
+                        ) AS all_tags,
+                    JSONB_AGG(t.id) AS all_ids
+                FROM "memberTags" mt
+                INNER JOIN members m ON mt."memberId" = m.id
+                JOIN "memberSegments" ms ON ms."memberId" = m.id
+                INNER JOIN tags t ON mt."tagId" = t.id
+                WHERE m."tenantId" = :tenantId
+                  AND m."deletedAt" IS NULL
+                  AND ms."segmentId" IN (:segmentIds)
+                  AND t."tenantId" = :tenantId
+                  AND t."deletedAt" IS NULL
+                  AND t."segmentId" IN (:segmentIds)
+                GROUP BY mt."memberId"
+            ),
+            member_organizations AS (
+                SELECT
+                    mo."memberId",
+                    JSON_AGG(
+                            ROW_TO_JSON(o.*)
+                        ) AS all_organizations,
+                    JSONB_AGG(o.id) AS all_ids
+                FROM "memberOrganizations" mo
+                INNER JOIN members m ON mo."memberId" = m.id
+                INNER JOIN organizations o ON mo."organizationId" = o.id
+                JOIN "memberSegments" ms ON ms."memberId" = m.id
+                JOIN "organizationSegments" os ON o.id = os."organizationId"
+                WHERE m."tenantId" = :tenantId
+                  AND m."deletedAt" IS NULL
+                  AND ms."segmentId" IN (:segmentIds)
+                  AND o."tenantId" = :tenantId
+                  AND o."deletedAt" IS NULL
+                  AND os."segmentId" IN (:segmentIds)
+                GROUP BY mo."memberId"
+            ),
+            aggs AS (
+                SELECT
+                    id,
+                    MAX("lastActive") AS "lastActive",
+                    ARRAY(SELECT DISTINCT UNNEST(ARRAY_AGG(identities))) AS identities,
+                    jsonb_merge_agg(username) AS username,
+                    SUM("activityCount") AS "activityCount",
+                    ARRAY(SELECT DISTINCT UNNEST(array_accum("activityTypes"))) AS "activityTypes",
+                    ARRAY(SELECT DISTINCT UNNEST(array_accum("activeOn"))) AS "activeOn",
+                    SUM("activeDaysCount") AS "activeDaysCount",
+                    ROUND(SUM("averageSentiment") / SUM("activityCount"), 2) AS "averageSentiment"
+                FROM "memberActivityAggregatesMVs"
+                WHERE "segmentId" IN (:segmentIds)
+                GROUP BY id
+            )
+        SELECT
+            m.id,
+            m."displayName",
+            m.attributes,
+            m.emails,
+            m."tenantId",
+            m.score,
+            m."lastEnriched",
+            m.contributions,
+            m."joinedAt",
+            m."importHash",
+            m."createdAt",
+            m."updatedAt",
+            m.reach,
+            tmd.to_merge_ids AS "toMergeIds",
+            nmd.no_merge_ids AS "noMergeIds",
+            aggs.username,
+            aggs.identities,
+            aggs."activeOn",
+            aggs."activityCount",
+            aggs."activityTypes",
+            aggs."activeDaysCount",
+            aggs."lastActive",
+            aggs."averageSentiment",
+            COALESCE(mt.all_tags, JSON_BUILD_ARRAY()) AS tags,
+            COALESCE(mo.all_organizations, JSON_BUILD_ARRAY()) AS organizations,
+            COALESCE(JSONB_ARRAY_LENGTH(m.contributions), 0) AS "numberOfOpenSourceContributions"
+        FROM members m
+        INNER JOIN aggs ON aggs.id = m.id
+        LEFT JOIN to_merge_data tmd ON m.id = tmd."memberId"
+        LEFT JOIN no_merge_data nmd ON m.id = nmd."memberId"
+        LEFT JOIN member_tags mt ON m.id = mt."memberId"
+        LEFT JOIN member_organizations mo ON m.id = mo."memberId"
+        WHERE m."deletedAt" IS NULL
+          AND m."tenantId" = :tenantId
+          AND ${filterString}
+        ORDER BY ${orderByString}
+        LIMIT :limit OFFSET :offset;
     `
 
     const countQuery = `
-with member_tags as (select mt."memberId",
-                            jsonb_agg(t.id) as all_ids
-                     from "memberTags" mt
-                              inner join members m on mt."memberId" = m.id
-                              inner join tags t on mt."tagId" = t.id
-                     where m."tenantId" = :tenantId
-                       and m."deletedAt" is null
-                       and t."tenantId" = :tenantId
-                       and t."deletedAt" is null
-                     group by mt."memberId"),
-    member_organizations as (select mo."memberId",
-                     jsonb_agg(o.id) as all_ids
-              from "memberOrganizations" mo
-                       inner join members m on mo."memberId" = m.id
-                       inner join organizations o on mo."organizationId" = o.id
-              where m."tenantId" = :tenantId
-                and m."deletedAt" is null
-                and o."tenantId" = :tenantId
-                and o."deletedAt" is null
-              group by mo."memberId")    
-select count(m.id) as "totalCount"
-from members m
-         inner join "memberActivityAggregatesMVs" aggs on aggs.id = m.id
-         left join member_tags mt on m.id = mt."memberId"
-         left join member_organizations mo on m.id = mo."memberId"
-where m."deletedAt" is null
-  and m."tenantId" = :tenantId
-  and ${filterString};
+        WITH
+            member_tags AS (
+                SELECT
+                    mt."memberId",
+                    JSONB_AGG(t.id) AS all_ids
+                FROM "memberTags" mt
+                INNER JOIN members m ON mt."memberId" = m.id
+                JOIN "memberSegments" ms ON ms."memberId" = m.id
+                INNER JOIN tags t ON mt."tagId" = t.id
+                WHERE m."tenantId" = :tenantId
+                  AND m."deletedAt" IS NULL
+                  AND ms."segmentId" IN (:segmentIds)
+                  AND t."tenantId" = :tenantId
+                  AND t."deletedAt" IS NULL
+                  AND t."segmentId" IN (:segmentIds)
+                GROUP BY mt."memberId"
+            ),
+            member_organizations AS (
+                SELECT
+                    mo."memberId",
+                    JSONB_AGG(o.id) AS all_ids
+                FROM "memberOrganizations" mo
+                INNER JOIN members m ON mo."memberId" = m.id
+                INNER JOIN organizations o ON mo."organizationId" = o.id
+                JOIN "memberSegments" ms ON ms."memberId" = m.id
+                JOIN "organizationSegments" os ON o.id = os."organizationId"
+                WHERE m."tenantId" = :tenantId
+                  AND m."deletedAt" IS NULL
+                  AND ms."segmentId" IN (:segmentIds)
+                  AND o."tenantId" = :tenantId
+                  AND o."deletedAt" IS NULL
+                  AND os."segmentId" IN (:segmentIds)
+                GROUP BY mo."memberId"
+            )
+        SELECT COUNT(m.id) AS "totalCount"
+        FROM members m
+        INNER JOIN "memberActivityAggregatesMVs" aggs ON aggs.id = m.id
+        LEFT JOIN member_tags mt ON m.id = mt."memberId"
+        LEFT JOIN member_organizations mo ON m.id = mo."memberId"
+        WHERE m."deletedAt" IS NULL
+          AND m."tenantId" = :tenantId
+          AND ${filterString};
     `
 
     if (countOnly) {
@@ -1345,16 +1397,22 @@ where m."deletedAt" is null
     if (memberIds.length > 0) {
       const lastActivities = await seq.query(
         `
-          with raw_data as (
-              select *, row_number() over (partition by "memberId" order by timestamp desc) as rn from activities
-              where "tenantId" = :tenantId and "memberId" in (:memberIds)
-          )
-          select * from raw_data
-          where rn = 1;
-      `,
+            WITH
+                raw_data AS (
+                    SELECT *, ROW_NUMBER() OVER (PARTITION BY "memberId" ORDER BY timestamp DESC) AS rn
+                    FROM activities
+                    WHERE "tenantId" = :tenantId
+                      AND "memberId" IN (:memberIds)
+                      AND "segmentId" IN (:segmentIds)
+                )
+            SELECT *
+            FROM raw_data
+            WHERE rn = 1;
+        `,
         {
           replacements: {
             tenantId: tenant.id,
+            segmentIds,
             memberIds,
           },
           type: QueryTypes.SELECT,
