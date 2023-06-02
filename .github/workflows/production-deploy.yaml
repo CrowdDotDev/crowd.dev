@@ -289,7 +289,7 @@ jobs:
       - uses: ./.github/actions/deploy-service
         with:
           service: integration-run-worker
-          image: ${{ needs.build-and-push-backend.outputs.image }}
+          image: ${{ needs.build-and-push-integration-run-worker.outputs.image }}
           cluster: ${{ env.CROWD_CLUSTER }}
 
   deploy-integration-stream-worker:
@@ -307,7 +307,7 @@ jobs:
       - uses: ./.github/actions/deploy-service
         with:
           service: integration-stream-worker
-          image: ${{ needs.build-and-push-backend.outputs.image }}
+          image: ${{ needs.build-and-push-integration-stream-worker.outputs.image }}
           cluster: ${{ env.CROWD_CLUSTER }}
 
   deploy-integration-data-worker:
@@ -325,7 +325,7 @@ jobs:
       - uses: ./.github/actions/deploy-service
         with:
           service: integration-data-worker
-          image: ${{ needs.build-and-push-backend.outputs.image }}
+          image: ${{ needs.build-and-push-integration-data-worker.outputs.image }}
           cluster: ${{ env.CROWD_CLUSTER }}
 
   deploy-data-sink-worker:
@@ -343,7 +343,7 @@ jobs:
       - uses: ./.github/actions/deploy-service
         with:
           service: data-sink-worker
-          image: ${{ needs.build-and-push-backend.outputs.image }}
+          image: ${{ needs.build-and-push-data-sink-worker.outputs.image }}
           cluster: ${{ env.CROWD_CLUSTER }}
 
   deploy-frontend:

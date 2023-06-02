@@ -1,5 +1,5 @@
 import { RedisCache } from '@crowd/redis'
-import { getSecondsTillEndOfMonth } from '@crowd/common'
+import { getSecondsTillEndOfMonth } from '../../utils/timing'
 import Permissions from '../../security/permissions'
 import identifyTenant from '../../segment/identifyTenant'
 import track from '../../segment/track'

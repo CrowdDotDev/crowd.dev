@@ -1,4 +1,4 @@
-import { IntegrationState, IntegrationRunState } from '@crowd/types'
+import { IntegrationRunState, IntegrationState } from '@crowd/types'
 
 export interface IGenerateStreamsData {
   onboarding: boolean
@@ -12,4 +12,18 @@ export interface IGenerateStreamsData {
   hasSampleData: boolean
   integrationSettings: unknown
   streamCount: number
+}
+
+export interface IStartIntegrationRunData {
+  id: string
+  type: string
+  state: IntegrationState
+  identifier: string | null
+  tenantId: string
+}
+
+export interface IPendingDelayedRun {
+  id: string
+  tenantId: string
+  integrationType: string
 }

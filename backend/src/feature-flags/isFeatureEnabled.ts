@@ -9,6 +9,7 @@ export const PLAN_LIMITS = {
     [FeatureFlag.AUTOMATIONS]: 2,
     [FeatureFlag.CSV_EXPORT]: 2,
     [FeatureFlag.MEMBER_ENRICHMENT]: 5,
+    [FeatureFlag.ORGANIZATION_ENRICHMENT]: 5,
   },
   [Plans.values.growth]: {
     [FeatureFlag.AUTOMATIONS]: 10,

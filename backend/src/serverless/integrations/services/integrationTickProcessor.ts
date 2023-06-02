@@ -8,6 +8,7 @@ import { NodeWorkerIntegrationCheckMessage } from '../../../types/mq/nodeWorkerI
 import { NodeWorkerIntegrationProcessMessage } from '../../../types/mq/nodeWorkerIntegrationProcessMessage'
 import { sendNodeWorkerMessage } from '../../utils/nodeWorkerSQS'
 import { IntegrationServiceBase } from './integrationServiceBase'
+import { checkRunsMessage } from '../../utils/integrationRunWorkerSQS'
 
 export class IntegrationTickProcessor extends LoggerBase {
   private tickTrackingMap: Map<IntegrationType, number> = new Map()
@@ -76,6 +77,7 @@ export class IntegrationTickProcessor extends LoggerBase {
   }
 
   private async processDelayedTick() {
+    await checkRunsMessage()
     this.log.trace('Checking for delayed integration runs!')
 
     await processPaginated(
