@@ -546,6 +546,12 @@ export default class MemberService extends LoggingBase {
       // Remove toMerge from original member
       await MemberRepository.removeToMerge(originalId, toMergeId, repoOptions)
 
+      const secondMemberSegments = await MemberRepository.getMemberSegments(toMergeId, repoOptions)
+      await MemberRepository.includeMemberToSegments(toMergeId, {
+        ...repoOptions,
+        currentSegments: secondMemberSegments,
+      })
+
       // Delete toMerge member
       await MemberRepository.destroy(toMergeId, repoOptions, true)
 
