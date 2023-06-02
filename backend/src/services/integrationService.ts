@@ -794,7 +794,13 @@ export default class IntegrationService {
         { tenantId: integration.tenantId },
         'Sending StackOverflow message to int-run-worker!',
       )
-      await sendStartIntegrationRunMessage(integration.tenantId, integration.id, true)
+      const emitter = await getIntegrationRunWorkerEmitter()
+      await emitter.triggerIntegrationRun(
+        integration.tenantId,
+        integration.platform,
+        integration.id,
+        true,
+      )
 
       await SequelizeRepository.commitTransaction(transaction)
     } catch (err) {
