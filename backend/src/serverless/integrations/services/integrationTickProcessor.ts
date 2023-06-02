@@ -33,6 +33,10 @@ export class IntegrationTickProcessor extends LoggerBase {
     for (const intService of this.integrationServices) {
       this.tickTrackingMap[intService.type] = 0
     }
+
+    for (const intService of INTEGRATION_SERVICES) {
+      this.tickTrackingMap[intService.type] = 0
+    }
   }
 
   async initEmitters() {
