@@ -1,14 +1,14 @@
 <template>
-  <div style="display: flex">
+  <div class="flex">
     <component
       :is="customComponent"
       :class="`member-display-name ${customClass}`"
       :to="
         withLink
           ? {
-              name: 'memberView',
-              params: { id: member.id },
-            }
+            name: 'memberView',
+            params: { id: member.id },
+          }
           : null
       "
     >
@@ -19,8 +19,8 @@
 </template>
 
 <script setup>
-import { defineProps } from "vue";
-import AppMemberBadge from "@/modules/member/components/member-badge.vue";
+import { defineProps } from 'vue';
+import AppMemberBadge from '@/modules/member/components/member-badge.vue';
 
 const props = defineProps({
   member: {
@@ -42,11 +42,11 @@ const props = defineProps({
   },
 });
 
-const customComponent = props.withLink ? "router-link" : "span";
+const customComponent = props.withLink ? 'router-link' : 'span';
 </script>
 
 <script>
 export default {
-  name: "AppMemberDisplayName",
+  name: 'AppMemberDisplayName',
 };
 </script>
