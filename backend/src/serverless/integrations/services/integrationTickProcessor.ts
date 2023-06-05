@@ -1,17 +1,27 @@
+import { IntegrationRunWorkerEmitter, IntegrationStreamWorkerEmitter } from '@crowd/sqs'
 import { processPaginated } from '@crowd/common'
 import { INTEGRATION_SERVICES } from '@crowd/integrations'
 import { LoggerBase } from '@crowd/logging'
 import { IntegrationType } from '@crowd/types'
+import {
+  getIntegrationRunWorkerEmitter,
+  getIntegrationStreamWorkerEmitter,
+} from '../../utils/serviceSQS'
 import IntegrationRunRepository from '../../../database/repositories/integrationRunRepository'
 import { IServiceOptions } from '../../../services/IServiceOptions'
 import { NodeWorkerIntegrationCheckMessage } from '../../../types/mq/nodeWorkerIntegrationCheckMessage'
 import { NodeWorkerIntegrationProcessMessage } from '../../../types/mq/nodeWorkerIntegrationProcessMessage'
 import { sendNodeWorkerMessage } from '../../utils/nodeWorkerSQS'
 import { IntegrationServiceBase } from './integrationServiceBase'
-import { checkRunsMessage } from '../../utils/integrationRunWorkerSQS'
 
 export class IntegrationTickProcessor extends LoggerBase {
   private tickTrackingMap: Map<IntegrationType, number> = new Map()
+
+  private emittersInitialized = false
+
+  private intRunWorkerEmitter: IntegrationRunWorkerEmitter
+
+  private intStreamWorkerEmitter: IntegrationStreamWorkerEmitter
 
   constructor(
     options: IServiceOptions,
@@ -22,6 +32,19 @@ export class IntegrationTickProcessor extends LoggerBase {
 
     for (const intService of this.integrationServices) {
       this.tickTrackingMap[intService.type] = 0
+    }
+
+    for (const intService of INTEGRATION_SERVICES) {
+      this.tickTrackingMap[intService.type] = 0
+    }
+  }
+
+  async initEmitters() {
+    if (!this.emittersInitialized) {
+      this.intRunWorkerEmitter = await getIntegrationRunWorkerEmitter()
+      this.intStreamWorkerEmitter = await getIntegrationStreamWorkerEmitter()
+
+      this.emittersInitialized = true
     }
   }
 
@@ -77,7 +100,11 @@ export class IntegrationTickProcessor extends LoggerBase {
   }
 
   private async processDelayedTick() {
-    await checkRunsMessage()
+    await this.initEmitters()
+    await this.intRunWorkerEmitter.checkRuns()
+    await this.intStreamWorkerEmitter.checkStreams()
+
+    // TODO check streams as well
     this.log.trace('Checking for delayed integration runs!')
 
     await processPaginated(

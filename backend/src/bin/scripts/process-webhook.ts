@@ -10,6 +10,7 @@ import IncomingWebhookRepository from '../../database/repositories/incomingWebho
 import { WebhookState, WebhookType } from '../../types/webhooks'
 import { NodeWorkerProcessWebhookMessage } from '../../types/mq/nodeWorkerProcessWebhookMessage'
 import { sqs, getCurrentQueueSize } from '../../services/aws'
+import { WebhookProcessor } from '../../serverless/integrations/services/webhookProcessor'
 import { SQS_CONFIG } from '../../conf'
 
 /* eslint-disable no-console */
@@ -91,7 +92,12 @@ if (parameters.help || (!parameters.webhook && !parameters.processPlatformErrors
       }
 
       log.debug('Processing error state webhooks!')
-      let webhooks = await repo.findError(webhookType, currentPage, PAGE_SIZE)
+      let webhooks = await repo.findError(
+        currentPage,
+        PAGE_SIZE,
+        WebhookProcessor.MAX_RETRY_LIMIT,
+        webhookType,
+      )
 
       log.info(webhooks.map((w) => w.id))
 
@@ -127,7 +133,12 @@ if (parameters.help || (!parameters.webhook && !parameters.processPlatformErrors
           `Queue size(${queueSize}) below threshold(${PROCESS_QUEUE_THRESHOLD}) - Continuing with page${currentPage}`,
         )
 
-        webhooks = await repo.findError(webhookType, currentPage, PAGE_SIZE)
+        webhooks = await repo.findError(
+          currentPage,
+          PAGE_SIZE,
+          WebhookProcessor.MAX_RETRY_LIMIT,
+          webhookType,
+        )
       }
     } else {
       const webhookIds = parameters.webhook.split(',')

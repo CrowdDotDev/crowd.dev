@@ -467,7 +467,35 @@ class MemberRepository {
       return this._populateRelations(records[0], options)
     }
 
-    return records[0].get({ plain: true })
+    const plainMember = records[0].get({ plain: true })
+
+    plainMember.organizations = await this.getOrganizationIds(records[0].id, options)
+
+    return plainMember
+  }
+
+  static async getOrganizationIds(id: string, options: IRepositoryOptions) {
+    const transaction = SequelizeRepository.getTransaction(options)
+
+    const results = await options.database.sequelize.query(
+      `
+    select array_agg(mo."organizationId") as "organizationIds" from "memberOrganizations" mo
+    where mo."memberId" = :memberId
+    group by mo."memberId";`,
+      {
+        type: Sequelize.QueryTypes.SELECT,
+        replacements: {
+          memberId: id,
+        },
+        transaction,
+      },
+    )
+
+    if (results.length > 0) {
+      return results[0].organizationIds
+    }
+
+    return []
   }
 
   static async update(id, data, options: IRepositoryOptions, doPopulateRelations = true) {
@@ -2305,12 +2333,12 @@ where m."deletedAt" is null
       output.activityCount > 0
         ? Math.round(
             (output.activities.reduce((acc, i) => {
-              if ('sentiment' in i.sentiment) {
+              if (i.sentiment && 'sentiment' in i.sentiment) {
                 acc += i.sentiment.sentiment
               }
               return acc
             }, 0) /
-              output.activities.filter((i) => 'sentiment' in i.sentiment).length) *
+              output.activities.filter((i) => i.sentiment && 'sentiment' in i.sentiment).length) *
               100,
           ) / 100
         : 0

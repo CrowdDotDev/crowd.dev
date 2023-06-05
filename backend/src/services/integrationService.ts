@@ -20,7 +20,7 @@ import { getOrganizations } from '../serverless/integrations/usecases/linkedin/g
 import Error404 from '../errors/Error404'
 import IntegrationRunRepository from '../database/repositories/integrationRunRepository'
 import { IntegrationRunState } from '../types/integrationRunTypes'
-import { sendStartIntegrationRunMessage } from '../serverless/utils/integrationRunWorkerSQS'
+import { getIntegrationRunWorkerEmitter } from '../serverless/utils/serviceSQS'
 
 const discordToken = DISCORD_CONFIG.token2 || DISCORD_CONFIG.token
 
@@ -405,7 +405,13 @@ export default class IntegrationService {
           transaction,
         )
 
-        await sendStartIntegrationRunMessage(integration.tenantId, integration.id, true)
+        const emitter = await getIntegrationRunWorkerEmitter()
+        await emitter.triggerIntegrationRun(
+          integration.tenantId,
+          integration.platform,
+          integration.id,
+          true,
+        )
 
         await SequelizeRepository.commitTransaction(transaction)
       } catch (err) {
@@ -470,7 +476,13 @@ export default class IntegrationService {
       )
 
       if (status === 'in-progress') {
-        await sendStartIntegrationRunMessage(integration.tenantId, integration.id, true)
+        const emitter = await getIntegrationRunWorkerEmitter()
+        await emitter.triggerIntegrationRun(
+          integration.tenantId,
+          integration.platform,
+          integration.id,
+          true,
+        )
       }
       await SequelizeRepository.commitTransaction(transaction)
     } catch (err) {
@@ -552,8 +564,13 @@ export default class IntegrationService {
         { tenantId: integration.tenantId },
         'Sending devto message to int-run-worker!',
       )
-      await sendStartIntegrationRunMessage(integration.tenantId, integration.id, true)
-
+      const emitter = await getIntegrationRunWorkerEmitter()
+      await emitter.triggerIntegrationRun(
+        integration.tenantId,
+        integration.platform,
+        integration.id,
+        true,
+      )
       await SequelizeRepository.commitTransaction(transaction)
     } catch (err) {
       await SequelizeRepository.rollbackTransaction(transaction)
@@ -757,9 +774,9 @@ export default class IntegrationService {
   async stackOverflowConnectOrUpdate(integrationData) {
     const transaction = await SequelizeRepository.createTransaction(this.options)
     let integration
-    let run
 
     try {
+      this.options.log.info('Creating Stack Overflow integration!')
       integration = await this.createOrUpdate(
         {
           platform: PlatformType.STACKOVERFLOW,
@@ -773,22 +790,23 @@ export default class IntegrationService {
         transaction,
       )
 
-      run = await new IntegrationRunRepository({ ...this.options, transaction }).create({
-        integrationId: integration.id,
-        tenantId: integration.tenantId,
-        onboarding: true,
-        state: IntegrationRunState.PENDING,
-      })
+      this.options.log.info(
+        { tenantId: integration.tenantId },
+        'Sending StackOverflow message to int-run-worker!',
+      )
+      const emitter = await getIntegrationRunWorkerEmitter()
+      await emitter.triggerIntegrationRun(
+        integration.tenantId,
+        integration.platform,
+        integration.id,
+        true,
+      )
+
       await SequelizeRepository.commitTransaction(transaction)
     } catch (err) {
       await SequelizeRepository.rollbackTransaction(transaction)
       throw err
     }
-
-    await sendNodeWorkerMessage(
-      integration.tenantId,
-      new NodeWorkerIntegrationProcessMessage(run.id),
-    )
 
     return integration
   }

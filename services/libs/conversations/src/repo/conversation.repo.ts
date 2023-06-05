@@ -59,8 +59,8 @@ export class ConversationRepository extends RepositoryBase<ConversationRepositor
 
     const now = new Date()
     const result = await this.db().result(
-      `insert into "conversationSettins"(id, "tenantId", "createdAt", "updatedAt")
-       values ($(id), $(tenantId), $(now), $(now));`,
+      `insert into "conversationSettings"(id, "tenantId", "createdAt", "updatedAt", "createdById")
+       values ($(id), $(tenantId), $(now), $(now), (select "createdById" from tenants where id = $(tenantId) limit 1));`,
       {
         id,
         tenantId,

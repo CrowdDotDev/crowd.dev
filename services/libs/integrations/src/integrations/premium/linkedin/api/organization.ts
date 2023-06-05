@@ -30,7 +30,18 @@ export const getOrganization = async (
     const accessToken = await getNangoToken(nangoId, PlatformType.LINKEDIN, ctx)
     config.params.oauth2_access_token = accessToken
 
-    const response = (await axios(config)).data.results[organizationId]
+    const result = await axios(config)
+
+    const response = result.data.results[organizationId]
+
+    if (!response) {
+      return {
+        id: parseInt(organizationId, 10),
+        name: 'private',
+        organizationUrn: `urn:li:organization:${organizationId}`,
+        vanityName: 'private',
+      }
+    }
 
     let profilePictureUrl: string | undefined
 

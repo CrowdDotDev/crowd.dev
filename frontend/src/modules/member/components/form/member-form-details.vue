@@ -130,7 +130,7 @@ const createOrganizationFn = (value) => OrganizationService.create({
 })
   .then((newOrganization) => ({
     id: newOrganization.id,
-    label: newOrganization.name,
+    label: newOrganization.displayName,
   }))
   .catch(() => null);
 </script>

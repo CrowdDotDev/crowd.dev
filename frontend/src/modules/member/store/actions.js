@@ -13,7 +13,11 @@ import {
   showEnrichmentLoadingMessage,
   checkEnrichmentPlan,
 } from '@/modules/member/member-enrichment';
-import { getExportMax, showExportLimitDialog, showExportDialog } from '@/modules/member/member-export-limit';
+import {
+  getExportMax,
+  showExportLimitDialog,
+  showExportDialog,
+} from '@/modules/member/member-export-limit';
 import { MemberModel } from '../member-model';
 
 export default {
@@ -55,16 +59,15 @@ export default {
       const currentTenant = rootGetters['auth/currentTenant'];
 
       const tenantCsvExportCount = currentTenant.csvExportCount;
-      const planExportCountMax = getExportMax(
-        currentTenant.plan,
-      );
+      const planExportCountMax = getExportMax(currentTenant.plan);
 
       await showExportDialog({
         tenantCsvExportCount,
         planExportCountMax,
-        badgeContent: selected || count
-          ? pluralize('member', count || getters.selectedRows.length, true)
-          : `View: ${getters.activeView.label}`,
+        badgeContent:
+          selected || count
+            ? pluralize('member', count || getters.selectedRows.length, true)
+            : `View: ${getters.activeView.label}`,
       });
 
       await MemberService.export(
@@ -79,18 +82,14 @@ export default {
         root: true,
       });
 
-      Message.success(
-        'CSV download link will be sent to your e-mail',
-      );
+      Message.success('CSV download link will be sent to your e-mail');
     } catch (error) {
       commit('EXPORT_ERROR');
       console.error(error);
 
       if (error.response?.status === 403) {
         const currentTenant = rootGetters['auth/currentTenant'];
-        const planExportCountMax = getExportMax(
-          currentTenant.plan,
-        );
+        const planExportCountMax = getExportMax(currentTenant.plan);
 
         showExportLimitDialog({ planExportCountMax });
       } else if (error !== 'cancel') {
@@ -124,19 +123,14 @@ export default {
       });
 
       Message.success(
-        `Member${
-          selectedRows.length > 1 ? 's' : ''
-        } updated successfully`,
+        `Member${selectedRows.length > 1 ? 's' : ''} updated successfully`,
       );
     } catch (error) {
       Errors.handle(error);
     }
   },
 
-  async doDestroyCustomAttributes(
-    { commit, dispatch },
-    id,
-  ) {
+  async doDestroyCustomAttributes({ commit, dispatch }, id) {
     try {
       commit('DESTROY_CUSTOM_ATTRIBUTES_STARTED');
       const response = await MemberService.destroyCustomAttribute(id);
@@ -149,10 +143,7 @@ export default {
     }
   },
 
-  async doUpdateCustomAttributes(
-    { commit, dispatch },
-    { id, data },
-  ) {
+  async doUpdateCustomAttributes({ commit, dispatch }, { id, data }) {
     try {
       commit('UPDATE_CUSTOM_ATTRIBUTES_STARTED');
       const response = await MemberService.updateCustomAttribute(id, data);
@@ -176,10 +167,7 @@ export default {
     }
   },
 
-  async doCreateCustomAttributes(
-    { commit, dispatch },
-    values,
-  ) {
+  async doCreateCustomAttributes({ commit, dispatch }, values) {
     try {
       commit('CREATE_ATTRIBUTES_STARTED');
       const response = await MemberService.createCustomAttributes(values);
@@ -194,17 +182,12 @@ export default {
       }
       commit('CREATE_ATTRIBUTES_ERROR');
 
-      Message.error(
-        i18n('entities.member.attributes.error'),
-      );
+      Message.error(i18n('entities.member.attributes.error'));
     }
     return null;
   },
 
-  async doMerge(
-    { commit },
-    { memberToKeep, memberToMerge },
-  ) {
+  async doMerge({ commit }, { memberToKeep, memberToMerge }) {
     try {
       commit('MERGE_STARTED', {
         memberToKeep,
@@ -245,12 +228,10 @@ export default {
       });
       const payload = members.reduce((acc, item) => {
         const memberToUpdate = { ...item };
-        const tagsToKeep = item.tags.filter((tag) => (
-          tagsInCommon.filter((t) => t.id === tag.id)
-            .length === 0
-            && tagsToSave.filter((t) => t.id === tag.id)
-              .length === 0
-        ));
+        const tagsToKeep = item.tags.filter(
+          (tag) => tagsInCommon.filter((t) => t.id === tag.id).length === 0
+            && tagsToSave.filter((t) => t.id === tag.id).length === 0,
+        );
 
         memberToUpdate.tags = [...tagsToKeep, ...tagsToSave];
         acc.push(
@@ -261,13 +242,8 @@ export default {
         );
         return acc;
       }, []);
-      const updatedMembers = await MemberService.updateBulk(
-        payload,
-      );
-      commit(
-        'BULK_UPDATE_MEMBERS_TAGS_SUCCESS',
-        updatedMembers,
-      );
+      const updatedMembers = await MemberService.updateBulk(payload);
+      commit('BULK_UPDATE_MEMBERS_TAGS_SUCCESS', updatedMembers);
     } catch (error) {
       Errors.handle(error);
       commit('BULK_UPDATE_MEMBERS_TAGS_ERROR');
@@ -278,9 +254,7 @@ export default {
     try {
       const currentTenant = rootGetters['auth/currentTenant'];
 
-      const planEnrichmentCountMax = getEnrichmentMax(
-        currentTenant.plan,
-      );
+      const planEnrichmentCountMax = getEnrichmentMax(currentTenant.plan);
 
       // Check if it has reached enrichment maximum
       // If so, show dialog to upgrade plan
@@ -306,8 +280,7 @@ export default {
 
       // Show enrichment success message
       showEnrichmentSuccessMessage({
-        memberEnrichmentCount:
-          updatedTenant.memberEnrichmentCount,
+        memberEnrichmentCount: updatedTenant.memberEnrichmentCount,
         planEnrichmentCountMax,
         plan: currentTenant.plan,
         isBulk: false,
@@ -336,16 +309,13 @@ export default {
       const currentTenant = rootGetters['auth/currentTenant'];
 
       const { memberEnrichmentCount } = currentTenant;
-      const planEnrichmentCountMax = getEnrichmentMax(
-        currentTenant.plan,
-      );
+      const planEnrichmentCountMax = getEnrichmentMax(currentTenant.plan);
 
       // Check if it is trying to enrich more members than
       // the number available for the current tenant plan
       if (
         checkEnrichmentPlan({
-          enrichmentCount:
-            memberEnrichmentCount + ids.length,
+          enrichmentCount: memberEnrichmentCount + ids.length,
           planEnrichmentCountMax,
         })
       ) {
@@ -358,10 +328,15 @@ export default {
         return;
       }
 
-      // Show enrichment loading message
-      showEnrichmentLoadingMessage({ isBulk: true });
-
-      await MemberService.enrichMemberBulk(ids);
+      if (ids.length === 1) {
+        // showEnrichmentLoadingMessage({ isBulk: false });
+        console.log('here');
+        await MemberService.enrichMember(ids[0]);
+      } else {
+        // Show enrichment loading message
+        showEnrichmentLoadingMessage({ isBulk: true });
+        await MemberService.enrichMemberBulk(ids);
+      }
 
       await dispatch('doFetchCustomAttributes');
     } catch (error) {

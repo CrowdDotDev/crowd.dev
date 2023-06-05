@@ -3,10 +3,11 @@ import fs from 'fs'
 import path from 'path'
 import { IIntegrationDescriptor } from '../types'
 import devto from './devto'
+import stackoverflow from './stackoverflow'
 
 const log = getServiceChildLogger('integrations')
 
-export const INTEGRATION_SERVICES: IIntegrationDescriptor[] = [devto]
+export const INTEGRATION_SERVICES: IIntegrationDescriptor[] = [devto, stackoverflow]
 
 log.info(
   { types: INTEGRATION_SERVICES.map((i) => i.type) },
