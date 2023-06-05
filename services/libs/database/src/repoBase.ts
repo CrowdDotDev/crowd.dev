@@ -144,11 +144,8 @@ export abstract class RepositoryBase<TRepo extends RepositoryBase<TRepo>> extend
     const obj: any = {}
 
     for (const column of columnSet.columns) {
-      let value = (entity as unknown as Record<string, unknown>)[column.name]
+      const value = (entity as unknown as Record<string, unknown>)[column.name]
       if (value !== undefined) {
-        if (typeof value === 'string') {
-          value = this.escapeString(value)
-        }
         obj[column.name] = value
       } else {
         obj[column.name] = undefined
@@ -169,14 +166,7 @@ export abstract class RepositoryBase<TRepo extends RepositoryBase<TRepo>> extend
     }
   }
 
-  public static escapeString(str: string): string {
-    // need to escape $(), $<>, $[] and $// and prepend with another dollar sign
-    // to avoid pg-promise named parameter parsing
-    return str
-      .replace(/(\$[{])/g, '$$$$1') // Replace ${ with $${ to escape it
-      .replace(/(\$[[(])/g, '$$$$1') // Replace $[ with $$[ to escape it
-      .replace(/(\$[<])/g, '$$$$1') // Replace $< with $$< to escape it
-      .replace(/(\$[\\/])/g, '$$$$1') // Replace $/ with $$/ to escape it
-      .replace(/(\$[(])/g, '$$$$1') // Replace $( with $$(
+  protected format(condition: string, params: unknown): string {
+    return this.dbInstance.as.format(condition, params)
   }
 }
