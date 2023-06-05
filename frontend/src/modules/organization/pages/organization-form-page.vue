@@ -355,6 +355,8 @@ async function onSubmit() {
   const data = {
 
     ...formModel.value,
+    name: isEditPage.value === false ? formModel.value.displayName : undefined,
+    displayName: isEditPage.value === true ? formModel.value.displayName : undefined,
     emails: formModel.value.emails.reduce((acc, item) => {
       if (item !== '') {
         acc.push(item);
