@@ -14,35 +14,42 @@
         >
           <span class="text-3xs font-semibold">{{ usernameHandles.length }}</span>
         </div>
-        <component
-          :is="asLink ? 'a' : 'span'"
-          :href="href"
-          target="_blank"
-          rel="noopener noreferrer"
-          class="btn min-h-8 min-w-[32px] h-8 w-8 text-base"
-          :class="`
-        ${
-            !asLink || !href
-              ? 'hover:cursor-auto'
-              : 'hover:cursor-pointer'
-          } ${getIconClass(platform)}`"
-          @click.stop="asLink ? trackClick : null"
+        <el-tooltip
+          :disabled="!showTooltip || imageProperties || platform === 'email' || platform === 'phone'"
+          :content="platform"
+          placement="top"
         >
-          <i
-            v-if="platform === 'email'"
-            class="ri-mail-line"
-          />
-          <i
-            v-else-if="platform === 'phone'"
-            class="ri-phone-fill"
-          />
-          <img
-            v-else
-            :src="imageProperties.image"
-            :alt="imageProperties.name"
-            class="channels-icon"
-          />
-        </component>
+          <component
+            :is="asLink ? 'a' : 'span'"
+            :href="href"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="btn min-h-8 min-w-[32px] h-8 w-8 text-base"
+            :class="`
+        ${
+              !asLink || !href
+                ? 'hover:cursor-auto'
+                : 'hover:cursor-pointer'
+            } ${getIconClass(platform)}`"
+            @click.stop="asLink ? trackClick : null"
+          >
+            <i
+              v-if="platform === 'email'"
+              class="ri-mail-line"
+            />
+            <i
+              v-else-if="platform === 'phone'"
+              class="ri-phone-fill"
+            />
+            <img
+              v-else-if="imageProperties"
+              :src="imageProperties.image"
+              :alt="imageProperties.name"
+              class="channels-icon"
+            />
+            <i v-else class="ri-user-3-fill" />
+          </component>
+        </el-tooltip>
       </div>
     </template>
   </app-platform-popover>
@@ -82,10 +89,24 @@ const props = defineProps({
     type: Boolean,
     default: false,
   },
+  showTooltip: {
+    type: Boolean,
+    default: false,
+  },
+  href: {
+    type: String,
+    default: null,
+  },
 });
 
 const imageProperties = computed(() => CrowdIntegrations.getConfig(props.platform));
-const href = computed(() => (props.usernameHandles.length === 1 ? CrowdIntegrations.getConfig(props.platform)?.url(props.usernameHandles[0]) : null));
+const href = computed(() => {
+  if (props.href) {
+    return props.href;
+  }
+
+  return (props.usernameHandles.length === 1 ? CrowdIntegrations.getConfig(props.platform)?.url(props.usernameHandles[0]) : null);
+});
 
 const trackClick = () => {
   window.analytics.track(props.trackEventName, {
@@ -93,7 +114,13 @@ const trackClick = () => {
   });
 };
 
-const getIconClass = (platform) => `btn--${platform}`;
+const getIconClass = (platform) => {
+  if (!CrowdIntegrations.getConfig(platform)) {
+    return 'btn--custom-platform';
+  }
+
+  return `btn--${platform}`;
+};
 </script>
 
 <script>

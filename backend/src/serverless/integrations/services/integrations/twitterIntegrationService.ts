@@ -1,8 +1,9 @@
 import moment from 'moment'
 import lodash from 'lodash'
+import { TWITTER_GRID, TwitterActivityType } from '@crowd/integrations'
+import { IntegrationType, PlatformType } from '@crowd/types'
 import { IntegrationServiceBase } from '../integrationServiceBase'
-import { IntegrationType, PlatformType } from '../../../../types/integrationEnums'
-import { TWITTER_CONFIG } from '../../../../config'
+import { TWITTER_CONFIG } from '../../../../conf'
 import {
   IIntegrationStream,
   IPendingStream,
@@ -19,7 +20,6 @@ import findPostsByMention from '../../usecases/twitter/getPostsByMention'
 import findPostsByHashtag from '../../usecases/twitter/getPostsByHashtag'
 import { AddActivitiesSingle, PlatformIdentities } from '../../types/messageTypes'
 import { MemberAttributeName } from '../../../../database/attributes/member/enums'
-import { TwitterGrid } from '../../grid/twitterGrid'
 import Operations from '../../../dbOperations/operations'
 import IntegrationRepository from '../../../../database/repositories/integrationRepository'
 
@@ -154,11 +154,7 @@ export class TwitterIntegrationService extends IntegrationServiceBase {
     }
   }
 
-  async postprocess(
-    context: IStepContext,
-    failedStreams?: IIntegrationStream[],
-    remainingStreams?: IIntegrationStream[],
-  ): Promise<void> {
+  async postprocess(context: IStepContext): Promise<void> {
     if (context.onboarding) {
       // When we are onboarding we reset the frequency to RESET_FREQUENCY_DAYS.in_hours - 6 hours.
       // This is because the tweets allowed during onboarding are free. Like this, the limit will reset 6h after the onboarding.
@@ -262,8 +258,8 @@ export class TwitterIntegrationService extends IntegrationServiceBase {
           },
         },
       },
-      score: TwitterGrid.follow.score,
-      isContribution: TwitterGrid.follow.isContribution,
+      score: TWITTER_GRID[TwitterActivityType.FOLLOW].score,
+      isContribution: TWITTER_GRID[TwitterActivityType.FOLLOW].isContribution,
     }))
 
     // It is imperative that we remove the followers we have already seen.
@@ -332,11 +328,14 @@ export class TwitterIntegrationService extends IntegrationServiceBase {
           },
           reach: { [PlatformType.TWITTER]: record.member.public_metrics.followers_count },
         },
-        score: stream.value === 'mentions' ? TwitterGrid.mention.score : TwitterGrid.hashtag.score,
+        score:
+          stream.value === 'mentions'
+            ? TWITTER_GRID[TwitterActivityType.MENTION].score
+            : TWITTER_GRID[TwitterActivityType.HASHTAG].score,
         isContribution:
           stream.value === 'mentions'
-            ? TwitterGrid.mention.isContribution
-            : TwitterGrid.hashtag.isContribution,
+            ? TWITTER_GRID[TwitterActivityType.MENTION].isContribution
+            : TWITTER_GRID[TwitterActivityType.HASHTAG].isContribution,
       }
 
       if (stream.value.includes('hashtag')) {

@@ -11,4 +11,15 @@ export default {
   connectComponent: RedditConnect,
   url: (username) => `https://reddit.com/user/${username}`,
   chartColor: '#FF4500',
+  showProfileLink: true,
+  activityDisplay: {
+    showLinkToUrl: true,
+  },
+  conversationDisplay: {
+    replyContent: (conversation) => ({
+      icon: 'ri-reply-line',
+      copy: 'reply',
+      number: conversation.activityCount - 1,
+    }),
+  },
 };

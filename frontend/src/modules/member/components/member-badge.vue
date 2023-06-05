@@ -46,7 +46,7 @@ const props = defineProps({
 
 const isTeam = computed(() => props.member.attributes.isTeamMember?.default);
 
-const isBot = computed(() => props.member.attributes.isBot);
+const isBot = computed(() => props.member.attributes.isBot?.default);
 
 const isNew = computed(() => (
   moment().diff(moment(props.member.joinedAt), 'days')

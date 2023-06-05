@@ -1,5 +1,5 @@
 import { SegmentData } from '../../types/segmentTypes'
-import { Logger } from '../../utils/logging'
+import { Logger } from '@crowd/logging'
 
 export interface IRepositoryOptions {
   log: Logger

@@ -56,6 +56,7 @@ const defaultConfig = {
     id: process.env.VUE_APP_SAMPLE_TENANT_ID,
     token: process.env.VUE_APP_SAMPLE_TENANT_TOKEN,
   },
+  isGitEnabled: process.env.VUE_APP_IS_GIT_ENABLED,
 };
 
 const composedConfig = {
@@ -104,6 +105,7 @@ const composedConfig = {
     id: 'CROWD_VUE_APP_SAMPLE_TENANT_ID',
     token: 'CROWD_VUE_APP_SAMPLE_TENANT_TOKEN',
   },
+  isGitEnabled: 'CROWD_VUE_APP_IS_GIT_ENABLED',
 };
 
 const config = defaultConfig.backendUrl
@@ -113,5 +115,6 @@ const config = defaultConfig.backendUrl
 config.isCommunityVersion = config.edition === 'community';
 config.hasPremiumModules = !config.isCommunityVersion
   || config.communityPremium === 'true';
+config.isGitIntegrationEnabled = config.isGitEnabled === 'true';
 
 export default config;

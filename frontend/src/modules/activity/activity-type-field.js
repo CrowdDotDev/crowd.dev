@@ -3,6 +3,7 @@ import { toSentenceCase } from '@/utils/string';
 import { CrowdIntegrations } from '@/integrations/integrations-config';
 import { storeToRefs } from 'pinia';
 import { useActivityTypeStore } from '@/modules/activity/store/type';
+import appConfig from '@/config';
 
 export default class ActivityTypeField extends JSONField {
   constructor(name, label, config = {}) {
@@ -18,17 +19,29 @@ export default class ActivityTypeField extends JSONField {
   }
 
   getActivityTypes(activityTypes) {
-    return Object.entries(activityTypes).map(([key, value]) => ({
-      label: {
-        type: 'platform',
-        key,
-        value: CrowdIntegrations.getConfig(key).name,
-      },
-      nestedOptions: Object.entries(value).map(([activityKey, activityValue]) => ({
-        value: activityKey,
-        label: toSentenceCase(activityValue.display.short),
-      })),
-    }));
+    return Object.entries(activityTypes)
+      // Remove empty activity types and git if integration is not enabled
+      // (temporary fix for default activity types stored in custom ones)
+      .filter(([k, v]) => (!!Object.keys(v || {}).length) && (!appConfig.isGitIntegrationEnabled ? k !== 'git' : true))
+      .map(([key, value]) => {
+        let platformName = CrowdIntegrations.getConfig(key)?.name;
+
+        if (!platformName) {
+          platformName = key === 'other' ? 'Custom' : key;
+        }
+
+        return {
+          label: {
+            type: 'platform',
+            key,
+            value: platformName,
+          },
+          nestedOptions: Object.entries(value).map(([activityKey, activityValue]) => ({
+            value: activityKey,
+            label: toSentenceCase(activityValue.display.short),
+          })),
+        };
+      });
   }
 
   dropdownOptions() {
@@ -39,6 +52,18 @@ export default class ActivityTypeField extends JSONField {
       default: defaultActivityTypes,
       custom: customActivityTypes,
     } = types.value;
+
+    // Temporary fix for default activity types stored in custom ones
+    Object.keys(customActivityTypes).forEach((key) => {
+      if (key in defaultActivityTypes) {
+        defaultActivityTypes[key] = {
+          ...customActivityTypes[key],
+          ...defaultActivityTypes[key],
+        };
+
+        delete customActivityTypes[key];
+      }
+    });
 
     const defaultOptions = this.getActivityTypes(defaultActivityTypes);
     const customOptions = this.getActivityTypes(customActivityTypes);
@@ -72,8 +97,8 @@ export default class ActivityTypeField extends JSONField {
         options: this.dropdownOptions(),
         multiple: false,
       },
-      defaultValue: null,
-      value: null,
+      defaultValue: [],
+      value: [],
       defaultOperator: null,
       operator: null,
       type: 'select-group',

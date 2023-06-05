@@ -13,7 +13,7 @@
     "start:dev:local": "set -a && . ./.env.dist.local && . ./.env.override.local && set +a && vue-cli-service serve --mode localhost --port 8081",
     "test": "node tests/localhost-runner.js",
     "test:e2e:open": "wait-on http://localhost:8081 && npx cypress open",
-    "test:e2e:run": "wait-on http://localhost:8081 && npx cypress run",
+    "test:e2e:run": "wait-on http://localhost:8081 && npx cypress run --headless --browser chrome",
     "test:e2e:staging:open": "npx cypress open --config-file cypress.staging.config.js",
     "test:e2e:staging:run": "npx cypress run --config-file cypress.staging.config.js",
     "tailwind:view": "tailwind-config-viewer -o"

@@ -9,6 +9,7 @@ export default [
     component: OnboardPage,
     meta: {
       auth: true,
+      title: 'Onboarding',
     },
     beforeEnter: () => {
       const initialState = buildInitialState(true);

@@ -11,11 +11,13 @@ import {
   BulkEnrichMessage,
   EagleEyeEmailDigestMessage,
   IntegrationDataCheckerMessage,
+  OrganizationBulkEnrichMessage,
 } from './messageTypes'
 import { AutomationTrigger, AutomationType } from '../../../types/automationTypes'
 import newActivityWorker from './automation/workers/newActivityWorker'
 import newMemberWorker from './automation/workers/newMemberWorker'
 import webhookWorker from './automation/workers/webhookWorker'
+import slackWorker from './automation/workers/slackWorker'
 import { csvExportWorker } from './csv-export/csvExportWorker'
 import { processStripeWebhook } from '../../integrations/workers/stripeWebhookWorker'
 import { processSendgridWebhook } from '../../integrations/workers/sendgridWebhookWorker'
@@ -24,6 +26,8 @@ import { eagleEyeEmailDigestWorker } from './eagle-eye-email-digest/eagleEyeEmai
 import { integrationDataCheckerWorker } from './integration-data-checker/integrationDataCheckerWorker'
 import { refreshSampleDataWorker } from './integration-data-checker/refreshSampleDataWorker'
 import { mergeSuggestionsWorker } from './merge-suggestions/mergeSuggestionsWorker'
+import { searchEngineUpdate } from './searchEngineUpdate/searchEngineUpdate'
+import { BulkorganizationEnrichmentWorker } from './bulk-enrichment/bulkOrganizationEnrichmentWorker'
 
 /**
  * Worker factory for spawning different microservices
@@ -35,6 +39,8 @@ import { mergeSuggestionsWorker } from './merge-suggestions/mergeSuggestionsWork
 async function workerFactory(event: NodeMicroserviceMessage): Promise<any> {
   const { service, tenant } = event as any
   switch (service.toLowerCase()) {
+    case 'search-engine-update':
+      return searchEngineUpdate(tenant, (event as any).conversationId)
     case 'stripe-webhooks':
       return processStripeWebhook(event)
     case 'sendgrid-webhooks':
@@ -67,6 +73,10 @@ async function workerFactory(event: NodeMicroserviceMessage): Promise<any> {
     case 'bulk-enrich':
       const bulkEnrichMessage = event as BulkEnrichMessage
       return bulkEnrichmentWorker(bulkEnrichMessage.tenant, bulkEnrichMessage.memberIds)
+    case 'enrich-organizations': {
+      const bulkEnrichMessage = event as OrganizationBulkEnrichMessage
+      return BulkorganizationEnrichmentWorker(bulkEnrichMessage.tenantId)
+    }
 
     case 'automation-process':
       const automationProcessRequest = event as ProcessAutomationMessage
@@ -81,6 +91,15 @@ async function workerFactory(event: NodeMicroserviceMessage): Promise<any> {
             webhookProcessRequest.eventId,
             webhookProcessRequest.payload,
           )
+        case AutomationType.SLACK:
+          const slackProcessRequest = event as ProcessWebhookAutomationMessage
+          return slackWorker(
+            tenant,
+            slackProcessRequest.automationId,
+            slackProcessRequest.automation,
+            slackProcessRequest.eventId,
+            slackProcessRequest.payload,
+          )
         default:
           throw new Error(`Invalid automation type ${automationProcessRequest.automationType}!`)
       }
@@ -91,18 +110,10 @@ async function workerFactory(event: NodeMicroserviceMessage): Promise<any> {
       switch (automationRequest.trigger) {
         case AutomationTrigger.NEW_ACTIVITY:
           const newActivityAutomationRequest = event as NewActivityAutomationMessage
-          return newActivityWorker(
-            tenant,
-            newActivityAutomationRequest.activityId,
-            newActivityAutomationRequest.activity,
-          )
+          return newActivityWorker(tenant, newActivityAutomationRequest.activityId)
         case AutomationTrigger.NEW_MEMBER:
           const newMemberAutomationRequest = event as NewMemberAutomationMessage
-          return newMemberWorker(
-            tenant,
-            newMemberAutomationRequest.memberId,
-            newMemberAutomationRequest.member,
-          )
+          return newMemberWorker(tenant, newMemberAutomationRequest.memberId)
         default:
           throw new Error(`Invalid automation trigger ${automationRequest.trigger}!`)
       }

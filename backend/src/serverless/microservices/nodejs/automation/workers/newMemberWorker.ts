@@ -1,5 +1,9 @@
-import getUserContext from '../../../../../database/utils/getUserContext'
+import { getServiceChildLogger } from '@crowd/logging'
+import AutomationExecutionRepository from '../../../../../database/repositories/automationExecutionRepository'
 import AutomationRepository from '../../../../../database/repositories/automationRepository'
+import MemberRepository from '../../../../../database/repositories/memberRepository'
+import SequelizeRepository from '../../../../../database/repositories/sequelizeRepository'
+import getUserContext from '../../../../../database/utils/getUserContext'
 import {
   AutomationData,
   AutomationState,
@@ -7,14 +11,9 @@ import {
   AutomationType,
   NewMemberSettings,
 } from '../../../../../types/automationTypes'
-import MemberRepository from '../../../../../database/repositories/memberRepository'
 import { sendWebhookProcessRequest } from './util'
-import { MemberAutomationData } from '../../messageTypes'
-import { createServiceChildLogger } from '../../../../../utils/logging'
-import AutomationExecutionRepository from '../../../../../database/repositories/automationExecutionRepository'
-import SequelizeRepository from '../../../../../database/repositories/sequelizeRepository'
 
-const log = createServiceChildLogger('newMemberWorker')
+const log = getServiceChildLogger('newMemberWorker')
 
 /**
  * Helper function to check whether a single member should be processed by automation
@@ -85,11 +84,7 @@ export const prepareMemberPayload = (member: any): any => {
  * @param memberId tenant member ID
  * @param memberData community member data
  */
-export default async (
-  tenantId: string,
-  memberId?: string,
-  memberData?: MemberAutomationData,
-): Promise<void> => {
+export default async (tenantId: string, memberId?: string): Promise<void> => {
   const userContext = await getUserContext(tenantId)
 
   try {
@@ -102,10 +97,7 @@ export default async (
     if (automations.length > 0) {
       log.info(`Found ${automations.length} automations to process!`)
 
-      let member: any | undefined = memberData
-      if (member === undefined) {
-        member = await MemberRepository.findById(memberId, userContext)
-      }
+      const member = await MemberRepository.findById(memberId, userContext)
 
       for (const automation of automations) {
         if (await shouldProcessMember(member, automation)) {
@@ -118,6 +110,16 @@ export default async (
                 automation,
                 member.id,
                 prepareMemberPayload(member),
+                AutomationType.WEBHOOK,
+              )
+              break
+            case AutomationType.SLACK:
+              await sendWebhookProcessRequest(
+                tenantId,
+                automation,
+                member.id,
+                prepareMemberPayload(member),
+                AutomationType.SLACK,
               )
               break
             default:

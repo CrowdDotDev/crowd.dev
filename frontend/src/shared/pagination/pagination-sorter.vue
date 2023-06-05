@@ -5,6 +5,8 @@
   >
     <span
       v-if="total"
+      id="totalCount"
+      data-qa="members-total"
       class="text-gray-500 text-sm"
     ><span v-if="hasPageCounter">{{ count.minimum.toLocaleString('en') }}-{{
        count.maximum.toLocaleString('en')
@@ -125,13 +127,7 @@ const computedOptions = computed(() => {
   ];
 });
 
-const computedLabel = computed(() => {
-  const word = props.module === 'community-help-center'
-    ? 'conversation'
-    : props.module;
-
-  return pluralize(word, props.total, true);
-});
+const computedLabel = computed(() => pluralize(props.module, props.total, true));
 
 const count = computed(() => ({
   minimum:

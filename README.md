@@ -5,7 +5,7 @@
 
   </a>
 
-  <h2 align="center">Grow your Developer Tool through Community</h2>
+  <h2 align="center">Understand who is engaging with your open source project.</h2>
   
   <p align="center">
     <br>
@@ -27,35 +27,35 @@
 
 ## About crowd.dev
 
-crowd.dev is an open-source suite of community and data tools built to unlock community-led growth for your organization.
+crowd.dev is an open-source platform to centralize community, product, and customer data to understand who is engaging with your open source project.
 
-The modern buying journey of developers happens 90% outside of what your CRM covers. Decisions are made by developers and developers rely on community. Community is where developers explore new products, ask questions to peers, and make buying decisions.
+More than 90% of companies use open-source software. Yet, most of these companies are unaware of the highly relevant commercial offerings of open-source projects. For open-source companies, tapping into this audience is the most significant opportunity for commercialization. What stands in the way? Go-To-Market teams lack needed data across community engagement, interaction with developer docs, and self-hosted deployments.
 
-With crowd.dev, you get full visibility into all online platforms and can take actions to strengthen and grow your company’s most valuable asset - your developer community. Self-hosted or hosted by us, with developers in mind, open to extensions, and with full control over your community's data.
+With crowd.dev, you get full visibility into all platforms and can take actions to strengthen and grow your company’s most valuable asset - your developer community. Self-hosted or hosted by us, with developers in mind, open to extensions, and with full control over your data.
 
 <img src="https://user-images.githubusercontent.com/41432658/198830271-cbe6d3c7-0c46-4539-98cc-b13c495ddedf.png" alt="UI Home screen">
 
 
 ## ✨ Features
-### Core Features
-- Integrate with platforms like GitHub, Discord, Slack, Twitter, DEV or HackerNews to track community activities
-- Get background information about your community members & the companies they belong to and manage them with tags and automated segmentation
-- Analyze your community, create custom metrics, organize them in reports and share them publicly with your community, your investors, or your team
-- Use webhooks to automate routine tasks
-
-### Growth Apps
-- [Community Help Center](https://www.crowd.dev/community-help-center): Detect relevant conversations and publish them in a community help center to reduce duplicate questions and get your community's content listed on search engines
-- [Eagle Eye](https://www.crowd.dev/eagle-eye): Monitor dev-focussed community platforms to find relevant content to engage with, helping you to gain developers’ mindshare and grow your community organically
+- **Plug & play integrations** to tie all relevant platforms - like GitHub, Discord, Slack, or LinkedIn - together. ([all integrations](https://www.crowd.dev/integrations))
+- **Identity resolution & automated segmentation** to effortlessly understand activities and profiles across platforms.
+- **Opinionated analytics & reports** on topics like product-market-fit and open-source community activity to further inform your GTM strategy.
+- **Workflows automation** with webhooks.
+- **2-way CRM sync & Slack alerts** to get notified about intent events in real-time. [cloud only]
+- **User enrichment** with 25+ attributes, including emails, social profiles, work experience, and technical skills. [cloud only]
+- **Organization enrichment** with 50+ attributes, including industry, headcount, and revenue. [cloud only]
+- **Sentiment analysis and conversation detection** to stay on top of what's going on in your open source community. [cloud only]
+- **[Eagle Eye](https://www.crowd.dev/eagle-eye)**: Monitor dev-focussed community platforms to find relevant content to engage with, helping you to gain developers’ mindshare and grow your community organically [cloud only]
 
 ## 🔔 Stay up-to-date
 
-Crowd.dev is still in beta and we ship new features every month. To stay in the loop, leave us a star and subscribe to our <a href="https://crowd.dev/newsletter-sign-up">monthly newsletter</a>. Thanks a lot! ❤️
+crowd.dev is still in beta and we ship new features every week. To stay in the loop, leave us a star and subscribe to our <a href="https://crowd.dev/newsletter-sign-up">monthly newsletter</a>. Thanks a lot! ❤️
 
 ## 🚀 Getting started
 
 ### Cloud version
 
-Our <a href="https://crowd.dev/#waitlist">cloud version</a> is a fast, easy and free way to get started with crowd.dev. We're currently still in closed beta but onboard new communities every week.
+Our <a href="https://crowd.dev/#waitlist">cloud version</a> is a fast, easy and free way to get started with crowd.dev. 
 
 ### Self-hosted version
 
@@ -129,7 +129,7 @@ We take security very seriously. If you come across any security vulnerabilities
 
 ## 💌 Acknowledgements
 
-Crowd.dev is powered by these awesome projects:
+crowd.dev is powered by these awesome projects:
 
 - <a href="https://github.com/vuejs/vue">Vue.js</a>
 - <a href="https://github.com/tailwindlabs/tailwindcss">Tailwind CSS</a>

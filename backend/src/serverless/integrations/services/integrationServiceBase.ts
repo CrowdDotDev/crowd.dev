@@ -1,8 +1,9 @@
 import { SuperfaceClient } from '@superfaceai/one-sdk'
 import moment from 'moment'
 import crypto from 'crypto'
+import { getServiceChildLogger } from '@crowd/logging'
+import { IntegrationType } from '@crowd/types'
 import { IRepositoryOptions } from '../../../database/repositories/IRepositoryOptions'
-import { createServiceChildLogger } from '../../../utils/logging'
 import {
   IIntegrationStream,
   IPendingStream,
@@ -11,14 +12,13 @@ import {
   IStepContext,
   IStreamResultOperation,
 } from '../../../types/integration/stepResult'
-import { IntegrationType } from '../../../types/integrationEnums'
-import { IS_TEST_ENV } from '../../../config'
+import { IS_TEST_ENV } from '../../../conf'
 import { sendNodeWorkerMessage } from '../../utils/nodeWorkerSQS'
 import { NodeWorkerIntegrationProcessMessage } from '../../../types/mq/nodeWorkerIntegrationProcessMessage'
 import IntegrationRunRepository from '../../../database/repositories/integrationRunRepository'
 import { IntegrationRunState } from '../../../types/integrationRunTypes'
 
-const logger = createServiceChildLogger('integrationService')
+const logger = getServiceChildLogger('integrationService')
 
 /* eslint class-methods-use-this: 0 */
 
@@ -102,11 +102,7 @@ export abstract class IntegrationServiceBase {
     return false
   }
 
-  async postprocess(
-    context: IStepContext,
-    failedStreams?: IIntegrationStream[],
-    remainingStreams?: IIntegrationStream[],
-  ): Promise<void> {
+  async postprocess(context: IStepContext): Promise<void> {
     // do nothing - override if something is needed
   }
 

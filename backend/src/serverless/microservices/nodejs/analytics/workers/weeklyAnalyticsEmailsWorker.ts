@@ -1,26 +1,26 @@
 import moment from 'moment'
 import { QueryTypes } from 'sequelize'
 import { convert as convertHtmlToText } from 'html-to-text'
+import { prettyActivityTypes } from '@crowd/integrations'
+import { getServiceChildLogger } from '@crowd/logging'
+import { PlatformType } from '@crowd/types'
 import getUserContext from '../../../../../database/utils/getUserContext'
 import CubeJsService from '../../../../../services/cubejs/cubeJsService'
 import EmailSender from '../../../../../services/emailSender'
 import ConversationService from '../../../../../services/conversationService'
-import { SENDGRID_CONFIG, S3_CONFIG } from '../../../../../config'
+import { SENDGRID_CONFIG, S3_CONFIG } from '../../../../../conf'
 import CubeJsRepository from '../../../../../cubejs/cubeJsRepository'
 import { AnalyticsEmailsOutput } from '../../messageTypes'
 import getStage from '../../../../../services/helpers/getStage'
 import UserRepository from '../../../../../database/repositories/userRepository'
-import { createServiceChildLogger } from '../../../../../utils/logging'
-import { prettyActivityTypes } from '../../../../../types/prettyActivityTypes'
 import ConversationRepository from '../../../../../database/repositories/conversationRepository'
-import { PlatformType } from '../../../../../types/integrationEnums'
 import RecurringEmailsHistoryRepository from '../../../../../database/repositories/recurringEmailsHistoryRepository'
 import { sendNodeWorkerMessage } from '../../../../utils/nodeWorkerSQS'
 import { NodeWorkerMessageType } from '../../../../types/workerTypes'
 import { NodeWorkerMessageBase } from '../../../../../types/mq/nodeWorkerMessageBase'
 import { RecurringEmailType } from '../../../../../types/recurringEmailsHistoryTypes'
 
-const log = createServiceChildLogger('weeklyAnalyticsEmailsWorker')
+const log = getServiceChildLogger('weeklyAnalyticsEmailsWorker')
 
 /**
  * Sends weekly analytics emails of a given tenant

@@ -255,31 +255,6 @@
           </router-link>
         </el-tooltip>
 
-        <!-- Community Help Center -->
-        <el-tooltip
-          :disabled="!isCollapsed"
-          :hide-after="50"
-          effect="dark"
-          placement="right"
-          raw-content
-          popper-class="custom-menu-tooltip"
-          :content="i18n('entities.conversation.menu')"
-        >
-          <router-link
-            id="menu-conversations"
-            :to="{ path: '/community-help-center' }"
-            class="el-menu-item"
-            :class="classFor('/community-help-center')"
-          >
-            <i class="ri-question-answer-line" />
-            <span v-if="!isCollapsed">
-              <app-i18n
-                code="entities.communityHelpCenter.menu"
-              />
-            </span>
-          </router-link>
-        </el-tooltip>
-
         <div class="grow" />
 
         <!-- Integrations -->
@@ -393,7 +368,7 @@ const { setTypes } = useActivityTypeStore();
 watch(
   () => currentTenant,
   (tenant) => {
-    if (tenant.value.settings.length > 0) {
+    if (tenant.value?.settings.length > 0) {
       setTypes(tenant.value.settings[0].activityTypes);
     }
   },
@@ -423,7 +398,7 @@ const hasPermissionToSettings = computed(
   () => new SettingsPermissions(
     currentTenant.value,
     currentUser.value,
-  ).edit || currentTenant.value.hasSampleData,
+  ).edit || currentTenant.value?.hasSampleData,
 );
 
 const hasPermissionToCommunityMember = computed(

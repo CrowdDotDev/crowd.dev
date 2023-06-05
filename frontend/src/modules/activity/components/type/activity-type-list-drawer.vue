@@ -159,7 +159,7 @@ const isVisible = computed({
 watch(
   () => currentTenant,
   (tenant) => {
-    if (tenant.value.settings.length > 0) {
+    if (tenant.value?.settings.length > 0) {
       setTypes(tenant.value.settings[0].activityTypes);
     }
   },

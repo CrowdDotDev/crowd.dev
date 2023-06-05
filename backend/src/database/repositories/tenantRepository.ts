@@ -1,6 +1,7 @@
 import lodash from 'lodash'
 import moment from 'moment'
 import Sequelize, { QueryTypes } from 'sequelize'
+import { getCleanString } from '@crowd/common'
 import SequelizeRepository from './sequelizeRepository'
 import AuditLogRepository from './auditLogRepository'
 import SequelizeFilterUtils from '../utils/sequelizeFilterUtils'
@@ -8,16 +9,37 @@ import Error404 from '../../errors/Error404'
 import Error400 from '../../errors/Error400'
 import { isUserInTenant } from '../utils/userTenantUtils'
 import { IRepositoryOptions } from './IRepositoryOptions'
-import getCleanString from '../../utils/getCleanString'
 import SegmentRepository from './segmentRepository'
 import isFeatureEnabled from '../../feature-flags/isFeatureEnabled'
 import { FeatureFlag } from '../../types/common'
+import Plans from '../../security/plans'
 
 const { Op } = Sequelize
 
 const forbiddenTenantUrls = ['www']
 
 class TenantRepository {
+  static async getPayingTenantIds(options: IRepositoryOptions): Promise<({ id: string } & {})[]> {
+    const database = SequelizeRepository.getSequelize(options)
+    const plans = Plans.values
+    const transaction = SequelizeRepository.getTransaction(options)
+
+    const query = `
+      SELECT "id"
+      FROM "tenants"
+      WHERE tenants."plan" IN (:growth)
+        OR (tenants."isTrialPlan" is true AND tenants."plan" = :growth)
+      ;
+    `
+    return database.query(query, {
+      type: QueryTypes.SELECT,
+      transaction,
+      replacements: {
+        growth: plans.growth,
+      },
+    })
+  }
+
   static async create(data, options: IRepositoryOptions) {
     const currentUser = SequelizeRepository.getCurrentUser(options)
 
@@ -282,6 +304,7 @@ class TenantRepository {
         currentTenant: record,
         currentSegments: segmentsFound,
       })
+      record.settings[0].dataValues.slackWebHook = !!record.settings[0].dataValues.slackWebHook
     }
 
     return record
@@ -297,6 +320,10 @@ class TenantRepository {
       include,
       transaction,
     })
+
+    if (record && record.settings && record.settings[0] && record.settings[0].dataValues) {
+      record.settings[0].dataValues.slackWebHook = !!record.settings[0].dataValues.slackWebHook
+    }
 
     return record
   }

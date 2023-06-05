@@ -8,7 +8,10 @@ import SearchField from '@/shared/fields/search-field';
 import JsonField from '@/shared/fields/json-field';
 import StringArrayField from '@/shared/fields/string-array-field';
 import IntegerField from '@/shared/fields/integer-field';
+import BooleanField from '@/shared/fields/boolean-field';
+import OrganizationHeadcountField from './organization-headcount-field';
 import OrganizationEmployeesField from './organization-employees-field';
+import OrganizationTypeField from './organization-type-field';
 import OrganizationPlatformField from './organization-platform-field';
 
 function label(name) {
@@ -19,7 +22,7 @@ i18nInit();
 
 const fields = {
   id: new IdField('id', label('id')),
-  name: new StringField('name', label('name'), {
+  displayName: new StringField('displayName', label('name'), {
     required: true,
   }),
   description: new StringField(
@@ -28,7 +31,7 @@ const fields = {
   ),
   url: new StringField('url', label('url')),
   website: new StringField('website', label('website')),
-  location: new StringField('location', label('location')),
+  location: new StringField('location', label('location'), { filterable: true }),
   createdAt: new DateTimeField(
     'createdAt',
     label('createdAt'),
@@ -89,6 +92,16 @@ const fields = {
   // TODO: Confirm what else can be searchable
   search: new SearchField('search', label('search'), {
     fields: ['name'],
+  }),
+  headline: new StringField('headline', 'Headline', { filterable: true }),
+  size: new OrganizationHeadcountField('size', 'Headcount', { filterable: true }),
+  industry: new StringField('industry', 'Industry', { filterable: true }),
+  founded: new IntegerField('founded', 'Founded', { filterable: true }),
+  type: new OrganizationTypeField('organizationType', 'Type', { filterable: true }),
+  address: new StringField('industry', 'Industry'),
+  profiles: new StringArrayField('profiles', 'Profiles'),
+  lastEnrichedAt: new BooleanField('lastEnrichedAt', 'Enriched organization', {
+    filterable: true,
   }),
 };
 

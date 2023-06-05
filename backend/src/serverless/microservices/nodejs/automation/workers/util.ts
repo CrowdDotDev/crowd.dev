@@ -8,11 +8,12 @@ export const sendWebhookProcessRequest = async (
   automation: any,
   eventId: string,
   payload: any,
+  type: AutomationType = AutomationType.WEBHOOK,
 ): Promise<void> => {
   const event = {
     type: NodeWorkerMessageType.NODE_MICROSERVICE,
     service: 'automation-process',
-    automationType: AutomationType.WEBHOOK,
+    automationType: type,
     tenant,
     automation,
     eventId,

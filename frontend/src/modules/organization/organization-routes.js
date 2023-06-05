@@ -19,7 +19,7 @@ export default [
     name: '',
     path: '',
     component: Layout,
-    meta: { auth: true },
+    meta: { auth: true, title: 'Organizations' },
     children: [
       {
         name: 'organization',

@@ -9,6 +9,7 @@
       :key="option.name"
       class="filter-type-select-option"
       :class="option.selected ? 'is-selected' : ''"
+      data-qa="filter-select-option"
       @click="handleOptionClick(option)"
     >
       <div class="flex items-center justify-between h-4">

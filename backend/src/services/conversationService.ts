@@ -1,34 +1,34 @@
-import moment from 'moment'
-import { Transaction } from 'sequelize/types'
+import { getCleanString } from '@crowd/common'
+import { LoggerBase } from '@crowd/logging'
 import emoji from 'emoji-dictionary'
-import fetch from 'node-fetch'
 import { convert as convertHtmlToText } from 'html-to-text'
-import { IS_TEST_ENV, S3_CONFIG } from '../config/index'
-import SequelizeRepository from '../database/repositories/sequelizeRepository'
-import { IServiceOptions } from './IServiceOptions'
+import moment from 'moment'
+import fetch from 'node-fetch'
+import { Transaction } from 'sequelize/types'
+import { PlatformType } from '@crowd/types'
+import { IS_TEST_ENV, S3_CONFIG } from '../conf/index'
 import ConversationRepository from '../database/repositories/conversationRepository'
-import ConversationSearchEngineRepository from '../search-engine/repositories/conversationSearchEngineRepository'
-import telemetryTrack from '../segment/telemetryTrack'
-import TenantService from './tenantService'
+import SequelizeRepository from '../database/repositories/sequelizeRepository'
 import Error403 from '../errors/Error403'
+import ConversationSearchEngineRepository from '../search-engine/repositories/conversationSearchEngineRepository'
+import SettingsSearchEngineRepository from '../search-engine/repositories/settingsSearchEngineRepository'
+import telemetryTrack from '../segment/telemetryTrack'
+import track from '../segment/track'
+import { IServiceOptions } from './IServiceOptions'
+import { s3 } from './aws'
+import ConversationSettingsService from './conversationSettingsService'
+import getStage from './helpers/getStage'
 import IntegrationService from './integrationService'
 import SettingsService from './settingsService'
-import ConversationSettingsService from './conversationSettingsService'
-import SettingsSearchEngineRepository from '../search-engine/repositories/settingsSearchEngineRepository'
-import track from '../segment/track'
-import getStage from './helpers/getStage'
-import { s3 } from './aws'
-import { PlatformType } from '../types/integrationEnums'
-import { LoggingBase } from './loggingBase'
-import getCleanString from '../utils/getCleanString'
+import TenantService from './tenantService'
 
-export default class ConversationService extends LoggingBase {
+export default class ConversationService extends LoggerBase {
   static readonly MAX_SLUG_WORD_LENGTH = 10
 
   options: IServiceOptions
 
-  constructor(options) {
-    super(options)
+  constructor(options: IServiceOptions) {
+    super(options.log)
     this.options = options
   }
 
@@ -299,7 +299,7 @@ export default class ConversationService extends LoggingBase {
    * @param transaction db transaction
    * @returns search index client index object
    */
-  async loadIntoSearchEngine(id: String, transaction: Transaction): Promise<void> {
+  async loadIntoSearchEngine(id: String, transaction?: Transaction): Promise<void> {
     const conversation = await ConversationRepository.findById(id, { ...this.options, transaction })
 
     this.log.info({ conversation }, 'Found conversation!')
@@ -522,24 +522,6 @@ export default class ConversationService extends LoggingBase {
     }
 
     return title
-  }
-
-  /**
-   * Generates a cleaned string from given string by:
-   * Removing non alphanumeric characters from a string
-   * Converting dashes into spaces
-   * Removing extraneous whitespaces between words
-   * @param title string to be cleaned
-   * @returns cleaned string
-   *
-   */
-  static getCleanString(string: String): String {
-    return string
-      .replace(/[^-0-9A-Z ]+/gi, '') // only get alphanumeric characters and dashes
-      .replace(/-+/gi, ' ') // convert dashes into spaces
-      .replace(/\s+/g, ' ') // get rid of excessive spaces between words
-      .toLowerCase()
-      .trim()
   }
 
   async destroyBulk(ids) {

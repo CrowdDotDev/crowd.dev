@@ -25,7 +25,7 @@
           {{ Math.round(computedEngagementLevel.value) }}
         </span>
 
-        <span>
+        <span class="member-engagement-level-label" data-qa="member-engagement-level-label">
           {{ computedEngagementLevel.label }}
         </span>
       </div>

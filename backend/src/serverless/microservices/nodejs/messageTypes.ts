@@ -25,15 +25,13 @@ export type IntegrationDataCheckerMessage = BaseNodeMicroserviceMessage & {
 }
 
 export type ActivityAutomationData = {
-  activityId?: string
-  activity?: any
+  activityId: string
 }
 
 export type NewActivityAutomationMessage = BaseNodeMicroserviceMessage & ActivityAutomationData
 
 export type MemberAutomationData = {
-  memberId?: string
-  member?: any
+  memberId: string
 }
 
 export type NewMemberAutomationMessage = BaseNodeMicroserviceMessage & MemberAutomationData
@@ -71,4 +69,9 @@ export type BulkEnrichMessage = {
   service: string
   tenant: string
   memberIds: string[]
+}
+
+export type OrganizationBulkEnrichMessage = {
+  service: string
+  tenantId: string
 }

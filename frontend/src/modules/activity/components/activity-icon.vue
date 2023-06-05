@@ -5,11 +5,14 @@
   outline-white rounded-full h-5 w-5 flex items-center justify-center"
     :class="icons[platform][type].bgColor"
   >
-    <i :class="`${icons[platform][type].iconClass} ${icons[platform][type].color} text-2xs leading-3`" />
+    <i v-if="icons[platform][type].iconClass" :class="`${icons[platform][type].iconClass} ${icons[platform][type].color} text-2xs leading-3`" />
+    <img v-else :src="icons[platform][type].imgSrc" :alt="type" class="w-5 h-5" />
   </div>
 </template>
 
 <script setup>
+import { ref } from 'vue';
+
 defineProps({
   type: {
     type: String,
@@ -21,7 +24,7 @@ defineProps({
   },
 });
 
-const icons = {
+const icons = ref({
   github: {
     'issue-comment': {
       iconClass: 'ri-chat-4-line',
@@ -74,7 +77,14 @@ const icons = {
       bgColor: 'bg-gray-200',
     },
   },
-};
+  git: {
+    commit: {
+      imgSrc: '/images/integrations/git.png',
+      color: 'text-black',
+      bgColor: 'bg-white',
+    },
+  },
+});
 </script>
 
 <script>

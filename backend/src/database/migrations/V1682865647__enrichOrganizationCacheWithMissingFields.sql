@@ -1,0 +1,12 @@
+ALTER TABLE public."organizationCaches" ADD COLUMN "lastEnrichedAt" TIMESTAMP WITH TIME ZONE NULL;
+ALTER TABLE public."organizationCaches" ADD COLUMN "employeeCountByCountry" JSONB NULL;
+ALTER TABLE public."organizationCaches" ADD COLUMN "type" TEXT NULL;
+ALTER TABLE public."organizationCaches" ADD COLUMN "geoLocation" TEXT NULL;
+ALTER TABLE public."organizationCaches" ADD COLUMN "size" TEXT NULL;
+ALTER TABLE public."organizationCaches" ADD COLUMN "ticker" TEXT NULL;
+ALTER TABLE public."organizationCaches" ADD COLUMN "headline" TEXT NULL;
+ALTER TABLE public."organizationCaches" ADD COLUMN "profiles" TEXT[] NULL;
+ALTER TABLE public."organizationCaches" ADD COLUMN "naics" JSONB[] NULL;
+ALTER TABLE public."organizationCaches" ADD COLUMN "address" JSONB NULL;
+ALTER TABLE public."organizationCaches" ADD COLUMN "industry" TEXT NULL;
+ALTER TABLE public."organizationCaches" ADD COLUMN "founded" INTEGER NULL;

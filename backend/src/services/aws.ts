@@ -1,5 +1,5 @@
 import AWS, { SQS } from 'aws-sdk'
-import { COMPREHEND_CONFIG, IS_DEV_ENV, KUBE_MODE, S3_CONFIG, SQS_CONFIG } from '../config'
+import { COMPREHEND_CONFIG, IS_DEV_ENV, KUBE_MODE, S3_CONFIG, SQS_CONFIG } from '../conf'
 
 let sqsInstance
 let s3Instance
@@ -183,6 +183,21 @@ export async function detectSentimentBatch(textArray) {
     return batchSentimentResults
   }
   return {}
+}
+
+export const getCurrentQueueSize = async (sqs: SQS, queue: string): Promise<number> => {
+  const result = await sqs
+    .getQueueAttributes({
+      QueueUrl: queue,
+      AttributeNames: ['ApproximateNumberOfMessages'],
+    })
+    .promise()
+
+  if (result.Attributes) {
+    return parseInt(result.Attributes.ApproximateNumberOfMessages, 10)
+  }
+
+  return null
 }
 
 export const sqs: SQS = sqsInstance

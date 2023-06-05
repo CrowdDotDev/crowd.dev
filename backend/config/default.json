@@ -31,6 +31,7 @@
   "slack": {
     "maxRetrospectInSeconds": 3600
   },
+  "slackNotifier": {},
   "google": {},
   "discord": {
     "maxRetrospectInSeconds": 3600
@@ -38,6 +39,7 @@
   "github": {},
   "stackexchange": {},
   "enrichment": {},
+  "organizationEnrichment": {},
   "eagleEye": {},
   "unleash": {
     "db": {}

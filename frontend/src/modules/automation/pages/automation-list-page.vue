@@ -1,154 +1,236 @@
 <template>
-  <div class="pt-4">
+  <div class="pt-6">
+    <div class="flex justify-between pb-6">
+      <div class="flex items-center">
+        <div class="flex text-xs text-gray-600">
+          <div
+            v-for="option in options"
+            :key="option.value"
+            class="h-8 border-solid border-gray-200 border-r border-y first:border-l flex items-center
+       justify-center transition hover:bg-gray-50 cursor-pointer first:rounded-l-md last:rounded-r-md px-3 bg"
+            :class="filter.type === option.value ? 'font-medium bg-gray-100 text-gray-900' : 'bg-white'"
+            @click="changeAutomationFilter({ type: option.value })"
+          >
+            {{ option.label }}
+          </div>
+        </div>
+        <p class="pl-4 text-xs leading-5 text-gray-500">
+          {{ pluralize('automation', automations.length, true) }}
+        </p>
+      </div>
+      <div>
+        <el-popover
+          trigger="click"
+          placement="bottom-end"
+          width="15rem"
+          popper-class="!p-2"
+        >
+          <template #reference>
+            <el-button class="btn btn--primary btn--sm flex items-center !py-2">
+              Add automation
+              <span class="ri-arrow-down-s-line text-base ml-2 flex items-center h-4" />
+            </el-button>
+          </template>
+          <div class="popover-item h-auto mb-1 py-2 px-2.5" @click="createAutomation('webhook')">
+            <div class="flex">
+              <div class="mt-0.5">
+                <img alt="Webhook" src="/images/automation/webhook.png" class="w-4 max-w-4">
+              </div>
+              <div class="pl-2">
+                <h6 class="text-xs leading-5 font-medium mb-0.5 text-gray-900">
+                  Webhook
+                </h6>
+                <p class="text-2xs leading-4.5 text-gray-500 text-left break-normal">
+                  Send webhook payloads to automate workflows
+                </p>
+              </div>
+            </div>
+          </div>
+          <div
+            class="popover-item  h-auto py-2 px-2.5"
+            :class="{ 'hover:bg-white !cursor-default': !slackConnected }"
+            @click="createSlackAutomation"
+          >
+            <div class="flex">
+              <div class="mt-0.5">
+                <img alt="Slack" src="https://cdn-icons-png.flaticon.com/512/3800/3800024.png" class="w-4 max-w-4">
+              </div>
+              <div class="pl-2">
+                <h6 class="text-xs leading-5 font-medium mb-0.5 text-gray-900">
+                  Slack notification
+                </h6>
+                <p class="text-2xs leading-4.5 text-gray-500 text-left break-normal">
+                  Send notifications to your Slack workspace
+                </p>
+                <el-button
+                  v-if="!slackConnected"
+                  class="btn btn--primary btn--sm !h-8 mt-3"
+                  @click="authenticateSlack"
+                >
+                  Install app
+                </el-button>
+              </div>
+            </div>
+          </div>
+        </el-popover>
+      </div>
+    </div>
     <div
-      v-if="loading('table') && count === 0"
-      v-loading="loading('table')"
+      v-if="loadingAutomations"
+      v-loading="loadingAutomations"
       class="app-page-spinner"
     />
-    <div v-else-if="count > 0">
-      <div
-        class="flex items-center py-1 mb-3 mt-2"
-        :class="count ? 'justify-between' : 'justify-end'"
-      >
-        <div class="text-gray-500 text-sm">
-          {{ pluralize('webhook', count, true) }}
-        </div>
-        <div>
-          <el-button
-            class="btn btn--primary btn--sm !h-8"
-            @click="onAddWebhookClick"
-          >
-            Add webhook
-          </el-button>
-        </div>
-      </div>
+    <app-automation-list-table
+      v-else-if="automations.length > 0"
+      class="pt-4"
+      @open-executions-drawer="showAutomationExecutions = $event"
+      @open-edit-automation-drawer="updateAutomation($event)"
+    />
 
-      <!-- Webhooks list -->
-      <app-automation-list-table
-        class="pt-4"
-        @open-executions-drawer="onOpenExecutionsDrawer"
-        @open-edit-automation-drawer="
-          onOpenEditAutomationDrawer
-        "
-      />
-    </div>
-
-    <!-- Empty state for no webhooks configured -->
+    <!-- Empty state for no automations configured -->
+    <app-empty-state-cta
+      v-else-if="filter.type === 'slack'"
+      icon="ri-flow-chart"
+      title="No Slack notifications yet"
+      description="Send Slack notifications when a new activity happens, or a new member joins your community"
+    />
+    <app-empty-state-cta
+      v-else-if="filter.type === 'webhook'"
+      icon="ri-flow-chart"
+      title="No Webhooks yet"
+      description="Create webhook actions when a new activity happens, or a new member joins your community"
+    />
     <app-empty-state-cta
       v-else
       icon="ri-flow-chart"
       title="Start to automate manual tasks"
-      description="Create webhook actions for when a new activity
-        happens, or a new member joins your community"
-      cta-btn="Add webhook"
-      @cta-click="isAutomationDrawerOpen = true"
+      description="Create webhook actions or send Slack notifications when a new activity happens, or a new member joins your community "
     />
 
     <!-- Add/Edit Webhook form drawer -->
-    <app-webhook-form
-      v-if="isAutomationDrawerOpen"
-      v-model="newAutomation"
-      :is-drawer-open="isAutomationDrawerOpen"
-      @success="onCloseAutomationDrawer"
-      @cancel="onCloseAutomationDrawer"
+    <app-automation-form
+      v-model="openAutomationForm"
+      v-model:automation="editAutomation"
+      :type="automationFormType"
     />
 
-    <!-- Executions Drawer -->
-    <app-drawer
-      v-model="isExecutionsDrawerOpen"
-      title="Webhook executions"
-      size="600px"
-      custom-class="webhook-executions-drawer"
-      @close="onCloseExecutionsDrawer"
-    >
-      <template #content>
-        <app-webhook-execution-list :webhook="automation" />
-      </template>
-    </app-drawer>
+    <app-automation-executions v-model="showAutomationExecutions" />
   </div>
 </template>
 
-<script>
-import { mapGetters, mapActions } from 'vuex';
+<script setup>
+import {
+  ref, onMounted, computed,
+} from 'vue';
+import { useAutomationStore } from '@/modules/automation/store';
+import { storeToRefs } from 'pinia';
 import pluralize from 'pluralize';
-import { FeatureFlag } from '@/featureFlag';
+import AppAutomationForm from '@/modules/automation/components/automation-form.vue';
 import AppAutomationListTable from '@/modules/automation/components/list/automation-list-table.vue';
-import AppWebhookForm from '@/modules/automation/components/webhooks/webhook-form.vue';
-import AppWebhookExecutionList from '@/modules/automation/components/webhooks/webhook-execution-list.vue';
-import { getWorkflowMax, showWorkflowLimitDialog } from '../automation-limit';
+import config from '@/config';
+import { AuthToken } from '@/modules/auth/auth-token';
+import { mapGetters } from '@/shared/vuex/vuex.helpers';
+import AppAutomationExecutions from '@/modules/automation/components/automation-executions.vue';
+import { FeatureFlag } from '@/featureFlag';
+import { getWorkflowMax, showWorkflowLimitDialog } from '@/modules/automation/automation-limit';
 
+const options = ref([
+  {
+    label: 'All',
+    value: 'all',
+  },
+  {
+    label: 'Slack notifications',
+    value: 'slack',
+  },
+  {
+    label: 'Webhooks',
+    value: 'webhook',
+  },
+]);
+const openAutomationForm = ref(false);
+const automationFormType = ref(null);
+const showAutomationExecutions = ref(null);
+const editAutomation = ref(null);
+
+const automationStore = useAutomationStore();
+const {
+  filter, loadingAutomations, automations,
+} = storeToRefs(automationStore);
+const { getAutomations, changeAutomationFilter } = automationStore;
+
+const { currentTenant } = mapGetters('auth');
+
+/**
+ * Check if tenant has feature flag enabled
+ */
+const canAddAutomation = () => {
+  const isFeatureEnabled = FeatureFlag.isFlagEnabled(
+    FeatureFlag.flags.automations,
+  );
+
+  if (!isFeatureEnabled) {
+    const planWorkflowCountMax = getWorkflowMax(
+      currentTenant.value.plan,
+    );
+
+    showWorkflowLimitDialog({ planWorkflowCountMax });
+  }
+
+  return isFeatureEnabled;
+};
+
+// Executions drawer
+const createAutomation = (type) => {
+  if (!canAddAutomation()) {
+    return;
+  }
+
+  openAutomationForm.value = true;
+  editAutomation.value = null;
+  automationFormType.value = type;
+};
+
+const updateAutomation = (automation) => {
+  openAutomationForm.value = true;
+  automationFormType.value = automation.type;
+  editAutomation.value = automation;
+};
+
+// Slack connect
+const slackConnected = computed(() => currentTenant.value?.settings[0].slackWebHook);
+
+const slackConnectUrl = computed(() => {
+  const redirectUrl = `${window.location.protocol}//${window.location.host}${window.location.pathname}?activeTab=automations&success=true`;
+
+  return `${config.backendUrl}/tenant/${
+    currentTenant.value.id
+  }/automation/slack?redirectUrl=${redirectUrl}&crowdToken=${AuthToken.get()}`;
+});
+
+const authenticateSlack = () => {
+  window.open(slackConnectUrl.value, '_self');
+};
+
+const createSlackAutomation = () => {
+  if (slackConnected.value) {
+    if (!canAddAutomation()) {
+      return;
+    }
+
+    createAutomation('slack');
+  }
+};
+
+onMounted(() => {
+  getAutomations();
+});
+
+</script>
+
+<script>
 export default {
   name: 'AppAutomationListPage',
-  components: {
-    AppWebhookExecutionList,
-    AppAutomationListTable,
-    AppWebhookForm,
-  },
-  data() {
-    return {
-      newAutomation: {
-        type: 'webhook',
-        settings: {},
-      },
-      isAutomationDrawerOpen: false,
-      isExecutionsDrawerOpen: false,
-      automation: null,
-    };
-  },
-  computed: {
-    ...mapGetters({
-      loading: 'automation/loading',
-      filter: 'automation/filter',
-      count: 'automation/count',
-      currentTenant: 'auth/currentTenant',
-    }),
-  },
-  async created() {
-    await this.doFetch({
-      filter: { ...this.filter },
-      rawFilter: { ...this.filter },
-    });
-  },
-  methods: {
-    ...mapActions({
-      doFetch: 'automation/doFetch',
-    }),
-    onOpenEditAutomationDrawer(automation) {
-      this.isAutomationDrawerOpen = true;
-      this.newAutomation = { ...automation };
-    },
-    onCloseAutomationDrawer() {
-      this.newAutomation = {
-        type: 'webhook',
-        settings: {},
-      };
-      this.isAutomationDrawerOpen = false;
-    },
-    onOpenExecutionsDrawer(automation) {
-      this.isExecutionsDrawerOpen = true;
-      this.automation = automation;
-    },
-    onCloseExecutionsDrawer() {
-      this.isExecutionsDrawerOpen = false;
-      this.automation = null;
-    },
-    async onAddWebhookClick() {
-      const isFeatureEnabled = FeatureFlag.isFlagEnabled(
-        FeatureFlag.flags.automations,
-      );
-
-      if (isFeatureEnabled) {
-        this.isAutomationDrawerOpen = true;
-      } else {
-        const planWorkflowCountMax = getWorkflowMax(
-          this.currentTenant.plan,
-        );
-
-        showWorkflowLimitDialog({ planWorkflowCountMax });
-      }
-    },
-    pluralize,
-  },
 };
 </script>
 

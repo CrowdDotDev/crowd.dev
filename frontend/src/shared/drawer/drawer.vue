@@ -12,25 +12,28 @@
   >
     <template #header="{ close, titleId, titleClass }">
       <div class="flex grow justify-between items-start">
-        <div class="h-fit">
-          <div
-            v-if="preTitle"
-            class="text-gray-600 text-2xs"
-          >
-            {{ preTitle }}
-          </div>
-          <div class="flex items-center">
-            <slot name="beforeTitle" />
-            <h5
-              :id="titleId"
-              class="text-black"
-              :class="titleClass"
+        <slot name="header">
+          <div class="h-fit">
+            <div
+              v-if="preTitle"
+              class="text-gray-600 text-2xs"
             >
-              {{ title }}
-            </h5>
+              {{ preTitle }}
+            </div>
+            <div class="flex items-center">
+              <slot name="beforeTitle" />
+              <h5
+                :id="titleId"
+                class="text-black"
+                :class="titleClass"
+              >
+                {{ title }}
+              </h5>
+            </div>
+            <slot name="belowTitle" />
           </div>
-          <slot name="belowTitle" />
-        </div>
+        </slot>
+
         <div class="flex gap-3 items-center">
           <slot name="header-label" />
           <div class="ml-3">

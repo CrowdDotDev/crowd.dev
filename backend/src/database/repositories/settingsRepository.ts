@@ -1,4 +1,6 @@
 import _get from 'lodash/get'
+import { DEFAULT_ACTIVITY_TYPE_SETTINGS } from '@crowd/integrations'
+import { ActivityTypeSettings } from '@crowd/types'
 import SequelizeRepository from './sequelizeRepository'
 import AuditLogRepository from './auditLogRepository'
 import { IRepositoryOptions } from './IRepositoryOptions'
@@ -31,6 +33,12 @@ export default class SettingsRepository {
 
     data.backgroundImageUrl = _get(data, 'backgroundImages[0].downloadUrl', null)
     data.logoUrl = _get(data, 'logos[0].downloadUrl', null)
+    if (
+      typeof data.slackWebHook !== 'string' ||
+      (typeof data.slackWebHook === 'string' && !data.slackWebHook?.startsWith('https://'))
+    ) {
+      data.slackWebHook = undefined
+    }
 
     const [settings] = await options.database.settings.findOrCreate({
       where: { id: tenant.id, tenantId: tenant.id },
@@ -60,6 +68,17 @@ export default class SettingsRepository {
     return this._populateRelations(settings, options)
   }
 
+  static async getTenantSettings(tenantId: string, options: IRepositoryOptions) {
+    const transaction = SequelizeRepository.getTransaction(options)
+
+    const settings = await options.database.settings.findOne({
+      where: { tenantId },
+      transaction,
+    })
+
+    return settings
+  }
+
   static getActivityChannels(options: IRepositoryOptions) {
     return options.currentTenant?.settings[0]?.activityChannels
   }
@@ -78,6 +97,7 @@ export default class SettingsRepository {
     const settings = record.get({ plain: true })
 
     settings.activityTypes = segment ? segment.activityTypes : null
+    settings.slackWebHook = !!settings.slackWebHook
 
     return settings
   }

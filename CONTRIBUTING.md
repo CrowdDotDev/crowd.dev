@@ -71,6 +71,7 @@ Any contributions you make are **greatly appreciated**. ❤️
 We welcome any contribution to crowd.dev. Before you start with your first issue, please consider the folloing points:
 
 - For your first contribution we recommend taking a look at our [good first issues 🥂](https://github.com/CrowdDotDev/crowd.dev/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue+%F0%9F%A5%82%22).
+- Other issues that are well suited for contribution have the tag [help wanted 🙏](https://github.com/CrowdDotDev/crowd.dev/labels/help%20wanted%20%F0%9F%99%8F).
 - If you want to contribute to our codebase, you have to first [sign our Contributor License Agreement](https://cla-assistant.io/CrowdDotDev/crowd.dev).
 - If you need help you can reach us either via [Discord](http://crowd.dev/discord) or [Book a 15 min Contributor Onboarding Call](https://cal.com/team/CrowdDotDev/contributor-onboarding?duration=15).
 

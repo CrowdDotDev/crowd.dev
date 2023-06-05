@@ -147,7 +147,15 @@ const resultSetData = computed(() => {
     });
 
     if (!CrowdIntegrations.getConfig(platform)) {
-      return acc;
+      return {
+        ...acc,
+        [platform]: {
+          name: platform,
+          activities,
+          total,
+          color: '#ADADAD',
+        },
+      };
     }
 
     return {

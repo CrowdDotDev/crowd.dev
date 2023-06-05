@@ -11,7 +11,7 @@ export const plans = {
       description: 'Understand & manage your community',
       price: 'Free',
       features: [
-        'Unlimited seats',
+        '5 seats',
         'Unlimited community members, organizations & activities',
         'Community management',
         'Community intelligence',
@@ -28,8 +28,9 @@ export const plans = {
       price: '$150/month',
       featuresNote: 'Everything in Essential, plus:',
       features: [
-        'Community growth (e.g. Eagle Eye)',
+        'Eagle Eye',
         '1,000 member enrichments per month (manual)',
+        '200 organization enrichments per month (automated)',
         '10 active workflows & CSV exports per month',
         'Slack connect support',
         'LinkedIn integration',

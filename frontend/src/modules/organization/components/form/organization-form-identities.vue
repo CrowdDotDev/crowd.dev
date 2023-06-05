@@ -109,7 +109,7 @@ const platforms = [
   {
     name: 'linkedin',
     label: 'LinkedIn',
-    prefix: 'linkedin.com/',
+    prefix: 'linkedin.com/company/',
     imgContainerClass:
       'h-8 w-8 rounded flex items-center justify-center text-base platform-logo--linkedin',
   },
@@ -123,7 +123,7 @@ const platforms = [
   {
     name: 'crunchbase',
     label: 'Crunchbase',
-    prefix: 'crunchbase.com/',
+    prefix: 'crunchbase.com/organization/',
     imgContainerClass:
       'h-8 w-8 rounded flex items-center justify-center text-base platform-logo--crunchbase',
   },

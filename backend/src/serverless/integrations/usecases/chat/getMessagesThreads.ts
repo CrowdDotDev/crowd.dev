@@ -1,11 +1,11 @@
+import { getServiceChildLogger } from '@crowd/logging'
 import { SuperfaceClient } from '@superfaceai/one-sdk'
-import { SocialResponse } from '../../types/superfaceTypes'
-import isInvalid from '../isInvalid'
 import { IIntegrationStream } from '../../../../types/integration/stepResult'
-import { createServiceChildLogger } from '../../../../utils/logging'
+import { SocialResponse } from '../../types/superfaceTypes'
 import { cleanSuperfaceError } from '../cleanError'
+import isInvalid from '../isInvalid'
 
-const log = createServiceChildLogger('getMessagesThreads')
+const log = getServiceChildLogger('getMessagesThreads')
 
 async function getMessagesThreads(
   client: SuperfaceClient,

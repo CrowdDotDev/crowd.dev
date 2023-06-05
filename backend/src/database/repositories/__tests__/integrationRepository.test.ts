@@ -1,6 +1,6 @@
 import SequelizeTestUtils from '../../utils/sequelizeTestUtils'
 import IntegrationRepository from '../integrationRepository'
-import { PlatformType } from '../../../types/integrationEnums'
+import { PlatformType } from '@crowd/types'
 
 const db = null
 
@@ -24,7 +24,7 @@ describe('Integration repository tests', () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
       await IntegrationRepository.create(int1, mockIRepositoryOptions)
 
-      const found: any = await IntegrationRepository.findAllActive(PlatformType.TWITTER)
+      const found: any = await IntegrationRepository.findAllActive(PlatformType.TWITTER, 1, 100)
       expect(found[0].tenantId).toBeDefined()
       expect(found.length).toBe(1)
     })
@@ -40,7 +40,7 @@ describe('Integration repository tests', () => {
       const mockIRepositoryOptions2 = await SequelizeTestUtils.getTestIRepositoryOptions(db)
       await IntegrationRepository.create(int1, mockIRepositoryOptions2)
 
-      const found = await IntegrationRepository.findAllActive(PlatformType.TWITTER)
+      const found = await IntegrationRepository.findAllActive(PlatformType.TWITTER, 1, 100)
       expect(found.length).toBe(2)
     })
 
@@ -72,7 +72,7 @@ describe('Integration repository tests', () => {
       const mockIRepositoryOptions4 = await SequelizeTestUtils.getTestIRepositoryOptions(db)
       await IntegrationRepository.create(int3, mockIRepositoryOptions4)
 
-      const found = await IntegrationRepository.findAllActive(PlatformType.TWITTER)
+      const found = await IntegrationRepository.findAllActive(PlatformType.TWITTER, 1, 100)
       expect(found.length).toBe(2)
     })
 
@@ -96,12 +96,12 @@ describe('Integration repository tests', () => {
       const mockIRepositoryOptions3 = await SequelizeTestUtils.getTestIRepositoryOptions(db)
       await IntegrationRepository.create(int2, mockIRepositoryOptions3)
 
-      const found = await IntegrationRepository.findAllActive(PlatformType.TWITTER)
+      const found = await IntegrationRepository.findAllActive(PlatformType.TWITTER, 1, 100)
       expect(found.length).toBe(2)
     })
 
     it('Should return an empty list if no integrations are found', async () => {
-      const found = await IntegrationRepository.findAllActive(PlatformType.TWITTER)
+      const found = await IntegrationRepository.findAllActive(PlatformType.TWITTER, 1, 100)
       expect(found.length).toBe(0)
     })
   })

@@ -12,7 +12,8 @@
         <slot name="button">
           <el-button-group class="btn-group">
             <el-button
-              class="filter-list-item-btn"
+              class="filter-list-item-btn filter-list-item-btn-open"
+              data-qa="filter-list-chip"
               :class="`${
                 filter.expanded ? 'is-expanded' : ''
               } ${hasValue ? 'is-active' : ''}`"
@@ -29,6 +30,7 @@
             <el-button
               class="filter-list-item-btn filter-list-item-btn__close"
               :class="hasValue ? 'is-active' : ''"
+              data-qa="filter-list-chip-close"
               @click.stop="handleDestroy"
             >
               <i class="ri-close-line" />
@@ -62,24 +64,28 @@
       >
         <el-button
           v-if="shouldShowReset"
+          id="resetFilter"
           class="btn btn-link btn-link--primary"
           @click="handleReset"
         >
           Reset filter
         </el-button>
         <div v-else>
-&nbsp;
+          &nbsp;
         </div>
         <div class="flex items-center">
           <el-button
+            id="closeFilter"
             class="btn btn--transparent btn--sm mr-3"
             @click="handleCancel"
           >
             Cancel
           </el-button>
           <el-button
+            id="applyFilter"
             class="btn btn--primary btn--sm"
             :disabled="shouldDisableApplyButton"
+            data-qa="filter-apply"
             @click="handleApply"
           >
             Apply

@@ -6,7 +6,7 @@
   >
     <div class="flex items-center">
       <img
-        v-if="plat !== 'other'"
+        v-if="getPlatformDetails(plat)?.image"
         class="w-4 h-4 mr-3"
         :src="getPlatformDetails(plat)?.image"
         :alt="getPlatformDetails(plat)?.name"

@@ -12,4 +12,34 @@ export default {
   connectComponent: GithubConnect,
   url: (username) => `https://github.com/${username}`,
   chartColor: '#111827',
+  showProfileLink: true,
+  activityDisplay: {
+    showLinkToUrl: true,
+  },
+  conversationDisplay: {
+    showLabels: true,
+    showConversationAttributes: true,
+    separatorContent: 'activity',
+    replyContent: (conversation) => {
+      const activities = conversation.lastReplies || conversation.activities;
+
+      return {
+        icon: 'ri-chat-4-line',
+        copy: 'comment',
+        number: activities.reduce((acc, activity) => {
+          if (activity.type.includes('comment')) {
+            return acc + 1;
+          }
+
+          return acc;
+        }, 0),
+      };
+    },
+    attributes: (attributes) => ({
+      changes: attributes.changedFiles,
+      changesCopy: 'file change',
+      insertions: attributes.additions,
+      deletions: attributes.deletions,
+    }),
+  },
 };

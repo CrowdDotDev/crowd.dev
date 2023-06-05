@@ -1,0 +1,12 @@
+ALTER TABLE public."organizations" ADD COLUMN "lastEnrichedAt" TIMESTAMP WITH TIME ZONE NULL;
+ALTER TABLE public."organizations" ADD COLUMN "employeeCountByCountry" JSONB NULL;
+ALTER TABLE public."organizations" ADD COLUMN "type" TEXT NULL;
+ALTER TABLE public."organizations" ADD COLUMN "geoLocation" TEXT NULL;
+ALTER TABLE public."organizations" ADD COLUMN "size" TEXT NULL;
+ALTER TABLE public."organizations" ADD COLUMN "ticker" TEXT NULL;
+ALTER TABLE public."organizations" ADD COLUMN "headline" TEXT NULL;
+ALTER TABLE public."organizations" ADD COLUMN "profiles" TEXT[] NULL;
+ALTER TABLE public."organizations" ADD COLUMN "naics" JSONB[] NULL;
+ALTER TABLE public."organizations" ADD COLUMN "address" JSONB NULL;
+ALTER TABLE public."organizations" ADD COLUMN "industry" TEXT NULL;
+ALTER TABLE public."organizations" ADD COLUMN "founded" INTEGER NULL;

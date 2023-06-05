@@ -1,6 +1,6 @@
 import cronGenerator from 'cron-time-generator'
 import { sendSlackAlert } from '../../utils/slack'
-import { SQS_CONFIG } from '../../config'
+import { SQS_CONFIG } from '../../conf'
 import { sqs } from '../../services/aws'
 import { CrowdJob } from '../../types/jobTypes'
 

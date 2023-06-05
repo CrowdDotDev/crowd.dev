@@ -12,7 +12,9 @@ import { IServiceOptions } from '../../services/IServiceOptions'
  */
 async function updateMembers(records: Array<any>, options: IServiceOptions): Promise<any> {
   const memberService = new MemberService(options)
-  for (const record of records) {
+
+  while (records.length > 0) {
+    const record = records.shift()
     await memberService.update(record.id, record.update)
   }
 }
@@ -24,7 +26,9 @@ async function updateMembers(records: Array<any>, options: IServiceOptions): Pro
  */
 async function upsertMembers(records: Array<any>, options: IServiceOptions): Promise<any> {
   const memberService = new MemberService(options)
-  for (const record of records) {
+
+  while (records.length > 0) {
+    const record = records.shift()
     await memberService.upsert(record)
   }
 }
@@ -37,10 +41,13 @@ async function upsertMembers(records: Array<any>, options: IServiceOptions): Pro
 async function upsertActivityWithMembers(
   records: Array<any>,
   options: IServiceOptions,
+  fireCrowdWebhooks: boolean = true,
 ): Promise<any> {
   const activityService = new ActivityService(options)
-  for (const record of records) {
-    await activityService.createWithMember(record)
+
+  while (records.length > 0) {
+    const record = records.shift()
+    await activityService.createWithMember(record, fireCrowdWebhooks)
   }
 }
 
@@ -51,7 +58,9 @@ async function upsertActivityWithMembers(
  */
 async function updateIntegrations(records: Array<any>, options: IServiceOptions): Promise<any> {
   const integrationService = new IntegrationService(options)
-  for (const record of records) {
+
+  while (records.length > 0) {
+    const record = records.shift()
     await integrationService.update(record.id, record.update)
   }
 }
@@ -62,7 +71,9 @@ async function updateIntegrations(records: Array<any>, options: IServiceOptions)
  */
 async function updateMicroservice(records: Array<any>, options: IServiceOptions): Promise<any> {
   const microserviceService = new MicroserviceService(options)
-  for (const record of records) {
+
+  while (records.length > 0) {
+    const record = records.shift()
     await microserviceService.update(record.id, record.update)
   }
 }
@@ -77,6 +88,7 @@ async function bulkOperations(
   operation: string,
   records: Array<any>,
   options: IServiceOptions,
+  fireCrowdWebhooks: boolean = true,
 ): Promise<any> {
   switch (operation) {
     case Operations.UPDATE_MEMBERS:
@@ -86,7 +98,7 @@ async function bulkOperations(
       return upsertMembers(records, options)
 
     case Operations.UPSERT_ACTIVITIES_WITH_MEMBERS:
-      return upsertActivityWithMembers(records, options)
+      return upsertActivityWithMembers(records, options, fireCrowdWebhooks)
 
     case Operations.UPDATE_INTEGRATIONS:
       return updateIntegrations(records, options)

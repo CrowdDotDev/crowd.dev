@@ -14,20 +14,22 @@
         class="mt-0"
       />
     </div>
-    <el-date-picker
-      ref="inputRef"
-      v-model="model"
-      placeholder="Select a date"
-      value-format="YYYY-MM-DD"
-      format="YYYY-MM-DD"
-      class="custom-date-picker"
-      popper-class="date-picker-popper"
-      v-bind="betweenProps"
-      :disabled="
-        operator === 'is_empty'
-          || operator === 'is_not_empty'
-      "
-    />
+    <div data-qa="filter-date-input">
+      <el-date-picker
+        ref="inputRef"
+        v-model="model"
+        placeholder="Select a date"
+        value-format="YYYY-MM-DD"
+        format="YYYY-MM-DD"
+        class="custom-date-picker"
+        popper-class="date-picker-popper"
+        v-bind="betweenProps"
+        :disabled="
+          operator === 'is_empty'
+            || operator === 'is_not_empty'
+        "
+      />
+    </div>
   </div>
 </template>
 

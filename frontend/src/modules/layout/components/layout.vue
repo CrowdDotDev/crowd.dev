@@ -200,9 +200,9 @@ export default {
         },
 
         account: {
-          id: this.currentTenant.id, // Required if using Pendo Feedback, default uses the value 'ACCOUNT-UNIQUE-ID'
-          name: this.currentTenant.name, // Optional
-          is_paying: this.currentTenant.plan !== 'Essential', // Recommended if using Pendo Feedback
+          id: this.currentTenant?.id, // Required if using Pendo Feedback, default uses the value 'ACCOUNT-UNIQUE-ID'
+          name: this.currentTenant?.name, // Optional
+          is_paying: this.currentTenant?.plan !== 'Essential', // Recommended if using Pendo Feedback
           // monthly_value:// Recommended if using Pendo Feedback
           // planLevel:    // Optional
           // planPrice:    // Optional

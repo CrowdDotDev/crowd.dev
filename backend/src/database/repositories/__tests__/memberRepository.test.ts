@@ -1,7 +1,7 @@
 import { Op } from 'sequelize'
 import Error404 from '../../../errors/Error404'
-import { PlatformType } from '../../../types/integrationEnums'
-import { generateUUIDv1 } from '../../../utils/uuid'
+import { PlatformType } from '@crowd/types'
+import { generateUUIDv1 } from '@crowd/common'
 import SequelizeTestUtils from '../../utils/sequelizeTestUtils'
 import MemberRepository from '../memberRepository'
 import NoteRepository from '../noteRepository'
@@ -196,6 +196,7 @@ describe('MemberRepository tests', () => {
         createdById: mockIRepositoryOptions.currentUser.id,
         updatedById: mockIRepositoryOptions.currentUser.id,
         reach: { total: -1 },
+        organizations: [],
         joinedAt: new Date('2020-05-27T15:13:30Z'),
       }
       expect(memberCreated).toStrictEqual(expectedMemberCreated)
@@ -467,6 +468,7 @@ describe('MemberRepository tests', () => {
         createdById: mockIRepositoryOptions.currentUser.id,
         updatedById: mockIRepositoryOptions.currentUser.id,
         reach: { total: -1 },
+        organizations: [],
         joinedAt: new Date('2020-05-27T15:13:30Z'),
       }
 
@@ -626,7 +628,6 @@ describe('MemberRepository tests', () => {
       delete member1Returned.noMerge
       delete member1Returned.tags
       delete member1Returned.activities
-      delete member1Returned.organizations
       delete member1Returned.notes
       delete member1Returned.tasks
       delete member1Returned.lastActive
@@ -1255,11 +1256,13 @@ describe('MemberRepository tests', () => {
 
       const crowd = await mockIRepositoryOptions.database.organization.create({
         name: 'crowd.dev',
+        displayName: 'crowd.dev',
         url: 'https://crowd.dev',
         tenantId: mockIRepositoryOptions.currentTenant.id,
       })
       const pp = await mockIRepositoryOptions.database.organization.create({
         name: 'pied piper',
+        displayName: 'pied piper',
         url: 'https://piedpiper.com',
         tenantId: mockIRepositoryOptions.currentTenant.id,
       })
@@ -2297,11 +2300,13 @@ describe('MemberRepository tests', () => {
 
       const crowd = await mockIRepositoryOptions.database.organization.create({
         name: 'crowd.dev',
+        displayName: 'crowd.dev',
         url: 'https://crowd.dev',
         tenantId: mockIRepositoryOptions.currentTenant.id,
       })
       const pp = await mockIRepositoryOptions.database.organization.create({
         name: 'pied piper',
+        displayName: 'pied piper',
         url: 'https://piedpiper.com',
         tenantId: mockIRepositoryOptions.currentTenant.id,
       })
@@ -2928,6 +2933,7 @@ describe('MemberRepository tests', () => {
         attributes: updateFields.attributes,
         lastEnriched: null,
         enrichedBy: [],
+        organizations: [],
         contributions: null,
         emails: updateFields.emails,
         score: updateFields.score,

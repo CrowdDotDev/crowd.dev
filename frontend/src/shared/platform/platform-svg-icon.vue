@@ -15,6 +15,7 @@
           <span class="text-3xs font-semibold">{{ usernameHandles.length }}</span>
         </div>
         <a
+          v-if="platformConfig"
           :aria-label="platform"
           :href="href"
           target="_blank"
@@ -31,7 +32,9 @@
             color="#D1D5DB"
             :name="platform"
             :hover-color="usernameHandles.length === 1 && href ? '#4B5563' : null"
-          /> </a>
+          />
+        </a>
+        <i v-else class="ri-user-3-fill text-gray-300" />
       </div>
     </template>
   </app-platform-popover>
@@ -66,6 +69,7 @@ const props = defineProps({
   },
 });
 
+const platformConfig = computed(() => CrowdIntegrations.getConfig(props.platform));
 const href = computed(() => (props.usernameHandles.length === 1 ? CrowdIntegrations.getConfig(props.platform)?.url(props.usernameHandles[0]) : null));
 </script>
 

@@ -3,16 +3,36 @@
     <h6>Organization details</h6>
     <div class="col-span-2 organization-details-form">
       <el-form-item
-        :label="fields.name.label"
-        :prop="fields.name.name"
+        :label="fields.displayName.label"
+        :prop="fields.displayName.name"
         required
       >
-        <el-input v-model="model[fields.name.name]" />
+        <el-input v-model="model[fields.displayName.name]" />
         <template #error>
           <div class="el-form-item__error">
             Name is required
           </div>
         </template>
+      </el-form-item>
+      <el-form-item>
+        <template #label>
+          <div class="flex gap-2">
+            {{ fields.headline.label }}
+            <el-tooltip
+              content="Organization enrichment"
+              placement="top"
+            >
+              <div class="form-enrichment-badge">
+                <app-svg name="enrichment" />
+              </div>
+            </el-tooltip>
+          </div>
+        </template>
+        <el-input
+          v-model="model[fields.headline.name]"
+          disabled
+          type="textarea"
+        />
       </el-form-item>
       <el-form-item :label="fields.description.label">
         <el-input
@@ -60,6 +80,7 @@
 
 <script setup>
 import { defineEmits, defineProps, computed } from 'vue';
+import AppSvg from '@/shared/svg/svg.vue';
 
 const emit = defineEmits(['update:modelValue']);
 const props = defineProps({

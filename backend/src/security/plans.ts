@@ -1,4 +1,4 @@
-import { PLANS_CONFIG } from '../config'
+import { PLANS_CONFIG } from '../conf'
 
 class Plans {
   static get values() {

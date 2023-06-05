@@ -9,7 +9,7 @@ export default [
     name: '',
     path: '',
     component: Layout,
-    meta: { auth: true },
+    meta: { auth: true, title: 'Activities' },
     children: [
       {
         name: 'activity',
@@ -23,7 +23,7 @@ export default [
           if (
             to.query.activeTab !== undefined
             && store.getters['activity/activeView'].id
-              !== to.query.activeTab
+            !== to.query.activeTab
           ) {
             store.dispatch(
               'activity/doChangeActiveView',

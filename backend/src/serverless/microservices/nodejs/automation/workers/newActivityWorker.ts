@@ -1,3 +1,4 @@
+import { getServiceChildLogger } from '@crowd/logging'
 import getUserContext from '../../../../../database/utils/getUserContext'
 import ActivityRepository from '../../../../../database/repositories/activityRepository'
 import AutomationRepository from '../../../../../database/repositories/automationRepository'
@@ -10,11 +11,11 @@ import {
 } from '../../../../../types/automationTypes'
 import { sendWebhookProcessRequest } from './util'
 import { prepareMemberPayload } from './newMemberWorker'
-import { createServiceChildLogger } from '../../../../../utils/logging'
 import AutomationExecutionRepository from '../../../../../database/repositories/automationExecutionRepository'
 import SequelizeRepository from '../../../../../database/repositories/sequelizeRepository'
+import MemberRepository from '../../../../../database/repositories/memberRepository'
 
-const log = createServiceChildLogger('newActivityWorker')
+const log = getServiceChildLogger('newActivityWorker')
 
 /**
  * Helper function to check whether a single activity should be processed by automation
@@ -70,7 +71,7 @@ export const shouldProcessActivity = async (
     process &&
     !settings.teamMemberActivities &&
     activity.member.attributes.isTeamMember &&
-    activity.member.attributes.isTeamMember.custom
+    activity.member.attributes.isTeamMember.default
   ) {
     log.warn(
       `Ignoring automation ${automation.id} - Activity ${activity.id} belongs to a team member!`,
@@ -125,7 +126,7 @@ export const prepareActivityPayload = (activity: any): any => {
  * @param activityId activity unique ID
  * @param activityData activity data
  */
-export default async (tenantId: string, activityId?: string, activityData?: any): Promise<void> => {
+export default async (tenantId: string, activityId: string): Promise<void> => {
   const userContext = await getUserContext(tenantId)
 
   try {
@@ -137,10 +138,15 @@ export default async (tenantId: string, activityId?: string, activityData?: any)
 
     if (automations.length > 0) {
       log.info(`Found ${automations.length} automations to process!`)
-      let activity: any | undefined = activityData
+      let activity = await ActivityRepository.findById(activityId, userContext)
 
-      if (activity === undefined) {
-        activity = await ActivityRepository.findById(activityId, userContext)
+      if (activity.member?.id) {
+        const member = await MemberRepository.findById(activity.member.id, userContext)
+        activity = {
+          ...activity,
+          member,
+          engagement: member?.score || 0,
+        }
       }
 
       for (const automation of automations) {
@@ -154,6 +160,16 @@ export default async (tenantId: string, activityId?: string, activityData?: any)
                 automation,
                 activity.id,
                 prepareActivityPayload(activity),
+                AutomationType.WEBHOOK,
+              )
+              break
+            case AutomationType.SLACK:
+              await sendWebhookProcessRequest(
+                tenantId,
+                automation,
+                activity.id,
+                prepareActivityPayload(activity),
+                AutomationType.SLACK,
               )
               break
             default:

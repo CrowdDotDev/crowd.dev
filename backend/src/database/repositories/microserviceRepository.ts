@@ -41,7 +41,7 @@ class MicroserviceRepository {
    * @param type The microservice type to filter
    * @returns All active integrations for the platform
    */
-  static async findAllByType(type) {
+  static async findAllByType(type: string, page: number, perPage: number) {
     const options = await SequelizeRepository.getDefaultIRepositoryOptions()
 
     const records = await options.database.microservice.findAll({
@@ -49,6 +49,8 @@ class MicroserviceRepository {
         running: false,
         type,
       },
+      limit: perPage,
+      offset: (page - 1) * perPage,
     })
 
     if (!records) {

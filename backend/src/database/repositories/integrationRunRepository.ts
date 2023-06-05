@@ -1,5 +1,5 @@
 import { QueryTypes } from 'sequelize'
-import { v1 as uuidV1 } from 'uuid'
+import { generateUUIDv1 } from '@crowd/common'
 import {
   IntegrationRunState,
   IntegrationRun,
@@ -8,7 +8,7 @@ import {
 import { IntegrationStreamState } from '../../types/integrationStreamTypes'
 import { IRepositoryOptions } from './IRepositoryOptions'
 import { RepositoryBase } from './repositoryBase'
-import { INTEGRATION_PROCESSING_CONFIG } from '../../config'
+import { INTEGRATION_PROCESSING_CONFIG } from '../../conf'
 
 export default class IntegrationRunRepository extends RepositoryBase<
   IntegrationRun,
@@ -21,7 +21,7 @@ export default class IntegrationRunRepository extends RepositoryBase<
     super(options, true)
   }
 
-  async findDelayedRuns(): Promise<IntegrationRun[]> {
+  async findDelayedRuns(page: number, perPage: number): Promise<IntegrationRun[]> {
     const transaction = this.transaction
 
     const seq = this.seq
@@ -41,6 +41,7 @@ export default class IntegrationRunRepository extends RepositoryBase<
       from "integrationRuns"
       where state = :delayedState and "delayedUntil" <= now()
       order by "createdAt" desc
+      limit ${perPage} offset ${(page - 1) * perPage}
     `
 
     const results = await seq.query(query, {
@@ -54,7 +55,11 @@ export default class IntegrationRunRepository extends RepositoryBase<
     return results as IntegrationRun[]
   }
 
-  async findIntegrationsByState(states: IntegrationRunState[]): Promise<IntegrationRun[]> {
+  async findIntegrationsByState(
+    states: IntegrationRunState[],
+    page: number,
+    perPage: number,
+  ): Promise<IntegrationRun[]> {
     const seq = this.seq
 
     const replacements: any = {}
@@ -79,6 +84,7 @@ export default class IntegrationRunRepository extends RepositoryBase<
       from "integrationRuns"
       where state in (${stateParams.join(', ')})
       order by "createdAt" desc
+      limit ${perPage} offset ${(page - 1) * perPage}
     `
 
     const results = await seq.query(query, {
@@ -125,6 +131,41 @@ export default class IntegrationRunRepository extends RepositoryBase<
     }
 
     return results[0] as IntegrationRun
+  }
+
+  async findLastProcessingRunInNewFramework(integrationId: string): Promise<string> {
+    const transaction = this.transaction
+
+    const seq = this.seq
+
+    const condition = ` "integrationId" = :integrationId `
+
+    const replacements: any = {
+      delayedState: IntegrationRunState.DELAYED,
+      processingState: IntegrationRunState.PROCESSING,
+      pendingState: IntegrationRunState.PENDING,
+      integrationId,
+    }
+
+    const query = `
+    select id
+    from integration.runs
+    where state in (:delayedState, :processingState, :pendingState) and ${condition}
+    order by "createdAt" desc
+    limit 1
+    `
+
+    const results = await seq.query(query, {
+      replacements,
+      type: QueryTypes.SELECT,
+      transaction,
+    })
+
+    if (results.length === 1) {
+      return (results[0] as any).id
+    }
+
+    return undefined
   }
 
   async findLastProcessingRun(
@@ -229,7 +270,7 @@ export default class IntegrationRunRepository extends RepositoryBase<
 
     const seq = this.seq
 
-    const id = uuidV1()
+    const id = generateUUIDv1()
 
     const query = `
       insert into "integrationRuns"(id, "tenantId", "integrationId", "microserviceId", onboarding, state)
@@ -471,10 +512,13 @@ export default class IntegrationRunRepository extends RepositoryBase<
     const seq = this.seq
 
     const cleanQuery = `
-        delete from "integrationRuns" where state = 'processed' and "processedAt" < now() - interval '${months} months';                     
+        delete from "integrationRuns" where state = :processed and "processedAt" < now() - interval '${months} months';                     
     `
 
     await seq.query(cleanQuery, {
+      replacements: {
+        processed: IntegrationRunState.PROCESSED,
+      },
       type: QueryTypes.DELETE,
     })
   }

@@ -32,7 +32,7 @@
         <!-- Activity item list -->
         <app-activity-item
           v-for="activity of activities"
-          :key="activity.id"
+          :key="activity?.id"
           :activity="activity"
           class="mb-6"
           v-bind="cardOptions"

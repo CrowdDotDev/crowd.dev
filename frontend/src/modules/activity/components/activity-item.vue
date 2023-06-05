@@ -109,9 +109,25 @@
               :show-more="true"
               :display-thread="false"
             >
-              <div v-if="activity.url" class="pt-6">
-                <app-activity-link :activity="activity" />
-              </div>
+              <template v-if="platform?.activityDisplay?.showContentDetails" #details>
+                <div v-if="activity.attributes">
+                  <app-activity-content-footer
+                    :source-id="activity.sourceId"
+                    :changes="activity.attributes.lines"
+                    changes-copy="line"
+                    :insertions="activity.attributes.insertions"
+                    :deletions="activity.attributes.deletions"
+                  />
+                </div>
+              </template>
+
+              <template #bottomLink>
+                <div v-if="activity.url" class="pt-6">
+                  <app-activity-link
+                    :activity="activity"
+                  />
+                </div>
+              </template>
             </app-activity-content>
           </div>
         </div>
@@ -131,6 +147,7 @@ import AppActivityContent from '@/modules/activity/components/activity-content.v
 import AppActivityLink from '@/modules/activity/components/activity-link.vue';
 import AppActivitySentiment from '@/modules/activity/components/activity-sentiment.vue';
 import AppMemberDisplayName from '@/modules/member/components/member-display-name.vue';
+import AppActivityContentFooter from '@/modules/activity/components/activity-content-footer.vue';
 
 export default {
   name: 'AppActivityItem',
@@ -143,6 +160,7 @@ export default {
     AppActivityDropdown,
     AppAvatar,
     AppActivitySentiment,
+    AppActivityContentFooter,
   },
   props: {
     activity: {

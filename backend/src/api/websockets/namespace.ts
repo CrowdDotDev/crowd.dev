@@ -1,13 +1,13 @@
-import { Namespace, Server } from 'socket.io'
+import { Logger, getServiceChildLogger } from '@crowd/logging'
 import { NextFunction } from 'express'
-import { createServiceChildLogger, Logger } from '../../utils/logging'
-import AuthService from '../../services/auth/authService'
+import { Namespace, Server } from 'socket.io'
 import { databaseInit } from '../../database/databaseConnection'
-import { IAuthenticatedSocket, ISocket, ISocketHandler } from './types'
 import SequelizeRepository from '../../database/repositories/sequelizeRepository'
 import TenantUserRepository from '../../database/repositories/tenantUserRepository'
+import AuthService from '../../services/auth/authService'
+import { IAuthenticatedSocket, ISocket, ISocketHandler } from './types'
 
-const logger = createServiceChildLogger('websockets/namespaces')
+const logger = getServiceChildLogger('websockets/namespaces')
 
 export default class WebSocketNamespace<TSocket extends ISocket = ISocket> {
   private readonly log: Logger

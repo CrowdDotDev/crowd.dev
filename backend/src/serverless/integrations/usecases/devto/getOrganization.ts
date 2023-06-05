@@ -1,6 +1,6 @@
 import axios from 'axios'
+import { timeout } from '@crowd/common'
 import { DevtoOrganization } from './types'
-import { timeout } from '../../../../utils/timing'
 
 /**
  * Performs a lookup of a Dev.to organization

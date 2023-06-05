@@ -105,12 +105,43 @@
                       name: 'organizationView',
                       params: { id: scope.row.id },
                     }"
-                    class="block !px-0"
+                    class="block mr-4"
                   >
                     <app-organization-name
                       class="w-full"
                       :organization="scope.row"
                     />
+                  </router-link>
+                </template>
+              </el-table-column>
+
+              <!-- Headline -->
+              <el-table-column
+                label="Headline"
+                prop="headline"
+                width="300"
+                sortable
+              >
+                <template #default="scope">
+                  <router-link
+                    :to="{
+                      name: 'organizationView',
+                      params: { id: scope.row.id },
+                    }"
+                    class="block"
+                  >
+                    <div class="mr-4">
+                      <span
+                        v-if="scope.row.headline"
+                        class="text-sm h-full flex items-center text-gray-900"
+                      >
+                        {{ scope.row.headline }}
+                      </span>
+                      <span
+                        v-else
+                        class="text-gray-500"
+                      >-</span>
+                    </div>
                   </router-link>
                 </template>
               </el-table-column>
@@ -172,25 +203,6 @@
                   </router-link>
                 </template>
               </el-table-column>
-
-              <!-- Number of employees
-              TODO: Uncomment when we support enrichment
-              <el-table-column
-                label="# Employees"
-                width="150"
-                prop="employees"
-                sortable
-                ><template #default="scope">
-                  <div class="text-gray-900 text-sm">
-                    {{
-                      formatNumberToRange(
-                        scope.row.employees
-                      )
-                    }}
-                  </div></template
-                ></el-table-column
-              >
-              -->
 
               <!-- Number of activities -->
               <el-table-column
@@ -331,6 +343,151 @@
                 </template>
               </el-table-column>
 
+              <!-- Location -->
+              <el-table-column
+                label="Location"
+                width="150"
+                prop="location"
+                sortable
+              >
+                <template #default="scope">
+                  <router-link
+                    :to="{
+                      name: 'organizationView',
+                      params: { id: scope.row.id },
+                    }"
+                    class="block"
+                  >
+                    <div
+                      class="text-sm h-full flex items-center"
+                    >
+                      <span v-if="scope.row.location" class="text-gray-900">
+                        {{
+                          scope.row.location
+                        }}
+                      </span>
+                      <span v-else class="text-gray-500">-</span>
+                    </div>
+                  </router-link>
+                </template>
+              </el-table-column>
+
+              <!-- Industry -->
+              <el-table-column
+                label="Industry"
+                width="150"
+                prop="industry"
+                sortable
+              >
+                <template #default="scope">
+                  <router-link
+                    :to="{
+                      name: 'organizationView',
+                      params: { id: scope.row.id },
+                    }"
+                    class="block"
+                  >
+                    <div
+                      class="text-sm h-full flex items-center"
+                    >
+                      <span v-if="scope.row.industry" class="text-gray-900">
+                        {{
+                          toSentenceCase(scope.row.industry)
+                        }}
+                      </span>
+                      <span v-else class="text-gray-500">-</span>
+                    </div>
+                  </router-link>
+                </template>
+              </el-table-column>
+
+              <!-- Size -->
+              <el-table-column
+                label="Headcount"
+                width="150"
+                prop="size"
+                sortable
+              >
+                <template #default="scope">
+                  <router-link
+                    :to="{
+                      name: 'organizationView',
+                      params: { id: scope.row.id },
+                    }"
+                    class="block"
+                  >
+                    <div
+                      class="text-sm h-full flex items-center"
+                    >
+                      <span v-if="scope.row.size" class="text-gray-900">
+                        {{
+                          scope.row.size
+                        }}
+                      </span>
+                      <span v-else class="text-gray-500">-</span>
+                    </div>
+                  </router-link>
+                </template>
+              </el-table-column>
+
+              <!-- Type -->
+              <el-table-column
+                label="Type"
+                width="150"
+                prop="type"
+                sortable
+              >
+                <template #default="scope">
+                  <router-link
+                    :to="{
+                      name: 'organizationView',
+                      params: { id: scope.row.id },
+                    }"
+                    class="block"
+                  >
+                    <div
+                      class="text-sm h-full flex items-center"
+                    >
+                      <span v-if="scope.row.type" class="text-gray-900">
+                        {{
+                          toSentenceCase(scope.row.type)
+                        }}
+                      </span>
+                      <span v-else class="text-gray-500">-</span>
+                    </div>
+                  </router-link>
+                </template>
+              </el-table-column>
+
+              <!-- Founded -->
+              <el-table-column
+                label="Founded"
+                width="150"
+                prop="founded"
+                sortable
+              >
+                <template #default="scope">
+                  <router-link
+                    :to="{
+                      name: 'organizationView',
+                      params: { id: scope.row.id },
+                    }"
+                    class="block"
+                  >
+                    <div
+                      class="text-sm h-full flex items-center"
+                    >
+                      <span v-if="scope.row.founded" class="text-gray-900">
+                        {{
+                          scope.row.founded
+                        }}
+                      </span>
+                      <span v-else class="text-gray-500">-</span>
+                    </div>
+                  </router-link>
+                </template>
+              </el-table-column>
+
               <!-- Actions -->
               <el-table-column fixed="right">
                 <template #default="scope">
@@ -389,7 +546,7 @@ import {
 } from '@/shared/vuex/vuex.helpers';
 import { formatDateToTimeAgo } from '@/utils/date';
 import { formatNumberToCompact } from '@/utils/number';
-import { withHttp } from '@/utils/string';
+import { withHttp, toSentenceCase } from '@/utils/string';
 import AppOrganizationIdentities from '../organization-identities.vue';
 import AppOrganizationListToolbar from './organization-list-toolbar.vue';
 import AppOrganizationName from '../organization-name.vue';
@@ -464,6 +621,7 @@ const hasIdentities = (row) => (
     || !!row.linkedin
     || !!row.twitter
     || !!row.crunchbase
+    || !!row.facebook
     || !!row.phoneNumbers?.length
 );
 

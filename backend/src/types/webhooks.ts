@@ -9,6 +9,7 @@ export enum WebhookState {
 export enum WebhookType {
   GITHUB = 'GITHUB',
   DISCORD = 'DISCORD',
+  DISCOURSE = 'DISCOURSE',
 }
 
 export enum DiscordWebsocketEvent {
@@ -70,6 +71,13 @@ export interface DbIncomingWebhookInsertData {
   type: WebhookType
   payload: any
 }
+
+export interface PendingWebhook {
+  id: string
+  tenantId: string
+}
+
+export interface ErrorWebhook extends PendingWebhook {}
 
 export class WebhookError extends BaseError {
   public webhookId: string

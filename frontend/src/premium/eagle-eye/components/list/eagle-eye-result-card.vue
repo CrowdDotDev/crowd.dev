@@ -377,9 +377,9 @@ const store = useStore();
 const { currentUser, currentTenant } = mapGetters('auth');
 
 const eagleEyeSettings = computed(
-  () => currentUser?.value.tenants.find(
+  () => currentUser?.value?.tenants.find(
     (tu) => tu.tenantId === currentTenant?.value.id,
-  ).settings.eagleEye,
+  )?.settings.eagleEye,
 );
 
 const generatedReply = ref('');
@@ -482,7 +482,7 @@ const subreddit = computed(() => {
   const pattern = /.*reddit\.com(?<subreddit>\/r\/.[^\\/]*).*/gm;
   const matches = pattern.exec(props.result.url);
 
-  if (!matches.groups.subreddit) {
+  if (!matches?.groups.subreddit) {
     return null;
   }
 

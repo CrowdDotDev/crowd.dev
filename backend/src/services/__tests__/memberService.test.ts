@@ -5,7 +5,7 @@ import ActivityRepository from '../../database/repositories/activityRepository'
 import TagRepository from '../../database/repositories/tagRepository'
 import Error404 from '../../errors/Error404'
 import Error400 from '../../errors/Error400'
-import { PlatformType } from '../../types/integrationEnums'
+import { PlatformType } from '@crowd/types'
 import OrganizationRepository from '../../database/repositories/organizationRepository'
 import TaskRepository from '../../database/repositories/taskRepository'
 import NoteRepository from '../../database/repositories/noteRepository'
@@ -20,7 +20,7 @@ import { SlackMemberAttributes } from '../../database/attributes/member/slack'
 import SettingsRepository from '../../database/repositories/settingsRepository'
 import OrganizationService from '../organizationService'
 import Plans from '../../security/plans'
-import { generateUUIDv1 } from '../../utils/uuid'
+import { generateUUIDv1 } from '@crowd/common'
 import lodash from 'lodash'
 
 const db = null
@@ -172,6 +172,7 @@ describe('MemberService tests', () => {
         createdAt: SequelizeTestUtils.getNowWithoutTime(),
         updatedAt: SequelizeTestUtils.getNowWithoutTime(),
         deletedAt: null,
+        organizations: [],
         tenantId: mockIServiceOptions.currentTenant.id,
         createdById: mockIServiceOptions.currentUser.id,
         updatedById: mockIServiceOptions.currentUser.id,
@@ -266,6 +267,7 @@ describe('MemberService tests', () => {
         createdById: mockIServiceOptions.currentUser.id,
         updatedById: mockIServiceOptions.currentUser.id,
         lastEnriched: null,
+        organizations: [],
         enrichedBy: [],
         contributions: null,
         reach: { total: -1 },
@@ -307,6 +309,7 @@ describe('MemberService tests', () => {
         attributes: {},
         emails: member1.emails,
         lastEnriched: null,
+        organizations: [],
         enrichedBy: [],
         contributions: null,
         score: member1.score,
@@ -354,6 +357,7 @@ describe('MemberService tests', () => {
         displayName: username,
         attributes: {},
         lastEnriched: null,
+        organizations: [],
         enrichedBy: [],
         contributions: null,
         emails: member1.emails,
@@ -404,6 +408,7 @@ describe('MemberService tests', () => {
         emails: member1.emails,
         score: member1.score,
         lastEnriched: null,
+        organizations: [],
         enrichedBy: [],
         contributions: null,
         importHash: null,
@@ -453,6 +458,7 @@ describe('MemberService tests', () => {
       expect(o1).toStrictEqual({
         id: organization.id,
         name: 'crowd.dev',
+        displayName: 'crowd.dev',
         url: null,
         github: null,
         location: null,
@@ -474,6 +480,18 @@ describe('MemberService tests', () => {
         createdById: mockIServiceOptions.currentUser.id,
         updatedById: mockIServiceOptions.currentUser.id,
         isTeamOrganization: false,
+        type: null,
+        ticker: null,
+        size: null,
+        naics: null,
+        lastEnrichedAt: null,
+        industry: null,
+        headline: null,
+        geoLocation: null,
+        founded: null,
+        employeeCountByCountry: null,
+        address: null,
+        profiles: null,
       })
     })
 
@@ -510,6 +528,7 @@ describe('MemberService tests', () => {
       expect(o1).toStrictEqual({
         id: organization.id,
         name: 'crowd.dev',
+        displayName: 'crowd.dev',
         url: 'https://crowd.dev',
         github: null,
         location: null,
@@ -531,6 +550,18 @@ describe('MemberService tests', () => {
         createdById: mockIServiceOptions.currentUser.id,
         updatedById: mockIServiceOptions.currentUser.id,
         isTeamOrganization: false,
+        type: null,
+        ticker: null,
+        size: null,
+        naics: null,
+        lastEnrichedAt: null,
+        industry: null,
+        headline: null,
+        geoLocation: null,
+        founded: null,
+        employeeCountByCountry: null,
+        address: null,
+        profiles: null,
       })
     })
 
@@ -571,6 +602,7 @@ describe('MemberService tests', () => {
       expect(o1).toStrictEqual({
         id: organization.id,
         name: 'crowd.dev',
+        displayName: 'crowd.dev',
         url: null,
         github: null,
         location: null,
@@ -592,6 +624,18 @@ describe('MemberService tests', () => {
         createdById: mockIServiceOptions.currentUser.id,
         updatedById: mockIServiceOptions.currentUser.id,
         isTeamOrganization: false,
+        type: null,
+        ticker: null,
+        size: null,
+        naics: null,
+        lastEnrichedAt: null,
+        industry: null,
+        headline: null,
+        geoLocation: null,
+        founded: null,
+        employeeCountByCountry: null,
+        address: null,
+        profiles: null,
       })
     })
 
@@ -631,6 +675,7 @@ describe('MemberService tests', () => {
       expect(o1).toStrictEqual({
         id: organization.id,
         name: 'crowd.dev',
+        displayName: 'crowd.dev',
         url: 'crowd.dev',
         github: null,
         location: null,
@@ -669,6 +714,18 @@ describe('MemberService tests', () => {
         createdById: mockIServiceOptions.currentUser.id,
         updatedById: mockIServiceOptions.currentUser.id,
         isTeamOrganization: false,
+        type: null,
+        ticker: null,
+        size: null,
+        naics: null,
+        lastEnrichedAt: null,
+        industry: null,
+        headline: null,
+        geoLocation: null,
+        founded: null,
+        employeeCountByCountry: null,
+        address: null,
+        profiles: null,
       })
     })
 
@@ -753,6 +810,7 @@ describe('MemberService tests', () => {
           },
         },
         lastEnriched: null,
+        organizations: [],
         enrichedBy: [],
         contributions: null,
         emails: ['lala@l.com', 'test@email.com', 'test2@email.com'],
@@ -861,6 +919,7 @@ describe('MemberService tests', () => {
           },
         },
         lastEnriched: null,
+        organizations: [],
         enrichedBy: [],
         contributions: null,
         emails: member1.emails,
@@ -965,6 +1024,7 @@ describe('MemberService tests', () => {
         },
         emails: member1.emails,
         lastEnriched: null,
+        organizations: [],
         enrichedBy: [],
         contributions: null,
         score: member1.score,
@@ -1141,6 +1201,7 @@ describe('MemberService tests', () => {
         },
         emails: member1.emails,
         lastEnriched: null,
+        organizations: [],
         enrichedBy: [],
         contributions: null,
         score: member1.score,
@@ -1192,6 +1253,7 @@ describe('MemberService tests', () => {
         },
         displayName: member1Username,
         lastEnriched: null,
+        organizations: [],
         enrichedBy: [],
         contributions: null,
         reach: { total: 10, [PlatformType.GITHUB]: 10 },
@@ -1245,6 +1307,7 @@ describe('MemberService tests', () => {
           [PlatformType.GITHUB]: [member1Username],
         },
         lastEnriched: null,
+        organizations: [],
         enrichedBy: [],
         contributions: null,
         displayName: member1Username,
@@ -1300,6 +1363,7 @@ describe('MemberService tests', () => {
           [PlatformType.GITHUB]: [member1Username],
         },
         lastEnriched: null,
+        organizations: [],
         enrichedBy: [],
         contributions: null,
         displayName: member1Username,
@@ -1356,6 +1420,7 @@ describe('MemberService tests', () => {
         },
         displayName: member1Username,
         lastEnriched: null,
+        organizations: [],
         enrichedBy: [],
         contributions: null,
         reach: { total: 50, [PlatformType.GITHUB]: 30, linkedin: 10, [PlatformType.TWITTER]: 10 },
@@ -1966,7 +2031,6 @@ describe('MemberService tests', () => {
       delete returnedMember1.noMerge
       delete returnedMember1.tags
       delete returnedMember1.activities
-      delete returnedMember1.organizations
       delete returnedMember1.tasks
       delete returnedMember1.notes
       delete returnedMember1.activityCount
@@ -2064,7 +2128,6 @@ describe('MemberService tests', () => {
       delete returnedMember1.noMerge
       delete returnedMember1.tags
       delete returnedMember1.activities
-      delete returnedMember1.organizations
       delete returnedMember1.tasks
       delete returnedMember1.notes
       delete returnedMember1.activityCount

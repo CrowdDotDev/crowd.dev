@@ -9,7 +9,11 @@ export interface IIntegrationStreamRetry {
 }
 
 export class NodeWorkerIntegrationProcessMessage extends NodeWorkerMessageBase {
-  constructor(public readonly runId: string) {
+  constructor(
+    public readonly runId: string,
+    public readonly streamId?: string,
+    public readonly fireCrowdWebhooks?: boolean,
+  ) {
     super(NodeWorkerMessageType.INTEGRATION_PROCESS)
   }
 }

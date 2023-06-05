@@ -4,6 +4,7 @@
     :class="{
       'is-error': errors.length,
     }"
+    v-bind="$attrs"
   >
     <div class="el-form-item__content flex-col items-start">
       <label

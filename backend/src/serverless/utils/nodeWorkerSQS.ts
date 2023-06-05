@@ -1,11 +1,14 @@
 import { MessageBodyAttributeMap } from 'aws-sdk/clients/sqs'
 import moment from 'moment'
+import { getServiceChildLogger } from '@crowd/logging'
 import { NodeWorkerMessageBase } from '../../types/mq/nodeWorkerMessageBase'
-import { KUBE_MODE, IS_TEST_ENV, SQS_CONFIG } from '../../config'
+import { IS_TEST_ENV, SQS_CONFIG } from '../../conf'
 import { sendMessage } from '../../utils/sqs'
 import { NodeWorkerMessageType } from '../types/workerTypes'
 import { AutomationTrigger } from '../../types/automationTypes'
 import { ExportableEntity } from '../microservices/nodejs/messageTypes'
+
+const log = getServiceChildLogger('nodeWorkerSQS')
 
 // 15 minute limit for delaying is max for SQS
 const limitSeconds = 15 * 60
@@ -18,11 +21,6 @@ export const sendNodeWorkerMessage = async (
 ): Promise<void> => {
   if (IS_TEST_ENV) {
     return
-  }
-
-  // TODO-kube
-  if (!KUBE_MODE) {
-    throw new Error("Can't send nodejs-worker delayed SQS message when not in kube mode!")
   }
 
   // we can only delay for 15 minutes then we have to re-delay message
@@ -73,28 +71,37 @@ export const sendNodeWorkerMessage = async (
     DelaySeconds: delay,
   }
 
+  log.info(
+    {
+      messageType: body.type,
+    },
+    'Sending nodejs-worker sqs message!',
+  )
   await sendMessage(params)
 }
 
 export const sendNewActivityNodeSQSMessage = async (
   tenant: string,
-  activity: any,
+  activityId: string,
 ): Promise<void> => {
   const payload = {
     type: NodeWorkerMessageType.NODE_MICROSERVICE,
     tenant,
-    activity,
+    activityId,
     trigger: AutomationTrigger.NEW_ACTIVITY,
     service: 'automation',
   }
   await sendNodeWorkerMessage(tenant, payload as NodeWorkerMessageBase)
 }
 
-export const sendNewMemberNodeSQSMessage = async (tenant: string, member: any): Promise<void> => {
+export const sendNewMemberNodeSQSMessage = async (
+  tenant: string,
+  memberId: string,
+): Promise<void> => {
   const payload = {
     type: NodeWorkerMessageType.NODE_MICROSERVICE,
     tenant,
-    member,
+    memberId,
     trigger: AutomationTrigger.NEW_MEMBER,
     service: 'automation',
   }

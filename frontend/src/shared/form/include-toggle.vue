@@ -5,6 +5,7 @@
       :active-text="modelValue ? 'Include' : 'Exclude'"
       class="w-fit flex !justify-start"
       size="small"
+      data-qa="filter-include-switch"
     />
   </div>
 </template>

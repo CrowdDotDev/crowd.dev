@@ -18,6 +18,7 @@
     "port": "CROWD_SQS_PORT",
     "nodejsWorkerQueue": "CROWD_SQS_NODEJS_WORKER_QUEUE",
     "nodejsWorkerDelayableQueue": "CROWD_SQS_NODEJS_WORKER_DELAYABLE_QUEUE",
+    "integrationRunWorkerQueue": "CROWD_SQS_INTEGRATION_RUN_WORKER_QUEUE",
     "pythonWorkerQueue": "CROWD_SQS_PYTHON_WORKER_QUEUE",
     "aws": {
       "accountId": "CROWD_SQS_AWS_ACCOUNT_ID",
@@ -114,6 +115,10 @@
     "appId": "CROWD_SLACK_APP_ID",
     "appToken": "CROWD_SLACK_APP_TOKEN"
   },
+  "slackNotifier": {
+    "clientId": "CROWD_SLACK_NOTIFIER_CLIENT_ID",
+    "clientSecret": "CROWD_SLACK_NOTIFIER_CLIENT_SECRET"
+  },
   "google": {
     "clientId": "CROWD_GOOGLE_CLIENT_ID",
     "clientSecret": "CROWD_GOOGLE_CLIENT_SECRET",
@@ -128,7 +133,8 @@
     "clientId": "CROWD_GITHUB_CLIENT_ID",
     "clientSecret": "CROWD_GITHUB_CLIENT_SECRET",
     "privateKey": "CROWD_GITHUB_PRIVATE_KEY",
-    "webhookSecret": "CROWD_GITHUB_WEBHOOK_SECRET"
+    "webhookSecret": "CROWD_GITHUB_WEBHOOK_SECRET",
+    "isCommitDataEnabled": "CROWD_GITHUB_IS_COMMIT_DATA_ENABLED"
   },
   "stackexchange": {
     "key": "CROWD_STACKEXCHANGE_KEY"
@@ -140,6 +146,9 @@
   "enrichment": {
     "url": "CROWD_ENRICHMENT_URL",
     "apiKey": "CROWD_ENRICHMENT_API_KEY"
+  },
+  "organizationEnrichment": {
+    "apiKey": "CROWD_ORGANIZATION_ENRICHMENT_API_KEY"
   },
   "eagleEye": {
     "url": "CROWD_EAGLE_EYE_URL",

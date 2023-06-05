@@ -15,7 +15,7 @@ export class PermissionChecker {
   }
 
   get currentUserRolesIds() {
-    if (!this.currentUser || !this.currentUser.tenants) {
+    if (!this.currentUser || !this.currentUser.tenants || !this.currentTenant) {
       return [];
     }
 
@@ -59,7 +59,7 @@ export class PermissionChecker {
   }
 
   lockedForSampleData(permission) {
-    if (!permission) {
+    if (!permission || !this.currentTenant) {
       return true;
     }
 

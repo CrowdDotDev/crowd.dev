@@ -1,8 +1,8 @@
+import { ActivityTypeSettings, PlatformType } from '@crowd/types'
+import { LoggerBase } from '@crowd/logging'
 import SegmentRepository from '../database/repositories/segmentRepository'
 import SequelizeRepository from '../database/repositories/sequelizeRepository'
 import Error400 from '../errors/Error400'
-import { ActivityTypeSettings } from '../types/activityTypes'
-import { PlatformType } from '../types/integrationEnums'
 import {
   SegmentActivityTypesCreateData,
   SegmentCriteria,
@@ -11,12 +11,11 @@ import {
   SegmentUpdateData,
 } from '../types/segmentTypes'
 import { IServiceOptions } from './IServiceOptions'
-import { LoggingBase } from './loggingBase'
 
 interface UnnestedActivityTypes {
   [key: string]: any
 }
-export default class SegmentService extends LoggingBase {
+export default class SegmentService extends LoggerBase {
   options: IServiceOptions
 
   constructor(options: IServiceOptions) {
@@ -170,20 +169,21 @@ export default class SegmentService extends LoggingBase {
 
     const segment = SequelizeRepository.getStrictlySingleActiveSegment(this.options)
 
-    const typeKey = data.type
+    const typeKey = data.type.toLowerCase()
+    const platformKey = platform.toLowerCase()
 
     const activityTypes = SegmentRepository.getActivityTypes(this.options)
 
-    if (!activityTypes.custom[platform]) {
-      activityTypes.custom[platform] = {}
+    if (!activityTypes.custom[platformKey]) {
+      activityTypes.custom[platformKey] = {}
     }
 
     // check key already exists
-    if (activityTypes.custom && activityTypes.custom[platform][typeKey]) {
+    if (activityTypes.custom && activityTypes.custom[platformKey][typeKey]) {
       return activityTypes
     }
 
-    activityTypes.custom[platform][typeKey] = {
+    activityTypes.custom[platformKey][typeKey] = {
       display: {
         default: data.type,
         short: data.type,
@@ -216,15 +216,20 @@ export default class SegmentService extends LoggingBase {
    *
    */
   static unnestActivityTypes(activityTypes: ActivityTypeSettings): UnnestedActivityTypes {
-    return Object.keys(activityTypes.custom).reduce((acc, platform) => {
-      const unnestWithPlatform = Object.keys(activityTypes.custom[platform]).reduce((acc2, key) => {
-        acc2[key] = { ...activityTypes.custom[platform][key], platform }
-        return acc2
-      }, {})
+    return Object.keys(activityTypes.custom)
+      .filter((k) => activityTypes.custom[k])
+      .reduce((acc, platform) => {
+        const unnestWithPlatform = Object.keys(activityTypes.custom[platform]).reduce(
+          (acc2, key) => {
+            acc2[key] = { ...activityTypes.custom[platform][key], platform }
+            return acc2
+          },
+          {},
+        )
 
-      acc = { ...acc, ...unnestWithPlatform }
-      return acc
-    }, {})
+        acc = { ...acc, ...unnestWithPlatform }
+        return acc
+      }, {})
   }
 
   async updateActivityType(key: string, data) {

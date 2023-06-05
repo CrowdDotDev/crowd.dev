@@ -20,9 +20,9 @@
         />
       </div>
     </div>
-    <div class="overflow-hidden">
+    <div class="overflow-hidden mr-6">
       <el-tooltip
-        :content="organization.name"
+        :content="organization.displayName"
         effect="dark"
         placement="top"
         :disabled="!showTooltip"
@@ -33,7 +33,7 @@
           @mouseover="handleOnMouseOver"
           @mouseleave="handleOnMouseLeave"
         >
-          {{ organization.name }}
+          {{ organization.displayName }}
         </div>
       </el-tooltip>
       <app-organization-badge

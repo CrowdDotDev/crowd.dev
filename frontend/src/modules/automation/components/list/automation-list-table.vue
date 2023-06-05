@@ -1,80 +1,105 @@
 <template>
-  <div class="app-list-table not-clickable panel">
+  <div class="app-list-table not-clickable panel !pb-0">
     <div class="-mx-6 -mt-6">
       <el-table
         ref="table"
-        :loading="loading('table')"
-        :data="rows"
+        :loading="false"
+        :data="automations"
         row-key="id"
         border
-        :default-sort="{
-          prop: 'lastActive',
-          order: 'descending',
-        }"
-        :row-class-name="rowClass"
-        @sort-change="doChangeSort"
+        :default-sort="{ prop: 'updatedAt', order: 'descending' }"
       >
-        <el-table-column label="Name">
+        <el-table-column label="Name" prop="name" sortable>
           <template #default="scope">
-            <div class="font-medium text-black">
-              {{
-                translate(
-                  `entities.automation.triggers.${scope.row.trigger}`,
-                )
-              }}
+            <div class="flex items-center py-4">
+              <div class="w-6">
+                <img v-if="scope.row.type === 'webhook'" alt="Webhook" src="/images/automation/webhook.png" class="w-6">
+                <img v-else-if="scope.row.type === 'slack'" alt="Slack" src="https://cdn-icons-png.flaticon.com/512/3800/3800024.png" class="w-6">
+              </div>
+              <div class="pl-4">
+                <h6 class="text-sm font-medium mb-0.5 leading-5 text-black">
+                  {{ scope.row.name ?? translate(
+                    `entities.automation.triggers.${scope.row.trigger}`,
+                  ) }}
+                </h6>
+                <p class="text-2xs leading-4.5 text-gray-500">
+                  {{
+                    translate(
+                      `entities.automation.triggers.${scope.row.trigger}`,
+                    )
+                  }}
+                </p>
+              </div>
             </div>
-            <div class="text-gray-600">
-              {{ scope.row.settings.url }}
+          </template>
+        </el-table-column>
+        <el-table-column label="Created on" width="150" prop="createdAt" sortable>
+          <template #default="scope">
+            <div class="h-full flex items-center">
+              <el-tooltip
+                :content="formattedDate(scope.row.createdAt)"
+                placement="top"
+              >
+                {{ timeAgo(scope.row.createdAt) }}
+              </el-tooltip>
             </div>
           </template>
         </el-table-column>
-        <el-table-column label="Created on" width="150">
+        <el-table-column label="Last updated" width="150" prop="updatedAt" sortable>
           <template #default="scope">
-            <el-tooltip
-              :content="formattedDate(scope.row.createdAt)"
-              placement="top"
-            >
-              {{ timeAgo(scope.row.createdAt) }}
-            </el-tooltip>
+            <div class="h-full flex items-center">
+              <el-tooltip
+                :content="formattedDate(scope.row.updatedAt)"
+                placement="top"
+              >
+                {{ timeAgo(scope.row.updatedAt) }}
+              </el-tooltip>
+            </div>
           </template>
         </el-table-column>
-        <el-table-column label="Last execution" width="150">
+        <el-table-column label="Last execution" width="165" prop="lastExecutionAt" sortable>
           <template #default="scope">
-            <el-tooltip
-              :disabled="!scope.row.lastExecutionAt"
-              :content="
-                formattedDate(scope.row.lastExecutionAt)
-              "
-              placement="top"
-            >
-              {{
-                scope.row.lastExecutionAt
-                  ? timeAgo(scope.row.lastExecutionAt)
-                  : '-'
-              }}
-            </el-tooltip>
+            <div class="h-full flex items-center">
+              <el-tooltip
+                :disabled="!scope.row.lastExecutionAt"
+                :content="
+                  formattedDate(scope.row.lastExecutionAt)
+                "
+                placement="top"
+              >
+                {{
+                  scope.row.lastExecutionAt
+                    ? timeAgo(scope.row.lastExecutionAt)
+                    : '-'
+                }}
+              </el-tooltip>
+            </div>
           </template>
         </el-table-column>
-        <el-table-column label="Status" width="200">
+        <el-table-column label="Status" width="130" prop="status" sortable>
           <template #default="scope">
-            <app-automation-toggle :automation="scope.row" />
+            <div class="h-full flex items-center">
+              <app-automation-toggle :automation="scope.row" />
+            </div>
           </template>
         </el-table-column>
         <el-table-column label="" width="70">
           <template #default="scope">
-            <div class="table-actions">
-              <app-automation-dropdown
-                :automation="scope.row"
-                @open-executions-drawer="
-                  $emit('openExecutionsDrawer', scope.row)
-                "
-                @open-edit-automation-drawer="
-                  $emit(
-                    'openEditAutomationDrawer',
-                    scope.row,
-                  )
-                "
-              />
+            <div class="h-full flex items-center">
+              <div class="table-actions">
+                <app-automation-dropdown
+                  :automation="scope.row"
+                  @open-executions-drawer="
+                    emit('openExecutionsDrawer', scope.row)
+                  "
+                  @open-edit-automation-drawer="
+                    emit(
+                      'openEditAutomationDrawer',
+                      scope.row,
+                    )
+                  "
+                />
+              </div>
             </div>
           </template>
         </el-table-column>
@@ -83,79 +108,29 @@
   </div>
 </template>
 
-<script>
-import moment from 'moment';
-import { mapGetters, mapActions } from 'vuex';
-import { AutomationPermissions } from '@/modules/automation/automation-permissions';
-import { AutomationModel } from '@/modules/automation/automation-model';
-import { i18n } from '@/i18n';
+<script setup>
+import { defineEmits } from 'vue';
+import { useAutomationStore } from '@/modules/automation/store';
+import { storeToRefs } from 'pinia';
 import { formatDateToTimeAgo } from '@/utils/date';
-import AutomationDropdown from '../automation-dropdown.vue';
-import AutomationToggle from '../automation-toggle.vue';
+import moment from 'moment';
+import { i18n } from '@/i18n';
+import AppAutomationToggle from '@/modules/automation/components/automation-toggle.vue';
+import AppAutomationDropdown from '@/modules/automation/components/automation-dropdown.vue';
 
-const { fields } = AutomationModel;
+const emit = defineEmits(['openEditAutomationDrawer', 'openExecutionsDrawer']);
 
+const automationsStore = useAutomationStore();
+const { automations } = storeToRefs(automationsStore);
+
+const timeAgo = (date) => formatDateToTimeAgo(date);
+const formattedDate = (date) => moment(date).format('YYYY-MM-DD HH:mm:ss');
+const translate = (key) => i18n(key);
+
+</script>
+
+<script>
 export default {
   name: 'AppAutomationListTable',
-  components: {
-    'app-automation-dropdown': AutomationDropdown,
-    'app-automation-toggle': AutomationToggle,
-  },
-  emits: [
-    'openExecutionsDrawer',
-    'openEditAutomationDrawer',
-  ],
-  computed: {
-    ...mapGetters({
-      rows: 'automation/rows',
-      loading: 'automation/loading',
-      selectedRows: 'automation/selectedRows',
-      currentUser: 'auth/currentUser',
-      currentTenant: 'auth/currentTenant',
-    }),
-
-    hasPermissionToEdit() {
-      return new AutomationPermissions(
-        this.currentTenant,
-        this.currentUser,
-      ).edit;
-    },
-
-    hasPermissionToDestroy() {
-      return new AutomationPermissions(
-        this.currentTenant,
-        this.currentUser,
-      ).destroy;
-    },
-
-    fields() {
-      return fields;
-    },
-  },
-  mounted() {
-    this.doMountTable(this.$refs.table);
-  },
-  methods: {
-    ...mapActions({
-      doChangeSort: 'automation/doChangeSort',
-      doMountTable: 'automation/doMountTable',
-    }),
-
-    translate(key) {
-      return i18n(key);
-    },
-
-    rowClass({ row }) {
-      const isSelected = this.selectedRows.find((r) => r.id === row.id)
-        !== undefined;
-      return isSelected ? 'is-selected' : '';
-    },
-    timeAgo(date) {
-      return formatDateToTimeAgo(date);
-    },
-    formattedDate(date) {
-      return moment(date).format('YYYY-MM-DD HH:mm:ss');
-    },
-  },
 };
 </script>

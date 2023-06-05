@@ -47,6 +47,7 @@
         />
         <div class="flex items-center">
           <el-tooltip
+            v-if="platform"
             effect="dark"
             :content="platform.name"
             placement="top"
@@ -108,7 +109,7 @@
         </button>
       </div>
     </div>
-    <div class="py-6">
+    <div class="py-6 whitespace-nowrap">
       <app-conversation-details-footer
         :conversation="conversation"
       />
@@ -182,6 +183,7 @@ import AppMemberDisplayName from '@/modules/member/components/member-display-nam
 import AppConversationDetailsFooter from '@/modules/conversation/components/conversation-details-footer.vue';
 import { ActivityService } from '@/modules/activity/activity-service';
 import Message from '@/shared/message/message';
+import config from '@/config';
 import { ConversationPermissions } from '../conversation-permissions';
 
 export default {
@@ -227,7 +229,7 @@ export default {
     }),
     platform() {
       return CrowdIntegrations.getConfig(
-        this.conversation.platform,
+        this.conversation.conversationStarter?.platform,
       );
     },
     member() {
@@ -263,18 +265,26 @@ export default {
     sorterOptions() {
       const { platform } = this.conversation;
       const defaultActivityTypes = this.currentTenant?.settings[0]?.activityTypes?.default;
-
       const options = [{
         value: 'all',
         label: 'All',
       }];
+
+      if (config.isGitIntegrationEnabled && (platform === 'github' || platform === 'git')) {
+        if (this.conversationTypes.includes('authored-commit')) {
+          options.push({
+            value: 'authored-commit',
+            label: 'Authored a commit',
+          });
+        }
+      }
 
       if (!platform) {
         return options;
       }
 
       options.push(
-        ...Object.entries(defaultActivityTypes[platform])
+        ...Object.entries(defaultActivityTypes[platform] || {})
           .filter(([key]) => this.conversationTypes.includes(key)
            || (platform === 'discord'
             && (key === 'replied_thread' || key === 'replied')))

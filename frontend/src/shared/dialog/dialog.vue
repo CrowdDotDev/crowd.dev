@@ -108,6 +108,8 @@ const props = defineProps({
 const dialogSize = computed(() => {
   if (props.size === 'small') {
     return 'el-dialog--sm';
+  } if (props.size === 'medium') {
+    return 'el-dialog--md';
   } if (props.size === 'extra-large') {
     return 'el-dialog--xl';
   } if (props.size === '2extra-large') {

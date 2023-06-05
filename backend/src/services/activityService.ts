@@ -1,31 +1,30 @@
-import { Transaction } from 'sequelize/types'
+import { LoggerBase, logExecutionTime } from '@crowd/logging'
 import { Blob } from 'buffer'
-import { PlatformType } from '../types/integrationEnums'
-import Error400 from '../errors/Error400'
-import SequelizeRepository from '../database/repositories/sequelizeRepository'
-import { detectSentiment, detectSentimentBatch } from './aws'
-import { IServiceOptions } from './IServiceOptions'
-import merge from './helpers/merge'
+import { Transaction } from 'sequelize/types'
+import { PlatformType } from '@crowd/types'
+import { IS_DEV_ENV, IS_TEST_ENV } from '../conf'
 import ActivityRepository from '../database/repositories/activityRepository'
-import MemberRepository from '../database/repositories/memberRepository'
-import MemberService from './memberService'
-import ConversationService from './conversationService'
-import telemetryTrack from '../segment/telemetryTrack'
-import ConversationSettingsService from './conversationSettingsService'
-import { IS_TEST_ENV, IS_DEV_ENV } from '../config'
-import { logExecutionTime } from '../utils/logging'
-import { sendNewActivityNodeSQSMessage } from '../serverless/utils/nodeWorkerSQS'
-import { LoggingBase } from './loggingBase'
 import MemberAttributeSettingsRepository from '../database/repositories/memberAttributeSettingsRepository'
+import MemberRepository from '../database/repositories/memberRepository'
+import SequelizeRepository from '../database/repositories/sequelizeRepository'
 import { mapUsernameToIdentities } from '../database/repositories/types/memberTypes'
+import Error400 from '../errors/Error400'
+import telemetryTrack from '../segment/telemetryTrack'
+import { sendNewActivityNodeSQSMessage } from '../serverless/utils/nodeWorkerSQS'
+import { IServiceOptions } from './IServiceOptions'
+import { detectSentiment, detectSentimentBatch } from './aws'
+import ConversationService from './conversationService'
+import ConversationSettingsService from './conversationSettingsService'
+import merge from './helpers/merge'
+import MemberService from './memberService'
 import SegmentRepository from '../database/repositories/segmentRepository'
 import SegmentService from './segmentService'
 
-export default class ActivityService extends LoggingBase {
+export default class ActivityService extends LoggerBase {
   options: IServiceOptions
 
   constructor(options: IServiceOptions) {
-    super(options)
+    super(options.log)
     this.options = options
   }
 
@@ -43,7 +42,7 @@ export default class ActivityService extends LoggingBase {
    * @param existing If the activity already exists, the activity. If it doesn't or we don't know, false
    * @returns The upserted activity
    */
-  async upsert(data, existing: boolean | any = false) {
+  async upsert(data, existing: boolean | any = false, fireCrowdWebhooks: boolean = true) {
     const transaction = await SequelizeRepository.createTransaction(this.options)
 
     try {
@@ -163,9 +162,9 @@ export default class ActivityService extends LoggingBase {
 
       await SequelizeRepository.commitTransaction(transaction)
 
-      if (!existing) {
+      if (!existing && fireCrowdWebhooks) {
         try {
-          await sendNewActivityNodeSQSMessage(this.options.currentTenant.id, record)
+          await sendNewActivityNodeSQSMessage(this.options.currentTenant.id, record.id)
         } catch (err) {
           this.log.error(
             err,
@@ -173,6 +172,10 @@ export default class ActivityService extends LoggingBase {
             'Error triggering new activity automation!',
           )
         }
+      }
+
+      if (!fireCrowdWebhooks) {
+        this.log.info('Ignoring outgoing webhooks because of fireCrowdWebhooks!')
       }
 
       return record
@@ -316,7 +319,10 @@ export default class ActivityService extends LoggingBase {
   async addToConversation(id: string, parentId: string, transaction: Transaction) {
     const parent = await ActivityRepository.findById(parentId, { ...this.options, transaction })
     const child = await ActivityRepository.findById(id, { ...this.options, transaction })
-    const conversationService = new ConversationService({ ...this.options, transaction })
+    const conversationService = new ConversationService({
+      ...this.options,
+      transaction,
+    } as IServiceOptions)
 
     let record
     let conversation
@@ -417,7 +423,7 @@ export default class ActivityService extends LoggingBase {
     return exists || false
   }
 
-  async createWithMember(data) {
+  async createWithMember(data, fireCrowdWebhooks: boolean = true) {
     const logger = this.options.log
 
     const errorDetails: any = {}
@@ -436,6 +442,11 @@ export default class ActivityService extends LoggingBase {
       if (!data.username) {
         data.username = data.member.username[data.platform][0].username
       }
+
+      logger.trace(
+        { type: data.type, platform: data.platform, username: data.username },
+        'Creating activity with member!',
+      )
 
       let activityExists = await this._activityExists(data, transaction)
 
@@ -491,6 +502,7 @@ export default class ActivityService extends LoggingBase {
           joinedAt: activityExists ? activityExists.timestamp : data.timestamp,
         },
         existingMember,
+        fireCrowdWebhooks,
       )
 
       if (data.objectMember) {
@@ -516,11 +528,15 @@ export default class ActivityService extends LoggingBase {
           }
         }
 
-        const objectMember = await memberService.upsert({
-          ...data.objectMember,
-          platform: data.platform,
-          joinedAt: data.timestamp,
-        })
+        const objectMember = await memberService.upsert(
+          {
+            ...data.objectMember,
+            platform: data.platform,
+            joinedAt: data.timestamp,
+          },
+          false,
+          fireCrowdWebhooks,
+        )
 
         if (!data.objectMemberUsername) {
           data.objectMemberUsername = data.objectMember.username[data.platform].username
@@ -531,7 +547,7 @@ export default class ActivityService extends LoggingBase {
 
       data.member = member.id
 
-      const record = await this.upsert(data, activityExists)
+      const record = await this.upsert(data, activityExists, fireCrowdWebhooks)
 
       await SequelizeRepository.commitTransaction(transaction)
 
@@ -540,7 +556,7 @@ export default class ActivityService extends LoggingBase {
       const reason = errorDetails.reason || undefined
       const details = errorDetails.details || undefined
 
-      if (error.name && error.name.includes('Sequelize')) {
+      if (error.name && error.name.includes('Sequelize') && error.original) {
         this.log.error(
           error,
           {

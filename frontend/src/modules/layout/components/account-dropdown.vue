@@ -1,6 +1,6 @@
 <template>
   <el-popover
-    :disabled="!(currentTenant && currentTenant.onboardedAt)"
+    :disabled="!currentTenant?.onboardedAt"
     placement="right-start"
     :width="230"
     trigger="click"
@@ -83,7 +83,7 @@ const currentUserAvatar = computed(
   () => store.getters['auth/currentUserAvatar'],
 );
 const currentTenant = computed(
-  () => store.getters['auth/currentTenant'],
+  () => store.getters['auth/currentTenant'] || {},
 );
 
 const computedAvatarEntity = computed(() => ({

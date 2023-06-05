@@ -3,7 +3,7 @@ import Error400 from '../../../errors/Error400'
 import Error403 from '../../../errors/Error403'
 import Plans from '../../../security/plans'
 import PermissionChecker from '../permissionChecker'
-import { PlatformType } from '../../../types/integrationEnums'
+import { PlatformType } from '@crowd/types'
 
 const db = null
 

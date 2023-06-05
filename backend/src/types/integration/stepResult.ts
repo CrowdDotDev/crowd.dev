@@ -1,6 +1,6 @@
+import { Logger } from '@crowd/logging'
 import { IRepositoryOptions } from '../../database/repositories/IRepositoryOptions'
 import { IServiceOptions } from '../../services/IServiceOptions'
-import { Logger } from '../../utils/logging'
 
 export interface IPendingStream {
   value: string
@@ -59,6 +59,8 @@ export interface IStepContext {
 
   // data that an individual integration service can use across the whole integration processing pipeline
   pipelineData: any
+
+  runId?: string
 
   // integration that we are currently processing
   integration?: any

@@ -1,40 +1,40 @@
 /* eslint-disable no-continue */
 
-import moment from 'moment-timezone'
+import { LoggerBase } from '@crowd/logging'
 import lodash from 'lodash'
+import moment from 'moment-timezone'
 import validator from 'validator'
-import Error400 from '../errors/Error400'
-import SequelizeRepository from '../database/repositories/sequelizeRepository'
-import { IServiceOptions } from './IServiceOptions'
-import merge from './helpers/merge'
-import MemberRepository from '../database/repositories/memberRepository'
+import { AttributeType } from '../database/attributes/types'
+import { IRepositoryOptions } from '../database/repositories/IRepositoryOptions'
 import ActivityRepository from '../database/repositories/activityRepository'
-import TagRepository from '../database/repositories/tagRepository'
-import telemetryTrack from '../segment/telemetryTrack'
 import MemberAttributeSettingsRepository from '../database/repositories/memberAttributeSettingsRepository'
-import MemberAttributeSettingsService from './memberAttributeSettingsService'
-import SettingsService from './settingsService'
-import OrganizationService from './organizationService'
+import MemberRepository from '../database/repositories/memberRepository'
+import SequelizeRepository from '../database/repositories/sequelizeRepository'
+import TagRepository from '../database/repositories/tagRepository'
+import {
+  IActiveMemberFilter,
+  IMemberMergeSuggestion,
+  IMemberMergeSuggestionsType,
+  mapUsernameToIdentities,
+} from '../database/repositories/types/memberTypes'
+import Error400 from '../errors/Error400'
+import telemetryTrack from '../segment/telemetryTrack'
+import { ExportableEntity } from '../serverless/microservices/nodejs/messageTypes'
 import {
   sendExportCSVNodeSQSMessage,
   sendNewMemberNodeSQSMessage,
 } from '../serverless/utils/nodeWorkerSQS'
-import { LoggingBase } from './loggingBase'
-import { ExportableEntity } from '../serverless/microservices/nodejs/messageTypes'
-import { AttributeType } from '../database/attributes/types'
-import {
-  IActiveMemberFilter,
-  mapUsernameToIdentities,
-  IMemberMergeSuggestion,
-  IMemberMergeSuggestionsType,
-} from '../database/repositories/types/memberTypes'
-import { IRepositoryOptions } from '../database/repositories/IRepositoryOptions'
+import { IServiceOptions } from './IServiceOptions'
+import merge from './helpers/merge'
+import MemberAttributeSettingsService from './memberAttributeSettingsService'
+import OrganizationService from './organizationService'
+import SettingsService from './settingsService'
 
-export default class MemberService extends LoggingBase {
+export default class MemberService extends LoggerBase {
   options: IServiceOptions
 
-  constructor(options) {
-    super(options)
+  constructor(options: IServiceOptions) {
+    super(options.log)
     this.options = options
   }
 
@@ -187,7 +187,7 @@ export default class MemberService extends LoggingBase {
    * @param existing If the member already exists. If it does not, false. Othwerwise, the member.
    * @returns The created member
    */
-  async upsert(data, existing: boolean | any = false) {
+  async upsert(data, existing: boolean | any = false, fireCrowdWebhooks: boolean = true) {
     const logger = this.options.log
 
     const errorDetails: any = {}
@@ -374,12 +374,16 @@ export default class MemberService extends LoggingBase {
 
       await SequelizeRepository.commitTransaction(transaction)
 
-      if (!existing) {
+      if (!existing && fireCrowdWebhooks) {
         try {
-          await sendNewMemberNodeSQSMessage(this.options.currentTenant.id, record)
+          await sendNewMemberNodeSQSMessage(this.options.currentTenant.id, record.id)
         } catch (err) {
           logger.error(err, `Error triggering new member automation - ${record.id}!`)
         }
+      }
+
+      if (!fireCrowdWebhooks) {
+        this.log.info('Ignoring outgoing webhooks because of fireCrowdWebhooks!')
       }
 
       return record
@@ -643,6 +647,27 @@ export default class MemberService extends LoggingBase {
         }
 
         return toKeep
+      },
+      organizations: (oldOrganizations, newOrganizations) => {
+        oldOrganizations = oldOrganizations
+          ? oldOrganizations.map((o) => {
+              if (o.id) {
+                return o.id
+              }
+              return o
+            })
+          : []
+
+        newOrganizations = newOrganizations
+          ? newOrganizations.map((o) => {
+              if (o.id) {
+                return o.id
+              }
+              return o
+            })
+          : []
+
+        return Array.from(new Set<string>([...oldOrganizations, ...newOrganizations]))
       },
     })
   }

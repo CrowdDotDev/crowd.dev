@@ -22,6 +22,7 @@
         ref="inputRef"
         v-model="model"
         type="number"
+        name="number"
         :placeholder="
           operator === 'between' ? 'From' : 'Enter a value'
         "
@@ -29,16 +30,19 @@
           operator === 'is_empty'
             || operator === 'is_not_empty'
         "
+        data-qa="filter-number-from"
       />
       <el-input
         v-if="operator === 'between'"
         v-model="rangeModel"
         type="number"
+        name="numberTo"
         placeholder="To"
         :disabled="
           operator === 'is_empty'
             || operator === 'is_not_empty'
         "
+        data-qa="filter-number-to"
       />
     </div>
   </div>

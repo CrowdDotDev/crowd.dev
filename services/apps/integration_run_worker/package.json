@@ -1,0 +1,44 @@
+{
+  "name": "@crowd/integration-run-worker",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "start": "node -r tsconfig-paths/register -r ts-node/register src/main.ts --transpile-only",
+    "start:debug:local": "set -a && . ../../../backend/.env.dist.local && . ../../../backend/.env.override.local && set +a && SERVICE=integration-run-worker LOG_LEVEL=trace node --inspect=0.0.0.0:9230 -r tsconfig-paths/register -r ts-node/register src/main.ts --transpile-only",
+    "start:debug": "SERVICE=integration-run-worker LOG_LEVEL=trace node --inspect=0.0.0.0:9230 -r tsconfig-paths/register -r ts-node/register src/main.ts --transpile-only",
+    "start:watch:local": "nodemon --watch src --ext ts --exec npm run start:debug:local",
+    "start:watch": "nodemon --watch src --ext ts --exec npm run start:debug",
+    "dev:local": "concurrently \"npm run start:watch:local\" \"../../scripts/watch_libs.sh --service integration_run_worker\"",
+    "dev": "concurrently \"npm run start:watch\" \"../../scripts/watch_libs.sh --service integration_run_worker\"",
+    "lint": "eslint --ext .ts src --max-warnings=0",
+    "format": "prettier --write \"src/**/*.ts\"",
+    "format-check": "prettier --check .",
+    "tsc-check": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@crowd/common": "file:../../libs/common",
+    "@crowd/database": "file:../../libs/database",
+    "@crowd/integrations": "file:../../libs/integrations",
+    "@crowd/logging": "file:../../libs/logging",
+    "@crowd/redis": "file:../../libs/redis",
+    "@crowd/sqs": "file:../../libs/sqs",
+    "@crowd/types": "file:../../libs/types",
+    "@types/config": "^3.3.0",
+    "@types/node": "^18.16.3",
+    "config": "^3.3.9",
+    "ts-node": "^10.9.1",
+    "tsconfig-paths": "^4.2.0",
+    "typescript": "^5.0.4",
+    "uuid": "^9.0.0"
+  },
+  "devDependencies": {
+    "concurrently": "^8.0.1",
+    "@typescript-eslint/eslint-plugin": "^5.59.2",
+    "@typescript-eslint/parser": "^5.59.2",
+    "eslint": "^8.39.0",
+    "eslint-config-prettier": "^8.8.0",
+    "eslint-plugin-prettier": "^4.2.1",
+    "nodemon": "^2.0.22",
+    "prettier": "^2.8.8"
+  }
+}

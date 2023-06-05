@@ -29,6 +29,7 @@ export default class AutomationRepository extends RepositoryBase<
 
     const record = await this.database.automation.create(
       {
+        name: data.name,
         type: data.type,
         trigger: data.trigger,
         settings: data.settings,
@@ -68,6 +69,7 @@ export default class AutomationRepository extends RepositoryBase<
 
     record = await record.update(
       {
+        name: data.name,
         trigger: data.trigger,
         settings: data.settings,
         state: data.state,
@@ -172,12 +174,14 @@ export default class AutomationRepository extends RepositoryBase<
                                 from "automationExecutions"
                                 order by "automationId", "executedAt" desc)
       select a.id,
+            a.name,
             a.type,
             a."tenantId",
             a.trigger,
             a.settings,
             a.state,
             a."createdAt",
+            a."updatedAt",
             le."executedAt" as "lastExecutionAt",
             le.state        as "lastExecutionState",
             le.error        as "lastExecutionError",
@@ -186,6 +190,7 @@ export default class AutomationRepository extends RepositoryBase<
               left join latest_executions le on a.id = le."automationId"
       where ${conditionsString}
       ${this.getPaginationString(criteria)}
+      order by "updatedAt" desc
     `
     // fetch all automations for a tenant
     // and include the latest execution data if available
@@ -209,12 +214,14 @@ export default class AutomationRepository extends RepositoryBase<
       const row = r as any
       return {
         id: row.id,
+        name: row.name,
         type: row.type,
         tenantId: row.tenantId,
         trigger: row.trigger,
         settings: row.settings,
         state: row.state,
         createdAt: row.createdAt,
+        updatedAt: row.updatedAt,
         lastExecutionAt: row.lastExecutionAt,
         lastExecutionState: row.lastExecutionState,
         lastExecutionError: row.lastExecutionError,

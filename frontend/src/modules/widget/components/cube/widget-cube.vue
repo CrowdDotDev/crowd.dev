@@ -317,7 +317,7 @@ export default {
           seriesItem.title,
         );
 
-        const { granularity } = this.query.timeDimensions[0];
+        const granularity = this.query.timeDimensions[0]?.granularity;
 
         if (
           this.query.timeDimensions.length

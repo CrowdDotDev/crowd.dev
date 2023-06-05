@@ -1,8 +1,8 @@
 import Sequelize, { QueryTypes } from 'sequelize'
-import { v4 as uuid } from 'uuid'
+import { getServiceLogger } from '@crowd/logging'
+import { generateUUIDv1 } from '@crowd/common'
 import { UnleashContextField } from '../../types/unleashContext'
-import { UNLEASH_CONFIG } from '../../config'
-import { getServiceLogger } from '../../utils/logging'
+import { UNLEASH_CONFIG } from '../../conf'
 import Plans from '../../security/plans'
 import { FeatureFlag } from '../../types/common'
 import { PLAN_LIMITS } from '../../feature-flags/isFeatureEnabled'
@@ -149,6 +149,42 @@ const constaintConfiguration = {
         inverted: false,
         operator: 'NUM_LT',
         contextName: 'memberEnrichmentCount',
+        caseInsensitive: false,
+      },
+    ],
+  ],
+  [FeatureFlag.ORGANIZATION_ENRICHMENT]: [
+    [
+      {
+        values: [Plans.values.growth],
+        inverted: false,
+        operator: 'IN',
+        contextName: 'plan',
+        caseInsensitive: false,
+      },
+      {
+        value: PLAN_LIMITS[Plans.values.growth][FeatureFlag.ORGANIZATION_ENRICHMENT].toString(),
+        values: [],
+        inverted: false,
+        operator: 'NUM_LT',
+        contextName: 'organizationEnrichmentCount',
+        caseInsensitive: false,
+      },
+    ],
+    [
+      {
+        values: [Plans.values.essential],
+        inverted: false,
+        operator: 'IN',
+        contextName: 'plan',
+        caseInsensitive: false,
+      },
+      {
+        value: PLAN_LIMITS[Plans.values.essential][FeatureFlag.ORGANIZATION_ENRICHMENT].toString(),
+        values: [],
+        inverted: false,
+        operator: 'NUM_LT',
+        contextName: 'organizationEnrichmentCount',
         caseInsensitive: false,
       },
     ],
@@ -306,7 +342,7 @@ async function createStrategy(flag: FeatureFlag, constraints: any[]): Promise<vo
   log.info(`Feature flag ${flag} constraints not found - creating...`)
 
   for (const constraint of constraints) {
-    const id = uuid()
+    const id = generateUUIDv1()
     await seq.query(
       `insert into feature_strategies(id, feature_name, project_name, environment, strategy_name, constraints) values (:id, :flag, 'default', 'production', 'default', :constraint)`,
       {

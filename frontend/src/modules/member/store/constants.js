@@ -13,6 +13,11 @@ export const DEFAULT_MEMBER_FILTERS = [
       not: true,
     },
   },
+  {
+    isBot: {
+      not: true,
+    },
+  },
 ];
 
 const ACTIVITY_COUNT_BIGGER_THAN_0_FILTER = {

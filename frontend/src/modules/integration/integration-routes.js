@@ -10,7 +10,7 @@ export default [
     name: '',
     path: '',
     component: Layout,
-    meta: { auth: true },
+    meta: { auth: true, title: 'Integrations' },
     children: [
       {
         name: 'integration',

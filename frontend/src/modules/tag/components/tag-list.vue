@@ -84,11 +84,12 @@ export default {
     }),
     computedTags() {
       const max = this.long ? 8 : 3;
-      return this.member.tags.length <= max || this.long
-        ? this.member.tags
-        : this.member.tags.slice(0, 3).concat({
+      const tags = this.member.tags || [];
+      return tags.length <= max || this.long
+        ? tags
+        : tags.slice(0, 3).concat({
           id: 'more',
-          name: `+${this.member.tags.length - 3}`,
+          name: `+${tags.length - 3}`,
         });
     },
     fields() {

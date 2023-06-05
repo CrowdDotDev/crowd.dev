@@ -1,4 +1,4 @@
-import { PlatformType } from '../../types/integrationEnums'
+import { PlatformType } from '@crowd/types'
 
 export default (sequelize, DataTypes) => {
   const settings = sequelize.define(
@@ -16,6 +16,9 @@ export default (sequelize, DataTypes) => {
         type: DataTypes.STRING(1024),
       },
       logoUrl: {
+        type: DataTypes.STRING(1024),
+      },
+      slackWebHook: {
         type: DataTypes.STRING(1024),
       },
       customActivityTypes: {

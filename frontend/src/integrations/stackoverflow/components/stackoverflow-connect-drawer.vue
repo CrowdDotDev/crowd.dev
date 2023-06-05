@@ -5,10 +5,16 @@
     title="Stack Overflow"
     size="600px"
     pre-title="Integration"
-    :pre-title-img-src="logoUrl"
-    pre-title-img-alt="Stack Overflow logo"
+    has-border
     @close="isVisible = false"
   >
+    <template #beforeTitle>
+      <img
+        class="w-6 h-6 mr-2"
+        :src="logoUrl"
+        alt="Stack Overflow logo"
+      />
+    </template>
     <template #content>
       <el-form
         label-position="top"
@@ -172,7 +178,7 @@ import AuthCurrentTenant from '@/modules/auth/auth-current-tenant';
 import config from '@/config';
 import { IntegrationService } from '@/modules/integration/integration-service';
 
-const MAX_STACK_OVERFLOW_QUESTIONS_PER_TAG = 1100;
+const MAX_STACK_OVERFLOW_QUESTIONS_PER_TAG = 350000;
 const MAX_STACK_OVERFLOW_QUESTIONS_FOR_KEYWORDS = 1100;
 
 const store = useStore();

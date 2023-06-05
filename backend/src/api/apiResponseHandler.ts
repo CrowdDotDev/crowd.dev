@@ -1,12 +1,12 @@
+import { LoggerBase } from '@crowd/logging'
 import { IServiceOptions } from '../services/IServiceOptions'
-import { LoggingBase } from '../services/loggingBase'
 
 const io = require('@pm2/io')
 
 /* eslint-disable class-methods-use-this */
-export default class ApiResponseHandler extends LoggingBase {
+export default class ApiResponseHandler extends LoggerBase {
   public constructor(options: IServiceOptions) {
-    super(options)
+    super(options.log)
   }
 
   async download(req, res, path) {
@@ -32,7 +32,7 @@ export default class ApiResponseHandler extends LoggingBase {
           method: req.method,
           query: error.sql,
           body: req.body,
-          errorMessage: error.original.message,
+          errorMessage: error.original?.message,
         },
         'Database error while processing REST API request!',
       )

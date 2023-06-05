@@ -170,6 +170,9 @@ const en = {
         activityTimestampTo: 'activityTimestampTo is required query parameter!',
       },
     },
+    git: {
+      noIntegration: 'The Git integration is not configured.',
+    },
   },
 
   email: {
@@ -213,6 +216,7 @@ const en = {
         discord: 'Discord',
         slack: 'Slack',
         hackernews: 'Hacker News',
+        discourse: 'Discourse',
       },
     },
     automation: {

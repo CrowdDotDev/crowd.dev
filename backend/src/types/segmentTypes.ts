@@ -1,4 +1,4 @@
-import { ActivityTypeSettings } from './activityTypes'
+import { ActivityTypeSettings } from '@crowd/types'
 import { SearchCriteria } from './common'
 
 export interface SegmentProjectNestedData extends SegmentData {

@@ -1,4 +1,5 @@
 import StringField from '@/shared/fields/string-field';
+import appConfig from '@/config';
 
 export default class ActivityPlatformField extends StringField {
   constructor(name, label, config = {}) {
@@ -13,7 +14,7 @@ export default class ActivityPlatformField extends StringField {
   }
 
   dropdownOptions() {
-    return [
+    const options = [
       {
         value: 'github',
         label: 'GitHub',
@@ -54,7 +55,23 @@ export default class ActivityPlatformField extends StringField {
         value: 'stackoverflow',
         label: 'Stack Overflow',
       },
+      {
+        value: 'discourse',
+        label: 'Discourse',
+      },
     ];
+
+    if (appConfig.isGitIntegrationEnabled) {
+      return [
+        ...options,
+        {
+          value: 'git',
+          label: 'Git',
+        },
+      ];
+    }
+
+    return options;
   }
 
   forFilter() {

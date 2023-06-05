@@ -164,9 +164,12 @@
             <img
               v-if="platformDetails(platform)"
               :src="platformDetails(platform).image"
-              class="h5 w-5 mr-4"
+              class="h-5 w-5 mr-4"
               :alt="platform"
             >
+            <el-tooltip v-else :content="platform" placement="top">
+              <i class="ri-user-3-fill text-gray-500 text-lg mr-4" />
+            </el-tooltip>
             <div
               v-if="
                 platform === 'linkedin'

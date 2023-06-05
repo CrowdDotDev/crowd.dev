@@ -1,5 +1,5 @@
 import passport from 'passport'
-import { TWITTER_CONFIG, SLACK_CONFIG, API_CONFIG } from '../../config'
+import { TWITTER_CONFIG, SLACK_CONFIG, API_CONFIG } from '../../conf'
 import { authMiddleware } from '../../middlewares/authMiddleware'
 import TenantService from '../../services/tenantService'
 import { safeWrap } from '../../middlewares/errorMiddleware'
@@ -28,6 +28,8 @@ export default (app) => {
   app.put(`/reddit-onboard/:tenantId`, safeWrap(require('./helpers/redditOnboard').default))
   app.put('/linkedin-connect/:tenantId', safeWrap(require('./helpers/linkedinConnect').default))
   app.post('/linkedin-onboard/:tenantId', safeWrap(require('./helpers/linkedinOnboard').default))
+  app.put(`/tenant/:tenantId/git-connect`, safeWrap(require('./helpers/gitAuthenticate').default))
+  app.get('/tenant/:tenantId/git', safeWrap(require('./helpers/gitGetRemotes').default))
   app.get(
     '/tenant/:tenantId/devto-validate',
     safeWrap(require('./helpers/devtoValidators').default),
@@ -56,6 +58,21 @@ export default (app) => {
   app.get(
     '/tenant/:tenantId/stackoverflow-volume',
     safeWrap(require('./helpers/stackOverflowVolume').default),
+  )
+
+  app.post(
+    '/tenant/:tenantId/discourse-connect',
+    safeWrap(require('./helpers/discourseCreateOrUpdate').default),
+  )
+
+  app.post(
+    '/tenant/:tenantId/discourse-validate',
+    safeWrap(require('./helpers/discourseValidator').default),
+  )
+
+  app.post(
+    '/tenant/:tenantId/discourse-test-webhook',
+    safeWrap(require('./helpers/discourseTestWebhook').default),
   )
 
   if (TWITTER_CONFIG.clientId) {

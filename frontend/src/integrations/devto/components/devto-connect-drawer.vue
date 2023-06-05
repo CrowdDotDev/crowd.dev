@@ -4,10 +4,16 @@
     custom-class="integration-devto-drawer"
     title="DEV"
     pre-title="Integration"
-    :pre-title-img-src="logoUrl"
-    pre-title-img-alt="DEV logo"
+    has-border
     @close="cancel"
   >
+    <template #beforeTitle>
+      <img
+        class="w-6 h-6 mr-2"
+        :src="logoUrl"
+        alt="DEV logo"
+      />
+    </template>
     <template #content>
       <el-form class="form integration-devto-form">
         <div class="flex flex-col gap-2 items-start">

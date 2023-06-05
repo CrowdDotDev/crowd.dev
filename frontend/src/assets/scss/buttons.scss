@@ -337,7 +337,11 @@
   &--email,
   &--email:hover,
   &--phone,
-  &--phone:hover {
+  &--phone:hover,
+  &--custom-platform,
+  &--custom-platform:hover,
+  &--facebook,
+  &--facebook:hover {
     @apply leading-none cursor-pointer bg-white text-gray-600 border border-gray-200;
   }
 
@@ -353,7 +357,9 @@
   &--linkedin,
   &--linkedin:hover,
   &--stackoverflow,
-  &--stackoverflow:hover {
+  &--stackoverflow:hover,
+  &--git,
+  &--git:hover {
     @apply bg-white border border-gray-200;
   }
 }

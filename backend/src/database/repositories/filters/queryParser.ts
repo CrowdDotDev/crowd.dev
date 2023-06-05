@@ -1,6 +1,6 @@
 import lodash from 'lodash'
 import validator from 'validator'
-import { v4 as uuid } from 'uuid'
+import { generateUUIDv4 as uuid } from '@crowd/common'
 import Sequelize from 'sequelize'
 import { IRepositoryOptions } from '../IRepositoryOptions'
 import SequelizeRepository from '../sequelizeRepository'

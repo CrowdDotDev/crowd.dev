@@ -19,6 +19,22 @@ on:
         description: Deploy discord-ws service?
         required: true
         type: boolean
+      deploy_integration_run_worker:
+        description: Deploy integration-run-worker service?
+        required: true
+        type: boolean
+      deploy_integration_stream_worker:
+        description: Deploy integration-stream-worker service?
+        required: true
+        type: boolean
+      deploy_integration_data_worker:
+        description: Deploy integration-data-worker service?
+        required: true
+        type: boolean
+      deploy_data_sink_worker:
+        description: Deploy data-sink-worker service?
+        required: true
+        type: boolean
       deploy_python_worker:
         description: Deploy python-worker service?
         required: true
@@ -32,8 +48,9 @@ env:
   DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
   DOCKERHUB_PASSWORD: ${{ secrets.DOCKERHUB_PASSWORD }}
   CROWD_CLUSTER: ${{ secrets.LF_PRODUCTION_CLUSTER_NAME }}
-  AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-  AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+  CROWD_ROLE_ARN: ${{ secrets.LF_PRODUCTION_CLUSTER_ROLE_ARN }}
+  AWS_ACCESS_KEY_ID: ${{ secrets.LF_AWS_ACCESS_KEY_ID }}
+  AWS_SECRET_ACCESS_KEY: ${{ secrets.LF_AWS_SECRET_ACCESS_KEY }}
   AWS_REGION: ${{ secrets.LF_AWS_REGION }}
   SLACK_CHANNEL: deploys-lf
   SLACK_WEBHOOK: ${{ secrets.LF_PRODUCTION_SLACK_CHANNEL_HOOK }}
@@ -55,6 +72,90 @@ jobs:
         id: image-builder
         with:
           image: backend
+
+      - name: Set docker image output
+        id: image
+        run: echo "IMAGE=${{ steps.image-builder.outputs.image }}" >> $GITHUB_OUTPUT
+
+  build-and-push-integration-run-worker:
+    runs-on: ubuntu-latest
+    if: ${{ inputs.deploy_integration_run_worker }}
+    outputs:
+      image: ${{ steps.image.outputs.IMAGE }}
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v2
+
+      - uses: ./.github/actions/build-docker-image
+        id: image-builder
+        with:
+          image: integration-run-worker
+
+      - name: Set docker image output
+        id: image
+        run: echo "IMAGE=${{ steps.image-builder.outputs.image }}" >> $GITHUB_OUTPUT
+
+  build-and-push-integration-stream-worker:
+    runs-on: ubuntu-latest
+    if: ${{ inputs.deploy_integration_stream_worker }}
+    outputs:
+      image: ${{ steps.image.outputs.IMAGE }}
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v2
+
+      - uses: ./.github/actions/build-docker-image
+        id: image-builder
+        with:
+          image: integration-stream-worker
+
+      - name: Set docker image output
+        id: image
+        run: echo "IMAGE=${{ steps.image-builder.outputs.image }}" >> $GITHUB_OUTPUT
+
+  build-and-push-integration-data-worker:
+    runs-on: ubuntu-latest
+    if: ${{ inputs.deploy_integration_data_worker }}
+    outputs:
+      image: ${{ steps.image.outputs.IMAGE }}
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v2
+
+      - uses: ./.github/actions/build-docker-image
+        id: image-builder
+        with:
+          image: integration-data-worker
+
+      - name: Set docker image output
+        id: image
+        run: echo "IMAGE=${{ steps.image-builder.outputs.image }}" >> $GITHUB_OUTPUT
+
+  build-and-push-data-sink-worker:
+    runs-on: ubuntu-latest
+    if: ${{ inputs.deploy_data_sink_worker }}
+    outputs:
+      image: ${{ steps.image.outputs.IMAGE }}
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v2
+
+      - uses: ./.github/actions/build-docker-image
+        id: image-builder
+        with:
+          image: data-sink-worker
 
       - name: Set docker image output
         id: image
@@ -171,6 +272,78 @@ jobs:
         with:
           service: job-generator
           image: ${{ needs.build-and-push-backend.outputs.image }}
+          cluster: ${{ env.CROWD_CLUSTER }}
+
+  deploy-integration-run-worker:
+    needs: build-and-push-integration-run-worker
+    runs-on: ubuntu-latest
+    if: ${{ inputs.deploy_integration_run_worker }}
+    defaults:
+      run:
+        shell: bash
+
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v2
+
+      - uses: ./.github/actions/deploy-service
+        with:
+          service: integration-run-worker
+          image: ${{ needs.build-and-push-integration-run-worker.outputs.image }}
+          cluster: ${{ env.CROWD_CLUSTER }}
+
+  deploy-integration-stream-worker:
+    needs: build-and-push-integration-stream-worker
+    runs-on: ubuntu-latest
+    if: ${{ inputs.deploy_integration_stream_worker }}
+    defaults:
+      run:
+        shell: bash
+
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v2
+
+      - uses: ./.github/actions/deploy-service
+        with:
+          service: integration-stream-worker
+          image: ${{ needs.build-and-push-integration-stream-worker.outputs.image }}
+          cluster: ${{ env.CROWD_CLUSTER }}
+
+  deploy-integration-data-worker:
+    needs: build-and-push-integration-data-worker
+    runs-on: ubuntu-latest
+    if: ${{ inputs.deploy_integration_data_worker }}
+    defaults:
+      run:
+        shell: bash
+
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v2
+
+      - uses: ./.github/actions/deploy-service
+        with:
+          service: integration-data-worker
+          image: ${{ needs.build-and-push-integration-data-worker.outputs.image }}
+          cluster: ${{ env.CROWD_CLUSTER }}
+
+  deploy-data-sink-worker:
+    needs: build-and-push-data-sink-worker
+    runs-on: ubuntu-latest
+    if: ${{ inputs.deploy_data_sink_worker }}
+    defaults:
+      run:
+        shell: bash
+
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v2
+
+      - uses: ./.github/actions/deploy-service
+        with:
+          service: data-sink-worker
+          image: ${{ needs.build-and-push-data-sink-worker.outputs.image }}
           cluster: ${{ env.CROWD_CLUSTER }}
 
   deploy-frontend:

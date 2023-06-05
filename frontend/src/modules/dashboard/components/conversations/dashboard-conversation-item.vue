@@ -45,6 +45,7 @@
             <div class="flex items-center">
               <div class="pr-2">
                 <el-tooltip
+                  v-if="platform"
                   effect="dark"
                   :content="platform.name"
                   placement="top"
@@ -55,6 +56,10 @@
                     :src="platform.image"
                   />
                 </el-tooltip>
+                <i
+                  v-else
+                  class="ri-radar-line text-base text-gray-400"
+                />
               </div>
               <div class="flex-grow">
                 <div class="flex items-center">
@@ -137,7 +142,7 @@
       </div>
     </div>
     <div class="flex flex-wrap justify-between items-center pt-10 gap-2">
-      <app-conversation-footer :conversation="conversation" />
+      <app-conversation-item-footer :conversation="conversation" />
     </div>
   </article>
 </template>
@@ -153,7 +158,7 @@ import AppConversationReply from '@/modules/conversation/components/conversation
 import AppActivitySentiment from '@/modules/activity/components/activity-sentiment.vue';
 import AppMemberDisplayName from '@/modules/member/components/member-display-name.vue';
 import AppActivityMessage from '@/modules/activity/components/activity-message.vue';
-import AppConversationFooter from '@/modules/conversation/components/conversation-footer.vue';
+import AppConversationItemFooter from '@/modules/conversation/components/conversation-item-footer.vue';
 
 export default {
   name: 'AppDashboardConversationItem',
@@ -166,7 +171,7 @@ export default {
     AppConversationDropdown,
     AppAvatar,
     AppActivitySentiment,
-    AppConversationFooter,
+    AppConversationItemFooter,
   },
   props: {
     conversation: {
@@ -184,7 +189,7 @@ export default {
   computed: {
     platform() {
       return CrowdIntegrations.getConfig(
-        this.conversation.platform,
+        this.conversation.conversationStarter?.platform,
       );
     },
     member() {

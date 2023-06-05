@@ -1,39 +1,37 @@
 <template>
   <div class="flex items-center">
     <el-switch
-      :model-value="automation.state === 'active'"
+      :model-value="props.automation.state === 'active'"
       class="!grow-0 !ml-0"
       @change="handleChange"
     />
     <span class="ml-2 text-gray-900 text-sm">
-      {{ automation.state === 'active' ? 'On' : 'Off' }}
+      {{ props.automation.state === 'active' ? 'On' : 'Off' }}
     </span>
   </div>
 </template>
 
-<script>
-import { mapActions } from 'vuex';
+<script setup>
+import { defineProps } from 'vue';
+import { useAutomationStore } from '@/modules/automation/store';
 
+const props = defineProps({
+  automation: {
+    type: Object,
+    default: () => {},
+  },
+});
+
+const { changePublishState } = useAutomationStore();
+
+const handleChange = (value) => {
+  changePublishState(props.automation.id, value);
+};
+
+</script>
+
+<script>
 export default {
   name: 'AppAutomationToggle',
-  props: {
-    automation: {
-      type: Object,
-      default: () => {},
-    },
-  },
-  methods: {
-    ...mapActions({
-      doPublish: 'automation/doPublish',
-      doUnpublish: 'automation/doUnpublish',
-    }),
-    handleChange(value) {
-      if (value) {
-        this.doPublish(this.automation);
-      } else {
-        this.doUnpublish(this.automation);
-      }
-    },
-  },
 };
 </script>
