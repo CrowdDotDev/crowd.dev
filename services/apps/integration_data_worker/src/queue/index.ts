@@ -23,9 +23,8 @@ export class WorkerQueueReceiver extends SqsQueueReceiver {
     private readonly streamWorkerEmitter: IntegrationStreamWorkerEmitter,
     private readonly dataSinkWorkerEmitter: DataSinkWorkerEmitter,
     parentLog: Logger,
-    maxConcurrentProcessing: number,
   ) {
-    super(client, INTEGRATION_DATA_WORKER_QUEUE_SETTINGS, maxConcurrentProcessing, parentLog)
+    super(client, INTEGRATION_DATA_WORKER_QUEUE_SETTINGS, 2, parentLog)
   }
 
   override async processMessage(message: IQueueMessage): Promise<void> {

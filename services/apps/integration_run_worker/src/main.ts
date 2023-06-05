@@ -11,14 +11,12 @@ import { ApiPubSubEmitter, getRedisClient } from '@crowd/redis'
 
 const log = getServiceLogger()
 
-const MAX_CONCURRENT_PROCESSING = 2
-
 setImmediate(async () => {
   log.info('Starting integration run worker...')
 
   const sqsClient = getSqsClient(SQS_CONFIG())
 
-  const dbConnection = getDbConnection(DB_CONFIG(), MAX_CONCURRENT_PROCESSING)
+  const dbConnection = getDbConnection(DB_CONFIG())
   const redisClient = await getRedisClient(REDIS_CONFIG(), true)
 
   const runWorkerEmitter = new IntegrationRunWorkerEmitter(sqsClient, log)
@@ -34,7 +32,6 @@ setImmediate(async () => {
     runWorkerEmitter,
     apiPubSubEmitter,
     log,
-    MAX_CONCURRENT_PROCESSING,
   )
 
   try {

@@ -19,9 +19,8 @@ export class WorkerQueueReceiver extends SqsQueueReceiver {
     private readonly dbConn: DbConnection,
     private readonly nodejsWorkerEmitter: NodejsWorkerEmitter,
     parentLog: Logger,
-    maxConcurrentProcessing: number,
   ) {
-    super(client, DATA_SINK_WORKER_QUEUE_SETTINGS, maxConcurrentProcessing, parentLog)
+    super(client, DATA_SINK_WORKER_QUEUE_SETTINGS, 2, parentLog)
   }
 
   override async processMessage(message: IQueueMessage): Promise<void> {

@@ -28,9 +28,8 @@ export class WorkerQueueReceiver extends SqsQueueReceiver {
     private readonly runWorkerEmitter: IntegrationRunWorkerEmitter,
     private readonly apiPubSubEmitter: ApiPubSubEmitter,
     parentLog: Logger,
-    maxConcurrentProcessing: number,
   ) {
-    super(client, INTEGRATION_RUN_WORKER_QUEUE_SETTINGS, maxConcurrentProcessing, parentLog)
+    super(client, INTEGRATION_RUN_WORKER_QUEUE_SETTINGS, 2, parentLog)
   }
 
   override async processMessage(message: IQueueMessage): Promise<void> {
