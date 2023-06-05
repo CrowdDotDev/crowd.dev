@@ -166,12 +166,14 @@
 
 <script>
 import { mapActions, mapGetters } from 'vuex';
+import { mapActions as piniaMapActions } from 'pinia';
 import { MemberService } from '@/modules/member/member-service';
 import Message from '@/shared/message/message';
 import { MemberPermissions } from '@/modules/member/member-permissions';
 import ConfirmDialog from '@/shared/dialog/confirm-dialog';
 import AppSvg from '@/shared/svg/svg.vue';
 import AppMemberMergeDialog from '@/modules/member/components/member-merge-dialog.vue';
+import { useMemberStore } from '@/modules/member/store/pinia';
 
 export default {
   name: 'AppMemberDropdown',
@@ -226,11 +228,11 @@ export default {
   },
   methods: {
     ...mapActions({
-      doFetch: 'member/doFetch',
       doFind: 'member/doFind',
       doDestroy: 'member/doDestroy',
       doEnrich: 'member/doEnrich',
     }),
+    ...piniaMapActions(useMemberStore, ['fetchMembers']),
     async doDestroyWithConfirm(id) {
       try {
         await ConfirmDialog({
@@ -263,16 +265,10 @@ export default {
             },
           },
         });
-        await this.doFetch({
-          filter: {},
-          keepPagination: false,
-        });
+        await this.fetchMembers(null, true);
         Message.success('Member updated successfully');
         if (this.$route.name === 'member') {
-          this.doFetch({
-            filter: {},
-            keepPagination: true,
-          });
+          await this.fetchMembers(null, true);
         } else {
           this.doFind(command.member.id);
         }
@@ -285,16 +281,10 @@ export default {
             },
           },
         });
-        await this.doFetch({
-          filter: {},
-          keepPagination: false,
-        });
+        await this.fetchMembers(null, true);
         Message.success('Member updated successfully');
         if (this.$route.name === 'member') {
-          this.doFetch({
-            filter: {},
-            keepPagination: true,
-          });
+          await this.fetchMembers(null, true);
         } else {
           this.doFind(command.member.id);
         }

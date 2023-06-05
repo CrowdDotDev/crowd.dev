@@ -61,11 +61,11 @@
         :custom-config="customAttributes"
         @fetch="fetch($event)"
       />
-      <!--      <app-member-list-table-->
-      <!--        :has-integrations="hasIntegrations"-->
-      <!--        :has-members="hasMembers"-->
-      <!--        :is-page-loading="isPageLoading"-->
-      <!--      />-->
+      <app-member-list-table
+        :has-integrations="hasIntegrations"
+        :has-members="true"
+        :is-page-loading="loading"
+      />
     </div>
   </app-page-wrapper>
 </template>
@@ -81,15 +81,13 @@ import { MemberPermissions } from '@/modules/member/member-permissions';
 import { mapGetters } from '@/shared/vuex/vuex.helpers';
 import { FilterQuery } from '@/shared/modules/filters/types/FilterQuery';
 import CrSavedViews from '@/shared/modules/saved-views/components/SavedViews.vue';
+import AppMemberListTable from '@/modules/member/components/list/member-list-table.vue';
 import { memberFilters, memberSearchFilter } from '../config/filters/main';
 import { memberSavedViews, memberViews } from '../config/saved-views/main';
-// import MemberListFilter from '@/modules/member/components/list/member-list-filter.vue';
-// import MemberListTable from '@/modules/member/components/list/member-list-table.vue';
-// import MemberListTabs from '@/modules/member/components/list/member-list-tabs.vue';
 
 const memberStore = useMemberStore();
-const { getMemberCustomAttributes } = memberStore;
-const { filters, customAttributes } = storeToRefs(memberStore);
+const { getMemberCustomAttributes, fetchMembers } = memberStore;
+const { filters, customAttributes, savedFilterBody } = storeToRefs(memberStore);
 
 const membersCount = ref(0);
 const membersToMergeCount = ref(0);
@@ -116,10 +114,12 @@ const isEditLockedForSampleData = computed(() => new MemberPermissions(
 
 const fetchMembersToMergeCount = () => {
   MemberService.fetchMergeSuggestions(1, 0)
-    .then(({ count }) => {
+    .then(({ count }: any) => {
       membersToMergeCount.value = count;
     });
 };
+
+const loading = ref(true);
 
 const doGetMembersCount = () => {
   (MemberService.list(
@@ -135,11 +135,32 @@ const doGetMembersCount = () => {
     });
 };
 
+const showLoading = (filter: any, body: any): boolean => {
+  const saved: any = { ...savedFilterBody.value };
+  delete saved.offset;
+  delete saved.limit;
+  delete saved.orderBy;
+  const compare = {
+    ...body,
+    filter,
+  };
+  return JSON.stringify(saved) !== JSON.stringify(compare);
+};
+
 const fetch = ({
   filter, offset, limit, orderBy, body,
 }: FilterQuery) => {
-  console.log(filter, offset, limit, orderBy, body);
-  // TODO: fetch members
+  loading.value = showLoading(filter, body);
+  fetchMembers({
+    ...body,
+    filter,
+    offset,
+    limit,
+    orderBy,
+  })
+    .finally(() => {
+      loading.value = false;
+    });
 };
 
 onMounted(() => {

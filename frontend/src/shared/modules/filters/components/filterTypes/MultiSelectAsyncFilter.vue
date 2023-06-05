@@ -100,10 +100,9 @@ const include = computed<boolean>({
   },
 });
 
-watch(() => props.modelValue.value, (value: string[]) => {
-  if (value.length !== data.value.selected?.length) {
-    console.log(value);
-    props.remotePopulateItems(value)
+watch(() => props.modelValue.value, (value?: string[]) => {
+  if (value?.length !== data.value.selected?.length) {
+    props.remotePopulateItems(value || [])
       .then((options) => {
         data.value.selected = options;
       });

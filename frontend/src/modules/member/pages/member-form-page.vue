@@ -121,6 +121,7 @@ import ConfirmDialog from '@/shared/dialog/confirm-dialog';
 import getCustomAttributes from '@/shared/fields/get-custom-attributes';
 import getAttributesModel from '@/shared/attributes/get-attributes-model';
 import getParsedAttributes from '@/shared/attributes/get-parsed-attributes';
+import { useMemberStore } from '@/modules/member/store/pinia';
 
 const LoaderIcon = h(
   'i',
@@ -137,6 +138,7 @@ const ArrowPrevIcon = h(
   [],
 );
 
+const { getMemberCustomAttributes } = useMemberStore();
 const router = useRouter();
 const route = useRoute();
 const store = useStore();
@@ -249,7 +251,7 @@ onBeforeRouteLeave((to) => {
 
 onMounted(async () => {
   // Fetch custom attributes on mount
-  await store.dispatch('member/doFetchCustomAttributes');
+  await getMemberCustomAttributes();
 
   if (isEditPage.value) {
     const { id } = route.params;

@@ -7,7 +7,7 @@ const allMembers: SavedView = {
     search: '',
     relation: 'and',
     order: {
-      prop: 'createdBy',
+      prop: 'lastActive',
       order: 'descending',
     },
     settings: {
