@@ -13,6 +13,7 @@ import { IntegrationRun, IntegrationRunState } from '../../types/integrationRunT
 import { IntegrationStreamState } from '../../types/integrationStreamTypes'
 import { CrowdJob } from '../../types/jobTypes'
 import { NodeWorkerProcessWebhookMessage } from '../../types/mq/nodeWorkerProcessWebhookMessage'
+import { WebhookProcessor } from '../../serverless/integrations/services/webhookProcessor'
 
 const log = getServiceChildLogger('checkStuckIntegrationRuns')
 
@@ -219,6 +220,14 @@ export const checkRuns = async (): Promise<void> => {
 export const checkStuckWebhooks = async (): Promise<void> => {
   const dbOptions = await SequelizeRepository.getDefaultIRepositoryOptions()
   const repo = new IncomingWebhookRepository(dbOptions)
+
+  // update retryable error state webhooks to pending state
+  let errorWebhooks = await repo.findError(1, 20, WebhookProcessor.MAX_RETRY_LIMIT)
+
+  while (errorWebhooks.length > 0) {
+    await repo.markAllPending(errorWebhooks.map((w) => w.id))
+    errorWebhooks = await repo.findError(1, 20, WebhookProcessor.MAX_RETRY_LIMIT)
+  }
 
   await processPaginated(
     async (page) => repo.findPending(page, 20),
