@@ -154,7 +154,7 @@ const props = defineProps({
 
 const { fields } = OrganizationModel;
 const formSchema = new FormSchema([
-  fields.name,
+  fields.displayName,
   fields.headline,
   fields.description,
   fields.website,
@@ -182,7 +182,7 @@ function getInitialModel(record) {
   return JSON.parse(
     JSON.stringify(
       formSchema.initialValues({
-        name: record ? record.name : '',
+        displayName: record ? record.displayName : '',
         headline: record ? record.headline : '',
         description: record ? record.description : '',
         joinedAt: record ? record.joinedAt : '',
@@ -355,6 +355,8 @@ async function onSubmit() {
   const data = {
 
     ...formModel.value,
+    name: isEditPage.value === false ? formModel.value.displayName : undefined,
+    displayName: isEditPage.value === true ? formModel.value.displayName : undefined,
     emails: formModel.value.emails.reduce((acc, item) => {
       if (item !== '') {
         acc.push(item);

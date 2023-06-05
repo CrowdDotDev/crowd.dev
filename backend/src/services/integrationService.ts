@@ -774,9 +774,9 @@ export default class IntegrationService {
   async stackOverflowConnectOrUpdate(integrationData) {
     const transaction = await SequelizeRepository.createTransaction(this.options)
     let integration
-    let run
 
     try {
+      this.options.log.info('Creating Stack Overflow integration!')
       integration = await this.createOrUpdate(
         {
           platform: PlatformType.STACKOVERFLOW,
@@ -790,22 +790,23 @@ export default class IntegrationService {
         transaction,
       )
 
-      run = await new IntegrationRunRepository({ ...this.options, transaction }).create({
-        integrationId: integration.id,
-        tenantId: integration.tenantId,
-        onboarding: true,
-        state: IntegrationRunState.PENDING,
-      })
+      this.options.log.info(
+        { tenantId: integration.tenantId },
+        'Sending StackOverflow message to int-run-worker!',
+      )
+      const emitter = await getIntegrationRunWorkerEmitter()
+      await emitter.triggerIntegrationRun(
+        integration.tenantId,
+        integration.platform,
+        integration.id,
+        true,
+      )
+
       await SequelizeRepository.commitTransaction(transaction)
     } catch (err) {
       await SequelizeRepository.rollbackTransaction(transaction)
       throw err
     }
-
-    await sendNodeWorkerMessage(
-      integration.tenantId,
-      new NodeWorkerIntegrationProcessMessage(run.id),
-    )
 
     return integration
   }
