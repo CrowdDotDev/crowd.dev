@@ -11,6 +11,7 @@ const db = null
 
 const toCreate = {
   name: 'crowd.dev',
+  displayName: 'crowd.dev',
   url: 'https://crowd.dev',
   description: 'Community-led Growth for Developer-first Companies.\nJoin our private beta',
   emails: ['hello@crowd.dev', 'jonathan@crow.dev'],

@@ -22,7 +22,7 @@ i18nInit();
 
 const fields = {
   id: new IdField('id', label('id')),
-  name: new StringField('name', label('name'), {
+  displayName: new StringField('displayName', label('name'), {
     required: true,
   }),
   description: new StringField(

@@ -28,6 +28,7 @@ class OrganizationRepository {
       SELECT org.id "id"
       ,cach.id "cachId"
       ,org."name"
+      ,org."displayName"
       ,org."location"
       ,org."website"
       ,org."lastEnrichedAt"
@@ -76,10 +77,15 @@ class OrganizationRepository {
 
     const transaction = SequelizeRepository.getTransaction(options)
 
+    if (!data.displayName) {
+      data.displayName = data.name
+    }
+
     const record = await options.database.organization.create(
       {
         ...lodash.pick(data, [
           'name',
+          'displayName',
           'url',
           'description',
           'parentUrl',
@@ -168,6 +174,7 @@ class OrganizationRepository {
       {
         ...lodash.pick(data, [
           'name',
+          'displayName',
           'url',
           'description',
           'parentUrl',
@@ -528,6 +535,14 @@ class OrganizationRepository {
         })
       }
 
+      if (filter.displayName) {
+        advancedFilter.and.push({
+          displayName: {
+            textContains: filter.displayName,
+          },
+        })
+      }
+
       if (filter.url) {
         advancedFilter.and.push({
           url: {
@@ -701,6 +716,7 @@ class OrganizationRepository {
             [
               'id',
               'name',
+              'displayName',
               'url',
               'description',
               'parentUrl',
@@ -776,6 +792,7 @@ class OrganizationRepository {
           [
             'id',
             'name',
+            'displayName',
             'url',
             'description',
             'parentUrl',
@@ -849,7 +866,7 @@ class OrganizationRepository {
         [Op.or]: [
           { id: SequelizeFilterUtils.uuid(query) },
           {
-            [Op.and]: SequelizeFilterUtils.ilikeIncludes('organization', 'name', query),
+            [Op.and]: SequelizeFilterUtils.ilikeIncludes('organization', 'displayName', query),
           },
         ],
       })
@@ -858,15 +875,15 @@ class OrganizationRepository {
     const where = { [Op.and]: whereAnd }
 
     const records = await options.database.organization.findAll({
-      attributes: ['id', 'name', 'logo'],
+      attributes: ['id', 'displayName', 'logo'],
       where,
       limit: limit ? Number(limit) : undefined,
-      order: [['name', 'ASC']],
+      order: [['displayName', 'ASC']],
     })
 
     return records.map((record) => ({
       id: record.id,
-      label: record.name,
+      label: record.displayName,
       logo: record.logo,
     }))
   }

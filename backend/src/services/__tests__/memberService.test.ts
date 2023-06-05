@@ -458,6 +458,7 @@ describe('MemberService tests', () => {
       expect(o1).toStrictEqual({
         id: organization.id,
         name: 'crowd.dev',
+        displayName: 'crowd.dev',
         url: null,
         github: null,
         location: null,
@@ -527,6 +528,7 @@ describe('MemberService tests', () => {
       expect(o1).toStrictEqual({
         id: organization.id,
         name: 'crowd.dev',
+        displayName: 'crowd.dev',
         url: 'https://crowd.dev',
         github: null,
         location: null,
@@ -600,6 +602,7 @@ describe('MemberService tests', () => {
       expect(o1).toStrictEqual({
         id: organization.id,
         name: 'crowd.dev',
+        displayName: 'crowd.dev',
         url: null,
         github: null,
         location: null,
@@ -672,6 +675,7 @@ describe('MemberService tests', () => {
       expect(o1).toStrictEqual({
         id: organization.id,
         name: 'crowd.dev',
+        displayName: 'crowd.dev',
         url: 'crowd.dev',
         github: null,
         location: null,
@@ -2027,7 +2031,6 @@ describe('MemberService tests', () => {
       delete returnedMember1.noMerge
       delete returnedMember1.tags
       delete returnedMember1.activities
-      delete returnedMember1.organizations
       delete returnedMember1.tasks
       delete returnedMember1.notes
       delete returnedMember1.activityCount
@@ -2125,7 +2128,6 @@ describe('MemberService tests', () => {
       delete returnedMember1.noMerge
       delete returnedMember1.tags
       delete returnedMember1.activities
-      delete returnedMember1.organizations
       delete returnedMember1.tasks
       delete returnedMember1.notes
       delete returnedMember1.activityCount
