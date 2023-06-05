@@ -169,13 +169,14 @@ export abstract class RepositoryBase<TRepo extends RepositoryBase<TRepo>> extend
     }
   }
 
-  public static escapeString(str: string): string {
+  public escapeString(str: string): string {
     // need to escape $(), $<>, $[] and $// and prepend with another dollar sign
     // to avoid pg-promise named parameter parsing
     return str
       .replace(/(\$[{])/g, '$$$$1') // Replace ${ with $${ to escape it
       .replace(/(\$[[(])/g, '$$$$1') // Replace $[ with $$[ to escape it
       .replace(/(\$[<])/g, '$$$$1') // Replace $< with $$< to escape it
-      .replace(/(\$[\\/])/g, '$$$$1') // Replace $/ with $$/ to escape it;
+      .replace(/(\$[\\/])/g, '$$$$1') // Replace $/ with $$/ to escape it
+      .replace(/(\$[(])/g, '$$$$1') // Replace $( with $$(
   }
 }
