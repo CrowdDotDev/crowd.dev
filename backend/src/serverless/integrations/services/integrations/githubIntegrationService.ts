@@ -1320,7 +1320,7 @@ export class GithubIntegrationService extends IntegrationServiceBase {
         out.push({
           tenant: context.integration.tenantId,
           username: author.user.login,
-          platform: PlatformType.GIT,
+          platform: PlatformType.GITHUB,
           channel: repo.name,
           url: `https://github.com/${repo.owner}/${repo.name}.git`,
           body: record.commit.message,
