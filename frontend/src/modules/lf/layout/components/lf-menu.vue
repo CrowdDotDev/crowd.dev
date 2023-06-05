@@ -118,7 +118,7 @@
 
 <script setup>
 import { watch } from 'vue';
-import { RouterLink, useLink } from 'vue-router';
+import { useRoute } from 'vue-router';
 import { mapGetters } from '@/shared/vuex/vuex.helpers';
 import { useActivityTypeStore } from '@/modules/activity/store/type';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
@@ -143,18 +143,19 @@ watch(
 );
 
 // @ts-ignore
-const { route } = useLink(RouterLink.props);
+const route = useRoute();
 
 const classFor = (path, exact = false, disabled = false) => {
   if (exact) {
     return {
       'pointer-events-none': disabled,
-      'is-active': route.value.path === path,
+      'is-active': route.path === path,
     };
   }
 
-  const routePath = route.value.path;
+  const routePath = route.path;
   const active = routePath === path || routePath.startsWith(`${path}/`);
+
   return {
     'pointer-events-none': disabled,
     'is-active': active,

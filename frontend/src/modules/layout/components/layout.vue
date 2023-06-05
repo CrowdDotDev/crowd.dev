@@ -10,6 +10,8 @@
             'pt-14': showBanner,
           }"
         >
+          <!-- TODO: Check where should these banners redirect to
+            now that integrations are per sub-project-->
           <banner
             v-if="showSampleDataAlert"
             variant="alert"

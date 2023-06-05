@@ -77,6 +77,8 @@ const integrationsArray = computed(() => (props.onboard
 const showGithubDialog = ref(false);
 
 onMounted(async () => {
+  localStorage.setItem('segmentId', route.params.id);
+
   if (integrationCount.value === 0 || isSegmentIdDifferent.value) {
     await store.dispatch('integration/doFetch');
   }

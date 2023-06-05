@@ -32,18 +32,24 @@ authAxios.interceptors.request.use(
     const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);
     const setOptions = { ...options };
 
-    // TODO: Improve this logic
+    const hasSegmentsQueryParams = options.params?.segments?.length;
+    const hasSegmentsBody = options.data?.segments?.length;
+
+    const includeSegmentsInRequest = (selectedProjectGroup.value
+      || hasSegmentsBody
+      || hasSegmentsQueryParams
+    ) && !options.data?.excludeSegments && !options.params?.excludeSegments;
 
     // Add segments to requests
-    if ((selectedProjectGroup.value
-      || options.data?.segments?.length || options.params?.segments?.length) && !options.data?.excludeSegments
-        && !options.params?.excludeSegments) {
+    if (includeSegmentsInRequest) {
       let segments;
 
-      if (options.data?.segments?.length) {
+      if (hasSegmentsBody) {
         segments = options.data.segments;
-      } else if (options.params?.segments?.length) {
+      } else if (hasSegmentsQueryParams) {
         segments = options.params.segments;
+        // If neither body or query params have segments
+        // Use selected project group segment ids
       } else if (selectedProjectGroup.value.projects.length) {
         segments = selectedProjectGroup.value.projects.reduce((acc, project) => {
           project.subprojects.forEach((subproject) => {
@@ -67,6 +73,7 @@ authAxios.interceptors.request.use(
       }
     }
 
+    // Remove flag from request
     if (setOptions.data?.excludeSegments) {
       delete setOptions.data.excludeSegments;
     }

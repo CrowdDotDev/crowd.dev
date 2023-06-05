@@ -573,7 +573,12 @@ export default {
           },
         );
 
-        router.push('/integrations');
+        router.push({
+          name: 'integration',
+          params: {
+            id: integration.segmentId,
+          },
+        });
       } catch (error) {
         Errors.handle(error);
         commit('CREATE_ERROR');
