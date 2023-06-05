@@ -28,7 +28,7 @@
         <h6
           class="text-xs leading-5 font-medium text-gray-900 hover:text-brand-500 transition"
         >
-          {{ organization.name }}
+          {{ organization.displayName }}
         </h6>
       </div>
       <div>

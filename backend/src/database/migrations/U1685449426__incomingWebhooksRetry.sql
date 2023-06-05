@@ -1,0 +1,1 @@
+ALTER TABLE public."incomingWebhooks" DROP COLUMN "retries";

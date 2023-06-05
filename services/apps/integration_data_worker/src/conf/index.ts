@@ -39,15 +39,24 @@ export const REDIS_CONFIG = (): IRedisConfiguration => {
   return redisConfig
 }
 
-let platformConfig: unknown | null | undefined = null
+const platformMap: Map<string, unknown | null> = new Map()
 export const PLATFORM_CONFIG = (platform: string): unknown | undefined => {
-  if (platformConfig === null) {
-    if (config.has(platform)) {
-      platformConfig = config.get(platform)
-    } else {
-      platformConfig = undefined
+  if (platformMap.has(platform)) {
+    const value = platformMap.get(platform)
+
+    if (value === null) {
+      return undefined
     }
+
+    return value
   }
 
-  return platformConfig
+  if (config.has(platform)) {
+    const value = config.get(platform)
+    platformMap.set(platform, value)
+    return value
+  } else {
+    platformMap.set(platform, null)
+    return undefined
+  }
 }
