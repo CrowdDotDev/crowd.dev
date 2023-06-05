@@ -144,12 +144,15 @@ export abstract class RepositoryBase<TRepo extends RepositoryBase<TRepo>> extend
     const obj: any = {}
 
     for (const column of columnSet.columns) {
-      obj[column.name] =
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        (entity as any)[column.name] !== undefined
-          ? // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            (entity as any)[column.name]
-          : undefined
+      let value = (entity as unknown as Record<string, unknown>)[column.name]
+      if (value !== undefined) {
+        if (typeof value === 'string') {
+          value = this.escapeString(value)
+        }
+        obj[column.name] = value
+      } else {
+        obj[column.name] = undefined
+      }
     }
 
     return obj
@@ -164,5 +167,15 @@ export abstract class RepositoryBase<TRepo extends RepositoryBase<TRepo>> extend
         ),
       )
     }
+  }
+
+  public static escapeString(str: string): string {
+    // need to escape $(), $<>, $[] and $// and prepend with another dollar sign
+    // to avoid pg-promise named parameter parsing
+    return str
+      .replace(/(\$[{])/g, '$$$$1') // Replace ${ with $${ to escape it
+      .replace(/(\$[[(])/g, '$$$$1') // Replace $[ with $$[ to escape it
+      .replace(/(\$[<])/g, '$$$$1') // Replace $< with $$< to escape it
+      .replace(/(\$[\\/])/g, '$$$$1') // Replace $/ with $$/ to escape it;
   }
 }
