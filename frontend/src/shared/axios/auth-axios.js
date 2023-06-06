@@ -6,6 +6,7 @@ import config from '@/config';
 import { getLanguageCode } from '@/i18n';
 import { storeToRefs } from 'pinia';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
+import { getSegmentsFromProjectGroup } from '@/utils/segments';
 
 const authAxios = Axios.create({
   baseURL: config.backendUrl,
@@ -51,13 +52,7 @@ authAxios.interceptors.request.use(
         // If neither body or query params have segments
         // Use selected project group segment ids
       } else if (selectedProjectGroup.value.projects.length) {
-        segments = selectedProjectGroup.value.projects.reduce((acc, project) => {
-          project.subprojects.forEach((subproject) => {
-            acc.push(subproject.id);
-          });
-
-          return acc;
-        }, []);
+        segments = getSegmentsFromProjectGroup(selectedProjectGroup.value);
       }
 
       if (options.method === 'get') {

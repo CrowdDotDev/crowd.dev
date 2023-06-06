@@ -27,6 +27,9 @@
 import { mapGetters, mapActions } from 'vuex';
 import { QueryRenderer } from '@cubejs-client/vue3';
 import { mapWidget, chartOptions } from '@/modules/report/report-charts';
+import { storeToRefs } from 'pinia';
+import { useLfSegmentsStore } from '@/modules/lf/segments/store';
+import { getSegmentsFromProjectGroup } from '@/utils/segments';
 import WidgetCube from './widget-cube.vue';
 
 export default {
@@ -70,7 +73,11 @@ export default {
       cubejsApi: 'widget/cubejsApi',
     }),
     query() {
-      // Exclude team members in all queries
+      const lsSegmentsStore = useLfSegmentsStore();
+      const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);
+
+      // Exclude team members and bots in all queries
+      // Include project group segments
       const widgetQuery = this.widget.settings.query;
       const isTeamMemberFilter = {
         member: 'Members.isTeamMember',
@@ -82,12 +89,18 @@ export default {
         operator: 'equals',
         values: ['0'],
       };
+      const segments = {
+        member: 'Segments.id',
+        operator: 'equals',
+        values: getSegmentsFromProjectGroup(selectedProjectGroup.value),
+      };
 
       if (!widgetQuery.filters) {
-        widgetQuery.filters = [isTeamMemberFilter, isBot];
+        widgetQuery.filters = [isTeamMemberFilter, isBot, segments];
       } else {
         widgetQuery.filters.push(isTeamMemberFilter);
         widgetQuery.filters.push(isBot);
+        widgetQuery.filters.push(segments);
       }
 
       return widgetQuery;
