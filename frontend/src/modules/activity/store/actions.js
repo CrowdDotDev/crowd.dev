@@ -36,7 +36,7 @@ export default {
         });
       } else {
         response = await ActivityService.list({
-          filter: getters.activeView.filter,
+          customFilters: getters.activeView.filter,
           orderBy: getters.orderBy,
           limit: getters.limit,
           offset: getters.offset,

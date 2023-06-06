@@ -92,7 +92,7 @@ export default {
     const { segments } = state.filters;
 
     return ConversationService.list({
-      filter: {},
+      customFilters: {},
       orderBy: '',
       limit: 1,
       offset: 0,
@@ -119,7 +119,7 @@ export default {
     const { platform, period, segments } = state.filters;
 
     return ActivityService.list({
-      filter: {
+      customFilters: {
         and: [
           {
             timestamp: {
@@ -163,7 +163,7 @@ export default {
     const { platform, segments } = state.filters;
 
     return ActivityService.list({
-      filter: (platform === 'all' ? {}
+      customFilters: (platform === 'all' ? {}
         : {
           and: [
             ...(platform !== 'all'
@@ -323,7 +323,7 @@ export default {
     const { platform, period, segments } = state.filters;
 
     return OrganizationService.list({
-      filter: {
+      customFilters: {
         and: [
           {
             lastActive: {
@@ -371,7 +371,7 @@ export default {
     const { platform, period, segments } = state.filters;
 
     return OrganizationService.list({
-      filter: {
+      customFilters: {
         and: [
           {
             joinedAt: {
@@ -417,7 +417,7 @@ export default {
     const { platform, segments } = state.filters;
 
     return OrganizationService.list({
-      filter: (platform === 'all' ? null
+      customFilters: (platform === 'all' ? null
         : {
           and: [
             ...(platform !== 'all'

@@ -8,23 +8,18 @@
             <h4>Organizations</h4>
           </div>
           <div class="flex items-center">
-            <router-link
+            <el-button
               v-if="hasPermissionToCreate"
-              :to="{
-                name: 'organizationCreate',
-              }"
+              class="btn btn--primary btn--md"
               :class="{
                 'pointer-events-none cursor-not-allowed':
                   isCreateLockedForSampleData,
               }"
+              :disabled="isCreateLockedForSampleData"
+              @click="onAddOrganization"
             >
-              <el-button
-                class="btn btn--primary btn--md"
-                :disabled="isCreateLockedForSampleData"
-              >
-                Add organization
-              </el-button>
-            </router-link>
+              Add organization
+            </el-button>
           </div>
         </div>
         <div class="text-xs text-gray-500">
@@ -38,14 +33,22 @@
       <app-organization-list-table
         :has-organizations="hasOrganizations"
         :is-page-loading="isPageLoading"
+        @on-add-organization="isSubProjectSelectionOpen = true"
       />
     </div>
   </app-page-wrapper>
+
+  <app-lf-sub-projects-list-modal
+    v-if="isSubProjectSelectionOpen"
+    v-model="isSubProjectSelectionOpen"
+    title="Add organization"
+    @on-submit="onSubProjectSelection"
+  />
 </template>
 
 <script setup>
 import { computed, ref, onMounted } from 'vue';
-import { useRoute } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 import moment from 'moment/moment';
 import AppPageWrapper from '@/shared/layout/page-wrapper.vue';
 import AppOrganizationListTabs from '@/modules/organization/components/list/organization-list-tabs.vue';
@@ -56,10 +59,12 @@ import {
   mapActions,
 } from '@/shared/vuex/vuex.helpers';
 import AppLfPageHeader from '@/modules/lf/layout/components/lf-page-header.vue';
+import AppLfSubProjectsListModal from '@/modules/lf/segments/components/lf-sub-projects-list-modal.vue';
 import { OrganizationPermissions } from '../organization-permissions';
 import { OrganizationService } from '../organization-service';
 
 const route = useRoute();
+const router = useRouter();
 
 const { currentUser, currentTenant } = mapGetters('auth');
 const { doFetch, updateFilterAttribute } = mapActions('organization');
@@ -79,10 +84,12 @@ const isCreateLockedForSampleData = computed(
 const hasOrganizations = ref(false);
 const isPageLoading = ref(false);
 
+const isSubProjectSelectionOpen = ref(false);
+
 const doGetOrganizationsCount = async () => {
   try {
     const response = await OrganizationService.list({
-      filter: {},
+      customFilters: {},
       orderBy: '',
       limit: 1,
       offset: 0,
@@ -140,4 +147,18 @@ onMounted(async () => {
   hasOrganizations.value = !!organizationsList?.length;
   isPageLoading.value = false;
 });
+
+const onAddOrganization = () => {
+  isSubProjectSelectionOpen.value = true;
+};
+
+const onSubProjectSelection = (subprojectId) => {
+  isSubProjectSelectionOpen.value = false;
+  router.push({
+    name: 'organizationCreate',
+    query: {
+      subprojectId,
+    },
+  });
+};
 </script>

@@ -39,6 +39,10 @@ const props = defineProps({
     type: Object,
     default: () => {},
   },
+  subprojectId: {
+    type: String,
+    required: true,
+  },
 });
 
 const emit = defineEmits(['edit']);
@@ -55,7 +59,7 @@ const doDestroyWithConfirm = () => {
     cancelButtonText: 'Cancel',
     icon: 'ri-delete-bin-line',
   }).then(() => {
-    deleteActivityType(props.activityTypeKey);
+    deleteActivityType(props.activityTypeKey, [props.subprojectId]);
   });
 };
 

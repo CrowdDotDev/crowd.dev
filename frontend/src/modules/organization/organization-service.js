@@ -70,7 +70,7 @@ export class OrganizationService {
   }
 
   static async list({
-    filter,
+    customFilters,
     orderBy,
     limit,
     offset,
@@ -79,7 +79,7 @@ export class OrganizationService {
   }) {
     const body = {
       filter: buildApiPayload({
-        customFilters: filter,
+        customFilters,
         defaultFilters: DEFAULT_ORGANIZATION_FILTERS,
         buildFilter,
       }),
@@ -105,7 +105,11 @@ export class OrganizationService {
     return response.data;
   }
 
-  static async listAutocomplete(query, limit, segments) {
+  static async listAutocomplete({
+    query,
+    limit,
+    segments,
+  }) {
     const params = {
       query,
       limit,

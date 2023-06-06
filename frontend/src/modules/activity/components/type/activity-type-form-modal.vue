@@ -72,6 +72,10 @@ const props = defineProps({
     required: false,
     default: () => null,
   },
+  subprojectId: {
+    type: String,
+    required: true,
+  },
 });
 
 const emit = defineEmits(['update:modelValue']);
@@ -108,11 +112,14 @@ const submit = () => {
   if ($v.value.$invalid) {
     return;
   }
+
+  const segments = [props.subprojectId];
+
   if (!isEdit.value) {
     // Create
     createActivityType({
       type: form.name,
-    })
+    }, segments)
       .then(() => {
         reset();
         emit('update:modelValue');
@@ -129,7 +136,7 @@ const submit = () => {
     // Update
     updateActivityType(props.type.key, {
       type: form.name,
-    })
+    }, segments)
       .then(() => {
         reset();
         doFetch({});

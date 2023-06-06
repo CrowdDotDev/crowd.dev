@@ -32,7 +32,7 @@
               name="activities"
             >
               <app-activity-timeline
-                :entity-id="member.id"
+                :entity="member"
                 entity-type="member"
               />
             </el-tab-pane>

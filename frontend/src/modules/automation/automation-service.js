@@ -147,22 +147,4 @@ export class AutomationService {
 
     return response.data;
   }
-
-  static async listAutocomplete(query, limit) {
-    const params = {
-      query,
-      limit,
-    };
-
-    const tenantId = AuthCurrentTenant.get();
-
-    const response = await authAxios.get(
-      `/tenant/${tenantId}/automation/autocomplete`,
-      {
-        params,
-      },
-    );
-
-    return response.data;
-  }
 }

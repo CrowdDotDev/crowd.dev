@@ -53,7 +53,7 @@ export class ConversationService {
   }
 
   static async list({
-    filter,
+    customFilters,
     orderBy,
     limit,
     offset,
@@ -61,7 +61,7 @@ export class ConversationService {
   }) {
     const body = {
       filter: buildApiPayload({
-        customFilters: filter,
+        customFilters,
         buildFilter: true,
       }),
       segments,

@@ -69,7 +69,7 @@ const fetchNotes = (page = 0) => {
     orderBy: 'createdAt_DESC',
     limit: notesLimit,
     offset: notesPage.value * notesLimit,
-    segments: [],
+    segments: props.member.segments.map((s) => s.id),
   }).then(({ rows, count }) => {
     if (notesPage.value > 0) {
       notes.value = [...notes.value, ...rows];

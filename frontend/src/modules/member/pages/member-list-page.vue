@@ -25,26 +25,21 @@
               </button>
             </router-link>
 
-            <router-link
+            <el-button
               v-if="
                 hasPermissionToCreate
                   && (hasIntegrations || hasMembers)
               "
-              :to="{
-                name: 'memberCreate',
-              }"
+              class="btn btn--primary btn--md"
               :class="{
                 'pointer-events-none cursor-not-allowed':
                   isCreateLockedForSampleData,
               }"
+              :disabled="isCreateLockedForSampleData"
+              @click="onAddMember"
             >
-              <el-button
-                class="btn btn--primary btn--md"
-                :disabled="isCreateLockedForSampleData"
-              >
-                Add member
-              </el-button>
-            </router-link>
+              Add member
+            </el-button>
           </div>
         </div>
         <div class="text-xs text-gray-500">
@@ -60,9 +55,17 @@
         :has-integrations="hasIntegrations"
         :has-members="hasMembers"
         :is-page-loading="isPageLoading"
+        @on-add-member="isSubProjectSelectionOpen = true"
       />
     </div>
   </app-page-wrapper>
+
+  <app-lf-sub-projects-list-modal
+    v-if="isSubProjectSelectionOpen"
+    v-model="isSubProjectSelectionOpen"
+    title="Add member"
+    @on-submit="onSubProjectSelection"
+  />
 </template>
 
 <script>
@@ -73,6 +76,7 @@ import MemberListTable from '@/modules/member/components/list/member-list-table.
 import MemberListTabs from '@/modules/member/components/list/member-list-tabs.vue';
 import PageWrapper from '@/shared/layout/page-wrapper.vue';
 import AppLfPageHeader from '@/modules/lf/layout/components/lf-page-header.vue';
+import AppLfSubProjectsListModal from '@/modules/lf/segments/components/lf-sub-projects-list-modal.vue';
 import { MemberService } from '../member-service';
 import { MemberPermissions } from '../member-permissions';
 
@@ -85,6 +89,7 @@ export default {
     'app-member-list-tabs': MemberListTabs,
     'app-page-wrapper': PageWrapper,
     AppLfPageHeader,
+    AppLfSubProjectsListModal,
   },
 
   data() {
@@ -92,6 +97,7 @@ export default {
       membersToMergeCount: 0,
       hasMembers: false,
       isPageLoading: true,
+      isSubProjectSelectionOpen: false,
     };
   },
 
@@ -214,7 +220,6 @@ export default {
           orderBy: '',
           limit: 1,
           offset: 0,
-          segments: [],
           buildFilter: undefined,
           countOnly: true,
         });
@@ -223,6 +228,18 @@ export default {
       } catch (e) {
         return null;
       }
+    },
+    onAddMember() {
+      this.isSubProjectSelectionOpen = true;
+    },
+    onSubProjectSelection(subprojectId) {
+      this.isSubProjectSelectionOpen = false;
+      this.$router.push({
+        name: 'memberCreate',
+        query: {
+          subprojectId,
+        },
+      });
     },
   },
 };

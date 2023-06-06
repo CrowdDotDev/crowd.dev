@@ -180,8 +180,15 @@ export default {
     @apply align-top h-auto;
   }
 
-  tbody .table-columns {
-    @apply align-middle h-14;
+  tbody {
+    .table-columns {
+      @apply align-middle h-14;
+    }
+
+    .cell {
+      display: flex !important;
+      align-items: center !important;
+    }
   }
 
   .el-table__empty-text {

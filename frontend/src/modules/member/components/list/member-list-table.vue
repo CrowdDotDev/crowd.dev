@@ -392,7 +392,6 @@
 
 <script setup>
 import { useStore } from 'vuex';
-import { useRouter } from 'vue-router';
 import {
   computed, onMounted, onUnmounted, ref, defineProps, watch,
 } from 'vue';
@@ -411,7 +410,6 @@ import AppMemberLastActivity from '../member-last-activity.vue';
 import AppMemberSentiment from '../member-sentiment.vue';
 
 const store = useStore();
-const router = useRouter();
 const table = ref(null);
 const scrollbarRef = ref();
 const tableBodyRef = ref();
@@ -420,6 +418,7 @@ const isScrollbarVisible = ref(false);
 const isTableHovered = ref(false);
 const isCursorDown = ref(false);
 
+const emit = defineEmits(['onAddMember']);
 const props = defineProps({
   hasIntegrations: {
     type: Boolean,
@@ -531,9 +530,7 @@ function rowClass({ row }) {
 }
 
 function onSecondaryBtnClick() {
-  router.push({
-    name: 'memberCreate',
-  });
+  emit('onAddMember');
 }
 
 // On custom scrollbar scroll, set the table scroll with the same value

@@ -538,7 +538,6 @@ import {
   watch,
   onUnmounted,
 } from 'vue';
-import { useRouter } from 'vue-router';
 import {
   mapState,
   mapGetters,
@@ -552,8 +551,7 @@ import AppOrganizationListToolbar from './organization-list-toolbar.vue';
 import AppOrganizationName from '../organization-name.vue';
 import AppOrganizationDropdown from '../organization-dropdown.vue';
 
-const router = useRouter();
-
+const emit = defineEmits(['onAddOrganization']);
 const props = defineProps({
   hasOrganizations: {
     type: Boolean,
@@ -604,9 +602,7 @@ document.onmouseup = () => {
 };
 
 const onCtaClick = () => {
-  router.push({
-    name: 'organizationCreate',
-  });
+  emit('onAddOrganization');
 };
 
 const rowClass = ({ row }) => {

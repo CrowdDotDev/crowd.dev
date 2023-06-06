@@ -65,13 +65,13 @@ export class IntegrationService {
     return response.data;
   }
 
-  static async list(filter, orderBy, limit, offset) {
+  static async list(filter, orderBy, limit, offset, segments) {
     const params = {
       filter,
       orderBy,
       limit,
       offset,
-      ...getSegments(),
+      ...(segments.length ? { segments } : getSegments()),
     };
 
     const tenantId = AuthCurrentTenant.get();
@@ -79,25 +79,6 @@ export class IntegrationService {
     const response = await authAxios.get(`/tenant/${tenantId}/integration`, {
       params,
     });
-
-    return response.data;
-  }
-
-  static async listAutocomplete(query, limit) {
-    const params = {
-      query,
-      limit,
-      ...getSegments(),
-    };
-
-    const tenantId = AuthCurrentTenant.get();
-
-    const response = await authAxios.get(
-      `/tenant/${tenantId}/integration/autocomplete`,
-      {
-        params,
-      },
-    );
 
     return response.data;
   }
