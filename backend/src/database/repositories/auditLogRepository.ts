@@ -1,4 +1,4 @@
-import Sequelize from 'sequelize'
+import Sequelize, { QueryTypes } from 'sequelize'
 import SequelizeRepository from './sequelizeRepository'
 import SequelizeFilterUtils from '../utils/sequelizeFilterUtils'
 import { IRepositoryOptions } from './IRepositoryOptions'
@@ -52,6 +52,22 @@ export default class AuditLogRepository {
     )
 
     return log
+  }
+
+  static async cleanUpOldAuditLogs(
+    maxMonthsToKeep: number,
+    options: IRepositoryOptions,
+  ): Promise<void> {
+    const seq = SequelizeRepository.getSequelize(options)
+
+    await seq.query(
+      `
+      delete from "auditLogs" where timestamp < now() - interval '${maxMonthsToKeep} months'
+      `,
+      {
+        type: QueryTypes.DELETE,
+      },
+    )
   }
 
   static async findAndCountAll(

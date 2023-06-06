@@ -12,12 +12,14 @@ import { WorkerQueueReceiver } from './queue'
 
 const log = getServiceLogger()
 
+const MAX_CONCURRENT_PROCESSING = 2
+
 setImmediate(async () => {
   log.info('Starting integration stream worker...')
 
   const sqsClient = getSqsClient(SQS_CONFIG())
 
-  const dbConnection = getDbConnection(DB_CONFIG())
+  const dbConnection = getDbConnection(DB_CONFIG(), MAX_CONCURRENT_PROCESSING)
   const redisClient = await getRedisClient(REDIS_CONFIG(), true)
 
   const runWorkerEmiiter = new IntegrationRunWorkerEmitter(sqsClient, log)
@@ -32,6 +34,7 @@ setImmediate(async () => {
     dataWorkerEmitter,
     streamWorkerEmitter,
     log,
+    MAX_CONCURRENT_PROCESSING,
   )
 
   try {
