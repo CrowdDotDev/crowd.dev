@@ -37,16 +37,6 @@ services:
     networks:
       - crowd-bridge
 
-  search-engine:
-    image: getmeili/meilisearch:v0.27.2
-    restart: always
-    ports:
-      - 7700:7700
-    volumes:
-      - search-dev:/data.ms
-    networks:
-      - crowd-bridge
-
   # s3:
   #   image: scireum/s3-ninja:8.0.0
   #   ports:
@@ -116,6 +106,5 @@ networks:
 
 volumes:
   pgdata-dev:
-  search-dev:
   s3-dev:
   redis-dev:
