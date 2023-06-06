@@ -14,7 +14,8 @@
     "format": "prettier --write \"src/**/*.ts\"",
     "format-check": "prettier --check .",
     "tsc-check": "tsc --noEmit",
-    "script:restart-failed-results": "node -r tsconfig-paths/register -r ts-node/register src/bin/restart-failed-results.ts --transpile-only"
+    "script:restart-failed-results": "node -r tsconfig-paths/register -r ts-node/register src/bin/restart-failed-results.ts --transpile-only",
+    "script:restart-result": "node -r tsconfig-paths/register -r ts-node/register src/bin/restart-result.ts --transpile-only"
   },
   "dependencies": {
     "@crowd/common": "file:../../libs/common",
