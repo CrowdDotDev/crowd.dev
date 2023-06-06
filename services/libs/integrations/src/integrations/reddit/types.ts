@@ -7,6 +7,16 @@ export interface IRedditIntegrationSettings {
   subreddits: string[]
 }
 
+export interface IRedditPublishData {
+  type: RedditActivityType
+  data: RedditPost | RedditComment
+  subreddit: string
+  sourceParentId?: string
+  postUrl?: string
+  postTitle?: string
+  postId?: string
+}
+
 export interface IRedditSubredditStreamData {
   channel: string
   after?: string
@@ -100,9 +110,13 @@ export interface RedditPostsResponse {
   }
 }
 
-export interface RedditCommentsResponse {
+export type RedditCommentsResponse = RedditInternalComment[]
+
+interface RedditInternalComment {
+  kind: string
   data: {
     children: {
+      kind: string
       data: RedditComment
     }[]
   }

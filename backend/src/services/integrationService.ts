@@ -1,4 +1,3 @@
-import { createAppAuth } from '@octokit/auth-app'
 import { request } from '@octokit/request'
 import moment from 'moment'
 import axios from 'axios'
@@ -505,6 +504,7 @@ export default class IntegrationService {
     let run
 
     try {
+      this.options.log.info('Creating devto integration!')
       integration = await this.createOrUpdate(
         {
           platform: PlatformType.REDDIT,
@@ -514,23 +514,23 @@ export default class IntegrationService {
         transaction,
       )
 
-      run = await new IntegrationRunRepository({ ...this.options, transaction }).create({
-        integrationId: integration.id,
-        tenantId: integration.tenantId,
-        onboarding: true,
-        state: IntegrationRunState.PENDING,
-      })
+      this.options.log.info(
+        { tenantId: integration.tenantId },
+        'Sending reddit message to int-run-worker!',
+      )
+      const emitter = await getIntegrationRunWorkerEmitter()
+      await emitter.triggerIntegrationRun(
+        integration.tenantId,
+        integration.platform,
+        integration.id,
+        true,
+      )
 
       await SequelizeRepository.commitTransaction(transaction)
     } catch (err) {
       await SequelizeRepository.rollbackTransaction(transaction)
       throw err
     }
-
-    await sendNodeWorkerMessage(
-      integration.tenantId,
-      new NodeWorkerIntegrationProcessMessage(run.id),
-    )
 
     return integration
   }
