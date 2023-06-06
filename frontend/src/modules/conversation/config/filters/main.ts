@@ -1,28 +1,25 @@
 import { FilterConfig } from '@/shared/modules/filters/types/FilterConfig';
 import { SearchFilterConfig } from '@/shared/modules/filters/types/filterTypes/SearchFilterConfig';
-import activityType from './activityType/config';
+import noOfActivities from './noOfActivities/config';
 import channel from './channel/config';
-import date from './date/config';
-import member from './member/config';
+import dateStarted from './dateStarted/config';
+import lastActivityDate from './lastActivityDate/config';
 import platform from './platform/config';
-import sentiment from './sentiment/config';
 
-export const activityFilters: Record<string, FilterConfig> = {
-  activityType,
+export const conversationFilters: Record<string, FilterConfig> = {
+  noOfActivities,
   channel,
-  date,
-  member,
+  dateStarted,
+  lastActivityDate,
   platform,
-  sentiment,
 };
-export const activitySearchFilter: SearchFilterConfig = {
-  placeholder: 'Search activities',
+export const conversationSearchFilter: SearchFilterConfig = {
+  placeholder: 'Search conversations',
   apiFilterRenderer(value: string): any[] {
     return [
       {
         or: [
           { title: { textContains: value } },
-          { body: { contains: [value] } },
         ],
       },
     ];

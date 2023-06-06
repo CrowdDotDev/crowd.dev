@@ -36,9 +36,9 @@ const data = computed({
 });
 
 watch(() => currentTenant.value, (tenant: any) => {
-  const activityChannels = tenant?.settings[0].activityChannels || {};
+  const conversationChannels = tenant?.settings[0].activityChannels || {};
 
-  data.value.options = Object.entries(activityChannels).map(([platform, channels]): SelectFilterOptionGroup => ({
+  data.value.options = Object.entries(conversationChannels).map(([platform, channels]): SelectFilterOptionGroup => ({
     label: CrowdIntegrations.getConfig(platform).name,
     options: channels.map((channel) => ({
       value: channel,

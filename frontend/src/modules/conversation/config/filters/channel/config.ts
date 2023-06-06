@@ -1,29 +1,25 @@
 import { FilterConfigType } from '@/shared/modules/filters/types/FilterConfig';
 import { CustomFilterConfig } from '@/shared/modules/filters/types/filterTypes/CustomFilterConfig';
-import ActivityTypeFilter from '@/modules/activity/config/filters/activityType/ActivityTypeFilter.vue';
-import { SelectFilterOptions, SelectFilterValue } from '@/shared/modules/filters/types/filterTypes/SelectFilterConfig';
+import ChannelFilter from '@/modules/conversation/config/filters/channel/ChannelFilter.vue';
 import { queryUrlParserByType } from '@/shared/modules/filters/config/queryUrlParserByType';
+import { SelectFilterOptions, SelectFilterValue } from '@/shared/modules/filters/types/filterTypes/SelectFilterConfig';
 import { itemLabelRendererByType } from '@/shared/modules/filters/config/itemLabelRendererByType';
 
-const activityType: CustomFilterConfig = {
-  id: 'activityType',
-  label: 'Activity type',
-  iconClass: 'ri-radar-line',
+const channel: CustomFilterConfig = {
+  id: 'channel',
+  label: 'Channel',
+  iconClass: 'ri-discuss-line',
   type: FilterConfigType.CUSTOM,
-  component: ActivityTypeFilter,
+  component: ChannelFilter,
   options: {
   },
   queryUrlParser: queryUrlParserByType[FilterConfigType.SELECT],
   itemLabelRenderer(value: SelectFilterValue, options: SelectFilterOptions, data: any): string {
-    return itemLabelRendererByType[FilterConfigType.SELECT]('Activity type', value, data);
+    return itemLabelRendererByType[FilterConfigType.SELECT]('Channel', value, data);
   },
   apiFilterRenderer({ value, include }:SelectFilterValue): any[] {
-    const [platform, activityType] = value.split(':');
     const filter = {
-      and: [
-        { platform },
-        { type: activityType },
-      ],
+      channel: value,
     };
     return [
       (include ? filter : { not: filter }),
@@ -31,4 +27,4 @@ const activityType: CustomFilterConfig = {
   },
 };
 
-export default activityType;
+export default channel;

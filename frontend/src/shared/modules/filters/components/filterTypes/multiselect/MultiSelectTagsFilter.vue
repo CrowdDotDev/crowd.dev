@@ -1,40 +1,38 @@
 <template>
-  <div>
-    <div class="px-4 pt-3">
-      <el-select
-        v-model="form"
-        multiple
-        filterable
-        remote
-        :reserve-keyword="false"
-        placeholder="Select options"
-        :remote-method="searchOptions"
-        :teleported="false"
-        class="filter-multiselect"
-        popper-class="filter-multiselect-popper"
-      >
-        <template v-for="(group, gi) of filteredOptions" :key="gi">
-          <div
-            v-if="group.label && group.options.length > 0"
-            class="text-2xs text-gray-400 font-semibold tracking-wide leading-6 uppercase px-3 my-1"
-          >
-            {{ group.label }}
-          </div>
-          <el-option
-            v-for="option of group.options"
-            :key="option.value"
-            :label="option.label"
-            :value="option.value"
-          >
-            <el-checkbox
-              :model-value="form.includes(option.value)"
-              class="filter-checkbox h-4"
-            />
-            {{ option.label }}
-          </el-option>
-        </template>
-      </el-select>
-    </div>
+  <div v-if="form" class="px-4 pt-3">
+    <el-select
+      v-model="form"
+      multiple
+      filterable
+      remote
+      :reserve-keyword="false"
+      placeholder="Select options"
+      :remote-method="searchOptions"
+      :teleported="false"
+      class="filter-multiselect"
+      popper-class="filter-multiselect-popper"
+    >
+      <template v-for="(group, gi) of filteredOptions" :key="gi">
+        <div
+          v-if="group.label && group.options.length > 0"
+          class="text-2xs text-gray-400 font-semibold tracking-wide leading-6 uppercase px-3 my-1"
+        >
+          {{ group.label }}
+        </div>
+        <el-option
+          v-for="option of group.options"
+          :key="option.value"
+          :label="option.label"
+          :value="option.value"
+        >
+          <el-checkbox
+            :model-value="form.includes(option.value)"
+            class="filter-checkbox h-4"
+          />
+          {{ option.label }}
+        </el-option>
+      </template>
+    </el-select>
   </div>
 </template>
 

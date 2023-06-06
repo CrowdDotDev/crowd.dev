@@ -1,6 +1,5 @@
 import { FilterConfigType } from '@/shared/modules/filters/types/FilterConfig';
 import { itemLabelRendererByType } from '@/shared/modules/filters/config/itemLabelRendererByType';
-import { apiFilterRendererByType } from '@/shared/modules/filters/config/apiFilterRendererByType';
 import {
   MultiSelectAsyncFilterConfig,
   MultiSelectAsyncFilterOptions, MultiSelectAsyncFilterValue,
@@ -29,8 +28,13 @@ const member: MultiSelectAsyncFilterConfig = {
   itemLabelRenderer(value: MultiSelectAsyncFilterValue, options: MultiSelectAsyncFilterOptions, data: any): string {
     return itemLabelRendererByType[FilterConfigType.MULTISELECT_ASYNC]('Member', value, options, data);
   },
-  apiFilterRenderer(value: MultiSelectAsyncFilterValue): any[] {
-    return apiFilterRendererByType[FilterConfigType.MULTISELECT_ASYNC]('member', value);
+  apiFilterRenderer({ value, include }: MultiSelectAsyncFilterValue): any[] {
+    const filter = {
+      memberId: value,
+    };
+    return [
+      (include ? filter : { not: filter }),
+    ];
   },
 };
 

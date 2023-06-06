@@ -60,6 +60,7 @@ const props = defineProps<{
   customConfig?: Record<string, FilterConfig>,
   searchConfig: SearchFilterConfig,
   savedViewsConfig?: SavedViewsConfig,
+  hash?: string,
 }>();
 
 const emit = defineEmits<{(e: 'update:modelValue', value: Filter), (e: 'fetch', value: FilterQuery),}>();
@@ -120,7 +121,7 @@ watch(() => filters.value, (value: Filter) => {
   fetch(value);
   alignFilterList(value);
   const query = setQuery(value);
-  router.push({ query });
+  router.push({ query, hash: props.hash ? `#${props.hash}` : undefined });
 }, { deep: true });
 
 // Watch for query change
@@ -131,7 +132,7 @@ watch(() => route.query, (query) => {
   }, props.savedViewsConfig);
   if (!parsed || Object.keys(parsed).length === 0) {
     const query = setQuery(props.modelValue);
-    router.push({ query });
+    router.push({ query, hash: props.hash ? `#${props.hash}` : undefined });
     return;
   }
   if (JSON.stringify(parsed) !== JSON.stringify(filters.value)) {

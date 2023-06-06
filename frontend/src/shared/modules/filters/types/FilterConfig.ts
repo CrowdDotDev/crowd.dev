@@ -42,7 +42,7 @@ export interface FilterStatic {
     prop: string,
     order: 'descending' | 'ascending'
   },
-  settings: Record<string, any>
+  settings?: Record<string, any>
 }
 
 export type FilterObject = FilterStatic & Record<string, any>
