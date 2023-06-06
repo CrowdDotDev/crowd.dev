@@ -47,7 +47,7 @@ module.exports = {
     query.filters.push({
       member: `Members.isBot`,
       operator: 'equals',
-      values: ["0"],
+      values: ['0'],
     })
 
     query.filters.push({
