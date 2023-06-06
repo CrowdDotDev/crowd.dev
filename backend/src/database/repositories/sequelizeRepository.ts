@@ -4,7 +4,6 @@ import { getServiceLogger } from '@crowd/logging'
 import { IS_TEST_ENV } from '../../conf'
 import Error400 from '../../errors/Error400'
 import { databaseInit } from '../databaseConnection'
-import { searchEngineInit } from '../../search-engine/searchEngineConnection'
 import { IRepositoryOptions } from './IRepositoryOptions'
 
 /**
@@ -27,7 +26,6 @@ export default class SequelizeRepository {
     return {
       log: getServiceLogger(),
       database: await databaseInit(),
-      searchEngine: await searchEngineInit(),
       currentTenant: tenant,
       currentUser: user,
       bypassPermissionValidation: true,

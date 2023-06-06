@@ -134,4 +134,4 @@ crowd.dev is powered by these awesome projects:
 - <a href="https://github.com/vuejs/vue">Vue.js</a>
 - <a href="https://github.com/tailwindlabs/tailwindcss">Tailwind CSS</a>
 - <a href="https://github.com/cube-js/cube.js">Cube.js</a>
-- <a href="https://github.com/meilisearch/meilisearch">Meilisearch</a>
+- <a href="https://github.com/opensearch-project">OpenSearch</a>

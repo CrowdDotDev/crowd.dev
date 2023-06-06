@@ -37,13 +37,21 @@ services:
     networks:
       - crowd-bridge
 
-  search-engine:
-    image: getmeili/meilisearch:v0.27.2
+  open-search:
+    image: opensearchproject/opensearch:2.7.0
     restart: always
+    environment:
+      - discovery.type=single-node
+      - bootstrap.memory_lock=true
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
     ports:
-      - 7700:7700
+      - 9200:9200
+      - 9600:9600
     volumes:
-      - search-dev:/data.ms
+      - opensearch-dev:/usr/share/opensearch/data
     networks:
       - crowd-bridge
 
@@ -116,6 +124,6 @@ networks:
 
 volumes:
   pgdata-dev:
-  search-dev:
+  opensearch-dev:
   s3-dev:
   redis-dev:
