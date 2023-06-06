@@ -75,14 +75,17 @@ export const filterApiService = () => {
     });
 
     // build object
-    const filter = {
-      and: [
-        ...baseFilters,
-        {
-          [relation]: filters.length > 0 ? filters : undefined,
-        },
-      ],
+    let filter = {
+      [relation]: filters.length > 0 ? filters : undefined,
     };
+    if (baseFilters.length > 0) {
+      filter = {
+        and: [
+          ...baseFilters,
+          filter,
+        ],
+      };
+    }
 
     const orderBy = `${order.prop}_${order.order === 'descending' ? 'DESC' : 'ASC'}`;
 

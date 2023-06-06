@@ -20,9 +20,10 @@ export default () => ({
       prop: 'timestamp',
       order: 'descending',
     },
-    lastActivity: {
-      operator: 'lt',
+    lastActivityDate: {
+      operator: 'gt',
       value: moment().subtract(7, 'day').format('YYYY-MM-DD'),
+      include: true,
     },
   } as Filter,
   savedFilterBody: {},

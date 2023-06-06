@@ -41,7 +41,7 @@
 <script setup lang="ts">
 import {
   computed,
-  defineProps, ref, watch,
+  defineProps, onMounted, ref, watch,
 } from 'vue';
 import { Filter, FilterConfig } from '@/shared/modules/filters/types/FilterConfig';
 import CrFilterDropdown from '@/shared/modules/filters/components/FilterDropdown.vue';
@@ -139,6 +139,13 @@ watch(() => route.query, (query) => {
     filters.value = parsed as Filter;
   }
 }, { immediate: true });
+
+onMounted(() => {
+  if (!!filters.value && Object.keys(filters.value).length > 0) {
+    alignFilterList(filters.value);
+    fetch(filters.value);
+  }
+});
 </script>
 
 <script lang="ts">
