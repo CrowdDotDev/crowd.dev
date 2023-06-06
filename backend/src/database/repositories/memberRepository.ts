@@ -1055,51 +1055,68 @@ class MemberRepository {
 
     const limitCondition = `limit ${limit} offset ${offset}`
     const query = `
-        with orgs as (select mo."memberId", json_agg(row_to_json(o.*)) as organizations
-                      from "memberOrganizations" mo
-                               inner join organizations o on mo."organizationId" = o.id
-                      group by mo."memberId"),
-             activity_data as (select "memberId",
-                                      count(id)                       as "activityCount",
-                                      count(distinct timestamp::date) as "activeDaysCount"
-                               from activities
-                               where ${activityConditionsString} and 
-                                     timestamp >= :periodStart and 
-                                     timestamp < :periodEnd
-                               group by "memberId"),
-              identities as (select mi."memberId",
-                                        array_agg(distinct mi.platform)             as identities,
-                                        jsonb_object_agg(mi.platform, mi.usernames) as username
-                                  from (select "memberId",
-                                              platform,
-                                              array_agg(username) as usernames
-                                        from (select "memberId",
-                                                    platform,
-                                                    username,
-                                                    "createdAt",
-                                                    row_number() over (partition by "memberId", platform order by "createdAt" desc) =
-                                                    1 as is_latest
-                                              from "memberIdentities" where "tenantId" = :tenantId) sub
-                                        where is_latest
-                                        group by "memberId", platform) mi
-                                  group by mi."memberId")
-          select m.id,
-             m."displayName",
-             i.username,
-             i.identities,
-             m.attributes,
-             ad."activityCount",
-             ad."activeDaysCount",
-             m."joinedAt",
-             coalesce(o.organizations, json_build_array()) as organizations,
-             count(*) over ()                  as "totalCount"
-      from members m
-               inner join activity_data ad on ad."memberId" = m.id
-               inner join identities i on i."memberId" = m.id
-               left join orgs o on o."memberId" = m.id
-      where ${conditionsString}
-      order by ${orderString}
-      ${limitCondition};
+        WITH
+            orgs AS (
+                SELECT mo."memberId", JSON_AGG(ROW_TO_JSON(o.*)) AS organizations
+                FROM "memberOrganizations" mo
+                INNER JOIN organizations o ON mo."organizationId" = o.id
+                GROUP BY mo."memberId"
+            ),
+            activity_data AS (
+                SELECT
+                    "memberId",
+                    COUNT(id) AS "activityCount",
+                    COUNT(DISTINCT timestamp::DATE) AS "activeDaysCount"
+                FROM activities
+                WHERE ${activityConditionsString}
+                  AND timestamp >= :periodStart
+                  AND timestamp < :periodEnd
+                GROUP BY "memberId"
+            ),
+            identities AS (
+                SELECT
+                    mi."memberId",
+                    ARRAY_AGG(DISTINCT mi.platform) AS identities,
+                    JSONB_OBJECT_AGG(mi.platform, mi.usernames) AS username
+                FROM (
+                    SELECT
+                        "memberId",
+                        platform,
+                        ARRAY_AGG(username) AS usernames
+                    FROM (
+                        SELECT
+                            "memberId",
+                            platform,
+                            username,
+                            "createdAt",
+                            ROW_NUMBER() OVER (PARTITION BY "memberId", platform ORDER BY "createdAt" DESC) =
+                            1 AS is_latest
+                        FROM "memberIdentities"
+                        WHERE "tenantId" = :tenantId
+                    ) sub
+                    WHERE is_latest
+                    GROUP BY "memberId", platform
+                ) mi
+                GROUP BY mi."memberId"
+            )
+        SELECT
+            m.id,
+            m."displayName",
+            i.username,
+            i.identities,
+            m.attributes,
+            ad."activityCount",
+            ad."activeDaysCount",
+            m."joinedAt",
+            COALESCE(o.organizations, JSON_BUILD_ARRAY()) AS organizations,
+            COUNT(*) OVER () AS "totalCount"
+        FROM members m
+        INNER JOIN activity_data ad ON ad."memberId" = m.id
+        INNER JOIN identities i ON i."memberId" = m.id
+        LEFT JOIN orgs o ON o."memberId" = m.id
+        WHERE ${conditionsString}
+        ORDER BY ${orderString}
+                     ${limitCondition};
     `
 
     options.log.debug(
