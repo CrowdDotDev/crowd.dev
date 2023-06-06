@@ -1,10 +1,12 @@
 <template>
   <app-dialog v-model="model" :title="title" size="medium">
     <template #content>
-      <div class="px-6 pb-8 relative">
-        <app-lf-sub-projects-list-dropdown
-          @on-change="onChange"
-        />
+      <div class="px-6">
+        <div class="pb-8 relative">
+          <app-lf-sub-projects-list-dropdown
+            @on-change="onChange"
+          />
+        </div>
       </div>
 
       <div

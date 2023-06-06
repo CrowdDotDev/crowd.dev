@@ -246,7 +246,7 @@ const rules = {
 const $v = useVuelidate(rules, form);
 
 // Members field
-const searchMembers = (query, limit) => MemberService.listAutocomplete({
+const searchMembers = ({ query, limit }) => MemberService.listAutocomplete({
   query,
   limit,
   segments: [props.subprojectId],

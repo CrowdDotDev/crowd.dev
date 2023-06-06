@@ -49,10 +49,12 @@
     </div>
   </app-page-wrapper>
   <app-activity-type-list-drawer
+    v-if="isActivityTypeDrawerOpen"
     v-model="isActivityTypeDrawerOpen"
     :subproject-id="subprojectId"
   />
   <app-activity-form-drawer
+    v-if="isActivityDrawerOpen"
     v-model="isActivityDrawerOpen"
     :subproject-id="subprojectId"
     :activity="editableActivity"
@@ -60,6 +62,7 @@
     @update:model-value="editableActivity = null"
   />
   <app-activity-type-form-modal
+    v-if="isActivityTypeFormVisible"
     v-model="isActivityTypeFormVisible"
   />
 
@@ -71,9 +74,8 @@
   />
 </template>
 
-<script>
-import { mapState, mapGetters } from 'vuex';
-import { ActivityPermissions } from '@/modules/activity/activity-permissions';
+<script setup>
+import { useStore } from 'vuex';
 import AppActivityListFilter from '@/modules/activity/components/list/activity-list-filter.vue';
 import AppActivityTypeListDrawer from '@/modules/activity/components/type/activity-type-list-drawer.vue';
 import AppActivityFormDrawer from '@/modules/activity/components/activity-form-drawer.vue';
@@ -83,80 +85,55 @@ import AppConversationList from '@/modules/conversation/components/conversation-
 import AppActivityListTabs from '@/modules/activity/components/activity-list-tabs.vue';
 import AppLfPageHeader from '@/modules/lf/layout/components/lf-page-header.vue';
 import AppLfSubProjectsListModal from '@/modules/lf/segments/components/lf-sub-projects-list-modal.vue';
+import { computed, onMounted, ref } from 'vue';
+import { mapGetters } from '@/shared/vuex/vuex.helpers';
 
-export default {
-  name: 'AppActivityListPage',
+const isActivityTypeDrawerOpen = ref(false);
+const isActivityDrawerOpen = ref(false);
+const isActivityTypeFormVisible = ref(false);
+const editableActivity = ref(null);
+const isSubProjectSelectionOpen = ref(false);
+const subprojectId = ref(null);
+const drawer = ref(null);
 
-  components: {
-    AppActivityTypeFormModal,
-    AppActivityFormDrawer,
-    AppActivityTypeListDrawer,
-    AppActivityList,
-    AppConversationList,
-    AppActivityListTabs,
-    AppActivityListFilter,
-    AppLfPageHeader,
-    AppLfSubProjectsListModal,
-  },
+const store = useStore();
 
-  data() {
-    return {
-      creating: false,
-      isActivityTypeDrawerOpen: false,
-      isActivityDrawerOpen: false,
-      isActivityTypeFormVisible: false,
-      editableActivity: null,
-      isSubProjectSelectionOpen: false,
-      subprojectId: null,
-      drawer: null,
-    };
-  },
-  computed: {
-    ...mapGetters({
-      currentTenant: 'auth/currentTenant',
-      currentUser: 'auth/currentUser',
-      activeView: 'activity/activeView',
-      recordsArray: 'activity/rows',
-    }),
-    ...mapState({
-      loading: (state) => state.activity.list.loading,
-    }),
-    hasPermissionToCreate() {
-      return new ActivityPermissions(
-        this.currentTenant,
-        this.currentUser,
-      ).create;
-    },
-  },
+const { activeView, rows: recordsArray } = mapGetters('activity');
+const loading = computed(() => store.state.activity.list.loading);
 
-  async mounted() {
-    window.analytics.page('Activities');
-  },
-  methods: {
-    edit(activity) {
-      this.isActivityDrawerOpen = true;
-      this.editableActivity = activity;
-    },
-    onAddActivity() {
-      this.drawer = 'add-activity';
-      this.isSubProjectSelectionOpen = true;
-    },
-    onActivityTypesClick() {
-      this.drawer = 'activity-types';
-      this.isSubProjectSelectionOpen = true;
-    },
-    onSubProjectSelection(subprojectId) {
-      this.subprojectId = subprojectId;
-      this.isSubProjectSelectionOpen = false;
+onMounted(() => {
+  window.analytics.page('Activities');
+});
 
-      if (this.drawer === 'add-activity') {
-        this.isActivityDrawerOpen = true;
-      } else if (this.drawer === 'activity-types') {
-        this.isActivityTypeDrawerOpen = true;
-      }
-    },
-  },
+const edit = (activity) => {
+  isActivityDrawerOpen.value = true;
+  editableActivity.value = activity;
+};
+
+const onAddActivity = () => {
+  drawer.value = 'add-activity';
+  isSubProjectSelectionOpen.value = true;
+};
+
+const onActivityTypesClick = () => {
+  drawer.value = 'activity-types';
+  isSubProjectSelectionOpen.value = true;
+};
+
+const onSubProjectSelection = (id) => {
+  subprojectId.value = id;
+  isSubProjectSelectionOpen.value = false;
+
+  if (drawer.value === 'add-activity') {
+    isActivityDrawerOpen.value = true;
+  } else if (drawer.value === 'activity-types') {
+    isActivityTypeDrawerOpen.value = true;
+  }
 };
 </script>
 
-<style></style>
+<script>
+export default {
+  name: 'AppActivityListPage',
+};
+</script>

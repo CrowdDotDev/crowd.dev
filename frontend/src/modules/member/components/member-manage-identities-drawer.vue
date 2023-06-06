@@ -96,11 +96,14 @@ const handleCancel = () => {
 
 const handleSubmit = async () => {
   loading.value = true;
+
+  const segments = props.member.segments.map((s) => s.id);
+
   MemberService.update(props.member.id, {
     attributes: memberModel.attributes,
     username: memberModel.username,
     emails: memberModel.emails,
-  }).then(() => {
+  }, segments).then(() => {
     store.dispatch('member/doFind', props.member.id).then(() => {
       Message.success('Member identities updated successfully');
     });

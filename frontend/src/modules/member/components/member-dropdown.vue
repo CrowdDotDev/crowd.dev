@@ -301,7 +301,9 @@ export default {
       } else if (command.action === 'memberMerge') {
         this.isMergeDialogOpen = this.member;
       } else if (command.action === 'memberEnrich') {
-        this.doEnrich(command.member.id);
+        const segments = command.member.segments?.map((s) => s.id) || [];
+
+        this.doEnrich(command.member.id, segments);
       } else {
         return this.$router.push({
           name: command.action,

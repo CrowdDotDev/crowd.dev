@@ -172,6 +172,7 @@ const handleCancel = () => {
 const handleSubmit = async () => {
   loading.value = true;
 
+  const segments = props.member.segments.map((s) => s.id);
   const formattedAttributes = getParsedAttributes(
     computedAttributes.value,
     memberModel.value,
@@ -179,7 +180,7 @@ const handleSubmit = async () => {
 
   await MemberService.update(props.member.id, {
     attributes: formattedAttributes,
-  });
+  }, segments);
   await store.dispatch('member/doFind', props.member.id);
   Message.success('Member attributes updated successfully');
   emit('update:modelValue', false);

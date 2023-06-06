@@ -252,7 +252,7 @@ export default {
     }
   },
 
-  async doEnrich({ commit, dispatch, rootGetters }, id) {
+  async doEnrich({ commit, dispatch, rootGetters }, id, segments) {
     try {
       const currentTenant = rootGetters['auth/currentTenant'];
 
@@ -270,7 +270,7 @@ export default {
       // Show enrichment loading message
       showEnrichmentLoadingMessage({ isBulk: false });
 
-      const response = await MemberService.enrichMember(id);
+      const response = await MemberService.enrichMember(id, segments);
 
       commit('UPDATE_SUCCESS', response);
 

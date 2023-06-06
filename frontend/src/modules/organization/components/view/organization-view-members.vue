@@ -106,9 +106,9 @@ const SearchIcon = h(
 
 const store = useStore();
 const props = defineProps({
-  organizationId: {
-    type: String,
-    default: null,
+  organization: {
+    type: Object,
+    default: () => {},
   },
 });
 
@@ -123,7 +123,7 @@ let filter = {};
 
 const fetchMembers = async () => {
   const filterToApply = {
-    organizations: [props.organizationId],
+    organizations: [props.organization.id],
   };
 
   if (query.value && query.value !== '') {
@@ -157,6 +157,7 @@ const fetchMembers = async () => {
 
   loading.value = true;
 
+  const segments = props.organization.segments?.map((s) => s.id) || [];
   const { data } = await authAxios.post(
     `/tenant/${store.getters['auth/currentTenant'].id}/member/query`,
     {
@@ -164,6 +165,7 @@ const fetchMembers = async () => {
       orderBy: 'joinedAt_DESC',
       limit: limit.value,
       offset: offset.value,
+      segments,
     },
     {
       headers: {
