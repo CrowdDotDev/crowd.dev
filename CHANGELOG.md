@@ -2,6 +2,41 @@
 
 All notable changes to this project will be documented in this file.
 
+## v0.34.0 - 2023-06-06
+
+### Changes
+
+For more detailed information, see [our changelog](https://changelog.crowd.dev/changelogs/rip-community-help-center).
+
+#### 🚀Features
+
+- New integration framework and moved the LinkedIn and DEV integrations @themarolt (#872)
+- Deprecated the Community Help Center @joanagmaia (#924)
+
+#### ✨ Improvements
+
+- Optimised the webhook service to retry errored webhooks for greater resilience @epipav (#923)
+- Fixed a cosmetic issue when there the data for a members' organization was not complete (#930)
+- Added support for autocomplete in IDEs for new services @themarolt (#931)
+- Improved the logic for the display banner for errored integrations @joanagmaia (#914)
+- Improved how members are displayed in the organizations and activities pages @yashsharma999 (#939)
+- Added the proper logos and copies in the authorization pages @Dhruwang (#940)
+- Optimised the member enrichment feature to be synchronous when enriching only one member @joanreyero (#937)
+- Changed the copy of the HubSpot integration CTA @jonathimer (#921)
+- Moved the Stack Overflow integration to the new framework @garrrikkotua (#936)
+
+#### 🐞 Bug Fixes
+
+- Fixed a bug where integrations were overwriting existing organization data for members @epipav (#935)
+- Added support to manually process integrations in the new integration framework @themarolt (#928)
+- Fixed entry points in Docker @themarolt (#929)
+- Fixed a bug caused by incorrect handling in the members' page of an empty *active on* field @gaspergrom (#925)
+- Fixed local issues related to feature flags and the new services in development mode @themarolt (#927)
+- Added proper coloring for charts for the Discourse integration @garrrikkotua (#918)
+- Fixed an early return issue for webhook retries @garrrikkotua (#917)
+- Fixed an edge case related to named parameters in Postgres @themarolt (#944)
+- Take into account empty sentiment values when calculating the average sentiment for a member @epipav (#943)
+
 ## v0.33.0 - 2023-05-30
 
 ### Changes
@@ -433,7 +468,6 @@ https://user-images.githubusercontent.com/37874460/220165717-4204605a-260f-41cb-
 - Fix filters for custom attributes. @joanagmaia (#492)
 - Fix the reach filter on the members' page. @joanagmaia (#491)
 - Share button visible on custom reports page @gaspergrom (#484)
-
 ## v0.18.0 - 2023-02-06
 
 ### Changes
@@ -617,7 +651,6 @@ With this, we have introduced feature flagging, so we can also roll out features
 ### Changes
 ### 🚀 Features
 #### Hacker News integration
-
 The Hacker News integration will detect any post that mentions your community in the *Top* or *Best* of Hacker News. It works for any post published after the 1st of December 2022. The post will become a community activity, and so will any comment on those posts.
 
 - Eagle Eye optimization and Hacker News integration @joanreyero (#267)
