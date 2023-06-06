@@ -994,14 +994,16 @@ class MemberRepository {
     options: IRepositoryOptions,
   ): Promise<PageData<IActiveMemberData>> {
     const tenant = SequelizeRepository.getCurrentTenant(options)
+    const segmentIds = SegmentRepository.getSegmentIds(options)
 
     const transaction = SequelizeRepository.getTransaction(options)
 
     const seq = SequelizeRepository.getSequelize(options)
 
-    const conditions = ['m."tenantId" = :tenantId']
+    const conditions = ['m."tenantId" = :tenantId', 'ms."segmentId" in (:segmentIds)']
     const parameters: any = {
       tenantId: tenant.id,
+      segmentIds,
       periodStart: filter.activityTimestampFrom,
       periodEnd: filter.activityTimestampTo,
     }
@@ -1114,6 +1116,7 @@ class MemberRepository {
         INNER JOIN activity_data ad ON ad."memberId" = m.id
         INNER JOIN identities i ON i."memberId" = m.id
         LEFT JOIN orgs o ON o."memberId" = m.id
+        JOIN "memberSegments" ms ON ms."memberId" = m.id
         WHERE ${conditionsString}
         ORDER BY ${orderString}
                      ${limitCondition};
