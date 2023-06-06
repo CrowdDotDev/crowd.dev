@@ -15,14 +15,14 @@
         <div class="flex">
           <el-button
             class="btn btn--transparent btn--md text-gray-600 mr-4"
-            @click="isActivityTypeDrawerOpen = true"
+            @click="onActivityTypesClick"
           >
             <i class="ri-settings-3-line text-lg mr-2" />
             Activity types
           </el-button>
           <el-button
             class="btn btn--primary btn--md text-gray-600"
-            @click="isActivityDrawerOpen = true"
+            @click="onAddActivity"
           >
             Add activity
           </el-button>
@@ -50,15 +50,24 @@
   </app-page-wrapper>
   <app-activity-type-list-drawer
     v-model="isActivityTypeDrawerOpen"
+    :subproject-id="subprojectId"
   />
   <app-activity-form-drawer
     v-model="isActivityDrawerOpen"
+    :subproject-id="subprojectId"
     :activity="editableActivity"
     @add-activity-type="isActivityTypeFormVisible = true"
     @update:model-value="editableActivity = null"
   />
   <app-activity-type-form-modal
     v-model="isActivityTypeFormVisible"
+  />
+
+  <app-lf-sub-projects-list-modal
+    v-if="isSubProjectSelectionOpen"
+    v-model="isSubProjectSelectionOpen"
+    title="Add member"
+    @on-submit="onSubProjectSelection"
   />
 </template>
 
@@ -73,6 +82,7 @@ import AppActivityList from '@/modules/activity/components/activity-list.vue';
 import AppConversationList from '@/modules/conversation/components/conversation-list.vue';
 import AppActivityListTabs from '@/modules/activity/components/activity-list-tabs.vue';
 import AppLfPageHeader from '@/modules/lf/layout/components/lf-page-header.vue';
+import AppLfSubProjectsListModal from '@/modules/lf/segments/components/lf-sub-projects-list-modal.vue';
 
 export default {
   name: 'AppActivityListPage',
@@ -86,6 +96,7 @@ export default {
     AppActivityListTabs,
     AppActivityListFilter,
     AppLfPageHeader,
+    AppLfSubProjectsListModal,
   },
 
   data() {
@@ -95,6 +106,9 @@ export default {
       isActivityDrawerOpen: false,
       isActivityTypeFormVisible: false,
       editableActivity: null,
+      isSubProjectSelectionOpen: false,
+      subprojectId: null,
+      drawer: null,
     };
   },
   computed: {
@@ -122,6 +136,24 @@ export default {
     edit(activity) {
       this.isActivityDrawerOpen = true;
       this.editableActivity = activity;
+    },
+    onAddActivity() {
+      this.drawer = 'add-activity';
+      this.isSubProjectSelectionOpen = true;
+    },
+    onActivityTypesClick() {
+      this.drawer = 'activity-types';
+      this.isSubProjectSelectionOpen = true;
+    },
+    onSubProjectSelection(subprojectId) {
+      this.subprojectId = subprojectId;
+      this.isSubProjectSelectionOpen = false;
+
+      if (this.drawer === 'add-activity') {
+        this.isActivityDrawerOpen = true;
+      } else if (this.drawer === 'activity-types') {
+        this.isActivityTypeDrawerOpen = true;
+      }
     },
   },
 };

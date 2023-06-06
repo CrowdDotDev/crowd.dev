@@ -61,7 +61,11 @@ export class TagService {
     return response.data;
   }
 
-  static async listAutocomplete(query, limit, segments) {
+  static async listAutocomplete({
+    query,
+    limit,
+    segments,
+  }) {
     const params = {
       query,
       limit,

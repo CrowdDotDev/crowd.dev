@@ -79,10 +79,10 @@ const computedMemberToMerge = computed({
 });
 
 const fetchFn = async (query, limit) => {
-  const options = await MemberService.listAutocomplete(
+  const options = await MemberService.listAutocomplete({
     query,
     limit,
-  );
+  });
 
   // Remove primary member from members that can be merged with
   const filteredOptions = options.filter((m) => m.id !== props.id);

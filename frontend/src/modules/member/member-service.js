@@ -202,7 +202,11 @@ export class MemberService {
     return response.data;
   }
 
-  static async listAutocomplete(query, limit, segments) {
+  static async listAutocomplete({
+    query,
+    limit,
+    segments = [],
+  }) {
     const params = {
       query,
       limit,

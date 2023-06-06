@@ -22,7 +22,7 @@ export default {
       commit('EXPORT_STARTED');
 
       const response = await OrganizationService.list({
-        filter: getters.activeView.filter,
+        customFilters: getters.activeView.filter,
         orderBy: getters.orderBy,
         limit: null,
         offset: null,

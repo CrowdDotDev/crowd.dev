@@ -132,7 +132,10 @@ const fetchOptions = async () => {
     return;
   }
   loading.value = true;
-  const data = await props.fetchFn(query.value, limit.value);
+  const data = await props.fetchFn({
+    query: query.value,
+    limit: limit.value,
+  });
   loading.value = false;
   options.length = 0;
   data.forEach((r) => {

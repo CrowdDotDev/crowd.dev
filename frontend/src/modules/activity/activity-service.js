@@ -70,7 +70,7 @@ export class ActivityService {
   }
 
   static async list({
-    filter,
+    customFilters,
     orderBy,
     limit,
     offset,
@@ -80,7 +80,7 @@ export class ActivityService {
   }) {
     const body = {
       filter: buildApiPayload({
-        customFilters: filter,
+        customFilters,
         defaultRootFilters: buildWithDefaultRootFilters ? DEFAULT_ACTIVITY_FILTERS : [],
         buildFilter,
       }),
@@ -106,7 +106,11 @@ export class ActivityService {
     return response.data;
   }
 
-  static async listAutocomplete(query, limit, segments) {
+  static async listAutocomplete({
+    query,
+    limit,
+    segments,
+  }) {
     const params = {
       query,
       limit,

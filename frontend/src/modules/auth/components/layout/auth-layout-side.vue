@@ -13,7 +13,7 @@
           Find revenue opportunities in your open source data
         </h4>
         <p class="text-sm leading-6">
-           Centralize community, product, and customer data to understand which companies are engaging with your open source project.
+          Centralize community, product, and customer data to understand which companies are engaging with your open source project.
         </p>
       </div>
       <div class="grid grid-rows-2 gap-8">

@@ -92,7 +92,10 @@ export class WidgetService {
     return response.data;
   }
 
-  static async listAutocomplete(query, limit) {
+  static async listAutocomplete({
+    query,
+    limit,
+  }) {
     const params = {
       query,
       limit,

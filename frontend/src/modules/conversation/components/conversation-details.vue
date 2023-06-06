@@ -306,7 +306,7 @@ export default {
         this.loadingActivities = true;
 
         ActivityService.list({
-          filter: {
+          customFilters: {
             and: [
               {
                 type: value,

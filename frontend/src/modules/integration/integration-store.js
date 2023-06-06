@@ -193,11 +193,11 @@ export default {
   },
 
   actions: {
-    async doFetch({ commit }) {
+    async doFetch({ commit }, segments = []) {
       try {
         commit('FETCH_STARTED');
 
-        const response = await IntegrationService.list();
+        const response = await IntegrationService.list(null, null, null, null, segments);
 
         commit('FETCH_SUCCESS', {
           rows: response.rows,
