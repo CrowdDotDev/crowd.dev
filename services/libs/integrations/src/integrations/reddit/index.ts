@@ -6,7 +6,7 @@ import processData from './processData'
 import { PlatformType } from '@crowd/types'
 
 const descriptor: IIntegrationDescriptor = {
-  type: PlatformType.STACKOVERFLOW,
+  type: PlatformType.REDDIT,
   memberAttributes,
   checkEvery: 60,
   generateStreams,
