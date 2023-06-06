@@ -1,4 +1,5 @@
 import { AutomationService } from '@/modules/automation/automation-service';
+import { store } from '@/store';
 
 export default {
   getAutomations() {
@@ -32,6 +33,9 @@ export default {
   createAutomation(data) {
     return AutomationService.create(data)
       .then((res) => {
+        // Make sure that feature flags are updated for automationsCount
+        store.dispatch('auth/doRefreshCurrentUser');
+
         this.getAutomations();
         return Promise.resolve(res);
       });
@@ -46,6 +50,9 @@ export default {
   deleteAutomation(id) {
     return AutomationService.destroy(id)
       .then((res) => {
+        // Make sure that feature flags are updated for automationsCount
+        store.dispatch('auth/doRefreshCurrentUser');
+
         this.getAutomations();
         return Promise.resolve(res);
       });

@@ -8,10 +8,14 @@
     "moduleResolution": "node",
     "noUnusedLocals": false,
     "noUnusedParameters": false,
-    "outDir": "./dist",
     "sourceMap": true,
     "target": "es2017",
-    "types": ["node", "jest"]
+    "types": ["node", "jest"],
+    "baseUrl": "./src",
+    "paths": {
+      "@crowd/*": ["../../services/libs/*/dist"],
+      "@/*": ["./*"]
+    }
   },
   "include": [
     "src",

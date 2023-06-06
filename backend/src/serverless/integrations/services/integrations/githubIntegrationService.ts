@@ -1,8 +1,11 @@
 import moment from 'moment/moment'
 import { createAppAuth } from '@octokit/auth-app'
 import verifyGithubWebhook from 'verify-github-webhook'
+import { GITHUB_GRID, GithubActivityType, GithubPullRequestEvents } from '@crowd/integrations'
+import { IActivityScoringGrid, IntegrationType, PlatformType } from '@crowd/types'
+import { RedisCache, getRedisClient } from '@crowd/redis'
+import { timeout, singleOrDefault } from '@crowd/common'
 import { Repo, Repos } from '../../types/regularTypes'
-import { IntegrationType, PlatformType } from '../../../../types/integrationEnums'
 import {
   IIntegrationStream,
   IPendingStream,
@@ -14,10 +17,9 @@ import MemberAttributeSettingsService from '../../../../services/memberAttribute
 import { GithubMemberAttributes } from '../../../../database/attributes/member/github'
 import { MemberAttributeName } from '../../../../database/attributes/member/enums'
 import { TwitterMemberAttributes } from '../../../../database/attributes/member/twitter'
-import { GITHUB_CONFIG, IS_TEST_ENV } from '../../../../config'
+import { GITHUB_CONFIG, IS_TEST_ENV, REDIS_CONFIG } from '../../../../conf'
 import StargazersQuery from '../../usecases/github/graphql/stargazers'
 import { IntegrationServiceBase } from '../integrationServiceBase'
-import { timeout } from '../../../../utils/timing'
 import PullRequestsQuery from '../../usecases/github/graphql/pullRequests'
 import PullRequestCommentsQuery from '../../usecases/github/graphql/pullRequestComments'
 import IssuesQuery from '../../usecases/github/graphql/issues'
@@ -27,17 +29,20 @@ import DiscussionsQuery from '../../usecases/github/graphql/discussions'
 import DiscussionCommentsQuery from '../../usecases/github/graphql/discussionComments'
 import { AddActivitiesSingle, Member, PlatformIdentities } from '../../types/messageTypes'
 import Operations from '../../../dbOperations/operations'
-import { GithubActivityType, GithubPullRequestEvents } from '../../../../types/activityTypes'
-import { GitHubGrid } from '../../grid/githubGrid'
 import getOrganization from '../../usecases/github/graphql/organizations'
-import { singleOrDefault } from '../../../../utils/arrays'
 import { AppTokenResponse, getAppToken } from '../../usecases/github/rest/getAppToken'
 import getMember from '../../usecases/github/graphql/members'
-import { createRedisClient } from '../../../../utils/redis'
-import { RedisCache } from '../../../../utils/redis/redisCache'
-import { gridEntry } from '../../grid/grid'
 import PullRequestReviewThreadsQuery from '../../usecases/github/graphql/pullRequestReviewThreads'
 import PullRequestReviewThreadCommentsQuery from '../../usecases/github/graphql/pullRequestReviewThreadComments'
+import PullRequestCommitsQuery, {
+  PullRequestCommit,
+} from '../../usecases/github/graphql/pullRequestCommits'
+import IntegrationRunRepository from '../../../../database/repositories/integrationRunRepository'
+import { IntegrationRunState } from '../../../../types/integrationRunTypes'
+import IntegrationStreamRepository from '../../../../database/repositories/integrationStreamRepository'
+import { DbIntegrationStreamCreateData } from '../../../../types/integrationStreamTypes'
+import { sendNodeWorkerMessage } from '../../../utils/nodeWorkerSQS'
+import { NodeWorkerIntegrationProcessMessage } from '../../../../types/mq/nodeWorkerIntegrationProcessMessage'
 import TeamsQuery from '../../usecases/github/graphql/teams'
 import { GithubWebhookTeam } from '../../usecases/github/graphql/types'
 
@@ -54,11 +59,14 @@ enum GithubStreamType {
   PULL_COMMENTS = 'pull-comments',
   PULL_REVIEW_THREADS = 'pull-review-threads',
   PULL_REVIEW_THREAD_COMMENTS = 'pull-review-thread-comments',
+  PULL_COMMITS = 'pull-commits',
   ISSUES = 'issues',
   ISSUE_COMMENTS = 'issue-comments',
   DISCUSSIONS = 'discussions',
   DISCUSSION_COMMENTS = 'discussion-comments',
 }
+
+const IS_GITHUB_COMMIT_DATA_ENABLED = GITHUB_CONFIG.isCommitDataEnabled === 'true'
 
 const privateKey = GITHUB_CONFIG.privateKey
   ? Buffer.from(GITHUB_CONFIG.privateKey, 'base64').toString('ascii')
@@ -92,8 +100,8 @@ export class GithubIntegrationService extends IntegrationServiceBase {
   }
 
   async preprocess(context: IStepContext): Promise<void> {
-    const redis = await createRedisClient(true)
-    const emailCache = new RedisCache('github-emails', redis)
+    const redis = await getRedisClient(REDIS_CONFIG, true)
+    const emailCache = new RedisCache('github-emails', redis, context.logger)
 
     const repos: Repos = []
     const unavailableRepos: Repos = []
@@ -213,7 +221,19 @@ export class GithubIntegrationService extends IntegrationServiceBase {
           },
         }))
 
-        newStreams = [...prCommentStreams, ...prReviewThreads]
+        let prCommitsStreams: IPendingStream[] = []
+        if (IS_GITHUB_COMMIT_DATA_ENABLED) {
+          prCommitsStreams = result.data.map((pr) => ({
+            value: GithubStreamType.PULL_COMMITS,
+            metadata: {
+              page: '',
+              repo: stream.metadata.repo,
+              prNumber: pr.number,
+            },
+          }))
+        }
+
+        newStreams = [...prCommentStreams, ...prReviewThreads, ...prCommitsStreams]
         break
       case GithubStreamType.PULL_COMMENTS: {
         const pullRequestNumber = stream.metadata.prNumber
@@ -264,6 +284,16 @@ export class GithubIntegrationService extends IntegrationServiceBase {
 
         break
       }
+      case GithubStreamType.PULL_COMMITS:
+        const pullRequestNumber = stream.metadata.prNumber
+        const pullRequestCommitsQuery = new PullRequestCommitsQuery(
+          repo,
+          pullRequestNumber,
+          context.integration.token,
+        )
+
+        result = await pullRequestCommitsQuery.getSinglePage(stream.metadata.page)
+        break
       case GithubStreamType.ISSUES:
         const issuesQuery = new IssuesQuery(repo, context.integration.token)
         result = await issuesQuery.getSinglePage(stream.metadata.page)
@@ -355,8 +385,8 @@ export class GithubIntegrationService extends IntegrationServiceBase {
     const event = webhook.payload.event
     const payload = webhook.payload.data
 
-    const redis = await createRedisClient(true)
-    const emailCache = new RedisCache('github-emails', redis)
+    const redis = await getRedisClient(REDIS_CONFIG, true)
+    const emailCache = new RedisCache('github-emails', redis, context.logger)
 
     context.pipelineData = {
       emailCache,
@@ -380,61 +410,23 @@ export class GithubIntegrationService extends IntegrationServiceBase {
       }
 
       case 'pull_request': {
-        // handle case of multiple reviewers (either by assigning a team to it, or with multiple selection in one go)
-        if (
-          payload.action === 'review_requested' &&
-          (payload.pull_request.requested_reviewers.length > 0 ||
-            payload.pull_request.requested_teams.length > 0)
-        ) {
-          if (payload.pull_request.requested_reviewers.length > 0) {
-            // multiple reviewers sent in one payload
-            for (const reviewer of payload.pull_request.requested_reviewers) {
-              const reviewRequestActivity = await GithubIntegrationService.parseWebhookPullRequest(
-                { ...payload, requested_reviewer: reviewer },
-                context,
-              )
+        // handle case of multiple reviewers (by assigning a team as a reviewer)
+        if (payload.action === 'review_requested' && payload.requested_team) {
+          // a team sent as reviewer, first we need to find members in this team
+          const team: GithubWebhookTeam = payload.requested_team
+          const teamMembers = await new TeamsQuery(
+            team.node_id,
+            context.integration.token,
+          ).getSinglePage('')
 
-              if (reviewRequestActivity) {
-                records.push(reviewRequestActivity)
-              }
-            }
-          } else if (payload.pull_request.requested_teams.length > 0) {
-            // a team sent as reviewer, first we need to find members in this team
-            for (const team of payload.pull_request.requested_teams as GithubWebhookTeam[]) {
-              const teamMembers = await new TeamsQuery(
-                team.node_id,
-                context.integration.token,
-              ).getSinglePage('')
-
-              for (const teamMember of teamMembers.data) {
-                const reviewRequestActivity =
-                  await GithubIntegrationService.parseWebhookPullRequest(
-                    { ...payload, requested_reviewer: teamMember },
-                    context,
-                  )
-
-                if (reviewRequestActivity) {
-                  records.push(reviewRequestActivity)
-                }
-              }
-            }
-          }
-
-          break
-        }
-
-        // handle case of multiple assignees
-        if (payload.action === 'assigned' && payload.pull_request.assignees.length > 0) {
-          for (const assignee of payload.pull_request.assignees) {
-            payload.pull_request.assignee = assignee
-
-            const assignedActivity = await GithubIntegrationService.parseWebhookPullRequest(
-              payload,
+          for (const teamMember of teamMembers.data) {
+            const reviewRequestActivity = await GithubIntegrationService.parseWebhookPullRequest(
+              { ...payload, requested_reviewer: teamMember },
               context,
             )
 
-            if (assignedActivity) {
-              records.push(assignedActivity)
+            if (reviewRequestActivity) {
+              records.push(reviewRequestActivity)
             }
           }
 
@@ -442,8 +434,11 @@ export class GithubIntegrationService extends IntegrationServiceBase {
         }
 
         if (payload.action === 'closed' && payload.pull_request.merged) {
+          const revisedPayload = { ...payload, action: 'merged' }
+          revisedPayload.pull_request.state = 'merged'
+
           const prMergedRecord = await GithubIntegrationService.parseWebhookPullRequest(
-            { ...payload, action: 'merged' },
+            revisedPayload,
             context,
           )
           if (prMergedRecord) {
@@ -604,6 +599,9 @@ export class GithubIntegrationService extends IntegrationServiceBase {
           context,
         )
         break
+      case GithubStreamType.PULL_COMMITS:
+        activities = await GithubIntegrationService.parsePullRequestCommits(records, repo, context)
+        break
       default:
         throw new Error(`Event not supported '${event}'!`)
     }
@@ -656,8 +654,14 @@ export class GithubIntegrationService extends IntegrationServiceBase {
         ),
         sourceParentId: null,
         channel: payload.repository.html_url,
-        score: type === 'star' ? GitHubGrid.star.score : GitHubGrid.unStar.score,
-        isContribution: GitHubGrid.star.isContribution,
+        score:
+          type === 'star'
+            ? GITHUB_GRID[GithubActivityType.STAR].score
+            : GITHUB_GRID[GithubActivityType.UNSTAR].score,
+        isContribution:
+          type === 'star'
+            ? GITHUB_GRID[GithubActivityType.STAR].isContribution
+            : GITHUB_GRID[GithubActivityType.UNSTAR].isContribution,
       }
     }
 
@@ -687,8 +691,8 @@ export class GithubIntegrationService extends IntegrationServiceBase {
         timestamp: moment(record.starredAt).utc().toDate(),
         channel: repo.url,
         member,
-        score: GitHubGrid.star.score,
-        isContribution: GitHubGrid.star.isContribution,
+        score: GITHUB_GRID.star.score,
+        isContribution: GITHUB_GRID.star.isContribution,
       })
     }
     return out
@@ -714,8 +718,8 @@ export class GithubIntegrationService extends IntegrationServiceBase {
         sourceId: payload.forkee.node_id.toString(),
         sourceParentId: null,
         channel: payload.repository.html_url,
-        score: GitHubGrid.fork.score,
-        isContribution: GitHubGrid.fork.isContribution,
+        score: GITHUB_GRID.fork.score,
+        isContribution: GITHUB_GRID.fork.isContribution,
       }
     }
     return undefined
@@ -740,8 +744,8 @@ export class GithubIntegrationService extends IntegrationServiceBase {
         timestamp: moment(record.createdAt).utc().toDate(),
         channel: repo.url,
         member,
-        score: GitHubGrid.fork.score,
-        isContribution: GitHubGrid.fork.isContribution,
+        score: GITHUB_GRID.fork.score,
+        isContribution: GITHUB_GRID.fork.isContribution,
       })
     }
 
@@ -753,7 +757,7 @@ export class GithubIntegrationService extends IntegrationServiceBase {
     context: IStepContext,
   ): Promise<AddActivitiesSingle | undefined> {
     let type: GithubActivityType
-    let scoreGrid: gridEntry
+    let scoreGrid: IActivityScoringGrid
     let timestamp: string
     let sourceParentId: string
     let sourceId: string
@@ -762,7 +766,7 @@ export class GithubIntegrationService extends IntegrationServiceBase {
     switch (payload.action) {
       case 'created': {
         type = GithubActivityType.PULL_REQUEST_REVIEW_THREAD_COMMENT
-        scoreGrid = GitHubGrid.comment
+        scoreGrid = GITHUB_GRID[GithubActivityType.PULL_REQUEST_REVIEW_THREAD_COMMENT]
         timestamp = payload.comment.created_at
         sourceParentId = payload.pull_request.node_id
         sourceId = payload.comment.node_id
@@ -811,7 +815,7 @@ export class GithubIntegrationService extends IntegrationServiceBase {
     context: IStepContext,
   ): Promise<AddActivitiesSingle | undefined> {
     let type: GithubActivityType
-    let scoreGrid: gridEntry
+    let scoreGrid: IActivityScoringGrid
     let timestamp: string
     let sourceParentId: string
     let sourceId: string
@@ -827,12 +831,12 @@ export class GithubIntegrationService extends IntegrationServiceBase {
         }
 
         type = GithubActivityType.PULL_REQUEST_REVIEWED
-        scoreGrid = GitHubGrid.pullRequestReviewed
+        scoreGrid = GITHUB_GRID[GithubActivityType.PULL_REQUEST_REVIEWED]
         timestamp = payload.review.submitted_at
         sourceParentId = payload.pull_request.node_id.toString()
         sourceId = `gen-PRR_${payload.pull_request.node_id.toString()}_${
-          payload.review.user.login
-        }_${payload.review.submitted_at}`
+          payload.sender.login
+        }_${moment(payload.review.submitted_at).utc().toISOString()}`
         body = payload.review.body
         break
       }
@@ -843,7 +847,7 @@ export class GithubIntegrationService extends IntegrationServiceBase {
 
     const review = payload.review
     const pull = payload.pull_request
-    const member = await GithubIntegrationService.parseWebhookMember(review.user.login, context)
+    const member = await GithubIntegrationService.parseWebhookMember(payload.sender.login, context)
 
     if (member) {
       return {
@@ -862,6 +866,7 @@ export class GithubIntegrationService extends IntegrationServiceBase {
         score: scoreGrid.score,
         isContribution: scoreGrid.isContribution,
         attributes: {
+          reviewState: (payload.review?.state as string).toUpperCase(),
           state: pull.state,
           authorAssociation: pull.author_association,
           labels: pull.labels.map((l) => l.name),
@@ -877,7 +882,7 @@ export class GithubIntegrationService extends IntegrationServiceBase {
     context: IStepContext,
   ): Promise<AddActivitiesSingle | undefined> {
     let type: GithubActivityType
-    let scoreGrid: gridEntry
+    let scoreGrid: IActivityScoringGrid
     let timestamp: string
     let sourceParentId: string
     let sourceId: string
@@ -891,7 +896,7 @@ export class GithubIntegrationService extends IntegrationServiceBase {
       case 'opened':
       case 'reopened': {
         type = GithubActivityType.PULL_REQUEST_OPENED
-        scoreGrid = GitHubGrid.pullRequestOpened
+        scoreGrid = GITHUB_GRID[GithubActivityType.PULL_REQUEST_OPENED]
         timestamp = payload.pull_request.created_at
         sourceId = payload.pull_request.node_id.toString()
         sourceParentId = null
@@ -902,27 +907,25 @@ export class GithubIntegrationService extends IntegrationServiceBase {
 
       case 'closed': {
         type = GithubActivityType.PULL_REQUEST_CLOSED
-        scoreGrid = GitHubGrid.pullRequestClosed
+        scoreGrid = GITHUB_GRID[GithubActivityType.PULL_REQUEST_CLOSED]
         timestamp = payload.pull_request.closed_at
         sourceParentId = payload.pull_request.node_id.toString()
         sourceId = `gen-CE_${payload.pull_request.node_id.toString()}_${
-          payload.pull_request.user.login
+          payload.sender.login
         }_${moment(payload.pull_request.closed_at).utc().toISOString()}`
         break
       }
 
       case 'assigned': {
         type = GithubActivityType.PULL_REQUEST_ASSIGNED
-        scoreGrid = GitHubGrid.pullRequestAssigned
+        scoreGrid = GITHUB_GRID[GithubActivityType.PULL_REQUEST_ASSIGNED]
         timestamp = payload.pull_request.updated_at
         sourceParentId = payload.pull_request.node_id.toString()
-        sourceId = `gen-AE_${payload.pull_request.node_id.toString()}_${
-          payload.pull_request.user.login
-        }_${payload.pull_request.assignee.login}_${moment(payload.pull_request.updated_at)
-          .utc()
-          .toISOString()}`
+        sourceId = `gen-AE_${payload.pull_request.node_id.toString()}_${payload.sender.login}_${
+          payload.assignee.login
+        }_${moment(payload.pull_request.updated_at).utc().toISOString()}`
         objectMember = await GithubIntegrationService.parseWebhookMember(
-          payload.pull_request.assignee.login,
+          payload.assignee.login,
           context,
         )
         objectMemberUsername = objectMember.username[PlatformType.GITHUB].username
@@ -931,14 +934,12 @@ export class GithubIntegrationService extends IntegrationServiceBase {
 
       case 'review_requested': {
         type = GithubActivityType.PULL_REQUEST_REVIEW_REQUESTED
-        scoreGrid = GitHubGrid.pullRequestReviewRequested
+        scoreGrid = GITHUB_GRID[GithubActivityType.PULL_REQUEST_REVIEW_REQUESTED]
         timestamp = payload.pull_request.updated_at
         sourceParentId = payload.pull_request.node_id.toString()
-        sourceId = `gen-RRE_${payload.pull_request.node_id.toString()}_${
-          payload.pull_request.user.login
-        }_${payload.requested_reviewer.login}_${moment(payload.pull_request.updated_at)
-          .utc()
-          .toISOString()}`
+        sourceId = `gen-RRE_${payload.pull_request.node_id.toString()}_${payload.sender.login}_${
+          payload.requested_reviewer.login
+        }_${moment(payload.pull_request.updated_at).utc().toISOString()}`
         objectMember = await GithubIntegrationService.parseWebhookMember(
           payload.requested_reviewer.login,
           context,
@@ -949,13 +950,73 @@ export class GithubIntegrationService extends IntegrationServiceBase {
 
       case 'merged': {
         type = GithubActivityType.PULL_REQUEST_MERGED
-        scoreGrid = GitHubGrid.pullRequestMerged
+        scoreGrid = GITHUB_GRID[GithubActivityType.PULL_REQUEST_MERGED]
         timestamp = payload.pull_request.merged_at
         sourceParentId = payload.pull_request.node_id.toString()
         sourceId = `gen-ME_${payload.pull_request.node_id.toString()}_${
           payload.pull_request.merged_by.login
         }_${moment(payload.pull_request.merged_at).utc().toISOString()}`
         break
+      }
+
+      // this event is triggered whdn a head branch of PR receives a new commit
+      case 'synchronize': {
+        if (!IS_GITHUB_COMMIT_DATA_ENABLED) {
+          return undefined
+        }
+        const prNumber = payload.number
+        const integrationId = context.integration.id
+        const tenantId = context.integration.tenantId
+        const repoContext = context.repoContext
+        const runRepo = new IntegrationRunRepository(repoContext)
+
+        let run
+        let isExistingRun = false
+
+        const existingRun = await runRepo.findLastProcessingRun(integrationId)
+
+        // if there is existing delayed, pending or processing run, use it
+        if (existingRun) {
+          run = existingRun
+          isExistingRun = true
+        } else {
+          // otherwise create a new run
+          run = await runRepo.create({
+            integrationId,
+            tenantId,
+            onboarding: false,
+            state: IntegrationRunState.PENDING,
+          })
+        }
+
+        const githubRepo: Repo = {
+          name: payload.repository.name,
+          owner: payload.repository.owner.login,
+          url: payload.repository.html_url,
+          createdAt: payload.repository.created_at,
+        }
+
+        const streamRepo = new IntegrationStreamRepository(repoContext)
+        const stream: DbIntegrationStreamCreateData = {
+          runId: run.id, // we tie up a stream to an existing run or to a new one
+          tenantId,
+          integrationId,
+          name: GithubStreamType.PULL_COMMITS,
+          metadata: {
+            page: '',
+            repo: githubRepo,
+            prNumber,
+          },
+        }
+
+        await streamRepo.create(stream)
+
+        if (!isExistingRun) {
+          // if we created a new run, we need to notify the node worker
+          // test again
+          await sendNodeWorkerMessage(tenantId, new NodeWorkerIntegrationProcessMessage(run.id))
+        }
+        return undefined
       }
 
       default: {
@@ -1040,8 +1101,8 @@ export class GithubIntegrationService extends IntegrationServiceBase {
               },
               member,
               objectMember,
-              score: GitHubGrid.pullRequestAssigned.score,
-              isContribution: GitHubGrid.pullRequestAssigned.isContribution,
+              score: GITHUB_GRID[GithubActivityType.PULL_REQUEST_ASSIGNED].score,
+              isContribution: GITHUB_GRID[GithubActivityType.PULL_REQUEST_ASSIGNED].isContribution,
             })
           }
 
@@ -1083,8 +1144,9 @@ export class GithubIntegrationService extends IntegrationServiceBase {
                 },
                 member,
                 objectMember,
-                score: GitHubGrid.pullRequestReviewRequested.score,
-                isContribution: GitHubGrid.pullRequestReviewRequested.isContribution,
+                score: GITHUB_GRID[GithubActivityType.PULL_REQUEST_REVIEW_REQUESTED].score,
+                isContribution:
+                  GITHUB_GRID[GithubActivityType.PULL_REQUEST_REVIEW_REQUESTED].isContribution,
               })
             } else if (record.requestedReviewer.members) {
               // review is requested from a team
@@ -1118,8 +1180,9 @@ export class GithubIntegrationService extends IntegrationServiceBase {
                   },
                   member,
                   objectMember,
-                  score: GitHubGrid.pullRequestReviewRequested.score,
-                  isContribution: GitHubGrid.pullRequestReviewRequested.isContribution,
+                  score: GITHUB_GRID[GithubActivityType.PULL_REQUEST_REVIEW_REQUESTED].score,
+                  isContribution:
+                    GITHUB_GRID[GithubActivityType.PULL_REQUEST_REVIEW_REQUESTED].isContribution,
                 })
               }
             }
@@ -1146,6 +1209,7 @@ export class GithubIntegrationService extends IntegrationServiceBase {
               channel: pullRequest.channel,
               title: '',
               attributes: {
+                reviewState: record.state,
                 state: (pullRequest.attributes as any).state,
                 additions: (pullRequest.attributes as any).additions,
                 deletions: (pullRequest.attributes as any).deletions,
@@ -1154,8 +1218,8 @@ export class GithubIntegrationService extends IntegrationServiceBase {
                 labels: (pullRequest.attributes as any).labels,
               },
               member,
-              score: GitHubGrid.pullRequestReviewed.score,
-              isContribution: GitHubGrid.pullRequestReviewed.isContribution,
+              score: GITHUB_GRID[GithubActivityType.PULL_REQUEST_REVIEWED].score,
+              isContribution: GITHUB_GRID[GithubActivityType.PULL_REQUEST_REVIEWED].isContribution,
             })
           }
 
@@ -1188,8 +1252,8 @@ export class GithubIntegrationService extends IntegrationServiceBase {
                 labels: (pullRequest.attributes as any).labels,
               },
               member,
-              score: GitHubGrid.pullRequestMerged.score,
-              isContribution: GitHubGrid.pullRequestMerged.isContribution,
+              score: GITHUB_GRID[GithubActivityType.PULL_REQUEST_MERGED].score,
+              isContribution: GITHUB_GRID[GithubActivityType.PULL_REQUEST_MERGED].isContribution,
             })
           }
 
@@ -1222,8 +1286,8 @@ export class GithubIntegrationService extends IntegrationServiceBase {
                 labels: (pullRequest.attributes as any).labels,
               },
               member,
-              score: GitHubGrid.pullRequestClosed.score,
-              isContribution: GitHubGrid.pullRequestClosed.isContribution,
+              score: GITHUB_GRID[GithubActivityType.PULL_REQUEST_CLOSED].score,
+              isContribution: GITHUB_GRID[GithubActivityType.PULL_REQUEST_CLOSED].isContribution,
             })
           }
 
@@ -1234,6 +1298,57 @@ export class GithubIntegrationService extends IntegrationServiceBase {
           )
       }
     }
+    return out
+  }
+
+  private static async parsePullRequestCommits(
+    records: any[],
+    repo: Repo,
+    context: IStepContext,
+  ): Promise<AddActivitiesSingle[]> {
+    const out: AddActivitiesSingle[] = []
+    const data = records[0] as PullRequestCommit
+    const commits = data.repository.pullRequest.commits.nodes
+
+    for (const record of commits) {
+      for (const author of record.commit.authors.nodes) {
+        if (!author || !author.user || !author.user.login) {
+          // eslint-disable-next-line no-continue
+          continue
+        }
+        const member = await GithubIntegrationService.parseMember(author, context)
+        out.push({
+          tenant: context.integration.tenantId,
+          username: author.user.login,
+          platform: PlatformType.GITHUB,
+          channel: repo.name,
+          url: `https://github.com/${repo.owner}/${repo.name}.git`,
+          body: record.commit.message,
+          type: 'authored-commit',
+          sourceId: record.commit.oid,
+          sourceParentId: `${data.repository.pullRequest.id}`,
+          timestamp: moment(record.commit.authoredDate).utc().toDate(),
+          attributes: {
+            insertions: record.commit.additions,
+            deletions: record.commit.deletions,
+            lines: record.commit.additions - record.commit.deletions,
+            isMerge: record.commit.parents.totalCount > 1,
+            isMainBranch: ['master', 'main'].includes(data.repository.pullRequest.headRefName),
+          },
+          member: {
+            username: {
+              [PlatformType.GIT]: {
+                username: author.user.login,
+                integrationId: context.integration.id,
+              },
+            } as PlatformIdentities,
+            displayName: member.displayName,
+            emails: member.emails,
+          },
+        })
+      }
+    }
+
     return out
   }
 
@@ -1256,7 +1371,7 @@ export class GithubIntegrationService extends IntegrationServiceBase {
         timestamp: moment(record.createdAt).utc().toDate(),
         body: record.bodyText,
         url: record.url,
-        channel: record.pullRequest.url,
+        channel: repo.url,
         title: '',
         attributes: {
           state: record.pullRequest.state.toLowerCase(),
@@ -1267,8 +1382,9 @@ export class GithubIntegrationService extends IntegrationServiceBase {
           labels: record.pullRequest.labels?.nodes.map((l) => l.name),
         },
         member,
-        score: GitHubGrid.comment.score,
-        isContribution: GitHubGrid.comment.isContribution,
+        score: GITHUB_GRID[GithubActivityType.PULL_REQUEST_REVIEW_THREAD_COMMENT].score,
+        isContribution:
+          GITHUB_GRID[GithubActivityType.PULL_REQUEST_REVIEW_THREAD_COMMENT].isContribution,
       })
     }
 
@@ -1305,8 +1421,8 @@ export class GithubIntegrationService extends IntegrationServiceBase {
           labels: record.labels?.nodes.map((l) => l.name),
         },
         member,
-        score: GitHubGrid.pullRequestOpened.score,
-        isContribution: GitHubGrid.pullRequestOpened.isContribution,
+        score: GITHUB_GRID[GithubActivityType.PULL_REQUEST_OPENED].score,
+        isContribution: GITHUB_GRID[GithubActivityType.PULL_REQUEST_OPENED].isContribution,
       })
 
       // parse pr events
@@ -1383,8 +1499,8 @@ export class GithubIntegrationService extends IntegrationServiceBase {
         url: comment.html_url,
         body: comment.body,
         channel: payload.repository.html_url,
-        score: GitHubGrid.comment.score,
-        isContribution: GitHubGrid.comment.isContribution,
+        score: GITHUB_GRID[type].score,
+        isContribution: GITHUB_GRID[type].isContribution,
       }
     }
 
@@ -1411,8 +1527,8 @@ export class GithubIntegrationService extends IntegrationServiceBase {
         body: record.bodyText,
         channel: repo.url,
         member,
-        score: GitHubGrid.comment.score,
-        isContribution: GitHubGrid.comment.isContribution,
+        score: GITHUB_GRID[GithubActivityType.PULL_REQUEST_COMMENT].score,
+        isContribution: GITHUB_GRID[GithubActivityType.PULL_REQUEST_COMMENT].isContribution,
       })
     }
     return out
@@ -1423,22 +1539,36 @@ export class GithubIntegrationService extends IntegrationServiceBase {
     context: IStepContext,
   ): Promise<AddActivitiesSingle | undefined> {
     let type: GithubActivityType
-    let scoreGrid: gridEntry
+    let scoreGrid: IActivityScoringGrid
     let timestamp: string
+    let sourceId: string
+    let sourceParentId: string
+    let body: string = ''
+    let title: string = ''
 
     switch (payload.action) {
       case 'edited':
       case 'opened':
       case 'reopened':
         type = GithubActivityType.ISSUE_OPENED
-        scoreGrid = GitHubGrid.issueOpened
+        scoreGrid = GITHUB_GRID[GithubActivityType.ISSUE_OPENED]
         timestamp = payload.issue.created_at
+        sourceParentId = null
+        sourceId = payload.issue.node_id.toString()
+        body = payload.issue.body
+        title = payload.issue.title
         break
 
       case 'closed':
         type = GithubActivityType.ISSUE_CLOSED
-        scoreGrid = GitHubGrid.issueClosed
+        scoreGrid = GITHUB_GRID[GithubActivityType.ISSUE_CLOSED]
         timestamp = payload.issue.closed_at
+        sourceParentId = payload.issue.node_id.toString()
+        sourceId = `gen-CE_${payload.issue.node_id.toString()}_${payload.sender.login}_${moment(
+          payload.issue.closed_at,
+        )
+          .utc()
+          .toISOString()}`
         break
 
       default:
@@ -1446,7 +1576,7 @@ export class GithubIntegrationService extends IntegrationServiceBase {
     }
 
     const issue = payload.issue
-    const member = await GithubIntegrationService.parseWebhookMember(issue.user.login, context)
+    const member = await GithubIntegrationService.parseWebhookMember(payload.sender.login, context)
 
     if (member) {
       return {
@@ -1456,12 +1586,12 @@ export class GithubIntegrationService extends IntegrationServiceBase {
         timestamp: moment(timestamp).utc().toDate(),
         platform: PlatformType.GITHUB,
         tenant: context.integration.tenantId,
-        sourceId: issue.node_id.toString(),
-        sourceParentId: null,
+        sourceId,
+        sourceParentId,
         url: issue.html_url,
-        title: issue.title,
+        title,
         channel: payload.repository.html_url,
-        body: issue.body,
+        body,
         attributes: {
           state: issue.state,
         },
@@ -1498,11 +1628,65 @@ export class GithubIntegrationService extends IntegrationServiceBase {
           state: record.state.toLowerCase(),
         },
         member,
-        score: GitHubGrid.issueOpened.score,
-        isContribution: GitHubGrid.issueOpened.isContribution,
+        score: GITHUB_GRID[GithubActivityType.ISSUE_OPENED].score,
+        isContribution: GITHUB_GRID[GithubActivityType.ISSUE_OPENED].isContribution,
       })
+
+      // parse issue events
+      out.push(
+        ...(await GithubIntegrationService.parseIssueEvents(
+          record.timelineItems.nodes,
+          out[out.length - 1],
+          context,
+        )),
+      )
     }
 
+    return out
+  }
+
+  private static async parseIssueEvents(
+    records: any[],
+    issue: AddActivitiesSingle,
+    context: IStepContext,
+  ): Promise<AddActivitiesSingle[]> {
+    const out: AddActivitiesSingle[] = []
+
+    for (const record of records) {
+      switch (record.__typename) {
+        case GithubPullRequestEvents.CLOSE:
+          if (record.actor.login) {
+            const member = await GithubIntegrationService.parseMember(record.actor, context)
+            out.push({
+              username: member.username[PlatformType.GITHUB].username,
+              tenant: context.integration.tenantId,
+              platform: PlatformType.GITHUB,
+              type: GithubActivityType.ISSUE_CLOSED,
+              sourceId: `gen-CE_${issue.sourceId}_${record.actor.login}_${moment(record.createdAt)
+                .utc()
+                .toISOString()}`,
+              sourceParentId: issue.sourceId,
+              timestamp: moment(record.createdAt).utc().toDate(),
+              body: '',
+              url: issue.url,
+              channel: issue.channel,
+              title: '',
+              attributes: {
+                state: (issue.attributes as any).state,
+              },
+              member,
+              score: GITHUB_GRID[GithubActivityType.ISSUE_CLOSED].score,
+              isContribution: GITHUB_GRID[GithubActivityType.ISSUE_CLOSED].isContribution,
+            })
+          }
+
+          break
+        default:
+          context.logger.warn(
+            `Unsupported issue event:  ${record.__typename}. This event will not be parsed.`,
+          )
+      }
+    }
     return out
   }
 
@@ -1526,8 +1710,8 @@ export class GithubIntegrationService extends IntegrationServiceBase {
         body: record.bodyText,
         channel: repo.url,
         member,
-        score: GitHubGrid.comment.score,
-        isContribution: GitHubGrid.comment.isContribution,
+        score: GITHUB_GRID[GithubActivityType.ISSUE_COMMENT].score,
+        isContribution: GITHUB_GRID[GithubActivityType.ISSUE_COMMENT].isContribution,
       })
     }
     return out
@@ -1572,8 +1756,8 @@ export class GithubIntegrationService extends IntegrationServiceBase {
             description: discussion.category.description,
           },
         },
-        score: GitHubGrid.discussionOpened.score,
-        isContribution: GitHubGrid.discussionOpened.isContribution,
+        score: GITHUB_GRID[GithubActivityType.DISCUSSION_STARTED].score,
+        isContribution: GITHUB_GRID[GithubActivityType.DISCUSSION_STARTED].isContribution,
       }
     }
 
@@ -1612,8 +1796,8 @@ export class GithubIntegrationService extends IntegrationServiceBase {
           },
         },
         member,
-        score: GitHubGrid.discussionOpened.score,
-        isContribution: GitHubGrid.discussionOpened.isContribution,
+        score: GITHUB_GRID[GithubActivityType.DISCUSSION_STARTED].score,
+        isContribution: GITHUB_GRID[GithubActivityType.DISCUSSION_STARTED].isContribution,
       })
     }
     return out
@@ -1642,8 +1826,8 @@ export class GithubIntegrationService extends IntegrationServiceBase {
         channel: payload.repository.html_url,
         body: answer.body,
         url: answer.html_url,
-        score: GitHubGrid.selectedAnswer.score,
-        isContribution: GitHubGrid.selectedAnswer.isContribution,
+        score: GITHUB_GRID[GithubActivityType.DISCUSSION_COMMENT].score + 2,
+        isContribution: GITHUB_GRID[GithubActivityType.DISCUSSION_COMMENT].isContribution,
       }
     }
 
@@ -1676,10 +1860,10 @@ export class GithubIntegrationService extends IntegrationServiceBase {
           isAnswer: record.isAnswer ?? undefined,
         },
         member,
-        score: record.isAnswer ? GitHubGrid.selectedAnswer.score : GitHubGrid.comment.score,
-        isContribution: record.isAnswer
-          ? GitHubGrid.selectedAnswer.isContribution
-          : GitHubGrid.comment.isContribution,
+        score: record.isAnswer
+          ? GITHUB_GRID[GithubActivityType.DISCUSSION_COMMENT].score + 2
+          : GITHUB_GRID[GithubActivityType.DISCUSSION_COMMENT].score,
+        isContribution: GITHUB_GRID[GithubActivityType.DISCUSSION_COMMENT].isContribution,
       })
 
       for (const reply of record.replies.nodes) {
@@ -1696,8 +1880,8 @@ export class GithubIntegrationService extends IntegrationServiceBase {
           body: reply.bodyText,
           channel: repo.url,
           member,
-          score: GitHubGrid.comment.score,
-          isContribution: GitHubGrid.comment.isContribution,
+          score: GITHUB_GRID[GithubActivityType.DISCUSSION_COMMENT].score,
+          isContribution: GITHUB_GRID[GithubActivityType.DISCUSSION_COMMENT].isContribution,
         })
       }
     }
@@ -1745,7 +1929,7 @@ export class GithubIntegrationService extends IntegrationServiceBase {
 
     const cache: RedisCache = context.pipelineData.emailCache
 
-    const existing = await cache.getValue(login)
+    const existing = await cache.get(login)
     if (existing) {
       if (existing === 'null') {
         return ''
@@ -1757,11 +1941,11 @@ export class GithubIntegrationService extends IntegrationServiceBase {
     const member = await this.getMemberData(context, login)
     const email = (member && member.email ? member.email : '').trim()
     if (email && email.length > 0) {
-      await cache.setValue(login, email, 60 * 60)
+      await cache.set(login, email, 60 * 60)
       return email
     }
 
-    await cache.setValue(login, 'null', 60 * 60)
+    await cache.set(login, 'null', 60 * 60)
     return ''
   }
 

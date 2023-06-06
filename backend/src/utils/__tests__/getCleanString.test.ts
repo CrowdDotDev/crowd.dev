@@ -1,4 +1,4 @@
-import getCleanString from '../getCleanString'
+import { getCleanString } from '@crowd/common'
 
 describe('getCleanString method', () => {
   it('Should clean a string with non alphanumeric characters', async () => {

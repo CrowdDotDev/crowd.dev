@@ -1,10 +1,10 @@
+import { getServiceChildLogger } from '@crowd/logging'
 import { SuperfaceClient } from '@superfaceai/one-sdk'
-import { createServiceChildLogger } from '../../../../utils/logging'
 import { SocialResponse } from '../../types/superfaceTypes'
 import { cleanSuperfaceError } from '../cleanError'
 import isInvalid from '../isInvalid'
 
-const log = createServiceChildLogger('getMembers')
+const log = getServiceChildLogger('getMembers')
 
 async function getMembers(
   client: SuperfaceClient,

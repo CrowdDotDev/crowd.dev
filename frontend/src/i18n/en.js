@@ -361,24 +361,6 @@ const en = {
       menu: 'Eagle Eye',
     },
 
-    communityHelpCenter: {
-      name: 'Community Help Center',
-      label: 'Community Help Center',
-      menu: 'Community Help Center',
-      create: {
-        success: 'Conversation successfully saved',
-      },
-      update: {
-        success: 'Conversation successfully saved',
-      },
-      destroy: {
-        success: 'Conversation successfully deleted',
-      },
-      destroyAll: {
-        success: 'Conversation(s) successfully deleted',
-      },
-    },
-
     automation: {
       name: 'Automations',
       label: 'Automations',
@@ -409,7 +391,6 @@ const en = {
     conversation: {
       name: 'Conversations',
       label: 'Conversations',
-      menu: 'Community Help Center',
       edit: {
         title: 'Edit Conversation',
       },

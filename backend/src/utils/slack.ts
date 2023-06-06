@@ -1,8 +1,8 @@
 import { WebClient } from '@slack/web-api'
-import { SLACK_CONFIG } from '../config'
-import { createServiceChildLogger } from './logging'
+import { getServiceChildLogger } from '@crowd/logging'
+import { SLACK_CONFIG } from '../conf'
 
-const log = createServiceChildLogger('slackClient')
+const log = getServiceChildLogger('slackClient')
 
 let slackClientInstance: WebClient | undefined
 

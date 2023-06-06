@@ -1,6 +1,6 @@
 import htmlToMrkdwn from 'html-to-mrkdwn-ts'
-import { API_CONFIG } from '../../../../../../config'
-import { integrationLabel } from '../../../../../../types/integrationEnums'
+import { integrationLabel } from '@crowd/types'
+import { API_CONFIG } from '../../../../../../conf'
 
 const computeEngagementLevel = (score) => {
   if (score <= 1) {
@@ -36,6 +36,13 @@ const replaceHeadline = (text) => {
   Object.keys(replacements).forEach((key) => {
     text = text.replaceAll(key, replacements[key])
   })
+  return text
+}
+
+const truncateText = (text: string, characters: number = 60): string => {
+  if (text.length > characters) {
+    return `${text.substring(0, characters)}...`
+  }
   return text
 }
 
@@ -76,7 +83,9 @@ export const newActivityBlocks = (activity) => {
         type: 'section',
         text: {
           type: 'mrkdwn',
-          text: `*<${API_CONFIG.frontendUrl}/members/${activity.member.id}|${activity.member.displayName}>* \n *${display.text}*`,
+          text: `*<${API_CONFIG.frontendUrl}/members/${activity.member.id}|${
+            activity.member.displayName
+          }>* \n *${truncateText(display.text)}*`,
         },
         ...(activity.url
           ? {

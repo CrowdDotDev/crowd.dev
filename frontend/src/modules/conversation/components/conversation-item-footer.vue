@@ -88,7 +88,7 @@ const props = defineProps({
 });
 
 const platformConfig = computed(() => CrowdIntegrations.getConfig(
-  props.conversation.platform,
+  props.conversation.conversationStarter?.platform,
 ));
 
 const footerContent = () => {

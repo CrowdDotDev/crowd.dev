@@ -3,14 +3,15 @@ import OrganizationRepository from '../organizationRepository'
 import SequelizeTestUtils from '../../utils/sequelizeTestUtils'
 import Error404 from '../../../errors/Error404'
 import MemberRepository from '../memberRepository'
-import { PlatformType } from '../../../types/integrationEnums'
+import { PlatformType } from '@crowd/types'
 import ActivityRepository from '../activityRepository'
-import { generateUUIDv1 } from '../../../utils/uuid'
+import { generateUUIDv1 } from '@crowd/common'
 
 const db = null
 
 const toCreate = {
   name: 'crowd.dev',
+  displayName: 'crowd.dev',
   url: 'https://crowd.dev',
   description: 'Community-led Growth for Developer-first Companies.\nJoin our private beta',
   emails: ['hello@crowd.dev', 'jonathan@crow.dev'],

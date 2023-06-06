@@ -4,7 +4,7 @@ import { IServiceOptions } from './IServiceOptions'
 import ReportRepository from '../database/repositories/reportRepository'
 import WidgetRepository from '../database/repositories/widgetRepository'
 import track from '../segment/track'
-import { IS_TEST_ENV } from '../config'
+import { IS_TEST_ENV } from '../conf'
 
 export default class ReportService {
   options: IServiceOptions

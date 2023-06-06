@@ -1,4 +1,4 @@
-import { SLACK_CONFIG } from '../../config/index'
+import { SLACK_CONFIG } from '../../conf/index'
 import { safeWrap } from '../../middlewares/errorMiddleware'
 
 export default (app) => {

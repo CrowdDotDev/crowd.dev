@@ -1,17 +1,16 @@
-import moment from 'moment/moment'
-import lodash from 'lodash'
+import { DISCORD_GRID, DiscordActivityType } from '@crowd/integrations'
+import { getServiceChildLogger } from '@crowd/logging'
+import { RedisCache, getRedisClient } from '@crowd/redis'
 import { ChannelType, MessageType } from 'discord.js'
-import { v4 as uuid } from 'uuid'
-import {
-  DiscordApiChannel,
-  DiscordApiMember,
-  DiscordApiMessage,
-  DiscordApiUser,
-  DiscordStreamProcessResult,
-} from '../../types/discordTypes'
-import { DISCORD_CONFIG } from '../../../../config'
+import lodash from 'lodash'
+import moment from 'moment/moment'
+import { generateUUIDv1, timeout } from '@crowd/common'
+import { IntegrationType, PlatformType } from '@crowd/types'
+import { DISCORD_CONFIG, REDIS_CONFIG } from '../../../../conf'
 import { DiscordMemberAttributes } from '../../../../database/attributes/member/discord'
 import { MemberAttributeName } from '../../../../database/attributes/member/enums'
+import { IRepositoryOptions } from '../../../../database/repositories/IRepositoryOptions'
+import IntegrationRunRepository from '../../../../database/repositories/integrationRunRepository'
 import MemberAttributeSettingsService from '../../../../services/memberAttributeSettingsService'
 import {
   IIntegrationStream,
@@ -21,34 +20,33 @@ import {
   IStepContext,
   IStreamResultOperation,
 } from '../../../../types/integration/stepResult'
-import { IntegrationType, PlatformType } from '../../../../types/integrationEnums'
-import { timeout } from '../../../../utils/timing'
-import Operations from '../../../dbOperations/operations'
-import { DiscordGrid } from '../../grid/discordGrid'
-import getChannels from '../../usecases/discord/getChannels'
-import getMembers from '../../usecases/discord/getMembers'
-import getMessages from '../../usecases/discord/getMessages'
-import { IntegrationServiceBase } from '../integrationServiceBase'
-import { sendNodeWorkerMessage } from '../../../utils/nodeWorkerSQS'
-import { NodeWorkerIntegrationProcessMessage } from '../../../../types/mq/nodeWorkerIntegrationProcessMessage'
-import { AddActivitiesSingle } from '../../types/messageTypes'
-import getThreads from '../../usecases/discord/getThreads'
-import { DiscordWebsocketEvent, DiscordWebsocketPayload } from '../../../../types/webhooks'
-import { getMember } from '../../usecases/discord/getMember'
-import { getMessage } from '../../usecases/discord/getMessage'
-import { createRedisClient } from '../../../../utils/redis'
-import { RedisCache } from '../../../../utils/redis/redisCache'
-import { getChannel } from '../../usecases/discord/getChannel'
-import { IRepositoryOptions } from '../../../../database/repositories/IRepositoryOptions'
-import IntegrationRunRepository from '../../../../database/repositories/integrationRunRepository'
 import { IntegrationRunState } from '../../../../types/integrationRunTypes'
-import { createServiceChildLogger } from '../../../../utils/logging'
+import { NodeWorkerIntegrationProcessMessage } from '../../../../types/mq/nodeWorkerIntegrationProcessMessage'
+import { DiscordWebsocketEvent, DiscordWebsocketPayload } from '../../../../types/webhooks'
+import Operations from '../../../dbOperations/operations'
+import { sendNodeWorkerMessage } from '../../../utils/nodeWorkerSQS'
+import {
+  DiscordApiChannel,
+  DiscordApiMember,
+  DiscordApiMessage,
+  DiscordApiUser,
+  DiscordStreamProcessResult,
+} from '../../types/discordTypes'
+import { AddActivitiesSingle } from '../../types/messageTypes'
+import { getChannel } from '../../usecases/discord/getChannel'
+import getChannels from '../../usecases/discord/getChannels'
+import { getMember } from '../../usecases/discord/getMember'
+import getMembers from '../../usecases/discord/getMembers'
+import { getMessage } from '../../usecases/discord/getMessage'
+import getMessages from '../../usecases/discord/getMessages'
+import getThreads from '../../usecases/discord/getThreads'
+import { IntegrationServiceBase } from '../integrationServiceBase'
 
 /* eslint class-methods-use-this: 0 */
 
 /* eslint-disable @typescript-eslint/no-unused-vars */
 
-const logger = createServiceChildLogger('discordIntegrationService')
+const logger = getServiceChildLogger('discordIntegrationService')
 
 export class DiscordIntegrationService extends IntegrationServiceBase {
   static readonly ENDPOINT_MAX_RETRY = 5
@@ -403,7 +401,7 @@ export class DiscordIntegrationService extends IntegrationServiceBase {
         let username = record.user.username
 
         if (username === 'Deleted User') {
-          username = `${username}:${uuid()}`
+          username = `${username}:${generateUUIDv1()}`
         }
 
         acc.push({
@@ -432,8 +430,8 @@ export class DiscordIntegrationService extends IntegrationServiceBase {
               }),
             },
           },
-          score: DiscordGrid.join.score,
-          isContribution: DiscordGrid.join.isContribution,
+          score: DISCORD_GRID[DiscordActivityType.JOINED_GUILD].score,
+          isContribution: DISCORD_GRID[DiscordActivityType.JOINED_GUILD].isContribution,
         })
       }
       return acc
@@ -526,7 +524,7 @@ export class DiscordIntegrationService extends IntegrationServiceBase {
         let username = record.author.username
 
         if (username === 'Deleted User') {
-          username = `${username}:${uuid()}`
+          username = `${username}:${generateUUIDv1()}`
         }
 
         const activityObject = {
@@ -566,10 +564,16 @@ export class DiscordIntegrationService extends IntegrationServiceBase {
                   [PlatformType.DISCORD]: avatarUrl,
                 },
               }),
+              // Add isBot attribute for deleted users to exclude from search. Add if username contains Deleted User
+              ...(username.includes('Deleted User') && {
+                [MemberAttributeName.IS_BOT]: {
+                  [PlatformType.DISCORD]: true,
+                },
+              }),
             },
           },
-          score: DiscordGrid.message.score,
-          isContribution: DiscordGrid.message.isContribution,
+          score: DISCORD_GRID[DiscordActivityType.MESSAGE].score,
+          isContribution: DISCORD_GRID[DiscordActivityType.MESSAGE].isContribution,
         } as any
 
         activities.push(activityObject)
@@ -633,24 +637,24 @@ export class DiscordIntegrationService extends IntegrationServiceBase {
     context: IStepContext,
   ): Promise<void> {
     if (!context.pipelineData.channelCache) {
-      const redis = await createRedisClient(true)
-      context.pipelineData.channelCache = new RedisCache('discord-channels', redis)
+      const redis = await getRedisClient(REDIS_CONFIG, true)
+      context.pipelineData.channelCache = new RedisCache('discord-channels', redis, context.logger)
     }
 
     const cache = context.pipelineData.channelCache as RedisCache
 
-    await cache.setValue(channel.id, JSON.stringify(channel), 24 * 60 * 60)
+    await cache.set(channel.id, JSON.stringify(channel), 24 * 60 * 60)
   }
 
   private static async getChannel(id: string, context: IStepContext): Promise<DiscordApiChannel> {
     if (!context.pipelineData.channelCache) {
-      const redis = await createRedisClient(true)
-      context.pipelineData.channelCache = new RedisCache('discord-channels', redis)
+      const redis = await getRedisClient(REDIS_CONFIG, true)
+      context.pipelineData.channelCache = new RedisCache('discord-channels', redis, context.logger)
     }
 
     const cache = context.pipelineData.channelCache as RedisCache
 
-    const cached = await cache.getValue(id)
+    const cached = await cache.get(id)
 
     if (cached) {
       return JSON.parse(cached)
@@ -661,7 +665,7 @@ export class DiscordIntegrationService extends IntegrationServiceBase {
       DiscordIntegrationService.getToken(context),
       context.logger,
     )
-    await cache.setValue(id, JSON.stringify(channel), 24 * 60 * 60)
+    await cache.set(id, JSON.stringify(channel), 24 * 60 * 60)
 
     return channel
   }

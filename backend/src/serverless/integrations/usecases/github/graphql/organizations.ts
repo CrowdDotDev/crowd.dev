@@ -1,8 +1,8 @@
+import { getServiceChildLogger } from '@crowd/logging'
 import { graphql } from '@octokit/graphql'
 import BaseQuery from './baseQuery'
-import { createServiceChildLogger } from '../../../../../utils/logging'
 
-const logger = createServiceChildLogger('github.getOrganization')
+const logger = getServiceChildLogger('github.getOrganization')
 
 /**
  * Get information from a organization using the GitHub GraphQL API.

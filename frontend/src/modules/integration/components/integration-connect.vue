@@ -32,6 +32,11 @@
     rel="noopener noreferrer"
     class="btn btn-brand btn-brand--primary btn--md"
   >Read more</a>
+  <component
+    :is="props.integration.connectComponent"
+    v-else-if="props.integration.connectComponent"
+    :integration="props.integration"
+  />
   <el-button
     v-else
     class="btn btn--bordered btn--md"

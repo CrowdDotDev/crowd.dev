@@ -24,7 +24,7 @@ const attributes = computed(() => props.conversation.conversationStarter?.attrib
 const sourceId = computed(() => props.conversation.conversationStarter?.sourceId);
 
 const platformConfig = computed(() => CrowdIntegrations.getConfig(
-  props.conversation.platform,
+  props.conversation.conversationStarter?.platform,
 ));
 
 const replyContent = computed(() => platformConfig.value?.conversationDisplay?.replyContent(props.conversation));

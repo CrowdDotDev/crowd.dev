@@ -1,29 +1,24 @@
-import fs from 'fs'
-import path from 'path'
+import { LoggerBase } from '@crowd/logging'
+import { ApiPubSubEmitter, RedisClient } from '@crowd/redis'
+import { IntegrationType } from '@crowd/types'
 import IntegrationRunRepository from '../../../database/repositories/integrationRunRepository'
 import IntegrationStreamRepository from '../../../database/repositories/integrationStreamRepository'
 import { IServiceOptions } from '../../../services/IServiceOptions'
-import { LoggingBase } from '../../../services/loggingBase'
-import { IntegrationType } from '../../../types/integrationEnums'
 import { NodeWorkerIntegrationProcessMessage } from '../../../types/mq/nodeWorkerIntegrationProcessMessage'
-import { RedisClient } from '../../../utils/redis'
-import RedisPubSubEmitter from '../../../utils/redis/pubSubEmitter'
 import { IntegrationCheckProcessor } from './integrationCheckProcessor'
 import { IntegrationRunProcessor } from './integrationRunProcessor'
-import { DevtoIntegrationService } from './integrations/devtoIntegrationService'
+import { IntegrationTickProcessor } from './integrationTickProcessor'
 import { DiscordIntegrationService } from './integrations/discordIntegrationService'
+import { DiscourseIntegrationService } from './integrations/discourseIntegrationService'
 import { GithubIntegrationService } from './integrations/githubIntegrationService'
 import { HackerNewsIntegrationService } from './integrations/hackerNewsIntegrationService'
 import { RedditIntegrationService } from './integrations/redditIntegrationService'
 import { SlackIntegrationService } from './integrations/slackIntegrationService'
-import { StackOverlflowIntegrationService } from './integrations/stackOverflowIntegrationService'
 import { TwitterIntegrationService } from './integrations/twitterIntegrationService'
 import { TwitterReachIntegrationService } from './integrations/twitterReachIntegrationService'
-import { IntegrationServiceBase } from './integrationServiceBase'
-import { IntegrationTickProcessor } from './integrationTickProcessor'
 import { WebhookProcessor } from './webhookProcessor'
 
-export class IntegrationProcessor extends LoggingBase {
+export class IntegrationProcessor extends LoggerBase {
   private readonly tickProcessor: IntegrationTickProcessor
 
   private readonly checkProcessor: IntegrationCheckProcessor
@@ -33,10 +28,9 @@ export class IntegrationProcessor extends LoggingBase {
   private readonly runProcessor: IntegrationRunProcessor | undefined
 
   constructor(options: IServiceOptions, redisEmitterClient?: RedisClient) {
-    super(options)
+    super(options.log)
 
     const integrationServices = [
-      new DevtoIntegrationService(),
       new DiscordIntegrationService(),
       new HackerNewsIntegrationService(),
       new RedditIntegrationService(),
@@ -44,33 +38,18 @@ export class IntegrationProcessor extends LoggingBase {
       new TwitterReachIntegrationService(),
       new SlackIntegrationService(),
       new GithubIntegrationService(),
-      new StackOverlflowIntegrationService(),
+      new DiscourseIntegrationService(),
     ]
-
-    // add premium integrations
-    const premiumIndexFile = path.resolve(`${__dirname}/integrations/premium/index.ts`)
-
-    if (fs.existsSync(premiumIndexFile)) {
-      const premiumIntegrations: IntegrationServiceBase[] =
-        require('./integrations/premium').default
-
-      if (premiumIntegrations.length > 0) {
-        integrationServices.push(...premiumIntegrations)
-        this.log.info(`Loaded ${premiumIntegrations.length} premium integrations!`)
-      }
-    }
 
     this.log.debug(
       { supportedIntegrations: integrationServices.map((i) => i.type) },
       'Successfully detected supported integrations!',
     )
 
-    let apiPubSubEmitter: RedisPubSubEmitter | undefined
+    let apiPubSubEmitter: ApiPubSubEmitter | undefined
 
     if (redisEmitterClient) {
-      apiPubSubEmitter = new RedisPubSubEmitter('api-pubsub', redisEmitterClient, (err) => {
-        this.log.error({ err }, 'Error in api-ws emitter!')
-      })
+      apiPubSubEmitter = new ApiPubSubEmitter(redisEmitterClient, this.log)
     }
 
     const integrationRunRepository = new IntegrationRunRepository(options)

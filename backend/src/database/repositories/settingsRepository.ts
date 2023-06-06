@@ -1,9 +1,10 @@
 import lodash from 'lodash'
 import _get from 'lodash/get'
+import { DEFAULT_ACTIVITY_TYPE_SETTINGS } from '@crowd/integrations'
+import { ActivityTypeSettings } from '@crowd/types'
 import SequelizeRepository from './sequelizeRepository'
 import AuditLogRepository from './auditLogRepository'
 import { IRepositoryOptions } from './IRepositoryOptions'
-import { ActivityTypeSettings, DEFAULT_ACTIVITY_TYPE_SETTINGS } from '../../types/activityTypes'
 
 export default class SettingsRepository {
   static async findOrCreateDefault(defaults, options: IRepositoryOptions) {
@@ -34,8 +35,8 @@ export default class SettingsRepository {
     data.backgroundImageUrl = _get(data, 'backgroundImages[0].downloadUrl', null)
     data.logoUrl = _get(data, 'logos[0].downloadUrl', null)
     if (
-      typeof data.slackWebhook !== 'string' ||
-      (typeof data.slackWebhook === 'string' && !data.slackWebHook?.startsWith('https://'))
+      typeof data.slackWebHook !== 'string' ||
+      (typeof data.slackWebHook === 'string' && !data.slackWebHook?.startsWith('https://'))
     ) {
       data.slackWebHook = undefined
     }

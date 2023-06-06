@@ -1,9 +1,9 @@
 import cronGenerator from 'cron-time-generator'
+import { getServiceLogger } from '@crowd/logging'
 import SequelizeRepository from '../../database/repositories/sequelizeRepository'
 import { IntegrationProcessor } from '../../serverless/integrations/services/integrationProcessor'
 import { IServiceOptions } from '../../services/IServiceOptions'
 import { CrowdJob } from '../../types/jobTypes'
-import { getServiceLogger } from '../../utils/logging'
 
 let integrationProcessorInstance: IntegrationProcessor
 

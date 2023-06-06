@@ -2,6 +2,56 @@
 
 All notable changes to this project will be documented in this file.
 
+## v0.33.0 - 2023-05-30
+
+### Changes
+
+For more detailed information, see our [changelog](https://changelog.crowd.dev/changelogs/discourse-integration).
+
+#### 🚀 Features
+
+- GitHub Commit Data @garrrikkotua (#834)
+- Discourse integration @garrrikkotua (#890)
+
+#### ✨ Improvements
+
+- Github issue closed support and improvements @epipav (#898)
+- Added a filter for the deleted users @joanreyero (#911)
+- Added CTA to book a call for the Hubspot integration @gaspergrom (#896)
+
+#### 🐞 Bug Fixes
+
+- Member enrichment upsert by existing platform instead of GitHub @epipav (#906)
+- Fix the z-index for tables @gaspergrom (#904)
+
+## v0.32.1 - 2023-05-23
+
+### Changes
+
+For more details, see our changelog: [changelog.crowd.dev](https://changelog.crowd.dev/changelogs/integrations-reliability-and-performance).
+
+#### ✨ Improvements
+
+- Improvements to the organization enrichment @joanagmaia (#878)
+- Update default organization sorting @joanagmaia (#871)
+- Soft-delete integrations when removing them @sausage-todd (#855)
+- Change all tab titles to match page titles @keshari1arya (#819)
+- Replaced the Twitter connection flow to use Zapier @gaspergrom (#846)
+- Added test for members' filters  @gaspergrom (#790)
+- Align the member profile icon and copy @yeganathan18 (#822)
+
+#### 🐞 Bug Fixes
+
+- Fix display of unknown platform images @joanagmaia (#868)
+- Resolve an issue where activity types were empty @joanagmaia (#869)
+- Add slack notifier env values to the distributable environment @joanagmaia (#879)
+- Solve Google signup issues @sausage-todd (#883)
+- Add identities in organization enrichment @elayira (#882)
+- Remove organization profiles and render them as identities @joanagmaia (#884)
+- Optimize activity display in slack automation @gaspergrom (#888)
+- Implement a payload for automation @joanagmaia (#892)
+- Fix typos in the Slack notifier @gaspergrom (#894)
+
 ## v0.32.0 - 2023-05-16
 
 ### Changes
@@ -378,9 +428,7 @@ https://user-images.githubusercontent.com/37874460/220165717-4204605a-260f-41cb-
 ### ✨ Improvements
 - Added LinkedIn to sample data @joanreyero (#481)
 - Moved the organizations' module to the essential plan @themarolt (#514)
-
 ### 🐞 Bug Fixes
-
 - Fix global attributes not showing in the Edit attributes drawer. @joanagmaia (#488)
 - Fix filters for custom attributes. @joanagmaia (#492)
 - Fix the reach filter on the members' page. @joanagmaia (#491)
@@ -567,9 +615,7 @@ With this, we have introduced feature flagging, so we can also roll out features
 - Properly handle GitHub's rate limit @themarolt (#311)
 ## v0.11.0 - 2022-12-05
 ### Changes
-
 ### 🚀 Features
-
 #### Hacker News integration
 
 The Hacker News integration will detect any post that mentions your community in the *Top* or *Best* of Hacker News. It works for any post published after the 1st of December 2022. The post will become a community activity, and so will any comment on those posts.

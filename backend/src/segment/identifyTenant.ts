@@ -1,4 +1,4 @@
-import { SEGMENT_CONFIG, API_CONFIG } from '../config'
+import { SEGMENT_CONFIG, API_CONFIG } from '../conf'
 import { Edition } from '../types/common'
 
 export default async function identifyTenant(req) {

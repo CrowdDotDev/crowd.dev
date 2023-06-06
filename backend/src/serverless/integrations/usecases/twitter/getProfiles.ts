@@ -1,6 +1,6 @@
 import axios, { AxiosRequestConfig } from 'axios'
 import moment from 'moment'
-import { Logger } from '../../../../utils/logging'
+import { Logger } from '@crowd/logging'
 import {
   TwitterGetFollowersOutput,
   TwitterGetProfilesByUsernameInput,

@@ -1,6 +1,6 @@
+import { Logger } from '@crowd/logging'
 import { IRepositoryOptions } from '../../database/repositories/IRepositoryOptions'
 import { IServiceOptions } from '../../services/IServiceOptions'
-import { Logger } from '../../utils/logging'
 
 export interface IPendingStream {
   value: string

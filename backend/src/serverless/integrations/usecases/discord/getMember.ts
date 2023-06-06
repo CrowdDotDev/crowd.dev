@@ -1,6 +1,6 @@
 import axios, { AxiosRequestConfig } from 'axios'
+import { Logger } from '@crowd/logging'
 import { DiscordApiMember } from '../../types/discordTypes'
-import { Logger } from '../../../../utils/logging'
 import { handleDiscordError } from './errorHandler'
 
 export const getMember = async (

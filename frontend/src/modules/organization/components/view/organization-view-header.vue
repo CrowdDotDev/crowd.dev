@@ -1,18 +1,18 @@
 <template>
   <div class="organization-view-header panel relative">
-    <div class="flex items-start justify-between">
-      <div class="flex items-start">
+    <div class="flex justify-between">
+      <div class="flex items-center">
         <app-avatar
           :entity="{
             avatar: organization.logo,
-            displayName: organization.name?.replace('@', ''),
+            displayName: organization.displayName?.replace('@', ''),
           }"
           size="xl"
           class="mr-4"
         />
         <div>
           <div class="flex">
-            <h5>{{ organization.name }}</h5>
+            <h5>{{ organization.displayName }}</h5>
             <app-organization-badge
               class="ml-2"
               :organization="organization"

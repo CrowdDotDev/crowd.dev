@@ -1,5 +1,5 @@
 import axios, { AxiosRequestConfig } from 'axios'
-import { Logger } from '../../../../utils/logging'
+import { Logger } from '@crowd/logging'
 import { handleDiscordError } from './errorHandler'
 import { DiscordApiChannel } from '../../types/discordTypes'
 

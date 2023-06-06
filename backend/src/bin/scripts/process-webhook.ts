@@ -2,21 +2,22 @@ import commandLineArgs from 'command-line-args'
 import commandLineUsage from 'command-line-usage'
 import * as fs from 'fs'
 import path from 'path'
-import { createServiceLogger } from '../../utils/logging'
+import { getServiceLogger } from '@crowd/logging'
+import { timeout } from '@crowd/common'
 import SequelizeRepository from '../../database/repositories/sequelizeRepository'
 import { sendNodeWorkerMessage } from '../../serverless/utils/nodeWorkerSQS'
 import IncomingWebhookRepository from '../../database/repositories/incomingWebhookRepository'
 import { WebhookState, WebhookType } from '../../types/webhooks'
 import { NodeWorkerProcessWebhookMessage } from '../../types/mq/nodeWorkerProcessWebhookMessage'
 import { sqs, getCurrentQueueSize } from '../../services/aws'
-import { SQS_CONFIG } from '../../config'
-import { timeout } from '../../utils/timing'
+import { WebhookProcessor } from '../../serverless/integrations/services/webhookProcessor'
+import { SQS_CONFIG } from '../../conf'
 
 /* eslint-disable no-console */
 
 const banner = fs.readFileSync(path.join(__dirname, 'banner.txt'), 'utf8')
 
-const log = createServiceLogger()
+const log = getServiceLogger()
 
 const options = [
   {
@@ -91,7 +92,12 @@ if (parameters.help || (!parameters.webhook && !parameters.processPlatformErrors
       }
 
       log.debug('Processing error state webhooks!')
-      let webhooks = await repo.findError(webhookType, currentPage, PAGE_SIZE)
+      let webhooks = await repo.findError(
+        currentPage,
+        PAGE_SIZE,
+        WebhookProcessor.MAX_RETRY_LIMIT,
+        webhookType,
+      )
 
       log.info(webhooks.map((w) => w.id))
 
@@ -127,7 +133,12 @@ if (parameters.help || (!parameters.webhook && !parameters.processPlatformErrors
           `Queue size(${queueSize}) below threshold(${PROCESS_QUEUE_THRESHOLD}) - Continuing with page${currentPage}`,
         )
 
-        webhooks = await repo.findError(webhookType, currentPage, PAGE_SIZE)
+        webhooks = await repo.findError(
+          currentPage,
+          PAGE_SIZE,
+          WebhookProcessor.MAX_RETRY_LIMIT,
+          webhookType,
+        )
       }
     } else {
       const webhookIds = parameters.webhook.split(',')

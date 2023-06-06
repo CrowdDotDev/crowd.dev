@@ -1,4 +1,8 @@
 import moment from 'moment'
+import { ApiPubSubEmitter } from '@crowd/redis'
+import { Logger, getChildLogger, LoggerBase } from '@crowd/logging'
+import { singleOrDefault } from '@crowd/common'
+import { PlatformType } from '@crowd/types'
 import IntegrationRepository from '../../../database/repositories/integrationRepository'
 import IntegrationRunRepository from '../../../database/repositories/integrationRunRepository'
 import IntegrationStreamRepository from '../../../database/repositories/integrationStreamRepository'
@@ -6,17 +10,13 @@ import MicroserviceRepository from '../../../database/repositories/microserviceR
 import getUserContext from '../../../database/utils/getUserContext'
 import { twitterFollowers } from '../../../database/utils/keys/microserviceTypes'
 import { IServiceOptions } from '../../../services/IServiceOptions'
-import { LoggingBase } from '../../../services/loggingBase'
 import {
   IIntegrationStream,
   IProcessStreamResults,
   IStepContext,
 } from '../../../types/integration/stepResult'
-import { PlatformType } from '../../../types/integrationEnums'
 import { IntegrationRun, IntegrationRunState } from '../../../types/integrationRunTypes'
 import { NodeWorkerIntegrationProcessMessage } from '../../../types/mq/nodeWorkerIntegrationProcessMessage'
-import { singleOrDefault } from '../../../utils/arrays'
-import { Logger, createChildLogger } from '../../../utils/logging'
 import { IntegrationServiceBase } from './integrationServiceBase'
 import SampleDataService from '../../../services/sampleDataService'
 import {
@@ -28,20 +28,18 @@ import bulkOperations from '../../dbOperations/operationsWorker'
 import UserRepository from '../../../database/repositories/userRepository'
 import EmailSender from '../../../services/emailSender'
 import { i18n } from '../../../i18n'
-import { API_CONFIG } from '../../../config'
+import { API_CONFIG } from '../../../conf'
 import { SlackAlertTypes, sendSlackAlert } from '../../../utils/slackAlerts'
-import { ApiWebsocketMessage } from '../../../types/mq/apiWebsocketMessage'
-import { IRedisPubSubEmitter } from '../../../utils/redis'
 
-export class IntegrationRunProcessor extends LoggingBase {
+export class IntegrationRunProcessor extends LoggerBase {
   constructor(
     options: IServiceOptions,
     private readonly integrationServices: IntegrationServiceBase[],
     private readonly integrationRunRepository: IntegrationRunRepository,
     private readonly integrationStreamRepository: IntegrationStreamRepository,
-    private readonly apiPubSubEmitter?: IRedisPubSubEmitter,
+    private readonly apiPubSubEmitter?: ApiPubSubEmitter,
   ) {
-    super(options)
+    super(options.log)
   }
 
   async process(req: NodeWorkerIntegrationProcessMessage) {
@@ -78,7 +76,7 @@ export class IntegrationRunProcessor extends LoggingBase {
       throw new Error(`Integration run '${req.runId}' has no integration or microservice!`)
     }
 
-    const logger = createChildLogger('process', this.log, {
+    const logger = getChildLogger('process', this.log, {
       runId: req.runId,
       type: integration.platform,
       tenantId: integration.tenantId,
@@ -364,7 +362,12 @@ export class IntegrationRunProcessor extends LoggingBase {
                   `Processing bulk operation with ${operation.records.length} records!`,
                 )
                 stepContext.limitCount += operation.records.length
-                await bulkOperations(operation.type, operation.records, userContext)
+                await bulkOperations(
+                  operation.type,
+                  operation.records,
+                  userContext,
+                  req.fireCrowdWebhooks ?? true,
+                )
               }
             }
 
@@ -527,18 +530,7 @@ export class IntegrationRunProcessor extends LoggingBase {
       }
 
       if (run.onboarding && this.apiPubSubEmitter) {
-        this.apiPubSubEmitter.emit(
-          'user',
-          new ApiWebsocketMessage(
-            'integration-completed',
-            JSON.stringify({
-              integrationId: integration.id,
-              status,
-            }),
-            undefined,
-            integration.tenantId,
-          ),
-        )
+        this.apiPubSubEmitter.emitIntegrationCompleted(integration.tenantId, integration.id, status)
       }
     }
   }

@@ -5,7 +5,7 @@ import ActivityRepository from '../../database/repositories/activityRepository'
 import TagRepository from '../../database/repositories/tagRepository'
 import Error404 from '../../errors/Error404'
 import Error400 from '../../errors/Error400'
-import { PlatformType } from '../../types/integrationEnums'
+import { PlatformType } from '@crowd/types'
 import OrganizationRepository from '../../database/repositories/organizationRepository'
 import TaskRepository from '../../database/repositories/taskRepository'
 import NoteRepository from '../../database/repositories/noteRepository'
@@ -20,7 +20,7 @@ import { SlackMemberAttributes } from '../../database/attributes/member/slack'
 import SettingsRepository from '../../database/repositories/settingsRepository'
 import OrganizationService from '../organizationService'
 import Plans from '../../security/plans'
-import { generateUUIDv1 } from '../../utils/uuid'
+import { generateUUIDv1 } from '@crowd/common'
 import lodash from 'lodash'
 
 const db = null
@@ -458,6 +458,7 @@ describe('MemberService tests', () => {
       expect(o1).toStrictEqual({
         id: organization.id,
         name: 'crowd.dev',
+        displayName: 'crowd.dev',
         url: null,
         github: null,
         location: null,
@@ -527,6 +528,7 @@ describe('MemberService tests', () => {
       expect(o1).toStrictEqual({
         id: organization.id,
         name: 'crowd.dev',
+        displayName: 'crowd.dev',
         url: 'https://crowd.dev',
         github: null,
         location: null,
@@ -600,6 +602,7 @@ describe('MemberService tests', () => {
       expect(o1).toStrictEqual({
         id: organization.id,
         name: 'crowd.dev',
+        displayName: 'crowd.dev',
         url: null,
         github: null,
         location: null,
@@ -672,6 +675,7 @@ describe('MemberService tests', () => {
       expect(o1).toStrictEqual({
         id: organization.id,
         name: 'crowd.dev',
+        displayName: 'crowd.dev',
         url: 'crowd.dev',
         github: null,
         location: null,
@@ -2027,7 +2031,6 @@ describe('MemberService tests', () => {
       delete returnedMember1.noMerge
       delete returnedMember1.tags
       delete returnedMember1.activities
-      delete returnedMember1.organizations
       delete returnedMember1.tasks
       delete returnedMember1.notes
       delete returnedMember1.activityCount
@@ -2125,7 +2128,6 @@ describe('MemberService tests', () => {
       delete returnedMember1.noMerge
       delete returnedMember1.tags
       delete returnedMember1.activities
-      delete returnedMember1.organizations
       delete returnedMember1.tasks
       delete returnedMember1.notes
       delete returnedMember1.activityCount

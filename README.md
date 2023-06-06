@@ -5,7 +5,7 @@
 
   </a>
 
-  <h2 align="center">Centralize community, product, and customer data in one place</h2>
+  <h2 align="center">Understand who is engaging with your open source project.</h2>
   
   <p align="center">
     <br>
@@ -27,7 +27,7 @@
 
 ## About crowd.dev
 
-crowd.dev is an open-source platform to centralize community, product, and customer data for open-source organizations.
+crowd.dev is an open-source platform to centralize community, product, and customer data to understand who is engaging with your open source project.
 
 More than 90% of companies use open-source software. Yet, most of these companies are unaware of the highly relevant commercial offerings of open-source projects. For open-source companies, tapping into this audience is the most significant opportunity for commercialization. What stands in the way? Go-To-Market teams lack needed data across community engagement, interaction with developer docs, and self-hosted deployments.
 
@@ -49,7 +49,7 @@ With crowd.dev, you get full visibility into all platforms and can take actions 
 
 ## 🔔 Stay up-to-date
 
-Crowd.dev is still in beta and we ship new features every week. To stay in the loop, leave us a star and subscribe to our <a href="https://crowd.dev/newsletter-sign-up">monthly newsletter</a>. Thanks a lot! ❤️
+crowd.dev is still in beta and we ship new features every week. To stay in the loop, leave us a star and subscribe to our <a href="https://crowd.dev/newsletter-sign-up">monthly newsletter</a>. Thanks a lot! ❤️
 
 ## 🚀 Getting started
 
@@ -129,7 +129,7 @@ We take security very seriously. If you come across any security vulnerabilities
 
 ## 💌 Acknowledgements
 
-Crowd.dev is powered by these awesome projects:
+crowd.dev is powered by these awesome projects:
 
 - <a href="https://github.com/vuejs/vue">Vue.js</a>
 - <a href="https://github.com/tailwindlabs/tailwindcss">Tailwind CSS</a>

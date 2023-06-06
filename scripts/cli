@@ -11,8 +11,8 @@ DOCKER_TEST_NETWORK_GATEWAY="${CROWD_TEST_NETWORK_GATEWAY:-10.91.0.1}"
 CLI_HOME="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 source $CLI_HOME/utils
 
-CONTAINERS=`ls $CLI_HOME/services | sed 's/\.[^.]*$//'`
-BUILDERS=`ls $CLI_HOME/builders | sed 's/\.[^.]*$//'`
+CONTAINERS=`ls -p $CLI_HOME/services | grep -v / | sed 's/\.[^.]*$//'`
+BUILDERS=`ls -p $CLI_HOME/builders | grep -v / | sed 's/\.[^.]*$//'`
 
 _DC="docker compose"
 
@@ -314,8 +314,8 @@ function migrate_local() {
 
 function up_test_scaffold() {
     scaffold_set_up_network "${PROJECT_NAME}-bridge-test" $DOCKET_TEST_NETWORK_SUBNET $DOCKER_TEST_NETWORK_GATEWAY
-    $_DC -p "$PROJECT_NAME-test" -f $CLI_HOME/../docker/docker-compose.test.yaml down
-    $_DC -p "$PROJECT_NAME-test" -f $CLI_HOME/../docker/docker-compose.test.yaml up -d
+    $_DC -p "$PROJECT_NAME-test" -f $CLI_HOME/../backend/docker-compose.test.yaml down
+    $_DC -p "$PROJECT_NAME-test" -f $CLI_HOME/../backend/docker-compose.test.yaml up -d
     migrate_test
 }
 
@@ -335,6 +335,7 @@ function migrate_test() {
 
 function source_edition() {
     __CROWD_EDITION=$(source $CLI_HOME/../backend/.env.dist.local && source $CLI_HOME/../backend/.env.override.local && echo $CROWD_EDITION)
+    echo "Crowd edition detected: $__CROWD_EDITION"
 }
 
 function check_init_premium() {
@@ -345,7 +346,12 @@ function check_init_premium() {
     fi
 }
 
+function install_libs() {
+    (cd $CLI_HOME/../services/scripts && ./install_lib_packages.sh && ./build_libs.sh)
+}
+
 function init_unleash() {
+    install_libs
     (cd $CLI_HOME/../backend && source source-local.sh && npm i && npm run script:unleash-init)
 }
 
@@ -472,6 +478,10 @@ do
             exit;
         ;;
         service)
+            service $2 $3 $4 $5
+            exit;
+        ;;
+        services)
             service $2 $3 $4 $5
             exit;
         ;;

@@ -1,10 +1,10 @@
+import { getServiceChildLogger } from '@crowd/logging'
 import cronGenerator from 'cron-time-generator'
 import SequelizeRepository from '../../database/repositories/sequelizeRepository'
 import Plans from '../../security/plans'
 import { CrowdJob } from '../../types/jobTypes'
-import { createServiceChildLogger } from '../../utils/logging'
 
-const log = createServiceChildLogger('downgradeExpiredPlansCronJob')
+const log = getServiceChildLogger('downgradeExpiredPlansCronJob')
 
 const job: CrowdJob = {
   name: 'Downgrade Expired Trial Plans',

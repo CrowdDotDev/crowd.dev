@@ -4,8 +4,8 @@ import ActivityRepository from '../activityRepository'
 import MemberRepository from '../memberRepository'
 import SequelizeTestUtils from '../../utils/sequelizeTestUtils'
 import Error404 from '../../../errors/Error404'
-import { PlatformType } from '../../../types/integrationEnums'
-import { generateUUIDv1 } from '../../../utils/uuid'
+import { PlatformType } from '@crowd/types'
+import { generateUUIDv1 } from '@crowd/common'
 
 const db = null
 

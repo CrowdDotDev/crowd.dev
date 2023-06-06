@@ -1,11 +1,11 @@
 import { get } from 'lodash'
 import GoogleStrategy from 'passport-google-oauth20'
-import { GOOGLE_CONFIG } from '../../../config'
+import { getServiceChildLogger } from '@crowd/logging'
+import { GOOGLE_CONFIG } from '../../../conf'
 import { databaseInit } from '../../../database/databaseConnection'
 import AuthService from '../authService'
-import { createServiceChildLogger } from '../../../utils/logging'
 
-const log = createServiceChildLogger('AuthSocial')
+const log = getServiceChildLogger('AuthSocial')
 
 export function getGoogleStrategy(): GoogleStrategy {
   return new GoogleStrategy(

@@ -1,15 +1,14 @@
 import { QueryTypes } from 'sequelize'
-import { v4 as uuid } from 'uuid'
+import { Logger, getChildLogger, getServiceLogger } from '@crowd/logging'
+import { generateUUIDv1, timeout } from '@crowd/common'
 import MemberRepository from '../../database/repositories/memberRepository'
 import SequelizeRepository from '../../database/repositories/sequelizeRepository'
 import MemberService from '../../services/memberService'
-import { Logger, createChildLogger, createServiceLogger } from '../../utils/logging'
-import { timeout } from '../../utils/timing'
 
 /* eslint-disable no-continue */
 /* eslint-disable @typescript-eslint/no-loop-func */
 
-const log = createServiceLogger()
+const log = getServiceLogger()
 
 function checkUsernames(allUsernames: any[]): boolean {
   for (let i = 0; i < allUsernames.length; i++) {
@@ -108,8 +107,8 @@ async function check(): Promise<number> {
     }
 
     if (checkUsernames(data.all_usernames) && checkEmails(data.all_emails)) {
-      const logger = createChildLogger('merger', log, {
-        requestId: uuid(),
+      const logger = getChildLogger('merger', log, {
+        requestId: generateUUIDv1(),
         platform: data.platform,
         tenantId: data.tenantId,
         username: data.username,
@@ -137,8 +136,8 @@ async function check(): Promise<number> {
       )
       count++
     } else {
-      const logger = createChildLogger('fixer', log, {
-        requestId: uuid(),
+      const logger = getChildLogger('fixer', log, {
+        requestId: generateUUIDv1(),
         platform: data.platform,
         tenantId: data.tenantId,
         username: data.username,

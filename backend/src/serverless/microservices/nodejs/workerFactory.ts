@@ -26,6 +26,7 @@ import { eagleEyeEmailDigestWorker } from './eagle-eye-email-digest/eagleEyeEmai
 import { integrationDataCheckerWorker } from './integration-data-checker/integrationDataCheckerWorker'
 import { refreshSampleDataWorker } from './integration-data-checker/refreshSampleDataWorker'
 import { mergeSuggestionsWorker } from './merge-suggestions/mergeSuggestionsWorker'
+import { searchEngineUpdate } from './searchEngineUpdate/searchEngineUpdate'
 import { BulkorganizationEnrichmentWorker } from './bulk-enrichment/bulkOrganizationEnrichmentWorker'
 
 /**
@@ -38,6 +39,8 @@ import { BulkorganizationEnrichmentWorker } from './bulk-enrichment/bulkOrganiza
 async function workerFactory(event: NodeMicroserviceMessage): Promise<any> {
   const { service, tenant } = event as any
   switch (service.toLowerCase()) {
+    case 'search-engine-update':
+      return searchEngineUpdate(tenant, (event as any).conversationId)
     case 'stripe-webhooks':
       return processStripeWebhook(event)
     case 'sendgrid-webhooks':
@@ -107,18 +110,10 @@ async function workerFactory(event: NodeMicroserviceMessage): Promise<any> {
       switch (automationRequest.trigger) {
         case AutomationTrigger.NEW_ACTIVITY:
           const newActivityAutomationRequest = event as NewActivityAutomationMessage
-          return newActivityWorker(
-            tenant,
-            newActivityAutomationRequest.activityId,
-            newActivityAutomationRequest.activity,
-          )
+          return newActivityWorker(tenant, newActivityAutomationRequest.activityId)
         case AutomationTrigger.NEW_MEMBER:
           const newMemberAutomationRequest = event as NewMemberAutomationMessage
-          return newMemberWorker(
-            tenant,
-            newMemberAutomationRequest.memberId,
-            newMemberAutomationRequest.member,
-          )
+          return newMemberWorker(tenant, newMemberAutomationRequest.memberId)
         default:
           throw new Error(`Invalid automation trigger ${automationRequest.trigger}!`)
       }

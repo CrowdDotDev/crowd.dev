@@ -1,5 +1,5 @@
 import { AxiosError, AxiosRequestConfig } from 'axios'
-import { Logger } from '../../../../utils/logging'
+import { Logger } from '@crowd/logging'
 import { RateLimitError } from '../../../../types/integration/rateLimitError'
 
 export const handleDiscordError = (
