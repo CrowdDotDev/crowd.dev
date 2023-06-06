@@ -21,9 +21,7 @@
     </template>
     <template #default="{ resultSet }">
       <app-cube-render
-        :query="
-          activitiesCount(dateRange(period), platform)
-        "
+        :query="activitiesCount(dateRange(period), platform)"
       >
         <template #loading>
           <div
@@ -45,13 +43,12 @@
           </div>
         </template>
         <template #default="current">
-          <article
-            v-for="{ total, plat, type } of compileData(
-              resultSet,
-            )"
-            :key="`${plat}-${type}`"
-            class="border-t border-gray-100 py-4 flex items-center justify-between first:border-none"
-          >
+          <article 
+          v-for="{ total, plat, type } of 
+          compileData(resultSet)" 
+          :key="`${plat}-${type}`"
+            class="border-t border-gray-100 py-4 flex items-center cursor-pointer justify-between first:border-none"
+            @click="handleActivityClick(plat, type)">
             <div class="flex items-center">
               <img
                 v-if="getPlatformDetails(plat)"
@@ -112,10 +109,17 @@ import { storeToRefs } from 'pinia';
 import { computed, watch } from 'vue';
 import pluralize from 'pluralize';
 import merge from 'lodash/merge';
+import { useStore } from 'vuex';
+import { useRouter } from 'vue-router';
+import ActivityTypeField from '@/modules/activity/activity-type-field';
+import ActivityDateField from '@/shared/fields/activity-date-field';
+import { formatDate } from '@/utils/date';
 
+
+const router = useRouter()
+const store = useStore();
 const { period, platform } = mapGetters('dashboard');
 const { currentTenant } = mapGetters('auth');
-
 const activityTypeStore = useActivityTypeStore();
 const { types } = storeToRefs(activityTypeStore);
 const { setTypes } = activityTypeStore;
@@ -156,12 +160,67 @@ const computedScore = (resultSet) => {
 };
 
 const getPlatformDetails = (plat) => CrowdIntegrations.getConfig(plat);
+
+const handleActivityClick = (plat, type) => {
+  const dateField = new ActivityDateField(
+    "lastActive",
+    "Last activity",
+    {
+      filterable: true,
+    } 
+  ).forFilter()
+
+  const activityTypeField = new ActivityTypeField(
+    'type',
+    'Activity type',
+    {
+      filterable: true,
+      fromMembers: false
+    }
+  ).forFilter()
+
+  
+
+ 
+  const optionsArray = activityTypeField.props.options
+
+  // Finding the option object with the matching platform key
+  const platformOption = optionsArray.find((option) => option.label.key === plat);
+
+  // Find the nested option object with the matching value within the platform option
+  const nestedOption = platformOption.nestedOptions.find((option) => option.value === type);
+
+  // Retrieve the desired values
+  const platformValue = platformOption.label.value; //for example : Github, Twitter etc.
+  const displayLabel = nestedOption.label; // for example : Commented on an Issue, Merged a pull request etc.
+
+  activityTypeField.value = {
+    displayValue: displayLabel,
+    displayKey: platformValue,
+    type: "platform",
+    key: plat,
+    value: type,
+  }
+
+  const periodValue = period.value.value //7 or 14 or 30
+
+  dateField.name = 'timestamp'
+  dateField.value = formatDate({
+    subtractDays: periodValue,
+  })
+  dateField.label = "Date"
+
+  store.dispatch(`activity/updateFilterAttribute`, activityTypeField)
+  store.dispatch(`activity/updateFilterAttribute`, dateField)
+  router.push("/activities")
+}
 </script>
 
 <script>
 export default {
   name: 'AppDashboardActivityTypes',
 };
+
 </script>
 
 <style lang="scss">
