@@ -10,7 +10,7 @@ export async function segmentMiddleware(req, res, next) {
 
     if (!(await isFeatureEnabled(FeatureFlag.SEGMENTS, req))) {
       // return default segment
-      const segments = await segmentRepository.querySubprojects({ limit: 1 })
+      const segments = await segmentRepository.querySubprojects({ limit: 1, offset: 0 })
       req.currentSegments = segments.rows
       next()
       return
@@ -23,7 +23,7 @@ export async function segmentMiddleware(req, res, next) {
       // for post and put requests, segments will be in body
       segments = await segmentRepository.findInIds(req.body.segments)
     } else {
-      const segments = await segmentRepository.querySubprojects({ limit: 1 })
+      const segments = await segmentRepository.querySubprojects({ limit: 1, offset: 0 })
       req.currentSegments = segments.rows
       next()
       return
