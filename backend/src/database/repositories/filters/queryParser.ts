@@ -5,6 +5,7 @@ import Sequelize from 'sequelize'
 import { IRepositoryOptions } from '../IRepositoryOptions'
 import SequelizeRepository from '../sequelizeRepository'
 import { QueryInput, ManyToManyType } from './queryTypes'
+import SegmentRepository from '../segmentRepository'
 
 const { Op } = Sequelize
 
@@ -401,12 +402,37 @@ class QueryParser {
     // eslint-disable-next-line prefer-const
     let { filter, orderBy, limit, offset, include, fields } = query
 
-    const dbQuery: any = {
-      where: {
-        tenantId: SequelizeRepository.getCurrentTenant(this.options).id,
-      },
-      limit: QueryParser.defaultPageSize,
-      offset: 0,
+    let dbQuery: any
+
+    if (this.manyToMany.segments) {
+      const segmentsQuery = this.replaceWithManyToMany(
+        {
+          segments: SegmentRepository.getSegmentIds(this.options),
+        },
+        'segments',
+      )
+
+      dbQuery = {
+        where: {
+          [Op.and]: [
+            {
+              tenantId: SequelizeRepository.getCurrentTenant(this.options).id,
+            },
+            segmentsQuery,
+          ],
+        },
+        limit: QueryParser.defaultPageSize,
+        offset: 0,
+      }
+    } else {
+      dbQuery = {
+        where: {
+          tenantId: SequelizeRepository.getCurrentTenant(this.options).id,
+          segmentId: SegmentRepository.getSegmentIds(this.options),
+        },
+        limit: QueryParser.defaultPageSize,
+        offset: 0,
+      }
     }
 
     if (fields) {

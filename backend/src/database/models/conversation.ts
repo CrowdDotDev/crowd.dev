@@ -52,6 +52,13 @@ export default (sequelize) => {
       },
     })
 
+    models.conversation.belongsTo(models.segment, {
+      as: 'segment',
+      foreignKey: {
+        allowNull: false,
+      },
+    })
+
     models.conversation.belongsTo(models.user, {
       as: 'createdBy',
     })

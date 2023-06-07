@@ -23,6 +23,10 @@ import MemberAttributeSettingsService from './memberAttributeSettingsService'
 import { DefaultMemberAttributes } from '../database/attributes/member/default'
 import { TenantMode } from '../conf/configTypes'
 import TaskRepository from '../database/repositories/taskRepository'
+import isFeatureEnabled from '../feature-flags/isFeatureEnabled'
+import { FeatureFlag } from '../types/common'
+import SegmentRepository from '../database/repositories/segmentRepository'
+import { SegmentStatus } from '../types/segmentTypes'
 
 export default class TenantService {
   options: IServiceOptions
@@ -183,6 +187,31 @@ export default class TenantService {
         ...this.options,
         transaction,
       })
+
+      let segment
+
+      // create default segment (if segments feature is not enabled)
+      if (!(await isFeatureEnabled(FeatureFlag.SEGMENTS, this.options))) {
+        const slug = data.url || (await TenantRepository.generateTenantUrl(data.name, this.options))
+        segment = await new SegmentRepository({
+          ...this.options,
+          currentTenant: record,
+          transaction,
+        }).create({
+          name: data.name,
+          url: data.url,
+          parentName: data.name,
+          grandparentName: data.name,
+          slug,
+          parentSlug: slug,
+          grandparentSlug: slug,
+          status: SegmentStatus.ACTIVE,
+          sourceId: null,
+          sourceParentId: null,
+        })
+      }
+
+      this.options.currentSegments = segment ? [segment] : []
 
       await SettingsService.findOrCreateDefault({
         ...this.options,

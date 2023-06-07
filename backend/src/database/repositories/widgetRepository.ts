@@ -7,6 +7,7 @@ import Error404 from '../../errors/Error404'
 import { IRepositoryOptions } from './IRepositoryOptions'
 import QueryParser from './filters/queryParser'
 import { QueryOutput } from './filters/queryTypes'
+import SegmentRepository from './segmentRepository'
 
 const { Op } = Sequelize
 
@@ -18,11 +19,14 @@ class WidgetRepository {
 
     const transaction = SequelizeRepository.getTransaction(options)
 
+    const segment = SequelizeRepository.getStrictlySingleActiveSegment(options)
+
     const record = await options.database.widget.create(
       {
         ...lodash.pick(data, ['cache', 'importHash', 'settings', 'title', 'type']),
         reportId: data.report || null,
         tenantId: tenant.id,
+        segmentId: segment.id,
         createdById: currentUser.id,
         updatedById: currentUser.id,
       },
@@ -63,6 +67,7 @@ class WidgetRepository {
       where: {
         id,
         tenantId: currentTenant.id,
+        segmentId: SegmentRepository.getSegmentIds(options),
       },
       transaction,
     })
@@ -96,6 +101,7 @@ class WidgetRepository {
       where: {
         id,
         tenantId: currentTenant.id,
+        segmentId: SegmentRepository.getSegmentIds(options),
       },
       transaction,
     })
@@ -128,6 +134,7 @@ class WidgetRepository {
       where: {
         id,
         tenantId: currentTenant.id,
+        segmentId: SegmentRepository.getSegmentIds(options),
       },
       include,
       transaction,
@@ -177,6 +184,7 @@ class WidgetRepository {
       where: {
         ...filter,
         tenantId: tenant.id,
+        segmentId: SegmentRepository.getSegmentIds(options),
       },
       transaction,
     })
@@ -277,6 +285,9 @@ class WidgetRepository {
     const whereAnd: Array<any> = [
       {
         tenantId: tenant.id,
+      },
+      {
+        segmentId: SegmentRepository.getSegmentIds(options),
       },
     ]
 

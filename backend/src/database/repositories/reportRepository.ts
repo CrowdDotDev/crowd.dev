@@ -7,6 +7,7 @@ import Error404 from '../../errors/Error404'
 import { IRepositoryOptions } from './IRepositoryOptions'
 import { QueryOutput } from './filters/queryTypes'
 import QueryParser from './filters/queryParser'
+import SegmentRepository from './segmentRepository'
 
 const { Op } = Sequelize
 
@@ -18,11 +19,14 @@ class ReportRepository {
 
     const transaction = SequelizeRepository.getTransaction(options)
 
+    const segment = SequelizeRepository.getStrictlySingleActiveSegment(options)
+
     const record = await options.database.report.create(
       {
         ...lodash.pick(data, ['name', 'public', 'importHash', 'isTemplate', 'viewedBy']),
 
         tenantId: tenant.id,
+        segmentId: segment.id,
         createdById: currentUser.id,
         updatedById: currentUser.id,
       },
@@ -51,6 +55,7 @@ class ReportRepository {
       where: {
         id,
         tenantId: currentTenant.id,
+        segmentId: SegmentRepository.getSegmentIds(options),
       },
       transaction,
     })
@@ -90,6 +95,7 @@ class ReportRepository {
       where: {
         id,
         tenantId: currentTenant.id,
+        segmentId: SegmentRepository.getSegmentIds(options),
       },
       transaction,
     })
@@ -116,6 +122,7 @@ class ReportRepository {
       where: {
         id,
         tenantId: currentTenant.id,
+        segmentId: SegmentRepository.getSegmentIds(options),
       },
       include,
       transaction,
@@ -163,6 +170,7 @@ class ReportRepository {
       where: {
         ...filter,
         tenantId: tenant.id,
+        segmentId: SegmentRepository.getSegmentIds(options),
       },
       transaction,
     })
@@ -258,6 +266,9 @@ class ReportRepository {
     const whereAnd: Array<any> = [
       {
         tenantId: tenant.id,
+      },
+      {
+        segmentId: SegmentRepository.getSegmentIds(options),
       },
     ]
 

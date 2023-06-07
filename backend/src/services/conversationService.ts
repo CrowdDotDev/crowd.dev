@@ -131,6 +131,7 @@ export default class ConversationService extends LoggerBase {
       }
 
       if (
+        data.autopubLish &&
         data.autoPublish.status &&
         ConversationSettingsService.isAutoPublishUpdated(
           data.autoPublish,
