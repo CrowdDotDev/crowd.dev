@@ -23,7 +23,7 @@ export default class ActivityService extends LoggerBase {
     parentLog: Logger,
   ) {
     super(parentLog)
-    this.conversationService = new ConversationService(store, nodejsWorkerEmitter, parentLog)
+    this.conversationService = new ConversationService(store, parentLog)
   }
 
   public async create(tenantId: string, activity: IActivityCreateData): Promise<string> {

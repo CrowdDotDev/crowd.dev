@@ -28,7 +28,6 @@
           <template #after>
             <el-button
               class="btn btn--md btn--transparent w-10 h-10"
-              :disabled="form.remotes.length === 1"
               @click="removeRemote(ii)"
             >
               <i class="ri-delete-bin-line text-lg" />
@@ -58,7 +57,7 @@
           :loading="loading"
           @click="connect"
         >
-          {{ integration.settings?.remotes?.length ? "Update" : "Connect" }}
+          {{ integration.settings?.remotes?.length ? 'Update' : 'Connect' }}
         </el-button>
       </div>
     </template>
@@ -66,11 +65,11 @@
 </template>
 
 <script setup>
-import { CrowdIntegrations } from '@/integrations/integrations-config';
 import useVuelidate from '@vuelidate/core';
 import {
   computed, onMounted, reactive, ref,
 } from 'vue';
+import { CrowdIntegrations } from '@/integrations/integrations-config';
 import AppArrayInput from '@/shared/form/array-input.vue';
 import formChangeDetector from '@/shared/form/form-change';
 import { mapActions } from '@/shared/vuex/vuex.helpers';

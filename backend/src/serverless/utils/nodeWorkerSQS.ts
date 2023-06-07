@@ -74,6 +74,7 @@ export const sendNodeWorkerMessage = async (
   log.info(
     {
       messageType: body.type,
+      body,
     },
     'Sending nodejs-worker sqs message!',
   )

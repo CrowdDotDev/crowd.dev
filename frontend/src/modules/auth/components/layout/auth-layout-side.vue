@@ -10,13 +10,10 @@
       </div>
       <div class="flex flex-col gap-4">
         <h4>
-          The community-led growth platform for developer
-          tools
+          Find revenue opportunities in your open source data
         </h4>
         <p class="text-sm leading-6">
-          An open source suite of community and data tools
-          built to unlock community-led growth for your
-          organization
+           Centralize community, product, and customer data to understand which companies are engaging with your open source project.
         </p>
       </div>
       <div class="grid grid-rows-2 gap-8">
@@ -30,8 +27,8 @@
           </div>
           <div class="flex items-center justify-end">
             <img
-              src="/images/auth/crowdsec.png"
-              alt="crowdsec logo"
+              src="/images/auth/thelinuxfoundation.png"
+              alt="thelinuxfoundation logo"
               class="h-7"
             />
           </div>
@@ -48,14 +45,14 @@
             <img
               src="/images/auth/dragonfly.png"
               alt="dragonfly logo"
-              class="h-5"
+              class="h-7"
             />
           </div>
           <div class="flex items-center justify-end">
             <img
-              src="/images/auth/zenml.png"
-              alt="zenml logo"
-              class="h-5"
+              src="/images/auth/drant.png"
+              alt="drant logo"
+              class="h-7"
             />
           </div>
           <div class="flex items-center justify-end">
