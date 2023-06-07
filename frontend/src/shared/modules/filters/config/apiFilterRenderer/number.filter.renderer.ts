@@ -12,9 +12,7 @@ export const numberApiFilterRenderer = (property: string, {
   return [
     {
       [property]: (include ? filter : {
-        not: {
-          filter,
-        },
+        not: filter,
       }),
     },
   ];

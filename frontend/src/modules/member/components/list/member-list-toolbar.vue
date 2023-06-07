@@ -209,7 +209,7 @@ const handleMergeMembers = () => {
   return MemberService.merge(firstMember, secondMember)
     .then(() => {
       Message.success('Members merged successfuly');
-      fetchMembers({}, true);
+      fetchMembers({ reload: true });
     })
     .catch(() => {
       Message.error('Error merging members');
@@ -229,7 +229,7 @@ const doDestroyAllWithConfirm = () => ConfirmDialog({
     const ids = selectedMembers.value.map((m) => m.id);
     return MemberService.destroyAll(ids);
   })
-  .then(() => fetchMembers(null, true));
+  .then(() => fetchMembers({ reload: true }));
 
 const handleDoExport = async () => {
   const ids = selectedMembers.value.map((i) => i.id);
@@ -299,7 +299,7 @@ const doMarkAsTeamMember = (value) => {
     },
   })))
     .then(() => {
-      fetchMembers(null, true);
+      fetchMembers({ reload: true });
       Message.success(
         `Member${
           selectedMembers.value.length > 1 ? 's' : ''

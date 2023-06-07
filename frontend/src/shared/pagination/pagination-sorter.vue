@@ -20,7 +20,7 @@
         v-if="module === 'member'"
         type="button"
         class="btn btn--transparent btn--md mr-3"
-        @click="exportMembers"
+        @click="doExport"
       >
         <i
           class="ri-file-download-line ri-lg mr-1 flex items-center"
@@ -43,15 +43,13 @@
 import { computed, defineProps, defineEmits } from 'vue';
 import pluralize from 'pluralize';
 import { getExportMax, showExportDialog, showExportLimitDialog } from '@/modules/member/member-export-limit';
-import { MemberService } from '@/modules/member/member-service';
 import Message from '@/shared/message/message';
-import { useMemberStore } from '@/modules/member/store/pinia';
-import { storeToRefs } from 'pinia';
 import { mapActions, mapGetters } from '@/shared/vuex/vuex.helpers';
 
 const emit = defineEmits([
   'changeSorter',
   'update:modelValue',
+  'export',
 ]);
 const props = defineProps({
   currentPage: {
@@ -87,10 +85,12 @@ const props = defineProps({
     type: Boolean,
     default: () => true,
   },
+  export: {
+    type: Function,
+    default: () => false,
+  },
 });
 
-const memberStore = useMemberStore();
-const { savedFilterBody } = storeToRefs(memberStore);
 const { currentTenant } = mapGetters('auth');
 const { doRefreshCurrentUser } = mapActions('auth');
 
@@ -177,7 +177,7 @@ const onChange = (value) => {
   emit('changeSorter', value);
 };
 
-const exportMembers = async () => {
+const doExport = async () => {
   try {
     const tenantCsvExportCount = currentTenant.value.csvExportCount;
     const planExportCountMax = getExportMax(
@@ -189,13 +189,7 @@ const exportMembers = async () => {
       planExportCountMax,
     });
 
-    await MemberService.export(
-      savedFilterBody.value.filter,
-      savedFilterBody.value.orderBy,
-      0,
-      null,
-      false,
-    );
+    await props.export();
 
     await doRefreshCurrentUser(null);
 

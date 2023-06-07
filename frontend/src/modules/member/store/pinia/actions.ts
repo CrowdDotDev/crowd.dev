@@ -9,7 +9,7 @@ import { Member } from '@/modules/member/types/Member';
 const { buildFilterFromAttributes } = customAttributesService();
 
 export default {
-  fetchMembers(this: MemberState, body: any, reload = false): Promise<Pagination<Member>> {
+  fetchMembers(this: MemberState, { body = {}, reload = false } :{ body?: any, reload?: boolean }): Promise<Pagination<Member>> {
     const mappedBody = reload ? this.savedFilterBody : body;
     this.selectedMembers = [];
     this.members = [];

@@ -41,6 +41,7 @@
             :total="totalMembers"
             :current-page="pagination.page"
             :has-page-counter="false"
+            :export="doExport"
             module="member"
             position="top"
             @change-sorter="doChangePaginationPageSize"
@@ -406,6 +407,7 @@ import { formatDateToTimeAgo } from '@/utils/date';
 import { formatNumberToCompact, formatNumber } from '@/utils/number';
 import { useMemberStore } from '@/modules/member/store/pinia';
 import { storeToRefs } from 'pinia';
+import { MemberService } from '@/modules/member/member-service';
 import AppMemberBadge from '../member-badge.vue';
 import AppMemberDropdown from '../member-dropdown.vue';
 import AppMemberIdentities from '../member-identities.vue';
@@ -441,7 +443,7 @@ const props = defineProps({
 
 const memberStore = useMemberStore();
 const {
-  members, totalMembers, filters, selectedMembers,
+  members, totalMembers, filters, selectedMembers, savedFilterBody,
 } = storeToRefs(memberStore);
 
 const defaultSort = computed(() => ({
@@ -605,6 +607,14 @@ watch(table, (newValue) => {
     tableHeaderRef.value.addEventListener('scroll', onTableHeaderScroll);
   }
 });
+
+const doExport = () => MemberService.export(
+  savedFilterBody.value.filter,
+  savedFilterBody.value.orderBy,
+  0,
+  null,
+  false,
+);
 
 onMounted(async () => {
   if (store.state.integration.count === 0) {

@@ -63,7 +63,7 @@
       />
       <app-member-list-table
         :has-integrations="hasIntegrations"
-        :has-members="true"
+        :has-members="membersCount > 0"
         :is-page-loading="loading"
       />
     </div>
@@ -122,14 +122,10 @@ const fetchMembersToMergeCount = () => {
 const loading = ref(true);
 
 const doGetMembersCount = () => {
-  (MemberService.list(
-    {},
-    '',
-    1,
-    0,
-    false,
-    true,
-  ) as Promise<any>)
+  (MemberService.listMembers({
+    limit: 1,
+    offset: 0,
+  }, true) as Promise<any>)
     .then(({ count }) => {
       membersCount.value = count;
     });
@@ -152,11 +148,13 @@ const fetch = ({
 }: FilterQuery) => {
   loading.value = showLoading(filter, body);
   fetchMembers({
-    ...body,
-    filter,
-    offset,
-    limit,
-    orderBy,
+    body: {
+      ...body,
+      filter,
+      offset,
+      limit,
+      orderBy,
+    },
   })
     .finally(() => {
       loading.value = false;

@@ -202,7 +202,7 @@ class TagRepository {
         advancedFilter.and.push({
           or: filter.ids.map((id) => ({
             id,
-          }))
+          })),
         })
       }
 

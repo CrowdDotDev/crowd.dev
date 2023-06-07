@@ -17,6 +17,7 @@
         class="filter-multiselect"
         popper-class="filter-multiselect-popper"
         :loading="loading"
+        no-data-text="No results"
       >
         <el-option
           v-for="option of data.selected"
@@ -132,7 +133,7 @@ const searchOptions = (query: string) => {
 
 onMounted(() => {
   searchOptions('');
-  if (!props.modelValue.value || Object.keys(props.modelValue.value).length === 0) {
+  if (!props.modelValue.value || Object.keys(props.modelValue.value).length < 2) {
     emit('update:modelValue', defaultForm);
   }
   if (!data.value.selected) {

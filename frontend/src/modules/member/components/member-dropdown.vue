@@ -265,10 +265,10 @@ export default {
             },
           },
         });
-        await this.fetchMembers(null, true);
+        await this.fetchMembers({ reload: true });
         Message.success('Member updated successfully');
         if (this.$route.name === 'member') {
-          await this.fetchMembers(null, true);
+          await this.fetchMembers({ reload: true });
         } else {
           this.doFind(command.member.id);
         }
@@ -281,10 +281,10 @@ export default {
             },
           },
         });
-        await this.fetchMembers(null, true);
+        await this.fetchMembers({ reload: true });
         Message.success('Member updated successfully');
         if (this.$route.name === 'member') {
-          await this.fetchMembers(null, true);
+          await this.fetchMembers({ reload: true });
         } else {
           this.doFind(command.member.id);
         }

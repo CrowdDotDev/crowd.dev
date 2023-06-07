@@ -112,7 +112,7 @@ export const connectSocket = (token) => {
       if (currentTenant.value.id === parsed.tenantId) {
         // Refresh list page
         const { fetchMembers } = useMemberStore();
-        await fetchMembers(null, true);
+        await fetchMembers({ reload: true });
       }
     }
   });

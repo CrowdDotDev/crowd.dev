@@ -34,7 +34,7 @@ const form = computed({
   },
 });
 
-const selected = computed(() => form.value.includes(props.value));
+const selected = computed(() => form.value?.includes(props.value));
 
 const selectOption = () => {
   if (selected.value) {
