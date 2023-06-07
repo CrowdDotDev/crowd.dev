@@ -2,7 +2,7 @@ import axios, { AxiosRequestConfig } from 'axios'
 import { getNangoToken } from '../../nango'
 import { IProcessStreamContext } from '@/types'
 import { PlatformType } from '@crowd/types'
-import { RedditGetPostsInput, RedditPostsResponse, MAX_RETROSPECT_IN_HOURS } from '../types'
+import { RedditGetPostsInput, RedditPostsResponse, REDDIT_MAX_RETROSPECT_IN_HOURS } from '../types'
 import { timeout } from '@crowd/common'
 
 /**
@@ -52,7 +52,7 @@ async function getPosts(
         // If the last post is older than 5 hours, set 'after' to null so the next API call won't go deeper
         ctx.log.info(
           lastPost,
-          `Last post is older than ${MAX_RETROSPECT_IN_HOURS} hours, stopping pagination`,
+          `Last post is older than ${REDDIT_MAX_RETROSPECT_IN_HOURS} hours, stopping pagination`,
         )
         response.data.children[response.data.children.length - 1].data.name = null
       }
