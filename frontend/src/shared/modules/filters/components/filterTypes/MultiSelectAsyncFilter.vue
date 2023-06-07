@@ -17,14 +17,8 @@
         class="filter-multiselect"
         popper-class="filter-multiselect-popper"
         :loading="loading"
+        no-data-text="No results"
       >
-        <el-option
-          v-for="option of data.selected"
-          :key="option.value"
-          :label="option.label"
-          :value="option"
-          class="!hidden"
-        />
         <el-option
           v-for="option of filteredOptions"
           :key="option.value"
@@ -100,10 +94,9 @@ const include = computed<boolean>({
   },
 });
 
-watch(() => props.modelValue.value, (value: string[]) => {
-  if (value.length !== data.value.selected?.length) {
-    console.log(value);
-    props.remotePopulateItems(value)
+watch(() => props.modelValue.value, (value?: string[]) => {
+  if (value?.length !== data.value.selected?.length) {
+    props.remotePopulateItems(value || [])
       .then((options) => {
         data.value.selected = options;
       });
@@ -120,6 +113,8 @@ watch(() => data.value.selected, (value) => {
 const loading = ref<boolean>(false);
 const filteredOptions = ref<MultiSelectAsyncFilterOption[]>([]);
 
+const unselectedOptions = computed(() => filteredOptions.value.filter((o) => !props.modelValue.value.includes(o.value)));
+
 const searchOptions = (query: string) => {
   loading.value = true;
   props.remoteMethod(query)
@@ -133,7 +128,7 @@ const searchOptions = (query: string) => {
 
 onMounted(() => {
   searchOptions('');
-  if (!props.modelValue.value || Object.keys(props.modelValue.value).length === 0) {
+  if (!props.modelValue.value || Object.keys(props.modelValue.value).length < 2) {
     emit('update:modelValue', defaultForm);
   }
   if (!data.value.selected) {

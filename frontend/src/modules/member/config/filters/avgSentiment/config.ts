@@ -5,7 +5,6 @@ import {
   MultiSelectFilterValue,
 } from '@/shared/modules/filters/types/filterTypes/MultiSelectFilterConfig';
 import { itemLabelRendererByType } from '@/shared/modules/filters/config/itemLabelRendererByType';
-import { apiFilterRendererByType } from '@/shared/modules/filters/config/apiFilterRendererByType';
 import options from './options';
 
 const avgSentiment: MultiSelectFilterConfig = {
@@ -19,8 +18,17 @@ const avgSentiment: MultiSelectFilterConfig = {
   itemLabelRenderer(value: MultiSelectFilterValue, options: MultiSelectFilterOptions): string {
     return itemLabelRendererByType[FilterConfigType.MULTISELECT]('Avg. sentiment', value, options);
   },
-  apiFilterRenderer(value: MultiSelectFilterValue): any[] {
-    return apiFilterRendererByType[FilterConfigType.MULTISELECT]('averageSentiment', value);
+  apiFilterRenderer({ value, include }: MultiSelectFilterValue): any[] {
+    const filter = {
+      or: [
+        ...(value.includes('positive') ? [{ averageSentiment: { gte: 67 } }] : []),
+        ...(value.includes('negative') ? [{ averageSentiment: { lt: 33 } }] : []),
+        ...(value.includes('neutral') ? [{ averageSentiment: { between: [33, 67] } }] : []),
+      ],
+    };
+    return [
+      (include ? filter : { not: filter }),
+    ];
   },
 };
 

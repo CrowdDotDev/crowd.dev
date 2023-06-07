@@ -11,6 +11,7 @@
       :teleported="false"
       class="filter-multiselect"
       popper-class="filter-multiselect-popper"
+      no-data-text="No results"
     >
       <template v-for="(group, gi) of filteredOptions" :key="gi">
         <div

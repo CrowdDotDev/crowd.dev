@@ -79,7 +79,7 @@ const rules: any = {
 useVuelidate(rules, form);
 
 onMounted(() => {
-  if (!form.value || Object.keys(form.value).length === 0) {
+  if (!form.value || Object.keys(form.value).length < 2) {
     form.value = defaultForm;
   }
 });

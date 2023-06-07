@@ -14,7 +14,7 @@ export const multiSelectAsyncItemLabelRenderer = (
 
   const charLimit = 30;
 
-  const labelObject = (data.selected as MultiSelectAsyncFilterOption[])
+  const labelObject = ((data?.selected || []) as MultiSelectAsyncFilterOption[])
     .filter((option) => value.includes(option.value))
     .reduce((obj, option) => {
       // eslint-disable-next-line no-param-reassign

@@ -1,10 +1,10 @@
 <template>
   <div
-    v-if="selectedRows.length > 0"
+    v-if="selectedMembers.length > 0"
     class="app-list-table-bulk-actions"
   >
     <span class="block text-sm font-semibold mr-4">
-      {{ pluralize('member', selectedRows.length, true) }}
+      {{ pluralize('member', selectedMembers.length, true) }}
       selected</span>
     <el-dropdown trigger="click" @command="handleCommand">
       <button type="button" class="btn btn--bordered btn--sm">
@@ -17,7 +17,7 @@
           Export to CSV
         </el-dropdown-item>
         <el-dropdown-item
-          v-if="selectedRows.length === 2"
+          v-if="selectedMembers.length === 2"
           :command="{ action: 'mergeMembers' }"
           :disabled="isEditLockedForSampleData"
         >
@@ -97,261 +97,326 @@
 
     <app-member-list-bulk-update-tags
       v-model="bulkTagsUpdateVisible"
-      :loading="loading"
-      :selected-rows="selectedRows"
+      :selected-rows="selectedMembers"
     />
   </div>
 </template>
 
-<script>
-import { mapGetters, mapActions, mapState } from 'vuex';
-import pluralize from 'pluralize';
+<script setup>
+
+import { computed, ref } from 'vue';
 import { MemberPermissions } from '@/modules/member/member-permissions';
-import ConfirmDialog from '@/shared/dialog/confirm-dialog';
-import AppSvg from '@/shared/svg/svg.vue';
+import { useMemberStore } from '@/modules/member/store/pinia';
+import { storeToRefs } from 'pinia';
+import { mapActions, mapGetters } from '@/shared/vuex/vuex.helpers';
 import { MemberService } from '@/modules/member/member-service';
+import ConfirmDialog from '@/shared/dialog/confirm-dialog';
 import Message from '@/shared/message/message';
-import AppMemberListBulkUpdateTags from '@/modules/member/components/list/member-list-bulk-update-tags.vue';
+import pluralize from 'pluralize';
+import { getExportMax, showExportDialog, showExportLimitDialog } from '@/modules/member/member-export-limit';
+import {
+  checkEnrichmentLimit,
+  checkEnrichmentPlan,
+  getEnrichmentMax,
+  showEnrichmentLoadingMessage,
+} from '@/modules/member/member-enrichment';
 
-export default {
-  name: 'AppMemberListToolbar',
+const { currentUser, currentTenant } = mapGetters('auth');
+const { doRefreshCurrentUser } = mapActions('auth');
+const memberStore = useMemberStore();
+const { selectedMembers, filters } = storeToRefs(memberStore);
+const { fetchMembers, getMemberCustomAttributes } = memberStore;
 
-  components: {
-    AppMemberListBulkUpdateTags,
-    AppSvg,
-  },
+const bulkTagsUpdateVisible = ref(false);
 
-  data() {
+const isReadOnly = computed(() => (
+  new MemberPermissions(
+    currentTenant.value,
+    currentUser.value,
+  ).edit === false
+));
+
+const isEditLockedForSampleData = computed(() => (
+  new MemberPermissions(
+    currentTenant.value,
+    currentUser.value,
+  ).editLockedForSampleData
+));
+
+const isDeleteLockedForSampleData = computed(() => (
+  new MemberPermissions(
+    currentTenant.value,
+    currentUser.value,
+  ).destroyLockedForSampleData
+));
+
+const elegibleEnrichmentMembersIds = computed(() => selectedMembers.value
+  .filter(
+    (r) => r.username?.github?.length || r.emails?.length,
+  )
+  .map((item) => item.id));
+
+const enrichedMembers = computed(() => selectedMembers.value.filter((r) => r.lastEnriched)
+  .length);
+
+const enrichmentLabel = computed(() => {
+  if (
+    enrichedMembers.value
+    && enrichedMembers.value
+    === elegibleEnrichmentMembersIds.value.length
+  ) {
+    return `Re-enrich ${pluralize(
+      'member',
+      selectedIds.value.length,
+      false,
+    )}`;
+  }
+
+  return `Enrich ${pluralize(
+    'member',
+    selectedIds.value.length,
+    false,
+  )}`;
+});
+
+const selectedIds = computed(() => selectedMembers.value.map((item) => item.id));
+
+const markAsTeamMemberOptions = computed(() => {
+  const isTeamView = filters.value.settings.teamMember === 'filter';
+  const membersCopy = pluralize(
+    'member',
+    selectedMembers.value.length,
+    false,
+  );
+
+  if (isTeamView) {
     return {
-      bulkTagsUpdateVisible: false,
+      icon: 'ri-bookmark-2-line',
+      copy: `Unmark as team ${membersCopy}`,
+      value: false,
     };
-  },
+  }
 
-  computed: {
-    ...mapState({
-      loading: (state) => state.member.list.loading,
-    }),
-    ...mapGetters({
-      currentUser: 'auth/currentUser',
-      currentTenant: 'auth/currentTenant',
-      selectedRows: 'member/selectedRows',
-      activeView: 'member/activeView',
-    }),
-    isReadOnly() {
-      return (
-        new MemberPermissions(
-          this.currentTenant,
-          this.currentUser,
-        ).edit === false
+  return {
+    icon: 'ri-bookmark-line',
+    copy: `Mark as team ${membersCopy}`,
+    value: true,
+  };
+});
+
+const handleMergeMembers = () => {
+  const [firstMember, secondMember] = this.selectedRows;
+  return MemberService.merge(firstMember, secondMember)
+    .then(() => {
+      Message.success('Members merged successfuly');
+      fetchMembers({ reload: true });
+    })
+    .catch(() => {
+      Message.error('Error merging members');
+    });
+};
+
+const doDestroyAllWithConfirm = () => ConfirmDialog({
+  type: 'danger',
+  title: 'Delete members',
+  message:
+        "Are you sure you want to proceed? You can't undo this action",
+  confirmButtonText: 'Confirm',
+  cancelButtonText: 'Cancel',
+  icon: 'ri-delete-bin-line',
+})
+  .then(() => {
+    const ids = selectedMembers.value.map((m) => m.id);
+    return MemberService.destroyAll(ids);
+  })
+  .then(() => fetchMembers({ reload: true }));
+
+const handleDoExport = async () => {
+  const ids = selectedMembers.value.map((i) => i.id);
+
+  const filter = {
+    id: {
+      in: ids,
+    },
+  };
+
+  try {
+    const tenantCsvExportCount = currentTenant.value.csvExportCount;
+    const planExportCountMax = getExportMax(
+      currentTenant.value.plan,
+    );
+
+    await showExportDialog({
+      tenantCsvExportCount,
+      planExportCountMax,
+      badgeContent: pluralize('member', selectedMembers.value.length, true),
+    });
+
+    await MemberService.export(
+      filter,
+      `${filters.value.order.prop}_${filters.value.order.order === 'descending' ? 'DESC' : 'ASC'}`,
+      0,
+      null,
+      false,
+    );
+
+    await doRefreshCurrentUser(null);
+
+    Message.success(
+      'CSV download link will be sent to your e-mail',
+    );
+  } catch (error) {
+    console.error(error);
+
+    if (error.response?.status === 403) {
+      const planExportCountMax = getExportMax(
+        currentTenant.value.plan,
       );
-    },
-    isEditLockedForSampleData() {
-      return new MemberPermissions(
-        this.currentTenant,
-        this.currentUser,
-      ).editLockedForSampleData;
-    },
-    isDeleteLockedForSampleData() {
-      return new MemberPermissions(
-        this.currentTenant,
-        this.currentUser,
-      ).destroyLockedForSampleData;
-    },
-    elegibleEnrichmentMembersIds() {
-      return this.selectedRows
-        .filter(
-          (r) => r.username?.github?.length || r.emails?.length,
-        )
-        .map((item) => item.id);
-    },
-    enrichedMembers() {
-      return this.selectedRows.filter((r) => r.lastEnriched)
-        .length;
-    },
-    enrichmentLabel() {
-      if (
-        this.enrichedMembers
-        && this.enrichedMembers
-          === this.elegibleEnrichmentMembersIds.length
-      ) {
-        return `Re-enrich ${pluralize(
-          'member',
-          this.selectedIds.length,
-          false,
-        )}`;
-      }
 
-      return `Enrich ${pluralize(
-        'member',
-        this.selectedIds.length,
-        false,
-      )}`;
-    },
-    selectedIds() {
-      return this.selectedRows.map((item) => item.id);
-    },
-    markAsTeamMemberOptions() {
-      const isTeamView = this.activeView.id === 'team';
-      const membersCopy = pluralize(
-        'member',
-        this.selectedRows.length,
-        false,
+      showExportLimitDialog({ planExportCountMax });
+    } else if (error !== 'cancel') {
+      Message.error(
+        'An error has occured while trying to export the CSV file. Please try again',
+        {
+          title: 'CSV Export failed',
+        },
       );
+    }
+  }
+};
 
-      if (isTeamView) {
-        return {
-          icon: 'ri-bookmark-2-line',
-          copy: `Unmark as team ${membersCopy}`,
-          value: false,
-        };
-      }
+const handleAddTags = async () => {
+  bulkTagsUpdateVisible.value = true;
+};
 
-      return {
-        icon: 'ri-bookmark-line',
-        copy: `Mark as team ${membersCopy}`,
-        value: true,
-      };
+const doMarkAsTeamMember = (value) => {
+  Promise.all(selectedMembers.value.map((member) => MemberService.update(member.id, {
+    attributes: {
+      ...member.attributes,
+      isTeamMember: {
+        default: value,
+      },
     },
-  },
+  })))
+    .then(() => {
+      fetchMembers({ reload: true });
+      Message.success(
+        `Member${
+          selectedMembers.value.length > 1 ? 's' : ''
+        } updated successfully`,
+      );
+    });
+};
 
-  methods: {
-    ...mapActions({
-      doExport: 'member/doExport',
-      doMarkAsTeamMember: 'member/doMarkAsTeamMember',
-      doDestroyAll: 'member/doDestroyAll',
-      doBulkEnrich: 'member/doBulkEnrich',
-      doFetch: 'member/doFetch',
-    }),
+const handleCommand = async (command) => {
+  if (command.action === 'markAsTeamMember') {
+    await doMarkAsTeamMember(command.value);
+  } else if (command.action === 'export') {
+    await handleDoExport();
+  } else if (command.action === 'mergeMembers') {
+    await handleMergeMembers();
+  } else if (command.action === 'editTags') {
+    await handleAddTags();
+  } else if (command.action === 'destroyAll') {
+    await doDestroyAllWithConfirm();
+  } else if (command.action === 'enrichMember') {
+    const enrichments = elegibleEnrichmentMembersIds.value.length;
+    let doEnrich = false;
+    let reEnrichmentMessage = null;
 
-    async handleCommand(command) {
-      if (command.action === 'markAsTeamMember') {
-        await this.doMarkAsTeamMember(command.value);
-      } else if (command.action === 'export') {
-        await this.handleDoExport();
-      } else if (command.action === 'mergeMembers') {
-        await this.handleMergeMembers();
-      } else if (command.action === 'editTags') {
-        await this.handleAddTags();
-      } else if (command.action === 'destroyAll') {
-        await this.doDestroyAllWithConfirm();
-      } else if (command.action === 'enrichMember') {
-        const enrichments = this.elegibleEnrichmentMembersIds.length;
-        let doEnrich = false;
-        let reEnrichmentMessage = null;
-
-        if (this.enrichedMembers) {
-          reEnrichmentMessage = this.enrichedMembers === 1
-            ? 'You selected 1 member that was already enriched. If you proceed, this member will be re-enriched and counted towards your quota.'
-            : `You selected ${this.enrichedMembers} members that were already enriched. If you proceed,
+    if (enrichedMembers.value) {
+      reEnrichmentMessage = enrichedMembers.value === 1
+        ? 'You selected 1 member that was already enriched. If you proceed, this member will be re-enriched and counted towards your quota.'
+        : `You selected ${enrichedMembers.value} members that were already enriched. If you proceed,
             these members will be re-enriched and counted towards your quota.`;
-        }
+    }
 
-        // All members are elegible for enrichment
-        if (enrichments === this.selectedIds.length) {
-          // If there are already enriched members, show a warning dialog
-          if (this.enrichedMembers) {
-            try {
-              await ConfirmDialog({
-                type: 'warning',
-                title: 'Some members were already enriched',
-                message: reEnrichmentMessage,
-                confirmButtonText: `Proceed with enrichment (${pluralize(
-                  'member',
-                  enrichments,
-                  true,
-                )})`,
-                cancelButtonText: 'Cancel',
-                icon: 'ri-alert-line',
-              });
+    // All members are elegible for enrichment
+    if (enrichments === selectedIds.value.length) {
+      if (!enrichedMembers.value) {
+        doEnrich = true;
+      } else {
+        try {
+          await ConfirmDialog({
+            type: 'warning',
+            title: 'Some members were already enriched',
+            message: reEnrichmentMessage,
+            confirmButtonText: `Proceed with enrichment (${pluralize(
+              'member',
+              enrichments,
+              true,
+            )})`,
+            cancelButtonText: 'Cancel',
+            icon: 'ri-alert-line',
+          });
 
-              doEnrich = true;
-            } catch (error) {
-              // no
-            }
-          } else {
-            doEnrich = true;
-          }
-          // Only a few members are elegible for enrichment
-        } else {
-          try {
-            await ConfirmDialog({
-              type: 'warning',
-              title:
-                'Some members lack an associated GitHub profile or Email',
-              message:
-                'Member enrichment requires an associated GitHub profile or Email. If you proceed, only the members who fulfill '
-                + 'this requirement will be enriched and counted towards your quota.',
-              confirmButtonText: `Proceed with enrichment (${pluralize(
-                'member',
-                enrichments,
-                true,
-              )})`,
-              highlightedInfo: reEnrichmentMessage,
-              cancelButtonText: 'Cancel',
-              icon: 'ri-alert-line',
-            });
-
-            doEnrich = true;
-          } catch (error) {
-            // no
-          }
-        }
-
-        if (doEnrich) {
-          await this.doBulkEnrich(
-            this.elegibleEnrichmentMembersIds,
-          );
+          doEnrich = true;
+        } catch (error) {
+          console.error(error);
         }
       }
-    },
-
-    handleMergeMembers() {
-      const [firstMember, secondMember] = this.selectedRows;
-      MemberService.merge(firstMember, secondMember)
-        .then(() => {
-          Message.success('Members merged successfuly');
-          this.doFetch({
-            keepPagination: true,
-          });
-        })
-        .catch(() => {
-          Message.error('Error merging members');
-        });
-    },
-
-    async doDestroyAllWithConfirm() {
+    } else {
       try {
         await ConfirmDialog({
-          type: 'danger',
-          title: 'Delete members',
+          type: 'warning',
+          title:
+            'Some members lack an associated GitHub profile or Email',
           message:
-            "Are you sure you want to proceed? You can't undo this action",
-          confirmButtonText: 'Confirm',
+            'Member enrichment requires an associated GitHub profile or Email. If you proceed, only the members who fulfill '
+            + 'this requirement will be enriched and counted towards your quota.',
+          confirmButtonText: `Proceed with enrichment (${pluralize(
+            'member',
+            enrichments,
+            true,
+          )})`,
+          highlightedInfo: reEnrichmentMessage,
           cancelButtonText: 'Cancel',
-          icon: 'ri-delete-bin-line',
+          icon: 'ri-alert-line',
         });
 
-        await this.doDestroyAll(
-          this.selectedRows.map((item) => item.id),
-        );
+        doEnrich = true;
       } catch (error) {
         console.error(error);
       }
-    },
+    }
 
-    async handleDoExport() {
-      try {
-        await this.doExport({ selected: true });
-      } catch (error) {
-        console.error(error);
+    if (doEnrich) {
+      const { memberEnrichmentCount } = currentTenant.value;
+      const planEnrichmentCountMax = getEnrichmentMax(
+        currentTenant.value.plan,
+      );
+
+      // Check if it is trying to enrich more members than
+      // the number available for the current tenant plan
+      if (
+        checkEnrichmentPlan({
+          enrichmentCount:
+            memberEnrichmentCount + elegibleEnrichmentMembersIds.value.length,
+          planEnrichmentCountMax,
+        })
+      ) {
+        return;
       }
-    },
 
-    async handleAddTags() {
-      this.bulkTagsUpdateVisible = true;
-    },
+      // Check if it has reached enrichment maximum
+      // If so, show dialog to upgrade plan
+      if (checkEnrichmentLimit(planEnrichmentCountMax)) {
+        return;
+      }
 
-    pluralize,
-  },
+      // Show enrichment loading message
+      showEnrichmentLoadingMessage({ isBulk: true });
+
+      await MemberService.enrichMemberBulk(elegibleEnrichmentMembersIds.value);
+
+      await getMemberCustomAttributes();
+    }
+  }
+};
+</script>
+
+<script>
+export default {
+  name: 'AppMemberListToolbar',
 };
 </script>

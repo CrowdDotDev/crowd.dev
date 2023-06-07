@@ -1,11 +1,16 @@
 import { Filter, FilterConfig } from '@/shared/modules/filters/types/FilterConfig';
+import { Member } from '@/modules/member/types/Member';
 
 export interface MemberState {
   filters: Filter,
-  customAttributes: Record<string, FilterConfig>
+  savedFilterBody: any,
+  customAttributes: Record<string, FilterConfig>,
+  members: Member[];
+  selectedMembers: Member[];
+  totalMembers: number;
 }
 
-export default () => ({
+const state: MemberState = {
   filters: {
     search: '',
     relation: 'and',
@@ -14,9 +19,15 @@ export default () => ({
       perPage: 20,
     },
     order: {
-      prop: 'createdBy',
+      prop: 'lastActive',
       order: 'descending',
     },
   } as Filter,
+  savedFilterBody: {},
   customAttributes: {},
-} as MemberState);
+  members: [],
+  totalMembers: 0,
+  selectedMembers: [],
+};
+
+export default () => state;
