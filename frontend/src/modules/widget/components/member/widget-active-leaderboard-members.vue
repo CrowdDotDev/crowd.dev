@@ -126,7 +126,7 @@ const empty = computed(
 const getActiveMembers = async (
   period = selectedPeriod.value,
   platforms = props.filters.platform.value,
-  teamOrganizations = props.filters.teamMembers,
+  teamMembers = props.filters.teamMembers,
 ) => {
   loading.value = true;
   error.value = false;
@@ -224,7 +224,7 @@ onMounted(async () => {
 // Each time filter changes, query a new response
 watch(
   () => [props.filters.platform.value, props.filters.teamMembers],
-  async ([platforms, teamOrganizations]) => {
+  async ([platforms, teamMembers]) => {
     activeMembers.value = await getActiveMembers(
       selectedPeriod.value,
       platforms,
