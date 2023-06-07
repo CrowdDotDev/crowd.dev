@@ -20,13 +20,6 @@
         no-data-text="No results"
       >
         <el-option
-          v-for="option of data.selected"
-          :key="option.value"
-          :label="option.label"
-          :value="option"
-          class="!hidden"
-        />
-        <el-option
           v-for="option of filteredOptions"
           :key="option.value"
           :label="option.label"
@@ -119,6 +112,8 @@ watch(() => data.value.selected, (value) => {
 
 const loading = ref<boolean>(false);
 const filteredOptions = ref<MultiSelectAsyncFilterOption[]>([]);
+
+const unselectedOptions = computed(() => filteredOptions.value.filter((o) => !props.modelValue.value.includes(o.value)));
 
 const searchOptions = (query: string) => {
   loading.value = true;
