@@ -21,7 +21,6 @@ export default function ({ to, router }) {
   const token = AuthToken.get();
   const tenantId = AuthCurrentTenant.get();
 
-
   if (token && tenantId) {
     // `window.history.replaceState` to replace the current URL with the root URL
     window.history.replaceState(null, '', '/');
