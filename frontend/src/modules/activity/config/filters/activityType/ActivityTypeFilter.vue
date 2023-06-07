@@ -13,6 +13,7 @@ import {
 import { CustomFilterConfig } from '@/shared/modules/filters/types/filterTypes/CustomFilterConfig';
 import { useActivityTypeStore } from '@/modules/activity/store/type';
 import { storeToRefs } from 'pinia';
+import { CrowdIntegrations } from '@/integrations/integrations-config';
 
 const props = defineProps<{
   modelValue: string,
@@ -39,7 +40,7 @@ watch(() => types, (typesValue: any) => {
     ...typesValue.value.custom,
   };
   data.value.options = Object.entries(platforms).map(([platform, activityTypes]: [string, any]) => ({
-    label: platform.replaceAll(/[A-Z]/g, (letter) => ` ${letter.toLowerCase()}`),
+    label: CrowdIntegrations.getConfig(platform)?.name ?? platform,
     options: Object.entries(activityTypes).map(([activityType, activityTypeData]) => ({
       label: activityTypeData.display.short,
       value: `${platform}:${activityType}`,

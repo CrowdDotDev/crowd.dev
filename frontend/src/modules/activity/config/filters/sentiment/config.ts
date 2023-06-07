@@ -16,7 +16,7 @@ const sentiment: MultiSelectFilterConfig = {
     options,
   },
   itemLabelRenderer(value: MultiSelectFilterValue, options: MultiSelectFilterOptions): string {
-    return itemLabelRendererByType[FilterConfigType.MULTISELECT]('Avg. sentiment', value, options);
+    return itemLabelRendererByType[FilterConfigType.MULTISELECT]('Sentiment', value, options);
   },
   apiFilterRenderer({ value, include }: MultiSelectFilterValue): any[] {
     const filter = {

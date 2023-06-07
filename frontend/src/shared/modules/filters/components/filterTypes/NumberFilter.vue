@@ -119,7 +119,6 @@ const rules: any = computed(() => ({
 const $v = useVuelidate(rules, form);
 
 watch(() => form.value.operator, (operator) => {
-  console.log(operator);
   if (operator !== FilterNumberOperator.BETWEEN) {
     form.value.valueTo = undefined;
   } else {
@@ -128,9 +127,10 @@ watch(() => form.value.operator, (operator) => {
 });
 
 onMounted(() => {
-  if (!form.value || Object.keys(form.value).length < 3>) {
-    form.value = defaultForm;
-  }
+  form.value = {
+    ...defaultForm,
+    ...form.value,
+  };
 });
 </script>
 

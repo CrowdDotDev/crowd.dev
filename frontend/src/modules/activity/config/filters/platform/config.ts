@@ -29,7 +29,7 @@ const platform: MultiSelectFilterConfig = {
     ],
   },
   itemLabelRenderer(value: MultiSelectFilterValue, options: MultiSelectFilterOptions, data: any): string {
-    return itemLabelRendererByType[FilterConfigType.SELECT]('Platform', value, options, data);
+    return itemLabelRendererByType[FilterConfigType.MULTISELECT]('Platform', value, options, data);
   },
   apiFilterRenderer({ value, include }: MultiSelectFilterValue): any[] {
     const filter = {

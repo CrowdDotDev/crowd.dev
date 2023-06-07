@@ -12,7 +12,6 @@ export default {
   fetchMembers(this: MemberState, { body = {}, reload = false } :{ body?: any, reload?: boolean }): Promise<Pagination<Member>> {
     const mappedBody = reload ? this.savedFilterBody : body;
     this.selectedMembers = [];
-    this.members = [];
     return MemberService.listMembers(mappedBody)
       .then((data: Pagination<Member>) => {
         this.members = data.rows;

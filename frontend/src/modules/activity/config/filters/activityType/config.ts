@@ -15,7 +15,9 @@ const activityType: CustomFilterConfig = {
   },
   queryUrlParser: queryUrlParserByType[FilterConfigType.SELECT],
   itemLabelRenderer(value: SelectFilterValue, options: SelectFilterOptions, data: any): string {
-    return itemLabelRendererByType[FilterConfigType.SELECT]('Activity type', value, data);
+    return itemLabelRendererByType[FilterConfigType.SELECT]('Activity type', value, data, null, {
+      addGroupLabel: true,
+    });
   },
   apiFilterRenderer({ value, include }:SelectFilterValue): any[] {
     const [platform, activityType] = value.split(':');

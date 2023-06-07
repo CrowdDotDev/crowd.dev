@@ -8,7 +8,7 @@ import { itemLabelRendererByType } from '@/shared/modules/filters/config/itemLab
 import options from './options';
 
 const date: SelectFilterConfig = {
-  id: 'date',
+  id: 'dateStarted',
   label: 'Date started',
   iconClass: 'ri-calendar-event-line',
   type: FilterConfigType.SELECT,
