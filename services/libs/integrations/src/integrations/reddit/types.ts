@@ -1,3 +1,5 @@
+export const MAX_RETROSPECT_IN_HOURS = 5
+
 export enum RedditActivityType {
   POST = 'post',
   COMMENT = 'comment',
