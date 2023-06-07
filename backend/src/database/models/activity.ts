@@ -188,6 +188,10 @@ export default (sequelize) => {
     models.activity.belongsTo(models.user, {
       as: 'updatedBy',
     })
+
+    models.activity.belongsTo(models.organization, {
+      as: 'organization',
+    })
   }
 
   return activity

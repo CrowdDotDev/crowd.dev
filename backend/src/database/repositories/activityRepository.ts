@@ -68,6 +68,7 @@ class ActivityRepository {
         ]),
         memberId: data.member || null,
         objectMemberId: data.objectMember || undefined,
+        organizationId: data.organization || undefined,
         parentId: data.parent || null,
         sourceParentId: data.sourceParentId || null,
         conversationId: data.conversationId || null,
@@ -166,6 +167,7 @@ class ActivityRepository {
         ]),
         memberId: data.member || undefined,
         objectMemberId: data.objectMember || undefined,
+        organizationId: data.organization,
         parentId: data.parent || undefined,
         sourceParentId: data.sourceParentId || undefined,
         conversationId: data.conversationId || undefined,
@@ -221,6 +223,10 @@ class ActivityRepository {
       {
         model: options.database.activity,
         as: 'parent',
+      },
+      {
+        model: options.database.organization,
+        as: 'organization',
       },
     ]
 
