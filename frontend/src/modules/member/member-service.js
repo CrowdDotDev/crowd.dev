@@ -150,6 +150,30 @@ export class MemberService {
     return response.data;
   }
 
+  static async listMembers(
+    body,
+    countOnly = false,
+  ) {
+    const sampleTenant = AuthCurrentTenant.getSampleTenantData();
+    const tenantId = sampleTenant?.id || AuthCurrentTenant.get();
+
+    const response = await authAxios.post(
+      `/tenant/${tenantId}/member/query`,
+      {
+        ...body,
+        countOnly,
+      },
+      {
+        headers: {
+          'x-crowd-api-version': '1',
+          Authorization: sampleTenant?.token,
+        },
+      },
+    );
+
+    return response.data;
+  }
+
   static async listActive({
     platform,
     isTeamMember,

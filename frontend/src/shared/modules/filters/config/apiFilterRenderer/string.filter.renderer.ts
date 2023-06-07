@@ -14,9 +14,7 @@ export const stringApiFilterRenderer = (property: string, { include, value, oper
   return [
     {
       [property]: (include ? filter : {
-        not: {
-          filter,
-        },
+        not: filter,
       }),
     },
   ];

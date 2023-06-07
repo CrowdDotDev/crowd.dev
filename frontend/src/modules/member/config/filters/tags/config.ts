@@ -1,26 +1,38 @@
 import { FilterConfigType } from '@/shared/modules/filters/types/FilterConfig';
-import {
-  MultiSelectFilterConfig,
-  MultiSelectFilterOptions,
-  MultiSelectFilterValue,
-} from '@/shared/modules/filters/types/filterTypes/MultiSelectFilterConfig';
 import { itemLabelRendererByType } from '@/shared/modules/filters/config/itemLabelRendererByType';
-import { apiFilterRendererByType } from '@/shared/modules/filters/config/apiFilterRendererByType';
+import {
+  MultiSelectAsyncFilterConfig, MultiSelectAsyncFilterOptions,
+  MultiSelectAsyncFilterValue,
+} from '@/shared/modules/filters/types/filterTypes/MultiSelectAsyncFilterConfig';
+import { TagService } from '@/modules/tag/tag-service';
 
-const tags: MultiSelectFilterConfig = {
+const tags: MultiSelectAsyncFilterConfig = {
   id: 'tags',
   label: 'Tags',
   iconClass: 'ri-bookmark-line',
-  type: FilterConfigType.MULTISELECT,
+  type: FilterConfigType.MULTISELECT_ASYNC,
   options: {
-    // TODO: load this options remote
-    options: [],
+    remoteMethod: (query) => TagService.listAutocomplete(query, 10)
+      .then((data: any[]) => data.map((tag) => ({
+        label: tag.label,
+        value: tag.id,
+      }))),
+    remotePopulateItems: (ids: string[]) => TagService.list({
+      ids,
+    }, null, ids.length, 0)
+      .then(({ rows }: any) => rows.map((tag: any) => ({
+        label: tag.name,
+        value: tag.id,
+      }))),
   },
-  itemLabelRenderer(value: MultiSelectFilterValue, options: MultiSelectFilterOptions): string {
-    return itemLabelRendererByType[FilterConfigType.MULTISELECT]('Active on', value, options);
+  itemLabelRenderer(value: MultiSelectAsyncFilterValue, options: MultiSelectAsyncFilterOptions, data: any): string {
+    return itemLabelRendererByType[FilterConfigType.MULTISELECT_ASYNC]('Tags', value, options, data);
   },
-  apiFilterRenderer(value: MultiSelectFilterValue): any[] {
-    return apiFilterRendererByType[FilterConfigType.MULTISELECT]('tags', value);
+  apiFilterRenderer({ value, include }: MultiSelectAsyncFilterValue): any[] {
+    const filter = { tags: value };
+    return [
+      (include ? filter : { not: filter }),
+    ];
   },
 };
 

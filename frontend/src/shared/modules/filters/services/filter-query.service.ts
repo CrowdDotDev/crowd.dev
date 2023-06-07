@@ -1,4 +1,4 @@
-import { Filter, FilterConfig } from '@/shared/modules/filters/types/FilterConfig';
+import { Filter, FilterConfig, FilterConfigType } from '@/shared/modules/filters/types/FilterConfig';
 import { queryUrlParserByType } from '@/shared/modules/filters/config/queryUrlParserByType';
 import { CustomFilterConfig } from '@/shared/modules/filters/types/filterTypes/CustomFilterConfig';
 import { SavedViewsConfig } from '@/shared/modules/saved-views/types/SavedViewsConfig';
@@ -32,7 +32,7 @@ export const filterQueryService = () => {
         });
       } else if (key in config) {
         const { type } = config[key];
-        const queryUrlParser = queryUrlParserByType[type] ?? (config[key] as CustomFilterConfig).queryUrlParser;
+        const queryUrlParser = type === FilterConfigType.CUSTOM ? (config[key] as CustomFilterConfig).queryUrlParser : queryUrlParserByType[type];
         if (queryUrlParser) {
           object[key] = queryUrlParser(object[key]);
         }
@@ -52,21 +52,24 @@ export const filterQueryService = () => {
   // Prepares query object to be only one level nested for query params to be more readable
   function setQuery(value: Filter) {
     const query: Record<string, any> = {};
-    Object.entries(value).forEach(([key, filterValue]) => {
-      if (typeof filterValue === 'object') {
-        Object.entries(filterValue).forEach(([subKey, subFilterValue]) => {
-          const value = setQueryValue(subFilterValue);
+    if (value) {
+      Object.entries(value).forEach(([key, filterValue]) => {
+        if (typeof filterValue === 'object') {
+          Object.entries(filterValue).forEach(([subKey, subFilterValue]) => {
+            const value = setQueryValue(subFilterValue);
+            if (value !== undefined) {
+              query[`${key}.${subKey}`] = value;
+            }
+          });
+        } else {
+          const value = setQueryValue(filterValue);
           if (value !== undefined) {
-            query[`${key}.${subKey}`] = value;
+            query[key] = value;
           }
-        });
-      } else {
-        const value = setQueryValue(filterValue);
-        if (value !== undefined) {
-          query[key] = value;
         }
-      }
-    });
+      });
+    }
+
     return query;
   }
 

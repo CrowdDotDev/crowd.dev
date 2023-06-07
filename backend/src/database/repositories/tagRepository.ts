@@ -198,6 +198,13 @@ class TagRepository {
           id: filter.id,
         })
       }
+      if (filter.ids) {
+        advancedFilter.and.push({
+          or: filter.ids.map((id) => ({
+            id,
+          })),
+        })
+      }
 
       if (filter.name) {
         advancedFilter.and.push({

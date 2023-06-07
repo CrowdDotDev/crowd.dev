@@ -7,7 +7,7 @@ const teamMembers: SavedView = {
     search: '',
     relation: 'and',
     order: {
-      prop: 'lastActivity',
+      prop: 'lastActive',
       order: 'descending',
     },
     settings: {
