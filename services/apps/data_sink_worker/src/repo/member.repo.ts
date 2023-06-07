@@ -1,13 +1,14 @@
 import { DbColumnSet, DbStore, RepositoryBase } from '@crowd/database'
 import { Logger } from '@crowd/logging'
 import {
+  getInsertMemberColumnSet,
+  getInsertMemberIdentityColumnSet,
+  getInsertMemberSegmentColumnSet,
+  getSelectMemberColumnSet,
+  getUpdateMemberColumnSet,
   IDbMember,
   IDbMemberCreateData,
   IDbMemberUpdateData,
-  getInsertMemberColumnSet,
-  getInsertMemberIdentityColumnSet,
-  getSelectMemberColumnSet,
-  getUpdateMemberColumnSet,
 } from './member.data'
 import { IMemberIdentity } from '@crowd/types'
 import { generateUUIDv1 } from '@crowd/common'
@@ -19,6 +20,7 @@ export default class MemberRepository extends RepositoryBase<MemberRepository> {
   private readonly selectMemberQuery: string
 
   private readonly insertMemberIdentityColumnSet: DbColumnSet
+  private readonly insertMemberSegmentColumnSet: DbColumnSet
 
   constructor(dbStore: DbStore, parentLog: Logger) {
     super(dbStore, parentLog)
@@ -32,6 +34,7 @@ export default class MemberRepository extends RepositoryBase<MemberRepository> {
       from "members"
     `
     this.insertMemberIdentityColumnSet = getInsertMemberIdentityColumnSet(this.dbInstance)
+    this.insertMemberSegmentColumnSet = getInsertMemberSegmentColumnSet(this.dbInstance)
   }
 
   public async findMember(
@@ -204,6 +207,22 @@ export default class MemberRepository extends RepositoryBase<MemberRepository> {
       preparedObjects,
       this.insertMemberIdentityColumnSet,
     )
+    await this.db().none(query)
+  }
+
+  public async addToSegment(memberId: string, tenantId: string, segmentId: string): Promise<void> {
+    const prepared = RepositoryBase.prepare(
+      {
+        memberId,
+        tenantId,
+        segmentId,
+      },
+      this.insertMemberSegmentColumnSet,
+    )
+
+    const query =
+      this.dbInstance.helpers.insert(prepared, this.insertMemberSegmentColumnSet) +
+      ' ON CONFLICT DO NOTHING'
     await this.db().none(query)
   }
 }
