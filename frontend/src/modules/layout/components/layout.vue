@@ -1,5 +1,5 @@
 <template>
-  <el-container>
+  <el-container v-if="currentTenant">
     <!-- App menu -->
     <app-lf-menu />
 

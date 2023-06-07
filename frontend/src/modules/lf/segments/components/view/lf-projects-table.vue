@@ -9,7 +9,7 @@
     <!-- Name -->
     <el-table-column
       prop="name"
-      min-width="30"
+      width="300"
       fixed
       class-name="table-columns"
     >
@@ -28,7 +28,7 @@
 
     <!-- Connected Integrations -->
     <el-table-column
-      min-width="20"
+      width="250"
       class-name="table-columns"
     >
       <template #header>
@@ -72,7 +72,7 @@
 
     <!-- Status -->
     <el-table-column
-      min-width="15"
+      width="150"
       class-name="table-columns"
     >
       <template #header>
@@ -102,7 +102,13 @@
       </template>
     </el-table-column>
 
-    <el-table-column fixed="right" min-width="25">
+    <el-table-column>
+      <template #default>
+        <div class="flex grow" />
+      </template>
+    </el-table-column>
+
+    <el-table-column fixed="right" width="268" class-name="table-columns">
       <template #header>
         <span class="h-10 block" />
         <div class="flex justify-end mb-4">
@@ -177,15 +183,28 @@ export default {
   @apply rounded-lg shadow;
 
   thead .table-columns {
-    @apply align-top h-auto;
+    @apply align-top h-auto px-6;
+
+    .cell {
+      @apply px-0;
+    }
   }
 
   tbody {
+    tr td:last-child{
+      @apply px-6;
+    }
+
     .table-columns {
-      @apply align-middle h-14;
+      @apply align-middle h-14 px-6;
+
+      &.el-table-fixed-column--right .cell {
+          @apply justify-end;
+        }
     }
 
     .cell {
+      @apply px-0;
       display: flex !important;
       align-items: center !important;
     }

@@ -22,7 +22,7 @@
     <el-table-column
       label="Project Group"
       prop="name"
-      min-width="25"
+      width="300"
       fixed
       class-name="table-columns"
     >
@@ -35,7 +35,7 @@
     <el-table-column
       label="Projects"
       prop="projects"
-      min-width="25"
+      width="300"
       class-name="table-columns"
     >
       <template #default="{ row }">
@@ -55,7 +55,7 @@
     <el-table-column
       label="Status"
       prop="status"
-      min-width="15"
+      width="150"
       class-name="table-columns"
     >
       <template #default="{ row }">
@@ -69,7 +69,13 @@
       </template>
     </el-table-column>
 
-    <el-table-column fixed="right" min-width="25">
+    <el-table-column>
+      <template #default>
+        <div class="flex grow" />
+      </template>
+    </el-table-column>
+
+    <el-table-column fixed="right" width="268">
       <template #default="{ row }">
         <div class="w-full flex justify-end gap-3">
           <router-link
@@ -130,18 +136,35 @@ export default {
   @apply rounded-lg shadow;
 
   thead .table-columns {
-    @apply align-middle h-14;
+    @apply align-middle h-14 px-6;
+
+    .cell {
+      @apply px-0;
+    }
   }
 
   tbody {
+    tr td:last-child{
+      @apply px-6;
+    }
+
     .table-columns {
-      @apply align-middle h-20;
+      @apply align-middle h-20 px-6;
+
+      &.el-table-fixed-column--right .cell {
+          @apply justify-end;
+        }
     }
 
     .cell {
+      @apply px-0;
       display: flex !important;
       align-items: center !important;
     }
+  }
+
+  .el-table__empty-text {
+    @apply w-full
   }
 }
 </style>

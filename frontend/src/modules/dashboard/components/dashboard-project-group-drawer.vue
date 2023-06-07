@@ -170,7 +170,7 @@ const listProjects = (clearList) => {
     offset: offset.value,
     filter: {
       name: searchQuery.value,
-      parentSlug: props.projectGroup.value,
+      parentSlug: props.projectGroup.slug,
     },
   })
     .then((response) => {
