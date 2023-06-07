@@ -4,6 +4,7 @@ import { FilterNumberOperator } from '@/shared/modules/filters/config/constants/
 
 export interface NumberFilterOptions {
   hideIncludeSwitch?: boolean;
+  forceOperator?: FilterNumberOperator;
 }
 export interface NumberFilterValue {
   operator: FilterNumberOperator,

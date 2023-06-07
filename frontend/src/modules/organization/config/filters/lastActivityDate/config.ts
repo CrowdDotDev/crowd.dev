@@ -1,5 +1,11 @@
 import { FilterConfigType } from '@/shared/modules/filters/types/FilterConfig';
-import { DateFilterConfig } from '@/shared/modules/filters/types/filterTypes/DateFilterConfig';
+import {
+  DateFilterConfig,
+  DateFilterOptions,
+  DateFilterValue,
+} from '@/shared/modules/filters/types/filterTypes/DateFilterConfig';
+import { itemLabelRendererByType } from '@/shared/modules/filters/config/itemLabelRendererByType';
+import { apiFilterRendererByType } from '@/shared/modules/filters/config/apiFilterRendererByType';
 
 const lastActivityDate: DateFilterConfig = {
   id: 'lastActivityDate',
@@ -7,12 +13,11 @@ const lastActivityDate: DateFilterConfig = {
   iconClass: 'ri-calendar-event-line',
   type: FilterConfigType.DATE,
   options: {},
-  itemLabelRenderer(value): string {
-    return `<b>Last activity date</b> ${value.value || '...'}`;
+  itemLabelRenderer(value: DateFilterValue, options: DateFilterOptions): string {
+    return itemLabelRendererByType[FilterConfigType.DATE]('Last activity date', value, options);
   },
-  apiFilterRenderer(value): any[] {
-    console.log(value);
-    return [];
+  apiFilterRenderer(value: DateFilterValue): any[] {
+    return apiFilterRendererByType[FilterConfigType.DATE]('lastActive', value);
   },
 };
 

@@ -1,18 +1,26 @@
-import { NumberFilterConfig } from '@/shared/modules/filters/types/filterTypes/NumberFilterConfig';
+import {
+  NumberFilterConfig,
+  NumberFilterOptions,
+  NumberFilterValue,
+} from '@/shared/modules/filters/types/filterTypes/NumberFilterConfig';
 import { FilterConfigType } from '@/shared/modules/filters/types/FilterConfig';
+import { itemLabelRendererByType } from '@/shared/modules/filters/config/itemLabelRendererByType';
+import { apiFilterRendererByType } from '@/shared/modules/filters/config/apiFilterRendererByType';
+import { FilterNumberOperator } from '@/shared/modules/filters/config/constants/number.constants';
 
 const noOfMembers: NumberFilterConfig = {
   id: 'noOfMembers',
   label: '# of members',
   iconClass: 'ri-group-2-line',
   type: FilterConfigType.NUMBER,
-  options: {},
-  itemLabelRenderer(value): string {
-    return `<b># of members</b> ${value.value || '...'}`;
+  options: {
+    forceOperator: FilterNumberOperator.BETWEEN,
   },
-  apiFilterRenderer(value): any[] {
-    console.log(value);
-    return [];
+  itemLabelRenderer(value: NumberFilterValue, options: NumberFilterOptions): string {
+    return itemLabelRendererByType[FilterConfigType.NUMBER]('# of members', value, options);
+  },
+  apiFilterRenderer(value: NumberFilterValue): any[] {
+    return apiFilterRendererByType[FilterConfigType.NUMBER]('memberCount', value);
   },
 };
 
