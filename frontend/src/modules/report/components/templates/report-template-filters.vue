@@ -147,8 +147,8 @@ const onTeamActivitiesChange = (value) => {
   emit('update:teamActivities', value);
   emit('trackFilters');
 };
-const onSegmentsChange = (value) => {
-  emit('update:segments', value);
+const onSegmentsChange = ({ segments }) => {
+  emit('update:segments', segments);
   emit('trackFilters');
 };
 

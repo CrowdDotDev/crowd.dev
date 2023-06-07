@@ -21,6 +21,8 @@ function label(name) {
   return i18n(`entities.member.fields.${name}`);
 }
 
+i18nInit();
+
 const fields = {
   id: new IdField('id', label('id')),
   jobTitle: new StringField('jobTitle', 'Job title'),
@@ -141,7 +143,6 @@ const fields = {
 
 export class MemberModel extends GenericModel {
   static get fields() {
-    i18nInit();
     return fields;
   }
 }
