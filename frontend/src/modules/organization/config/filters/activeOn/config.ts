@@ -1,5 +1,10 @@
 import { FilterConfigType } from '@/shared/modules/filters/types/FilterConfig';
-import { MultiSelectFilterConfig } from '@/shared/modules/filters/types/filterTypes/MultiSelectFilterConfig';
+import {
+  MultiSelectFilterConfig, MultiSelectFilterOptions,
+  MultiSelectFilterValue,
+} from '@/shared/modules/filters/types/filterTypes/MultiSelectFilterConfig';
+import { itemLabelRendererByType } from '@/shared/modules/filters/config/itemLabelRendererByType';
+import { apiFilterRendererByType } from '@/shared/modules/filters/config/apiFilterRendererByType';
 import options from './options';
 
 const activeOn: MultiSelectFilterConfig = {
@@ -10,12 +15,11 @@ const activeOn: MultiSelectFilterConfig = {
   options: {
     options,
   },
-  itemLabelRenderer(value): string {
-    return `<b>Last activity date</b> ${value.value.join(', ') || '...'}`;
+  itemLabelRenderer(value: MultiSelectFilterValue, options: MultiSelectFilterOptions): string {
+    return itemLabelRendererByType[FilterConfigType.MULTISELECT]('Active on', value, options);
   },
-  apiFilterRenderer(value): any[] {
-    console.log(value);
-    return [];
+  apiFilterRenderer(value: MultiSelectFilterValue): any[] {
+    return apiFilterRendererByType[FilterConfigType.MULTISELECT]('activeOn', value);
   },
 };
 

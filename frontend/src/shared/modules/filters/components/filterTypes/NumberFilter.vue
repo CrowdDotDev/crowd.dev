@@ -4,6 +4,7 @@
 
     <div class="p-4 pb-5">
       <cr-filter-inline-select
+        v-if="!props.forceOperator"
         v-model="form.operator"
         :prefix="`${props.config.label}:`"
         class="mb-3"
@@ -119,7 +120,6 @@ const rules: any = computed(() => ({
 const $v = useVuelidate(rules, form);
 
 watch(() => form.value.operator, (operator) => {
-  console.log(operator);
   if (operator !== FilterNumberOperator.BETWEEN) {
     form.value.valueTo = undefined;
   } else {
@@ -128,8 +128,17 @@ watch(() => form.value.operator, (operator) => {
 });
 
 onMounted(() => {
-  if (!form.value || Object.keys(form.value).length < 3>) {
-    form.value = defaultForm;
+  if (props.forceOperator && props.forceOperator.length > 0) {
+    form.value = {
+      ...defaultForm,
+      ...form.value,
+      operator: props.forceOperator,
+    };
+  } else {
+    form.value = {
+      ...defaultForm,
+      ...form.value,
+    };
   }
 });
 </script>

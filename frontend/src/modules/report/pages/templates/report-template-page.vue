@@ -137,7 +137,7 @@ const initialPlatformValue = {
 };
 
 const platform = ref(initialPlatformValue);
-const teamMembers = ref(false);
+const teamOrganizations = ref(false);
 const teamActivities = ref(false);
 
 const currentTemplate = computed(() => templates.find((t) => t.config.nameAsId === report.value?.name)?.config);
