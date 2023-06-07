@@ -94,7 +94,7 @@ export default class SampleDataService extends LoggerBase {
           {
             name: MemberEnrichmentAttributeName.AWARDS,
             label: MemberEnrichmentAttributes[MemberEnrichmentAttributeName.AWARDS].label,
-            type: AttributeType.MULTI_SELECT,
+            type: AttributeType.SPECIAL,
             canDelete: false,
             show: true,
           },
