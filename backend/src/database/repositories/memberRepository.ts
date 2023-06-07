@@ -2133,6 +2133,13 @@ class MemberRepository {
           attributes: ['id', 'name'],
           as: 'organizations',
         },
+        {
+          model: options.database.segment,
+          as: 'segments',
+          where: {
+            id: SegmentRepository.getSegmentIds(options),
+          },
+        },
       ],
     })
 
