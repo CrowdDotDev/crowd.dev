@@ -358,16 +358,6 @@ class OrganizationRepository {
     const transaction = SequelizeRepository.getTransaction(options)
     const sequelize = SequelizeRepository.getSequelize(options)
 
-    const include = [
-      {
-        model: options.database.segment,
-        as: 'segments',
-        through: {
-          attributes: [],
-        },
-      },
-    ]
-
     const currentTenant = SequelizeRepository.getCurrentTenant(options)
 
     const results = await sequelize.query(
