@@ -3,7 +3,6 @@ import { getServiceLogger } from '@crowd/logging'
 import { getSqsClient } from '@crowd/sqs'
 import { DB_CONFIG, SQS_CONFIG } from './conf'
 import { OpenSearchService } from './service/opensearch.service'
-import { OpenSearchIndex } from './types'
 
 const log = getServiceLogger()
 
@@ -18,8 +17,4 @@ setImmediate(async () => {
 
   const openSearchService = new OpenSearchService(log)
   await openSearchService.initialize()
-
-  await openSearchService.index('1', OpenSearchIndex.TEST, {
-    name: 'test',
-  })
 })
