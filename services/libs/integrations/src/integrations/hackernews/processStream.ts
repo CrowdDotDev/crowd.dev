@@ -1,6 +1,11 @@
 import { ProcessStreamHandler } from '@/types'
-import { HackerNewsStreamType, HackerNewsInitialStreamMetadata } from './types'
+import {
+  HackerNewsStreamType,
+  HackerNewsInitialStreamMetadata,
+  HackerNewsMainStreamMetadata,
+} from './types'
 import getPostsByKeywords from './api/getPostsByKeywords'
+import getPost from './api/getPost'
 
 const processInitialStream: ProcessStreamHandler = async (ctx) => {
   const metadata = ctx.stream.data as HackerNewsInitialStreamMetadata
@@ -15,13 +20,48 @@ const processInitialStream: ProcessStreamHandler = async (ctx) => {
     ctx,
   )
 
-  await ctx.publishStream(HackerNewsStreamType.MAIN, {
-    keywords: metadata.keywords,
-    posts,
-  })
+  while (posts.length > 0) {
+    const post = posts.shift()
+    await ctx.publishStream<HackerNewsMainStreamMetadata>(
+      `${HackerNewsStreamType.MAIN}:${post.postId}`,
+      {
+        postId: post.postId,
+        channel: post.keywords[0],
+      },
+    )
+  }
 }
 
-const processMainStream: ProcessStreamHandler = async (ctx) => {}
+const processMainStream: ProcessStreamHandler = async (ctx) => {
+  const metadata = ctx.stream.data as HackerNewsMainStreamMetadata
+
+  const post = await getPost(metadata.postId.toString(), ctx)
+
+  if (post.kids !== undefined) {
+    for (const kid of post.kids) {
+      await ctx.publishStream<HackerNewsMainStreamMetadata>(`${HackerNewsStreamType.MAIN}:${kid}`, {
+        postId: kid,
+        channel: metadata.channel,
+        ...((!post.parent && {
+          parentId: post.id.toString(),
+          parentTitle: post.title || post.text,
+        }) ||
+          {}),
+      })
+    }
+  }
+
+  if (post.text || post.url) {
+    await ctx.publishData({
+      ...post,
+      ...((!post.parent && {
+        parentId: post.id.toString(),
+        parentTitle: post.title || post.text,
+      }) ||
+        {}),
+    })
+  }
+}
 
 const handler: ProcessStreamHandler = async (ctx) => {
   if (ctx.stream.identifier.startsWith(HackerNewsStreamType.INITIAL)) {

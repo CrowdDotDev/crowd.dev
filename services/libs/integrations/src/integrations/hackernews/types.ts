@@ -12,6 +12,13 @@ export interface HackerNewsInitialStreamMetadata {
   keywords: string[]
 }
 
+export interface HackerNewsMainStreamMetadata {
+  postId: number
+  channel: string
+  parentId?: string
+  parentTitle?: string
+}
+
 export interface HackerNewsSearchResponseRaw {
   hits: [
     {

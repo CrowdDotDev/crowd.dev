@@ -1,5 +1,9 @@
 import { GenerateStreamsHandler } from '../../types'
-import { HackerNewsIntegrationSettings, HackerNewsStreamType } from './types'
+import {
+  HackerNewsIntegrationSettings,
+  HackerNewsStreamType,
+  HackerNewsInitialStreamMetadata,
+} from './types'
 
 const handler: GenerateStreamsHandler = async (ctx) => {
   const settings = ctx.integration.settings as HackerNewsIntegrationSettings
@@ -11,7 +15,7 @@ const handler: GenerateStreamsHandler = async (ctx) => {
 
   const keywords = Array.from(new Set([...settings.keywords, ...settings.urls]))
 
-  await ctx.publishStream(HackerNewsStreamType.INITIAL, {
+  await ctx.publishStream<HackerNewsInitialStreamMetadata>(HackerNewsStreamType.INITIAL, {
     keywords,
   })
 }
