@@ -501,7 +501,6 @@ export default class IntegrationService {
     const transaction = await SequelizeRepository.createTransaction(this.options)
 
     let integration
-    let run
 
     try {
       this.options.log.info('Creating devto integration!')
