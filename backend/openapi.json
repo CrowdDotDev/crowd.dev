@@ -2178,6 +2178,44 @@
           "429": { "description": "Too many requests" }
         }
       }
+    },
+    "/tenant/{tenantId}/enrichment/member/{id}": {
+      "put": {
+        "summary": "Enrich a member",
+        "tags": ["Members"],
+        "security": [{ "Bearer": [] }],
+        "description": "Enrich a member.",
+        "parameters": [
+          {
+            "name": "tenantId",
+            "in": "path",
+            "description": "Your workspace/tenant ID",
+            "required": true,
+            "schema": { "type": "string" }
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "description": "The ID of the member",
+            "required": true,
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Ok",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/MemberResponse" },
+                "examples": { "Member": { "$ref": "#/components/examples/MemberFind" } }
+              }
+            }
+          },
+          "401": { "description": "Unauthorized" },
+          "404": { "description": "Not found" },
+          "429": { "description": "Too many requests" }
+        }
+      }
     }
   },
   "components": {

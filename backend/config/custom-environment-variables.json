@@ -58,10 +58,6 @@
     "jwtSecret": "CROWD_CUBEJS_JWT_SECRET",
     "jwtExpiry": "CROWD_CUBEJS_JWT_EXPIRY"
   },
-  "searchEngine": {
-    "host": "CROWD_SEARCH_ENGINE_HOST",
-    "apiKey": "CROWD_SEARCH_ENGINE_API_KEY"
-  },
   "segment": {
     "writeKey": "CROWD_SEGMENT_WRITE_KEY"
   },
