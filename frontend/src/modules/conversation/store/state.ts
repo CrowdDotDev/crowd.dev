@@ -17,7 +17,7 @@ export default () => ({
       perPage: 20,
     },
     order: {
-      prop: 'timestamp',
+      prop: 'activityCount',
       order: 'descending',
     },
     lastActivityDate: {

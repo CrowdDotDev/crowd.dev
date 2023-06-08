@@ -23,16 +23,16 @@
 
       <div v-else>
         <div class="mb-4">
-          <!--          <app-pagination-sorter-->
-          <!--            v-model="sorterFilter"-->
-          <!--            :page-size="Number(pagination.pageSize)"-->
-          <!--            :total="count"-->
-          <!--            :current-page="pagination.currentPage"-->
-          <!--            :has-page-counter="false"-->
-          <!--            module="conversation"-->
-          <!--            position="top"-->
-          <!--            @change-sorter="doChangeFilter"-->
-          <!--          />-->
+          <app-pagination-sorter
+            v-model="sorterFilter"
+            :page-size="Number(pagination.perPage)"
+            :total="totalConversations"
+            :current-page="pagination.page"
+            :has-page-counter="false"
+            module="conversation"
+            position="top"
+            @change-sorter="doChangeFilter"
+          />
         </div>
 
         <!-- Conversation item list -->
@@ -95,11 +95,22 @@ const { fetchConversation } = conversationStore;
 
 const loading = ref(false);
 
+const sorterFilter = computed(() => (filters.value.order.prop === 'activityCount'
+  ? 'trending'
+  : 'recentActivity'));
+
 const emptyState = computed(() => ({
   title: 'No conversations found',
   description:
         "We couldn't find any results that match your search criteria, please try a different query",
 }));
+
+const doChangeFilter = (filter) => {
+  filters.value.order = {
+    prop: filter === 'recentActivity' ? 'lastActive' : 'activityCount',
+    order: 'descending',
+  };
+};
 
 const pagination = computed(
   () => filters.value.pagination,

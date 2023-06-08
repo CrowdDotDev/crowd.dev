@@ -22,7 +22,7 @@ export const activitySearchFilter: SearchFilterConfig = {
       {
         or: [
           { title: { textContains: value } },
-          { body: { contains: [value] } },
+          { body: { textContains: value } },
         ],
       },
     ];
