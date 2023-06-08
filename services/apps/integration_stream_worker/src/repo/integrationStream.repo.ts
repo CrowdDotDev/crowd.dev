@@ -23,6 +23,7 @@ export default class IntegrationStreamRepository extends RepositoryBase<Integrat
                s."tenantId",
                i.platform as "integrationType"
         from integration.streams s
+        inner join integrations i on i.id = s."integrationId"
         where s.state = $(delayedState) and s."delayedUntil" < now()
         order by s."delayedUntil" asc
         limit ${perPage} offset ${(page - 1) * perPage}
