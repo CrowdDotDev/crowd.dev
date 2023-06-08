@@ -8,19 +8,19 @@ import { itemLabelRendererByType } from '@/shared/modules/filters/config/itemLab
 import options from './options';
 
 const date: SelectFilterConfig = {
-  id: 'date',
-  label: 'Date',
+  id: 'dateStarted',
+  label: 'Date started',
   iconClass: 'ri-calendar-event-line',
   type: FilterConfigType.SELECT,
   options: {
     options,
   },
   itemLabelRenderer(value: SelectFilterValue, options: SelectFilterOptions, data: any): string {
-    return itemLabelRendererByType[FilterConfigType.SELECT]('Date', value, options, data);
+    return itemLabelRendererByType[FilterConfigType.SELECT]('Date started', value, options, data);
   },
   apiFilterRenderer({ value, include }: SelectFilterValue): any[] {
     const filter = {
-      timestamp: { gte: value },
+      createdAt: { gte: value },
     };
     return [
       (include ? filter : { not: filter }),

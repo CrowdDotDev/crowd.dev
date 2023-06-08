@@ -54,9 +54,10 @@ const rules: any = {
 useVuelidate(rules, form);
 
 onMounted(() => {
-  if (!form.value || Object.keys(form.value).length < 2) {
-    form.value = defaultForm;
-  }
+  form.value = {
+    ...defaultForm,
+    ...form.value,
+  };
 });
 </script>
 

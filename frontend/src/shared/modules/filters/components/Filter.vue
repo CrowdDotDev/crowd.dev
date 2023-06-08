@@ -1,5 +1,5 @@
 <template>
-  <div class="mb-8">
+  <div class="mb-4">
     <div class="flex justify-end pb-4">
       <cr-filter-search v-model="filters.search" :placeholder="props.searchConfig.placeholder">
         <template #append>
@@ -41,7 +41,7 @@
 <script setup lang="ts">
 import {
   computed,
-  defineProps, ref, watch,
+  defineProps, onMounted, ref, watch,
 } from 'vue';
 import { Filter, FilterConfig } from '@/shared/modules/filters/types/FilterConfig';
 import CrFilterDropdown from '@/shared/modules/filters/components/FilterDropdown.vue';
@@ -60,6 +60,7 @@ const props = defineProps<{
   customConfig?: Record<string, FilterConfig>,
   searchConfig: SearchFilterConfig,
   savedViewsConfig?: SavedViewsConfig,
+  hash?: string,
 }>();
 
 const emit = defineEmits<{(e: 'update:modelValue', value: Filter), (e: 'fetch', value: FilterQuery),}>();
@@ -120,7 +121,7 @@ watch(() => filters.value, (value: Filter) => {
   fetch(value);
   alignFilterList(value);
   const query = setQuery(value);
-  router.push({ query });
+  router.push({ query, hash: props.hash ? `#${props.hash}` : undefined });
 }, { deep: true });
 
 // Watch for query change
@@ -131,13 +132,20 @@ watch(() => route.query, (query) => {
   }, props.savedViewsConfig);
   if (!parsed || Object.keys(parsed).length === 0) {
     const query = setQuery(props.modelValue);
-    router.push({ query });
+    router.push({ query, hash: props.hash ? `#${props.hash}` : undefined });
     return;
   }
   if (JSON.stringify(parsed) !== JSON.stringify(filters.value)) {
     filters.value = parsed as Filter;
   }
 }, { immediate: true });
+
+onMounted(() => {
+  if (!!filters.value && Object.keys(filters.value).length > 0) {
+    alignFilterList(filters.value);
+    fetch(filters.value);
+  }
+});
 </script>
 
 <script lang="ts">

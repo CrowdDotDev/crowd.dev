@@ -8,23 +8,22 @@ import {
 } from 'vue';
 import CrSelectFilter from '@/shared/modules/filters/components/filterTypes/SelectFilter.vue';
 import {
-  SelectFilterConfig,
+  SelectFilterConfig, SelectFilterOptionGroup,
 } from '@/shared/modules/filters/types/filterTypes/SelectFilterConfig';
 import { CustomFilterConfig } from '@/shared/modules/filters/types/filterTypes/CustomFilterConfig';
-import { useActivityTypeStore } from '@/modules/activity/store/type';
-import { storeToRefs } from 'pinia';
+import { mapGetters } from '@/shared/vuex/vuex.helpers';
 import { CrowdIntegrations } from '@/integrations/integrations-config';
+import { extractRepoNameFromUrl } from '@/utils/string';
 
 const props = defineProps<{
-  modelValue: string
+  modelValue: string,
   config: CustomFilterConfig,
   data: any,
 }>();
 
 const emit = defineEmits<{(e: 'update:modelValue', value: string), (e: 'update:data', value: any),}>();
 
-const activityTypeStore = useActivityTypeStore();
-const { types } = storeToRefs(activityTypeStore);
+const { currentTenant } = mapGetters('auth');
 
 const form = computed({
   get: () => props.modelValue,
@@ -36,19 +35,15 @@ const data = computed({
   set: (value: any) => emit('update:data', value),
 });
 
-watch(() => types, (typesValue: any) => {
-  const platforms = {
-    ...typesValue.value.default,
-    ...typesValue.value.custom,
-  };
+watch(() => currentTenant.value, (tenant: any) => {
+  const conversationChannels = tenant?.settings[0].activityChannels || {};
 
-  data.value.options = Object.entries(platforms).map(([platform, activityTypes]: [string, any]) => ({
-    label: CrowdIntegrations.getConfig(platform)?.name ?? platform,
-    options: Object.entries(activityTypes).map(([activityType, activityTypeData]) => ({
-      label: activityTypeData.display.short,
-      value: `${platform}:${activityType}`,
+  data.value.options = Object.entries(conversationChannels).map(([platform, channels]): SelectFilterOptionGroup => ({
+    label: CrowdIntegrations.getConfig(platform).name,
+    options: channels.map((channel) => ({
+      value: channel,
+      label: platform === 'github' ? extractRepoNameFromUrl(channel) : channel,
     })),
   }));
 }, { immediate: true });
-
 </script>

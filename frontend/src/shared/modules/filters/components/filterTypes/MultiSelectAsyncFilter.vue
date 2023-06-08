@@ -113,8 +113,6 @@ watch(() => data.value.selected, (value) => {
 const loading = ref<boolean>(false);
 const filteredOptions = ref<MultiSelectAsyncFilterOption[]>([]);
 
-const unselectedOptions = computed(() => filteredOptions.value.filter((o) => !props.modelValue.value.includes(o.value)));
-
 const searchOptions = (query: string) => {
   loading.value = true;
   props.remoteMethod(query)
@@ -128,9 +126,10 @@ const searchOptions = (query: string) => {
 
 onMounted(() => {
   searchOptions('');
-  if (!props.modelValue.value || Object.keys(props.modelValue.value).length < 2) {
-    emit('update:modelValue', defaultForm);
-  }
+  emit('update:modelValue', {
+    ...defaultForm,
+    ...form.value,
+  });
   if (!data.value.selected) {
     data.value.selected = [];
   }

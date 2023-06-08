@@ -83,9 +83,10 @@ watch(() => form.value.operator, (operator, previousOperator) => {
 });
 
 onMounted(() => {
-  if (!form.value || Object.keys(form.value).length < 3) {
-    form.value = defaultForm;
-  }
+  form.value = {
+    ...defaultForm,
+    ...form.value,
+  };
 });
 </script>
 

@@ -1,5 +1,10 @@
 import { FilterConfigType } from '@/shared/modules/filters/types/FilterConfig';
-import { MultiSelectFilterConfig, MultiSelectFilterValue } from '@/shared/modules/filters/types/filterTypes/MultiSelectFilterConfig';
+import {
+  MultiSelectFilterConfig,
+  MultiSelectFilterOptions,
+  MultiSelectFilterValue,
+} from '@/shared/modules/filters/types/filterTypes/MultiSelectFilterConfig';
+import { itemLabelRendererByType } from '@/shared/modules/filters/config/itemLabelRendererByType';
 import options from './options';
 
 const sentiment: MultiSelectFilterConfig = {
@@ -10,12 +15,20 @@ const sentiment: MultiSelectFilterConfig = {
   options: {
     options,
   },
-  itemLabelRenderer(value: MultiSelectFilterValue): string {
-    return `<b>Sentiment</b> ${value?.value.join(',') || '...'}`;
+  itemLabelRenderer(value: MultiSelectFilterValue, options: MultiSelectFilterOptions): string {
+    return itemLabelRendererByType[FilterConfigType.MULTISELECT]('Sentiment', value, options);
   },
-  apiFilterRenderer(value): any[] {
-    console.log(value);
-    return [];
+  apiFilterRenderer({ value, include }: MultiSelectFilterValue): any[] {
+    const filter = {
+      or: [
+        ...(value.includes('positive') ? [{ sentiment: { gte: 67 } }] : []),
+        ...(value.includes('negative') ? [{ sentiment: { lt: 33 } }] : []),
+        ...(value.includes('neutral') ? [{ sentiment: { between: [33, 67] } }] : []),
+      ],
+    };
+    return [
+      (include ? filter : { not: filter }),
+    ];
   },
 };
 
