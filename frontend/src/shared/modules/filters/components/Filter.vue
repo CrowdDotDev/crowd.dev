@@ -1,5 +1,5 @@
 <template>
-  <div class="mb-8">
+  <div class="mb-4">
     <div class="flex justify-end pb-4">
       <cr-filter-search v-model="filters.search" :placeholder="props.searchConfig.placeholder">
         <template #append>
