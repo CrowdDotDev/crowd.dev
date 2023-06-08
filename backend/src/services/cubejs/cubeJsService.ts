@@ -6,24 +6,24 @@ import Error400 from '../../errors/Error400'
 export default class CubeJsService {
   private tenantId: string
 
+  private segments: string[]
+
   token: string
 
   api: any
 
   meta: any
 
-  constructor(tenantId?: string) {
-    this.tenantId = tenantId
-  }
-
   /**
    * Sets tenant security context for cubejs api.
    * Also initializes cubejs api object from security context.
    * @param tenantId
+   * @param segments
    */
-  async setTenant(tenantId: string): Promise<void> {
+  async init(tenantId: string, segments: string[]): Promise<void> {
     this.tenantId = tenantId
-    this.token = await CubeJsService.generateJwtToken(this.tenantId)
+    this.segments = segments
+    this.token = await CubeJsService.generateJwtToken(this.tenantId, this.segments)
     this.api = cubejs(this.token, { apiUrl: CUBEJS_CONFIG.url })
   }
 
@@ -37,8 +37,8 @@ export default class CubeJsService {
     return result.loadResponses[0].data
   }
 
-  static async generateJwtToken(tenantId: string | null) {
-    const context = tenantId ? { tenantId } : {}
+  static async generateJwtToken(tenantId: string, segments: string[]) {
+    const context = { tenantId, segments }
     const token = jwt.sign(context, CUBEJS_CONFIG.jwtSecret, {
       expiresIn: CUBEJS_CONFIG.jwtExpiry,
     })

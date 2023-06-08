@@ -7,7 +7,6 @@ import ActivityRepository from '../database/repositories/activityRepository'
 import MemberAttributeSettingsRepository from '../database/repositories/memberAttributeSettingsRepository'
 import MemberRepository from '../database/repositories/memberRepository'
 import SequelizeRepository from '../database/repositories/sequelizeRepository'
-import SettingsRepository from '../database/repositories/settingsRepository'
 import { mapUsernameToIdentities } from '../database/repositories/types/memberTypes'
 import Error400 from '../errors/Error400'
 import telemetryTrack from '../segment/telemetryTrack'
@@ -18,7 +17,8 @@ import ConversationService from './conversationService'
 import ConversationSettingsService from './conversationSettingsService'
 import merge from './helpers/merge'
 import MemberService from './memberService'
-import SettingsService from './settingsService'
+import SegmentRepository from '../database/repositories/segmentRepository'
+import SegmentService from './segmentService'
 
 export default class ActivityService extends LoggerBase {
   options: IServiceOptions
@@ -57,14 +57,17 @@ export default class ActivityService extends LoggerBase {
       if (
         data.platform &&
         data.type &&
-        !SettingsRepository.activityTypeExists(data.platform, data.type, this.options)
+        !SegmentRepository.activityTypeExists(data.platform, data.type, this.options)
       ) {
-        await SettingsService.createActivityType({ type: data.type }, this.options, data.platform)
+        await new SegmentService(this.options).createActivityType(
+          { type: data.type },
+          data.platform,
+        )
       }
 
       // check if channel exists in settings for respective platform. If not, update by adding channel to settings
       if (data.platform && data.channel) {
-        await SettingsService.updateActivityChannels(data, this.options)
+        await new SegmentService(this.options).updateActivityChannels(data)
       }
 
       // If a sourceParentId is sent, try to find it in our db

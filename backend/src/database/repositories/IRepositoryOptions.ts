@@ -1,3 +1,4 @@
+import { SegmentData } from '../../types/segmentTypes'
 import { Logger } from '@crowd/logging'
 
 export interface IRepositoryOptions {
@@ -5,6 +6,7 @@ export interface IRepositoryOptions {
   language: string
   currentUser: any
   currentTenant: any
+  currentSegments: SegmentData[]
   database: any
   searchEngine: any
   transaction?: any

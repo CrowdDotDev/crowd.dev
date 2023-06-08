@@ -6,6 +6,8 @@ import Error400 from '../../errors/Error400'
 import { databaseInit } from '../databaseConnection'
 import { searchEngineInit } from '../../search-engine/searchEngineConnection'
 import { IRepositoryOptions } from './IRepositoryOptions'
+import { SegmentData } from '../../types/segmentTypes'
+import { IServiceOptions } from '../../services/IServiceOptions'
 
 /**
  * Abstracts some basic Sequelize operations.
@@ -23,13 +25,18 @@ export default class SequelizeRepository {
     await database.sequelize.sync({ force: true })
   }
 
-  static async getDefaultIRepositoryOptions(user?, tenant?): Promise<IRepositoryOptions> {
+  static async getDefaultIRepositoryOptions(
+    user?,
+    tenant?,
+    segments?,
+  ): Promise<IRepositoryOptions> {
     return {
       log: getServiceLogger(),
       database: await databaseInit(),
       searchEngine: await searchEngineInit(),
       currentTenant: tenant,
       currentUser: user,
+      currentSegments: segments,
       bypassPermissionValidation: true,
       language: 'en',
     }
@@ -47,6 +54,22 @@ export default class SequelizeRepository {
    */
   static getCurrentTenant(options: IRepositoryOptions) {
     return (options && options.currentTenant) || { id: null }
+  }
+
+  static getCurrentSegments(options: IRepositoryOptions) {
+    return (options && options.currentSegments) || []
+  }
+
+  static getStrictlySingleActiveSegment(
+    options: IRepositoryOptions | IServiceOptions,
+  ): SegmentData {
+    if (options.currentSegments.length !== 1) {
+      throw new Error400(
+        `This operation can have exactly one segment. Found ${options.currentSegments.length} segments.`,
+      )
+    }
+
+    return options.currentSegments[0]
   }
 
   /**

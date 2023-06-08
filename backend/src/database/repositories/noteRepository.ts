@@ -9,6 +9,7 @@ import { IRepositoryOptions } from './IRepositoryOptions'
 import QueryParser from './filters/queryParser'
 import { QueryOutput } from './filters/queryTypes'
 import UserRepository from './userRepository'
+import SegmentRepository from './segmentRepository'
 
 const { Op } = Sequelize
 
@@ -184,7 +185,21 @@ class NoteRepository {
     const tenant = SequelizeRepository.getCurrentTenant(options)
 
     const whereAnd: Array<any> = []
-    const include = []
+    const include = [
+      {
+        model: options.database.member,
+        as: 'members',
+        include: [
+          {
+            model: options.database.segment,
+            as: 'segments',
+            where: {
+              id: SegmentRepository.getSegmentIds(options),
+            },
+          },
+        ],
+      },
+    ]
 
     whereAnd.push({
       tenantId: tenant.id,
@@ -255,6 +270,8 @@ class NoteRepository {
       limit,
       offset,
     })
+
+    delete parsed.where.segmentId
 
     let {
       rows,

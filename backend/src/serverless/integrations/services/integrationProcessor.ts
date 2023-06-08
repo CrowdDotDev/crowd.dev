@@ -17,6 +17,7 @@ import { SlackIntegrationService } from './integrations/slackIntegrationService'
 import { TwitterIntegrationService } from './integrations/twitterIntegrationService'
 import { TwitterReachIntegrationService } from './integrations/twitterReachIntegrationService'
 import { WebhookProcessor } from './webhookProcessor'
+import SegmentRepository from '../../../database/repositories/segmentRepository'
 
 export class IntegrationProcessor extends LoggerBase {
   private readonly tickProcessor: IntegrationTickProcessor

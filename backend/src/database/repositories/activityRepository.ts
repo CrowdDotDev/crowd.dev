@@ -13,6 +13,7 @@ import { QueryOutput } from './filters/queryTypes'
 import { AttributeData } from '../attributes/attribute'
 import MemberRepository from './memberRepository'
 import ActivityDisplayService from '../../services/activityDisplayService'
+import SegmentRepository from './segmentRepository'
 
 const { Op } = Sequelize
 
@@ -25,6 +26,8 @@ class ActivityRepository {
     const tenant = SequelizeRepository.getCurrentTenant(options)
 
     const transaction = SequelizeRepository.getTransaction(options)
+
+    const segment = SequelizeRepository.getStrictlySingleActiveSegment(options)
 
     // Data and body will be displayed as HTML. We need to sanitize them.
     if (data.body) {
@@ -72,6 +75,7 @@ class ActivityRepository {
         parentId: data.parent || null,
         sourceParentId: data.sourceParentId || null,
         conversationId: data.conversationId || null,
+        segmentId: segment.id,
         tenantId: tenant.id,
         createdById: currentUser.id,
         updatedById: currentUser.id,
@@ -122,6 +126,7 @@ class ActivityRepository {
       where: {
         id,
         tenantId: currentTenant.id,
+        segmentId: SegmentRepository.getSegmentIds(options),
       },
       transaction,
     })
@@ -192,6 +197,7 @@ class ActivityRepository {
       where: {
         id,
         tenantId: currentTenant.id,
+        segmentId: SegmentRepository.getSegmentIds(options),
       },
       transaction,
     })
@@ -236,6 +242,7 @@ class ActivityRepository {
       where: {
         id,
         tenantId: currentTenant.id,
+        segmentId: SegmentRepository.getSegmentIds(options),
       },
       include,
       transaction,
@@ -262,6 +269,7 @@ class ActivityRepository {
     const record = await options.database.activity.findOne({
       where: {
         tenantId: currentTenant.id,
+        segmentId: SegmentRepository.getSegmentIds(options),
         ...query,
       },
       transaction,
@@ -305,6 +313,7 @@ class ActivityRepository {
       where: {
         ...filter,
         tenantId: tenant.id,
+        segmentId: SegmentRepository.getSegmentIds(options),
       },
       transaction,
     })
@@ -558,6 +567,15 @@ class ActivityRepository {
                 name: 'memberTags',
                 from: 'memberId',
                 to: 'tagId',
+              },
+            },
+            segments: {
+              table: 'members',
+              model: 'member',
+              relationTable: {
+                name: 'memberSegments',
+                from: 'memberId',
+                to: 'segmentId',
               },
             },
             organizations: {
