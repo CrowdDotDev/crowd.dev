@@ -29,7 +29,7 @@ services:
       context: ../../
       dockerfile: ./scripts/services/docker/Dockerfile.integration_stream_worker
       args:
-        INSTALL_DEV_DEPENDENCIES: true
+        INSTALL_DEV_DEPENDENCIES: 'true'
     command: 'npm run dev'
     working_dir: /usr/crowd/app/services/apps/integration_stream_worker
     # user: '${USER_ID}:${GROUP_ID}'
