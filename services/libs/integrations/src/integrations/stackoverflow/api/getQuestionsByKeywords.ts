@@ -39,7 +39,7 @@ async function getQuestions(
           now.getUTCFullYear(),
           now.getUTCMonth(),
           now.getUTCDate(),
-          now.getUTCHours() - STACKOVERFLOW_LAST_MAX_PAGES,
+          now.getUTCHours() - STACKOVERFLOW_MAX_RETROSPECT_IN_HOURS,
         ),
       )
       fromTimestamp = Math.floor(fromDate.getTime() / 1000)
