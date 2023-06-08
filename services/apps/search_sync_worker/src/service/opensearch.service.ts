@@ -2,8 +2,9 @@ import { OPENSEARCH_CONFIG } from '@/conf'
 import { OpenSearchIndex } from '@/types'
 import { Logger, LoggerBase } from '@crowd/logging'
 import { Client } from '@opensearch-project/opensearch'
+import { IIndexRequest } from './opensearch.data'
 
-export default class OpenSearchService extends LoggerBase {
+export class OpenSearchService extends LoggerBase {
   private readonly client: Client
 
   constructor(parentLog: Logger) {
@@ -39,5 +40,54 @@ export default class OpenSearchService extends LoggerBase {
 
   public async initialize() {
     await this.ensureIndexExists(OpenSearchIndex.MEMBERS)
+  }
+
+  public async removeFromIndex(id: string, index: OpenSearchIndex): Promise<void> {
+    const response = await this.client.delete({
+      id,
+      index,
+      refresh: true,
+    })
+
+    if (!(response && response.statusCode === 200)) {
+      this.log.error({ id, index }, 'Failed to remove document from index!')
+      throw new Error(`Failed to remove document with id: ${id} from index ${index}!`)
+    }
+  }
+
+  public async index<T>(id: string, index: OpenSearchIndex, body: T): Promise<void> {
+    const response = await this.client.index({
+      id,
+      index,
+      body,
+      refresh: true,
+    })
+
+    if (!(response && response.statusCode === 200)) {
+      this.log.error({ id, index }, 'Failed to index document!')
+      throw new Error(`Failed to index document with id: ${id} in index ${index}!`)
+    }
+  }
+
+  public async bulkIndex<T>(index: OpenSearchIndex, batch: IIndexRequest<T>[]): Promise<void> {
+    const body = batch.map((doc) => {
+      return {
+        index: {
+          _index: index,
+          _id: doc.id,
+          data: doc.body,
+        },
+      }
+    })
+
+    const response = await this.client.bulk({
+      body,
+      refresh: true,
+    })
+
+    if (!(response && response.statusCode === 200)) {
+      this.log.error({ index }, 'Failed to bulk index documents!')
+      throw new Error(`Failed to bulk index documents in index ${index}!`)
+    }
   }
 }
