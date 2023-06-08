@@ -94,10 +94,10 @@ import moment from 'moment';
 import { formatDate } from '@/utils/date';
 
 import { MemberPermissions } from '@/modules/member/member-permissions';
+import { useMemberStore } from '@/modules/member/store/pinia';
+import { storeToRefs } from 'pinia';
 import AppMemberManageAttributesDrawer from '../../member-manage-attributes-drawer.vue';
 import AppMemberCustomAttributesArrayRenderer from './_aside-custom-attributes-array-renderer.vue';
-import { useMemberStore } from "@/modules/member/store/pinia";
-import { storeToRefs } from "pinia";
 
 const props = defineProps({
   member: {

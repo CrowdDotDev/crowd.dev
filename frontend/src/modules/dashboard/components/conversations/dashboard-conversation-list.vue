@@ -34,7 +34,7 @@
       <router-link
         :to="{
           name: 'activity',
-          hash: '#conversation'
+          hash: '#conversation',
         }"
         class="text-red font-medium text-center text-xs leading-5"
       >

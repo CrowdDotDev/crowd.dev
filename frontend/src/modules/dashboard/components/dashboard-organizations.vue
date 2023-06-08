@@ -192,9 +192,9 @@ import { DAILY_GRANULARITY_FILTER } from '@/modules/widget/widget-constants';
 import AppDashboardEmptyState from '@/modules/dashboard/components/dashboard-empty-state.vue';
 import AppDashboardWidgetHeader from '@/modules/dashboard/components/dashboard-widget-header.vue';
 import AppDashboardWidgetChart from '@/modules/dashboard/components/dashboard-widget-chart.vue';
-import newAndActive from "@/modules/organization/config/saved-views/views/new-and-active";
-import allOrganizations from "@/modules/organization/config/saved-views/views/all-organizations";
-import { filterQueryService } from "@/shared/modules/filters/services/filter-query.service";
+import newAndActive from '@/modules/organization/config/saved-views/views/new-and-active';
+import allOrganizations from '@/modules/organization/config/saved-views/views/all-organizations';
+import { filterQueryService } from '@/shared/modules/filters/services/filter-query.service';
 
 export default {
   name: 'AppDashboardOrganizations',
