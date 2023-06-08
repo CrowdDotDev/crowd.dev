@@ -3,13 +3,20 @@ import { FilterStringOperator } from '@/shared/modules/filters/config/constants/
 
 export const stringApiFilterRenderer = (property: string, { include, value, operator }: StringFilterValue): any[] => {
   // Exception for "not contains" where there isn't a specific operator
-  const filter = operator === FilterStringOperator.NLIKE ? {
-    not: {
-      contains: value,
-    },
-  } : {
+  let filter: any = {
     [operator]: value,
   };
+  if (operator === FilterStringOperator.NLIKE) {
+    filter = {
+      not: {
+        like: `%${value}%`,
+      },
+    };
+  } else if (operator === FilterStringOperator.LIKE) {
+    filter = {
+      [operator]: `%${value}%`,
+    };
+  }
 
   return [
     {

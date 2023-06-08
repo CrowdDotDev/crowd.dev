@@ -4,6 +4,7 @@
 
     <div class="p-4 pb-5">
       <cr-filter-inline-select
+        v-if="!props.forceOperator"
         v-model="form.operator"
         :prefix="`${props.config.label}:`"
         class="mb-3"
@@ -127,10 +128,18 @@ watch(() => form.value.operator, (operator) => {
 });
 
 onMounted(() => {
-  form.value = {
-    ...defaultForm,
-    ...form.value,
-  };
+  if (props.forceOperator && props.forceOperator.length > 0) {
+    form.value = {
+      ...defaultForm,
+      ...form.value,
+      operator: props.forceOperator,
+    };
+  } else {
+    form.value = {
+      ...defaultForm,
+      ...form.value,
+    };
+  }
 });
 </script>
 

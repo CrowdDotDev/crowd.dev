@@ -93,6 +93,25 @@ export class OrganizationService {
     return response.data;
   }
 
+  static async listOrganizations(
+    body,
+  ) {
+    const sampleTenant = AuthCurrentTenant.getSampleTenantData();
+    const tenantId = sampleTenant?.id || AuthCurrentTenant.get();
+
+    const response = await authAxios.post(
+      `/tenant/${tenantId}/organization/query`,
+      body,
+      {
+        headers: {
+          Authorization: sampleTenant?.token,
+        },
+      },
+    );
+
+    return response.data;
+  }
+
   static async listAutocomplete(query, limit) {
     const params = {
       query,

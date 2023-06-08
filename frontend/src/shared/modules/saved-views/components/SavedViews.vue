@@ -69,9 +69,7 @@ const compareFilterToCurrentValues = (filter: FilterObject): boolean => {
     ...props.modelValue,
   };
   delete currentFilter.pagination;
-  delete currentFilter.order;
   delete compareFilter.pagination;
-  delete compareFilter.order;
   return JSON.stringify(compareFilter) === JSON.stringify(currentFilter);
 };
 
