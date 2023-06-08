@@ -94,7 +94,6 @@ const form = computed<NumberFilterValue>({
 
 const defaultForm: NumberFilterValue = {
   value: '',
-  valueTo: '',
   operator: FilterNumberOperator.EQ,
   include: true,
 };
@@ -121,7 +120,7 @@ const $v = useVuelidate(rules, form);
 
 watch(() => form.value.operator, (operator) => {
   if (operator !== FilterNumberOperator.BETWEEN) {
-    form.value.valueTo = undefined;
+    delete form.value.valueTo;
   } else {
     form.value.valueTo = '';
   }

@@ -77,6 +77,7 @@ import AppMemberViewNotes from '@/modules/member/components/view/member-view-not
 import AppMemberViewContributions from '@/modules/member/components/view/member-view-contributions.vue';
 import AppMemberViewTasks from '@/modules/member/components/view/member-view-tasks.vue';
 import { useMemberStore } from '@/modules/member/store/pinia';
+import { storeToRefs } from 'pinia';
 
 const store = useStore();
 const props = defineProps({
@@ -87,7 +88,10 @@ const props = defineProps({
 });
 
 const { currentTenant, currentUser } = mapGetters('auth');
-const { getMemberCustomAttributes } = useMemberStore();
+
+const memberStore = useMemberStore();
+const { customAttributes } = storeToRefs(memberStore);
+const { getMemberCustomAttributes } = memberStore;
 
 const member = computed(() => store.getters['member/find'](props.id) || {});
 
@@ -111,8 +115,9 @@ const tab = ref('activities');
 
 onMounted(async () => {
   await store.dispatch('member/doFind', props.id);
+
   if (
-    Object.keys(store.state.member.customAttributes)
+    Object.keys(customAttributes.value)
       .length === 0
   ) {
     await getMemberCustomAttributes();

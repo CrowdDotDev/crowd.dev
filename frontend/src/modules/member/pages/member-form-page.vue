@@ -122,6 +122,7 @@ import getCustomAttributes from '@/shared/fields/get-custom-attributes';
 import getAttributesModel from '@/shared/attributes/get-attributes-model';
 import getParsedAttributes from '@/shared/attributes/get-parsed-attributes';
 import { useMemberStore } from '@/modules/member/store/pinia';
+import { storeToRefs } from 'pinia';
 
 const LoaderIcon = h(
   'i',
@@ -143,6 +144,9 @@ const router = useRouter();
 const route = useRoute();
 const store = useStore();
 
+const memberStore = useMemberStore();
+const { customAttributes } = storeToRefs(memberStore);
+
 const { fields } = MemberModel;
 const formSchema = computed(
   () => new FormSchema([
@@ -154,8 +158,7 @@ const formSchema = computed(
     fields.organizations,
     fields.attributes,
     ...getCustomAttributes({
-      customAttributes:
-      store.state.member.customAttributes,
+      customAttributes: customAttributes.value,
       considerShowProperty: false,
     }),
   ]),
@@ -214,7 +217,7 @@ const isDrawerOpen = ref(false);
 const rules = reactive(formSchema.value.rules());
 
 const computedFields = computed(() => fields);
-const computedAttributes = computed(() => Object.values(store.state.member.customAttributes));
+const computedAttributes = computed(() => Object.values(customAttributes.value));
 
 // UI Validations
 const isEditPage = computed(() => !!route.params.id);

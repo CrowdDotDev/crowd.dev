@@ -53,12 +53,12 @@
 
       <cr-saved-views v-model="filters" :config="memberSavedViews" :views="memberViews" />
       <cr-filter
-        v-if="customAttributes"
+        v-if="customAttributesFilter"
         v-model="filters"
         :config="memberFilters"
         :search-config="memberSearchFilter"
         :saved-views-config="memberSavedViews"
-        :custom-config="customAttributes"
+        :custom-config="customAttributesFilter"
         @fetch="fetch($event)"
       />
       <app-member-list-table
@@ -87,7 +87,7 @@ import { memberSavedViews, memberViews } from '../config/saved-views/main';
 
 const memberStore = useMemberStore();
 const { getMemberCustomAttributes, fetchMembers } = memberStore;
-const { filters, customAttributes, savedFilterBody } = storeToRefs(memberStore);
+const { filters, customAttributesFilter, savedFilterBody } = storeToRefs(memberStore);
 
 const membersCount = ref(0);
 const membersToMergeCount = ref(0);

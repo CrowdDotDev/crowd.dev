@@ -29,6 +29,7 @@ import {
 } from 'vue';
 import { Filter, FilterObject } from '@/shared/modules/filters/types/FilterConfig';
 import { SavedView, SavedViewsConfig } from '@/shared/modules/saved-views/types/SavedViewsConfig';
+import { isEqual } from 'lodash';
 
 const props = defineProps<{
   modelValue: Filter,
@@ -70,7 +71,8 @@ const compareFilterToCurrentValues = (filter: FilterObject): boolean => {
   };
   delete currentFilter.pagination;
   delete compareFilter.pagination;
-  return JSON.stringify(compareFilter) === JSON.stringify(currentFilter);
+
+  return isEqual(compareFilter, currentFilter);
 };
 
 const hasChanged = computed<boolean>(() => {

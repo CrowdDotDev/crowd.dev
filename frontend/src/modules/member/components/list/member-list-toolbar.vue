@@ -120,6 +120,7 @@ import {
   getEnrichmentMax,
   showEnrichmentLoadingMessage,
 } from '@/modules/member/member-enrichment';
+import AppMemberListBulkUpdateTags from '@/modules/member/components/list/member-list-bulk-update-tags.vue';
 
 const { currentUser, currentTenant } = mapGetters('auth');
 const { doRefreshCurrentUser } = mapActions('auth');

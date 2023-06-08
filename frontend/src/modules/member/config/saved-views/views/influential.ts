@@ -17,7 +17,7 @@ const influential: SavedView = {
     },
 
     reach: {
-      operator: '>=',
+      operator: 'gte',
       value: 500,
       include: true,
     },

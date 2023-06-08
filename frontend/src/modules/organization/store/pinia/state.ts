@@ -1,5 +1,6 @@
 import { Filter } from '@/shared/modules/filters/types/FilterConfig';
 import { Organization } from '@/modules/organization/types/Organization';
+import allOrganizations from '@/modules/organization/config/saved-views/views/all-organizations';
 
 export interface OrganizationState {
   filters: Filter,
@@ -11,17 +12,12 @@ export interface OrganizationState {
 
 const state: OrganizationState = {
   filters: {
-    search: '',
-    relation: 'and',
+    ...allOrganizations.filter,
     pagination: {
       page: 1,
       perPage: 20,
     },
-    order: {
-      prop: 'lastActive',
-      order: 'descending',
-    },
-  } as Filter,
+  },
   savedFilterBody: {},
   organizations: [],
   selectedOrganizations: [],
