@@ -1,7 +1,7 @@
 export enum FilterStringOperator {
   LIKE = 'like',
   NLIKE = 'nlike',
-  EQ = 'is',
+  EQ = 'eq',
   NE = 'ne',
 }
 

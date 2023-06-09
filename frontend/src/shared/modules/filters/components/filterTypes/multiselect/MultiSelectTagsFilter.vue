@@ -25,6 +25,8 @@
           :key="option.value"
           :label="option.label"
           :value="option.value"
+          data-qa="filter-select-option"
+          :data-qa-value="option.value"
         >
           <el-checkbox
             :model-value="form.includes(option.value)"

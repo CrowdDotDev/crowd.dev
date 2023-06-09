@@ -33,7 +33,6 @@ export default () => {
     cy.scrollTo(0, 0);
     cy.wait(300);
     cy.get('[data-qa="filter-list-chip"]').click({ force: true });
-    cy.get('[data-qa="filter-list-chip"]').click({ force: true });
     cy.get('[data-qa="filter-select-option"]').contains('Positive').click();
   });
 
@@ -50,7 +49,6 @@ export default () => {
     });
     cy.scrollTo(0, 0);
     cy.wait(300);
-    cy.get('[data-qa="filter-list-chip"]').click({ force: true });
     cy.get('[data-qa="filter-list-chip"]').click({ force: true });
     cy.get('[data-qa="filter-select-option"]').contains('Positive').click();
   });
@@ -70,7 +68,6 @@ export default () => {
     cy.scrollTo(0, 0);
     cy.wait(300);
     cy.get('[data-qa="filter-list-chip"]').click({ force: true });
-    cy.get('[data-qa="filter-list-chip"]').click({ force: true });
     cy.get('[data-qa="filter-select-option"]').contains('Neutral').click();
   });
 
@@ -87,7 +84,6 @@ export default () => {
     });
     cy.scrollTo(0, 0);
     cy.wait(300);
-    cy.get('[data-qa="filter-list-chip"]').click({ force: true });
     cy.get('[data-qa="filter-list-chip"]').click({ force: true });
     cy.get('[data-qa="filter-select-option"]').contains('Neutral').click();
   });
@@ -106,7 +102,6 @@ export default () => {
     cy.scrollTo(0, 0);
     cy.wait(300);
     cy.get('[data-qa="filter-list-chip"]').click({ force: true });
-    cy.get('[data-qa="filter-list-chip"]').click({ force: true });
     cy.get('[data-qa="filter-select-option"]').contains('Negative').click();
   });
 
@@ -123,7 +118,6 @@ export default () => {
     });
     cy.scrollTo(0, 0);
     cy.wait(300);
-    cy.get('[data-qa="filter-list-chip"]').click({ force: true });
     cy.get('[data-qa="filter-list-chip"]').click({ force: true });
     cy.get('[data-qa="filter-select-option"]').contains('Negative').click();
   });

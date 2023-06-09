@@ -22,6 +22,7 @@
               type="number"
               min="0"
               :placeholder="form.operator !== FilterNumberOperator.BETWEEN ? 'Enter value' : 'From'"
+              data-qa="filter-number-from"
               @blur="$v.value.$touch"
               @change="$v.value.$touch"
             />
@@ -38,6 +39,7 @@
               type="number"
               placeholder="To"
               min="0"
+              data-qa="filter-number-to"
               @blur="$v.valueTo.$touch"
               @change="$v.valueTo.$touch"
             />

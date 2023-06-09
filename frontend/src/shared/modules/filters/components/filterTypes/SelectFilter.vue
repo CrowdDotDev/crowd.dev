@@ -24,7 +24,14 @@
         >
           {{ group.label }}
         </div>
-        <cr-filter-select-option v-for="(option, oi) of group.options" :key="oi" v-model="form.value" :value="option.value">
+        <cr-filter-select-option
+          v-for="(option, oi) of group.options"
+          :key="oi"
+          v-model="form.value"
+          :value="option.value"
+          data-qa="filter-select-option"
+          :data-qa-value="option.value"
+        >
           {{ option.label }}
         </cr-filter-select-option>
       </template>

@@ -6,7 +6,7 @@
       :teleported="false"
       @visible-change="dropdownExpanded = $event"
     >
-      <div class="flex items-center flex-wrap">
+      <div class="flex items-center flex-wrap" data-qa="filter-inline-select">
         <span class="filter-select-option-prefix mr-1">{{
           prefix
         }}</span>
@@ -28,6 +28,7 @@
             'is-selected': props.modelValue === option.value,
           }"
           class="flex justify-between"
+          data-qa="filter-inline-select-option"
           @click="model = option.value"
         >
           <span>{{ option.label }}</span>

@@ -17,7 +17,7 @@ const identities: MultiSelectFilterConfig = {
     options: [
       {
         options: [
-          ...(CrowdIntegrations.configs.map((platform) => ({
+          ...(CrowdIntegrations.enabledConfigs.map((platform) => ({
             label: (platform as any).name,
             value: platform.platform,
           }))),

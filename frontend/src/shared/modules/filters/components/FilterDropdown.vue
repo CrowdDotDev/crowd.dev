@@ -3,6 +3,7 @@
     <template #reference>
       <el-button
         class="filter-dropdown-trigger"
+        data-qa="filter-dropdown"
         @click="open = true"
       >
         <i class="ri-lg ri-filter-3-line mr-2" />
@@ -16,6 +17,7 @@
         v-model="search"
         placeholder="Search..."
         class="filter-dropdown-search"
+        data-qa="filter-list-search"
       >
         <template #prefix>
           <i class="ri-search-line" />
@@ -28,6 +30,7 @@
         :key="key"
         class="mb-1 p-3 rounded flex justify-between items-center transition whitespace-nowrap h-10 hover:bg-gray-50 text-xs"
         :class="isSelected(key) ? 'bg-gray-50 text-gray-400' : 'text-gray-900 cursor-pointer'"
+        data-qa="filter-list-item"
         @click="add(key)"
       >
         <span><i :class="iconClass" class="text-base text-gray-400 mr-3" />{{ label }}</span>
@@ -46,6 +49,7 @@
           :key="key"
           class="mb-1 p-3 rounded flex justify-between items-center transition whitespace-nowrap h-10 hover:bg-gray-50 text-xs"
           :class="isSelected(key) ? 'bg-gray-50 text-gray-400' : 'text-gray-900 cursor-pointer'"
+          data-qa="filter-list-item-custom"
           @click="add(key)"
         >
           <span>{{ label }}</span>

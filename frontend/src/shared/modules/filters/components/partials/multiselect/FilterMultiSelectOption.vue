@@ -3,6 +3,8 @@
     :class="selected ? 'is-selected' : ''"
     v-bind="$attrs"
     class="filter-select-option"
+    data-qa="filter-select-option"
+    :data-qa-value="props.value"
     @click="selectOption()"
   >
     <el-checkbox

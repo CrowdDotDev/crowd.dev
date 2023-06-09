@@ -35,7 +35,6 @@ export default () => {
       cy.scrollTo(0, 0);
       cy.wait(300);
       cy.get('[data-qa="filter-list-chip"]').click({ force: true });
-      cy.get('[data-qa="filter-list-chip"]').click({ force: true });
       cy.wrap(option).click();
     });
   });
@@ -55,7 +54,6 @@ export default () => {
       });
       cy.scrollTo(0, 0);
       cy.wait(300);
-      cy.get('[data-qa="filter-list-chip"]').click({ force: true });
       cy.get('[data-qa="filter-list-chip"]').click({ force: true });
       cy.wrap(option).click();
     });
