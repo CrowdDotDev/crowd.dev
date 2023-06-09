@@ -25,7 +25,7 @@ const log = getServiceLogger()
  * @response 404 - Not found
  * @response 429 - Too many requests
  */
- 
+
 export default async (req, res) => {
   new PermissionChecker(req).validateHas(Permissions.values.memberEdit)
 

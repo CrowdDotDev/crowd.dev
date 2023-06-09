@@ -1,5 +1,5 @@
-export const MAX_RETROSPECT_IN_HOURS = 5
-export const LAST_MAX_PAGES = 20
+export const STACKOVERFLOW_MAX_RETROSPECT_IN_HOURS = 5
+export const STACKOVERFLOW_LAST_MAX_PAGES = 20
 
 export enum StackOverflowActivityType {
   QUESTION = 'question',

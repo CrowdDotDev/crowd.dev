@@ -63,6 +63,13 @@ module.exports = {
         'no-plusplus': 0,
         'no-await-in-loop': 0,
         '@typescript-eslint/no-shadow': 0,
+        'import/extensions': [
+          'error',
+          'never',
+          {
+            json: 'always',
+          },
+        ],
       },
     },
   ],

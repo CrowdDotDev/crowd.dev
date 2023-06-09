@@ -104,14 +104,6 @@ export default class IntegrationStreamService extends LoggerBase {
       return
     }
 
-    if (stream.retries + 1 <= WORKER_SETTINGS().maxStreamRetries) {
-      // delay for #retries * 15 minutes
-      const until = addSeconds(new Date(), (stream.retries + 1) * 15 * 60)
-      this.log.warn({ until: until.toISOString() }, 'Retrying stream!')
-      await this.repo.delayStream(stream.id, until)
-      return
-    }
-
     await this.repo.markStreamError(stream.id, {
       location,
       message,
@@ -120,6 +112,14 @@ export default class IntegrationStreamService extends LoggerBase {
       errorStack: err?.stack,
       errorString: err ? JSON.stringify(err) : undefined,
     })
+
+    if (stream.retries + 1 <= WORKER_SETTINGS().maxStreamRetries) {
+      // delay for #retries * 15 minutes
+      const until = addSeconds(new Date(), (stream.retries + 1) * 15 * 60)
+      this.log.warn({ until: until.toISOString() }, 'Retrying stream!')
+      await this.repo.delayStream(stream.id, until)
+      return
+    }
 
     // stop run because of stream error
     this.log.warn('Reached maximum retries for stream! Stopping the run!')
