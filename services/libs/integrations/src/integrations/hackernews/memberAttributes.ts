@@ -5,7 +5,7 @@ import {
   MemberAttributes,
 } from '@crowd/types'
 
-export const HackerNewsMemberAttributes: IMemberAttribute[] = [
+const attrbutes: IMemberAttribute[] = [
   {
     name: MemberAttributes[MemberAttributeName.SOURCE_ID].name,
     label: MemberAttributes[MemberAttributeName.SOURCE_ID].label,
@@ -35,3 +35,5 @@ export const HackerNewsMemberAttributes: IMemberAttribute[] = [
     show: true,
   },
 ]
+
+export default attrbutes

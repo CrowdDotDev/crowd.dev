@@ -3,6 +3,7 @@ import {
   HackerNewsStreamType,
   HackerNewsInitialStreamMetadata,
   HackerNewsMainStreamMetadata,
+  HackerNewsPublishData,
 } from './types'
 import getPostsByKeywords from './api/getPostsByKeywords'
 import getPost from './api/getPost'
@@ -52,13 +53,11 @@ const processMainStream: ProcessStreamHandler = async (ctx) => {
   }
 
   if (post.text || post.url) {
-    await ctx.publishData({
-      ...post,
-      ...((!post.parent && {
-        parentId: post.id.toString(),
-        parentTitle: post.title || post.text,
-      }) ||
-        {}),
+    await ctx.publishData<HackerNewsPublishData>({
+      post,
+      channel: metadata.channel,
+      parentId: metadata.parentId,
+      parentTitle: metadata.parentTitle,
     })
   }
 }

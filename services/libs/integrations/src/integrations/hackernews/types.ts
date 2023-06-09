@@ -8,6 +8,13 @@ export enum HackerNewsStreamType {
   MAIN = 'main',
 }
 
+export interface HackerNewsPublishData {
+  post: HackerNewsResponse
+  channel: string
+  parentId?: string
+  parentTitle?: string
+}
+
 export interface HackerNewsInitialStreamMetadata {
   keywords: string[]
 }
