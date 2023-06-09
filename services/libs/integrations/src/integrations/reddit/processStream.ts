@@ -15,6 +15,7 @@ import {
 import getPosts from './api/getPosts'
 import getComments from './api/getComments'
 import getMoreComments from './api/getMoreComments'
+import { partition } from '@crowd/common'
 
 async function recursiveCommentParser(
   kind: string,
@@ -31,16 +32,9 @@ async function recursiveCommentParser(
       { stream: ctx.stream.identifier, childrenLength: comment.children.length },
       'Found more children to parse',
     )
-    // Split list into chunks of 99
-    // eslint-disable-next-line no-inner-declarations
-    function* chunks<T>(arr: T[], n: number): Generator<T[], void> {
-      for (let i = 0; i < arr.length; i += n) {
-        yield arr.slice(i, i + n)
-      }
-    }
 
     // Each stream has at most 99 children to expand. If there are more, we make more than one stream.
-    for (const chunk of [...chunks(comment.children, 99)]) {
+    for (const chunk of partition(comment.children, 99)) {
       await ctx.publishStream<IRedditMoreCommentsStreamData>(
         `${RedditStreamType.MORE_COMMENTS}:${metadata.postId}:${chunk.join(',')}`,
         {

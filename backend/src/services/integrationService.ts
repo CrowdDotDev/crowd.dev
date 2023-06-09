@@ -504,7 +504,7 @@ export default class IntegrationService {
     let integration
 
     try {
-      this.options.log.info('Creating devto integration!')
+      this.options.log.info('Creating reddit integration!')
       integration = await this.createOrUpdate(
         {
           platform: PlatformType.REDDIT,
