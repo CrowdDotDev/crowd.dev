@@ -426,6 +426,8 @@ export default class ActivityService extends LoggerBase {
   async createWithMember(data, fireCrowdWebhooks: boolean = true) {
     const logger = this.options.log
 
+    const segment = await SequelizeRepository.getStrictlySingleActiveSegment(this.options)
+
     const errorDetails: any = {}
 
     const transaction = await SequelizeRepository.createTransaction(this.options)
@@ -546,6 +548,12 @@ export default class ActivityService extends LoggerBase {
       }
 
       data.member = member.id
+
+      if (member.organizations){
+        // check member has any affiliation set for current segment
+        const affiliations = member.segments.filter ( (s) => s.id === segment.id && s.memberSegments.affiliatedOrganizationId !== null)
+        
+      }
 
       const record = await this.upsert(data, activityExists, fireCrowdWebhooks)
 

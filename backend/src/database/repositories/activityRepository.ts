@@ -122,11 +122,13 @@ class ActivityRepository {
 
     const currentTenant = SequelizeRepository.getCurrentTenant(options)
 
+    const segment = SequelizeRepository.getStrictlySingleActiveSegment(options)
+
     let record = await options.database.activity.findOne({
       where: {
         id,
         tenantId: currentTenant.id,
-        segmentId: SegmentRepository.getSegmentIds(options),
+        segmentId: segment.id,
       },
       transaction,
     })
@@ -221,6 +223,15 @@ class ActivityRepository {
       {
         model: options.database.member,
         as: 'member',
+        include: [
+          {
+            model: options.database.segment,
+            as: 'segments',
+            through: {
+              attributes: [],
+            },
+          }
+        ]
       },
       {
         model: options.database.member,

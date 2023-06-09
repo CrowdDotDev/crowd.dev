@@ -2,9 +2,16 @@ ALTER TABLE public."activities" ADD COLUMN "organizationId" uuid;
 
 ALTER TABLE public."activities" ADD FOREIGN KEY ("organizationId") REFERENCES organizations(id);
 
-ALTER TABLE public."memberSegments" ADD COLUMN "affiliatedOrganizationId" uuid;
+create table "memberSegmentAffiliations" (
+    "memberId" uuid not null,
+    "segmentId" uuid not null,
+    "organizationId" uuid not null,
+    constraint "memberSegmentAffiliations_pkey" primary key ("memberId", "segmentId"),
+    foreign key ("memberId") references members (id) on delete cascade,
+    foreign key ("segmentId") references segments (id) on delete cascade,
+    foreign key ("organizationId") references organizations (id) on delete cascade,
 
-ALTER TABLE public."memberSegments" ADD FOREIGN KEY ("affiliatedOrganizationId") REFERENCES organizations(id) ON DELETE SET NULL;
+);
 
 UPDATE activities
 SET "organizationId" = (
