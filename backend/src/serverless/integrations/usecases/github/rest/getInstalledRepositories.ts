@@ -33,6 +33,7 @@ const parseRepos = (repositories: any): Repos => {
       name: repo.name,
       fork: repo.fork,
       private: repo.private,
+      cloneUrl: repo.clone_url,
     })
   }
 
@@ -56,7 +57,6 @@ export const getInstalledRepositories = async (installToken: string): Promise<Re
       hasMorePages = data.total_count && data.total_count > 0 && data.total_count > repos.length
       page += 1
     }
-
     return repos.filter((repo) => !IS_GITHUB_COMMIT_DATA_ENABLED || !(repo.fork || repo.private))
   } catch (err: any) {
     log.error(err, 'Error fetching installed repositories!')

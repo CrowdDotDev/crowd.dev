@@ -6,6 +6,7 @@ export type Repo = {
   available?: boolean
   fork?: boolean
   private?: boolean
+  cloneUrl?: string
 }
 
 export type Repos = Array<Repo>
