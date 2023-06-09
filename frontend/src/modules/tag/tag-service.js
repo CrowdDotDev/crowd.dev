@@ -61,10 +61,30 @@ export class TagService {
     return response.data;
   }
 
+  static async list(filter, orderBy, limit, offset) {
+    const params = {
+      filter,
+      orderBy,
+      limit,
+      offset,
+    };
+
+    const tenantId = AuthCurrentTenant.get();
+
+    const response = await authAxios.get(
+      `/tenant/${tenantId}/tag`,
+      {
+        params,
+      },
+    );
+
+    return response.data;
+  }
+
   static async listAutocomplete({
     query,
     limit,
-    segments,
+    segments = [],
   }) {
     const params = {
       query,

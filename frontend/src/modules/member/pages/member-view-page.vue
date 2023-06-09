@@ -61,6 +61,8 @@ import AppMemberViewHeader from '@/modules/member/components/view/member-view-he
 import AppMemberViewAside from '@/modules/member/components/view/member-view-aside.vue';
 import AppMemberViewNotes from '@/modules/member/components/view/member-view-notes.vue';
 import AppMemberViewContributions from '@/modules/member/components/view/member-view-contributions.vue';
+import { useMemberStore } from '@/modules/member/store/pinia';
+import { storeToRefs } from 'pinia';
 
 const store = useStore();
 const props = defineProps({
@@ -69,6 +71,10 @@ const props = defineProps({
     default: null,
   },
 });
+
+const memberStore = useMemberStore();
+const { customAttributes } = storeToRefs(memberStore);
+const { getMemberCustomAttributes } = memberStore;
 
 const member = computed(() => store.getters['member/find'](props.id) || {});
 
@@ -79,11 +85,12 @@ const tab = ref('activities');
 
 onMounted(async () => {
   await store.dispatch('member/doFind', props.id);
+
   if (
-    Object.keys(store.state.member.customAttributes)
+    Object.keys(customAttributes.value)
       .length === 0
   ) {
-    await store.dispatch('member/doFetchCustomAttributes');
+    await getMemberCustomAttributes();
   }
   loading.value = false;
 });

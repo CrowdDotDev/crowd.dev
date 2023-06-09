@@ -1,25 +1,17 @@
-import {
-  ISqsQueueEmitter,
-  PlatformType,
-  LoadConversationIntoSearchEngineQueueMessage,
-} from '@crowd/types'
-import { DbStore } from '@crowd/database'
 import { getCleanString, processPaginated } from '@crowd/common'
+import { DbStore } from '@crowd/database'
 import { Logger, LoggerBase, getChildLogger } from '@crowd/logging'
+import { PlatformType } from '@crowd/types'
+import { convert as convertHtmlToText } from 'html-to-text'
 import {
   IDbActivityInfo,
   IDbConversation,
   IDbConversationSettings,
 } from '../repo/conversation.data'
 import { ConversationRepository } from '../repo/conversation.repo'
-import { convert as convertHtmlToText } from 'html-to-text'
 
 export class ConversationService extends LoggerBase {
-  constructor(
-    private readonly store: DbStore,
-    private readonly nodejsWorkerEmitter: ISqsQueueEmitter,
-    parentLog: Logger,
-  ) {
+  constructor(private readonly store: DbStore, parentLog: Logger) {
     super(parentLog)
   }
 
@@ -142,7 +134,7 @@ export class ConversationService extends LoggerBase {
         conversation = await this.getConversation(tenantId, child.conversationId, txRepo)
 
         if (!conversation.published) {
-          const txService = new ConversationService(txStore, this.nodejsWorkerEmitter, this.log)
+          const txService = new ConversationService(txStore, this.log)
           const newConversationTitle = await txService.generateTitle(
             tenantId,
             parent.title || parent.body,
@@ -162,7 +154,7 @@ export class ConversationService extends LoggerBase {
         await txRepo.setActivityConversationId(tenantId, parent.id, conversation.id)
       } else {
         // create a new conversation
-        const txService = new ConversationService(txStore, this.nodejsWorkerEmitter, this.log)
+        const txService = new ConversationService(txStore, this.log)
         const conversationTitle = await txService.generateTitle(
           tenantId,
           parent.title || parent.body,
@@ -195,13 +187,6 @@ export class ConversationService extends LoggerBase {
 
         await txRepo.setActivityConversationId(tenantId, parent.id, conversationId)
         await txRepo.setActivityConversationId(tenantId, child.id, conversationId)
-      }
-
-      if (conversation.published) {
-        await this.nodejsWorkerEmitter.sendMessage(
-          tenantId,
-          new LoadConversationIntoSearchEngineQueueMessage(tenantId, conversation.id),
-        )
       }
     })
   }

@@ -1,5 +1,12 @@
 <template>
   <div class="pt-3">
+    <cr-filter
+      v-model="filters"
+      :config="activityFilters"
+      :search-config="activitySearchFilter"
+      hash="activity"
+      @fetch="fetch($event)"
+    />
     <div
       v-if="loading && !activities.length"
       v-loading="loading"
@@ -19,9 +26,9 @@
         <div class="mb-4">
           <app-pagination-sorter
             v-model="sorterFilter"
-            :page-size="Number(pagination.pageSize)"
-            :total="count"
-            :current-page="pagination.currentPage"
+            :page-size="Number(pagination.perPage)"
+            :total="totalActivities"
+            :current-page="pagination.page"
             :has-page-counter="false"
             :sorter="false"
             module="activity"
@@ -32,7 +39,7 @@
         <!-- Activity item list -->
         <app-activity-item
           v-for="activity of activities"
-          :key="activity?.id"
+          :key="activity.id"
           :activity="activity"
           class="mb-6"
           v-bind="cardOptions"
@@ -75,24 +82,18 @@ import {
   computed,
   ref,
 } from 'vue';
-import { useStore } from 'vuex';
 import AppActivityItem from '@/modules/activity/components/activity-item.vue';
 import AppConversationDrawer from '@/modules/conversation/components/conversation-drawer.vue';
 import AppPaginationSorter from '@/shared/pagination/pagination-sorter.vue';
+import CrFilter from '@/shared/modules/filters/components/Filter.vue';
+import { useActivityStore } from '@/modules/activity/store/pinia';
+import { storeToRefs } from 'pinia';
+import { activityFilters, activitySearchFilter } from '@/modules/activity/config/filters/main';
 
-const store = useStore();
 const sorterFilter = ref('trending');
 const conversationId = ref(null);
 
 defineProps({
-  activities: {
-    type: Array,
-    default: () => {},
-  },
-  loading: {
-    type: Boolean,
-    default: false,
-  },
   cardOptions: {
     type: Object,
     required: false,
@@ -102,52 +103,52 @@ defineProps({
 
 const emit = defineEmits(['edit']);
 
-const activeView = computed(
-  () => store.getters['activity/activeView'],
-);
-const hasFilter = computed(() => {
-  const parsedFilters = {
-    ...activeView.value.filter.attributes,
-  };
+const activityStore = useActivityStore();
+const { filters, activities, totalActivities } = storeToRefs(activityStore);
+const { fetchActivities } = activityStore;
 
-  // Remove search filter if value is empty
-  if (!parsedFilters.search?.value) {
-    delete parsedFilters.search;
-  }
+const loading = ref(false);
 
-  return !!Object.keys(parsedFilters).length;
-});
-const emptyState = computed(() => {
-  if (hasFilter.value) {
-    return {
-      title: 'No activities found',
-      description:
+const emptyState = computed(() => ({
+  title: 'No activities found',
+  description:
         "We couldn't find any results that match your search criteria, please try a different query",
-    };
-  }
+}));
 
-  return {
-    title: 'No activities yet',
-    description:
-      "We couldn't track any community member activities",
-  };
-});
-
-const count = computed(() => store.state.activity.count);
 const pagination = computed(
-  () => store.getters['activity/pagination'],
+  () => filters.value.pagination,
 );
+
 const isLoadMoreVisible = computed(() => (
-  pagination.value.currentPage
-      * pagination.value.pageSize
-    < count.value
+  pagination.value.page
+      * pagination.value.perPage
+    < totalActivities
 ));
 
 const onLoadMore = () => {
-  store.dispatch(
-    'activity/doChangePaginationCurrentPage',
-    pagination.value.currentPage + 1,
-  );
+  filters.value.pagination.page += 1;
+};
+
+const fetch = ({
+  filter, offset, limit, orderBy, body,
+}) => {
+  loading.value = true;
+  fetchActivities({
+    ...body,
+    filter: {
+      ...filter,
+      member: {
+        isTeamMember: { not: true },
+        isBot: { not: true },
+      },
+    },
+    offset,
+    limit,
+    orderBy,
+  })
+    .finally(() => {
+      loading.value = false;
+    });
 };
 </script>
 

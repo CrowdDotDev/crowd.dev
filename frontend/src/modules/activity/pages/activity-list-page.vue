@@ -4,12 +4,9 @@
       <app-lf-page-header text-class="text-sm text-brand-500 mb-2.5" />
       <div class="flex justify-between">
         <div>
-          <h4>
-            Activities
-          </h4>
+          <h4>Activities</h4>
           <div class="text-xs text-gray-500 mb-10">
-            Activities are everything that is happening in
-            your community
+            Activities are everything that is happening in your community
           </div>
         </div>
         <div class="flex">
@@ -29,21 +26,22 @@
         </div>
       </div>
 
-      <app-activity-list-tabs />
-      <app-activity-list-filter
-        :module="activeView.type"
-      />
+      <div class="relative">
+        <el-tabs
+          :model-value="activeView"
+          class="mb-6"
+          @update:model-value="changeView"
+        >
+          <el-tab-pane label="Activities" name="activity" />
+          <el-tab-pane label="Conversations" name="conversation" />
+        </el-tabs>
+      </div>
       <app-activity-list
-        v-if="activeView.type === 'activities'"
-        :activities="recordsArray"
-        :loading="loading"
-        :items-as-cards="true"
+        v-if="activeView === 'activity'"
         @edit="edit($event)"
       />
       <app-conversation-list
-        v-else-if="activeView.type === 'conversations'"
-        :conversations="recordsArray"
-        :loading="loading"
+        v-else-if="activeView === 'conversation'"
         :items-as-cards="true"
       />
     </div>
@@ -74,32 +72,28 @@
   />
 </template>
 
-<script setup>
-import { useStore } from 'vuex';
-import AppActivityListFilter from '@/modules/activity/components/list/activity-list-filter.vue';
+<script setup lang="ts">
+import { onMounted, ref, watch } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
 import AppActivityTypeListDrawer from '@/modules/activity/components/type/activity-type-list-drawer.vue';
 import AppActivityFormDrawer from '@/modules/activity/components/activity-form-drawer.vue';
 import AppActivityTypeFormModal from '@/modules/activity/components/type/activity-type-form-modal.vue';
 import AppActivityList from '@/modules/activity/components/activity-list.vue';
 import AppConversationList from '@/modules/conversation/components/conversation-list.vue';
-import AppActivityListTabs from '@/modules/activity/components/activity-list-tabs.vue';
 import AppLfPageHeader from '@/modules/lf/layout/components/lf-page-header.vue';
 import AppLfSubProjectsListModal from '@/modules/lf/segments/components/lf-sub-projects-list-modal.vue';
-import { computed, onMounted, ref } from 'vue';
-import { mapGetters } from '@/shared/vuex/vuex.helpers';
 
 const isActivityTypeDrawerOpen = ref(false);
 const isActivityDrawerOpen = ref(false);
 const isActivityTypeFormVisible = ref(false);
 const editableActivity = ref(null);
 const isSubProjectSelectionOpen = ref(false);
-const subprojectId = ref(null);
-const drawer = ref(null);
+const subprojectId = ref<string | undefined>();
+const drawer = ref<string | undefined>();
+const activeView = ref('activity');
 
-const store = useStore();
-
-const { activeView, rows: recordsArray } = mapGetters('activity');
-const loading = computed(() => store.state.activity.list.loading);
+const route = useRoute();
+const router = useRouter();
 
 onMounted(() => {
   window.analytics.page('Activities');
@@ -120,7 +114,7 @@ const onActivityTypesClick = () => {
   isSubProjectSelectionOpen.value = true;
 };
 
-const onSubProjectSelection = (id) => {
+const onSubProjectSelection = (id: string) => {
   subprojectId.value = id;
   isSubProjectSelectionOpen.value = false;
 
@@ -130,10 +124,18 @@ const onSubProjectSelection = (id) => {
     isActivityTypeDrawerOpen.value = true;
   }
 };
-</script>
 
-<script>
-export default {
-  name: 'AppActivityListPage',
+const changeView = (view: string) => {
+  router.push({
+    hash: `#${view}`,
+    query: {},
+  });
 };
+
+watch(() => route.hash, (hash: string) => {
+  const view = hash.substring(1);
+  if (view.length > 0 && view !== activeView.value) {
+    activeView.value = view;
+  }
+}, { immediate: true });
 </script>

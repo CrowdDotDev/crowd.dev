@@ -23,9 +23,10 @@
       <div
         v-if="showError && errors.length > 0"
         class="el-form-item__error"
+        :class="errorClass"
       >
         <div class="error-msg">
-          {{ errorMessage(errors[0]) }}
+          <i :class="errorIcon" class="mr-1 text-base" />{{ errorMessage(errors[0]) }}
         </div>
       </div>
     </div>
@@ -65,6 +66,16 @@ const props = defineProps({
     required: false,
     type: Boolean,
     default: true,
+  },
+  errorIcon: {
+    required: false,
+    type: String,
+    default: '',
+  },
+  errorClass: {
+    required: false,
+    type: String,
+    default: '',
   },
 });
 

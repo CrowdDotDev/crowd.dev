@@ -1,19 +1,14 @@
 import { getCleanString } from '@crowd/common'
 import { LoggerBase } from '@crowd/logging'
+import { PlatformType } from '@crowd/types'
 import emoji from 'emoji-dictionary'
 import { convert as convertHtmlToText } from 'html-to-text'
-import moment from 'moment'
 import fetch from 'node-fetch'
-import { Transaction } from 'sequelize/types'
-import { PlatformType } from '@crowd/types'
-import { IS_TEST_ENV, S3_CONFIG } from '../conf/index'
+import { S3_CONFIG } from '../conf/index'
 import ConversationRepository from '../database/repositories/conversationRepository'
 import SequelizeRepository from '../database/repositories/sequelizeRepository'
 import Error403 from '../errors/Error403'
-import ConversationSearchEngineRepository from '../search-engine/repositories/conversationSearchEngineRepository'
-import SettingsSearchEngineRepository from '../search-engine/repositories/settingsSearchEngineRepository'
 import telemetryTrack from '../segment/telemetryTrack'
-import track from '../segment/track'
 import { IServiceOptions } from './IServiceOptions'
 import { s3 } from './aws'
 import ConversationSettingsService from './conversationSettingsService'
@@ -179,17 +174,7 @@ export default class ConversationService extends LoggerBase {
       autoPublish: conversationSettings.autoPublish ?? undefined,
     }
 
-    await new SettingsSearchEngineRepository(this.options).createOrReplace(settingsDocument)
-
     return settingsDocument
-  }
-
-  /**
-   * Removes conversation document from search engine index
-   */
-  async removeFromSearchEngine(id: String, transaction: Transaction): Promise<void> {
-    const conversation = await ConversationRepository.findById(id, { ...this.options, transaction })
-    await new ConversationSearchEngineRepository(this.options).delete(conversation.id)
   }
 
   /**
@@ -293,63 +278,6 @@ export default class ConversationService extends LoggerBase {
   }
 
   /**
-   * Loads given conversation into search engine index as a document
-   * Filters out empty body and attachment activities in a conversation
-   * @param id conversationId
-   * @param transaction db transaction
-   * @returns search index client index object
-   */
-  async loadIntoSearchEngine(id: String, transaction?: Transaction): Promise<void> {
-    const conversation = await ConversationRepository.findById(id, { ...this.options, transaction })
-
-    this.log.info({ conversation }, 'Found conversation!')
-
-    let plainActivities = conversation.activities
-      .map((act) => {
-        act.timestamp = moment(act.timestamp).unix()
-        act.author = act.username
-        delete act.member
-        delete act.display
-        return act
-      })
-      .filter(
-        (act) =>
-          act.body !== '' || (act.attributes.attachments && act.attributes.attachments.length > 0),
-      )
-
-    if (plainActivities.length > 0) {
-      // mark first(parent) activity as conversation starter for convenience
-      plainActivities[0].conversationStarter = true
-
-      const activitiesBodies = plainActivities.map((a) => a.body)
-
-      const channel = ConversationService.getChannelFromActivity(plainActivities[0])
-      if (plainActivities[0].platform === PlatformType.SLACK) {
-        plainActivities = await this.downloadSlackAttachments(plainActivities)
-      }
-
-      const document = {
-        id: conversation.id,
-        tenantSlug: this.options.currentTenant.url,
-        title: conversation.title,
-        platform: plainActivities[0].platform,
-        channel: ConversationService.sanitizeChannel(channel),
-        slug: conversation.slug,
-        activities: plainActivities,
-        activitiesBodies,
-        lastActive: plainActivities[plainActivities.length - 1].timestamp,
-        views: 0,
-        url: plainActivities[0].url,
-      }
-
-      this.log.info({ document }, 'Adding doc to conversation!')
-      await new ConversationSearchEngineRepository(this.options).createOrReplace(document)
-    }
-
-    this.log.info(`Conversation ${id} doesn't have publishable activities.`)
-  }
-
-  /**
    * Downloads slack attachments and saves them to an S3 bucket
    * @param activities activities to download attachments for
    * @returns The same activities, but the attachment URL is replaced with a public S3 bucket URL
@@ -424,34 +352,10 @@ export default class ConversationService extends LoggerBase {
     const transaction = await SequelizeRepository.createTransaction(this.options)
 
     try {
-      const recordBeforeUpdate = await ConversationRepository.findById(id, { ...this.options })
       const record = await ConversationRepository.update(id, data, {
         ...this.options,
         transaction,
       })
-
-      if (
-        (data.published === true || data.published === 'true') &&
-        (record.published === true || record.published === 'true')
-      ) {
-        this.log.debug('Loading into search engine...')
-        await this.loadIntoSearchEngine(record.id, transaction)
-        this.log.debug('done!')
-
-        if (recordBeforeUpdate.published !== record.published && !IS_TEST_ENV) {
-          track('Conversation Published', { id: record.id }, { ...this.options })
-        }
-      }
-
-      if (
-        (data.published === false || data.published === 'false') &&
-        (record.published === false || record.published === 'false')
-      ) {
-        await this.removeFromSearchEngine(record.id, transaction)
-        if (recordBeforeUpdate.published !== record.published && !IS_TEST_ENV) {
-          track('Conversation Unpublished', { id: record.id }, { ...this.options })
-        }
-      }
 
       await SequelizeRepository.commitTransaction(transaction)
 

@@ -25,7 +25,7 @@ export default {
 
   async doExport(
     {
-      commit, getters, rootGetters, dispatch,
+      commit, rootGetters, dispatch,
     },
     {
       selected = false,
@@ -38,19 +38,17 @@ export default {
     let filter;
 
     if (selected) {
-      const ids = customIds.length
-        ? customIds
-        : getters.selectedRows.map((i) => i.id);
+      if (customIds.length === 0) {
+        return;
+      }
 
       filter = {
         id: {
-          in: ids,
+          in: customIds,
         },
       };
     } else if (customFilter) {
       filter = customFilter;
-    } else {
-      filter = getters.activeView.filter;
     }
 
     try {
@@ -65,15 +63,12 @@ export default {
       await showExportDialog({
         tenantCsvExportCount,
         planExportCountMax,
-        badgeContent:
-          selected || count
-            ? pluralize('member', count || getters.selectedRows.length, true)
-            : `View: ${getters.activeView.label}`,
+        badgeContent: pluralize('member', count, true),
       });
 
       await MemberService.export({
         filter,
-        orderBy: getters.orderBy,
+        orderBy: 'lastActive_DESC',
         limit: 0,
         offset: null,
         segments,

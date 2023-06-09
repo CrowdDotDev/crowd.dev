@@ -338,7 +338,7 @@ export default {
         },
       ],
       localFilters: [],
-    }
+    };
   },
   computed: {
     computedFilters() {

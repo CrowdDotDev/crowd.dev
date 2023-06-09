@@ -1,11 +1,11 @@
 <template>
   <div
-    v-if="selectedRows.length > 0"
+    v-if="selectedOrganizations.length > 0"
     class="app-list-table-bulk-actions"
   >
     <span class="block text-sm font-semibold mr-4">
       {{
-        pluralize('organization', selectedRows.length, true)
+        pluralize('organization', selectedOrganizations.length, true)
       }}
       selected
     </span>
@@ -22,6 +22,7 @@
         </el-dropdown-item>
 
         <el-dropdown-item
+          v-if="markAsTeamOrganizationOptions"
           :command="{
             action: 'markAsTeamOrganization',
             value: markAsTeamOrganizationOptions.value,
@@ -67,16 +68,24 @@ import pluralize from 'pluralize';
 import { computed } from 'vue';
 import {
   mapGetters,
-  mapActions,
 } from '@/shared/vuex/vuex.helpers';
 import ConfirmDialog from '@/shared/dialog/confirm-dialog';
 import Message from '@/shared/message/message';
-import { OrganizationService } from '../../organization-service';
+import { useOrganizationStore } from '@/modules/organization/store/pinia';
+import { storeToRefs } from 'pinia';
+import Errors from '@/shared/error/errors';
+import { Excel } from '@/shared/excel/excel';
 import { OrganizationPermissions } from '../../organization-permissions';
+import { OrganizationService } from '../../organization-service';
 
 const { currentUser, currentTenant } = mapGetters('auth');
-const { selectedRows, activeView } = mapGetters('organization');
-const { doExport, doDestroyAll, doFetch } = mapActions('organization');
+
+const organizationStore = useOrganizationStore();
+const {
+  selectedOrganizations,
+  filters,
+} = storeToRefs(organizationStore);
+const { fetchOrganizations } = organizationStore;
 
 const isPermissionReadOnly = computed(
   () => new OrganizationPermissions(
@@ -99,10 +108,10 @@ const isDeleteLockedForSampleData = computed(
 );
 
 const markAsTeamOrganizationOptions = computed(() => {
-  const isTeamView = activeView.value.id === 'team';
+  const isTeamView = filters.value.settings.teamOrganization === 'filter';
   const organizationsCopy = pluralize(
     'organization',
-    selectedRows.value.length,
+    selectedOrganizations.value.length,
     false,
   );
 
@@ -121,31 +130,63 @@ const markAsTeamOrganizationOptions = computed(() => {
   };
 });
 
-const handleDoDestroyAllWithConfirm = async () => {
-  try {
-    await ConfirmDialog({
-      type: 'danger',
-      title: 'Delete organizations',
-      message:
-        "Are you sure you want to proceed? You can't undo this action",
-      confirmButtonText: 'Confirm',
-      cancelButtonText: 'Cancel',
-      icon: 'ri-delete-bin-line',
-    });
-
-    await doDestroyAll(
-      selectedRows.value.map((item) => item.id),
-    );
-  } catch (error) {
-    console.error(error);
-  }
-};
+const handleDoDestroyAllWithConfirm = () => ConfirmDialog({
+  type: 'danger',
+  title: 'Delete organizations',
+  message:
+      "Are you sure you want to proceed? You can't undo this action",
+  confirmButtonText: 'Confirm',
+  cancelButtonText: 'Cancel',
+  icon: 'ri-delete-bin-line',
+})
+  .then(() => {
+    const ids = selectedOrganizations.value.map((m) => m.id);
+    return OrganizationService.destroyAll(ids);
+  })
+  .then(() => fetchOrganizations({ reload: true }));
 
 const handleDoExport = async () => {
   try {
-    await doExport();
+    const filter = {
+      id: {
+        in: selectedOrganizations.value.map((o) => o.id),
+      },
+    };
+
+    const response = await OrganizationService.list(
+      filter,
+      `${filters.value.order.prop}_${filters.value.order.order === 'descending' ? 'DESC' : 'ASC'}`,
+      null,
+      null,
+      false,
+    );
+
+    Excel.exportAsExcelFile(
+      response.rows.map((o) => ({
+        Id: o.id,
+        Name: o.name,
+        Description: o.description,
+        Headline: o.headline,
+        Website: o.website,
+        '# of members': o.memberCount,
+        '# of activities': o.activityCount,
+        Location: o.location,
+        Created: o.createdAt,
+        Updated: o.updatedAt,
+      })),
+      ['Id', 'Name', 'Description',
+        'Headline', 'Headline', '# of members',
+        '# of activities', 'Location', 'Created', 'Updated',
+      ],
+      `organizations_${new Date().getTime()}`,
+    );
+
+    Message.success('Organizations exported successfully');
   } catch (error) {
-    console.error(error);
+    Errors.handle(error);
+    Message.error(
+      'There was an error exporting organizations',
+    );
   }
 };
 
@@ -156,20 +197,20 @@ const handleCommand = async (command) => {
     await handleDoDestroyAllWithConfirm();
   } else if (command.action === 'markAsTeamOrganization') {
     Promise.all(
-      selectedRows.value.map((row) => OrganizationService.update(row.id, {
+      selectedOrganizations.value.map((row) => OrganizationService.update(row.id, {
         isTeamOrganization: command.value,
       })),
     ).then(() => {
       Message.success(
         `${pluralize(
           'Organization',
-          selectedRows.length,
+          selectedOrganizations.value.length,
           false,
         )} updated successfully`,
       );
 
-      doFetch({
-        keepPagination: true,
+      fetchOrganizations({
+        reload: true,
       });
     });
   }

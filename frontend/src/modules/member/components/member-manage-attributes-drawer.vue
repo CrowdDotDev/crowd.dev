@@ -118,6 +118,8 @@ import Message from '@/shared/message/message';
 import { MemberService } from '@/modules/member/member-service';
 import getAttributesModel from '@/shared/attributes/get-attributes-model';
 import getParsedAttributes from '@/shared/attributes/get-parsed-attributes';
+import { useMemberStore } from '@/modules/member/store/pinia';
+import { storeToRefs } from 'pinia';
 import AppMemberFormGlobalAttributes from './form/member-form-global-attributes.vue';
 import AppMemberFormAttributes from './form/member-form-attributes.vue';
 
@@ -134,10 +136,13 @@ const props = defineProps({
 });
 const emit = defineEmits(['update:modelValue']);
 
+const memberStore = useMemberStore();
+const { customAttributes } = storeToRefs(memberStore);
+
 const loading = ref(false);
 const isEditingAttributes = ref(false);
 
-const computedAttributes = computed(() => Object.values(store.state.member.customAttributes));
+const computedAttributes = computed(() => Object.values(customAttributes.value));
 const drawerModel = computed({
   get() {
     return props.modelValue;
@@ -197,7 +202,7 @@ const onCloseManageAttributes = () => {
 
 <script>
 export default {
-  name: 'AppMemberManageIdentitiesDrawer',
+  name: 'AppMemberManageAttributesDrawer',
 };
 </script>
 

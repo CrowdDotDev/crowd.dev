@@ -86,6 +86,23 @@ export class ConversationService {
     return response.data;
   }
 
+  static async listConversations(body) {
+    const sampleTenant = AuthCurrentTenant.getSampleTenantData();
+    const tenantId = sampleTenant?.id || AuthCurrentTenant.get();
+
+    const response = await authAxios.post(
+      `/tenant/${tenantId}/conversation/query`,
+      body,
+      {
+        headers: {
+          Authorization: sampleTenant?.token,
+        },
+      },
+    );
+
+    return response.data;
+  }
+
   static async query({
     filter,
     orderBy,

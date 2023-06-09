@@ -106,6 +106,25 @@ export class ActivityService {
     return response.data;
   }
 
+  static async listActivities(
+    body,
+  ) {
+    const sampleTenant = AuthCurrentTenant.getSampleTenantData();
+    const tenantId = sampleTenant?.id || AuthCurrentTenant.get();
+
+    const response = await authAxios.post(
+      `/tenant/${tenantId}/activity/query`,
+      body,
+      {
+        headers: {
+          Authorization: sampleTenant?.token,
+        },
+      },
+    );
+
+    return response.data;
+  }
+
   static async listAutocomplete({
     query,
     limit,

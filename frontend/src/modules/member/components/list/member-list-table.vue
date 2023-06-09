@@ -1,5 +1,5 @@
 <template>
-  <div class="pt-3">
+  <div>
     <div
       v-if="loading"
       v-loading="loading"
@@ -25,7 +25,7 @@
       />
 
       <app-empty-state-cta
-        v-else-if="hasMembers && !count"
+        v-else-if="hasMembers && !totalMembers"
         icon="ri-contacts-line"
         title="No members found"
         description="We couldn't find any results that match your search criteria, please try a different query"
@@ -35,10 +35,11 @@
         <!-- Sorter -->
         <div class="mb-2">
           <app-pagination-sorter
-            :page-size="Number(pagination.pageSize)"
-            :total="count"
-            :current-page="pagination.currentPage"
+            :page-size="Number(pagination.perPage)"
+            :total="totalMembers"
+            :current-page="pagination.page"
             :has-page-counter="false"
+            :export="doExport"
             module="member"
             position="top"
             @change-sorter="doChangePaginationPageSize"
@@ -64,7 +65,6 @@
               >
                 <div
                   :style="{
-                    width: tableWidth,
                     height: '10px',
                   }"
                 />
@@ -84,12 +84,13 @@
               id="members-table"
               ref="table"
               v-loading="loading"
-              :data="rows"
+              :data="members"
               :default-sort="defaultSort"
               row-key="id"
               border
               :row-class-name="rowClass"
               @sort-change="doChangeSort"
+              @selection-change="selectedMembers = $event"
             >
               <el-table-column type="selection" width="75" fixed />
 
@@ -373,11 +374,11 @@
               </el-table-column>
             </el-table>
 
-            <div v-if="!!count" class="mt-8 px-6">
+            <div v-if="!!totalMembers" class="mt-8 px-6">
               <app-pagination
-                :total="count"
-                :page-size="Number(pagination.pageSize)"
-                :current-page="pagination.currentPage || 1"
+                :total="totalMembers"
+                :page-size="Number(pagination.perPage)"
+                :current-page="pagination.page || 1"
                 module="member"
                 @change-current-page="doChangePaginationCurrentPage"
                 @change-page-size="doChangePaginationPageSize"
@@ -401,6 +402,9 @@ import AppMemberOrganizations from '@/modules/member/components/member-organizat
 import AppTagList from '@/modules/tag/components/tag-list.vue';
 import { formatDateToTimeAgo } from '@/utils/date';
 import { formatNumberToCompact, formatNumber } from '@/utils/number';
+import { useMemberStore } from '@/modules/member/store/pinia';
+import { storeToRefs } from 'pinia';
+import { MemberService } from '@/modules/member/member-service';
 import AppMemberBadge from '../member-badge.vue';
 import AppMemberDropdown from '../member-dropdown.vue';
 import AppMemberIdentities from '../member-identities.vue';
@@ -434,18 +438,15 @@ const props = defineProps({
   },
 });
 
-const activeView = computed(() => store.getters['member/activeView']);
+const memberStore = useMemberStore();
+const {
+  members, totalMembers, filters, selectedMembers, savedFilterBody,
+} = storeToRefs(memberStore);
 
-const defaultSort = computed(() => {
-  if (activeView.value?.sorter) {
-    return activeView.value.sorter;
-  }
-
-  return {
-    field: 'lastActive',
-    order: 'descending',
-  };
-});
+const defaultSort = computed(() => ({
+  field: 'lastActive',
+  order: 'descending',
+}));
 
 const integrations = computed(
   () => store.getters['integration/activeList'] || {},
@@ -456,17 +457,13 @@ const showReach = computed(
     || integrations.value.github?.status === 'done',
 );
 
-const rows = computed(() => store.getters['member/rows']);
-const count = computed(() => store.state.member.count);
-const tableWidth = computed(() => store.state.member.list.table?.bodyWidth);
 const loading = computed(
-  () => store.state.member.list.loading || props.isPageLoading,
+  () => props.isPageLoading,
 );
 
 const tagsColumnWidth = computed(() => {
   let maxTabWidth = 0;
-
-  rows.value.forEach((row) => {
+  members.value.forEach((row) => {
     if (row.tags) {
       const tabWidth = row.tags
         .map((tag) => tag.name.length * 20)
@@ -484,7 +481,7 @@ const tagsColumnWidth = computed(() => {
 const emailsColumnWidth = computed(() => {
   let maxTabWidth = 0;
 
-  rows.value.forEach((row) => {
+  members.value.forEach((row) => {
     const tabWidth = row.emails
       .map((email) => (email ? email.length * 12 : 0))
       .reduce((a, b) => a + b, 0);
@@ -497,8 +494,10 @@ const emailsColumnWidth = computed(() => {
   return maxTabWidth;
 });
 
-const selectedRows = computed(() => store.getters['member/selectedRows']);
-const pagination = computed(() => store.getters['member/pagination']);
+const selectedRows = computed(() => selectedMembers.value);
+const pagination = computed(() => filters.value.pagination);
+
+const tableWidth = ref(0);
 
 document.onmouseup = () => {
   // As soon as mouse is released, set scrollbar visibility
@@ -508,15 +507,18 @@ document.onmouseup = () => {
 };
 
 function doChangeSort(sorter) {
-  store.dispatch('member/doChangeSort', sorter);
+  filters.value.order = {
+    prop: sorter.prop,
+    order: sorter.order,
+  };
 }
 
 function doChangePaginationCurrentPage(currentPage) {
-  store.dispatch('member/doChangePaginationCurrentPage', currentPage);
+  filters.value.pagination.page = currentPage;
 }
 
 function doChangePaginationPageSize(pageSize) {
-  store.dispatch('member/doChangePaginationPageSize', pageSize);
+  filters.value.pagination.perPage = pageSize;
 }
 
 function translate(key) {
@@ -571,7 +573,7 @@ const trackEmailClick = () => {
 
 watch(table, (newValue) => {
   if (newValue) {
-    store.dispatch('member/doMountTable', table.value);
+    tableWidth.value = table.value;
   }
 
   // Add scroll events to table, it's not possible to access it from 'el-table'
@@ -594,6 +596,14 @@ watch(table, (newValue) => {
     tableHeaderRef.value.addEventListener('scroll', onTableHeaderScroll);
   }
 });
+
+const doExport = () => MemberService.export(
+  savedFilterBody.value.filter,
+  savedFilterBody.value.orderBy,
+  0,
+  null,
+  false,
+);
 
 onMounted(async () => {
   if (store.state.integration.count === 0) {

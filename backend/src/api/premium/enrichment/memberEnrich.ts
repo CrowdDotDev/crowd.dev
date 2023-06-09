@@ -10,6 +10,22 @@ import track from '../../../segment/track'
 
 const log = getServiceLogger()
 
+/**
+ * PUT /tenant/{tenantId}/enrichment/member/{id}
+ * @summary Enrich a member
+ * @tag Members
+ * @security Bearer
+ * @description Enrich a member.
+ * @pathParam {string} tenantId - Your workspace/tenant ID
+ * @pathParam {string} id - The ID of the member
+ * @response 200 - Ok
+ * @responseContent {MemberResponse} 200.application/json
+ * @responseExample {MemberFind} 200.application/json.Member
+ * @response 401 - Unauthorized
+ * @response 404 - Not found
+ * @response 429 - Too many requests
+ */
+
 export default async (req, res) => {
   new PermissionChecker(req).validateHas(Permissions.values.memberEdit)
 

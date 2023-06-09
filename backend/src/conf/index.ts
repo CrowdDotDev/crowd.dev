@@ -11,7 +11,6 @@ import {
   GoogleConfiguration,
   DiscordConfiguration,
   ServiceType,
-  SearchEngineConfiguration,
   SegmentConfiguration,
   GithubConfiguration,
   SendgridConfiguration,
@@ -63,9 +62,6 @@ export const REDIS_CONFIG: IRedisConfiguration = config.get<IRedisConfiguration>
 export const S3_CONFIG: S3Configuration = config.get<S3Configuration>('s3')
 
 export const DB_CONFIG: DbConfiguration = config.get<DbConfiguration>('db')
-
-export const SEARCH_ENGINE_CONFIG: SearchEngineConfiguration =
-  config.get<SearchEngineConfiguration>('searchEngine')
 
 export const SEGMENT_CONFIG: SegmentConfiguration = config.get<SegmentConfiguration>('segment')
 
