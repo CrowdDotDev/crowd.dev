@@ -658,7 +658,7 @@ export default class IntegrationService {
         integration.id,
         true,
       )
-     
+
       await SequelizeRepository.commitTransaction(transaction)
     } catch (err) {
       await SequelizeRepository.rollbackTransaction(transaction)
