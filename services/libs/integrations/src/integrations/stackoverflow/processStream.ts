@@ -61,7 +61,19 @@ const processTagStream: ProcessStreamHandler = async (ctx) => {
   // pulblish all questions and new streams for answers
   while (questions.length > 0) {
     const question = questions.shift()
-    const user = await getStackOverflowUser(ctx, question.owner.user_id.toString())
+    let user: StackOverflowUser = null
+    if (!question.owner) {
+      // we completely ignore questions without owner - they are not valid
+      continue
+    } else if (!question.owner.user_id) {
+      // this is deleted user or similar
+      user = {
+        user_id: generateUUIDv4(),
+        display_name: question.owner?.display_name || 'Deleted User',
+      } as StackOverflowUser
+    } else {
+      user = await getStackOverflowUser(ctx, question.owner.user_id.toString())
+    }
     await ctx.publishData<IStackOverflowPublishData>({
       question: {
         question,
