@@ -94,7 +94,7 @@
               + Add activity type
             </el-option>
             <div
-              v-if="Object.keys(types.custom.other).length > 0"
+              v-if="types.custom.other ? Object.keys(types.custom.other).length > 0 : Object.keys(types.custom).length > 0"
               class="text-2xs text-gray-400 font-semibold tracking-wide leading-6 uppercase px-3 my-1"
             >
               Custom
