@@ -149,7 +149,7 @@ export interface StackOverflowUser {
   reputation_change_year: number
   timed_penalty_date?: number
   up_vote_count?: number
-  user_id: number
+  user_id: string
   user_type: 'unregistered' | 'registered' | 'moderator' | 'does_not_exist' | 'team_admin'
   website_url?: string
 }
@@ -374,7 +374,7 @@ export interface StackOverflowShallowUser {
   link?: string
   profile_image?: string
   reputation?: number
-  user_id?: number
+  user_id?: string
   user_type: 'unregistered' | 'registered' | 'moderator' | 'team_admin' | 'does_not_exist'
 }
 
