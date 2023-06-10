@@ -1,0 +1,27 @@
+name: Sync Main to Staging
+
+on:
+  schedule:
+    # Run every Sunday evening at 18:00
+    # - cron:  '0 18 * * 0'
+    # Run every 5 minutes for testing
+    - cron:  '*/5 * * * *'
+
+jobs:
+  sync-main-to-staging:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
+
+    - name: Sync Main to Staging
+      run: |
+        git config --local user.email "joan@crowd.dev" # Use your Git email
+        git config --local user.name "joanreyero" # Use your Git username
+
+        git checkout staging-main
+        git merge --strategy-option=theirs main --allow-unrelated-histories -m "Sync main with staging-main joanreyero"
+        git push origin staging-main
