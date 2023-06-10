@@ -3,9 +3,9 @@ name: Sync Main to Staging
 on:
   schedule:
     # Run every Sunday evening at 18:00
-    # - cron:  '0 18 * * 0'
+    - cron:  '0 18 * * 0'
     # Run every 5 minutes for testing
-    - cron:  '*/5 * * * *'
+    # - cron:  '*/5 * * * *'
 
 jobs:
   sync-main-to-staging:
