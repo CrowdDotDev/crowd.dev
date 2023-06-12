@@ -132,6 +132,7 @@ describe('MemberRepository tests', () => {
         averageSentiment: 0,
         numberOfOpenSourceContributions: 0,
         lastActivity: null,
+        affiliations: [],
       }
       expect(memberCreated).toStrictEqual(expectedMemberCreated)
     })
@@ -200,6 +201,7 @@ describe('MemberRepository tests', () => {
         reach: { total: -1 },
         organizations: [],
         joinedAt: new Date('2020-05-27T15:13:30Z'),
+        affiliations: [],
       }
       expect(memberCreated).toStrictEqual(expectedMemberCreated)
     })
@@ -261,6 +263,7 @@ describe('MemberRepository tests', () => {
         numberOfOpenSourceContributions: 0,
         lastActive: null,
         lastActivity: null,
+        affiliations: [],
       }
 
       expect(memberCreated).toStrictEqual(expectedMemberCreated)
@@ -426,6 +429,7 @@ describe('MemberRepository tests', () => {
         numberOfOpenSourceContributions: 0,
         lastActive: null,
         lastActivity: null,
+        affiliations: [],
       }
 
       const memberById = await MemberRepository.findById(memberCreated.id, mockIRepositoryOptions)
@@ -475,6 +479,7 @@ describe('MemberRepository tests', () => {
         reach: { total: -1 },
         organizations: [],
         joinedAt: new Date('2020-05-27T15:13:30Z'),
+        affiliations: [],
       }
 
       const memberById = await MemberRepository.findById(
@@ -644,6 +649,7 @@ describe('MemberRepository tests', () => {
       delete member1Returned.activityTypes
       delete member1Returned.activeDaysCount
       delete member1Returned.numberOfOpenSourceContributions
+      delete member1Returned.affiliations
       member1Returned.segments = member1Returned.segments.map((s) => s.id)
 
       const found = await MemberRepository.memberExists(
@@ -2903,6 +2909,7 @@ describe('MemberRepository tests', () => {
         numberOfOpenSourceContributions: 0,
         lastActive: null,
         lastActivity: null,
+        affiliations: [],
       }
 
       expect(updatedMember).toStrictEqual(expectedMemberCreated)
@@ -3000,6 +3007,7 @@ describe('MemberRepository tests', () => {
         updatedById: mockIRepositoryOptions.currentUser.id,
         reach: { total: -1 },
         joinedAt: new Date(updateFields.joinedAt),
+        affiliations: [],
       }
 
       expect(updatedMember).toStrictEqual(expectedMemberCreated)
@@ -3083,6 +3091,7 @@ describe('MemberRepository tests', () => {
         numberOfOpenSourceContributions: 0,
         lastActive: null,
         lastActivity: null,
+        affiliations: [],
       }
 
       expect(member1).toStrictEqual(expectedMemberCreated)
@@ -3196,6 +3205,7 @@ describe('MemberRepository tests', () => {
         numberOfOpenSourceContributions: 0,
         lastActive: null,
         lastActivity: null,
+        affiliations: [],
       }
 
       expect(member1).toStrictEqual(expectedMemberCreated)

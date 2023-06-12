@@ -110,6 +110,8 @@ describe('ActivityRepository tests', () => {
         sourceParentId: null,
         conversationId: null,
         display: UNKNOWN_ACTIVITY_TYPE_DISPLAY,
+        organizationId: null,
+        organization: null,
       }
 
       expect(activityCreated).toStrictEqual(expectedActivityCreated)
@@ -177,6 +179,8 @@ describe('ActivityRepository tests', () => {
         sourceParentId: null,
         conversationId: null,
         display: UNKNOWN_ACTIVITY_TYPE_DISPLAY,
+        organizationId: null,
+        organization: null,
       }
 
       expect(activityCreated).toStrictEqual(expectedActivityCreated)
@@ -437,6 +441,8 @@ describe('ActivityRepository tests', () => {
         sourceParentId: null,
         conversationId: null,
         display: UNKNOWN_ACTIVITY_TYPE_DISPLAY,
+        organizationId: null,
+        organization: null,
       }
 
       expect(activityCreated).toStrictEqual(expectedActivityCreated)
@@ -510,6 +516,8 @@ describe('ActivityRepository tests', () => {
         sourceParentId: null,
         conversationId: null,
         display: UNKNOWN_ACTIVITY_TYPE_DISPLAY,
+        organizationId: null,
+        organization: null,
       }
 
       expect(activityCreated).toStrictEqual(expectedActivityCreated)
@@ -635,6 +643,8 @@ describe('ActivityRepository tests', () => {
         sourceParentId: null,
         conversationId: null,
         display: UNKNOWN_ACTIVITY_TYPE_DISPLAY,
+        organizationId: null,
+        organization: null,
       }
 
       const activityFound = await ActivityRepository.findById(
@@ -980,6 +990,8 @@ describe('ActivityRepository tests', () => {
         sourceParentId: null,
         conversationId: null,
         display: UNKNOWN_ACTIVITY_TYPE_DISPLAY,
+        organizationId: null,
+        organization: null,
       }
 
       expect(updatedActivity).toStrictEqual(expectedActivityUpdated)
@@ -1095,6 +1107,8 @@ describe('ActivityRepository tests', () => {
         sourceParentId: null,
         conversationId: null,
         display: UNKNOWN_ACTIVITY_TYPE_DISPLAY,
+        organizationId: null,
+        organization: null,
       }
 
       expect(updatedActivity).toStrictEqual(expectedActivityUpdated)

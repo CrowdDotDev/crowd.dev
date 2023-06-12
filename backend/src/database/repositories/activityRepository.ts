@@ -633,6 +633,10 @@ class ActivityRepository {
         model: options.database.member,
         as: 'objectMember',
       },
+      {
+        model: options.database.organization,
+        as: 'organization',
+      },
     ]
 
     const parser = new QueryParser(

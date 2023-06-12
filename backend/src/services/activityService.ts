@@ -531,7 +531,7 @@ export default class ActivityService extends LoggerBase {
 
       data.member = member.id
 
-      if (member.organizations) {
+      if (member.organizations.length > 0) {
         // check member has any affiliation set for current segment
 
         const affiliations = member.affiliations.filter((a) => a.segmentId === segment.id)

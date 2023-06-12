@@ -118,6 +118,8 @@ describe('ActivityService tests', () => {
           short: activityCreated.type,
           channel: '',
         },
+        organizationId: null,
+        organization: null,
       }
 
       expect(activityCreated).toStrictEqual(expectedActivityCreated)
@@ -220,6 +222,8 @@ describe('ActivityService tests', () => {
           short: activity2.type,
           channel: '',
         },
+        organizationId: null,
+        organization: null,
       }
 
       expect(activityCreated2).toStrictEqual(expectedActivityCreated)
@@ -345,6 +349,8 @@ describe('ActivityService tests', () => {
           short: activity2.type,
           channel: '',
         },
+        organizationId: null,
+        organization: null,
       }
 
       expect(activityUpserted).toStrictEqual(expectedActivityCreated)
@@ -982,6 +988,8 @@ describe('ActivityService tests', () => {
         sourceParentId: null,
         sourceId: data.sourceId,
         conversationId: null,
+        organizationId: null,
+        organization: null,
       }
 
       expect(activityWithMember).toStrictEqual(expectedActivityCreated)
@@ -1118,6 +1126,8 @@ describe('ActivityService tests', () => {
         sourceParentId: data2.sourceParentId,
         sourceId: data2.sourceId,
         conversationId: conversationCreated.rows[0].id,
+        organizationId: null,
+        organization: null,
       }
 
       expect(activityWithMember2).toStrictEqual(expectedActivityCreated)
@@ -1267,6 +1277,8 @@ describe('ActivityService tests', () => {
         sourceParentId: null,
         sourceId: dataParent.sourceId,
         conversationId: conversationCreated.rows[0].id,
+        organizationId: null,
+        organization: null,
       }
 
       expect(activityWithMemberParent).toStrictEqual(expectedParentActivityCreated)
@@ -1308,6 +1320,8 @@ describe('ActivityService tests', () => {
         sourceParentId: dataChild.sourceParentId,
         sourceId: dataChild.sourceId,
         conversationId: conversationCreated.rows[0].id,
+        organizationId: null,
+        organization: null,
       }
 
       expect(activityWithMemberChild).toStrictEqual(expectedChildActivityCreated)
@@ -1420,6 +1434,8 @@ describe('ActivityService tests', () => {
           sourceParentId: null,
           sourceId: data.sourceId,
           conversationId: null,
+          organizationId: null,
+          organization: null,
         }
 
         expect(activityWithMember).toStrictEqual(expectedActivityCreated)
@@ -1538,6 +1554,8 @@ describe('ActivityService tests', () => {
           sourceId: data.sourceId,
           sourceParentId: null,
           conversationId: null,
+          organizationId: null,
+          organization: null,
         }
 
         expect(activityWithMember).toStrictEqual(expectedActivityCreated)
@@ -1656,6 +1674,8 @@ describe('ActivityService tests', () => {
           sourceId: data.sourceId,
           sourceParentId: null,
           conversationId: null,
+          organizationId: null,
+          organization: null,
         }
 
         expect(activityWithMember).toStrictEqual(expectedActivityCreated)
@@ -1665,7 +1685,7 @@ describe('ActivityService tests', () => {
         })
       })
 
-      it('It should replace joinedAt if the orginal was in year 1970', async () => {
+      it('It should replace joinedAt if the original was in year 1970', async () => {
         const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
         await populateSegments(mockIRepositoryOptions)
         await populateSegments(mockIRepositoryOptions)
@@ -1776,6 +1796,8 @@ describe('ActivityService tests', () => {
           sourceId: data.sourceId,
           sourceParentId: null,
           conversationId: null,
+          organizationId: null,
+          organization: null,
         }
 
         expect(activityWithMember).toStrictEqual(expectedActivityCreated)

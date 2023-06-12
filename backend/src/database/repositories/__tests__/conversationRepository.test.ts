@@ -462,21 +462,22 @@ describe('ConversationRepository tests', () => {
         'username',
         'numberOfOpenSourceContributions',
         'segments',
+        'affiliations',
       ])
 
       const conversation1Expected = {
         ...conversation1Created,
         conversationStarter: {
-          ...SequelizeTestUtils.objectWithoutKey(activity1Created, ['tasks']),
+          ...SequelizeTestUtils.objectWithoutKey(activity1Created, ['tasks', 'organization']),
           member: memberReturnedWithinConversations,
         },
         lastReplies: [
           {
-            ...SequelizeTestUtils.objectWithoutKey(activity2Created, ['tasks']),
+            ...SequelizeTestUtils.objectWithoutKey(activity2Created, ['tasks', 'organization']),
             member: memberReturnedWithinConversations,
           },
           {
-            ...SequelizeTestUtils.objectWithoutKey(activity3Created, ['tasks']),
+            ...SequelizeTestUtils.objectWithoutKey(activity3Created, ['tasks', 'organization']),
             member: memberReturnedWithinConversations,
           },
         ],
@@ -485,12 +486,12 @@ describe('ConversationRepository tests', () => {
       const conversation2Expected = {
         ...conversation2Created,
         conversationStarter: {
-          ...SequelizeTestUtils.objectWithoutKey(activity4Created, ['tasks']),
+          ...SequelizeTestUtils.objectWithoutKey(activity4Created, ['tasks', 'organization']),
           member: memberReturnedWithinConversations,
         },
         lastReplies: [
           {
-            ...SequelizeTestUtils.objectWithoutKey(activity5Created, ['tasks']),
+            ...SequelizeTestUtils.objectWithoutKey(activity5Created, ['tasks', 'organization']),
             member: memberReturnedWithinConversations,
           },
         ],
@@ -499,12 +500,12 @@ describe('ConversationRepository tests', () => {
       const conversation3Expected = {
         ...conversation3Created,
         conversationStarter: {
-          ...SequelizeTestUtils.objectWithoutKey(activity6Created, ['tasks']),
+          ...SequelizeTestUtils.objectWithoutKey(activity6Created, ['tasks', 'organization']),
           member: memberReturnedWithinConversations,
         },
         lastReplies: [
           {
-            ...SequelizeTestUtils.objectWithoutKey(activity7Created, ['tasks']),
+            ...SequelizeTestUtils.objectWithoutKey(activity7Created, ['tasks', 'organization']),
             member: memberReturnedWithinConversations,
           },
         ],
