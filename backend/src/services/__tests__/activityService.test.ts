@@ -1348,48 +1348,15 @@ describe('ActivityService tests', () => {
           [PlatformType.GITHUB]: 'anil_github',
         },
         email: 'lala@l.com',
-        score: 10,
-        attributes: {
-          [MemberAttributeName.IS_HIREABLE]: {
-            [PlatformType.GITHUB]: true,
-          },
-          [MemberAttributeName.URL]: {
-            [PlatformType.GITHUB]: 'https://github.com/imcvampire',
-            [PlatformType.TWITTER]: 'https://twitter.com/imcvampire',
-          },
-          [MemberAttributeName.WEBSITE_URL]: {
-            [PlatformType.GITHUB]: 'https://imcvampire.js.org/',
-          },
-          [MemberAttributeName.BIO]: {
-            [PlatformType.GITHUB]: 'Lazy geek',
-          },
-          [MemberAttributeName.LOCATION]: {
-            [PlatformType.GITHUB]: 'Helsinki, Finland',
-          },
-        },
         organizations: [org1],
         joinedAt: '2020-05-27T15:13:30Z',
       }
 
       const data = {
         member,
-        body: 'Description\nThis pull request adds a new Dashboard and related widgets. This work will probably have to be revisited as soon as possible since a lot of decisions were made, without having too much time to think about different outcomes/possibilities. We rushed these changes so that we can demo a working dashboard to YC and to our Investors.\nChanges Proposed\n\nUpdate Chart.js\nAdd two different type of widgets (number and graph)\nRemove older/default widgets from dashboard and add our own widgets\nHide some items from the menu\nAdd all widget infrastructure (actions, services, etc) to integrate with the backend\nAdd a few more CSS tweaks\n\nScreenshots',
-        title: 'Dashboard widgets and some other tweaks/adjustments',
-        url: 'https://github.com/CrowdDevHQ/crowd-web/pull/16',
-        sentiment: {
-          positive: 0.98,
-          negative: 0.0,
-          neutral: 0.02,
-          mixed: 0.0,
-          sentiment: 0.98,
-          label: 'positive',
-        },
-        channel: 'https://github.com/CrowdDevHQ/crowd-web',
         timestamp: '2021-09-30T14:20:27.000Z',
         type: 'pull_request-closed',
-        isContribution: true,
         platform: PlatformType.GITHUB,
-        score: 4,
         sourceId: '#sourceId1',
       }
 
@@ -1409,9 +1376,6 @@ describe('ActivityService tests', () => {
     it(`Create an activity with member's first organization - member with multiple organizations and no affiliation`, async () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
       await populateSegments(mockIRepositoryOptions)
-      const memberAttributeSettingsService = new MemberAttributeSettingsService(
-        mockIRepositoryOptions,
-      )
 
       const org1 = {
         name: 'tesla',
@@ -1421,56 +1385,20 @@ describe('ActivityService tests', () => {
         name: 'crowd.dev',
       }
 
-      await memberAttributeSettingsService.createPredefined(GithubMemberAttributes)
-      await memberAttributeSettingsService.createPredefined(TwitterMemberAttributes)
-
       const member = {
         username: {
           [PlatformType.GITHUB]: 'anil_github',
         },
         email: 'lala@l.com',
-        score: 10,
-        attributes: {
-          [MemberAttributeName.IS_HIREABLE]: {
-            [PlatformType.GITHUB]: true,
-          },
-          [MemberAttributeName.URL]: {
-            [PlatformType.GITHUB]: 'https://github.com/imcvampire',
-            [PlatformType.TWITTER]: 'https://twitter.com/imcvampire',
-          },
-          [MemberAttributeName.WEBSITE_URL]: {
-            [PlatformType.GITHUB]: 'https://imcvampire.js.org/',
-          },
-          [MemberAttributeName.BIO]: {
-            [PlatformType.GITHUB]: 'Lazy geek',
-          },
-          [MemberAttributeName.LOCATION]: {
-            [PlatformType.GITHUB]: 'Helsinki, Finland',
-          },
-        },
         organizations: [org1, org2],
         joinedAt: '2020-05-27T15:13:30Z',
       }
 
       const data = {
         member,
-        body: 'Description\nThis pull request adds a new Dashboard and related widgets. This work will probably have to be revisited as soon as possible since a lot of decisions were made, without having too much time to think about different outcomes/possibilities. We rushed these changes so that we can demo a working dashboard to YC and to our Investors.\nChanges Proposed\n\nUpdate Chart.js\nAdd two different type of widgets (number and graph)\nRemove older/default widgets from dashboard and add our own widgets\nHide some items from the menu\nAdd all widget infrastructure (actions, services, etc) to integrate with the backend\nAdd a few more CSS tweaks\n\nScreenshots',
-        title: 'Dashboard widgets and some other tweaks/adjustments',
-        url: 'https://github.com/CrowdDevHQ/crowd-web/pull/16',
-        sentiment: {
-          positive: 0.98,
-          negative: 0.0,
-          neutral: 0.02,
-          mixed: 0.0,
-          sentiment: 0.98,
-          label: 'positive',
-        },
-        channel: 'https://github.com/CrowdDevHQ/crowd-web',
         timestamp: '2021-09-30T14:20:27.000Z',
         type: 'pull_request-closed',
-        isContribution: true,
         platform: PlatformType.GITHUB,
-        score: 4,
         sourceId: '#sourceId1',
       }
 
@@ -1502,56 +1430,21 @@ describe('ActivityService tests', () => {
         name: 'crowd.dev',
       }
 
-      await memberAttributeSettingsService.createPredefined(GithubMemberAttributes)
-      await memberAttributeSettingsService.createPredefined(TwitterMemberAttributes)
 
       const member = {
         username: {
           [PlatformType.GITHUB]: 'anil_github',
         },
         email: 'lala@l.com',
-        score: 10,
-        attributes: {
-          [MemberAttributeName.IS_HIREABLE]: {
-            [PlatformType.GITHUB]: true,
-          },
-          [MemberAttributeName.URL]: {
-            [PlatformType.GITHUB]: 'https://github.com/imcvampire',
-            [PlatformType.TWITTER]: 'https://twitter.com/imcvampire',
-          },
-          [MemberAttributeName.WEBSITE_URL]: {
-            [PlatformType.GITHUB]: 'https://imcvampire.js.org/',
-          },
-          [MemberAttributeName.BIO]: {
-            [PlatformType.GITHUB]: 'Lazy geek',
-          },
-          [MemberAttributeName.LOCATION]: {
-            [PlatformType.GITHUB]: 'Helsinki, Finland',
-          },
-        },
         organizations: [org1],
         joinedAt: '2020-05-27T15:13:30Z',
       }
 
       const data = {
         member,
-        body: 'Description\nThis pull request adds a new Dashboard and related widgets. This work will probably have to be revisited as soon as possible since a lot of decisions were made, without having too much time to think about different outcomes/possibilities. We rushed these changes so that we can demo a working dashboard to YC and to our Investors.\nChanges Proposed\n\nUpdate Chart.js\nAdd two different type of widgets (number and graph)\nRemove older/default widgets from dashboard and add our own widgets\nHide some items from the menu\nAdd all widget infrastructure (actions, services, etc) to integrate with the backend\nAdd a few more CSS tweaks\n\nScreenshots',
-        title: 'Dashboard widgets and some other tweaks/adjustments',
-        url: 'https://github.com/CrowdDevHQ/crowd-web/pull/16',
-        sentiment: {
-          positive: 0.98,
-          negative: 0.0,
-          neutral: 0.02,
-          mixed: 0.0,
-          sentiment: 0.98,
-          label: 'positive',
-        },
-        channel: 'https://github.com/CrowdDevHQ/crowd-web',
         timestamp: '2021-09-30T14:20:27.000Z',
         type: 'pull_request-closed',
-        isContribution: true,
         platform: PlatformType.GITHUB,
-        score: 4,
         sourceId: '#sourceId1',
       }
 
@@ -1644,23 +1537,9 @@ describe('ActivityService tests', () => {
 
       const data = {
         member,
-        body: 'Description\nThis pull request adds a new Dashboard and related widgets. This work will probably have to be revisited as soon as possible since a lot of decisions were made, without having too much time to think about different outcomes/possibilities. We rushed these changes so that we can demo a working dashboard to YC and to our Investors.\nChanges Proposed\n\nUpdate Chart.js\nAdd two different type of widgets (number and graph)\nRemove older/default widgets from dashboard and add our own widgets\nHide some items from the menu\nAdd all widget infrastructure (actions, services, etc) to integrate with the backend\nAdd a few more CSS tweaks\n\nScreenshots',
-        title: 'Dashboard widgets and some other tweaks/adjustments',
-        url: 'https://github.com/CrowdDevHQ/crowd-web/pull/16',
-        sentiment: {
-          positive: 0.98,
-          negative: 0.0,
-          neutral: 0.02,
-          mixed: 0.0,
-          sentiment: 0.98,
-          label: 'positive',
-        },
-        channel: 'https://github.com/CrowdDevHQ/crowd-web',
         timestamp: '2021-09-30T14:20:27.000Z',
         type: 'pull_request-closed',
-        isContribution: true,
         platform: PlatformType.GITHUB,
-        score: 4,
         sourceId: '#sourceId1',
       }
 
