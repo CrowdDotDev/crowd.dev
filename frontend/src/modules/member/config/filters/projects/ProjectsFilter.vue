@@ -23,20 +23,18 @@ import {
 import useVuelidate from '@vuelidate/core';
 import { required } from '@vuelidate/validators';
 
+export interface ProjectsFilterValue {
+  value: string[]
+}
+
 const props = defineProps<
   {
-    modelValue: {
-      value: string[];
-    };
+    modelValue: ProjectsFilterValue;
     data: any;
     config: CustomFilterConfig;
   } & CustomFilterOptions
 >();
-const emit = defineEmits<{(e: 'update:modelValue',
-    value: {
-      value: string[];
-    }
-  ): void,
+const emit = defineEmits<{(e: 'update:modelValue', value: ProjectsFilterValue): void,
   (e: 'update:data', value: any): void;
 }>();
 
@@ -56,6 +54,10 @@ const data = computed({
   get: () => props.data,
   set: (value: any) => emit('update:data', value),
 });
+
+const defaultForm: ProjectsFilterValue = {
+  value: [],
+};
 
 const rules: any = {
   value: {
@@ -132,12 +134,10 @@ const onSearchQueryChange = debounce((value) => {
 }, 300);
 
 onMounted(() => {
-  props
-    .remoteMethod?.({
-      parentSlug: selectedProjectGroup.value.slug,
-    })
-    .then((projects) => {
-      buildOptions(projects);
-    });
+  onSearchQueryChange('');
+  emit('update:modelValue', {
+    ...defaultForm,
+    ...form.value,
+  });
 });
 </script>

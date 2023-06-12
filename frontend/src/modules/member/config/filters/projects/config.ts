@@ -1,6 +1,6 @@
 import { FilterConfigType } from '@/shared/modules/filters/types/FilterConfig';
 import { CustomFilterConfig } from '@/shared/modules/filters/types/filterTypes/CustomFilterConfig';
-import ProjectsFilter from '@/modules/member/config/filters/projects/ProjectsFilter.vue';
+import ProjectsFilter, { ProjectsFilterValue } from '@/modules/member/config/filters/projects/ProjectsFilter.vue';
 import { LfService } from '@/modules/lf/segments/lf-segments-service';
 
 const projects: CustomFilterConfig = {
@@ -25,11 +25,10 @@ const projects: CustomFilterConfig = {
   },
   queryUrlParser({ value }: {value: string}): Record<string, any> {
     return {
-      include: true,
       value: value.split(','),
     };
   },
-  itemLabelRenderer(value: any, options: any, data: any): string {
+  itemLabelRenderer({ value }: ProjectsFilterValue, options: any, data: any): string {
     let text = '';
     const charLimit = 30;
 
