@@ -5,7 +5,6 @@ import MemberRepository from '../../database/repositories/memberRepository'
 import ActivityRepository from '../../database/repositories/activityRepository'
 import ConversationService from '../conversationService'
 import SequelizeRepository from '../../database/repositories/sequelizeRepository'
-import SearchEngineTestUtils from '../../search-engine/utils/searchEngineTestUtils'
 import { PlatformType } from '@crowd/types'
 import SettingsRepository from '../../database/repositories/settingsRepository'
 import ConversationSettingsRepository from '../../database/repositories/conversationSettingsRepository'
@@ -2063,10 +2062,7 @@ describe('ActivityService tests', () => {
 
     it('Should add the parent activity to childs conversation and NOT update conversation [published=true] title&slug, when child already has a conversation', async () => {
       let mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
-      mockIRepositoryOptions = await SearchEngineTestUtils.injectSearchEngine(
-        searchEngine,
-        mockIRepositoryOptions,
-      )
+
       const activityService = new ActivityService(mockIRepositoryOptions)
       const conversationService = new ConversationService(mockIRepositoryOptions)
 
@@ -2149,10 +2145,7 @@ describe('ActivityService tests', () => {
 
     it('Should always auto-publish when conversationSettings.autoPublish.status is set to all', async () => {
       let mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
-      mockIRepositoryOptions = await SearchEngineTestUtils.injectSearchEngine(
-        searchEngine,
-        mockIRepositoryOptions,
-      )
+
       const activityService = new ActivityService(mockIRepositoryOptions)
       await SettingsRepository.findOrCreateDefault(
         { website: 'https://some-website' },
@@ -2244,10 +2237,7 @@ describe('ActivityService tests', () => {
 
     it('Should never auto-publish when conversationSettings.autoPublish.status is set to disabled', async () => {
       let mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
-      mockIRepositoryOptions = await SearchEngineTestUtils.injectSearchEngine(
-        searchEngine,
-        mockIRepositoryOptions,
-      )
+
       const activityService = new ActivityService(mockIRepositoryOptions)
       await SettingsRepository.findOrCreateDefault(
         { website: 'https://some-website' },
@@ -2339,10 +2329,7 @@ describe('ActivityService tests', () => {
 
     it('Should auto-publish when conversationSettings.autoPublish.status is set to custom and rules match', async () => {
       let mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
-      mockIRepositoryOptions = await SearchEngineTestUtils.injectSearchEngine(
-        searchEngine,
-        mockIRepositoryOptions,
-      )
+
       const activityService = new ActivityService(mockIRepositoryOptions)
       await SettingsRepository.findOrCreateDefault(
         { website: 'https://some-website' },
@@ -2437,10 +2424,7 @@ describe('ActivityService tests', () => {
 
     it("Should not auto-publish when conversationSettings.autoPublish.status is set to custom and rules don't match", async () => {
       let mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
-      mockIRepositoryOptions = await SearchEngineTestUtils.injectSearchEngine(
-        searchEngine,
-        mockIRepositoryOptions,
-      )
+
       const activityService = new ActivityService(mockIRepositoryOptions)
       await SettingsRepository.findOrCreateDefault(
         { website: 'https://some-website' },
