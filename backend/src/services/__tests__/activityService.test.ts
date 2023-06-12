@@ -1430,7 +1430,6 @@ describe('ActivityService tests', () => {
         name: 'crowd.dev',
       }
 
-
       const member = {
         username: {
           [PlatformType.GITHUB]: 'anil_github',
