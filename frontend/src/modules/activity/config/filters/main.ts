@@ -6,6 +6,7 @@ import date from './date/config';
 import member from './member/config';
 import platform from './platform/config';
 import sentiment from './sentiment/config';
+import projects from './projects/config';
 
 export const activityFilters: Record<string, FilterConfig> = {
   activityType,
@@ -14,6 +15,7 @@ export const activityFilters: Record<string, FilterConfig> = {
   member,
   platform,
   sentiment,
+  projects,
 };
 export const activitySearchFilter: SearchFilterConfig = {
   placeholder: 'Search activities',

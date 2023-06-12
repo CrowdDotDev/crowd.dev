@@ -22,10 +22,8 @@ import {
 } from '@/shared/modules/filters/types/filterTypes/CustomFilterConfig';
 import useVuelidate from '@vuelidate/core';
 import { required } from '@vuelidate/validators';
-
-export interface ProjectsFilterValue {
-  value: string[]
-}
+import { ProjectsFilterValue, ProjectsOption } from '@/modules/lf/segments/types/Filters';
+import { Project } from '@/modules/lf/segments/types/Segments';
 
 const props = defineProps<
   {
@@ -40,7 +38,7 @@ const emit = defineEmits<{(e: 'update:modelValue', value: ProjectsFilterValue): 
 
 const loading = ref(false);
 
-const filteredOptions = ref<any[]>([]);
+const filteredOptions = ref<ProjectsOption[]>([]);
 
 const lsSegmentsStore = useLfSegmentsStore();
 const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);
@@ -67,7 +65,7 @@ const rules: any = {
 
 useVuelidate(rules, form);
 
-const buildOptions = (projects) => {
+const buildOptions = (projects: Project[]) => {
   filteredOptions.value = projects.map((p) => {
     const segments = props.modelValue.value || [];
     const selectedSubProjects = p.subprojects.filter((subproject) => segments.includes(subproject.id));
@@ -90,8 +88,8 @@ const buildOptions = (projects) => {
   });
 };
 
-const onFilterChange = (value) => {
-  const selectedSubProjects = value.reduce((acc, option) => {
+const onFilterChange = (value: ProjectsOption[]) => {
+  const selectedSubProjects = value.reduce((acc: string[], option) => {
     if (option.selectedChildren.length) {
       option.children.forEach((child) => {
         if (option.selectedChildren.includes(child.label)) {
@@ -108,10 +106,11 @@ const onFilterChange = (value) => {
 
 const onSearchQueryChange = debounce((value) => {
   loading.value = true;
+
   props
     .remoteMethod?.({
       query: value,
-      parentSlug: selectedProjectGroup.value.slug,
+      parentSlug: selectedProjectGroup.value ? selectedProjectGroup.value.slug : null,
     })
     .then((projects) => {
       data.value.options = projects;

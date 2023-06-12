@@ -11,6 +11,7 @@ import industry from './industry/config';
 import joinedDate from './joinedDate/config';
 import lastActivityDate from './lastActivityDate/config';
 import location from './location/config';
+import projects from './projects/config';
 import type from './type/config';
 
 export const organizationFilters: Record<string, FilterConfig> = {
@@ -25,6 +26,7 @@ export const organizationFilters: Record<string, FilterConfig> = {
   joinedDate,
   lastActivityDate,
   location,
+  projects,
   type,
 };
 
