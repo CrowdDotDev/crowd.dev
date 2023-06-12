@@ -1,10 +1,10 @@
 import axios from 'axios'
-import { Logger } from '@crowd/logging'
-import { HackerNewsPost, HackerNewsResponse, HackerNewsUser } from '../../types/hackerNewsTypes'
+import { HackerNewsPost, HackerNewsResponse, HackerNewsUser } from '../types'
+import { IProcessStreamContext } from '@/types'
 
-async function getPost(input: string, logger: Logger): Promise<HackerNewsResponse> {
+async function getPost(input: string, ctx: IProcessStreamContext): Promise<HackerNewsResponse> {
   try {
-    logger.info({ message: 'Fetching post from Hacker News', input })
+    ctx.log.info({ message: 'Fetching post from Hacker News', input })
     const postUrl = `https://hacker-news.firebaseio.com/v0/item/${input}.json`
     const postConfig = {
       method: 'get',
@@ -27,7 +27,7 @@ async function getPost(input: string, logger: Logger): Promise<HackerNewsRespons
       user: userResponse,
     }
   } catch (err) {
-    logger.error({ err, input }, 'Error while getting post')
+    ctx.log.error({ err, input }, 'Error while getting post')
     throw err
   }
 }
