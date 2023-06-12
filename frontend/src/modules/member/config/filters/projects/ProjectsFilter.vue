@@ -2,6 +2,7 @@
   <div class="p-2">
     <app-lf-project-filter
       v-model:options="filteredOptions"
+      :loading="loading"
       @on-change="onFilterChange"
       @on-search-change="onSearchQueryChange"
     />
@@ -16,12 +17,10 @@ import { storeToRefs } from 'pinia';
 import {
   computed, onMounted, ref,
 } from 'vue';
-import {
-  CustomFilterOptions,
-  CustomFilterConfig,
-} from '@/shared/modules/filters/types/filterTypes/CustomFilterConfig';
 import useVuelidate from '@vuelidate/core';
 import { required } from '@vuelidate/validators';
+import { ProjectsOption, ProjectsCustomFilterConfig, ProjectsCustomFilterOptions } from '@/modules/lf/segments/types/Filters';
+import { Project } from '@/modules/lf/segments/types/Segments';
 
 export interface ProjectsFilterValue {
   value: string[]
@@ -31,15 +30,14 @@ const props = defineProps<
   {
     modelValue: ProjectsFilterValue;
     data: any;
-    config: CustomFilterConfig;
-  } & CustomFilterOptions
+    config: ProjectsCustomFilterConfig;
+  } & ProjectsCustomFilterOptions
 >();
 const emit = defineEmits<{(e: 'update:modelValue', value: ProjectsFilterValue): void,
   (e: 'update:data', value: any): void;
 }>();
 
-const loading = ref(false);
-
+const loading = ref(true);
 const filteredOptions = ref<any[]>([]);
 
 const lsSegmentsStore = useLfSegmentsStore();
@@ -67,7 +65,7 @@ const rules: any = {
 
 useVuelidate(rules, form);
 
-const buildOptions = (projects) => {
+const buildOptions = (projects: Project[]) => {
   filteredOptions.value = projects.map((p) => {
     const segments = props.modelValue.value || [];
     const selectedSubProjects = p.subprojects.filter((subproject) => segments.includes(subproject.id));
@@ -90,8 +88,8 @@ const buildOptions = (projects) => {
   });
 };
 
-const onFilterChange = (value) => {
-  const selectedSubProjects = value.reduce((acc, option) => {
+const onFilterChange = (value: ProjectsOption[]) => {
+  const selectedSubProjects = value.reduce((acc: string[], option) => {
     if (option.selectedChildren.length) {
       option.children.forEach((child) => {
         if (option.selectedChildren.includes(child.label)) {
@@ -111,7 +109,7 @@ const onSearchQueryChange = debounce((value) => {
   props
     .remoteMethod?.({
       query: value,
-      parentSlug: selectedProjectGroup.value.slug,
+      parentSlug: selectedProjectGroup.value?.slug,
     })
     .then((projects) => {
       data.value.options = projects;

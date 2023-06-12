@@ -2,6 +2,7 @@
   <div class="p-2">
     <app-lf-project-filter
       v-model:options="filteredOptions"
+      :loading="loading"
       @on-change="onFilterChange"
       @on-search-change="onSearchQueryChange"
     />
@@ -16,29 +17,28 @@ import { storeToRefs } from 'pinia';
 import {
   computed, onMounted, ref,
 } from 'vue';
-import {
-  CustomFilterOptions,
-  CustomFilterConfig,
-} from '@/shared/modules/filters/types/filterTypes/CustomFilterConfig';
 import useVuelidate from '@vuelidate/core';
 import { required } from '@vuelidate/validators';
-import { ProjectsFilterValue, ProjectsOption } from '@/modules/lf/segments/types/Filters';
+import { ProjectsOption, ProjectsCustomFilterConfig, ProjectsCustomFilterOptions } from '@/modules/lf/segments/types/Filters';
 import { Project } from '@/modules/lf/segments/types/Segments';
+
+export interface ProjectsFilterValue {
+  value: string[]
+}
 
 const props = defineProps<
   {
     modelValue: ProjectsFilterValue;
     data: any;
-    config: CustomFilterConfig;
-  } & CustomFilterOptions
+    config: ProjectsCustomFilterConfig;
+  } & ProjectsCustomFilterOptions
 >();
 const emit = defineEmits<{(e: 'update:modelValue', value: ProjectsFilterValue): void,
   (e: 'update:data', value: any): void;
 }>();
 
-const loading = ref(false);
-
-const filteredOptions = ref<ProjectsOption[]>([]);
+const loading = ref(true);
+const filteredOptions = ref<any[]>([]);
 
 const lsSegmentsStore = useLfSegmentsStore();
 const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);
@@ -106,11 +106,10 @@ const onFilterChange = (value: ProjectsOption[]) => {
 
 const onSearchQueryChange = debounce((value) => {
   loading.value = true;
-
   props
     .remoteMethod?.({
       query: value,
-      parentSlug: selectedProjectGroup.value ? selectedProjectGroup.value.slug : null,
+      parentSlug: selectedProjectGroup.value?.slug,
     })
     .then((projects) => {
       data.value.options = projects;

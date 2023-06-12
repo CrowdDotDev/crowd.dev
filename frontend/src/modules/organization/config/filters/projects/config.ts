@@ -3,6 +3,7 @@ import ProjectsFilter from '@/modules/member/config/filters/projects/ProjectsFil
 import { LfService } from '@/modules/lf/segments/lf-segments-service';
 import { Project } from '@/modules/lf/segments/types/Segments';
 import { ProjectsFilterValue, ProjectsCustomFilterConfig } from '@/modules/lf/segments/types/Filters';
+import { filterLabel } from '@/modules/lf/utils/filters';
 
 const projects: ProjectsCustomFilterConfig = {
   id: 'projects',
@@ -30,30 +31,8 @@ const projects: ProjectsCustomFilterConfig = {
     };
   },
   itemLabelRenderer({ value }: ProjectsFilterValue, options: any, data: { options: Project[] }): string {
-    let text = '';
     const charLimit = 30;
-
-    if (!data.options?.length) {
-      text = 'All';
-    } else {
-      data.options.forEach((project, i) => {
-        const selectedSubprojects = project.subprojects.filter(
-          (sp) => value.includes(sp.id),
-        ).map((sp) => sp.name);
-
-        if (project.subprojects.length === selectedSubprojects.length) {
-          text += `${project.name} (all sub-projects)`;
-        } else if (selectedSubprojects.length) {
-          text += selectedSubprojects.join(', ');
-          text += ` (${project.name})`;
-        }
-
-        if (i !== data.options.length - 1) {
-          text += ', ';
-        }
-      });
-    }
-
+    const text = filterLabel(value, data.options);
     const trimmedValueText = text.length > charLimit ? `${text.substring(0, charLimit - 3)}...` : text;
     const tooltip = trimmedValueText.length < text.length ? `data-tooltip="${text}"` : '';
 
