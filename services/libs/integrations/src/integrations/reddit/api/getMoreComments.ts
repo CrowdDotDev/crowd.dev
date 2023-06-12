@@ -1,8 +1,9 @@
 import axios, { AxiosRequestConfig } from 'axios'
-import { Logger } from '@crowd/logging'
+import { getNangoToken } from '../../nango'
+import { IProcessStreamContext } from '@/types'
 import { PlatformType } from '@crowd/types'
-import { RedditMoreCommentsInput, RedditMoreCommentsResponse } from '../../types/redditTypes'
-import getToken from '../nango/getToken'
+import { RedditMoreCommentsInput, RedditMoreCommentsResponse } from '../types'
+import { timeout } from '@crowd/common'
 
 /**
  * Expand a list of comment IDs into a comment tree.
@@ -13,19 +14,19 @@ import getToken from '../nango/getToken'
  */
 async function getMoreComments(
   input: RedditMoreCommentsInput,
-  logger: Logger,
+  ctx: IProcessStreamContext,
 ): Promise<RedditMoreCommentsResponse> {
   try {
-    logger.info({ message: 'Fetching more comments from a sub-reddit', input })
+    ctx.log.info({ message: 'Fetching more comments from a sub-reddit', input })
 
     // Wait for 1.5s for rate limits.
     // eslint-disable-next-line no-promise-executor-return
-    await new Promise((resolve) => setTimeout(resolve, 1500))
+    await timeout(1500)
 
     // Gett an access token from Nango
-    const accessToken = await getToken(input.nangoId, PlatformType.REDDIT, logger)
+    const accessToken = await getNangoToken(input.nangoId, PlatformType.REDDIT, ctx)
 
-    const config: AxiosRequestConfig<any> = {
+    const config: AxiosRequestConfig = {
       method: 'get',
       url: `http://oauth.reddit.com/api/morechildren?api_type=json`,
       params: {
@@ -41,7 +42,7 @@ async function getMoreComments(
     const response: RedditMoreCommentsResponse = (await axios(config)).data
     return response
   } catch (err) {
-    logger.error({ err, input }, 'Error while getting posts in subreddit')
+    ctx.log.error({ err, input }, 'Error while getting posts in subreddit')
     throw err
   }
 }

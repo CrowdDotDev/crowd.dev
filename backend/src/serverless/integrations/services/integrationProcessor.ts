@@ -12,7 +12,6 @@ import { DiscordIntegrationService } from './integrations/discordIntegrationServ
 import { DiscourseIntegrationService } from './integrations/discourseIntegrationService'
 import { GithubIntegrationService } from './integrations/githubIntegrationService'
 import { HackerNewsIntegrationService } from './integrations/hackerNewsIntegrationService'
-import { RedditIntegrationService } from './integrations/redditIntegrationService'
 import { SlackIntegrationService } from './integrations/slackIntegrationService'
 import { TwitterIntegrationService } from './integrations/twitterIntegrationService'
 import { TwitterReachIntegrationService } from './integrations/twitterReachIntegrationService'
@@ -33,7 +32,6 @@ export class IntegrationProcessor extends LoggerBase {
     const integrationServices = [
       new DiscordIntegrationService(),
       new HackerNewsIntegrationService(),
-      new RedditIntegrationService(),
       new TwitterIntegrationService(),
       new TwitterReachIntegrationService(),
       new SlackIntegrationService(),
