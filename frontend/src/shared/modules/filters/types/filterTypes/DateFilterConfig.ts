@@ -3,6 +3,8 @@ import { BaseFilterConfig, FilterConfigType } from '@/shared/modules/filters/typ
 
 export interface DateFilterOptions {
   hideIncludeSwitch?: boolean;
+  datepickerType?: 'date' | 'month' | 'year'
+  dateFormat?: string
 }
 
 export interface DateFilterValue {
