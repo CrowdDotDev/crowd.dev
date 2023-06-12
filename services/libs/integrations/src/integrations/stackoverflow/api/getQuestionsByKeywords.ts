@@ -89,6 +89,8 @@ async function getQuestions(
         return response
       }
     }
+
+    return response
   } catch (err) {
     ctx.log.error({ err, input }, 'Error while getting StackOverflow questions by keywords')
     throw err
