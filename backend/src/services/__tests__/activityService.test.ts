@@ -13,8 +13,10 @@ import MemberAttributeSettingsService from '../memberAttributeSettingsService'
 import { GithubMemberAttributes } from '../../database/attributes/member/github'
 import { TwitterMemberAttributes } from '../../database/attributes/member/twitter'
 import { IServiceOptions } from '../../services/IServiceOptions'
-import { populateSegments } from '../../database/utils/segmentTestUtils'
+import { populateSegments, switchSegments } from '../../database/utils/segmentTestUtils'
 import SegmentRepository from '../../database/repositories/segmentRepository'
+import OrganizationRepository from '../../database/repositories/organizationRepository'
+import { SegmentStatus } from '../../types/segmentTypes'
 
 const db = null
 const searchEngine = null
@@ -1325,6 +1327,369 @@ describe('ActivityService tests', () => {
       }
 
       expect(activityWithMemberChild).toStrictEqual(expectedChildActivityCreated)
+    })
+
+    it('Create an activity with organization - member with single organization and no affiliation', async () => {
+      const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
+      await populateSegments(mockIRepositoryOptions)
+      const memberAttributeSettingsService = new MemberAttributeSettingsService(
+        mockIRepositoryOptions,
+      )
+
+      const org1 = {
+        name: 'crowd.dev',
+      }
+
+      await memberAttributeSettingsService.createPredefined(GithubMemberAttributes)
+      await memberAttributeSettingsService.createPredefined(TwitterMemberAttributes)
+
+      const member = {
+        username: {
+          [PlatformType.GITHUB]: 'anil_github',
+        },
+        email: 'lala@l.com',
+        score: 10,
+        attributes: {
+          [MemberAttributeName.IS_HIREABLE]: {
+            [PlatformType.GITHUB]: true,
+          },
+          [MemberAttributeName.URL]: {
+            [PlatformType.GITHUB]: 'https://github.com/imcvampire',
+            [PlatformType.TWITTER]: 'https://twitter.com/imcvampire',
+          },
+          [MemberAttributeName.WEBSITE_URL]: {
+            [PlatformType.GITHUB]: 'https://imcvampire.js.org/',
+          },
+          [MemberAttributeName.BIO]: {
+            [PlatformType.GITHUB]: 'Lazy geek',
+          },
+          [MemberAttributeName.LOCATION]: {
+            [PlatformType.GITHUB]: 'Helsinki, Finland',
+          },
+        },
+        organizations: [org1],
+        joinedAt: '2020-05-27T15:13:30Z',
+      }
+
+      const data = {
+        member,
+        body: 'Description\nThis pull request adds a new Dashboard and related widgets. This work will probably have to be revisited as soon as possible since a lot of decisions were made, without having too much time to think about different outcomes/possibilities. We rushed these changes so that we can demo a working dashboard to YC and to our Investors.\nChanges Proposed\n\nUpdate Chart.js\nAdd two different type of widgets (number and graph)\nRemove older/default widgets from dashboard and add our own widgets\nHide some items from the menu\nAdd all widget infrastructure (actions, services, etc) to integrate with the backend\nAdd a few more CSS tweaks\n\nScreenshots',
+        title: 'Dashboard widgets and some other tweaks/adjustments',
+        url: 'https://github.com/CrowdDevHQ/crowd-web/pull/16',
+        sentiment: {
+          positive: 0.98,
+          negative: 0.0,
+          neutral: 0.02,
+          mixed: 0.0,
+          sentiment: 0.98,
+          label: 'positive',
+        },
+        channel: 'https://github.com/CrowdDevHQ/crowd-web',
+        timestamp: '2021-09-30T14:20:27.000Z',
+        type: 'pull_request-closed',
+        isContribution: true,
+        platform: PlatformType.GITHUB,
+        score: 4,
+        sourceId: '#sourceId1',
+      }
+
+      const activityWithMember = await new ActivityService(mockIRepositoryOptions).createWithMember(
+        data,
+      )
+
+      // find activity
+      const activity = await ActivityRepository.findById(
+        activityWithMember.id,
+        mockIRepositoryOptions,
+      )
+
+      expect(activity.organization.name).toEqual(org1.name)
+    })
+
+    it(`Create an activity with member's first organization - member with multiple organizations and no affiliation`, async () => {
+      const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
+      await populateSegments(mockIRepositoryOptions)
+      const memberAttributeSettingsService = new MemberAttributeSettingsService(
+        mockIRepositoryOptions,
+      )
+
+      const org1 = {
+        name: 'tesla',
+      }
+
+      const org2 = {
+        name: 'crowd.dev',
+      }
+
+      await memberAttributeSettingsService.createPredefined(GithubMemberAttributes)
+      await memberAttributeSettingsService.createPredefined(TwitterMemberAttributes)
+
+      const member = {
+        username: {
+          [PlatformType.GITHUB]: 'anil_github',
+        },
+        email: 'lala@l.com',
+        score: 10,
+        attributes: {
+          [MemberAttributeName.IS_HIREABLE]: {
+            [PlatformType.GITHUB]: true,
+          },
+          [MemberAttributeName.URL]: {
+            [PlatformType.GITHUB]: 'https://github.com/imcvampire',
+            [PlatformType.TWITTER]: 'https://twitter.com/imcvampire',
+          },
+          [MemberAttributeName.WEBSITE_URL]: {
+            [PlatformType.GITHUB]: 'https://imcvampire.js.org/',
+          },
+          [MemberAttributeName.BIO]: {
+            [PlatformType.GITHUB]: 'Lazy geek',
+          },
+          [MemberAttributeName.LOCATION]: {
+            [PlatformType.GITHUB]: 'Helsinki, Finland',
+          },
+        },
+        organizations: [org1, org2],
+        joinedAt: '2020-05-27T15:13:30Z',
+      }
+
+      const data = {
+        member,
+        body: 'Description\nThis pull request adds a new Dashboard and related widgets. This work will probably have to be revisited as soon as possible since a lot of decisions were made, without having too much time to think about different outcomes/possibilities. We rushed these changes so that we can demo a working dashboard to YC and to our Investors.\nChanges Proposed\n\nUpdate Chart.js\nAdd two different type of widgets (number and graph)\nRemove older/default widgets from dashboard and add our own widgets\nHide some items from the menu\nAdd all widget infrastructure (actions, services, etc) to integrate with the backend\nAdd a few more CSS tweaks\n\nScreenshots',
+        title: 'Dashboard widgets and some other tweaks/adjustments',
+        url: 'https://github.com/CrowdDevHQ/crowd-web/pull/16',
+        sentiment: {
+          positive: 0.98,
+          negative: 0.0,
+          neutral: 0.02,
+          mixed: 0.0,
+          sentiment: 0.98,
+          label: 'positive',
+        },
+        channel: 'https://github.com/CrowdDevHQ/crowd-web',
+        timestamp: '2021-09-30T14:20:27.000Z',
+        type: 'pull_request-closed',
+        isContribution: true,
+        platform: PlatformType.GITHUB,
+        score: 4,
+        sourceId: '#sourceId1',
+      }
+
+      const activityWithMember = await new ActivityService(mockIRepositoryOptions).createWithMember(
+        data,
+      )
+
+      // find activity
+      const activity = await ActivityRepository.findById(
+        activityWithMember.id,
+        mockIRepositoryOptions,
+      )
+
+      expect(activity.organization.name).toEqual(org1.name)
+    })
+
+    it(`Shouldn't update existing activity's organization, when a different organization comes with the member`, async () => {
+      const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
+      await populateSegments(mockIRepositoryOptions)
+      const memberAttributeSettingsService = new MemberAttributeSettingsService(
+        mockIRepositoryOptions,
+      )
+
+      const org1 = {
+        name: 'tesla',
+      }
+
+      const org2 = {
+        name: 'crowd.dev',
+      }
+
+      await memberAttributeSettingsService.createPredefined(GithubMemberAttributes)
+      await memberAttributeSettingsService.createPredefined(TwitterMemberAttributes)
+
+      const member = {
+        username: {
+          [PlatformType.GITHUB]: 'anil_github',
+        },
+        email: 'lala@l.com',
+        score: 10,
+        attributes: {
+          [MemberAttributeName.IS_HIREABLE]: {
+            [PlatformType.GITHUB]: true,
+          },
+          [MemberAttributeName.URL]: {
+            [PlatformType.GITHUB]: 'https://github.com/imcvampire',
+            [PlatformType.TWITTER]: 'https://twitter.com/imcvampire',
+          },
+          [MemberAttributeName.WEBSITE_URL]: {
+            [PlatformType.GITHUB]: 'https://imcvampire.js.org/',
+          },
+          [MemberAttributeName.BIO]: {
+            [PlatformType.GITHUB]: 'Lazy geek',
+          },
+          [MemberAttributeName.LOCATION]: {
+            [PlatformType.GITHUB]: 'Helsinki, Finland',
+          },
+        },
+        organizations: [org1],
+        joinedAt: '2020-05-27T15:13:30Z',
+      }
+
+      const data = {
+        member,
+        body: 'Description\nThis pull request adds a new Dashboard and related widgets. This work will probably have to be revisited as soon as possible since a lot of decisions were made, without having too much time to think about different outcomes/possibilities. We rushed these changes so that we can demo a working dashboard to YC and to our Investors.\nChanges Proposed\n\nUpdate Chart.js\nAdd two different type of widgets (number and graph)\nRemove older/default widgets from dashboard and add our own widgets\nHide some items from the menu\nAdd all widget infrastructure (actions, services, etc) to integrate with the backend\nAdd a few more CSS tweaks\n\nScreenshots',
+        title: 'Dashboard widgets and some other tweaks/adjustments',
+        url: 'https://github.com/CrowdDevHQ/crowd-web/pull/16',
+        sentiment: {
+          positive: 0.98,
+          negative: 0.0,
+          neutral: 0.02,
+          mixed: 0.0,
+          sentiment: 0.98,
+          label: 'positive',
+        },
+        channel: 'https://github.com/CrowdDevHQ/crowd-web',
+        timestamp: '2021-09-30T14:20:27.000Z',
+        type: 'pull_request-closed',
+        isContribution: true,
+        platform: PlatformType.GITHUB,
+        score: 4,
+        sourceId: '#sourceId1',
+      }
+
+      let activityWithMember = await new ActivityService(mockIRepositoryOptions).createWithMember(
+        data,
+      )
+
+      let activity = await ActivityRepository.findById(
+        activityWithMember.id,
+        mockIRepositoryOptions,
+      )
+
+      expect(activity.organization.name).toEqual(org1.name)
+
+      // create same activity with a different member organization
+      data.member = {
+        ...member,
+        organizations: [org2],
+      }
+
+      await new ActivityService(mockIRepositoryOptions).createWithMember(data)
+
+      activity = await ActivityRepository.findById(activityWithMember.id, mockIRepositoryOptions)
+
+      // activity organization shouldn't change
+      expect(activity.organization.name).toEqual(org1.name)
+    })
+
+    it(`Should respect the affiliation settings when setting an activity's organization with multiple member organizations`, async () => {
+      const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
+      const segmentRepo = new SegmentRepository(mockIRepositoryOptions)
+
+      const segment1 = await segmentRepo.create({
+        name: 'Crowd.dev - Segment1',
+        url: '',
+        parentName: 'Crowd.dev - Segment1',
+        grandparentName: 'Crowd.dev - Segment1',
+        slug: 'crowd.dev-1',
+        parentSlug: 'crowd.dev-1',
+        grandparentSlug: 'crowd.dev-1',
+        status: SegmentStatus.ACTIVE,
+        sourceId: null,
+        sourceParentId: null,
+      })
+
+      const segment2 = await segmentRepo.create({
+        name: 'Crowd.dev - Segment2',
+        url: '',
+        parentName: 'Crowd.dev - Segment2',
+        grandparentName: 'Crowd.dev - Segment2',
+        slug: 'crowd.dev-2',
+        parentSlug: 'crowd.dev-2',
+        grandparentSlug: 'crowd.dev-2',
+        status: SegmentStatus.ACTIVE,
+        sourceId: null,
+        sourceParentId: null,
+      })
+
+      await populateSegments(mockIRepositoryOptions)
+      const org1 = await OrganizationRepository.create(
+        {
+          name: 'tesla',
+        },
+        mockIRepositoryOptions,
+      )
+
+      const org2 = await OrganizationRepository.create(
+        {
+          name: 'crowd.dev',
+        },
+        mockIRepositoryOptions,
+      )
+
+      const member = {
+        username: {
+          [PlatformType.GITHUB]: 'anil_github',
+        },
+        organizations: [org1, org2],
+        affiliations: [
+          {
+            segmentId: segment1.id,
+            organizationId: org2.id,
+          },
+          {
+            segmentId: segment2.id,
+            organizationId: null,
+          },
+        ],
+      }
+
+      const data = {
+        member,
+        body: 'Description\nThis pull request adds a new Dashboard and related widgets. This work will probably have to be revisited as soon as possible since a lot of decisions were made, without having too much time to think about different outcomes/possibilities. We rushed these changes so that we can demo a working dashboard to YC and to our Investors.\nChanges Proposed\n\nUpdate Chart.js\nAdd two different type of widgets (number and graph)\nRemove older/default widgets from dashboard and add our own widgets\nHide some items from the menu\nAdd all widget infrastructure (actions, services, etc) to integrate with the backend\nAdd a few more CSS tweaks\n\nScreenshots',
+        title: 'Dashboard widgets and some other tweaks/adjustments',
+        url: 'https://github.com/CrowdDevHQ/crowd-web/pull/16',
+        sentiment: {
+          positive: 0.98,
+          negative: 0.0,
+          neutral: 0.02,
+          mixed: 0.0,
+          sentiment: 0.98,
+          label: 'positive',
+        },
+        channel: 'https://github.com/CrowdDevHQ/crowd-web',
+        timestamp: '2021-09-30T14:20:27.000Z',
+        type: 'pull_request-closed',
+        isContribution: true,
+        platform: PlatformType.GITHUB,
+        score: 4,
+        sourceId: '#sourceId1',
+      }
+
+      switchSegments(mockIRepositoryOptions, [segment1])
+
+      let activityWithMember = await new ActivityService(mockIRepositoryOptions).createWithMember(
+        data,
+      )
+
+      let activity = await ActivityRepository.findById(
+        activityWithMember.id,
+        mockIRepositoryOptions,
+      )
+
+      // org2 should be set as organization because it's in member's affiliated organizations
+      expect(activity.organization.name).toEqual(org2.name)
+
+      // add another activity to segment2 for the same member
+      switchSegments(mockIRepositoryOptions, [segment2])
+
+      data.sourceId = '#sourceId2'
+      data.member = member // createWithMember modifies member, reset it
+
+      activityWithMember = await new ActivityService(mockIRepositoryOptions).createWithMember(data)
+
+      activity = await ActivityRepository.findById(activityWithMember.id, mockIRepositoryOptions)
+
+      // this member had a null affiliation(meaning no organizations should be set) in segment 2
+      expect(activity.organization).toBeNull()
     })
 
     describe('Member tests in createWithMember', () => {

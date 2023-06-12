@@ -134,6 +134,10 @@ class MemberRepository {
       transaction,
     })
 
+    if (data.affiliations) {
+      await this.setAffiliations(record.id, data.affiliations, options)
+    }
+
     await this._createAuditLog(AuditLogRepository.CREATE, record, data, options)
 
     return this.findById(record.id, options, true, doPopulateRelations)
