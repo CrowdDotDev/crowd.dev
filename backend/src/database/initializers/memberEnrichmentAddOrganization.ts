@@ -1,6 +1,6 @@
 /**
- * This script is responsible for generating non
- * existing parentIds for historical discord activities
+ * This script is responsible for generating organizationIds
+ * for the existing activities
  */
 import { QueryTypes } from 'sequelize'
 import { getServiceChildLogger } from '@crowd/logging'
@@ -21,7 +21,7 @@ async function memberEnrichmentAddOrganization() {
     const tenantId = t.id
     // get user context
     const userContext = await getUserContext(tenantId)
-    // get discord message activities
+    
     const memberService = new MemberService(userContext)
 
     const memberEnrichmentService = new MemberEnrichmentService(userContext)
