@@ -157,7 +157,6 @@ const fetchMembers = async () => {
 
   loading.value = true;
 
-  const segments = props.organization.segments?.map((s) => s.id) || [];
   const { data } = await authAxios.post(
     `/tenant/${store.getters['auth/currentTenant'].id}/member/query`,
     {
@@ -165,7 +164,7 @@ const fetchMembers = async () => {
       orderBy: 'joinedAt_DESC',
       limit: limit.value,
       offset: offset.value,
-      segments,
+      segments: props.organization.segments,
     },
     {
       headers: {

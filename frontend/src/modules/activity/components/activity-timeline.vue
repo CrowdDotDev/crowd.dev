@@ -283,7 +283,13 @@ const fetchActivities = async () => {
       orderBy: 'timestamp_DESC',
       limit: limit.value,
       offset: offset.value,
-      segments: props.entity.segments?.map((s) => s.id) || [],
+      segments: props.entity.segments?.map((s) => {
+        if (typeof s === 'string') {
+          return s;
+        }
+
+        return s.id;
+      }) || [],
     },
     {
       headers: {
