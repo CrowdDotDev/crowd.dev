@@ -82,6 +82,7 @@ const { fetchOrganizations } = organizationStore;
 
 const loading = ref(true);
 const organizationCount = ref(0);
+const isSubProjectSelectionOpen = ref(false);
 
 const hasPermissionToCreate = computed(
   () => new OrganizationPermissions(
@@ -95,8 +96,6 @@ const isCreateLockedForSampleData = computed(
     currentUser.value,
   ).createLockedForSampleData,
 );
-
-const isSubProjectSelectionOpen = ref(false);
 
 const doGetOrganizationCount = () => {
   (OrganizationService.listOrganizations({

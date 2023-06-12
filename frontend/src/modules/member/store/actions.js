@@ -25,7 +25,7 @@ export default {
 
   async doExport(
     {
-      commit, getters, rootGetters, dispatch,
+      commit, rootGetters, dispatch,
     },
     {
       selected = false,

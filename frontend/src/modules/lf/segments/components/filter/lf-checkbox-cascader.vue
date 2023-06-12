@@ -1,5 +1,8 @@
 <template>
-  <ul v-if="model.length" class="lf-checkbox">
+  <div v-if="loading" class="h-10 px-2 flex items-center">
+    <span class="text-gray-400">Loading</span>
+  </div>
+  <ul v-else-if="model.length" class="lf-checkbox">
     <li v-for="option in model" :key="option.label">
       <el-checkbox
         v-model="option.selected"
@@ -46,6 +49,10 @@ const props = defineProps({
   emptyText: {
     type: String,
     default: null,
+  },
+  loading: {
+    type: Boolean,
+    default: false,
   },
 });
 

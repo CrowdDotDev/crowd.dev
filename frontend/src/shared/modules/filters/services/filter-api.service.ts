@@ -34,6 +34,12 @@ export const filterApiService = () => {
     // Settings
     if (savedViewsConfig && settings) {
       Object.entries(settings).forEach(([setting, value]) => {
+        const config: FilterConfig = configuration[setting];
+
+        if (config?.inBody) {
+          return;
+        }
+
         const filter = savedViewsConfig.settings[setting]?.apiFilterRenderer(value);
         if (filter) {
           baseFilters = [
@@ -50,6 +56,7 @@ export const filterApiService = () => {
       if (!config || config.inBody) {
         return;
       }
+
       const filter = config?.apiFilterRenderer(values);
       if (filter && filter.length > 0) {
         filters = [
@@ -65,6 +72,7 @@ export const filterApiService = () => {
       if (!config || !config.inBody) {
         return;
       }
+
       const filter: any[] = configuration[key]?.apiFilterRenderer(values) || [];
       filter.forEach((obj) => {
         body = {

@@ -12,6 +12,7 @@
   <app-lf-checkbox-cascader
     v-model:options="modelOptions"
     empty-text="No projects found"
+    :loading="loading"
     @on-change="(value) => emit('onChange', value)"
   />
 </template>
@@ -34,6 +35,10 @@ const props = defineProps({
   options: {
     type: Array,
     default: () => [],
+  },
+  loading: {
+    type: Boolean,
+    default: false,
   },
 });
 
