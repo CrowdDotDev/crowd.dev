@@ -29,6 +29,8 @@ class QueryParser {
 
   private exportMode: boolean
 
+  private withSegments: boolean
+
   static maxPageSize = 200
 
   static defaultPageSize = 10
@@ -89,6 +91,7 @@ class QueryParser {
       manyToMany = {} as ManyToManyType,
       customOperators = {} as any,
       exportMode = false,
+      withSegments = true,
     },
     options: IRepositoryOptions,
   ) {
@@ -102,6 +105,7 @@ class QueryParser {
     this.manyToMany = manyToMany
     this.customOperators = customOperators
     this.exportMode = exportMode
+    this.withSegments = withSegments
   }
 
   /**
@@ -402,9 +406,15 @@ class QueryParser {
     // eslint-disable-next-line prefer-const
     let { filter, orderBy, limit, offset, include, fields } = query
 
-    let dbQuery: any
+    const dbQuery: any = {
+      where: {
+        tenantId: SequelizeRepository.getCurrentTenant(this.options).id,
+      },
+      limit: QueryParser.defaultPageSize,
+      offset: 0,
+    }
 
-    if (this.manyToMany.segments) {
+    if (this.withSegments && this.manyToMany.segments) {
       const segmentsQuery = this.replaceWithManyToMany(
         {
           segments: SegmentRepository.getSegmentIds(this.options),
@@ -412,27 +422,11 @@ class QueryParser {
         'segments',
       )
 
-      dbQuery = {
-        where: {
-          [Op.and]: [
-            {
-              tenantId: SequelizeRepository.getCurrentTenant(this.options).id,
-            },
-            segmentsQuery,
-          ],
-        },
-        limit: QueryParser.defaultPageSize,
-        offset: 0,
+      dbQuery.where = {
+        [Op.and]: [dbQuery.where, segmentsQuery],
       }
-    } else {
-      dbQuery = {
-        where: {
-          tenantId: SequelizeRepository.getCurrentTenant(this.options).id,
-          segmentId: SegmentRepository.getSegmentIds(this.options),
-        },
-        limit: QueryParser.defaultPageSize,
-        offset: 0,
-      }
+    } else if (this.withSegments) {
+      dbQuery.where.segmentId = SegmentRepository.getSegmentIds(this.options)
     }
 
     if (fields) {

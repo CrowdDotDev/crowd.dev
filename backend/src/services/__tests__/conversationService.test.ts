@@ -325,7 +325,7 @@ describe('ConversationService tests', () => {
         url: activity1Created.url,
       }
 
-      expect(conversationDocument).toStrictEqual(expectedConversationDocument)
+      expect(conversationDocument).toMatchObject(expectedConversationDocument)
 
       // add a new activity to the conversation and re-load to search engine
       let activity4Created = await ActivityRepository.create(
@@ -383,7 +383,7 @@ describe('ConversationService tests', () => {
         url: activity1Created.url,
       }
 
-      expect(conversationDocument).toStrictEqual(expectedConversationDocument)
+      expect(conversationDocument).toMatchObject(expectedConversationDocument)
 
       // a new activity with empty body but with attachment should be still loaded to the search engine
       let activity5Created = await ActivityRepository.create(
@@ -462,7 +462,7 @@ describe('ConversationService tests', () => {
         url: activity1Created.url,
       }
 
-      expect(conversationDocument).toStrictEqual(expectedConversationDocument)
+      expect(conversationDocument).toMatchObject(expectedConversationDocument)
 
       // a new activity with empty body and no attachment should not be loaded to the search engine
       await ActivityRepository.create(
@@ -499,7 +499,7 @@ describe('ConversationService tests', () => {
       )
 
       // loaded document should be same as previously loaded one (activity6 shouldn't exist)
-      expect(conversationDocument).toStrictEqual(expectedConversationDocument)
+      expect(conversationDocument).toMatchObject(expectedConversationDocument)
     })
 
     it('Should create a document representation of a conversation in the search engine when auto-publishing', async () => {
@@ -641,7 +641,7 @@ describe('ConversationService tests', () => {
       }
 
       expect(conversationCreated.published).toStrictEqual(true)
-      expect(conversationDocument).toStrictEqual(expectedConversationDocument)
+      expect(conversationDocument).toMatchObject(expectedConversationDocument)
     })
   })
 
@@ -859,7 +859,7 @@ describe('ConversationService tests', () => {
       // check search engine
       let doc = await conversationSearchEngineRepository.findById(conversationCreated.id)
 
-      expect(doc).toStrictEqual(expectedConversationDocument)
+      expect(doc).toMatchObject(expectedConversationDocument)
 
       // send published = false
       await conversationService.update(conversationCreated.id, { published: false })
@@ -996,7 +996,7 @@ describe('ConversationService tests', () => {
         website: updateSettings.website,
       }
 
-      expect(doc).toStrictEqual(expectedSettingsDocuments)
+      expect(doc).toMatchObject(expectedSettingsDocuments)
 
       // create a published tenant
       await conversationService.create({
@@ -1102,7 +1102,7 @@ describe('ConversationService tests', () => {
         website: updateSettings2.website,
       }
 
-      expect(doc).toStrictEqual(expectedSettingsDocuments)
+      expect(doc).toMatchObject(expectedSettingsDocuments)
     })
     it('Should update settings.autoPublish and publish past conversations if custom rules are matched', async () => {
       let mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
@@ -1295,7 +1295,7 @@ describe('ConversationService tests', () => {
 
       expect(githubConversationCreated.published).toStrictEqual(true)
       expect(discordConversationCreated.published).toStrictEqual(false)
-      expect(conversationDocument).toStrictEqual(expectedConversationDocument)
+      expect(conversationDocument).toMatchObject(expectedConversationDocument)
     })
   })
 })

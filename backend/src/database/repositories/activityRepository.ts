@@ -1,7 +1,6 @@
 import sanitizeHtml from 'sanitize-html'
 import lodash from 'lodash'
 import Sequelize from 'sequelize'
-import { ActivityTypeSettings } from '@crowd/types'
 import SequelizeRepository from './sequelizeRepository'
 import AuditLogRepository from './auditLogRepository'
 import SequelizeFilterUtils from '../utils/sequelizeFilterUtils'
@@ -736,10 +735,10 @@ class ActivityRepository {
 
     const output = record.get({ plain: true })
 
-    const activityTypes = options.currentTenant.settings[0].dataValues
-      .activityTypes as ActivityTypeSettings
-
-    output.display = ActivityDisplayService.getDisplayOptions(record, activityTypes)
+    output.display = ActivityDisplayService.getDisplayOptions(
+      record,
+      SegmentRepository.getActivityTypes(options),
+    )
 
     output.tasks = await record.getTasks({
       transaction,

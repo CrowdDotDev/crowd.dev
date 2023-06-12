@@ -1,0 +1,2 @@
+DROP INDEX ix_unique_activities_tenantid_platform_type_sourceid;
+CREATE UNIQUE INDEX ix_unique_activities_tenantid_platform_type_sourceid_segmentid ON activities ("tenantId", platform, type, "sourceId", "segmentId");
