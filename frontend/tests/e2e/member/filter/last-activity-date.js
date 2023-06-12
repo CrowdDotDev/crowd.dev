@@ -36,45 +36,41 @@ export default () => {
   it('fetches users who joined 2 weeks ago', () => {
     cy.get('[data-qa="filter-date-input"] input').clear().type(oneWeekAgo).blur();
     cy.get('[data-qa="filter-apply"]').click();
+    cy.wait(100);
     cy.wait('@apiMemberQuery');
 
     cy.get('@apiMemberQuery').then((req) => {
       const { rows } = req.response.body;
       rows.forEach((row) => {
-        console.log(row);
         cy.wrap(moment(row.lastActive).isSame(oneWeekAgo, 'day')).should('eq', true);
       });
     });
   });
 
-  // TODO: uncomment when bug is fixed
-  // it('fetches users who joined 2 weeks ago - exclude', () => {
-  //   cy.get('@filterItem').click();
-  //   cy.wait(100);
-  //   cy.get('@filterItem').click();
-  //   cy.get('[data-qa="filter-date-input"] input').clear().type(oneWeekAgo).blur();
-  //   cy.get('[data-qa="filter-include-switch"]').click();
-  //   cy.get('[data-qa="filter-apply"]').click();
-  //   cy.wait('@apiMemberQuery');
-  //
-  //   cy.get('@apiMemberQuery').then((req) => {
-  //     const { rows } = req.response.body;
-  //     rows.forEach((row) => {
-  //       cy.wrap(moment(row.lastActive).isSame(oneWeekAgo, 'day')).should('eq', false);
-  //     });
-  //   });
-  // });
+  it('fetches users who joined 2 weeks ago - exclude', () => {
+    cy.get('@filterItem').click();
+    cy.get('[data-qa="filter-date-input"] input').clear().type(oneWeekAgo).blur();
+    cy.get('[data-qa="filter-include-switch"]').click();
+    cy.get('[data-qa="filter-apply"]').click();
+    cy.wait(100);
+    cy.wait('@apiMemberQuery');
+
+    cy.get('@apiMemberQuery').then((req) => {
+      const { rows } = req.response.body;
+      rows.forEach((row) => {
+        cy.wrap(moment(row.lastActive).isSame(oneWeekAgo, 'day')).should('eq', false);
+      });
+    });
+  });
 
   it('fetches users who joined before 2 weeks ago', () => {
-    cy.get('@filterItem').click();
-    cy.wait(100);
     cy.get('@filterItem').click();
     cy.get('[data-qa="filter-date-input"] input').clear().type(oneWeekAgo).blur();
     cy.get('.filter-list-item-popper [data-qa="filter-inline-select"]').click();
     cy.get('[data-qa="filter-inline-select-option"]').contains('is before').click();
-    // TODO: uncomment when bug is fixed
-    // cy.get('[data-qa="filter-include-switch"]').click();
+    cy.get('[data-qa="filter-include-switch"]').click();
     cy.get('[data-qa="filter-apply"]').click();
+    cy.wait(100);
     cy.wait('@apiMemberQuery');
 
     cy.get('@apiMemberQuery').then((req) => {
@@ -87,11 +83,10 @@ export default () => {
 
   it('fetches users who joined before 2 weeks ago - exclude', () => {
     cy.get('@filterItem').click();
-    cy.wait(100);
-    cy.get('@filterItem').click();
     cy.get('[data-qa="filter-date-input"] input').clear().type(oneWeekAgo).blur();
     cy.get('[data-qa="filter-include-switch"]').click();
     cy.get('[data-qa="filter-apply"]').click();
+    cy.wait(100);
     cy.wait('@apiMemberQuery');
 
     cy.get('@apiMemberQuery').then((req) => {
@@ -104,13 +99,12 @@ export default () => {
 
   it('fetches users who joined after 2 weeks ago', () => {
     cy.get('@filterItem').click();
-    cy.wait(100);
-    cy.get('@filterItem').click();
     cy.get('[data-qa="filter-date-input"] input').clear().type(oneWeekAgo).blur();
     cy.get('.filter-list-item-popper [data-qa="filter-inline-select"]').click();
     cy.get('[data-qa="filter-inline-select-option"]').contains('is after').click();
     cy.get('[data-qa="filter-include-switch"]').click();
     cy.get('[data-qa="filter-apply"]').click();
+    cy.wait(100);
     cy.wait('@apiMemberQuery');
 
     cy.get('@apiMemberQuery').then((req) => {
@@ -123,8 +117,6 @@ export default () => {
 
   it('fetches users who joined after 2 weeks ago - exclude', () => {
     cy.get('@filterItem').click();
-    cy.wait(100);
-    cy.get('@filterItem').click();
     cy.get('[data-qa="filter-date-input"] input').clear().type(oneWeekAgo).blur();
     cy.get('[data-qa="filter-include-switch"]').click();
     cy.get('[data-qa="filter-apply"]').click();
@@ -133,6 +125,7 @@ export default () => {
     cy.get('@apiMemberQuery').then((req) => {
       const { rows } = req.response.body;
       rows.forEach((row) => {
+        console.log(row.lastActive, oneWeekAgo);
         cy.wrap(moment(row.lastActive).isAfter(moment(oneWeekAgo))).should('eq', false);
       });
     });
@@ -140,14 +133,13 @@ export default () => {
 
   it('fetches users who joined between 2 weeks ago and 1 week ago', () => {
     cy.get('@filterItem').click();
-    cy.wait(100);
-    cy.get('@filterItem').click();
     cy.get('.filter-list-item-popper [data-qa="filter-inline-select"]').click();
     cy.get('[data-qa="filter-inline-select-option"]').contains('between').click();
     cy.get('[data-qa="filter-date-input"] input').eq(0).clear().type(oneWeekAgo);
     cy.get('[data-qa="filter-date-input"] input').eq(1).type(twoDaysAgo).blur();
     cy.get('[data-qa="filter-include-switch"]').click();
     cy.get('[data-qa="filter-apply"]').click();
+    cy.wait(100);
     cy.wait('@apiMemberQuery');
 
     cy.get('@apiMemberQuery').then((req) => {
@@ -160,12 +152,11 @@ export default () => {
 
   it('fetches users who joined between 2 weeks ago and 1 week ago - exclude', () => {
     cy.get('@filterItem').click();
-    cy.wait(100);
-    cy.get('@filterItem').click();
     cy.get('[data-qa="filter-date-input"] input').eq(0).clear().type(oneWeekAgo);
     cy.get('[data-qa="filter-date-input"] input').eq(1).type(twoDaysAgo).blur();
     cy.get('[data-qa="filter-include-switch"]').click();
     cy.get('[data-qa="filter-apply"]').click();
+    cy.wait(100);
     cy.wait('@apiMemberQuery');
 
     cy.get('@apiMemberQuery').then((req) => {

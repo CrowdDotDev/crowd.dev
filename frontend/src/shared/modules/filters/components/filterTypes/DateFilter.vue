@@ -8,7 +8,7 @@
         class="mb-3"
         :options="dateFilterOperators"
       />
-      <div class="filter-date-field">
+      <div class="filter-date-field" data-qa="filter-date-input">
         <el-date-picker
           v-model="form.value"
           :placeholder="form.operator === FilterDateOperator.BETWEEN ? 'Select date range' : 'Select date'"

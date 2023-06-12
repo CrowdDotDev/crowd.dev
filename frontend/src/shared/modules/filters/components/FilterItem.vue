@@ -7,12 +7,13 @@
       placement="bottom-start"
       width="320"
       trigger="click"
-      popper-class="!p-0"
+      :popper-class="`!p-0 filter-list-item-popper filter-${props.config.type} filter-${props.config.id}`"
     >
       <template #reference>
         <div
           class="border border-gray-100 rounded-l-md h-8 flex items-center py-1 px-2 bg-white cursor-pointer hover:bg-gray-100 transition"
           :class="{ '!bg-gray-100': isOpen }"
+          data-qa="filter-list-chip"
         >
           <i class="text-base text-black mr-2" :class="config.iconClass" />
           <span
@@ -25,14 +26,14 @@
         </div>
       </template>
 
-      <div>
+      <div :data-qa-filter-type="props.config.type">
         <component :is="getComponent" v-if="getComponent" v-model="form" v-model:data="data" :config="props.config" v-bind="props.config.options" />
       </div>
       <div class="flex justify-end items-center border-t py-3 px-4">
-        <el-button class="btn btn--transparent btn--sm !h-8 mr-2" @click="close">
+        <el-button class="btn btn--transparent btn--sm !h-8 mr-2" data-qa="filter-close" @click="close">
           Cancel
         </el-button>
-        <el-button class="btn btn--primary btn--sm !h-8" :disabled="$v.$invalid" @click="apply">
+        <el-button class="btn btn--primary btn--sm !h-8" :disabled="$v.$invalid" data-qa="filter-apply" @click="apply">
           Apply
         </el-button>
       </div>
@@ -41,6 +42,7 @@
     <!-- Cancel -->
     <div
       class="border border-gray-100 rounded-r-md h-8 flex items-center p-2 bg-white -ml-px hover:bg-gray-100 transition cursor-pointer group"
+      data-qa="filter-list-chip-close"
       @click="emit('remove')"
     >
       <span class="ri-close-line text-base flex items-center h-4 text-gray-500 group-hover:text-gray-900" />

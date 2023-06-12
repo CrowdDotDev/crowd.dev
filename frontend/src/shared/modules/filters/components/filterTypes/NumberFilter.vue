@@ -21,7 +21,9 @@
               v-model="form.value"
               type="number"
               min="0"
+              step="1"
               :placeholder="form.operator !== FilterNumberOperator.BETWEEN ? 'Enter value' : 'From'"
+              data-qa="filter-number-from"
               @blur="$v.value.$touch"
               @change="$v.value.$touch"
             />
@@ -38,6 +40,7 @@
               type="number"
               placeholder="To"
               min="0"
+              data-qa="filter-number-to"
               @blur="$v.valueTo.$touch"
               @change="$v.valueTo.$touch"
             />
@@ -69,7 +72,9 @@ import {
   NumberFilterValue,
 } from '@/shared/modules/filters/types/filterTypes/NumberFilterConfig';
 import useVuelidate from '@vuelidate/core';
-import { minValue, numeric, required } from '@vuelidate/validators';
+import {
+  integer, minValue, numeric, required,
+} from '@vuelidate/validators';
 import CrFilterIncludeSwitch from '@/shared/modules/filters/components/partials/FilterIncludeSwitch.vue';
 import {
   FilterNumberOperator,
@@ -102,12 +107,14 @@ const rules: any = computed(() => ({
   value: {
     required,
     numeric,
+    integer,
     minValue: minValue(0),
   },
   ...(form.value.operator === FilterNumberOperator.BETWEEN ? {
     valueTo: {
       required,
       numeric,
+      integer,
       minValue: minValue((form.value.value) || 0),
     },
   } : {}),

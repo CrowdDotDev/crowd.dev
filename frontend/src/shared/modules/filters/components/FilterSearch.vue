@@ -4,6 +4,7 @@
     clearable
     :placeholder="props.placeholder"
     class="input-with-select"
+    data-qa="filter-search"
     @input="changeValue($event)"
   >
     <template #append>

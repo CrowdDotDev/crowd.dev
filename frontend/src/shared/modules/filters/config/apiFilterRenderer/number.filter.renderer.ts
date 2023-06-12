@@ -6,14 +6,15 @@ export const numberApiFilterRenderer = (property: string, {
 }: NumberFilterValue): any[] => {
   const filterValue = operator === FilterNumberOperator.BETWEEN ? [value, valueTo] : value;
   const filter = {
-    [operator]: filterValue,
+    [property]: {
+      [operator]: filterValue,
+    },
+
   };
 
   return [
-    {
-      [property]: (include ? filter : {
-        not: filter,
-      }),
-    },
+    (include ? filter : {
+      not: filter,
+    }),
   ];
 };

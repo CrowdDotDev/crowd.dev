@@ -17,7 +17,7 @@
         class="filter-multiselect"
         popper-class="filter-multiselect-popper"
         :loading="loading"
-        no-data-text="No results"
+        no-data-text=""
       >
         <el-option
           v-for="option of filteredOptions"
@@ -25,10 +25,14 @@
           :label="option.label"
           :value="option"
         >
-          <el-checkbox
-            :model-value="props.modelValue.value.includes(option.value)"
-            class="filter-checkbox h-4"
-          />
+          <div
+            class="el-checkbox filter-checkbox h-4"
+            :class="{ 'is-checked': props.modelValue.value.includes(option.value) }"
+          >
+            <span class="el-checkbox__input" :class="{ 'is-checked': form.includes(option.value) }">
+              <span class="el-checkbox__inner" />
+            </span>
+          </div>
           {{ option.label }}
         </el-option>
       </el-select>

@@ -13,6 +13,7 @@
       <cr-filter-input
         v-model="form.value"
         placeholder="Enter a value"
+        data-qa="filter-input"
       />
     </div>
   </div>

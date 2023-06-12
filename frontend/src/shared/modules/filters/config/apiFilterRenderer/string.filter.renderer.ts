@@ -6,23 +6,19 @@ export const stringApiFilterRenderer = (property: string, { include, value, oper
   let filter: any = {
     [operator]: value,
   };
-  if (operator === FilterStringOperator.NLIKE) {
+  if (operator === FilterStringOperator.LIKE || operator === FilterStringOperator.NLIKE) {
     filter = {
-      not: {
-        like: `%${value}%`,
-      },
-    };
-  } else if (operator === FilterStringOperator.LIKE) {
-    filter = {
-      [operator]: `%${value}%`,
+      like: `%${value}%`,
     };
   }
 
+  filter = {
+    [property]: filter,
+  };
+
   return [
-    {
-      [property]: (include ? filter : {
-        not: filter,
-      }),
-    },
+    (include && operator !== FilterStringOperator.NLIKE ? filter : {
+      not: filter,
+    }),
   ];
 };

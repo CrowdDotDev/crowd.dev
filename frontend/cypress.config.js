@@ -15,6 +15,7 @@ module.exports = defineConfig({
     screenshotsFolder: 'tests/screenshots',
     videosFolder: 'tests/videos',
   },
+  numTestsKeptInMemory: 1,
   component: {
     devServer: {
       framework: 'vue',
@@ -24,6 +25,8 @@ module.exports = defineConfig({
   },
   browser: {
     chromeWebSecurity: false,
+    numTestsKeptInMemory: 1,
+    experimentalMemoryManagement: true,
   },
   env: {
     appUrl: 'http://localhost:8081',

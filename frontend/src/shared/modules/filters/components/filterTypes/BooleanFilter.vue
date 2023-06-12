@@ -6,10 +6,10 @@
         {{ props.config.label }}
       </p>
       <el-radio-group v-model="form.value" class="flex-col !items-start">
-        <el-radio :label="true" size="large" class="!mr-0 !h-6 !font-normal !mb-3 flex items-center">
+        <el-radio :label="true" size="large" class="!mr-0 !h-6 !font-normal !mb-3 flex items-center" data-qa="filter-boolean-true">
           True
         </el-radio>
-        <el-radio :label="false" size="large" class="!mr-0 !h-5 !font-normal">
+        <el-radio :label="false" size="large" class="!mr-0 !h-5 !font-normal" data-qa="filter-boolean-false">
           False
         </el-radio>
       </el-radio-group>
