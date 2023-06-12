@@ -421,9 +421,10 @@ class SegmentRepository extends RepositoryBase<
                             COUNT(DISTINCT sp.id) AS subproject_count,
                             jsonb_agg(jsonb_build_object('id', sp.id ,'name', sp.name, 'status', sp.status)) as subprojects
                      FROM segments f
-                              JOIN segments p ON p."parentSlug" = f."slug" AND p."grandparentSlug" IS NULL
-                              JOIN segments sp ON sp."parentSlug" = p."slug" and sp."grandparentSlug" is not null
+                      JOIN segments p ON p."parentSlug" = f."slug" AND p."grandparentSlug" IS NULL
+                      JOIN segments sp ON sp."parentSlug" = p."slug" and sp."grandparentSlug" is not null
                      WHERE f."parentSlug" IS NULL
+                       AND f."tenantId" = :tenantId
                      GROUP BY f."id", p.id)
             SELECT s.*,
                    count(*) over () as "totalCount",  
@@ -440,6 +441,7 @@ class SegmentRepository extends RepositoryBase<
             `,
       {
         replacements: {
+          tenantId: this.currentTenant.id,
           name: `${criteria.filter?.name}%`,
           status: criteria.filter?.status,
         },
@@ -483,12 +485,14 @@ class SegmentRepository extends RepositoryBase<
             WHERE 
                 s."grandparentSlug" IS NULL
             and s."parentSlug" is not null
+            and s."tenantId" = :tenantId
             ${searchQuery}
             GROUP BY s."id"
             ${this.getPaginationString(criteria)};
             `,
       {
         replacements: {
+          tenantId: this.currentTenant.id,
           name: `${criteria.filter?.name}%`,
           status: criteria.filter?.status,
           parent_slug: `${criteria.filter?.parentSlug}%`,
