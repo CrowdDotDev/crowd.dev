@@ -13,6 +13,7 @@ import getQuestionsByTags from './api/getQuestions'
 import getQuestionsByKeyword from './api/getQuestionsByKeywords'
 import getAnswers from './api/getAnswers'
 import getUser from './api/getUser'
+import { generateUUIDv4 } from '@crowd/common'
 
 const getStackOverflowUser = async (
   ctx: IProcessStreamContext,
@@ -60,7 +61,19 @@ const processTagStream: ProcessStreamHandler = async (ctx) => {
   // pulblish all questions and new streams for answers
   while (questions.length > 0) {
     const question = questions.shift()
-    const user = await getStackOverflowUser(ctx, question.owner.user_id.toString())
+    let user: StackOverflowUser = null
+    if (!question.owner) {
+      // we completely ignore questions without owner - they are not valid
+      continue
+    } else if (!question.owner.user_id) {
+      // this is deleted user or similar
+      user = {
+        user_id: generateUUIDv4(),
+        display_name: question.owner?.display_name || 'Deleted User',
+      } as StackOverflowUser
+    } else {
+      user = await getStackOverflowUser(ctx, question.owner.user_id.toString())
+    }
     await ctx.publishData<IStackOverflowPublishData>({
       question: {
         question,
@@ -116,7 +129,19 @@ const processKeywordStream: ProcessStreamHandler = async (ctx) => {
   // pulblish all questions and new streams for answers
   while (questions.length > 0) {
     const question = questions.shift()
-    const user = await getStackOverflowUser(ctx, question.owner.user_id.toString())
+    let user: StackOverflowUser = null
+    if (!question.owner) {
+      // we completely ignore questions without owner - they are not valid
+      continue
+    } else if (!question.owner.user_id) {
+      // this is deleted user or similar
+      user = {
+        user_id: generateUUIDv4(),
+        display_name: question.owner?.display_name || 'Deleted User',
+      } as StackOverflowUser
+    } else {
+      user = await getStackOverflowUser(ctx, question.owner.user_id.toString())
+    }
     await ctx.publishData<IStackOverflowPublishData>({
       question: {
         question,
@@ -175,7 +200,20 @@ const processAnswerStream: ProcessStreamHandler = async (ctx) => {
   let previousAnswerId: string | null = null
   while (answers.length > 0) {
     const answer = answers.shift()
-    const user = await getStackOverflowUser(ctx, answer.owner.user_id.toString())
+    let user: StackOverflowUser = null
+    if (!answer.owner) {
+      // we completely ignore answers without owner - they are not valid
+      continue
+    } else if (!answer.owner.user_id) {
+      // this is deleted user or similar
+      user = {
+        user_id: generateUUIDv4(),
+        display_name: answer.owner?.display_name || 'Deleted User',
+      } as StackOverflowUser
+    } else {
+      user = await getStackOverflowUser(ctx, answer.owner.user_id.toString())
+    }
+    user = await getStackOverflowUser(ctx, answer.owner.user_id.toString())
     await ctx.publishData<IStackOverflowPublishData>({
       answer: {
         answer,

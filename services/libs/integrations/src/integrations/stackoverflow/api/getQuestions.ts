@@ -7,8 +7,8 @@ import {
   StackOverflowPlatformSettings,
   StackOverflowQuestionsResponse,
   StackOverflowGetQuestionsInput,
-  MAX_RETROSPECT_IN_HOURS,
-  LAST_MAX_PAGES,
+  STACKOVERFLOW_LAST_MAX_PAGES,
+  STACKOVERFLOW_MAX_RETROSPECT_IN_HOURS,
 } from '../types'
 
 /**
@@ -39,7 +39,7 @@ async function getQuestions(
           now.getUTCFullYear(),
           now.getUTCMonth(),
           now.getUTCDate(),
-          now.getUTCHours() - MAX_RETROSPECT_IN_HOURS,
+          now.getUTCHours() - STACKOVERFLOW_MAX_RETROSPECT_IN_HOURS,
         ),
       )
       fromTimestamp = Math.floor(fromDate.getTime() / 1000)
@@ -82,7 +82,7 @@ async function getQuestions(
 
     // If we are onboarding, we want to get the last MAX_PAGES pages of questions
     if (isOnboarding) {
-      if (input.page < LAST_MAX_PAGES) {
+      if (input.page < STACKOVERFLOW_LAST_MAX_PAGES) {
         return response
       } else {
         response.has_more = false
