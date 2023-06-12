@@ -35,15 +35,19 @@ async function recursiveCommentParser(
 
     // Each stream has at most 99 children to expand. If there are more, we make more than one stream.
     for (const chunk of partition(comment.children, 99)) {
-      await ctx.publishStream<IRedditMoreCommentsStreamData>(
-        `${RedditStreamType.MORE_COMMENTS}:${metadata.postId}:${chunk.join(',')}`,
-        {
-          channel: metadata.channel,
-          postId: metadata.postId,
-          children: chunk,
-        },
-      )
+      if (chunk.length > 0) {
+        await ctx.publishStream<IRedditMoreCommentsStreamData>(
+          `${RedditStreamType.MORE_COMMENTS}:${metadata.postId}:${chunk.join(',')}`,
+          {
+            channel: metadata.channel,
+            postId: metadata.postId,
+            children: chunk,
+          },
+        )
+      }
     }
+
+    return
   }
 
   // Otherwise, we have a proper comment
