@@ -358,80 +358,70 @@ class OrganizationRepository {
     const transaction = SequelizeRepository.getTransaction(options)
     const sequelize = SequelizeRepository.getSequelize(options)
 
-    const include = [
-      {
-        model: options.database.segment,
-        as: 'segments',
-        through: {
-          attributes: [],
-        },
-      },
-    ]
-
     const currentTenant = SequelizeRepository.getCurrentTenant(options)
 
     const results = await sequelize.query(
       `
-    WITH activity_counts AS (
-        SELECT mo."organizationId", COUNT(a.id) AS "activityCount"
-        FROM "memberOrganizations" mo
-        left JOIN activities a ON a."memberId" = mo."memberId"
-        WHERE mo."organizationId" = :id 
-        GROUP BY mo."organizationId"
-    ),
-    member_counts AS (
-        SELECT "organizationId", COUNT(DISTINCT "memberId") AS "memberCount"
-        FROM "memberOrganizations"
-        WHERE "organizationId" = :id
-        GROUP BY "organizationId"
-    ),
-    active_on AS (
-        SELECT mo."organizationId", ARRAY_AGG(DISTINCT platform) AS "activeOn"
-        FROM "memberOrganizations" mo
-        JOIN activities a ON a."memberId" = mo."memberId"
-        WHERE mo."organizationId" = :id
-        GROUP BY mo."organizationId"
-    ),
-    identities AS (
-        SELECT mo."organizationId", ARRAY_AGG(DISTINCT platform) AS "identities"
-        FROM "memberOrganizations" mo
-        JOIN "memberIdentities" mi ON mi."memberId" = mo."memberId"
-        WHERE mo."organizationId" = :id
-        GROUP BY "organizationId"
-    ),
-    last_active AS (
-        SELECT mo."organizationId", MAX(timestamp) AS "lastActive", MIN(timestamp) AS "joinedAt"
-        FROM "memberOrganizations" mo
-        JOIN activities a ON a."memberId" = mo."memberId"
-        WHERE mo."organizationId" = :id
-        GROUP BY mo."organizationId"
-    ),
-    segments AS (
-      SELECT "organizationId", ARRAY_AGG("segmentId") as "ids"
-      FROM "organizationSegments" os 
-      WHERE os."organizationId" = :id
-      GROUP BY "organizationId"
-    )
-    SELECT
-        o.*,
-    COALESCE(ac."activityCount", 0)::integer AS "activityCount",
-            COALESCE(mc."memberCount", 0)::integer AS "memberCount",
-            COALESCE(ao."activeOn", '{}') AS "activeOn",
-            COALESCE(id."identities", '{}') AS "identities",
-            COALESCE(s."ids", '{}') AS "segments",
-            a."lastActive", a."joinedAt"
-    FROM
-        organizations o
-        LEFT JOIN activity_counts ac ON ac."organizationId" = o.id
-        LEFT JOIN member_counts mc ON mc."organizationId" = o.id
-        LEFT JOIN active_on ao ON ao."organizationId" = o.id
-        LEFT JOIN identities id ON id."organizationId" = o.id
-        LEFT JOIN last_active a ON a."organizationId" = o.id
-        LEFT JOIN segments s ON s."organizationId" = o.id
-    WHERE
-        o.id = :id and
-        o."tenantId"  = :tenantId;
-    `,
+          WITH
+              activity_counts AS (
+                  SELECT "organizationId", COUNT(a.id) AS "activityCount"
+                  FROM "memberOrganizations" mo
+                  LEFT JOIN activities a ON a."memberId" = mo."memberId"
+                  WHERE mo."organizationId" = :id
+                  GROUP BY "organizationId"
+              ),
+              member_counts AS (
+                  SELECT "organizationId", COUNT(DISTINCT "memberId") AS "memberCount"
+                  FROM "memberOrganizations"
+                  WHERE "organizationId" = :id
+                  GROUP BY "organizationId"
+              ),
+              active_on AS (
+                  SELECT "organizationId", ARRAY_AGG(DISTINCT platform) AS "activeOn"
+                  FROM "memberOrganizations" mo
+                  JOIN activities a ON a."memberId" = mo."memberId"
+                  WHERE mo."organizationId" = :id
+                  GROUP BY "organizationId"
+              ),
+              identities AS (
+                  SELECT "organizationId", ARRAY_AGG(DISTINCT platform) AS "identities"
+                  FROM "memberOrganizations" mo
+                  JOIN "memberIdentities" mi ON mi."memberId" = mo."memberId"
+                  WHERE mo."organizationId" = :id
+                  GROUP BY "organizationId"
+              ),
+              last_active AS (
+                  SELECT "organizationId", MAX(timestamp) AS "lastActive", MIN(timestamp) AS "joinedAt"
+                  FROM "memberOrganizations" mo
+                  JOIN activities a ON a."memberId" = mo."memberId"
+                  WHERE mo."organizationId" = :id
+                  GROUP BY "organizationId"
+              ),
+              org_segments AS (
+                  SELECT "organizationId", ARRAY_AGG("segmentId") AS "segments"
+                  FROM "organizationSegments"
+                  WHERE "organizationId" = :id
+                  GROUP BY "organizationId"
+              )
+          SELECT
+              o.*,
+              COALESCE(ac."activityCount", 0)::INTEGER AS "activityCount",
+              COALESCE(mc."memberCount", 0)::INTEGER AS "memberCount",
+              COALESCE(ao."activeOn", '{}') AS "activeOn",
+              COALESCE(id."identities", '{}') AS "identities",
+              COALESCE(os."segments", '{}') AS "segments",
+              a."lastActive",
+              a."joinedAt"
+          FROM organizations o
+          LEFT JOIN activity_counts ac ON ac."organizationId" = o.id
+          LEFT JOIN member_counts mc ON mc."organizationId" = o.id
+          LEFT JOIN active_on ao ON ao."organizationId" = o.id
+          LEFT JOIN identities id ON id."organizationId" = o.id
+          LEFT JOIN last_active a ON a."organizationId" = o.id
+          LEFT JOIN org_segments os ON os."organizationId" = o.id
+          WHERE o.id = :id
+            AND o."tenantId" = :tenantId;
+      `,
       {
         replacements: {
           id,
@@ -590,6 +580,14 @@ class OrganizationRepository {
           },
         ],
       },
+      {
+        model: options.database.segment,
+        as: 'segments',
+        attributes: [],
+        through: {
+          attributes: [],
+        },
+      },
     ]
 
     const activeOn = Sequelize.literal(
@@ -608,6 +606,10 @@ class OrganizationRepository {
     const memberCount = Sequelize.literal(`COUNT(DISTINCT "members".id)::integer`)
 
     const activityCount = Sequelize.literal(`COUNT("members->activities".id)::integer`)
+
+    const segments = Sequelize.literal(
+      `ARRAY_AGG(DISTINCT "segments->organizationSegments"."segmentId")`,
+    )
 
     // If the advanced filter is empty, we construct it from the query parameter filter
     if (!advancedFilter) {
@@ -842,6 +844,7 @@ class OrganizationRepository {
           joinedAt,
           memberCount,
           activityCount,
+          segments,
         },
         manyToMany: {
           members: {
@@ -938,6 +941,7 @@ class OrganizationRepository {
         [joinedAt, 'joinedAt'],
         [memberCount, 'memberCount'],
         [activityCount, 'activityCount'],
+        [segments, 'segmentIds'],
       ],
       order,
       limit: parsed.limit,
@@ -1018,6 +1022,8 @@ class OrganizationRepository {
     return rows.map((record) => {
       const rec = record.get({ plain: true })
       rec.activeOn = rec.activeOn ?? []
+      rec.segments = rec.segmentIds ?? []
+      delete rec.segmentIds
       return rec
     })
   }

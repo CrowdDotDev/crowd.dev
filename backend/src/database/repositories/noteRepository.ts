@@ -261,6 +261,7 @@ class NoteRepository {
             },
           },
         },
+        withSegments: false,
       },
       options,
     )
@@ -270,8 +271,6 @@ class NoteRepository {
       limit,
       offset,
     })
-
-    delete parsed.where.segmentId
 
     let {
       rows,

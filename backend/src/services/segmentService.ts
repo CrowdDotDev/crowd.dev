@@ -11,6 +11,7 @@ import {
   SegmentUpdateData,
 } from '../types/segmentTypes'
 import { IServiceOptions } from './IServiceOptions'
+import { IRepositoryOptions } from '../database/repositories/IRepositoryOptions'
 
 interface UnnestedActivityTypes {
   [key: string]: any
@@ -19,7 +20,7 @@ export default class SegmentService extends LoggerBase {
   options: IServiceOptions
 
   constructor(options: IServiceOptions) {
-    super(options)
+    super(options.log)
     this.options = options
   }
 
@@ -334,5 +335,12 @@ export default class SegmentService extends LoggerBase {
     })
 
     return updated.activityChannels
+  }
+
+  static async refreshSegments(options: IRepositoryOptions) {
+    const repo = new SegmentRepository(options)
+    for (let i = 0; i < options.currentSegments.length; i++) {
+      options.currentSegments[i] = await repo.findById(options.currentSegments[i].id)
+    }
   }
 }

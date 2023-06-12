@@ -55,6 +55,8 @@ class MemberRepository {
 
     const transaction = SequelizeRepository.getTransaction(options)
 
+    const segment = SequelizeRepository.getStrictlySingleActiveSegment(options)
+
     const record = await options.database.member.create(
       {
         ...lodash.pick(data, [
@@ -72,6 +74,7 @@ class MemberRepository {
         tenantId: tenant.id,
         createdById: currentUser.id,
         updatedById: currentUser.id,
+        segmentId: segment.id,
       },
       {
         transaction,
@@ -529,7 +532,7 @@ class MemberRepository {
       return null
     }
     if (doPopulateRelations) {
-      return this._populateRelations(records[0], options)
+      return this.findById(records[0].id, options)
     }
 
     const plainMember = records[0].get({ plain: true })
@@ -921,6 +924,7 @@ class MemberRepository {
         model: options.database.organization,
         attributes: ['id', 'name'],
         as: 'organizations',
+        order: [['createdAt', 'ASC']],
       },
       {
         model: options.database.segment,
@@ -1394,7 +1398,7 @@ class MemberRepository {
                     ARRAY(SELECT DISTINCT UNNEST(array_accum("activityTypes"))) AS "activityTypes",
                     ARRAY(SELECT DISTINCT UNNEST(array_accum("activeOn"))) AS "activeOn",
                     SUM("activeDaysCount") AS "activeDaysCount",
-                    ROUND(SUM("averageSentiment") / SUM("activityCount"), 2) AS "averageSentiment"
+                    ROUND(SUM("averageSentiment" * "activityCount") / SUM("activityCount"), 2) AS "averageSentiment"
                 FROM "memberActivityAggregatesMVs"
                 WHERE "segmentId" IN (:segmentIds)
                 GROUP BY id
@@ -2645,16 +2649,19 @@ class MemberRepository {
 
     output.tags = await record.getTags({
       transaction,
+      order: [['createdAt', 'ASC']],
       joinTableAttributes: [],
     })
 
     output.organizations = await record.getOrganizations({
       transaction,
+      order: [['createdAt', 'ASC']],
       joinTableAttributes: [],
     })
 
     output.tasks = await record.getTasks({
       transaction,
+      order: [['createdAt', 'ASC']],
       joinTableAttributes: [],
     })
 

@@ -150,6 +150,7 @@ describe('OrganizationRepository tests', () => {
         updatedAt: SequelizeTestUtils.getNowWithoutTime(),
         deletedAt: null,
         tenantId: mockIRepositoryOptions.currentTenant.id,
+        segments: mockIRepositoryOptions.currentSegments.map((s) => s.id),
         createdById: mockIRepositoryOptions.currentUser.id,
         updatedById: mockIRepositoryOptions.currentUser.id,
         isTeamOrganization: false,
@@ -200,6 +201,7 @@ describe('OrganizationRepository tests', () => {
         updatedAt: SequelizeTestUtils.getNowWithoutTime(),
         deletedAt: null,
         tenantId: mockIRepositoryOptions.currentTenant.id,
+        segments: mockIRepositoryOptions.currentSegments.map((s) => s.id),
         createdById: mockIRepositoryOptions.currentUser.id,
         updatedById: mockIRepositoryOptions.currentUser.id,
         isTeamOrganization: false,
@@ -242,6 +244,7 @@ describe('OrganizationRepository tests', () => {
         updatedAt: SequelizeTestUtils.getNowWithoutTime(),
         deletedAt: null,
         tenantId: mockIRepositoryOptions.currentTenant.id,
+        segments: mockIRepositoryOptions.currentSegments.map((s) => s.id),
         createdById: mockIRepositoryOptions.currentUser.id,
         updatedById: mockIRepositoryOptions.currentUser.id,
         isTeamOrganization: false,
@@ -474,10 +477,16 @@ describe('OrganizationRepository tests', () => {
 
       // Test filter by name
       // Current findAndCountAll uses wildcarded like statement so it matches both organizations
-      let organizations = await OrganizationRepository.findAndCountAll(
-        { filter: { name: 'test-organization' } },
-        mockIRepositoryOptions,
-      )
+      let organizations
+      try {
+        organizations = await OrganizationRepository.findAndCountAll(
+          { filter: { name: 'test-organization' } },
+          mockIRepositoryOptions,
+        )
+      } catch (err) {
+        console.error(err)
+        throw err
+      }
 
       expect(organizations.count).toEqual(2)
       expect(organizations.rows).toEqual([foundOrganization2, foundOrganization1])
@@ -1314,6 +1323,7 @@ describe('OrganizationRepository tests', () => {
         updatedAt: organizationUpdated.updatedAt,
         deletedAt: null,
         tenantId: mockIRepositoryOptions.currentTenant.id,
+        segments: mockIRepositoryOptions.currentSegments.map((s) => s.id),
         createdById: mockIRepositoryOptions.currentUser.id,
         updatedById: mockIRepositoryOptions.currentUser.id,
         isTeamOrganization: false,
