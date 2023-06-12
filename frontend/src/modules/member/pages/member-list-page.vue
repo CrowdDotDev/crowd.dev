@@ -146,7 +146,9 @@ const showLoading = (filter: any, body: any): boolean => {
 const fetch = ({
   filter, offset, limit, orderBy, body,
 }: FilterQuery) => {
-  loading.value = showLoading(filter, body);
+  if (!loading.value) {
+    loading.value = showLoading(filter, body);
+  }
   fetchMembers({
     body: {
       ...body,

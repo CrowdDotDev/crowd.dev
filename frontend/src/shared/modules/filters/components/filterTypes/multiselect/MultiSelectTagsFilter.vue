@@ -28,10 +28,14 @@
           data-qa="filter-select-option"
           :data-qa-value="option.value"
         >
-          <el-checkbox
-            :model-value="form.includes(option.value)"
-            class="filter-checkbox h-4"
-          />
+          <div
+            class="el-checkbox filter-checkbox h-4"
+            :class="{ 'is-checked': form.includes(option.value) }"
+          >
+            <span class="el-checkbox__input" :class="{ 'is-checked': form.includes(option.value) }">
+              <span class="el-checkbox__inner" />
+            </span>
+          </div>
           {{ option.label }}
         </el-option>
       </template>

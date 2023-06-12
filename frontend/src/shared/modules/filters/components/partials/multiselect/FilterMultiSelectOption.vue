@@ -7,11 +7,14 @@
     :data-qa-value="props.value"
     @click="selectOption()"
   >
-    <el-checkbox
-      v-if="checkbox"
-      :model-value="selected"
-      class="filter-checkbox h-4"
-    />
+    <div
+      class="el-checkbox filter-checkbox h-4"
+      :class="{ 'is-checked': selected }"
+    >
+      <span class="el-checkbox__input" :class="{ 'is-checked': selected }">
+        <span class="el-checkbox__inner" />
+      </span>
+    </div>
     <slot />
   </div>
 </template>

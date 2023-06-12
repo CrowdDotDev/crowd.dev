@@ -71,7 +71,7 @@ const organizationStore = useOrganizationStore();
 const { filters, totalOrganizations, savedFilterBody } = storeToRefs(organizationStore);
 const { fetchOrganizations } = organizationStore;
 
-const loading = ref(false);
+const loading = ref(true);
 const organizationCount = ref(0);
 
 const hasPermissionToCreate = computed(
@@ -112,7 +112,9 @@ const showLoading = (filter: any, body: any): boolean => {
 const fetch = ({
   filter, offset, limit, orderBy, body,
 }: FilterQuery) => {
-  loading.value = showLoading(filter, body);
+  if (!loading.value) {
+    loading.value = showLoading(filter, body);
+  }
   fetchOrganizations({
     body: {
       ...body,

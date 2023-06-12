@@ -86,7 +86,6 @@ const configuration = computed(() => ({
 }));
 
 const filterList = ref<string[]>([]);
-const cachedRelation = ref<'and' | 'or'>('and');
 
 const switchOperator = () => {
   filters.value.relation = filters.value.relation === 'and' ? 'or' : 'and';
@@ -96,10 +95,7 @@ const alignFilterList = (value: Filter) => {
   const {
     settings, search, relation, order, pagination, ...filterValues
   } = value;
-  if (JSON.stringify(relation) !== JSON.stringify(cachedRelation.value)) {
-    cachedRelation.value = relation;
-    return;
-  }
+  console.log(value, filterValues);
   filterList.value = Object.keys(filterValues);
 };
 
@@ -119,13 +115,14 @@ const fetch = (value: Filter) => {
 
 watch(() => filters.value, (value: Filter) => {
   fetch(value);
-  alignFilterList(value);
   const query = setQuery(value);
   router.push({ query, hash: props.hash ? `#${props.hash}` : undefined });
 }, { deep: true });
 
 // Watch for query change
-watch(() => route.query, (query) => {
+const alignQueryUrl = () => {
+  console.log('parsing');
+  const { query } = route;
   const parsed = parseQuery(query, {
     ...props.config,
     ...props.customConfig,
@@ -135,14 +132,12 @@ watch(() => route.query, (query) => {
     router.push({ query, hash: props.hash ? `#${props.hash}` : undefined });
     return;
   }
-  if (JSON.stringify(parsed) !== JSON.stringify(filters.value)) {
-    filters.value = parsed as Filter;
-  }
-}, { immediate: true });
+  filters.value = parsed as Filter;
+};
 
 onMounted(() => {
+  alignQueryUrl();
   if (!!filters.value && Object.keys(filters.value).length > 0) {
-    alignFilterList(filters.value);
     fetch(filters.value);
   }
 });
