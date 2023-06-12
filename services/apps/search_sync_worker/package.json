@@ -4,8 +4,8 @@
   "private": true,
   "scripts": {
     "start": "node -r tsconfig-paths/register -r ts-node/register src/main.ts --transpile-only",
-    "start:debug:local": "set -a && . ../../../backend/.env.dist.local && . ../../../backend/.env.override.local && set +a && SERVICE=data-sink-worker LOG_LEVEL=trace node --inspect=0.0.0.0:9233 -r tsconfig-paths/register -r ts-node/register src/main.ts --transpile-only",
-    "start:debug": "SERVICE=data-sink-worker LOG_LEVEL=trace node --inspect=0.0.0.0:9233 -r tsconfig-paths/register -r ts-node/register src/main.ts --transpile-only",
+    "start:debug:local": "set -a && . ../../../backend/.env.dist.local && . ../../../backend/.env.override.local && set +a && SERVICE=search-sync-worker LOG_LEVEL=trace node --inspect=0.0.0.0:9233 -r tsconfig-paths/register -r ts-node/register src/main.ts --transpile-only",
+    "start:debug": "SERVICE=search-sync-worker LOG_LEVEL=trace node --inspect=0.0.0.0:9233 -r tsconfig-paths/register -r ts-node/register src/main.ts --transpile-only",
     "start:watch:local": "nodemon --watch src --ext ts --exec npm run start:debug:local",
     "start:watch": "nodemon --watch src --ext ts --exec npm run start:debug",
     "dev:local": "concurrently \"npm run start:watch:local\" \"../../scripts/watch_libs.sh --service search_sync_worker\"",
@@ -13,7 +13,9 @@
     "lint": "eslint --ext .ts src --max-warnings=0",
     "format": "prettier --write \"src/**/*.ts\"",
     "format-check": "prettier --check .",
-    "tsc-check": "tsc --noEmit"
+    "tsc-check": "tsc --noEmit",
+    "script:sync-member": "node -r tsconfig-paths/register -r ts-node/register src/bin/sync-member.ts --transpile-only",
+    "script:sync-tenant-members": "node -r tsconfig-paths/register -r ts-node/register src/bin/sync-tenant-members.ts --transpile-only"
   },
   "dependencies": {
     "@crowd/common": "file:../../libs/common",

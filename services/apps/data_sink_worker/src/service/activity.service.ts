@@ -10,7 +10,7 @@ import { IActivityCreateData, IActivityUpdateData } from './activity.data'
 import MemberService from './member.service'
 import mergeWith from 'lodash.mergewith'
 import isEqual from 'lodash.isequal'
-import { NodejsWorkerEmitter } from '@crowd/sqs'
+import { NodejsWorkerEmitter, SearchSyncWorkerEmitter } from '@crowd/sqs'
 import SettingsRepository from './settings.repo'
 import { ConversationService } from '@crowd/conversations'
 
@@ -20,6 +20,7 @@ export default class ActivityService extends LoggerBase {
   constructor(
     private readonly store: DbStore,
     private readonly nodejsWorkerEmitter: NodejsWorkerEmitter,
+    private readonly searchSyncWorkerEmitter: SearchSyncWorkerEmitter,
     parentLog: Logger,
   ) {
     super(parentLog)
@@ -32,7 +33,7 @@ export default class ActivityService extends LoggerBase {
 
       const sentiment = await getSentiment(`${activity.body || ''} ${activity.title || ''}`.trim())
 
-      return await this.store.transactionally(async (txStore) => {
+      const id = await this.store.transactionally(async (txStore) => {
         const txRepo = new ActivityRepository(txStore, this.log)
         const txSettingsRepo = new SettingsRepository(txStore, this.log)
 
@@ -65,10 +66,14 @@ export default class ActivityService extends LoggerBase {
           url: activity.url,
         })
 
-        await this.nodejsWorkerEmitter.processAutomationForNewActivity(tenantId, id)
-        await this.conversationService.processActivity(tenantId, id)
         return id
       })
+
+      await this.nodejsWorkerEmitter.processAutomationForNewActivity(tenantId, id)
+      await this.conversationService.processActivity(tenantId, id)
+      await this.searchSyncWorkerEmitter.triggerMemberSync(tenantId, activity.memberId)
+
+      return id
     } catch (err) {
       this.log.error(err, 'Error while creating an activity!')
       throw err
@@ -82,7 +87,7 @@ export default class ActivityService extends LoggerBase {
     original: IDbActivity,
   ): Promise<void> {
     try {
-      await this.store.transactionally(async (txStore) => {
+      const updated = await this.store.transactionally(async (txStore) => {
         const txRepo = new ActivityRepository(txStore, this.log)
         const txSettingsRepo = new SettingsRepository(txStore, this.log)
 
@@ -118,11 +123,17 @@ export default class ActivityService extends LoggerBase {
             url: toUpdate.url || original.url,
           })
 
-          await this.conversationService.processActivity(tenantId, id)
+          return true
         } else {
           this.log.debug({ activityId: id }, 'No changes to update in an activity.')
+          return false
         }
       })
+
+      if (updated) {
+        await this.conversationService.processActivity(tenantId, id)
+        await this.searchSyncWorkerEmitter.triggerMemberSync(tenantId, activity.memberId)
+      }
     } catch (err) {
       this.log.error(err, { activityId: id }, 'Error while updating an activity!')
       throw err
@@ -276,8 +287,18 @@ export default class ActivityService extends LoggerBase {
       await this.store.transactionally(async (txStore) => {
         const txRepo = new ActivityRepository(txStore, this.log)
         const txMemberRepo = new MemberRepository(txStore, this.log)
-        const txMemberService = new MemberService(txStore, this.nodejsWorkerEmitter, this.log)
-        const txActivityService = new ActivityService(txStore, this.nodejsWorkerEmitter, this.log)
+        const txMemberService = new MemberService(
+          txStore,
+          this.nodejsWorkerEmitter,
+          this.searchSyncWorkerEmitter,
+          this.log,
+        )
+        const txActivityService = new ActivityService(
+          txStore,
+          this.nodejsWorkerEmitter,
+          this.searchSyncWorkerEmitter,
+          this.log,
+        )
 
         // find existing activity
         const dbActivity = await txRepo.findExisting(tenantId, activity.sourceId)

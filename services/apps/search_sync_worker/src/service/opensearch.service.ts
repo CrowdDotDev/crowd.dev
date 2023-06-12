@@ -1,5 +1,6 @@
+import { IS_DEV_ENV } from '@crowd/common'
 import { OPENSEARCH_CONFIG } from '@/conf'
-import { OpenSearchIndex } from '@/types'
+import { OPENSEARCH_INDEX_MAPPINGS, OpenSearchIndex } from '@/types'
 import { Logger, LoggerBase } from '@crowd/logging'
 import { Client } from '@opensearch-project/opensearch'
 import { IIndexRequest } from './opensearch.data'
@@ -15,26 +16,59 @@ export class OpenSearchService extends LoggerBase {
     })
   }
 
+  private async doesIndexExist(indexName: OpenSearchIndex): Promise<boolean> {
+    try {
+      const exists = await this.client.indices.exists({ index: indexName })
+      return exists.body
+    } catch (err) {
+      this.log.error(err, { indexName }, 'Failed to check if index exists!')
+      throw err
+    }
+  }
+
+  private async createIndex(indexName: OpenSearchIndex): Promise<void> {
+    try {
+      const mappings = OPENSEARCH_INDEX_MAPPINGS[indexName]
+      await this.client.indices.create({
+        index: indexName,
+        body: {
+          mappings,
+        },
+      })
+    } catch (err) {
+      this.log.error(err, { indexName }, 'Failed to create index!')
+      throw err
+    }
+  }
+
+  private async setIndexMappings(indexName: OpenSearchIndex): Promise<void> {
+    try {
+      const mappings = OPENSEARCH_INDEX_MAPPINGS[indexName]
+
+      await this.client.indices.putMapping({
+        index: indexName,
+        body: mappings,
+      })
+    } catch (err) {
+      this.log.error(err, { indexName }, 'Failed to set index mappings!')
+      throw err
+    }
+  }
+
   private async ensureIndexExists(indexName: OpenSearchIndex) {
-    const exists = await this.client.indices.exists({ index: indexName })
+    const exists = await this.doesIndexExist(indexName)
 
-    if (exists && [200, 404].includes(exists.statusCode)) {
-      if (!exists.body) {
-        // create index
-        const response = await this.client.indices.create({
-          index: indexName,
-        })
-
-        if (response && response.statusCode === 200) {
-          this.log.info({ indexName }, 'Successfully created index!')
-        } else {
-          this.log.error({ indexName }, 'Failed to create index!')
-        }
-      } else {
-        this.log.debug({ indexName }, 'Index already exists!')
-      }
+    if (!exists) {
+      // create index
+      this.log.info({ indexName }, 'Creating index with mappings!')
+      await this.createIndex(indexName)
     } else {
-      this.log.debug({ indexName }, 'Failed to check if index exists!')
+      this.log.info({ indexName }, 'Index already exists!')
+
+      if (IS_DEV_ENV) {
+        this.log.info({ indexName }, 'Setting index mappings!')
+        await this.setIndexMappings(indexName)
+      }
     }
   }
 
