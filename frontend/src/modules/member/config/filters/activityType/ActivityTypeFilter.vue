@@ -14,7 +14,7 @@ import { CustomFilterConfig } from '@/shared/modules/filters/types/filterTypes/C
 import { useActivityTypeStore } from '@/modules/activity/store/type';
 import { storeToRefs } from 'pinia';
 import { CrowdIntegrations } from '@/integrations/integrations-config';
-import { mapGetters } from "@/shared/vuex/vuex.helpers";
+import { mapGetters } from '@/shared/vuex/vuex.helpers';
 
 const props = defineProps<{
   modelValue: string

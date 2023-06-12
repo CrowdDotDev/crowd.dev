@@ -72,6 +72,7 @@ const open = ref('');
 
 const filters = computed<Filter>({
   get() {
+    console.log('getting');
     return props.modelValue;
   },
   set(value: Filter) {
@@ -114,6 +115,7 @@ const fetch = (value: Filter) => {
 };
 
 watch(() => filters.value, (value: Filter) => {
+  console.log('fetching');
   fetch(value);
   const query = setQuery(value);
   router.push({ query, hash: props.hash ? `#${props.hash}` : undefined });
@@ -121,7 +123,6 @@ watch(() => filters.value, (value: Filter) => {
 
 // Watch for query change
 const alignQueryUrl = () => {
-  console.log('parsing');
   const { query } = route;
   const parsed = parseQuery(query, {
     ...props.config,
@@ -138,6 +139,7 @@ const alignQueryUrl = () => {
 onMounted(() => {
   alignQueryUrl();
   if (!!filters.value && Object.keys(filters.value).length > 0) {
+    alignFilterList(filters.value);
     fetch(filters.value);
   }
 });
