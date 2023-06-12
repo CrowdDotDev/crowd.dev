@@ -1,6 +1,4 @@
 import _get from 'lodash/get'
-import { DEFAULT_ACTIVITY_TYPE_SETTINGS } from '@crowd/integrations'
-import { ActivityTypeSettings } from '@crowd/types'
 import SequelizeRepository from './sequelizeRepository'
 import AuditLogRepository from './auditLogRepository'
 import { IRepositoryOptions } from './IRepositoryOptions'

@@ -6,6 +6,7 @@ import SequelizeTestUtils from '../../utils/sequelizeTestUtils'
 import Error404 from '../../../errors/Error404'
 import { PlatformType } from '@crowd/types'
 import { generateUUIDv1 } from '@crowd/common'
+import { populateSegments } from '../../utils/segmentTestUtils'
 
 const db = null
 
@@ -49,6 +50,7 @@ describe('ConversationRepository tests', () => {
         createdAt: SequelizeTestUtils.getNowWithoutTime(),
         updatedAt: SequelizeTestUtils.getNowWithoutTime(),
         tenantId: mockIRepositoryOptions.currentTenant.id,
+        segmentId: mockIRepositoryOptions.currentSegments[0].id,
         createdById: mockIRepositoryOptions.currentUser.id,
         updatedById: mockIRepositoryOptions.currentUser.id,
       }
@@ -84,6 +86,7 @@ describe('ConversationRepository tests', () => {
         createdAt: SequelizeTestUtils.getNowWithoutTime(),
         updatedAt: SequelizeTestUtils.getNowWithoutTime(),
         tenantId: mockIRepositoryOptions.currentTenant.id,
+        segmentId: mockIRepositoryOptions.currentSegments[0].id,
         createdById: mockIRepositoryOptions.currentUser.id,
         updatedById: mockIRepositoryOptions.currentUser.id,
       }
@@ -166,6 +169,7 @@ describe('ConversationRepository tests', () => {
         createdAt: SequelizeTestUtils.getNowWithoutTime(),
         updatedAt: SequelizeTestUtils.getNowWithoutTime(),
         tenantId: mockIRepositoryOptions.currentTenant.id,
+        segmentId: mockIRepositoryOptions.currentSegments[0].id,
         createdById: mockIRepositoryOptions.currentUser.id,
         updatedById: mockIRepositoryOptions.currentUser.id,
       }
@@ -253,6 +257,7 @@ describe('ConversationRepository tests', () => {
   describe('findAndCountAll method', () => {
     it('Should find and count all conversations, with various filters', async () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
+      await populateSegments(mockIRepositoryOptions)
 
       const memberCreated = await MemberRepository.create(
         {
@@ -456,6 +461,7 @@ describe('ConversationRepository tests', () => {
         'activeDaysCount',
         'username',
         'numberOfOpenSourceContributions',
+        'segments',
       ])
 
       const conversation1Expected = {
@@ -683,6 +689,7 @@ describe('ConversationRepository tests', () => {
         createdAt: conversationCreated.createdAt,
         updatedAt: conversationUpdated.updatedAt,
         tenantId: mockIRepositoryOptions.currentTenant.id,
+        segmentId: mockIRepositoryOptions.currentSegments[0].id,
         createdById: mockIRepositoryOptions.currentUser.id,
         updatedById: mockIRepositoryOptions.currentUser.id,
       }

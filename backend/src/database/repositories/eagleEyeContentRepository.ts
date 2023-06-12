@@ -124,7 +124,12 @@ export default class EagleEyeContentRepository {
     }
 
     if (advancedFilter && advancedFilter.action) {
-      const actionQueryParser = new QueryParser({}, options)
+      const actionQueryParser = new QueryParser(
+        {
+          withSegments: false,
+        },
+        options,
+      )
 
       const parsedActionQuery: QueryOutput = actionQueryParser.parse({
         filter: advancedFilter.action,
@@ -139,7 +144,12 @@ export default class EagleEyeContentRepository {
 
     const include = [actionsSequelizeInclude]
 
-    const contentParser = new QueryParser({}, options)
+    const contentParser = new QueryParser(
+      {
+        withSegments: false,
+      },
+      options,
+    )
 
     const parsed: QueryOutput = contentParser.parse({
       filter: advancedFilter,

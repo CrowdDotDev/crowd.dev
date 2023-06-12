@@ -358,16 +358,6 @@ class OrganizationRepository {
     const transaction = SequelizeRepository.getTransaction(options)
     const sequelize = SequelizeRepository.getSequelize(options)
 
-    const include = [
-      {
-        model: options.database.segment,
-        as: 'segments',
-        through: {
-          attributes: [],
-        },
-      },
-    ]
-
     const currentTenant = SequelizeRepository.getCurrentTenant(options)
 
     const results = await sequelize.query(
@@ -590,6 +580,14 @@ class OrganizationRepository {
           },
         ],
       },
+      {
+        model: options.database.segment,
+        as: 'segments',
+        attributes: [],
+        through: {
+          attributes: [],
+        },
+      },
     ]
 
     const activeOn = Sequelize.literal(
@@ -608,6 +606,10 @@ class OrganizationRepository {
     const memberCount = Sequelize.literal(`COUNT(DISTINCT "members".id)::integer`)
 
     const activityCount = Sequelize.literal(`COUNT("members->activities".id)::integer`)
+
+    const segments = Sequelize.literal(
+      `ARRAY_AGG(DISTINCT "segments->organizationSegments"."segmentId")`,
+    )
 
     // If the advanced filter is empty, we construct it from the query parameter filter
     if (!advancedFilter) {
@@ -842,6 +844,7 @@ class OrganizationRepository {
           joinedAt,
           memberCount,
           activityCount,
+          segments,
         },
         manyToMany: {
           members: {
@@ -938,6 +941,7 @@ class OrganizationRepository {
         [joinedAt, 'joinedAt'],
         [memberCount, 'memberCount'],
         [activityCount, 'activityCount'],
+        [segments, 'segmentIds'],
       ],
       order,
       limit: parsed.limit,
@@ -1018,6 +1022,8 @@ class OrganizationRepository {
     return rows.map((record) => {
       const rec = record.get({ plain: true })
       rec.activeOn = rec.activeOn ?? []
+      rec.segments = rec.segmentIds ?? []
+      delete rec.segmentIds
       return rec
     })
   }
