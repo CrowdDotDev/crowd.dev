@@ -375,7 +375,7 @@ class SegmentRepository extends RepositoryBase<
       record.subprojects = children
     }
 
-    return SegmentRepository.populateRelations(records[0])
+    return SegmentRepository.populateRelations(record)
   }
 
   static isProjectGroup(segment: SegmentData | SegmentRawData): boolean {

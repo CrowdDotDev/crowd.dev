@@ -582,6 +582,10 @@ class ConversationRepository {
       },
       include: ['member', 'parent', 'objectMember'],
       transaction,
+      order: [
+        ['timestamp', 'ASC'],
+        ['createdAt', 'ASC'],
+      ],
     })
 
     // Fetch remaining activities with parent != null
