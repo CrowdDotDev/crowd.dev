@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - 'staging/**'
+      - 'staging-**'
     paths:
       - 'backend/src/serverless/microservices/python/**'
 
