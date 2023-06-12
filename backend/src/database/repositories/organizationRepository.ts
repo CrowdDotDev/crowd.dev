@@ -462,7 +462,6 @@ class OrganizationRepository {
       transaction,
     })
   }
-
   static async findAndCountAll(
     {
       filter = {} as any,
@@ -470,7 +469,7 @@ class OrganizationRepository {
       limit = 0,
       offset = 0,
       orderBy = '',
-      includeOrganizationsWithoutMembers = false,
+      includeOrganizationsWithoutMembers = true,
     },
     options: IRepositoryOptions,
   ) {
