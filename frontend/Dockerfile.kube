@@ -5,7 +5,7 @@ WORKDIR /usr/crowd/frontend
 COPY package-lock.json package.json ./
 RUN npm ci
 
-COPY .browserslistrc .eslintrc.js babel.config.js postcss.config.js tailwind.config.js vue.config.js ./
+COPY .browserslistrc .eslintrc.js babel.config.js postcss.config.js tailwind.config.js vue.config.js tsconfig.json ./
 COPY ./public ./public
 COPY ./src ./src
 RUN NODE_ENV=production npx vue-cli-service build --mode production

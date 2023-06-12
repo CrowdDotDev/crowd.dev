@@ -270,11 +270,6 @@ export default (moduleName, moduleService = null) => {
             name: moduleName,
             query: {
               ...queryParams,
-              activeTab:
-                activeViewId
-                === Object.values(state.views)[0].id
-                  ? undefined
-                  : activeViewId,
             },
           });
         }

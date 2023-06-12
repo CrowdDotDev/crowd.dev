@@ -29,7 +29,7 @@
       <router-link
         :to="{
           name: 'activity',
-          query: { activeTab: 'activities' },
+          hash: '#activity',
         }"
         class="text-red font-medium text-center text-xs leading-5"
       >

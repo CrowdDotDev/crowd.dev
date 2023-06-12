@@ -1,6 +1,9 @@
-import { SQS_CONFIG } from '@/conf'
+import { DB_CONFIG, SQS_CONFIG } from '@/conf'
+import IntegrationStreamRepository from '@/repo/integrationStream.repo'
+import { DbStore, getDbConnection } from '@crowd/database'
 import { getServiceLogger } from '@crowd/logging'
 import { IntegrationStreamWorkerEmitter, getSqsClient } from '@crowd/sqs'
+import { IntegrationStreamState } from '@crowd/types'
 
 const log = getServiceLogger()
 
@@ -18,9 +21,20 @@ setImmediate(async () => {
   const emitter = new IntegrationStreamWorkerEmitter(sqsClient, log)
   await emitter.init()
 
-  await emitter.triggerStreamProcessing(
-    '38e57e57-a3b0-4b22-a858-b01aca9fcfa7',
-    'linkedin',
-    streamId,
-  )
+  const dbConnection = getDbConnection(DB_CONFIG(), 1)
+  const store = new DbStore(log, dbConnection)
+  const repo = new IntegrationStreamRepository(store, log)
+
+  const info = await repo.getStreamData(streamId)
+
+  if (info) {
+    if (info.state !== IntegrationStreamState.PENDING) {
+      await repo.resetStream(streamId)
+    }
+
+    await emitter.triggerStreamProcessing(info.tenantId, info.integrationType, streamId)
+  } else {
+    log.error({ streamId }, 'Stream not found!')
+    process.exit(1)
+  }
 })

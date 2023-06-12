@@ -4,18 +4,20 @@
       <div class="mb-10">
         <app-lf-page-header text-class="text-sm text-brand-500 mb-2.5" />
         <div class="flex items-center justify-between">
-          <h4>
-            Members
-          </h4>
+          <h4>Members</h4>
           <div class="flex items-center">
             <router-link
-              class=" mr-4 "
+              class="mr-4"
               :class="{ 'pointer-events-none': isEditLockedForSampleData }"
               :to="{
                 name: 'memberMergeSuggestions',
               }"
             >
-              <button :disabled="isEditLockedForSampleData" type="button" class="btn btn--bordered btn--md flex items-center">
+              <button
+                :disabled="isEditLockedForSampleData"
+                type="button"
+                class="btn btn--bordered btn--md flex items-center"
+              >
                 <span class="ri-shuffle-line text-base mr-2 text-gray-900" />
                 <span class="text-gray-900">Merge suggestions</span>
                 <span
@@ -27,8 +29,7 @@
 
             <el-button
               v-if="
-                hasPermissionToCreate
-                  && (hasIntegrations || hasMembers)
+                hasPermissionToCreate && (hasIntegrations || membersCount > 0)
               "
               class="btn btn--primary btn--md"
               :class="{
@@ -47,14 +48,24 @@
         </div>
       </div>
 
-      <app-member-list-tabs />
-      <app-member-list-filter
-        v-if="hasMembers"
+      <cr-saved-views
+        v-model="filters"
+        :config="memberSavedViews"
+        :views="memberViews"
+      />
+      <cr-filter
+        v-if="customAttributesFilter"
+        v-model="filters"
+        :config="memberFilters"
+        :search-config="memberSearchFilter"
+        :saved-views-config="memberSavedViews"
+        :custom-config="customAttributesFilter"
+        @fetch="fetch($event)"
       />
       <app-member-list-table
         :has-integrations="hasIntegrations"
-        :has-members="hasMembers"
-        :is-page-loading="isPageLoading"
+        :has-members="membersCount > 0"
+        :is-page-loading="loading"
         @on-add-member="isSubProjectSelectionOpen = true"
       />
     </div>
@@ -68,179 +79,127 @@
   />
 </template>
 
-<script>
-import { mapGetters, mapActions, mapMutations } from 'vuex';
-import moment from 'moment';
-import MemberListFilter from '@/modules/member/components/list/member-list-filter.vue';
-import MemberListTable from '@/modules/member/components/list/member-list-table.vue';
-import MemberListTabs from '@/modules/member/components/list/member-list-tabs.vue';
-import PageWrapper from '@/shared/layout/page-wrapper.vue';
+<script setup lang="ts">
 import AppLfPageHeader from '@/modules/lf/layout/components/lf-page-header.vue';
 import AppLfSubProjectsListModal from '@/modules/lf/segments/components/lf-sub-projects-list-modal.vue';
-import { MemberService } from '../member-service';
+import AppPageWrapper from '@/shared/layout/page-wrapper.vue';
+import CrFilter from '@/shared/modules/filters/components/Filter.vue';
+import { useMemberStore } from '@/modules/member/store/pinia';
+import { storeToRefs } from 'pinia';
+import { ref, onMounted, computed } from 'vue';
+import { FilterQuery } from '@/shared/modules/filters/types/FilterQuery';
+import CrSavedViews from '@/shared/modules/saved-views/components/SavedViews.vue';
+import AppMemberListTable from '@/modules/member/components/list/member-list-table.vue';
+import { useRouter } from 'vue-router';
+import { mapGetters } from '@/shared/vuex/vuex.helpers';
+import { memberFilters, memberSearchFilter } from '../config/filters/main';
+import { memberSavedViews, memberViews } from '../config/saved-views/main';
 import { MemberPermissions } from '../member-permissions';
+import { MemberService } from '../member-service';
 
-export default {
-  name: 'AppMemberListPage',
+const router = useRouter();
 
-  components: {
-    'app-member-list-filter': MemberListFilter,
-    'app-member-list-table': MemberListTable,
-    'app-member-list-tabs': MemberListTabs,
-    'app-page-wrapper': PageWrapper,
-    AppLfPageHeader,
-    AppLfSubProjectsListModal,
-  },
+const memberStore = useMemberStore();
+const { getMemberCustomAttributes, fetchMembers } = memberStore;
+const { filters, customAttributesFilter, savedFilterBody } = storeToRefs(memberStore);
 
-  data() {
-    return {
-      membersToMergeCount: 0,
-      hasMembers: false,
-      isPageLoading: true,
-      isSubProjectSelectionOpen: false,
-    };
-  },
+const membersCount = ref(0);
+const membersToMergeCount = ref(0);
 
-  computed: {
-    ...mapGetters({
-      currentUser: 'auth/currentUser',
-      currentTenant: 'auth/currentTenant',
-      integrations: 'integration/listByPlatform',
-      activeView: 'member/activeView',
-    }),
+const isSubProjectSelectionOpen = ref(false);
 
-    hasIntegrations() {
-      return !!Object.keys(this.integrations || {}).length;
-    },
+const { listByPlatform } = mapGetters('integration');
+const { currentUser, currentTenant } = mapGetters('auth');
 
-    hasPermissionToCreate() {
-      return new MemberPermissions(
-        this.currentTenant,
-        this.currentUser,
-      ).create;
-    },
+const hasIntegrations = computed(
+  () => !!Object.keys(listByPlatform.value || {}).length,
+);
 
-    isCreateLockedForSampleData() {
-      return new MemberPermissions(
-        this.currentTenant,
-        this.currentUser,
-      ).createLockedForSampleData;
-    },
+const hasPermissionToCreate = computed(
+  () => new MemberPermissions(currentTenant.value, currentUser.value)?.create,
+);
 
-    isEditLockedForSampleData() {
-      return new MemberPermissions(
-        this.currentTenant,
-        this.currentUser,
-      ).editLockedForSampleData;
-    },
-  },
+const isCreateLockedForSampleData = computed(
+  () => new MemberPermissions(currentTenant.value, currentUser.value)?.createLockedForSampleData,
+);
 
-  async created() {
-    const { filter } = this.$store.state.member;
+const isEditLockedForSampleData = computed(
+  () => new MemberPermissions(currentTenant.value, currentUser.value)?.editLockedForSampleData,
+);
 
-    this.isPageLoading = true;
-
-    await this.doFetchIntegrations();
-    await this.doFetchCustomAttributes();
-
-    const { joinedFrom, activeFrom } = this.$route.query;
-    if (
-      joinedFrom
-      && moment(joinedFrom, 'YYYY-MM-DD', true).isValid()
-    ) {
-      await this.updateFilterAttribute({
-        custom: false,
-        defaultOperator: 'gt',
-        defaultValue: joinedFrom,
-        expanded: false,
-        label: 'Joined date',
-        name: 'joinedAt',
-        operator: 'gt',
-        type: 'date',
-        value: joinedFrom,
-      });
-    }
-    if (
-      activeFrom
-      && moment(activeFrom, 'YYYY-MM-DD', true).isValid()
-    ) {
-      await this.updateFilterAttribute({
-        custom: false,
-        defaultOperator: 'eq',
-        defaultValue: activeFrom,
-        expanded: false,
-        label: 'Last activity date',
-        name: 'lastActive',
-        operator: 'gt',
-        type: 'date',
-        value: activeFrom,
-      });
-      this.SORTER_CHANGED({
-        activeView: this.activeView,
-        sorter: {
-          prop: 'activityCount',
-          order: 'descending',
-        },
-      });
-    }
-    await this.doFetch({
-      filter,
-      keepPagination: true,
-    });
-
-    const membersList = await this.doGetMembersCount();
-    const mergeSuggestions = await MemberService.fetchMergeSuggestions(1, 0);
-
-    this.membersToMergeCount = mergeSuggestions.count;
-    this.hasMembers = membersList.count > 0;
-    this.isPageLoading = false;
-  },
-
-  async mounted() {
-    window.analytics.page('Members');
-  },
-
-  methods: {
-    ...mapMutations({
-      SORTER_CHANGED: 'member/SORTER_CHANGED',
-    }),
-    ...mapActions({
-      doFetchWidgets: 'widget/doFetch',
-      doFetchCustomAttributes:
-        'member/doFetchCustomAttributes',
-      updateFilterAttribute: 'member/updateFilterAttribute',
-      doFetch: 'member/doFetch',
-      doFetchIntegrations: 'integration/doFetch',
-    }),
-
-    async doGetMembersCount() {
-      try {
-        const response = await MemberService.list({
-          customFilters: {},
-          orderBy: '',
-          limit: 1,
-          offset: 0,
-          buildFilter: undefined,
-          countOnly: true,
-        });
-
-        return response;
-      } catch (e) {
-        return null;
-      }
-    },
-    onAddMember() {
-      this.isSubProjectSelectionOpen = true;
-    },
-    onSubProjectSelection(subprojectId) {
-      this.isSubProjectSelectionOpen = false;
-      this.$router.push({
-        name: 'memberCreate',
-        query: {
-          subprojectId,
-        },
-      });
-    },
-  },
+const fetchMembersToMergeCount = () => {
+  MemberService.fetchMergeSuggestions(1, 0).then(({ count }: any) => {
+    membersToMergeCount.value = count;
+  });
 };
+
+const loading = ref(true);
+
+const doGetMembersCount = () => {
+  (
+    MemberService.listMembers(
+      {
+        limit: 1,
+        offset: 0,
+      },
+      true,
+    ) as Promise<any>
+  ).then(({ count }) => {
+    membersCount.value = count;
+  });
+};
+
+const showLoading = (filter: any, body: any): boolean => {
+  const saved: any = { ...savedFilterBody.value };
+  delete saved.offset;
+  delete saved.limit;
+  delete saved.orderBy;
+  const compare = {
+    ...body,
+    filter,
+  };
+  return JSON.stringify(saved) !== JSON.stringify(compare);
+};
+
+const fetch = ({
+  filter,
+  offset,
+  limit,
+  orderBy,
+  body,
+}: FilterQuery) => {
+  loading.value = showLoading(filter, body);
+  fetchMembers({
+    body: {
+      ...body,
+      filter,
+      offset,
+      limit,
+      orderBy,
+    },
+  }).finally(() => {
+    loading.value = false;
+  });
+};
+
+const onAddMember = () => {
+  isSubProjectSelectionOpen.value = true;
+};
+
+const onSubProjectSelection = (subprojectId) => {
+  isSubProjectSelectionOpen.value = false;
+  router.push({
+    name: 'memberCreate',
+    query: {
+      subprojectId,
+    },
+  });
+};
+
+onMounted(() => {
+  fetchMembersToMergeCount();
+  doGetMembersCount();
+  getMemberCustomAttributes();
+  (window as any).analytics.page('Members');
+});
 </script>

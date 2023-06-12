@@ -37,32 +37,29 @@ export default () => {
       cy.scrollTo(0, 0);
       cy.wait(300);
       cy.get('[data-qa="filter-list-chip"]').click({ force: true });
-      cy.get('[data-qa="filter-list-chip"]').click({ force: true });
       cy.get('[data-qa="filter-select-option"]').contains(engagementLevel).click();
     });
   });
 
-  // TODO: uncomment when bug is fixed
-  // it('Filters by each engagement level - exclude', () => {
-  //   cy.get('[data-qa="filter-include-switch"]').click();
-  //   cy.get('[data-qa="filter-select-option"]').each((option) => {
-  //     const engagementLevel = option.text().trim();
-  //     cy.get('[data-qa="filter-select-option"]').contains(engagementLevel).click();
-  //     cy.get('[data-qa="filter-apply"]').click();
-  //     cy.wait('@apiMemberQuery');
-  //     cy.get('body').then(($body) => {
-  //       if ($body.find('[data-qa="member-engagement-level-label"]').length > 0) {
-  //         cy.get('[data-qa="member-engagement-level-label"]').each((engagement) => {
-  //           cy.wrap(engagement.text()).should('not.eq', engagementLevel);
-  //         });
-  //       }
-  //     });
-  //
-  //     cy.scrollTo(0, 0);
-  //     cy.wait(300);
-  //     cy.get('[data-qa="filter-list-chip"]').click({ force: true });
-  //     cy.get('[data-qa="filter-list-chip"]').click({ force: true });
-  //     cy.get('[data-qa="filter-select-option"]').contains(engagementLevel).click();
-  //   });
-  // });
+  it('Filters by each engagement level - exclude', () => {
+    cy.get('[data-qa="filter-include-switch"]').click();
+    cy.get('[data-qa="filter-select-option"]').each((option) => {
+      const engagementLevel = option.text().trim();
+      cy.get('[data-qa="filter-select-option"]').contains(engagementLevel).click();
+      cy.get('[data-qa="filter-apply"]').click();
+      cy.wait('@apiMemberQuery');
+      cy.get('body').then(($body) => {
+        if ($body.find('[data-qa="member-engagement-level-label"]').length > 0) {
+          cy.get('[data-qa="member-engagement-level-label"]').each((engagement) => {
+            cy.wrap(engagement.text()).should('not.eq', engagementLevel);
+          });
+        }
+      });
+
+      cy.scrollTo(0, 0);
+      cy.wait(300);
+      cy.get('[data-qa="filter-list-chip"]').click({ force: true });
+      cy.get('[data-qa="filter-select-option"]').contains(engagementLevel).click();
+    });
+  });
 };
