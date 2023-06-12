@@ -87,7 +87,7 @@ watch(
       return {
         id: p.id,
         label: p.name,
-        selected: selectedSubProjects.length,
+        selected: !!selectedSubProjects.length,
         indeterminate:
             selectedSubProjects.length > 0
             && selectedSubProjects.length < p.subprojects.length,
