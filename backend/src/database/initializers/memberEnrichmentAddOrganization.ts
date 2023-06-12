@@ -21,7 +21,7 @@ async function memberEnrichmentAddOrganization() {
     const tenantId = t.id
     // get user context
     const userContext = await getUserContext(tenantId)
-    
+
     const memberService = new MemberService(userContext)
 
     const memberEnrichmentService = new MemberEnrichmentService(userContext)
