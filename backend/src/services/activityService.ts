@@ -97,6 +97,8 @@ export default class ActivityService extends LoggerBase {
         const toUpdate = merge(existing, data, {
           // eslint-disable-next-line @typescript-eslint/no-unused-vars
           timestamp: (oldValue, _newValue) => oldValue,
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
+          organizationId: (oldValue, _newValue) => oldValue,
         })
         record = await ActivityRepository.update(id, toUpdate, {
           ...this.options,
@@ -549,10 +551,17 @@ export default class ActivityService extends LoggerBase {
 
       data.member = member.id
 
-      if (member.organizations){
+      if (member.organizations) {
         // check member has any affiliation set for current segment
-        const affiliations = member.segments.filter ( (s) => s.id === segment.id && s.memberSegments.affiliatedOrganizationId !== null)
-        
+
+        const affiliations = member.affiliations.filter((a) => a.segmentId === segment.id)
+
+        if (affiliations.length > 0) {
+          data.organizationId = affiliations[0].organizationId
+        } else {
+          // set it to the first organization of member
+          data.organizationId = member.organizations[0].id
+        }
       }
 
       const record = await this.upsert(data, activityExists, fireCrowdWebhooks)

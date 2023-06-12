@@ -71,7 +71,7 @@ class ActivityRepository {
         ]),
         memberId: data.member || null,
         objectMemberId: data.objectMember || undefined,
-        organizationId: data.organization || undefined,
+        organizationId: data.organizationId || undefined,
         parentId: data.parent || null,
         sourceParentId: data.sourceParentId || null,
         conversationId: data.conversationId || null,
@@ -174,7 +174,7 @@ class ActivityRepository {
         ]),
         memberId: data.member || undefined,
         objectMemberId: data.objectMember || undefined,
-        organizationId: data.organization,
+        organizationId: data.organizationId,
         parentId: data.parent || undefined,
         sourceParentId: data.sourceParentId || undefined,
         conversationId: data.conversationId || undefined,
@@ -230,8 +230,8 @@ class ActivityRepository {
             through: {
               attributes: [],
             },
-          }
-        ]
+          },
+        ],
       },
       {
         model: options.database.member,

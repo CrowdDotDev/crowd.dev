@@ -135,6 +135,21 @@ export default class SegmentService extends LoggerBase {
 
     const segmentRepository = new SegmentRepository(this.options)
 
+    const parent = await segmentRepository.findBySlug(data.parentSlug, SegmentLevel.PROJECT)
+
+    if (parent === null) {
+      throw new Error(`Project ${data.parentSlug} does not exist.`)
+    }
+
+    const grandparent = await segmentRepository.findBySlug(
+      data.grandparentSlug,
+      SegmentLevel.PROJECT_GROUP,
+    )
+
+    if (grandparent === null) {
+      throw new Error(`Project group ${data.parentSlug} does not exist.`)
+    }
+
     const subproject = await segmentRepository.create(data)
 
     return this.findById(subproject.id)
