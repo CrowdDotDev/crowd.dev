@@ -39,7 +39,7 @@ export default {
 
 <style lang="scss" scoped>
 .filter-select-option{
-  @apply flex items-center text-black px-4 py-3 text-xs cursor-pointer relative transition;
+  @apply flex items-center text-black px-3 py-2.5 text-xs leading-5 cursor-pointer relative transition;
   border-radius: 4px;
 
   &:not(:last-of-type) {

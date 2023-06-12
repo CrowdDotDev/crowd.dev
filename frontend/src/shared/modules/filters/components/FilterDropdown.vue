@@ -1,10 +1,9 @@
 <template>
-  <el-popover v-model:visible="open" placement="bottom-end" size="large" width="20rem" popper-class="!p-0">
+  <el-popover v-model:visible="open" placement="bottom-end" size="large" width="20rem" popper-class="!p-0" trigger="click">
     <template #reference>
       <el-button
         class="filter-dropdown-trigger"
         data-qa="filter-dropdown"
-        @click="open = true"
       >
         <i class="ri-lg ri-filter-3-line mr-2" />
         Filters
@@ -52,7 +51,7 @@
           data-qa="filter-list-item-custom"
           @click="add(key)"
         >
-          <span>{{ label }}</span>
+          <span class="first-letter:uppercase lowercase">{{ label }}</span>
           <i :class="isSelected(key) ? 'opacity-100' : 'opacity-0'" class="ri-check-line !text-gray-400 !mr-0 ml-1" />
         </article>
       </template>

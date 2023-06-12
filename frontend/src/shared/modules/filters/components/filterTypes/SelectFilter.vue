@@ -35,6 +35,9 @@
           {{ option.label }}
         </cr-filter-select-option>
       </template>
+      <div v-if="isEmpty" class="text-gray-400 text-xs italic py-1 px-2">
+        No results found
+      </div>
     </div>
   </div>
 </template>
@@ -71,6 +74,8 @@ const form = computed({
   get: () => props.modelValue,
   set: (value: SelectFilterValue) => emit('update:modelValue', value),
 });
+
+const isEmpty = computed(() => filteredOptions.value.map((g) => g.options).flat().length === 0);
 
 const defaultForm: SelectFilterValue = {
   value: '',

@@ -17,7 +17,7 @@
         >
           <div
             v-if="fi > 0"
-            class="border text-xs border-gray-100 rounded-md shadow w-10 justify-center
+            class="border text-xs border-gray-100 rounded-md shadow justify-center
           h-8 flex font-medium items-center py-1 px-2 bg-white cursor-pointer hover:bg-gray-100 transition mr-3 mb-4"
             @click="switchOperator"
           >
