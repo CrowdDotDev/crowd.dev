@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="flex">
     <component
       :is="customComponent"
       :class="`member-display-name ${customClass}`"
@@ -42,9 +42,7 @@ const props = defineProps({
   },
 });
 
-const customComponent = props.withLink
-  ? 'router-link'
-  : 'span';
+const customComponent = props.withLink ? 'router-link' : 'span';
 </script>
 
 <script>

@@ -13,7 +13,6 @@ import { authMiddleware } from '../middlewares/authMiddleware'
 import { tenantMiddleware } from '../middlewares/tenantMiddleware'
 import { segmentMiddleware } from '../middlewares/segmentMiddleware'
 import { databaseMiddleware } from '../middlewares/databaseMiddleware'
-import { searchEngineMiddleware } from '../middlewares/searchEngineMiddleware'
 import { createRateLimiter } from './apiRateLimiter'
 import { languageMiddleware } from '../middlewares/languageMiddleware'
 import authSocial from './auth/authSocial'
@@ -75,9 +74,6 @@ setImmediate(async () => {
 
   // Initializes and adds the database middleware.
   app.use(databaseMiddleware)
-
-  // Initialize search engine
-  app.use(searchEngineMiddleware)
 
   // Bind redis to request
   app.use(redisMiddleware(redis))

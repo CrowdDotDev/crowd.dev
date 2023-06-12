@@ -601,7 +601,14 @@ class OrganizationRepository {
 
     const lastActive = Sequelize.literal(`MAX("members->activities".timestamp)`)
 
-    const joinedAt = Sequelize.literal(`MIN("members->activities".timestamp)`)
+    const joinedAt = Sequelize.literal(`
+        MIN(
+          CASE
+            WHEN "members->activities".timestamp != '1970-01-01T00:00:00.000Z'
+            THEN "members->activities".timestamp
+          END
+        )
+      `)
 
     const memberCount = Sequelize.literal(`COUNT(DISTINCT "members".id)::integer`)
 

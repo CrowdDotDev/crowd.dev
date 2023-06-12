@@ -8,7 +8,6 @@ export interface IRepositoryOptions {
   currentTenant: any
   currentSegments: SegmentData[]
   database: any
-  searchEngine: any
   transaction?: any
   bypassPermissionValidation?: any
 }

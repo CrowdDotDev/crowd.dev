@@ -137,13 +137,12 @@ export default class MemberRepository extends RepositoryBase<MemberRepository> {
       this.updateMemberColumnSet,
     )
     const query = this.dbInstance.helpers.update(prepared, this.updateMemberColumnSet)
-    const result = await this.db().result(
-      `${query} where id = $(id) and "tenantId" = $(tenantId)`,
-      {
-        id,
-        tenantId,
-      },
-    )
+
+    const condition = this.format('where id = $(id) and "tenantId" = $(tenantId)', {
+      id,
+      tenantId,
+    })
+    const result = await this.db().result(`${query} ${condition}`)
 
     this.checkUpdateRowCount(result.rowCount, 1)
   }

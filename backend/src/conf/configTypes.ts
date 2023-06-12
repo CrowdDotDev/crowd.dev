@@ -63,11 +63,6 @@ export interface DbConfiguration {
   transactions: boolean
 }
 
-export interface SearchEngineConfiguration {
-  host: string
-  apiKey: string
-}
-
 export interface SegmentConfiguration {
   writeKey: string
 }

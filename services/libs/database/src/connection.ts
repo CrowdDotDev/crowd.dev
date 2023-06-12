@@ -44,7 +44,7 @@ export const getDbInstance = (): DbInstance => {
 
 let dbConnection: DbConnection | undefined
 
-export const getDbConnection = (config: IDatabaseConfig): DbConnection => {
+export const getDbConnection = (config: IDatabaseConfig, maxPoolSize?: number): DbConnection => {
   if (dbConnection) {
     return dbConnection
   }
@@ -56,7 +56,10 @@ export const getDbConnection = (config: IDatabaseConfig): DbConnection => {
 
   const dbInstance = getDbInstance()
 
-  dbConnection = dbInstance(config)
+  dbConnection = dbInstance({
+    ...config,
+    max: maxPoolSize || 5,
+  })
 
   return dbConnection
 }

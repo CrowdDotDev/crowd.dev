@@ -8,5 +8,4 @@ export interface IServiceOptions {
   currentTenant: any
   currentSegments: SegmentData[]
   database: any
-  searchEngine: any
 }
