@@ -19,6 +19,7 @@ import { sendNodeWorkerMessage } from '../../../../utils/nodeWorkerSQS'
 import { NodeWorkerMessageType } from '../../../../types/workerTypes'
 import { NodeWorkerMessageBase } from '../../../../../types/mq/nodeWorkerMessageBase'
 import { RecurringEmailType } from '../../../../../types/recurringEmailsHistoryTypes'
+import SegmentRepository from '../../../../../database/repositories/segmentRepository'
 
 const log = getServiceChildLogger('weeklyAnalyticsEmailsWorker')
 
@@ -211,19 +212,11 @@ async function getAnalyticsData(tenantId: string) {
     const userContext = await getUserContext(tenantId)
 
     const cjs = new CubeJsService()
+    const segmentRepository = new SegmentRepository(userContext)
+    const subprojects = await segmentRepository.querySubprojects({})
+    const segmentIds = subprojects.rows.map((subproject) => subproject.id)
     // tokens should be set for each tenant
-    await cjs.init(tenantId, null)
-
-    // TODO Find a way to get list of segments here
-    if (tenantId) {
-      log.error(
-        'Not implemented yet: need to ind a way to get list of segments into weekly emails worker',
-      )
-      return {
-        shouldRetry: false,
-        data: {},
-      }
-    }
+    await cjs.init(tenantId, segmentIds)
 
     // members
     const totalMembersThisWeek = await CubeJsRepository.getNewMembers(
