@@ -225,10 +225,12 @@ class SegmentRepository extends RepositoryBase<
 
     const records = await this.options.database.sequelize.query(
       `
-                select * from segments s
-                where (s."grandparentSlug" = :slug or s."parentSlug" = :slug) and
-                s."tenantId" = :tenantId;
-            `,
+          SELECT *
+          FROM segments s
+          WHERE (s."grandparentSlug" = :slug OR s."parentSlug" = :slug)
+            AND s."tenantId" = :tenantId
+          ORDER BY "grandparentSlug" DESC, "parentSlug" DESC, slug DESC;
+      `,
       {
         replacements: {
           slug,
