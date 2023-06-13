@@ -34,6 +34,7 @@
               <app-activity-timeline
                 :entity="member"
                 entity-type="member"
+                :show-affiliations="true"
               />
             </el-tab-pane>
             <el-tab-pane label="Notes" name="notes">
@@ -49,7 +50,6 @@
 <script setup>
 import { useStore } from 'vuex';
 import {
-  defineProps,
   computed,
   onMounted,
   ref,

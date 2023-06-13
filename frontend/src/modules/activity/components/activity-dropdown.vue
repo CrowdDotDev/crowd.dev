@@ -15,98 +15,104 @@
         <i class="text-xl ri-more-fill" />
       </button>
       <template #dropdown>
-        <el-dropdown-item
-          v-if="activity.platform === 'other'"
-          :command="editActivity"
+        <app-activity-affiliations
+          :show-affiliations="showAffiliations"
+          :activity="activity"
+          :organizations="organizations"
+          @on-update="emit('onUpdate')"
         >
-          <i class="ri-pencil-line text-gray-400 mr-1" />
-          <span>Edit Activity</span>
-        </el-dropdown-item>
-        <el-dropdown-item
-          :command="doDestroyWithConfirm"
-          :disabled="isDeleteLockedForSampleData"
-        >
-          <i
-            class="ri-delete-bin-line mr-1"
-            :class="{
-              'text-red-500': !isDeleteLockedForSampleData,
-            }"
-          />
-          <span
-            :class="{
-              'text-red-500': !isDeleteLockedForSampleData,
-            }"
-          >Delete activity</span>
-        </el-dropdown-item>
+          <template #dropdownItems>
+            <el-dropdown-item
+              v-if="activity.platform === 'other'"
+              :command="editActivity"
+            >
+              <i class="ri-pencil-line text-gray-400 mr-1" />
+              <span>Edit Activity</span>
+            </el-dropdown-item>
+            <el-dropdown-item
+              :command="doDestroyWithConfirm"
+              :disabled="isDeleteLockedForSampleData"
+            >
+              <i
+                class="ri-delete-bin-line mr-1"
+                :class="{
+                  'text-red-500': !isDeleteLockedForSampleData,
+                }"
+              />
+              <span
+                :class="{
+                  'text-red-500': !isDeleteLockedForSampleData,
+                }"
+              >Delete activity</span>
+            </el-dropdown-item>
+          </template>
+        </app-activity-affiliations>
       </template>
     </el-dropdown>
   </div>
 </template>
 
-<script>
-import { mapActions, mapGetters } from 'vuex';
+<script setup>
+import { ref, computed } from 'vue';
 import { ActivityPermissions } from '@/modules/activity/activity-permissions';
 import ConfirmDialog from '@/shared/dialog/confirm-dialog';
+import { mapGetters } from '@/shared/vuex/vuex.helpers';
+import AppActivityAffiliations from './activity-affiliations.vue';
+import { ActivityService } from '../activity-service';
 
+const emit = defineEmits(['onUpdate', 'edit']);
+const props = defineProps({
+  showAffiliations: {
+    type: Boolean,
+    default: false,
+  },
+  activity: {
+    type: Object,
+    default: () => {},
+  },
+  organizations: {
+    type: Array,
+    default: () => [],
+  },
+});
+
+const dropdownVisible = ref(false);
+const { currentTenant, currentUser } = mapGetters('auth');
+
+const isReadOnly = computed(() => new ActivityPermissions(
+  currentTenant.value,
+  currentUser.value,
+).edit === false);
+
+const isDeleteLockedForSampleData = computed(() => new ActivityPermissions(
+  currentTenant.value,
+  currentUser.value,
+).destroyLockedForSampleData);
+
+const editActivity = () => {
+  emit('edit');
+};
+
+const doDestroyWithConfirm = async () => {
+  ConfirmDialog({
+    type: 'danger',
+    title: 'Delete activity',
+    message:
+            "Are you sure you want to proceed? You can't undo this action",
+    confirmButtonText: 'Confirm',
+    cancelButtonText: 'Cancel',
+    icon: 'ri-delete-bin-line',
+  }).then(() => {
+    ActivityService.destroyAll([props.activity.id], [props.activity.segmentId])
+      .then(() => {
+        emit('onUpdate');
+      });
+  });
+};
+</script>
+
+<script>
 export default {
   name: 'AppActivityDropdown',
-  props: {
-    activity: {
-      type: Object,
-      default: () => {},
-    },
-  },
-  emits: ['activity-destroyed', 'edit'],
-  data() {
-    return {
-      dropdownVisible: false,
-    };
-  },
-  computed: {
-    ...mapGetters({
-      currentTenant: 'auth/currentTenant',
-      currentUser: 'auth/currentUser',
-    }),
-    isReadOnly() {
-      return (
-        new ActivityPermissions(
-          this.currentTenant,
-          this.currentUser,
-        ).edit === false
-      );
-    },
-    isDeleteLockedForSampleData() {
-      return new ActivityPermissions(
-        this.currentTenant,
-        this.currentUser,
-      ).destroyLockedForSampleData;
-    },
-  },
-  methods: {
-    ...mapActions({
-      doDestroy: 'activity/doDestroy',
-    }),
-    editActivity() {
-      this.$emit('edit');
-    },
-    async doDestroyWithConfirm() {
-      try {
-        await ConfirmDialog({
-          type: 'danger',
-          title: 'Delete activity',
-          message:
-            "Are you sure you want to proceed? You can't undo this action",
-          confirmButtonText: 'Confirm',
-          cancelButtonText: 'Cancel',
-          icon: 'ri-delete-bin-line',
-        });
-
-        await this.doDestroy(this.activity.id);
-        this.$emit('activity-destroyed', this.activity.id);
-      } catch (error) {
-        // no
-      }
-    },
-  },
 };
 </script>

@@ -50,26 +50,10 @@
                     class="ri-radar-line text-base text-gray-400"
                   />
                 </div>
-                <p
+                <app-activity-header
+                  :activity="activity"
                   class="text-xs leading-4 pl-2 flex flex-wrap"
-                >
-                  <!-- activity message -->
-                  <app-activity-message
-                    :activity="activity"
-                  />
-                  <!-- activity timestamp -->
-                  <span
-                    class="whitespace-nowrap text-gray-500"
-                  ><span class="mx-1">·</span>{{ timeAgo }}</span>
-                  <span
-                    v-if="sentiment"
-                    class="mx-1"
-                  >·</span>
-                  <app-activity-sentiment
-                    v-if="sentiment"
-                    :sentiment="sentiment"
-                  />
-                </p>
+                />
               </div>
             </div>
             <div class="flex items-center">
@@ -88,8 +72,10 @@
                />
                 <span class="block">Open conversation</span></a>
               <app-activity-dropdown
+                :show-affiliations="false"
                 :activity="activity"
                 @edit="$emit('edit')"
+                @on-update="$emit('onUpdate')"
               />
             </div>
           </div>
@@ -136,74 +122,48 @@
   </div>
 </template>
 
-<script>
-import { formatDateToTimeAgo } from '@/utils/date';
+<script setup>
 import { CrowdIntegrations } from '@/integrations/integrations-config';
 import AppAvatar from '@/shared/avatar/avatar.vue';
 import AppActivityDropdown from '@/modules/activity/components/activity-dropdown.vue';
 import AppLoading from '@/shared/loading/loading-placeholder.vue';
-import AppActivityMessage from '@/modules/activity/components/activity-message.vue';
 import AppActivityContent from '@/modules/activity/components/activity-content.vue';
 import AppActivityLink from '@/modules/activity/components/activity-link.vue';
-import AppActivitySentiment from '@/modules/activity/components/activity-sentiment.vue';
 import AppMemberDisplayName from '@/modules/member/components/member-display-name.vue';
 import AppActivityContentFooter from '@/modules/activity/components/activity-content-footer.vue';
+import { computed } from 'vue';
+import AppActivityHeader from './activity-header.vue';
 
+const emit = defineEmits(['openConversation', 'edit', 'onUpdate']);
+const props = defineProps({
+  activity: {
+    type: Object,
+    required: false,
+    default: () => ({}),
+  },
+  loading: {
+    type: Boolean,
+    required: false,
+    default: false,
+  },
+  displayConversationLink: {
+    type: Boolean,
+    required: false,
+    default: true,
+  },
+});
+
+const platform = computed(() => CrowdIntegrations.getConfig(
+  props.activity.platform,
+));
+
+const openConversation = (conversationId) => {
+  emit('openConversation', conversationId);
+};
+</script>
+
+<script>
 export default {
   name: 'AppActivityItem',
-  components: {
-    AppMemberDisplayName,
-    AppActivityLink,
-    AppActivityContent,
-    AppActivityMessage,
-    AppLoading,
-    AppActivityDropdown,
-    AppAvatar,
-    AppActivitySentiment,
-    AppActivityContentFooter,
-  },
-  props: {
-    activity: {
-      type: Object,
-      required: false,
-      default: () => ({}),
-    },
-    loading: {
-      type: Boolean,
-      required: false,
-      default: false,
-    },
-    displayConversationLink: {
-      type: Boolean,
-      required: false,
-      default: true,
-    },
-  },
-  emits: ['openConversation', 'edit'],
-  computed: {
-    platform() {
-      return CrowdIntegrations.getConfig(
-        this.activity.platform,
-      );
-    },
-    timeAgo() {
-      return formatDateToTimeAgo(this.activity.timestamp);
-    },
-    sentiment() {
-      if (
-        this.activity
-        && this.activity.sentiment
-        && this.activity.sentiment.sentiment
-      ) {
-        return this.activity.sentiment.sentiment;
-      }
-      return 0;
-    },
-  },
-  methods: {
-    openConversation(conversationId) {
-      this.$emit('openConversation', conversationId);
-    },
-  },
 };
 </script>

@@ -62,10 +62,13 @@
                 />
               </div>
               <div class="flex-grow">
-                <div class="flex items-center">
+                <app-activity-header
+                  :activity="conversation.conversationStarter"
+                  class="flex items-center text-xs"
+                >
                   <!-- channel -->
                   <p
-                    class="text-red text-xs leading-4"
+                    class="text-red text-xs"
                     @click.stop
                   >
                     <app-activity-message
@@ -75,21 +78,7 @@
                       type="channel"
                     />
                   </p>
-                  <span
-                    class="whitespace-nowrap text-xs leading-4 text-gray-500"
-                  >
-                    <span class="mx-1">·</span>
-                    <span>{{
-                      timeAgo(conversation.lastActive)
-                    }}</span>
-                    <span class="mx-1">·</span>
-                  </span>
-                  <!-- sentiment -->
-                  <app-activity-sentiment
-                    v-if="sentiment"
-                    :sentiment="sentiment"
-                  />
-                </div>
+                </app-activity-header>
               </div>
             </div>
           </div>
@@ -148,14 +137,13 @@
 </template>
 
 <script>
-import { formatDateToTimeAgo } from '@/utils/date';
 import { CrowdIntegrations } from '@/integrations/integrations-config';
 import AppAvatar from '@/shared/avatar/avatar.vue';
 import AppConversationDropdown from '@/modules/conversation/components/conversation-dropdown.vue';
 import AppLoading from '@/shared/loading/loading-placeholder.vue';
 import AppActivityContent from '@/modules/activity/components/activity-content.vue';
 import AppConversationReply from '@/modules/conversation/components/conversation-reply.vue';
-import AppActivitySentiment from '@/modules/activity/components/activity-sentiment.vue';
+import AppActivityHeader from '@/modules/activity/components/activity-header.vue';
 import AppMemberDisplayName from '@/modules/member/components/member-display-name.vue';
 import AppActivityMessage from '@/modules/activity/components/activity-message.vue';
 import AppConversationItemFooter from '@/modules/conversation/components/conversation-item-footer.vue';
@@ -170,8 +158,8 @@ export default {
     AppLoading,
     AppConversationDropdown,
     AppAvatar,
-    AppActivitySentiment,
     AppConversationItemFooter,
+    AppActivityHeader,
   },
   props: {
     conversation: {
@@ -195,10 +183,6 @@ export default {
     member() {
       return this.conversation.conversationStarter.member;
     },
-    sentiment() {
-      return this.conversation.conversationStarter.sentiment
-        .sentiment;
-    },
     url() {
       return (
         this.conversation.url
@@ -207,9 +191,6 @@ export default {
     },
   },
   methods: {
-    timeAgo(date) {
-      return formatDateToTimeAgo(date);
-    },
     openConversation() {
       this.$emit('details', this.conversation.id);
     },

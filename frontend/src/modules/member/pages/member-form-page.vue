@@ -65,6 +65,15 @@
               :record="record"
               @open-drawer="() => (isDrawerOpen = true)"
             />
+            <div v-if="isEditPage">
+              <el-divider
+                class="!mb-6 !mt-16 !border-gray-200"
+              />
+              <app-member-form-affiliations
+                v-model="formModel"
+                :record="record"
+              />
+            </div>
           </el-form>
         </el-main>
         <el-footer
@@ -143,6 +152,7 @@ import { useMemberStore } from '@/modules/member/store/pinia';
 import { storeToRefs } from 'pinia';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import AppLfSubProjectsListDropdown from '@/modules/lf/segments/components/lf-sub-projects-list-dropdown.vue';
+import AppMemberFormAffiliations from '@/modules/member/components/form/member-form-affiliations.vue';
 
 const LoaderIcon = h(
   'i',
@@ -180,6 +190,7 @@ const formSchema = computed(
     fields.username,
     fields.organizations,
     fields.attributes,
+    fields.affiliations,
     ...getCustomAttributes({
       customAttributes: customAttributes.value,
       considerShowProperty: false,
@@ -223,6 +234,9 @@ function getInitialModel(r) {
         platform: r
           ? r.username[Object.keys(r.username)[0]]
           : '',
+        affiliations: r
+          ? r.affiliations
+          : [],
       }),
     ),
   );
@@ -278,6 +292,7 @@ const hasFormChanged = computed(() => {
     ? getInitialModel(record.value)
     : getInitialModel();
 
+  console.log(formModel.value);
   return !isEqual(initialModel, formModel.value);
 });
 
@@ -406,6 +421,11 @@ async function onSubmit() {
     ...Object.keys(formModel.value.username).length && {
       username: formModel.value.username,
     },
+    affiliations: formModel.value.affiliations.map((affiliation) => ({
+      memberId: affiliation.memberId,
+      segmentId: affiliation.segmentId,
+      organizationId: affiliation.organizationId,
+    })),
   };
 
   let isRequestSuccessful = false;

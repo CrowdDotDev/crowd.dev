@@ -8,9 +8,19 @@
 
     <div class="member-view-aside panel">
       <app-member-aside-identities :member="member" />
+      <app-member-aside-organizations
+        class="mt-10"
+        :member="member"
+      />
+      <app-member-aside-sub-projects
+        class="mt-10"
+        :member="member"
+      />
+    </div>
+
+    <div class="member-view-aside panel">
       <app-member-aside-custom-attributes
         :member="member"
-        class="mt-10"
       />
       <app-member-aside-enriched
         :member="member"
@@ -26,6 +36,8 @@ import AppMemberEnrichment from '@/modules/member/components/member-enrichment.v
 import AppMemberAsideCustomAttributes from './_aside/_aside-custom-attributes.vue';
 import AppMemberAsideIdentities from './_aside/_aside-identities.vue';
 import AppMemberAsideEnriched from './_aside/_aside-enriched.vue';
+import AppMemberAsideOrganizations from './_aside/_aside-organizations.vue';
+import AppMemberAsideSubProjects from './_aside/_aside-sub-projects.vue';
 
 defineProps({
   member: {
