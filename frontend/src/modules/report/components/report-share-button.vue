@@ -86,6 +86,10 @@ const props = defineProps({
     type: String,
     required: true,
   },
+  segmentId: {
+    type: String,
+    required: true,
+  },
 });
 
 const open = ref(false);
@@ -123,6 +127,7 @@ const handlePublicChange = async (value) => {
     },
     successMessage: `Report successfully ${value ? 'published' : 'unpublished'}`,
     errorMessage: `There was an error ${value ? 'publishing' : 'unpublishing'} your report`,
+    segments: [props.segmentId],
   });
 };
 </script>

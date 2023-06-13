@@ -1,7 +1,13 @@
-export const getSegmentsFromProjectGroup = (projectGroup) => projectGroup.projects.reduce((acc, project) => {
-  project.subprojects.forEach((subproject) => {
-    acc.push(subproject.id);
-  });
+export const getSegmentsFromProjectGroup = (projectGroup) => {
+  if (!projectGroup) {
+    return [];
+  }
 
-  return acc;
-}, []);
+  return projectGroup.projects.reduce((acc, project) => {
+    project.subprojects.forEach((subproject) => {
+      acc.push(subproject.id);
+    });
+
+    return acc;
+  }, []);
+};

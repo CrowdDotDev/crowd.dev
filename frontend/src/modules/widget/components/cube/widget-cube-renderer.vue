@@ -59,6 +59,10 @@ export default {
       type: Object,
       default: () => {},
     },
+    subprojectId: {
+      type: String,
+      required: true,
+    },
   },
   emits: ['edit', 'duplicate', 'delete'],
   data() {
@@ -89,10 +93,11 @@ export default {
         operator: 'equals',
         values: ['0'],
       };
+
       const segments = {
         member: 'Segments.id',
         operator: 'equals',
-        values: getSegmentsFromProjectGroup(selectedProjectGroup.value),
+        values: this.subprojectId ? [this.subprojectId] : getSegmentsFromProjectGroup(selectedProjectGroup.value),
       };
 
       if (!widgetQuery.filters) {

@@ -41,6 +41,7 @@
               <app-report-share-button
                 :id="id"
                 v-model="report.public"
+                :segment-id="report.segmentId"
                 class="mr-4"
               />
               <app-report-dropdown

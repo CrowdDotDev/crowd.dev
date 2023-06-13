@@ -4,12 +4,15 @@ import AuthCurrentTenant from '@/modules/auth/auth-current-tenant';
 import config from '@/config';
 
 export class ReportService {
-  static async update(id, data) {
+  static async update(id, data, segments) {
     const tenantId = AuthCurrentTenant.get();
 
     const response = await authAxios.put(
       `/tenant/${tenantId}/report/${id}`,
-      data,
+      {
+        ...data,
+        segments,
+      },
     );
 
     return response.data;

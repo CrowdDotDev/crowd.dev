@@ -7,7 +7,7 @@
         <el-button
           v-if="computedTemplates.length || customReportsCount"
           class="btn btn--primary btn--md"
-          @click="isCreatingReport = true"
+          @click="onAddReport"
         >
           Add report
         </el-button>
@@ -61,13 +61,20 @@
           title="No reports yet"
           description="Please create your first report to start analyzing data from your community"
           cta-btn="Add report"
-          @cta-click="isCreatingReport = true"
+          @cta-click="onAddReport"
         />
         <app-report-create-dialog
           v-model="isCreatingReport"
+          :subproject-id="selectedSubProject"
         />
       </div>
     </div>
+    <app-lf-sub-projects-list-modal
+      v-if="isSubProjectSelectionOpen"
+      v-model="isSubProjectSelectionOpen"
+      title="Add report"
+      @on-submit="onSubProjectSelection"
+    />
   </app-page-wrapper>
 </template>
 
@@ -79,6 +86,7 @@ import { ReportPermissions } from '@/modules/report/report-permissions';
 import AppReportTemplateItem from '@/modules/report/components/templates/report-template-item.vue';
 import templates from '@/modules/report/templates/config';
 import AppLfPageHeader from '@/modules/lf/layout/components/lf-page-header.vue';
+import AppLfSubProjectsListModal from '@/modules/lf/segments/components/lf-sub-projects-list-modal.vue';
 
 export default {
   name: 'AppReportListPage',
@@ -88,11 +96,14 @@ export default {
     AppReportTemplateItem,
     'app-report-list-table': ReportListTable,
     AppLfPageHeader,
+    AppLfSubProjectsListModal,
   },
 
   data() {
     return {
+      isSubProjectSelectionOpen: false,
       isCreatingReport: false,
+      selectedSubProject: null,
       templates,
     };
   },
@@ -154,6 +165,14 @@ export default {
     ...mapActions({
       doFetch: 'report/doFetch',
     }),
+    onAddReport() {
+      this.isSubProjectSelectionOpen = true;
+    },
+    onSubProjectSelection(subprojectId) {
+      this.selectedSubProject = subprojectId;
+      this.isSubProjectSelectionOpen = false;
+      this.isCreatingReport = true;
+    },
   },
 };
 </script>
