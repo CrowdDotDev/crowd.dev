@@ -29,6 +29,7 @@ import merge from './helpers/merge'
 import MemberAttributeSettingsService from './memberAttributeSettingsService'
 import OrganizationService from './organizationService'
 import SettingsService from './settingsService'
+import { getSearchSyncWorkerEmitter } from '../serverless/utils/serviceSQS'
 
 export default class MemberService extends LoggerBase {
   options: IServiceOptions
@@ -187,8 +188,14 @@ export default class MemberService extends LoggerBase {
    * @param existing If the member already exists. If it does not, false. Othwerwise, the member.
    * @returns The created member
    */
-  async upsert(data, existing: boolean | any = false, fireCrowdWebhooks: boolean = true) {
+  async upsert(
+    data,
+    existing: boolean | any = false,
+    fireCrowdWebhooks: boolean = true,
+    fireSync: boolean = true,
+  ) {
     const logger = this.options.log
+    const searchSyncEmitter = await getSearchSyncWorkerEmitter()
 
     const errorDetails: any = {}
 
@@ -344,6 +351,10 @@ export default class MemberService extends LoggerBase {
           },
           fillRelations,
         )
+
+        if (fireSync) {
+          await searchSyncEmitter.triggerMemberSync(this.options.currentTenant.id, record.id)
+        }
       } else {
         // It is important to call it with doPopulateRelations=false
         // because otherwise the performance is greatly decreased in integrations
@@ -359,6 +370,9 @@ export default class MemberService extends LoggerBase {
           },
           fillRelations,
         )
+        if (fireSync) {
+          await searchSyncEmitter.triggerMemberSync(this.options.currentTenant.id, record.id)
+        }
 
         telemetryTrack(
           'Member created',
@@ -554,6 +568,10 @@ export default class MemberService extends LoggerBase {
       await MemberRepository.destroy(toMergeId, repoOptions, true)
 
       await SequelizeRepository.commitTransaction(tx)
+
+      const searchSyncEmitter = await getSearchSyncWorkerEmitter()
+      await searchSyncEmitter.triggerMemberSync(this.options.currentTenant.id, originalId)
+
       this.options.log.info({ originalId, toMergeId }, 'Members merged!')
       return { status: 200, mergedId: originalId }
     } catch (err) {
@@ -677,8 +695,21 @@ export default class MemberService extends LoggerBase {
   async addToMerge(suggestions: IMemberMergeSuggestion[]) {
     const transaction = await SequelizeRepository.createTransaction(this.options)
     try {
+      const searchSyncEmitter = await getSearchSyncWorkerEmitter()
+
       await MemberRepository.addToMerge(suggestions, { ...this.options, transaction })
       await SequelizeRepository.commitTransaction(transaction)
+
+      for (const suggestion of suggestions) {
+        await searchSyncEmitter.triggerMemberSync(
+          this.options.currentTenant.id,
+          suggestion.members[0],
+        )
+        await searchSyncEmitter.triggerMemberSync(
+          this.options.currentTenant.id,
+          suggestion.members[1],
+        )
+      }
       return { status: 200 }
     } catch (error) {
       await SequelizeRepository.rollbackTransaction(transaction)
@@ -695,6 +726,8 @@ export default class MemberService extends LoggerBase {
    */
   async addToNoMerge(memberOneId, memberTwoId) {
     const transaction = await SequelizeRepository.createTransaction(this.options)
+    const searchSyncEmitter = await getSearchSyncWorkerEmitter()
+
     try {
       await MemberRepository.addNoMerge(memberOneId, memberTwoId, {
         ...this.options,
@@ -714,6 +747,9 @@ export default class MemberService extends LoggerBase {
       })
 
       await SequelizeRepository.commitTransaction(transaction)
+
+      await searchSyncEmitter.triggerMemberSync(this.options.currentTenant.id, memberOneId)
+      await searchSyncEmitter.triggerMemberSync(this.options.currentTenant.id, memberTwoId)
 
       return { status: 200 }
     } catch (error) {
@@ -761,6 +797,7 @@ export default class MemberService extends LoggerBase {
 
   async update(id, data) {
     const transaction = await SequelizeRepository.createTransaction(this.options)
+    const searchSyncEmitter = await getSearchSyncWorkerEmitter()
 
     try {
       if (data.activities) {
@@ -830,6 +867,8 @@ export default class MemberService extends LoggerBase {
       })
 
       await SequelizeRepository.commitTransaction(transaction)
+
+      await searchSyncEmitter.triggerMemberSync(this.options.currentTenant.id, record.id)
 
       return record
     } catch (error) {

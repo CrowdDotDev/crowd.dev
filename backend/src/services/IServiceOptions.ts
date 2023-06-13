@@ -1,4 +1,5 @@
 import { Logger } from '@crowd/logging'
+import { RedisClient } from '@crowd/redis'
 
 export interface IServiceOptions {
   log: Logger
@@ -6,4 +7,5 @@ export interface IServiceOptions {
   currentUser: any
   currentTenant: any
   database: any
+  redis: RedisClient
 }

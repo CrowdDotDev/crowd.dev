@@ -1,7 +1,8 @@
 import lodash from 'lodash'
 import { Sequelize, UniqueConstraintError } from 'sequelize'
 import { getServiceLogger } from '@crowd/logging'
-import { IS_TEST_ENV } from '../../conf'
+import { getRedisClient } from '@crowd/redis'
+import { IS_TEST_ENV, REDIS_CONFIG } from '../../conf'
 import Error400 from '../../errors/Error400'
 import { databaseInit } from '../databaseConnection'
 import { IRepositoryOptions } from './IRepositoryOptions'
@@ -23,6 +24,8 @@ export default class SequelizeRepository {
   }
 
   static async getDefaultIRepositoryOptions(user?, tenant?): Promise<IRepositoryOptions> {
+    const redis = await getRedisClient(REDIS_CONFIG, true)
+
     return {
       log: getServiceLogger(),
       database: await databaseInit(),
@@ -30,6 +33,7 @@ export default class SequelizeRepository {
       currentUser: user,
       bypassPermissionValidation: true,
       language: 'en',
+      redis,
     }
   }
 

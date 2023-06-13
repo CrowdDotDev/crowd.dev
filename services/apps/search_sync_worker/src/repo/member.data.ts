@@ -1,20 +1,20 @@
-export interface IMemberIdentityData {
+export interface IDbMemberIdentityData {
   platform: string
   username: string
 }
 
-export interface IMemberTagData {
+export interface IDbMemberTagData {
   id: string
   name: string
 }
 
-export interface IMemberOrganization {
+export interface IDbMemberOrganization {
   id: string
   logo: string | null
   displayName: string | null
 }
 
-export interface IMemberSyncData {
+export interface IDbMemberSyncData {
   id: string
   tenantId: string
   displayName: string | null
@@ -34,9 +34,9 @@ export interface IMemberSyncData {
   lastActive: string
   averageSentiment: number | null
 
-  identities: IMemberIdentityData[]
-  organizations: IMemberOrganization[]
-  tags: IMemberTagData[]
+  identities: IDbMemberIdentityData[]
+  organizations: IDbMemberOrganization[]
+  tags: IDbMemberTagData[]
   toMergeIds: string[]
   noMergeIds: string[]
 }

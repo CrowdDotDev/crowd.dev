@@ -4,6 +4,7 @@ import { DbStore } from '@crowd/database'
 import { Logger, LoggerBase } from '@crowd/logging'
 import { OpenSearchService } from './opensearch.service'
 import { timeout } from '@crowd/common'
+import { IDbMemberSyncData } from '@/repo/member.data'
 
 export class SyncService extends LoggerBase {
   private readonly memberRepo: MemberRepository
@@ -61,5 +62,61 @@ export class SyncService extends LoggerBase {
         this.log.error({ memberId }, 'Member not found after 5 retries!')
       }
     }
+  }
+
+  private static prefixData(data: IDbMemberSyncData): unknown {
+    const p: Record<string, unknown> = {}
+
+    p.uuid_id = data.id
+    p.uuid_tenantId = data.tenantId
+    p.string_displayName = data.displayName
+    p.obj_attributes = data.attributes
+    // TODO handle attributes separately
+    p.string_arr_emails = data.emails
+    p.int_score = data.score
+    p.date_lastEnriched = data.lastEnriched
+    p.date_joinedAt = data.joinedAt
+    p.int_totalReach = data.totalReach
+    p.int_numberOfOpenSourceContributions = data.numberOfOpenSourceContributions
+    p.string_arr_activeOn = data.activeOn
+    p.int_activityCount = data.activityCount
+    p.string_arr_activityTypes = data.activityTypes
+    p.int_activeDaysCount = data.activeDaysCount
+    p.date_lastActive = data.lastActive
+    p.float_averageSentiment = data.averageSentiment
+
+    const p_identities = []
+    for (const identity of data.identities) {
+      p_identities.push({
+        string_platform: identity.platform,
+        string_username: identity.username,
+      })
+    }
+    p.obj_arr_identities = p_identities
+
+    const p_organizations = []
+    for (const organization of data.organizations) {
+      p_organizations.push({
+        uuid_id: organization.id,
+        string_logo: organization.logo,
+        string_displayName: organization.displayName,
+      })
+    }
+    p.obj_arr_organizations = p_organizations
+
+    const p_tags = []
+    for (const tag of data.tags) {
+      p_tags.push({
+        uuid_id: tag.id,
+        string_name: tag.name,
+      })
+    }
+
+    p.obj_arr_tags = p_tags
+
+    p.uuid_arr_toMergeIds = data.toMergeIds
+    p.uuid_arr_noMergeIds = data.noMergeIds
+
+    return p
   }
 }

@@ -19,6 +19,7 @@ import ConversationSettingsService from './conversationSettingsService'
 import merge from './helpers/merge'
 import MemberService from './memberService'
 import SettingsService from './settingsService'
+import { getSearchSyncWorkerEmitter } from '../serverless/utils/serviceSQS'
 
 export default class ActivityService extends LoggerBase {
   options: IServiceOptions
@@ -42,8 +43,14 @@ export default class ActivityService extends LoggerBase {
    * @param existing If the activity already exists, the activity. If it doesn't or we don't know, false
    * @returns The upserted activity
    */
-  async upsert(data, existing: boolean | any = false, fireCrowdWebhooks: boolean = true) {
+  async upsert(
+    data,
+    existing: boolean | any = false,
+    fireCrowdWebhooks: boolean = true,
+    fireSync: boolean = true,
+  ) {
     const transaction = await SequelizeRepository.createTransaction(this.options)
+    const searchSyncEmitter = await getSearchSyncWorkerEmitter()
 
     try {
       if (data.member) {
@@ -99,6 +106,13 @@ export default class ActivityService extends LoggerBase {
           ...this.options,
           transaction,
         })
+
+        if (fireSync) {
+          await searchSyncEmitter.triggerMemberSync(
+            this.options.currentTenant.id,
+            data.member ? data.member.id : data.memberId,
+          )
+        }
       } else {
         if (!data.sentiment) {
           const sentiment = await this.getSentiment(data)
@@ -118,6 +132,13 @@ export default class ActivityService extends LoggerBase {
           ...this.options,
           transaction,
         })
+
+        if (fireSync) {
+          await searchSyncEmitter.triggerMemberSync(
+            this.options.currentTenant.id,
+            data.member ? data.member.id : data.memberId,
+          )
+        }
 
         // Only track activity's platform and timestamp and memberId. It is completely annonymous.
         telemetryTrack(
@@ -418,6 +439,7 @@ export default class ActivityService extends LoggerBase {
 
   async createWithMember(data, fireCrowdWebhooks: boolean = true) {
     const logger = this.options.log
+    const searchSyncEmitter = await getSearchSyncWorkerEmitter()
 
     const errorDetails: any = {}
 
@@ -496,6 +518,7 @@ export default class ActivityService extends LoggerBase {
         },
         existingMember,
         fireCrowdWebhooks,
+        false,
       )
 
       if (data.objectMember) {
@@ -540,7 +563,9 @@ export default class ActivityService extends LoggerBase {
 
       data.member = member.id
 
-      const record = await this.upsert(data, activityExists, fireCrowdWebhooks)
+      const record = await this.upsert(data, activityExists, fireCrowdWebhooks, false)
+
+      await searchSyncEmitter.triggerMemberSync(this.options.currentTenant.id, member.id)
 
       await SequelizeRepository.commitTransaction(transaction)
 

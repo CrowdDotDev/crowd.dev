@@ -4,113 +4,256 @@ export enum OpenSearchIndex {
 
 export const OPENSEARCH_INDEX_MAPPINGS: Record<OpenSearchIndex, unknown> = {
   [OpenSearchIndex.MEMBERS]: {
-    properties: {
-      // ids,
-      id: {
-        type: 'keyword',
-      },
-      tenantId: {
-        type: 'keyword',
-      },
-
-      // strings or string arrays
-      displayName: {
-        type: 'text',
-      },
-      activeOn: {
-        type: 'keyword',
-      },
-      activityTypes: {
-        type: 'keyword',
-      },
-      toMergeIds: {
-        type: 'keyword',
-      },
-      noMergeIds: {
-        type: 'keyword',
-      },
-
-      // objects
-      attributes: {
-        type: 'object',
-      },
-
-      // arrays of objects
-      identities: {
-        type: 'nested',
-        properties: {
-          platform: {
-            type: 'keyword',
-          },
-          username: {
-            type: 'keyword',
-          },
-        },
-      },
-
-      organizations: {
-        type: 'nested',
-        properties: {
-          id: {
-            type: 'keyword',
-          },
-          logo: {
-            type: 'text',
-          },
-          displayName: {
+    dynamic_templates: [
+      // https://opensearch.org/docs/latest/field-types/supported-field-types/string/
+      {
+        strings: {
+          match_pattern: 'regex',
+          match: 'string_.*',
+          path_match: '.*',
+          mapping: {
             type: 'text',
           },
         },
       },
-
-      tags: {
-        type: 'nested',
-        properties: {
-          id: {
+      {
+        uuids: {
+          match_pattern: 'regex',
+          match: 'uuid_.*',
+          path_match: '.*',
+          mapping: {
             type: 'keyword',
           },
-          name: {
+        },
+      },
+      // https://opensearch.org/docs/latest/field-types/supported-field-types/numeric/
+      {
+        integers: {
+          match_pattern: 'regex',
+          match: 'int_.*',
+          path_match: '.*',
+          mapping: {
+            type: 'integer',
+          },
+        },
+      },
+      {
+        floats: {
+          match_pattern: 'regex',
+          match: 'float_.*',
+          path_match: '.*',
+          mapping: {
+            type: 'float',
+          },
+        },
+      },
+      {
+        bytes: {
+          match_pattern: 'regex',
+          match: 'byte_.*',
+          path_match: '.*',
+          mapping: {
+            type: 'byte',
+          },
+        },
+      },
+      {
+        doubles: {
+          match_pattern: 'regex',
+          match: 'double_.*',
+          path_match: '.*',
+          mapping: {
+            type: 'double',
+          },
+        },
+      },
+      {
+        half_floats: {
+          match_pattern: 'regex',
+          match: 'half_float_.*',
+          path_match: '.*',
+          mapping: {
+            type: 'half_float',
+          },
+        },
+      },
+      {
+        longs: {
+          match_pattern: 'regex',
+          match: 'long_.*',
+          path_match: '.*',
+          mapping: {
+            type: 'long',
+          },
+        },
+      },
+      {
+        shorts: {
+          match_pattern: 'regex',
+          match: 'short_.*',
+          path_match: '.*',
+          mapping: {
+            type: 'short',
+          },
+        },
+      },
+      // https://opensearch.org/docs/latest/field-types/supported-field-types/date/
+      {
+        dates: {
+          match_pattern: 'regex',
+          match: 'date_.*',
+          path_match: '.*',
+          mapping: {
+            type: 'date',
+            format:
+              'strict_date_optional_time||epoch_millis||yyyy-MM-dd HH:mm:ssXXX||yyyy-MM-dd HH:mm:ssX',
+          },
+        },
+      },
+      // https://opensearch.org/docs/latest/field-types/supported-field-types/boolean/
+      {
+        booleans: {
+          match_pattern: 'regex',
+          match: 'bool_.*',
+          path_match: '.*',
+          mapping: {
+            type: 'boolean',
+          },
+        },
+      },
+      // https://opensearch.org/docs/latest/field-types/supported-field-types/object-fields/
+      {
+        objects: {
+          match_pattern: 'regex',
+          match: 'obj_.*',
+          path_match: '.*',
+          mapping: {
+            type: 'object',
+          },
+        },
+      },
+      {
+        nested_objects: {
+          match_pattern: 'regex',
+          match: 'nested_.*',
+          path_match: '.*',
+          mapping: {
+            type: 'nested',
+          },
+        },
+      },
+      {
+        string_arrays: {
+          match_pattern: 'regex',
+          match: 'string_arr_.*',
+          path_match: '.*',
+          mapping: {
             type: 'text',
           },
         },
       },
-
-      // dates
-      joinedAt: {
-        type: 'date',
-        format:
-          'strict_date_optional_time||epoch_millis||yyyy-MM-dd HH:mm:ssXXX||yyyy-MM-dd HH:mm:ssX',
+      {
+        integer_arrays: {
+          match_pattern: 'regex',
+          match: 'int_arr_.*',
+          path_match: '.*',
+          mapping: {
+            type: 'integer',
+          },
+        },
       },
-      lastEnriched: {
-        type: 'date',
-        format:
-          'strict_date_optional_time||epoch_millis||yyyy-MM-dd HH:mm:ssXXX||yyyy-MM-dd HH:mm:ssX',
+      {
+        float_arrays: {
+          match_pattern: 'regex',
+          match: 'float_arr_.*',
+          path_match: '.*',
+          mapping: {
+            type: 'float',
+          },
+        },
       },
-      lastActive: {
-        type: 'date',
-        format:
-          'strict_date_optional_time||epoch_millis||yyyy-MM-dd HH:mm:ssXXX||yyyy-MM-dd HH:mm:ssX',
+      {
+        byte_arrays: {
+          match_pattern: 'regex',
+          match: 'byte_arr_.*',
+          path_match: '.*',
+          mapping: {
+            type: 'byte',
+          },
+        },
       },
-
-      // numbers
-      activeDaysCount: {
-        type: 'integer',
+      {
+        double_arrays: {
+          match_pattern: 'regex',
+          match: 'double_arr_.*',
+          path_match: '.*',
+          mapping: {
+            type: 'double',
+          },
+        },
       },
-      activityCount: {
-        type: 'integer',
+      {
+        half_float_arrays: {
+          match_pattern: 'regex',
+          match: 'half_float_arr_.*',
+          path_match: '.*',
+          mapping: {
+            type: 'half_float',
+          },
+        },
       },
-      numberOfOpenSourceContributions: {
-        type: 'integer',
+      {
+        long_arrays: {
+          match_pattern: 'regex',
+          match: 'long_arr_.*',
+          path_match: '.*',
+          mapping: {
+            type: 'long',
+          },
+        },
       },
-      score: {
-        type: 'integer',
+      {
+        short_arrays: {
+          match_pattern: 'regex',
+          match: 'short_arr_.*',
+          path_match: '.*',
+          mapping: {
+            type: 'short',
+          },
+        },
       },
-      averageSentiment: {
-        type: 'float',
+      {
+        date_arrays: {
+          match_pattern: 'regex',
+          match: 'date_arr_.*',
+          path_match: '.*',
+          mapping: {
+            type: 'date',
+            format:
+              'strict_date_optional_time||epoch_millis||yyyy-MM-dd HH:mm:ssXXX||yyyy-MM-dd HH:mm:ssX',
+          },
+        },
       },
-      totalReach: {
-        type: 'integer',
+      {
+        boolean_arrays: {
+          match_pattern: 'regex',
+          match: 'bool_arr_.*',
+          path_match: '.*',
+          mapping: {
+            type: 'boolean',
+          },
+        },
       },
-    },
+      {
+        uuid_arrays: {
+          match_pattern: 'regex',
+          match: 'uuid_arr_.*',
+          path_match: '.*',
+          mapping: {
+            type: 'keyword',
+          },
+        },
+      },
+    ],
   },
 }

@@ -11,9 +11,17 @@ services:
     networks:
       - crowd-bridge-test
 
+  sqs:
+    build:
+      context: ../scripts/scaffold/sqs
+    ports:
+      - 9325:9324
+      - 9326:9325
+    networks:
+      - crowd-bridge-test
+
   open-search-test:
     image: opensearchproject/opensearch:2.7.0
-    restart: always
     environment:
       - discovery.type=single-node
       - bootstrap.memory_lock=true

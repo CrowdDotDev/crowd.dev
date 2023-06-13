@@ -1,17 +1,29 @@
 import { DbStore, RepositoryBase } from '@crowd/database'
 import { Logger } from '@crowd/logging'
-import { IMemberSyncData } from './member.data'
+import { IDbMemberSyncData } from './member.data'
+import { IMemberAttribute } from '@crowd/types'
 
 export class MemberRepository extends RepositoryBase<MemberRepository> {
   constructor(dbStore: DbStore, parentLog: Logger) {
     super(dbStore, parentLog)
   }
 
+  public async getTenantMemberAttributes(tenantId: string): Promise<IMemberAttribute[]> {
+    const results = await this.db().any(
+      `select type, "canDelete", show, label, name, options from "memberAttributeSettings" where "tenantId" = $(tenantId)`,
+      {
+        tenantId,
+      },
+    )
+
+    return results
+  }
+
   public async getTenantMembers(
     tenantId: string,
     page: number,
     perPage: number,
-  ): Promise<IMemberSyncData[]> {
+  ): Promise<IDbMemberSyncData[]> {
     const results = await this.db().any(
       `
       with to_merge_data as (select mtm."memberId",
