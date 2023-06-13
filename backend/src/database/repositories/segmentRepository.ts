@@ -484,6 +484,7 @@ class SegmentRepository extends RepositoryBase<
                 count(*) over () as "totalCount"
             FROM segments s
                 JOIN segments sp ON sp."parentSlug" = s."slug" and sp."grandparentSlug" is not null
+                AND sp."tenantId" = s."tenantId"
             WHERE 
                 s."grandparentSlug" IS NULL
             and s."parentSlug" is not null
