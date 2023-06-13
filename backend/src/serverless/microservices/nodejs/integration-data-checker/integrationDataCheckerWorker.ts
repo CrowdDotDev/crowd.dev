@@ -1,5 +1,6 @@
 import moment from 'moment'
 import { getServiceChildLogger } from '@crowd/logging'
+import { sendSlackAlert, SlackAlertTypes } from '@crowd/alerting'
 import getUserContext from '../../../../database/utils/getUserContext'
 import IntegrationService from '../../../../services/integrationService'
 import ActivityService from '../../../../services/activityService'
@@ -9,7 +10,7 @@ import {
 } from './integrationDataCheckerSettings'
 import { IRepositoryOptions } from '../../../../database/repositories/IRepositoryOptions'
 import { IntegrationDataCheckerSettings } from './integrationDataCheckerTypes'
-import { sendSlackAlert, SlackAlertTypes } from '../../../../utils/slackAlerts'
+import { SLACK_ALERTING_CONFIG } from '@/conf'
 
 const log = getServiceChildLogger('integrationDataCheckerWorker')
 
@@ -102,7 +103,15 @@ async function sendSlackAlertAction(
   integration,
   userContext: IRepositoryOptions,
 ) {
-  return sendSlackAlert(SlackAlertTypes.DATA_CHECKER, integration, userContext, log, settings)
+  return sendSlackAlert({
+    slackURL: SLACK_ALERTING_CONFIG.url,
+    alertType: SlackAlertTypes.DATA_CHECKER,
+    integration,
+    userContext,
+    log,
+    frameworkVersion: 'old',
+    settings,
+  })
 }
 
 function generateDate(timeframe) {
