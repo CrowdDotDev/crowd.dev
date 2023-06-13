@@ -3,7 +3,7 @@ import { ApiPubSubEmitter } from '@crowd/redis'
 import { Logger, getChildLogger, LoggerBase } from '@crowd/logging'
 import { singleOrDefault } from '@crowd/common'
 import { PlatformType } from '@crowd/types'
-import { sendSlackAlert, SlackAlertTypes } from "@crowd/alerting"
+import { sendSlackAlert, SlackAlertTypes } from '@crowd/alerting'
 import IntegrationRepository from '../../../database/repositories/integrationRepository'
 import IntegrationRunRepository from '../../../database/repositories/integrationRunRepository'
 import IntegrationStreamRepository from '../../../database/repositories/integrationStreamRepository'
@@ -29,7 +29,7 @@ import bulkOperations from '../../dbOperations/operationsWorker'
 import UserRepository from '../../../database/repositories/userRepository'
 import EmailSender from '../../../services/emailSender'
 import { i18n } from '../../../i18n'
-import { API_CONFIG , SLACK_ALERTING_CONFIG } from '../../../conf'
+import { API_CONFIG, SLACK_ALERTING_CONFIG } from '../../../conf'
 
 export class IntegrationRunProcessor extends LoggerBase {
   constructor(
@@ -526,16 +526,14 @@ export class IntegrationRunProcessor extends LoggerBase {
           logger.error('Integration ended but we are still processing!')
         }
       } else if (newState === IntegrationRunState.ERROR) {
-        await sendSlackAlert(
-          {
-            slackURL: SLACK_ALERTING_CONFIG.url,
-            alertType: SlackAlertTypes.INTEGRATION_ERROR,
-            integration,
-            userContext,
-            log: logger,
-            frameworkVersion: 'old',
-          }
-        )
+        await sendSlackAlert({
+          slackURL: SLACK_ALERTING_CONFIG.url,
+          alertType: SlackAlertTypes.INTEGRATION_ERROR,
+          integration,
+          userContext,
+          log: logger,
+          frameworkVersion: 'old',
+        })
       }
 
       if (run.onboarding && this.apiPubSubEmitter) {

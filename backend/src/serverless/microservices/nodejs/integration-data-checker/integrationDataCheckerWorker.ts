@@ -1,6 +1,6 @@
 import moment from 'moment'
 import { getServiceChildLogger } from '@crowd/logging'
-import { sendSlackAlert, SlackAlertTypes } from "@crowd/alerting"
+import { sendSlackAlert, SlackAlertTypes } from '@crowd/alerting'
 import getUserContext from '../../../../database/utils/getUserContext'
 import IntegrationService from '../../../../services/integrationService'
 import ActivityService from '../../../../services/activityService'
