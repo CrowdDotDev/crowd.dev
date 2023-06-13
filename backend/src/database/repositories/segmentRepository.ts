@@ -424,7 +424,9 @@ class SegmentRepository extends RepositoryBase<
                             jsonb_agg(jsonb_build_object('id', sp.id ,'name', sp.name, 'status', sp.status)) as subprojects
                      FROM segments f
                       JOIN segments p ON p."parentSlug" = f."slug" AND p."grandparentSlug" IS NULL
+                                             AND p."tenantId" = f."tenantId"
                       JOIN segments sp ON sp."parentSlug" = p."slug" and sp."grandparentSlug" is not null
+                                              AND sp."tenantId" = f."tenantId"
                      WHERE f."parentSlug" IS NULL
                        AND f."tenantId" = :tenantId
                      GROUP BY f."id", p.id)
