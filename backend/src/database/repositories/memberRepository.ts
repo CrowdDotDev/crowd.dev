@@ -1370,7 +1370,8 @@ class MemberRepository {
                     ARRAY(SELECT DISTINCT UNNEST(array_accum("activityTypes"))) AS "activityTypes",
                     ARRAY(SELECT DISTINCT UNNEST(array_accum("activeOn"))) AS "activeOn",
                     SUM("activeDaysCount") AS "activeDaysCount",
-                    ROUND(SUM("averageSentiment" * "activityCount") / SUM("activityCount"), 2) AS "averageSentiment"
+                    ROUND(SUM("averageSentiment" * "activityCount") / SUM("activityCount"), 2) AS "averageSentiment",
+                    ARRAY_AGG(DISTINCT "segmentId") AS "segmentIds"
                 FROM "memberActivityAggregatesMVs"
                 WHERE "segmentId" IN (:segmentIds)
                 GROUP BY id
@@ -1399,6 +1400,7 @@ class MemberRepository {
             aggs."activeDaysCount",
             aggs."lastActive",
             aggs."averageSentiment",
+            aggs."segmentIds",
             COALESCE(mt.all_tags, JSON_BUILD_ARRAY()) AS tags,
             COALESCE(mo.all_organizations, JSON_BUILD_ARRAY()) AS organizations,
             COALESCE(JSONB_ARRAY_LENGTH(m.contributions), 0) AS "numberOfOpenSourceContributions"
