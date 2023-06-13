@@ -14,12 +14,16 @@ export const getOrganizationPosts = async (
 ): Promise<IPaginatedResponse<ILinkedInOrganizationPost>> => {
   const config: AxiosRequestConfig<unknown> = {
     method: 'get',
-    url: 'https://api.linkedin.com/v2/posts',
+    url: 'https://api.linkedin.com/rest/posts',
     params: {
       author: organization,
       q: 'author',
       count: 10,
       start,
+    },
+    headers: {
+      'X-Restli-Protocol-Version': '2.0.0',
+      'LinkedIn-Version': '202305',
     },
   }
 
