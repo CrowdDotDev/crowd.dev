@@ -168,7 +168,9 @@ const fetch = ({
   orderBy,
   body,
 }: FilterQuery) => {
-  loading.value = showLoading(filter, body);
+  if (!loading.value) {
+    loading.value = showLoading(filter, body);
+  }
   fetchMembers({
     body: {
       ...body,
