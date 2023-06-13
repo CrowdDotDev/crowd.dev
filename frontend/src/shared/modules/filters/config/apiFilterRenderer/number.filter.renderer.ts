@@ -4,7 +4,7 @@ import { FilterNumberOperator } from '@/shared/modules/filters/config/constants/
 export const numberApiFilterRenderer = (property: string, {
   value, valueTo, operator, include,
 }: NumberFilterValue): any[] => {
-  const filterValue = operator === FilterNumberOperator.BETWEEN ? [value, valueTo] : value;
+  const filterValue = operator === FilterNumberOperator.BETWEEN ? [+value, +valueTo!] : +value;
   const filter = {
     [property]: {
       [operator]: filterValue,

@@ -9,5 +9,5 @@ export const selectItemLabelRenderer = (property: string, { value, include }: Se
   const excludeText = !include ? ' (exclude)' : '';
   const option = options.options.map((g) => g.options).flat().find((o) => o.value === value);
   const group = options.options.find((g) => g.options.find((o) => o.value === value));
-  return `<b>${property}${excludeText}:</b>${addGroupLabel ? `${group?.label} - ` : ''}${option?.label || value || '...'}`;
+  return `<b>${property}${excludeText}:</b>${option?.label || value || '...'}${addGroupLabel ? ` (${group?.label})` : ''}`;
 };

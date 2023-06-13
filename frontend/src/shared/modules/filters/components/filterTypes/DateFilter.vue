@@ -6,17 +6,18 @@
         v-model="form.operator"
         :prefix="`${props.config.label}:`"
         class="mb-3"
-        :options="dateFilterOperators"
+        :options="operators"
       />
       <div class="filter-date-field" data-qa="filter-date-input">
         <el-date-picker
           v-model="form.value"
           :placeholder="form.operator === FilterDateOperator.BETWEEN ? 'Select date range' : 'Select date'"
-          value-format="YYYY-MM-DD"
-          format="YYYY-MM-DD"
+          :value-format="props.dateFormat ?? 'YYYY-MM-DD'"
+          :format="props.dateFormat ?? 'YYYY-MM-DD'"
           popper-class="date-picker-popper"
           v-bind="betweenProps"
           :teleported="false"
+          :type="datepickerType ?? 'date'"
           @blur="$v.value.$touch"
           @change="$v.value.$touch"
         />
@@ -65,12 +66,19 @@ const rules: any = {
   },
 };
 
+const operators = computed(() => {
+  if (props.datepickerType === 'year') {
+    return dateFilterOperators.filter((o) => o.value !== FilterDateOperator.BETWEEN);
+  }
+  return dateFilterOperators;
+});
+
 const $v = useVuelidate(rules, form);
 
 const betweenProps = computed(() => (form.value.operator !== FilterDateOperator.BETWEEN
   ? {}
   : {
-    type: 'daterange',
+    type: props.datepickerType === 'month' ? 'monthrange' : 'daterange',
     'range-separator': 'To',
     'start-placeholder': 'Start date',
     'end-placeholder': 'End date',

@@ -4,7 +4,7 @@
     class="el-form-item__error"
     :class="errorClass"
   >
-    <div class="error-msg">
+    <div v-if="errorMessage(errors[0]).length > 0" class="error-msg flex items-center">
       <i :class="errorIcon" class="mr-1 text-base" />{{ errorMessage(errors[0]) }}
     </div>
   </div>
@@ -23,6 +23,11 @@ const props = defineProps({
     required: false,
     type: Object,
     default: () => ({}),
+  },
+  hideDefault: {
+    required: false,
+    type: Boolean,
+    default: false,
   },
   errorIcon: {
     required: false,
@@ -46,7 +51,10 @@ const errorMessage = (error) => {
   ) {
     return props.errorMessages[prop];
   }
-  return error.$message;
+  if (!props.hideDefault) {
+    return error.$message;
+  }
+  return '';
 };
 </script>
 

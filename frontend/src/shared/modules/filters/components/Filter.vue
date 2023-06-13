@@ -17,7 +17,7 @@
         >
           <div
             v-if="fi > 0"
-            class="border text-xs border-gray-100 rounded-md shadow w-10 justify-center
+            class="border text-xs border-gray-100 rounded-md shadow justify-center
           h-8 flex font-medium items-center py-1 px-2 bg-white cursor-pointer hover:bg-gray-100 transition mr-3 mb-4"
             @click="switchOperator"
           >
@@ -95,7 +95,6 @@ const alignFilterList = (value: Filter) => {
   const {
     settings, search, relation, order, pagination, ...filterValues
   } = value;
-  console.log(value, filterValues);
   filterList.value = Object.keys(filterValues);
 };
 
@@ -121,7 +120,6 @@ watch(() => filters.value, (value: Filter) => {
 
 // Watch for query change
 const alignQueryUrl = () => {
-  console.log('parsing');
   const { query } = route;
   const parsed = parseQuery(query, {
     ...props.config,
@@ -138,6 +136,7 @@ const alignQueryUrl = () => {
 onMounted(() => {
   alignQueryUrl();
   if (!!filters.value && Object.keys(filters.value).length > 0) {
+    alignFilterList(filters.value);
     fetch(filters.value);
   }
 });

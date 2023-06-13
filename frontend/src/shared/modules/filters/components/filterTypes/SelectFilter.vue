@@ -16,11 +16,11 @@
         </template>
       </el-input>
     </div>
-    <div class="max-h-58 overflow-auto py-3 px-2">
+    <div class="max-h-58 overflow-auto pb-3 px-2 pt-1">
       <template v-for="(group, gi) of filteredOptions" :key="gi">
         <div
           v-if="group.label && group.options.length > 0"
-          class="text-2xs text-gray-400 font-semibold tracking-wide leading-6 uppercase px-3 my-1"
+          class="text-2xs text-gray-400 font-semibold tracking-wide leading-4.5 uppercase px-3 pt-4 pb-3"
         >
           {{ group.label }}
         </div>
@@ -35,6 +35,9 @@
           {{ option.label }}
         </cr-filter-select-option>
       </template>
+      <div v-if="isEmpty" class="text-gray-400 text-xs italic pb-1 pt-3 px-2">
+        No results found
+      </div>
     </div>
   </div>
 </template>
@@ -71,6 +74,8 @@ const form = computed({
   get: () => props.modelValue,
   set: (value: SelectFilterValue) => emit('update:modelValue', value),
 });
+
+const isEmpty = computed(() => filteredOptions.value.map((g) => g.options).flat().length === 0);
 
 const defaultForm: SelectFilterValue = {
   value: '',

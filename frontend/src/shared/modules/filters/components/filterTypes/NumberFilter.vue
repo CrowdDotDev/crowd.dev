@@ -12,28 +12,23 @@
       />
       <div class="flex -mx-1">
         <div class="flex-grow px-1">
-          <app-form-item
-            :validation="$v.value"
-            class="mb-0"
-            :show-error="false"
-          >
-            <cr-filter-input
-              v-model="form.value"
-              type="number"
-              min="0"
-              step="1"
-              :placeholder="form.operator !== FilterNumberOperator.BETWEEN ? 'Enter value' : 'From'"
-              data-qa="filter-number-from"
-              @blur="$v.value.$touch"
-              @change="$v.value.$touch"
-            />
-          </app-form-item>
+          <cr-filter-input
+            v-model="form.value"
+            type="number"
+            min="0"
+            step="1"
+            :placeholder="form.operator !== FilterNumberOperator.BETWEEN ? 'Enter value' : 'From'"
+            data-qa="filter-number-from"
+            @blur="$v.value.$touch"
+            @change="$v.value.$touch"
+          />
         </div>
         <div v-if="form.operator === FilterNumberOperator.BETWEEN" class="flex-grow px-1">
           <app-form-item
             :validation="$v.valueTo"
             class="mb-0"
             :show-error="false"
+            :filter-errors="['minValue']"
           >
             <cr-filter-input
               v-model="form.valueTo"
@@ -50,15 +45,11 @@
       <app-form-errors
         :validation="$v"
         error-icon="ri-error-warning-line"
-        error-class="relative top-1"
+        error-class="relative pt-0"
         :error-messages="{
-          'value-required': `${form.operator === FilterNumberOperator.BETWEEN ? 'From field' : 'This field'} is required`,
-          'value-numeric': `${form.operator === FilterNumberOperator.BETWEEN ? 'From field' : 'This field'} is invalid`,
-          'value-minValue': `${form.operator === FilterNumberOperator.BETWEEN ? 'From field' : 'This field'} value has to be positive`,
-          'valueTo-required': `To field is required`,
-          'valueTo-numeric': `To field is invalid`,
           'valueTo-minValue': `Number should be higher than “From” field`,
         }"
+        :hide-default="true"
       />
     </div>
   </div>
@@ -82,8 +73,8 @@ import {
 } from '@/shared/modules/filters/config/constants/number.constants';
 import CrFilterInput from '@/shared/modules/filters/components/partials/string/FilterInput.vue';
 import CrFilterInlineSelect from '@/shared/modules/filters/components/partials/FilterInlineSelect.vue';
-import AppFormItem from '@/shared/form/form-item.vue';
 import AppFormErrors from '@/shared/form/form-errors.vue';
+import AppFormItem from '@/shared/form/form-item.vue';
 
 const props = defineProps<{
   modelValue: NumberFilterValue,
