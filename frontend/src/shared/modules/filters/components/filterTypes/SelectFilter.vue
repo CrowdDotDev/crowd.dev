@@ -20,7 +20,7 @@
       <template v-for="(group, gi) of filteredOptions" :key="gi">
         <div
           v-if="group.label && group.options.length > 0"
-          class="text-2xs text-gray-400 font-semibold tracking-wide leading-4.5 uppercase px-2 pt-4 pb-3"
+          class="text-2xs text-gray-400 font-semibold tracking-wide leading-4.5 uppercase px-3 pt-4 pb-3"
         >
           {{ group.label }}
         </div>
