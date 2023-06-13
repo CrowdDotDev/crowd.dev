@@ -185,13 +185,13 @@ const SearchIcon = h(
 
 const store = useStore();
 const props = defineProps({
-  entityId: {
-    type: String,
-    default: null,
-  },
   entityType: {
     type: String,
     default: null,
+  },
+  entity: {
+    type: Object,
+    default: () => {},
   },
 });
 
@@ -219,12 +219,12 @@ const fetchActivities = async () => {
   };
 
   if (props.entityType === 'member') {
-    filterToApply.memberId = props.entityId;
+    filterToApply.memberId = props.entity.id;
   } else {
-    filterToApply[`${props.entityType}s`] = [props.entityId];
+    filterToApply[`${props.entityType}s`] = [props.entity.id];
   }
 
-  if (props.entityId) {
+  if (props.entity.id) {
     if (query.value && query.value !== '') {
       filterToApply.or = [
         {
@@ -283,6 +283,13 @@ const fetchActivities = async () => {
       orderBy: 'timestamp_DESC',
       limit: limit.value,
       offset: offset.value,
+      segments: props.entity.segments?.map((s) => {
+        if (typeof s === 'string') {
+          return s;
+        }
+
+        return s.id;
+      }) || [],
     },
     {
       headers: {

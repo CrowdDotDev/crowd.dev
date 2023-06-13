@@ -70,6 +70,10 @@ const props = defineProps({
     type: Boolean,
     default: false,
   },
+  subprojectId: {
+    type: String,
+    required: true,
+  },
 });
 const emit = defineEmits('update:modelValue');
 
@@ -98,6 +102,7 @@ const handleSubmit = async () => {
   const report = await ReportService.create({
     name: model.name,
     public: model.public,
+    segments: [props.subprojectId],
   });
   await router.push({
     name: 'reportEdit',

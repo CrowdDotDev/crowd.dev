@@ -12,13 +12,30 @@
       >
         Members
       </el-button>
-      <h4 class="mt-4 mb-6">
-        {{ isEditPage ? 'Edit member' : 'New member' }}
-      </h4>
+      <div class="flex items-center gap-4 mt-4 mb-6">
+        <h4>
+          {{ isEditPage ? 'Edit member' : 'New member' }}
+        </h4>
+        <div
+          v-if="!isEditPage && selectedSegments.project && selectedSegments.subproject"
+          class="badge badge--gray-light badge--xs"
+        >
+          {{ selectedSegments.subproject.name }} ({{ selectedSegments.project.name }})
+        </div>
+      </div>
       <el-container
         v-if="!isPageLoading"
-        class="bg-white rounded-lg shadow shadow-black/15"
+        class="bg-white rounded-lg shadow shadow-black/15 flex-col"
       >
+        <div v-if="!isEditPage" class="grid gap-x-12 grid-cols-3 bg-gray-50 p-6">
+          <div class="col-span-2 col-start-2 relative">
+            <app-lf-sub-projects-list-dropdown
+              :selected-subproject="selectedSegments.subproject"
+              :selected-subproject-parent="selectedSegments.project"
+              @on-change="onChange"
+            />
+          </div>
+        </div>
         <el-main class="p-6">
           <el-form
             ref="formRef"
@@ -30,6 +47,7 @@
             <app-member-form-details
               v-model="formModel"
               :fields-value="computedFields"
+              :segments="segments"
             />
             <el-divider
               class="!mb-6 !mt-8 !border-gray-200"
@@ -123,6 +141,8 @@ import getAttributesModel from '@/shared/attributes/get-attributes-model';
 import getParsedAttributes from '@/shared/attributes/get-parsed-attributes';
 import { useMemberStore } from '@/modules/member/store/pinia';
 import { storeToRefs } from 'pinia';
+import { useLfSegmentsStore } from '@/modules/lf/segments/store';
+import AppLfSubProjectsListDropdown from '@/modules/lf/segments/components/lf-sub-projects-list-dropdown.vue';
 
 const LoaderIcon = h(
   'i',
@@ -143,6 +163,9 @@ const { getMemberCustomAttributes } = useMemberStore();
 const router = useRouter();
 const route = useRoute();
 const store = useStore();
+
+const lsSegmentsStore = useLfSegmentsStore();
+const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);
 
 const memberStore = useMemberStore();
 const { customAttributes } = storeToRefs(memberStore);
@@ -205,6 +228,25 @@ function getInitialModel(r) {
   );
 }
 
+const selectedSegments = computed(() => {
+  let subproject;
+
+  const project = selectedProjectGroup.value.projects.find(
+    (p) => p.subprojects.some((sp) => {
+      if (sp.id === route.query.subprojectId) {
+        subproject = sp;
+        return true;
+      }
+
+      return false;
+    }),
+  );
+
+  return {
+    project,
+    subproject,
+  };
+});
 const record = ref(null);
 const formRef = ref(null);
 const formModel = ref(getInitialModel());
@@ -222,6 +264,14 @@ const computedAttributes = computed(() => Object.values(customAttributes.value))
 // UI Validations
 const isEditPage = computed(() => !!route.params.id);
 const isFormValid = computed(() => formSchema.value.isValidSync(formModel.value));
+
+const segments = computed(() => {
+  if (!isEditPage.value) {
+    return selectedSegments.value.subproject ? [selectedSegments.value.subproject.id] : [];
+  }
+
+  return record.value.segments?.map((s) => s.id) || [];
+});
 
 const hasFormChanged = computed(() => {
   const initialModel = isEditPage.value
@@ -369,6 +419,7 @@ async function onSubmit() {
       {
         id: record.value.id,
         values: data,
+        segments: segments.value,
       },
     );
   } else {
@@ -378,6 +429,7 @@ async function onSubmit() {
       'member/doCreate',
       {
         data,
+        segments: segments.value,
       },
     );
   }
@@ -388,6 +440,15 @@ async function onSubmit() {
     wasFormSubmittedSuccessfuly.value = true;
   }
 }
+
+const onChange = ({ subprojectId }) => {
+  router.replace({
+    name: 'memberCreate',
+    query: {
+      subprojectId,
+    },
+  });
+};
 </script>
 
 <style lang="scss">

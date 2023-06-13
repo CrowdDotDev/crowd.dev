@@ -7,7 +7,10 @@ export class UserService {
 
     const response = await authAxios.put(
       `/tenant/${tenantId}/user`,
-      data,
+      {
+        ...data,
+        excludeSegments: true,
+      },
     );
 
     return response.data;
@@ -16,6 +19,7 @@ export class UserService {
   static async destroy(ids) {
     const params = {
       ids,
+      excludeSegments: true,
     };
 
     const tenantId = AuthCurrentTenant.get();
@@ -35,7 +39,10 @@ export class UserService {
 
     const response = await authAxios.post(
       `/tenant/${tenantId}/user`,
-      data,
+      {
+        ...data,
+        excludeSegments: true,
+      },
     );
 
     return response.data;
@@ -46,6 +53,7 @@ export class UserService {
       data: {
         ...values,
       },
+      excludeSegments: true,
       importHash,
     };
 
@@ -63,6 +71,11 @@ export class UserService {
     const tenantId = AuthCurrentTenant.get();
     const response = await authAxios.get(
       `/tenant/${tenantId}/user/${id}`,
+      {
+        params: {
+          excludeSegments: true,
+        },
+      },
     );
     return response.data;
   }
@@ -73,6 +86,7 @@ export class UserService {
       orderBy,
       limit,
       offset,
+      excludeSegments: true,
     };
 
     const tenantId = AuthCurrentTenant.get();
@@ -91,6 +105,7 @@ export class UserService {
     const params = {
       query,
       limit,
+      excludeSegments: true,
     };
 
     const tenantId = AuthCurrentTenant.get();

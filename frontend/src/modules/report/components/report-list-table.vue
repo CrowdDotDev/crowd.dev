@@ -7,17 +7,7 @@
     />
 
     <div v-else>
-      <!-- Empty state -->
-      <app-empty-state-cta
-        v-if="count === 0"
-        icon="ri-bar-chart-line"
-        title="No reports yet"
-        description="Please create your first report to start analyzing data from your community"
-        cta-btn="Add report"
-        @cta-click="$emit('cta-click')"
-      />
-
-      <div v-else>
+      <div>
         <!-- Sorter -->
         <div class="mb-2">
           <app-pagination-sorter
@@ -126,7 +116,7 @@
 
 <script setup>
 import {
-  defineEmits, ref, watch, computed,
+  ref, watch, computed,
 } from 'vue';
 import { useStore } from 'vuex';
 import { useRouter } from 'vue-router';
@@ -135,7 +125,6 @@ import AppReportListToolbar from './report-list-toolbar.vue';
 
 const store = useStore();
 const router = useRouter();
-defineEmits(['cta-click']);
 
 const table = ref(null);
 

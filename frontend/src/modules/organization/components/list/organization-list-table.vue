@@ -538,7 +538,6 @@ import {
   watch,
   onUnmounted,
 } from 'vue';
-import { useRouter } from 'vue-router';
 import { formatDateToTimeAgo } from '@/utils/date';
 import { formatNumberToCompact } from '@/utils/number';
 import { withHttp, toSentenceCase } from '@/utils/string';
@@ -549,8 +548,7 @@ import AppOrganizationListToolbar from './organization-list-toolbar.vue';
 import AppOrganizationName from '../organization-name.vue';
 import AppOrganizationDropdown from '../organization-dropdown.vue';
 
-const router = useRouter();
-
+const emit = defineEmits(['onAddOrganization']);
 const props = defineProps({
   hasOrganizations: {
     type: Boolean,
@@ -613,9 +611,7 @@ function doChangePaginationPageSize(pageSize) {
 }
 
 const onCtaClick = () => {
-  router.push({
-    name: 'organizationCreate',
-  });
+  emit('onAddOrganization');
 };
 
 const rowClass = ({ row }) => {

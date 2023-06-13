@@ -4,12 +4,15 @@ import AuthCurrentTenant from '@/modules/auth/auth-current-tenant';
 import config from '@/config';
 
 export class ReportService {
-  static async update(id, data) {
+  static async update(id, data, segments) {
     const tenantId = AuthCurrentTenant.get();
 
     const response = await authAxios.put(
       `/tenant/${tenantId}/report/${id}`,
-      data,
+      {
+        ...data,
+        segments,
+      },
     );
 
     return response.data;
@@ -83,24 +86,6 @@ export class ReportService {
 
     const response = await authAxios.get(
       `/tenant/${tenantId}/report`,
-      {
-        params,
-      },
-    );
-
-    return response.data;
-  }
-
-  static async listAutocomplete(query, limit) {
-    const params = {
-      query,
-      limit,
-    };
-
-    const tenantId = AuthCurrentTenant.get();
-
-    const response = await authAxios.get(
-      `/tenant/${tenantId}/report/autocomplete`,
       {
         params,
       },

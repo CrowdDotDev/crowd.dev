@@ -1,12 +1,13 @@
 <template>
   <app-page-wrapper>
     <div class="mb-12">
+      <app-lf-page-header text-class="text-sm text-brand-500 mb-2.5" />
       <div class="flex items-center justify-between">
         <h4>Reports</h4>
         <el-button
-          v-if="!!count"
+          v-if="computedTemplates.length || customReportsCount"
           class="btn btn--primary btn--md"
-          @click="isCreatingReport = true"
+          @click="onAddReport"
         >
           Add report
         </el-button>
@@ -52,14 +53,28 @@
         >
           Custom reports
         </div>
-        <app-report-list-table
-          @cta-click="isCreatingReport = true"
+        <app-report-list-table />
+      </div>
+      <div v-if="!customReportsCount">
+        <app-empty-state-cta
+          icon="ri-bar-chart-line"
+          title="No reports yet"
+          description="Please create your first report to start analyzing data from your community"
+          cta-btn="Add report"
+          @cta-click="onAddReport"
+        />
+        <app-report-create-dialog
+          v-model="isCreatingReport"
+          :subproject-id="selectedSubProject"
         />
       </div>
-      <app-report-create-dialog
-        v-model="isCreatingReport"
-      />
     </div>
+    <app-lf-sub-projects-list-modal
+      v-if="isSubProjectSelectionOpen"
+      v-model="isSubProjectSelectionOpen"
+      title="Add report"
+      @on-submit="onSubProjectSelection"
+    />
   </app-page-wrapper>
 </template>
 
@@ -70,6 +85,8 @@ import AppReportCreateDialog from '@/modules/report/components/report-create-dia
 import { ReportPermissions } from '@/modules/report/report-permissions';
 import AppReportTemplateItem from '@/modules/report/components/templates/report-template-item.vue';
 import templates from '@/modules/report/templates/config';
+import AppLfPageHeader from '@/modules/lf/layout/components/lf-page-header.vue';
+import AppLfSubProjectsListModal from '@/modules/lf/segments/components/lf-sub-projects-list-modal.vue';
 
 export default {
   name: 'AppReportListPage',
@@ -78,11 +95,15 @@ export default {
     AppReportCreateDialog,
     AppReportTemplateItem,
     'app-report-list-table': ReportListTable,
+    AppLfPageHeader,
+    AppLfSubProjectsListModal,
   },
 
   data() {
     return {
+      isSubProjectSelectionOpen: false,
       isCreatingReport: false,
+      selectedSubProject: null,
       templates,
     };
   },
@@ -144,6 +165,14 @@ export default {
     ...mapActions({
       doFetch: 'report/doFetch',
     }),
+    onAddReport() {
+      this.isSubProjectSelectionOpen = true;
+    },
+    onSubProjectSelection(subprojectId) {
+      this.selectedSubProject = subprojectId;
+      this.isSubProjectSelectionOpen = false;
+      this.isCreatingReport = true;
+    },
   },
 };
 </script>

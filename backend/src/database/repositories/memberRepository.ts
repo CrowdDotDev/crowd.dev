@@ -16,7 +16,6 @@ import QueryParser from './filters/queryParser'
 import { JsonColumnInfo, QueryOutput } from './filters/queryTypes'
 import RawQueryParser from './filters/rawQueryParser'
 import SequelizeRepository from './sequelizeRepository'
-import SettingsRepository from './settingsRepository'
 import TenantRepository from './tenantRepository'
 import {
   IActiveMemberData,
@@ -25,6 +24,8 @@ import {
   mapUsernameToIdentities,
   IMemberMergeSuggestion,
 } from './types/memberTypes'
+import SegmentRepository from './segmentRepository'
+import { SegmentData } from '../../types/segmentTypes'
 
 const { Op } = Sequelize
 
@@ -49,6 +50,8 @@ class MemberRepository {
 
     const transaction = SequelizeRepository.getTransaction(options)
 
+    const segment = SequelizeRepository.getStrictlySingleActiveSegment(options)
+
     const record = await options.database.member.create(
       {
         ...lodash.pick(data, [
@@ -66,6 +69,7 @@ class MemberRepository {
         tenantId: tenant.id,
         createdById: currentUser.id,
         updatedById: currentUser.id,
+        segmentId: segment.id,
       },
       {
         transaction,
@@ -98,6 +102,8 @@ class MemberRepository {
       }
     }
 
+    await MemberRepository.includeMemberToSegments(record.id, options)
+
     await record.setActivities(data.activities || [], {
       transaction,
     })
@@ -128,6 +134,53 @@ class MemberRepository {
     return this.findById(record.id, options, true, doPopulateRelations)
   }
 
+  static async includeMemberToSegments(memberId: string, options: IRepositoryOptions) {
+    const seq = SequelizeRepository.getSequelize(options)
+
+    const transaction = SequelizeRepository.getTransaction(options)
+
+    let bulkInsertMemberSegments = `INSERT INTO "memberSegments" ("memberId","segmentId", "tenantId", "createdAt") VALUES `
+    const replacements = {
+      memberId,
+      tenantId: options.currentTenant.id,
+    }
+
+    for (let idx = 0; idx < options.currentSegments.length; idx++) {
+      bulkInsertMemberSegments += ` (:memberId, :segmentId${idx}, :tenantId, now()) `
+
+      replacements[`segmentId${idx}`] = options.currentSegments[idx].id
+
+      if (idx !== options.currentSegments.length - 1) {
+        bulkInsertMemberSegments += `,`
+      }
+    }
+
+    bulkInsertMemberSegments += ` ON CONFLICT DO NOTHING`
+
+    await seq.query(bulkInsertMemberSegments, {
+      replacements,
+      type: QueryTypes.INSERT,
+      transaction,
+    })
+  }
+
+  static async excludeMembersFromSegments(memberIds: string[], options: IRepositoryOptions) {
+    const seq = SequelizeRepository.getSequelize(options)
+
+    const transaction = SequelizeRepository.getTransaction(options)
+
+    const bulkDeleteMemberSegments = `DELETE FROM "memberSegments" WHERE "memberId" in (:memberIds) and "segmentId" in (:segmentIds);`
+
+    await seq.query(bulkDeleteMemberSegments, {
+      replacements: {
+        memberIds,
+        segmentIds: SegmentRepository.getSegmentIds(options),
+      },
+      type: QueryTypes.DELETE,
+      transaction,
+    })
+  }
+
   static async findSampleDataMemberIds(options: IRepositoryOptions) {
     const transaction = SequelizeRepository.getTransaction(options)
     const currentTenant = SequelizeRepository.getCurrentTenant(options)
@@ -153,6 +206,7 @@ class MemberRepository {
     options: IRepositoryOptions,
   ) {
     const currentTenant = SequelizeRepository.getCurrentTenant(options)
+    const segmentIds = SegmentRepository.getSegmentIds(options)
 
     const mems = await options.database.sequelize.query(
       `SELECT 
@@ -168,11 +222,11 @@ class MemberRepository {
             mem."joinedAt", 
             COUNT(*) OVER() AS total_count,
             mtm."similarity"
-          FROM 
-            members mem 
-            INNER JOIN "memberToMerge" mtm ON mem.id = mtm."memberId" 
-          WHERE 
-            mem."tenantId" = :tenantId
+          FROM members mem
+          INNER JOIN "memberToMerge" mtm ON mem.id = mtm."memberId"
+          JOIN "memberSegments" ms ON ms."memberId" = mem.id
+          WHERE mem."tenantId" = :tenantId
+            AND ms."segmentId" IN (:segmentIds)
         ) AS "membersToMerge" 
       ORDER BY 
         "membersToMerge"."joinedAt" DESC 
@@ -181,6 +235,7 @@ class MemberRepository {
       {
         replacements: {
           tenantId: currentTenant.id,
+          segmentIds,
           limit,
           offset,
         },
@@ -398,7 +453,13 @@ class MemberRepository {
     const currentTenant = SequelizeRepository.getCurrentTenant(options)
 
     const query = `
-    with identities as (select mi."memberId",
+    with segment_ids as (
+      select "memberId", array_agg("segmentId") as "segmentIds" from
+      "memberSegments"
+      where "tenantId" = :tenantId
+      group by "memberId"
+    ),
+    identities as (select mi."memberId",
                            array_agg(distinct mi.platform)             as identities,
                            jsonb_object_agg(mi.platform, mi.usernames) as username
                     from (select "memberId",
@@ -430,10 +491,12 @@ class MemberRepository {
             m."tenantId",
             m."createdById",
             m."updatedById",
-            i.username
+            i.username,
+            si."segmentIds" as segments
       from members m
               inner join "memberIdentities" mi on m.id = mi."memberId"
               inner join identities i on i."memberId" = m.id
+              inner join segment_ids si on si."memberId" = m.id
       where mi."tenantId" = :tenantId
         and mi.platform = :platform
         and mi.username in (:usernames)
@@ -464,7 +527,7 @@ class MemberRepository {
       return null
     }
     if (doPopulateRelations) {
-      return this._populateRelations(records[0], options)
+      return this.findById(records[0].id, options)
     }
 
     const plainMember = records[0].get({ plain: true })
@@ -580,6 +643,11 @@ class MemberRepository {
         transaction,
       })
     }
+
+    if (data.segments) {
+      await MemberRepository.includeMemberToSegments(record.id, { ...options, transaction })
+    }
+
     const seq = SequelizeRepository.getSequelize(options)
 
     if (data.username) {
@@ -657,24 +725,30 @@ class MemberRepository {
 
     const currentTenant = SequelizeRepository.getCurrentTenant(options)
 
-    const record = await options.database.member.findOne({
-      where: {
-        id,
-        tenantId: currentTenant.id,
-      },
-      transaction,
-    })
+    await MemberRepository.excludeMembersFromSegments([id], { ...options, transaction })
+    const member = await this.findById(id, options, true, false)
 
-    if (!record) {
-      throw new Error404()
+    // if member doesn't belong to any other segment anymore, remove it
+
+    if (member.segments.length === 0) {
+      const record = await options.database.member.findOne({
+        where: {
+          id,
+          tenantId: currentTenant.id,
+        },
+        transaction,
+      })
+
+      if (!record) {
+        throw new Error404()
+      }
+
+      await record.destroy({
+        force,
+        transaction,
+      })
+      await this._createAuditLog(AuditLogRepository.DELETE, record, record, options)
     }
-
-    await record.destroy({
-      force,
-      transaction,
-    })
-
-    await this._createAuditLog(AuditLogRepository.DELETE, record, record, options)
   }
 
   static async destroyBulk(ids, options: IRepositoryOptions, force = false) {
@@ -682,6 +756,7 @@ class MemberRepository {
 
     const currentTenant = SequelizeRepository.getCurrentTenant(options)
 
+    await MemberRepository.excludeMembersFromSegments(ids, { ...options, transaction })
     await options.database.member.destroy({
       where: {
         id: ids,
@@ -690,6 +765,81 @@ class MemberRepository {
       force,
       transaction,
     })
+  }
+
+  /*
+  static async getSegments(
+    memberIds: string[],
+    options: IRepositoryOptions,
+  ): Promise<Map<string, SegmentData[]>> {
+    const results = new Map<string, SegmentData[]>()
+
+    const transaction = SequelizeRepository.getTransaction(options)
+    const seq = SequelizeRepository.getSequelize(options)
+
+    const query = `
+      select "memberId", "segmentId", "tenantId", "createdAt" from "memberSegments" where "memberId" in (:memberIds) order by "createdAt" asc;
+    `
+
+    const data = await seq.query(query, {
+      replacements: {
+        memberIds,
+      },
+      type: QueryTypes.SELECT,
+      transaction,
+    })
+
+    for (const id of memberIds) {
+      results.set(id, [])
+    }
+
+    for (const res of data as any[]) {
+      const { memberId, segmentId, username, sourceId, integrationId, createdAt } = res
+      const identities = results.get(memberId)
+
+      identities.push({
+        platform,
+        username,
+        sourceId,
+        integrationId,
+        createdAt,
+      })
+    }
+
+
+    // TODO: complete
+
+    return results
+  }
+  */
+
+  static async getMemberSegments(
+    memberId: string,
+    options: IRepositoryOptions,
+  ): Promise<SegmentData[]> {
+    const transaction = SequelizeRepository.getTransaction(options)
+    const seq = SequelizeRepository.getSequelize(options)
+    const segmentRepository = new SegmentRepository(options)
+
+    const query = `
+        SELECT "segmentId"
+        FROM "memberSegments"
+        WHERE "memberId" = :memberId
+        ORDER BY "createdAt";
+    `
+
+    const data = await seq.query(query, {
+      replacements: {
+        memberId,
+      },
+      type: QueryTypes.SELECT,
+      transaction,
+    })
+
+    const segmentIds = (data as any[]).map((item) => item.segmentId)
+    const segments = await segmentRepository.findInIds(segmentIds)
+
+    return segments
   }
 
   static async getIdentities(
@@ -748,6 +898,14 @@ class MemberRepository {
         model: options.database.organization,
         attributes: ['id', 'name'],
         as: 'organizations',
+        order: [['createdAt', 'ASC']],
+      },
+      {
+        model: options.database.segment,
+        as: 'segments',
+        through: {
+          attributes: [],
+        },
       },
     ]
 
@@ -840,14 +998,16 @@ class MemberRepository {
     options: IRepositoryOptions,
   ): Promise<PageData<IActiveMemberData>> {
     const tenant = SequelizeRepository.getCurrentTenant(options)
+    const segmentIds = SegmentRepository.getSegmentIds(options)
 
     const transaction = SequelizeRepository.getTransaction(options)
 
     const seq = SequelizeRepository.getSequelize(options)
 
-    const conditions = ['m."tenantId" = :tenantId']
+    const conditions = ['m."tenantId" = :tenantId', 'ms."segmentId" in (:segmentIds)']
     const parameters: any = {
       tenantId: tenant.id,
+      segmentIds,
       periodStart: filter.activityTimestampFrom,
       periodEnd: filter.activityTimestampTo,
     }
@@ -901,51 +1061,69 @@ class MemberRepository {
 
     const limitCondition = `limit ${limit} offset ${offset}`
     const query = `
-        with orgs as (select mo."memberId", json_agg(row_to_json(o.*)) as organizations
-                      from "memberOrganizations" mo
-                               inner join organizations o on mo."organizationId" = o.id
-                      group by mo."memberId"),
-             activity_data as (select "memberId",
-                                      count(id)                       as "activityCount",
-                                      count(distinct timestamp::date) as "activeDaysCount"
-                               from activities
-                               where ${activityConditionsString} and 
-                                     timestamp >= :periodStart and 
-                                     timestamp < :periodEnd
-                               group by "memberId"),
-              identities as (select mi."memberId",
-                                        array_agg(distinct mi.platform)             as identities,
-                                        jsonb_object_agg(mi.platform, mi.usernames) as username
-                                  from (select "memberId",
-                                              platform,
-                                              array_agg(username) as usernames
-                                        from (select "memberId",
-                                                    platform,
-                                                    username,
-                                                    "createdAt",
-                                                    row_number() over (partition by "memberId", platform order by "createdAt" desc) =
-                                                    1 as is_latest
-                                              from "memberIdentities" where "tenantId" = :tenantId) sub
-                                        where is_latest
-                                        group by "memberId", platform) mi
-                                  group by mi."memberId")
-          select m.id,
-             m."displayName",
-             i.username,
-             i.identities,
-             m.attributes,
-             ad."activityCount",
-             ad."activeDaysCount",
-             m."joinedAt",
-             coalesce(o.organizations, json_build_array()) as organizations,
-             count(*) over ()                  as "totalCount"
-      from members m
-               inner join activity_data ad on ad."memberId" = m.id
-               inner join identities i on i."memberId" = m.id
-               left join orgs o on o."memberId" = m.id
-      where ${conditionsString}
-      order by ${orderString}
-      ${limitCondition};
+        WITH
+            orgs AS (
+                SELECT mo."memberId", JSON_AGG(ROW_TO_JSON(o.*)) AS organizations
+                FROM "memberOrganizations" mo
+                INNER JOIN organizations o ON mo."organizationId" = o.id
+                GROUP BY mo."memberId"
+            ),
+            activity_data AS (
+                SELECT
+                    "memberId",
+                    COUNT(id) AS "activityCount",
+                    COUNT(DISTINCT timestamp::DATE) AS "activeDaysCount"
+                FROM activities
+                WHERE ${activityConditionsString}
+                  AND timestamp >= :periodStart
+                  AND timestamp < :periodEnd
+                GROUP BY "memberId"
+            ),
+            identities AS (
+                SELECT
+                    mi."memberId",
+                    ARRAY_AGG(DISTINCT mi.platform) AS identities,
+                    JSONB_OBJECT_AGG(mi.platform, mi.usernames) AS username
+                FROM (
+                    SELECT
+                        "memberId",
+                        platform,
+                        ARRAY_AGG(username) AS usernames
+                    FROM (
+                        SELECT
+                            "memberId",
+                            platform,
+                            username,
+                            "createdAt",
+                            ROW_NUMBER() OVER (PARTITION BY "memberId", platform ORDER BY "createdAt" DESC) =
+                            1 AS is_latest
+                        FROM "memberIdentities"
+                        WHERE "tenantId" = :tenantId
+                    ) sub
+                    WHERE is_latest
+                    GROUP BY "memberId", platform
+                ) mi
+                GROUP BY mi."memberId"
+            )
+        SELECT
+            m.id,
+            m."displayName",
+            i.username,
+            i.identities,
+            m.attributes,
+            ad."activityCount",
+            ad."activeDaysCount",
+            m."joinedAt",
+            COALESCE(o.organizations, JSON_BUILD_ARRAY()) AS organizations,
+            COUNT(*) OVER () AS "totalCount"
+        FROM members m
+        INNER JOIN activity_data ad ON ad."memberId" = m.id
+        INNER JOIN identities i ON i."memberId" = m.id
+        LEFT JOIN orgs o ON o."memberId" = m.id
+        JOIN "memberSegments" ms ON ms."memberId" = m.id
+        WHERE ${conditionsString}
+        ORDER BY ${orderString}
+                     ${limitCondition};
     `
 
     options.log.debug(
@@ -1029,10 +1207,12 @@ class MemberRepository {
     options: IRepositoryOptions,
   ): Promise<PageData<any>> {
     const tenant = SequelizeRepository.getCurrentTenant(options)
+    const segmentIds = SegmentRepository.getSegmentIds(options)
     const seq = SequelizeRepository.getSequelize(options)
 
     const params: any = {
       tenantId: tenant.id,
+      segmentIds,
       limit,
       offset,
     }
@@ -1111,117 +1291,175 @@ class MemberRepository {
     }
 
     const query = `
-    with to_merge_data as (select mtm."memberId", string_agg(distinct mtm."toMergeId"::text, ',') as to_merge_ids
-                       from "memberToMerge" mtm
-                                inner join members m on mtm."memberId" = m.id
-                                inner join members m2 on mtm."toMergeId" = m2.id
-                       where m."tenantId" = :tenantId
-                         and m2."deletedAt" is null
-                       group by mtm."memberId"),
-     no_merge_data as (select mnm."memberId", string_agg(distinct mnm."noMergeId"::text, ',') as no_merge_ids
-                       from "memberNoMerge" mnm
-                                inner join members m on mnm."memberId" = m.id
-                                inner join members m2 on mnm."noMergeId" = m2.id
-                       where m."tenantId" = :tenantId
-                         and m2."deletedAt" is null
-                       group by mnm."memberId"),
-     member_tags as (select mt."memberId",
-                            json_agg(
-                                    json_build_object(
-                                            'id', t.id,
-                                            'name', t.name
-                                        )
-                                ) as all_tags,
-                            jsonb_agg(t.id) as all_ids
-                     from "memberTags" mt
-                              inner join members m on mt."memberId" = m.id
-                              inner join tags t on mt."tagId" = t.id
-                     where m."tenantId" = :tenantId
-                       and m."deletedAt" is null
-                       and t."tenantId" = :tenantId
-                       and t."deletedAt" is null
-                     group by mt."memberId"),
-     member_organizations as (select mo."memberId",
-                                     json_agg(
-                                             row_to_json(o.*)
-                                         ) as all_organizations,
-                                     jsonb_agg(o.id) as all_ids
-                              from "memberOrganizations" mo
-                                       inner join members m on mo."memberId" = m.id
-                                       inner join organizations o on mo."organizationId" = o.id
-                              where m."tenantId" = :tenantId
-                                and m."deletedAt" is null
-                                and o."tenantId" = :tenantId
-                                and o."deletedAt" is null
-                              group by mo."memberId")
-select m.id,
-       m."displayName",
-       m.attributes,
-       m.emails,
-       m."tenantId",
-       m.score,
-       m."lastEnriched",
-       m.contributions,
-       m."joinedAt",
-       m."importHash",
-       m."createdAt",
-       m."updatedAt",
-       m.reach,
-       tmd.to_merge_ids                            as "toMergeIds",
-       nmd.no_merge_ids                            as "noMergeIds",
-       aggs.username,
-       aggs.identities,
-       aggs."activeOn",
-       aggs."activityCount",
-       aggs."activityTypes",
-       aggs."activeDaysCount",
-       aggs."lastActive",
-       aggs."averageSentiment",
-       coalesce(mt.all_tags, json_build_array())   as tags,
-       coalesce(mo.all_organizations, json_build_array()) as organizations,
-       coalesce(jsonb_array_length(m.contributions), 0) as "numberOfOpenSourceContributions"
-from members m
-         inner join "memberActivityAggregatesMVs" aggs on aggs.id = m.id
-         left join to_merge_data tmd on m.id = tmd."memberId"
-         left join no_merge_data nmd on m.id = nmd."memberId"
-         left join member_tags mt on m.id = mt."memberId"
-         left join member_organizations mo on m.id = mo."memberId"
-where m."deletedAt" is null
-  and m."tenantId" = :tenantId
-  and ${filterString}
-order by ${orderByString}
-limit :limit offset :offset;
+        WITH
+            to_merge_data AS (
+                SELECT mtm."memberId", STRING_AGG(DISTINCT mtm."toMergeId"::TEXT, ',') AS to_merge_ids
+                FROM "memberToMerge" mtm
+                INNER JOIN members m ON mtm."memberId" = m.id
+                INNER JOIN members m2 ON mtm."toMergeId" = m2.id
+                JOIN "memberSegments" ms ON m.id = ms."memberId"
+                JOIN "memberSegments" ms2 ON m2.id = ms2."memberId"
+                WHERE m."tenantId" = :tenantId
+                  AND m2."deletedAt" IS NULL
+                  AND ms."segmentId" IN (:segmentIds)
+                  AND ms2."segmentId" IN (:segmentIds)
+                GROUP BY mtm."memberId"
+            ),
+            no_merge_data AS (
+                SELECT mnm."memberId", STRING_AGG(DISTINCT mnm."noMergeId"::TEXT, ',') AS no_merge_ids
+                FROM "memberNoMerge" mnm
+                INNER JOIN members m ON mnm."memberId" = m.id
+                INNER JOIN members m2 ON mnm."noMergeId" = m2.id
+                JOIN "memberSegments" ms ON m.id = ms."memberId"
+                JOIN "memberSegments" ms2 ON m2.id = ms2."memberId"
+                WHERE m."tenantId" = :tenantId
+                  AND m2."deletedAt" IS NULL
+                  AND ms."segmentId" IN (:segmentIds)
+                  AND ms2."segmentId" IN (:segmentIds)
+                GROUP BY mnm."memberId"
+            ),
+            member_tags AS (
+                SELECT
+                    mt."memberId",
+                    JSON_AGG(
+                            JSON_BUILD_OBJECT(
+                                    'id', t.id,
+                                    'name', t.name
+                                )
+                        ) AS all_tags,
+                    JSONB_AGG(t.id) AS all_ids
+                FROM "memberTags" mt
+                INNER JOIN members m ON mt."memberId" = m.id
+                JOIN "memberSegments" ms ON ms."memberId" = m.id
+                INNER JOIN tags t ON mt."tagId" = t.id
+                WHERE m."tenantId" = :tenantId
+                  AND m."deletedAt" IS NULL
+                  AND ms."segmentId" IN (:segmentIds)
+                  AND t."tenantId" = :tenantId
+                  AND t."deletedAt" IS NULL
+                  AND t."segmentId" IN (:segmentIds)
+                GROUP BY mt."memberId"
+            ),
+            member_organizations AS (
+                SELECT
+                    mo."memberId",
+                    JSON_AGG(
+                            ROW_TO_JSON(o.*)
+                        ) AS all_organizations,
+                    JSONB_AGG(o.id) AS all_ids
+                FROM "memberOrganizations" mo
+                INNER JOIN members m ON mo."memberId" = m.id
+                INNER JOIN organizations o ON mo."organizationId" = o.id
+                JOIN "memberSegments" ms ON ms."memberId" = m.id
+                JOIN "organizationSegments" os ON o.id = os."organizationId"
+                WHERE m."tenantId" = :tenantId
+                  AND m."deletedAt" IS NULL
+                  AND ms."segmentId" IN (:segmentIds)
+                  AND o."tenantId" = :tenantId
+                  AND o."deletedAt" IS NULL
+                  AND os."segmentId" IN (:segmentIds)
+                GROUP BY mo."memberId"
+            ),
+            aggs AS (
+                SELECT
+                    id,
+                    MAX("lastActive") AS "lastActive",
+                    ARRAY(SELECT DISTINCT UNNEST(ARRAY_AGG(identities))) AS identities,
+                    jsonb_merge_agg(username) AS username,
+                    SUM("activityCount") AS "activityCount",
+                    ARRAY(SELECT DISTINCT UNNEST(array_accum("activityTypes"))) AS "activityTypes",
+                    ARRAY(SELECT DISTINCT UNNEST(array_accum("activeOn"))) AS "activeOn",
+                    SUM("activeDaysCount") AS "activeDaysCount",
+                    ROUND(SUM("averageSentiment" * "activityCount") / SUM("activityCount"), 2) AS "averageSentiment"
+                FROM "memberActivityAggregatesMVs"
+                WHERE "segmentId" IN (:segmentIds)
+                GROUP BY id
+            )
+        SELECT
+            m.id,
+            m."displayName",
+            m.attributes,
+            m.emails,
+            m."tenantId",
+            m.score,
+            m."lastEnriched",
+            m.contributions,
+            m."joinedAt",
+            m."importHash",
+            m."createdAt",
+            m."updatedAt",
+            m.reach,
+            tmd.to_merge_ids AS "toMergeIds",
+            nmd.no_merge_ids AS "noMergeIds",
+            aggs.username,
+            aggs.identities,
+            aggs."activeOn",
+            aggs."activityCount",
+            aggs."activityTypes",
+            aggs."activeDaysCount",
+            aggs."lastActive",
+            aggs."averageSentiment",
+            COALESCE(mt.all_tags, JSON_BUILD_ARRAY()) AS tags,
+            COALESCE(mo.all_organizations, JSON_BUILD_ARRAY()) AS organizations,
+            COALESCE(JSONB_ARRAY_LENGTH(m.contributions), 0) AS "numberOfOpenSourceContributions"
+        FROM members m
+        INNER JOIN aggs ON aggs.id = m.id
+        LEFT JOIN to_merge_data tmd ON m.id = tmd."memberId"
+        LEFT JOIN no_merge_data nmd ON m.id = nmd."memberId"
+        LEFT JOIN member_tags mt ON m.id = mt."memberId"
+        LEFT JOIN member_organizations mo ON m.id = mo."memberId"
+        WHERE m."deletedAt" IS NULL
+          AND m."tenantId" = :tenantId
+          AND ${filterString}
+        ORDER BY ${orderByString}
+        LIMIT :limit OFFSET :offset;
     `
 
     const countQuery = `
-with member_tags as (select mt."memberId",
-                            jsonb_agg(t.id) as all_ids
-                     from "memberTags" mt
-                              inner join members m on mt."memberId" = m.id
-                              inner join tags t on mt."tagId" = t.id
-                     where m."tenantId" = :tenantId
-                       and m."deletedAt" is null
-                       and t."tenantId" = :tenantId
-                       and t."deletedAt" is null
-                     group by mt."memberId"),
-    member_organizations as (select mo."memberId",
-                     jsonb_agg(o.id) as all_ids
-              from "memberOrganizations" mo
-                       inner join members m on mo."memberId" = m.id
-                       inner join organizations o on mo."organizationId" = o.id
-              where m."tenantId" = :tenantId
-                and m."deletedAt" is null
-                and o."tenantId" = :tenantId
-                and o."deletedAt" is null
-              group by mo."memberId")    
-select count(m.id) as "totalCount"
-from members m
-         inner join "memberActivityAggregatesMVs" aggs on aggs.id = m.id
-         left join member_tags mt on m.id = mt."memberId"
-         left join member_organizations mo on m.id = mo."memberId"
-where m."deletedAt" is null
-  and m."tenantId" = :tenantId
-  and ${filterString};
+        WITH
+            member_tags AS (
+                SELECT
+                    mt."memberId",
+                    JSONB_AGG(t.id) AS all_ids
+                FROM "memberTags" mt
+                INNER JOIN members m ON mt."memberId" = m.id
+                JOIN "memberSegments" ms ON ms."memberId" = m.id
+                INNER JOIN tags t ON mt."tagId" = t.id
+                WHERE m."tenantId" = :tenantId
+                  AND m."deletedAt" IS NULL
+                  AND ms."segmentId" IN (:segmentIds)
+                  AND t."tenantId" = :tenantId
+                  AND t."deletedAt" IS NULL
+                  AND t."segmentId" IN (:segmentIds)
+                GROUP BY mt."memberId"
+            ),
+            member_organizations AS (
+                SELECT
+                    mo."memberId",
+                    JSONB_AGG(o.id) AS all_ids
+                FROM "memberOrganizations" mo
+                INNER JOIN members m ON mo."memberId" = m.id
+                INNER JOIN organizations o ON mo."organizationId" = o.id
+                JOIN "memberSegments" ms ON ms."memberId" = m.id
+                JOIN "organizationSegments" os ON o.id = os."organizationId"
+                WHERE m."tenantId" = :tenantId
+                  AND m."deletedAt" IS NULL
+                  AND ms."segmentId" IN (:segmentIds)
+                  AND o."tenantId" = :tenantId
+                  AND o."deletedAt" IS NULL
+                  AND os."segmentId" IN (:segmentIds)
+                GROUP BY mo."memberId"
+            )
+        SELECT COUNT(m.id) AS "totalCount"
+        FROM members m
+        JOIN "memberSegments" ms ON ms."memberId" = m.id
+        INNER JOIN "memberActivityAggregatesMVs" aggs ON aggs.id = m.id
+        LEFT JOIN member_tags mt ON m.id = mt."memberId"
+        LEFT JOIN member_organizations mo ON m.id = mo."memberId"
+        WHERE m."deletedAt" IS NULL
+          AND m."tenantId" = :tenantId
+          AND ms."segmentId" IN (:segmentIds)
+          AND ${filterString};
     `
 
     if (countOnly) {
@@ -1254,16 +1492,22 @@ where m."deletedAt" is null
     if (memberIds.length > 0) {
       const lastActivities = await seq.query(
         `
-          with raw_data as (
-              select *, row_number() over (partition by "memberId" order by timestamp desc) as rn from activities
-              where "tenantId" = :tenantId and "memberId" in (:memberIds)
-          )
-          select * from raw_data
-          where rn = 1;
-      `,
+            WITH
+                raw_data AS (
+                    SELECT *, ROW_NUMBER() OVER (PARTITION BY "memberId" ORDER BY timestamp DESC) AS rn
+                    FROM activities
+                    WHERE "tenantId" = :tenantId
+                      AND "memberId" IN (:memberIds)
+                      AND "segmentId" IN (:segmentIds)
+                )
+            SELECT *
+            FROM raw_data
+            WHERE rn = 1;
+        `,
         {
           replacements: {
             tenantId: tenant.id,
+            segmentIds,
             memberIds,
           },
           type: QueryTypes.SELECT,
@@ -1276,7 +1520,7 @@ where m."deletedAt" is null
         if (r.lastActivity) {
           r.lastActivity.display = ActivityDisplayService.getDisplayOptions(
             r.lastActivity,
-            SettingsRepository.getActivityTypes(options),
+            SegmentRepository.getActivityTypes(options),
             [ActivityDisplayVariant.SHORT, ActivityDisplayVariant.CHANNEL],
           )
         }
@@ -1673,6 +1917,15 @@ where m."deletedAt" is null
               to: 'organizationId',
             },
           },
+          segments: {
+            table: 'members',
+            model: 'member',
+            relationTable: {
+              name: 'memberSegments',
+              from: 'memberId',
+              to: 'segmentId',
+            },
+          },
         },
         // TODO: member identitites FIX
         // customOperators: {
@@ -1886,6 +2139,13 @@ where m."deletedAt" is null
           attributes: ['id', 'name'],
           as: 'organizations',
         },
+        {
+          model: options.database.segment,
+          as: 'segments',
+          where: {
+            id: SegmentRepository.getSegmentIds(options),
+          },
+        },
       ],
     })
 
@@ -1911,13 +2171,17 @@ where m."deletedAt" is null
 
     const tenant = SequelizeRepository.getCurrentTenant(options)
 
+    const segmentIds = SegmentRepository.getSegmentIds(options)
+
     const query = `
     -- Define a CTE named "new_members" to get members created in the last 2 hours with a specific tenantId
     WITH new_members AS (
-      SELECT id, "tenantId"
-      FROM members
-      WHERE "createdAt" >= now() - INTERVAL :numberOfHours
-      AND "tenantId" = :tenantId
+      SELECT m.id, m."tenantId"
+      FROM members m
+      JOIN "memberSegments" ms ON ms."memberId" = m.id
+      WHERE m."createdAt" >= now() - INTERVAL :numberOfHours
+      AND m."tenantId" = :tenantId
+      AND ms."segmentId" IN (:segmentIds)
     ),
     -- Define a CTE named "identity_join" to find members with the same usernames across different platforms
     identity_join AS (
@@ -1968,6 +2232,7 @@ where m."deletedAt" is null
     const suggestions = await seq.query(query, {
       replacements: {
         tenantId: tenant.id,
+        segmentIds,
         numberOfHours: `${numberOfHours} hours`,
       },
       type: QueryTypes.SELECT,
@@ -1991,13 +2256,17 @@ where m."deletedAt" is null
 
     const tenant = SequelizeRepository.getCurrentTenant(options)
 
+    const segmentIds = SegmentRepository.getSegmentIds(options)
+
     const query = `
     -- Define a CTE named "new_members" to get members created in the last 7 days with a specific tenantId and their emails
     WITH new_members AS (
-      SELECT id, "tenantId", emails
-      FROM members
-      WHERE "createdAt" >= now() - INTERVAL :numberOfHours
-      AND "tenantId" = :tenantId
+      SELECT m.id, m."tenantId", m.emails
+      FROM members m
+      JOIN "memberSegments" ms ON ms."memberId" = m.id
+      WHERE m."createdAt" >= now() - INTERVAL :numberOfHours
+      AND m."tenantId" = :tenantId
+      AND ms."segmentId" IN (:segmentIds)
     ),
     -- Define a CTE named "email_join" to find overlapping emails across different members
     email_join AS (
@@ -2008,7 +2277,8 @@ where m."deletedAt" is null
         m2.emails AS m2_emails     -- Member 2 emails
       FROM new_members m1
       -- Join the members table on the tenantId field and ensuring the IDs are different
-      JOIN members m2 ON m1."tenantId" = m2."tenantId" AND m1.id <> m2.id
+      JOIN members m2 ON m1."tenantId" = m2."tenantId"
+        AND m1.id <> m2.id
       -- Filter for overlapping emails
       WHERE m1.emails && m2.emails
       -- Exclude pairs that are already in the memberToMerge table
@@ -2043,6 +2313,7 @@ where m."deletedAt" is null
     const suggestions = await seq.query(query, {
       replacements: {
         tenantId: tenant.id,
+        segmentIds,
         numberOfHours: `${numberOfHours} hours`,
       },
       type: QueryTypes.SELECT,
@@ -2064,13 +2335,17 @@ where m."deletedAt" is null
 
     const tenant = SequelizeRepository.getCurrentTenant(options)
 
+    const segmentIds = SegmentRepository.getSegmentIds(options)
+
     const query = `
     -- Define a CTE named "new_members" to get members created in the last 7 days with a specific tenantId
     WITH new_members AS (
-      SELECT *
-      FROM members
-      WHERE "createdAt" >= now() - INTERVAL :numberOfHours
-      AND "tenantId" = :tenantId
+      SELECT m.*
+      FROM members m
+      JOIN "memberSegments" ms ON ms."memberId" = m.id
+      WHERE m."createdAt" >= now() - INTERVAL :numberOfHours
+      AND m."tenantId" = :tenantId
+      AND ms."segmentId" IN (:segmentIds)
       LIMIT 1000
     ),
     -- Define a CTE named "identity_join" to find similar identities across platforms
@@ -2128,6 +2403,7 @@ where m."deletedAt" is null
     const suggestions = await seq.query(query, {
       replacements: {
         tenantId: tenant.id,
+        segmentIds,
         numberOfHours: `${numberOfHours} hours`,
       },
       type: QueryTypes.SELECT,
@@ -2345,16 +2621,19 @@ where m."deletedAt" is null
 
     output.tags = await record.getTags({
       transaction,
+      order: [['createdAt', 'ASC']],
       joinTableAttributes: [],
     })
 
     output.organizations = await record.getOrganizations({
       transaction,
+      order: [['createdAt', 'ASC']],
       joinTableAttributes: [],
     })
 
     output.tasks = await record.getTasks({
       transaction,
+      order: [['createdAt', 'ASC']],
       joinTableAttributes: [],
     })
 

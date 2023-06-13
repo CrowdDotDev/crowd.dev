@@ -18,12 +18,12 @@ export default (moduleName, moduleService = null) => {
             activeView,
           });
 
-          const response = await moduleService.list(
-            activeView.filter,
-            getters.orderBy,
-            getters.limit,
-            getters.offset,
-          );
+          const response = await moduleService.list({
+            customFilters: activeView.filter,
+            orderBy: getters.orderBy,
+            limit: getters.limit,
+            offset: getters.offset,
+          });
 
           commit('FETCH_SUCCESS', {
             rows: response.rows,
@@ -110,6 +110,7 @@ export default (moduleName, moduleService = null) => {
           commit('CREATE_STARTED');
           const response = await moduleService.create(
             values,
+            values.segments,
           );
           commit('CREATE_SUCCESS', response);
 
@@ -131,7 +132,7 @@ export default (moduleName, moduleService = null) => {
       },
 
       async doUpdate({ commit }, {
-        id, values, successMessage, errorMessage,
+        id, values, successMessage, errorMessage, segments,
       }) {
         try {
           commit('UPDATE_STARTED');
@@ -139,6 +140,7 @@ export default (moduleName, moduleService = null) => {
           const response = await moduleService.update(
             id,
             values,
+            segments,
           );
 
           commit('UPDATE_SUCCESS', response);

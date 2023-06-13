@@ -96,6 +96,7 @@
           >
             <app-widget-cube-renderer
               class="panel"
+              :subproject-id="modelValue.segmentId"
               :editable="editable"
               :widget="widgets[item.i]"
               :chart-options="{

@@ -5,6 +5,7 @@ import Sequelize from 'sequelize'
 import { IRepositoryOptions } from '../IRepositoryOptions'
 import SequelizeRepository from '../sequelizeRepository'
 import { QueryInput, ManyToManyType } from './queryTypes'
+import SegmentRepository from '../segmentRepository'
 
 const { Op } = Sequelize
 
@@ -27,6 +28,8 @@ class QueryParser {
   private customOperators: any
 
   private exportMode: boolean
+
+  private withSegments: boolean
 
   static maxPageSize = 200
 
@@ -88,6 +91,7 @@ class QueryParser {
       manyToMany = {} as ManyToManyType,
       customOperators = {} as any,
       exportMode = false,
+      withSegments = true,
     },
     options: IRepositoryOptions,
   ) {
@@ -101,6 +105,7 @@ class QueryParser {
     this.manyToMany = manyToMany
     this.customOperators = customOperators
     this.exportMode = exportMode
+    this.withSegments = withSegments
   }
 
   /**
@@ -407,6 +412,21 @@ class QueryParser {
       },
       limit: QueryParser.defaultPageSize,
       offset: 0,
+    }
+
+    if (this.withSegments && this.manyToMany.segments) {
+      const segmentsQuery = this.replaceWithManyToMany(
+        {
+          segments: SegmentRepository.getSegmentIds(this.options),
+        },
+        'segments',
+      )
+
+      dbQuery.where = {
+        [Op.and]: [dbQuery.where, segmentsQuery],
+      }
+    } else if (this.withSegments) {
+      dbQuery.where.segmentId = SegmentRepository.getSegmentIds(this.options)
     }
 
     if (fields) {

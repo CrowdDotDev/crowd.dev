@@ -53,6 +53,7 @@
       <!-- Filters -->
       <app-report-template-filters
         v-model:platform="platform"
+        v-model:segments="segments"
         v-model:team-members="teamMembers"
         v-model:team-activities="teamActivities"
         :show-platform="currentTemplate.filters.platform"
@@ -81,6 +82,7 @@
               platform,
               teamMembers,
               teamActivities,
+              segments,
             }"
           />
         </div>
@@ -139,6 +141,7 @@ const initialPlatformValue = {
 const platform = ref(initialPlatformValue);
 const teamMembers = ref(false);
 const teamActivities = ref(false);
+const segments = ref([]);
 
 const currentTemplate = computed(() => templates.find((t) => t.config.nameAsId === report.value?.name)?.config);
 

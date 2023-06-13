@@ -8,6 +8,7 @@ import Error404 from '../../errors/Error404'
 import { IRepositoryOptions } from './IRepositoryOptions'
 import QueryParser from './filters/queryParser'
 import { QueryOutput } from './filters/queryTypes'
+import SegmentRepository from './segmentRepository'
 
 const { Op } = Sequelize
 const log: boolean = false
@@ -19,6 +20,8 @@ class IntegrationRepository {
     const tenant = SequelizeRepository.getCurrentTenant(options)
 
     const transaction = SequelizeRepository.getTransaction(options)
+
+    const segment = SequelizeRepository.getStrictlySingleActiveSegment(options)
 
     const record = await options.database.integration.create(
       {
@@ -34,7 +37,7 @@ class IntegrationRepository {
           'importHash',
           'emailSentAt',
         ]),
-
+        segmentId: segment.id,
         tenantId: tenant.id,
         createdById: currentUser.id,
         updatedById: currentUser.id,
@@ -60,6 +63,7 @@ class IntegrationRepository {
       where: {
         id,
         tenantId: currentTenant.id,
+        segmentId: SegmentRepository.getSegmentIds(options),
       },
       transaction,
     })
@@ -155,6 +159,8 @@ class IntegrationRepository {
   static async findByPlatform(platform, options: IRepositoryOptions) {
     const transaction = SequelizeRepository.getTransaction(options)
 
+    const segment = SequelizeRepository.getStrictlySingleActiveSegment(options)
+
     const include = []
 
     const currentTenant = SequelizeRepository.getCurrentTenant(options)
@@ -163,6 +169,7 @@ class IntegrationRepository {
       where: {
         platform,
         tenantId: currentTenant.id,
+        segmentId: segment.id,
       },
       include,
       transaction,

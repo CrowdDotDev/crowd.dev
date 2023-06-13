@@ -12,14 +12,23 @@ const member: MultiSelectAsyncFilterConfig = {
   iconClass: 'ri-account-circle-line',
   type: FilterConfigType.MULTISELECT_ASYNC,
   options: {
-    remoteMethod: (query) => MemberService.listAutocomplete(query, 10)
+    remoteMethod: (query) => MemberService.listAutocomplete({
+      query,
+      limit: 10,
+    })
       .then((data: any[]) => data.map((member) => ({
         label: member.label,
         value: member.id,
       }))),
     remotePopulateItems: (ids: string[]) => MemberService.list({
-      id: { in: ids },
-    }, null, ids.length, 0, false)
+      customFilters: {
+        id: { in: ids },
+      },
+      orderBy: null,
+      limit: ids.length,
+      offset: 0,
+      buildFilter: false,
+    })
       .then(({ rows }: any) => rows.map((member: any) => ({
         label: member.displayName,
         value: member.id,

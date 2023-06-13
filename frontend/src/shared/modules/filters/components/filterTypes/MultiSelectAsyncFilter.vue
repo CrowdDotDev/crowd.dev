@@ -29,7 +29,7 @@
             class="el-checkbox filter-checkbox h-4"
             :class="{ 'is-checked': props.modelValue.value.includes(option.value) }"
           >
-            <span class="el-checkbox__input" :class="{ 'is-checked': form.includes(option.value) }">
+            <span class="el-checkbox__input" :class="{ 'is-checked': form.value.includes(option.value) }">
               <span class="el-checkbox__inner" />
             </span>
           </div>

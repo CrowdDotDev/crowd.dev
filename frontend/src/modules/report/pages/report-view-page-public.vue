@@ -56,6 +56,7 @@
         <app-report-template-filters
           v-if="report.isTemplate"
           v-model:platform="platform"
+          v-model:segments="segments"
           v-model:team-members="teamMembers"
           v-model:team-activities="teamActivities"
           :show-platform="currentTemplate.filters?.platform"
@@ -88,6 +89,7 @@
                 platform,
                 teamMembers,
                 teamActivities,
+                segments,
               }"
             />
           </div>
@@ -209,6 +211,7 @@ export default {
       platform: initialPlatformValue,
       teamMembers: false,
       teamActivities: false,
+      segments: [],
       isHeaderOnTop: false,
       templates,
       MEMBERS_REPORT,

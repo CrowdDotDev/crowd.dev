@@ -196,6 +196,10 @@ const props = defineProps({
     required: false,
     default: () => null,
   },
+  subprojectId: {
+    type: String,
+    required: true,
+  },
 });
 
 const emit = defineEmits([
@@ -242,7 +246,11 @@ const rules = {
 const $v = useVuelidate(rules, form);
 
 // Members field
-const searchMembers = (query, limit) => MemberService.listAutocomplete(query, limit).catch(
+const searchMembers = ({ query, limit }) => MemberService.listAutocomplete({
+  query,
+  limit,
+  segments: [props.subprojectId],
+}).catch(
   () => [],
 );
 
@@ -307,6 +315,8 @@ const submit = () => {
   if ($v.value.$invalid) {
     return;
   }
+
+  const segments = [props.subprojectId];
   const data = {
     member: form.member.id,
     timestamp: form.datetime,
@@ -323,7 +333,7 @@ const submit = () => {
         ...data,
         sourceId: generateSourceId(),
       },
-    })
+    }, segments)
       .then(() => {
         reset();
         emit('update:modelValue', false);
@@ -337,7 +347,7 @@ const submit = () => {
       });
   } else {
     // Update
-    ActivityService.update(props.activity.id, data)
+    ActivityService.update(props.activity.id, data, segments)
       .then(() => {
         reset();
         emit('update:modelValue', false);

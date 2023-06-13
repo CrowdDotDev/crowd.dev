@@ -36,6 +36,7 @@
                   <template #after>
                     <app-activity-type-dropdown
                       :activity-type-key="type"
+                      :subproject-id="subprojectId"
                       @edit="
                         edit({ ...(settings?.display || {}), key: type })
                       "
@@ -100,6 +101,7 @@
   <app-activity-type-form-modal
     v-model="isFormModalOpen"
     :type="editableActivityType"
+    :subproject-id="subprojectId"
     @update:model-value="onModalViewChange($event)"
   />
 </template>
@@ -131,6 +133,10 @@ const props = defineProps({
   modelValue: {
     type: Boolean,
     default: false,
+  },
+  subprojectId: {
+    type: String,
+    required: true,
   },
 });
 
@@ -183,7 +189,7 @@ const activeIntegrations = computed(() => CrowdIntegrations.mappedEnabledConfigs
 
 onMounted(() => {
   if (activeIntegrations.value.length === 0) {
-    doFetch({});
+    doFetch([props.subprojectId]);
   }
 });
 </script>

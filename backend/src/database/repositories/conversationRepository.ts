@@ -10,7 +10,7 @@ import { IRepositoryOptions } from './IRepositoryOptions'
 import snakeCaseNames from '../../utils/snakeCaseNames'
 import QueryParser from './filters/queryParser'
 import ActivityDisplayService from '../../services/activityDisplayService'
-import SettingsRepository from './settingsRepository'
+import SegmentRepository from './segmentRepository'
 
 const Op = Sequelize.Op
 
@@ -22,11 +22,14 @@ class ConversationRepository {
 
     const transaction = SequelizeRepository.getTransaction(options)
 
+    const segment = SequelizeRepository.getStrictlySingleActiveSegment(options)
+
     const record = await options.database.conversation.create(
       {
         ...lodash.pick(data, ['title', 'slug', 'published']),
 
         tenantId: tenant.id,
+        segmentId: segment.id,
         createdById: currentUser.id,
         updatedById: currentUser.id,
       },
@@ -55,6 +58,7 @@ class ConversationRepository {
       where: {
         id,
         tenantId: currentTenant.id,
+        segmentId: SegmentRepository.getSegmentIds(options),
       },
       transaction,
     })
@@ -94,6 +98,7 @@ class ConversationRepository {
       where: {
         id,
         tenantId: currentTenant.id,
+        segmentId: SegmentRepository.getSegmentIds(options),
       },
       transaction,
     })
@@ -120,6 +125,7 @@ class ConversationRepository {
       where: {
         id,
         tenantId: currentTenant.id,
+        segmentId: SegmentRepository.getSegmentIds(options),
       },
       include,
       transaction,
@@ -167,6 +173,7 @@ class ConversationRepository {
       where: {
         id: ids,
         tenantId: currentTenant.id,
+        segmentId: SegmentRepository.getSegmentIds(options),
       },
       force,
       transaction,
@@ -182,6 +189,7 @@ class ConversationRepository {
       where: {
         ...filter,
         tenantId: tenant.id,
+        segmentId: SegmentRepository.getSegmentIds(options),
       },
       transaction,
     })
@@ -354,6 +362,7 @@ class ConversationRepository {
               'createdAt',
               'updatedAt',
               'tenantId',
+              'segmentId',
               'createdById',
               'updatedById',
             ],
@@ -394,6 +403,7 @@ class ConversationRepository {
             'published',
             'createdAt',
             'tenantId',
+            'segmentId',
             'updatedAt',
             'createdById',
             'updatedById',
@@ -513,7 +523,7 @@ class ConversationRepository {
                 act.objectMember = objectMember
                 act.display = ActivityDisplayService.getDisplayOptions(
                   act,
-                  SettingsRepository.getActivityTypes(options),
+                  SegmentRepository.getActivityTypes(options),
                 )
 
                 return act
@@ -529,7 +539,7 @@ class ConversationRepository {
             if (rec.conversationStarter) {
               rec.conversationStarter.display = ActivityDisplayService.getDisplayOptions(
                 rec.conversationStarter,
-                SettingsRepository.getActivityTypes(options),
+                SegmentRepository.getActivityTypes(options),
               )
             }
           } else {
@@ -572,6 +582,10 @@ class ConversationRepository {
       },
       include: ['member', 'parent', 'objectMember'],
       transaction,
+      order: [
+        ['timestamp', 'ASC'],
+        ['createdAt', 'ASC'],
+      ],
     })
 
     // Fetch remaining activities with parent != null
@@ -597,7 +611,7 @@ class ConversationRepository {
       act.member = member
       act.display = ActivityDisplayService.getDisplayOptions(
         act,
-        SettingsRepository.getActivityTypes(options),
+        SegmentRepository.getActivityTypes(options),
       )
       return act
     })
@@ -636,7 +650,7 @@ class ConversationRepository {
       output.channel = output.activities[0].channel ? output.activities[0].channel : null
       output.conversationStarter.display = ActivityDisplayService.getDisplayOptions(
         output.conversationStarter,
-        SettingsRepository.getActivityTypes(options),
+        SegmentRepository.getActivityTypes(options),
       )
     }
 

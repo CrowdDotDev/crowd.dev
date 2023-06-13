@@ -3,20 +3,24 @@ import AuthCurrentTenant from '@/modules/auth/auth-current-tenant';
 import buildApiPayload from '@/shared/filter/helpers/build-api-payload';
 
 export class ConversationService {
-  static async update(id, data) {
+  static async update(id, data, segments) {
     const tenantId = AuthCurrentTenant.get();
 
     const response = await authAxios.put(
       `/tenant/${tenantId}/conversation/${id}`,
-      data,
+      {
+        ...data,
+        segments,
+      },
     );
 
     return response.data;
   }
 
-  static async destroyAll(ids) {
+  static async destroyAll(ids, segments) {
     const params = {
       ids,
+      segments,
     };
 
     const tenantId = AuthCurrentTenant.get();
@@ -29,47 +33,7 @@ export class ConversationService {
     return response.data;
   }
 
-  static async publishAll(ids) {
-    const tenantId = AuthCurrentTenant.get();
-
-    return Promise.all(ids.map((id) => {
-      const data = {
-        published: true,
-      };
-      return authAxios.put(
-        `/tenant/${tenantId}/conversation/${id}`,
-        data,
-      );
-    }));
-  }
-
-  static async unpublishAll(ids) {
-    const tenantId = AuthCurrentTenant.get();
-
-    return Promise.all(ids.map((id) => {
-      const data = {
-        published: false,
-      };
-
-      return authAxios.put(
-        `/tenant/${tenantId}/conversation/${id}`,
-        data,
-      );
-    }));
-  }
-
-  static async create(data) {
-    const tenantId = AuthCurrentTenant.get();
-
-    const response = await authAxios.post(
-      `/tenant/${tenantId}/conversation`,
-      data,
-    );
-
-    return response.data;
-  }
-
-  static async find(id) {
+  static async find(id, segments) {
     const sampleTenant = AuthCurrentTenant.getSampleTenantData();
     const tenantId = sampleTenant?.id || AuthCurrentTenant.get();
 
@@ -79,18 +43,28 @@ export class ConversationService {
         headers: {
           Authorization: sampleTenant?.token,
         },
+        params: {
+          segments,
+        },
       },
     );
 
     return response.data;
   }
 
-  static async list(filter, orderBy, limit, offset) {
+  static async list({
+    customFilters,
+    orderBy,
+    limit,
+    offset,
+    segments,
+  }) {
     const body = {
       filter: buildApiPayload({
-        customFilters: filter,
+        customFilters,
         buildFilter: true,
       }),
+      segments,
       orderBy,
       limit,
       offset,
@@ -129,9 +103,16 @@ export class ConversationService {
     return response.data;
   }
 
-  static async query(filter, orderBy, limit, offset) {
+  static async query({
+    filter,
+    orderBy,
+    limit,
+    offset,
+    segments = [],
+  }) {
     const body = {
       filter,
+      segments,
       orderBy,
       limit,
       offset,
@@ -147,24 +128,6 @@ export class ConversationService {
         headers: {
           Authorization: sampleTenant?.token,
         },
-      },
-    );
-
-    return response.data;
-  }
-
-  static async listAutocomplete(query, limit) {
-    const params = {
-      query,
-      limit,
-    };
-
-    const tenantId = AuthCurrentTenant.get();
-
-    const response = await authAxios.get(
-      `/tenant/${tenantId}/conversation/autocomplete`,
-      {
-        params,
       },
     );
 

@@ -2,19 +2,22 @@
   <app-page-wrapper size="full-width">
     <div class="member-list-page">
       <div class="mb-10">
+        <app-lf-page-header text-class="text-sm text-brand-500 mb-2.5" />
         <div class="flex items-center justify-between">
-          <h4>
-            Members
-          </h4>
+          <h4>Members</h4>
           <div class="flex items-center">
             <router-link
-              class=" mr-4 "
+              class="mr-4"
               :class="{ 'pointer-events-none': isEditLockedForSampleData }"
               :to="{
                 name: 'memberMergeSuggestions',
               }"
             >
-              <button :disabled="isEditLockedForSampleData" type="button" class="btn btn--bordered btn--md flex items-center">
+              <button
+                :disabled="isEditLockedForSampleData"
+                type="button"
+                class="btn btn--bordered btn--md flex items-center"
+              >
                 <span class="ri-shuffle-line text-base mr-2 text-gray-900" />
                 <span class="text-gray-900">Merge suggestions</span>
                 <span
@@ -24,26 +27,21 @@
               </button>
             </router-link>
 
-            <router-link
+            <el-button
               v-if="
                 hasPermissionToCreate
                   && (hasIntegrations || membersCount > 0)
               "
-              :to="{
-                name: 'memberCreate',
-              }"
+              class="btn btn--primary btn--md"
               :class="{
                 'pointer-events-none cursor-not-allowed':
                   isCreateLockedForSampleData,
               }"
+              :disabled="isCreateLockedForSampleData"
+              @click="onAddMember"
             >
-              <el-button
-                class="btn btn--primary btn--md"
-                :disabled="isCreateLockedForSampleData"
-              >
-                Add member
-              </el-button>
-            </router-link>
+              Add member
+            </el-button>
           </div>
         </div>
         <div class="text-xs text-gray-500">
@@ -65,12 +63,22 @@
         :has-integrations="hasIntegrations"
         :has-members="membersCount > 0"
         :is-page-loading="loading"
+        @on-add-member="isSubProjectSelectionOpen = true"
       />
     </div>
   </app-page-wrapper>
+
+  <app-lf-sub-projects-list-modal
+    v-if="isSubProjectSelectionOpen"
+    v-model="isSubProjectSelectionOpen"
+    title="Add member"
+    @on-submit="onSubProjectSelection"
+  />
 </template>
 
 <script setup lang="ts">
+import AppLfPageHeader from '@/modules/lf/layout/components/lf-page-header.vue';
+import AppLfSubProjectsListModal from '@/modules/lf/segments/components/lf-sub-projects-list-modal.vue';
 import AppPageWrapper from '@/shared/layout/page-wrapper.vue';
 import CrFilter from '@/shared/modules/filters/components/Filter.vue';
 import { useMemberStore } from '@/modules/member/store/pinia';
@@ -82,8 +90,11 @@ import { mapGetters } from '@/shared/vuex/vuex.helpers';
 import { FilterQuery } from '@/shared/modules/filters/types/FilterQuery';
 import CrSavedViews from '@/shared/modules/saved-views/components/SavedViews.vue';
 import AppMemberListTable from '@/modules/member/components/list/member-list-table.vue';
+import { useRouter } from 'vue-router';
 import { memberFilters, memberSearchFilter } from '../config/filters/main';
 import { memberSavedViews, memberViews } from '../config/saved-views/main';
+
+const router = useRouter();
 
 const memberStore = useMemberStore();
 const { getMemberCustomAttributes, fetchMembers } = memberStore;
@@ -91,6 +102,7 @@ const { filters, customAttributesFilter, savedFilterBody } = storeToRefs(memberS
 
 const membersCount = ref(0);
 const membersToMergeCount = ref(0);
+const isSubProjectSelectionOpen = ref(false);
 
 const { listByPlatform } = mapGetters('integration');
 const { currentUser, currentTenant } = mapGetters('auth');
@@ -122,13 +134,17 @@ const fetchMembersToMergeCount = () => {
 const loading = ref(true);
 
 const doGetMembersCount = () => {
-  (MemberService.listMembers({
-    limit: 1,
-    offset: 0,
-  }, true) as Promise<any>)
-    .then(({ count }) => {
-      membersCount.value = count;
-    });
+  (
+    MemberService.listMembers(
+      {
+        limit: 1,
+        offset: 0,
+      },
+      true,
+    ) as Promise<any>
+  ).then(({ count }) => {
+    membersCount.value = count;
+  });
 };
 
 const showLoading = (filter: any, body: any): boolean => {
@@ -144,7 +160,11 @@ const showLoading = (filter: any, body: any): boolean => {
 };
 
 const fetch = ({
-  filter, offset, limit, orderBy, body,
+  filter,
+  offset,
+  limit,
+  orderBy,
+  body,
 }: FilterQuery) => {
   if (!loading.value) {
     loading.value = showLoading(filter, body);
@@ -157,10 +177,23 @@ const fetch = ({
       limit,
       orderBy,
     },
-  })
-    .finally(() => {
-      loading.value = false;
-    });
+  }).finally(() => {
+    loading.value = false;
+  });
+};
+
+const onAddMember = () => {
+  isSubProjectSelectionOpen.value = true;
+};
+
+const onSubProjectSelection = (subprojectId) => {
+  isSubProjectSelectionOpen.value = false;
+  router.push({
+    name: 'memberCreate',
+    query: {
+      subprojectId,
+    },
+  });
 };
 
 onMounted(() => {

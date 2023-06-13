@@ -38,7 +38,7 @@ const props = defineProps({
 });
 const emit = defineEmits(['update:value']);
 
-const fetchFn = (query, limit) => {
+const fetchFn = ({ query, limit }) => {
   const selected = [];
   props.options.forEach((o) => {
     if (selected.length >= limit) {

@@ -147,6 +147,7 @@ const query = computed(() => TOTAL_MEMBERS_QUERY({
   granularity,
   selectedPlatforms: props.filters.platform.value,
   selectedHasTeamMembers: props.filters.teamMembers,
+  selectedSegments: props.filters.segments,
 }));
 
 const kpiCurrentValue = (resultSet) => {
@@ -192,18 +193,19 @@ const chartResultSet = (resultSet) => {
 
 // Fetch function to pass to detail drawer
 const getTotalMembers = async ({ pagination }) => {
-  const res = await MemberService.list(
-    TOTAL_MEMBERS_FILTER({
+  const res = await MemberService.list({
+    customFilters: TOTAL_MEMBERS_FILTER({
       date: drawerDate.value,
       granularity: granularity.value,
       selectedPlatforms: props.filters.platform.value,
       selectedHasTeamMembers: props.filters.teamMembers,
     }),
-    'joinedAt_DESC',
-    pagination.pageSize,
-    (pagination.currentPage - 1) * pagination.pageSize,
-    false,
-  );
+    orderBy: 'joinedAt_DESC',
+    limit: pagination.pageSize,
+    offset: (pagination.currentPage - 1) * pagination.pageSize,
+    segments: props.filters.segments,
+    buildFilter: false,
+  });
   return res;
 };
 
@@ -241,6 +243,7 @@ const onExport = async ({ count }) => {
         selectedHasTeamMembers: props.filters.teamMembers,
       }),
       count,
+      segments: props.filters.segments,
     });
   } catch (error) {
     console.error(error);

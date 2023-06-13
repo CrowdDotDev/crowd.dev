@@ -16,7 +16,13 @@ export default [
     name: '',
     path: '',
     component: Layout,
-    meta: { auth: true, title: 'Reports' },
+    meta: {
+      auth: true,
+      title: 'Reports',
+      segments: {
+        requireSelectedProjectGroup: true,
+      },
+    },
     children: [
       {
         name: 'report',

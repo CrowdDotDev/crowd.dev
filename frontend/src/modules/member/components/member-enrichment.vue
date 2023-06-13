@@ -82,7 +82,9 @@ const isEditLockedForSampleData = computed(() => new MemberPermissions(
 ).editLockedForSampleData);
 
 const onEnrichmentClick = async () => {
-  await doEnrich(props.member.id);
+  const segments = props.member.segments.map((s) => s.id);
+
+  await doEnrich(props.member.id, segments);
 };
 </script>
 
