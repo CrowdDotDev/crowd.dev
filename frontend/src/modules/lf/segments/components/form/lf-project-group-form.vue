@@ -1,7 +1,7 @@
 <template>
   <app-drawer
     v-model="model"
-    title="Add project group"
+    :title="isEditForm ? 'Edit project group' : 'Add project group'"
     has-border
     @close="model = false"
   >

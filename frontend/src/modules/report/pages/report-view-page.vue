@@ -9,9 +9,7 @@
       <div
         class="mb-4 h-24 flex items-center flex-shrink-0 fixed top-0 inset-x-0 z-10 bg-gray-50
         shadow-sm transition-all ease-in-out duration-300 justify-center"
-        :style="
-          menuCollapsed ? 'left: 64px' : 'left: 260px'
-        "
+        :style="'left: 280px'"
       >
         <div class="max-w-5xl mx-5 w-full">
           <router-link
@@ -104,7 +102,6 @@ export default {
       reportLoading: 'report/loading',
     }),
     ...mapGetters({
-      menuCollapsed: 'layout/menuCollapsed',
       reportFind: 'report/find',
     }),
     report() {

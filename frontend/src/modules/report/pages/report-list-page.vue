@@ -5,7 +5,7 @@
       <div class="flex items-center justify-between">
         <h4>Reports</h4>
         <el-button
-          v-if="!!count"
+          v-if="computedTemplates.length || customReportsCount"
           class="btn btn--primary btn--md"
           @click="isCreatingReport = true"
         >
@@ -53,13 +53,20 @@
         >
           Custom reports
         </div>
-        <app-report-list-table
+        <app-report-list-table />
+      </div>
+      <div v-if="!customReportsCount">
+        <app-empty-state-cta
+          icon="ri-bar-chart-line"
+          title="No reports yet"
+          description="Please create your first report to start analyzing data from your community"
+          cta-btn="Add report"
           @cta-click="isCreatingReport = true"
         />
+        <app-report-create-dialog
+          v-model="isCreatingReport"
+        />
       </div>
-      <app-report-create-dialog
-        v-model="isCreatingReport"
-      />
     </div>
   </app-page-wrapper>
 </template>

@@ -9,10 +9,7 @@ export class ReportService {
 
     const response = await authAxios.put(
       `/tenant/${tenantId}/report/${id}`,
-      {
-        ...data,
-        excludeSegments: true,
-      },
+      data,
     );
 
     return response.data;
@@ -23,9 +20,6 @@ export class ReportService {
 
     const response = await authAxios.post(
       `/tenant/${tenantId}/report/${id}/duplicate`,
-      {
-        excludeSegments: true,
-      },
     );
 
     return response.data;
@@ -34,7 +28,6 @@ export class ReportService {
   static async destroyAll(ids) {
     const params = {
       ids,
-      excludeSegments: true,
     };
 
     const tenantId = AuthCurrentTenant.get();
@@ -54,10 +47,7 @@ export class ReportService {
 
     const response = await authAxios.post(
       `/tenant/${tenantId}/report`,
-      {
-        ...data,
-        excludeSegments: true,
-      },
+      data,
     );
 
     return response.data;
@@ -68,11 +58,6 @@ export class ReportService {
 
     const response = await authAxios.get(
       `/tenant/${tenantId}/report/${id}`,
-      {
-        params: {
-          excludeSegments: true,
-        },
-      },
     );
 
     return response.data;
@@ -81,11 +66,6 @@ export class ReportService {
   static async findPublic(id, tenantId) {
     const response = await axios.get(
       `${config.backendUrl}/tenant/${tenantId}/report/${id}`,
-      {
-        params: {
-          excludeSegments: true,
-        },
-      },
     );
 
     return response.data;
@@ -97,7 +77,6 @@ export class ReportService {
       orderBy,
       limit,
       offset,
-      excludeSegments: true,
     };
 
     const tenantId = AuthCurrentTenant.get();

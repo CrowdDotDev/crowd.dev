@@ -43,7 +43,7 @@
         <div
           v-for="projectGroup in list"
           :key="projectGroup.id"
-          class="shadow bg-white rounded-lg p-6"
+          class="shadow bg-white rounded-lg p-6 flex flex-col"
         >
           <img
             v-if="isUrl(projectGroup.url)"
@@ -59,6 +59,8 @@
           <div class="bg-gray-200 text-gray-900 text-2xs px-2 h-6 flex items-center w-fit rounded-md mb-8">
             {{ pluralize('project', projectGroup.projects.length, true) }}
           </div>
+
+          <div class="flex grow" />
 
           <el-button class="btn btn--md btn--full btn--primary mb-4" @click="updateSelectedProjectGroup(projectGroup.id)">
             View project{{ projectGroup.projects.length > 1 ? '(s)' : '' }}
