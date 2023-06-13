@@ -72,7 +72,6 @@ const open = ref('');
 
 const filters = computed<Filter>({
   get() {
-    console.log('getting');
     return props.modelValue;
   },
   set(value: Filter) {
@@ -96,7 +95,6 @@ const alignFilterList = (value: Filter) => {
   const {
     settings, search, relation, order, pagination, ...filterValues
   } = value;
-  console.log(value, filterValues);
   filterList.value = Object.keys(filterValues);
 };
 
@@ -115,7 +113,6 @@ const fetch = (value: Filter) => {
 };
 
 watch(() => filters.value, (value: Filter) => {
-  console.log('fetching');
   fetch(value);
   const query = setQuery(value);
   router.push({ query, hash: props.hash ? `#${props.hash}` : undefined });

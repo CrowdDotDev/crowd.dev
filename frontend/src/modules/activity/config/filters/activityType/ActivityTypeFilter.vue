@@ -14,7 +14,7 @@ import { CustomFilterConfig } from '@/shared/modules/filters/types/filterTypes/C
 import { useActivityTypeStore } from '@/modules/activity/store/type';
 import { storeToRefs } from 'pinia';
 import { CrowdIntegrations } from '@/integrations/integrations-config';
-import { mapGetters } from '@/shared/vuex/vuex.helpers';
+import { useStore } from 'vuex';
 
 const props = defineProps<{
   modelValue: string,
@@ -26,7 +26,11 @@ const emit = defineEmits<{(e: 'update:modelValue', value: string), (e: 'update:d
 const activityTypeStore = useActivityTypeStore();
 const { types } = storeToRefs(activityTypeStore);
 
-const { listByPlatform } = mapGetters('integration');
+const store = useStore();
+
+const activeIntegrations = computed<string[]>(() => CrowdIntegrations.mappedEnabledConfigs(
+  store,
+).filter((integration) => integration.status).map((integration) => integration.platform));
 
 const form = computed({
   get: () => props.modelValue,
@@ -39,11 +43,9 @@ const data = computed({
 });
 
 watch(() => types, (typesValue: any) => {
-  const connectedPlatforms = Object.keys(listByPlatform.value);
-
   const platformsOptions = Object.entries(typesValue.value.default)
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    .filter(([platform, _]) => connectedPlatforms.includes(platform))
+    .filter(([platform, _]) => activeIntegrations.value.includes(platform))
     .map(([platform, activityTypes]: [string, any]) => ({
       label: CrowdIntegrations.getConfig(platform)?.name ?? platform,
       options: Object.entries(activityTypes).map(([activityType, activityTypeData]) => ({
