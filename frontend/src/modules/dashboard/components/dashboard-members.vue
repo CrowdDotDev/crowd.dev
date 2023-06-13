@@ -92,10 +92,14 @@
               <router-link
                 :to="{
                   name: 'member',
-                  query: {
-                    activeTab: 'new-and-active',
-                    joinedFrom: periodStartDate,
-                  },
+                  query: filterQueryService().setQuery({
+                    ...newAndActive.filter,
+                    joinedDate: {
+                      include: true,
+                      value: periodStartDate,
+                      operator: 'gt',
+                    },
+                  }),
                 }"
                 class="text-sm leading-5 font-medium text-red"
               >
@@ -177,10 +181,14 @@
               <router-link
                 :to="{
                   name: 'member',
-                  query: {
-                    activeTab: 'all',
-                    activeFrom: periodStartDate,
-                  },
+                  query: filterQueryService().setQuery({
+                    ...allMembers.filter,
+                    lastActivityDate: {
+                      include: true,
+                      value: periodStartDate,
+                      operator: 'gt',
+                    },
+                  }),
                 }"
                 class="text-sm leading-5 font-medium text-red"
               >
@@ -211,6 +219,9 @@ import AppDashboardWidgetChart from '@/modules/dashboard/components/dashboard-wi
 import { DAILY_GRANULARITY_FILTER } from '@/modules/widget/widget-constants';
 import AppDashboardMemberItem from '@/modules/dashboard/components/member/dashboard-member-item.vue';
 import AppDashboardCount from '@/modules/dashboard/components/dashboard-count.vue';
+import { filterQueryService } from '@/shared/modules/filters/services/filter-query.service';
+import newAndActive from '@/modules/member/config/saved-views/views/new-and-active';
+import allMembers from '@/modules/member/config/saved-views/views/all-members';
 
 export default {
   name: 'AppDashboardMember',
@@ -228,6 +239,9 @@ export default {
       activeMembersChart,
       activeMembersCount,
       formatDateToTimeAgo,
+      filterQueryService,
+      newAndActive,
+      allMembers,
     };
   },
   computed: {

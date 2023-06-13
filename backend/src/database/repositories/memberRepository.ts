@@ -2333,12 +2333,12 @@ where m."deletedAt" is null
       output.activityCount > 0
         ? Math.round(
             (output.activities.reduce((acc, i) => {
-              if ('sentiment' in i.sentiment) {
+              if (i.sentiment && 'sentiment' in i.sentiment) {
                 acc += i.sentiment.sentiment
               }
               return acc
             }, 0) /
-              output.activities.filter((i) => 'sentiment' in i.sentiment).length) *
+              output.activities.filter((i) => i.sentiment && 'sentiment' in i.sentiment).length) *
               100,
           ) / 100
         : 0

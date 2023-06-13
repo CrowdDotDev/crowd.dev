@@ -3,6 +3,7 @@ import IncomingWebhookRepository from '../../database/repositories/incomingWebho
 import IntegrationRunRepository from '../../database/repositories/integrationRunRepository'
 import SequelizeRepository from '../../database/repositories/sequelizeRepository'
 import { CrowdJob } from '../../types/jobTypes'
+import AuditLogRepository from '../../database/repositories/auditLogRepository'
 
 const MAX_MONTHS_TO_KEEP = 3
 
@@ -36,6 +37,13 @@ export const cleanUpOldWebhooks = async () => {
     `Cleaning up processed incoming webhooks that are older than ${MAX_MONTHS_TO_KEEP} months!`,
   )
   await repo.cleanUpOldWebhooks(MAX_MONTHS_TO_KEEP)
+}
+
+export const cleanUpOldAuditLogs = async () => {
+  const dbOptions = await SequelizeRepository.getDefaultIRepositoryOptions()
+
+  log.info(`Cleaning up audit logs that are older than 1 month!`)
+  await AuditLogRepository.cleanUpOldAuditLogs(1, dbOptions)
 }
 
 const job: CrowdJob = {

@@ -393,10 +393,6 @@ export default class ActivityService extends LoggerBase {
       )
     }
 
-    if (conversation.published) {
-      await conversationService.loadIntoSearchEngine(record.conversationId, transaction)
-    }
-
     return record
   }
 

@@ -144,12 +144,12 @@ export abstract class RepositoryBase<TRepo extends RepositoryBase<TRepo>> extend
     const obj: any = {}
 
     for (const column of columnSet.columns) {
-      obj[column.name] =
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        (entity as any)[column.name] !== undefined
-          ? // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            (entity as any)[column.name]
-          : undefined
+      const value = (entity as unknown as Record<string, unknown>)[column.name]
+      if (value !== undefined) {
+        obj[column.name] = value
+      } else {
+        obj[column.name] = undefined
+      }
     }
 
     return obj
@@ -164,5 +164,9 @@ export abstract class RepositoryBase<TRepo extends RepositoryBase<TRepo>> extend
         ),
       )
     }
+  }
+
+  protected format(condition: string, params: unknown): string {
+    return this.dbInstance.as.format(condition, params)
   }
 }
