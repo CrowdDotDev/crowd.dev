@@ -222,15 +222,6 @@ class ActivityRepository {
       {
         model: options.database.member,
         as: 'member',
-        include: [
-          {
-            model: options.database.segment,
-            as: 'segments',
-            through: {
-              attributes: [],
-            },
-          },
-        ],
       },
       {
         model: options.database.member,

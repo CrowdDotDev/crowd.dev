@@ -1,1 +1,3 @@
-ALTER TABLE public."activities" DROP COLUMN "organizationId"
+ALTER TABLE public."activities" DROP COLUMN "organizationId";
+
+DROP TABLE "memberSegmentAffiliations";

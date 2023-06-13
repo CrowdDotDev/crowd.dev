@@ -18,7 +18,9 @@ UPDATE activities
 SET "organizationId" = (
     SELECT mo."organizationId"
     FROM "memberOrganizations" AS mo
+    JOIN "organizationSegments" os on os."organizationId" = mo."organizationId"
     WHERE mo."memberId" = activities."memberId"
+    and os."segmentId" = activities."segmentId"
     ORDER BY mo."createdAt" DESC
     LIMIT 1
 );
