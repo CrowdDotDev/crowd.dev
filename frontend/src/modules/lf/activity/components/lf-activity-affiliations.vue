@@ -20,7 +20,7 @@
         />
       </el-dropdown-item>
       <el-dropdown-item
-        class="h-10 !px-3 !mb-0 flex justify-between"
+        class="h-10 !px-3 !mb-0 flex gap-4 justify-between"
         :class="{
           'bg-brand-50': !activity.organizationId,
         }"

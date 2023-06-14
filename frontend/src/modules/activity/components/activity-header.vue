@@ -8,15 +8,25 @@
     <div class="whitespace-nowrap flex items-center">
       <div v-if="showAffiliations && activity.organization" class="flex items-center">
         <span class="mx-1 text-gray-500">·</span>
-        <div class="flex items-center gap-1">
-          <img
-            v-if="activity.organization.logo"
-            class="w-3.5 h-3.5"
-            :src="activity.organization.logo"
-            :alt="`${activity.organization.displayName} logo`"
-          />
-          <span class="text-gray-900">{{ activity.organization.displayName }}</span>
-        </div>
+        <router-link
+          :to="{
+            name: 'organizationView',
+            params: {
+              id: activity.organization.id,
+            },
+          }"
+          class="group hover:cursor-pointer"
+        >
+          <div class="flex items-center gap-1">
+            <img
+              v-if="activity.organization.logo"
+              class="w-3.5 h-3.5"
+              :src="activity.organization.logo"
+              :alt="`${activity.organization.displayName} logo`"
+            />
+            <span class="text-gray-900 group-hover:text-brand-500 transition">{{ activity.organization.displayName }}</span>
+          </div>
+        </router-link>
       </div>
       <span class="mx-1 text-gray-500">·</span>
       <span class="text-gray-500">{{ timeAgo }}</span>
