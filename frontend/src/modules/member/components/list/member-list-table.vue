@@ -95,7 +95,7 @@
               <el-table-column type="selection" width="75" fixed />
 
               <el-table-column
-                label="Member"
+                label="Contributor"
                 prop="displayName"
                 width="250"
                 sortable
