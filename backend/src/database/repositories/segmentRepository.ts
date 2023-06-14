@@ -19,6 +19,7 @@ import {
 import { PageData, QueryData } from '../../types/common'
 import Error404 from '../../errors/Error404'
 import removeFieldsFromObject from '../../utils/getObjectWithoutKey'
+import IntegrationRepository from './integrationRepository'
 
 class SegmentRepository extends RepositoryBase<
   SegmentData,
@@ -565,9 +566,25 @@ class SegmentRepository extends RepositoryBase<
 
     const count = subprojects.length > 0 ? Number.parseInt(subprojects[0].totalCount, 10) : 0
 
+    const segmentIds = subprojects.map((i) => i.id)
+    const { rows: integrations } = await IntegrationRepository.findAndCountAll(
+      {
+        advancedFilter: {
+          segmentId: segmentIds,
+        },
+      },
+      {
+        ...this.options,
+        currentSegments: subprojects,
+      },
+    )
+    const integrationsBySegments = lodash.groupBy(integrations, 'segmentId')
+
     const rows = subprojects.map((i) => {
-      const subproject = removeFieldsFromObject(i, 'totalCount')
-      return SegmentRepository.populateRelations(subproject)
+      let subproject = removeFieldsFromObject(i, 'totalCount')
+      subproject = SegmentRepository.populateRelations(subproject)
+      subproject.integrations = integrationsBySegments[subproject.id] || []
+      return subproject
     })
 
     // TODO: Add member count to segments after implementing member relations
