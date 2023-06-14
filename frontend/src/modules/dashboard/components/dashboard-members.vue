@@ -83,7 +83,7 @@
               icon-class="ri-group-2-line"
               class="pt-6 pb-5"
             >
-              No new members during this period
+              No new contributors during this period
             </app-dashboard-empty-state>
             <div
               v-if="recentMembers.length >= 5"
@@ -118,7 +118,7 @@
             <h6
               class="text-sm leading-5 font-semibold mb-1"
             >
-              Active members
+              Active contributors
             </h6>
             <app-dashboard-count
               :loading="members.loadingActive"
@@ -172,7 +172,7 @@
               icon-class="ri-group-2-line"
               class="pt-6 pb-5"
             >
-              No active members during this period
+              No active contributors during this period
             </app-dashboard-empty-state>
             <div
               v-if="activeMembers.length >= 5"

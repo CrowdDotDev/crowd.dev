@@ -132,7 +132,7 @@ const { cubejsApi } = mapGetters('widget');
 
 const datasets = computed(() => [
   {
-    name: 'Total active members',
+    name: 'Total active contributors',
     borderColor: '#E94F2E',
     measure: 'Members.count',
     granularity: granularity.value.value,
@@ -141,7 +141,7 @@ const datasets = computed(() => [
     }),
   },
   {
-    name: 'Returning members',
+    name: 'Returning contributors',
     borderDash: [4, 4],
     borderColor: '#E94F2E',
     measure: 'Members.count',

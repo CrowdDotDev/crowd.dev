@@ -20,7 +20,7 @@
 
   <div class="py-3">
     <div class="text-2xs text-gray-400 mb-0.5">
-      Members
+      Contributors
     </div>
     <div class="text-xs text-gray-900">
       0
