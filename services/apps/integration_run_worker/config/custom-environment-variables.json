@@ -22,5 +22,8 @@
   "nango": {
     "url": "CROWD_NANGO_URL",
     "secretKey": "CROWD_NANGO_SECRET_KEY"
+  },
+  "slackAlerting": {
+    "url": "CROWD_SLACK_ALERTING_URL"
   }
 }

@@ -15,6 +15,7 @@ LIBRARIES=(
   "sentiment"
   "conversations"
   "integrations"
+  "alerting"
 )
 
 for library in "${LIBRARIES[@]}"; do
