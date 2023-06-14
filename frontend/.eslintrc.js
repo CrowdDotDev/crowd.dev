@@ -19,11 +19,11 @@ module.exports = {
 
   rules: {
     'no-console':
-      import.meta.env.NODE_ENV === 'production'
+      process.env.NODE_ENV === 'production'
         ? 'warn'
         : 'off',
     'no-debugger':
-      import.meta.env.NODE_ENV === 'production'
+      process.env.NODE_ENV === 'production'
         ? 'warn'
         : 'off',
     semi: 'warn',
