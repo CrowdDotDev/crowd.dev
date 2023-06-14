@@ -31,7 +31,7 @@ module.exports = defineConfig({
   env: {
     appUrl: 'http://localhost:8081',
     apiUrl: 'http://localhost:8080',
-    MAILOSAUR_API_KEY: process.env.MAILOSAUR_API_KEY,
-    MAILOSAUR_SERVER_ID: process.env.MAILOSAUR_SERVER_ID,
+    MAILOSAUR_API_KEY: import.meta.env.MAILOSAUR_API_KEY,
+    MAILOSAUR_SERVER_ID: import.meta.env.MAILOSAUR_SERVER_ID,
   },
 });
