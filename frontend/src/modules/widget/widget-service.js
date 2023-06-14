@@ -1,5 +1,6 @@
 import authAxios from '@/shared/axios/auth-axios';
 import AuthCurrentTenant from '@/modules/auth/auth-current-tenant';
+import { router } from '@/router';
 
 export class WidgetService {
   static async update(id, data) {
@@ -115,6 +116,12 @@ export class WidgetService {
   }
 
   static async getCubeToken() {
+    let segments = [];
+
+    if (router.currentRoute.value.params.segmentId) {
+      segments = [router.currentRoute.value.params.segmentId];
+    }
+
     const sampleTenant = AuthCurrentTenant.getSampleTenantData();
     const tenantId = sampleTenant?.id || AuthCurrentTenant.get();
 
@@ -123,6 +130,9 @@ export class WidgetService {
       {
         headers: {
           Authorization: sampleTenant?.token,
+        },
+        params: {
+          segments,
         },
       },
     );

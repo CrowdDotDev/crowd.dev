@@ -107,7 +107,6 @@ export default {
         widgetQuery.filters.push(isBot);
         widgetQuery.filters.push(segments);
       }
-
       return widgetQuery;
     },
   },

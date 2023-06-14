@@ -36,6 +36,7 @@
               clearable
               filterable
               placeholder="Measure/dimension"
+              :disabled="filter.select === 'Segments.id'"
               @change="
                 (value) =>
                   handleFilterChange(
@@ -61,6 +62,7 @@
               class="second-filter"
               clearable
               placeholder="Condition"
+              :disabled="filter.select === 'Segments.id'"
               @change="
                 (value) =>
                   handleFilterChange(
@@ -163,6 +165,7 @@
               class="third-filter"
               type="text"
               placeholder="Value"
+              :disabled="filter.select === 'Segments.id'"
               @change="
                 (value) =>
                   handleFilterChange(
@@ -182,6 +185,7 @@
             <button
               class="btn btn--transparent btn--md"
               type="button"
+              :disabled="filter.select === 'Segments.id'"
               @click.prevent="removeFilter(index)"
             >
               <i class="ri-lg ri-delete-bin-line" />

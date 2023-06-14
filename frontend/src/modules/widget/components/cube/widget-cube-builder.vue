@@ -318,6 +318,13 @@ export default {
       };
 
     const initialCharType = this.widget.settings?.chartType || 'line';
+    initialQuery.filters = [
+      {
+        member: 'Segments.id',
+        operator: 'equals',
+        values: [this.$route.params.segmentId],
+      },
+    ];
 
     return {
       mapWidget,
