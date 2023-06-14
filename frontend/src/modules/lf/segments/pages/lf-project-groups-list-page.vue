@@ -63,7 +63,7 @@
           <div class="flex grow" />
 
           <el-button class="btn btn--md btn--full btn--primary mb-4" @click="updateSelectedProjectGroup(projectGroup.id)">
-            View project{{ projectGroup.projects.length > 1 ? '(s)' : '' }}
+            View project(s)
           </el-button>
 
           <router-link

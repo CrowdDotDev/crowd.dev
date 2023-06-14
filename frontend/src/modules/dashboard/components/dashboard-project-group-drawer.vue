@@ -5,6 +5,7 @@
     :pre-title="projectGroup.name"
     has-border
     :show-footer="false"
+    :size="600"
     @close="model = false"
   >
     <template #content>

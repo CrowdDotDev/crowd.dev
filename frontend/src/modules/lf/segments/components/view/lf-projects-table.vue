@@ -200,5 +200,11 @@ export default {
   .el-table__empty-text {
     @apply w-full
   }
+
+  .el-table__append-wrapper {
+    position: sticky !important;
+    left: 0px !important;
+    width: fit-content;
+  }
 }
 </style>

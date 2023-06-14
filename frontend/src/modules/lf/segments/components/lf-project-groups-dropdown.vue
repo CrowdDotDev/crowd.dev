@@ -31,28 +31,24 @@
           /><span class="text-xs">Add project</span>
         </el-dropdown-item>
         <el-divider class="border-gray-200 !my-2" />
-        <router-link
-          :to="{
-            name: 'adminProjects',
-            params: { id },
-          }"
+        <el-dropdown-item
+          class="h-10"
+          :command="() => updateSelectedProjectGroup(id)"
         >
-          <el-dropdown-item
-            class="h-10"
-          >
-            <i
-              class="ri-external-link-line text-base mr-2"
-            /><span
-              class="text-xs"
-            >View projects</span>
-          </el-dropdown-item>
-        </router-link>
+          <i
+            class="ri-external-link-line text-base mr-2"
+          /><span
+            class="text-xs"
+          >View projects</span>
+        </el-dropdown-item>
       </template>
     </el-dropdown>
   </div>
 </template>
 
 <script setup>
+import { useLfSegmentsStore } from '@/modules/lf/segments/store';
+
 const emit = defineEmits(['onEditProjectGroup', 'onAddProject']);
 
 defineProps({
@@ -61,6 +57,9 @@ defineProps({
     default: null,
   },
 });
+
+const lsSegmentsStore = useLfSegmentsStore();
+const { updateSelectedProjectGroup } = lsSegmentsStore;
 
 const editProjectGroup = () => {
   emit('onEditProjectGroup');
