@@ -9,7 +9,6 @@ import { IRepositoryOptions } from './IRepositoryOptions'
 import QueryParser from './filters/queryParser'
 import { QueryOutput } from './filters/queryTypes'
 import UserRepository from './userRepository'
-import SegmentRepository from './segmentRepository'
 
 const { Op } = Sequelize
 
@@ -194,7 +193,7 @@ class NoteRepository {
             model: options.database.segment,
             as: 'segments',
             where: {
-              id: SegmentRepository.getSegmentIds(options),
+              id: SequelizeRepository.getSegmentIds(options),
             },
           },
         ],

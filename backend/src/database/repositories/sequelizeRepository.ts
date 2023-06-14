@@ -136,4 +136,8 @@ export default class SequelizeRepository {
   static getSequelize(options: IRepositoryOptions): Sequelize {
     return options.database.sequelize as Sequelize
   }
+
+  static getSegmentIds(options: IRepositoryOptions): string[] {
+    return options.currentSegments.map((s) => s.id)
+  }
 }

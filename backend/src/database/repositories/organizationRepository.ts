@@ -7,7 +7,6 @@ import Error404 from '../../errors/Error404'
 import { IRepositoryOptions } from './IRepositoryOptions'
 import QueryParser from './filters/queryParser'
 import { QueryOutput } from './filters/queryTypes'
-import SegmentRepository from './segmentRepository'
 
 const { Op } = Sequelize
 
@@ -197,7 +196,7 @@ class OrganizationRepository {
     await seq.query(bulkDeleteOrganizationSegments, {
       replacements: {
         organizationIds,
-        segmentIds: SegmentRepository.getSegmentIds(options),
+        segmentIds: SequelizeRepository.getSegmentIds(options),
       },
       type: QueryTypes.DELETE,
       transaction,

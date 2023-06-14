@@ -628,10 +628,6 @@ class SegmentRepository extends RepositoryBase<
 
     return false
   }
-
-  static getSegmentIds(options: IRepositoryOptions): string[] {
-    return options.currentSegments.map((s) => s.id)
-  }
 }
 
 export default SegmentRepository

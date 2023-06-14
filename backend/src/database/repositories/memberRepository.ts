@@ -174,7 +174,7 @@ class MemberRepository {
     await seq.query(bulkDeleteMemberSegments, {
       replacements: {
         memberIds,
-        segmentIds: SegmentRepository.getSegmentIds(options),
+        segmentIds: SequelizeRepository.getSegmentIds(options),
       },
       type: QueryTypes.DELETE,
       transaction,
@@ -206,7 +206,7 @@ class MemberRepository {
     options: IRepositoryOptions,
   ) {
     const currentTenant = SequelizeRepository.getCurrentTenant(options)
-    const segmentIds = SegmentRepository.getSegmentIds(options)
+    const segmentIds = SequelizeRepository.getSegmentIds(options)
 
     const mems = await options.database.sequelize.query(
       `SELECT 
@@ -998,7 +998,7 @@ class MemberRepository {
     options: IRepositoryOptions,
   ): Promise<PageData<IActiveMemberData>> {
     const tenant = SequelizeRepository.getCurrentTenant(options)
-    const segmentIds = SegmentRepository.getSegmentIds(options)
+    const segmentIds = SequelizeRepository.getSegmentIds(options)
 
     const transaction = SequelizeRepository.getTransaction(options)
 
@@ -1207,7 +1207,7 @@ class MemberRepository {
     options: IRepositoryOptions,
   ): Promise<PageData<any>> {
     const tenant = SequelizeRepository.getCurrentTenant(options)
-    const segmentIds = SegmentRepository.getSegmentIds(options)
+    const segmentIds = SequelizeRepository.getSegmentIds(options)
     const seq = SequelizeRepository.getSequelize(options)
 
     const params: any = {
@@ -2145,7 +2145,7 @@ class MemberRepository {
           model: options.database.segment,
           as: 'segments',
           where: {
-            id: SegmentRepository.getSegmentIds(options),
+            id: SequelizeRepository.getSegmentIds(options),
           },
         },
       ],
@@ -2173,7 +2173,7 @@ class MemberRepository {
 
     const tenant = SequelizeRepository.getCurrentTenant(options)
 
-    const segmentIds = SegmentRepository.getSegmentIds(options)
+    const segmentIds = SequelizeRepository.getSegmentIds(options)
 
     const query = `
     -- Define a CTE named "new_members" to get members created in the last 2 hours with a specific tenantId
@@ -2258,7 +2258,7 @@ class MemberRepository {
 
     const tenant = SequelizeRepository.getCurrentTenant(options)
 
-    const segmentIds = SegmentRepository.getSegmentIds(options)
+    const segmentIds = SequelizeRepository.getSegmentIds(options)
 
     const query = `
     -- Define a CTE named "new_members" to get members created in the last 7 days with a specific tenantId and their emails
@@ -2337,7 +2337,7 @@ class MemberRepository {
 
     const tenant = SequelizeRepository.getCurrentTenant(options)
 
-    const segmentIds = SegmentRepository.getSegmentIds(options)
+    const segmentIds = SequelizeRepository.getSegmentIds(options)
 
     const query = `
     -- Define a CTE named "new_members" to get members created in the last 7 days with a specific tenantId
