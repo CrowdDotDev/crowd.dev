@@ -98,6 +98,18 @@
 
         <div class="mb-6">
           <router-link
+            id="menu-settings"
+            :to="{ path: '/settings' }"
+            class="el-menu-item mb-2"
+            :class="classFor('/settings')"
+          >
+            <i class="ri-settings-3-line" />
+            <span>
+              Settings
+            </span>
+          </router-link>
+
+          <router-link
             id="menu-admin-panel"
             :to="{ path: '/admin/project-groups' }"
             class="el-menu-item"
