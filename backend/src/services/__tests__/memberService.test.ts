@@ -5,7 +5,7 @@ import ActivityRepository from '../../database/repositories/activityRepository'
 import TagRepository from '../../database/repositories/tagRepository'
 import Error404 from '../../errors/Error404'
 import Error400 from '../../errors/Error400'
-import { MemberAttributeName, PlatformType } from '@crowd/types'
+import { MemberAttributeName, MemberAttributeType, PlatformType } from '@crowd/types'
 import OrganizationRepository from '../../database/repositories/organizationRepository'
 import TaskRepository from '../../database/repositories/taskRepository'
 import NoteRepository from '../../database/repositories/noteRepository'
@@ -15,7 +15,13 @@ import OrganizationService from '../organizationService'
 import Plans from '../../security/plans'
 import { generateUUIDv1 } from '@crowd/common'
 import lodash from 'lodash'
-import { GITHUB_MEMBER_ATTRIBUTES } from '@crowd/integrations'
+import {
+  DEVTO_MEMBER_ATTRIBUTES,
+  DISCORD_MEMBER_ATTRIBUTES,
+  GITHUB_MEMBER_ATTRIBUTES,
+  SLACK_MEMBER_ATTRIBUTES,
+  TWITTER_MEMBER_ATTRIBUTES,
+} from '@crowd/integrations'
 
 const db = null
 
@@ -76,9 +82,9 @@ describe('MemberService tests', () => {
 
       const mas = new MemberAttributeSettingsService(mockIServiceOptions)
 
-      await mas.createPredefined(GithubMemberAttributes)
-      await mas.createPredefined(TwitterMemberAttributes)
-      await mas.createPredefined(DiscordMemberAttributes)
+      await mas.createPredefined(GITHUB_MEMBER_ATTRIBUTES)
+      await mas.createPredefined(TWITTER_MEMBER_ATTRIBUTES)
+      await mas.createPredefined(DISCORD_MEMBER_ATTRIBUTES)
 
       const member1 = {
         username: 'anil',
@@ -184,7 +190,7 @@ describe('MemberService tests', () => {
       const mockIServiceOptions = await SequelizeTestUtils.getTestIServiceOptions(db)
       const mas = new MemberAttributeSettingsService(mockIServiceOptions)
 
-      await mas.createPredefined(GithubMemberAttributes)
+      await mas.createPredefined(GITHUB_MEMBER_ATTRIBUTES)
 
       const member1 = {
         username: {
@@ -728,7 +734,7 @@ describe('MemberService tests', () => {
 
       const mas = new MemberAttributeSettingsService(mockIServiceOptions)
 
-      await mas.createPredefined(GithubMemberAttributes)
+      await mas.createPredefined(GITHUB_MEMBER_ATTRIBUTES)
 
       const member1 = {
         username: 'anil',
@@ -828,8 +834,8 @@ describe('MemberService tests', () => {
 
       const mas = new MemberAttributeSettingsService(mockIServiceOptions)
 
-      await mas.createPredefined(GithubMemberAttributes)
-      await mas.createPredefined(TwitterMemberAttributes)
+      await mas.createPredefined(GITHUB_MEMBER_ATTRIBUTES)
+      await mas.createPredefined(TWITTER_MEMBER_ATTRIBUTES)
 
       const member1 = {
         username: 'anil',
@@ -937,7 +943,7 @@ describe('MemberService tests', () => {
 
       const mas = new MemberAttributeSettingsService(mockIServiceOptions)
 
-      await mas.createPredefined(GithubMemberAttributes)
+      await mas.createPredefined(GITHUB_MEMBER_ATTRIBUTES)
 
       const member1 = {
         username: 'anil',
@@ -1040,7 +1046,7 @@ describe('MemberService tests', () => {
       const mockIServiceOptions = await SequelizeTestUtils.getTestIServiceOptions(db)
       const mas = new MemberAttributeSettingsService(mockIServiceOptions)
 
-      await mas.createPredefined(GithubMemberAttributes)
+      await mas.createPredefined(GITHUB_MEMBER_ATTRIBUTES)
 
       const member1 = {
         username: 'anil',
@@ -1090,8 +1096,8 @@ describe('MemberService tests', () => {
       const mockIServiceOptions = await SequelizeTestUtils.getTestIServiceOptions(db)
       const mas = new MemberAttributeSettingsService(mockIServiceOptions)
 
-      await mas.createPredefined(GithubMemberAttributes)
-      await mas.createPredefined(DevtoMemberAttributes)
+      await mas.createPredefined(GITHUB_MEMBER_ATTRIBUTES)
+      await mas.createPredefined(DEVTO_MEMBER_ATTRIBUTES)
 
       const member1 = {
         username: 'anil',
@@ -1539,10 +1545,10 @@ describe('MemberService tests', () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
       const mas = new MemberAttributeSettingsService(mockIRepositoryOptions)
 
-      await mas.createPredefined(GithubMemberAttributes)
-      await mas.createPredefined(DiscordMemberAttributes)
-      await mas.createPredefined(TwitterMemberAttributes)
-      await mas.createPredefined(SlackMemberAttributes)
+      await mas.createPredefined(GITHUB_MEMBER_ATTRIBUTES)
+      await mas.createPredefined(DISCORD_MEMBER_ATTRIBUTES)
+      await mas.createPredefined(TWITTER_MEMBER_ATTRIBUTES)
+      await mas.createPredefined(SLACK_MEMBER_ATTRIBUTES)
 
       const memberService = new MemberService(mockIRepositoryOptions)
 
@@ -1833,7 +1839,7 @@ describe('MemberService tests', () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
       const mas = new MemberAttributeSettingsService(mockIRepositoryOptions)
 
-      await mas.createPredefined(GithubMemberAttributes)
+      await mas.createPredefined(GITHUB_MEMBER_ATTRIBUTES)
 
       const memberService = new MemberService(mockIRepositoryOptions)
 
@@ -1861,9 +1867,9 @@ describe('MemberService tests', () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
       const mas = new MemberAttributeSettingsService(mockIRepositoryOptions)
 
-      await mas.createPredefined(GithubMemberAttributes)
-      await mas.createPredefined(TwitterMemberAttributes)
-      await mas.createPredefined(DiscordMemberAttributes)
+      await mas.createPredefined(GITHUB_MEMBER_ATTRIBUTES)
+      await mas.createPredefined(TWITTER_MEMBER_ATTRIBUTES)
+      await mas.createPredefined(DISCORD_MEMBER_ATTRIBUTES)
 
       const memberService = new MemberService(mockIRepositoryOptions)
 
@@ -1978,7 +1984,7 @@ describe('MemberService tests', () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
       const mas = new MemberAttributeSettingsService(mockIRepositoryOptions)
 
-      await mas.createPredefined(GithubMemberAttributes)
+      await mas.createPredefined(GITHUB_MEMBER_ATTRIBUTES)
 
       const memberService = new MemberService(mockIRepositoryOptions)
 
@@ -2006,7 +2012,7 @@ describe('MemberService tests', () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
       const mas = new MemberAttributeSettingsService(mockIRepositoryOptions)
 
-      await mas.createPredefined(GithubMemberAttributes)
+      await mas.createPredefined(GITHUB_MEMBER_ATTRIBUTES)
 
       const memberService = new MemberService(mockIRepositoryOptions)
 
@@ -2049,7 +2055,7 @@ describe('MemberService tests', () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
       const mas = new MemberAttributeSettingsService(mockIRepositoryOptions)
 
-      await mas.createPredefined(GithubMemberAttributes)
+      await mas.createPredefined(GITHUB_MEMBER_ATTRIBUTES)
 
       const memberService = new MemberService(mockIRepositoryOptions)
 
@@ -2073,7 +2079,7 @@ describe('MemberService tests', () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
       const mas = new MemberAttributeSettingsService(mockIRepositoryOptions)
 
-      await mas.createPredefined(GithubMemberAttributes)
+      await mas.createPredefined(GITHUB_MEMBER_ATTRIBUTES)
 
       const memberService = new MemberService(mockIRepositoryOptions)
 
@@ -2103,7 +2109,7 @@ describe('MemberService tests', () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
       const mas = new MemberAttributeSettingsService(mockIRepositoryOptions)
 
-      await mas.createPredefined(GithubMemberAttributes)
+      await mas.createPredefined(GITHUB_MEMBER_ATTRIBUTES)
 
       const memberService = new MemberService(mockIRepositoryOptions)
 
@@ -2146,7 +2152,7 @@ describe('MemberService tests', () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
       const mas = new MemberAttributeSettingsService(mockIRepositoryOptions)
 
-      await mas.createPredefined(GithubMemberAttributes)
+      await mas.createPredefined(GITHUB_MEMBER_ATTRIBUTES)
 
       const memberService = new MemberService(mockIRepositoryOptions)
 
@@ -2292,9 +2298,9 @@ describe('MemberService tests', () => {
       const memberService = new MemberService(mockIServiceOptions)
       const memberAttributeSettingsService = new MemberAttributeSettingsService(mockIServiceOptions)
 
-      await memberAttributeSettingsService.createPredefined(GithubMemberAttributes)
-      await memberAttributeSettingsService.createPredefined(TwitterMemberAttributes)
-      await memberAttributeSettingsService.createPredefined(DevtoMemberAttributes)
+      await memberAttributeSettingsService.createPredefined(GITHUB_MEMBER_ATTRIBUTES)
+      await memberAttributeSettingsService.createPredefined(TWITTER_MEMBER_ATTRIBUTES)
+      await memberAttributeSettingsService.createPredefined(DEVTO_MEMBER_ATTRIBUTES)
 
       const attributes = {
         [MemberAttributeName.NAME]: {
@@ -2329,7 +2335,7 @@ describe('MemberService tests', () => {
       const memberService = new MemberService(mockIServiceOptions)
       const memberAttributeSettingsService = new MemberAttributeSettingsService(mockIServiceOptions)
 
-      await memberAttributeSettingsService.createPredefined(GithubMemberAttributes)
+      await memberAttributeSettingsService.createPredefined(GITHUB_MEMBER_ATTRIBUTES)
 
       const attributes = {
         [MemberAttributeName.BIO]: 'Assistant to the Regional Manager',
@@ -2352,9 +2358,9 @@ describe('MemberService tests', () => {
       const memberService = new MemberService(mockIServiceOptions)
       const memberAttributeSettingsService = new MemberAttributeSettingsService(mockIServiceOptions)
 
-      await memberAttributeSettingsService.createPredefined(GithubMemberAttributes)
-      await memberAttributeSettingsService.createPredefined(TwitterMemberAttributes)
-      await memberAttributeSettingsService.createPredefined(DevtoMemberAttributes)
+      await memberAttributeSettingsService.createPredefined(GITHUB_MEMBER_ATTRIBUTES)
+      await memberAttributeSettingsService.createPredefined(TWITTER_MEMBER_ATTRIBUTES)
+      await memberAttributeSettingsService.createPredefined(DEVTO_MEMBER_ATTRIBUTES)
 
       const attributes = {
         [MemberAttributeName.NAME]: 'Dwight Schrute',
@@ -2409,8 +2415,8 @@ describe('MemberService tests', () => {
       const memberService = new MemberService(mockIServiceOptions)
       const memberAttributeSettingsService = new MemberAttributeSettingsService(mockIServiceOptions)
 
-      await memberAttributeSettingsService.createPredefined(GithubMemberAttributes)
-      await memberAttributeSettingsService.createPredefined(TwitterMemberAttributes)
+      await memberAttributeSettingsService.createPredefined(GITHUB_MEMBER_ATTRIBUTES)
+      await memberAttributeSettingsService.createPredefined(TWITTER_MEMBER_ATTRIBUTES)
 
       // in settings name has a string type, inserting an integer should throw an error
       const attributes = {
@@ -2444,8 +2450,8 @@ describe('MemberService tests', () => {
       const memberService = new MemberService(mockIServiceOptions)
       const memberAttributeSettingsService = new MemberAttributeSettingsService(mockIServiceOptions)
 
-      await memberAttributeSettingsService.createPredefined(GithubMemberAttributes)
-      await memberAttributeSettingsService.createPredefined(TwitterMemberAttributes)
+      await memberAttributeSettingsService.createPredefined(GITHUB_MEMBER_ATTRIBUTES)
+      await memberAttributeSettingsService.createPredefined(TWITTER_MEMBER_ATTRIBUTES)
 
       // in settings website_url has a url type, inserting an integer should throw an error
       const attributes = {
@@ -2473,9 +2479,9 @@ describe('MemberService tests', () => {
       const memberService = new MemberService(mockIServiceOptions)
       const memberAttributeSettingsService = new MemberAttributeSettingsService(mockIServiceOptions)
 
-      await memberAttributeSettingsService.createPredefined(GithubMemberAttributes)
-      await memberAttributeSettingsService.createPredefined(TwitterMemberAttributes)
-      await memberAttributeSettingsService.createPredefined(DevtoMemberAttributes)
+      await memberAttributeSettingsService.createPredefined(GITHUB_MEMBER_ATTRIBUTES)
+      await memberAttributeSettingsService.createPredefined(TWITTER_MEMBER_ATTRIBUTES)
+      await memberAttributeSettingsService.createPredefined(DEVTO_MEMBER_ATTRIBUTES)
 
       const attributes = {
         [MemberAttributeName.NAME]: {
@@ -2538,9 +2544,9 @@ describe('MemberService tests', () => {
       const memberService = new MemberService(mockIServiceOptions)
       const memberAttributeSettingsService = new MemberAttributeSettingsService(mockIServiceOptions)
 
-      await memberAttributeSettingsService.createPredefined(GithubMemberAttributes)
-      await memberAttributeSettingsService.createPredefined(TwitterMemberAttributes)
-      await memberAttributeSettingsService.createPredefined(DevtoMemberAttributes)
+      await memberAttributeSettingsService.createPredefined(GITHUB_MEMBER_ATTRIBUTES)
+      await memberAttributeSettingsService.createPredefined(TWITTER_MEMBER_ATTRIBUTES)
+      await memberAttributeSettingsService.createPredefined(DEVTO_MEMBER_ATTRIBUTES)
 
       // Empty default priority array
       const settings = await SettingsRepository.findOrCreateDefault({}, mockIServiceOptions)
@@ -2585,14 +2591,14 @@ describe('MemberService tests', () => {
 
       const mas = new MemberAttributeSettingsService(mockIServiceOptions)
 
-      await mas.createPredefined(GithubMemberAttributes)
-      await mas.createPredefined(TwitterMemberAttributes)
-      await mas.createPredefined(DiscordMemberAttributes)
+      await mas.createPredefined(GITHUB_MEMBER_ATTRIBUTES)
+      await mas.createPredefined(TWITTER_MEMBER_ATTRIBUTES)
+      await mas.createPredefined(DISCORD_MEMBER_ATTRIBUTES)
 
       const attribute1 = {
         name: 'aNumberAttribute',
         label: 'A number Attribute',
-        type: AttributeType.NUMBER,
+        type: MemberAttributeType.NUMBER,
         canDelete: true,
         show: true,
       }
@@ -2600,7 +2606,7 @@ describe('MemberService tests', () => {
       const attribute2 = {
         name: 'aDateAttribute',
         label: 'A date Attribute',
-        type: AttributeType.DATE,
+        type: MemberAttributeType.DATE,
         canDelete: true,
         show: true,
       }
@@ -2609,7 +2615,7 @@ describe('MemberService tests', () => {
         name: 'aMultiSelectAttribute',
         label: 'A multi select Attribute',
         options: ['a', 'b', 'c'],
-        type: AttributeType.MULTI_SELECT,
+        type: MemberAttributeType.MULTI_SELECT,
         canDelete: true,
         show: true,
       }

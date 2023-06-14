@@ -1,6 +1,11 @@
 import lodash, { chunk } from 'lodash'
 import Sequelize, { QueryTypes } from 'sequelize'
-import { ActivityDisplayVariant, ALL_PLATFORM_TYPES, PlatformType } from '@crowd/types'
+import {
+  ActivityDisplayVariant,
+  ALL_PLATFORM_TYPES,
+  MemberAttributeType,
+  PlatformType,
+} from '@crowd/types'
 import { KUBE_MODE, SERVICE } from '../../conf'
 import { ServiceType } from '../../conf/configTypes'
 import Error404 from '../../errors/Error404'
@@ -8,7 +13,6 @@ import { PlatformIdentities } from '../../serverless/integrations/types/messageT
 import ActivityDisplayService from '../../services/activityDisplayService'
 import { PageData } from '../../types/common'
 import { AttributeData } from '../attributes/attribute'
-import { AttributeType } from '../attributes/types'
 import SequelizeFilterUtils from '../utils/sequelizeFilterUtils'
 import { IRepositoryOptions } from './IRepositoryOptions'
 import AuditLogRepository from './auditLogRepository'
@@ -1085,7 +1089,7 @@ class MemberRepository {
         column: 'aggs.username',
         attributeInfos: ALL_PLATFORM_TYPES.map((p) => ({
           name: p,
-          type: AttributeType.STRING,
+          type: MemberAttributeType.STRING,
         })),
       },
       {
@@ -1804,15 +1808,15 @@ where m."deletedAt" is null
     const dynamicAttributesPlatformNestedFields = memberAttributeSettings.reduce(
       (acc, attribute) => {
         for (const key of availableDynamicAttributePlatformKeys) {
-          if (attribute.type === AttributeType.NUMBER) {
+          if (attribute.type === MemberAttributeType.NUMBER) {
             acc[`attributes.${attribute.name}.${key}`] = Sequelize.literal(
               `("member"."attributes"#>>'{${attribute.name},${key}}')::integer`,
             )
-          } else if (attribute.type === AttributeType.BOOLEAN) {
+          } else if (attribute.type === MemberAttributeType.BOOLEAN) {
             acc[`attributes.${attribute.name}.${key}`] = Sequelize.literal(
               `("member"."attributes"#>>'{${attribute.name},${key}}')::boolean`,
             )
-          } else if (attribute.type === AttributeType.MULTI_SELECT) {
+          } else if (attribute.type === MemberAttributeType.MULTI_SELECT) {
             acc[`attributes.${attribute.name}.${key}`] = Sequelize.literal(
               `ARRAY( SELECT jsonb_array_elements_text("member"."attributes"#>'{${attribute.name},${key}}'))`,
             )

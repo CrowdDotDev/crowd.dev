@@ -9,6 +9,14 @@ import {
   MemberEnrichmentAttributes,
   PlatformType,
 } from '@crowd/types'
+import {
+  CROWD_MEMBER_ATTRIBUTES,
+  DEVTO_MEMBER_ATTRIBUTES,
+  DISCORD_MEMBER_ATTRIBUTES,
+  GITHUB_MEMBER_ATTRIBUTES,
+  LINKEDIN_MEMBER_ATTRIBUTES,
+  TWITTER_MEMBER_ATTRIBUTES,
+} from '@crowd/integrations'
 import { IServiceOptions } from './IServiceOptions'
 import ActivityService from './activityService'
 import MemberService from './memberService'
@@ -21,14 +29,6 @@ import NoteService from './noteService'
 import TagService from './tagService'
 import { API_CONFIG } from '../conf'
 import SequelizeRepository from '../database/repositories/sequelizeRepository'
-import {
-  CROWD_MEMBER_ATTRIBUTES,
-  DEVTO_MEMBER_ATTRIBUTES,
-  DISCORD_MEMBER_ATTRIBUTES,
-  GITHUB_MEMBER_ATTRIBUTES,
-  LINKEDIN_MEMBER_ATTRIBUTES,
-  TWITTER_MEMBER_ATTRIBUTES,
-} from '@crowd/integrations'
 
 export default class SampleDataService extends LoggerBase {
   options: IServiceOptions

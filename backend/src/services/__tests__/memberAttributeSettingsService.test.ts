@@ -1,14 +1,16 @@
 /* eslint @typescript-eslint/no-unused-vars: 0 */
 
+import {
+  DEVTO_MEMBER_ATTRIBUTES,
+  DISCORD_MEMBER_ATTRIBUTES,
+  GITHUB_MEMBER_ATTRIBUTES,
+  SLACK_MEMBER_ATTRIBUTES,
+  TWITTER_MEMBER_ATTRIBUTES,
+} from '@crowd/integrations'
 import SequelizeTestUtils from '../../database/utils/sequelizeTestUtils'
 import Error400 from '../../errors/Error400'
 import MemberAttributeSettingsService from '../memberAttributeSettingsService'
-import { GithubMemberAttributes } from '../../database/attributes/member/github'
-import { DiscordMemberAttributes } from '../../database/attributes/member/discord'
-import { TwitterMemberAttributes } from '../../database/attributes/member/twitter'
-import { DevtoMemberAttributes } from '../../database/attributes/member/devto'
-import { SlackMemberAttributes } from '../../database/attributes/member/slack'
-import { AttributeType } from '../../database/attributes/types'
+import { MemberAttributeType } from '@crowd/types'
 
 const db = null
 describe('MemberAttributeSettingService tests', () => {
@@ -26,7 +28,7 @@ describe('MemberAttributeSettingService tests', () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
       const as = new MemberAttributeSettingsService(mockIRepositoryOptions)
 
-      const attributes = (await as.createPredefined(GithubMemberAttributes)).map((attribute) => {
+      const attributes = (await as.createPredefined(GITHUB_MEMBER_ATTRIBUTES)).map((attribute) => {
         attribute.createdAt = (attribute.createdAt as any).toISOString().split('T')[0]
         attribute.updatedAt = (attribute.updatedAt as any).toISOString().split('T')[0]
         return attribute
@@ -41,7 +43,7 @@ describe('MemberAttributeSettingService tests', () => {
         locationCreated,
       ] = attributes
 
-      const [isHireable, url, websiteUrl, bio, company, location] = GithubMemberAttributes
+      const [isHireable, url, websiteUrl, bio, company, location] = GITHUB_MEMBER_ATTRIBUTES
 
       const expected = [
         {
@@ -136,7 +138,7 @@ describe('MemberAttributeSettingService tests', () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
       const as = new MemberAttributeSettingsService(mockIRepositoryOptions)
 
-      const attributes = (await as.createPredefined(DiscordMemberAttributes)).map((attribute) => {
+      const attributes = (await as.createPredefined(DISCORD_MEMBER_ATTRIBUTES)).map((attribute) => {
         attribute.createdAt = (attribute.createdAt as any).toISOString().split('T')[0]
         attribute.updatedAt = (attribute.updatedAt as any).toISOString().split('T')[0]
         return attribute
@@ -144,7 +146,7 @@ describe('MemberAttributeSettingService tests', () => {
 
       const [idCreated, avatarUrlCreated] = attributes
 
-      const [id, avatarUrl] = DiscordMemberAttributes
+      const [id, avatarUrl] = DISCORD_MEMBER_ATTRIBUTES
 
       const expected = [
         {
@@ -183,7 +185,7 @@ describe('MemberAttributeSettingService tests', () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
       const as = new MemberAttributeSettingsService(mockIRepositoryOptions)
 
-      const attributes = (await as.createPredefined(DevtoMemberAttributes)).map((attribute) => {
+      const attributes = (await as.createPredefined(DEVTO_MEMBER_ATTRIBUTES)).map((attribute) => {
         attribute.createdAt = (attribute.createdAt as any).toISOString().split('T')[0]
         attribute.updatedAt = (attribute.updatedAt as any).toISOString().split('T')[0]
         return attribute
@@ -191,7 +193,7 @@ describe('MemberAttributeSettingService tests', () => {
 
       const [idCreated, urlCreated, nameCreated, bioCreated, locationCreated] = attributes
 
-      const [id, url, name, bio, location] = DevtoMemberAttributes
+      const [id, url, name, bio, location] = DEVTO_MEMBER_ATTRIBUTES
 
       const expected = [
         {
@@ -272,7 +274,7 @@ describe('MemberAttributeSettingService tests', () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
       const as = new MemberAttributeSettingsService(mockIRepositoryOptions)
 
-      const attributes = (await as.createPredefined(TwitterMemberAttributes)).map((attribute) => {
+      const attributes = (await as.createPredefined(TWITTER_MEMBER_ATTRIBUTES)).map((attribute) => {
         attribute.createdAt = (attribute.createdAt as any).toISOString().split('T')[0]
         attribute.updatedAt = (attribute.updatedAt as any).toISOString().split('T')[0]
         return attribute
@@ -280,7 +282,7 @@ describe('MemberAttributeSettingService tests', () => {
 
       const [idCreated, avatarUrlCreated, urlCreated, bioCreated, locationCreated] = attributes
 
-      const [id, avatarUrl, url, bio, location] = TwitterMemberAttributes
+      const [id, avatarUrl, url, bio, location] = TWITTER_MEMBER_ATTRIBUTES
 
       const expected = [
         {
@@ -361,7 +363,7 @@ describe('MemberAttributeSettingService tests', () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
       const as = new MemberAttributeSettingsService(mockIRepositoryOptions)
 
-      const attributes = (await as.createPredefined(SlackMemberAttributes)).map((attribute) => {
+      const attributes = (await as.createPredefined(SLACK_MEMBER_ATTRIBUTES)).map((attribute) => {
         attribute.createdAt = (attribute.createdAt as any).toISOString().split('T')[0]
         attribute.updatedAt = (attribute.updatedAt as any).toISOString().split('T')[0]
         return attribute
@@ -369,7 +371,7 @@ describe('MemberAttributeSettingService tests', () => {
 
       const [idCreated, avatarUrlCreated, jobTitleCreated, timezoneCreated] = attributes
 
-      const [id, avatarUrl, jobTitle, timezone] = SlackMemberAttributes
+      const [id, avatarUrl, jobTitle, timezone] = SLACK_MEMBER_ATTRIBUTES
 
       const expected = [
         {
@@ -436,9 +438,9 @@ describe('MemberAttributeSettingService tests', () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
       const as = new MemberAttributeSettingsService(mockIRepositoryOptions)
 
-      const attributes = await as.createPredefined(TwitterMemberAttributes)
+      const attributes = await as.createPredefined(TWITTER_MEMBER_ATTRIBUTES)
 
-      const attributes2 = (await as.createPredefined(DevtoMemberAttributes)).map((attribute) => {
+      const attributes2 = (await as.createPredefined(DEVTO_MEMBER_ATTRIBUTES)).map((attribute) => {
         attribute.createdAt = (attribute.createdAt as any).toISOString().split('T')[0]
         attribute.updatedAt = (attribute.updatedAt as any).toISOString().split('T')[0]
         return attribute
@@ -461,7 +463,7 @@ describe('MemberAttributeSettingService tests', () => {
         _locationCreatedDevTo,
       ] = attributes2
 
-      const [id, url, name, bio, location] = DevtoMemberAttributes
+      const [id, url, name, bio, location] = DEVTO_MEMBER_ATTRIBUTES
       console.log('urlCreatedTwitter', urlCreatedTwitter.id)
       console.log('urlCreatedDevTo', _urlCreatedDevTo.id)
       console.log('bioCreatedTwitter', bioCreatedTwitter.id)
@@ -560,7 +562,7 @@ describe('MemberAttributeSettingService tests', () => {
       const attribute1 = {
         name: 'att1',
         label: 'attribute 1',
-        type: AttributeType.BOOLEAN,
+        type: MemberAttributeType.BOOLEAN,
         canDelete: true,
         show: true,
       }
@@ -587,7 +589,7 @@ describe('MemberAttributeSettingService tests', () => {
       const attribute1 = {
         name: 'att1',
         label: 'attribute 1',
-        type: AttributeType.MULTI_SELECT,
+        type: MemberAttributeType.MULTI_SELECT,
         options: ['option1', 'option2'],
         canDelete: true,
         show: true,
@@ -615,7 +617,7 @@ describe('MemberAttributeSettingService tests', () => {
       const attribute1 = {
         name: 'att1',
         label: 'attribute 1',
-        type: AttributeType.BOOLEAN,
+        type: MemberAttributeType.BOOLEAN,
       }
 
       const attributeCreated = await as.create(attribute1)
@@ -640,7 +642,7 @@ describe('MemberAttributeSettingService tests', () => {
 
       const attribute1 = {
         label: 'an attribute with multiple words',
-        type: AttributeType.BOOLEAN,
+        type: MemberAttributeType.BOOLEAN,
       }
 
       const attributeCreated = await as.create(attribute1)
@@ -668,7 +670,7 @@ describe('MemberAttributeSettingService tests', () => {
       const attribute = await as.create({
         name: 'att1',
         label: 'attribute 1',
-        type: AttributeType.BOOLEAN,
+        type: MemberAttributeType.BOOLEAN,
         canDelete: true,
         show: true,
       })
@@ -688,7 +690,7 @@ describe('MemberAttributeSettingService tests', () => {
       const attribute1 = await as.create({
         name: 'att1',
         label: 'attribute 1',
-        type: AttributeType.BOOLEAN,
+        type: MemberAttributeType.BOOLEAN,
         canDelete: true,
         show: true,
       })
@@ -696,7 +698,7 @@ describe('MemberAttributeSettingService tests', () => {
       const attribute2 = await as.create({
         name: 'att2',
         label: 'attribute 2',
-        type: AttributeType.STRING,
+        type: MemberAttributeType.STRING,
         canDelete: false,
         show: true,
       })
@@ -704,7 +706,7 @@ describe('MemberAttributeSettingService tests', () => {
       const attribute3 = await as.create({
         name: 'att3',
         label: 'attribute 3',
-        type: AttributeType.EMAIL,
+        type: MemberAttributeType.EMAIL,
         canDelete: true,
         show: false,
       })
@@ -726,7 +728,7 @@ describe('MemberAttributeSettingService tests', () => {
       const attribute = await as.create({
         name: 'attribute 1',
         label: 'attribute 1',
-        type: AttributeType.BOOLEAN,
+        type: MemberAttributeType.BOOLEAN,
         canDelete: true,
         show: true,
       })
@@ -735,7 +737,7 @@ describe('MemberAttributeSettingService tests', () => {
         as.update(attribute.id, {
           name: attribute.name,
           label: 'some other label',
-          type: AttributeType.STRING,
+          type: MemberAttributeType.STRING,
         }),
       ).rejects.toThrowError(
         new Error400('en', 'settings.memberAttributes.errors.typesNotMatching', attribute.name),
@@ -749,7 +751,7 @@ describe('MemberAttributeSettingService tests', () => {
       const attribute = await as.create({
         name: 'attribute 1',
         label: 'attribute 1',
-        type: AttributeType.BOOLEAN,
+        type: MemberAttributeType.BOOLEAN,
         canDelete: true,
         show: true,
       })
@@ -771,7 +773,7 @@ describe('MemberAttributeSettingService tests', () => {
       const attribute = await as.create({
         name: 'attribute 1',
         label: 'attribute 1',
-        type: AttributeType.BOOLEAN,
+        type: MemberAttributeType.BOOLEAN,
         canDelete: true,
         show: true,
       })
@@ -804,79 +806,83 @@ describe('MemberAttributeSettingService tests', () => {
       const isCorrectType = MemberAttributeSettingsService.isCorrectType
 
       // boolean
-      expect(isCorrectType(true, AttributeType.BOOLEAN)).toBeTruthy()
-      expect(isCorrectType(false, AttributeType.BOOLEAN)).toBeTruthy()
-      expect(isCorrectType('true', AttributeType.BOOLEAN)).toBeTruthy()
-      expect(isCorrectType('false', AttributeType.BOOLEAN)).toBeTruthy()
+      expect(isCorrectType(true, MemberAttributeType.BOOLEAN)).toBeTruthy()
+      expect(isCorrectType(false, MemberAttributeType.BOOLEAN)).toBeTruthy()
+      expect(isCorrectType('true', MemberAttributeType.BOOLEAN)).toBeTruthy()
+      expect(isCorrectType('false', MemberAttributeType.BOOLEAN)).toBeTruthy()
 
-      expect(isCorrectType(5, AttributeType.BOOLEAN)).toBeFalsy()
-      expect(isCorrectType('someString', AttributeType.BOOLEAN)).toBeFalsy()
-      expect(isCorrectType({}, AttributeType.BOOLEAN)).toBeFalsy()
-      expect(isCorrectType([], AttributeType.BOOLEAN)).toBeFalsy()
+      expect(isCorrectType(5, MemberAttributeType.BOOLEAN)).toBeFalsy()
+      expect(isCorrectType('someString', MemberAttributeType.BOOLEAN)).toBeFalsy()
+      expect(isCorrectType({}, MemberAttributeType.BOOLEAN)).toBeFalsy()
+      expect(isCorrectType([], MemberAttributeType.BOOLEAN)).toBeFalsy()
 
       // string
-      expect(isCorrectType('', AttributeType.STRING)).toBeTruthy()
-      expect(isCorrectType('someString', AttributeType.STRING)).toBeTruthy()
+      expect(isCorrectType('', MemberAttributeType.STRING)).toBeTruthy()
+      expect(isCorrectType('someString', MemberAttributeType.STRING)).toBeTruthy()
 
-      expect(isCorrectType(5, AttributeType.STRING)).toBeFalsy()
-      expect(isCorrectType(true, AttributeType.STRING)).toBeFalsy()
-      expect(isCorrectType({}, AttributeType.STRING)).toBeFalsy()
+      expect(isCorrectType(5, MemberAttributeType.STRING)).toBeFalsy()
+      expect(isCorrectType(true, MemberAttributeType.STRING)).toBeFalsy()
+      expect(isCorrectType({}, MemberAttributeType.STRING)).toBeFalsy()
 
       // date
-      expect(isCorrectType('2022-05-10', AttributeType.DATE)).toBeTruthy()
-      expect(isCorrectType('2022-06-15T00:00:00', AttributeType.DATE)).toBeTruthy()
-      expect(isCorrectType('2022-07-14T00:00:00Z', AttributeType.DATE)).toBeTruthy()
+      expect(isCorrectType('2022-05-10', MemberAttributeType.DATE)).toBeTruthy()
+      expect(isCorrectType('2022-06-15T00:00:00', MemberAttributeType.DATE)).toBeTruthy()
+      expect(isCorrectType('2022-07-14T00:00:00Z', MemberAttributeType.DATE)).toBeTruthy()
 
-      expect(isCorrectType(5, AttributeType.DATE)).toBeFalsy()
-      expect(isCorrectType('someString', AttributeType.DATE)).toBeFalsy()
-      expect(isCorrectType('', AttributeType.DATE)).toBeFalsy()
-      expect(isCorrectType(true, AttributeType.DATE)).toBeFalsy()
-      expect(isCorrectType({}, AttributeType.DATE)).toBeFalsy()
-      expect(isCorrectType([], AttributeType.DATE)).toBeFalsy()
+      expect(isCorrectType(5, MemberAttributeType.DATE)).toBeFalsy()
+      expect(isCorrectType('someString', MemberAttributeType.DATE)).toBeFalsy()
+      expect(isCorrectType('', MemberAttributeType.DATE)).toBeFalsy()
+      expect(isCorrectType(true, MemberAttributeType.DATE)).toBeFalsy()
+      expect(isCorrectType({}, MemberAttributeType.DATE)).toBeFalsy()
+      expect(isCorrectType([], MemberAttributeType.DATE)).toBeFalsy()
 
       // email
-      expect(isCorrectType('anil@crowd.dev', AttributeType.EMAIL)).toBeTruthy()
-      expect(isCorrectType('anil+123@crowd.dev', AttributeType.EMAIL)).toBeTruthy()
+      expect(isCorrectType('anil@crowd.dev', MemberAttributeType.EMAIL)).toBeTruthy()
+      expect(isCorrectType('anil+123@crowd.dev', MemberAttributeType.EMAIL)).toBeTruthy()
 
-      expect(isCorrectType(15, AttributeType.EMAIL)).toBeFalsy()
-      expect(isCorrectType('', AttributeType.EMAIL)).toBeFalsy()
-      expect(isCorrectType('someString', AttributeType.EMAIL)).toBeFalsy()
-      expect(isCorrectType(true, AttributeType.EMAIL)).toBeFalsy()
-      expect(isCorrectType({}, AttributeType.EMAIL)).toBeFalsy()
-      expect(isCorrectType([], AttributeType.EMAIL)).toBeFalsy()
+      expect(isCorrectType(15, MemberAttributeType.EMAIL)).toBeFalsy()
+      expect(isCorrectType('', MemberAttributeType.EMAIL)).toBeFalsy()
+      expect(isCorrectType('someString', MemberAttributeType.EMAIL)).toBeFalsy()
+      expect(isCorrectType(true, MemberAttributeType.EMAIL)).toBeFalsy()
+      expect(isCorrectType({}, MemberAttributeType.EMAIL)).toBeFalsy()
+      expect(isCorrectType([], MemberAttributeType.EMAIL)).toBeFalsy()
 
       // number
-      expect(isCorrectType(100, AttributeType.NUMBER)).toBeTruthy()
-      expect(isCorrectType(5.123, AttributeType.NUMBER)).toBeTruthy()
-      expect(isCorrectType(0.000001, AttributeType.NUMBER)).toBeTruthy()
-      expect(isCorrectType(0, AttributeType.NUMBER)).toBeTruthy()
-      expect(isCorrectType('125', AttributeType.NUMBER)).toBeTruthy()
+      expect(isCorrectType(100, MemberAttributeType.NUMBER)).toBeTruthy()
+      expect(isCorrectType(5.123, MemberAttributeType.NUMBER)).toBeTruthy()
+      expect(isCorrectType(0.000001, MemberAttributeType.NUMBER)).toBeTruthy()
+      expect(isCorrectType(0, MemberAttributeType.NUMBER)).toBeTruthy()
+      expect(isCorrectType('125', MemberAttributeType.NUMBER)).toBeTruthy()
 
-      expect(isCorrectType('', AttributeType.NUMBER)).toBeFalsy()
-      expect(isCorrectType('someString', AttributeType.NUMBER)).toBeFalsy()
-      expect(isCorrectType(true, AttributeType.NUMBER)).toBeFalsy()
-      expect(isCorrectType({}, AttributeType.NUMBER)).toBeFalsy()
-      expect(isCorrectType([], AttributeType.NUMBER)).toBeFalsy()
+      expect(isCorrectType('', MemberAttributeType.NUMBER)).toBeFalsy()
+      expect(isCorrectType('someString', MemberAttributeType.NUMBER)).toBeFalsy()
+      expect(isCorrectType(true, MemberAttributeType.NUMBER)).toBeFalsy()
+      expect(isCorrectType({}, MemberAttributeType.NUMBER)).toBeFalsy()
+      expect(isCorrectType([], MemberAttributeType.NUMBER)).toBeFalsy()
 
       // multiselect
       expect(
-        isCorrectType(['a', 'b', 'c'], AttributeType.MULTI_SELECT, {
+        isCorrectType(['a', 'b', 'c'], MemberAttributeType.MULTI_SELECT, {
           options: ['a', 'b', 'c', 'd'],
         }),
       ).toBeTruthy()
       expect(
-        isCorrectType([], AttributeType.MULTI_SELECT, { options: ['a', 'b', 'c', 'd'] }),
+        isCorrectType([], MemberAttributeType.MULTI_SELECT, { options: ['a', 'b', 'c', 'd'] }),
       ).toBeTruthy()
       expect(
-        isCorrectType(['a'], AttributeType.MULTI_SELECT, { options: ['a', 'b', 'c', 'd'] }),
+        isCorrectType(['a'], MemberAttributeType.MULTI_SELECT, { options: ['a', 'b', 'c', 'd'] }),
       ).toBeTruthy()
       expect(
-        isCorrectType(['a', '42'], AttributeType.MULTI_SELECT, { options: ['a', 'b', 'c', 'd'] }),
+        isCorrectType(['a', '42'], MemberAttributeType.MULTI_SELECT, {
+          options: ['a', 'b', 'c', 'd'],
+        }),
       ).toBeFalsy()
       expect(
-        isCorrectType('a', AttributeType.MULTI_SELECT, { options: ['a', 'b', 'c'] }),
+        isCorrectType('a', MemberAttributeType.MULTI_SELECT, { options: ['a', 'b', 'c'] }),
       ).toBeFalsy()
-      expect(isCorrectType(5, AttributeType.MULTI_SELECT, { options: ['a', 'b', 'c'] })).toBeFalsy()
+      expect(
+        isCorrectType(5, MemberAttributeType.MULTI_SELECT, { options: ['a', 'b', 'c'] }),
+      ).toBeFalsy()
     })
   })
 })

@@ -1,6 +1,6 @@
+import { MemberAttributeType } from '@crowd/types'
 import MemberRepository from '../../memberRepository'
 import RawQueryParser from '../rawQueryParser'
-import { AttributeType } from '../../../attributes/types'
 
 describe('RawQueryParser', () => {
   it('Should parse simple filter with an empty second operand', () => {
@@ -191,7 +191,7 @@ describe('RawQueryParser', () => {
           attributeInfos: [
             {
               name: 'skills',
-              type: AttributeType.MULTI_SELECT,
+              type: MemberAttributeType.MULTI_SELECT,
             },
           ],
         },
@@ -229,7 +229,7 @@ describe('RawQueryParser', () => {
           attributeInfos: [
             {
               name: 'age',
-              type: AttributeType.NUMBER,
+              type: MemberAttributeType.NUMBER,
             },
           ],
         },

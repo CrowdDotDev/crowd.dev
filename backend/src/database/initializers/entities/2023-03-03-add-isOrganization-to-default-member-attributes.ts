@@ -1,13 +1,13 @@
+import { DEFAULT_MEMBER_ATTRIBUTES } from '@crowd/integrations'
 import TenantService from '../../../services/tenantService'
 import getUserContext from '../../utils/getUserContext'
 import MemberAttributeSettingsService from '../../../services/memberAttributeSettingsService'
-import { DefaultMemberAttributes } from '../../attributes/member/default'
 
 /* eslint-disable no-console */
 
 const addIsOrganizationToMemberAttributes = async () => {
   const tenants = await TenantService._findAndCountAllForEveryUser({})
-  const isOrganizationAttribute = DefaultMemberAttributes.find((a) => a.name === 'isOrganization')
+  const isOrganizationAttribute = DEFAULT_MEMBER_ATTRIBUTES.find((a) => a.name === 'isOrganization')
 
   // for each tenant
   for (const tenant of tenants.rows) {
