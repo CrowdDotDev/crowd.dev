@@ -1,6 +1,5 @@
 import Layout from '@/modules/layout/components/layout.vue';
 import Permissions from '@/security/permissions';
-import { store } from '@/store';
 
 const MemberListPage = () => import('@/modules/member/pages/member-list-page.vue');
 const MemberMergeSuggestionsPage = () => import(
@@ -23,18 +22,6 @@ export default [
         meta: {
           auth: true,
           permission: Permissions.values.memberRead,
-        },
-        beforeEnter: (to) => {
-          if (
-            to.query.activeTab !== undefined
-            && to.query.activeTab
-              !== store.getters['member/activeView'].id
-          ) {
-            store.dispatch(
-              'member/doChangeActiveView',
-              to.query.activeTab,
-            );
-          }
         },
       },
       {

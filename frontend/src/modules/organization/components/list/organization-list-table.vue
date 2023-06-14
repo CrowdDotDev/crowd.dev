@@ -17,7 +17,7 @@
       />
 
       <app-empty-state-cta
-        v-else-if="hasOrganizations && !count"
+        v-else-if="hasOrganizations && !totalOrganizations"
         icon="ri-community-line"
         title="No organizations found"
         description="We couldn't find any results that match your search criteria, please try a different query."
@@ -27,9 +27,9 @@
         <!-- Sorter -->
         <div class="mb-2">
           <app-pagination-sorter
-            :page-size="Number(pagination.pageSize)"
-            :total="count"
-            :current-page="pagination.currentPage"
+            :page-size="Number(pagination.perPage)"
+            :total="totalOrganizations"
+            :current-page="pagination.page"
             :has-page-counter="false"
             module="organization"
             position="top"
@@ -56,7 +56,6 @@
               >
                 <div
                   :style="{
-                    width: tableWidth,
                     height: '10px',
                   }"
                 />
@@ -77,12 +76,13 @@
             <el-table
               id="organizations-table"
               ref="table"
-              :data="rows"
+              :data="organizations"
               :default-sort="defaultSort"
               row-key="id"
               border
               :row-class-name="rowClass"
               @sort-change="doChangeSort"
+              @selection-change="selectedOrganizations = $event"
             >
               <!-- Checkbox -->
               <el-table-column
@@ -511,9 +511,9 @@
               class="mt-8 px-6"
             >
               <app-pagination
-                :total="count"
-                :page-size="Number(pagination.pageSize)"
-                :current-page="pagination.currentPage || 1"
+                :total="totalOrganizations"
+                :page-size="Number(pagination.perPage)"
+                :current-page="pagination.page || 1"
                 module="organization"
                 @change-current-page="
                   doChangePaginationCurrentPage
@@ -539,14 +539,11 @@ import {
   onUnmounted,
 } from 'vue';
 import { useRouter } from 'vue-router';
-import {
-  mapState,
-  mapGetters,
-  mapActions,
-} from '@/shared/vuex/vuex.helpers';
 import { formatDateToTimeAgo } from '@/utils/date';
 import { formatNumberToCompact } from '@/utils/number';
 import { withHttp, toSentenceCase } from '@/utils/string';
+import { useOrganizationStore } from '@/modules/organization/store/pinia';
+import { storeToRefs } from 'pinia';
 import AppOrganizationIdentities from '../organization-identities.vue';
 import AppOrganizationListToolbar from './organization-list-toolbar.vue';
 import AppOrganizationName from '../organization-name.vue';
@@ -565,16 +562,10 @@ const props = defineProps({
   },
 });
 
-const { count, list } = mapState('organization');
+const organizationStore = useOrganizationStore();
 const {
-  activeView, rows, pagination, selectedRows,
-} = mapGetters('organization');
-const {
-  doChangePaginationCurrentPage,
-  doChangePaginationPageSize,
-  doChangeSort,
-  doMountTable,
-} = mapActions('organization');
+  organizations, selectedOrganizations, filters, totalOrganizations,
+} = storeToRefs(organizationStore);
 
 const table = ref(null);
 const scrollbarRef = ref();
@@ -584,17 +575,20 @@ const isScrollbarVisible = ref(false);
 const isTableHovered = ref(false);
 const isCursorDown = ref(false);
 
+const pagination = computed(() => filters.value.pagination);
+
+const defaultSort = computed(() => ({
+  field: filters.value.order.prop,
+  order: filters.value.order.order,
+}));
+
 const showBottomPagination = computed(() => (
-  !!count.value
+  !!totalOrganizations.value
     && Math.ceil(
-      count.value / Number(pagination.value.pageSize),
+      totalOrganizations.value / Number(filters.value.pagination.perPage),
     ) > 1
 ));
-const tableWidth = computed(() => list.value.table?.bodyWidth);
-const defaultSort = computed(() => activeView.value.sorter);
-const isLoading = computed(
-  () => list.value.loading || props.isPageLoading,
-);
+const isLoading = computed(() => props.isPageLoading);
 
 document.onmouseup = () => {
   // As soon as mouse is released, set scrollbar visibility
@@ -603,6 +597,21 @@ document.onmouseup = () => {
   isCursorDown.value = false;
 };
 
+function doChangeSort(sorter) {
+  filters.value.order = {
+    prop: sorter.prop,
+    order: sorter.order,
+  };
+}
+
+function doChangePaginationCurrentPage(currentPage) {
+  filters.value.pagination.page = currentPage;
+}
+
+function doChangePaginationPageSize(pageSize) {
+  filters.value.pagination.perPage = pageSize;
+}
+
 const onCtaClick = () => {
   router.push({
     name: 'organizationCreate',
@@ -610,7 +619,7 @@ const onCtaClick = () => {
 };
 
 const rowClass = ({ row }) => {
-  const isSelected = selectedRows.value.find((r) => r.id === row.id)
+  const isSelected = selectedOrganizations.value.find((r) => r.id === row.id)
     !== undefined;
 
   return isSelected ? 'is-selected' : '';
@@ -661,7 +670,7 @@ const onTableMouseLeft = () => {
 
 const emailsColumnWidth = computed(() => {
   let maxTabWidth = 0;
-  rows.value.forEach((row) => {
+  organizations.value.forEach((row) => {
     const tabWidth = row.emails
       ?.map((email) => (email ? email.length * 12 : 0))
       .reduce((a, b) => a + b, 0);

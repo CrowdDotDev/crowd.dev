@@ -10,7 +10,7 @@ import {
 } from './integrationDataCheckerSettings'
 import { IRepositoryOptions } from '../../../../database/repositories/IRepositoryOptions'
 import { IntegrationDataCheckerSettings } from './integrationDataCheckerTypes'
-import { SLACK_ALERTING_CONFIG } from '@/conf'
+import { SLACK_ALERTING_CONFIG } from '../../../../conf'
 
 const log = getServiceChildLogger('integrationDataCheckerWorker')
 

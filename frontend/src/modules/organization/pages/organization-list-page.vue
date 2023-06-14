@@ -32,35 +32,47 @@
         </div>
       </div>
 
-      <app-organization-list-tabs />
-      <app-organization-list-filter />
+      <cr-saved-views v-model="filters" :config="organizationSavedViews" :views="organizationViews" />
+      <cr-filter
+        v-model="filters"
+        :config="organizationFilters"
+        :search-config="organizationSearchFilter"
+        :saved-views-config="organizationSavedViews"
+        @fetch="fetch($event)"
+      />
       <app-organization-list-table
-        :has-organizations="hasOrganizations"
-        :is-page-loading="isPageLoading"
+        :has-organizations="totalOrganizations > 0"
+        :is-page-loading="loading"
       />
     </div>
   </app-page-wrapper>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { computed, ref, onMounted } from 'vue';
-import { useRoute } from 'vue-router';
-import moment from 'moment/moment';
 import AppPageWrapper from '@/shared/layout/page-wrapper.vue';
-import AppOrganizationListTabs from '@/modules/organization/components/list/organization-list-tabs.vue';
-import AppOrganizationListFilter from '@/modules/organization/components/list/organization-list-filter.vue';
 import AppOrganizationListTable from '@/modules/organization/components/list/organization-list-table.vue';
 import {
   mapGetters,
-  mapActions,
 } from '@/shared/vuex/vuex.helpers';
+import CrSavedViews from '@/shared/modules/saved-views/components/SavedViews.vue';
+import CrFilter from '@/shared/modules/filters/components/Filter.vue';
+import { useOrganizationStore } from '@/modules/organization/store/pinia';
+import { storeToRefs } from 'pinia';
+import { organizationFilters, organizationSearchFilter } from '@/modules/organization/config/filters/main';
+import { organizationSavedViews, organizationViews } from '@/modules/organization/config/saved-views/main';
+import { FilterQuery } from '@/shared/modules/filters/types/FilterQuery';
+import { OrganizationService } from '@/modules/organization/organization-service';
 import { OrganizationPermissions } from '../organization-permissions';
-import { OrganizationService } from '../organization-service';
-
-const route = useRoute();
 
 const { currentUser, currentTenant } = mapGetters('auth');
-const { doFetch, updateFilterAttribute } = mapActions('organization');
+
+const organizationStore = useOrganizationStore();
+const { filters, totalOrganizations, savedFilterBody } = storeToRefs(organizationStore);
+const { fetchOrganizations } = organizationStore;
+
+const loading = ref(true);
+const organizationCount = ref(0);
 
 const hasPermissionToCreate = computed(
   () => new OrganizationPermissions(
@@ -74,68 +86,51 @@ const isCreateLockedForSampleData = computed(
     currentUser.value,
   ).createLockedForSampleData,
 );
-const hasOrganizations = ref(false);
-const isPageLoading = ref(false);
 
-const doGetOrganizationsCount = async () => {
-  try {
-    const response = await OrganizationService.list(
-      {},
-      '',
-      1,
-      0,
-    );
+const doGetOrganizationCount = () => {
+  (OrganizationService.listOrganizations({
+    limit: 1,
+    offset: 0,
+  }) as Promise<any>)
+    .then(({ count }) => {
+      organizationCount.value = count;
+    });
+};
 
-    return response.rows;
-  } catch (e) {
-    return null;
+const showLoading = (filter: any, body: any): boolean => {
+  const saved: any = { ...savedFilterBody.value };
+  delete saved.offset;
+  delete saved.limit;
+  delete saved.orderBy;
+  const compare = {
+    ...body,
+    filter,
+  };
+  return JSON.stringify(saved) !== JSON.stringify(compare);
+};
+
+const fetch = ({
+  filter, offset, limit, orderBy, body,
+}: FilterQuery) => {
+  if (!loading.value) {
+    loading.value = showLoading(filter, body);
   }
+  fetchOrganizations({
+    body: {
+      ...body,
+      filter,
+      offset,
+      limit,
+      orderBy,
+    },
+  })
+    .finally(() => {
+      loading.value = false;
+    });
 };
 
 onMounted(async () => {
-  isPageLoading.value = true;
-  const { joinedFrom, activeFrom } = route.query;
-
-  if (
-    joinedFrom
-    && moment(joinedFrom, 'YYYY-MM-DD', true).isValid()
-  ) {
-    await updateFilterAttribute({
-      custom: false,
-      defaultOperator: 'gt',
-      defaultValue: joinedFrom,
-      expanded: false,
-      label: 'Joined date',
-      name: 'joinedAt',
-      operator: 'gt',
-      type: 'date',
-      value: joinedFrom,
-    });
-  }
-  if (
-    activeFrom
-    && moment(activeFrom, 'YYYY-MM-DD', true).isValid()
-  ) {
-    await updateFilterAttribute({
-      custom: false,
-      defaultOperator: 'eq',
-      defaultValue: activeFrom,
-      expanded: false,
-      label: 'Last activity date',
-      name: 'lastActive',
-      operator: 'gt',
-      type: 'date',
-      value: activeFrom,
-    });
-  }
-
-  await doFetch({
-    keepPagination: true,
-  });
-
-  const organizationsList = await doGetOrganizationsCount();
-
-  hasOrganizations.value = !!organizationsList?.length;
-  isPageLoading.value = false;
+  doGetOrganizationCount();
+  (window as any).analytics.page('Organization');
 });
 </script>
