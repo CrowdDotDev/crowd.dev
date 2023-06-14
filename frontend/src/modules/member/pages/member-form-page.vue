@@ -69,7 +69,7 @@
               <el-divider
                 class="!mb-6 !mt-16 !border-gray-200"
               />
-              <app-member-form-affiliations
+              <app-lf-member-form-affiliations
                 v-model="formModel"
                 :record="record"
               />
@@ -152,7 +152,7 @@ import { useMemberStore } from '@/modules/member/store/pinia';
 import { storeToRefs } from 'pinia';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import AppLfSubProjectsListDropdown from '@/modules/lf/segments/components/lf-sub-projects-list-dropdown.vue';
-import AppMemberFormAffiliations from '@/modules/member/components/form/member-form-affiliations.vue';
+import AppLfMemberFormAffiliations from '@/modules/lf/member/components/form/lf-member-form-affiliations.vue';
 
 const LoaderIcon = h(
   'i',

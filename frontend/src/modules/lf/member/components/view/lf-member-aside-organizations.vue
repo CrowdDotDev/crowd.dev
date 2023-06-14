@@ -82,6 +82,6 @@ const isEditLockedForSampleData = computed(() => new MemberPermissions(
 
 <script>
 export default {
-  name: 'AppMemberAsideOrganizations',
+  name: 'AppLfMemberAsideOrganizations',
 };
 </script>

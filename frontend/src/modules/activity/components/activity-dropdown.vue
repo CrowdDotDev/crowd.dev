@@ -15,7 +15,7 @@
         <i class="text-xl ri-more-fill" />
       </button>
       <template #dropdown>
-        <app-activity-affiliations
+        <app-lf-activity-affiliations
           :show-affiliations="showAffiliations"
           :activity="activity"
           :organizations="organizations"
@@ -46,7 +46,7 @@
               >Delete activity</span>
             </el-dropdown-item>
           </template>
-        </app-activity-affiliations>
+        </app-lf-activity-affiliations>
       </template>
     </el-dropdown>
   </div>
@@ -57,7 +57,7 @@ import { ref, computed } from 'vue';
 import { ActivityPermissions } from '@/modules/activity/activity-permissions';
 import ConfirmDialog from '@/shared/dialog/confirm-dialog';
 import { mapGetters } from '@/shared/vuex/vuex.helpers';
-import AppActivityAffiliations from './activity-affiliations.vue';
+import AppLfActivityAffiliations from '@/modules/lf/activity/components/lf-activity-affiliations.vue';
 import { ActivityService } from '../activity-service';
 
 const emit = defineEmits(['onUpdate', 'edit']);

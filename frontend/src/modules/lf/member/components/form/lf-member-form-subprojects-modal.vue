@@ -99,6 +99,6 @@ const onSubmit = () => {
 
 <script>
 export default {
-  name: 'AppMemberFormSubprojectsModal',
+  name: 'AppLfMemberFormSubprojectsModal',
 };
 </script>

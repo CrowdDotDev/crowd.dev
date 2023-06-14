@@ -72,6 +72,6 @@ const editActivity = (organizationId) => {
 
 <script>
 export default {
-  name: 'AppActivityAffiliations',
+  name: 'AppLfActivityAffiliations',
 };
 </script>

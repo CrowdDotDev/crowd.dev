@@ -8,11 +8,11 @@
 
     <div class="member-view-aside panel">
       <app-member-aside-identities :member="member" />
-      <app-member-aside-organizations
+      <app-lf-member-aside-organizations
         class="mt-10"
         :member="member"
       />
-      <app-member-aside-sub-projects
+      <app-lf-member-aside-sub-projects
         class="mt-10"
         :member="member"
       />
@@ -31,13 +31,12 @@
 </template>
 
 <script setup>
-import { defineProps } from 'vue';
 import AppMemberEnrichment from '@/modules/member/components/member-enrichment.vue';
+import AppLfMemberAsideOrganizations from '@/modules/lf/member/components/view/lf-member-aside-organizations.vue';
+import AppLfMemberAsideSubProjects from '@/modules/lf/member/components/view/lf-member-aside-sub-projects.vue';
 import AppMemberAsideCustomAttributes from './_aside/_aside-custom-attributes.vue';
 import AppMemberAsideIdentities from './_aside/_aside-identities.vue';
 import AppMemberAsideEnriched from './_aside/_aside-enriched.vue';
-import AppMemberAsideOrganizations from './_aside/_aside-organizations.vue';
-import AppMemberAsideSubProjects from './_aside/_aside-sub-projects.vue';
 
 defineProps({
   member: {

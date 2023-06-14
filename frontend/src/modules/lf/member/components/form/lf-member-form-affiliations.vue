@@ -107,7 +107,7 @@
 
 <script setup>
 import { computed, ref } from 'vue';
-import AppMemberFormSubprojectsModal from './member-form-subprojects-modal.vue';
+import AppMemberFormSubprojectsModal from './lf-member-form-subprojects-modal.vue';
 
 const emit = defineEmits(['update:modelValue']);
 const props = defineProps({
@@ -162,6 +162,6 @@ const deleteAffiliation = (index) => {
 
 <script>
 export default {
-  name: 'AppMemberFormAffiliations',
+  name: 'AppLfMemberFormAffiliations',
 };
 </script>

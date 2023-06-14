@@ -32,6 +32,6 @@ defineProps({
 
 <script>
 export default {
-  name: 'AppMemberAsideSubProjects',
+  name: 'AppLfMemberAsideSubProjects',
 };
 </script>
