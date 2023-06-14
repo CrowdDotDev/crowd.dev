@@ -499,9 +499,9 @@ class SegmentRepository extends RepositoryBase<
       {
         replacements: {
           tenantId: this.currentTenant.id,
-          name: `${criteria.filter?.name}%`,
+          name: `%${criteria.filter?.name}%`,
           status: criteria.filter?.status,
-          parent_slug: `${criteria.filter?.parentSlug}%`,
+          parent_slug: `%${criteria.filter?.parentSlug}%`,
         },
         type: QueryTypes.SELECT,
       },
@@ -565,10 +565,10 @@ class SegmentRepository extends RepositoryBase<
       {
         replacements: {
           tenantId: this.currentTenant.id,
-          name: `${criteria.filter?.name}%`,
+          name: `%${criteria.filter?.name}%`,
           status: criteria.filter?.status,
-          parent_slug: `${criteria.filter?.parentSlug}%`,
-          grandparent_slug: `${criteria.filter?.grandparentSlug}%`,
+          parent_slug: `%${criteria.filter?.parentSlug}%`,
+          grandparent_slug: `%${criteria.filter?.grandparentSlug}%`,
         },
         type: QueryTypes.SELECT,
       },
