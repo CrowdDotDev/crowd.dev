@@ -13,6 +13,8 @@
             v-model="platform"
             placeholder="All platforms"
             class="w-40"
+            clearable
+            @clear="onClear"
           >
             <template
               v-if="
@@ -156,7 +158,6 @@
 import isEqual from 'lodash/isEqual';
 import { useStore } from 'vuex';
 import {
-  defineProps,
   computed,
   reactive,
   ref,
@@ -329,6 +330,10 @@ watch(platform, async (newValue, oldValue) => {
     await fetchActivities();
   }
 });
+
+const onClear = () => {
+  platform.value = null;
+};
 
 onMounted(async () => {
   if (activeIntegrations.value.length === 0) {

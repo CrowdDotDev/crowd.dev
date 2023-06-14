@@ -352,7 +352,10 @@
                     }"
                     class="block"
                   >
-                    <app-tag-list :member="scope.row" />
+                    <app-tag-list
+                      :member="scope.row"
+                      @tags-updated="fetchMembers({ reload: true })"
+                    />
                   </router-link>
                 </template>
               </el-table-column>
@@ -442,6 +445,7 @@ const memberStore = useMemberStore();
 const {
   members, totalMembers, filters, selectedMembers, savedFilterBody,
 } = storeToRefs(memberStore);
+const { fetchMembers } = memberStore;
 
 const defaultSort = computed(() => ({
   field: 'lastActive',
