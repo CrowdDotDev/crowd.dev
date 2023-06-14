@@ -186,7 +186,7 @@ const handleCommand = (command) => {
           reload: true,
         });
       } else {
-        doFind(command.organization.id);
+        doFind({ id: command.organization.id });
       }
     });
   }

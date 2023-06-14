@@ -73,7 +73,9 @@ const loading = ref(true);
 const tab = ref('members');
 
 onMounted(async () => {
-  await store.dispatch('organization/doFind', props.id);
+  await store.dispatch('organization/doFind', {
+    id: props.id,
+  });
   loading.value = false;
 });
 </script>
