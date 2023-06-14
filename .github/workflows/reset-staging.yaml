@@ -1,4 +1,4 @@
-name: Sync Main to Staging
+name: Reset staging to main
 
 on:
   workflow_dispatch:  # added this line to enable manual triggering
