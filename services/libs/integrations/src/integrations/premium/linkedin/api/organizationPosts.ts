@@ -19,11 +19,11 @@ export const getOrganizationPosts = async (
       author: organization,
       q: 'author',
       count: 10,
-      start,
+      ...(start !== undefined && { start }),
     },
     headers: {
       'X-Restli-Protocol-Version': '2.0.0',
-      'LinkedIn-Version': '202305',
+      'LinkedIn-Version': 202305,
     },
   }
 
@@ -31,7 +31,7 @@ export const getOrganizationPosts = async (
     ctx.log.debug({ nangoId, organization, start }, 'Fetching organization posts!')
     // Get an access token from Nango
     const accessToken = await getNangoToken(nangoId, PlatformType.LINKEDIN, ctx)
-    config.params.oauth2_access_token = accessToken
+    config.params.oauth2_access_token = encodeURIComponent(accessToken)
 
     const response = (await axios(config)).data
 
