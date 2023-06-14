@@ -72,6 +72,7 @@ export const getOrganizationPosts = async (
       elements,
     }
   } catch (err) {
+    ctx.log.error(err, { nangoId, organization, start }, 'Error while fetching organization posts!')
     const newErr = handleLinkedinError(err, config, { nangoId, organization, start }, ctx.log)
     throw newErr
   }
