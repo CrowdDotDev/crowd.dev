@@ -291,7 +291,7 @@ export default {
           },
         });
       } else {
-        await dispatch('doFind', id);
+        await dispatch('doFind', { id });
       }
     } catch (error) {
       Message.closeAll();

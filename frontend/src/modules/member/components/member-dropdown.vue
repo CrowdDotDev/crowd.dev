@@ -270,7 +270,7 @@ export default {
         if (this.$route.name === 'member') {
           await this.fetchMembers({ reload: true });
         } else {
-          this.doFind(command.member.id);
+          this.doFind({ id: command.member.id });
         }
       } else if (command.action === 'memberMarkAsBot' || command.action === 'memberUnmarkAsBot') {
         await MemberService.update(command.member.id, {
@@ -286,14 +286,12 @@ export default {
         if (this.$route.name === 'member') {
           await this.fetchMembers({ reload: true });
         } else {
-          this.doFind(command.member.id);
+          this.doFind({ id: command.member.id });
         }
       } else if (command.action === 'memberMerge') {
         this.isMergeDialogOpen = this.member;
       } else if (command.action === 'memberEnrich') {
-        const segments = command.member.segments?.map((s) => s.id) || [];
-
-        this.doEnrich(command.member.id, segments);
+        this.doEnrich(command.member.id, command.member.segmentIds);
       } else {
         return this.$router.push({
           name: command.action,

@@ -81,7 +81,9 @@ const loading = ref(true);
 const tab = ref('activities');
 
 onMounted(async () => {
-  await store.dispatch('member/doFind', props.id);
+  await store.dispatch('member/doFind', {
+    id: props.id,
+  });
 
   if (
     Object.keys(customAttributes.value)

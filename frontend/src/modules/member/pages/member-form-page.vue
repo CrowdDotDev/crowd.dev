@@ -309,7 +309,7 @@ onMounted(async () => {
   if (isEditPage.value) {
     const { id } = route.params;
 
-    record.value = await store.dispatch('member/doFind', id);
+    record.value = await store.dispatch('member/doFind', { id });
     isPageLoading.value = false;
     formModel.value = getInitialModel(record.value);
   } else {
