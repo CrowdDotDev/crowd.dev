@@ -39,8 +39,11 @@ export class WorkerQueueReceiver extends SqsQueueReceiver {
         case SearchSyncWorkerQueueMessageType.SYNC_MEMBER:
           await service.syncMember((message as SyncMemberQueueMessage).memberId)
           break
+        // this one taks a while so we can't relly on it to be finished in time and the queue message might pop up again so we immediatelly return
         case SearchSyncWorkerQueueMessageType.SYNC_TENANT_MEMBERS:
-          await service.syncTenantMembers((message as SyncTenantMembersQueueMessage).tenantId)
+          service
+            .syncTenantMembers((message as SyncTenantMembersQueueMessage).tenantId)
+            .catch((err) => this.log.error(err, 'Error while syncing tenant members!'))
           break
         case SearchSyncWorkerQueueMessageType.REMOVE_MEMBER:
           await service.removeMember((message as RemoveMemberQueueMessage).memberId)

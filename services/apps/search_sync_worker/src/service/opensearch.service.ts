@@ -4,6 +4,7 @@ import { OPENSEARCH_INDEX_MAPPINGS, OpenSearchIndex } from '@/types'
 import { Logger, LoggerBase } from '@crowd/logging'
 import { Client } from '@opensearch-project/opensearch'
 import { IIndexRequest } from './opensearch.data'
+import { AwsSigv4Signer } from '@opensearch-project/opensearch/aws'
 
 export class OpenSearchService extends LoggerBase {
   private readonly client: Client
@@ -11,9 +12,26 @@ export class OpenSearchService extends LoggerBase {
   constructor(parentLog: Logger) {
     super(parentLog)
 
-    this.client = new Client({
-      node: OPENSEARCH_CONFIG().node,
-    })
+    const config = OPENSEARCH_CONFIG()
+    if (config.region) {
+      this.client = new Client({
+        node: config.node,
+        ...AwsSigv4Signer({
+          region: config.region,
+          service: 'es',
+          getCredentials: async () => {
+            return {
+              accessKeyId: config.accessKeyId,
+              secretAccessKey: config.secretAccessKey,
+            }
+          },
+        }),
+      })
+    } else {
+      this.client = new Client({
+        node: config.node,
+      })
+    }
   }
 
   private async doesIndexExist(indexName: OpenSearchIndex): Promise<boolean> {
@@ -116,15 +134,15 @@ export class OpenSearchService extends LoggerBase {
 
   public async bulkIndex<T>(index: OpenSearchIndex, batch: IIndexRequest<T>[]): Promise<void> {
     try {
-      const body = batch.map((doc) => {
-        return {
-          index: {
-            _index: index,
-            _id: doc.id,
-            data: doc.body,
-          },
-        }
-      })
+      const body = []
+      for (const doc of batch) {
+        body.push({
+          index: { _index: index, _id: doc.id },
+        })
+        body.push({
+          ...doc.body,
+        })
+      }
 
       await this.client.bulk({
         body,

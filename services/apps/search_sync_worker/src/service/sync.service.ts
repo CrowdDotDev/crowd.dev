@@ -3,7 +3,7 @@ import { MemberRepository } from '@/repo/member.repo'
 import { OpenSearchIndex } from '@/types'
 import { timeout } from '@crowd/common'
 import { DbStore } from '@crowd/database'
-import { Logger, LoggerBase } from '@crowd/logging'
+import { Logger, LoggerBase, logExecutionTime } from '@crowd/logging'
 import { RedisClient } from '@crowd/redis'
 import { IMemberAttribute, MemberAttributeType } from '@crowd/types'
 import { OpenSearchService } from './opensearch.service'
@@ -29,30 +29,38 @@ export class SyncService extends LoggerBase {
 
   public async syncTenantMembers(tenantId: string): Promise<void> {
     this.log.warn({ tenantId }, 'Syncing all tenant members!')
-
-    const attributes = await this.memberRepo.getTenantMemberAttributes(tenantId)
     let count = 0
 
-    let page = 1
-    const perPage = 500
-    let members = await this.memberRepo.getTenantMembers(tenantId, page, perPage)
+    await logExecutionTime(
+      async () => {
+        const attributes = await this.memberRepo.getTenantMemberAttributes(tenantId)
 
-    while (members.length > 0) {
-      count += members.length
+        let page = 1
+        const perPage = 1000
+        let members = await this.memberRepo.getTenantMembers(tenantId, page, perPage)
 
-      await this.openSearchService.bulkIndex(
-        OpenSearchIndex.MEMBERS,
-        members.map((m) => {
-          return {
-            id: m.id,
-            body: SyncService.prefixData(m, attributes),
-          }
-        }),
-      )
+        while (members.length > 0) {
+          count += members.length
 
-      this.log.info({ tenantId }, `Synced ${count} members!`)
-      members = await this.memberRepo.getTenantMembers(tenantId, ++page, perPage)
-    }
+          await this.openSearchService.bulkIndex(
+            OpenSearchIndex.MEMBERS,
+            members.map((m) => {
+              return {
+                id: m.id,
+                body: SyncService.prefixData(m, attributes),
+              }
+            }),
+          )
+
+          this.log.info({ tenantId }, `Synced ${count} members!`)
+          members = await this.memberRepo.getTenantMembers(tenantId, ++page, perPage)
+        }
+      },
+      this.log,
+      'tenant-member-sync',
+    )
+
+    this.log.info({ tenantId }, `Synced total of ${count} members!`)
   }
 
   public async syncMember(memberId: string, retries = 0): Promise<void> {

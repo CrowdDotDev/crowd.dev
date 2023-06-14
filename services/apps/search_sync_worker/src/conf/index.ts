@@ -5,6 +5,9 @@ import config from 'config'
 
 export interface IOpenSearchConfig {
   node: string
+  region?: string
+  accessKeyId?: string
+  secretAccessKey?: string
 }
 
 let openSearchConfig: IOpenSearchConfig
