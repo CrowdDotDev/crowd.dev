@@ -108,8 +108,6 @@
 
 <script setup>
 import {
-  defineEmits,
-  defineProps,
   computed,
   ref,
   watch,
@@ -122,11 +120,11 @@ import AppActivityTypeListItem from '@/modules/activity/components/type/activity
 import AppActivityTypeDropdown from '@/modules/activity/components/type/activity-type-dropdown.vue';
 import AppActivityTypeFormModal from '@/modules/activity/components/type/activity-type-form-modal.vue';
 import {
-  mapGetters,
   mapActions,
 } from '@/shared/vuex/vuex.helpers';
 import { useActivityTypeStore } from '@/modules/activity/store/type';
 import { CrowdIntegrations } from '@/integrations/integrations-config';
+import { LfService } from '@/modules/lf/segments/lf-segments-service';
 
 // Props & emits
 const props = defineProps({
@@ -144,7 +142,6 @@ const emit = defineEmits(['update:modelValue']);
 
 // Store
 const store = useStore();
-const { currentTenant } = mapGetters('auth');
 const { doFetch } = mapActions('integration');
 const activityTypeStore = useActivityTypeStore();
 const { types } = storeToRefs(activityTypeStore);
@@ -163,10 +160,12 @@ const isVisible = computed({
 });
 
 watch(
-  () => currentTenant,
-  (tenant) => {
-    if (tenant.value?.settings.length > 0) {
-      setTypes(tenant.value.settings[0].activityTypes);
+  () => props.subprojectId,
+  (subprojectId) => {
+    if (subprojectId) {
+      LfService.findSegment(subprojectId).then((response) => {
+        setTypes(response.activityTypes);
+      });
     }
   },
   { immediate: true, deep: true },

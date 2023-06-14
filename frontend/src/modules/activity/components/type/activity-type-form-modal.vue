@@ -46,8 +46,6 @@
 
 <script setup>
 import {
-  defineEmits,
-  defineProps,
   computed,
   reactive,
   watch,

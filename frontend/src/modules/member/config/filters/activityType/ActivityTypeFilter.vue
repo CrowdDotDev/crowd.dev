@@ -4,7 +4,7 @@
 
 <script setup lang="ts">
 import {
-  defineProps, defineEmits, computed, watch,
+  computed, onMounted, watch,
 } from 'vue';
 import CrSelectFilter from '@/shared/modules/filters/components/filterTypes/SelectFilter.vue';
 import {
@@ -15,6 +15,7 @@ import { useActivityTypeStore } from '@/modules/activity/store/type';
 import { storeToRefs } from 'pinia';
 import { CrowdIntegrations } from '@/integrations/integrations-config';
 import { useStore } from 'vuex';
+import { ActivityTypeService } from '@/modules/activity/services/activity-type-service';
 
 const props = defineProps<{
   modelValue: string
@@ -26,6 +27,7 @@ const emit = defineEmits<{(e: 'update:modelValue', value: string), (e: 'update:d
 
 const activityTypeStore = useActivityTypeStore();
 const { types } = storeToRefs(activityTypeStore);
+const { setTypes } = activityTypeStore;
 const store = useStore();
 
 const activeIntegrations = computed<string[]>(() => CrowdIntegrations.mappedEnabledConfigs(
@@ -43,8 +45,6 @@ const data = computed({
 });
 
 watch(() => types, (typesValue: any) => {
-  console.log(activeIntegrations);
-
   const platformsOptions = Object.entries(typesValue.value.default)
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     .filter(([platform, _]) => activeIntegrations.value.includes(platform))
@@ -70,5 +70,11 @@ watch(() => types, (typesValue: any) => {
     ...customOptions,
   ];
 }, { immediate: true });
+
+onMounted(() => {
+  ActivityTypeService.get().then((response) => {
+    setTypes(response);
+  });
+});
 
 </script>

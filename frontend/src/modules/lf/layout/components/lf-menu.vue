@@ -131,24 +131,25 @@
 <script setup>
 import { watch } from 'vue';
 import { useRoute } from 'vue-router';
-import { mapGetters } from '@/shared/vuex/vuex.helpers';
 import { useActivityTypeStore } from '@/modules/activity/store/type';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import { storeToRefs } from 'pinia';
 import AppLfMenuProjectGroupSelection from '@/modules/lf/layout/components/lf-menu-project-group-selection.vue';
 import AppAccountDropdown from '@/modules/layout/components/account-dropdown.vue';
+import { ActivityTypeService } from '@/modules/activity/services/activity-type-service';
 
-const { currentTenant } = mapGetters('auth');
 const { setTypes } = useActivityTypeStore();
 
 const lsSegmentsStore = useLfSegmentsStore();
 const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);
 
 watch(
-  () => currentTenant,
-  (tenant) => {
-    if (tenant.value?.settings.length > 0) {
-      setTypes(tenant.value.settings[0].activityTypes);
+  selectedProjectGroup,
+  (updatedProjectGroup) => {
+    if (updatedProjectGroup) {
+      ActivityTypeService.get().then((response) => {
+        setTypes(response);
+      });
     }
   },
   { immediate: true, deep: true },

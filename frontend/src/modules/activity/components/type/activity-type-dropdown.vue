@@ -30,7 +30,6 @@
 </template>
 
 <script setup>
-import { defineProps, defineEmits } from 'vue';
 import ConfirmDialog from '@/shared/dialog/confirm-dialog';
 import { useActivityTypeStore } from '@/modules/activity/store/type';
 

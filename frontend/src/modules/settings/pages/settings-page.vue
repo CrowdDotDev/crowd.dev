@@ -31,6 +31,7 @@ import { mapGetters } from 'vuex';
 import AppApiKeysPage from '@/modules/settings/pages/api-keys-page.vue';
 import UserListPage from '@/modules/user/pages/user-list-page.vue';
 import { UserPermissions } from '@/modules/user/user-permissions';
+import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 
 export default {
   name: 'AppSettingsPage',
@@ -81,6 +82,10 @@ export default {
   },
 
   created() {
+    const lsSegmentsStore = useLfSegmentsStore();
+    const { updateSelectedProjectGroup } = lsSegmentsStore;
+
+    updateSelectedProjectGroup(null);
     const urlSearchParams = new URLSearchParams(
       window.location.search,
     );

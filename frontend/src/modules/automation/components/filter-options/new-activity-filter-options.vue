@@ -81,7 +81,7 @@
 
 <script setup>
 import {
-  computed, defineEmits, defineProps, onMounted,
+  computed, onMounted,
 } from 'vue';
 import AppFormItem from '@/shared/form/form-item.vue';
 import { mapGetters } from '@/shared/vuex/vuex.helpers';

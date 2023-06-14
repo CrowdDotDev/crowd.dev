@@ -64,6 +64,7 @@
   <app-activity-type-form-modal
     v-if="isActivityTypeFormVisible"
     v-model="isActivityTypeFormVisible"
+    :subproject-id="subprojectId"
   />
 
   <app-lf-sub-projects-list-modal
