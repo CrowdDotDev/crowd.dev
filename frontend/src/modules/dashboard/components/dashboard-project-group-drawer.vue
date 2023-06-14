@@ -62,9 +62,6 @@
                     </div>
                   </div>
                 </div>
-                <div class="text-xs italic leading-4 text-gray-400 text-right">
-                  No connected integrations yet
-                </div>
               </div>
             </template>
             <div @click="onChildrenClick(project.name)">
@@ -79,6 +76,20 @@
                   </div>
 
                   <div
+                    v-if="subproject.integrations?.length"
+                    class="flex gap-3 items-center"
+                  >
+                    <div
+                      v-for="{ id, platform } in subproject.integrations"
+                      :key="id"
+                    >
+                      <app-platform-svg-icon
+                        :platform="platform"
+                      />
+                    </div>
+                  </div>
+                  <div
+                    v-else
                     class="text-xs italic leading-4 text-gray-400 text-right"
                   >
                     No connected integrations yet
@@ -120,6 +131,7 @@ import { computed, onMounted, ref } from 'vue';
 import AppLfSearchInput from '@/modules/lf/segments/components/view/lf-search-input.vue';
 import { LfService } from '@/modules/lf/segments/lf-segments-service';
 import pluralize from 'pluralize';
+import AppPlatformSvgIcon from '@/shared/platform/platform-svg-icon.vue';
 
 const emit = defineEmits(['update:isVisible']);
 const props = defineProps({

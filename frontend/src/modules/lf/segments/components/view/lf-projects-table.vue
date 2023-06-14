@@ -34,21 +34,8 @@
       <template #header>
         <div>
           <span class="pt-1.5 pb-3 block">Connected Integrations</span>
-          <div
-            v-if="project.integrations?.length"
-            class="flex gap-3 items-center h-8 mb-4"
-          >
-            <div
-              v-for="platform in project.integrations"
-              :key="platform"
-            >
-              <app-platform-svg-icon
-                :platform="platform"
-              />
-            </div>
-          </div>
-          <div v-else class="flex items-center h-8 mb-4">
-            <span class="text-gray-400 text-sm normal-case font-normal">No integrations</span>
+          <div class="flex items-center h-8 mb-4">
+            <span class="text-gray-400 text-sm normal-case font-normal">-</span>
           </div>
         </div>
       </template>
@@ -58,15 +45,15 @@
           class="flex gap-3 items-center"
         >
           <div
-            v-for="platform in row.integrations"
-            :key="platform"
+            v-for="{ id, platform } in row.integrations"
+            :key="id"
           >
             <app-platform-svg-icon
               :platform="platform"
             />
           </div>
         </div>
-        <span class="text-gray-400 text-sm">No integrations</span>
+        <span v-else class="text-gray-400 text-sm">No integrations</span>
       </template>
     </el-table-column>
 
