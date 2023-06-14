@@ -2,7 +2,7 @@
   <div v-if="isReadOnly">
     <el-button
       class="btn btn--secondary"
-      @click="copyToClipboard(report.id)"
+      @click="copyToClipboard()"
     >
       <i class="ri-lg ri-clipboard-line mr-1" />
       Copy Public Url
@@ -184,9 +184,9 @@ export default {
         },
       });
     },
-    async copyToClipboard(value) {
+    async copyToClipboard() {
       const tenantId = AuthCurrentTenant.get();
-      const url = `${window.location.origin}/tenant/${tenantId}/reports/${value}/public`;
+      const url = `${window.location.origin}/tenant/${tenantId}/reports/${this.report.segmentId}/${this.report.id}/public`;
       await navigator.clipboard.writeText(url);
       Message.success(
         'Report URL successfully copied to your clipboard',
