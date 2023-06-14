@@ -57,7 +57,7 @@ i18nInit();
   app.use(marked);
   app.use(VueLazyLoad, {});
 
-  (app.config as any).productionTip = import.meta.env.NODE_ENV === 'production';
+  (app.config as any).productionTip = process.env.NODE_ENV === 'production';
 
   app.config.errorHandler = (err: any) => {
     if (config.env === 'production') {

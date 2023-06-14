@@ -69,7 +69,6 @@
     "vue3-lazyload": "^0.3.6",
     "vuedraggable": "^4.1.0",
     "vuex": "^4.1.0",
-    "webpack": "^5.0.0",
     "yup": "^0.32.11"
   },
   "devDependencies": {
