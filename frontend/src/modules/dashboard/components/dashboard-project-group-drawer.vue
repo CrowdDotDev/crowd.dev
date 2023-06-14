@@ -49,7 +49,7 @@
                       {{ project.name }}
                     </div>
                     <div class="text-3xs text-gray-500 leading-4">
-                      <span>0 members</span>
+                      <span>0 contributors</span>
                       <span v-if="project.subprojects.length">
                         ・
                         {{

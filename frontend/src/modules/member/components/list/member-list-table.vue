@@ -10,24 +10,24 @@
       <app-empty-state-cta
         v-if="!hasIntegrations && !hasMembers"
         icon="ri-contacts-line"
-        title="No community members yet"
+        title="No community contributors yet"
         description="Please connect with one of our available data sources in order to start pulling data from a certain platform"
-        secondary-btn="Add member"
+        secondary-btn="Add contributor"
         @secondary-click="onSecondaryBtnClick"
       />
 
       <app-empty-state-cta
         v-else-if="hasIntegrations && !hasMembers"
         icon="ri-contacts-line"
-        title="No community members yet"
-        description="Please consider that the first members may take a couple of minutes to be displayed"
+        title="No community contributors yet"
+        description="Please consider that the first contributors may take a couple of minutes to be displayed"
         :has-warning-icon="true"
       />
 
       <app-empty-state-cta
         v-else-if="hasMembers && !totalMembers"
         icon="ri-contacts-line"
-        title="No members found"
+        title="No contributors found"
         description="We couldn't find any results that match your search criteria, please try a different query"
       />
 
@@ -258,8 +258,8 @@
                 <template #header>
                   <el-tooltip placement="top">
                     <template #content>
-                      This refers to the total # of open source contributions a member did on GitHub.<br />
-                      To receive this attribute you have to enrich your members.
+                      This refers to the total # of open source contributions a contributor did on GitHub.<br />
+                      To receive this attribute you have to enrich your contributors.
                     </template>
                     # of open source contributions
                   </el-tooltip>

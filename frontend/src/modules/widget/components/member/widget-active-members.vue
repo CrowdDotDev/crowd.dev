@@ -28,7 +28,7 @@
           </div>
           <app-widget-period
             template="Members"
-            widget="Active members"
+            widget="Active contributors"
             :period="period"
             :granularity="granularity"
             module="reports"
@@ -137,7 +137,7 @@ const datasets = computed(() => [
     measure: 'Members.count',
     granularity: granularity.value.value,
     ...(!props.isPublicView && {
-      tooltipBtn: 'View members',
+      tooltipBtn: 'View contributors',
     }),
   },
   {
@@ -147,7 +147,7 @@ const datasets = computed(() => [
     measure: 'Members.count',
     granularity: granularity.value.value,
     ...(!props.isPublicView && {
-      tooltipBtn: 'View members',
+      tooltipBtn: 'View contributors',
     }),
   },
 ]);
@@ -205,7 +205,7 @@ const getActiveMembers = async ({ pagination }) => {
 const onViewMoreClick = (date) => {
   window.analytics.track('Open report drawer', {
     template: MEMBERS_REPORT.nameAsId,
-    widget: 'Active members',
+    widget: 'Active contributors',
     date,
     granularity: granularity.value,
   });
@@ -215,11 +215,11 @@ const onViewMoreClick = (date) => {
 
   // Title
   if (granularity.value.value === 'week') {
-    drawerTitle.value = 'Weekly active members';
+    drawerTitle.value = 'Weekly active contributors';
   } else if (granularity.value.value === 'month') {
-    drawerTitle.value = 'Monthly active members';
+    drawerTitle.value = 'Monthly active contributors';
   } else {
-    drawerTitle.value = 'Daily active members';
+    drawerTitle.value = 'Daily active contributors';
   }
 };
 

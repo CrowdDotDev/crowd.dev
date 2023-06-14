@@ -2,11 +2,11 @@
   <div class="panel !p-6">
     <!-- header -->
     <app-dashboard-widget-header
-      title="Members"
+      title="Contributors"
       :total-loading="members.loadingRecent"
       :total="members.total"
       :route="{ name: 'member' }"
-      button-title="All members"
+      button-title="All contributors"
       report-name="Members report"
     />
 
@@ -19,7 +19,7 @@
             <h6
               class="text-sm leading-5 font-semibold mb-1"
             >
-              New members
+              New contributors
             </h6>
             <app-dashboard-count
               :loading="members.loadingRecent"

@@ -53,7 +53,7 @@
             :loading="sendingMerge"
             @click="mergeSuggestion()"
           >
-            Merge members
+            Merge contributors
           </el-button>
         </div>
       </div>
@@ -123,7 +123,7 @@ const mergeSuggestion = () => {
       }
     })
     .catch(() => {
-      Message.error('There was an error merging members');
+      Message.error('There was an error merging contributors');
     })
     .finally(() => {
       sendingMerge.value = false;

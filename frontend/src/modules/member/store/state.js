@@ -13,7 +13,7 @@ export default () => ({
   views: {
     all: {
       id: 'all',
-      label: 'All members',
+      label: 'All contributors',
       columns: [],
       initialFilter: INITIAL_VIEW_ALL_FILTER,
       filter: JSON.parse(
@@ -123,7 +123,7 @@ export default () => ({
     },
     team: {
       id: 'team',
-      label: 'Team members',
+      label: 'Team contributors',
       columns: [],
       initialFilter: INITIAL_VIEW_TEAM_MEMBERS_FILTER,
       filter: JSON.parse(

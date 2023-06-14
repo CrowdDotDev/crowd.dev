@@ -8,7 +8,7 @@ import { MemberService } from '@/modules/member/member-service';
 
 const member: MultiSelectAsyncFilterConfig = {
   id: 'member',
-  label: 'Member',
+  label: 'Contributor',
   iconClass: 'ri-account-circle-line',
   type: FilterConfigType.MULTISELECT_ASYNC,
   options: {
@@ -35,7 +35,7 @@ const member: MultiSelectAsyncFilterConfig = {
       }))),
   },
   itemLabelRenderer(value: MultiSelectAsyncFilterValue, options: MultiSelectAsyncFilterOptions, data: any): string {
-    return itemLabelRendererByType[FilterConfigType.MULTISELECT_ASYNC]('Member', value, options, data);
+    return itemLabelRendererByType[FilterConfigType.MULTISELECT_ASYNC]('Contributor', value, options, data);
   },
   apiFilterRenderer({ value, include }: MultiSelectAsyncFilterValue): any[] {
     const filter = {

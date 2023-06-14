@@ -25,7 +25,7 @@
         <div class="panel w-full col-span-2">
           <el-tabs v-model="tab">
             <el-tab-pane
-              label="Associated members"
+              label="Associated contributors"
               name="members"
             >
               <app-organization-view-members

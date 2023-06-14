@@ -39,14 +39,14 @@
         <!-- Members -->
         <router-link
           id="menu-members"
-          :to="{ path: '/members' }"
+          :to="{ path: '/contributors' }"
           class="el-menu-item"
-          :class="classFor('/members', false, !selectedProjectGroup)"
+          :class="classFor('/contributors', false, !selectedProjectGroup)"
           :disabled="!selectedProjectGroup"
         >
           <i class="ri-group-2-line" />
           <span>
-            Members
+            Contributors
           </span>
         </router-link>
 

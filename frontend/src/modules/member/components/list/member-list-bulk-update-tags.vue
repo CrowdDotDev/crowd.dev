@@ -2,7 +2,7 @@
   <div class="relative inline-flex">
     <app-tag-popover
       v-model="bulkEditTagsModel"
-      pretitle="Multiple members"
+      pretitle="Multiple contributors"
       :visible="bulkEditTags"
       :loading="loading"
       @cancel="cancelBulkUpdateTags"

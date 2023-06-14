@@ -92,19 +92,19 @@
       v-else-if="filter.type === 'slack'"
       icon="ri-flow-chart"
       title="No Slack notifications yet"
-      description="Send Slack notifications when a new activity happens, or a new member joins your community"
+      description="Send Slack notifications when a new activity happens, or a new contributor joins your community"
     />
     <app-empty-state-cta
       v-else-if="filter.type === 'webhook'"
       icon="ri-flow-chart"
       title="No Webhooks yet"
-      description="Create webhook actions when a new activity happens, or a new member joins your community"
+      description="Create webhook actions when a new activity happens, or a new contributor joins your community"
     />
     <app-empty-state-cta
       v-else
       icon="ri-flow-chart"
       title="Start to automate manual tasks"
-      description="Create webhook actions or send Slack notifications when a new activity happens, or a new member joins your community "
+      description="Create webhook actions or send Slack notifications when a new activity happens, or a new contributor joins your community "
     />
 
     <!-- Add/Edit Webhook form drawer -->

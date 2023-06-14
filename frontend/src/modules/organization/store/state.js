@@ -56,7 +56,7 @@ export default () => ({
     },
     'most-members': {
       id: 'most-members',
-      label: 'Most members',
+      label: 'Most contributors',
       filter: {
         operator: 'and',
         attributes: {},

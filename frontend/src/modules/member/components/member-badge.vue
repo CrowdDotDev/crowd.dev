@@ -72,11 +72,11 @@ const computedBadgeClass = (badge) => {
 
 const computedTooltipContent = (tooltip) => {
   if (tooltip === 'new') {
-    return `Member since ${moment(
+    return `Contributor since ${moment(
       props.member.joinedAt,
     ).format('MMM DD, YYYY')}`;
   } if (tooltip === 'team') {
-    return 'Team member';
+    return 'Team contributor';
   }
   return 'Bot';
 };

@@ -32,12 +32,12 @@
           >
             <i
               class="ri-pencil-line text-base mr-2"
-            /><span class="text-xs">Edit member</span>
+            /><span class="text-xs">Edit contributor</span>
           </el-dropdown-item>
         </router-link>
         <el-tooltip
           placement="top"
-          content="Member enrichment requires an associated GitHub profile or Email"
+          content="Contributor enrichment requires an associated GitHub profile or Email"
           :disabled="!isEnrichmentDisabled"
           popper-class="max-w-[260px]"
         >
@@ -65,8 +65,8 @@
                 }"
               >{{
                 member.lastEnriched
-                  ? 'Re-enrich member'
-                  : 'Enrich member'
+                  ? 'Re-enrich contributor'
+                  : 'Enrich contributor'
               }}</span>
             </el-dropdown-item>
           </span>
@@ -81,7 +81,7 @@
         >
           <i class="ri-group-line text-base mr-2" /><span
             class="text-xs"
-          >Merge member</span>
+          >Merge contributor</span>
         </el-dropdown-item>
         <el-dropdown-item
           v-if="!member.attributes.isTeamMember?.default"
@@ -95,7 +95,7 @@
         >
           <i
             class="ri-bookmark-line text-base mr-2"
-          /><span class="text-xs">Mark as team member</span>
+          /><span class="text-xs">Mark as team contributor</span>
         </el-dropdown-item>
         <el-dropdown-item
           v-if="member.attributes.isTeamMember?.default"
@@ -109,7 +109,7 @@
         >
           <i
             class="ri-bookmark-2-line text-base mr-2"
-          /><span class="text-xs">Unmark as team member</span>
+          /><span class="text-xs">Unmark as team contributor</span>
         </el-dropdown-item>
         <el-dropdown-item
           v-if="!member.attributes.isBot?.default"
@@ -156,7 +156,7 @@
             :class="{
               'text-red-500': !isDeleteLockedForSampleData,
             }"
-          >Delete member</span>
+          >Delete contributor</span>
         </el-dropdown-item>
       </template>
     </el-dropdown>
@@ -237,7 +237,7 @@ export default {
       try {
         await ConfirmDialog({
           type: 'danger',
-          title: 'Delete member',
+          title: 'Delete contributor',
           message:
             "Are you sure you want to proceed? You can't undo this action",
           confirmButtonText: 'Confirm',
@@ -266,7 +266,7 @@ export default {
           },
         });
         await this.fetchMembers({ reload: true });
-        Message.success('Member updated successfully');
+        Message.success('Contributor updated successfully');
         if (this.$route.name === 'member') {
           await this.fetchMembers({ reload: true });
         } else {
@@ -282,7 +282,7 @@ export default {
           },
         });
         await this.fetchMembers({ reload: true });
-        Message.success('Member updated successfully');
+        Message.success('Contributor updated successfully');
         if (this.$route.name === 'member') {
           await this.fetchMembers({ reload: true });
         } else {
