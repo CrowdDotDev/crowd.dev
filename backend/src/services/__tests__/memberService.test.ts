@@ -5,23 +5,17 @@ import ActivityRepository from '../../database/repositories/activityRepository'
 import TagRepository from '../../database/repositories/tagRepository'
 import Error404 from '../../errors/Error404'
 import Error400 from '../../errors/Error400'
-import { PlatformType } from '@crowd/types'
+import { MemberAttributeName, PlatformType } from '@crowd/types'
 import OrganizationRepository from '../../database/repositories/organizationRepository'
 import TaskRepository from '../../database/repositories/taskRepository'
 import NoteRepository from '../../database/repositories/noteRepository'
 import MemberAttributeSettingsService from '../memberAttributeSettingsService'
-import { GithubMemberAttributes } from '../../database/attributes/member/github'
-import { MemberAttributeName } from '../../database/attributes/member/enums'
-import { TwitterMemberAttributes } from '../../database/attributes/member/twitter'
-import { DiscordMemberAttributes } from '../../database/attributes/member/discord'
-import { DevtoMemberAttributes } from '../../database/attributes/member/devto'
-import { AttributeType } from '../../database/attributes/types'
-import { SlackMemberAttributes } from '../../database/attributes/member/slack'
 import SettingsRepository from '../../database/repositories/settingsRepository'
 import OrganizationService from '../organizationService'
 import Plans from '../../security/plans'
 import { generateUUIDv1 } from '@crowd/common'
 import lodash from 'lodash'
+import { GITHUB_MEMBER_ATTRIBUTES } from '@crowd/integrations'
 
 const db = null
 
@@ -41,7 +35,7 @@ describe('MemberService tests', () => {
 
       const mas = new MemberAttributeSettingsService(mockIServiceOptions)
 
-      await mas.createPredefined(GithubMemberAttributes)
+      await mas.createPredefined(GITHUB_MEMBER_ATTRIBUTES)
 
       const member1 = {
         username: {

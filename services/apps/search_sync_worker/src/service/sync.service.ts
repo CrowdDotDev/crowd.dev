@@ -1,27 +1,31 @@
+import { IDbMemberSyncData } from '@/repo/member.data'
 import { MemberRepository } from '@/repo/member.repo'
 import { OpenSearchIndex } from '@/types'
+import { timeout } from '@crowd/common'
 import { DbStore } from '@crowd/database'
 import { Logger, LoggerBase } from '@crowd/logging'
+import { RedisClient } from '@crowd/redis'
+import { IMemberAttribute, MemberAttributeType } from '@crowd/types'
 import { OpenSearchService } from './opensearch.service'
-import { timeout } from '@crowd/common'
-import { IDbMemberSyncData } from '@/repo/member.data'
 
 export class SyncService extends LoggerBase {
   private readonly memberRepo: MemberRepository
 
   constructor(
+    redisClient: RedisClient,
     store: DbStore,
     private readonly openSearchService: OpenSearchService,
     parentLog: Logger,
   ) {
     super(parentLog)
 
-    this.memberRepo = new MemberRepository(store, this.log)
+    this.memberRepo = new MemberRepository(redisClient, store, this.log)
   }
 
   public async syncTenantMembers(tenantId: string): Promise<void> {
     this.log.warn({ tenantId }, 'Syncing all tenant members!')
 
+    const attributes = await this.memberRepo.getTenantMemberAttributes(tenantId)
     let count = 0
 
     let page = 1
@@ -36,7 +40,7 @@ export class SyncService extends LoggerBase {
         members.map((m) => {
           return {
             id: m.id,
-            body: m,
+            body: SyncService.prefixData(m, attributes),
           }
         }),
       )
@@ -50,28 +54,53 @@ export class SyncService extends LoggerBase {
     this.log.info({ memberId }, 'Syncing member!')
 
     const member = await this.memberRepo.getMemberData(memberId)
+    const attributes = await this.memberRepo.getTenantMemberAttributes(member.tenantId)
 
     if (member) {
-      await this.openSearchService.index(memberId, OpenSearchIndex.MEMBERS, member)
+      await this.openSearchService.index(
+        memberId,
+        OpenSearchIndex.MEMBERS,
+        SyncService.prefixData(member, attributes),
+      )
     } else {
       // we should retry - sometimes database is slow
       if (retries < 5) {
         await timeout(100)
         await this.syncMember(memberId, ++retries)
       } else {
-        this.log.error({ memberId }, 'Member not found after 5 retries!')
+        this.log.error({ memberId }, 'Member not found after 5 retries! Removing from index!')
+        await this.openSearchService.removeFromIndex(memberId, OpenSearchIndex.MEMBERS)
       }
     }
   }
 
-  private static prefixData(data: IDbMemberSyncData): unknown {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  private static prefixData(data: IDbMemberSyncData, attributes: IMemberAttribute[]): any {
     const p: Record<string, unknown> = {}
 
     p.uuid_id = data.id
     p.uuid_tenantId = data.tenantId
     p.string_displayName = data.displayName
-    p.obj_attributes = data.attributes
-    // TODO handle attributes separately
+    const p_attributes = {}
+
+    for (const attribute of attributes) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const attData = data.attributes as any
+
+      if (attribute.name in attData) {
+        const p_data = {}
+        const defValue = attData[attribute.name].default
+        const prefix = this.attributeTypeToOpenSearchPrefix(defValue, attribute.type)
+
+        for (const key of Object.keys(attData[attribute.name])) {
+          p_data[`${prefix}_${key}`] = attData[attribute.name][key]
+        }
+
+        p_attributes[`obj_${attribute.name}`] = p_data
+      }
+    }
+
+    p.obj_attributes = p_attributes
     p.string_arr_emails = data.emails
     p.int_score = data.score
     p.date_lastEnriched = data.lastEnriched
@@ -118,5 +147,36 @@ export class SyncService extends LoggerBase {
     p.uuid_arr_noMergeIds = data.noMergeIds
 
     return p
+  }
+
+  private static attributeTypeToOpenSearchPrefix(
+    defValue: unknown,
+    type: MemberAttributeType,
+  ): string {
+    switch (type) {
+      case MemberAttributeType.BOOLEAN:
+        return 'bool'
+      case MemberAttributeType.NUMBER: {
+        if ((defValue as number) % 1 === 0) {
+          return 'int'
+        } else {
+          return 'float'
+        }
+      }
+      case MemberAttributeType.EMAIL:
+        return 'string'
+      case MemberAttributeType.STRING:
+        return 'string'
+      case MemberAttributeType.URL:
+        return 'string'
+      case MemberAttributeType.DATE:
+        return 'date'
+      case MemberAttributeType.MULTI_SELECT:
+        return 'string_arr'
+      case MemberAttributeType.SPECIAL:
+        return 'obj'
+      default:
+        throw new Error(`Could not map attribute type: ${type} to OpenSearch type!`)
+    }
   }
 }

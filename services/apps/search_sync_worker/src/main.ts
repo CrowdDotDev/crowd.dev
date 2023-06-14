@@ -1,9 +1,10 @@
 import { getDbConnection } from '@crowd/database'
 import { getServiceLogger } from '@crowd/logging'
 import { getSqsClient } from '@crowd/sqs'
-import { DB_CONFIG, SQS_CONFIG } from './conf'
+import { DB_CONFIG, REDIS_CONFIG, SQS_CONFIG } from './conf'
 import { OpenSearchService } from './service/opensearch.service'
 import { WorkerQueueReceiver } from './queue'
+import { getRedisClient } from '@crowd/redis'
 
 const log = getServiceLogger()
 
@@ -14,11 +15,14 @@ setImmediate(async () => {
 
   const openSearchService = new OpenSearchService(log)
 
+  const redis = getRedisClient(REDIS_CONFIG())
+
   const sqsClient = getSqsClient(SQS_CONFIG())
 
   const dbConnection = getDbConnection(DB_CONFIG(), MAX_CONCURRENT_PROCESSING)
 
   const worker = new WorkerQueueReceiver(
+    redis,
     sqsClient,
     dbConnection,
     openSearchService,

@@ -1,5 +1,6 @@
 {
   "db": {},
   "sqs": {},
+  "redis": {},
   "opensearch": {}
 }

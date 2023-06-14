@@ -1,4 +1,5 @@
 import { IDatabaseConfig } from '@crowd/database'
+import { IRedisConfiguration } from '@crowd/redis'
 import { ISqsClientConfig } from '@crowd/sqs'
 import config from 'config'
 
@@ -28,4 +29,12 @@ export const DB_CONFIG = (): IDatabaseConfig => {
 
   dbConfig = config.get<IDatabaseConfig>('db')
   return dbConfig
+}
+
+let redisConfig: IRedisConfiguration
+export const REDIS_CONFIG = (): IRedisConfiguration => {
+  if (redisConfig) return redisConfig
+
+  redisConfig = config.get<IRedisConfiguration>('redis')
+  return redisConfig
 }

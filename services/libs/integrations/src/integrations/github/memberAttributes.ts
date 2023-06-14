@@ -5,7 +5,7 @@ import {
   MemberAttributes,
 } from '@crowd/types'
 
-const attributes: IMemberAttribute[] = [
+export const GITHUB_MEMBER_ATTRIBUTES: IMemberAttribute[] = [
   {
     name: MemberAttributes[MemberAttributeName.IS_HIREABLE].name,
     label: MemberAttributes[MemberAttributeName.IS_HIREABLE].label,
@@ -49,5 +49,3 @@ const attributes: IMemberAttribute[] = [
     show: false,
   },
 ]
-
-export default attributes

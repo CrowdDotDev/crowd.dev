@@ -1,8 +1,7 @@
 /* eslint-disable no-restricted-globals */
 import moment from 'moment'
 import { Transaction } from 'sequelize/types'
-import { Attribute, AttributeData } from '../database/attributes/attribute'
-import { AttributeType } from '../database/attributes/types'
+import { AttributeData } from '../database/attributes/attribute'
 import MemberAttributeSettingsRepository from '../database/repositories/memberAttributeSettingsRepository'
 import SequelizeRepository from '../database/repositories/sequelizeRepository'
 import {
@@ -14,6 +13,7 @@ import {
 import Error400 from '../errors/Error400'
 import camelCaseNames from '../utils/camelCaseNames'
 import { IServiceOptions } from './IServiceOptions'
+import { IMemberAttribute, MemberAttributeType } from '@crowd/types'
 
 export default class MemberAttributeSettingsService {
   options: IServiceOptions
@@ -28,7 +28,7 @@ export default class MemberAttributeSettingsService {
    * @param attributes list of attributes to cherry pick from
    * @returns
    */
-  static pickAttributes(names: string[], attributes: Attribute[]): Attribute[] {
+  static pickAttributes(names: string[], attributes: IMemberAttribute[]): IMemberAttribute[] {
     return attributes.filter((i) => names.includes(i.name))
   }
 
@@ -93,23 +93,23 @@ export default class MemberAttributeSettingsService {
    * @param type the type value will be checked against
    * @returns
    */
-  static isCorrectType(value, type: AttributeType, inputs: any = {}): boolean {
+  static isCorrectType(value, type: MemberAttributeType, inputs: any = {}): boolean {
     switch (type) {
-      case AttributeType.BOOLEAN:
+      case MemberAttributeType.BOOLEAN:
         return MemberAttributeSettingsService.isBoolean(value)
-      case AttributeType.STRING:
+      case MemberAttributeType.STRING:
         return MemberAttributeSettingsService.isString(value)
-      case AttributeType.DATE:
+      case MemberAttributeType.DATE:
         return MemberAttributeSettingsService.isDate(value)
-      case AttributeType.EMAIL:
+      case MemberAttributeType.EMAIL:
         return MemberAttributeSettingsService.isEmail(value)
-      case AttributeType.URL:
+      case MemberAttributeType.URL:
         return MemberAttributeSettingsService.isUrl(value)
-      case AttributeType.NUMBER:
+      case MemberAttributeType.NUMBER:
         return MemberAttributeSettingsService.isNumber(value)
-      case AttributeType.MULTI_SELECT:
+      case MemberAttributeType.MULTI_SELECT:
         return MemberAttributeSettingsService.isMultiSelect(value, inputs.options)
-      case AttributeType.SPECIAL:
+      case MemberAttributeType.SPECIAL:
         return true
       default:
         return false
@@ -151,7 +151,7 @@ export default class MemberAttributeSettingsService {
    * @returns created attributes
    */
   async createPredefined(
-    attributes: Attribute[],
+    attributes: IMemberAttribute[],
     carryTransaction: Transaction = null,
   ): Promise<AttributeData[]> {
     let transaction

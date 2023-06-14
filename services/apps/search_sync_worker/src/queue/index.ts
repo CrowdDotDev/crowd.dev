@@ -2,6 +2,7 @@ import { OpenSearchService } from '@/service/opensearch.service'
 import { SyncService } from '@/service/sync.service'
 import { DbConnection, DbStore } from '@crowd/database'
 import { Logger } from '@crowd/logging'
+import { RedisClient } from '@crowd/redis'
 import { SEARCH_SYNC_WORKER_QUEUE_SETTINGS, SqsClient, SqsQueueReceiver } from '@crowd/sqs'
 import {
   IQueueMessage,
@@ -12,6 +13,7 @@ import {
 
 export class WorkerQueueReceiver extends SqsQueueReceiver {
   constructor(
+    private readonly redisClient: RedisClient,
     client: SqsClient,
     private readonly dbConn: DbConnection,
     private readonly openSearchService: OpenSearchService,
@@ -26,6 +28,7 @@ export class WorkerQueueReceiver extends SqsQueueReceiver {
       this.log.trace({ messageType: message.type }, 'Processing message!')
 
       const service = new SyncService(
+        this.redisClient,
         new DbStore(this.log, this.dbConn),
         this.openSearchService,
         this.log,

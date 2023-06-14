@@ -2,19 +2,32 @@ import { DbStore, RepositoryBase } from '@crowd/database'
 import { Logger } from '@crowd/logging'
 import { IDbMemberSyncData } from './member.data'
 import { IMemberAttribute } from '@crowd/types'
+import { RedisCache, RedisClient } from '@crowd/redis'
 
 export class MemberRepository extends RepositoryBase<MemberRepository> {
-  constructor(dbStore: DbStore, parentLog: Logger) {
+  private readonly cache: RedisCache
+
+  constructor(redisClient: RedisClient, dbStore: DbStore, parentLog: Logger) {
     super(dbStore, parentLog)
+
+    this.cache = new RedisCache('memberAttributes', redisClient, this.log)
   }
 
   public async getTenantMemberAttributes(tenantId: string): Promise<IMemberAttribute[]> {
+    const cachedString = await this.cache.get(tenantId)
+
+    if (cachedString) {
+      return JSON.parse(cachedString)
+    }
+
     const results = await this.db().any(
       `select type, "canDelete", show, label, name, options from "memberAttributeSettings" where "tenantId" = $(tenantId)`,
       {
         tenantId,
       },
     )
+
+    await this.cache.set(tenantId, JSON.stringify(results))
 
     return results
   }
@@ -134,7 +147,7 @@ export class MemberRepository extends RepositoryBase<MemberRepository> {
     return results
   }
 
-  public async getMemberData(id: string): Promise<IMemberSyncData | null> {
+  public async getMemberData(id: string): Promise<IDbMemberSyncData | null> {
     const result = await this.db().oneOrNone(
       `
       with to_merge_data as (select mtm."memberId",

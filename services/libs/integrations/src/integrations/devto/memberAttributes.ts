@@ -5,10 +5,10 @@ import {
   MemberAttributes,
 } from '@crowd/types'
 import { pickAttributes } from '../utils'
-import twitterAttributes from '../twitter/memberAttributes'
-import githubAttributes from '../github/memberAttributes'
+import { TWITTER_MEMBER_ATTRIBUTES } from '../twitter/memberAttributes'
+import { GITHUB_MEMBER_ATTRIBUTES } from '../github/memberAttributes'
 
-const attributes: IMemberAttribute[] = [
+export const DEVTO_MEMBER_ATTRIBUTES: IMemberAttribute[] = [
   {
     name: MemberAttributes[MemberAttributeName.SOURCE_ID].name,
     label: MemberAttributes[MemberAttributeName.SOURCE_ID].label,
@@ -44,8 +44,6 @@ const attributes: IMemberAttribute[] = [
     canDelete: false,
     show: true,
   },
-  ...pickAttributes([MemberAttributeName.URL], twitterAttributes),
-  ...pickAttributes([MemberAttributeName.URL, MemberAttributeName.NAME], githubAttributes),
+  ...pickAttributes([MemberAttributeName.URL], TWITTER_MEMBER_ATTRIBUTES),
+  ...pickAttributes([MemberAttributeName.URL, MemberAttributeName.NAME], GITHUB_MEMBER_ATTRIBUTES),
 ]
-
-export default attributes

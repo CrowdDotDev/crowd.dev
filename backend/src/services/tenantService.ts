@@ -1,3 +1,4 @@
+import { DEFAULT_MEMBER_ATTRIBUTES } from '@crowd/integrations'
 import { TENANT_MODE } from '../conf/index'
 import TenantRepository from '../database/repositories/tenantRepository'
 import TenantUserRepository from '../database/repositories/tenantUserRepository'
@@ -20,7 +21,6 @@ import WidgetRepository from '../database/repositories/widgetRepository'
 import MicroserviceRepository from '../database/repositories/microserviceRepository'
 import ConversationRepository from '../database/repositories/conversationRepository'
 import MemberAttributeSettingsService from './memberAttributeSettingsService'
-import { DefaultMemberAttributes } from '../database/attributes/member/default'
 import { TenantMode } from '../conf/configTypes'
 import TaskRepository from '../database/repositories/taskRepository'
 
@@ -196,7 +196,7 @@ export default class TenantService {
       })
 
       // create default member attribute settings
-      await memberAttributeSettingsService.createPredefined(DefaultMemberAttributes, transaction)
+      await memberAttributeSettingsService.createPredefined(DEFAULT_MEMBER_ATTRIBUTES, transaction)
 
       await TenantUserRepository.create(record, this.options.currentUser, [Roles.values.admin], {
         ...this.options,
