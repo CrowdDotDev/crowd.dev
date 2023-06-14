@@ -46,33 +46,27 @@ export default () => {
     });
   });
 
-  // TODO: uncomment when bug is fixed
-  // it('fetches users who joined 2 weeks ago - exclude', () => {
-  //   cy.get('@filterItem').click();
-  //   cy.wait(100);
-  //   cy.get('@filterItem').click();
-  //   cy.get('[data-qa="filter-date-input"] input').clear().type(twoWeeksAgo).blur();
-  //   cy.get('[data-qa="filter-include-switch"]').click();
-  //   cy.get('[data-qa="filter-apply"]').click();
-  //   cy.wait('@apiMemberQuery');
-  //
-  //   cy.get('@apiMemberQuery').then((req) => {
-  //     const { rows } = req.response.body;
-  //     rows.forEach((row) => {
-  //       cy.wrap(moment(row.joinedAt).isSame(twoWeeksAgo, 'day')).should('eq', false);
-  //     });
-  //   });
-  // });
+  it('fetches users who joined 2 weeks ago - exclude', () => {
+    cy.get('@filterItem').click();
+    cy.get('[data-qa="filter-date-input"] input').clear().type(twoWeeksAgo).blur();
+    cy.get('[data-qa="filter-include-switch"]').click();
+    cy.get('[data-qa="filter-apply"]').click();
+    cy.wait('@apiMemberQuery');
+
+    cy.get('@apiMemberQuery').then((req) => {
+      const { rows } = req.response.body;
+      rows.forEach((row) => {
+        cy.wrap(moment(row.joinedAt).isSame(twoWeeksAgo, 'day')).should('eq', false);
+      });
+    });
+  });
 
   it('fetches users who joined before 2 weeks ago', () => {
-    cy.get('@filterItem').click();
-    cy.wait(100);
     cy.get('@filterItem').click();
     cy.get('[data-qa="filter-date-input"] input').clear().type(twoWeeksAgo).blur();
     cy.get('.filter-list-item-popper [data-qa="filter-inline-select"]').click();
     cy.get('[data-qa="filter-inline-select-option"]').contains('is before').click();
-    // TODO: uncomment when bug is fixed
-    // cy.get('[data-qa="filter-include-switch"]').click();
+    cy.get('[data-qa="filter-include-switch"]').click();
     cy.get('[data-qa="filter-apply"]').click();
     cy.wait('@apiMemberQuery');
 
@@ -85,8 +79,6 @@ export default () => {
   });
 
   it('fetches users who joined before 2 weeks ago - exclude', () => {
-    cy.get('@filterItem').click();
-    cy.wait(100);
     cy.get('@filterItem').click();
     cy.get('[data-qa="filter-date-input"] input').clear().type(twoWeeksAgo).blur();
     cy.get('[data-qa="filter-include-switch"]').click();
@@ -102,8 +94,6 @@ export default () => {
   });
 
   it('fetches users who joined after 2 weeks ago', () => {
-    cy.get('@filterItem').click();
-    cy.wait(100);
     cy.get('@filterItem').click();
     cy.get('[data-qa="filter-date-input"] input').clear().type(twoWeeksAgo).blur();
     cy.get('.filter-list-item-popper [data-qa="filter-inline-select"]').click();
@@ -122,8 +112,6 @@ export default () => {
 
   it('fetches users who joined after 2 weeks ago - exclude', () => {
     cy.get('@filterItem').click();
-    cy.wait(100);
-    cy.get('@filterItem').click();
     cy.get('[data-qa="filter-date-input"] input').clear().type(twoWeeksAgo).blur();
     cy.get('[data-qa="filter-include-switch"]').click();
     cy.get('[data-qa="filter-apply"]').click();
@@ -138,8 +126,6 @@ export default () => {
   });
 
   it('fetches users who joined between 2 weeks ago and 1 week ago', () => {
-    cy.get('@filterItem').click();
-    cy.wait(100);
     cy.get('@filterItem').click();
     cy.get('.filter-list-item-popper [data-qa="filter-inline-select"]').click();
     cy.get('[data-qa="filter-inline-select-option"]').contains('between').click();
@@ -159,8 +145,6 @@ export default () => {
   });
 
   it('fetches users who joined between 2 weeks ago and 1 week ago - exclude', () => {
-    cy.get('@filterItem').click();
-    cy.wait(100);
     cy.get('@filterItem').click();
     cy.get('[data-qa="filter-include-switch"]').click();
     cy.get('[data-qa="filter-apply"]').click();

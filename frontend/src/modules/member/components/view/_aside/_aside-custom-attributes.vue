@@ -94,6 +94,8 @@ import moment from 'moment';
 import { formatDate } from '@/utils/date';
 
 import { MemberPermissions } from '@/modules/member/member-permissions';
+import { useMemberStore } from '@/modules/member/store/pinia';
+import { storeToRefs } from 'pinia';
 import AppMemberManageAttributesDrawer from '../../member-manage-attributes-drawer.vue';
 import AppMemberCustomAttributesArrayRenderer from './_aside-custom-attributes-array-renderer.vue';
 
@@ -106,6 +108,9 @@ const props = defineProps({
 
 const store = useStore();
 
+const memberStore = useMemberStore();
+const { customAttributes } = storeToRefs(memberStore);
+
 const attributesDrawer = ref(false);
 
 const isEditLockedForSampleData = computed(() => new MemberPermissions(
@@ -113,7 +118,7 @@ const isEditLockedForSampleData = computed(() => new MemberPermissions(
   store.getters['auth/currentUser'],
 ).editLockedForSampleData);
 
-const computedCustomAttributes = computed(() => Object.values(store.state.member.customAttributes)
+const computedCustomAttributes = computed(() => Object.values(customAttributes.value)
   .filter((attribute) => (
     attribute.show
         && ![

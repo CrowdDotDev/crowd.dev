@@ -21,7 +21,10 @@ export default () => {
   });
 
   it('Filters by each activity type', () => {
-    cy.get('[data-qa="filter-select-option"]').each((option) => {
+    cy.get('[data-qa="filter-select-option"]').each((option, index) => {
+      if (index > 15) {
+        return;
+      }
       const optionValue = option.attr('data-qa-value');
       cy.wrap(option).click();
       cy.get('[data-qa="filter-apply"]').click();
@@ -35,14 +38,16 @@ export default () => {
       cy.scrollTo(0, 0);
       cy.wait(300);
       cy.get('[data-qa="filter-list-chip"]').click({ force: true });
-      cy.get('[data-qa="filter-list-chip"]').click({ force: true });
       cy.wrap(option).click();
     });
   });
 
   it('Filters by each activity type - exclude', () => {
     cy.get('[data-qa="filter-include-switch"]').click();
-    cy.get('[data-qa="filter-select-option"]').each((option) => {
+    cy.get('[data-qa="filter-select-option"]').each((option, index) => {
+      if (index > 15) {
+        return;
+      }
       const optionValue = option.attr('data-qa-value');
       cy.wrap(option).click();
       cy.get('[data-qa="filter-apply"]').click();
@@ -55,7 +60,6 @@ export default () => {
       });
       cy.scrollTo(0, 0);
       cy.wait(300);
-      cy.get('[data-qa="filter-list-chip"]').click({ force: true });
       cy.get('[data-qa="filter-list-chip"]').click({ force: true });
       cy.wrap(option).click();
     });

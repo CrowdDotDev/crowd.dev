@@ -36,7 +36,7 @@ module.exports = {
         analyzerMode: 'disabled',
       }),
       new DeadCodePlugin({
-        patterns: ['src/**/*.(js|jsx|css|vue)'],
+        patterns: ['src/**/*.(js|jsx|css|vue|ts|tsx)'],
       }),
       new MiniCssExtractPlugin({
         filename: '[name].[contenthash].css',

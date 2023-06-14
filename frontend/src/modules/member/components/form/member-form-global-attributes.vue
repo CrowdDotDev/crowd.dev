@@ -128,6 +128,8 @@ import Message from '@/shared/message/message';
 import { i18n } from '@/i18n';
 import parseCustomAttributes from '@/shared/fields/parse-custom-attributes';
 import { onSelectMouseLeave } from '@/utils/select';
+import { useMemberStore } from '@/modules/member/store/pinia';
+import { storeToRefs } from 'pinia';
 
 const emit = defineEmits(['update:modelValue']);
 const props = defineProps({
@@ -138,6 +140,8 @@ const props = defineProps({
 });
 
 const store = useStore();
+const memberStore = useMemberStore();
+const { customAttributes } = storeToRefs(memberStore);
 
 // Arrays used to make the requests on form submission
 const editedFields = reactive([]);
@@ -148,7 +152,7 @@ const deletedFields = reactive([]);
 const initialModel = ref(
   cloneDeep(
     parseCustomAttributes(
-      store.state.member.customAttributes,
+      customAttributes.value,
     ),
   ),
 );
@@ -300,7 +304,7 @@ function deleteAttribute(key) {
 }
 
 watch(
-  () => store.state.member.customAttributes,
+  () => customAttributes.value,
   (updatedStore) => {
     onReset();
     initialModel.value = cloneDeep(
