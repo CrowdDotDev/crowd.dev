@@ -6,6 +6,7 @@ import { RedisClient } from '@crowd/redis'
 import { SEARCH_SYNC_WORKER_QUEUE_SETTINGS, SqsClient, SqsQueueReceiver } from '@crowd/sqs'
 import {
   IQueueMessage,
+  RemoveMemberQueueMessage,
   SearchSyncWorkerQueueMessageType,
   SyncMemberQueueMessage,
   SyncTenantMembersQueueMessage,
@@ -40,6 +41,9 @@ export class WorkerQueueReceiver extends SqsQueueReceiver {
           break
         case SearchSyncWorkerQueueMessageType.SYNC_TENANT_MEMBERS:
           await service.syncTenantMembers((message as SyncTenantMembersQueueMessage).tenantId)
+          break
+        case SearchSyncWorkerQueueMessageType.REMOVE_MEMBER:
+          await service.removeMember((message as RemoveMemberQueueMessage).memberId)
           break
         default:
           throw new Error(`Unknown message type: ${message.type}`)

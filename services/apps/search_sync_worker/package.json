@@ -24,7 +24,6 @@
     "@crowd/sqs": "file:../../libs/sqs",
     "@crowd/redis": "file:../../libs/redis",
     "@crowd/types": "file:../../libs/types",
-    "@crowd/integrations": "file:../../libs/integrations",
     "@opensearch-project/opensearch": "^1.2.0",
     "@types/config": "^3.3.0",
     "@types/node": "^18.16.3",

@@ -486,58 +486,54 @@ do
             exit;
         ;;
         start)
-            declare -a INGORED_SERVICES=("community-help-center")
             start
             exit;
         ;;
         start-e2e)
-            declare -a INGORED_SERVICES=("community-help-center" "python-worker" "job-generator")
+            declare -a INGORED_SERVICES=("python-worker" "job-generator")
             start
             exit;
         ;;
         start-be)
-            declare -a INGORED_SERVICES=("community-help-center" "python-worker" "frontend" "discord-ws")
+            declare -a INGORED_SERVICES=("python-worker" "frontend" "discord-ws")
             start
             exit;
         ;;
         start-dev)
-            declare -a INGORED_SERVICES=("community-help-center")
             DEV=1
             start
             exit;
         ;;
         clean-start)
-            declare -a INGORED_SERVICES=("community-help-center")
             CLEAN_START=1
             start
             exit;
         ;;
         clean-start-dev)
-            declare -a INGORED_SERVICES=("community-help-center")
             CLEAN_START=1
             DEV=1
             start
             exit;
         ;;
         start-backend)
-            declare -a INGORED_SERVICES=("frontend" "community-help-center")
+            declare -a INGORED_SERVICES=("frontend")
             start
             exit;
         ;;
         start-backend-dev)
-            declare -a INGORED_SERVICES=("frontend" "community-help-center")
+            declare -a INGORED_SERVICES=("frontend")
             DEV=1
             start
             exit;
         ;;
         clean-start-backend)
-            declare -a INGORED_SERVICES=("frontend" "community-help-center")
+            declare -a INGORED_SERVICES=("frontend")
             CLEAN_START=1
             start
             exit;
         ;;
         clean-start-backend-dev)
-            declare -a INGORED_SERVICES=("frontend" "community-help-center")
+            declare -a INGORED_SERVICES=("frontend")
             CLEAN_START=1
             DEV=1
             start

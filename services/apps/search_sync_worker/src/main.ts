@@ -15,7 +15,7 @@ setImmediate(async () => {
 
   const openSearchService = new OpenSearchService(log)
 
-  const redis = getRedisClient(REDIS_CONFIG())
+  const redis = await getRedisClient(REDIS_CONFIG())
 
   const sqsClient = getSqsClient(SQS_CONFIG())
 

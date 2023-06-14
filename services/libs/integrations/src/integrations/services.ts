@@ -25,14 +25,11 @@ for (const intFolder of integrationFolders) {
 
 // add premium integrations - check for js because library is compiled to javascript
 const premiumFolder = path.resolve(`${__dirname}/premium`)
-log.info({ premiumFolder }, 'Checking for premium integrations!')
 
 if (fs.existsSync(premiumFolder)) {
   const premiumIntFolders = fs
     .readdirSync(premiumFolder, { withFileTypes: true })
-    .filter(
-      (dir) => dir.isDirectory() && fs.existsSync(`${premiumIntFolders}/${dir.name}/index.js`),
-    )
+    .filter((dir) => dir.isDirectory() && fs.existsSync(`${premiumFolder}/${dir.name}/index.js`))
 
   if (premiumIntFolders.length > 0) {
     for (const premiumIntFolder of premiumIntFolders) {

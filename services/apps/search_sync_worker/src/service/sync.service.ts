@@ -22,6 +22,11 @@ export class SyncService extends LoggerBase {
     this.memberRepo = new MemberRepository(redisClient, store, this.log)
   }
 
+  public async removeMember(memberId: string): Promise<void> {
+    this.log.warn({ memberId }, 'Removing member from index!')
+    await this.openSearchService.removeFromIndex(memberId, OpenSearchIndex.MEMBERS)
+  }
+
   public async syncTenantMembers(tenantId: string): Promise<void> {
     this.log.warn({ tenantId }, 'Syncing all tenant members!')
 
@@ -51,17 +56,15 @@ export class SyncService extends LoggerBase {
   }
 
   public async syncMember(memberId: string, retries = 0): Promise<void> {
-    this.log.info({ memberId }, 'Syncing member!')
+    this.log.debug({ memberId }, 'Syncing member!')
 
     const member = await this.memberRepo.getMemberData(memberId)
-    const attributes = await this.memberRepo.getTenantMemberAttributes(member.tenantId)
 
     if (member) {
-      await this.openSearchService.index(
-        memberId,
-        OpenSearchIndex.MEMBERS,
-        SyncService.prefixData(member, attributes),
-      )
+      const attributes = await this.memberRepo.getTenantMemberAttributes(member.tenantId)
+
+      const prepared = SyncService.prefixData(member, attributes)
+      await this.openSearchService.index(memberId, OpenSearchIndex.MEMBERS, prepared)
     } else {
       // we should retry - sometimes database is slow
       if (retries < 5) {
@@ -88,15 +91,20 @@ export class SyncService extends LoggerBase {
       const attData = data.attributes as any
 
       if (attribute.name in attData) {
-        const p_data = {}
-        const defValue = attData[attribute.name].default
-        const prefix = this.attributeTypeToOpenSearchPrefix(defValue, attribute.type)
+        if (attribute.type === MemberAttributeType.SPECIAL) {
+          const data = JSON.stringify(attData[attribute.name])
+          p_attributes[`string_${attribute.name}`] = data
+        } else {
+          const p_data = {}
+          const defValue = attData[attribute.name].default
+          const prefix = this.attributeTypeToOpenSearchPrefix(defValue, attribute.type)
 
-        for (const key of Object.keys(attData[attribute.name])) {
-          p_data[`${prefix}_${key}`] = attData[attribute.name][key]
+          for (const key of Object.keys(attData[attribute.name])) {
+            p_data[`${prefix}_${key}`] = attData[attribute.name][key]
+          }
+
+          p_attributes[`obj_${attribute.name}`] = p_data
         }
-
-        p_attributes[`obj_${attribute.name}`] = p_data
       }
     }
 
@@ -174,7 +182,7 @@ export class SyncService extends LoggerBase {
       case MemberAttributeType.MULTI_SELECT:
         return 'string_arr'
       case MemberAttributeType.SPECIAL:
-        return 'obj'
+        return 'string'
       default:
         throw new Error(`Could not map attribute type: ${type} to OpenSearch type!`)
     }

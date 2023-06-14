@@ -84,8 +84,9 @@ export default class SampleDataRepository extends RepositoryBase<SampleDataRepos
     )
   }
 
-  public async deleteSampleData(tenantId: string): Promise<void> {
+  public async deleteSampleData(tenantId: string): Promise<string[]> {
     const memberIds = await this.getSampleDataMemberIds(tenantId)
+
     await this.destroyOrganizations(tenantId, memberIds)
     await this.destroyMembers(tenantId, memberIds)
     await this.destroyConversations(tenantId)
@@ -97,5 +98,7 @@ export default class SampleDataRepository extends RepositoryBase<SampleDataRepos
     `,
       { tenantId },
     )
+
+    return memberIds
   }
 }
