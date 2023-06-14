@@ -147,7 +147,6 @@ const getOrganization = (id) => availableOrganizations.value.find((organization)
 const onSubProjectSelection = (subproject) => {
   isSubProjectsModalOpen.value = false;
   affiliationsList.value.push({
-    memberId: props.record.id,
     segmentId: subproject.id,
     segmentName: subproject.name,
     segmentParentName: subproject.parentName,
