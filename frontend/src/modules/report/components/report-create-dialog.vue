@@ -106,7 +106,10 @@ const handleSubmit = async () => {
   });
   await router.push({
     name: 'reportEdit',
-    params: { id: report.id },
+    params: {
+      id: report.id,
+      segmentId: report.segmentId,
+    },
   });
 };
 </script>

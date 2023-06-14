@@ -88,6 +88,10 @@ export default {
       type: String,
       default: null,
     },
+    segmentId: {
+      type: String,
+      default: null,
+    },
   },
 
   data() {
@@ -120,9 +124,13 @@ export default {
       await this.doFindPublic({
         id: this.id,
         tenantId: this.tenantId,
+        segments: [this.segmentId],
       });
     } else {
-      await this.doFind(this.id);
+      await this.doFind({
+        id: this.id,
+        segments: [this.segmentId],
+      });
     }
     this.loading = false;
   },

@@ -51,6 +51,7 @@
                       name: 'reportView',
                       params: {
                         id: scope.row.id,
+                        segmentId: scope.row.segmentId,
                       },
                     }"
                     class="flex items-center text-black"
@@ -194,7 +195,10 @@ function rowClass({ row }) {
 function handleRowClick(row) {
   router.push({
     name: 'reportView',
-    params: { id: row.id },
+    params: {
+      id: row.id,
+      segmentId: row.segmentId,
+    },
   });
 }
 </script>

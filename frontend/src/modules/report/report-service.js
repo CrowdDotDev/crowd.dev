@@ -18,11 +18,14 @@ export class ReportService {
     return response.data;
   }
 
-  static async duplicate(id) {
+  static async duplicate(id, segments) {
     const tenantId = AuthCurrentTenant.get();
 
     const response = await authAxios.post(
       `/tenant/${tenantId}/report/${id}/duplicate`,
+      {
+        segments,
+      },
     );
 
     return response.data;
@@ -56,19 +59,29 @@ export class ReportService {
     return response.data;
   }
 
-  static async find(id) {
+  static async find(id, segments) {
     const tenantId = AuthCurrentTenant.get();
 
     const response = await authAxios.get(
       `/tenant/${tenantId}/report/${id}`,
+      {
+        params: {
+          segments,
+        },
+      },
     );
 
     return response.data;
   }
 
-  static async findPublic(id, tenantId) {
+  static async findPublic(id, tenantId, segments) {
     const response = await axios.get(
       `${config.backendUrl}/tenant/${tenantId}/report/${id}`,
+      {
+        params: {
+          segments,
+        },
+      },
     );
 
     return response.data;
