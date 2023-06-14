@@ -100,7 +100,7 @@
           v-if="
             member.organizations.length || compareMember?.organizations.length
           "
-          class="flex items-center justify-between h-12 border-b border-gray-200"
+          class="flex items-center justify-between min-h-12 border-b border-gray-200 py-2"
         >
           <p class="text-2xs font-medium text-gray-500 pr-4">
             Organization

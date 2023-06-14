@@ -1,12 +1,19 @@
 <template>
-  <div v-if="subproject" class="text-sm mb-4">
+  <div v-if="!loading" class="text-sm mb-4">
     <span class="text-gray-500">
       <span>Admin Panel</span>
-      <span v-if="subproject.grandparentName"> > {{ subproject.grandparentName }}</span>
-      <span v-if="subproject.parentName"> > {{ subproject.parentName }}</span>
-      <span v-if="subproject.name"> > </span>
+      <span> > {{ projectGroup?.name }}</span>
+      <span class="text-brand-500"> > <router-link
+        :to="{
+          name: 'adminProjects',
+          params: {
+            id: route.params.grandparentId,
+          },
+        }"
+      >
+        <span>{{ project?.name }} (Project)</span>
+      </router-link></span>
     </span>
-    <span class="text-brand-500">{{ subproject.name }} (Sub-project) </span>
   </div>
 </template>
 
@@ -16,15 +23,25 @@ import { onMounted, ref } from 'vue';
 import { useRoute } from 'vue-router';
 
 const lsSegmentsStore = useLfSegmentsStore();
-const { findSubProject } = lsSegmentsStore;
+const { findProjectGroup, findProject } = lsSegmentsStore;
 
 const route = useRoute();
-const subproject = ref();
+const projectGroup = ref();
+const project = ref();
+const loading = ref(true);
 
-onMounted(() => {
-  findSubProject(route.params.id).then((response) => {
-    subproject.value = response;
-  });
+onMounted(async () => {
+  try {
+    const projectGroupResponse = await findProjectGroup(route.params.grandparentId);
+    const projectResponse = await findProject(route.params.parentId);
+
+    projectGroup.value = projectGroupResponse;
+    project.value = projectResponse;
+
+    loading.value = false;
+  } catch (e) {
+    loading.value = false;
+  }
 });
 </script>
 
