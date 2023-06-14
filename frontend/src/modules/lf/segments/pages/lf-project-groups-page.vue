@@ -80,7 +80,7 @@ import AppLfSearchInput from '@/modules/lf/segments/components/view/lf-search-in
 
 const lsSegmentsStore = useLfSegmentsStore();
 const { projectGroups } = storeToRefs(lsSegmentsStore);
-const { listProjectGroups, searchProjectGroup } = lsSegmentsStore;
+const { listProjectGroups, searchProjectGroup, updateSelectedProjectGroup } = lsSegmentsStore;
 
 const loading = computed(() => projectGroups.value.loading);
 const pagination = computed(() => projectGroups.value.pagination);
@@ -93,6 +93,7 @@ const isProjectGroupFormDrawerOpen = ref(false);
 const isProjectFormDrawerOpen = ref(false);
 
 onMounted(() => {
+  updateSelectedProjectGroup(null);
   listProjectGroups();
 });
 

@@ -175,12 +175,16 @@ export default {
     this.listProjects();
   },
   updateSelectedProjectGroup(projectGroupId) {
-    const projectGroup = this.projectGroups.list.find((p) => p.id === projectGroupId);
+    if (projectGroupId) {
+      const projectGroup = this.projectGroups.list.find((p) => p.id === projectGroupId);
 
-    this.selectedProjectGroup = projectGroup;
+      this.selectedProjectGroup = projectGroup;
 
-    router.push({
-      name: 'dashboard',
-    });
+      router.push({
+        name: 'dashboard',
+      });
+    } else {
+      this.selectedProjectGroup = null;
+    }
   },
 };

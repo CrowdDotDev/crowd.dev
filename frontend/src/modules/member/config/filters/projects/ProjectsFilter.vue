@@ -104,7 +104,7 @@ const onFilterChange = (value: ProjectsOption[]) => {
   form.value = { value: selectedSubProjects };
 };
 
-const onSearchQueryChange = debounce((value) => {
+const onSearchQueryChange = debounce((value, setDataOptions = false) => {
   loading.value = true;
   props
     .remoteMethod?.({
@@ -112,7 +112,9 @@ const onSearchQueryChange = debounce((value) => {
       parentSlug: selectedProjectGroup.value?.slug,
     })
     .then((projects) => {
-      data.value.options = projects;
+      if (setDataOptions) {
+        data.value.options = projects;
+      }
       buildOptions(projects);
     })
     .finally(() => {
@@ -121,7 +123,7 @@ const onSearchQueryChange = debounce((value) => {
 }, 300);
 
 onMounted(() => {
-  onSearchQueryChange('');
+  onSearchQueryChange('', true);
   emit('update:modelValue', {
     ...defaultForm,
     ...form.value,
