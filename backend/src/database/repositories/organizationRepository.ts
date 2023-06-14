@@ -448,7 +448,6 @@ class OrganizationRepository {
       transaction,
     })
   }
-
   static async count(filter, options: IRepositoryOptions) {
     const transaction = SequelizeRepository.getTransaction(options)
 
