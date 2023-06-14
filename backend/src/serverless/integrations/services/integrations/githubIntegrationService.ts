@@ -1316,10 +1316,10 @@ export class GithubIntegrationService extends IntegrationServiceBase {
           // eslint-disable-next-line no-continue
           continue
         }
-        const member = await GithubIntegrationService.parseMember(author, context)
+        const member = await GithubIntegrationService.parseMember(author.user, context)
         out.push({
           tenant: context.integration.tenantId,
-          username: author.user.login,
+          username: member.username[PlatformType.GITHUB].username,
           platform: PlatformType.GITHUB,
           channel: repo.name,
           url: `https://github.com/${repo.owner}/${repo.name}.git`,
@@ -1335,16 +1335,7 @@ export class GithubIntegrationService extends IntegrationServiceBase {
             isMerge: record.commit.parents.totalCount > 1,
             isMainBranch: ['master', 'main'].includes(data.repository.pullRequest.headRefName),
           },
-          member: {
-            username: {
-              [PlatformType.GIT]: {
-                username: author.user.login,
-                integrationId: context.integration.id,
-              },
-            } as PlatformIdentities,
-            displayName: member.displayName,
-            emails: member.emails,
-          },
+          member,
         })
       }
     }

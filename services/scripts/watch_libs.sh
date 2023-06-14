@@ -31,6 +31,7 @@ DEPENDENCIES=(
   ["sentiment"]="logging"
   ["conversations"]="common logging types database"
   ["integrations"]="common logging types"
+  ["alerting"]=""
 )
 
 function touch_services() {

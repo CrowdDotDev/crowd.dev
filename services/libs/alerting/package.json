@@ -1,5 +1,5 @@
 {
-  "name": "@crowd/integrations",
+  "name": "@crowd/alerting",
   "version": "1.0.0",
   "private": true,
   "scripts": {
@@ -16,24 +16,15 @@
       "types": "./dist/index.d.ts"
     }
   },
-  "devDependencies": {
-    "@types/he": "^1.2.0",
-    "@types/node": "^18.16.3",
-    "@types/sanitize-html": "^2.9.0",
-    "@typescript-eslint/eslint-plugin": "^5.59.2",
-    "@typescript-eslint/parser": "^5.59.2",
-    "eslint": "^8.39.0",
+  "dependencies": {
+    "@types/node": "^20.3.1",
+    "@typescript-eslint/eslint-plugin": "^5.59.11",
+    "@typescript-eslint/parser": "^5.59.11",
+    "axios": "^1.4.0",
+    "eslint": "^8.42.0",
     "eslint-config-prettier": "^8.8.0",
     "eslint-plugin-prettier": "^4.2.1",
     "prettier": "^2.8.8",
-    "typescript": "^5.0.4"
-  },
-  "dependencies": {
-    "@crowd/common": "file:../common",
-    "@crowd/logging": "file:../logging",
-    "@crowd/types": "file:../types",
-    "axios": "^1.4.0",
-    "he": "^1.2.0",
-    "sanitize-html": "^2.10.0"
+    "typescript": "^5.1.3"
   }
 }

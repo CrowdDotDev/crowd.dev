@@ -10,9 +10,9 @@ import config from '@/config';
  * @param timestamp
  * @returns {string|string}
  */
-export const formatDateToTimeAgo = (timestamp) => (moment(timestamp).year() === 1970
+export const formatDateToTimeAgo = (timestamp) => (moment.utc(timestamp).year() < 2000
   ? 'some time ago'
-  : moment(timestamp).fromNow());
+  : moment.utc(timestamp).fromNow());
 
 /**
  *

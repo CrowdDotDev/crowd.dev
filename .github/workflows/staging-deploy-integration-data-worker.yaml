@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - 'staging/**'
+      - 'staging-**'
     paths:
       - 'services/libs/**'
       - 'services/apps/integration_data_worker/**'
