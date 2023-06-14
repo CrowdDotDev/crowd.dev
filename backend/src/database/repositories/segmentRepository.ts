@@ -442,6 +442,7 @@ class SegmentRepository extends RepositoryBase<
                     join foundations f on s.id = f.foundation_id
             ${searchQuery}
             GROUP BY s.id, f.foundation_name
+            ORDER BY f.foundation_name
             ${this.getPaginationString(criteria)};
             `,
       {
@@ -494,6 +495,7 @@ class SegmentRepository extends RepositoryBase<
             and s."tenantId" = :tenantId
             ${searchQuery}
             GROUP BY s."id"
+            ORDER BY s."name"
             ${this.getPaginationString(criteria)};
             `,
       {
@@ -560,6 +562,7 @@ class SegmentRepository extends RepositoryBase<
             and s."tenantId" = :tenantId
             ${searchQuery}
             GROUP BY s."id"
+            ORDER BY s."name"
             ${this.getPaginationString(criteria)};
             `,
       {
