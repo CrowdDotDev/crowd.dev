@@ -43,8 +43,6 @@ const data = computed({
 });
 
 watch(() => types, (typesValue: any) => {
-  console.log(activeIntegrations);
-
   const platformsOptions = Object.entries(typesValue.value.default)
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     .filter(([platform, _]) => activeIntegrations.value.includes(platform))
