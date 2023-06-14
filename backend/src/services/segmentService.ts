@@ -322,6 +322,28 @@ export default class SegmentService extends LoggerBase {
     return updated.activityChannels
   }
 
+  async getTenantActivityTypes(tenantId: string) {
+    const segmentRepository = new SegmentRepository({
+      ...this.options,
+      currentTenant: { id: tenantId },
+    })
+
+    const { rows: subprojects } = await segmentRepository.querySubprojects({})
+    return subprojects.reduce(
+      (acc: any, subproject) => ({
+        custom: {
+          ...acc.custom,
+          ...subproject.activityTypes.custom,
+        },
+        default: {
+          ...acc.default,
+          ...subproject.activityTypes.default,
+        },
+      }),
+      {},
+    )
+  }
+
   static async refreshSegments(options: IRepositoryOptions) {
     const repo = new SegmentRepository(options)
     for (let i = 0; i < options.currentSegments.length; i++) {
