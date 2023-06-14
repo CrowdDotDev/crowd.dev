@@ -507,9 +507,19 @@ class SegmentRepository extends RepositoryBase<
       },
     )
 
+    const subprojects = projects.map((p) => p.subprojects).flat()
+    const integrationsBySegments = await this.queryIntegrationsForSubprojects(subprojects)
+
     const count = projects.length > 0 ? Number.parseInt(projects[0].totalCount, 10) : 0
 
     const rows = projects.map((i) => removeFieldsFromObject(i, 'totalCount'))
+
+    // assign integrations to subprojects
+    rows.forEach((row) => {
+      row.subprojects.forEach((subproject) => {
+        subproject.integrations = integrationsBySegments[subproject.id] || []
+      })
+    })
 
     // TODO: Add member count to segments after implementing member relations
     // TODO: Add segment settings to payload
@@ -566,19 +576,7 @@ class SegmentRepository extends RepositoryBase<
 
     const count = subprojects.length > 0 ? Number.parseInt(subprojects[0].totalCount, 10) : 0
 
-    const segmentIds = subprojects.map((i) => i.id)
-    const { rows: integrations } = await IntegrationRepository.findAndCountAll(
-      {
-        advancedFilter: {
-          segmentId: segmentIds,
-        },
-      },
-      {
-        ...this.options,
-        currentSegments: subprojects,
-      },
-    )
-    const integrationsBySegments = lodash.groupBy(integrations, 'segmentId')
+    const integrationsBySegments = await this.queryIntegrationsForSubprojects(subprojects)
 
     const rows = subprojects.map((i) => {
       let subproject = removeFieldsFromObject(i, 'totalCount')
@@ -589,6 +587,30 @@ class SegmentRepository extends RepositoryBase<
 
     // TODO: Add member count to segments after implementing member relations
     return { count, rows, limit: criteria.limit, offset: criteria.offset }
+  }
+
+  private async queryIntegrationsForSubprojects(subprojects) {
+    const segmentIds = subprojects.map((i) => i.id)
+    let { rows: integrations } = await IntegrationRepository.findAndCountAll(
+      {
+        advancedFilter: {
+          segmentId: segmentIds,
+        },
+      },
+      {
+        ...this.options,
+        currentSegments: subprojects,
+      },
+    )
+
+    integrations = integrations.map(({ platform, id, status, segmentId }) => ({
+      platform,
+      id,
+      status,
+      segmentId,
+    }))
+
+    return lodash.groupBy(integrations, 'segmentId')
   }
 
   /**
