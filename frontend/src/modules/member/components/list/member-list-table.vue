@@ -597,13 +597,13 @@ watch(table, (newValue) => {
   }
 });
 
-const doExport = () => MemberService.export(
-  savedFilterBody.value.filter,
-  savedFilterBody.value.orderBy,
-  0,
-  null,
-  false,
-);
+const doExport = () => MemberService.export({
+  filter: savedFilterBody.value.filter,
+  orderBy: savedFilterBody.value.orderBy,
+  limit: 0,
+  offset: null,
+  buildFilter: false,
+});
 
 onMounted(async () => {
   if (store.state.integration.count === 0) {
