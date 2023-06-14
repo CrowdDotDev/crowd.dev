@@ -1,6 +1,7 @@
 name: Sync Main to Staging
 
 on:
+  workflow_dispatch:  # added this line to enable manual triggering
   schedule:
     # Run every Sunday evening at 18:00
     - cron:  '0 18 * * 0'
