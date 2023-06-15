@@ -408,6 +408,8 @@ import { formatNumberToCompact, formatNumber } from '@/utils/number';
 import { useMemberStore } from '@/modules/member/store/pinia';
 import { storeToRefs } from 'pinia';
 import { MemberService } from '@/modules/member/member-service';
+import { useLfSegmentsStore } from '@/modules/lf/segments/store';
+import { getSegmentsFromProjectGroup } from '@/utils/segments';
 import AppMemberBadge from '../member-badge.vue';
 import AppMemberDropdown from '../member-dropdown.vue';
 import AppMemberIdentities from '../member-identities.vue';
@@ -446,6 +448,9 @@ const {
   members, totalMembers, filters, selectedMembers, savedFilterBody,
 } = storeToRefs(memberStore);
 const { fetchMembers } = memberStore;
+
+const lsSegmentsStore = useLfSegmentsStore();
+const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);
 
 const defaultSort = computed(() => ({
   field: 'lastActive',
@@ -610,9 +615,7 @@ const doExport = () => MemberService.export({
 });
 
 onMounted(async () => {
-  if (store.state.integration.count === 0) {
-    await store.dispatch('integration/doFetch');
-  }
+  await store.dispatch('integration/doFetch', getSegmentsFromProjectGroup(selectedProjectGroup.value));
 });
 
 // Remove listeners on unmount

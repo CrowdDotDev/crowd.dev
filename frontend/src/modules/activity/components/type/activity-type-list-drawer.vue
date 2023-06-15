@@ -187,9 +187,7 @@ const activeIntegrations = computed(() => CrowdIntegrations.mappedEnabledConfigs
 ).filter((integration) => integration.status));
 
 onMounted(() => {
-  if (activeIntegrations.value.length === 0) {
-    doFetch([props.subprojectId]);
-  }
+  doFetch([props.subprojectId]);
 });
 </script>
 

@@ -214,6 +214,14 @@ const noMore = ref(false);
 
 let filter = {};
 
+const segments = computed(() => props.entity.segments?.map((s) => {
+  if (typeof s === 'string') {
+    return s;
+  }
+
+  return s.id;
+}) || []);
+
 const fetchActivities = async () => {
   const filterToApply = {
     platform: platform.value ?? undefined,
@@ -284,13 +292,7 @@ const fetchActivities = async () => {
       orderBy: 'timestamp_DESC',
       limit: limit.value,
       offset: offset.value,
-      segments: props.entity.segments?.map((s) => {
-        if (typeof s === 'string') {
-          return s;
-        }
-
-        return s.id;
-      }) || [],
+      segments: segments.value,
     },
     {
       headers: {
@@ -336,9 +338,7 @@ const onClear = () => {
 };
 
 onMounted(async () => {
-  if (activeIntegrations.value.length === 0) {
-    await store.dispatch('integration/doFetch');
-  }
+  await store.dispatch('integration/doFetch', segments.value);
   await fetchActivities();
 });
 </script>
