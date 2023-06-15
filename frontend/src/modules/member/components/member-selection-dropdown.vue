@@ -78,7 +78,7 @@ const computedMemberToMerge = computed({
   },
 });
 
-const fetchFn = async (query, limit) => {
+const fetchFn = async ({ query, limit }) => {
   const options = await MemberService.listAutocomplete({
     query,
     limit,
