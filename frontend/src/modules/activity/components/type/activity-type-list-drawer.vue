@@ -102,6 +102,7 @@
     v-model="isFormModalOpen"
     :type="editableActivityType"
     :subproject-id="subprojectId"
+    @on-update="getTypes(subprojectId)"
     @update:model-value="onModalViewChange($event)"
   />
 </template>
@@ -159,14 +160,18 @@ const isVisible = computed({
   },
 });
 
+const getTypes = (subprojectId) => {
+  if (subprojectId) {
+    LfService.findSegment(subprojectId).then((response) => {
+      setTypes(response.activityTypes);
+    });
+  }
+};
+
 watch(
   () => props.subprojectId,
   (subprojectId) => {
-    if (subprojectId) {
-      LfService.findSegment(subprojectId).then((response) => {
-        setTypes(response.activityTypes);
-      });
-    }
+    getTypes(subprojectId);
   },
   { immediate: true, deep: true },
 );

@@ -16,6 +16,8 @@ import { storeToRefs } from 'pinia';
 import { CrowdIntegrations } from '@/integrations/integrations-config';
 import { useStore } from 'vuex';
 import { ActivityTypeService } from '@/modules/activity/services/activity-type-service';
+import { getSegmentsFromProjectGroup } from '@/utils/segments';
+import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 
 const props = defineProps<{
   modelValue: string,
@@ -33,6 +35,9 @@ const store = useStore();
 const activeIntegrations = computed<string[]>(() => CrowdIntegrations.mappedEnabledConfigs(
   store,
 ).filter((integration) => integration.status).map((integration) => integration.platform));
+
+const lsSegmentsStore = useLfSegmentsStore();
+const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);
 
 const form = computed({
   get: () => props.modelValue,
@@ -69,11 +74,13 @@ watch(() => types, (typesValue: any) => {
     ...platformsOptions,
     ...customOptions,
   ];
-}, { immediate: true });
+}, { deep: true });
 
-onMounted(() => {
-  ActivityTypeService.get().then((response) => {
-    setTypes(response);
-  });
+onMounted(async () => {
+  await store.dispatch('integration/doFetch', getSegmentsFromProjectGroup(selectedProjectGroup.value));
+
+  const activityTypes = await ActivityTypeService.get();
+
+  setTypes(activityTypes);
 });
 </script>

@@ -76,7 +76,7 @@ const props = defineProps({
   },
 });
 
-const emit = defineEmits(['update:modelValue']);
+const emit = defineEmits(['update:modelValue', 'onUpdate']);
 
 const { createActivityType, updateActivityType } = useActivityTypeStore();
 const { doFetch } = mapActions('activity');
@@ -121,6 +121,7 @@ const submit = () => {
       .then(() => {
         reset();
         emit('update:modelValue');
+        emit('onUpdate');
         Message.success(
           'Activity type successfully created!',
         );
@@ -139,6 +140,7 @@ const submit = () => {
         reset();
         doFetch({});
         emit('update:modelValue');
+        emit('onUpdate');
         Message.success(
           'Activity type successfully updated!',
         );
