@@ -991,6 +991,7 @@ export default class MemberService extends LoggerBase {
       this.options.currentTenant.id,
       this.options.currentUser.id,
       ExportableEntity.MEMBERS,
+      SequelizeRepository.getSegmentIds(this.options),
       data,
     )
     return result
