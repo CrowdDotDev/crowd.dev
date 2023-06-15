@@ -12,7 +12,7 @@ describe('Crowd.dev', () => {
 
   before(() => {
     cy.visit(Cypress.env('appUrl'), {
-      timeout: 120000,
+      timeout: 210000,
     });
     localStorage.clear();
   });

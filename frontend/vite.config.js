@@ -5,6 +5,8 @@ import vue from '@vitejs/plugin-vue';
 
 import Components from 'unplugin-vue-components/vite';
 import { ElementPlusResolver } from 'unplugin-vue-components/resolvers';
+import { visualizer } from 'rollup-plugin-visualizer';
+import { terser } from 'rollup-plugin-terser';
 
 import dns from 'dns';
 
@@ -15,16 +17,31 @@ export default defineConfig({
     'import.meta.env': process.env,
   },
   envPrefix: 'VUE_APP',
-  plugins: [vue(), Components({
-    extensions: ['vue', 'md'],
-    include: [/\.vue$/, /\.vue\?vue/, /\.md$/],
-    resolvers: [
-      ElementPlusResolver({
-        importStyle: 'sass',
-      }),
-    ],
-    dts: 'components.d.ts',
-  })],
+  plugins: [
+    vue(),
+    Components({
+      extensions: ['vue', 'md'],
+      include: [/\.vue$/, /\.vue\?vue/, /\.md$/],
+      resolvers: [
+        ElementPlusResolver({
+          importStyle: 'sass',
+        }),
+      ],
+      dts: 'components.d.ts',
+    }),
+    visualizer({
+      template: 'treemap',
+      open: true,
+      gzipSize: true,
+      brotliSize: true,
+      filename: 'analyse.html',
+    }),
+    terser({
+      compress: {
+        drop_console: true,
+      },
+    }),
+  ],
   resolve: {
     extensions: ['.mjs', '.js', '.ts', '.jsx', '.tsx', '.json', '.vue'],
     alias: {
@@ -44,6 +61,10 @@ export default defineConfig({
           || 'http://localhost:8080',
         rewrite: (path) => path.replace(/^\/api/, ''),
       },
+    },
+    hmr: {
+      host: 'localhost',
+      protocol: 'ws',
     },
   },
 });

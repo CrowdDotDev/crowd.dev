@@ -88,6 +88,8 @@
     "eslint-plugin-vue": "^9.10.0",
     "mini-css-extract-plugin": "^2.7.5",
     "postcss": "^8.4.21",
+    "rollup-plugin-terser": "^7.0.2",
+    "rollup-plugin-visualizer": "^5.9.2",
     "sass": "^1.60.0",
     "tailwind-config-viewer": "^1.7.2",
     "tailwindcss": "^3.2.7",
@@ -95,8 +97,6 @@
     "typescript": "~5.0.4",
     "unplugin-auto-import": "^0.15.2",
     "unplugin-vue-components": "^0.24.1",
-    "wait-on": "^6.0.1",
-    "webpack-bundle-analyzer": "^4.8.0",
-    "webpack-deadcode-plugin": "^0.1.17"
+    "wait-on": "^6.0.1"
   }
 }
