@@ -5,7 +5,7 @@
     alt="Project group logo"
     class="h-6 mb-3"
   />
-  <div class="text-base font-semibold text-gray-900 mb-8">
+  <div class="text-base font-semibold text-gray-900 mb-8 break-words">
     {{ selectedProjectGroup.name }}
   </div>
 

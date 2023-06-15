@@ -112,7 +112,6 @@
               name: 'integration',
               params: {
                 id: row.id,
-                parentId: project.id,
                 grandparentId: route.params.id,
               },
             }"

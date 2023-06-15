@@ -26,7 +26,6 @@ export default [
         },
         beforeEnter: (to, from, next) => {
           const segmentId = localStorage.getItem('segmentId');
-          const segmentParentId = localStorage.getItem('segmentParentId');
           const segmentGrandparentId = localStorage.getItem('segmentGrandparentId');
 
           // Redirect to integrations list page with correct id
@@ -35,7 +34,6 @@ export default [
               name: 'integration',
               params: {
                 id: segmentId,
-                parentId: segmentParentId,
                 grandparentId: segmentGrandparentId,
               },
               query: to.query,
@@ -44,7 +42,6 @@ export default [
           }
 
           localStorage.setItem('segmentId', null);
-          localStorage.setItem('segmentParentId', null);
           localStorage.setItem('segmentGrandparentId', null);
 
           next({ name: 'projectGroupsList' });
@@ -52,7 +49,7 @@ export default [
       },
       {
         name: 'integration',
-        path: '/integrations/:grandparentId/:parentId/:id',
+        path: '/integrations/:grandparentId/:id',
         component: IntegrationListPage,
         exact: true,
         meta: {

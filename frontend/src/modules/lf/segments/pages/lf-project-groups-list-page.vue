@@ -52,7 +52,7 @@
             class="h-8 mb-4"
           />
 
-          <div class="text-gray-900 font-semibold text-base mb-5">
+          <div class="text-gray-900 font-semibold text-base mb-5 break-words">
             {{ projectGroup.name }}
           </div>
 

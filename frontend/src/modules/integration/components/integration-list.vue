@@ -78,7 +78,6 @@ const showGithubDialog = ref(false);
 
 onMounted(async () => {
   localStorage.setItem('segmentId', route.params.id);
-  localStorage.setItem('segmentParentId', route.params.parentId);
   localStorage.setItem('segmentGrandparentId', route.params.grandparentId);
 
   if (integrationCount.value === 0 || isSegmentIdDifferent.value) {
