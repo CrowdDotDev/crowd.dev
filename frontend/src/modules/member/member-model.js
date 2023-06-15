@@ -14,6 +14,7 @@ import SentimentField from '@/shared/fields/sentiment-field';
 import ActivityTypeField from '@/modules/activity/activity-type-field';
 import StringArrayField from '@/shared/fields/string-array-field';
 import BooleanField from '@/shared/fields/boolean-field';
+import GenericField from '@/shared/fields/generic-field';
 import MemberIdentitiesField from './member-identities-field';
 import MemberEngagementLevelField from './member-engagement-level-field';
 
@@ -139,6 +140,7 @@ const fields = {
   lastEnriched: new BooleanField('lastEnriched', 'Enriched member', {
     filterable: true,
   }),
+  affiliations: new GenericField('affiliations', 'Affiliations'),
 };
 
 export class MemberModel extends GenericModel {
