@@ -411,44 +411,58 @@ class SegmentRepository extends RepositoryBase<
 
     const projectGroups = await this.options.database.sequelize.query(
       `
-            WITH foundations as (SELECT 
-                            f.id as foundation_id,
-                            f.name as foundation_name,
-                            f.status,
-                            f."createdAt",
-                            f."updatedAt",
-                            f."sourceId",
-                            f."sourceParentId",
-                            f.slug,
-                            p.name as project_name,
-                            p.id as project_id,
-                            p.status as project_status,
-                            p.slug as project_slug,
-                            COUNT(DISTINCT sp.id) AS subproject_count,
-                            jsonb_agg(jsonb_build_object('id', sp.id ,'name', sp.name, 'status', sp.status, 'slug', sp.slug)) as subprojects
-                     FROM segments f
-                      JOIN segments p ON p."parentSlug" = f."slug" AND p."grandparentSlug" IS NULL
-                                             AND p."tenantId" = f."tenantId"
-                      JOIN segments sp ON sp."parentSlug" = p."slug" and sp."grandparentSlug" = f.slug
-                                              AND sp."tenantId" = f."tenantId"
-                     WHERE f."parentSlug" IS NULL
-                       AND f."tenantId" = :tenantId
-                     GROUP BY f."id", p.id)
-            SELECT s.*,
-                   count(*) over () as "totalCount",  
-                   jsonb_agg(jsonb_build_object('id', f.project_id,
-                                                'name', f.project_name,
-                                                'status', f.project_status,
-                                                'slug', f.project_slug,
-                                                'subprojects', f.subprojects)
-                                                ) as projects
-            FROM segments s
-                    join foundations f on s.id = f.foundation_id
-            ${searchQuery}
-            GROUP BY s.id, f.foundation_name
-            ORDER BY f.foundation_name
-            ${this.getPaginationString(criteria)};
-            `,
+          WITH
+              foundations AS (
+                  SELECT
+                      f.id AS foundation_id,
+                      f.name AS foundation_name,
+                      f.status,
+                      f."createdAt",
+                      f."updatedAt",
+                      f."sourceId",
+                      f."sourceParentId",
+                      f.slug,
+                      p.name AS project_name,
+                      p.id AS project_id,
+                      p.status AS project_status,
+                      p.slug AS project_slug,
+                      COUNT(DISTINCT sp.id) AS subproject_count,
+                      JSONB_AGG(JSONB_BUILD_OBJECT(
+                          'id', sp.id,
+                          'name', sp.name,
+                          'status', sp.status,
+                          'slug', sp.slug
+                          )) AS subprojects
+                  FROM segments f
+                  JOIN segments p
+                      ON p."parentSlug" = f."slug"
+                             AND p."grandparentSlug" IS NULL
+                             AND p."tenantId" = f."tenantId"
+                  JOIN segments sp
+                      ON sp."parentSlug" = p."slug"
+                             AND sp."grandparentSlug" = f.slug
+                             AND sp."tenantId" = f."tenantId"
+                  WHERE f."parentSlug" IS NULL
+                    AND f."tenantId" = :tenantId
+                  GROUP BY f."id", p.id
+              )
+          SELECT
+              s.*,
+              COUNT(*) OVER () AS "totalCount",
+              JSONB_AGG(JSONB_BUILD_OBJECT(
+                      'id', f.project_id,
+                      'name', f.project_name,
+                      'status', f.project_status,
+                      'slug', f.project_slug,
+                      'subprojects', f.subprojects
+                  )) AS projects
+          FROM segments s
+          JOIN foundations f ON s.id = f.foundation_id
+          ${searchQuery}
+          GROUP BY s.id, f.foundation_name
+          ORDER BY f.foundation_name
+          ${this.getPaginationString(criteria)};
+      `,
       {
         replacements: {
           tenantId: this.currentTenant.id,
