@@ -615,7 +615,7 @@ class ActivityRepository {
           {
             model: options.database.member,
             as: 'member',
-          }
+          },
         ],
       },
       {
@@ -746,7 +746,7 @@ class ActivityRepository {
       SegmentRepository.getActivityTypes(options),
     )
 
-    if(output.parent) {
+    if (output.parent) {
       output.parent.display = ActivityDisplayService.getDisplayOptions(
         output.parent,
         SegmentRepository.getActivityTypes(options),
