@@ -298,7 +298,7 @@ const doMarkAsTeamMember = (value) => {
         default: value,
       },
     },
-  })))
+  }, member.segmentIds)))
     .then(() => {
       fetchMembers({ reload: true });
       Message.success(

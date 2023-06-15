@@ -264,7 +264,7 @@ export default {
               default: command.value,
             },
           },
-        });
+        }, command.member.segmentIds);
         await this.fetchMembers({ reload: true });
         Message.success('Contributor updated successfully');
         if (this.$route.name === 'member') {
@@ -280,7 +280,7 @@ export default {
               default: command.action === 'memberMarkAsBot',
             },
           },
-        });
+        }, command.member.segmentIds);
         await this.fetchMembers({ reload: true });
         Message.success('Contributor updated successfully');
         if (this.$route.name === 'member') {
