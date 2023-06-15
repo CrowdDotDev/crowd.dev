@@ -11,7 +11,9 @@ describe('Crowd.dev', () => {
   const email = `${Date.now()}@${serverId}.mailosaur.net`;
 
   before(() => {
-    cy.visit(Cypress.env('appUrl'));
+    cy.visit(Cypress.env('appUrl'), {
+      timeout: 120000,
+    });
     localStorage.clear();
   });
 

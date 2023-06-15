@@ -37,8 +37,6 @@ jobs:
         uses: cypress-io/github-action@v4
         with:
           env: MAILOSAUR_API_KEY=${{ secrets.MAILOSAUR_API_KEY }},MAILOSAUR_SERVER_ID=${{ secrets.MAILOSAUR_SERVER_ID }}
-          wait-on: 'http://localhost:8081'
-          wait-on-timeout: 120
           working-directory: 'frontend'
 
       - name: Upload screenshots
