@@ -12,26 +12,25 @@ export const getOrganizationPosts = async (
   start?: number,
   lookBackUntilTs?: number,
 ): Promise<IPaginatedResponse<ILinkedInOrganizationPost>> => {
+  const accessToken = await getNangoToken(nangoId, PlatformType.LINKEDIN, ctx)
+
   const config: AxiosRequestConfig<unknown> = {
     method: 'get',
-    url: 'https://api.linkedin.com/rest/posts',
+    url: `https://api.linkedin.com/rest/posts`,
     params: {
       author: organization,
       q: 'author',
       count: 10,
-      ...(start !== undefined && { start }),
+      start,
     },
     headers: {
-      'X-Restli-Protocol-Version': '2.0.0',
       'LinkedIn-Version': 202305,
+      Authorization: `Bearer ${accessToken}`,
     },
   }
 
   try {
     ctx.log.debug({ nangoId, organization, start }, 'Fetching organization posts!')
-    // Get an access token from Nango
-    const accessToken = await getNangoToken(nangoId, PlatformType.LINKEDIN, ctx)
-    config.params.oauth2_access_token = encodeURIComponent(accessToken)
 
     const response = (await axios(config)).data
 
@@ -73,6 +72,16 @@ export const getOrganizationPosts = async (
     }
   } catch (err) {
     ctx.log.error(err, { nangoId, organization, start }, 'Error while fetching organization posts!')
+    if (err.response) {
+      ctx.log.error(
+        {
+          status: err.response.status,
+          headers: err.response.headers,
+          data: err.response.data,
+        },
+        'Error response from LinkedIn API',
+      )
+    }
     const newErr = handleLinkedinError(err, config, { nangoId, organization, start }, ctx.log)
     throw newErr
   }

@@ -20,8 +20,7 @@ export const getPostComments = async (
       start,
     },
     headers: {
-      'X-Restli-Protocol-Version': '2.0.0',
-      'LinkedIn-Version': '202305',
+      'LinkedIn-Version': 202305,
     },
   }
 
