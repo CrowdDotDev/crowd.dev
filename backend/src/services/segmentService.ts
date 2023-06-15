@@ -137,8 +137,7 @@ export default class SegmentService extends LoggerBase {
     const segmentRepository = new SegmentRepository(this.options)
 
     const subproject = await segmentRepository.create(data)
-
-    return this.findById(subproject.id)
+    return subproject
   }
 
   async findById(id) {
