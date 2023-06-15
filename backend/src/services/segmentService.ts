@@ -37,14 +37,14 @@ export default class SegmentService extends LoggerBase {
 
       // update relation fields of parent objects
       if (!SegmentRepository.isSubproject(segment) && (data.name || data.slug)) {
-        await segmentRepository.updateChildrenBulk(segment.id, { name: data.name, slug: data.slug })
+        await segmentRepository.updateChildrenBulk(segment, { name: data.name, slug: data.slug })
       }
 
       await SequelizeRepository.commitTransaction(transaction)
 
       return await this.findById(id)
     } catch (error) {
-      await SequelizeRepository.rollbackTransaction(transaction.transaction)
+      await SequelizeRepository.rollbackTransaction(transaction)
       throw error
     }
   }
@@ -79,7 +79,7 @@ export default class SegmentService extends LoggerBase {
 
       return await this.findById(projectGroup.id)
     } catch (error) {
-      await SequelizeRepository.rollbackTransaction(transaction.transaction)
+      await SequelizeRepository.rollbackTransaction(transaction)
       throw error
     }
   }
@@ -120,7 +120,7 @@ export default class SegmentService extends LoggerBase {
 
       return await this.findById(project.id)
     } catch (error) {
-      await SequelizeRepository.rollbackTransaction(transaction.transaction)
+      await SequelizeRepository.rollbackTransaction(transaction)
       throw error
     }
   }

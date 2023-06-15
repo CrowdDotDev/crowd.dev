@@ -79,11 +79,9 @@ class SegmentRepository extends RepositoryBase<
    * @param name
    */
   async updateChildrenBulk(
-    id: string,
+    segment: SegmentData,
     data: SegmentUpdateChildrenPartialData,
   ): Promise<SegmentData> {
-    const segment = await this.findById(id)
-
     if (SegmentRepository.isProjectGroup(segment)) {
       // update projects
       await this.updateBulk(
@@ -114,7 +112,7 @@ class SegmentRepository extends RepositoryBase<
       )
     }
 
-    return this.findById(id)
+    return this.findById(segment.id)
   }
 
   async updateBulk(ids: string[], data: SegmentUpdateData): Promise<string[]> {
@@ -221,20 +219,21 @@ class SegmentRepository extends RepositoryBase<
     return this.findById(id)
   }
 
-  async getChildrenOfProjectGroups(slug: string) {
+  async getChildrenOfProjectGroups(segment: SegmentData) {
     const transaction = this.transaction
 
     const records = await this.options.database.sequelize.query(
       `
           SELECT *
           FROM segments s
-          WHERE (s."grandparentSlug" = :slug OR s."parentSlug" = :slug)
+          WHERE (s."grandparentSlug" = :slug OR
+                 (s."parentSlug" = :slug AND s."grandparentSlug" IS NULL))
             AND s."tenantId" = :tenantId
           ORDER BY "grandparentSlug" DESC, "parentSlug" DESC, slug DESC;
       `,
       {
         replacements: {
-          slug,
+          slug: segment.slug,
           tenantId: this.options.currentTenant.id,
         },
         type: QueryTypes.SELECT,
@@ -245,16 +244,18 @@ class SegmentRepository extends RepositoryBase<
     return records
   }
 
-  async getChildrenOfProjects(slug: string) {
+  async getChildrenOfProjects(segment: SegmentData) {
     const records = await this.options.database.sequelize.query(
       `
                 select * from segments s
                 where s."parentSlug" = :slug
+                  AND s."grandparentSlug" = :parentSlug
                 and s."tenantId" = :tenantId;
             `,
       {
         replacements: {
-          slug,
+          slug: segment.slug,
+          parentSlug: segment.parentSlug,
           tenantId: this.options.currentTenant.id,
         },
         type: QueryTypes.SELECT,
@@ -355,7 +356,7 @@ class SegmentRepository extends RepositoryBase<
     if (SegmentRepository.isProjectGroup(record)) {
       // find projects
       // TODO: Check sorting - parent should come first
-      const children = await this.getChildrenOfProjectGroups(record.slug)
+      const children = await this.getChildrenOfProjectGroups(record)
 
       const projects = children.reduce((acc, child) => {
         if (SegmentRepository.isProject(child)) {
@@ -374,7 +375,7 @@ class SegmentRepository extends RepositoryBase<
 
       record.projects = projects
     } else if (SegmentRepository.isProject(record)) {
-      const children = await this.getChildrenOfProjects(record.slug)
+      const children = await this.getChildrenOfProjects(record)
       record.subprojects = children
     }
 
@@ -421,21 +422,24 @@ class SegmentRepository extends RepositoryBase<
                             f.slug,
                             p.name as project_name,
                             p.id as project_id,
+                            p.status as project_status,
+                            p.slug as project_slug,
                             COUNT(DISTINCT sp.id) AS subproject_count,
-                            jsonb_agg(jsonb_build_object('id', sp.id ,'name', sp.name, 'status', sp.status)) as subprojects
+                            jsonb_agg(jsonb_build_object('id', sp.id ,'name', sp.name, 'status', sp.status, 'slug', sp.slug)) as subprojects
                      FROM segments f
                       JOIN segments p ON p."parentSlug" = f."slug" AND p."grandparentSlug" IS NULL
                                              AND p."tenantId" = f."tenantId"
-                      JOIN segments sp ON sp."parentSlug" = p."slug" and sp."grandparentSlug" is not null
+                      JOIN segments sp ON sp."parentSlug" = p."slug" and sp."grandparentSlug" = f.slug
                                               AND sp."tenantId" = f."tenantId"
                      WHERE f."parentSlug" IS NULL
                        AND f."tenantId" = :tenantId
                      GROUP BY f."id", p.id)
             SELECT s.*,
                    count(*) over () as "totalCount",  
-                   jsonb_agg(jsonb_build_object('id', f.project_id ,
+                   jsonb_agg(jsonb_build_object('id', f.project_id,
                                                 'name', f.project_name,
-                                                'status', f.status, 
+                                                'status', f.project_status,
+                                                'slug', f.project_slug,
                                                 'subprojects', f.subprojects)
                                                 ) as projects
             FROM segments s
