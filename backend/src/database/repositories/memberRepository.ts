@@ -1195,9 +1195,17 @@ class MemberRepository {
     ['emails', 'm.emails'],
   ])
 
+  static async countMembersPerSegment(options: IRepositoryOptions, segmentIds: string[]) {
+    const countResults = await MemberRepository.countMembers(options, segmentIds)
+    return countResults.reduce((acc, curr: any) => {
+      acc[curr.segmentId] = parseInt(curr.totalCount, 10)
+      return acc
+    }, {})
+  }
+
   static async countMembers(
     options: IRepositoryOptions,
-    { tenantId, segmentIds },
+    segmentIds: string[],
     filterString: string = '1=1',
   ) {
     const countQuery = `
@@ -1253,7 +1261,7 @@ class MemberRepository {
     const seq = SequelizeRepository.getSequelize(options)
     return seq.query(countQuery, {
       replacements: {
-        tenantId,
+        tenantId: options.currentTenant.id,
         segmentIds,
       },
       type: QueryTypes.SELECT,
@@ -1486,7 +1494,7 @@ class MemberRepository {
       countResults.map((row) => parseInt(row.totalCount, 10)).reduce((a, b) => a + b, 0)
 
     if (countOnly) {
-      const countResults = await MemberRepository.countMembers(options, params, filterString)
+      const countResults = await MemberRepository.countMembers(options, segmentIds, filterString)
       const count = sumMemberCount(countResults)
 
       return {
@@ -1502,7 +1510,7 @@ class MemberRepository {
         replacements: params,
         type: QueryTypes.SELECT,
       }),
-      MemberRepository.countMembers(options, params, filterString),
+      MemberRepository.countMembers(options, segmentIds, filterString),
     ])
 
     const memberIds = results.map((r) => (r as any).id)

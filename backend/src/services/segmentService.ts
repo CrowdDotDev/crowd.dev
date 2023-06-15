@@ -12,6 +12,7 @@ import {
 } from '../types/segmentTypes'
 import { IServiceOptions } from './IServiceOptions'
 import { IRepositoryOptions } from '../database/repositories/IRepositoryOptions'
+import MemberRepository from '../database/repositories/memberRepository'
 
 interface UnnestedActivityTypes {
   [key: string]: any
@@ -145,15 +146,27 @@ export default class SegmentService extends LoggerBase {
   }
 
   async queryProjectGroups(search: SegmentCriteria) {
-    return new SegmentRepository(this.options).queryProjectGroups(search)
+    const result = await new SegmentRepository(this.options).queryProjectGroups(search)
+
+    await this.addMemberCounts(result.rows, SegmentLevel.PROJECT_GROUP)
+
+    return result
   }
 
   async queryProjects(search: SegmentCriteria) {
-    return new SegmentRepository(this.options).queryProjects(search)
+    const result = await new SegmentRepository(this.options).queryProjects(search)
+
+    await this.addMemberCounts(result.rows, SegmentLevel.PROJECT)
+
+    return result
   }
 
   async querySubprojects(search: SegmentCriteria) {
-    return new SegmentRepository(this.options).querySubprojects(search)
+    const result = await new SegmentRepository(this.options).querySubprojects(search)
+
+    await this.addMemberCounts(result.rows, SegmentLevel.SUB_PROJECT)
+
+    return result
   }
 
   async createActivityType(
@@ -341,6 +354,72 @@ export default class SegmentService extends LoggerBase {
       }),
       {},
     )
+  }
+
+  private collectSubprojectIds(segments, level: SegmentLevel) {
+    if (level === SegmentLevel.PROJECT_GROUP) {
+      return segments.map((s) => this.collectSubprojectIds(s.projects, SegmentLevel.PROJECT)).flat()
+    }
+
+    if (level === SegmentLevel.PROJECT) {
+      return segments
+        .map((s) => this.collectSubprojectIds(s.subprojects, SegmentLevel.SUB_PROJECT))
+        .flat()
+    }
+
+    if (level === SegmentLevel.SUB_PROJECT) {
+      return segments.map((s) => s.id)
+    }
+
+    throw new Error(`Unknown segment level: ${level}`)
+  }
+
+  private setMembersCount(segments, level: SegmentLevel, membersCountPerSegment): number {
+    if (level === SegmentLevel.PROJECT_GROUP) {
+      let total = 0
+      for (const projectGroup of segments) {
+        projectGroup.members = this.setMembersCount(
+          projectGroup.projects,
+          SegmentLevel.PROJECT,
+          membersCountPerSegment,
+        )
+        total += projectGroup.members
+      }
+      return total
+    }
+
+    if (level === SegmentLevel.PROJECT) {
+      let total = 0
+      for (const project of segments) {
+        project.members = this.setMembersCount(
+          project.subprojects,
+          SegmentLevel.SUB_PROJECT,
+          membersCountPerSegment,
+        )
+        total += project.members
+      }
+      return total
+    }
+
+    if (level === SegmentLevel.SUB_PROJECT) {
+      let total = 0
+      for (const subproject of segments) {
+        subproject.members = membersCountPerSegment[subproject.id] || 0
+        total += subproject.members
+      }
+      return total
+    }
+
+    throw new Error(`Unknown segment level: ${level}`)
+  }
+
+  private async addMemberCounts(segments, level: SegmentLevel) {
+    const subprojectIds = this.collectSubprojectIds(segments, level)
+    const membersCountPerSegment = await MemberRepository.countMembersPerSegment(
+      this.options,
+      subprojectIds,
+    )
+    this.setMembersCount(segments, level, membersCountPerSegment)
   }
 
   static async refreshSegments(options: IRepositoryOptions) {

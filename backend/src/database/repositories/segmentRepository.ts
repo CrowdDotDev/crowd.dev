@@ -477,11 +477,9 @@ class SegmentRepository extends RepositoryBase<
 
     const rows = projectGroups.map((i) => removeFieldsFromObject(i, 'totalCount'))
 
-    // TODO: Add member count to segments after implementing member relations
     return { count, rows, limit: criteria.limit, offset: criteria.offset }
   }
 
-  // TODO:: add connected integrations
   async queryProjects(criteria: QueryData): Promise<PageData<SegmentData>> {
     let searchQuery = ''
 
@@ -541,8 +539,6 @@ class SegmentRepository extends RepositoryBase<
       })
     })
 
-    // TODO: Add member count to segments after implementing member relations
-    // TODO: Add segment settings to payload
     return { count, rows, limit: criteria.limit, offset: criteria.offset }
   }
 
