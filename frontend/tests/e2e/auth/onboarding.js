@@ -2,6 +2,7 @@ import data from './data.json';
 
 export default () => {
   before(() => {
+    cy.wait(1000);
     cy.url().should('include', '/onboard');
   });
 
