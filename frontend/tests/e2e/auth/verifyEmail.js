@@ -11,10 +11,7 @@ export default (inject) => () => {
       cy.visit(verifyUrl);
       cy.wait('@apiAuthVerifyEmail');
       cy.wait('@apiAuthMe');
+      cy.location('pathname').should('eq', '/onboard');
     });
-  });
-
-  it('Redirects to signin or onboarding after successfull verification', () => {
-    cy.location('pathname').should('eq', '/onboard');
   });
 };

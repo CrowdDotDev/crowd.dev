@@ -13,7 +13,7 @@
     "start:dev:local": "set -a && . ./.env.dist.local && . ./.env.override.local && set +a && vite --mode localhost --port 8081",
     "test": "node tests/localhost-runner.js",
     "test:e2e:open": "npx cypress open",
-    "test:e2e:run": "npx cypress run --headless --browser chrome",
+    "test:e2e:run": "npx cypress run --headless",
     "test:e2e:staging:open": "npx cypress open --config-file cypress.staging.config.js",
     "test:e2e:staging:run": "npx cypress run --config-file cypress.staging.config.js",
     "tailwind:view": "tailwind-config-viewer -o"

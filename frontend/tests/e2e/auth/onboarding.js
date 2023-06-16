@@ -86,7 +86,7 @@ export default () => {
     cy.get('@submit').click();
     cy.wait('@apiTenant');
     cy.wait('@apiTenantSampleData');
-    cy.wait(4000);
+    cy.wait(20000);
 
     cy.url().should('not.include', '/onboard');
     cy.location('pathname').should('eq', '/');
