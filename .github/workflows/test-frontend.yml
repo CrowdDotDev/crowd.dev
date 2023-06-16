@@ -33,22 +33,24 @@ jobs:
         run: ./cli service api restart && ./cli service nodejs-worker restart && ./cli service job-generator restart &&  ./cli service frontend restart
         working-directory: scripts
 
-#      - name: Cypress run
-#        uses: cypress-io/github-action@v4
-#        with:
-#          env: MAILOSAUR_API_KEY=${{ secrets.MAILOSAUR_API_KEY }},MAILOSAUR_SERVER_ID=${{ secrets.MAILOSAUR_SERVER_ID }}
-#          working-directory: 'frontend'
-#
-#      - name: Upload screenshots
-#        uses: actions/upload-artifact@v2
-#        if: failure()
-#        with:
-#          name: cypress-screenshots
-#          path: frontend/cypress/screenshots
-#
-#      - name: Upload video
-#        uses: actions/upload-artifact@v2
-#        if: always()
-#        with:
-#          name: cypress-videos
-#          path: frontend/cypress/videos
+      - name: Cypress run
+        uses: cypress-io/github-action@v4
+        with:
+          env: MAILOSAUR_API_KEY=${{ secrets.MAILOSAUR_API_KEY }},MAILOSAUR_SERVER_ID=${{ secrets.MAILOSAUR_SERVER_ID }}
+          working-directory: 'frontend'
+          browser: chrome
+          headed: true
+
+      - name: Upload screenshots
+        uses: actions/upload-artifact@v2
+        if: failure()
+        with:
+          name: cypress-screenshots
+          path: frontend/cypress/screenshots
+
+      - name: Upload video
+        uses: actions/upload-artifact@v2
+        if: always()
+        with:
+          name: cypress-videos
+          path: frontend/cypress/videos
