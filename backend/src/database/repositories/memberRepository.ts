@@ -1207,6 +1207,7 @@ class MemberRepository {
     options: IRepositoryOptions,
     segmentIds: string[],
     filterString: string = '1=1',
+    params: any = {},
   ) {
     const countQuery = `
         WITH
@@ -1263,6 +1264,7 @@ class MemberRepository {
       replacements: {
         tenantId: options.currentTenant.id,
         segmentIds,
+        ...params,
       },
       type: QueryTypes.SELECT,
     })
@@ -1494,7 +1496,12 @@ class MemberRepository {
       countResults.map((row) => parseInt(row.totalCount, 10)).reduce((a, b) => a + b, 0)
 
     if (countOnly) {
-      const countResults = await MemberRepository.countMembers(options, segmentIds, filterString)
+      const countResults = await MemberRepository.countMembers(
+        options,
+        segmentIds,
+        filterString,
+        params,
+      )
       const count = sumMemberCount(countResults)
 
       return {
@@ -1510,7 +1517,7 @@ class MemberRepository {
         replacements: params,
         type: QueryTypes.SELECT,
       }),
-      MemberRepository.countMembers(options, segmentIds, filterString),
+      MemberRepository.countMembers(options, segmentIds, filterString, params),
     ])
 
     const memberIds = results.map((r) => (r as any).id)
