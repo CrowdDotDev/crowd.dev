@@ -6,7 +6,6 @@ import vue from '@vitejs/plugin-vue';
 import Components from 'unplugin-vue-components/vite';
 import { ElementPlusResolver } from 'unplugin-vue-components/resolvers';
 import { visualizer } from 'rollup-plugin-visualizer';
-import { terser } from 'rollup-plugin-terser';
 
 import dns from 'dns';
 
@@ -35,11 +34,6 @@ export default defineConfig({
       gzipSize: true,
       brotliSize: true,
       filename: 'analyse.html',
-    }),
-    terser({
-      compress: {
-        drop_console: true,
-      },
     }),
   ],
   resolve: {
