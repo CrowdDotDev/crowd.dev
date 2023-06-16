@@ -52,8 +52,6 @@ export default defineConfig({
     },
   },
   server: {
-    port: 8081,
-    host: 'localhost',
     proxy: {
       '/api': {
         target:
@@ -62,9 +60,7 @@ export default defineConfig({
         rewrite: (path) => path.replace(/^\/api/, ''),
       },
     },
-    hmr: {
-      host: 'localhost',
-      protocol: 'ws',
-    },
+    port: 8081,
+    host: true,
   },
 });
