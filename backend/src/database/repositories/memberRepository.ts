@@ -644,7 +644,7 @@ class MemberRepository {
       })
     }
 
-    if (data.segments) {
+    if (options.currentSegments && options.currentSegments.length > 0) {
       await MemberRepository.includeMemberToSegments(record.id, { ...options, transaction })
     }
 
