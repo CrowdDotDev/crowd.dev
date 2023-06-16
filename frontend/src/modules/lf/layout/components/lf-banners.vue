@@ -5,20 +5,20 @@
     <div class="pt-14">
       <!-- Links to {sub-project} integrations page -->
       <banner
-        v-if="integrationsWithErrors.subProjects.length === 1"
+        v-if="integrationsWithErrors.length === 1"
         variant="alert"
       >
         <div
           class="flex flex-wrap items-center justify-center grow text-sm"
         >
           <span>Currently,</span>
-          <span class="font-semibold mx-1">{{ integrationsWithErrors.subProjects[0]?.name }}</span>
+          <span class="font-semibold mx-1">{{ integrationsWithErrors[0]?.name }}</span>
           <span>has integrations with connectivity issues</span>
           <router-link
             :to="{
               name: 'integration',
               params: {
-                id: integrationsWithErrors.subProjects[0].id,
+                id: integrationsWithErrors[0].id,
                 grandparentId: selectedProjectGroup.id,
               },
             }"
@@ -34,7 +34,7 @@
 
       <!-- Links to {project group} settings page -->
       <banner
-        v-else-if="integrationsWithErrors.subProjects.length > 1"
+        v-else-if="integrationsWithErrors.length > 1"
         variant="alert"
       >
         <div
@@ -62,20 +62,20 @@
 
       <!-- Links to {sub-project} integrations page -->
       <banner
-        v-else-if="integrationsWithNoData.subProjects.length === 1"
+        v-else-if="integrationsWithNoData.length === 1"
         variant="alert"
       >
         <div
           class="flex flex-wrap items-center justify-center grow text-sm"
         >
           <span>Currently,</span>
-          <span class="font-semibold mx-1">{{ integrationsWithNoData.subProjects[0]?.name }}</span>
+          <span class="font-semibold mx-1">{{ integrationsWithNoData[0]?.name }}</span>
           <span>has integrations that are not receiving activities</span>
           <router-link
             :to="{
               name: 'integration',
               params: {
-                id: integrationsWithNoData.subProjects[0].id,
+                id: integrationsWithNoData[0].id,
                 grandparentId: selectedProjectGroup.id,
               },
             }"
@@ -91,7 +91,7 @@
 
       <!-- Links to {project group} settings page -->
       <banner
-        v-else-if="integrationsWithNoData.subProjects.length > 1"
+        v-else-if="integrationsWithNoData.length > 1"
         variant="alert"
       >
         <div
@@ -195,35 +195,31 @@ const subProjects = computed(() => {
 
 const integrationsWithErrors = computed(() => integrations.value.reduce((acc, integration) => {
   if (integration.status === 'error' && isCurrentDateAfterGivenWorkingDays(integration.updatedAt, ERROR_BANNER_WORKING_DAYS_DISPLAY)) {
-    const hasSubProject = acc.subProjects.some((sp) => sp.id === integration.segmentId);
+    const hasSubProject = acc.some((sp) => sp.id === integration.segmentId);
 
     if (!hasSubProject) {
       const subproject = subProjects.value.find((sp) => sp.id === integration.segmentId);
 
-      acc.subProjects.push(subproject);
+      acc.push(subproject);
     }
   }
 
   return acc;
-}, {
-  subProjects: [],
-}));
+}, []));
 
 const integrationsWithNoData = computed(() => integrations.value.reduce((acc, integration) => {
   if (integration.status === 'no-data') {
-    const hasSubProject = acc.subProjects.some((sp) => sp.id === integration.segmentId);
+    const hasSubProject = acc.some((sp) => sp.id === integration.segmentId);
 
     if (!hasSubProject) {
       const subproject = subProjects.value.find((sp) => sp.id === integration.segmentId);
 
-      acc.subProjects.push(subproject);
+      acc.push(subproject);
     }
   }
 
   return acc;
-}, {
-  subProjects: [],
-}));
+}, []));
 
 const integrationsInProgress = computed(() => integrations.value.reduce((acc, integration) => {
   if (integration.status === 'in-progress') {
@@ -260,8 +256,8 @@ const integrationsInProgressToString = computed(() => {
   );
 });
 
-const showBanner = computed(() => (integrationsWithErrors.value.subProjects.length
-  || integrationsWithNoData.value.subProjects.length
+const showBanner = computed(() => (integrationsWithErrors.value.length
+  || integrationsWithNoData.value.length
   || integrationsInProgress.value.subProjects.length) && !route.meta.hideBanner && !!selectedProjectGroup.value && !loading.value);
 
 const fetchIntegrations = (projectGroup) => {
