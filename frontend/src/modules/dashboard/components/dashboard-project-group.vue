@@ -23,7 +23,7 @@
       Contributors
     </div>
     <div class="text-xs text-gray-900">
-      0
+      {{ selectedProjectGroup.members }}
     </div>
   </div>
 
