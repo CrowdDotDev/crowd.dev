@@ -127,12 +127,3 @@ Our self-hosted version can be run and deployed by default following the permiss
 ## 🔒 Security
 
 We take security very seriously. If you come across any security vulnerabilities, please disclose them by sending an email to security@crowd.dev. We appreciate your help in making our platform as secure as possible and are committed to working with you to resolve any issues quickly and efficiently.
-
-## 💌 Acknowledgements
-
-crowd.dev is powered by these awesome projects:
-
-- <a href="https://github.com/vuejs/vue">Vue.js</a>
-- <a href="https://github.com/tailwindlabs/tailwindcss">Tailwind CSS</a>
-- <a href="https://github.com/cube-js/cube.js">Cube.js</a>
-- <a href="https://github.com/opensearch-project">OpenSearch</a>
