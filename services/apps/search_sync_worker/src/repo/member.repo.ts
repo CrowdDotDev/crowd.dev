@@ -32,7 +32,7 @@ export class MemberRepository extends RepositoryBase<MemberRepository> {
     return results
   }
 
-  public async getTenantMembers(
+  public async getTenantMembersForSync(
     tenantId: string,
     page: number,
     perPage: number,
@@ -137,7 +137,7 @@ export class MemberRepository extends RepositoryBase<MemberRepository> {
           left join no_merge_data nmd on m.id = nmd."memberId"
           left join member_tags mt on m.id = mt."memberId"
           left join member_organizations mo on m.id = mo."memberId"
-        where m."tenantId" = $(tenantId) and m."deletedAt" is null
+        where m."tenantId" = $(tenantId) and m."deletedAt" is null and m."searchSyncedAt" is null
         limit ${perPage} offset ${(page - 1) * perPage};`,
       {
         tenantId,
@@ -255,5 +255,23 @@ export class MemberRepository extends RepositoryBase<MemberRepository> {
     )
 
     return result
+  }
+
+  public async setTenanMembersForSync(tenantId: string): Promise<void> {
+    await this.db().none(
+      `update members set "searchSyncedAt" = null where "tenantId" = $(tenantId)`,
+      {
+        tenantId,
+      },
+    )
+  }
+
+  public async markSynced(memberIds: string[]): Promise<void> {
+    await this.db().none(
+      `update members set "searchSyncedAt" = now() where id in ($(memberIds:csv))`,
+      {
+        memberIds,
+      },
+    )
   }
 }

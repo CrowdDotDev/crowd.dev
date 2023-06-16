@@ -33,11 +33,12 @@ export class SyncService extends LoggerBase {
 
     await logExecutionTime(
       async () => {
+        await this.memberRepo.setTenanMembersForSync(tenantId)
+
         const attributes = await this.memberRepo.getTenantMemberAttributes(tenantId)
 
-        let page = 1
         const perPage = 1000
-        let members = await this.memberRepo.getTenantMembers(tenantId, page, perPage)
+        let members = await this.memberRepo.getTenantMembersForSync(tenantId, 1, perPage)
 
         while (members.length > 0) {
           count += members.length
@@ -52,8 +53,10 @@ export class SyncService extends LoggerBase {
             }),
           )
 
+          await this.memberRepo.markSynced(members.map((m) => m.id))
+
           this.log.info({ tenantId }, `Synced ${count} members!`)
-          members = await this.memberRepo.getTenantMembers(tenantId, ++page, perPage)
+          members = await this.memberRepo.getTenantMembersForSync(tenantId, 1, perPage)
         }
       },
       this.log,
