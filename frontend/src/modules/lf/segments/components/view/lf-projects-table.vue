@@ -54,7 +54,7 @@
             />
             <i
               v-if="status === 'no-data'"
-              class="ri-alert-line absolute right-0 top-0 text-2xs leading-3 text-yellow-600"
+              class="ri-alert-fill absolute right-0 top-0 text-2xs leading-3 text-yellow-500"
             />
             <i
               v-else-if="status === 'error'"
