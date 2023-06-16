@@ -8,7 +8,7 @@ RUN npm ci
 COPY .browserslistrc .eslintrc.js babel.config.js postcss.config.js tailwind.config.js vite.config.js tsconfig.json index.html ./
 COPY ./public ./public
 COPY ./src ./src
-RUN NODE_ENV=production npx vite build --mode production
+RUN NODE_ENV=production npm run build:production
 
 FROM nginx:1.23-alpine as release
 
