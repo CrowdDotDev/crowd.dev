@@ -10,7 +10,7 @@
       <p
         class="text-sm leading-5 text-center italic text-gray-400 pl-6"
       >
-        Members can take up to two minutes to appear in the
+        Contributors can take up to two minutes to appear in the
         list
       </p>
     </div>
@@ -18,7 +18,7 @@
       <div class="my-6">
         <el-input
           v-model="query"
-          placeholder="Search members"
+          placeholder="Search contributors"
           :prefix-icon="SearchIcon"
           clearable
           class="organization-view-members-search"

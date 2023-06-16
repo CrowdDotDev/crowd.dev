@@ -1,5 +1,6 @@
 <template>
   <div
+    class="break-words"
     :class="textClass"
   >
     {{ selectedProjectGroup?.name }}

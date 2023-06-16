@@ -8,7 +8,7 @@
       <div class="-mt-4">
         <app-form-item
           class="mb-4"
-          label="Member"
+          label="Contributor"
           :validation="$v.member"
           :required="true"
           :error-messages="{
@@ -163,8 +163,6 @@
 
 <script setup>
 import {
-  defineEmits,
-  defineProps,
   computed,
   reactive,
   h,
@@ -184,6 +182,7 @@ import Message from '@/shared/message/message';
 import formChangeDetector from '@/shared/form/form-change';
 import { mapActions } from '@/shared/vuex/vuex.helpers';
 import AppAutocompleteOneInput from '@/shared/form/autocomplete-one-input.vue';
+import { LfService } from '@/modules/lf/segments/lf-segments-service';
 
 // Props & emits
 const props = defineProps({
@@ -210,6 +209,7 @@ const emit = defineEmits([
 // Store
 const activityTypeStore = useActivityTypeStore();
 const { types } = storeToRefs(activityTypeStore);
+const { setTypes } = activityTypeStore;
 
 const { doFetch } = mapActions('activity');
 // Form control
@@ -374,6 +374,18 @@ const isVisible = computed({
     emit('update:modelValue', value);
   },
 });
+
+watch(
+  () => props.subprojectId,
+  (subprojectId) => {
+    if (subprojectId) {
+      LfService.findSegment(subprojectId).then((response) => {
+        setTypes(response.activityTypes);
+      });
+    }
+  },
+  { immediate: true, deep: true },
+);
 
 watch(
   () => props.activity,

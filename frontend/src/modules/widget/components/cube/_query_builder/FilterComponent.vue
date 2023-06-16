@@ -375,7 +375,7 @@ export default {
     }),
   },
   async created() {
-    await this.doFetchIntegrations();
+    await this.doFetchIntegrations([this.$route.params.segmentId]);
     this.localFilters = this.initFilters() || [];
   },
   methods: {

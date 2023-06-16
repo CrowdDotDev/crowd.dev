@@ -49,7 +49,7 @@
     <app-widget-insight>
       <template #description>
         <span>{{
-          `We recommend speaking with these members, as they went above and beyond in the last ${pluralize(
+          `We recommend speaking with these contributors, as they went above and beyond in the last ${pluralize(
             selectedPeriod.granularity,
             selectedPeriod.value,
             true,
@@ -203,7 +203,7 @@ const handleDrawerOpen = async () => {
   });
 
   drawerExpanded.value = true;
-  drawerTitle.value = 'Most active members';
+  drawerTitle.value = 'Most active contributors';
 };
 
 const onExport = async ({ ids, count }) => {

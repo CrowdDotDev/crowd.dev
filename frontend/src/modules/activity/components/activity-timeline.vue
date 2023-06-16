@@ -13,6 +13,8 @@
             v-model="platform"
             placeholder="All platforms"
             class="w-40"
+            clearable
+            @clear="onClear"
           >
             <template
               v-if="
@@ -156,7 +158,6 @@
 import isEqual from 'lodash/isEqual';
 import { useStore } from 'vuex';
 import {
-  defineProps,
   computed,
   reactive,
   ref,
@@ -212,6 +213,14 @@ const offset = ref(0);
 const noMore = ref(false);
 
 let filter = {};
+
+const segments = computed(() => props.entity.segments?.map((s) => {
+  if (typeof s === 'string') {
+    return s;
+  }
+
+  return s.id;
+}) || []);
 
 const fetchActivities = async () => {
   const filterToApply = {
@@ -283,13 +292,7 @@ const fetchActivities = async () => {
       orderBy: 'timestamp_DESC',
       limit: limit.value,
       offset: offset.value,
-      segments: props.entity.segments?.map((s) => {
-        if (typeof s === 'string') {
-          return s;
-        }
-
-        return s.id;
-      }) || [],
+      segments: segments.value,
     },
     {
       headers: {
@@ -330,10 +333,12 @@ watch(platform, async (newValue, oldValue) => {
   }
 });
 
+const onClear = () => {
+  platform.value = null;
+};
+
 onMounted(async () => {
-  if (activeIntegrations.value.length === 0) {
-    await store.dispatch('integration/doFetch');
-  }
+  await store.dispatch('integration/doFetch', segments.value);
   await fetchActivities();
 });
 </script>

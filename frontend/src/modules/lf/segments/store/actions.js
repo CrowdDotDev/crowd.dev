@@ -4,12 +4,12 @@ import { router } from '@/router';
 
 export default {
   // Project Groups
-  listProjectGroups({ search = null } = {}) {
+  listProjectGroups({ search = null, offset, limit } = {}) {
     this.projectGroups.loading = true;
 
     LfService.queryProjectGroups({
-      limit: this.projectGroups.pagination.pageSize,
-      offset: this.offset,
+      limit: limit !== undefined ? limit : this.projectGroups.pagination.pageSize,
+      offset: offset !== undefined ? offset : this.offset,
       filter: {
         name: search,
       },

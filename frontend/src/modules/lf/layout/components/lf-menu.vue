@@ -39,14 +39,14 @@
         <!-- Members -->
         <router-link
           id="menu-members"
-          :to="{ path: '/members' }"
+          :to="{ path: '/contributors' }"
           class="el-menu-item"
-          :class="classFor('/members', false, !selectedProjectGroup)"
+          :class="classFor('/contributors', false, !selectedProjectGroup)"
           :disabled="!selectedProjectGroup"
         >
           <i class="ri-group-2-line" />
           <span>
-            Members
+            Contributors
           </span>
         </router-link>
 
@@ -98,6 +98,18 @@
 
         <div class="mb-6">
           <router-link
+            id="menu-settings"
+            :to="{ path: '/settings' }"
+            class="el-menu-item mb-2"
+            :class="classFor('/settings')"
+          >
+            <i class="ri-settings-3-line" />
+            <span>
+              Settings
+            </span>
+          </router-link>
+
+          <router-link
             id="menu-admin-panel"
             :to="{ path: '/admin/project-groups' }"
             class="el-menu-item"
@@ -119,24 +131,25 @@
 <script setup>
 import { watch } from 'vue';
 import { useRoute } from 'vue-router';
-import { mapGetters } from '@/shared/vuex/vuex.helpers';
 import { useActivityTypeStore } from '@/modules/activity/store/type';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import { storeToRefs } from 'pinia';
 import AppLfMenuProjectGroupSelection from '@/modules/lf/layout/components/lf-menu-project-group-selection.vue';
 import AppAccountDropdown from '@/modules/layout/components/account-dropdown.vue';
+import { ActivityTypeService } from '@/modules/activity/services/activity-type-service';
 
-const { currentTenant } = mapGetters('auth');
 const { setTypes } = useActivityTypeStore();
 
 const lsSegmentsStore = useLfSegmentsStore();
 const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);
 
 watch(
-  () => currentTenant,
-  (tenant) => {
-    if (tenant.value?.settings.length > 0) {
-      setTypes(tenant.value.settings[0].activityTypes);
+  selectedProjectGroup,
+  (updatedProjectGroup) => {
+    if (updatedProjectGroup) {
+      ActivityTypeService.get().then((response) => {
+        setTypes(response);
+      });
     }
   },
   { immediate: true, deep: true },

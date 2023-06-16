@@ -176,7 +176,7 @@ const handleCommand = (command) => {
   } else if (command.action === 'markOrganizationTeam') {
     OrganizationService.update(command.organization.id, {
       isTeamOrganization: command.value,
-    }).then(() => {
+    }, command.organization.segments).then(() => {
       Message.success('Organization updated successfully');
 
       if (

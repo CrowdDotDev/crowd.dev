@@ -119,7 +119,10 @@
           <router-link
             :to="{
               name: 'integration',
-              params: { id: row.id },
+              params: {
+                id: row.id,
+                grandparentId: route.params.id,
+              },
             }"
           >
             <el-button class="btn btn--bordered">
@@ -156,6 +159,9 @@ import statusOptions from '@/modules/lf/config/status';
 import AppLfProjectsDropdown from '@/modules/lf/segments/components/lf-projects-dropdown.vue';
 import AppLfSubProjectsDropdown from '@/modules/lf/segments/components/lf-sub-projects-dropdown.vue';
 import AppPlatformSvgIcon from '@/shared/platform/platform-svg-icon.vue';
+import { useRoute } from 'vue-router';
+
+const route = useRoute();
 
 const emit = defineEmits(['onEditProject', 'onEditSubProject', 'onAddSubProject']);
 defineProps({

@@ -74,6 +74,9 @@ import { mapGetters, mapActions } from 'vuex';
 import { CrowdIntegrations } from '@/integrations/integrations-config';
 import AppWidgetPeriod from '@/modules/widget/components/shared/widget-period.vue';
 import AppLfProjectFilterButton from '@/modules/lf/segments/components/filter/lf-project-filter-button.vue';
+import { useLfSegmentsStore } from '@/modules/lf/segments/store';
+import { storeToRefs } from 'pinia';
+import { getSegmentsFromProjectGroup } from '@/utils/segments';
 
 export default {
   name: 'AppDashboardFilters',
@@ -103,6 +106,12 @@ export default {
       }
       return 'All';
     },
+    selectedProjectGroup() {
+      const lsSegmentsStore = useLfSegmentsStore();
+      const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);
+
+      return selectedProjectGroup.value;
+    },
   },
   watch: {
     currentTenant: {
@@ -117,11 +126,21 @@ export default {
         }
       },
     },
+    selectedProjectGroup: {
+      deep: true,
+      immediate: true,
+      handler(updatedSelectedProjectGroup) {
+        this.doFetch(getSegmentsFromProjectGroup(updatedSelectedProjectGroup));
+      },
+    },
+  },
+  mounted() {
   },
   methods: {
     ...mapActions({
       setFilters: 'dashboard/setFilters',
       setSegments: 'dashboard/setSegments',
+      doFetch: 'integration/doFetch',
     }),
     platformDetails(platform) {
       return CrowdIntegrations.getConfig(platform);

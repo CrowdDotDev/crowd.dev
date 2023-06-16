@@ -5,7 +5,7 @@
     alt="Project group logo"
     class="h-6 mb-3"
   />
-  <div class="text-base font-semibold text-gray-900 mb-8">
+  <div class="text-base font-semibold text-gray-900 mb-8 break-words">
     {{ selectedProjectGroup.name }}
   </div>
 
@@ -20,7 +20,7 @@
 
   <div class="py-3">
     <div class="text-2xs text-gray-400 mb-0.5">
-      Members
+      Contributors
     </div>
     <div class="text-xs text-gray-900">
       0

@@ -26,14 +26,16 @@ export default [
           permission: Permissions.values.integrationRead,
         },
         beforeEnter: (to, from, next) => {
-          const integrationId = localStorage.getItem('segmentId');
+          const segmentId = localStorage.getItem('segmentId');
+          const segmentGrandparentId = localStorage.getItem('segmentGrandparentId');
 
           // Redirect to integrations list page with correct id
-          if (integrationId && Object.keys(to.query).length) {
+          if (segmentId && Object.keys(to.query).length) {
             next({
               name: 'integration',
               params: {
-                id: integrationId,
+                id: segmentId,
+                grandparentId: segmentGrandparentId,
               },
               query: to.query,
             });
@@ -41,13 +43,14 @@ export default [
           }
 
           localStorage.setItem('segmentId', null);
+          localStorage.setItem('segmentGrandparentId', null);
 
           next({ name: 'projectGroupsList' });
         },
       },
       {
         name: 'integration',
-        path: '/integrations/:id',
+        path: '/integrations/:grandparentId/:id',
         component: IntegrationListPage,
         exact: true,
         meta: {

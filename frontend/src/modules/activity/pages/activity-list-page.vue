@@ -64,12 +64,13 @@
   <app-activity-type-form-modal
     v-if="isActivityTypeFormVisible"
     v-model="isActivityTypeFormVisible"
+    :subproject-id="subprojectId"
   />
 
   <app-lf-sub-projects-list-modal
     v-if="isSubProjectSelectionOpen"
     v-model="isSubProjectSelectionOpen"
-    title="Add member"
+    :title="subProjectsModalTitle"
     @on-submit="onSubProjectSelection"
   />
 </template>
@@ -93,6 +94,7 @@ const isActivityDrawerOpen = ref(false);
 const isActivityTypeFormVisible = ref(false);
 const editableActivity = ref(null);
 const isSubProjectSelectionOpen = ref(false);
+const subProjectsModalTitle = ref('');
 const subprojectId = ref<string | undefined>();
 const drawer = ref<string | undefined>();
 
@@ -110,11 +112,13 @@ const edit = (activity) => {
 const onAddActivity = () => {
   drawer.value = 'add-activity';
   isSubProjectSelectionOpen.value = true;
+  subProjectsModalTitle.value = 'Add activity';
 };
 
 const onActivityTypesClick = () => {
   drawer.value = 'activity-types';
   isSubProjectSelectionOpen.value = true;
+  subProjectsModalTitle.value = 'Activity types';
 };
 
 const onSubProjectSelection = (id: string) => {
