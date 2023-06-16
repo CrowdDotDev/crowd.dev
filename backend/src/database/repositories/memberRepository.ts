@@ -1433,6 +1433,7 @@ class MemberRepository {
                   AND o."tenantId" = :tenantId
                   AND o."deletedAt" IS NULL
                   AND os."segmentId" IN (:segmentIds)
+                  AND ms."segmentId" = os."segmentId"
                 GROUP BY mo."memberId"
             ),
             aggs AS (
