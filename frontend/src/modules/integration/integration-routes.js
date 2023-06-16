@@ -14,6 +14,7 @@ export default [
     meta: {
       auth: true,
       title: 'Integrations',
+      hideBanner: true,
     },
     children: [
       {
