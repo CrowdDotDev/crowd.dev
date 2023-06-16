@@ -70,7 +70,7 @@
       if (!segmentKey) {
         segmentKey = 'CROWD_VUE_APP_SEGMENT_KEY'
       }
-      if(segmentKey && !pendoKey.startsWith('%VUE_APP_SEGMENT_KEY')) {
+      if(segmentKey && !segmentKey.startsWith('%VUE_APP_SEGMENT_KEY')) {
         !(function() {
           var analytics = (window.analytics =
                   window.analytics || [])
