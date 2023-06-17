@@ -91,6 +91,10 @@ export default class IntegrationService {
     return IntegrationRepository.findByPlatform(platform, this.options)
   }
 
+  async findAllByPlatform(platform) {
+    return IntegrationRepository.findAllByPlatform(platform, this.options)
+  }
+
   async create(data, transaction?: any) {
     try {
       const record = await IntegrationRepository.create(data, {
@@ -614,11 +618,15 @@ export default class IntegrationService {
    */
   async gitGetRemotes() {
     try {
-      const integration = await this.findByPlatform(PlatformType.GIT)
-      return {
-        // We are returning this until we have segments
-        default: integration.settings.remotes,
-      }
+      const integrations = await this.findAllByPlatform(PlatformType.GIT)
+      return integrations.reduce((acc, integration) => {
+        const {
+          segmentId,
+          settings: { remotes },
+        } = integration
+        acc[segmentId] = remotes
+        return acc
+      }, {})
     } catch (err) {
       throw new Error400(this.options.language, 'errors.git.noIntegration')
     }

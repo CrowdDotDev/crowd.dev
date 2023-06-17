@@ -22,6 +22,7 @@ export async function consumer(event) {
   }
 
   const context = await getUserContext(tenantId)
+  context.currentSegments = [... event.segments]
 
   const result = await bulkOperations(event.operation, event.records, context)
 
