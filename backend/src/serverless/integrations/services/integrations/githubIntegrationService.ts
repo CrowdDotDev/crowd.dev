@@ -233,7 +233,7 @@ export class GithubIntegrationService extends IntegrationServiceBase {
           }))
         }
 
-        newStreams = [...prCommentStreams, ...prReviewThreads, ...prCommitsStreams]
+        newStreams = [...prCommitsStreams, ...prCommentStreams, ...prReviewThreads]
         break
       case GithubStreamType.PULL_COMMENTS: {
         const pullRequestNumber = stream.metadata.prNumber
