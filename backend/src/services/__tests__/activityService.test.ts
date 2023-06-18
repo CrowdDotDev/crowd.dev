@@ -546,6 +546,59 @@ describe('ActivityService tests', () => {
       expect(activityCreated2.body).toBe(activity2.body)
     })
 
+    it('Should keep isMainBranch as true', async () => {
+      const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
+      await populateSegments(mockIRepositoryOptions)
+      const memberService = new MemberService(mockIRepositoryOptions)
+      const activityService = new ActivityService(mockIRepositoryOptions)
+
+      const cm = await memberService.upsert({
+        username: {
+          [PlatformType.DISCORD]: 'test',
+        },
+        platform: PlatformType.DISCORD,
+      })
+
+      const activity1 = {
+        type: 'message',
+        timestamp: '2020-05-27T15:13:30Z',
+        username: 'test',
+        member: cm.id,
+        platform: PlatformType.DISCORD,
+        sourceId: 'sourceId#1',
+        attributes: {
+          isMainBranch: true,
+          other: 'other',
+        }
+      }
+
+      await activityService.upsert(activity1)
+
+      const activity2 = {
+        type: 'message',
+        timestamp: '2022-05-27T15:13:30Z',
+        username: 'test',
+        member: cm.id,
+        platform: PlatformType.DISCORD,
+        sourceId: 'sourceId#1',
+        body: 'What is love?',
+        attributes: {
+          isMainBranch: false,
+          other2: 'other2',
+        }
+      }
+
+      const activityCreated2 = await activityService.upsert(activity2)
+
+      expect(activityCreated2.attributes).toStrictEqual(
+        {
+          isMainBranch: true,
+          other: 'other',
+          other2: 'other2',
+        }
+      )
+    })
+
     it('Should create various conversations successfully with given parent-child relationships of activities [descending timestamp order]', async () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
       await populateSegments(mockIRepositoryOptions)

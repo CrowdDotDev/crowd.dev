@@ -94,6 +94,17 @@ export default class ActivityService extends LoggerBase {
         const toUpdate = merge(existing, data, {
           // eslint-disable-next-line @typescript-eslint/no-unused-vars
           timestamp: (oldValue, _newValue) => oldValue,
+          attributes: (oldValue, newValue) => {
+            if (oldValue && newValue) {
+              const out = { ...oldValue, ...newValue }
+              // If either of the two has isMainBranch set to true, then set it to true
+              if (oldValue.isMainBranch || newValue.isMainBranch) {
+                out.isMainBranch = true
+              }
+              return out
+            }
+            return newValue
+          }
         })
         record = await ActivityRepository.update(id, toUpdate, repositoryOptions)
         record = await this.addToConversation(record.id, data.parent, transaction)
