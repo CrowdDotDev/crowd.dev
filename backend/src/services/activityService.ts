@@ -104,7 +104,7 @@ export default class ActivityService extends LoggerBase {
               return out
             }
             return newValue
-          }
+          },
         })
         record = await ActivityRepository.update(id, toUpdate, repositoryOptions)
         record = await this.addToConversation(record.id, data.parent, transaction)

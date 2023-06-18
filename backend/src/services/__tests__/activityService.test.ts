@@ -569,7 +569,7 @@ describe('ActivityService tests', () => {
         attributes: {
           isMainBranch: true,
           other: 'other',
-        }
+        },
       }
 
       await activityService.upsert(activity1)
@@ -585,18 +585,16 @@ describe('ActivityService tests', () => {
         attributes: {
           isMainBranch: false,
           other2: 'other2',
-        }
+        },
       }
 
       const activityCreated2 = await activityService.upsert(activity2)
 
-      expect(activityCreated2.attributes).toStrictEqual(
-        {
-          isMainBranch: true,
-          other: 'other',
-          other2: 'other2',
-        }
-      )
+      expect(activityCreated2.attributes).toStrictEqual({
+        isMainBranch: true,
+        other: 'other',
+        other2: 'other2',
+      })
     })
 
     it('Should create various conversations successfully with given parent-child relationships of activities [descending timestamp order]', async () => {
