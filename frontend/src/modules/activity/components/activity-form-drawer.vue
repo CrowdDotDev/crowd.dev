@@ -86,14 +86,15 @@
             @blur="$v.activityType.$touch"
             @change="$v.activityType.$touch"
           >
-            <div
+            <el-option
+              :value="null"
               class="px-3 py-2.5 text-brand-500 text-xs leading-5 transition hover:bg-gray-50 cursor-pointer"
               @click="emit('add-activity-type')"
             >
               + Add activity type
-            </div>
+            </el-option>
             <div
-              v-if="Object.keys(types.custom).length > 0"
+              v-if="types.custom.other ? Object.keys(types.custom.other).length > 0 : Object.keys(types.custom).length > 0"
               class="text-2xs text-gray-400 font-semibold tracking-wide leading-6 uppercase px-3 my-1"
             >
               Custom

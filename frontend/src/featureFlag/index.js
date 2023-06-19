@@ -16,7 +16,7 @@ class FeatureFlagService {
   constructor() {
     this.flags = FEATURE_FLAGS;
 
-    if (!config.isCommunityVersion) {
+    if (!config.isCommunityVersion && config.unleash.url?.length > 0) {
       const unleashConfig = {
         url: `${config.unleash.url}/api/frontend`,
         clientKey: config.unleash.apiKey,

@@ -1,17 +1,15 @@
 import axios from 'axios'
-import { Logger } from '@crowd/logging'
 import { timeout } from '@crowd/common'
-import { IServiceOptions } from '../../../../services/IServiceOptions'
 import {
   HackerNewsKeywordSearchInput,
   HackerNewsSearchResponseRaw,
   HackerNewsSearchResult,
-} from '../../types/hackerNewsTypes'
+} from '../types'
+import { IProcessStreamContext } from '@/types'
 
 async function getPostsByKeyword(
   input: HackerNewsKeywordSearchInput,
-  options: IServiceOptions,
-  logger: Logger,
+  ctx: IProcessStreamContext,
 ): Promise<HackerNewsSearchResult[]> {
   await timeout(2000)
 
@@ -46,7 +44,7 @@ async function getPostsByKeyword(
     }
     return out
   } catch (err) {
-    logger.error({ err, input }, 'Error while getting posts by keyword in EagleEye')
+    ctx.log.error({ err, input }, 'Error while getting posts by keyword in EagleEye')
     throw err
   }
 }

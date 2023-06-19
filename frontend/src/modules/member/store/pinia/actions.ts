@@ -26,7 +26,7 @@ export default {
       });
   },
   getMemberCustomAttributes(this: MemberState): Promise<Record<string, FilterConfig>> {
-    return (MemberService.fetchCustomAttributes() as any)
+    return MemberService.fetchCustomAttributes()
       .then(({ rows }: {rows: FilterCustomAttribute[]}) => {
         this.customAttributes = rows;
         this.customAttributesFilter = buildFilterFromAttributes(rows);

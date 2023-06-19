@@ -8,6 +8,7 @@ export default (inject) => () => {
     }).then((email) => {
       resetUrl = email.text.links[0].href;
       cy.visit(resetUrl);
+      cy.wait(1000);
       cy.url().should('include', '/auth/password-reset');
     });
   });

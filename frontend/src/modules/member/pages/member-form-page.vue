@@ -167,9 +167,6 @@ const store = useStore();
 const lsSegmentsStore = useLfSegmentsStore();
 const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);
 
-const memberStore = useMemberStore();
-const { customAttributes } = storeToRefs(memberStore);
-
 const { fields } = MemberModel;
 const formSchema = computed(
   () => new FormSchema([

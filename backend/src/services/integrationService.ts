@@ -291,6 +291,21 @@ export default class IntegrationService {
 
       const repos = await getInstalledRepositories(installToken)
 
+      // If the git integration is configured, we add the repos to the git config
+      let isGitintegrationConfigured
+      try {
+        await this.findByPlatform(PlatformType.GIT)
+        isGitintegrationConfigured = true
+      } catch (err) {
+        isGitintegrationConfigured = false
+      }
+      if (isGitintegrationConfigured) {
+        const gitRemotes = await this.gitGetRemotes()
+        await this.gitConnectOrUpdate({
+          remotes: [...gitRemotes.default, ...repos.map((repo) => repo.cloneUrl)],
+        })
+      }
+
       integration = await this.createOrUpdate(
         {
           platform: PlatformType.GITHUB,
@@ -632,7 +647,6 @@ export default class IntegrationService {
   async hackerNewsConnectOrUpdate(integrationData) {
     const transaction = await SequelizeRepository.createTransaction(this.options)
     let integration
-    let run
 
     try {
       integration = await this.createOrUpdate(
@@ -648,22 +662,23 @@ export default class IntegrationService {
         transaction,
       )
 
-      run = await new IntegrationRunRepository({ ...this.options, transaction }).create({
-        integrationId: integration.id,
-        tenantId: integration.tenantId,
-        onboarding: true,
-        state: IntegrationRunState.PENDING,
-      })
+      this.options.log.info(
+        { tenantId: integration.tenantId },
+        'Sending HackerNews message to int-run-worker!',
+      )
+      const emitter = await getIntegrationRunWorkerEmitter()
+      await emitter.triggerIntegrationRun(
+        integration.tenantId,
+        integration.platform,
+        integration.id,
+        true,
+      )
+
       await SequelizeRepository.commitTransaction(transaction)
     } catch (err) {
       await SequelizeRepository.rollbackTransaction(transaction)
       throw err
     }
-
-    await sendNodeWorkerMessage(
-      integration.tenantId,
-      new NodeWorkerIntegrationProcessMessage(run.id),
-    )
 
     return integration
   }

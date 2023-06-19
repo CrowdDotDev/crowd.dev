@@ -93,6 +93,7 @@ export const createRouter = () => {
         // And no project group is selected
         if (to.meta.segments?.requireSelectedProjectGroup) {
           if (!selectedProjectGroup.value) {
+            console.log('redirect');
             next('/project-groups');
           }
         }
