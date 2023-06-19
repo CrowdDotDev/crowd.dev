@@ -82,11 +82,6 @@ export class OpenSearchService extends LoggerBase {
       await this.createIndex(indexName)
     } else {
       this.log.info({ indexName }, 'Index already exists!')
-
-      if (IS_DEV_ENV) {
-        this.log.info({ indexName }, 'Setting index mappings!')
-        await this.setIndexMappings(indexName)
-      }
     }
   }
 
