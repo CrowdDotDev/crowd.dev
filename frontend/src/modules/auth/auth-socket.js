@@ -8,6 +8,7 @@ import {
   showEnrichmentSuccessMessage,
   getEnrichmentMax,
 } from '@/modules/member/member-enrichment';
+import { useMemberStore } from '@/modules/member/store/pinia';
 
 let socketIoClient;
 
@@ -110,9 +111,8 @@ export const connectSocket = (token) => {
       // Update members list if tenant hasn't changed
       if (currentTenant.value.id === parsed.tenantId) {
         // Refresh list page
-        await store.dispatch('member/doFetch', {
-          keepPagination: true,
-        });
+        const { fetchMembers } = useMemberStore();
+        await fetchMembers({ reload: true });
       }
     }
   });

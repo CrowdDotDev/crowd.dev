@@ -1,5 +1,4 @@
 const { defineConfig } = require('cypress');
-const webpackConfig = require('@vue/cli-service/webpack.config.js');
 require('dotenv').config({
   path: './.env.cypress',
 });
@@ -18,8 +17,7 @@ module.exports = defineConfig({
   component: {
     devServer: {
       framework: 'vue',
-      bundler: 'webpack',
-      webpackConfig,
+      bundler: 'vite',
     },
   },
   browser: {
@@ -28,7 +26,7 @@ module.exports = defineConfig({
   env: {
     appUrl: 'https://apptest-kube.crowd.dev',
     apiUrl: 'https://apptest-kube.crowd.dev/api',
-    MAILOSAUR_API_KEY: process.env.MAILOSAUR_API_KEY,
-    MAILOSAUR_SERVER_ID: process.env.MAILOSAUR_SERVER_ID,
+    MAILOSAUR_API_KEY: import.meta.env.MAILOSAUR_API_KEY,
+    MAILOSAUR_SERVER_ID: import.meta.env.MAILOSAUR_SERVER_ID,
   },
 });
