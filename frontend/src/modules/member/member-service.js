@@ -18,14 +18,15 @@ export class MemberService {
     return response.data;
   }
 
-  static async updateBulk(data, segments) {
+  static async updateBulk(data) {
     const tenantId = AuthCurrentTenant.get();
 
     const response = await authAxios.patch(
       `/tenant/${tenantId}/member`,
       {
-        ...data,
-        segments,
+        data,
+        excludeSegments: true,
+        addDataAsArray: true,
       },
     );
 

@@ -12,7 +12,6 @@
 </template>
 
 <script>
-import { mapActions } from 'vuex';
 import { mapActions as mapActionsPinia } from 'pinia';
 import { FormSchema } from '@/shared/form/form-schema';
 import AppTagPopover from '@/modules/tag/components/tag-popover.vue';
@@ -66,10 +65,6 @@ export default {
   },
 
   methods: {
-    ...mapActions({
-      doBulkUpdateMembersTags:
-        'member/doBulkUpdateMembersTags',
-    }),
     ...mapActionsPinia(useMemberStore, ['fetchMembers']),
 
     async doBulkUpdateTagsWithConfirm() {
@@ -77,11 +72,8 @@ export default {
         this.$emit('update:modelValue', false);
         this.bulkEditTags = false;
 
-        const segments = [];
-
         const payload = [...this.selectedRows].reduce((acc, item) => {
           const memberToUpdate = { ...item };
-          segments.concat(item.segmentIds);
           const tagsToKeep = item.tags.filter(
             (tag) => this.bulkEditTagsInCommon.filter((t) => t.id === tag.id).length === 0
               && this.bulkEditTagsModel.filter((t) => t.id === tag.id).length === 0,
@@ -96,7 +88,8 @@ export default {
           );
           return acc;
         }, []);
-        await MemberService.updateBulk(payload, segments);
+
+        await MemberService.updateBulk(payload);
         await this.fetchMembers({
           reload: true,
         });

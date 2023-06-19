@@ -68,6 +68,13 @@ authAxios.interceptors.request.use(
       }
     }
 
+    if (setOptions.data?.addDataAsArray) {
+      setOptions.data = setOptions.data.data;
+
+      delete setOptions.data.data;
+      delete setOptions.data.addDataAsArray;
+    }
+
     // Remove flag from request
     if (setOptions.data?.excludeSegments) {
       delete setOptions.data.excludeSegments;
