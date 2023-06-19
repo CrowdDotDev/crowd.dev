@@ -1,7 +1,8 @@
-import { DB_CONFIG, SQS_CONFIG } from '@/conf'
+import { DB_CONFIG, REDIS_CONFIG, SQS_CONFIG } from '@/conf'
 import { MemberRepository } from '@/repo/member.repo'
 import { DbStore, getDbConnection } from '@crowd/database'
 import { getServiceLogger } from '@crowd/logging'
+import { getRedisClient } from '@crowd/redis'
 import { SearchSyncWorkerEmitter, getSqsClient } from '@crowd/sqs'
 
 const log = getServiceLogger()
@@ -20,10 +21,12 @@ setImmediate(async () => {
   const emitter = new SearchSyncWorkerEmitter(sqsClient, log)
   await emitter.init()
 
+  const redis = await getRedisClient(REDIS_CONFIG(), true)
+
   const dbConnection = getDbConnection(DB_CONFIG())
   const store = new DbStore(log, dbConnection)
 
-  const repo = new MemberRepository(store, log)
+  const repo = new MemberRepository(redis, store, log)
 
   const data = await repo.getMemberData(memberId)
 

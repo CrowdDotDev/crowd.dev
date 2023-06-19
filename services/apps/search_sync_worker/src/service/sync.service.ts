@@ -76,6 +76,7 @@ export class SyncService extends LoggerBase {
 
       const prepared = SyncService.prefixData(member, attributes)
       await this.openSearchService.index(memberId, OpenSearchIndex.MEMBERS, prepared)
+      await this.memberRepo.markSynced[memberId]
     } else {
       // we should retry - sometimes database is slow
       if (retries < 5) {
