@@ -23,6 +23,8 @@ import ConversationRepository from '../database/repositories/conversationReposit
 import MemberAttributeSettingsService from './memberAttributeSettingsService'
 import { TenantMode } from '../conf/configTypes'
 import TaskRepository from '../database/repositories/taskRepository'
+import { SegmentData, SegmentStatus } from '../types/segmentTypes'
+import SegmentService from './segmentService'
 
 export default class TenantService {
   options: IServiceOptions
@@ -183,6 +185,19 @@ export default class TenantService {
         ...this.options,
         transaction,
       })
+
+      const segment = await new SegmentService({
+        ...this.options,
+        currentTenant: record,
+        transaction,
+      } as IServiceOptions).createProjectGroup({
+        name: data.name,
+        url: data.url,
+        slug: data.url || (await TenantRepository.generateTenantUrl(data.name, this.options)),
+        status: SegmentStatus.ACTIVE,
+      } as SegmentData)
+
+      this.options.currentSegments = [(segment as any).projects[0].subprojects[0]]
 
       await SettingsService.findOrCreateDefault({
         ...this.options,

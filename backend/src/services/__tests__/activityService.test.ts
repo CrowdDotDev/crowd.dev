@@ -11,6 +11,8 @@ import ConversationSettingsRepository from '../../database/repositories/conversa
 import MemberAttributeSettingsService from '../memberAttributeSettingsService'
 import { IServiceOptions } from '../../services/IServiceOptions'
 import { GITHUB_MEMBER_ATTRIBUTES, TWITTER_MEMBER_ATTRIBUTES } from '@crowd/integrations'
+import { populateSegments } from '../../database/utils/segmentTestUtils'
+import SegmentRepository from '../../database/repositories/segmentRepository'
 
 const db = null
 const searchEngine = null
@@ -28,6 +30,8 @@ describe('ActivityService tests', () => {
   describe('upsert method', () => {
     it('Should create non existent activity with no parent', async () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
+      await populateSegments(mockIRepositoryOptions)
+
       const memberCreated = await new MemberService(mockIRepositoryOptions).upsert({
         username: {
           [PlatformType.GITHUB]: 'test',
@@ -85,6 +89,7 @@ describe('ActivityService tests', () => {
         updatedAt: SequelizeTestUtils.getNowWithoutTime(),
         deletedAt: null,
         tenantId: mockIRepositoryOptions.currentTenant.id,
+        segmentId: mockIRepositoryOptions.currentSegments[0].id,
         createdById: mockIRepositoryOptions.currentUser.id,
         updatedById: mockIRepositoryOptions.currentUser.id,
         importHash: null,
@@ -118,6 +123,7 @@ describe('ActivityService tests', () => {
 
     it('Should create non existent activity with parent', async () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
+      await populateSegments(mockIRepositoryOptions)
       const memberCreated = await new MemberService(mockIRepositoryOptions).upsert({
         username: {
           [PlatformType.GITHUB]: 'test',
@@ -199,6 +205,7 @@ describe('ActivityService tests', () => {
         updatedAt: SequelizeTestUtils.getNowWithoutTime(),
         deletedAt: null,
         tenantId: mockIRepositoryOptions.currentTenant.id,
+        segmentId: mockIRepositoryOptions.currentSegments[0].id,
         createdById: mockIRepositoryOptions.currentUser.id,
         updatedById: mockIRepositoryOptions.currentUser.id,
         importHash: null,
@@ -218,6 +225,7 @@ describe('ActivityService tests', () => {
 
     it('Should update already existing activity succesfully', async () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
+      await populateSegments(mockIRepositoryOptions)
       const memberCreated = await new MemberService(mockIRepositoryOptions).upsert({
         username: {
           [PlatformType.GITHUB]: 'test',
@@ -322,6 +330,7 @@ describe('ActivityService tests', () => {
         tasks: [],
         deletedAt: null,
         tenantId: mockIRepositoryOptions.currentTenant.id,
+        segmentId: mockIRepositoryOptions.currentSegments[0].id,
         createdById: mockIRepositoryOptions.currentUser.id,
         updatedById: mockIRepositoryOptions.currentUser.id,
         importHash: null,
@@ -341,6 +350,7 @@ describe('ActivityService tests', () => {
 
     it('Should create various conversations successfully with given parent-child relationships of activities [ascending timestamp order]', async () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
+      await populateSegments(mockIRepositoryOptions)
       const memberService = new MemberService(mockIRepositoryOptions)
       const activityService = new ActivityService(mockIRepositoryOptions)
 
@@ -496,6 +506,7 @@ describe('ActivityService tests', () => {
 
     it('Should keep old timestamp', async () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
+      await populateSegments(mockIRepositoryOptions)
       const memberService = new MemberService(mockIRepositoryOptions)
       const activityService = new ActivityService(mockIRepositoryOptions)
 
@@ -535,6 +546,7 @@ describe('ActivityService tests', () => {
 
     it('Should create various conversations successfully with given parent-child relationships of activities [descending timestamp order]', async () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
+      await populateSegments(mockIRepositoryOptions)
       const memberService = new MemberService(mockIRepositoryOptions)
       const activityService = new ActivityService(mockIRepositoryOptions)
 
@@ -750,6 +762,7 @@ describe('ActivityService tests', () => {
     // Settings should get updated only when a new channel is sent alog while creating activity.
     it('Should create an activity with a channel which is not present in settings and add it to settings', async () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
+      await populateSegments(mockIRepositoryOptions)
       const memberCreated = await new MemberService(mockIRepositoryOptions).upsert({
         username: {
           [PlatformType.GITHUB]: 'test1',
@@ -785,13 +798,15 @@ describe('ActivityService tests', () => {
       }
 
       await new ActivityService(mockIRepositoryOptions).upsert(activity)
-      const settings = await SettingsRepository.findOrCreateDefault({}, mockIRepositoryOptions)
 
-      expect(settings.activityChannels[activity.platform].includes(activity.channel)).toBe(true)
+      const activityChannels = SegmentRepository.getActivityChannels(mockIRepositoryOptions)
+
+      expect(activityChannels[activity.platform].includes(activity.channel)).toBe(true)
     })
 
     it('Should not create a duplicate channel when a channel is present in settings', async () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
+      await populateSegments(mockIRepositoryOptions)
       const memberCreated = await new MemberService(mockIRepositoryOptions).upsert({
         username: {
           [PlatformType.GITHUB]: 'test1',
@@ -852,14 +867,15 @@ describe('ActivityService tests', () => {
         score: 1,
       }
       await new ActivityService(mockIRepositoryOptions).upsert(activity)
-      settings = await SettingsRepository.findOrCreateDefault({}, mockIRepositoryOptions)
-      expect(settings.activityChannels[activity1.platform].length).toBe(1)
+      const activityChannels = SegmentRepository.getActivityChannels(mockIRepositoryOptions)
+      expect(activityChannels[activity1.platform].length).toBe(1)
     })
   })
 
   describe('createWithMember method', () => {
     it('Create an activity with given member [no parent activity]', async () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
+      await populateSegments(mockIRepositoryOptions)
       const memberAttributeSettingsService = new MemberAttributeSettingsService(
         mockIRepositoryOptions,
       )
@@ -955,6 +971,7 @@ describe('ActivityService tests', () => {
         tasks: [],
         deletedAt: null,
         tenantId: mockIRepositoryOptions.currentTenant.id,
+        segmentId: mockIRepositoryOptions.currentSegments[0].id,
         createdById: mockIRepositoryOptions.currentUser.id,
         updatedById: mockIRepositoryOptions.currentUser.id,
         importHash: null,
@@ -970,6 +987,7 @@ describe('ActivityService tests', () => {
 
     it('Create an activity with given member [with parent activity, upsert member, new activity] [parent first, child later]', async () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
+      await populateSegments(mockIRepositoryOptions)
       const memberAttributeSettingsService = new MemberAttributeSettingsService(
         mockIRepositoryOptions,
       )
@@ -1090,6 +1108,7 @@ describe('ActivityService tests', () => {
         updatedAt: SequelizeTestUtils.getNowWithoutTime(),
         deletedAt: null,
         tenantId: mockIRepositoryOptions.currentTenant.id,
+        segmentId: mockIRepositoryOptions.currentSegments[0].id,
         createdById: mockIRepositoryOptions.currentUser.id,
         updatedById: mockIRepositoryOptions.currentUser.id,
         importHash: null,
@@ -1104,6 +1123,7 @@ describe('ActivityService tests', () => {
 
     it('Create an activity with given member [with parent activity, upsert member, new activity] [child first, parent later]', async () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
+      await populateSegments(mockIRepositoryOptions)
       const activityService = new ActivityService(mockIRepositoryOptions)
       const memberAttributeSettingsService = new MemberAttributeSettingsService(
         mockIRepositoryOptions,
@@ -1237,6 +1257,7 @@ describe('ActivityService tests', () => {
         updatedAt: SequelizeTestUtils.getNowWithoutTime(),
         deletedAt: null,
         tenantId: mockIRepositoryOptions.currentTenant.id,
+        segmentId: mockIRepositoryOptions.currentSegments[0].id,
         createdById: mockIRepositoryOptions.currentUser.id,
         updatedById: mockIRepositoryOptions.currentUser.id,
         importHash: null,
@@ -1277,6 +1298,7 @@ describe('ActivityService tests', () => {
         updatedAt: SequelizeTestUtils.getNowWithoutTime(),
         deletedAt: null,
         tenantId: mockIRepositoryOptions.currentTenant.id,
+        segmentId: mockIRepositoryOptions.currentSegments[0].id,
         createdById: mockIRepositoryOptions.currentUser.id,
         updatedById: mockIRepositoryOptions.currentUser.id,
         importHash: null,
@@ -1292,6 +1314,7 @@ describe('ActivityService tests', () => {
     describe('Member tests in createWithMember', () => {
       it('Should set the joinedAt to the time of the activity when the member does not exist', async () => {
         const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
+        await populateSegments(mockIRepositoryOptions)
         const memberAttributeSettingsService = new MemberAttributeSettingsService(
           mockIRepositoryOptions,
         )
@@ -1386,6 +1409,7 @@ describe('ActivityService tests', () => {
           updatedAt: SequelizeTestUtils.getNowWithoutTime(),
           deletedAt: null,
           tenantId: mockIRepositoryOptions.currentTenant.id,
+          segmentId: mockIRepositoryOptions.currentSegments[0].id,
           createdById: mockIRepositoryOptions.currentUser.id,
           updatedById: mockIRepositoryOptions.currentUser.id,
           importHash: null,
@@ -1405,6 +1429,7 @@ describe('ActivityService tests', () => {
 
       it('Should replace joinedAt when activity ts is earlier than existing joinedAt', async () => {
         const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
+        await populateSegments(mockIRepositoryOptions)
         const memberAttributeSettingsService = new MemberAttributeSettingsService(
           mockIRepositoryOptions,
         )
@@ -1502,6 +1527,7 @@ describe('ActivityService tests', () => {
           deletedAt: null,
           tasks: [],
           tenantId: mockIRepositoryOptions.currentTenant.id,
+          segmentId: mockIRepositoryOptions.currentSegments[0].id,
           createdById: mockIRepositoryOptions.currentUser.id,
           updatedById: mockIRepositoryOptions.currentUser.id,
           importHash: null,
@@ -1521,6 +1547,7 @@ describe('ActivityService tests', () => {
 
       it('Should not replace joinedAt when activity ts is later than existing joinedAt', async () => {
         const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
+        await populateSegments(mockIRepositoryOptions)
         const memberAttributeSettingsService = new MemberAttributeSettingsService(
           mockIRepositoryOptions,
         )
@@ -1618,6 +1645,7 @@ describe('ActivityService tests', () => {
           tasks: [],
           deletedAt: null,
           tenantId: mockIRepositoryOptions.currentTenant.id,
+          segmentId: mockIRepositoryOptions.currentSegments[0].id,
           createdById: mockIRepositoryOptions.currentUser.id,
           updatedById: mockIRepositoryOptions.currentUser.id,
           importHash: null,
@@ -1637,6 +1665,8 @@ describe('ActivityService tests', () => {
 
       it('It should replace joinedAt if the orginal was in year 1970', async () => {
         const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
+        await populateSegments(mockIRepositoryOptions)
+        await populateSegments(mockIRepositoryOptions)
         const memberAttributeSettingsService = new MemberAttributeSettingsService(
           mockIRepositoryOptions,
         )
@@ -1735,6 +1765,7 @@ describe('ActivityService tests', () => {
           deletedAt: null,
           tasks: [],
           tenantId: mockIRepositoryOptions.currentTenant.id,
+          segmentId: mockIRepositoryOptions.currentSegments[0].id,
           createdById: mockIRepositoryOptions.currentUser.id,
           updatedById: mockIRepositoryOptions.currentUser.id,
           importHash: null,
@@ -1759,6 +1790,7 @@ describe('ActivityService tests', () => {
         // This can cause having 2 activities with different timestamps, but the same sourceId.
         // The joinedAt should stay untouched in this case.
         const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
+        await populateSegments(mockIRepositoryOptions)
         const memberAttributeSettingsService = new MemberAttributeSettingsService(
           mockIRepositoryOptions,
         )

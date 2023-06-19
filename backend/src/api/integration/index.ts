@@ -1,8 +1,9 @@
 import passport from 'passport'
-import { TWITTER_CONFIG, SLACK_CONFIG, API_CONFIG } from '../../conf'
+import { API_CONFIG, SLACK_CONFIG, TWITTER_CONFIG } from '../../conf'
 import { authMiddleware } from '../../middlewares/authMiddleware'
 import TenantService from '../../services/tenantService'
 import { safeWrap } from '../../middlewares/errorMiddleware'
+import SegmentRepository from '../../database/repositories/segmentRepository'
 
 export default (app) => {
   app.post(`/tenant/:tenantId/integration/query`, safeWrap(require('./integrationQuery').default))
@@ -145,15 +146,25 @@ export default (app) => {
         session: false,
         failureRedirect: `${API_CONFIG.frontendUrl}/integrations?error=true`,
       }),
+      async (req, _res, next) => {
+        req.state = JSON.parse(Buffer.from(req.query.state, 'base64').toString())
+        next()
+      },
       (req, _res, next) => {
-        const { crowdToken } = JSON.parse(Buffer.from(req.query.state, 'base64').toString())
+        const { crowdToken } = req.state
         req.headers.authorization = `Bearer ${crowdToken}`
         next()
       },
       authMiddleware,
       async (req, _res, next) => {
-        const { tenantId } = JSON.parse(Buffer.from(req.query.state, 'base64').toString())
+        const { tenantId } = req.state
         req.currentTenant = await new TenantService(req).findById(tenantId)
+        next()
+      },
+      async (req, _res, next) => {
+        const { segmentIds } = req.state
+        const segmentRepository = new SegmentRepository(req)
+        req.currentSegments = await segmentRepository.findInIds(segmentIds)
         next()
       },
       safeWrap(require('./helpers/slackAuthenticateCallback').default),

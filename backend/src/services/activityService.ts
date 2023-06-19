@@ -7,7 +7,6 @@ import ActivityRepository from '../database/repositories/activityRepository'
 import MemberAttributeSettingsRepository from '../database/repositories/memberAttributeSettingsRepository'
 import MemberRepository from '../database/repositories/memberRepository'
 import SequelizeRepository from '../database/repositories/sequelizeRepository'
-import SettingsRepository from '../database/repositories/settingsRepository'
 import { mapUsernameToIdentities } from '../database/repositories/types/memberTypes'
 import Error400 from '../errors/Error400'
 import telemetryTrack from '../segment/telemetryTrack'
@@ -20,6 +19,8 @@ import merge from './helpers/merge'
 import MemberService from './memberService'
 import SettingsService from './settingsService'
 import { getSearchSyncWorkerEmitter } from '../serverless/utils/serviceSQS'
+import SegmentRepository from '../database/repositories/segmentRepository'
+import SegmentService from './segmentService'
 
 export default class ActivityService extends LoggerBase {
   options: IServiceOptions
@@ -51,40 +52,40 @@ export default class ActivityService extends LoggerBase {
   ) {
     const transaction = await SequelizeRepository.createTransaction(this.options)
     const searchSyncEmitter = await getSearchSyncWorkerEmitter()
+    const repositoryOptions = { ...this.options, transaction }
 
     try {
       if (data.member) {
-        data.member = await MemberRepository.filterIdInTenant(data.member, {
-          ...this.options,
-          transaction,
-        })
+        data.member = await MemberRepository.filterIdInTenant(data.member, repositoryOptions)
       }
 
       // check type exists, if doesn't exist, create a placeholder type with activity type key
       if (
         data.platform &&
         data.type &&
-        !SettingsRepository.activityTypeExists(data.platform, data.type, this.options)
+        !SegmentRepository.activityTypeExists(data.platform, data.type, repositoryOptions)
       ) {
-        await SettingsService.createActivityType({ type: data.type }, this.options, data.platform)
+        await new SegmentService(repositoryOptions).createActivityType(
+          { type: data.type },
+          data.platform,
+        )
+        await SegmentService.refreshSegments(repositoryOptions)
       }
 
       // check if channel exists in settings for respective platform. If not, update by adding channel to settings
       if (data.platform && data.channel) {
-        await SettingsService.updateActivityChannels(data, this.options)
+        await new SegmentService(repositoryOptions).updateActivityChannels(data)
+        await SegmentService.refreshSegments(repositoryOptions)
       }
 
       // If a sourceParentId is sent, try to find it in our db
       if ('sourceParentId' in data && data.sourceParentId) {
         const parent = await ActivityRepository.findOne(
           { sourceId: data.sourceParentId },
-          { ...this.options, transaction },
+          repositoryOptions,
         )
         if (parent) {
-          data.parent = await ActivityRepository.filterIdInTenant(parent.id, {
-            ...this.options,
-            transaction,
-          })
+          data.parent = await ActivityRepository.filterIdInTenant(parent.id, repositoryOptions)
         } else {
           data.parent = null
         }
@@ -102,10 +103,7 @@ export default class ActivityService extends LoggerBase {
           // eslint-disable-next-line @typescript-eslint/no-unused-vars
           timestamp: (oldValue, _newValue) => oldValue,
         })
-        record = await ActivityRepository.update(id, toUpdate, {
-          ...this.options,
-          transaction,
-        })
+        record = await ActivityRepository.update(id, toUpdate, repositoryOptions)
 
         if (fireSync) {
           await searchSyncEmitter.triggerMemberSync(
@@ -120,18 +118,12 @@ export default class ActivityService extends LoggerBase {
         }
 
         if (!data.username && data.platform === PlatformType.OTHER) {
-          const { displayName } = await MemberRepository.findById(data.member, {
-            ...this.options,
-            transaction,
-          })
+          const { displayName } = await MemberRepository.findById(data.member, repositoryOptions)
           // Get the first key of the username object as a string
           data.username = displayName
         }
 
-        record = await ActivityRepository.create(data, {
-          ...this.options,
-          transaction,
-        })
+        record = await ActivityRepository.create(data, repositoryOptions)
 
         if (fireSync) {
           await searchSyncEmitter.triggerMemberSync(
@@ -161,16 +153,12 @@ export default class ActivityService extends LoggerBase {
           // if it's not a child, it may be a parent of previously added activities
           const children = await ActivityRepository.findAndCountAll(
             { filter: { sourceParentId: data.sourceId } },
-            { ...this.options, transaction },
+            repositoryOptions,
           )
 
           for (const child of children.rows) {
             // update children with newly created parentId
-            await ActivityRepository.update(
-              child.id,
-              { parent: record.id },
-              { ...this.options, transaction },
-            )
+            await ActivityRepository.update(child.id, { parent: record.id }, repositoryOptions)
 
             // manage conversations for each child
             await this.addToConversation(child.id, record.id, transaction)

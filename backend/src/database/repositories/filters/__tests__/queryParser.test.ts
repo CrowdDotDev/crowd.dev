@@ -28,6 +28,7 @@ describe('QueryParser tests', () => {
       const expected = {
         where: {
           tenantId: mockIRepositoryOptions.currentTenant.id,
+          segmentId: mockIRepositoryOptions.currentSegments.map((s) => s.id),
         },
         limit: 10,
         offset: 0,
@@ -50,6 +51,7 @@ describe('QueryParser tests', () => {
       const expected = {
         where: {
           tenantId: mockIRepositoryOptions.currentTenant.id,
+          segmentId: mockIRepositoryOptions.currentSegments.map((s) => s.id),
           body: {
             [Op.iLike]: '%test%',
           },
@@ -71,6 +73,7 @@ describe('QueryParser tests', () => {
       const expected = {
         where: {
           tenantId: mockIRepositoryOptions.currentTenant.id,
+          segmentId: mockIRepositoryOptions.currentSegments.map((s) => s.id),
         },
         limit: 10,
         offset: 0,
@@ -92,6 +95,7 @@ describe('QueryParser tests', () => {
       const expected = {
         where: {
           tenantId: mockIRepositoryOptions.currentTenant.id,
+          segmentId: mockIRepositoryOptions.currentSegments.map((s) => s.id),
         },
         limit: 10,
         offset: 0,
@@ -114,6 +118,7 @@ describe('QueryParser tests', () => {
       const expected = {
         where: {
           tenantId: mockIRepositoryOptions.currentTenant.id,
+          segmentId: mockIRepositoryOptions.currentSegments.map((s) => s.id),
         },
         limit: 10,
         offset: 10,
@@ -133,6 +138,7 @@ describe('QueryParser tests', () => {
       const expected = {
         where: {
           tenantId: mockIRepositoryOptions.currentTenant.id,
+          segmentId: mockIRepositoryOptions.currentSegments.map((s) => s.id),
         },
         limit: 100,
         offset: 0,
@@ -152,6 +158,7 @@ describe('QueryParser tests', () => {
       const expected = {
         where: {
           tenantId: mockIRepositoryOptions.currentTenant.id,
+          segmentId: mockIRepositoryOptions.currentSegments.map((s) => s.id),
         },
         limit: 200,
         offset: 0,
@@ -177,6 +184,7 @@ describe('QueryParser tests', () => {
       const expected = {
         where: {
           tenantId: mockIRepositoryOptions.currentTenant.id,
+          segmentId: mockIRepositoryOptions.currentSegments.map((s) => s.id),
           body: {
             [Op.iLike]: '%test%',
           },
@@ -217,6 +225,7 @@ describe('QueryParser tests', () => {
       const expected = {
         where: {
           tenantId: mockIRepositoryOptions.currentTenant.id,
+          segmentId: mockIRepositoryOptions.currentSegments.map((s) => s.id),
           'sentiment.sentiment': {
             [Op.gte]: 0.5,
           },
@@ -242,6 +251,7 @@ describe('QueryParser tests', () => {
       const expected = {
         where: {
           tenantId: mockIRepositoryOptions.currentTenant.id,
+          segmentId: mockIRepositoryOptions.currentSegments.map((s) => s.id),
           body: {
             [Op.iLike]: '%test%',
           },
@@ -311,6 +321,7 @@ describe('QueryParser tests', () => {
         },
         where: {
           tenantId: mockIRepositoryOptions.currentTenant.id,
+          segmentId: mockIRepositoryOptions.currentSegments.map((s) => s.id),
         },
         limit: 10,
         offset: 0,
@@ -369,6 +380,7 @@ describe('QueryParser tests', () => {
       const expected = {
         where: {
           tenantId: mockIRepositoryOptions.currentTenant.id,
+          segmentId: mockIRepositoryOptions.currentSegments.map((s) => s.id),
           [Op.or]: [
             {
               [Op.and]: [
@@ -480,6 +492,7 @@ describe('QueryParser tests', () => {
       const expected = {
         where: {
           tenantId: mockIRepositoryOptions.currentTenant.id,
+          segmentId: mockIRepositoryOptions.currentSegments.map((s) => s.id),
         },
         having: {
           'sentiment.sentiment': {

@@ -13,6 +13,7 @@ import isEqual from 'lodash.isequal'
 import { NodejsWorkerEmitter, SearchSyncWorkerEmitter } from '@crowd/sqs'
 import SettingsRepository from './settings.repo'
 import { ConversationService } from '@crowd/conversations'
+import IntegrationRepository from '@/repo/integration.repo'
 
 export default class ActivityService extends LoggerBase {
   private readonly conversationService: ConversationService
@@ -299,9 +300,13 @@ export default class ActivityService extends LoggerBase {
           this.searchSyncWorkerEmitter,
           this.log,
         )
+        const txIntegrationRepo = new IntegrationRepository(txStore, this.log)
 
         // find existing activity
         const dbActivity = await txRepo.findExisting(tenantId, activity.sourceId)
+
+        const dbIntegration = await txIntegrationRepo.findById(integrationId)
+        const segmentId = dbIntegration.segmentId
 
         let create = false
         let memberId: string
@@ -338,6 +343,7 @@ export default class ActivityService extends LoggerBase {
             await txMemberService.update(
               dbMember.id,
               tenantId,
+              segmentId,
               integrationId,
               {
                 attributes: member.attributes,
@@ -370,6 +376,7 @@ export default class ActivityService extends LoggerBase {
             await txMemberService.update(
               dbMember.id,
               tenantId,
+              segmentId,
               integrationId,
               {
                 attributes: member.attributes,
@@ -415,6 +422,7 @@ export default class ActivityService extends LoggerBase {
             await txMemberService.update(
               dbMember.id,
               tenantId,
+              segmentId,
               integrationId,
               {
                 attributes: member.attributes,
@@ -432,7 +440,7 @@ export default class ActivityService extends LoggerBase {
             this.log.trace(
               'We did not find a member for the identity provided! Creating a new one.',
             )
-            memberId = await txMemberService.create(tenantId, integrationId, {
+            memberId = await txMemberService.create(tenantId, segmentId, integrationId, {
               displayName: member.displayName || username,
               attributes: member.attributes,
               emails: member.emails || [],

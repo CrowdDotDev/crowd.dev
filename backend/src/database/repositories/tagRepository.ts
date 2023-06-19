@@ -18,11 +18,14 @@ class TagRepository {
 
     const transaction = SequelizeRepository.getTransaction(options)
 
+    const segment = SequelizeRepository.getStrictlySingleActiveSegment(options)
+
     const record = await options.database.tag.create(
       {
         ...lodash.pick(data, ['name', 'importHash']),
 
         tenantId: tenant.id,
+        segmentId: segment.id,
         createdById: currentUser.id,
         updatedById: currentUser.id,
       },
@@ -51,6 +54,7 @@ class TagRepository {
       where: {
         id,
         tenantId: currentTenant.id,
+        segmentId: SequelizeRepository.getSegmentIds(options),
       },
       transaction,
     })
@@ -88,6 +92,7 @@ class TagRepository {
       where: {
         id: ids,
         tenantId: currentTenant.id,
+        segmentId: SequelizeRepository.getSegmentIds(options),
       },
       force,
       transaction,
@@ -103,6 +108,7 @@ class TagRepository {
       where: {
         id,
         tenantId: currentTenant.id,
+        segmentId: SequelizeRepository.getSegmentIds(options),
       },
       transaction,
     })
@@ -130,6 +136,7 @@ class TagRepository {
       where: {
         id,
         tenantId: currentTenant.id,
+        segmentId: SequelizeRepository.getSegmentIds(options),
       },
       include,
       transaction,
@@ -177,6 +184,7 @@ class TagRepository {
       where: {
         ...filter,
         tenantId: tenant.id,
+        segmentId: SequelizeRepository.getSegmentIds(options),
       },
       transaction,
     })
@@ -281,6 +289,9 @@ class TagRepository {
     const whereAnd: Array<any> = [
       {
         tenantId: tenant.id,
+      },
+      {
+        segmentId: SequelizeRepository.getSegmentIds(options),
       },
     ]
 

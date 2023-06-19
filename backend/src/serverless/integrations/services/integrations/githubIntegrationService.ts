@@ -1329,7 +1329,7 @@ export class GithubIntegrationService extends IntegrationServiceBase {
           tenant: context.integration.tenantId,
           username: member.username[PlatformType.GITHUB].username,
           platform: PlatformType.GITHUB,
-          channel: repo.name,
+          channel: repo.url,
           url: `https://github.com/${repo.owner}/${repo.name}.git`,
           body: record.commit.message,
           type: 'authored-commit',
