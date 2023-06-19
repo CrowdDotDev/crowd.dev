@@ -7,6 +7,7 @@ import Error404 from '../../../errors/Error404'
 import { PlatformType } from '@crowd/types'
 import { generateUUIDv1 } from '@crowd/common'
 import { populateSegments } from '../../utils/segmentTestUtils'
+import { UNKNOWN_ACTIVITY_TYPE_DISPLAY } from '@crowd/integrations'
 
 const db = null
 
@@ -473,10 +474,12 @@ describe('ConversationRepository tests', () => {
         lastReplies: [
           {
             ...SequelizeTestUtils.objectWithoutKey(activity2Created, ['tasks']),
+            parent: SequelizeTestUtils.objectWithoutKey(activity2Created.parent, ['display']),
             member: memberReturnedWithinConversations,
           },
           {
             ...SequelizeTestUtils.objectWithoutKey(activity3Created, ['tasks']),
+            parent: SequelizeTestUtils.objectWithoutKey(activity3Created.parent, ['display']),
             member: memberReturnedWithinConversations,
           },
         ],

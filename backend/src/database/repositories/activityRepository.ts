@@ -611,6 +611,12 @@ class ActivityRepository {
       {
         model: options.database.activity,
         as: 'parent',
+        include: [
+          {
+            model: options.database.member,
+            as: 'member',
+          },
+        ],
       },
       {
         model: options.database.member,
@@ -739,6 +745,13 @@ class ActivityRepository {
       record,
       SegmentRepository.getActivityTypes(options),
     )
+
+    if (output.parent) {
+      output.parent.display = ActivityDisplayService.getDisplayOptions(
+        output.parent,
+        SegmentRepository.getActivityTypes(options),
+      )
+    }
 
     output.tasks = await record.getTasks({
       transaction,
