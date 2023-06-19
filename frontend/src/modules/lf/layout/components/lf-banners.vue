@@ -287,6 +287,9 @@ watch(selectedProjectGroup, (updatedProjectGroup, previousProjectGroup) => {
     loading.value = true;
   }
   fetchIntegrations(updatedProjectGroup);
+}, {
+  deep: true,
+  immediate: true,
 });
 
 watch(
