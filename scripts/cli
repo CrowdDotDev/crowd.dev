@@ -491,7 +491,7 @@ do
             exit;
         ;;
         start-e2e)
-            declare -a INGORED_SERVICES=("community-help-center" "python-worker" "job-generator")
+            declare -a INGORED_SERVICES=("community-help-center" "python-worker" "job-generator" "discord-ws" "data-sink-worker" "integration-data-worker" "integration-run-worker" "integration-stream-worker")
             start
             exit;
         ;;
