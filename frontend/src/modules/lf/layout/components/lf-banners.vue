@@ -129,8 +129,8 @@
             v-loading="true"
             class="w-4 h-4 mr-3"
           />
-          <span>{{ integrationsInProgressToString }} integration
-            {{ integrationsInProgress.integrations.length > 1 ? 's are' : ' is' }} getting set up on</span>
+          <span>{{ integrationsInProgressToString }} integration{{ integrationsInProgress.integrations.length > 1 ? 's are' : ' is' }}
+            getting set up on</span>
           <span class="font-semibold mx-1">{{ integrationsInProgress.subProjects[0]?.name }}</span>
           <span>sub-project. Sit back and relax. We will send you an email when it's done.</span>
         </div>
@@ -283,10 +283,11 @@ const stopTimer = () => {
 
 watch(selectedProjectGroup, (updatedProjectGroup, previousProjectGroup) => {
   stopTimer();
+
   if (previousProjectGroup?.id !== updatedProjectGroup?.id) {
     loading.value = true;
+    fetchIntegrations(updatedProjectGroup);
   }
-  fetchIntegrations(updatedProjectGroup);
 }, {
   deep: true,
   immediate: true,
@@ -295,10 +296,10 @@ watch(selectedProjectGroup, (updatedProjectGroup, previousProjectGroup) => {
 watch(
   integrationsInProgress,
   (newIntegrationsInProgress) => {
+    stopTimer();
+
     if (newIntegrationsInProgress.integrations.length > 0) {
       startTimer();
-    } else {
-      stopTimer();
     }
   },
 
