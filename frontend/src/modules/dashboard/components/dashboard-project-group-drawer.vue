@@ -49,7 +49,7 @@
                       {{ project.name }}
                     </div>
                     <div class="text-3xs text-gray-500 leading-4">
-                      <span>0 members</span>
+                      <span>{{ pluralize('contributor', project.members, true) }}</span>
                       <span v-if="project.subprojects.length">
                         ・
                         {{

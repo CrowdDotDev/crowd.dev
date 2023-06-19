@@ -15,7 +15,7 @@ export default [
     component: Layout,
     meta: {
       auth: true,
-      title: 'Members',
+      title: 'Contributors',
       segments: {
         requireSelectedProjectGroup: true,
       },
@@ -23,7 +23,7 @@ export default [
     children: [
       {
         name: 'member',
-        path: '/members',
+        path: '/contributors',
         component: MemberListPage,
         meta: {
           auth: true,
@@ -32,7 +32,7 @@ export default [
       },
       {
         name: 'memberCreate',
-        path: '/members/new',
+        path: '/contributors/new',
         component: MemberCreatePage,
         meta: {
           auth: true,
@@ -41,7 +41,7 @@ export default [
       },
       {
         name: 'memberEdit',
-        path: '/members/:id/edit',
+        path: '/contributors/:id/edit',
         component: MemberCreatePage,
         meta: {
           auth: true,
@@ -51,7 +51,7 @@ export default [
       },
       {
         name: 'memberMergeSuggestions',
-        path: '/members/merge-suggestions',
+        path: '/contributors/merge-suggestions',
         component: MemberMergeSuggestionsPage,
         meta: {
           auth: true,
@@ -60,7 +60,7 @@ export default [
       },
       {
         name: 'memberView',
-        path: '/members/:id',
+        path: '/contributors/:id',
         component: MemberViewPage,
         meta: {
           auth: true,
@@ -70,7 +70,7 @@ export default [
       },
       {
         name: 'memberMerge',
-        path: '/members/:id/merge',
+        path: '/contributors/:id/merge',
         component: MemberMergeSuggestionsPage,
         meta: {
           auth: true,

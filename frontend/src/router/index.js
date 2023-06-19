@@ -59,6 +59,7 @@ export const createRouter = () => {
     router.beforeEach(async (to, from, next) => {
       const lsSegmentsStore = useLfSegmentsStore();
       const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);
+      const { listProjectGroups, updateSelectedProjectGroup } = lsSegmentsStore;
 
       // Set title to pages
       document.title = `crowd.dev${to.meta.title ? ` | ${to.meta.title}` : ''}`;
@@ -92,8 +93,28 @@ export const createRouter = () => {
         // Redirect to project group landing pages if routes that require a selected project group
         // And no project group is selected
         if (to.meta.segments?.requireSelectedProjectGroup) {
-          if (!selectedProjectGroup.value) {
+          if (!selectedProjectGroup.value && !to.query.projectGroup) {
             next('/project-groups');
+            return;
+          }
+
+          if (!to.query.projectGroup) {
+            next({ ...to, query: { ...to.query, projectGroup: selectedProjectGroup.value.id } });
+            return;
+          }
+
+          if (!selectedProjectGroup.value) {
+            try {
+              await listProjectGroups({
+                limit: null,
+                offset: 0,
+              });
+
+              updateSelectedProjectGroup(to.query.projectGroup, false);
+            } catch (e) {
+              next('/project-groups');
+              return;
+            }
           }
         }
       }

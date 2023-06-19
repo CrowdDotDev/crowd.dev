@@ -34,7 +34,8 @@
 <script setup>
 import { storeToRefs } from 'pinia';
 import {
-  computed, onMounted, ref, watch,
+  computed,
+  onMounted, ref, watch,
 } from 'vue';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import AppLfProjectFilter from '@/modules/lf/segments/components/filter/lf-project-filter.vue';
@@ -59,6 +60,7 @@ const buttonRef = ref();
 const isFilterPopoverVisible = ref(false);
 const filterPopover = ref();
 
+const initialOptions = ref([]);
 const options = ref([]);
 
 // If current selected project group changes, fetch new list of projects and clear selected filters
@@ -98,6 +100,10 @@ watch(
         })),
       };
     });
+
+    if (!initialOptions.value.length) {
+      initialOptions.value = options.value;
+    }
   },
   {
     deep: true,
@@ -113,23 +119,21 @@ const filterLabel = computed(() => {
     };
   }
 
-  let text = '';
+  let text = [];
 
-  const selectedProjects = options.value
-    .filter((project) => project.selectedChildren.length);
+  initialOptions.value.forEach((project) => {
+    const selectedSubprojects = project.children.filter(
+      (sp) => props.segments.includes(sp.id),
+    ).map((sp) => sp.label);
 
-  selectedProjects.forEach((project, i) => {
-    if (project.children.length === project.selectedChildren.length) {
-      text += `${project.label} (all sub-projects)`;
-    } else if (project.selectedChildren.length) {
-      text += project.selectedChildren.join(', ');
-      text += ` (${project.label})`;
-    }
-
-    if (i !== selectedProjects.length - 1) {
-      text += ', ';
+    if (project.children.length === selectedSubprojects.length) {
+      text.push(`${project.label} (all sub-projects)`);
+    } else if (selectedSubprojects.length) {
+      text.push(`${selectedSubprojects.join(', ')} (${project.label})`);
     }
   });
+
+  text = text.join(', ');
 
   const trimmedText = text.substring(0, 40);
   const showTooltip = trimmedText.length < text.length;
@@ -150,20 +154,24 @@ const openFilterPopover = () => {
 };
 
 const onFilterChange = (value) => {
-  const selectedSegments = value.reduce((acc, option) => {
-    if (option.selectedChildren.length) {
-      option.children.forEach((child) => {
-        if (option.selectedChildren.includes(child.label)) {
-          acc.push(child.id);
-        }
-      });
-    }
+  const segments = [...props.segments];
 
-    return acc;
-  }, []);
+  value.forEach((option) => {
+    option.children.forEach((child) => {
+      if (option.selectedChildren.includes(child.label) && !segments.includes(child.id)) {
+        segments.push(child.id);
+      } else if (!option.selectedChildren.includes(child.label)) {
+        const segmentIndex = segments.findIndex((a) => a === child.id);
+
+        if (segmentIndex !== -1) {
+          segments.splice(segmentIndex, 1);
+        }
+      }
+    });
+  });
 
   props.setSegments({
-    segments: selectedSegments,
+    segments,
   });
 };
 

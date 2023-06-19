@@ -136,7 +136,7 @@ const computedOptions = computed(() => {
   ];
 });
 
-const computedLabel = computed(() => pluralize(props.module, props.total, true));
+const computedLabel = computed(() => pluralize(props.module === 'member' ? 'contributor' : props.module, props.total, true));
 
 const count = computed(() => ({
   minimum:

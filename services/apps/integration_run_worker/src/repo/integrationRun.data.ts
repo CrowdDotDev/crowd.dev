@@ -10,6 +10,9 @@ export interface IGenerateStreamsData {
   runId: string
   tenantId: string
   hasSampleData: boolean
+  plan: string
+  isTrialPlan: boolean
+  name: string
   integrationSettings: unknown
   streamCount: number
 }

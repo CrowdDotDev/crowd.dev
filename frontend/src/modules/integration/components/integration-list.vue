@@ -39,7 +39,7 @@
 <script setup>
 import { useStore } from 'vuex';
 import {
-  defineProps, computed, onMounted, ref,
+  computed, onMounted, ref,
 } from 'vue';
 
 import { CrowdIntegrations } from '@/integrations/integrations-config';
@@ -78,6 +78,7 @@ const showGithubDialog = ref(false);
 
 onMounted(async () => {
   localStorage.setItem('segmentId', route.params.id);
+  localStorage.setItem('segmentGrandparentId', route.params.grandparentId);
 
   if (integrationCount.value === 0 || isSegmentIdDifferent.value) {
     await store.dispatch('integration/doFetch');

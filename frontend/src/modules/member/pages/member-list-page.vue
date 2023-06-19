@@ -4,7 +4,7 @@
       <div class="mb-10">
         <app-lf-page-header text-class="text-sm text-brand-500 mb-2.5" />
         <div class="flex items-center justify-between">
-          <h4>Members</h4>
+          <h4>Contributors</h4>
           <div class="flex items-center">
             <router-link
               class="mr-4"
@@ -40,12 +40,12 @@
               :disabled="isCreateLockedForSampleData"
               @click="onAddMember"
             >
-              Add member
+              Add contributor
             </el-button>
           </div>
         </div>
         <div class="text-xs text-gray-500">
-          Overview of all members from your community
+          Overview of all contributors from your community
         </div>
       </div>
 
@@ -71,7 +71,7 @@
   <app-lf-sub-projects-list-modal
     v-if="isSubProjectSelectionOpen"
     v-model="isSubProjectSelectionOpen"
-    title="Add member"
+    title="Add contributor"
     @on-submit="onSubProjectSelection"
   />
 </template>

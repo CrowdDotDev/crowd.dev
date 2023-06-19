@@ -37,7 +37,7 @@
                   @click="changeMember()"
                 >
                   <span class="ri-refresh-line text-base text-brand-500 mr-2" />
-                  <span class="text-brand-500">Change member</span>
+                  <span class="text-brand-500">Change contributor</span>
                 </button>
               </template>
             </app-member-suggestions-details>
@@ -53,7 +53,7 @@
             :loading="sendingMerge"
             @click="mergeSuggestion()"
           >
-            Merge members
+            Merge contributors
           </el-button>
         </div>
       </div>
@@ -109,6 +109,7 @@ const mergeSuggestion = () => {
     return;
   }
   sendingMerge.value = true;
+
   MemberService.merge(
     originalMemberPrimary.value ? props.modelValue : memberToMerge.value,
     originalMemberPrimary.value ? memberToMerge.value : props.modelValue,
@@ -123,7 +124,7 @@ const mergeSuggestion = () => {
       }
     })
     .catch(() => {
-      Message.error('There was an error merging members');
+      Message.error('There was an error merging contributors');
     })
     .finally(() => {
       sendingMerge.value = false;

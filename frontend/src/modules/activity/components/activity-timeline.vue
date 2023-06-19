@@ -13,6 +13,8 @@
             v-model="platform"
             placeholder="All platforms"
             class="w-40"
+            clearable
+            @clear="onClear"
           >
             <template
               v-if="
@@ -380,10 +382,12 @@ watch(platform, async (newValue, oldValue) => {
   }
 });
 
+const onClear = () => {
+  platform.value = null;
+};
+
 onMounted(async () => {
-  if (activeIntegrations.value.length === 0) {
-    await store.dispatch('integration/doFetch');
-  }
+  await store.dispatch('integration/doFetch', segments.value);
   await fetchActivities();
 });
 </script>

@@ -10,24 +10,24 @@
       <app-empty-state-cta
         v-if="!hasIntegrations && !hasMembers"
         icon="ri-contacts-line"
-        title="No community members yet"
+        title="No community contributors yet"
         description="Please connect with one of our available data sources in order to start pulling data from a certain platform"
-        secondary-btn="Add member"
+        secondary-btn="Add contributor"
         @secondary-click="onSecondaryBtnClick"
       />
 
       <app-empty-state-cta
         v-else-if="hasIntegrations && !hasMembers"
         icon="ri-contacts-line"
-        title="No community members yet"
-        description="Please consider that the first members may take a couple of minutes to be displayed"
+        title="No community contributors yet"
+        description="Please consider that the first contributors may take a couple of minutes to be displayed"
         :has-warning-icon="true"
       />
 
       <app-empty-state-cta
         v-else-if="hasMembers && !totalMembers"
         icon="ri-contacts-line"
-        title="No members found"
+        title="No contributors found"
         description="We couldn't find any results that match your search criteria, please try a different query"
       />
 
@@ -95,7 +95,7 @@
               <el-table-column type="selection" width="75" fixed />
 
               <el-table-column
-                label="Member"
+                label="Contributor"
                 prop="displayName"
                 width="250"
                 sortable
@@ -258,8 +258,8 @@
                 <template #header>
                   <el-tooltip placement="top">
                     <template #content>
-                      This refers to the total # of open source contributions a member did on GitHub.<br />
-                      To receive this attribute you have to enrich your members.
+                      This refers to the total # of open source contributions a contributor did on GitHub.<br />
+                      To receive this attribute you have to enrich your contributors.
                     </template>
                     # of open source contributions
                   </el-tooltip>
@@ -352,7 +352,10 @@
                     }"
                     class="block"
                   >
-                    <app-tag-list :member="scope.row" />
+                    <app-tag-list
+                      :member="scope.row"
+                      @tags-updated="fetchMembers({ reload: true })"
+                    />
                   </router-link>
                 </template>
               </el-table-column>
@@ -405,6 +408,8 @@ import { formatNumberToCompact, formatNumber } from '@/utils/number';
 import { useMemberStore } from '@/modules/member/store/pinia';
 import { storeToRefs } from 'pinia';
 import { MemberService } from '@/modules/member/member-service';
+import { useLfSegmentsStore } from '@/modules/lf/segments/store';
+import { getSegmentsFromProjectGroup } from '@/utils/segments';
 import AppMemberBadge from '../member-badge.vue';
 import AppMemberDropdown from '../member-dropdown.vue';
 import AppMemberIdentities from '../member-identities.vue';
@@ -442,6 +447,10 @@ const memberStore = useMemberStore();
 const {
   members, totalMembers, filters, selectedMembers, savedFilterBody,
 } = storeToRefs(memberStore);
+const { fetchMembers } = memberStore;
+
+const lsSegmentsStore = useLfSegmentsStore();
+const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);
 
 const defaultSort = computed(() => ({
   field: 'lastActive',
@@ -606,9 +615,7 @@ const doExport = () => MemberService.export({
 });
 
 onMounted(async () => {
-  if (store.state.integration.count === 0) {
-    await store.dispatch('integration/doFetch');
-  }
+  await store.dispatch('integration/doFetch', getSegmentsFromProjectGroup(selectedProjectGroup.value));
 });
 
 // Remove listeners on unmount
