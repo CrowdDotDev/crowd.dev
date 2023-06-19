@@ -5,7 +5,7 @@
       title="Activities"
       :total-loading="activities.loading"
       :total="activities.total"
-      :route="{ name: 'activity' }"
+      :route="{ name: 'activity', hash: '#activity' }"
       button-title="All activities"
       report-name="Activities report"
     />

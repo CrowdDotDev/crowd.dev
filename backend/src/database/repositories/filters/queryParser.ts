@@ -5,7 +5,6 @@ import Sequelize from 'sequelize'
 import { IRepositoryOptions } from '../IRepositoryOptions'
 import SequelizeRepository from '../sequelizeRepository'
 import { QueryInput, ManyToManyType } from './queryTypes'
-import SegmentRepository from '../segmentRepository'
 
 const { Op } = Sequelize
 
@@ -417,7 +416,7 @@ class QueryParser {
     if (this.withSegments && this.manyToMany.segments) {
       const segmentsQuery = this.replaceWithManyToMany(
         {
-          segments: SegmentRepository.getSegmentIds(this.options),
+          segments: SequelizeRepository.getSegmentIds(this.options),
         },
         'segments',
       )
@@ -426,7 +425,7 @@ class QueryParser {
         [Op.and]: [dbQuery.where, segmentsQuery],
       }
     } else if (this.withSegments) {
-      dbQuery.where.segmentId = SegmentRepository.getSegmentIds(this.options)
+      dbQuery.where.segmentId = SequelizeRepository.getSegmentIds(this.options)
     }
 
     if (fields) {

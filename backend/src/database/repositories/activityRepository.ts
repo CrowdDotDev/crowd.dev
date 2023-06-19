@@ -198,7 +198,7 @@ class ActivityRepository {
       where: {
         id,
         tenantId: currentTenant.id,
-        segmentId: SegmentRepository.getSegmentIds(options),
+        segmentId: SequelizeRepository.getSegmentIds(options),
       },
       transaction,
     })
@@ -243,7 +243,7 @@ class ActivityRepository {
       where: {
         id,
         tenantId: currentTenant.id,
-        segmentId: SegmentRepository.getSegmentIds(options),
+        segmentId: SequelizeRepository.getSegmentIds(options),
       },
       include,
       transaction,
@@ -270,7 +270,7 @@ class ActivityRepository {
     const record = await options.database.activity.findOne({
       where: {
         tenantId: currentTenant.id,
-        segmentId: SegmentRepository.getSegmentIds(options),
+        segmentId: SequelizeRepository.getSegmentIds(options),
         ...query,
       },
       transaction,
@@ -314,7 +314,7 @@ class ActivityRepository {
       where: {
         ...filter,
         tenantId: tenant.id,
-        segmentId: SegmentRepository.getSegmentIds(options),
+        segmentId: SequelizeRepository.getSegmentIds(options),
       },
       transaction,
     })

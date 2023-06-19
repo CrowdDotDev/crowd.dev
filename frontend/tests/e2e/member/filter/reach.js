@@ -21,11 +21,10 @@ export default () => {
     cy.get('[data-qa="filter-apply"]').should('be.disabled');
   });
 
-  // TODO: uncomment when bug is fixed
-  // it('has apply button disabled if negative value', () => {
-  //   cy.get('[data-qa="filter-number-from"]').type('{selectall}').type(-621);
-  //   cy.get('[data-qa="filter-apply"]').should('be.disabled');
-  // });
+  it('has apply button disabled if negative value', () => {
+    cy.get('[data-qa="filter-number-from"]').type('{selectall}').type(-621);
+    cy.get('[data-qa="filter-apply"]').should('be.disabled');
+  });
 
   it('fetches members with exactly 621 reach', () => {
     cy.get('[data-qa="filter-number-from"]').type('{selectall}').type(621);
@@ -43,8 +42,6 @@ export default () => {
 
   it('fetches members with exactly 621 reach - exclude', () => {
     cy.get('@filterItem').click();
-    cy.wait(100);
-    cy.get('@filterItem').click();
     cy.get('[data-qa="filter-number-from"]').type('{selectall}').type(621);
     cy.get('[data-qa="filter-include-switch"]').click();
     cy.get('[data-qa="filter-apply"]').click();
@@ -59,8 +56,6 @@ export default () => {
   });
 
   it('fetches members with less than 621 reach', () => {
-    cy.get('@filterItem').click();
-    cy.wait(100);
     cy.get('@filterItem').click();
     cy.get('.filter-list-item-popper [data-qa="filter-inline-select"]').click();
     cy.get('[data-qa="filter-inline-select-option"]').contains('<').click();
@@ -79,8 +74,6 @@ export default () => {
 
   it('fetches members with less than 621 reach - exclude', () => {
     cy.get('@filterItem').click();
-    cy.wait(100);
-    cy.get('@filterItem').click();
     cy.get('.filter-list-item-popper [data-qa="filter-inline-select"]').click();
     cy.get('[data-qa="filter-inline-select-option"]').contains('<').click();
     cy.get('[data-qa="filter-include-switch"]').click();
@@ -98,8 +91,6 @@ export default () => {
 
   it('fetches members with less than or equal 621 reach', () => {
     cy.get('@filterItem').click();
-    cy.wait(100);
-    cy.get('@filterItem').click();
     cy.get('.filter-list-item-popper [data-qa="filter-inline-select"]').click();
     cy.get('[data-qa="filter-inline-select-option"]').contains('<=').click();
     cy.get('[data-qa="filter-include-switch"]').click();
@@ -115,8 +106,6 @@ export default () => {
   });
 
   it('fetches members with less than or equal 621 reach - exclude', () => {
-    cy.get('@filterItem').click();
-    cy.wait(100);
     cy.get('@filterItem').click();
     cy.get('.filter-list-item-popper [data-qa="filter-inline-select"]').click();
     cy.get('[data-qa="filter-inline-select-option"]').contains('<=').click();
@@ -134,8 +123,6 @@ export default () => {
 
   it('fetches members with more than 621 reach', () => {
     cy.get('@filterItem').click();
-    cy.wait(100);
-    cy.get('@filterItem').click();
     cy.get('.filter-list-item-popper [data-qa="filter-inline-select"]').click();
     cy.get('[data-qa="filter-inline-select-option"]').contains('>').click();
     cy.get('[data-qa="filter-include-switch"]').click();
@@ -151,8 +138,6 @@ export default () => {
   });
 
   it('fetches members with more than 621 reach - exclude', () => {
-    cy.get('@filterItem').click();
-    cy.wait(100);
     cy.get('@filterItem').click();
     cy.get('.filter-list-item-popper [data-qa="filter-inline-select"]').click();
     cy.get('[data-qa="filter-inline-select-option"]').contains('>').click();
@@ -170,8 +155,6 @@ export default () => {
 
   it('fetches members with more than or equal 621 reach', () => {
     cy.get('@filterItem').click();
-    cy.wait(100);
-    cy.get('@filterItem').click();
     cy.get('.filter-list-item-popper [data-qa="filter-inline-select"]').click();
     cy.get('[data-qa="filter-inline-select-option"]').contains('>=').click();
     cy.get('[data-qa="filter-include-switch"]').click();
@@ -187,8 +170,6 @@ export default () => {
   });
 
   it('fetches members with more than or equal 621 reach - exclude', () => {
-    cy.get('@filterItem').click();
-    cy.wait(100);
     cy.get('@filterItem').click();
     cy.get('.filter-list-item-popper [data-qa="filter-inline-select"]').click();
     cy.get('[data-qa="filter-inline-select-option"]').contains('>=').click();
@@ -230,8 +211,6 @@ export default () => {
 
   it('fetches members with activity count between 2 and 6 - exclude', () => {
     cy.get('@filterItem').click();
-    cy.wait(100);
-    cy.get('@filterItem').click();
     cy.get('[data-qa="filter-number-from"]').type('{selectall}').type(200);
     cy.get('[data-qa="filter-number-to"]').type('{selectall}').type(1000);
     cy.get('[data-qa="filter-include-switch"]').click();
@@ -246,11 +225,10 @@ export default () => {
     });
   });
 
-  // TODO: uncomment when bug is fixed
-  // it('has apply button disabled if range is invalid', () => {
-  //   cy.get('[data-qa="filter-list-chip"]').click();
-  //   cy.get('[data-qa="filter-number-from"]').type('{selectall}').type(1000);
-  //   cy.get('[data-qa="filter-number-to"]').type('{selectall}').type(200);
-  //   cy.get('[data-qa="filter-apply"]').should('be.disabled');
-  // });
+  it('has apply button disabled if range is invalid', () => {
+    cy.get('[data-qa="filter-list-chip"]').click();
+    cy.get('[data-qa="filter-number-from"]').type('{selectall}').type(1000);
+    cy.get('[data-qa="filter-number-to"]').type('{selectall}').type(200);
+    cy.get('[data-qa="filter-apply"]').should('be.disabled');
+  });
 };

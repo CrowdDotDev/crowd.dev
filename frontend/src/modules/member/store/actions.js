@@ -37,19 +37,17 @@ export default {
     let filter;
 
     if (selected) {
-      const ids = customIds.length
-        ? customIds
-        : getters.selectedRows.map((i) => i.id);
+      if (customIds.length === 0) {
+        return;
+      }
 
       filter = {
         id: {
-          in: ids,
+          in: customIds,
         },
       };
     } else if (customFilter) {
       filter = customFilter;
-    } else {
-      filter = getters.activeView.filter;
     }
 
     try {
@@ -64,15 +62,12 @@ export default {
       await showExportDialog({
         tenantCsvExportCount,
         planExportCountMax,
-        badgeContent:
-          selected || count
-            ? pluralize('member', count || getters.selectedRows.length, true)
-            : `View: ${getters.activeView.label}`,
+        badgeContent: pluralize('member', count, true),
       });
 
       await MemberService.export(
         filter,
-        getters.orderBy,
+        'lastActive_DESC',
         0,
         null,
         !selected && !customFilter, // build API payload if selected === false || !customFilter

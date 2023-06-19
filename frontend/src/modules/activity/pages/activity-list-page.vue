@@ -28,21 +28,24 @@
         </div>
       </div>
 
-      <app-activity-list-tabs />
-      <app-activity-list-filter
-        :module="activeView.type"
-      />
+      <div class="relative">
+        <el-tabs :model-value="activeView" class="mb-6" @update:model-value="changeView">
+          <el-tab-pane
+            label="Activities"
+            name="activity"
+          />
+          <el-tab-pane
+            label="Conversations"
+            name="conversation"
+          />
+        </el-tabs>
+      </div>
       <app-activity-list
-        v-if="activeView.type === 'activities'"
-        :activities="recordsArray"
-        :loading="loading"
-        :items-as-cards="true"
+        v-if="activeView === 'activity'"
         @edit="edit($event)"
       />
       <app-conversation-list
-        v-else-if="activeView.type === 'conversations'"
-        :conversations="recordsArray"
-        :loading="loading"
+        v-else-if="activeView === 'conversation'"
         :items-as-cards="true"
       />
     </div>
@@ -61,66 +64,43 @@
   />
 </template>
 
-<script>
-import { mapState, mapGetters } from 'vuex';
-import { ActivityPermissions } from '@/modules/activity/activity-permissions';
-import AppActivityListFilter from '@/modules/activity/components/list/activity-list-filter.vue';
+<script setup lang="ts">
+
+import { ref, watch } from 'vue';
 import AppActivityTypeListDrawer from '@/modules/activity/components/type/activity-type-list-drawer.vue';
 import AppActivityFormDrawer from '@/modules/activity/components/activity-form-drawer.vue';
 import AppActivityTypeFormModal from '@/modules/activity/components/type/activity-type-form-modal.vue';
 import AppActivityList from '@/modules/activity/components/activity-list.vue';
 import AppConversationList from '@/modules/conversation/components/conversation-list.vue';
-import AppActivityListTabs from '@/modules/activity/components/activity-list-tabs.vue';
+import { useRoute, useRouter } from 'vue-router';
 
-export default {
-  name: 'AppActivityListPage',
+const route = useRoute();
+const router = useRouter();
 
-  components: {
-    AppActivityTypeFormModal,
-    AppActivityFormDrawer,
-    AppActivityTypeListDrawer,
-    AppActivityList,
-    AppConversationList,
-    AppActivityListTabs,
-    AppActivityListFilter,
-  },
+const isActivityTypeDrawerOpen = ref(false);
+const isActivityDrawerOpen = ref(false);
+const isActivityTypeFormVisible = ref(false);
+const editableActivity = ref(null);
 
-  data() {
-    return {
-      creating: false,
-      isActivityTypeDrawerOpen: false,
-      isActivityDrawerOpen: false,
-      isActivityTypeFormVisible: false,
-      editableActivity: null,
-    };
-  },
-  computed: {
-    ...mapGetters({
-      currentTenant: 'auth/currentTenant',
-      currentUser: 'auth/currentUser',
-      activeView: 'activity/activeView',
-      recordsArray: 'activity/rows',
-    }),
-    ...mapState({
-      loading: (state) => state.activity.list.loading,
-    }),
-    hasPermissionToCreate() {
-      return new ActivityPermissions(
-        this.currentTenant,
-        this.currentUser,
-      ).create;
-    },
-  },
+const activeView = ref('activity');
 
-  async mounted() {
-    window.analytics.page('Activities');
-  },
-  methods: {
-    edit(activity) {
-      this.isActivityDrawerOpen = true;
-      this.editableActivity = activity;
-    },
-  },
+const changeView = (view) => {
+  router.push({
+    hash: `#${view}`,
+    query: {},
+  });
+};
+
+watch(() => route.hash, (hash: string) => {
+  const view = hash.substring(1);
+  if (view.length > 0 && view !== activeView.value) {
+    activeView.value = view;
+  }
+}, { immediate: true });
+
+const edit = (activity) => {
+  editableActivity.value = activity;
+  isActivityDrawerOpen.value = true;
 };
 </script>
 
