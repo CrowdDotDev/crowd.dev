@@ -75,21 +75,55 @@
               with-link
               class="bl"
             />
-            <div class="flex items-center mt-0.5">
-              <app-activity-message :activity="activity" />
-              <span class="whitespace-nowrap text-gray-500"><span class="mx-1">·</span>{{ timeAgo(activity) }}</span>
-              <span
-                v-if="activity.sentiment.sentiment"
-                class="mx-1"
-              >·</span>
-              <app-activity-sentiment
-                v-if="activity.sentiment.sentiment"
-                :sentiment="activity.sentiment.sentiment"
+            <div
+              class="flex gap-4 justify-between min-h-9 -mt-1"
+              :class="{
+                'items-center': !isMemberEntity,
+                'items-start': isMemberEntity,
+              }"
+            >
+              <app-activity-header
+                :activity="activity"
+                class="flex flex-wrap items-center"
+                :class="{
+                  'mt-1.5': isMemberEntity,
+                }"
               />
+
+              <div class="flex items-center flex-nowrap">
+                <a
+                  v-if="
+                    activity.conversationId && isMemberEntity
+                  "
+                  class="text-xs font-medium flex items-center mr-4 cursor-pointer"
+                  target="_blank"
+                  @click="
+                    conversationId = activity.conversationId
+                  "
+                >
+                  <i
+                    class="ri-lg ri-arrow-right-up-line mr-1"
+                  />
+                  <span class="block whitespace-nowrap">Open conversation</span>
+                </a>
+                <app-activity-dropdown
+                  v-if="showAffiliations"
+                  :show-affiliations="true"
+                  :activity="activity"
+                  :organizations="entity.organizations"
+                  @on-update="fetchActivities({ reset: true })"
+                />
+              </div>
             </div>
+
+            <app-lf-activity-parent
+              v-if="activity.parent && isMemberEntity"
+              :parent="activity.parent"
+            />
+
             <app-activity-content
               v-if="activity.title || activity.body"
-              class="text-sm bg-gray-50 rounded-lg p-4"
+              class="text-sm bg-gray-50 rounded-lg p-4 mt-3"
               :activity="activity"
               :show-more="true"
             >
@@ -152,6 +186,12 @@
       </div>
     </div>
   </div>
+
+  <app-conversation-drawer
+    :expand="conversationId != null"
+    :conversation-id="conversationId"
+    @close="conversationId = null"
+  />
 </template>
 
 <script setup>
@@ -166,17 +206,18 @@ import {
   watch,
 } from 'vue';
 import debounce from 'lodash/debounce';
-import AppActivityMessage from '@/modules/activity/components/activity-message.vue';
-import AppActivitySentiment from '@/modules/activity/components/activity-sentiment.vue';
+import AppActivityHeader from '@/modules/activity/components/activity-header.vue';
 import AppActivityContent from '@/modules/activity/components/activity-content.vue';
 import { onSelectMouseLeave } from '@/utils/select';
 import authAxios from '@/shared/axios/auth-axios';
-import { formatDateToTimeAgo } from '@/utils/date';
 import { CrowdIntegrations } from '@/integrations/integrations-config';
 import AppMemberDisplayName from '@/modules/member/components/member-display-name.vue';
 import AppActivityLink from '@/modules/activity/components/activity-link.vue';
 import AuthCurrentTenant from '@/modules/auth/auth-current-tenant';
 import AppActivityContentFooter from '@/modules/activity/components/activity-content-footer.vue';
+import AppActivityDropdown from '@/modules/activity/components/activity-dropdown.vue';
+import AppLfActivityParent from '@/modules/lf/activity/components/lf-activity-parent.vue';
+import AppConversationDrawer from '@/modules/conversation/components/conversation-drawer.vue';
 
 const SearchIcon = h(
   'i', // type
@@ -194,7 +235,13 @@ const props = defineProps({
     type: Object,
     default: () => {},
   },
+  showAffiliations: {
+    type: Boolean,
+    default: false,
+  },
 });
+
+const conversationId = ref(null);
 
 const activeIntegrations = computed(() => {
   const activeIntegrationList = store.getters['integration/activeList'];
@@ -214,6 +261,8 @@ const noMore = ref(false);
 
 let filter = {};
 
+const isMemberEntity = computed(() => props.entityType === 'member');
+
 const segments = computed(() => props.entity.segments?.map((s) => {
   if (typeof s === 'string') {
     return s;
@@ -222,7 +271,7 @@ const segments = computed(() => props.entity.segments?.map((s) => {
   return s.id;
 }) || []);
 
-const fetchActivities = async () => {
+const fetchActivities = async ({ reset } = { reset: false }) => {
   const filterToApply = {
     platform: platform.value ?? undefined,
   };
@@ -270,8 +319,9 @@ const fetchActivities = async () => {
     }
   }
 
-  if (!isEqual(filter, filterToApply)) {
+  if (!isEqual(filter, filterToApply) || reset) {
     activities.length = 0;
+    offset.value = 0;
     noMore.value = false;
   }
 
@@ -313,7 +363,6 @@ const fetchActivities = async () => {
 };
 
 const platformDetails = (p) => CrowdIntegrations.getConfig(p);
-const timeAgo = (activity) => formatDateToTimeAgo(activity.timestamp);
 
 const debouncedQueryChange = debounce(async () => {
   await fetchActivities();

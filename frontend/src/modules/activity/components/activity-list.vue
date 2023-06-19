@@ -45,6 +45,7 @@
           v-bind="cardOptions"
           @open-conversation="conversationId = $event"
           @edit="emit('edit', activity)"
+          @on-update="fetch(savedFilterBody)"
         />
 
         <!-- Load more button -->
@@ -77,8 +78,6 @@
 
 <script setup>
 import {
-  defineProps,
-  defineEmits,
   computed,
   ref,
 } from 'vue';
@@ -104,7 +103,9 @@ defineProps({
 const emit = defineEmits(['edit']);
 
 const activityStore = useActivityStore();
-const { filters, activities, totalActivities } = storeToRefs(activityStore);
+const {
+  filters, activities, totalActivities, savedFilterBody,
+} = storeToRefs(activityStore);
 const { fetchActivities } = activityStore;
 
 const loading = ref(false);
@@ -121,8 +122,7 @@ const pagination = computed(
 
 const isLoadMoreVisible = computed(() => (
   pagination.value.page
-      * pagination.value.perPage
-    < totalActivities
+      * pagination.value.perPage < totalActivities
 ));
 
 const onLoadMore = () => {
