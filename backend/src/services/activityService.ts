@@ -107,7 +107,9 @@ export default class ActivityService extends LoggerBase {
           },
         })
         record = await ActivityRepository.update(id, toUpdate, repositoryOptions)
-        await this.addToConversation(record.id, data.parent, transaction)
+        if (data.parent) {
+          await this.addToConversation(record.id, data.parent, transaction)
+        }
       } else {
         if (!data.sentiment) {
           const sentiment = await this.getSentiment(data)

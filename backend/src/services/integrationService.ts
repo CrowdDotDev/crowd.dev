@@ -306,7 +306,7 @@ export default class IntegrationService {
       if (isGitintegrationConfigured) {
         const gitRemotes = await this.gitGetRemotes()
         await this.gitConnectOrUpdate({
-          remotes: [...gitRemotes.default, ...repos.map((repo) => repo.cloneUrl)],
+          remotes: [...gitRemotes, ...repos.map((repo) => repo.cloneUrl)],
         })
       }
 
