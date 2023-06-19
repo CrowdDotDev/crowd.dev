@@ -94,6 +94,8 @@ export default class ActivityService extends LoggerBase {
         const toUpdate = merge(existing, data, {
           // eslint-disable-next-line @typescript-eslint/no-unused-vars
           timestamp: (oldValue, _newValue) => oldValue,
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
+          organizationId: (oldValue, _newValue) => oldValue,
         })
         record = await ActivityRepository.update(id, toUpdate, repositoryOptions)
       } else {
@@ -406,6 +408,8 @@ export default class ActivityService extends LoggerBase {
   async createWithMember(data, fireCrowdWebhooks: boolean = true) {
     const logger = this.options.log
 
+    const segment = await SequelizeRepository.getStrictlySingleActiveSegment(this.options)
+
     const errorDetails: any = {}
 
     const transaction = await SequelizeRepository.createTransaction(this.options)
@@ -526,6 +530,19 @@ export default class ActivityService extends LoggerBase {
       }
 
       data.member = member.id
+
+      if (member.organizations.length > 0) {
+        // check member has any affiliation set for current segment
+
+        const affiliations = member.affiliations.filter((a) => a.segmentId === segment.id)
+
+        if (affiliations.length > 0) {
+          data.organizationId = affiliations[0].organizationId
+        } else {
+          // set it to the first organization of member
+          data.organizationId = member.organizations[0].id
+        }
+      }
 
       const record = await this.upsert(data, activityExists, fireCrowdWebhooks)
 
