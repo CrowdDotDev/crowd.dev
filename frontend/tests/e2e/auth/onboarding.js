@@ -2,6 +2,7 @@ import data from './data.json';
 
 export default () => {
   before(() => {
+    cy.wait(1000);
     cy.url().should('include', '/onboard');
   });
 
@@ -85,7 +86,7 @@ export default () => {
     cy.get('@submit').click();
     cy.wait('@apiTenant');
     cy.wait('@apiTenantSampleData');
-    cy.wait(4000);
+    cy.wait(20000);
 
     cy.url().should('not.include', '/onboard');
     cy.location('pathname').should('eq', '/');

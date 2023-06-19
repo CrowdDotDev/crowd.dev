@@ -97,6 +97,8 @@ import {
 } from '@/shared/vuex/vuex.helpers';
 import ConfirmDialog from '@/shared/dialog/confirm-dialog';
 import Message from '@/shared/message/message';
+import { useOrganizationStore } from '@/modules/organization/store/pinia';
+import { i18n } from '@/i18n';
 import { OrganizationPermissions } from '../organization-permissions';
 import { OrganizationService } from '../organization-service';
 
@@ -110,7 +112,10 @@ defineProps({
 });
 
 const { currentUser, currentTenant } = mapGetters('auth');
-const { doDestroy, doFetch, doFind } = mapActions('organization');
+const { doFind } = mapActions('organization');
+
+const organizationStore = useOrganizationStore();
+const { fetchOrganizations } = organizationStore;
 
 const isReadOnly = computed(
   () => new OrganizationPermissions(
@@ -144,7 +149,14 @@ const doDestroyWithConfirm = async (id) => {
       icon: 'ri-delete-bin-line',
     });
 
-    return doDestroy(id);
+    await OrganizationService.destroyAll([id]);
+
+    Message.success(
+      i18n('entities.organization.destroy.success'),
+    );
+    await fetchOrganizations({
+      reload: true,
+    });
   } catch (error) {
     console.error(error);
   }
@@ -170,8 +182,8 @@ const handleCommand = (command) => {
       if (
         router.currentRoute.value.name === 'organization'
       ) {
-        doFetch({
-          keepPagination: false,
+        fetchOrganizations({
+          reload: true,
         });
       } else {
         doFind(command.organization.id);

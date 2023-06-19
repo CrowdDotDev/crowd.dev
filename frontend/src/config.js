@@ -13,50 +13,50 @@ const isPlanEnabled = true;
 
 const defaultConfig = {
   frontendUrl: {
-    host: process.env.VUE_APP_FRONTEND_HOST,
-    protocol: process.env.VUE_APP_FRONTEND_PROTOCOL,
+    host: import.meta.env.VUE_APP_FRONTEND_HOST,
+    protocol: import.meta.env.VUE_APP_FRONTEND_PROTOCOL,
   },
-  backendUrl: process.env.VUE_APP_BACKEND_URL,
-  websocketsUrl: process.env.VUE_APP_WEBSOCKETS_URL,
+  backendUrl: import.meta.env.VUE_APP_BACKEND_URL,
+  websocketsUrl: import.meta.env.VUE_APP_WEBSOCKETS_URL,
   tenantMode,
   isPlanEnabled,
   gitHubInstallationUrl:
-    process.env.VUE_APP_GITHUB_INSTALLATION_URL,
+    import.meta.env.VUE_APP_GITHUB_INSTALLATION_URL,
   discordInstallationUrl:
-    process.env.VUE_APP_DISCORD_INSTALLATION_URL,
-  cubejsUrl: process.env.VUE_APP_CUBEJS_URL,
+    import.meta.env.VUE_APP_DISCORD_INSTALLATION_URL,
+  cubejsUrl: import.meta.env.VUE_APP_CUBEJS_URL,
   conversationPublicUrl:
-    process.env.VUE_APP_CONVERSATIONS_PUBLIC_URL,
-  edition: process.env.VUE_APP_EDITION,
-  communityPremium: process.env.VUE_APP_COMMUNITY_PREMIUM,
-  env: process.env.VUE_APP_ENV,
-  hotjarKey: process.env.VUE_APP_HOTJAR_KEY,
-  nangoUrl: process.env.VUE_APP_NANGO_URL,
+    import.meta.env.VUE_APP_CONVERSATIONS_PUBLIC_URL,
+  edition: import.meta.env.VUE_APP_EDITION,
+  communityPremium: import.meta.env.VUE_APP_COMMUNITY_PREMIUM,
+  env: import.meta.env.VUE_APP_ENV,
+  hotjarKey: import.meta.env.VUE_APP_HOTJAR_KEY,
+  nangoUrl: import.meta.env.VUE_APP_NANGO_URL,
   unleash: {
-    apiKey: process.env.VUE_APP_UNLEASH_API_KEY,
-    url: process.env.VUE_APP_UNLEASH_URL,
+    apiKey: import.meta.env.VUE_APP_UNLEASH_API_KEY,
+    url: import.meta.env.VUE_APP_UNLEASH_URL,
   },
   formbricks: {
-    url: process.env.VUE_APP_FORMBRICKS_URL,
-    environmentId: process.env.VUE_APP_FORMBRICKS_ENVIRONMENT_ID,
+    url: import.meta.env.VUE_APP_FORMBRICKS_URL,
+    environmentId: import.meta.env.VUE_APP_FORMBRICKS_ENVIRONMENT_ID,
   },
   stripe: {
     publishableKey:
-      process.env.VUE_APP_STRIPE_PUBLISHABLE_KEY || '',
+      import.meta.env.VUE_APP_STRIPE_PUBLISHABLE_KEY || '',
     growthPlanPaymentLink:
-      process.env.VUE_APP_STRIPE_GROWTH_PLAN_PAYMENT_LINK
+      import.meta.env.VUE_APP_STRIPE_GROWTH_PLAN_PAYMENT_LINK
       || '',
     eagleEyePlanPaymentLink:
-      process.env
+      import.meta.env
         .VUE_APP_STRIPE_EAGLE_EYE_PLAN_PAYMENT_LINK || '',
     customerPortalLink:
-      process.env.VUE_APP_STRIPE_CUSTOMER_PORTAL_LINK || '',
+      import.meta.env.VUE_APP_STRIPE_CUSTOMER_PORTAL_LINK || '',
   },
   sampleTenant: {
-    id: process.env.VUE_APP_SAMPLE_TENANT_ID,
-    token: process.env.VUE_APP_SAMPLE_TENANT_TOKEN,
+    id: import.meta.env.VUE_APP_SAMPLE_TENANT_ID,
+    token: import.meta.env.VUE_APP_SAMPLE_TENANT_TOKEN,
   },
-  isGitEnabled: process.env.VUE_APP_IS_GIT_ENABLED,
+  isGitEnabled: import.meta.env.VUE_APP_IS_GIT_ENABLED,
 };
 
 const composedConfig = {

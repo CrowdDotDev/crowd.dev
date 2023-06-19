@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>crowd.dev | App</title>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    />
+    <link
+      rel="apple-touch-icon"
+      sizes="180x180"
+      href="/icons/apple-touch-icon.png"
+    />
+    <link
+      rel="icon"
+      type="image/ico"
+      href="/favicon.ico"
+    />
+    <link
+      rel="preconnect"
+      href="https://fonts.googleapis.com"
+    />
+    <link
+      rel="preconnect"
+      href="https://fonts.gstatic.com"
+      crossorigin
+    />
+    <!-- We use the full link to the CSS file in the rest of the tags -->
+    <link
+      rel="preload"
+      as="style"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&display=swap"
+    />
+
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&display=swap"
+      media="print"
+      onload="this.media='all'"
+    />
+    <link
+      rel="preload"
+      as="style"
+      href="https://cdn.jsdelivr.net/npm/remixicon@3.1.1/fonts/remixicon.css"
+    />
+
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/remixicon@3.1.1/fonts/remixicon.css"
+      media="print"
+      onload="this.media='all'"
+    />
+
+    <noscript>
+      <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&display=swap"
+        rel="stylesheet"
+      />
+      <link
+        as="style"
+        href="https://cdn.jsdelivr.net/npm/remixicon@3.1.1/fonts/remixicon.css"
+      />
+    </noscript>
+    <script type="text/javascript">
+      let segmentKey =
+              '%VUE_APP_SEGMENT_KEY%'
+
+      if (!segmentKey) {
+        segmentKey = 'CROWD_VUE_APP_SEGMENT_KEY'
+      }
+      if(segmentKey && !segmentKey.startsWith('%VUE_APP_SEGMENT_KEY')) {
+        !(function() {
+          var analytics = (window.analytics =
+                  window.analytics || [])
+          if (!analytics.initialize)
+            if (analytics.invoked)
+              window.console &&
+              console.error &&
+              console.error(
+                      'Segment snippet included twice.'
+              )
+            else {
+              analytics.invoked = !0
+              analytics.methods = [
+                'trackSubmit',
+                'trackClick',
+                'trackLink',
+                'trackForm',
+                'pageview',
+                'identify',
+                'reset',
+                'group',
+                'track',
+                'ready',
+                'alias',
+                'debug',
+                'page',
+                'once',
+                'off',
+                'on'
+              ]
+              analytics.factory = function(t) {
+                return function() {
+                  var e =
+                          Array.prototype.slice.call(arguments)
+                  e.unshift(t)
+                  analytics.push(e)
+                  return analytics
+                }
+              }
+              for (
+                      var t = 0;
+                      t < analytics.methods.length;
+                      t++
+              ) {
+                var e = analytics.methods[t]
+                analytics[e] = analytics.factory(e)
+              }
+              analytics.load = function(t, e) {
+                var n = document.createElement('script')
+                n.type = 'text/javascript'
+                n.async = !0
+                n.src =
+                        'https://cdn.segment.com/analytics.js/v1/' +
+                        t +
+                        '/analytics.min.js'
+                var a =
+                        document.getElementsByTagName('script')[0]
+                a.parentNode.insertBefore(n, a)
+                analytics._loadOptions = e
+              }
+              analytics.SNIPPET_VERSION = '4.1.0'
+
+              analytics.load(segmentKey)
+            }
+        })()
+      }
+
+      let pendoKey = '%VUE_APP_PENDO_KEY%'
+
+      if (!pendoKey) {
+        pendoKey = 'CROWD_VUE_APP_PENDO_KEY'
+      }
+
+      if(pendoKey && !pendoKey.startsWith('%VUE_APP_PENDO_KEY')){
+        ;(function (apiKey) {
+          ;(function (p, e, n, d, o) {
+            var v, w, x, y, z
+            o = p[d] = p[d] || {}
+            o._q = o._q || []
+            v = [
+              'initialize',
+              'identify',
+              'updateOptions',
+              'pageLoad',
+              'track'
+            ]
+            for (w = 0, x = v.length; w < x; ++w)
+              (function (m) {
+                o[m] =
+                  o[m] ||
+                  function () {
+                    o._q[m === v[0] ? 'unshift' : 'push'](
+                      [m].concat([].slice.call(arguments, 0))
+                    )
+                  }
+              })(v[w])
+            y = e.createElement(n)
+            y.async = !0
+            y.src =
+              'https://cdn.eu.pendo.io/agent/static/' +
+              apiKey +
+              '/pendo.js'
+            z = e.getElementsByTagName(n)[0]
+            z.parentNode.insertBefore(y, z)
+          })(window, document, 'script', 'pendo')
+        })(pendoKey)
+      }
+    </script>
+    <title></title>
+  </head>
+
+  <body>
+    <noscript>
+      <strong
+        >We're sorry but frontend doesn't work properly
+        without JavaScript enabled. Please enable it to
+        continue.</strong
+      >
+    </noscript>
+    <div id="app"></div>
+    <!-- built files will be auto injected -->
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

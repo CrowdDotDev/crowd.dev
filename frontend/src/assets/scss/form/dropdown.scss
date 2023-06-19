@@ -36,9 +36,18 @@
   // Selected state
   &.is-selected,
   &:focus.is-selected {
-    @apply relative bg-brand-50;
+    @apply relative bg-brand-50 text-gray-900 cursor-default;
     i {
       @apply mr-3 text-brand-600;
+    }
+  }
+
+  // Active state
+  &.is-active,
+  &:focus.is-active {
+    @apply relative bg-gray-50 text-gray-400 cursor-default;
+    i {
+      @apply mr-3 text-gray-400;
     }
   }
 

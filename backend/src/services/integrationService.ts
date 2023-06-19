@@ -291,6 +291,21 @@ export default class IntegrationService {
 
       const repos = await getInstalledRepositories(installToken)
 
+      // If the git integration is configured, we add the repos to the git config
+      let isGitintegrationConfigured
+      try {
+        await this.findByPlatform(PlatformType.GIT)
+        isGitintegrationConfigured = true
+      } catch (err) {
+        isGitintegrationConfigured = false
+      }
+      if (isGitintegrationConfigured) {
+        const gitRemotes = await this.gitGetRemotes()
+        await this.gitConnectOrUpdate({
+          remotes: [...gitRemotes.default, ...repos.map((repo) => repo.cloneUrl)],
+        })
+      }
+
       integration = await this.createOrUpdate(
         {
           platform: PlatformType.GITHUB,
