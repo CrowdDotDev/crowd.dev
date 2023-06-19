@@ -75,23 +75,55 @@
               with-link
               class="bl"
             />
-            <div class="flex gap-4 justify-between items-center h-9 -mt-1">
+            <div
+              class="flex gap-4 justify-between min-h-9 -mt-1"
+              :class="{
+                'items-center': !isMemberEntity,
+                'items-start': isMemberEntity,
+              }"
+            >
               <app-activity-header
                 :activity="activity"
                 class="flex flex-wrap items-center"
+                :class="{
+                  'mt-1.5': isMemberEntity,
+                }"
               />
 
-              <app-activity-dropdown
-                v-if="showAffiliations"
-                :show-affiliations="true"
-                :activity="activity"
-                :organizations="entity.organizations"
-                @on-update="fetchActivities({ reset: true })"
-              />
+              <div class="flex items-center flex-nowrap">
+                <a
+                  v-if="
+                    activity.conversationId && isMemberEntity
+                  "
+                  class="text-xs font-medium flex items-center mr-4 cursor-pointer"
+                  target="_blank"
+                  @click="
+                    conversationId = activity.conversationId
+                  "
+                >
+                  <i
+                    class="ri-lg ri-arrow-right-up-line mr-1"
+                  />
+                  <span class="block whitespace-nowrap">Open conversation</span>
+                </a>
+                <app-activity-dropdown
+                  v-if="showAffiliations"
+                  :show-affiliations="true"
+                  :activity="activity"
+                  :organizations="entity.organizations"
+                  @on-update="fetchActivities({ reset: true })"
+                />
+              </div>
             </div>
+
+            <app-lf-activity-parent
+              v-if="activity.parent && isMemberEntity"
+              :parent="activity.parent"
+            />
+
             <app-activity-content
               v-if="activity.title || activity.body"
-              class="text-sm bg-gray-50 rounded-lg p-4 mt-5"
+              class="text-sm bg-gray-50 rounded-lg p-4 mt-3"
               :activity="activity"
               :show-more="true"
             >
@@ -154,6 +186,12 @@
       </div>
     </div>
   </div>
+
+  <app-conversation-drawer
+    :expand="conversationId != null"
+    :conversation-id="conversationId"
+    @close="conversationId = null"
+  />
 </template>
 
 <script setup>
@@ -178,6 +216,8 @@ import AppActivityLink from '@/modules/activity/components/activity-link.vue';
 import AuthCurrentTenant from '@/modules/auth/auth-current-tenant';
 import AppActivityContentFooter from '@/modules/activity/components/activity-content-footer.vue';
 import AppActivityDropdown from '@/modules/activity/components/activity-dropdown.vue';
+import AppLfActivityParent from '@/modules/lf/activity/components/lf-activity-parent.vue';
+import AppConversationDrawer from '@/modules/conversation/components/conversation-drawer.vue';
 
 const SearchIcon = h(
   'i', // type
@@ -201,6 +241,8 @@ const props = defineProps({
   },
 });
 
+const conversationId = ref(null);
+
 const activeIntegrations = computed(() => {
   const activeIntegrationList = store.getters['integration/activeList'];
   return Object.keys(activeIntegrationList).map((i) => ({
@@ -218,6 +260,8 @@ const offset = ref(0);
 const noMore = ref(false);
 
 let filter = {};
+
+const isMemberEntity = computed(() => props.entityType === 'member');
 
 const segments = computed(() => props.entity.segments?.map((s) => {
   if (typeof s === 'string') {
