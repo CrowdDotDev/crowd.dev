@@ -35,6 +35,11 @@ async function weeklyAnalyticsEmailsWorker(tenantId: string): Promise<AnalyticsE
   const userContext = await getUserContext(tenantId)
 
   if (response.shouldRetry) {
+    log.error(
+      response.error,
+      'Exception while getting analytics data. Retrying with a new message.',
+    )
+
     // expception while getting data. send new node message and return
     await sendNodeWorkerMessage(tenantId, {
       type: NodeWorkerMessageType.NODE_MICROSERVICE,
@@ -523,6 +528,7 @@ async function getAnalyticsData(tenantId: string) {
     return {
       shouldRetry: true,
       data: {},
+      error: e,
     }
   }
 }

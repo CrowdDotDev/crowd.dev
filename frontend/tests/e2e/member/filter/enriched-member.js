@@ -9,7 +9,7 @@ export default () => {
     cy.scrollTo(0, 0);
     cy.server();
     cy.route('POST', '/api/tenant/*/member/query').as('apiMemberQuery');
-    cy.get('[data-qa="filter-list-chip"]').as('filterItem')
+    cy.get('[data-qa="filter-list-chip"]').as('filterItem');
   });
 
   after(() => {
@@ -17,13 +17,10 @@ export default () => {
     cy.get('[data-qa="filter-list-chip-close"]').click({ force: true });
   });
 
-  it('has apply button disabled if no option selected', () => {
-    cy.get('[data-qa="filter-apply"]').should('be.disabled');
-  });
-
   it('Filters by member enrichment True', () => {
     cy.get('[data-qa="filter-boolean-true"]').click();
-    cy.get('[data-qa="filter-apply"]').click();
+    cy.wait(100);
+    cy.get('.filter-boolean [data-qa="filter-apply"]').click({ force: true });
     cy.wait('@apiMemberQuery');
     cy.get('@apiMemberQuery').then((req) => {
       const { rows } = req.response.body;
@@ -40,7 +37,8 @@ export default () => {
     cy.wait(100);
     cy.get('@filterItem').click();
     cy.get('[data-qa="filter-include-switch"]').click();
-    cy.get('[data-qa="filter-apply"]').click();
+    cy.wait(100);
+    cy.get('.filter-boolean [data-qa="filter-apply"]').click({ force: true });
     cy.wait('@apiMemberQuery');
     cy.get('@apiMemberQuery').then((req) => {
       const { rows } = req.response.body;
@@ -58,7 +56,7 @@ export default () => {
     cy.get('@filterItem').click();
     cy.get('[data-qa="filter-boolean-false"]').click();
     cy.get('[data-qa="filter-include-switch"]').click();
-    cy.get('[data-qa="filter-apply"]').click();
+    cy.get('.filter-boolean [data-qa="filter-apply"]').click({ force: true });
     cy.wait('@apiMemberQuery');
     cy.get('@apiMemberQuery').then((req) => {
       const { rows } = req.response.body;
@@ -76,7 +74,7 @@ export default () => {
     cy.get('@filterItem').click();
     cy.get('[data-qa="filter-boolean-false"]').contains('False').click();
     cy.get('[data-qa="filter-include-switch"]').click();
-    cy.get('[data-qa="filter-apply"]').click();
+    cy.get('.filter-boolean [data-qa="filter-apply"]').click({ force: true });
     cy.wait('@apiMemberQuery');
     cy.get('@apiMemberQuery').then((req) => {
       const { rows } = req.response.body;

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-JS_DESTINATION="/etc/nginx/html/js/*.js"
+JS_DESTINATION="/etc/nginx/html/assets/*.js"
 HTML_DESTINATION="/etc/nginx/html/index.html"
 
 declare -a ENV_VARIABLES=(
