@@ -38,10 +38,6 @@ export default {
       type: String,
       default: null,
     },
-    segments: {
-      type: Array,
-      default: () => [],
-    },
   },
   emits: ['update:modelValue'],
 
@@ -79,7 +75,6 @@ export default {
     async createTag(value) {
       const newTag = await this.doCreateTag({
         name: value,
-        segments: this.segments,
       });
 
       return {

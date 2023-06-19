@@ -25,7 +25,6 @@
       :visible="editing"
       :loading="loading"
       :pretitle="member.displayName"
-      :segments="member.segmentIds"
       @cancel="editing = false"
       @submit="doSubmit"
     />

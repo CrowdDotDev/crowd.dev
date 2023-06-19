@@ -13,7 +13,6 @@
               :fetch-fn="fields.tags.fetchFn"
               :mapper-fn="fields.tags.mapperFn"
               :create-if-not-found="true"
-              :segments="segments"
               placeholder="Type to search/create tags"
             />
           </form>
@@ -64,10 +63,6 @@ export default {
     pretitle: {
       type: String,
       default: null,
-    },
-    segments: {
-      type: Array,
-      default: () => [],
     },
   },
   emits: ['submit', 'cancel', 'update:modelValue'],

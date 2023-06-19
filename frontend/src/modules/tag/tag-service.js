@@ -2,24 +2,24 @@ import authAxios from '@/shared/axios/auth-axios';
 import AuthCurrentTenant from '@/modules/auth/auth-current-tenant';
 
 export class TagService {
-  static async update(id, data, segments) {
+  static async update(id, data) {
     const tenantId = AuthCurrentTenant.get();
 
     const response = await authAxios.put(
       `/tenant/${tenantId}/tag/${id}`,
       {
         ...data,
-        segments,
+        excludeSegments: true,
       },
     );
 
     return response.data;
   }
 
-  static async destroyAll(ids, segments) {
+  static async destroyAll(ids) {
     const params = {
       ids,
-      segments,
+      excludeSegments: true,
     };
 
     const tenantId = AuthCurrentTenant.get();
@@ -34,26 +34,28 @@ export class TagService {
     return response.data;
   }
 
-  static async create(data, segments) {
+  static async create(data) {
     const tenantId = AuthCurrentTenant.get();
 
     const response = await authAxios.post(
       `/tenant/${tenantId}/tag`,
-      data,
-      segments,
+      {
+        ...data,
+        excludeSegments: true,
+      },
     );
 
     return response.data;
   }
 
-  static async find(id, segments) {
+  static async find(id) {
     const tenantId = AuthCurrentTenant.get();
 
     const response = await authAxios.get(
       `/tenant/${tenantId}/tag/${id}`,
       {
         params: {
-          segments,
+          excludeSegments: true,
         },
       },
     );
@@ -89,12 +91,11 @@ export class TagService {
   static async listAutocomplete({
     query,
     limit,
-    segments = [],
   }) {
     const params = {
       query,
       limit,
-      segments,
+      excludeSegments: true,
     };
 
     const tenantId = AuthCurrentTenant.get();
