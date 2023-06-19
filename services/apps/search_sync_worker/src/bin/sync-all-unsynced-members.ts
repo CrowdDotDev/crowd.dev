@@ -24,6 +24,6 @@ setImmediate(async () => {
   const service = new SyncService(redis, store, openSearchService, log)
 
   for (const tenantId of tenantIds) {
-    await service.syncTenantMembers(tenantId)
+    await service.syncTenantMembers(tenantId, false)
   }
 })
