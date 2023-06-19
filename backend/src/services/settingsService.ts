@@ -1,6 +1,5 @@
 import SequelizeRepository from '../database/repositories/sequelizeRepository'
 import SettingsRepository from '../database/repositories/settingsRepository'
-import Error400 from '../errors/Error400'
 
 const DEFAULT_SETTINGS = {}
 
