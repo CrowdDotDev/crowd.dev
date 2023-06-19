@@ -1,5 +1,6 @@
 <template>
   <app-page-wrapper
+    v-if="selectedSegments"
     :container-class="'col-start-1 col-span-12'"
   >
     <div class="member-form-page">
@@ -159,7 +160,10 @@ const ArrowPrevIcon = h(
   [],
 );
 
-const { getMemberCustomAttributes } = useMemberStore();
+const memberStore = useMemberStore();
+const { customAttributes } = storeToRefs(memberStore);
+const { getMemberCustomAttributes } = memberStore;
+
 const router = useRouter();
 const route = useRoute();
 const store = useStore();
@@ -226,6 +230,13 @@ function getInitialModel(r) {
 }
 
 const selectedSegments = computed(() => {
+  if (!selectedProjectGroup.value) {
+    return {
+      project: null,
+      subproject: null,
+    };
+  }
+
   let subproject;
 
   const project = selectedProjectGroup.value.projects.find(
