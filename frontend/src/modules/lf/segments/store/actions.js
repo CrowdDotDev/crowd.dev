@@ -7,7 +7,7 @@ export default {
   listProjectGroups({ search = null, offset, limit } = {}) {
     this.projectGroups.loading = true;
 
-    LfService.queryProjectGroups({
+    return LfService.queryProjectGroups({
       limit: limit !== undefined ? limit : this.projectGroups.pagination.pageSize,
       offset: offset !== undefined ? offset : this.offset,
       filter: {
@@ -24,9 +24,11 @@ export default {
         }
 
         this.projectGroups.pagination.count = count;
+        return Promise.resolve();
       })
       .catch(() => {
         Message.error('Something went wrong while fetching project groups');
+        return Promise.reject();
       })
       .finally(() => {
         this.projectGroups.loading = false;
@@ -174,15 +176,17 @@ export default {
 
     this.listProjects();
   },
-  updateSelectedProjectGroup(projectGroupId) {
+  updateSelectedProjectGroup(projectGroupId, sendToDashboard = true) {
     if (projectGroupId) {
       const projectGroup = this.projectGroups.list.find((p) => p.id === projectGroupId);
 
       this.selectedProjectGroup = projectGroup;
 
-      router.push({
-        name: 'dashboard',
-      });
+      if (sendToDashboard) {
+        router.push({
+          name: 'dashboard',
+        });
+      }
     } else {
       this.selectedProjectGroup = null;
     }
