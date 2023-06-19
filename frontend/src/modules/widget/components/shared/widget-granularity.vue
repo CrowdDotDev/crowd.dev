@@ -59,12 +59,13 @@ const props = defineProps({
 const dropdownOpen = ref(false);
 
 const setGranularity = (granularity) => {
+  emits('onUpdate', granularity);
+
   window.analytics.track('Filter widget', {
     granularity,
     template: props.template,
     widget: props.widget,
   });
-  emits('onUpdate', granularity);
 };
 </script>
 

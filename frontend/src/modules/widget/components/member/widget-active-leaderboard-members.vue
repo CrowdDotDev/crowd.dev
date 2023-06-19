@@ -193,14 +193,14 @@ const onRowClick = () => {
 
 // Open drawer and set title
 const handleDrawerOpen = async () => {
+  drawerExpanded.value = true;
+  drawerTitle.value = 'Most active members';
+
   window.analytics.track('Open report drawer', {
     template: MEMBERS_REPORT.nameAsId,
     widget: ACTIVE_LEADERBOARD_MEMBERS_WIDGET.name,
     period: selectedPeriod.value,
   });
-
-  drawerExpanded.value = true;
-  drawerTitle.value = 'Most active members';
 };
 
 const onExport = async ({ ids, count }) => {

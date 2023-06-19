@@ -122,14 +122,14 @@ const model = computed({
 // Handle filter by period
 // Reset pagination, fetch new list and select a new period
 const onPeriodOptionClick = async (option) => {
+  selectedPeriod.value = option;
+
+  emit('on-period-update', option);
+
   window.analytics.track('Filter in report drawer', {
     template: props.template,
     period: option,
   });
-
-  selectedPeriod.value = option;
-
-  emit('on-period-update', option);
 };
 </script>
 

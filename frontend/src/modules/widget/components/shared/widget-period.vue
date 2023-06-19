@@ -116,6 +116,8 @@ const getPeriodClass = (value) => (props.period.value === value
   : 'bg-white');
 
 const setPeriod = (period) => {
+  emits('onUpdate', period);
+
   if (props.module !== 'dashboard') {
     window.analytics.track('Filter widget', {
       period,
@@ -123,7 +125,6 @@ const setPeriod = (period) => {
       widget: props.widget,
     });
   }
-  emits('onUpdate', period);
 };
 </script>
 

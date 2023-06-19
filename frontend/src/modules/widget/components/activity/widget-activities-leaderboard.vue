@@ -90,14 +90,14 @@ const onDrawerUpdatePeriod = (updatedPeriod) => {
 };
 
 const handleDrawerOpen = () => {
+  drawerExpanded.value = true;
+  drawerSelectedPeriod.value = SEVEN_DAYS_PERIOD_FILTER;
+
   window.analytics.track('Open report drawer', {
     template: ACTIVITIES_REPORT.nameAsId,
     widget: ACTIVITIES_LEADERBOARD_WIDGET.name,
     period: drawerSelectedPeriod.value,
   });
-
-  drawerExpanded.value = true;
-  drawerSelectedPeriod.value = SEVEN_DAYS_PERIOD_FILTER;
 };
 </script>
 

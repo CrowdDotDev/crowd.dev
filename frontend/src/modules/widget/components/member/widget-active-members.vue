@@ -200,13 +200,6 @@ const getActiveMembers = async ({ pagination }) => {
 
 // Open drawer and set title and date
 const onViewMoreClick = (date) => {
-  window.analytics.track('Open report drawer', {
-    template: MEMBERS_REPORT.nameAsId,
-    widget: 'Active members',
-    date,
-    granularity: granularity.value,
-  });
-
   drawerExpanded.value = true;
   drawerDate.value = date;
 
@@ -218,6 +211,13 @@ const onViewMoreClick = (date) => {
   } else {
     drawerTitle.value = 'Daily active members';
   }
+
+  window.analytics.track('Open report drawer', {
+    template: MEMBERS_REPORT.nameAsId,
+    widget: 'Active members',
+    date,
+    granularity: granularity.value,
+  });
 };
 
 const onExport = async ({ ids, count }) => {

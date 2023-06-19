@@ -200,15 +200,15 @@ const getActiveMembers = async ({ pagination }) => {
 
 // Open drawer and set title and period
 const handleDrawerOpen = async (widget) => {
+  drawerExpanded.value = true;
+  drawerTitle.value = widget.title;
+  drawerGranularity.value = widget.period;
+
   window.analytics.track('Open report drawer', {
     template: MEMBERS_REPORT.nameAsId,
     widget: widget.title,
     period: widget.period,
   });
-
-  drawerExpanded.value = true;
-  drawerTitle.value = widget.title;
-  drawerGranularity.value = widget.period;
 };
 
 const onExport = async ({ ids, count }) => {
