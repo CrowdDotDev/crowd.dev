@@ -1249,7 +1249,7 @@ class MemberRepository {
             ms."segmentId"
         FROM members m
         JOIN "memberSegments" ms ON ms."memberId" = m.id
-        INNER JOIN "memberActivityAggregatesMVs" aggs ON aggs.id = m.id
+        INNER JOIN "memberActivityAggregatesMVs" aggs ON aggs.id = m.id AND aggs."segmentId" = ms."segmentId"
         LEFT JOIN member_tags mt ON m.id = mt."memberId"
         LEFT JOIN member_organizations mo ON m.id = mo."memberId"
         WHERE m."deletedAt" IS NULL
