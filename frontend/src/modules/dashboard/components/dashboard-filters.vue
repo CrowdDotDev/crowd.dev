@@ -129,8 +129,10 @@ export default {
     selectedProjectGroup: {
       deep: true,
       immediate: true,
-      handler(updatedSelectedProjectGroup) {
-        this.doFetch(getSegmentsFromProjectGroup(updatedSelectedProjectGroup));
+      handler(updatedSelectedProjectGroup, previouSelectedProjectGroup) {
+        if (previouSelectedProjectGroup?.id !== updatedSelectedProjectGroup?.id) {
+          this.doFetch(getSegmentsFromProjectGroup(updatedSelectedProjectGroup));
+        }
       },
     },
   },
