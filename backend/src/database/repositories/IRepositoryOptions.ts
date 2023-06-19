@@ -10,4 +10,5 @@ export interface IRepositoryOptions {
   database: any
   transaction?: any
   bypassPermissionValidation?: any
+  opensearch?: any
 }
