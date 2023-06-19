@@ -25,7 +25,10 @@
       </router-link>
     </div>
 
-    <div class="flex flex-col gap-4 mt-6">
+    <div
+      v-if="member.organizations.length"
+      class="flex flex-col gap-4 mt-6"
+    >
       <router-link
         v-for="organization of member.organizations"
         :key="organization.id"
@@ -56,6 +59,9 @@
           </div>
         </div>
       </router-link>
+    </div>
+    <div v-else class="text-gray-400 mt-6 text-sm">
+      No organizations
     </div>
   </div>
 </template>
