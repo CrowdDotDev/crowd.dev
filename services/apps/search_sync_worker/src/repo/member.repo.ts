@@ -40,54 +40,41 @@ export class MemberRepository extends RepositoryBase<MemberRepository> {
     return results
   }
 
-  public async getMemberData(
-    id?: string,
-    tenantId?: string,
-    justUnsynced = false,
-    page?: number,
-    perPage?: number,
-  ): Promise<IDbMemberSyncData[]> {
-    if (!id && !tenantId) {
-      throw new Error('Either id or tenantId must be provided!')
-    }
+  public async getTenantMembersForSync(
+    tenantId: string,
+    page: number,
+    perPage: number,
+  ): Promise<string[]> {
+    const results = await this.db().any(
+      `
+        select m.id
+        from members m
+        where m."tenantId" = $(tenantId) and m."deletedAt" is null and m."searchSyncedAt" is null
+        and exists (select 1 from activities where "memberId" = m.id) and exists (select 1 from "memberIdentities" where "memberId" = m.id)
+        limit ${perPage} offset ${(page - 1) * perPage};`,
+      {
+        tenantId,
+      },
+    )
 
-    const conditions = ['m."deletedAt" is null']
-    const params: Record<string, unknown> = {}
-    if (id) {
-      conditions.push(`m.id = $(id)`)
-      params.id = id
-    }
+    return results.map((r) => r.id)
+  }
 
-    if (tenantId) {
-      conditions.push(`m."tenantId" = $(tenantId)`)
-      params.tenantId = tenantId
-    }
-
-    if (justUnsynced) {
-      conditions.push('m."searchSyncedAt" is null')
-    }
-
-    let pagination = ''
-    if (page && perPage) {
-      pagination = `limit ${perPage} offset ${(page - 1) * perPage}`
-    }
-
-    const conditionString = conditions.join(' and ')
-
-    const result = await this.db().any(
+  public async getMemberData(ids: string[]): Promise<IDbMemberSyncData[]> {
+    const results = await this.db().any(
       `
       with to_merge_data as (select mtm."memberId",
                                       array_agg(distinct mtm."toMergeId"::text) as to_merge_ids
                               from "memberToMerge" mtm
                                         inner join members m2 on mtm."toMergeId" = m2.id
-                              where mtm."memberId" = $(id)
+                              where mtm."memberId" in ($(ids:csv))
                                 and m2."deletedAt" is null
                               group by mtm."memberId"),
             no_merge_data as (select mnm."memberId",
                                       array_agg(distinct mnm."noMergeId"::text) as no_merge_ids
                               from "memberNoMerge" mnm
                                         inner join members m2 on mnm."noMergeId" = m2.id
-                              where mnm."memberId" = $(id)
+                              where mnm."memberId" in ($(ids:csv))
                                 and m2."deletedAt" is null
                               group by mnm."memberId"),
             member_tags as (select mt."memberId",
@@ -101,7 +88,7 @@ export class MemberRepository extends RepositoryBase<MemberRepository> {
                                     jsonb_agg(t.id) as all_ids
                             from "memberTags" mt
                                       inner join tags t on mt."tagId" = t.id
-                            where mt."memberId" = $(id)
+                            where mt."memberId" in ($(ids:csv))
                               and t."deletedAt" is null
                             group by mt."memberId", t."segmentId"),
             member_organizations as (select mo."memberId",
@@ -117,7 +104,7 @@ export class MemberRepository extends RepositoryBase<MemberRepository> {
                                       from "memberOrganizations" mo
                                               inner join organizations o on mo."organizationId" = o.id
                                               inner join "organizationSegments" os on o.id = os."organizationId"
-                                      where mo."memberId" = $(id)
+                                      where mo."memberId" in ($(ids:csv))
                                         and o."deletedAt" is null
                                       group by mo."memberId", os."segmentId"),
             identities as (select mi."memberId",
@@ -128,7 +115,7 @@ export class MemberRepository extends RepositoryBase<MemberRepository> {
                                               )
                                       ) as identities
                             from "memberIdentities" mi
-                            where mi."memberId" = $(id)
+                            where mi."memberId" in ($(ids:csv))
                             group by mi."memberId"),
             activity_data as (select a."memberId",
                                       a."segmentId",
@@ -145,10 +132,10 @@ export class MemberRepository extends RepositoryBase<MemberRepository> {
                                                         else null::double precision
                                                         end)::numeric, 2)                                  as "averageSentiment"
                               from activities a
-                              where a."memberId" = $(id)
+                              where a."memberId" in ($(ids:csv))
                               group by a."memberId", a."segmentId")
         select m.id,
-              ms."tenantId",
+              m."tenantId",
               ms."segmentId",
               m."displayName",
               m.attributes,
@@ -179,13 +166,14 @@ export class MemberRepository extends RepositoryBase<MemberRepository> {
                 left join no_merge_data nmd on m.id = nmd."memberId"
                 left join member_tags mt on ms."memberId" = mt."memberId" and ms."segmentId" = mt."segmentId"
                 left join member_organizations mo on ms."memberId" = mo."memberId" and ms."segmentId" = mo."segmentId"
-        where ${conditionString}
-        ${pagination}
-      `,
-      params,
+        where ms."memberId" in ($(ids:csv))
+          and m."deletedAt" is null;`,
+      {
+        ids,
+      },
     )
 
-    return result
+    return results
   }
 
   public async setTenanMembersForSync(tenantId: string): Promise<void> {
