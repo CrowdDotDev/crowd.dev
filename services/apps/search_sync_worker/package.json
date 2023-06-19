@@ -14,6 +14,7 @@
     "format": "prettier --write \"src/**/*.ts\"",
     "format-check": "prettier --check .",
     "tsc-check": "tsc --noEmit",
+    "script:sync-all-unsynced-members": "node -r tsconfig-paths/register -r ts-node/register src/bin/sync-all-unsynced-members.ts --transpile-only",
     "script:sync-member": "node -r tsconfig-paths/register -r ts-node/register src/bin/sync-member.ts --transpile-only",
     "script:sync-tenant-members": "node -r tsconfig-paths/register -r ts-node/register src/bin/sync-tenant-members.ts --transpile-only",
     "script:cleanup-tenant-members": "node -r tsconfig-paths/register -r ts-node/register src/bin/cleanup-tenant-members.ts --transpile-only"

@@ -13,6 +13,14 @@ export class MemberRepository extends RepositoryBase<MemberRepository> {
     this.cache = new RedisCache('memberAttributes', redisClient, this.log)
   }
 
+  public async getUnsyncedTenantIds(): Promise<string[]> {
+    const results = await this.db().any(
+      `select distinct "tenantId" from members where "searchSyncedAt" is null;`,
+    )
+
+    return results.map((r) => r.tenantId)
+  }
+
   public async getTenantMemberAttributes(tenantId: string): Promise<IMemberAttribute[]> {
     const cachedString = await this.cache.get(tenantId)
 
