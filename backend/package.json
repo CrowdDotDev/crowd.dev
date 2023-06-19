@@ -80,6 +80,7 @@
     "cors": "2.8.5",
     "cron": "^2.1.0",
     "cron-time-generator": "^1.3.0",
+    "crowd-sentiment": "^1.1.7",
     "crypto-js": "^4.1.1",
     "discord.js": "^14.7.1",
     "dotenv": "8.2.0",
