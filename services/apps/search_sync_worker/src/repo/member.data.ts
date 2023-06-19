@@ -17,6 +17,7 @@ export interface IDbMemberOrganization {
 export interface IDbMemberSyncData {
   id: string
   tenantId: string
+  segmentId: string
   displayName: string | null
   attributes: unknown | null
   emails: string[] | null

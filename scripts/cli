@@ -335,7 +335,8 @@ function migrate_test() {
 
 function source_edition() {
     __CROWD_EDITION=$(source $CLI_HOME/../backend/.env.dist.local && source $CLI_HOME/../backend/.env.override.local && echo $CROWD_EDITION)
-    echo "Crowd edition detected: $__CROWD_EDITION"
+    nl
+    say "Crowd edition detected: $__CROWD_EDITION"
 }
 
 function check_init_premium() {

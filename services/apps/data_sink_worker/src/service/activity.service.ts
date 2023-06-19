@@ -28,7 +28,11 @@ export default class ActivityService extends LoggerBase {
     this.conversationService = new ConversationService(store, parentLog)
   }
 
-  public async create(tenantId: string, activity: IActivityCreateData): Promise<string> {
+  public async create(
+    tenantId: string,
+    segmentId: string,
+    activity: IActivityCreateData,
+  ): Promise<string> {
     try {
       this.log.debug('Creating an activity.')
 
@@ -48,7 +52,7 @@ export default class ActivityService extends LoggerBase {
           await txSettingsRepo.createActivityChannel(tenantId, activity.platform, activity.channel)
         }
 
-        const id = await txRepo.create(tenantId, {
+        const id = await txRepo.create(tenantId, segmentId, {
           type: activity.type,
           timestamp: activity.timestamp.toISOString(),
           platform: activity.platform,
@@ -84,6 +88,7 @@ export default class ActivityService extends LoggerBase {
   public async update(
     id: string,
     tenantId: string,
+    segmentId: string,
     activity: IActivityUpdateData,
     original: IDbActivity,
   ): Promise<void> {
@@ -108,7 +113,7 @@ export default class ActivityService extends LoggerBase {
 
         if (!isObjectEmpty(toUpdate)) {
           this.log.debug({ activityId: id }, 'Updating activity.')
-          await txRepo.update(id, tenantId, {
+          await txRepo.update(id, tenantId, segmentId, {
             type: toUpdate.type || original.type,
             isContribution: toUpdate.isContribution || original.isContribution,
             score: toUpdate.score || original.score,
@@ -395,6 +400,7 @@ export default class ActivityService extends LoggerBase {
           await txActivityService.update(
             dbActivity.id,
             tenantId,
+            segmentId,
             {
               type: activity.type,
               isContribution: activity.isContribution,
@@ -454,7 +460,7 @@ export default class ActivityService extends LoggerBase {
         }
 
         if (create) {
-          await txActivityService.create(tenantId, {
+          await txActivityService.create(tenantId, segmentId, {
             type: activity.type,
             platform,
             timestamp: new Date(activity.timestamp),

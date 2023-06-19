@@ -103,7 +103,7 @@ export class SyncService extends LoggerBase {
         const attributes = await this.memberRepo.getTenantMemberAttributes(tenantId)
 
         const perPage = 1000
-        let members = await this.memberRepo.getTenantMembersForSync(tenantId, 1, perPage)
+        let members = await this.memberRepo.getMemberData(undefined, tenantId, true, 1, perPage)
 
         while (members.length > 0) {
           count += members.length
@@ -121,7 +121,7 @@ export class SyncService extends LoggerBase {
           await this.memberRepo.markSynced(members.map((m) => m.id))
 
           this.log.info({ tenantId }, `Synced ${count} members!`)
-          members = await this.memberRepo.getTenantMembersForSync(tenantId, 1, perPage)
+          members = await this.memberRepo.getMemberData(undefined, tenantId, true, 1, perPage)
         }
       },
       this.log,
@@ -134,13 +134,17 @@ export class SyncService extends LoggerBase {
   public async syncMember(memberId: string, retries = 0): Promise<void> {
     this.log.debug({ memberId }, 'Syncing member!')
 
-    const member = await this.memberRepo.getMemberData(memberId)
+    // we can have multiple - per segment
+    const memberDocuments = await this.memberRepo.getMemberData(memberId)
 
-    if (member) {
-      const attributes = await this.memberRepo.getTenantMemberAttributes(member.tenantId)
+    if (memberDocuments.length > 0) {
+      for (const member of memberDocuments) {
+        const attributes = await this.memberRepo.getTenantMemberAttributes(member.tenantId)
 
-      const prepared = SyncService.prefixData(member, attributes)
-      await this.openSearchService.index(memberId, OpenSearchIndex.MEMBERS, prepared)
+        const prepared = SyncService.prefixData(member, attributes)
+        await this.openSearchService.index(memberId, OpenSearchIndex.MEMBERS, prepared)
+      }
+
       await this.memberRepo.markSynced([memberId])
     } else {
       // we should retry - sometimes database is slow
@@ -160,6 +164,7 @@ export class SyncService extends LoggerBase {
 
     p.uuid_id = data.id
     p.uuid_tenantId = data.tenantId
+    p.uuid_segmentId = data.segmentId
     p.string_displayName = data.displayName
     const p_attributes = {}
 
