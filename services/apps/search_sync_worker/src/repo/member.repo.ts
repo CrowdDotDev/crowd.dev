@@ -274,4 +274,23 @@ export class MemberRepository extends RepositoryBase<MemberRepository> {
       },
     )
   }
+
+  public async checkMemberExists(tenantId: string, memberIds: string[]): Promise<string[]> {
+    const results = await this.db().any(
+      `
+      select m.id
+      from members m
+      where m."tenantId" = $(tenantId ) and 
+            m.id in ($(memberIds:csv)) and
+            exists(select 1 from activities a where a."memberId" = m.id) and
+            exists(select 1 from "memberIdentities" mi where mi."memberId" = m.id)
+      `,
+      {
+        tenantId,
+        memberIds,
+      },
+    )
+
+    return results.map((r) => r.id)
+  }
 }

@@ -1,10 +1,10 @@
-import { IS_DEV_ENV } from '@crowd/common'
 import { OPENSEARCH_CONFIG } from '@/conf'
 import { OPENSEARCH_INDEX_MAPPINGS, OpenSearchIndex } from '@/types'
+import { IS_DEV_ENV } from '@crowd/common'
 import { Logger, LoggerBase } from '@crowd/logging'
 import { Client } from '@opensearch-project/opensearch'
-import { IIndexRequest } from './opensearch.data'
 import { AwsSigv4Signer } from '@opensearch-project/opensearch/aws'
+import { IIndexRequest, ISearchHit } from './opensearch.data'
 
 export class OpenSearchService extends LoggerBase {
   private readonly client: Client
@@ -151,6 +151,35 @@ export class OpenSearchService extends LoggerBase {
     } catch (err) {
       this.log.error(err, { index }, 'Failed to bulk index documents!')
       throw new Error(`Failed to bulk index documents in index ${index}!`)
+    }
+  }
+
+  public async search<T>(
+    index: OpenSearchIndex,
+    query: unknown,
+    size?: number,
+    sort?: unknown[],
+    searchAfter?: unknown,
+    sourceIncludeFields?: string[],
+    sourceExcludeFields?: string[],
+  ): Promise<ISearchHit<T>[]> {
+    try {
+      const data = await this.client.search({
+        index,
+        _source_excludes: sourceExcludeFields,
+        _source_includes: sourceIncludeFields,
+        body: {
+          query,
+          search_after: searchAfter ? [searchAfter] : undefined,
+          sort,
+        },
+        size,
+      })
+
+      return data.body.hits.hits
+    } catch (err) {
+      this.log.error(err, { index, query }, 'Failed to search documents!')
+      throw new Error('Failed to search documents!')
     }
   }
 }

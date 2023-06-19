@@ -141,7 +141,7 @@ export abstract class SqsQueueReceiver extends SqsQueueBase {
         }
       } else {
         this.log.trace('Queue is busy, waiting...')
-        await timeout(1000)
+        await timeout(200)
       }
     }
   }
