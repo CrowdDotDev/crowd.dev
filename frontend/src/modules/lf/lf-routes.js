@@ -19,6 +19,7 @@ export default [
     component: Layout,
     meta: {
       auth: true,
+      hideBanner: true,
     },
     children: [
       {
