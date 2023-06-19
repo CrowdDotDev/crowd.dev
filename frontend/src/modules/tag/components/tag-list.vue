@@ -25,6 +25,7 @@
       :visible="editing"
       :loading="loading"
       :pretitle="member.displayName"
+      :segments="member.segmentIds"
       @cancel="editing = false"
       @submit="doSubmit"
     />
@@ -126,6 +127,7 @@ export default {
       await this.doUpdate({
         id: this.member.id,
         values: formSchema.cast(this.model),
+        segments: this.member.segmentIds,
       });
       this.loading = false;
       this.editing = false;

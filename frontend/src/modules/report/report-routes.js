@@ -35,7 +35,7 @@ export default [
       },
       {
         name: 'reportTemplate',
-        path: '/reports/template/:id',
+        path: '/reports/template/:segmentId/:id',
         component: ReportTemplatePage,
         meta: {
           auth: true,
@@ -45,7 +45,7 @@ export default [
       },
       {
         name: 'reportEdit',
-        path: '/reports/:id/edit',
+        path: '/reports/:segmentId/:id/edit',
         component: ReportFormPage,
         meta: {
           auth: true,
@@ -55,7 +55,7 @@ export default [
       },
       {
         name: 'reportView',
-        path: '/reports/:id',
+        path: '/reports/:segmentId/:id',
         component: ReportViewPage,
         meta: {
           auth: true,
@@ -67,7 +67,7 @@ export default [
   },
   {
     name: 'reportPublicView',
-    path: '/tenant/:tenantId/reports/:id/public',
+    path: '/tenant/:tenantId/reports/:segmentId/:id/public',
     component: ReportViewPagePublic,
     props: true,
   },

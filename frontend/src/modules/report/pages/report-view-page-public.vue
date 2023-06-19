@@ -45,7 +45,13 @@
             }}</span>
             <router-link
               class="btn btn--transparent btn--sm"
-              :to="{ name: 'reportEdit', params: { id } }"
+              :to="{
+                name: 'reportEdit',
+                params: {
+                  id,
+                  segmentId: report.segmentId,
+                },
+              }"
             >
               <i class="ri-pencil-line mr-2" />Edit
             </router-link>
@@ -202,6 +208,10 @@ export default {
       type: String,
       default: null,
     },
+    segmentId: {
+      type: String,
+      default: null,
+    },
   },
 
   data() {
@@ -263,12 +273,16 @@ export default {
       await this.doFindPublic({
         id: this.id,
         tenantId: this.tenantId,
+        segments: [this.segmentId],
       });
       this.currentTenant = await TenantService.find(
         this.tenantId,
       );
     } else {
-      await this.doFind(this.id);
+      await this.doFind({
+        id: this.id,
+        segments: [this.segmentId],
+      });
     }
     this.loading = false;
   },

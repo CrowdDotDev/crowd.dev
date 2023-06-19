@@ -10,11 +10,11 @@
         class="text-gray-600 btn-link--md btn-link--secondary p-0"
         @click="onCancel"
       >
-        Members
+        Contributors
       </el-button>
       <div class="flex items-center gap-4 mt-4 mb-6">
         <h4>
-          {{ isEditPage ? 'Edit member' : 'New member' }}
+          {{ isEditPage ? 'Edit contributor' : 'New contributor' }}
         </h4>
         <div
           v-if="!isEditPage && selectedSegments.project && selectedSegments.subproject"
@@ -109,7 +109,7 @@
               @click="onSubmit"
             >
               {{
-                isEditPage ? 'Update member' : 'Add member'
+                isEditPage ? 'Update contributor' : 'Add contributor'
               }}
             </el-button>
           </div>
@@ -176,9 +176,6 @@ const store = useStore();
 
 const lsSegmentsStore = useLfSegmentsStore();
 const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);
-
-const memberStore = useMemberStore();
-const { customAttributes } = storeToRefs(memberStore);
 
 const { fields } = MemberModel;
 const formSchema = computed(
@@ -324,7 +321,7 @@ onMounted(async () => {
   if (isEditPage.value) {
     const { id } = route.params;
 
-    record.value = await store.dispatch('member/doFind', id);
+    record.value = await store.dispatch('member/doFind', { id });
     isPageLoading.value = false;
     formModel.value = getInitialModel(record.value);
   } else {

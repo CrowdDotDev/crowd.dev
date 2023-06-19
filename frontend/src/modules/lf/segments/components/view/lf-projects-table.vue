@@ -34,39 +34,35 @@
       <template #header>
         <div>
           <span class="pt-1.5 pb-3 block">Connected Integrations</span>
-          <div
-            v-if="project.integrations?.length"
-            class="flex gap-3 items-center h-8 mb-4"
-          >
-            <div
-              v-for="platform in project.integrations"
-              :key="platform"
-            >
-              <app-platform-svg-icon
-                :platform="platform"
-              />
-            </div>
-          </div>
-          <div v-else class="flex items-center h-8 mb-4">
-            <span class="text-gray-400 text-sm normal-case font-normal">No integrations</span>
+          <div class="flex items-center h-8 mb-4">
+            <span class="text-gray-400 text-sm normal-case font-normal">-</span>
           </div>
         </div>
       </template>
       <template #default="{ row }">
         <div
           v-if="row.integrations?.length"
-          class="flex gap-3 items-center"
+          class="flex gap-1 items-center"
         >
           <div
-            v-for="platform in row.integrations"
-            :key="platform"
+            v-for="{ id, platform, status } in row.integrations"
+            :key="id"
+            class="relative w-6 h-6 flex items-center justify-center"
           >
             <app-platform-svg-icon
               :platform="platform"
             />
+            <i
+              v-if="status === 'no-data'"
+              class="ri-alert-fill absolute right-0 top-0 text-2xs leading-3 text-yellow-500"
+            />
+            <i
+              v-else-if="status === 'error'"
+              class="ri-error-warning-fill absolute right-0 top-0 text-2xs leading-3 text-red-600"
+            />
           </div>
         </div>
-        <span class="text-gray-400 text-sm">No integrations</span>
+        <span v-else class="text-gray-400 text-sm">No integrations</span>
       </template>
     </el-table-column>
 
@@ -123,7 +119,10 @@
           <router-link
             :to="{
               name: 'integration',
-              params: { id: row.id },
+              params: {
+                id: row.id,
+                grandparentId: route.params.id,
+              },
             }"
           >
             <el-button class="btn btn--bordered">
@@ -160,6 +159,9 @@ import statusOptions from '@/modules/lf/config/status';
 import AppLfProjectsDropdown from '@/modules/lf/segments/components/lf-projects-dropdown.vue';
 import AppLfSubProjectsDropdown from '@/modules/lf/segments/components/lf-sub-projects-dropdown.vue';
 import AppPlatformSvgIcon from '@/shared/platform/platform-svg-icon.vue';
+import { useRoute } from 'vue-router';
+
+const route = useRoute();
 
 const emit = defineEmits(['onEditProject', 'onEditSubProject', 'onAddSubProject']);
 defineProps({
@@ -212,6 +214,12 @@ export default {
 
   .el-table__empty-text {
     @apply w-full
+  }
+
+  .el-table__append-wrapper {
+    position: sticky !important;
+    left: 0px !important;
+    width: fit-content;
   }
 }
 </style>

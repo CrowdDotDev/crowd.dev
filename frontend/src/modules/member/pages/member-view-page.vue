@@ -8,9 +8,9 @@
     <div v-else>
       <router-link
         class="text-gray-600 btn-link--md btn-link--secondary p-0 inline-flex items-center"
-        :to="{ path: '/members' }"
+        :to="{ path: '/contributors' }"
       >
-        <i class="ri-arrow-left-s-line mr-2" />Members
+        <i class="ri-arrow-left-s-line mr-2" />Contributors
       </router-link>
       <div class="grid grid-cols-3 gap-6 mt-4">
         <app-member-view-header
@@ -81,7 +81,9 @@ const loading = ref(true);
 const tab = ref('activities');
 
 onMounted(async () => {
-  await store.dispatch('member/doFind', props.id);
+  await store.dispatch('member/doFind', {
+    id: props.id,
+  });
 
   if (
     Object.keys(customAttributes.value)

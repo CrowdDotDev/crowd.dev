@@ -1,8 +1,9 @@
 <template>
   <app-drawer
     v-model="model"
-    :title="isEditForm ? 'Edit project group' : 'Add project group'"
     has-border
+    :title="isEditForm ? 'Edit project group' : 'Add project group'"
+    :size="480"
     @close="model = false"
   >
     <template #content>
@@ -24,6 +25,8 @@
         >
           <el-input
             v-model="form.name"
+            maxlength="50"
+            show-word-limit
             placeholder="E.g. Cloud Native Computing Foundation"
           />
         </app-form-item>
@@ -130,7 +133,7 @@
 <script setup>
 import formChangeDetector from '@/shared/form/form-change';
 import useVuelidate from '@vuelidate/core';
-import { required } from '@vuelidate/validators';
+import { required, maxLength } from '@vuelidate/validators';
 import {
   computed, onMounted, reactive, ref,
 } from 'vue';
@@ -168,7 +171,10 @@ const form = reactive({
 });
 
 const rules = {
-  name: { required },
+  name: {
+    required,
+    maxLength,
+  },
   slug: { required },
   sourceId: { required },
   url: { required },

@@ -2,7 +2,7 @@ import { SavedView } from '@/shared/modules/saved-views/types/SavedViewsConfig';
 
 const mostMembers: SavedView = {
   id: 'most-members',
-  label: 'Most members',
+  label: 'Most contributors',
   filter: {
     search: '',
     relation: 'and',

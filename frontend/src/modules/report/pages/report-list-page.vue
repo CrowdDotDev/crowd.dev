@@ -63,12 +63,12 @@
           cta-btn="Add report"
           @cta-click="onAddReport"
         />
-        <app-report-create-dialog
-          v-model="isCreatingReport"
-          :subproject-id="selectedSubProject"
-        />
       </div>
     </div>
+    <app-report-create-dialog
+      v-model="isCreatingReport"
+      :subproject-id="selectedSubProject"
+    />
     <app-lf-sub-projects-list-modal
       v-if="isSubProjectSelectionOpen"
       v-model="isSubProjectSelectionOpen"
@@ -143,6 +143,7 @@ export default {
           ...t.config,
           public: rowTemplate?.public || false,
           id: rowTemplate?.id,
+          segmentId: rowTemplate?.segmentId,
         };
       }).filter((t) => !!t.id);
     },

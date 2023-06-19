@@ -35,10 +35,13 @@ export default (moduleName, moduleService = null) => {
         }
       },
 
-      async doFind({ commit }, id) {
+      async doFind({ commit }, {
+        id,
+        segments,
+      }) {
         try {
           commit('FIND_STARTED');
-          const record = await moduleService.find(id);
+          const record = await moduleService.find(id, segments);
           commit('FIND_SUCCESS', record);
           return record;
         } catch (error) {

@@ -25,7 +25,7 @@
         <div class="panel w-full col-span-2">
           <el-tabs v-model="tab">
             <el-tab-pane
-              label="Associated members"
+              label="Associated contributors"
               name="members"
             >
               <app-organization-view-members
@@ -73,7 +73,9 @@ const loading = ref(true);
 const tab = ref('members');
 
 onMounted(async () => {
-  await store.dispatch('organization/doFind', props.id);
+  await store.dispatch('organization/doFind', {
+    id: props.id,
+  });
   loading.value = false;
 });
 </script>

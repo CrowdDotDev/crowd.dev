@@ -58,6 +58,7 @@ const onClick = () => {
     name: 'reportTemplate',
     params: {
       id: props.template.id,
+      segmentId: props.template.segmentId,
     },
   });
 };

@@ -186,7 +186,7 @@ const handleSubmit = async () => {
   await MemberService.update(props.member.id, {
     attributes: formattedAttributes,
   }, segments);
-  await store.dispatch('member/doFind', props.member.id);
+  await store.dispatch('member/doFind', { id: props.member.id });
   Message.success('Member attributes updated successfully');
   emit('update:modelValue', false);
 };

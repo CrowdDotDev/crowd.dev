@@ -107,7 +107,8 @@ const model = computed({
 
 const computedPublicLink = computed(() => {
   const tenantId = AuthCurrentTenant.get();
-  return `${window.location.origin}/tenant/${tenantId}/reports/${props.id}/public`;
+
+  return `${window.location.origin}/tenant/${tenantId}/reports/${props.segmentId}/${props.id}/public`;
 });
 
 const copyPublicLinkToClipboard = async () => {

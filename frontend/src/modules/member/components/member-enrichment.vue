@@ -7,7 +7,7 @@
           class="w-5 h-5 enrichment-icon"
           color="#111827"
         />
-        <span class="text-gray-900 font-semibold text-sm">Member enrichment</span>
+        <span class="text-gray-900 font-semibold text-sm">Contributor enrichment</span>
       </div>
       <el-tooltip placement="top" content="Learn more">
         <a
@@ -21,14 +21,14 @@
     </div>
 
     <div class="mt-4 mb-5 text-2xs text-gray-600">
-      Get more insights about this member by enriching it
+      Get more insights about this contributor by enriching it
       with attributes such as emails, seniority, OSS
       contributions and much more.
     </div>
 
     <el-tooltip
       placement="top"
-      content="Member enrichment requires an associated GitHub profile or Email"
+      content="Contributor enrichment requires an associated GitHub profile or Email"
       :disabled="!isEnrichmentDisabled"
       popper-class="max-w-[260px]"
     >
@@ -40,7 +40,7 @@
               || isEditLockedForSampleData
           "
           @click="onEnrichmentClick"
-        >Enrich member</el-button>
+        >Enrich contributor</el-button>
       </span>
     </el-tooltip>
 

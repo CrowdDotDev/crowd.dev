@@ -61,7 +61,12 @@ export class TagService {
     return response.data;
   }
 
-  static async list(filter, orderBy, limit, offset) {
+  static async list({
+    filter,
+    orderBy,
+    limit,
+    offset,
+  }) {
     const params = {
       filter,
       orderBy,

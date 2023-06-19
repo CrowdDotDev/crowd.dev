@@ -52,18 +52,24 @@
             class="h-8 mb-4"
           />
 
-          <div class="text-gray-900 font-semibold text-base mb-5">
+          <div class="text-gray-900 font-semibold text-base mb-5 break-words">
             {{ projectGroup.name }}
           </div>
 
-          <div class="bg-gray-200 text-gray-900 text-2xs px-2 h-6 flex items-center w-fit rounded-md mb-8">
-            {{ pluralize('project', projectGroup.projects.length, true) }}
+          <div class="mb-8 flex flex-wrap gap-2.5">
+            <div class="bg-gray-200 text-gray-900 text-2xs px-2 h-6 flex items-center w-fit rounded-md">
+              {{ pluralize('contributor', projectGroup.members, true) }}
+            </div>
+
+            <div class="bg-gray-200 text-gray-900 text-2xs px-2 h-6 flex items-center w-fit rounded-md">
+              {{ pluralize('project', projectGroup.projects.length, true) }}
+            </div>
           </div>
 
           <div class="flex grow" />
 
           <el-button class="btn btn--md btn--full btn--primary mb-4" @click="updateSelectedProjectGroup(projectGroup.id)">
-            View project{{ projectGroup.projects.length > 1 ? '(s)' : '' }}
+            View project(s)
           </el-button>
 
           <router-link

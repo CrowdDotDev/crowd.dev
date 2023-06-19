@@ -336,7 +336,7 @@ onMounted(async () => {
 
     record.value = await store.dispatch(
       'organization/doFind',
-      id,
+      { id },
     );
     isPageLoading.value = false;
     formModel.value = getInitialModel(record.value);

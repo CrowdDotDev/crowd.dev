@@ -26,12 +26,13 @@
           {{ props.buttonTitle }}
         </el-button>
       </router-link>
-      <div v-if="reportId(props.reportName)">
+      <div v-if="report(props.reportName)">
         <router-link
           :to="{
             name: 'reportTemplate',
             params: {
-              id: reportId(props.reportName),
+              id: report(props.reportName).id,
+              segmentId: report(props.reportName).segmentId,
             },
           }"
           class="ml-4"
@@ -88,7 +89,7 @@ const props = defineProps({
 
 const { rows } = mapGetters('report');
 
-const reportId = (reportName) => {
+const report = (reportName) => {
   if (!reportName) {
     return null;
   }
@@ -98,7 +99,7 @@ const reportId = (reportName) => {
   if (!report) {
     return null;
   }
-  return report.id;
+  return report;
 };
 </script>
 

@@ -112,6 +112,10 @@ const props = defineProps({
     type: String,
     default: null,
   },
+  segmentId: {
+    type: String,
+    default: null,
+  },
 });
 
 const { doFind } = mapActions('report');
@@ -181,7 +185,10 @@ onMounted(async () => {
   });
 
   loading.value = true;
-  report.value = await doFind(props.id);
+  report.value = await doFind({
+    id: props.id,
+    segments: [props.segmentId],
+  });
   loading.value = false;
 
   if (cubejsApi.value === null) {

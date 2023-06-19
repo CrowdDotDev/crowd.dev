@@ -134,7 +134,7 @@ const datasets = computed(() => [
     measure: 'Members.cumulativeCount',
     granularity: granularity.value,
     ...(!props.isPublicView && {
-      tooltipBtn: 'View members',
+      tooltipBtn: 'View contributors',
     }),
   },
 ]);
@@ -214,7 +214,7 @@ const getTotalMembers = async ({ pagination }) => {
 const onViewMoreClick = (date) => {
   window.analytics.track('Open report drawer', {
     template: MEMBERS_REPORT.nameAsId,
-    widget: 'Total members',
+    widget: 'Total contributors',
     date,
     granularity: granularity.value,
   });
@@ -224,11 +224,11 @@ const onViewMoreClick = (date) => {
 
   // Title
   if (granularity.value === 'week') {
-    drawerTitle.value = 'Weekly total members';
+    drawerTitle.value = 'Weekly total contributors';
   } else if (granularity.value === 'month') {
-    drawerTitle.value = 'Monthly total members';
+    drawerTitle.value = 'Monthly total contributors';
   } else {
-    drawerTitle.value = 'Daily total members';
+    drawerTitle.value = 'Daily total contributors';
   }
 };
 

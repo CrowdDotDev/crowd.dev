@@ -8,7 +8,7 @@
       <div class="-mt-4">
         <app-form-item
           class="mb-4"
-          label="Member"
+          label="Contributor"
           :validation="$v.member"
           :required="true"
           :error-messages="{
@@ -86,14 +86,15 @@
             @blur="$v.activityType.$touch"
             @change="$v.activityType.$touch"
           >
-            <div
+            <el-option
+              :value="null"
               class="px-3 py-2.5 text-brand-500 text-xs leading-5 transition hover:bg-gray-50 cursor-pointer"
               @click="emit('add-activity-type')"
             >
               + Add activity type
-            </div>
+            </el-option>
             <div
-              v-if="Object.keys(types.custom).length > 0"
+              v-if="types.custom.other ? Object.keys(types.custom.other).length > 0 : Object.keys(types.custom).length > 0"
               class="text-2xs text-gray-400 font-semibold tracking-wide leading-6 uppercase px-3 my-1"
             >
               Custom
@@ -163,8 +164,6 @@
 
 <script setup>
 import {
-  defineEmits,
-  defineProps,
   computed,
   reactive,
   h,
@@ -184,6 +183,7 @@ import Message from '@/shared/message/message';
 import formChangeDetector from '@/shared/form/form-change';
 import { mapActions } from '@/shared/vuex/vuex.helpers';
 import AppAutocompleteOneInput from '@/shared/form/autocomplete-one-input.vue';
+import { LfService } from '@/modules/lf/segments/lf-segments-service';
 
 // Props & emits
 const props = defineProps({
@@ -210,6 +210,7 @@ const emit = defineEmits([
 // Store
 const activityTypeStore = useActivityTypeStore();
 const { types } = storeToRefs(activityTypeStore);
+const { setTypes } = activityTypeStore;
 
 const { doFetch } = mapActions('activity');
 // Form control
@@ -374,6 +375,18 @@ const isVisible = computed({
     emit('update:modelValue', value);
   },
 });
+
+watch(
+  () => props.subprojectId,
+  (subprojectId) => {
+    if (subprojectId) {
+      LfService.findSegment(subprojectId).then((response) => {
+        setTypes(response.activityTypes);
+      });
+    }
+  },
+  { immediate: true, deep: true },
+);
 
 watch(
   () => props.activity,

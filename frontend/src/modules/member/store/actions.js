@@ -120,7 +120,7 @@ export default {
       });
 
       Message.success(
-        `Member${selectedRows.length > 1 ? 's' : ''} updated successfully`,
+        `Contributor${selectedRows.length > 1 ? 's' : ''} updated successfully`,
       );
     } catch (error) {
       Errors.handle(error);
@@ -291,7 +291,7 @@ export default {
           },
         });
       } else {
-        await dispatch('doFind', id);
+        await dispatch('doFind', { id });
       }
     } catch (error) {
       Message.closeAll();

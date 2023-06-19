@@ -109,28 +109,16 @@ import AppCubeRender from '@/shared/cube/cube-render.vue';
 import AppLoading from '@/shared/loading/loading-placeholder.vue';
 import { useActivityTypeStore } from '@/modules/activity/store/type';
 import { storeToRefs } from 'pinia';
-import { computed, watch } from 'vue';
+import { computed } from 'vue';
 import pluralize from 'pluralize';
 import merge from 'lodash/merge';
 
 const { period, platform, segments } = mapGetters('dashboard');
-const { currentTenant } = mapGetters('auth');
 
 const activityTypeStore = useActivityTypeStore();
 const { types } = storeToRefs(activityTypeStore);
-const { setTypes } = activityTypeStore;
 
 const typeNames = computed(() => (merge(types.value.default, types.value.custom)));
-
-watch(
-  () => currentTenant,
-  (tenant) => {
-    if (tenant.value?.settings.length > 0) {
-      setTypes(tenant.value.settings[0].activityTypes);
-    }
-  },
-  { immediate: true, deep: true },
-);
 
 const compileData = (resultSet) => {
   const pivot = resultSet.chartPivot();

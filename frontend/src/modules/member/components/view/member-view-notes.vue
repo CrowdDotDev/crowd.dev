@@ -9,7 +9,7 @@
     v-else
     class="w-full text-gray-400 pt-8 italic text-sm"
   >
-    Connect integrations to add notes to members
+    Connect integrations to add notes to contributors
   </div>
   <div v-if="notes.length > 0" class="pt-6">
     <app-note-item

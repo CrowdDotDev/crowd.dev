@@ -74,14 +74,14 @@
         form.teamMemberActivities
       "
       class="text-gray-900"
-      label="Include activities from team members"
+      label="Include activities from team contributors"
     />
   </div>
 </template>
 
 <script setup>
 import {
-  computed, defineEmits, defineProps, onMounted,
+  computed, onMounted,
 } from 'vue';
 import AppFormItem from '@/shared/form/form-item.vue';
 import { mapGetters } from '@/shared/vuex/vuex.helpers';

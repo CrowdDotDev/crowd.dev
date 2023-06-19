@@ -89,22 +89,26 @@ const buildOptions = (projects: Project[]) => {
 };
 
 const onFilterChange = (value: ProjectsOption[]) => {
-  const selectedSubProjects = value.reduce((acc: string[], option) => {
-    if (option.selectedChildren.length) {
-      option.children.forEach((child) => {
-        if (option.selectedChildren.includes(child.label)) {
-          acc.push(child.id);
+  const segments = [...form.value.value];
+
+  value.forEach((option) => {
+    option.children.forEach((child) => {
+      if (option.selectedChildren.includes(child.label) && !segments.includes(child.id)) {
+        segments.push(child.id);
+      } else if (!option.selectedChildren.includes(child.label)) {
+        const segmentIndex = segments.findIndex((a) => a === child.id);
+
+        if (segmentIndex !== -1) {
+          segments.splice(segmentIndex, 1);
         }
-      });
-    }
+      }
+    });
+  });
 
-    return acc;
-  }, []);
-
-  form.value = { value: selectedSubProjects };
+  form.value = { value: segments };
 };
 
-const onSearchQueryChange = debounce((value) => {
+const onSearchQueryChange = debounce((value, setDataOptions = false) => {
   loading.value = true;
   props
     .remoteMethod?.({
@@ -112,7 +116,9 @@ const onSearchQueryChange = debounce((value) => {
       parentSlug: selectedProjectGroup.value?.slug,
     })
     .then((projects) => {
-      data.value.options = projects;
+      if (setDataOptions) {
+        data.value.options = projects;
+      }
       buildOptions(projects);
     })
     .finally(() => {
@@ -121,7 +127,7 @@ const onSearchQueryChange = debounce((value) => {
 }, 300);
 
 onMounted(() => {
-  onSearchQueryChange('');
+  onSearchQueryChange('', true);
   emit('update:modelValue', {
     ...defaultForm,
     ...form.value,

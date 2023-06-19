@@ -49,7 +49,10 @@
           v-else
           :to="{
             name: 'reportEdit',
-            params: { id: modelValue.id },
+            params: {
+              id: modelValue.id,
+              segmentId: modelValue.segmentId,
+            },
           }"
           class="btn btn--primary btn--md mt-6 !hover:text-white"
         >

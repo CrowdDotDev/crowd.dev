@@ -1,5 +1,5 @@
 <template>
-  <div v-if="currentTenant" class="flex -m-5">
+  <div v-if="currentTenant && cubejsToken" class="flex -m-5">
     <div
       class="flex-grow overflow-auto"
       :style="{
@@ -50,7 +50,9 @@
 </template>
 
 <script setup>
-import { onMounted, onBeforeUnmount, ref } from 'vue';
+import {
+  onMounted, onBeforeUnmount, ref, watch,
+} from 'vue';
 import { useStore } from 'vuex';
 import {
   mapGetters,
@@ -66,8 +68,10 @@ import { storeToRefs } from 'pinia';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 
 const { currentTenant } = mapGetters('auth');
+const { cubejsToken } = mapGetters('widget');
 const { doFetch } = mapActions('report');
 const { reset } = mapActions('dashboard');
+const { getCubeToken } = mapActions('widget');
 const { showBanner } = mapGetters('tenant');
 
 const store = useStore();
@@ -100,6 +104,15 @@ onMounted(() => {
 
 onBeforeUnmount(() => {
   storeUnsubscribe.value();
+});
+
+watch(selectedProjectGroup, (updatedProjectGroup, previousProjectGroup) => {
+  if (updatedProjectGroup?.id !== previousProjectGroup?.id) {
+    getCubeToken();
+  }
+}, {
+  deep: true,
+  immediate: true,
 });
 </script>
 
