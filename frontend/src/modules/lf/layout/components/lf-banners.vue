@@ -273,7 +273,7 @@ const fetchIntegrations = (projectGroup) => {
 };
 
 const startTimer = () => {
-  fetchIntegrationTimer.value = setInterval(() => fetchIntegrations(selectedProjectGroup.value), 30000); // Fetch integrations every 30 seconds
+  fetchIntegrationTimer.value = setInterval(() => fetchIntegrations(selectedProjectGroup.value), 120000); // Fetch integrations every 30 seconds
 };
 
 // Stop the timer
