@@ -215,3 +215,7 @@ export interface SampleDataConfiguration {
 export interface IntegrationProcessingConfiguration {
   maxRetries: number
 }
+
+export interface WeeklyEmailsConfiguration {
+  enabled: string // true - enabled, anything else - disabled
+}
