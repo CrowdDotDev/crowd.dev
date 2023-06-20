@@ -121,6 +121,7 @@ import {
   showEnrichmentLoadingMessage,
 } from '@/modules/member/member-enrichment';
 import AppMemberListBulkUpdateTags from '@/modules/member/components/list/member-list-bulk-update-tags.vue';
+import AppSvg from '@/shared/svg/svg.vue';
 
 const { currentUser, currentTenant } = mapGetters('auth');
 const { doRefreshCurrentUser } = mapActions('auth');
@@ -409,6 +410,7 @@ const handleCommand = async (command) => {
       showEnrichmentLoadingMessage({ isBulk: true });
 
       await MemberService.enrichMemberBulk(elegibleEnrichmentMembersIds.value);
+      fetchMembers({ reload: true });
 
       await getMemberCustomAttributes();
     }
