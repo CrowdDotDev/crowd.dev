@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 export interface FieldTranslator {
   crowdToOpensearch: Map<string, string>
   opensearchToCrowd: Map<string, string>
@@ -30,8 +32,8 @@ export interface OpensearchField {
 
 export interface OpensearchQueryCriteria {
   filter: any
-  limit: any
-  offset: any
+  limit: number
+  offset: number
   orderBy: any
 }
 
