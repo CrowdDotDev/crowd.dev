@@ -980,7 +980,7 @@ export default class MemberService extends LoggerBase {
       await MemberAttributeSettingsRepository.findAndCountAll({}, this.options)
     ).rows
 
-    return MemberRepository.findAndCountAllv2(
+    return MemberRepository.findAndCountAllOpensearch(
       {
         limit: data.limit,
         offset: data.offset,
