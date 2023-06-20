@@ -22,5 +22,5 @@ export const getOpensearchClient = (config: IOpenSearchConfig) => {
     })
   }
 
-  return null
+  throw new Error('Missing node url while initializing opensearch!')
 }
