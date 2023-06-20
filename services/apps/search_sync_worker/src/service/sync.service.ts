@@ -193,7 +193,7 @@ export class SyncService extends LoggerBase {
     }
 
     p.obj_attributes = p_attributes
-    p.string_arr_emails = data.emails
+    p.string_arr_emails = data.emails || []
     p.int_score = data.score
     p.date_lastEnriched = data.lastEnriched
     p.date_joinedAt = data.joinedAt
