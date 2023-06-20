@@ -81,11 +81,20 @@
                     class="flex gap-3 items-center"
                   >
                     <div
-                      v-for="{ id, platform } in subproject.integrations"
+                      v-for="{ id, platform, status } in subproject.integrations"
                       :key="id"
+                      class="relative w-6 h-6 flex items-center justify-center"
                     >
                       <app-platform-svg-icon
                         :platform="platform"
+                      />
+                      <i
+                        v-if="status === 'no-data'"
+                        class="ri-alert-fill absolute right-0 top-0 text-2xs leading-3 text-yellow-500"
+                      />
+                      <i
+                        v-else-if="status === 'error'"
+                        class="ri-error-warning-fill absolute right-0 top-0 text-2xs leading-3 text-red-600"
                       />
                     </div>
                   </div>
