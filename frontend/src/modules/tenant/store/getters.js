@@ -53,10 +53,25 @@ export default {
     return integrationsInProgress.length > 0;
   },
 
+  showIntegrationsNeedReconnectAlert: (
+    _state,
+    _getters,
+    _rootState,
+    rootGetters,
+  ) => {
+    const integrationsNeedReconnect = rootGetters['integration/needsReconnect'];
+
+    return (
+      integrationsNeedReconnect.length > 0
+      && router.currentRoute.value.name !== 'integration'
+    );
+  },
+
   showBanner: (_state, getters) => (
     getters.showSampleDataAlert
       || getters.showIntegrationsErrorAlert
       || getters.showIntegrationsNoDataAlert
       || getters.showIntegrationsInProgressAlert
+      || getters.showIntegrationsNeedReconnectAlert
   ),
 };
