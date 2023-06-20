@@ -45,6 +45,7 @@
           v-bind="cardOptions"
           @open-conversation="conversationId = $event"
           @edit="emit('edit', activity)"
+          @activity-destroyed="fetch(savedFilterBody)"
         />
 
         <!-- Load more button -->
@@ -104,7 +105,9 @@ defineProps({
 const emit = defineEmits(['edit']);
 
 const activityStore = useActivityStore();
-const { filters, activities, totalActivities } = storeToRefs(activityStore);
+const {
+  filters, activities, totalActivities, savedFilterBody,
+} = storeToRefs(activityStore);
 const { fetchActivities } = activityStore;
 
 const loading = ref(false);
