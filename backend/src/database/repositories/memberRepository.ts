@@ -1344,7 +1344,7 @@ where m."deletedAt" is null
       body: { query: parsed.query },
     })
 
-    if (countOnly){
+    if (countOnly) {
       return {
         rows: [],
         count: countResponse.body.count,
@@ -1357,8 +1357,6 @@ where m."deletedAt" is null
       index: OpenSearchIndex.MEMBERS,
       body: parsed,
     })
-
-
 
     // const translated = response.body.hits.hits[0]._source
     const translatedRows = response.body.hits.hits.map((o) =>
