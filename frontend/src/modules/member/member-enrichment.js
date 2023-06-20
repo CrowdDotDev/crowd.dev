@@ -40,7 +40,7 @@ export const checkEnrichmentLimit = (
     FEATURE_FLAGS.memberEnrichment,
   );
 
-  if(planEnrichmentCountMax === 'unlimited'){
+  if (planEnrichmentCountMax === 'unlimited') {
     return false;
   }
 
@@ -70,7 +70,7 @@ export const checkEnrichmentPlan = ({
   enrichmentCount,
   planEnrichmentCountMax,
 }) => {
-  if(planEnrichmentCountMax === 'unlimited'){
+  if (planEnrichmentCountMax === 'unlimited') {
     return false;
   }
   if (enrichmentCount > planEnrichmentCountMax) {
