@@ -233,6 +233,8 @@ export class GithubIntegrationService extends IntegrationServiceBase {
           }))
         }
 
+        // It is very important to keep commits first. Otherwise, we have problems
+        // creating conversations if the Git integration has already ran for those data points.
         newStreams = [...prCommitsStreams, ...prCommentStreams, ...prReviewThreads]
         break
       case GithubStreamType.PULL_COMMENTS: {
