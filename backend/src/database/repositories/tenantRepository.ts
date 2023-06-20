@@ -11,8 +11,8 @@ import { isUserInTenant } from '../utils/userTenantUtils'
 import { IRepositoryOptions } from './IRepositoryOptions'
 import SettingsRepository from './settingsRepository'
 import Plans from '../../security/plans'
-import {API_CONFIG} from "../../conf";
-import {Edition} from "../../types/common";
+import { API_CONFIG } from '../../conf'
+import { Edition } from '../../types/common'
 
 const { Op } = Sequelize
 

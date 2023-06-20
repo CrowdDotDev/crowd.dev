@@ -55,7 +55,7 @@ class FeatureFlagService {
   }
 
   isFlagEnabled(flag) {
-    if (config.isCommunityVersion || config.isLinux) {
+    if (config.isCommunityVersion) {
       return true;
     }
 
