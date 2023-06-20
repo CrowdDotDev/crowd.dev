@@ -36,7 +36,7 @@ export default abstract class FieldTranslator {
     return this.model.fieldExists(key)
   }
 
-  translateObjectToCrowd(object: any): any {
+  translateObjectToCrowd(object: unknown): unknown {
     const translated = {}
 
     if (typeof object !== 'object' || object === null) {

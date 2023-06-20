@@ -1,4 +1,4 @@
-/* eslint-disable no-lonely-if */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
 import FieldTranslator from './fieldTranslator'
 import { OpenSearchIndex, Operator, OpensearchQuery, OpensearchQueryCriteria } from '@crowd/types'
