@@ -1306,6 +1306,7 @@ where m."deletedAt" is null
       limit = 20,
       offset = 0,
       orderBy = 'joinedAt_DESC',
+      countOnly = false,
       attributesSettings = [] as AttributeData[],
     },
     options: IRepositoryOptions,
@@ -1338,15 +1339,26 @@ where m."deletedAt" is null
       },
     })
 
+    const countResponse = await options.opensearch.count({
+      index: OpenSearchIndex.MEMBERS,
+      body: { query: parsed.query },
+    })
+
+    if (countOnly){
+      return {
+        rows: [],
+        count: countResponse.body.count,
+        limit,
+        offset,
+      }
+    }
+
     const response = await options.opensearch.search({
       index: OpenSearchIndex.MEMBERS,
       body: parsed,
     })
 
-    const countResponse = await options.opensearch.count({
-      index: OpenSearchIndex.MEMBERS,
-      body: { query: parsed.query },
-    })
+
 
     // const translated = response.body.hits.hits[0]._source
     const translatedRows = response.body.hits.hits.map((o) =>
