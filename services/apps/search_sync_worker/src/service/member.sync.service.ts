@@ -9,7 +9,7 @@ import { IMemberAttribute, MemberAttributeType } from '@crowd/types'
 import { OpenSearchService } from './opensearch.service'
 import { ISearchHit } from './opensearch.data'
 
-export class SyncService extends LoggerBase {
+export class MemberSyncService extends LoggerBase {
   private readonly memberRepo: MemberRepository
 
   constructor(
@@ -116,7 +116,7 @@ export class SyncService extends LoggerBase {
               members.map((m) => {
                 return {
                   id: m.id,
-                  body: SyncService.prefixData(m, attributes),
+                  body: MemberSyncService.prefixData(m, attributes),
                 }
               }),
             )
@@ -145,7 +145,7 @@ export class SyncService extends LoggerBase {
       for (const member of members) {
         const attributes = await this.memberRepo.getTenantMemberAttributes(member.tenantId)
 
-        const prepared = SyncService.prefixData(member, attributes)
+        const prepared = MemberSyncService.prefixData(member, attributes)
         await this.openSearchService.index(memberId, OpenSearchIndex.MEMBERS, prepared)
       }
       await this.memberRepo.markSynced([memberId])

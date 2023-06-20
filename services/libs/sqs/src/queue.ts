@@ -175,7 +175,7 @@ export abstract class SqsQueueEmitter extends SqsQueueBase implements ISqsQueueE
     super(sqsClient, queueConf, parentLog)
   }
 
-  public async sendMessage(groupId: string, message: IQueueMessage): Promise<void> {
+  public async sendMessage<T extends IQueueMessage>(groupId: string, message: T): Promise<void> {
     const params: SendMessageRequest = {
       QueueUrl: this.getQueueUrl(),
       MessageGroupId: groupId,

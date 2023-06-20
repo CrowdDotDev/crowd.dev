@@ -28,12 +28,12 @@ setImmediate(async () => {
 
   const repo = new MemberRepository(redis, store, log)
 
-  const data = await repo.getMemberData(memberId)
+  const results = await repo.getMemberData([memberId])
 
-  if (!data) {
+  if (results.length === 0) {
     log.error(`Member ${memberId} not found!`)
     process.exit(1)
   } else {
-    await emitter.triggerMemberSync(data.tenantId, memberId)
+    await emitter.triggerMemberSync(results[0].tenantId, memberId)
   }
 })
