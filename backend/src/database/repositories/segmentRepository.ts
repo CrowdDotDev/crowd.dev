@@ -267,10 +267,8 @@ class SegmentRepository extends RepositoryBase<
 
   async findBySlug(slug: string, level: SegmentLevel) {
     const transaction = this.transaction
-    const replacements = {} as SegmentData
 
-    let findBySlugQuery = `SELECT * FROM segments WHERE slug = :slug `
-    replacements.slug = slug
+    let findBySlugQuery = `SELECT * FROM segments WHERE slug = :slug AND "tenantId" = :tenantId`
 
     if (level === SegmentLevel.SUB_PROJECT) {
       findBySlugQuery += ` and "parentSlug" is not null and "grandparentSlug" is not null`
@@ -281,7 +279,10 @@ class SegmentRepository extends RepositoryBase<
     }
 
     const records = await this.options.database.sequelize.query(findBySlugQuery, {
-      replacements,
+      replacements: {
+        slug,
+        tenantId: this.options.currentTenant.id,
+      },
       type: QueryTypes.SELECT,
       transaction,
     })

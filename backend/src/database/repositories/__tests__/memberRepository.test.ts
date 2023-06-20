@@ -9,6 +9,8 @@ import OrganizationRepository from '../organizationRepository'
 import TagRepository from '../tagRepository'
 import TaskRepository from '../taskRepository'
 import lodash from 'lodash'
+import SegmentRepository from '../segmentRepository'
+import { SegmentStatus } from '../../../types/segmentTypes'
 
 const db = null
 
@@ -132,6 +134,7 @@ describe('MemberRepository tests', () => {
         averageSentiment: 0,
         numberOfOpenSourceContributions: 0,
         lastActivity: null,
+        affiliations: [],
       }
       expect(memberCreated).toStrictEqual(expectedMemberCreated)
     })
@@ -200,6 +203,7 @@ describe('MemberRepository tests', () => {
         reach: { total: -1 },
         organizations: [],
         joinedAt: new Date('2020-05-27T15:13:30Z'),
+        affiliations: [],
       }
       expect(memberCreated).toStrictEqual(expectedMemberCreated)
     })
@@ -261,6 +265,7 @@ describe('MemberRepository tests', () => {
         numberOfOpenSourceContributions: 0,
         lastActive: null,
         lastActivity: null,
+        affiliations: [],
       }
 
       expect(memberCreated).toStrictEqual(expectedMemberCreated)
@@ -370,6 +375,74 @@ describe('MemberRepository tests', () => {
       expect(memberCreated.tasks.find((t) => t.id === tasks1.id)).not.toBeUndefined()
       expect(memberCreated.tasks.find((t) => t.id === task2.id)).not.toBeUndefined()
     })
+
+    it('Should succesfully create member with organization affiliations', async () => {
+      const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
+      const segmentRepo = new SegmentRepository(mockIRepositoryOptions)
+
+      const segment1 = await segmentRepo.create({
+        name: 'Crowd.dev - Segment1',
+        url: '',
+        parentName: 'Crowd.dev - Segment1',
+        grandparentName: 'Crowd.dev - Segment1',
+        slug: 'crowd.dev-1',
+        parentSlug: 'crowd.dev-1',
+        grandparentSlug: 'crowd.dev-1',
+        status: SegmentStatus.ACTIVE,
+        sourceId: null,
+        sourceParentId: null,
+      })
+
+      const segment2 = await segmentRepo.create({
+        name: 'Crowd.dev - Segment2',
+        url: '',
+        parentName: 'Crowd.dev - Segment2',
+        grandparentName: 'Crowd.dev - Segment2',
+        slug: 'crowd.dev-2',
+        parentSlug: 'crowd.dev-2',
+        grandparentSlug: 'crowd.dev-2',
+        status: SegmentStatus.ACTIVE,
+        sourceId: null,
+        sourceParentId: null,
+      })
+
+      const org1 = await OrganizationRepository.create(
+        {
+          name: 'crowd.dev',
+        },
+        mockIRepositoryOptions,
+      )
+
+      const member2add = {
+        username: {
+          [PlatformType.DISCORD]: {
+            username: 'anil',
+            integrationId: generateUUIDv1(),
+          },
+        },
+        displayName: 'Member 1',
+        joinedAt: '2020-05-27T15:13:30Z',
+        affiliations: [
+          {
+            segmentId: segment1.id,
+            organizationId: org1.id,
+          },
+          {
+            segmentId: segment2.id,
+            organizationId: null,
+          },
+        ],
+      }
+
+      const memberCreated = await MemberRepository.create(member2add, mockIRepositoryOptions)
+      expect(memberCreated.affiliations).toHaveLength(2)
+      expect(
+        memberCreated.affiliations.filter((a) => a.segmentId === segment1.id)[0].organizationId,
+      ).toEqual(org1.id)
+      expect(
+        memberCreated.affiliations.filter((a) => a.segmentId === segment2.id)[0].organizationId,
+      ).toBeNull()
+    })
   })
 
   describe('findById method', () => {
@@ -426,6 +499,7 @@ describe('MemberRepository tests', () => {
         numberOfOpenSourceContributions: 0,
         lastActive: null,
         lastActivity: null,
+        affiliations: [],
       }
 
       const memberById = await MemberRepository.findById(memberCreated.id, mockIRepositoryOptions)
@@ -475,6 +549,7 @@ describe('MemberRepository tests', () => {
         reach: { total: -1 },
         organizations: [],
         joinedAt: new Date('2020-05-27T15:13:30Z'),
+        affiliations: [],
       }
 
       const memberById = await MemberRepository.findById(
@@ -644,6 +719,7 @@ describe('MemberRepository tests', () => {
       delete member1Returned.activityTypes
       delete member1Returned.activeDaysCount
       delete member1Returned.numberOfOpenSourceContributions
+      delete member1Returned.affiliations
       member1Returned.segments = member1Returned.segments.map((s) => s.id)
 
       const found = await MemberRepository.memberExists(
@@ -2903,6 +2979,7 @@ describe('MemberRepository tests', () => {
         numberOfOpenSourceContributions: 0,
         lastActive: null,
         lastActivity: null,
+        affiliations: [],
       }
 
       expect(updatedMember).toStrictEqual(expectedMemberCreated)
@@ -3000,6 +3077,7 @@ describe('MemberRepository tests', () => {
         updatedById: mockIRepositoryOptions.currentUser.id,
         reach: { total: -1 },
         joinedAt: new Date(updateFields.joinedAt),
+        affiliations: [],
       }
 
       expect(updatedMember).toStrictEqual(expectedMemberCreated)
@@ -3083,6 +3161,7 @@ describe('MemberRepository tests', () => {
         numberOfOpenSourceContributions: 0,
         lastActive: null,
         lastActivity: null,
+        affiliations: [],
       }
 
       expect(member1).toStrictEqual(expectedMemberCreated)
@@ -3196,6 +3275,7 @@ describe('MemberRepository tests', () => {
         numberOfOpenSourceContributions: 0,
         lastActive: null,
         lastActivity: null,
+        affiliations: [],
       }
 
       expect(member1).toStrictEqual(expectedMemberCreated)
@@ -3241,7 +3321,7 @@ describe('MemberRepository tests', () => {
       expect(memberUpdated.notes[1].id).toEqual(notes2.id)
     })
 
-    it('Should succesfully create member with tasks', async () => {
+    it('Should succesfully update member with tasks', async () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
 
       const tasks1 = await TaskRepository.create(
@@ -3315,6 +3395,87 @@ describe('MemberRepository tests', () => {
       await expect(() =>
         MemberRepository.update(member1.id, { tags: [randomUUID()] }, mockIRepositoryOptions),
       ).rejects.toThrow()
+    })
+
+    it('Should succesfully update member organization affiliations', async () => {
+      const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
+      const segmentRepo = new SegmentRepository(mockIRepositoryOptions)
+
+      const segment1 = await segmentRepo.create({
+        name: 'Crowd.dev - Segment1',
+        url: '',
+        parentName: 'Crowd.dev - Segment1',
+        grandparentName: 'Crowd.dev - Segment1',
+        slug: 'crowd.dev-1',
+        parentSlug: 'crowd.dev-1',
+        grandparentSlug: 'crowd.dev-1',
+        status: SegmentStatus.ACTIVE,
+        sourceId: null,
+        sourceParentId: null,
+      })
+
+      const segment2 = await segmentRepo.create({
+        name: 'Crowd.dev - Segment2',
+        url: '',
+        parentName: 'Crowd.dev - Segment2',
+        grandparentName: 'Crowd.dev - Segment2',
+        slug: 'crowd.dev-2',
+        parentSlug: 'crowd.dev-2',
+        grandparentSlug: 'crowd.dev-2',
+        status: SegmentStatus.ACTIVE,
+        sourceId: null,
+        sourceParentId: null,
+      })
+
+      const org1 = await OrganizationRepository.create(
+        {
+          name: 'crowd.dev',
+        },
+        mockIRepositoryOptions,
+      )
+
+      const member2add = {
+        username: {
+          [PlatformType.DISCORD]: {
+            username: 'anil',
+            integrationId: generateUUIDv1(),
+          },
+        },
+        displayName: 'Member 1',
+        joinedAt: '2020-05-27T15:13:30Z',
+        affiliations: [
+          {
+            segmentId: segment1.id,
+            organizationId: org1.id,
+          },
+          {
+            segmentId: segment2.id,
+            organizationId: null,
+          },
+        ],
+      }
+
+      const memberCreated = await MemberRepository.create(member2add, mockIRepositoryOptions)
+      expect(memberCreated.affiliations).toHaveLength(2)
+
+      // removes segment1 affiliation, and set segment2 affilition to org1
+      const memberUpdated = await MemberRepository.update(
+        memberCreated.id,
+        {
+          affiliations: [
+            {
+              segmentId: segment2.id,
+              organizationId: org1.id,
+            },
+          ],
+        },
+        mockIRepositoryOptions,
+      )
+
+      expect(memberUpdated.affiliations.filter((a) => a.segmentId === segment1.id)).toHaveLength(0)
+      expect(
+        memberUpdated.affiliations.filter((a) => a.segmentId === segment2.id)[0].organizationId,
+      ).toEqual(org1.id)
     })
   })
 

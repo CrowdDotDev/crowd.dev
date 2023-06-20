@@ -6,3 +6,7 @@ export async function populateSegments(options) {
     options.currentSegments.map(async (segment) => repository.findById(segment.id)),
   )
 }
+
+export function switchSegments(options, segments) {
+  options.currentSegments = segments
+}
