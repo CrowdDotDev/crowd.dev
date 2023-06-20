@@ -55,10 +55,9 @@ class FeatureFlagService {
   }
 
   isFlagEnabled(flag) {
-    // if (config.isCommunityVersion || config.isLinux) {
-    //   return true;
-    // }
-    return false;
+    if (config.isCommunityVersion || config.isLinux) {
+      return true;
+    }
 
     return this.unleash.isEnabled(flag);
   }
