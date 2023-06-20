@@ -1428,7 +1428,7 @@ class MemberRepository {
                 SELECT
                     mt."memberId",
                     JSON_AGG(
-                            JSON_BUILD_OBJECT(
+                            DISTINCT JSONB_BUILD_OBJECT(
                                     'id', t.id,
                                     'name', t.name
                                 )
