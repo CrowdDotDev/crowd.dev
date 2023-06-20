@@ -113,6 +113,7 @@ const config = defaultConfig.backendUrl
   : composedConfig;
 
 config.isCommunityVersion = config.edition === 'community';
+config.isLinux = config.edition === 'lfx-ee';
 config.hasPremiumModules = !config.isCommunityVersion
   || config.communityPremium === 'true';
 config.isGitIntegrationEnabled = config.isGitEnabled === 'true';

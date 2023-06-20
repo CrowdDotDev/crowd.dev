@@ -38,12 +38,15 @@ export const showExportDialog = ({
   confirmButtonText: 'Send download link to e-mail',
   cancelButtonText: 'Cancel',
   badgeContent,
-  highlightedInfo: `${tenantCsvExportCount}/${planExportCountMax} exports available in this plan used`,
+  highlightedInfo: planExportCountMax === 'unlimited' ? undefined : `${tenantCsvExportCount}/${planExportCountMax} exports available in this plan used`,
 });
 
 export const showExportLimitDialog = ({
   planExportCountMax,
 }) => {
+  if(planExportCountMax === 'unlimited'){
+    return  true;
+  }
   ConfirmDialog({
     vertical: true,
     type: 'danger',

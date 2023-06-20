@@ -11,6 +11,8 @@ import { isUserInTenant } from '../utils/userTenantUtils'
 import { IRepositoryOptions } from './IRepositoryOptions'
 import SettingsRepository from './settingsRepository'
 import Plans from '../../security/plans'
+import {API_CONFIG} from "../../conf";
+import {Edition} from "../../types/common";
 
 const { Op } = Sequelize
 
@@ -72,8 +74,8 @@ class TenantRepository {
           'integrationsRequired',
           'importHash',
         ]),
-        plan: 'Growth',
-        isTrialPlan: true,
+        plan: API_CONFIG.edition === Edition.LFX_EE ? Plans.values.enterprise : Plans.values.growth,
+        isTrialPlan: API_CONFIG.edition !== Edition.LFX_EE,
         trialEndsAt: moment().add(14, 'days').isAfter('2023-01-15')
           ? moment().add(14, 'days').toISOString()
           : '2023-01-15',

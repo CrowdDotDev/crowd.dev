@@ -1,4 +1,4 @@
-import { TENANT_MODE } from '../conf/index'
+import {API_CONFIG, TENANT_MODE} from '../conf/index'
 import TenantRepository from '../database/repositories/tenantRepository'
 import TenantUserRepository from '../database/repositories/tenantUserRepository'
 import Error400 from '../errors/Error400'
@@ -23,6 +23,7 @@ import MemberAttributeSettingsService from './memberAttributeSettingsService'
 import { DefaultMemberAttributes } from '../database/attributes/member/default'
 import { TenantMode } from '../conf/configTypes'
 import TaskRepository from '../database/repositories/taskRepository'
+import {Edition} from "../types/common";
 
 export default class TenantService {
   options: IServiceOptions

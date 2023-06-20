@@ -17,10 +17,16 @@ export const PLAN_LIMITS = {
     [FeatureFlag.MEMBER_ENRICHMENT]: 1000,
     [FeatureFlag.ORGANIZATION_ENRICHMENT]: 200,
   },
+  [Plans.values.enterprise]: {
+    [FeatureFlag.AUTOMATIONS]: Infinity,
+    [FeatureFlag.CSV_EXPORT]: Infinity,
+    [FeatureFlag.MEMBER_ENRICHMENT]: Infinity,
+    [FeatureFlag.ORGANIZATION_ENRICHMENT]: Infinity,
+  },
 }
 
 export default async (featureFlag: FeatureFlag, req: any): Promise<boolean> => {
-  if (API_CONFIG.edition === Edition.COMMUNITY) {
+  if (API_CONFIG.edition === Edition.COMMUNITY || API_CONFIG.edition === Edition.LFX_EE) {
     return true
   }
 

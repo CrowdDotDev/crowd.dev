@@ -16,8 +16,12 @@ const essentialEnrichmentMax = 5;
  */
 export const getEnrichmentMax = (plan) => {
   if (
+    plan === Plans.values.enterprise
+  ) {
+    return 'unlimited';
+  }
+  if (
     plan === Plans.values.growth
-    || plan === Plans.values.enterprise
   ) {
     return growthEnrichmentMax;
   }
@@ -35,6 +39,10 @@ export const checkEnrichmentLimit = (
   const isFeatureEnabled = FeatureFlag.isFlagEnabled(
     FEATURE_FLAGS.memberEnrichment,
   );
+
+  if(planEnrichmentCountMax === 'unlimited'){
+    return false;
+  }
 
   if (!isFeatureEnabled) {
     ConfirmDialog({
@@ -62,6 +70,9 @@ export const checkEnrichmentPlan = ({
   enrichmentCount,
   planEnrichmentCountMax,
 }) => {
+  if(planEnrichmentCountMax === 'unlimited'){
+    return false;
+  }
   if (enrichmentCount > planEnrichmentCountMax) {
     ConfirmDialog({
       vertical: true,

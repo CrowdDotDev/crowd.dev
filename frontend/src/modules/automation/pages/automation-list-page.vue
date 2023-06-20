@@ -174,6 +174,10 @@ const canAddAutomation = () => {
       currentTenant.value.plan,
     );
 
+    if(planWorkflowCountMax === 'unlimited'){
+      return true;
+    }
+
     showWorkflowLimitDialog({ planWorkflowCountMax });
   }
 

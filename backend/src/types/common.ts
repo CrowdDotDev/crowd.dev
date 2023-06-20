@@ -36,4 +36,5 @@ export enum FeatureFlagRedisKey {
 export enum Edition {
   COMMUNITY = 'community',
   CROWD_HOSTED = 'crowd-hosted',
+  LFX_EE = 'lfx-ee',
 }
