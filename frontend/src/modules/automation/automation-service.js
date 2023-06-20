@@ -6,6 +6,7 @@ export class AutomationService {
     const body = {
       id,
       data,
+      excludeSegments: true,
     };
 
     const tenantId = AuthCurrentTenant.get();
@@ -23,6 +24,11 @@ export class AutomationService {
 
     const response = await authAxios.delete(
       `/tenant/${tenantId}/automation/${id}`,
+      {
+        params: {
+          excludeSegments: true,
+        },
+      },
     );
 
     return response.data;
@@ -31,6 +37,7 @@ export class AutomationService {
   static async destroyAll(ids) {
     const params = {
       ids,
+      excludeSegments: true,
     };
 
     const tenantId = AuthCurrentTenant.get();
@@ -54,6 +61,7 @@ export class AutomationService {
         data: {
           state: true,
         },
+        excludeSegments: true,
       };
       return authAxios.put(
         `/tenant/${tenantId}/automation/${id}`,
@@ -71,6 +79,7 @@ export class AutomationService {
         data: {
           state: false,
         },
+        excludeSegments: true,
       };
       return authAxios.put(
         `/tenant/${tenantId}/automation/${id}`,
@@ -82,6 +91,7 @@ export class AutomationService {
   static async create(data) {
     const body = {
       data,
+      excludeSegments: true,
     };
 
     const tenantId = AuthCurrentTenant.get();
@@ -99,6 +109,11 @@ export class AutomationService {
 
     const response = await authAxios.get(
       `/tenant/${tenantId}/automation/${id}`,
+      {
+        params: {
+          excludeSegments: true,
+        },
+      },
     );
 
     return response.data;
@@ -110,6 +125,7 @@ export class AutomationService {
       orderBy,
       limit,
       offset,
+      excludeSegments: true,
     };
 
     const tenantId = AuthCurrentTenant.get();
@@ -134,6 +150,7 @@ export class AutomationService {
       orderBy,
       limit,
       offset,
+      excludeSegments: true,
     };
 
     const tenantId = AuthCurrentTenant.get();

@@ -16,6 +16,11 @@
             class="pt-4"
           />
         </el-tab-pane>
+        <el-tab-pane label="Automations" name="automations">
+          <app-automation-list-page
+            v-if="activeTab === 'automations'"
+          />
+        </el-tab-pane>
         <el-tab-pane label="API Keys" name="api-keys">
           <app-api-keys-page
             v-if="activeTab === 'api-keys'"
@@ -32,6 +37,7 @@ import AppApiKeysPage from '@/modules/settings/pages/api-keys-page.vue';
 import UserListPage from '@/modules/user/pages/user-list-page.vue';
 import { UserPermissions } from '@/modules/user/user-permissions';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
+import AppAutomationListPage from '@/modules/automation/pages/automation-list-page.vue';
 
 export default {
   name: 'AppSettingsPage',
@@ -39,6 +45,7 @@ export default {
   components: {
     AppApiKeysPage,
     'app-user-list-page': UserListPage,
+    AppAutomationListPage,
   },
 
   data() {
