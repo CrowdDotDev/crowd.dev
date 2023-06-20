@@ -405,19 +405,19 @@ export default class IntegrationService {
           transaction,
         )
 
-        const emitter = await getIntegrationRunWorkerEmitter()
+        await SequelizeRepository.commitTransaction(transaction)
+      } catch (err) {
+        await SequelizeRepository.rollbackTransaction(transaction)
+        throw err
+      }
+
+      const emitter = await getIntegrationRunWorkerEmitter()
         await emitter.triggerIntegrationRun(
           integration.tenantId,
           integration.platform,
           integration.id,
           true,
         )
-
-        await SequelizeRepository.commitTransaction(transaction)
-      } catch (err) {
-        await SequelizeRepository.rollbackTransaction(transaction)
-        throw err
-      }
 
       return integration
     }
@@ -474,20 +474,20 @@ export default class IntegrationService {
         },
         transaction,
       )
-
-      if (status === 'in-progress') {
-        const emitter = await getIntegrationRunWorkerEmitter()
-        await emitter.triggerIntegrationRun(
-          integration.tenantId,
-          integration.platform,
-          integration.id,
-          true,
-        )
-      }
       await SequelizeRepository.commitTransaction(transaction)
     } catch (err) {
       await SequelizeRepository.rollbackTransaction(transaction)
       throw err
+    }
+
+    if (status === 'in-progress') {
+      const emitter = await getIntegrationRunWorkerEmitter()
+      await emitter.triggerIntegrationRun(
+        integration.tenantId,
+        integration.platform,
+        integration.id,
+        true,
+      )
     }
 
     return integration
@@ -514,23 +514,23 @@ export default class IntegrationService {
         transaction,
       )
 
-      this.options.log.info(
-        { tenantId: integration.tenantId },
-        'Sending reddit message to int-run-worker!',
-      )
-      const emitter = await getIntegrationRunWorkerEmitter()
-      await emitter.triggerIntegrationRun(
-        integration.tenantId,
-        integration.platform,
-        integration.id,
-        true,
-      )
-
       await SequelizeRepository.commitTransaction(transaction)
     } catch (err) {
       await SequelizeRepository.rollbackTransaction(transaction)
       throw err
     }
+
+    this.options.log.info(
+      { tenantId: integration.tenantId },
+      'Sending reddit message to int-run-worker!',
+    )
+    const emitter = await getIntegrationRunWorkerEmitter()
+    await emitter.triggerIntegrationRun(
+      integration.tenantId,
+      integration.platform,
+      integration.id,
+      true,
+    )
 
     return integration
   }
@@ -559,23 +559,23 @@ export default class IntegrationService {
         },
         transaction,
       )
-
-      this.options.log.info(
-        { tenantId: integration.tenantId },
-        'Sending devto message to int-run-worker!',
-      )
-      const emitter = await getIntegrationRunWorkerEmitter()
-      await emitter.triggerIntegrationRun(
-        integration.tenantId,
-        integration.platform,
-        integration.id,
-        true,
-      )
       await SequelizeRepository.commitTransaction(transaction)
     } catch (err) {
       await SequelizeRepository.rollbackTransaction(transaction)
       throw err
     }
+
+    this.options.log.info(
+      { tenantId: integration.tenantId },
+      'Sending devto message to int-run-worker!',
+    )
+    const emitter = await getIntegrationRunWorkerEmitter()
+    await emitter.triggerIntegrationRun(
+      integration.tenantId,
+      integration.platform,
+      integration.id,
+      true,
+    )
 
     return integration
   }
@@ -647,23 +647,23 @@ export default class IntegrationService {
         transaction,
       )
 
-      this.options.log.info(
-        { tenantId: integration.tenantId },
-        'Sending HackerNews message to int-run-worker!',
-      )
-      const emitter = await getIntegrationRunWorkerEmitter()
-      await emitter.triggerIntegrationRun(
-        integration.tenantId,
-        integration.platform,
-        integration.id,
-        true,
-      )
-
       await SequelizeRepository.commitTransaction(transaction)
     } catch (err) {
       await SequelizeRepository.rollbackTransaction(transaction)
       throw err
     }
+
+    this.options.log.info(
+      { tenantId: integration.tenantId },
+      'Sending HackerNews message to int-run-worker!',
+    )
+    const emitter = await getIntegrationRunWorkerEmitter()
+    await emitter.triggerIntegrationRun(
+      integration.tenantId,
+      integration.platform,
+      integration.id,
+      true,
+    )
 
     return integration
   }
@@ -790,23 +790,23 @@ export default class IntegrationService {
         transaction,
       )
 
-      this.options.log.info(
-        { tenantId: integration.tenantId },
-        'Sending StackOverflow message to int-run-worker!',
-      )
-      const emitter = await getIntegrationRunWorkerEmitter()
-      await emitter.triggerIntegrationRun(
-        integration.tenantId,
-        integration.platform,
-        integration.id,
-        true,
-      )
-
       await SequelizeRepository.commitTransaction(transaction)
     } catch (err) {
       await SequelizeRepository.rollbackTransaction(transaction)
       throw err
     }
+
+    this.options.log.info(
+      { tenantId: integration.tenantId },
+      'Sending StackOverflow message to int-run-worker!',
+    )
+    const emitter = await getIntegrationRunWorkerEmitter()
+    await emitter.triggerIntegrationRun(
+      integration.tenantId,
+      integration.platform,
+      integration.id,
+      true,
+    )
 
     return integration
   }

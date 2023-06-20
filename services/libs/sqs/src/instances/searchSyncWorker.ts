@@ -1,6 +1,7 @@
 import { Logger } from '@crowd/logging'
 import { SEARCH_SYNC_WORKER_QUEUE_SETTINGS, SqsClient, SqsQueueEmitter } from '..'
 import {
+  CleanUpTenantMembersQueueMessage,
   RemoveMemberQueueMessage,
   SyncMemberQueueMessage,
   SyncTenantMembersQueueMessage,
@@ -21,5 +22,12 @@ export class SearchSyncWorkerEmitter extends SqsQueueEmitter {
 
   public async triggerRemoveMember(tenantId: string, memberId: string) {
     await this.sendMessage(`search-sync-${tenantId}`, new RemoveMemberQueueMessage(memberId))
+  }
+
+  public async triggerMemberCleanup(tenantId: string) {
+    await this.sendMessage(
+      `search-sync-${tenantId}`,
+      new CleanUpTenantMembersQueueMessage(tenantId),
+    )
   }
 }

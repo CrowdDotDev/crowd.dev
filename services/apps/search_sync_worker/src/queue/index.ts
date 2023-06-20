@@ -5,6 +5,7 @@ import { Logger } from '@crowd/logging'
 import { RedisClient } from '@crowd/redis'
 import { SEARCH_SYNC_WORKER_QUEUE_SETTINGS, SqsClient, SqsQueueReceiver } from '@crowd/sqs'
 import {
+  CleanUpTenantMembersQueueMessage,
   IQueueMessage,
   RemoveMemberQueueMessage,
   SearchSyncWorkerQueueMessageType,
@@ -44,6 +45,11 @@ export class WorkerQueueReceiver extends SqsQueueReceiver {
           service
             .syncTenantMembers((message as SyncTenantMembersQueueMessage).tenantId)
             .catch((err) => this.log.error(err, 'Error while syncing tenant members!'))
+          break
+        case SearchSyncWorkerQueueMessageType.CLEANUP_TENANT_MEMBERS:
+          service
+            .cleanupMemberIndex((message as CleanUpTenantMembersQueueMessage).tenantId)
+            .catch((err) => this.log.error(err, 'Error while cleaning up tenant members!'))
           break
         case SearchSyncWorkerQueueMessageType.REMOVE_MEMBER:
           await service.removeMember((message as RemoveMemberQueueMessage).memberId)

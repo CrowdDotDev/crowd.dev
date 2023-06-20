@@ -894,6 +894,7 @@ export default class MemberService extends LoggerBase {
 
   async destroyBulk(ids) {
     const transaction = await SequelizeRepository.createTransaction(this.options)
+    const searchSyncEmitter = await getSearchSyncWorkerEmitter()
 
     try {
       await MemberRepository.destroyBulk(
@@ -910,10 +911,15 @@ export default class MemberService extends LoggerBase {
       await SequelizeRepository.rollbackTransaction(transaction)
       throw error
     }
+
+    for (const id of ids) {
+      await searchSyncEmitter.triggerRemoveMember(this.options.currentTenant.id, id)
+    }
   }
 
   async destroyAll(ids) {
     const transaction = await SequelizeRepository.createTransaction(this.options)
+    const searchSyncEmitter = await getSearchSyncWorkerEmitter()
 
     try {
       for (const id of ids) {
@@ -931,6 +937,10 @@ export default class MemberService extends LoggerBase {
     } catch (error) {
       await SequelizeRepository.rollbackTransaction(transaction)
       throw error
+    }
+
+    for (const id of ids) {
+      await searchSyncEmitter.triggerRemoveMember(this.options.currentTenant.id, id)
     }
   }
 

@@ -2,7 +2,7 @@
   <div
     class="el-form-item"
     :class="{
-      'is-error': errors.length,
+      'is-error': enabledError(errors),
     }"
     v-bind="$attrs"
   >
@@ -23,9 +23,10 @@
       <div
         v-if="showError && errors.length > 0"
         class="el-form-item__error"
+        :class="errorClass"
       >
         <div class="error-msg">
-          {{ errorMessage(errors[0]) }}
+          <i :class="errorIcon" class="mr-1 text-base" />{{ errorMessage(errors[0]) }}
         </div>
       </div>
     </div>
@@ -61,14 +62,36 @@ const props = defineProps({
     type: Object,
     default: () => ({}),
   },
+  filterErrors: {
+    required: false,
+    type: Array,
+    default: () => null,
+  },
   showError: {
     required: false,
     type: Boolean,
     default: true,
   },
+  errorIcon: {
+    required: false,
+    type: String,
+    default: '',
+  },
+  errorClass: {
+    required: false,
+    type: String,
+    default: '',
+  },
 });
 
 const errors = computed(() => props.validation?.$errors || []);
+
+const enabledError = (errors) => {
+  if (props.filterErrors && props.filterErrors.length > 0 && errors.length > 0) {
+    return props.filterErrors.includes(errors[0].$validator);
+  }
+  return errors.length > 0;
+};
 
 const errorMessage = (error) => {
   if (

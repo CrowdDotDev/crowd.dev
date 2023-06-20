@@ -18,7 +18,7 @@ import task from '@/modules/task/task-module';
 import eagleEye from '@/premium/eagle-eye/eagle-eye-module';
 import user from '@/modules/user/user-module';
 
-const modules = {
+const modules: Record<string, any> = {
   shared,
   dashboard,
   onboard,

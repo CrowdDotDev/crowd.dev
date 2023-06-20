@@ -7,6 +7,7 @@ import { Logger, LoggerBase, logExecutionTime } from '@crowd/logging'
 import { RedisClient } from '@crowd/redis'
 import { IMemberAttribute, MemberAttributeType } from '@crowd/types'
 import { OpenSearchService } from './opensearch.service'
+import { ISearchHit } from './opensearch.data'
 
 export class SyncService extends LoggerBase {
   private readonly memberRepo: MemberRepository
@@ -22,42 +23,114 @@ export class SyncService extends LoggerBase {
     this.memberRepo = new MemberRepository(redisClient, store, this.log)
   }
 
+  public async cleanupMemberIndex(tenantId: string): Promise<void> {
+    this.log.warn({ tenantId }, 'Cleaning up member index!')
+
+    const query = {
+      bool: {
+        filter: {
+          term: {
+            uuid_tenantId: tenantId,
+          },
+        },
+      },
+    }
+
+    const sort = [{ date_joinedAt: 'asc' }]
+    const include = ['date_joinedAt']
+    const pageSize = 500
+    let lastJoinedAt: string
+
+    let results: ISearchHit<{ date_joinedAt: string }>[] = await this.openSearchService.search(
+      OpenSearchIndex.MEMBERS,
+      query,
+      pageSize,
+      sort,
+      undefined,
+      include,
+    )
+
+    let processed = 0
+
+    while (results.length > 0) {
+      // check every member if they exists in the database and if not remove them from the index
+      const ids = results.map((r) => r._id)
+      const dbIds = await this.memberRepo.checkMemberExists(tenantId, ids)
+
+      const toRemove = ids.filter((id) => !dbIds.includes(id))
+
+      if (toRemove.length > 0) {
+        this.log.warn({ tenantId, toRemove }, 'Removing members from index!')
+        for (const id of toRemove) {
+          await this.removeMember(id)
+        }
+      }
+
+      processed += results.length
+      this.log.warn({ tenantId }, `Processed ${processed} members while cleaning up tenant!`)
+
+      // use last joinedAt to get the next page
+      lastJoinedAt = results[results.length - 1]._source.date_joinedAt
+      results = await this.openSearchService.search(
+        OpenSearchIndex.MEMBERS,
+        query,
+        pageSize,
+        sort,
+        lastJoinedAt,
+        include,
+      )
+    }
+
+    this.log.warn(
+      { tenantId },
+      `'Processed total of ${processed} members while cleaning up tenant!'`,
+    )
+  }
+
   public async removeMember(memberId: string): Promise<void> {
     this.log.warn({ memberId }, 'Removing member from index!')
     await this.openSearchService.removeFromIndex(memberId, OpenSearchIndex.MEMBERS)
   }
 
-  public async syncTenantMembers(tenantId: string): Promise<void> {
+  public async syncTenantMembers(tenantId: string, reset = true): Promise<void> {
     this.log.warn({ tenantId }, 'Syncing all tenant members!')
     let count = 0
 
     await logExecutionTime(
       async () => {
+        if (reset) {
+          await this.memberRepo.setTenanMembersForSync(tenantId)
+        }
+
         const attributes = await this.memberRepo.getTenantMemberAttributes(tenantId)
 
-        let page = 1
-        const perPage = 1000
-        let members = await this.memberRepo.getTenantMembers(tenantId, page, perPage)
+        const perPage = 500
+        let memberIds = await this.memberRepo.getTenantMembersForSync(tenantId, 1, perPage)
 
-        while (members.length > 0) {
-          count += members.length
+        while (memberIds.length > 0) {
+          const members = await this.memberRepo.getMemberData(memberIds)
 
-          await this.openSearchService.bulkIndex(
-            OpenSearchIndex.MEMBERS,
-            members.map((m) => {
-              return {
-                id: m.id,
-                body: SyncService.prefixData(m, attributes),
-              }
-            }),
-          )
+          if (members.length > 0) {
+            await this.openSearchService.bulkIndex(
+              OpenSearchIndex.MEMBERS,
+              members.map((m) => {
+                return {
+                  id: m.id,
+                  body: SyncService.prefixData(m, attributes),
+                }
+              }),
+            )
+            count += members.length
+          }
+
+          await this.memberRepo.markSynced(members.map((m) => m.id))
 
           this.log.info({ tenantId }, `Synced ${count} members!`)
-          members = await this.memberRepo.getTenantMembers(tenantId, ++page, perPage)
+          memberIds = await this.memberRepo.getTenantMembersForSync(tenantId, 1, perPage)
         }
       },
       this.log,
-      'tenant-member-sync',
+      'sync-tenant-members',
     )
 
     this.log.info({ tenantId }, `Synced total of ${count} members!`)
@@ -66,13 +139,16 @@ export class SyncService extends LoggerBase {
   public async syncMember(memberId: string, retries = 0): Promise<void> {
     this.log.debug({ memberId }, 'Syncing member!')
 
-    const member = await this.memberRepo.getMemberData(memberId)
+    const members = await this.memberRepo.getMemberData([memberId])
 
-    if (member) {
-      const attributes = await this.memberRepo.getTenantMemberAttributes(member.tenantId)
+    if (members.length > 0) {
+      for (const member of members) {
+        const attributes = await this.memberRepo.getTenantMemberAttributes(member.tenantId)
 
-      const prepared = SyncService.prefixData(member, attributes)
-      await this.openSearchService.index(memberId, OpenSearchIndex.MEMBERS, prepared)
+        const prepared = SyncService.prefixData(member, attributes)
+        await this.openSearchService.index(memberId, OpenSearchIndex.MEMBERS, prepared)
+      }
+      await this.memberRepo.markSynced([memberId])
     } else {
       // we should retry - sometimes database is slow
       if (retries < 5) {

@@ -1,6 +1,8 @@
 import { createApp } from 'vue';
 import VueClickAway from 'vue3-click-away';
+// @ts-ignore
 import VueGridLayout from 'vue-grid-layout';
+// @ts-ignore
 import Vue3Sanitize from 'vue-3-sanitize';
 import LogRocket from 'logrocket';
 import VNetworkGraph from 'v-network-graph';
@@ -53,11 +55,11 @@ i18nInit();
   app.use(Vue3Sanitize, vueSanitizeOptions);
   app.use(VueClickAway);
   app.use(marked);
-  app.use(VueLazyLoad);
+  app.use(VueLazyLoad, {});
 
-  app.config.productionTip = process.env.NODE_ENV === 'production';
+  (app.config as any).productionTip = process.env.NODE_ENV === 'production';
 
-  app.config.errorHandler = (err) => {
+  app.config.errorHandler = (err: any) => {
     if (config.env === 'production') {
       LogRocket.captureException(err);
     } else if (config.env === 'local') {
@@ -65,7 +67,7 @@ i18nInit();
     }
   };
 
-  const exists = (el) => Boolean(el);
+  const exists = (el: any) => Boolean(el);
   Object.keys(modules)
     .map((key) => modules[key].components)
     .filter(exists)
@@ -87,8 +89,8 @@ i18nInit();
   app.use(pinia);
   app.use(store).use(router).mount('#app');
 
-  if (window.Cypress) {
-    window.app = {
+  if ((window as any).Cypress) {
+    (window as any).app = {
       ...app,
       $store: store,
       $router: router,
@@ -97,15 +99,24 @@ i18nInit();
 
   if (config.env === 'production' && config.hotjarKey) {
     (function (h, o, t, j, a, r) {
+      // @ts-ignore
       h.hj = h.hj
+        // @ts-ignore
         || function (...args) {
+          // @ts-ignore
           (h.hj.q = h.hj.q || []).push(args);
         };
+      // @ts-ignore
       h._hjSettings = { hjid: config.hotjarKey, hjsv: 6 };
+      // @ts-ignore
       [a] = o.getElementsByTagName('head');
+      // @ts-ignore
       r = o.createElement('script');
+      // @ts-ignore
       r.async = 1;
+      // @ts-ignore
       r.src = t + h._hjSettings.hjid + j + h._hjSettings.hjsv;
+      // @ts-ignore
       a.appendChild(r);
     }(
       window,

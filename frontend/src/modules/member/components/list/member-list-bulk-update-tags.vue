@@ -13,8 +13,11 @@
 
 <script>
 import { mapActions } from 'vuex';
+import { mapActions as mapActionsPinia } from 'pinia';
 import { FormSchema } from '@/shared/form/form-schema';
 import AppTagPopover from '@/modules/tag/components/tag-popover.vue';
+import { MemberService } from '@/modules/member/member-service';
+import { useMemberStore } from '@/modules/member/store/pinia';
 import { MemberModel } from '../../member-model';
 
 const { fields } = MemberModel;
@@ -67,16 +70,32 @@ export default {
       doBulkUpdateMembersTags:
         'member/doBulkUpdateMembersTags',
     }),
+    ...mapActionsPinia(useMemberStore, ['fetchMembers']),
 
     async doBulkUpdateTagsWithConfirm() {
       try {
         this.$emit('update:modelValue', false);
         this.bulkEditTags = false;
 
-        return this.doBulkUpdateMembersTags({
-          members: [...this.selectedRows],
-          tagsInCommon: this.bulkEditTagsInCommon,
-          tagsToSave: this.bulkEditTagsModel,
+        const payload = [...this.selectedRows].reduce((acc, item) => {
+          const memberToUpdate = { ...item };
+          const tagsToKeep = item.tags.filter(
+            (tag) => this.bulkEditTagsInCommon.filter((t) => t.id === tag.id).length === 0
+              && this.bulkEditTagsModel.filter((t) => t.id === tag.id).length === 0,
+          );
+
+          memberToUpdate.tags = [...tagsToKeep, ...this.bulkEditTagsModel];
+          acc.push(
+            formSchema.cast({
+              id: memberToUpdate.id,
+              tags: memberToUpdate.tags,
+            }),
+          );
+          return acc;
+        }, []);
+        await MemberService.updateBulk(payload);
+        await this.fetchMembers({
+          reload: true,
         });
       } catch (error) {
         // no

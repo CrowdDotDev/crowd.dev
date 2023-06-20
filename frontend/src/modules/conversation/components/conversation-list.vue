@@ -1,5 +1,12 @@
 <template>
   <div class="pt-3">
+    <cr-filter
+      v-model="filters"
+      :config="conversationFilters"
+      :search-config="conversationSearchFilter"
+      hash="conversation"
+      @fetch="fetch($event)"
+    />
     <div
       v-if="loading && !conversations.length"
       v-loading="loading"
@@ -18,9 +25,9 @@
         <div class="mb-4">
           <app-pagination-sorter
             v-model="sorterFilter"
-            :page-size="Number(pagination.pageSize)"
-            :total="count"
-            :current-page="pagination.currentPage"
+            :page-size="Number(pagination.perPage)"
+            :total="totalConversations"
+            :current-page="pagination.page"
             :has-page-counter="false"
             module="conversation"
             position="top"
@@ -66,107 +73,72 @@
 
 <script setup>
 import { defineProps, computed, ref } from 'vue';
-import { useStore } from 'vuex';
-import { TRENDING_CONVERSATIONS_FILTER } from '@/modules/activity/store/constants';
 import AppConversationItem from '@/modules/conversation/components/conversation-item.vue';
 import AppConversationDrawer from '@/modules/conversation/components/conversation-drawer.vue';
-import AppPaginationSorter from '@/shared/pagination/pagination-sorter.vue';
+import CrFilter from '@/shared/modules/filters/components/Filter.vue';
+import { useConversationStore } from '@/modules/conversation/store';
+import { storeToRefs } from 'pinia';
+import { conversationFilters, conversationSearchFilter } from '@/modules/conversation/config/filters/main';
 
-const store = useStore();
 const conversationId = ref(null);
 
 defineProps({
-  conversations: {
-    type: Array,
-    default: () => [],
-  },
-  loading: {
-    type: Boolean,
-    default: false,
-  },
   itemsAsCards: {
     type: Boolean,
     default: false,
   },
 });
 
-const activeView = computed(
-  () => store.getters['activity/activeView'],
-);
-const sorterFilter = computed(() => (activeView.value?.sorter.prop === 'activityCount'
+const conversationStore = useConversationStore();
+const { filters, conversations, totalConversations } = storeToRefs(conversationStore);
+const { fetchConversation } = conversationStore;
+
+const loading = ref(false);
+
+const sorterFilter = computed(() => (filters.value.order.prop === 'activityCount'
   ? 'trending'
   : 'recentActivity'));
-const hasFilter = computed(() => {
-  const parsedFilters = {
-    ...activeView.value.filter.attributes,
-  };
 
-  // Remove search filter if value is empty
-  if (!parsedFilters.search?.value) {
-    delete parsedFilters.search;
-  }
-
-  return !!Object.keys(parsedFilters).length;
-});
-const emptyState = computed(() => {
-  if (hasFilter.value) {
-    return {
-      title: 'No conversations found',
-      description:
+const emptyState = computed(() => ({
+  title: 'No conversations found',
+  description:
         "We couldn't find any results that match your search criteria, please try a different query",
-    };
-  }
-
-  return {
-    title: 'No conversations yet',
-    description:
-      "We couldn't track any conversations among your community members",
-  };
-});
-
-const count = computed(() => store.state.activity.count);
-const pagination = computed(
-  () => store.getters['activity/pagination'],
-);
-const isLoadMoreVisible = computed(() => (
-  pagination.value.currentPage
-      * pagination.value.pageSize
-    < count.value
-));
+}));
 
 const doChangeFilter = (filter) => {
-  let sorter = 'lastActive';
-  const payload = {
-    activeView: activeView.value,
-    attribute:
-      TRENDING_CONVERSATIONS_FILTER.attributes.lastActive,
-  };
-
-  if (filter === 'trending') {
-    // Add lastActive filter for 'Trending' sorter
-    store.commit('activity/FILTER_ATTRIBUTE_ADDED', payload);
-    sorter = 'activityCount';
-  } else {
-    // Remove lastActive filter for 'Most recent activity' sorter
-    store.commit(
-      'activity/FILTER_ATTRIBUTE_DESTROYED',
-      payload,
-    );
-  }
-
-  store.dispatch('activity/doChangeSort', {
-    prop: sorter,
+  filters.value.order = {
+    prop: filter === 'recentActivity' ? 'lastActive' : 'activityCount',
     order: 'descending',
-  });
+  };
 };
 
-const onLoadMore = () => {
-  const newPageSize = pagination.value.pageSize + 10;
+const pagination = computed(
+  () => filters.value.pagination,
+);
+const isLoadMoreVisible = computed(() => (
+  pagination.value.page
+      * pagination.value.perPage
+    < totalConversations
+));
 
-  store.dispatch(
-    'activity/doChangePaginationPageSize',
-    newPageSize,
-  );
+const onLoadMore = () => {
+  filters.value.pagination.page += 1;
+};
+
+const fetch = ({
+  filter, offset, limit, orderBy, body,
+}) => {
+  loading.value = true;
+  fetchConversation({
+    ...body,
+    filter,
+    offset,
+    limit,
+    orderBy,
+  })
+    .finally(() => {
+      loading.value = false;
+    });
 };
 </script>
 
