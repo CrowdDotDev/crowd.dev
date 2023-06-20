@@ -37,32 +37,35 @@ export class MemberSyncService extends LoggerBase {
     }
 
     const sort = [{ date_joinedAt: 'asc' }]
-    const include = ['date_joinedAt']
+    const include = ['date_joinedAt', 'uuid_memberId']
     const pageSize = 500
     let lastJoinedAt: string
 
-    let results: ISearchHit<{ date_joinedAt: string }>[] = await this.openSearchService.search(
-      OpenSearchIndex.MEMBERS,
-      query,
-      pageSize,
-      sort,
-      undefined,
-      include,
-    )
+    let results: ISearchHit<{ date_joinedAt: string; uuid_memberId: string }>[] =
+      await this.openSearchService.search(
+        OpenSearchIndex.MEMBERS,
+        query,
+        pageSize,
+        sort,
+        undefined,
+        include,
+      )
 
     let processed = 0
 
     while (results.length > 0) {
       // check every member if they exists in the database and if not remove them from the index
-      const ids = results.map((r) => r._id)
-      const dbIds = await this.memberRepo.checkMembersExists(tenantId, ids)
+      const dbIds = await this.memberRepo.checkMembersExists(
+        tenantId,
+        results.map((r) => r._source.uuid_memberId),
+      )
 
-      const toRemove = ids.filter((id) => !dbIds.includes(id))
+      const toRemove = results.filter((r) => !dbIds.includes(r._source.uuid_memberId))
 
       if (toRemove.length > 0) {
         this.log.warn({ tenantId, toRemove }, 'Removing members from index!')
         for (const id of toRemove) {
-          await this.removeMember(id)
+          await this.removeMember(id._id)
         }
       }
 
