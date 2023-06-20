@@ -137,17 +137,19 @@ const fetch = ({
 }) => {
   loading.value = true;
   fetchActivities({
-    ...body,
-    filter: {
-      ...filter,
-      member: {
-        isTeamMember: { not: true },
-        isBot: { not: true },
+    body: {
+      ...body,
+      filter: {
+        ...filter,
+        member: {
+          isTeamMember: { not: true },
+          isBot: { not: true },
+        },
       },
+      offset,
+      limit,
+      orderBy,
     },
-    offset,
-    limit,
-    orderBy,
   })
     .finally(() => {
       loading.value = false;

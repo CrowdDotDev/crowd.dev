@@ -207,7 +207,6 @@ const activityTypeStore = useActivityTypeStore();
 const { types } = storeToRefs(activityTypeStore);
 
 const activityStore = useActivityStore();
-const { savedFilterBody } = storeToRefs(activityStore);
 const { fetchActivities } = activityStore;
 
 // Form control
@@ -329,7 +328,7 @@ const submit = () => {
       .then(() => {
         reset();
         emit('update:modelValue', false);
-        fetchActivities(savedFilterBody.value);
+        fetchActivities({ reload: true });
         Message.success('Activity successfully created!');
       })
       .catch(() => {
@@ -343,7 +342,7 @@ const submit = () => {
       .then(() => {
         reset();
         emit('update:modelValue', false);
-        fetchActivities(savedFilterBody.value);
+        fetchActivities({ reload: true });
         Message.success('Activity successfully updated!');
       })
       .catch(() => {

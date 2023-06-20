@@ -57,7 +57,6 @@ import Message from '@/shared/message/message';
 import { useActivityTypeStore } from '@/modules/activity/store/type';
 import formChangeDetector from '@/shared/form/form-change';
 import { useActivityStore } from '@/modules/activity/store/pinia';
-import { storeToRefs } from 'pinia';
 
 // Props & Emits
 const props = defineProps({
@@ -78,7 +77,6 @@ const emit = defineEmits(['update:modelValue']);
 const { createActivityType, updateActivityType } = useActivityTypeStore();
 
 const activityStore = useActivityStore();
-const { savedFilterBody } = storeToRefs(activityStore);
 const { fetchActivities } = activityStore;
 
 // Form control
@@ -134,7 +132,7 @@ const submit = () => {
     })
       .then(() => {
         reset();
-        fetchActivities(savedFilterBody.value);
+        fetchActivities({ reload: true });
         emit('update:modelValue');
         Message.success(
           'Activity type successfully updated!',
