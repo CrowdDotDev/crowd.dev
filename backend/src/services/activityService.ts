@@ -250,7 +250,7 @@ export default class ActivityService extends LoggerBase {
       const sentiment = vader.SentimentIntensityAnalyzer.polarity_scores(text)
       let compound = Math.round(((sentiment.compound + 1) / 2) * 100)
       // Some activities are inherently different, we might want to dampen their sentiment
-      
+
       let label = 'neutral'
       if (compound < 33) {
         label = 'negative'
