@@ -17,7 +17,6 @@ import { WEEKLY_EMAILS_CONFIG } from '@/conf'
 const EMAILS_ENABLED = WEEKLY_EMAILS_CONFIG.enabled === 'true'
 
 const jobs: CrowdJob[] = [
-  EMAILS_ENABLED && weeklyAnalyticsEmailsCoordinator,
   integrationTicks,
   memberScoreCoordinator,
   checkSqsQueues,
@@ -31,5 +30,9 @@ const jobs: CrowdJob[] = [
   checkStuckIntegrationRuns,
   enrichOrganizations,
 ]
+
+if (EMAILS_ENABLED) {
+  jobs.push(weeklyAnalyticsEmailsCoordinator)
+}
 
 export default jobs
