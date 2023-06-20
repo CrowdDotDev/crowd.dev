@@ -1,3 +1,0 @@
-./../crowd-backend
-./../crowd-github
-./../crowd-members-score

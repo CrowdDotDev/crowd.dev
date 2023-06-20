@@ -4,10 +4,17 @@ import path from 'path'
 import { IIntegrationDescriptor } from '../types'
 import devto from './devto'
 import stackoverflow from './stackoverflow'
+import reddit from './reddit'
+import hackernews from './hackernews'
 
 const log = getServiceChildLogger('integrations')
 
-export const INTEGRATION_SERVICES: IIntegrationDescriptor[] = [devto, stackoverflow]
+export const INTEGRATION_SERVICES: IIntegrationDescriptor[] = [
+  devto,
+  stackoverflow,
+  reddit,
+  hackernews,
+]
 
 log.info(
   { types: INTEGRATION_SERVICES.map((i) => i.type) },

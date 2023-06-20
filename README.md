@@ -35,8 +35,8 @@ With crowd.dev, you get full visibility into all platforms and can take actions 
 
 <img src="https://user-images.githubusercontent.com/41432658/198830271-cbe6d3c7-0c46-4539-98cc-b13c495ddedf.png" alt="UI Home screen">
 
-
 ## ✨ Features
+
 - **Plug & play integrations** to tie all relevant platforms - like GitHub, Discord, Slack, or LinkedIn - together. ([all integrations](https://www.crowd.dev/integrations))
 - **Identity resolution & automated segmentation** to effortlessly understand activities and profiles across platforms.
 - **Opinionated analytics & reports** on topics like product-market-fit and open-source community activity to further inform your GTM strategy.
@@ -55,7 +55,7 @@ crowd.dev is still in beta and we ship new features every week. To stay in the l
 
 ### Cloud version
 
-Our <a href="https://crowd.dev/#waitlist">cloud version</a> is a fast, easy and free way to get started with crowd.dev. 
+Our <a href="https://crowd.dev/#waitlist">cloud version</a> is a fast, easy and free way to get started with crowd.dev.
 
 ### Self-hosted version
 
@@ -92,6 +92,7 @@ cd scripts
 ```
 
 For hot reloading, you can run
+
 ```shell
 cd scripts
 ./cli clean-start-dev
@@ -126,12 +127,3 @@ Our self-hosted version can be run and deployed by default following the permiss
 ## 🔒 Security
 
 We take security very seriously. If you come across any security vulnerabilities, please disclose them by sending an email to security@crowd.dev. We appreciate your help in making our platform as secure as possible and are committed to working with you to resolve any issues quickly and efficiently.
-
-## 💌 Acknowledgements
-
-crowd.dev is powered by these awesome projects:
-
-- <a href="https://github.com/vuejs/vue">Vue.js</a>
-- <a href="https://github.com/tailwindlabs/tailwindcss">Tailwind CSS</a>
-- <a href="https://github.com/cube-js/cube.js">Cube.js</a>
-- <a href="https://github.com/meilisearch/meilisearch">Meilisearch</a>

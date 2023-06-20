@@ -150,6 +150,30 @@ export class MemberService {
     return response.data;
   }
 
+  static async listMembers(
+    body,
+    countOnly = false,
+  ) {
+    const sampleTenant = AuthCurrentTenant.getSampleTenantData();
+    const tenantId = sampleTenant?.id || AuthCurrentTenant.get();
+
+    const response = await authAxios.post(
+      `/tenant/${tenantId}/member/query`,
+      {
+        ...body,
+        countOnly,
+      },
+      {
+        headers: {
+          'x-crowd-api-version': '1',
+          Authorization: sampleTenant?.token,
+        },
+      },
+    );
+
+    return response.data;
+  }
+
   static async listActive({
     platform,
     isTeamMember,
@@ -252,7 +276,7 @@ export class MemberService {
       offset,
     };
 
-    const response = await authAxios.get(
+    return authAxios.get(
       `/tenant/${tenantId}/membersToMerge`,
       {
         params,
@@ -260,9 +284,8 @@ export class MemberService {
           Authorization: sampleTenant?.token,
         },
       },
-    );
-
-    return response.data;
+    )
+      .then(({ data }) => Promise.resolve(data));
   }
 
   static async getCustomAttribute(id) {
