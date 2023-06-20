@@ -168,5 +168,8 @@
       "password": "CROWD_UNLEASH_DB_PASSWORD",
       "database": "CROWD_UNLEASH_DB_DATABASE"
     }
+  },
+  "weeklyEmails": {
+    "enabled": "CROWD_WEEKLY_EMAILS_ENABLED"
   }
 }
