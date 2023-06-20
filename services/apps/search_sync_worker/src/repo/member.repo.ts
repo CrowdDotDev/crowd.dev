@@ -194,7 +194,7 @@ export class MemberRepository extends RepositoryBase<MemberRepository> {
     )
   }
 
-  public async checkMemberExists(tenantId: string, memberIds: string[]): Promise<string[]> {
+  public async checkMembersExists(tenantId: string, memberIds: string[]): Promise<string[]> {
     const results = await this.db().any(
       `
       select m.id

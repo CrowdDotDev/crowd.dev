@@ -48,6 +48,27 @@ const prefixedMapping = {
         },
       },
     },
+    {
+      keywords: {
+        match_pattern: 'regex',
+        match: 'keyword_.*',
+        path_match: '.*',
+        mapping: {
+          type: 'keyword',
+        },
+      },
+    },
+    {
+      nox_keywords: {
+        match_pattern: 'regex',
+        match: 'nox_keyword_.*',
+        path_match: '.*',
+        mapping: {
+          type: 'keyword',
+          index: false,
+        },
+      },
+    },
     // https://opensearch.org/docs/latest/field-types/supported-field-types/numeric/
     {
       integers: {
@@ -515,6 +536,27 @@ const prefixedMapping = {
       nox_uuid_arrays: {
         match_pattern: 'regex',
         match: 'nox_uuid_arr_.*',
+        path_match: '.*',
+        mapping: {
+          type: 'keyword',
+          index: false,
+        },
+      },
+    },
+    {
+      keyword_arrays: {
+        match_pattern: 'regex',
+        match: 'keyword_arr_.*',
+        path_match: '.*',
+        mapping: {
+          type: 'keyword',
+        },
+      },
+    },
+    {
+      nox_keyword_arrays: {
+        match_pattern: 'regex',
+        match: 'nox_keyword_arr_.*',
         path_match: '.*',
         mapping: {
           type: 'keyword',

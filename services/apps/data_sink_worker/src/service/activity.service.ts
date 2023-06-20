@@ -75,8 +75,16 @@ export default class ActivityService extends LoggerBase {
       })
 
       await this.nodejsWorkerEmitter.processAutomationForNewActivity(tenantId, id)
-      await this.conversationService.processActivity(tenantId, id)
+      const affectedIds = await this.conversationService.processActivity(tenantId, id)
+
       await this.searchSyncWorkerEmitter.triggerMemberSync(tenantId, activity.memberId)
+
+      if (affectedIds.length > 0) {
+        for (const affectedId of affectedIds.filter((i) => i !== id)) {
+          await this.searchSyncWorkerEmitter.triggerActivitySync(tenantId, affectedId)
+        }
+      }
+      await this.searchSyncWorkerEmitter.triggerActivitySync(tenantId, id)
 
       return id
     } catch (err) {
@@ -139,6 +147,7 @@ export default class ActivityService extends LoggerBase {
       if (updated) {
         await this.conversationService.processActivity(tenantId, id)
         await this.searchSyncWorkerEmitter.triggerMemberSync(tenantId, activity.memberId)
+        await this.searchSyncWorkerEmitter.triggerActivitySync(tenantId, id)
       }
     } catch (err) {
       this.log.error(err, { activityId: id }, 'Error while updating an activity!')

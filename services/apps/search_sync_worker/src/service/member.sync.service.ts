@@ -55,7 +55,7 @@ export class MemberSyncService extends LoggerBase {
     while (results.length > 0) {
       // check every member if they exists in the database and if not remove them from the index
       const ids = results.map((r) => r._id)
-      const dbIds = await this.memberRepo.checkMemberExists(tenantId, ids)
+      const dbIds = await this.memberRepo.checkMembersExists(tenantId, ids)
 
       const toRemove = ids.filter((id) => !dbIds.includes(id))
 
@@ -92,7 +92,7 @@ export class MemberSyncService extends LoggerBase {
     await this.openSearchService.removeFromIndex(memberId, OpenSearchIndex.MEMBERS)
   }
 
-  public async syncTenantMembers(tenantId: string, reset = true): Promise<void> {
+  public async syncTenantMembers(tenantId: string, reset = true, batchSize = 500): Promise<void> {
     this.log.warn({ tenantId }, 'Syncing all tenant members!')
     let count = 0
 
@@ -104,8 +104,7 @@ export class MemberSyncService extends LoggerBase {
 
         const attributes = await this.memberRepo.getTenantMemberAttributes(tenantId)
 
-        const perPage = 500
-        let memberIds = await this.memberRepo.getTenantMembersForSync(tenantId, 1, perPage)
+        let memberIds = await this.memberRepo.getTenantMembersForSync(tenantId, 1, batchSize)
 
         while (memberIds.length > 0) {
           const members = await this.memberRepo.getMemberData(memberIds)
@@ -126,7 +125,7 @@ export class MemberSyncService extends LoggerBase {
           await this.memberRepo.markSynced(members.map((m) => m.id))
 
           this.log.info({ tenantId }, `Synced ${count} members!`)
-          memberIds = await this.memberRepo.getTenantMembersForSync(tenantId, 1, perPage)
+          memberIds = await this.memberRepo.getTenantMembersForSync(tenantId, 1, batchSize)
         }
       },
       this.log,

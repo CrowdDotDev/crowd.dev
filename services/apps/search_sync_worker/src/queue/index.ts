@@ -5,6 +5,7 @@ import { Logger } from '@crowd/logging'
 import { RedisClient } from '@crowd/redis'
 import { SEARCH_SYNC_WORKER_QUEUE_SETTINGS, SqsClient, SqsQueueReceiver } from '@crowd/sqs'
 import { IQueueMessage, SearchSyncWorkerQueueMessageType } from '@crowd/types'
+import { ActivitySyncService } from '@/service/activity.sync.service'
 
 export class WorkerQueueReceiver extends SqsQueueReceiver {
   constructor(
@@ -21,6 +22,14 @@ export class WorkerQueueReceiver extends SqsQueueReceiver {
   private initMemberService(): MemberSyncService {
     return new MemberSyncService(
       this.redisClient,
+      new DbStore(this.log, this.dbConn),
+      this.openSearchService,
+      this.log,
+    )
+  }
+
+  private initActivityService(): ActivitySyncService {
+    return new ActivitySyncService(
       new DbStore(this.log, this.dbConn),
       this.openSearchService,
       this.log,
@@ -58,12 +67,20 @@ export class WorkerQueueReceiver extends SqsQueueReceiver {
 
         // activities
         case SearchSyncWorkerQueueMessageType.SYNC_ACTIVITY:
+          await this.initActivityService().syncActivity(data.activityId)
           break
         case SearchSyncWorkerQueueMessageType.SYNC_TENANT_ACTIVITIES:
+          this.initActivityService()
+            .syncTenantActivities(data.tenantId)
+            .catch((err) => this.log.error(err, 'Error while syncing tenant activities!'))
           break
         case SearchSyncWorkerQueueMessageType.CLEANUP_TENANT_ACTIVITIES:
+          this.initActivityService()
+            .cleanupActivityIndex(data.tenantId)
+            .catch((err) => this.log.error(err, 'Error while cleaning up tenant activities!'))
           break
         case SearchSyncWorkerQueueMessageType.REMOVE_ACTIVITY:
+          await this.initActivityService().removeActivity(data.activityId)
           break
 
         default:

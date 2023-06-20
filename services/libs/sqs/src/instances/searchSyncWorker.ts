@@ -1,6 +1,6 @@
 import { Logger } from '@crowd/logging'
-import { SEARCH_SYNC_WORKER_QUEUE_SETTINGS, SqsClient, SqsQueueEmitter } from '..'
 import { SearchSyncWorkerQueueMessageType } from '@crowd/types'
+import { SEARCH_SYNC_WORKER_QUEUE_SETTINGS, SqsClient, SqsQueueEmitter } from '..'
 
 export class SearchSyncWorkerEmitter extends SqsQueueEmitter {
   constructor(client: SqsClient, parentLog: Logger) {
