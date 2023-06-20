@@ -166,7 +166,7 @@ export class ActivitySyncService extends LoggerBase {
     const p: Record<string, unknown> = {}
 
     p.uuid_id = data.id
-    p.uuid_tenantId = data.id
+    p.uuid_tenantId = data.tenantId
     p.uuid_segmentId = data.segmentId
     p.keyword_type = data.type
     p.date_timestamp = data.timestamp
