@@ -1,6 +1,5 @@
 import { OPENSEARCH_CONFIG } from '@/conf'
 import { OPENSEARCH_INDEX_MAPPINGS, OpenSearchIndex } from '@/types'
-import { IS_DEV_ENV } from '@crowd/common'
 import { Logger, LoggerBase } from '@crowd/logging'
 import { Client } from '@opensearch-project/opensearch'
 import { AwsSigv4Signer } from '@opensearch-project/opensearch/aws'
