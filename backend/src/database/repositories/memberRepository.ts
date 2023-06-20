@@ -1256,7 +1256,6 @@ class MemberRepository {
                   AND ms."segmentId" IN (:segmentIds)
                   AND t."tenantId" = :tenantId
                   AND t."deletedAt" IS NULL
-                  AND t."segmentId" IN (:segmentIds)
                 GROUP BY mt."memberId"
             ),
             member_organizations AS (
@@ -1444,7 +1443,6 @@ class MemberRepository {
                   AND ms."segmentId" IN (:segmentIds)
                   AND t."tenantId" = :tenantId
                   AND t."deletedAt" IS NULL
-                  AND t."segmentId" IN (:segmentIds)
                 GROUP BY mt."memberId"
             ),
             member_organizations AS (
@@ -1524,6 +1522,9 @@ class MemberRepository {
         ORDER BY ${orderByString}
         LIMIT :limit OFFSET :offset;
     `
+
+    console.log('filterString', filterString)
+    console.log('params', params)
 
     const sumMemberCount = (countResults) =>
       countResults.map((row) => parseInt(row.totalCount, 10)).reduce((a, b) => a + b, 0)
