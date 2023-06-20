@@ -430,6 +430,9 @@ export default class SegmentService extends LoggerBase {
 
   private async addMemberCounts(segments, level: SegmentLevel) {
     const subprojectIds = this.collectSubprojectIds(segments, level)
+    if (!subprojectIds.length) {
+      return
+    }
     const membersCountPerSegment = await MemberRepository.countMembersPerSegment(
       this.options,
       subprojectIds,
