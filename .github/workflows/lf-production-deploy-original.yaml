@@ -1,4 +1,4 @@
-name: LF Production Deploy
+name: LF Production Deploy Original
 
 on:
   workflow_dispatch:
@@ -33,10 +33,6 @@ on:
         type: boolean
       deploy_data_sink_worker:
         description: Deploy data-sink-worker service?
-        required: true
-        type: boolean
-      deploy_search_sync_worker:
-        description: Deploy search-sync-worker service?
         required: true
         type: boolean
       deploy_python_worker:
@@ -160,27 +156,6 @@ jobs:
         id: image-builder
         with:
           image: data-sink-worker
-
-      - name: Set docker image output
-        id: image
-        run: echo "IMAGE=${{ steps.image-builder.outputs.image }}" >> $GITHUB_OUTPUT
-
-  build-and-push-search-sync-worker:
-    runs-on: ubuntu-latest
-    if: ${{ inputs.deploy_search_sync_worker }}
-    outputs:
-      image: ${{ steps.image.outputs.IMAGE }}
-    defaults:
-      run:
-        shell: bash
-    steps:
-      - name: Check out repository code
-        uses: actions/checkout@v2
-
-      - uses: ./.github/actions/build-docker-image
-        id: image-builder
-        with:
-          image: search-sync-worker
 
       - name: Set docker image output
         id: image
@@ -369,24 +344,6 @@ jobs:
         with:
           service: data-sink-worker
           image: ${{ needs.build-and-push-data-sink-worker.outputs.image }}
-          cluster: ${{ env.CROWD_CLUSTER }}
-
-  deploy-search-sync-worker:
-    needs: build-and-push-search-sync-worker
-    runs-on: ubuntu-latest
-    if: ${{ inputs.deploy_search_sync_worker }}
-    defaults:
-      run:
-        shell: bash
-
-    steps:
-      - name: Check out repository code
-        uses: actions/checkout@v2
-
-      - uses: ./.github/actions/deploy-service
-        with:
-          service: search-sync-worker
-          image: ${{ needs.build-and-push-search-sync-worker.outputs.image }}
           cluster: ${{ env.CROWD_CLUSTER }}
 
   deploy-frontend:
