@@ -37,32 +37,35 @@ export class MemberSyncService extends LoggerBase {
     }
 
     const sort = [{ date_joinedAt: 'asc' }]
-    const include = ['date_joinedAt']
+    const include = ['date_joinedAt', 'uuid_memberId']
     const pageSize = 500
     let lastJoinedAt: string
 
-    let results: ISearchHit<{ date_joinedAt: string }>[] = await this.openSearchService.search(
-      OpenSearchIndex.MEMBERS,
-      query,
-      pageSize,
-      sort,
-      undefined,
-      include,
-    )
+    let results: ISearchHit<{ date_joinedAt: string; uuid_memberId: string }>[] =
+      await this.openSearchService.search(
+        OpenSearchIndex.MEMBERS,
+        query,
+        pageSize,
+        sort,
+        undefined,
+        include,
+      )
 
     let processed = 0
 
     while (results.length > 0) {
       // check every member if they exists in the database and if not remove them from the index
-      const ids = results.map((r) => r._id)
-      const dbIds = await this.memberRepo.checkMembersExists(tenantId, ids)
+      const dbIds = await this.memberRepo.checkMembersExists(
+        tenantId,
+        results.map((r) => r._source.uuid_memberId),
+      )
 
-      const toRemove = ids.filter((id) => !dbIds.includes(id))
+      const toRemove = results.filter((r) => !dbIds.includes(r._source.uuid_memberId))
 
       if (toRemove.length > 0) {
         this.log.warn({ tenantId, toRemove }, 'Removing members from index!')
         for (const id of toRemove) {
-          await this.removeMember(id)
+          await this.removeMember(id._id)
         }
       }
 
@@ -89,7 +92,48 @@ export class MemberSyncService extends LoggerBase {
 
   public async removeMember(memberId: string): Promise<void> {
     this.log.warn({ memberId }, 'Removing member from index!')
-    await this.openSearchService.removeFromIndex(memberId, OpenSearchIndex.MEMBERS)
+
+    const query = {
+      bool: {
+        filter: {
+          term: {
+            uuid_memberId: memberId,
+          },
+        },
+      },
+    }
+
+    const sort = [{ date_joinedAt: 'asc' }]
+    const include = ['date_joinedAt']
+    const pageSize = 10
+    let lastJoinedAt: string
+
+    let results: ISearchHit<{ date_joinedAt: string }>[] = await this.openSearchService.search(
+      OpenSearchIndex.MEMBERS,
+      query,
+      pageSize,
+      sort,
+      undefined,
+      include,
+    )
+
+    while (results.length > 0) {
+      const ids = results.map((r) => r._id)
+      for (const id of ids) {
+        await this.openSearchService.removeFromIndex(id, OpenSearchIndex.MEMBERS)
+      }
+
+      // use last joinedAt to get the next page
+      lastJoinedAt = results[results.length - 1]._source.date_joinedAt
+      results = await this.openSearchService.search(
+        OpenSearchIndex.MEMBERS,
+        query,
+        pageSize,
+        sort,
+        lastJoinedAt,
+        include,
+      )
+    }
   }
 
   public async syncTenantMembers(tenantId: string, reset = true, batchSize = 500): Promise<void> {
@@ -114,7 +158,7 @@ export class MemberSyncService extends LoggerBase {
               OpenSearchIndex.MEMBERS,
               members.map((m) => {
                 return {
-                  id: m.id,
+                  id: `${m.id}-${m.segmentId}`,
                   body: MemberSyncService.prefixData(m, attributes),
                 }
               }),
@@ -145,7 +189,11 @@ export class MemberSyncService extends LoggerBase {
         const attributes = await this.memberRepo.getTenantMemberAttributes(member.tenantId)
 
         const prepared = MemberSyncService.prefixData(member, attributes)
-        await this.openSearchService.index(memberId, OpenSearchIndex.MEMBERS, prepared)
+        await this.openSearchService.index(
+          `${memberId}-${member.segmentId}`,
+          OpenSearchIndex.MEMBERS,
+          prepared,
+        )
       }
       await this.memberRepo.markSynced([memberId])
     } else {
@@ -164,7 +212,7 @@ export class MemberSyncService extends LoggerBase {
   private static prefixData(data: IDbMemberSyncData, attributes: IMemberAttribute[]): any {
     const p: Record<string, unknown> = {}
 
-    p.uuid_id = data.id
+    p.uuid_memberId = data.id
     p.uuid_tenantId = data.tenantId
     p.uuid_segmentId = data.segmentId
     p.string_displayName = data.displayName

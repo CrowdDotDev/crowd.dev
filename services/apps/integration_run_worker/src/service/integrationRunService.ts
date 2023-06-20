@@ -260,13 +260,12 @@ export default class IntegrationRunService extends LoggerBase {
     if (runInfo.onboarding && runInfo.hasSampleData) {
       this.log.warn('Tenant still has sample data - deleting it now!')
       try {
-        const memberIds = await this.sampleDataRepo.transactionally(async (txRepo) => {
-          return await txRepo.deleteSampleData(runInfo.tenantId)
+        await this.sampleDataRepo.transactionally(async (txRepo) => {
+          await txRepo.deleteSampleData(runInfo.tenantId)
         })
 
-        for (const memberId of memberIds) {
-          await this.searchSyncWorkerEmitter.triggerRemoveMember(runInfo.tenantId, memberId)
-        }
+        await this.searchSyncWorkerEmitter.triggerActivityCleanup(runInfo.tenantId)
+        await this.searchSyncWorkerEmitter.triggerMemberCleanup(runInfo.tenantId)
       } catch (err) {
         this.log.error({ err }, 'Error while deleting sample data!')
         await this.triggerRunError(
