@@ -248,7 +248,7 @@ export default class ActivityService extends LoggerBase {
     if (IS_GITHUB_COMMIT_DATA_ENABLED) {
       const text = data.sourceParentId ? data.body : `${data.title} ${data.body}`
       const sentiment = vader.SentimentIntensityAnalyzer.polarity_scores(text)
-      let compound = Math.round(((sentiment.compound + 1) / 2) * 100)
+      const compound = Math.round(((sentiment.compound + 1) / 2) * 100)
       // Some activities are inherently different, we might want to dampen their sentiment
 
       let label = 'neutral'
