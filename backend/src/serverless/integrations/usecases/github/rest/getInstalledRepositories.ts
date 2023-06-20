@@ -1,6 +1,9 @@
 import { getServiceChildLogger } from '@crowd/logging'
 import axios, { AxiosRequestConfig } from 'axios'
 import { Repos } from '../../../types/regularTypes'
+import { GITHUB_CONFIG } from '../../../../../conf'
+
+const IS_GITHUB_COMMIT_DATA_ENABLED = GITHUB_CONFIG.isCommitDataEnabled === 'true'
 
 const log = getServiceChildLogger('getInstalledRepositories')
 
@@ -28,6 +31,9 @@ const parseRepos = (repositories: any): Repos => {
       owner: repo.owner.login,
       createdAt: repo.created_at,
       name: repo.name,
+      fork: repo.fork,
+      private: repo.private,
+      cloneUrl: repo.clone_url,
     })
   }
 
@@ -51,8 +57,7 @@ export const getInstalledRepositories = async (installToken: string): Promise<Re
       hasMorePages = data.total_count && data.total_count > 0 && data.total_count > repos.length
       page += 1
     }
-
-    return repos
+    return repos.filter((repo) => !IS_GITHUB_COMMIT_DATA_ENABLED || !(repo.fork || repo.private))
   } catch (err: any) {
     log.error(err, 'Error fetching installed repositories!')
     throw err
