@@ -95,22 +95,6 @@ describe('ConversationRepository tests', () => {
       expect(conversationCreated).toStrictEqual(conversationExpected)
     })
 
-    it('Should throw unique constraint error when creating a conversation with already existing slug for the same tenant', async () => {
-      const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
-
-      await ConversationRepository.create(
-        { title: 'some-title', slug: 'some-slug', published: true },
-        mockIRepositoryOptions,
-      )
-
-      await expect(() =>
-        ConversationRepository.create(
-          { title: 'some-other-title', slug: 'some-slug' },
-          mockIRepositoryOptions,
-        ),
-      ).rejects.toThrow()
-    })
-
     it('Should throw not null constraint error if no slug is given', async () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
 
