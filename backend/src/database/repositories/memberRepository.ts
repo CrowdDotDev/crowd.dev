@@ -1522,9 +1522,6 @@ class MemberRepository {
         LIMIT :limit OFFSET :offset;
     `
 
-    console.log('filterString', filterString)
-    console.log('params', params)
-
     const sumMemberCount = (countResults) =>
       countResults.map((row) => parseInt(row.totalCount, 10)).reduce((a, b) => a + b, 0)
 

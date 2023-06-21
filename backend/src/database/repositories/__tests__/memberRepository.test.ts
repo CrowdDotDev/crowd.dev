@@ -2319,8 +2319,7 @@ describe('MemberRepository tests', () => {
       )
       const member2 = members.rows.find((m) => m.username[PlatformType.TWITTER].includes('test2'))
       expect(members.rows.length).toEqual(1)
-      expect(member2.tags[0].name).toEqual('nodejs')
-      expect(member2.tags[1].name).toEqual('vuejs')
+      expect(member2.tags.map((t) => t.name)).toEqual(expect.arrayContaining(['nodejs', 'vuejs']))
     })
 
     it('is successfully finding and counting all members, and tags [nodejs]', async () => {
@@ -2403,8 +2402,7 @@ describe('MemberRepository tests', () => {
 
       expect(members.rows.length).toEqual(2)
       expect(member1.tags[0].name).toEqual('nodejs')
-      expect(member1.tags[0].name).toEqual('nodejs')
-      expect(member2.tags[1].name).toEqual('vuejs')
+      expect(member2.tags.map((t) => t.name)).toEqual(expect.arrayContaining(['nodejs', 'vuejs']))
     })
 
     it('is successfully finding and counting all members, and organisations [crowd.dev, pied piper]', async () => {
