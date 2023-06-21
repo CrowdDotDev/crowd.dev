@@ -18,14 +18,16 @@ class ReportRepository {
 
     const transaction = SequelizeRepository.getTransaction(options)
 
-    const segment = SequelizeRepository.getStrictlySingleActiveSegment(options)
+    const segmentId = data.noSegment
+      ? null
+      : SequelizeRepository.getStrictlySingleActiveSegment(options).id
 
     const record = await options.database.report.create(
       {
         ...lodash.pick(data, ['name', 'public', 'importHash', 'isTemplate', 'viewedBy']),
 
         tenantId: tenant.id,
-        segmentId: segment.id,
+        segmentId,
         createdById: currentUser.id,
         updatedById: currentUser.id,
       },
