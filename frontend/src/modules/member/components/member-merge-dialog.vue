@@ -68,6 +68,7 @@ import { useRoute } from 'vue-router';
 import { MemberService } from '@/modules/member/member-service';
 import Message from '@/shared/message/message';
 import { mapActions } from '@/shared/vuex/vuex.helpers';
+import { useMemberStore } from '@/modules/member/store/pinia';
 import AppMemberSelectionDropdown from './member-selection-dropdown.vue';
 import AppMemberSuggestionsDetails from './suggestions/member-merge-suggestions-details.vue';
 
@@ -82,7 +83,8 @@ const emit = defineEmits(['update:modelValue']);
 
 const route = useRoute();
 
-const { doFind, doFetch } = mapActions('member');
+const { doFind } = mapActions('member');
+const { fetchMembers } = useMemberStore();
 
 const originalMemberPrimary = ref(true);
 const sendingMerge = ref(false);
@@ -108,6 +110,7 @@ const mergeSuggestion = () => {
   if (sendingMerge.value) {
     return;
   }
+
   sendingMerge.value = true;
 
   MemberService.merge(
@@ -116,11 +119,13 @@ const mergeSuggestion = () => {
   )
     .then(() => {
       Message.success('Members merged successfuly');
+
       emit('update:modelValue', null);
+
       if (route.name === 'memberView') {
         doFind((originalMemberPrimary.value ? props.modelValue : memberToMerge.value).id);
       } else if (route.name === 'member') {
-        doFetch({});
+        fetchMembers({ reload: true });
       }
     })
     .catch(() => {

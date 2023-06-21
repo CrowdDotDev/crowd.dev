@@ -99,8 +99,6 @@ export default {
       if (router.currentRoute.name === 'dashboard') {
         router.push({ name: 'activity' });
       }
-
-      dispatch('doFetch', {});
     } catch (error) {
       Errors.handle(error);
       commit('DESTROY_ERROR');

@@ -181,9 +181,9 @@ import { useActivityTypeStore } from '@/modules/activity/store/type';
 import { ActivityService } from '@/modules/activity/activity-service';
 import Message from '@/shared/message/message';
 import formChangeDetector from '@/shared/form/form-change';
-import { mapActions } from '@/shared/vuex/vuex.helpers';
 import AppAutocompleteOneInput from '@/shared/form/autocomplete-one-input.vue';
 import { LfService } from '@/modules/lf/segments/lf-segments-service';
+import { useActivityStore } from '@/modules/activity/store/pinia';
 
 // Props & emits
 const props = defineProps({
@@ -212,7 +212,9 @@ const activityTypeStore = useActivityTypeStore();
 const { types } = storeToRefs(activityTypeStore);
 const { setTypes } = activityTypeStore;
 
-const { doFetch } = mapActions('activity');
+const activityStore = useActivityStore();
+const { fetchActivities } = activityStore;
+
 // Form control
 const form = reactive({
   member: null,
@@ -338,7 +340,7 @@ const submit = () => {
       .then(() => {
         reset();
         emit('update:modelValue', false);
-        doFetch({});
+        fetchActivities({ reload: true });
         Message.success('Activity successfully created!');
       })
       .catch(() => {
@@ -352,7 +354,7 @@ const submit = () => {
       .then(() => {
         reset();
         emit('update:modelValue', false);
-        doFetch({});
+        fetchActivities({ reload: true });
         Message.success('Activity successfully updated!');
       })
       .catch(() => {

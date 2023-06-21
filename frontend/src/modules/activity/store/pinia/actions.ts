@@ -2,7 +2,7 @@ import { ActivityState } from '@/modules/activity/store/pinia/state';
 import { ActivityService } from '@/modules/activity/activity-service';
 
 export default {
-  fetchActivities(this: ActivityState, body: any, reload = false): Promise<any> {
+  fetchActivities(this: ActivityState, { body = {}, reload = false } :{ body?: any, reload?: boolean }): Promise<any> {
     const mappedBody = reload ? this.savedFilterBody : body;
     this.activities = [];
     return ActivityService.listActivities(mappedBody)

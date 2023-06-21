@@ -46,6 +46,7 @@
           @open-conversation="conversationId = $event"
           @edit="emit('edit', activity)"
           @on-update="fetch(savedFilterBody)"
+          @activity-destroyed="fetch(savedFilterBody)"
         />
 
         <!-- Load more button -->
@@ -134,17 +135,19 @@ const fetch = ({
 }) => {
   loading.value = true;
   fetchActivities({
-    ...body,
-    filter: {
-      ...filter,
-      member: {
-        isTeamMember: { not: true },
-        isBot: { not: true },
+    body: {
+      ...body,
+      filter: {
+        ...filter,
+        member: {
+          isTeamMember: { not: true },
+          isBot: { not: true },
+        },
       },
+      offset,
+      limit,
+      orderBy,
     },
-    offset,
-    limit,
-    orderBy,
   })
     .finally(() => {
       loading.value = false;

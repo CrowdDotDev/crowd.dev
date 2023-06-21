@@ -76,6 +76,7 @@
                 :activity="activity"
                 @edit="$emit('edit')"
                 @on-update="$emit('onUpdate')"
+                @activity-destroyed="$emit('activity-destroyed')"
               />
             </div>
           </div>
@@ -134,7 +135,7 @@ import AppActivityContentFooter from '@/modules/activity/components/activity-con
 import { computed } from 'vue';
 import AppActivityHeader from './activity-header.vue';
 
-const emit = defineEmits(['openConversation', 'edit', 'onUpdate']);
+const emit = defineEmits(['openConversation', 'edit', 'onUpdate', 'activity-destroyed']);
 const props = defineProps({
   activity: {
     type: Object,

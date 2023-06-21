@@ -56,7 +56,7 @@ import AppFormItem from '@/shared/form/form-item.vue';
 import Message from '@/shared/message/message';
 import { useActivityTypeStore } from '@/modules/activity/store/type';
 import formChangeDetector from '@/shared/form/form-change';
-import { mapActions } from '@/shared/vuex/vuex.helpers';
+import { useActivityStore } from '@/modules/activity/store/pinia';
 
 // Props & Emits
 const props = defineProps({
@@ -79,7 +79,9 @@ const props = defineProps({
 const emit = defineEmits(['update:modelValue', 'onUpdate']);
 
 const { createActivityType, updateActivityType } = useActivityTypeStore();
-const { doFetch } = mapActions('activity');
+
+const activityStore = useActivityStore();
+const { fetchActivities } = activityStore;
 
 // Form control
 const form = reactive({
@@ -138,7 +140,7 @@ const submit = () => {
     }, segments)
       .then(() => {
         reset();
-        doFetch({});
+        fetchActivities({ reload: true });
         emit('update:modelValue');
         emit('onUpdate');
         Message.success(
