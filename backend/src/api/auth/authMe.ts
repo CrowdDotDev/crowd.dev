@@ -35,12 +35,15 @@ export default async (req, res) => {
       }
 
       const segmentService = new SegmentService(req)
-      const activityTypes = await segmentService.getTenantActivityTypes(tenantUser.tenant.id)
+      const tenantSubprojects = await segmentService.getTenantSubprojects(tenantUser.tenant)
+      const activityTypes = await SegmentService.getTenantActivityTypes(tenantSubprojects)
+      const activityChannels = await SegmentService.getTenantActivityChannels(tenantSubprojects)
 
       // TODO: return actual activityTypes using segment information
       tenantUser.tenant.dataValues.settings[0].dataValues = {
         ...tenantUser.tenant.dataValues.settings[0].dataValues,
         activityTypes,
+        activityChannels,
         slackWebHook: !!tenantUser.tenant.settings[0].dataValues.slackWebHook,
       }
 
