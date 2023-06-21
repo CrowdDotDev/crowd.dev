@@ -23,10 +23,8 @@ import MemberAttributeSettingsService from './memberAttributeSettingsService'
 import { DefaultMemberAttributes } from '../database/attributes/member/default'
 import { TenantMode } from '../conf/configTypes'
 import TaskRepository from '../database/repositories/taskRepository'
-import isFeatureEnabled from '../feature-flags/isFeatureEnabled'
-import { FeatureFlag } from '../types/common'
-import SegmentRepository from '../database/repositories/segmentRepository'
-import { SegmentStatus } from '../types/segmentTypes'
+import { SegmentData, SegmentStatus } from '../types/segmentTypes'
+import SegmentService from './segmentService'
 
 export default class TenantService {
   options: IServiceOptions
@@ -188,30 +186,18 @@ export default class TenantService {
         transaction,
       })
 
-      let segment
+      const segment = await new SegmentService({
+        ...this.options,
+        currentTenant: record,
+        transaction,
+      } as IServiceOptions).createProjectGroup({
+        name: data.name,
+        url: data.url,
+        slug: data.url || (await TenantRepository.generateTenantUrl(data.name, this.options)),
+        status: SegmentStatus.ACTIVE,
+      } as SegmentData)
 
-      // create default segment (if segments feature is not enabled)
-      if (!(await isFeatureEnabled(FeatureFlag.SEGMENTS, this.options))) {
-        const slug = data.url || (await TenantRepository.generateTenantUrl(data.name, this.options))
-        segment = await new SegmentRepository({
-          ...this.options,
-          currentTenant: record,
-          transaction,
-        }).create({
-          name: data.name,
-          url: data.url,
-          parentName: data.name,
-          grandparentName: data.name,
-          slug,
-          parentSlug: slug,
-          grandparentSlug: slug,
-          status: SegmentStatus.ACTIVE,
-          sourceId: null,
-          sourceParentId: null,
-        })
-      }
-
-      this.options.currentSegments = segment ? [segment] : []
+      this.options.currentSegments = [(segment as any).projects[0].subprojects[0]]
 
       await SettingsService.findOrCreateDefault({
         ...this.options,
@@ -253,6 +239,7 @@ export default class TenantService {
           name: 'Members report',
           public: false,
           isTemplate: true,
+          noSegment: true,
         },
         { ...this.options, transaction, currentTenant: record },
       )
@@ -263,6 +250,7 @@ export default class TenantService {
           name: 'Product-community fit report',
           public: false,
           isTemplate: true,
+          noSegment: true,
         },
         { ...this.options, transaction, currentTenant: record },
       )
@@ -273,6 +261,7 @@ export default class TenantService {
           name: 'Activities report',
           public: false,
           isTemplate: true,
+          noSegment: true,
         },
         { ...this.options, transaction, currentTenant: record },
       )

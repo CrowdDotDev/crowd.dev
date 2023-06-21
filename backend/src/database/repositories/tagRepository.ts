@@ -7,7 +7,6 @@ import { IRepositoryOptions } from './IRepositoryOptions'
 import QueryParser from './filters/queryParser'
 import { QueryOutput } from './filters/queryTypes'
 import SequelizeFilterUtils from '../utils/sequelizeFilterUtils'
-import SegmentRepository from './segmentRepository'
 
 const { Op } = Sequelize
 
@@ -19,14 +18,11 @@ class TagRepository {
 
     const transaction = SequelizeRepository.getTransaction(options)
 
-    const segment = SequelizeRepository.getStrictlySingleActiveSegment(options)
-
     const record = await options.database.tag.create(
       {
         ...lodash.pick(data, ['name', 'importHash']),
 
         tenantId: tenant.id,
-        segmentId: segment.id,
         createdById: currentUser.id,
         updatedById: currentUser.id,
       },
@@ -55,7 +51,6 @@ class TagRepository {
       where: {
         id,
         tenantId: currentTenant.id,
-        segmentId: SegmentRepository.getSegmentIds(options),
       },
       transaction,
     })
@@ -93,7 +88,6 @@ class TagRepository {
       where: {
         id: ids,
         tenantId: currentTenant.id,
-        segmentId: SegmentRepository.getSegmentIds(options),
       },
       force,
       transaction,
@@ -109,7 +103,6 @@ class TagRepository {
       where: {
         id,
         tenantId: currentTenant.id,
-        segmentId: SegmentRepository.getSegmentIds(options),
       },
       transaction,
     })
@@ -137,7 +130,6 @@ class TagRepository {
       where: {
         id,
         tenantId: currentTenant.id,
-        segmentId: SegmentRepository.getSegmentIds(options),
       },
       include,
       transaction,
@@ -185,7 +177,6 @@ class TagRepository {
       where: {
         ...filter,
         tenantId: tenant.id,
-        segmentId: SegmentRepository.getSegmentIds(options),
       },
       transaction,
     })
@@ -256,6 +247,7 @@ class TagRepository {
             },
           },
         },
+        withSegments: false,
       },
       options,
     )
@@ -290,9 +282,6 @@ class TagRepository {
     const whereAnd: Array<any> = [
       {
         tenantId: tenant.id,
-      },
-      {
-        segmentId: SegmentRepository.getSegmentIds(options),
       },
     ]
 

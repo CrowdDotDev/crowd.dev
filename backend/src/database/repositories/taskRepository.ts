@@ -8,7 +8,6 @@ import Error404 from '../../errors/Error404'
 import { IRepositoryOptions } from './IRepositoryOptions'
 import QueryParser from './filters/queryParser'
 import { QueryOutput } from './filters/queryTypes'
-import SegmentRepository from './segmentRepository'
 
 const { Op } = Sequelize
 
@@ -82,7 +81,7 @@ class TaskRepository {
         where: {
           id: ids,
           tenantId: currentTenant.id,
-          segmentId: SegmentRepository.getSegmentIds(options),
+          segmentId: SequelizeRepository.getSegmentIds(options),
         },
         transaction,
       },
@@ -102,7 +101,7 @@ class TaskRepository {
       where: {
         id,
         tenantId: currentTenant.id,
-        segmentId: SegmentRepository.getSegmentIds(options),
+        segmentId: SequelizeRepository.getSegmentIds(options),
       },
       transaction,
     })
@@ -157,7 +156,7 @@ class TaskRepository {
       where: {
         id,
         tenantId: currentTenant.id,
-        segmentId: SegmentRepository.getSegmentIds(options),
+        segmentId: SequelizeRepository.getSegmentIds(options),
       },
       transaction,
     })
@@ -185,7 +184,7 @@ class TaskRepository {
       where: {
         id,
         tenantId: currentTenant.id,
-        segmentId: SegmentRepository.getSegmentIds(options),
+        segmentId: SequelizeRepository.getSegmentIds(options),
       },
       include,
       transaction,
@@ -233,7 +232,7 @@ class TaskRepository {
       where: {
         ...filter,
         tenantId: tenant.id,
-        segmentId: SegmentRepository.getSegmentIds(options),
+        segmentId: SequelizeRepository.getSegmentIds(options),
       },
       transaction,
     })
@@ -412,7 +411,7 @@ class TaskRepository {
         tenantId: tenant.id,
       },
       {
-        segmentId: SegmentRepository.getSegmentIds(options),
+        segmentId: SequelizeRepository.getSegmentIds(options),
       },
     ]
 

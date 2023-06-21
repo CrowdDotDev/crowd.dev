@@ -8,7 +8,6 @@ import Error404 from '../../errors/Error404'
 import { IRepositoryOptions } from './IRepositoryOptions'
 import QueryParser from './filters/queryParser'
 import { QueryOutput } from './filters/queryTypes'
-import SegmentRepository from './segmentRepository'
 
 const { Op } = Sequelize
 const log: boolean = false
@@ -63,7 +62,7 @@ class IntegrationRepository {
       where: {
         id,
         tenantId: currentTenant.id,
-        segmentId: SegmentRepository.getSegmentIds(options),
+        segmentId: SequelizeRepository.getSegmentIds(options),
       },
       transaction,
     })
@@ -154,6 +153,25 @@ class IntegrationRepository {
     )
 
     await this._createAuditLog(AuditLogRepository.DELETE, record, record, options)
+  }
+
+  static async findAllByPlatform(platform, options: IRepositoryOptions) {
+    const transaction = SequelizeRepository.getTransaction(options)
+
+    const include = []
+
+    const currentTenant = SequelizeRepository.getCurrentTenant(options)
+
+    const records = await options.database.integration.findAll({
+      where: {
+        platform,
+        tenantId: currentTenant.id,
+      },
+      include,
+      transaction,
+    })
+
+    return records.map((record) => record.get({ plain: true }))
   }
 
   static async findByPlatform(platform, options: IRepositoryOptions) {

@@ -41,15 +41,3 @@ SELECT
     o."tenantId"
 FROM organizations o
 JOIN segments s ON s."tenantId" = o."tenantId";
-
-UPDATE "memberToMerge" mtm
-SET "segmentId" = s.id
-FROM segments s
-JOIN "memberSegments" ms ON ms."segmentId" = s.id
-WHERE ms."memberId" = mtm."memberId";
-
-UPDATE "memberNoMerge" mnm
-SET "segmentId" = s.id
-FROM segments s
-JOIN "memberSegments" ms ON ms."segmentId" = s.id
-WHERE ms."memberId" = mnm."memberId";

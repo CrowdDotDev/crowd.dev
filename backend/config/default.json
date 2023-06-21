@@ -49,5 +49,8 @@
   },
   "sampleData": {
     "tenantId": ""
+  },
+  "weeklyEmails": {
+    "enabled": "true"
   }
 }

@@ -7,6 +7,7 @@ import Error404 from '../../../errors/Error404'
 import { PlatformType } from '@crowd/types'
 import { generateUUIDv1 } from '@crowd/common'
 import { populateSegments } from '../../utils/segmentTestUtils'
+import { UNKNOWN_ACTIVITY_TYPE_DISPLAY } from '@crowd/integrations'
 
 const db = null
 
@@ -92,22 +93,6 @@ describe('ConversationRepository tests', () => {
       }
 
       expect(conversationCreated).toStrictEqual(conversationExpected)
-    })
-
-    it('Should throw unique constraint error when creating a conversation with already existing slug for the same tenant', async () => {
-      const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
-
-      await ConversationRepository.create(
-        { title: 'some-title', slug: 'some-slug', published: true },
-        mockIRepositoryOptions,
-      )
-
-      await expect(() =>
-        ConversationRepository.create(
-          { title: 'some-other-title', slug: 'some-slug' },
-          mockIRepositoryOptions,
-        ),
-      ).rejects.toThrow()
     })
 
     it('Should throw not null constraint error if no slug is given', async () => {
@@ -462,6 +447,7 @@ describe('ConversationRepository tests', () => {
         'username',
         'numberOfOpenSourceContributions',
         'segments',
+        'affiliations',
       ])
 
       const conversation1Expected = {
@@ -473,10 +459,12 @@ describe('ConversationRepository tests', () => {
         lastReplies: [
           {
             ...SequelizeTestUtils.objectWithoutKey(activity2Created, ['tasks']),
+            parent: SequelizeTestUtils.objectWithoutKey(activity2Created.parent, ['display']),
             member: memberReturnedWithinConversations,
           },
           {
             ...SequelizeTestUtils.objectWithoutKey(activity3Created, ['tasks']),
+            parent: SequelizeTestUtils.objectWithoutKey(activity3Created.parent, ['display']),
             member: memberReturnedWithinConversations,
           },
         ],

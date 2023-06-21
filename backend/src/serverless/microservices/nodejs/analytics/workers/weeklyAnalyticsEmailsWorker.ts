@@ -8,7 +8,7 @@ import getUserContext from '../../../../../database/utils/getUserContext'
 import CubeJsService from '../../../../../services/cubejs/cubeJsService'
 import EmailSender from '../../../../../services/emailSender'
 import ConversationService from '../../../../../services/conversationService'
-import { SENDGRID_CONFIG, S3_CONFIG } from '../../../../../conf'
+import { SENDGRID_CONFIG, S3_CONFIG, WEEKLY_EMAILS_CONFIG } from '../../../../../conf'
 import CubeJsRepository from '../../../../../cubejs/cubeJsRepository'
 import { AnalyticsEmailsOutput } from '../../messageTypes'
 import getStage from '../../../../../services/helpers/getStage'
@@ -19,6 +19,7 @@ import { sendNodeWorkerMessage } from '../../../../utils/nodeWorkerSQS'
 import { NodeWorkerMessageType } from '../../../../types/workerTypes'
 import { NodeWorkerMessageBase } from '../../../../../types/mq/nodeWorkerMessageBase'
 import { RecurringEmailType } from '../../../../../types/recurringEmailsHistoryTypes'
+import SegmentRepository from '../../../../../database/repositories/segmentRepository'
 
 const log = getServiceChildLogger('weeklyAnalyticsEmailsWorker')
 
@@ -34,6 +35,16 @@ async function weeklyAnalyticsEmailsWorker(tenantId: string): Promise<AnalyticsE
   const userContext = await getUserContext(tenantId)
 
   if (response.shouldRetry) {
+    if (WEEKLY_EMAILS_CONFIG.enabled !== 'true') {
+      log.info(`Weekly emails are disabled. Not retrying.`)
+
+      return {
+        status: 200,
+        msg: `Weekly emails are disabled. Not retrying.`,
+        emailSent: false,
+      }
+    }
+
     log.error(
       response.error,
       'Exception while getting analytics data. Retrying with a new message.',
@@ -216,19 +227,11 @@ async function getAnalyticsData(tenantId: string) {
     const userContext = await getUserContext(tenantId)
 
     const cjs = new CubeJsService()
+    const segmentRepository = new SegmentRepository(userContext)
+    const subprojects = await segmentRepository.querySubprojects({})
+    const segmentIds = subprojects.rows.map((subproject) => subproject.id)
     // tokens should be set for each tenant
-    await cjs.init(tenantId, null)
-
-    // TODO Find a way to get list of segments here
-    if (tenantId) {
-      log.error(
-        'Not implemented yet: need to ind a way to get list of segments into weekly emails worker',
-      )
-      return {
-        shouldRetry: false,
-        data: {},
-      }
-    }
+    await cjs.init(tenantId, segmentIds)
 
     // members
     const totalMembersThisWeek = await CubeJsRepository.getNewMembers(

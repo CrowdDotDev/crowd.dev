@@ -2,6 +2,7 @@ import { getServiceChildLogger } from '@crowd/logging'
 import { KUBE_MODE } from '../../conf/index'
 import bulkOperations from './operationsWorker'
 import getUserContext from '../../database/utils/getUserContext'
+import SegmentRepository from '../../database/repositories/segmentRepository'
 
 const log = getServiceChildLogger('dbOperations.handler')
 
@@ -22,6 +23,8 @@ export async function consumer(event) {
   }
 
   const context = await getUserContext(tenantId)
+  const segmentRepository = new SegmentRepository(context)
+  context.currentSegments = [await segmentRepository.findById(event.segments[0])]
 
   const result = await bulkOperations(event.operation, event.records, context)
 

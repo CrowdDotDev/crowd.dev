@@ -51,4 +51,4 @@ JOIN identities i ON m.id = i."memberId"
 LEFT JOIN activities a ON m.id = a."memberId" AND a."deletedAt" IS NULL
 GROUP BY m.id, i.identities, i.username, i."segmentId";
 
-CREATE UNIQUE INDEX ix_memberactivityaggregatesmvs_memberid ON "memberActivityAggregatesMVs" (id);
+CREATE UNIQUE INDEX ix_memberactivityaggregatesmvs_memberid_segmentid ON "memberActivityAggregatesMVs" (id, "segmentId");

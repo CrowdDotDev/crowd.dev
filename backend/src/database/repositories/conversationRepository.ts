@@ -58,7 +58,7 @@ class ConversationRepository {
       where: {
         id,
         tenantId: currentTenant.id,
-        segmentId: SegmentRepository.getSegmentIds(options),
+        segmentId: SequelizeRepository.getSegmentIds(options),
       },
       transaction,
     })
@@ -98,7 +98,7 @@ class ConversationRepository {
       where: {
         id,
         tenantId: currentTenant.id,
-        segmentId: SegmentRepository.getSegmentIds(options),
+        segmentId: SequelizeRepository.getSegmentIds(options),
       },
       transaction,
     })
@@ -125,7 +125,7 @@ class ConversationRepository {
       where: {
         id,
         tenantId: currentTenant.id,
-        segmentId: SegmentRepository.getSegmentIds(options),
+        segmentId: SequelizeRepository.getSegmentIds(options),
       },
       include,
       transaction,
@@ -173,7 +173,7 @@ class ConversationRepository {
       where: {
         id: ids,
         tenantId: currentTenant.id,
-        segmentId: SegmentRepository.getSegmentIds(options),
+        segmentId: SequelizeRepository.getSegmentIds(options),
       },
       force,
       transaction,
@@ -189,7 +189,7 @@ class ConversationRepository {
       where: {
         ...filter,
         tenantId: tenant.id,
-        segmentId: SegmentRepository.getSegmentIds(options),
+        segmentId: SequelizeRepository.getSegmentIds(options),
       },
       transaction,
     })
@@ -486,7 +486,7 @@ class ConversationRepository {
                 ['timestamp', 'ASC'],
                 ['createdAt', 'ASC'],
               ],
-              include: ['parent'],
+              include: ['parent', 'organization'],
             })
 
             rec.memberCount = ConversationRepository.getTotalMemberCount(allActivities)
@@ -580,7 +580,7 @@ class ConversationRepository {
       where: {
         parentId: null,
       },
-      include: ['member', 'parent', 'objectMember'],
+      include: ['member', 'parent', 'objectMember', 'organization'],
       transaction,
       order: [
         ['timestamp', 'ASC'],
@@ -595,7 +595,7 @@ class ConversationRepository {
           [Sequelize.Op.not]: null,
         },
       },
-      include: ['member', 'parent', 'objectMember'],
+      include: ['member', 'parent', 'objectMember', 'organization'],
       order: [
         ['timestamp', 'ASC'],
         ['createdAt', 'ASC'],

@@ -26,6 +26,11 @@ import {
 } from './types/memberTypes'
 import SegmentRepository from './segmentRepository'
 import { SegmentData } from '../../types/segmentTypes'
+import {
+  MemberSegmentAffiliation,
+  MemberSegmentAffiliationJoined,
+} from '../../types/memberSegmentAffiliationTypes'
+import MemberSegmentAffiliationRepository from './memberSegmentAffiliationRepository'
 
 const { Op } = Sequelize
 
@@ -51,7 +56,6 @@ class MemberRepository {
     const transaction = SequelizeRepository.getTransaction(options)
 
     const segment = SequelizeRepository.getStrictlySingleActiveSegment(options)
-
     const record = await options.database.member.create(
       {
         ...lodash.pick(data, [
@@ -129,6 +133,10 @@ class MemberRepository {
       transaction,
     })
 
+    if (data.affiliations) {
+      await this.setAffiliations(record.id, data.affiliations, options)
+    }
+
     await this._createAuditLog(AuditLogRepository.CREATE, record, data, options)
 
     return this.findById(record.id, options, true, doPopulateRelations)
@@ -174,7 +182,7 @@ class MemberRepository {
     await seq.query(bulkDeleteMemberSegments, {
       replacements: {
         memberIds,
-        segmentIds: SegmentRepository.getSegmentIds(options),
+        segmentIds: SequelizeRepository.getSegmentIds(options),
       },
       type: QueryTypes.DELETE,
       transaction,
@@ -206,7 +214,7 @@ class MemberRepository {
     options: IRepositoryOptions,
   ) {
     const currentTenant = SequelizeRepository.getCurrentTenant(options)
-    const segmentIds = SegmentRepository.getSegmentIds(options)
+    const segmentIds = SequelizeRepository.getSegmentIds(options)
 
     const mems = await options.database.sequelize.query(
       `SELECT 
@@ -644,7 +652,11 @@ class MemberRepository {
       })
     }
 
-    if (data.segments) {
+    if (data.affiliations) {
+      await this.setAffiliations(id, data.affiliations, options)
+    }
+
+    if (options.currentSegments && options.currentSegments.length > 0) {
       await MemberRepository.includeMemberToSegments(record.id, { ...options, transaction })
     }
 
@@ -729,7 +741,6 @@ class MemberRepository {
     const member = await this.findById(id, options, true, false)
 
     // if member doesn't belong to any other segment anymore, remove it
-
     if (member.segments.length === 0) {
       const record = await options.database.member.findOne({
         where: {
@@ -767,52 +778,6 @@ class MemberRepository {
     })
   }
 
-  /*
-  static async getSegments(
-    memberIds: string[],
-    options: IRepositoryOptions,
-  ): Promise<Map<string, SegmentData[]>> {
-    const results = new Map<string, SegmentData[]>()
-
-    const transaction = SequelizeRepository.getTransaction(options)
-    const seq = SequelizeRepository.getSequelize(options)
-
-    const query = `
-      select "memberId", "segmentId", "tenantId", "createdAt" from "memberSegments" where "memberId" in (:memberIds) order by "createdAt" asc;
-    `
-
-    const data = await seq.query(query, {
-      replacements: {
-        memberIds,
-      },
-      type: QueryTypes.SELECT,
-      transaction,
-    })
-
-    for (const id of memberIds) {
-      results.set(id, [])
-    }
-
-    for (const res of data as any[]) {
-      const { memberId, segmentId, username, sourceId, integrationId, createdAt } = res
-      const identities = results.get(memberId)
-
-      identities.push({
-        platform,
-        username,
-        sourceId,
-        integrationId,
-        createdAt,
-      })
-    }
-
-
-    // TODO: complete
-
-    return results
-  }
-  */
-
   static async getMemberSegments(
     memberId: string,
     options: IRepositoryOptions,
@@ -840,6 +805,70 @@ class MemberRepository {
     const segments = await segmentRepository.findInIds(segmentIds)
 
     return segments
+  }
+
+  static async setAffiliations(
+    memberId: string,
+    data: MemberSegmentAffiliation[],
+    options: IRepositoryOptions,
+  ): Promise<void> {
+    const affiliationRepository = new MemberSegmentAffiliationRepository(options)
+
+    const toDeleteAffiliations: string[] = []
+
+    const existingAffiliations = await this.getAffiliations(memberId, options)
+
+    for (const existingAffiliation of existingAffiliations) {
+      if (
+        !data.find(
+          (incomingAffiliation) => incomingAffiliation.segmentId === existingAffiliation.segmentId,
+        )
+      ) {
+        toDeleteAffiliations.push(existingAffiliation.id)
+      }
+    }
+
+    if (toDeleteAffiliations.length > 0) {
+      await affiliationRepository.destroyAll(toDeleteAffiliations)
+    }
+
+    for (const incomingAffiliation of data) {
+      await affiliationRepository.createOrUpdate({ memberId, ...incomingAffiliation })
+    }
+  }
+
+  static async getAffiliations(
+    memberId: string,
+    options: IRepositoryOptions,
+  ): Promise<MemberSegmentAffiliationJoined[]> {
+    const transaction = SequelizeRepository.getTransaction(options)
+    const seq = SequelizeRepository.getSequelize(options)
+
+    const query = `
+      select 
+        msa.id,
+        s.id as "segmentId", 
+        s.slug as "segmentSlug",
+        s.name as "segmentName",
+        s."parentName" as "segmentParentName", 
+        o.id as "organizationId", 
+        o.name as "organizationName",
+        o.logo as "organizationLogo"
+      from "memberSegmentAffiliations" msa 
+      left join organizations o on o.id = msa."organizationId"
+      join segments s on s.id = msa."segmentId"
+      where msa."memberId" = :memberId
+    `
+
+    const data = await seq.query(query, {
+      replacements: {
+        memberId,
+      },
+      type: QueryTypes.SELECT,
+      transaction,
+    })
+
+    return data as MemberSegmentAffiliationJoined[]
   }
 
   static async getIdentities(
@@ -944,6 +973,8 @@ class MemberRepository {
       }
     }
 
+    data.affiliations = await this.getAffiliations(id, options)
+
     return data
   }
 
@@ -998,7 +1029,7 @@ class MemberRepository {
     options: IRepositoryOptions,
   ): Promise<PageData<IActiveMemberData>> {
     const tenant = SequelizeRepository.getCurrentTenant(options)
-    const segmentIds = SegmentRepository.getSegmentIds(options)
+    const segmentIds = SequelizeRepository.getSegmentIds(options)
 
     const transaction = SequelizeRepository.getTransaction(options)
 
@@ -1195,6 +1226,80 @@ class MemberRepository {
     ['emails', 'm.emails'],
   ])
 
+  static async countMembersPerSegment(options: IRepositoryOptions, segmentIds: string[]) {
+    const countResults = await MemberRepository.countMembers(options, segmentIds)
+    return countResults.reduce((acc, curr: any) => {
+      acc[curr.segmentId] = parseInt(curr.totalCount, 10)
+      return acc
+    }, {})
+  }
+
+  static async countMembers(
+    options: IRepositoryOptions,
+    segmentIds: string[],
+    filterString: string = '1=1',
+    params: any = {},
+  ) {
+    const countQuery = `
+        WITH
+            member_tags AS (
+                SELECT
+                    mt."memberId",
+                    JSONB_AGG(t.id) AS all_ids
+                FROM "memberTags" mt
+                INNER JOIN members m ON mt."memberId" = m.id
+                JOIN "memberSegments" ms ON ms."memberId" = m.id
+                INNER JOIN tags t ON mt."tagId" = t.id
+                WHERE m."tenantId" = :tenantId
+                  AND m."deletedAt" IS NULL
+                  AND ms."segmentId" IN (:segmentIds)
+                  AND t."tenantId" = :tenantId
+                  AND t."deletedAt" IS NULL
+                GROUP BY mt."memberId"
+            ),
+            member_organizations AS (
+                SELECT
+                    mo."memberId",
+                    JSONB_AGG(o.id) AS all_ids
+                FROM "memberOrganizations" mo
+                INNER JOIN members m ON mo."memberId" = m.id
+                INNER JOIN organizations o ON mo."organizationId" = o.id
+                JOIN "memberSegments" ms ON ms."memberId" = m.id
+                JOIN "organizationSegments" os ON o.id = os."organizationId"
+                WHERE m."tenantId" = :tenantId
+                  AND m."deletedAt" IS NULL
+                  AND ms."segmentId" IN (:segmentIds)
+                  AND o."tenantId" = :tenantId
+                  AND o."deletedAt" IS NULL
+                  AND os."segmentId" IN (:segmentIds)
+                GROUP BY mo."memberId"
+            )
+        SELECT
+            COUNT(m.id) AS "totalCount",
+            ms."segmentId"
+        FROM members m
+        JOIN "memberSegments" ms ON ms."memberId" = m.id
+        INNER JOIN "memberActivityAggregatesMVs" aggs ON aggs.id = m.id AND aggs."segmentId" = ms."segmentId"
+        LEFT JOIN member_tags mt ON m.id = mt."memberId"
+        LEFT JOIN member_organizations mo ON m.id = mo."memberId"
+        WHERE m."deletedAt" IS NULL
+          AND m."tenantId" = :tenantId
+          AND ms."segmentId" IN (:segmentIds)
+          AND ${filterString}
+        GROUP BY ms."segmentId";
+    `
+
+    const seq = SequelizeRepository.getSequelize(options)
+    return seq.query(countQuery, {
+      replacements: {
+        tenantId: options.currentTenant.id,
+        segmentIds,
+        ...params,
+      },
+      type: QueryTypes.SELECT,
+    })
+  }
+
   static async findAndCountAllv2(
     {
       filter = {} as any,
@@ -1207,7 +1312,7 @@ class MemberRepository {
     options: IRepositoryOptions,
   ): Promise<PageData<any>> {
     const tenant = SequelizeRepository.getCurrentTenant(options)
-    const segmentIds = SegmentRepository.getSegmentIds(options)
+    const segmentIds = SequelizeRepository.getSegmentIds(options)
     const seq = SequelizeRepository.getSequelize(options)
 
     const params: any = {
@@ -1322,7 +1427,7 @@ class MemberRepository {
                 SELECT
                     mt."memberId",
                     JSON_AGG(
-                            JSON_BUILD_OBJECT(
+                            DISTINCT JSONB_BUILD_OBJECT(
                                     'id', t.id,
                                     'name', t.name
                                 )
@@ -1337,7 +1442,6 @@ class MemberRepository {
                   AND ms."segmentId" IN (:segmentIds)
                   AND t."tenantId" = :tenantId
                   AND t."deletedAt" IS NULL
-                  AND t."segmentId" IN (:segmentIds)
                 GROUP BY mt."memberId"
             ),
             member_organizations AS (
@@ -1358,6 +1462,7 @@ class MemberRepository {
                   AND o."tenantId" = :tenantId
                   AND o."deletedAt" IS NULL
                   AND os."segmentId" IN (:segmentIds)
+                  AND ms."segmentId" = os."segmentId"
                 GROUP BY mo."memberId"
             ),
             aggs AS (
@@ -1370,7 +1475,8 @@ class MemberRepository {
                     ARRAY(SELECT DISTINCT UNNEST(array_accum("activityTypes"))) AS "activityTypes",
                     ARRAY(SELECT DISTINCT UNNEST(array_accum("activeOn"))) AS "activeOn",
                     SUM("activeDaysCount") AS "activeDaysCount",
-                    ROUND(SUM("averageSentiment" * "activityCount") / SUM("activityCount"), 2) AS "averageSentiment"
+                    ROUND(SUM("averageSentiment" * "activityCount") / SUM("activityCount"), 2) AS "averageSentiment",
+                    ARRAY_AGG(DISTINCT "segmentId") AS "segmentIds"
                 FROM "memberActivityAggregatesMVs"
                 WHERE "segmentId" IN (:segmentIds)
                 GROUP BY id
@@ -1399,6 +1505,7 @@ class MemberRepository {
             aggs."activeDaysCount",
             aggs."lastActive",
             aggs."averageSentiment",
+            aggs."segmentIds",
             COALESCE(mt.all_tags, JSON_BUILD_ARRAY()) AS tags,
             COALESCE(mo.all_organizations, JSON_BUILD_ARRAY()) AS organizations,
             COALESCE(JSONB_ARRAY_LENGTH(m.contributions), 0) AS "numberOfOpenSourceContributions"
@@ -1415,59 +1522,17 @@ class MemberRepository {
         LIMIT :limit OFFSET :offset;
     `
 
-    const countQuery = `
-        WITH
-            member_tags AS (
-                SELECT
-                    mt."memberId",
-                    JSONB_AGG(t.id) AS all_ids
-                FROM "memberTags" mt
-                INNER JOIN members m ON mt."memberId" = m.id
-                JOIN "memberSegments" ms ON ms."memberId" = m.id
-                INNER JOIN tags t ON mt."tagId" = t.id
-                WHERE m."tenantId" = :tenantId
-                  AND m."deletedAt" IS NULL
-                  AND ms."segmentId" IN (:segmentIds)
-                  AND t."tenantId" = :tenantId
-                  AND t."deletedAt" IS NULL
-                  AND t."segmentId" IN (:segmentIds)
-                GROUP BY mt."memberId"
-            ),
-            member_organizations AS (
-                SELECT
-                    mo."memberId",
-                    JSONB_AGG(o.id) AS all_ids
-                FROM "memberOrganizations" mo
-                INNER JOIN members m ON mo."memberId" = m.id
-                INNER JOIN organizations o ON mo."organizationId" = o.id
-                JOIN "memberSegments" ms ON ms."memberId" = m.id
-                JOIN "organizationSegments" os ON o.id = os."organizationId"
-                WHERE m."tenantId" = :tenantId
-                  AND m."deletedAt" IS NULL
-                  AND ms."segmentId" IN (:segmentIds)
-                  AND o."tenantId" = :tenantId
-                  AND o."deletedAt" IS NULL
-                  AND os."segmentId" IN (:segmentIds)
-                GROUP BY mo."memberId"
-            )
-        SELECT COUNT(m.id) AS "totalCount"
-        FROM members m
-        JOIN "memberSegments" ms ON ms."memberId" = m.id
-        INNER JOIN "memberActivityAggregatesMVs" aggs ON aggs.id = m.id
-        LEFT JOIN member_tags mt ON m.id = mt."memberId"
-        LEFT JOIN member_organizations mo ON m.id = mo."memberId"
-        WHERE m."deletedAt" IS NULL
-          AND m."tenantId" = :tenantId
-          AND ms."segmentId" IN (:segmentIds)
-          AND ${filterString};
-    `
+    const sumMemberCount = (countResults) =>
+      countResults.map((row) => parseInt(row.totalCount, 10)).reduce((a, b) => a + b, 0)
 
     if (countOnly) {
-      const countResults = await seq.query(countQuery, {
-        replacements: params,
-        type: QueryTypes.SELECT,
-      })
-      const count = parseInt((countResults[0] as any).totalCount, 10)
+      const countResults = await MemberRepository.countMembers(
+        options,
+        segmentIds,
+        filterString,
+        params,
+      )
+      const count = sumMemberCount(countResults)
 
       return {
         rows: [],
@@ -1482,10 +1547,7 @@ class MemberRepository {
         replacements: params,
         type: QueryTypes.SELECT,
       }),
-      seq.query(countQuery, {
-        replacements: params,
-        type: QueryTypes.SELECT,
-      }),
+      MemberRepository.countMembers(options, segmentIds, filterString, params),
     ])
 
     const memberIds = results.map((r) => (r as any).id)
@@ -1527,7 +1589,7 @@ class MemberRepository {
       }
     }
 
-    const count = parseInt((countResults[0] as any).totalCount, 10)
+    const count = sumMemberCount(countResults)
 
     return {
       rows: results,
@@ -2143,7 +2205,7 @@ class MemberRepository {
           model: options.database.segment,
           as: 'segments',
           where: {
-            id: SegmentRepository.getSegmentIds(options),
+            id: SequelizeRepository.getSegmentIds(options),
           },
         },
       ],
@@ -2171,7 +2233,7 @@ class MemberRepository {
 
     const tenant = SequelizeRepository.getCurrentTenant(options)
 
-    const segmentIds = SegmentRepository.getSegmentIds(options)
+    const segmentIds = SequelizeRepository.getSegmentIds(options)
 
     const query = `
     -- Define a CTE named "new_members" to get members created in the last 2 hours with a specific tenantId
@@ -2256,7 +2318,7 @@ class MemberRepository {
 
     const tenant = SequelizeRepository.getCurrentTenant(options)
 
-    const segmentIds = SegmentRepository.getSegmentIds(options)
+    const segmentIds = SequelizeRepository.getSegmentIds(options)
 
     const query = `
     -- Define a CTE named "new_members" to get members created in the last 7 days with a specific tenantId and their emails
@@ -2335,7 +2397,7 @@ class MemberRepository {
 
     const tenant = SequelizeRepository.getCurrentTenant(options)
 
-    const segmentIds = SegmentRepository.getSegmentIds(options)
+    const segmentIds = SequelizeRepository.getSegmentIds(options)
 
     const query = `
     -- Define a CTE named "new_members" to get members created in the last 7 days with a specific tenantId
@@ -2667,6 +2729,8 @@ class MemberRepository {
     }
 
     output.identities = Object.keys(output.username)
+
+    output.affiliations = await this.getAffiliations(record.id, options)
 
     return output
   }

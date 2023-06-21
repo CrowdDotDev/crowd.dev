@@ -2,6 +2,7 @@ import { RedisCache } from '@crowd/redis'
 import AutomationRepository from '../../database/repositories/automationRepository'
 import Error403 from '../../errors/Error403'
 import { FeatureFlagRedisKey } from '../../types/common'
+import SegmentService from '../../services/segmentService'
 
 export default async (req, res) => {
   if (!req.currentUser || !req.currentUser.id) {
@@ -33,10 +34,13 @@ export default async (req, res) => {
           Number(await memberEnrichmentCountCache.get(tenantUser.tenant.id)) || 0,
       }
 
+      const segmentService = new SegmentService(req)
+      const activityTypes = await segmentService.getTenantActivityTypes(tenantUser.tenant.id)
+
       // TODO: return actual activityTypes using segment information
       tenantUser.tenant.dataValues.settings[0].dataValues = {
         ...tenantUser.tenant.dataValues.settings[0].dataValues,
-        activityTypes: [],
+        activityTypes,
         slackWebHook: !!tenantUser.tenant.settings[0].dataValues.slackWebHook,
       }
 
