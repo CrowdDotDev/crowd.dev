@@ -14,6 +14,7 @@ const PasswordResetPage = () => import('@/modules/auth/pages/password-reset-page
 const VerifyEmailPage = () => import('@/modules/auth/pages/verify-email-page.vue');
 const InvitationPage = () => import('@/modules/auth/pages/invitation-page.vue');
 const EmptyPermissionsPage = () => import('@/modules/auth/pages/empty-permissions-page.vue');
+const AuthCallback = () => import('@/modules/auth/pages/callback.vue');
 
 export default [
   {
@@ -68,6 +69,12 @@ export default [
         path: 'invitation',
         component: InvitationPage,
         meta: { title: 'Invitation' },
+      },
+      {
+        name: 'callback',
+        path: 'callback',
+        component: AuthCallback,
+        meta: { title: 'Logging you in...' },
       },
     ],
   },
