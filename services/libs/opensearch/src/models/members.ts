@@ -25,8 +25,9 @@ export class MembersOpensearch extends OpensearchModelBase {
     joinedAt: {
       type: OpensearchFieldType.DATE,
     },
-    totalReach: {
+    reach: {
       type: OpensearchFieldType.INT,
+      customOpensourceDestination: 'int_totalReach',
     },
     numberOfOpenSourceContributions: {
       type: OpensearchFieldType.INT,
@@ -51,6 +52,7 @@ export class MembersOpensearch extends OpensearchModelBase {
     },
     identities: {
       type: OpensearchFieldType.OBJECT_ARR,
+      customOpensourceDestination: 'obj_arr_identities.string_platform',
     },
     attributes: {
       type: OpensearchFieldType.OBJECT,
@@ -63,6 +65,7 @@ export class MembersOpensearch extends OpensearchModelBase {
     },
     tags: {
       type: OpensearchFieldType.OBJECT_ARR,
+      customOpensourceDestination: 'obj_arr_tags.uuid_id',
     },
     organizations: {
       type: OpensearchFieldType.OBJECT_ARR,

@@ -26,6 +26,7 @@ export interface MemberStaticFieldsTranslation {
 
 export interface OpensearchField {
   type: string
+  customOpensourceDestination?: string
   dynamic?: boolean
   realType?: string
 }

@@ -18,7 +18,11 @@ export default class MemberTranslator extends FieldTranslator {
 
     // set translations for static fields
     this.translations = Object.keys(fields).reduce((acc, f) => {
-      acc[f] = `${fields[f].type}_${f}`
+      if (fields[f].customOpensourceDestination) {
+        acc[f] = fields[f].customOpensourceDestination
+      } else {
+        acc[f] = `${fields[f].type}_${f}`
+      }
       return acc
     }, {})
 
@@ -107,8 +111,6 @@ export default class MemberTranslator extends FieldTranslator {
   expandDynamicAttribute(key: string) {
     const keySplit = key.split('.')
 
-    // if there's no nested dots, then the whole string is the key
-    // if there's nested object dots, then the middle one is the actual key (attributes.field.default)
     const actualAttributeName = keySplit.length === 1 ? keySplit[0] : keySplit[1]
 
     const attribute = this.memberAttributes.find((a) => a.name === actualAttributeName)
@@ -123,7 +125,7 @@ export default class MemberTranslator extends FieldTranslator {
       if (counter === keySplit.length - 1) {
         acc += `${opensearchType}_${k}`
       } else {
-        acc += `${this.crowdToOpensearch(k)}.`
+        acc += `${this.crowdToOpensearchMap.get(k)}.`
       }
       return acc
     }, '')
