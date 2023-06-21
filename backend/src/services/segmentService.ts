@@ -137,35 +137,47 @@ export default class SegmentService extends LoggerBase {
       throw new Error('Missing grandparentSlug. Subprojects must belong to a project group.')
     }
 
-    const segmentRepository = new SegmentRepository(this.options)
+    const transaction = await SequelizeRepository.createTransaction(this.options)
 
-    const parent = await segmentRepository.findBySlug(data.parentSlug, SegmentLevel.PROJECT)
+    try {
+      const segmentRepository = new SegmentRepository({
+        ...this.options,
+        transaction,
+      })
 
-    if (parent === null) {
-      throw new Error(`Project ${data.parentSlug} does not exist.`)
+      const parent = await segmentRepository.findBySlug(data.parentSlug, SegmentLevel.PROJECT)
+
+      if (parent === null) {
+        throw new Error(`Project ${data.parentSlug} does not exist.`)
+      }
+
+      const grandparent = await segmentRepository.findBySlug(
+        data.grandparentSlug,
+        SegmentLevel.PROJECT_GROUP,
+      )
+
+      if (grandparent === null) {
+        throw new Error(`Project group ${data.parentSlug} does not exist.`)
+      }
+
+      const subproject = await segmentRepository.create(data)
+
+      // create default report for the tenant
+      await ReportRepository.create(
+        {
+          name: defaultReport.name,
+          public: defaultReport.public,
+        },
+        { ...this.options, transaction, currentSegments: [subproject] },
+      )
+
+      await SequelizeRepository.commitTransaction(transaction)
+
+      return subproject
+    } catch (error) {
+      await SequelizeRepository.rollbackTransaction(transaction)
+      throw error
     }
-
-    const grandparent = await segmentRepository.findBySlug(
-      data.grandparentSlug,
-      SegmentLevel.PROJECT_GROUP,
-    )
-
-    if (grandparent === null) {
-      throw new Error(`Project group ${data.parentSlug} does not exist.`)
-    }
-
-    const subproject = await segmentRepository.create(data)
-
-    // create default report for the tenant
-    await ReportRepository.create(
-      {
-        name: defaultReport.name,
-        public: defaultReport.public,
-      },
-      { ...this.options, transaction, currentSegments: [subproject] },
-    )
-
-    return subproject
   }
 
   async findById(id) {
