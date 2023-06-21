@@ -10,9 +10,11 @@ import {
   SegmentLevel,
   SegmentUpdateData,
 } from '../types/segmentTypes'
+import defaultReport from '../jsons/default-report.json'
 import { IServiceOptions } from './IServiceOptions'
 import { IRepositoryOptions } from '../database/repositories/IRepositoryOptions'
 import MemberRepository from '../database/repositories/memberRepository'
+import ReportRepository from '../database/repositories/reportRepository'
 
 interface UnnestedActivityTypes {
   [key: string]: any
@@ -153,6 +155,16 @@ export default class SegmentService extends LoggerBase {
     }
 
     const subproject = await segmentRepository.create(data)
+
+    // create default report for the tenant
+    await ReportRepository.create(
+      {
+        name: defaultReport.name,
+        public: defaultReport.public,
+      },
+      { ...this.options, transaction, currentSegments: [subproject] },
+    )
+
     return subproject
   }
 
