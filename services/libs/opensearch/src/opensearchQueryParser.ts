@@ -241,7 +241,7 @@ export class OpensearchQueryParser {
 
     if (operator === Operator.CONTAINS) {
       return {
-        match: {
+        terms: {
           [searchKey]: value,
         },
       }
