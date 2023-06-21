@@ -5,6 +5,9 @@
       :router="true"
     >
       <div class="px-3 pt-3 flex flex-col gap-2 grow">
+        <div class="px-3 mb-6 mt-2">
+          <img src="/images/lf/logo_lfx_cm.svg" alt="lf logo" />
+        </div>
         <!-- All project groups -->
         <router-link
           id="menu-project-groups"
