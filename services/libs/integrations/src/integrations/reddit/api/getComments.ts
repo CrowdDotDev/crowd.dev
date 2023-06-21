@@ -22,6 +22,8 @@ async function getComments(
     // eslint-disable-next-line no-promise-executor-return
     await timeout(1500)
 
+    const globalCache = ctx.globalCache
+
     // Gett an access token from Nango
     const accessToken = await getNangoToken(input.nangoId, PlatformType.REDDIT, ctx)
 

@@ -181,6 +181,12 @@ export default class IntegrationStreamService extends LoggerBase {
       this.log,
     )
 
+    const globalCache = new RedisCache(
+      `int-global`,
+      this.redisClient,
+      this.log,
+    )
+
     const nangoConfig = NANGO_CONFIG()
 
     const context: IProcessStreamContext = {
@@ -209,6 +215,7 @@ export default class IntegrationStreamService extends LoggerBase {
 
       log: this.log,
       cache,
+      globalCache,
 
       publishData: async (data) => {
         await this.publishData(

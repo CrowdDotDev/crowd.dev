@@ -27,6 +27,8 @@ export interface IProcessStreamContext extends IIntegrationContext {
   publishData: <T>(data: T) => Promise<void>
 
   abortWithError: (message: string, metadata?: unknown, error?: Error) => Promise<void>
+
+  globalCache: ICache
 }
 
 export interface IProcessDataContext extends IIntegrationContext {
