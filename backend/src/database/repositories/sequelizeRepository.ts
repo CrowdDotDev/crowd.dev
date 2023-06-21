@@ -66,7 +66,6 @@ export default class SequelizeRepository {
         `This operation can have exactly one segment. Found ${options.currentSegments.length} segments.`,
       )
     }
-
     return options.currentSegments[0]
   }
 

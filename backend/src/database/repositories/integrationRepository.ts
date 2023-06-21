@@ -155,6 +155,25 @@ class IntegrationRepository {
     await this._createAuditLog(AuditLogRepository.DELETE, record, record, options)
   }
 
+  static async findAllByPlatform(platform, options: IRepositoryOptions) {
+    const transaction = SequelizeRepository.getTransaction(options)
+
+    const include = []
+
+    const currentTenant = SequelizeRepository.getCurrentTenant(options)
+
+    const records = await options.database.integration.findAll({
+      where: {
+        platform,
+        tenantId: currentTenant.id,
+      },
+      include,
+      transaction,
+    })
+
+    return records.map((record) => record.get({ plain: true }))
+  }
+
   static async findByPlatform(platform, options: IRepositoryOptions) {
     const transaction = SequelizeRepository.getTransaction(options)
 

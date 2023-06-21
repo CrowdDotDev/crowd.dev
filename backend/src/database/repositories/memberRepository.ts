@@ -56,7 +56,6 @@ class MemberRepository {
     const transaction = SequelizeRepository.getTransaction(options)
 
     const segment = SequelizeRepository.getStrictlySingleActiveSegment(options)
-
     const record = await options.database.member.create(
       {
         ...lodash.pick(data, [
