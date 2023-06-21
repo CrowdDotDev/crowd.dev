@@ -133,6 +133,8 @@ import { mapGetters } from '@/shared/vuex/vuex.helpers';
 import AppAutomationExecutions from '@/modules/automation/components/automation-executions.vue';
 import { FeatureFlag } from '@/featureFlag';
 import { getWorkflowMax, showWorkflowLimitDialog } from '@/modules/automation/automation-limit';
+import { useActivityTypeStore } from '@/modules/activity/store/type';
+import { ActivityTypeService } from '@/modules/activity/services/activity-type-service';
 
 const options = ref([
   {
@@ -158,6 +160,9 @@ const {
   filter, loadingAutomations, automations,
 } = storeToRefs(automationStore);
 const { getAutomations, changeAutomationFilter } = automationStore;
+
+const activityTypeStore = useActivityTypeStore();
+const { setTypes } = activityTypeStore;
 
 const { currentTenant } = mapGetters('auth');
 
@@ -222,8 +227,11 @@ const createSlackAutomation = () => {
   }
 };
 
-onMounted(() => {
+onMounted(async () => {
   getAutomations();
+
+  const activityTypes = await ActivityTypeService.get();
+  setTypes(activityTypes);
 });
 
 </script>

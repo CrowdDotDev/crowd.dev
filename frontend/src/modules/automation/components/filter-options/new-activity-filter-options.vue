@@ -84,7 +84,6 @@ import {
   computed, onMounted,
 } from 'vue';
 import AppFormItem from '@/shared/form/form-item.vue';
-import { mapGetters } from '@/shared/vuex/vuex.helpers';
 import { CrowdIntegrations } from '@/integrations/integrations-config';
 import { useActivityTypeStore } from '@/modules/activity/store/type';
 import { storeToRefs } from 'pinia';
@@ -115,14 +114,11 @@ const form = computed({
   },
 });
 
-const { active } = mapGetters('integration');
-
 const { types } = storeToRefs(useActivityTypeStore());
 
-const computedPlatformOptions = computed(() => active.value.map((item) => ({
+const computedPlatformOptions = computed(() => CrowdIntegrations.enabledConfigs.map((item) => ({
   value: item.platform,
-  label: CrowdIntegrations.getConfig(item.platform)
-    .name,
+  label: item.name,
 })));
 
 const computedActivityTypeOptions = computed(() => {
