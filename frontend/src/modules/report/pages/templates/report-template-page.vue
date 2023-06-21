@@ -28,25 +28,6 @@
           <h1 class="text-xl font-semibold">
             {{ currentTemplate.name }}
           </h1>
-          <div class="flex items-center gap-9">
-            <div
-              v-if="report.public"
-              class="flex items-center gap-2"
-            >
-              <i
-                class="ri-global-line text-base text-green-600"
-              />
-              <div
-                class="text-sm text-green-600 font-medium"
-              >
-                Public
-              </div>
-            </div>
-            <app-report-share-button
-              :id="id"
-              v-model="report.public"
-            />
-          </div>
         </div>
       </div>
 
@@ -101,7 +82,6 @@ import {
   onBeforeUnmount,
 } from 'vue';
 import { useStore } from 'vuex';
-import AppReportShareButton from '@/modules/report/components/report-share-button.vue';
 import templates from '@/modules/report/templates/config';
 import AppReportTemplateFilters from '@/modules/report/components/templates/report-template-filters.vue';
 import ActivityPlatformField from '@/modules/activity/activity-platform-field';
@@ -109,10 +89,6 @@ import { mapActions, mapGetters } from '@/shared/vuex/vuex.helpers';
 
 const props = defineProps({
   id: {
-    type: String,
-    default: null,
-  },
-  segmentId: {
     type: String,
     default: null,
   },
@@ -187,7 +163,6 @@ onMounted(async () => {
   loading.value = true;
   report.value = await doFind({
     id: props.id,
-    segments: [props.segmentId],
   });
   loading.value = false;
 

@@ -236,6 +236,7 @@ export default {
     }),
     ...mapGetters({
       reportFind: 'report/find',
+      cubejsApi: 'widget/cubejsApi',
     }),
     report() {
       return this.reportFind(this.id);
@@ -273,6 +274,7 @@ export default {
       await this.doFindPublic({
         id: this.id,
         tenantId: this.tenantId,
+        excludeSegments: !this.segmentId,
         segments: [this.segmentId],
       });
       this.currentTenant = await TenantService.find(
@@ -281,9 +283,14 @@ export default {
     } else {
       await this.doFind({
         id: this.id,
-        segments: [this.segmentId],
+        segments: this.segmentId ? [this.segmentId] : undefined,
       });
     }
+
+    if (!this.cubejsApi) {
+      await this.getCubeToken();
+    }
+
     this.loading = false;
   },
 
@@ -291,6 +298,7 @@ export default {
     ...mapActions({
       doFind: 'report/doFind',
       doFindPublic: 'report/doFindPublic',
+      getCubeToken: 'widget/getCubeToken',
     }),
     onPlatformFilterOpen() {
       this.platform = {

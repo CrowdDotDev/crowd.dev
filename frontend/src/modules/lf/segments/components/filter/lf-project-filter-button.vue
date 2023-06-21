@@ -2,7 +2,7 @@
   <span :data-tooltip="filterLabel.showTooltip ? filterLabel.text : null" data-tooltip-placement="top">
     <el-button
       ref="buttonRef"
-      class="btn btn--bordered bg-white !py-1.5 !px-3 outline-none"
+      :class="btnClass || 'btn btn--bordered bg-white !py-1.5 !px-3 outline-none'"
       @click="openFilterPopover"
     >
       <div class="flex items-center text-xs">
@@ -49,6 +49,10 @@ const props = defineProps({
   setSegments: {
     type: Function,
     default: () => {},
+  },
+  btnClass: {
+    type: String,
+    default: null,
   },
 });
 

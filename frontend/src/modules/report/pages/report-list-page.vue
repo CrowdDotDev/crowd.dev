@@ -117,6 +117,7 @@ export default {
       currentTenant: 'auth/currentTenant',
       currentUser: 'auth/currentUser',
       rows: 'report/rows',
+      cubejsApi: 'widget/cubejsApi',
     }),
     hasPermissionToCreate() {
       return new ReportPermissions(
@@ -143,7 +144,6 @@ export default {
           ...t.config,
           public: rowTemplate?.public || false,
           id: rowTemplate?.id,
-          segmentId: rowTemplate?.segmentId,
         };
       }).filter((t) => !!t.id);
     },
@@ -160,11 +160,16 @@ export default {
 
   async mounted() {
     window.analytics.page('Reports');
+
+    if (!this.cubejsApi) {
+      this.getCubeToken();
+    }
   },
 
   methods: {
     ...mapActions({
       doFetch: 'report/doFetch',
+      getCubeToken: 'widget/getCubeToken',
     }),
     onAddReport() {
       this.isSubProjectSelectionOpen = true;

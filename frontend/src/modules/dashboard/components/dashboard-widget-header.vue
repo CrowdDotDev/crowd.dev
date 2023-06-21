@@ -32,7 +32,6 @@
             name: 'reportTemplate',
             params: {
               id: report(props.reportName).id,
-              segmentId: report(props.reportName).segmentId,
             },
           }"
           class="ml-4"

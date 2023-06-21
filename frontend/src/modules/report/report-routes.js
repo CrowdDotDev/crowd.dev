@@ -35,7 +35,7 @@ export default [
       },
       {
         name: 'reportTemplate',
-        path: '/reports/template/:segmentId/:id',
+        path: '/reports/template/:id',
         component: ReportTemplatePage,
         meta: {
           auth: true,

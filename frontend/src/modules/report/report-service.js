@@ -42,6 +42,7 @@ export class ReportService {
       `/tenant/${tenantId}/report`,
       {
         params,
+        excludeSegments: true,
       },
     );
 
@@ -67,6 +68,8 @@ export class ReportService {
       {
         params: {
           segments,
+          ...{ ...segments ? null : { excludeSegments: true } },
+          ...{ ...segments ? { segments } : null },
         },
       },
     );
@@ -74,12 +77,13 @@ export class ReportService {
     return response.data;
   }
 
-  static async findPublic(id, tenantId, segments) {
+  static async findPublic(id, tenantId, segments, excludeSegments = false) {
     const response = await axios.get(
       `${config.backendUrl}/tenant/${tenantId}/report/${id}`,
       {
         params: {
-          segments,
+          ...{ ...excludeSegments ? { excludeSegments } : null },
+          ...{ ...excludeSegments ? null : { segments } },
         },
       },
     );

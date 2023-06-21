@@ -259,6 +259,10 @@ export default {
       type: Function,
       default: () => {},
     },
+    segmentId: {
+      type: String,
+      default: null,
+    },
   },
   data() {
     return {
@@ -375,7 +379,7 @@ export default {
     }),
   },
   async created() {
-    await this.doFetchIntegrations([this.$route.params.segmentId]);
+    await this.doFetchIntegrations([this.segmentId]);
     this.localFilters = this.initFilters() || [];
   },
   methods: {

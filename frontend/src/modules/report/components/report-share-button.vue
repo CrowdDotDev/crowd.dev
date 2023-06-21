@@ -125,6 +125,7 @@ const handlePublicChange = async (value) => {
     id: props.id,
     values: {
       public: value,
+      ...({ ...props.segmentId ? null : { excludeSegments: true } }),
     },
     successMessage: `Report successfully ${value ? 'published' : 'unpublished'}`,
     errorMessage: `There was an error ${value ? 'publishing' : 'unpublishing'} your report`,

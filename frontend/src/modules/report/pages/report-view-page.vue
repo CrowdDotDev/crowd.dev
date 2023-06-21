@@ -124,12 +124,13 @@ export default {
       await this.doFindPublic({
         id: this.id,
         tenantId: this.tenantId,
+        excludeSegments: !this.segmentId,
         segments: [this.segmentId],
       });
     } else {
       await this.doFind({
         id: this.id,
-        segments: [this.segmentId],
+        segments: this.segmentId ? [this.segmentId] : undefined,
       });
     }
     this.loading = false;

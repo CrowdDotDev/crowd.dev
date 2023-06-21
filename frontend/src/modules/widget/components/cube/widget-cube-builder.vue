@@ -165,6 +165,7 @@
                   :dimensions="dimensions"
                   :filters="filters"
                   :set-filters="setFilters"
+                  :segment-id="widget.segmentId"
                   :available-dimensions="
                     translatedOptions(availableDimensions)
                   "
@@ -322,7 +323,7 @@ export default {
       {
         member: 'Segments.id',
         operator: 'equals',
-        values: [this.$route.params.segmentId],
+        values: [this.widget.segmentId],
       },
     ];
 

@@ -1,4 +1,7 @@
 import moment from 'moment';
+import { getSegmentsFromProjectGroup } from '@/utils/segments';
+import { storeToRefs } from 'pinia';
+import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 
 // Add platform and team members filters to cube query filters array
 const getCubeFilters = ({
@@ -46,6 +49,16 @@ const getCubeFilters = ({
       member: 'Segments.id',
       operator: 'equals',
       values: segments,
+    });
+  } else {
+    const lsSegmentsStore = useLfSegmentsStore();
+    const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);
+    const projectGroupSegments = getSegmentsFromProjectGroup(selectedProjectGroup.value);
+
+    filters.push({
+      member: 'Segments.id',
+      operator: 'equals',
+      values: projectGroupSegments,
     });
   }
 

@@ -32,7 +32,7 @@ export const ACTIVE_LEADERBOARD_MEMBERS_WIDGET = {
 };
 
 export default {
-  nameAsId: 'Contributors report',
+  nameAsId: 'Members report',
   name: 'Contributors',
   description:
       'Get insights into total/active/returning contributors and a contributor leaderboard',

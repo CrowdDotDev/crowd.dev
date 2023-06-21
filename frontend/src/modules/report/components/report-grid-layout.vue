@@ -213,6 +213,7 @@ export default {
             reportId: this.modelValue.id
               ? this.modelValue.id
               : undefined,
+            segmentId: this.modelValue.segmentId,
             settings: {},
           }),
         ),
