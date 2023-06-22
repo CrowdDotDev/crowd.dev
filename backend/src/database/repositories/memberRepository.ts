@@ -1619,12 +1619,15 @@ class MemberRepository {
   ): Promise<PageData<any>> {
     const tenant = SequelizeRepository.getCurrentTenant(options)
 
+    const segment = SequelizeRepository.getStrictlySingleActiveSegment(options)
+
     const translator = FieldTranslatorFactory.getTranslator(
       OpenSearchIndex.MEMBERS,
       attributesSettings,
       [
         'default',
         'custom',
+        'crowd',
         'enrichment',
         ...(await TenantRepository.getAvailablePlatforms(options.currentTenant.id, options)).map(
           (p) => p.platform,
@@ -1642,6 +1645,13 @@ class MemberRepository {
     parsed.query.bool.must.push({
       term: {
         uuid_tenantId: tenant.id,
+      },
+    })
+
+    // add segment filter
+    parsed.query.bool.must.push({
+      term: {
+        uuid_segmentId: segment.id,
       },
     })
 

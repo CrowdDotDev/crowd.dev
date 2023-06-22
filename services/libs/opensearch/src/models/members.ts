@@ -6,6 +6,7 @@ export class MembersOpensearch extends OpensearchModelBase {
   fields: Record<string, OpensearchField> = {
     id: {
       type: OpensearchFieldType.UUID,
+      customOpensourceDestination: 'uuid_memberId',
     },
     tenantId: {
       type: OpensearchFieldType.UUID,
