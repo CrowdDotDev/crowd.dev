@@ -60,6 +60,13 @@ export default (sequelize) => {
       },
     })
 
+    models.widget.belongsTo(models.segment, {
+      as: 'segment',
+      foreignKey: {
+        allowNull: false,
+      },
+    })
+
     models.widget.belongsTo(models.user, {
       as: 'createdBy',
     })

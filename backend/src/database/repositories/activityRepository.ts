@@ -1,7 +1,6 @@
 import sanitizeHtml from 'sanitize-html'
 import lodash from 'lodash'
 import Sequelize from 'sequelize'
-import { ActivityTypeSettings } from '@crowd/types'
 import SequelizeRepository from './sequelizeRepository'
 import AuditLogRepository from './auditLogRepository'
 import SequelizeFilterUtils from '../utils/sequelizeFilterUtils'
@@ -13,6 +12,7 @@ import { QueryOutput } from './filters/queryTypes'
 import { AttributeData } from '../attributes/attribute'
 import MemberRepository from './memberRepository'
 import ActivityDisplayService from '../../services/activityDisplayService'
+import SegmentRepository from './segmentRepository'
 
 const { Op } = Sequelize
 
@@ -25,6 +25,8 @@ class ActivityRepository {
     const tenant = SequelizeRepository.getCurrentTenant(options)
 
     const transaction = SequelizeRepository.getTransaction(options)
+
+    const segment = SequelizeRepository.getStrictlySingleActiveSegment(options)
 
     // Data and body will be displayed as HTML. We need to sanitize them.
     if (data.body) {
@@ -68,9 +70,11 @@ class ActivityRepository {
         ]),
         memberId: data.member || null,
         objectMemberId: data.objectMember || undefined,
+        organizationId: data.organizationId || undefined,
         parentId: data.parent || null,
         sourceParentId: data.sourceParentId || null,
         conversationId: data.conversationId || null,
+        segmentId: segment.id,
         tenantId: tenant.id,
         createdById: currentUser.id,
         updatedById: currentUser.id,
@@ -117,10 +121,13 @@ class ActivityRepository {
 
     const currentTenant = SequelizeRepository.getCurrentTenant(options)
 
+    const segment = SequelizeRepository.getStrictlySingleActiveSegment(options)
+
     let record = await options.database.activity.findOne({
       where: {
         id,
         tenantId: currentTenant.id,
+        segmentId: segment.id,
       },
       transaction,
     })
@@ -166,6 +173,7 @@ class ActivityRepository {
         ]),
         memberId: data.member || undefined,
         objectMemberId: data.objectMember || undefined,
+        organizationId: data.organizationId,
         parentId: data.parent || undefined,
         sourceParentId: data.sourceParentId || undefined,
         conversationId: data.conversationId || undefined,
@@ -190,6 +198,7 @@ class ActivityRepository {
       where: {
         id,
         tenantId: currentTenant.id,
+        segmentId: SequelizeRepository.getSegmentIds(options),
       },
       transaction,
     })
@@ -222,6 +231,10 @@ class ActivityRepository {
         model: options.database.activity,
         as: 'parent',
       },
+      {
+        model: options.database.organization,
+        as: 'organization',
+      },
     ]
 
     const currentTenant = SequelizeRepository.getCurrentTenant(options)
@@ -230,6 +243,7 @@ class ActivityRepository {
       where: {
         id,
         tenantId: currentTenant.id,
+        segmentId: SequelizeRepository.getSegmentIds(options),
       },
       include,
       transaction,
@@ -256,6 +270,7 @@ class ActivityRepository {
     const record = await options.database.activity.findOne({
       where: {
         tenantId: currentTenant.id,
+        segmentId: SequelizeRepository.getSegmentIds(options),
         ...query,
       },
       transaction,
@@ -299,6 +314,7 @@ class ActivityRepository {
       where: {
         ...filter,
         tenantId: tenant.id,
+        segmentId: SequelizeRepository.getSegmentIds(options),
       },
       transaction,
     })
@@ -554,6 +570,15 @@ class ActivityRepository {
                 to: 'tagId',
               },
             },
+            segments: {
+              table: 'members',
+              model: 'member',
+              relationTable: {
+                name: 'memberSegments',
+                from: 'memberId',
+                to: 'segmentId',
+              },
+            },
             organizations: {
               table: 'members',
               model: 'member',
@@ -594,10 +619,20 @@ class ActivityRepository {
       {
         model: options.database.activity,
         as: 'parent',
+        include: [
+          {
+            model: options.database.member,
+            as: 'member',
+          },
+        ],
       },
       {
         model: options.database.member,
         as: 'objectMember',
+      },
+      {
+        model: options.database.organization,
+        as: 'organization',
       },
     ]
 
@@ -718,10 +753,17 @@ class ActivityRepository {
 
     const output = record.get({ plain: true })
 
-    const activityTypes = options.currentTenant.settings[0].dataValues
-      .activityTypes as ActivityTypeSettings
+    output.display = ActivityDisplayService.getDisplayOptions(
+      record,
+      SegmentRepository.getActivityTypes(options),
+    )
 
-    output.display = ActivityDisplayService.getDisplayOptions(record, activityTypes)
+    if (output.parent) {
+      output.parent.display = ActivityDisplayService.getDisplayOptions(
+        output.parent,
+        SegmentRepository.getActivityTypes(options),
+      )
+    }
 
     output.tasks = await record.getTasks({
       transaction,

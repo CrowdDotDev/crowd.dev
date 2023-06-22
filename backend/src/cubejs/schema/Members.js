@@ -117,6 +117,11 @@ cube(`Members`, {
       sql: `${CUBE}.id = ${MemberIdentities}."memberId"`,
       relationship: `belongsTo`,
     },
+
+    MemberSegments: {
+      sql: `${CUBE}.id = ${MemberSegments}."memberId"`,
+      relationship: `belongsTo`,
+    },
   },
 
   measures: {

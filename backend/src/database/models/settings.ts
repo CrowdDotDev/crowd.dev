@@ -21,11 +21,6 @@ export default (sequelize, DataTypes) => {
       slackWebHook: {
         type: DataTypes.STRING(1024),
       },
-      customActivityTypes: {
-        type: DataTypes.JSONB,
-        allowNull: false,
-        defaultValue: {},
-      },
       attributeSettings: {
         type: DataTypes.JSONB,
         allowNull: false,
@@ -44,10 +39,6 @@ export default (sequelize, DataTypes) => {
             PlatformType.CROWD,
           ],
         },
-      },
-      activityChannels: {
-        type: DataTypes.JSONB,
-        defaultValue: {},
       },
     },
     {

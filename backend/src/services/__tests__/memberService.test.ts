@@ -174,6 +174,7 @@ describe('MemberService tests', () => {
         deletedAt: null,
         organizations: [],
         tenantId: mockIServiceOptions.currentTenant.id,
+        segments: mockIServiceOptions.currentSegments,
         createdById: mockIServiceOptions.currentUser.id,
         updatedById: mockIServiceOptions.currentUser.id,
         reach: { total: -1 },
@@ -181,6 +182,7 @@ describe('MemberService tests', () => {
         lastEnriched: null,
         enrichedBy: [],
         contributions: null,
+        affiliations: [],
       }
 
       expect(memberCreated).toStrictEqual(memberExpected)
@@ -264,6 +266,7 @@ describe('MemberService tests', () => {
         updatedAt: SequelizeTestUtils.getNowWithoutTime(),
         deletedAt: null,
         tenantId: mockIServiceOptions.currentTenant.id,
+        segments: mockIServiceOptions.currentSegments,
         createdById: mockIServiceOptions.currentUser.id,
         updatedById: mockIServiceOptions.currentUser.id,
         lastEnriched: null,
@@ -272,6 +275,7 @@ describe('MemberService tests', () => {
         contributions: null,
         reach: { total: -1 },
         joinedAt: new Date('2020-05-28T15:13:30Z'),
+        affiliations: [],
       }
 
       expect(memberCreated).toStrictEqual(memberExpected)
@@ -318,10 +322,12 @@ describe('MemberService tests', () => {
         updatedAt: SequelizeTestUtils.getNowWithoutTime(),
         deletedAt: null,
         tenantId: mockIServiceOptions.currentTenant.id,
+        segments: mockIServiceOptions.currentSegments,
         createdById: mockIServiceOptions.currentUser.id,
         updatedById: mockIServiceOptions.currentUser.id,
         reach: { total: 10, [PlatformType.GITHUB]: 10 },
         joinedAt: new Date('2020-05-28T15:13:30Z'),
+        affiliations: [],
       }
 
       expect(memberCreated).toStrictEqual(memberExpected)
@@ -367,10 +373,12 @@ describe('MemberService tests', () => {
         updatedAt: SequelizeTestUtils.getNowWithoutTime(),
         deletedAt: null,
         tenantId: mockIServiceOptions.currentTenant.id,
+        segments: mockIServiceOptions.currentSegments,
         createdById: mockIServiceOptions.currentUser.id,
         updatedById: mockIServiceOptions.currentUser.id,
         reach: { total: 20, [PlatformType.GITHUB]: 10, [PlatformType.TWITTER]: 10 },
         joinedAt: new Date('2020-05-28T15:13:30Z'),
+        affiliations: [],
       }
 
       expect(memberCreated).toStrictEqual(memberExpected)
@@ -416,10 +424,12 @@ describe('MemberService tests', () => {
         updatedAt: SequelizeTestUtils.getNowWithoutTime(),
         deletedAt: null,
         tenantId: mockIServiceOptions.currentTenant.id,
+        segments: mockIServiceOptions.currentSegments,
         createdById: mockIServiceOptions.currentUser.id,
         updatedById: mockIServiceOptions.currentUser.id,
         reach: { total: 20, [PlatformType.DISCORD]: 10, [PlatformType.TWITTER]: 10 },
         joinedAt: new Date('2020-05-28T15:13:30Z'),
+        affiliations: [],
       }
 
       expect(memberCreated).toStrictEqual(memberExpected)
@@ -820,10 +830,12 @@ describe('MemberService tests', () => {
         updatedAt: SequelizeTestUtils.getNowWithoutTime(),
         deletedAt: null,
         tenantId: mockIServiceOptions.currentTenant.id,
+        segments: mockIServiceOptions.currentSegments,
         createdById: mockIServiceOptions.currentUser.id,
         updatedById: mockIServiceOptions.currentUser.id,
         joinedAt: new Date('2020-05-28T15:13:30Z'),
         reach: { total: -1 },
+        affiliations: [],
       }
 
       expect(memberUpdated).toStrictEqual(memberExpected)
@@ -929,10 +941,12 @@ describe('MemberService tests', () => {
         updatedAt: SequelizeTestUtils.getNowWithoutTime(),
         deletedAt: null,
         tenantId: mockIServiceOptions.currentTenant.id,
+        segments: mockIServiceOptions.currentSegments,
         createdById: mockIServiceOptions.currentUser.id,
         updatedById: mockIServiceOptions.currentUser.id,
         joinedAt: new Date('2020-05-28T15:13:30Z'),
         reach: { total: -1 },
+        affiliations: [],
       }
 
       expect(memberUpdated).toStrictEqual(memberExpected)
@@ -1033,10 +1047,12 @@ describe('MemberService tests', () => {
         updatedAt: SequelizeTestUtils.getNowWithoutTime(),
         deletedAt: null,
         tenantId: mockIServiceOptions.currentTenant.id,
+        segments: mockIServiceOptions.currentSegments,
         createdById: mockIServiceOptions.currentUser.id,
         updatedById: mockIServiceOptions.currentUser.id,
         joinedAt: new Date('2020-05-28T15:13:30Z'),
         reach: { total: -1 },
+        affiliations: [],
       }
 
       expect(memberUpdated).toStrictEqual(memberExpected)
@@ -1210,9 +1226,11 @@ describe('MemberService tests', () => {
         updatedAt: SequelizeTestUtils.getNowWithoutTime(),
         deletedAt: null,
         tenantId: mockIServiceOptions.currentTenant.id,
+        segments: mockIServiceOptions.currentSegments,
         createdById: mockIServiceOptions.currentUser.id,
         updatedById: mockIServiceOptions.currentUser.id,
         reach: { total: -1 },
+        affiliations: [],
       }
 
       expect(memberUpdated).toStrictEqual(memberExpected)
@@ -1262,11 +1280,13 @@ describe('MemberService tests', () => {
         updatedAt: SequelizeTestUtils.getNowWithoutTime(),
         deletedAt: null,
         tenantId: mockIServiceOptions.currentTenant.id,
+        segments: mockIServiceOptions.currentSegments,
         createdById: mockIServiceOptions.currentUser.id,
         updatedById: mockIServiceOptions.currentUser.id,
         score: -1,
         emails: [],
         attributes: {},
+        affiliations: [],
       }
 
       expect(memberUpdated).toStrictEqual(memberExpected)
@@ -1317,11 +1337,13 @@ describe('MemberService tests', () => {
         updatedAt: SequelizeTestUtils.getNowWithoutTime(),
         deletedAt: null,
         tenantId: mockIServiceOptions.currentTenant.id,
+        segments: mockIServiceOptions.currentSegments,
         createdById: mockIServiceOptions.currentUser.id,
         updatedById: mockIServiceOptions.currentUser.id,
         score: -1,
         emails: [],
         attributes: {},
+        affiliations: [],
       }
 
       expect(memberUpdated).toStrictEqual(memberExpected)
@@ -1373,11 +1395,13 @@ describe('MemberService tests', () => {
         updatedAt: SequelizeTestUtils.getNowWithoutTime(),
         deletedAt: null,
         tenantId: mockIServiceOptions.currentTenant.id,
+        segments: mockIServiceOptions.currentSegments,
         createdById: mockIServiceOptions.currentUser.id,
         updatedById: mockIServiceOptions.currentUser.id,
         score: -1,
         emails: [],
         attributes: {},
+        affiliations: [],
       }
 
       expect(memberUpdated).toStrictEqual(memberExpected)
@@ -1429,11 +1453,13 @@ describe('MemberService tests', () => {
         updatedAt: SequelizeTestUtils.getNowWithoutTime(),
         deletedAt: null,
         tenantId: mockIServiceOptions.currentTenant.id,
+        segments: mockIServiceOptions.currentSegments,
         createdById: mockIServiceOptions.currentUser.id,
         updatedById: mockIServiceOptions.currentUser.id,
         score: -1,
         emails: [],
         attributes: {},
+        affiliations: [],
       }
 
       expect(memberUpdated).toStrictEqual(memberExpected)
@@ -1714,6 +1740,7 @@ describe('MemberService tests', () => {
         'parent',
         'tasks',
         'display',
+        'organization',
       ])
 
       // get previously created tags
@@ -1783,6 +1810,7 @@ describe('MemberService tests', () => {
         updatedAt: SequelizeTestUtils.getNowWithoutTime(),
         deletedAt: null,
         tenantId: mockIRepositoryOptions.currentTenant.id,
+        segments: mockIRepositoryOptions.currentSegments,
         createdById: mockIRepositoryOptions.currentUser.id,
         updatedById: mockIRepositoryOptions.currentUser.id,
         joinedAt: new Date(member1.joinedAt),
@@ -1791,9 +1819,24 @@ describe('MemberService tests', () => {
         tasks: [task1, task2, task3],
         notes: [note1, note2, note3],
         organizations: [
-          SequelizeTestUtils.objectWithoutKey(o1, ['activeOn', 'identities', 'lastActive']),
-          SequelizeTestUtils.objectWithoutKey(o2, ['activeOn', 'identities', 'lastActive']),
-          SequelizeTestUtils.objectWithoutKey(o3, ['activeOn', 'identities', 'lastActive']),
+          SequelizeTestUtils.objectWithoutKey(o1, [
+            'activeOn',
+            'identities',
+            'lastActive',
+            'segments',
+          ]),
+          SequelizeTestUtils.objectWithoutKey(o2, [
+            'activeOn',
+            'identities',
+            'lastActive',
+            'segments',
+          ]),
+          SequelizeTestUtils.objectWithoutKey(o3, [
+            'activeOn',
+            'identities',
+            'lastActive',
+            'segments',
+          ]),
         ],
         noMerge: [returnedMember3.id],
         toMerge: [returnedMember4.id],
@@ -1803,6 +1846,7 @@ describe('MemberService tests', () => {
         lastActive: activityCreated.timestamp,
         lastActivity: activityCreated,
         numberOfOpenSourceContributions: 0,
+        affiliations: [],
       }
 
       expect(
@@ -2042,6 +2086,9 @@ describe('MemberService tests', () => {
       delete returnedMember1.activityTypes
       delete returnedMember1.activeDaysCount
       delete returnedMember1.numberOfOpenSourceContributions
+      delete returnedMember1.affiliations
+
+      returnedMember1.segments = returnedMember1.segments.map((s) => s.id)
 
       const existing = await memberService.memberExists(
         member1.username[PlatformType.GITHUB],
@@ -2139,6 +2186,9 @@ describe('MemberService tests', () => {
       delete returnedMember1.activityTypes
       delete returnedMember1.activeDaysCount
       delete returnedMember1.numberOfOpenSourceContributions
+      delete returnedMember1.affiliations
+
+      returnedMember1.segments = returnedMember1.segments.map((s) => s.id)
 
       const existing = await memberService.memberExists(
         { [PlatformType.DISCORD]: 'some-other-username' },

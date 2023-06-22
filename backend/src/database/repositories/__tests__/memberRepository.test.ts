@@ -9,6 +9,8 @@ import OrganizationRepository from '../organizationRepository'
 import TagRepository from '../tagRepository'
 import TaskRepository from '../taskRepository'
 import lodash from 'lodash'
+import SegmentRepository from '../segmentRepository'
+import { SegmentStatus } from '../../../types/segmentTypes'
 
 const db = null
 
@@ -115,6 +117,7 @@ describe('MemberRepository tests', () => {
         updatedAt: SequelizeTestUtils.getNowWithoutTime(),
         deletedAt: null,
         tenantId: mockIRepositoryOptions.currentTenant.id,
+        segments: mockIRepositoryOptions.currentSegments,
         createdById: mockIRepositoryOptions.currentUser.id,
         updatedById: mockIRepositoryOptions.currentUser.id,
         activities: [],
@@ -131,6 +134,7 @@ describe('MemberRepository tests', () => {
         averageSentiment: 0,
         numberOfOpenSourceContributions: 0,
         lastActivity: null,
+        affiliations: [],
       }
       expect(memberCreated).toStrictEqual(expectedMemberCreated)
     })
@@ -193,11 +197,13 @@ describe('MemberRepository tests', () => {
         updatedAt: SequelizeTestUtils.getNowWithoutTime(),
         deletedAt: null,
         tenantId: mockIRepositoryOptions.currentTenant.id,
+        segments: mockIRepositoryOptions.currentSegments,
         createdById: mockIRepositoryOptions.currentUser.id,
         updatedById: mockIRepositoryOptions.currentUser.id,
         reach: { total: -1 },
         organizations: [],
         joinedAt: new Date('2020-05-27T15:13:30Z'),
+        affiliations: [],
       }
       expect(memberCreated).toStrictEqual(expectedMemberCreated)
     })
@@ -240,6 +246,7 @@ describe('MemberRepository tests', () => {
         updatedAt: SequelizeTestUtils.getNowWithoutTime(),
         deletedAt: null,
         tenantId: mockIRepositoryOptions.currentTenant.id,
+        segments: mockIRepositoryOptions.currentSegments,
         createdById: mockIRepositoryOptions.currentUser.id,
         updatedById: mockIRepositoryOptions.currentUser.id,
         activities: [],
@@ -258,6 +265,7 @@ describe('MemberRepository tests', () => {
         numberOfOpenSourceContributions: 0,
         lastActive: null,
         lastActivity: null,
+        affiliations: [],
       }
 
       expect(memberCreated).toStrictEqual(expectedMemberCreated)
@@ -367,6 +375,74 @@ describe('MemberRepository tests', () => {
       expect(memberCreated.tasks.find((t) => t.id === tasks1.id)).not.toBeUndefined()
       expect(memberCreated.tasks.find((t) => t.id === task2.id)).not.toBeUndefined()
     })
+
+    it('Should succesfully create member with organization affiliations', async () => {
+      const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
+      const segmentRepo = new SegmentRepository(mockIRepositoryOptions)
+
+      const segment1 = await segmentRepo.create({
+        name: 'Crowd.dev - Segment1',
+        url: '',
+        parentName: 'Crowd.dev - Segment1',
+        grandparentName: 'Crowd.dev - Segment1',
+        slug: 'crowd.dev-1',
+        parentSlug: 'crowd.dev-1',
+        grandparentSlug: 'crowd.dev-1',
+        status: SegmentStatus.ACTIVE,
+        sourceId: null,
+        sourceParentId: null,
+      })
+
+      const segment2 = await segmentRepo.create({
+        name: 'Crowd.dev - Segment2',
+        url: '',
+        parentName: 'Crowd.dev - Segment2',
+        grandparentName: 'Crowd.dev - Segment2',
+        slug: 'crowd.dev-2',
+        parentSlug: 'crowd.dev-2',
+        grandparentSlug: 'crowd.dev-2',
+        status: SegmentStatus.ACTIVE,
+        sourceId: null,
+        sourceParentId: null,
+      })
+
+      const org1 = await OrganizationRepository.create(
+        {
+          name: 'crowd.dev',
+        },
+        mockIRepositoryOptions,
+      )
+
+      const member2add = {
+        username: {
+          [PlatformType.DISCORD]: {
+            username: 'anil',
+            integrationId: generateUUIDv1(),
+          },
+        },
+        displayName: 'Member 1',
+        joinedAt: '2020-05-27T15:13:30Z',
+        affiliations: [
+          {
+            segmentId: segment1.id,
+            organizationId: org1.id,
+          },
+          {
+            segmentId: segment2.id,
+            organizationId: null,
+          },
+        ],
+      }
+
+      const memberCreated = await MemberRepository.create(member2add, mockIRepositoryOptions)
+      expect(memberCreated.affiliations).toHaveLength(2)
+      expect(
+        memberCreated.affiliations.filter((a) => a.segmentId === segment1.id)[0].organizationId,
+      ).toEqual(org1.id)
+      expect(
+        memberCreated.affiliations.filter((a) => a.segmentId === segment2.id)[0].organizationId,
+      ).toBeNull()
+    })
   })
 
   describe('findById method', () => {
@@ -404,6 +480,7 @@ describe('MemberRepository tests', () => {
         updatedAt: SequelizeTestUtils.getNowWithoutTime(),
         deletedAt: null,
         tenantId: mockIRepositoryOptions.currentTenant.id,
+        segments: mockIRepositoryOptions.currentSegments,
         createdById: mockIRepositoryOptions.currentUser.id,
         updatedById: mockIRepositoryOptions.currentUser.id,
         activities: [],
@@ -422,6 +499,7 @@ describe('MemberRepository tests', () => {
         numberOfOpenSourceContributions: 0,
         lastActive: null,
         lastActivity: null,
+        affiliations: [],
       }
 
       const memberById = await MemberRepository.findById(memberCreated.id, mockIRepositoryOptions)
@@ -465,11 +543,13 @@ describe('MemberRepository tests', () => {
         updatedAt: SequelizeTestUtils.getNowWithoutTime(),
         deletedAt: null,
         tenantId: mockIRepositoryOptions.currentTenant.id,
+        segments: mockIRepositoryOptions.currentSegments,
         createdById: mockIRepositoryOptions.currentUser.id,
         updatedById: mockIRepositoryOptions.currentUser.id,
         reach: { total: -1 },
         organizations: [],
         joinedAt: new Date('2020-05-27T15:13:30Z'),
+        affiliations: [],
       }
 
       const memberById = await MemberRepository.findById(
@@ -639,6 +719,8 @@ describe('MemberRepository tests', () => {
       delete member1Returned.activityTypes
       delete member1Returned.activeDaysCount
       delete member1Returned.numberOfOpenSourceContributions
+      delete member1Returned.affiliations
+      member1Returned.segments = member1Returned.segments.map((s) => s.id)
 
       const found = await MemberRepository.memberExists(
         'test1',
@@ -750,6 +832,7 @@ describe('MemberRepository tests', () => {
           platform: PlatformType.SLACK,
           timestamp: new Date(),
           tenantId: mockIRepositoryOptions.currentTenant.id,
+          segmentId: mockIRepositoryOptions.currentSegments[0].id,
           memberId: member1.id,
           username: member1.username[PlatformType.SLACK],
           sourceId: '#sourceId1',
@@ -759,6 +842,7 @@ describe('MemberRepository tests', () => {
           platform: PlatformType.SLACK,
           timestamp: new Date(),
           tenantId: mockIRepositoryOptions.currentTenant.id,
+          segmentId: mockIRepositoryOptions.currentSegments[0].id,
           memberId: member2.id,
           username: member2.username[PlatformType.SLACK],
           sourceId: '#sourceId2',
@@ -768,6 +852,7 @@ describe('MemberRepository tests', () => {
           platform: PlatformType.SLACK,
           timestamp: new Date(),
           tenantId: mockIRepositoryOptions.currentTenant.id,
+          segmentId: mockIRepositoryOptions.currentSegments[0].id,
           memberId: member2.id,
           username: member2.username[PlatformType.SLACK],
           sourceId: '#sourceId3',
@@ -777,6 +862,7 @@ describe('MemberRepository tests', () => {
           platform: PlatformType.SLACK,
           timestamp: new Date(),
           tenantId: mockIRepositoryOptions.currentTenant.id,
+          segmentId: mockIRepositoryOptions.currentSegments[0].id,
           memberId: member3.id,
           username: member3.username[PlatformType.SLACK],
           sourceId: '#sourceId4',
@@ -786,6 +872,7 @@ describe('MemberRepository tests', () => {
           platform: PlatformType.SLACK,
           timestamp: new Date(),
           tenantId: mockIRepositoryOptions.currentTenant.id,
+          segmentId: mockIRepositoryOptions.currentSegments[0].id,
           memberId: member3.id,
           username: member3.username[PlatformType.SLACK],
           sourceId: '#sourceId5',
@@ -795,6 +882,7 @@ describe('MemberRepository tests', () => {
           platform: PlatformType.SLACK,
           timestamp: new Date(),
           tenantId: mockIRepositoryOptions.currentTenant.id,
+          segmentId: mockIRepositoryOptions.currentSegments[0].id,
           memberId: member3.id,
           username: member3.username[PlatformType.SLACK],
           sourceId: '#sourceId6',
@@ -1117,10 +1205,12 @@ describe('MemberRepository tests', () => {
       const nodeTag = await mockIRepositoryOptions.database.tag.create({
         name: 'nodejs',
         tenantId: mockIRepositoryOptions.currentTenant.id,
+        segmentId: mockIRepositoryOptions.currentSegments[0].id,
       })
       const vueTag = await mockIRepositoryOptions.database.tag.create({
         name: 'vuejs',
         tenantId: mockIRepositoryOptions.currentTenant.id,
+        segmentId: mockIRepositoryOptions.currentSegments[0].id,
       })
 
       await MemberRepository.create(
@@ -1185,10 +1275,12 @@ describe('MemberRepository tests', () => {
       const nodeTag = await mockIRepositoryOptions.database.tag.create({
         name: 'nodejs',
         tenantId: mockIRepositoryOptions.currentTenant.id,
+        segmentId: mockIRepositoryOptions.currentSegments[0].id,
       })
       const vueTag = await mockIRepositoryOptions.database.tag.create({
         name: 'vuejs',
         tenantId: mockIRepositoryOptions.currentTenant.id,
+        segmentId: mockIRepositoryOptions.currentSegments[0].id,
       })
 
       await MemberRepository.create(
@@ -1259,12 +1351,14 @@ describe('MemberRepository tests', () => {
         displayName: 'crowd.dev',
         url: 'https://crowd.dev',
         tenantId: mockIRepositoryOptions.currentTenant.id,
+        segmentId: mockIRepositoryOptions.currentSegments[0].id,
       })
       const pp = await mockIRepositoryOptions.database.organization.create({
         name: 'pied piper',
         displayName: 'pied piper',
         url: 'https://piedpiper.com',
         tenantId: mockIRepositoryOptions.currentTenant.id,
+        segmentId: mockIRepositoryOptions.currentSegments[0].id,
       })
 
       await MemberRepository.create(
@@ -1438,10 +1532,12 @@ describe('MemberRepository tests', () => {
       const nodeTag = await mockIRepositoryOptions.database.tag.create({
         name: 'nodejs',
         tenantId: mockIRepositoryOptions.currentTenant.id,
+        segmentId: mockIRepositoryOptions.currentSegments[0].id,
       })
       const vueTag = await mockIRepositoryOptions.database.tag.create({
         name: 'vuejs',
         tenantId: mockIRepositoryOptions.currentTenant.id,
+        segmentId: mockIRepositoryOptions.currentSegments[0].id,
       })
 
       const member1 = await MemberRepository.create(
@@ -1505,6 +1601,7 @@ describe('MemberRepository tests', () => {
           platform: PlatformType.SLACK,
           timestamp: new Date('2022-09-10'),
           tenantId: mockIRepositoryOptions.currentTenant.id,
+          segmentId: mockIRepositoryOptions.currentSegments[0].id,
           memberId: member1.id,
           username: member1.username[PlatformType.SLACK],
           sourceId: '#sourceId1',
@@ -1522,6 +1619,7 @@ describe('MemberRepository tests', () => {
           platform: PlatformType.SLACK,
           timestamp: new Date('2022-09-11'),
           tenantId: mockIRepositoryOptions.currentTenant.id,
+          segmentId: mockIRepositoryOptions.currentSegments[0].id,
           memberId: member2.id,
           username: member2.username[PlatformType.SLACK],
           sourceId: '#sourceId2',
@@ -1539,6 +1637,7 @@ describe('MemberRepository tests', () => {
           platform: PlatformType.SLACK,
           timestamp: new Date('2022-09-12'),
           tenantId: mockIRepositoryOptions.currentTenant.id,
+          segmentId: mockIRepositoryOptions.currentSegments[0].id,
           memberId: member2.id,
           username: member2.username[PlatformType.SLACK],
           sourceId: '#sourceId3',
@@ -1556,6 +1655,7 @@ describe('MemberRepository tests', () => {
           platform: PlatformType.SLACK,
           timestamp: new Date('2022-09-13'),
           tenantId: mockIRepositoryOptions.currentTenant.id,
+          segmentId: mockIRepositoryOptions.currentSegments[0].id,
           memberId: member3.id,
           username: member3.username[PlatformType.SLACK],
           sourceId: '#sourceId4',
@@ -1573,6 +1673,7 @@ describe('MemberRepository tests', () => {
           platform: PlatformType.SLACK,
           timestamp: new Date('2022-09-14'),
           tenantId: mockIRepositoryOptions.currentTenant.id,
+          segmentId: mockIRepositoryOptions.currentSegments[0].id,
           memberId: member3.id,
           username: member3.username[PlatformType.SLACK],
           sourceId: '#sourceId5',
@@ -1590,6 +1691,7 @@ describe('MemberRepository tests', () => {
           platform: PlatformType.SLACK,
           timestamp: new Date('2022-09-15'),
           tenantId: mockIRepositoryOptions.currentTenant.id,
+          segmentId: mockIRepositoryOptions.currentSegments[0].id,
           memberId: member3.id,
           username: member3.username[PlatformType.SLACK],
           sourceId: '#sourceId6',
@@ -1734,6 +1836,7 @@ describe('MemberRepository tests', () => {
           platform: PlatformType.SLACK,
           timestamp: new Date(),
           tenantId: mockIRepositoryOptions.currentTenant.id,
+          segmentId: mockIRepositoryOptions.currentSegments[0].id,
           username: 'test1',
           memberId: member1.id,
           sourceId: '#sourceId1',
@@ -1743,6 +1846,7 @@ describe('MemberRepository tests', () => {
           platform: PlatformType.SLACK,
           timestamp: new Date(),
           tenantId: mockIRepositoryOptions.currentTenant.id,
+          segmentId: mockIRepositoryOptions.currentSegments[0].id,
           username: 'test2',
           memberId: member2.id,
           sourceId: '#sourceId2',
@@ -1752,6 +1856,7 @@ describe('MemberRepository tests', () => {
           platform: PlatformType.SLACK,
           timestamp: new Date(),
           tenantId: mockIRepositoryOptions.currentTenant.id,
+          segmentId: mockIRepositoryOptions.currentSegments[0].id,
           username: 'test2',
           memberId: member2.id,
           sourceId: '#sourceId3',
@@ -1761,6 +1866,7 @@ describe('MemberRepository tests', () => {
           platform: PlatformType.SLACK,
           timestamp: new Date(),
           tenantId: mockIRepositoryOptions.currentTenant.id,
+          segmentId: mockIRepositoryOptions.currentSegments[0].id,
           username: 'test3',
           memberId: member3.id,
           sourceId: '#sourceId4',
@@ -1770,6 +1876,7 @@ describe('MemberRepository tests', () => {
           platform: PlatformType.SLACK,
           timestamp: new Date(),
           tenantId: mockIRepositoryOptions.currentTenant.id,
+          segmentId: mockIRepositoryOptions.currentSegments[0].id,
           username: 'test3',
           memberId: member3.id,
           sourceId: '#sourceId5',
@@ -1779,6 +1886,7 @@ describe('MemberRepository tests', () => {
           platform: PlatformType.SLACK,
           timestamp: new Date(),
           tenantId: mockIRepositoryOptions.currentTenant.id,
+          segmentId: mockIRepositoryOptions.currentSegments[0].id,
           username: 'test3',
           memberId: member3.id,
           sourceId: '#sourceId6',
@@ -2141,10 +2249,12 @@ describe('MemberRepository tests', () => {
       const nodeTag = await mockIRepositoryOptions.database.tag.create({
         name: 'nodejs',
         tenantId: mockIRepositoryOptions.currentTenant.id,
+        segmentId: mockIRepositoryOptions.currentSegments[0].id,
       })
       const vueTag = await mockIRepositoryOptions.database.tag.create({
         name: 'vuejs',
         tenantId: mockIRepositoryOptions.currentTenant.id,
+        segmentId: mockIRepositoryOptions.currentSegments[0].id,
       })
 
       await MemberRepository.create(
@@ -2209,8 +2319,7 @@ describe('MemberRepository tests', () => {
       )
       const member2 = members.rows.find((m) => m.username[PlatformType.TWITTER].includes('test2'))
       expect(members.rows.length).toEqual(1)
-      expect(member2.tags[0].name).toEqual('nodejs')
-      expect(member2.tags[1].name).toEqual('vuejs')
+      expect(member2.tags.map((t) => t.name)).toEqual(expect.arrayContaining(['nodejs', 'vuejs']))
     })
 
     it('is successfully finding and counting all members, and tags [nodejs]', async () => {
@@ -2219,10 +2328,12 @@ describe('MemberRepository tests', () => {
       const nodeTag = await mockIRepositoryOptions.database.tag.create({
         name: 'nodejs',
         tenantId: mockIRepositoryOptions.currentTenant.id,
+        segmentId: mockIRepositoryOptions.currentSegments[0].id,
       })
       const vueTag = await mockIRepositoryOptions.database.tag.create({
         name: 'vuejs',
         tenantId: mockIRepositoryOptions.currentTenant.id,
+        segmentId: mockIRepositoryOptions.currentSegments[0].id,
       })
 
       await MemberRepository.create(
@@ -2291,25 +2402,32 @@ describe('MemberRepository tests', () => {
 
       expect(members.rows.length).toEqual(2)
       expect(member1.tags[0].name).toEqual('nodejs')
-      expect(member1.tags[0].name).toEqual('nodejs')
-      expect(member2.tags[1].name).toEqual('vuejs')
+      expect(member2.tags.map((t) => t.name)).toEqual(expect.arrayContaining(['nodejs', 'vuejs']))
     })
 
     it('is successfully finding and counting all members, and organisations [crowd.dev, pied piper]', async () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
 
-      const crowd = await mockIRepositoryOptions.database.organization.create({
-        name: 'crowd.dev',
-        displayName: 'crowd.dev',
-        url: 'https://crowd.dev',
-        tenantId: mockIRepositoryOptions.currentTenant.id,
-      })
-      const pp = await mockIRepositoryOptions.database.organization.create({
-        name: 'pied piper',
-        displayName: 'pied piper',
-        url: 'https://piedpiper.com',
-        tenantId: mockIRepositoryOptions.currentTenant.id,
-      })
+      const crowd = await OrganizationRepository.create(
+        {
+          name: 'crowd.dev',
+          displayName: 'crowd.dev',
+          url: 'https://crowd.dev',
+          tenantId: mockIRepositoryOptions.currentTenant.id,
+          segmentId: mockIRepositoryOptions.currentSegments[0].id,
+        },
+        mockIRepositoryOptions,
+      )
+      const pp = await OrganizationRepository.create(
+        {
+          name: 'pied piper',
+          displayName: 'pied piper',
+          url: 'https://piedpiper.com',
+          tenantId: mockIRepositoryOptions.currentTenant.id,
+          segmentId: mockIRepositoryOptions.currentSegments[0].id,
+        },
+        mockIRepositoryOptions,
+      )
 
       await MemberRepository.create(
         {
@@ -2450,10 +2568,12 @@ describe('MemberRepository tests', () => {
       const nodeTag = await mockIRepositoryOptions.database.tag.create({
         name: 'nodejs',
         tenantId: mockIRepositoryOptions.currentTenant.id,
+        segmentId: mockIRepositoryOptions.currentSegments[0].id,
       })
       const vueTag = await mockIRepositoryOptions.database.tag.create({
         name: 'vuejs',
         tenantId: mockIRepositoryOptions.currentTenant.id,
+        segmentId: mockIRepositoryOptions.currentSegments[0].id,
       })
 
       const member1 = await MemberRepository.create(
@@ -2517,6 +2637,7 @@ describe('MemberRepository tests', () => {
           platform: PlatformType.SLACK,
           timestamp: new Date('2022-09-10'),
           tenantId: mockIRepositoryOptions.currentTenant.id,
+          segmentId: mockIRepositoryOptions.currentSegments[0].id,
           memberId: member1.id,
           username: member1.username[PlatformType.SLACK],
           sourceId: '#sourceId1',
@@ -2534,6 +2655,7 @@ describe('MemberRepository tests', () => {
           platform: PlatformType.SLACK,
           timestamp: new Date('2022-09-11'),
           tenantId: mockIRepositoryOptions.currentTenant.id,
+          segmentId: mockIRepositoryOptions.currentSegments[0].id,
           memberId: member2.id,
           username: member2.username[PlatformType.SLACK],
           sourceId: '#sourceId2',
@@ -2551,6 +2673,7 @@ describe('MemberRepository tests', () => {
           platform: PlatformType.SLACK,
           timestamp: new Date('2022-09-12'),
           tenantId: mockIRepositoryOptions.currentTenant.id,
+          segmentId: mockIRepositoryOptions.currentSegments[0].id,
           memberId: member2.id,
           username: member2.username[PlatformType.SLACK],
           sourceId: '#sourceId3',
@@ -2568,6 +2691,7 @@ describe('MemberRepository tests', () => {
           platform: PlatformType.SLACK,
           timestamp: new Date('2022-09-13'),
           tenantId: mockIRepositoryOptions.currentTenant.id,
+          segmentId: mockIRepositoryOptions.currentSegments[0].id,
           memberId: member3.id,
           username: member3.username[PlatformType.SLACK],
           sourceId: '#sourceId4',
@@ -2585,6 +2709,7 @@ describe('MemberRepository tests', () => {
           platform: PlatformType.SLACK,
           timestamp: new Date('2022-09-14'),
           tenantId: mockIRepositoryOptions.currentTenant.id,
+          segmentId: mockIRepositoryOptions.currentSegments[0].id,
           memberId: member3.id,
           username: member3.username[PlatformType.SLACK],
           sourceId: '#sourceId5',
@@ -2602,6 +2727,7 @@ describe('MemberRepository tests', () => {
           platform: PlatformType.SLACK,
           timestamp: new Date('2022-09-15'),
           tenantId: mockIRepositoryOptions.currentTenant.id,
+          segmentId: mockIRepositoryOptions.currentSegments[0].id,
           memberId: member3.id,
           username: member3.username[PlatformType.SLACK],
           sourceId: '#sourceId6',
@@ -2832,6 +2958,7 @@ describe('MemberRepository tests', () => {
         updatedAt: SequelizeTestUtils.getNowWithoutTime(),
         deletedAt: null,
         tenantId: mockIRepositoryOptions.currentTenant.id,
+        segments: mockIRepositoryOptions.currentSegments,
         createdById: mockIRepositoryOptions.currentUser.id,
         updatedById: mockIRepositoryOptions.currentUser.id,
         activities: [],
@@ -2850,6 +2977,7 @@ describe('MemberRepository tests', () => {
         numberOfOpenSourceContributions: 0,
         lastActive: null,
         lastActivity: null,
+        affiliations: [],
       }
 
       expect(updatedMember).toStrictEqual(expectedMemberCreated)
@@ -2942,10 +3070,12 @@ describe('MemberRepository tests', () => {
         updatedAt: SequelizeTestUtils.getNowWithoutTime(),
         deletedAt: null,
         tenantId: mockIRepositoryOptions.currentTenant.id,
+        segments: mockIRepositoryOptions.currentSegments,
         createdById: mockIRepositoryOptions.currentUser.id,
         updatedById: mockIRepositoryOptions.currentUser.id,
         reach: { total: -1 },
         joinedAt: new Date(updateFields.joinedAt),
+        affiliations: [],
       }
 
       expect(updatedMember).toStrictEqual(expectedMemberCreated)
@@ -3010,6 +3140,7 @@ describe('MemberRepository tests', () => {
         updatedAt: SequelizeTestUtils.getNowWithoutTime(),
         deletedAt: null,
         tenantId: mockIRepositoryOptions.currentTenant.id,
+        segments: mockIRepositoryOptions.currentSegments,
         createdById: mockIRepositoryOptions.currentUser.id,
         updatedById: mockIRepositoryOptions.currentUser.id,
         activities: [],
@@ -3028,6 +3159,7 @@ describe('MemberRepository tests', () => {
         numberOfOpenSourceContributions: 0,
         lastActive: null,
         lastActivity: null,
+        affiliations: [],
       }
 
       expect(member1).toStrictEqual(expectedMemberCreated)
@@ -3078,6 +3210,11 @@ describe('MemberRepository tests', () => {
 
       member1.organizations = member1.organizations.map((i) => i.get({ plain: true }))
 
+      // // sort member organizations by createdAt
+      // member1.organizations.sort((a, b) => {
+      //   return a.createdAt < b.createdAt ? -1 : 1
+      // })
+
       // strip members field from tags created to expect.
       // we won't be returning second level relationships.
       const { memberCount: _tag1Members, ...org1Plain } = org1
@@ -3100,6 +3237,7 @@ describe('MemberRepository tests', () => {
         updatedAt: SequelizeTestUtils.getNowWithoutTime(),
         deletedAt: null,
         tenantId: mockIRepositoryOptions.currentTenant.id,
+        segments: mockIRepositoryOptions.currentSegments,
         createdById: mockIRepositoryOptions.currentUser.id,
         updatedById: mockIRepositoryOptions.currentUser.id,
         activeOn: [],
@@ -3114,6 +3252,7 @@ describe('MemberRepository tests', () => {
             'activeOn',
             'joinedAt',
             'activityCount',
+            'segments',
           ]),
           SequelizeTestUtils.objectWithoutKey(org2Plain, [
             'lastActive',
@@ -3121,6 +3260,7 @@ describe('MemberRepository tests', () => {
             'activeOn',
             'joinedAt',
             'activityCount',
+            'segments',
           ]),
         ],
         noMerge: [],
@@ -3133,6 +3273,7 @@ describe('MemberRepository tests', () => {
         numberOfOpenSourceContributions: 0,
         lastActive: null,
         lastActivity: null,
+        affiliations: [],
       }
 
       expect(member1).toStrictEqual(expectedMemberCreated)
@@ -3178,7 +3319,7 @@ describe('MemberRepository tests', () => {
       expect(memberUpdated.notes[1].id).toEqual(notes2.id)
     })
 
-    it('Should succesfully create member with tasks', async () => {
+    it('Should succesfully update member with tasks', async () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
 
       const tasks1 = await TaskRepository.create(
@@ -3252,6 +3393,87 @@ describe('MemberRepository tests', () => {
       await expect(() =>
         MemberRepository.update(member1.id, { tags: [randomUUID()] }, mockIRepositoryOptions),
       ).rejects.toThrow()
+    })
+
+    it('Should succesfully update member organization affiliations', async () => {
+      const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
+      const segmentRepo = new SegmentRepository(mockIRepositoryOptions)
+
+      const segment1 = await segmentRepo.create({
+        name: 'Crowd.dev - Segment1',
+        url: '',
+        parentName: 'Crowd.dev - Segment1',
+        grandparentName: 'Crowd.dev - Segment1',
+        slug: 'crowd.dev-1',
+        parentSlug: 'crowd.dev-1',
+        grandparentSlug: 'crowd.dev-1',
+        status: SegmentStatus.ACTIVE,
+        sourceId: null,
+        sourceParentId: null,
+      })
+
+      const segment2 = await segmentRepo.create({
+        name: 'Crowd.dev - Segment2',
+        url: '',
+        parentName: 'Crowd.dev - Segment2',
+        grandparentName: 'Crowd.dev - Segment2',
+        slug: 'crowd.dev-2',
+        parentSlug: 'crowd.dev-2',
+        grandparentSlug: 'crowd.dev-2',
+        status: SegmentStatus.ACTIVE,
+        sourceId: null,
+        sourceParentId: null,
+      })
+
+      const org1 = await OrganizationRepository.create(
+        {
+          name: 'crowd.dev',
+        },
+        mockIRepositoryOptions,
+      )
+
+      const member2add = {
+        username: {
+          [PlatformType.DISCORD]: {
+            username: 'anil',
+            integrationId: generateUUIDv1(),
+          },
+        },
+        displayName: 'Member 1',
+        joinedAt: '2020-05-27T15:13:30Z',
+        affiliations: [
+          {
+            segmentId: segment1.id,
+            organizationId: org1.id,
+          },
+          {
+            segmentId: segment2.id,
+            organizationId: null,
+          },
+        ],
+      }
+
+      const memberCreated = await MemberRepository.create(member2add, mockIRepositoryOptions)
+      expect(memberCreated.affiliations).toHaveLength(2)
+
+      // removes segment1 affiliation, and set segment2 affilition to org1
+      const memberUpdated = await MemberRepository.update(
+        memberCreated.id,
+        {
+          affiliations: [
+            {
+              segmentId: segment2.id,
+              organizationId: org1.id,
+            },
+          ],
+        },
+        mockIRepositoryOptions,
+      )
+
+      expect(memberUpdated.affiliations.filter((a) => a.segmentId === segment1.id)).toHaveLength(0)
+      expect(
+        memberUpdated.affiliations.filter((a) => a.segmentId === segment2.id)[0].organizationId,
+      ).toEqual(org1.id)
     })
   })
 

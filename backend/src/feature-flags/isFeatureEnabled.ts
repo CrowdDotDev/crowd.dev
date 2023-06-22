@@ -1,6 +1,6 @@
 import { Unleash } from 'unleash-client'
 import { API_CONFIG } from '../conf'
-import { FeatureFlag, Edition } from '../types/common'
+import { Edition, FeatureFlag } from '../types/common'
 import getFeatureFlagTenantContext from './getFeatureFlagTenantContext'
 import Plans from '../security/plans'
 
@@ -20,7 +20,11 @@ export const PLAN_LIMITS = {
 }
 
 export default async (featureFlag: FeatureFlag, req: any): Promise<boolean> => {
-  if (API_CONFIG.edition === Edition.COMMUNITY) {
+  if (featureFlag === FeatureFlag.SEGMENTS) {
+    return API_CONFIG.edition === Edition.LFX
+  }
+
+  if ([Edition.COMMUNITY, Edition.LFX].includes(API_CONFIG.edition as Edition)) {
     return true
   }
 
