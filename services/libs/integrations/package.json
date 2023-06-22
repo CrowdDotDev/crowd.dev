@@ -32,6 +32,7 @@
     "@crowd/common": "file:../common",
     "@crowd/logging": "file:../logging",
     "@crowd/types": "file:../types",
+    "@crowd/redis": "file:../redis",
     "axios": "^1.4.0",
     "he": "^1.2.0",
     "sanitize-html": "^2.10.0"
