@@ -182,6 +182,7 @@ describe('MemberService tests', () => {
         lastEnriched: null,
         enrichedBy: [],
         contributions: null,
+        affiliations: [],
       }
 
       expect(memberCreated).toStrictEqual(memberExpected)
@@ -274,6 +275,7 @@ describe('MemberService tests', () => {
         contributions: null,
         reach: { total: -1 },
         joinedAt: new Date('2020-05-28T15:13:30Z'),
+        affiliations: [],
       }
 
       expect(memberCreated).toStrictEqual(memberExpected)
@@ -325,6 +327,7 @@ describe('MemberService tests', () => {
         updatedById: mockIServiceOptions.currentUser.id,
         reach: { total: 10, [PlatformType.GITHUB]: 10 },
         joinedAt: new Date('2020-05-28T15:13:30Z'),
+        affiliations: [],
       }
 
       expect(memberCreated).toStrictEqual(memberExpected)
@@ -375,6 +378,7 @@ describe('MemberService tests', () => {
         updatedById: mockIServiceOptions.currentUser.id,
         reach: { total: 20, [PlatformType.GITHUB]: 10, [PlatformType.TWITTER]: 10 },
         joinedAt: new Date('2020-05-28T15:13:30Z'),
+        affiliations: [],
       }
 
       expect(memberCreated).toStrictEqual(memberExpected)
@@ -425,6 +429,7 @@ describe('MemberService tests', () => {
         updatedById: mockIServiceOptions.currentUser.id,
         reach: { total: 20, [PlatformType.DISCORD]: 10, [PlatformType.TWITTER]: 10 },
         joinedAt: new Date('2020-05-28T15:13:30Z'),
+        affiliations: [],
       }
 
       expect(memberCreated).toStrictEqual(memberExpected)
@@ -830,6 +835,7 @@ describe('MemberService tests', () => {
         updatedById: mockIServiceOptions.currentUser.id,
         joinedAt: new Date('2020-05-28T15:13:30Z'),
         reach: { total: -1 },
+        affiliations: [],
       }
 
       expect(memberUpdated).toStrictEqual(memberExpected)
@@ -940,6 +946,7 @@ describe('MemberService tests', () => {
         updatedById: mockIServiceOptions.currentUser.id,
         joinedAt: new Date('2020-05-28T15:13:30Z'),
         reach: { total: -1 },
+        affiliations: [],
       }
 
       expect(memberUpdated).toStrictEqual(memberExpected)
@@ -1045,6 +1052,7 @@ describe('MemberService tests', () => {
         updatedById: mockIServiceOptions.currentUser.id,
         joinedAt: new Date('2020-05-28T15:13:30Z'),
         reach: { total: -1 },
+        affiliations: [],
       }
 
       expect(memberUpdated).toStrictEqual(memberExpected)
@@ -1222,6 +1230,7 @@ describe('MemberService tests', () => {
         createdById: mockIServiceOptions.currentUser.id,
         updatedById: mockIServiceOptions.currentUser.id,
         reach: { total: -1 },
+        affiliations: [],
       }
 
       expect(memberUpdated).toStrictEqual(memberExpected)
@@ -1277,6 +1286,7 @@ describe('MemberService tests', () => {
         score: -1,
         emails: [],
         attributes: {},
+        affiliations: [],
       }
 
       expect(memberUpdated).toStrictEqual(memberExpected)
@@ -1333,6 +1343,7 @@ describe('MemberService tests', () => {
         score: -1,
         emails: [],
         attributes: {},
+        affiliations: [],
       }
 
       expect(memberUpdated).toStrictEqual(memberExpected)
@@ -1390,6 +1401,7 @@ describe('MemberService tests', () => {
         score: -1,
         emails: [],
         attributes: {},
+        affiliations: [],
       }
 
       expect(memberUpdated).toStrictEqual(memberExpected)
@@ -1447,6 +1459,7 @@ describe('MemberService tests', () => {
         score: -1,
         emails: [],
         attributes: {},
+        affiliations: [],
       }
 
       expect(memberUpdated).toStrictEqual(memberExpected)
@@ -1727,6 +1740,7 @@ describe('MemberService tests', () => {
         'parent',
         'tasks',
         'display',
+        'organization',
       ])
 
       // get previously created tags
@@ -1832,6 +1846,7 @@ describe('MemberService tests', () => {
         lastActive: activityCreated.timestamp,
         lastActivity: activityCreated,
         numberOfOpenSourceContributions: 0,
+        affiliations: [],
       }
 
       expect(
@@ -2071,6 +2086,8 @@ describe('MemberService tests', () => {
       delete returnedMember1.activityTypes
       delete returnedMember1.activeDaysCount
       delete returnedMember1.numberOfOpenSourceContributions
+      delete returnedMember1.affiliations
+
       returnedMember1.segments = returnedMember1.segments.map((s) => s.id)
 
       const existing = await memberService.memberExists(
@@ -2169,6 +2186,8 @@ describe('MemberService tests', () => {
       delete returnedMember1.activityTypes
       delete returnedMember1.activeDaysCount
       delete returnedMember1.numberOfOpenSourceContributions
+      delete returnedMember1.affiliations
+
       returnedMember1.segments = returnedMember1.segments.map((s) => s.id)
 
       const existing = await memberService.memberExists(

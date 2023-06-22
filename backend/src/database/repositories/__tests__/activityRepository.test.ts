@@ -7,6 +7,7 @@ import TaskRepository from '../taskRepository'
 import MemberAttributeSettingsRepository from '../memberAttributeSettingsRepository'
 import MemberAttributeSettingsService from '../../../services/memberAttributeSettingsService'
 import { DEFAULT_MEMBER_ATTRIBUTES, UNKNOWN_ACTIVITY_TYPE_DISPLAY } from '@crowd/integrations'
+import OrganizationRepository from '../organizationRepository'
 
 const db = null
 
@@ -108,6 +109,8 @@ describe('ActivityRepository tests', () => {
         sourceParentId: null,
         conversationId: null,
         display: UNKNOWN_ACTIVITY_TYPE_DISPLAY,
+        organizationId: null,
+        organization: null,
       }
 
       expect(activityCreated).toStrictEqual(expectedActivityCreated)
@@ -175,6 +178,8 @@ describe('ActivityRepository tests', () => {
         sourceParentId: null,
         conversationId: null,
         display: UNKNOWN_ACTIVITY_TYPE_DISPLAY,
+        organizationId: null,
+        organization: null,
       }
 
       expect(activityCreated).toStrictEqual(expectedActivityCreated)
@@ -435,6 +440,8 @@ describe('ActivityRepository tests', () => {
         sourceParentId: null,
         conversationId: null,
         display: UNKNOWN_ACTIVITY_TYPE_DISPLAY,
+        organizationId: null,
+        organization: null,
       }
 
       expect(activityCreated).toStrictEqual(expectedActivityCreated)
@@ -508,6 +515,8 @@ describe('ActivityRepository tests', () => {
         sourceParentId: null,
         conversationId: null,
         display: UNKNOWN_ACTIVITY_TYPE_DISPLAY,
+        organizationId: null,
+        organization: null,
       }
 
       expect(activityCreated).toStrictEqual(expectedActivityCreated)
@@ -572,6 +581,59 @@ describe('ActivityRepository tests', () => {
       // Trim the hour part from timestamp so we can atleast test if the day is correct for createdAt and joinedAt
       expect(activityCreated.tasks.length).toBe(2)
     })
+
+    it('Should create an activity with an organization succesfully', async () => {
+      const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
+      const memberCreated = await MemberRepository.create(
+        {
+          username: {
+            [PlatformType.GITHUB]: 'test',
+          },
+          displayName: 'Member 1',
+          joinedAt: '2020-05-27T15:13:30Z',
+        },
+        mockIRepositoryOptions,
+      )
+
+      const org1 = await OrganizationRepository.create(
+        {
+          name: 'crowd.dev',
+        },
+        mockIRepositoryOptions,
+      )
+
+      const activity = {
+        type: 'activity',
+        timestamp: '2020-05-27T15:13:30Z',
+        platform: PlatformType.GITHUB,
+        attributes: {
+          replies: 12,
+        },
+        title: 'Title',
+        body: 'Here',
+        url: 'https://github.com',
+        channel: 'channel',
+        sentiment: {
+          positive: 0.98,
+          negative: 0.0,
+          neutral: 0.02,
+          mixed: 0.0,
+          label: 'positive',
+          sentiment: 0.98,
+        },
+        isContribution: true,
+        username: 'test',
+        member: memberCreated.id,
+        score: 1,
+        organizationId: org1.id,
+        sourceId: '#sourceId1',
+      }
+
+      const activityCreated = await ActivityRepository.create(activity, mockIRepositoryOptions)
+
+      // Trim the hour part from timestamp so we can atleast test if the day is correct for createdAt and joinedAt
+      expect(activityCreated.organizationId).toEqual(org1.id)
+    })
   })
 
   describe('findById method', () => {
@@ -633,6 +695,8 @@ describe('ActivityRepository tests', () => {
         sourceParentId: null,
         conversationId: null,
         display: UNKNOWN_ACTIVITY_TYPE_DISPLAY,
+        organizationId: null,
+        organization: null,
       }
 
       const activityFound = await ActivityRepository.findById(
@@ -978,6 +1042,8 @@ describe('ActivityRepository tests', () => {
         sourceParentId: null,
         conversationId: null,
         display: UNKNOWN_ACTIVITY_TYPE_DISPLAY,
+        organizationId: null,
+        organization: null,
       }
 
       expect(updatedActivity).toStrictEqual(expectedActivityUpdated)
@@ -1093,6 +1159,8 @@ describe('ActivityRepository tests', () => {
         sourceParentId: null,
         conversationId: null,
         display: UNKNOWN_ACTIVITY_TYPE_DISPLAY,
+        organizationId: null,
+        organization: null,
       }
 
       expect(updatedActivity).toStrictEqual(expectedActivityUpdated)
@@ -1251,6 +1319,72 @@ describe('ActivityRepository tests', () => {
 
       expect(updatedActivity.body).toBe('<p> Malicious </p>')
       expect(updatedActivity.title).toBe('<h1> Malicious title </h1>')
+    })
+
+    it('Should update an activity with an organization succesfully', async () => {
+      const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
+      const memberCreated = await MemberRepository.create(
+        {
+          username: {
+            [PlatformType.GITHUB]: 'test',
+          },
+          displayName: 'Member 1',
+          joinedAt: '2020-05-27T15:13:30Z',
+        },
+        mockIRepositoryOptions,
+      )
+
+      const org1 = await OrganizationRepository.create(
+        {
+          name: 'crowd.dev',
+        },
+        mockIRepositoryOptions,
+      )
+
+      const org2 = await OrganizationRepository.create(
+        {
+          name: 'tesla',
+        },
+        mockIRepositoryOptions,
+      )
+
+      const activity = {
+        type: 'activity',
+        timestamp: '2020-05-27T15:13:30Z',
+        platform: PlatformType.GITHUB,
+        attributes: {
+          replies: 12,
+        },
+        title: 'Title',
+        body: 'Here',
+        url: 'https://github.com',
+        channel: 'channel',
+        sentiment: {
+          positive: 0.98,
+          negative: 0.0,
+          neutral: 0.02,
+          mixed: 0.0,
+          label: 'positive',
+          sentiment: 0.98,
+        },
+        isContribution: true,
+        username: 'test',
+        member: memberCreated.id,
+        score: 1,
+        organizationId: org1.id,
+        sourceId: '#sourceId1',
+      }
+
+      const activityCreated = await ActivityRepository.create(activity, mockIRepositoryOptions)
+
+      const activityUpdated = await ActivityRepository.update(
+        activityCreated.id,
+        { organizationId: org2.id },
+        mockIRepositoryOptions,
+      )
+
+      // Trim the hour part from timestamp so we can atleast test if the day is correct for createdAt and joinedAt
+      expect(activityUpdated.organizationId).toEqual(org2.id)
     })
   })
 

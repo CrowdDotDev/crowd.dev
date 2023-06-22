@@ -70,6 +70,7 @@ class ActivityRepository {
         ]),
         memberId: data.member || null,
         objectMemberId: data.objectMember || undefined,
+        organizationId: data.organizationId || undefined,
         parentId: data.parent || null,
         sourceParentId: data.sourceParentId || null,
         conversationId: data.conversationId || null,
@@ -120,11 +121,13 @@ class ActivityRepository {
 
     const currentTenant = SequelizeRepository.getCurrentTenant(options)
 
+    const segment = SequelizeRepository.getStrictlySingleActiveSegment(options)
+
     let record = await options.database.activity.findOne({
       where: {
         id,
         tenantId: currentTenant.id,
-        segmentId: SequelizeRepository.getSegmentIds(options),
+        segmentId: segment.id,
       },
       transaction,
     })
@@ -170,6 +173,7 @@ class ActivityRepository {
         ]),
         memberId: data.member || undefined,
         objectMemberId: data.objectMember || undefined,
+        organizationId: data.organizationId,
         parentId: data.parent || undefined,
         sourceParentId: data.sourceParentId || undefined,
         conversationId: data.conversationId || undefined,
@@ -226,6 +230,10 @@ class ActivityRepository {
       {
         model: options.database.activity,
         as: 'parent',
+      },
+      {
+        model: options.database.organization,
+        as: 'organization',
       },
     ]
 
@@ -611,10 +619,20 @@ class ActivityRepository {
       {
         model: options.database.activity,
         as: 'parent',
+        include: [
+          {
+            model: options.database.member,
+            as: 'member',
+          },
+        ],
       },
       {
         model: options.database.member,
         as: 'objectMember',
+      },
+      {
+        model: options.database.organization,
+        as: 'organization',
       },
     ]
 
@@ -739,6 +757,13 @@ class ActivityRepository {
       record,
       SegmentRepository.getActivityTypes(options),
     )
+
+    if (output.parent) {
+      output.parent.display = ActivityDisplayService.getDisplayOptions(
+        output.parent,
+        SegmentRepository.getActivityTypes(options),
+      )
+    }
 
     output.tasks = await record.getTasks({
       transaction,

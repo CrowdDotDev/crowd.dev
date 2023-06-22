@@ -77,10 +77,6 @@ export default class SettingsRepository {
     return settings
   }
 
-  static getActivityChannels(options: IRepositoryOptions) {
-    return options.currentTenant?.settings[0]?.activityChannels
-  }
-
   static async _populateRelations(record, options: IRepositoryOptions) {
     if (!record) {
       return record

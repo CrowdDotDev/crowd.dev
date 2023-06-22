@@ -285,6 +285,27 @@ export default class MemberEnrichmentService extends LoggerBase {
       member.emails.forEach((email) => emailSet.add(email))
       member.emails = Array.from(emailSet)
     }
+
+    if (enrichmentData.company) {
+      const organization = {
+        name: enrichmentData.company,
+      } as any
+
+      // check for more info about the company in work experiences
+      if (enrichmentData.work_experiences && enrichmentData.work_experiences.length > 0) {
+        const organizationsByWorkExperience = enrichmentData.work_experiences.filter(
+          (w) => w.company === enrichmentData.company && w.current,
+        )
+        if (organizationsByWorkExperience.length > 0) {
+          organization.location = organizationsByWorkExperience[0].location
+          organization.linkedin = organizationsByWorkExperience[0].companyLinkedInUrl
+          organization.url = organizationsByWorkExperience[0].companyUrl
+        }
+      }
+
+      member.organizations = [organization]
+    }
+
     member.contributions = enrichmentData.oss_contributions?.map(
       (contribution: EnrichmentAPIContribution) => ({
         id: contribution.id,

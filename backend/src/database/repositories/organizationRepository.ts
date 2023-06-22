@@ -363,11 +363,11 @@ class OrganizationRepository {
       `
           WITH
               activity_counts AS (
-                  SELECT "organizationId", COUNT(a.id) AS "activityCount"
+                  SELECT mo."organizationId", COUNT(a.id) AS "activityCount"
                   FROM "memberOrganizations" mo
                   LEFT JOIN activities a ON a."memberId" = mo."memberId"
                   WHERE mo."organizationId" = :id
-                  GROUP BY "organizationId"
+                  GROUP BY mo."organizationId"
               ),
               member_counts AS (
                   SELECT "organizationId", COUNT(DISTINCT "memberId") AS "memberCount"
@@ -376,11 +376,11 @@ class OrganizationRepository {
                   GROUP BY "organizationId"
               ),
               active_on AS (
-                  SELECT "organizationId", ARRAY_AGG(DISTINCT platform) AS "activeOn"
+                  SELECT mo."organizationId", ARRAY_AGG(DISTINCT platform) AS "activeOn"
                   FROM "memberOrganizations" mo
                   JOIN activities a ON a."memberId" = mo."memberId"
                   WHERE mo."organizationId" = :id
-                  GROUP BY "organizationId"
+                  GROUP BY mo."organizationId"
               ),
               identities AS (
                   SELECT "organizationId", ARRAY_AGG(DISTINCT platform) AS "identities"
@@ -390,13 +390,13 @@ class OrganizationRepository {
                   GROUP BY "organizationId"
               ),
               last_active AS (
-                  SELECT "organizationId", MAX(timestamp) AS "lastActive", MIN(timestamp) AS "joinedAt"
+                  SELECT mo."organizationId", MAX(timestamp) AS "lastActive", MIN(timestamp) AS "joinedAt"
                   FROM "memberOrganizations" mo
                   JOIN activities a ON a."memberId" = mo."memberId"
                   WHERE mo."organizationId" = :id
-                  GROUP BY "organizationId"
+                  GROUP BY mo."organizationId"
               ),
-              org_segments AS (
+              segments AS (
                   SELECT "organizationId", ARRAY_AGG("segmentId") AS "segments"
                   FROM "organizationSegments"
                   WHERE "organizationId" = :id
@@ -408,7 +408,7 @@ class OrganizationRepository {
               COALESCE(mc."memberCount", 0)::INTEGER AS "memberCount",
               COALESCE(ao."activeOn", '{}') AS "activeOn",
               COALESCE(id."identities", '{}') AS "identities",
-              COALESCE(os."segments", '{}') AS "segments",
+              COALESCE(s."segments", '{}') AS "segments",
               a."lastActive",
               a."joinedAt"
           FROM organizations o
@@ -417,7 +417,7 @@ class OrganizationRepository {
           LEFT JOIN active_on ao ON ao."organizationId" = o.id
           LEFT JOIN identities id ON id."organizationId" = o.id
           LEFT JOIN last_active a ON a."organizationId" = o.id
-          LEFT JOIN org_segments os ON os."organizationId" = o.id
+          LEFT JOIN segments s ON s."organizationId" = o.id
           WHERE o.id = :id
             AND o."tenantId" = :tenantId;
       `,
