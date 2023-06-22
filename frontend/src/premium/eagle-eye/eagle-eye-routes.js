@@ -25,6 +25,7 @@ export default [
           permission: Permissions.values.eagleEyeRead,
         },
         beforeEnter: async (to, _from, next) => {
+          await store.dispatch('auth/doWaitUntilInit');
           if (
             to.query.activeTab !== undefined
             && store.getters['eagleEye/activeView'].id
