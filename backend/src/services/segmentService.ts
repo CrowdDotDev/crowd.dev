@@ -10,9 +10,11 @@ import {
   SegmentLevel,
   SegmentUpdateData,
 } from '../types/segmentTypes'
+import defaultReport from '../jsons/default-report.json'
 import { IServiceOptions } from './IServiceOptions'
 import { IRepositoryOptions } from '../database/repositories/IRepositoryOptions'
 import MemberRepository from '../database/repositories/memberRepository'
+import ReportRepository from '../database/repositories/reportRepository'
 
 interface UnnestedActivityTypes {
   [key: string]: any
@@ -135,10 +137,47 @@ export default class SegmentService extends LoggerBase {
       throw new Error('Missing grandparentSlug. Subprojects must belong to a project group.')
     }
 
-    const segmentRepository = new SegmentRepository(this.options)
+    const transaction = await SequelizeRepository.createTransaction(this.options)
 
-    const subproject = await segmentRepository.create(data)
-    return subproject
+    try {
+      const segmentRepository = new SegmentRepository({
+        ...this.options,
+        transaction,
+      })
+
+      const parent = await segmentRepository.findBySlug(data.parentSlug, SegmentLevel.PROJECT)
+
+      if (parent === null) {
+        throw new Error(`Project ${data.parentSlug} does not exist.`)
+      }
+
+      const grandparent = await segmentRepository.findBySlug(
+        data.grandparentSlug,
+        SegmentLevel.PROJECT_GROUP,
+      )
+
+      if (grandparent === null) {
+        throw new Error(`Project group ${data.parentSlug} does not exist.`)
+      }
+
+      const subproject = await segmentRepository.create(data)
+
+      // create default report for the tenant
+      await ReportRepository.create(
+        {
+          name: defaultReport.name,
+          public: defaultReport.public,
+        },
+        { ...this.options, transaction, currentSegments: [subproject] },
+      )
+
+      await SequelizeRepository.commitTransaction(transaction)
+
+      return subproject
+    } catch (error) {
+      await SequelizeRepository.rollbackTransaction(transaction)
+      throw error
+    }
   }
 
   async findById(id) {
@@ -334,13 +373,17 @@ export default class SegmentService extends LoggerBase {
     return updated.activityChannels
   }
 
-  async getTenantActivityTypes(tenantId: string) {
+  async getTenantSubprojects(tenant: any) {
     const segmentRepository = new SegmentRepository({
       ...this.options,
-      currentTenant: { id: tenantId },
+      currentTenant: tenant,
     })
 
-    const { rows: subprojects } = await segmentRepository.querySubprojects({})
+    const { rows } = await segmentRepository.querySubprojects({})
+    return rows
+  }
+
+  static async getTenantActivityTypes(subprojects: any) {
     return subprojects.reduce(
       (acc: any, subproject) => ({
         custom: {
@@ -354,6 +397,19 @@ export default class SegmentService extends LoggerBase {
       }),
       {},
     )
+  }
+
+  static async getTenantActivityChannels(subprojects: any) {
+    return subprojects.reduce((acc: any, subproject) => {
+      for (const platform of Object.keys(subproject.activityChannels)) {
+        if (!acc[platform]) {
+          acc[platform] = []
+        }
+
+        acc[platform] = [...acc[platform], ...subproject.activityChannels[platform]]
+      }
+      return acc
+    }, {})
   }
 
   private collectSubprojectIds(segments, level: SegmentLevel) {
@@ -415,6 +471,9 @@ export default class SegmentService extends LoggerBase {
 
   private async addMemberCounts(segments, level: SegmentLevel) {
     const subprojectIds = this.collectSubprojectIds(segments, level)
+    if (!subprojectIds.length) {
+      return
+    }
     const membersCountPerSegment = await MemberRepository.countMembersPerSegment(
       this.options,
       subprojectIds,

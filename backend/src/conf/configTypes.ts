@@ -216,6 +216,10 @@ export interface IntegrationProcessingConfiguration {
   maxRetries: number
 }
 
+export interface WeeklyEmailsConfiguration {
+  enabled: string // true - enabled, anything else - disabled
+}
+
 export interface IOpenSearchConfig {
   node: string
   region?: string

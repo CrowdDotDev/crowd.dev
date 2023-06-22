@@ -31,6 +31,7 @@ import {
   SlackNotifierConfiguration,
   OrganizationEnrichmentConfiguration,
   IOpenSearchConfig,
+  WeeklyEmailsConfiguration,
 } from './configTypes'
 
 // TODO-kube
@@ -123,3 +124,6 @@ export const SAMPLE_DATA_CONFIG: SampleDataConfiguration =
 
 export const INTEGRATION_PROCESSING_CONFIG: IntegrationProcessingConfiguration =
   config.get<IntegrationProcessingConfiguration>('integrationProcessing')
+
+export const WEEKLY_EMAILS_CONFIG: WeeklyEmailsConfiguration =
+  config.get<WeeklyEmailsConfiguration>('weeklyEmails')

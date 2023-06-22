@@ -33,6 +33,11 @@ import {
 } from './types/memberTypes'
 import SegmentRepository from './segmentRepository'
 import { SegmentData } from '../../types/segmentTypes'
+import {
+  MemberSegmentAffiliation,
+  MemberSegmentAffiliationJoined,
+} from '../../types/memberSegmentAffiliationTypes'
+import MemberSegmentAffiliationRepository from './memberSegmentAffiliationRepository'
 
 const { Op } = Sequelize
 
@@ -58,7 +63,6 @@ class MemberRepository {
     const transaction = SequelizeRepository.getTransaction(options)
 
     const segment = SequelizeRepository.getStrictlySingleActiveSegment(options)
-
     const record = await options.database.member.create(
       {
         ...lodash.pick(data, [
@@ -135,6 +139,10 @@ class MemberRepository {
     await record.setToMerge(data.toMerge || [], {
       transaction,
     })
+
+    if (data.affiliations) {
+      await this.setAffiliations(record.id, data.affiliations, options)
+    }
 
     await this._createAuditLog(AuditLogRepository.CREATE, record, data, options)
 
@@ -651,6 +659,10 @@ class MemberRepository {
       })
     }
 
+    if (data.affiliations) {
+      await this.setAffiliations(id, data.affiliations, options)
+    }
+
     if (options.currentSegments && options.currentSegments.length > 0) {
       await MemberRepository.includeMemberToSegments(record.id, { ...options, transaction })
     }
@@ -736,7 +748,6 @@ class MemberRepository {
     const member = await this.findById(id, options, true, false)
 
     // if member doesn't belong to any other segment anymore, remove it
-
     if (member.segments.length === 0) {
       const record = await options.database.member.findOne({
         where: {
@@ -774,52 +785,6 @@ class MemberRepository {
     })
   }
 
-  /*
-  static async getSegments(
-    memberIds: string[],
-    options: IRepositoryOptions,
-  ): Promise<Map<string, SegmentData[]>> {
-    const results = new Map<string, SegmentData[]>()
-
-    const transaction = SequelizeRepository.getTransaction(options)
-    const seq = SequelizeRepository.getSequelize(options)
-
-    const query = `
-      select "memberId", "segmentId", "tenantId", "createdAt" from "memberSegments" where "memberId" in (:memberIds) order by "createdAt" asc;
-    `
-
-    const data = await seq.query(query, {
-      replacements: {
-        memberIds,
-      },
-      type: QueryTypes.SELECT,
-      transaction,
-    })
-
-    for (const id of memberIds) {
-      results.set(id, [])
-    }
-
-    for (const res of data as any[]) {
-      const { memberId, segmentId, username, sourceId, integrationId, createdAt } = res
-      const identities = results.get(memberId)
-
-      identities.push({
-        platform,
-        username,
-        sourceId,
-        integrationId,
-        createdAt,
-      })
-    }
-
-
-    // TODO: complete
-
-    return results
-  }
-  */
-
   static async getMemberSegments(
     memberId: string,
     options: IRepositoryOptions,
@@ -847,6 +812,70 @@ class MemberRepository {
     const segments = await segmentRepository.findInIds(segmentIds)
 
     return segments
+  }
+
+  static async setAffiliations(
+    memberId: string,
+    data: MemberSegmentAffiliation[],
+    options: IRepositoryOptions,
+  ): Promise<void> {
+    const affiliationRepository = new MemberSegmentAffiliationRepository(options)
+
+    const toDeleteAffiliations: string[] = []
+
+    const existingAffiliations = await this.getAffiliations(memberId, options)
+
+    for (const existingAffiliation of existingAffiliations) {
+      if (
+        !data.find(
+          (incomingAffiliation) => incomingAffiliation.segmentId === existingAffiliation.segmentId,
+        )
+      ) {
+        toDeleteAffiliations.push(existingAffiliation.id)
+      }
+    }
+
+    if (toDeleteAffiliations.length > 0) {
+      await affiliationRepository.destroyAll(toDeleteAffiliations)
+    }
+
+    for (const incomingAffiliation of data) {
+      await affiliationRepository.createOrUpdate({ memberId, ...incomingAffiliation })
+    }
+  }
+
+  static async getAffiliations(
+    memberId: string,
+    options: IRepositoryOptions,
+  ): Promise<MemberSegmentAffiliationJoined[]> {
+    const transaction = SequelizeRepository.getTransaction(options)
+    const seq = SequelizeRepository.getSequelize(options)
+
+    const query = `
+      select 
+        msa.id,
+        s.id as "segmentId", 
+        s.slug as "segmentSlug",
+        s.name as "segmentName",
+        s."parentName" as "segmentParentName", 
+        o.id as "organizationId", 
+        o.name as "organizationName",
+        o.logo as "organizationLogo"
+      from "memberSegmentAffiliations" msa 
+      left join organizations o on o.id = msa."organizationId"
+      join segments s on s.id = msa."segmentId"
+      where msa."memberId" = :memberId
+    `
+
+    const data = await seq.query(query, {
+      replacements: {
+        memberId,
+      },
+      type: QueryTypes.SELECT,
+      transaction,
+    })
+
+    return data as MemberSegmentAffiliationJoined[]
   }
 
   static async getIdentities(
@@ -950,6 +979,8 @@ class MemberRepository {
         data.username[identity.platform] = [identity.username]
       }
     }
+
+    data.affiliations = await this.getAffiliations(id, options)
 
     return data
   }
@@ -1231,7 +1262,6 @@ class MemberRepository {
                   AND ms."segmentId" IN (:segmentIds)
                   AND t."tenantId" = :tenantId
                   AND t."deletedAt" IS NULL
-                  AND t."segmentId" IN (:segmentIds)
                 GROUP BY mt."memberId"
             ),
             member_organizations AS (
@@ -1256,7 +1286,7 @@ class MemberRepository {
             ms."segmentId"
         FROM members m
         JOIN "memberSegments" ms ON ms."memberId" = m.id
-        INNER JOIN "memberActivityAggregatesMVs" aggs ON aggs.id = m.id
+        INNER JOIN "memberActivityAggregatesMVs" aggs ON aggs.id = m.id AND aggs."segmentId" = ms."segmentId"
         LEFT JOIN member_tags mt ON m.id = mt."memberId"
         LEFT JOIN member_organizations mo ON m.id = mo."memberId"
         WHERE m."deletedAt" IS NULL
@@ -1404,7 +1434,7 @@ class MemberRepository {
                 SELECT
                     mt."memberId",
                     JSON_AGG(
-                            JSON_BUILD_OBJECT(
+                            DISTINCT JSONB_BUILD_OBJECT(
                                     'id', t.id,
                                     'name', t.name
                                 )
@@ -1419,7 +1449,6 @@ class MemberRepository {
                   AND ms."segmentId" IN (:segmentIds)
                   AND t."tenantId" = :tenantId
                   AND t."deletedAt" IS NULL
-                  AND t."segmentId" IN (:segmentIds)
                 GROUP BY mt."memberId"
             ),
             member_organizations AS (
@@ -2773,6 +2802,8 @@ class MemberRepository {
     }
 
     output.identities = Object.keys(output.username)
+
+    output.affiliations = await this.getAffiliations(record.id, options)
 
     return output
   }

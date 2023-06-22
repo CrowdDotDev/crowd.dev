@@ -38,7 +38,7 @@
 <script setup>
 import { defineProps, defineEmits, computed } from 'vue';
 import AppDialog from '@/shared/dialog/dialog.vue';
-import { EventTrackingService } from '@/modules/event-tracking/services/event-tracking-service';
+import { TenantEventService } from '@/shared/events/tenant-event.service';
 
 const props = defineProps({
   modelValue: {
@@ -64,7 +64,7 @@ const modalOpened = computed({
 });
 
 const trackBtnClick = (step) => {
-  EventTrackingService.track({
+  TenantEventService.event({
     name: 'Onboarding Guide button clicked',
     properties: {
       step,

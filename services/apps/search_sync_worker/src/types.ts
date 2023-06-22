@@ -9,7 +9,7 @@ const prefixedMapping = {
     {
       strings: {
         match_pattern: 'regex',
-        match: 'string_.*',
+        match: '^string_.*',
         path_match: '.*',
         mapping: {
           type: 'text',
@@ -19,7 +19,7 @@ const prefixedMapping = {
     {
       nox_strings: {
         match_pattern: 'regex',
-        match: 'nox_string_.*',
+        match: '^nox_string_.*',
         path_match: '.*',
         mapping: {
           type: 'text',
@@ -30,7 +30,7 @@ const prefixedMapping = {
     {
       uuids: {
         match_pattern: 'regex',
-        match: 'uuid_.*',
+        match: '^uuid_.*',
         path_match: '.*',
         mapping: {
           type: 'keyword',
@@ -40,7 +40,7 @@ const prefixedMapping = {
     {
       nox_uuids: {
         match_pattern: 'regex',
-        match: 'nox_uuid_.*',
+        match: '^nox_uuid_.*',
         path_match: '.*',
         mapping: {
           type: 'keyword',
@@ -51,7 +51,7 @@ const prefixedMapping = {
     {
       keywords: {
         match_pattern: 'regex',
-        match: 'keyword_.*',
+        match: '^keyword_.*',
         path_match: '.*',
         mapping: {
           type: 'keyword',
@@ -61,7 +61,7 @@ const prefixedMapping = {
     {
       nox_keywords: {
         match_pattern: 'regex',
-        match: 'nox_keyword_.*',
+        match: '^nox_keyword_.*',
         path_match: '.*',
         mapping: {
           type: 'keyword',
@@ -73,7 +73,7 @@ const prefixedMapping = {
     {
       integers: {
         match_pattern: 'regex',
-        match: 'int_.*',
+        match: '^int_.*',
         path_match: '.*',
         mapping: {
           type: 'integer',
@@ -83,7 +83,7 @@ const prefixedMapping = {
     {
       nox_integers: {
         match_pattern: 'regex',
-        match: 'nox_int_.*',
+        match: '^nox_int_.*',
         path_match: '.*',
         mapping: {
           type: 'integer',
@@ -94,7 +94,7 @@ const prefixedMapping = {
     {
       floats: {
         match_pattern: 'regex',
-        match: 'float_.*',
+        match: '^float_.*',
         path_match: '.*',
         mapping: {
           type: 'float',
@@ -104,7 +104,7 @@ const prefixedMapping = {
     {
       nox_floats: {
         match_pattern: 'regex',
-        match: 'nox_float_.*',
+        match: '^nox_float_.*',
         path_match: '.*',
         mapping: {
           type: 'float',
@@ -115,7 +115,7 @@ const prefixedMapping = {
     {
       bytes: {
         match_pattern: 'regex',
-        match: 'byte_.*',
+        match: '^byte_.*',
         path_match: '.*',
         mapping: {
           type: 'byte',
@@ -125,7 +125,7 @@ const prefixedMapping = {
     {
       nox_bytes: {
         match_pattern: 'regex',
-        match: 'nox_byte_.*',
+        match: '^nox_byte_.*',
         path_match: '.*',
         mapping: {
           type: 'byte',
@@ -136,7 +136,7 @@ const prefixedMapping = {
     {
       doubles: {
         match_pattern: 'regex',
-        match: 'double_.*',
+        match: '^double_.*',
         path_match: '.*',
         mapping: {
           type: 'double',
@@ -146,7 +146,7 @@ const prefixedMapping = {
     {
       nox_doubles: {
         match_pattern: 'regex',
-        match: 'nox_double_.*',
+        match: '^nox_double_.*',
         path_match: '.*',
         mapping: {
           type: 'double',
@@ -157,7 +157,7 @@ const prefixedMapping = {
     {
       half_floats: {
         match_pattern: 'regex',
-        match: 'half_float_.*',
+        match: '^half_float_.*',
         path_match: '.*',
         mapping: {
           type: 'half_float',
@@ -167,7 +167,7 @@ const prefixedMapping = {
     {
       nox_half_floats: {
         match_pattern: 'regex',
-        match: 'nox_half_float_.*',
+        match: '^nox_half_float_.*',
         path_match: '.*',
         mapping: {
           type: 'half_float',
@@ -178,7 +178,7 @@ const prefixedMapping = {
     {
       longs: {
         match_pattern: 'regex',
-        match: 'long_.*',
+        match: '^long_.*',
         path_match: '.*',
         mapping: {
           type: 'long',
@@ -188,7 +188,7 @@ const prefixedMapping = {
     {
       nox_longs: {
         match_pattern: 'regex',
-        match: 'nox_long_.*',
+        match: '^nox_long_.*',
         path_match: '.*',
         mapping: {
           type: 'long',
@@ -199,7 +199,7 @@ const prefixedMapping = {
     {
       shorts: {
         match_pattern: 'regex',
-        match: 'short_.*',
+        match: '^short_.*',
         path_match: '.*',
         mapping: {
           type: 'short',
@@ -209,7 +209,7 @@ const prefixedMapping = {
     {
       nox_shorts: {
         match_pattern: 'regex',
-        match: 'nox_short_.*',
+        match: '^nox_short_.*',
         path_match: '.*',
         mapping: {
           type: 'short',
@@ -221,24 +221,24 @@ const prefixedMapping = {
     {
       dates: {
         match_pattern: 'regex',
-        match: 'date_.*',
+        match: '^date_.*',
         path_match: '.*',
         mapping: {
           type: 'date',
           format:
-            'strict_date_optional_time||epoch_millis||yyyy-MM-dd HH:mm:ssXXX||yyyy-MM-dd HH:mm:ssX||yyyy-MM-dd HH:mm:ss.SSS||yyyy-MM-dd HH:mm:ss.SS||yyyy-MM-dd HH:mm:ss.S',
+            'strict_date_optional_time||strict_date_optional_time_nanos||epoch_millis||yyyy-MM-dd HH:mm:ssXXX||yyyy-MM-dd HH:mm:ssX||yyyy-MM-dd HH:mm:ss.SSS||yyyy-MM-dd HH:mm:ss.SS||yyyy-MM-dd HH:mm:ss.S',
         },
       },
     },
     {
       nox_dates: {
         match_pattern: 'regex',
-        match: 'nox_date_.*',
+        match: '^nox_date_.*',
         path_match: '.*',
         mapping: {
           type: 'date',
           format:
-            'strict_date_optional_time||epoch_millis||yyyy-MM-dd HH:mm:ssXXX||yyyy-MM-dd HH:mm:ssX||yyyy-MM-dd HH:mm:ss.SSS||yyyy-MM-dd HH:mm:ss.SS||yyyy-MM-dd HH:mm:ss.S',
+            'strict_date_optional_time||strict_date_optional_time_nanos||epoch_millis||yyyy-MM-dd HH:mm:ssXXX||yyyy-MM-dd HH:mm:ssX||yyyy-MM-dd HH:mm:ss.SSS||yyyy-MM-dd HH:mm:ss.SS||yyyy-MM-dd HH:mm:ss.S',
           index: false,
         },
       },
@@ -247,7 +247,7 @@ const prefixedMapping = {
     {
       booleans: {
         match_pattern: 'regex',
-        match: 'bool_.*',
+        match: '^bool_.*',
         path_match: '.*',
         mapping: {
           type: 'boolean',
@@ -257,7 +257,7 @@ const prefixedMapping = {
     {
       nox_booleans: {
         match_pattern: 'regex',
-        match: 'nox_bool_.*',
+        match: '^nox_bool_.*',
         path_match: '.*',
         mapping: {
           type: 'boolean',
@@ -269,7 +269,7 @@ const prefixedMapping = {
     {
       objects: {
         match_pattern: 'regex',
-        match: 'obj_.*',
+        match: '^obj_.*',
         path_match: '.*',
         mapping: {
           type: 'object',
@@ -279,7 +279,7 @@ const prefixedMapping = {
     {
       nox_objects: {
         match_pattern: 'regex',
-        match: 'nox_obj_.*',
+        match: '^nox_obj_.*',
         path_match: '.*',
         mapping: {
           type: 'object',
@@ -290,7 +290,7 @@ const prefixedMapping = {
     {
       nested_objects: {
         match_pattern: 'regex',
-        match: 'nested_.*',
+        match: '^obj_arr_.*',
         path_match: '.*',
         mapping: {
           type: 'nested',
@@ -300,7 +300,7 @@ const prefixedMapping = {
     {
       nox_nested_objects: {
         match_pattern: 'regex',
-        match: 'nox_nested_.*',
+        match: '^nox_obj_arr_.*',
         path_match: '.*',
         mapping: {
           type: 'nested',
@@ -311,7 +311,7 @@ const prefixedMapping = {
     {
       string_arrays: {
         match_pattern: 'regex',
-        match: 'string_arr_.*',
+        match: '^string_arr_.*',
         path_match: '.*',
         mapping: {
           type: 'text',
@@ -321,7 +321,7 @@ const prefixedMapping = {
     {
       nox_string_arrays: {
         match_pattern: 'regex',
-        match: 'nox_string_arr_.*',
+        match: '^nox_string_arr_.*',
         path_match: '.*',
         mapping: {
           type: 'text',
@@ -332,7 +332,7 @@ const prefixedMapping = {
     {
       integer_arrays: {
         match_pattern: 'regex',
-        match: 'int_arr_.*',
+        match: '^int_arr_.*',
         path_match: '.*',
         mapping: {
           type: 'integer',
@@ -342,7 +342,7 @@ const prefixedMapping = {
     {
       nox_integer_arrays: {
         match_pattern: 'regex',
-        match: 'nox_int_arr_.*',
+        match: '^nox_int_arr_.*',
         path_match: '.*',
         mapping: {
           type: 'integer',
@@ -353,7 +353,7 @@ const prefixedMapping = {
     {
       float_arrays: {
         match_pattern: 'regex',
-        match: 'float_arr_.*',
+        match: '^float_arr_.*',
         path_match: '.*',
         mapping: {
           type: 'float',
@@ -363,7 +363,7 @@ const prefixedMapping = {
     {
       nox_float_arrays: {
         match_pattern: 'regex',
-        match: 'nox_float_arr_.*',
+        match: '^nox_float_arr_.*',
         path_match: '.*',
         mapping: {
           type: 'float',
@@ -374,7 +374,7 @@ const prefixedMapping = {
     {
       byte_arrays: {
         match_pattern: 'regex',
-        match: 'byte_arr_.*',
+        match: '^byte_arr_.*',
         path_match: '.*',
         mapping: {
           type: 'byte',
@@ -384,7 +384,7 @@ const prefixedMapping = {
     {
       nox_byte_arrays: {
         match_pattern: 'regex',
-        match: 'nox_byte_arr_.*',
+        match: '^nox_byte_arr_.*',
         path_match: '.*',
         mapping: {
           type: 'byte',
@@ -395,7 +395,7 @@ const prefixedMapping = {
     {
       double_arrays: {
         match_pattern: 'regex',
-        match: 'double_arr_.*',
+        match: '^double_arr_.*',
         path_match: '.*',
         mapping: {
           type: 'double',
@@ -405,7 +405,7 @@ const prefixedMapping = {
     {
       nox_double_arrays: {
         match_pattern: 'regex',
-        match: 'nox_double_arr_.*',
+        match: '^nox_double_arr_.*',
         path_match: '.*',
         mapping: {
           type: 'double',
@@ -416,7 +416,7 @@ const prefixedMapping = {
     {
       half_float_arrays: {
         match_pattern: 'regex',
-        match: 'half_float_arr_.*',
+        match: '^half_float_arr_.*',
         path_match: '.*',
         mapping: {
           type: 'half_float',
@@ -426,7 +426,7 @@ const prefixedMapping = {
     {
       nox_half_float_arrays: {
         match_pattern: 'regex',
-        match: 'nox_half_float_arr_.*',
+        match: '^nox_half_float_arr_.*',
         path_match: '.*',
         mapping: {
           type: 'half_float',
@@ -437,7 +437,7 @@ const prefixedMapping = {
     {
       long_arrays: {
         match_pattern: 'regex',
-        match: 'long_arr_.*',
+        match: '^long_arr_.*',
         path_match: '.*',
         mapping: {
           type: 'long',
@@ -447,7 +447,7 @@ const prefixedMapping = {
     {
       nox_long_arrays: {
         match_pattern: 'regex',
-        match: 'nox_long_arr_.*',
+        match: '^nox_long_arr_.*',
         path_match: '.*',
         mapping: {
           type: 'long',
@@ -458,7 +458,7 @@ const prefixedMapping = {
     {
       short_arrays: {
         match_pattern: 'regex',
-        match: 'short_arr_.*',
+        match: '^short_arr_.*',
         path_match: '.*',
         mapping: {
           type: 'short',
@@ -468,7 +468,7 @@ const prefixedMapping = {
     {
       nox_short_arrays: {
         match_pattern: 'regex',
-        match: 'nox_short_arr_.*',
+        match: '^nox_short_arr_.*',
         path_match: '.*',
         mapping: {
           type: 'short',
@@ -479,24 +479,24 @@ const prefixedMapping = {
     {
       date_arrays: {
         match_pattern: 'regex',
-        match: 'date_arr_.*',
+        match: '^date_arr_.*',
         path_match: '.*',
         mapping: {
           type: 'date',
           format:
-            'strict_date_optional_time||epoch_millis||yyyy-MM-dd HH:mm:ssXXX||yyyy-MM-dd HH:mm:ssX||yyyy-MM-dd HH:mm:ss.SSS||yyyy-MM-dd HH:mm:ss.SS||yyyy-MM-dd HH:mm:ss.S',
+            'strict_date_optional_time||strict_date_optional_time_nanos||epoch_millis||yyyy-MM-dd HH:mm:ssXXX||yyyy-MM-dd HH:mm:ssX||yyyy-MM-dd HH:mm:ss.SSS||yyyy-MM-dd HH:mm:ss.SS||yyyy-MM-dd HH:mm:ss.S',
         },
       },
     },
     {
       nox_date_arrays: {
         match_pattern: 'regex',
-        match: 'nox_date_arr_.*',
+        match: '^nox_date_arr_.*',
         path_match: '.*',
         mapping: {
           type: 'date',
           format:
-            'strict_date_optional_time||epoch_millis||yyyy-MM-dd HH:mm:ssXXX||yyyy-MM-dd HH:mm:ssX||yyyy-MM-dd HH:mm:ss.SSS||yyyy-MM-dd HH:mm:ss.SS||yyyy-MM-dd HH:mm:ss.S',
+            'strict_date_optional_time||strict_date_optional_time_nanos||epoch_millis||yyyy-MM-dd HH:mm:ssXXX||yyyy-MM-dd HH:mm:ssX||yyyy-MM-dd HH:mm:ss.SSS||yyyy-MM-dd HH:mm:ss.SS||yyyy-MM-dd HH:mm:ss.S',
           index: false,
         },
       },
@@ -504,7 +504,7 @@ const prefixedMapping = {
     {
       boolean_arrays: {
         match_pattern: 'regex',
-        match: 'bool_arr_.*',
+        match: '^bool_arr_.*',
         path_match: '.*',
         mapping: {
           type: 'boolean',
@@ -514,7 +514,7 @@ const prefixedMapping = {
     {
       nox_boolean_arrays: {
         match_pattern: 'regex',
-        match: 'nox_bool_arr_.*',
+        match: '^nox_bool_arr_.*',
         path_match: '.*',
         mapping: {
           type: 'boolean',
@@ -525,7 +525,7 @@ const prefixedMapping = {
     {
       uuid_arrays: {
         match_pattern: 'regex',
-        match: 'uuid_arr_.*',
+        match: '^uuid_arr_.*',
         path_match: '.*',
         mapping: {
           type: 'keyword',
@@ -535,7 +535,7 @@ const prefixedMapping = {
     {
       nox_uuid_arrays: {
         match_pattern: 'regex',
-        match: 'nox_uuid_arr_.*',
+        match: '^nox_uuid_arr_.*',
         path_match: '.*',
         mapping: {
           type: 'keyword',
@@ -546,7 +546,7 @@ const prefixedMapping = {
     {
       keyword_arrays: {
         match_pattern: 'regex',
-        match: 'keyword_arr_.*',
+        match: '^keyword_arr_.*',
         path_match: '.*',
         mapping: {
           type: 'keyword',
@@ -556,7 +556,7 @@ const prefixedMapping = {
     {
       nox_keyword_arrays: {
         match_pattern: 'regex',
-        match: 'nox_keyword_arr_.*',
+        match: '^nox_keyword_arr_.*',
         path_match: '.*',
         mapping: {
           type: 'keyword',

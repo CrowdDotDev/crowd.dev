@@ -1,4 +1,7 @@
 {
+  "service": {
+    "edition": "CROWD_EDITION"
+  },
   "db": {
     "host": "CROWD_DB_WRITE_HOST",
     "port": "CROWD_DB_PORT",

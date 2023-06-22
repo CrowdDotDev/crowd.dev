@@ -1,8 +1,9 @@
 import { LoggerBase, logExecutionTime } from '@crowd/logging'
-import { PlatformType } from '@crowd/types'
 import { Blob } from 'buffer'
+import vader from 'crowd-sentiment'
 import { Transaction } from 'sequelize/types'
-import { IS_DEV_ENV, IS_TEST_ENV } from '../conf'
+import { PlatformType } from '@crowd/types'
+import { IS_DEV_ENV, IS_TEST_ENV, GITHUB_CONFIG } from '../conf'
 import ActivityRepository from '../database/repositories/activityRepository'
 import MemberAttributeSettingsRepository from '../database/repositories/memberAttributeSettingsRepository'
 import MemberRepository from '../database/repositories/memberRepository'
@@ -20,6 +21,8 @@ import ConversationSettingsService from './conversationSettingsService'
 import merge from './helpers/merge'
 import MemberService from './memberService'
 import SegmentService from './segmentService'
+
+const IS_GITHUB_COMMIT_DATA_ENABLED = GITHUB_CONFIG.isCommitDataEnabled === 'true'
 
 export default class ActivityService extends LoggerBase {
   options: IServiceOptions
@@ -101,8 +104,24 @@ export default class ActivityService extends LoggerBase {
         const toUpdate = merge(existing, data, {
           // eslint-disable-next-line @typescript-eslint/no-unused-vars
           timestamp: (oldValue, _newValue) => oldValue,
+          attributes: (oldValue, newValue) => {
+            if (oldValue && newValue) {
+              const out = { ...oldValue, ...newValue }
+              // If either of the two has isMainBranch set to true, then set it to true
+              if (oldValue.isMainBranch || newValue.isMainBranch) {
+                out.isMainBranch = true
+              }
+              return out
+            }
+            return newValue
+          },
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
+          organizationId: (oldValue, _newValue) => oldValue,
         })
         record = await ActivityRepository.update(id, toUpdate, repositoryOptions)
+        if (data.parent) {
+          await this.addToConversation(record.id, data.parent, transaction)
+        }
       } else {
         if (!data.sentiment) {
           const sentiment = await this.getSentiment(data)
@@ -235,6 +254,31 @@ export default class ActivityService extends LoggerBase {
         neutral: Math.floor(Math.random() * 100),
         mixed: Math.floor(Math.random() * 100),
         sentiment: score,
+        label,
+      }
+    }
+
+    // When we implement Kern.ais's sentiment, we will get rid of this. In the meantime, we use Vader
+    // because we don't have an agreement with LF for comprehend.
+    if (IS_GITHUB_COMMIT_DATA_ENABLED) {
+      const text = data.sourceParentId ? data.body : `${data.title} ${data.body}`
+      const sentiment = vader.SentimentIntensityAnalyzer.polarity_scores(text)
+      const compound = Math.round(((sentiment.compound + 1) / 2) * 100)
+      // Some activities are inherently different, we might want to dampen their sentiment
+
+      let label = 'neutral'
+      if (compound < 33) {
+        label = 'negative'
+      } else if (compound > 66) {
+        label = 'positive'
+      }
+
+      return {
+        positive: Math.round(sentiment.pos * 100),
+        negative: Math.round(sentiment.neg * 100),
+        neutral: Math.round(sentiment.neu * 100),
+        mixed: Math.round(sentiment.neu * 100),
+        sentiment: compound,
         label,
       }
     }
@@ -428,6 +472,8 @@ export default class ActivityService extends LoggerBase {
     const logger = this.options.log
     const searchSyncEmitter = await getSearchSyncWorkerEmitter()
 
+    const segment = await SequelizeRepository.getStrictlySingleActiveSegment(this.options)
+
     const errorDetails: any = {}
 
     const transaction = await SequelizeRepository.createTransaction(this.options)
@@ -492,7 +538,10 @@ export default class ActivityService extends LoggerBase {
           )
 
           await ActivityRepository.destroy(activityExists.id, this.options, true)
-          await searchSyncEmitter.triggerRemoveActivity(this.options.currentTenant.id, activityExists.id)
+          await searchSyncEmitter.triggerRemoveActivity(
+            this.options.currentTenant.id,
+            activityExists.id,
+          )
           activityExists = false
           existingMember = false
         }
@@ -551,6 +600,19 @@ export default class ActivityService extends LoggerBase {
 
       data.member = member.id
 
+      if (member.organizations.length > 0) {
+        // check member has any affiliation set for current segment
+
+        const affiliations = member.affiliations.filter((a) => a.segmentId === segment.id)
+
+        if (affiliations.length > 0) {
+          data.organizationId = affiliations[0].organizationId
+        } else {
+          // set it to the first organization of member
+          data.organizationId = member.organizations[0].id
+        }
+      }
+
       const record = await this.upsert(data, activityExists, fireCrowdWebhooks, false)
 
       await SequelizeRepository.commitTransaction(transaction)
@@ -561,7 +623,6 @@ export default class ActivityService extends LoggerBase {
       if (data.objectMember) {
         await searchSyncEmitter.triggerMemberSync(this.options.currentTenant.id, data.objectMember)
       }
-
 
       return record
     } catch (error) {

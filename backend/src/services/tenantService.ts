@@ -239,6 +239,7 @@ export default class TenantService {
           name: 'Members report',
           public: false,
           isTemplate: true,
+          noSegment: true,
         },
         { ...this.options, transaction, currentTenant: record },
       )
@@ -249,6 +250,7 @@ export default class TenantService {
           name: 'Product-community fit report',
           public: false,
           isTemplate: true,
+          noSegment: true,
         },
         { ...this.options, transaction, currentTenant: record },
       )
@@ -259,6 +261,7 @@ export default class TenantService {
           name: 'Activities report',
           public: false,
           isTemplate: true,
+          noSegment: true,
         },
         { ...this.options, transaction, currentTenant: record },
       )

@@ -1,5 +1,5 @@
+import { Edition } from '@crowd/types'
 import { SEGMENT_CONFIG, API_CONFIG } from '../conf'
-import { Edition } from '../types/common'
 
 export default async function identifyTenant(req) {
   if (SEGMENT_CONFIG.writeKey) {

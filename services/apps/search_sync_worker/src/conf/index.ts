@@ -10,6 +10,18 @@ export interface IOpenSearchConfig {
   secretAccessKey?: string
 }
 
+export interface IServiceConfig {
+  edition: string
+}
+
+let serviceConfig: IServiceConfig
+export const SERVICE_CONFIG = (): IServiceConfig => {
+  if (serviceConfig) return serviceConfig
+
+  serviceConfig = config.get<IServiceConfig>('service')
+  return serviceConfig
+}
+
 let openSearchConfig: IOpenSearchConfig
 export const OPENSEARCH_CONFIG = (): IOpenSearchConfig => {
   if (openSearchConfig) return openSearchConfig

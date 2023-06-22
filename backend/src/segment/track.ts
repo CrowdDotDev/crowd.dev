@@ -1,6 +1,6 @@
 import { getServiceChildLogger } from '@crowd/logging'
+import { Edition } from '@crowd/types'
 import { API_CONFIG, IS_TEST_ENV, SEGMENT_CONFIG } from '../conf'
-import { Edition } from '../types/common'
 import getTenatUser from './trackHelper'
 
 const log = getServiceChildLogger('segment')

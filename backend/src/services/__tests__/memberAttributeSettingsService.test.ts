@@ -11,11 +11,27 @@ import SequelizeTestUtils from '../../database/utils/sequelizeTestUtils'
 import Error400 from '../../errors/Error400'
 import MemberAttributeSettingsService from '../memberAttributeSettingsService'
 import { MemberAttributeType } from '@crowd/types'
+import { RedisCache, getRedisClient } from '@crowd/redis'
+import { REDIS_CONFIG } from '../../conf'
+import { getServiceLogger } from '@crowd/logging'
+
+const log = getServiceLogger()
+
+let cache: RedisCache | undefined = undefined
+const clearRedisCache = async () => {
+  if (!cache) {
+    const redis = await getRedisClient(REDIS_CONFIG)
+    cache = new RedisCache('memberAttributes', redis, log)
+  }
+
+  await cache.deleteAll()
+}
 
 const db = null
 describe('MemberAttributeSettingService tests', () => {
   beforeEach(async () => {
     await SequelizeTestUtils.wipeDatabase(db)
+    await clearRedisCache()
   })
 
   afterAll(async () => {
@@ -181,6 +197,7 @@ describe('MemberAttributeSettingService tests', () => {
 
       expect(attributes).toEqual(expected)
     })
+
     it('Should create predefined devto attributes', async () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
       const as = new MemberAttributeSettingsService(mockIRepositoryOptions)

@@ -31,6 +31,8 @@ setImmediate(async () => {
     log.error(`Activity ${activityId} not found!`)
     process.exit(1)
   } else {
+    log.info(`Activity ${activityId} found! Triggering sync!`)
     await emitter.triggerActivitySync(results[0].tenantId, activityId)
+    process.exit(0)
   }
 })

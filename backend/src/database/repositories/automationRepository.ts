@@ -189,8 +189,8 @@ export default class AutomationRepository extends RepositoryBase<
       from automations a
               left join latest_executions le on a.id = le."automationId"
       where ${conditionsString}
-      ${this.getPaginationString(criteria)}
       order by "updatedAt" desc
+      ${this.getPaginationString(criteria)}
     `
     // fetch all automations for a tenant
     // and include the latest execution data if available

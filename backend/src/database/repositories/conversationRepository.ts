@@ -486,7 +486,7 @@ class ConversationRepository {
                 ['timestamp', 'ASC'],
                 ['createdAt', 'ASC'],
               ],
-              include: ['parent'],
+              include: ['parent', 'organization'],
             })
 
             rec.memberCount = ConversationRepository.getTotalMemberCount(allActivities)
@@ -580,7 +580,7 @@ class ConversationRepository {
       where: {
         parentId: null,
       },
-      include: ['member', 'parent', 'objectMember'],
+      include: ['member', 'parent', 'objectMember', 'organization'],
       transaction,
       order: [
         ['timestamp', 'ASC'],
@@ -595,7 +595,7 @@ class ConversationRepository {
           [Sequelize.Op.not]: null,
         },
       },
-      include: ['member', 'parent', 'objectMember'],
+      include: ['member', 'parent', 'objectMember', 'organization'],
       order: [
         ['timestamp', 'ASC'],
         ['createdAt', 'ASC'],

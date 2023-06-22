@@ -18,14 +18,16 @@ class ReportRepository {
 
     const transaction = SequelizeRepository.getTransaction(options)
 
-    const segment = SequelizeRepository.getStrictlySingleActiveSegment(options)
+    const segmentId = data.noSegment
+      ? null
+      : SequelizeRepository.getStrictlySingleActiveSegment(options).id
 
     const record = await options.database.report.create(
       {
         ...lodash.pick(data, ['name', 'public', 'importHash', 'isTemplate', 'viewedBy']),
 
         tenantId: tenant.id,
-        segmentId: segment.id,
+        segmentId,
         createdById: currentUser.id,
         updatedById: currentUser.id,
       },
@@ -54,7 +56,7 @@ class ReportRepository {
       where: {
         id,
         tenantId: currentTenant.id,
-        segmentId: SequelizeRepository.getSegmentIds(options),
+        ...ReportRepository.prepareSegmentFilter(options),
       },
       transaction,
     })
@@ -94,7 +96,7 @@ class ReportRepository {
       where: {
         id,
         tenantId: currentTenant.id,
-        segmentId: SequelizeRepository.getSegmentIds(options),
+        ...ReportRepository.prepareSegmentFilter(options),
       },
       transaction,
     })
@@ -121,7 +123,7 @@ class ReportRepository {
       where: {
         id,
         tenantId: currentTenant.id,
-        segmentId: SequelizeRepository.getSegmentIds(options),
+        ...ReportRepository.prepareSegmentFilter(options),
       },
       include,
       transaction,
@@ -169,7 +171,7 @@ class ReportRepository {
       where: {
         ...filter,
         tenantId: tenant.id,
-        segmentId: SequelizeRepository.getSegmentIds(options),
+        ...ReportRepository.prepareSegmentFilter(options),
       },
       transaction,
     })
@@ -232,7 +234,12 @@ class ReportRepository {
       }
     }
 
-    const parser = new QueryParser({}, options)
+    const parser = new QueryParser(
+      {
+        segmentsNullable: true,
+      },
+      options,
+    )
 
     const parsed: QueryOutput = parser.parse({
       filter: advancedFilter,
@@ -267,7 +274,7 @@ class ReportRepository {
         tenantId: tenant.id,
       },
       {
-        segmentId: SequelizeRepository.getSegmentIds(options),
+        ...ReportRepository.prepareSegmentFilter(options),
       },
     ]
 
@@ -335,6 +342,21 @@ class ReportRepository {
     })
 
     return output
+  }
+
+  private static prepareSegmentFilter(options: IRepositoryOptions) {
+    return {
+      [Op.or]: [
+        {
+          segmentId: SequelizeRepository.getSegmentIds(options),
+        },
+        {
+          segmentId: {
+            [Op.is]: null,
+          },
+        },
+      ],
+    }
   }
 }
 

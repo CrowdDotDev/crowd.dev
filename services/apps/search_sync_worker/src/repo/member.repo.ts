@@ -1,6 +1,6 @@
 import { DbStore, RepositoryBase } from '@crowd/database'
 import { Logger } from '@crowd/logging'
-import { IDbMemberSyncData } from './member.data'
+import { IDbMemberSyncData, IDbSegmentInfo } from './member.data'
 import { IMemberAttribute } from '@crowd/types'
 import { RedisCache, RedisClient } from '@crowd/redis'
 
@@ -11,6 +11,25 @@ export class MemberRepository extends RepositoryBase<MemberRepository> {
     super(dbStore, parentLog)
 
     this.cache = new RedisCache('memberAttributes', redisClient, this.log)
+  }
+
+  public async getParentSegmentIds(childSegmentIds: string[]): Promise<IDbSegmentInfo[]> {
+    const results = await this.db().any(
+      `
+      select s.id, pd.id as "parentId", gpd.id as "grandParentId"
+      from segments s
+              inner join segments pd
+                          on pd."tenantId" = s."tenantId" and pd.slug = s."parentSlug" and pd."grandparentSlug" is null and
+                            pd."parentSlug" is not null
+              inner join segments gpd on gpd."tenantId" = s."tenantId" and gpd.slug = s."grandparentSlug" and
+                                          gpd."grandparentSlug" is null and gpd."parentSlug" is null
+      where s.id in ($(childSegmentIds:csv));
+      `,
+      {
+        childSegmentIds,
+      },
+    )
+    return results
   }
 
   public async getUnsyncedTenantIds(): Promise<string[]> {
@@ -78,7 +97,6 @@ export class MemberRepository extends RepositoryBase<MemberRepository> {
                                 and m2."deletedAt" is null
                               group by mnm."memberId"),
             member_tags as (select mt."memberId",
-                                    t."segmentId",
                                     json_agg(
                                             json_build_object(
                                                     'id', t.id,
@@ -90,7 +108,7 @@ export class MemberRepository extends RepositoryBase<MemberRepository> {
                                       inner join tags t on mt."tagId" = t.id
                             where mt."memberId" in ($(ids:csv))
                               and t."deletedAt" is null
-                            group by mt."memberId", t."segmentId"),
+                            group by mt."memberId"),
             member_organizations as (select mo."memberId",
                                             os."segmentId",
                                             json_agg(
@@ -164,7 +182,7 @@ export class MemberRepository extends RepositoryBase<MemberRepository> {
                 inner join activity_data ad on ms."memberId" = ad."memberId" and ms."segmentId" = ad."segmentId"
                 left join to_merge_data tmd on m.id = tmd."memberId"
                 left join no_merge_data nmd on m.id = nmd."memberId"
-                left join member_tags mt on ms."memberId" = mt."memberId" and ms."segmentId" = mt."segmentId"
+                left join member_tags mt on ms."memberId" = mt."memberId"
                 left join member_organizations mo on ms."memberId" = mo."memberId" and ms."segmentId" = mo."segmentId"
         where ms."memberId" in ($(ids:csv))
           and m."deletedAt" is null;`,

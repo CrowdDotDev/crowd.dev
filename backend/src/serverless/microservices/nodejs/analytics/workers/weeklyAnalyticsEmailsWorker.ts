@@ -8,7 +8,7 @@ import getUserContext from '../../../../../database/utils/getUserContext'
 import CubeJsService from '../../../../../services/cubejs/cubeJsService'
 import EmailSender from '../../../../../services/emailSender'
 import ConversationService from '../../../../../services/conversationService'
-import { SENDGRID_CONFIG, S3_CONFIG } from '../../../../../conf'
+import { SENDGRID_CONFIG, S3_CONFIG, WEEKLY_EMAILS_CONFIG } from '../../../../../conf'
 import CubeJsRepository from '../../../../../cubejs/cubeJsRepository'
 import { AnalyticsEmailsOutput } from '../../messageTypes'
 import getStage from '../../../../../services/helpers/getStage'
@@ -35,6 +35,16 @@ async function weeklyAnalyticsEmailsWorker(tenantId: string): Promise<AnalyticsE
   const userContext = await getUserContext(tenantId)
 
   if (response.shouldRetry) {
+    if (WEEKLY_EMAILS_CONFIG.enabled !== 'true') {
+      log.info(`Weekly emails are disabled. Not retrying.`)
+
+      return {
+        status: 200,
+        msg: `Weekly emails are disabled. Not retrying.`,
+        emailSent: false,
+      }
+    }
+
     log.error(
       response.error,
       'Exception while getting analytics data. Retrying with a new message.',

@@ -57,13 +57,6 @@ export default (sequelize) => {
       },
     })
 
-    models.tag.belongsTo(models.segment, {
-      as: 'segment',
-      foreignKey: {
-        allowNull: false,
-      },
-    })
-
     models.tag.belongsTo(models.user, {
       as: 'createdBy',
     })

@@ -59,7 +59,7 @@ export class OpensearchQueryParser {
       } else if (translator.fieldExists(key)) {
         const searchKey: string = translator.crowdToOpensearch(key)
 
-        query.bool.must.push(this.parseColumnCondition(key, filters[key], searchKey))
+        query.bool.must.push(this.parseColumnCondition(filters[key], searchKey))
       } else {
         throw new Error(`Unknown field or operator: ${key}!`)
       }
@@ -87,7 +87,7 @@ export class OpensearchQueryParser {
     throw new Error('Bad op!')
   }
 
-  private static parseColumnCondition(key: string, filters: any, searchKey: any): any {
+  private static parseColumnCondition(filters: any, searchKey: string): any {
     const conditionKeys = Object.keys(filters)
     if (conditionKeys.length !== 1) {
       throw new Error(`Invalid condition! ${JSON.stringify(filters, undefined, 2)}`)
@@ -96,7 +96,23 @@ export class OpensearchQueryParser {
     const operator = conditionKeys[0] as Operator
     let value = filters[operator]
 
+    if (typeof value === 'string') {
+      value = value.toLowerCase()
+    }
+
     if (operator === Operator.EQUAL) {
+      if (value === null) {
+        return {
+          bool: {
+            must_not: {
+              exists: {
+                field: searchKey,
+              },
+            },
+          },
+        }
+      }
+
       return {
         term: {
           [searchKey]: value,
@@ -122,7 +138,6 @@ export class OpensearchQueryParser {
     }
 
     if (operator === Operator.LIKE || operator === Operator.TEXT_CONTAINS) {
-      value = value.toLowerCase()
       return {
         wildcard: {
           [searchKey]: {
@@ -133,6 +148,14 @@ export class OpensearchQueryParser {
     }
 
     if (operator === Operator.NOT || operator === Operator.NOT_EQUAL) {
+      if (value === null) {
+        return {
+          exists: {
+            field: searchKey,
+          },
+        }
+      }
+
       return {
         bool: {
           must_not: {
@@ -145,7 +168,6 @@ export class OpensearchQueryParser {
     }
 
     if (operator === Operator.NOT_LIKE || operator === Operator.NOT_TEXT_CONTAINS) {
-      value = value.toLowerCase()
       return {
         bool: {
           must_not: {
@@ -186,7 +208,6 @@ export class OpensearchQueryParser {
     }
 
     if (operator === Operator.REGEX) {
-      value = value.toLowerCase()
       return {
         regexp: {
           [searchKey]: {
@@ -197,7 +218,6 @@ export class OpensearchQueryParser {
     }
 
     if (operator === Operator.NOT_REGEX) {
-      value = value.toLowerCase()
       return {
         bool: {
           must_not: {
@@ -240,9 +260,19 @@ export class OpensearchQueryParser {
     }
 
     if (operator === Operator.CONTAINS) {
+      if (!Array.isArray(value)) {
+        return {
+          match_phrase: {
+            [searchKey]: value,
+          },
+        }
+      }
+
+      const subQueries = value.map((v) => ({ match_phrase: { [searchKey]: v } }))
+
       return {
-        match: {
-          [searchKey]: value,
+        bool: {
+          must: subQueries,
         },
       }
     }
@@ -252,9 +282,11 @@ export class OpensearchQueryParser {
         throw new Error('Overlap should be used with an array of values!')
       }
 
+      const subQueries = value.map((v) => ({ match_phrase: { [searchKey]: v } }))
+
       return {
-        terms: {
-          [searchKey]: value,
+        bool: {
+          should: subQueries,
         },
       }
     }

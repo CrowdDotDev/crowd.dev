@@ -170,6 +170,9 @@
       "database": "CROWD_UNLEASH_DB_DATABASE"
     }
   },
+  "weeklyEmails": {
+    "enabled": "CROWD_WEEKLY_EMAILS_ENABLED"
+  },
   "opensearch": {
     "node": "CROWD_OPENSEARCH_NODE",
     "region": "CROWD_OPENSEARCH_AWS_REGION",
