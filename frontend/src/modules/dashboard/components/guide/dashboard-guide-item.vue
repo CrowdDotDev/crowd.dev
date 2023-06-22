@@ -35,7 +35,7 @@
 
 <script setup>
 import { defineProps, defineEmits } from 'vue';
-import { EventTrackingService } from '@/modules/event-tracking/services/event-tracking-service';
+import { TenantEventService } from '@/shared/events/tenant-event.service';
 
 const props = defineProps({
   guide: {
@@ -47,7 +47,7 @@ const props = defineProps({
 const emit = defineEmits(['open']);
 
 const trackBtnClick = (step) => {
-  EventTrackingService.track({
+  TenantEventService.event({
     name: 'Onboarding Guide button clicked',
     properties: {
       step,
