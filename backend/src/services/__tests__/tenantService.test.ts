@@ -152,7 +152,7 @@ describe('TenantService tests', () => {
         language: 'en',
         currentUser: userModel,
         database: db,
-        redis: await getRedisClient(REDIS_CONFIG),
+        redis: await getRedisClient(REDIS_CONFIG, true),
       } as IServiceOptions
 
       const tenantCreated = await new TenantService(options).create({

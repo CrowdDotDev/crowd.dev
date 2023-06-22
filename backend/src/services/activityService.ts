@@ -380,7 +380,6 @@ export default class ActivityService extends LoggerBase {
         { conversationId: parent.conversationId },
         { ...this.options, transaction },
       )
-      await searchSyncEmitter.triggerActivitySync(this.options.currentTenant.id, id)
     } else if (child.conversationId) {
       // if child is already in a conversation
       conversation = await conversationService.findById(child.conversationId)
@@ -442,7 +441,6 @@ export default class ActivityService extends LoggerBase {
         { conversationId: conversation.id },
         { ...this.options, transaction },
       )
-      await searchSyncEmitter.triggerActivitySync(this.options.currentTenant.id, id)
     }
 
     return record
@@ -652,9 +650,8 @@ export default class ActivityService extends LoggerBase {
   }
 
   async update(id, data) {
-    const searchSyncEmitter = await getSearchSyncWorkerEmitter()
-
     const transaction = await SequelizeRepository.createTransaction(this.options)
+    const searchSyncEmitter = await getSearchSyncWorkerEmitter()
 
     try {
       data.member = await MemberRepository.filterIdInTenant(data.member, {
@@ -677,6 +674,10 @@ export default class ActivityService extends LoggerBase {
       await SequelizeRepository.commitTransaction(transaction)
 
       await searchSyncEmitter.triggerActivitySync(this.options.currentTenant.id, record.id)
+      await searchSyncEmitter.triggerMemberSync(
+        this.options.currentTenant.id,
+        record.member ? record.member.id : record.memberId,
+      )
       return record
     } catch (error) {
       if (error.name && error.name.includes('Sequelize')) {

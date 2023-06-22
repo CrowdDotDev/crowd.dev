@@ -351,10 +351,6 @@ export default class MemberService extends LoggerBase {
           },
           fillRelations,
         )
-
-        if (fireSync) {
-          await searchSyncEmitter.triggerMemberSync(this.options.currentTenant.id, record.id)
-        }
       } else {
         // It is important to call it with doPopulateRelations=false
         // because otherwise the performance is greatly decreased in integrations
@@ -370,9 +366,6 @@ export default class MemberService extends LoggerBase {
           },
           fillRelations,
         )
-        if (fireSync) {
-          await searchSyncEmitter.triggerMemberSync(this.options.currentTenant.id, record.id)
-        }
 
         telemetryTrack(
           'Member created',
@@ -387,6 +380,10 @@ export default class MemberService extends LoggerBase {
       }
 
       await SequelizeRepository.commitTransaction(transaction)
+
+      if (fireSync) {
+        await searchSyncEmitter.triggerMemberSync(this.options.currentTenant.id, record.id)
+      }
 
       if (!existing && fireCrowdWebhooks) {
         try {
@@ -577,6 +574,7 @@ export default class MemberService extends LoggerBase {
 
       const searchSyncEmitter = await getSearchSyncWorkerEmitter()
       await searchSyncEmitter.triggerMemberSync(this.options.currentTenant.id, originalId)
+      await searchSyncEmitter.triggerRemoveMember(this.options.currentTenant.id, toMergeId)
 
       this.options.log.info({ originalId, toMergeId }, 'Members merged!')
       return { status: 200, mergedId: originalId }

@@ -137,7 +137,7 @@ export class MemberSyncService extends LoggerBase {
     }
   }
 
-  public async syncTenantMembers(tenantId: string, reset = true, batchSize = 500): Promise<void> {
+  public async syncTenantMembers(tenantId: string, reset = true, batchSize = 200): Promise<void> {
     this.log.warn({ tenantId }, 'Syncing all tenant members!')
     let count = 0
 

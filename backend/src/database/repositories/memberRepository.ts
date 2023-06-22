@@ -1649,7 +1649,7 @@ class MemberRepository {
       },
     })
 
-    if (await isFeatureEnabled(FeatureFlag.SEGMENTS, options)){
+    if (await isFeatureEnabled(FeatureFlag.SEGMENTS, options)) {
       // add segment filter
       parsed.query.bool.must.push({
         term: {
