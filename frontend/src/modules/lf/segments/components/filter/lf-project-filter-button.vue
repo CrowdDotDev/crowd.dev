@@ -241,10 +241,7 @@ const handleReset = () => {
       childSegments: [],
     },
   });
-  console.log({
-    options: options.value,
-    initialOptions: initialOptions.value,
-  });
+
   isFilterPopoverVisible.value = false;
   options.value = initialOptions.value;
 };
