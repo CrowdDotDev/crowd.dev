@@ -6,6 +6,7 @@
       <app-lf-project-filter-button
         :segments="segments"
         :set-segments="onSegmentsChange"
+        :should-apply-immeadiately="false"
         btn-class="custom-btn"
       />
 

@@ -43,47 +43,56 @@
         <div
           v-for="projectGroup in list"
           :key="projectGroup.id"
-          class="shadow bg-white rounded-lg p-6 flex flex-col"
+          class="shadow bg-white rounded-lg pb-6 flex flex-col"
         >
-          <img
-            v-if="isUrl(projectGroup.url)"
-            :src="projectGroup.url"
-            alt="Project group logo"
-            class="h-8 mb-4"
-          />
-
-          <div class="text-gray-900 font-semibold text-base mb-5 break-words">
-            {{ projectGroup.name }}
-          </div>
-
-          <div class="mb-8 flex flex-wrap gap-2.5">
-            <div class="bg-gray-200 text-gray-900 text-2xs px-2 h-6 flex items-center w-fit rounded-md">
-              {{ pluralize('contributor', projectGroup.members, true) }}
-            </div>
-
-            <div class="bg-gray-200 text-gray-900 text-2xs px-2 h-6 flex items-center w-fit rounded-md">
-              {{ pluralize('project', projectGroup.projects.length, true) }}
-            </div>
-          </div>
-
-          <div class="flex grow" />
-
-          <el-button class="btn btn--md btn--full btn--primary mb-4" @click="updateSelectedProjectGroup(projectGroup.id)">
-            View project(s)
-          </el-button>
-
-          <router-link
-            :to="{
-              name: 'adminProjects',
-              params: {
-                id: projectGroup.id,
-              },
-            }"
+          <div
+            class="min-h-32 h-32 flex items-center justify-center mb-6"
+            style="background: linear-gradient(180deg, #FFFFFF 0%, #FAFAFA 100%), #FFFFFF;"
           >
-            <el-button class="btn btn--md btn--full btn--bordered">
-              Settings
+            <img
+              v-if="!imageErrors[projectGroup.id]"
+              :src="projectGroup.url"
+              :onerror="(evt) => handleImageError(projectGroup.id, evt)"
+              alt="Project group logo"
+              class="h-12 w-auto"
+            />
+            <i v-else class="ri-image-line text-4xl text-gray-200" />
+          </div>
+
+          <div class="px-6">
+            <div class="text-gray-900 font-semibold text-base mb-5 break-words">
+              {{ projectGroup.name }}
+            </div>
+
+            <div class="mb-8 flex flex-wrap gap-2.5">
+              <div class="bg-gray-200 text-gray-900 text-2xs px-2 h-6 flex items-center w-fit rounded-md">
+                {{ pluralize('contributor', projectGroup.members, true) }}
+              </div>
+
+              <div class="bg-gray-200 text-gray-900 text-2xs px-2 h-6 flex items-center w-fit rounded-md">
+                {{ pluralize('project', projectGroup.projects.length, true) }}
+              </div>
+            </div>
+
+            <div class="flex grow" />
+
+            <el-button class="btn btn--md btn--full btn--primary mb-4" @click="updateSelectedProjectGroup(projectGroup.id)">
+              View project(s)
             </el-button>
-          </router-link>
+
+            <router-link
+              :to="{
+                name: 'adminProjects',
+                params: {
+                  id: projectGroup.id,
+                },
+              }"
+            >
+              <el-button class="btn btn--md btn--full btn--bordered">
+                Settings
+              </el-button>
+            </router-link>
+          </div>
         </div>
       </div>
     </div>
@@ -92,12 +101,11 @@
 
 <script setup>
 import { storeToRefs } from 'pinia';
-import { computed, onMounted } from 'vue';
+import { computed, onMounted, reactive } from 'vue';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import AppLfSearchInput from '@/modules/lf/segments/components/view/lf-search-input.vue';
 import pluralize from 'pluralize';
 import { useRouter } from 'vue-router';
-import isUrl from '@/utils/isUrl';
 
 const router = useRouter();
 
@@ -109,9 +117,15 @@ const loading = computed(() => projectGroups.value.loading);
 const pagination = computed(() => projectGroups.value.pagination);
 const list = computed(() => projectGroups.value.list);
 
+const imageErrors = reactive({});
+
 onMounted(() => {
   listProjectGroups();
 });
+
+const handleImageError = (id, e) => {
+  imageErrors[id] = true;
+};
 </script>
 
 <script>

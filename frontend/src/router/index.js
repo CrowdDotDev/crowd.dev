@@ -62,7 +62,7 @@ export const createRouter = () => {
       const { listProjectGroups, updateSelectedProjectGroup } = lsSegmentsStore;
 
       // Set title to pages
-      document.title = `crowd.dev${to.meta.title ? ` | ${to.meta.title}` : ''}`;
+      document.title = `LFX Community Management${to.meta.title ? ` | ${to.meta.title}` : ''}`;
 
       if (to.name) {
         ProgressBar.start();

@@ -28,6 +28,40 @@
       @on-change="onFilterChange"
       @on-search-change="onSearchQueryChange"
     />
+    <div
+      v-if="!shouldApplyImmeadiately"
+      class="border-t border-gray-200 flex items-center justify-between -mx-2 px-4 pt-3 pb-1 mt-2"
+    >
+      <el-button
+        v-if="shouldShowReset"
+        id="resetFilter"
+        class="btn btn-link btn-link--primary"
+        @click="handleReset"
+      >
+        Reset filter
+      </el-button>
+      <div v-else>
+          &nbsp;
+      </div>
+      <div class="flex items-center">
+        <el-button
+          id="closeFilter"
+          class="btn btn--transparent btn--sm mr-3"
+          @click="handleCancel"
+        >
+          Cancel
+        </el-button>
+        <el-button
+          id="applyFilter"
+          class="btn btn--primary btn--sm"
+          :disabled="shouldDisableApplyButton"
+          data-qa="filter-apply"
+          @click="handleApply"
+        >
+          Apply
+        </el-button>
+      </div>
+    </div>
   </el-popover>
 </template>
 
@@ -40,6 +74,7 @@ import {
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import AppLfProjectFilter from '@/modules/lf/segments/components/filter/lf-project-filter.vue';
 import debounce from 'lodash/debounce';
+import isEqual from 'lodash/isEqual';
 
 const props = defineProps({
   segments: {
@@ -54,6 +89,10 @@ const props = defineProps({
     type: String,
     default: null,
   },
+  shouldApplyImmeadiately: {
+    type: Boolean,
+    default: true,
+  },
 });
 
 const lsSegmentsStore = useLfSegmentsStore();
@@ -66,6 +105,7 @@ const filterPopover = ref();
 
 const initialOptions = ref([]);
 const options = ref([]);
+const provisionalSegments = ref([]);
 
 // If current selected project group changes, fetch new list of projects and clear selected filters
 watch(
@@ -174,14 +214,41 @@ const onFilterChange = (value) => {
     });
   });
 
-  props.setSegments({
-    segments,
-  });
+  if (props.shouldApplyImmeadiately) {
+    props.setSegments({
+      segments,
+    });
+  } else {
+    provisionalSegments.value = segments;
+  }
 };
 
 const onSearchQueryChange = debounce((value) => {
   listProjects({ parentSlug: selectedProjectGroup.value.slug, search: value });
 }, 300);
+
+const shouldShowReset = computed(() => !isEqual(initialOptions.value, options.value));
+const shouldDisableApplyButton = computed(() => isEqual(initialOptions.value, options.value));
+
+const handleCancel = () => {
+  isFilterPopoverVisible.value = false;
+  options.value = initialOptions.value;
+};
+
+const handleReset = () => {
+  props.setSegments({
+    segments: [],
+  });
+  isFilterPopoverVisible.value = false;
+  options.value = initialOptions.value;
+};
+
+const handleApply = () => {
+  props.setSegments({
+    segments: provisionalSegments.value,
+  });
+  isFilterPopoverVisible.value = false;
+};
 </script>
 
 <script>
