@@ -57,7 +57,13 @@ cube(`Members`, {
 
     MembersActivities: {
       measures: [Members.count],
-      dimensions: [Members.tenantId, Members.isTeamMember, Members.isBot, Members.isOrganization, Segments.id],
+      dimensions: [
+        Members.tenantId,
+        Members.isTeamMember,
+        Members.isBot,
+        Members.isOrganization,
+        Segments.id,
+      ],
       timeDimension: Activities.date,
       granularity: `day`,
       refreshKey: {
