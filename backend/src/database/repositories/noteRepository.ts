@@ -184,7 +184,21 @@ class NoteRepository {
     const tenant = SequelizeRepository.getCurrentTenant(options)
 
     const whereAnd: Array<any> = []
-    const include = []
+    const include = [
+      {
+        model: options.database.member,
+        as: 'members',
+        include: [
+          {
+            model: options.database.segment,
+            as: 'segments',
+            where: {
+              id: SequelizeRepository.getSegmentIds(options),
+            },
+          },
+        ],
+      },
+    ]
 
     whereAnd.push({
       tenantId: tenant.id,
@@ -246,6 +260,7 @@ class NoteRepository {
             },
           },
         },
+        withSegments: false,
       },
       options,
     )

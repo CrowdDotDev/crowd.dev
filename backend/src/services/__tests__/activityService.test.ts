@@ -13,6 +13,10 @@ import MemberAttributeSettingsService from '../memberAttributeSettingsService'
 import { GithubMemberAttributes } from '../../database/attributes/member/github'
 import { TwitterMemberAttributes } from '../../database/attributes/member/twitter'
 import { IServiceOptions } from '../../services/IServiceOptions'
+import { populateSegments, switchSegments } from '../../database/utils/segmentTestUtils'
+import SegmentRepository from '../../database/repositories/segmentRepository'
+import OrganizationRepository from '../../database/repositories/organizationRepository'
+import { SegmentStatus } from '../../types/segmentTypes'
 
 const db = null
 const searchEngine = null
@@ -30,6 +34,8 @@ describe('ActivityService tests', () => {
   describe('upsert method', () => {
     it('Should create non existent activity with no parent', async () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
+      await populateSegments(mockIRepositoryOptions)
+
       const memberCreated = await new MemberService(mockIRepositoryOptions).upsert({
         username: {
           [PlatformType.GITHUB]: 'test',
@@ -87,6 +93,7 @@ describe('ActivityService tests', () => {
         updatedAt: SequelizeTestUtils.getNowWithoutTime(),
         deletedAt: null,
         tenantId: mockIRepositoryOptions.currentTenant.id,
+        segmentId: mockIRepositoryOptions.currentSegments[0].id,
         createdById: mockIRepositoryOptions.currentUser.id,
         updatedById: mockIRepositoryOptions.currentUser.id,
         importHash: null,
@@ -113,6 +120,8 @@ describe('ActivityService tests', () => {
           short: activityCreated.type,
           channel: '',
         },
+        organizationId: null,
+        organization: null,
       }
 
       expect(activityCreated).toStrictEqual(expectedActivityCreated)
@@ -120,6 +129,7 @@ describe('ActivityService tests', () => {
 
     it('Should create non existent activity with parent', async () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
+      await populateSegments(mockIRepositoryOptions)
       const memberCreated = await new MemberService(mockIRepositoryOptions).upsert({
         username: {
           [PlatformType.GITHUB]: 'test',
@@ -201,6 +211,7 @@ describe('ActivityService tests', () => {
         updatedAt: SequelizeTestUtils.getNowWithoutTime(),
         deletedAt: null,
         tenantId: mockIRepositoryOptions.currentTenant.id,
+        segmentId: mockIRepositoryOptions.currentSegments[0].id,
         createdById: mockIRepositoryOptions.currentUser.id,
         updatedById: mockIRepositoryOptions.currentUser.id,
         importHash: null,
@@ -213,6 +224,8 @@ describe('ActivityService tests', () => {
           short: activity2.type,
           channel: '',
         },
+        organizationId: null,
+        organization: null,
       }
 
       expect(activityCreated2).toStrictEqual(expectedActivityCreated)
@@ -220,6 +233,7 @@ describe('ActivityService tests', () => {
 
     it('Should update already existing activity succesfully', async () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
+      await populateSegments(mockIRepositoryOptions)
       const memberCreated = await new MemberService(mockIRepositoryOptions).upsert({
         username: {
           [PlatformType.GITHUB]: 'test',
@@ -324,6 +338,7 @@ describe('ActivityService tests', () => {
         tasks: [],
         deletedAt: null,
         tenantId: mockIRepositoryOptions.currentTenant.id,
+        segmentId: mockIRepositoryOptions.currentSegments[0].id,
         createdById: mockIRepositoryOptions.currentUser.id,
         updatedById: mockIRepositoryOptions.currentUser.id,
         importHash: null,
@@ -336,6 +351,8 @@ describe('ActivityService tests', () => {
           short: activity2.type,
           channel: '',
         },
+        organizationId: null,
+        organization: null,
       }
 
       expect(activityUpserted).toStrictEqual(expectedActivityCreated)
@@ -343,6 +360,7 @@ describe('ActivityService tests', () => {
 
     it('Should create various conversations successfully with given parent-child relationships of activities [ascending timestamp order]', async () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
+      await populateSegments(mockIRepositoryOptions)
       const memberService = new MemberService(mockIRepositoryOptions)
       const activityService = new ActivityService(mockIRepositoryOptions)
 
@@ -498,6 +516,7 @@ describe('ActivityService tests', () => {
 
     it('Should keep old timestamp', async () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
+      await populateSegments(mockIRepositoryOptions)
       const memberService = new MemberService(mockIRepositoryOptions)
       const activityService = new ActivityService(mockIRepositoryOptions)
 
@@ -535,8 +554,60 @@ describe('ActivityService tests', () => {
       expect(activityCreated2.body).toBe(activity2.body)
     })
 
+    it('Should keep isMainBranch as true', async () => {
+      const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
+      await populateSegments(mockIRepositoryOptions)
+      const memberService = new MemberService(mockIRepositoryOptions)
+      const activityService = new ActivityService(mockIRepositoryOptions)
+
+      const cm = await memberService.upsert({
+        username: {
+          [PlatformType.DISCORD]: 'test',
+        },
+        platform: PlatformType.DISCORD,
+      })
+
+      const activity1 = {
+        type: 'message',
+        timestamp: '2020-05-27T15:13:30Z',
+        username: 'test',
+        member: cm.id,
+        platform: PlatformType.DISCORD,
+        sourceId: 'sourceId#1',
+        attributes: {
+          isMainBranch: true,
+          other: 'other',
+        },
+      }
+
+      await activityService.upsert(activity1)
+
+      const activity2 = {
+        type: 'message',
+        timestamp: '2022-05-27T15:13:30Z',
+        username: 'test',
+        member: cm.id,
+        platform: PlatformType.DISCORD,
+        sourceId: 'sourceId#1',
+        body: 'What is love?',
+        attributes: {
+          isMainBranch: false,
+          other2: 'other2',
+        },
+      }
+
+      const activityCreated2 = await activityService.upsert(activity2)
+
+      expect(activityCreated2.attributes).toStrictEqual({
+        isMainBranch: true,
+        other: 'other',
+        other2: 'other2',
+      })
+    })
+
     it('Should create various conversations successfully with given parent-child relationships of activities [descending timestamp order]', async () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
+      await populateSegments(mockIRepositoryOptions)
       const memberService = new MemberService(mockIRepositoryOptions)
       const activityService = new ActivityService(mockIRepositoryOptions)
 
@@ -752,6 +823,7 @@ describe('ActivityService tests', () => {
     // Settings should get updated only when a new channel is sent alog while creating activity.
     it('Should create an activity with a channel which is not present in settings and add it to settings', async () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
+      await populateSegments(mockIRepositoryOptions)
       const memberCreated = await new MemberService(mockIRepositoryOptions).upsert({
         username: {
           [PlatformType.GITHUB]: 'test1',
@@ -787,13 +859,15 @@ describe('ActivityService tests', () => {
       }
 
       await new ActivityService(mockIRepositoryOptions).upsert(activity)
-      const settings = await SettingsRepository.findOrCreateDefault({}, mockIRepositoryOptions)
 
-      expect(settings.activityChannels[activity.platform].includes(activity.channel)).toBe(true)
+      const activityChannels = SegmentRepository.getActivityChannels(mockIRepositoryOptions)
+
+      expect(activityChannels[activity.platform].includes(activity.channel)).toBe(true)
     })
 
     it('Should not create a duplicate channel when a channel is present in settings', async () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
+      await populateSegments(mockIRepositoryOptions)
       const memberCreated = await new MemberService(mockIRepositoryOptions).upsert({
         username: {
           [PlatformType.GITHUB]: 'test1',
@@ -854,14 +928,15 @@ describe('ActivityService tests', () => {
         score: 1,
       }
       await new ActivityService(mockIRepositoryOptions).upsert(activity)
-      settings = await SettingsRepository.findOrCreateDefault({}, mockIRepositoryOptions)
-      expect(settings.activityChannels[activity1.platform].length).toBe(1)
+      const activityChannels = SegmentRepository.getActivityChannels(mockIRepositoryOptions)
+      expect(activityChannels[activity1.platform].length).toBe(1)
     })
   })
 
   describe('createWithMember method', () => {
     it('Create an activity with given member [no parent activity]', async () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
+      await populateSegments(mockIRepositoryOptions)
       const memberAttributeSettingsService = new MemberAttributeSettingsService(
         mockIRepositoryOptions,
       )
@@ -957,6 +1032,7 @@ describe('ActivityService tests', () => {
         tasks: [],
         deletedAt: null,
         tenantId: mockIRepositoryOptions.currentTenant.id,
+        segmentId: mockIRepositoryOptions.currentSegments[0].id,
         createdById: mockIRepositoryOptions.currentUser.id,
         updatedById: mockIRepositoryOptions.currentUser.id,
         importHash: null,
@@ -965,6 +1041,8 @@ describe('ActivityService tests', () => {
         sourceParentId: null,
         sourceId: data.sourceId,
         conversationId: null,
+        organizationId: null,
+        organization: null,
       }
 
       expect(activityWithMember).toStrictEqual(expectedActivityCreated)
@@ -972,6 +1050,7 @@ describe('ActivityService tests', () => {
 
     it('Create an activity with given member [with parent activity, upsert member, new activity] [parent first, child later]', async () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
+      await populateSegments(mockIRepositoryOptions)
       const memberAttributeSettingsService = new MemberAttributeSettingsService(
         mockIRepositoryOptions,
       )
@@ -1092,6 +1171,7 @@ describe('ActivityService tests', () => {
         updatedAt: SequelizeTestUtils.getNowWithoutTime(),
         deletedAt: null,
         tenantId: mockIRepositoryOptions.currentTenant.id,
+        segmentId: mockIRepositoryOptions.currentSegments[0].id,
         createdById: mockIRepositoryOptions.currentUser.id,
         updatedById: mockIRepositoryOptions.currentUser.id,
         importHash: null,
@@ -1099,6 +1179,8 @@ describe('ActivityService tests', () => {
         sourceParentId: data2.sourceParentId,
         sourceId: data2.sourceId,
         conversationId: conversationCreated.rows[0].id,
+        organizationId: null,
+        organization: null,
       }
 
       expect(activityWithMember2).toStrictEqual(expectedActivityCreated)
@@ -1106,6 +1188,7 @@ describe('ActivityService tests', () => {
 
     it('Create an activity with given member [with parent activity, upsert member, new activity] [child first, parent later]', async () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
+      await populateSegments(mockIRepositoryOptions)
       const activityService = new ActivityService(mockIRepositoryOptions)
       const memberAttributeSettingsService = new MemberAttributeSettingsService(
         mockIRepositoryOptions,
@@ -1239,6 +1322,7 @@ describe('ActivityService tests', () => {
         updatedAt: SequelizeTestUtils.getNowWithoutTime(),
         deletedAt: null,
         tenantId: mockIRepositoryOptions.currentTenant.id,
+        segmentId: mockIRepositoryOptions.currentSegments[0].id,
         createdById: mockIRepositoryOptions.currentUser.id,
         updatedById: mockIRepositoryOptions.currentUser.id,
         importHash: null,
@@ -1246,6 +1330,8 @@ describe('ActivityService tests', () => {
         sourceParentId: null,
         sourceId: dataParent.sourceId,
         conversationId: conversationCreated.rows[0].id,
+        organizationId: null,
+        organization: null,
       }
 
       expect(activityWithMemberParent).toStrictEqual(expectedParentActivityCreated)
@@ -1279,6 +1365,7 @@ describe('ActivityService tests', () => {
         updatedAt: SequelizeTestUtils.getNowWithoutTime(),
         deletedAt: null,
         tenantId: mockIRepositoryOptions.currentTenant.id,
+        segmentId: mockIRepositoryOptions.currentSegments[0].id,
         createdById: mockIRepositoryOptions.currentUser.id,
         updatedById: mockIRepositoryOptions.currentUser.id,
         importHash: null,
@@ -1286,14 +1373,258 @@ describe('ActivityService tests', () => {
         sourceParentId: dataChild.sourceParentId,
         sourceId: dataChild.sourceId,
         conversationId: conversationCreated.rows[0].id,
+        organizationId: null,
+        organization: null,
       }
 
       expect(activityWithMemberChild).toStrictEqual(expectedChildActivityCreated)
     })
 
+    it('Create an activity with organization - member with single organization and no affiliation', async () => {
+      const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
+      await populateSegments(mockIRepositoryOptions)
+      const memberAttributeSettingsService = new MemberAttributeSettingsService(
+        mockIRepositoryOptions,
+      )
+
+      const org1 = {
+        name: 'crowd.dev',
+      }
+
+      await memberAttributeSettingsService.createPredefined(GithubMemberAttributes)
+      await memberAttributeSettingsService.createPredefined(TwitterMemberAttributes)
+
+      const member = {
+        username: {
+          [PlatformType.GITHUB]: 'anil_github',
+        },
+        email: 'lala@l.com',
+        organizations: [org1],
+        joinedAt: '2020-05-27T15:13:30Z',
+      }
+
+      const data = {
+        member,
+        timestamp: '2021-09-30T14:20:27.000Z',
+        type: 'pull_request-closed',
+        platform: PlatformType.GITHUB,
+        sourceId: '#sourceId1',
+      }
+
+      const activityWithMember = await new ActivityService(mockIRepositoryOptions).createWithMember(
+        data,
+      )
+
+      // find activity
+      const activity = await ActivityRepository.findById(
+        activityWithMember.id,
+        mockIRepositoryOptions,
+      )
+
+      expect(activity.organization.name).toEqual(org1.name)
+    })
+
+    it(`Create an activity with member's first organization - member with multiple organizations and no affiliation`, async () => {
+      const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
+      await populateSegments(mockIRepositoryOptions)
+
+      const org1 = {
+        name: 'tesla',
+      }
+
+      const org2 = {
+        name: 'crowd.dev',
+      }
+
+      const member = {
+        username: {
+          [PlatformType.GITHUB]: 'anil_github',
+        },
+        email: 'lala@l.com',
+        organizations: [org1, org2],
+        joinedAt: '2020-05-27T15:13:30Z',
+      }
+
+      const data = {
+        member,
+        timestamp: '2021-09-30T14:20:27.000Z',
+        type: 'pull_request-closed',
+        platform: PlatformType.GITHUB,
+        sourceId: '#sourceId1',
+      }
+
+      const activityWithMember = await new ActivityService(mockIRepositoryOptions).createWithMember(
+        data,
+      )
+
+      // find activity
+      const activity = await ActivityRepository.findById(
+        activityWithMember.id,
+        mockIRepositoryOptions,
+      )
+
+      expect(activity.organization.name).toEqual(org1.name)
+    })
+
+    it(`Shouldn't update existing activity's organization, when a different organization comes with the member`, async () => {
+      const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
+      await populateSegments(mockIRepositoryOptions)
+      const memberAttributeSettingsService = new MemberAttributeSettingsService(
+        mockIRepositoryOptions,
+      )
+
+      const org1 = {
+        name: 'tesla',
+      }
+
+      const org2 = {
+        name: 'crowd.dev',
+      }
+
+      const member = {
+        username: {
+          [PlatformType.GITHUB]: 'anil_github',
+        },
+        email: 'lala@l.com',
+        organizations: [org1],
+        joinedAt: '2020-05-27T15:13:30Z',
+      }
+
+      const data = {
+        member,
+        timestamp: '2021-09-30T14:20:27.000Z',
+        type: 'pull_request-closed',
+        platform: PlatformType.GITHUB,
+        sourceId: '#sourceId1',
+      }
+
+      let activityWithMember = await new ActivityService(mockIRepositoryOptions).createWithMember(
+        data,
+      )
+
+      let activity = await ActivityRepository.findById(
+        activityWithMember.id,
+        mockIRepositoryOptions,
+      )
+
+      expect(activity.organization.name).toEqual(org1.name)
+
+      // create same activity with a different member organization
+      data.member = {
+        ...member,
+        organizations: [org2],
+      }
+
+      await new ActivityService(mockIRepositoryOptions).createWithMember(data)
+
+      activity = await ActivityRepository.findById(activityWithMember.id, mockIRepositoryOptions)
+
+      // activity organization shouldn't change
+      expect(activity.organization.name).toEqual(org1.name)
+    })
+
+    it(`Should respect the affiliation settings when setting an activity's organization with multiple member organizations`, async () => {
+      const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
+      const segmentRepo = new SegmentRepository(mockIRepositoryOptions)
+
+      const segment1 = await segmentRepo.create({
+        name: 'Crowd.dev - Segment1',
+        url: '',
+        parentName: 'Crowd.dev - Segment1',
+        grandparentName: 'Crowd.dev - Segment1',
+        slug: 'crowd.dev-1',
+        parentSlug: 'crowd.dev-1',
+        grandparentSlug: 'crowd.dev-1',
+        status: SegmentStatus.ACTIVE,
+        sourceId: null,
+        sourceParentId: null,
+      })
+
+      const segment2 = await segmentRepo.create({
+        name: 'Crowd.dev - Segment2',
+        url: '',
+        parentName: 'Crowd.dev - Segment2',
+        grandparentName: 'Crowd.dev - Segment2',
+        slug: 'crowd.dev-2',
+        parentSlug: 'crowd.dev-2',
+        grandparentSlug: 'crowd.dev-2',
+        status: SegmentStatus.ACTIVE,
+        sourceId: null,
+        sourceParentId: null,
+      })
+
+      await populateSegments(mockIRepositoryOptions)
+      const org1 = await OrganizationRepository.create(
+        {
+          name: 'tesla',
+        },
+        mockIRepositoryOptions,
+      )
+
+      const org2 = await OrganizationRepository.create(
+        {
+          name: 'crowd.dev',
+        },
+        mockIRepositoryOptions,
+      )
+
+      const member = {
+        username: {
+          [PlatformType.GITHUB]: 'anil_github',
+        },
+        organizations: [org1, org2],
+        affiliations: [
+          {
+            segmentId: segment1.id,
+            organizationId: org2.id,
+          },
+          {
+            segmentId: segment2.id,
+            organizationId: null,
+          },
+        ],
+      }
+
+      const data = {
+        member,
+        timestamp: '2021-09-30T14:20:27.000Z',
+        type: 'pull_request-closed',
+        platform: PlatformType.GITHUB,
+        sourceId: '#sourceId1',
+      }
+
+      switchSegments(mockIRepositoryOptions, [segment1])
+
+      let activityWithMember = await new ActivityService(mockIRepositoryOptions).createWithMember(
+        data,
+      )
+
+      let activity = await ActivityRepository.findById(
+        activityWithMember.id,
+        mockIRepositoryOptions,
+      )
+
+      // org2 should be set as organization because it's in member's affiliated organizations
+      expect(activity.organization.name).toEqual(org2.name)
+
+      // add another activity to segment2 for the same member
+      switchSegments(mockIRepositoryOptions, [segment2])
+
+      data.sourceId = '#sourceId2'
+      data.member = member // createWithMember modifies member, reset it
+
+      activityWithMember = await new ActivityService(mockIRepositoryOptions).createWithMember(data)
+
+      activity = await ActivityRepository.findById(activityWithMember.id, mockIRepositoryOptions)
+
+      // this member had a null affiliation(meaning no organizations should be set) in segment 2
+      expect(activity.organization).toBeNull()
+    })
+
     describe('Member tests in createWithMember', () => {
       it('Should set the joinedAt to the time of the activity when the member does not exist', async () => {
         const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
+        await populateSegments(mockIRepositoryOptions)
         const memberAttributeSettingsService = new MemberAttributeSettingsService(
           mockIRepositoryOptions,
         )
@@ -1388,6 +1719,7 @@ describe('ActivityService tests', () => {
           updatedAt: SequelizeTestUtils.getNowWithoutTime(),
           deletedAt: null,
           tenantId: mockIRepositoryOptions.currentTenant.id,
+          segmentId: mockIRepositoryOptions.currentSegments[0].id,
           createdById: mockIRepositoryOptions.currentUser.id,
           updatedById: mockIRepositoryOptions.currentUser.id,
           importHash: null,
@@ -1396,6 +1728,8 @@ describe('ActivityService tests', () => {
           sourceParentId: null,
           sourceId: data.sourceId,
           conversationId: null,
+          organizationId: null,
+          organization: null,
         }
 
         expect(activityWithMember).toStrictEqual(expectedActivityCreated)
@@ -1407,6 +1741,7 @@ describe('ActivityService tests', () => {
 
       it('Should replace joinedAt when activity ts is earlier than existing joinedAt', async () => {
         const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
+        await populateSegments(mockIRepositoryOptions)
         const memberAttributeSettingsService = new MemberAttributeSettingsService(
           mockIRepositoryOptions,
         )
@@ -1504,6 +1839,7 @@ describe('ActivityService tests', () => {
           deletedAt: null,
           tasks: [],
           tenantId: mockIRepositoryOptions.currentTenant.id,
+          segmentId: mockIRepositoryOptions.currentSegments[0].id,
           createdById: mockIRepositoryOptions.currentUser.id,
           updatedById: mockIRepositoryOptions.currentUser.id,
           importHash: null,
@@ -1512,6 +1848,8 @@ describe('ActivityService tests', () => {
           sourceId: data.sourceId,
           sourceParentId: null,
           conversationId: null,
+          organizationId: null,
+          organization: null,
         }
 
         expect(activityWithMember).toStrictEqual(expectedActivityCreated)
@@ -1523,6 +1861,7 @@ describe('ActivityService tests', () => {
 
       it('Should not replace joinedAt when activity ts is later than existing joinedAt', async () => {
         const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
+        await populateSegments(mockIRepositoryOptions)
         const memberAttributeSettingsService = new MemberAttributeSettingsService(
           mockIRepositoryOptions,
         )
@@ -1620,6 +1959,7 @@ describe('ActivityService tests', () => {
           tasks: [],
           deletedAt: null,
           tenantId: mockIRepositoryOptions.currentTenant.id,
+          segmentId: mockIRepositoryOptions.currentSegments[0].id,
           createdById: mockIRepositoryOptions.currentUser.id,
           updatedById: mockIRepositoryOptions.currentUser.id,
           importHash: null,
@@ -1628,6 +1968,8 @@ describe('ActivityService tests', () => {
           sourceId: data.sourceId,
           sourceParentId: null,
           conversationId: null,
+          organizationId: null,
+          organization: null,
         }
 
         expect(activityWithMember).toStrictEqual(expectedActivityCreated)
@@ -1637,8 +1979,10 @@ describe('ActivityService tests', () => {
         })
       })
 
-      it('It should replace joinedAt if the orginal was in year 1970', async () => {
+      it('It should replace joinedAt if the original was in year 1970', async () => {
         const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
+        await populateSegments(mockIRepositoryOptions)
+        await populateSegments(mockIRepositoryOptions)
         const memberAttributeSettingsService = new MemberAttributeSettingsService(
           mockIRepositoryOptions,
         )
@@ -1737,6 +2081,7 @@ describe('ActivityService tests', () => {
           deletedAt: null,
           tasks: [],
           tenantId: mockIRepositoryOptions.currentTenant.id,
+          segmentId: mockIRepositoryOptions.currentSegments[0].id,
           createdById: mockIRepositoryOptions.currentUser.id,
           updatedById: mockIRepositoryOptions.currentUser.id,
           importHash: null,
@@ -1745,6 +2090,8 @@ describe('ActivityService tests', () => {
           sourceId: data.sourceId,
           sourceParentId: null,
           conversationId: null,
+          organizationId: null,
+          organization: null,
         }
 
         expect(activityWithMember).toStrictEqual(expectedActivityCreated)
@@ -1761,6 +2108,7 @@ describe('ActivityService tests', () => {
         // This can cause having 2 activities with different timestamps, but the same sourceId.
         // The joinedAt should stay untouched in this case.
         const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
+        await populateSegments(mockIRepositoryOptions)
         const memberAttributeSettingsService = new MemberAttributeSettingsService(
           mockIRepositoryOptions,
         )

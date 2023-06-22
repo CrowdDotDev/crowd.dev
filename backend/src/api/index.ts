@@ -11,6 +11,7 @@ import { ApiWebsocketMessage } from '@crowd/types'
 import { API_CONFIG, REDIS_CONFIG, UNLEASH_CONFIG } from '../conf'
 import { authMiddleware } from '../middlewares/authMiddleware'
 import { tenantMiddleware } from '../middlewares/tenantMiddleware'
+import { segmentMiddleware } from '../middlewares/segmentMiddleware'
 import { databaseMiddleware } from '../middlewares/databaseMiddleware'
 import { createRateLimiter } from './apiRateLimiter'
 import { languageMiddleware } from '../middlewares/languageMiddleware'
@@ -186,10 +187,12 @@ setImmediate(async () => {
   require('./organization').default(routes)
   require('./quickstart-guide').default(routes)
   require('./slack').default(routes)
+  require('./segment').default(routes)
   require('./eventTracking').default(routes)
   require('./premium/enrichment').default(routes)
   // Loads the Tenant if the :tenantId param is passed
   routes.param('tenantId', tenantMiddleware)
+  routes.param('tenantId', segmentMiddleware)
 
   app.use('/', routes)
 

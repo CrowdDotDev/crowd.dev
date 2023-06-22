@@ -27,6 +27,7 @@ async function csvExportWorker(
   entity: ExportableEntity,
   userId: string,
   tenantId: string,
+  segmentIds: string[],
   criteria: any,
 ): Promise<BaseOutput> {
   const fields = [
@@ -52,7 +53,7 @@ async function csvExportWorker(
   const opts = { fields }
 
   // get the data without limits
-  const userContext = await getUserContext(tenantId)
+  const userContext = await getUserContext(tenantId, null, segmentIds)
 
   let data = null
 
