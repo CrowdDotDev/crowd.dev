@@ -6,8 +6,6 @@ export default async (req, res) => {
     throw new Error403(req.language)
   }
 
-  req.currentTenant = await new TenantService(req).findById(req.params.id)
-
   const payload = await new TenantService(req).findMembersToMerge(req.query)
 
   await req.responseHandler.success(req, res, payload)

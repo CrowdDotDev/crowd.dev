@@ -22,8 +22,10 @@ export default class MemberService extends LoggerBase {
 
   public async create(
     tenantId: string,
+    segmentId: string,
     integrationId: string,
     data: IMemberCreateData,
+    fireSync = true,
   ): Promise<string> {
     try {
       this.log.debug('Creating a new member!')
@@ -58,13 +60,18 @@ export default class MemberService extends LoggerBase {
           identities: data.identities,
         })
 
+        await txRepo.addToSegment(id, tenantId, segmentId)
+
         await txRepo.insertIdentities(id, tenantId, integrationId, data.identities)
 
         return id
       })
 
       await this.nodejsWorkerEmitter.processAutomationForNewMember(tenantId, id)
-      await this.searchSyncWorkerEmitter.triggerMemberSync(tenantId, id)
+
+      if (fireSync) {
+        await this.searchSyncWorkerEmitter.triggerMemberSync(tenantId, id)
+      }
 
       return id
     } catch (err) {
@@ -76,9 +83,11 @@ export default class MemberService extends LoggerBase {
   public async update(
     id: string,
     tenantId: string,
+    segmentId: string,
     integrationId: string,
     data: IMemberUpdateData,
     original: IDbMember,
+    fireSync = true,
   ): Promise<void> {
     try {
       const updated = await this.store.transactionally(async (txStore) => {
@@ -119,6 +128,7 @@ export default class MemberService extends LoggerBase {
           })
 
           updated = true
+          await txRepo.addToSegment(id, tenantId, segmentId)
         } else {
           this.log.debug({ memberId: id }, 'Nothing to update in a member!')
         }
@@ -131,7 +141,7 @@ export default class MemberService extends LoggerBase {
         return updated
       })
 
-      if (updated) {
+      if (updated && fireSync) {
         await this.searchSyncWorkerEmitter.triggerMemberSync(tenantId, id)
       }
     } catch (err) {

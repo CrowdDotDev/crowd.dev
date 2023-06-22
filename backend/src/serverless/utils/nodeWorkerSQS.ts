@@ -113,6 +113,7 @@ export const sendExportCSVNodeSQSMessage = async (
   tenant: string,
   user: string,
   entity: ExportableEntity,
+  segmentIds: string[],
   criteria: any,
 ): Promise<void> => {
   const payload = {
@@ -122,6 +123,7 @@ export const sendExportCSVNodeSQSMessage = async (
     tenant,
     entity,
     criteria,
+    segmentIds,
   }
   await sendNodeWorkerMessage(tenant, payload as NodeWorkerMessageBase)
 }

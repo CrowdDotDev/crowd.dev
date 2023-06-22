@@ -13,6 +13,7 @@ import isEqual from 'lodash.isequal'
 import { NodejsWorkerEmitter, SearchSyncWorkerEmitter } from '@crowd/sqs'
 import SettingsRepository from './settings.repo'
 import { ConversationService } from '@crowd/conversations'
+import IntegrationRepository from '@/repo/integration.repo'
 
 export default class ActivityService extends LoggerBase {
   private readonly conversationService: ConversationService
@@ -27,7 +28,11 @@ export default class ActivityService extends LoggerBase {
     this.conversationService = new ConversationService(store, parentLog)
   }
 
-  public async create(tenantId: string, activity: IActivityCreateData): Promise<string> {
+  public async create(
+    tenantId: string,
+    segmentId: string,
+    activity: IActivityCreateData,
+  ): Promise<string> {
     try {
       this.log.debug('Creating an activity.')
 
@@ -47,7 +52,7 @@ export default class ActivityService extends LoggerBase {
           await txSettingsRepo.createActivityChannel(tenantId, activity.platform, activity.channel)
         }
 
-        const id = await txRepo.create(tenantId, {
+        const id = await txRepo.create(tenantId, segmentId, {
           type: activity.type,
           timestamp: activity.timestamp.toISOString(),
           platform: activity.platform,
@@ -83,6 +88,7 @@ export default class ActivityService extends LoggerBase {
   public async update(
     id: string,
     tenantId: string,
+    segmentId: string,
     activity: IActivityUpdateData,
     original: IDbActivity,
   ): Promise<void> {
@@ -107,7 +113,7 @@ export default class ActivityService extends LoggerBase {
 
         if (!isObjectEmpty(toUpdate)) {
           this.log.debug({ activityId: id }, 'Updating activity.')
-          await txRepo.update(id, tenantId, {
+          await txRepo.update(id, tenantId, segmentId, {
             type: toUpdate.type || original.type,
             isContribution: toUpdate.isContribution || original.isContribution,
             score: toUpdate.score || original.score,
@@ -299,9 +305,13 @@ export default class ActivityService extends LoggerBase {
           this.searchSyncWorkerEmitter,
           this.log,
         )
+        const txIntegrationRepo = new IntegrationRepository(txStore, this.log)
 
         // find existing activity
         const dbActivity = await txRepo.findExisting(tenantId, activity.sourceId)
+
+        const dbIntegration = await txIntegrationRepo.findById(integrationId)
+        const segmentId = dbIntegration.segmentId
 
         let create = false
         let memberId: string
@@ -338,6 +348,7 @@ export default class ActivityService extends LoggerBase {
             await txMemberService.update(
               dbMember.id,
               tenantId,
+              segmentId,
               integrationId,
               {
                 attributes: member.attributes,
@@ -349,6 +360,7 @@ export default class ActivityService extends LoggerBase {
                 identities: member.identities,
               },
               dbMember,
+              false,
             )
 
             if (!create) {
@@ -370,6 +382,7 @@ export default class ActivityService extends LoggerBase {
             await txMemberService.update(
               dbMember.id,
               tenantId,
+              segmentId,
               integrationId,
               {
                 attributes: member.attributes,
@@ -381,6 +394,7 @@ export default class ActivityService extends LoggerBase {
                 identities: member.identities,
               },
               dbMember,
+              false,
             )
           }
 
@@ -388,6 +402,7 @@ export default class ActivityService extends LoggerBase {
           await txActivityService.update(
             dbActivity.id,
             tenantId,
+            segmentId,
             {
               type: activity.type,
               isContribution: activity.isContribution,
@@ -415,6 +430,7 @@ export default class ActivityService extends LoggerBase {
             await txMemberService.update(
               dbMember.id,
               tenantId,
+              segmentId,
               integrationId,
               {
                 attributes: member.attributes,
@@ -426,27 +442,36 @@ export default class ActivityService extends LoggerBase {
                 identities: member.identities,
               },
               dbMember,
+              false,
             )
             memberId = dbMember.id
           } else {
             this.log.trace(
               'We did not find a member for the identity provided! Creating a new one.',
             )
-            memberId = await txMemberService.create(tenantId, integrationId, {
-              displayName: member.displayName || username,
-              attributes: member.attributes,
-              emails: member.emails || [],
-              joinedAt: member.joinedAt ? new Date(member.joinedAt) : new Date(activity.timestamp),
-              weakIdentities: member.weakIdentities,
-              identities: member.identities,
-            })
+            memberId = await txMemberService.create(
+              tenantId,
+              segmentId,
+              integrationId,
+              {
+                displayName: member.displayName || username,
+                attributes: member.attributes,
+                emails: member.emails || [],
+                joinedAt: member.joinedAt
+                  ? new Date(member.joinedAt)
+                  : new Date(activity.timestamp),
+                weakIdentities: member.weakIdentities,
+                identities: member.identities,
+              },
+              false,
+            )
           }
 
           create = true
         }
 
         if (create) {
-          await txActivityService.create(tenantId, {
+          await txActivityService.create(tenantId, segmentId, {
             type: activity.type,
             platform,
             timestamp: new Date(activity.timestamp),
@@ -463,6 +488,8 @@ export default class ActivityService extends LoggerBase {
             url: activity.url,
           })
         }
+
+        await this.searchSyncWorkerEmitter.triggerMemberSync(tenantId, memberId)
       })
     } catch (err) {
       this.log.error(err, 'Error while processing an activity!')

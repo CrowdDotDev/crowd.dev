@@ -64,6 +64,10 @@ export default (sequelize) => {
       },
     })
 
+    models.report.belongsTo(models.segment, {
+      as: 'segment',
+    })
+
     models.report.belongsTo(models.user, {
       as: 'createdBy',
     })

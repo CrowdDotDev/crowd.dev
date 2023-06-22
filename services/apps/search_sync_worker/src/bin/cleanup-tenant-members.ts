@@ -19,4 +19,5 @@ setImmediate(async () => {
   await emitter.init()
 
   await emitter.triggerMemberCleanup(tenantId)
+  process.exit(0)
 })

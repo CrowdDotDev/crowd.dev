@@ -156,6 +156,13 @@ export default (sequelize) => {
       },
     })
 
+    models.activity.belongsTo(models.segment, {
+      as: 'segment',
+      foreignKey: {
+        allowNull: false,
+      },
+    })
+
     models.activity.belongsTo(models.member, {
       as: 'objectMember',
     })
@@ -187,6 +194,10 @@ export default (sequelize) => {
 
     models.activity.belongsTo(models.user, {
       as: 'updatedBy',
+    })
+
+    models.activity.belongsTo(models.organization, {
+      as: 'organization',
     })
   }
 

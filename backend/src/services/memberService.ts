@@ -351,10 +351,6 @@ export default class MemberService extends LoggerBase {
           },
           fillRelations,
         )
-
-        if (fireSync) {
-          await searchSyncEmitter.triggerMemberSync(this.options.currentTenant.id, record.id)
-        }
       } else {
         // It is important to call it with doPopulateRelations=false
         // because otherwise the performance is greatly decreased in integrations
@@ -370,9 +366,6 @@ export default class MemberService extends LoggerBase {
           },
           fillRelations,
         )
-        if (fireSync) {
-          await searchSyncEmitter.triggerMemberSync(this.options.currentTenant.id, record.id)
-        }
 
         telemetryTrack(
           'Member created',
@@ -387,6 +380,10 @@ export default class MemberService extends LoggerBase {
       }
 
       await SequelizeRepository.commitTransaction(transaction)
+
+      if (fireSync) {
+        await searchSyncEmitter.triggerMemberSync(this.options.currentTenant.id, record.id)
+      }
 
       if (!existing && fireCrowdWebhooks) {
         try {
@@ -564,6 +561,12 @@ export default class MemberService extends LoggerBase {
       // Remove toMerge from original member
       await MemberRepository.removeToMerge(originalId, toMergeId, repoOptions)
 
+      const secondMemberSegments = await MemberRepository.getMemberSegments(toMergeId, repoOptions)
+      await MemberRepository.includeMemberToSegments(toMergeId, {
+        ...repoOptions,
+        currentSegments: secondMemberSegments,
+      })
+
       // Delete toMerge member
       await MemberRepository.destroy(toMergeId, repoOptions, true)
 
@@ -571,6 +574,7 @@ export default class MemberService extends LoggerBase {
 
       const searchSyncEmitter = await getSearchSyncWorkerEmitter()
       await searchSyncEmitter.triggerMemberSync(this.options.currentTenant.id, originalId)
+      await searchSyncEmitter.triggerRemoveMember(this.options.currentTenant.id, toMergeId)
 
       this.options.log.info({ originalId, toMergeId }, 'Members merged!')
       return { status: 200, mergedId: originalId }
@@ -688,8 +692,6 @@ export default class MemberService extends LoggerBase {
    * Given two members, add them to the toMerge fields of each other.
    * It will also update the tenant's toMerge list, removing any entry that contains
    * the pair.
-   * @param memberOneId ID of the first member
-   * @param memberTwoId ID of the second member
    * @returns Success/Error message
    */
   async addToMerge(suggestions: IMemberMergeSuggestion[]) {
@@ -1036,6 +1038,7 @@ export default class MemberService extends LoggerBase {
       this.options.currentTenant.id,
       this.options.currentUser.id,
       ExportableEntity.MEMBERS,
+      SequelizeRepository.getSegmentIds(this.options),
       data,
     )
     return result
