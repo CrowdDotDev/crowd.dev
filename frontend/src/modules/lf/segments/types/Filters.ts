@@ -3,19 +3,19 @@ import { Project } from '@/modules/lf/segments/types/Segments';
 
 export interface ProjectsFilterValue {
   value: string[];
+  parentValues: string[]
 }
 
 export interface SubProjectsOption {
   id: string;
   label: string;
+  selected: boolean;
 }
 
 export interface ProjectsOption {
   id: string;
   label: string;
   selected: boolean;
-  indeterminate: boolean;
-  selectedChildren: string[];
   children: SubProjectsOption[];
 }
 

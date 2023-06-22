@@ -1,5 +1,5 @@
 <template>
-  <app-cube-render :query="activityTypes(period, platform, segments)">
+  <app-cube-render :query="activityTypes(period, platform, segments.childSegments)">
     <template #loading>
       <div
         v-for="i in 3"
@@ -22,7 +22,7 @@
     <template #default="{ resultSet }">
       <app-cube-render
         :query="
-          activitiesCount(dateRange(period), platform, segments)
+          activitiesCount(dateRange(period), platform, segments.childSegments)
         "
       >
         <template #loading>

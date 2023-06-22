@@ -97,14 +97,14 @@ const ActivityTypesQuery = computed(() => LEADERBOARD_ACTIVITIES_TYPES_QUERY({
   period: props.selectedPeriod,
   selectedPlatforms: props.filters.platform.value,
   selectedHasTeamActivities: props.filters.teamActivities,
-  selectedSegments: props.filters.segments,
+  selectedSegments: props.filters.segments.childSegments,
 }));
 
 const ActivityCountQuery = computed(() => LEADERBOARD_ACTIVITIES_COUNT_QUERY({
   period: props.selectedPeriod,
   selectedPlatforms: props.filters.platform.value,
   selectedHasTeamActivities: props.filters.teamActivities,
-  selectedSegments: props.filters.segments,
+  selectedSegments: props.filters.segments.childSegments,
 }));
 
 const compileData = (resultSet) => {

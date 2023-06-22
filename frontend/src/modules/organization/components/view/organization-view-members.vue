@@ -164,7 +164,6 @@ const fetchMembers = async () => {
       orderBy: 'joinedAt_DESC',
       limit: limit.value,
       offset: offset.value,
-      segments: props.organization.segments,
     },
     {
       headers: {

@@ -1,6 +1,6 @@
 <template>
   <app-cube-render
-    :query="sentimentQuery(period, platform, segments)"
+    :query="sentimentQuery(period, platform, segments.childSegments)"
   >
     <template #loading>
       <div class="pb-3">
