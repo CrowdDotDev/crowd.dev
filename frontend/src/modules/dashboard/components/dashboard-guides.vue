@@ -99,7 +99,7 @@ import ConfirmDialog from '@/shared/dialog/confirm-dialog';
 import AppDashboardGuideEagleEyeModal from '@/modules/dashboard/components/guide/dashboard-guide-eagle-eye-modal.vue';
 import { QuickstartGuideService } from '@/modules/quickstart-guide/services/quickstart-guide.service';
 import { useQuickStartGuideStore } from '@/modules/quickstart-guide/store';
-import { EventTrackingService } from '@/modules/event-tracking/services/event-tracking-service';
+import { TenantEventService } from '@/shared/events/tenant-event.service';
 
 const { currentTenant, currentTenantUser } = mapGetters('auth');
 const { doRefreshCurrentUser } = mapActions('auth');
@@ -142,7 +142,7 @@ const dismissGuides = () => {
     confirmButtonText: 'Dismiss quickstart guide',
     cancelButtonText: 'Cancel',
   }).then(() => {
-    EventTrackingService.track({
+    TenantEventService.event({
       name: 'Onboarding Guide dismissed',
     });
 
@@ -213,7 +213,7 @@ onMounted(() => {
 const onGuideOpen = (guide) => {
   selectedGuide.value = guide;
 
-  EventTrackingService.track({
+  TenantEventService.event({
     name: 'Onboarding Guide details clicked',
     properties: {
       step: guide.key,

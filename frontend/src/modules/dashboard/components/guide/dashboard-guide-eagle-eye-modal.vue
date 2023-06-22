@@ -56,7 +56,7 @@ import { defineProps, defineEmits, computed } from 'vue';
 import AppDialog from '@/shared/dialog/dialog.vue';
 import { mapActions } from '@/shared/vuex/vuex.helpers';
 import { QuickstartGuideService } from '@/modules/quickstart-guide/services/quickstart-guide.service';
-import { EventTrackingService } from '@/modules/event-tracking/services/event-tracking-service';
+import { TenantEventService } from '@/shared/events/tenant-event.service';
 
 const props = defineProps({
   modelValue: {
@@ -82,7 +82,7 @@ const modalOpened = computed({
     if (!value) {
       // Track event on modal dismiss
       if (props.modelValue) {
-        EventTrackingService.track({
+        TenantEventService.event({
           name: 'Eagle Eye Guide dismissed',
         });
       }
@@ -93,7 +93,7 @@ const modalOpened = computed({
 });
 
 const trackBtnClick = () => {
-  EventTrackingService.track({
+  TenantEventService.event({
     name: 'Eagle Eye Guide button clicked',
   });
 };
