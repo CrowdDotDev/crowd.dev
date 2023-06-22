@@ -33,9 +33,3 @@ export enum FeatureFlagRedisKey {
   MEMBER_ENRICHMENT_COUNT = 'memberEnrichmentCount',
   ORGANIZATION_ENRICHMENT_COUNT = 'organizationEnrichmentCount',
 }
-
-export enum Edition {
-  COMMUNITY = 'community',
-  CROWD_HOSTED = 'crowd-hosted',
-  LFX = 'lfx-ee',
-}

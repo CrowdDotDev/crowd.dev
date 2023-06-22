@@ -1,13 +1,14 @@
-import { IDbMemberSyncData } from '@/repo/member.data'
+import { SERVICE_CONFIG } from '@/conf'
+import { IDbMemberSyncData, IDbSegmentInfo } from '@/repo/member.data'
 import { MemberRepository } from '@/repo/member.repo'
 import { OpenSearchIndex } from '@/types'
-import { timeout } from '@crowd/common'
+import { distinct, distinctBy, timeout } from '@crowd/common'
 import { DbStore } from '@crowd/database'
 import { Logger, LoggerBase, logExecutionTime } from '@crowd/logging'
 import { RedisClient } from '@crowd/redis'
-import { IMemberAttribute, MemberAttributeType } from '@crowd/types'
-import { OpenSearchService } from './opensearch.service'
+import { Edition, IMemberAttribute, MemberAttributeType } from '@crowd/types'
 import { ISearchHit } from './opensearch.data'
+import { OpenSearchService } from './opensearch.service'
 
 export class MemberSyncService extends LoggerBase {
   private readonly memberRepo: MemberRepository
@@ -185,7 +186,59 @@ export class MemberSyncService extends LoggerBase {
     const members = await this.memberRepo.getMemberData([memberId])
 
     if (members.length > 0) {
-      for (const member of members) {
+      if (SERVICE_CONFIG().edition === Edition.LFX) {
+        const attributes = await this.memberRepo.getTenantMemberAttributes(members[0].tenantId)
+
+        // get all child segment ids
+        const childSegmentIds = members.map((m) => m.segmentId)
+        // fetch parentId and grandParentId for each of them
+        const segmentInfos = await this.memberRepo.getParentSegmentIds(childSegmentIds)
+
+        // index each of them individually
+        for (const member of members) {
+          const prepared = MemberSyncService.prefixData(member, attributes)
+          await this.openSearchService.index(
+            `${memberId}-${member.segmentId}`,
+            OpenSearchIndex.MEMBERS,
+            prepared,
+          )
+        }
+
+        // and for each parent and grandparent
+        const parentIds = distinct(segmentInfos.map((s) => s.parentId))
+        for (const parentId of parentIds) {
+          const aggregated = MemberSyncService.aggregateData(members, segmentInfos, parentId)
+          const prepared = MemberSyncService.prefixData(aggregated, attributes)
+          await this.openSearchService.index(
+            `${memberId}-${parentId}`,
+            OpenSearchIndex.MEMBERS,
+            prepared,
+          )
+        }
+
+        const grandParentIds = distinct(segmentInfos.map((s) => s.grandParentId))
+        for (const grandParentId of grandParentIds) {
+          const aggregated = MemberSyncService.aggregateData(
+            members,
+            segmentInfos,
+            undefined,
+            grandParentId,
+          )
+          const prepared = MemberSyncService.prefixData(aggregated, attributes)
+          await this.openSearchService.index(
+            `${memberId}-${grandParentId}`,
+            OpenSearchIndex.MEMBERS,
+            prepared,
+          )
+        }
+      } else {
+        if (members.length > 1) {
+          throw new Error(
+            'More than one member found - this can not be the case in single segment edition!',
+          )
+        }
+
+        const member = members[0]
         const attributes = await this.memberRepo.getTenantMemberAttributes(member.tenantId)
 
         const prepared = MemberSyncService.prefixData(member, attributes)
@@ -195,6 +248,7 @@ export class MemberSyncService extends LoggerBase {
           prepared,
         )
       }
+
       await this.memberRepo.markSynced([memberId])
     } else {
       // we should retry - sometimes database is slow
@@ -206,6 +260,93 @@ export class MemberSyncService extends LoggerBase {
         await this.openSearchService.removeFromIndex(memberId, OpenSearchIndex.MEMBERS)
       }
     }
+  }
+
+  private static aggregateData(
+    segmentMembers: IDbMemberSyncData[],
+    segmentInfos: IDbSegmentInfo[],
+    parentId?: string,
+    grandParentId?: string,
+  ): IDbMemberSyncData | undefined {
+    if (!parentId && !grandParentId) {
+      throw new Error('Either parentId or grandParentId must be provided!')
+    }
+
+    const relevantSubchildIds: string[] = []
+    for (const si of segmentInfos) {
+      if (parentId && si.parentId === parentId) {
+        relevantSubchildIds.push(si.id)
+      } else if (grandParentId && si.grandParentId === grandParentId) {
+        relevantSubchildIds.push(si.id)
+      }
+    }
+
+    const members = segmentMembers.filter((m) => relevantSubchildIds.includes(m.segmentId))
+
+    if (members.length === 0) {
+      throw new Error('No members found for given parent or grandParent segment id!')
+    }
+
+    // aggregate data
+    const member = { ...members[0] }
+
+    // use corrent id as segmentId
+    if (parentId) {
+      member.segmentId = parentId
+    } else {
+      member.segmentId = grandParentId
+    }
+
+    // reset aggregates
+    member.activeOn = []
+    member.activityCount = 0
+    member.activityTypes = []
+    member.activeDaysCount = 0
+    member.lastActive = undefined
+    member.averageSentiment = null
+    member.tags = []
+    member.organizations = []
+
+    for (const m of members) {
+      member.activeOn.push(...m.activeOn)
+      member.activityCount += m.activityCount
+      member.activityTypes.push(...m.activityTypes)
+      member.activeDaysCount += m.activeDaysCount
+      if (!member.lastActive) {
+        member.lastActive = m.lastActive
+      } else if (m.lastActive) {
+        const d1 = new Date(member.lastActive)
+        const d2 = new Date(m.lastActive)
+
+        if (d1 < d2) {
+          member.lastActive = m.lastActive
+        }
+      }
+      if (!member.averageSentiment) {
+        member.averageSentiment = m.averageSentiment
+      } else if (m.averageSentiment) {
+        member.averageSentiment += m.averageSentiment
+      }
+      member.tags.push(...m.tags)
+      member.organizations.push(...m.organizations)
+    }
+
+    // average sentiment with the total number of members that have sentiment set
+    if (member.averageSentiment) {
+      member.averageSentiment = Number(
+        (
+          member.averageSentiment / members.filter((m) => m.averageSentiment !== null).length
+        ).toFixed(2),
+      )
+    }
+
+    // gather only uniques
+    member.activeOn = distinct(member.activeOn)
+    member.activityTypes = distinct(member.activityTypes)
+    member.tags = distinctBy(member.tags, (t) => t.id)
+    member.organizations = distinctBy(member.organizations, (o) => o.id)
+
+    return member
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
