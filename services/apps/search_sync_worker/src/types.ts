@@ -106,7 +106,7 @@ export const OPENSEARCH_INDEX_MAPPINGS: Record<OpenSearchIndex, unknown> = {
           mapping: {
             type: 'date',
             format:
-              'strict_date_optional_time||epoch_millis||yyyy-MM-dd HH:mm:ssXXX||yyyy-MM-dd HH:mm:ssX||yyyy-MM-dd HH:mm:ss.SSS||yyyy-MM-dd HH:mm:ss.SS',
+              'strict_date_optional_time||strict_date_optional_time_nanos||epoch_millis||yyyy-MM-dd HH:mm:ssXXX||yyyy-MM-dd HH:mm:ssX||yyyy-MM-dd HH:mm:ss.SSS||yyyy-MM-dd HH:mm:ss.SS',
           },
         },
       },
