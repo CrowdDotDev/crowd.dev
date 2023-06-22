@@ -28,6 +28,10 @@ class QueryParser {
 
   private exportMode: boolean
 
+  private withSegments: boolean
+
+  private segmentsNullable: boolean
+
   static maxPageSize = 200
 
   static defaultPageSize = 10
@@ -88,6 +92,8 @@ class QueryParser {
       manyToMany = {} as ManyToManyType,
       customOperators = {} as any,
       exportMode = false,
+      withSegments = true,
+      segmentsNullable = false,
     },
     options: IRepositoryOptions,
   ) {
@@ -101,6 +107,8 @@ class QueryParser {
     this.manyToMany = manyToMany
     this.customOperators = customOperators
     this.exportMode = exportMode
+    this.withSegments = withSegments
+    this.segmentsNullable = segmentsNullable
   }
 
   /**
@@ -407,6 +415,32 @@ class QueryParser {
       },
       limit: QueryParser.defaultPageSize,
       offset: 0,
+    }
+
+    if (this.withSegments) {
+      if (this.manyToMany.segments) {
+        const segmentsQuery = this.replaceWithManyToMany(
+          {
+            segments: SequelizeRepository.getSegmentIds(this.options),
+          },
+          'segments',
+        )
+
+        dbQuery.where = {
+          [Op.and]: [dbQuery.where, segmentsQuery],
+        }
+      } else if (this.segmentsNullable) {
+        dbQuery.where.segmentId = {
+          [Op.or]: [
+            SequelizeRepository.getSegmentIds(this.options),
+            {
+              [Op.is]: null,
+            },
+          ],
+        }
+      } else {
+        dbQuery.where.segmentId = SequelizeRepository.getSegmentIds(this.options)
+      }
     }
 
     if (fields) {

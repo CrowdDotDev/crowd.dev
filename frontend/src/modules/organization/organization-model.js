@@ -42,7 +42,7 @@ const fields = {
   ),
   members: new OrganizationMemberCountField(
     'memberCount',
-    '# of members',
+    '# of contributors',
     { filterable: true },
   ),
   employees: new OrganizationEmployeesField(

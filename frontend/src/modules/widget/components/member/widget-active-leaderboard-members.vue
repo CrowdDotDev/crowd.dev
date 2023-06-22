@@ -49,7 +49,7 @@
     <app-widget-insight>
       <template #description>
         <span>{{
-          `We recommend speaking with these members, as they went above and beyond in the last ${pluralize(
+          `We recommend speaking with these contributors, as they went above and beyond in the last ${pluralize(
             selectedPeriod.granularity,
             selectedPeriod.value,
             true,
@@ -127,6 +127,7 @@ const getActiveMembers = async (
   period = selectedPeriod.value,
   platforms = props.filters.platform.value,
   teamMembers = props.filters.teamMembers,
+  segments = props.filters.segments,
 ) => {
   loading.value = true;
   error.value = false;
@@ -144,6 +145,7 @@ const getActiveMembers = async (
       orderBy: 'activeDaysCount_DESC',
       offset: 0,
       limit: 10,
+      segments,
     });
 
     loading.value = false;
@@ -182,6 +184,7 @@ const getDetailedActiveMembers = ({
   limit: !pagination.count
     ? pagination.pageSize
     : pagination.count,
+  segments: props.filters.segments,
 });
 
 const onRowClick = () => {
@@ -200,7 +203,7 @@ const handleDrawerOpen = async () => {
   });
 
   drawerExpanded.value = true;
-  drawerTitle.value = 'Most active members';
+  drawerTitle.value = 'Most active contributors';
 };
 
 const onExport = async ({ ids, count }) => {
@@ -223,12 +226,13 @@ onMounted(async () => {
 
 // Each time filter changes, query a new response
 watch(
-  () => [props.filters.platform.value, props.filters.teamMembers],
-  async ([platforms, teamMembers]) => {
+  () => [props.filters.platform.value, props.filters.teamMembers, props.filters.segments],
+  async ([platforms, teamMembers, segments]) => {
     activeMembers.value = await getActiveMembers(
       selectedPeriod.value,
       platforms,
       teamMembers,
+      segments,
     );
   },
 );

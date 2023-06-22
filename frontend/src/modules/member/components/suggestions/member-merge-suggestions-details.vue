@@ -29,7 +29,7 @@
           v-if="props.isPrimary"
           class="bg-brand-500 rounded-full py-0.5 px-2 text-white inline-block text-xs leading-5 font-medium"
         >
-          Primary member
+          Primary contributor
         </div>
         <button
           v-else
@@ -100,7 +100,7 @@
           v-if="
             member.organizations.length || compareMember?.organizations.length
           "
-          class="flex items-center justify-between h-12 border-b border-gray-200"
+          class="flex items-center justify-between min-h-12 border-b border-gray-200 py-2"
         >
           <p class="text-2xs font-medium text-gray-500 pr-4">
             Organization
@@ -126,7 +126,7 @@
           class="flex items-center justify-between h-12 border-b border-gray-200"
         >
           <p class="text-2xs font-medium text-gray-500 pr-4">
-            Member since
+            Contributor since
           </p>
           <p class="text-xs text-gray-900 text-right">
             {{ moment(member.joinedAt).format('YYYY-MM-DD') }}

@@ -134,7 +134,7 @@ const datasets = computed(() => [
     measure: 'Members.cumulativeCount',
     granularity: granularity.value,
     ...(!props.isPublicView && {
-      tooltipBtn: 'View members',
+      tooltipBtn: 'View contributors',
     }),
   },
 ]);
@@ -147,6 +147,7 @@ const query = computed(() => TOTAL_MEMBERS_QUERY({
   granularity,
   selectedPlatforms: props.filters.platform.value,
   selectedHasTeamMembers: props.filters.teamMembers,
+  selectedSegments: props.filters.segments,
 }));
 
 const kpiCurrentValue = (resultSet) => {
@@ -192,18 +193,19 @@ const chartResultSet = (resultSet) => {
 
 // Fetch function to pass to detail drawer
 const getTotalMembers = async ({ pagination }) => {
-  const res = await MemberService.list(
-    TOTAL_MEMBERS_FILTER({
+  const res = await MemberService.list({
+    customFilters: TOTAL_MEMBERS_FILTER({
       date: drawerDate.value,
       granularity: granularity.value,
       selectedPlatforms: props.filters.platform.value,
       selectedHasTeamMembers: props.filters.teamMembers,
     }),
-    'joinedAt_DESC',
-    pagination.pageSize,
-    (pagination.currentPage - 1) * pagination.pageSize,
-    false,
-  );
+    orderBy: 'joinedAt_DESC',
+    limit: pagination.pageSize,
+    offset: (pagination.currentPage - 1) * pagination.pageSize,
+    segments: props.filters.segments,
+    buildFilter: false,
+  });
   return res;
 };
 
@@ -212,7 +214,7 @@ const getTotalMembers = async ({ pagination }) => {
 const onViewMoreClick = (date) => {
   window.analytics.track('Open report drawer', {
     template: MEMBERS_REPORT.nameAsId,
-    widget: 'Total members',
+    widget: 'Total contributors',
     date,
     granularity: granularity.value,
   });
@@ -222,11 +224,11 @@ const onViewMoreClick = (date) => {
 
   // Title
   if (granularity.value === 'week') {
-    drawerTitle.value = 'Weekly total members';
+    drawerTitle.value = 'Weekly total contributors';
   } else if (granularity.value === 'month') {
-    drawerTitle.value = 'Monthly total members';
+    drawerTitle.value = 'Monthly total contributors';
   } else {
-    drawerTitle.value = 'Daily total members';
+    drawerTitle.value = 'Daily total contributors';
   }
 };
 
@@ -241,6 +243,7 @@ const onExport = async ({ count }) => {
         selectedHasTeamMembers: props.filters.teamMembers,
       }),
       count,
+      segments: props.filters.segments,
     });
   } catch (error) {
     console.error(error);

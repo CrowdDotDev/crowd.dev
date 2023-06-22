@@ -4,7 +4,7 @@
     class="app-list-table-bulk-actions"
   >
     <span class="block text-sm font-semibold mr-4">
-      {{ pluralize('member', selectedMembers.length, true) }}
+      {{ pluralize('contributor', selectedMembers.length, true) }}
       selected</span>
     <el-dropdown trigger="click" @command="handleCommand">
       <button type="button" class="btn btn--bordered btn--sm">
@@ -22,11 +22,11 @@
           :disabled="isEditLockedForSampleData"
         >
           <i class="ri-lg ri-group-line mr-1" />
-          Merge members
+          Merge contributors
         </el-dropdown-item>
         <el-tooltip
           placement="top"
-          content="Selected members lack an associated GitHub profile or Email"
+          content="Selected contributors lack an associated GitHub profile or Email"
           :disabled="
             elegibleEnrichmentMembersIds.length
               || isEditLockedForSampleData
@@ -121,6 +121,7 @@ import {
   showEnrichmentLoadingMessage,
 } from '@/modules/member/member-enrichment';
 import AppMemberListBulkUpdateTags from '@/modules/member/components/list/member-list-bulk-update-tags.vue';
+import AppSvg from '@/shared/svg/svg.vue';
 
 const { currentUser, currentTenant } = mapGetters('auth');
 const { doRefreshCurrentUser } = mapActions('auth');
@@ -167,14 +168,14 @@ const enrichmentLabel = computed(() => {
     === elegibleEnrichmentMembersIds.value.length
   ) {
     return `Re-enrich ${pluralize(
-      'member',
+      'contributor',
       selectedIds.value.length,
       false,
     )}`;
   }
 
   return `Enrich ${pluralize(
-    'member',
+    'contributor',
     selectedIds.value.length,
     false,
   )}`;
@@ -185,7 +186,7 @@ const selectedIds = computed(() => selectedMembers.value.map((item) => item.id))
 const markAsTeamMemberOptions = computed(() => {
   const isTeamView = filters.value.settings.teamMember === 'filter';
   const membersCopy = pluralize(
-    'member',
+    'contributor',
     selectedMembers.value.length,
     false,
   );
@@ -209,17 +210,17 @@ const handleMergeMembers = () => {
   const [firstMember, secondMember] = this.selectedRows;
   return MemberService.merge(firstMember, secondMember)
     .then(() => {
-      Message.success('Members merged successfuly');
+      Message.success('Contributors merged successfuly');
       fetchMembers({ reload: true });
     })
     .catch(() => {
-      Message.error('Error merging members');
+      Message.error('Error merging contributors');
     });
 };
 
 const doDestroyAllWithConfirm = () => ConfirmDialog({
   type: 'danger',
-  title: 'Delete members',
+  title: 'Delete contributors',
   message:
         "Are you sure you want to proceed? You can't undo this action",
   confirmButtonText: 'Confirm',
@@ -250,16 +251,16 @@ const handleDoExport = async () => {
     await showExportDialog({
       tenantCsvExportCount,
       planExportCountMax,
-      badgeContent: pluralize('member', selectedMembers.value.length, true),
+      badgeContent: pluralize('contributor', selectedMembers.value.length, true),
     });
 
-    await MemberService.export(
+    await MemberService.export({
       filter,
-      `${filters.value.order.prop}_${filters.value.order.order === 'descending' ? 'DESC' : 'ASC'}`,
-      0,
-      null,
-      false,
-    );
+      orderBy: `${filters.value.order.prop}_${filters.value.order.order === 'descending' ? 'DESC' : 'ASC'}`,
+      limit: 0,
+      offset: null,
+      buildFilter: false,
+    });
 
     await doRefreshCurrentUser(null);
 
@@ -298,11 +299,11 @@ const doMarkAsTeamMember = (value) => {
         default: value,
       },
     },
-  })))
+  }, member.segmentIds)))
     .then(() => {
       fetchMembers({ reload: true });
       Message.success(
-        `Member${
+        `Contributor${
           selectedMembers.value.length > 1 ? 's' : ''
         } updated successfully`,
       );
@@ -327,9 +328,9 @@ const handleCommand = async (command) => {
 
     if (enrichedMembers.value) {
       reEnrichmentMessage = enrichedMembers.value === 1
-        ? 'You selected 1 member that was already enriched. If you proceed, this member will be re-enriched and counted towards your quota.'
-        : `You selected ${enrichedMembers.value} members that were already enriched. If you proceed,
-            these members will be re-enriched and counted towards your quota.`;
+        ? 'You selected 1 contributor that was already enriched. If you proceed, this contributor will be re-enriched and counted towards your quota.'
+        : `You selected ${enrichedMembers.value} contributors that were already enriched. If you proceed,
+            these contributors will be re-enriched and counted towards your quota.`;
     }
 
     // All members are elegible for enrichment
@@ -340,10 +341,10 @@ const handleCommand = async (command) => {
         try {
           await ConfirmDialog({
             type: 'warning',
-            title: 'Some members were already enriched',
+            title: 'Some contributors were already enriched',
             message: reEnrichmentMessage,
             confirmButtonText: `Proceed with enrichment (${pluralize(
-              'member',
+              'contributor',
               enrichments,
               true,
             )})`,
@@ -361,12 +362,12 @@ const handleCommand = async (command) => {
         await ConfirmDialog({
           type: 'warning',
           title:
-            'Some members lack an associated GitHub profile or Email',
+            'Some contributors lack an associated GitHub profile or Email',
           message:
-            'Member enrichment requires an associated GitHub profile or Email. If you proceed, only the members who fulfill '
+            'Contributor enrichment requires an associated GitHub profile or Email. If you proceed, only the contributors who fulfill '
             + 'this requirement will be enriched and counted towards your quota.',
           confirmButtonText: `Proceed with enrichment (${pluralize(
-            'member',
+            'contributor',
             enrichments,
             true,
           )})`,
@@ -409,6 +410,7 @@ const handleCommand = async (command) => {
       showEnrichmentLoadingMessage({ isBulk: true });
 
       await MemberService.enrichMemberBulk(elegibleEnrichmentMembersIds.value);
+      fetchMembers({ reload: true });
 
       await getMemberCustomAttributes();
     }

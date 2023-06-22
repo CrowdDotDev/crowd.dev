@@ -86,6 +86,10 @@ const props = defineProps({
     type: String,
     required: true,
   },
+  segmentId: {
+    type: String,
+    required: true,
+  },
 });
 
 const open = ref(false);
@@ -103,7 +107,8 @@ const model = computed({
 
 const computedPublicLink = computed(() => {
   const tenantId = AuthCurrentTenant.get();
-  return `${window.location.origin}/tenant/${tenantId}/reports/${props.id}/public`;
+
+  return `${window.location.origin}/tenant/${tenantId}/reports/${props.segmentId}/${props.id}/public`;
 });
 
 const copyPublicLinkToClipboard = async () => {
@@ -120,9 +125,11 @@ const handlePublicChange = async (value) => {
     id: props.id,
     values: {
       public: value,
+      ...({ ...props.segmentId ? null : { excludeSegments: true } }),
     },
     successMessage: `Report successfully ${value ? 'published' : 'unpublished'}`,
     errorMessage: `There was an error ${value ? 'publishing' : 'unpublishing'} your report`,
+    segments: [props.segmentId],
   });
 };
 </script>

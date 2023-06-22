@@ -4,22 +4,28 @@ import AuthCurrentTenant from '@/modules/auth/auth-current-tenant';
 import config from '@/config';
 
 export class ReportService {
-  static async update(id, data) {
+  static async update(id, data, segments) {
     const tenantId = AuthCurrentTenant.get();
 
     const response = await authAxios.put(
       `/tenant/${tenantId}/report/${id}`,
-      data,
+      {
+        ...data,
+        segments,
+      },
     );
 
     return response.data;
   }
 
-  static async duplicate(id) {
+  static async duplicate(id, segments) {
     const tenantId = AuthCurrentTenant.get();
 
     const response = await authAxios.post(
       `/tenant/${tenantId}/report/${id}/duplicate`,
+      {
+        segments,
+      },
     );
 
     return response.data;
@@ -36,6 +42,7 @@ export class ReportService {
       `/tenant/${tenantId}/report`,
       {
         params,
+        excludeSegments: true,
       },
     );
 
@@ -53,19 +60,32 @@ export class ReportService {
     return response.data;
   }
 
-  static async find(id) {
+  static async find(id, segments) {
     const tenantId = AuthCurrentTenant.get();
 
     const response = await authAxios.get(
       `/tenant/${tenantId}/report/${id}`,
+      {
+        params: {
+          segments,
+          ...{ ...segments ? null : { excludeSegments: true } },
+          ...{ ...segments ? { segments } : null },
+        },
+      },
     );
 
     return response.data;
   }
 
-  static async findPublic(id, tenantId) {
+  static async findPublic(id, tenantId, segments, excludeSegments = false) {
     const response = await axios.get(
       `${config.backendUrl}/tenant/${tenantId}/report/${id}`,
+      {
+        params: {
+          ...{ ...excludeSegments ? { excludeSegments } : null },
+          ...{ ...excludeSegments ? null : { segments } },
+        },
+      },
     );
 
     return response.data;
@@ -83,24 +103,6 @@ export class ReportService {
 
     const response = await authAxios.get(
       `/tenant/${tenantId}/report`,
-      {
-        params,
-      },
-    );
-
-    return response.data;
-  }
-
-  static async listAutocomplete(query, limit) {
-    const params = {
-      query,
-      limit,
-    };
-
-    const tenantId = AuthCurrentTenant.get();
-
-    const response = await authAxios.get(
-      `/tenant/${tenantId}/report/autocomplete`,
       {
         params,
       },

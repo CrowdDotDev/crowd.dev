@@ -110,6 +110,10 @@ const props = defineProps({
     type: Object,
     default: () => {},
   },
+  segments: {
+    type: Array,
+    default: () => [],
+  },
 });
 
 const model = computed({
@@ -121,7 +125,11 @@ const model = computed({
   },
 });
 
-const fetchOrganizationsFn = (query, limit) => OrganizationService.listAutocomplete(query, limit)
+const fetchOrganizationsFn = ({ query, limit }) => OrganizationService.listAutocomplete({
+  query,
+  limit,
+  segments: props.segments,
+})
   .then((options) => options.filter((m) => m.id !== props.id))
   .catch(() => []);
 

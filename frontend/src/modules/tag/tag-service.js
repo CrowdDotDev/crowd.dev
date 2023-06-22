@@ -7,7 +7,10 @@ export class TagService {
 
     const response = await authAxios.put(
       `/tenant/${tenantId}/tag/${id}`,
-      data,
+      {
+        ...data,
+        excludeSegments: true,
+      },
     );
 
     return response.data;
@@ -16,6 +19,7 @@ export class TagService {
   static async destroyAll(ids) {
     const params = {
       ids,
+      excludeSegments: true,
     };
 
     const tenantId = AuthCurrentTenant.get();
@@ -35,23 +39,10 @@ export class TagService {
 
     const response = await authAxios.post(
       `/tenant/${tenantId}/tag`,
-      data,
-    );
-
-    return response.data;
-  }
-
-  static async import(values, importHash) {
-    const body = {
-      data: values,
-      importHash,
-    };
-
-    const tenantId = AuthCurrentTenant.get();
-
-    const response = await authAxios.post(
-      `/tenant/${tenantId}/tag/import`,
-      body,
+      {
+        ...data,
+        excludeSegments: true,
+      },
     );
 
     return response.data;
@@ -62,12 +53,22 @@ export class TagService {
 
     const response = await authAxios.get(
       `/tenant/${tenantId}/tag/${id}`,
+      {
+        params: {
+          excludeSegments: true,
+        },
+      },
     );
 
     return response.data;
   }
 
-  static async list(filter, orderBy, limit, offset) {
+  static async list({
+    filter,
+    orderBy,
+    limit,
+    offset,
+  }) {
     const params = {
       filter,
       orderBy,
@@ -87,10 +88,14 @@ export class TagService {
     return response.data;
   }
 
-  static async listAutocomplete(query, limit) {
+  static async listAutocomplete({
+    query,
+    limit,
+  }) {
     const params = {
       query,
       limit,
+      excludeSegments: true,
     };
 
     const tenantId = AuthCurrentTenant.get();

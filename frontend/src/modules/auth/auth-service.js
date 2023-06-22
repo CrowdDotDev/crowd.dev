@@ -11,6 +11,7 @@ export class AuthService {
         tenantId: tenantSubdomain.isSubdomain
           ? AuthCurrentTenant.get()
           : undefined,
+        excludeSegments: true,
       })
       .then((response) => response.data);
   }
@@ -22,6 +23,7 @@ export class AuthService {
         tenantId: tenantSubdomain.isSubdomain
           ? AuthCurrentTenant.get()
           : undefined,
+        excludeSegments: true,
       })
       .then((response) => response.data);
   }
@@ -42,6 +44,7 @@ export class AuthService {
         tenantId: tenantSubdomain.isSubdomain
           ? AuthCurrentTenant.get()
           : undefined,
+        excludeSegments: true,
       })
       .then((response) => {
         AuthInvitationToken.clear();
@@ -61,6 +64,7 @@ export class AuthService {
         tenantId: tenantSubdomain.isSubdomain
           ? AuthCurrentTenant.get()
           : undefined,
+        excludeSegments: true,
       })
       .then((response) => {
         AuthInvitationToken.clear();
@@ -70,7 +74,11 @@ export class AuthService {
   }
 
   static fetchMe() {
-    return authAxios.get('/auth/me').then((response) => response.data);
+    return authAxios.get('/auth/me', {
+      params: {
+        excludeSegments: true,
+      },
+    }).then((response) => response.data);
   }
 
   static signout() {
@@ -79,7 +87,10 @@ export class AuthService {
 
   static updateProfile(data) {
     return authAxios
-      .put('/auth/profile', data)
+      .put('/auth/profile', {
+        ...data,
+        excludeSegments: true,
+      })
       .then((response) => response.data);
   }
 
@@ -87,6 +98,7 @@ export class AuthService {
     const body = {
       oldPassword,
       newPassword,
+      excludeSegments: true,
     };
 
     return authAxios
@@ -102,6 +114,7 @@ export class AuthService {
         tenantId: tenantSubdomain.isSubdomain
           ? AuthCurrentTenant.get()
           : undefined,
+        excludeSegments: true,
       })
       .then((response) => response.data);
   }
@@ -113,6 +126,7 @@ export class AuthService {
         tenantId: tenantSubdomain.isSubdomain
           ? AuthCurrentTenant.get()
           : undefined,
+        excludeSegments: true,
       })
       .then((response) => response.data);
   }
@@ -126,6 +140,7 @@ export class AuthService {
         tenantId: tenantSubdomain.isSubdomain
           ? AuthCurrentTenant.get()
           : undefined,
+        excludeSegments: true,
       })
       .then((response) => {
         AuthInvitationToken.clear();

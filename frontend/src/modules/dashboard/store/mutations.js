@@ -25,4 +25,7 @@ export default {
   SET_RECENT_ORGANIZATIONS(state, { rows }) {
     state.organizations.recent = rows;
   },
+  SET_SEGMENTS(state, { segments }) {
+    state.filters.segments = segments;
+  },
 };

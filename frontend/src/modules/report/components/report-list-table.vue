@@ -7,17 +7,7 @@
     />
 
     <div v-else>
-      <!-- Empty state -->
-      <app-empty-state-cta
-        v-if="count === 0"
-        icon="ri-bar-chart-line"
-        title="No reports yet"
-        description="Please create your first report to start analyzing data from your community"
-        cta-btn="Add report"
-        @cta-click="$emit('cta-click')"
-      />
-
-      <div v-else>
+      <div>
         <!-- Sorter -->
         <div class="mb-2">
           <app-pagination-sorter
@@ -61,6 +51,7 @@
                       name: 'reportView',
                       params: {
                         id: scope.row.id,
+                        segmentId: scope.row.segmentId,
                       },
                     }"
                     class="flex items-center text-black"
@@ -126,7 +117,7 @@
 
 <script setup>
 import {
-  defineEmits, ref, watch, computed,
+  ref, watch, computed,
 } from 'vue';
 import { useStore } from 'vuex';
 import { useRouter } from 'vue-router';
@@ -135,7 +126,6 @@ import AppReportListToolbar from './report-list-toolbar.vue';
 
 const store = useStore();
 const router = useRouter();
-defineEmits(['cta-click']);
 
 const table = ref(null);
 
@@ -205,7 +195,10 @@ function rowClass({ row }) {
 function handleRowClick(row) {
   router.push({
     name: 'reportView',
-    params: { id: row.id },
+    params: {
+      id: row.id,
+      segmentId: row.segmentId,
+    },
   });
 }
 </script>

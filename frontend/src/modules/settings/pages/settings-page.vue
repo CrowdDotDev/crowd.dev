@@ -26,9 +26,6 @@
             v-if="activeTab === 'api-keys'"
           />
         </el-tab-pane>
-        <el-tab-pane label="Plans & pricing" name="plans">
-          <app-plans-page v-if="activeTab === 'plans'" />
-        </el-tab-pane>
       </el-tabs>
     </div>
   </app-page-wrapper>
@@ -37,19 +34,18 @@
 <script>
 import { mapGetters } from 'vuex';
 import AppApiKeysPage from '@/modules/settings/pages/api-keys-page.vue';
-import AppPlansPage from '@/modules/settings/pages/plans-page.vue';
 import UserListPage from '@/modules/user/pages/user-list-page.vue';
-import AutomationListPage from '@/modules/automation/pages/automation-list-page.vue';
 import { UserPermissions } from '@/modules/user/user-permissions';
+import { useLfSegmentsStore } from '@/modules/lf/segments/store';
+import AppAutomationListPage from '@/modules/automation/pages/automation-list-page.vue';
 
 export default {
   name: 'AppSettingsPage',
 
   components: {
     AppApiKeysPage,
-    AppPlansPage,
     'app-user-list-page': UserListPage,
-    'app-automation-list-page': AutomationListPage,
+    AppAutomationListPage,
   },
 
   data() {
@@ -93,6 +89,10 @@ export default {
   },
 
   created() {
+    const lsSegmentsStore = useLfSegmentsStore();
+    const { updateSelectedProjectGroup } = lsSegmentsStore;
+
+    updateSelectedProjectGroup(null);
     const urlSearchParams = new URLSearchParams(
       window.location.search,
     );

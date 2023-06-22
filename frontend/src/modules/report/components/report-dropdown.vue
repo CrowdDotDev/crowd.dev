@@ -2,7 +2,7 @@
   <div v-if="isReadOnly">
     <el-button
       class="btn btn--secondary"
-      @click="copyToClipboard(report.id)"
+      @click="copyToClipboard()"
     >
       <i class="ri-lg ri-clipboard-line mr-1" />
       Copy Public Url
@@ -150,13 +150,14 @@ export default {
       }
       return null;
     },
-    async doDuplicate(id) {
-      ReportService.duplicate(id)
+    async doDuplicate(id, segmentId) {
+      ReportService.duplicate(id, [segmentId])
         .then((duplicate) => {
           this.$router.push({
             name: 'reportEdit',
             params: {
               id: duplicate.id,
+              segmentId: duplicate.segmentId,
             },
           });
           Message.success('Report duplicated successfuly');
@@ -171,18 +172,20 @@ export default {
           command.report.id,
         );
       } if (command.action === 'reportDuplicate') {
-        return this.doDuplicate(command.report.id);
+        return this.doDuplicate(command.report.id, command.report.segmentId);
       } if (command.action === 'reportPublicUrl') {
         return this.copyToClipboard(command.report.id);
       }
       return this.$router.push({
         name: command.action,
-        params: { id: command.report.id },
+        params: {
+          id: command.report.id,
+        },
       });
     },
-    async copyToClipboard(value) {
+    async copyToClipboard() {
       const tenantId = AuthCurrentTenant.get();
-      const url = `${window.location.origin}/tenant/${tenantId}/reports/${value}/public`;
+      const url = `${window.location.origin}/tenant/${tenantId}/reports/${this.report.segmentId}/${this.report.id}/public`;
       await navigator.clipboard.writeText(url);
       Message.success(
         'Report URL successfully copied to your clipboard',

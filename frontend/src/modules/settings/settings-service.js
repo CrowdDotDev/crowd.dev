@@ -7,6 +7,11 @@ export class SettingsService {
 
     const response = await authAxios.get(
       `/tenant/${tenantId}/settings`,
+      {
+        params: {
+          excludeSegments: true,
+        },
+      },
     );
 
     return response.data;
@@ -15,6 +20,7 @@ export class SettingsService {
   static async save(settings) {
     const body = {
       settings,
+      excludeSegments: true,
     };
 
     const tenantId = AuthCurrentTenant.get();

@@ -36,6 +36,7 @@
               clearable
               filterable
               placeholder="Measure/dimension"
+              :disabled="filter.select === 'Segments.id'"
               @change="
                 (value) =>
                   handleFilterChange(
@@ -61,6 +62,7 @@
               class="second-filter"
               clearable
               placeholder="Condition"
+              :disabled="filter.select === 'Segments.id'"
               @change="
                 (value) =>
                   handleFilterChange(
@@ -163,6 +165,7 @@
               class="third-filter"
               type="text"
               placeholder="Value"
+              :disabled="filter.select === 'Segments.id'"
               @change="
                 (value) =>
                   handleFilterChange(
@@ -182,6 +185,7 @@
             <button
               class="btn btn--transparent btn--md"
               type="button"
+              :disabled="filter.select === 'Segments.id'"
               @click.prevent="removeFilter(index)"
             >
               <i class="ri-lg ri-delete-bin-line" />
@@ -255,6 +259,10 @@ export default {
       type: Function,
       default: () => {},
     },
+    segmentId: {
+      type: String,
+      default: null,
+    },
   },
   data() {
     return {
@@ -263,19 +271,22 @@ export default {
           noDimension: [
             'Activities.platform',
             'Activities.type',
+            'Segments.name',
           ],
           Activities: [
             'Activities.platform',
             'Activities.type',
             'Activities.date',
+            'Segments.name',
           ],
           Members: [
             'Members.score',
             'Members.joinedAt',
             'Members.location',
             'Members.organization',
+            'Segments.name',
           ],
-          Tags: ['Tags.name'],
+          Tags: ['Tags.name', 'Segments.name'],
         },
         'Members.count': {
           noDimension: [
@@ -283,18 +294,21 @@ export default {
             'Members.joinedAt',
             'Members.location',
             'Members.organization',
+            'Segments.name',
           ],
           Activities: [
             'Activities.platform',
             'Activities.type',
             'Activities.date',
+            'Segments.name',
           ],
           Members: [
             'Members.score',
             'Members.location',
             'Members.organization',
+            'Segments.name',
           ],
-          Tags: ['Tags.name'],
+          Tags: ['Tags.name', 'Segments.name'],
         },
       },
       actionItems: [
@@ -332,7 +346,7 @@ export default {
         },
       ],
       localFilters: [],
-    };
+    }
   },
   computed: {
     computedFilters() {
@@ -365,7 +379,7 @@ export default {
     }),
   },
   async created() {
-    await this.doFetchIntegrations();
+    await this.doFetchIntegrations([this.segmentId]);
     this.localFilters = this.initFilters() || [];
   },
   methods: {

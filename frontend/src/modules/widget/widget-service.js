@@ -1,5 +1,6 @@
 import authAxios from '@/shared/axios/auth-axios';
 import AuthCurrentTenant from '@/modules/auth/auth-current-tenant';
+import { router } from '@/router';
 
 export class WidgetService {
   static async update(id, data) {
@@ -7,7 +8,10 @@ export class WidgetService {
 
     const response = await authAxios.put(
       `/tenant/${tenantId}/widget/${id}`,
-      data,
+      {
+        ...data,
+        excludeSegments: true,
+      },
     );
 
     return response.data;
@@ -16,6 +20,7 @@ export class WidgetService {
   static async destroyAll(ids) {
     const params = {
       ids,
+      excludeSegments: true,
     };
 
     const tenantId = AuthCurrentTenant.get();
@@ -35,7 +40,10 @@ export class WidgetService {
 
     const response = await authAxios.post(
       `/tenant/${tenantId}/widget`,
-      data,
+      {
+        ...data,
+        excludeSegments: true,
+      },
     );
 
     return response.data;
@@ -51,6 +59,9 @@ export class WidgetService {
         headers: {
           Authorization: sampleTenant?.token,
         },
+        params: {
+          excludeSegments: true,
+        },
       },
     );
 
@@ -63,6 +74,7 @@ export class WidgetService {
       orderBy,
       limit,
       offset,
+      excludeSegments: true,
     };
 
     const sampleTenant = AuthCurrentTenant.getSampleTenantData();
@@ -81,10 +93,14 @@ export class WidgetService {
     return response.data;
   }
 
-  static async listAutocomplete(query, limit) {
+  static async listAutocomplete({
+    query,
+    limit,
+  }) {
     const params = {
       query,
       limit,
+      excludeSegments: true,
     };
 
     const tenantId = AuthCurrentTenant.get();
@@ -100,6 +116,12 @@ export class WidgetService {
   }
 
   static async getCubeToken() {
+    let segments = [];
+
+    if (router.currentRoute.value.params.segmentId) {
+      segments = [router.currentRoute.value.params.segmentId];
+    }
+
     const sampleTenant = AuthCurrentTenant.getSampleTenantData();
     const tenantId = sampleTenant?.id || AuthCurrentTenant.get();
 
@@ -108,6 +130,9 @@ export class WidgetService {
       {
         headers: {
           Authorization: sampleTenant?.token,
+        },
+        params: {
+          segments,
         },
       },
     );
