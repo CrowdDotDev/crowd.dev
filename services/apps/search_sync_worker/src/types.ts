@@ -290,7 +290,7 @@ const prefixedMapping = {
     {
       nested_objects: {
         match_pattern: 'regex',
-        match: 'nested_.*',
+        match: 'obj_arr_.*',
         path_match: '.*',
         mapping: {
           type: 'nested',
@@ -300,7 +300,7 @@ const prefixedMapping = {
     {
       nox_nested_objects: {
         match_pattern: 'regex',
-        match: 'nox_nested_.*',
+        match: 'nox_obj_arr_.*',
         path_match: '.*',
         mapping: {
           type: 'nested',

@@ -215,3 +215,10 @@ export interface SampleDataConfiguration {
 export interface IntegrationProcessingConfiguration {
   maxRetries: number
 }
+
+export interface IOpenSearchConfig {
+  node: string
+  region?: string
+  accessKeyId?: string
+  secretAccessKey?: string
+}

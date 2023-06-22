@@ -22,3 +22,6 @@ export * from './errors'
 export * from './enums/platforms'
 
 export * from './pubsub'
+
+export * from './enums/opensearch'
+export * from './opensearch'

@@ -5,7 +5,10 @@ import {
   ALL_PLATFORM_TYPES,
   MemberAttributeType,
   PlatformType,
+  OpenSearchIndex,
 } from '@crowd/types'
+
+import { FieldTranslatorFactory, OpensearchQueryParser } from '@crowd/opensearch'
 import { KUBE_MODE, SERVICE } from '../../conf'
 import { ServiceType } from '../../conf/configTypes'
 import Error404 from '../../errors/Error404'
@@ -1572,6 +1575,72 @@ class MemberRepository {
       limit,
       offset,
     }
+  }
+
+  static async findAndCountAllOpensearch(
+    {
+      filter = {} as any,
+      limit = 20,
+      offset = 0,
+      orderBy = 'joinedAt_DESC',
+      countOnly = false,
+      attributesSettings = [] as AttributeData[],
+    },
+    options: IRepositoryOptions,
+  ): Promise<PageData<any>> {
+    const tenant = SequelizeRepository.getCurrentTenant(options)
+
+    const translator = FieldTranslatorFactory.getTranslator(
+      OpenSearchIndex.MEMBERS,
+      attributesSettings,
+      [
+        'default',
+        'custom',
+        'enrichment',
+        ...(await TenantRepository.getAvailablePlatforms(options.currentTenant.id, options)).map(
+          (p) => p.platform,
+        ),
+      ],
+    )
+
+    const parsed = OpensearchQueryParser.parse(
+      { filter, limit, offset, orderBy },
+      OpenSearchIndex.MEMBERS,
+      translator,
+    )
+
+    // add tenant filter to parsed query
+    parsed.query.bool.must.push({
+      term: {
+        uuid_tenantId: tenant.id,
+      },
+    })
+
+    const countResponse = await options.opensearch.count({
+      index: OpenSearchIndex.MEMBERS,
+      body: { query: parsed.query },
+    })
+
+    if (countOnly) {
+      return {
+        rows: [],
+        count: countResponse.body.count,
+        limit,
+        offset,
+      }
+    }
+
+    const response = await options.opensearch.search({
+      index: OpenSearchIndex.MEMBERS,
+      body: parsed,
+    })
+
+    // const translated = response.body.hits.hits[0]._source
+    const translatedRows = response.body.hits.hits.map((o) =>
+      translator.translateObjectToCrowd(o._source),
+    )
+
+    return { rows: translatedRows, count: countResponse.body.count, limit, offset }
   }
 
   static async findAndCountAll(

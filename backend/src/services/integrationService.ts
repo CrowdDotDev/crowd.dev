@@ -427,12 +427,12 @@ export default class IntegrationService {
       }
 
       const emitter = await getIntegrationRunWorkerEmitter()
-        await emitter.triggerIntegrationRun(
-          integration.tenantId,
-          integration.platform,
-          integration.id,
-          true,
-        )
+      await emitter.triggerIntegrationRun(
+        integration.tenantId,
+        integration.platform,
+        integration.id,
+        true,
+      )
 
       return integration
     }

@@ -26,4 +26,5 @@ setImmediate(async () => {
   for (const tenantId of tenantIds) {
     await service.syncTenantMembers(tenantId, false, 500)
   }
+  process.exit(0)
 })
