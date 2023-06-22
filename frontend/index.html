@@ -67,10 +67,10 @@
       let segmentKey =
               '%VUE_APP_SEGMENT_KEY%'
 
-      if (!segmentKey) {
+      if (!segmentKey || segmentKey.startsWith('%VUE_APP_SEGMENT_KEY')) {
         segmentKey = 'CROWD_VUE_APP_SEGMENT_KEY'
       }
-      if(segmentKey && !segmentKey.startsWith('%VUE_APP_SEGMENT_KEY')) {
+      if(segmentKey && !segmentKey.includes('VUE_APP_SEGMENT_KEY')) {
         !(function() {
           var analytics = (window.analytics =
                   window.analytics || [])
@@ -140,11 +140,11 @@
 
       let pendoKey = '%VUE_APP_PENDO_KEY%'
 
-      if (!pendoKey) {
+      if (!pendoKey || pendoKey.startsWith('%VUE_APP_PENDO_KEY')) {
         pendoKey = 'CROWD_VUE_APP_PENDO_KEY'
       }
 
-      if(pendoKey && !pendoKey.startsWith('%VUE_APP_PENDO_KEY')){
+      if(pendoKey && !pendoKey.includes('VUE_APP_PENDO_KEY')){
         ;(function (apiKey) {
           ;(function (p, e, n, d, o) {
             var v, w, x, y, z

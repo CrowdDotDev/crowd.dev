@@ -96,6 +96,10 @@ export class OpensearchQueryParser {
     const operator = conditionKeys[0] as Operator
     let value = filters[operator]
 
+    if (typeof value === 'string') {
+      value = value.toLowerCase()
+    }
+
     if (operator === Operator.EQUAL) {
       if (value === null) {
         return {
@@ -111,7 +115,7 @@ export class OpensearchQueryParser {
 
       return {
         term: {
-          [searchKey]: value.toLowerCase(),
+          [searchKey]: value,
         },
       }
     }
@@ -134,7 +138,6 @@ export class OpensearchQueryParser {
     }
 
     if (operator === Operator.LIKE || operator === Operator.TEXT_CONTAINS) {
-      value = value.toLowerCase()
       return {
         wildcard: {
           [searchKey]: {
@@ -165,7 +168,6 @@ export class OpensearchQueryParser {
     }
 
     if (operator === Operator.NOT_LIKE || operator === Operator.NOT_TEXT_CONTAINS) {
-      value = value.toLowerCase()
       return {
         bool: {
           must_not: {
@@ -206,7 +208,6 @@ export class OpensearchQueryParser {
     }
 
     if (operator === Operator.REGEX) {
-      value = value.toLowerCase()
       return {
         regexp: {
           [searchKey]: {
@@ -217,7 +218,6 @@ export class OpensearchQueryParser {
     }
 
     if (operator === Operator.NOT_REGEX) {
-      value = value.toLowerCase()
       return {
         bool: {
           must_not: {
