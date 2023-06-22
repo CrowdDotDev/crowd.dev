@@ -14,7 +14,7 @@ import { ServiceType } from '../../conf/configTypes'
 import Error404 from '../../errors/Error404'
 import { PlatformIdentities } from '../../serverless/integrations/types/messageTypes'
 import ActivityDisplayService from '../../services/activityDisplayService'
-import { PageData } from '../../types/common'
+import { FeatureFlag, PageData } from '../../types/common'
 import { AttributeData } from '../attributes/attribute'
 import SequelizeFilterUtils from '../utils/sequelizeFilterUtils'
 import { IRepositoryOptions } from './IRepositoryOptions'
@@ -38,6 +38,7 @@ import {
   MemberSegmentAffiliationJoined,
 } from '../../types/memberSegmentAffiliationTypes'
 import MemberSegmentAffiliationRepository from './memberSegmentAffiliationRepository'
+import isFeatureEnabled from '../../feature-flags/isFeatureEnabled'
 
 const { Op } = Sequelize
 
@@ -1648,12 +1649,14 @@ class MemberRepository {
       },
     })
 
-    // add segment filter
-    parsed.query.bool.must.push({
-      term: {
-        uuid_segmentId: segment.id,
-      },
-    })
+    if (await isFeatureEnabled(FeatureFlag.SEGMENTS, options)){
+      // add segment filter
+      parsed.query.bool.must.push({
+        term: {
+          uuid_segmentId: segment.id,
+        },
+      })
+    }
 
     const countResponse = await options.opensearch.count({
       index: OpenSearchIndex.MEMBERS,
