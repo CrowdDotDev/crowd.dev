@@ -9,7 +9,7 @@ export const OPENSEARCH_INDEX_MAPPINGS: Record<OpenSearchIndex, unknown> = {
       {
         strings: {
           match_pattern: 'regex',
-          match: 'string_.*',
+          match: '^string_.*',
           path_match: '.*',
           mapping: {
             type: 'text',
@@ -19,7 +19,7 @@ export const OPENSEARCH_INDEX_MAPPINGS: Record<OpenSearchIndex, unknown> = {
       {
         uuids: {
           match_pattern: 'regex',
-          match: 'uuid_.*',
+          match: '^uuid_.*',
           path_match: '.*',
           mapping: {
             type: 'keyword',
@@ -30,7 +30,7 @@ export const OPENSEARCH_INDEX_MAPPINGS: Record<OpenSearchIndex, unknown> = {
       {
         integers: {
           match_pattern: 'regex',
-          match: 'int_.*',
+          match: '^int_.*',
           path_match: '.*',
           mapping: {
             type: 'integer',
@@ -40,7 +40,7 @@ export const OPENSEARCH_INDEX_MAPPINGS: Record<OpenSearchIndex, unknown> = {
       {
         floats: {
           match_pattern: 'regex',
-          match: 'float_.*',
+          match: '^float_.*',
           path_match: '.*',
           mapping: {
             type: 'float',
@@ -50,7 +50,7 @@ export const OPENSEARCH_INDEX_MAPPINGS: Record<OpenSearchIndex, unknown> = {
       {
         bytes: {
           match_pattern: 'regex',
-          match: 'byte_.*',
+          match: '^byte_.*',
           path_match: '.*',
           mapping: {
             type: 'byte',
@@ -60,7 +60,7 @@ export const OPENSEARCH_INDEX_MAPPINGS: Record<OpenSearchIndex, unknown> = {
       {
         doubles: {
           match_pattern: 'regex',
-          match: 'double_.*',
+          match: '^double_.*',
           path_match: '.*',
           mapping: {
             type: 'double',
@@ -70,7 +70,7 @@ export const OPENSEARCH_INDEX_MAPPINGS: Record<OpenSearchIndex, unknown> = {
       {
         half_floats: {
           match_pattern: 'regex',
-          match: 'half_float_.*',
+          match: '^half_float_.*',
           path_match: '.*',
           mapping: {
             type: 'half_float',
@@ -80,7 +80,7 @@ export const OPENSEARCH_INDEX_MAPPINGS: Record<OpenSearchIndex, unknown> = {
       {
         longs: {
           match_pattern: 'regex',
-          match: 'long_.*',
+          match: '^long_.*',
           path_match: '.*',
           mapping: {
             type: 'long',
@@ -90,7 +90,7 @@ export const OPENSEARCH_INDEX_MAPPINGS: Record<OpenSearchIndex, unknown> = {
       {
         shorts: {
           match_pattern: 'regex',
-          match: 'short_.*',
+          match: '^short_.*',
           path_match: '.*',
           mapping: {
             type: 'short',
@@ -101,7 +101,7 @@ export const OPENSEARCH_INDEX_MAPPINGS: Record<OpenSearchIndex, unknown> = {
       {
         dates: {
           match_pattern: 'regex',
-          match: 'date_.*',
+          match: '^date_.*',
           path_match: '.*',
           mapping: {
             type: 'date',
@@ -114,7 +114,7 @@ export const OPENSEARCH_INDEX_MAPPINGS: Record<OpenSearchIndex, unknown> = {
       {
         booleans: {
           match_pattern: 'regex',
-          match: 'bool_.*',
+          match: '^bool_.*',
           path_match: '.*',
           mapping: {
             type: 'boolean',
@@ -125,7 +125,7 @@ export const OPENSEARCH_INDEX_MAPPINGS: Record<OpenSearchIndex, unknown> = {
       {
         objects: {
           match_pattern: 'regex',
-          match: 'obj_.*',
+          match: '^obj_.*',
           path_match: '.*',
           mapping: {
             type: 'object',
@@ -135,7 +135,7 @@ export const OPENSEARCH_INDEX_MAPPINGS: Record<OpenSearchIndex, unknown> = {
       {
         nested_objects: {
           match_pattern: 'regex',
-          match: 'nested_.*',
+          match: '^obj_arr_.*',
           path_match: '.*',
           mapping: {
             type: 'nested',
@@ -145,7 +145,7 @@ export const OPENSEARCH_INDEX_MAPPINGS: Record<OpenSearchIndex, unknown> = {
       {
         string_arrays: {
           match_pattern: 'regex',
-          match: 'string_arr_.*',
+          match: '^string_arr_.*',
           path_match: '.*',
           mapping: {
             type: 'text',
@@ -155,7 +155,7 @@ export const OPENSEARCH_INDEX_MAPPINGS: Record<OpenSearchIndex, unknown> = {
       {
         integer_arrays: {
           match_pattern: 'regex',
-          match: 'int_arr_.*',
+          match: '^int_arr_.*',
           path_match: '.*',
           mapping: {
             type: 'integer',
@@ -165,7 +165,7 @@ export const OPENSEARCH_INDEX_MAPPINGS: Record<OpenSearchIndex, unknown> = {
       {
         float_arrays: {
           match_pattern: 'regex',
-          match: 'float_arr_.*',
+          match: '^float_arr_.*',
           path_match: '.*',
           mapping: {
             type: 'float',
@@ -175,7 +175,7 @@ export const OPENSEARCH_INDEX_MAPPINGS: Record<OpenSearchIndex, unknown> = {
       {
         byte_arrays: {
           match_pattern: 'regex',
-          match: 'byte_arr_.*',
+          match: '^byte_arr_.*',
           path_match: '.*',
           mapping: {
             type: 'byte',
@@ -185,7 +185,7 @@ export const OPENSEARCH_INDEX_MAPPINGS: Record<OpenSearchIndex, unknown> = {
       {
         double_arrays: {
           match_pattern: 'regex',
-          match: 'double_arr_.*',
+          match: '^double_arr_.*',
           path_match: '.*',
           mapping: {
             type: 'double',
@@ -195,7 +195,7 @@ export const OPENSEARCH_INDEX_MAPPINGS: Record<OpenSearchIndex, unknown> = {
       {
         half_float_arrays: {
           match_pattern: 'regex',
-          match: 'half_float_arr_.*',
+          match: '^half_float_arr_.*',
           path_match: '.*',
           mapping: {
             type: 'half_float',
@@ -205,7 +205,7 @@ export const OPENSEARCH_INDEX_MAPPINGS: Record<OpenSearchIndex, unknown> = {
       {
         long_arrays: {
           match_pattern: 'regex',
-          match: 'long_arr_.*',
+          match: '^long_arr_.*',
           path_match: '.*',
           mapping: {
             type: 'long',
@@ -215,7 +215,7 @@ export const OPENSEARCH_INDEX_MAPPINGS: Record<OpenSearchIndex, unknown> = {
       {
         short_arrays: {
           match_pattern: 'regex',
-          match: 'short_arr_.*',
+          match: '^short_arr_.*',
           path_match: '.*',
           mapping: {
             type: 'short',
@@ -225,7 +225,7 @@ export const OPENSEARCH_INDEX_MAPPINGS: Record<OpenSearchIndex, unknown> = {
       {
         date_arrays: {
           match_pattern: 'regex',
-          match: 'date_arr_.*',
+          match: '^date_arr_.*',
           path_match: '.*',
           mapping: {
             type: 'date',
@@ -237,7 +237,7 @@ export const OPENSEARCH_INDEX_MAPPINGS: Record<OpenSearchIndex, unknown> = {
       {
         boolean_arrays: {
           match_pattern: 'regex',
-          match: 'bool_arr_.*',
+          match: '^bool_arr_.*',
           path_match: '.*',
           mapping: {
             type: 'boolean',
@@ -247,7 +247,7 @@ export const OPENSEARCH_INDEX_MAPPINGS: Record<OpenSearchIndex, unknown> = {
       {
         uuid_arrays: {
           match_pattern: 'regex',
-          match: 'uuid_arr_.*',
+          match: '^uuid_arr_.*',
           path_match: '.*',
           mapping: {
             type: 'keyword',
