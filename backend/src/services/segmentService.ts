@@ -373,13 +373,17 @@ export default class SegmentService extends LoggerBase {
     return updated.activityChannels
   }
 
-  async getTenantActivityTypes(tenantId: string) {
+  async getTenantSubprojects(tenant: any) {
     const segmentRepository = new SegmentRepository({
       ...this.options,
-      currentTenant: { id: tenantId },
+      currentTenant: tenant,
     })
 
-    const { rows: subprojects } = await segmentRepository.querySubprojects({})
+    const { rows } = await segmentRepository.querySubprojects({})
+    return rows
+  }
+
+  static async getTenantActivityTypes(subprojects: any) {
     return subprojects.reduce(
       (acc: any, subproject) => ({
         custom: {
@@ -393,6 +397,19 @@ export default class SegmentService extends LoggerBase {
       }),
       {},
     )
+  }
+
+  static async getTenantActivityChannels(subprojects: any) {
+    return subprojects.reduce((acc: any, subproject) => {
+      for (const platform of Object.keys(subproject.activityChannels)) {
+        if (!acc[platform]) {
+          acc[platform] = []
+        }
+
+        acc[platform] = [...acc[platform], ...subproject.activityChannels[platform]]
+      }
+      return acc
+    }, {})
   }
 
   private collectSubprojectIds(segments, level: SegmentLevel) {

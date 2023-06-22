@@ -234,9 +234,12 @@ class ReportRepository {
       }
     }
 
-    const parser = new QueryParser({
-      segmentsNullable: true,
-    }, options)
+    const parser = new QueryParser(
+      {
+        segmentsNullable: true,
+      },
+      options,
+    )
 
     const parsed: QueryOutput = parser.parse({
       filter: advancedFilter,

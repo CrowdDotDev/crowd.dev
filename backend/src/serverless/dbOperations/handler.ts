@@ -24,7 +24,9 @@ export async function consumer(event) {
 
   const context = await getUserContext(tenantId)
   const segmentRepository = new SegmentRepository(context)
-  context.currentSegments = [await segmentRepository.findById(event.segments[0])]
+  if (event.segments && event.segments.length > 0) {
+    context.currentSegments = [await segmentRepository.findById(event.segments[0])]
+  }
 
   const result = await bulkOperations(event.operation, event.records, context)
 
