@@ -15,7 +15,6 @@ import { tenantSubdomain } from '../tenantSubdomain'
 import Error401 from '../../errors/Error401'
 import identify from '../../segment/identify'
 import track from '../../segment/track'
-import UsersAuthenticationRepository from "../../database/repositories/usersAuthenticationRepository";
 
 const BCRYPT_SALT_ROUNDS = 12
 
@@ -489,7 +488,7 @@ class AuthService {
           {
             provider,
             providerId,
-            emailVerified
+            emailVerified,
           },
           options,
         )
@@ -575,7 +574,7 @@ class AuthService {
           {
             provider,
             providerId,
-            emailVerified
+            emailVerified,
           },
           options,
         )
@@ -605,9 +604,8 @@ class AuthService {
           options,
           user.id,
         )
-
       }
-      if(invitationToken){
+      if (invitationToken) {
         await this.handleOnboard(user, invitationToken, tenantId, {
           ...options,
           transaction,

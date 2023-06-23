@@ -1,49 +1,49 @@
-import {AUTH0_CONFIG} from "../../conf";
+import { AUTH0_CONFIG } from '../../conf'
 import jwt from 'jsonwebtoken'
-import * as fs from 'fs';
-import AuthService from "../../services/auth/authService";
+import * as fs from 'fs'
+import AuthService from '../../services/auth/authService'
 
-const { auth, requiredScopes } = require('express-oauth2-jwt-bearer');
+const { auth, requiredScopes } = require('express-oauth2-jwt-bearer')
 
 export default async (req, res) => {
-  const { idToken, invitationToken, tenantId } = req.body;
+  const { idToken, invitationToken, tenantId } = req.body
 
   try {
     const verifyToken = new Promise((resolve, reject) => {
-      const publicKey = AUTH0_CONFIG.cert.replace(/\\n/g, '\n');
-      jwt.verify(idToken, publicKey, {algorithms: ['RS256']}, (err, decoded) => {
+      const publicKey = AUTH0_CONFIG.cert.replace(/\\n/g, '\n')
+      jwt.verify(idToken, publicKey, { algorithms: ['RS256'] }, (err, decoded) => {
         // If error verifying token
         if (err) {
-          console.log(err);
+          console.log(err)
           reject('Token is not valid')
         }
 
         // If token matches auth0 validation criteria
-        const {aud, iss} = decoded;
+        const { aud, iss } = decoded
         if (aud !== AUTH0_CONFIG.clientId || !iss.includes(AUTH0_CONFIG.domain)) {
           reject('Token is not valid')
         }
 
         // If token validation passed
-        resolve(decoded);
+        resolve(decoded)
       })
-    });
-    const data: any = await verifyToken;
+    })
+    const data: any = await verifyToken
     // Signin with data
     const token: string = await AuthService.signinFromSSO(
-        'auth0',
-        data.sub,
-        data.email,
-        data.email_verified,
-        data.given_name,
-        data.family_name,
-        data.name,
-        invitationToken,
-        tenantId,
-        req
+      'auth0',
+      data.sub,
+      data.email,
+      data.email_verified,
+      data.given_name,
+      data.family_name,
+      data.name,
+      invitationToken,
+      tenantId,
+      req,
     )
-    return res.send(token);
+    return res.send(token)
   } catch (err) {
-    return res.status(401).send({error: err});
+    return res.status(401).send({ error: err })
   }
 }

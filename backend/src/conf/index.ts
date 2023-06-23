@@ -29,7 +29,8 @@ import {
   SampleDataConfiguration,
   IntegrationProcessingConfiguration,
   SlackNotifierConfiguration,
-  OrganizationEnrichmentConfiguration, Auth0Configuration,
+  OrganizationEnrichmentConfiguration,
+  Auth0Configuration,
 } from './configTypes'
 
 // TODO-kube
