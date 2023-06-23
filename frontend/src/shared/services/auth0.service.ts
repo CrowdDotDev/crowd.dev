@@ -1,6 +1,6 @@
 import { WebAuth, Auth0DecodedHash } from 'auth0-js';
 import { LocalStorageEnum } from '@/shared/types/LocalStorage';
-import config from "@/config";
+import config from '@/config';
 
 const authCallback = 'http://localhost:8081/auth/callback';
 const redirectUri = 'http://localhost:8081/auth/signin';
