@@ -112,8 +112,8 @@ const composedConfig = {
   },
   auth0: {
     domain: 'CROWD_VUE_APP_AUTH0_DOMAIN',
-    clientId: 'VUE_APP_AUTH0_CLIENT_ID',
-    database: 'VUE_APP_AUTH0_DATABASE',
+    clientId: 'CROWD_VUE_APP_AUTH0_CLIENT_ID',
+    database: 'CROWD_VUE_APP_AUTH0_DATABASE',
   },
   isGitEnabled: 'CROWD_VUE_APP_IS_GIT_ENABLED',
 };
