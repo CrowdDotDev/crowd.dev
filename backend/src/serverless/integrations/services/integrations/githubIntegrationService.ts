@@ -1343,7 +1343,7 @@ export class GithubIntegrationService extends IntegrationServiceBase {
             deletions: record.commit.deletions,
             lines: record.commit.additions - record.commit.deletions,
             isMerge: record.commit.parents.totalCount > 1,
-            isMainBranch: ['master', 'main'].includes(data.repository.pullRequest.headRefName),
+            isMainBranch: false,
           },
           member,
         })
