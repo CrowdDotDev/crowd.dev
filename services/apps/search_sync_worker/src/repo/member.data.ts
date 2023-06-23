@@ -24,6 +24,7 @@ export interface IDbMemberSyncData {
   score: number | null
   lastEnriched: string | null
   joinedAt: string
+  createdAt: string
   totalReach: number
   numberOfOpenSourceContributions: number
 
