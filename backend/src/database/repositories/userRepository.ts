@@ -295,9 +295,7 @@ export default class UserRepository {
 
     await user.update(
       {
-        firstName: data.firstName || null,
-        lastName: data.lastName || null,
-        phoneNumber: data.phoneNumber || null,
+        ...data,
         updatedById: currentUser.id,
       },
       { transaction },

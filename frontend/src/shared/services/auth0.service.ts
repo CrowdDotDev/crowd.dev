@@ -1,5 +1,5 @@
 import { WebAuth, Auth0DecodedHash } from 'auth0-js';
-import { LocalStorageEnum } from "@/shared/types/LocalStorage";
+import { LocalStorageEnum } from '@/shared/types/LocalStorage';
 
 const authCallback = 'http://localhost:8081/auth/callback';
 const redirectUri = 'http://localhost:8081/auth/signin';
@@ -9,8 +9,8 @@ class Auth0ServiceClass {
 
   public constructor() {
     this.webAuth = new WebAuth({
-      domain: (import.meta as any).VUE_APP_AUTH0_DOMAIN,
-      clientID: (import.meta as any).VUE_APP_AUTH0_CLIENT_ID,
+      domain: (import.meta as any).env.VUE_APP_AUTH0_DOMAIN,
+      clientID: (import.meta as any).env.VUE_APP_AUTH0_CLIENT_ID,
       redirectUri: authCallback,
       responseType: 'token id_token',
     });
@@ -76,6 +76,69 @@ class Auth0ServiceClass {
     this.webAuth.authorize({
       connection: type,
       redirectUri: authCallback,
+    });
+  }
+
+  public changePassword(email: string) {
+    return new Promise((resolve, reject) => {
+      this.webAuth.changePassword(
+        {
+          email: email ?? '',
+          connection: (import.meta as any).env.VUE_APP_AUTH0_DATABASE,
+        },
+        (err) => {
+          if (!err) {
+            resolve(null);
+          } else {
+            reject(err);
+          }
+        },
+      );
+    });
+  }
+
+  public signup({
+    email, password, firstName, lastName,
+  }: Record<string, string>) {
+    return new Promise((resolve, reject) => {
+      this.webAuth.signup(
+        {
+          email: email ?? '',
+          username: email ?? '',
+          password: password ?? '',
+          connection: (import.meta as any).env.VUE_APP_AUTH0_DATABASE,
+          given_name: firstName,
+          family_name: lastName,
+          name: `${firstName} ${lastName}`,
+        } as any,
+        (err) => {
+          if (!err) {
+            resolve(null);
+          } else {
+            reject(err);
+          }
+        },
+      );
+    });
+  }
+
+  public login({ email, password }: Record<string, string>) {
+    return new Promise((resolve, reject) => {
+      this.webAuth.login(
+        {
+          realm: (import.meta as any).env.VUE_APP_AUTH0_DATABASE,
+          username: email ?? '',
+          password: password ?? '',
+          redirectUri: authCallback,
+        },
+        (err) => {
+          if (!err) {
+            resolve(null);
+          } else {
+            reject(err);
+          }
+        },
+      );
     });
   }
 }

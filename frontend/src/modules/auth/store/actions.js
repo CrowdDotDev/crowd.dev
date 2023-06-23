@@ -13,6 +13,7 @@ import {
   connectSocket,
   disconnectSocket,
 } from '@/modules/auth/auth-socket';
+import { Auth0Service } from '@/shared/services/auth0.service';
 
 export default {
   async doInit({ commit, dispatch }) {
@@ -86,30 +87,25 @@ export default {
   },
 
   doRegisterEmailAndPassword(
-    { commit },
+    { commit, dispatch },
     { email, password, data = {} },
   ) {
-    commit('AUTH_START');
-    return AuthService.registerWithEmailAndPassword(
+    return Auth0Service.signup({
       email,
       password,
-      data,
-    )
-      .then((token) => {
-        AuthToken.set(token, true);
-        connectSocket(token);
-        return AuthService.fetchMe();
-      })
-      .then((currentUser) => {
+      firstName: data.firstName,
+      lastName: data.lastName,
+    })
+      .then(() => {
         commit('AUTH_SUCCESS', {
-          currentUser,
+          currentUser: {
+            email,
+          },
         });
-
-        router.push('/');
+        router.push({ name: 'emailUnverified' });
       })
       .catch((error) => {
-        AuthService.signout();
-        Errors.handle(error);
+        Message.error(typeof error.description === 'string' ? error.description : error.original.response.body.message);
         commit('AUTH_ERROR');
       });
   },
@@ -118,13 +114,24 @@ export default {
     { commit },
     { email, password, rememberMe },
   ) {
-    commit('AUTH_START');
-    return AuthService.signinWithEmailAndPassword(
+    return Auth0Service.login({
       email,
       password,
-    )
+    })
+      .catch((error) => {
+        commit('AUTH_ERROR');
+        Message.error(typeof error.description === 'string' ? error.description : error.original.response.body.message);
+      });
+  },
+
+  doSigninWithAuth0(
+    { commit },
+    token,
+  ) {
+    commit('AUTH_START');
+    return AuthService.ssoGetToken(token)
       .then((token) => {
-        AuthToken.set(token, rememberMe);
+        AuthToken.set(token, true);
         return AuthService.fetchMe();
       })
       .then((currentUser) => {
@@ -146,7 +153,7 @@ export default {
     commit('AUTH_SUCCESS', {
       currentUser: null,
     });
-    router.push('/auth/signin');
+    router.push({ name: 'logout' });
   },
 
   doRefreshCurrentUser({ commit }) {

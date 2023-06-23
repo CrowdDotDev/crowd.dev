@@ -98,6 +98,7 @@ function models() {
     require('./tenant').default,
     require('./tenantUser').default,
     require('./user').default,
+    require('./usersAuthentication').default,
     require('./widget').default,
     require('./microservice').default,
     require('./conversation').default,
@@ -127,7 +128,6 @@ function models() {
 
   database.sequelize = sequelize
   database.Sequelize = Sequelize
-
   return database
 }
 

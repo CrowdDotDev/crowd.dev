@@ -78,6 +78,12 @@ export interface ApiConfiguration {
   documentation: boolean
 }
 
+export interface Auth0Configuration {
+  domain: string
+  clientId: string
+  cert: string
+}
+
 export interface PlansConfiguration {
   stripePricePremium: string
   stripePriceEnterprise: string
