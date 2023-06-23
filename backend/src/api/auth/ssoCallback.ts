@@ -16,7 +16,7 @@ export default async (req, res) => {
         }
 
         // If token matches auth0 validation criteria
-        const { aud, iss } = decoded
+        const { aud, iss } = decoded as any
         if (aud !== AUTH0_CONFIG.clientId || !iss.includes(AUTH0_CONFIG.domain)) {
           reject(new Error401())
         }
