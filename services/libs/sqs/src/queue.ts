@@ -175,11 +175,19 @@ export abstract class SqsQueueEmitter extends SqsQueueBase implements ISqsQueueE
     super(sqsClient, queueConf, parentLog)
   }
 
-  public async sendMessage<T extends IQueueMessage>(groupId: string, message: T): Promise<void> {
+  public async sendMessage<T extends IQueueMessage>(
+    groupId: string,
+    message: T,
+    deduplicationId?: string,
+  ): Promise<void> {
+    let MessageDeduplicationId: string | undefined
+    if (this.isFifo) {
+      MessageDeduplicationId = deduplicationId || `${groupId}-${new Date().getTime()}`
+    }
     const params: SendMessageRequest = {
       QueueUrl: this.getQueueUrl(),
       MessageGroupId: groupId,
-      MessageDeduplicationId: this.isFifo ? `${groupId}-${new Date().getTime()}` : undefined,
+      MessageDeduplicationId,
       MessageBody: JSON.stringify(message),
     }
 

@@ -14,10 +14,14 @@ export class SearchSyncWorkerEmitter extends SqsQueueEmitter {
     if (!memberId) {
       throw new Error('memberId is required!')
     }
-    await this.sendMessage(`search-sync-${tenantId}`, {
-      type: SearchSyncWorkerQueueMessageType.SYNC_MEMBER,
-      memberId,
-    })
+    await this.sendMessage(
+      `search-sync-${tenantId}`,
+      {
+        type: SearchSyncWorkerQueueMessageType.SYNC_MEMBER,
+        memberId,
+      },
+      `member-sync-${memberId}`,
+    )
   }
 
   public async triggerTenantMembersSync(tenantId: string) {
@@ -60,10 +64,14 @@ export class SearchSyncWorkerEmitter extends SqsQueueEmitter {
     if (!activityId) {
       throw new Error('activityId is required!')
     }
-    await this.sendMessage(`search-sync-${tenantId}`, {
-      type: SearchSyncWorkerQueueMessageType.SYNC_ACTIVITY,
-      activityId,
-    })
+    await this.sendMessage(
+      `search-sync-${tenantId}`,
+      {
+        type: SearchSyncWorkerQueueMessageType.SYNC_ACTIVITY,
+        activityId,
+      },
+      `activity-sync-${activityId}`,
+    )
   }
 
   public async triggerTenantActivitiesSync(tenantId: string) {
