@@ -236,9 +236,9 @@ export class MemberSyncService extends LoggerBase {
             await this.openSearchService.bulkIndex(OpenSearchIndex.MEMBERS, forSync)
             docCount += forSync.length
             memberCount += memberIds.length
-
-            await this.memberRepo.markSynced(memberIds)
           }
+
+          await this.memberRepo.markSynced(memberIds)
 
           this.log.info({ tenantId }, `Synced ${memberCount} members with ${docCount} documents!`)
           memberIds = await this.memberRepo.getTenantMembersForSync(tenantId, 1, batchSize)
