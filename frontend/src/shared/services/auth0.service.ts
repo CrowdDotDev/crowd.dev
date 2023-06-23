@@ -128,7 +128,7 @@ class Auth0ServiceClass {
     return new Promise((resolve, reject) => {
       this.webAuth.login(
         {
-          realm: (import.meta as any).env.VUE_APP_AUTH0_DATABASE,
+          realm: config.auth0.database,
           username: email ?? '',
           password: password ?? '',
           redirectUri: authCallback,
