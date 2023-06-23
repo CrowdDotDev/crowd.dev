@@ -6,7 +6,10 @@ export class MembersOpensearch extends OpensearchModelBase {
   fields: Record<string, OpensearchField> = {
     id: {
       type: OpensearchFieldType.UUID,
-      customOpensourceDestination: 'uuid_memberId',
+      customTranslation: {
+        toOpensearch: 'uuid_memberId',
+        fromOpensearch: 'uuid_memberId',
+      },
     },
     tenantId: {
       type: OpensearchFieldType.UUID,
@@ -31,7 +34,10 @@ export class MembersOpensearch extends OpensearchModelBase {
     },
     reach: {
       type: OpensearchFieldType.INT,
-      customOpensourceDestination: 'int_totalReach',
+      customTranslation: {
+        toOpensearch: 'int_totalReach',
+        fromOpensearch: 'int_totalReach',
+      },
     },
     numberOfOpenSourceContributions: {
       type: OpensearchFieldType.INT,
@@ -56,7 +62,10 @@ export class MembersOpensearch extends OpensearchModelBase {
     },
     identities: {
       type: OpensearchFieldType.OBJECT_ARR,
-      // customOpensourceDestination: 'obj_arr_identities.string_platform',
+      customTranslation: {
+        toOpensearch: 'obj_arr_identities.string_platform',
+        fromOpensearch: 'obj_arr_identities',
+      },
     },
     attributes: {
       type: OpensearchFieldType.OBJECT,
@@ -69,7 +78,10 @@ export class MembersOpensearch extends OpensearchModelBase {
     },
     tags: {
       type: OpensearchFieldType.OBJECT_ARR,
-      // customOpensourceDestination: 'obj_arr_tags.uuid_id',
+      customTranslation: {
+        toOpensearch: 'obj_arr_tags.uuid_id',
+        fromOpensearch: 'obj_arr_tags',
+      },
     },
     organizations: {
       type: OpensearchFieldType.OBJECT_ARR,

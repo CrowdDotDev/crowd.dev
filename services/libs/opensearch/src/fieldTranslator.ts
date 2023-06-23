@@ -27,8 +27,16 @@ export default abstract class FieldTranslator {
 
   setTranslationMaps(): void {
     for (const key of Object.keys(this.translations)) {
-      this.crowdToOpensearchMap.set(key, this.translations[key])
-      this.opensearchToCrowdMap.set(this.translations[key], key)
+      if (this.model.fieldExists(key) && this.model.getField(key).customTranslation) {
+        this.crowdToOpensearchMap.set(key, this.model.getField(key).customTranslation.toOpensearch)
+        this.opensearchToCrowdMap.set(
+          this.model.getField(key).customTranslation.fromOpensearch,
+          key,
+        )
+      } else {
+        this.crowdToOpensearchMap.set(key, this.translations[key])
+        this.opensearchToCrowdMap.set(this.translations[key], key)
+      }
     }
   }
 

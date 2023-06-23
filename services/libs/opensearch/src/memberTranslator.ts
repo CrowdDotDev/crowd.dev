@@ -18,11 +18,7 @@ export default class MemberTranslator extends FieldTranslator {
 
     // set translations for static fields
     this.translations = Object.keys(fields).reduce((acc, f) => {
-      if (fields[f].customOpensourceDestination) {
-        acc[f] = fields[f].customOpensourceDestination
-      } else {
-        acc[f] = `${fields[f].type}_${f}`
-      }
+      acc[f] = `${fields[f].type}_${f}`
       return acc
     }, {})
 
@@ -61,6 +57,9 @@ export default class MemberTranslator extends FieldTranslator {
     this.translations.username = 'string_username'
 
     this.setTranslationMaps()
+
+    // fix for colliding translations of id -> uuid_memberId (members) and id -> uuid_id (organizations, tags)
+    this.opensearchToCrowdMap.set('uuid_id', 'id')
   }
 
   private attributeTypeToOpenSearchPrefix(type: MemberAttributeType): string {
