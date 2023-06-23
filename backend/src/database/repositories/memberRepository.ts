@@ -1682,6 +1682,65 @@ class MemberRepository {
       translator.translateObjectToCrowd(o._source),
     )
 
+    for (const row of translatedRows) {
+      const identities = []
+      const username: {} = {}
+
+      for (const identity of row.identities) {
+        identities.push(identity.platform)
+        if (identity.platform in username) {
+          username[identity.platform].push(identity.username)
+        } else {
+          username[identity.platform] = [identity.username]
+        }
+      }
+
+      row.identities = identities
+      row.username = username
+    }
+
+    const memberIds = translatedRows.map((r) => r.id)
+    if (memberIds.length > 0) {
+      const seq = SequelizeRepository.getSequelize(options)
+      const segmentIds = SequelizeRepository.getSegmentIds(options)
+
+      const lastActivities = await seq.query(
+        `
+            WITH
+                raw_data AS (
+                    SELECT *, ROW_NUMBER() OVER (PARTITION BY "memberId" ORDER BY timestamp DESC) AS rn
+                    FROM activities
+                    WHERE "tenantId" = :tenantId
+                      AND "memberId" IN (:memberIds)
+                      AND "segmentId" IN (:segmentIds)
+                )
+            SELECT *
+            FROM raw_data
+            WHERE rn = 1;
+        `,
+        {
+          replacements: {
+            tenantId: tenant.id,
+            segmentIds,
+            memberIds,
+          },
+          type: QueryTypes.SELECT,
+        },
+      )
+
+      for (const row of translatedRows) {
+        const r = row as any
+        r.lastActivity = lastActivities.find((a) => (a as any).memberId === r.id)
+        if (r.lastActivity) {
+          r.lastActivity.display = ActivityDisplayService.getDisplayOptions(
+            r.lastActivity,
+            SegmentRepository.getActivityTypes(options),
+            [ActivityDisplayVariant.SHORT, ActivityDisplayVariant.CHANNEL],
+          )
+        }
+      }
+    }
+
     return { rows: translatedRows, count: countResponse.body.count, limit, offset }
   }
 

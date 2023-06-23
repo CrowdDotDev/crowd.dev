@@ -11,6 +11,9 @@ export class MembersOpensearch extends OpensearchModelBase {
     tenantId: {
       type: OpensearchFieldType.UUID,
     },
+    segmentId: {
+      type: OpensearchFieldType.UUID,
+    },
     displayName: {
       type: OpensearchFieldType.STRING,
     },
@@ -53,7 +56,7 @@ export class MembersOpensearch extends OpensearchModelBase {
     },
     identities: {
       type: OpensearchFieldType.OBJECT_ARR,
-      customOpensourceDestination: 'obj_arr_identities.string_platform',
+      // customOpensourceDestination: 'obj_arr_identities.string_platform',
     },
     attributes: {
       type: OpensearchFieldType.OBJECT,
@@ -66,7 +69,7 @@ export class MembersOpensearch extends OpensearchModelBase {
     },
     tags: {
       type: OpensearchFieldType.OBJECT_ARR,
-      customOpensourceDestination: 'obj_arr_tags.uuid_id',
+      // customOpensourceDestination: 'obj_arr_tags.uuid_id',
     },
     organizations: {
       type: OpensearchFieldType.OBJECT_ARR,

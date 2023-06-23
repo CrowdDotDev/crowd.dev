@@ -61,12 +61,14 @@ export class MemberSyncService extends LoggerBase {
         results.map((r) => r._source.uuid_memberId),
       )
 
-      const toRemove = results.filter((r) => !dbIds.includes(r._source.uuid_memberId))
+      const toRemove = results
+        .filter((r) => !dbIds.includes(r._source.uuid_memberId))
+        .map((r) => r._id)
 
       if (toRemove.length > 0) {
         this.log.warn({ tenantId, toRemove }, 'Removing members from index!')
         for (const id of toRemove) {
-          await this.removeMember(id._id)
+          await this.openSearchService.removeFromIndex(id, OpenSearchIndex.MEMBERS)
         }
       }
 
@@ -325,11 +327,11 @@ export class MemberSyncService extends LoggerBase {
     } else {
       // we should retry - sometimes database is slow
       if (retries < 5) {
-        await timeout(100)
+        await timeout(200)
         await this.syncMember(memberId, ++retries)
       } else {
         this.log.error({ memberId }, 'Member not found after 5 retries! Removing from index!')
-        await this.openSearchService.removeFromIndex(memberId, OpenSearchIndex.MEMBERS)
+        await this.removeMember(memberId)
       }
     }
   }
