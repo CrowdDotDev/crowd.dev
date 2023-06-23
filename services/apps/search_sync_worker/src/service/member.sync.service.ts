@@ -2,12 +2,12 @@ import { SERVICE_CONFIG } from '@/conf'
 import { IDbMemberSyncData, IDbSegmentInfo } from '@/repo/member.data'
 import { MemberRepository } from '@/repo/member.repo'
 import { OpenSearchIndex } from '@/types'
-import { distinct, distinctBy, timeout } from '@crowd/common'
+import { distinct, distinctBy, groupBy, timeout } from '@crowd/common'
 import { DbStore } from '@crowd/database'
 import { Logger, LoggerBase, logExecutionTime } from '@crowd/logging'
 import { RedisClient } from '@crowd/redis'
 import { Edition, IMemberAttribute, MemberAttributeType } from '@crowd/types'
-import { ISearchHit } from './opensearch.data'
+import { IIndexRequest, ISearchHit } from './opensearch.data'
 import { OpenSearchService } from './opensearch.service'
 
 export class MemberSyncService extends LoggerBase {
@@ -139,7 +139,10 @@ export class MemberSyncService extends LoggerBase {
 
   public async syncTenantMembers(tenantId: string, reset = true, batchSize = 200): Promise<void> {
     this.log.warn({ tenantId }, 'Syncing all tenant members!')
-    let count = 0
+    let docCount = 0
+    let memberCount = 0
+
+    const isMultiSegment = SERVICE_CONFIG().edition === Edition.LFX
 
     await logExecutionTime(
       async () => {
@@ -155,21 +158,87 @@ export class MemberSyncService extends LoggerBase {
           const members = await this.memberRepo.getMemberData(memberIds)
 
           if (members.length > 0) {
-            await this.openSearchService.bulkIndex(
-              OpenSearchIndex.MEMBERS,
-              members.map((m) => {
-                return {
-                  id: `${m.id}-${m.segmentId}`,
-                  body: MemberSyncService.prefixData(m, attributes),
+            let childSegmentIds: string[] | undefined
+            let segmentInfos: IDbSegmentInfo[] | undefined
+
+            if (isMultiSegment) {
+              childSegmentIds = distinct(members.map((m) => m.segmentId))
+              segmentInfos = await this.memberRepo.getParentSegmentIds(childSegmentIds)
+            }
+
+            const grouped = groupBy(members, (m) => m.id)
+            const memberIds = Object.keys(grouped)
+
+            const forSync: IIndexRequest<unknown>[] = []
+            for (const memberId of memberIds) {
+              const memberDocs = grouped.get(memberId)
+              if (isMultiSegment) {
+                // index each of them individually
+                for (const member of memberDocs) {
+                  const prepared = MemberSyncService.prefixData(member, attributes)
+                  forSync.push({
+                    id: `${memberId}-${member.segmentId}`,
+                    body: prepared,
+                  })
                 }
-              }),
-            )
-            count += members.length
+
+                const relevantSegmentInfos = segmentInfos.filter(
+                  (s) => s.id === memberDocs[0].segmentId,
+                )
+
+                // and for each parent and grandparent
+                const parentIds = distinct(relevantSegmentInfos.map((s) => s.parentId))
+                for (const parentId of parentIds) {
+                  const aggregated = MemberSyncService.aggregateData(
+                    memberDocs,
+                    relevantSegmentInfos,
+                    parentId,
+                  )
+                  const prepared = MemberSyncService.prefixData(aggregated, attributes)
+                  forSync.push({
+                    id: `${memberId}-${parentId}`,
+                    body: prepared,
+                  })
+                }
+
+                const grandParentIds = distinct(relevantSegmentInfos.map((s) => s.grandParentId))
+                for (const grandParentId of grandParentIds) {
+                  const aggregated = MemberSyncService.aggregateData(
+                    memberDocs,
+                    relevantSegmentInfos,
+                    undefined,
+                    grandParentId,
+                  )
+                  const prepared = MemberSyncService.prefixData(aggregated, attributes)
+                  forSync.push({
+                    id: `${memberId}-${grandParentId}`,
+                    body: prepared,
+                  })
+                }
+              } else {
+                if (memberDocs.length > 1) {
+                  throw new Error(
+                    'More than one member found - this can not be the case in single segment edition!',
+                  )
+                }
+
+                const member = memberDocs[0]
+                const prepared = MemberSyncService.prefixData(member, attributes)
+                forSync.push({
+                  id: `${memberId}-${member.segmentId}`,
+                  body: prepared,
+                })
+              }
+            }
+
+            await this.openSearchService.bulkIndex(OpenSearchIndex.MEMBERS, forSync)
+            docCount += forSync.length
+            memberCount += memberIds.length
+
+            await this.memberRepo.markSynced(memberIds)
           }
 
-          await this.memberRepo.markSynced(members.map((m) => m.id))
-
-          this.log.info({ tenantId }, `Synced ${count} members!`)
+          this.log.info({ tenantId }, `Synced ${memberCount} members with ${docCount} documents!`)
           memberIds = await this.memberRepo.getTenantMembersForSync(tenantId, 1, batchSize)
         }
       },
@@ -177,7 +246,10 @@ export class MemberSyncService extends LoggerBase {
       'sync-tenant-members',
     )
 
-    this.log.info({ tenantId }, `Synced total of ${count} members!`)
+    this.log.info(
+      { tenantId },
+      `Synced total of ${memberCount} members with ${docCount} documents!`,
+    )
   }
 
   public async syncMember(memberId: string, retries = 0): Promise<void> {
