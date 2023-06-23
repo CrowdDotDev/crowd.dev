@@ -2,8 +2,9 @@ import { WebAuth, Auth0DecodedHash } from 'auth0-js';
 import { LocalStorageEnum } from '@/shared/types/LocalStorage';
 import config from '@/config';
 
-const authCallback = 'http://localhost:8081/auth/callback';
-const redirectUri = 'http://localhost:8081/auth/signin';
+const baseUrl = `${config.frontendUrl.protocol}://${config.frontendUrl.host}`;
+const authCallback = `${baseUrl}/auth/callback`;
+const redirectUri = `${baseUrl}/auth/signin`;
 
 class Auth0ServiceClass {
   private readonly webAuth: WebAuth;
