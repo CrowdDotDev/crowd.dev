@@ -1,9 +1,7 @@
-import { AUTH0_CONFIG } from '../../conf'
 import jwt from 'jsonwebtoken'
-import * as fs from 'fs'
 import AuthService from '../../services/auth/authService'
-
-const { auth, requiredScopes } = require('express-oauth2-jwt-bearer')
+import { AUTH0_CONFIG } from '../../conf'
+import Error401 from '@/errors/Error401'
 
 export default async (req, res) => {
   const { idToken, invitationToken, tenantId } = req.body
@@ -14,14 +12,13 @@ export default async (req, res) => {
       jwt.verify(idToken, publicKey, { algorithms: ['RS256'] }, (err, decoded) => {
         // If error verifying token
         if (err) {
-          console.log(err)
-          reject('Token is not valid')
+          reject(new Error401())
         }
 
         // If token matches auth0 validation criteria
         const { aud, iss } = decoded
         if (aud !== AUTH0_CONFIG.clientId || !iss.includes(AUTH0_CONFIG.domain)) {
-          reject('Token is not valid')
+          reject(new Error401())
         }
 
         // If token validation passed

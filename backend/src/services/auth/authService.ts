@@ -569,7 +569,7 @@ class AuthService {
 
       // If there was no provider, we can link it to the provider
       if (user && (!user.provider || !user.providerId || !user.emailVerified)) {
-        const test = await UserRepository.update(
+        await UserRepository.update(
           user.id,
           {
             provider,
