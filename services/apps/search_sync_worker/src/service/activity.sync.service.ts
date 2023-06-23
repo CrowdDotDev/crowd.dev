@@ -175,7 +175,7 @@ export class ActivitySyncService extends LoggerBase {
     p.int_score = data.score ?? 0
     p.keyword_sourceId = data.sourceId
     p.keyword_sourceParentId = data.sourceParentId
-    p.nox_obj_attributes = data.attributes
+    p.string_attributes = data.attributes ? JSON.stringify(data.attributes) : '{}'
     p.keyword_channel = data.channel
     p.string_body = data.body
     p.string_title = data.title
