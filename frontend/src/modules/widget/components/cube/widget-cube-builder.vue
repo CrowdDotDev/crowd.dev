@@ -165,6 +165,7 @@
                   :dimensions="dimensions"
                   :filters="filters"
                   :set-filters="setFilters"
+                  :segment-id="widget.segmentId"
                   :available-dimensions="
                     translatedOptions(availableDimensions)
                   "
@@ -318,6 +319,13 @@ export default {
       };
 
     const initialCharType = this.widget.settings?.chartType || 'line';
+    initialQuery.filters = [
+      {
+        member: 'Segments.id',
+        operator: 'equals',
+        values: [this.widget.segmentId],
+      },
+    ];
 
     return {
       mapWidget,

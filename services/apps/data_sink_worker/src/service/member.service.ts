@@ -21,6 +21,7 @@ export default class MemberService extends LoggerBase {
 
   public async create(
     tenantId: string,
+    segmentId: string,
     integrationId: string,
     data: IMemberCreateData,
   ): Promise<string> {
@@ -57,6 +58,8 @@ export default class MemberService extends LoggerBase {
           identities: data.identities,
         })
 
+        await txRepo.addToSegment(id, tenantId, segmentId)
+
         await txRepo.insertIdentities(id, tenantId, integrationId, data.identities)
 
         await this.nodejsWorkerEmitter.processAutomationForNewMember(tenantId, id)
@@ -72,6 +75,7 @@ export default class MemberService extends LoggerBase {
   public async update(
     id: string,
     tenantId: string,
+    segmentId: string,
     integrationId: string,
     data: IMemberUpdateData,
     original: IDbMember,
@@ -111,6 +115,8 @@ export default class MemberService extends LoggerBase {
             // leave this one empty if nothing changed - we are only adding up new identities not removing them
             identities: toUpdate.identities,
           })
+
+          await txRepo.addToSegment(id, tenantId, segmentId)
         } else {
           this.log.debug({ memberId: id }, 'Nothing to update in a member!')
         }

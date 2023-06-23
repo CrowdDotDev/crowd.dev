@@ -46,8 +46,6 @@
 
 <script setup>
 import {
-  defineEmits,
-  defineProps,
   computed,
   reactive,
   watch,
@@ -58,7 +56,7 @@ import AppFormItem from '@/shared/form/form-item.vue';
 import Message from '@/shared/message/message';
 import { useActivityTypeStore } from '@/modules/activity/store/type';
 import formChangeDetector from '@/shared/form/form-change';
-import { mapActions } from '@/shared/vuex/vuex.helpers';
+import { useActivityStore } from '@/modules/activity/store/pinia';
 
 // Props & Emits
 const props = defineProps({
@@ -72,12 +70,18 @@ const props = defineProps({
     required: false,
     default: () => null,
   },
+  subprojectId: {
+    type: String,
+    required: true,
+  },
 });
 
-const emit = defineEmits(['update:modelValue']);
+const emit = defineEmits(['update:modelValue', 'onUpdate']);
 
 const { createActivityType, updateActivityType } = useActivityTypeStore();
-const { doFetch } = mapActions('activity');
+
+const activityStore = useActivityStore();
+const { fetchActivities } = activityStore;
 
 // Form control
 const form = reactive({
@@ -108,14 +112,18 @@ const submit = () => {
   if ($v.value.$invalid) {
     return;
   }
+
+  const segments = [props.subprojectId];
+
   if (!isEdit.value) {
     // Create
     createActivityType({
       type: form.name,
-    })
+    }, segments)
       .then(() => {
         reset();
         emit('update:modelValue');
+        emit('onUpdate');
         Message.success(
           'Activity type successfully created!',
         );
@@ -129,11 +137,12 @@ const submit = () => {
     // Update
     updateActivityType(props.type.key, {
       type: form.name,
-    })
+    }, segments)
       .then(() => {
         reset();
-        doFetch({});
+        fetchActivities({ reload: true });
         emit('update:modelValue');
+        emit('onUpdate');
         Message.success(
           'Activity type successfully updated!',
         );

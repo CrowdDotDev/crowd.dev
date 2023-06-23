@@ -39,12 +39,14 @@
 <script setup>
 import { useStore } from 'vuex';
 import {
-  defineProps, computed, onMounted, ref,
+  computed, onMounted, ref,
 } from 'vue';
 
 import { CrowdIntegrations } from '@/integrations/integrations-config';
 import AppIntegrationListItem from '@/modules/integration/components/integration-list-item.vue';
+import { useRoute } from 'vue-router';
 
+const route = useRoute();
 const store = useStore();
 const props = defineProps({
   onboard: {
@@ -52,6 +54,9 @@ const props = defineProps({
     default: false,
   },
 });
+
+const integrationCount = computed(() => store.state.integration.count);
+const isSegmentIdDifferent = computed(() => store.state.segmentId !== route.params.id);
 
 const customIntegration = ref({
   platform: 'custom',
@@ -64,6 +69,7 @@ const customIntegration = ref({
 const loading = computed(
   () => store.getters['integration/loadingFetch'],
 );
+
 const integrationsArray = computed(() => (props.onboard
   ? CrowdIntegrations.mappedEnabledConfigs(store)
   : CrowdIntegrations.mappedConfigs(store)));
@@ -71,7 +77,10 @@ const integrationsArray = computed(() => (props.onboard
 const showGithubDialog = ref(false);
 
 onMounted(async () => {
-  if (store.state.integration.count === 0) {
+  localStorage.setItem('segmentId', route.params.id);
+  localStorage.setItem('segmentGrandparentId', route.params.grandparentId);
+
+  if (integrationCount.value === 0 || isSegmentIdDifferent.value) {
     await store.dispatch('integration/doFetch');
   }
 

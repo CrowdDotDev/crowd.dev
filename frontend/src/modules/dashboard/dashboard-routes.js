@@ -7,7 +7,12 @@ export default [
     path: '',
     exact: true,
     component: Layout,
-    meta: { auth: true },
+    meta: {
+      auth: true,
+      segments: {
+        requireSelectedProjectGroup: true,
+      },
+    },
     children: [
       {
         name: 'dashboard',

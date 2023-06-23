@@ -4,6 +4,7 @@ export default () => ({
   filters: {
     period: SEVEN_DAYS_PERIOD_FILTER,
     platform: 'all',
+    segments: [],
   },
   conversations: {
     loading: false,

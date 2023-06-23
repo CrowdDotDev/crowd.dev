@@ -1,5 +1,5 @@
 <template>
-  <div v-if="currentTenant" class="flex -m-5">
+  <div v-if="currentTenant && cubejsToken" class="flex -m-5">
     <div
       class="flex-grow overflow-auto"
       :style="{
@@ -14,12 +14,13 @@
           <div
             class="py-8 -mx-4 px-4 sticky -top-6 bg-gray-50 z-20"
           >
-            <h4
-              class="leading-8 font-semibold transition-all duration-100"
-              :class="scrolled ? 'text-base' : 'text-xl'"
-            >
-              {{ currentTenant?.name }} team overview
-            </h4>
+            <app-lf-page-header
+              :text-class="{
+                'leading-8 font-semibold transition-all duration-100': true,
+                'text-xl': !scrolled,
+                'text-base': scrolled,
+              }"
+            />
           </div>
 
           <div
@@ -35,6 +36,7 @@
       </div>
     </div>
     <aside
+      v-if="selectedProjectGroup"
       class="border-l border-gray-200 overflow-auto px-5 py-6"
       :style="{
         height: showBanner
@@ -42,34 +44,40 @@
           : '100vh',
       }"
     >
-      <app-dashboard-guides />
-      <app-dashboard-integrations class="mb-10" />
-      <app-dashboard-task />
+      <app-dashboard-project-group />
     </aside>
   </div>
 </template>
 
 <script setup>
-import { onMounted, onBeforeUnmount, ref } from 'vue';
+import {
+  onMounted, onBeforeUnmount, ref, watch,
+} from 'vue';
 import { useStore } from 'vuex';
-import AppDashboardIntegrations from '@/modules/dashboard/components/dashboard-active-integrations.vue';
 import {
   mapGetters,
   mapActions,
 } from '@/shared/vuex/vuex.helpers';
-import AppDashboardGuides from '@/modules/dashboard/components/dashboard-guides.vue';
 import AppDashboardActivities from '@/modules/dashboard/components/dashboard-activities.vue';
 import AppDashboardMembers from '@/modules/dashboard/components/dashboard-members.vue';
 import AppDashboardOrganizations from '@/modules/dashboard/components/dashboard-organizations.vue';
-import AppDashboardTask from '@/modules/dashboard/components/dashboard-task.vue';
 import AppDashboardFilters from '@/modules/dashboard/components/dashboard-filters.vue';
+import AppLfPageHeader from '@/modules/lf/layout/components/lf-page-header.vue';
+import AppDashboardProjectGroup from '@/modules/dashboard/components/dashboard-project-group.vue';
+import { storeToRefs } from 'pinia';
+import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 
 const { currentTenant } = mapGetters('auth');
+const { cubejsToken } = mapGetters('widget');
 const { doFetch } = mapActions('report');
 const { reset } = mapActions('dashboard');
+const { getCubeToken } = mapActions('widget');
 const { showBanner } = mapGetters('tenant');
 
 const store = useStore();
+
+const lsSegmentsStore = useLfSegmentsStore();
+const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);
 
 const storeUnsubscribe = ref(null);
 const scrolled = ref(false);
@@ -96,6 +104,15 @@ onMounted(() => {
 
 onBeforeUnmount(() => {
   storeUnsubscribe.value();
+});
+
+watch(selectedProjectGroup, (updatedProjectGroup, previousProjectGroup) => {
+  if (updatedProjectGroup?.id !== previousProjectGroup?.id) {
+    getCubeToken();
+  }
+}, {
+  deep: true,
+  immediate: true,
 });
 </script>
 

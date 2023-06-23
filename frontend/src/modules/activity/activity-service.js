@@ -4,31 +4,24 @@ import buildApiPayload from '@/shared/filter/helpers/build-api-payload';
 import { DEFAULT_ACTIVITY_FILTERS } from '@/modules/activity/store/constants';
 
 export class ActivityService {
-  static async update(id, data) {
+  static async update(id, data, segments) {
     const tenantId = AuthCurrentTenant.get();
 
     const response = await authAxios.put(
       `/tenant/${tenantId}/activity/${id}`,
-      data,
+      {
+        ...data,
+        segments,
+      },
     );
 
     return response.data;
   }
 
-  static async updateBulk(data) {
-    const tenantId = AuthCurrentTenant.get();
-
-    const response = await authAxios.patch(
-      `/tenant/${tenantId}/activity`,
-      data,
-    );
-
-    return response.data;
-  }
-
-  static async destroyAll(ids) {
+  static async destroyAll(ids, segments) {
     const params = {
       ids,
+      segments,
     };
 
     const tenantId = AuthCurrentTenant.get();
@@ -43,34 +36,21 @@ export class ActivityService {
     return response.data;
   }
 
-  static async create(data) {
+  static async create(data, segments) {
     const tenantId = AuthCurrentTenant.get();
 
     const response = await authAxios.post(
       `/tenant/${tenantId}/activity`,
-      data.data,
+      {
+        ...data.data,
+        segments,
+      },
     );
 
     return response.data;
   }
 
-  static async import(values, importHash) {
-    const body = {
-      data: values,
-      importHash,
-    };
-
-    const tenantId = AuthCurrentTenant.get();
-
-    const response = await authAxios.post(
-      `/tenant/${tenantId}/activity/import`,
-      body,
-    );
-
-    return response.data;
-  }
-
-  static async find(id) {
+  static async find(id, segments) {
     const sampleTenant = AuthCurrentTenant.getSampleTenantData();
     const tenantId = sampleTenant?.id || AuthCurrentTenant.get();
 
@@ -80,26 +60,31 @@ export class ActivityService {
         headers: {
           Authorization: sampleTenant?.token,
         },
+        params: {
+          segments,
+        },
       },
     );
 
     return response.data;
   }
 
-  static async list(
-    filter,
+  static async list({
+    customFilters,
     orderBy,
     limit,
     offset,
+    segments = [],
     buildFilter = true,
     buildWithDefaultRootFilters = true,
-  ) {
+  }) {
     const body = {
       filter: buildApiPayload({
-        customFilters: filter,
+        customFilters,
         defaultRootFilters: buildWithDefaultRootFilters ? DEFAULT_ACTIVITY_FILTERS : [],
         buildFilter,
       }),
+      segments,
       orderBy,
       limit,
       offset,
@@ -140,10 +125,15 @@ export class ActivityService {
     return response.data;
   }
 
-  static async listAutocomplete(query, limit) {
+  static async listAutocomplete({
+    query,
+    limit,
+    segments,
+  }) {
     const params = {
       query,
       limit,
+      segments,
     };
 
     const tenantId = AuthCurrentTenant.get();

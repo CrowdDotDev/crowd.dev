@@ -50,13 +50,6 @@ export default {
     },
   },
 
-  beforeCreate() {
-    this.$router.beforeEach((to, from, next) => {
-      document.title = `crowd.dev${to.meta.title ? ` | ${to.meta.title}` : ''}`;
-      next();
-    });
-  },
-
   async created() {
     await this.doInit();
 

@@ -169,6 +169,9 @@
       "database": "CROWD_UNLEASH_DB_DATABASE"
     }
   },
+  "weeklyEmails": {
+    "enabled": "CROWD_WEEKLY_EMAILS_ENABLED"
+  },
   "auth0": {
     "domain": "CROWD_AUTH0_DOMAIN",
     "clientId": "CROWD_AUTH0_CLIENT_ID",

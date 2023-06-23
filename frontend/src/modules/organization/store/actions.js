@@ -21,12 +21,12 @@ export default {
 
       commit('EXPORT_STARTED');
 
-      const response = await OrganizationService.list(
-        getters.activeView.filter,
-        getters.orderBy,
-        null,
-        null,
-      );
+      const response = await OrganizationService.list({
+        customFilters: getters.activeView.filter,
+        orderBy: getters.orderBy,
+        limit: null,
+        offset: null,
+      });
 
       new Exporter(
         organizationListExporterFields,

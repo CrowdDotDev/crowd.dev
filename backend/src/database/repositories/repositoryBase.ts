@@ -110,7 +110,7 @@ export abstract class RepositoryBase<
   }
 
   protected isPaginationValid(criteria: SearchCriteria): boolean {
-    if (criteria.limit && criteria.offset) {
+    if (criteria.limit !== undefined && criteria.offset !== undefined) {
       return criteria.limit > 0 && criteria.offset >= 0
     }
 

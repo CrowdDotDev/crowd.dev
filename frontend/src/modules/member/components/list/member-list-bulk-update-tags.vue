@@ -2,7 +2,7 @@
   <div class="relative inline-flex">
     <app-tag-popover
       v-model="bulkEditTagsModel"
-      pretitle="Multiple members"
+      pretitle="Multiple contributors"
       :visible="bulkEditTags"
       :loading="loading"
       @cancel="cancelBulkUpdateTags"
@@ -12,7 +12,6 @@
 </template>
 
 <script>
-import { mapActions } from 'vuex';
 import { mapActions as mapActionsPinia } from 'pinia';
 import { FormSchema } from '@/shared/form/form-schema';
 import AppTagPopover from '@/modules/tag/components/tag-popover.vue';
@@ -66,10 +65,6 @@ export default {
   },
 
   methods: {
-    ...mapActions({
-      doBulkUpdateMembersTags:
-        'member/doBulkUpdateMembersTags',
-    }),
     ...mapActionsPinia(useMemberStore, ['fetchMembers']),
 
     async doBulkUpdateTagsWithConfirm() {
@@ -93,6 +88,7 @@ export default {
           );
           return acc;
         }, []);
+
         await MemberService.updateBulk(payload);
         await this.fetchMembers({
           reload: true,

@@ -126,6 +126,7 @@ export default {
       await this.doUpdate({
         id: this.member.id,
         values: formSchema.cast(this.model),
+        segments: this.member.segmentIds,
       });
       this.loading = false;
       this.editing = false;

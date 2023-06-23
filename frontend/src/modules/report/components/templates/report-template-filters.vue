@@ -1,8 +1,15 @@
 <template>
   <div class="border-t border-gray-200">
     <div
-      class="flex items-center gap-6 py-4 max-w-5xl mx-auto px-8"
+      class="flex items-center gap-4 py-4 max-w-5xl mx-auto px-8"
     >
+      <app-lf-project-filter-button
+        :segments="segments"
+        :set-segments="onSegmentsChange"
+        :should-apply-immeadiately="false"
+        btn-class="custom-btn"
+      />
+
       <app-filter-list-item
         v-if="showPlatform"
         :filter="platform"
@@ -16,7 +23,7 @@
               class="custom-btn"
               @click="handleOpenPlatform"
             >
-              <div class="flex items-center gap-2">
+              <div class="flex items-center gap-2 text-xs">
                 <i class="ri-apps-2-line" /><span
                   class="font-medium"
                 >Platforms:
@@ -50,7 +57,7 @@
           class="switch-filter !ml-0"
           :model-value="teamMembers"
           size="small"
-          active-text="Include team members"
+          active-text="Include team contributors"
           @change="onTeamMembersChange"
         />
       </div>
@@ -75,11 +82,13 @@
 import { computed, defineEmits, defineProps } from 'vue';
 import AppFilterListItem from '@/shared/filter/components/filter-list-item.vue';
 import { CrowdIntegrations } from '@/integrations/integrations-config';
+import AppLfProjectFilterButton from '@/modules/lf/segments/components/filter/lf-project-filter-button.vue';
 
 const emit = defineEmits([
   'update:platform',
   'update:teamMembers',
   'update:teamActivities',
+  'update:segments',
   'trackFilters',
   'reset',
   'open',
@@ -109,6 +118,10 @@ const props = defineProps({
     type: Boolean,
     defaul: false,
   },
+  segments: {
+    type: Array,
+    default: () => [],
+  },
 });
 
 const hasSelectedPlatform = computed(() => !!props.platform.value.length);
@@ -134,6 +147,10 @@ const onTeamMembersChange = (value) => {
 };
 const onTeamActivitiesChange = (value) => {
   emit('update:teamActivities', value);
+  emit('trackFilters');
+};
+const onSegmentsChange = ({ segments }) => {
+  emit('update:segments', segments);
   emit('trackFilters');
 };
 

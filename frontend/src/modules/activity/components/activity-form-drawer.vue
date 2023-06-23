@@ -8,7 +8,7 @@
       <div class="-mt-4">
         <app-form-item
           class="mb-4"
-          label="Member"
+          label="Contributor"
           :validation="$v.member"
           :required="true"
           :error-messages="{
@@ -164,8 +164,6 @@
 
 <script setup>
 import {
-  defineEmits,
-  defineProps,
   computed,
   reactive,
   h,
@@ -183,8 +181,9 @@ import { useActivityTypeStore } from '@/modules/activity/store/type';
 import { ActivityService } from '@/modules/activity/activity-service';
 import Message from '@/shared/message/message';
 import formChangeDetector from '@/shared/form/form-change';
-import { mapActions } from '@/shared/vuex/vuex.helpers';
 import AppAutocompleteOneInput from '@/shared/form/autocomplete-one-input.vue';
+import { LfService } from '@/modules/lf/segments/lf-segments-service';
+import { useActivityStore } from '@/modules/activity/store/pinia';
 
 // Props & emits
 const props = defineProps({
@@ -197,6 +196,10 @@ const props = defineProps({
     required: false,
     default: () => null,
   },
+  subprojectId: {
+    type: String,
+    required: true,
+  },
 });
 
 const emit = defineEmits([
@@ -207,8 +210,11 @@ const emit = defineEmits([
 // Store
 const activityTypeStore = useActivityTypeStore();
 const { types } = storeToRefs(activityTypeStore);
+const { setTypes } = activityTypeStore;
 
-const { doFetch } = mapActions('activity');
+const activityStore = useActivityStore();
+const { fetchActivities } = activityStore;
+
 // Form control
 const form = reactive({
   member: null,
@@ -243,7 +249,11 @@ const rules = {
 const $v = useVuelidate(rules, form);
 
 // Members field
-const searchMembers = (query, limit) => MemberService.listAutocomplete(query, limit).catch(
+const searchMembers = ({ query, limit }) => MemberService.listAutocomplete({
+  query,
+  limit,
+  segments: [props.subprojectId],
+}).catch(
   () => [],
 );
 
@@ -308,6 +318,8 @@ const submit = () => {
   if ($v.value.$invalid) {
     return;
   }
+
+  const segments = [props.subprojectId];
   const data = {
     member: form.member.id,
     timestamp: form.datetime,
@@ -324,11 +336,11 @@ const submit = () => {
         ...data,
         sourceId: generateSourceId(),
       },
-    })
+    }, segments)
       .then(() => {
         reset();
         emit('update:modelValue', false);
-        doFetch({});
+        fetchActivities({ reload: true });
         Message.success('Activity successfully created!');
       })
       .catch(() => {
@@ -338,11 +350,11 @@ const submit = () => {
       });
   } else {
     // Update
-    ActivityService.update(props.activity.id, data)
+    ActivityService.update(props.activity.id, data, segments)
       .then(() => {
         reset();
         emit('update:modelValue', false);
-        doFetch({});
+        fetchActivities({ reload: true });
         Message.success('Activity successfully updated!');
       })
       .catch(() => {
@@ -365,6 +377,18 @@ const isVisible = computed({
     emit('update:modelValue', value);
   },
 });
+
+watch(
+  () => props.subprojectId,
+  (subprojectId) => {
+    if (subprojectId) {
+      LfService.findSegment(subprojectId).then((response) => {
+        setTypes(response.activityTypes);
+      });
+    }
+  },
+  { immediate: true, deep: true },
+);
 
 watch(
   () => props.activity,

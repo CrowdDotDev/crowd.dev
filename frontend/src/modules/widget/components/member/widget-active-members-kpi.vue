@@ -124,6 +124,7 @@ const query = (period, granularity) => TOTAL_ACTIVE_MEMBERS_QUERY({
   granularity,
   selectedPlatforms: props.filters.platform.value,
   selectedHasTeamMembers: props.filters.teamMembers,
+  selectedSegments: props.filters.segments,
 });
 
 const widgets = computed(() => [
@@ -194,6 +195,7 @@ const getActiveMembers = async ({ pagination }) => {
     limit: !pagination.count
       ? pagination.pageSize
       : pagination.count,
+    segments: props.filters.segments,
   });
   return res;
 };

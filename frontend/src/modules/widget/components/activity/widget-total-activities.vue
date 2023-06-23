@@ -117,6 +117,7 @@ const query = computed(() => TOTAL_ACTIVITIES_QUERY({
   granularity,
   selectedPlatforms: props.filters.platform.value,
   selectedHasTeamActivities: props.filters.teamActivities,
+  selectedSegments: props.filters.segments,
 }));
 
 const kpiCurrentValue = (resultSet) => {

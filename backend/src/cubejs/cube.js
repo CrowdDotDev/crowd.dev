@@ -11,6 +11,9 @@ module.exports = {
     if (!securityContext.tenantId) {
       throw new Error('No id found in Security Context!')
     }
+    if (!securityContext.segments) {
+      throw new Error('No segments found in Security Context!')
+    }
     const measureCube = query.measures[0].split('.')
 
     if (
@@ -47,13 +50,18 @@ module.exports = {
     query.filters.push({
       member: `Members.isBot`,
       operator: 'equals',
-      values: [false],
+      values: ['0'],
     })
 
     query.filters.push({
       member: `${measureCube[0]}.tenantId`,
       operator: 'equals',
       values: [securityContext.tenantId],
+    })
+    query.filters.push({
+      member: 'Segments.id',
+      operator: 'equals',
+      values: securityContext.segments,
     })
 
     return query

@@ -25,13 +25,14 @@ export default {
 
   async doExport(
     {
-      commit, getters, rootGetters, dispatch,
+      commit, rootGetters, dispatch,
     },
     {
       selected = false,
       customIds = [],
       customFilter = null,
       count = null,
+      segments = [],
     } = {},
   ) {
     let filter;
@@ -65,13 +66,14 @@ export default {
         badgeContent: pluralize('member', count, true),
       });
 
-      await MemberService.export(
+      await MemberService.export({
         filter,
-        'lastActive_DESC',
-        0,
-        null,
-        !selected && !customFilter, // build API payload if selected === false || !customFilter
-      );
+        orderBy: 'lastActive_DESC',
+        limit: 0,
+        offset: null,
+        segments,
+        buildFilter: !selected && !customFilter, // build API payload if selected === false || !customFilter
+      });
 
       await dispatch('auth/doRefreshCurrentUser', null, {
         root: true,
@@ -118,7 +120,7 @@ export default {
       });
 
       Message.success(
-        `Member${selectedRows.length > 1 ? 's' : ''} updated successfully`,
+        `Contributor${selectedRows.length > 1 ? 's' : ''} updated successfully`,
       );
     } catch (error) {
       Errors.handle(error);
@@ -245,7 +247,7 @@ export default {
     }
   },
 
-  async doEnrich({ commit, dispatch, rootGetters }, id) {
+  async doEnrich({ commit, dispatch, rootGetters }, id, segments) {
     try {
       const currentTenant = rootGetters['auth/currentTenant'];
 
@@ -263,7 +265,7 @@ export default {
       // Show enrichment loading message
       showEnrichmentLoadingMessage({ isBulk: false });
 
-      const response = await MemberService.enrichMember(id);
+      const response = await MemberService.enrichMember(id, segments);
 
       commit('UPDATE_SUCCESS', response);
 
@@ -289,7 +291,7 @@ export default {
           },
         });
       } else {
-        await dispatch('doFind', id);
+        await dispatch('doFind', { id });
       }
     } catch (error) {
       Message.closeAll();
