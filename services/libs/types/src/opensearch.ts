@@ -24,9 +24,14 @@ export interface MemberStaticFieldsTranslation {
   identities: string
 }
 
+export interface CustomOpensearchTranslation {
+  fromOpensearch: string
+  toOpensearch: string
+}
+
 export interface OpensearchField {
   type: string
-  customOpensourceDestination?: string
+  customTranslation?: CustomOpensearchTranslation
   dynamic?: boolean
   realType?: string
 }
