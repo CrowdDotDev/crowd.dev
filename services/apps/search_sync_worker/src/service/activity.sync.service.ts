@@ -169,7 +169,7 @@ export class ActivitySyncService extends LoggerBase {
     p.uuid_tenantId = data.tenantId
     p.uuid_segmentId = data.segmentId
     p.keyword_type = data.type
-    p.date_timestamp = data.timestamp
+    p.date_timestamp = new Date(data.timestamp).toISOString()
     p.keyword_platform = data.platform
     p.bool_isContribution = data.isContribution
     p.int_score = data.score ?? 0

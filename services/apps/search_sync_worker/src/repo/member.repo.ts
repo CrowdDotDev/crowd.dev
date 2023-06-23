@@ -161,6 +161,7 @@ export class MemberRepository extends RepositoryBase<MemberRepository> {
               m.score,
               m."lastEnriched",
               m."joinedAt",
+              m."createdAt",
               (m.reach -> 'total')::integer                      as "totalReach",
               coalesce(jsonb_array_length(m.contributions), 0)   as "numberOfOpenSourceContributions",
 
