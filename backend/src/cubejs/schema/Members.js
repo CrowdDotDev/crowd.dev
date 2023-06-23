@@ -27,6 +27,7 @@ cube(`Members`, {
         Members.isTeamMember,
         Members.isBot,
         Members.isOrganization,
+        Segments.id,
       ],
       timeDimension: Members.joinedAt,
       granularity: `day`,
@@ -45,6 +46,7 @@ cube(`Members`, {
         Members.isTeamMember,
         Members.isBot,
         Members.isOrganization,
+        Segments.id,
       ],
       timeDimension: Members.joinedAt,
       granularity: `day`,
@@ -55,7 +57,7 @@ cube(`Members`, {
 
     MembersActivities: {
       measures: [Members.count],
-      dimensions: [Members.tenantId, Members.isTeamMember, Members.isBot, Members.isOrganization],
+      dimensions: [Members.tenantId, Members.isTeamMember, Members.isBot, Members.isOrganization, Segments.id],
       timeDimension: Activities.date,
       granularity: `day`,
       refreshKey: {
@@ -72,6 +74,7 @@ cube(`Members`, {
         Members.isTeamMember,
         Members.isBot,
         Members.isOrganization,
+        Segments.id,
       ],
       timeDimension: Activities.date,
       granularity: `day`,
@@ -88,6 +91,7 @@ cube(`Members`, {
         Members.isTeamMember,
         Members.isBot,
         Members.isOrganization,
+        Segments.id,
       ],
       timeDimension: Members.joinedAt,
       granularity: `day`,
