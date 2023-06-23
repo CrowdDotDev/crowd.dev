@@ -169,7 +169,7 @@ export class MemberSyncService extends LoggerBase {
             }
 
             const grouped = groupBy(members, (m) => m.id)
-            const memberIds = Object.keys(grouped)
+            const memberIds = Array.from(grouped.keys())
 
             const forSync: IIndexRequest<unknown>[] = []
             for (const memberId of memberIds) {
