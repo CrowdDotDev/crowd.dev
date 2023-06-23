@@ -319,6 +319,7 @@ watch(query, (newValue, oldValue) => {
 
 watch(platform, async (newValue, oldValue) => {
   if (newValue !== oldValue) {
+    offset.value = 0
     await fetchActivities();
   }
 });
