@@ -458,15 +458,16 @@ export class MemberSyncService extends LoggerBase {
     p.obj_attributes = p_attributes
     p.string_arr_emails = data.emails || []
     p.int_score = data.score
-    p.date_lastEnriched = data.lastEnriched
-    p.date_joinedAt = data.joinedAt
+    p.date_lastEnriched = data.lastEnriched ? new Date(data.lastEnriched).toISOString() : null
+    p.date_joinedAt = new Date(data.joinedAt).toISOString()
+    p.date_createdAt = new Date(data.createdAt).toISOString()
     p.int_totalReach = data.totalReach
     p.int_numberOfOpenSourceContributions = data.numberOfOpenSourceContributions
     p.string_arr_activeOn = data.activeOn
     p.int_activityCount = data.activityCount
     p.string_arr_activityTypes = data.activityTypes
     p.int_activeDaysCount = data.activeDaysCount
-    p.date_lastActive = data.lastActive
+    p.date_lastActive = data.lastActive ? new Date(data.lastActive).toISOString() : null
     p.float_averageSentiment = data.averageSentiment
 
     const p_identities = []
