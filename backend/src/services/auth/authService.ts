@@ -579,8 +579,6 @@ class AuthService {
           options,
         )
         log.debug({ user }, 'User')
-      } else if (user && (user.provider !== provider || user.providerId !== providerId)) {
-        throw new Error('auth-invalid-provider')
       }
 
       if (!user) {
