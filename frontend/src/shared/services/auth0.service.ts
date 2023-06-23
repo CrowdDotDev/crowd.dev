@@ -1,5 +1,6 @@
 import { WebAuth, Auth0DecodedHash } from 'auth0-js';
 import { LocalStorageEnum } from '@/shared/types/LocalStorage';
+import config from "@/config";
 
 const authCallback = 'http://localhost:8081/auth/callback';
 const redirectUri = 'http://localhost:8081/auth/signin';
@@ -9,8 +10,8 @@ class Auth0ServiceClass {
 
   public constructor() {
     this.webAuth = new WebAuth({
-      domain: (import.meta as any).env.VUE_APP_AUTH0_DOMAIN,
-      clientID: (import.meta as any).env.VUE_APP_AUTH0_CLIENT_ID,
+      domain: config.auth0.domain,
+      clientID: config.auth0.clientId,
       redirectUri: authCallback,
       responseType: 'token id_token',
     });
@@ -84,7 +85,7 @@ class Auth0ServiceClass {
       this.webAuth.changePassword(
         {
           email: email ?? '',
-          connection: (import.meta as any).env.VUE_APP_AUTH0_DATABASE,
+          connection: config.auth0.database,
         },
         (err) => {
           if (!err) {
@@ -106,7 +107,7 @@ class Auth0ServiceClass {
           email: email ?? '',
           username: email ?? '',
           password: password ?? '',
-          connection: (import.meta as any).env.VUE_APP_AUTH0_DATABASE,
+          connection: config.auth0.database,
           given_name: firstName,
           family_name: lastName,
           name: `${firstName} ${lastName}`,

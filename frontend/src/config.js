@@ -56,6 +56,11 @@ const defaultConfig = {
     id: import.meta.env.VUE_APP_SAMPLE_TENANT_ID,
     token: import.meta.env.VUE_APP_SAMPLE_TENANT_TOKEN,
   },
+  auth0: {
+    domain: import.meta.env.VUE_APP_AUTH0_DOMAIN,
+    clientId: import.meta.env.VUE_APP_AUTH0_CLIENT_ID,
+    database: import.meta.env.VUE_APP_AUTH0_DATABASE,
+  },
   isGitEnabled: import.meta.env.VUE_APP_IS_GIT_ENABLED,
 };
 
@@ -104,6 +109,11 @@ const composedConfig = {
   sampleTenant: {
     id: 'CROWD_VUE_APP_SAMPLE_TENANT_ID',
     token: 'CROWD_VUE_APP_SAMPLE_TENANT_TOKEN',
+  },
+  auth0: {
+    domain: 'CROWD_VUE_APP_AUTH0_DOMAIN',
+    clientId: 'VUE_APP_AUTH0_CLIENT_ID',
+    database: 'VUE_APP_AUTH0_DATABASE',
   },
   isGitEnabled: 'CROWD_VUE_APP_IS_GIT_ENABLED',
 };
