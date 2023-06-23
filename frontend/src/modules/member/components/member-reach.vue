@@ -32,8 +32,8 @@
         </div>
       </template>
       <div>
-        <span v-if="member.reach.total !== -1">{{
-          formatNumberToCompact(member.reach.total)
+        <span v-if="member.reach !== -1">{{
+          formatNumberToCompact(member.reach)
         }}</span>
         <span v-else />
       </div>

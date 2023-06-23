@@ -202,7 +202,7 @@
               <el-table-column
                 v-if="showReach"
                 label="Reach"
-                prop="reach.total"
+                prop="reach"
                 width="150"
                 sortable="custom"
               >
@@ -456,8 +456,7 @@ const integrations = computed(
 );
 
 const showReach = computed(
-  () => integrations.value.twitter?.status === 'done'
-    || integrations.value.github?.status === 'done',
+  () => true,
 );
 
 const loading = computed(
