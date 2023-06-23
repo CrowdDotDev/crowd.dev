@@ -457,7 +457,7 @@ const integrations = computed(
 
 const showReach = computed(
   () => integrations.value.twitter?.status === 'done'
-  || integrations.value.github?.status === 'done',
+    || integrations.value.github?.status === 'done',
 );
 
 const loading = computed(
