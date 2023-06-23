@@ -32,6 +32,9 @@ export class MembersOpensearch extends OpensearchModelBase {
     joinedAt: {
       type: OpensearchFieldType.DATE,
     },
+    createdAt: {
+      type: OpensearchFieldType.DATE,
+    },
     reach: {
       type: OpensearchFieldType.INT,
       customTranslation: {
