@@ -60,6 +60,9 @@ export default class MemberTranslator extends FieldTranslator {
 
     // fix for colliding translations of id -> uuid_memberId (members) and id -> uuid_id (organizations, tags)
     this.opensearchToCrowdMap.set('uuid_id', 'id')
+
+    // backwards compatibility for reach.total
+    this.crowdToOpensearchMap.set('reach.total', 'int_totalReach')
   }
 
   private attributeTypeToOpenSearchPrefix(type: MemberAttributeType): string {

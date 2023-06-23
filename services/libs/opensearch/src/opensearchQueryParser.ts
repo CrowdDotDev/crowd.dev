@@ -141,7 +141,7 @@ export class OpensearchQueryParser {
       return {
         wildcard: {
           [searchKey]: {
-            value: `${value}*`,
+            value: `*${value}*`,
           },
         },
       }
@@ -173,7 +173,7 @@ export class OpensearchQueryParser {
           must_not: {
             wildcard: {
               [searchKey]: {
-                value: `${value}*`,
+                value: `*${value}*`,
               },
             },
           },
