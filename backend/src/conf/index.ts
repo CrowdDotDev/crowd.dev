@@ -30,6 +30,8 @@ import {
   IntegrationProcessingConfiguration,
   SlackNotifierConfiguration,
   OrganizationEnrichmentConfiguration,
+  IOpenSearchConfig,
+  WeeklyEmailsConfiguration,
 } from './configTypes'
 
 // TODO-kube
@@ -107,6 +109,8 @@ export const EAGLE_EYE_CONFIG: EagleEyeConfiguration = config.get<EagleEyeConfig
 
 export const UNLEASH_CONFIG: UnleashConfiguration = config.get<UnleashConfiguration>('unleash')
 
+export const OPENSEARCH_CONFIG: IOpenSearchConfig = config.get<IOpenSearchConfig>('opensearch')
+
 export const STACKEXCHANGE_CONFIG: StackExchangeConfiguration =
   config.get<StackExchangeConfiguration>('stackexchange') ?? {
     key: process.env.STACKEXCHANGE_KEY,
@@ -120,3 +124,6 @@ export const SAMPLE_DATA_CONFIG: SampleDataConfiguration =
 
 export const INTEGRATION_PROCESSING_CONFIG: IntegrationProcessingConfiguration =
   config.get<IntegrationProcessingConfiguration>('integrationProcessing')
+
+export const WEEKLY_EMAILS_CONFIG: WeeklyEmailsConfiguration =
+  config.get<WeeklyEmailsConfiguration>('weeklyEmails')

@@ -1,9 +1,9 @@
 import moment from 'moment/moment'
 import sanitizeHtml from 'sanitize-html'
-import { SLACK_GRID, SlackActivityType } from '@crowd/integrations'
+import { SLACK_GRID, SLACK_MEMBER_ATTRIBUTES, SlackActivityType } from '@crowd/integrations'
 import { RedisCache, getRedisClient } from '@crowd/redis'
 import { timeout } from '@crowd/common'
-import { IntegrationType, PlatformType } from '@crowd/types'
+import { IntegrationType, MemberAttributeName, PlatformType } from '@crowd/types'
 import { SLACK_CONFIG, REDIS_CONFIG } from '../../../../conf'
 import {
   IIntegrationStream,
@@ -15,14 +15,12 @@ import {
 import { SlackMessages } from '../../types/slackTypes'
 import { IntegrationServiceBase } from '../integrationServiceBase'
 import MemberAttributeSettingsService from '../../../../services/memberAttributeSettingsService'
-import { SlackMemberAttributes } from '../../../../database/attributes/member/slack'
 import getChannels from '../../usecases/slack/getChannels'
 import { Thread } from '../../types/iteratorTypes'
 import getMessagesThreads from '../../usecases/slack/getMessagesInThreads'
 import getMessages from '../../usecases/slack/getMessages'
 import getTeam from '../../usecases/slack/getTeam'
 import { AddActivitiesSingle, Member, PlatformIdentities } from '../../types/messageTypes'
-import { MemberAttributeName } from '../../../../database/attributes/member/enums'
 import Operations from '../../../dbOperations/operations'
 import getMember from '../../usecases/slack/getMember'
 import getMembers from '../../usecases/slack/getMembers'
@@ -82,7 +80,7 @@ export class SlackIntegrationService extends IntegrationServiceBase {
 
   async createMemberAttributes(context: IStepContext): Promise<void> {
     const service = new MemberAttributeSettingsService(context.repoContext)
-    await service.createPredefined(SlackMemberAttributes)
+    await service.createPredefined(SLACK_MEMBER_ATTRIBUTES)
   }
 
   async getStreams(context: IStepContext): Promise<IPendingStream[]> {

@@ -1,6 +1,7 @@
 import passport from 'passport'
 import Permissions from '../../../security/permissions'
 import PermissionChecker from '../../../services/user/permissionChecker'
+import SequelizeRepository from '../../../database/repositories/sequelizeRepository'
 
 export default async (req, res, next) => {
   // Checking we have permision to edit the project
@@ -8,6 +9,7 @@ export default async (req, res, next) => {
 
   const state = {
     tenantId: req.params.tenantId,
+    segmentIds: SequelizeRepository.getSegmentIds(req),
     redirectUrl: req.query.redirectUrl,
     crowdToken: req.query.crowdToken,
   }

@@ -1,6 +1,8 @@
 import NoteRepository from '../noteRepository'
 import SequelizeTestUtils from '../../utils/sequelizeTestUtils'
 import Error404 from '../../../errors/Error404'
+import MemberRepository from '../memberRepository'
+import { PlatformType } from '@crowd/types'
 
 const db = null
 
@@ -164,10 +166,20 @@ describe('NoteRepository tests', () => {
   describe('findAndCountAll method', () => {
     it('Should find and count all notes, with various filters', async () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
+      const member = await MemberRepository.create(
+        {
+          username: {
+            [PlatformType.GITHUB]: 'test',
+          },
+          displayName: 'Member 1',
+          joinedAt: '2020-05-27T15:13:30Z',
+        },
+        mockIRepositoryOptions,
+      )
 
-      const note1 = { body: 'test-note' }
-      const note2 = { body: 'test-note-2' }
-      const note3 = { body: 'another-note' }
+      const note1 = { body: 'test-note', members: [member.id] }
+      const note2 = { body: 'test-note-2', members: [member.id] }
+      const note3 = { body: 'another-note', members: [member.id] }
 
       const note1Created = await NoteRepository.create(note1, mockIRepositoryOptions)
       await new Promise((resolve) => {

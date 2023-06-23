@@ -51,7 +51,8 @@
     "nodejsWorkerPassword": "CROWD_DB_NODEJS_WORKER_PASSWORD",
     "jobGeneratorUsername": "CROWD_DB_JOB_GENERATOR_USERNAME",
     "jobGeneratorPassword": "CROWD_DB_JOB_GENERATOR_PASSWORD",
-    "database": "CROWD_DB_DATABASE"
+    "database": "CROWD_DB_DATABASE",
+    "logging": "CROWD_DB_LOGGING"
   },
   "cubejs": {
     "url": "CROWD_CUBEJS_URL",
@@ -168,5 +169,14 @@
       "password": "CROWD_UNLEASH_DB_PASSWORD",
       "database": "CROWD_UNLEASH_DB_DATABASE"
     }
+  },
+  "weeklyEmails": {
+    "enabled": "CROWD_WEEKLY_EMAILS_ENABLED"
+  },
+  "opensearch": {
+    "node": "CROWD_OPENSEARCH_NODE",
+    "region": "CROWD_OPENSEARCH_AWS_REGION",
+    "accessKeyId": "CROWD_OPENSEARCH_AWS_ACCESS_KEY_ID",
+    "secretAccessKey": "CROWD_OPENSEARCH_AWS_SECRET_ACCESS_KEY"
   }
 }

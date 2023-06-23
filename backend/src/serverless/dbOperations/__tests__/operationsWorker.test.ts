@@ -7,6 +7,7 @@ import MicroserviceService from '../../../services/microserviceService'
 import worker from '../operationsWorker'
 import { PlatformType } from '@crowd/types'
 import { generateUUIDv1 } from '@crowd/common'
+import { populateSegments } from '../../../database/utils/segmentTestUtils'
 
 const db = null
 
@@ -90,6 +91,8 @@ describe('Serverless database operations worker tests', () => {
   describe('Bulk upsert method for activities with members', () => {
     it('Should add a single simple activity with members', async () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
+      await populateSegments(mockIRepositoryOptions)
+
       const ts = moment().toDate()
       const activity = {
         timestamp: ts,
@@ -118,6 +121,8 @@ describe('Serverless database operations worker tests', () => {
 
     it('Should add a list of activities with members', async () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
+      await populateSegments(mockIRepositoryOptions)
+
       const ts = moment().toDate()
       const ts2 = moment().subtract(2, 'days').toDate()
 

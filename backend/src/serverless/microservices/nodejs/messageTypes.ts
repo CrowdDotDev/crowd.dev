@@ -12,6 +12,7 @@ export type AutomationMessage = BaseNodeMicroserviceMessage & {
 export type CsvExportMessage = BaseNodeMicroserviceMessage & {
   entity: ExportableEntity
   user: string
+  segmentIds: string[]
   criteria: any
 }
 
