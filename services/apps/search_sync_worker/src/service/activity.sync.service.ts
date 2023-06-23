@@ -130,7 +130,7 @@ export class ActivitySyncService extends LoggerBase {
   }
 
   public async removeActivity(activityId: string): Promise<void> {
-    this.log.warn({ activityId }, 'Removing activity from index!')
+    this.log.debug({ activityId }, 'Removing activity from index!')
     await this.openSearchService.removeFromIndex(activityId, OpenSearchIndex.ACTIVITIES)
   }
 

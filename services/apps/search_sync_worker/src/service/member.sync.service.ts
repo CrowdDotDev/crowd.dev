@@ -94,7 +94,7 @@ export class MemberSyncService extends LoggerBase {
   }
 
   public async removeMember(memberId: string): Promise<void> {
-    this.log.warn({ memberId }, 'Removing member from index!')
+    this.log.debug({ memberId }, 'Removing member from index!')
 
     const query = {
       bool: {

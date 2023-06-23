@@ -105,7 +105,7 @@ export class OpenSearchService extends LoggerBase {
       })
     } catch (err) {
       if (err.meta.statusCode === 404) {
-        this.log.warn(err, { id, index }, 'Document not found in index!')
+        this.log.debug(err, { id, index }, 'Document not found in index!')
         return
       }
       this.log.error(err, { id, index }, 'Failed to remove document from index!')
