@@ -14,6 +14,7 @@
     "format": "prettier --write \"src/**/*.ts\"",
     "format-check": "prettier --check .",
     "tsc-check": "tsc --noEmit",
+    "script:update-mappings": "SERVICE=script node -r tsconfig-paths/register -r ts-node/register src/bin/update-mappings.ts --transpile-only",
     "script:sync-all-unsynced-members": "SERVICE=script node -r tsconfig-paths/register -r ts-node/register src/bin/sync-all-unsynced-members.ts --transpile-only",
     "script:sync-all-unsynced-activities": "SERVICE=script node -r tsconfig-paths/register -r ts-node/register src/bin/sync-all-unsynced-activities.ts --transpile-only",
     "script:sync-member": "SERVICE=script node -r tsconfig-paths/register -r ts-node/register src/bin/sync-member.ts --transpile-only",

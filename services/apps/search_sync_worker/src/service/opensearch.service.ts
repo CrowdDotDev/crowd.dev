@@ -58,7 +58,7 @@ export class OpenSearchService extends LoggerBase {
     }
   }
 
-  private async setIndexMappings(indexName: OpenSearchIndex): Promise<void> {
+  public async setIndexMappings(indexName: OpenSearchIndex): Promise<void> {
     try {
       const mappings = OPENSEARCH_INDEX_MAPPINGS[indexName]
 
