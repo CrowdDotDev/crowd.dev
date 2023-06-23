@@ -467,7 +467,7 @@ class SegmentRepository extends RepositoryBase<
       {
         replacements: {
           tenantId: this.currentTenant.id,
-          name: `${criteria.filter?.name}%`,
+          name: `%${criteria.filter?.name}%`,
           status: criteria.filter?.status,
         },
         type: QueryTypes.SELECT,
