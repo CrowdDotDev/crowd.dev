@@ -1,3 +1,4 @@
+import { tenant } from '@/modules/tenant/tenant-module'
 import { OpenSearchService } from '@/service/opensearch.service'
 import { MemberSyncService } from '@/service/member.sync.service'
 import { DbConnection, DbStore } from '@crowd/database'
@@ -47,40 +48,59 @@ export class WorkerQueueReceiver extends SqsQueueReceiver {
       switch (type) {
         // members
         case SearchSyncWorkerQueueMessageType.SYNC_MEMBER:
-          await this.initMemberService().syncMember(data.memberId)
+          if (data.memberId) {
+            await this.initMemberService().syncMember(data.memberId)
+          }
+
           break
         // this one taks a while so we can't relly on it to be finished in time and the queue message might pop up again so we immediatelly return
         case SearchSyncWorkerQueueMessageType.SYNC_TENANT_MEMBERS:
-          this.initMemberService()
-            .syncTenantMembers(data.tenantId)
-            .catch((err) => this.log.error(err, 'Error while syncing tenant members!'))
+          if (data.tenantId) {
+            this.initMemberService()
+              .syncTenantMembers(data.tenantId)
+              .catch((err) => this.log.error(err, 'Error while syncing tenant members!'))
+          }
+
           break
         // this one taks a while so we can't relly on it to be finished in time and the queue message might pop up again so we immediatelly return
         case SearchSyncWorkerQueueMessageType.CLEANUP_TENANT_MEMBERS:
-          this.initMemberService()
-            .cleanupMemberIndex(data.tenantId)
-            .catch((err) => this.log.error(err, 'Error while cleaning up tenant members!'))
+          if (data.tenantId) {
+            this.initMemberService()
+              .cleanupMemberIndex(data.tenantId)
+              .catch((err) => this.log.error(err, 'Error while cleaning up tenant members!'))
+          }
+
           break
         case SearchSyncWorkerQueueMessageType.REMOVE_MEMBER:
-          await this.initMemberService().removeMember(data.memberId)
+          if (data.memberId) {
+            await this.initMemberService().removeMember(data.memberId)
+          }
           break
 
         // activities
         case SearchSyncWorkerQueueMessageType.SYNC_ACTIVITY:
-          await this.initActivityService().syncActivity(data.activityId)
+          if (data.activityId) {
+            await this.initActivityService().syncActivity(data.activityId)
+          }
           break
         case SearchSyncWorkerQueueMessageType.SYNC_TENANT_ACTIVITIES:
-          this.initActivityService()
-            .syncTenantActivities(data.tenantId)
-            .catch((err) => this.log.error(err, 'Error while syncing tenant activities!'))
+          if (data.tenantId) {
+            this.initActivityService()
+              .syncTenantActivities(data.tenantId)
+              .catch((err) => this.log.error(err, 'Error while syncing tenant activities!'))
+          }
           break
         case SearchSyncWorkerQueueMessageType.CLEANUP_TENANT_ACTIVITIES:
-          this.initActivityService()
-            .cleanupActivityIndex(data.tenantId)
-            .catch((err) => this.log.error(err, 'Error while cleaning up tenant activities!'))
+          if (data.tenantId) {
+            this.initActivityService()
+              .cleanupActivityIndex(data.tenantId)
+              .catch((err) => this.log.error(err, 'Error while cleaning up tenant activities!'))
+          }
           break
         case SearchSyncWorkerQueueMessageType.REMOVE_ACTIVITY:
-          await this.initActivityService().removeActivity(data.activityId)
+          if (data.activityId) {
+            await this.initActivityService().removeActivity(data.activityId)
+          }
           break
 
         default:
