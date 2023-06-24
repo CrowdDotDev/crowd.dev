@@ -60,16 +60,17 @@ services:
     networks:
       - crowd-bridge
 
-  open-search-dashboard:
-    image: opensearchproject/opensearch-dashboards:2.7.0
-    restart: always
-    environment:
-      - 'OPENSEARCH_HOSTS=["http://open-search:9200"]'
-      - 'DISABLE_SECURITY_DASHBOARDS_PLUGIN=true'
-    ports:
-      - 5601:5601
-    networks:
-      - crowd-bridge
+  # uncomment to enable dashboard
+  # open-search-dashboard:
+  #   image: opensearchproject/opensearch-dashboards:2.7.0
+  #   restart: always
+  #   environment:
+  #     - 'OPENSEARCH_HOSTS=["http://open-search:9200"]'
+  #     - 'DISABLE_SECURITY_DASHBOARDS_PLUGIN=true'
+  #   ports:
+  #     - 5601:5601
+  #   networks:
+  #     - crowd-bridge
 
   # s3:
   #   image: scireum/s3-ninja:8.0.0
