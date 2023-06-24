@@ -15,7 +15,8 @@
     "paths": {
       "@crowd/*": ["../../services/libs/*/dist"],
       "@/*": ["./*"]
-    }
+    },
+    "skipLibCheck": true
   },
   "include": [
     "src",
