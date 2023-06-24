@@ -1332,7 +1332,7 @@ export class GithubIntegrationService extends IntegrationServiceBase {
           username: member.username[PlatformType.GITHUB].username,
           platform: PlatformType.GITHUB,
           channel: repo.url,
-          url: `https://github.com/${repo.owner}/${repo.name}.git`,
+          url: `${repo.url}/commit/${record.commit.oid}`,
           body: record.commit.message,
           type: 'authored-commit',
           sourceId: record.commit.oid,
