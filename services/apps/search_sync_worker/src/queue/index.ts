@@ -1,12 +1,11 @@
-import { tenant } from '@/modules/tenant/tenant-module'
-import { OpenSearchService } from '@/service/opensearch.service'
+import { ActivitySyncService } from '@/service/activity.sync.service'
 import { MemberSyncService } from '@/service/member.sync.service'
+import { OpenSearchService } from '@/service/opensearch.service'
 import { DbConnection, DbStore } from '@crowd/database'
 import { Logger } from '@crowd/logging'
 import { RedisClient } from '@crowd/redis'
 import { SEARCH_SYNC_WORKER_QUEUE_SETTINGS, SqsClient, SqsQueueReceiver } from '@crowd/sqs'
 import { IQueueMessage, SearchSyncWorkerQueueMessageType } from '@crowd/types'
-import { ActivitySyncService } from '@/service/activity.sync.service'
 
 export class WorkerQueueReceiver extends SqsQueueReceiver {
   constructor(
