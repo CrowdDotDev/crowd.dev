@@ -173,10 +173,7 @@ export default class ActivityService extends LoggerBase {
       await SequelizeRepository.commitTransaction(transaction)
 
       if (fireSync) {
-        await searchSyncEmitter.triggerMemberSync(
-          this.options.currentTenant.id,
-          data.member ? data.member.id : data.memberId,
-        )
+        await searchSyncEmitter.triggerMemberSync(this.options.currentTenant.id, record.memberId)
         await searchSyncEmitter.triggerActivitySync(this.options.currentTenant.id, record.id)
       }
 
@@ -615,7 +612,7 @@ export default class ActivityService extends LoggerBase {
 
       await SequelizeRepository.commitTransaction(transaction)
 
-      await searchSyncEmitter.triggerMemberSync(this.options.currentTenant.id, member.id)
+      await searchSyncEmitter.triggerMemberSync(this.options.currentTenant.id, record.memberId)
       await searchSyncEmitter.triggerActivitySync(this.options.currentTenant.id, record.id)
 
       if (data.objectMember) {
@@ -674,10 +671,7 @@ export default class ActivityService extends LoggerBase {
       await SequelizeRepository.commitTransaction(transaction)
 
       await searchSyncEmitter.triggerActivitySync(this.options.currentTenant.id, record.id)
-      await searchSyncEmitter.triggerMemberSync(
-        this.options.currentTenant.id,
-        record.member ? record.member.id : record.memberId,
-      )
+      await searchSyncEmitter.triggerMemberSync(this.options.currentTenant.id, record.memberId)
       return record
     } catch (error) {
       if (error.name && error.name.includes('Sequelize')) {
