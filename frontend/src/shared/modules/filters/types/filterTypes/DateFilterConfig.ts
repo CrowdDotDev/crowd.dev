@@ -1,6 +1,6 @@
 /* eslint-disable no-unused-vars */
 import { BaseFilterConfig, FilterConfigType } from '@/shared/modules/filters/types/FilterConfig';
-import { FilterDateOperator } from "@/shared/modules/filters/config/constants/date.constants";
+import { FilterDateOperator } from '@/shared/modules/filters/config/constants/date.constants';
 
 export interface DateFilterOptions {
   datepickerType?: 'date' | 'month' | 'year'

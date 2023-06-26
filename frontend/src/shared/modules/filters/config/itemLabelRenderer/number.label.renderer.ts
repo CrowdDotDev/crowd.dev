@@ -12,7 +12,7 @@ export const numberItemLabelRenderer = (property: string, {
   if (operator === FilterNumberOperator.EQ) {
     operandText = '';
   }
-  const isBetween = [FilterNumberOperator.BETWEEN, FilterNumberOperator.NOT_BETWEEN].includes(operator)
+  const isBetween = [FilterNumberOperator.BETWEEN, FilterNumberOperator.NOT_BETWEEN].includes(operator);
   const valueText = isBetween ? `${value} - ${valueTo}` : `${operandText}${value}`;
   return `<b>${property}:</b>${valueText || '...'}`;
 };
