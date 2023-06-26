@@ -117,10 +117,18 @@ const isBetween = computed<boolean>(() => ([
 
 const $v = useVuelidate(rules, form);
 
-watch(() => form.value.operator, (operator) => {
-  if (!isBetween.value) {
+watch(() => form.value.operator, (operator, previousOperator) => {
+  const isPreviousBetweenOperator = ([
+    FilterNumberOperator.BETWEEN,
+    FilterNumberOperator.NOT_BETWEEN,
+  ] as FilterNumberOperator[]).includes(previousOperator);
+  const isCurrentBetweenOperator = ([
+    FilterNumberOperator.BETWEEN,
+    FilterNumberOperator.NOT_BETWEEN,
+  ] as FilterNumberOperator[]).includes(operator);
+  if (!isCurrentBetweenOperator) {
     delete form.value.valueTo;
-  } else {
+  } else if (isCurrentBetweenOperator !== isPreviousBetweenOperator) {
     form.value.valueTo = '';
   }
 });

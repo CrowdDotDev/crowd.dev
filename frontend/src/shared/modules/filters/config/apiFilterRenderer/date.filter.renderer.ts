@@ -3,11 +3,18 @@ import { FilterDateOperator } from '@/shared/modules/filters/config/constants/da
 import moment from 'moment';
 
 export const dateApiFilterRenderer = (property: string, { value, operator }: DateFilterValue): any[] => {
-  let includeFilter = ![FilterDateOperator.NE, FilterDateOperator.NOT_BETWEEN].includes(operator);
+  const includeFilter = ![FilterDateOperator.NE, FilterDateOperator.NOT_BETWEEN].includes(operator);
+  let filterOperator = operator;
+
+  if (operator === FilterDateOperator.NE) {
+    filterOperator = FilterDateOperator.EQ;
+  } else if (operator === FilterDateOperator.NOT_BETWEEN) {
+    filterOperator = FilterDateOperator.BETWEEN;
+  }
 
   let filter = {
     [property]: {
-      [operator]: value,
+      [filterOperator]: value,
     },
   };
   if ([FilterDateOperator.EQ, FilterDateOperator.NE].includes(operator)) {
