@@ -1,12 +1,7 @@
 <template>
   <div v-if="currentTenant" class="flex -m-5">
     <div
-      class="flex-grow overflow-auto"
-      :style="{
-        height: showBanner
-          ? 'calc(100vh - 3.5rem)'
-          : '100vh',
-      }"
+      class="flex-grow overflow-auto h-screen"
       @scroll="handleScroll($event)"
     >
       <div class="flex justify-center">
@@ -44,12 +39,7 @@
     </div>
     <aside
       v-if="selectedProjectGroup"
-      class="border-l border-gray-200 overflow-auto px-5 py-6"
-      :style="{
-        height: showBanner
-          ? 'calc(100vh - 3.5rem)'
-          : '100vh',
-      }"
+      class="border-l border-gray-200 overflow-auto px-5 py-6 h-screen"
     >
       <app-dashboard-project-group />
     </aside>
@@ -75,7 +65,6 @@ import { storeToRefs } from 'pinia';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 
 const { currentTenant } = mapGetters('auth');
-const { showBanner } = mapGetters('tenant');
 const { cubejsApi } = mapGetters('widget');
 const { doFetch } = mapActions('report');
 const { reset } = mapActions('dashboard');

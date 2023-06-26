@@ -95,6 +95,21 @@
           </span>
         </router-link>
 
+        <el-divider class="border-gray-200" />
+
+        <!-- Eagle eye -->
+        <router-link
+          id="menu-eagle-eye"
+          :to="{ path: '/eagle-eye' }"
+          class="el-menu-item"
+          :class="classFor('/eagle-eye')"
+        >
+          <i class="ri-search-eye-line" />
+          <span>
+            Eagle Eye
+          </span>
+        </router-link>
+
         <div class="grow" />
 
         <el-divider class="border-gray-200 !mb-1" />
