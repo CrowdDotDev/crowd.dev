@@ -263,6 +263,7 @@ const fetchActivities = async () => {
 
   if (!isEqual(filter, filterToApply)) {
     activities.length = 0;
+    offset.value = 0
     noMore.value = false;
   }
 
@@ -319,7 +320,6 @@ watch(query, (newValue, oldValue) => {
 
 watch(platform, async (newValue, oldValue) => {
   if (newValue !== oldValue) {
-    offset.value = 0
     await fetchActivities();
   }
 });
