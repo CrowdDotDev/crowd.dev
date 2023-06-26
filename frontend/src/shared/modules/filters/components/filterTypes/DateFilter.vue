@@ -17,7 +17,6 @@
           popper-class="date-picker-popper"
           v-bind="betweenProps"
           :teleported="false"
-          :type="datepickerType ?? 'date'"
           @blur="$v.value.$touch"
           @change="$v.value.$touch"
         />
@@ -76,7 +75,9 @@ const operators = computed(() => {
 const $v = useVuelidate(rules, form);
 
 const betweenProps = computed(() => (form.value.operator !== FilterDateOperator.BETWEEN
-  ? {}
+  ? {
+    type: props.datepickerType ?? 'date',
+  }
   : {
     type: props.datepickerType === 'month' ? 'monthrange' : 'daterange',
     'range-separator': 'To',
