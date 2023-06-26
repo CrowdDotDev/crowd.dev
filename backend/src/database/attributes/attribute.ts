@@ -1,14 +1,6 @@
-import { AttributeType } from './types'
+import { IMemberAttribute } from '@crowd/types'
 
-export interface Attribute {
-  type: AttributeType
-  canDelete: boolean
-  show: boolean
-  label: string
-  name: string
-  options?: string[]
-}
-export interface AttributeData extends Attribute {
+export interface AttributeData extends IMemberAttribute {
   id: string
   createdAt: string
   updatedAt: string

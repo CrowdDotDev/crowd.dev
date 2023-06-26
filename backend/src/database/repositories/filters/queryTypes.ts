@@ -1,4 +1,4 @@
-import { AttributeType } from '../../attributes/types'
+import { MemberAttributeType } from '@crowd/types'
 
 export interface QueryInput {
   filter: any
@@ -71,7 +71,7 @@ export interface ParsedJsonColumn {
 
 export interface AttributeInfo {
   name: string
-  type: AttributeType
+  type: MemberAttributeType
 }
 
 export interface JsonColumnInfo {

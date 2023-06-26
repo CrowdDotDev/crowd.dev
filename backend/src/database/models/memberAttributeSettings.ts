@@ -1,5 +1,5 @@
+import { MemberAttributeType } from '@crowd/types'
 import { DataTypes } from 'sequelize'
-import { AttributeType } from '../attributes/types'
 
 export default (sequelize) => {
   const memberAttributeSettings = sequelize.define(
@@ -12,7 +12,7 @@ export default (sequelize) => {
       },
       type: {
         type: DataTypes.ENUM,
-        values: Object.values(AttributeType),
+        values: Object.values(MemberAttributeType),
         allowNull: false,
       },
       canDelete: {

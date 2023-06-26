@@ -1,13 +1,13 @@
 import { IIntegrationDescriptor } from '../../types'
 import generateStreams from './generateStreams'
-import memberAttributes from './memberAttributes'
+import { DEVTO_MEMBER_ATTRIBUTES } from './memberAttributes'
 import processStream from './processStream'
 import processData from './processData'
 import { PlatformType } from '@crowd/types'
 
 const descriptor: IIntegrationDescriptor = {
   type: PlatformType.DEVTO,
-  memberAttributes,
+  memberAttributes: DEVTO_MEMBER_ATTRIBUTES,
   checkEvery: 20,
 
   generateStreams,

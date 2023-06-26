@@ -8,7 +8,7 @@ export const stringApiFilterRenderer = (property: string, { include, value, oper
   };
   if (operator === FilterStringOperator.LIKE || operator === FilterStringOperator.NLIKE) {
     filter = {
-      like: `%${value}%`,
+      like: `${value}`,
     };
   }
 
