@@ -13,7 +13,7 @@ export const numberQueryUrlParser = (query: QueryUrlNumberValue): NumberFilterVa
     value: +query.value,
     valueTo: +query.valueTo || '',
   };
-  if (obj.operator !== FilterNumberOperator.BETWEEN) {
+  if (![FilterNumberOperator.BETWEEN, FilterNumberOperator.NOT_BETWEEN].includes(obj.operator)) {
     delete obj.valueTo;
   }
   return obj;
