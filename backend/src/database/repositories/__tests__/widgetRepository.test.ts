@@ -39,6 +39,7 @@ describe('WidgetRepository tests', () => {
         deletedAt: null,
         reportId: null,
         tenantId: mockIRepositoryOptions.currentTenant.id,
+        segmentId: mockIRepositoryOptions.currentSegments[0].id,
         createdById: mockIRepositoryOptions.currentUser.id,
         updatedById: mockIRepositoryOptions.currentUser.id,
         report: null,
@@ -97,6 +98,7 @@ describe('WidgetRepository tests', () => {
         deletedAt: null,
         reportId: null,
         tenantId: mockIRepositoryOptions.currentTenant.id,
+        segmentId: mockIRepositoryOptions.currentSegments[0].id,
         createdById: mockIRepositoryOptions.currentUser.id,
         updatedById: mockIRepositoryOptions.currentUser.id,
       }
@@ -162,6 +164,7 @@ describe('WidgetRepository tests', () => {
         deletedAt: null,
         reportId: reportCreated.id,
         tenantId: mockIRepositoryOptions.currentTenant.id,
+        segmentId: mockIRepositoryOptions.currentSegments[0].id,
         createdById: mockIRepositoryOptions.currentUser.id,
         updatedById: mockIRepositoryOptions.currentUser.id,
       }
@@ -203,6 +206,7 @@ describe('WidgetRepository tests', () => {
         deletedAt: null,
         reportId: null,
         tenantId: mockIRepositoryOptions.currentTenant.id,
+        segmentId: mockIRepositoryOptions.currentSegments[0].id,
         createdById: mockIRepositoryOptions.currentUser.id,
         updatedById: mockIRepositoryOptions.currentUser.id,
       }
@@ -250,6 +254,7 @@ describe('WidgetRepository tests', () => {
         deletedAt: null,
         reportId: null,
         tenantId: mockIRepositoryOptions.currentTenant.id,
+        segmentId: mockIRepositoryOptions.currentSegments[0].id,
         createdById: mockIRepositoryOptions.currentUser.id,
         updatedById: mockIRepositoryOptions.currentUser.id,
       }
@@ -515,6 +520,7 @@ describe('WidgetRepository tests', () => {
         deletedAt: null,
         reportId: reportCreated.id,
         tenantId: mockIRepositoryOptions.currentTenant.id,
+        segmentId: mockIRepositoryOptions.currentSegments[0].id,
         createdById: mockIRepositoryOptions.currentUser.id,
         updatedById: mockIRepositoryOptions.currentUser.id,
       }

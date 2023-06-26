@@ -18,11 +18,14 @@ class WidgetRepository {
 
     const transaction = SequelizeRepository.getTransaction(options)
 
+    const segment = SequelizeRepository.getStrictlySingleActiveSegment(options)
+
     const record = await options.database.widget.create(
       {
         ...lodash.pick(data, ['cache', 'importHash', 'settings', 'title', 'type']),
         reportId: data.report || null,
         tenantId: tenant.id,
+        segmentId: segment.id,
         createdById: currentUser.id,
         updatedById: currentUser.id,
       },
@@ -63,6 +66,7 @@ class WidgetRepository {
       where: {
         id,
         tenantId: currentTenant.id,
+        segmentId: SequelizeRepository.getSegmentIds(options),
       },
       transaction,
     })
@@ -96,6 +100,7 @@ class WidgetRepository {
       where: {
         id,
         tenantId: currentTenant.id,
+        segmentId: SequelizeRepository.getSegmentIds(options),
       },
       transaction,
     })
@@ -128,6 +133,7 @@ class WidgetRepository {
       where: {
         id,
         tenantId: currentTenant.id,
+        segmentId: SequelizeRepository.getSegmentIds(options),
       },
       include,
       transaction,
@@ -177,6 +183,7 @@ class WidgetRepository {
       where: {
         ...filter,
         tenantId: tenant.id,
+        segmentId: SequelizeRepository.getSegmentIds(options),
       },
       transaction,
     })
@@ -277,6 +284,9 @@ class WidgetRepository {
     const whereAnd: Array<any> = [
       {
         tenantId: tenant.id,
+      },
+      {
+        segmentId: SequelizeRepository.getSegmentIds(options),
       },
     ]
 

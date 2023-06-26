@@ -58,6 +58,7 @@ export const getInsertActivityColumnSet = (instance: DbInstance): DbColumnSet =>
       'sourceId',
       'sourceParentId',
       'tenantId',
+      'segmentId',
       'memberId',
       'username',
       'sentiment',

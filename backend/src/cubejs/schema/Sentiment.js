@@ -18,7 +18,7 @@ where
   preAggregations: {
     Sentiment: {
       measures: [Sentiment.averageSentiment],
-      dimensions: [Sentiment.platform, Sentiment.mood, Sentiment.tenantId],
+      dimensions: [Sentiment.platform, Sentiment.mood, Sentiment.tenantId, Segments.id],
       timeDimension: Sentiment.date,
       granularity: `day`,
       refreshKey: {

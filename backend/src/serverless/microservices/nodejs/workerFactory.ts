@@ -65,6 +65,7 @@ async function workerFactory(event: NodeMicroserviceMessage): Promise<any> {
         csvExportMessage.entity,
         csvExportMessage.user,
         tenant,
+        csvExportMessage.segmentIds,
         csvExportMessage.criteria,
       )
     case 'bulk-enrich':

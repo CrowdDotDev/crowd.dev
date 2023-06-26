@@ -258,6 +258,7 @@ class MicroserviceRepository {
         nestedFields: {
           sentiment: 'sentiment.sentiment',
         },
+        withSegments: false,
       },
       options,
     )

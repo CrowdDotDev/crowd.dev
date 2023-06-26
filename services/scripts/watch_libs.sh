@@ -32,6 +32,7 @@ DEPENDENCIES=(
   ["conversations"]="common logging types database"
   ["integrations"]="common logging types"
   ["alerting"]=""
+  ["opensearch"]="types"
 )
 
 function touch_services() {
