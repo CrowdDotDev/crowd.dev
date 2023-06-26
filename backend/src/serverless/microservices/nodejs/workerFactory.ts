@@ -27,6 +27,7 @@ import { integrationDataCheckerWorker } from './integration-data-checker/integra
 import { refreshSampleDataWorker } from './integration-data-checker/refreshSampleDataWorker'
 import { mergeSuggestionsWorker } from './merge-suggestions/mergeSuggestionsWorker'
 import { BulkorganizationEnrichmentWorker } from './bulk-enrichment/bulkOrganizationEnrichmentWorker'
+import { API_CONFIG } from '../../../conf'
 
 /**
  * Worker factory for spawning different microservices
@@ -77,6 +78,9 @@ async function workerFactory(event: NodeMicroserviceMessage): Promise<any> {
     }
 
     case 'automation-process':
+      if (API_CONFIG.edition === 'lfx-ee') {
+        return {}
+      }
       const automationProcessRequest = event as ProcessAutomationMessage
 
       switch (automationProcessRequest.automationType) {
@@ -103,6 +107,9 @@ async function workerFactory(event: NodeMicroserviceMessage): Promise<any> {
       }
 
     case 'automation':
+      if (API_CONFIG.edition === 'lfx-ee') {
+        return {}
+      }
       const automationRequest = event as AutomationMessage
 
       switch (automationRequest.trigger) {
