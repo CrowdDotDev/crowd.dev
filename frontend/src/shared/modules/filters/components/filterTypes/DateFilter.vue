@@ -10,7 +10,7 @@
       <div class="filter-date-field" data-qa="filter-date-input">
         <el-date-picker
           v-model="form.value"
-          :placeholder="form.operator === FilterDateOperator.BETWEEN ? 'Select date range' : 'Select date'"
+          :placeholder="checkIfBetween(form.operator) ? 'Select date range' : 'Select date'"
           :value-format="props.dateFormat ?? 'YYYY-MM-DD'"
           :format="props.dateFormat ?? 'YYYY-MM-DD'"
           popper-class="date-picker-popper"
@@ -27,15 +27,14 @@
 <script setup lang="ts">
 import { computed, onMounted, watch } from 'vue';
 import {
-  DateFilterValue,
-  DateFilterOptions,
   DateFilterConfig,
+  DateFilterOptions,
+  DateFilterValue,
 } from '@/shared/modules/filters/types/filterTypes/DateFilterConfig';
 import { required } from '@vuelidate/validators';
 import useVuelidate from '@vuelidate/core';
 import { dateFilterOperators, FilterDateOperator } from '@/shared/modules/filters/config/constants/date.constants';
 import CrFilterInlineSelect from '@/shared/modules/filters/components/partials/FilterInlineSelect.vue';
-import { FilterNumberOperator } from "@/shared/modules/filters/config/constants/number.constants";
 
 const props = defineProps<{
   modelValue: DateFilterValue,
@@ -63,16 +62,18 @@ const rules: any = {
   },
 };
 
+const checkIfBetween = (operator) => [FilterDateOperator.BETWEEN, FilterDateOperator.NOT_BETWEEN].includes(operator);
+
 const operators = computed(() => {
   if (props.datepickerType === 'year') {
-    return dateFilterOperators.filter((o) => o.value !== FilterDateOperator.BETWEEN);
+    return dateFilterOperators.filter((o) => !checkIfBetween(o.value));
   }
   return dateFilterOperators;
 });
 
 const $v = useVuelidate(rules, form);
 
-const betweenProps = computed(() => (form.value.operator !== FilterDateOperator.BETWEEN
+const betweenProps = computed(() => (!checkIfBetween(form.value.operator)
   ? {
     type: props.datepickerType ?? 'date',
   }
@@ -84,14 +85,8 @@ const betweenProps = computed(() => (form.value.operator !== FilterDateOperator.
   }));
 
 watch(() => form.value.operator, (operator, previousOperator) => {
-  const isPreviousBetweenOperator = ([
-    FilterDateOperator.BETWEEN,
-    FilterDateOperator.NOT_BETWEEN,
-  ] as FilterDateOperator[]).includes(previousOperator);
-  const isCurrentBetweenOperator = ([
-    FilterDateOperator.BETWEEN,
-    FilterDateOperator.NOT_BETWEEN,
-  ] as FilterDateOperator[]).includes(operator);
+  const isPreviousBetweenOperator = checkIfBetween(previousOperator);
+  const isCurrentBetweenOperator = checkIfBetween(operator);
   if (isCurrentBetweenOperator !== isPreviousBetweenOperator) {
     form.value.value = '';
   }
