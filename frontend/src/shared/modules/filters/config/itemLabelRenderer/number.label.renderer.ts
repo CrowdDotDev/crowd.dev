@@ -9,10 +9,10 @@ export const numberItemLabelRenderer = (property: string, {
 }: NumberFilterValue): string => {
   const operatorObject = numberFilterOperators.find((o) => o.value === operator);
   let operandText = (operatorObject?.subLabel ? `${operatorObject.subLabel} ` : `${operatorObject?.label} ` || '');
-  if (operator === FilterNumberOperator.EQ) {
+  if ([FilterNumberOperator.EQ, FilterNumberOperator.BETWEEN].includes(operator)) {
     operandText = '';
   }
   const isBetween = [FilterNumberOperator.BETWEEN, FilterNumberOperator.NOT_BETWEEN].includes(operator);
-  const valueText = isBetween ? `${value} - ${valueTo}` : `${operandText}${value}`;
+  const valueText = isBetween ? `${operandText}${value} - ${valueTo}` : `${operandText}${value}`;
   return `<b>${property}:</b>${valueText || '...'}`;
 };

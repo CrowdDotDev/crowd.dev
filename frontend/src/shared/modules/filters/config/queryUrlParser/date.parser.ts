@@ -10,5 +10,7 @@ interface QueryUrlDateValue {
 export const dateQueryUrlParser = (query: QueryUrlDateValue): DateFilterValue => ({
   ...query,
   operator: query.operator as FilterDateOperator,
-  value: query.operator === FilterDateOperator.BETWEEN ? query.value.split(',') : query.value,
+  value: [FilterDateOperator.BETWEEN, FilterDateOperator.NOT_BETWEEN].includes(query.operator as FilterDateOperator)
+    ? query.value.split(',')
+    : query.value,
 });
