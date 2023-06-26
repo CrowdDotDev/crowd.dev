@@ -1,18 +1,19 @@
 import { QueryTypes } from 'sequelize'
-import { PlatformType } from '@crowd/types'
+import { MemberAttributeName, PlatformType } from '@crowd/types'
+import {
+  CROWD_MEMBER_ATTRIBUTES,
+  DEFAULT_MEMBER_ATTRIBUTES,
+  DEVTO_MEMBER_ATTRIBUTES,
+  DISCORD_MEMBER_ATTRIBUTES,
+  GITHUB_MEMBER_ATTRIBUTES,
+  SLACK_MEMBER_ATTRIBUTES,
+  TWITTER_MEMBER_ATTRIBUTES,
+} from '@crowd/integrations'
 import TenantService from '../../../services/tenantService'
 import getUserContext from '../../utils/getUserContext'
 import IntegrationService from '../../../services/integrationService'
 import MemberAttributeSettingsService from '../../../services/memberAttributeSettingsService'
-import { DevtoMemberAttributes } from '../../attributes/member/devto'
-import { MemberAttributeName } from '../../attributes/member/enums'
-import { TwitterMemberAttributes } from '../../attributes/member/twitter'
-import { GithubMemberAttributes } from '../../attributes/member/github'
-import { DiscordMemberAttributes } from '../../attributes/member/discord'
-import { SlackMemberAttributes } from '../../attributes/member/slack'
-import { DefaultMemberAttributes } from '../../attributes/member/default'
 import MemberService from '../../../services/memberService'
-import { CrowdMemberAttributes } from '../../attributes/member/crowd'
 
 export default async () => {
   const tenants = (await TenantService._findAndCountAllForEveryUser({ filter: {} })).rows
@@ -27,14 +28,14 @@ export default async () => {
     const activeIntegrations = await is.findAndCountAll({ filter: { status: 'done' } })
 
     // Create default member attribute settings
-    await memberAttributesService.createPredefined(DefaultMemberAttributes)
+    await memberAttributesService.createPredefined(DEFAULT_MEMBER_ATTRIBUTES)
 
     // create sample attribute settings if tenant.hasSampleData = true
     if (tenant.hasSampleData) {
       await memberAttributesService.createPredefined(
         MemberAttributeSettingsService.pickAttributes(
           [MemberAttributeName.SAMPLE],
-          CrowdMemberAttributes,
+          CROWD_MEMBER_ATTRIBUTES,
         ),
       )
     }
@@ -43,41 +44,41 @@ export default async () => {
     for (const integration of activeIntegrations.rows) {
       switch (integration.platform) {
         case PlatformType.DEVTO:
-          await memberAttributesService.createPredefined(DevtoMemberAttributes)
+          await memberAttributesService.createPredefined(DEVTO_MEMBER_ATTRIBUTES)
 
           await memberAttributesService.createPredefined(
             MemberAttributeSettingsService.pickAttributes(
               [MemberAttributeName.URL],
-              TwitterMemberAttributes,
+              TWITTER_MEMBER_ATTRIBUTES,
             ),
           )
 
           await memberAttributesService.createPredefined(
             MemberAttributeSettingsService.pickAttributes(
               [MemberAttributeName.URL, MemberAttributeName.NAME],
-              GithubMemberAttributes,
+              GITHUB_MEMBER_ATTRIBUTES,
             ),
           )
           break
         case PlatformType.DISCORD:
-          await memberAttributesService.createPredefined(DiscordMemberAttributes)
+          await memberAttributesService.createPredefined(DISCORD_MEMBER_ATTRIBUTES)
           break
         case PlatformType.GITHUB:
-          await memberAttributesService.createPredefined(GithubMemberAttributes)
+          await memberAttributesService.createPredefined(GITHUB_MEMBER_ATTRIBUTES)
 
           await memberAttributesService.createPredefined(
             MemberAttributeSettingsService.pickAttributes(
               [MemberAttributeName.URL],
-              TwitterMemberAttributes,
+              TWITTER_MEMBER_ATTRIBUTES,
             ),
           )
           break
         case PlatformType.SLACK:
-          await memberAttributesService.createPredefined(SlackMemberAttributes)
+          await memberAttributesService.createPredefined(SLACK_MEMBER_ATTRIBUTES)
           break
 
         case PlatformType.TWITTER:
-          await memberAttributesService.createPredefined(TwitterMemberAttributes)
+          await memberAttributesService.createPredefined(TWITTER_MEMBER_ATTRIBUTES)
           break
         default:
           break

@@ -2,18 +2,26 @@ import { NumberFilterValue } from '@/shared/modules/filters/types/filterTypes/Nu
 import { FilterNumberOperator } from '@/shared/modules/filters/config/constants/number.constants';
 
 export const numberApiFilterRenderer = (property: string, {
-  value, valueTo, operator, include,
+  value, valueTo, operator,
 }: NumberFilterValue): any[] => {
-  const filterValue = operator === FilterNumberOperator.BETWEEN ? [+value, +valueTo!] : +value;
+  const includeFilter = ![FilterNumberOperator.NE, FilterNumberOperator.NOT_BETWEEN].includes(operator);
+  let filterOperator = operator;
+
+  const filterValue = [FilterNumberOperator.BETWEEN, FilterNumberOperator.NOT_BETWEEN].includes(operator) ? [+value, +valueTo!] : +value;
+  if (operator === FilterNumberOperator.NE) {
+    filterOperator = FilterNumberOperator.EQ;
+  } else if (operator === FilterNumberOperator.NOT_BETWEEN) {
+    filterOperator = FilterNumberOperator.BETWEEN;
+  }
+
   const filter = {
     [property]: {
-      [operator]: filterValue,
+      [filterOperator]: filterValue,
     },
-
   };
 
   return [
-    (include ? filter : {
+    (includeFilter ? filter : {
       not: filter,
     }),
   ];

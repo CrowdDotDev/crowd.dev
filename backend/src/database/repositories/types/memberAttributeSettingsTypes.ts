@@ -1,9 +1,9 @@
+import { MemberAttributeType } from '@crowd/types'
 import { AttributeData } from '../../attributes/attribute'
-import { AttributeType } from '../../attributes/types'
 
 export interface MemberAttributeSettingsCreateData {
   label: string
-  type: AttributeType
+  type: MemberAttributeType
   options?: string[]
   name?: string
   show?: boolean
@@ -12,7 +12,7 @@ export interface MemberAttributeSettingsCreateData {
 
 export interface MemberAttributeSettingsUpdateData {
   label?: string
-  type?: AttributeType
+  type?: MemberAttributeType
   name?: string
   show?: boolean
   options?: string[]

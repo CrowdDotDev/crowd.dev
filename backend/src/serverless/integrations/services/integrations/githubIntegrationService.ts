@@ -1,8 +1,19 @@
 import moment from 'moment/moment'
 import { createAppAuth } from '@octokit/auth-app'
 import verifyGithubWebhook from 'verify-github-webhook'
-import { GITHUB_GRID, GithubActivityType, GithubPullRequestEvents } from '@crowd/integrations'
-import { IActivityScoringGrid, IntegrationType, PlatformType } from '@crowd/types'
+import {
+  GITHUB_GRID,
+  GITHUB_MEMBER_ATTRIBUTES,
+  GithubActivityType,
+  GithubPullRequestEvents,
+  TWITTER_MEMBER_ATTRIBUTES,
+} from '@crowd/integrations'
+import {
+  IActivityScoringGrid,
+  IntegrationType,
+  MemberAttributeName,
+  PlatformType,
+} from '@crowd/types'
 import { RedisCache, getRedisClient } from '@crowd/redis'
 import { timeout, singleOrDefault } from '@crowd/common'
 import { Repo, Repos } from '../../types/regularTypes'
@@ -14,9 +25,6 @@ import {
   IStepContext,
 } from '../../../../types/integration/stepResult'
 import MemberAttributeSettingsService from '../../../../services/memberAttributeSettingsService'
-import { GithubMemberAttributes } from '../../../../database/attributes/member/github'
-import { MemberAttributeName } from '../../../../database/attributes/member/enums'
-import { TwitterMemberAttributes } from '../../../../database/attributes/member/twitter'
 import { GITHUB_CONFIG, IS_TEST_ENV, REDIS_CONFIG } from '../../../../conf'
 import StargazersQuery from '../../usecases/github/graphql/stargazers'
 import { IntegrationServiceBase } from '../integrationServiceBase'
@@ -90,11 +98,11 @@ export class GithubIntegrationService extends IntegrationServiceBase {
 
   async createMemberAttributes(context: IStepContext): Promise<void> {
     const service = new MemberAttributeSettingsService(context.repoContext)
-    await service.createPredefined(GithubMemberAttributes)
+    await service.createPredefined(GITHUB_MEMBER_ATTRIBUTES)
     await service.createPredefined(
       MemberAttributeSettingsService.pickAttributes(
         [MemberAttributeName.URL],
-        TwitterMemberAttributes,
+        TWITTER_MEMBER_ATTRIBUTES,
       ),
     )
   }
@@ -233,7 +241,9 @@ export class GithubIntegrationService extends IntegrationServiceBase {
           }))
         }
 
-        newStreams = [...prCommentStreams, ...prReviewThreads, ...prCommitsStreams]
+        // It is very important to keep commits first. Otherwise, we have problems
+        // creating conversations if the Git integration has already ran for those data points.
+        newStreams = [...prCommitsStreams, ...prCommentStreams, ...prReviewThreads]
         break
       case GithubStreamType.PULL_COMMENTS: {
         const pullRequestNumber = stream.metadata.prNumber
@@ -1190,7 +1200,7 @@ export class GithubIntegrationService extends IntegrationServiceBase {
 
           break
         case GithubPullRequestEvents.REVIEW:
-          if (record.author.login && record.submittedAt) {
+          if (record?.author?.login && record?.submittedAt) {
             const member = await GithubIntegrationService.parseMember(record.author, context)
             out.push({
               username: member.username[PlatformType.GITHUB].username,
@@ -1322,7 +1332,7 @@ export class GithubIntegrationService extends IntegrationServiceBase {
           username: member.username[PlatformType.GITHUB].username,
           platform: PlatformType.GITHUB,
           channel: repo.url,
-          url: `https://github.com/${repo.owner}/${repo.name}.git`,
+          url: `${repo.url}/commit/${record.commit.oid}`,
           body: record.commit.message,
           type: 'authored-commit',
           sourceId: record.commit.oid,
@@ -1333,7 +1343,7 @@ export class GithubIntegrationService extends IntegrationServiceBase {
             deletions: record.commit.deletions,
             lines: record.commit.additions - record.commit.deletions,
             isMerge: record.commit.parents.totalCount > 1,
-            isMainBranch: ['master', 'main'].includes(data.repository.pullRequest.headRefName),
+            isMainBranch: false,
           },
           member,
         })

@@ -4,12 +4,13 @@ import TenantService from '../tenantService'
 import MemberService from '../memberService'
 import { IServiceOptions } from '../IServiceOptions'
 import MicroserviceService from '../microserviceService'
-import { PlatformType } from '@crowd/types'
+import { MemberAttributeName, PlatformType } from '@crowd/types'
 import MemberAttributeSettingsService from '../memberAttributeSettingsService'
-import { MemberAttributeName } from '../../database/attributes/member/enums'
 import TaskService from '../taskService'
 import Plans from '../../security/plans'
 import { generateUUIDv1 } from '@crowd/common'
+import { getRedisClient } from '@crowd/redis'
+import { REDIS_CONFIG } from '../../conf'
 
 const db = null
 
@@ -151,6 +152,7 @@ describe('TenantService tests', () => {
         language: 'en',
         currentUser: userModel,
         database: db,
+        redis: await getRedisClient(REDIS_CONFIG, true),
       } as IServiceOptions
 
       const tenantCreated = await new TenantService(options).create({

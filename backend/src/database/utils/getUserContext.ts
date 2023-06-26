@@ -1,4 +1,5 @@
 import { IRepositoryOptions } from '../repositories/IRepositoryOptions'
+import SegmentRepository from '../repositories/segmentRepository'
 import SequelizeRepository from '../repositories/sequelizeRepository'
 import TenantRepository from '../repositories/tenantRepository'
 import UserRepository from '../repositories/userRepository'
@@ -13,11 +14,13 @@ import UserRepository from '../repositories/userRepository'
 export default async function getUserContext(
   tenantId: string,
   userId?: string,
+  segmentIds?: string[],
 ): Promise<IRepositoryOptions> {
   const options = await SequelizeRepository.getDefaultIRepositoryOptions()
   const tenant = await TenantRepository.findById(tenantId, {
     ...options,
   })
+  options.currentTenant = tenant
 
   let user = null
 
@@ -39,6 +42,11 @@ export default async function getUserContext(
     }
   }
 
+  const segments =
+    segmentIds && segmentIds.length
+      ? await new SegmentRepository(options).findInIds(segmentIds)
+      : []
+
   // Inject user and tenant to IRepositoryOptions
-  return SequelizeRepository.getDefaultIRepositoryOptions(user, tenant)
+  return SequelizeRepository.getDefaultIRepositoryOptions(user, tenant, segments)
 }

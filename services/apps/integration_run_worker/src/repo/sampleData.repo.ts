@@ -28,6 +28,16 @@ export default class SampleDataRepository extends RepositoryBase<SampleDataRepos
     }
 
     await this.db().none(
+      `delete from "organizationSegments" where "organizationId" in (
+        select "organizationId" from "memberOrganizations" where "tenantId" = $(tenantId) and "memberId" in ($(memberIds:csv))
+       )`,
+      {
+        tenantId,
+        memberIds,
+      },
+    )
+
+    await this.db().none(
       `delete from organizations where id in (
         select "organizationId" from "memberOrganizations" where "tenantId" = $(tenantId) and "memberId" in ($(memberIds:csv))
       )`,
@@ -43,12 +53,27 @@ export default class SampleDataRepository extends RepositoryBase<SampleDataRepos
       return
     }
 
+    await this.db().none(
+      `delete from "memberSegments" where "tenantId" = $(tenantId) and "memberId" in ($(memberIds:csv))`,
+      {
+        tenantId,
+        memberIds,
+      },
+    )
+
     // should also destroy activities
     await this.db().none(
       `delete from members where "tenantId" = $(tenantId) and id in ($(memberIds:csv))`,
       {
         tenantId,
         memberIds,
+      },
+    )
+
+    await this.db().none(
+      `delete from "memberSegments" ms where ms."tenantId" = $(tenantId) and not exists(select 1 from activities where "tenantId" = $(tenantId) and "memberId" = ms."memberId")`,
+      {
+        tenantId,
       },
     )
 
@@ -84,8 +109,9 @@ export default class SampleDataRepository extends RepositoryBase<SampleDataRepos
     )
   }
 
-  public async deleteSampleData(tenantId: string): Promise<void> {
+  public async deleteSampleData(tenantId: string): Promise<string[]> {
     const memberIds = await this.getSampleDataMemberIds(tenantId)
+
     await this.destroyOrganizations(tenantId, memberIds)
     await this.destroyMembers(tenantId, memberIds)
     await this.destroyConversations(tenantId)
@@ -97,5 +123,7 @@ export default class SampleDataRepository extends RepositoryBase<SampleDataRepos
     `,
       { tenantId },
     )
+
+    return memberIds
   }
 }

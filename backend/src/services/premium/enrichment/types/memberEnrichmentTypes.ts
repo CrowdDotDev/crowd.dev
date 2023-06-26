@@ -17,6 +17,7 @@ export interface EnrichmentAPISkills {
 export interface EnrichmentAPIWorkExperience {
   company: string
   companyLinkedInUrl: string
+  companyUrl: string
   countryId: number
   current: number
   endDate: string
@@ -64,6 +65,7 @@ export interface EnrichmentAPIMember {
   location?: string
   country?: string
   country_id?: number
+  company?: string
   skills?: EnrichmentAPISkills[]
   programming_languages?: string[]
   languages?: string[]

@@ -1,7 +1,7 @@
 import moment from 'moment'
 import lodash from 'lodash'
-import { TWITTER_GRID, TwitterActivityType } from '@crowd/integrations'
-import { IntegrationType, PlatformType } from '@crowd/types'
+import { TWITTER_GRID, TWITTER_MEMBER_ATTRIBUTES, TwitterActivityType } from '@crowd/integrations'
+import { IntegrationType, MemberAttributeName, PlatformType } from '@crowd/types'
 import { IntegrationServiceBase } from '../integrationServiceBase'
 import { TWITTER_CONFIG } from '../../../../conf'
 import {
@@ -12,14 +12,12 @@ import {
   IStreamResultOperation,
 } from '../../../../types/integration/stepResult'
 import MemberAttributeSettingsService from '../../../../services/memberAttributeSettingsService'
-import { TwitterMemberAttributes } from '../../../../database/attributes/member/twitter'
 import { Endpoint } from '../../types/regularTypes'
 import { TwitterMembers, TwitterParsedPosts } from '../../types/twitterTypes'
 import getFollowers from '../../usecases/twitter/getFollowers'
 import findPostsByMention from '../../usecases/twitter/getPostsByMention'
 import findPostsByHashtag from '../../usecases/twitter/getPostsByHashtag'
 import { AddActivitiesSingle, PlatformIdentities } from '../../types/messageTypes'
-import { MemberAttributeName } from '../../../../database/attributes/member/enums'
 import Operations from '../../../dbOperations/operations'
 import IntegrationRepository from '../../../../database/repositories/integrationRepository'
 
@@ -45,7 +43,7 @@ export class TwitterIntegrationService extends IntegrationServiceBase {
 
   async createMemberAttributes(context: IStepContext): Promise<void> {
     const service = new MemberAttributeSettingsService(context.serviceContext)
-    await service.createPredefined(TwitterMemberAttributes)
+    await service.createPredefined(TWITTER_MEMBER_ATTRIBUTES)
   }
 
   async getStreams(context: IStepContext): Promise<IPendingStream[]> {
