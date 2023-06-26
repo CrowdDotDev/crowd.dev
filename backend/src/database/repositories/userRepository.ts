@@ -295,7 +295,12 @@ export default class UserRepository {
 
     await user.update(
       {
-        ...data,
+        firstName: data.firstName || null,
+        lastName: data.lastName || null,
+        phoneNumber: data.phoneNumber || null,
+        provider: data.provider || null,
+        providerId: data.providerId || null,
+        emailVerified: data.emailVerified || null,
         updatedById: currentUser.id,
       },
       { transaction },
