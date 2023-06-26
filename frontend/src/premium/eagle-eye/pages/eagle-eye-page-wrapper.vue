@@ -3,11 +3,14 @@
 </template>
 
 <script setup>
-import { computed, defineAsyncComponent } from 'vue';
+import { onMounted, computed, defineAsyncComponent } from 'vue';
 import { mapGetters } from '@/shared/vuex/vuex.helpers';
 import AppPageLoader from '@/shared/loading/page-loader.vue';
+import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 
 const { currentUser, currentTenant } = mapGetters('auth');
+
+const { updateSelectedProjectGroup } = useLfSegmentsStore();
 
 const eagleEyeSettings = computed(
   () => currentUser?.value?.tenants.find(
@@ -31,5 +34,9 @@ const AppEagleEyePage = defineAsyncComponent({
   },
   loadingComponent: AppPageLoader,
   delay: 0,
+});
+
+onMounted(() => {
+  updateSelectedProjectGroup(null);
 });
 </script>
