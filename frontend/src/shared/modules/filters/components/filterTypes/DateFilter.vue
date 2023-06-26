@@ -36,6 +36,7 @@ import { required } from '@vuelidate/validators';
 import useVuelidate from '@vuelidate/core';
 import { dateFilterOperators, FilterDateOperator } from '@/shared/modules/filters/config/constants/date.constants';
 import CrFilterInlineSelect from '@/shared/modules/filters/components/partials/FilterInlineSelect.vue';
+import { FilterNumberOperator } from "@/shared/modules/filters/config/constants/number.constants";
 
 const props = defineProps<{
   modelValue: DateFilterValue,
@@ -82,7 +83,15 @@ const betweenProps = computed(() => (form.value.operator !== FilterDateOperator.
   }));
 
 watch(() => form.value.operator, (operator, previousOperator) => {
-  if ([operator, previousOperator].includes(FilterDateOperator.BETWEEN) && operator !== previousOperator) {
+  const isPreviousBetweenOperator = ([
+    FilterDateOperator.BETWEEN,
+    FilterDateOperator.NOT_BETWEEN,
+  ] as FilterDateOperator[]).includes(previousOperator);
+  const isCurrentBetweenOperator = ([
+    FilterDateOperator.BETWEEN,
+    FilterDateOperator.NOT_BETWEEN,
+  ] as FilterDateOperator[]).includes(operator);
+  if (isCurrentBetweenOperator !== isPreviousBetweenOperator) {
     form.value.value = '';
   }
 });

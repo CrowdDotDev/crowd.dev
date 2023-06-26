@@ -1,6 +1,5 @@
 <template>
   <div v-if="form">
-    <cr-filter-include-switch v-if="!props.hideIncludeSwitch" v-model="form.include" />
     <div class="p-4">
       <p class="text-xs text-gray-500 pb-3">
         {{ props.config.label }}

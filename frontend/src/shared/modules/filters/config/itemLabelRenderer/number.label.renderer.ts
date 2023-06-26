@@ -5,11 +5,14 @@ import {
 } from '@/shared/modules/filters/config/constants/number.constants';
 
 export const numberItemLabelRenderer = (property: string, {
-  value, include, operator, valueTo,
+  value, operator, valueTo,
 }: NumberFilterValue): string => {
-  const excludeText = !include ? ' (exclude)' : '';
   const operatorObject = numberFilterOperators.find((o) => o.value === operator);
-  const operandText = operatorObject?.subLabel ? `${operatorObject.subLabel} ` : '';
-  const valueText = operator === FilterNumberOperator.BETWEEN ? `${value} - ${valueTo}` : `${operandText}${value}`;
-  return `<b>${property}${excludeText}:</b>${valueText || '...'}`;
+  let operandText = (operatorObject?.subLabel ? `${operatorObject.subLabel} ` : `${operatorObject?.label} ` || '');
+  if (operator === FilterNumberOperator.EQ) {
+    operandText = '';
+  }
+  const isBetween = [FilterNumberOperator.BETWEEN, FilterNumberOperator.NOT_BETWEEN].includes(operator)
+  const valueText = isBetween ? `${value} - ${valueTo}` : `${operandText}${value}`;
+  return `<b>${property}:</b>${valueText || '...'}`;
 };
