@@ -1,4 +1,5 @@
 /* eslint-disable no-case-declarations */
+import { Edition } from '@crowd/types'
 import { weeklyAnalyticsEmailsWorker } from './analytics/workers/weeklyAnalyticsEmailsWorker'
 import {
   AutomationMessage,
@@ -78,7 +79,7 @@ async function workerFactory(event: NodeMicroserviceMessage): Promise<any> {
     }
 
     case 'automation-process':
-      if (API_CONFIG.edition === 'lfx-ee') {
+      if (API_CONFIG.edition === Edition.LFXEE) {
         return {}
       }
       const automationProcessRequest = event as ProcessAutomationMessage
@@ -107,7 +108,7 @@ async function workerFactory(event: NodeMicroserviceMessage): Promise<any> {
       }
 
     case 'automation':
-      if (API_CONFIG.edition === 'lfx-ee') {
+      if (API_CONFIG.edition === Edition.LFXEE) {
         return {}
       }
       const automationRequest = event as AutomationMessage
