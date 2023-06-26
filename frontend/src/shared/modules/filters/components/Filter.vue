@@ -140,6 +140,10 @@ onMounted(() => {
     fetch(filters.value);
   }
 });
+
+defineExpose({
+  alignFilterList,
+});
 </script>
 
 <script lang="ts">
