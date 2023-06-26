@@ -8,7 +8,7 @@ RUN apk update \
 
 USER flyway
 
-COPY ./flyway_repair.sh /repair.sh
+COPY .flyway_repair.sh /repair.sh
 
 # Override default `flyway` entrypoint.
 ENTRYPOINT ["/repair.sh"]
