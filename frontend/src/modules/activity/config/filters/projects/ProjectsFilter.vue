@@ -19,12 +19,10 @@ import {
 } from 'vue';
 import useVuelidate from '@vuelidate/core';
 import { required } from '@vuelidate/validators';
-import { ProjectsOption, ProjectsCustomFilterConfig, ProjectsCustomFilterOptions } from '@/modules/lf/segments/types/Filters';
+import {
+  ProjectsFilterValue, ProjectsOption, ProjectsCustomFilterConfig, ProjectsCustomFilterOptions,
+} from '@/modules/lf/segments/types/Filters';
 import { Project } from '@/modules/lf/segments/types/Segments';
-
-export interface ProjectsFilterValue {
-  value: string[]
-}
 
 const props = defineProps<
   {
@@ -45,7 +43,7 @@ const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);
 
 const form = computed({
   get: () => props.modelValue,
-  set: (value: { value: string[] }) => emit('update:modelValue', value),
+  set: (value: { value: string[], parentValues: string[] }) => emit('update:modelValue', value),
 });
 
 const data = computed({
@@ -55,6 +53,7 @@ const data = computed({
 
 const defaultForm: ProjectsFilterValue = {
   value: [],
+  parentValues: [],
 };
 
 const rules: any = {
@@ -73,39 +72,38 @@ const buildOptions = (projects: Project[]) => {
     return {
       id: p.id,
       label: p.name,
-      selected: !!selectedSubProjects.length,
-      indeterminate:
-        selectedSubProjects.length > 0
-        && selectedSubProjects.length < p.subprojects.length,
-      selectedChildren: selectedSubProjects.map(
-        (subproject) => subproject.name,
-      ),
+      selected: selectedSubProjects.length === p.subprojects.length,
       children: p.subprojects.map((sp) => ({
         id: sp.id,
         label: sp.name,
+        selected: selectedSubProjects.length !== p.subprojects.length && segments.includes(sp.id),
       })),
     };
   });
 };
 
 const onFilterChange = (value: ProjectsOption[]) => {
-  const segments = [...form.value.value];
+  let segments = [...form.value.value];
+  let parentSegments = [...form.value.parentValues];
+
+  parentSegments = value.filter((project) => project.selected).map((project) => project.id);
 
   value.forEach((option) => {
-    option.children.forEach((child) => {
-      if (option.selectedChildren.includes(child.label) && !segments.includes(child.id)) {
-        segments.push(child.id);
-      } else if (!option.selectedChildren.includes(child.label)) {
-        const segmentIndex = segments.findIndex((a) => a === child.id);
-
-        if (segmentIndex !== -1) {
-          segments.splice(segmentIndex, 1);
+    if (option.selected) {
+      segments = option.children.map((c) => c.id);
+    } else {
+      option.children.forEach((child) => {
+        if (child.selected) {
+          segments = [child.id];
         }
-      }
-    });
+      });
+    }
   });
 
-  form.value = { value: segments };
+  form.value = {
+    value: segments,
+    parentValues: parentSegments,
+  };
 };
 
 const onSearchQueryChange = debounce((value, setDataOptions = false) => {

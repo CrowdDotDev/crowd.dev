@@ -295,8 +295,6 @@ export default {
         await this.doEnrich(command.member.id, command.member.segmentIds);
         await this.fetchMembers({ reload: true });
       }
-
-      return null;
     },
   },
 };

@@ -1,4 +1,5 @@
 import Sequelize from 'sequelize'
+import { RedisCache } from '@crowd/redis'
 import SequelizeRepository from './sequelizeRepository'
 import { IRepositoryOptions } from './IRepositoryOptions'
 import Error404 from '../../errors/Error404'
@@ -79,6 +80,10 @@ class MemberAttributeSettingsRepository {
       },
     )
 
+    const cache = new RedisCache('memberAttributes', options.redis, options.log)
+
+    await cache.delete(tenant.id)
+
     return this.findById(record.id, options)
   }
 
@@ -115,6 +120,9 @@ class MemberAttributeSettingsRepository {
       },
     )
 
+    const cache = new RedisCache('memberAttributes', options.redis, options.log)
+    await cache.delete(currentTenant.id)
+
     return this.findById(record.id, options)
   }
 
@@ -139,6 +147,9 @@ class MemberAttributeSettingsRepository {
       await record.destroy({
         transaction,
       })
+
+      const cache = new RedisCache('memberAttributes', options.redis, options.log)
+      await cache.delete(currentTenant.id)
     }
   }
 

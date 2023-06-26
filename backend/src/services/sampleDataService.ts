@@ -2,30 +2,31 @@
 import lodash from 'lodash'
 import moment from 'moment'
 import { LoggerBase } from '@crowd/logging'
-import { PlatformType } from '@crowd/types'
+import {
+  MemberAttributeName,
+  MemberAttributeType,
+  MemberEnrichmentAttributeName,
+  MemberEnrichmentAttributes,
+  PlatformType,
+} from '@crowd/types'
+import {
+  CROWD_MEMBER_ATTRIBUTES,
+  DEVTO_MEMBER_ATTRIBUTES,
+  DISCORD_MEMBER_ATTRIBUTES,
+  GITHUB_MEMBER_ATTRIBUTES,
+  LINKEDIN_MEMBER_ATTRIBUTES,
+  TWITTER_MEMBER_ATTRIBUTES,
+} from '@crowd/integrations'
 import { IServiceOptions } from './IServiceOptions'
 import ActivityService from './activityService'
 import MemberService from './memberService'
 import TenantService from './tenantService'
-// import { PlatformType } from '../utils/platforms'
 import MemberAttributeSettingsService from './memberAttributeSettingsService'
-import { CrowdMemberAttributes } from '../database/attributes/member/crowd'
-import { GithubMemberAttributes } from '../database/attributes/member/github'
-import { DiscordMemberAttributes } from '../database/attributes/member/discord'
-import { TwitterMemberAttributes } from '../database/attributes/member/twitter'
-import { DevtoMemberAttributes } from '../database/attributes/member/devto'
-import {
-  MemberAttributeName,
-  MemberEnrichmentAttributeName,
-  MemberEnrichmentAttributes,
-} from '../database/attributes/member/enums'
 import OrganizationService from './organizationService'
 import ConversationService from './conversationService'
 import MemberRepository from '../database/repositories/memberRepository'
-import { LinkedInMemberAttributes } from '../database/attributes/member/linkedin'
 import NoteService from './noteService'
 import TagService from './tagService'
-import { AttributeType } from '../database/attributes/types'
 import { API_CONFIG } from '../conf'
 import SequelizeRepository from '../database/repositories/sequelizeRepository'
 
@@ -59,27 +60,27 @@ export default class SampleDataService extends LoggerBase {
         await memberAttributeSettingsService.createPredefined(
           MemberAttributeSettingsService.pickAttributes(
             [MemberAttributeName.SAMPLE],
-            CrowdMemberAttributes,
+            CROWD_MEMBER_ATTRIBUTES,
           ),
         )
-        await memberAttributeSettingsService.createPredefined(GithubMemberAttributes)
-        await memberAttributeSettingsService.createPredefined(DiscordMemberAttributes)
-        await memberAttributeSettingsService.createPredefined(TwitterMemberAttributes)
-        await memberAttributeSettingsService.createPredefined(DevtoMemberAttributes)
-        await memberAttributeSettingsService.createPredefined(LinkedInMemberAttributes)
+        await memberAttributeSettingsService.createPredefined(GITHUB_MEMBER_ATTRIBUTES)
+        await memberAttributeSettingsService.createPredefined(DISCORD_MEMBER_ATTRIBUTES)
+        await memberAttributeSettingsService.createPredefined(TWITTER_MEMBER_ATTRIBUTES)
+        await memberAttributeSettingsService.createPredefined(DEVTO_MEMBER_ATTRIBUTES)
+        await memberAttributeSettingsService.createPredefined(LINKEDIN_MEMBER_ATTRIBUTES)
 
         const MemberEnrichmentAttributeSettings = [
           {
             name: MemberEnrichmentAttributeName.SKILLS,
             label: MemberEnrichmentAttributes[MemberEnrichmentAttributeName.SKILLS].label,
-            type: AttributeType.MULTI_SELECT,
+            type: MemberAttributeType.MULTI_SELECT,
             canDelete: false,
             show: true,
           },
           {
             name: MemberEnrichmentAttributeName.LANGUAGES,
             label: MemberEnrichmentAttributes[MemberEnrichmentAttributeName.LANGUAGES].label,
-            type: AttributeType.MULTI_SELECT,
+            type: MemberAttributeType.MULTI_SELECT,
             canDelete: false,
             show: true,
           },
@@ -87,35 +88,35 @@ export default class SampleDataService extends LoggerBase {
             name: MemberEnrichmentAttributeName.PROGRAMMING_LANGUAGES,
             label:
               MemberEnrichmentAttributes[MemberEnrichmentAttributeName.PROGRAMMING_LANGUAGES].label,
-            type: AttributeType.MULTI_SELECT,
+            type: MemberAttributeType.MULTI_SELECT,
             canDelete: false,
             show: true,
           },
           {
             name: MemberEnrichmentAttributeName.AWARDS,
             label: MemberEnrichmentAttributes[MemberEnrichmentAttributeName.AWARDS].label,
-            type: AttributeType.SPECIAL,
+            type: MemberAttributeType.SPECIAL,
             canDelete: false,
             show: true,
           },
           {
             name: MemberEnrichmentAttributeName.SENIORITY_LEVEL,
             label: MemberEnrichmentAttributes[MemberEnrichmentAttributeName.SENIORITY_LEVEL].label,
-            type: AttributeType.STRING,
+            type: MemberAttributeType.STRING,
             canDelete: false,
             show: true,
           },
           {
             name: MemberEnrichmentAttributeName.EXPERTISE,
             label: MemberEnrichmentAttributes[MemberEnrichmentAttributeName.EXPERTISE].label,
-            type: AttributeType.MULTI_SELECT,
+            type: MemberAttributeType.MULTI_SELECT,
             canDelete: false,
             show: true,
           },
           {
             name: MemberEnrichmentAttributeName.COUNTRY,
             label: MemberEnrichmentAttributes[MemberEnrichmentAttributeName.COUNTRY].label,
-            type: AttributeType.STRING,
+            type: MemberAttributeType.STRING,
             canDelete: false,
             show: true,
           },
@@ -123,21 +124,21 @@ export default class SampleDataService extends LoggerBase {
             name: MemberEnrichmentAttributeName.YEARS_OF_EXPERIENCE,
             label:
               MemberEnrichmentAttributes[MemberEnrichmentAttributeName.YEARS_OF_EXPERIENCE].label,
-            type: AttributeType.NUMBER,
+            type: MemberAttributeType.NUMBER,
             canDelete: false,
             show: true,
           },
           {
             name: MemberEnrichmentAttributeName.EDUCATION,
             label: MemberEnrichmentAttributes[MemberEnrichmentAttributeName.EDUCATION].label,
-            type: AttributeType.SPECIAL,
+            type: MemberAttributeType.SPECIAL,
             canDelete: false,
             show: true,
           },
           {
             name: MemberEnrichmentAttributeName.WORK_EXPERIENCES,
             label: MemberEnrichmentAttributes[MemberEnrichmentAttributeName.WORK_EXPERIENCES].label,
-            type: AttributeType.SPECIAL,
+            type: MemberAttributeType.SPECIAL,
             canDelete: false,
             show: true,
           },
@@ -196,7 +197,7 @@ export default class SampleDataService extends LoggerBase {
             const attSettings = lodash.find(MemberEnrichmentAttributeSettings, {
               name: key,
             })
-            if (attSettings?.type === AttributeType.MULTI_SELECT) {
+            if (attSettings?.type === MemberAttributeType.MULTI_SELECT) {
               const newOptions = member.attributes[key].enrichment
               const existingDbAttribute = (
                 await memberAttributeSettingsService.findAndCountAll({

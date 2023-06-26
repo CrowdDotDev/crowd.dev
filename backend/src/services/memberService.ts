@@ -4,7 +4,7 @@ import { LoggerBase } from '@crowd/logging'
 import lodash from 'lodash'
 import moment from 'moment-timezone'
 import validator from 'validator'
-import { AttributeType } from '../database/attributes/types'
+import { MemberAttributeType } from '@crowd/types'
 import { IRepositoryOptions } from '../database/repositories/IRepositoryOptions'
 import ActivityRepository from '../database/repositories/activityRepository'
 import MemberAttributeSettingsRepository from '../database/repositories/memberAttributeSettingsRepository'
@@ -29,6 +29,7 @@ import merge from './helpers/merge'
 import MemberAttributeSettingsService from './memberAttributeSettingsService'
 import OrganizationService from './organizationService'
 import SettingsService from './settingsService'
+import { getSearchSyncWorkerEmitter } from '../serverless/utils/serviceSQS'
 
 export default class MemberService extends LoggerBase {
   options: IServiceOptions
@@ -187,8 +188,14 @@ export default class MemberService extends LoggerBase {
    * @param existing If the member already exists. If it does not, false. Othwerwise, the member.
    * @returns The created member
    */
-  async upsert(data, existing: boolean | any = false, fireCrowdWebhooks: boolean = true) {
+  async upsert(
+    data,
+    existing: boolean | any = false,
+    fireCrowdWebhooks: boolean = true,
+    fireSync: boolean = true,
+  ) {
     const logger = this.options.log
+    const searchSyncEmitter = await getSearchSyncWorkerEmitter()
 
     const errorDetails: any = {}
 
@@ -373,6 +380,10 @@ export default class MemberService extends LoggerBase {
       }
 
       await SequelizeRepository.commitTransaction(transaction)
+
+      if (fireSync) {
+        await searchSyncEmitter.triggerMemberSync(this.options.currentTenant.id, record.id)
+      }
 
       if (!existing && fireCrowdWebhooks) {
         try {
@@ -560,6 +571,11 @@ export default class MemberService extends LoggerBase {
       await MemberRepository.destroy(toMergeId, repoOptions, true)
 
       await SequelizeRepository.commitTransaction(tx)
+
+      const searchSyncEmitter = await getSearchSyncWorkerEmitter()
+      await searchSyncEmitter.triggerMemberSync(this.options.currentTenant.id, originalId)
+      await searchSyncEmitter.triggerRemoveMember(this.options.currentTenant.id, toMergeId)
+
       this.options.log.info({ originalId, toMergeId }, 'Members merged!')
       return { status: 200, mergedId: originalId }
     } catch (err) {
@@ -681,8 +697,21 @@ export default class MemberService extends LoggerBase {
   async addToMerge(suggestions: IMemberMergeSuggestion[]) {
     const transaction = await SequelizeRepository.createTransaction(this.options)
     try {
+      const searchSyncEmitter = await getSearchSyncWorkerEmitter()
+
       await MemberRepository.addToMerge(suggestions, { ...this.options, transaction })
       await SequelizeRepository.commitTransaction(transaction)
+
+      for (const suggestion of suggestions) {
+        await searchSyncEmitter.triggerMemberSync(
+          this.options.currentTenant.id,
+          suggestion.members[0],
+        )
+        await searchSyncEmitter.triggerMemberSync(
+          this.options.currentTenant.id,
+          suggestion.members[1],
+        )
+      }
       return { status: 200 }
     } catch (error) {
       await SequelizeRepository.rollbackTransaction(transaction)
@@ -699,6 +728,8 @@ export default class MemberService extends LoggerBase {
    */
   async addToNoMerge(memberOneId, memberTwoId) {
     const transaction = await SequelizeRepository.createTransaction(this.options)
+    const searchSyncEmitter = await getSearchSyncWorkerEmitter()
+
     try {
       await MemberRepository.addNoMerge(memberOneId, memberTwoId, {
         ...this.options,
@@ -718,6 +749,9 @@ export default class MemberService extends LoggerBase {
       })
 
       await SequelizeRepository.commitTransaction(transaction)
+
+      await searchSyncEmitter.triggerMemberSync(this.options.currentTenant.id, memberOneId)
+      await searchSyncEmitter.triggerMemberSync(this.options.currentTenant.id, memberTwoId)
 
       return { status: 200 }
     } catch (error) {
@@ -765,6 +799,7 @@ export default class MemberService extends LoggerBase {
 
   async update(id, data) {
     const transaction = await SequelizeRepository.createTransaction(this.options)
+    const searchSyncEmitter = await getSearchSyncWorkerEmitter()
 
     try {
       if (data.activities) {
@@ -835,6 +870,8 @@ export default class MemberService extends LoggerBase {
 
       await SequelizeRepository.commitTransaction(transaction)
 
+      await searchSyncEmitter.triggerMemberSync(this.options.currentTenant.id, record.id)
+
       return record
     } catch (error) {
       if (error.name && error.name.includes('Sequelize')) {
@@ -859,6 +896,7 @@ export default class MemberService extends LoggerBase {
 
   async destroyBulk(ids) {
     const transaction = await SequelizeRepository.createTransaction(this.options)
+    const searchSyncEmitter = await getSearchSyncWorkerEmitter()
 
     try {
       await MemberRepository.destroyBulk(
@@ -875,10 +913,15 @@ export default class MemberService extends LoggerBase {
       await SequelizeRepository.rollbackTransaction(transaction)
       throw error
     }
+
+    for (const id of ids) {
+      await searchSyncEmitter.triggerRemoveMember(this.options.currentTenant.id, id)
+    }
   }
 
   async destroyAll(ids) {
     const transaction = await SequelizeRepository.createTransaction(this.options)
+    const searchSyncEmitter = await getSearchSyncWorkerEmitter()
 
     try {
       for (const id of ids) {
@@ -896,6 +939,10 @@ export default class MemberService extends LoggerBase {
     } catch (error) {
       await SequelizeRepository.rollbackTransaction(transaction)
       throw error
+    }
+
+    for (const id of ids) {
+      await searchSyncEmitter.triggerRemoveMember(this.options.currentTenant.id, id)
     }
   }
 
@@ -931,7 +978,7 @@ export default class MemberService extends LoggerBase {
       await MemberAttributeSettingsRepository.findAndCountAll({}, this.options)
     ).rows
 
-    return MemberRepository.findAndCountAllv2(
+    return MemberRepository.findAndCountAllOpensearch(
       {
         limit: data.limit,
         offset: data.offset,
@@ -939,6 +986,7 @@ export default class MemberService extends LoggerBase {
         orderBy: data.orderBy || undefined,
         countOnly: data.countOnly || false,
         attributesSettings: memberAttributeSettings,
+        segments: data.segments,
       },
       this.options,
     )
@@ -947,7 +995,7 @@ export default class MemberService extends LoggerBase {
   async query(data, exportMode = false) {
     const memberAttributeSettings = (
       await MemberAttributeSettingsRepository.findAndCountAll({}, this.options)
-    ).rows.filter((setting) => setting.type !== AttributeType.SPECIAL)
+    ).rows.filter((setting) => setting.type !== MemberAttributeType.SPECIAL)
     const advancedFilter = data.filter
     const orderBy = data.orderBy
     const limit = data.limit

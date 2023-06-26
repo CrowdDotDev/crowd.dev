@@ -1,5 +1,5 @@
 <template>
-  <div v-if="currentTenant && cubejsToken" class="flex -m-5">
+  <div v-if="currentTenant" class="flex -m-5">
     <div
       class="flex-grow overflow-auto"
       :style="{
@@ -29,9 +29,16 @@
             <app-dashboard-filters class="block" />
           </div>
 
-          <app-dashboard-members class="mb-8" />
-          <app-dashboard-organizations class="mb-8" />
-          <app-dashboard-activities class="mb-8" />
+          <div
+            v-if="!loadingCubeToken"
+            v-loading="!loadingCubeToken"
+            class="app-page-spinner h-16 !relative !min-h-5"
+          />
+          <div v-else>
+            <app-dashboard-members class="mb-8" />
+            <app-dashboard-organizations class="mb-8" />
+            <app-dashboard-activities class="mb-8" />
+          </div>
         </div>
       </div>
     </div>
@@ -51,7 +58,7 @@
 
 <script setup>
 import {
-  onMounted, onBeforeUnmount, ref, watch,
+  onMounted, onBeforeUnmount, ref, watch, computed,
 } from 'vue';
 import { useStore } from 'vuex';
 import {
@@ -68,11 +75,11 @@ import { storeToRefs } from 'pinia';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 
 const { currentTenant } = mapGetters('auth');
-const { cubejsToken } = mapGetters('widget');
+const { showBanner } = mapGetters('tenant');
+const { cubejsApi } = mapGetters('widget');
 const { doFetch } = mapActions('report');
 const { reset } = mapActions('dashboard');
 const { getCubeToken } = mapActions('widget');
-const { showBanner } = mapGetters('tenant');
 
 const store = useStore();
 
@@ -81,6 +88,9 @@ const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);
 
 const storeUnsubscribe = ref(null);
 const scrolled = ref(false);
+
+const loadingCubeToken = computed(() => !!cubejsApi.value);
+
 const handleScroll = (event) => {
   scrolled.value = event.target.scrollTop > 20;
 };

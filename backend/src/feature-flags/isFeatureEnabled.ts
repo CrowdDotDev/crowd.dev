@@ -1,6 +1,7 @@
 import { Unleash } from 'unleash-client'
+import { Edition } from '@crowd/types'
 import { API_CONFIG } from '../conf'
-import { Edition, FeatureFlag } from '../types/common'
+import { FeatureFlag } from '../types/common'
 import getFeatureFlagTenantContext from './getFeatureFlagTenantContext'
 import Plans from '../security/plans'
 
@@ -16,6 +17,12 @@ export const PLAN_LIMITS = {
     [FeatureFlag.CSV_EXPORT]: 10,
     [FeatureFlag.MEMBER_ENRICHMENT]: 1000,
     [FeatureFlag.ORGANIZATION_ENRICHMENT]: 200,
+  },
+  [Plans.values.enterprise]: {
+    [FeatureFlag.AUTOMATIONS]: Infinity,
+    [FeatureFlag.CSV_EXPORT]: Infinity,
+    [FeatureFlag.MEMBER_ENRICHMENT]: Infinity,
+    [FeatureFlag.ORGANIZATION_ENRICHMENT]: Infinity,
   },
 }
 

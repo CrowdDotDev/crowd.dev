@@ -1,6 +1,6 @@
 <template>
   <app-cube-render
-    :query="query(dateRange, platform, segments)"
+    :query="query(dateRange, platform, segments.childSegments)"
     :loading="loading"
   >
     <template #loading>
@@ -15,7 +15,7 @@
 
     <template #default="current">
       <app-cube-render
-        :query="query(previousDateRange, platform, segments)"
+        :query="query(previousDateRange, platform, segments.childSegments)"
       >
         <template #loading>
           <app-loading

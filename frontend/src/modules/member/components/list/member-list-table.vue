@@ -200,7 +200,7 @@
               <el-table-column
                 v-if="showReach"
                 label="Reach"
-                prop="reach.total"
+                prop="reach"
                 width="150"
                 sortable="custom"
               >

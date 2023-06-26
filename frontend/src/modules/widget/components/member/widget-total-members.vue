@@ -147,7 +147,7 @@ const query = computed(() => TOTAL_MEMBERS_QUERY({
   granularity,
   selectedPlatforms: props.filters.platform.value,
   selectedHasTeamMembers: props.filters.teamMembers,
-  selectedSegments: props.filters.segments,
+  selectedSegments: props.filters.segments.childSegments,
 }));
 
 const kpiCurrentValue = (resultSet) => {
@@ -203,7 +203,7 @@ const getTotalMembers = async ({ pagination }) => {
     orderBy: 'joinedAt_DESC',
     limit: pagination.pageSize,
     offset: (pagination.currentPage - 1) * pagination.pageSize,
-    segments: props.filters.segments,
+    segments: props.filters.segments.segments,
     buildFilter: false,
   });
   return res;
@@ -243,7 +243,7 @@ const onExport = async ({ count }) => {
         selectedHasTeamMembers: props.filters.teamMembers,
       }),
       count,
-      segments: props.filters.segments,
+      segments: props.filters.segments.childSegments,
     });
   } catch (error) {
     console.error(error);
