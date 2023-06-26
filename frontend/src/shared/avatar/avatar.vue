@@ -102,6 +102,8 @@ export default {
     object-fit: cover;
     z-index: 1;
     @apply bg-white;
+    width: 100%;
+    height: 100%;
   }
 
   &:after{
