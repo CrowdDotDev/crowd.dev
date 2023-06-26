@@ -127,7 +127,7 @@ const getActiveMembers = async (
   period = selectedPeriod.value,
   platforms = props.filters.platform.value,
   teamMembers = props.filters.teamMembers,
-  segments = props.filters.segments,
+  segments = props.filters.segments.childSegments,
 ) => {
   loading.value = true;
   error.value = false;
@@ -184,7 +184,7 @@ const getDetailedActiveMembers = ({
   limit: !pagination.count
     ? pagination.pageSize
     : pagination.count,
-  segments: props.filters.segments,
+  segments: props.filters.segments.childSegments,
 });
 
 const onRowClick = () => {
@@ -226,7 +226,7 @@ onMounted(async () => {
 
 // Each time filter changes, query a new response
 watch(
-  () => [props.filters.platform.value, props.filters.teamMembers, props.filters.segments],
+  () => [props.filters.platform.value, props.filters.teamMembers, props.filters.segments.childSegments],
   async ([platforms, teamMembers, segments]) => {
     activeMembers.value = await getActiveMembers(
       selectedPeriod.value,

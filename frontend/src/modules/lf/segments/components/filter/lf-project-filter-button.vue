@@ -78,8 +78,8 @@ import isEqual from 'lodash/isEqual';
 
 const props = defineProps({
   segments: {
-    type: Array,
-    default: () => [],
+    type: Object,
+    default: () => {},
   },
   setSegments: {
     type: Function,
@@ -105,7 +105,10 @@ const filterPopover = ref();
 
 const initialOptions = ref([]);
 const options = ref([]);
-const provisionalSegments = ref([]);
+const provisionalSegments = ref({
+  segments: [],
+  childSegments: [],
+});
 
 // If current selected project group changes, fetch new list of projects and clear selected filters
 watch(
@@ -115,7 +118,10 @@ watch(
       listProjects({ parentSlug: updatedSelectedProjectGroup.slug });
 
       props.setSegments({
-        segments: [],
+        segments: {
+          segments: [],
+          childSegments: [],
+        },
       });
     }
   },
@@ -127,23 +133,16 @@ watch(
 watch(
   projects,
   (updatedProjects) => {
-    options.value = updatedProjects.list.map((p) => {
-      const selectedSubProjects = p.subprojects.filter((subproject) => props.segments.includes(subproject.id));
-
-      return {
-        id: p.id,
-        label: p.name,
-        selected: !!selectedSubProjects.length,
-        indeterminate:
-            selectedSubProjects.length > 0
-            && selectedSubProjects.length < p.subprojects.length,
-        selectedChildren: selectedSubProjects.map((subproject) => subproject.name),
-        children: p.subprojects.map((sp) => ({
-          id: sp.id,
-          label: sp.name,
-        })),
-      };
-    });
+    options.value = updatedProjects.list.map((p) => ({
+      id: p.id,
+      label: p.name,
+      selected: props.segments.segments.includes(p.id),
+      children: p.subprojects.map((sp) => ({
+        id: sp.id,
+        label: sp.name,
+        selected: props.segments.childSegments.includes(sp.id) && props.segments.segments.includes(sp.id),
+      })),
+    }));
 
     if (!initialOptions.value.length) {
       initialOptions.value = options.value;
@@ -155,7 +154,7 @@ watch(
 );
 
 const filterLabel = computed(() => {
-  if (!props.segments.length) {
+  if (!props.segments.childSegments.length) {
     return {
       showTooltip: false,
       text: 'All',
@@ -167,10 +166,10 @@ const filterLabel = computed(() => {
 
   initialOptions.value.forEach((project) => {
     const selectedSubprojects = project.children.filter(
-      (sp) => props.segments.includes(sp.id),
+      (sp) => props.segments.childSegments.includes(sp.id),
     ).map((sp) => sp.label);
 
-    if (project.children.length === selectedSubprojects.length) {
+    if (project.children.length === selectedSubprojects.length && !isEqual(props.segments.segments, props.segments.childSegments)) {
       text.push(`${project.label} (all sub-projects)`);
     } else if (selectedSubprojects.length) {
       text.push(`${selectedSubprojects.join(', ')} (${project.label})`);
@@ -198,20 +197,20 @@ const openFilterPopover = () => {
 };
 
 const onFilterChange = (value) => {
-  const segments = [...props.segments];
+  const segments = { ...props.segments };
 
   value.forEach((option) => {
-    option.children.forEach((child) => {
-      if (option.selectedChildren.includes(child.label) && !segments.includes(child.id)) {
-        segments.push(child.id);
-      } else if (!option.selectedChildren.includes(child.label)) {
-        const segmentIndex = segments.findIndex((a) => a === child.id);
-
-        if (segmentIndex !== -1) {
-          segments.splice(segmentIndex, 1);
+    if (option.selected) {
+      segments.childSegments = option.children.map((c) => c.id);
+      segments.segments = [option.id];
+    } else {
+      option.children.forEach((child) => {
+        if (child.selected) {
+          segments.childSegments = [child.id];
+          segments.segments = [child.id];
         }
-      }
-    });
+      });
+    }
   });
 
   if (props.shouldApplyImmeadiately) {
@@ -227,7 +226,7 @@ const onSearchQueryChange = debounce((value) => {
   listProjects({ parentSlug: selectedProjectGroup.value.slug, search: value });
 }, 300);
 
-const shouldShowReset = computed(() => !isEqual(initialOptions.value, options.value));
+const shouldShowReset = computed(() => !!props.segments.segments.length);
 const shouldDisableApplyButton = computed(() => isEqual(initialOptions.value, options.value));
 
 const handleCancel = () => {
@@ -237,8 +236,12 @@ const handleCancel = () => {
 
 const handleReset = () => {
   props.setSegments({
-    segments: [],
+    segments: {
+      segments: [],
+      childSegments: [],
+    },
   });
+
   isFilterPopoverVisible.value = false;
   options.value = initialOptions.value;
 };
@@ -259,10 +262,10 @@ export default {
 
   <style lang="scss">
   .lf-filter-input {
-    @apply h-8;
+    @apply h-10;
 
     .el-input__wrapper {
-      @apply px-2;
+      @apply px-4;
     }
   }
   </style>

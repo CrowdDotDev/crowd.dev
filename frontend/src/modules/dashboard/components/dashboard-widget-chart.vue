@@ -1,5 +1,5 @@
 <template>
-  <app-cube-render :query="props.query(period, platform, segments)">
+  <app-cube-render :query="props.query(period, platform, segments.childSegments)">
     <template #default="{ resultSet }">
       <app-widget-area
         class="chart"

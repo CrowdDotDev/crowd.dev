@@ -30,9 +30,9 @@ const projects: ProjectsCustomFilterConfig = {
       value: value.split(','),
     };
   },
-  itemLabelRenderer({ value }: ProjectsFilterValue, options: any, data: { options: Project[] }): string {
+  itemLabelRenderer({ value, parentValues }: ProjectsFilterValue, options: any, data: { options: Project[] }): string {
     const charLimit = 30;
-    const text = filterLabel(value, data.options);
+    const text = filterLabel(value, parentValues, data.options);
     const trimmedValueText = text.length > charLimit ? `${text.substring(0, charLimit - 3)}...` : text;
     const tooltip = trimmedValueText.length < text.length ? `data-tooltip="${text}"` : '';
 

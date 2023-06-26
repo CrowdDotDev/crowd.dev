@@ -221,7 +221,10 @@ export default {
       platform: initialPlatformValue,
       teamMembers: false,
       teamActivities: false,
-      segments: [],
+      segments: {
+        segments: [],
+        childSegments: [],
+      },
       isHeaderOnTop: false,
       templates,
       MEMBERS_REPORT,

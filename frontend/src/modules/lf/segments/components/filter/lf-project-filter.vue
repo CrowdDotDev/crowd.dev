@@ -9,28 +9,28 @@
     data-qa="filter-list-search"
     @input="(value) => emit('onSearchChange', value)"
   />
-  <app-lf-checkbox-cascader
-    v-model:options="modelOptions"
-    empty-text="No projects found"
-    :loading="loading"
-    @on-change="(value) => emit('onChange', value)"
-  />
+  <div class="mt-13">
+    <app-lf-radio-cascader
+      v-model:options="modelOptions"
+      empty-text="No projects found"
+      :loading="loading"
+      @on-change="(value) => emit('onChange', value)"
+    />
+  </div>
 </template>
 
 <script setup>
 import {
   ref, h, computed,
 } from 'vue';
-import AppLfCheckboxCascader from '@/modules/lf/segments/components/filter/lf-checkbox-cascader.vue';
+import AppLfRadioCascader from '@/modules/lf/segments/components/filter/lf-radio-cascader.vue';
 
 const SearchIcon = h(
   'i', // type
   { class: 'ri-search-line' }, // props
-  [],
 );
 
 const emit = defineEmits(['update:options', 'onChange', 'onSearchChange']);
-
 const props = defineProps({
   options: {
     type: Array,
@@ -63,10 +63,10 @@ export default {
 
 <style lang="scss">
 .lf-filter-input {
-  @apply h-8;
+  @apply h-10 border-b border-gray-100 absolute pb-2 left-0;
 
   .el-input__wrapper {
-    @apply px-2;
+    @apply px-4;
   }
 }
 </style>

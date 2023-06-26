@@ -77,7 +77,7 @@ export default {
       orderBy: 'lastActive_DESC',
       limit: 5,
       offset: 0,
-      segments,
+      segments: segments.childSegments,
     })
       .then((data) => {
         commit('SET_TRENDING_CONVERSATIONS', data);
@@ -96,7 +96,7 @@ export default {
       orderBy: '',
       limit: 1,
       offset: 0,
-      segments,
+      segments: segments.childSegments,
     })
       .then(({ count }) => {
         state.conversations.total = count;
@@ -146,7 +146,7 @@ export default {
       orderBy: 'timestamp_DESC',
       limit: 20,
       offset: 0,
-      segments,
+      segments: segments.childSegments,
       buildFilter: false,
     })
       .then((data) => {
@@ -178,7 +178,7 @@ export default {
       orderBy: '',
       limit: 1,
       offset: 0,
-      segments,
+      segments: segments.childSegments,
       buildFilter: false,
     })
       .then(({ count }) => {
@@ -215,7 +215,7 @@ export default {
       orderBy: 'activityCount_DESC',
       offset: 0,
       limit: 5,
-      segments,
+      segments: segments.childSegments,
     })
       .then((data) => {
         commit('SET_ACTIVE_MEMBERS', data);
@@ -262,7 +262,7 @@ export default {
       orderBy: 'joinedAt_DESC',
       limit: 5,
       offset: 0,
-      segments,
+      segments: segments.segments,
       buildFilter: false,
     })
       .then((data) => {
@@ -296,7 +296,7 @@ export default {
       orderBy: '',
       limit: 1,
       offset: 0,
-      segments,
+      segments: segments.segments,
       buildFilter: false,
       countOnly: true,
     })
@@ -352,7 +352,7 @@ export default {
       orderBy: 'lastActive_DESC',
       limit: 5,
       offset: 0,
-      segments,
+      segments: segments.childSegments,
       buildFilter: false,
     })
       .then((data) => {
@@ -400,7 +400,7 @@ export default {
       orderBy: 'createdAt_DESC',
       limit: 5,
       offset: 0,
-      segments,
+      segments: segments.childSegments,
       buildFilter: false,
     })
       .then((data) => {
@@ -434,7 +434,7 @@ export default {
       orderBy: '',
       limit: 1,
       offset: 0,
-      segments,
+      segments: segments.childSegments,
       buildFilter: false,
     })
       .then(({ count }) => {
