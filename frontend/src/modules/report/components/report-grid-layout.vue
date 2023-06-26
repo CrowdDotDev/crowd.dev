@@ -49,7 +49,10 @@
           v-else
           :to="{
             name: 'reportEdit',
-            params: { id: modelValue.id },
+            params: {
+              id: modelValue.id,
+              segmentId: modelValue.segmentId,
+            },
           }"
           class="btn btn--primary btn--md mt-6 !hover:text-white"
         >
@@ -96,6 +99,7 @@
           >
             <app-widget-cube-renderer
               class="panel"
+              :subproject-id="modelValue.segmentId"
               :editable="editable"
               :widget="widgets[item.i]"
               :chart-options="{
@@ -209,6 +213,7 @@ export default {
             reportId: this.modelValue.id
               ? this.modelValue.id
               : undefined,
+            segmentId: this.modelValue.segmentId,
             settings: {},
           }),
         ),

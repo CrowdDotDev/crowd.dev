@@ -69,7 +69,7 @@ async function doFetch() {
 
   await store.dispatch('activity/doFetch', {
     filter,
-    keepPagination: true,
+    keepPagination: false,
   });
 }
 

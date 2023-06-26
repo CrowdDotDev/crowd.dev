@@ -7,8 +7,11 @@ import { useStore } from 'vuex';
 import { defineProps, computed } from 'vue';
 import config from '@/config';
 import { AuthToken } from '@/modules/auth/auth-token';
+import { useRoute } from 'vue-router';
 
 const store = useStore();
+const route = useRoute();
+
 defineProps({
   integration: {
     type: Object,
@@ -21,7 +24,7 @@ const connectUrl = computed(() => {
 
   return `${config.backendUrl}/slack/${
     store.getters['auth/currentTenant'].id
-  }/connect?redirectUrl=${redirectUrl}&crowdToken=${AuthToken.get()}`;
+  }/connect?redirectUrl=${redirectUrl}&crowdToken=${AuthToken.get()}&segments[]=${route.params.id}`;
 });
 
 const connect = () => {

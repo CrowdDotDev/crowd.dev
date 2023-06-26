@@ -12,17 +12,34 @@
       >
         Organizations
       </el-button>
-      <h4 class="mt-4 mb-6">
-        {{
-          isEditPage
-            ? 'Edit organization'
-            : 'New organization'
-        }}
-      </h4>
+      <div class="flex items-center gap-4 mt-4 mb-6">
+        <h4>
+          {{
+            isEditPage
+              ? 'Edit organization'
+              : 'New organization'
+          }}
+        </h4>
+        <div
+          v-if="!isEditPage && selectedSegments.project && selectedSegments.subproject"
+          class="badge badge--gray-light badge--xs"
+        >
+          {{ selectedSegments.subproject.name }} ({{ selectedSegments.project.name }})
+        </div>
+      </div>
       <el-container
         v-if="!isPageLoading"
         class="bg-white rounded-lg shadow shadow-black/15"
       >
+        <div v-if="!isEditPage" class="grid gap-x-12 grid-cols-3 bg-gray-50 p-6">
+          <div class="col-span-2 col-start-2 relative">
+            <app-lf-sub-projects-list-dropdown
+              :selected-subproject="selectedSegments.subproject"
+              :selected-subproject-parent="selectedSegments.project"
+              @on-change="onChange"
+            />
+          </div>
+        </div>
         <el-main class="p-6">
           <el-form
             ref="formRef"
@@ -129,6 +146,9 @@ import AppOrganizationFormIdentities from '@/modules/organization/components/for
 import AppOrganizationFormDetails from '@/modules/organization/components/form/organization-form-details.vue';
 import AppOrganizationFormAttributes from '@/modules/organization/components/form/organization-form-attributes.vue';
 import enrichmentAttributes, { attributesTypes } from '@/modules/organization/config/organization-enrichment-attributes';
+import { storeToRefs } from 'pinia';
+import { useLfSegmentsStore } from '@/modules/lf/segments/store';
+import AppLfSubProjectsListDropdown from '@/modules/lf/segments/components/lf-sub-projects-list-dropdown.vue';
 
 const LoaderIcon = h(
   'i',
@@ -177,6 +197,29 @@ const formSchema = new FormSchema([
 const router = useRouter();
 const route = useRoute();
 const store = useStore();
+
+const lsSegmentsStore = useLfSegmentsStore();
+const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);
+
+const selectedSegments = computed(() => {
+  let subproject;
+
+  const project = selectedProjectGroup.value.projects.find(
+    (p) => p.subprojects.some((sp) => {
+      if (sp.id === route.query.subprojectId) {
+        subproject = sp;
+        return true;
+      }
+
+      return false;
+    }),
+  );
+
+  return {
+    project,
+    subproject,
+  };
+});
 
 function getInitialModel(record) {
   return JSON.parse(
@@ -238,6 +281,14 @@ const rules = reactive(formSchema.rules());
 const isEditPage = computed(() => !!route.params.id);
 const isFormValid = computed(() => formSchema.isValidSync(formModel.value));
 
+const segments = computed(() => {
+  if (!isEditPage.value) {
+    return selectedSegments.value.subproject ? [selectedSegments.value.subproject.id] : [];
+  }
+
+  return record.value.segments?.map((s) => s.id) || [];
+});
+
 const hasFormChanged = computed(() => {
   const initialModel = isEditPage.value
     ? getInitialModel(record.value)
@@ -285,7 +336,7 @@ onMounted(async () => {
 
     record.value = await store.dispatch(
       'organization/doFind',
-      id,
+      { id },
     );
     isPageLoading.value = false;
     formModel.value = getInitialModel(record.value);
@@ -397,14 +448,31 @@ async function onSubmit() {
   const action = isEditPage.value
     ? 'organization/doUpdate'
     : 'organization/doCreate';
+
   const payload = isEditPage.value
-    ? { id: props.id, values: data }
-    : data;
+    ? {
+      id: props.id,
+      values: data,
+      segments: segments.value,
+    }
+    : {
+      ...data,
+      segments: segments.value,
+    };
 
   await store.dispatch(action, payload);
   isFormSubmitting.value = false;
   wasFormSubmittedSuccessfuly.value = true;
 }
+
+const onChange = ({ subprojectId }) => {
+  router.replace({
+    name: 'organizationCreate',
+    query: {
+      subprojectId,
+    },
+  });
+};
 </script>
 
 <script>

@@ -8,7 +8,13 @@ export default [
     name: '',
     path: '',
     component: Layout,
-    meta: { auth: true, title: 'Activities' },
+    meta: {
+      auth: true,
+      title: 'Activities',
+      segments: {
+        requireSelectedProjectGroup: true,
+      },
+    },
     children: [
       {
         name: 'activity',

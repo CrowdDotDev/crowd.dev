@@ -25,6 +25,7 @@ export enum FeatureFlag {
   LINKEDIN = 'linkedin',
   MEMBER_ENRICHMENT = 'member-enrichment',
   ORGANIZATION_ENRICHMENT = 'organization-enrichment',
+  SEGMENTS = 'segments',
 }
 
 export enum FeatureFlagRedisKey {
@@ -36,5 +37,5 @@ export enum FeatureFlagRedisKey {
 export enum Edition {
   COMMUNITY = 'community',
   CROWD_HOSTED = 'crowd-hosted',
-  LFX_EE = 'lfx-ee',
+  LFX = 'lfx-ee',
 }

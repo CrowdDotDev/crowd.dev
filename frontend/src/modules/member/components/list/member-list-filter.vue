@@ -2,7 +2,7 @@
   <div class="member-filter">
     <app-filter-list
       module="member"
-      placeholder="Search members..."
+      placeholder="Search contributors..."
       :search-filter="memberSearch"
     >
       <template #dropdown>

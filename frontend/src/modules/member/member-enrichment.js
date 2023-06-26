@@ -52,7 +52,7 @@ export const checkEnrichmentLimit = (
         planEnrichmentCountMax,
       )} enrichments per month on your current plan`,
       message:
-        'Upgrade your plan in order to increase your quota of available member enrichments.',
+        'Upgrade your plan in order to increase your quota of available contributor enrichments.',
       icon: 'ri-error-warning-line',
       confirmButtonText: 'Upgrade plan',
       showCancelButton: false,
@@ -77,11 +77,11 @@ export const checkEnrichmentPlan = ({
     ConfirmDialog({
       vertical: true,
       type: 'danger',
-      title: `You are trying to enrich a number of members above the limit of ${formatNumber(
+      title: `You are trying to enrich a number of contributors above the limit of ${formatNumber(
         planEnrichmentCountMax,
       )} enrichments available in your current plan`,
       message:
-        'Upgrade your plan in order to increase your quota of available member enrichments.',
+        'Upgrade your plan in order to increase your quota of available contributor enrichments.',
       icon: 'ri-error-warning-line',
       confirmButtonText: 'Upgrade plan',
       showCancelButton: false,
@@ -132,7 +132,7 @@ export const showEnrichmentSuccessMessage = ({
   Message.closeAll();
   Message.success(message, {
     title: `Successfully enriched ${pluralize(
-      'member',
+      'contributor',
       enrichedMembers,
       isBulk,
     )}`,
@@ -146,7 +146,7 @@ export const showEnrichmentLoadingMessage = ({
     "We'll let you know when the process is done.",
     {
       title: `${
-        isBulk ? 'Members are' : 'Member is'
+        isBulk ? 'Contributors are' : 'Contributor is'
       } being enriched`,
     },
   );

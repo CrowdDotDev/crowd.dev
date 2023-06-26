@@ -5,9 +5,14 @@ import {
   IMemberMergeSuggestionsType,
   IMemberMergeSuggestion,
 } from '../../../../database/repositories/types/memberTypes'
+import SegmentService from '../../../../services/segmentService'
 
 async function mergeSuggestionsWorker(tenantId): Promise<void> {
   const userContext: IRepositoryOptions = await getUserContext(tenantId)
+  const segmentService = new SegmentService(userContext)
+  const { rows: segments } = await segmentService.querySubprojects({})
+  userContext.currentSegments = segments
+
   const memberService = new MemberService(userContext)
   // Splitting these because in the near future we will be treating them differently
   const byUsername: IMemberMergeSuggestion[] = await memberService.getMergeSuggestions(

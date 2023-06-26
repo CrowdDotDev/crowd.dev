@@ -1,5 +1,6 @@
 <template>
   <app-page-wrapper
+    v-if="selectedSegments"
     :container-class="'col-start-1 col-span-12'"
   >
     <div class="member-form-page">
@@ -10,15 +11,32 @@
         class="text-gray-600 btn-link--md btn-link--secondary p-0"
         @click="onCancel"
       >
-        Members
+        Contributors
       </el-button>
-      <h4 class="mt-4 mb-6">
-        {{ isEditPage ? 'Edit member' : 'New member' }}
-      </h4>
+      <div class="flex items-center gap-4 mt-4 mb-6">
+        <h4>
+          {{ isEditPage ? 'Edit contributor' : 'New contributor' }}
+        </h4>
+        <div
+          v-if="!isEditPage && selectedSegments.project && selectedSegments.subproject"
+          class="badge badge--gray-light badge--xs"
+        >
+          {{ selectedSegments.subproject.name }} ({{ selectedSegments.project.name }})
+        </div>
+      </div>
       <el-container
         v-if="!isPageLoading"
-        class="bg-white rounded-lg shadow shadow-black/15"
+        class="bg-white rounded-lg shadow shadow-black/15 flex-col"
       >
+        <div v-if="!isEditPage" class="grid gap-x-12 grid-cols-3 bg-gray-50 p-6">
+          <div class="col-span-2 col-start-2 relative">
+            <app-lf-sub-projects-list-dropdown
+              :selected-subproject="selectedSegments.subproject"
+              :selected-subproject-parent="selectedSegments.project"
+              @on-change="onChange"
+            />
+          </div>
+        </div>
         <el-main class="p-6">
           <el-form
             ref="formRef"
@@ -30,6 +48,7 @@
             <app-member-form-details
               v-model="formModel"
               :fields-value="computedFields"
+              :segments="segments"
             />
             <el-divider
               class="!mb-6 !mt-8 !border-gray-200"
@@ -47,6 +66,15 @@
               :record="record"
               @open-drawer="() => (isDrawerOpen = true)"
             />
+            <div v-if="isEditPage">
+              <el-divider
+                class="!mb-6 !mt-16 !border-gray-200"
+              />
+              <app-lf-member-form-affiliations
+                v-model="formModel"
+                :record="record"
+              />
+            </div>
           </el-form>
         </el-main>
         <el-footer
@@ -82,7 +110,7 @@
               @click="onSubmit"
             >
               {{
-                isEditPage ? 'Update member' : 'Add member'
+                isEditPage ? 'Update contributor' : 'Add contributor'
               }}
             </el-button>
           </div>
@@ -123,6 +151,9 @@ import getAttributesModel from '@/shared/attributes/get-attributes-model';
 import getParsedAttributes from '@/shared/attributes/get-parsed-attributes';
 import { useMemberStore } from '@/modules/member/store/pinia';
 import { storeToRefs } from 'pinia';
+import { useLfSegmentsStore } from '@/modules/lf/segments/store';
+import AppLfSubProjectsListDropdown from '@/modules/lf/segments/components/lf-sub-projects-list-dropdown.vue';
+import AppLfMemberFormAffiliations from '@/modules/lf/member/components/form/lf-member-form-affiliations.vue';
 
 const LoaderIcon = h(
   'i',
@@ -139,13 +170,16 @@ const ArrowPrevIcon = h(
   [],
 );
 
-const { getMemberCustomAttributes } = useMemberStore();
+const memberStore = useMemberStore();
+const { customAttributes } = storeToRefs(memberStore);
+const { getMemberCustomAttributes } = memberStore;
+
 const router = useRouter();
 const route = useRoute();
 const store = useStore();
 
-const memberStore = useMemberStore();
-const { customAttributes } = storeToRefs(memberStore);
+const lsSegmentsStore = useLfSegmentsStore();
+const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);
 
 const { fields } = MemberModel;
 const formSchema = computed(
@@ -157,6 +191,7 @@ const formSchema = computed(
     fields.username,
     fields.organizations,
     fields.attributes,
+    fields.affiliations,
     ...getCustomAttributes({
       customAttributes: customAttributes.value,
       considerShowProperty: false,
@@ -200,11 +235,40 @@ function getInitialModel(r) {
         platform: r
           ? r.username[Object.keys(r.username)[0]]
           : '',
+        affiliations: r
+          ? r.affiliations
+          : [],
       }),
     ),
   );
 }
 
+const selectedSegments = computed(() => {
+  if (!selectedProjectGroup.value) {
+    return {
+      project: null,
+      subproject: null,
+    };
+  }
+
+  let subproject;
+
+  const project = selectedProjectGroup.value.projects.find(
+    (p) => p.subprojects.some((sp) => {
+      if (sp.id === route.query.subprojectId) {
+        subproject = sp;
+        return true;
+      }
+
+      return false;
+    }),
+  );
+
+  return {
+    project,
+    subproject,
+  };
+});
 const record = ref(null);
 const formRef = ref(null);
 const formModel = ref(getInitialModel());
@@ -223,11 +287,20 @@ const computedAttributes = computed(() => Object.values(customAttributes.value))
 const isEditPage = computed(() => !!route.params.id);
 const isFormValid = computed(() => formSchema.value.isValidSync(formModel.value));
 
+const segments = computed(() => {
+  if (!isEditPage.value) {
+    return selectedSegments.value.subproject ? [selectedSegments.value.subproject.id] : [];
+  }
+
+  return record.value.segments?.map((s) => s.id) || [];
+});
+
 const hasFormChanged = computed(() => {
   const initialModel = isEditPage.value
     ? getInitialModel(record.value)
     : getInitialModel();
 
+  console.log(formModel.value);
   return !isEqual(initialModel, formModel.value);
 });
 
@@ -259,7 +332,7 @@ onMounted(async () => {
   if (isEditPage.value) {
     const { id } = route.params;
 
-    record.value = await store.dispatch('member/doFind', id);
+    record.value = await store.dispatch('member/doFind', { id });
     isPageLoading.value = false;
     formModel.value = getInitialModel(record.value);
   } else {
@@ -356,6 +429,11 @@ async function onSubmit() {
     ...Object.keys(formModel.value.username).length && {
       username: formModel.value.username,
     },
+    affiliations: formModel.value.affiliations.map((affiliation) => ({
+      memberId: affiliation.memberId,
+      segmentId: affiliation.segmentId,
+      organizationId: affiliation.organizationId,
+    })),
   };
 
   let isRequestSuccessful = false;
@@ -369,6 +447,7 @@ async function onSubmit() {
       {
         id: record.value.id,
         values: data,
+        segments: segments.value,
       },
     );
   } else {
@@ -378,6 +457,7 @@ async function onSubmit() {
       'member/doCreate',
       {
         data,
+        segments: segments.value,
       },
     );
   }
@@ -388,6 +468,15 @@ async function onSubmit() {
     wasFormSubmittedSuccessfuly.value = true;
   }
 }
+
+const onChange = ({ subprojectId }) => {
+  router.replace({
+    name: 'memberCreate',
+    query: {
+      subprojectId,
+    },
+  });
+};
 </script>
 
 <style lang="scss">

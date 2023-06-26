@@ -13,6 +13,7 @@ import { WebhookError, WebhookState } from '../../../types/webhooks'
 import bulkOperations from '../../dbOperations/operationsWorker'
 import { sendNodeWorkerMessage } from '../../utils/nodeWorkerSQS'
 import { IntegrationServiceBase } from './integrationServiceBase'
+import SegmentRepository from '../../../database/repositories/segmentRepository'
 
 export class WebhookProcessor extends LoggerBase {
   constructor(
@@ -54,6 +55,9 @@ export class WebhookProcessor extends LoggerBase {
     userContext.log = logger
 
     const integration = await IntegrationRepository.findById(webhook.integrationId, userContext)
+    const segment = await new SegmentRepository(userContext).findById(integration.segmentId)
+    userContext.currentSegments = [segment]
+
     const intService = singleOrDefault(
       this.integrationServices,
       (s) => s.type === integration.platform,

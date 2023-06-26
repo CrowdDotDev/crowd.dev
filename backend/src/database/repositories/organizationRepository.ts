@@ -128,6 +128,8 @@ class OrganizationRepository {
       transaction,
     })
 
+    await OrganizationRepository.includeOrganizationToSegments(record.id, options)
+
     await this._createAuditLog(AuditLogRepository.CREATE, record, data, options)
 
     return this.findById(record.id, options)
@@ -149,6 +151,56 @@ class OrganizationRepository {
       returning: fields,
     })
     return orgs
+  }
+
+  static async includeOrganizationToSegments(organizationId: string, options: IRepositoryOptions) {
+    const seq = SequelizeRepository.getSequelize(options)
+
+    const transaction = SequelizeRepository.getTransaction(options)
+
+    let bulkInsertOrganizationSegments = `INSERT INTO "organizationSegments" ("organizationId","segmentId", "tenantId", "createdAt") VALUES `
+    const replacements = {
+      organizationId,
+      tenantId: options.currentTenant.id,
+    }
+
+    for (let idx = 0; idx < options.currentSegments.length; idx++) {
+      bulkInsertOrganizationSegments += ` (:organizationId, :segmentId${idx}, :tenantId, now()) `
+
+      replacements[`segmentId${idx}`] = options.currentSegments[idx].id
+
+      if (idx !== options.currentSegments.length - 1) {
+        bulkInsertOrganizationSegments += `,`
+      }
+    }
+
+    bulkInsertOrganizationSegments += ` ON CONFLICT DO NOTHING`
+
+    await seq.query(bulkInsertOrganizationSegments, {
+      replacements,
+      type: QueryTypes.INSERT,
+      transaction,
+    })
+  }
+
+  static async excludeOrganizationsFromSegments(
+    organizationIds: string[],
+    options: IRepositoryOptions,
+  ) {
+    const seq = SequelizeRepository.getSequelize(options)
+
+    const transaction = SequelizeRepository.getTransaction(options)
+
+    const bulkDeleteOrganizationSegments = `DELETE FROM "organizationSegments" WHERE "organizationId" in (:organizationIds) and "segmentId" in (:segmentIds);`
+
+    await seq.query(bulkDeleteOrganizationSegments, {
+      replacements: {
+        organizationIds,
+        segmentIds: SequelizeRepository.getSegmentIds(options),
+      },
+      type: QueryTypes.DELETE,
+      transaction,
+    })
   }
 
   static async update(id, data, options: IRepositoryOptions) {
@@ -226,6 +278,13 @@ class OrganizationRepository {
       await this.setOrganizationIsTeam(record.id, data.isTeamOrganization, options)
     }
 
+    if (data.segments) {
+      await OrganizationRepository.includeOrganizationToSegments(record.id, {
+        ...options,
+        transaction,
+      })
+    }
+
     await this._createAuditLog(AuditLogRepository.UPDATE, record, data, options)
 
     return this.findById(record.id, options)
@@ -266,85 +325,102 @@ class OrganizationRepository {
 
     const currentTenant = SequelizeRepository.getCurrentTenant(options)
 
-    const record = await options.database.organization.findOne({
-      where: {
-        id,
-        tenantId: currentTenant.id,
-      },
+    await OrganizationRepository.excludeOrganizationsFromSegments([id], {
+      ...options,
       transaction,
     })
+    const org = await this.findById(id, options)
 
-    if (!record) {
-      throw new Error404()
+    if (org.segments.length === 0) {
+      const record = await options.database.organization.findOne({
+        where: {
+          id,
+          tenantId: currentTenant.id,
+        },
+        transaction,
+      })
+
+      if (!record) {
+        throw new Error404()
+      }
+
+      await record.destroy({
+        transaction,
+        force,
+      })
+
+      await this._createAuditLog(AuditLogRepository.DELETE, record, record, options)
     }
-
-    await record.destroy({
-      transaction,
-      force,
-    })
-
-    await this._createAuditLog(AuditLogRepository.DELETE, record, record, options)
   }
 
   static async findById(id, options: IRepositoryOptions) {
     const transaction = SequelizeRepository.getTransaction(options)
     const sequelize = SequelizeRepository.getSequelize(options)
+
     const currentTenant = SequelizeRepository.getCurrentTenant(options)
 
     const results = await sequelize.query(
       `
-    WITH activity_counts AS (
-        SELECT "organizationId", COUNT(a.id) AS "activityCount"
-        FROM "memberOrganizations" mo
-        left JOIN activities a ON a."memberId" = mo."memberId"
-        WHERE mo."organizationId" = :id 
-        GROUP BY "organizationId"
-    ),
-    member_counts AS (
-        SELECT "organizationId", COUNT(DISTINCT "memberId") AS "memberCount"
-        FROM "memberOrganizations"
-        WHERE "organizationId" = :id
-        GROUP BY "organizationId"
-    ),
-    active_on AS (
-        SELECT "organizationId", ARRAY_AGG(DISTINCT platform) AS "activeOn"
-        FROM "memberOrganizations" mo
-        JOIN activities a ON a."memberId" = mo."memberId"
-        WHERE mo."organizationId" = :id
-        GROUP BY "organizationId"
-    ),
-    identities AS (
-        SELECT "organizationId", ARRAY_AGG(DISTINCT platform) AS "identities"
-        FROM "memberOrganizations" mo
-        JOIN "memberIdentities" mi ON mi."memberId" = mo."memberId"
-        WHERE mo."organizationId" = :id
-        GROUP BY "organizationId"
-    ),
-    last_active AS (
-        SELECT "organizationId", MAX(timestamp) AS "lastActive", MIN(timestamp) AS "joinedAt"
-        FROM "memberOrganizations" mo
-        JOIN activities a ON a."memberId" = mo."memberId"
-        WHERE mo."organizationId" = :id
-        GROUP BY "organizationId"
-    )
-    SELECT
-        o.*,
-    COALESCE(ac."activityCount", 0)::integer AS "activityCount",
-            COALESCE(mc."memberCount", 0)::integer AS "memberCount",
-            COALESCE(ao."activeOn", '{}') AS "activeOn",
-            COALESCE(id."identities", '{}') AS "identities",
-            a."lastActive", a."joinedAt"
-    FROM
-        organizations o
-        LEFT JOIN activity_counts ac ON ac."organizationId" = o.id
-        LEFT JOIN member_counts mc ON mc."organizationId" = o.id
-        LEFT JOIN active_on ao ON ao."organizationId" = o.id
-        LEFT JOIN identities id ON id."organizationId" = o.id
-        LEFT JOIN last_active a ON a."organizationId" = o.id
-    WHERE
-        o.id = :id and
-        o."tenantId"  = :tenantId;
-    `,
+          WITH
+              activity_counts AS (
+                  SELECT mo."organizationId", COUNT(a.id) AS "activityCount"
+                  FROM "memberOrganizations" mo
+                  LEFT JOIN activities a ON a."memberId" = mo."memberId"
+                  WHERE mo."organizationId" = :id
+                  GROUP BY mo."organizationId"
+              ),
+              member_counts AS (
+                  SELECT "organizationId", COUNT(DISTINCT "memberId") AS "memberCount"
+                  FROM "memberOrganizations"
+                  WHERE "organizationId" = :id
+                  GROUP BY "organizationId"
+              ),
+              active_on AS (
+                  SELECT mo."organizationId", ARRAY_AGG(DISTINCT platform) AS "activeOn"
+                  FROM "memberOrganizations" mo
+                  JOIN activities a ON a."memberId" = mo."memberId"
+                  WHERE mo."organizationId" = :id
+                  GROUP BY mo."organizationId"
+              ),
+              identities AS (
+                  SELECT "organizationId", ARRAY_AGG(DISTINCT platform) AS "identities"
+                  FROM "memberOrganizations" mo
+                  JOIN "memberIdentities" mi ON mi."memberId" = mo."memberId"
+                  WHERE mo."organizationId" = :id
+                  GROUP BY "organizationId"
+              ),
+              last_active AS (
+                  SELECT mo."organizationId", MAX(timestamp) AS "lastActive", MIN(timestamp) AS "joinedAt"
+                  FROM "memberOrganizations" mo
+                  JOIN activities a ON a."memberId" = mo."memberId"
+                  WHERE mo."organizationId" = :id
+                  GROUP BY mo."organizationId"
+              ),
+              segments AS (
+                  SELECT "organizationId", ARRAY_AGG("segmentId") AS "segments"
+                  FROM "organizationSegments"
+                  WHERE "organizationId" = :id
+                  GROUP BY "organizationId"
+              )
+          SELECT
+              o.*,
+              COALESCE(ac."activityCount", 0)::INTEGER AS "activityCount",
+              COALESCE(mc."memberCount", 0)::INTEGER AS "memberCount",
+              COALESCE(ao."activeOn", '{}') AS "activeOn",
+              COALESCE(id."identities", '{}') AS "identities",
+              COALESCE(s."segments", '{}') AS "segments",
+              a."lastActive",
+              a."joinedAt"
+          FROM organizations o
+          LEFT JOIN activity_counts ac ON ac."organizationId" = o.id
+          LEFT JOIN member_counts mc ON mc."organizationId" = o.id
+          LEFT JOIN active_on ao ON ao."organizationId" = o.id
+          LEFT JOIN identities id ON id."organizationId" = o.id
+          LEFT JOIN last_active a ON a."organizationId" = o.id
+          LEFT JOIN segments s ON s."organizationId" = o.id
+          WHERE o.id = :id
+            AND o."tenantId" = :tenantId;
+      `,
       {
         replacements: {
           id,
@@ -439,6 +515,11 @@ class OrganizationRepository {
 
     const currentTenant = SequelizeRepository.getCurrentTenant(options)
 
+    await OrganizationRepository.excludeOrganizationsFromSegments(ids, {
+      ...options,
+      transaction,
+    })
+
     await options.database.organization.destroy({
       where: {
         id: ids,
@@ -498,6 +579,14 @@ class OrganizationRepository {
           },
         ],
       },
+      {
+        model: options.database.segment,
+        as: 'segments',
+        attributes: [],
+        through: {
+          attributes: [],
+        },
+      },
     ]
 
     const activeOn = Sequelize.literal(
@@ -523,6 +612,10 @@ class OrganizationRepository {
     const memberCount = Sequelize.literal(`COUNT(DISTINCT "members".id)::integer`)
 
     const activityCount = Sequelize.literal(`COUNT("members->activities".id)::integer`)
+
+    const segments = Sequelize.literal(
+      `ARRAY_AGG(DISTINCT "segments->organizationSegments"."segmentId")`,
+    )
 
     // If the advanced filter is empty, we construct it from the query parameter filter
     if (!advancedFilter) {
@@ -757,6 +850,7 @@ class OrganizationRepository {
           joinedAt,
           memberCount,
           activityCount,
+          segments,
         },
         manyToMany: {
           members: {
@@ -766,6 +860,15 @@ class OrganizationRepository {
               name: 'memberOrganizations',
               from: 'organizationId',
               to: 'memberId',
+            },
+          },
+          segments: {
+            table: 'organizations',
+            model: 'organization',
+            relationTable: {
+              name: 'organizationSegments',
+              from: 'organizationId',
+              to: 'segmentId',
             },
           },
         },
@@ -844,6 +947,7 @@ class OrganizationRepository {
         [joinedAt, 'joinedAt'],
         [memberCount, 'memberCount'],
         [activityCount, 'activityCount'],
+        [segments, 'segmentIds'],
       ],
       order,
       limit: parsed.limit,
@@ -924,6 +1028,8 @@ class OrganizationRepository {
     return rows.map((record) => {
       const rec = record.get({ plain: true })
       rec.activeOn = rec.activeOn ?? []
+      rec.segments = rec.segmentIds ?? []
+      delete rec.segmentIds
       return rec
     })
   }

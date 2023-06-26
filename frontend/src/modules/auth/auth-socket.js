@@ -88,7 +88,7 @@ export const connectSocket = (token) => {
       Message.closeAll();
       Message.error(
         `Failed to enrich ${pluralize(
-          'member',
+          'contributor',
           parsed.failedEnrichedMembers,
           true,
         )}.`,
