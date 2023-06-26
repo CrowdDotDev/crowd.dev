@@ -1,5 +1,3 @@
 FROM cubejs/cube:v0.32.16
-ENV CUBEJS_DB_TYPE ='postgres'
-ENV CUBEJS_API_SECRET ='137ea167812145c6d77452a58d7dd29b'
 
 COPY ./ /cube/conf/
