@@ -180,6 +180,7 @@ export default {
         name: command.action,
         params: {
           id: command.report.id,
+          segmentId: command.report.segmentId,
         },
       });
     },
