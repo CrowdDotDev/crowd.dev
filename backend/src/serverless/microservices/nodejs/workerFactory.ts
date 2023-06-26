@@ -1,5 +1,5 @@
 /* eslint-disable no-case-declarations */
-import { Edition } from '../../../types/common'
+import { Edition } from '@crowd/types'
 import { weeklyAnalyticsEmailsWorker } from './analytics/workers/weeklyAnalyticsEmailsWorker'
 import {
   AutomationMessage,
