@@ -1200,7 +1200,7 @@ export class GithubIntegrationService extends IntegrationServiceBase {
 
           break
         case GithubPullRequestEvents.REVIEW:
-          if (record.author.login && record.submittedAt) {
+          if (record?.author?.login && record?.submittedAt) {
             const member = await GithubIntegrationService.parseMember(record.author, context)
             out.push({
               username: member.username[PlatformType.GITHUB].username,
