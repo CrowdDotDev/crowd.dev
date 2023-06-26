@@ -28,9 +28,16 @@
             <app-dashboard-filters class="block" />
           </div>
 
-          <app-dashboard-members class="mb-8" />
-          <app-dashboard-organizations class="mb-8" />
-          <app-dashboard-activities class="mb-8" />
+          <div
+            v-if="!loadingCubeToken"
+            v-loading="!loadingCubeToken"
+            class="app-page-spinner h-16 !relative !min-h-5"
+          />
+          <div v-else>
+            <app-dashboard-members class="mb-8" />
+            <app-dashboard-organizations class="mb-8" />
+            <app-dashboard-activities class="mb-8" />
+          </div>
         </div>
       </div>
     </div>
@@ -50,7 +57,9 @@
 </template>
 
 <script setup>
-import { onMounted, onBeforeUnmount, ref } from 'vue';
+import {
+  onMounted, onBeforeUnmount, ref, computed,
+} from 'vue';
 import { useStore } from 'vuex';
 import AppDashboardIntegrations from '@/modules/dashboard/components/dashboard-active-integrations.vue';
 import {
@@ -65,20 +74,29 @@ import AppDashboardTask from '@/modules/dashboard/components/dashboard-task.vue'
 import AppDashboardFilters from '@/modules/dashboard/components/dashboard-filters.vue';
 
 const { currentTenant } = mapGetters('auth');
+const { showBanner } = mapGetters('tenant');
+const { cubejsApi } = mapGetters('widget');
 const { doFetch } = mapActions('report');
 const { reset } = mapActions('dashboard');
-const { showBanner } = mapGetters('tenant');
+const { getCubeToken } = mapActions('widget');
 
 const store = useStore();
 
 const storeUnsubscribe = ref(null);
 const scrolled = ref(false);
+
+const loadingCubeToken = computed(() => !!cubejsApi.value);
+
 const handleScroll = (event) => {
   scrolled.value = event.target.scrollTop > 20;
 };
 
 onMounted(() => {
   window.analytics.page('Dashboard');
+
+  if (!cubejsApi.value) {
+    getCubeToken();
+  }
 
   if (currentTenant.value) {
     doFetch({});
