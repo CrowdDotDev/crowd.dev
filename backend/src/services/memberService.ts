@@ -986,6 +986,7 @@ export default class MemberService extends LoggerBase {
         orderBy: data.orderBy || undefined,
         countOnly: data.countOnly || false,
         attributesSettings: memberAttributeSettings,
+        segments: data.segments,
       },
       this.options,
     )
