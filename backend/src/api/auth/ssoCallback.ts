@@ -1,7 +1,7 @@
 import jwt from 'jsonwebtoken'
 import AuthService from '../../services/auth/authService'
 import { AUTH0_CONFIG } from '../../conf'
-import Error401 from '@/errors/Error401'
+import Error401 from '../../errors/Error401'
 
 export default async (req, res) => {
   const { idToken, invitationToken, tenantId } = req.body
