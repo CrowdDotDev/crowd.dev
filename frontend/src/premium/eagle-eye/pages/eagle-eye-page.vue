@@ -40,14 +40,16 @@ import AppEagleEyeSettings from '@/premium/eagle-eye/components/list/eagle-eye-s
 import AppEagleEyeList from '@/premium/eagle-eye/components/list/eagle-eye-list.vue';
 import AppEagleEyeLoadingState from '@/premium/eagle-eye/components/list/eagle-eye-loading-state.vue';
 import { mapGetters } from '@/shared/vuex/vuex.helpers';
+import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 
 const store = useStore();
 
 const { activeView, activeViewList } = mapGetters('eagleEye');
 
+const { updateSelectedProjectGroup } = useLfSegmentsStore();
+
 const cssVars = computed(() => {
-  const isMenuCollapsed = store.getters['layout/menuCollapsed'];
-  const menuWidth = isMenuCollapsed ? '64px' : '260px';
+  const menuWidth = '260px';
 
   return {
     '--eagle-eye-padding': menuWidth,
@@ -81,6 +83,8 @@ const emptyStateContent = computed(() => {
 });
 
 onMounted(() => {
+  updateSelectedProjectGroup(null);
+
   // Prevent new fetch if it still loading results from onboarding
   if (!activeViewList.value.loading) {
     store.dispatch('eagleEye/doFetch', {

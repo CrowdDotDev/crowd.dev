@@ -13,6 +13,7 @@ export default [
     meta: {
       auth: true,
       title: 'Eagle Eye',
+      hideBanner: true,
     },
     children: [
       {
