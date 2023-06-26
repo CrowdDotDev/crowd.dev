@@ -2,12 +2,11 @@ import { StringFilterValue } from '@/shared/modules/filters/types/filterTypes/St
 import { FilterStringOperator } from '@/shared/modules/filters/config/constants/string.constants';
 
 interface QueryUrlStringValue {
-  operator: FilterStringOperator,
+  operator: string,
   value: string,
-  include: string,
 }
 
 export const stringQueryUrlParser = (query: QueryUrlStringValue): StringFilterValue => ({
   ...query,
-  include: query.include === 'true',
+  operator: query.operator as FilterStringOperator,
 });

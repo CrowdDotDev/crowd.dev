@@ -20,13 +20,11 @@ const newAndActive: SavedView = {
     joinedDate: {
       operator: 'gt',
       value: moment().subtract(1, 'month').format('YYYY-MM-DD'),
-      include: true,
     },
 
     lastActivityDate: {
       operator: 'gt',
       value: moment().subtract(1, 'month').format('YYYY-MM-DD'),
-      include: true,
     },
   },
 };
