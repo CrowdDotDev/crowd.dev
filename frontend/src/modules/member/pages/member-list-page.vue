@@ -51,9 +51,15 @@
         </div>
       </div>
 
-      <cr-saved-views v-model="filters" :config="memberSavedViews" :views="memberViews" />
+      <cr-saved-views
+        v-model="filters"
+        :config="memberSavedViews"
+        :views="memberViews"
+        @update:model-value="memberFilter.alignFilterList($event)"
+      />
       <cr-filter
         v-if="customAttributesFilter"
+        ref="memberFilter"
         v-model="filters"
         :config="memberFilters"
         :search-config="memberSearchFilter"
@@ -94,6 +100,8 @@ const membersToMergeCount = ref(0);
 
 const { listByPlatform } = mapGetters('integration');
 const { currentUser, currentTenant } = mapGetters('auth');
+
+const memberFilter = ref<CrFilter | null>(null);
 
 const hasIntegrations = computed(() => !!Object.keys(listByPlatform.value || {}).length);
 

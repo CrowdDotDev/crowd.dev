@@ -19,12 +19,12 @@ setImmediate(async () => {
 
   const repo = new MemberRepository(redis, store, log)
 
-  const tenantIds = await repo.getUnsyncedTenantIds()
+  const tenantIds = await repo.getTenantIds()
 
   const service = new MemberSyncService(redis, store, openSearchService, log)
 
   for (const tenantId of tenantIds) {
-    await service.syncTenantMembers(tenantId, false, 500)
+    await service.syncTenantMembers(tenantId, 500)
   }
   process.exit(0)
 })
