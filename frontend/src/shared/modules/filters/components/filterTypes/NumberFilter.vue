@@ -1,7 +1,5 @@
 <template>
   <div v-if="form">
-    <cr-filter-include-switch v-if="!props.hideIncludeSwitch" v-model="form.include" />
-
     <div class="p-4 pb-5">
       <cr-filter-inline-select
         v-if="!props.forceOperator"
@@ -17,13 +15,13 @@
             type="number"
             min="0"
             step="1"
-            :placeholder="form.operator !== FilterNumberOperator.BETWEEN ? 'Enter value' : 'From'"
+            :placeholder="!isBetween ? 'Enter value' : 'From'"
             data-qa="filter-number-from"
             @blur="$v.value.$touch"
             @change="$v.value.$touch"
           />
         </div>
-        <div v-if="form.operator === FilterNumberOperator.BETWEEN" class="flex-grow px-1">
+        <div v-if="isBetween" class="flex-grow px-1">
           <app-form-item
             :validation="$v.valueTo"
             class="mb-0"
@@ -66,7 +64,6 @@ import useVuelidate from '@vuelidate/core';
 import {
   integer, minValue, numeric, required,
 } from '@vuelidate/validators';
-import CrFilterIncludeSwitch from '@/shared/modules/filters/components/partials/FilterIncludeSwitch.vue';
 import {
   FilterNumberOperator,
   numberFilterOperators,
@@ -91,7 +88,6 @@ const form = computed<NumberFilterValue>({
 const defaultForm: NumberFilterValue = {
   value: '',
   operator: FilterNumberOperator.EQ,
-  include: true,
 };
 
 const rules: any = computed(() => ({
@@ -101,7 +97,7 @@ const rules: any = computed(() => ({
     integer,
     minValue: minValue(0),
   },
-  ...(form.value.operator === FilterNumberOperator.BETWEEN ? {
+  ...(isBetween.value ? {
     valueTo: {
       required,
       numeric,
@@ -114,10 +110,15 @@ const rules: any = computed(() => ({
   },
 }));
 
+const isBetween = computed<boolean>(() => ([
+  FilterNumberOperator.BETWEEN,
+  FilterNumberOperator.NOT_BETWEEN,
+] as FilterNumberOperator[]).includes(form.value.operator));
+
 const $v = useVuelidate(rules, form);
 
 watch(() => form.value.operator, (operator) => {
-  if (operator !== FilterNumberOperator.BETWEEN) {
+  if (!isBetween.value) {
     delete form.value.valueTo;
   } else {
     form.value.valueTo = '';

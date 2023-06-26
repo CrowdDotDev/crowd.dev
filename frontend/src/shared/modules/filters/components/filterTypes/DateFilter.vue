@@ -1,6 +1,5 @@
 <template>
   <div v-if="form">
-    <cr-filter-include-switch v-if="!props.hideIncludeSwitch" v-model="form.include" />
     <div class="p-4 pb-5">
       <cr-filter-inline-select
         v-model="form.operator"
@@ -54,7 +53,6 @@ const form = computed({
 const defaultForm: DateFilterValue = {
   operator: FilterDateOperator.EQ,
   value: '',
-  include: true,
 };
 
 const rules: any = {
