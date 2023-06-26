@@ -79,7 +79,7 @@ async function workerFactory(event: NodeMicroserviceMessage): Promise<any> {
     }
 
     case 'automation-process':
-      if (API_CONFIG.edition === Edition.LFXEE) {
+      if (API_CONFIG.edition === Edition.LFX) {
         return {}
       }
       const automationProcessRequest = event as ProcessAutomationMessage
