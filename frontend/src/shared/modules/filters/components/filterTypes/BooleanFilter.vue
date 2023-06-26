@@ -25,7 +25,6 @@ import {
 } from '@/shared/modules/filters/types/filterTypes/BooleanFilterConfig';
 import { required } from '@vuelidate/validators';
 import useVuelidate from '@vuelidate/core';
-import CrFilterIncludeSwitch from '@/shared/modules/filters/components/partials/FilterIncludeSwitch.vue';
 
 const props = defineProps<{
   modelValue: BooleanFilterValue,

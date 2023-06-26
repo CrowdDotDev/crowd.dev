@@ -10,7 +10,7 @@
       <div class="filter-date-field" data-qa="filter-date-input">
         <el-date-picker
           v-model="form.value"
-          :placeholder="checkIfBetween(form.operator) ? 'Select date range' : 'Select date'"
+          :placeholder="isBetween ? 'Select date range' : 'Select date'"
           :value-format="props.dateFormat ?? 'YYYY-MM-DD'"
           :format="props.dateFormat ?? 'YYYY-MM-DD'"
           popper-class="date-picker-popper"
@@ -64,6 +64,8 @@ const rules: any = {
 
 const checkIfBetween = (operator) => [FilterDateOperator.BETWEEN, FilterDateOperator.NOT_BETWEEN].includes(operator);
 
+const isBetween = computed(() => checkIfBetween(form.value.operator));
+
 const operators = computed(() => {
   if (props.datepickerType === 'year') {
     return dateFilterOperators.filter((o) => !checkIfBetween(o.value));
@@ -73,7 +75,7 @@ const operators = computed(() => {
 
 const $v = useVuelidate(rules, form);
 
-const betweenProps = computed(() => (!checkIfBetween(form.value.operator)
+const betweenProps = computed(() => (!isBetween.value
   ? {
     type: props.datepickerType ?? 'date',
   }
