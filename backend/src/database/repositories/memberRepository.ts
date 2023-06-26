@@ -39,6 +39,7 @@ import {
   IMemberMergeSuggestion,
   mapUsernameToIdentities,
 } from './types/memberTypes'
+import Error400 from '../../errors/Error400'
 
 const { Op } = Sequelize
 
@@ -1621,12 +1622,19 @@ class MemberRepository {
       orderBy = 'joinedAt_DESC',
       countOnly = false,
       attributesSettings = [] as AttributeData[],
+      segments = [] as string[],
     },
     options: IRepositoryOptions,
   ): Promise<PageData<any>> {
     const tenant = SequelizeRepository.getCurrentTenant(options)
 
-    const segment = SequelizeRepository.getStrictlySingleActiveSegment(options)
+    if (segments.length !== 1) {
+      throw new Error400(
+        `This operation can have exactly one segment. Found ${segments.length} segments.`,
+      )
+    }
+
+    const segment = segments[0]
 
     const translator = FieldTranslatorFactory.getTranslator(
       OpenSearchIndex.MEMBERS,
@@ -1659,7 +1667,7 @@ class MemberRepository {
       // add segment filter
       parsed.query.bool.must.push({
         term: {
-          uuid_segmentId: segment.id,
+          uuid_segmentId: segment,
         },
       })
     }
@@ -1708,7 +1716,7 @@ class MemberRepository {
     const memberIds = translatedRows.map((r) => r.id)
     if (memberIds.length > 0) {
       const seq = SequelizeRepository.getSequelize(options)
-      const segmentIds = SequelizeRepository.getSegmentIds(options)
+      const segmentIds = segments
 
       const lastActivities = await seq.query(
         `

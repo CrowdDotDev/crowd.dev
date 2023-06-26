@@ -32,10 +32,8 @@ export class MemberRepository extends RepositoryBase<MemberRepository> {
     return results
   }
 
-  public async getUnsyncedTenantIds(): Promise<string[]> {
-    const results = await this.db().any(
-      `select distinct "tenantId" from members where "searchSyncedAt" is null;`,
-    )
+  public async getTenantIds(): Promise<string[]> {
+    const results = await this.db().any(`select distinct "tenantId" from members;`)
 
     return results.map((r) => r.tenantId)
   }
@@ -63,16 +61,25 @@ export class MemberRepository extends RepositoryBase<MemberRepository> {
     tenantId: string,
     page: number,
     perPage: number,
+    cutoffDate: string,
   ): Promise<string[]> {
     const results = await this.db().any(
       `
         select m.id
         from members m
-        where m."tenantId" = $(tenantId) and m."deletedAt" is null and m."searchSyncedAt" is null
-        and exists (select 1 from activities where "memberId" = m.id) and exists (select 1 from "memberIdentities" where "memberId" = m.id)
+        where m."tenantId" = $(tenantId) and 
+              m."deletedAt" is null and
+              (
+                  m."searchSyncedAt" is null or 
+                  m."searchSyncedAt" < $(cutoffDate)
+              ) 
+              and
+              exists (select 1 from activities where "memberId" = m.id) and
+              exists (select 1 from "memberIdentities" where "memberId" = m.id)
         limit ${perPage} offset ${(page - 1) * perPage};`,
       {
         tenantId,
+        cutoffDate,
       },
     )
 
@@ -193,15 +200,6 @@ export class MemberRepository extends RepositoryBase<MemberRepository> {
     )
 
     return results
-  }
-
-  public async setTenanMembersForSync(tenantId: string): Promise<void> {
-    await this.db().none(
-      `update members set "searchSyncedAt" = null where "tenantId" = $(tenantId)`,
-      {
-        tenantId,
-      },
-    )
   }
 
   public async markSynced(memberIds: string[]): Promise<void> {
