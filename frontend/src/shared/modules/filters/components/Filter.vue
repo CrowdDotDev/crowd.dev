@@ -131,14 +131,14 @@ const alignQueryUrl = () => {
     return;
   }
   filters.value = parsed as Filter;
+  if (!!parsed && Object.keys(parsed).length > 0) {
+    alignFilterList(parsed as Filter);
+    fetch(parsed as Filter);
+  }
 };
 
 onMounted(() => {
   alignQueryUrl();
-  if (!!filters.value && Object.keys(filters.value).length > 0) {
-    alignFilterList(filters.value);
-    fetch(filters.value);
-  }
 });
 
 defineExpose({
