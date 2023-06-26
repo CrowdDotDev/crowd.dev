@@ -11,8 +11,9 @@ import { isUserInTenant } from '../utils/userTenantUtils'
 import { IRepositoryOptions } from './IRepositoryOptions'
 import SegmentRepository from './segmentRepository'
 import isFeatureEnabled from '../../feature-flags/isFeatureEnabled'
-import { FeatureFlag } from '../../types/common'
+import { FeatureFlag, Edition } from '../../types/common'
 import Plans from '../../security/plans'
+import { API_CONFIG } from '../../conf'
 
 const { Op } = Sequelize
 
@@ -63,6 +64,10 @@ class TenantRepository {
       throw new Error400(options.language, 'tenant.url.exists')
     }
 
+    const trialEndsAt = moment().add(14, 'days').isAfter('2023-01-15')
+      ? moment().add(14, 'days').toISOString()
+      : '2023-01-15'
+
     const record = await options.database.tenant.create(
       {
         ...lodash.pick(data, [
@@ -74,11 +79,9 @@ class TenantRepository {
           'integrationsRequired',
           'importHash',
         ]),
-        plan: 'Growth',
-        isTrialPlan: true,
-        trialEndsAt: moment().add(14, 'days').isAfter('2023-01-15')
-          ? moment().add(14, 'days').toISOString()
-          : '2023-01-15',
+        plan: API_CONFIG.edition === Edition.LFX ? Plans.values.enterprise : Plans.values.growth,
+        isTrialPlan: API_CONFIG.edition !== Edition.LFX,
+        trialEndsAt: API_CONFIG.edition !== Edition.LFX ? trialEndsAt : null,
         createdById: currentUser.id,
         updatedById: currentUser.id,
       },
