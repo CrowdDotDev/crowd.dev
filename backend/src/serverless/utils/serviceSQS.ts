@@ -1,6 +1,7 @@
 import {
   IntegrationRunWorkerEmitter,
   IntegrationStreamWorkerEmitter,
+  SearchSyncWorkerEmitter,
   SqsClient,
   getSqsClient,
 } from '@crowd/sqs'
@@ -43,3 +44,12 @@ export const getIntegrationStreamWorkerEmitter =
     await streamWorkerEmitter.init()
     return streamWorkerEmitter
   }
+
+let searchSyncWorkerEmitter: SearchSyncWorkerEmitter
+export const getSearchSyncWorkerEmitter = async (): Promise<SearchSyncWorkerEmitter> => {
+  if (searchSyncWorkerEmitter) return searchSyncWorkerEmitter
+
+  searchSyncWorkerEmitter = new SearchSyncWorkerEmitter(getClient(), log)
+  await searchSyncWorkerEmitter.init()
+  return searchSyncWorkerEmitter
+}

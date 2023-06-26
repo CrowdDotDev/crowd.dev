@@ -1,16 +1,19 @@
+import { SlackAlertTypes, sendSlackAlert } from '@crowd/alerting'
 import { singleOrDefault } from '@crowd/common'
 import { DbStore } from '@crowd/database'
 import { IGenerateStreamsContext, INTEGRATION_SERVICES } from '@crowd/integrations'
 import { Logger, LoggerBase, getChildLogger } from '@crowd/logging'
 import { ApiPubSubEmitter, RedisCache, RedisClient } from '@crowd/redis'
-import { IntegrationRunWorkerEmitter, IntegrationStreamWorkerEmitter } from '@crowd/sqs'
+import {
+  IntegrationRunWorkerEmitter,
+  IntegrationStreamWorkerEmitter,
+  SearchSyncWorkerEmitter,
+} from '@crowd/sqs'
 import { IntegrationRunState, IntegrationStreamState } from '@crowd/types'
-import { NANGO_CONFIG, PLATFORM_CONFIG } from '../conf'
+import { NANGO_CONFIG, PLATFORM_CONFIG, SLACK_ALERTING_CONFIG } from '../conf'
 import IntegrationRunRepository from '../repo/integrationRun.repo'
 import MemberAttributeSettingsRepository from '../repo/memberAttributeSettings.repo'
 import SampleDataRepository from '../repo/sampleData.repo'
-import { SlackAlertTypes, sendSlackAlert } from '@crowd/alerting'
-import { SLACK_ALERTING_CONFIG } from '../conf'
 
 export default class IntegrationRunService extends LoggerBase {
   private readonly repo: IntegrationRunRepository
@@ -20,6 +23,7 @@ export default class IntegrationRunService extends LoggerBase {
     private readonly redisClient: RedisClient,
     private readonly streamWorkerEmitter: IntegrationStreamWorkerEmitter,
     private readonly runWorkerEmitter: IntegrationRunWorkerEmitter,
+    private readonly searchSyncWorkerEmitter: SearchSyncWorkerEmitter,
     private readonly apiPubSubEmitter: ApiPubSubEmitter,
     private readonly store: DbStore,
     parentLog: Logger,
@@ -259,6 +263,9 @@ export default class IntegrationRunService extends LoggerBase {
         await this.sampleDataRepo.transactionally(async (txRepo) => {
           await txRepo.deleteSampleData(runInfo.tenantId)
         })
+
+        await this.searchSyncWorkerEmitter.triggerActivityCleanup(runInfo.tenantId)
+        await this.searchSyncWorkerEmitter.triggerMemberCleanup(runInfo.tenantId)
       } catch (err) {
         this.log.error({ err }, 'Error while deleting sample data!')
         await this.triggerRunError(

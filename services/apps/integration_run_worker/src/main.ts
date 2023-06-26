@@ -3,6 +3,7 @@ import { getServiceLogger } from '@crowd/logging'
 import {
   IntegrationRunWorkerEmitter,
   IntegrationStreamWorkerEmitter,
+  SearchSyncWorkerEmitter,
   getSqsClient,
 } from '@crowd/sqs'
 import { DB_CONFIG, REDIS_CONFIG, SQS_CONFIG } from './conf'
@@ -23,6 +24,7 @@ setImmediate(async () => {
 
   const runWorkerEmitter = new IntegrationRunWorkerEmitter(sqsClient, log)
   const streamWorkerEmitter = new IntegrationStreamWorkerEmitter(sqsClient, log)
+  const searchSyncWorkerEmitter = new SearchSyncWorkerEmitter(sqsClient, log)
 
   const apiPubSubEmitter = new ApiPubSubEmitter(redisClient, log)
 
@@ -32,6 +34,7 @@ setImmediate(async () => {
     dbConnection,
     streamWorkerEmitter,
     runWorkerEmitter,
+    searchSyncWorkerEmitter,
     apiPubSubEmitter,
     log,
     MAX_CONCURRENT_PROCESSING,
@@ -40,6 +43,7 @@ setImmediate(async () => {
   try {
     await streamWorkerEmitter.init()
     await runWorkerEmitter.init()
+    await searchSyncWorkerEmitter.init()
     await queue.start()
   } catch (err) {
     log.error({ err }, 'Failed to start queues!')

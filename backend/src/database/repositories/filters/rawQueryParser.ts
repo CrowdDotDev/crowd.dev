@@ -1,6 +1,6 @@
 import { singleOrDefault } from '@crowd/common'
+import { MemberAttributeType } from '@crowd/types'
 import { JsonColumnInfo, Operator, ParsedJsonColumn } from './queryTypes'
-import { AttributeType } from '../../attributes/types'
 
 export default class RawQueryParser {
   public static parseFilters(
@@ -78,11 +78,11 @@ export default class RawQueryParser {
       }
       jsonColumn = `(${property.info.column}${nestedProperty})`
 
-      if (attributeInfo.type === AttributeType.BOOLEAN) {
+      if (attributeInfo.type === MemberAttributeType.BOOLEAN) {
         jsonColumn = `${jsonColumn}::boolean`
-      } else if (attributeInfo.type === AttributeType.NUMBER) {
+      } else if (attributeInfo.type === MemberAttributeType.NUMBER) {
         jsonColumn = `${jsonColumn}::integer`
-      } else if (attributeInfo.type === AttributeType.DATE) {
+      } else if (attributeInfo.type === MemberAttributeType.DATE) {
         jsonColumn = `${jsonColumn}::timestamptz`
       }
     } else {
@@ -308,9 +308,11 @@ export default class RawQueryParser {
     }
   }
 
-  private static isJsonPropertyText(type: AttributeType): boolean {
+  private static isJsonPropertyText(type: MemberAttributeType): boolean {
     return (
-      type === AttributeType.STRING || type === AttributeType.EMAIL || type === AttributeType.URL
+      type === MemberAttributeType.STRING ||
+      type === MemberAttributeType.EMAIL ||
+      type === MemberAttributeType.URL
     )
   }
 

@@ -7,8 +7,9 @@ import * as http from 'http'
 import { Unleash } from 'unleash-client'
 import { getRedisClient, getRedisPubSubPair, RedisPubSubReceiver } from '@crowd/redis'
 import { getServiceLogger } from '@crowd/logging'
-import { ApiWebsocketMessage } from '@crowd/types'
-import { API_CONFIG, REDIS_CONFIG, UNLEASH_CONFIG } from '../conf'
+import { ApiWebsocketMessage, Edition } from '@crowd/types'
+import { getOpensearchClient } from '@crowd/opensearch'
+import { API_CONFIG, REDIS_CONFIG, UNLEASH_CONFIG, OPENSEARCH_CONFIG } from '../conf'
 import { authMiddleware } from '../middlewares/authMiddleware'
 import { tenantMiddleware } from '../middlewares/tenantMiddleware'
 import { segmentMiddleware } from '../middlewares/segmentMiddleware'
@@ -22,7 +23,7 @@ import { errorMiddleware } from '../middlewares/errorMiddleware'
 import { passportStrategyMiddleware } from '../middlewares/passportStrategyMiddleware'
 import { redisMiddleware } from '../middlewares/redisMiddleware'
 import WebSockets from './websockets'
-import { Edition } from '../types/common'
+import { opensearchMiddleware } from '../middlewares/opensearchMiddleware'
 
 const serviceLogger = getServiceLogger()
 
@@ -32,6 +33,8 @@ const server = http.createServer(app)
 
 setImmediate(async () => {
   const redis = await getRedisClient(REDIS_CONFIG, true)
+
+  const opensearch = getOpensearchClient(OPENSEARCH_CONFIG)
 
   const redisPubSubPair = await getRedisPubSubPair(REDIS_CONFIG)
   const userNamespace = await WebSockets.initialize(server)
@@ -77,6 +80,9 @@ setImmediate(async () => {
 
   // Bind redis to request
   app.use(redisMiddleware(redis))
+
+  // bind opensearch
+  app.use(opensearchMiddleware(opensearch))
 
   // Bind unleash to request
   if (UNLEASH_CONFIG.url && API_CONFIG.edition === Edition.CROWD_HOSTED) {

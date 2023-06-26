@@ -2,6 +2,7 @@ import moment from 'moment'
 import jwt from 'jsonwebtoken'
 import bcrypt from 'bcrypt'
 import { getServiceLogger } from '@crowd/logging'
+import { getRedisClient } from '@crowd/redis'
 import { databaseInit } from '../databaseConnection'
 import { IRepositoryOptions } from '../repositories/IRepositoryOptions'
 import { IServiceOptions } from '../../services/IServiceOptions'
@@ -9,7 +10,7 @@ import Roles from '../../security/roles'
 import UserRepository from '../repositories/userRepository'
 import TenantRepository from '../repositories/tenantRepository'
 import Plans from '../../security/plans'
-import { API_CONFIG } from '../../conf'
+import { API_CONFIG, REDIS_CONFIG } from '../../conf'
 import SettingsRepository from '../repositories/settingsRepository'
 import { SegmentStatus } from '../../types/segmentTypes'
 
@@ -113,6 +114,8 @@ export default class SequelizeTestUtils {
 
     const log = getServiceLogger()
 
+    const redis = await getRedisClient(REDIS_CONFIG, true)
+
     return {
       language: 'en',
       currentUser: user,
@@ -120,6 +123,7 @@ export default class SequelizeTestUtils {
       currentSegments: [segment],
       database: db,
       log,
+      redis,
     } as IServiceOptions
   }
 
@@ -167,6 +171,7 @@ export default class SequelizeTestUtils {
     } as IRepositoryOptions)
 
     const log = getServiceLogger()
+    const redis = await getRedisClient(REDIS_CONFIG, true)
 
     return {
       language: 'en',
@@ -176,6 +181,7 @@ export default class SequelizeTestUtils {
       database: db,
       bypassPermissionValidation: true,
       log,
+      redis,
     } as IRepositoryOptions
   }
 

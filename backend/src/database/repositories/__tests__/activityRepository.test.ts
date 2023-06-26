@@ -2,13 +2,11 @@ import MemberRepository from '../memberRepository'
 import SequelizeTestUtils from '../../utils/sequelizeTestUtils'
 import Error404 from '../../../errors/Error404'
 import ActivityRepository from '../activityRepository'
-import { PlatformType } from '@crowd/types'
+import { MemberAttributeName, PlatformType } from '@crowd/types'
 import TaskRepository from '../taskRepository'
-import { MemberAttributeName } from '../../attributes/member/enums'
 import MemberAttributeSettingsRepository from '../memberAttributeSettingsRepository'
 import MemberAttributeSettingsService from '../../../services/memberAttributeSettingsService'
-import { DefaultMemberAttributes } from '../../attributes/member/default'
-import { UNKNOWN_ACTIVITY_TYPE_DISPLAY } from '@crowd/integrations'
+import { DEFAULT_MEMBER_ATTRIBUTES, UNKNOWN_ACTIVITY_TYPE_DISPLAY } from '@crowd/integrations'
 import OrganizationRepository from '../organizationRepository'
 
 const db = null
@@ -1638,7 +1636,7 @@ describe('ActivityRepository tests', () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
       const mas = new MemberAttributeSettingsService(mockIRepositoryOptions)
 
-      await mas.createPredefined(DefaultMemberAttributes)
+      await mas.createPredefined(DEFAULT_MEMBER_ATTRIBUTES)
 
       const memberAttributeSettings = (
         await MemberAttributeSettingsRepository.findAndCountAll({}, mockIRepositoryOptions)

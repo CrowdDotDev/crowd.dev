@@ -5,7 +5,7 @@ import {
   MemberAttributes,
 } from '@crowd/types'
 
-const attributes: IMemberAttribute[] = [
+export const STACKOVERFLOW_MEMBER_ATTRIBUTES: IMemberAttribute[] = [
   {
     name: MemberAttributes[MemberAttributeName.SOURCE_ID].name,
     label: MemberAttributes[MemberAttributeName.SOURCE_ID].label,
@@ -49,5 +49,3 @@ const attributes: IMemberAttribute[] = [
     show: true,
   },
 ]
-
-export default attributes
