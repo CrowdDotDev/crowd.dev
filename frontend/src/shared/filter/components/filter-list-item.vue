@@ -352,8 +352,6 @@ export default {
   }
   &-popper.el-popover.el-popper {
     @apply relative w-full max-w-xs p-2;
-    max-height: 480px;
-    overflow: auto;
 
     .filter-content-wrapper {
       @apply h-58 overflow-auto pb-2;
