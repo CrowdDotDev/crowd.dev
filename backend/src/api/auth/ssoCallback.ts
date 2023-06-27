@@ -9,16 +9,11 @@ export default async (req, res) => {
   try {
     const verifyToken = new Promise((resolve, reject) => {
       const publicKey = AUTH0_CONFIG.cert.replaceAll('"', '').replace(/\\n/g, '\n')
-      console.log(AUTH0_CONFIG)
-      console.log(publicKey);
       jwt.verify(idToken, publicKey, { algorithms: ['RS256'] }, (err, decoded) => {
         // If error verifying token
         if (err) {
-          console.log(err);
           reject(new Error401())
         }
-
-        console.log(decoded);
 
         // If token matches auth0 validation criteria
         const { aud, iss } = decoded as any
