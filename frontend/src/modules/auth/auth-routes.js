@@ -14,6 +14,8 @@ const PasswordResetPage = () => import('@/modules/auth/pages/password-reset-page
 const VerifyEmailPage = () => import('@/modules/auth/pages/verify-email-page.vue');
 const InvitationPage = () => import('@/modules/auth/pages/invitation-page.vue');
 const EmptyPermissionsPage = () => import('@/modules/auth/pages/empty-permissions-page.vue');
+const AuthCallback = () => import('@/modules/auth/pages/callback.vue');
+const AuthLogout = () => import('@/modules/auth/pages/logout.vue');
 
 export default [
   {
@@ -59,8 +61,6 @@ export default [
         path: 'email-unverified',
         component: EmailUnverifiedPage,
         meta: {
-          auth: true,
-          emailAlreadyVerified: true,
           title: 'Verify Email',
         },
       },
@@ -107,5 +107,17 @@ export default [
         meta: { auth: true },
       },
     ],
+  },
+  {
+    name: 'callback',
+    path: '/auth/callback',
+    component: AuthCallback,
+    meta: { title: 'Logging you in...' },
+  },
+  {
+    name: 'logout',
+    path: '/auth/logout',
+    component: AuthLogout,
+    meta: { title: 'Logging out...' },
   },
 ];

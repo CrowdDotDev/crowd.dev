@@ -3,6 +3,7 @@ import { AuthToken } from '@/modules/auth/auth-token';
 import AuthCurrentTenant from '@/modules/auth/auth-current-tenant';
 import AuthInvitationToken from '@/modules/auth/auth-invitation-token';
 import { tenantSubdomain } from '@/modules/tenant/tenant-subdomain';
+import { Auth0Service } from '@/shared/services/auth0.service';
 
 export class AuthService {
   static sendEmailVerification() {
@@ -73,6 +74,25 @@ export class AuthService {
       });
   }
 
+  static ssoGetToken(idToken) {
+    const invitationToken = AuthInvitationToken.get();
+
+    return authAxios
+      .post('/auth/sso/callback', {
+        idToken,
+        invitationToken,
+        tenantId: tenantSubdomain.isSubdomain
+          ? AuthCurrentTenant.get()
+          : undefined,
+      })
+      .then((response) => {
+        console.log(response);
+        AuthInvitationToken.clear();
+
+        return response.data;
+      });
+  }
+
   static fetchMe() {
     return authAxios.get('/auth/me', {
       params: {
@@ -82,7 +102,8 @@ export class AuthService {
   }
 
   static signout() {
-    AuthToken.set(null, true);
+    AuthToken.set(null, false);
+    Auth0Service.logout();
   }
 
   static updateProfile(data) {
