@@ -5,7 +5,7 @@
       <div class="flex items-center justify-between">
         <h4>Reports</h4>
         <el-button
-          v-if="computedTemplates.length || customReportsCount"
+          v-if="(computedTemplates.length || customReportsCount) && hasPermissionToCreate"
           class="btn btn--primary btn--md"
           @click="onAddReport"
         >

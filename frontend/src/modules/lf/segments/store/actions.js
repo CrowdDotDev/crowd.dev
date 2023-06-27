@@ -4,12 +4,23 @@ import { router } from '@/router';
 
 export default {
   // Project Groups
-  listProjectGroups({ search = null, offset, limit } = {}) {
+  listProjectGroups({
+    search = null, offset, limit, reset = false,
+  } = {}) {
     this.projectGroups.loading = true;
+
+    if (reset) {
+      this.projectGroups.pagination = {
+        pageSize: 20,
+        currentPage: 1,
+        total: 0,
+        count: 0,
+      };
+    }
 
     return LfService.queryProjectGroups({
       limit: limit !== undefined ? limit : this.projectGroups.pagination.pageSize,
-      offset: offset !== undefined ? offset : this.offset,
+      offset: offset !== undefined ? offset : this.projectGroupOffset,
       filter: {
         name: search,
       },
@@ -64,20 +75,32 @@ export default {
       })
       .finally(() => Promise.resolve());
   },
-  searchProjectGroup(search) {
-    this.listProjectGroups({ search });
+  searchProjectGroup(search, limit) {
+    this.projectGroups.pagination.currentPage = 1;
+    this.listProjectGroups({ search, offset: 0, limit });
   },
   // Projects
-  listProjects({ parentSlug = null, search = null } = {}) {
+  listProjects({
+    parentSlug = null, search = null, offset, limit, reset = false,
+  } = {}) {
     this.projects.loading = true;
 
     if (parentSlug) {
       this.projects.parentSlug = parentSlug;
     }
 
+    if (reset) {
+      this.projects.pagination = {
+        pageSize: 20,
+        currentPage: 1,
+        total: 0,
+        count: 0,
+      };
+    }
+
     LfService.queryProjects({
-      limit: this.projects.pagination.pageSize,
-      offset: this.offset,
+      limit: limit !== undefined ? limit : this.projects.pagination.pageSize,
+      offset: offset !== undefined ? offset : this.projectOffset,
       filter: {
         name: search,
         parentSlug: this.projects.parentSlug,
@@ -132,7 +155,8 @@ export default {
       .finally(() => Promise.resolve());
   },
   searchProject(search) {
-    this.listProjects({ search });
+    this.projects.pagination.currentPage = 1;
+    this.listProjects({ search, offset: 0 });
   },
   findSubProject(id) {
     return LfService.findSegment(id)
@@ -190,5 +214,15 @@ export default {
     } else {
       this.selectedProjectGroup = null;
     }
+  },
+  doChangeProjectGroupCurrentPage(currentPage) {
+    this.projectGroups.pagination.currentPage = currentPage;
+
+    this.listProjectGroups();
+  },
+  doChangeProjectCurrentPage(currentPage) {
+    this.projects.pagination.currentPage = currentPage;
+
+    this.listProjects();
   },
 };

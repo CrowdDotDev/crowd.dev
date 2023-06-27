@@ -6,7 +6,9 @@
     >
       <div class="px-3 pt-3 flex flex-col gap-2 grow">
         <div class="px-3 mb-6 mt-2">
-          <img src="/images/lf/logo_lfx_cm.svg" alt="lf logo" />
+          <router-link to="/">
+            <img src="/images/lf/logo_lfx_cm.svg" alt="lf logo" />
+          </router-link>
         </div>
         <!-- All project groups -->
         <router-link
@@ -95,10 +97,13 @@
           </span>
         </router-link>
 
-        <el-divider class="border-gray-200" />
+        <el-divider v-if="hasPermissionToEagleEye || isEagleEyeLocked" class="border-gray-200" />
 
         <!-- Eagle eye -->
         <router-link
+          v-if="
+            hasPermissionToEagleEye || isEagleEyeLocked
+          "
           id="menu-eagle-eye"
           :to="{ path: '/eagle-eye' }"
           class="el-menu-item"
@@ -112,10 +117,16 @@
 
         <div class="grow" />
 
-        <el-divider class="border-gray-200 !mb-1" />
+        <el-divider
+          v-if="hasPermissionToSettings || isSettingsLocked || hasPermissionToAccessAdminPanel"
+          class="border-gray-200 !mb-1"
+        />
 
         <div class="mb-6">
           <router-link
+            v-if="
+              hasPermissionToSettings || isSettingsLocked
+            "
             id="menu-settings"
             :to="{ path: '/settings' }"
             class="el-menu-item mb-2"
@@ -128,6 +139,7 @@
           </router-link>
 
           <router-link
+            v-if="hasPermissionToAccessAdminPanel"
             id="menu-admin-panel"
             :to="{ path: '/admin/project-groups' }"
             class="el-menu-item"
@@ -147,7 +159,7 @@
 </template>
 
 <script setup>
-import { watch } from 'vue';
+import { watch, computed } from 'vue';
 import { useRoute } from 'vue-router';
 import { useActivityTypeStore } from '@/modules/activity/store/type';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
@@ -155,6 +167,12 @@ import { storeToRefs } from 'pinia';
 import AppLfMenuProjectGroupSelection from '@/modules/lf/layout/components/lf-menu-project-group-selection.vue';
 import AppAccountDropdown from '@/modules/layout/components/account-dropdown.vue';
 import { ActivityTypeService } from '@/modules/activity/services/activity-type-service';
+import { EagleEyePermissions } from '@/premium/eagle-eye/eagle-eye-permissions';
+import { mapGetters } from '@/shared/vuex/vuex.helpers';
+import { SettingsPermissions } from '@/modules/settings/settings-permissions';
+import { LfPermissions } from '@/modules/lf/lf-permissions';
+
+const { currentTenant, currentUser } = mapGetters('auth');
 
 const { setTypes } = useActivityTypeStore();
 
@@ -192,6 +210,42 @@ const classFor = (path, exact = false, disabled = false) => {
     'is-active': active,
   };
 };
+
+const hasPermissionToEagleEye = computed(
+  () => new EagleEyePermissions(
+    currentTenant.value,
+    currentUser.value,
+  ).read,
+);
+
+const isEagleEyeLocked = computed(
+  () => new EagleEyePermissions(
+    currentTenant.value,
+    currentUser.value,
+  ).lockedForCurrentPlan,
+);
+
+const hasPermissionToSettings = computed(
+  () => new SettingsPermissions(
+    currentTenant.value,
+    currentUser.value,
+  ).edit,
+);
+
+const isSettingsLocked = computed(
+  () => new SettingsPermissions(
+    currentTenant.value,
+    currentUser.value,
+  ).lockedForCurrentPlan,
+);
+
+const hasPermissionToAccessAdminPanel = computed(
+  () => new LfPermissions(
+    currentTenant.value,
+    currentUser.value,
+  ).createProjectGroup,
+);
+
 </script>
 
 <script>

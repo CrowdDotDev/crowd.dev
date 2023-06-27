@@ -5,7 +5,7 @@
         Admin panel
       </h4>
       <el-button
-        v-if="pagination.total"
+        v-if="pagination.total && hasPermissionToCreate"
         class="btn btn--md btn--primary"
         @click="onAddProjectGroup"
       >
@@ -33,7 +33,7 @@
         icon="ri-folder-5-line"
         title="No project groups yet"
         description="Create your first project group and start integrating your projects"
-        cta-btn="Add project group"
+        :cta-btn="hasPermissionToCreate ? 'Add project group' : null"
         @cta-click="onAddProjectGroup"
       />
 
@@ -77,10 +77,14 @@ import AppLfProjectGroupForm from '@/modules/lf/segments/components/form/lf-proj
 import AppLfProjectForm from '@/modules/lf/segments/components/form/lf-project-form.vue';
 import AppLfProjectGroupsTable from '@/modules/lf/segments/components/view/lf-project-groups-table.vue';
 import AppLfSearchInput from '@/modules/lf/segments/components/view/lf-search-input.vue';
+import { LfPermissions } from '@/modules/lf/lf-permissions';
+import { mapGetters } from '@/shared/vuex/vuex.helpers';
 
 const lsSegmentsStore = useLfSegmentsStore();
 const { projectGroups } = storeToRefs(lsSegmentsStore);
 const { listProjectGroups, searchProjectGroup, updateSelectedProjectGroup } = lsSegmentsStore;
+
+const { currentTenant, currentUser } = mapGetters('auth');
 
 const loading = computed(() => projectGroups.value.loading);
 const pagination = computed(() => projectGroups.value.pagination);
@@ -92,9 +96,16 @@ const projectGroupForm = reactive({
 const isProjectGroupFormDrawerOpen = ref(false);
 const isProjectFormDrawerOpen = ref(false);
 
+const hasPermissionToCreate = computed(() => new LfPermissions(
+  currentTenant.value,
+  currentUser.value,
+)?.createProjectGroup);
+
 onMounted(() => {
   updateSelectedProjectGroup(null);
-  listProjectGroups();
+  listProjectGroups({
+    reset: true,
+  });
 });
 
 const onAddProject = (parentSlug) => {

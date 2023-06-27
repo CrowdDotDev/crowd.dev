@@ -1,13 +1,16 @@
 <template>
-  <el-input
+  <div
     ref="inputRef"
-    v-model="model"
-    class="project-groups-select-input"
-    placeholder="Select project group..."
-    readonly
-    :suffix-icon="isPopoverVisible ? ArrowUpIcon : ArrowDownIcon"
     @click="isPopoverVisible = true"
-  />
+  >
+    <el-input
+      v-model="model"
+      class="project-groups-select-input"
+      placeholder="Select project group..."
+      readonly
+      :suffix-icon="isPopoverVisible ? ArrowUpIcon : ArrowDownIcon"
+    />
+  </div>
 
   <el-popover
     v-model:visible="isPopoverVisible"
@@ -25,7 +28,7 @@
         ref="searchQueryInput"
         v-model="searchQuery"
         placeholder="Search..."
-        class="lf-filter-input filter-dropdown-search"
+        class="filter-dropdown-search"
         :prefix-icon="SearchIcon"
         @input="onSearchProjects"
       />
@@ -135,7 +138,7 @@ watch(projectGroups, (updatedProjectGroups) => {
 onMounted(() => {
   listProjectGroups({
     limit: null,
-    offset: 0,
+    reset: true,
   });
 });
 

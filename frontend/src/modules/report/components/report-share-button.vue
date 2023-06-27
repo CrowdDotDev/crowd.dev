@@ -14,6 +14,7 @@
     <template #dropdown>
       <div class="p-2 w-100">
         <div
+          v-if="hasPermissionToEditReport"
           class="flex items-start justify-between flex-grow"
         >
           <div>
@@ -74,7 +75,8 @@ import {
 } from 'vue';
 import Message from '@/shared/message/message';
 import AuthCurrentTenant from '@/modules/auth/auth-current-tenant';
-import { mapActions } from '@/shared/vuex/vuex.helpers';
+import { mapActions, mapGetters } from '@/shared/vuex/vuex.helpers';
+import { ReportPermissions } from '../report-permissions';
 
 const emit = defineEmits(['update:modelValue']);
 const props = defineProps({
@@ -91,6 +93,8 @@ const props = defineProps({
     required: true,
   },
 });
+
+const { currentTenant, currentUser } = mapGetters('auth');
 
 const open = ref(false);
 
@@ -132,4 +136,11 @@ const handlePublicChange = async (value) => {
     segments: [props.segmentId],
   });
 };
+
+const hasPermissionToEditReport = computed(
+  () => new ReportPermissions(
+    currentTenant.value,
+    currentUser.value,
+  ).edit,
+);
 </script>

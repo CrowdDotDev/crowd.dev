@@ -14,6 +14,7 @@
       </button>
       <template #dropdown>
         <el-dropdown-item
+          v-if="hasPermissionToEditProjectGroup"
           class="h-10 mb-1"
           :command="editProjectGroup"
         >
@@ -23,6 +24,7 @@
           <span class="text-xs">Edit project group</span>
         </el-dropdown-item>
         <el-dropdown-item
+          v-if="hasPermissionToCreateProject"
           class="h-10 mb-1"
           :command="addProject"
         >
@@ -30,7 +32,10 @@
             class="ri-add-line text-base mr-2"
           /><span class="text-xs">Add project</span>
         </el-dropdown-item>
-        <el-divider class="border-gray-200 !my-2" />
+        <el-divider
+          v-if="hasPermissionToEditProjectGroup || hasPermissionToCreateProject"
+          class="border-gray-200 !my-2"
+        />
         <el-dropdown-item
           class="h-10"
           :command="() => updateSelectedProjectGroup(id)"
@@ -48,6 +53,9 @@
 
 <script setup>
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
+import { LfPermissions } from '@/modules/lf/lf-permissions';
+import { mapGetters } from '@/shared/vuex/vuex.helpers';
+import { computed } from 'vue';
 
 const emit = defineEmits(['onEditProjectGroup', 'onAddProject']);
 
@@ -58,8 +66,20 @@ defineProps({
   },
 });
 
+const { currentTenant, currentUser } = mapGetters('auth');
+
 const lsSegmentsStore = useLfSegmentsStore();
 const { updateSelectedProjectGroup } = lsSegmentsStore;
+
+const hasPermissionToCreateProject = computed(() => new LfPermissions(
+  currentTenant.value,
+  currentUser.value,
+)?.createProject);
+
+const hasPermissionToEditProjectGroup = computed(() => new LfPermissions(
+  currentTenant.value,
+  currentUser.value,
+)?.editProjectGroup);
 
 const editProjectGroup = () => {
   emit('onEditProjectGroup');
