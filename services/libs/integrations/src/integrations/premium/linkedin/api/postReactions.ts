@@ -14,7 +14,7 @@ export const getPostReactions = async (
 ): Promise<IPaginatedResponse<ILinkedInPostReaction>> => {
   const config: AxiosRequestConfig<unknown> = {
     method: 'get',
-    url: `https://api.linkedin.com/v2/reactions/(entity:${encodeURIComponent(postId)})`,
+    url: `https://api.linkedin.com/rest/reactions/(entity:${encodeURIComponent(postId)})`,
     params: {
       q: 'entity',
       count: 20,
@@ -23,6 +23,7 @@ export const getPostReactions = async (
     },
     headers: {
       'X-Restli-Protocol-Version': '2.0.0',
+      'LinkedIn-Version': '202305',
     },
   }
 

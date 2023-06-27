@@ -14,10 +14,13 @@ export const getPostComments = async (
 ): Promise<IPaginatedResponse<ILinkedInPostComment>> => {
   const config: AxiosRequestConfig<unknown> = {
     method: 'get',
-    url: `https://api.linkedin.com/v2/socialActions/${postId}/comments`,
+    url: `https://api.linkedin.com/rest/socialActions/${postId}/comments`,
     params: {
       count: 20,
       start,
+    },
+    headers: {
+      'LinkedIn-Version': 202305,
     },
   }
 
