@@ -65,8 +65,8 @@ class TenantRepository {
     }
 
     const trialEndsAt = moment().add(14, 'days').isAfter('2023-01-15')
-    ? moment().add(14, 'days').toISOString()
-    : '2023-01-15'
+      ? moment().add(14, 'days').toISOString()
+      : '2023-01-15'
 
     const record = await options.database.tenant.create(
       {
