@@ -136,7 +136,7 @@
       </template>
     </el-table-column>
 
-    <template v-if="project.subprojects?.length" #append>
+    <template v-if="project.subprojects?.length && hasPermissionToCreateSubProject" #append>
       <div class="w-full flex justify-start p-6">
         <el-button class="btn btn-link btn-link--primary" @click="emit('onAddSubProject', project.slug)">
           + Add sub-project
@@ -144,7 +144,7 @@
       </div>
     </template>
 
-    <template #empty>
+    <template v-if="hasPermissionToCreateSubProject" #empty>
       <div class="w-full flex justify-start p-6">
         <el-button class="btn btn-link btn-link--primary" @click="emit('onAddSubProject', project.slug)">
           + Add sub-project
@@ -160,6 +160,9 @@ import AppLfProjectsDropdown from '@/modules/lf/segments/components/lf-projects-
 import AppLfSubProjectsDropdown from '@/modules/lf/segments/components/lf-sub-projects-dropdown.vue';
 import AppPlatformSvgIcon from '@/shared/platform/platform-svg-icon.vue';
 import { useRoute } from 'vue-router';
+import { LfPermissions } from '@/modules/lf/lf-permissions';
+import { mapGetters } from '@/shared/vuex/vuex.helpers';
+import { computed } from 'vue';
 
 const route = useRoute();
 
@@ -170,6 +173,13 @@ defineProps({
     required: true,
   },
 });
+
+const { currentTenant, currentUser } = mapGetters('auth');
+
+const hasPermissionToCreateSubProject = computed(() => new LfPermissions(
+  currentTenant.value,
+  currentUser.value,
+)?.createSubProject);
 
 const statusDisplay = (status) => statusOptions.find((s) => s.value === status);
 </script>

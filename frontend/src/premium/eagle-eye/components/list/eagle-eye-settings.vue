@@ -1,7 +1,7 @@
 <template>
   <div class="py-8 px-8">
     <h4 class="text-gray-900">
-      Eagle Eye
+      Community Lens
     </h4>
 
     <div class="text-gray-500 text-xs mt-1">

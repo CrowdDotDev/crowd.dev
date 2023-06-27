@@ -16,7 +16,7 @@
         Manage projects
       </h4>
       <el-button
-        v-if="pagination.total"
+        v-if="pagination.total && hasPermissionToCreate"
         class="btn btn--md btn--primary"
         @click="onAddProject"
       >
@@ -44,7 +44,7 @@
         icon="ri-stack-line"
         title="No projects yet"
         description="Add your first project and start collecting data from your community"
-        cta-btn="Add project"
+        :cta-btn="hasPermissionToCreate ? 'Add project' : null"
         @cta-click="onAddProject"
       />
 
@@ -76,6 +76,17 @@
           @on-edit-sub-project="onEditSubProject"
           @on-add-sub-project="onAddSubProject"
         />
+
+        <div v-if="!!pagination.count">
+          <app-pagination
+            :total="pagination.count"
+            :page-size="Number(pagination.pageSize)"
+            :current-page="pagination.currentPage || 1"
+            module="project"
+            @change-current-page="doChangeProjectCurrentPage"
+            @change-page-size="onPageSizeChange"
+          />
+        </div>
       </div>
     </div>
 
@@ -107,12 +118,14 @@ import AppLfSubProjectForm from '@/modules/lf/segments/components/form/lf-sub-pr
 import AppLfProjectsTable from '@/modules/lf/segments/components/view/lf-projects-table.vue';
 import AppLfSearchInput from '@/modules/lf/segments/components/view/lf-search-input.vue';
 import { storeToRefs } from 'pinia';
+import { LfPermissions } from '@/modules/lf/lf-permissions';
+import { mapGetters } from '@/shared/vuex/vuex.helpers';
 
 const route = useRoute();
 const lsSegmentsStore = useLfSegmentsStore();
 const { projects } = storeToRefs(lsSegmentsStore);
 const {
-  findProjectGroup, searchProject, listProjects, updateProjectsPageSize,
+  findProjectGroup, searchProject, listProjects, updateProjectsPageSize, doChangeProjectCurrentPage,
 } = lsSegmentsStore;
 
 const loadingProjectGroup = ref(true);
@@ -130,15 +143,22 @@ const subProjectForm = reactive({
 const isProjectFormDrawerOpen = ref(false);
 const isSubProjectFormDrawerOpen = ref(false);
 
+const { currentTenant, currentUser } = mapGetters('auth');
+
 const loading = computed(() => projects.value.loading || loadingProjectGroup.value);
 const pagination = computed(() => projects.value.pagination);
+
+const hasPermissionToCreate = computed(() => new LfPermissions(
+  currentTenant.value,
+  currentUser.value,
+)?.createProject);
 
 onMounted(() => {
   findProjectGroup(route.params.id)
     .then((response) => {
       Object.assign(projectGroupForm, response);
 
-      listProjects({ parentSlug: projectGroupForm.slug });
+      listProjects({ parentSlug: projectGroupForm.slug, reset: true });
     }).finally(() => {
       loadingProjectGroup.value = false;
     });

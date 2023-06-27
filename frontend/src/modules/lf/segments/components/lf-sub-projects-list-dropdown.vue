@@ -35,7 +35,7 @@
         ref="searchQueryInput"
         v-model="searchQuery"
         placeholder="Search..."
-        class="lf-filter-input filter-dropdown-search"
+        class="filter-dropdown-search"
         :prefix-icon="SearchIcon"
         @input="onSearchProjects"
       />
@@ -195,6 +195,8 @@ export default {
 <style lang="scss">
 .subprojects-select-popper.el-popper {
     width: 100% !important;
+    max-height: 480px;
+    overflow: auto;
     @apply p-0;
 }
 

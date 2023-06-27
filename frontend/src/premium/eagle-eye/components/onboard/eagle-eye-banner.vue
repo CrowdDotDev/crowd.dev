@@ -16,8 +16,8 @@
 
     <img
       v-if="showImage"
-      alt="Eagle eye banner"
-      class="absolute bottom-0 right-0 h-68"
+      alt="Community Lens banner"
+      class="absolute bottom-0 right-0 w-3/5"
       src="/images/eagle-eye/banner.png"
     />
   </div>

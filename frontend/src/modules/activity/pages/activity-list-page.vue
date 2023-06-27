@@ -18,6 +18,7 @@
             Activity types
           </el-button>
           <el-button
+            v-if="hasPermissionToCreateActivity"
             class="btn btn--primary btn--md text-gray-600"
             @click="onAddActivity"
           >
@@ -76,7 +77,9 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref, watch } from 'vue';
+import {
+  computed, onMounted, ref, watch,
+} from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import AppActivityTypeListDrawer from '@/modules/activity/components/type/activity-type-list-drawer.vue';
 import AppActivityFormDrawer from '@/modules/activity/components/activity-form-drawer.vue';
@@ -85,9 +88,13 @@ import AppActivityList from '@/modules/activity/components/activity-list.vue';
 import AppConversationList from '@/modules/conversation/components/conversation-list.vue';
 import AppLfPageHeader from '@/modules/lf/layout/components/lf-page-header.vue';
 import AppLfSubProjectsListModal from '@/modules/lf/segments/components/lf-sub-projects-list-modal.vue';
+import { mapGetters } from '@/shared/vuex/vuex.helpers';
+import { ActivityPermissions } from '../activity-permissions';
 
 const route = useRoute();
 const router = useRouter();
+
+const { currentTenant, currentUser } = mapGetters('auth');
 
 const isActivityTypeDrawerOpen = ref(false);
 const isActivityDrawerOpen = ref(false);
@@ -145,4 +152,11 @@ watch(() => route.hash, (hash: string) => {
     activeView.value = view;
   }
 }, { immediate: true });
+
+const hasPermissionToCreateActivity = computed(
+  () => new ActivityPermissions(
+    currentTenant.value,
+    currentUser.value,
+  ).create,
+);
 </script>

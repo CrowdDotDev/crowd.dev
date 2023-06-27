@@ -107,7 +107,7 @@ export const createRouter = () => {
             try {
               await listProjectGroups({
                 limit: null,
-                offset: 0,
+                reset: true,
               });
 
               updateSelectedProjectGroup(to.query.projectGroup, false);

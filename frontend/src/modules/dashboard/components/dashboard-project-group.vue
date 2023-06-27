@@ -42,7 +42,10 @@
         },
       }"
     >
-      <el-button class="btn btn--md btn--secondary btn--full">
+      <el-button
+        v-if="hasPermissionToAccessAdminPanel"
+        class="btn btn--md btn--secondary btn--full"
+      >
         <i class="ri-external-link-line" />
         <span>Settings</span>
       </el-button>
@@ -60,7 +63,9 @@
 import { storeToRefs } from 'pinia';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import isUrl from '@/utils/isUrl';
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
+import { LfPermissions } from '@/modules/lf/lf-permissions';
+import { mapGetters } from '@/shared/vuex/vuex.helpers';
 import AppDashboardProjectGroupDrawer from './dashboard-project-group-drawer.vue';
 
 const lsSegmentsStore = useLfSegmentsStore();
@@ -68,6 +73,14 @@ const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);
 
 const isDrawerOpen = ref(false);
 
+const { currentTenant, currentUser } = mapGetters('auth');
+
+const hasPermissionToAccessAdminPanel = computed(
+  () => new LfPermissions(
+    currentTenant.value,
+    currentUser.value,
+  ).editProjectGroup,
+);
 </script>
 
 <script>

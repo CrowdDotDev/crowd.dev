@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div v-if="hasPermissionToCreateSubProject || hasPermissionToEditProject">
     <el-dropdown
       trigger="click"
       placement="bottom-end"
@@ -14,6 +14,7 @@
       </button>
       <template #dropdown>
         <el-dropdown-item
+          v-if="hasPermissionToEditProject"
           class="h-10 mb-1"
           :command="editProject"
         >
@@ -23,6 +24,7 @@
           <span class="text-xs">Edit project</span>
         </el-dropdown-item>
         <el-dropdown-item
+          v-if="hasPermissionToCreateSubProject"
           class="h-10"
           :command="addSubProject"
         >
@@ -36,7 +38,23 @@
 </template>
 
 <script setup>
+import { LfPermissions } from '@/modules/lf/lf-permissions';
+import { mapGetters } from '@/shared/vuex/vuex.helpers';
+import { computed } from 'vue';
+
 const emit = defineEmits(['onEditProject', 'onAddSubProject']);
+
+const { currentTenant, currentUser } = mapGetters('auth');
+
+const hasPermissionToCreateSubProject = computed(() => new LfPermissions(
+  currentTenant.value,
+  currentUser.value,
+)?.createSubProject);
+
+const hasPermissionToEditProject = computed(() => new LfPermissions(
+  currentTenant.value,
+  currentUser.value,
+)?.editProject);
 
 const editProject = () => {
   emit('onEditProject');

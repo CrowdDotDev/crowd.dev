@@ -6,7 +6,7 @@ export default {
     this.loadingAutomations = true;
     return AutomationService.list({
       type: this.filter.type !== 'all' ? this.filter.type : undefined,
-    }, null, 50, 0)
+    }, null, null, 0)
       .then(({ rows }) => {
         this.automations = rows;
         this.loadingAutomations = false;

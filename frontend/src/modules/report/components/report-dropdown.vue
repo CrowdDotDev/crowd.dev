@@ -1,14 +1,14 @@
 <template>
-  <div v-if="isReadOnly">
+  <div v-if="isReadOnly && report.public">
     <el-button
       class="btn btn--secondary"
-      @click="copyToClipboard()"
+      @click.stop="copyToClipboard()"
     >
       <i class="ri-lg ri-clipboard-line mr-1" />
       Copy Public Url
     </el-button>
   </div>
-  <div v-else>
+  <div v-else-if="!isReadOnly">
     <el-dropdown
       trigger="click"
       placement="bottom-end"

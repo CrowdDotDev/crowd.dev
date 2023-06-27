@@ -9,7 +9,7 @@
     </div>
 
     <div class="text-2xs text-gray-600 mt-4 mb-6">
-      Receive the 10 most relevant results from Eagle Eye
+      Receive the 10 most relevant results from Community Lens
       automatically in your inbox.
     </div>
 

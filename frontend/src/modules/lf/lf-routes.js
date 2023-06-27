@@ -1,4 +1,5 @@
 import Layout from '@/modules/layout/components/layout.vue';
+import Permissions from '@/security/permissions';
 
 const ProjectGroupsListPage = () => import(
   '@/modules/lf/segments/pages/lf-project-groups-list-page.vue'
@@ -37,6 +38,7 @@ export default [
         component: ProjectGroupsPage,
         meta: {
           title: 'Admin Panel',
+          permission: Permissions.values.projectGroupCreate,
         },
       },
       {
@@ -46,6 +48,7 @@ export default [
         meta: {
           auth: true,
           title: 'Admin Panel',
+          permission: Permissions.values.projectCreate,
         },
       },
     ],

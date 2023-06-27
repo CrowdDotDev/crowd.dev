@@ -9,7 +9,7 @@
         <app-lf-search-input
           v-if="pagination.total"
           placeholder="Search project group..."
-          @on-change="searchProjectGroup"
+          @on-change="(query) => searchProjectGroup(query, null)"
         />
       </div>
     </div>
@@ -88,7 +88,7 @@
                 },
               }"
             >
-              <el-button class="btn btn--md btn--full btn--bordered">
+              <el-button v-if="hasPermissionToAccessAdminPanel" class="btn btn--md btn--full btn--bordered">
                 Settings
               </el-button>
             </router-link>
@@ -106,8 +106,12 @@ import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import AppLfSearchInput from '@/modules/lf/segments/components/view/lf-search-input.vue';
 import pluralize from 'pluralize';
 import { useRouter } from 'vue-router';
+import { LfPermissions } from '@/modules/lf/lf-permissions';
+import { mapGetters } from '@/shared/vuex/vuex.helpers';
 
 const router = useRouter();
+
+const { currentTenant, currentUser } = mapGetters('auth');
 
 const lsSegmentsStore = useLfSegmentsStore();
 const { projectGroups } = storeToRefs(lsSegmentsStore);
@@ -120,12 +124,22 @@ const list = computed(() => projectGroups.value.list);
 const imageErrors = reactive({});
 
 onMounted(() => {
-  listProjectGroups();
+  listProjectGroups({
+    limit: null,
+    reset: true,
+  });
 });
 
 const handleImageError = (id, e) => {
   imageErrors[id] = true;
 };
+
+const hasPermissionToAccessAdminPanel = computed(
+  () => new LfPermissions(
+    currentTenant.value,
+    currentUser.value,
+  ).editProjectGroup,
+);
 </script>
 
 <script>

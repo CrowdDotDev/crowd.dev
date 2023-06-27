@@ -115,7 +115,7 @@ watch(
   selectedProjectGroup,
   (updatedSelectedProjectGroup, oldSelectedProjectGroup) => {
     if (updatedSelectedProjectGroup?.id !== oldSelectedProjectGroup?.id) {
-      listProjects({ parentSlug: updatedSelectedProjectGroup.slug });
+      listProjects({ parentSlug: updatedSelectedProjectGroup.slug, reset: true });
 
       props.setSegments({
         segments: {
@@ -189,7 +189,7 @@ const filterLabel = computed(() => {
 });
 
 onMounted(() => {
-  listProjects({ parentSlug: selectedProjectGroup.value.slug });
+  listProjects({ parentSlug: selectedProjectGroup.value.slug, reset: true });
 });
 
 const openFilterPopover = () => {
@@ -223,7 +223,7 @@ const onFilterChange = (value) => {
 };
 
 const onSearchQueryChange = debounce((value) => {
-  listProjects({ parentSlug: selectedProjectGroup.value.slug, search: value });
+  listProjects({ parentSlug: selectedProjectGroup.value.slug, search: value, reset: true });
 }, 300);
 
 const shouldShowReset = computed(() => !!props.segments.segments.length);
