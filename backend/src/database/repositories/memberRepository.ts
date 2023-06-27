@@ -1065,9 +1065,18 @@ class MemberRepository {
 
       const segment = await segmentRepository.findById(originalSegment)
 
+      if (segment === null){
+        return {
+          rows: [],
+          count: 0,
+          limit,
+          offset,
+        }
+      }
+
       if (SegmentRepository.isProjectGroup(segment)) {
         segments = (segment as SegmentProjectGroupNestedData).projects.reduce((acc, p) => {
-          acc.push(p.subprojects.map((sp) => sp.id))
+          acc.push(...p.subprojects.map((sp) => sp.id))
           return acc
         }, [])
       } else if (SegmentRepository.isProject(segment)) {
