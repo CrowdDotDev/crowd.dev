@@ -1049,6 +1049,9 @@ class MemberRepository {
     attributesSettings = [] as AttributeData[],
     segments: string[] = [],
   ): Promise<PageData<IActiveMemberData>> {
+
+    const tenant = SequelizeRepository.getCurrentTenant(options)
+
     const segmentsEnabled = await isFeatureEnabled(FeatureFlag.SEGMENTS, options)
 
     let originalSegment
@@ -1088,7 +1091,7 @@ class MemberRepository {
       originalSegment = (await new SegmentRepository(options).getDefaultSegment()).id
     }
 
-    const activityPageSize = 100
+    const activityPageSize = 10000
     let activityOffset = 0
 
     const activityQuery = {
@@ -1103,6 +1106,11 @@ class MemberRepository {
                 },
               },
             },
+            {
+              term: {
+                uuid_tenantId: tenant.id
+              }
+            }
           ],
         },
       },
