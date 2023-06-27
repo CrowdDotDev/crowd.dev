@@ -1,12 +1,10 @@
 <template>
-  <div class="p-2">
-    <app-lf-project-filter
-      v-model:options="filteredOptions"
-      :loading="loading"
-      @on-change="onFilterChange"
-      @on-search-change="onSearchQueryChange"
-    />
-  </div>
+  <app-lf-project-filter
+    v-model:options="filteredOptions"
+    :loading="loading"
+    @on-change="onFilterChange"
+    @on-search-change="onSearchQueryChange"
+  />
 </template>
 
 <script setup lang="ts">

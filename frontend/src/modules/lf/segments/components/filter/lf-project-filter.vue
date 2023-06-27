@@ -1,15 +1,17 @@
 <template>
-  <el-input
-    id="filterSearch"
-    ref="searchQueryInput"
-    v-model="searchQuery"
-    placeholder="Search..."
-    class="lf-filter-input filter-dropdown-search"
-    :prefix-icon="SearchIcon"
-    data-qa="filter-list-search"
-    @input="(value) => emit('onSearchChange', value)"
-  />
-  <div class="mt-13">
+  <div class="border-b border-gray-100 px-2 pt-2 pb-1 w-full sticky top-0 bg-white z-10">
+    <el-input
+      id="filterSearch"
+      ref="searchQueryInput"
+      v-model="searchQuery"
+      placeholder="Search..."
+      class="lf-filter-input filter-dropdown-search"
+      :prefix-icon="SearchIcon"
+      data-qa="filter-list-search"
+      @input="(value) => emit('onSearchChange', value)"
+    />
+  </div>
+  <div class="p-2">
     <app-lf-radio-cascader
       v-model:options="modelOptions"
       empty-text="No projects found"
@@ -63,7 +65,7 @@ export default {
 
 <style lang="scss">
 .lf-filter-input {
-  @apply h-10 border-b border-gray-100 absolute pb-2 left-0;
+  @apply h-10;
 
   .el-input__wrapper {
     @apply px-4;

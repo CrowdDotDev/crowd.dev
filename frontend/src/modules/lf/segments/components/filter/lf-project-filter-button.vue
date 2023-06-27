@@ -21,7 +21,7 @@
     width="320"
     trigger="manual"
     virtual-triggering
-    popper-class="!p-2 overflow-hidden"
+    popper-class="lf-project-filter-popper"
   >
     <app-lf-project-filter
       v-model:options="options"
@@ -30,7 +30,7 @@
     />
     <div
       v-if="!shouldApplyImmeadiately"
-      class="border-t border-gray-200 flex items-center justify-between -mx-2 px-4 pt-3 pb-1 mt-2"
+      class="border-t border-gray-200 flex items-center justify-between -mx-2 py-3 px-4"
     >
       <el-button
         v-if="shouldShowReset"
@@ -260,12 +260,19 @@ export default {
 };
 </script>
 
-  <style lang="scss">
-  .lf-filter-input {
-    @apply h-10;
+<style lang="scss">
+.lf-project-filter-popper.el-popper {
+    width: 320px;
+    max-height: 480px;
+    overflow: auto;
+    @apply p-0;
+}
 
-    .el-input__wrapper {
-      @apply px-4;
-    }
+.lf-filter-input {
+  @apply h-10;
+
+  .el-input__wrapper {
+    @apply px-4;
   }
-  </style>
+}
+</style>
