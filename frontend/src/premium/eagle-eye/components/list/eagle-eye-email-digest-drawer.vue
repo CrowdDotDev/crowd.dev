@@ -21,7 +21,7 @@
             </h5>
             <p class="text-2xs text-gray-500">
               If active, you will receive an email with up
-              to 10 most relevant results from Eagle Eye,
+              to 10 most relevant results from Community Lens,
               based on your settings.
             </p>
           </div>

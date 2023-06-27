@@ -105,13 +105,13 @@
             hasPermissionToEagleEye || isEagleEyeLocked
           "
           id="menu-eagle-eye"
-          :to="{ path: '/eagle-eye' }"
+          :to="{ path: '/community-lens' }"
           class="el-menu-item"
-          :class="classFor('/eagle-eye')"
+          :class="classFor('/community-lens')"
         >
           <i class="ri-search-eye-line" />
           <span>
-            Eagle Eye
+            Community Lens
           </span>
         </router-link>
 
