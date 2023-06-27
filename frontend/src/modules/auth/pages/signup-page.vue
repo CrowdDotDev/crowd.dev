@@ -195,14 +195,7 @@
         <div class="flex-grow border-b border-gray-200" />
       </div>
       <div class="pt-6 pb-16">
-        <a
-          id="googleSignup"
-          :href="socialOauthLink('google')"
-          class="btn btn--secondary btn--lg w-full"
-        >
-          <app-svg name="google" class="h-5 w-5" />
-          <span class="pl-3 text-gray-600">Sign up with Google</span>
-        </a>
+        <cr-auth-oauth />
       </div>
       <div class="flex justify-center">
         <p class="text-sm leading-5 text-center">
@@ -223,12 +216,13 @@ import config from '@/config';
 import { passwordConfirmRules } from '@/modules/auth/auth-helpers';
 import AppI18n from '@/shared/i18n/i18n.vue';
 import AppSvg from '@/shared/svg/svg.vue';
+import CrAuthOauth from "@/modules/auth/components/oauth.vue";
 
 const { fields } = UserModel;
 
 export default {
   name: 'AppSignupPage',
-  components: { AppSvg, AppI18n },
+  components: { CrAuthOauth, AppSvg, AppI18n },
   data() {
     return {
       rules: {

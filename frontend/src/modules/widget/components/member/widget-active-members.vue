@@ -28,7 +28,7 @@
           </div>
           <app-widget-period
             template="Members"
-            widget="Active members"
+            widget="Active contributors"
             :period="period"
             :granularity="granularity"
             module="reports"
@@ -132,22 +132,22 @@ const { cubejsApi } = mapGetters('widget');
 
 const datasets = computed(() => [
   {
-    name: 'Total active members',
+    name: 'Total active contributors',
     borderColor: '#E94F2E',
     measure: 'Members.count',
     granularity: granularity.value.value,
     ...(!props.isPublicView && {
-      tooltipBtn: 'View members',
+      tooltipBtn: 'View contributors',
     }),
   },
   {
-    name: 'Returning members',
+    name: 'Returning contributors',
     borderDash: [4, 4],
     borderColor: '#E94F2E',
     measure: 'Members.count',
     granularity: granularity.value.value,
     ...(!props.isPublicView && {
-      tooltipBtn: 'View members',
+      tooltipBtn: 'View contributors',
     }),
   },
 ]);
@@ -158,12 +158,14 @@ const query = computed(() => [
     granularity: granularity.value,
     selectedPlatforms: props.filters.platform.value,
     selectedHasTeamMembers: props.filters.teamMembers,
+    selectedSegments: props.filters.segments.childSegments,
   }),
   TOTAL_ACTIVE_RETURNING_MEMBERS_QUERY({
     period: period.value,
     granularity: granularity.value,
     selectedPlatforms: props.filters.platform.value,
     selectedHasTeamMembers: props.filters.teamMembers,
+    selectedSegments: props.filters.segments.childSegments,
   }),
 ]);
 
@@ -193,6 +195,7 @@ const getActiveMembers = async ({ pagination }) => {
     limit: !pagination.count
       ? pagination.pageSize
       : pagination.count,
+    segments: props.filters.segments.childSegments,
   });
 
   return res;
@@ -202,7 +205,7 @@ const getActiveMembers = async ({ pagination }) => {
 const onViewMoreClick = (date) => {
   window.analytics.track('Open report drawer', {
     template: MEMBERS_REPORT.nameAsId,
-    widget: 'Active members',
+    widget: 'Active contributors',
     date,
     granularity: granularity.value,
   });
@@ -212,11 +215,11 @@ const onViewMoreClick = (date) => {
 
   // Title
   if (granularity.value.value === 'week') {
-    drawerTitle.value = 'Weekly active members';
+    drawerTitle.value = 'Weekly active contributors';
   } else if (granularity.value.value === 'month') {
-    drawerTitle.value = 'Monthly active members';
+    drawerTitle.value = 'Monthly active contributors';
   } else {
-    drawerTitle.value = 'Daily active members';
+    drawerTitle.value = 'Daily active contributors';
   }
 };
 

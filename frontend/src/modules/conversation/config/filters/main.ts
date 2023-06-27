@@ -5,6 +5,7 @@ import channel from './channel/config';
 import dateStarted from './dateStarted/config';
 import lastActivityDate from './lastActivityDate/config';
 import platform from './platform/config';
+import projects from './projects/config';
 
 export const conversationFilters: Record<string, FilterConfig> = {
   noOfActivities,
@@ -12,6 +13,7 @@ export const conversationFilters: Record<string, FilterConfig> = {
   dateStarted,
   lastActivityDate,
   platform,
+  projects,
 };
 export const conversationSearchFilter: SearchFilterConfig = {
   placeholder: 'Search conversations',

@@ -229,7 +229,7 @@ export const INITIAL_VIEW_TEAM_MEMBERS_FILTER = {
   attributes: {
     isTeamMember: {
       name: 'isTeamMember',
-      label: 'Team member',
+      label: 'Team contributor',
       custom: false,
       props: {},
       defaultValue: true,

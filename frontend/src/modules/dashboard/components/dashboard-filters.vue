@@ -1,6 +1,6 @@
 <template>
   <div
-    class="flex items-center py-4 border-y border-gray-200"
+    class="flex items-center py-4 border-y border-gray-200 gap-4"
   >
     <!-- period filters -->
     <app-widget-period
@@ -12,7 +12,6 @@
     <!-- platform filter -->
     <el-dropdown
       v-if="Object.keys(activeIntegrations).length > 1"
-      class="ml-4"
       placement="bottom-start"
       trigger="click"
       size="large"
@@ -62,6 +61,11 @@
         </el-dropdown-menu>
       </template>
     </el-dropdown>
+
+    <app-lf-project-filter-button
+      :segments="segments"
+      :set-segments="setSegments"
+    />
   </div>
 </template>
 
@@ -69,11 +73,16 @@
 import { mapGetters, mapActions } from 'vuex';
 import { CrowdIntegrations } from '@/integrations/integrations-config';
 import AppWidgetPeriod from '@/modules/widget/components/shared/widget-period.vue';
+import AppLfProjectFilterButton from '@/modules/lf/segments/components/filter/lf-project-filter-button.vue';
+import { useLfSegmentsStore } from '@/modules/lf/segments/store';
+import { storeToRefs } from 'pinia';
+import { getSegmentsFromProjectGroup } from '@/utils/segments';
 
 export default {
   name: 'AppDashboardFilters',
   components: {
     AppWidgetPeriod,
+    AppLfProjectFilterButton,
   },
   data() {
     return {
@@ -81,7 +90,7 @@ export default {
     };
   },
   computed: {
-    ...mapGetters('dashboard', ['period', 'platform']),
+    ...mapGetters('dashboard', ['period', 'platform', 'segments']),
     ...mapGetters('auth', {
       currentTenant: 'currentTenant',
     }),
@@ -97,6 +106,12 @@ export default {
       }
       return 'All';
     },
+    selectedProjectGroup() {
+      const lsSegmentsStore = useLfSegmentsStore();
+      const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);
+
+      return selectedProjectGroup.value;
+    },
   },
   watch: {
     currentTenant: {
@@ -111,10 +126,23 @@ export default {
         }
       },
     },
+    selectedProjectGroup: {
+      deep: true,
+      immediate: true,
+      handler(updatedSelectedProjectGroup, previouSelectedProjectGroup) {
+        if (previouSelectedProjectGroup?.id !== updatedSelectedProjectGroup?.id) {
+          this.doFetch(getSegmentsFromProjectGroup(updatedSelectedProjectGroup));
+        }
+      },
+    },
+  },
+  mounted() {
   },
   methods: {
     ...mapActions({
       setFilters: 'dashboard/setFilters',
+      setSegments: 'dashboard/setSegments',
+      doFetch: 'integration/doFetch',
     }),
     platformDetails(platform) {
       return CrowdIntegrations.getConfig(platform);

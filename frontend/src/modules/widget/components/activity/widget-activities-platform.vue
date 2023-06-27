@@ -61,6 +61,7 @@ const query = computed(() => LEADERBOARD_ACTIVITIES_TYPES_QUERY({
   period: selectedPeriod.value,
   selectedPlatforms: props.filters.platform.value,
   selectedHasTeamActivities: props.filters.teamActivities,
+  selectedSegments: props.filters.segments.childSegments,
 }));
 
 const onUpdatePeriod = (updatedPeriod) => {

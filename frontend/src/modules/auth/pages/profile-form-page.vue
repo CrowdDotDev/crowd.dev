@@ -5,7 +5,7 @@
         Profile settings
       </h4>
       <el-container
-        class="bg-white rounded-lg shadow shadow-black/15"
+        class="bg-white rounded-lg shadow shadow-black/15 mb-6"
       >
         <el-main class="p-6">
           <el-form
@@ -73,86 +73,6 @@
               </div>
             </div>
           </el-form>
-
-          <el-divider
-            class="!mb-6 !mt-10 !border-gray-200"
-          />
-
-          <el-form
-            ref="passwordFormRef"
-            label-position="top"
-            :model="passwordModel"
-            :rules="passwordRules"
-            class="form"
-            @submit.prevent="doSubmit"
-          >
-            <div class="grid gap-x-12 grid-cols-3">
-              <h6>Change password</h6>
-              <div class="col-span-2">
-                <el-form-item
-                  :label="computedFields.oldPassword.label"
-                  :prop="computedFields.oldPassword.name"
-                  :required="
-                    computedFields.oldPassword.required
-                  "
-                >
-                  <el-input
-                    ref="focus"
-                    v-model="
-                      passwordModel[
-                        computedFields.oldPassword.name
-                      ]
-                    "
-                    type="password"
-                  />
-                </el-form-item>
-
-                <el-form-item
-                  :label="computedFields.newPassword.label"
-                  :prop="computedFields.newPassword.name"
-                  :required="
-                    computedFields.newPassword.required
-                  "
-                  type="password"
-                >
-                  <el-input
-                    v-model="
-                      passwordModel[
-                        computedFields.newPassword.name
-                      ]
-                    "
-                    type="password"
-                  />
-                </el-form-item>
-
-                <el-form-item
-                  :label="
-                    computedFields.newPasswordConfirmation
-                      .label
-                  "
-                  :prop="
-                    computedFields.newPasswordConfirmation
-                      .name
-                  "
-                  :required="
-                    computedFields.newPasswordConfirmation
-                      .required
-                  "
-                  type="password"
-                >
-                  <el-input
-                    v-model="
-                      passwordModel[
-                        computedFields
-                          .newPasswordConfirmation.name
-                      ]
-                    "
-                    type="password"
-                  />
-                </el-form-item>
-              </div>
-            </div>
-          </el-form>
         </el-main>
         <el-footer
           class="bg-gray-50 flex items-center p-6 h-fit rounded-b-lg"
@@ -193,18 +113,63 @@
           </div>
         </el-footer>
       </el-container>
+      <el-container
+        class="bg-white rounded-lg shadow shadow-black/15"
+      >
+        <el-main class="p-6">
+          <el-form
+            ref="passwordFormRef"
+            label-position="top"
+            class="form"
+            @submit.prevent="doSubmit"
+          >
+            <div class="grid gap-x-12 grid-cols-3">
+              <h6>Change password</h6>
+              <div class="col-span-2">
+                <app-form-item label="E-mail" :validation="$v.email">
+                  <el-input
+                    ref="focus"
+                    v-model="passwordResetForm.email"
+                    type="email"
+                    disabled
+                  />
+                </app-form-item>
+              </div>
+            </div>
+          </el-form>
+        </el-main>
+        <el-footer
+          class="bg-gray-50 flex items-center justify-end p-6 h-fit rounded-b-lg"
+        >
+          <el-button
+            class="btn btn--md btn--primary"
+            :disabled="$v.$invalid"
+            @click="changePassword"
+          >
+            Change password
+          </el-button>
+        </el-footer>
+      </el-container>
     </div>
   </app-page-wrapper>
 </template>
 
 <script setup>
 import { useStore } from 'vuex';
-import { ref, computed, onBeforeMount } from 'vue';
+import {
+  ref, computed, onBeforeMount, reactive,
+} from 'vue';
 import isEqual from 'lodash/isEqual';
 import { useRouter } from 'vue-router';
 import { i18n } from '@/i18n';
 import { FormSchema } from '@/shared/form/form-schema';
 import { UserModel } from '@/modules/user/user-model';
+import useVuelidate from '@vuelidate/core';
+import { email, required } from '@vuelidate/validators';
+import AppFormItem from '@/shared/form/form-item.vue';
+import AppI18n from '@/shared/i18n/i18n.vue';
+import { Auth0Service } from '@/shared/services/auth0.service';
+import Message from '@/shared/message/message';
 
 const { fields } = UserModel;
 const store = useStore();
@@ -235,6 +200,18 @@ const saveLoading = computed(
 
 const computedFields = computed(() => fields);
 
+const passwordResetForm = reactive({
+  email: currentUser.value.email,
+});
+
+const rules = {
+  email: {
+    required,
+    email,
+  },
+};
+
+const $v = useVuelidate(rules, passwordResetForm);
 // Form references
 const profileFormRef = ref(null);
 const passwordFormRef = ref(null);
@@ -325,6 +302,19 @@ const doReset = () => {
   passwordModel.value = passwordFormSchema.value.initialValues(
     currentUser.value,
   );
+};
+
+const changePassword = () => {
+  if ($v.value.$invalid) {
+    return;
+  }
+  Auth0Service.changePassword(passwordResetForm.email)
+    .then(() => {
+      Message.success('Password change link has been send to your email address');
+    })
+    .catch(() => {
+      Message.error('There was an error changing password');
+    });
 };
 
 const doSubmit = async () => {

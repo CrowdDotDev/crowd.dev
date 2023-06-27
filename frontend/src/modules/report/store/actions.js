@@ -60,12 +60,16 @@ export default {
       keepPagination: true,
     });
   },
-  async doFindPublic({ commit }, { id, tenantId }) {
+  async doFindPublic({ commit }, {
+    id, tenantId, segments, excludeSegments,
+  }) {
     try {
       commit('FIND_STARTED', id);
       const record = await ReportService.findPublic(
         id,
         tenantId,
+        segments,
+        excludeSegments,
       );
       commit('FIND_SUCCESS', record);
     } catch (error) {

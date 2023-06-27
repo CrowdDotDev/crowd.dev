@@ -30,7 +30,6 @@
 </template>
 
 <script setup>
-import { defineProps, defineEmits } from 'vue';
 import ConfirmDialog from '@/shared/dialog/confirm-dialog';
 import { useActivityTypeStore } from '@/modules/activity/store/type';
 
@@ -38,6 +37,10 @@ const props = defineProps({
   activityTypeKey: {
     type: Object,
     default: () => {},
+  },
+  subprojectId: {
+    type: String,
+    required: true,
   },
 });
 
@@ -55,7 +58,7 @@ const doDestroyWithConfirm = () => {
     cancelButtonText: 'Cancel',
     icon: 'ri-delete-bin-line',
   }).then(() => {
-    deleteActivityType(props.activityTypeKey);
+    deleteActivityType(props.activityTypeKey, [props.subprojectId]);
   });
 };
 

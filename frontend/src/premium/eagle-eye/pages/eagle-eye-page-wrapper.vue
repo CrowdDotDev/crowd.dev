@@ -3,12 +3,14 @@
 </template>
 
 <script setup>
-import { computed, defineAsyncComponent } from 'vue';
-import AppPageLoader from '@/shared/loading/page-loader.vue';
-import { FeatureFlag } from '@/featureFlag';
+import { onMounted, computed, defineAsyncComponent } from 'vue';
 import { mapGetters } from '@/shared/vuex/vuex.helpers';
+import AppPageLoader from '@/shared/loading/page-loader.vue';
+import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 
 const { currentUser, currentTenant } = mapGetters('auth');
+
+const { updateSelectedProjectGroup } = useLfSegmentsStore();
 
 const eagleEyeSettings = computed(
   () => currentUser?.value?.tenants.find(
@@ -18,26 +20,23 @@ const eagleEyeSettings = computed(
 
 const AppEagleEyePage = defineAsyncComponent({
   loader: () => {
-    const isFeatureEnabled = FeatureFlag.isFlagEnabled(
-      FeatureFlag.flags.eagleEye,
-    );
+    const isOnboarded = eagleEyeSettings.value?.onboarded;
 
-    if (isFeatureEnabled) {
-      const isOnboarded = eagleEyeSettings.value?.onboarded;
-
-      if (isOnboarded) {
-        return import(
-          '@/premium/eagle-eye/pages/eagle-eye-page.vue'
-        );
-      }
+    if (isOnboarded) {
       return import(
-        '@/premium/eagle-eye/pages/eagle-eye-onboard-page.vue'
+        '@/premium/eagle-eye/pages/eagle-eye-page.vue'
       );
     }
 
-    return import('@/modules/layout/pages/paywall-page.vue');
+    return import(
+      '@/premium/eagle-eye/pages/eagle-eye-onboard-page.vue'
+    );
   },
   loadingComponent: AppPageLoader,
   delay: 0,
+});
+
+onMounted(() => {
+  updateSelectedProjectGroup(null);
 });
 </script>

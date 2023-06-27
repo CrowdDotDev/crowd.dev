@@ -10,7 +10,7 @@
       <p
         class="text-sm leading-5 text-center italic text-gray-400 pl-6"
       >
-        Members can take up to two minutes to appear in the
+        Contributors can take up to two minutes to appear in the
         list
       </p>
     </div>
@@ -18,7 +18,7 @@
       <div class="my-6">
         <el-input
           v-model="query"
-          placeholder="Search members"
+          placeholder="Search contributors"
           :prefix-icon="SearchIcon"
           clearable
           class="organization-view-members-search"
@@ -106,9 +106,9 @@ const SearchIcon = h(
 
 const store = useStore();
 const props = defineProps({
-  organizationId: {
-    type: String,
-    default: null,
+  organization: {
+    type: Object,
+    default: () => {},
   },
 });
 
@@ -123,7 +123,7 @@ let filter = {};
 
 const fetchMembers = async () => {
   const filterToApply = {
-    organizations: [props.organizationId],
+    organizations: [props.organization.id],
   };
 
   if (query.value && query.value !== '') {
@@ -164,6 +164,7 @@ const fetchMembers = async () => {
       orderBy: 'joinedAt_DESC',
       limit: limit.value,
       offset: offset.value,
+      segments: props.organization.segments,
     },
     {
       headers: {

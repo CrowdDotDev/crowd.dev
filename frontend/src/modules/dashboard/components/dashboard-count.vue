@@ -1,6 +1,6 @@
 <template>
   <app-cube-render
-    :query="query(dateRange, platform)"
+    :query="query(dateRange, platform, segments.childSegments)"
     :loading="loading"
   >
     <template #loading>
@@ -15,7 +15,7 @@
 
     <template #default="current">
       <app-cube-render
-        :query="query(previousDateRange, platform)"
+        :query="query(previousDateRange, platform, segments.childSegments)"
       >
         <template #loading>
           <app-loading
@@ -89,7 +89,7 @@ export default {
     },
   },
   computed: {
-    ...mapGetters('dashboard', ['period', 'platform']),
+    ...mapGetters('dashboard', ['period', 'platform', 'segments']),
     dateRange() {
       return [
         moment()

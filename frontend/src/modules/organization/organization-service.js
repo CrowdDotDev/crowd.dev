@@ -4,20 +4,24 @@ import buildApiPayload from '@/shared/filter/helpers/build-api-payload';
 import { DEFAULT_ORGANIZATION_FILTERS } from '@/modules/organization/store/constants';
 
 export class OrganizationService {
-  static async update(id, data) {
+  static async update(id, data, segments) {
     const tenantId = AuthCurrentTenant.get();
 
     const response = await authAxios.put(
       `/tenant/${tenantId}/organization/${id}`,
-      data,
+      {
+        ...data,
+        segments,
+      },
     );
 
     return response.data;
   }
 
-  static async destroyAll(ids) {
+  static async destroyAll(ids, segments) {
     const params = {
       ids,
+      segments,
     };
 
     const tenantId = AuthCurrentTenant.get();
@@ -32,18 +36,21 @@ export class OrganizationService {
     return response.data;
   }
 
-  static async create(data) {
+  static async create(data, segments) {
     const tenantId = AuthCurrentTenant.get();
 
     const response = await authAxios.post(
       `/tenant/${tenantId}/organization`,
-      data,
+      {
+        ...data,
+        segments,
+      },
     );
 
     return response.data;
   }
 
-  static async find(id) {
+  static async find(id, segments) {
     const sampleTenant = AuthCurrentTenant.getSampleTenantData();
     const tenantId = sampleTenant?.id || AuthCurrentTenant.get();
 
@@ -53,25 +60,30 @@ export class OrganizationService {
         headers: {
           Authorization: sampleTenant?.token,
         },
+        params: {
+          segments,
+        },
       },
     );
 
     return response.data;
   }
 
-  static async list(
-    filter,
+  static async list({
+    customFilters,
     orderBy,
     limit,
     offset,
+    segments = [],
     buildFilter = true,
-  ) {
+  }) {
     const body = {
       filter: buildApiPayload({
-        customFilters: filter,
+        customFilters,
         defaultFilters: DEFAULT_ORGANIZATION_FILTERS,
         buildFilter,
       }),
+      segments,
       orderBy,
       limit,
       offset,
@@ -112,10 +124,15 @@ export class OrganizationService {
     return response.data;
   }
 
-  static async listAutocomplete(query, limit) {
+  static async listAutocomplete({
+    query,
+    limit,
+    segments,
+  }) {
     const params = {
       query,
       limit,
+      segments,
     };
 
     const tenantId = AuthCurrentTenant.get();

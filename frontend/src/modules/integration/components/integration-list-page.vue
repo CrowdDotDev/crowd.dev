@@ -1,5 +1,6 @@
 <template>
   <app-page-wrapper>
+    <app-lf-integrations-page-header />
     <h4>Integrations</h4>
     <div class="flex items-center justify-between">
       <div class="text-xs text-gray-500">
@@ -115,12 +116,13 @@
 
 <script>
 import { mapGetters } from 'vuex';
+import AppLfIntegrationsPageHeader from '@/modules/lf/layout/components/lf-integrations-page-header.vue';
 import AppIntegrationList from './integration-list.vue';
 
 export default {
   name: 'AppIntegrationListPage',
 
-  components: { AppIntegrationList },
+  components: { AppIntegrationList, AppLfIntegrationsPageHeader },
 
   computed: {
     ...mapGetters({

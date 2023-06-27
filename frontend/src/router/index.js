@@ -2,11 +2,13 @@ import {
   createRouter as createVueRouter,
   createWebHistory,
 } from 'vue-router';
+import { storeToRefs } from 'pinia';
 
 import { store } from '@/store';
 import authGuards from '@/middleware/auth';
 import modules from '@/modules';
 import ProgressBar from '@/shared/progress-bar/progress-bar';
+import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 
 /**
  * Loads all the routes from src/modules/ folders, and adds the catch-all rule to handle 404s
@@ -54,13 +56,22 @@ export const createRouter = () => {
         });
     };
 
-    router.beforeEach(async (to, from) => {
+    router.beforeEach(async (to, from, next) => {
+      const lsSegmentsStore = useLfSegmentsStore();
+      const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);
+      const { listProjectGroups, updateSelectedProjectGroup } = lsSegmentsStore;
+
+      // Set title to pages
+      document.title = `LFX Community Management${to.meta.title ? ` | ${to.meta.title}` : ''}`;
+
       if (to.name) {
         ProgressBar.start();
       }
+
       const matchedRoute = to.matched.find(
         (m) => m.meta.middleware,
       );
+
       if (matchedRoute !== undefined) {
         const middlewareArray = Array.isArray(
           matchedRoute.meta.middleware,
@@ -78,7 +89,37 @@ export const createRouter = () => {
         middlewareArray.forEach((middleware) => {
           middleware(context);
         });
+
+        // Redirect to project group landing pages if routes that require a selected project group
+        // And no project group is selected
+        if (to.meta.segments?.requireSelectedProjectGroup) {
+          if (!selectedProjectGroup.value && !to.query.projectGroup) {
+            next('/project-groups');
+            return;
+          }
+
+          if (!to.query.projectGroup) {
+            next({ ...to, query: { ...to.query, projectGroup: selectedProjectGroup.value.id } });
+            return;
+          }
+
+          if (!selectedProjectGroup.value) {
+            try {
+              await listProjectGroups({
+                limit: null,
+                offset: 0,
+              });
+
+              updateSelectedProjectGroup(to.query.projectGroup, false);
+            } catch (e) {
+              next('/project-groups');
+              return;
+            }
+          }
+        }
       }
+
+      next();
     });
 
     router.afterEach(() => {

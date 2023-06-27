@@ -11,8 +11,8 @@
 
         <el-tooltip placement="top">
           <template #content>
-            This refers to the total # of open source contributions a member did on GitHub.<br />
-            To receive this attribute you have to enrich your members.
+            This refers to the total # of open source contributions a contributor did on GitHub.<br />
+            To receive this attribute you have to enrich your contributors.
           </template>
           <span class="ri-question-line text-base text-gray-400" />
         </el-tooltip>

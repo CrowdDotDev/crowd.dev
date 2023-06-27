@@ -377,6 +377,8 @@ export default {
           }
           return Promise.resolve();
         });
+
+        return Promise.resolve();
       })
       .catch((error) => {
         Errors.handle(error);

@@ -83,6 +83,7 @@ const query = (period, granularity) => ACTIVITIES_QUERY({
   granularity,
   selectedPlatforms: props.filters.platform.value,
   selectedHasTeamActivities: props.filters.teamActivities,
+  selectedSegments: props.filters.segments.childSegments,
 });
 
 const widgets = computed(() => [

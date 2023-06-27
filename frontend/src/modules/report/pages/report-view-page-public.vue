@@ -45,7 +45,13 @@
             }}</span>
             <router-link
               class="btn btn--transparent btn--sm"
-              :to="{ name: 'reportEdit', params: { id } }"
+              :to="{
+                name: 'reportEdit',
+                params: {
+                  id,
+                  segmentId: report.segmentId,
+                },
+              }"
             >
               <i class="ri-pencil-line mr-2" />Edit
             </router-link>
@@ -56,6 +62,7 @@
         <app-report-template-filters
           v-if="report.isTemplate"
           v-model:platform="platform"
+          v-model:segments="segments"
           v-model:team-members="teamMembers"
           v-model:team-activities="teamActivities"
           :show-platform="currentTemplate.filters?.platform"
@@ -88,6 +95,7 @@
                 platform,
                 teamMembers,
                 teamActivities,
+                segments,
               }"
             />
           </div>
@@ -200,6 +208,10 @@ export default {
       type: String,
       default: null,
     },
+    segmentId: {
+      type: String,
+      default: null,
+    },
   },
 
   data() {
@@ -209,6 +221,10 @@ export default {
       platform: initialPlatformValue,
       teamMembers: false,
       teamActivities: false,
+      segments: {
+        segments: [],
+        childSegments: [],
+      },
       isHeaderOnTop: false,
       templates,
       MEMBERS_REPORT,
@@ -223,6 +239,7 @@ export default {
     }),
     ...mapGetters({
       reportFind: 'report/find',
+      cubejsApi: 'widget/cubejsApi',
     }),
     report() {
       return this.reportFind(this.id);
@@ -260,13 +277,23 @@ export default {
       await this.doFindPublic({
         id: this.id,
         tenantId: this.tenantId,
+        excludeSegments: !this.segmentId,
+        segments: [this.segmentId],
       });
       this.currentTenant = await TenantService.find(
         this.tenantId,
       );
     } else {
-      await this.doFind(this.id);
+      await this.doFind({
+        id: this.id,
+        segments: this.segmentId ? [this.segmentId] : undefined,
+      });
     }
+
+    if (!this.cubejsApi) {
+      await this.getCubeToken();
+    }
+
     this.loading = false;
   },
 
@@ -274,6 +301,7 @@ export default {
     ...mapActions({
       doFind: 'report/doFind',
       doFindPublic: 'report/doFindPublic',
+      getCubeToken: 'widget/getCubeToken',
     }),
     onPlatformFilterOpen() {
       this.platform = {
