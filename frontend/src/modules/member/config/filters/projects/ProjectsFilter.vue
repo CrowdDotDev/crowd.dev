@@ -1,10 +1,14 @@
 <template>
-  <app-lf-project-filter
-    v-model:options="filteredOptions"
-    :loading="loading"
-    @on-change="onFilterChange"
-    @on-search-change="onSearchQueryChange"
-  />
+  <div
+    style="max-height: 480px; overflow: auto;"
+  >
+    <app-lf-project-filter
+      v-model:options="filteredOptions"
+      :loading="loading"
+      @on-change="onFilterChange"
+      @on-search-change="onSearchQueryChange"
+    />
+  </div>
 </template>
 
 <script setup lang="ts">
