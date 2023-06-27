@@ -8,7 +8,7 @@ export default async (req, res) => {
 
   try {
     const verifyToken = new Promise((resolve, reject) => {
-      const publicKey = AUTH0_CONFIG.cert.replace(/\\n/g, '\n')
+      const publicKey = AUTH0_CONFIG.cert.replace('"', '').replace(/\\n/g, '\n')
       jwt.verify(idToken, publicKey, { algorithms: ['RS256'] }, (err, decoded) => {
         // If error verifying token
         if (err) {
