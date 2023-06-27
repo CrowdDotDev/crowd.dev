@@ -1119,11 +1119,11 @@ export class GithubIntegrationService extends IntegrationServiceBase {
           break
         case GithubPullRequestEvents.REQUEST_REVIEW:
           if (
-            record.actor.login &&
-            (record.requestedReviewer.login || record.requestedReviewer.members)
+            record?.actor?.login &&
+            (record?.requestedReviewer?.login || record?.requestedReviewer?.members)
           ) {
             // Requested review from single member
-            if (record.requestedReviewer.login) {
+            if (record?.requestedReviewer?.login) {
               const member = await GithubIntegrationService.parseMember(record.actor, context)
               const objectMember = await GithubIntegrationService.parseMember(
                 record.requestedReviewer,
@@ -1158,7 +1158,7 @@ export class GithubIntegrationService extends IntegrationServiceBase {
                 isContribution:
                   GITHUB_GRID[GithubActivityType.PULL_REQUEST_REVIEW_REQUESTED].isContribution,
               })
-            } else if (record.requestedReviewer.members) {
+            } else if (record?.requestedReviewer?.members) {
               // review is requested from a team
               const member = await GithubIntegrationService.parseMember(record.actor, context)
 
@@ -1235,7 +1235,7 @@ export class GithubIntegrationService extends IntegrationServiceBase {
 
           break
         case GithubPullRequestEvents.MERGE:
-          if (record.actor.login) {
+          if (record?.actor?.login) {
             const member = await GithubIntegrationService.parseMember(record.actor, context)
             out.push({
               username: member.username[PlatformType.GITHUB].username,
@@ -1269,7 +1269,7 @@ export class GithubIntegrationService extends IntegrationServiceBase {
 
           break
         case GithubPullRequestEvents.CLOSE:
-          if (record.actor.login) {
+          if (record?.actor?.login) {
             const member = await GithubIntegrationService.parseMember(record.actor, context)
             out.push({
               username: member.username[PlatformType.GITHUB].username,
