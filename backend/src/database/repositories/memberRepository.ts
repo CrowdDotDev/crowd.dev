@@ -1101,7 +1101,7 @@ class MemberRepository {
         group_by_member: {
           terms: {
             field: 'uuid_memberId',
-            size: 1000000,
+            size: 10000000,
           },
           aggs: {
             activity_count: {
