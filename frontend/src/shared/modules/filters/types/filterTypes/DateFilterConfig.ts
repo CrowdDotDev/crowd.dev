@@ -1,16 +1,15 @@
 /* eslint-disable no-unused-vars */
 import { BaseFilterConfig, FilterConfigType } from '@/shared/modules/filters/types/FilterConfig';
+import { FilterDateOperator } from '@/shared/modules/filters/config/constants/date.constants';
 
 export interface DateFilterOptions {
-  hideIncludeSwitch?: boolean;
   datepickerType?: 'date' | 'month' | 'year'
   dateFormat?: string
 }
 
 export interface DateFilterValue {
-  operator: string,
+  operator: FilterDateOperator,
   value: string | string[],
-  include: boolean,
 }
 
 export interface DateFilterConfig extends BaseFilterConfig {

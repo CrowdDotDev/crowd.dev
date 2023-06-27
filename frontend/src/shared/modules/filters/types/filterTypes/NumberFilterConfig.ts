@@ -3,14 +3,12 @@ import { BaseFilterConfig, FilterConfigType } from '@/shared/modules/filters/typ
 import { FilterNumberOperator } from '@/shared/modules/filters/config/constants/number.constants';
 
 export interface NumberFilterOptions {
-  hideIncludeSwitch?: boolean;
   forceOperator?: FilterNumberOperator;
 }
 export interface NumberFilterValue {
   operator: FilterNumberOperator,
   value: number | '',
   valueTo?: number | '',
-  include: boolean,
 }
 export interface NumberFilterConfig extends BaseFilterConfig {
   type: FilterConfigType.NUMBER;
