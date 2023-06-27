@@ -28,8 +28,14 @@
         </div>
       </div>
 
-      <cr-saved-views v-model="filters" :config="organizationSavedViews" :views="organizationViews" />
+      <cr-saved-views
+        v-model="filters"
+        :config="organizationSavedViews"
+        :views="organizationViews"
+        @update:model-value="organizationFilter.alignFilterList($event)"
+      />
       <cr-filter
+        ref="organizationFilter"
         v-model="filters"
         :config="organizationFilters"
         :search-config="organizationSearchFilter"
@@ -83,6 +89,8 @@ const { fetchOrganizations } = organizationStore;
 const loading = ref(true);
 const organizationCount = ref(0);
 const isSubProjectSelectionOpen = ref(false);
+
+const organizationFilter = ref<CrFilter | null>(null);
 
 const hasPermissionToCreate = computed(
   () => new OrganizationPermissions(
