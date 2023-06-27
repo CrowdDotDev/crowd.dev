@@ -58,7 +58,7 @@
 
 <script setup>
 import {
-  onMounted, onBeforeUnmount, ref, computed,
+  onMounted, onBeforeUnmount, ref, computed, watch,
 } from 'vue';
 import { useStore } from 'vuex';
 import AppDashboardIntegrations from '@/modules/dashboard/components/dashboard-active-integrations.vue';
@@ -114,6 +114,15 @@ onMounted(() => {
 
 onBeforeUnmount(() => {
   storeUnsubscribe.value();
+});
+
+watch(currentTenant, (updatedTenant, previousTenant) => {
+  if (updatedTenant.id !== previousTenant.id) {
+    getCubeToken();
+  }
+}, {
+  deep: true,
+  immediate: true,
 });
 </script>
 
