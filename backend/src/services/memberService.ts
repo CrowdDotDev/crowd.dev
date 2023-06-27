@@ -30,6 +30,9 @@ import MemberAttributeSettingsService from './memberAttributeSettingsService'
 import OrganizationService from './organizationService'
 import SettingsService from './settingsService'
 import { getSearchSyncWorkerEmitter } from '../serverless/utils/serviceSQS'
+import isFeatureEnabled from '../feature-flags/isFeatureEnabled'
+import { FeatureFlag } from '../types/common'
+import SegmentRepository from '../database/repositories/segmentRepository'
 
 export default class MemberService extends LoggerBase {
   options: IServiceOptions
@@ -959,8 +962,21 @@ export default class MemberService extends LoggerBase {
     offset: number,
     limit: number,
     orderBy: string,
+    segments: string[],
   ) {
-    return MemberRepository.findAndCountActive(filters, limit, offset, orderBy, this.options)
+    const memberAttributeSettings = (
+      await MemberAttributeSettingsRepository.findAndCountAll({}, this.options)
+    ).rows
+
+    return MemberRepository.findAndCountActiveOpensearch(
+      filters,
+      limit,
+      offset,
+      orderBy,
+      this.options,
+      memberAttributeSettings,
+      segments,
+    )
   }
 
   async findAndCountAll(args) {
@@ -974,6 +990,16 @@ export default class MemberService extends LoggerBase {
   }
 
   async queryV2(data) {
+    if (await isFeatureEnabled(FeatureFlag.SEGMENTS, this.options)) {
+      if (data.segments.length !== 1) {
+        throw new Error400(
+          `This operation can have exactly one segment. Found ${data.segments.length} segments.`,
+        )
+      }
+    } else {
+      data.segments = [(await new SegmentRepository(this.options).getDefaultSegment()).id]
+    }
+
     const memberAttributeSettings = (
       await MemberAttributeSettingsRepository.findAndCountAll({}, this.options)
     ).rows
