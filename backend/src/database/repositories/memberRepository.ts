@@ -1049,7 +1049,6 @@ class MemberRepository {
     attributesSettings = [] as AttributeData[],
     segments: string[] = [],
   ): Promise<PageData<IActiveMemberData>> {
-
     const tenant = SequelizeRepository.getCurrentTenant(options)
 
     const segmentsEnabled = await isFeatureEnabled(FeatureFlag.SEGMENTS, options)
@@ -1108,9 +1107,9 @@ class MemberRepository {
             },
             {
               term: {
-                uuid_tenantId: tenant.id
-              }
-            }
+                uuid_tenantId: tenant.id,
+              },
+            },
           ],
         },
       },
