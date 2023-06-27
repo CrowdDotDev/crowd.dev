@@ -76,6 +76,10 @@ export default {
       (i) => i.status === 'no-data',
     ),
 
+    needsReconnect: (state, getters) => getters.array.filter(
+      (i) => i.status === 'needs-reconnect',
+    ),
+
     count: (state) => state.count,
 
     hasRows: (state, getters) => getters.count > 0,
