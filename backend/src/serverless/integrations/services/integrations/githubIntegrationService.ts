@@ -45,6 +45,9 @@ import PullRequestReviewThreadCommentsQuery from '../../usecases/github/graphql/
 import PullRequestCommitsQuery, {
   PullRequestCommit,
 } from '../../usecases/github/graphql/pullRequestCommits'
+import PullRequestCommitsQueryNoAdditions, {
+  PullRequestCommitNoAdditions,
+} from '../../usecases/github/graphql/pullRequestCommitsNoAdditions'
 import IntegrationRunRepository from '../../../../database/repositories/integrationRunRepository'
 import { IntegrationRunState } from '../../../../types/integrationRunTypes'
 import IntegrationStreamRepository from '../../../../database/repositories/integrationStreamRepository'
@@ -302,7 +305,24 @@ export class GithubIntegrationService extends IntegrationServiceBase {
           context.integration.token,
         )
 
-        result = await pullRequestCommitsQuery.getSinglePage(stream.metadata.page)
+        try {
+          result = await pullRequestCommitsQuery.getSinglePage(stream.metadata.page)
+        } catch (err) {
+          context.logger.warn(
+            {
+              err,
+              repo,
+              pullRequestNumber,
+            },
+            'Error while fetching pull request commits. Trying again without additions.',
+          )
+          const pullRequestCommitsQueryNoAdditions = new PullRequestCommitsQueryNoAdditions(
+            repo,
+            pullRequestNumber,
+            context.integration.token,
+          )
+          result = await pullRequestCommitsQueryNoAdditions.getSinglePage(stream.metadata.page)
+        }
         break
       case GithubStreamType.ISSUES:
         const issuesQuery = new IssuesQuery(repo, context.integration.token)
@@ -1317,7 +1337,7 @@ export class GithubIntegrationService extends IntegrationServiceBase {
     context: IStepContext,
   ): Promise<AddActivitiesSingle[]> {
     const out: AddActivitiesSingle[] = []
-    const data = records[0] as PullRequestCommit
+    const data = records[0] as PullRequestCommit | PullRequestCommitNoAdditions
     const commits = data.repository.pullRequest.commits.nodes
 
     for (const record of commits) {
@@ -1339,9 +1359,10 @@ export class GithubIntegrationService extends IntegrationServiceBase {
           sourceParentId: `${data.repository.pullRequest.id}`,
           timestamp: moment(record.commit.authoredDate).utc().toDate(),
           attributes: {
-            insertions: record.commit.additions,
-            deletions: record.commit.deletions,
-            lines: record.commit.additions - record.commit.deletions,
+            insertions: 'additions' in record.commit ? record.commit.additions : 0,
+            deletions: 'additions' in record.commit ? record.commit.deletions : 0,
+            lines:
+              'additions' in record.commit ? record.commit.additions - record.commit.deletions : 0,
             isMerge: record.commit.parents.totalCount > 1,
             isMainBranch: false,
           },
