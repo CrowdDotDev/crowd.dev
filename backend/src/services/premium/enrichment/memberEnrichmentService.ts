@@ -2,15 +2,16 @@ import { LoggerBase } from '@crowd/logging'
 import { RedisPubSubEmitter, getRedisClient } from '@crowd/redis'
 import axios from 'axios'
 import lodash from 'lodash'
-import { ApiWebsocketMessage, PlatformType } from '@crowd/types'
-import { ENRICHMENT_CONFIG, REDIS_CONFIG } from '../../../conf'
-import { AttributeData } from '../../../database/attributes/attribute'
 import {
+  ApiWebsocketMessage,
   MemberAttributeName,
+  MemberAttributeType,
   MemberEnrichmentAttributeName,
   MemberEnrichmentAttributes,
-} from '../../../database/attributes/member/enums'
-import { AttributeType } from '../../../database/attributes/types'
+  PlatformType,
+} from '@crowd/types'
+import { ENRICHMENT_CONFIG, REDIS_CONFIG } from '../../../conf'
+import { AttributeData } from '../../../database/attributes/attribute'
 import MemberEnrichmentCacheRepository from '../../../database/repositories/memberEnrichmentCacheRepository'
 import Error400 from '../../../errors/Error400'
 import { i18n } from '../../../i18n'
@@ -58,31 +59,31 @@ export default class MemberEnrichmentService extends LoggerBase {
       },
       [MemberEnrichmentAttributeName.SENIORITY_LEVEL]: {
         fields: ['seniority_level'],
-        type: AttributeType.STRING,
+        type: MemberAttributeType.STRING,
       },
       [MemberEnrichmentAttributeName.COUNTRY]: {
         fields: ['country'],
-        type: AttributeType.STRING,
+        type: MemberAttributeType.STRING,
       },
       [MemberEnrichmentAttributeName.PROGRAMMING_LANGUAGES]: {
         fields: ['programming_languages'],
-        type: AttributeType.MULTI_SELECT,
+        type: MemberAttributeType.MULTI_SELECT,
       },
       [MemberEnrichmentAttributeName.LANGUAGES]: {
         fields: ['languages'],
-        type: AttributeType.MULTI_SELECT,
+        type: MemberAttributeType.MULTI_SELECT,
       },
       [MemberEnrichmentAttributeName.YEARS_OF_EXPERIENCE]: {
         fields: ['years_of_experience'],
-        type: AttributeType.NUMBER,
+        type: MemberAttributeType.NUMBER,
       },
       [MemberEnrichmentAttributeName.EXPERTISE]: {
         fields: ['expertise'],
-        type: AttributeType.MULTI_SELECT,
+        type: MemberAttributeType.MULTI_SELECT,
       },
       [MemberEnrichmentAttributeName.WORK_EXPERIENCES]: {
         fields: ['work_experiences'],
-        type: AttributeType.SPECIAL,
+        type: MemberAttributeType.SPECIAL,
         fn: (workExperiences: EnrichmentAPIWorkExperience[]) =>
           workExperiences.map((workExperience) => {
             const { title, company, location, startDate, endDate } = workExperience
@@ -97,7 +98,7 @@ export default class MemberEnrichmentService extends LoggerBase {
       },
       [MemberEnrichmentAttributeName.EDUCATION]: {
         fields: ['educations'],
-        type: AttributeType.SPECIAL,
+        type: MemberAttributeType.SPECIAL,
         fn: (educations: EnrichmentAPIEducation[]) =>
           educations.map((education) => {
             const { campus, major, specialization, startDate, endDate } = education
@@ -112,11 +113,11 @@ export default class MemberEnrichmentService extends LoggerBase {
       },
       [MemberEnrichmentAttributeName.AWARDS]: {
         fields: ['awards'],
-        type: AttributeType.SPECIAL,
+        type: MemberAttributeType.SPECIAL,
       },
       [MemberEnrichmentAttributeName.CERTIFICATIONS]: {
         fields: ['certifications'],
-        type: AttributeType.SPECIAL,
+        type: MemberAttributeType.SPECIAL,
         fn: (certifications: EnrichmentAPICertification[]) =>
           certifications.map((certification) => {
             const { title, description } = certification
@@ -438,7 +439,7 @@ export default class MemberEnrichmentService extends LoggerBase {
 
       await this.createAttributeAndUpdateOptions(
         MemberEnrichmentAttributeName.SKILLS,
-        { type: AttributeType.MULTI_SELECT },
+        { type: MemberAttributeType.MULTI_SELECT },
         member.attributes.skills.enrichment,
       )
     }
@@ -455,7 +456,7 @@ export default class MemberEnrichmentService extends LoggerBase {
   async createAttributeAndUpdateOptions(attributeName, attribute, value) {
     // Check if attribute type is 'MULTI_SELECT' and the attribute already exists
     if (
-      attribute.type === AttributeType.MULTI_SELECT &&
+      attribute.type === MemberAttributeType.MULTI_SELECT &&
       lodash.find(this.attributes, { name: attributeName })
     ) {
       // Find attributeSettings by name
@@ -479,7 +480,7 @@ export default class MemberEnrichmentService extends LoggerBase {
         type: attribute.type,
         show: attributeName !== MemberEnrichmentAttributeName.EMAILS,
         canDelete: false,
-        ...(attribute.type === AttributeType.MULTI_SELECT && { options: value }),
+        ...(attribute.type === MemberAttributeType.MULTI_SELECT && { options: value }),
       })
     }
   }

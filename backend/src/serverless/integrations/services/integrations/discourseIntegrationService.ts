@@ -1,10 +1,12 @@
-import { DISCOURSE_GRID, DiscourseActivityType } from '@crowd/integrations'
-import { PlatformType, IntegrationType } from '@crowd/types'
+import {
+  DISCOURSE_GRID,
+  DISCOURSE_MEMBER_ATTRIBUTES,
+  DiscourseActivityType,
+} from '@crowd/integrations'
+import { PlatformType, IntegrationType, MemberAttributeName } from '@crowd/types'
 import he from 'he'
 import moment from 'moment/moment'
 import sanitizeHtml from 'sanitize-html'
-import { DiscourseMemberAttributes } from '../../../../database/attributes/member/discourse'
-import { MemberAttributeName } from '../../../../database/attributes/member/enums'
 import MemberAttributeSettingsService from '../../../../services/memberAttributeSettingsService'
 import {
   IIntegrationStream,
@@ -77,7 +79,7 @@ export class DiscourseIntegrationService extends IntegrationServiceBase {
 
   async createMemberAttributes(context: IStepContext): Promise<void> {
     const service = new MemberAttributeSettingsService(context.repoContext)
-    await service.createPredefined(DiscourseMemberAttributes)
+    await service.createPredefined(DISCOURSE_MEMBER_ATTRIBUTES)
   }
 
   /**

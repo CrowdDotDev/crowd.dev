@@ -1,14 +1,12 @@
-import { DISCORD_GRID, DiscordActivityType } from '@crowd/integrations'
+import { DISCORD_GRID, DISCORD_MEMBER_ATTRIBUTES, DiscordActivityType } from '@crowd/integrations'
 import { getServiceChildLogger } from '@crowd/logging'
 import { RedisCache, getRedisClient } from '@crowd/redis'
 import { ChannelType, MessageType } from 'discord.js'
 import lodash from 'lodash'
 import moment from 'moment/moment'
 import { generateUUIDv1, timeout } from '@crowd/common'
-import { IntegrationType, PlatformType } from '@crowd/types'
+import { IntegrationType, MemberAttributeName, PlatformType } from '@crowd/types'
 import { DISCORD_CONFIG, REDIS_CONFIG } from '../../../../conf'
-import { DiscordMemberAttributes } from '../../../../database/attributes/member/discord'
-import { MemberAttributeName } from '../../../../database/attributes/member/enums'
 import { IRepositoryOptions } from '../../../../database/repositories/IRepositoryOptions'
 import IntegrationRunRepository from '../../../../database/repositories/integrationRunRepository'
 import MemberAttributeSettingsService from '../../../../services/memberAttributeSettingsService'
@@ -158,7 +156,7 @@ export class DiscordIntegrationService extends IntegrationServiceBase {
 
   async createMemberAttributes(context: IStepContext): Promise<void> {
     const service = new MemberAttributeSettingsService(context.serviceContext)
-    await service.createPredefined(DiscordMemberAttributes)
+    await service.createPredefined(DISCORD_MEMBER_ATTRIBUTES)
   }
 
   async processWebhook(webhook: any, context: IStepContext): Promise<IProcessWebhookResults> {

@@ -1,6 +1,5 @@
 <template>
   <div v-if="form">
-    <cr-filter-include-switch v-if="!props.hideIncludeSwitch" v-model="form.include" />
     <div class="p-4 pb-5">
       <cr-filter-inline-select
         v-model="form.operator"
@@ -11,13 +10,12 @@
       <div class="filter-date-field" data-qa="filter-date-input">
         <el-date-picker
           v-model="form.value"
-          :placeholder="form.operator === FilterDateOperator.BETWEEN ? 'Select date range' : 'Select date'"
+          :placeholder="isBetween ? 'Select date range' : 'Select date'"
           :value-format="props.dateFormat ?? 'YYYY-MM-DD'"
           :format="props.dateFormat ?? 'YYYY-MM-DD'"
           popper-class="date-picker-popper"
           v-bind="betweenProps"
           :teleported="false"
-          :type="datepickerType ?? 'date'"
           @blur="$v.value.$touch"
           @change="$v.value.$touch"
         />
@@ -29,13 +27,12 @@
 <script setup lang="ts">
 import { computed, onMounted, watch } from 'vue';
 import {
-  DateFilterValue,
-  DateFilterOptions,
   DateFilterConfig,
+  DateFilterOptions,
+  DateFilterValue,
 } from '@/shared/modules/filters/types/filterTypes/DateFilterConfig';
 import { required } from '@vuelidate/validators';
 import useVuelidate from '@vuelidate/core';
-import CrFilterIncludeSwitch from '@/shared/modules/filters/components/partials/FilterIncludeSwitch.vue';
 import { dateFilterOperators, FilterDateOperator } from '@/shared/modules/filters/config/constants/date.constants';
 import CrFilterInlineSelect from '@/shared/modules/filters/components/partials/FilterInlineSelect.vue';
 
@@ -54,7 +51,6 @@ const form = computed({
 const defaultForm: DateFilterValue = {
   operator: FilterDateOperator.EQ,
   value: '',
-  include: true,
 };
 
 const rules: any = {
@@ -66,17 +62,23 @@ const rules: any = {
   },
 };
 
+const checkIfBetween = (operator) => [FilterDateOperator.BETWEEN, FilterDateOperator.NOT_BETWEEN].includes(operator);
+
+const isBetween = computed(() => checkIfBetween(form.value.operator));
+
 const operators = computed(() => {
   if (props.datepickerType === 'year') {
-    return dateFilterOperators.filter((o) => o.value !== FilterDateOperator.BETWEEN);
+    return dateFilterOperators.filter((o) => !checkIfBetween(o.value));
   }
   return dateFilterOperators;
 });
 
 const $v = useVuelidate(rules, form);
 
-const betweenProps = computed(() => (form.value.operator !== FilterDateOperator.BETWEEN
-  ? {}
+const betweenProps = computed(() => (!isBetween.value
+  ? {
+    type: props.datepickerType ?? 'date',
+  }
   : {
     type: props.datepickerType === 'month' ? 'monthrange' : 'daterange',
     'range-separator': 'To',
@@ -85,7 +87,9 @@ const betweenProps = computed(() => (form.value.operator !== FilterDateOperator.
   }));
 
 watch(() => form.value.operator, (operator, previousOperator) => {
-  if ([operator, previousOperator].includes(FilterDateOperator.BETWEEN) && operator !== previousOperator) {
+  const isPreviousBetweenOperator = checkIfBetween(previousOperator);
+  const isCurrentBetweenOperator = checkIfBetween(operator);
+  if (isCurrentBetweenOperator !== isPreviousBetweenOperator) {
     form.value.value = '';
   }
 });

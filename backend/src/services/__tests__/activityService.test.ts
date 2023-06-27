@@ -5,14 +5,12 @@ import MemberRepository from '../../database/repositories/memberRepository'
 import ActivityRepository from '../../database/repositories/activityRepository'
 import ConversationService from '../conversationService'
 import SequelizeRepository from '../../database/repositories/sequelizeRepository'
-import { PlatformType } from '@crowd/types'
+import { MemberAttributeName, PlatformType } from '@crowd/types'
 import SettingsRepository from '../../database/repositories/settingsRepository'
 import ConversationSettingsRepository from '../../database/repositories/conversationSettingsRepository'
-import { MemberAttributeName } from '../../database/attributes/member/enums'
 import MemberAttributeSettingsService from '../memberAttributeSettingsService'
-import { GithubMemberAttributes } from '../../database/attributes/member/github'
-import { TwitterMemberAttributes } from '../../database/attributes/member/twitter'
 import { IServiceOptions } from '../../services/IServiceOptions'
+import { GITHUB_MEMBER_ATTRIBUTES, TWITTER_MEMBER_ATTRIBUTES } from '@crowd/integrations'
 import { populateSegments, switchSegments } from '../../database/utils/segmentTestUtils'
 import SegmentRepository from '../../database/repositories/segmentRepository'
 import OrganizationRepository from '../../database/repositories/organizationRepository'
@@ -941,8 +939,8 @@ describe('ActivityService tests', () => {
         mockIRepositoryOptions,
       )
 
-      await memberAttributeSettingsService.createPredefined(GithubMemberAttributes)
-      await memberAttributeSettingsService.createPredefined(TwitterMemberAttributes)
+      await memberAttributeSettingsService.createPredefined(GITHUB_MEMBER_ATTRIBUTES)
+      await memberAttributeSettingsService.createPredefined(TWITTER_MEMBER_ATTRIBUTES)
 
       const member = {
         username: {
@@ -1055,8 +1053,8 @@ describe('ActivityService tests', () => {
         mockIRepositoryOptions,
       )
 
-      await memberAttributeSettingsService.createPredefined(GithubMemberAttributes)
-      await memberAttributeSettingsService.createPredefined(TwitterMemberAttributes)
+      await memberAttributeSettingsService.createPredefined(GITHUB_MEMBER_ATTRIBUTES)
+      await memberAttributeSettingsService.createPredefined(TWITTER_MEMBER_ATTRIBUTES)
 
       const member = {
         username: 'anil_github',
@@ -1194,8 +1192,8 @@ describe('ActivityService tests', () => {
         mockIRepositoryOptions,
       )
 
-      await memberAttributeSettingsService.createPredefined(GithubMemberAttributes)
-      await memberAttributeSettingsService.createPredefined(TwitterMemberAttributes)
+      await memberAttributeSettingsService.createPredefined(GITHUB_MEMBER_ATTRIBUTES)
+      await memberAttributeSettingsService.createPredefined(TWITTER_MEMBER_ATTRIBUTES)
 
       const member = {
         username: 'anil_github',
@@ -1391,8 +1389,8 @@ describe('ActivityService tests', () => {
         name: 'crowd.dev',
       }
 
-      await memberAttributeSettingsService.createPredefined(GithubMemberAttributes)
-      await memberAttributeSettingsService.createPredefined(TwitterMemberAttributes)
+      await memberAttributeSettingsService.createPredefined(GITHUB_MEMBER_ATTRIBUTES)
+      await memberAttributeSettingsService.createPredefined(TWITTER_MEMBER_ATTRIBUTES)
 
       const member = {
         username: {
@@ -1629,8 +1627,8 @@ describe('ActivityService tests', () => {
           mockIRepositoryOptions,
         )
 
-        await memberAttributeSettingsService.createPredefined(GithubMemberAttributes)
-        await memberAttributeSettingsService.createPredefined(TwitterMemberAttributes)
+        await memberAttributeSettingsService.createPredefined(GITHUB_MEMBER_ATTRIBUTES)
+        await memberAttributeSettingsService.createPredefined(TWITTER_MEMBER_ATTRIBUTES)
 
         const member = {
           username: {
@@ -1746,8 +1744,8 @@ describe('ActivityService tests', () => {
           mockIRepositoryOptions,
         )
 
-        await memberAttributeSettingsService.createPredefined(GithubMemberAttributes)
-        await memberAttributeSettingsService.createPredefined(TwitterMemberAttributes)
+        await memberAttributeSettingsService.createPredefined(GITHUB_MEMBER_ATTRIBUTES)
+        await memberAttributeSettingsService.createPredefined(TWITTER_MEMBER_ATTRIBUTES)
 
         const member = {
           username: {
@@ -1866,8 +1864,8 @@ describe('ActivityService tests', () => {
           mockIRepositoryOptions,
         )
 
-        await memberAttributeSettingsService.createPredefined(GithubMemberAttributes)
-        await memberAttributeSettingsService.createPredefined(TwitterMemberAttributes)
+        await memberAttributeSettingsService.createPredefined(GITHUB_MEMBER_ATTRIBUTES)
+        await memberAttributeSettingsService.createPredefined(TWITTER_MEMBER_ATTRIBUTES)
 
         const member = {
           username: {
@@ -1987,8 +1985,8 @@ describe('ActivityService tests', () => {
           mockIRepositoryOptions,
         )
 
-        await memberAttributeSettingsService.createPredefined(GithubMemberAttributes)
-        await memberAttributeSettingsService.createPredefined(TwitterMemberAttributes)
+        await memberAttributeSettingsService.createPredefined(GITHUB_MEMBER_ATTRIBUTES)
+        await memberAttributeSettingsService.createPredefined(TWITTER_MEMBER_ATTRIBUTES)
 
         const member = {
           username: {
@@ -2113,8 +2111,8 @@ describe('ActivityService tests', () => {
           mockIRepositoryOptions,
         )
 
-        await memberAttributeSettingsService.createPredefined(GithubMemberAttributes)
-        await memberAttributeSettingsService.createPredefined(TwitterMemberAttributes)
+        await memberAttributeSettingsService.createPredefined(GITHUB_MEMBER_ATTRIBUTES)
+        await memberAttributeSettingsService.createPredefined(TWITTER_MEMBER_ATTRIBUTES)
 
         const data = {
           member: {

@@ -30,6 +30,7 @@ import {
   IntegrationProcessingConfiguration,
   SlackNotifierConfiguration,
   OrganizationEnrichmentConfiguration,
+  IOpenSearchConfig,
   WeeklyEmailsConfiguration,
 } from './configTypes'
 
@@ -107,6 +108,8 @@ export const ORGANIZATION_ENRICHMENT_CONFIG: OrganizationEnrichmentConfiguration
 export const EAGLE_EYE_CONFIG: EagleEyeConfiguration = config.get<EagleEyeConfiguration>('eagleEye')
 
 export const UNLEASH_CONFIG: UnleashConfiguration = config.get<UnleashConfiguration>('unleash')
+
+export const OPENSEARCH_CONFIG: IOpenSearchConfig = config.get<IOpenSearchConfig>('opensearch')
 
 export const STACKEXCHANGE_CONFIG: StackExchangeConfiguration =
   config.get<StackExchangeConfiguration>('stackexchange') ?? {

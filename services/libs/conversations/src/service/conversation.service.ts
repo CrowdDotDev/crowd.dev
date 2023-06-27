@@ -1,4 +1,4 @@
-import { getCleanString, processPaginated } from '@crowd/common'
+import { distinct, getCleanString, processPaginated } from '@crowd/common'
 import { DbStore } from '@crowd/database'
 import { Logger, LoggerBase, getChildLogger } from '@crowd/logging'
 import { PlatformType } from '@crowd/types'
@@ -87,25 +87,30 @@ export class ConversationService extends LoggerBase {
     return cleanedSlug
   }
 
-  public async processActivity(tenantId: string, activityId: string): Promise<void> {
+  // returns activity ids that were changed
+  public async processActivity(tenantId: string, activityId: string): Promise<string[]> {
     const repo = new ConversationRepository(this.store, this.log)
 
     const activity = await repo.getActivityData(tenantId, activityId)
 
     if (activity.parentId) {
       const parent = await repo.getActivityData(tenantId, activity.parentId)
-      await this.addToConversation(tenantId, activity, parent)
+      return await this.addToConversation(tenantId, activity, parent)
     } else {
+      const ids: string[] = []
       await processPaginated(
         async (page) => {
           return repo.getActivities(tenantId, activity.sourceId, page, 10)
         },
         async (activities) => {
           for (const child of activities) {
-            await this.addToConversation(tenantId, child, activity)
+            const results = await this.addToConversation(tenantId, child, activity)
+            ids.push(...results)
           }
         },
       )
+
+      return distinct(ids)
     }
   }
 
@@ -113,11 +118,13 @@ export class ConversationService extends LoggerBase {
     tenantId: string,
     child: IDbActivityInfo,
     parent: IDbActivityInfo,
-  ): Promise<void> {
+  ): Promise<string[]> {
     this.log = getChildLogger('addToConversation', this.log, {
       activityId: child.id,
       parentActivityId: parent.id,
     })
+
+    const affectedIds: string[] = []
 
     await this.store.transactionally(async (txStore) => {
       const txRepo = new ConversationRepository(txStore, this.log)
@@ -128,6 +135,7 @@ export class ConversationService extends LoggerBase {
       if (parent.conversationId) {
         conversation = await this.getConversation(tenantId, parent.conversationId, txRepo)
         await txRepo.setActivityConversationId(tenantId, child.id, parent.conversationId)
+        affectedIds.push(child.id)
       }
       // if child is already in a conversation
       else if (child.conversationId) {
@@ -152,6 +160,7 @@ export class ConversationService extends LoggerBase {
         }
 
         await txRepo.setActivityConversationId(tenantId, parent.id, conversation.id)
+        affectedIds.push(parent.id)
       } else {
         // create a new conversation
         const txService = new ConversationService(txStore, this.log)
@@ -187,8 +196,12 @@ export class ConversationService extends LoggerBase {
 
         await txRepo.setActivityConversationId(tenantId, parent.id, conversationId)
         await txRepo.setActivityConversationId(tenantId, child.id, conversationId)
+        affectedIds.push(parent.id)
+        affectedIds.push(child.id)
       }
     })
+
+    return affectedIds
   }
 
   static hasHtmlActivities(platform: PlatformType): boolean {
