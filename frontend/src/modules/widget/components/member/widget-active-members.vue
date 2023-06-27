@@ -195,7 +195,7 @@ const getActiveMembers = async ({ pagination }) => {
     limit: !pagination.count
       ? pagination.pageSize
       : pagination.count,
-    segments: props.filters.segments.childSegments,
+    segments: props.filters.segments.segments,
   });
 
   return res;

@@ -127,7 +127,7 @@ const getActiveMembers = async (
   period = selectedPeriod.value,
   platforms = props.filters.platform.value,
   teamMembers = props.filters.teamMembers,
-  segments = props.filters.segments.childSegments,
+  segments = props.filters.segments.segments,
 ) => {
   loading.value = true;
   error.value = false;
@@ -184,7 +184,7 @@ const getDetailedActiveMembers = ({
   limit: !pagination.count
     ? pagination.pageSize
     : pagination.count,
-  segments: props.filters.segments.childSegments,
+  segments: props.filters.segments.segments,
 });
 
 const onRowClick = () => {

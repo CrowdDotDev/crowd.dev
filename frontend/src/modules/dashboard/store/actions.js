@@ -215,7 +215,7 @@ export default {
       orderBy: 'activityCount_DESC',
       offset: 0,
       limit: 5,
-      segments: segments.childSegments,
+      segments: segments.segments,
     })
       .then((data) => {
         commit('SET_ACTIVE_MEMBERS', data);

@@ -3,7 +3,7 @@ export const getSegmentsFromProjectGroup = (projectGroup, options) => {
     return [];
   }
 
-  if (options?.url?.includes('/member/query')) {
+  if (options?.url?.includes('/member/query') || options?.url?.includes('/member/active')) {
     return [projectGroup.id];
   }
 
