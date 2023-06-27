@@ -1270,11 +1270,12 @@ class MemberRepository {
         script: {
           lang: 'painless',
           source: `
-              def memberIds = [${memberIds.map((i) => `"${i}"`)}];
-    
               def memberId = doc['uuid_memberId'].value;
-              return memberIds.indexOf(memberId);
+              return params.memberIds.indexOf(memberId);
             `,
+            params: {
+              memberIds: memberIds.map(i => `${i}`),
+            },
         },
         order: 'asc',
       },
