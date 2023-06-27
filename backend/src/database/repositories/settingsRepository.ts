@@ -2,6 +2,7 @@ import _get from 'lodash/get'
 import SequelizeRepository from './sequelizeRepository'
 import AuditLogRepository from './auditLogRepository'
 import { IRepositoryOptions } from './IRepositoryOptions'
+import SegmentService from '../../services/segmentService'
 
 export default class SettingsRepository {
   static async findOrCreateDefault(defaults, options: IRepositoryOptions) {
@@ -82,15 +83,11 @@ export default class SettingsRepository {
       return record
     }
 
-    let segment = null
-
-    if (options.currentSegments?.length > 0) {
-      segment = SequelizeRepository.getStrictlySingleActiveSegment(options)
-    }
+    const activityTypes = await SegmentService.getTenantActivityTypes(options.currentSegments)
 
     const settings = record.get({ plain: true })
 
-    settings.activityTypes = segment ? segment.activityTypes : null
+    settings.activityTypes = activityTypes
     settings.slackWebHook = !!settings.slackWebHook
 
     return settings
