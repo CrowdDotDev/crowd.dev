@@ -78,7 +78,6 @@
                   query: filterQueryService().setQuery({
                     ...newAndActive.filter,
                     joinedDate: {
-                      include: true,
                       value: periodStartDate,
                       operator: 'gt',
                     },
@@ -159,7 +158,6 @@
                   query: filterQueryService().setQuery({
                     ...allOrganizations.filter,
                     lastActivityDate: {
-                      include: true,
                       value: periodStartDate,
                       operator: 'gt',
                     },
