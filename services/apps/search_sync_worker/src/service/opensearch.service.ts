@@ -58,6 +58,17 @@ export class OpenSearchService extends LoggerBase {
     }
   }
 
+  public async deleteIndex(indexName: OpenSearchIndex): Promise<void> {
+    try {
+      await this.client.indices.delete({
+        index: indexName,
+      })
+    } catch (err) {
+      this.log.error(err, { indexName }, 'Failed to delete index!')
+      throw err
+    }
+  }
+
   public async setIndexMappings(indexName: OpenSearchIndex): Promise<void> {
     try {
       const mappings = OPENSEARCH_INDEX_MAPPINGS[indexName]

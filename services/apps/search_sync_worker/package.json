@@ -24,7 +24,8 @@
     "script:cleanup-tenant-members": "SERVICE=script node -r tsconfig-paths/register -r ts-node/register src/bin/cleanup-tenant-members.ts --transpile-only",
     "script:cleanup-tenant-activities": "SERVICE=script node -r tsconfig-paths/register -r ts-node/register src/bin/cleanup-tenant-activities.ts --transpile-only",
     "script:cleanup-all-members": "SERVICE=script node -r tsconfig-paths/register -r ts-node/register src/bin/cleanup-all-members.ts --transpile-only",
-    "script:cleanup-all-activities": "SERVICE=script node -r tsconfig-paths/register -r ts-node/register src/bin/cleanup-all-activities.ts --transpile-only"
+    "script:cleanup-all-activities": "SERVICE=script node -r tsconfig-paths/register -r ts-node/register src/bin/cleanup-all-activities.ts --transpile-only",
+    "script:delete-index": "SERVICE=script node -r tsconfig-paths/register -r ts-node/register src/bin/delete-index.ts --transpile-only"
   },
   "dependencies": {
     "@crowd/common": "file:../../libs/common",

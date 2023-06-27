@@ -20,7 +20,11 @@ import {
   MemberSegmentAffiliation,
   MemberSegmentAffiliationJoined,
 } from '../../types/memberSegmentAffiliationTypes'
-import { SegmentData } from '../../types/segmentTypes'
+import {
+  SegmentData,
+  SegmentProjectGroupNestedData,
+  SegmentProjectNestedData,
+} from '../../types/segmentTypes'
 import { AttributeData } from '../attributes/attribute'
 import SequelizeFilterUtils from '../utils/sequelizeFilterUtils'
 import { IRepositoryOptions } from './IRepositoryOptions'
@@ -1036,6 +1040,288 @@ class MemberRepository {
     })
   }
 
+  static async findAndCountActiveOpensearch(
+    filter: IActiveMemberFilter,
+    limit: number,
+    offset: number,
+    orderBy: string,
+    options: IRepositoryOptions,
+    attributesSettings = [] as AttributeData[],
+    segments: string[] = [],
+  ): Promise<PageData<IActiveMemberData>> {
+    const tenant = SequelizeRepository.getCurrentTenant(options)
+
+    const segmentsEnabled = await isFeatureEnabled(FeatureFlag.SEGMENTS, options)
+
+    let originalSegment
+
+    if (segmentsEnabled) {
+      if (segments.length !== 1) {
+        throw new Error400(
+          `This operation can have exactly one segment. Found ${segments.length} segments.`,
+        )
+      }
+      originalSegment = segments[0]
+
+      const segmentRepository = new SegmentRepository(options)
+
+      const segment = await segmentRepository.findById(originalSegment)
+
+      if (segment === null) {
+        return {
+          rows: [],
+          count: 0,
+          limit,
+          offset,
+        }
+      }
+
+      if (SegmentRepository.isProjectGroup(segment)) {
+        segments = (segment as SegmentProjectGroupNestedData).projects.reduce((acc, p) => {
+          acc.push(...p.subprojects.map((sp) => sp.id))
+          return acc
+        }, [])
+      } else if (SegmentRepository.isProject(segment)) {
+        segments = (segment as SegmentProjectNestedData).subprojects.map((sp) => sp.id)
+      } else {
+        segments = [originalSegment]
+      }
+    } else {
+      originalSegment = (await new SegmentRepository(options).getDefaultSegment()).id
+    }
+
+    const activityPageSize = 10000
+    let activityOffset = 0
+
+    const activityQuery = {
+      query: {
+        bool: {
+          must: [
+            {
+              range: {
+                date_timestamp: {
+                  gte: filter.activityTimestampFrom,
+                  lte: filter.activityTimestampTo,
+                },
+              },
+            },
+            {
+              term: {
+                uuid_tenantId: tenant.id,
+              },
+            },
+          ],
+        },
+      },
+      aggs: {
+        group_by_member: {
+          terms: {
+            field: 'uuid_memberId',
+            size: 10000000,
+          },
+          aggs: {
+            activity_count: {
+              value_count: {
+                field: 'uuid_id',
+              },
+            },
+            active_days_count: {
+              cardinality: {
+                field: 'date_timestamp',
+                script: {
+                  source: "doc['date_timestamp'].value.toInstant().toEpochMilli()/86400000",
+                },
+              },
+            },
+            active_members_bucket_sort: {
+              bucket_sort: {
+                sort: [{ activity_count: { order: 'desc' } }],
+                size: activityPageSize,
+                from: activityOffset,
+              },
+            },
+          },
+        },
+      },
+      size: 0,
+    } as any
+
+    if (filter.platforms) {
+      const subQueries = filter.platforms.map((p) => ({ match_phrase: { keyword_platform: p } }))
+
+      activityQuery.query.bool.must.push({
+        bool: {
+          should: subQueries,
+        },
+      })
+    }
+
+    if (filter.activityIsContribution === true) {
+      activityQuery.query.bool.must.push({
+        term: {
+          bool_isContribution: true,
+        },
+      })
+    }
+
+    if (segmentsEnabled) {
+      const subQueries = segments.map((s) => ({ term: { uuid_segmentId: s } }))
+
+      activityQuery.query.bool.must.push({
+        bool: {
+          should: subQueries,
+        },
+      })
+    }
+
+    const direction = orderBy.split('_')[1].toLowerCase() === 'desc' ? 'desc' : 'asc'
+    if (orderBy.startsWith('activityCount')) {
+      activityQuery.aggs.group_by_member.aggs.active_members_bucket_sort.bucket_sort.sort = [
+        { activity_count: { order: direction } },
+      ]
+    } else if (orderBy.startsWith('activeDaysCount')) {
+      activityQuery.aggs.group_by_member.aggs.active_members_bucket_sort.bucket_sort.sort = [
+        { active_days_count: { order: direction } },
+      ]
+    } else {
+      throw new Error(`Invalid order by: ${orderBy}`)
+    }
+
+    const memberIds = []
+    let memberMap = {}
+    let activities
+
+    do {
+      activities = await options.opensearch.search({
+        index: OpenSearchIndex.ACTIVITIES,
+        body: activityQuery,
+      })
+
+      memberIds.push(...activities.body.aggregations.group_by_member.buckets.map((b) => b.key))
+
+      memberMap = {
+        ...memberMap,
+        ...activities.body.aggregations.group_by_member.buckets.reduce((acc, b) => {
+          acc[b.key] = {
+            activityCount: b.activity_count,
+            activeDaysCount: b.active_days_count,
+          }
+
+          return acc
+        }, {}),
+      }
+
+      activityOffset += activityPageSize
+
+      // update page
+      activityQuery.aggs.group_by_member.aggs.active_members_bucket_sort.bucket_sort.from =
+        activityOffset
+    } while (activities.body.aggregations.group_by_member.buckets.length === activityPageSize)
+
+    if (memberIds.length === 0) {
+      return {
+        rows: [],
+        count: 0,
+        limit,
+        offset,
+      }
+    }
+
+    const memberQueryPayload = {
+      and: [
+        {
+          id: {
+            in: memberIds,
+          },
+        },
+      ],
+    } as any
+
+    if (filter.isBot === true) {
+      memberQueryPayload.and.push({
+        isBot: {
+          eq: true,
+        },
+      })
+    } else if (filter.isBot === false) {
+      memberQueryPayload.and.push({
+        isBot: {
+          not: true,
+        },
+      })
+    }
+
+    if (filter.isTeamMember === true) {
+      memberQueryPayload.and.push({
+        isTeamMember: {
+          eq: true,
+        },
+      })
+    } else if (filter.isTeamMember === false) {
+      memberQueryPayload.and.push({
+        isTeamMember: {
+          not: true,
+        },
+      })
+    }
+
+    if (filter.isOrganization === true) {
+      memberQueryPayload.and.push({
+        isOrganization: {
+          eq: true,
+        },
+      })
+    } else if (filter.isOrganization === false) {
+      memberQueryPayload.and.push({
+        isOrganization: {
+          not: true,
+        },
+      })
+    }
+
+    // to retain the sort came from activity query
+    const customSortFunction = {
+      _script: {
+        type: 'number',
+        script: {
+          lang: 'painless',
+          source: `
+              def memberId = doc['uuid_memberId'].value;
+              return params.memberIds.indexOf(memberId);
+            `,
+          params: {
+            memberIds: memberIds.map((i) => `${i}`),
+          },
+        },
+        order: 'asc',
+      },
+    }
+
+    const members = await this.findAndCountAllOpensearch(
+      {
+        filter: memberQueryPayload,
+        attributesSettings,
+        segments: [originalSegment],
+        countOnly: false,
+        limit,
+        offset,
+        customSortFunction,
+      },
+      options,
+    )
+
+    return {
+      rows: members.rows.map((m) => {
+        m.activityCount = memberMap[m.id].activityCount.value
+        m.activeDaysCount = memberMap[m.id].activeDaysCount.value
+        return m
+      }),
+      count: members.count,
+      offset,
+      limit,
+    }
+  }
+
   static async findAndCountActive(
     filter: IActiveMemberFilter,
     limit: number,
@@ -1623,16 +1909,13 @@ class MemberRepository {
       countOnly = false,
       attributesSettings = [] as AttributeData[],
       segments = [] as string[],
+      customSortFunction = undefined,
     },
     options: IRepositoryOptions,
   ): Promise<PageData<any>> {
     const tenant = SequelizeRepository.getCurrentTenant(options)
 
-    if (segments.length !== 1) {
-      throw new Error400(
-        `This operation can have exactly one segment. Found ${segments.length} segments.`,
-      )
-    }
+    const segmentsEnabled = await isFeatureEnabled(FeatureFlag.SEGMENTS, options)
 
     const segment = segments[0]
 
@@ -1663,13 +1946,17 @@ class MemberRepository {
       },
     })
 
-    if (await isFeatureEnabled(FeatureFlag.SEGMENTS, options)) {
+    if (segmentsEnabled) {
       // add segment filter
       parsed.query.bool.must.push({
         term: {
           uuid_segmentId: segment,
         },
       })
+    }
+
+    if (customSortFunction) {
+      parsed.sort = customSortFunction
     }
 
     const countResponse = await options.opensearch.count({
@@ -1691,7 +1978,6 @@ class MemberRepository {
       body: parsed,
     })
 
-    // const translated = response.body.hits.hits[0]._source
     const translatedRows = response.body.hits.hits.map((o) =>
       translator.translateObjectToCrowd(o._source),
     )

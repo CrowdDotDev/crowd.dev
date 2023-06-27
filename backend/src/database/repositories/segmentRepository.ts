@@ -544,7 +544,7 @@ class SegmentRepository extends RepositoryBase<
   }
 
   async getDefaultSegment() {
-    const segments = await this.querySubprojects({})
+    const segments = await this.querySubprojects({ limit: 1, offset: 0 })
     return segments.rows[0] || null
   }
 
