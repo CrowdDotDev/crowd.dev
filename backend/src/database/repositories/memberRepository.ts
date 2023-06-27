@@ -1065,7 +1065,7 @@ class MemberRepository {
 
       const segment = await segmentRepository.findById(originalSegment)
 
-      if (segment === null){
+      if (segment === null) {
         return {
           rows: [],
           count: 0,
@@ -1282,9 +1282,9 @@ class MemberRepository {
               def memberId = doc['uuid_memberId'].value;
               return params.memberIds.indexOf(memberId);
             `,
-            params: {
-              memberIds: memberIds.map(i => `${i}`),
-            },
+          params: {
+            memberIds: memberIds.map((i) => `${i}`),
+          },
         },
         order: 'asc',
       },
