@@ -384,6 +384,9 @@ export default class SegmentService extends LoggerBase {
   }
 
   static async getTenantActivityTypes(subprojects: any) {
+    if (!subprojects) {
+      return { custom: {}, default: {} }
+    }
     return subprojects.reduce((acc: any, subproject) => {
       const activityTypes = SegmentRepository.buildActivityTypes(subproject)
 
