@@ -1360,9 +1360,11 @@ export class GithubIntegrationService extends IntegrationServiceBase {
           timestamp: moment(record.commit.authoredDate).utc().toDate(),
           attributes: {
             insertions: 'additions' in record.commit ? record.commit.additions : 0,
-            deletions: 'additions' in record.commit ? record.commit.deletions : 0,
+            deletions: 'deletions' in record.commit ? record.commit.deletions : 0,
             lines:
-              'additions' in record.commit ? record.commit.additions - record.commit.deletions : 0,
+              'additions' in record.commit && 'deletions' in record.commit
+                ? record.commit.additions - record.commit.deletions
+                : 0,
             isMerge: record.commit.parents.totalCount > 1,
             isMainBranch: false,
           },
@@ -1864,6 +1866,10 @@ export class GithubIntegrationService extends IntegrationServiceBase {
     const out: AddActivitiesSingle[] = []
 
     for (const record of records) {
+      if (!('author' in record)) {
+        // eslint-disable-next-line no-continue
+        continue
+      }
       const commentId = record.id
       const member = await GithubIntegrationService.parseMember(record.author, context)
 
