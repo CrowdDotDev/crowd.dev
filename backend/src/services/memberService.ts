@@ -390,7 +390,8 @@ export default class MemberService extends LoggerBase {
 
       if (!existing && fireCrowdWebhooks) {
         try {
-          await sendNewMemberNodeSQSMessage(this.options.currentTenant.id, record.id)
+          const segment = SequelizeRepository.getStrictlySingleActiveSegment(this.options)
+          await sendNewMemberNodeSQSMessage(this.options.currentTenant.id, record.id, segment.id)
         } catch (err) {
           logger.error(err, `Error triggering new member automation - ${record.id}!`)
         }
