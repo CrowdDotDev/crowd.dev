@@ -1895,6 +1895,10 @@ export class GithubIntegrationService extends IntegrationServiceBase {
       })
 
       for (const reply of record.replies.nodes) {
+        if (!('author' in reply) || !reply?.author || !reply?.author?.login) {
+          // eslint-disable-next-line no-continue
+          continue
+        }
         const member = await GithubIntegrationService.parseMember(reply.author, context)
         out.push({
           username: member.username[PlatformType.GITHUB].username,
