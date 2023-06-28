@@ -17,7 +17,7 @@ export interface PullRequestCommitNoAdditions {
           commit: {
             authoredDate: string
             committedDate: string
-            changedFiles: number
+            changedFilesIfAvailable: number
             deletions: number
             oid: string
             message: string
@@ -77,7 +77,7 @@ class PullRequestCommitsQueryNoAdditions extends BaseQuery {
               commit {
                 authoredDate
                 committedDate
-                changedFiles
+                changedFilesIfAvailable
                 deletions
                 oid
                 message
