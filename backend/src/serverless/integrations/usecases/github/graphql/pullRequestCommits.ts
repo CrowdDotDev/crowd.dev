@@ -18,7 +18,7 @@ export interface PullRequestCommit {
             authoredDate: string
             committedDate: string
             additions: number
-            changedFiles: number
+            changedFilesIfAvailable: number
             deletions: number
             oid: string
             message: string
@@ -79,7 +79,7 @@ class PullRequestCommitsQuery extends BaseQuery {
                 authoredDate
                 committedDate
                 additions
-                changedFiles
+                changedFilesIfAvailable
                 deletions
                 oid
                 message
