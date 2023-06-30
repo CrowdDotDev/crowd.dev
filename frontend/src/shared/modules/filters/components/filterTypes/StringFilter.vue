@@ -1,7 +1,5 @@
 <template>
   <div v-if="form">
-    <cr-filter-include-switch v-if="!props.hideIncludeSwitch" v-model="form.include" />
-
     <div class="p-4 pb-5">
       <cr-filter-inline-select
         v-model="form.operator"
@@ -28,7 +26,6 @@ import {
   StringFilterOptions,
   StringFilterValue,
 } from '@/shared/modules/filters/types/filterTypes/StringFilterConfig';
-import CrFilterIncludeSwitch from '@/shared/modules/filters/components/partials/FilterIncludeSwitch.vue';
 import CrFilterInlineSelect from '@/shared/modules/filters/components/partials/FilterInlineSelect.vue';
 import CrFilterInput from '@/shared/modules/filters/components/partials/string/FilterInput.vue';
 import { stringFilterOperators, FilterStringOperator } from '@/shared/modules/filters/config/constants/string.constants';
@@ -48,7 +45,6 @@ const form = computed<StringFilterValue>({
 const defaultForm: StringFilterValue = {
   value: '',
   operator: FilterStringOperator.LIKE,
-  include: true,
 };
 
 const rules: any = {

@@ -689,10 +689,6 @@ const trackEmailClick = () => {
 };
 
 watch(table, (newValue) => {
-  if (newValue) {
-    doMountTable(table.value);
-  }
-
   // Add scroll events to table, it's not possible to access it from 'el-table'
   // as the overflowed element is within it
   const tableBodyEl = document.querySelector(

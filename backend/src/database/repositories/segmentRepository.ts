@@ -467,7 +467,7 @@ class SegmentRepository extends RepositoryBase<
       {
         replacements: {
           tenantId: this.currentTenant.id,
-          name: `${criteria.filter?.name}%`,
+          name: `%${criteria.filter?.name}%`,
           status: criteria.filter?.status,
         },
         type: QueryTypes.SELECT,
@@ -544,7 +544,7 @@ class SegmentRepository extends RepositoryBase<
   }
 
   async getDefaultSegment() {
-    const segments = await this.querySubprojects({})
+    const segments = await this.querySubprojects({ limit: 1, offset: 0 })
     return segments.rows[0] || null
   }
 
@@ -642,8 +642,10 @@ class SegmentRepository extends RepositoryBase<
     activityTypes.default = lodash.cloneDeep(DEFAULT_ACTIVITY_TYPE_SETTINGS)
     activityTypes.custom = {}
 
-    if (Object.keys(record.customActivityTypes).length > 0) {
-      activityTypes.custom = record.customActivityTypes
+    const customActivityTypes = record.customActivityTypes || {}
+
+    if (Object.keys(customActivityTypes).length > 0) {
+      activityTypes.custom = customActivityTypes
     }
 
     return activityTypes

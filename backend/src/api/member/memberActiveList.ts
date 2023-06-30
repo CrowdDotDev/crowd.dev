@@ -61,12 +61,18 @@ export default async (req, res) => {
         : req.query.filter?.isOrganization === 'true',
     activityTimestampFrom: req.query.filter?.activityTimestampFrom,
     activityTimestampTo: req.query.filter?.activityTimestampTo,
-    activityIsContribution: req.query.filter?.activityIsContribution,
+    activityIsContribution: req.query.filter?.activityIsContribution === 'true',
   }
 
   const orderBy = req.query.orderBy || 'activityCount_DESC'
 
-  const payload = await new MemberService(req).findAndCountActive(filters, offset, limit, orderBy)
+  const payload = await new MemberService(req).findAndCountActive(
+    filters,
+    offset,
+    limit,
+    orderBy,
+    req.query.segments,
+  )
 
   await req.responseHandler.success(req, res, payload)
 }

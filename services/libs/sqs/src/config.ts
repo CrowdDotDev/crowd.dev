@@ -59,3 +59,14 @@ export const NODEJS_WORKER_QUEUE_SETTINGS: ISqsQueueConfig = {
   deduplicationScope: SqsQueueDeduplicationType.MESSAGE_GROUP,
   fifoThroughputLimit: SqsFifoThroughputLimitType.PER_MESSAGE_GROUP_ID,
 }
+
+export const SEARCH_SYNC_WORKER_QUEUE_SETTINGS: ISqsQueueConfig = {
+  name: 'search-sync-worker',
+  type: SqsQueueType.FIFO,
+  waitTimeSeconds: 20, // seconds
+  visibilityTimeout: 30, // seconds
+  messageRetentionPeriod: 345600, // 4 days
+  deliveryDelay: 0,
+  deduplicationScope: SqsQueueDeduplicationType.MESSAGE_GROUP,
+  fifoThroughputLimit: SqsFifoThroughputLimitType.PER_MESSAGE_GROUP_ID,
+}

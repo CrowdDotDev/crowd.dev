@@ -12,7 +12,7 @@ export const getOrganization = async (
 ): Promise<ILinkedInOrganization> => {
   const config: AxiosRequestConfig<unknown> = {
     method: 'get',
-    url: `https://api.linkedin.com/v2/organizationsLookup`,
+    url: `https://api.linkedin.com/rest/organizationsLookup`,
     params: {
       ids: `List(${organizationId})`,
       projection:
@@ -20,6 +20,7 @@ export const getOrganization = async (
     },
     headers: {
       'X-Restli-Protocol-Version': '2.0.0',
+      'LinkedIn-Version': '202305',
     },
   }
 

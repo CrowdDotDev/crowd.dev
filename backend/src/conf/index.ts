@@ -30,6 +30,8 @@ import {
   IntegrationProcessingConfiguration,
   SlackNotifierConfiguration,
   OrganizationEnrichmentConfiguration,
+  IOpenSearchConfig,
+  Auth0Configuration,
   WeeklyEmailsConfiguration,
 } from './configTypes'
 
@@ -73,6 +75,8 @@ export const CLEARBIT_CONFIG: ClearbitConfiguration = config.get<ClearbitConfigu
 
 export const API_CONFIG: ApiConfiguration = config.get<ApiConfiguration>('api')
 
+export const AUTH0_CONFIG: Auth0Configuration = config.get<Auth0Configuration>('auth0')
+
 export const PLANS_CONFIG: PlansConfiguration = config.get<PlansConfiguration>('plans')
 
 export const DEVTO_CONFIG: DevtoConfiguration = config.get<DevtoConfiguration>('devto')
@@ -107,6 +111,8 @@ export const ORGANIZATION_ENRICHMENT_CONFIG: OrganizationEnrichmentConfiguration
 export const EAGLE_EYE_CONFIG: EagleEyeConfiguration = config.get<EagleEyeConfiguration>('eagleEye')
 
 export const UNLEASH_CONFIG: UnleashConfiguration = config.get<UnleashConfiguration>('unleash')
+
+export const OPENSEARCH_CONFIG: IOpenSearchConfig = config.get<IOpenSearchConfig>('opensearch')
 
 export const STACKEXCHANGE_CONFIG: StackExchangeConfiguration =
   config.get<StackExchangeConfiguration>('stackexchange') ?? {

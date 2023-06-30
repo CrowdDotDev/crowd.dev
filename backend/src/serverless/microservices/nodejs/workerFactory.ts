@@ -1,4 +1,5 @@
 /* eslint-disable no-case-declarations */
+import { Edition } from '@crowd/types'
 import { weeklyAnalyticsEmailsWorker } from './analytics/workers/weeklyAnalyticsEmailsWorker'
 import {
   AutomationMessage,
@@ -27,6 +28,7 @@ import { integrationDataCheckerWorker } from './integration-data-checker/integra
 import { refreshSampleDataWorker } from './integration-data-checker/refreshSampleDataWorker'
 import { mergeSuggestionsWorker } from './merge-suggestions/mergeSuggestionsWorker'
 import { BulkorganizationEnrichmentWorker } from './bulk-enrichment/bulkOrganizationEnrichmentWorker'
+import { API_CONFIG } from '../../../conf'
 
 /**
  * Worker factory for spawning different microservices
@@ -77,6 +79,9 @@ async function workerFactory(event: NodeMicroserviceMessage): Promise<any> {
     }
 
     case 'automation-process':
+      if (API_CONFIG.edition === Edition.LFX) {
+        return {}
+      }
       const automationProcessRequest = event as ProcessAutomationMessage
 
       switch (automationProcessRequest.automationType) {
@@ -103,15 +108,26 @@ async function workerFactory(event: NodeMicroserviceMessage): Promise<any> {
       }
 
     case 'automation':
+      if (API_CONFIG.edition === Edition.LFX) {
+        return {}
+      }
       const automationRequest = event as AutomationMessage
 
       switch (automationRequest.trigger) {
         case AutomationTrigger.NEW_ACTIVITY:
           const newActivityAutomationRequest = event as NewActivityAutomationMessage
-          return newActivityWorker(tenant, newActivityAutomationRequest.activityId)
+          return newActivityWorker(
+            tenant,
+            newActivityAutomationRequest.activityId,
+            newActivityAutomationRequest.segmentId,
+          )
         case AutomationTrigger.NEW_MEMBER:
           const newMemberAutomationRequest = event as NewMemberAutomationMessage
-          return newMemberWorker(tenant, newMemberAutomationRequest.memberId)
+          return newMemberWorker(
+            tenant,
+            newMemberAutomationRequest.memberId,
+            newMemberAutomationRequest.segmentId,
+          )
         default:
           throw new Error(`Invalid automation trigger ${automationRequest.trigger}!`)
       }

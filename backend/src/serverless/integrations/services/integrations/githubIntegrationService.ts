@@ -1,8 +1,19 @@
 import moment from 'moment/moment'
 import { createAppAuth } from '@octokit/auth-app'
 import verifyGithubWebhook from 'verify-github-webhook'
-import { GITHUB_GRID, GithubActivityType, GithubPullRequestEvents } from '@crowd/integrations'
-import { IActivityScoringGrid, IntegrationType, PlatformType } from '@crowd/types'
+import {
+  GITHUB_GRID,
+  GITHUB_MEMBER_ATTRIBUTES,
+  GithubActivityType,
+  GithubPullRequestEvents,
+  TWITTER_MEMBER_ATTRIBUTES,
+} from '@crowd/integrations'
+import {
+  IActivityScoringGrid,
+  IntegrationType,
+  MemberAttributeName,
+  PlatformType,
+} from '@crowd/types'
 import { RedisCache, getRedisClient } from '@crowd/redis'
 import { timeout, singleOrDefault } from '@crowd/common'
 import { Repo, Repos } from '../../types/regularTypes'
@@ -14,9 +25,6 @@ import {
   IStepContext,
 } from '../../../../types/integration/stepResult'
 import MemberAttributeSettingsService from '../../../../services/memberAttributeSettingsService'
-import { GithubMemberAttributes } from '../../../../database/attributes/member/github'
-import { MemberAttributeName } from '../../../../database/attributes/member/enums'
-import { TwitterMemberAttributes } from '../../../../database/attributes/member/twitter'
 import { GITHUB_CONFIG, IS_TEST_ENV, REDIS_CONFIG } from '../../../../conf'
 import StargazersQuery from '../../usecases/github/graphql/stargazers'
 import { IntegrationServiceBase } from '../integrationServiceBase'
@@ -37,6 +45,9 @@ import PullRequestReviewThreadCommentsQuery from '../../usecases/github/graphql/
 import PullRequestCommitsQuery, {
   PullRequestCommit,
 } from '../../usecases/github/graphql/pullRequestCommits'
+import PullRequestCommitsQueryNoAdditions, {
+  PullRequestCommitNoAdditions,
+} from '../../usecases/github/graphql/pullRequestCommitsNoAdditions'
 import IntegrationRunRepository from '../../../../database/repositories/integrationRunRepository'
 import { IntegrationRunState } from '../../../../types/integrationRunTypes'
 import IntegrationStreamRepository from '../../../../database/repositories/integrationStreamRepository'
@@ -90,11 +101,11 @@ export class GithubIntegrationService extends IntegrationServiceBase {
 
   async createMemberAttributes(context: IStepContext): Promise<void> {
     const service = new MemberAttributeSettingsService(context.repoContext)
-    await service.createPredefined(GithubMemberAttributes)
+    await service.createPredefined(GITHUB_MEMBER_ATTRIBUTES)
     await service.createPredefined(
       MemberAttributeSettingsService.pickAttributes(
         [MemberAttributeName.URL],
-        TwitterMemberAttributes,
+        TWITTER_MEMBER_ATTRIBUTES,
       ),
     )
   }
@@ -294,7 +305,24 @@ export class GithubIntegrationService extends IntegrationServiceBase {
           context.integration.token,
         )
 
-        result = await pullRequestCommitsQuery.getSinglePage(stream.metadata.page)
+        try {
+          result = await pullRequestCommitsQuery.getSinglePage(stream.metadata.page)
+        } catch (err) {
+          context.logger.warn(
+            {
+              err,
+              repo,
+              pullRequestNumber,
+            },
+            'Error while fetching pull request commits. Trying again without additions.',
+          )
+          const pullRequestCommitsQueryNoAdditions = new PullRequestCommitsQueryNoAdditions(
+            repo,
+            pullRequestNumber,
+            context.integration.token,
+          )
+          result = await pullRequestCommitsQueryNoAdditions.getSinglePage(stream.metadata.page)
+        }
         break
       case GithubStreamType.ISSUES:
         const issuesQuery = new IssuesQuery(repo, context.integration.token)
@@ -1010,7 +1038,7 @@ export class GithubIntegrationService extends IntegrationServiceBase {
             prNumber,
           },
         }
-
+        // create a new stream
         await streamRepo.create(stream)
 
         if (!isExistingRun) {
@@ -1111,11 +1139,11 @@ export class GithubIntegrationService extends IntegrationServiceBase {
           break
         case GithubPullRequestEvents.REQUEST_REVIEW:
           if (
-            record.actor.login &&
-            (record.requestedReviewer.login || record.requestedReviewer.members)
+            record?.actor?.login &&
+            (record?.requestedReviewer?.login || record?.requestedReviewer?.members)
           ) {
             // Requested review from single member
-            if (record.requestedReviewer.login) {
+            if (record?.requestedReviewer?.login) {
               const member = await GithubIntegrationService.parseMember(record.actor, context)
               const objectMember = await GithubIntegrationService.parseMember(
                 record.requestedReviewer,
@@ -1150,7 +1178,7 @@ export class GithubIntegrationService extends IntegrationServiceBase {
                 isContribution:
                   GITHUB_GRID[GithubActivityType.PULL_REQUEST_REVIEW_REQUESTED].isContribution,
               })
-            } else if (record.requestedReviewer.members) {
+            } else if (record?.requestedReviewer?.members) {
               // review is requested from a team
               const member = await GithubIntegrationService.parseMember(record.actor, context)
 
@@ -1192,7 +1220,7 @@ export class GithubIntegrationService extends IntegrationServiceBase {
 
           break
         case GithubPullRequestEvents.REVIEW:
-          if (record.author.login && record.submittedAt) {
+          if (record?.author?.login && record?.submittedAt) {
             const member = await GithubIntegrationService.parseMember(record.author, context)
             out.push({
               username: member.username[PlatformType.GITHUB].username,
@@ -1227,7 +1255,7 @@ export class GithubIntegrationService extends IntegrationServiceBase {
 
           break
         case GithubPullRequestEvents.MERGE:
-          if (record.actor.login) {
+          if (record?.actor?.login) {
             const member = await GithubIntegrationService.parseMember(record.actor, context)
             out.push({
               username: member.username[PlatformType.GITHUB].username,
@@ -1261,7 +1289,7 @@ export class GithubIntegrationService extends IntegrationServiceBase {
 
           break
         case GithubPullRequestEvents.CLOSE:
-          if (record.actor.login) {
+          if (record?.actor?.login) {
             const member = await GithubIntegrationService.parseMember(record.actor, context)
             out.push({
               username: member.username[PlatformType.GITHUB].username,
@@ -1309,7 +1337,7 @@ export class GithubIntegrationService extends IntegrationServiceBase {
     context: IStepContext,
   ): Promise<AddActivitiesSingle[]> {
     const out: AddActivitiesSingle[] = []
-    const data = records[0] as PullRequestCommit
+    const data = records[0] as PullRequestCommit | PullRequestCommitNoAdditions
     const commits = data.repository.pullRequest.commits.nodes
 
     for (const record of commits) {
@@ -1324,18 +1352,21 @@ export class GithubIntegrationService extends IntegrationServiceBase {
           username: member.username[PlatformType.GITHUB].username,
           platform: PlatformType.GITHUB,
           channel: repo.url,
-          url: `https://github.com/${repo.owner}/${repo.name}.git`,
+          url: `${repo.url}/commit/${record.commit.oid}`,
           body: record.commit.message,
           type: 'authored-commit',
           sourceId: record.commit.oid,
           sourceParentId: `${data.repository.pullRequest.id}`,
           timestamp: moment(record.commit.authoredDate).utc().toDate(),
           attributes: {
-            insertions: record.commit.additions,
-            deletions: record.commit.deletions,
-            lines: record.commit.additions - record.commit.deletions,
+            insertions: 'additions' in record.commit ? record.commit.additions : 0,
+            deletions: 'deletions' in record.commit ? record.commit.deletions : 0,
+            lines:
+              'additions' in record.commit && 'deletions' in record.commit
+                ? record.commit.additions - record.commit.deletions
+                : 0,
             isMerge: record.commit.parents.totalCount > 1,
-            isMainBranch: ['master', 'main'].includes(data.repository.pullRequest.headRefName),
+            isMainBranch: false,
           },
           member,
         })
@@ -1835,6 +1866,10 @@ export class GithubIntegrationService extends IntegrationServiceBase {
     const out: AddActivitiesSingle[] = []
 
     for (const record of records) {
+      if (!('author' in record)) {
+        // eslint-disable-next-line no-continue
+        continue
+      }
       const commentId = record.id
       const member = await GithubIntegrationService.parseMember(record.author, context)
 
@@ -1860,6 +1895,10 @@ export class GithubIntegrationService extends IntegrationServiceBase {
       })
 
       for (const reply of record.replies.nodes) {
+        if (!('author' in reply) || !reply?.author || !reply?.author?.login) {
+          // eslint-disable-next-line no-continue
+          continue
+        }
         const member = await GithubIntegrationService.parseMember(reply.author, context)
         out.push({
           username: member.username[PlatformType.GITHUB].username,
