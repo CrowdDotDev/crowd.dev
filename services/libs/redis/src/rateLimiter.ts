@@ -1,6 +1,6 @@
-import { ICache, RateLimitError } from '@crowd/types'
+import { ICache, IRateLimiter, RateLimitError } from '@crowd/types'
 
-export class RateLimiter {
+export class RateLimiter implements IRateLimiter {
   constructor(
     private readonly cache: ICache,
     private readonly maxRequests: number,

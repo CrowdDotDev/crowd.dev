@@ -4,3 +4,8 @@ export interface ICache {
   delete(key: string): Promise<number>
   increment(key: string, incrementBy?: number, ttlSeconds?: number): Promise<number>
 }
+
+export interface IRateLimiter {
+  checkRateLimit(endpoint: string): Promise<void>
+  incrementRateLimit(): Promise<void>
+}
