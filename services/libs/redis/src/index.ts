@@ -4,3 +4,4 @@ export * from './pubsub'
 export * from './cache'
 
 export * from './instances'
+export * from './rateLimiter'

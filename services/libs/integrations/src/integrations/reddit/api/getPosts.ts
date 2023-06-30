@@ -4,6 +4,7 @@ import { IProcessStreamContext } from '@/types'
 import { PlatformType } from '@crowd/types'
 import { RedditGetPostsInput, RedditPostsResponse, REDDIT_MAX_RETROSPECT_IN_HOURS } from '../types'
 import { timeout } from '@crowd/common'
+import { getRateLimiter } from './handleRateLimit'
 
 /**
  * Get paginated posts from a subreddit
@@ -16,11 +17,16 @@ async function getPosts(
   ctx: IProcessStreamContext,
 ): Promise<RedditPostsResponse> {
   try {
+    const rateLimiter = getRateLimiter(ctx)
+
     ctx.log.info({ message: 'Fetching posts from a sub-reddit', input })
 
     // Wait for 1.5s for rate limits.
     // eslint-disable-next-line no-promise-executor-return
     await timeout(1500)
+
+    // Check if we can make a request - if not, it will throw a RateLimitError
+    await rateLimiter.checkRateLimit('getPosts')
 
     // Gett an access token from Nango
     const accessToken = await getNangoToken(input.nangoId, PlatformType.REDDIT, ctx)
@@ -40,6 +46,9 @@ async function getPosts(
     if (input.after) {
       config.params.after = input.after
     }
+
+    // we are going to make a request, so increment the rate limit
+    await rateLimiter.incrementRateLimit()
 
     const response: RedditPostsResponse = (await axios(config)).data
 
