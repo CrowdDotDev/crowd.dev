@@ -319,21 +319,6 @@ export default {
       };
 
     const initialCharType = this.widget.settings?.chartType || 'line';
-    const hasSegmentsFilter = initialQuery.filters?.some((filter) => filter.member === 'Segments.id');
-
-    if (!hasSegmentsFilter) {
-      const segmentsFilter = {
-        member: 'Segments.id',
-        operator: 'equals',
-        values: [this.widget.segmentId],
-      };
-
-      if (initialQuery.filters?.length) {
-        initialQuery.filters.push(segmentsFilter);
-      } else {
-        initialQuery.filters = [segmentsFilter];
-      }
-    }
 
     return {
       mapWidget,
@@ -391,6 +376,7 @@ export default {
       this.visible = false;
     },
     buildWidgetPreview(settings) {
+      console.log({ settings });
       return {
         title: this.model.title,
         settings,

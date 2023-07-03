@@ -451,19 +451,9 @@ export default {
           })
           // Remove this filter from options for now
           .filter(
-            (f) => f.select !== 'Members.isTeamMember' && f.select !== 'Segments.id' && f.select !== 'Members.isBot',
+            (f) => f.select !== 'Members.isTeamMember' && f.select !== 'Members.isBot',
           )
       );
-    },
-    initSegmentsFilter() {
-      const segmentsFilter = this.filters.find((filter) => filter.member.name === 'Segments.id');
-
-      return {
-        ...segmentsFilter,
-        select: segmentsFilter.member.name,
-        value: segmentsFilter.values,
-        label: '[Segments] ID',
-      };
     },
     syncFilters(option, value, index) {
       const hasChangedFirstOption = option === 'first-option'
