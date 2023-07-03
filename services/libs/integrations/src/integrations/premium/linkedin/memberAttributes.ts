@@ -5,7 +5,7 @@ import {
   MemberAttributes,
 } from '@crowd/types'
 
-const attributes: IMemberAttribute[] = [
+export const LINKEDIN_MEMBER_ATTRIBUTES: IMemberAttribute[] = [
   {
     name: MemberAttributes[MemberAttributeName.URL].name,
     label: MemberAttributes[MemberAttributeName.URL].label,
@@ -21,5 +21,3 @@ const attributes: IMemberAttribute[] = [
     show: false,
   },
 ]
-
-export default attributes

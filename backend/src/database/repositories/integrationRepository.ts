@@ -20,6 +20,8 @@ class IntegrationRepository {
 
     const transaction = SequelizeRepository.getTransaction(options)
 
+    const segment = SequelizeRepository.getStrictlySingleActiveSegment(options)
+
     const record = await options.database.integration.create(
       {
         ...lodash.pick(data, [
@@ -34,7 +36,7 @@ class IntegrationRepository {
           'importHash',
           'emailSentAt',
         ]),
-
+        segmentId: segment.id,
         tenantId: tenant.id,
         createdById: currentUser.id,
         updatedById: currentUser.id,
@@ -60,6 +62,7 @@ class IntegrationRepository {
       where: {
         id,
         tenantId: currentTenant.id,
+        segmentId: SequelizeRepository.getSegmentIds(options),
       },
       transaction,
     })
@@ -152,8 +155,29 @@ class IntegrationRepository {
     await this._createAuditLog(AuditLogRepository.DELETE, record, record, options)
   }
 
+  static async findAllByPlatform(platform, options: IRepositoryOptions) {
+    const transaction = SequelizeRepository.getTransaction(options)
+
+    const include = []
+
+    const currentTenant = SequelizeRepository.getCurrentTenant(options)
+
+    const records = await options.database.integration.findAll({
+      where: {
+        platform,
+        tenantId: currentTenant.id,
+      },
+      include,
+      transaction,
+    })
+
+    return records.map((record) => record.get({ plain: true }))
+  }
+
   static async findByPlatform(platform, options: IRepositoryOptions) {
     const transaction = SequelizeRepository.getTransaction(options)
+
+    const segment = SequelizeRepository.getStrictlySingleActiveSegment(options)
 
     const include = []
 
@@ -163,6 +187,7 @@ class IntegrationRepository {
       where: {
         platform,
         tenantId: currentTenant.id,
+        segmentId: segment.id,
       },
       include,
       transaction,

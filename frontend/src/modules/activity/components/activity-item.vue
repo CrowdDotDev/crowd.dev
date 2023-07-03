@@ -90,6 +90,7 @@
               <app-activity-dropdown
                 :activity="activity"
                 @edit="$emit('edit')"
+                @activity-destroyed="$emit('activity-destroyed')"
               />
             </div>
           </div>
@@ -179,7 +180,7 @@ export default {
       default: true,
     },
   },
-  emits: ['openConversation', 'edit'],
+  emits: ['openConversation', 'edit', 'activity-destroyed'],
   computed: {
     platform() {
       return CrowdIntegrations.getConfig(

@@ -247,6 +247,7 @@ class TagRepository {
             },
           },
         },
+        withSegments: false,
       },
       options,
     )

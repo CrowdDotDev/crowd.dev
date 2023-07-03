@@ -1,0 +1,1 @@
+create index conversations_slug_tenant_id on conversations (slug, "tenantId");

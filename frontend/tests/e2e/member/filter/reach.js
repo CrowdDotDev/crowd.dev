@@ -35,7 +35,7 @@ export default () => {
     cy.get('@apiMemberQuery').then((req) => {
       const { rows } = req.response.body;
       rows.forEach((row) => {
-        cy.wrap(+row.reach.total).should('eq', 621);
+        cy.wrap(+row.reach).should('eq', 621);
       });
     });
   });
@@ -50,7 +50,7 @@ export default () => {
     cy.get('@apiMemberQuery').then((req) => {
       const { rows } = req.response.body;
       rows.forEach((row) => {
-        cy.wrap(+row.reach.total).should('not.eq', 621);
+        cy.wrap(+row.reach).should('not.eq', 621);
       });
     });
   });
@@ -67,7 +67,7 @@ export default () => {
     cy.get('@apiMemberQuery').then((req) => {
       const { rows } = req.response.body;
       rows.forEach((row) => {
-        cy.wrap(+row.reach.total).should('be.lt', 621);
+        cy.wrap(+row.reach).should('be.lt', 621);
       });
     });
   });
@@ -84,7 +84,7 @@ export default () => {
     cy.get('@apiMemberQuery').then((req) => {
       const { rows } = req.response.body;
       rows.forEach((row) => {
-        cy.wrap(+row.reach.total).should('not.be.lt', 621);
+        cy.wrap(+row.reach).should('not.be.lt', 621);
       });
     });
   });
@@ -100,7 +100,7 @@ export default () => {
     cy.get('@apiMemberQuery').then((req) => {
       const { rows } = req.response.body;
       rows.forEach((row) => {
-        cy.wrap(+row.reach.total).should('be.lte', 621);
+        cy.wrap(+row.reach).should('be.lte', 621);
       });
     });
   });
@@ -116,7 +116,7 @@ export default () => {
     cy.get('@apiMemberQuery').then((req) => {
       const { rows } = req.response.body;
       rows.forEach((row) => {
-        cy.wrap(+row.reach.total).should('not.be.lte', 621);
+        cy.wrap(+row.reach).should('not.be.lte', 621);
       });
     });
   });
@@ -132,7 +132,7 @@ export default () => {
     cy.get('@apiMemberQuery').then((req) => {
       const { rows } = req.response.body;
       rows.forEach((row) => {
-        cy.wrap(+row.reach.total).should('be.gt', 621);
+        cy.wrap(+row.reach).should('be.gt', 621);
       });
     });
   });
@@ -148,7 +148,7 @@ export default () => {
     cy.get('@apiMemberQuery').then((req) => {
       const { rows } = req.response.body;
       rows.forEach((row) => {
-        cy.wrap(+row.reach.total).should('not.be.gt', 621);
+        cy.wrap(+row.reach).should('not.be.gt', 621);
       });
     });
   });
@@ -164,7 +164,7 @@ export default () => {
     cy.get('@apiMemberQuery').then((req) => {
       const { rows } = req.response.body;
       rows.forEach((row) => {
-        cy.wrap(+row.reach.total).should('be.gte', 621);
+        cy.wrap(+row.reach).should('be.gte', 621);
       });
     });
   });
@@ -180,7 +180,7 @@ export default () => {
     cy.get('@apiMemberQuery').then((req) => {
       const { rows } = req.response.body;
       rows.forEach((row) => {
-        cy.wrap(+row.reach.total).should('not.be.gte', 621);
+        cy.wrap(+row.reach).should('not.be.gte', 621);
       });
     });
   });
@@ -203,8 +203,8 @@ export default () => {
     cy.get('@apiMemberQuery').then((req) => {
       const { rows } = req.response.body;
       rows.forEach((row) => {
-        cy.wrap(+row.reach.total).should('be.gte', 200);
-        cy.wrap(+row.reach.total).should('be.lte', 1000);
+        cy.wrap(+row.reach).should('be.gte', 200);
+        cy.wrap(+row.reach).should('be.lte', 1000);
       });
     });
   });

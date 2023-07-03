@@ -11,6 +11,30 @@ services:
     networks:
       - crowd-bridge-test
 
+  sqs:
+    build:
+      context: ../scripts/scaffold/sqs
+    ports:
+      - 9325:9324
+      - 9326:9325
+    networks:
+      - crowd-bridge-test
+
+  open-search-test:
+    image: opensearchproject/opensearch:2.7.0
+    environment:
+      - discovery.type=single-node
+      - bootstrap.memory_lock=true
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    ports:
+      - 9201:9200
+      - 9601:9600
+    networks:
+      - crowd-bridge-test
+
   redis-test:
     image: redis
     ports:

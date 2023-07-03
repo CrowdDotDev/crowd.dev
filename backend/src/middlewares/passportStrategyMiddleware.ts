@@ -1,4 +1,3 @@
-import passport from 'passport'
 import { getServiceLogger } from '@crowd/logging'
 import { TWITTER_CONFIG, SLACK_CONFIG, GOOGLE_CONFIG, GITHUB_CONFIG } from '../conf'
 import { getTwitterStrategy } from '../services/auth/passportStrategies/twitterStrategy'
@@ -10,9 +9,9 @@ const log = getServiceLogger()
 
 export async function passportStrategyMiddleware(req, res, next) {
   try {
-    if (TWITTER_CONFIG.clientId) {
-      passport.use(getTwitterStrategy(req.redis, req.log))
-    }
+    // if (TWITTER_CONFIG.clientId) {
+    //   passport.use(getTwitterStrategy(req.redis, req.log))
+    // }
 
     if (SLACK_CONFIG.clientId) {
       passport.use(getSlackStrategy())
