@@ -53,7 +53,14 @@ export const filterQueryService = () => {
   function setQuery(value: Filter) {
     const query: Record<string, any> = {};
     if (value) {
-      Object.entries(value).forEach(([key, filterValue]) => {
+      const mappedValue = {
+        ...value,
+        pagination: {
+          page: value.pagination?.page || 1,
+          perPage: value.pagination?.perPage || 20,
+        },
+      };
+      Object.entries(mappedValue).forEach(([key, filterValue]) => {
         if (typeof filterValue === 'object') {
           Object.entries(filterValue).forEach(([subKey, subFilterValue]) => {
             const value = setQueryValue(subFilterValue);
