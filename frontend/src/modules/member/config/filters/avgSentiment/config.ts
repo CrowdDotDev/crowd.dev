@@ -17,12 +17,12 @@ const avgSentiment: MultiSelectFilterConfig = {
   },
   itemLabelRenderer(
     value: MultiSelectFilterValue,
-    options: MultiSelectFilterOptions
+    options: MultiSelectFilterOptions,
   ): string {
     return itemLabelRendererByType[FilterConfigType.MULTISELECT](
       'Avg. sentiment',
       value,
-      options
+      options,
     );
   },
   apiFilterRenderer({ value, include }: MultiSelectFilterValue): any[] {
