@@ -54,13 +54,19 @@ export default {
     return {
       measureTimeDimensions: {
         'Activities.count': ['Activities.date'],
+        'Activities.cumulativeCount': ['Activities.createdat'],
+        'MemberTags.count': ['MemberTags.createdat'],
+        'Members.averageTimeToFirstInteraction': ['Members.createdat'],
         'Members.count': [
           'Members.joinedAt',
           'Activities.date',
         ],
+        'Members.cumulativeCount': ['Members.createdat'],
         'Conversations.count': ['Conversations.createdat'],
         'Sentiment.averageSentiment': ['Sentiment.date'],
         'Organizations.count': ['Organizations.createdat'],
+        'Segments.count': ['Segments.createdat'],
+        'Tags.count': ['Tags.createdat'],
       },
     };
   },
@@ -72,6 +78,15 @@ export default {
         : this.availableTimeDimensions.filter((t) => !!this.measureTimeDimensions[
           measure.name
         ]?.includes(t.name));
+    },
+  },
+  watch: {
+    measures: {
+      handler(newVal, oldVal) {
+        if (newVal?.[0]?.name !== oldVal?.[0]?.name) {
+          this.handleTimeChange(this.computedTimeDimensions[0].name);
+        }
+      },
     },
   },
   methods: {

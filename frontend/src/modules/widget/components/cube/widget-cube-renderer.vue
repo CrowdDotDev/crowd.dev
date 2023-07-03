@@ -94,19 +94,26 @@ export default {
         values: ['0'],
       };
 
-      const segments = {
-        member: 'Segments.id',
-        operator: 'equals',
-        values: this.subprojectId ? [this.subprojectId] : getSegmentsFromProjectGroup(selectedProjectGroup.value),
-      };
-
       if (!widgetQuery.filters) {
-        widgetQuery.filters = [isTeamMemberFilter, isBot, segments];
+        widgetQuery.filters = [isTeamMemberFilter, isBot];
       } else {
         widgetQuery.filters.push(isTeamMemberFilter);
         widgetQuery.filters.push(isBot);
-        widgetQuery.filters.push(segments);
       }
+
+      const hasSegmentsFilter = widgetQuery.filters?.some((filter) => filter.member === 'Segments.id');
+
+      if (!hasSegmentsFilter) {
+        const segmentsIds = this.subprojectId ? [this.subprojectId] : getSegmentsFromProjectGroup(selectedProjectGroup.value);
+        const segmentsFilter = {
+          member: 'Segments.id',
+          operator: 'equals',
+          values: segmentsIds,
+        };
+
+        widgetQuery.filters.push(segmentsFilter);
+      }
+
       return widgetQuery;
     },
   },
