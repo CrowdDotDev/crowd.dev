@@ -50,17 +50,17 @@ export const filterQueryService = () => {
   }
 
   // Prepares query object to be only one level nested for query params to be more readable
-  function setQuery(value: Filter) {
+  function setQuery(filter: Filter) {
     const query: Record<string, any> = {};
-    if (value) {
-      const mappedValue = {
-        ...value,
+    if (filter) {
+      const mappedFilter = {
+        ...filter,
         pagination: {
-          page: value.pagination?.page || 1,
-          perPage: value.pagination?.perPage || 20,
+          page: filter.pagination?.page || 1,
+          perPage: filter.pagination?.perPage || 20,
         },
       };
-      Object.entries(mappedValue).forEach(([key, filterValue]) => {
+      Object.entries(mappedFilter).forEach(([key, filterValue]) => {
         if (typeof filterValue === 'object') {
           Object.entries(filterValue).forEach(([subKey, subFilterValue]) => {
             const value = setQueryValue(subFilterValue);
