@@ -445,10 +445,12 @@ const en = {
       },
       Activities: {
         count: '[Activities] Count',
+        cumulativeCount: '[Activities] Cumulative Count',
         type: '[Activities] Type',
         platform: '[Activities] Platform',
         date: '[Activities] Date',
         channel: '[Activities] Channel',
+        createdat: '[Activities] Created At',
       },
       Members: {
         count: '[Contributors] Count',
@@ -459,9 +461,12 @@ const en = {
         joinedAt: '[Contributors] Joined Date',
         averageTimeToFirstInteraction:
           '[Contributors] Avg. Time To First Interaction',
+        earliestJoinedAt: '[Contributors] Earliest Joined At',
+        createdat: '[Contributors] Created At',
       },
       MemberTags: {
         count: '[Contributors] # of Tags',
+        createdat: '[Contributors] # of Tags Created At',
       },
       Conversations: {
         count: '[Conversations] Count',
@@ -474,6 +479,7 @@ const en = {
       Tags: {
         name: '[Tags] Name',
         count: '[Tags] Count',
+        createdat: '[Tags] Created At',
       },
       Identities: {
         count: '[Identities] Count',
@@ -485,6 +491,8 @@ const en = {
       Segments: {
         count: '[Segments] Count',
         name: '[Segments] Name',
+        id: '[Segments] ID',
+        createdat: '[Segments] Created At',
       },
       Sentiment: {
         averageSentiment: '[Sentiment] Average',
