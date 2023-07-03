@@ -126,8 +126,8 @@ export const prepareActivityPayload = (activity: any): any => {
  * @param activityId activity unique ID
  * @param activityData activity data
  */
-export default async (tenantId: string, activityId: string): Promise<void> => {
-  const userContext = await getUserContext(tenantId)
+export default async (tenantId: string, activityId: string, segmentId: string): Promise<void> => {
+  const userContext = await getUserContext(tenantId, null, [segmentId])
 
   try {
     // check if relevant automations exists in this tenant

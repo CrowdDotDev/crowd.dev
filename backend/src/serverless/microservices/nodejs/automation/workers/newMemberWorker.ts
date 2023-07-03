@@ -84,8 +84,8 @@ export const prepareMemberPayload = (member: any): any => {
  * @param memberId tenant member ID
  * @param memberData community member data
  */
-export default async (tenantId: string, memberId?: string): Promise<void> => {
-  const userContext = await getUserContext(tenantId)
+export default async (tenantId: string, memberId: string, segmentId: string): Promise<void> => {
+  const userContext = await getUserContext(tenantId, null, [segmentId])
 
   try {
     // check if relevant automation exists in this tenant
