@@ -1,9 +1,10 @@
 import passport from 'passport'
 import { getServiceLogger } from '@crowd/logging'
-import { TWITTER_CONFIG, SLACK_CONFIG, GOOGLE_CONFIG } from '../conf'
+import { TWITTER_CONFIG, SLACK_CONFIG, GOOGLE_CONFIG, GITHUB_CONFIG } from '../conf'
 import { getTwitterStrategy } from '../services/auth/passportStrategies/twitterStrategy'
 import { getSlackStrategy } from '../services/auth/passportStrategies/slackStrategy'
 import { getGoogleStrategy } from '../services/auth/passportStrategies/googleStrategy'
+import { getGithubStrategy } from '../services/auth/passportStrategies/githubStrategy'
 
 const log = getServiceLogger()
 
@@ -19,6 +20,10 @@ export async function passportStrategyMiddleware(req, res, next) {
 
     if (GOOGLE_CONFIG.clientId) {
       passport.use(getGoogleStrategy())
+    }
+
+    if (GITHUB_CONFIG.clientId) {
+      passport.use(getGithubStrategy())
     }
   } catch (error) {
     log.error(error, 'Error getting some passport strategies!')

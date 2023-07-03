@@ -138,6 +138,7 @@ export interface GithubConfiguration {
   webhookSecret: string
   isCommitDataEnabled: string
   globalLimit?: number
+  callbackUrl: string
 }
 
 export interface SendgridConfiguration {
