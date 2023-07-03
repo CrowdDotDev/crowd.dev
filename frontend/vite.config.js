@@ -12,6 +12,9 @@ import dns from 'dns';
 dns.setDefaultResultOrder('verbatim');
 
 export default defineConfig({
+  build: {
+    sourcemap: true,
+  },
   define: {
     'import.meta.env': process.env,
   },
