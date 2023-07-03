@@ -92,8 +92,6 @@ const isSubProjectSelectionOpen = ref(false);
 
 const organizationFilter = ref<CrFilter | null>(null);
 
-const organizationFilter = ref<CrFilter | null>(null);
-
 const hasPermissionToCreate = computed(
   () => new OrganizationPermissions(
     currentTenant.value,
