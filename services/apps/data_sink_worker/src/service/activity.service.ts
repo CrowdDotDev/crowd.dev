@@ -417,30 +417,32 @@ export default class ActivityService extends LoggerBase {
             )
           }
 
-          // just update the activity now
-          await txActivityService.update(
-            dbActivity.id,
-            tenantId,
-            segmentId,
-            {
-              type: activity.type,
-              isContribution: activity.isContribution,
-              score: activity.score,
-              sourceId: activity.sourceId,
-              sourceParentId: activity.sourceParentId,
-              memberId: dbActivity.memberId,
-              username,
-              attributes: activity.attributes || {},
-              body: activity.body,
-              title: activity.title,
-              channel: activity.channel,
-              url: activity.url,
-            },
-            dbActivity,
-            false,
-          )
+          if (!create) {
+            // just update the activity now
+            await txActivityService.update(
+              dbActivity.id,
+              tenantId,
+              segmentId,
+              {
+                type: activity.type,
+                isContribution: activity.isContribution,
+                score: activity.score,
+                sourceId: activity.sourceId,
+                sourceParentId: activity.sourceParentId,
+                memberId: dbActivity.memberId,
+                username,
+                attributes: activity.attributes || {},
+                body: activity.body,
+                title: activity.title,
+                channel: activity.channel,
+                url: activity.url,
+              },
+              dbActivity,
+              false,
+            )
 
-          activityId = dbActivity.id
+            activityId = dbActivity.id
+          }
         } else {
           this.log.trace('We did not find an existing activity. Creating a new one.')
 
