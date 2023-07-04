@@ -9,11 +9,9 @@ import { tenantSubdomain } from '@/modules/tenant/tenant-subdomain';
 import AuthCurrentTenant from '@/modules/auth/auth-current-tenant';
 import { TenantService } from '@/modules/tenant/tenant-service';
 import { buildInitialState, store } from '@/store';
-import {
-  connectSocket,
-  disconnectSocket,
-} from '@/modules/auth/auth-socket';
+import { connectSocket, disconnectSocket } from '@/modules/auth/auth-socket';
 import { Auth0Service } from '@/shared/services/auth0.service';
+import config from '@/config';
 
 export default {
   async doInit({ commit, dispatch }) {
@@ -60,9 +58,7 @@ export default {
 
     return AuthService.sendEmailVerification()
       .then(() => {
-        Message.success(
-          i18n('auth.verificationEmailSuccess'),
-        );
+        Message.success(i18n('auth.verificationEmailSuccess'));
         commit('EMAIL_CONFIRMATION_SUCCESS');
       })
       .catch((error) => {
@@ -90,44 +86,89 @@ export default {
     { commit, dispatch },
     { email, password, data = {} },
   ) {
-    return Auth0Service.signup({
-      email,
-      password,
-      firstName: data.firstName,
-      lastName: data.lastName,
-    })
-      .then(() => {
-        commit('AUTH_SUCCESS', {
-          currentUser: {
-            email,
-          },
+    if (config.auth0.domain) {
+      console.log('auth0 signup');
+      return Auth0Service.signup({
+        email,
+        password,
+        firstName: data.firstName,
+        lastName: data.lastName,
+      })
+        .then(() => {
+          commit('AUTH_SUCCESS', {
+            currentUser: {
+              email,
+            },
+          });
+          router.push({ name: 'emailUnverified' });
+        })
+        .catch((error) => {
+          Message.error(
+            typeof error.description === 'string'
+              ? error.description
+              : error.original.response.body.message,
+          );
+          commit('AUTH_ERROR');
         });
-        router.push({ name: 'emailUnverified' });
+    }
+
+    console.log('normal signup');
+    commit('AUTH_START');
+    return AuthService.registerWithEmailAndPassword(email, password, data)
+      .then((token) => {
+        AuthToken.set(token, true);
+        connectSocket(token);
+        return AuthService.fetchMe();
+      })
+      .then((currentUser) => {
+        commit('AUTH_SUCCESS', {
+          currentUser,
+        });
+
+        router.push('/');
       })
       .catch((error) => {
-        Message.error(typeof error.description === 'string' ? error.description : error.original.response.body.message);
+        AuthService.signout();
+        Errors.handle(error);
         commit('AUTH_ERROR');
       });
   },
 
-  doSigninWithEmailAndPassword(
-    { commit },
-    { email, password, rememberMe },
-  ) {
-    return Auth0Service.login({
-      email,
-      password,
-    })
+  doSigninWithEmailAndPassword({ commit }, { email, password, rememberMe }) {
+    if (config.auth0.domain) {
+      return Auth0Service.login({
+        email,
+        password,
+      }).catch((error) => {
+        commit('AUTH_ERROR');
+        Message.error(
+          typeof error.description === 'string'
+            ? error.description
+            : error.original.response.body.message,
+        );
+      });
+    }
+
+    commit('AUTH_START');
+    return AuthService.signinWithEmailAndPassword(email, password)
+      .then((token) => {
+        AuthToken.set(token, rememberMe);
+        return AuthService.fetchMe();
+      })
+      .then((currentUser) => {
+        commit('AUTH_SUCCESS', {
+          currentUser: currentUser || null,
+        });
+        router.push('/');
+      })
       .catch((error) => {
+        AuthService.signout();
+        Errors.handle(error);
         commit('AUTH_ERROR');
-        Message.error(typeof error.description === 'string' ? error.description : error.original.response.body.message);
       });
   },
 
-  doSigninWithAuth0(
-    { commit },
-    token,
-  ) {
+  doSigninWithAuth0({ commit }, token) {
     commit('AUTH_START');
     return AuthService.ssoGetToken(token)
       .then((token) => {
@@ -196,15 +237,9 @@ export default {
       });
   },
 
-  doChangePassword(
-    { commit, dispatch },
-    { oldPassword, newPassword },
-  ) {
+  doChangePassword({ commit, dispatch }, { oldPassword, newPassword }) {
     commit('PASSWORD_CHANGE_START');
-    return AuthService.changePassword(
-      oldPassword,
-      newPassword,
-    )
+    return AuthService.changePassword(oldPassword, newPassword)
       .then(() => {
         commit('PASSWORD_CHANGE_SUCCESS');
         return dispatch('doRefreshCurrentUser');
@@ -236,10 +271,7 @@ export default {
       });
   },
 
-  doResetPassword(
-    { commit, dispatch },
-    { token, password },
-  ) {
+  doResetPassword({ commit, dispatch }, { token, password }) {
     commit('PASSWORD_RESET_START');
     return AuthService.passwordReset(token, password)
       .then(() => {

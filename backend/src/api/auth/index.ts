@@ -1,3 +1,4 @@
+import { AUTH0_CONFIG } from '../../conf/index'
 import { createRateLimiter } from '../apiRateLimiter'
 import { safeWrap } from '../../middlewares/errorMiddleware'
 
@@ -46,5 +47,7 @@ export default (app) => {
 
   app.get(`/auth/me`, safeWrap(require('./authMe').default))
 
-  app.post(`/auth/sso/callback`, safeWrap(require('./ssoCallback').default))
+  if (AUTH0_CONFIG.clientId) {
+    app.post(`/auth/sso/callback`, safeWrap(require('./ssoCallback').default))
+  }
 }

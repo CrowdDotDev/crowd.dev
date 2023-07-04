@@ -7,15 +7,17 @@ const authCallback = `${baseUrl}/auth/callback`;
 const redirectUri = `${baseUrl}/auth/signin`;
 
 class Auth0ServiceClass {
-  private readonly webAuth: WebAuth;
+  private readonly webAuth: WebAuth | undefined;
 
   public constructor() {
-    this.webAuth = new WebAuth({
-      domain: config.auth0.domain,
-      clientID: config.auth0.clientId,
-      redirectUri: authCallback,
-      responseType: 'token id_token',
-    });
+    if (config.auth0.domain) {
+      this.webAuth = new WebAuth({
+        domain: config.auth0.domain,
+        clientID: config.auth0.clientId,
+        redirectUri: authCallback,
+        responseType: 'token id_token',
+      });
+    }
   }
 
   public handleAuth(): Promise<void> {
@@ -33,7 +35,9 @@ class Auth0ServiceClass {
 
   public authData() {
     const idToken = localStorage.getItem(LocalStorageEnum.ID_TOKEN);
-    const idTokenExpiration = localStorage.getItem(LocalStorageEnum.ID_TOKEN_EXPIRATION);
+    const idTokenExpiration = localStorage.getItem(
+      LocalStorageEnum.ID_TOKEN_EXPIRATION,
+    );
     const profile = localStorage.getItem(LocalStorageEnum.AUTH_PROFILE);
 
     if (idToken && idTokenExpiration && profile) {
@@ -59,8 +63,14 @@ class Auth0ServiceClass {
     const tokenExpiry = new Date(profile.exp * 1000);
 
     localStorage.setItem(LocalStorageEnum.ID_TOKEN, idToken as string);
-    localStorage.setItem(LocalStorageEnum.AUTH_PROFILE, JSON.stringify(profile));
-    localStorage.setItem(LocalStorageEnum.ID_TOKEN_EXPIRATION, tokenExpiry.getTime().toString());
+    localStorage.setItem(
+      LocalStorageEnum.AUTH_PROFILE,
+      JSON.stringify(profile),
+    );
+    localStorage.setItem(
+      LocalStorageEnum.ID_TOKEN_EXPIRATION,
+      tokenExpiry.getTime().toString(),
+    );
   }
 
   public static localLogout() {
@@ -100,7 +110,10 @@ class Auth0ServiceClass {
   }
 
   public signup({
-    email, password, firstName, lastName,
+    email,
+    password,
+    firstName,
+    lastName,
   }: Record<string, string>) {
     return new Promise((resolve, reject) => {
       this.webAuth.signup(
