@@ -1,11 +1,16 @@
 import axios, { AxiosRequestConfig } from 'axios'
-import { Logger } from '@crowd/logging'
 import { timeout } from '@crowd/common'
 import { SlackGetChannelsInput, SlackTeam } from '../types'
 import { handleSlackError } from './errorHandler'
+import { IProcessStreamContext } from '@/types'
 
-async function getChannels(input: SlackGetChannelsInput, logger: Logger): Promise<SlackTeam> {
+async function getChannels(
+  input: SlackGetChannelsInput,
+  ctx: IProcessStreamContext,
+): Promise<SlackTeam> {
   await timeout(2000)
+
+  const logger = ctx.log
 
   const config: AxiosRequestConfig<any> = {
     method: 'get',
