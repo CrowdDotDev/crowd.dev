@@ -1997,6 +1997,8 @@ class MemberRepository {
 
       row.identities = identities
       row.username = username
+      row.activeDaysCount = parseInt(row.activeDaysCount, 10)
+      row.activityCount = parseInt(row.activityCount, 10)
     }
 
     const memberIds = translatedRows.map((r) => r.id)
