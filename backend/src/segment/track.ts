@@ -16,7 +16,7 @@ export default function identify(
     !IS_TEST_ENV &&
     SEGMENT_CONFIG.writeKey &&
     // This is only for events in the hosted version. Self-hosted has less telemetry.
-    API_CONFIG.edition === Edition.CROWD_HOSTED
+    (API_CONFIG.edition === Edition.CROWD_HOSTED || API_CONFIG.edition === Edition.LFX)
   ) {
     const Analytics = require('analytics-node')
     const analytics = new Analytics(SEGMENT_CONFIG.writeKey)
