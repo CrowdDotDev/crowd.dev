@@ -45,4 +45,6 @@ export default (app) => {
   app.put(`/auth/verify-email`, safeWrap(require('./authVerifyEmail').default))
 
   app.get(`/auth/me`, safeWrap(require('./authMe').default))
+
+  app.post(`/auth/sso/callback`, safeWrap(require('./ssoCallback').default))
 }

@@ -31,6 +31,7 @@ import {
   SlackNotifierConfiguration,
   OrganizationEnrichmentConfiguration,
   IOpenSearchConfig,
+  Auth0Configuration,
   WeeklyEmailsConfiguration,
 } from './configTypes'
 
@@ -73,6 +74,8 @@ export const COMPREHEND_CONFIG: ComprehendConfiguration =
 export const CLEARBIT_CONFIG: ClearbitConfiguration = config.get<ClearbitConfiguration>('clearbit')
 
 export const API_CONFIG: ApiConfiguration = config.get<ApiConfiguration>('api')
+
+export const AUTH0_CONFIG: Auth0Configuration = config.get<Auth0Configuration>('auth0')
 
 export const PLANS_CONFIG: PlansConfiguration = config.get<PlansConfiguration>('plans')
 

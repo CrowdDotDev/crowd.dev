@@ -1,6 +1,6 @@
 import { IMemberAttribute, IActivityData } from '@crowd/types'
 import { Logger } from '@crowd/logging'
-import { ICache, IIntegration, IIntegrationStream } from '@crowd/types'
+import { ICache, IIntegration, IIntegrationStream, IRateLimiter } from '@crowd/types'
 
 export interface IIntegrationContext {
   onboarding: boolean
@@ -27,6 +27,10 @@ export interface IProcessStreamContext extends IIntegrationContext {
   publishData: <T>(data: T) => Promise<void>
 
   abortWithError: (message: string, metadata?: unknown, error?: Error) => Promise<void>
+
+  globalCache: ICache
+
+  getRateLimiter: (maxRequests: number, timeWindowSeconds: number, cacheKey: string) => IRateLimiter
 }
 
 export interface IProcessDataContext extends IIntegrationContext {

@@ -482,12 +482,13 @@ class AuthService {
         )
       }
       // If there was no provider, we can link it to the provider
-      if (user && (user.provider === undefined || user.provider === null)) {
+      if (user && (user.provider === undefined || user.provider === null || user.emailVerified)) {
         await UserRepository.update(
           user.id,
           {
             provider,
             providerId,
+            emailVerified,
           },
           options,
         )
@@ -518,6 +519,97 @@ class AuthService {
           user.id,
         )
       }
+      const token = jwt.sign({ id: user.id }, API_CONFIG.jwtSecret, {
+        expiresIn: API_CONFIG.jwtExpiresIn,
+      })
+
+      await SequelizeRepository.commitTransaction(transaction)
+
+      return token
+    } catch (error) {
+      await SequelizeRepository.rollbackTransaction(transaction)
+
+      throw error
+    }
+  }
+
+  static async signinFromSSO(
+    provider,
+    providerId,
+    email,
+    emailVerified,
+    firstName,
+    lastName,
+    fullName,
+    invitationToken,
+    tenantId,
+    options: any = {},
+  ) {
+    if (!email) {
+      throw new Error('auth-no-email')
+    }
+
+    const transaction = await SequelizeRepository.createTransaction(options)
+
+    try {
+      email = email.toLowerCase()
+      let user = await UserRepository.findByEmail(email, options)
+      if (user) {
+        identify(user)
+        track(
+          'Signed in',
+          {
+            google: providerId.includes('google'),
+            email: user.email,
+          },
+          options,
+          user.id,
+        )
+      }
+
+      // If there was no provider, we can link it to the provider
+      if (user && (!user.provider || !user.providerId || !user.emailVerified)) {
+        await UserRepository.update(
+          user.id,
+          {
+            provider,
+            providerId,
+            emailVerified,
+          },
+          options,
+        )
+        log.debug({ user }, 'User')
+      }
+
+      if (!user) {
+        user = await UserRepository.createFromSocial(
+          provider,
+          providerId,
+          email,
+          emailVerified,
+          firstName,
+          lastName,
+          fullName,
+          options,
+        )
+        identify(user)
+        track(
+          'Signed up',
+          {
+            google: true,
+            email: user.email,
+          },
+          options,
+          user.id,
+        )
+      }
+      if (invitationToken) {
+        await this.handleOnboard(user, invitationToken, tenantId, {
+          ...options,
+          transaction,
+        })
+      }
+
       const token = jwt.sign({ id: user.id }, API_CONFIG.jwtSecret, {
         expiresIn: API_CONFIG.jwtExpiresIn,
       })

@@ -58,6 +58,17 @@ export class OpenSearchService extends LoggerBase {
     }
   }
 
+  public async deleteIndex(indexName: OpenSearchIndex): Promise<void> {
+    try {
+      await this.client.indices.delete({
+        index: indexName,
+      })
+    } catch (err) {
+      this.log.error(err, { indexName }, 'Failed to delete index!')
+      throw err
+    }
+  }
+
   public async setIndexMappings(indexName: OpenSearchIndex): Promise<void> {
     try {
       const mappings = OPENSEARCH_INDEX_MAPPINGS[indexName]
@@ -151,27 +162,36 @@ export class OpenSearchService extends LoggerBase {
 
   public async search<T>(
     index: OpenSearchIndex,
-    query: unknown,
+    query?: unknown,
+    aggs?: unknown,
     size?: number,
     sort?: unknown[],
     searchAfter?: unknown,
     sourceIncludeFields?: string[],
     sourceExcludeFields?: string[],
-  ): Promise<ISearchHit<T>[]> {
+  ): Promise<ISearchHit<T>[] | unknown> {
     try {
-      const data = await this.client.search({
+      const payload = {
         index,
         _source_excludes: sourceExcludeFields,
         _source_includes: sourceIncludeFields,
         body: {
+          size: aggs ? 0 : undefined,
           query,
+          aggs,
           search_after: searchAfter ? [searchAfter] : undefined,
           sort,
         },
         size,
-      })
+      }
 
-      return data.body.hits.hits
+      const data = await this.client.search(payload)
+
+      if (query) {
+        return data.body.hits.hits
+      } else {
+        return data.body.aggregations
+      }
     } catch (err) {
       this.log.error(err, { index, query }, 'Failed to search documents!')
       throw new Error('Failed to search documents!')

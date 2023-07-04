@@ -4,6 +4,7 @@ import { IProcessStreamContext } from '@/types'
 import { PlatformType } from '@crowd/types'
 import { RedditMoreCommentsInput, RedditMoreCommentsResponse } from '../types'
 import { timeout } from '@crowd/common'
+import { getRateLimiter } from './handleRateLimit'
 
 /**
  * Expand a list of comment IDs into a comment tree.
@@ -17,11 +18,16 @@ async function getMoreComments(
   ctx: IProcessStreamContext,
 ): Promise<RedditMoreCommentsResponse> {
   try {
+    const rateLimiter = getRateLimiter(ctx)
+
     ctx.log.info({ message: 'Fetching more comments from a sub-reddit', input })
 
     // Wait for 1.5s for rate limits.
     // eslint-disable-next-line no-promise-executor-return
     await timeout(1500)
+
+    // Check if we can make a request - if not, it will throw a RateLimitError
+    await rateLimiter.checkRateLimit('getMoreComments')
 
     // Gett an access token from Nango
     const accessToken = await getNangoToken(input.nangoId, PlatformType.REDDIT, ctx)
@@ -38,6 +44,9 @@ async function getMoreComments(
         Authorization: `Bearer ${accessToken}`,
       },
     }
+
+    // we are going to make a request, so increment the rate limit
+    await rateLimiter.incrementRateLimit()
 
     const response: RedditMoreCommentsResponse = (await axios(config)).data
     return response

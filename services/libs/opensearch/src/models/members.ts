@@ -88,6 +88,10 @@ export class MembersOpensearch extends OpensearchModelBase {
     },
     organizations: {
       type: OpensearchFieldType.OBJECT_ARR,
+      customTranslation: {
+        toOpensearch: 'obj_arr_organizations.uuid_id',
+        fromOpensearch: 'obj_arr_organizations',
+      },
     },
   }
 }

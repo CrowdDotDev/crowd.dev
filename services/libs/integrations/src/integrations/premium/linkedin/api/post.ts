@@ -12,9 +12,10 @@ export const getPost = async (
 ): Promise<ILinkedInOrganizationPost> => {
   const config: AxiosRequestConfig<unknown> = {
     method: 'get',
-    url: `https://api.linkedin.com/v2/posts/${postId}`,
+    url: `https://api.linkedin.com/rest/posts/${postId}`,
     headers: {
       'X-Restli-Protocol-Version': '2.0.0',
+      'LinkedIn-Version': '202305',
     },
   }
 

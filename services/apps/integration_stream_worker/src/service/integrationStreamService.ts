@@ -2,7 +2,7 @@ import { addSeconds, singleOrDefault } from '@crowd/common'
 import { DbStore } from '@crowd/database'
 import { INTEGRATION_SERVICES, IProcessStreamContext } from '@crowd/integrations'
 import { Logger, LoggerBase, getChildLogger } from '@crowd/logging'
-import { RedisCache, RedisClient } from '@crowd/redis'
+import { RedisCache, RedisClient, RateLimiter } from '@crowd/redis'
 import {
   IntegrationDataWorkerEmitter,
   IntegrationRunWorkerEmitter,
@@ -181,6 +181,8 @@ export default class IntegrationStreamService extends LoggerBase {
       this.log,
     )
 
+    const globalCache = new RedisCache(`int-global`, this.redisClient, this.log)
+
     const nangoConfig = NANGO_CONFIG()
 
     const context: IProcessStreamContext = {
@@ -209,6 +211,7 @@ export default class IntegrationStreamService extends LoggerBase {
 
       log: this.log,
       cache,
+      globalCache,
 
       publishData: async (data) => {
         await this.publishData(
@@ -240,6 +243,9 @@ export default class IntegrationStreamService extends LoggerBase {
       abortRunWithError: async (message: string, metadata?: unknown, error?: Error) => {
         this.log.error({ message }, 'Aborting run with error!')
         await this.triggerRunError(streamInfo.runId, 'stream-run-abort', message, metadata, error)
+      },
+      getRateLimiter: (maxRequests: number, timeWindowSeconds: number, counterKey: string) => {
+        return new RateLimiter(globalCache, maxRequests, timeWindowSeconds, counterKey)
       },
     }
 
