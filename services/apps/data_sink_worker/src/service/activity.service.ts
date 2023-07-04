@@ -335,18 +335,18 @@ export default class ActivityService extends LoggerBase {
         )
         const txIntegrationRepo = new IntegrationRepository(txStore, this.log)
 
-        // find existing activity
-        const dbActivity = await txRepo.findExisting(tenantId, activity.sourceId)
-
         const dbIntegration = await txIntegrationRepo.findById(integrationId)
         const segmentId = dbIntegration.segmentId
+
+        // find existing activity
+        const dbActivity = await txRepo.findExisting(tenantId, segmentId, activity.sourceId)
 
         let create = false
 
         if (dbActivity) {
           this.log.trace({ activityId: dbActivity.id }, 'Found existing activity. Updating it.')
           // process member data
-          let dbMember = await txMemberRepo.findMember(tenantId, platform, username)
+          let dbMember = await txMemberRepo.findMember(tenantId, segmentId, platform, username)
           if (dbMember) {
             // we found a member for the identity from the activity
             this.log.trace({ memberId: dbMember.id }, 'Found existing member.')
@@ -427,36 +427,38 @@ export default class ActivityService extends LoggerBase {
             )
           }
 
-          // just update the activity now
-          await txActivityService.update(
-            dbActivity.id,
-            tenantId,
-            segmentId,
-            {
-              type: activity.type,
-              isContribution: activity.isContribution,
-              score: activity.score,
-              sourceId: activity.sourceId,
-              sourceParentId: activity.sourceParentId,
-              memberId: dbActivity.memberId,
-              username,
-              attributes: activity.attributes || {},
-              body: activity.body,
-              title: activity.title,
-              channel: activity.channel,
-              url: activity.url,
-            },
-            dbActivity,
-            false,
-          )
+          if (!create) {
+            // just update the activity now
+            await txActivityService.update(
+              dbActivity.id,
+              tenantId,
+              segmentId,
+              {
+                type: activity.type,
+                isContribution: activity.isContribution,
+                score: activity.score,
+                sourceId: activity.sourceId,
+                sourceParentId: activity.sourceParentId,
+                memberId: dbActivity.memberId,
+                username,
+                attributes: activity.attributes || {},
+                body: activity.body,
+                title: activity.title,
+                channel: activity.channel,
+                url: activity.url,
+              },
+              dbActivity,
+              false,
+            )
 
-          activityId = dbActivity.id
+            activityId = dbActivity.id
+          }
         } else {
           this.log.trace('We did not find an existing activity. Creating a new one.')
 
           // we don't have the activity yet in the database
           // check if we have a member for the identity from the activity
-          const dbMember = await txMemberRepo.findMember(tenantId, platform, username)
+          const dbMember = await txMemberRepo.findMember(tenantId, segmentId, platform, username)
           if (dbMember) {
             this.log.trace({ memberId: dbMember.id }, 'Found existing member.')
             await txMemberService.update(
