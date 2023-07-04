@@ -50,7 +50,12 @@ export default class ActivityService extends LoggerBase {
         )
 
         if (activity.channel) {
-          await txSettingsRepo.createActivityChannel(tenantId, activity.platform, activity.channel)
+          await txSettingsRepo.createActivityChannel(
+            tenantId,
+            segmentId,
+            activity.platform,
+            activity.channel,
+          )
         }
 
         const id = await txRepo.create(tenantId, segmentId, {
@@ -74,8 +79,7 @@ export default class ActivityService extends LoggerBase {
 
         return id
       })
-
-      await this.nodejsWorkerEmitter.processAutomationForNewActivity(tenantId, id)
+      await this.nodejsWorkerEmitter.processAutomationForNewActivity(tenantId, id, segmentId)
       const affectedIds = await this.conversationService.processActivity(tenantId, id)
 
       if (fireSync) {
@@ -120,7 +124,12 @@ export default class ActivityService extends LoggerBase {
         }
 
         if (toUpdate.channel) {
-          await txSettingsRepo.createActivityChannel(tenantId, original.platform, toUpdate.channel)
+          await txSettingsRepo.createActivityChannel(
+            tenantId,
+            segmentId,
+            original.platform,
+            toUpdate.channel,
+          )
         }
 
         if (!isObjectEmpty(toUpdate)) {
