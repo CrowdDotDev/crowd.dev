@@ -61,12 +61,6 @@ Our <a href="https://crowd.dev/#waitlist">cloud version</a> is a fast, easy and 
 
 To get started with self-hosting, take a look at our [self-hosting docs](https://docs.crowd.dev/docs/getting-started-with-self-hosting).
 
-### Contact us
-
-Call with a crowd.dev team member to learn more about our product and make sure you get the most out of it.
-
-<a href="https://cal.com/team/CrowdDotDev/intro-to-crowd-dev/"><img alt="Book us with Cal.com" src="https://cal.com/book-with-cal-dark.svg" /></a>
-
 #### Deployment with Kubernetes
 
 Our services can be deployed using Kubernetes, as well as a lightweight development environment using Docker. You can read more about it in our [self-hosting docs](https://docs.crowd.dev/docs/deployment).
@@ -133,3 +127,9 @@ Our self-hosted version can be run and deployed by default following the permiss
 ## 🔒 Security
 
 We take security very seriously. If you come across any security vulnerabilities, please disclose them by sending an email to security@crowd.dev. We appreciate your help in making our platform as secure as possible and are committed to working with you to resolve any issues quickly and efficiently.
+
+### Contact us
+
+Call with a crowd.dev team member to learn more about our product and make sure you get the most out of it.
+
+<a href="https://cal.com/team/CrowdDotDev/intro-to-crowd-dev/"><img alt="Book us with Cal.com" src="https://cal.com/book-with-cal-dark.svg" /></a>
