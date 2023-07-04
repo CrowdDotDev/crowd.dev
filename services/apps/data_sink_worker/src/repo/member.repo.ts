@@ -45,13 +45,14 @@ export default class MemberRepository extends RepositoryBase<MemberRepository> {
   ): Promise<IDbMember | null> {
     return await this.db().oneOrNone(
       `${this.selectMemberQuery}
-      where m."id" in (
-        select "memberId" from "memberIdentities"
-        where "tenantId" = $(tenantId) and
-        "platform" = $(platform) and
-        "username" = $(username) and
-        exists(select 1 from "memberSegments" ms where ms."tenantId" = $(tenantId) and ms."segmentId" = $(segmentId) and ms."memberId" = m.id)
-      )
+      where m.id in (select ms."memberId"
+                    from "memberSegments" ms
+                              inner join "memberIdentities" mi
+                                        on ms."tenantId" = mi."tenantId" and ms."memberId" = mi."memberId"
+                    where ms."tenantId" = $(tenantId)
+                      and ms."segmentId" = $(segmentId)
+                      and mi.platform = $(platform)
+                      and mi.username = $(username));
     `,
       {
         tenantId,
