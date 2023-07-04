@@ -58,13 +58,15 @@ export default class SettingsRepository extends RepositoryBase<SettingsRepositor
 
   public async createActivityChannel(
     tenantId: string,
+    segmentId: string,
     platform: string,
     channel: string,
   ): Promise<void> {
     const results = await this.db().one(
-      'select "activityChannels" from settings where "tenantId" = $(tenantId)',
+      'select "activityChannels" from segments where "tenantId" = $(tenantId) and id = $(segmentId)',
       {
         tenantId,
+        segmentId,
       },
     )
 
@@ -81,9 +83,10 @@ export default class SettingsRepository extends RepositoryBase<SettingsRepositor
     channels[platform].push(channel)
 
     const result = await this.db().result(
-      `update settings set "activityChannels" = $(channels) where "tenantId" = $(tenantId)`,
+      `update segments set "activityChannels" = $(channels) where "tenantId" = $(tenantId) and id = $(segmentId)`,
       {
         tenantId,
+        segmentId,
         channels,
       },
     )
