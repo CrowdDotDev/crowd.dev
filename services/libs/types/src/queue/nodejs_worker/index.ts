@@ -9,7 +9,11 @@ export class NewActivityAutomationQueueMessage implements IQueueMessage {
   public readonly trigger = 'new_activity'
   public readonly service = 'automation'
 
-  constructor(public readonly tenant: string, public readonly activityId: unknown) {}
+  constructor(
+    public readonly tenant: string,
+    public readonly activityId: unknown,
+    public readonly segmentId: string,
+  ) {}
 }
 
 export class NewMemberAutomationQueueMessage implements IQueueMessage {

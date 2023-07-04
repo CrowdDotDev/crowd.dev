@@ -74,8 +74,7 @@ export default class ActivityService extends LoggerBase {
 
         return id
       })
-
-      await this.nodejsWorkerEmitter.processAutomationForNewActivity(tenantId, id)
+      await this.nodejsWorkerEmitter.processAutomationForNewActivity(tenantId, id, segmentId)
       const affectedIds = await this.conversationService.processActivity(tenantId, id)
 
       if (fireSync) {
