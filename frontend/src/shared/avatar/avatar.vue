@@ -6,7 +6,12 @@
       :style="computedStyle"
       :aria-label="computedInitials"
     >
-      <img v-if="url" :src="url" alt="">
+      <img
+        v-if="url"
+        :src="url"
+        alt=""
+        @error="handleImageError"
+      >
     </div>
     <slot name="icon" />
   </div>
@@ -83,6 +88,11 @@ export default {
         .map((n) => n[0])
         .slice(0, 2)
         .join('');
+    },
+  },
+  methods: {
+    handleImageError(event) {
+      event.target.remove();
     },
   },
 };
