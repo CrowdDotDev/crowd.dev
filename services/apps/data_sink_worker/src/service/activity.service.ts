@@ -359,9 +359,10 @@ export default class ActivityService extends LoggerBase {
               // delete activity
               await txRepo.delete(dbActivity.id)
               await this.searchSyncWorkerEmitter.triggerRemoveActivity(tenantId, dbActivity.id)
-              memberId = dbMember.id
               create = true
             }
+
+            memberId = dbMember.id
 
             // update the member
             await txMemberService.update(
