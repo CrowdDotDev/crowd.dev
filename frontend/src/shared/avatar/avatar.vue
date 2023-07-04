@@ -6,7 +6,7 @@
       :style="computedStyle"
       :aria-label="computedInitials"
     >
-      <img :src="url" alt="">
+      <img v-if="url" :src="url" alt="">
     </div>
     <slot name="icon" />
   </div>
