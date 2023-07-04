@@ -140,7 +140,6 @@ export default async (tenantId: string, activityId: string, segmentId: string): 
       log.info(`Found ${automations.length} automations to process!`)
       let activity = await ActivityRepository.findById(activityId, userContext)
 
-
       if (activity.member?.id) {
         const member = await MemberRepository.findById(activity.member.id, userContext)
         activity = {
