@@ -318,6 +318,10 @@ export default {
         ],
       };
 
+    if (initialQuery.filters?.length) {
+      initialQuery.filters = initialQuery.filters.filter((filter) => !!filter.member);
+    }
+
     const initialCharType = this.widget.settings?.chartType || 'line';
 
     return {

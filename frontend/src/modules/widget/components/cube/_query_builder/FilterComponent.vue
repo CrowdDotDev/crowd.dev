@@ -413,7 +413,6 @@ export default {
   async created() {
     await this.doFetchIntegrations([this.segmentId]);
     this.localFilters = this.initLocalFilters() || [];
-    this.segmentsFilter = this.initSegmentsFilter();
   },
   methods: {
     addFilter() {

@@ -95,6 +95,10 @@ export default {
         widgetQuery.filters.push(isBot);
       }
 
+      if (widgetQuery.filters?.length) {
+        widgetQuery.filters = widgetQuery.filters.filter((filter) => !!filter.member);
+      }
+
       return widgetQuery;
     },
   },
