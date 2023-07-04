@@ -119,6 +119,9 @@ export default {
 
   async created() {
     this.loading = true;
+
+    await this.getCubeToken();
+
     if (this.tenantId) {
       await AuthCurrentTenant.set({ id: this.tenantId });
       await this.doFindPublic({
@@ -153,6 +156,7 @@ export default {
     ...mapActions({
       doFind: 'report/doFind',
       doFindPublic: 'report/doFindPublic',
+      getCubeToken: 'widget/getCubeToken',
     }),
   },
 };

@@ -88,6 +88,8 @@ export default {
   async created() {
     this.loading.find = true;
 
+    await this.getCubeToken();
+
     await this.doFind({
       id: this.id,
       segments: [this.segmentId],
@@ -99,6 +101,7 @@ export default {
 
   methods: {
     ...mapActions({
+      getCubeToken: 'widget/getCubeToken',
       doFind: 'report/doFind',
       doCreate: 'report/doCreate',
     }),

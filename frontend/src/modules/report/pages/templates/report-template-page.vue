@@ -85,7 +85,7 @@ import { useStore } from 'vuex';
 import templates from '@/modules/report/templates/config';
 import AppReportTemplateFilters from '@/modules/report/components/templates/report-template-filters.vue';
 import ActivityPlatformField from '@/modules/activity/activity-platform-field';
-import { mapActions, mapGetters } from '@/shared/vuex/vuex.helpers';
+import { mapActions } from '@/shared/vuex/vuex.helpers';
 
 const props = defineProps({
   id: {
@@ -128,7 +128,6 @@ const segments = ref({
 
 const currentTemplate = computed(() => templates.find((t) => t.config.nameAsId === report.value?.name)?.config);
 
-const { cubejsApi } = mapGetters('widget');
 const { getCubeToken } = mapActions('widget');
 
 const onPageScroll = () => {
@@ -164,14 +163,11 @@ onMounted(async () => {
   });
 
   loading.value = true;
+  await getCubeToken();
   report.value = await doFind({
     id: props.id,
   });
   loading.value = false;
-
-  if (cubejsApi.value === null) {
-    await getCubeToken();
-  }
 
   wrapper.value = document.querySelector(
     '#main-page-wrapper',
