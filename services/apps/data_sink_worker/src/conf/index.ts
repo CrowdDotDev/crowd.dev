@@ -3,6 +3,10 @@ import { ISqsClientConfig } from '@crowd/sqs'
 import { ISentimentClientConfig } from '@crowd/sentiment'
 import config from 'config'
 
+export interface ISlackAlertingConfig {
+  url: string
+}
+
 let sqsConfig: ISqsClientConfig
 export const SQS_CONFIG = (): ISqsClientConfig => {
   if (sqsConfig) return sqsConfig
@@ -17,6 +21,14 @@ export const DB_CONFIG = (): IDatabaseConfig => {
 
   dbConfig = config.get<IDatabaseConfig>('db')
   return dbConfig
+}
+
+let slackAlertingConfig: ISlackAlertingConfig
+export const SLACK_ALERTING_CONFIG = (): ISlackAlertingConfig => {
+  if (slackAlertingConfig) return slackAlertingConfig
+
+  slackAlertingConfig = config.get<ISlackAlertingConfig>('slackAlerting')
+  return slackAlertingConfig
 }
 
 let sentimentConfigInitialized = false

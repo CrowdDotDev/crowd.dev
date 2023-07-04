@@ -16,4 +16,9 @@ export interface IApiDataInfo {
   state: IntegrationStreamDataState
   data: unknown
   retries: number
+
+  hasSampleData: boolean
+  plan: string
+  isTrialPlan: boolean
+  name: string
 }
