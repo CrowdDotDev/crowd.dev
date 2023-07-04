@@ -30,8 +30,8 @@ export default class MemberRepository extends RepositoryBase<MemberRepository> {
     this.selectMemberColumnSet = getSelectMemberColumnSet(this.dbInstance)
 
     this.selectMemberQuery = `
-      select ${this.selectMemberColumnSet.columns.map((c) => `"${c.name}"`).join(', ')}
-      from "members"
+      select ${this.selectMemberColumnSet.columns.map((c) => `m."${c.name}"`).join(', ')}
+      from "members" m
     `
     this.insertMemberIdentityColumnSet = getInsertMemberIdentityColumnSet(this.dbInstance)
     this.insertMemberSegmentColumnSet = getInsertMemberSegmentColumnSet(this.dbInstance)
@@ -39,20 +39,23 @@ export default class MemberRepository extends RepositoryBase<MemberRepository> {
 
   public async findMember(
     tenantId: string,
+    segmentId: string,
     platform: string,
     username: string,
   ): Promise<IDbMember | null> {
     return await this.db().oneOrNone(
       `${this.selectMemberQuery}
-      where "id" in (
+      where m."id" in (
         select "memberId" from "memberIdentities"
         where "tenantId" = $(tenantId) and
         "platform" = $(platform) and
-        "username" = $(username)
+        "username" = $(username) and
+        exists(select 1 from "memberSegments" ms where ms."tenantId" = $(tenantId) and ms."segmentId" = $(segmentId) and ms."memberId" = m.id)
       )
     `,
       {
         tenantId,
+        segmentId,
         platform,
         username,
       },
@@ -102,7 +105,7 @@ export default class MemberRepository extends RepositoryBase<MemberRepository> {
   }
 
   public async findById(id: string): Promise<IDbMember | null> {
-    return await this.db().oneOrNone(`${this.selectMemberQuery} where id = $(id)`, { id })
+    return await this.db().oneOrNone(`${this.selectMemberQuery} where m.id = $(id)`, { id })
   }
 
   public async create(tenantId: string, data: IDbMemberCreateData): Promise<string> {
