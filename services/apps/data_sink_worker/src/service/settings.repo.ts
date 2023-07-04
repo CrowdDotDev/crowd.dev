@@ -62,32 +62,36 @@ export default class SettingsRepository extends RepositoryBase<SettingsRepositor
     platform: string,
     channel: string,
   ): Promise<void> {
-    const results = await this.db().one(
-      'select "activityChannels" from segments where "tenantId" = $(tenantId) and id = $(segmentId)',
-      {
-        tenantId,
-        segmentId,
-      },
-    )
-
-    const channels = results.activityChannels
-
-    if (platform in channels && channel in channels[platform]) {
-      return
-    }
-
-    if (!(platform in channels)) {
-      channels[platform] = []
-    }
-
-    channels[platform].push(channel)
-
     const result = await this.db().result(
-      `update segments set "activityChannels" = $(channels) where "tenantId" = $(tenantId) and id = $(segmentId)`,
+      `
+      update segments
+        set "activityChannels" =
+                case
+                    -- If platform exists, and channel does not exist, add it
+                    when "activityChannels" ? $(platform)
+                        and not ($(channel) = any (select jsonb_array_elements_text("activityChannels" -> $(platform)))) then
+                        jsonb_set(
+                                "activityChannels",
+                                array [$(platform)::text],
+                                "activityChannels" -> $(platform) || jsonb_build_array($(channel))
+                            )
+                    -- If platform does not exist, create it
+                    when not ("activityChannels" ? $(platform)) or "activityChannels" is null then
+                            coalesce("activityChannels", '{}'::jsonb) ||
+                            jsonb_build_object($(platform), jsonb_build_array($(channel)))
+                    -- Else, do nothing
+                    else
+                        "activityChannels"
+                    end
+      where "tenantId" = $(tenantId)
+        and id = $(segmentId)
+
+      `,
       {
         tenantId,
         segmentId,
-        channels,
+        platform,
+        channel,
       },
     )
 
