@@ -47,7 +47,7 @@ export class ConversationRepository extends RepositoryBase<ConversationRepositor
     const id = generateUUIDv1()
 
     const results = await this.db().oneOrNone(
-      `select "autoPublish" from "conversationSettings" where "tenantId" = $(tenantId)`,
+      `select "autoPublish" from "conversationSettings" where "tenantId" = $(tenantId) and (enabled is null or enabled = true)`,
       {
         tenantId,
       },
