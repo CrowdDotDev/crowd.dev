@@ -9,6 +9,9 @@ export enum SlackStreamType {
   MEMBERS = 'members',
   THREADS = 'threads',
 }
+export interface ISlackPlatformSettings {
+  maxRetrospectInSeconds: number
+}
 
 export interface ISlackStreamBase {
   token: string

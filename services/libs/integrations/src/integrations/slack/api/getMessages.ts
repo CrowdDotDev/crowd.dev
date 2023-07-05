@@ -1,6 +1,11 @@
 import axios, { AxiosRequestConfig } from 'axios'
 import { timeout } from '@crowd/common'
-import { SlackGetMessagesInput, SlackMessages, SlackParsedResponse } from '../types'
+import {
+  SlackGetMessagesInput,
+  SlackMessages,
+  SlackParsedResponse,
+  ISlackPlatformSettings,
+} from '../types'
 import { handleSlackError } from './errorHandler'
 import { IProcessStreamContext } from '@/types'
 
@@ -11,6 +16,9 @@ async function getMessages(
   await timeout(2000)
 
   const logger = ctx.log
+
+  const platformSettings = ctx.platformSettings as ISlackPlatformSettings
+  const maxRetrospectInSeconds = platformSettings.maxRetrospectInSeconds
 
   const config: AxiosRequestConfig<any> = {
     method: 'get',
@@ -29,6 +37,11 @@ async function getMessages(
 
   if (input.perPage !== undefined && input.perPage > 0) {
     config.params.limit = input.perPage
+  }
+
+  if (!ctx.onboarding) {
+    // we don't want to get messages older than maxRetrospectInSeconds
+    config.params.oldest = new Date(Date.now() - maxRetrospectInSeconds * 1000).getTime() / 1000
   }
 
   try {
