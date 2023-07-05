@@ -166,22 +166,26 @@ const processChannelStream: ProcessStreamHandler = async (ctx) => {
       //  removing methions here instead of in the processData handler because we need to do API calls
       message.text = message.text ? await removeMentions(message.text, ctx) : ''
 
-      await ctx.publishStream<ISlackThreadStreamData>(
-        `${SlackStreamType.THREADS}:${metadata.channelId}:${message?.thread_ts}`,
-        {
-          page: '',
-          threadId: message.thread_ts,
-          channel: metadata.channelsInfo[metadata.channelId].name,
-          channelId: metadata.channelId,
-          new: metadata.channelsInfo[metadata.channelId].new,
-          token: metadata.token,
-          channelsInfo: metadata.channelsInfo,
-          teamUrl: metadata.teamUrl,
-          team: metadata.team,
-          channels: metadata.channels,
-          placeholder: message.text,
-        },
-      )
+      const thread_ts = message.thread_ts
+
+      if (thread_ts) {
+        await ctx.publishStream<ISlackThreadStreamData>(
+          `${SlackStreamType.THREADS}:${metadata.channelId}:${thread_ts}`,
+          {
+            page: '',
+            threadId: thread_ts,
+            channel: metadata.channelsInfo[metadata.channelId].name,
+            channelId: metadata.channelId,
+            new: metadata.channelsInfo[metadata.channelId].new,
+            token: metadata.token,
+            channelsInfo: metadata.channelsInfo,
+            teamUrl: metadata.teamUrl,
+            team: metadata.team,
+            channels: metadata.channels,
+            placeholder: message.text,
+          },
+        )
+      }
 
       await ctx.publishData<ISlackAPIData>({
         type: 'channel',
