@@ -54,6 +54,8 @@ class MemberSegmentAffiliationRepository extends RepositoryBase<
       },
     )
 
+    await this.updateAffiliation(data.memberId, data.segmentId, data.organizationId)
+
     return this.findById(affiliationInsertResult[0][0].id)
   }
 
@@ -151,6 +153,27 @@ class MemberSegmentAffiliationRepository extends RepositoryBase<
     )
 
     return records
+  }
+
+  private async updateAffiliation(memberId, segmentId, organizationId) {
+    const transaction = this.transaction
+
+    const query = `
+      UPDATE activities
+      SET "organizationId" = :organizationId
+      WHERE "memberId" = :memberId
+        AND "segmentId" = :segmentId
+    `
+
+    await this.options.database.sequelize.query(query, {
+      replacements: {
+        memberId,
+        segmentId,
+        organizationId,
+      },
+      type: QueryTypes.UPDATE,
+      transaction,
+    })
   }
 }
 

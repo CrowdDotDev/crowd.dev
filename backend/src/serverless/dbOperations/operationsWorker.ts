@@ -88,7 +88,7 @@ async function bulkOperations(
   operation: string,
   records: Array<any>,
   options: IServiceOptions,
-  fireCrowdWebhooks: boolean = true,
+  fireCrowdWebhooks: boolean = false,
 ): Promise<any> {
   switch (operation) {
     case Operations.UPDATE_MEMBERS:

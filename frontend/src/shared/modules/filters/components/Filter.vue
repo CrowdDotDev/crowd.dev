@@ -128,17 +128,22 @@ const alignQueryUrl = () => {
   if (!parsed || Object.keys(parsed).length === 0) {
     const query = setQuery(props.modelValue);
     router.push({ query, hash: props.hash ? `#${props.hash}` : undefined });
+    fetch(props.modelValue);
     return;
   }
   filters.value = parsed as Filter;
+  if (!!parsed && Object.keys(parsed).length > 0) {
+    alignFilterList(parsed as Filter);
+    fetch(parsed as Filter);
+  }
 };
 
 onMounted(() => {
   alignQueryUrl();
-  if (!!filters.value && Object.keys(filters.value).length > 0) {
-    alignFilterList(filters.value);
-    fetch(filters.value);
-  }
+});
+
+defineExpose({
+  alignFilterList,
 });
 </script>
 

@@ -15,14 +15,17 @@
     "format-check": "prettier --check .",
     "tsc-check": "tsc --noEmit",
     "script:update-mappings": "SERVICE=script node -r tsconfig-paths/register -r ts-node/register src/bin/update-mappings.ts --transpile-only",
-    "script:sync-all-unsynced-members": "SERVICE=script node -r tsconfig-paths/register -r ts-node/register src/bin/sync-all-unsynced-members.ts --transpile-only",
-    "script:sync-all-unsynced-activities": "SERVICE=script node -r tsconfig-paths/register -r ts-node/register src/bin/sync-all-unsynced-activities.ts --transpile-only",
+    "script:sync-all-members": "SERVICE=script node -r tsconfig-paths/register -r ts-node/register src/bin/sync-all-members.ts --transpile-only",
+    "script:sync-all-activities": "SERVICE=script node -r tsconfig-paths/register -r ts-node/register src/bin/sync-all-activities.ts --transpile-only",
     "script:sync-member": "SERVICE=script node -r tsconfig-paths/register -r ts-node/register src/bin/sync-member.ts --transpile-only",
     "script:sync-activity": "SERVICE=script node -r tsconfig-paths/register -r ts-node/register src/bin/sync-activity.ts --transpile-only",
     "script:sync-tenant-members": "SERVICE=script node -r tsconfig-paths/register -r ts-node/register src/bin/sync-tenant-members.ts --transpile-only",
     "script:sync-tenant-activities": "SERVICE=script node -r tsconfig-paths/register -r ts-node/register src/bin/sync-tenant-activities.ts --transpile-only",
     "script:cleanup-tenant-members": "SERVICE=script node -r tsconfig-paths/register -r ts-node/register src/bin/cleanup-tenant-members.ts --transpile-only",
-    "script:cleanup-tenant-activities": "SERVICE=script node -r tsconfig-paths/register -r ts-node/register src/bin/cleanup-tenant-activities.ts --transpile-only"
+    "script:cleanup-tenant-activities": "SERVICE=script node -r tsconfig-paths/register -r ts-node/register src/bin/cleanup-tenant-activities.ts --transpile-only",
+    "script:cleanup-all-members": "SERVICE=script node -r tsconfig-paths/register -r ts-node/register src/bin/cleanup-all-members.ts --transpile-only",
+    "script:cleanup-all-activities": "SERVICE=script node -r tsconfig-paths/register -r ts-node/register src/bin/cleanup-all-activities.ts --transpile-only",
+    "script:delete-index": "SERVICE=script node -r tsconfig-paths/register -r ts-node/register src/bin/delete-index.ts --transpile-only"
   },
   "dependencies": {
     "@crowd/common": "file:../../libs/common",

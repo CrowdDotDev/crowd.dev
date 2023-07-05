@@ -1,0 +1,12 @@
+create index if not exists "ix_memberNoMerge_noMergeId" on "memberNoMerge" ("noMergeId");
+create index if not exists "ix_memberToMerge_toMergeId" on "memberToMerge" ("toMergeId");
+create index if not exists "ix_integration_results_streamId" on integration.results("streamId");
+create index if not exists "ix_integration_results_integrationId" on integration.results ("integrationId");
+create index if not exists "ix_integration_results_tenantId" on integration.results ("tenantId");
+create index if not exists "ix_integration_results_apiDataId" on integration.results ("apiDataId");
+create index if not exists "ix_integration_results_runId" on integration.results ("runId");
+create index if not exists "ix_integration_results_microserviceId" on integration.results ("microserviceId");
+create index if not exists "ix_members_searchSyncedAt" on members ("searchSyncedAt");
+create index if not exists "ix_members_tenantId_searchSyncedAt" on members ("tenantId", "searchSyncedAt");
+create index if not exists "ix_activities_searchSyncedAt" on activities ("searchSyncedAt");
+create index if not exists "ix_activities_tenantId_searchSyncedAt" on activities ("tenantId", "searchSyncedAt");

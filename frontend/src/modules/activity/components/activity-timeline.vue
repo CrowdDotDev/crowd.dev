@@ -263,6 +263,7 @@ const fetchActivities = async () => {
 
   if (!isEqual(filter, filterToApply)) {
     activities.length = 0;
+    offset.value = 0
     noMore.value = false;
   }
 

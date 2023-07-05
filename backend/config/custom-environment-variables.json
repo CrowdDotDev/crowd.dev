@@ -178,5 +178,10 @@
     "region": "CROWD_OPENSEARCH_AWS_REGION",
     "accessKeyId": "CROWD_OPENSEARCH_AWS_ACCESS_KEY_ID",
     "secretAccessKey": "CROWD_OPENSEARCH_AWS_SECRET_ACCESS_KEY"
+  },
+  "auth0": {
+    "domain": "CROWD_AUTH0_DOMAIN",
+    "clientId": "CROWD_AUTH0_CLIENT_ID",
+    "cert": "CROWD_AUTH0_CERT"
   }
 }

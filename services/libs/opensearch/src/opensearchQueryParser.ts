@@ -236,11 +236,9 @@ export class OpensearchQueryParser {
         throw new Error('IN should be used with an array of values!')
       }
 
-      const subQueries = value.map((v) => ({ match: { [searchKey]: v } }))
-
       return {
-        bool: {
-          should: subQueries,
+        terms: {
+          [searchKey]: value,
         },
       }
     }

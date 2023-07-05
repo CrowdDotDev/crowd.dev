@@ -1,10 +1,11 @@
 import { getDbConnection } from '@crowd/database'
 import { getServiceLogger } from '@crowd/logging'
+import { getRedisClient } from '@crowd/redis'
 import { getSqsClient } from '@crowd/sqs'
 import { DB_CONFIG, REDIS_CONFIG, SQS_CONFIG } from './conf'
-import { OpenSearchService } from './service/opensearch.service'
 import { WorkerQueueReceiver } from './queue'
-import { getRedisClient } from '@crowd/redis'
+import { InitService } from './service/init.service'
+import { OpenSearchService } from './service/opensearch.service'
 
 const log = getServiceLogger()
 
@@ -30,8 +31,10 @@ setImmediate(async () => {
     MAX_CONCURRENT_PROCESSING,
   )
 
+  const initService = new InitService(openSearchService, log)
+
   try {
-    await openSearchService.initialize()
+    await initService.initialize()
     await worker.start()
   } catch (err) {
     log.error(err, 'Failed to start!')
