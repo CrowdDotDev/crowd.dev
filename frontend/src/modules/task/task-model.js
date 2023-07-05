@@ -1,4 +1,3 @@
-import IdField from '@/shared/fields/id-field';
 import StringField from '@/shared/fields/string-field';
 import DateTimeField from '@/shared/fields/date-time-field';
 import { GenericModel } from '@/shared/model/generic-model';
@@ -46,7 +45,6 @@ const fetchMembers = (query, limit) => {
 };
 
 const fields = {
-  id: new IdField('id', 'ID'),
   title: new StringField('name', 'Title', {
     required: true,
   }),

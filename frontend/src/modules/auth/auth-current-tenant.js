@@ -6,7 +6,7 @@ import config from '@/config';
  * Auth Current Tenant
  *
  * This class helps us manage the active tenant that is stored within browser's localStorage, along with some
- * other helper methods like getSettings() or getCommunityHelpCenterSettings()
+ * other helper methods like getSettings()
  */
 export default class AuthCurrentTenant {
   static selectAndSaveOnStorageFor(currentUser) {
@@ -95,26 +95,6 @@ export default class AuthCurrentTenant {
     }
 
     return null;
-  }
-
-  static getCommunityHelpCenterSettings() {
-    const tenantASString = localStorage.getItem('tenant') || null;
-
-    if (tenantASString) {
-      const tenant = JSON.parse(tenantASString);
-
-      if (tenant) {
-        if (Array.isArray(tenant.conversationSettings)) {
-          if (tenant.conversationSettings.length) {
-            return tenant.conversationSettings[0];
-          }
-        } else {
-          return tenant.conversationSettings;
-        }
-      }
-    }
-
-    return {};
   }
 
   static async set(tenant) {

@@ -1,12 +1,6 @@
 import { i18n, init as i18nInit } from '@/i18n';
-import IdField from '@/shared/fields/id-field';
 import { GenericModel } from '@/shared/model/generic-model';
-import DateTimeRangeField from '@/shared/fields/date-time-range-field';
-import DateTimeField from '@/shared/fields/date-time-field';
-import StringField from '@/shared/fields/string-field';
-import BooleanField from '@/shared/fields/boolean-field';
 import { MemberField } from '@/modules/member/member-field';
-import JsonField from '@/shared/fields/json-field';
 import SearchField from '@/shared/fields/search-field';
 import SentimentField from '@/shared/fields/sentiment-field';
 import ActivityDateField from '@/shared/fields/activity-date-field';
@@ -21,39 +15,6 @@ function label(name) {
 i18nInit();
 
 const fields = {
-  id: new IdField('id', label('id')),
-  title: new StringField('title', label('title')),
-  body: new StringField('body', label('body')),
-  channel: new StringField('channel', label('channel')),
-  url: new StringField('url', label('url')),
-  timestamp: new DateTimeField(
-    'timestamp',
-    label('timestamp'),
-    {
-      required: true,
-    },
-  ),
-  attributes: new JsonField(
-    'attributes',
-    label('attributes'),
-  ),
-  isContribution: new BooleanField(
-    'isContribution',
-    label('isContribution'),
-    {},
-  ),
-  updatedAt: new DateTimeField(
-    'updatedAt',
-    label('updatedAt'),
-  ),
-  createdAtRange: new DateTimeRangeField(
-    'createdAtRange',
-    label('createdAtRange'),
-  ),
-  timestampRange: new DateTimeRangeField(
-    'timestampRange',
-    label('timestampRange'),
-  ),
   search: new SearchField('search', label('search'), {
     fields: ['title', 'body'],
   }),

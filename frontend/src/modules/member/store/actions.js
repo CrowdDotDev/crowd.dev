@@ -51,9 +51,6 @@ export default {
     }
 
     try {
-      commit('EXPORT_STARTED', filter);
-
-      commit('EXPORT_SUCCESS');
       const currentTenant = rootGetters['auth/currentTenant'];
 
       const tenantCsvExportCount = currentTenant.csvExportCount;
@@ -79,7 +76,6 @@ export default {
 
       Message.success('CSV download link will be sent to your e-mail');
     } catch (error) {
-      commit('EXPORT_ERROR');
       console.error(error);
 
       if (error.response?.status === 403) {
@@ -98,84 +94,45 @@ export default {
     }
   },
 
-  async doMarkAsTeamMember({ dispatch, getters }, value) {
-    try {
-      const { selectedRows } = getters;
-
-      selectedRows.forEach((row) => {
-        MemberService.update(row.id, {
-          attributes: {
-            ...row.attributes,
-            isTeamMember: {
-              default: value,
-            },
-          },
-        });
-      });
-
-      dispatch('doFetch', {
-        keepPagination: true,
-      });
-
-      Message.success(
-        `Member${selectedRows.length > 1 ? 's' : ''} updated successfully`,
-      );
-    } catch (error) {
-      Errors.handle(error);
-    }
-  },
-
   async doDestroyCustomAttributes({ commit, dispatch }, id) {
     try {
-      commit('DESTROY_CUSTOM_ATTRIBUTES_STARTED');
       const response = await MemberService.destroyCustomAttribute(id);
-      commit('DESTROY_CUSTOM_ATTRIBUTES_SUCCESS', response);
 
       dispatch('doFetchCustomAttributes');
     } catch (error) {
       Errors.handle(error);
-      commit('DESTROY_CUSTOM_ATTRIBUTES_ERROR');
     }
   },
 
   async doUpdateCustomAttributes({ commit, dispatch }, { id, data }) {
     try {
-      commit('UPDATE_CUSTOM_ATTRIBUTES_STARTED');
       const response = await MemberService.updateCustomAttribute(id, data);
-      commit('UPDATE_CUSTOM_ATTRIBUTES_SUCCESS', response);
 
       dispatch('doFetchCustomAttributes');
     } catch (error) {
       Errors.handle(error);
-      commit('UPDATE_CUSTOM_ATTRIBUTES_ERROR');
     }
   },
 
   async doFetchCustomAttributes({ commit }) {
     try {
-      commit('FETCH_CUSTOM_ATTRIBUTES_STARTED');
       const response = await MemberService.fetchCustomAttributes();
-      commit('FETCH_CUSTOM_ATTRIBUTES_SUCCESS', response);
     } catch (error) {
       Errors.handle(error);
-      commit('FETCH_CUSTOM_ATTRIBUTES_ERROR');
     }
   },
 
   async doCreateCustomAttributes({ commit, dispatch }, values) {
     try {
-      commit('CREATE_ATTRIBUTES_STARTED');
       const response = await MemberService.createCustomAttributes(values);
 
       dispatch('doFetchCustomAttributes');
-      commit('CREATE_ATTRIBUTES_SUCCESS');
 
       return response;
     } catch (error) {
       if (error.response.status !== 500) {
         Errors.handle(error);
       }
-      commit('CREATE_ATTRIBUTES_ERROR');
 
       Message.error(i18n('entities.member.attributes.error'));
     }
@@ -184,22 +141,12 @@ export default {
 
   async doMerge({ commit }, { memberToKeep, memberToMerge }) {
     try {
-      commit('MERGE_STARTED', {
-        memberToKeep,
-        memberToMerge,
-      });
-
       await MemberService.merge(memberToKeep, memberToMerge);
-
-      commit('MERGE_SUCCESS', {
-        memberToDelete: memberToMerge.id,
-      });
 
       Message.success(i18n('entities.member.merge.success'));
       router.push(`/members/${memberToKeep.id}`);
     } catch (error) {
       Errors.handle(error);
-      commit('MERGE_ERROR');
     }
   },
 
@@ -216,11 +163,6 @@ export default {
     ]);
 
     try {
-      commit('BULK_UPDATE_MEMBERS_TAGS_STARTED', {
-        members,
-        tagsInCommon,
-        tagsToSave,
-      });
       const payload = members.reduce((acc, item) => {
         const memberToUpdate = { ...item };
         const tagsToKeep = item.tags.filter(
@@ -241,7 +183,6 @@ export default {
       commit('BULK_UPDATE_MEMBERS_TAGS_SUCCESS', updatedMembers);
     } catch (error) {
       Errors.handle(error);
-      commit('BULK_UPDATE_MEMBERS_TAGS_ERROR');
     }
   },
 
@@ -296,47 +237,6 @@ export default {
       Errors.handle(error);
 
       commit('UPDATE_ERROR');
-    }
-  },
-
-  async doBulkEnrich({ rootGetters, dispatch }, ids) {
-    try {
-      const currentTenant = rootGetters['auth/currentTenant'];
-
-      const { memberEnrichmentCount } = currentTenant;
-      const planEnrichmentCountMax = getEnrichmentMax(currentTenant.plan);
-
-      // Check if it is trying to enrich more members than
-      // the number available for the current tenant plan
-      if (
-        checkEnrichmentPlan({
-          enrichmentCount: memberEnrichmentCount + ids.length,
-          planEnrichmentCountMax,
-        })
-      ) {
-        return;
-      }
-
-      // Check if it has reached enrichment maximum
-      // If so, show dialog to upgrade plan
-      if (checkEnrichmentLimit(planEnrichmentCountMax)) {
-        return;
-      }
-
-      if (ids.length === 1) {
-        // showEnrichmentLoadingMessage({ isBulk: false });
-        console.log('here');
-        await MemberService.enrichMember(ids[0]);
-      } else {
-        // Show enrichment loading message
-        showEnrichmentLoadingMessage({ isBulk: true });
-        await MemberService.enrichMemberBulk(ids);
-      }
-
-      await dispatch('doFetchCustomAttributes');
-    } catch (error) {
-      Message.closeAll();
-      Errors.handle(error);
     }
   },
 };
