@@ -7,6 +7,10 @@ export interface IWorkerSettings {
   maxDataRetries: number
 }
 
+export interface ISlackAlertingConfig {
+  url: string
+}
+
 let workerSettings: IWorkerSettings
 export const WORKER_SETTINGS = (): IWorkerSettings => {
   if (workerSettings) return workerSettings
@@ -37,6 +41,14 @@ export const REDIS_CONFIG = (): IRedisConfiguration => {
 
   redisConfig = config.get<IRedisConfiguration>('redis')
   return redisConfig
+}
+
+let slackAlertingConfig: ISlackAlertingConfig
+export const SLACK_ALERTING_CONFIG = (): ISlackAlertingConfig => {
+  if (slackAlertingConfig) return slackAlertingConfig
+
+  slackAlertingConfig = config.get<ISlackAlertingConfig>('slackAlerting')
+  return slackAlertingConfig
 }
 
 const platformMap: Map<string, unknown | null> = new Map()

@@ -11,6 +11,11 @@ export interface IResultData {
   tenantId: string
   integrationId: string
   platform: PlatformType
+
+  hasSampleData: boolean
+  plan: string
+  isTrialPlan: boolean
+  name: string
 }
 
 export interface IFailedResultData {

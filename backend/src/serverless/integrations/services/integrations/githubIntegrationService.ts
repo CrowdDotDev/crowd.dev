@@ -1366,7 +1366,6 @@ export class GithubIntegrationService extends IntegrationServiceBase {
                 ? record.commit.additions - record.commit.deletions
                 : 0,
             isMerge: record.commit.parents.totalCount > 1,
-            isMainBranch: false,
           },
           member,
         })

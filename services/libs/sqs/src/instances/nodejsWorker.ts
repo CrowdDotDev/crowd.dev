@@ -26,8 +26,12 @@ export class NodejsWorkerEmitter extends SqsQueueEmitter {
   public async processAutomationForNewActivity(
     tenantId: string,
     activityId: string,
+    segmentId: string,
   ): Promise<void> {
-    await this.sendMessage(tenantId, new NewActivityAutomationQueueMessage(tenantId, activityId))
+    await this.sendMessage(
+      tenantId,
+      new NewActivityAutomationQueueMessage(tenantId, activityId, segmentId),
+    )
   }
 
   public async processAutomationForNewMember(tenantId: string, memberId: string): Promise<void> {

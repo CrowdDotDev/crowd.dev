@@ -4,6 +4,8 @@ import { Logger } from '@crowd/logging'
 export enum SlackAlertTypes {
   DATA_CHECKER = 'data-checker',
   INTEGRATION_ERROR = 'integration-error',
+  DATA_WORKER_ERROR = 'data-worker-error',
+  SINK_WORKER_ERROR = 'sink-worker-error',
 }
 
 interface SendSlackAlertInput {
@@ -20,6 +22,8 @@ interface SlackIntegrationType {
   platform: string
   tenantId: string
   id: string
+  apiDataId?: string
+  resultId?: string
 }
 
 interface SlackUserContextType {
@@ -149,7 +153,9 @@ function getBlocks(
             type: 'section',
             text: {
               type: 'mrkdwn',
-              text: `${isPayingCustomer ? '🚨' : '✋🏼'} *Integration onboarding failed* ${
+              text: `${
+                isPayingCustomer ? '🚨' : '✋🏼'
+              } *Integration streams failed (onboarding or incremental)* ${
                 isPayingCustomer ? '🚨' : ''
               }`,
             },
@@ -180,6 +186,114 @@ function getBlocks(
               {
                 type: 'mrkdwn',
                 text: `*Integration ID:*\n${integration.id}`,
+              },
+              {
+                type: 'mrkdwn',
+                text: `*Framework Version:*\n${frameworkVersion}`,
+              },
+            ],
+          },
+        ],
+      }
+    case SlackAlertTypes.DATA_WORKER_ERROR:
+      return {
+        blocks: [
+          {
+            type: 'section',
+            text: {
+              type: 'mrkdwn',
+              text: `${
+                isPayingCustomer ? '🚨' : '✋🏼'
+              } *Integration data worker failed (parsing API data into activities)* ${
+                isPayingCustomer ? '🚨' : ''
+              }`,
+            },
+          },
+          {
+            type: 'section',
+            fields: [
+              {
+                type: 'mrkdwn',
+                text: `*Tenant Name:*\n${tenantName}`,
+              },
+              {
+                type: 'mrkdwn',
+                text: `*Paying customer:* ${isPayingCustomer ? payingCustomerMarker : '❌'}`,
+              },
+              {
+                type: 'mrkdwn',
+                text: `*Platform:*\n${integration.platform}`,
+              },
+              {
+                type: 'mrkdwn',
+                text: ' ',
+              },
+              {
+                type: 'mrkdwn',
+                text: `*Tenant ID:*\n${integration.tenantId}`,
+              },
+              {
+                type: 'mrkdwn',
+                text: `*Integration ID:*\n${integration.id}`,
+              },
+              {
+                type: 'mrkdwn',
+                text: `*API Data ID:*\n${integration.apiDataId}`,
+              },
+              {
+                type: 'mrkdwn',
+                text: `*Framework Version:*\n${frameworkVersion}`,
+              },
+            ],
+          },
+        ],
+      }
+    case SlackAlertTypes.SINK_WORKER_ERROR:
+      return {
+        blocks: [
+          {
+            type: 'section',
+            text: {
+              type: 'mrkdwn',
+              text: `${isPayingCustomer ? '🚨' : '✋🏼'} *Data sink worker failed (upsert in db) * ${
+                isPayingCustomer ? '🚨' : ''
+              }`,
+            },
+          },
+          {
+            type: 'section',
+            fields: [
+              {
+                type: 'mrkdwn',
+                text: `*Tenant Name:*\n${tenantName}`,
+              },
+              {
+                type: 'mrkdwn',
+                text: `*Paying customer:* ${isPayingCustomer ? payingCustomerMarker : '❌'}`,
+              },
+              {
+                type: 'mrkdwn',
+                text: `*Platform:*\n${integration.platform}`,
+              },
+              {
+                type: 'mrkdwn',
+                text: ' ',
+              },
+              {
+                type: 'mrkdwn',
+                text: `*Tenant ID:*\n${integration.tenantId}`,
+              },
+              {
+                type: 'mrkdwn',
+                text: `*Integration ID:*\n${integration.id}`,
+              },
+              {
+                type: 'mrkdwn',
+                text: `*Result ID:*\n${integration.resultId}`,
+              },
+              {
+                type: 'mrkdwn',
+                text: `*API Data ID:*\n${integration.apiDataId}`,
               },
               {
                 type: 'mrkdwn',
