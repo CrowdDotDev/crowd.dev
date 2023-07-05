@@ -1,75 +1,68 @@
 <template>
-  <app-teleport to="#teleport-modal">
-    <app-dialog
-      v-model="computedVisible"
-      title="Edit tags"
-      :pre-title="pretitle"
-    >
-      <template #content>
-        <div class="px-6 pb-6">
-          <form v-if="visible" class="tags-form">
-            <app-tag-autocomplete-input
-              v-model="model"
-              :fetch-fn="fields.tags.fetchFn"
-              :mapper-fn="fields.tags.mapperFn"
-              :create-if-not-found="true"
-              placeholder="Type to search/create tags"
-            />
-          </form>
-        </div>
+  <app-dialog
+    v-if="modelValue"
+    v-model="computedVisible"
+    title="Edit tags"
+    :pre-title="modelValue.displayName"
+  >
+    <template #content>
+      <div class="px-6 pb-6">
+        <form v-if="modelValue" class="tags-form">
+          <app-tag-autocomplete-input
+            v-model="form"
+            :fetch-fn="fields.tags.fetchFn"
+            :mapper-fn="fields.tags.mapperFn"
+            :create-if-not-found="true"
+            placeholder="Type to search/create tags"
+          />
+        </form>
+      </div>
 
-        <div
-          class="bg-gray-50 rounded-b-md flex items-center justify-end py-4 px-6"
+      <div
+        class="bg-gray-50 rounded-b-md flex items-center justify-end py-4 px-6"
+      >
+        <el-button
+          class="btn btn--bordered btn--md mr-3"
+          @click="computedVisible = false"
         >
-          <el-button
-            class="btn btn--bordered btn--md mr-3"
-            @click="handleCancel"
-          >
-            Cancel
-          </el-button>
-          <el-button
-            class="btn btn--primary btn--md"
-            @click="handleSubmit"
-          >
-            Submit
-          </el-button>
-        </div>
-      </template>
-    </app-dialog>
-  </app-teleport>
+          Cancel
+        </el-button>
+        <el-button
+          class="btn btn--primary btn--md"
+          @click="handleSubmit"
+        >
+          Submit
+        </el-button>
+      </div>
+    </template>
+  </app-dialog>
 </template>
 
 <script>
 import { MemberModel } from '@/modules/member/member-model';
+import AppDialog from '@/shared/dialog/dialog.vue';
+import AppTagAutocompleteInput from '@/modules/tag/components/tag-autocomplete-input.vue';
+import { mapActions } from 'vuex';
 
 const { fields } = MemberModel;
 
 export default {
   name: 'AppTagPopover',
+  components: { AppTagAutocompleteInput, AppDialog },
 
   props: {
-    visible: {
-      type: Boolean,
-      default: false,
-    },
-    loading: {
-      type: Boolean,
-      default: false,
-    },
     modelValue: {
-      type: Array,
-      default: () => [],
-    },
-    pretitle: {
-      type: String,
-      default: null,
+      type: Object,
+      default: () => null,
     },
   },
-  emits: ['submit', 'cancel', 'update:modelValue'],
+  emits: ['reload', 'update:modelValue'],
 
   data() {
     return {
       changed: false,
+      loading: false,
+      form: [],
     };
   },
 
@@ -77,31 +70,42 @@ export default {
     fields() {
       return fields;
     },
-    model: {
-      get() {
-        return this.modelValue;
-      },
-      set(value) {
-        this.changed = true;
-        this.$emit('update:modelValue', value);
-      },
-    },
     computedVisible: {
       get() {
-        return this.visible;
+        return this.modelValue !== null;
       },
       set() {
-        this.handleCancel();
+        this.$emit('update:modelValue', null);
+      },
+    },
+  },
+
+  watch: {
+    modelValue: {
+      immediate: true,
+      handler(member) {
+        if (member) {
+          this.form = member.tags;
+        }
       },
     },
   },
 
   methods: {
-    handleCancel() {
-      this.$emit('cancel');
-    },
-    handleSubmit() {
-      this.$emit('submit');
+    ...mapActions({
+      doUpdate: 'member/doUpdate',
+    }),
+    async handleSubmit() {
+      this.loading = true;
+      await this.doUpdate({
+        id: this.modelValue.id,
+        values: {
+          tags: this.form.map((tag) => tag.id),
+        },
+      });
+      this.loading = false;
+      this.computedVisible = false;
+      this.$emit('reload');
     },
   },
 };

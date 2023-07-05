@@ -5,6 +5,7 @@
     popper-class="platform-popover"
     :width="240"
     trigger="hover"
+    :teleported="false"
   >
     <template #reference>
       <div>
@@ -22,6 +23,7 @@
     :disabled="!tooltipLabel"
     popper-class="custom-identity-tooltip"
     placement="top"
+    :teleported="false"
   >
     <template #content>
       <span>{{ tooltipLabel }}
