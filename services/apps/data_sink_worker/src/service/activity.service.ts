@@ -371,8 +371,6 @@ export default class ActivityService extends LoggerBase {
               create = true
             }
 
-            memberId = dbMember.id
-
             // update the member
             await txMemberService.update(
               dbMember.id,
@@ -396,6 +394,8 @@ export default class ActivityService extends LoggerBase {
               // and use it's member id for the new activity
               dbActivity.memberId = dbMember.id
             }
+
+            memberId = dbMember.id
           } else {
             this.log.trace(
               'We did not find a member for the identity provided! Updating the one from db activity.',
@@ -425,6 +425,8 @@ export default class ActivityService extends LoggerBase {
               dbMember,
               false,
             )
+
+            memberId = dbActivity.memberId
           }
 
           if (!create) {
