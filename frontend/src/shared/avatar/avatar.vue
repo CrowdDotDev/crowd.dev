@@ -6,20 +6,22 @@
       :style="computedStyle"
       :aria-label="computedInitials"
     >
-      <img
-        v-if="url"
+      <app-avatar-image
         :src="url"
-        alt=""
-        @error="handleImageError"
-      >
+      />
     </div>
     <slot name="icon" />
   </div>
 </template>
 
 <script>
+import AppAvatarImage from '@/shared/avatar-image/avatar-image.vue';
+
 export default {
   name: 'AppAvatar',
+  components: {
+    AppAvatarImage,
+  },
   props: {
     entity: {
       type: Object,
@@ -88,11 +90,6 @@ export default {
         .map((n) => n[0])
         .slice(0, 2)
         .join('');
-    },
-  },
-  methods: {
-    handleImageError(event) {
-      event.target.remove();
     },
   },
 };
