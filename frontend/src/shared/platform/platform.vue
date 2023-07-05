@@ -18,7 +18,6 @@
           :disabled="!showTooltip || imageProperties || platform === 'email' || platform === 'phone'"
           :content="platform"
           placement="top"
-          :teleported="false"
         >
           <component
             :is="asLink ? 'a' : 'span'"
