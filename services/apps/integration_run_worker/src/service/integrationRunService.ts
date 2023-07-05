@@ -327,6 +327,7 @@ export default class IntegrationRunService extends LoggerBase {
         platform: runInfo.integrationType,
         status: runInfo.integrationState,
         settings: runInfo.integrationSettings,
+        token: runInfo.integrationToken,
       },
 
       log: this.log,

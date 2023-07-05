@@ -17,6 +17,23 @@ import getMember from './api/getMember'
 import getMembers from './api/getMembers'
 import getMessagesInThreads from './api/getMessagesInThreads'
 
+async function removeMentions(text: string, ctx: IProcessStreamContext): Promise<string> {
+  const regex = /<@!?[^>]*>/
+  const globalRegex = /<@!?[^>]*>/g
+  const matches = text.match(globalRegex)
+  if (matches) {
+    for (let match of matches) {
+      match = match.replace('<', '').replace('>', '').replace('@', '').replace('!', '')
+
+      const user = await getSlackMember(match, ctx)
+      const username = user ? user.name : 'mention'
+      text = text.replace(regex, `@${username}`)
+    }
+  }
+
+  return text
+}
+
 async function getSlackMember(
   userId: string,
   ctx: IProcessStreamContext,
@@ -146,6 +163,9 @@ const processChannelStream: ProcessStreamHandler = async (ctx) => {
 
     // if member is undefined we don't publish the activity and thread stream
     if (member !== undefined) {
+      //  removing methions here instead of in the processData handler because we need to do API calls
+      message.text = message.text ? await removeMentions(message.text, ctx) : ''
+
       await ctx.publishStream<ISlackThreadStreamData>(
         `${SlackStreamType.THREADS}:${metadata.channelId}:${message?.thread_ts}`,
         {
@@ -159,6 +179,7 @@ const processChannelStream: ProcessStreamHandler = async (ctx) => {
           teamUrl: metadata.teamUrl,
           team: metadata.team,
           channels: metadata.channels,
+          placeholder: message.text,
         },
       )
 
@@ -166,6 +187,14 @@ const processChannelStream: ProcessStreamHandler = async (ctx) => {
         type: 'channel',
         message,
         member,
+        channelId: metadata.channelId,
+        base: {
+          token: metadata.token,
+          channelsInfo: metadata.channelsInfo,
+          teamUrl: metadata.teamUrl,
+          team: metadata.team,
+          channels: metadata.channels,
+        },
       })
     }
   }
@@ -201,6 +230,7 @@ const processThreadStream: ProcessStreamHandler = async (ctx) => {
         threadId: metadata.threadId,
         channel: metadata.channel,
         new: metadata.new,
+        placeholder: metadata.placeholder,
       },
     )
   }
@@ -213,12 +243,26 @@ const processThreadStream: ProcessStreamHandler = async (ctx) => {
     const userId = message.user
     const member = await getSlackMember(userId, ctx)
 
+    //  removing methions here instead of in the processData handler because we need to do API calls
+    message.text = message.text ? await removeMentions(message.text, ctx) : ''
+
     // if member is undefined we don't publish the activity
     if (member !== undefined) {
       await ctx.publishData<ISlackAPIData>({
         type: 'threads',
         message,
         member,
+        channelId: metadata.channelId,
+        threadId: metadata.threadId,
+        channel: metadata.channel,
+        placeholder: metadata.placeholder,
+        base: {
+          token: metadata.token,
+          channelsInfo: metadata.channelsInfo,
+          teamUrl: metadata.teamUrl,
+          team: metadata.team,
+          channels: metadata.channels,
+        },
       })
     }
   }
@@ -257,6 +301,13 @@ const processMembersStream: ProcessStreamHandler = async (ctx) => {
     await ctx.publishData<ISlackAPIData>({
       type: 'members',
       member,
+      base: {
+        token: metadata.token,
+        channelsInfo: metadata.channelsInfo,
+        teamUrl: metadata.teamUrl,
+        team: metadata.team,
+        channels: metadata.channels,
+      },
     })
   }
 }

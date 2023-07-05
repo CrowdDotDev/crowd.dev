@@ -3,14 +3,15 @@ import { ISlackIntegrationSettings, SlackStreamType, ISlackRootSteamData } from 
 
 const handler: GenerateStreamsHandler = async (ctx) => {
   const settings = ctx.integration.settings as ISlackIntegrationSettings
+  const token = ctx.integration.token
 
   if (settings.channels.length === 0) {
     await ctx.abortRunWithError('No subreddits configured!')
     return
   }
 
-  await ctx.publishStream<ISlackRootSteamData>(`${SlackStreamType.ROOT}:${settings.token}`, {
-    token: settings.token,
+  await ctx.publishStream<ISlackRootSteamData>(`${SlackStreamType.ROOT}`, {
+    token,
     channels: settings.channels,
   })
 }

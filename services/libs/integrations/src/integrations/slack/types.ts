@@ -10,18 +10,23 @@ export enum SlackStreamType {
   THREADS = 'threads',
 }
 
-export interface ISlackAPIData {
-  type: 'members' | 'threads' | 'channel'
-  message?: SlackMessage
-  member: SlackMember
-}
-
 export interface ISlackStreamBase {
   token: string
   channelsInfo: any
   teamUrl: string
   team: SlackTeam
   channels: any[]
+}
+
+export interface ISlackAPIData {
+  type: 'members' | 'threads' | 'channel'
+  message?: SlackMessage
+  member: SlackMember
+  channelId?: string
+  threadId?: string
+  placeholder?: string
+  channel?: string
+  base: ISlackStreamBase
 }
 
 export interface ISlackRootSteamData {
@@ -45,10 +50,10 @@ export interface ISlackThreadStreamData extends ISlackStreamBase {
   page: string
   channel: string
   new: boolean
+  placeholder: string
 }
 
 export interface ISlackIntegrationSettings {
-  token: string
   channels: string[]
 }
 
