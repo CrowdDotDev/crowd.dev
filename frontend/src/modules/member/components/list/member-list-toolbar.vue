@@ -254,13 +254,12 @@ const handleDoExport = async () => {
       badgeContent: pluralize('member', selectedMembers.value.length, true),
     });
 
-    await MemberService.export(
+    await MemberService.export({
       filter,
-      `${filters.value.order.prop}_${filters.value.order.order === 'descending' ? 'DESC' : 'ASC'}`,
-      0,
-      null,
-      false,
-    );
+      orderBy: `${filters.value.order.prop}_${filters.value.order.order === 'descending' ? 'DESC' : 'ASC'}`,
+      limit: 0,
+      offset: null,
+    });
 
     await doRefreshCurrentUser(null);
 

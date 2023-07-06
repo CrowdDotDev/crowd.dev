@@ -31,13 +31,12 @@ const fetchMembers = (query, limit) => {
     };
   }
 
-  return MemberService.list(
+  return MemberService.listMembers({
     filter,
-    '',
+    orderBy: '',
     limit,
-    0,
-    false,
-  ).then(({ rows }) => rows.map((r) => ({
+    offset: 0,
+  }).then(({ rows }) => rows.map((r) => ({
     ...r,
     id: r.id,
     label: r.displayName,

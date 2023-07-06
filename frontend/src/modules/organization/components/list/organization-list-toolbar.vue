@@ -153,13 +153,12 @@ const handleDoExport = async () => {
       },
     };
 
-    const response = await OrganizationService.list(
+    const response = await OrganizationService.query({
       filter,
-      `${filters.value.order.prop}_${filters.value.order.order === 'descending' ? 'DESC' : 'ASC'}`,
-      null,
-      null,
-      false,
-    );
+      orderBy: `${filters.value.order.prop}_${filters.value.order.order === 'descending' ? 'DESC' : 'ASC'}`,
+      limit: null,
+      offset: null,
+    });
 
     Excel.exportAsExcelFile(
       response.rows.map((o) => ({
