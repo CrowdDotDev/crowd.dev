@@ -12,7 +12,7 @@ async function getChannels(
 
   const logger = ctx.log
 
-  const config: AxiosRequestConfig<any> = {
+  const config: AxiosRequestConfig = {
     method: 'get',
     url: 'https://slack.com/api/team.info',
     headers: {

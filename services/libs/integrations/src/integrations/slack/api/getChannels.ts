@@ -4,15 +4,12 @@ import { handleSlackError } from './errorHandler'
 import { SlackChannels, SlackGetChannelsInput } from '../types'
 import { IProcessStreamContext } from '@/types'
 
-async function getChannels(
-  input: SlackGetChannelsInput,
-  ctx: IProcessStreamContext,
-): Promise<any[]> {
+async function getChannels(input: SlackGetChannelsInput, ctx: IProcessStreamContext) {
   await timeout(2000)
 
   const logger = ctx.log
 
-  const config: AxiosRequestConfig<any> = {
+  const config: AxiosRequestConfig = {
     method: 'get',
     url: 'https://slack.com/api/conversations.list',
     params: {

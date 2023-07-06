@@ -12,7 +12,7 @@ async function getMembers(
 
   const logger = ctx.log
 
-  const config: AxiosRequestConfig<any> = {
+  const config: AxiosRequestConfig = {
     method: 'get',
     url: 'https://slack.com/api/users.list',
     params: {},

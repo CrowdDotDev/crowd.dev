@@ -20,7 +20,7 @@ async function getMessages(
   const platformSettings = ctx.platformSettings as ISlackPlatformSettings
   const maxRetrospectInSeconds = platformSettings.maxRetrospectInSeconds
 
-  const config: AxiosRequestConfig<any> = {
+  const config: AxiosRequestConfig = {
     method: 'get',
     url: `https://slack.com/api/conversations.history`,
     params: {

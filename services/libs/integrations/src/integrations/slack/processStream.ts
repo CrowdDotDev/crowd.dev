@@ -91,6 +91,7 @@ const processRootStream: ProcessStreamHandler = async (ctx) => {
   const channelsInfo = channelsFromSlackAPI.reduce((acc, channel) => {
     acc[channel.id] = {
       name: channel.name,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       new: !!(channel as any).new,
     }
     return acc

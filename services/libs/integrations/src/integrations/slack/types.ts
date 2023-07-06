@@ -15,9 +15,11 @@ export interface ISlackPlatformSettings {
 
 export interface ISlackStreamBase {
   token: string
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   channelsInfo: any
   teamUrl: string
   team: SlackTeam
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   channels: any[]
 }
 
@@ -34,6 +36,7 @@ export interface ISlackAPIData {
 
 export interface ISlackRootSteamData {
   token: string
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   channels: any[]
 }
 
@@ -44,6 +47,7 @@ export interface ISlackMemberStreamData extends ISlackStreamBase {
 export interface ISlackChannelStreamData extends ISlackStreamBase {
   channelId: string
   page: string
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   general: any
 }
 
@@ -112,7 +116,9 @@ export interface SlackMessage {
   type: string
   text: string
   subtype?: string
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   reactions?: any
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   attachments?: any
   user: string
   thread_ts?: string
@@ -136,6 +142,7 @@ export interface SlackMember {
 export type SlackMembers = SlackMember[]
 
 export interface SlackParsedResponse {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   records: any
   nextPage: string
 }

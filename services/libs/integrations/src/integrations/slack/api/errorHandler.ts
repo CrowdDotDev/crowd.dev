@@ -1,17 +1,18 @@
 import { AxiosError, AxiosRequestConfig } from 'axios'
 import { Logger } from '@crowd/logging'
 import { RateLimitError } from '@crowd/types'
+import { SlackGetMessagesInput, SlackGetChannelsInput, SlackGetMembersInput } from '../types'
 
 export const handleSlackError = (
   err: AxiosError,
-  config: AxiosRequestConfig<any>,
-  input: any,
+  config: AxiosRequestConfig,
+  input: SlackGetMessagesInput | SlackGetChannelsInput | SlackGetMembersInput,
   logger: Logger,
-): any => {
+) => {
   const queryParams: string[] = []
   if (config.params) {
     for (const [key, value] of Object.entries(config.params)) {
-      queryParams.push(`${key}=${encodeURIComponent(value as any)}`)
+      queryParams.push(`${key}=${encodeURIComponent(value as string)}`)
     }
   }
 

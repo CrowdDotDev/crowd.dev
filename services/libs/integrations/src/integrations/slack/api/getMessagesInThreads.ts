@@ -19,7 +19,7 @@ async function getMessagesInThreads(
   const platformSettings = ctx.platformSettings as ISlackPlatformSettings
   const maxRetrospectInSeconds = platformSettings.maxRetrospectInSeconds
 
-  const config: AxiosRequestConfig<any> = {
+  const config: AxiosRequestConfig = {
     method: 'get',
     url: `https://slack.com/api/conversations.replies`,
     params: {
