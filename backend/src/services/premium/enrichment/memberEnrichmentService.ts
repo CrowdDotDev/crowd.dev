@@ -310,8 +310,6 @@ export default class MemberEnrichmentService extends LoggerBase {
       }
 
       member.organizations = [organization]
-
-
     }
 
     member.contributions = enrichmentData.oss_contributions?.map(
