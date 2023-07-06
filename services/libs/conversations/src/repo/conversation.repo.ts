@@ -18,6 +18,7 @@ export class ConversationRepository extends RepositoryBase<ConversationRepositor
 
   public async createConversation(
     tenantId: string,
+    segmentId: string,
     title: string,
     published: boolean,
     slug: string,
@@ -28,6 +29,7 @@ export class ConversationRepository extends RepositoryBase<ConversationRepositor
       {
         id,
         tenantId,
+        segmentId,
         title,
         published,
         slug,
@@ -74,12 +76,17 @@ export class ConversationRepository extends RepositoryBase<ConversationRepositor
     }
   }
 
-  public async checkSlugExists(tenantId: string, slug: string): Promise<boolean> {
+  public async checkSlugExists(
+    tenantId: string,
+    segmentId: string,
+    slug: string,
+  ): Promise<boolean> {
     const results = await this.db().any(
-      `select id from conversations where "tenantId" = $(tenantId) and slug = $(slug)`,
+      `select id from conversations where "tenantId" = $(tenantId) and slug = $(slug) and "segmentId" = $(segmentId)`,
       {
         tenantId,
         slug,
+        segmentId,
       },
     )
 
@@ -90,26 +97,36 @@ export class ConversationRepository extends RepositoryBase<ConversationRepositor
     return false
   }
 
-  public async getConversation(tenantId: string, id: string): Promise<IDbConversation | null> {
+  public async getConversation(
+    tenantId: string,
+    segmentId: string,
+    id: string,
+  ): Promise<IDbConversation | null> {
     const result = await this.db().oneOrNone(
-      `select id, published from conversations where "tenantId" = $(tenantId) and id = $(id)`,
+      `select id, published from conversations where "tenantId" = $(tenantId) and "segmentId" = $(segmentId) and id = $(id)`,
       {
         tenantId,
         id,
+        segmentId,
       },
     )
 
     return result
   }
 
-  public async getActivityData(tenantId: string, activityId: string): Promise<IDbActivityInfo> {
+  public async getActivityData(
+    tenantId: string,
+    segmentId: string,
+    activityId: string,
+  ): Promise<IDbActivityInfo> {
     const results = await this.db().one(
       `select id, "conversationId", "sourceId", "sourceParentId", "parentId", platform, body, title, channel
        from activities
-       where "tenantId" = $(tenantId) and id = $(activityId)`,
+       where "tenantId" = $(tenantId) and id = $(activityId) and "segmentId" = $(segmentId)`,
       {
         tenantId,
         activityId,
+        segmentId,
       },
     )
     return results
@@ -117,6 +134,7 @@ export class ConversationRepository extends RepositoryBase<ConversationRepositor
 
   public async getActivities(
     tenantId: string,
+    segmentId: string,
     sourceParentId: string,
     page: number,
     perPage: number,
@@ -125,12 +143,13 @@ export class ConversationRepository extends RepositoryBase<ConversationRepositor
       `
       select id, "conversationId", "sourceId", "sourceParentId", "parentId", platform, body, title, channel
       from activities
-      where "tenantId" = $(tenantId) and "sourceParentId" = $(sourceParentId)
+      where "tenantId" = $(tenantId) and "sourceParentId" = $(sourceParentId) and "segmentId" = $(segmentId)
       limit ${perPage} offset ${(page - 1) * perPage}
       `,
       {
         tenantId,
         sourceParentId,
+        segmentId,
       },
     )
 
@@ -139,6 +158,7 @@ export class ConversationRepository extends RepositoryBase<ConversationRepositor
 
   public async setConversationTitleAndSlug(
     tenantId: string,
+    segmentId: string,
     id: string,
     title: string,
     slug: string,
@@ -147,12 +167,13 @@ export class ConversationRepository extends RepositoryBase<ConversationRepositor
       `update conversations 
        set title = $(title),
            slug = $(slug)
-       where id = $(id) and "tenantId" = $(tenantId)`,
+       where id = $(id) and "tenantId" = $(tenantId) and "segmentId" = $(segmentId)`,
       {
         tenantId,
         id,
         title,
         slug,
+        segmentId,
       },
     )
 
@@ -161,26 +182,29 @@ export class ConversationRepository extends RepositoryBase<ConversationRepositor
 
   public async setActivityConversationId(
     tenantId: string,
+    segmentId: string,
     activityId: string,
     conversationId: string,
   ): Promise<void> {
     const result = await this.db().result(
-      `update activities set "conversationId" = $(conversationId) where id = $(activityId) and "tenantId" = $(tenantId)`,
+      `update activities set "conversationId" = $(conversationId) where id = $(activityId) and "tenantId" = $(tenantId) and "segmentId" = $(segmentId)`,
       {
         activityId,
         conversationId,
         tenantId,
+        segmentId,
       },
     )
 
     this.checkUpdateRowCount(result.rowCount, 1)
   }
 
-  public async getConversationCount(tenantId: string): Promise<number> {
+  public async getConversationCount(tenantId: string, segmentId: string): Promise<number> {
     const result = await this.db().one(
-      `select count(id) as count from conversations where "tenantId" = $(tenantId)`,
+      `select count(id) as count from conversations where "tenantId" = $(tenantId) and "segmentId" = $(segmentId)`,
       {
         tenantId,
+        segmentId,
       },
     )
 
