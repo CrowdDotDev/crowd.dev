@@ -86,8 +86,8 @@ const processRootStream: ProcessStreamHandler = async (ctx) => {
   })
 
   await ctx.updateIntegrationSettings({
-    channels: channelsFromSlackAPI,
     ...(ctx.integration.settings as object),
+    channels: channelsFromSlackAPI,
   })
 
   const team = await getTeam({ token }, ctx)
