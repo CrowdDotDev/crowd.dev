@@ -746,6 +746,7 @@ class Permissions {
           plans.enterprise,
         ],
         allowedStorage: [],
+        allowedSampleTenant: true,
       },
       projectGroupEdit: {
         id: 'projectGroupEdit',
@@ -756,6 +757,7 @@ class Permissions {
           plans.enterprise,
         ],
         allowedStorage: [],
+        allowedSampleTenant: true,
       },
       projectCreate: {
         id: 'projectCreate',
@@ -766,6 +768,7 @@ class Permissions {
           plans.enterprise,
         ],
         allowedStorage: [],
+        allowedSampleTenant: true,
       },
       projectEdit: {
         id: 'projectEdit',
@@ -776,6 +779,7 @@ class Permissions {
           plans.enterprise,
         ],
         allowedStorage: [],
+        allowedSampleTenant: true,
       },
       subProjectCreate: {
         id: 'subProjectCreate',
@@ -786,6 +790,7 @@ class Permissions {
           plans.enterprise,
         ],
         allowedStorage: [],
+        allowedSampleTenant: true,
       },
       subProjectEdit: {
         id: 'subProjectEdit',
@@ -796,6 +801,7 @@ class Permissions {
           plans.enterprise,
         ],
         allowedStorage: [],
+        allowedSampleTenant: true,
       },
     };
   }
