@@ -5,5 +5,8 @@
   "nango": {},
   "worker": {
     "maxStreamRetries": 5
+  },
+  "slack": {
+    "maxRetrospectInSeconds": 86400
   }
 }

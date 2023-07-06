@@ -11,16 +11,20 @@ export default class DataSinkRepository extends RepositoryBase<DataSinkRepositor
   private readonly getResultInfoQuery = `
     select r.id,
            r.state,
-           r.data,
-           
+           r.data, 
            r."tenantId",
            r."runId",
            r."streamId",
            r."apiDataId",
            r."integrationId",
-           i.platform
+           i.platform,
+           t."hasSampleData", 
+           t."plan",
+           t."isTrialPlan",
+           t."name"
     from integration.results r
         inner join integrations i on r."integrationId" = i.id
+        inner join tenants t on t.id = r."tenantId"
     where r.id = $(resultId)
   `
   public async getResultInfo(resultId: string): Promise<IResultData | null> {

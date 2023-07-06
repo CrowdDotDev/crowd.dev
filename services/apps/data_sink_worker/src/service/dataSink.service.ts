@@ -4,6 +4,8 @@ import { IActivityData, IntegrationResultState, IntegrationResultType } from '@c
 import DataSinkRepository from '../repo/dataSink.repo'
 import ActivityService from './activity.service'
 import { NodejsWorkerEmitter, SearchSyncWorkerEmitter } from '@crowd/sqs'
+import { SLACK_ALERTING_CONFIG } from '@/conf'
+import { sendSlackAlert, SlackAlertTypes } from '@crowd/alerting'
 
 export default class DataSinkService extends LoggerBase {
   private readonly repo: DataSinkRepository
@@ -102,6 +104,27 @@ export default class DataSinkService extends LoggerBase {
         undefined,
         err,
       )
+
+      await sendSlackAlert({
+        slackURL: SLACK_ALERTING_CONFIG().url,
+        alertType: SlackAlertTypes.SINK_WORKER_ERROR,
+        integration: {
+          id: resultInfo.integrationId,
+          platform: resultInfo.platform,
+          tenantId: resultInfo.tenantId,
+          resultId: resultInfo.id,
+          apiDataId: resultInfo.apiDataId,
+        },
+        userContext: {
+          currentTenant: {
+            name: resultInfo.name,
+            plan: resultInfo.plan,
+            isTrial: resultInfo.isTrialPlan,
+          },
+        },
+        log: this.log,
+        frameworkVersion: 'new',
+      })
     } finally {
       await this.repo.touchRun(resultInfo.runId)
     }

@@ -5,8 +5,9 @@ import IntegrationDataRepository from '../repo/integrationData.repo'
 import { IActivityData, IntegrationResultType, IntegrationRunState } from '@crowd/types'
 import { addSeconds, singleOrDefault } from '@crowd/common'
 import { INTEGRATION_SERVICES, IProcessDataContext } from '@crowd/integrations'
-import { WORKER_SETTINGS, PLATFORM_CONFIG } from '@/conf'
+import { WORKER_SETTINGS, PLATFORM_CONFIG, SLACK_ALERTING_CONFIG } from '@/conf'
 import { DataSinkWorkerEmitter, IntegrationStreamWorkerEmitter } from '@crowd/sqs'
+import { SlackAlertTypes, sendSlackAlert } from '@crowd/alerting'
 
 export default class IntegrationDataService extends LoggerBase {
   private readonly repo: IntegrationDataRepository
@@ -114,6 +115,7 @@ export default class IntegrationDataService extends LoggerBase {
         platform: dataInfo.integrationType,
         status: dataInfo.integrationState,
         settings: dataInfo.integrationSettings,
+        token: dataInfo.integrationToken,
       },
 
       data: dataInfo.data,
@@ -185,6 +187,26 @@ export default class IntegrationDataService extends LoggerBase {
             maxRetries: WORKER_SETTINGS().maxDataRetries,
           },
         )
+
+        await sendSlackAlert({
+          slackURL: SLACK_ALERTING_CONFIG().url,
+          alertType: SlackAlertTypes.DATA_WORKER_ERROR,
+          integration: {
+            id: dataInfo.integrationId,
+            platform: dataInfo.integrationType,
+            tenantId: dataInfo.tenantId,
+            apiDataId: dataInfo.id,
+          },
+          userContext: {
+            currentTenant: {
+              name: dataInfo.name,
+              plan: dataInfo.plan,
+              isTrial: dataInfo.isTrialPlan,
+            },
+          },
+          log: this.log,
+          frameworkVersion: 'new',
+        })
       }
     } finally {
       await this.repo.touchRun(dataInfo.runId)

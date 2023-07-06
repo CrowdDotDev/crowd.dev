@@ -20,6 +20,7 @@ export default class IntegrationDataRepository extends RepositoryBase<Integratio
             i.platform as "integrationType",
             i.status   as "integrationState",
             i."integrationIdentifier",
+            i.token   as "integrationToken",
             r.state    as "runState",
             d."streamId",
             d."runId",
@@ -28,10 +29,15 @@ export default class IntegrationDataRepository extends RepositoryBase<Integratio
             d.id,
             d.state,
             d.data,
+            t."hasSampleData",
+            t."plan",
+            t."isTrialPlan",
+            t."name",
             coalesce(d.retries, 0) as retries
       from integration."apiData" d
               inner join integrations i on d."integrationId" = i.id
               inner join integration.runs r on r.id = d."runId"
+              inner join tenants t on t.id = d."tenantId"
       where d.id = $(dataId);
   `
 

@@ -4,7 +4,10 @@ import config from '@/config';
 export default function identify(user) {
   window.analytics.identify(user.id, {
     name: user.fullName,
+    firstName: user.firstName,
+    lastName: user.lastName,
     email: user.email,
+    createdAt: user.createdAt,
   });
 
   if (config.env === 'production') {

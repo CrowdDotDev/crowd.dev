@@ -17,10 +17,11 @@ export class ConversationService extends LoggerBase {
 
   private async getConversation(
     tenantId: string,
+    segmentId: string,
     id: string,
     repo: ConversationRepository,
   ): Promise<IDbConversation> {
-    const conversation = await repo.getConversation(tenantId, id)
+    const conversation = await repo.getConversation(tenantId, segmentId, id)
 
     if (!conversation) {
       throw new Error(`Conversation ${id} does not exist!`)
@@ -29,10 +30,15 @@ export class ConversationService extends LoggerBase {
     return conversation
   }
 
-  public async generateTitle(tenantId: string, title: string, isHtml = false): Promise<string> {
+  public async generateTitle(
+    tenantId: string,
+    segmentId: string,
+    title: string,
+    isHtml = false,
+  ): Promise<string> {
     if (!title && getCleanString(title).length === 0) {
       const repo = new ConversationRepository(this.store, this.log)
-      const count = await repo.getConversationCount(tenantId)
+      const count = await repo.getConversationCount(tenantId, segmentId)
 
       return `conversation-${count}`
     }
@@ -48,7 +54,7 @@ export class ConversationService extends LoggerBase {
   }
 
   static readonly MAX_SLUG_WORD_LENGTH = 10
-  public async generateSlug(tenantId: string, title: string): Promise<string> {
+  public async generateSlug(tenantId: string, segmentId: string, title: string): Promise<string> {
     // Remove non-standart characters and extra whitespaces
     const cleanedTitle = getCleanString(title)
 
@@ -68,7 +74,7 @@ export class ConversationService extends LoggerBase {
     // check generated slug already exists in tenant
     const repo = new ConversationRepository(this.store, this.log)
 
-    let slugExists = await repo.checkSlugExists(tenantId, cleanedSlug)
+    let slugExists = await repo.checkSlugExists(tenantId, segmentId, cleanedSlug)
 
     // generated slug already exists in the tenant, start adding suffixes and re-check
     if (slugExists) {
@@ -78,7 +84,7 @@ export class ConversationService extends LoggerBase {
 
       while (slugExists) {
         const suffixedSlug = `${slugCopy}-${suffix}`
-        slugExists = await repo.checkSlugExists(tenantId, cleanedSlug)
+        slugExists = await repo.checkSlugExists(tenantId, segmentId, cleanedSlug)
         suffix += 1
         cleanedSlug = suffixedSlug
       }
@@ -88,23 +94,27 @@ export class ConversationService extends LoggerBase {
   }
 
   // returns activity ids that were changed
-  public async processActivity(tenantId: string, activityId: string): Promise<string[]> {
+  public async processActivity(
+    tenantId: string,
+    segmentId: string,
+    activityId: string,
+  ): Promise<string[]> {
     const repo = new ConversationRepository(this.store, this.log)
 
-    const activity = await repo.getActivityData(tenantId, activityId)
+    const activity = await repo.getActivityData(tenantId, segmentId, activityId)
 
     if (activity.parentId) {
-      const parent = await repo.getActivityData(tenantId, activity.parentId)
-      return await this.addToConversation(tenantId, activity, parent)
+      const parent = await repo.getActivityData(tenantId, segmentId, activity.parentId)
+      return await this.addToConversation(tenantId, segmentId, activity, parent)
     } else {
       const ids: string[] = []
       await processPaginated(
         async (page) => {
-          return repo.getActivities(tenantId, activity.sourceId, page, 10)
+          return repo.getActivities(tenantId, segmentId, activity.sourceId, page, 10)
         },
         async (activities) => {
           for (const child of activities) {
-            const results = await this.addToConversation(tenantId, child, activity)
+            const results = await this.addToConversation(tenantId, segmentId, child, activity)
             ids.push(...results)
           }
         },
@@ -116,6 +126,7 @@ export class ConversationService extends LoggerBase {
 
   public async addToConversation(
     tenantId: string,
+    segmentId: string,
     child: IDbActivityInfo,
     parent: IDbActivityInfo,
   ): Promise<string[]> {
@@ -133,43 +144,59 @@ export class ConversationService extends LoggerBase {
 
       // check if parent is in a conversation already
       if (parent.conversationId) {
-        conversation = await this.getConversation(tenantId, parent.conversationId, txRepo)
-        await txRepo.setActivityConversationId(tenantId, child.id, parent.conversationId)
+        conversation = await this.getConversation(
+          tenantId,
+          segmentId,
+          parent.conversationId,
+          txRepo,
+        )
+        await txRepo.setActivityConversationId(tenantId, segmentId, child.id, parent.conversationId)
         affectedIds.push(child.id)
       }
       // if child is already in a conversation
       else if (child.conversationId) {
-        conversation = await this.getConversation(tenantId, child.conversationId, txRepo)
+        conversation = await this.getConversation(tenantId, segmentId, child.conversationId, txRepo)
 
         if (!conversation.published) {
           const txService = new ConversationService(txStore, this.log)
           const newConversationTitle = await txService.generateTitle(
             tenantId,
+            segmentId,
             parent.title || parent.body,
             ConversationService.hasHtmlActivities(parent.platform as PlatformType),
           )
 
-          const newConversationSlug = await txService.generateSlug(tenantId, newConversationTitle)
+          const newConversationSlug = await txService.generateSlug(
+            tenantId,
+            segmentId,
+            newConversationTitle,
+          )
 
           await txRepo.setConversationTitleAndSlug(
             tenantId,
+            segmentId,
             conversation.id,
             newConversationTitle,
             newConversationSlug,
           )
         }
 
-        await txRepo.setActivityConversationId(tenantId, parent.id, conversation.id)
+        await txRepo.setActivityConversationId(tenantId, segmentId, parent.id, conversation.id)
         affectedIds.push(parent.id)
       } else {
         // create a new conversation
         const txService = new ConversationService(txStore, this.log)
         const conversationTitle = await txService.generateTitle(
           tenantId,
+          segmentId,
           parent.title || parent.body,
           ConversationService.hasHtmlActivities(parent.platform as PlatformType),
         )
-        const conversationSlug = await txService.generateSlug(tenantId, conversationTitle)
+        const conversationSlug = await txService.generateSlug(
+          tenantId,
+          segmentId,
+          conversationTitle,
+        )
         const conversationSettings = await txRepo.getConversationSettings(tenantId)
         const channel = ConversationService.getChannelFromActivity(
           parent.platform as PlatformType,
@@ -184,6 +211,7 @@ export class ConversationService extends LoggerBase {
 
         const conversationId = await txRepo.createConversation(
           tenantId,
+          segmentId,
           conversationTitle,
           published,
           conversationSlug,
@@ -194,8 +222,8 @@ export class ConversationService extends LoggerBase {
           published,
         }
 
-        await txRepo.setActivityConversationId(tenantId, parent.id, conversationId)
-        await txRepo.setActivityConversationId(tenantId, child.id, conversationId)
+        await txRepo.setActivityConversationId(tenantId, segmentId, parent.id, conversationId)
+        await txRepo.setActivityConversationId(tenantId, segmentId, child.id, conversationId)
         affectedIds.push(parent.id)
         affectedIds.push(child.id)
       }
