@@ -80,7 +80,7 @@ export default class ActivityService extends LoggerBase {
         return id
       })
       await this.nodejsWorkerEmitter.processAutomationForNewActivity(tenantId, id, segmentId)
-      const affectedIds = await this.conversationService.processActivity(tenantId, id)
+      const affectedIds = await this.conversationService.processActivity(tenantId, segmentId, id)
 
       if (fireSync) {
         await this.searchSyncWorkerEmitter.triggerMemberSync(tenantId, activity.memberId)
@@ -158,7 +158,7 @@ export default class ActivityService extends LoggerBase {
       })
 
       if (updated) {
-        await this.conversationService.processActivity(tenantId, id)
+        await this.conversationService.processActivity(tenantId, segmentId, id)
 
         if (fireSync) {
           await this.searchSyncWorkerEmitter.triggerMemberSync(tenantId, activity.memberId)
