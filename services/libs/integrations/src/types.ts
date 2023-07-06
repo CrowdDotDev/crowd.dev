@@ -85,7 +85,8 @@ export interface IIntegrationDescriptor {
    * @param settings current settings of the integration
    * @returns new settings of the integration
    */
-  postProcess?: (settings: object) => object
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  postProcess?: (settings: any) => any
 
   // type of integration service
   type: string

@@ -12,6 +12,7 @@ const descriptor: IIntegrationDescriptor = {
   generateStreams,
   processStream,
   processData,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   postProcess: (settings: any) => {
     const copy = { ...settings }
     copy.channels = settings.channels.map((ch) => {
