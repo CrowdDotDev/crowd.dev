@@ -1,25 +1,30 @@
 import axios, { AxiosRequestConfig } from 'axios'
-import { Logger } from '@crowd/logging'
 import { timeout } from '@crowd/common'
 import {
-  SlackGetMessagesInThreadsInput,
+  SlackGetMessagesInput,
   SlackMessages,
   SlackParsedResponse,
-} from '../../types/slackTypes'
+  ISlackPlatformSettings,
+} from '../types'
 import { handleSlackError } from './errorHandler'
+import { IProcessStreamContext } from '@/types'
 
-async function getMessagesInThreads(
-  input: SlackGetMessagesInThreadsInput,
-  logger: Logger,
+async function getMessages(
+  input: SlackGetMessagesInput,
+  ctx: IProcessStreamContext,
 ): Promise<SlackParsedResponse> {
   await timeout(2000)
 
-  const config: AxiosRequestConfig<any> = {
+  const logger = ctx.log
+
+  const platformSettings = ctx.platformSettings as ISlackPlatformSettings
+  const maxRetrospectInSeconds = platformSettings.maxRetrospectInSeconds
+
+  const config: AxiosRequestConfig = {
     method: 'get',
-    url: `https://slack.com/api/conversations.replies`,
+    url: `https://slack.com/api/conversations.history`,
     params: {
       channel: input.channelId,
-      ts: input.threadId,
     },
     headers: {
       Authorization: `Bearer ${input.token}`,
@@ -34,9 +39,16 @@ async function getMessagesInThreads(
     config.params.limit = input.perPage
   }
 
+  if (!ctx.onboarding && !input.new) {
+    // we don't want to get messages older than maxRetrospectInSeconds during incremental sync
+    // but if it's a completely new channel, we want to get all messages
+    config.params.oldest = new Date(Date.now() - maxRetrospectInSeconds * 1000).getTime() / 1000
+  }
+
   try {
     const response = await axios(config)
     const records: SlackMessages = response.data.messages
+
     const nextPage = response.data.response_metadata?.next_cursor || ''
     return {
       records,
@@ -48,4 +60,4 @@ async function getMessagesInThreads(
   }
 }
 
-export default getMessagesInThreads
+export default getMessages
