@@ -1,7 +1,7 @@
 import { IProcessStreamContext, ProcessStreamHandler } from '@/types'
 import {
   SlackStreamType,
-  ISlackRootSteamData,
+  ISlackRootStreamData,
   ISlackMemberStreamData,
   ISlackChannelStreamData,
   ISlackThreadStreamData,
@@ -72,7 +72,7 @@ async function getSlackMember(
 }
 
 const processRootStream: ProcessStreamHandler = async (ctx) => {
-  const metadata = ctx.stream.data as ISlackRootSteamData
+  const metadata = ctx.stream.data as ISlackRootStreamData
   const token = metadata.token
   const channels = metadata.channels ? metadata.channels : []
 
@@ -83,6 +83,11 @@ const processRootStream: ProcessStreamHandler = async (ctx) => {
       return { ...c, new: true }
     }
     return c
+  })
+
+  await ctx.updateIntegrationSettings({
+    channels: channelsFromSlackAPI,
+    ...(ctx.integration.settings as object),
   })
 
   const team = await getTeam({ token }, ctx)
@@ -131,6 +136,7 @@ const processChannelStream: ProcessStreamHandler = async (ctx) => {
       page: metadata.page,
       perPage: 200,
       token: metadata.token,
+      new: metadata.channelsInfo[metadata.channelId].new,
     },
     ctx,
   )
@@ -214,6 +220,7 @@ const processThreadStream: ProcessStreamHandler = async (ctx) => {
       page: metadata.page,
       perPage: 200,
       threadId: metadata.threadId,
+      new: metadata.new,
     },
     ctx,
   )

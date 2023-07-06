@@ -39,7 +39,7 @@ async function getMessagesInThreads(
     config.params.limit = input.perPage
   }
 
-  if (!ctx.onboarding) {
+  if (!ctx.onboarding && !input.new) {
     // we don't want to get messages older than maxRetrospectInSeconds
     config.params.oldest = new Date(Date.now() - maxRetrospectInSeconds * 1000).getTime() / 1000
   }

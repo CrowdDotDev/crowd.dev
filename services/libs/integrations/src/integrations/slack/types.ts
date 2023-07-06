@@ -34,7 +34,7 @@ export interface ISlackAPIData {
   base: ISlackStreamBase
 }
 
-export interface ISlackRootSteamData {
+export interface ISlackRootStreamData {
   token: string
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   channels: any[]
@@ -61,7 +61,8 @@ export interface ISlackThreadStreamData extends ISlackStreamBase {
 }
 
 export interface ISlackIntegrationSettings {
-  channels: string[]
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  channels: any[]
 }
 
 export interface SlackGetChannelsInput {
@@ -73,6 +74,7 @@ export interface SlackGetMessagesInput {
   token: string
   page: string | undefined
   perPage: number | 100
+  new: boolean
 }
 
 export interface SlackGetMessagesInThreadsInput {
@@ -81,6 +83,7 @@ export interface SlackGetMessagesInThreadsInput {
   token: string
   page: string | undefined
   perPage: number | 100
+  new: boolean
 }
 
 export interface SlackGetMembersInput {

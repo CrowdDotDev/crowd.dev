@@ -39,8 +39,9 @@ async function getMessages(
     config.params.limit = input.perPage
   }
 
-  if (!ctx.onboarding) {
-    // we don't want to get messages older than maxRetrospectInSeconds
+  if (!ctx.onboarding && !input.new) {
+    // we don't want to get messages older than maxRetrospectInSeconds during incremental sync
+    // but if it's a completely new channel, we want to get all messages
     config.params.oldest = new Date(Date.now() - maxRetrospectInSeconds * 1000).getTime() / 1000
   }
 

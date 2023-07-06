@@ -1,5 +1,5 @@
 import { GenerateStreamsHandler } from '../../types'
-import { ISlackIntegrationSettings, SlackStreamType, ISlackRootSteamData } from './types'
+import { ISlackIntegrationSettings, SlackStreamType, ISlackRootStreamData } from './types'
 
 const handler: GenerateStreamsHandler = async (ctx) => {
   const settings = ctx.integration.settings as ISlackIntegrationSettings
@@ -11,7 +11,7 @@ const handler: GenerateStreamsHandler = async (ctx) => {
     await ctx.abortRunWithError('No Slack token found, aborting run!')
   }
 
-  await ctx.publishStream<ISlackRootSteamData>(`${SlackStreamType.ROOT}`, {
+  await ctx.publishStream<ISlackRootStreamData>(`${SlackStreamType.ROOT}`, {
     token,
     channels,
   })
