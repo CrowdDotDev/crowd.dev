@@ -5,6 +5,7 @@ import {
   MultiSelectAsyncFilterOptions, MultiSelectAsyncFilterValue,
 } from '@/shared/modules/filters/types/filterTypes/MultiSelectAsyncFilterConfig';
 import { MemberService } from '@/modules/member/member-service';
+import { DEFAULT_MEMBER_FILTERS } from '@/modules/member/store/constants';
 
 const member: MultiSelectAsyncFilterConfig = {
   id: 'member',
@@ -19,7 +20,12 @@ const member: MultiSelectAsyncFilterConfig = {
       }))),
     remotePopulateItems: (ids: string[]) => MemberService.listMembers({
       filter: {
-        id: { in: ids },
+        and: [
+          ...DEFAULT_MEMBER_FILTERS,
+          {
+            id: { in: ids },
+          },
+        ],
       },
       orderBy: null,
       limit: ids.length,

@@ -5,6 +5,7 @@ import RelationToManyField from '@/shared/fields/relation-to-many-field';
 import Permissions from '@/security/permissions';
 import { UserService } from '@/modules/user/user-service';
 import { MemberService } from '@/modules/member/member-service';
+import { DEFAULT_MEMBER_FILTERS } from '@/modules/member/store/constants';
 
 const fetchUsers = (query, limit) => UserService.fetchUserAutocomplete(query, limit);
 
@@ -32,7 +33,12 @@ const fetchMembers = (query, limit) => {
   }
 
   return MemberService.listMembers({
-    filter,
+    filter: {
+      and: [
+        ...DEFAULT_MEMBER_FILTERS,
+        filter,
+      ],
+    },
     orderBy: '',
     limit,
     offset: 0,

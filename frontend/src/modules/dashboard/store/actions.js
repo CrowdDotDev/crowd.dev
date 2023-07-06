@@ -4,6 +4,9 @@ import { OrganizationService } from '@/modules/organization/organization-service
 import { ActivityService } from '@/modules/activity/activity-service';
 import { ConversationService } from '@/modules/conversation/conversation-service';
 import { SEVEN_DAYS_PERIOD_FILTER } from '@/modules/widget/widget-constants';
+import { DEFAULT_ACTIVITY_FILTERS } from '@/modules/activity/store/constants';
+import { DEFAULT_ORGANIZATION_FILTERS } from '@/modules/organization/store/constants';
+import { DEFAULT_MEMBER_FILTERS } from '@/modules/member/store/constants';
 
 export default {
   async reset({ dispatch }) {
@@ -104,6 +107,7 @@ export default {
     return ActivityService.query({
       filter: {
         and: [
+          ...DEFAULT_ACTIVITY_FILTERS,
           {
             timestamp: {
               gte: moment()
@@ -143,9 +147,12 @@ export default {
   async getActivitiesCount({ state }) {
     const { platform } = state.filters;
     return ActivityService.query({
-      filter: (platform === 'all' ? {}
+      filter: (platform === 'all' ? {
+        and: DEFAULT_ACTIVITY_FILTERS,
+      }
         : {
           and: [
+            ...DEFAULT_ACTIVITY_FILTERS,
             ...(platform !== 'all'
               ? [
                 {
@@ -208,6 +215,7 @@ export default {
     return MemberService.listMembers({
       filter: {
         and: [
+          ...DEFAULT_MEMBER_FILTERS,
           {
             joinedAt: {
               gte: moment()
@@ -249,9 +257,12 @@ export default {
   async getMembersCount({ state }) {
     const { platform } = state.filters;
     return MemberService.listMembers({
-      filter: (platform === 'all' ? null
+      filter: (platform === 'all' ? {
+        and: DEFAULT_MEMBER_FILTERS,
+      }
         : {
           and: [
+            ...DEFAULT_MEMBER_FILTERS,
             ...(platform !== 'all'
               ? [
                 {
@@ -290,6 +301,7 @@ export default {
     return OrganizationService.query({
       filter: {
         and: [
+          ...DEFAULT_ORGANIZATION_FILTERS,
           {
             lastActive: {
               gte: moment()
@@ -334,6 +346,7 @@ export default {
     return OrganizationService.query({
       filter: {
         and: [
+          ...DEFAULT_ORGANIZATION_FILTERS,
           {
             joinedAt: {
               gte: moment()
@@ -375,9 +388,12 @@ export default {
   async getOrganizationsCount({ state }) {
     const { platform } = state.filters;
     return OrganizationService.query({
-      filter: (platform === 'all' ? null
+      filter: (platform === 'all' ? {
+        and: DEFAULT_ORGANIZATION_FILTERS,
+      }
         : {
           and: [
+            ...DEFAULT_ORGANIZATION_FILTERS,
             ...(platform !== 'all'
               ? [
                 {
