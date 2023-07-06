@@ -304,6 +304,12 @@ export default class MemberEnrichmentService extends LoggerBase {
       }
 
       member.organizations = [organization]
+
+      // fetch jobTitle from work experiences
+      member.attributes.jobTitle = {
+        custom: enrichmentData.work_experiences[0]?.title,
+        default: enrichmentData.work_experiences[0]?.title,
+      }
     }
 
     member.contributions = enrichmentData.oss_contributions?.map(
