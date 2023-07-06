@@ -201,6 +201,7 @@ export default class IntegrationStreamService extends LoggerBase {
         platform: streamInfo.integrationType,
         status: streamInfo.integrationState,
         settings: streamInfo.integrationSettings,
+        token: streamInfo.integrationToken,
       },
 
       stream: {

@@ -115,6 +115,7 @@ export default class IntegrationDataService extends LoggerBase {
         platform: dataInfo.integrationType,
         status: dataInfo.integrationState,
         settings: dataInfo.integrationSettings,
+        token: dataInfo.integrationToken,
       },
 
       data: dataInfo.data,

@@ -11,7 +11,6 @@ import { IntegrationTickProcessor } from './integrationTickProcessor'
 import { DiscordIntegrationService } from './integrations/discordIntegrationService'
 import { DiscourseIntegrationService } from './integrations/discourseIntegrationService'
 import { GithubIntegrationService } from './integrations/githubIntegrationService'
-import { SlackIntegrationService } from './integrations/slackIntegrationService'
 import { TwitterIntegrationService } from './integrations/twitterIntegrationService'
 import { TwitterReachIntegrationService } from './integrations/twitterReachIntegrationService'
 import { WebhookProcessor } from './webhookProcessor'
@@ -32,7 +31,6 @@ export class IntegrationProcessor extends LoggerBase {
       new DiscordIntegrationService(),
       new TwitterIntegrationService(),
       new TwitterReachIntegrationService(),
-      new SlackIntegrationService(),
       new GithubIntegrationService(),
       new DiscourseIntegrationService(),
     ]

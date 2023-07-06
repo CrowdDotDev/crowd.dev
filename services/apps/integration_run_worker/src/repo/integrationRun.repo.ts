@@ -110,6 +110,7 @@ export default class IntegrationRunRepository extends RepositoryBase<Integration
           r.state                     as "runState",
           r.id                        as "runId",
           i.settings                  as "integrationSettings",
+          i.token                     as "integrationToken",
           coalesce(c.stream_count, 0) as "streamCount"
       from integration.runs r
               inner join integrations i on (r."integrationId" = i.id and i."deletedAt" is null)

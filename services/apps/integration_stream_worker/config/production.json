@@ -1,1 +1,5 @@
-{}
+{
+  "slack": {
+    "maxRetrospectInSeconds": 86400
+  }
+}
