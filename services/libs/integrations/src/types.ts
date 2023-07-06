@@ -77,6 +77,16 @@ export interface IIntegrationDescriptor {
    */
   processData: ProcessDataHandler
 
+  /**
+   * Function that will be called in the end of successful integration run.
+   * The result of this function should be new settings of the integration.
+   * The new settings will be merged with the old settings and saved.
+   *
+   * @param settings current settings of the integration
+   * @returns new settings of the integration
+   */
+  postProcess?: (settings: object) => object
+
   // type of integration service
   type: string
 
