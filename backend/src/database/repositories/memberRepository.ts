@@ -3181,6 +3181,31 @@ class MemberRepository {
 
     return output
   }
+
+  static async createOrUpdateWorkExperience(
+    { memberId, organizationId, title, dateStart, dateEnd },
+    options: IRepositoryOptions,
+  ) {
+    const seq = SequelizeRepository.getSequelize(options)
+
+    const query = `
+      INSERT INTO "memberOrganizations" ("memberId", "organizationId", "createdAt", "updatedAt", "title", "dateStart", "dateEnd")
+      VALUES (:memberId, :organizationId, NOW(), NOW(), :title, :dateStart, :dateEnd)
+      ON CONFLICT ("memberId", "organizationId") DO UPDATE
+      SET "title" = :title, "dateStart" = :dateStart, "dateEnd" = :dateEnd
+    `
+
+    await seq.query(query, {
+      replacements: {
+        memberId,
+        organizationId,
+        title: title || null,
+        dateStart: dateStart || null,
+        dateEnd: dateEnd || null,
+      },
+      type: QueryTypes.INSERT,
+    })
+  }
 }
 
 export default MemberRepository
