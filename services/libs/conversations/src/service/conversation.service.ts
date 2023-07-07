@@ -276,9 +276,13 @@ export class ConversationService extends LoggerBase {
     if (conversationSettings.autoPublish.status === 'all') {
       shouldAutoPublish = true
     } else if (conversationSettings.autoPublish.status === 'custom') {
-      shouldAutoPublish =
-        conversationSettings.autoPublish.channelsByPlatform[platform] &&
-        conversationSettings.autoPublish.channelsByPlatform[platform].includes(channel)
+      if (conversationSettings.autoPublish.channelsByPlatform) {
+        const channels = conversationSettings.autoPublish.channelsByPlatform[platform]
+        if (channels && Array.isArray(channels)) {
+          shouldAutoPublish =
+            conversationSettings.autoPublish.channelsByPlatform[platform].includes(channel)
+        }
+      }
     }
     return shouldAutoPublish
   }

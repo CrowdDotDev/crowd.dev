@@ -58,10 +58,16 @@ export default class DataSinkService extends LoggerBase {
     })
 
     if (resultInfo.state !== IntegrationResultState.PENDING) {
-      this.log.error({ actualState: resultInfo.state }, 'Result is not pending.')
-      await this.triggerResultError(resultId, 'check-result-state', 'Result is not pending.', {
-        actualState: resultInfo.state,
-      })
+      this.log.warn({ actualState: resultInfo.state }, 'Result is not pending.')
+      if (resultInfo.state === IntegrationResultState.PROCESSED) {
+        this.log.warn('Result has already been processed. Skipping...')
+        return
+      }
+
+      await this.repo.resetResults([resultId])
+      // await this.triggerResultError(resultId, 'check-result-state', 'Result is not pending.', {
+      //   actualState: resultInfo.state,
+      // })
       return
     }
 

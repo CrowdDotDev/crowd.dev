@@ -28,7 +28,7 @@ setImmediate(async () => {
 
   let results = await repo.getFailedResults(runId, 1, 20)
   while (results.length > 0) {
-    await repo.resetFailedResults(results.map((r) => r.id))
+    await repo.resetResults(results.map((r) => r.id))
 
     for (const result of results) {
       await emitter.sendMessage(
