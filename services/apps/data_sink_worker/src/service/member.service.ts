@@ -9,8 +9,11 @@ import isEqual from 'lodash.isequal'
 import { IMemberCreateData, IMemberUpdateData } from './member.data'
 import MemberAttributeService from './memberAttribute.service'
 import { NodejsWorkerEmitter, SearchSyncWorkerEmitter } from '@crowd/sqs'
+import { OrganizationService } from './organization.service'
 
 export default class MemberService extends LoggerBase {
+  private readonly organizationService: OrganizationService
+
   constructor(
     private readonly store: DbStore,
     private readonly nodejsWorkerEmitter: NodejsWorkerEmitter,
@@ -18,6 +21,8 @@ export default class MemberService extends LoggerBase {
     parentLog: Logger,
   ) {
     super(parentLog)
+
+    this.organizationService = new OrganizationService(store, nodejsWorkerEmitter, this.log)
   }
 
   public async create(

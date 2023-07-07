@@ -25,7 +25,8 @@ export default class ActivityService extends LoggerBase {
     parentLog: Logger,
   ) {
     super(parentLog)
-    this.conversationService = new ConversationService(store, parentLog)
+
+    this.conversationService = new ConversationService(store, this.log)
   }
 
   public async create(
