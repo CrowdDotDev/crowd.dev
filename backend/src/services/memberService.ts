@@ -327,6 +327,27 @@ export default class MemberService extends LoggerBase {
             organizationsIds.push(organizationRecord.id)
           }
         }
+
+        // Auto assign member to organization if email domain matches
+        if (data.emails) {
+          const emailDomains = new Set()
+
+          // Collect unique domains
+          for (const email of data.emails) {
+            const domain = email.split('@')[1]
+            emailDomains.add(domain)
+          }
+
+          // Fetch organization ids for these domains
+          const organizationService = new OrganizationService(this.options)
+          for (let domain of emailDomains) {
+            const organizationRecord = await organizationService.findByUrl(domain)
+            if (organizationRecord) {
+              organizationsIds.push(organizationRecord.id)
+            }
+          }
+        }
+
         // Remove dups
         data.organizations = [...new Set(organizationsIds)]
       }
