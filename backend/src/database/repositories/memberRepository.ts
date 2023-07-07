@@ -3148,7 +3148,7 @@ class MemberRepository {
     output.organizations = await record.getOrganizations({
       transaction,
       order: [['createdAt', 'ASC']],
-      joinTableAttributes: [],
+      joinTableAttributes: ['dateStart', 'dateEnd', 'title'],
     })
 
     output.tasks = await record.getTasks({
