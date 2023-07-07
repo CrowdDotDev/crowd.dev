@@ -300,12 +300,12 @@ export default class MemberEnrichmentService extends LoggerBase {
           organization.location = organizationsByWorkExperience[0].location
           organization.linkedin = organizationsByWorkExperience[0].companyLinkedInUrl
           organization.url = organizationsByWorkExperience[0].companyUrl
-        }
 
-        // fetch jobTitle from most recent work experience
-        member.attributes.jobTitle = {
-          custom: organizationsByWorkExperience[0].title,
-          default: organizationsByWorkExperience[0].title,
+          // fetch jobTitle from most recent work experience
+          member.attributes.jobTitle = {
+            custom: organizationsByWorkExperience[0].title,
+            default: organizationsByWorkExperience[0].title,
+          }
         }
       }
 
