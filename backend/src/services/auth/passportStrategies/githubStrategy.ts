@@ -13,7 +13,7 @@ export function getGithubStrategy(): GithubStrategy {
       clientID: GITHUB_CONFIG.clientId,
       clientSecret: GITHUB_CONFIG.clientSecret,
       callbackURL: GITHUB_CONFIG.callbackUrl,
-      scope: ['user:email'] // Request email scope
+      scope: ['user:email'], // Request email scope
     },
     (accessToken, refreshToken, profile, done) => {
       databaseInit()
