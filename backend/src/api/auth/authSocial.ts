@@ -51,7 +51,7 @@ export default (app, routes) => {
     routes.get(
       '/auth/social/github',
       passport.authenticate('github', {
-        scope: ['user:email'],
+        scope: ['user:email', 'read:user'],
         session: false,
       }),
       () => {

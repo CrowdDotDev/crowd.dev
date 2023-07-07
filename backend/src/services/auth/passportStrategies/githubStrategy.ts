@@ -13,11 +13,13 @@ export function getGithubStrategy(): GithubStrategy {
       clientID: GITHUB_CONFIG.clientId,
       clientSecret: GITHUB_CONFIG.clientSecret,
       callbackURL: GITHUB_CONFIG.callbackUrl,
+      scope: ['user:email'] // Request email scope
     },
     (accessToken, refreshToken, profile, done) => {
       databaseInit()
         .then((database) => {
           const email = get(profile, 'emails[0].value')
+          const emailVerified = get(profile, 'emails[0].verified', false)
           const displayName = get(profile, 'displayName')
           const { firstName, lastName } = splitFullName(displayName)
 
@@ -25,7 +27,7 @@ export function getGithubStrategy(): GithubStrategy {
             'github',
             profile.id,
             email,
-            true, // Github does not provide email verification in profile
+            emailVerified,
             firstName,
             lastName,
             displayName,
