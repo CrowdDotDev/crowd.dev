@@ -6,6 +6,7 @@ export interface IStreamData {
   integrationType: string
   integrationState: IntegrationState
   integrationIdentifier: string | null
+  integrationToken: string | null
   runState: IntegrationRunState
   runId: string
   tenantId: string

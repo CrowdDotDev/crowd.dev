@@ -1,18 +1,20 @@
 import axios, { AxiosRequestConfig } from 'axios'
-import { Logger } from '@crowd/logging'
 import { timeout } from '@crowd/common'
-import { SlackGetMemberInput, SlackGetMemberOutput } from '../../types/slackTypes'
+import { SlackGetMemberInput, SlackGetMemberOutput } from '../types'
 import { handleSlackError } from './errorHandler'
+import { IProcessStreamContext } from '@/types'
 
 async function getMembers(
   input: SlackGetMemberInput,
-  logger: Logger,
+  ctx: IProcessStreamContext,
 ): Promise<SlackGetMemberOutput> {
   await timeout(2000)
 
-  const config: AxiosRequestConfig<any> = {
+  const logger = ctx.log
+
+  const config: AxiosRequestConfig = {
     method: 'get',
-    url: `https://slack.com/api/users.info`,
+    url: `https://slack.com/api/users.profile.get`,
     params: {
       user: input.userId,
     },
@@ -25,14 +27,14 @@ async function getMembers(
     const response = await axios(config)
 
     if (response.data.ok === true) {
-      const member = response.data.user
+      const profile = response.data.profile
       return {
-        records: member,
+        records: profile,
         nextPage: '',
       }
     }
 
-    if (response.data.error === 'user_not_found' || response.data.error === 'user_not_visible') {
+    if (response.data.error === 'user_not_found' || response.data.error === 'account_inactive') {
       return {
         records: undefined,
         nextPage: '',
