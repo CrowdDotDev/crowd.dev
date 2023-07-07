@@ -1,9 +1,9 @@
 import { getServiceLogger } from '@crowd/logging'
-import { TWITTER_CONFIG, SLACK_CONFIG, GOOGLE_CONFIG, GITHUB_CONFIG } from '../conf'
-import { getTwitterStrategy } from '../services/auth/passportStrategies/twitterStrategy'
-import { getSlackStrategy } from '../services/auth/passportStrategies/slackStrategy'
+import passport from 'passport'
+import { GOOGLE_CONFIG, SLACK_CONFIG, GITHUB_CONFIG} from '../conf'
 import { getGoogleStrategy } from '../services/auth/passportStrategies/googleStrategy'
-import { getGithubStrategy } from '../services/auth/passportStrategies/githubStrategy'
+import { getSlackStrategy } from '../services/auth/passportStrategies/slackStrategy'
+import { getGithubStrategy } from '@/services/auth/passportStrategies/githubStrategy'
 
 const log = getServiceLogger()
 

@@ -17,7 +17,6 @@ export function getGithubStrategy(): GithubStrategy {
     (accessToken, refreshToken, profile, done) => {
       databaseInit()
         .then((database) => {
-            console.log('profile', profile)
           const email = get(profile, 'emails[0].value')
           const displayName = get(profile, 'displayName')
           const { firstName, lastName } = splitFullName(displayName)
@@ -44,20 +43,19 @@ export function getGithubStrategy(): GithubStrategy {
   )
 }
 
-
 // TODO: This is duplicated in googleStrategy.ts and should be moved to a common place
 function splitFullName(fullName) {
-    let firstName
-    let lastName
-  
-    if (fullName && fullName.split(' ').length > 1) {
-      const [firstNameArray, ...lastNameArray] = fullName.split(' ')
-      firstName = firstNameArray
-      lastName = lastNameArray.join(' ')
-    } else {
-      firstName = fullName || null
-      lastName = null
-    }
-  
-    return { firstName, lastName }
+  let firstName
+  let lastName
+
+  if (fullName && fullName.split(' ').length > 1) {
+    const [firstNameArray, ...lastNameArray] = fullName.split(' ')
+    firstName = firstNameArray
+    lastName = lastNameArray.join(' ')
+  } else {
+    firstName = fullName || null
+    lastName = null
   }
+
+  return { firstName, lastName }
+}
