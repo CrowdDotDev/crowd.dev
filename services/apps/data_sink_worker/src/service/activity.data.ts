@@ -8,6 +8,8 @@ export interface IActivityCreateData {
   sourceParentId?: string
   memberId: string
   username: string
+  objectMemberId?: string
+  objectMemberUsername?: string
   attributes: Record<string, unknown>
   body?: string
   title?: string
@@ -23,6 +25,8 @@ export interface IActivityUpdateData {
   sourceId?: string
   memberId?: string
   username?: string
+  objectMemberId?: string
+  objectMemberUsername?: string
   attributes?: Record<string, unknown>
   body?: string
   title?: string

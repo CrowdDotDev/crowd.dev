@@ -32,6 +32,8 @@ export default class ActivityRepository extends RepositoryBase<ActivityRepositor
             "parentId",
             "memberId",
             username,
+            "objectMemberId",
+            "objectMemberUsername",
             attributes,
             body,
             title,
