@@ -947,6 +947,17 @@ class MemberRepository {
         attributes: ['id', 'name'],
         as: 'organizations',
         order: [['createdAt', 'ASC']],
+        through: {
+          attributes: [
+            'memberId',
+            'organizationId',
+            'createdAt',
+            'updatedAt',
+            'dateStart',
+            'dateEnd',
+            'title',
+          ],
+        },
       },
       {
         model: options.database.segment,
