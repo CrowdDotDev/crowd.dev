@@ -340,7 +340,7 @@ export default class MemberService extends LoggerBase {
 
           // Fetch organization ids for these domains
           const organizationService = new OrganizationService(this.options)
-          for (let domain of emailDomains) {
+          for (const domain of emailDomains) {
             const organizationRecord = await organizationService.findByUrl(domain)
             if (organizationRecord) {
               organizationsIds.push(organizationRecord.id)
