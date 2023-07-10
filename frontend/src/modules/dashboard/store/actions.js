@@ -106,8 +106,8 @@ export default {
     const { platform, period } = state.filters;
     return ActivityService.query({
       filter: {
+        ...DEFAULT_ACTIVITY_FILTERS,
         and: [
-          ...DEFAULT_ACTIVITY_FILTERS,
           {
             timestamp: {
               gte: moment()
@@ -147,12 +147,11 @@ export default {
   async getActivitiesCount({ state }) {
     const { platform } = state.filters;
     return ActivityService.query({
-      filter: (platform === 'all' ? {
-        and: DEFAULT_ACTIVITY_FILTERS,
-      }
+      filter: (platform === 'all'
+        ? DEFAULT_ACTIVITY_FILTERS
         : {
+          ...DEFAULT_ACTIVITY_FILTERS,
           and: [
-            ...DEFAULT_ACTIVITY_FILTERS,
             ...(platform !== 'all'
               ? [
                 {
