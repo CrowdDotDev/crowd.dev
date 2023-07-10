@@ -56,6 +56,8 @@ import { sendNodeWorkerMessage } from '../../../utils/nodeWorkerSQS'
 import { NodeWorkerIntegrationProcessMessage } from '../../../../types/mq/nodeWorkerIntegrationProcessMessage'
 import TeamsQuery from '../../usecases/github/graphql/teams'
 import { GithubWebhookTeam } from '../../usecases/github/graphql/types'
+import ActivityRepository from '@/database/repositories/activityRepository'
+import SequelizeRepository from '@/database/repositories/sequelizeRepository'
 
 /* eslint class-methods-use-this: 0 */
 
@@ -532,6 +534,12 @@ export class GithubIntegrationService extends IntegrationServiceBase {
       }
 
       default:
+    }
+    if (event && records.length) {
+      const options = await SequelizeRepository.getDefaultIRepositoryOptions()
+      records.forEach(async (record) => {
+        await ActivityRepository.create({ ...record, isBotActivity: true }, options)
+      })
     }
 
     if (records.length === 0) {

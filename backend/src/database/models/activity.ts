@@ -9,6 +9,13 @@ export default (sequelize) => {
         defaultValue: DataTypes.UUIDV4,
         primaryKey: true,
       },
+      isBotActivity: {
+        type: DataTypes.BOOLEAN,
+        default: false,
+        validate: {
+          notEmpty: true,
+        },
+      },
       type: {
         type: DataTypes.TEXT,
         allowNull: false,
