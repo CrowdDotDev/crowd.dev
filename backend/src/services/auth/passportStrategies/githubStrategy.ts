@@ -21,7 +21,9 @@ export function getGithubStrategy(): GithubStrategy {
       databaseInit()
         .then((database) => {
           const email = get(profile, 'emails[0].value')
-          const emailVerified = get(profile, 'emails[0].verified', false)
+          // GitHub user's profile doesn't include 'verified' field
+          // However, GitHub accounts require email verification for activation
+          const emailVerified = email ? true : false
           const displayName = get(profile, 'displayName')
           const { firstName, lastName } = splitFullName(displayName)
 
