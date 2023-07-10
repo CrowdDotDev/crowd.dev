@@ -33,6 +33,7 @@
         v-for="{
           id,
           logo,
+          name,
           displayName,
           memberOrganizations,
         } of member.organizations"
@@ -52,7 +53,7 @@
           }"
         >
           <div
-            class="w-6 h-6 rounded-md border border-gray-200 p-0.5 flex items-center justify-center overflow-hidden"
+            class="min-w-[24px] w-6 h-6 rounded-md border border-gray-200 p-1 flex items-center justify-center overflow-hidden"
             :class="{
               'bg-white': logo,
               'bg-gray-50': !logo,
@@ -61,7 +62,7 @@
             <img
               v-if="logo"
               :src="logo"
-              :alt="`${displayName} logo`"
+              :alt="`${displayName || name} logo`"
             />
             <i
               v-else
@@ -72,7 +73,7 @@
             <div
               class="text-xs text-gray-900 group-hover:text-brand-500 transition font-medium"
             >
-              {{ displayName }}
+              {{ displayName || name }}
             </div>
             <div v-if="hasValues(memberOrganizations)" class="text-gray-600 text-2xs">
               <span v-if="memberOrganizations.title">{{ memberOrganizations.title }}</span>

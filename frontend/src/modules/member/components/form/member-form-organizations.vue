@@ -42,11 +42,11 @@
               :in-memory-filter="false"
               :clearable="false"
             >
-              <template v-if="organization.displayName" #prefix>
+              <template v-if="organization.displayName || organization.name" #prefix>
                 <div class="flex items-center">
                   <app-avatar
                     :entity="{
-                      displayName: organization.displayName,
+                      displayName: organization.displayName || organization.name,
                       avatar: organization.logo,
                     }"
                     size="xxs"
@@ -167,6 +167,7 @@ const fetchOrganizationsFn = (query: number, limit:number) => OrganizationServic
   .then((options: Organization[]) => options.filter((m) => m.id !== props.modelValue.id).map((o) => ({
     ...o,
     displayName: o.label,
+    name: o.label,
     memberOrganizations: {
       title: '',
       dateStart: '',
@@ -180,7 +181,7 @@ const createOrganizationFn = (value: string) => OrganizationService.create({
 })
   .then((newOrganization) => ({
     id: newOrganization.id,
-    label: newOrganization.displayName,
+    label: newOrganization.displayName || newOrganization.name,
   }))
   .catch(() => null);
 

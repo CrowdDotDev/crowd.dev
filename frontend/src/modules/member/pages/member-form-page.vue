@@ -158,6 +158,7 @@ const { fields } = MemberModel;
 const formSchema = computed(
   () => new FormSchema([
     fields.displayName,
+    fields.name,
     fields.emails,
     fields.joinedAt,
     fields.tags,
@@ -195,6 +196,7 @@ function getInitialModel(r) {
     JSON.stringify(
       formSchema.value.initialValues({
         displayName: r ? r.displayName : '',
+        name: r ? r.name : '',
         emails: r ? r.emails : '',
         joinedAt: r ? r.joinedAt : '',
         attributes: r
@@ -349,7 +351,7 @@ async function onSubmit() {
       organizations: formModel.value.organizations.map(
         (o) => ({
           id: o.id,
-          name: o.displayName,
+          name: o.name,
           ...o.memberOrganizations?.title && {
             title: o.memberOrganizations?.title,
           },

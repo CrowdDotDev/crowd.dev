@@ -123,10 +123,10 @@ const activeOrganization = computed(() => {
     const mostRecentStartDate = new Date(mostRecent.memberOrganizations?.dateStart);
     const organizationEndDate = new Date(organization.memberOrganizations?.dateEnd);
     const organizationStartDate = new Date(organization.memberOrganizations?.dateStart);
-    const isEndDateNull = !organization.memberOrganizations?.dateEnd;
+    const isEndDateNull = !mostRecent.memberOrganizations?.dateEnd;
 
     if ((organizationEndDate > mostRecentEndDate && !isEndDateNull)
-      || (organizationStartDate > mostRecentStartDate && isEndDateNull)) {
+    || (organizationStartDate > mostRecentStartDate && isEndDateNull)) {
       return organization;
     }
 
