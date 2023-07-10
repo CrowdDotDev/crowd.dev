@@ -127,9 +127,13 @@ class MemberRepository {
     await record.setTags(data.tags || [], {
       transaction,
     })
-    await record.setOrganizations(data.organizations || [], {
+
+    await MemberRepository.updateMemberOrganizations(
+      record,
+      data.organizations,
       transaction,
-    })
+      options,
+    )
 
     await record.setTasks(data.tasks || [], {
       transaction,
@@ -653,11 +657,12 @@ class MemberRepository {
       })
     }
 
-    if (data.organizations) {
-      await record.setOrganizations(data.organizations || [], {
-        transaction,
-      })
-    }
+    await MemberRepository.updateMemberOrganizations(
+      record,
+      data.organizations,
+      transaction,
+      options,
+    )
 
     if (data.noMerge) {
       await record.setNoMerge(data.noMerge || [], {
@@ -3193,11 +3198,41 @@ class MemberRepository {
     return output
   }
 
+  static async updateMemberOrganizations(
+    record,
+    organizations,
+    transaction,
+    options: IRepositoryOptions,
+  ) {
+    if (!organizations) {
+      return
+    }
+
+    await record.setOrganizations([], { transaction })
+    for (const item of organizations) {
+      const org = typeof item === 'string' ? { id: item } : item
+      await MemberRepository.createOrUpdateWorkExperience(
+        {
+          memberId: record.id,
+          organizationId: org.id,
+          title: org.title,
+          dateStart: org.startDate,
+          dateEnd: org.endDate,
+        },
+        {
+          transaction,
+          ...options,
+        },
+      )
+    }
+  }
+
   static async createOrUpdateWorkExperience(
     { memberId, organizationId, title, dateStart, dateEnd },
     options: IRepositoryOptions,
   ) {
     const seq = SequelizeRepository.getSequelize(options)
+    const transaction = SequelizeRepository.getTransaction(options)
 
     const query = `
       INSERT INTO "memberOrganizations" ("memberId", "organizationId", "createdAt", "updatedAt", "title", "dateStart", "dateEnd")
@@ -3215,6 +3250,7 @@ class MemberRepository {
         dateEnd: dateEnd || null,
       },
       type: QueryTypes.INSERT,
+      transaction,
     })
   }
 }

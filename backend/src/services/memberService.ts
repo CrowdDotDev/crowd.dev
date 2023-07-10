@@ -306,11 +306,13 @@ export default class MemberService extends LoggerBase {
       // If organizations are sent
       if (data.organizations) {
         // Collect IDs for relation
-        const organizationsIds = []
+        const organizations = []
         for (const organization of data.organizations) {
           if (typeof organization === 'string' && validator.isUUID(organization)) {
             // If an ID was already sent, we simply push it to the list
-            organizationsIds.push(organization)
+            organizations.push(organization)
+          } else if (typeof organization === 'object' && organization.id) {
+            organizations.push(organization)
           } else {
             // Otherwise, either another string or an object was sent
             const organizationService = new OrganizationService(this.options)
@@ -324,7 +326,7 @@ export default class MemberService extends LoggerBase {
             }
             // We findOrCreate the organization and add it to the list of IDs
             const organizationRecord = await organizationService.findOrCreate(data)
-            organizationsIds.push(organizationRecord.id)
+            organizations.push(organizationRecord.id)
           }
         }
 
@@ -343,13 +345,13 @@ export default class MemberService extends LoggerBase {
           for (const domain of emailDomains) {
             const organizationRecord = await organizationService.findByUrl(domain)
             if (organizationRecord) {
-              organizationsIds.push(organizationRecord.id)
+              organizations.push(organizationRecord.id)
             }
           }
         }
 
         // Remove dups
-        data.organizations = [...new Set(organizationsIds)]
+        data.organizations = [...new Set(organizations)]
       }
 
       const fillRelations = false
