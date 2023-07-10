@@ -208,7 +208,7 @@
           :href="socialOauthLink('github')"
           class="btn btn--secondary btn--lg w-full"
         >
-          <app-svg name="github" class="h-5 w-5" />
+          <i class="ri-github-fill text-lg !text-gray-600" />
           <span class="pl-3 text-gray-600">Sign up with GitHub</span>
         </a>
       </div>

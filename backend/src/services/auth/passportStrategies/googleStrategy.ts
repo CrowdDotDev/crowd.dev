@@ -13,7 +13,7 @@ export function getGoogleStrategy(): GoogleStrategy {
   return new GoogleStrategy(
     {
       clientID: GOOGLE_CONFIG.clientId,
-      clientSecret: GOOGLE_CONFIG.clientSecret, 
+      clientSecret: GOOGLE_CONFIG.clientSecret,
       callbackURL: GOOGLE_CONFIG.callbackUrl,
     },
     (accessToken, refreshToken, profile, done) => {
