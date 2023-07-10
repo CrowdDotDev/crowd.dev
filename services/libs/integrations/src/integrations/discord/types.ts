@@ -5,6 +5,50 @@ export enum DiscordActivityType {
   THREAD_MESSAGE = 'thread_message',
 }
 
+export interface IDiscordIntegrationSettings {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  channels: any[]
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  forumChannels: any[]
+}
+
+export interface IDiscordPlatformSettings {
+  token: string
+  token2: string
+}
+
+export enum DiscordStreamType {
+  ROOT = 'root',
+  CHANNEL = 'channel',
+  MEMBERS = 'members',
+  THREADS = 'threads',
+}
+
+export interface IDiscordAPIData {
+  type: 'member' | 'channel'
+  data: DiscordApiMember[] | DiscordApiDataMessage
+}
+
+export interface DiscordRootStreamData {
+  guildId: string
+  token: string
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  channels: any[]
+}
+
+export interface DiscordMemberStreamData {
+  page: string
+  guildId: string
+  channels: DiscordApiChannel[]
+}
+
+export interface DiscordChannelStreamData {
+  channelId: string
+  guildId: string
+  page: string
+  channels: DiscordApiChannel[]
+}
+
 export interface DiscordGetChannelsInput {
   guildId: string
   token: string
@@ -138,4 +182,11 @@ export interface DiscordApiMember {
   pending?: boolean
   permissions?: string
   communication_disabled_until?: string
+}
+
+export interface DiscordApiDataMessage extends DiscordApiMessage {
+  parent?: string
+  parentChannel?: string
+  isForum?: boolean
+  isThread?: boolean
 }
