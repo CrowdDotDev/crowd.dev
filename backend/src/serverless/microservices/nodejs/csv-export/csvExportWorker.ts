@@ -1,5 +1,7 @@
 import moment from 'moment'
 import { parseAsync } from 'json2csv'
+import { createWriteStream, createReadStream, rmSync, mkdirSync } from 'fs'
+import archiver from 'archiver'
 import { HttpRequest } from '@aws-sdk/protocol-http'
 import { S3RequestPresigner } from '@aws-sdk/s3-request-presigner'
 import { Hash } from '@aws-sdk/hash-node'
@@ -8,7 +10,7 @@ import { formatUrl } from '@aws-sdk/util-format-url'
 import { getServiceChildLogger } from '@crowd/logging'
 import getUserContext from '../../../../database/utils/getUserContext'
 import EmailSender from '../../../../services/emailSender'
-import { S3_CONFIG } from '../../../../conf'
+import { S3_CONFIG, CSV_EXPORT_BATCH_SIZE, S3_FILE_EXPIRES_IN } from '../../../../conf'
 import { BaseOutput, ExportableEntity } from '../messageTypes'
 import getStage from '../../../../services/helpers/getStage'
 import { s3 } from '../../../../services/aws'
@@ -56,6 +58,7 @@ async function csvExportWorker(
   const userContext = await getUserContext(tenantId, null, segmentIds)
 
   let data = null
+  const EXPORT_DIR = 'csv-exports'
 
   switch (entity) {
     case ExportableEntity.MEMBERS: {
@@ -76,24 +79,57 @@ async function csvExportWorker(
     }
   }
 
-  const csv = await parseAsync(data.rows, opts)
+  const totalRows = data.rows.length
+  const numBatches = Math.ceil(totalRows / Number(CSV_EXPORT_BATCH_SIZE))
+  mkdirSync(EXPORT_DIR, { recursive: true })
 
-  const key = `csv-exports/${moment().format('YYYY-MM-DD')}_${entity}_${tenantId}.csv`
+  const zipFileName = `${EXPORT_DIR}/${moment().format('YYYY-MM-DD')}_${entity}_${tenantId}.zip`
+  const zipFileStream = createWriteStream(zipFileName)
+  const zip = archiver('zip', { zlib: { level: 9 } })
+  zip.pipe(zipFileStream)
 
-  log.info({ tenantId, entity }, `Uploading csv to s3..`)
-  const privateObjectUrl = await uploadToS3(csv, key)
-  log.info({ tenantId, entity }, 'CSV uploaded successfully.')
+  for (let i = 0; i < numBatches; i++) {
+    const startIdx = i * Number(CSV_EXPORT_BATCH_SIZE)
+    const endIdx = Math.min(startIdx + Number(CSV_EXPORT_BATCH_SIZE), totalRows)
+    const batchData = data.rows.slice(startIdx, endIdx)
 
-  log.info({ tenantId, entity }, `Generating pre-signed url..`)
+    const csv = await parseAsync(batchData, opts)
+
+    const csvFileName = `${EXPORT_DIR}/${moment().format(
+      'YYYY-MM-DD',
+    )}_${entity}_${tenantId}_${i}.csv`
+    const csvFileStream = createWriteStream(csvFileName)
+    csvFileStream.write(csv)
+    csvFileStream.end()
+
+    zip.file(csvFileName, {
+      name: `${moment().format('YYYY-MM-DD')}_${entity}_${tenantId}_${i}.csv`,
+    })
+  }
+
+  zip.finalize()
+
+  await new Promise((resolve, reject) => {
+    zipFileStream.on('close', resolve)
+    zipFileStream.on('error', reject)
+  })
+
+  log.info({ tenantId, entity }, `Uploading zip to S3..`)
+  const privateObjectUrl = await uploadToS3(zipFileName, zipFileName)
+  log.info({ tenantId, entity }, 'Zip uploaded successfully.')
+
+  log.info({ tenantId, entity }, `Generating pre-signed URL..`)
   const url = await getPresignedUrl(privateObjectUrl)
   log.info({ tenantId, entity, url }, `Url generated successfully.`)
 
-  log.info({ tenantId, entity }, `Sending e-mail with pre-signed url..`)
+  log.info({ tenantId, entity }, `Sending e-mail with pre-signed URL..`)
   const user = await UserRepository.findById(userId, userContext)
 
   await new EmailSender(EmailSender.TEMPLATES.CSV_EXPORT, { link: url }).sendTo(user.email)
 
   log.info({ tenantId, entity, email: user.email }, `CSV export e-mail with download link sent.`)
+
+  rmSync(EXPORT_DIR, { recursive: true })
 
   return {
     status: 200,
@@ -101,13 +137,13 @@ async function csvExportWorker(
   }
 }
 
-async function uploadToS3(csv: any, key: string): Promise<string> {
+async function uploadToS3(file: string, key: string): Promise<string> {
   try {
     await s3
       .putObject({
         Bucket: `${S3_CONFIG.microservicesAssetsBucket}-${getStage()}`,
         Key: key,
-        Body: csv,
+        Body: createReadStream(file),
       })
       .promise()
 
@@ -132,8 +168,9 @@ async function getPresignedUrl(objectUrl: string): Promise<string> {
       region: S3_CONFIG.aws.region,
       sha256: Hash.bind(null, 'sha256'),
     })
+    const expiresIn = Number(S3_FILE_EXPIRES_IN)
 
-    const url = formatUrl(await presigner.presign(new HttpRequest(awsS3ObjectUrl)))
+    const url = formatUrl(await presigner.presign(new HttpRequest(awsS3ObjectUrl), { expiresIn }))
     return url
   } catch (error) {
     log.error(error, 'Error on creating pre-signed url!')
