@@ -66,14 +66,20 @@
             >
               {{ organization.displayName }}
             </div>
-            <div class="text-gray-600 text-3xs">
-              <span>Software Developer</span>
-              <span v-if="organization.startDate || organization.endDate">
+            <div v-if="organization.memberOrganizations" class="text-gray-600 text-3xs">
+              <span v-if="organization.memberOrganizations.title">{{ organization.memberOrganizations.title }}</span>
+              <span v-if="organization.memberOrganizations.dateStart || organization.memberOrganizations.dateEnd">
                 <span class="mx-1">•</span>
-                <span>{{ organization.startDate ? moment(organization.startDate).utc().format('MMM YYYY') : 'Unkown' }}</span>
+                <span>
+                  {{ organization.memberOrganizations.dateStart
+                    ? moment(organization.memberOrganizations.dateStart).utc().format('MMM YYYY')
+                    : 'Unkown' }}
+                </span>
                 <span class="mx-1">-></span>
                 <span>
-                  {{ organization.endDate ? moment(organization.endDate).utc().format('MMM YYYY') : 'Present' }}
+                  {{ organization.memberOrganizations.dateEnd
+                    ? moment(organization.memberOrganizations.dateEnd).utc().format('MMM YYYY')
+                    : 'Present' }}
                 </span>
               </span>
             </div>

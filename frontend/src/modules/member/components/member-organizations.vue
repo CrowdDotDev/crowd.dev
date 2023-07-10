@@ -119,11 +119,11 @@ const activeOrganization = computed(() => {
   }
 
   return props.member.organizations.reduce((mostRecent, organization) => {
-    const mostRecentEndDate = new Date(mostRecent.endDate);
-    const mostRecentStartDate = new Date(mostRecent.startDate);
-    const organizationEndDate = new Date(organization.endDate);
-    const organizationStartDate = new Date(organization.startDate);
-    const isEndDateNull = !organization.endDate;
+    const mostRecentEndDate = new Date(mostRecent.memberOrganizations?.dateEnd);
+    const mostRecentStartDate = new Date(mostRecent.memberOrganizations?.dateStart);
+    const organizationEndDate = new Date(organization.memberOrganizations?.dateEnd);
+    const organizationStartDate = new Date(organization.memberOrganizations?.dateStart);
+    const isEndDateNull = !organization.memberOrganizations?.dateEnd;
 
     if ((organizationEndDate > mostRecentEndDate && !isEndDateNull)
       || (organizationStartDate > mostRecentStartDate && isEndDateNull)) {

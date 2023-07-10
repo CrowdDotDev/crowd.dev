@@ -72,7 +72,7 @@
 
           <div class="w-1/3">
             <el-input
-              v-model="organizations[index].title"
+              v-model="organizations[index].memberOrganizations.title"
               clearable
             />
           </div>
@@ -163,16 +163,19 @@ const createOrganizationFn = (value: string) => OrganizationService.create({
   .catch(() => null);
 
 const onDatePickerChange = (value: string[], index: number) => {
-  organizations.value[index].startDate = moment(value[0]).utc().toISOString();
-  organizations.value[index].endDate = moment(value[1]).utc().toISOString();
+  organizations.value[index].memberOrganizations.dateStart = moment(value[0]).utc().toISOString();
+  organizations.value[index].memberOrganizations.dateEnd = moment(value[1]).utc().toISOString();
 };
 
 const addOrganization = () => {
   organizations.value.push({
     id: '',
     name: '',
-    startDate: '',
-    endDate: '',
+    memberOrganizations: {
+      title: '',
+      dateStart: '',
+      dateEnd: '',
+    },
   });
 };
 

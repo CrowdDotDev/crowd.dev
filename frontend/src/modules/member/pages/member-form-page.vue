@@ -327,7 +327,6 @@ async function onSubmit() {
     formModel.value,
   );
 
-  console.log(formModel.value.organizations);
   // Remove any existent empty data
   const data = {
 
@@ -350,9 +349,9 @@ async function onSubmit() {
       organizations: formModel.value.organizations.map(
         (o) => ({
           id: o.id,
-          title: o.title,
-          startDate: o.startDate,
-          endDate: o.endDate,
+          title: o.memberOrganizations?.title,
+          startDate: o.memberOrganizations?.dateStart,
+          endDate: o.memberOrganizations?.dateEnd,
         }),
       ).filter(
         (o) => !!o.id,
