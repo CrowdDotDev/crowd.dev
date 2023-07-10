@@ -1,7 +1,7 @@
 <template>
   <el-container>
     <app-menu />
-    <el-container :style="elMainStyle">
+    <el-container v-if="currentTenant" :style="elMainStyle">
       <el-main id="main-page-wrapper" class="relative">
         <div
           :class="{
