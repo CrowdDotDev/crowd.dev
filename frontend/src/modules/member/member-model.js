@@ -40,6 +40,12 @@ const fields = {
     'Organizations',
   ),
   joinedAt: new DateTimeField('joinedAt', 'Joined date'),
+  bio: new StringField('bio', label('bio')),
+  location: new StringField(
+    'location',
+    label('location'),
+    {},
+  ),
   engagementLevel: new MemberEngagementLevelField(
     'score',
     'Engagement level',
