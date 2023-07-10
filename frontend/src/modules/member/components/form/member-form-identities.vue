@@ -1,5 +1,5 @@
 <template>
-  <div class="grid gap-x-12 grid-cols-3">
+  <div class="grid gap-x-12 grid-cols-4">
     <div v-if="showHeader">
       <h6>
         Identities <span class="text-brand-500">*</span>
@@ -11,7 +11,7 @@
     </div>
     <div
       class="identities-form"
-      :class="showHeader ? 'col-span-2' : 'col-span-3'"
+      :class="showHeader ? 'col-span-3' : 'col-span-4'"
     >
       <div
         v-for="[key, value] in Object.entries(

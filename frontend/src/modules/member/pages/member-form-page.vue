@@ -41,6 +41,12 @@
             <el-divider
               class="!mb-6 !mt-16 !border-gray-200"
             />
+            <app-member-form-organizations
+              v-model="formModel"
+            />
+            <el-divider
+              class="!mb-6 !mt-16 !border-gray-200"
+            />
             <app-member-form-attributes
               v-model="formModel"
               :attributes="computedAttributes"
@@ -115,6 +121,7 @@ import AppMemberFormDetails from '@/modules/member/components/form/member-form-d
 import AppMemberFormIdentities from '@/modules/member/components/form/member-form-identities.vue';
 import AppMemberFormAttributes from '@/modules/member/components/form/member-form-attributes.vue';
 import AppMemberGlobalAttributesDrawer from '@/modules/member/components/member-global-attributes-drawer.vue';
+import AppMemberFormOrganizations from '@/modules/member/components/form/member-form-organizations.vue';
 import { MemberModel } from '@/modules/member/member-model';
 import { FormSchema } from '@/shared/form/form-schema';
 import ConfirmDialog from '@/shared/dialog/confirm-dialog';
@@ -320,6 +327,7 @@ async function onSubmit() {
     formModel.value,
   );
 
+  console.log(formModel.value.organizations);
   // Remove any existent empty data
   const data = {
 
@@ -340,7 +348,14 @@ async function onSubmit() {
     },
     ...formModel.value.organizations.length && {
       organizations: formModel.value.organizations.map(
-        (o) => o.id,
+        (o) => ({
+          id: o.id,
+          title: o.title,
+          startDate: o.startDate,
+          endDate: o.endDate,
+        }),
+      ).filter(
+        (o) => !!o.id,
       ),
     },
     ...(Object.keys(formattedAttributes).length

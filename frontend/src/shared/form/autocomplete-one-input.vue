@@ -5,7 +5,7 @@
     :loading="loading"
     :remote-method="handleSearch"
     :model-value="modelValue"
-    :clearable="true"
+    :clearable="clearable"
     :default-first-option="true"
     :filterable="true"
     :placeholder="placeholder || ''"
@@ -118,6 +118,10 @@ export default {
       type: Array,
       default: () => [],
     },
+    clearable: {
+      type: Boolean,
+      default: true,
+    },
   },
   emits: ['update:modelValue'],
   data() {
@@ -164,9 +168,9 @@ export default {
         typeof query === 'string'
         && query !== ''
         && this.createIfNotFound
+        && !value
       ) {
-        // If value is a string, convert it to a db object
-        const newItem = await this.createFn(value);
+        const newItem = await this.createFn(query);
         this.localOptions.push(newItem);
         this.$emit('update:modelValue', newItem);
       } else {
@@ -187,7 +191,6 @@ export default {
 
     async fetchAllResults() {
       this.loading = true;
-
       try {
         this.localOptions = await this.fetchFn(
           this.currentQuery,
@@ -213,7 +216,6 @@ export default {
           value,
           AUTOCOMPLETE_SERVER_FETCH_SIZE,
         );
-
         this.loading = false;
       } catch (error) {
         console.error(error);

@@ -43,4 +43,7 @@ export interface Organization{
   updatedById: string;
   url: string;
   website: string;
+  title: string;
+  startDate: string;
+  endDate: string;
 }

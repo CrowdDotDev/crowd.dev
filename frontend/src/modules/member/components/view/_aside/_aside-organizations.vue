@@ -41,10 +41,10 @@
         class="group hover:cursor-pointer"
       >
         <div
-          class="flex justify-start items-center gap-3"
+          class="flex justify-start gap-3"
         >
           <div
-            class="w-8 h-8 rounded-md border border-gray-200 p-1.5 flex items-center justify-center overflow-hidden"
+            class="w-6 h-6 rounded-md border border-gray-200 p-0.5 flex items-center justify-center overflow-hidden"
             :class="{
               'bg-white': organization.logo,
               'bg-gray-50': !organization.logo,
@@ -57,13 +57,26 @@
             />
             <i
               v-else
-              class="ri-community-line text-lg text-gray-300"
+              class="ri-community-line text-base text-gray-300"
             />
           </div>
-          <div
-            class="text-xs text-gray-900 group-hover:text-brand-500 transition"
-          >
-            {{ organization.displayName }}
+          <div class="flex flex-col gap-1">
+            <div
+              class="text-xs text-gray-900 group-hover:text-brand-500 transition font-medium"
+            >
+              {{ organization.displayName }}
+            </div>
+            <div class="text-gray-600 text-3xs">
+              <span>Software Developer</span>
+              <span v-if="organization.startDate || organization.endDate">
+                <span class="mx-1">•</span>
+                <span>{{ organization.startDate ? moment(organization.startDate).utc().format('MMM YYYY') : 'Unkown' }}</span>
+                <span class="mx-1">-></span>
+                <span>
+                  {{ organization.endDate ? moment(organization.endDate).utc().format('MMM YYYY') : 'Present' }}
+                </span>
+              </span>
+            </div>
           </div>
         </div>
       </router-link>
@@ -78,6 +91,7 @@
 import { MemberPermissions } from '@/modules/member/member-permissions';
 import { mapGetters } from '@/shared/vuex/vuex.helpers';
 import { computed } from 'vue';
+import moment from 'moment';
 
 defineProps({
   member: {
