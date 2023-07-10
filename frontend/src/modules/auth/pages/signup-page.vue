@@ -194,7 +194,7 @@
         </div>
         <div class="flex-grow border-b border-gray-200" />
       </div>
-      <div class="pt-6 pb-16">
+      <div class="flex flex-col pt-6 pb-16 gap-6">
         <a
           id="googleSignup"
           :href="socialOauthLink('google')"
@@ -202,6 +202,14 @@
         >
           <app-svg name="google" class="h-5 w-5" />
           <span class="pl-3 text-gray-600">Sign up with Google</span>
+        </a>
+        <a
+          id="githubSignup"
+          :href="socialOauthLink('github')"
+          class="btn btn--secondary btn--lg w-full"
+        >
+          <i class="ri-github-fill text-lg !text-gray-600" />
+          <span class="pl-3 text-gray-600">Sign up with GitHub</span>
         </a>
       </div>
       <div class="flex justify-center">

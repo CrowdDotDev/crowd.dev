@@ -1,7 +1,7 @@
 import { get } from 'lodash'
-import GoogleStrategy from 'passport-google-oauth20'
+import GithubStrategy from 'passport-github2'
 import { getServiceChildLogger } from '@crowd/logging'
-import { GOOGLE_CONFIG } from '../../../conf'
+import { GITHUB_CONFIG } from '../../../conf'
 import { databaseInit } from '../../../database/databaseConnection'
 import AuthService from '../authService'
 import { splitFullName } from '../../../utils/splitName'
@@ -9,23 +9,26 @@ import { AuthProvider } from '../../../types/common'
 
 const log = getServiceChildLogger('AuthSocial')
 
-export function getGoogleStrategy(): GoogleStrategy {
-  return new GoogleStrategy(
+export function getGithubStrategy(): GithubStrategy {
+  return new GithubStrategy(
     {
-      clientID: GOOGLE_CONFIG.clientId,
-      clientSecret: GOOGLE_CONFIG.clientSecret,
-      callbackURL: GOOGLE_CONFIG.callbackUrl,
+      clientID: GITHUB_CONFIG.clientId,
+      clientSecret: GITHUB_CONFIG.clientSecret,
+      callbackURL: GITHUB_CONFIG.callbackUrl,
+      scope: ['user:email'], // Request email scope
     },
     (accessToken, refreshToken, profile, done) => {
       databaseInit()
         .then((database) => {
           const email = get(profile, 'emails[0].value')
-          const emailVerified = get(profile, 'emails[0].verified', false)
+          // GitHub user's profile doesn't include 'verified' field
+          // However, GitHub accounts require email verification for activation
+          const emailVerified = !!email
           const displayName = get(profile, 'displayName')
           const { firstName, lastName } = splitFullName(displayName)
 
           return AuthService.signinFromSocial(
-            AuthProvider.GOOGLE,
+            AuthProvider.GITHUB,
             profile.id,
             email,
             emailVerified,
@@ -39,7 +42,7 @@ export function getGoogleStrategy(): GoogleStrategy {
           done(null, jwtToken)
         })
         .catch((error) => {
-          log.error(error, 'Error while handling google auth!')
+          log.error(error, 'Error while handling github auth!')
           done(error, null)
         })
     },
