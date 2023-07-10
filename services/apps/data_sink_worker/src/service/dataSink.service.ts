@@ -100,7 +100,7 @@ export default class DataSinkService extends LoggerBase {
           throw new Error(`Unknown result type: ${data.type}`)
         }
       }
-      await this.repo.markResultProcessed(resultId)
+      await this.repo.deleteResult(resultId)
     } catch (err) {
       this.log.error(err, 'Error processing result.')
       await this.triggerResultError(
