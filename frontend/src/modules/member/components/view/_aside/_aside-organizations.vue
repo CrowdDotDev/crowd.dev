@@ -30,30 +30,38 @@
       class="flex flex-col gap-4 mt-6"
     >
       <router-link
-        v-for="organization of member.organizations"
-        :key="organization.id"
+        v-for="{
+          id,
+          logo,
+          displayName,
+          memberOrganizations,
+        } of member.organizations"
+        :key="id"
         :to="{
           name: 'organizationView',
           params: {
-            id: organization.id,
+            id,
           },
         }"
         class="group hover:cursor-pointer"
       >
         <div
           class="flex justify-start gap-3"
+          :class="{
+            'items-center': !hasValues(memberOrganizations),
+          }"
         >
           <div
             class="w-6 h-6 rounded-md border border-gray-200 p-0.5 flex items-center justify-center overflow-hidden"
             :class="{
-              'bg-white': organization.logo,
-              'bg-gray-50': !organization.logo,
+              'bg-white': logo,
+              'bg-gray-50': !logo,
             }"
           >
             <img
-              v-if="organization.logo"
-              :src="organization.logo"
-              :alt="`${organization.displayName} logo`"
+              v-if="logo"
+              :src="logo"
+              :alt="`${displayName} logo`"
             />
             <i
               v-else
@@ -64,21 +72,21 @@
             <div
               class="text-xs text-gray-900 group-hover:text-brand-500 transition font-medium"
             >
-              {{ organization.displayName }}
+              {{ displayName }}
             </div>
-            <div v-if="organization.memberOrganizations" class="text-gray-600 text-3xs">
-              <span v-if="organization.memberOrganizations.title">{{ organization.memberOrganizations.title }}</span>
-              <span v-if="organization.memberOrganizations.dateStart || organization.memberOrganizations.dateEnd">
-                <span class="mx-1">•</span>
+            <div v-if="hasValues(memberOrganizations)" class="text-gray-600 text-2xs">
+              <span v-if="memberOrganizations.title">{{ memberOrganizations.title }}</span>
+              <span v-if="memberOrganizations.dateStart || memberOrganizations.dateEnd">
+                <span v-if="memberOrganizations.title" class="mx-1">•</span>
                 <span>
-                  {{ organization.memberOrganizations.dateStart
-                    ? moment(organization.memberOrganizations.dateStart).utc().format('MMM YYYY')
+                  {{ memberOrganizations.dateStart
+                    ? moment(memberOrganizations.dateStart).utc().format('MMMM YYYY')
                     : 'Unkown' }}
                 </span>
-                <span class="mx-1">-></span>
+                <span class="mx-1 whitespace-nowrap">-></span>
                 <span>
-                  {{ organization.memberOrganizations.dateEnd
-                    ? moment(organization.memberOrganizations.dateEnd).utc().format('MMM YYYY')
+                  {{ memberOrganizations.dateEnd
+                    ? moment(memberOrganizations.dateEnd).utc().format('MMMM YYYY')
                     : 'Present' }}
                 </span>
               </span>
@@ -112,4 +120,6 @@ const isEditLockedForSampleData = computed(() => new MemberPermissions(
   currentTenant.value,
   currentUser.value,
 ).editLockedForSampleData);
+
+const hasValues = (organizations) => Object.values(organizations || {}).some((v) => !!v);
 </script>

@@ -77,22 +77,30 @@
             />
           </div>
 
-          <div class="w-1/3">
+          <div class="w-1/3 flex">
             <el-date-picker
-              v-model="dateRange[index]"
-              type="daterange"
-              start-placeholder="From"
-              end-placeholder="To"
-              format="MMM YYYY"
-              class="custom-date-picker"
+              v-model="dateRange[index][0]"
+              type="month"
+              format="MMMM YYYY"
+              placeholder="From"
+              class="custom-date-picker organization left"
               popper-class="date-picker-popper"
               :prefix-icon="DateRangePickerPrefix"
-              @change="(val: string[]) => onDatePickerChange(val, index)"
-            >
-              <template #range-separator>
-                <el-divider direction="vertical" />
-              </template>
-            </el-date-picker>
+              clearable
+              @change="(val: Date) => onDatePickerChange('dateStart', val, index)"
+            />
+            <el-divider direction="vertical" class="m-0 h-full" />
+            <el-date-picker
+              v-model="dateRange[index][1]"
+              type="month"
+              format="MMMM YYYY"
+              placeholder="To"
+              class="custom-date-picker organization right"
+              popper-class="date-picker-popper"
+              :prefix-icon="DateRangePickerPrefix"
+              clearable
+              @change="(val: Date) => onDatePickerChange('dateEnd', val, index)"
+            />
           </div>
 
           <button
@@ -123,7 +131,6 @@ import { OrganizationService } from '@/modules/organization/organization-service
 import AppAvatar from '@/shared/avatar/avatar.vue';
 import { Member } from '@/modules/member/types/Member';
 import { Organization } from '@/modules/organization/types/Organization';
-import moment from 'moment';
 
 const emit = defineEmits<{(e: 'update:modelValue', value: Member): any}>();
 const props = defineProps<{
@@ -177,9 +184,11 @@ const createOrganizationFn = (value: string) => OrganizationService.create({
   }))
   .catch(() => null);
 
-const onDatePickerChange = (value: string[], index: number) => {
-  organizations.value[index].memberOrganizations.dateStart = moment(value[0]).utc().toISOString();
-  organizations.value[index].memberOrganizations.dateEnd = moment(value[1]).utc().toISOString();
+const onDatePickerChange = (key: 'dateStart' | 'dateEnd', value: Date, index: number) => {
+  const timezoneOffsetMinutes = value.getTimezoneOffset();
+  const date = new Date(value.getTime() - (timezoneOffsetMinutes * 60 * 1000)).toISOString();
+
+  organizations.value[index].memberOrganizations[key] = value ? date : '';
 };
 
 const addOrganization = () => {
@@ -200,24 +209,25 @@ const removeOrganization = (index: number) => {
 </script>
 
 <style lang="scss">
-.custom-date-picker.el-input__wrapper {
-  @apply rounded-md;
-
-  &.el-range-editor.is-active {
-    box-shadow: none;
-    border: 1px solid #4b5563;
+.custom-date-picker.organization {
+  &.left {
+    .el-input__wrapper {
+      @apply rounded-l-md rounded-r-none h-10 border-r-0;
+    }
   }
 
-  .el-range__icon, .el-range__close-icon {
-    @apply hidden;
+  &.right {
+    .el-input__wrapper {
+      @apply rounded-r-md rounded-l-none h-10 border-l-0;
+    }
   }
 
-  .el-divider {
-    @apply h-full;
-  }
+  .el-input__wrapper {
+    @apply h-10 flex flex-row;
 
-  input {
-    @apply h-full w-full text-left px-1;
+    .el-input__prefix {
+      @apply hidden;
+    }
   }
 }
 
