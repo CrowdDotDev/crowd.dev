@@ -42,7 +42,7 @@
               :in-memory-filter="false"
               :clearable="false"
             >
-              <template v-if="organization.logo || organization.displayName" #prefix>
+              <template v-if="organization.displayName" #prefix>
                 <div class="flex items-center">
                   <app-avatar
                     :entity="{
@@ -117,7 +117,7 @@
 
 <script setup lang="ts">
 import {
-  computed, h, reactive,
+  computed, h, reactive, watch,
 } from 'vue';
 import { OrganizationService } from '@/modules/organization/organization-service';
 import AppAvatar from '@/shared/avatar/avatar.vue';
@@ -149,8 +149,23 @@ const DateRangePickerPrefix = h(
   [],
 );
 
+watch(() => props.modelValue.organizations, (updatedOrganizations) => {
+  dateRange.splice(0, dateRange.length, ...updatedOrganizations.map((o) => [o.memberOrganizations?.dateStart, o.memberOrganizations?.dateEnd]));
+}, {
+  deep: true,
+  immediate: true,
+});
+
 const fetchOrganizationsFn = (query: number, limit:number) => OrganizationService.listAutocomplete(query, limit)
-  .then((options: Organization[]) => options.filter((m) => m.id !== props.modelValue.id))
+  .then((options: Organization[]) => options.filter((m) => m.id !== props.modelValue.id).map((o) => ({
+    ...o,
+    displayName: o.label,
+    memberOrganizations: {
+      title: '',
+      dateStart: '',
+      dateEnd: '',
+    },
+  })))
   .catch(() => []);
 
 const createOrganizationFn = (value: string) => OrganizationService.create({
@@ -181,7 +196,6 @@ const addOrganization = () => {
 
 const removeOrganization = (index: number) => {
   organizations.value.splice(index, 1);
-  console.log({ organizations });
 };
 </script>
 

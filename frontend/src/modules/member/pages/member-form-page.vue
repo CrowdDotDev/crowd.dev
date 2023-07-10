@@ -349,9 +349,16 @@ async function onSubmit() {
       organizations: formModel.value.organizations.map(
         (o) => ({
           id: o.id,
-          title: o.memberOrganizations?.title,
-          startDate: o.memberOrganizations?.dateStart,
-          endDate: o.memberOrganizations?.dateEnd,
+          name: o.displayName,
+          ...o.memberOrganizations?.title && {
+            title: o.memberOrganizations?.title,
+          },
+          ...o.memberOrganizations?.dateStart && {
+            startDate: o.memberOrganizations?.dateStart,
+          },
+          ...o.memberOrganizations?.dateEnd && {
+            endDate: o.memberOrganizations?.dateEnd,
+          },
         }),
       ).filter(
         (o) => !!o.id,
