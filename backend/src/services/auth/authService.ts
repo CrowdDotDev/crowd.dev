@@ -568,12 +568,21 @@ class AuthService {
       }
 
       // If there was no provider, we can link it to the provider
-      if (user && (!user.provider || !user.providerId || !user.emailVerified)) {
+      if (user && (!user.provider || !user.providerId)) {
         await UserRepository.update(
           user.id,
           {
             provider,
             providerId,
+          },
+          options,
+        )
+        log.debug({ user }, 'User')
+      }
+      if (user && (!user.emailVerified && emailVerified)) {
+        await UserRepository.update(
+          user.id,
+          {
             emailVerified,
           },
           options,
