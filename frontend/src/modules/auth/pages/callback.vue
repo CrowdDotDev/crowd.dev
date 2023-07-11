@@ -18,10 +18,8 @@ const { doSigninWithAuth0 } = mapActions('auth');
 const route = useRoute();
 
 onMounted(() => {
-  console.log('handling');
   const { code } = route.query;
   if (code) {
-    console.log(code);
     Auth0Service.handleAuth(code as string)
       .then(() => {
         const { idToken, accessToken } = Auth0Service.authData();

@@ -1,8 +1,7 @@
-import { WebAuth, Auth0DecodedHash } from 'auth0-js';
+import { WebAuth } from 'auth0-js';
 import { LocalStorageEnum } from '@/shared/types/LocalStorage';
 import config from '@/config';
 import axios from 'axios';
-import { LocationQueryValue } from 'vue-router';
 import moment from 'moment';
 
 const baseUrl = `${config.frontendUrl.protocol}://${config.frontendUrl.host}`;
