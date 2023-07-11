@@ -122,6 +122,10 @@ export default {
       type: Boolean,
       default: true,
     },
+    storeKey: {
+      type: String,
+      default: null,
+    },
   },
   emits: ['update:modelValue'],
   data() {
@@ -174,7 +178,12 @@ export default {
         this.localOptions.push(newItem);
         this.$emit('update:modelValue', newItem);
       } else {
-        this.$emit('update:modelValue', value || null);
+        this.$emit('update:modelValue', {
+          ...value,
+          ...this.storeKey && {
+            [this.storeKey]: this.modelValue[this.storeKey],
+          },
+        } || null);
       }
     },
 

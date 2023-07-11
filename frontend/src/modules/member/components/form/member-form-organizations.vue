@@ -38,6 +38,7 @@
               :create-fn="createOrganizationFn"
               placeholder="Select or create an organization"
               input-class="organization-input"
+              store-key="memberOrganizations"
               :create-if-not-found="true"
               :in-memory-filter="false"
               :clearable="false"
@@ -131,6 +132,7 @@ import { OrganizationService } from '@/modules/organization/organization-service
 import AppAvatar from '@/shared/avatar/avatar.vue';
 import { Member } from '@/modules/member/types/Member';
 import { Organization } from '@/modules/organization/types/Organization';
+import moment from 'moment';
 
 type SelectOrganization = Organization & { label: string };
 
@@ -197,7 +199,7 @@ const createOrganizationFn = (value: string) => OrganizationService.create({
 const onDatePickerChange = (key: 'dateStart' | 'dateEnd', value: Date, index: number) => {
   if (value) {
     const timezoneOffsetMinutes = value.getTimezoneOffset();
-    const date = new Date(value.getTime() - (timezoneOffsetMinutes * 60 * 1000)).toISOString();
+    const date = moment(value.getTime() - (timezoneOffsetMinutes * 60 * 1000)).toISOString();
 
     organizations.value[index].memberOrganizations[key] = date;
   } else {
