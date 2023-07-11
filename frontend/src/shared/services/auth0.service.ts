@@ -107,7 +107,6 @@ class Auth0ServiceClass {
       this.webAuth.signup(
         {
           email: email ?? '',
-          username: email ?? '',
           password: password ?? '',
           connection: config.auth0.database,
           given_name: firstName,
@@ -130,7 +129,7 @@ class Auth0ServiceClass {
       this.webAuth.login(
         {
           realm: config.auth0.database,
-          username: email ?? '',
+          email: email ?? '',
           password: password ?? '',
           redirectUri: authCallback,
         },
