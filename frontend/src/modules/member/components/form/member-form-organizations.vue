@@ -184,6 +184,13 @@ const createOrganizationFn = (value: string) => OrganizationService.create({
   .then((newOrganization) => ({
     id: newOrganization.id,
     label: newOrganization.displayName || newOrganization.name,
+    displayName: newOrganization.displayName || newOrganization.name,
+    name: newOrganization.displayName || newOrganization.name,
+    memberOrganizations: {
+      title: '',
+      dateStart: '',
+      dateEnd: '',
+    },
   }))
   .catch(() => null);
 
