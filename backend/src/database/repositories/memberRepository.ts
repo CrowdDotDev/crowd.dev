@@ -997,6 +997,8 @@ class MemberRepository {
     }
     const data = record.get({ plain: returnPlain })
 
+    MemberRepository.sortOrganizations(data.organizations)
+
     const identities = (await this.getIdentities([data.id], options)).get(data.id)
 
     data.username = {}
@@ -3155,6 +3157,7 @@ class MemberRepository {
       order: [['createdAt', 'ASC']],
       joinTableAttributes: ['dateStart', 'dateEnd', 'title'],
     })
+    MemberRepository.sortOrganizations(output.organizations)
 
     output.tasks = await record.getTasks({
       transaction,
@@ -3251,6 +3254,27 @@ class MemberRepository {
       },
       type: QueryTypes.INSERT,
       transaction,
+    })
+  }
+
+  static sortOrganizations(organizations) {
+    organizations.sort((a, b) => {
+      a = a.get({ plain: true })
+      b = b.get({ plain: true })
+
+      const aDate = a.memberOrganizations?.dateStart
+      const bDate = b.memberOrganizations?.dateStart
+
+      if (aDate && bDate) {
+        return bDate.getTime() - aDate.getTime()
+      }
+      if (!aDate && !bDate) {
+        return 0
+      }
+      if (!bDate) {
+        return 1
+      }
+      return -1
     })
   }
 }
