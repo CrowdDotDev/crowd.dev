@@ -183,6 +183,6 @@
   "auth0": {
     "domain": "CROWD_AUTH0_DOMAIN",
     "clientId": "CROWD_AUTH0_CLIENT_ID",
-    "cert": "CROWD_AUTH0_CERT"
+    "jwks": "CROWD_AUTH0_JWKS"
   }
 }

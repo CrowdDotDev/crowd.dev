@@ -119,10 +119,15 @@ const { active } = mapGetters('integration');
 
 const { types } = storeToRefs(useActivityTypeStore());
 
-const computedPlatformOptions = computed(() => active.value.map((item) => ({
-  value: item.platform,
-  label: CrowdIntegrations.getConfig(item.platform)
-    .name,
+// const computedPlatformOptions = computed(() => active.value.map((item) => ({
+//   value: item.platform,
+//   label: CrowdIntegrations.getConfig(item.platform)
+//     .name,
+// })));
+
+const computedPlatformOptions = computed(() => CrowdIntegrations.enabledConfigs.map((i) => ({
+    label: i.name,
+    value: i.platform
 })));
 
 const computedActivityTypeOptions = computed(() => {
