@@ -1,5 +1,5 @@
 /* eslint-disable no-case-declarations */
-import { Edition } from '@crowd/types'
+import { Edition, EnrichMemberOrganizationsQueueMessage } from '@crowd/types'
 import { weeklyAnalyticsEmailsWorker } from './analytics/workers/weeklyAnalyticsEmailsWorker'
 import {
   AutomationMessage,
@@ -29,6 +29,7 @@ import { refreshSampleDataWorker } from './integration-data-checker/refreshSampl
 import { mergeSuggestionsWorker } from './merge-suggestions/mergeSuggestionsWorker'
 import { BulkorganizationEnrichmentWorker } from './bulk-enrichment/bulkOrganizationEnrichmentWorker'
 import { API_CONFIG } from '../../../conf'
+import { enrichMemberOrganizations } from './bulk-enrichment/enrichMemberOrganizationsWorker'
 
 /**
  * Worker factory for spawning different microservices
@@ -77,6 +78,9 @@ async function workerFactory(event: NodeMicroserviceMessage): Promise<any> {
       const bulkEnrichMessage = event as OrganizationBulkEnrichMessage
       return BulkorganizationEnrichmentWorker(bulkEnrichMessage.tenantId)
     }
+    case 'enrich_member_organizations':
+      const message = event as EnrichMemberOrganizationsQueueMessage
+      return enrichMemberOrganizations(message.tenant, message.memberId, message.organizationIds)
 
     case 'automation-process':
       if (API_CONFIG.edition === Edition.LFX) {

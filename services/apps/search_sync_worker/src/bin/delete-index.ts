@@ -4,7 +4,7 @@ import { OpenSearchIndex } from '@/types'
 
 const log = getServiceLogger()
 
-const processArguments = process.argv.slice(3)
+const processArguments = process.argv.slice(2)
 
 if (processArguments.length !== 1) {
   log.error('Expected 1 argument: index')
