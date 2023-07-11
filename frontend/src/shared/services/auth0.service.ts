@@ -113,6 +113,11 @@ class Auth0ServiceClass {
           given_name: firstName,
           family_name: lastName,
           name: `${firstName} ${lastName}`,
+          userMetadata: {
+            given_name: firstName,
+            family_name: lastName,
+            name: `${firstName} ${lastName}`,
+          },
         } as any,
         (err) => {
           if (!err) {
