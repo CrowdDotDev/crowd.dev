@@ -79,8 +79,9 @@ export interface ApiConfiguration {
 }
 
 export interface Auth0Configuration {
+  domain: string
   clientId: string
-  jwks: string
+  cert: string
 }
 
 export interface PlansConfiguration {
