@@ -18,7 +18,7 @@ class Auth0ServiceClass {
       redirectUri: authCallback,
       responseType: 'code',
       scope: 'openid profile email',
-      audience: `https://${config.auth0.domain}/userinfo`,
+      // audience: `https://${config.auth0.domain}/userinfo`,
     });
   }
 
