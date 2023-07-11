@@ -12,8 +12,8 @@
     <template #reference>
       <div
         id="accountDropdown"
-        class="cursor-pointer flex w-full h-16 items-center hover:bg-gray-50 account-btn"
-        :class="isDropdownOpen ? 'bg-gray-50' : 'bg-white'"
+        class="cursor-pointer flex w-full h-16 items-center hover:bg-gray-200 account-btn"
+        :class="isDropdownOpen ? 'bg-brand-50' : 'bg-brand-25'"
       >
         <div class="flex items-center">
           <app-avatar

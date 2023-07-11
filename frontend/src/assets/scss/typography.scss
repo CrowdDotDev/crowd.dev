@@ -2,14 +2,14 @@ html body {
   margin: 0;
   padding: 0;
   height: 100%;
-  font-family: "Inter", sans-serif;
+  font-family: "Open Sans", sans-serif;
   font-weight: 400;
   -webkit-font-smoothing: antialiased;
 }
 
 @supports (font-variation-settings: normal) {
   html {
-    font-family: "Inter var", sans-serif;
+    font-family: "Open Sans", sans-serif;
   }
 }
 

@@ -1,13 +1,16 @@
 <template>
-  <el-container v-if="currentTenant">
-    <!-- App menu -->
-    <app-lf-menu />
+  <el-container v-if="currentTenant" class="flex-col">
+    <app-lf-header />
+    <el-container style="height: calc(100vh - 60px);">
+      <!-- App menu -->
+      <app-lf-menu />
 
-    <el-container :style="elMainStyle">
-      <el-main id="main-page-wrapper" class="relative">
-        <app-lf-banners />
-        <router-view />
-      </el-main>
+      <el-container :style="elMainStyle" class="bg-white rounded-tl-2xl">
+        <el-main id="main-page-wrapper" class="relative">
+          <app-lf-banners />
+          <router-view />
+        </el-main>
+      </el-container>
     </el-container>
   </el-container>
 </template>
@@ -17,6 +20,7 @@ import { mapGetters } from 'vuex';
 import identify from '@/shared/monitoring/identify';
 import AppLfMenu from '@/modules/lf/layout/components/lf-menu.vue';
 import AppLfBanners from '@/modules/lf/layout/components/lf-banners.vue';
+import AppLfHeader from '@/modules/lf/layout/components/lf-header.vue';
 
 export default {
   name: 'AppLayout',
@@ -24,6 +28,7 @@ export default {
   components: {
     AppLfMenu,
     AppLfBanners,
+    AppLfHeader,
   },
 
   computed: {

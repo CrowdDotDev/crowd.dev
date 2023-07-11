@@ -1,15 +1,10 @@
 <template>
   <el-aside class="app-menu" width="fit-content">
     <el-menu
-      class="flex flex-col h-full border-gray-200"
+      class="flex flex-col h-full border-none"
       :router="true"
     >
       <div class="px-3 pt-3 flex flex-col gap-2 grow">
-        <div class="px-3 mb-6 mt-2">
-          <router-link to="/">
-            <img src="/images/lf/logo_lfx_cm.svg" alt="lf logo" />
-          </router-link>
-        </div>
         <!-- All project groups -->
         <router-link
           id="menu-project-groups"
@@ -97,7 +92,7 @@
           </span>
         </router-link>
 
-        <el-divider v-if="hasPermissionToEagleEye || isEagleEyeLocked" class="border-gray-200" />
+        <div class="grow" />
 
         <!-- Eagle eye -->
         <router-link
@@ -114,8 +109,6 @@
             Community Lens
           </span>
         </router-link>
-
-        <div class="grow" />
 
         <el-divider
           v-if="hasPermissionToSettings || isSettingsLocked || hasPermissionToAccessAdminPanel"
@@ -256,7 +249,11 @@ export default {
 
   <style lang="scss">
   .app-menu {
-    @apply w-70 bg-white flex flex-col min-h-screen;
+    @apply w-70 bg-brand-25 flex flex-col;
+
+    .el-menu {
+      @apply bg-brand-25;
+    }
 
     a,
     a[href]:hover {
@@ -265,29 +262,29 @@ export default {
 
     // Menu item
     .el-menu-item {
-      @apply px-2.5 h-10 gap-3 leading-normal rounded-md;
+      @apply px-2.5 h-9 gap-3 leading-normal rounded-full;
 
       i {
-        @apply text-gray-400 text-lg leading-none;
+        @apply text-gray-900 text-lg leading-none;
       }
 
       &.is-active {
         @apply bg-brand-50 text-gray-900 font-medium;
 
         i {
-          @apply text-brand-500;
+          @apply text-gray-900;
         }
       }
 
       &[disabled="true"] {
-        @apply opacity-50
+        @apply opacity-35;
       }
 
       &:hover {
-        @apply bg-gray-50;
+        @apply bg-gray-200;
 
         i {
-          @apply text-gray-500;
+          @apply text-gray-900;
         }
       }
     }
