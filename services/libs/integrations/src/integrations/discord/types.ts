@@ -189,4 +189,5 @@ export interface DiscordApiDataMessage extends DiscordApiMessage {
   parentChannel?: string
   isForum?: boolean
   isThread?: boolean
+  channel?: DiscordApiChannel
 }

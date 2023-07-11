@@ -27,11 +27,32 @@ function isDiscordThread(channel: DiscordApiChannel): boolean {
   return channel.type === ChannelType.PublicThread || channel.type === ChannelType.PrivateThread
 }
 
+async function getDiscordChannel(
+  id: string,
+  ctx: IProcessStreamContext,
+): Promise<DiscordApiChannel> {
+  const cache = ctx.cache
+  const cacheKey = `discord:channels`
+
+  const prefix = (key: string): string => `${cacheKey}:${key}`
+
+  const cached = await cache.get(prefix(id))
+
+  if (cached) {
+    return JSON.parse(cached)
+  }
+
+  const channel = await getChannel(id, getDiscordToken(ctx), ctx)
+  await cache.set(id, JSON.stringify(channel), 24 * 60 * 60)
+
+  return channel
+}
+
 const cacheDiscordChannels = async (
   channel: DiscordApiChannel,
   ctx: IProcessStreamContext,
 ): Promise<void> => {
-  const cacheKey = `discord:channels:${channel}`
+  const cacheKey = `discord:channels`
 
   const prefix = (key: string): string => `${cacheKey}:${key}`
 
@@ -70,7 +91,7 @@ const processRootStream: ProcessStreamHandler = async (ctx) => {
   // we are only interested in threads that are in a forum channel because the rest we will get normally when a message has thread property attached
   for (const thread of threads) {
     await cacheDiscordChannels(thread, ctx)
-    const parentChannel = await getChannel(thread.parent_id, getDiscordToken(ctx), ctx)
+    const parentChannel = await getDiscordChannel(thread.parent_id, ctx)
     if (isDiscordForum(parentChannel)) {
       fromDiscordApi.push(thread)
     }
@@ -215,6 +236,7 @@ const processChannelStream: ProcessStreamHandler = async (ctx) => {
         parentChannel,
         isForum,
         isThread,
+        channel,
       } as DiscordApiDataMessage,
     })
   }
