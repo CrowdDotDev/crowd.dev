@@ -138,7 +138,13 @@ export default {
         commit('AUTH_SUCCESS', {
           currentUser: currentUser || null,
         });
-        router.push('/');
+
+        if (!currentUser.emailVerified) {
+          AuthToken.set(null, false);
+          router.push('/auth/email-unverified');
+        } else {
+          router.push('/');
+        }
       })
       .catch((error) => {
         AuthService.signout();

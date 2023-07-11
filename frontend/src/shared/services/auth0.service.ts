@@ -1,6 +1,8 @@
-import { WebAuth, Auth0DecodedHash } from 'auth0-js';
+import { WebAuth } from 'auth0-js';
 import { LocalStorageEnum } from '@/shared/types/LocalStorage';
 import config from '@/config';
+import axios from 'axios';
+import moment from 'moment';
 
 const baseUrl = `${config.frontendUrl.protocol}://${config.frontendUrl.host}`;
 const authCallback = `${baseUrl}/auth/callback`;
@@ -14,53 +16,52 @@ class Auth0ServiceClass {
       domain: config.auth0.domain,
       clientID: config.auth0.clientId,
       redirectUri: authCallback,
-      responseType: 'token id_token',
+      responseType: 'code',
+      scope: 'openid profile email',
+      audience: `https://${config.auth0.domain}/userinfo`,
     });
   }
 
-  public handleAuth(): Promise<void> {
-    return new Promise((resolve, reject) => {
-      this.webAuth.parseHash((error, result) => {
-        if (error) {
-          reject(error);
-        } else {
-          Auth0ServiceClass.localLogin(result as Auth0DecodedHash);
-          resolve();
-        }
+  public handleAuth(code: string): Promise<void> {
+    return this.exchange(code)
+      .then((authResult) => {
+        Auth0ServiceClass.localLogin(authResult);
+        return Promise.resolve();
       });
-    });
   }
 
   public authData() {
     const idToken = localStorage.getItem(LocalStorageEnum.ID_TOKEN);
+    const accessToken = localStorage.getItem(LocalStorageEnum.ACCESS_TOKEN);
     const idTokenExpiration = localStorage.getItem(LocalStorageEnum.ID_TOKEN_EXPIRATION);
-    const profile = localStorage.getItem(LocalStorageEnum.AUTH_PROFILE);
 
-    if (idToken && idTokenExpiration && profile) {
+    if (idToken && idTokenExpiration) {
       const idTokenExpirationDate = new Date(parseInt(idTokenExpiration, 10));
-
-      if (idTokenExpirationDate <= new Date()) {
-        Auth0ServiceClass.localLogout();
-      } else {
-        return {
-          idToken,
-          idTokenExpiration: idTokenExpirationDate,
-          profile: JSON.parse(profile),
-        };
-      }
+      return {
+        idToken,
+        idTokenExpiration: idTokenExpirationDate,
+        accessToken,
+      };
     }
     return null;
   }
 
-  public static localLogin(authResult: Auth0DecodedHash): void {
-    const { idToken } = authResult;
-    const profile = authResult.idTokenPayload;
+  // Exchange authorization code for token
+  private async exchange(code: string): Promise<any> {
+    const body = {
+      grant_type: 'authorization_code',
+      client_id: config.auth0.clientId,
+      code,
+      redirect_uri: authCallback,
+    };
+    const response = await axios.post(`https://${config.auth0.domain}/oauth/token`, body);
+    return response.data;
+  }
 
-    const tokenExpiry = new Date(profile.exp * 1000);
-
-    localStorage.setItem(LocalStorageEnum.ID_TOKEN, idToken as string);
-    localStorage.setItem(LocalStorageEnum.AUTH_PROFILE, JSON.stringify(profile));
-    localStorage.setItem(LocalStorageEnum.ID_TOKEN_EXPIRATION, tokenExpiry.getTime().toString());
+  public static localLogin(authResult: any): void {
+    localStorage.setItem(LocalStorageEnum.ID_TOKEN, authResult.id_token as string);
+    localStorage.setItem(LocalStorageEnum.ACCESS_TOKEN, authResult.access_token as string);
+    localStorage.setItem(LocalStorageEnum.ID_TOKEN_EXPIRATION, moment().add(authResult.expires_in, 'seconds').unix());
   }
 
   public static localLogout() {
