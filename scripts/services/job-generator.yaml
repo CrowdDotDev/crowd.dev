@@ -44,7 +44,7 @@ services:
     networks:
       - crowd-bridge
     volumes:
-      - ../../backend:/usr/crowd/app/backend
+      - ../../backend/src:/usr/crowd/app/backend/src
       - /usr/crowd/app/backend/node_modules
 
 networks:
