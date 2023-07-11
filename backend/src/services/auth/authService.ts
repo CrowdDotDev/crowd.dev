@@ -579,7 +579,7 @@ class AuthService {
         )
         log.debug({ user }, 'User')
       }
-      if (user && (!user.emailVerified && emailVerified)) {
+      if (user && !user.emailVerified && emailVerified) {
         await UserRepository.update(
           user.id,
           {
