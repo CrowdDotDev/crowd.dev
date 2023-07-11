@@ -12,6 +12,18 @@ export interface IDbOrganization {
   website: string | null
 }
 
+export interface IDbInsertOrganizationData {
+  name: string
+  displayName: string
+  description: string | null
+  location: string | null
+  logo: string | null
+  url: string | null
+  github: string | null
+  twitter: string | null
+  website: string | null
+}
+
 let insertOrganizationColumnSet: DbColumnSet
 export function getInsertOrganizationColumnSet(instance: DbInstance): DbColumnSet {
   if (insertOrganizationColumnSet) return insertOrganizationColumnSet
@@ -19,7 +31,9 @@ export function getInsertOrganizationColumnSet(instance: DbInstance): DbColumnSe
   insertOrganizationColumnSet = new instance.helpers.ColumnSet(
     [
       'id',
+      'tenantId',
       'name',
+      'displayName',
       'description',
       'location',
       'logo',
@@ -42,6 +56,7 @@ export function getInsertOrganizationColumnSet(instance: DbInstance): DbColumnSe
 
 export interface IDbUpdateOrganizationData {
   name: string
+  displayName: string
   description: string | null
   location: string | null
   logo: string | null
@@ -56,7 +71,18 @@ export function getUpdateOrganizationColumnSet(instance: DbInstance): DbColumnSe
   if (updateOrganizationColumnSet) return updateOrganizationColumnSet
 
   updateOrganizationColumnSet = new instance.helpers.ColumnSet(
-    ['name', 'description', 'location', 'logo', 'url', 'github', 'twitter', 'website', 'updatedAt'],
+    [
+      'name',
+      'displayName',
+      'description',
+      'location',
+      'logo',
+      'url',
+      'github',
+      'twitter',
+      'website',
+      'updatedAt',
+    ],
     {
       table: {
         table: 'organizations',
