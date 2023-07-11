@@ -486,6 +486,8 @@ class AuthService {
         await UserRepository.update(
           user.id,
           {
+            firstName,
+            lastName,
             provider,
             providerId,
             emailVerified,
