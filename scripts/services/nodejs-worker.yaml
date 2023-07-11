@@ -28,6 +28,8 @@ services:
     build:
       context: ../../
       dockerfile: ./scripts/services/docker/Dockerfile.backend
+      args:
+        INSTALL_DEV_DEPENDENCIES: 'true'
     command: 'npm run start:nodejs-worker:dev'
     working_dir: /usr/crowd/app/backend
     # user: '${USER_ID}:${GROUP_ID}'
