@@ -132,6 +132,8 @@ import AppAvatar from '@/shared/avatar/avatar.vue';
 import { Member } from '@/modules/member/types/Member';
 import { Organization } from '@/modules/organization/types/Organization';
 
+type SelectOrganization = Organization & { label: string };
+
 const emit = defineEmits<{(e: 'update:modelValue', value: Member): any}>();
 const props = defineProps<{
   modelValue: Member,
@@ -164,7 +166,7 @@ watch(() => props.modelValue.organizations, (updatedOrganizations) => {
 });
 
 const fetchOrganizationsFn = (query: number, limit:number) => OrganizationService.listAutocomplete(query, limit)
-  .then((options: Organization[]) => options.filter((m) => m.id !== props.modelValue.id).map((o) => ({
+  .then((options: SelectOrganization[]) => options.filter((m) => m.id !== props.modelValue.id).map((o) => ({
     ...o,
     displayName: o.label,
     name: o.label,
@@ -186,10 +188,14 @@ const createOrganizationFn = (value: string) => OrganizationService.create({
   .catch(() => null);
 
 const onDatePickerChange = (key: 'dateStart' | 'dateEnd', value: Date, index: number) => {
-  const timezoneOffsetMinutes = value.getTimezoneOffset();
-  const date = new Date(value.getTime() - (timezoneOffsetMinutes * 60 * 1000)).toISOString();
+  if (value) {
+    const timezoneOffsetMinutes = value.getTimezoneOffset();
+    const date = new Date(value.getTime() - (timezoneOffsetMinutes * 60 * 1000)).toISOString();
 
-  organizations.value[index].memberOrganizations[key] = value ? date : '';
+    organizations.value[index].memberOrganizations[key] = date;
+  } else {
+    organizations.value[index].memberOrganizations[key] = '';
+  }
 };
 
 const addOrganization = () => {
@@ -201,7 +207,7 @@ const addOrganization = () => {
       dateStart: '',
       dateEnd: '',
     },
-  });
+  } as Organization);
 };
 
 const removeOrganization = (index: number) => {
