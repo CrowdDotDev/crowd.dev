@@ -255,7 +255,7 @@ export default class IntegrationStreamService extends LoggerBase {
         )
       },
       updateIntegrationSettings: async (settings) => {
-        await this.updateIntegrationSettings(streamId, settings)
+        await this.updateIntegrationSettings(streamId, settings, streamInfo.runId)
       },
 
       abortWithError: async (message: string, metadata?: unknown, error?: Error) => {
@@ -437,18 +437,25 @@ export default class IntegrationStreamService extends LoggerBase {
     }
   }
 
-  private async updateIntegrationSettings(streamId: string, settings: unknown): Promise<void> {
+  private async updateIntegrationSettings(
+    streamId: string,
+    settings: unknown,
+    runId?: string,
+  ): Promise<void> {
     try {
       this.log.debug('Updating integration settings!')
       await this.repo.updateIntegrationSettings(streamId, settings)
     } catch (err) {
-      await this.triggerRunError(
-        streamId,
-        'run-stream-update-settings',
-        'Error while updating settings!',
-        undefined,
-        err,
-      )
+      if (runId) {
+        await this.triggerRunError(
+          streamId,
+          'run-stream-update-settings',
+          'Error while updating settings!',
+          undefined,
+          err,
+        )
+      }
+
       throw err
     }
   }

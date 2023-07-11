@@ -1,15 +1,16 @@
 import { IntegrationRunState, IntegrationState, IntegrationStreamDataState } from '@crowd/types'
 
 export interface IApiDataInfo {
-  onboarding: boolean
+  onboarding: boolean | null
   integrationId: string
   integrationType: string
   integrationState: IntegrationState
   integrationIdentifier: string | null
   integrationToken: string | null
-  runState: IntegrationRunState
+  runState: IntegrationRunState | null
   streamId: string
-  runId: string
+  runId: string | null
+  webhookId: string | null
   tenantId: string
   integrationSettings: unknown
 

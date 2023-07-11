@@ -3,7 +3,7 @@ import { Logger } from '@crowd/logging'
 import { ICache, IIntegration, IIntegrationStream, IRateLimiter } from '@crowd/types'
 
 export interface IIntegrationContext {
-  onboarding: boolean
+  onboarding?: boolean
   integration: IIntegration
   log: Logger
   cache: ICache
