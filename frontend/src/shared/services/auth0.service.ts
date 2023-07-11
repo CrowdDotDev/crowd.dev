@@ -101,7 +101,7 @@ class Auth0ServiceClass {
   }
 
   public signup({
-    email, password, firstName, lastName,
+    email, password, firstName, lastName, username,
   }: Record<string, string>) {
     return new Promise((resolve, reject) => {
       this.webAuth.signup(
@@ -109,6 +109,7 @@ class Auth0ServiceClass {
           email: email ?? '',
           password: password ?? '',
           connection: config.auth0.database,
+          username,
           given_name: firstName,
           family_name: lastName,
           name: `${firstName} ${lastName}`,
