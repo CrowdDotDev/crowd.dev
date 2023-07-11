@@ -6,6 +6,7 @@ export interface IApiDataInfo {
   integrationType: string
   integrationState: IntegrationState
   integrationIdentifier: string | null
+  integrationToken: string | null
   runState: IntegrationRunState
   streamId: string
   runId: string

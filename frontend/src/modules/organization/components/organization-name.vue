@@ -8,16 +8,12 @@
           'bg-gray-50': !organization.logo,
         }"
       >
-        <img
-          v-if="organization.logo"
+        <app-avatar-image
           :src="organization.logo"
-          alt="Logo"
           class="max-h-8"
-        />
-        <i
-          v-else
-          class="ri-community-line text-lg text-gray-300 h-5"
-        />
+        >
+          <i class="ri-community-line text-lg text-gray-300 h-5" />
+        </app-avatar-image>
       </div>
     </div>
     <div class="overflow-hidden mr-6">
@@ -45,8 +41,9 @@
 </template>
 
 <script setup>
-import { defineProps, ref } from 'vue';
+import { ref } from 'vue';
 import AppOrganizationBadge from '@/modules/organization/components/organization-badge.vue';
+import AppAvatarImage from '@/shared/avatar-image/avatar-image.vue';
 
 defineProps({
   organization: {
