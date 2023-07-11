@@ -474,7 +474,7 @@ class AuthService {
         track(
           'Signed in',
           {
-            google: true,
+            [provider]: true,
             email: user.email,
           },
           options,
@@ -514,7 +514,7 @@ class AuthService {
         track(
           'Signed up',
           {
-            google: true,
+            [provider]: true,
             email: user.email,
           },
           options,
