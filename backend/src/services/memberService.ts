@@ -692,25 +692,25 @@ export default class MemberService extends LoggerBase {
         return toKeep
       },
       organizations: (oldOrganizations, newOrganizations) => {
-        oldOrganizations = oldOrganizations
-          ? oldOrganizations.map((o) => {
-              if (o.id) {
-                return o.id
-              }
-              return o
-            })
-          : []
+        const convertOrgs = (orgs) =>
+          orgs
+            ? orgs
+                .map((o) => o.get({ plain: true }))
+                .map((o) => {
+                  const memberOrg = o.memberOrganizations
+                  return {
+                    id: o.id,
+                    title: memberOrg.title,
+                    startDate: memberOrg.dateStart,
+                    endDate: memberOrg.dateEnd,
+                  }
+                })
+            : []
 
-        newOrganizations = newOrganizations
-          ? newOrganizations.map((o) => {
-              if (o.id) {
-                return o.id
-              }
-              return o
-            })
-          : []
+        oldOrganizations = convertOrgs(oldOrganizations)
+        newOrganizations = convertOrgs(newOrganizations)
 
-        return Array.from(new Set<string>([...oldOrganizations, ...newOrganizations]))
+        return lodash.uniqWith([...oldOrganizations, ...newOrganizations], lodash.isEqual)
       },
     })
   }
