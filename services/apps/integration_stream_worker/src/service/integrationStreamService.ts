@@ -16,9 +16,11 @@ import { IntegrationRunState, IntegrationStreamType, RateLimitError } from '@cro
 import { NANGO_CONFIG, PLATFORM_CONFIG, WORKER_SETTINGS } from '../conf'
 import IntegrationStreamRepository from '../repo/integrationStream.repo'
 import { IStreamData } from '@/repo/integrationStream.data'
+import IncomingWebhookRepository from '@/repo/incomingWebhook.repo'
 
 export default class IntegrationStreamService extends LoggerBase {
   private readonly repo: IntegrationStreamRepository
+  private readonly webhookRepo: IncomingWebhookRepository
 
   constructor(
     private readonly redisClient: RedisClient,
@@ -31,6 +33,7 @@ export default class IntegrationStreamService extends LoggerBase {
     super(parentLog)
 
     this.repo = new IntegrationStreamRepository(store, this.log)
+    this.webhookRepo = new IncomingWebhookRepository(store, this.log)
   }
 
   public async checkStreams(): Promise<void> {
@@ -153,8 +156,21 @@ export default class IntegrationStreamService extends LoggerBase {
     }
   }
 
-  public async processWebhookStream(streamId: string): Promise<void> {
-    this.log.debug({ webhookStreamId: streamId }, 'Trying to process webhook stream!')
+  public async processWebhookStream(webhookId: string): Promise<void> {
+    this.log.debug({ webhookId }, 'Trying to process webhook stream!')
+
+    // here we need to create a stream from webhook
+    // first we need to get the webhook data
+
+    const webhookInfo = await this.webhookRepo.getWebhookById(webhookId)
+
+    const streamId = await this.repo.publishStream(
+      undefined,
+      webhookInfo.type, // TODO: this is not correct
+      webhookInfo.payload,
+      undefined,
+      webhookId,
+    )
 
     const streamInfo = await this.repo.getStreamData(streamId)
 
@@ -164,7 +180,6 @@ export default class IntegrationStreamService extends LoggerBase {
     }
 
     this.log = getChildLogger('webhook-stream-processor', this.log, {
-      streamId,
       webhookId: streamInfo.webhookId,
       integrationId: streamInfo.integrationId,
       platform: streamInfo.integrationType,
