@@ -202,7 +202,11 @@ function getInitialModel(r) {
         attributes: r
           ? filteredAttributes(r.attributes)
           : {},
-        organizations: r ? r.organizations : [],
+        organizations: r ? r.organizations.map((o) => ({
+          ...o,
+          displayName: o.displayName || o.name,
+          label: o.displayName || o.name,
+        })) : [],
         ...attributes,
         tags: r ? r.tags : [],
         username: r ? r.username : {},

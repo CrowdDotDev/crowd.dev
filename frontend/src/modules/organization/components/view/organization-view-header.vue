@@ -5,14 +5,14 @@
         <app-avatar
           :entity="{
             avatar: organization.logo,
-            displayName: organization.displayName?.replace('@', ''),
+            displayName: (organization.displayName || organization.name)?.replace('@', ''),
           }"
           size="xl"
           class="mr-4"
         />
         <div>
           <div class="flex">
-            <h5>{{ organization.displayName }}</h5>
+            <h5>{{ organization.displayName || organization.name }}</h5>
             <app-organization-badge
               class="ml-2"
               :organization="organization"
