@@ -32,6 +32,7 @@ import {
 } from './types/memberEnrichmentTypes'
 import OrganizationService from '../../organizationService'
 import MemberRepository from '../../../database/repositories/memberRepository'
+import OrganizationRepository from '../../../database/repositories/organizationRepository'
 
 export default class MemberEnrichmentService extends LoggerBase {
   options: IServiceOptions
@@ -289,16 +290,15 @@ export default class MemberEnrichmentService extends LoggerBase {
             ? moment.utc(workExperience.endDate).toISOString()
             : null
 
-          await MemberRepository.createOrUpdateWorkExperience(
-            {
-              memberId: result.id,
-              organizationId: org.id,
-              title: workExperience.title,
-              dateStart: workExperience.startDate,
-              dateEnd,
-            },
-            this.options,
-          )
+          const data = {
+            memberId: result.id,
+            organizationId: org.id,
+            title: workExperience.title,
+            dateStart: workExperience.startDate,
+            dateEnd,
+          }
+          await MemberRepository.createOrUpdateWorkExperience(data, this.options)
+          await OrganizationRepository.includeOrganizationToSegments(org.id, this.options)
         }
       }
 

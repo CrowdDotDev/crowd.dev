@@ -44,6 +44,7 @@ import {
   mapUsernameToIdentities,
 } from './types/memberTypes'
 import Error400 from '../../errors/Error400'
+import OrganizationRepository from './organizationRepository'
 
 const { Op } = Sequelize
 
@@ -3227,6 +3228,10 @@ class MemberRepository {
           ...options,
         },
       )
+      await OrganizationRepository.includeOrganizationToSegments(org.id, {
+        transaction,
+        ...options,
+      })
     }
   }
 
