@@ -3259,8 +3259,8 @@ class MemberRepository {
 
   static sortOrganizations(organizations) {
     organizations.sort((a, b) => {
-      a = a.get({ plain: true })
-      b = b.get({ plain: true })
+      a = a.dataValues ? a.get({ plain: true }) : {}
+      b = b.dataValues ? b.get({ plain: true }) : {}
 
       const aDate = a.memberOrganizations?.dateStart
       const bDate = b.memberOrganizations?.dateStart

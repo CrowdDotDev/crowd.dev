@@ -695,14 +695,19 @@ export default class MemberService extends LoggerBase {
         const convertOrgs = (orgs) =>
           orgs
             ? orgs
-                .map((o) => o.get({ plain: true }))
+                .map((o) => (o.dataValues ? o.get({ plain: true }) : o))
                 .map((o) => {
+                  if (typeof o === 'string') {
+                    return {
+                      id: o,
+                    }
+                  }
                   const memberOrg = o.memberOrganizations
                   return {
                     id: o.id,
-                    title: memberOrg.title,
-                    startDate: memberOrg.dateStart,
-                    endDate: memberOrg.dateEnd,
+                    title: memberOrg?.title,
+                    startDate: memberOrg?.dateStart,
+                    endDate: memberOrg?.dateEnd,
                   }
                 })
             : []
