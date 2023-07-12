@@ -3,36 +3,45 @@ import { LocalStorageEnum } from '@/shared/types/LocalStorage';
 import config from '@/config';
 import axios from 'axios';
 import moment from 'moment';
+import { Auth0Client } from '@auth0/auth0-spa-js';
 
 const baseUrl = `${config.frontendUrl.protocol}://${config.frontendUrl.host}`;
 const authCallback = `${baseUrl}/auth/callback`;
 const redirectUri = `${baseUrl}/auth/signin`;
 
 class Auth0ServiceClass {
-  private readonly webAuth: WebAuth;
+  private readonly webAuth: Auth0Client;
 
   public constructor() {
-    this.webAuth = new WebAuth({
+    this.webAuth = new Auth0Client({
       domain: config.auth0.domain,
-      clientID: config.auth0.clientId,
-      redirectUri: authCallback,
-      responseType: 'code',
-      scope: 'openid profile email',
-      // audience: `https://${config.auth0.domain}/userinfo`,
+      clientId: config.auth0.clientId,
+      authorizationParams: {
+        redirect_uri: authCallback,
+      },
     });
   }
 
-  public handleAuth(code: string): Promise<void> {
-    return this.exchange(code)
-      .then((authResult) => {
-        Auth0ServiceClass.localLogin(authResult);
-        return Promise.resolve();
+  loginWithRedirect() {
+    this.webAuth.loginWithRedirect();
+  }
+
+  public async handleAuth(code: string): Promise<void> {
+    return this.webAuth.handleRedirectCallback()
+      .then(() => this.webAuth.getIdTokenClaims())
+      .then((idToken) => {
+        if (idToken) {
+          // eslint-disable-next-line no-underscore-dangle
+          const actualIdToken = idToken.__raw;
+          Auth0ServiceClass.localLogin({ id_token: actualIdToken, expires_in: idToken?.exp });
+          return Promise.resolve();
+        }
+        return Promise.reject();
       });
   }
 
   public authData() {
     const idToken = localStorage.getItem(LocalStorageEnum.ID_TOKEN);
-    const accessToken = localStorage.getItem(LocalStorageEnum.ACCESS_TOKEN);
     const idTokenExpiration = localStorage.getItem(LocalStorageEnum.ID_TOKEN_EXPIRATION);
 
     if (idToken && idTokenExpiration) {
@@ -40,7 +49,6 @@ class Auth0ServiceClass {
       return {
         idToken,
         idTokenExpiration: idTokenExpirationDate,
-        accessToken,
       };
     }
     return null;
@@ -60,8 +68,7 @@ class Auth0ServiceClass {
 
   public static localLogin(authResult: any): void {
     localStorage.setItem(LocalStorageEnum.ID_TOKEN, authResult.id_token as string);
-    localStorage.setItem(LocalStorageEnum.ACCESS_TOKEN, authResult.access_token as string);
-    localStorage.setItem(LocalStorageEnum.ID_TOKEN_EXPIRATION, moment().add(authResult.expires_in, 'seconds').unix());
+    localStorage.setItem(LocalStorageEnum.ID_TOKEN_EXPIRATION, authResult.expires_in);
   }
 
   public static localLogout() {
@@ -70,84 +77,7 @@ class Auth0ServiceClass {
 
   public logout(): void {
     Auth0ServiceClass.localLogout();
-    this.webAuth.logout({
-      returnTo: redirectUri,
-    });
-  }
-
-  public authorize(type: string) {
-    this.webAuth.authorize({
-      connection: type,
-      redirectUri: authCallback,
-    });
-  }
-
-  public changePassword(email: string) {
-    return new Promise((resolve, reject) => {
-      this.webAuth.changePassword(
-        {
-          email: email ?? '',
-          connection: config.auth0.database,
-        },
-        (err) => {
-          if (!err) {
-            resolve(null);
-          } else {
-            reject(err);
-          }
-        },
-      );
-    });
-  }
-
-  public signup({
-    email, password, firstName, lastName, username,
-  }: Record<string, string>) {
-    return new Promise((resolve, reject) => {
-      this.webAuth.signup(
-        {
-          email: email ?? '',
-          password: password ?? '',
-          connection: config.auth0.database,
-          username,
-          given_name: firstName,
-          family_name: lastName,
-          name: `${firstName} ${lastName}`,
-          userMetadata: {
-            given_name: firstName,
-            family_name: lastName,
-            name: `${firstName} ${lastName}`,
-          },
-        } as any,
-        (err) => {
-          if (!err) {
-            resolve(null);
-          } else {
-            reject(err);
-          }
-        },
-      );
-    });
-  }
-
-  public login({ email, password }: Record<string, string>) {
-    return new Promise((resolve, reject) => {
-      this.webAuth.login(
-        {
-          realm: config.auth0.database,
-          email: email ?? '',
-          password: password ?? '',
-          redirectUri: authCallback,
-        },
-        (err) => {
-          if (!err) {
-            resolve(null);
-          } else {
-            reject(err);
-          }
-        },
-      );
-    });
+    this.webAuth.logout();
   }
 }
 

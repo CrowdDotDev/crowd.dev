@@ -24,15 +24,15 @@ export default [
     component: AuthLayout,
     redirect: '/auth/signup',
     children: [
-      {
-        name: 'signup',
-        path: 'signup',
-        component: SignupPage,
-        meta: {
-          unauth: true,
-          title: 'Sign up',
-        },
-      },
+      // {
+      //   name: 'signup',
+      //   path: 'signup',
+      //   component: SignupPage,
+      //   meta: {
+      //     unauth: true,
+      //     title: 'Sign up',
+      //   },
+      // },
       {
         name: 'signin',
         path: 'signin',
@@ -42,20 +42,20 @@ export default [
           title: 'Sign in',
         },
       },
-      {
-        name: 'forgotPassword',
-        path: 'forgot-password',
-        component: ForgotPasswordPage,
-        meta: {
-          unauth: true,
-          title: 'Forgot Password',
-        },
-      },
-      {
-        name: 'passwordReset',
-        path: 'password-reset',
-        component: PasswordResetPage,
-      },
+      // {
+      //   name: 'forgotPassword',
+      //   path: 'forgot-password',
+      //   component: ForgotPasswordPage,
+      //   meta: {
+      //     unauth: true,
+      //     title: 'Forgot Password',
+      //   },
+      // },
+      // {
+      //   name: 'passwordReset',
+      //   path: 'password-reset',
+      //   component: PasswordResetPage,
+      // },
       {
         name: 'emailUnverified',
         path: 'email-unverified',

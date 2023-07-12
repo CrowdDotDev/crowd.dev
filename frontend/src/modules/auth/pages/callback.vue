@@ -22,7 +22,7 @@ onMounted(() => {
   if (code) {
     Auth0Service.handleAuth(code as string)
       .then(() => {
-        const { idToken, accessToken } = Auth0Service.authData();
+        const { idToken } = Auth0Service.authData();
 
         return doSigninWithAuth0(idToken);
       });
