@@ -16,8 +16,8 @@ export class OrganizationField {
         }
 
         return {
-          id: record.id,
-          label: record.name,
+          ...record,
+          label: record.displayName,
         };
       },
       options,

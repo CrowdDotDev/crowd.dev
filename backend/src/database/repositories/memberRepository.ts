@@ -127,9 +127,13 @@ class MemberRepository {
     await record.setTags(data.tags || [], {
       transaction,
     })
-    await record.setOrganizations(data.organizations || [], {
+
+    await MemberRepository.updateMemberOrganizations(
+      record,
+      data.organizations,
       transaction,
-    })
+      options,
+    )
 
     await record.setTasks(data.tasks || [], {
       transaction,
@@ -653,11 +657,12 @@ class MemberRepository {
       })
     }
 
-    if (data.organizations) {
-      await record.setOrganizations(data.organizations || [], {
-        transaction,
-      })
-    }
+    await MemberRepository.updateMemberOrganizations(
+      record,
+      data.organizations,
+      transaction,
+      options,
+    )
 
     if (data.noMerge) {
       await record.setNoMerge(data.noMerge || [], {
@@ -947,6 +952,17 @@ class MemberRepository {
         attributes: ['id', 'name'],
         as: 'organizations',
         order: [['createdAt', 'ASC']],
+        through: {
+          attributes: [
+            'memberId',
+            'organizationId',
+            'createdAt',
+            'updatedAt',
+            'dateStart',
+            'dateEnd',
+            'title',
+          ],
+        },
       },
       {
         model: options.database.segment,
@@ -980,6 +996,8 @@ class MemberRepository {
       return this._populateRelations(record, options, returnPlain)
     }
     const data = record.get({ plain: returnPlain })
+
+    MemberRepository.sortOrganizations(data.organizations)
 
     const identities = (await this.getIdentities([data.id], options)).get(data.id)
 
@@ -3137,8 +3155,9 @@ class MemberRepository {
     output.organizations = await record.getOrganizations({
       transaction,
       order: [['createdAt', 'ASC']],
-      joinTableAttributes: [],
+      joinTableAttributes: ['dateStart', 'dateEnd', 'title'],
     })
+    MemberRepository.sortOrganizations(output.organizations)
 
     output.tasks = await record.getTasks({
       transaction,
@@ -3180,6 +3199,83 @@ class MemberRepository {
     output.affiliations = await this.getAffiliations(record.id, options)
 
     return output
+  }
+
+  static async updateMemberOrganizations(
+    record,
+    organizations,
+    transaction,
+    options: IRepositoryOptions,
+  ) {
+    if (!organizations) {
+      return
+    }
+
+    await record.setOrganizations([], { transaction })
+    for (const item of organizations) {
+      const org = typeof item === 'string' ? { id: item } : item
+      await MemberRepository.createOrUpdateWorkExperience(
+        {
+          memberId: record.id,
+          organizationId: org.id,
+          title: org.title,
+          dateStart: org.startDate,
+          dateEnd: org.endDate,
+        },
+        {
+          transaction,
+          ...options,
+        },
+      )
+    }
+  }
+
+  static async createOrUpdateWorkExperience(
+    { memberId, organizationId, title, dateStart, dateEnd },
+    options: IRepositoryOptions,
+  ) {
+    const seq = SequelizeRepository.getSequelize(options)
+    const transaction = SequelizeRepository.getTransaction(options)
+
+    const query = `
+      INSERT INTO "memberOrganizations" ("memberId", "organizationId", "createdAt", "updatedAt", "title", "dateStart", "dateEnd")
+      VALUES (:memberId, :organizationId, NOW(), NOW(), :title, :dateStart, :dateEnd)
+      ON CONFLICT ("memberId", "organizationId") DO UPDATE
+      SET "title" = :title, "dateStart" = :dateStart, "dateEnd" = :dateEnd
+    `
+
+    await seq.query(query, {
+      replacements: {
+        memberId,
+        organizationId,
+        title: title || null,
+        dateStart: dateStart || null,
+        dateEnd: dateEnd || null,
+      },
+      type: QueryTypes.INSERT,
+      transaction,
+    })
+  }
+
+  static sortOrganizations(organizations) {
+    organizations.sort((a, b) => {
+      a = a.dataValues ? a.get({ plain: true }) : {}
+      b = b.dataValues ? b.get({ plain: true }) : {}
+
+      const aDate = a.memberOrganizations?.dateStart
+      const bDate = b.memberOrganizations?.dateStart
+
+      if (aDate && bDate) {
+        return bDate.getTime() - aDate.getTime()
+      }
+      if (!aDate && !bDate) {
+        return 0
+      }
+      if (!bDate) {
+        return 1
+      }
+      return -1
+    })
   }
 }
 

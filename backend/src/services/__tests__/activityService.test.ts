@@ -1461,7 +1461,7 @@ describe('ActivityService tests', () => {
         mockIRepositoryOptions,
       )
 
-      expect(activity.organization.name).toEqual(org1.name)
+      expect(activity.organization.name).toEqual(org2.name)
     })
 
     it(`Shouldn't update existing activity's organization, when a different organization comes with the member`, async () => {
