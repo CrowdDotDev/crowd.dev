@@ -125,6 +125,10 @@ export default class IntegrationDataService extends LoggerBase {
         await this.publishActivity(dataInfo.tenantId, dataInfo.integrationType, dataId, activity)
       },
 
+      publishCustom: async (entity, type) => {
+        await this.publishCustom(dataInfo.tenantId, dataInfo.integrationType, dataId, type, entity)
+      },
+
       publishStream: async (identifier, data) => {
         await this.publishStream(
           dataInfo.tenantId,
@@ -188,6 +192,34 @@ export default class IntegrationDataService extends LoggerBase {
       }
     } finally {
       await this.repo.touchRun(dataInfo.runId)
+    }
+  }
+
+  private async publishCustom(
+    tenantId: string,
+    platform: string,
+    dataId: string,
+    type: IntegrationResultType,
+    entity: unknown,
+  ): Promise<void> {
+    this.log.debug(`Publishing entity with custom type!`)
+
+    try {
+      this.log.debug('Publishing activity!')
+      const resultId = await this.repo.publishResult(dataId, {
+        type,
+        data: entity,
+      })
+      await this.dataSinkWorkerEmitter.triggerResultProcessing(tenantId, platform, resultId)
+    } catch (err) {
+      await this.triggerDataError(
+        dataId,
+        'run-data-publish-custom',
+        'Error while publishing entity with custom type!',
+        {
+          entity,
+        },
+      )
     }
   }
 

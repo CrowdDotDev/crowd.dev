@@ -27,6 +27,11 @@ export * from './premium/linkedin/grid'
 export * from './premium/linkedin/types'
 export * from './premium/linkedin/memberAttributes'
 
+export * from './premium/hubspot/types'
+export * from './premium/hubspot/api/customProperties'
+export * from './premium/hubspot/api/tokenInfo'
+export * from './premium/hubspot/hubspotFieldMapper'
+
 export * from './reddit/grid'
 export * from './reddit/types'
 export * from './reddit/memberAttributes'

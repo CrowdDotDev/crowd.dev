@@ -136,6 +136,11 @@
   "stackexchange": {
     "key": "CROWD_STACKEXCHANGE_KEY"
   },
+  "hubspot": {
+    "appId": "CROWD_HUBSPOT_APP_ID",
+    "clientId": "CROWD_HUBSPOT_CLIENT_ID",
+    "clientSecret": "CROWD_HUBSPOT_CLIENT_SECRET"
+  },
   "nango": {
     "url": "CROWD_NANGO_URL",
     "secretKey": "CROWD_NANGO_SECRET_KEY"

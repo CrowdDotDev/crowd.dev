@@ -1,9 +1,15 @@
 import { DbStore } from '@crowd/database'
 import { Logger, LoggerBase, getChildLogger } from '@crowd/logging'
-import { IActivityData, IntegrationResultState, IntegrationResultType } from '@crowd/types'
+import {
+  IActivityData,
+  IMemberData,
+  IntegrationResultState,
+  IntegrationResultType,
+} from '@crowd/types'
 import DataSinkRepository from '../repo/dataSink.repo'
 import ActivityService from './activity.service'
 import { NodejsWorkerEmitter, SearchSyncWorkerEmitter } from '@crowd/sqs'
+import MemberService from './member.service'
 
 export default class DataSinkService extends LoggerBase {
   private readonly repo: DataSinkRepository
@@ -84,6 +90,24 @@ export default class DataSinkService extends LoggerBase {
             resultInfo.integrationId,
             resultInfo.platform,
             activityData,
+          )
+          break
+        }
+
+        case IntegrationResultType.MEMBER_ENRICH: {
+          const service = new MemberService(
+            this.store,
+            this.nodejsWorkerEmitter,
+            this.searchSyncWorkerEmitter,
+            this.log,
+          )
+          const memberData = data.data as IMemberData
+
+          await service.processMemberEnrich(
+            resultInfo.tenantId,
+            resultInfo.integrationId,
+            resultInfo.platform,
+            memberData,
           )
           break
         }

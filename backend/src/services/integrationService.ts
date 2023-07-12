@@ -3,8 +3,17 @@ import { request } from '@octokit/request'
 import moment from 'moment'
 import axios from 'axios'
 import { PlatformType } from '@crowd/types'
+import {
+  HubspotFieldMapper,
+  getContactProperties,
+  getTokenInfo,
+  IHubspotOnboardingSettings,
+  IHubspotProperty,
+  HubspotEntity,
+  IHubspotTokenInfo,
+} from '@crowd/integrations'
 import { ILinkedInOrganization } from '../serverless/integrations/types/linkedinTypes'
-import { DISCORD_CONFIG, GITHUB_CONFIG, IS_TEST_ENV, KUBE_MODE } from '../conf/index'
+import { DISCORD_CONFIG, GITHUB_CONFIG, IS_TEST_ENV, KUBE_MODE, NANGO_CONFIG } from '../conf/index'
 import Error400 from '../errors/Error400'
 import { IServiceOptions } from './IServiceOptions'
 import SequelizeRepository from '../database/repositories/sequelizeRepository'
@@ -21,6 +30,8 @@ import Error404 from '../errors/Error404'
 import IntegrationRunRepository from '../database/repositories/integrationRunRepository'
 import { IntegrationRunState } from '../types/integrationRunTypes'
 import { getIntegrationRunWorkerEmitter } from '../serverless/utils/serviceSQS'
+import MemberAttributeSettingsRepository from '../database/repositories/memberAttributeSettingsRepository'
+import TenantRepository from '../database/repositories/tenantRepository'
 
 const discordToken = DISCORD_CONFIG.token2 || DISCORD_CONFIG.token
 
@@ -444,6 +455,225 @@ export default class IntegrationService {
 
     this.options.log.error('LinkedIn integration is not in pending-action status!')
     throw new Error404(this.options.language, 'errors.linkedin.cantOnboardWrongStatus')
+  }
+
+  async hubspotOnboard(onboardSettings: IHubspotOnboardingSettings) {
+    if (onboardSettings.enabledFor.length === 0) {
+      throw new Error400(this.options.language, 'errors.hubspot.missingEnabledEntities')
+    }
+
+    if (
+      !onboardSettings.attributesMapping.members &&
+      !onboardSettings.attributesMapping.organizations
+    ) {
+      throw new Error400(this.options.language, 'errors.hubspot.missingAttributesMapping')
+    }
+
+    if (
+      onboardSettings.enabledFor.includes(HubspotEntity.MEMBERS) &&
+      !onboardSettings.attributesMapping.members
+    ) {
+      throw new Error400(this.options.language, 'errors.hubspot.missingAttributesMapping')
+    }
+
+    if (
+      onboardSettings.enabledFor.includes(HubspotEntity.ORGANIZATIONS) &&
+      !onboardSettings.attributesMapping.organizations
+    ) {
+      throw new Error400(this.options.language, 'errors.hubspot.missingAttributesMapping')
+    }
+
+    const tenantId = this.options.currentTenant.id
+
+    let integration
+
+    try {
+      integration = await IntegrationRepository.findByPlatform(PlatformType.HUBSPOT, {
+        ...this.options,
+      })
+    } catch (err) {
+      this.options.log.error(err, 'Error while fetching HubSpot integration from DB!')
+      throw new Error404()
+    }
+
+    const memberAttributeSettings = (
+      await MemberAttributeSettingsRepository.findAndCountAll({}, this.options)
+    ).rows
+
+    const identities = await TenantRepository.getAvailablePlatforms(tenantId, this.options)
+
+    const mapper = new HubspotFieldMapper(memberAttributeSettings, identities)
+
+    // validate members
+    if (onboardSettings.attributesMapping.members) {
+      for (const field of Object.keys(onboardSettings.attributesMapping.members)) {
+        const hubspotProperty: IHubspotProperty = integration.settings.hubspotProperties.find(
+          (p) => p.name === onboardSettings.attributesMapping.members[field],
+        )
+        if (!mapper.isFieldMappableToHubspotType(field, hubspotProperty.type)) {
+          throw new Error(
+            `Field ${field} has incompatible type with hubspot property ${hubspotProperty.name}`,
+          )
+        }
+      }
+    }
+
+    const transaction = await SequelizeRepository.createTransaction(this.options)
+
+    // save attribute mapping and enabledFor
+    try {
+      integration = await this.createOrUpdate(
+        {
+          platform: PlatformType.HUBSPOT,
+          settings: {
+            ...integration.settings,
+            attributesMapping: onboardSettings.attributesMapping,
+            enabledFor: onboardSettings.enabledFor,
+          },
+          status: 'in-progress',
+        },
+        transaction,
+      )
+      await SequelizeRepository.commitTransaction(transaction)
+    } catch (err) {
+      await SequelizeRepository.rollbackTransaction(transaction)
+      throw err
+    }
+
+    // Send queue message that starts the hubspot integration
+    const emitter = await getIntegrationRunWorkerEmitter()
+    await emitter.triggerIntegrationRun(
+      integration.tenantId,
+      integration.platform,
+      integration.id,
+      true,
+    )
+  }
+
+  async hubspotGetMappableFields() {
+    const memberAttributeSettings = (
+      await MemberAttributeSettingsRepository.findAndCountAll({}, this.options)
+    ).rows
+
+    const identities = await TenantRepository.getAvailablePlatforms(
+      this.options.currentTenant.id,
+      this.options,
+    )
+
+    const mapper = new HubspotFieldMapper(memberAttributeSettings, identities)
+
+    return { members: mapper.getMembersHubspotFieldTypeMap() }
+  }
+
+  async hubspotUpdateProperties(): Promise<IHubspotProperty[]> {
+    const tenantId = this.options.currentTenant.id
+    const nangoId = `${tenantId}-${PlatformType.HUBSPOT}`
+
+    let integration
+
+    try {
+      integration = await IntegrationRepository.findByPlatform(PlatformType.HUBSPOT, {
+        ...this.options,
+      })
+    } catch (err) {
+      this.options.log.error(err, 'Error while fetching HubSpot integration from DB!')
+      throw new Error404()
+    }
+
+    let token: string
+    try {
+      token = await getToken(nangoId, PlatformType.HUBSPOT, this.options.log)
+    } catch (err) {
+      this.options.log.error(err, 'Error while verifying HubSpot tenant token in Nango!')
+      throw new Error400(this.options.language, 'errors.noNangoToken.message')
+    }
+
+    if (!token) {
+      throw new Error400(this.options.language, 'errors.noNangoToken.message')
+    }
+
+    const transaction = await SequelizeRepository.createTransaction(this.options)
+
+    const properties = await getContactProperties(nangoId, {
+      log: this.options.log,
+      serviceSettings: {
+        nangoId,
+        nangoUrl: NANGO_CONFIG.url,
+        nangoSecretKey: NANGO_CONFIG.secretKey,
+      },
+    })
+
+    try {
+      integration = await this.createOrUpdate(
+        {
+          platform: PlatformType.HUBSPOT,
+          settings: { updateMemberAttributes: true, hubspotProperties: properties },
+          status: 'in-progress',
+        },
+        transaction,
+      )
+      await SequelizeRepository.commitTransaction(transaction)
+    } catch (err) {
+      await SequelizeRepository.rollbackTransaction(transaction)
+      throw err
+    }
+
+    return integration.settings.hubspotProperties
+  }
+
+  async hubspotConnect() {
+    const tenantId = this.options.currentTenant.id
+    const nangoId = `${tenantId}-${PlatformType.HUBSPOT}`
+
+    let token: string
+    try {
+      token = await getToken(nangoId, PlatformType.HUBSPOT, this.options.log)
+      this.options.log.info(`TOKEN IS: ${token}`)
+    } catch (err) {
+      this.options.log.error(err, 'Error while verifying HubSpot tenant token in Nango!')
+      throw new Error400(this.options.language, 'errors.noNangoToken.message')
+    }
+
+    if (!token) {
+      throw new Error400(this.options.language, 'errors.noNangoToken.message')
+    }
+
+    const transaction = await SequelizeRepository.createTransaction(this.options)
+    let integration
+
+    const context =  {
+      log: this.options.log,
+      serviceSettings: {
+        nangoId,
+        nangoUrl: NANGO_CONFIG.url,
+        nangoSecretKey: NANGO_CONFIG.secretKey,
+      },
+    }
+
+    const customProps: IHubspotProperty[] = await getContactProperties(nangoId, context)
+
+    const hubspotInfo: IHubspotTokenInfo = await getTokenInfo(nangoId, context)
+
+    try {
+      integration = await this.createOrUpdate(
+        {
+          platform: PlatformType.HUBSPOT,
+          settings: {
+            updateMemberAttributes: true,
+            hubspotProperties: customProps,
+            hubspotId: hubspotInfo.hub_id
+          },
+          status: 'pending-action',
+        },
+        transaction,
+      )
+      await SequelizeRepository.commitTransaction(transaction)
+    } catch (err) {
+      await SequelizeRepository.rollbackTransaction(transaction)
+      throw err
+    }
+
+    return integration
   }
 
   async linkedinConnect() {

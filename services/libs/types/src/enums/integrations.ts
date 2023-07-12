@@ -45,4 +45,5 @@ export enum IntegrationResultState {
 
 export enum IntegrationResultType {
   ACTIVITY = 'activity',
+  MEMBER_ENRICH = 'member_enrich',
 }

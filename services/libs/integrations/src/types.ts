@@ -1,4 +1,4 @@
-import { IMemberAttribute, IActivityData } from '@crowd/types'
+import { IMemberAttribute, IActivityData, IntegrationResultType } from '@crowd/types'
 import { Logger } from '@crowd/logging'
 import { ICache, IIntegration, IIntegrationStream, IRateLimiter } from '@crowd/types'
 
@@ -40,6 +40,8 @@ export interface IProcessDataContext extends IIntegrationContext {
   abortWithError: (message: string, metadata?: unknown, error?: Error) => Promise<void>
 
   publishActivity: (activity: IActivityData) => Promise<void>
+
+  publishCustom: (entity: unknown, type: IntegrationResultType) => Promise<void>
 }
 
 export type GenerateStreamsHandler = (ctx: IGenerateStreamsContext) => Promise<void>
