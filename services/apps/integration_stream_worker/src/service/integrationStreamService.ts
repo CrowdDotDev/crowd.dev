@@ -43,11 +43,19 @@ export default class IntegrationStreamService extends LoggerBase {
       for (const stream of streams) {
         this.log.info({ streamId: stream.id }, 'Restarting delayed stream!')
         await this.repo.resetStream(stream.id)
-        await this.streamWorkerEmitter.triggerStreamProcessing(
-          stream.tenantId,
-          stream.integrationType,
-          stream.id,
-        )
+        if (stream.runId) {
+          await this.streamWorkerEmitter.triggerStreamProcessing(
+            stream.tenantId,
+            stream.integrationType,
+            stream.id,
+          )
+        } else {
+          await this.streamWorkerEmitter.triggerWebhookProcessing(
+            stream.tenantId,
+            stream.integrationType,
+            stream.id,
+          )
+        }
       }
 
       streams = await this.repo.getPendingDelayedStreams(1, 10)
