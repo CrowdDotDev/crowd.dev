@@ -6,15 +6,22 @@
       :style="computedStyle"
       :aria-label="computedInitials"
     >
-      <img :src="url" alt="">
+      <app-avatar-image
+        :src="url"
+      />
     </div>
     <slot name="icon" />
   </div>
 </template>
 
 <script>
+import AppAvatarImage from '@/shared/avatar-image/avatar-image.vue';
+
 export default {
   name: 'AppAvatar',
+  components: {
+    AppAvatarImage,
+  },
   props: {
     entity: {
       type: Object,

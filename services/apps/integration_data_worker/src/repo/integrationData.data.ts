@@ -1,14 +1,16 @@
 import { IntegrationRunState, IntegrationState, IntegrationStreamDataState } from '@crowd/types'
 
 export interface IApiDataInfo {
-  onboarding: boolean
+  onboarding: boolean | null
   integrationId: string
   integrationType: string
   integrationState: IntegrationState
   integrationIdentifier: string | null
-  runState: IntegrationRunState
+  integrationToken: string | null
+  runState: IntegrationRunState | null
   streamId: string
-  runId: string
+  runId: string | null
+  webhookId: string | null
   tenantId: string
   integrationSettings: unknown
 
@@ -16,4 +18,9 @@ export interface IApiDataInfo {
   state: IntegrationStreamDataState
   data: unknown
   retries: number
+
+  hasSampleData: boolean
+  plan: string
+  isTrialPlan: boolean
+  name: string
 }

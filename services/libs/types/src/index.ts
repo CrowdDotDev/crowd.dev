@@ -15,6 +15,8 @@ export * from './members'
 export * from './enums/activities'
 export * from './activities'
 
+export * from './organizations'
+
 export * from './enums/edition'
 
 export * from './caching'

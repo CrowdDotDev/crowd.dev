@@ -6,6 +6,7 @@ import {
   CheckStreamsQueueMessage,
   ContinueProcessingRunStreamsQueueMessage,
   ProcessStreamQueueMessage,
+  ProcessWebhookStreamQueueMessage,
 } from '@crowd/types'
 
 export class IntegrationStreamWorkerEmitter extends SqsQueueEmitter {
@@ -36,6 +37,18 @@ export class IntegrationStreamWorkerEmitter extends SqsQueueEmitter {
     await this.sendMessage(
       `streams-${tenantId}-${platform}`,
       new ProcessStreamQueueMessage(streamId),
+      streamId,
+    )
+  }
+
+  public async triggerWebhookProcessing(
+    tenantId: string,
+    platform: string,
+    streamId: string,
+  ): Promise<void> {
+    await this.sendMessage(
+      `ws-streams-${tenantId}-${platform}`,
+      new ProcessWebhookStreamQueueMessage(streamId),
     )
   }
 }

@@ -69,6 +69,7 @@ export default class IntegrationStreamRepository extends RepositoryBase<Integrat
             i.platform as "integrationType",
             i.status   as "integrationState",
             i."integrationIdentifier",
+            i.token   as "integrationToken",
             r.state    as "runState",
             s."runId",
             s."tenantId",
@@ -81,7 +82,7 @@ export default class IntegrationStreamRepository extends RepositoryBase<Integrat
             coalesce(s.retries, 0) as retries
       from integration.streams s
               inner join integrations i on s."integrationId" = i.id
-              inner join integration.runs r on r.id = s."runId"
+              left join integration.runs r on r.id = s."runId"
       where s.id = $(streamId);
     `,
       {
@@ -250,12 +251,13 @@ export default class IntegrationStreamRepository extends RepositoryBase<Integrat
 
     const result = await this.db().result(
       `
-    insert into integration."apiData"(id, state, data, "streamId", "runId", "tenantId", "integrationId", "microserviceId")
+    insert into integration."apiData"(id, state, data, "streamId", "runId", "webhookId", "tenantId", "integrationId", "microserviceId")
     select $(id)::uuid,
            $(state),
            $(data)::json,
            $(streamId)::uuid,
            "runId",
+           "webhookId",
            "tenantId",
            "integrationId",
            "microserviceId"
@@ -276,15 +278,17 @@ export default class IntegrationStreamRepository extends RepositoryBase<Integrat
 
   public async publishStream(
     parentId: string,
-    runId: string,
     identifier: string,
     data?: unknown,
+    runId?: string,
+    webhookId?: string,
   ): Promise<string | null> {
     const result = await this.db().oneOrNone(
       `
-    insert into integration.streams("parentId", "runId", state, identifier, data, "tenantId", "integrationId", "microserviceId")
+    insert into integration.streams("parentId", "runId", "webhookId", state, identifier, data, "tenantId", "integrationId", "microserviceId")
     select $(parentId)::uuid,
            $(runId)::uuid,
+           $(webhookId)::uuid,
            $(state),
            $(identifier),
            $(data)::json,
@@ -298,6 +302,7 @@ export default class IntegrationStreamRepository extends RepositoryBase<Integrat
       {
         parentId,
         runId,
+        webhookId,
         state: IntegrationStreamState.PENDING,
         identifier: identifier,
         data: data ? JSON.stringify(data) : null,

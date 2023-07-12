@@ -13,6 +13,7 @@ import {
   IQueueMessage,
   IntegrationStreamWorkerQueueMessageType,
   ProcessStreamQueueMessage,
+  ProcessWebhookStreamQueueMessage,
 } from '@crowd/types'
 import { RedisClient } from '@crowd/redis'
 import IntegrationStreamService from '../service/integrationStreamService'
@@ -55,6 +56,9 @@ export class WorkerQueueReceiver extends SqsQueueReceiver {
           break
         case IntegrationStreamWorkerQueueMessageType.PROCESS_STREAM:
           await service.processStream((message as ProcessStreamQueueMessage).streamId)
+          break
+        case IntegrationStreamWorkerQueueMessageType.PROCESS_WEBHOOK_STREAM:
+          await service.processWebhookStream((message as ProcessWebhookStreamQueueMessage).streamId)
           break
         default:
           throw new Error(`Unknown message type: ${message.type}`)

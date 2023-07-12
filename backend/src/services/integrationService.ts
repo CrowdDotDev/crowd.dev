@@ -933,9 +933,9 @@ export default class IntegrationService {
 
     const transaction = await SequelizeRepository.createTransaction(this.options)
     let integration
-    let run
 
     try {
+      this.options.log.info('Creating Slack integration!')
       integration = await this.createOrUpdate(
         {
           platform: PlatformType.SLACK,
@@ -945,23 +945,24 @@ export default class IntegrationService {
         transaction,
       )
 
-      const isOnboarding: boolean = !('channels' in integration.settings)
-
-      run = await new IntegrationRunRepository({ ...this.options, transaction }).create({
-        integrationId: integration.id,
-        tenantId: integration.tenantId,
-        onboarding: isOnboarding,
-        state: IntegrationRunState.PENDING,
-      })
       await SequelizeRepository.commitTransaction(transaction)
     } catch (err) {
       await SequelizeRepository.rollbackTransaction(transaction)
       throw err
     }
 
-    await sendNodeWorkerMessage(
+    this.options.log.info(
+      { tenantId: integration.tenantId },
+      'Sending Slack message to int-run-worker!',
+    )
+
+    const isOnboarding: boolean = !('channels' in integration.settings)
+    const emitter = await getIntegrationRunWorkerEmitter()
+    await emitter.triggerIntegrationRun(
       integration.tenantId,
-      new NodeWorkerIntegrationProcessMessage(run.id),
+      integration.platform,
+      integration.id,
+      isOnboarding,
     )
 
     return integration

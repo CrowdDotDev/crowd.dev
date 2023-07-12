@@ -129,6 +129,7 @@
     "appId": "CROWD_GITHUB_APP_ID",
     "clientId": "CROWD_GITHUB_CLIENT_ID",
     "clientSecret": "CROWD_GITHUB_CLIENT_SECRET",
+    "callbackUrl": "CROWD_GITHUB_CALLBACK_URL",
     "privateKey": "CROWD_GITHUB_PRIVATE_KEY",
     "webhookSecret": "CROWD_GITHUB_WEBHOOK_SECRET",
     "isCommitDataEnabled": "CROWD_GITHUB_IS_COMMIT_DATA_ENABLED"
@@ -185,8 +186,7 @@
     "secretAccessKey": "CROWD_OPENSEARCH_AWS_SECRET_ACCESS_KEY"
   },
   "auth0": {
-    "domain": "CROWD_AUTH0_DOMAIN",
     "clientId": "CROWD_AUTH0_CLIENT_ID",
-    "cert": "CROWD_AUTH0_CERT"
+    "jwks": "CROWD_AUTH0_JWKS"
   }
 }

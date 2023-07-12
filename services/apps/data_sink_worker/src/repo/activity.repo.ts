@@ -32,17 +32,24 @@ export default class ActivityRepository extends RepositoryBase<ActivityRepositor
             "parentId",
             "memberId",
             username,
+            "objectMemberId",
+            "objectMemberUsername",
             attributes,
             body,
             title,
             channel,
             url,
             sentiment
-    from activities where "tenantId" = $(tenantId) and "sourceId" = $(sourceId)
+    from activities where "tenantId" = $(tenantId) and "segmentId" = $(segmentId) and "sourceId" = $(sourceId)
   `
-  public async findExisting(tenantId: string, sourceId: string): Promise<IDbActivity | null> {
+  public async findExisting(
+    tenantId: string,
+    segmentId: string,
+    sourceId: string,
+  ): Promise<IDbActivity | null> {
     const result = await this.db().oneOrNone(this.findExistingActivityQuery, {
       tenantId,
+      segmentId,
       sourceId,
     })
 

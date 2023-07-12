@@ -9,7 +9,7 @@ import lodash, { chunk } from 'lodash'
 import Sequelize, { QueryTypes } from 'sequelize'
 
 import { FieldTranslatorFactory, OpensearchQueryParser } from '@crowd/opensearch'
-import { KUBE_MODE, SERVICE } from '../../conf'
+import { KUBE_MODE, SERVICE } from '@/conf'
 import { ServiceType } from '../../conf/configTypes'
 import Error404 from '../../errors/Error404'
 import isFeatureEnabled from '../../feature-flags/isFeatureEnabled'
@@ -1997,6 +1997,8 @@ class MemberRepository {
 
       row.identities = identities
       row.username = username
+      row.activeDaysCount = parseInt(row.activeDaysCount, 10)
+      row.activityCount = parseInt(row.activityCount, 10)
     }
 
     const memberIds = translatedRows.map((r) => r.id)

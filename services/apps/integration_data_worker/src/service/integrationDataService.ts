@@ -5,8 +5,9 @@ import IntegrationDataRepository from '../repo/integrationData.repo'
 import { IActivityData, IntegrationResultType, IntegrationRunState } from '@crowd/types'
 import { addSeconds, singleOrDefault } from '@crowd/common'
 import { INTEGRATION_SERVICES, IProcessDataContext } from '@crowd/integrations'
-import { WORKER_SETTINGS, PLATFORM_CONFIG } from '@/conf'
+import { WORKER_SETTINGS, PLATFORM_CONFIG, SLACK_ALERTING_CONFIG } from '@/conf'
 import { DataSinkWorkerEmitter, IntegrationStreamWorkerEmitter } from '@crowd/sqs'
+import { SlackAlertTypes, sendSlackAlert } from '@crowd/alerting'
 
 export default class IntegrationDataService extends LoggerBase {
   private readonly repo: IntegrationDataRepository
@@ -67,19 +68,30 @@ export default class IntegrationDataService extends LoggerBase {
       return
     }
 
-    if (dataInfo.runState === IntegrationRunState.INTEGRATION_DELETED) {
-      this.log.warn('Integration was deleted! Skipping data processing!')
-      return
-    }
+    if (dataInfo.runId) {
+      if (dataInfo.runState === IntegrationRunState.INTEGRATION_DELETED) {
+        this.log.warn('Integration was deleted! Skipping data processing!')
+        return
+      }
 
-    this.log = getChildLogger('stream-data-processor', this.log, {
-      dataId,
-      streamId: dataInfo.streamId,
-      runId: dataInfo.runId,
-      integrationId: dataInfo.integrationId,
-      onboarding: dataInfo.onboarding,
-      platform: dataInfo.integrationType,
-    })
+      this.log = getChildLogger('stream-data-processor', this.log, {
+        dataId,
+        streamId: dataInfo.streamId,
+        runId: dataInfo.runId,
+        integrationId: dataInfo.integrationId,
+        onboarding: dataInfo.onboarding,
+        platform: dataInfo.integrationType,
+      })
+    } else {
+      this.log = getChildLogger('stream-data-processor', this.log, {
+        dataId,
+        streamId: dataInfo.streamId,
+        webhookId: dataInfo.webhookId,
+        integrationId: dataInfo.integrationId,
+        onboarding: dataInfo.onboarding,
+        platform: dataInfo.integrationType,
+      })
+    }
 
     const integrationService = singleOrDefault(
       INTEGRATION_SERVICES,
@@ -106,7 +118,7 @@ export default class IntegrationDataService extends LoggerBase {
     )
 
     const context: IProcessDataContext = {
-      onboarding: dataInfo.onboarding,
+      onboarding: dataInfo.onboarding !== null ? dataInfo.onboarding : undefined,
       platformSettings: PLATFORM_CONFIG(dataInfo.integrationType),
       integration: {
         id: dataInfo.integrationId,
@@ -114,6 +126,7 @@ export default class IntegrationDataService extends LoggerBase {
         platform: dataInfo.integrationType,
         status: dataInfo.integrationState,
         settings: dataInfo.integrationSettings,
+        token: dataInfo.integrationToken,
       },
 
       data: dataInfo.data,
@@ -134,9 +147,10 @@ export default class IntegrationDataService extends LoggerBase {
           dataInfo.tenantId,
           dataInfo.integrationType,
           dataInfo.streamId,
-          dataInfo.runId,
           identifier,
           data,
+          dataInfo.runId,
+          dataInfo.webhookId,
         )
       },
 
@@ -148,15 +162,21 @@ export default class IntegrationDataService extends LoggerBase {
         this.log.error({ message }, 'Aborting stream processing with error!')
         await this.triggerDataError(dataId, 'data-abort', message, metadata, error)
       },
-      abortRunWithError: async (message: string, metadata?: unknown, error?: Error) => {
-        this.log.error({ message }, 'Aborting run with error!')
-        await this.triggerRunError(dataInfo.runId, 'data-run-abort', message, metadata, error)
-      },
+
+      abortRunWithError: dataInfo.runId
+        ? async (message: string, metadata?: unknown, error?: Error) => {
+            this.log.error({ message }, 'Aborting run with error!')
+            await this.triggerRunError(dataInfo.runId, 'data-run-abort', message, metadata, error)
+          }
+        : undefined,
     }
 
     this.log.debug('Marking data as in progress!')
     await this.repo.markDataInProgress(dataId)
-    await this.repo.touchRun(dataInfo.runId)
+    if (dataInfo.runId) {
+      await this.repo.touchRun(dataInfo.runId)
+    }
+
     this.log.debug('Processing data!')
     try {
       await integrationService.processData(context)
@@ -179,19 +199,43 @@ export default class IntegrationDataService extends LoggerBase {
         await this.repo.delayData(dataId, until)
       } else {
         // stop run because of stream error
-        this.log.warn('Reached maximum retries for data! Stopping the run!')
-        await this.triggerRunError(
-          dataInfo.runId,
-          'data-run-stop',
-          'Data reached maximum retries!',
-          {
-            retries: dataInfo.retries + 1,
-            maxRetries: WORKER_SETTINGS().maxDataRetries,
+        if (dataInfo.runId) {
+          this.log.warn('Reached maximum retries for data! Stopping the run!')
+          await this.triggerRunError(
+            dataInfo.runId,
+            'data-run-stop',
+            'Data reached maximum retries!',
+            {
+              retries: dataInfo.retries + 1,
+              maxRetries: WORKER_SETTINGS().maxDataRetries,
+            },
+          )
+        }
+
+        await sendSlackAlert({
+          slackURL: SLACK_ALERTING_CONFIG().url,
+          alertType: SlackAlertTypes.DATA_WORKER_ERROR,
+          integration: {
+            id: dataInfo.integrationId,
+            platform: dataInfo.integrationType,
+            tenantId: dataInfo.tenantId,
+            apiDataId: dataInfo.id,
           },
-        )
+          userContext: {
+            currentTenant: {
+              name: dataInfo.name,
+              plan: dataInfo.plan,
+              isTrial: dataInfo.isTrialPlan,
+            },
+          },
+          log: this.log,
+          frameworkVersion: 'new',
+        })
       }
     } finally {
-      await this.repo.touchRun(dataInfo.runId)
+      if (dataInfo.runId) {
+        await this.repo.touchRun(dataInfo.runId)
+      }
     }
   }
 
@@ -267,15 +311,24 @@ export default class IntegrationDataService extends LoggerBase {
     tenantId: string,
     platform: string,
     parentId: string,
-    runId: string,
     identifier: string,
     data?: unknown,
+    runId?: string,
+    webhookId?: string,
   ): Promise<void> {
     try {
       this.log.debug({ identifier }, 'Publishing new child stream!')
-      const streamId = await this.repo.publishStream(parentId, runId, identifier, data)
+      if (!runId && !webhookId) {
+        throw new Error('Need either runId or webhookId!')
+      }
+
+      const streamId = await this.repo.publishStream(parentId, identifier, data, runId, webhookId)
       if (streamId) {
-        await this.streamWorkerEmitter.triggerStreamProcessing(tenantId, platform, streamId)
+        if (runId) {
+          await this.streamWorkerEmitter.triggerStreamProcessing(tenantId, platform, streamId)
+        } else {
+          await this.streamWorkerEmitter.triggerWebhookProcessing(tenantId, platform, streamId)
+        }
       } else {
         this.log.debug({ identifier }, 'Child stream already exists!')
       }

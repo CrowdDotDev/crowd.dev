@@ -11,16 +11,21 @@ export default class DataSinkRepository extends RepositoryBase<DataSinkRepositor
   private readonly getResultInfoQuery = `
     select r.id,
            r.state,
-           r.data,
-           
+           r.data, 
            r."tenantId",
            r."runId",
+           r."webhookId",
            r."streamId",
            r."apiDataId",
            r."integrationId",
-           i.platform
+           i.platform,
+           t."hasSampleData", 
+           t."plan",
+           t."isTrialPlan",
+           t."name"
     from integration.results r
         inner join integrations i on r."integrationId" = i.id
+        inner join tenants t on t.id = r."tenantId"
     where r.id = $(resultId)
   `
   public async getResultInfo(resultId: string): Promise<IResultData | null> {
@@ -61,20 +66,10 @@ export default class DataSinkRepository extends RepositoryBase<DataSinkRepositor
     this.checkUpdateRowCount(result.rowCount, 1)
   }
 
-  public async markResultProcessed(resultId: string): Promise<void> {
-    const result = await this.db().result(
-      `update integration.results
-       set  state = $(state),
-            "processedAt" = now(),
-            "updatedAt" = now()
-       where id = $(resultId)`,
-      {
-        resultId,
-        state: IntegrationResultState.PROCESSED,
-      },
-    )
-
-    this.checkUpdateRowCount(result.rowCount, 1)
+  public async deleteResult(resultId: string): Promise<void> {
+    await this.db().none(`delete from integration.results where id = $(resultId)`, {
+      resultId,
+    })
   }
 
   public async touchRun(runId: string): Promise<void> {
@@ -117,7 +112,7 @@ export default class DataSinkRepository extends RepositoryBase<DataSinkRepositor
     return results
   }
 
-  public async resetFailedResults(resultIds: string[]): Promise<void> {
+  public async resetResults(resultIds: string[]): Promise<void> {
     const result = await this.db().result(
       `update integration.results
         set state = $(newState),
