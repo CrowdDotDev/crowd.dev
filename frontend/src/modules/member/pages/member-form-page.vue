@@ -197,7 +197,7 @@ function getInitialModel(r) {
       formSchema.value.initialValues({
         displayName: r ? r.displayName : '',
         name: r ? r.name : '',
-        emails: r ? r.emails : '',
+        emails: r ? r.emails?.filter((e) => !!e) || [] : [],
         joinedAt: r ? r.joinedAt : '',
         attributes: r
           ? filteredAttributes(r.attributes)
