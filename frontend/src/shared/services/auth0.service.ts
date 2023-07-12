@@ -1,13 +1,9 @@
-import { WebAuth } from 'auth0-js';
 import { LocalStorageEnum } from '@/shared/types/LocalStorage';
 import config from '@/config';
-import axios from 'axios';
-import moment from 'moment';
 import { Auth0Client } from '@auth0/auth0-spa-js';
 
 const baseUrl = `${config.frontendUrl.protocol}://${config.frontendUrl.host}`;
 const authCallback = `${baseUrl}/auth/callback`;
-const redirectUri = `${baseUrl}/auth/signin`;
 
 class Auth0ServiceClass {
   private readonly webAuth: Auth0Client;
@@ -26,7 +22,7 @@ class Auth0ServiceClass {
     this.webAuth.loginWithRedirect();
   }
 
-  public async handleAuth(code: string): Promise<void> {
+  public async handleAuth(): Promise<void> {
     return this.webAuth.handleRedirectCallback()
       .then(() => this.webAuth.getIdTokenClaims())
       .then((idToken) => {
@@ -52,18 +48,6 @@ class Auth0ServiceClass {
       };
     }
     return null;
-  }
-
-  // Exchange authorization code for token
-  private async exchange(code: string): Promise<any> {
-    const body = {
-      grant_type: 'authorization_code',
-      client_id: config.auth0.clientId,
-      code,
-      redirect_uri: authCallback,
-    };
-    const response = await axios.post(`https://${config.auth0.domain}/oauth/token`, body);
-    return response.data;
   }
 
   public static localLogin(authResult: any): void {

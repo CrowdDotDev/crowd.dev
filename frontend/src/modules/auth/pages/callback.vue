@@ -15,18 +15,16 @@ import { useRoute, useRouter } from 'vue-router';
 
 const { doSigninWithAuth0 } = mapActions('auth');
 
-const route = useRoute();
-
 onMounted(() => {
-  const { code } = route.query;
-  if (code) {
-    Auth0Service.handleAuth(code as string)
-      .then(() => {
-        const { idToken } = Auth0Service.authData();
+  Auth0Service.handleAuth()
+    .then(() => {
+      const { idToken } = Auth0Service.authData();
 
-        return doSigninWithAuth0(idToken);
-      });
-  }
+      return doSigninWithAuth0(idToken);
+    })
+    .catch(() => {
+      Auth0Service.logout();
+    });
 });
 </script>
 

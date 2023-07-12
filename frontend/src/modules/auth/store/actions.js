@@ -88,7 +88,9 @@ export default {
 
   doRegisterEmailAndPassword(
     { commit, dispatch },
-    { email, password, username, data = {} },
+    {
+      email, password, username, data = {},
+    },
   ) {
     return Auth0Service.signup({
       email,
