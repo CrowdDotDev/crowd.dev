@@ -18,7 +18,10 @@
             class="btn btn--transparent btn--md mr-4"
             :to="{
               name: 'reportView',
-              params: { id: id },
+              params: {
+                id,
+                segmentId,
+              },
             }"
           >
             <i class="ri-eye-line mr-2" />View
@@ -59,6 +62,10 @@ export default {
       type: String,
       default: null,
     },
+    segmentId: {
+      type: String,
+      default: null,
+    },
   },
 
   data() {
@@ -80,13 +87,21 @@ export default {
 
   async created() {
     this.loading.find = true;
-    await this.doFind(this.id);
+
+    await this.getCubeToken();
+
+    await this.doFind({
+      id: this.id,
+      segments: [this.segmentId],
+    });
+
     this.isPublic = this.record.public;
     this.loading.find = false;
   },
 
   methods: {
     ...mapActions({
+      getCubeToken: 'widget/getCubeToken',
       doFind: 'report/doFind',
       doCreate: 'report/doCreate',
     }),

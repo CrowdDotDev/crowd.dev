@@ -11,7 +11,7 @@
       v-if="showLongerLoading && showDescription"
       class="text-gray-600 text-sm mt-4"
     >
-      Generating your Eagle Eye feed can take up to 10
+      Generating your Community Lens feed can take up to 10
       seconds.
     </div>
   </div>

@@ -12,14 +12,22 @@ const tags: MultiSelectAsyncFilterConfig = {
   iconClass: 'ri-bookmark-line',
   type: FilterConfigType.MULTISELECT_ASYNC,
   options: {
-    remoteMethod: (query) => TagService.listAutocomplete(query, 10)
+    remoteMethod: (query) => TagService.listAutocomplete({
+      query,
+      limit: 10,
+    })
       .then((data: any[]) => data.map((tag) => ({
         label: tag.label,
         value: tag.id,
       }))),
     remotePopulateItems: (ids: string[]) => TagService.list({
-      ids,
-    }, null, ids.length, 0)
+      filter: {
+        ids,
+      },
+      orderBy: null,
+      limit: ids.length,
+      offset: 0,
+    })
       .then(({ rows }: any) => rows.map((tag: any) => ({
         label: tag.name,
         value: tag.id,

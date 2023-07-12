@@ -1,33 +1,32 @@
 <template>
-  <div
-    class="absolute top-0 left-0 w-full max-h-screen flex flex-row"
-    :class="{
-      'pt-14': showBanner,
-    }"
-  >
+  <div class="flex -m-5">
     <div
-      :style="cssVars"
-      class="basis-2/5 overflow-auto overscroll-contain eagle-eye-settings-wrapper"
+      class="w-full max-h-screen flex flex-row"
     >
-      <app-eagle-eye-settings />
-    </div>
+      <div
+        :style="cssVars"
+        class="basis-2/5 overflow-auto overscroll-contain eagle-eye-settings-wrapper"
+      >
+        <app-eagle-eye-settings />
+      </div>
 
-    <div
-      class="basis-full overflow-auto overscroll-contain"
-    >
-      <div :style="cssVars" class="eagle-eye-list-wrapper">
-        <app-eagle-eye-tabs />
-        <app-eagle-eye-loading-state
-          v-if="isLoading"
-          :show-description="activeView.id === 'feed'"
-        />
-        <app-empty-state-cta
-          v-else-if="showEmptyState"
-          :icon="emptyStateContent.icon"
-          :title="emptyStateContent.title"
-          :description="emptyStateContent.description"
-        />
-        <app-eagle-eye-list v-else :list="list" />
+      <div
+        class="basis-full overflow-auto overscroll-contain"
+      >
+        <div :style="cssVars" class="eagle-eye-list-wrapper">
+          <app-eagle-eye-tabs />
+          <app-eagle-eye-loading-state
+            v-if="isLoading"
+            :show-description="activeView.id === 'feed'"
+          />
+          <app-empty-state-cta
+            v-else-if="showEmptyState"
+            :icon="emptyStateContent.icon"
+            :title="emptyStateContent.title"
+            :description="emptyStateContent.description"
+          />
+          <app-eagle-eye-list v-else :list="list" />
+        </div>
       </div>
     </div>
   </div>
@@ -42,15 +41,12 @@ import AppEagleEyeList from '@/premium/eagle-eye/components/list/eagle-eye-list.
 import AppEagleEyeLoadingState from '@/premium/eagle-eye/components/list/eagle-eye-loading-state.vue';
 import { mapGetters } from '@/shared/vuex/vuex.helpers';
 
-const { showBanner } = mapGetters('tenant');
-
 const store = useStore();
 
 const { activeView, activeViewList } = mapGetters('eagleEye');
 
 const cssVars = computed(() => {
-  const isMenuCollapsed = store.getters['layout/menuCollapsed'];
-  const menuWidth = isMenuCollapsed ? '64px' : '260px';
+  const menuWidth = '260px';
 
   return {
     '--eagle-eye-padding': menuWidth,

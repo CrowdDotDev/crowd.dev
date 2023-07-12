@@ -79,7 +79,7 @@ const form = reactive({
 const headerContent = computed(() => {
   if (step.value === 1) {
     return {
-      title: 'Eagle Eye',
+      title: 'Community Lens',
       preTitle: `${FeatureFlag.premiumFeatureCopy()} App`,
       showImage: true,
     };
@@ -87,7 +87,7 @@ const headerContent = computed(() => {
 
   return {
     title: 'Set up your feed',
-    preTitle: 'Eagle Eye',
+    preTitle: 'Community Lens',
   };
 });
 

@@ -9,9 +9,7 @@
       <div
         class="mb-4 h-24 flex items-center flex-shrink-0 fixed top-0 inset-x-0 z-10 bg-gray-50
         shadow-sm transition-all ease-in-out duration-300 justify-center"
-        :style="
-          menuCollapsed ? 'left: 64px' : 'left: 260px'
-        "
+        :style="'left: 280px'"
       >
         <div class="max-w-5xl mx-5 w-full">
           <router-link
@@ -43,6 +41,7 @@
               <app-report-share-button
                 :id="id"
                 v-model="report.public"
+                :segment-id="report.segmentId"
                 class="mr-4"
               />
               <app-report-dropdown
@@ -89,6 +88,10 @@ export default {
       type: String,
       default: null,
     },
+    segmentId: {
+      type: String,
+      default: null,
+    },
   },
 
   data() {
@@ -104,7 +107,6 @@ export default {
       reportLoading: 'report/loading',
     }),
     ...mapGetters({
-      menuCollapsed: 'layout/menuCollapsed',
       reportFind: 'report/find',
     }),
     report() {
@@ -117,14 +119,22 @@ export default {
 
   async created() {
     this.loading = true;
+
+    await this.getCubeToken();
+
     if (this.tenantId) {
       await AuthCurrentTenant.set({ id: this.tenantId });
       await this.doFindPublic({
         id: this.id,
         tenantId: this.tenantId,
+        excludeSegments: !this.segmentId,
+        segments: [this.segmentId],
       });
     } else {
-      await this.doFind(this.id);
+      await this.doFind({
+        id: this.id,
+        segments: this.segmentId ? [this.segmentId] : undefined,
+      });
     }
     this.loading = false;
   },
@@ -146,6 +156,7 @@ export default {
     ...mapActions({
       doFind: 'report/doFind',
       doFindPublic: 'report/doFindPublic',
+      getCubeToken: 'widget/getCubeToken',
     }),
   },
 };

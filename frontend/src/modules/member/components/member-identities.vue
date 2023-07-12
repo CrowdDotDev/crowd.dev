@@ -41,7 +41,7 @@ const platformContent = (platform) => {
   const config = CrowdIntegrations.getConfig(platform) || {};
 
   return {
-    trackEventName: 'Click Member Contact',
+    trackEventName: 'Click Contributor Contact',
     trackEventChannel: config.name || platform,
     tooltipLabel: `${config.name || platform} profile`,
     asLink: config.showProfileLink,

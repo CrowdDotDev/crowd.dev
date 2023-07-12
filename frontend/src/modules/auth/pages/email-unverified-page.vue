@@ -19,13 +19,14 @@
     </div>
   </div>
 
-  <el-button
-    :loading="loadingEmailConfirmation"
-    class="btn btn--secondary btn--lg w-full"
-    @click="doSubmit()"
-  >
-    Resend verification link
-  </el-button>
+  <router-link :to="{ name: 'signin' }">
+    <el-button
+      :loading="loadingEmailConfirmation"
+      class="btn btn--secondary btn--lg w-full"
+    >
+      Continue to sign in
+    </el-button>
+  </router-link>
 </template>
 
 <script>

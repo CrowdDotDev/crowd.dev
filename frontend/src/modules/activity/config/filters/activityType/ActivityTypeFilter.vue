@@ -4,7 +4,7 @@
 
 <script setup lang="ts">
 import {
-  defineProps, defineEmits, computed, watch,
+  computed, onMounted, watch,
 } from 'vue';
 import CrSelectFilter from '@/shared/modules/filters/components/filterTypes/SelectFilter.vue';
 import {
@@ -15,6 +15,9 @@ import { useActivityTypeStore } from '@/modules/activity/store/type';
 import { storeToRefs } from 'pinia';
 import { CrowdIntegrations } from '@/integrations/integrations-config';
 import { useStore } from 'vuex';
+import { ActivityTypeService } from '@/modules/activity/services/activity-type-service';
+import { getSegmentsFromProjectGroup } from '@/utils/segments';
+import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 
 const props = defineProps<{
   modelValue: string,
@@ -25,12 +28,16 @@ const props = defineProps<{
 const emit = defineEmits<{(e: 'update:modelValue', value: string), (e: 'update:data', value: any),}>();
 const activityTypeStore = useActivityTypeStore();
 const { types } = storeToRefs(activityTypeStore);
+const { setTypes } = activityTypeStore;
 
 const store = useStore();
 
 const activeIntegrations = computed<string[]>(() => CrowdIntegrations.mappedEnabledConfigs(
   store,
 ).filter((integration) => integration.status).map((integration) => integration.platform));
+
+const lsSegmentsStore = useLfSegmentsStore();
+const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);
 
 const form = computed({
   get: () => props.modelValue,
@@ -67,5 +74,13 @@ watch(() => types, (typesValue: any) => {
     ...platformsOptions,
     ...customOptions,
   ];
-}, { immediate: true });
+}, { deep: true });
+
+onMounted(async () => {
+  await store.dispatch('integration/doFetch', getSegmentsFromProjectGroup(selectedProjectGroup.value));
+
+  const activityTypes = await ActivityTypeService.get();
+
+  setTypes(activityTypes);
+});
 </script>

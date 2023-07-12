@@ -5,189 +5,229 @@
     </div>
   </div>
   <div
+    v-if="segmentsFilter"
+    class="flex -mx-2 mb-2 items-center mt-2 widget-filter-container"
+  >
+    <div class="flex items-center mx-2">
+      <div class="grow">
+        <el-input
+          v-model="segmentsFilter.label"
+          class="first-filter"
+          type="text"
+          disabled
+        />
+      </div>
+
+      <div class="grow">
+        <el-input
+          v-model="segmentsFilter.operator"
+          class="second-filter"
+          type="text"
+          disabled
+        />
+      </div>
+
+      <div class="grow">
+        <el-input
+          v-model="segmentsFilter.value"
+          class="third-filter"
+          type="text"
+          disabled
+        />
+      </div>
+    </div>
+    <div class="pr-2 shrink">
+      <button
+        class="btn btn--transparent btn--md"
+        type="button"
+        disabled
+      >
+        <i class="ri-lg ri-delete-bin-line" />
+      </button>
+    </div>
+  </div>
+  <div
     v-if="!!computedFilters.length"
     class="widget-filter-container"
   >
-    <div class="mt-2">
-      <div class="flex -mx-2">
-        <div class="flex-1 grow h-0">
-          <div class="block leading-none mb-2" />
+    <div class="flex -mx-2">
+      <div class="flex-1 grow h-0">
+        <div class="block leading-none mb-2" />
+      </div>
+      <div class="flex-1 grow h-0">
+        <div class="block leading-none mb-2" />
+      </div>
+      <div class="flex-1 grow h-0">
+        <div class="block leading-none mb-2" />
+      </div>
+      <div class="shrink h-0">
+        <span class="w-1 block">&nbsp;</span>
+      </div>
+    </div>
+    <div
+      v-for="(filter, index) in localFilters"
+      :key="filter.id"
+      class="flex -mx-2 mb-2 items-center"
+    >
+      <div class="flex items-center mx-2">
+        <div class="grow">
+          <el-select
+            v-model="filter.select"
+            class="first-filter"
+            clearable
+            filterable
+            placeholder="Measure/dimension"
+            @change="
+              (value) =>
+                handleFilterChange(
+                  'first-option',
+                  value,
+                  index,
+                )
+            "
+          >
+            <el-option
+              v-for="item in computedFilters"
+              :key="item.value"
+              :value="item.value"
+              :label="item.label"
+              @mouseleave="onSelectMouseLeave"
+            />
+          </el-select>
         </div>
-        <div class="flex-1 grow h-0">
-          <div class="block leading-none mb-2" />
+
+        <div class="grow">
+          <el-select
+            v-model="filter.operator"
+            class="second-filter"
+            clearable
+            placeholder="Condition"
+            @change="
+              (value) =>
+                handleFilterChange(
+                  'second-option',
+                  value,
+                  index,
+                )
+            "
+          >
+            <el-option
+              v-for="actionItem in actionItems"
+              :key="actionItem.value"
+              :value="actionItem.value"
+              @mouseleave="onSelectMouseLeave"
+            >
+              {{ actionItem.text }}
+            </el-option>
+          </el-select>
         </div>
-        <div class="flex-1 grow h-0">
-          <div class="block leading-none mb-2" />
-        </div>
-        <div class="shrink h-0">
-          <span class="w-1 block">&nbsp;</span>
+
+        <div class="grow">
+          <el-select
+            v-if="filter.select === 'Activities.platform'"
+            v-model="filter.value"
+            class="third-filter"
+            placeholder="Value"
+            @change="
+              (value) =>
+                handleFilterChange(
+                  'third-option',
+                  value,
+                  index,
+                )
+            "
+          >
+            <el-option
+              v-for="integration of Object.keys(
+                activeIntegrationsList,
+              )"
+              :key="platformDetails(integration).name"
+              :label="platformDetails(integration).name"
+              :value="integration"
+              @mouseleave="onSelectMouseLeave"
+            />
+          </el-select>
+          <el-select
+            v-else-if="
+              filter.select === 'Activities.type'
+            "
+            v-model="filter.value"
+            class="third-filter"
+            placeholder="Value"
+            @change="
+              (value) =>
+                handleFilterChange(
+                  'third-option',
+                  value,
+                  index,
+                )
+            "
+          >
+            <el-option-group
+              v-for="group in computedActivityTypes"
+              :key="group.label.key"
+              :label="group.label.value"
+            >
+              <el-option
+                v-for="item in group.nestedOptions"
+                :key="item.value"
+                :label="item.label"
+                :value="item.value"
+              />
+            </el-option-group>
+          </el-select>
+          <el-select
+            v-else-if="filter.select === 'Members.score'"
+            v-model="filter.value"
+            class="third-filter"
+            placeholder="Value"
+            @change="
+              (value) =>
+                handleFilterChange(
+                  'third-option',
+                  value,
+                  index,
+                )
+            "
+          >
+            <el-option
+              v-for="engagementLevel of computedEngagementLevelTypes"
+              :key="engagementLevel.label"
+              :label="engagementLevel.label"
+              :value="engagementLevel.label"
+              @mouseleave="onSelectMouseLeave"
+            />
+          </el-select>
+          <el-input
+            v-else
+            v-model="filter.value"
+            class="third-filter"
+            type="text"
+            placeholder="Value"
+            @change="
+              (value) =>
+                handleFilterChange(
+                  'third-option',
+                  value,
+                  index,
+                )
+            "
+          />
         </div>
       </div>
-      <div
-        v-for="(filter, index) in localFilters"
-        :key="filter.id"
-        class="flex -mx-2 mb-2 items-center"
-      >
-        <div class="flex items-center mx-2">
-          <div class="grow">
-            <el-select
-              v-model="filter.select"
-              class="first-filter"
-              clearable
-              filterable
-              placeholder="Measure/dimension"
-              @change="
-                (value) =>
-                  handleFilterChange(
-                    'first-option',
-                    value,
-                    index,
-                  )
-              "
-            >
-              <el-option
-                v-for="item in computedFilters"
-                :key="item.value"
-                :value="item.value"
-                :label="item.label"
-                @mouseleave="onSelectMouseLeave"
-              />
-            </el-select>
-          </div>
-
-          <div class="grow">
-            <el-select
-              v-model="filter.operator"
-              class="second-filter"
-              clearable
-              placeholder="Condition"
-              @change="
-                (value) =>
-                  handleFilterChange(
-                    'second-option',
-                    value,
-                    index,
-                  )
-              "
-            >
-              <el-option
-                v-for="actionItem in actionItems"
-                :key="actionItem.value"
-                :value="actionItem.value"
-                @mouseleave="onSelectMouseLeave"
-              >
-                {{ actionItem.text }}
-              </el-option>
-            </el-select>
-          </div>
-
-          <div class="grow">
-            <el-select
-              v-if="filter.select === 'Activities.platform'"
-              v-model="filter.value"
-              class="third-filter"
-              placeholder="Value"
-              @change="
-                (value) =>
-                  handleFilterChange(
-                    'third-option',
-                    value,
-                    index,
-                  )
-              "
-            >
-              <el-option
-                v-for="integration of Object.keys(
-                  activeIntegrationsList,
-                )"
-                :key="platformDetails(integration).name"
-                :label="platformDetails(integration).name"
-                :value="integration"
-                @mouseleave="onSelectMouseLeave"
-              />
-            </el-select>
-            <el-select
-              v-else-if="
-                filter.select === 'Activities.type'
-              "
-              v-model="filter.value"
-              class="third-filter"
-              placeholder="Value"
-              @change="
-                (value) =>
-                  handleFilterChange(
-                    'third-option',
-                    value,
-                    index,
-                  )
-              "
-            >
-              <el-option-group
-                v-for="group in computedActivityTypes"
-                :key="group.label.key"
-                :label="group.label.value"
-              >
-                <el-option
-                  v-for="item in group.nestedOptions"
-                  :key="item.value"
-                  :label="item.label"
-                  :value="item.value"
-                />
-              </el-option-group>
-            </el-select>
-            <el-select
-              v-else-if="filter.select === 'Members.score'"
-              v-model="filter.value"
-              class="third-filter"
-              placeholder="Value"
-              @change="
-                (value) =>
-                  handleFilterChange(
-                    'third-option',
-                    value,
-                    index,
-                  )
-              "
-            >
-              <el-option
-                v-for="engagementLevel of computedEngagementLevelTypes"
-                :key="engagementLevel.label"
-                :label="engagementLevel.label"
-                :value="engagementLevel.label"
-                @mouseleave="onSelectMouseLeave"
-              />
-            </el-select>
-            <el-input
-              v-else
-              v-model="filter.value"
-              class="third-filter"
-              type="text"
-              placeholder="Value"
-              @change="
-                (value) =>
-                  handleFilterChange(
-                    'third-option',
-                    value,
-                    index,
-                  )
-              "
-            />
-          </div>
-        </div>
-        <div class="pr-2 shrink">
-          <el-tooltip
-            content="Delete Filter"
-            placement="top"
+      <div class="pr-2 shrink">
+        <el-tooltip
+          content="Delete Filter"
+          placement="top"
+        >
+          <button
+            class="btn btn--transparent btn--md"
+            type="button"
+            @click.prevent="removeFilter(index)"
           >
-            <button
-              class="btn btn--transparent btn--md"
-              type="button"
-              @click.prevent="removeFilter(index)"
-            >
-              <i class="ri-lg ri-delete-bin-line" />
-            </button>
-          </el-tooltip>
-        </div>
+            <i class="ri-lg ri-delete-bin-line" />
+          </button>
+        </el-tooltip>
       </div>
     </div>
   </div>
@@ -255,6 +295,10 @@ export default {
       type: Function,
       default: () => {},
     },
+    segmentId: {
+      type: String,
+      default: null,
+    },
   },
   data() {
     return {
@@ -263,22 +307,19 @@ export default {
           noDimension: [
             'Activities.platform',
             'Activities.type',
-            'Segments.name',
           ],
           Activities: [
             'Activities.platform',
             'Activities.type',
             'Activities.date',
-            'Segments.name',
           ],
           Members: [
             'Members.score',
             'Members.joinedAt',
             'Members.location',
             'Members.organization',
-            'Segments.name',
           ],
-          Tags: ['Tags.name', 'Segments.name'],
+          Tags: ['Tags.name'],
         },
         'Members.count': {
           noDimension: [
@@ -286,21 +327,18 @@ export default {
             'Members.joinedAt',
             'Members.location',
             'Members.organization',
-            'Segments.name',
           ],
           Activities: [
             'Activities.platform',
             'Activities.type',
             'Activities.date',
-            'Segments.name',
           ],
           Members: [
             'Members.score',
             'Members.location',
             'Members.organization',
-            'Segments.name',
           ],
-          Tags: ['Tags.name', 'Segments.name'],
+          Tags: ['Tags.name'],
         },
       },
       actionItems: [
@@ -338,7 +376,8 @@ export default {
         },
       ],
       localFilters: [],
-    }
+      segmentsFilter: null,
+    };
   },
   computed: {
     computedFilters() {
@@ -346,6 +385,7 @@ export default {
       const dimension = this.dimensions[0]
         ? this.dimensions[0].name.split('.')[0]
         : 'noDimension';
+
       return !measure
         ? []
         : this.availableDimensions.filter((d) => (this.measureDimensionFilters[
@@ -371,8 +411,8 @@ export default {
     }),
   },
   async created() {
-    await this.doFetchIntegrations();
-    this.localFilters = this.initFilters() || [];
+    await this.doFetchIntegrations([this.segmentId]);
+    this.localFilters = this.initLocalFilters() || [];
   },
   methods: {
     addFilter() {
@@ -390,7 +430,7 @@ export default {
     handleFilterChange(option, value, index) {
       this.syncFilters(option, value, index);
     },
-    initFilters() {
+    initLocalFilters() {
       if (!this.filters.length) {
         return [];
       }
@@ -410,13 +450,13 @@ export default {
           })
           // Remove this filter from options for now
           .filter(
-            (f) => f.select !== 'Members.isTeamMember',
+            (f) => f.select !== 'Members.isTeamMember' && f.select !== 'Members.isBot',
           )
       );
     },
     syncFilters(option, value, index) {
       const hasChangedFirstOption = option === 'first-option'
-        && this.filters?.[index]?.select !== value;
+        && this.localFilters?.[index]?.select !== value;
 
       const newFilters = this.localFilters
         .filter((filter) => [

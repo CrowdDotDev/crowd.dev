@@ -14,6 +14,7 @@
     <template #dropdown>
       <div class="p-2 w-100">
         <div
+          v-if="hasPermissionToEditReport"
           class="flex items-start justify-between flex-grow"
         >
           <div>
@@ -74,7 +75,8 @@ import {
 } from 'vue';
 import Message from '@/shared/message/message';
 import AuthCurrentTenant from '@/modules/auth/auth-current-tenant';
-import { mapActions } from '@/shared/vuex/vuex.helpers';
+import { mapActions, mapGetters } from '@/shared/vuex/vuex.helpers';
+import { ReportPermissions } from '../report-permissions';
 
 const emit = defineEmits(['update:modelValue']);
 const props = defineProps({
@@ -86,7 +88,13 @@ const props = defineProps({
     type: String,
     required: true,
   },
+  segmentId: {
+    type: String,
+    required: true,
+  },
 });
+
+const { currentTenant, currentUser } = mapGetters('auth');
 
 const open = ref(false);
 
@@ -103,7 +111,8 @@ const model = computed({
 
 const computedPublicLink = computed(() => {
   const tenantId = AuthCurrentTenant.get();
-  return `${window.location.origin}/tenant/${tenantId}/reports/${props.id}/public`;
+
+  return `${window.location.origin}/tenant/${tenantId}/reports/${props.segmentId}/${props.id}/public`;
 });
 
 const copyPublicLinkToClipboard = async () => {
@@ -120,9 +129,18 @@ const handlePublicChange = async (value) => {
     id: props.id,
     values: {
       public: value,
+      ...({ ...props.segmentId ? null : { excludeSegments: true } }),
     },
     successMessage: `Report successfully ${value ? 'published' : 'unpublished'}`,
     errorMessage: `There was an error ${value ? 'publishing' : 'unpublishing'} your report`,
+    segments: [props.segmentId],
   });
 };
+
+const hasPermissionToEditReport = computed(
+  () => new ReportPermissions(
+    currentTenant.value,
+    currentUser.value,
+  ).edit,
+);
 </script>

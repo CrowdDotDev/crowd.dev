@@ -1,5 +1,5 @@
 <template>
-  <app-cube-render :query="props.query(period, platform)">
+  <app-cube-render :query="props.query(period, platform, segments.childSegments)">
     <template #default="{ resultSet }">
       <app-widget-area
         class="chart"
@@ -34,7 +34,7 @@ const props = defineProps({
   },
 });
 
-const { period, platform } = mapGetters('dashboard');
+const { period, platform, segments } = mapGetters('dashboard');
 </script>
 
 <script>

@@ -29,7 +29,7 @@
     >
       <span>{{
         showFinalStep
-          ? 'Start exploring Eagle Eye'
+          ? 'Start exploring Community Lens'
           : 'Next step'
       }}</span><i
         v-if="!showFinalStep"

@@ -49,7 +49,10 @@ export class TenantService {
   static async update(id, data) {
     const response = await authAxios.put(
       `/tenant/${id}`,
-      data,
+      {
+        ...data,
+        excludeSegments: true,
+      },
     );
 
     return response.data;
@@ -58,6 +61,7 @@ export class TenantService {
   static async destroyAll(ids) {
     const params = {
       ids,
+      excludeSegments: true,
     };
 
     const response = await authAxios.delete('/tenant', {
@@ -68,7 +72,10 @@ export class TenantService {
   }
 
   static async create(data) {
-    const response = await authAxios.post('/tenant', data);
+    const response = await authAxios.post('/tenant', {
+      ...data,
+      excludeSegments: true,
+    });
 
     return response.data;
   }
@@ -81,6 +88,7 @@ export class TenantService {
       `/tenant/invitation/${token}/accept`,
       {
         forceAcceptOtherEmail,
+        excludeSegments: true,
       },
     );
 
@@ -94,6 +102,7 @@ export class TenantService {
       `/tenant/invitation/${token}/decline`,
       {
         params,
+        excludeSegments: true,
       },
     );
 
@@ -101,13 +110,17 @@ export class TenantService {
   }
 
   static async find(id) {
-    const response = await authAxios.get(`/tenant/${id}`);
+    const response = await authAxios.get(`/tenant/${id}`, {
+      params: {
+        excludeSegments: true,
+      },
+    });
     return response.data;
   }
 
   static async findByUrl(url) {
     const response = await authAxios.get('/tenant/url', {
-      params: { url },
+      params: { url, excludeSegments: true },
     });
     return response.data;
   }
@@ -118,6 +131,7 @@ export class TenantService {
       orderBy,
       limit,
       offset,
+      excludeSegments: true,
     };
 
     const response = await authAxios.get('/tenant', {
@@ -130,6 +144,9 @@ export class TenantService {
   static async populateSampleData(tenantId) {
     const response = await authAxios.post(
       `/tenant/${tenantId}/sampleData`,
+      {
+        excludeSegments: true,
+      },
     );
 
     return response.data;

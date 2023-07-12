@@ -14,6 +14,7 @@ import SentimentField from '@/shared/fields/sentiment-field';
 import ActivityTypeField from '@/modules/activity/activity-type-field';
 import StringArrayField from '@/shared/fields/string-array-field';
 import BooleanField from '@/shared/fields/boolean-field';
+import GenericField from '@/shared/fields/generic-field';
 import MemberIdentitiesField from './member-identities-field';
 import MemberEngagementLevelField from './member-engagement-level-field';
 
@@ -21,9 +22,11 @@ function label(name) {
   return i18n(`entities.member.fields.${name}`);
 }
 
+i18nInit();
+
 const fields = {
   id: new IdField('id', label('id')),
-  jobTitle: new StringField('jobTitle', label('jobTitle')),
+  jobTitle: new StringField('jobTitle', 'Job title'),
   username: new JsonField('username', label('username'), {
     nonEmpty: true,
     nonEmptyValues: true,
@@ -40,7 +43,7 @@ const fields = {
   ),
   displayName: new StringField(
     'displayName',
-    label('fullName'),
+    'Full name',
   ),
   identities: new MemberIdentitiesField(
     'identities',
@@ -66,7 +69,7 @@ const fields = {
     filterable: true,
   }),
   info: new JsonField('info', label('info')),
-  tags: TagField.relationToMany('tags', label('tags'), {
+  tags: TagField.relationToMany('tags', 'Tags', {
     filterable: true,
   }),
   emails: new StringArrayField('emails', 'Emails'),
@@ -75,10 +78,10 @@ const fields = {
     label('noMerge'),
     {},
   ),
-  bio: new StringField('bio', label('bio')),
+  bio: new StringField('bio', 'Bio'),
   location: new StringField(
     'location',
-    label('location'),
+    'Location',
     {},
   ),
   organizations: OrganizationField.relationToMany(
@@ -141,11 +144,11 @@ const fields = {
   lastEnriched: new BooleanField('lastEnriched', 'Enriched member', {
     filterable: true,
   }),
+  affiliations: new GenericField('affiliations', 'Affiliations'),
 };
 
 export class MemberModel extends GenericModel {
   static get fields() {
-    i18nInit();
     return fields;
   }
 }

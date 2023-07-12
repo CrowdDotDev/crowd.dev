@@ -14,6 +14,7 @@ import crunchbase from './crunchbase';
 import make from './make';
 import git from './git';
 import facebook from './facebook';
+import lfx from './custom/lfx';
 
 class IntegrationsConfig {
   get integrations() {
@@ -38,7 +39,10 @@ class IntegrationsConfig {
   }
 
   getConfig(platform) {
-    return this.integrations[platform];
+    if (this.integrations[platform]) {
+      return this.integrations[platform];
+    }
+    return this.customIntegrations[platform];
   }
 
   get configs() {
@@ -83,6 +87,12 @@ class IntegrationsConfig {
     return this.enabledConfigs
       .map((i) => this.mapper(i, store))
       .filter((i) => !i.hideAsIntegration);
+  }
+
+  get customIntegrations() {
+    return {
+      lfx,
+    };
   }
 }
 

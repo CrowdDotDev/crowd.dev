@@ -276,10 +276,10 @@ export default {
       );
 
       if (notIncluded.length) {
-        const notIncludedResponse = await this.fetchFn(
-          notIncluded,
-          this.limit,
-        );
+        const notIncludedResponse = await this.fetchFn({
+          query: notIncluded,
+          limit: this.limit,
+        });
 
         this.localOptions.unshift(...notIncludedResponse);
       }
@@ -289,10 +289,10 @@ export default {
       this.initialLoading = true;
 
       try {
-        const response = await this.fetchFn(
-          this.currentQuery,
-          this.limit,
-        );
+        const response = await this.fetchFn({
+          query: this.currentQuery,
+          limit: this.limit,
+        });
 
         this.localOptions = response;
 
@@ -309,10 +309,10 @@ export default {
       this.loading = true;
 
       try {
-        const response = await this.fetchFn(
-          value,
-          this.limit,
-        );
+        const response = await this.fetchFn({
+          query: value,
+          limit: this.limit,
+        });
 
         this.localOptions = response;
 

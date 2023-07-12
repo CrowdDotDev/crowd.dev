@@ -79,6 +79,10 @@ const props = defineProps({
     type: Object,
     default: () => {},
   },
+  segments: {
+    type: Array,
+    default: () => [],
+  },
 });
 
 const model = computed({

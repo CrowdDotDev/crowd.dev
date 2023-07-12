@@ -12,9 +12,15 @@
         class="mt-10"
         :member="member"
       />
+      <app-lf-member-aside-sub-projects
+        class="mt-10"
+        :member="member"
+      />
+    </div>
+
+    <div class="member-view-aside panel">
       <app-member-aside-custom-attributes
         :member="member"
-        class="mt-10"
       />
       <app-member-aside-enriched
         :member="member"
@@ -26,6 +32,7 @@
 
 <script setup>
 import AppMemberEnrichment from '@/modules/member/components/member-enrichment.vue';
+import AppLfMemberAsideSubProjects from '@/modules/lf/member/components/view/lf-member-aside-sub-projects.vue';
 import AppMemberAsideCustomAttributes from './_aside/_aside-custom-attributes.vue';
 import AppMemberAsideIdentities from './_aside/_aside-identities.vue';
 import AppMemberAsideEnriched from './_aside/_aside-enriched.vue';

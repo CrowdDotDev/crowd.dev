@@ -165,6 +165,7 @@
                   :dimensions="dimensions"
                   :filters="filters"
                   :set-filters="setFilters"
+                  :segment-id="widget.segmentId"
                   :available-dimensions="
                     translatedOptions(availableDimensions)
                   "
@@ -317,6 +318,10 @@ export default {
         ],
       };
 
+    if (initialQuery.filters?.length) {
+      initialQuery.filters = initialQuery.filters.filter((filter) => !!filter.member);
+    }
+
     const initialCharType = this.widget.settings?.chartType || 'line';
 
     return {
@@ -375,6 +380,7 @@ export default {
       this.visible = false;
     },
     buildWidgetPreview(settings) {
+      console.log({ settings });
       return {
         title: this.model.title,
         settings,

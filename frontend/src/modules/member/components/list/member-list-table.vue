@@ -10,26 +10,24 @@
       <app-empty-state-cta
         v-if="!hasIntegrations && !hasMembers"
         icon="ri-contacts-line"
-        title="No community members yet"
+        title="No community contributors yet"
         description="Please connect with one of our available data sources in order to start pulling data from a certain platform"
-        cta-btn="Connect integrations"
-        secondary-btn="Add member"
-        @cta-click="onCtaClick"
+        secondary-btn="Add contributor"
         @secondary-click="onSecondaryBtnClick"
       />
 
       <app-empty-state-cta
         v-else-if="hasIntegrations && !hasMembers"
         icon="ri-contacts-line"
-        title="No community members yet"
-        description="Please consider that the first members may take a couple of minutes to be displayed"
+        title="No community contributors yet"
+        description="Please consider that the first contributors may take a couple of minutes to be displayed"
         :has-warning-icon="true"
       />
 
       <app-empty-state-cta
         v-else-if="hasMembers && !totalMembers"
         icon="ri-contacts-line"
-        title="No members found"
+        title="No contributors found"
         description="We couldn't find any results that match your search criteria, please try a different query"
       />
 
@@ -97,7 +95,7 @@
               <el-table-column type="selection" width="75" fixed />
 
               <el-table-column
-                label="Member"
+                label="Contributor"
                 prop="displayName"
                 width="250"
                 sortable
@@ -260,8 +258,8 @@
                 <template #header>
                   <el-tooltip placement="top">
                     <template #content>
-                      This refers to the total # of open source contributions a member did on GitHub.<br />
-                      To receive this attribute you have to enrich your members.
+                      This refers to the total # of open source contributions a contributor did on GitHub.<br />
+                      To receive this attribute you have to enrich your contributors.
                     </template>
                     # of open source contributions
                   </el-tooltip>
@@ -354,7 +352,10 @@
                     }"
                     class="block"
                   >
-                    <app-tag-list :member="scope.row" />
+                    <app-tag-list
+                      :member="scope.row"
+                      @tags-updated="fetchMembers({ reload: true })"
+                    />
                   </router-link>
                 </template>
               </el-table-column>
@@ -395,7 +396,6 @@
 
 <script setup>
 import { useStore } from 'vuex';
-import { useRouter } from 'vue-router';
 import {
   computed, onMounted, onUnmounted, ref, defineProps, watch,
 } from 'vue';
@@ -408,6 +408,8 @@ import { formatNumberToCompact, formatNumber } from '@/utils/number';
 import { useMemberStore } from '@/modules/member/store/pinia';
 import { storeToRefs } from 'pinia';
 import { MemberService } from '@/modules/member/member-service';
+import { useLfSegmentsStore } from '@/modules/lf/segments/store';
+import { getSegmentsFromProjectGroup } from '@/utils/segments';
 import AppMemberBadge from '../member-badge.vue';
 import AppMemberDropdown from '../member-dropdown.vue';
 import AppMemberIdentities from '../member-identities.vue';
@@ -417,7 +419,6 @@ import AppMemberLastActivity from '../member-last-activity.vue';
 import AppMemberSentiment from '../member-sentiment.vue';
 
 const store = useStore();
-const router = useRouter();
 const table = ref(null);
 const scrollbarRef = ref();
 const tableBodyRef = ref();
@@ -426,6 +427,7 @@ const isScrollbarVisible = ref(false);
 const isTableHovered = ref(false);
 const isCursorDown = ref(false);
 
+const emit = defineEmits(['onAddMember']);
 const props = defineProps({
   hasIntegrations: {
     type: Boolean,
@@ -445,6 +447,10 @@ const memberStore = useMemberStore();
 const {
   members, totalMembers, filters, selectedMembers, savedFilterBody,
 } = storeToRefs(memberStore);
+const { fetchMembers } = memberStore;
+
+const lsSegmentsStore = useLfSegmentsStore();
+const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);
 
 const defaultSort = computed(() => ({
   field: 'lastActive',
@@ -534,16 +540,8 @@ function rowClass({ row }) {
   return isSelected ? 'is-selected' : '';
 }
 
-function onCtaClick() {
-  router.push({
-    path: '/integrations',
-  });
-}
-
 function onSecondaryBtnClick() {
-  router.push({
-    name: 'memberCreate',
-  });
+  emit('onAddMember');
 }
 
 // On custom scrollbar scroll, set the table scroll with the same value
@@ -608,18 +606,16 @@ watch(table, (newValue) => {
   }
 });
 
-const doExport = () => MemberService.export(
-  savedFilterBody.value.filter,
-  savedFilterBody.value.orderBy,
-  0,
-  null,
-  false,
-);
+const doExport = () => MemberService.export({
+  filter: savedFilterBody.value.filter,
+  orderBy: savedFilterBody.value.orderBy,
+  limit: 0,
+  offset: null,
+  buildFilter: false,
+});
 
 onMounted(async () => {
-  if (store.state.integration.count === 0) {
-    await store.dispatch('integration/doFetch');
-  }
+  await store.dispatch('integration/doFetch', getSegmentsFromProjectGroup(selectedProjectGroup.value));
 });
 
 // Remove listeners on unmount

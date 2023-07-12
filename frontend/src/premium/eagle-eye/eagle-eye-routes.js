@@ -12,12 +12,13 @@ export default [
     component: Layout,
     meta: {
       auth: true,
-      title: 'Eagle Eye',
+      title: 'Community Lens',
+      hideBanner: true,
     },
     children: [
       {
         name: 'eagleEye',
-        path: '/eagle-eye',
+        path: '/community-lens',
         component: EagleEyePage,
         exact: true,
         meta: {

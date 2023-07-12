@@ -19,6 +19,7 @@
     "tailwind:view": "tailwind-config-viewer -o"
   },
   "dependencies": {
+    "@auth0/auth0-spa-js": "^2.0.8",
     "@cubejs-client/core": "^0.31.63",
     "@cubejs-client/vue3": "^0.31.63",
     "@formbricks/js": "^0.1.12",
@@ -34,6 +35,8 @@
     "@vuelidate/core": "^2.0.1",
     "@vuelidate/validators": "^2.0.1",
     "@vueuse/core": "^9.13.0",
+    "auth0-js": "^9.21.0",
+    "auth0-spa-js": "^1.6.5",
     "axios": "^0.22.0",
     "chart.js": "^3.9.1",
     "chartjs-adapter-moment": "^1.0.1",
@@ -73,6 +76,7 @@
   },
   "devDependencies": {
     "@tailwindcss/line-clamp": "^0.4.2",
+    "@types/auth0-js": "^9.21.0",
     "@typescript-eslint/eslint-plugin": "^5.4.0",
     "@typescript-eslint/parser": "^5.4.0",
     "@vue/compiler-sfc": "^3.2.29",

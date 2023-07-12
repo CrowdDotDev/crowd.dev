@@ -55,7 +55,7 @@
 </template>
 
 <script setup>
-import { computed, defineEmits, defineProps } from 'vue';
+import { computed } from 'vue';
 import { required } from '@vuelidate/validators';
 import useVuelidate from '@vuelidate/core';
 import AppFormItem from '@/shared/form/form-item.vue';

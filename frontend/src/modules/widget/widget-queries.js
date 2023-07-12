@@ -1,4 +1,7 @@
 import moment from 'moment';
+import { getSegmentsFromProjectGroup } from '@/utils/segments';
+import { storeToRefs } from 'pinia';
+import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 
 // Add platform and team members filters to cube query filters array
 const getCubeFilters = ({
@@ -6,6 +9,7 @@ const getCubeFilters = ({
   hasTeamMembers,
   hasTeamActivities,
   isContribution,
+  segments,
 }) => {
   const filters = [
     {
@@ -37,6 +41,24 @@ const getCubeFilters = ({
       member: 'Activities.iscontribution',
       operator: 'equals',
       values: ['1'],
+    });
+  }
+
+  if (segments.length) {
+    filters.push({
+      member: 'Segments.id',
+      operator: 'equals',
+      values: segments,
+    });
+  } else {
+    const lsSegmentsStore = useLfSegmentsStore();
+    const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);
+    const projectGroupSegments = getSegmentsFromProjectGroup(selectedProjectGroup.value);
+
+    filters.push({
+      member: 'Segments.id',
+      operator: 'equals',
+      values: projectGroupSegments,
     });
   }
 
@@ -95,6 +117,7 @@ export const TOTAL_ACTIVE_MEMBERS_QUERY = ({
   granularity,
   selectedPlatforms,
   selectedHasTeamMembers,
+  selectedSegments,
 }) => ({
   measures: ['Members.count'],
   timeDimensions: [
@@ -113,6 +136,7 @@ export const TOTAL_ACTIVE_MEMBERS_QUERY = ({
   filters: getCubeFilters({
     platforms: selectedPlatforms,
     hasTeamMembers: selectedHasTeamMembers,
+    segments: selectedSegments,
   }),
 });
 
@@ -121,6 +145,7 @@ export const TOTAL_ACTIVE_RETURNING_MEMBERS_QUERY = ({
   granularity,
   selectedPlatforms,
   selectedHasTeamMembers,
+  selectedSegments,
 }) => ({
   measures: ['Members.count'],
   timeDimensions: [
@@ -151,6 +176,7 @@ export const TOTAL_ACTIVE_RETURNING_MEMBERS_QUERY = ({
     ...getCubeFilters({
       platforms: selectedPlatforms,
       hasTeamMembers: selectedHasTeamMembers,
+      segments: selectedSegments,
     }),
   ],
 });
@@ -160,6 +186,7 @@ export const TOTAL_MEMBERS_QUERY = ({
   granularity,
   selectedPlatforms,
   selectedHasTeamMembers,
+  selectedSegments,
 }) => {
   const dateRange = (periodValue) => {
     const end = moment().utc().format('YYYY-MM-DD');
@@ -185,6 +212,7 @@ export const TOTAL_MEMBERS_QUERY = ({
     filters: getCubeFilters({
       platforms: selectedPlatforms,
       hasTeamMembers: selectedHasTeamMembers,
+      segments: selectedSegments,
     }),
   };
 };
@@ -241,6 +269,7 @@ export const TOTAL_MONTHLY_ACTIVE_CONTRIBUTORS = ({
   period,
   granularity,
   selectedHasTeamMembers,
+  selectedSegments,
 }) => ({
   measures: ['Members.count'],
   timeDimensions: [
@@ -264,6 +293,7 @@ export const TOTAL_MONTHLY_ACTIVE_CONTRIBUTORS = ({
     platforms: [],
     hasTeamMembers: selectedHasTeamMembers,
     isContribution: true,
+    segments: selectedSegments,
   }),
 });
 
@@ -272,6 +302,7 @@ export const ACTIVITIES_QUERY = ({
   granularity,
   selectedPlatforms,
   selectedHasTeamActivities,
+  selectedSegments,
 }) => ({
   measures: ['Activities.count'],
   timeDimensions: [
@@ -290,6 +321,7 @@ export const ACTIVITIES_QUERY = ({
   filters: getCubeFilters({
     platforms: selectedPlatforms,
     hasTeamActivities: selectedHasTeamActivities,
+    segments: selectedSegments,
   }),
 });
 
@@ -297,6 +329,7 @@ export const LEADERBOARD_ACTIVITIES_TYPES_QUERY = ({
   period,
   selectedPlatforms,
   selectedHasTeamActivities,
+  selectedSegments,
 }) => ({
   measures: ['Activities.count'],
   order: {
@@ -319,6 +352,7 @@ export const LEADERBOARD_ACTIVITIES_TYPES_QUERY = ({
     getCubeFilters({
       platforms: selectedPlatforms,
       hasTeamActivities: selectedHasTeamActivities,
+      segments: selectedSegments,
     }),
 
 });
@@ -327,6 +361,7 @@ export const LEADERBOARD_ACTIVITIES_COUNT_QUERY = ({
   period,
   selectedPlatforms,
   selectedHasTeamActivities,
+  selectedSegments,
 }) => ({
   measures: ['Activities.count'],
   timeDimensions: [
@@ -345,6 +380,7 @@ export const LEADERBOARD_ACTIVITIES_COUNT_QUERY = ({
     getCubeFilters({
       platforms: selectedPlatforms,
       hasTeamActivities: selectedHasTeamActivities,
+      segments: selectedSegments,
     }),
 
 });
@@ -354,6 +390,7 @@ export const TOTAL_ACTIVITIES_QUERY = ({
   granularity,
   selectedPlatforms,
   selectedHasTeamActivities,
+  selectedSegments,
 }) => {
   const dateRange = (periodValue) => {
     const end = moment().utc().format('YYYY-MM-DD');
@@ -379,6 +416,7 @@ export const TOTAL_ACTIVITIES_QUERY = ({
     filters: getCubeFilters({
       platforms: selectedPlatforms,
       hasTeamMembers: selectedHasTeamActivities,
+      segments: selectedSegments,
     }),
   };
 };

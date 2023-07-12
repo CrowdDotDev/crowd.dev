@@ -33,6 +33,10 @@ const fields = {
     max: 175,
     required: true,
   }),
+  username: new StringField('username', label('username'), {
+    max: 50,
+    required: true,
+  }),
   password: new StringField('password', label('password'), {
     required: true,
   }),

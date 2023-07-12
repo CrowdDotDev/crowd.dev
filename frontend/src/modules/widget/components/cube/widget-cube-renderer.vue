@@ -56,6 +56,10 @@ export default {
       type: Object,
       default: () => {},
     },
+    subprojectId: {
+      type: String,
+      required: true,
+    },
   },
   emits: ['edit', 'duplicate', 'delete'],
   data() {
@@ -70,7 +74,8 @@ export default {
       cubejsApi: 'widget/cubejsApi',
     }),
     query() {
-      // Exclude team members in all queries
+      // Exclude team members and bots in all queries
+      // Include project group segments
       const widgetQuery = this.widget.settings.query;
       const isTeamMemberFilter = {
         member: 'Members.isTeamMember',
@@ -88,6 +93,10 @@ export default {
       } else {
         widgetQuery.filters.push(isTeamMemberFilter);
         widgetQuery.filters.push(isBot);
+      }
+
+      if (widgetQuery.filters?.length) {
+        widgetQuery.filters = widgetQuery.filters.filter((filter) => !!filter.member);
       }
 
       return widgetQuery;

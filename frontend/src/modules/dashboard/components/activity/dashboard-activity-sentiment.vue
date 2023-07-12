@@ -1,6 +1,6 @@
 <template>
   <app-cube-render
-    :query="sentimentQuery(period, platform)"
+    :query="sentimentQuery(period, platform, segments.childSegments)"
   >
     <template #loading>
       <div class="pb-3">
@@ -115,7 +115,7 @@ export default {
     };
   },
   computed: {
-    ...mapGetters('dashboard', ['period', 'platform']),
+    ...mapGetters('dashboard', ['period', 'platform', 'segments']),
   },
   methods: {
     calculatePercentage(count) {

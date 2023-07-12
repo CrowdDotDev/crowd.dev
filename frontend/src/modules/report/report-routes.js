@@ -16,7 +16,13 @@ export default [
     name: '',
     path: '',
     component: Layout,
-    meta: { auth: true, title: 'Reports' },
+    meta: {
+      auth: true,
+      title: 'Reports',
+      segments: {
+        requireSelectedProjectGroup: true,
+      },
+    },
     children: [
       {
         name: 'report',
@@ -39,7 +45,7 @@ export default [
       },
       {
         name: 'reportEdit',
-        path: '/reports/:id/edit',
+        path: '/reports/:segmentId/:id/edit',
         component: ReportFormPage,
         meta: {
           auth: true,
@@ -49,7 +55,7 @@ export default [
       },
       {
         name: 'reportView',
-        path: '/reports/:id',
+        path: '/reports/:segmentId/:id',
         component: ReportViewPage,
         meta: {
           auth: true,
@@ -61,7 +67,7 @@ export default [
   },
   {
     name: 'reportPublicView',
-    path: '/tenant/:tenantId/reports/:id/public',
+    path: '/tenant/:tenantId/reports/:segmentId/:id/public',
     component: ReportViewPagePublic,
     props: true,
   },

@@ -201,10 +201,10 @@ export default {
     async fetchAllResults() {
       this.loading = true;
       try {
-        this.localOptions = await this.fetchFn(
-          this.currentQuery,
-          AUTOCOMPLETE_SERVER_FETCH_SIZE,
-        );
+        this.localOptions = await this.fetchFn({
+          query: this.currentQuery,
+          limit: AUTOCOMPLETE_SERVER_FETCH_SIZE,
+        });
         this.loading = false;
       } catch (error) {
         console.error(error);
@@ -221,10 +221,11 @@ export default {
       this.loading = true;
 
       try {
-        this.localOptions = await this.fetchFn(
-          value,
-          AUTOCOMPLETE_SERVER_FETCH_SIZE,
-        );
+        this.localOptions = await this.fetchFn({
+          query: value,
+          limit: AUTOCOMPLETE_SERVER_FETCH_SIZE,
+        });
+
         this.loading = false;
       } catch (error) {
         console.error(error);

@@ -226,6 +226,7 @@ const query = computed(() => TOTAL_MONTHLY_ACTIVE_CONTRIBUTORS({
   period: period.value,
   granularity: granularity.value,
   selectedHasTeamMembers: props.filters.teamMembers,
+  selectedSegments: props.filters.segments.childSegments,
 }));
 
 const onUpdatePeriod = (updatedPeriod) => {
@@ -259,6 +260,7 @@ const getActiveMembers = async ({ pagination }) => {
     limit: !pagination.count
       ? pagination.pageSize
       : pagination.count,
+    segments: props.filters.segments.segments,
   });
 };
 

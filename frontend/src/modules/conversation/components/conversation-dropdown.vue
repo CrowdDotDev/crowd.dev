@@ -1,5 +1,6 @@
 <template>
   <el-dropdown
+    v-if="conversation.published || hasPermissionsToEditConversation || hasPermissionsToDeleteConversation"
     trigger="click"
     placement="bottom-end"
     @command="handleCommand"
@@ -24,7 +25,7 @@
       </el-dropdown-item>
       <template v-if="publishEnabled">
         <el-dropdown-item
-          v-if="!conversation.published"
+          v-if="!conversation.published && hasPermissionsToEditConversation"
           :command="{
             action: 'conversationPublish',
             conversation: conversation,
@@ -35,7 +36,7 @@
           conversation
         </el-dropdown-item>
         <el-dropdown-item
-          v-else
+          v-else-if="hasPermissionsToEditConversation"
           :command="{
             action: 'conversationUnpublish',
             conversation: conversation,
@@ -48,6 +49,7 @@
       </template>
 
       <el-dropdown-item
+        v-if="hasPermissionsToDeleteConversation"
         :command="{
           action: 'conversationDelete',
           conversation: conversation,
@@ -105,6 +107,18 @@ export default {
       communityHelpCenterConfigured:
         'communityHelpCenter/isConfigured',
     }),
+    hasPermissionsToEditConversation() {
+      return new ConversationPermissions(
+        this.currentTenant,
+        this.currentUser,
+      ).edit;
+    },
+    hasPermissionsToDeleteConversation() {
+      return new ConversationPermissions(
+        this.currentTenant,
+        this.currentUser,
+      ).destroy;
+    },
     isEditLockedForSampleData() {
       return new ConversationPermissions(
         this.currentTenant,

@@ -70,9 +70,13 @@ const props = defineProps({
     required: false,
     default: () => null,
   },
+  subprojectId: {
+    type: String,
+    required: true,
+  },
 });
 
-const emit = defineEmits(['update:modelValue']);
+const emit = defineEmits(['update:modelValue', 'onUpdate']);
 
 const { createActivityType, updateActivityType } = useActivityTypeStore();
 
@@ -108,14 +112,18 @@ const submit = () => {
   if ($v.value.$invalid) {
     return;
   }
+
+  const segments = [props.subprojectId];
+
   if (!isEdit.value) {
     // Create
     createActivityType({
       type: form.name,
-    })
+    }, segments)
       .then(() => {
         reset();
         emit('update:modelValue');
+        emit('onUpdate');
         Message.success(
           'Activity type successfully created!',
         );
@@ -129,11 +137,12 @@ const submit = () => {
     // Update
     updateActivityType(props.type.key, {
       type: form.name,
-    })
+    }, segments)
       .then(() => {
         reset();
         fetchActivities({ reload: true });
         emit('update:modelValue');
+        emit('onUpdate');
         Message.success(
           'Activity type successfully updated!',
         );

@@ -69,9 +69,9 @@ const en = {
         integrations: 'Integrations',
         info: 'Custom Attributes',
         activities: 'Activities',
-        members: 'Members',
+        members: 'Contributors',
         latestMetrics: 'LatestMetrics',
-        membersToMerge: 'Members To Merge',
+        membersToMerge: 'Contributors To Merge',
         benchmarkRepos: 'BenchmarkRepos',
         createdAt: 'Created at',
         updatedAt: 'Updated at',
@@ -142,33 +142,33 @@ const en = {
     },
     member: {
       name: 'member',
-      label: 'Members',
-      menu: 'Members',
+      label: 'Contributors',
+      menu: 'Contributors',
       exporterFileName: 'member_export',
       list: {
-        menu: 'Members',
-        title: 'Members',
+        menu: 'Contributors',
+        title: 'Contributors',
       },
       create: {
-        success: 'Member successfully saved',
-        error: 'There was an error creating the member',
+        success: 'Contributor successfully saved',
+        error: 'There was an error creating the contributor',
       },
       update: {
-        success: 'Member successfully saved',
-        error: 'There was an error updating the member',
+        success: 'Contributor successfully saved',
+        error: 'There was an error updating the contributor',
       },
       destroy: {
-        success: 'Member successfully deleted',
+        success: 'Contributor successfully deleted',
       },
       destroyAll: {
-        success: 'Member(s) successfully deleted',
+        success: 'Contributor(s) successfully deleted',
       },
       edit: {
-        title: 'Edit Member',
+        title: 'Edit Contributor',
       },
       merge: {
-        title: 'Merge Member',
-        success: 'Members merged successfully',
+        title: 'Merge Contributor',
+        success: 'Contributors merged successfully',
       },
       attributes: {
         error: 'Custom Attributes could not be created',
@@ -179,7 +179,7 @@ const en = {
         fullName: 'Full Name',
         jobTitle: 'Job title',
         company: 'Company',
-        member: 'Member',
+        member: 'Contributor',
         score: 'Score',
         estimatedReach: 'Estimated Reach',
         numberActivities: '# of Activities',
@@ -205,7 +205,7 @@ const en = {
         noMerge: 'NoMerge',
         crowdInfo: 'CrowdInfo',
         reach: 'Reach',
-        joinedAt: 'Member since',
+        joinedAt: 'Contributor since',
         createdAt: 'Created at',
         updatedAt: 'Updated at',
         createdAtRange: 'Created at',
@@ -216,10 +216,10 @@ const en = {
       placeholders: {},
       hints: {},
       new: {
-        title: 'New Member',
+        title: 'New Contributor',
       },
       view: {
-        title: 'View Member',
+        title: 'View Contributor',
       },
     },
 
@@ -300,7 +300,7 @@ const en = {
         platform: 'Platform',
         project: 'Project',
         info: 'Custom Attributes',
-        member: 'Member',
+        member: 'Contributor',
         isContribution: 'Key Action',
         crowdInfo: 'CrowdInfo',
         createdAt: 'Created at',
@@ -384,7 +384,7 @@ const en = {
       triggers: {
         new_activity:
           'New activity happened in your community',
-        new_member: 'New member joined your community',
+        new_member: 'New contributor joined your community',
       },
     },
 
@@ -433,35 +433,40 @@ const en = {
     cubejs: {
       tooltip: {
         Activities: 'Activity',
-        Members: 'Member',
+        Members: 'Contributor',
         Conversations: 'Conversation',
         Organizations: 'Organization',
       },
       cubes: {
         Activities: 'Activities',
-        Members: 'Members',
+        Members: 'Contributors',
         Conversations: 'Conversations',
         Organizations: 'Organizations',
       },
       Activities: {
         count: '[Activities] Count',
+        cumulativeCount: '[Activities] Cumulative Count',
         type: '[Activities] Type',
         platform: '[Activities] Platform',
         date: '[Activities] Date',
         channel: '[Activities] Channel',
+        createdat: '[Activities] Created At',
       },
       Members: {
-        count: '[Members] Count',
-        cumulativeCount: '[Members] Cumulative Count',
-        score: '[Members] Engagement Level',
-        location: '[Members] Location',
-        organization: '[Members] Organization',
-        joinedAt: '[Members] Joined Date',
+        count: '[Contributors] Count',
+        cumulativeCount: '[Contributors] Cumulative Count',
+        score: '[Contributors] Engagement Level',
+        location: '[Contributors] Location',
+        organization: '[Contributors] Organization',
+        joinedAt: '[Contributors] Joined Date',
         averageTimeToFirstInteraction:
-          '[Members] Avg. Time To First Interaction',
+          '[Contributors] Avg. Time To First Interaction',
+        earliestJoinedAt: '[Contributors] Earliest Joined At',
+        createdat: '[Contributors] Created At',
       },
       MemberTags: {
-        count: '[Members] # of Tags',
+        count: '[Contributors] # of Tags',
+        createdat: '[Contributors] # of Tags Created At',
       },
       Conversations: {
         count: '[Conversations] Count',
@@ -474,6 +479,7 @@ const en = {
       Tags: {
         name: '[Tags] Name',
         count: '[Tags] Count',
+        createdat: '[Tags] Created At',
       },
       Identities: {
         count: '[Identities] Count',
@@ -485,6 +491,8 @@ const en = {
       Segments: {
         count: '[Segments] Count',
         name: '[Segments] Name',
+        id: '[Segments] ID',
+        createdat: '[Segments] Created At',
       },
       Sentiment: {
         averageSentiment: '[Sentiment] Average',
@@ -557,7 +565,7 @@ const en = {
     readonly: {
       label: 'Read-only',
       description:
-        'Read access to Community Members, Activities, Conversations, and Reports',
+        'Read access to Community Contributors, Activities, Conversations, and Reports',
     },
   },
 
@@ -565,6 +573,7 @@ const en = {
     fields: {
       id: 'Id',
       avatars: 'Avatar',
+      username: 'Username',
       email: 'E-mail',
       emails: 'Email(s)',
       fullName: 'Name',

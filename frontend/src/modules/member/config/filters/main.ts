@@ -11,6 +11,7 @@ import identities from './identities/config';
 import joinedDate from './joinedDate/config';
 import lastActivityDate from './lastActivityDate/config';
 import reach from './reach/config';
+import projects from './projects/config';
 import tags from './tags/config';
 
 export const memberFilters: Record<string, FilterConfig> = {
@@ -25,11 +26,12 @@ export const memberFilters: Record<string, FilterConfig> = {
   joinedDate,
   lastActivityDate,
   reach,
+  projects,
   tags,
 };
 
 export const memberSearchFilter: SearchFilterConfig = {
-  placeholder: 'Search members',
+  placeholder: 'Search contributors',
   apiFilterRenderer(value: string): any[] {
     return [
       {

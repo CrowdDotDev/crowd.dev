@@ -12,7 +12,7 @@
     width: max-content;
     max-width: 20rem;
     display: block;
-    @apply bg-gray-900 text-white rounded-md text-xs leading-5 py-0.5 px-1.5 opacity-0 transition invisible;
+    @apply bg-gray-900 text-white rounded-md text-2xs font-medium leading-5 py-0.5 px-1.5 opacity-0 transition invisible;
   }
 
   &:hover:before {

@@ -737,6 +737,72 @@ class Permissions {
         ],
         allowedStorage: [],
       },
+      projectGroupCreate: {
+        id: 'projectGroupCreate',
+        allowedRoles: [roles.admin],
+        allowedPlans: [
+          plans.essential,
+          plans.growth,
+          plans.enterprise,
+        ],
+        allowedStorage: [],
+        allowedSampleTenant: true,
+      },
+      projectGroupEdit: {
+        id: 'projectGroupEdit',
+        allowedRoles: [roles.admin],
+        allowedPlans: [
+          plans.essential,
+          plans.growth,
+          plans.enterprise,
+        ],
+        allowedStorage: [],
+        allowedSampleTenant: true,
+      },
+      projectCreate: {
+        id: 'projectCreate',
+        allowedRoles: [roles.admin],
+        allowedPlans: [
+          plans.essential,
+          plans.growth,
+          plans.enterprise,
+        ],
+        allowedStorage: [],
+        allowedSampleTenant: true,
+      },
+      projectEdit: {
+        id: 'projectEdit',
+        allowedRoles: [roles.admin],
+        allowedPlans: [
+          plans.essential,
+          plans.growth,
+          plans.enterprise,
+        ],
+        allowedStorage: [],
+        allowedSampleTenant: true,
+      },
+      subProjectCreate: {
+        id: 'subProjectCreate',
+        allowedRoles: [roles.admin],
+        allowedPlans: [
+          plans.essential,
+          plans.growth,
+          plans.enterprise,
+        ],
+        allowedStorage: [],
+        allowedSampleTenant: true,
+      },
+      subProjectEdit: {
+        id: 'subProjectEdit',
+        allowedRoles: [roles.admin],
+        allowedPlans: [
+          plans.essential,
+          plans.growth,
+          plans.enterprise,
+        ],
+        allowedStorage: [],
+        allowedSampleTenant: true,
+      },
     };
   }
 

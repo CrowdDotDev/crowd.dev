@@ -5,7 +5,7 @@
         Identities <span class="text-brand-500">*</span>
       </h6>
       <p class="text-gray-500 text-2xs leading-normal mt-1">
-        Connect with members' external data sources or
+        Connect with contributors' external data sources or
         profiles
       </p>
     </div>

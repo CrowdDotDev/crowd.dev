@@ -28,31 +28,13 @@
           <h1 class="text-xl font-semibold">
             {{ currentTemplate.name }}
           </h1>
-          <div class="flex items-center gap-9">
-            <div
-              v-if="report.public"
-              class="flex items-center gap-2"
-            >
-              <i
-                class="ri-global-line text-base text-green-600"
-              />
-              <div
-                class="text-sm text-green-600 font-medium"
-              >
-                Public
-              </div>
-            </div>
-            <app-report-share-button
-              :id="id"
-              v-model="report.public"
-            />
-          </div>
         </div>
       </div>
 
       <!-- Filters -->
       <app-report-template-filters
         v-model:platform="platform"
+        v-model:segments="segments"
         v-model:team-members="teamMembers"
         v-model:team-activities="teamActivities"
         :show-platform="currentTemplate.filters.platform"
@@ -81,6 +63,7 @@
               platform,
               teamMembers,
               teamActivities,
+              segments,
             }"
           />
         </div>
@@ -99,11 +82,10 @@ import {
   onBeforeUnmount,
 } from 'vue';
 import { useStore } from 'vuex';
-import AppReportShareButton from '@/modules/report/components/report-share-button.vue';
 import templates from '@/modules/report/templates/config';
 import AppReportTemplateFilters from '@/modules/report/components/templates/report-template-filters.vue';
 import ActivityPlatformField from '@/modules/activity/activity-platform-field';
-import { mapActions, mapGetters } from '@/shared/vuex/vuex.helpers';
+import { mapActions } from '@/shared/vuex/vuex.helpers';
 
 const props = defineProps({
   id: {
@@ -139,10 +121,13 @@ const initialPlatformValue = {
 const platform = ref(initialPlatformValue);
 const teamMembers = ref(false);
 const teamActivities = ref(false);
+const segments = ref({
+  segments: [],
+  childSegments: [],
+});
 
 const currentTemplate = computed(() => templates.find((t) => t.config.nameAsId === report.value?.name)?.config);
 
-const { cubejsApi } = mapGetters('widget');
 const { getCubeToken } = mapActions('widget');
 
 const onPageScroll = () => {
@@ -178,12 +163,11 @@ onMounted(async () => {
   });
 
   loading.value = true;
-  report.value = await doFind(props.id);
+  await getCubeToken();
+  report.value = await doFind({
+    id: props.id,
+  });
   loading.value = false;
-
-  if (cubejsApi.value === null) {
-    await getCubeToken();
-  }
 
   wrapper.value = document.querySelector(
     '#main-page-wrapper',

@@ -74,6 +74,31 @@
             </el-form-item>
           </div>
         </div>
+
+        <el-form-item
+          :prop="fields.username.name"
+          class="mb-0"
+        >
+          <label
+            for="email"
+            class="text-xs mb-1 font-semibold leading-5"
+          >{{ fields.username.label }}</label>
+          <el-input
+            id="username"
+            v-model="model[fields.username.name]"
+          />
+          <template #error="{ error }">
+            <div class="flex items-center mt-1">
+              <i
+                class="h-4 flex items-center ri-error-warning-line text-base text-red-500"
+              />
+              <span
+                class="pl-1 text-2xs text-red-500 leading-4.5"
+              >{{ error }}</span>
+            </div>
+          </template>
+        </el-form-item>
+
         <el-form-item
           :prop="fields.email.name"
           class="mb-0"
@@ -194,23 +219,8 @@
         </div>
         <div class="flex-grow border-b border-gray-200" />
       </div>
-      <div class="flex flex-col pt-6 pb-16 gap-6">
-        <a
-          id="googleSignup"
-          :href="socialOauthLink('google')"
-          class="btn btn--secondary btn--lg w-full"
-        >
-          <app-svg name="google" class="h-5 w-5" />
-          <span class="pl-3 text-gray-600">Sign up with Google</span>
-        </a>
-        <a
-          id="githubSignup"
-          :href="socialOauthLink('github')"
-          class="btn btn--secondary btn--lg w-full"
-        >
-          <i class="ri-github-fill text-lg !text-gray-600" />
-          <span class="pl-3 text-gray-600">Sign up with GitHub</span>
-        </a>
+      <div class="pt-6 pb-16">
+        <cr-auth-oauth />
       </div>
       <div class="flex justify-center">
         <p class="text-sm leading-5 text-center">
@@ -230,13 +240,13 @@ import { UserModel } from '@/modules/user/user-model';
 import config from '@/config';
 import { passwordConfirmRules } from '@/modules/auth/auth-helpers';
 import AppI18n from '@/shared/i18n/i18n.vue';
-import AppSvg from '@/shared/svg/svg.vue';
+import CrAuthOauth from '@/modules/auth/components/oauth.vue';
 
 const { fields } = UserModel;
 
 export default {
   name: 'AppSignupPage',
-  components: { AppSvg, AppI18n },
+  components: { CrAuthOauth, AppI18n },
   data() {
     return {
       rules: {
@@ -245,6 +255,8 @@ export default {
         email: fields.email.forFormRules(),
         password: fields.password.forFormRules(),
         passwordConfirmation:
+          fields.passwordConfirmation.forFormRules(),
+        username:
           fields.passwordConfirmation.forFormRules(),
       },
       model: {},
@@ -278,6 +290,7 @@ export default {
       this.$refs.form.validate().then(() => this.doRegisterEmailAndPassword({
         email: this.model.email,
         password: this.model.password,
+        username: this.model.username,
         data: {
           firstName: this.model.firstName,
           lastName: this.model.lastName,

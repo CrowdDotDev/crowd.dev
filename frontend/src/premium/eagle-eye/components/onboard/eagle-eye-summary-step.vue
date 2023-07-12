@@ -4,7 +4,7 @@
       <div
         class="basis-2/5 bg-gray-50 rounded-lg flex items-center justify-center h-34"
       >
-        <img alt="Eagle eye onboarding discover" src="/images/eagle-eye/onboard-discover.png" />
+        <img alt="Community Lens onboarding discover" src="/images/eagle-eye/onboard-discover.png" />
       </div>
 
       <div class="basis-3/5">
@@ -40,7 +40,7 @@
       <div
         class="basis-2/5 bg-gray-50 rounded-lg flex items-center justify-center h-34"
       >
-        <img alt="Eagle eye onboarding" src="/images/eagle-eye/onboard-grow.png" />
+        <img alt="Community Lens onboarding" src="/images/eagle-eye/onboard-grow.png" />
       </div>
 
       <div class="basis-3/5">

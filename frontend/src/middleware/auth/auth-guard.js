@@ -38,13 +38,13 @@ export default async function ({ to, store, router }) {
     return;
   }
 
-  if (
-    to.path !== '/auth/email-unverified'
-    && !permissionChecker.isEmailVerified
-  ) {
-    router.push({ path: '/auth/email-unverified' });
-    return;
-  }
+  // if (
+  //   to.path !== '/auth/email-unverified'
+  //   && !permissionChecker.isEmailVerified
+  // ) {
+  //   router.push({ path: '/auth/signin' });
+  //   return;
+  // }
 
   // Temporary fix
   if (

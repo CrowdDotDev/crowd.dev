@@ -5,7 +5,7 @@
         <div
           class="uppercase text-2xs text-gray-400 font-semibold"
         >
-          Member
+          Contributor
         </div>
         <el-button
           class="btn btn--transparent !h-8"

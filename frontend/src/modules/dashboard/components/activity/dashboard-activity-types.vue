@@ -1,5 +1,5 @@
 <template>
-  <app-cube-render :query="activityTypes(period, platform)">
+  <app-cube-render :query="activityTypes(period, platform, segments.childSegments)">
     <template #loading>
       <div
         v-for="i in 3"
@@ -22,7 +22,7 @@
     <template #default="{ resultSet }">
       <app-cube-render
         :query="
-          activitiesCount(dateRange(period), platform)
+          activitiesCount(dateRange(period), platform, segments.childSegments)
         "
       >
         <template #loading>
@@ -109,28 +109,16 @@ import AppCubeRender from '@/shared/cube/cube-render.vue';
 import AppLoading from '@/shared/loading/loading-placeholder.vue';
 import { useActivityTypeStore } from '@/modules/activity/store/type';
 import { storeToRefs } from 'pinia';
-import { computed, watch } from 'vue';
+import { computed } from 'vue';
 import pluralize from 'pluralize';
 import merge from 'lodash/merge';
 
-const { period, platform } = mapGetters('dashboard');
-const { currentTenant } = mapGetters('auth');
+const { period, platform, segments } = mapGetters('dashboard');
 
 const activityTypeStore = useActivityTypeStore();
 const { types } = storeToRefs(activityTypeStore);
-const { setTypes } = activityTypeStore;
 
 const typeNames = computed(() => (merge(types.value.default, types.value.custom)));
-
-watch(
-  () => currentTenant,
-  (tenant) => {
-    if (tenant.value?.settings.length > 0) {
-      setTypes(tenant.value.settings[0].activityTypes);
-    }
-  },
-  { immediate: true, deep: true },
-);
 
 const compileData = (resultSet) => {
   const pivot = resultSet.chartPivot();

@@ -2,9 +2,15 @@
   <div
     class="flex items-center py-1 mb-3 mt-2 justify-between"
   >
-    <div class="text-gray-500 text-sm">
-      {{ pluralize('user', count, true) }}
-    </div>
+    <app-pagination-sorter
+      :page-size="Number(pagination.pageSize)"
+      :total="count"
+      :current-page="pagination.currentPage"
+      :has-page-counter="false"
+      :sorter="false"
+      module="user"
+      position="top"
+    />
 
     <el-button
       class="btn btn--primary btn--sm"
@@ -14,6 +20,7 @@
       <span class="leading-5">Invite user</span>
     </el-button>
   </div>
+
   <div class="app-list-table not-clickable panel">
     <app-user-list-toolbar />
     <div class="-mx-6 -mt-6">
@@ -105,6 +112,17 @@
           </template>
         </el-table-column>
       </el-table>
+
+      <div v-if="!!count" class="mt-8 px-6">
+        <app-pagination
+          :total="count"
+          :page-size="Number(pagination.pageSize)"
+          :current-page="pagination.currentPage || 1"
+          module="user"
+          @change-current-page="doChangePaginationCurrentPage"
+          @change-page-size="doChangePaginationPageSize"
+        />
+      </div>
     </div>
   </div>
 </template>
@@ -138,6 +156,7 @@ export default {
       selectedRows: 'user/list/selectedRows',
       currentUser: 'auth/currentUser',
       currentTenant: 'auth/currentTenant',
+      pagination: 'user/list/pagination',
     }),
 
     hasPermissionToDestroy() {
@@ -167,6 +186,8 @@ export default {
     ...mapActions({
       doChangeSort: 'user/list/doChangeSort',
       doMountTable: 'user/list/doMountTable',
+      doChangePaginationCurrentPage: 'user/list/doChangePaginationCurrentPage',
+      doChangePaginationPageSize: 'user/list/doChangePaginationPageSize',
       doDestroy: 'user/destroy/doDestroy',
     }),
 

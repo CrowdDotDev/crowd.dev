@@ -1,27 +1,44 @@
 import { FilterConfigType } from '@/shared/modules/filters/types/FilterConfig';
-import { CustomFilterConfig } from '@/shared/modules/filters/types/filterTypes/CustomFilterConfig';
+import ProjectsFilter from '@/modules/member/config/filters/projects/ProjectsFilter.vue';
+import { LfService } from '@/modules/lf/segments/lf-segments-service';
+import { Project } from '@/modules/lf/segments/types/Segments';
+import { ProjectsFilterValue, ProjectsCustomFilterConfig } from '@/modules/lf/segments/types/Filters';
+import { filterLabel } from '@/modules/lf/utils/filters';
 
-const projects: CustomFilterConfig = {
+const projects: ProjectsCustomFilterConfig = {
   id: 'projects',
   label: 'Projects',
   iconClass: 'ri-stack-line',
-  featureFlag: 'projects-filter',
   inBody: true,
   type: FilterConfigType.CUSTOM,
-  component: null,
+  component: ProjectsFilter,
   options: {
+    remoteMethod: ({
+      query,
+      parentSlug,
+    }) => LfService.queryProjects({
+      limit: 10,
+      filter: {
+        name: query,
+        parentSlug,
+      },
+    })
+      .then(({ rows }) => rows),
   },
-  queryUrlParser({ value, include }: any): Record<string, any> {
+  queryUrlParser({ value }: {value: string}): Record<string, string[]> {
     return {
-      include: include === 'true',
       value: value.split(','),
     };
   },
-  itemLabelRenderer(value: any, options: any): string {
-    console.log(value, options);
-    return 'Projects...';
+  itemLabelRenderer({ value, parentValues }: ProjectsFilterValue, options: any, data: { options: Project[] }): string {
+    const charLimit = 30;
+    const text = filterLabel(value, parentValues, data.options);
+    const trimmedValueText = text.length > charLimit ? `${text.substring(0, charLimit - 3)}...` : text;
+    const tooltip = trimmedValueText.length < text.length ? `data-tooltip="${text}"` : '';
+
+    return `<span ${tooltip}><b>Projects:</b>${trimmedValueText || '...'}</span>`;
   },
-  apiFilterRenderer({ value }: any): any[] {
+  apiFilterRenderer({ value }: ProjectsFilterValue): any[] {
     return [
       { segments: value },
     ];

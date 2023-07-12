@@ -9,7 +9,7 @@
     v-else
     class="w-full text-gray-400 pt-8 italic text-sm"
   >
-    Connect integrations to add notes to members
+    Connect integrations to add notes to contributors
   </div>
   <div v-if="notes.length > 0" class="pt-6">
     <app-note-item
@@ -62,14 +62,15 @@ const isCreateLockedForSampleData = computed(() => new NotePermissions(
 
 const fetchNotes = (page = 0) => {
   notesPage.value = page;
-  NoteService.list(
-    {
+  NoteService.list({
+    filter: {
       members: [props.member.id],
     },
-    'createdAt_DESC',
-    notesLimit,
-    notesPage.value * notesLimit,
-  ).then(({ rows, count }) => {
+    orderBy: 'createdAt_DESC',
+    limit: notesLimit,
+    offset: notesPage.value * notesLimit,
+    segments: props.member.segments.map((s) => s.id),
+  }).then(({ rows, count }) => {
     if (notesPage.value > 0) {
       notes.value = [...notes.value, ...rows];
     } else {
