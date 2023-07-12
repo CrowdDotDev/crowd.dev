@@ -88,7 +88,9 @@ export default {
 
   doRegisterEmailAndPassword(
     { commit, dispatch },
-    { email, password, username, data = {} },
+    {
+      email, password, username, data = {},
+    },
   ) {
     return Auth0Service.signup({
       email,
@@ -139,13 +141,7 @@ export default {
         commit('AUTH_SUCCESS', {
           currentUser: currentUser || null,
         });
-
-        if (!currentUser.emailVerified) {
-          AuthToken.set(null, false);
-          router.push('/auth/email-unverified');
-        } else {
-          router.push('/');
-        }
+        router.push('/');
       })
       .catch((error) => {
         AuthService.signout();
