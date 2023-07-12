@@ -205,7 +205,6 @@ export default class IntegrationDataService extends LoggerBase {
     this.log.debug(`Publishing entity with custom type!`)
 
     try {
-      this.log.debug('Publishing activity!')
       const resultId = await this.repo.publishResult(dataId, {
         type,
         data: entity,
