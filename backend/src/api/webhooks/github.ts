@@ -35,7 +35,7 @@ export default async (req, res) => {
 
     await sendNodeWorkerMessage(
       integration.tenantId,
-      new NodeWorkerProcessWebhookMessage(integration.tenantId, result.id),
+      new NodeWorkerProcessWebhookMessage(integration.tenantId, result.id, undefined, true)),
     )
 
     await req.responseHandler.success(req, res, {}, 204)
