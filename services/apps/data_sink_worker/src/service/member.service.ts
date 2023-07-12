@@ -160,6 +160,20 @@ export default class MemberService extends LoggerBase {
           updated = true
         }
 
+        const organizationIds = []
+        if (data.organizations) {
+          const orgService = new OrganizationService(txStore, this.log)
+          for (const org of data.organizations) {
+            const id = await orgService.findOrCreate(tenantId, org)
+            organizationIds.push(id)
+          }
+
+          if (organizationIds.length > 0) {
+            await orgService.addToMember(tenantId, segmentId, id, organizationIds)
+            updated = true
+          }
+        }
+
         return updated
       })
 
