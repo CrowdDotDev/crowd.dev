@@ -122,6 +122,31 @@ export default class IntegrationRunService extends LoggerBase {
       } else {
         this.log.info('Run finished successfully!')
 
+        try {
+          this.log.info('Trying to post process integration settings!')
+
+          const service = singleOrDefault(
+            INTEGRATION_SERVICES,
+            (s) => s.type === runInfo.integrationType,
+          )
+
+          if (service.postProcess) {
+            let settings = runInfo.integrationSettings as object
+            const newSettings = service.postProcess(settings)
+
+            if (newSettings) {
+              settings = { ...settings, ...newSettings }
+              await this.updateIntegrationSettings(runId, settings)
+            }
+
+            this.log.info('Finished post processing integration settings!')
+          } else {
+            this.log.info('Integration does not have post processing!')
+          }
+        } catch (err) {
+          this.log.error({ err }, 'Error while post processing integration settings!')
+        }
+
         await this.repo.markRunProcessed(runId)
         await this.repo.markIntegration(runId, 'done')
 
@@ -327,6 +352,7 @@ export default class IntegrationRunService extends LoggerBase {
         platform: runInfo.integrationType,
         status: runInfo.integrationState,
         settings: runInfo.integrationSettings,
+        token: runInfo.integrationToken,
       },
 
       log: this.log,

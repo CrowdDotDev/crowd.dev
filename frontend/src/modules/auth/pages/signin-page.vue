@@ -140,14 +140,13 @@ import { i18n } from '@/i18n';
 import Message from '@/shared/message/message';
 import config from '@/config';
 import AppI18n from '@/shared/i18n/i18n.vue';
-import AppSvg from '@/shared/svg/svg.vue';
-import CrAuthOauth from "@/modules/auth/components/oauth.vue";
+import CrAuthOauth from '@/modules/auth/components/oauth.vue';
 
 const { fields } = UserModel;
 
 export default {
   name: 'AppSigninPage',
-  components: { CrAuthOauth, AppSvg, AppI18n },
+  components: { CrAuthOauth, AppI18n },
   data() {
     return {
       rules: {
