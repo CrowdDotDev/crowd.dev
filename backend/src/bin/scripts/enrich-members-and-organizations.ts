@@ -5,11 +5,10 @@ import path from 'path'
 import { getServiceLogger } from '@crowd/logging'
 import SequelizeRepository from '../../database/repositories/sequelizeRepository'
 import MemberRepository from '../../database/repositories/memberRepository'
-import { sendBulkEnrichMessage } from '../../serverless/utils/nodeWorkerSQS'
-import { ORGANIZATION_ENRICHMENT_CONFIG } from '../../conf'
-import OrganizationEnrichmentService from '../../services/premium/enrichment/organizationEnrichmentService'
+import { sendBulkEnrichMessage, sendNodeWorkerMessage } from '../../serverless/utils/nodeWorkerSQS'
 import OrganizationRepository from '../../database/repositories/organizationRepository'
-import getUserContext from '@/database/utils/getUserContext'
+import { NodeWorkerMessageType } from '../../serverless/types/workerTypes'
+import { NodeWorkerMessageBase } from '../../types/mq/nodeWorkerMessageBase'
 
 /* eslint-disable no-console */
 
@@ -36,14 +35,14 @@ const options = [
     type: Boolean,
     defaultValue: false,
     description: 'Enrich organizations of the tenant',
-    },
-    {
+  },
+  {
     name: 'member',
     alias: 'm',
     type: Boolean,
     defaultValue: false,
     description: 'Enrich members of the tenant',
-    },
+  },
 ]
 const sections = [
   {
@@ -69,8 +68,8 @@ if (parameters.help || !parameters.tenant || !parameters.organization || !parame
   setImmediate(async () => {
     const options = await SequelizeRepository.getDefaultIRepositoryOptions()
     const tenantIds = parameters.tenant.split(',')
-    const enrichMembers = parameters.member;
-    const enrichOrganizations = parameters.organization;
+    const enrichMembers = parameters.member
+    const enrichOrganizations = parameters.organization
     const limit = 1000
 
     for (const tenantId of tenantIds) {
@@ -87,10 +86,14 @@ if (parameters.help || !parameters.tenant || !parameters.organization || !parame
           )
 
           // Members enrichment
-          if ((enrichMembers && !enrichOrganizations) || (!enrichMembers && !enrichOrganizations) || (enrichMembers && enrichOrganizations)) {
+          if (
+            (enrichMembers && !enrichOrganizations) ||
+            (!enrichMembers && !enrichOrganizations) ||
+            (enrichMembers && enrichOrganizations)
+          ) {
             let offset = 0
             let totalMembers = 0
-  
+
             do {
               const members = await MemberRepository.findAndCountAllv2(
                 {
@@ -100,53 +103,62 @@ if (parameters.help || !parameters.tenant || !parameters.organization || !parame
                 },
                 options,
               )
-  
+
               totalMembers = members.count
               log.info({ tenantId }, `Total members found in the tenant: ${totalMembers}`)
-  
+
               const membersToEnrich = members.rows.map((m) => m.id)
               // notifyFrontend is set to false to prevent sending notifications to the frontend
               await sendBulkEnrichMessage(tenant, membersToEnrich, false)
-  
+
               log.info(
                 { tenantId },
                 `Enriched members from ${offset + 1} to ${offset + membersToEnrich.length}`,
               )
-  
+
               offset += limit
             } while (totalMembers > offset)
-  
+
             log.info({ tenantId }, `Members enrichment operation finished for tenant ${tenantId}`)
           }
-  
+
           // Organizations enrichment
-        if ((enrichOrganizations && !enrichMembers) || (!enrichMembers && !enrichOrganizations) || (enrichMembers && enrichOrganizations)) {
+          if (
+            (enrichOrganizations && !enrichMembers) ||
+            (!enrichMembers && !enrichOrganizations) ||
+            (enrichMembers && enrichOrganizations)
+          ) {
             const organizations = await OrganizationRepository.findAndCountAll(
-                {
-                  limit,
-                  offset: 0,
-                },
-                options,
-              )
-    
-              const userContext = await getUserContext(tenantId)
-              const totalOrganizations = organizations.count
-    
-              const enrichmentService = new OrganizationEnrichmentService({
-                options: userContext,
-                apiKey: ORGANIZATION_ENRICHMENT_CONFIG.apiKey,
-                tenantId,
-                limit: totalOrganizations,
-              })
-    
-              const enrichedOrgs = await enrichmentService.enrichOrganizationsAndSignalDone()
-    
-              log.info({ tenantId }, `Total organizations enriched in the tenant: ${enrichedOrgs}`)
-    
-              log.info(
-                { tenantId },
-                `Organizations enrichment operation finished for tenant ${tenantId}`,
-              )
+              {
+                limit,
+                offset: 0,
+              },
+              options,
+            )
+
+            const totalOrganizations = organizations.count
+
+            for (const organization of organizations.rows) {
+              const payload = {
+                type: NodeWorkerMessageType.NODE_MICROSERVICE,
+                service: 'enrich-organizations',
+                tenantId: tenantId,
+                organizationId: organization.id,
+              } as NodeWorkerMessageBase
+
+              log.info({ payload }, 'Enricher worker payload for organization')
+              await sendNodeWorkerMessage(organization.id, payload)
+            }
+
+            log.info(
+              { tenantId },
+              `Total organizations enriched in the tenant: ${totalOrganizations}`,
+            )
+
+            log.info(
+              { tenantId },
+              `Organizations enrichment operation finished for tenant ${tenantId}`,
+            )
           }
         }
       } catch (error) {

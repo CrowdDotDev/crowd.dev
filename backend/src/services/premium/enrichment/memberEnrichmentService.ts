@@ -203,7 +203,7 @@ export default class MemberEnrichmentService extends LoggerBase {
           ),
         )
       }
-  }
+    }
 
     return { enrichedMemberCount: enrichedMembers }
   }
