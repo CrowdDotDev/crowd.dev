@@ -145,7 +145,11 @@ const dateRange = reactive<string[][]>([]);
 
 const organizations = computed<Organization[]>({
   get() {
-    return props.modelValue.organizations;
+    return props.modelValue.organizations.map((o) => ({
+      ...o,
+      displayName: o.displayName || o.name,
+      label: o.displayName || o.name,
+    }));
   },
   set(v) {
     emit('update:modelValue', {
