@@ -372,7 +372,7 @@ export default class IntegrationService {
       throw err
     }
 
-   this.options.log.info(
+    this.options.log.info(
       { tenantId: integration.tenantId },
       'Sending Discord message to int-run-worker!',
     )

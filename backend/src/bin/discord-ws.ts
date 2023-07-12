@@ -9,9 +9,7 @@ import SequelizeRepository from '../database/repositories/sequelizeRepository'
 import IntegrationRepository from '../database/repositories/integrationRepository'
 import IncomingWebhookRepository from '../database/repositories/incomingWebhookRepository'
 import { DiscordWebsocketEvent, DiscordWebsocketPayload, WebhookType } from '../types/webhooks'
-import { sendNodeWorkerMessage } from '../serverless/utils/nodeWorkerSQS'
-import { NodeWorkerProcessWebhookMessage } from '../types/mq/nodeWorkerProcessWebhookMessage'
-import { DiscordIntegrationService } from '../serverless/integrations/services/integrations/discordIntegrationService'
+import { getIntegrationRunWorkerEmitter , getIntegrationStreamWorkerEmitter } from '@/serverless/utils/serviceSQS'
 
 const log = getServiceLogger()
 
@@ -66,10 +64,14 @@ async function spawnClient(
         payload,
       })
 
-      await sendNodeWorkerMessage(
+      const streamEmitter = await getIntegrationStreamWorkerEmitter()
+
+      await streamEmitter.triggerWebhookProcessing(
         integration.tenantId,
-        new NodeWorkerProcessWebhookMessage(integration.tenantId, result.id),
+        integration.platform,
+        result.id,
       )
+
     } catch (err) {
       if (err.code === 404) {
         logger.warn({ guildId }, 'No integration found for incoming Discord WS Message!')
@@ -220,14 +222,20 @@ setImmediate(async () => {
   }
 
   if (triggerCheck) {
-    const repoOptions = await SequelizeRepository.getDefaultIRepositoryOptions()
+    const emitter = await getIntegrationRunWorkerEmitter()
 
     await processPaginated(
       async (page) => IntegrationRepository.findAllActive(PlatformType.DISCORD, page, 10),
       async (integrations) => {
         log.warn(`Found ${integrations.length} integrations to trigger check for!`)
-        const service = new DiscordIntegrationService()
-        await service.triggerIntegrationCheck(integrations, repoOptions)
+        for (const integration of integrations) {
+          await emitter.triggerIntegrationRun(
+            integration.tenantId,
+            integration.platform,
+            integration.id,
+            false,
+          )
+        }
       },
     )
   }
