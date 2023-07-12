@@ -56,8 +56,8 @@ import { sendNodeWorkerMessage } from '../../../utils/nodeWorkerSQS'
 import { NodeWorkerIntegrationProcessMessage } from '../../../../types/mq/nodeWorkerIntegrationProcessMessage'
 import TeamsQuery from '../../usecases/github/graphql/teams'
 import { GithubWebhookTeam } from '../../usecases/github/graphql/types'
-import ActivityRepository from '@/database/repositories/activityRepository'
-import SequelizeRepository from '@/database/repositories/sequelizeRepository'
+import ActivityRepository from '../../../../database/repositories/activityRepository'
+import SequelizeRepository from '../../../../database/repositories/sequelizeRepository'
 
 /* eslint class-methods-use-this: 0 */
 
