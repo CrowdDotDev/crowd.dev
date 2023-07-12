@@ -205,7 +205,7 @@ export default class MemberService extends LoggerBase {
 
         // first try finding the member using the identity
         const identity = singleOrDefault(member.identities, (i) => i.platform === platform)
-        let dbMember = await txRepo.findMember(tenantId, platform, identity.username)
+        let dbMember = await txRepo.findMember(tenantId, segmentId, platform, identity.username)
 
         if (!dbMember && member.emails && member.emails.length > 0) {
           const email = member.emails[0]
