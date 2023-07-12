@@ -18,7 +18,7 @@
           <p
             class="text-gray-900 text-sm text-ellipsis truncate hover:text-brand-500 transition leading-relaxed"
           >
-            {{ activeOrganization.displayName || '-' }}
+            {{ activeOrganization.displayName || activeOrganization.name || '-' }}
           </p>
         </div>
       </router-link>
@@ -85,7 +85,7 @@
           class="w-3.5"
         />
         <span class="text-xs">{{
-          activeOrganization.displayName || '-'
+          activeOrganization.displayName || activeOrganization.name || '-'
         }}</span>
       </router-link>
     </div>

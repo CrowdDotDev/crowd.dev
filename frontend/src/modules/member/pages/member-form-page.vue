@@ -232,12 +232,16 @@ function getInitialModel(r) {
       formSchema.value.initialValues({
         displayName: r ? r.displayName : '',
         name: r ? r.name : '',
-        emails: r ? r.emails : '',
+        emails: r ? r.emails?.filter((e) => !!e) || [] : [],
         joinedAt: r ? r.joinedAt : '',
         attributes: r
           ? filteredAttributes(r.attributes)
           : {},
-        organizations: r ? r.organizations : [],
+        organizations: r ? r.organizations.map((o) => ({
+          ...o,
+          displayName: o.displayName || o.name,
+          label: o.displayName || o.name,
+        })) : [],
         ...attributes,
         tags: r ? r.tags : [],
         username: r ? r.username : {},
