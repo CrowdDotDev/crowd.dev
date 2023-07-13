@@ -11,7 +11,7 @@
     <span
       v-if="showResetView"
       type="button"
-      class="btn btn-brand btn-brand--transparent btn--md absolute right-0 inset-y-0"
+      class="btn btn-link btn-link--md btn-link--primary absolute right-0 inset-y-0"
       @click="resetView"
     >
       Reset view

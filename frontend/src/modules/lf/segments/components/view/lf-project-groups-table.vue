@@ -86,7 +86,7 @@
                 params: { id: row.id },
               }"
             >
-              <el-button class="btn btn--bordered">
+              <el-button class="btn btn--secondary">
                 <i class="ri-stack-line" />
                 <span>Manage projects</span>
               </el-button>

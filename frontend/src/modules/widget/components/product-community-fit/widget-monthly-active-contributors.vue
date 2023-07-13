@@ -5,7 +5,7 @@
     :query="query"
   >
     <template #default="{ resultSet, loading, error }">
-      <div class="bg-white px-6 py-5 rounded-lg shadow">
+      <div class="panel-card px-6 py-5">
         <!-- Widget Header -->
         <div
           class="flex grow justify-between items-center pb-5 border-b border-gray-100"
@@ -187,7 +187,7 @@ const widgetChartOptions = computed(() => chartOptions('area', {
   annotationPlugin: {
     annotations: {
       idealRange: {
-        backgroundColor: 'rgb(253, 246, 245)',
+        backgroundColor: '#DBEBFE',
         yMin: 50,
         yMax: 100,
         borderColor: 'transparent',
@@ -204,7 +204,7 @@ const { doExport } = mapActions('member');
 const datasets = computed(() => [
   {
     name: MONTHLY_ACTIVE_CONTRIBUTORS_WIDGET.name,
-    borderColor: '#E94F2E',
+    borderColor: '#003778',
     backgroundColor: 'transparent',
     measure: 'Members.count',
     granularity: granularity.value.value,
@@ -215,7 +215,7 @@ const datasets = computed(() => [
   },
   {
     name: 'Product-Community Fit',
-    backgroundColor: 'rgb(250, 237, 234)',
+    backgroundColor: '#F6FAFF',
     borderColor: 'transparent',
     pointStyle: 'rect',
     hidden: true,

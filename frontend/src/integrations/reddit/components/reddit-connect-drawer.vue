@@ -54,7 +54,7 @@
               </el-input>
               <el-button
                 v-if="model.length > 1"
-                class="btn btn--md btn--transparent w-10 h-10"
+                class="btn btn-link btn-link--md btn-link--primary w-10 h-10"
                 @click="deleteItem(index)"
               >
                 <i
@@ -88,7 +88,7 @@
         </el-button>
         <div class="flex gap-4">
           <el-button
-            class="btn btn--md btn--bordered"
+            class="btn btn--md btn--secondary"
             @click="isVisible = false"
           >
             <app-i18n code="common.cancel" />

@@ -4,7 +4,7 @@
       <div class="pb-4 md:pb-2">
         <img
           class="h-6 w-auto"
-          src="/images/logo/crowd.svg"
+          src="/images/lf/logo_lfx_cm.svg"
           alt="crowd.dev logo"
         />
       </div>
@@ -66,7 +66,7 @@
       </div>
     </div>
     <div>
-      <div class="bg-brand-500 rounded-lg p-6">
+      <div class="bg-brand-400 rounded-lg p-6">
         <p class="text-white text-sm font-medium pb-6">
           “Building and engaging community is my top
           priority as a founder of an open-source startup.

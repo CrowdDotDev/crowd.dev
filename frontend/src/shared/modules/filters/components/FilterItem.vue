@@ -30,7 +30,7 @@
         <component :is="getComponent" v-if="getComponent" v-model="form" v-model:data="data" :config="props.config" v-bind="props.config.options" />
       </div>
       <div class="flex justify-end items-center border-t py-3 px-4">
-        <el-button class="btn btn--transparent btn--sm !h-8 mr-2" data-qa="filter-close" @click="close">
+        <el-button class="btn btn-link btn-link--sm btn-link--primary !h-8 mr-2" data-qa="filter-close" @click="close">
           Cancel
         </el-button>
         <el-button class="btn btn--primary btn--sm !h-8" :disabled="$v.$invalid" data-qa="filter-apply" @click="apply">

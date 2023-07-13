@@ -145,7 +145,7 @@
     </template>
     <template #footer>
       <el-button
-        class="btn btn--bordered btn--md mr-4"
+        class="btn btn--secondary btn--md mr-4"
         @click="emit('update:modelValue', false)"
       >
         Cancel

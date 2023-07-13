@@ -2,7 +2,7 @@
   <span :data-tooltip="filterLabel.showTooltip ? filterLabel.text : null" data-tooltip-placement="top">
     <el-button
       ref="buttonRef"
-      :class="btnClass || 'btn btn--bordered bg-white !py-1.5 !px-3 outline-none'"
+      :class="btnClass || 'btn btn--secondary bg-white !py-1.5 !px-3 outline-none'"
       @click="openFilterPopover"
     >
       <div class="flex items-center text-xs">
@@ -46,7 +46,7 @@
       <div class="flex items-center">
         <el-button
           id="closeFilter"
-          class="btn btn--transparent btn--sm mr-3"
+          class="btn btn-link btn-link--sm btn-link--primary mr-3"
           @click="handleCancel"
         >
           Cancel

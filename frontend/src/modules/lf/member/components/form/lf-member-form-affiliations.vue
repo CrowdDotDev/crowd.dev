@@ -76,7 +76,7 @@
             </div>
 
             <el-button
-              class="btn btn--md btn--transparent w-10 h-10"
+              class="btn btn-link btn-link--md btn-link--primary w-10 h-10"
               @click="deleteAffiliation(index)"
             >
               <i

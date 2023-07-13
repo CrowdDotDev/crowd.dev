@@ -13,7 +13,7 @@ export default ({
   showClose = false,
   customClass = 'confirm-dialog',
   cancelButtonText = 'Stay on this page',
-  cancelButtonClass = 'btn btn--md btn--bordered',
+  cancelButtonClass = 'btn btn--md btn--secondary',
   confirmButtonText = 'Discard',
   confirmButtonClass = 'btn btn--md btn--primary',
   icon = 'ri-error-warning-line',
@@ -109,7 +109,7 @@ export default ({
               'button',
               {
                 class:
-                  'btn btn--transparent btn--xs w-8 !h-8',
+                  'btn btn-link btn-link--xs btn-link--primary w-8 !h-8 hover:!no-underline group',
                 type: 'button',
                 onClick: () => {
                   document
@@ -123,7 +123,7 @@ export default ({
                 h(
                   'i', // type
                   {
-                    class: 'text-lg ri-close-line leading-none text-gray-400',
+                    class: 'text-lg ri-close-line leading-none text-gray-400 group-hover:text-brand-500',
                   }, // props
                   [],
                 ),
@@ -172,7 +172,7 @@ export default ({
 
     const overrideCustomClass = 'confirm-dialog confirm-dialog--vertical';
     const overrideConfirmButtonClass = 'btn btn--md btn--primary w-full';
-    const overrideCancelButtonClass = 'btn btn--md btn--transparent w-full';
+    const overrideCancelButtonClass = 'btn btn-link btn-link--md btn-link--primary w-full';
 
     return ElMessageBox({
       title: '',

@@ -1,7 +1,7 @@
 <template>
   <app-page-wrapper size="narrow">
     <div class="activity-list-page">
-      <app-lf-page-header text-class="text-sm text-brand-500 mb-2.5" />
+      <app-lf-page-header text-class="text-sm text-brand-600 mb-2.5" />
       <div class="flex justify-between">
         <div>
           <h4>Activities</h4>
@@ -11,7 +11,7 @@
         </div>
         <div class="flex">
           <el-button
-            class="btn btn--transparent btn--md text-gray-600 mr-4"
+            class="btn btn-link btn-link--md btn-link--primary text-gray-600 mr-4"
             @click="onActivityTypesClick"
           >
             <i class="ri-settings-3-line text-lg mr-2" />

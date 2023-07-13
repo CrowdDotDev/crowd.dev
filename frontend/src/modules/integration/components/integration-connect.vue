@@ -30,7 +30,7 @@
     href="https://crowd.dev/integration-framework"
     target="_blank"
     rel="noopener noreferrer"
-    class="btn btn-brand btn-brand--primary btn--md"
+    class="btn btn--primary btn--md"
   >Read more</a>
   <component
     :is="props.integration.connectComponent"
@@ -39,7 +39,7 @@
   />
   <el-button
     v-else
-    class="btn btn--bordered btn--md"
+    class="btn btn--secondary btn--md"
     :disabled="true"
   >
     Soon

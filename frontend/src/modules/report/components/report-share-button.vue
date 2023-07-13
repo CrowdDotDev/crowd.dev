@@ -6,7 +6,7 @@
   >
     <el-button
       type="button"
-      class="btn btn--transparent btn--md"
+      class="btn btn-link btn-link--md btn-link--primary"
       :class="{ '!bg-gray-200': open }"
     >
       <i class="ri-share-line mr-2" />Share

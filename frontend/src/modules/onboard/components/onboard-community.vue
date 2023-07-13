@@ -17,7 +17,7 @@
           for="tenantName"
           class="text-xs mb-1 font-semibold leading-5"
         >{{ fields.tenantName.label }}
-          <span class="text-brand-500">*</span></label>
+          <span class="text-red-500">*</span></label>
         <el-input
           id="tenantName"
           ref="focus"
@@ -48,7 +48,7 @@
             class="block text-xs font-semibold leading-5"
           >
             {{ fields.tenantPlatforms.label }}
-            <span class="text-brand-500">*</span>
+            <span class="text-red-500">*</span>
           </span>
           <span
             class="block text-2xs text-gray-500 mb-1 leading-4.5"
@@ -115,7 +115,7 @@
             class="block text-xs font-semibold leading-5"
           >
             {{ fields.tenantSize.label }}
-            <span class="text-brand-500">*</span>
+            <span class="text-red-500">*</span>
           </span>
           <span
             class="block text-2xs text-gray-500 mb-2 leading-4.5"

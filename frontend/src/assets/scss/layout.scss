@@ -1,5 +1,5 @@
 #nprogress .bar {
-  background: #e94f2e !important;
+  background: #003778 !important;
 }
 
 body {
@@ -23,7 +23,9 @@ body {
 }
 
 .el-popper.is-dark {
-  @apply font-medium h-6 px-1.5 bg-gray-900 border-none rounded-md flex items-center;
+  background-color: #F2F2F2;
+  color: #222;
+  @apply font-medium h-6 px-1.5 border-none rounded-md flex items-center shadow;
 }
 
 // Overlay
@@ -73,7 +75,7 @@ hr {
 }
 
 .el-loading-spinner .path {
-  stroke: #e94f2e;
+  stroke: #003778;
 }
 
 .el-row {

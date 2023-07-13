@@ -103,7 +103,7 @@
           <div class="flex gap-4">
             <el-button
               :disabled="isFormSubmitting"
-              class="btn btn--md btn--bordered"
+              class="btn btn--md btn--secondary"
               @click="onCancel"
             >
               Cancel

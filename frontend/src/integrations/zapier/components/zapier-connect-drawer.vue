@@ -25,7 +25,7 @@
           href="https://docs.crowd.dev/docs/zapier-integration"
           target="_blank"
           rel="noopener noreferrer"
-          class="btn btn--bordered btn--md"
+          class="btn btn--secondary btn--md"
         ><i class="ri-external-link-line mr-2" />Read our docs</a>
       </div>
       <div class="container flex flex-row w-full items-start py-10">

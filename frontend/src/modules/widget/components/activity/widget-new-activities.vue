@@ -5,7 +5,7 @@
     :query="query"
   >
     <template #default="{ resultSet, loading, error }">
-      <div class="bg-white px-6 py-5 rounded-lg shadow">
+      <div class="panel-card px-6 py-5">
         <!-- Widget Header -->
         <div
           class="flex grow justify-between items-center pb-5 border-b border-gray-100"
@@ -92,7 +92,7 @@ const { cubejsApi } = mapGetters('widget');
 const datasets = computed(() => [
   {
     name: NEW_ACTIVITIES_WIDGET.name,
-    borderColor: '#E94F2E',
+    borderColor: '#003778',
     measure: 'Activities.count',
     granularity: granularity.value.value,
     tooltipBtn: false,

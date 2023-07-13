@@ -1,7 +1,7 @@
 <template>
   <app-page-wrapper>
     <div class="mb-12">
-      <app-lf-page-header text-class="text-sm text-brand-500 mb-2.5" />
+      <app-lf-page-header text-class="text-sm text-brand-600 mb-2.5" />
       <div class="flex items-center justify-between">
         <h4>Reports</h4>
         <el-button

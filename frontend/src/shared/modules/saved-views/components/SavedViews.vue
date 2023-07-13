@@ -15,7 +15,7 @@
       </el-tabs>
     </div>
     <div v-if="hasChanged" class="border-b-2 border-[#e4e7ed] flex-grow flex justify-end -mb-px">
-      <el-button class="btn btn-brand btn-brand--transparent btn--md inset-y-0" @click="reset()">
+      <el-button class="btn btn-link btn-link--md btn-link--primary inset-y-0" @click="reset()">
         Reset view
       </el-button>
     </div>

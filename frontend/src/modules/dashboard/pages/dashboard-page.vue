@@ -11,7 +11,7 @@
           >
             <app-lf-page-header
               :text-class="{
-                'leading-8 font-semibold transition-all duration-100': true,
+                'leading-8 font-semibold transition-all duration-100 uppercase font-header': true,
                 'text-xl': !scrolled,
                 'text-base': scrolled,
               }"

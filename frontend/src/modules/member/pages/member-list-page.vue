@@ -2,7 +2,7 @@
   <app-page-wrapper size="full-width">
     <div class="member-list-page">
       <div class="mb-10">
-        <app-lf-page-header text-class="text-sm text-brand-500 mb-2.5" />
+        <app-lf-page-header text-class="text-sm text-brand-600 mb-2.5" />
         <div class="flex items-center justify-between">
           <h4>Contributors</h4>
           <div class="flex items-center">
@@ -16,7 +16,7 @@
               <button
                 :disabled="isEditLockedForSampleData"
                 type="button"
-                class="btn btn--bordered btn--md flex items-center"
+                class="btn btn--secondary btn--md flex items-center"
               >
                 <span class="ri-shuffle-line text-base mr-2 text-gray-900" />
                 <span class="text-gray-900">Merge suggestions</span>

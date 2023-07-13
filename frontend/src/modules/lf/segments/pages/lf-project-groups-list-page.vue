@@ -43,7 +43,7 @@
         <div
           v-for="projectGroup in list"
           :key="projectGroup.id"
-          class="shadow bg-white rounded-lg pb-6 flex flex-col"
+          class="panel-card pb-6 flex flex-col"
         >
           <div
             class="min-h-32 h-32 flex items-center justify-center mb-6"
@@ -88,7 +88,7 @@
                 },
               }"
             >
-              <el-button v-if="hasPermissionToAccessAdminPanel" class="btn btn--md btn--full btn--bordered">
+              <el-button v-if="hasPermissionToAccessAdminPanel" class="btn btn--md btn--full btn--secondary">
                 Settings
               </el-button>
             </router-link>

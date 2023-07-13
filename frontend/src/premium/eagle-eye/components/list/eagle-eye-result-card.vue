@@ -1,6 +1,6 @@
 <template>
   <div
-    class="bg-white shadow-sm px-5 pt-5 pb-4 rounded-lg h-fit"
+    class="bg-white panel-card px-5 pt-5 pb-4 h-fit"
     :class="{
       'hover:shadow-md hover:cursor-pointer': result.url,
     }"
@@ -44,7 +44,7 @@
       <div v-else>
         <a
           v-if="subreddit"
-          class="text-xs mb-1 font-medium leading-6"
+          class="text-xs mb-1 font-medium leading-6 hover:underline"
           target="_blank"
           rel="noopener noreferrer"
           :href="`https://www.reddit.com/${subreddit}`"

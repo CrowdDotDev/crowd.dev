@@ -55,7 +55,7 @@
           <div
             class="text-2xs text-gray-500 leading-normal mb-1"
           >
-            Create a new API key in your Discourse account's settings page. You must be an admin user to connect your acount. <a href="https://docs.crowd.dev/docs/discourse-integration#api-key" target="_blank" rel="noopener noreferrer">Read more</a>
+            Create a new API key in your Discourse account's settings page. You must be an admin user to connect your acount. <a href="https://docs.crowd.dev/docs/discourse-integration#api-key" target="_blank" rel="noopener noreferrer" class="hover:underline">Read more</a>
           </div>
           <el-input
             ref="focus"
@@ -80,7 +80,7 @@
         <div
           class="text-2xs text-gray-500 leading-normal mb-1"
         >
-          Create new webhooks in your Discourse account's settings page with the following credentials. <a href="https://docs.crowd.dev/docs/discourse-integration#webhooks" target="_blank" rel="noopener noreferrer">Read more</a>
+          Create new webhooks in your Discourse account's settings page with the following credentials. <a href="https://docs.crowd.dev/docs/discourse-integration#webhooks" target="_blank" rel="noopener noreferrer" class="hover:underline">Read more</a>
         </div>
       </div>
       <el-form
@@ -143,7 +143,7 @@
       </el-form>
       <el-card v-if="isAPIConnectionValid && props.integration?.settings?.forumHostname" shadow="never" class="rounded-[6px]">
         <div class="mb-3 flex flex-row w-full justify-between">
-          <el-button :disabled="isWebhookVerifying" class="btn btn--bordered" @click="verifyWebhook()">
+          <el-button :disabled="isWebhookVerifying" class="btn btn--secondary" @click="verifyWebhook()">
             Verify webhook
           </el-button>
           <div v-if="isWebhookVerifying == null" />
@@ -171,7 +171,7 @@
     <template #footer>
       <div style="flex: auto">
         <el-button
-          class="btn btn--md btn--bordered mr-3"
+          class="btn btn--md btn--secondary mr-3"
           :disabled="loading"
           @click="handleCancel"
         >

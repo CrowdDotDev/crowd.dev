@@ -21,7 +21,7 @@
         :to="props.route"
       >
         <el-button
-          class="btn btn-brand--transparent btn--sm w-full leading-5 text-brand-500"
+          class="btn btn-link btn-link--sm btn-link--primary w-full leading-5 text-brand-500"
         >
           {{ props.buttonTitle }}
         </el-button>
@@ -36,9 +36,9 @@
           }"
           class="ml-4"
         >
-          <el-button class="btn btn--bordered">
+          <el-button class="btn btn--secondary">
             <i
-              class="ri-bar-chart-line text-base text-gray-600 mr-2"
+              class="ri-bar-chart-line text-base text-brand-500 mr-2"
             />
             <span class="text-xs">View report</span>
           </el-button>

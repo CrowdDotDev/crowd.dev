@@ -172,7 +172,7 @@ export default {
 
     .el-input__wrapper {
       border-radius: 100px !important;
-      @apply h-9;
+      @apply h-9 px-4;
     }
 
     .el-input__inner {

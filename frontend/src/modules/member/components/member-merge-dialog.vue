@@ -32,7 +32,7 @@
             >
               <template #action>
                 <button
-                  class="btn btn--transparent btn--sm leading-5 !px-4 !py-1"
+                  class="btn btn-link btn-link--sm btn-link--primary leading-5 !px-4 !py-1"
                   type="button"
                   @click="changeMember()"
                 >
@@ -44,7 +44,7 @@
           </div>
         </div>
         <div class="pt-6 flex justify-end">
-          <el-button class="btn btn--bordered btn--lg mr-4" @click="emit('update:modelValue', null)">
+          <el-button class="btn btn--secondary btn--lg mr-4" @click="emit('update:modelValue', null)">
             Cancel
           </el-button>
           <el-button

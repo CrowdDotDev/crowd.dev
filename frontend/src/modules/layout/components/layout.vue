@@ -16,7 +16,7 @@
 </template>
 
 <script>
-import { mapGetters } from 'vuex';
+import { mapActions, mapGetters } from 'vuex';
 import identify from '@/shared/monitoring/identify';
 import AppLfMenu from '@/modules/lf/layout/components/lf-menu.vue';
 import AppLfBanners from '@/modules/lf/layout/components/lf-banners.vue';
@@ -35,7 +35,31 @@ export default {
     ...mapGetters({
       currentUser: 'auth/currentUser',
       currentTenant: 'auth/currentTenant',
+      menu: 'layout/menuCollapsed',
     }),
+  },
+
+  watch: {
+    menu: {
+      handler(updatedValue) {
+        const param = this.$route.query.menu === 'true' || false;
+
+        if (updatedValue !== param) {
+          this.$router.replace({ query: { ...this.$route.query, menu: updatedValue } });
+        }
+      },
+    },
+    '$route.query.menu': {
+      immediate: true,
+      deep: true,
+      handler(updatedValue) {
+        const param = updatedValue === 'true' || false;
+
+        if (this.menu !== param) {
+          this.toggleMenu();
+        }
+      },
+    },
   },
 
   async mounted() {
@@ -44,6 +68,9 @@ export default {
   },
 
   methods: {
+    ...mapActions({
+      toggleMenu: 'layout/toggleMenu',
+    }),
     initPendo() {
       // This function creates anonymous visitor IDs in Pendo unless you change the visitor id field to use your app's values
       // This function uses the placeholder 'ACCOUNT-UNIQUE-ID' value for account ID unless you change the account id field to use your app's values

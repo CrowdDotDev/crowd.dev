@@ -1,114 +1,191 @@
 <template>
-  <el-aside class="app-menu" width="fit-content">
+  <el-aside
+    class="app-menu"
+    width="fit-content"
+  >
     <el-menu
       class="flex flex-col h-full border-none"
+      :collapse="isCollapsed"
       :router="true"
     >
-      <div class="px-3 pt-3 flex flex-col gap-2 grow">
+      <div class="px-4 pt-3 flex flex-col gap-2 grow">
         <!-- All project groups -->
-        <router-link
-          id="menu-project-groups"
-          :to="{ path: '/project-groups' }"
-          class="el-menu-item"
-          :class="classFor('/project-groups', true)"
+        <el-tooltip
+          :disabled="!isCollapsed"
+          :hide-after="50"
+          effect="dark"
+          placement="right"
+          raw-content
+          popper-class="custom-menu-tooltip"
+          content="All project groups"
         >
-          <i class="ri-list-check" />
-          <span>
-            All project groups
-          </span>
-        </router-link>
+          <router-link
+            id="menu-project-groups"
+            :to="{ path: '/project-groups' }"
+            class="el-menu-item"
+            :class="classFor('/project-groups', true)"
+          >
+            <i class="ri-list-check" />
+            <span v-if="!isCollapsed">
+              All project groups
+            </span>
+          </router-link>
+        </el-tooltip>
 
         <div class="my-3">
-          <app-lf-menu-project-group-selection />
+          <app-lf-menu-project-group-selection
+            v-if="!isCollapsed"
+          />
+          <el-divider v-else class="!mt-1 !mb-0" />
         </div>
 
         <!-- Dashboard -->
-        <router-link
-          id="menu-dashboard"
-          :to="{ path: '/' }"
-          class="el-menu-item"
-          :class="classFor('/', true, !selectedProjectGroup)"
-          :disabled="!selectedProjectGroup"
+        <el-tooltip
+          :disabled="!isCollapsed"
+          :hide-after="50"
+          effect="dark"
+          placement="right"
+          raw-content
+          popper-class="custom-menu-tooltip"
+          content="Overview"
         >
-          <i class="ri-home-5-line" />
-          <span>
-            Overview
-          </span>
-        </router-link>
+          <router-link
+            id="menu-dashboard"
+            :to="{ path: '/' }"
+            class="el-menu-item"
+            :class="classFor('/', true, !selectedProjectGroup)"
+            :disabled="!selectedProjectGroup"
+          >
+            <i class="ri-home-5-line" />
+            <span v-if="!isCollapsed">
+              Overview
+            </span>
+          </router-link>
+        </el-tooltip>
 
         <!-- Members -->
-        <router-link
-          id="menu-members"
-          :to="{ path: '/contributors' }"
-          class="el-menu-item"
-          :class="classFor('/contributors', false, !selectedProjectGroup)"
-          :disabled="!selectedProjectGroup"
+        <el-tooltip
+          :disabled="!isCollapsed"
+          :hide-after="50"
+          effect="dark"
+          placement="right"
+          raw-content
+          popper-class="custom-menu-tooltip"
+          content="Contributors"
         >
-          <i class="ri-group-2-line" />
-          <span>
-            Contributors
-          </span>
-        </router-link>
+          <router-link
+            id="menu-members"
+            :to="{ path: '/contributors' }"
+            class="el-menu-item"
+            :class="classFor('/contributors', false, !selectedProjectGroup)"
+            :disabled="!selectedProjectGroup"
+          >
+            <i class="ri-group-2-line" />
+            <span v-if="!isCollapsed">
+              Contributors
+            </span>
+          </router-link>
+        </el-tooltip>
 
         <!-- Organizations -->
-        <router-link
-          id="menu-organizations"
-          :to="{ path: '/organizations' }"
-          class="el-menu-item"
-          :class="classFor('/organizations', false, !selectedProjectGroup)"
-          :disabled="!selectedProjectGroup"
+        <el-tooltip
+          :disabled="!isCollapsed"
+          :hide-after="50"
+          effect="dark"
+          placement="right"
+          raw-content
+          popper-class="custom-menu-tooltip"
+          content="Organizations"
         >
-          <i class="ri-community-line" />
-          <span>
-            Organizations
-          </span>
-        </router-link>
+          <router-link
+            id="menu-organizations"
+            :to="{ path: '/organizations' }"
+            class="el-menu-item"
+            :class="classFor('/organizations', false, !selectedProjectGroup)"
+            :disabled="!selectedProjectGroup"
+          >
+            <i class="ri-community-line" />
+            <span v-if="!isCollapsed">
+              Organizations
+            </span>
+          </router-link>
+        </el-tooltip>
 
         <!-- Activities -->
-        <router-link
-          id="menu-activities"
-          :to="{ path: '/activities' }"
-          class="el-menu-item"
-          :class="classFor('/activities', false, !selectedProjectGroup)"
-          :disabled="!selectedProjectGroup"
+        <el-tooltip
+          :disabled="!isCollapsed"
+          :hide-after="50"
+          effect="dark"
+          placement="right"
+          raw-content
+          popper-class="custom-menu-tooltip"
+          content="Activities"
         >
-          <i class="ri-radar-line" />
-          <span>
-            Activities
-          </span>
-        </router-link>
+          <router-link
+            id="menu-activities"
+            :to="{ path: '/activities' }"
+            class="el-menu-item"
+            :class="classFor('/activities', false, !selectedProjectGroup)"
+            :disabled="!selectedProjectGroup"
+          >
+            <i class="ri-radar-line" />
+            <span v-if="!isCollapsed">
+              Activities
+            </span>
+          </router-link>
+        </el-tooltip>
 
         <!-- Reports -->
-        <router-link
-          id="menu-reports"
-          :to="{ path: '/reports' }"
-          class="el-menu-item"
-          :class="classFor('/reports', false, !selectedProjectGroup)"
-          :disabled="!selectedProjectGroup"
+        <el-tooltip
+          :disabled="!isCollapsed"
+          :hide-after="50"
+          effect="dark"
+          placement="right"
+          raw-content
+          popper-class="custom-menu-tooltip"
+          content="Reports"
         >
-          <i class="ri-bar-chart-line" />
-          <span>
-            Reports
-          </span>
-        </router-link>
+          <router-link
+            id="menu-reports"
+            :to="{ path: '/reports' }"
+            class="el-menu-item"
+            :class="classFor('/reports', false, !selectedProjectGroup)"
+            :disabled="!selectedProjectGroup"
+          >
+            <i class="ri-bar-chart-line" />
+            <span v-if="!isCollapsed">
+              Reports
+            </span>
+          </router-link>
+        </el-tooltip>
 
         <div class="grow" />
 
         <!-- Eagle eye -->
-        <router-link
-          v-if="
-            hasPermissionToEagleEye || isEagleEyeLocked
-          "
-          id="menu-eagle-eye"
-          :to="{ path: '/community-lens' }"
-          class="el-menu-item"
-          :class="classFor('/community-lens')"
+        <el-tooltip
+          :disabled="!isCollapsed"
+          :hide-after="50"
+          effect="dark"
+          placement="right"
+          raw-content
+          popper-class="custom-menu-tooltip"
+          content="Community Lens"
         >
-          <i class="ri-search-eye-line" />
-          <span>
-            Community Lens
-          </span>
-        </router-link>
+          <router-link
+            v-if="
+              hasPermissionToEagleEye || isEagleEyeLocked
+            "
+            id="menu-eagle-eye"
+            :to="{ path: '/community-lens' }"
+            class="el-menu-item"
+            :class="classFor('/community-lens')"
+          >
+            <i class="ri-search-eye-line" />
+            <span v-if="!isCollapsed">
+              Community Lens
+            </span>
+          </router-link>
+        </el-tooltip>
 
         <el-divider
           v-if="hasPermissionToSettings || isSettingsLocked || hasPermissionToAccessAdminPanel"
@@ -116,38 +193,70 @@
         />
 
         <div class="mb-6">
-          <router-link
-            v-if="
-              hasPermissionToSettings || isSettingsLocked
-            "
-            id="menu-settings"
-            :to="{ path: '/settings' }"
-            class="el-menu-item mb-2"
-            :class="classFor('/settings')"
+          <el-tooltip
+            :disabled="!isCollapsed"
+            :hide-after="50"
+            effect="dark"
+            placement="right"
+            raw-content
+            popper-class="custom-menu-tooltip"
+            content="Settings"
           >
-            <i class="ri-settings-3-line" />
-            <span>
-              Settings
-            </span>
-          </router-link>
+            <router-link
+              v-if="
+                hasPermissionToSettings || isSettingsLocked
+              "
+              id="menu-settings"
+              :to="{ path: '/settings' }"
+              class="el-menu-item mb-2"
+              :class="classFor('/settings')"
+            >
+              <i class="ri-settings-3-line" />
+              <span v-if="!isCollapsed">
+                Settings
+              </span>
+            </router-link>
+          </el-tooltip>
 
-          <router-link
-            v-if="hasPermissionToAccessAdminPanel"
-            id="menu-admin-panel"
-            :to="{ path: '/admin/project-groups' }"
-            class="el-menu-item"
-            :class="classFor('/admin/project-groups')"
+          <el-tooltip
+            :disabled="!isCollapsed"
+            :hide-after="50"
+            effect="dark"
+            placement="right"
+            raw-content
+            popper-class="custom-menu-tooltip"
+            content="Admin panel"
           >
-            <i class="ri-settings-3-line" />
-            <span>
-              Admin panel
-            </span>
-          </router-link>
+            <router-link
+              v-if="hasPermissionToAccessAdminPanel"
+              id="menu-admin-panel"
+              :to="{ path: '/admin/project-groups' }"
+              class="el-menu-item"
+              :class="classFor('/admin/project-groups')"
+            >
+              <i class="ri-settings-3-line" />
+              <span v-if="!isCollapsed">
+                Admin panel
+              </span>
+            </router-link>
+          </el-tooltip>
         </div>
       </div>
 
       <app-account-dropdown />
     </el-menu>
+    <div
+      class="absolute bg-gray-600 right-0 rounded-l-md h-8 w-6 flex items-center justify-center bottom-64 cursor-pointer hover:bg-gray-700"
+      @click="toggleMenu"
+    >
+      <i
+        class="text-white"
+        :class="{
+          'ri-arrow-left-double-fill': !isCollapsed,
+          'ri-arrow-right-double-fill': isCollapsed,
+        }"
+      />
+    </div>
   </el-aside>
 </template>
 
@@ -164,8 +273,12 @@ import { EagleEyePermissions } from '@/premium/eagle-eye/eagle-eye-permissions';
 import { mapGetters } from '@/shared/vuex/vuex.helpers';
 import { SettingsPermissions } from '@/modules/settings/settings-permissions';
 import { LfPermissions } from '@/modules/lf/lf-permissions';
+import { useStore } from 'vuex';
+
+const store = useStore();
 
 const { currentTenant, currentUser } = mapGetters('auth');
+const { menuCollapsed: isCollapsed } = mapGetters('layout');
 
 const { setTypes } = useActivityTypeStore();
 
@@ -239,6 +352,10 @@ const hasPermissionToAccessAdminPanel = computed(
   ).createProjectGroup,
 );
 
+function toggleMenu() {
+  store.dispatch('layout/toggleMenu');
+}
+
 </script>
 
 <script>
@@ -248,8 +365,10 @@ export default {
 </script>
 
   <style lang="scss">
+
   .app-menu {
-    @apply w-70 bg-brand-25 flex flex-col;
+    --el-menu-base-level-padding: 24px;
+    @apply bg-brand-25 flex flex-col relative;
 
     .el-menu {
       @apply bg-brand-25;
@@ -288,6 +407,26 @@ export default {
         }
       }
     }
+
+    // Menu width and padding customization
+  .el-menu--vertical:not(.el-menu--collapse):not(.el-menu--popup-container) {
+    @apply w-70;
+
+    .menu-collapsed-header {
+      display: none;
+    }
+  }
+
+  .el-menu--vertical:not(.el-menu--collapse):not(.el-menu--popup-container)
+    .el-menu-item {
+    @apply px-2.5;
+  }
+
+  .el-menu--vertical.el-menu--collapse {
+    .menu-expanded-header {
+      display: none;
+    }
+  }
 
     // Override divider margin
     .el-divider--horizontal {

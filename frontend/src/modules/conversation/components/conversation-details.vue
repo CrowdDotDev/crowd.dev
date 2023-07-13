@@ -85,7 +85,7 @@
           {{ conversation.title }}
         </div>
         <button
-          class="btn btn--transparent w-8 !h-8 flex-shrink-0"
+          class="btn btn-link btn-link--primary w-8 !h-8 flex-shrink-0"
           type="button"
           :disabled="isEditLockedForSampleData"
           @click.stop="$emit('edit-title')"

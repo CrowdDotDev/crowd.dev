@@ -1,5 +1,5 @@
 <template>
-  <div class="bg-white pt-5 rounded-lg shadow">
+  <div class="panel-card pt-5">
     <div class="px-6">
       <!-- Widget Header -->
       <div

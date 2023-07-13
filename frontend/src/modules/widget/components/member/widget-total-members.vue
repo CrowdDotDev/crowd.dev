@@ -1,5 +1,5 @@
 <template>
-  <div class="widget-total-members">
+  <div class="widget-total-members panel-card">
     <div class="flex justify-between items-center pb-5 mb-4 border-b border-gray-100">
       <app-widget-title
         text-size="text-base"
@@ -130,7 +130,7 @@ const granularity = computed(() => getTimeGranularityFromPeriod(period.value));
 const datasets = computed(() => [
   {
     name: 'Total members',
-    borderColor: '#E94F2E',
+    borderColor: '#003778',
     measure: 'Members.cumulativeCount',
     granularity: granularity.value,
     ...(!props.isPublicView && {
@@ -253,7 +253,7 @@ const onExport = async ({ count }) => {
 
 <style lang="scss" scoped>
 .widget-total-members {
-  @apply bg-white shadow rounded-lg p-5;
+  @apply p-5;
   :deep(.chart) {
     div {
       line-height: 100px !important;

@@ -47,7 +47,7 @@
                   for="formTitle"
                   class="block text-xs leading-none font-semibold mb-1"
                 >Name
-                  <span class="text-brand-500 ml-0.5">*</span></label>
+                  <span class="text-red-500 ml-0.5">*</span></label>
                 <el-input
                   id="formTitle"
                   v-model="model.title"
@@ -232,7 +232,7 @@
       <div class="relative">
         <div class="flex items-center justify-end">
           <el-button
-            class="btn btn--bordered btn--md mr-3"
+            class="btn btn--secondary btn--md mr-3"
             @click="visible = false"
           >
             <app-i18n code="common.cancel" />

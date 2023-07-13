@@ -1,5 +1,5 @@
 <template>
-  <div class="bg-white shadow rounded-lg">
+  <div class="panel-card">
     <div class="grid grid-cols-3">
       <div
         v-for="(widget, index) of widgets"

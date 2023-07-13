@@ -134,7 +134,7 @@ const updateTicksLabelsPositionPlugin = {
         const { ctx } = chart;
 
         Object.assign(ctx, {
-          font: `${fontWeight || 400} 12px Inter`,
+          font: `${fontWeight || 400} 12px Open Sans`,
           fillStyle: color,
         });
 

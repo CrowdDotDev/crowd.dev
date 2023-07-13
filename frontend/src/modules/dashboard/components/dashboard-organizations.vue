@@ -83,7 +83,7 @@
                     },
                   }),
                 }"
-                class="text-sm leading-5 font-medium text-red"
+                class="text-sm leading-5 font-medium hover:underline"
               >
                 View more
               </router-link>
@@ -163,7 +163,7 @@
                     },
                   }),
                 }"
-                class="text-sm leading-5 font-medium text-red"
+                class="text-sm leading-5 font-medium hover:underline"
               >
                 View more
               </router-link>
@@ -232,7 +232,7 @@ export default {
       return [
         {
           name,
-          borderColor: '#E94F2E',
+          borderColor: '#003778',
           measure: 'Organizations.count',
           granularity: DAILY_GRANULARITY_FILTER.value,
         },

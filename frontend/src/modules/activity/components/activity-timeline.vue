@@ -95,7 +95,7 @@
                   v-if="
                     activity.conversationId && isMemberEntity
                   "
-                  class="text-xs font-medium flex items-center mr-4 cursor-pointer"
+                  class="text-xs font-medium flex items-center mr-4 cursor-pointer hover:underline"
                   target="_blank"
                   @click="
                     conversationId = activity.conversationId
@@ -176,7 +176,7 @@
       />
       <div v-if="!noMore" class="flex justify-center pt-4">
         <el-button
-          class="btn btn-brand btn-brand--transparent"
+          class="btn btn-link btn-link--primary"
           :disabled="loading"
           @click="fetchActivities"
         >

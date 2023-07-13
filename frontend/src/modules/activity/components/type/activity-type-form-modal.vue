@@ -26,7 +26,7 @@
         class="bg-gray-50 py-4 px-6 flex justify-end rounded-b-md"
       >
         <el-button
-          class="btn btn--bordered btn--md mr-4"
+          class="btn btn--secondary btn--md mr-4"
           @click="emit('update:modelValue', false)"
         >
           Cancel

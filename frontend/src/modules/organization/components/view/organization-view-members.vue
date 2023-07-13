@@ -68,7 +68,7 @@
           class="flex justify-center pt-4"
         >
           <el-button
-            class="btn btn-brand btn-brand--transparent"
+            class="btn btn-link btn-link--primary"
             :disabled="loading"
             @click="fetchMembers"
           >

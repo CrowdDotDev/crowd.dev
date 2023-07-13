@@ -76,7 +76,7 @@
         <div class="flex items-center">
           <el-button
             id="closeFilter"
-            class="btn btn--transparent btn--sm mr-3"
+            class="btn btn-link btn-link--sm btn-link--primary mr-3"
             @click="handleCancel"
           >
             Cancel

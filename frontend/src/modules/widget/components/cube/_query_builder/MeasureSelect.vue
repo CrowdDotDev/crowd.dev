@@ -4,7 +4,7 @@
       for="formMeasure"
       class="block text-xs leading-none font-semibold mb-1"
     >Measure
-      <span class="text-brand-500 ml-0.5">*</span></label>
+      <span class="text-red-500 ml-0.5">*</span></label>
     <el-select
       id="formMeasure"
       clearable

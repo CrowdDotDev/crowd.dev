@@ -1,6 +1,6 @@
 <template>
   <div
-    class="flex items-center justify-between pr-8 sticky top-0 z-10 bg-gray-50 pl-3 py-8"
+    class="flex items-center justify-between pr-8 sticky top-0 z-10 bg-white pl-3 py-8"
   >
     <div class="flex gap-4 items-center">
       <div

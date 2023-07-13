@@ -8,7 +8,7 @@
           href="https://app.swaggerhub.com/apis-docs/Crowd.dev/Crowd.dev"
           target="_blank"
           rel="noopener noreferrer"
-          class="font-semibold"
+          class="font-semibold hover:underline"
         >documentation</a>
         to get the most out of our API
       </div>

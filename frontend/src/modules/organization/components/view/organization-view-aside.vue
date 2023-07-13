@@ -165,6 +165,7 @@
               name: 'organizationEdit',
               params: { id: organization.id },
             }"
+            class="hover:underline"
           >
             Add identities
           </router-link>

@@ -137,7 +137,7 @@
             >
               <el-button
                 v-if="!attribute.canDelete"
-                class="btn btn--md btn--transparent w-10 h-10"
+                class="btn btn-link btn-link--md btn-link--primary w-10 h-10"
                 @click="
                   updateAttribute(attribute.id, {
                     show: !attribute.show,

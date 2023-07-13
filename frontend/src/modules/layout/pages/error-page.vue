@@ -37,7 +37,7 @@
     >
       <a
         href="https://crowd.dev/discord"
-        class="btn btn--transparent btn--md flex items-center mr-6"
+        class="btn btn-link btn-link--md btn-link--primary flex items-center mr-6"
         target="_blank"
         rel="noopener noreferrer"
       >
@@ -50,7 +50,7 @@
       </a>
       <a
         href="mailto:help@crowd.dev"
-        class="btn btn--transparent btn--md flex items-center"
+        class="btn btn-link btn-link--md btn-link--primary flex items-center"
         target="_blank"
         rel="noopener noreferrer"
       >

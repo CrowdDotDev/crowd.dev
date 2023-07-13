@@ -8,7 +8,7 @@
   >
     <el-button
       v-if="showPreviousStep"
-      class="btn btn--transparent btn--lg"
+      class="btn btn-link btn-link--lg btn-link--primary"
       :disabled="loadingUpdateSettings"
       @click="emit('onStepChange', -1)"
     >

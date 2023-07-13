@@ -24,7 +24,7 @@
     <div class="mt-8">
       <div class="text-gray-900 text-xs font-semibold mb-1">
         Platforms
-        <span class="text-brand-500 ml-0.5 font-normal">*</span>
+        <span class="text-red-500 ml-0.5 font-normal">*</span>
       </div>
       <p class="mb-5 text-xs text-gray-500">
         For better results, we recommend choosing at least 3

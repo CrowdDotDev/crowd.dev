@@ -19,9 +19,10 @@
           <app-avatar
             :entity="computedAvatarEntity"
             size="sm"
-            class="mr-3"
+            :class="isCollapsed ? '' : 'mr-3'"
           />
           <div
+            v-if="!isCollapsed"
             class="text-sm account-btn-info"
           >
             <div class="text-gray-900">
@@ -34,6 +35,7 @@
         </div>
 
         <i
+          v-if="!isCollapsed"
           class="ri-more-2-fill text-gray-300 text-lg"
         />
       </div>
@@ -70,6 +72,10 @@ const store = useStore();
 const router = useRouter();
 
 const isDropdownOpen = ref(false);
+
+const isCollapsed = computed(
+  () => store.getters['layout/menuCollapsed'],
+);
 
 const currentUserNameOrEmailPrefix = computed(
   () => store.getters['auth/currentUserNameOrEmailPrefix'],

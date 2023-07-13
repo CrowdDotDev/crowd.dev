@@ -37,11 +37,11 @@ export const defaultChartConfig = {
     stops: [
       {
         offset: 0,
-        color: 'rgba(233, 79, 46, 0.05)',
+        color: 'rgba(0, 148, 255, 0.10)',
       },
       {
         offset: 1,
-        color: 'rgba(233, 79, 46, 0)',
+        color: 'rgba(0, 148, 255, 0.00)',
       },
     ],
   },
@@ -51,13 +51,13 @@ export const defaultChartConfig = {
   verticalHoverLinePlugin: {
     lineWidth: 32,
     strokeStyle: 'rgba(100,100,100, 0.05)',
-    strokeStyleAfterTodayLine: 'rgba(233,79,46, 0.05)',
+    strokeStyleAfterTodayLine: 'rgba(24,96,184, 0.05)',
   },
   verticalTodayBlockPlugin: {
     bottomMargin: 11,
-    strokeColor: 'rgb(200,200,200)',
+    strokeColor: '#E5E7EB',
     strokeWidth: 0.5,
-    backgroundColor: 'rgb(200,200,200, 0.1)',
+    backgroundColor: 'rgba(229, 231, 235, 0.25)',
   },
   tooltipPlugin: {
     position: 'nearest',
@@ -93,7 +93,7 @@ export const defaultChartConfig = {
     },
     labels: {
       font: {
-        family: 'Inter',
+        family: 'Open Sans',
         size: 12,
       },
       usePointStyle: true,

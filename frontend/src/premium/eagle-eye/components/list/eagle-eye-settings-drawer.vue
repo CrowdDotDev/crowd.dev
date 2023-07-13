@@ -17,7 +17,7 @@
               class="text-2xs leading-4.5 font-semibold text-gray-400 uppercase tracking-1 pb-3"
             >
               Include
-              <span class="text-brand-500 font-normal">*</span>
+              <span class="text-red-500 font-normal">*</span>
             </p>
             <app-eagle-eye-settings-include
               v-for="(include, ii) of form.include"
@@ -26,7 +26,7 @@
             >
               <template #after>
                 <el-button
-                  class="btn btn--md btn--transparent w-10 h-10"
+                  class="btn btn-link btn-link--md btn-link--primary w-10 h-10"
                   :disabled="form.include.length === 1"
                   @click="removeInclude(ii)"
                 >
@@ -36,7 +36,7 @@
             </app-eagle-eye-settings-include>
             <div class="flex">
               <p
-                class="text-sm leading-5 text-brand-500 cursor-pointer"
+                class="text-sm leading-5 text-brand-500 cursor-pointer hover:underline"
                 @click="addInclude()"
               >
                 + Add keyword
@@ -65,7 +65,7 @@
                 />
               </app-form-item>
               <el-button
-                class="btn btn--md btn--transparent w-10 h-10"
+                class="btn btn-link btn-link--md btn-link--primary w-10 h-10"
                 @click="removeExclude(ei)"
               >
                 <i class="ri-delete-bin-line text-lg" />
@@ -73,7 +73,7 @@
             </article>
             <div class="flex">
               <p
-                class="text-sm leading-5 text-brand-500 cursor-pointer"
+                class="text-sm leading-5 text-brand-500 cursor-pointer hover:underline"
                 @click="addExclude()"
               >
                 + Add keyword
@@ -130,7 +130,7 @@
             >
               <a
                 aria-label="Question"
-                class="btn btn--transparent !h-8 !w-8 !text-gray-400 hover:!text-gray-600"
+                class="btn btn-link btn-link--primary !h-8 !w-8 !text-gray-400 hover:!text-gray-600 hover:no-underline"
                 href="https://docs.crowd.dev/docs/eagle-eye#ai-replies"
                 target="_blank"
                 rel="noopener noreferrer"
@@ -164,7 +164,7 @@
     <template #footer>
       <div style="flex: auto" class="-my-2">
         <el-button
-          class="btn btn--md btn--transparent mr-3"
+          class="btn btn-link btn-link--md btn-link--primary mr-3"
           @click="emit('update:modelValue', false)"
         >
           Cancel

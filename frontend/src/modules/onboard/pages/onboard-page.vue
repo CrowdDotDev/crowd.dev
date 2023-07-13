@@ -67,8 +67,8 @@ main {
 header {
   background: linear-gradient(
     259.13deg,
-    #f6e8e5 0%,
-    #faf6f5 100%
+    #DBEBFE 0%,
+    #F6FAFF 100%
   );
 }
 </style>

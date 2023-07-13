@@ -3,7 +3,7 @@
     <span
       class="block text-xs leading-none font-semibold mb-1"
     >Chart Type
-      <span class="text-brand-500 ml-0.5">*</span></span><el-radio-group
+      <span class="text-red-500 ml-0.5">*</span></span><el-radio-group
       v-model="model"
       class="radio-button-group radio-group-chart-type"
       size="large"
