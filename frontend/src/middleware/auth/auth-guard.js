@@ -35,11 +35,6 @@ export default async function ({ to, store, router }) {
     currentUser,
   );
 
-  if (!currentUser.acceptedTermsAndPrivacy) {
-    router.push({ path: '/auth/terms-and-privacy' });
-    return;
-  }
-
   if (!permissionChecker.isAuthenticated) {
     router.push({ path: '/auth/signin' });
     return;
@@ -62,6 +57,11 @@ export default async function ({ to, store, router }) {
       ))
   ) {
     router.push('/403');
+    return;
+  }
+
+  if (!currentUser.acceptedTermsAndPrivacy) {
+    router.push({ path: '/auth/terms-and-privacy' });
     return;
   }
 
