@@ -80,7 +80,7 @@ export default {
 
       if (!this.signedIn) {
         AuthInvitationToken.set(token);
-        router.push('/auth/signup');
+        router.push('/auth/signin');
         return;
       }
 

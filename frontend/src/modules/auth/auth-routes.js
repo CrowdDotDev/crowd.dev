@@ -14,7 +14,7 @@ export default [
     name: 'auth',
     path: '/auth',
     component: AuthLayout,
-    redirect: '/auth/signup',
+    redirect: '/auth/signin',
     children: [
       {
         name: 'signin',
