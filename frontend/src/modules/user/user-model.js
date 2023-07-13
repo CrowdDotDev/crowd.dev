@@ -126,6 +126,7 @@ const fields = {
     'createdAtRange',
     label('createdAtRange'),
   ),
+  roleUser: new GenericField('roleUser', label('roleUser')),
   acceptedTermsAndPrivacy: new BooleanField(
     'acceptedTermsAndPrivacy',
     label('acceptedTermsAndPrivacy'),
@@ -133,7 +134,6 @@ const fields = {
       required: true,
     },
   ),
-  roleUser: new GenericField('roleUser', label('roleUser')),
 };
 
 export class UserModel extends GenericModel {

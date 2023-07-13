@@ -175,7 +175,6 @@
         </el-form-item>
 
         <el-checkbox
-          id="remember-me"
           v-model="model[fields.acceptedTermsAndPrivacy.name]"
         >
           <span class="text-sm text-gray-900">
