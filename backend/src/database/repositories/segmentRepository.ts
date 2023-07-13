@@ -493,7 +493,7 @@ class SegmentRepository extends RepositoryBase<
     }
 
     if (criteria.filter?.parentSlug) {
-      searchQuery += ` AND s."parentSlug" ilike :parent_slug `
+      searchQuery += ` AND s."parentSlug" = :parent_slug `
     }
 
     const projects = await this.options.database.sequelize.query(
@@ -560,11 +560,11 @@ class SegmentRepository extends RepositoryBase<
     }
 
     if (criteria.filter?.parentSlug) {
-      searchQuery += ` AND s."parentSlug" ilike :parent_slug `
+      searchQuery += ` AND s."parentSlug" = :parent_slug `
     }
 
     if (criteria.filter?.grandparentSlug) {
-      searchQuery += ` AND s."grandparentSlug" ilike :grandparent_slug `
+      searchQuery += ` AND s."grandparentSlug" = :grandparent_slug `
     }
 
     const subprojects = await this.options.database.sequelize.query(
