@@ -58,7 +58,9 @@ export class WorkerQueueReceiver extends SqsQueueReceiver {
           await service.processStream((message as ProcessStreamQueueMessage).streamId)
           break
         case IntegrationStreamWorkerQueueMessageType.PROCESS_WEBHOOK_STREAM:
-          await service.processWebhookStream((message as ProcessWebhookStreamQueueMessage).streamId)
+          await service.processWebhookStream(
+            (message as ProcessWebhookStreamQueueMessage).webhookId,
+          )
           break
         default:
           throw new Error(`Unknown message type: ${message.type}`)
