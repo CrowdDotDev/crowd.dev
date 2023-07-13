@@ -22,11 +22,13 @@ export async function BulkorganizationEnrichmentWorker(
     10,
   )
 
-  const remainderEnrichmentLimit =
-    maxEnrichLimit > 0
-      ? maxEnrichLimit // Use maxEnrichLimit as the limit if provided
-      : PLAN_LIMITS[userContext.currentTenant.plan][FeatureFlag.ORGANIZATION_ENRICHMENT] -
-        usedEnrichmentCount
+  // Discard limits and credits if maxEnrichLimit is provided
+  const skipCredits = maxEnrichLimit > 0
+
+  const remainderEnrichmentLimit = skipCredits
+    ? maxEnrichLimit // Use maxEnrichLimit as the limit if provided
+    : PLAN_LIMITS[userContext.currentTenant.plan][FeatureFlag.ORGANIZATION_ENRICHMENT] -
+      usedEnrichmentCount
 
   let enrichedOrgs = []
   if (remainderEnrichmentLimit > 0) {
@@ -39,9 +41,11 @@ export async function BulkorganizationEnrichmentWorker(
     enrichedOrgs = await enrichmentService.enrichOrganizationsAndSignalDone()
   }
 
-  await organizationEnrichmentCountCache.set(
-    userContext.currentTenant.id,
-    (usedEnrichmentCount + enrichedOrgs.length).toString(),
-    getSecondsTillEndOfMonth(),
-  )
+  if (!skipCredits) {
+    await organizationEnrichmentCountCache.set(
+      userContext.currentTenant.id,
+      (usedEnrichmentCount + enrichedOrgs.length).toString(),
+      getSecondsTillEndOfMonth(),
+    )
+  }
 }
