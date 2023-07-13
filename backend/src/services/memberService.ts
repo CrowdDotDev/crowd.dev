@@ -306,11 +306,13 @@ export default class MemberService extends LoggerBase {
       // If organizations are sent
       if (data.organizations) {
         // Collect IDs for relation
-        const organizationsIds = []
+        const organizations = []
         for (const organization of data.organizations) {
           if (typeof organization === 'string' && validator.isUUID(organization)) {
             // If an ID was already sent, we simply push it to the list
-            organizationsIds.push(organization)
+            organizations.push(organization)
+          } else if (typeof organization === 'object' && organization.id) {
+            organizations.push(organization)
           } else {
             // Otherwise, either another string or an object was sent
             const organizationService = new OrganizationService(this.options)
@@ -324,11 +326,32 @@ export default class MemberService extends LoggerBase {
             }
             // We findOrCreate the organization and add it to the list of IDs
             const organizationRecord = await organizationService.findOrCreate(data)
-            organizationsIds.push(organizationRecord.id)
+            organizations.push(organizationRecord.id)
           }
         }
+
+        // Auto assign member to organization if email domain matches
+        if (data.emails) {
+          const emailDomains = new Set()
+
+          // Collect unique domains
+          for (const email of data.emails) {
+            const domain = email.split('@')[1]
+            emailDomains.add(domain)
+          }
+
+          // Fetch organization ids for these domains
+          const organizationService = new OrganizationService(this.options)
+          for (const domain of emailDomains) {
+            const organizationRecord = await organizationService.findByUrl(domain)
+            if (organizationRecord) {
+              organizations.push(organizationRecord.id)
+            }
+          }
+        }
+
         // Remove dups
-        data.organizations = [...new Set(organizationsIds)]
+        data.organizations = [...new Set(organizations)]
       }
 
       const fillRelations = false
@@ -669,25 +692,30 @@ export default class MemberService extends LoggerBase {
         return toKeep
       },
       organizations: (oldOrganizations, newOrganizations) => {
-        oldOrganizations = oldOrganizations
-          ? oldOrganizations.map((o) => {
-              if (o.id) {
-                return o.id
-              }
-              return o
-            })
-          : []
+        const convertOrgs = (orgs) =>
+          orgs
+            ? orgs
+                .map((o) => (o.dataValues ? o.get({ plain: true }) : o))
+                .map((o) => {
+                  if (typeof o === 'string') {
+                    return {
+                      id: o,
+                    }
+                  }
+                  const memberOrg = o.memberOrganizations
+                  return {
+                    id: o.id,
+                    title: memberOrg?.title,
+                    startDate: memberOrg?.dateStart,
+                    endDate: memberOrg?.dateEnd,
+                  }
+                })
+            : []
 
-        newOrganizations = newOrganizations
-          ? newOrganizations.map((o) => {
-              if (o.id) {
-                return o.id
-              }
-              return o
-            })
-          : []
+        oldOrganizations = convertOrgs(oldOrganizations)
+        newOrganizations = convertOrgs(newOrganizations)
 
-        return Array.from(new Set<string>([...oldOrganizations, ...newOrganizations]))
+        return lodash.uniqWith([...oldOrganizations, ...newOrganizations], lodash.isEqual)
       },
     })
   }

@@ -4,6 +4,8 @@ import { getServiceChildLogger } from '@crowd/logging'
 import { GOOGLE_CONFIG } from '../../../conf'
 import { databaseInit } from '../../../database/databaseConnection'
 import AuthService from '../authService'
+import { splitFullName } from '../../../utils/splitName'
+import { AuthProvider } from '../../../types/common'
 
 const log = getServiceChildLogger('AuthSocial')
 
@@ -23,7 +25,7 @@ export function getGoogleStrategy(): GoogleStrategy {
           const { firstName, lastName } = splitFullName(displayName)
 
           return AuthService.signinFromSocial(
-            'google',
+            AuthProvider.GOOGLE,
             profile.id,
             email,
             emailVerified,
@@ -42,20 +44,4 @@ export function getGoogleStrategy(): GoogleStrategy {
         })
     },
   )
-}
-
-function splitFullName(fullName) {
-  let firstName
-  let lastName
-
-  if (fullName && fullName.split(' ').length > 1) {
-    const [firstNameArray, ...lastNameArray] = fullName.split(' ')
-    firstName = firstNameArray
-    lastName = lastNameArray.join(' ')
-  } else {
-    firstName = fullName || null
-    lastName = null
-  }
-
-  return { firstName, lastName }
 }

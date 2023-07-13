@@ -79,9 +79,8 @@ export interface ApiConfiguration {
 }
 
 export interface Auth0Configuration {
-  domain: string
   clientId: string
-  cert: string
+  jwks: string
 }
 
 export interface PlansConfiguration {
@@ -144,6 +143,7 @@ export interface GithubConfiguration {
   webhookSecret: string
   isCommitDataEnabled: string
   globalLimit?: number
+  callbackUrl: string
 }
 
 export interface SendgridConfiguration {
