@@ -9,7 +9,10 @@ import SequelizeRepository from '../database/repositories/sequelizeRepository'
 import IntegrationRepository from '../database/repositories/integrationRepository'
 import IncomingWebhookRepository from '../database/repositories/incomingWebhookRepository'
 import { DiscordWebsocketEvent, DiscordWebsocketPayload, WebhookType } from '../types/webhooks'
-import { getIntegrationRunWorkerEmitter , getIntegrationStreamWorkerEmitter } from '@/serverless/utils/serviceSQS'
+import {
+  getIntegrationRunWorkerEmitter,
+  getIntegrationStreamWorkerEmitter,
+} from '@/serverless/utils/serviceSQS'
 
 const log = getServiceLogger()
 
@@ -51,6 +54,8 @@ async function spawnClient(
       data,
     }
 
+    logger.info({ payload }, 'Processing Discord WS Message!')
+
     try {
       const integration = (await IntegrationRepository.findByIdentifier(
         guildId,
@@ -71,7 +76,6 @@ async function spawnClient(
         integration.platform,
         result.id,
       )
-
     } catch (err) {
       if (err.code === 404) {
         logger.warn({ guildId }, 'No integration found for incoming Discord WS Message!')

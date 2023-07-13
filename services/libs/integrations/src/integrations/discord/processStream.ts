@@ -8,6 +8,7 @@ import {
   IDiscordAPIData,
   DiscordApiMessage,
   DiscordApiDataMessage,
+  IDiscordIntegrationSettings,
 } from './types'
 import getChannels from './api/getChannels'
 import { getChannel } from './api/getChannel'
@@ -19,11 +20,36 @@ import { timeout } from '@crowd/common'
 import { RateLimitError } from '@crowd/types'
 import getMessages from './api/getMessages'
 
-function isDiscordForum(channel: DiscordApiChannel): boolean {
+const MAX_RETROSPECT_SECONDS = 86400 // 24 hours
+
+async function saveLastTimestampForChannel(
+  streamIdentifier: string,
+  timestamp: string,
+  ctx: IProcessStreamContext,
+): Promise<void> {
+  const cacheKey = `discord:channels:lastTimestamp`
+
+  const prefix = (key: string): string => `${cacheKey}:${key}`
+  await ctx.cache.set(prefix(streamIdentifier), timestamp, 24 * 60 * 60)
+}
+
+async function getLastTimestampForChannel(
+  streamIdentifier: string,
+  ctx: IProcessStreamContext,
+): Promise<string | undefined> {
+  const cacheKey = `discord:channels:lastTimestamp`
+
+  const prefix = (key: string): string => `${cacheKey}:${key}`
+  const cached = await ctx.cache.get(prefix(streamIdentifier))
+
+  return cached
+}
+
+export function isDiscordForum(channel: DiscordApiChannel): boolean {
   return channel.type === ChannelType.GuildForum
 }
 
-function isDiscordThread(channel: DiscordApiChannel): boolean {
+export function isDiscordThread(channel: DiscordApiChannel): boolean {
   return channel.type === ChannelType.PublicThread || channel.type === ChannelType.PrivateThread
 }
 
@@ -48,7 +74,7 @@ async function getDiscordChannel(
   return channel
 }
 
-const cacheDiscordChannels = async (
+export const cacheDiscordChannels = async (
   channel: DiscordApiChannel,
   ctx: IProcessStreamContext,
 ): Promise<void> => {
@@ -59,7 +85,7 @@ const cacheDiscordChannels = async (
   await ctx.cache.set(prefix(channel.id), JSON.stringify(channel), 24 * 60 * 60)
 }
 
-const getDiscordToken = (ctx: IProcessStreamContext): string => {
+export const getDiscordToken = (ctx: IProcessStreamContext): string => {
   const token = ctx.platformSettings as IDiscordPlatformSettings
   return `Bot ${token.token}`
 }
@@ -115,6 +141,18 @@ const processRootStream: ProcessStreamHandler = async (ctx) => {
       },
     )
   }
+
+  // updating settings
+  const currentSettings = ctx.integration.settings as IDiscordIntegrationSettings
+  const newSettings = {
+    ...currentSettings,
+    channels: fromDiscordApi.map((c) => ({
+      id: c.id,
+      name: c.name,
+    })),
+  }
+
+  await ctx.updateIntegrationSettings(newSettings)
 }
 
 const processMembersStream: ProcessStreamHandler = async (ctx) => {
@@ -169,6 +207,27 @@ const processChannelStream: ProcessStreamHandler = async (ctx) => {
     },
     ctx,
   )
+
+  // if we are not in onboarding mode we need to check if we are not going too far in the past
+  if (!ctx.onboarding) {
+    // checking if we are not going too far in the past
+    const lastTimestamp = await getLastTimestampForChannel(ctx.stream.identifier, ctx)
+    if (lastTimestamp) {
+      const lastTimestampDate = new Date(lastTimestamp)
+      const lastTimestampSeconds = lastTimestampDate.getTime() / 1000
+      const nowSeconds = Date.now() / 1000
+      const diff = nowSeconds - lastTimestampSeconds
+      if (diff > MAX_RETROSPECT_SECONDS) {
+        ctx.log.warn(
+          `Going too far in the past for channel ${
+            ctx.stream.identifier
+          }. Last timestamp is ${lastTimestampDate.toISOString()}`,
+        )
+        // we don't need to parse next page, still need to parse threads
+        channel.nextPage = ''
+      }
+    }
+  }
 
   if (channel.nextPage) {
     await ctx.publishStream<DiscordChannelStreamData>(
@@ -239,6 +298,14 @@ const processChannelStream: ProcessStreamHandler = async (ctx) => {
         channel,
       } as DiscordApiDataMessage,
     })
+  }
+
+  // saving last timestamp from the stream
+  const records = channel.records as DiscordApiMessage[]
+  if (records.length > 0) {
+    const lastRecord = records[records.length - 1]
+    const lastRecordDate = lastRecord.timestamp
+    await saveLastTimestampForChannel(ctx.stream.identifier, lastRecordDate, ctx)
   }
 }
 
