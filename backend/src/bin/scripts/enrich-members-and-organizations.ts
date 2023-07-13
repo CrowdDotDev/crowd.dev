@@ -77,11 +77,11 @@ if (parameters.help || !parameters.tenant || !parameters.organization || !parame
         const tenant = await options.database.tenant.findByPk(tenantId)
 
         if (!tenant) {
-          log.error({ tenantId }, 'Tenant not found!')
+          log.error({ tenantId: tenantId }, 'Tenant not found!')
           process.exit(1)
         } else {
           log.info(
-            { tenantId },
+            { tenantId: tenantId },
             `Tenant found - starting enrichment operation for tenant ${tenantId}`,
           )
 
@@ -105,21 +105,24 @@ if (parameters.help || !parameters.tenant || !parameters.organization || !parame
               )
 
               totalMembers = members.count
-              log.info({ tenantId }, `Total members found in the tenant: ${totalMembers}`)
+              log.info({ tenantId: tenantId }, `Total members found in the tenant: ${totalMembers}`)
 
               const membersToEnrich = members.rows.map((m) => m.id)
               // notifyFrontend is set to false to prevent sending notifications to the frontend
               await sendBulkEnrichMessage(tenant, membersToEnrich, false)
 
               log.info(
-                { tenantId },
+                { tenantId: tenantId },
                 `Enriched members from ${offset + 1} to ${offset + membersToEnrich.length}`,
               )
 
               offset += limit
             } while (totalMembers > offset)
 
-            log.info({ tenantId }, `Members enrichment operation finished for tenant ${tenantId}`)
+            log.info(
+              { tenantId: tenantId },
+              `Members enrichment operation finished for tenant ${tenantId}`,
+            )
           }
 
           // Organizations enrichment
@@ -151,18 +154,18 @@ if (parameters.help || !parameters.tenant || !parameters.organization || !parame
             }
 
             log.info(
-              { tenantId },
+              { tenantId: tenantId },
               `Total organizations enriched in the tenant: ${totalOrganizations}`,
             )
 
             log.info(
-              { tenantId },
+              { tenantId: tenantId },
               `Organizations enrichment operation finished for tenant ${tenantId}`,
             )
           }
         }
       } catch (error) {
-        log.error({ tenantId }, `Error occurred during enrichment operation: ${error}`)
+        log.error({ tenantId: tenantId }, `Error occurred during enrichment operation: ${error}`)
       }
     }
 
