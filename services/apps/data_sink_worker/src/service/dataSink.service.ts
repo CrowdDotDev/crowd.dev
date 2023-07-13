@@ -3,6 +3,7 @@ import { Logger, LoggerBase, getChildLogger } from '@crowd/logging'
 import {
   IActivityData,
   IMemberData,
+  IOrganization,
   IntegrationResultState,
   IntegrationResultType,
 } from '@crowd/types'
@@ -12,6 +13,7 @@ import { NodejsWorkerEmitter, SearchSyncWorkerEmitter } from '@crowd/sqs'
 import MemberService from './member.service'
 import { SLACK_ALERTING_CONFIG } from '@/conf'
 import { sendSlackAlert, SlackAlertTypes } from '@crowd/alerting'
+import { OrganizationService } from './organization.service'
 
 export default class DataSinkService extends LoggerBase {
   private readonly repo: DataSinkRepository
@@ -117,6 +119,14 @@ export default class DataSinkService extends LoggerBase {
             resultInfo.platform,
             memberData,
           )
+          break
+        }
+
+        case IntegrationResultType.ORGANIZATION_ENRICH: {
+          const service = new OrganizationService(this.store, this.log)
+          const organizationData = data.data as IOrganization
+
+          await service.findOrCreate(resultInfo.tenantId, organizationData)
           break
         }
 

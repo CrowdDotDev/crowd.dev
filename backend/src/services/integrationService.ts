@@ -4,13 +4,14 @@ import moment from 'moment'
 import axios from 'axios'
 import { PlatformType } from '@crowd/types'
 import {
-  HubspotFieldMapper,
-  getContactProperties,
-  getTokenInfo,
+  HubspotFieldMapperFactory,
+  getHubspotProperties,
+  getHubspotTokenInfo,
   IHubspotOnboardingSettings,
   IHubspotProperty,
   HubspotEntity,
   IHubspotTokenInfo,
+  HubspotEndpoint,
 } from '@crowd/integrations'
 import { ILinkedInOrganization } from '../serverless/integrations/types/linkedinTypes'
 import { DISCORD_CONFIG, GITHUB_CONFIG, IS_TEST_ENV, KUBE_MODE, NANGO_CONFIG } from '../conf/index'
@@ -502,17 +503,34 @@ export default class IntegrationService {
 
     const identities = await TenantRepository.getAvailablePlatforms(tenantId, this.options)
 
-    const mapper = new HubspotFieldMapper(memberAttributeSettings, identities)
+    const memberMapper = HubspotFieldMapperFactory.getFieldMapper(HubspotEntity.MEMBERS, memberAttributeSettings, identities)
+    const organizationMapper = HubspotFieldMapperFactory.getFieldMapper(HubspotEntity.ORGANIZATIONS)
 
     // validate members
     if (onboardSettings.attributesMapping.members) {
       for (const field of Object.keys(onboardSettings.attributesMapping.members)) {
-        const hubspotProperty: IHubspotProperty = integration.settings.hubspotProperties.find(
-          (p) => p.name === onboardSettings.attributesMapping.members[field],
-        )
-        if (!mapper.isFieldMappableToHubspotType(field, hubspotProperty.type)) {
+        const hubspotProperty: IHubspotProperty =
+          integration.settings.hubspotProperties.members.find(
+            (p) => p.name === onboardSettings.attributesMapping.members[field],
+          )
+        if (!memberMapper.isFieldMappableToHubspotType(field, hubspotProperty.type)) {
           throw new Error(
-            `Field ${field} has incompatible type with hubspot property ${hubspotProperty.name}`,
+            `Member field ${field} has incompatible type with hubspot property ${hubspotProperty.name}`,
+          )
+        }
+      }
+    }
+
+    // validate organizations
+    if (onboardSettings.attributesMapping.organizations) {
+      for (const field of Object.keys(onboardSettings.attributesMapping.organizations)) {
+        const hubspotProperty: IHubspotProperty =
+          integration.settings.hubspotProperties.organizations.find(
+            (p) => p.name === onboardSettings.attributesMapping.organizations[field],
+          )
+        if (!organizationMapper.isFieldMappableToHubspotType(field, hubspotProperty.type)) {
+          throw new Error(
+            `Organization field ${field} has incompatible type with hubspot property ${hubspotProperty.name}`,
           )
         }
       }
@@ -560,9 +578,10 @@ export default class IntegrationService {
       this.options,
     )
 
-    const mapper = new HubspotFieldMapper(memberAttributeSettings, identities)
+    const memberMapper = HubspotFieldMapperFactory.getFieldMapper(HubspotEntity.MEMBERS, memberAttributeSettings, identities)
+    const organizationMapper = HubspotFieldMapperFactory.getFieldMapper(HubspotEntity.ORGANIZATIONS)
 
-    return { members: mapper.getMembersHubspotFieldTypeMap() }
+    return { members: memberMapper.getFieldTypeMap(), organizations: organizationMapper.getFieldTypeMap() }
   }
 
   async hubspotUpdateProperties(): Promise<IHubspotProperty[]> {
@@ -594,20 +613,37 @@ export default class IntegrationService {
 
     const transaction = await SequelizeRepository.createTransaction(this.options)
 
-    const properties = await getContactProperties(nangoId, {
+    const context = {
       log: this.options.log,
       serviceSettings: {
         nangoId,
         nangoUrl: NANGO_CONFIG.url,
         nangoSecretKey: NANGO_CONFIG.secretKey,
       },
-    })
+    }
+
+    const hubspotMemberProperties = await getHubspotProperties(
+      nangoId,
+      HubspotEndpoint.CONTACTS,
+      context,
+    )
+    const hubspotOrganizationProperties = await getHubspotProperties(
+      nangoId,
+      HubspotEndpoint.COMPANIES,
+      context,
+    )
 
     try {
       integration = await this.createOrUpdate(
         {
           platform: PlatformType.HUBSPOT,
-          settings: { updateMemberAttributes: true, hubspotProperties: properties },
+          settings: {
+            updateMemberAttributes: true,
+            hubspotProperties: {
+              [HubspotEntity.MEMBERS]: hubspotMemberProperties,
+              [HubspotEntity.ORGANIZATIONS]: hubspotOrganizationProperties,
+            },
+          },
           status: 'in-progress',
         },
         transaction,
@@ -641,7 +677,7 @@ export default class IntegrationService {
     const transaction = await SequelizeRepository.createTransaction(this.options)
     let integration
 
-    const context =  {
+    const context = {
       log: this.options.log,
       serviceSettings: {
         nangoId,
@@ -650,9 +686,19 @@ export default class IntegrationService {
       },
     }
 
-    const customProps: IHubspotProperty[] = await getContactProperties(nangoId, context)
+    const hubspotMemberProperties: IHubspotProperty[] = await getHubspotProperties(
+      nangoId,
+      HubspotEndpoint.CONTACTS,
+      context,
+    )
 
-    const hubspotInfo: IHubspotTokenInfo = await getTokenInfo(nangoId, context)
+    const hubspotOrganizationProperties: IHubspotProperty[] = await getHubspotProperties(
+      nangoId,
+      HubspotEndpoint.COMPANIES,
+      context,
+    )
+
+    const hubspotInfo: IHubspotTokenInfo = await getHubspotTokenInfo(nangoId, context)
 
     try {
       integration = await this.createOrUpdate(
@@ -660,8 +706,11 @@ export default class IntegrationService {
           platform: PlatformType.HUBSPOT,
           settings: {
             updateMemberAttributes: true,
-            hubspotProperties: customProps,
-            hubspotId: hubspotInfo.hub_id
+            hubspotProperties: {
+              [HubspotEntity.MEMBERS]: hubspotMemberProperties,
+              [HubspotEntity.ORGANIZATIONS]: hubspotOrganizationProperties,
+            },
+            hubspotId: hubspotInfo.hub_id,
           },
           status: 'pending-action',
         },

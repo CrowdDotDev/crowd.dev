@@ -2,18 +2,19 @@ import axios, { AxiosRequestConfig } from 'axios'
 import { PlatformType } from '@crowd/types'
 import { getNangoToken } from '../../../nango'
 import { IGenerateStreamsContext, IProcessStreamContext } from '@/types'
-import { IHubspotProperty } from '../types'
+import { HubspotEndpoint, IHubspotProperty } from '../types'
 
-export const getContactProperties = async (
+export const getProperties = async (
   nangoId: string,
+  endpoint: HubspotEndpoint,
   ctx: IProcessStreamContext | IGenerateStreamsContext,
 ): Promise<IHubspotProperty[]> => {
   const config: AxiosRequestConfig<any> = {
     method: 'get',
-    url: `https://api.hubapi.com/crm/v3/properties/contacts`,
+    url: `https://api.hubapi.com/crm/v3/properties/${endpoint}`,
   }
   try {
-    ctx.log.debug({ nangoId }, 'Fetching contact properties from HubSpot')
+    ctx.log.debug({ nangoId }, `Fetching ${endpoint} properties from HubSpot`)
 
     const accessToken = await getNangoToken(nangoId, PlatformType.HUBSPOT, ctx)
     config.headers = { Authorization: `Bearer ${accessToken}` }
@@ -24,7 +25,7 @@ export const getContactProperties = async (
 
     return hubspotProperties.filter((p) => !p.calculated && !p.modificationMetadata.readOnlyValue)
   } catch (err) {
-    ctx.log.error({ err }, 'Error while getting hubspot contact properties!')
+    ctx.log.error({ err }, `Error while getting hubspot ${endpoint} properties!`)
     throw err
   }
 }

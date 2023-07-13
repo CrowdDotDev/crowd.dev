@@ -4,6 +4,7 @@ import {
   IDbCacheOrganization,
   IDbInsertOrganizationData,
   IDbOrganization,
+  IDbUpdateOrganizationCacheData,
   IDbUpdateOrganizationData,
   getInsertCacheOrganizationColumnSet,
   getInsertOrganizationColumnSet,
@@ -34,14 +35,23 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
       `
       select  id,
               name,
-              description,
-              location,
-              logo,
               url,
+              description,
+              emails,
+              logo,
+              tags,
               github,
               twitter,
+              linkedin,
+              crunchbase,
+              employees,
+              location,
               website,
-              enriched
+              type,
+              size,
+              headline,
+              industry,
+              founded
       from "organizationCaches"
       where name = $(name);`,
       { name },
@@ -68,7 +78,7 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
     return id
   }
 
-  public async updateCache(id: string, data: IDbUpdateOrganizationData): Promise<void> {
+  public async updateCache(id: string, data: IDbUpdateOrganizationCacheData): Promise<void> {
     const prepared = RepositoryBase.prepare(
       {
         ...data,
@@ -90,13 +100,23 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
       `
       select  id,
               name,
-              description,
-              location,
-              logo,
               url,
+              description,
+              emails,
+              logo,
+              tags,
               github,
               twitter,
-              website
+              linkedin,
+              crunchbase,
+              employees,
+              location,
+              website,
+              type,
+              size,
+              headline,
+              industry,
+              founded
       from organizations
       where "tenantId" = $(tenantId) and name = $(name);`,
       { tenantId, name },
@@ -157,7 +177,7 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
     const valueString = valueStrings.join(',')
 
     const query = `
-    insert into "organizationSegments"("organizationId", "segmentId", "tenantId", "createdAt")
+    insert into "organizationSegments"("tenantId", "segmentId", "organizationId", "createdAt")
     values ${valueString}
     on conflict do nothing;
     `
@@ -174,7 +194,7 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
     for (let i = 0; i < orgIds.length; i++) {
       const orgId = orgIds[i]
       parameters[`orgId_${i}`] = orgId
-      valueStrings.push(`($(orgId_${i}), $(memberId), now(), now()))`)
+      valueStrings.push(`($(orgId_${i}), $(memberId), now(), now())`)
     }
 
     const valueString = valueStrings.join(',')

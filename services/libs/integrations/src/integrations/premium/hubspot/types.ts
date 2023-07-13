@@ -1,5 +1,3 @@
-import { HubspotFieldMapper } from './hubspotFieldMapper'
-
 export enum HubspotPropertyType {
   BOOL = 'bool',
   ENUMERATION = 'enumeration',
@@ -7,6 +5,11 @@ export enum HubspotPropertyType {
   DATETIME = 'dateTime',
   STRING = 'string',
   NUMBER = 'number',
+}
+
+export enum HubspotEndpoint {
+  CONTACTS = 'contacts',
+  COMPANIES = 'companies',
 }
 
 export enum HubspotEntity {
@@ -17,6 +20,10 @@ export enum HubspotEntity {
 export enum HubspotStream {
   MEMBERS = 'members',
   ORGANIZATIONS = 'organizations',
+}
+
+export enum HubspotAssociationType {
+  CONTACT_TO_COMPANY = 'contact_to_company',
 }
 
 export interface IHubspotTokenInfo {
@@ -67,7 +74,7 @@ export interface IHubspotProperty {
   modificationMetadata: IHubspotPropertyModificationMetadata
 }
 
-export interface IHubspotContact {
+export interface IHubspotObject {
   id: string
   properties: unknown
   createdAt: string
@@ -75,9 +82,18 @@ export interface IHubspotContact {
   archived: boolean
 }
 
+export interface IHubspotContact extends IHubspotObject {
+  organization?: IHubspotObject
+}
+
+export interface IHubspotAssociation {
+  id: string
+  type: HubspotAssociationType
+}
+
 export interface IHubspotData {
   type: HubspotStream
-  element: IHubspotContact
+  element: IHubspotObject | IHubspotContact
 }
 
 export interface IHubspotAttributeMap {
