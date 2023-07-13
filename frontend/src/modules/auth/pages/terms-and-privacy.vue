@@ -3,9 +3,6 @@
     <h3 class="text-2xl leading-12 font-semibold mb-1">
       Terms of service & privacy policy
     </h3>
-    <!--    <p class="text-gray-500 text-xs leading-5">-->
-    <!--      You have to accept terms of service and privacy policy before continuing-->
-    <!--    </p>-->
     <div class="pt-10">
       <el-form
         ref="form"
@@ -50,10 +47,9 @@
 </template>
 
 <script>
-import { mapGetters, mapActions } from 'vuex';
+import { mapActions } from 'vuex';
 import { UserModel } from '@/modules/user/user-model';
 import config from '@/config';
-import { passwordConfirmRules } from '@/modules/auth/auth-helpers';
 import { AuthService } from '@/modules/auth/auth-service';
 
 const { fields } = UserModel;
@@ -64,16 +60,14 @@ export default {
     return {
       model: {},
       acceptTerms: false,
+      loading: false,
     };
   },
 
   computed: {
-    ...mapGetters('auth', ['loading']),
-
     fields() {
       return fields;
     },
-
   },
 
   methods: {
@@ -81,13 +75,17 @@ export default {
 
     doSubmit() {
       if (this.model.acceptedTermsAndPrivacy) {
+        this.loading = true;
         AuthService.updateProfile({
           acceptedTermsAndPrivacy: this.model.acceptedTermsAndPrivacy,
         })
           .then(() => this.doRefreshCurrentUser())
           .then(() => {
             this.$router.push('/');
-          });
+          })
+          .finally(() => {
+            this.loading = false;
+          })
       } else {
         this.acceptTerms = true;
       }
