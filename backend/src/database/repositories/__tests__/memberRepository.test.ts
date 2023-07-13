@@ -2491,8 +2491,9 @@ describe('MemberRepository tests', () => {
       )
       const member2 = members.rows.find((m) => m.username[PlatformType.SLACK].includes('test2'))
       expect(members.rows.length).toEqual(1)
-      expect(member2.organizations[0].name).toEqual('crowd.dev')
-      expect(member2.organizations[1].name).toEqual('pied piper')
+      expect(member2.organizations.map((o) => o.name)).toEqual(
+        expect.arrayContaining(['crowd.dev', 'pied piper']),
+      )
     })
 
     it('is successfully finding and counting all members, and scoreRange is gte than 7', async () => {
@@ -3208,7 +3209,9 @@ describe('MemberRepository tests', () => {
       member1.createdAt = member1.createdAt.toISOString().split('T')[0]
       member1.updatedAt = member1.updatedAt.toISOString().split('T')[0]
 
-      member1.organizations = member1.organizations.map((i) => i.get({ plain: true }))
+      member1.organizations = member1.organizations.map((i) =>
+        SequelizeTestUtils.objectWithoutKey(i.get({ plain: true }), ['memberOrganizations']),
+      )
 
       // // sort member organizations by createdAt
       // member1.organizations.sort((a, b) => {

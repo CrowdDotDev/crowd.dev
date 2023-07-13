@@ -8,6 +8,10 @@
 
     <div class="member-view-aside panel">
       <app-member-aside-identities :member="member" />
+      <app-lf-member-aside-organizations
+        class="mt-10"
+        :member="member"
+      />
       <app-member-aside-custom-attributes
         :member="member"
         class="mt-10"
@@ -21,11 +25,11 @@
 </template>
 
 <script setup>
-import { defineProps } from 'vue';
 import AppMemberEnrichment from '@/modules/member/components/member-enrichment.vue';
 import AppMemberAsideCustomAttributes from './_aside/_aside-custom-attributes.vue';
 import AppMemberAsideIdentities from './_aside/_aside-identities.vue';
 import AppMemberAsideEnriched from './_aside/_aside-enriched.vue';
+import AppLfMemberAsideOrganizations from './_aside/_aside-organizations.vue';
 
 defineProps({
   member: {
