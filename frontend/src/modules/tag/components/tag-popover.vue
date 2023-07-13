@@ -1,6 +1,6 @@
 <template>
   <app-dialog
-    v-if="modelValue"
+    v-if="computedVisible"
     v-model="computedVisible"
     title="Edit tags"
     :pre-title="modelValue.displayName"
