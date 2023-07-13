@@ -159,19 +159,29 @@ export default class IntegrationStreamService extends LoggerBase {
   public async processWebhookStream(webhookId: string): Promise<void> {
     this.log.debug({ webhookId }, 'Trying to process webhook stream!')
 
-    // here we need to create a stream from webhook
-    // first we need to get the webhook data
-
+    // get webhook info
     const webhookInfo = await this.webhookRepo.getWebhookById(webhookId)
 
+    if (!webhookInfo) {
+      this.log.error({ webhookId }, 'Webhook not found!')
+      return
+    }
+
+    // creating stream to process webhook
     const streamId = await this.repo.publishStream(
+      // parentId
       undefined,
-      webhookInfo.type, // TODO: this is not correct
+      // stream identifier should be unique across tenant and platform, but for webhook we don't have anything
+      webhookId,
+      // data
       webhookInfo.payload,
+      // runId
       undefined,
+      // webhookId
       webhookId,
     )
 
+    // getting all stream info
     const streamInfo = await this.repo.getStreamData(streamId)
 
     if (!streamInfo) {
