@@ -76,9 +76,12 @@ export type BulkEnrichMessage = {
   service: string
   tenant: string
   memberIds: string[]
+  notifyFrontend: boolean
+  skipCredits: boolean
 }
 
 export type OrganizationBulkEnrichMessage = {
   service: string
   tenantId: string
+  maxEnrichLimit: number
 }

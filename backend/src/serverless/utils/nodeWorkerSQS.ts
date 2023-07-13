@@ -136,6 +136,7 @@ export const sendBulkEnrichMessage = async (
   tenant: string,
   memberIds: string[],
   notifyFrontend: boolean = true,
+  skipCredits: boolean = false,
 ): Promise<void> => {
   const payload = {
     type: NodeWorkerMessageType.NODE_MICROSERVICE,
@@ -143,6 +144,7 @@ export const sendBulkEnrichMessage = async (
     memberIds,
     tenant,
     notifyFrontend,
+    skipCredits,
   }
   await sendNodeWorkerMessage(tenant, payload as NodeWorkerMessageBase)
 }

@@ -109,7 +109,8 @@ if (parameters.help || !parameters.tenant || !parameters.organization || !parame
 
               const membersToEnrich = members.rows.map((m) => m.id)
               // notifyFrontend is set to false to prevent sending notifications to the frontend
-              await sendBulkEnrichMessage(tenant, membersToEnrich, false)
+              // skipCredits is set to true to discard any limits, credits, and etc for the enrichment
+              await sendBulkEnrichMessage(tenant, membersToEnrich, false, true)
 
               log.info(
                 { tenantId },
@@ -138,22 +139,19 @@ if (parameters.help || !parameters.tenant || !parameters.organization || !parame
 
             const totalOrganizations = organizations.count
 
+            log.info({ tenantId }, `Total organizations in the tenant: ${totalOrganizations}`)
+
             for (const organization of organizations.rows) {
               const payload = {
                 type: NodeWorkerMessageType.NODE_MICROSERVICE,
                 service: 'enrich-organizations',
-                tenantId,
-                organizationId: organization.id,
+                tenantId: organization.id,
+                maxEnrichLimit: 5000, // limit the enrich to max of 5000 organizations of a tenant
               } as NodeWorkerMessageBase
 
               log.info({ payload }, 'Enricher worker payload for organization')
-              await sendNodeWorkerMessage(organization.id, payload)
+              await sendNodeWorkerMessage(tenantId, payload)
             }
-
-            log.info(
-              { tenantId },
-              `Total organizations enriched in the tenant: ${totalOrganizations}`,
-            )
 
             log.info(
               { tenantId },

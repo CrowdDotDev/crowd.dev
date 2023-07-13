@@ -72,10 +72,18 @@ async function workerFactory(event: NodeMicroserviceMessage): Promise<any> {
       )
     case 'bulk-enrich':
       const bulkEnrichMessage = event as BulkEnrichMessage
-      return bulkEnrichmentWorker(bulkEnrichMessage.tenant, bulkEnrichMessage.memberIds)
+      return bulkEnrichmentWorker(
+        bulkEnrichMessage.tenant,
+        bulkEnrichMessage.memberIds,
+        bulkEnrichMessage.notifyFrontend,
+        bulkEnrichMessage.skipCredits,
+      )
     case 'enrich-organizations': {
       const bulkEnrichMessage = event as OrganizationBulkEnrichMessage
-      return BulkorganizationEnrichmentWorker(bulkEnrichMessage.tenantId)
+      return BulkorganizationEnrichmentWorker(
+        bulkEnrichMessage.tenantId,
+        bulkEnrichMessage.maxEnrichLimit,
+      )
     }
 
     case 'automation-process':
