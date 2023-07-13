@@ -143,6 +143,7 @@ export default class UserRepository {
         firstName: data.firstName || null,
         lastName: data.lastName || null,
         phoneNumber: data.phoneNumber || null,
+        acceptedTermsAndPrivacy: data.acceptedTermsAndPrivacy || false,
         updatedById: currentUser.id,
       },
       { transaction },
@@ -663,6 +664,7 @@ export default class UserRepository {
       firstName,
       lastName,
       fullName,
+      acceptedTermsAndPrivacy: false,
     }
 
     const transaction = SequelizeRepository.getTransaction(options)

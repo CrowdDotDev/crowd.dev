@@ -1,11 +1,11 @@
 <template>
   <div>
     <h3 class="text-2xl leading-12 font-semibold mb-1">
-      Accept terms of service & privacy policy
+      Terms of service & privacy policy
     </h3>
-    <p class="text-gray-500 text-xs leading-5">
-      You have to accept terms of service and privacy policy before continuing
-    </p>
+    <!--    <p class="text-gray-500 text-xs leading-5">-->
+    <!--      You have to accept terms of service and privacy policy before continuing-->
+    <!--    </p>-->
     <div class="pt-10">
       <el-form
         ref="form"
@@ -37,6 +37,7 @@
           <el-button
             id="submit"
             :loading="loading"
+            :disabled="!model[fields.acceptedTermsAndPrivacy.name]"
             native-type="submit"
             class="w-full btn btn--primary btn--lg"
           >
@@ -53,6 +54,7 @@ import { mapGetters, mapActions } from 'vuex';
 import { UserModel } from '@/modules/user/user-model';
 import config from '@/config';
 import { passwordConfirmRules } from '@/modules/auth/auth-helpers';
+import { AuthService } from '@/modules/auth/auth-service';
 
 const { fields } = UserModel;
 
@@ -75,25 +77,20 @@ export default {
   },
 
   methods: {
-    ...mapActions('auth', ['doRegisterEmailAndPassword']),
+    ...mapActions('auth', ['doRefreshCurrentUser']),
 
     doSubmit() {
-      this.acceptTerms = false;
-      this.$refs.form.validate().then(() => {
-        if (this.model.acceptedTermsAndPrivacy) {
-          this.doRegisterEmailAndPassword({
-            email: this.model.email,
-            password: this.model.password,
-            data: {
-              firstName: this.model.firstName,
-              lastName: this.model.lastName,
-            },
-            acceptedTermsAndPrivacy: this.model.acceptedTermsAndPrivacy,
+      if (this.model.acceptedTermsAndPrivacy) {
+        AuthService.updateProfile({
+          acceptedTermsAndPrivacy: this.model.acceptedTermsAndPrivacy,
+        })
+          .then(() => this.doRefreshCurrentUser())
+          .then(() => {
+            this.$router.push('/');
           });
-        } else {
-          this.acceptTerms = true;
-        }
-      });
+      } else {
+        this.acceptTerms = true;
+      }
     },
 
     socialOauthLink(provider) {
