@@ -1,25 +1,34 @@
 <template>
   <div>
     <h3 class="text-2xl leading-12 font-semibold mb-1">
-      Terms of service & privacy policy
+      Accept terms of service & privacy policy
     </h3>
     <div class="pt-10">
-      <el-checkbox
-        id="remember-me"
-        v-model="model[fields.acceptedTermsAndPrivacy.name]"
-      >
-        <span class="text-sm text-gray-900">
-          I hereby accept the <a href="https://www.crowd.dev/terms-of-use" target="_blank" rel="noopener noreferrer">terms of service</a>
-          and <a href="https://www.crowd.dev/privacy-policy" target="_blank" rel="noopener noreferrer">privacy policy</a>.
-        </span>
-      </el-checkbox>
-      <div v-if="acceptTerms && !model[fields.acceptedTermsAndPrivacy.name]" class="flex items-center mt-1">
-        <i
-          class="h-4 flex items-center ri-error-warning-line text-base text-red-500"
-        />
-        <span
-          class="pl-1 text-2xs text-red-500 leading-4.5"
-        >You have to accept terms of service and privacy policy before continuing</span>
+      <div class="pb-4">
+        <el-checkbox
+          id="remember-me"
+          v-model="model[fields.acceptedTermsAndPrivacy.name]"
+        >
+          <span class="text-sm text-gray-900" /><span class="text-sm text-gray-900">  I accept the <a
+            href="https://www.crowd.dev/terms-of-use"
+            target="_blank"
+            rel="noopener noreferrer"
+          >terms of service</a>
+            and <a
+              href="https://www.crowd.dev/privacy-policy"
+              target="_blank"
+              rel="noopener noreferrer"
+            >privacy policy</a>.
+          </span>
+        </el-checkbox>
+        <div v-if="acceptTerms && !model[fields.acceptedTermsAndPrivacy.name]" class="flex items-center mt-1">
+          <i
+            class="h-4 flex items-center ri-error-warning-line text-base text-red-500"
+          />
+          <span
+            class="pl-1 text-2xs text-red-500 leading-4.5"
+          >You have to accept terms of service and privacy policy before continuing</span>
+        </div>
       </div>
 
       <el-button

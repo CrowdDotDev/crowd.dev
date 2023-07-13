@@ -178,7 +178,7 @@
           v-model="model[fields.acceptedTermsAndPrivacy.name]"
         >
           <span class="text-sm text-gray-900">
-            I hereby accept the <a href="https://www.crowd.dev/terms-of-use" target="_blank" rel="noopener noreferrer">terms of service</a>
+            I accept the <a href="https://www.crowd.dev/terms-of-use" target="_blank" rel="noopener noreferrer">terms of service</a>
             and <a href="https://www.crowd.dev/privacy-policy" target="_blank" rel="noopener noreferrer">privacy policy</a>.
           </span>
         </el-checkbox>
