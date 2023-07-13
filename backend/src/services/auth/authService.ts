@@ -576,6 +576,7 @@ class AuthService {
           {
             provider,
             providerId,
+            emailVerified: true,
           },
           options,
         )
