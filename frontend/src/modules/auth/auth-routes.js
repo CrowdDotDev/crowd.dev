@@ -13,6 +13,7 @@ const ProfileFormPage = () => import('@/modules/auth/pages/profile-form-page.vue
 const PasswordResetPage = () => import('@/modules/auth/pages/password-reset-page.vue');
 const VerifyEmailPage = () => import('@/modules/auth/pages/verify-email-page.vue');
 const InvitationPage = () => import('@/modules/auth/pages/invitation-page.vue');
+const TermsAndPrivacyPage = () => import('@/modules/auth/pages/terms-and-privacy.vue');
 const EmptyPermissionsPage = () => import('@/modules/auth/pages/empty-permissions-page.vue');
 
 export default [
@@ -68,6 +69,12 @@ export default [
         path: 'invitation',
         component: InvitationPage,
         meta: { title: 'Invitation' },
+      },
+      {
+        name: 'terms-and-privacy',
+        path: 'terms-and-privacy',
+        component: TermsAndPrivacyPage,
+        meta: { title: 'Terms of service and privacy policy' },
       },
     ],
   },

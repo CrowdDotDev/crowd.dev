@@ -97,7 +97,7 @@ export default (sequelize, DataTypes) => {
       },
       acceptedTermsAndPrivacy: {
         type: DataTypes.BOOLEAN,
-        defaultValue: false,
+        defaultValue: true,
       },
       importHash: {
         type: DataTypes.STRING(255),

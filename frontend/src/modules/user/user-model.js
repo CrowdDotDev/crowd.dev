@@ -129,6 +129,9 @@ const fields = {
   acceptedTermsAndPrivacy: new BooleanField(
     'acceptedTermsAndPrivacy',
     label('acceptedTermsAndPrivacy'),
+    {
+      required: true,
+    },
   ),
   roleUser: new GenericField('roleUser', label('roleUser')),
 };

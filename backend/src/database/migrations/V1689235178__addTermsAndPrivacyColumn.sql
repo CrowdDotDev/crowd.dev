@@ -1,1 +1,1 @@
-ALTER TABLE public."users" ADD COLUMN "acceptedTermsAndPrivacy" BOOLEAN DEFAULT false;
+ALTER TABLE public."users" ADD COLUMN "acceptedTermsAndPrivacy" BOOLEAN DEFAULT true;

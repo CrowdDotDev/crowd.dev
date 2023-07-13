@@ -104,6 +104,7 @@ export default class UserRepository {
         lastName: data.lastName,
         fullName: data.fullName,
         password: data.password,
+        acceptedTermsAndPrivacy: data.acceptedTermsAndPrivacy,
       },
       { transaction },
     )
