@@ -31,7 +31,7 @@ setImmediate(async () => {
       log.error(`Result ${resultId} not found!`)
       process.exit(1)
     } else {
-      await repo.resetFailedResults([resultId])
+      await repo.resetResults([resultId])
       await emitter.sendMessage(
         `results-${result.tenantId}-${result.platform}`,
         new ProcessIntegrationResultQueueMessage(result.id),

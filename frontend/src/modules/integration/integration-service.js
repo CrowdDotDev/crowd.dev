@@ -287,6 +287,7 @@ export class IntegrationService {
 
     const response = await authAxios.put(`/tenant/${tenantId}/git-connect`, {
       remotes,
+      ...getSegments(),
     });
 
     return response.data;

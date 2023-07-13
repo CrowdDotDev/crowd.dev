@@ -74,6 +74,31 @@
             </el-form-item>
           </div>
         </div>
+
+        <el-form-item
+          :prop="fields.username.name"
+          class="mb-0"
+        >
+          <label
+            for="email"
+            class="text-xs mb-1 font-semibold leading-5"
+          >{{ fields.username.label }}</label>
+          <el-input
+            id="username"
+            v-model="model[fields.username.name]"
+          />
+          <template #error="{ error }">
+            <div class="flex items-center mt-1">
+              <i
+                class="h-4 flex items-center ri-error-warning-line text-base text-red-500"
+              />
+              <span
+                class="pl-1 text-2xs text-red-500 leading-4.5"
+              >{{ error }}</span>
+            </div>
+          </template>
+        </el-form-item>
+
         <el-form-item
           :prop="fields.email.name"
           class="mb-0"
@@ -215,14 +240,13 @@ import { UserModel } from '@/modules/user/user-model';
 import config from '@/config';
 import { passwordConfirmRules } from '@/modules/auth/auth-helpers';
 import AppI18n from '@/shared/i18n/i18n.vue';
-import AppSvg from '@/shared/svg/svg.vue';
-import CrAuthOauth from "@/modules/auth/components/oauth.vue";
+import CrAuthOauth from '@/modules/auth/components/oauth.vue';
 
 const { fields } = UserModel;
 
 export default {
   name: 'AppSignupPage',
-  components: { CrAuthOauth, AppSvg, AppI18n },
+  components: { CrAuthOauth, AppI18n },
   data() {
     return {
       rules: {
@@ -231,6 +255,8 @@ export default {
         email: fields.email.forFormRules(),
         password: fields.password.forFormRules(),
         passwordConfirmation:
+          fields.passwordConfirmation.forFormRules(),
+        username:
           fields.passwordConfirmation.forFormRules(),
       },
       model: {},
@@ -264,6 +290,7 @@ export default {
       this.$refs.form.validate().then(() => this.doRegisterEmailAndPassword({
         email: this.model.email,
         password: this.model.password,
+        username: this.model.username,
         data: {
           firstName: this.model.firstName,
           lastName: this.model.lastName,

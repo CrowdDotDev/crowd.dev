@@ -474,7 +474,7 @@ class AuthService {
         track(
           'Signed in',
           {
-            google: true,
+            [provider]: true,
             email: user.email,
           },
           options,
@@ -486,6 +486,8 @@ class AuthService {
         await UserRepository.update(
           user.id,
           {
+            firstName,
+            lastName,
             provider,
             providerId,
             emailVerified,
@@ -512,7 +514,7 @@ class AuthService {
         track(
           'Signed up',
           {
-            google: true,
+            [provider]: true,
             email: user.email,
           },
           options,
@@ -559,7 +561,7 @@ class AuthService {
         track(
           'Signed in',
           {
-            google: providerId.includes('google'),
+            [provider]: true,
             email: user.email,
           },
           options,
@@ -568,12 +570,22 @@ class AuthService {
       }
 
       // If there was no provider, we can link it to the provider
-      if (user && (!user.provider || !user.providerId || !user.emailVerified)) {
+      if (user && (!user.provider || !user.providerId)) {
         await UserRepository.update(
           user.id,
           {
             provider,
             providerId,
+            emailVerified: true,
+          },
+          options,
+        )
+        log.debug({ user }, 'User')
+      }
+      if (user && !user.emailVerified && emailVerified) {
+        await UserRepository.update(
+          user.id,
+          {
             emailVerified,
           },
           options,
@@ -596,7 +608,7 @@ class AuthService {
         track(
           'Signed up',
           {
-            google: true,
+            [provider]: true,
             email: user.email,
           },
           options,

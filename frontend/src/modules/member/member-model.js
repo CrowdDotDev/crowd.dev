@@ -37,6 +37,10 @@ const fields = {
     'attributes',
     label('attributes'),
   ),
+  name: new StringField(
+    'name',
+    'Name',
+  ),
   displayName: new StringField(
     'displayName',
     'Full name',

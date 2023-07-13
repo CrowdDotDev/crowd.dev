@@ -573,6 +573,7 @@ const en = {
     fields: {
       id: 'Id',
       avatars: 'Avatar',
+      username: 'Username',
       email: 'E-mail',
       emails: 'Email(s)',
       fullName: 'Name',

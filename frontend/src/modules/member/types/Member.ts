@@ -1,3 +1,5 @@
+import { Organization } from '@/modules/organization/types/Organization';
+
 export interface MemberAttribute {
   default: string;
   custom: string;
@@ -45,7 +47,7 @@ export interface Member {
   lastEnriched: string | null;
   noMergeIds: string[] | null;
   numberOfOpenSourceContributions: number | null;
-  organizations: any[];
+  organizations: Organization[];
   reach:MemberReach;
   score: number;
   tags: MemberTag[];

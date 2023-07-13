@@ -1,17 +1,9 @@
 import Layout from '@/modules/layout/components/layout.vue';
 import AuthLayout from '@/modules/auth/layouts/auth-layout.vue';
 
-const SignupPage = () => import('@/modules/auth/pages/signup-page.vue');
-
 const SigninPage = () => import('@/modules/auth/pages/signin-page.vue');
 
-const ForgotPasswordPage = () => import('@/modules/auth/pages/forgot-password-page.vue');
-
-const EmailUnverifiedPage = () => import('@/modules/auth/pages/email-unverified-page.vue');
-
 const ProfileFormPage = () => import('@/modules/auth/pages/profile-form-page.vue');
-const PasswordResetPage = () => import('@/modules/auth/pages/password-reset-page.vue');
-const VerifyEmailPage = () => import('@/modules/auth/pages/verify-email-page.vue');
 const InvitationPage = () => import('@/modules/auth/pages/invitation-page.vue');
 const EmptyPermissionsPage = () => import('@/modules/auth/pages/empty-permissions-page.vue');
 const AuthCallback = () => import('@/modules/auth/pages/callback.vue');
@@ -22,17 +14,8 @@ export default [
     name: 'auth',
     path: '/auth',
     component: AuthLayout,
-    redirect: '/auth/signup',
+    redirect: '/auth/signin',
     children: [
-      {
-        name: 'signup',
-        path: 'signup',
-        component: SignupPage,
-        meta: {
-          unauth: true,
-          title: 'Sign up',
-        },
-      },
       {
         name: 'signin',
         path: 'signin',
@@ -40,36 +23,6 @@ export default [
         meta: {
           unauth: true,
           title: 'Sign in',
-        },
-      },
-      {
-        name: 'forgotPassword',
-        path: 'forgot-password',
-        component: ForgotPasswordPage,
-        meta: {
-          unauth: true,
-          title: 'Forgot Password',
-        },
-      },
-      {
-        name: 'passwordReset',
-        path: 'password-reset',
-        component: PasswordResetPage,
-      },
-      {
-        name: 'emailUnverified',
-        path: 'email-unverified',
-        component: EmailUnverifiedPage,
-        meta: {
-          title: 'Verify Email',
-        },
-      },
-      {
-        name: 'verifyEmail',
-        path: 'verify-email',
-        component: VerifyEmailPage,
-        meta: {
-          title: 'Signup',
         },
       },
       {
