@@ -36,6 +36,7 @@ export class IntegrationStreamWorkerEmitter extends SqsQueueEmitter {
     await this.sendMessage(
       `streams-${tenantId}-${platform}`,
       new ProcessStreamQueueMessage(streamId),
+      streamId,
     )
   }
 }

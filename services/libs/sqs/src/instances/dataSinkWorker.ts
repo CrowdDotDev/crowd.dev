@@ -13,6 +13,7 @@ export class DataSinkWorkerEmitter extends SqsQueueEmitter {
     await this.sendMessage(
       `results-${tenantId}-${platform}`,
       new ProcessIntegrationResultQueueMessage(resultId),
+      resultId,
     )
   }
 }

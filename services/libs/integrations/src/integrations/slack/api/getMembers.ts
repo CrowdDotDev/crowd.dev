@@ -1,16 +1,18 @@
 import axios, { AxiosRequestConfig } from 'axios'
-import { Logger } from '@crowd/logging'
 import { timeout } from '@crowd/common'
-import { SlackGetMembersInput, SlackGetMembersOutput, SlackMembers } from '../../types/slackTypes'
+import { SlackGetMembersInput, SlackGetMembersOutput, SlackMembers } from '../types'
 import { handleSlackError } from './errorHandler'
+import { IProcessStreamContext } from '@/types'
 
 async function getMembers(
   input: SlackGetMembersInput,
-  logger: Logger,
+  ctx: IProcessStreamContext,
 ): Promise<SlackGetMembersOutput> {
   await timeout(2000)
 
-  const config: AxiosRequestConfig<any> = {
+  const logger = ctx.log
+
+  const config: AxiosRequestConfig = {
     method: 'get',
     url: 'https://slack.com/api/users.list',
     params: {},

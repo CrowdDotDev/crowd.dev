@@ -213,7 +213,6 @@ const processAnswerStream: ProcessStreamHandler = async (ctx) => {
     } else {
       user = await getStackOverflowUser(ctx, answer.owner.user_id.toString())
     }
-    user = await getStackOverflowUser(ctx, answer.owner.user_id.toString())
     await ctx.publishData<IStackOverflowPublishData>({
       answer: {
         answer,

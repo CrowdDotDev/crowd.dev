@@ -13,6 +13,7 @@ export class IntegrationDataWorkerEmitter extends SqsQueueEmitter {
     await this.sendMessage(
       `data-${tenantId}-${platform}`,
       new ProcessStreamDataQueueMessage(dataId),
+      dataId,
     )
   }
 }

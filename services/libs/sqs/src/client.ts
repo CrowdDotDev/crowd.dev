@@ -1,15 +1,18 @@
-import { IS_DEV_ENV, IS_STAGING_ENV } from '@crowd/common'
-import { getServiceChildLogger } from '@crowd/logging'
 import {
   DeleteMessageCommand,
   DeleteMessageRequest,
   ReceiveMessageCommand,
   ReceiveMessageRequest,
   SQSClient,
+  SendMessageBatchCommand,
+  SendMessageBatchCommandOutput,
+  SendMessageBatchRequest,
   SendMessageCommand,
   SendMessageRequest,
   SendMessageResult,
 } from '@aws-sdk/client-sqs'
+import { IS_DEV_ENV, IS_STAGING_ENV } from '@crowd/common'
+import { getServiceChildLogger } from '@crowd/logging'
 import { ISqsClientConfig, SqsClient, SqsMessage } from './types'
 
 const log = getServiceChildLogger('sqs.client')
@@ -66,4 +69,11 @@ export const sendMessage = async (
   params: SendMessageRequest,
 ): Promise<SendMessageResult> => {
   return client.send(new SendMessageCommand(params))
+}
+
+export const sendMessagesBulk = async (
+  client: SqsClient,
+  params: SendMessageBatchRequest,
+): Promise<SendMessageBatchCommandOutput> => {
+  return client.send(new SendMessageBatchCommand(params))
 }

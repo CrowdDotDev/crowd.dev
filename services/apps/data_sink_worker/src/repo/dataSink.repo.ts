@@ -65,20 +65,10 @@ export default class DataSinkRepository extends RepositoryBase<DataSinkRepositor
     this.checkUpdateRowCount(result.rowCount, 1)
   }
 
-  public async markResultProcessed(resultId: string): Promise<void> {
-    const result = await this.db().result(
-      `update integration.results
-       set  state = $(state),
-            "processedAt" = now(),
-            "updatedAt" = now()
-       where id = $(resultId)`,
-      {
-        resultId,
-        state: IntegrationResultState.PROCESSED,
-      },
-    )
-
-    this.checkUpdateRowCount(result.rowCount, 1)
+  public async deleteResult(resultId: string): Promise<void> {
+    await this.db().none(`delete from integration.results where id = $(resultId)`, {
+      resultId,
+    })
   }
 
   public async touchRun(runId: string): Promise<void> {
@@ -121,7 +111,7 @@ export default class DataSinkRepository extends RepositoryBase<DataSinkRepositor
     return results
   }
 
-  public async resetFailedResults(resultIds: string[]): Promise<void> {
+  public async resetResults(resultIds: string[]): Promise<void> {
     const result = await this.db().result(
       `update integration.results
         set state = $(newState),
