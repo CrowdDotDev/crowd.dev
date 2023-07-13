@@ -207,7 +207,7 @@ const markAsTeamMemberOptions = computed(() => {
 });
 
 const handleMergeMembers = () => {
-  const [firstMember, secondMember] = this.selectedRows;
+  const [firstMember, secondMember] = selectedMembers.value;
   return MemberService.merge(firstMember, secondMember)
     .then(() => {
       Message.success('Members merged successfuly');
