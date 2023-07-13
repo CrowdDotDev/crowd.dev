@@ -174,6 +174,70 @@
           </template>
         </el-form-item>
 
+        <el-form-item
+          :prop="fields.passwordConfirmation.name"
+          class="mb-0"
+        >
+          <label
+            for="passwordConfirmation"
+            class="text-xs mb-1 font-semibold leading-5"
+          >{{ fields.passwordConfirmation.label }}</label>
+          <el-input
+            id="passwordConfirmation"
+            v-model="
+              model[fields.passwordConfirmation.name]
+            "
+            autocomplete="disableauto"
+            :type="
+              display.passwordConfirm ? 'text' : 'password'
+            "
+          >
+            <template #suffix>
+              <span
+                class="ri-eye-line text-base text-gray-400 cursor-pointer"
+                @click="
+                  display.passwordConfirm = !display.passwordConfirm
+                "
+              />
+            </template>
+          </el-input>
+          <template #error="{ error }">
+            <div class="flex items-center mt-1">
+              <i
+                class="h-4 flex items-center ri-error-warning-line text-base text-red-500"
+              />
+              <span
+                class="pl-1 text-2xs text-red-500 leading-4.5"
+              >{{ error }}</span>
+            </div>
+          </template>
+        </el-form-item>
+
+        <el-form-item
+          :prop="fields.acceptedTermsAndPrivacy.name"
+          class="mb-0"
+        >
+          <el-checkbox
+            id="remember-me"
+            v-model="model[fields.acceptedTermsAndPrivacy.name]"
+          >
+            <span class="text-sm text-gray-900">
+              I hereby accept the <a href="https://www.crowd.dev/terms-of-use" target="_blank" rel="noopener noreferrer">terms of service</a>
+              and <a href="https://www.crowd.dev/privacy-policy" target="_blank" rel="noopener noreferrer">privacy policy</a>.
+            </span>
+          </el-checkbox>
+          <template #error="{ error }">
+            <div class="flex items-center mt-1">
+              <i
+                class="h-4 flex items-center ri-error-warning-line text-base text-red-500"
+              />
+              <span
+                class="pl-1 text-2xs text-red-500 leading-4.5"
+              >{{ error }}</span>
+            </div>
+          </template>
+        </el-form-item>
+
         <el-form-item class="pt-4 mb-0">
           <el-button
             id="submit"

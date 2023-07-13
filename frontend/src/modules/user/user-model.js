@@ -126,6 +126,10 @@ const fields = {
     'createdAtRange',
     label('createdAtRange'),
   ),
+  acceptedTermsAndPrivacy: new BooleanField(
+    'acceptedTermsAndPrivacy',
+    label('acceptedTermsAndPrivacy'),
+  ),
   roleUser: new GenericField('roleUser', label('roleUser')),
 };
 
