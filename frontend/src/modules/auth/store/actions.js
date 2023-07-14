@@ -87,12 +87,15 @@ export default {
 
   doRegisterEmailAndPassword(
     { commit },
-    { email, password, data = {} },
+    {
+      email, password, data = {}, acceptedTermsAndPrivacy,
+    },
   ) {
     commit('AUTH_START');
     return AuthService.registerWithEmailAndPassword(
       email,
       password,
+      acceptedTermsAndPrivacy,
       data,
     )
       .then((token) => {
