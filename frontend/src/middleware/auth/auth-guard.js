@@ -28,9 +28,11 @@ export default async function ({ to, store, router }) {
   }
   await store.dispatch('auth/doWaitUntilInit');
 
+  const currentUser = store.getters['auth/currentUser'];
+
   const permissionChecker = new PermissionChecker(
     store.getters['auth/currentTenant'],
-    store.getters['auth/currentUser'],
+    currentUser,
   );
 
   if (!permissionChecker.isAuthenticated) {
@@ -55,6 +57,11 @@ export default async function ({ to, store, router }) {
       ))
   ) {
     router.push('/403');
+    return;
+  }
+  console.log(currentUser);
+  if (!currentUser.acceptedTermsAndPrivacy) {
+    router.push({ path: '/auth/terms-and-privacy' });
     return;
   }
 
