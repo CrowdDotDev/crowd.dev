@@ -5,6 +5,7 @@ const SigninPage = () => import('@/modules/auth/pages/signin-page.vue');
 
 const ProfileFormPage = () => import('@/modules/auth/pages/profile-form-page.vue');
 const InvitationPage = () => import('@/modules/auth/pages/invitation-page.vue');
+const TermsAndPrivacyPage = () => import('@/modules/auth/pages/terms-and-privacy.vue');
 const EmptyPermissionsPage = () => import('@/modules/auth/pages/empty-permissions-page.vue');
 const AuthCallback = () => import('@/modules/auth/pages/callback.vue');
 const AuthLogout = () => import('@/modules/auth/pages/logout.vue');
@@ -41,6 +42,12 @@ export default [
         meta: {
           title: 'Invitation',
         },
+      },
+      {
+        name: 'terms-and-privacy',
+        path: 'terms-and-privacy',
+        component: TermsAndPrivacyPage,
+        meta: { title: 'Terms of service and privacy policy' },
       },
     ],
   },

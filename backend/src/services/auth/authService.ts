@@ -28,6 +28,7 @@ class AuthService {
     tenantId,
     firstName,
     lastName,
+    acceptedTermsAndPrivacy,
     options: any = {},
   ) {
     const transaction = await SequelizeRepository.createTransaction(options)
@@ -126,6 +127,7 @@ class AuthService {
           fullName,
           password: hashedPassword,
           email,
+          acceptedTermsAndPrivacy,
         },
         {
           ...options,

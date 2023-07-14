@@ -1,5 +1,6 @@
 <template>
   <app-dialog
+    v-if="isModalOpen"
     v-model="isModalOpen"
     title="Merge member"
     size="2extra-large"

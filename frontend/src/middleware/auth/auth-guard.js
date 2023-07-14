@@ -28,9 +28,11 @@ export default async function ({ to, store, router }) {
   }
   await store.dispatch('auth/doWaitUntilInit');
 
+  const currentUser = store.getters['auth/currentUser'];
+
   const permissionChecker = new PermissionChecker(
     store.getters['auth/currentTenant'],
-    store.getters['auth/currentUser'],
+    currentUser,
   );
 
   if (!permissionChecker.isAuthenticated) {

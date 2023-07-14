@@ -198,7 +198,7 @@
           </a>
         </div>
         <a
-          v-for="email of member.emails?.filter((e) => e.length)"
+          v-for="email of member.emails?.filter((e) => e && e.length)"
           :key="email"
           :href="`mailto:${email}`"
           class="pb-2 pt-3 flex items-center text-gray-900"
