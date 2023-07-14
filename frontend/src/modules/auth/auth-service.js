@@ -15,20 +15,10 @@ export class AuthService {
       .then((response) => response.data);
   }
 
-  static sendPasswordResetEmail(email) {
-    return authAxios
-      .post('/auth/send-password-reset-email', {
-        email,
-        tenantId: tenantSubdomain.isSubdomain
-          ? AuthCurrentTenant.get()
-          : undefined,
-      })
-      .then((response) => response.data);
-  }
-
   static registerWithEmailAndPassword(
     email,
     password,
+    acceptedTermsAndPrivacy,
     data = {},
   ) {
     const invitationToken = AuthInvitationToken.get();
@@ -39,6 +29,7 @@ export class AuthService {
         password,
         invitationToken,
         ...data,
+        acceptedTermsAndPrivacy,
         tenantId: tenantSubdomain.isSubdomain
           ? AuthCurrentTenant.get()
           : undefined,
@@ -48,6 +39,17 @@ export class AuthService {
 
         return response.data;
       });
+  }
+
+  static sendPasswordResetEmail(email) {
+    return authAxios
+      .post('/auth/send-password-reset-email', {
+        email,
+        tenantId: tenantSubdomain.isSubdomain
+          ? AuthCurrentTenant.get()
+          : undefined,
+      })
+      .then((response) => response.data);
   }
 
   static signinWithEmailAndPassword(email, password) {
