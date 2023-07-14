@@ -44,7 +44,7 @@
               report.public ? 'Public' : 'Private'
             }}</span>
             <router-link
-              class="btn btn--transparent btn--sm"
+              class="btn btn-link btn-link--sm btn-link--primary"
               :to="{
                 name: 'reportEdit',
                 params: {

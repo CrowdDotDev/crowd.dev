@@ -62,7 +62,7 @@
                   activity.conversationId
                     && displayConversationLink
                 "
-                class="text-xs font-medium flex items-center mr-6 cursor-pointer"
+                class="text-xs font-medium flex items-center mr-6 cursor-pointer hover:underline"
                 target="_blank"
                 @click="
                   openConversation(activity.conversationId)

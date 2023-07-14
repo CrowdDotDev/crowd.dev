@@ -7,7 +7,7 @@ const defaultChartOptions = {
   points: false,
   title: undefined,
   colors: [
-    '#E94F2E',
+    '#003778',
     '#111827',
     '#3B82F6',
     '#10B981',
@@ -63,8 +63,8 @@ export function chartOptions(widget, resultSet) {
             0,
             350,
           );
-          gradient.addColorStop(0, 'rgba(253,237, 234,1)');
-          gradient.addColorStop(1, 'rgba(253,237, 234,0)');
+          gradient.addColorStop(0, 'rgba(0, 148, 255, 0.10)');
+          gradient.addColorStop(1, 'rgba(0, 148, 255, 0.00)');
           return { backgroundColor: gradient };
         },
       };

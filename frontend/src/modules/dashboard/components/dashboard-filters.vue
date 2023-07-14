@@ -17,7 +17,7 @@
       size="large"
     >
       <el-button
-        class="btn btn--bordered bg-white !py-1.5 !px-3 outline-none"
+        class="btn btn--secondary bg-white !py-1.5 !px-3 outline-none"
       >
         <div class="flex items-center text-xs">
           <i

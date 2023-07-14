@@ -15,7 +15,7 @@
         </router-link>
         <div class="flex items-center">
           <router-link
-            class="btn btn--transparent btn--md mr-4"
+            class="btn btn-link btn-link--md btn-link--primary mr-4"
             :to="{
               name: 'reportView',
               params: {

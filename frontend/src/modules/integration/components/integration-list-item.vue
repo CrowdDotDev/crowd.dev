@@ -76,7 +76,7 @@
             </el-button>
             <el-button
               v-else
-              class="btn btn-brand btn-brand--bordered btn--md"
+              class="btn btn--secondary !text-red-500 btn--md"
               :loading="loadingDisconnect"
               @click="handleDisconnect"
             >
@@ -84,7 +84,7 @@
             </el-button>
             <el-button
               v-if="connected && hasSettings"
-              class="btn btn--transparent btn--md"
+              class="btn btn-link btn-link--md btn-link--primary"
               @click="settings"
             >
               <i class="ri-settings-2-line mr-2" />Settings
@@ -162,7 +162,7 @@ export default {
 .integration-custom {
   background: linear-gradient(
       117.72deg,
-      #fdedea 0%,
+      #DBEBFE 0%,
       rgba(253, 237, 234, 0) 100%
     ),
     #ffffff;

@@ -25,7 +25,7 @@
       </el-button>
       <el-button
         v-if="secondaryBtn"
-        class="btn btn--bordered btn--md"
+        class="btn btn--secondary btn--md"
         @click="emit('secondaryClick')"
       >
         {{ secondaryBtn }}

@@ -1,5 +1,5 @@
 <template>
-  <div class="bg-white pt-5 rounded-lg shadow">
+  <div class="panel-card pt-5">
     <query-renderer
       v-if="cubejsApi"
       :cubejs-api="cubejsApi"
@@ -163,7 +163,7 @@ const benchmarkChartOptions = computed(() => chartOptions('bar', {
       display: false,
       padding: 8,
       font: {
-        family: 'Inter',
+        family: 'Open Sans',
         size: 12,
       },
     },
@@ -269,7 +269,7 @@ const benchmarkChartOptions = computed(() => chartOptions('bar', {
         };
 
         return {
-          backgroundColor: 'rgb(250, 237, 234)',
+          backgroundColor: '#DBEBFE',
           yMin: getIdealRange().min,
           yMax: getIdealRange().max,
           borderColor: 'transparent',
@@ -287,8 +287,8 @@ const datasets = computed(() => [
   {
     name: 'Average monthly contributors',
     borderColor: 'transparent',
-    backgroundColor: '#E94F2E',
-    hoverBackgroundColor: '#E94F2E',
+    backgroundColor: '#003778',
+    hoverBackgroundColor: '#003778',
     barThickness: 24,
     borderWidth: 0,
     measure: 'Members.count',

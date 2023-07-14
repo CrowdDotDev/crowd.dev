@@ -3,8 +3,8 @@
     <div class="logo absolute top-6 left-6">
       <img
         class="h-6 w-auto"
-        src="/images/logo/crowd.svg"
-        alt="crowd.dev logo"
+        src="/images/lf/logo_lfx_cm.svg"
+        alt="lfx logo"
       />
     </div>
     <aside class="auth-side rounded-lg flex flex-col">
@@ -32,7 +32,7 @@ export default {
   background: linear-gradient(
     154.2deg,
     #ffffff 0%,
-    #f8efed 57.5%
+    #DBEBFE 57.5%
   );
   width: 28rem;
   position: fixed;

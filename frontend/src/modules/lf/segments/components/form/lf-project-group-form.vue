@@ -114,7 +114,7 @@
     </template>
     <template #footer>
       <el-button
-        class="btn btn--md btn--bordered mr-4"
+        class="btn btn--md btn--secondary mr-4"
         @click="onCancel"
       >
         Cancel

@@ -1,5 +1,5 @@
 <template>
-  <div class="widget-active-members">
+  <div class="panel-card">
     <div class="grid grid-cols-3">
       <div
         v-for="(widget, index) of widgets"
@@ -20,7 +20,7 @@
             v-if="currentUser"
             v-show="!isPublicView"
             type="button"
-            class="btn btn-brand--transparent btn--sm"
+            class="btn btn-link btn-link--sm btn-link--primary"
             @click="handleDrawerOpen(widget)"
           >
             View
@@ -225,9 +225,3 @@ const onExport = async ({ ids, count }) => {
   }
 };
 </script>
-
-<style lang="scss">
-.widget-active-members {
-  @apply bg-white shadow rounded-lg;
-}
-</style>

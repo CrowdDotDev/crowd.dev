@@ -12,7 +12,7 @@
         <div
           class="uppercase text-gray-400 text-2xs font-semibold tracking-wide"
         >
-          Name <span class="text-brand-500">*</span>
+          Name <span class="text-red-500">*</span>
         </div>
       </div>
       <el-form :model="model">
@@ -57,7 +57,7 @@
               </template>
             </el-form-item>
             <el-button
-              class="btn btn--md btn--transparent w-10 h-10"
+              class="btn btn-link btn-link--md btn-link--primary w-10 h-10"
               @click="deleteAttribute(attribute.name)"
             >
               <i
@@ -92,7 +92,7 @@
         </el-button>
         <div class="flex gap-4">
           <el-button
-            class="btn btn--md btn--bordered"
+            class="btn btn--md btn--secondary"
             @click="() => (isDrawerOpen = false)"
           >
             Cancel

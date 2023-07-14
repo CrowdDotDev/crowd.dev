@@ -8,7 +8,7 @@
           Contributor
         </div>
         <el-button
-          class="btn btn--transparent !h-8"
+          class="btn btn-link btn-link--primary !h-8"
           @click="onExportClick"
         >
           <i class="ri-file-download-line" /><span>Export CSV</span>

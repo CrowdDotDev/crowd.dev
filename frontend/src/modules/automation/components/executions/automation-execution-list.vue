@@ -31,7 +31,7 @@
           {{ formatDate(execution.executedAt) }}
         </div>
         <div>
-          <el-button class="btn btn-brand--secondary btn--sm !h-8" @click="executionDetails = execution">
+          <el-button class="btn btn--secondary !text-red-500 btn--sm !h-8" @click="executionDetails = execution">
             Payload
           </el-button>
         </div>

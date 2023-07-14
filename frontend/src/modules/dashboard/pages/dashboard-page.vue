@@ -7,11 +7,11 @@
       <div class="flex justify-center">
         <div class="home-content px-8">
           <div
-            class="py-8 -mx-4 px-4 sticky -top-6 bg-gray-50 z-20"
+            class="py-8 -mx-4 px-4 sticky -top-6 bg-white z-20"
           >
             <app-lf-page-header
               :text-class="{
-                'leading-8 font-semibold transition-all duration-100': true,
+                'leading-8 font-semibold transition-all duration-100 uppercase font-header': true,
                 'text-xl': !scrolled,
                 'text-base': scrolled,
               }"
@@ -19,7 +19,7 @@
           </div>
 
           <div
-            class="mb-8 -mx-4 px-4 sticky top-12 bg-gray-50 z-20"
+            class="mb-8 -mx-4 px-4 sticky top-12 bg-white z-20"
           >
             <app-dashboard-filters class="block" />
           </div>

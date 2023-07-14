@@ -38,7 +38,7 @@
       </div>
     </div>
     <el-button
-      class="btn btn--bordered btn--md flex items-center gap-2"
+      class="btn btn--secondary btn--md flex items-center gap-2"
       @click="onManageBillingClick"
     >
       <i class="ri-external-link-line" /><span>Manage billing & payments</span>

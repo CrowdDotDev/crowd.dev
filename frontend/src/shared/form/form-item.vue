@@ -14,7 +14,7 @@
       >{{ label }}
         <span
           v-if="required"
-          class="text-brand-500"
+          class="text-red-500"
         >*</span></label>
 
       <div class="w-full">

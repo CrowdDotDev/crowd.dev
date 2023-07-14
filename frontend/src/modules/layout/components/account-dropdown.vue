@@ -12,16 +12,17 @@
     <template #reference>
       <div
         id="accountDropdown"
-        class="cursor-pointer flex w-full h-16 items-center hover:bg-gray-50 account-btn"
-        :class="isDropdownOpen ? 'bg-gray-50' : 'bg-white'"
+        class="cursor-pointer flex w-full h-16 items-center hover:bg-gray-200 account-btn"
+        :class="isDropdownOpen ? 'bg-brand-50' : 'bg-brand-25'"
       >
         <div class="flex items-center">
           <app-avatar
             :entity="computedAvatarEntity"
             size="sm"
-            class="mr-3"
+            :class="isCollapsed ? '' : 'mr-3'"
           />
           <div
+            v-if="!isCollapsed"
             class="text-sm account-btn-info"
           >
             <div class="text-gray-900">
@@ -34,6 +35,7 @@
         </div>
 
         <i
+          v-if="!isCollapsed"
           class="ri-more-2-fill text-gray-300 text-lg"
         />
       </div>
@@ -70,6 +72,10 @@ const store = useStore();
 const router = useRouter();
 
 const isDropdownOpen = ref(false);
+
+const isCollapsed = computed(
+  () => store.getters['layout/menuCollapsed'],
+);
 
 const currentUserNameOrEmailPrefix = computed(
   () => store.getters['auth/currentUserNameOrEmailPrefix'],

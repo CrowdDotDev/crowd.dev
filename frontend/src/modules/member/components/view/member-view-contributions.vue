@@ -221,7 +221,7 @@ function edgeColor(edge) {
   if (!hoveredEdge.value) return '#F6B9AB';
   // if the hovered edge and the current edge share any topic
   const sharedTopics = listsOverlap(hoveredEdge.value.topics, edge.topics, 0.5);
-  return sharedTopics ? '#E94F2E' : '#F6B9AB';
+  return sharedTopics ? '#003778' : '#F6B9AB';
 }
 
 // The edgeSize computed property is used to calculate the size of an edge

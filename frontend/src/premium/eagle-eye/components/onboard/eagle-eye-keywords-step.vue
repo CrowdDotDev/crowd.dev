@@ -13,7 +13,7 @@
     <div
       class="uppercase text-gray-400 text-2xs font-semibold tracking-wide"
     >
-      Include<span class="text-brand-500 ml-0.5">*</span>
+      Include<span class="text-red-500 ml-0.5">*</span>
     </div>
 
     <el-form
@@ -30,7 +30,7 @@
         </el-form-item>
 
         <el-button
-          class="btn btn--md btn--transparent w-10 h-10"
+          class="btn btn-link btn-link--md btn-link--primary w-10 h-10"
           :disabled="keywords.length === 1"
           @click="deleteKeyword(index)"
         >

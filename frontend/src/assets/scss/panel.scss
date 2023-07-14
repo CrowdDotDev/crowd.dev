@@ -1,4 +1,7 @@
 .panel {
-  @apply bg-white p-6 rounded-md overflow-hidden border-gray-50;
-  box-shadow: 0 1px 4px 0 #0000001A;
+  @apply bg-white p-6 rounded-md overflow-hidden border border-gray-200 shadow;
+}
+
+.panel-card {
+  @apply bg-white rounded-lg overflow-hidden border border-gray-200 shadow;
 }

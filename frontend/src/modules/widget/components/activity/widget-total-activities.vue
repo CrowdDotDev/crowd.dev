@@ -1,5 +1,5 @@
 <template>
-  <div class="widget-total-activities">
+  <div class="widget-total-activities panel-card">
     <div class="flex justify-between items-center pb-5 mb-4 border-b border-gray-100">
       <app-widget-title
         text-size="text-base"
@@ -104,7 +104,7 @@ const granularity = computed(() => getTimeGranularityFromPeriod(period.value));
 const datasets = computed(() => [
   {
     name: TOTAL_ACTIVITIES_WIDGET.name,
-    borderColor: '#E94F2E',
+    borderColor: '#003778',
     measure: 'Activities.cumulativeCount',
     granularity: granularity.value,
   },
@@ -164,7 +164,7 @@ const chartResultSet = (resultSet) => {
 
 <style lang="scss" scoped>
 .widget-total-activities {
-  @apply bg-white shadow rounded-lg p-5;
+  @apply p-5;
   :deep(.chart) {
     div {
       line-height: 100px !important;

@@ -43,7 +43,7 @@
         </div>
 
         <el-button
-          class="btn btn--transparent btn--xs w-8 !h-8"
+          class="btn btn-link btn-link--xs btn-link--primary w-8 !h-8"
           @click="close"
         >
           <i
@@ -84,7 +84,7 @@
         <div class="flex gap-4">
           <el-button
             :disabled="loading"
-            class="btn btn--md btn--bordered"
+            class="btn btn--md btn--secondary"
             @click="handleCancel"
           >
             Cancel

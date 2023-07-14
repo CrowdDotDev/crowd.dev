@@ -56,7 +56,7 @@
               </el-input>
               <el-button
                 v-if="!isLastOrganization"
-                class="btn btn--md btn--transparent w-10 h-10"
+                class="btn btn-link btn-link--md btn-link--primary w-10 h-10"
                 @click="removeOrganization(org.id)"
               >
                 <i
@@ -114,7 +114,7 @@
               </el-input>
               <el-button
                 v-if="!isLastUser"
-                class="btn btn--md btn--transparent w-10 h-10"
+                class="btn btn-link btn-link--md btn-link--primary w-10 h-10"
                 @click="removeUser(user.id)"
               >
                 <i
@@ -139,7 +139,7 @@
     <template #footer>
       <div>
         <el-button
-          class="btn btn--md btn--bordered mr-4"
+          class="btn btn--md btn--secondary mr-4"
           :disabled="loading"
           @click="cancel"
         >

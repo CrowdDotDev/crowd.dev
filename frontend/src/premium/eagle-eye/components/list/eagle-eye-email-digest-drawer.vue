@@ -208,7 +208,7 @@
     <template #footer>
       <div style="flex: auto">
         <el-button
-          class="btn btn--md btn--transparent mr-3"
+          class="btn btn-link btn-link--md btn-link--primary mr-3"
           @click="handleCancel"
         >
           Cancel

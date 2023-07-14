@@ -36,7 +36,7 @@
           name: 'activity',
           hash: '#conversation',
         }"
-        class="text-red font-medium text-center text-xs leading-5"
+        class="text-red font-medium text-center text-xs leading-5 hover:underline"
       >
         All conversations
       </router-link>

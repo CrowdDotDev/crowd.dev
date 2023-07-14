@@ -121,7 +121,7 @@ watch(() => filters.value, (value: Filter) => {
 // Watch for query change
 const alignQueryUrl = () => {
   const { query } = route;
-  const { projectGroup, ...parsedQuery } = query;
+  const { projectGroup, menu, ...parsedQuery } = query;
   const parsed = parseQuery(parsedQuery, {
     ...props.config,
     ...props.customConfig,

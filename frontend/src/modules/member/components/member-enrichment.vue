@@ -1,5 +1,5 @@
 <template>
-  <div class="panel !bg-purple-50">
+  <div class="panel !bg-brand-25">
     <div class="flex justify-between items-center">
       <div class="flex gap-2">
         <app-svg
@@ -12,7 +12,7 @@
       <el-tooltip placement="top" content="Learn more">
         <a
           aria-label="Learn more"
-          class="btn btn--transparent !h-8 !w-8 !text-gray-400 hover:!text-gray-600"
+          class="btn btn-link btn-link--primary !h-8 !w-8 !text-gray-400 hover:!text-gray-600 hover:no-underline"
           href="https://docs.crowd.dev/docs/member-enrichment"
           target="_blank"
           rel="noopener noreferrer"

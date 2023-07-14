@@ -5,7 +5,7 @@ const defaultChartOptions = (config) => ({
   curve: true,
   points: true,
   title: undefined,
-  colors: ['#E94F2E'],
+  colors: ['#003778'],
   loading: 'Loading...',
   empty: 'Loading...',
   library: {
@@ -26,9 +26,9 @@ const defaultChartOptions = (config) => ({
         },
         ticks: {
           display: config.xTicks,
-          color: '#9CA3AF',
+          color: '#003778',
           font: {
-            family: 'Inter',
+            family: 'Open Sans',
             size: 10,
           },
           callback: config.xTicksCallback,
@@ -62,7 +62,7 @@ const defaultChartOptions = (config) => ({
           color: '#9CA3AF',
           padding: 8,
           font: {
-            family: 'Inter',
+            family: 'Open Sans',
             size: 10,
           },
           ...(config.yMaxTicksLimit && { maxTicksLimit: config.yMaxTicksLimit }),
@@ -117,7 +117,7 @@ export function chartOptions(type, config) {
         pointRadius: 5,
         pointBorderColor: 'transparent',
         pointBackgroundColor: 'transparent',
-        pointHoverBorderColor: '#E94F2E',
+        pointHoverBorderColor: '#003778',
         pointHoverBackgroundColor: '#fff',
         pointHoverBorderWidth: '2',
         spanGaps: true,

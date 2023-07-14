@@ -23,7 +23,7 @@
       class="flex justify-center pt-4"
     >
       <el-button
-        class="btn btn-brand btn-brand--transparent"
+        class="btn btn-link btn-link--primary"
         @click="fetchNotes(notesPage + 1)"
       >
         <i class="ri-arrow-down-line" /><span class="text-xs">Load more</span>

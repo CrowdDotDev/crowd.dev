@@ -80,7 +80,7 @@
         </el-button>
         <div class="flex gap-4">
           <el-button
-            class="btn btn--md btn--bordered"
+            class="btn btn--md btn--secondary"
             @click="isVisible = false"
           >
             <app-i18n code="common.cancel" />

@@ -125,7 +125,7 @@
               },
             }"
           >
-            <el-button class="btn btn--bordered">
+            <el-button class="btn btn--secondary">
               Manage integrations
             </el-button>
           </router-link>

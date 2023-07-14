@@ -29,7 +29,7 @@
 
   <div class="mt-8">
     <el-button
-      class="btn btn--md btn--bordered btn--full mb-4"
+      class="btn btn--md btn--secondary btn--full mb-4"
       @click="isDrawerOpen = true"
     >
       Projects list
@@ -44,7 +44,7 @@
     >
       <el-button
         v-if="hasPermissionToAccessAdminPanel"
-        class="btn btn--md btn--secondary btn--full"
+        class="btn btn-link btn-link--md btn-link--primary btn--full"
       >
         <i class="ri-external-link-line" />
         <span>Settings</span>

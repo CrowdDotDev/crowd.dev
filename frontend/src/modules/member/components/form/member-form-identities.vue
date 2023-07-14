@@ -2,7 +2,7 @@
   <div class="grid gap-x-12 grid-cols-4">
     <div v-if="showHeader">
       <h6>
-        Identities <span class="text-brand-500">*</span>
+        Identities <span class="text-red-500">*</span>
       </h6>
       <p class="text-gray-500 text-2xs leading-normal mt-1">
         Connect with contributors' external data sources or
@@ -67,7 +67,7 @@
                 >
                   <template #prepend>
                     <span>{{ value.urlPrefix }}</span>
-                    <span class="text-brand-500">*</span>
+                    <span class="text-red-500">*</span>
                   </template>
                 </el-input>
                 <template #error>
@@ -78,7 +78,7 @@
               </el-form-item>
               <el-button
                 :disabled="editingDisabled(key)"
-                class="btn btn--md btn--transparent w-10 h-10"
+                class="btn btn-link btn-link--md btn-link--primary w-10 h-10"
                 @click="removeUsername(key, ii)"
               >
                 <i class="ri-delete-bin-line text-lg" />

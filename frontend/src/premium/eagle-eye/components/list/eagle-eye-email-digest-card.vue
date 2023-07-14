@@ -1,7 +1,7 @@
 <template>
   <div
     v-if="!isEmailDigestConfiguredOnce"
-    class="bg-purple-50 rounded-lg p-5 shadow"
+    class="bg-brand-25 rounded-lg p-5 shadow"
   >
     <div class="flex items-center gap-2">
       <i class="ri-mail-open-line text-lg text-gray-900" />
@@ -44,7 +44,7 @@
     </div>
 
     <el-button
-      class="btn btn--transparent !h-8 !w-8"
+      class="btn btn-link btn-link--primary !h-8 !w-8"
       @click="isEmailDigestDrawerOpen = true"
     >
       <i class="ri-sound-module-line text-base" />

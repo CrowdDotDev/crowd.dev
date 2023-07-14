@@ -1,5 +1,5 @@
 .btn {
-  @apply rounded-md font-medium inline-flex items-center justify-center h-auto box-border;
+  @apply rounded-lg font-medium inline-flex items-center justify-center h-auto box-border;
   transition: all 0.2s;
 
   // Button Sizes
@@ -28,152 +28,54 @@
 
   // Default buttons' variations
   &--primary {
-    @apply bg-gray-900 text-white border-none;
+    background: linear-gradient(180deg, #1E9FFD 0%, #0094FF 100%);
+    @apply text-white border-none shadow;
 
     &:hover,
     &:hover:is(a):not(.disabled) {
-      @apply cursor-pointer bg-gray-600 text-white;
+      background: linear-gradient(180deg, #45b1ff 0%, #1E9FFD 100%);
+      @apply cursor-pointer text-white;
     }
     &:focus {
-      @apply outline outline-1 outline-gray-900 outline-offset-2 bg-gray-900 text-white;
+      background: linear-gradient(180deg, #1E9FFD 0%, #0094FF 100%);
+      @apply outline outline-1 outline-brand-500 outline-offset-2 text-white;
     }
     &:active {
-      @apply bg-gray-600 text-white;
+      background: linear-gradient(180deg, #45b1ff 0%, #1E9FFD 100%);
+      @apply text-white;
     }
     &[disabled],
     &.disabled {
-      @apply cursor-not-allowed bg-gray-400 text-white;
+      @apply cursor-not-allowed bg-brand-200 text-white;
     }
   }
 
   &--secondary {
-    @apply bg-gray-100 text-gray-600 border-none;
+    background: linear-gradient(180deg, #FFF 0%, #E6E6E6 100%);
+    border: 1px solid #E6E6E6;
+    @apply text-brand-500;
 
     &:hover {
-      @apply cursor-pointer bg-gray-200 text-gray-600;
+      border: 1px solid #E6E6E6;
+      @apply cursor-pointer bg-gray-100 text-brand-500 border-solid;
     }
     &:focus {
-      @apply outline outline-1 outline-gray-900 outline-offset-2 bg-gray-100 text-gray-600;
+      border: 1px solid #E6E6E6;
+      background: linear-gradient(180deg, #FFF 0%, #E6E6E6 100%);
+      @apply text-brand-500  border-solid outline outline-offset-2 outline-1 outline-gray-300;
     }
     &:active {
-      @apply bg-gray-200 text-gray-600;
+      border: 1px solid #E6E6E6;
+      @apply bg-gray-200 text-brand-500 border-solid;
     }
     &[disabled] {
-      @apply cursor-not-allowed bg-gray-100 text-gray-400;
-    }
-  }
-
-  &--bordered {
-    @apply bg-white text-gray-600 border-2 border-gray-200 border-solid;
-
-    &:hover {
-      @apply cursor-pointer bg-gray-100 text-gray-600 border-2  border-gray-200 border-solid;
-    }
-    &:focus {
-      @apply bg-white text-gray-600 border-2  border-gray-200 border-solid outline outline-offset-2 outline-1 outline-gray-900;
-    }
-    &:active {
-      @apply bg-gray-200 text-gray-600 border-2 border-gray-200 border-solid;
-    }
-    &[disabled] {
-      @apply cursor-not-allowed bg-white text-gray-400 border-2 border-gray-100 border-solid;
+      background: linear-gradient(180deg, #FFF 0%, #F3F4F6 100%);
+      @apply cursor-not-allowed text-gray-400 border border-gray-100 border-solid;
     }
 
     &.btn{
       &--lg {
         @apply py-2.5;
-      }
-    }
-  }
-
-  &--transparent {
-    @apply bg-transparent text-gray-600 border-2 border-transparent;
-
-    &:hover,
-    &:hover:is(a) {
-      @apply cursor-pointer bg-gray-100 text-gray-600;
-    }
-    &:focus {
-      @apply bg-transparent text-gray-600 border-2  border-gray-200 border-solid;
-    }
-    &:active {
-      @apply bg-gray-200 text-gray-600 border-2 border-gray-200 border-solid;
-    }
-    &[disabled],
-    &.disabled {
-      @apply cursor-not-allowed bg-white text-gray-400 border-2 border-transparent;
-    }
-  }
-
-  // Brand buttons' variations
-  &-brand {
-    &--primary {
-      @apply bg-brand-500 text-white border-none;
-
-      &:hover {
-        @apply cursor-pointer bg-brand-600;
-        color: white !important;
-      }
-      &:focus {
-        @apply outline outline-1 outline-gray-900 outline-offset-2 bg-brand-500 text-white;
-      }
-      &:active {
-        @apply bg-brand-600 text-white;
-      }
-      &[disabled] {
-        @apply cursor-not-allowed bg-brand-300 text-white;
-      }
-    }
-
-    &--secondary {
-      @apply bg-brand-50 text-brand-600 border-none;
-
-      &:hover {
-        @apply cursor-pointer bg-brand-100 text-brand-600;
-      }
-      &:focus {
-        @apply outline outline-1 outline-gray-900 outline-offset-2 bg-brand-50 text-brand-600;
-      }
-      &:active {
-        @apply bg-brand-100 text-brand-600;
-      }
-      &[disabled],
-      &.disabled {
-        @apply cursor-not-allowed bg-brand-50 text-brand-300;
-      }
-    }
-
-    &--bordered {
-      @apply bg-white text-brand-600 border-2 border-brand-100 border-solid;
-
-      &:hover {
-        @apply cursor-pointer bg-brand-50 text-brand-600 border-2 border-brand-100 border-solid;
-      }
-      &:focus {
-        @apply bg-white text-brand-600 border-2 border-brand-100 border-solid outline outline-1 outline-gray-900 outline-offset-2;
-      }
-      &:active {
-        @apply bg-brand-100 text-brand-600 border-2 border-brand-100 border-solid;
-      }
-      &[disabled] {
-        @apply cursor-not-allowed bg-white text-brand-300 border-2 border-brand-50 border-solid;
-      }
-    }
-
-    &--transparent {
-      @apply bg-transparent text-brand-600 border-none;
-
-      &:hover {
-        @apply cursor-pointer bg-brand-50 text-brand-600;
-      }
-      &:focus {
-        @apply bg-white text-brand-600 outline outline-1 outline-gray-900 outline-offset-2;
-      }
-      &:active {
-        @apply bg-brand-100 text-brand-600;
-      }
-      &[disabled] {
-        @apply cursor-not-allowed bg-white text-brand-300;
       }
     }
   }
@@ -187,7 +89,7 @@
       @apply text-2xs;
     }
     &--md {
-      @apply text-sm;
+      @apply text-sm h-10;
     }
     &--lg {
       @apply text-base;
@@ -200,12 +102,13 @@
       &:hover,
       &:active,
       &:focus {
-        @apply cursor-pointer text-brand-600 bg-transparent;
+        @apply cursor-pointer text-brand-500 bg-transparent underline;
       }
       &[disabled] {
         @apply cursor-not-allowed text-brand-300 bg-transparent;
       }
     }
+
     &--secondary {
       @apply text-gray-900;
 
@@ -217,47 +120,6 @@
       &[disabled] {
         @apply cursor-not-allowed text-gray-400 bg-transparent;
       }
-    }
-    &--success {
-      @apply text-green-500;
-
-      &:hover,
-      &:active,
-      &:focus {
-        @apply cursor-pointer text-green-600 bg-transparent;
-      }
-      &[disabled] {
-        @apply cursor-not-allowed text-green-300 bg-transparent;
-      }
-    }
-    &--danger {
-      @apply text-red-500;
-
-      &:hover,
-      &:active,
-      &:focus {
-        @apply cursor-pointer text-red-600 bg-transparent;
-      }
-      &[disabled] {
-        @apply cursor-not-allowed text-red-300 bg-transparent;
-      }
-    }
-    &--warning {
-      @apply text-yellow-500;
-
-      &:hover,
-      &:active,
-      &:focus {
-        @apply cursor-pointer text-yellow-600 bg-transparent;
-      }
-      &[disabled] {
-        @apply cursor-not-allowed text-yellow-300 bg-transparent;
-      }
-    }
-
-    // Decoration {
-    &--underline {
-      @apply underline;
     }
   }
 

@@ -114,7 +114,7 @@
         <div class="flex items-center">
           <el-button
             :disabled="sending"
-            class="btn btn--md btn--bordered mr-4"
+            class="btn btn--md btn--secondary mr-4"
             @click="emit('update:modelValue', null)"
           >
             Cancel

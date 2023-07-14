@@ -11,6 +11,7 @@
         <span class="text-base">🧐</span> Missing something?
         <a
           href="https://github.com/CrowdDotDev/crowd.dev/issues?q=is%3Aopen+is%3Aissue+label%3A%22Integration+%F0%9F%94%8C%22+"
+          class="hover:underline"
         >Open an issue</a>
       </div>
     </div>
@@ -28,7 +29,7 @@
             ask them to set up the integration.
             <a
               href="https://docs.crowd.dev/docs/github-integration#set-up-with-missing-permissions"
-              class="font-semibold absolute right-0 inset-y-0 flex items-center pr-4"
+              class="font-semibold absolute right-0 inset-y-0 flex items-center pr-4 hover:underline"
               rel="noopener noreferrer"
               target="_blank"
             >Read more</a>
@@ -44,7 +45,7 @@
             Add Slack Bot to channels.
             <a
               href="https://docs.crowd.dev/docs/slack-integration#how-to-install"
-              class="font-semibold absolute right-0 inset-y-0 flex items-center pr-4"
+              class="font-semibold absolute right-0 inset-y-0 flex items-center pr-4 hover:underline"
               rel="noopener noreferrer"
               target="_blank"
             >Read more</a>
@@ -61,7 +62,7 @@
             it to have access to.
             <a
               href="https://docs.crowd.dev/docs/discord-integration#how-to-install"
-              class="font-semibold absolute right-0 inset-y-0 flex items-center pr-4"
+              class="font-semibold absolute right-0 inset-y-0 flex items-center pr-4 hover:underline"
               rel="noopener noreferrer"
               target="_blank"
             >Read more</a>
@@ -89,7 +90,7 @@
             Please check the
             <a
               href="https://docs.crowd.dev/integrations"
-              class="font-semibold"
+              class="font-semibold hover:underline"
               target="_blank"
               rel="noopener noreferrer"
             >documentation</a>
@@ -103,7 +104,7 @@
             or engage within our
             <a
               href="https://crowd.dev/discord"
-              class="font-semibold"
+              class="font-semibold hover:underline"
             >
               Discord community</a>.
           </template>

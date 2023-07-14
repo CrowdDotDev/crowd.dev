@@ -35,7 +35,7 @@
           v-else
           :disabled="isEditLockedForSampleData"
           type="button"
-          class="btn btn--bordered btn--sm leading-5 !px-4 !py-1"
+          class="btn btn--secondary btn--sm leading-5 !px-4 !py-1"
           @click="emit('makePrimary')"
         >
           <span class="ri-arrow-left-right-fill text-base text-gray-600 mr-2" />

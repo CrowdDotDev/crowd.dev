@@ -117,7 +117,7 @@
         <div v-if="editable" class="toolbar">
           <button
             type="button"
-            class="btn btn-brand btn-brand--transparent btn--md"
+            class="btn btn-link btn-link--md btn-link--primary"
             @click="handleAddWidgetClick"
           >
             <span class="flex items-center text-brand-500">

@@ -4,13 +4,12 @@
     v-loading="loading"
     class="app-page-spinner"
   />
-  <div v-else-if="!error" class="absolute left-0 right-0">
+  <div v-else-if="!error" class="absolute left-0 right-0 top-0">
     <div
       ref="header"
-      class="w-full bg-gray-50 border-gray-200 pt-4 sticky top-[-20px] z-10"
+      class="w-full bg-white border-gray-200 pt-4 sticky top-[-20px] z-10 rounded-tl-2xl border-b"
       :class="{
-        'border-b': !isHeaderOnTop,
-        shadow: isHeaderOnTop,
+        shadow: !isHeaderOnTop,
       }"
     >
       <div class="max-w-5xl mx-auto px-8 pb-6">
@@ -104,7 +103,7 @@ const wrapper = ref();
 const loading = ref();
 const error = ref();
 const storeUnsubscribe = ref(() => {});
-const isHeaderOnTop = ref(false);
+const isHeaderOnTop = ref(true);
 
 const platformField = new ActivityPlatformField(
   'activeOn',
@@ -131,8 +130,7 @@ const currentTemplate = computed(() => templates.find((t) => t.config.nameAsId =
 const { getCubeToken } = mapActions('widget');
 
 const onPageScroll = () => {
-  isHeaderOnTop.value = header.value.getBoundingClientRect().top === 0
-    && wrapper.value.scrollTop !== 0;
+  isHeaderOnTop.value = wrapper.value.scrollTop === 0;
 };
 
 const onPlatformFilterOpen = () => {

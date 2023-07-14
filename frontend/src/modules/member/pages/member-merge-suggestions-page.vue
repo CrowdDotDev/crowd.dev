@@ -19,7 +19,7 @@
       <header class="flex items-center justify-between pb-4">
         <button
           type="button"
-          class="btn btn--transparent btn--md"
+          class="btn btn-link btn-link--md btn-link--primary"
           :disabled="loading || offset <= 0"
           @click="fetch(offset - 1)"
         >
@@ -49,7 +49,7 @@
         </div>
         <button
           type="button"
-          class="btn btn--transparent btn--md"
+          class="btn btn-link btn-link--md btn-link--primary"
           :disabled="loading || offset >= count - 1"
           @click="fetch(offset + 1)"
         >
@@ -99,7 +99,7 @@
         <div class="w-1/2 px-3">
           <el-button
             :disabled="loading || isEditLockedForSampleData"
-            class="btn btn--bordered btn--lg w-full"
+            class="btn btn--secondary btn--lg w-full"
             :loading="sendingIgnore"
             @click="ignoreSuggestion()"
           >

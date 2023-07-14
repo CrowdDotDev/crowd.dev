@@ -97,7 +97,7 @@
       <div class="flex gap-4">
         <el-button
           :disabled="saveLoading"
-          class="btn btn--md btn--bordered"
+          class="btn btn--md btn--secondary"
           @click="doCancel"
         >
           <app-i18n code="common.cancel" />

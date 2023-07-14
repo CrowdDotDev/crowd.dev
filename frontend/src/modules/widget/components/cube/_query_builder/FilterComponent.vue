@@ -38,7 +38,7 @@
     </div>
     <div class="pr-2 shrink">
       <button
-        class="btn btn--transparent btn--md"
+        class="btn btn-link btn-link--md btn-link--primary"
         type="button"
         disabled
       >
@@ -221,7 +221,7 @@
           placement="top"
         >
           <button
-            class="btn btn--transparent btn--md"
+            class="btn btn-link btn-link--md btn-link--primary"
             type="button"
             @click.prevent="removeFilter(index)"
           >

@@ -13,7 +13,7 @@
         class="bg-gray-50 rounded-b-md flex items-center justify-end py-4 px-6"
       >
         <el-button
-          class="btn btn--bordered btn--md mr-3"
+          class="btn btn--secondary btn--md mr-3"
           @click="model = false"
         >
           Cancel

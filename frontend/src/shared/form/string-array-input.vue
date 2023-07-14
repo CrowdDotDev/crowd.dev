@@ -12,7 +12,7 @@
       <div v-if="model.length > 1">
         <button
           type="button"
-          class="btn btn--md btn--transparent w-10 h-10"
+          class="btn btn-link btn-link--md btn-link--primary w-10 h-10"
           @click="removeRow(index)"
         >
           <i

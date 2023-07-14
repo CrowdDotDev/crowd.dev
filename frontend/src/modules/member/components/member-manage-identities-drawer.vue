@@ -17,7 +17,7 @@
     <template #footer>
       <div style="flex: auto">
         <el-button
-          class="btn btn--md btn--bordered mr-3"
+          class="btn btn--md btn--secondary mr-3"
           @click="handleCancel"
         >
           Cancel

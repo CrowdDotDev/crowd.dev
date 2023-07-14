@@ -51,11 +51,11 @@
           <slot name="actionBtn" />
           <div class="ml-3">
             <el-button
-              class="btn btn--transparent btn--xs w-8 !h-8"
+              class="btn btn-link btn-link--xs btn-link--primary w-8 !h-8 hover:!no-underline group"
               @click="close"
             >
               <i
-                class="ri-close-line text-lg text-gray-400"
+                class="ri-close-line text-lg text-gray-400 group-hover:text-brand-500"
               />
             </el-button>
           </div>

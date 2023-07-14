@@ -34,8 +34,8 @@ export default {
   },
   data() {
     return {
-      backgroundColors: ['#FDEDEA'],
-      textColors: ['#BA3F25'],
+      backgroundColors: ['#DBEBFE'],
+      textColors: ['#0094FF'],
       sizes: {
         xl: '4.5rem',
         lg: '4rem',

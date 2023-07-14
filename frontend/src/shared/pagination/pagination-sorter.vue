@@ -19,7 +19,7 @@
       <button
         v-if="module === 'member'"
         type="button"
-        class="btn btn--transparent btn--md mr-3"
+        class="btn btn-link btn-link--md btn-link--primary mr-3"
         @click="doExport"
       >
         <i

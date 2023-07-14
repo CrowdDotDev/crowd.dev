@@ -2,7 +2,7 @@
   <app-page-wrapper size="full-width">
     <div class="member-list-page">
       <div class="mb-10">
-        <app-lf-page-header text-class="text-sm text-brand-500 mb-2.5" />
+        <app-lf-page-header text-class="text-sm text-brand-600 mb-2.5" />
         <div class="flex items-center justify-between">
           <div class="flex items-center">
             <h4>Organizations</h4>

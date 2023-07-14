@@ -1,3 +1,5 @@
+import { router } from '@/router';
+
 export default {
   namespaced: true,
 
@@ -28,12 +30,6 @@ export default {
 
     RESIZE(state, payload) {
       state.isMobile = payload.width < 576;
-
-      if (payload.width > 768 && payload.width < 1281) {
-        state.menuCollapsed = true;
-      } else if (payload.width > 1280) {
-        state.menuCollapsed = false;
-      }
     },
   },
 

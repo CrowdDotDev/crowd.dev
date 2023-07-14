@@ -168,6 +168,12 @@ export default {
 
 .project-groups-select-input {
     @apply cursor-pointer relative w-full;
+    height: 36px !important;
+
+    .el-input__wrapper {
+      border-radius: 100px !important;
+      @apply h-9 px-4;
+    }
 
     .el-input__inner {
         @apply cursor-pointer text-xs truncate pr-6;
