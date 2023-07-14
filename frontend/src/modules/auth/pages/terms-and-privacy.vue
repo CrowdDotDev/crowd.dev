@@ -46,9 +46,8 @@
 </template>
 
 <script>
-import { mapActions } from 'vuex';
+import { mapActions, mapGetters } from "vuex";
 import { UserModel } from '@/modules/user/user-model';
-import config from '@/config';
 import { AuthService } from '@/modules/auth/auth-service';
 
 const { fields } = UserModel;
@@ -64,9 +63,16 @@ export default {
   },
 
   computed: {
+    ...mapGetters('auth', ['currentUser']),
     fields() {
       return fields;
     },
+  },
+
+  mounted() {
+    if (!this.currentUser) {
+      this.$router.push('/auth/signin');
+    }
   },
 
   methods: {
@@ -88,10 +94,6 @@ export default {
       } else {
         this.acceptTerms = true;
       }
-    },
-
-    socialOauthLink(provider) {
-      return `${config.backendUrl}/auth/social/${provider}`;
     },
   },
 };
