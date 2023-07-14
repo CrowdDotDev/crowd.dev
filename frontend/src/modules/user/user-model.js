@@ -111,6 +111,13 @@ const fields = {
     'createdAt',
     label('createdAt'),
   ),
+  acceptedTermsAndPrivacy: new BooleanField(
+    'acceptedTermsAndPrivacy',
+    label('acceptedTermsAndPrivacy'),
+    {
+      required: true,
+    },
+  ),
 };
 
 export class UserModel extends GenericModel {

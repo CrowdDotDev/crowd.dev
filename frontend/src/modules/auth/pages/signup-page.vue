@@ -174,6 +174,23 @@
           </template>
         </el-form-item>
 
+        <el-checkbox
+          v-model="model[fields.acceptedTermsAndPrivacy.name]"
+        >
+          <span class="text-sm text-gray-900">
+            I accept the <a href="https://www.crowd.dev/terms-of-use" target="_blank" rel="noopener noreferrer">terms of service</a>
+            and <a href="https://www.crowd.dev/privacy-policy" target="_blank" rel="noopener noreferrer">privacy policy</a>.
+          </span>
+        </el-checkbox>
+        <div v-if="acceptTerms && !model[fields.acceptedTermsAndPrivacy.name]" class="flex items-center mt-1">
+          <i
+            class="h-4 flex items-center ri-error-warning-line text-base text-red-500"
+          />
+          <span
+            class="pl-1 text-2xs text-red-500 leading-4.5"
+          >You have to accept terms of service and privacy policy before signing up</span>
+        </div>
+
         <el-form-item class="pt-4 mb-0">
           <el-button
             id="submit"
@@ -246,12 +263,15 @@ export default {
         password: fields.password.forFormRules(),
         passwordConfirmation:
           fields.passwordConfirmation.forFormRules(),
+        acceptedTermsAndPrivacy:
+          fields.passwordConfirmation.forFormRules(),
       },
       model: {},
       display: {
         password: false,
         passwordConfirm: false,
       },
+      acceptTerms: false,
     };
   },
 
@@ -275,14 +295,22 @@ export default {
     ...mapActions('auth', ['doRegisterEmailAndPassword']),
 
     doSubmit() {
-      this.$refs.form.validate().then(() => this.doRegisterEmailAndPassword({
-        email: this.model.email,
-        password: this.model.password,
-        data: {
-          firstName: this.model.firstName,
-          lastName: this.model.lastName,
-        },
-      }));
+      this.acceptTerms = false;
+      this.$refs.form.validate().then(() => {
+        if (this.model.acceptedTermsAndPrivacy) {
+          this.doRegisterEmailAndPassword({
+            email: this.model.email,
+            password: this.model.password,
+            data: {
+              firstName: this.model.firstName,
+              lastName: this.model.lastName,
+            },
+            acceptedTermsAndPrivacy: this.model.acceptedTermsAndPrivacy,
+          });
+        } else {
+          this.acceptTerms = true;
+        }
+      });
     },
 
     socialOauthLink(provider) {
