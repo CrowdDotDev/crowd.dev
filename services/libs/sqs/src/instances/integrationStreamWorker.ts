@@ -44,11 +44,11 @@ export class IntegrationStreamWorkerEmitter extends SqsQueueEmitter {
   public async triggerWebhookProcessing(
     tenantId: string,
     platform: string,
-    streamId: string,
+    webhookId: string,
   ): Promise<void> {
     await this.sendMessage(
       `ws-streams-${tenantId}-${platform}`,
-      new ProcessWebhookStreamQueueMessage(streamId),
+      new ProcessWebhookStreamQueueMessage(webhookId),
     )
   }
 }

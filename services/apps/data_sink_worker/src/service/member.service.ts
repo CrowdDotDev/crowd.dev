@@ -171,6 +171,7 @@ export default class MemberService extends LoggerBase {
 
           if (organizationIds.length > 0) {
             await orgService.addToMember(tenantId, segmentId, id, organizationIds)
+            updated = true
           }
         }
 

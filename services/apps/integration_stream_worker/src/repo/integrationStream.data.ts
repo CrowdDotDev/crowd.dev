@@ -25,4 +25,6 @@ export interface IProcessableStream {
   id: string
   tenantId: string
   integrationType: string
+  runId: string | null
+  webhookId: string | null
 }

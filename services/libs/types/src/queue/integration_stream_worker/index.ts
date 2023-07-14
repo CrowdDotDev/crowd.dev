@@ -27,5 +27,5 @@ export class ProcessStreamQueueMessage implements IQueueMessage {
 export class ProcessWebhookStreamQueueMessage implements IQueueMessage {
   public readonly type: string = IntegrationStreamWorkerQueueMessageType.PROCESS_WEBHOOK_STREAM
 
-  constructor(public readonly streamId: string) {}
+  constructor(public readonly webhookId: string) {}
 }
