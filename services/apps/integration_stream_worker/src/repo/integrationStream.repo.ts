@@ -21,7 +21,9 @@ export default class IntegrationStreamRepository extends RepositoryBase<Integrat
       `
         select s.id,
                s."tenantId",
-               i.platform as "integrationType"
+               i.platform as "integrationType",
+               s."runId",
+               s."webhookId"
         from integration.streams s
         inner join integrations i on i.id = s."integrationId"
         where s.state = $(delayedState) and s."delayedUntil" < now()

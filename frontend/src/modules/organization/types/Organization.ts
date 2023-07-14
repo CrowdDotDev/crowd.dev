@@ -43,4 +43,9 @@ export interface Organization{
   updatedById: string;
   url: string;
   website: string;
+  memberOrganizations: {
+    title: string;
+    dateStart: string;
+    dateEnd: string;
+  }
 }

@@ -2,6 +2,7 @@ import { LoggerBase } from '@crowd/logging'
 import { RedisPubSubEmitter, getRedisClient } from '@crowd/redis'
 import axios from 'axios'
 import lodash from 'lodash'
+import moment from 'moment'
 import {
   ApiWebsocketMessage,
   MemberAttributeName,
@@ -29,6 +30,9 @@ import {
   EnrichmentAPISkills,
   EnrichmentAPIWorkExperience,
 } from './types/memberEnrichmentTypes'
+import OrganizationService from '../../organizationService'
+import MemberRepository from '../../../database/repositories/memberRepository'
+import OrganizationRepository from '../../../database/repositories/organizationRepository'
 
 export default class MemberEnrichmentService extends LoggerBase {
   options: IServiceOptions
@@ -267,7 +271,38 @@ export default class MemberEnrichmentService extends LoggerBase {
         this.options,
       )
 
-      return memberService.upsert({ ...normalized, platform: Object.keys(member.username)[0] })
+      const result = await memberService.upsert({
+        ...normalized,
+        platform: Object.keys(member.username)[0],
+      })
+
+      // for every work experience in `enrichmentData`
+      //   - upsert organization
+      //   - upsert `memberOrganization` relation
+      const organizationService = new OrganizationService(this.options)
+      if (enrichmentData.work_experiences) {
+        for (const workExperience of enrichmentData.work_experiences) {
+          const org = await organizationService.findOrCreate({
+            name: workExperience.company,
+          })
+
+          const dateEnd = workExperience.endDate
+            ? moment.utc(workExperience.endDate).toISOString()
+            : null
+
+          const data = {
+            memberId: result.id,
+            organizationId: org.id,
+            title: workExperience.title,
+            dateStart: workExperience.startDate,
+            dateEnd,
+          }
+          await MemberRepository.createOrUpdateWorkExperience(data, this.options)
+          await OrganizationRepository.includeOrganizationToSegments(org.id, this.options)
+        }
+      }
+
+      return result
     }
     return null
   }

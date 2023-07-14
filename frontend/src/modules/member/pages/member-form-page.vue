@@ -41,6 +41,12 @@
             <el-divider
               class="!mb-6 !mt-16 !border-gray-200"
             />
+            <app-member-form-organizations
+              v-model="formModel"
+            />
+            <el-divider
+              class="!mb-6 !mt-16 !border-gray-200"
+            />
             <app-member-form-attributes
               v-model="formModel"
               :attributes="computedAttributes"
@@ -115,6 +121,7 @@ import AppMemberFormDetails from '@/modules/member/components/form/member-form-d
 import AppMemberFormIdentities from '@/modules/member/components/form/member-form-identities.vue';
 import AppMemberFormAttributes from '@/modules/member/components/form/member-form-attributes.vue';
 import AppMemberGlobalAttributesDrawer from '@/modules/member/components/member-global-attributes-drawer.vue';
+import AppMemberFormOrganizations from '@/modules/member/components/form/member-form-organizations.vue';
 import { MemberModel } from '@/modules/member/member-model';
 import { FormSchema } from '@/shared/form/form-schema';
 import ConfirmDialog from '@/shared/dialog/confirm-dialog';
@@ -151,6 +158,7 @@ const { fields } = MemberModel;
 const formSchema = computed(
   () => new FormSchema([
     fields.displayName,
+    fields.name,
     fields.emails,
     fields.joinedAt,
     fields.tags,
@@ -188,12 +196,17 @@ function getInitialModel(r) {
     JSON.stringify(
       formSchema.value.initialValues({
         displayName: r ? r.displayName : '',
-        emails: r ? r.emails : '',
+        name: r ? r.name : '',
+        emails: r ? r.emails?.filter((e) => !!e) || [] : [],
         joinedAt: r ? r.joinedAt : '',
         attributes: r
           ? filteredAttributes(r.attributes)
           : {},
-        organizations: r ? r.organizations : [],
+        organizations: r ? r.organizations.map((o) => ({
+          ...o,
+          displayName: o.displayName || o.name,
+          label: o.displayName || o.name,
+        })) : [],
         ...attributes,
         tags: r ? r.tags : [],
         username: r ? r.username : {},
@@ -340,7 +353,21 @@ async function onSubmit() {
     },
     ...formModel.value.organizations.length && {
       organizations: formModel.value.organizations.map(
-        (o) => o.id,
+        (o) => ({
+          id: o.id,
+          name: o.name,
+          ...o.memberOrganizations?.title && {
+            title: o.memberOrganizations?.title,
+          },
+          ...o.memberOrganizations?.dateStart && {
+            startDate: o.memberOrganizations?.dateStart,
+          },
+          ...o.memberOrganizations?.dateEnd && {
+            endDate: o.memberOrganizations?.dateEnd,
+          },
+        }),
+      ).filter(
+        (o) => !!o.id,
       ),
     },
     ...(Object.keys(formattedAttributes).length
