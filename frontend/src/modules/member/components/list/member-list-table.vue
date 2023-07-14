@@ -352,10 +352,7 @@
                     }"
                     class="block"
                   >
-                    <app-tag-list
-                      :member="scope.row"
-                      @tags-updated="fetchMembers({ reload: true })"
-                    />
+                    <app-tag-list :member="scope.row" @edit="isEditTagsDialogOpen = scope.row" />
                   </router-link>
                 </template>
               </el-table-column>
@@ -370,7 +367,7 @@
                     class="block w-full"
                   >
                     <div class="h-full flex items-center justify-center w-full">
-                      <app-member-dropdown :member="scope.row" />
+                      <app-member-dropdown :member="scope.row" @merge="isMergeDialogOpen = scope.row" />
                     </div>
                   </router-link>
                 </template>
@@ -391,6 +388,8 @@
         </div>
       </div>
     </div>
+    <app-member-merge-dialog v-model="isMergeDialogOpen" />
+    <app-tag-popover v-model="isEditTagsDialogOpen" @reload="fetchMembers({ reload: true })" />
   </div>
 </template>
 
@@ -410,6 +409,8 @@ import { storeToRefs } from 'pinia';
 import { MemberService } from '@/modules/member/member-service';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import { getSegmentsFromProjectGroup } from '@/utils/segments';
+import AppMemberMergeDialog from '@/modules/member/components/member-merge-dialog.vue';
+import AppTagPopover from '@/modules/tag/components/tag-popover.vue';
 import AppMemberBadge from '../member-badge.vue';
 import AppMemberDropdown from '../member-dropdown.vue';
 import AppMemberIdentities from '../member-identities.vue';
@@ -428,6 +429,10 @@ const isTableHovered = ref(false);
 const isCursorDown = ref(false);
 
 const emit = defineEmits(['onAddMember']);
+
+const isMergeDialogOpen = ref(null);
+const isEditTagsDialogOpen = ref(null);
+
 const props = defineProps({
   hasIntegrations: {
     type: Boolean,

@@ -579,6 +579,7 @@ const en = {
       fullName: 'Name',
       firstName: 'First name',
       lastName: 'Last name',
+      acceptedTermsAndPrivacy: 'Terms and privacy',
       status: 'Status',
       phoneNumber: 'Phone Number',
       role: 'Role',

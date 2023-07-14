@@ -86,33 +86,6 @@ export default {
       });
   },
 
-  doRegisterEmailAndPassword(
-    { commit, dispatch },
-    {
-      email, password, username, data = {},
-    },
-  ) {
-    return Auth0Service.signup({
-      email,
-      password,
-      username,
-      firstName: data.firstName,
-      lastName: data.lastName,
-    })
-      .then(() => {
-        commit('AUTH_SUCCESS', {
-          currentUser: {
-            email,
-          },
-        });
-        router.push({ name: 'emailUnverified' });
-      })
-      .catch((error) => {
-        Message.error(typeof error.description === 'string' ? error.description : error.original.response.body.message);
-        commit('AUTH_ERROR');
-      });
-  },
-
   doSigninWithEmailAndPassword(
     { commit },
     { email, password, rememberMe },
