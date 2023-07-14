@@ -95,6 +95,10 @@ export default (sequelize, DataTypes) => {
       jwtTokenInvalidBefore: {
         type: DataTypes.DATE,
       },
+      acceptedTermsAndPrivacy: {
+        type: DataTypes.BOOLEAN,
+        defaultValue: true,
+      },
       importHash: {
         type: DataTypes.STRING(255),
         allowNull: true,
