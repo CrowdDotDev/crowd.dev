@@ -59,11 +59,6 @@ export default async function ({ to, store, router }) {
     router.push('/403');
     return;
   }
-  console.log(currentUser);
-  if (!currentUser.acceptedTermsAndPrivacy) {
-    router.push({ path: '/auth/terms-and-privacy' });
-    return;
-  }
 
   if (
     ['multi', 'multi-with-subdomain'].includes(
