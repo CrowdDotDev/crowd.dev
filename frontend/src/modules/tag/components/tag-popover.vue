@@ -3,7 +3,7 @@
     v-if="computedVisible"
     v-model="computedVisible"
     title="Edit tags"
-    :pre-title="modelValue.displayName"
+    :pre-title="modelValue?.displayName ?? ''"
   >
     <template #content>
       <div class="px-6 pb-6">
