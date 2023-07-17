@@ -172,6 +172,12 @@ export default {
       this.$router.push({
         name: 'activity',
         query: filterQueryService().setQuery({
+          search: '',
+          relation: 'and',
+          order: {
+            prop: 'timestamp',
+            order: 'descending',
+          },
           sentiment: {
             value: [sentiment],
             include: true,
