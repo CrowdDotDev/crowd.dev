@@ -263,22 +263,37 @@ export default {
           noDimension: [
             'Activities.platform',
             'Activities.type',
-            'Segments.name',
           ],
           Activities: [
             'Activities.platform',
             'Activities.type',
             'Activities.date',
-            'Segments.name',
           ],
           Members: [
             'Members.score',
             'Members.joinedAt',
             'Members.location',
             'Members.organization',
-            'Segments.name',
           ],
-          Tags: ['Tags.name', 'Segments.name'],
+          Tags: ['Tags.name'],
+        },
+        'Activities.cumulativeCount': {
+          noDimension: [
+            'Activities.platform',
+            'Activities.type',
+          ],
+          Activities: [
+            'Activities.platform',
+            'Activities.type',
+            'Activities.date',
+          ],
+          Members: [
+            'Members.score',
+            'Members.joinedAt',
+            'Members.location',
+            'Members.organization',
+          ],
+          Tags: ['Tags.name'],
         },
         'Members.count': {
           noDimension: [
@@ -286,21 +301,37 @@ export default {
             'Members.joinedAt',
             'Members.location',
             'Members.organization',
-            'Segments.name',
           ],
           Activities: [
             'Activities.platform',
             'Activities.type',
             'Activities.date',
-            'Segments.name',
           ],
           Members: [
             'Members.score',
             'Members.location',
             'Members.organization',
-            'Segments.name',
           ],
-          Tags: ['Tags.name', 'Segments.name'],
+          Tags: ['Tags.name'],
+        },
+        'Members.cumulativeCount': {
+          noDimension: [
+            'Members.score',
+            'Members.joinedAt',
+            'Members.location',
+            'Members.organization',
+          ],
+          Activities: [
+            'Activities.platform',
+            'Activities.type',
+            'Activities.date',
+          ],
+          Members: [
+            'Members.score',
+            'Members.location',
+            'Members.organization',
+          ],
+          Tags: ['Tags.name'],
         },
       },
       actionItems: [
@@ -338,7 +369,8 @@ export default {
         },
       ],
       localFilters: [],
-    }
+      defaultFilters: [],
+    };
   },
   computed: {
     computedFilters() {
@@ -346,15 +378,22 @@ export default {
       const dimension = this.dimensions[0]
         ? this.dimensions[0].name.split('.')[0]
         : 'noDimension';
-      return !measure
-        ? []
-        : this.availableDimensions.filter((d) => (this.measureDimensionFilters[
+
+      if (!measure) {
+        return [];
+      }
+
+      return this.availableDimensions.filter((d) => {
+        if (this.measureDimensionFilters[
           measure.name
-        ]?.[dimension] === undefined
-          ? false
-          : this.measureDimensionFilters[measure.name][
-            dimension
-          ].includes(d.name)));
+        ]?.[dimension] === undefined) {
+          return false;
+        }
+
+        return this.measureDimensionFilters[measure.name][
+          dimension
+        ].includes(d.name);
+      });
     },
     computedActivityTypes() {
       return activityFields.type
@@ -369,6 +408,17 @@ export default {
     ...mapGetters({
       activeIntegrationsList: 'integration/activeList',
     }),
+  },
+  watch: {
+    measures: {
+      // Clear filters if measure changes
+      handler(updatedMeasures, previousMeasures) {
+        if (updatedMeasures[0].name !== previousMeasures[0].name) {
+          this.localFilters = [];
+          this.syncFilters();
+        }
+      },
+    },
   },
   async created() {
     await this.doFetchIntegrations();
@@ -408,9 +458,20 @@ export default {
 
             return filter;
           })
-          // Remove this filter from options for now
+          // Remove default filters from options for now
           .filter(
-            (f) => f.select !== 'Members.isTeamMember',
+            (f) => {
+              if (f.select !== 'Members.isTeamMember' && f.select !== 'Members.isBot') {
+                return true;
+              }
+
+              this.defaultFilters.push({
+                member: f.select,
+                operator: f.operator,
+                values: [f.value],
+              });
+              return false;
+            },
           )
       );
     },
@@ -445,7 +506,9 @@ export default {
         this.localFilters[index].value = undefined;
       }
 
-      this.setFilters(newFilters);
+      const filters = newFilters.concat(this.defaultFilters);
+
+      this.setFilters(filters);
     },
 
     onSelectMouseLeave,

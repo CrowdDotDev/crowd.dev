@@ -66,11 +66,7 @@
                 <MeasureSelect
                   :translated-options="translatedOptions"
                   :measures="measures"
-                  :available-measures="
-                    availableMeasures.filter(
-                      (m) => m.name !== 'Identities.count',
-                    )
-                  "
+                  :available-measures="availableMeasures"
                   :set-measures="setMeasures"
                 />
               </div>

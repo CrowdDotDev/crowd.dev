@@ -73,6 +73,17 @@ export default {
           'Segments.name',
           'Tags.name',
         ],
+        'Activities.cumulativeCount': [
+          'Activities.platform',
+          'Activities.type',
+          'Activities.date',
+          'Activities.channel',
+          'Members.score',
+          'Members.location',
+          'Members.joinedAt',
+          'Members.organization',
+          'Tags.name',
+        ],
         'Members.count': [
           'Activities.platform',
           'Activities.type',
@@ -82,7 +93,17 @@ export default {
           'Members.location',
           'Members.joinedAt',
           'Members.organization',
-          'Segments.name',
+          'Tags.name',
+        ],
+        'Members.cumulativeCount': [
+          'Activities.platform',
+          'Activities.type',
+          'Activities.date',
+          'Activities.channel',
+          'Members.score',
+          'Members.location',
+          'Members.joinedAt',
+          'Members.organization',
           'Tags.name',
         ],
         'Conversations.count': [
@@ -99,48 +120,65 @@ export default {
           'Members.location',
           'Members.joinedAt',
           'Members.organization',
-          'Segments.name',
           'Tags.name',
         ],
         'Sentiment.averageSentiment': ['Sentiment.platform'],
+        'Organizations.count': [
+          'Activities.platform',
+          'Activities.type',
+          'Activities.date',
+          'Activities.channel',
+          'Members.score',
+          'Members.location',
+          'Members.joinedAt',
+          'Members.organization',
+          'Organizations.createdat',
+          'Tags.name',
+        ],
+        'MemberTags.count': [],
+        'Tags.count': [],
       },
     };
   },
   computed: {
     computedDimensions() {
-      const measure = this.measures[0];
-      return !measure
-        ? []
-        : this.availableDimensions.filter((t) => !!this.measureDimensions[
-          measure.name
-        ]?.includes(t.name));
+      const measure = this.measures?.[0];
+
+      if (!measure) {
+        return [];
+      }
+
+      return this.availableDimensions.filter((t) => !!this.measureDimensions[
+        measure.name
+      ]?.includes(t.name));
     },
     value: {
       get() {
-        const measure = this.measures[0];
-
-        // Select first option by default if measure changes
-        if (measure) {
-          const hasOption = this.measureDimensions[
-            measure.name
-          ]?.includes(this.dimensions?.[0]?.name);
-
-          if (
-            !hasOption
-            && this.measureDimensions[measure.name]?.[0]
-          ) {
-            this.setDimensions([
-              this.measureDimensions[measure.name][0],
-            ]);
-          }
-        }
-
         return this.translatedOptions(this.dimensions).map(
           (i) => i.name,
         )?.[0];
       },
       set(value) {
         return this.setDimensions([value]);
+      },
+    },
+  },
+
+  watch: {
+    measures: {
+      // Select first option by default if measure changes
+      handler(updatedMeasures, previousMeasures) {
+        if (updatedMeasures?.[0].name !== previousMeasures?.[0].name) {
+          if (
+            this.computedDimensions?.[0]
+          ) {
+            this.setDimensions([
+              this.computedDimensions[0].name,
+            ]);
+          } else {
+            this.setDimensions([]);
+          }
+        }
       },
     },
   },
