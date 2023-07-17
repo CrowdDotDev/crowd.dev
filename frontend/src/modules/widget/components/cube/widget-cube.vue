@@ -134,11 +134,11 @@ export default {
       return this.widget.settings.chartType || 'line';
     },
     subtitle() {
-      const granularity = this.widget.settings.query.timeDimensions.length > 0
+      const granularity = this.widget.settings.query.timeDimensions?.length > 0
         ? this.widget.settings.query.timeDimensions[0]
           .granularity
         : null;
-      const dateRange = this.widget.settings.query.timeDimensions.length > 0
+      const dateRange = this.widget.settings.query.timeDimensions?.length > 0
         ? this.widget.settings.query.timeDimensions[0]
           .dateRange || 'All time'
         : null;

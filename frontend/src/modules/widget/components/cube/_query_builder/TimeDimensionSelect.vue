@@ -53,25 +53,60 @@ export default {
   data() {
     return {
       measureTimeDimensions: {
-        'Activities.count': ['Activities.date'],
+        'Activities.count': [
+          'Activities.date',
+        ],
+        'Activities.cumulativeCount': [
+          'Activities.date',
+        ],
+        'Conversations.count': [
+          'Conversations.createdat',
+        ],
         'Members.count': [
           'Members.joinedAt',
           'Activities.date',
         ],
-        'Conversations.count': ['Conversations.createdat'],
-        'Sentiment.averageSentiment': ['Sentiment.date'],
-        'Organizations.count': ['Organizations.createdat'],
+        'Members.cumulativeCount': [
+          'Members.joinedAt',
+          'Activities.date',
+        ],
+        'Sentiment.averageSentiment': [
+          'Sentiment.date',
+        ],
+        'Organizations.count': [
+          'Organizations.createdat',
+        ],
+        'MemberTags.count': [],
+        'Tags.count': [],
       },
     };
   },
   computed: {
     computedTimeDimensions() {
       const measure = this.measures[0];
-      return !measure
-        ? []
-        : this.availableTimeDimensions.filter((t) => !!this.measureTimeDimensions[
-          measure.name
-        ]?.includes(t.name));
+
+      if (!measure) {
+        return [];
+      }
+
+      return this.availableTimeDimensions.filter((t) => !!this.measureTimeDimensions[
+        measure.name
+      ]?.includes(t.name));
+    },
+  },
+  watch: {
+    measures: {
+      handler(updatedMeasures, previousMeasures) {
+        if (updatedMeasures?.[0].name !== previousMeasures?.[0].name) {
+          if (
+            this.computedTimeDimensions?.[0]
+          ) {
+            this.handleTimeChange(this.computedTimeDimensions[0].name);
+          } else {
+            this.handleTimeChange();
+          }
+        }
+      },
     },
   },
   methods: {
