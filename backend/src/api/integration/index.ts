@@ -76,14 +76,25 @@ export default (app) => {
     safeWrap(require('./helpers/discourseTestWebhook').default),
   )
 
-  app.post('/tenant/:tenantId/hubspot-connect', safeWrap(require('./helpers/hubspotConnect').default))
+  app.post(
+    '/tenant/:tenantId/hubspot-connect',
+    safeWrap(require('./helpers/hubspotConnect').default),
+  )
 
-  app.post('/tenant/:tenantId/hubspot-onboard', safeWrap(require('./helpers/hubspotOnboard').default))
+  app.post(
+    '/tenant/:tenantId/hubspot-onboard',
+    safeWrap(require('./helpers/hubspotOnboard').default),
+  )
 
-  app.post('/tenant/:tenantId/hubspot-update-properties', safeWrap(require('./helpers/hubspotUpdateProperties').default))
+  app.post(
+    '/tenant/:tenantId/hubspot-update-properties',
+    safeWrap(require('./helpers/hubspotUpdateProperties').default),
+  )
 
-  app.get('/tenant/:tenantId/hubspot-mappable-fields', safeWrap(require('./helpers/hubspotGetMappableFields').default))
-
+  app.get(
+    '/tenant/:tenantId/hubspot-mappable-fields',
+    safeWrap(require('./helpers/hubspotGetMappableFields').default),
+  )
 
   // if (TWITTER_CONFIG.clientId) {
   //   /**

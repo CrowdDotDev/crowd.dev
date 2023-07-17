@@ -503,7 +503,11 @@ export default class IntegrationService {
 
     const identities = await TenantRepository.getAvailablePlatforms(tenantId, this.options)
 
-    const memberMapper = HubspotFieldMapperFactory.getFieldMapper(HubspotEntity.MEMBERS, memberAttributeSettings, identities)
+    const memberMapper = HubspotFieldMapperFactory.getFieldMapper(
+      HubspotEntity.MEMBERS,
+      memberAttributeSettings,
+      identities,
+    )
     const organizationMapper = HubspotFieldMapperFactory.getFieldMapper(HubspotEntity.ORGANIZATIONS)
 
     // validate members
@@ -578,10 +582,17 @@ export default class IntegrationService {
       this.options,
     )
 
-    const memberMapper = HubspotFieldMapperFactory.getFieldMapper(HubspotEntity.MEMBERS, memberAttributeSettings, identities)
+    const memberMapper = HubspotFieldMapperFactory.getFieldMapper(
+      HubspotEntity.MEMBERS,
+      memberAttributeSettings,
+      identities,
+    )
     const organizationMapper = HubspotFieldMapperFactory.getFieldMapper(HubspotEntity.ORGANIZATIONS)
 
-    return { members: memberMapper.getFieldTypeMap(), organizations: organizationMapper.getFieldTypeMap() }
+    return {
+      members: memberMapper.getFieldTypeMap(),
+      organizations: organizationMapper.getFieldTypeMap(),
+    }
   }
 
   async hubspotUpdateProperties(): Promise<IHubspotProperty[]> {
