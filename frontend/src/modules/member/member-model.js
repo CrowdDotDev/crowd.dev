@@ -6,6 +6,7 @@ import JsonField from '@/shared/fields/json-field';
 import { TagField } from '@/modules/tag/tag-field';
 import { OrganizationField } from '@/modules/organization/organization-field';
 import StringArrayField from '@/shared/fields/string-array-field';
+import GenericField from '@/shared/fields/generic-field';
 import MemberEngagementLevelField from './member-engagement-level-field';
 
 function label(name) {
@@ -54,6 +55,7 @@ const fields = {
     'score',
     'Engagement level',
   ),
+  affiliations: new GenericField('affiliations', 'Affiliations'),
 };
 
 export class MemberModel extends GenericModel {
