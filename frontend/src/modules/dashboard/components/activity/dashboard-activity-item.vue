@@ -78,7 +78,10 @@
             </div>
           </div>
           <div>
-            <app-activity-dropdown :activity="activity" />
+            <app-activity-dropdown
+              :activity="activity"
+              @activity-destroyed="$emit('activity-destroyed', activity.id)"
+            />
           </div>
         </div>
         <!-- Content -->
@@ -162,6 +165,7 @@ export default {
       default: false,
     },
   },
+  emits: ['activity-destroyed'],
   computed: {
     platform() {
       return CrowdIntegrations.getConfig(

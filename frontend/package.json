@@ -43,7 +43,6 @@
     "eslint-import-resolver-alias": "^1.1.2",
     "eslint-plugin-import": "^2.27.5",
     "file-saver": "2.0.2",
-    "filesize": "6.1.0",
     "lodash": "^4.17.21",
     "logrocket": "^3.0.1",
     "logrocket-vuex": "^0.0.3",

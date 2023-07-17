@@ -192,18 +192,17 @@ const chartResultSet = (resultSet) => {
 
 // Fetch function to pass to detail drawer
 const getTotalMembers = async ({ pagination }) => {
-  const res = await MemberService.list(
-    TOTAL_MEMBERS_FILTER({
+  const res = await MemberService.listMembers({
+    filter: TOTAL_MEMBERS_FILTER({
       date: drawerDate.value,
       granularity: granularity.value,
       selectedPlatforms: props.filters.platform.value,
       selectedHasTeamMembers: props.filters.teamMembers,
     }),
-    'joinedAt_DESC',
-    pagination.pageSize,
-    (pagination.currentPage - 1) * pagination.pageSize,
-    false,
-  );
+    orderBy: 'joinedAt_DESC',
+    limit: pagination.pageSize,
+    offset: (pagination.currentPage - 1) * pagination.pageSize,
+  });
   return res;
 };
 
