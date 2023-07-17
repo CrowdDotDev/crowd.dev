@@ -228,6 +228,7 @@ import { onSelectMouseLeave } from '@/utils/select';
 import { CrowdIntegrations } from '@/integrations/integrations-config';
 import { ActivityModel } from '@/modules/activity/activity-model';
 import { MemberModel } from '@/modules/member/member-model';
+import isEqual from 'lodash/isEqual';
 
 const { fields: activityFields } = ActivityModel;
 const { fields: memberFields } = MemberModel;
@@ -449,8 +450,17 @@ export default {
         JSON.parse(JSON.stringify(this.filters))
           .map((f) => {
             const filter = f;
+            const { values } = filter;
 
-            [filter.value] = f.values;
+            if (filter.member.name === 'Members.score') {
+              const parsedValues = values.map((v) => Number(v));
+              const engagement = this.computedEngagementLevelTypes.find((t) => isEqual(t.value, parsedValues))?.label;
+
+              filter.value = engagement;
+            } else {
+              [filter.value] = values;
+            }
+
             filter.select = f.member.name;
 
             delete filter.member;
