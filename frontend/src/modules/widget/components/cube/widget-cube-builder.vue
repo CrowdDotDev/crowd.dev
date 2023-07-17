@@ -376,11 +376,11 @@ export default {
         settings,
       };
     },
-    translatedOptions(list) {
+    translatedOptions(list, fallback) {
       return list.map((i) => ({
         ...i,
         value: i.name,
-        label: i18n(`widget.cubejs.${i.name}`),
+        label: i.name ? i18n(`widget.cubejs.${i.name}`) : fallback || '',
       }));
     },
     handleAdditionalSettingsClick() {

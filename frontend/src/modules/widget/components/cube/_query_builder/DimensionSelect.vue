@@ -20,7 +20,7 @@
       >
         <el-option
           v-for="item in translatedOptions(
-            computedDimensions,
+            computedDimensions, 'No dimension',
           )"
           :key="item.value"
           :value="item.value"
@@ -148,13 +148,21 @@ export default {
         return [];
       }
 
-      return this.availableDimensions.filter((t) => !!this.measureDimensions[
+      const isCumulative = measure.name.includes('cumulative');
+
+      const parsedDimensions = this.availableDimensions.filter((t) => !!this.measureDimensions[
         measure.name
       ]?.includes(t.name));
+
+      if (isCumulative) {
+        return [{}].concat(parsedDimensions);
+      }
+
+      return parsedDimensions;
     },
     value: {
       get() {
-        return this.translatedOptions(this.dimensions).map(
+        return this.translatedOptions(this.dimensions, 'No dimension').map(
           (i) => i.name,
         )?.[0];
       },
