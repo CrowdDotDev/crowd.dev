@@ -10,5 +10,5 @@ export interface ISqsQueueReceiver {
 
 export interface ISqsQueueEmitter {
   init(): Promise<void>
-  sendMessage(groupId: string, message: IQueueMessage): Promise<void>
+  sendMessage(groupId: string, message: IQueueMessage, deduplicationId?: string): Promise<void>
 }

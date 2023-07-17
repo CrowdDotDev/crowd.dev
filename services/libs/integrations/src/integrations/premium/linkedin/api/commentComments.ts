@@ -11,20 +11,24 @@ export const getCommentComments = async (
   ctx: IProcessStreamContext | IGenerateStreamsContext,
   start?: number,
 ): Promise<IPaginatedResponse<ILinkedInPostComment>> => {
+  // Get an access token from Nango
+  const accessToken = await getNangoToken(nangoId, PlatformType.LINKEDIN, ctx)
+
   const config: AxiosRequestConfig<unknown> = {
     method: 'get',
-    url: `https://api.linkedin.com/v2/socialActions/${commentId}/comments`,
+    url: `https://api.linkedin.com/rest/socialActions/${commentId}/comments`,
     params: {
       count: 20,
       start,
+    },
+    headers: {
+      'LinkedIn-Version': '202305',
+      Authorization: `Bearer ${accessToken}`,
     },
   }
 
   try {
     ctx.log.debug({ nangoId, commentId, start }, 'Fetching comment comments!')
-    // Get an access token from Nango
-    const accessToken = await getNangoToken(nangoId, PlatformType.LINKEDIN, ctx)
-    config.params.oauth2_access_token = accessToken
 
     const response = (await axios(config)).data
 

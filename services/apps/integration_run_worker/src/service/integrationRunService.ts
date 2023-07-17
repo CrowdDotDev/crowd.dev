@@ -1,16 +1,19 @@
+import { SlackAlertTypes, sendSlackAlert } from '@crowd/alerting'
 import { singleOrDefault } from '@crowd/common'
 import { DbStore } from '@crowd/database'
 import { IGenerateStreamsContext, INTEGRATION_SERVICES } from '@crowd/integrations'
 import { Logger, LoggerBase, getChildLogger } from '@crowd/logging'
 import { ApiPubSubEmitter, RedisCache, RedisClient } from '@crowd/redis'
-import { IntegrationRunWorkerEmitter, IntegrationStreamWorkerEmitter } from '@crowd/sqs'
+import {
+  IntegrationRunWorkerEmitter,
+  IntegrationStreamWorkerEmitter,
+  SearchSyncWorkerEmitter,
+} from '@crowd/sqs'
 import { IntegrationRunState, IntegrationStreamState } from '@crowd/types'
-import { NANGO_CONFIG, PLATFORM_CONFIG } from '../conf'
+import { NANGO_CONFIG, PLATFORM_CONFIG, SLACK_ALERTING_CONFIG } from '../conf'
 import IntegrationRunRepository from '../repo/integrationRun.repo'
 import MemberAttributeSettingsRepository from '../repo/memberAttributeSettings.repo'
 import SampleDataRepository from '../repo/sampleData.repo'
-import { SlackAlertTypes, sendSlackAlert } from '@crowd/alerting'
-import { SLACK_ALERTING_CONFIG } from '../conf'
 
 export default class IntegrationRunService extends LoggerBase {
   private readonly repo: IntegrationRunRepository
@@ -20,6 +23,7 @@ export default class IntegrationRunService extends LoggerBase {
     private readonly redisClient: RedisClient,
     private readonly streamWorkerEmitter: IntegrationStreamWorkerEmitter,
     private readonly runWorkerEmitter: IntegrationRunWorkerEmitter,
+    private readonly searchSyncWorkerEmitter: SearchSyncWorkerEmitter,
     private readonly apiPubSubEmitter: ApiPubSubEmitter,
     private readonly store: DbStore,
     parentLog: Logger,
@@ -117,6 +121,31 @@ export default class IntegrationRunService extends LoggerBase {
         }
       } else {
         this.log.info('Run finished successfully!')
+
+        try {
+          this.log.info('Trying to post process integration settings!')
+
+          const service = singleOrDefault(
+            INTEGRATION_SERVICES,
+            (s) => s.type === runInfo.integrationType,
+          )
+
+          if (service.postProcess) {
+            let settings = runInfo.integrationSettings as object
+            const newSettings = service.postProcess(settings)
+
+            if (newSettings) {
+              settings = { ...settings, ...newSettings }
+              await this.updateIntegrationSettings(runId, settings)
+            }
+
+            this.log.info('Finished post processing integration settings!')
+          } else {
+            this.log.info('Integration does not have post processing!')
+          }
+        } catch (err) {
+          this.log.error({ err }, 'Error while post processing integration settings!')
+        }
 
         await this.repo.markRunProcessed(runId)
         await this.repo.markIntegration(runId, 'done')
@@ -259,6 +288,9 @@ export default class IntegrationRunService extends LoggerBase {
         await this.sampleDataRepo.transactionally(async (txRepo) => {
           await txRepo.deleteSampleData(runInfo.tenantId)
         })
+
+        await this.searchSyncWorkerEmitter.triggerActivityCleanup(runInfo.tenantId)
+        await this.searchSyncWorkerEmitter.triggerMemberCleanup(runInfo.tenantId)
       } catch (err) {
         this.log.error({ err }, 'Error while deleting sample data!')
         await this.triggerRunError(
@@ -320,6 +352,7 @@ export default class IntegrationRunService extends LoggerBase {
         platform: runInfo.integrationType,
         status: runInfo.integrationState,
         settings: runInfo.integrationSettings,
+        token: runInfo.integrationToken,
       },
 
       log: this.log,

@@ -4,6 +4,9 @@ export type Repo = {
   createdAt: string
   owner: string
   available?: boolean
+  fork?: boolean
+  private?: boolean
+  cloneUrl?: string
 }
 
 export type Repos = Array<Repo>

@@ -128,10 +128,8 @@ Our self-hosted version can be run and deployed by default following the permiss
 
 We take security very seriously. If you come across any security vulnerabilities, please disclose them by sending an email to security@crowd.dev. We appreciate your help in making our platform as secure as possible and are committed to working with you to resolve any issues quickly and efficiently.
 
-## 💌 Acknowledgements
+## 📞 Book a call
 
-crowd.dev is powered by these awesome projects:
+Call with a crowd.dev team member to learn more about our product and make sure you get the most out of it.
 
-- <a href="https://github.com/vuejs/vue">Vue.js</a>
-- <a href="https://github.com/tailwindlabs/tailwindcss">Tailwind CSS</a>
-- <a href="https://github.com/cube-js/cube.js">Cube.js</a>
+<a href="https://cal.com/team/CrowdDotDev/intro-to-crowd-dev/"><img alt="Book us with Cal.com" src="https://cal.com/book-with-cal-dark.svg" /></a>

@@ -79,6 +79,10 @@ export default class PermissionChecker {
   has(permission) {
     assert(permission, 'permission is required')
 
+    if (!this.currentUser) {
+      return false
+    }
+
     if (!this.isEmailVerified) {
       return false
     }

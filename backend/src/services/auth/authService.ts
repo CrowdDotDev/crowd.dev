@@ -28,6 +28,7 @@ class AuthService {
     tenantId,
     firstName,
     lastName,
+    acceptedTermsAndPrivacy,
     options: any = {},
   ) {
     const transaction = await SequelizeRepository.createTransaction(options)
@@ -126,6 +127,7 @@ class AuthService {
           fullName,
           password: hashedPassword,
           email,
+          acceptedTermsAndPrivacy,
         },
         {
           ...options,
@@ -474,7 +476,7 @@ class AuthService {
         track(
           'Signed in',
           {
-            google: true,
+            [provider]: true,
             email: user.email,
           },
           options,
@@ -482,12 +484,15 @@ class AuthService {
         )
       }
       // If there was no provider, we can link it to the provider
-      if (user && (user.provider === undefined || user.provider === null)) {
+      if (user && (user.provider === undefined || user.provider === null || user.emailVerified)) {
         await UserRepository.update(
           user.id,
           {
+            firstName,
+            lastName,
             provider,
             providerId,
+            emailVerified,
           },
           options,
         )
@@ -511,13 +516,114 @@ class AuthService {
         track(
           'Signed up',
           {
-            google: true,
+            [provider]: true,
             email: user.email,
           },
           options,
           user.id,
         )
       }
+      const token = jwt.sign({ id: user.id }, API_CONFIG.jwtSecret, {
+        expiresIn: API_CONFIG.jwtExpiresIn,
+      })
+
+      await SequelizeRepository.commitTransaction(transaction)
+
+      return token
+    } catch (error) {
+      await SequelizeRepository.rollbackTransaction(transaction)
+
+      throw error
+    }
+  }
+
+  static async signinFromSSO(
+    provider,
+    providerId,
+    email,
+    emailVerified,
+    firstName,
+    lastName,
+    fullName,
+    invitationToken,
+    tenantId,
+    options: any = {},
+  ) {
+    if (!email) {
+      throw new Error('auth-no-email')
+    }
+
+    const transaction = await SequelizeRepository.createTransaction(options)
+
+    try {
+      email = email.toLowerCase()
+      let user = await UserRepository.findByEmail(email, options)
+      if (user) {
+        identify(user)
+        track(
+          'Signed in',
+          {
+            [provider]: true,
+            email: user.email,
+          },
+          options,
+          user.id,
+        )
+      }
+
+      // If there was no provider, we can link it to the provider
+      if (user && (!user.provider || !user.providerId)) {
+        await UserRepository.update(
+          user.id,
+          {
+            provider,
+            providerId,
+            emailVerified: true,
+          },
+          options,
+        )
+        log.debug({ user }, 'User')
+      }
+      if (user && !user.emailVerified && emailVerified) {
+        await UserRepository.update(
+          user.id,
+          {
+            emailVerified,
+          },
+          options,
+        )
+        log.debug({ user }, 'User')
+      }
+
+      if (!user) {
+        user = await UserRepository.createFromSocial(
+          provider,
+          providerId,
+          email,
+          emailVerified,
+          firstName,
+          lastName,
+          fullName,
+          options,
+        )
+        identify(user)
+        track(
+          'Signed up',
+          {
+            [provider]: true,
+            email: user.email,
+          },
+          options,
+          user.id,
+        )
+      }
+      if (invitationToken) {
+        await this.handleOnboard(user, invitationToken, tenantId, {
+          ...options,
+          transaction,
+        })
+      }
+
       const token = jwt.sign({ id: user.id }, API_CONFIG.jwtSecret, {
         expiresIn: API_CONFIG.jwtExpiresIn,
       })

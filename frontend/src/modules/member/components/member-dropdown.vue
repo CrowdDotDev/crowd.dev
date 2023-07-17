@@ -160,7 +160,6 @@
         </el-dropdown-item>
       </template>
     </el-dropdown>
-    <app-member-merge-dialog v-model="isMergeDialogOpen" />
   </div>
 </template>
 
@@ -178,7 +177,6 @@ import { useMemberStore } from '@/modules/member/store/pinia';
 export default {
   name: 'AppMemberDropdown',
   components: {
-    AppMemberMergeDialog,
     AppSvg,
   },
   props: {
@@ -187,9 +185,11 @@ export default {
       default: () => {},
     },
   },
+  emits: [
+    'merge',
+  ],
   data() {
     return {
-      isMergeDialogOpen: null,
       isMergeLoading: false,
       pair: [],
     };
@@ -245,7 +245,8 @@ export default {
           icon: 'ri-delete-bin-line',
         });
 
-        return this.doDestroy(id);
+        await this.doDestroy(id);
+        await this.fetchMembers({ reload: true });
       } catch (error) {
         // no
       }
@@ -253,8 +254,8 @@ export default {
     },
     async handleCommand(command) {
       if (command.action === 'memberDelete') {
-        return this.doDestroyWithConfirm(command.member.id);
-      } if (
+        await this.doDestroyWithConfirm(command.member.id);
+      } else if (
         command.action === 'memberMarkAsTeamMember'
       ) {
         await MemberService.update(command.member.id, {
@@ -266,7 +267,9 @@ export default {
           },
         });
         await this.fetchMembers({ reload: true });
+
         Message.success('Member updated successfully');
+
         if (this.$route.name === 'member') {
           await this.fetchMembers({ reload: true });
         } else {
@@ -289,38 +292,13 @@ export default {
           this.doFind(command.member.id);
         }
       } else if (command.action === 'memberMerge') {
-        this.isMergeDialogOpen = this.member;
+        this.$emit('merge');
       } else if (command.action === 'memberEnrich') {
-        this.doEnrich(command.member.id);
-      } else {
-        return this.$router.push({
-          name: command.action,
-          params: { id: command.member.id },
-        });
+        await this.doEnrich(command.member.id);
+        await this.fetchMembers({ reload: true });
       }
+
       return null;
-    },
-    async handleMergeClick() {
-      try {
-        this.isMergeLoading = true;
-
-        await this.$store.dispatch('member/doMerge', {
-          memberToKeep: this.primaryMember,
-          memberToMerge: this.memberToMerge,
-        });
-
-        this.isMergeDialogOpen = false;
-        this.memberToMerge = null;
-
-        // If in member view, fetch member newly merged member
-        if (this.$route.name === 'memberView') {
-          this.doFind(this.primaryMember.id);
-        }
-      } catch (error) {
-        console.error(error);
-        Message.error('There was an error merging members');
-      }
-      this.isMergeLoading = false;
     },
   },
 };

@@ -5,23 +5,23 @@ import ActivityRepository from '../../database/repositories/activityRepository'
 import TagRepository from '../../database/repositories/tagRepository'
 import Error404 from '../../errors/Error404'
 import Error400 from '../../errors/Error400'
-import { PlatformType } from '@crowd/types'
+import { MemberAttributeName, MemberAttributeType, PlatformType } from '@crowd/types'
 import OrganizationRepository from '../../database/repositories/organizationRepository'
 import TaskRepository from '../../database/repositories/taskRepository'
 import NoteRepository from '../../database/repositories/noteRepository'
 import MemberAttributeSettingsService from '../memberAttributeSettingsService'
-import { GithubMemberAttributes } from '../../database/attributes/member/github'
-import { MemberAttributeName } from '../../database/attributes/member/enums'
-import { TwitterMemberAttributes } from '../../database/attributes/member/twitter'
-import { DiscordMemberAttributes } from '../../database/attributes/member/discord'
-import { DevtoMemberAttributes } from '../../database/attributes/member/devto'
-import { AttributeType } from '../../database/attributes/types'
-import { SlackMemberAttributes } from '../../database/attributes/member/slack'
 import SettingsRepository from '../../database/repositories/settingsRepository'
 import OrganizationService from '../organizationService'
 import Plans from '../../security/plans'
 import { generateUUIDv1 } from '@crowd/common'
 import lodash from 'lodash'
+import {
+  DEVTO_MEMBER_ATTRIBUTES,
+  DISCORD_MEMBER_ATTRIBUTES,
+  GITHUB_MEMBER_ATTRIBUTES,
+  SLACK_MEMBER_ATTRIBUTES,
+  TWITTER_MEMBER_ATTRIBUTES,
+} from '@crowd/integrations'
 
 const db = null
 
@@ -41,7 +41,7 @@ describe('MemberService tests', () => {
 
       const mas = new MemberAttributeSettingsService(mockIServiceOptions)
 
-      await mas.createPredefined(GithubMemberAttributes)
+      await mas.createPredefined(GITHUB_MEMBER_ATTRIBUTES)
 
       const member1 = {
         username: {
@@ -82,9 +82,9 @@ describe('MemberService tests', () => {
 
       const mas = new MemberAttributeSettingsService(mockIServiceOptions)
 
-      await mas.createPredefined(GithubMemberAttributes)
-      await mas.createPredefined(TwitterMemberAttributes)
-      await mas.createPredefined(DiscordMemberAttributes)
+      await mas.createPredefined(GITHUB_MEMBER_ATTRIBUTES)
+      await mas.createPredefined(TWITTER_MEMBER_ATTRIBUTES)
+      await mas.createPredefined(DISCORD_MEMBER_ATTRIBUTES)
 
       const member1 = {
         username: 'anil',
@@ -174,6 +174,7 @@ describe('MemberService tests', () => {
         deletedAt: null,
         organizations: [],
         tenantId: mockIServiceOptions.currentTenant.id,
+        segments: mockIServiceOptions.currentSegments,
         createdById: mockIServiceOptions.currentUser.id,
         updatedById: mockIServiceOptions.currentUser.id,
         reach: { total: -1 },
@@ -181,6 +182,7 @@ describe('MemberService tests', () => {
         lastEnriched: null,
         enrichedBy: [],
         contributions: null,
+        affiliations: [],
       }
 
       expect(memberCreated).toStrictEqual(memberExpected)
@@ -190,7 +192,7 @@ describe('MemberService tests', () => {
       const mockIServiceOptions = await SequelizeTestUtils.getTestIServiceOptions(db)
       const mas = new MemberAttributeSettingsService(mockIServiceOptions)
 
-      await mas.createPredefined(GithubMemberAttributes)
+      await mas.createPredefined(GITHUB_MEMBER_ATTRIBUTES)
 
       const member1 = {
         username: {
@@ -264,6 +266,7 @@ describe('MemberService tests', () => {
         updatedAt: SequelizeTestUtils.getNowWithoutTime(),
         deletedAt: null,
         tenantId: mockIServiceOptions.currentTenant.id,
+        segments: mockIServiceOptions.currentSegments,
         createdById: mockIServiceOptions.currentUser.id,
         updatedById: mockIServiceOptions.currentUser.id,
         lastEnriched: null,
@@ -272,6 +275,7 @@ describe('MemberService tests', () => {
         contributions: null,
         reach: { total: -1 },
         joinedAt: new Date('2020-05-28T15:13:30Z'),
+        affiliations: [],
       }
 
       expect(memberCreated).toStrictEqual(memberExpected)
@@ -318,10 +322,12 @@ describe('MemberService tests', () => {
         updatedAt: SequelizeTestUtils.getNowWithoutTime(),
         deletedAt: null,
         tenantId: mockIServiceOptions.currentTenant.id,
+        segments: mockIServiceOptions.currentSegments,
         createdById: mockIServiceOptions.currentUser.id,
         updatedById: mockIServiceOptions.currentUser.id,
         reach: { total: 10, [PlatformType.GITHUB]: 10 },
         joinedAt: new Date('2020-05-28T15:13:30Z'),
+        affiliations: [],
       }
 
       expect(memberCreated).toStrictEqual(memberExpected)
@@ -367,10 +373,12 @@ describe('MemberService tests', () => {
         updatedAt: SequelizeTestUtils.getNowWithoutTime(),
         deletedAt: null,
         tenantId: mockIServiceOptions.currentTenant.id,
+        segments: mockIServiceOptions.currentSegments,
         createdById: mockIServiceOptions.currentUser.id,
         updatedById: mockIServiceOptions.currentUser.id,
         reach: { total: 20, [PlatformType.GITHUB]: 10, [PlatformType.TWITTER]: 10 },
         joinedAt: new Date('2020-05-28T15:13:30Z'),
+        affiliations: [],
       }
 
       expect(memberCreated).toStrictEqual(memberExpected)
@@ -416,10 +424,12 @@ describe('MemberService tests', () => {
         updatedAt: SequelizeTestUtils.getNowWithoutTime(),
         deletedAt: null,
         tenantId: mockIServiceOptions.currentTenant.id,
+        segments: mockIServiceOptions.currentSegments,
         createdById: mockIServiceOptions.currentUser.id,
         updatedById: mockIServiceOptions.currentUser.id,
         reach: { total: 20, [PlatformType.DISCORD]: 10, [PlatformType.TWITTER]: 10 },
         joinedAt: new Date('2020-05-28T15:13:30Z'),
+        affiliations: [],
       }
 
       expect(memberCreated).toStrictEqual(memberExpected)
@@ -451,7 +461,7 @@ describe('MemberService tests', () => {
 
       const foundMember = await MemberRepository.findById(memberCreated.id, mockIServiceOptions)
 
-      const o1 = foundMember.organizations[0].dataValues
+      const o1 = foundMember.organizations[0].get({ plain: true })
       delete o1.createdAt
       delete o1.updatedAt
 
@@ -468,6 +478,11 @@ describe('MemberService tests', () => {
         emails: null,
         phoneNumbers: null,
         logo: null,
+        memberOrganizations: {
+          dateEnd: null,
+          dateStart: null,
+          title: null,
+        },
         tags: null,
         twitter: null,
         linkedin: null,
@@ -521,7 +536,7 @@ describe('MemberService tests', () => {
 
       const foundMember = await MemberRepository.findById(memberCreated.id, mockIServiceOptions)
 
-      const o1 = foundMember.organizations[0].dataValues
+      const o1 = foundMember.organizations[0].get({ plain: true })
       delete o1.createdAt
       delete o1.updatedAt
 
@@ -538,6 +553,11 @@ describe('MemberService tests', () => {
         emails: null,
         phoneNumbers: null,
         logo: null,
+        memberOrganizations: {
+          dateEnd: null,
+          dateStart: null,
+          title: null,
+        },
         tags: null,
         twitter: null,
         linkedin: null,
@@ -595,7 +615,7 @@ describe('MemberService tests', () => {
 
       const foundMember = await MemberRepository.findById(memberCreated.id, mockIServiceOptions)
 
-      const o1 = foundMember.organizations[0].dataValues
+      const o1 = foundMember.organizations[0].get({ plain: true })
       delete o1.createdAt
       delete o1.updatedAt
 
@@ -612,6 +632,11 @@ describe('MemberService tests', () => {
         emails: null,
         phoneNumbers: null,
         logo: null,
+        memberOrganizations: {
+          dateEnd: null,
+          dateStart: null,
+          title: null,
+        },
         tags: null,
         twitter: null,
         linkedin: null,
@@ -668,7 +693,7 @@ describe('MemberService tests', () => {
 
       const foundMember = await MemberRepository.findById(memberCreated.id, mockIServiceOptions)
 
-      const o1 = foundMember.organizations[0].dataValues
+      const o1 = foundMember.organizations[0].get({ plain: true })
       delete o1.createdAt
       delete o1.updatedAt
 
@@ -686,6 +711,11 @@ describe('MemberService tests', () => {
         emails: ['hello@crowd.dev', 'jonathan@crowd.dev', 'careers@crowd.dev'],
         phoneNumbers: ['+42 424242'],
         logo: 'https://logo.clearbit.com/crowd.dev',
+        memberOrganizations: {
+          dateEnd: null,
+          dateStart: null,
+          title: null,
+        },
         tags: [],
         twitter: {
           id: '1362101830923259908',
@@ -734,7 +764,7 @@ describe('MemberService tests', () => {
 
       const mas = new MemberAttributeSettingsService(mockIServiceOptions)
 
-      await mas.createPredefined(GithubMemberAttributes)
+      await mas.createPredefined(GITHUB_MEMBER_ATTRIBUTES)
 
       const member1 = {
         username: 'anil',
@@ -820,10 +850,12 @@ describe('MemberService tests', () => {
         updatedAt: SequelizeTestUtils.getNowWithoutTime(),
         deletedAt: null,
         tenantId: mockIServiceOptions.currentTenant.id,
+        segments: mockIServiceOptions.currentSegments,
         createdById: mockIServiceOptions.currentUser.id,
         updatedById: mockIServiceOptions.currentUser.id,
         joinedAt: new Date('2020-05-28T15:13:30Z'),
         reach: { total: -1 },
+        affiliations: [],
       }
 
       expect(memberUpdated).toStrictEqual(memberExpected)
@@ -834,8 +866,8 @@ describe('MemberService tests', () => {
 
       const mas = new MemberAttributeSettingsService(mockIServiceOptions)
 
-      await mas.createPredefined(GithubMemberAttributes)
-      await mas.createPredefined(TwitterMemberAttributes)
+      await mas.createPredefined(GITHUB_MEMBER_ATTRIBUTES)
+      await mas.createPredefined(TWITTER_MEMBER_ATTRIBUTES)
 
       const member1 = {
         username: 'anil',
@@ -929,10 +961,12 @@ describe('MemberService tests', () => {
         updatedAt: SequelizeTestUtils.getNowWithoutTime(),
         deletedAt: null,
         tenantId: mockIServiceOptions.currentTenant.id,
+        segments: mockIServiceOptions.currentSegments,
         createdById: mockIServiceOptions.currentUser.id,
         updatedById: mockIServiceOptions.currentUser.id,
         joinedAt: new Date('2020-05-28T15:13:30Z'),
         reach: { total: -1 },
+        affiliations: [],
       }
 
       expect(memberUpdated).toStrictEqual(memberExpected)
@@ -943,7 +977,7 @@ describe('MemberService tests', () => {
 
       const mas = new MemberAttributeSettingsService(mockIServiceOptions)
 
-      await mas.createPredefined(GithubMemberAttributes)
+      await mas.createPredefined(GITHUB_MEMBER_ATTRIBUTES)
 
       const member1 = {
         username: 'anil',
@@ -1033,10 +1067,12 @@ describe('MemberService tests', () => {
         updatedAt: SequelizeTestUtils.getNowWithoutTime(),
         deletedAt: null,
         tenantId: mockIServiceOptions.currentTenant.id,
+        segments: mockIServiceOptions.currentSegments,
         createdById: mockIServiceOptions.currentUser.id,
         updatedById: mockIServiceOptions.currentUser.id,
         joinedAt: new Date('2020-05-28T15:13:30Z'),
         reach: { total: -1 },
+        affiliations: [],
       }
 
       expect(memberUpdated).toStrictEqual(memberExpected)
@@ -1046,7 +1082,7 @@ describe('MemberService tests', () => {
       const mockIServiceOptions = await SequelizeTestUtils.getTestIServiceOptions(db)
       const mas = new MemberAttributeSettingsService(mockIServiceOptions)
 
-      await mas.createPredefined(GithubMemberAttributes)
+      await mas.createPredefined(GITHUB_MEMBER_ATTRIBUTES)
 
       const member1 = {
         username: 'anil',
@@ -1096,8 +1132,8 @@ describe('MemberService tests', () => {
       const mockIServiceOptions = await SequelizeTestUtils.getTestIServiceOptions(db)
       const mas = new MemberAttributeSettingsService(mockIServiceOptions)
 
-      await mas.createPredefined(GithubMemberAttributes)
-      await mas.createPredefined(DevtoMemberAttributes)
+      await mas.createPredefined(GITHUB_MEMBER_ATTRIBUTES)
+      await mas.createPredefined(DEVTO_MEMBER_ATTRIBUTES)
 
       const member1 = {
         username: 'anil',
@@ -1210,9 +1246,11 @@ describe('MemberService tests', () => {
         updatedAt: SequelizeTestUtils.getNowWithoutTime(),
         deletedAt: null,
         tenantId: mockIServiceOptions.currentTenant.id,
+        segments: mockIServiceOptions.currentSegments,
         createdById: mockIServiceOptions.currentUser.id,
         updatedById: mockIServiceOptions.currentUser.id,
         reach: { total: -1 },
+        affiliations: [],
       }
 
       expect(memberUpdated).toStrictEqual(memberExpected)
@@ -1262,11 +1300,13 @@ describe('MemberService tests', () => {
         updatedAt: SequelizeTestUtils.getNowWithoutTime(),
         deletedAt: null,
         tenantId: mockIServiceOptions.currentTenant.id,
+        segments: mockIServiceOptions.currentSegments,
         createdById: mockIServiceOptions.currentUser.id,
         updatedById: mockIServiceOptions.currentUser.id,
         score: -1,
         emails: [],
         attributes: {},
+        affiliations: [],
       }
 
       expect(memberUpdated).toStrictEqual(memberExpected)
@@ -1317,11 +1357,13 @@ describe('MemberService tests', () => {
         updatedAt: SequelizeTestUtils.getNowWithoutTime(),
         deletedAt: null,
         tenantId: mockIServiceOptions.currentTenant.id,
+        segments: mockIServiceOptions.currentSegments,
         createdById: mockIServiceOptions.currentUser.id,
         updatedById: mockIServiceOptions.currentUser.id,
         score: -1,
         emails: [],
         attributes: {},
+        affiliations: [],
       }
 
       expect(memberUpdated).toStrictEqual(memberExpected)
@@ -1373,11 +1415,13 @@ describe('MemberService tests', () => {
         updatedAt: SequelizeTestUtils.getNowWithoutTime(),
         deletedAt: null,
         tenantId: mockIServiceOptions.currentTenant.id,
+        segments: mockIServiceOptions.currentSegments,
         createdById: mockIServiceOptions.currentUser.id,
         updatedById: mockIServiceOptions.currentUser.id,
         score: -1,
         emails: [],
         attributes: {},
+        affiliations: [],
       }
 
       expect(memberUpdated).toStrictEqual(memberExpected)
@@ -1429,11 +1473,13 @@ describe('MemberService tests', () => {
         updatedAt: SequelizeTestUtils.getNowWithoutTime(),
         deletedAt: null,
         tenantId: mockIServiceOptions.currentTenant.id,
+        segments: mockIServiceOptions.currentSegments,
         createdById: mockIServiceOptions.currentUser.id,
         updatedById: mockIServiceOptions.currentUser.id,
         score: -1,
         emails: [],
         attributes: {},
+        affiliations: [],
       }
 
       expect(memberUpdated).toStrictEqual(memberExpected)
@@ -1545,10 +1591,10 @@ describe('MemberService tests', () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
       const mas = new MemberAttributeSettingsService(mockIRepositoryOptions)
 
-      await mas.createPredefined(GithubMemberAttributes)
-      await mas.createPredefined(DiscordMemberAttributes)
-      await mas.createPredefined(TwitterMemberAttributes)
-      await mas.createPredefined(SlackMemberAttributes)
+      await mas.createPredefined(GITHUB_MEMBER_ATTRIBUTES)
+      await mas.createPredefined(DISCORD_MEMBER_ATTRIBUTES)
+      await mas.createPredefined(TWITTER_MEMBER_ATTRIBUTES)
+      await mas.createPredefined(SLACK_MEMBER_ATTRIBUTES)
 
       const memberService = new MemberService(mockIRepositoryOptions)
 
@@ -1697,7 +1743,9 @@ describe('MemberService tests', () => {
       // Sequelize returns associations as array of models, we need to get plain objects
       mergedMember.activities = mergedMember.activities.map((i) => i.get({ plain: true }))
       mergedMember.tags = mergedMember.tags.map((i) => i.get({ plain: true }))
-      mergedMember.organizations = mergedMember.organizations.map((i) => i.get({ plain: true }))
+      mergedMember.organizations = mergedMember.organizations.map((i) =>
+        SequelizeTestUtils.objectWithoutKey(i.get({ plain: true }), ['memberOrganizations']),
+      )
       mergedMember.tasks = mergedMember.tasks.map((i) => i.get({ plain: true }))
       mergedMember.notes = mergedMember.notes.map((i) => i.get({ plain: true }))
 
@@ -1714,6 +1762,7 @@ describe('MemberService tests', () => {
         'parent',
         'tasks',
         'display',
+        'organization',
       ])
 
       // get previously created tags
@@ -1742,9 +1791,24 @@ describe('MemberService tests', () => {
       t3 = SequelizeTestUtils.objectWithoutKey(t3, 'members')
 
       // remove organizations->member relations as well (we should be only checking 1-deep relations)
-      o1 = SequelizeTestUtils.objectWithoutKey(o1, ['memberCount', 'joinedAt', 'activityCount'])
-      o2 = SequelizeTestUtils.objectWithoutKey(o2, ['memberCount', 'joinedAt', 'activityCount'])
-      o3 = SequelizeTestUtils.objectWithoutKey(o3, ['memberCount', 'joinedAt', 'activityCount'])
+      o1 = SequelizeTestUtils.objectWithoutKey(o1, [
+        'memberCount',
+        'joinedAt',
+        'activityCount',
+        'memberOrganizations',
+      ])
+      o2 = SequelizeTestUtils.objectWithoutKey(o2, [
+        'memberCount',
+        'joinedAt',
+        'activityCount',
+        'memberOrganizations',
+      ])
+      o3 = SequelizeTestUtils.objectWithoutKey(o3, [
+        'memberCount',
+        'joinedAt',
+        'activityCount',
+        'memberOrganizations',
+      ])
 
       // remove tasks->member and tasks->activity tasks->assignees relations as well (we should be only checking 1-deep relations)
       task1 = SequelizeTestUtils.objectWithoutKey(task1, ['members', 'activities', 'assignees'])
@@ -1783,6 +1847,7 @@ describe('MemberService tests', () => {
         updatedAt: SequelizeTestUtils.getNowWithoutTime(),
         deletedAt: null,
         tenantId: mockIRepositoryOptions.currentTenant.id,
+        segments: mockIRepositoryOptions.currentSegments,
         createdById: mockIRepositoryOptions.currentUser.id,
         updatedById: mockIRepositoryOptions.currentUser.id,
         joinedAt: new Date(member1.joinedAt),
@@ -1791,9 +1856,24 @@ describe('MemberService tests', () => {
         tasks: [task1, task2, task3],
         notes: [note1, note2, note3],
         organizations: [
-          SequelizeTestUtils.objectWithoutKey(o1, ['activeOn', 'identities', 'lastActive']),
-          SequelizeTestUtils.objectWithoutKey(o2, ['activeOn', 'identities', 'lastActive']),
-          SequelizeTestUtils.objectWithoutKey(o3, ['activeOn', 'identities', 'lastActive']),
+          SequelizeTestUtils.objectWithoutKey(o1, [
+            'activeOn',
+            'identities',
+            'lastActive',
+            'segments',
+          ]),
+          SequelizeTestUtils.objectWithoutKey(o2, [
+            'activeOn',
+            'identities',
+            'lastActive',
+            'segments',
+          ]),
+          SequelizeTestUtils.objectWithoutKey(o3, [
+            'activeOn',
+            'identities',
+            'lastActive',
+            'segments',
+          ]),
         ],
         noMerge: [returnedMember3.id],
         toMerge: [returnedMember4.id],
@@ -1803,6 +1883,7 @@ describe('MemberService tests', () => {
         lastActive: activityCreated.timestamp,
         lastActivity: activityCreated,
         numberOfOpenSourceContributions: 0,
+        affiliations: [],
       }
 
       expect(
@@ -1839,7 +1920,7 @@ describe('MemberService tests', () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
       const mas = new MemberAttributeSettingsService(mockIRepositoryOptions)
 
-      await mas.createPredefined(GithubMemberAttributes)
+      await mas.createPredefined(GITHUB_MEMBER_ATTRIBUTES)
 
       const memberService = new MemberService(mockIRepositoryOptions)
 
@@ -1867,9 +1948,9 @@ describe('MemberService tests', () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
       const mas = new MemberAttributeSettingsService(mockIRepositoryOptions)
 
-      await mas.createPredefined(GithubMemberAttributes)
-      await mas.createPredefined(TwitterMemberAttributes)
-      await mas.createPredefined(DiscordMemberAttributes)
+      await mas.createPredefined(GITHUB_MEMBER_ATTRIBUTES)
+      await mas.createPredefined(TWITTER_MEMBER_ATTRIBUTES)
+      await mas.createPredefined(DISCORD_MEMBER_ATTRIBUTES)
 
       const memberService = new MemberService(mockIRepositoryOptions)
 
@@ -1984,7 +2065,7 @@ describe('MemberService tests', () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
       const mas = new MemberAttributeSettingsService(mockIRepositoryOptions)
 
-      await mas.createPredefined(GithubMemberAttributes)
+      await mas.createPredefined(GITHUB_MEMBER_ATTRIBUTES)
 
       const memberService = new MemberService(mockIRepositoryOptions)
 
@@ -2012,7 +2093,7 @@ describe('MemberService tests', () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
       const mas = new MemberAttributeSettingsService(mockIRepositoryOptions)
 
-      await mas.createPredefined(GithubMemberAttributes)
+      await mas.createPredefined(GITHUB_MEMBER_ATTRIBUTES)
 
       const memberService = new MemberService(mockIRepositoryOptions)
 
@@ -2042,6 +2123,9 @@ describe('MemberService tests', () => {
       delete returnedMember1.activityTypes
       delete returnedMember1.activeDaysCount
       delete returnedMember1.numberOfOpenSourceContributions
+      delete returnedMember1.affiliations
+
+      returnedMember1.segments = returnedMember1.segments.map((s) => s.id)
 
       const existing = await memberService.memberExists(
         member1.username[PlatformType.GITHUB],
@@ -2055,7 +2139,7 @@ describe('MemberService tests', () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
       const mas = new MemberAttributeSettingsService(mockIRepositoryOptions)
 
-      await mas.createPredefined(GithubMemberAttributes)
+      await mas.createPredefined(GITHUB_MEMBER_ATTRIBUTES)
 
       const memberService = new MemberService(mockIRepositoryOptions)
 
@@ -2079,7 +2163,7 @@ describe('MemberService tests', () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
       const mas = new MemberAttributeSettingsService(mockIRepositoryOptions)
 
-      await mas.createPredefined(GithubMemberAttributes)
+      await mas.createPredefined(GITHUB_MEMBER_ATTRIBUTES)
 
       const memberService = new MemberService(mockIRepositoryOptions)
 
@@ -2109,7 +2193,7 @@ describe('MemberService tests', () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
       const mas = new MemberAttributeSettingsService(mockIRepositoryOptions)
 
-      await mas.createPredefined(GithubMemberAttributes)
+      await mas.createPredefined(GITHUB_MEMBER_ATTRIBUTES)
 
       const memberService = new MemberService(mockIRepositoryOptions)
 
@@ -2139,6 +2223,9 @@ describe('MemberService tests', () => {
       delete returnedMember1.activityTypes
       delete returnedMember1.activeDaysCount
       delete returnedMember1.numberOfOpenSourceContributions
+      delete returnedMember1.affiliations
+
+      returnedMember1.segments = returnedMember1.segments.map((s) => s.id)
 
       const existing = await memberService.memberExists(
         { [PlatformType.DISCORD]: 'some-other-username' },
@@ -2152,7 +2239,7 @@ describe('MemberService tests', () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
       const mas = new MemberAttributeSettingsService(mockIRepositoryOptions)
 
-      await mas.createPredefined(GithubMemberAttributes)
+      await mas.createPredefined(GITHUB_MEMBER_ATTRIBUTES)
 
       const memberService = new MemberService(mockIRepositoryOptions)
 
@@ -2298,9 +2385,9 @@ describe('MemberService tests', () => {
       const memberService = new MemberService(mockIServiceOptions)
       const memberAttributeSettingsService = new MemberAttributeSettingsService(mockIServiceOptions)
 
-      await memberAttributeSettingsService.createPredefined(GithubMemberAttributes)
-      await memberAttributeSettingsService.createPredefined(TwitterMemberAttributes)
-      await memberAttributeSettingsService.createPredefined(DevtoMemberAttributes)
+      await memberAttributeSettingsService.createPredefined(GITHUB_MEMBER_ATTRIBUTES)
+      await memberAttributeSettingsService.createPredefined(TWITTER_MEMBER_ATTRIBUTES)
+      await memberAttributeSettingsService.createPredefined(DEVTO_MEMBER_ATTRIBUTES)
 
       const attributes = {
         [MemberAttributeName.NAME]: {
@@ -2335,7 +2422,7 @@ describe('MemberService tests', () => {
       const memberService = new MemberService(mockIServiceOptions)
       const memberAttributeSettingsService = new MemberAttributeSettingsService(mockIServiceOptions)
 
-      await memberAttributeSettingsService.createPredefined(GithubMemberAttributes)
+      await memberAttributeSettingsService.createPredefined(GITHUB_MEMBER_ATTRIBUTES)
 
       const attributes = {
         [MemberAttributeName.BIO]: 'Assistant to the Regional Manager',
@@ -2358,9 +2445,9 @@ describe('MemberService tests', () => {
       const memberService = new MemberService(mockIServiceOptions)
       const memberAttributeSettingsService = new MemberAttributeSettingsService(mockIServiceOptions)
 
-      await memberAttributeSettingsService.createPredefined(GithubMemberAttributes)
-      await memberAttributeSettingsService.createPredefined(TwitterMemberAttributes)
-      await memberAttributeSettingsService.createPredefined(DevtoMemberAttributes)
+      await memberAttributeSettingsService.createPredefined(GITHUB_MEMBER_ATTRIBUTES)
+      await memberAttributeSettingsService.createPredefined(TWITTER_MEMBER_ATTRIBUTES)
+      await memberAttributeSettingsService.createPredefined(DEVTO_MEMBER_ATTRIBUTES)
 
       const attributes = {
         [MemberAttributeName.NAME]: 'Dwight Schrute',
@@ -2415,8 +2502,8 @@ describe('MemberService tests', () => {
       const memberService = new MemberService(mockIServiceOptions)
       const memberAttributeSettingsService = new MemberAttributeSettingsService(mockIServiceOptions)
 
-      await memberAttributeSettingsService.createPredefined(GithubMemberAttributes)
-      await memberAttributeSettingsService.createPredefined(TwitterMemberAttributes)
+      await memberAttributeSettingsService.createPredefined(GITHUB_MEMBER_ATTRIBUTES)
+      await memberAttributeSettingsService.createPredefined(TWITTER_MEMBER_ATTRIBUTES)
 
       // in settings name has a string type, inserting an integer should throw an error
       const attributes = {
@@ -2450,8 +2537,8 @@ describe('MemberService tests', () => {
       const memberService = new MemberService(mockIServiceOptions)
       const memberAttributeSettingsService = new MemberAttributeSettingsService(mockIServiceOptions)
 
-      await memberAttributeSettingsService.createPredefined(GithubMemberAttributes)
-      await memberAttributeSettingsService.createPredefined(TwitterMemberAttributes)
+      await memberAttributeSettingsService.createPredefined(GITHUB_MEMBER_ATTRIBUTES)
+      await memberAttributeSettingsService.createPredefined(TWITTER_MEMBER_ATTRIBUTES)
 
       // in settings website_url has a url type, inserting an integer should throw an error
       const attributes = {
@@ -2479,9 +2566,9 @@ describe('MemberService tests', () => {
       const memberService = new MemberService(mockIServiceOptions)
       const memberAttributeSettingsService = new MemberAttributeSettingsService(mockIServiceOptions)
 
-      await memberAttributeSettingsService.createPredefined(GithubMemberAttributes)
-      await memberAttributeSettingsService.createPredefined(TwitterMemberAttributes)
-      await memberAttributeSettingsService.createPredefined(DevtoMemberAttributes)
+      await memberAttributeSettingsService.createPredefined(GITHUB_MEMBER_ATTRIBUTES)
+      await memberAttributeSettingsService.createPredefined(TWITTER_MEMBER_ATTRIBUTES)
+      await memberAttributeSettingsService.createPredefined(DEVTO_MEMBER_ATTRIBUTES)
 
       const attributes = {
         [MemberAttributeName.NAME]: {
@@ -2544,9 +2631,9 @@ describe('MemberService tests', () => {
       const memberService = new MemberService(mockIServiceOptions)
       const memberAttributeSettingsService = new MemberAttributeSettingsService(mockIServiceOptions)
 
-      await memberAttributeSettingsService.createPredefined(GithubMemberAttributes)
-      await memberAttributeSettingsService.createPredefined(TwitterMemberAttributes)
-      await memberAttributeSettingsService.createPredefined(DevtoMemberAttributes)
+      await memberAttributeSettingsService.createPredefined(GITHUB_MEMBER_ATTRIBUTES)
+      await memberAttributeSettingsService.createPredefined(TWITTER_MEMBER_ATTRIBUTES)
+      await memberAttributeSettingsService.createPredefined(DEVTO_MEMBER_ATTRIBUTES)
 
       // Empty default priority array
       const settings = await SettingsRepository.findOrCreateDefault({}, mockIServiceOptions)
@@ -2591,14 +2678,14 @@ describe('MemberService tests', () => {
 
       const mas = new MemberAttributeSettingsService(mockIServiceOptions)
 
-      await mas.createPredefined(GithubMemberAttributes)
-      await mas.createPredefined(TwitterMemberAttributes)
-      await mas.createPredefined(DiscordMemberAttributes)
+      await mas.createPredefined(GITHUB_MEMBER_ATTRIBUTES)
+      await mas.createPredefined(TWITTER_MEMBER_ATTRIBUTES)
+      await mas.createPredefined(DISCORD_MEMBER_ATTRIBUTES)
 
       const attribute1 = {
         name: 'aNumberAttribute',
         label: 'A number Attribute',
-        type: AttributeType.NUMBER,
+        type: MemberAttributeType.NUMBER,
         canDelete: true,
         show: true,
       }
@@ -2606,7 +2693,7 @@ describe('MemberService tests', () => {
       const attribute2 = {
         name: 'aDateAttribute',
         label: 'A date Attribute',
-        type: AttributeType.DATE,
+        type: MemberAttributeType.DATE,
         canDelete: true,
         show: true,
       }
@@ -2615,7 +2702,7 @@ describe('MemberService tests', () => {
         name: 'aMultiSelectAttribute',
         label: 'A multi select Attribute',
         options: ['a', 'b', 'c'],
-        type: AttributeType.MULTI_SELECT,
+        type: MemberAttributeType.MULTI_SELECT,
         canDelete: true,
         show: true,
       }

@@ -121,6 +121,7 @@ import {
   showEnrichmentLoadingMessage,
 } from '@/modules/member/member-enrichment';
 import AppMemberListBulkUpdateTags from '@/modules/member/components/list/member-list-bulk-update-tags.vue';
+import AppSvg from '@/shared/svg/svg.vue';
 
 const { currentUser, currentTenant } = mapGetters('auth');
 const { doRefreshCurrentUser } = mapActions('auth');
@@ -206,7 +207,7 @@ const markAsTeamMemberOptions = computed(() => {
 });
 
 const handleMergeMembers = () => {
-  const [firstMember, secondMember] = this.selectedRows;
+  const [firstMember, secondMember] = selectedMembers.value;
   return MemberService.merge(firstMember, secondMember)
     .then(() => {
       Message.success('Members merged successfuly');
@@ -409,6 +410,7 @@ const handleCommand = async (command) => {
       showEnrichmentLoadingMessage({ isBulk: true });
 
       await MemberService.enrichMemberBulk(elegibleEnrichmentMembersIds.value);
+      fetchMembers({ reload: true });
 
       await getMemberCustomAttributes();
     }

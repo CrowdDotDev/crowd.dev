@@ -1,13 +1,14 @@
 import { DbColumnSet, DbStore, RepositoryBase } from '@crowd/database'
 import { Logger } from '@crowd/logging'
 import {
+  getInsertMemberColumnSet,
+  getInsertMemberIdentityColumnSet,
+  getInsertMemberSegmentColumnSet,
+  getSelectMemberColumnSet,
+  getUpdateMemberColumnSet,
   IDbMember,
   IDbMemberCreateData,
   IDbMemberUpdateData,
-  getInsertMemberColumnSet,
-  getInsertMemberIdentityColumnSet,
-  getSelectMemberColumnSet,
-  getUpdateMemberColumnSet,
 } from './member.data'
 import { IMemberIdentity } from '@crowd/types'
 import { generateUUIDv1 } from '@crowd/common'
@@ -19,6 +20,7 @@ export default class MemberRepository extends RepositoryBase<MemberRepository> {
   private readonly selectMemberQuery: string
 
   private readonly insertMemberIdentityColumnSet: DbColumnSet
+  private readonly insertMemberSegmentColumnSet: DbColumnSet
 
   constructor(dbStore: DbStore, parentLog: Logger) {
     super(dbStore, parentLog)
@@ -28,28 +30,33 @@ export default class MemberRepository extends RepositoryBase<MemberRepository> {
     this.selectMemberColumnSet = getSelectMemberColumnSet(this.dbInstance)
 
     this.selectMemberQuery = `
-      select ${this.selectMemberColumnSet.columns.map((c) => `"${c.name}"`).join(', ')}
-      from "members"
+      select ${this.selectMemberColumnSet.columns.map((c) => `m."${c.name}"`).join(', ')}
+      from "members" m
     `
     this.insertMemberIdentityColumnSet = getInsertMemberIdentityColumnSet(this.dbInstance)
+    this.insertMemberSegmentColumnSet = getInsertMemberSegmentColumnSet(this.dbInstance)
   }
 
   public async findMember(
     tenantId: string,
+    segmentId: string,
     platform: string,
     username: string,
   ): Promise<IDbMember | null> {
     return await this.db().oneOrNone(
       `${this.selectMemberQuery}
-      where "id" in (
-        select "memberId" from "memberIdentities"
-        where "tenantId" = $(tenantId) and
-        "platform" = $(platform) and
-        "username" = $(username)
-      )
+      where m.id in (select ms."memberId"
+                    from "memberSegments" ms
+                              inner join "memberIdentities" mi
+                                        on ms."tenantId" = mi."tenantId" and ms."memberId" = mi."memberId"
+                    where ms."tenantId" = $(tenantId)
+                      and ms."segmentId" = $(segmentId)
+                      and mi.platform = $(platform)
+                      and mi.username = $(username));
     `,
       {
         tenantId,
+        segmentId,
         platform,
         username,
       },
@@ -99,7 +106,7 @@ export default class MemberRepository extends RepositoryBase<MemberRepository> {
   }
 
   public async findById(id: string): Promise<IDbMember | null> {
-    return await this.db().oneOrNone(`${this.selectMemberQuery} where id = $(id)`, { id })
+    return await this.db().oneOrNone(`${this.selectMemberQuery} where m.id = $(id)`, { id })
   }
 
   public async create(tenantId: string, data: IDbMemberCreateData): Promise<string> {
@@ -203,6 +210,22 @@ export default class MemberRepository extends RepositoryBase<MemberRepository> {
       preparedObjects,
       this.insertMemberIdentityColumnSet,
     )
+    await this.db().none(query)
+  }
+
+  public async addToSegment(memberId: string, tenantId: string, segmentId: string): Promise<void> {
+    const prepared = RepositoryBase.prepare(
+      {
+        memberId,
+        tenantId,
+        segmentId,
+      },
+      this.insertMemberSegmentColumnSet,
+    )
+
+    const query =
+      this.dbInstance.helpers.insert(prepared, this.insertMemberSegmentColumnSet) +
+      ' ON CONFLICT DO NOTHING'
     await this.db().none(query)
   }
 }

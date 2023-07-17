@@ -4,7 +4,7 @@ import { LoggerBase } from '@crowd/logging'
 import lodash from 'lodash'
 import moment from 'moment-timezone'
 import validator from 'validator'
-import { AttributeType } from '../database/attributes/types'
+import { MemberAttributeType } from '@crowd/types'
 import { IRepositoryOptions } from '../database/repositories/IRepositoryOptions'
 import ActivityRepository from '../database/repositories/activityRepository'
 import MemberAttributeSettingsRepository from '../database/repositories/memberAttributeSettingsRepository'
@@ -29,6 +29,10 @@ import merge from './helpers/merge'
 import MemberAttributeSettingsService from './memberAttributeSettingsService'
 import OrganizationService from './organizationService'
 import SettingsService from './settingsService'
+import { getSearchSyncWorkerEmitter } from '../serverless/utils/serviceSQS'
+import isFeatureEnabled from '../feature-flags/isFeatureEnabled'
+import { FeatureFlag } from '../types/common'
+import SegmentRepository from '../database/repositories/segmentRepository'
 
 export default class MemberService extends LoggerBase {
   options: IServiceOptions
@@ -187,8 +191,14 @@ export default class MemberService extends LoggerBase {
    * @param existing If the member already exists. If it does not, false. Othwerwise, the member.
    * @returns The created member
    */
-  async upsert(data, existing: boolean | any = false, fireCrowdWebhooks: boolean = true) {
+  async upsert(
+    data,
+    existing: boolean | any = false,
+    fireCrowdWebhooks: boolean = true,
+    fireSync: boolean = true,
+  ) {
     const logger = this.options.log
+    const searchSyncEmitter = await getSearchSyncWorkerEmitter()
 
     const errorDetails: any = {}
 
@@ -296,11 +306,13 @@ export default class MemberService extends LoggerBase {
       // If organizations are sent
       if (data.organizations) {
         // Collect IDs for relation
-        const organizationsIds = []
+        const organizations = []
         for (const organization of data.organizations) {
           if (typeof organization === 'string' && validator.isUUID(organization)) {
             // If an ID was already sent, we simply push it to the list
-            organizationsIds.push(organization)
+            organizations.push(organization)
+          } else if (typeof organization === 'object' && organization.id) {
+            organizations.push(organization)
           } else {
             // Otherwise, either another string or an object was sent
             const organizationService = new OrganizationService(this.options)
@@ -314,11 +326,32 @@ export default class MemberService extends LoggerBase {
             }
             // We findOrCreate the organization and add it to the list of IDs
             const organizationRecord = await organizationService.findOrCreate(data)
-            organizationsIds.push(organizationRecord.id)
+            organizations.push(organizationRecord.id)
           }
         }
+
+        // Auto assign member to organization if email domain matches
+        if (data.emails) {
+          const emailDomains = new Set()
+
+          // Collect unique domains
+          for (const email of data.emails) {
+            const domain = email.split('@')[1]
+            emailDomains.add(domain)
+          }
+
+          // Fetch organization ids for these domains
+          const organizationService = new OrganizationService(this.options)
+          for (const domain of emailDomains) {
+            const organizationRecord = await organizationService.findByUrl(domain)
+            if (organizationRecord) {
+              organizations.push(organizationRecord.id)
+            }
+          }
+        }
+
         // Remove dups
-        data.organizations = [...new Set(organizationsIds)]
+        data.organizations = [...new Set(organizations)]
       }
 
       const fillRelations = false
@@ -374,9 +407,14 @@ export default class MemberService extends LoggerBase {
 
       await SequelizeRepository.commitTransaction(transaction)
 
+      if (fireSync) {
+        await searchSyncEmitter.triggerMemberSync(this.options.currentTenant.id, record.id)
+      }
+
       if (!existing && fireCrowdWebhooks) {
         try {
-          await sendNewMemberNodeSQSMessage(this.options.currentTenant.id, record.id)
+          const segment = SequelizeRepository.getStrictlySingleActiveSegment(this.options)
+          await sendNewMemberNodeSQSMessage(this.options.currentTenant.id, record.id, segment.id)
         } catch (err) {
           logger.error(err, `Error triggering new member automation - ${record.id}!`)
         }
@@ -550,10 +588,21 @@ export default class MemberService extends LoggerBase {
       // Remove toMerge from original member
       await MemberRepository.removeToMerge(originalId, toMergeId, repoOptions)
 
+      const secondMemberSegments = await MemberRepository.getMemberSegments(toMergeId, repoOptions)
+      await MemberRepository.includeMemberToSegments(toMergeId, {
+        ...repoOptions,
+        currentSegments: secondMemberSegments,
+      })
+
       // Delete toMerge member
       await MemberRepository.destroy(toMergeId, repoOptions, true)
 
       await SequelizeRepository.commitTransaction(tx)
+
+      const searchSyncEmitter = await getSearchSyncWorkerEmitter()
+      await searchSyncEmitter.triggerMemberSync(this.options.currentTenant.id, originalId)
+      await searchSyncEmitter.triggerRemoveMember(this.options.currentTenant.id, toMergeId)
+
       this.options.log.info({ originalId, toMergeId }, 'Members merged!')
       return { status: 200, mergedId: originalId }
     } catch (err) {
@@ -643,25 +692,30 @@ export default class MemberService extends LoggerBase {
         return toKeep
       },
       organizations: (oldOrganizations, newOrganizations) => {
-        oldOrganizations = oldOrganizations
-          ? oldOrganizations.map((o) => {
-              if (o.id) {
-                return o.id
-              }
-              return o
-            })
-          : []
+        const convertOrgs = (orgs) =>
+          orgs
+            ? orgs
+                .map((o) => (o.dataValues ? o.get({ plain: true }) : o))
+                .map((o) => {
+                  if (typeof o === 'string') {
+                    return {
+                      id: o,
+                    }
+                  }
+                  const memberOrg = o.memberOrganizations
+                  return {
+                    id: o.id,
+                    title: memberOrg?.title,
+                    startDate: memberOrg?.dateStart,
+                    endDate: memberOrg?.dateEnd,
+                  }
+                })
+            : []
 
-        newOrganizations = newOrganizations
-          ? newOrganizations.map((o) => {
-              if (o.id) {
-                return o.id
-              }
-              return o
-            })
-          : []
+        oldOrganizations = convertOrgs(oldOrganizations)
+        newOrganizations = convertOrgs(newOrganizations)
 
-        return Array.from(new Set<string>([...oldOrganizations, ...newOrganizations]))
+        return lodash.uniqWith([...oldOrganizations, ...newOrganizations], lodash.isEqual)
       },
     })
   }
@@ -670,15 +724,26 @@ export default class MemberService extends LoggerBase {
    * Given two members, add them to the toMerge fields of each other.
    * It will also update the tenant's toMerge list, removing any entry that contains
    * the pair.
-   * @param memberOneId ID of the first member
-   * @param memberTwoId ID of the second member
    * @returns Success/Error message
    */
   async addToMerge(suggestions: IMemberMergeSuggestion[]) {
     const transaction = await SequelizeRepository.createTransaction(this.options)
     try {
+      const searchSyncEmitter = await getSearchSyncWorkerEmitter()
+
       await MemberRepository.addToMerge(suggestions, { ...this.options, transaction })
       await SequelizeRepository.commitTransaction(transaction)
+
+      for (const suggestion of suggestions) {
+        await searchSyncEmitter.triggerMemberSync(
+          this.options.currentTenant.id,
+          suggestion.members[0],
+        )
+        await searchSyncEmitter.triggerMemberSync(
+          this.options.currentTenant.id,
+          suggestion.members[1],
+        )
+      }
       return { status: 200 }
     } catch (error) {
       await SequelizeRepository.rollbackTransaction(transaction)
@@ -695,6 +760,8 @@ export default class MemberService extends LoggerBase {
    */
   async addToNoMerge(memberOneId, memberTwoId) {
     const transaction = await SequelizeRepository.createTransaction(this.options)
+    const searchSyncEmitter = await getSearchSyncWorkerEmitter()
+
     try {
       await MemberRepository.addNoMerge(memberOneId, memberTwoId, {
         ...this.options,
@@ -714,6 +781,9 @@ export default class MemberService extends LoggerBase {
       })
 
       await SequelizeRepository.commitTransaction(transaction)
+
+      await searchSyncEmitter.triggerMemberSync(this.options.currentTenant.id, memberOneId)
+      await searchSyncEmitter.triggerMemberSync(this.options.currentTenant.id, memberTwoId)
 
       return { status: 200 }
     } catch (error) {
@@ -761,6 +831,7 @@ export default class MemberService extends LoggerBase {
 
   async update(id, data) {
     const transaction = await SequelizeRepository.createTransaction(this.options)
+    const searchSyncEmitter = await getSearchSyncWorkerEmitter()
 
     try {
       if (data.activities) {
@@ -831,6 +902,8 @@ export default class MemberService extends LoggerBase {
 
       await SequelizeRepository.commitTransaction(transaction)
 
+      await searchSyncEmitter.triggerMemberSync(this.options.currentTenant.id, record.id)
+
       return record
     } catch (error) {
       if (error.name && error.name.includes('Sequelize')) {
@@ -855,6 +928,7 @@ export default class MemberService extends LoggerBase {
 
   async destroyBulk(ids) {
     const transaction = await SequelizeRepository.createTransaction(this.options)
+    const searchSyncEmitter = await getSearchSyncWorkerEmitter()
 
     try {
       await MemberRepository.destroyBulk(
@@ -871,10 +945,15 @@ export default class MemberService extends LoggerBase {
       await SequelizeRepository.rollbackTransaction(transaction)
       throw error
     }
+
+    for (const id of ids) {
+      await searchSyncEmitter.triggerRemoveMember(this.options.currentTenant.id, id)
+    }
   }
 
   async destroyAll(ids) {
     const transaction = await SequelizeRepository.createTransaction(this.options)
+    const searchSyncEmitter = await getSearchSyncWorkerEmitter()
 
     try {
       for (const id of ids) {
@@ -893,6 +972,10 @@ export default class MemberService extends LoggerBase {
       await SequelizeRepository.rollbackTransaction(transaction)
       throw error
     }
+
+    for (const id of ids) {
+      await searchSyncEmitter.triggerRemoveMember(this.options.currentTenant.id, id)
+    }
   }
 
   async findById(id, returnPlain = true, doPopulateRelations = true) {
@@ -908,8 +991,21 @@ export default class MemberService extends LoggerBase {
     offset: number,
     limit: number,
     orderBy: string,
+    segments: string[],
   ) {
-    return MemberRepository.findAndCountActive(filters, limit, offset, orderBy, this.options)
+    const memberAttributeSettings = (
+      await MemberAttributeSettingsRepository.findAndCountAll({}, this.options)
+    ).rows
+
+    return MemberRepository.findAndCountActiveOpensearch(
+      filters,
+      limit,
+      offset,
+      orderBy,
+      this.options,
+      memberAttributeSettings,
+      segments,
+    )
   }
 
   async findAndCountAll(args) {
@@ -923,11 +1019,21 @@ export default class MemberService extends LoggerBase {
   }
 
   async queryV2(data) {
+    if (await isFeatureEnabled(FeatureFlag.SEGMENTS, this.options)) {
+      if (data.segments.length !== 1) {
+        throw new Error400(
+          `This operation can have exactly one segment. Found ${data.segments.length} segments.`,
+        )
+      }
+    } else {
+      data.segments = [(await new SegmentRepository(this.options).getDefaultSegment()).id]
+    }
+
     const memberAttributeSettings = (
       await MemberAttributeSettingsRepository.findAndCountAll({}, this.options)
     ).rows
 
-    return MemberRepository.findAndCountAllv2(
+    return MemberRepository.findAndCountAllOpensearch(
       {
         limit: data.limit,
         offset: data.offset,
@@ -935,6 +1041,7 @@ export default class MemberService extends LoggerBase {
         orderBy: data.orderBy || undefined,
         countOnly: data.countOnly || false,
         attributesSettings: memberAttributeSettings,
+        segments: data.segments,
       },
       this.options,
     )
@@ -943,7 +1050,7 @@ export default class MemberService extends LoggerBase {
   async query(data, exportMode = false) {
     const memberAttributeSettings = (
       await MemberAttributeSettingsRepository.findAndCountAll({}, this.options)
-    ).rows.filter((setting) => setting.type !== AttributeType.SPECIAL)
+    ).rows.filter((setting) => setting.type !== MemberAttributeType.SPECIAL)
     const advancedFilter = data.filter
     const orderBy = data.orderBy
     const limit = data.limit
@@ -987,6 +1094,7 @@ export default class MemberService extends LoggerBase {
       this.options.currentTenant.id,
       this.options.currentUser.id,
       ExportableEntity.MEMBERS,
+      SequelizeRepository.getSegmentIds(this.options),
       data,
     )
     return result

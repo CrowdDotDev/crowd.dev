@@ -91,6 +91,10 @@ export default class IntegrationService {
     return IntegrationRepository.findByPlatform(platform, this.options)
   }
 
+  async findAllByPlatform(platform) {
+    return IntegrationRepository.findAllByPlatform(platform, this.options)
+  }
+
   async create(data, transaction?: any) {
     try {
       const record = await IntegrationRepository.create(data, {
@@ -291,6 +295,22 @@ export default class IntegrationService {
 
       const repos = await getInstalledRepositories(installToken)
 
+      // TODO: I will do this later. For now they can add it manually.
+      // // If the git integration is configured, we add the repos to the git config
+      // let isGitintegrationConfigured
+      // try {
+      //   await this.findByPlatform(PlatformType.GIT)
+      //   isGitintegrationConfigured = true
+      // } catch (err) {
+      //   isGitintegrationConfigured = false
+      // }
+      // if (isGitintegrationConfigured) {
+      //   const gitRemotes = await this.gitGetRemotes()
+      //   await this.gitConnectOrUpdate({
+      //     remotes: [...gitRemotes, ...repos.map((repo) => repo.cloneUrl)],
+      //   })
+      // }
+
       integration = await this.createOrUpdate(
         {
           platform: PlatformType.GITHUB,
@@ -405,19 +425,19 @@ export default class IntegrationService {
           transaction,
         )
 
-        const emitter = await getIntegrationRunWorkerEmitter()
-        await emitter.triggerIntegrationRun(
-          integration.tenantId,
-          integration.platform,
-          integration.id,
-          true,
-        )
-
         await SequelizeRepository.commitTransaction(transaction)
       } catch (err) {
         await SequelizeRepository.rollbackTransaction(transaction)
         throw err
       }
+
+      const emitter = await getIntegrationRunWorkerEmitter()
+      await emitter.triggerIntegrationRun(
+        integration.tenantId,
+        integration.platform,
+        integration.id,
+        true,
+      )
 
       return integration
     }
@@ -474,20 +494,20 @@ export default class IntegrationService {
         },
         transaction,
       )
-
-      if (status === 'in-progress') {
-        const emitter = await getIntegrationRunWorkerEmitter()
-        await emitter.triggerIntegrationRun(
-          integration.tenantId,
-          integration.platform,
-          integration.id,
-          true,
-        )
-      }
       await SequelizeRepository.commitTransaction(transaction)
     } catch (err) {
       await SequelizeRepository.rollbackTransaction(transaction)
       throw err
+    }
+
+    if (status === 'in-progress') {
+      const emitter = await getIntegrationRunWorkerEmitter()
+      await emitter.triggerIntegrationRun(
+        integration.tenantId,
+        integration.platform,
+        integration.id,
+        true,
+      )
     }
 
     return integration
@@ -514,23 +534,23 @@ export default class IntegrationService {
         transaction,
       )
 
-      this.options.log.info(
-        { tenantId: integration.tenantId },
-        'Sending reddit message to int-run-worker!',
-      )
-      const emitter = await getIntegrationRunWorkerEmitter()
-      await emitter.triggerIntegrationRun(
-        integration.tenantId,
-        integration.platform,
-        integration.id,
-        true,
-      )
-
       await SequelizeRepository.commitTransaction(transaction)
     } catch (err) {
       await SequelizeRepository.rollbackTransaction(transaction)
       throw err
     }
+
+    this.options.log.info(
+      { tenantId: integration.tenantId },
+      'Sending reddit message to int-run-worker!',
+    )
+    const emitter = await getIntegrationRunWorkerEmitter()
+    await emitter.triggerIntegrationRun(
+      integration.tenantId,
+      integration.platform,
+      integration.id,
+      true,
+    )
 
     return integration
   }
@@ -559,23 +579,23 @@ export default class IntegrationService {
         },
         transaction,
       )
-
-      this.options.log.info(
-        { tenantId: integration.tenantId },
-        'Sending devto message to int-run-worker!',
-      )
-      const emitter = await getIntegrationRunWorkerEmitter()
-      await emitter.triggerIntegrationRun(
-        integration.tenantId,
-        integration.platform,
-        integration.id,
-        true,
-      )
       await SequelizeRepository.commitTransaction(transaction)
     } catch (err) {
       await SequelizeRepository.rollbackTransaction(transaction)
       throw err
     }
+
+    this.options.log.info(
+      { tenantId: integration.tenantId },
+      'Sending devto message to int-run-worker!',
+    )
+    const emitter = await getIntegrationRunWorkerEmitter()
+    await emitter.triggerIntegrationRun(
+      integration.tenantId,
+      integration.platform,
+      integration.id,
+      true,
+    )
 
     return integration
   }
@@ -614,11 +634,15 @@ export default class IntegrationService {
    */
   async gitGetRemotes() {
     try {
-      const integration = await this.findByPlatform(PlatformType.GIT)
-      return {
-        // We are returning this until we have segments
-        default: integration.settings.remotes,
-      }
+      const integrations = await this.findAllByPlatform(PlatformType.GIT)
+      return integrations.reduce((acc, integration) => {
+        const {
+          segmentId,
+          settings: { remotes },
+        } = integration
+        acc[segmentId] = remotes
+        return acc
+      }, {})
     } catch (err) {
       throw new Error400(this.options.language, 'errors.git.noIntegration')
     }
@@ -647,23 +671,23 @@ export default class IntegrationService {
         transaction,
       )
 
-      this.options.log.info(
-        { tenantId: integration.tenantId },
-        'Sending HackerNews message to int-run-worker!',
-      )
-      const emitter = await getIntegrationRunWorkerEmitter()
-      await emitter.triggerIntegrationRun(
-        integration.tenantId,
-        integration.platform,
-        integration.id,
-        true,
-      )
-
       await SequelizeRepository.commitTransaction(transaction)
     } catch (err) {
       await SequelizeRepository.rollbackTransaction(transaction)
       throw err
     }
+
+    this.options.log.info(
+      { tenantId: integration.tenantId },
+      'Sending HackerNews message to int-run-worker!',
+    )
+    const emitter = await getIntegrationRunWorkerEmitter()
+    await emitter.triggerIntegrationRun(
+      integration.tenantId,
+      integration.platform,
+      integration.id,
+      true,
+    )
 
     return integration
   }
@@ -679,9 +703,9 @@ export default class IntegrationService {
 
     const transaction = await SequelizeRepository.createTransaction(this.options)
     let integration
-    let run
 
     try {
+      this.options.log.info('Creating Slack integration!')
       integration = await this.createOrUpdate(
         {
           platform: PlatformType.SLACK,
@@ -691,23 +715,24 @@ export default class IntegrationService {
         transaction,
       )
 
-      const isOnboarding: boolean = !('channels' in integration.settings)
-
-      run = await new IntegrationRunRepository({ ...this.options, transaction }).create({
-        integrationId: integration.id,
-        tenantId: integration.tenantId,
-        onboarding: isOnboarding,
-        state: IntegrationRunState.PENDING,
-      })
       await SequelizeRepository.commitTransaction(transaction)
     } catch (err) {
       await SequelizeRepository.rollbackTransaction(transaction)
       throw err
     }
 
-    await sendNodeWorkerMessage(
+    this.options.log.info(
+      { tenantId: integration.tenantId },
+      'Sending Slack message to int-run-worker!',
+    )
+
+    const isOnboarding: boolean = !('channels' in integration.settings)
+    const emitter = await getIntegrationRunWorkerEmitter()
+    await emitter.triggerIntegrationRun(
       integration.tenantId,
-      new NodeWorkerIntegrationProcessMessage(run.id),
+      integration.platform,
+      integration.id,
+      isOnboarding,
     )
 
     return integration
@@ -790,23 +815,23 @@ export default class IntegrationService {
         transaction,
       )
 
-      this.options.log.info(
-        { tenantId: integration.tenantId },
-        'Sending StackOverflow message to int-run-worker!',
-      )
-      const emitter = await getIntegrationRunWorkerEmitter()
-      await emitter.triggerIntegrationRun(
-        integration.tenantId,
-        integration.platform,
-        integration.id,
-        true,
-      )
-
       await SequelizeRepository.commitTransaction(transaction)
     } catch (err) {
       await SequelizeRepository.rollbackTransaction(transaction)
       throw err
     }
+
+    this.options.log.info(
+      { tenantId: integration.tenantId },
+      'Sending StackOverflow message to int-run-worker!',
+    )
+    const emitter = await getIntegrationRunWorkerEmitter()
+    await emitter.triggerIntegrationRun(
+      integration.tenantId,
+      integration.platform,
+      integration.id,
+      true,
+    )
 
     return integration
   }

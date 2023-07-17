@@ -115,6 +115,21 @@
               </el-tooltip>
             </div>
             <div
+              v-else-if="
+                integration.status === 'needs-reconnect'
+              "
+            >
+              <el-tooltip
+                effect="dark"
+                content="Needs reconnect"
+                placement="top-start"
+              >
+                <div
+                  class="ri-time-line text-base text-yellow-500"
+                />
+              </el-tooltip>
+            </div>
+            <div
               v-else-if="integration.status !== undefined"
             >
               <el-tooltip

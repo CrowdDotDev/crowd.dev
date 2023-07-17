@@ -38,11 +38,16 @@ export default class ActivityRepository extends RepositoryBase<ActivityRepositor
             channel,
             url,
             sentiment
-    from activities where "tenantId" = $(tenantId) and "sourceId" = $(sourceId)
+    from activities where "tenantId" = $(tenantId) and "segmentId" = $(segmentId) and "sourceId" = $(sourceId)
   `
-  public async findExisting(tenantId: string, sourceId: string): Promise<IDbActivity | null> {
+  public async findExisting(
+    tenantId: string,
+    segmentId: string,
+    sourceId: string,
+  ): Promise<IDbActivity | null> {
     const result = await this.db().oneOrNone(this.findExistingActivityQuery, {
       tenantId,
+      segmentId,
       sourceId,
     })
 
@@ -91,11 +96,15 @@ export default class ActivityRepository extends RepositoryBase<ActivityRepositor
     await Promise.all(promises)
   }
 
-  public async create(tenantId: string, data: IDbActivityCreateData): Promise<string> {
+  public async create(
+    tenantId: string,
+    segmentId: string,
+    data: IDbActivityCreateData,
+  ): Promise<string> {
     const id = generateUUIDv1()
     const ts = new Date()
     const prepared = RepositoryBase.prepare(
-      { ...data, id, tenantId, createdAt: ts, updatedAt: ts },
+      { ...data, id, tenantId, segmentId, createdAt: ts, updatedAt: ts },
       this.insertActivityColumnSet,
     )
     const query = this.dbInstance.helpers.insert(prepared, this.insertActivityColumnSet)
@@ -107,16 +116,25 @@ export default class ActivityRepository extends RepositoryBase<ActivityRepositor
     return id
   }
 
-  public async update(id: string, tenantId: string, data: IDbActivityUpdateData): Promise<void> {
+  public async update(
+    id: string,
+    tenantId: string,
+    segmentId: string,
+    data: IDbActivityUpdateData,
+  ): Promise<void> {
     const prepared = RepositoryBase.prepare(
       { ...data, updatedAt: new Date() },
       this.updateActivityColumnSet,
     )
     const query = this.dbInstance.helpers.update(prepared, this.updateActivityColumnSet)
-    const condition = this.format('where id = $(id) and "tenantId" = $(tenantId)', {
-      id,
-      tenantId,
-    })
+    const condition = this.format(
+      'where id = $(id) and "tenantId" = $(tenantId) and "segmentId" = $(segmentId)',
+      {
+        id,
+        tenantId,
+        segmentId,
+      },
+    )
     const result = await this.db().result(`${query} ${condition}`)
 
     this.checkUpdateRowCount(result.rowCount, 1)

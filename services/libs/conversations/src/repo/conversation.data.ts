@@ -27,7 +27,7 @@ export const getInsertConversationColumnSet = (instance: DbInstance): DbColumnSe
   if (insertConversationColumnSet) return insertConversationColumnSet
 
   insertConversationColumnSet = new instance.helpers.ColumnSet(
-    ['id', 'title', 'slug', 'published', 'tenantId', 'createdAt', 'updatedAt'],
+    ['id', 'title', 'slug', 'published', 'tenantId', 'segmentId', 'createdAt', 'updatedAt'],
     {
       table: {
         table: 'conversations',

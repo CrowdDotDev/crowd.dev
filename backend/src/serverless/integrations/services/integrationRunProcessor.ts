@@ -30,6 +30,7 @@ import UserRepository from '../../../database/repositories/userRepository'
 import EmailSender from '../../../services/emailSender'
 import { i18n } from '../../../i18n'
 import { API_CONFIG, SLACK_ALERTING_CONFIG } from '../../../conf'
+import SegmentRepository from '../../../database/repositories/segmentRepository'
 
 export class IntegrationRunProcessor extends LoggerBase {
   constructor(
@@ -75,6 +76,9 @@ export class IntegrationRunProcessor extends LoggerBase {
       this.log.error({ runId: req.runId }, 'Integration run has no integration or microservice!')
       throw new Error(`Integration run '${req.runId}' has no integration or microservice!`)
     }
+
+    const segmentRepository = new SegmentRepository(userContext)
+    userContext.currentSegments = [await segmentRepository.findById(integration.segmentId)]
 
     const logger = getChildLogger('process', this.log, {
       runId: req.runId,

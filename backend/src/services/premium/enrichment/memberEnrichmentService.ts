@@ -2,15 +2,17 @@ import { LoggerBase } from '@crowd/logging'
 import { RedisPubSubEmitter, getRedisClient } from '@crowd/redis'
 import axios from 'axios'
 import lodash from 'lodash'
-import { ApiWebsocketMessage, PlatformType } from '@crowd/types'
-import { ENRICHMENT_CONFIG, REDIS_CONFIG } from '../../../conf'
-import { AttributeData } from '../../../database/attributes/attribute'
+import moment from 'moment'
 import {
+  ApiWebsocketMessage,
   MemberAttributeName,
+  MemberAttributeType,
   MemberEnrichmentAttributeName,
   MemberEnrichmentAttributes,
-} from '../../../database/attributes/member/enums'
-import { AttributeType } from '../../../database/attributes/types'
+  PlatformType,
+} from '@crowd/types'
+import { ENRICHMENT_CONFIG, REDIS_CONFIG } from '../../../conf'
+import { AttributeData } from '../../../database/attributes/attribute'
 import MemberEnrichmentCacheRepository from '../../../database/repositories/memberEnrichmentCacheRepository'
 import Error400 from '../../../errors/Error400'
 import { i18n } from '../../../i18n'
@@ -28,6 +30,9 @@ import {
   EnrichmentAPISkills,
   EnrichmentAPIWorkExperience,
 } from './types/memberEnrichmentTypes'
+import OrganizationService from '../../organizationService'
+import MemberRepository from '../../../database/repositories/memberRepository'
+import OrganizationRepository from '../../../database/repositories/organizationRepository'
 
 export default class MemberEnrichmentService extends LoggerBase {
   options: IServiceOptions
@@ -58,31 +63,31 @@ export default class MemberEnrichmentService extends LoggerBase {
       },
       [MemberEnrichmentAttributeName.SENIORITY_LEVEL]: {
         fields: ['seniority_level'],
-        type: AttributeType.STRING,
+        type: MemberAttributeType.STRING,
       },
       [MemberEnrichmentAttributeName.COUNTRY]: {
         fields: ['country'],
-        type: AttributeType.STRING,
+        type: MemberAttributeType.STRING,
       },
       [MemberEnrichmentAttributeName.PROGRAMMING_LANGUAGES]: {
         fields: ['programming_languages'],
-        type: AttributeType.MULTI_SELECT,
+        type: MemberAttributeType.MULTI_SELECT,
       },
       [MemberEnrichmentAttributeName.LANGUAGES]: {
         fields: ['languages'],
-        type: AttributeType.MULTI_SELECT,
+        type: MemberAttributeType.MULTI_SELECT,
       },
       [MemberEnrichmentAttributeName.YEARS_OF_EXPERIENCE]: {
         fields: ['years_of_experience'],
-        type: AttributeType.NUMBER,
+        type: MemberAttributeType.NUMBER,
       },
       [MemberEnrichmentAttributeName.EXPERTISE]: {
         fields: ['expertise'],
-        type: AttributeType.MULTI_SELECT,
+        type: MemberAttributeType.MULTI_SELECT,
       },
       [MemberEnrichmentAttributeName.WORK_EXPERIENCES]: {
         fields: ['work_experiences'],
-        type: AttributeType.SPECIAL,
+        type: MemberAttributeType.SPECIAL,
         fn: (workExperiences: EnrichmentAPIWorkExperience[]) =>
           workExperiences.map((workExperience) => {
             const { title, company, location, startDate, endDate } = workExperience
@@ -97,7 +102,7 @@ export default class MemberEnrichmentService extends LoggerBase {
       },
       [MemberEnrichmentAttributeName.EDUCATION]: {
         fields: ['educations'],
-        type: AttributeType.SPECIAL,
+        type: MemberAttributeType.SPECIAL,
         fn: (educations: EnrichmentAPIEducation[]) =>
           educations.map((education) => {
             const { campus, major, specialization, startDate, endDate } = education
@@ -112,11 +117,11 @@ export default class MemberEnrichmentService extends LoggerBase {
       },
       [MemberEnrichmentAttributeName.AWARDS]: {
         fields: ['awards'],
-        type: AttributeType.SPECIAL,
+        type: MemberAttributeType.SPECIAL,
       },
       [MemberEnrichmentAttributeName.CERTIFICATIONS]: {
         fields: ['certifications'],
-        type: AttributeType.SPECIAL,
+        type: MemberAttributeType.SPECIAL,
         fn: (certifications: EnrichmentAPICertification[]) =>
           certifications.map((certification) => {
             const { title, description } = certification
@@ -266,7 +271,38 @@ export default class MemberEnrichmentService extends LoggerBase {
         this.options,
       )
 
-      return memberService.upsert({ ...normalized, platform: Object.keys(member.username)[0] })
+      const result = await memberService.upsert({
+        ...normalized,
+        platform: Object.keys(member.username)[0],
+      })
+
+      // for every work experience in `enrichmentData`
+      //   - upsert organization
+      //   - upsert `memberOrganization` relation
+      const organizationService = new OrganizationService(this.options)
+      if (enrichmentData.work_experiences) {
+        for (const workExperience of enrichmentData.work_experiences) {
+          const org = await organizationService.findOrCreate({
+            name: workExperience.company,
+          })
+
+          const dateEnd = workExperience.endDate
+            ? moment.utc(workExperience.endDate).toISOString()
+            : null
+
+          const data = {
+            memberId: result.id,
+            organizationId: org.id,
+            title: workExperience.title,
+            dateStart: workExperience.startDate,
+            dateEnd,
+          }
+          await MemberRepository.createOrUpdateWorkExperience(data, this.options)
+          await OrganizationRepository.includeOrganizationToSegments(org.id, this.options)
+        }
+      }
+
+      return result
     }
     return null
   }
@@ -284,6 +320,33 @@ export default class MemberEnrichmentService extends LoggerBase {
       member.emails.forEach((email) => emailSet.add(email))
       member.emails = Array.from(emailSet)
     }
+
+    if (enrichmentData.company) {
+      const organization = {
+        name: enrichmentData.company,
+      } as any
+
+      // check for more info about the company in work experiences
+      if (enrichmentData.work_experiences && enrichmentData.work_experiences.length > 0) {
+        const organizationsByWorkExperience = enrichmentData.work_experiences.filter(
+          (w) => w.company === enrichmentData.company && w.current,
+        )
+        if (organizationsByWorkExperience.length > 0) {
+          organization.location = organizationsByWorkExperience[0].location
+          organization.linkedin = organizationsByWorkExperience[0].companyLinkedInUrl
+          organization.url = organizationsByWorkExperience[0].companyUrl
+
+          // fetch jobTitle from most recent work experience
+          member.attributes.jobTitle = {
+            custom: organizationsByWorkExperience[0].title,
+            default: organizationsByWorkExperience[0].title,
+          }
+        }
+      }
+
+      member.organizations = [organization]
+    }
+
     member.contributions = enrichmentData.oss_contributions?.map(
       (contribution: EnrichmentAPIContribution) => ({
         id: contribution.id,
@@ -417,7 +480,7 @@ export default class MemberEnrichmentService extends LoggerBase {
 
       await this.createAttributeAndUpdateOptions(
         MemberEnrichmentAttributeName.SKILLS,
-        { type: AttributeType.MULTI_SELECT },
+        { type: MemberAttributeType.MULTI_SELECT },
         member.attributes.skills.enrichment,
       )
     }
@@ -434,7 +497,7 @@ export default class MemberEnrichmentService extends LoggerBase {
   async createAttributeAndUpdateOptions(attributeName, attribute, value) {
     // Check if attribute type is 'MULTI_SELECT' and the attribute already exists
     if (
-      attribute.type === AttributeType.MULTI_SELECT &&
+      attribute.type === MemberAttributeType.MULTI_SELECT &&
       lodash.find(this.attributes, { name: attributeName })
     ) {
       // Find attributeSettings by name
@@ -458,7 +521,7 @@ export default class MemberEnrichmentService extends LoggerBase {
         type: attribute.type,
         show: attributeName !== MemberEnrichmentAttributeName.EMAILS,
         canDelete: false,
-        ...(attribute.type === AttributeType.MULTI_SELECT && { options: value }),
+        ...(attribute.type === MemberAttributeType.MULTI_SELECT && { options: value }),
       })
     }
   }

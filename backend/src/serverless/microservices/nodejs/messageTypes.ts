@@ -12,6 +12,7 @@ export type AutomationMessage = BaseNodeMicroserviceMessage & {
 export type CsvExportMessage = BaseNodeMicroserviceMessage & {
   entity: ExportableEntity
   user: string
+  segmentIds: string[]
   criteria: any
 }
 
@@ -28,13 +29,19 @@ export type ActivityAutomationData = {
   activityId: string
 }
 
-export type NewActivityAutomationMessage = BaseNodeMicroserviceMessage & ActivityAutomationData
+export type NewActivityAutomationMessage = BaseNodeMicroserviceMessage &
+  ActivityAutomationData & {
+    segmentId: string
+  }
 
 export type MemberAutomationData = {
   memberId: string
 }
 
-export type NewMemberAutomationMessage = BaseNodeMicroserviceMessage & MemberAutomationData
+export type NewMemberAutomationMessage = BaseNodeMicroserviceMessage &
+  MemberAutomationData & {
+    segmentId: string
+  }
 
 export type ProcessAutomationMessage = BaseNodeMicroserviceMessage & {
   automationType: AutomationType

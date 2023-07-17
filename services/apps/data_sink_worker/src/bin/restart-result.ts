@@ -10,11 +10,11 @@ const log = getServiceLogger()
 const processArguments = process.argv.slice(3)
 
 if (processArguments.length !== 1) {
-  log.error('Expected 1 argument: resultId')
+  log.error('Expected 1 argument: resultIds')
   process.exit(1)
 }
 
-const resultId = processArguments[0]
+const resultIds = processArguments[0].split(',')
 
 setImmediate(async () => {
   const sqsClient = getSqsClient(SQS_CONFIG())
@@ -25,15 +25,17 @@ setImmediate(async () => {
   const store = new DbStore(log, dbConnection)
 
   const repo = new DataSinkRepository(store, log)
-
-  const result = await repo.getResultInfo(resultId)
-  if (!result) {
-    log.error(`Result ${resultId} not found!`)
-    process.exit(1)
-  } else {
-    await emitter.sendMessage(
-      `results-${result.tenantId}-${result.platform}`,
-      new ProcessIntegrationResultQueueMessage(result.id),
-    )
+  for (const resultId of resultIds) {
+    const result = await repo.getResultInfo(resultId)
+    if (!result) {
+      log.error(`Result ${resultId} not found!`)
+      process.exit(1)
+    } else {
+      await repo.resetResults([resultId])
+      await emitter.sendMessage(
+        `results-${result.tenantId}-${result.platform}`,
+        new ProcessIntegrationResultQueueMessage(result.id),
+      )
+    }
   }
 })

@@ -2,13 +2,22 @@ import { DateFilterValue } from '@/shared/modules/filters/types/filterTypes/Date
 import { FilterDateOperator } from '@/shared/modules/filters/config/constants/date.constants';
 import moment from 'moment';
 
-export const dateApiFilterRenderer = (property: string, { value, include, operator }: DateFilterValue): any[] => {
+export const dateApiFilterRenderer = (property: string, { value, operator }: DateFilterValue): any[] => {
+  const includeFilter = ![FilterDateOperator.NE, FilterDateOperator.NOT_BETWEEN].includes(operator);
+  let filterOperator = operator;
+
+  if (operator === FilterDateOperator.NE) {
+    filterOperator = FilterDateOperator.EQ;
+  } else if (operator === FilterDateOperator.NOT_BETWEEN) {
+    filterOperator = FilterDateOperator.BETWEEN;
+  }
+
   let filter = {
     [property]: {
-      [operator]: value,
+      [filterOperator]: value,
     },
   };
-  if (operator === FilterDateOperator.EQ) {
+  if ([FilterDateOperator.EQ, FilterDateOperator.NE].includes(operator)) {
     filter = {
       [property]: {
         between: [
@@ -20,7 +29,7 @@ export const dateApiFilterRenderer = (property: string, { value, include, operat
   }
 
   return [
-    (include ? filter : {
+    (includeFilter ? filter : {
       not: filter,
     }),
   ];

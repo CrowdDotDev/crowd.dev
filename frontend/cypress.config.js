@@ -1,5 +1,4 @@
 const { defineConfig } = require('cypress');
-const webpackConfig = require('@vue/cli-service/webpack.config.js');
 require('dotenv').config({
   path: './.env.cypress',
 });
@@ -19,8 +18,7 @@ module.exports = defineConfig({
   component: {
     devServer: {
       framework: 'vue',
-      bundler: 'webpack',
-      webpackConfig,
+      bundler: 'vite',
     },
   },
   browser: {

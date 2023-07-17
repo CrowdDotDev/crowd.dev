@@ -6,6 +6,7 @@ export interface IApiDataInfo {
   integrationType: string
   integrationState: IntegrationState
   integrationIdentifier: string | null
+  integrationToken: string | null
   runState: IntegrationRunState
   streamId: string
   runId: string
@@ -16,4 +17,9 @@ export interface IApiDataInfo {
   state: IntegrationStreamDataState
   data: unknown
   retries: number
+
+  hasSampleData: boolean
+  plan: string
+  isTrialPlan: boolean
+  name: string
 }

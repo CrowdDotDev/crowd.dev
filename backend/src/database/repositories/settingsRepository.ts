@@ -1,10 +1,8 @@
-import lodash from 'lodash'
 import _get from 'lodash/get'
-import { DEFAULT_ACTIVITY_TYPE_SETTINGS } from '@crowd/integrations'
-import { ActivityTypeSettings } from '@crowd/types'
 import SequelizeRepository from './sequelizeRepository'
 import AuditLogRepository from './auditLogRepository'
 import { IRepositoryOptions } from './IRepositoryOptions'
+import SegmentService from '../../services/segmentService'
 
 export default class SettingsRepository {
   static async findOrCreateDefault(defaults, options: IRepositoryOptions) {
@@ -22,7 +20,7 @@ export default class SettingsRepository {
       transaction: SequelizeRepository.getTransaction(options),
     })
 
-    return this._populateRelations(settings)
+    return this._populateRelations(settings, options)
   }
 
   static async save(data, options: IRepositoryOptions) {
@@ -66,7 +64,7 @@ export default class SettingsRepository {
       options,
     )
 
-    return this._populateRelations(settings)
+    return this._populateRelations(settings, options)
   }
 
   static async getTenantSettings(tenantId: string, options: IRepositoryOptions) {
@@ -80,48 +78,16 @@ export default class SettingsRepository {
     return settings
   }
 
-  static buildActivityTypes(record: any): ActivityTypeSettings {
-    const activityTypes = {} as ActivityTypeSettings
-
-    activityTypes.default = lodash.cloneDeep(DEFAULT_ACTIVITY_TYPE_SETTINGS)
-    activityTypes.custom = {}
-
-    if (Object.keys(record.customActivityTypes).length > 0) {
-      activityTypes.custom = record.customActivityTypes
-    }
-
-    return activityTypes
-  }
-
-  static getActivityChannels(options: IRepositoryOptions) {
-    return options.currentTenant?.settings[0]?.activityChannels
-  }
-
-  static getActivityTypes(options: IRepositoryOptions): ActivityTypeSettings {
-    return options.currentTenant?.settings[0]?.dataValues.activityTypes
-  }
-
-  static activityTypeExists(platform: string, key: string, options: IRepositoryOptions): boolean {
-    const activityTypes = this.getActivityTypes(options)
-
-    if (
-      (activityTypes.default[platform] && activityTypes.default[platform][key]) ||
-      (activityTypes.custom[platform] && activityTypes.custom[platform][key])
-    ) {
-      return true
-    }
-
-    return false
-  }
-
-  static async _populateRelations(record) {
+  static async _populateRelations(record, options: IRepositoryOptions) {
     if (!record) {
       return record
     }
 
+    const activityTypes = await SegmentService.getTenantActivityTypes(options.currentSegments)
+
     const settings = record.get({ plain: true })
 
-    settings.activityTypes = this.buildActivityTypes(record)
+    settings.activityTypes = activityTypes
     settings.slackWebHook = !!settings.slackWebHook
 
     return settings

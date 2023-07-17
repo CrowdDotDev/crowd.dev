@@ -19,6 +19,8 @@ class TaskRepository {
 
     const transaction = SequelizeRepository.getTransaction(options)
 
+    const segment = SequelizeRepository.getStrictlySingleActiveSegment(options)
+
     if (data.body) {
       data.body = sanitizeHtml(data.body).trim()
     }
@@ -28,6 +30,7 @@ class TaskRepository {
         ...lodash.pick(data, ['name', 'body', 'type', 'status', 'dueDate', 'importHash']),
 
         tenantId: tenant.id,
+        segmentId: segment.id,
         createdById: currentUser.id,
         updatedById: currentUser.id,
       },
@@ -78,6 +81,7 @@ class TaskRepository {
         where: {
           id: ids,
           tenantId: currentTenant.id,
+          segmentId: SequelizeRepository.getSegmentIds(options),
         },
         transaction,
       },
@@ -97,6 +101,7 @@ class TaskRepository {
       where: {
         id,
         tenantId: currentTenant.id,
+        segmentId: SequelizeRepository.getSegmentIds(options),
       },
       transaction,
     })
@@ -151,6 +156,7 @@ class TaskRepository {
       where: {
         id,
         tenantId: currentTenant.id,
+        segmentId: SequelizeRepository.getSegmentIds(options),
       },
       transaction,
     })
@@ -178,6 +184,7 @@ class TaskRepository {
       where: {
         id,
         tenantId: currentTenant.id,
+        segmentId: SequelizeRepository.getSegmentIds(options),
       },
       include,
       transaction,
@@ -225,6 +232,7 @@ class TaskRepository {
       where: {
         ...filter,
         tenantId: tenant.id,
+        segmentId: SequelizeRepository.getSegmentIds(options),
       },
       transaction,
     })
@@ -401,6 +409,9 @@ class TaskRepository {
     const whereAnd: Array<any> = [
       {
         tenantId: tenant.id,
+      },
+      {
+        segmentId: SequelizeRepository.getSegmentIds(options),
       },
     ]
 

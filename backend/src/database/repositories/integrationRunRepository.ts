@@ -59,6 +59,7 @@ export default class IntegrationRunRepository extends RepositoryBase<
     states: IntegrationRunState[],
     page: number,
     perPage: number,
+    lastCreatedAt?: string,
   ): Promise<IntegrationRun[]> {
     const seq = this.seq
 
@@ -68,6 +69,17 @@ export default class IntegrationRunRepository extends RepositoryBase<
       replacements[`state${index}`] = state
       return `:state${index}`
     })
+
+    const conditions = []
+    if (lastCreatedAt) {
+      replacements.lastCreatedAt = lastCreatedAt
+      conditions.push('"createdAt" < :lastCreatedAt')
+    }
+
+    let conditionString = ''
+    if (conditions.length > 0) {
+      conditionString = ` and ${conditions.join(' and ')}`
+    }
 
     const query = `
       select  id,
@@ -82,7 +94,7 @@ export default class IntegrationRunRepository extends RepositoryBase<
             "createdAt",
             "updatedAt"
       from "integrationRuns"
-      where state in (${stateParams.join(', ')})
+      where state in (${stateParams.join(', ')}) ${conditionString}
       order by "createdAt" desc
       limit ${perPage} offset ${(page - 1) * perPage}
     `

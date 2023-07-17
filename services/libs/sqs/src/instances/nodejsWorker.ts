@@ -13,24 +13,37 @@ export class NodejsWorkerEmitter extends SqsQueueEmitter {
     super(client, NODEJS_WORKER_QUEUE_SETTINGS, parentLog)
   }
 
-  public override sendMessage(groupId: string, message: IQueueMessage): Promise<void> {
+  public override sendMessage(
+    groupId: string,
+    message: IQueueMessage,
+    deduplicationId: string,
+  ): Promise<void> {
     this.log.info(
       {
         messageType: message.type,
       },
       'Sending nodejs-worker sqs message!',
     )
-    return super.sendMessage(groupId, message)
+    return super.sendMessage(groupId, message, deduplicationId)
   }
 
   public async processAutomationForNewActivity(
     tenantId: string,
     activityId: string,
+    segmentId: string,
   ): Promise<void> {
-    await this.sendMessage(tenantId, new NewActivityAutomationQueueMessage(tenantId, activityId))
+    await this.sendMessage(
+      tenantId,
+      new NewActivityAutomationQueueMessage(tenantId, activityId, segmentId),
+      `${activityId}--${segmentId}`,
+    )
   }
 
   public async processAutomationForNewMember(tenantId: string, memberId: string): Promise<void> {
-    await this.sendMessage(tenantId, new NewMemberAutomationQueueMessage(tenantId, memberId))
+    await this.sendMessage(
+      tenantId,
+      new NewMemberAutomationQueueMessage(tenantId, memberId),
+      memberId,
+    )
   }
 }

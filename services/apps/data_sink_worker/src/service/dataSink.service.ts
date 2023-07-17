@@ -3,7 +3,9 @@ import { Logger, LoggerBase, getChildLogger } from '@crowd/logging'
 import { IActivityData, IntegrationResultState, IntegrationResultType } from '@crowd/types'
 import DataSinkRepository from '../repo/dataSink.repo'
 import ActivityService from './activity.service'
-import { NodejsWorkerEmitter } from '@crowd/sqs'
+import { NodejsWorkerEmitter, SearchSyncWorkerEmitter } from '@crowd/sqs'
+import { SLACK_ALERTING_CONFIG } from '@/conf'
+import { sendSlackAlert, SlackAlertTypes } from '@crowd/alerting'
 
 export default class DataSinkService extends LoggerBase {
   private readonly repo: DataSinkRepository
@@ -11,6 +13,7 @@ export default class DataSinkService extends LoggerBase {
   constructor(
     private readonly store: DbStore,
     private readonly nodejsWorkerEmitter: NodejsWorkerEmitter,
+    private readonly searchSyncWorkerEmitter: SearchSyncWorkerEmitter,
     parentLog: Logger,
   ) {
     super(parentLog)
@@ -55,10 +58,16 @@ export default class DataSinkService extends LoggerBase {
     })
 
     if (resultInfo.state !== IntegrationResultState.PENDING) {
-      this.log.error({ actualState: resultInfo.state }, 'Result is not pending.')
-      await this.triggerResultError(resultId, 'check-result-state', 'Result is not pending.', {
-        actualState: resultInfo.state,
-      })
+      this.log.warn({ actualState: resultInfo.state }, 'Result is not pending.')
+      if (resultInfo.state === IntegrationResultState.PROCESSED) {
+        this.log.warn('Result has already been processed. Skipping...')
+        return
+      }
+
+      await this.repo.resetResults([resultId])
+      // await this.triggerResultError(resultId, 'check-result-state', 'Result is not pending.', {
+      //   actualState: resultInfo.state,
+      // })
       return
     }
 
@@ -70,7 +79,12 @@ export default class DataSinkService extends LoggerBase {
       const data = resultInfo.data
       switch (data.type) {
         case IntegrationResultType.ACTIVITY: {
-          const service = new ActivityService(this.store, this.nodejsWorkerEmitter, this.log)
+          const service = new ActivityService(
+            this.store,
+            this.nodejsWorkerEmitter,
+            this.searchSyncWorkerEmitter,
+            this.log,
+          )
           const activityData = data.data as IActivityData
 
           await service.processActivity(
@@ -86,7 +100,7 @@ export default class DataSinkService extends LoggerBase {
           throw new Error(`Unknown result type: ${data.type}`)
         }
       }
-      await this.repo.markResultProcessed(resultId)
+      await this.repo.deleteResult(resultId)
     } catch (err) {
       this.log.error(err, 'Error processing result.')
       await this.triggerResultError(
@@ -96,6 +110,27 @@ export default class DataSinkService extends LoggerBase {
         undefined,
         err,
       )
+
+      await sendSlackAlert({
+        slackURL: SLACK_ALERTING_CONFIG().url,
+        alertType: SlackAlertTypes.SINK_WORKER_ERROR,
+        integration: {
+          id: resultInfo.integrationId,
+          platform: resultInfo.platform,
+          tenantId: resultInfo.tenantId,
+          resultId: resultInfo.id,
+          apiDataId: resultInfo.apiDataId,
+        },
+        userContext: {
+          currentTenant: {
+            name: resultInfo.name,
+            plan: resultInfo.plan,
+            isTrial: resultInfo.isTrialPlan,
+          },
+        },
+        log: this.log,
+        frameworkVersion: 'new',
+      })
     } finally {
       await this.repo.touchRun(resultInfo.runId)
     }

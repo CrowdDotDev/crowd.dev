@@ -1,8 +1,8 @@
 import MemberAttributeSettingsRepository from '../memberAttributeSettingsRepository'
 import SequelizeTestUtils from '../../utils/sequelizeTestUtils'
 import Error404 from '../../../errors/Error404'
-import { AttributeType } from '../../attributes/types'
 import Error400 from '../../../errors/Error400'
+import { MemberAttributeType } from '@crowd/types'
 
 const db = null
 
@@ -21,7 +21,11 @@ describe('MemberAttributeSettings tests', () => {
     it('Should create settings for a member attribute succesfully with default values', async () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
 
-      const attribute = { type: AttributeType.BOOLEAN, label: 'attribute 1', name: 'attribute1' }
+      const attribute = {
+        type: MemberAttributeType.BOOLEAN,
+        label: 'attribute 1',
+        name: 'attribute1',
+      }
 
       const attributeCreated = await MemberAttributeSettingsRepository.create(
         attribute,
@@ -53,7 +57,7 @@ describe('MemberAttributeSettings tests', () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
 
       const attribute = {
-        type: AttributeType.BOOLEAN,
+        type: MemberAttributeType.BOOLEAN,
         label: 'attribute 1',
         name: 'attribute1',
         canDelete: false,
@@ -89,13 +93,17 @@ describe('MemberAttributeSettings tests', () => {
     it('Should throw unique constraint error for creation of already existing member attributes with same name in the same tenant', async () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
 
-      const attribute = { type: AttributeType.BOOLEAN, label: 'attribute 1', name: 'attribute1' }
+      const attribute = {
+        type: MemberAttributeType.BOOLEAN,
+        label: 'attribute 1',
+        name: 'attribute1',
+      }
 
       await MemberAttributeSettingsRepository.create(attribute, mockIRepositoryOptions)
 
       await expect(() =>
         MemberAttributeSettingsRepository.create(
-          { type: AttributeType.STRING, label: 'some label', name: 'attribute1' },
+          { type: MemberAttributeType.STRING, label: 'some label', name: 'attribute1' },
           mockIRepositoryOptions,
         ),
       ).rejects.toThrow()
@@ -115,7 +123,7 @@ describe('MemberAttributeSettings tests', () => {
       // no label
       await expect(() =>
         MemberAttributeSettingsRepository.create(
-          { type: AttributeType.BOOLEAN, name: 'attribute1', label: undefined },
+          { type: MemberAttributeType.BOOLEAN, name: 'attribute1', label: undefined },
           mockIRepositoryOptions,
         ),
       ).rejects.toThrow()
@@ -123,7 +131,7 @@ describe('MemberAttributeSettings tests', () => {
       // no name
       await expect(() =>
         MemberAttributeSettingsRepository.create(
-          { type: AttributeType.BOOLEAN, label: 'attribute 1' },
+          { type: MemberAttributeType.BOOLEAN, label: 'attribute 1' },
           mockIRepositoryOptions,
         ),
       ).rejects.toThrow()
@@ -135,7 +143,7 @@ describe('MemberAttributeSettings tests', () => {
       // no type
       await expect(() =>
         MemberAttributeSettingsRepository.create(
-          { type: AttributeType.STRING, label: 'Some Email', name: 'emails' },
+          { type: MemberAttributeType.STRING, label: 'Some Email', name: 'emails' },
           mockIRepositoryOptions,
         ),
       ).rejects.toThrowError(
@@ -148,7 +156,11 @@ describe('MemberAttributeSettings tests', () => {
     it('Should successfully find created member attribute by id', async () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
 
-      const attribute = { type: AttributeType.BOOLEAN, label: 'attribute 1', name: 'attribute1' }
+      const attribute = {
+        type: MemberAttributeType.BOOLEAN,
+        label: 'attribute 1',
+        name: 'attribute1',
+      }
 
       const attributeCreated = await MemberAttributeSettingsRepository.create(
         attribute,
@@ -187,18 +199,18 @@ describe('MemberAttributeSettings tests', () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
 
       const attribute1 = await MemberAttributeSettingsRepository.create(
-        { type: AttributeType.BOOLEAN, label: 'a label', name: 'attribute1' },
+        { type: MemberAttributeType.BOOLEAN, label: 'a label', name: 'attribute1' },
         mockIRepositoryOptions,
       )
 
       const attribute2 = await MemberAttributeSettingsRepository.create(
-        { type: AttributeType.STRING, label: 'a label', name: 'attribute2', show: false },
+        { type: MemberAttributeType.STRING, label: 'a label', name: 'attribute2', show: false },
         mockIRepositoryOptions,
       )
 
       const attribute3 = await MemberAttributeSettingsRepository.create(
         {
-          type: AttributeType.STRING,
+          type: MemberAttributeType.STRING,
           label: 'some other label',
           name: 'attribute3',
           show: false,
@@ -209,7 +221,7 @@ describe('MemberAttributeSettings tests', () => {
 
       // filter by type
       let attributes = await MemberAttributeSettingsRepository.findAndCountAll(
-        { filter: { type: AttributeType.BOOLEAN } },
+        { filter: { type: MemberAttributeType.BOOLEAN } },
         mockIRepositoryOptions,
       )
 
@@ -305,14 +317,14 @@ describe('MemberAttributeSettings tests', () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
 
       const attribute = await MemberAttributeSettingsRepository.create(
-        { type: AttributeType.BOOLEAN, label: 'attribute 1', name: 'attribute1' },
+        { type: MemberAttributeType.BOOLEAN, label: 'attribute 1', name: 'attribute1' },
         mockIRepositoryOptions,
       )
 
       const attributeUpdated = await MemberAttributeSettingsRepository.update(
         attribute.id,
         {
-          type: AttributeType.STRING,
+          type: MemberAttributeType.STRING,
           label: 'some other label',
           name: 'some name',
           show: false,
@@ -359,7 +371,7 @@ describe('MemberAttributeSettings tests', () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
 
       const attribute = await MemberAttributeSettingsRepository.create(
-        { type: AttributeType.BOOLEAN, label: 'attribute 1', name: 'attribute1' },
+        { type: MemberAttributeType.BOOLEAN, label: 'attribute 1', name: 'attribute1' },
         mockIRepositoryOptions,
       )
 

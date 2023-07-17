@@ -482,6 +482,10 @@ const en = {
         count: '[Organizations] Count',
         createdat: '[Organizations] Date',
       },
+      Segments: {
+        count: '[Segments] Count',
+        name: '[Segments] Name',
+      },
       Sentiment: {
         averageSentiment: '[Sentiment] Average',
         date: '[Sentiment] Date',
@@ -566,6 +570,7 @@ const en = {
       fullName: 'Name',
       firstName: 'First name',
       lastName: 'Last name',
+      acceptedTermsAndPrivacy: 'Terms and privacy',
       status: 'Status',
       phoneNumber: 'Phone Number',
       role: 'Role',

@@ -78,6 +78,11 @@ export interface ApiConfiguration {
   documentation: boolean
 }
 
+export interface Auth0Configuration {
+  clientId: string
+  jwks: string
+}
+
 export interface PlansConfiguration {
   stripePricePremium: string
   stripePriceEnterprise: string
@@ -138,6 +143,7 @@ export interface GithubConfiguration {
   webhookSecret: string
   isCommitDataEnabled: string
   globalLimit?: number
+  callbackUrl: string
 }
 
 export interface SendgridConfiguration {
@@ -214,4 +220,15 @@ export interface SampleDataConfiguration {
 
 export interface IntegrationProcessingConfiguration {
   maxRetries: number
+}
+
+export interface WeeklyEmailsConfiguration {
+  enabled: string // true - enabled, anything else - disabled
+}
+
+export interface IOpenSearchConfig {
+  node: string
+  region?: string
+  accessKeyId?: string
+  secretAccessKey?: string
 }

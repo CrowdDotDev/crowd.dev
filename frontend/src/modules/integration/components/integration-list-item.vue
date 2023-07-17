@@ -21,6 +21,12 @@
       >
         <i class="ri-time-line mr-1" /> Waiting for approval
       </div>
+      <div
+        v-else-if="isNeedsToBeReconnected"
+        class="text-yellow-600 flex items-center text-sm"
+      >
+        <i class="ri-alert-line mr-1" /> Needs to be reconnected
+      </div>
       <div v-else-if="isConnected" class="flex items-center">
         <div
           v-loading="true"
@@ -131,6 +137,10 @@ const isWaitingForAction = computed(
 
 const isWaitingApproval = computed(
   () => props.integration.status === 'waiting-approval',
+);
+
+const isNeedsToBeReconnected = computed(
+  () => props.integration.status === 'needs-reconnect',
 );
 
 const loadingDisconnect = ref(false);

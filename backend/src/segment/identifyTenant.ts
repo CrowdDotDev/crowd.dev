@@ -1,12 +1,12 @@
+import { Edition } from '@crowd/types'
 import { SEGMENT_CONFIG, API_CONFIG } from '../conf'
-import { Edition } from '../types/common'
 
 export default async function identifyTenant(req) {
   if (SEGMENT_CONFIG.writeKey) {
     const Analytics = require('analytics-node')
     const analytics = new Analytics(SEGMENT_CONFIG.writeKey)
 
-    if (API_CONFIG.edition === Edition.CROWD_HOSTED) {
+    if (API_CONFIG.edition === Edition.CROWD_HOSTED || API_CONFIG.edition === Edition.LFX) {
       analytics.group({
         userId: req.currentUser.id,
         groupId: req.currentTenant.id,

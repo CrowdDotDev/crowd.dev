@@ -7,10 +7,12 @@ import * as http from 'http'
 import { Unleash } from 'unleash-client'
 import { getRedisClient, getRedisPubSubPair, RedisPubSubReceiver } from '@crowd/redis'
 import { getServiceLogger } from '@crowd/logging'
-import { ApiWebsocketMessage } from '@crowd/types'
-import { API_CONFIG, REDIS_CONFIG, UNLEASH_CONFIG } from '../conf'
+import { ApiWebsocketMessage, Edition } from '@crowd/types'
+import { getOpensearchClient } from '@crowd/opensearch'
+import { API_CONFIG, REDIS_CONFIG, UNLEASH_CONFIG, OPENSEARCH_CONFIG } from '../conf'
 import { authMiddleware } from '../middlewares/authMiddleware'
 import { tenantMiddleware } from '../middlewares/tenantMiddleware'
+import { segmentMiddleware } from '../middlewares/segmentMiddleware'
 import { databaseMiddleware } from '../middlewares/databaseMiddleware'
 import { createRateLimiter } from './apiRateLimiter'
 import { languageMiddleware } from '../middlewares/languageMiddleware'
@@ -21,7 +23,7 @@ import { errorMiddleware } from '../middlewares/errorMiddleware'
 import { passportStrategyMiddleware } from '../middlewares/passportStrategyMiddleware'
 import { redisMiddleware } from '../middlewares/redisMiddleware'
 import WebSockets from './websockets'
-import { Edition } from '../types/common'
+import { opensearchMiddleware } from '../middlewares/opensearchMiddleware'
 
 const serviceLogger = getServiceLogger()
 
@@ -31,6 +33,8 @@ const server = http.createServer(app)
 
 setImmediate(async () => {
   const redis = await getRedisClient(REDIS_CONFIG, true)
+
+  const opensearch = getOpensearchClient(OPENSEARCH_CONFIG)
 
   const redisPubSubPair = await getRedisPubSubPair(REDIS_CONFIG)
   const userNamespace = await WebSockets.initialize(server)
@@ -76,6 +80,9 @@ setImmediate(async () => {
 
   // Bind redis to request
   app.use(redisMiddleware(redis))
+
+  // bind opensearch
+  app.use(opensearchMiddleware(opensearch))
 
   // Bind unleash to request
   if (UNLEASH_CONFIG.url && API_CONFIG.edition === Edition.CROWD_HOSTED) {
@@ -144,6 +151,7 @@ setImmediate(async () => {
 
   app.use(
     bodyParser.json({
+      limit: '5mb',
       verify(req, res, buf) {
         const url = (<any>req).originalUrl
         if (url.startsWith('/webhooks/stripe') || url.startsWith('/webhooks/sendgrid')) {
@@ -155,7 +163,7 @@ setImmediate(async () => {
     }),
   )
 
-  app.use(bodyParser.urlencoded({ extended: true }))
+  app.use(bodyParser.urlencoded({ limit: '5mb', extended: true }))
 
   // Configure the Entity routes
   const routes = express.Router()
@@ -186,10 +194,12 @@ setImmediate(async () => {
   require('./organization').default(routes)
   require('./quickstart-guide').default(routes)
   require('./slack').default(routes)
+  require('./segment').default(routes)
   require('./eventTracking').default(routes)
   require('./premium/enrichment').default(routes)
   // Loads the Tenant if the :tenantId param is passed
   routes.param('tenantId', tenantMiddleware)
+  routes.param('tenantId', segmentMiddleware)
 
   app.use('/', routes)
 

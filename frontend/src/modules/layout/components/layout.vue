@@ -1,7 +1,7 @@
 <template>
   <el-container>
     <app-menu />
-    <el-container :style="elMainStyle">
+    <el-container v-if="currentTenant" :style="elMainStyle">
       <el-main id="main-page-wrapper" class="relative">
         <div
           :class="{
@@ -88,6 +88,25 @@
               when it’s done.
             </div>
           </banner>
+
+          <banner
+            v-if="showIntegrationsNeedReconnectAlert"
+            variant="alert"
+          >
+            <div
+              class="flex items-center justify-center grow text-sm"
+            >
+              {{ integrationsNeedReconnectToString }} integration
+                need{{ integrationsInProgress.length > 1 ? '' : 's' }} to be reconnected due to a change in the API.
+                Please reconnect {{ integrationsInProgress.length > 1 ? 'them' : 'it' }} to continue receiving data.
+              <router-link
+                :to="{ name: 'integration' }"
+                class="btn btn--sm btn--primary ml-4"
+              >
+                Go to Integrations
+              </router-link>
+            </div>
+          </banner>
         </div>
         <router-view />
       </el-main>
@@ -125,6 +144,7 @@ export default {
       integrationsInProgress: 'integration/inProgress',
       integrationsWithErrors: 'integration/withErrors',
       integrationsWithNoData: 'integration/withNoData',
+      integrationsNeedReconnect: 'integration/needsReconnect',
       showSampleDataAlert: 'tenant/showSampleDataAlert',
       showIntegrationsErrorAlert:
         'tenant/showIntegrationsErrorAlert',
@@ -132,10 +152,27 @@ export default {
         'tenant/showIntegrationsNoDataAlert',
       showIntegrationsInProgressAlert:
         'tenant/showIntegrationsInProgressAlert',
+      showIntegrationsNeedReconnectAlert:
+        'tenant/showIntegrationsNeedReconnectAlert',
       showBanner: 'tenant/showBanner',
     }),
     integrationsInProgressToString() {
       const arr = this.integrationsInProgress.map(
+        (i) => i.name,
+      );
+      if (arr.length === 1) {
+        return arr[0];
+      } if (arr.length === 2) {
+        return `${arr[0]} and ${arr[1]}`;
+      }
+      return (
+        `${arr.slice(0, arr.length - 1).join(', ')
+        }, and ${
+          arr.slice(-1)}`
+      );
+    },
+    integrationsNeedReconnectToString() {
+      const arr = this.integrationsNeedReconnect.map(
         (i) => i.name,
       );
       if (arr.length === 1) {
