@@ -268,6 +268,7 @@ import { onSelectMouseLeave } from '@/utils/select';
 import { CrowdIntegrations } from '@/integrations/integrations-config';
 import { ActivityModel } from '@/modules/activity/activity-model';
 import { MemberModel } from '@/modules/member/member-model';
+import isEqual from 'lodash/isEqual';
 
 const { fields: activityFields } = ActivityModel;
 const { fields: memberFields } = MemberModel;
@@ -321,7 +322,44 @@ export default {
           ],
           Tags: ['Tags.name'],
         },
+        'Activities.cumulativeCount': {
+          noDimension: [
+            'Activities.platform',
+            'Activities.type',
+          ],
+          Activities: [
+            'Activities.platform',
+            'Activities.type',
+            'Activities.date',
+          ],
+          Members: [
+            'Members.score',
+            'Members.joinedAt',
+            'Members.location',
+            'Members.organization',
+          ],
+          Tags: ['Tags.name'],
+        },
         'Members.count': {
+          noDimension: [
+            'Members.score',
+            'Members.joinedAt',
+            'Members.location',
+            'Members.organization',
+          ],
+          Activities: [
+            'Activities.platform',
+            'Activities.type',
+            'Activities.date',
+          ],
+          Members: [
+            'Members.score',
+            'Members.location',
+            'Members.organization',
+          ],
+          Tags: ['Tags.name'],
+        },
+        'Members.cumulativeCount': {
           noDimension: [
             'Members.score',
             'Members.joinedAt',
@@ -377,6 +415,7 @@ export default {
       ],
       localFilters: [],
       segmentsFilter: null,
+      defaultFilters: [],
     };
   },
   computed: {
@@ -386,15 +425,21 @@ export default {
         ? this.dimensions[0].name.split('.')[0]
         : 'noDimension';
 
-      return !measure
-        ? []
-        : this.availableDimensions.filter((d) => (this.measureDimensionFilters[
+      if (!measure) {
+        return [];
+      }
+
+      return this.availableDimensions.filter((d) => {
+        if (this.measureDimensionFilters[
           measure.name
-        ]?.[dimension] === undefined
-          ? false
-          : this.measureDimensionFilters[measure.name][
-            dimension
-          ].includes(d.name)));
+        ]?.[dimension] === undefined) {
+          return false;
+        }
+
+        return this.measureDimensionFilters[measure.name][
+          dimension
+        ].includes(d.name);
+      });
     },
     computedActivityTypes() {
       return activityFields.type
@@ -409,6 +454,17 @@ export default {
     ...mapGetters({
       activeIntegrationsList: 'integration/activeList',
     }),
+  },
+  watch: {
+    measures: {
+      // Clear filters if measure changes
+      handler(updatedMeasures, previousMeasures) {
+        if (updatedMeasures[0].name !== previousMeasures[0].name) {
+          this.localFilters = [];
+          this.syncFilters();
+        }
+      },
+    },
   },
   async created() {
     await this.doFetchIntegrations([this.segmentId]);
@@ -439,8 +495,17 @@ export default {
         JSON.parse(JSON.stringify(this.filters))
           .map((f) => {
             const filter = f;
+            const { values } = filter;
 
-            [filter.value] = f.values;
+            if (filter.member.name === 'Members.score') {
+              const parsedValues = values.map((v) => Number(v));
+              const engagement = this.computedEngagementLevelTypes.find((t) => isEqual(t.value, parsedValues))?.label;
+
+              filter.value = engagement;
+            } else {
+              [filter.value] = values;
+            }
+
             filter.select = f.member.name;
 
             delete filter.member;
@@ -448,9 +513,20 @@ export default {
 
             return filter;
           })
-          // Remove this filter from options for now
+          // Remove default filters from options for now
           .filter(
-            (f) => f.select !== 'Members.isTeamMember' && f.select !== 'Members.isBot',
+            (f) => {
+              if (f.select !== 'Members.isTeamMember' && f.select !== 'Members.isBot') {
+                return true;
+              }
+
+              this.defaultFilters.push({
+                member: f.select,
+                operator: f.operator,
+                values: [f.value],
+              });
+              return false;
+            },
           )
       );
     },
@@ -485,7 +561,9 @@ export default {
         this.localFilters[index].value = undefined;
       }
 
-      this.setFilters(newFilters);
+      const filters = newFilters.concat(this.defaultFilters);
+
+      this.setFilters(filters);
     },
 
     onSelectMouseLeave,

@@ -551,7 +551,7 @@ class OrganizationRepository {
       limit = 0,
       offset = 0,
       orderBy = '',
-      includeOrganizationsWithoutMembers = false,
+      includeOrganizationsWithoutMembers = true,
     },
     options: IRepositoryOptions,
   ) {

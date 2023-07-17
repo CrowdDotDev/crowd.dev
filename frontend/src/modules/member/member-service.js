@@ -1,7 +1,5 @@
 import authAxios from '@/shared/axios/auth-axios';
 import AuthCurrentTenant from '@/modules/auth/auth-current-tenant';
-import buildApiPayload from '@/shared/filter/helpers/build-api-payload';
-import { DEFAULT_MEMBER_FILTERS } from '@/modules/member/store/constants';
 
 export class MemberService {
   static async update(id, data, segments) {
@@ -71,17 +69,13 @@ export class MemberService {
     limit,
     offset,
     segments = [],
-    buildFilter = true,
   }) {
     const body = {
-      filter: buildApiPayload({
-        customFilters: filter,
-        buildFilter,
-      }),
-      segments,
+      filter,
       orderBy,
       limit,
       offset,
+      segments,
     };
 
     const tenantId = AuthCurrentTenant.get();
@@ -106,45 +100,6 @@ export class MemberService {
         },
         params: {
           segments,
-        },
-      },
-    );
-
-    return response.data;
-  }
-
-  static async list({
-    customFilters,
-    orderBy,
-    limit,
-    offset,
-    segments = [],
-    buildFilter = true,
-    countOnly = false,
-  }) {
-    const body = {
-      filter: buildApiPayload({
-        customFilters,
-        defaultFilters: DEFAULT_MEMBER_FILTERS,
-        buildFilter,
-      }),
-      segments,
-      orderBy,
-      limit,
-      offset,
-      countOnly,
-    };
-
-    const sampleTenant = AuthCurrentTenant.getSampleTenantData();
-    const tenantId = sampleTenant?.id || AuthCurrentTenant.get();
-
-    const response = await authAxios.post(
-      `/tenant/${tenantId}/member/query`,
-      body,
-      {
-        headers: {
-          'x-crowd-api-version': '1',
-          Authorization: sampleTenant?.token,
         },
       },
     );

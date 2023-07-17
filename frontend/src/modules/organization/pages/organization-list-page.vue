@@ -106,7 +106,7 @@ const isCreateLockedForSampleData = computed(
 );
 
 const doGetOrganizationCount = () => {
-  (OrganizationService.listOrganizations({
+  (OrganizationService.query({
     limit: 1,
     offset: 0,
   }) as Promise<any>)

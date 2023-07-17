@@ -616,7 +616,6 @@ const doExport = () => MemberService.export({
   orderBy: savedFilterBody.value.orderBy,
   limit: 0,
   offset: null,
-  buildFilter: false,
 });
 
 onMounted(async () => {

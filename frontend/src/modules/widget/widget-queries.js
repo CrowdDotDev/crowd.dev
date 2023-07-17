@@ -244,6 +244,11 @@ export const TOTAL_MEMBERS_FILTER = ({
     {
       and: [
         {
+          isOrganization: {
+            not: true,
+          },
+        },
+        {
           joinedAt: {
             lte: endDate,
           },

@@ -66,11 +66,7 @@
                 <MeasureSelect
                   :translated-options="translatedOptions"
                   :measures="measures"
-                  :available-measures="
-                    availableMeasures.filter(
-                      (m) => m.name !== 'Identities.count',
-                    )
-                  "
+                  :available-measures="availableMeasures"
                   :set-measures="setMeasures"
                 />
               </div>
@@ -386,11 +382,11 @@ export default {
         settings,
       };
     },
-    translatedOptions(list) {
+    translatedOptions(list, fallback) {
       return list.map((i) => ({
         ...i,
         value: i.name,
-        label: i18n(`widget.cubejs.${i.name}`),
+        label: i.name ? i18n(`widget.cubejs.${i.name}`) : fallback || '',
       }));
     },
     handleAdditionalSettingsClick() {

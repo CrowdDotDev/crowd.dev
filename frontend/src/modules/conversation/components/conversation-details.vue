@@ -280,8 +280,8 @@ export default {
       if (value !== 'all') {
         this.loadingActivities = true;
 
-        ActivityService.list({
-          customFilters: {
+        ActivityService.query({
+          filter: {
             and: [
               {
                 type: value,
@@ -294,8 +294,6 @@ export default {
           orderBy: ['timestamp_ASC', 'createdAt_ASC'],
           limit: null,
           offset: 0,
-          buildFilter: false,
-          buildWithDefaultRootFilters: false,
         }).then((response) => {
           this.filteredActivities = response.rows;
         }).catch((error) => {

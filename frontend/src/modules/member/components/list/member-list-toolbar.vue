@@ -259,7 +259,6 @@ const handleDoExport = async () => {
       orderBy: `${filters.value.order.prop}_${filters.value.order.order === 'descending' ? 'DESC' : 'ASC'}`,
       limit: 0,
       offset: null,
-      buildFilter: false,
     });
 
     await doRefreshCurrentUser(null);

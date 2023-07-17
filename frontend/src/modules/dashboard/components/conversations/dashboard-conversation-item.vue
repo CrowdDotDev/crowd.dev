@@ -86,6 +86,7 @@
             <app-conversation-dropdown
               :publish-enabled="false"
               :conversation="conversation"
+              @conversation-destroyed="$emit('conversation-destroyed')"
             />
           </div>
         </div>
@@ -173,7 +174,7 @@ export default {
       default: false,
     },
   },
-  emits: ['details'],
+  emits: ['details', 'conversation-destroyed'],
   computed: {
     platform() {
       return CrowdIntegrations.getConfig(

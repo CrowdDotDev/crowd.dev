@@ -4,6 +4,9 @@ import { OrganizationService } from '@/modules/organization/organization-service
 import { ActivityService } from '@/modules/activity/activity-service';
 import { ConversationService } from '@/modules/conversation/conversation-service';
 import { SEVEN_DAYS_PERIOD_FILTER } from '@/modules/widget/widget-constants';
+import { DEFAULT_ACTIVITY_FILTERS } from '@/modules/activity/store/constants';
+import { DEFAULT_ORGANIZATION_FILTERS } from '@/modules/organization/store/constants';
+import { DEFAULT_MEMBER_FILTERS } from '@/modules/member/store/constants';
 
 export default {
   async reset({ dispatch }) {
@@ -91,8 +94,8 @@ export default {
   async getConversationCount({ state }) {
     const { segments } = state.filters;
 
-    return ConversationService.list({
-      customFilters: {},
+    return ConversationService.query({
+      filter: {},
       orderBy: '',
       limit: 1,
       offset: 0,
@@ -115,11 +118,11 @@ export default {
   // Fetch recent activities
   async getRecentActivities({ commit, state }) {
     state.activities.loading = true;
-
     const { platform, period, segments } = state.filters;
 
-    return ActivityService.list({
-      customFilters: {
+    return ActivityService.query({
+      filter: {
+        ...DEFAULT_ACTIVITY_FILTERS,
         and: [
           {
             timestamp: {
@@ -147,7 +150,6 @@ export default {
       limit: 20,
       offset: 0,
       segments: segments.childSegments,
-      buildFilter: false,
     })
       .then((data) => {
         commit('SET_RECENT_ACTIVITIES', data);
@@ -162,9 +164,11 @@ export default {
   async getActivitiesCount({ state }) {
     const { platform, segments } = state.filters;
 
-    return ActivityService.list({
-      customFilters: (platform === 'all' ? {}
+    return ActivityService.query({
+      filter: (platform === 'all'
+        ? DEFAULT_ACTIVITY_FILTERS
         : {
+          ...DEFAULT_ACTIVITY_FILTERS,
           and: [
             ...(platform !== 'all'
               ? [
@@ -179,7 +183,6 @@ export default {
       limit: 1,
       offset: 0,
       segments: segments.childSegments,
-      buildFilter: false,
     })
       .then(({ count }) => {
         state.activities.total = count;
@@ -229,12 +232,12 @@ export default {
   // Fetch recent members
   async getRecentMembers({ commit, state }) {
     state.members.loadingRecent = true;
-
     const { platform, period, segments } = state.filters;
 
-    return MemberService.list({
-      customFilters: {
+    return MemberService.listMembers({
+      filter: {
         and: [
+          ...DEFAULT_MEMBER_FILTERS,
           {
             joinedAt: {
               gte: moment()
@@ -263,7 +266,6 @@ export default {
       limit: 5,
       offset: 0,
       segments: segments.segments,
-      buildFilter: false,
     })
       .then((data) => {
         commit('SET_RECENT_MEMBERS', data);
@@ -278,10 +280,13 @@ export default {
   async getMembersCount({ state }) {
     const { platform, segments } = state.filters;
 
-    return MemberService.list({
-      customFilters: (platform === 'all' ? null
+    return MemberService.listMembers({
+      filter: (platform === 'all' ? {
+        and: DEFAULT_MEMBER_FILTERS,
+      }
         : {
           and: [
+            ...DEFAULT_MEMBER_FILTERS,
             ...(platform !== 'all'
               ? [
                 {
@@ -297,9 +302,7 @@ export default {
       limit: 1,
       offset: 0,
       segments: segments.segments,
-      buildFilter: false,
-      countOnly: true,
-    })
+    }, true)
       .then(({ count }) => {
         state.members.total = count;
         return Promise.resolve(count);
@@ -319,12 +322,12 @@ export default {
   // Fetch active orgnizations
   async getActiveOrganizations({ commit, state }) {
     state.organizations.loadingActive = true;
-
     const { platform, period, segments } = state.filters;
 
-    return OrganizationService.list({
-      customFilters: {
+    return OrganizationService.query({
+      filter: {
         and: [
+          ...DEFAULT_ORGANIZATION_FILTERS,
           {
             lastActive: {
               gte: moment()
@@ -353,7 +356,6 @@ export default {
       limit: 5,
       offset: 0,
       segments: segments.childSegments,
-      buildFilter: false,
     })
       .then((data) => {
         commit('SET_ACTIVE_ORGANIZATIONS', data);
@@ -367,12 +369,12 @@ export default {
   // Fetch recent organizations
   async getRecentOrganizations({ commit, state }) {
     state.organizations.loadingRecent = true;
-
     const { platform, period, segments } = state.filters;
 
-    return OrganizationService.list({
-      customFilters: {
+    return OrganizationService.query({
+      filter: {
         and: [
+          ...DEFAULT_ORGANIZATION_FILTERS,
           {
             joinedAt: {
               gte: moment()
@@ -401,7 +403,6 @@ export default {
       limit: 5,
       offset: 0,
       segments: segments.childSegments,
-      buildFilter: false,
     })
       .then((data) => {
         commit('SET_RECENT_ORGANIZATIONS', data);
@@ -416,10 +417,13 @@ export default {
   async getOrganizationsCount({ state }) {
     const { platform, segments } = state.filters;
 
-    return OrganizationService.list({
-      customFilters: (platform === 'all' ? null
+    return OrganizationService.query({
+      filter: (platform === 'all' ? {
+        and: DEFAULT_ORGANIZATION_FILTERS,
+      }
         : {
           and: [
+            ...DEFAULT_ORGANIZATION_FILTERS,
             ...(platform !== 'all'
               ? [
                 {
@@ -435,7 +439,6 @@ export default {
       limit: 1,
       offset: 0,
       segments: segments.childSegments,
-      buildFilter: false,
     })
       .then(({ count }) => {
         state.organizations.total = count;

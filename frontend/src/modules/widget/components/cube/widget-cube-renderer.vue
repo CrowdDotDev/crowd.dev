@@ -77,27 +77,28 @@ export default {
       // Exclude team members and bots in all queries
       // Include project group segments
       const widgetQuery = this.widget.settings.query;
-      const isTeamMemberFilter = {
-        member: 'Members.isTeamMember',
-        operator: 'equals',
-        values: ['0'],
-      };
-      const isBot = {
-        member: 'Members.isBot',
-        operator: 'equals',
-        values: ['0'],
-      };
+      const filters = widgetQuery.filters || [];
 
-      if (!widgetQuery.filters) {
-        widgetQuery.filters = [isTeamMemberFilter, isBot];
-      } else {
-        widgetQuery.filters.push(isTeamMemberFilter);
-        widgetQuery.filters.push(isBot);
+      const hasTeamMemberFilter = filters.some((f) => f.member === 'Members.isTeamMember');
+      const hasBotFilter = filters.some((f) => f.member === 'Members.isBot');
+
+      if (!hasTeamMemberFilter) {
+        filters.push({
+          member: 'Members.isTeamMember',
+          operator: 'equals',
+          values: ['0'],
+        });
       }
 
-      if (widgetQuery.filters?.length) {
-        widgetQuery.filters = widgetQuery.filters.filter((filter) => !!filter.member);
+      if (!hasBotFilter) {
+        filters.push({
+          member: 'Members.isBot',
+          operator: 'equals',
+          values: ['0'],
+        });
       }
+
+      widgetQuery.filters = filters;
 
       return widgetQuery;
     },

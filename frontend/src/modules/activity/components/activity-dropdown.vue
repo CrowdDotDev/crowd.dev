@@ -58,7 +58,10 @@ import { ActivityPermissions } from '@/modules/activity/activity-permissions';
 import ConfirmDialog from '@/shared/dialog/confirm-dialog';
 import { mapGetters } from '@/shared/vuex/vuex.helpers';
 import AppLfActivityAffiliations from '@/modules/lf/activity/components/lf-activity-affiliations.vue';
-import { ActivityService } from '../activity-service';
+import Errors from '@/shared/error/errors';
+import { ActivityService } from '@/modules/activity/activity-service';
+import Message from '@/shared/message/message';
+import { i18n } from '@/i18n';
 
 const emit = defineEmits(['onUpdate', 'edit']);
 const props = defineProps({
@@ -105,14 +108,14 @@ const doDestroyWithConfirm = async () => {
   }).then(() => {
     ActivityService.destroyAll([props.activity.id], [props.activity.segmentId])
       .then(() => {
+        Message.success(
+          i18n('entities.activity.destroy.success'),
+        );
+
         emit('onUpdate');
+      }).catch((error) => {
+        Errors.handle(error);
       });
   });
-};
-</script>
-
-<script>
-export default {
-  name: 'AppActivityDropdown',
 };
 </script>

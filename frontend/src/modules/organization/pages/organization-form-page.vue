@@ -127,7 +127,6 @@ import {
   h,
   onMounted,
   onUnmounted,
-  defineProps,
   reactive,
   ref,
   watch,
@@ -138,7 +137,6 @@ import {
   useRouter,
 } from 'vue-router';
 import isEqual from 'lodash/isEqual';
-import { useStore } from 'vuex';
 import { OrganizationModel } from '@/modules/organization/organization-model';
 import { FormSchema } from '@/shared/form/form-schema';
 import ConfirmDialog from '@/shared/dialog/confirm-dialog';
@@ -149,6 +147,10 @@ import enrichmentAttributes, { attributesTypes } from '@/modules/organization/co
 import { storeToRefs } from 'pinia';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import AppLfSubProjectsListDropdown from '@/modules/lf/segments/components/lf-sub-projects-list-dropdown.vue';
+import { OrganizationService } from '@/modules/organization/organization-service';
+import Errors from '@/shared/error/errors';
+import Message from '@/shared/message/message';
+import { i18n } from '@/i18n';
 
 const LoaderIcon = h(
   'i',
@@ -197,7 +199,6 @@ const formSchema = new FormSchema([
 
 const router = useRouter();
 const route = useRoute();
-const store = useStore();
 
 const lsSegmentsStore = useLfSegmentsStore();
 const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);
@@ -336,10 +337,13 @@ onMounted(async () => {
   if (isEditPage.value) {
     const { id } = route.params;
 
-    record.value = await store.dispatch(
-      'organization/doFind',
-      { id },
-    );
+    try {
+      record.value = await OrganizationService.find(id);
+    } catch (e) {
+      Errors.handle(error);
+      router.push({ name: 'organization' });
+    }
+
     isPageLoading.value = false;
     formModel.value = getInitialModel(record.value);
   } else {
@@ -447,9 +451,6 @@ async function onSubmit() {
       )
       : null,
   };
-  const action = isEditPage.value
-    ? 'organization/doUpdate'
-    : 'organization/doCreate';
 
   const payload = isEditPage.value
     ? {
@@ -462,7 +463,30 @@ async function onSubmit() {
       segments: segments.value,
     };
 
-  await store.dispatch(action, payload);
+  // Edit
+  if (isEditPage.value) {
+    try {
+      await OrganizationService.update(
+        payload.id,
+        payload.values,
+      );
+      Message.success(i18n('entities.organization.update.success'));
+    } catch (error) {
+      Message.error(i18n('entities.organization.update.error'));
+
+      Errors.handle(error);
+    }
+  } else {
+    // Create
+    try {
+      await OrganizationService.create(payload);
+
+      Message.success(i18n('entities.organization.create.success'));
+    } catch (error) {
+      Message.error(i18n('entities.organization.create.error'));
+      Errors.handle(error);
+    }
+  }
   isFormSubmitting.value = false;
   wasFormSubmittedSuccessfuly.value = true;
 }

@@ -1,7 +1,5 @@
 import authAxios from '@/shared/axios/auth-axios';
 import AuthCurrentTenant from '@/modules/auth/auth-current-tenant';
-import buildApiPayload from '@/shared/filter/helpers/build-api-payload';
-import { DEFAULT_ORGANIZATION_FILTERS } from '@/modules/organization/store/constants';
 
 export class OrganizationService {
   static async update(id, data, segments) {
@@ -69,43 +67,7 @@ export class OrganizationService {
     return response.data;
   }
 
-  static async list({
-    customFilters,
-    orderBy,
-    limit,
-    offset,
-    segments = [],
-    buildFilter = true,
-  }) {
-    const body = {
-      filter: buildApiPayload({
-        customFilters,
-        defaultFilters: DEFAULT_ORGANIZATION_FILTERS,
-        buildFilter,
-      }),
-      segments,
-      orderBy,
-      limit,
-      offset,
-    };
-
-    const sampleTenant = AuthCurrentTenant.getSampleTenantData();
-    const tenantId = sampleTenant?.id || AuthCurrentTenant.get();
-
-    const response = await authAxios.post(
-      `/tenant/${tenantId}/organization/query`,
-      body,
-      {
-        headers: {
-          Authorization: sampleTenant?.token,
-        },
-      },
-    );
-
-    return response.data;
-  }
-
-  static async listOrganizations(
+  static async query(
     body,
   ) {
     const sampleTenant = AuthCurrentTenant.getSampleTenantData();

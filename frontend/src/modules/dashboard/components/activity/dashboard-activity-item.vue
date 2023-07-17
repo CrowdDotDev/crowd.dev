@@ -73,6 +73,8 @@
             <app-activity-dropdown
               :show-affiliations="false"
               :activity="activity"
+              @on-update="$emit('activity-destroyed', activity.id)"
+              @activity-destroyed="$emit('activity-destroyed', activity.id)"
             />
           </div>
         </div>
@@ -154,6 +156,7 @@ export default {
       default: false,
     },
   },
+  emits: ['activity-destroyed'],
   computed: {
     platform() {
       return CrowdIntegrations.getConfig(
