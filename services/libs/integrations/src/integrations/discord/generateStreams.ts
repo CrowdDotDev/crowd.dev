@@ -19,7 +19,6 @@ const handler: GenerateStreamsHandler = async (ctx) => {
 
   await ctx.publishStream<DiscordRootStreamData>(DiscordStreamType.ROOT, {
     guildId,
-    token: ctx.integration.token,
     channels: settingsChannels,
   })
 }
