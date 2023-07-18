@@ -2,7 +2,7 @@
   <el-dropdown
     trigger="click"
     placement="bottom-end"
-    @command="handleCommand"
+    @command="$event()"
   >
     <button
       class="el-dropdown-link btn p-1.5 rounder-md hover:bg-gray-200 text-gray-600"
@@ -13,45 +13,7 @@
     </button>
     <template #dropdown>
       <el-dropdown-item
-        v-if="conversation.published"
-        :command="{
-          action: 'conversationPublicUrl',
-          conversation: conversation,
-        }"
-      >
-        <i class="ri-link mr-1" />Copy Public
-        Url
-      </el-dropdown-item>
-      <template v-if="publishEnabled">
-        <el-dropdown-item
-          v-if="!conversation.published"
-          :command="{
-            action: 'conversationPublish',
-            conversation: conversation,
-          }"
-          :disabled="isEditLockedForSampleData"
-        >
-          <i class="ri-upload-cloud-2-line mr-1" />Publish
-          conversation
-        </el-dropdown-item>
-        <el-dropdown-item
-          v-else
-          :command="{
-            action: 'conversationUnpublish',
-            conversation: conversation,
-          }"
-          :disabled="isEditLockedForSampleData"
-        >
-          <i class="ri-arrow-go-back-line mr-1" />Unpublish
-          conversation
-        </el-dropdown-item>
-      </template>
-
-      <el-dropdown-item
-        :command="{
-          action: 'conversationDelete',
-          conversation: conversation,
-        }"
+        :command="onDeleteConversation"
         :disabled="isDeleteLockedForSampleData"
       >
         <i
@@ -69,113 +31,50 @@
   </el-dropdown>
 </template>
 
-<script>
-import { mapGetters, mapActions } from 'vuex';
-import Message from '@/shared/message/message';
-import config from '@/config';
+<script setup lang="ts">
 import ConfirmDialog from '@/shared/dialog/confirm-dialog';
+import { computed } from 'vue';
+import { mapGetters } from '@/shared/vuex/vuex.helpers';
+import Message from '@/shared/message/message';
+import { i18n } from '@/i18n';
 import { ConversationPermissions } from '../conversation-permissions';
+import { ConversationService } from '../conversation-service';
 
-export default {
-  name: 'AppConversationDropdown',
-  props: {
-    conversation: {
-      type: Object,
-      default: () => {},
-    },
-    showViewConversation: {
-      type: Boolean,
-      default: true,
-    },
-    publishEnabled: {
-      type: Boolean,
-      required: false,
-      default: true,
-    },
+const emit = defineEmits<{(e: 'conversation-destroyed'): void}>();
+const props = defineProps<{
+  conversation: {
+    id: string
   },
-  data() {
-    return {
-      dropdownVisible: false,
-    };
-  },
-  computed: {
-    ...mapGetters({
-      currentTenant: 'auth/currentTenant',
-      currentUser: 'auth/currentUser',
-      communityHelpCenterConfigured:
-        'communityHelpCenter/isConfigured',
-    }),
-    isEditLockedForSampleData() {
-      return new ConversationPermissions(
-        this.currentTenant,
-        this.currentUser,
-      ).editLockedForSampleData;
-    },
-    isDeleteLockedForSampleData() {
-      return new ConversationPermissions(
-        this.currentTenant,
-        this.currentUser,
-      ).destroyLockedForSampleData;
-    },
-  },
-  methods: {
-    ...mapActions({
-      doDestroy: 'communityHelpCenter/doDestroy',
-      doPublish: 'communityHelpCenter/doPublish',
-      doUnpublish: 'communityHelpCenter/doUnpublish',
-      doOpenSettingsDrawer:
-        'communityHelpCenter/doOpenSettingsDrawer',
-    }),
-    async doDestroyWithConfirm(id) {
-      try {
-        await ConfirmDialog({
-          type: 'danger',
-          title: 'Delete conversation',
-          message:
+}>();
+
+const { currentTenant, currentUser } = mapGetters('auth');
+
+const isDeleteLockedForSampleData = computed(() => new ConversationPermissions(
+  currentTenant.value,
+  currentUser.value,
+).destroyLockedForSampleData);
+
+const onDeleteConversation = async () => {
+  try {
+    await ConfirmDialog({
+      type: 'danger',
+      title: 'Delete conversation',
+      message:
             "Are you sure you want to proceed? You can't undo this action",
-          confirmButtonText: 'Confirm',
-          cancelButtonText: 'Cancel',
-          icon: 'ri-delete-bin-line',
-        });
+      confirmButtonText: 'Confirm',
+      cancelButtonText: 'Cancel',
+      icon: 'ri-delete-bin-line',
+    });
 
-        return this.doDestroy(id);
-      } catch (error) {
-        // no
-      }
-      return null;
-    },
-    async handleCommand(command) {
-      if (command.action === 'conversationDelete') {
-        return this.doDestroyWithConfirm(
-          command.conversation.id,
-        );
-      } if (
-        command.action === 'conversationPublicUrl'
-      ) {
-        const url = `${config.conversationPublicUrl}/${this.currentTenant.url}/${command.conversation.slug}`;
+    await ConversationService.destroyAll([props.conversation.id]);
 
-        await navigator.clipboard.writeText(url);
+    Message.success(i18n('entities.conversation.destroy.success'));
 
-        Message.success(
-          'Conversation Public URL successfully copied to your clipboard',
-        );
-      } else if (command.action === 'conversationPublish') {
-        if (!this.communityHelpCenterConfigured) {
-          return this.doOpenSettingsDrawer();
-        }
-        await this.doPublish({
-          id: command.conversation.id,
-        });
-      } else if (
-        command.action === 'conversationUnpublish'
-      ) {
-        this.editing = false;
-        await this.doUnpublish({
-          id: command.conversation.id,
-        });
-      }
-      return null;
-    },
-  },
+    emit('conversation-destroyed');
+  } catch (error) {
+    // no
+  }
+
+  return null;
 };
 </script>

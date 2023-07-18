@@ -5,7 +5,7 @@ export default {
   fetchConversation(this: ConversationState, body: any, reload = false): Promise<any> {
     const mappedBody = reload ? this.savedFilterBody : body;
     this.conversations = [];
-    return ConversationService.listConversations(mappedBody)
+    return ConversationService.query(mappedBody)
       .then((data: any) => {
         this.conversations = data.rows;
         this.totalConversations = data.count;

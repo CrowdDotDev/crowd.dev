@@ -15,40 +15,20 @@
         class="text-gray-300 hover:text-gray-600 btn btn-link text-2xs"
         :class="member.tags.length > 0 ? 'ml-2' : ''"
         :disabled="isEditLockedForSampleData"
-        @click.prevent.stop="editing = true"
+        @click.prevent.stop="$emit('edit')"
       >
         Edit tags
       </el-button>
     </div>
-    <app-tag-popover
-      v-model="model[fields.tags.name]"
-      :visible="editing"
-      :loading="loading"
-      :pretitle="member.displayName"
-      @cancel="editing = false"
-      @submit="doSubmit"
-    />
   </div>
 </template>
 
 <script>
-import { mapActions, mapGetters } from 'vuex';
-import { FormSchema } from '@/shared/form/form-schema';
-import { MemberModel } from '@/modules/member/member-model';
+import { mapGetters } from 'vuex';
 import { MemberPermissions } from '@/modules/member/member-permissions';
-import AppTagPopover from '@/modules/tag/components/tag-popover.vue';
-
-const { fields } = MemberModel;
-const formSchema = new FormSchema([
-  fields.username,
-  fields.info,
-  fields.tags,
-  fields.emails,
-]);
 
 export default {
   name: 'AppTags',
-  components: { AppTagPopover },
   props: {
     member: {
       type: Object,
@@ -67,12 +47,10 @@ export default {
       default: false,
     },
   },
-  emits: ['tags-updated'],
+  emits: ['tags-updated', 'edit'],
   data() {
     return {
-      rules: formSchema.rules(),
       model: null,
-      editing: false,
       loading: false,
       showEdit: true,
     };
@@ -102,35 +80,8 @@ export default {
       ).editLockedForSampleData;
     },
   },
-  watch: {
-    member: {
-      handler(newValue) {
-        this.model = formSchema.initialValues(
-          newValue || {},
-        );
-      },
-      deep: true,
-    },
-  },
-
-  created() {
-    this.model = formSchema.initialValues(this.member || {});
-  },
 
   methods: {
-    ...mapActions({
-      doUpdate: 'member/doUpdate',
-    }),
-    async doSubmit() {
-      this.loading = true;
-      await this.doUpdate({
-        id: this.member.id,
-        values: formSchema.cast(this.model),
-      });
-      this.loading = false;
-      this.editing = false;
-      this.$emit('tags-updated');
-    },
     getTagName(tag) {
       if (!this.long) {
         return tag.name.length > 10

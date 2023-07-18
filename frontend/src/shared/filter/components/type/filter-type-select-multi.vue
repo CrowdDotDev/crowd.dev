@@ -1,8 +1,4 @@
 <template>
-  <app-include-toggle
-    v-if="!isCustom"
-    v-model="includeModel"
-  />
   <div class="filter-type-select filter-type-select-multi filter-content-wrapper">
     <div
       v-for="option of computedOptions"
@@ -36,7 +32,7 @@
 </template>
 
 <script setup>
-import { defineProps, defineEmits, computed } from 'vue';
+import { computed } from 'vue';
 
 const props = defineProps({
   options: {
@@ -47,20 +43,8 @@ const props = defineProps({
     type: Array,
     default: () => [],
   },
-  isExpanded: {
-    type: Boolean,
-    default: false,
-  },
-  isCustom: {
-    type: Boolean,
-    default: false,
-  },
-  include: {
-    type: Boolean,
-    default: true,
-  },
 });
-const emit = defineEmits(['update:value', 'update:include']);
+const emit = defineEmits(['update:value']);
 
 const model = computed({
   get() {
@@ -68,15 +52,6 @@ const model = computed({
   },
   set(v) {
     emit('update:value', v);
-  },
-});
-
-const includeModel = computed({
-  get() {
-    return props.include;
-  },
-  set(v) {
-    emit('update:include', v);
   },
 });
 

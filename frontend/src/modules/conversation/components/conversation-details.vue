@@ -305,8 +305,8 @@ export default {
       if (value !== 'all') {
         this.loadingActivities = true;
 
-        ActivityService.list(
-          {
+        ActivityService.query({
+          filter: {
             and: [
               {
                 type: value,
@@ -316,12 +316,10 @@ export default {
               },
             ],
           },
-          ['timestamp_ASC', 'createdAt_ASC'],
-          null,
-          0,
-          false,
-          false,
-        ).then((response) => {
+          orderBy: ['timestamp_ASC', 'createdAt_ASC'],
+          limit: null,
+          offset: 0,
+        }).then((response) => {
           this.filteredActivities = response.rows;
         }).catch((error) => {
           console.error(error);

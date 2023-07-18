@@ -107,13 +107,6 @@ export default {
     ? AuthCurrentTenant.getSettings()
     : AuthCurrentTenant.getSettings()),
 
-  // I know, this is weird, but it is a hack
-  // so Vue refreshed the backgroundImageUrl getter
-  // based on the currentTenant on the store
-  communityHelpCenterSettings: (state, getters) => (getters.currentTenant
-    ? AuthCurrentTenant.getCommunityHelpCenterSettings()
-    : AuthCurrentTenant.getCommunityHelpCenterSettings()),
-
   backgroundImageUrl: (state, getters) => {
     if (
       tenantSubdomain.isEnabled
