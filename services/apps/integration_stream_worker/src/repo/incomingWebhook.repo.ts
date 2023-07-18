@@ -35,7 +35,10 @@ export default class IncomingWebhookRepository extends RepositoryBase<IncomingWe
     await this.db().none(
       `
         update "incomingWebhooks"
-        set state = $(state)
+        set 
+          state = $(state),
+          error = null,
+          "processedAt" = now()
         where id = $(id)
       `,
       {
@@ -45,16 +48,21 @@ export default class IncomingWebhookRepository extends RepositoryBase<IncomingWe
     )
   }
 
-  public async markWebhookError(id: string): Promise<void> {
+  public async markWebhookError(id: string, error: unknown): Promise<void> {
     await this.db().none(
       `
         update "incomingWebhooks"
-        set state = $(state)
+        set 
+          state = $(state),
+          error = $(error),
+          "processedAt" = now(),
+          retries = retries + 1
         where id = $(id)
       `,
       {
         id,
         state: WebhookState.ERROR,
+        error: JSON.stringify(error),
       },
     )
   }
