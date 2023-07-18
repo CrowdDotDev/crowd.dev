@@ -2,7 +2,6 @@ import shared from '@/shared/shared-module';
 import auth from '@/modules/auth/auth-module';
 import layout from '@/modules/layout/layout-module';
 import dashboard from '@/modules/dashboard/dashboard-module';
-import onboard from '@/modules/onboard/onboard-module';
 import tenant from '@/modules/tenant/tenant-module';
 import settings from '@/modules/settings/settings-module';
 import integration from '@/modules/integration/integration-module';
@@ -21,7 +20,6 @@ import lf from '@/modules/lf/lf-modules';
 const modules: Record<string, any> = {
   shared,
   dashboard,
-  onboard,
   settings,
   auth,
   tenant,
