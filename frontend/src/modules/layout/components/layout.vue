@@ -97,7 +97,7 @@
               class="flex items-center justify-center grow text-sm"
             >
               {{ integrationsNeedReconnectToString }} integration
-                need{{ integrationsInProgress.length > 1 ? '' : 's' }} to be reconnected due to a change in the API.
+                need{{ integrationsInProgress.length > 1 ? '' : 's' }} to be reconnected due to a change in their API.
                 Please reconnect {{ integrationsInProgress.length > 1 ? 'them' : 'it' }} to continue receiving data.
               <router-link
                 :to="{ name: 'integration' }"

@@ -1,17 +1,21 @@
 import { AxiosError, AxiosRequestConfig } from 'axios'
-import { Logger } from '@crowd/logging'
-import { RateLimitError } from '../../../../types/integration/rateLimitError'
+import { RateLimitError } from '@crowd/types'
+import { IProcessStreamContext } from '@/types'
 
 export const handleDiscordError = (
   err: AxiosError,
-  config: AxiosRequestConfig<any>,
+  config: AxiosRequestConfig,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   input: any,
-  logger: Logger,
-): any => {
+  ctx: IProcessStreamContext,
+) => {
+  const logger = ctx.log
+
   let url = config.url
   if (config.params) {
     const queryParams: string[] = []
     for (const [key, value] of Object.entries(config.params)) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       queryParams.push(`${key}=${encodeURIComponent(value as any)}`)
     }
 
@@ -28,6 +32,6 @@ export const handleDiscordError = (
 
     return new RateLimitError(rateLimitResetSeconds, url, err)
   }
-  logger.error(err, { input }, `Error while calling Slack API URL: ${url}`)
+  logger.error(err, { input }, `Error while calling Discord API URL: ${url}`)
   return err
 }

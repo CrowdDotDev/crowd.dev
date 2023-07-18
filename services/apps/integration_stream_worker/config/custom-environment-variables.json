@@ -25,5 +25,9 @@
   },
   "stackoverflow": {
     "key": "CROWD_STACKEXCHANGE_KEY"
+  },
+  "discord": {
+    "token": "CROWD_DISCORD_TOKEN",
+    "token2": "CROWD_DISCORD_TOKEN_2"
   }
 }

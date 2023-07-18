@@ -3,6 +3,7 @@ import { NODEJS_WORKER_QUEUE_SETTINGS } from '../config'
 import { SqsQueueEmitter } from '../queue'
 import { SqsClient } from '../types'
 import {
+  EnrichMemberOrganizationsQueueMessage,
   IQueueMessage,
   NewActivityAutomationQueueMessage,
   NewMemberAutomationQueueMessage,
@@ -44,6 +45,17 @@ export class NodejsWorkerEmitter extends SqsQueueEmitter {
       tenantId,
       new NewMemberAutomationQueueMessage(tenantId, memberId),
       memberId,
+    )
+  }
+
+  public async enrichMemberOrganizations(
+    tenantId: string,
+    memberId: string,
+    organizationIds: string[],
+  ): Promise<void> {
+    await super.sendMessage(
+      tenantId,
+      new EnrichMemberOrganizationsQueueMessage(tenantId, memberId, organizationIds),
     )
   }
 }

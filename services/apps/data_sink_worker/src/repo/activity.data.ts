@@ -13,6 +13,8 @@ export interface IDbActivity {
   parentId?: string
   memberId: string
   username: string
+  objectMemberId?: string
+  objectMemberUsername?: string
   attributes: Record<string, unknown>
   body?: string
   title?: string
@@ -61,6 +63,8 @@ export const getInsertActivityColumnSet = (instance: DbInstance): DbColumnSet =>
       'segmentId',
       'memberId',
       'username',
+      'objectMemberId',
+      'objectMemberUsername',
       'sentiment',
       'attributes',
       'body',
@@ -88,6 +92,8 @@ export interface IDbActivityUpdateData {
   sourceParentId?: string
   memberId: string
   username: string
+  objectMemberId?: string
+  objectMemberUsername?: string
   sentiment: ISentimentAnalysisResult
   attributes?: Record<string, unknown>
   body?: string
@@ -111,6 +117,8 @@ export const getUpdateActivityColumnSet = (instance: DbInstance): DbColumnSet =>
       'sourceParentId',
       'memberId',
       'username',
+      'objectMemberId',
+      'objectMemberUsername',
       'sentiment',
       'attributes',
       'body',
