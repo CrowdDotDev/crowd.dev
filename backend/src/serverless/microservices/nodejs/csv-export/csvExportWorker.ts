@@ -118,11 +118,11 @@ async function csvExportWorker(
   const privateObjectUrl = await uploadToS3(zipFileName, zipFileName)
   log.info({ tenantId, entity }, 'Zip uploaded successfully.')
 
-  log.info({ tenantId, entity }, `Generating pre-signed URL..`)
+  log.info({ tenantId, entity }, `Generating pre-signed url..`)
   const url = await getPresignedUrl(privateObjectUrl)
   log.info({ tenantId, entity, url }, `Url generated successfully.`)
 
-  log.info({ tenantId, entity }, `Sending e-mail with pre-signed URL..`)
+  log.info({ tenantId, entity }, `Sending e-mail with pre-signed url..`)
   const user = await UserRepository.findById(userId, userContext)
 
   await new EmailSender(EmailSender.TEMPLATES.CSV_EXPORT, { link: url }).sendTo(user.email)
