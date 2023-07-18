@@ -1,12 +1,8 @@
 import axios from 'axios'
 import { timeout } from '@crowd/common'
-import { Logger } from '@crowd/logging'
-import {
-  DiscordApiChannel,
-  DiscordGetChannelsInput,
-  DiscordGetMessagesInput,
-} from '../../types/discordTypes'
+import { DiscordApiChannel, DiscordGetChannelsInput, DiscordGetMessagesInput } from '../types'
 import getMessages from './getMessages'
+import { IProcessStreamContext } from '@/types'
 
 /**
  * Try if a channel is readable
@@ -14,9 +10,13 @@ import getMessages from './getMessages'
  * @param logger logger
  * @returns Limit if the channel is readable, false otherwise
  */
-async function tryChannel(input: DiscordGetMessagesInput, logger: Logger): Promise<any> {
+async function tryChannel(
+  input: DiscordGetMessagesInput,
+  ctx: IProcessStreamContext,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+): Promise<any> {
   try {
-    const result = await getMessages(input, logger, false)
+    const result = await getMessages(input, ctx, false)
     if (result.limit) {
       return result.limit
     }
@@ -28,7 +28,7 @@ async function tryChannel(input: DiscordGetMessagesInput, logger: Logger): Promi
 
 async function getChannels(
   input: DiscordGetChannelsInput,
-  logger: Logger,
+  ctx: IProcessStreamContext,
   tryChannels = true,
 ): Promise<DiscordApiChannel[]> {
   try {
@@ -41,9 +41,11 @@ async function getChannels(
     }
 
     const response = await axios(config)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const result: any = response.data
 
     if (tryChannels) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const out: any[] = []
       for (const channel of result) {
         const limit = await tryChannel(
@@ -53,7 +55,7 @@ async function getChannels(
             perPage: 1,
             page: undefined,
           },
-          logger,
+          ctx,
         )
         if (limit) {
           out.push(channel)
@@ -67,7 +69,7 @@ async function getChannels(
 
     return result
   } catch (err) {
-    logger.error({ err, input }, 'Error while getting channels from Discord')
+    ctx.log.error({ err, input }, 'Error while getting channels from Discord')
     throw err
   }
 }

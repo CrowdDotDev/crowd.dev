@@ -1,10 +1,10 @@
 import axios from 'axios'
-import { Logger } from '@crowd/logging'
-import { DiscordApiChannel, DiscordGetChannelsInput } from '../../types/discordTypes'
+import { DiscordApiChannel, DiscordGetChannelsInput } from '../types'
+import { IProcessStreamContext } from '@/types'
 
 async function getThreads(
   input: DiscordGetChannelsInput,
-  logger: Logger,
+  ctx: IProcessStreamContext,
 ): Promise<DiscordApiChannel[]> {
   try {
     const config = {
@@ -18,7 +18,7 @@ async function getThreads(
     const response = await axios(config)
     return response.data.threads
   } catch (err) {
-    logger.error({ err, input }, 'Error while getting threads from Discord')
+    ctx.log.error({ err, input }, 'Error while getting threads from Discord')
     throw err
   }
 }

@@ -9,6 +9,7 @@ import isEqual from 'lodash.isequal'
 import { IMemberCreateData, IMemberUpdateData } from './member.data'
 import MemberAttributeService from './memberAttribute.service'
 import { NodejsWorkerEmitter, SearchSyncWorkerEmitter } from '@crowd/sqs'
+import { OrganizationService } from './organization.service'
 
 export default class MemberService extends LoggerBase {
   constructor(
@@ -34,7 +35,7 @@ export default class MemberService extends LoggerBase {
         throw new Error('Member must have at least one identity!')
       }
 
-      const id = await this.store.transactionally(async (txStore) => {
+      const { id, organizationIds } = await this.store.transactionally(async (txStore) => {
         const txRepo = new MemberRepository(txStore, this.log)
         const txMemberAttributeService = new MemberAttributeService(txStore, this.log)
 
@@ -64,13 +65,33 @@ export default class MemberService extends LoggerBase {
 
         await txRepo.insertIdentities(id, tenantId, integrationId, data.identities)
 
-        return id
+        const organizationIds = []
+        if (data.organizations) {
+          const orgService = new OrganizationService(txStore, this.log)
+          for (const org of data.organizations) {
+            const id = await orgService.findOrCreate(tenantId, org)
+            organizationIds.push(id)
+          }
+
+          if (organizationIds.length > 0) {
+            await orgService.addToMember(tenantId, segmentId, id, organizationIds)
+          }
+        }
+
+        return {
+          id,
+          organizationIds,
+        }
       })
 
       await this.nodejsWorkerEmitter.processAutomationForNewMember(tenantId, id)
 
       if (fireSync) {
         await this.searchSyncWorkerEmitter.triggerMemberSync(tenantId, id)
+      }
+
+      if (organizationIds.length > 0) {
+        await this.nodejsWorkerEmitter.enrichMemberOrganizations(tenantId, id, organizationIds)
       }
 
       return id
@@ -137,6 +158,20 @@ export default class MemberService extends LoggerBase {
         if (toUpdate.identities) {
           await txRepo.insertIdentities(id, tenantId, integrationId, toUpdate.identities)
           updated = true
+        }
+
+        const organizationIds = []
+        if (data.organizations) {
+          const orgService = new OrganizationService(txStore, this.log)
+          for (const org of data.organizations) {
+            const id = await orgService.findOrCreate(tenantId, org)
+            organizationIds.push(id)
+          }
+
+          if (organizationIds.length > 0) {
+            await orgService.addToMember(tenantId, segmentId, id, organizationIds)
+            updated = true
+          }
         }
 
         return updated

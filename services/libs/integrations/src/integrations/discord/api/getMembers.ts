@@ -1,14 +1,10 @@
 import axios from 'axios'
-import { Logger } from '@crowd/logging'
-import {
-  DiscordApiMember,
-  DiscordGetMembersInput,
-  DiscordGetMembersOutput,
-} from '../../types/discordTypes'
+import { DiscordApiMember, DiscordGetMembersInput, DiscordGetMembersOutput } from '../types'
+import { IProcessStreamContext } from '@/types'
 
 async function getMembers(
   input: DiscordGetMembersInput,
-  logger: Logger,
+  ctx: IProcessStreamContext,
 ): Promise<DiscordGetMembersOutput> {
   try {
     let url = `https://discord.com/api/v10/guilds/${input.guildId}/members?limit=${input.perPage}`
@@ -36,7 +32,7 @@ async function getMembers(
     }
   } catch (err) {
     if (err.response.status === 429) {
-      logger.warn(
+      ctx.log.warn(
         `Rate limit exceeded in Get Members. Wait value in header is ${err.response.headers['x-ratelimit-reset-after']}`,
       )
       return {
@@ -46,7 +42,7 @@ async function getMembers(
         timeUntilReset: err.response.headers['x-ratelimit-reset-after'],
       }
     }
-    logger.error({ err, input }, 'Error while getting members from Discord')
+    ctx.log.error({ err, input }, 'Error while getting members from Discord')
     throw err
   }
 }
