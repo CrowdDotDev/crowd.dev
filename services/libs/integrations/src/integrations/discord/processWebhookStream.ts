@@ -8,7 +8,12 @@ import { getMessage } from './api/getMessage'
 import { getDiscordToken } from './processStream'
 import { getChannel } from './api/getChannel'
 import { isDiscordForum, isDiscordThread } from './processStream'
-import { IDiscordAPIData, DiscordApiDataMessage, DiscordApiChannel } from './types'
+import {
+  IDiscordAPIData,
+  DiscordApiDataMessage,
+  DiscordApiChannel,
+  DiscordAPIDataType,
+} from './types'
 import { cacheDiscordChannels } from './processStream'
 import { getMember } from './api/getMember'
 
@@ -59,13 +64,13 @@ const parseWebhookMessage = async (payload: any, ctx: IProcessWebhookStreamConte
       isForum = isDiscordForum(parentChannelObj)
     }
   }
-  // record.parentId means that it's a reply
+  // record.message_reference means that it's a reply
   else if (record.message_reference && record.message_reference.message_id) {
     parent = record.message_reference.message_id
   }
 
   await ctx.publishData<IDiscordAPIData>({
-    type: 'channel',
+    type: DiscordAPIDataType.CHANNEL,
     data: {
       ...record,
       parent,
@@ -88,7 +93,7 @@ const parseWebhookMember = async (payload: any, ctx: IProcessWebhookStreamContex
 
   if (discordMember) {
     await ctx.publishData<IDiscordAPIData>({
-      type: 'member',
+      type: DiscordAPIDataType.MEMBER,
       data: [discordMember],
     })
   }

@@ -1,7 +1,13 @@
 import { ProcessDataHandler, IProcessDataContext } from '@/types'
-import { IDiscordAPIData, DiscordApiMember, DiscordApiDataMessage, DiscordApiUser } from './types'
+import {
+  IDiscordAPIData,
+  DiscordApiMember,
+  DiscordApiDataMessage,
+  DiscordApiUser,
+  DiscordActivityType,
+  DiscordAPIDataType,
+} from './types'
 import { DISCORD_GRID } from './grid'
-import { DiscordActivityType } from './types'
 import { IActivityData } from '@crowd/types'
 import { PlatformType } from '@crowd/types'
 import { MemberAttributeName } from '@crowd/types'
@@ -153,9 +159,9 @@ const parseMessage = async (ctx: IProcessDataContext) => {
 const handler: ProcessDataHandler = async (ctx) => {
   const data = ctx.data as IDiscordAPIData
 
-  if (data.type === 'member') {
+  if (data.type === DiscordAPIDataType.MEMBER) {
     await parseMembers(ctx)
-  } else if (data.type === 'channel') {
+  } else if (data.type === DiscordAPIDataType.CHANNEL) {
     await parseMessage(ctx)
   } else {
     await ctx.abortRunWithError(`Unknown data type: ${data.type}`)

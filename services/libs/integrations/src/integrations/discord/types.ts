@@ -24,8 +24,13 @@ export enum DiscordStreamType {
   THREADS = 'threads',
 }
 
+export enum DiscordAPIDataType {
+  CHANNEL = 'channel',
+  MEMBER = 'member',
+}
+
 export interface IDiscordAPIData {
-  type: 'member' | 'channel'
+  type: DiscordAPIDataType
   data: DiscordApiMember[] | DiscordApiDataMessage
 }
 

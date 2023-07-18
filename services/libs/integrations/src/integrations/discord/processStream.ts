@@ -9,13 +9,14 @@ import {
   DiscordApiMessage,
   DiscordApiDataMessage,
   IDiscordIntegrationSettings,
+  DiscordChannelStreamData,
+  DiscordAPIDataType,
 } from './types'
 import getChannels from './api/getChannels'
 import { getChannel } from './api/getChannel'
 import getThreads from './api/getThreads'
 import getMembers from './api/getMembers'
 import { ChannelType } from './externalTypes'
-import { DiscordChannelStreamData } from './types'
 import { timeout } from '@crowd/common'
 import { RateLimitError } from '@crowd/types'
 import getMessages from './api/getMessages'
@@ -184,7 +185,7 @@ const processMembersStream: ProcessStreamHandler = async (ctx) => {
 
   if (members.records.length > 0) {
     await ctx.publishData<IDiscordAPIData>({
-      type: 'member',
+      type: DiscordAPIDataType.MEMBER,
       data: members.records,
     })
   }
@@ -198,7 +199,7 @@ const processChannelStream: ProcessStreamHandler = async (ctx) => {
   await timeout(2000)
   const data = ctx.stream.data as DiscordChannelStreamData
 
-  const channel = await getMessages(
+  const channelMessages = await getMessages(
     {
       channelId: data.channelId,
       token: getDiscordToken(ctx),
@@ -224,24 +225,24 @@ const processChannelStream: ProcessStreamHandler = async (ctx) => {
           }. Last timestamp is ${lastTimestampDate.toISOString()}`,
         )
         // we don't need to parse next page, still need to parse threads
-        channel.nextPage = ''
+        channelMessages.nextPage = ''
       }
     }
   }
 
-  if (channel.nextPage) {
+  if (channelMessages.nextPage) {
     await ctx.publishStream<DiscordChannelStreamData>(
-      `${DiscordStreamType.CHANNEL}:${data.channelId}:${channel.nextPage}`,
+      `${DiscordStreamType.CHANNEL}:${data.channelId}:${channelMessages.nextPage}`,
       {
         channelId: data.channelId,
         guildId: data.guildId,
-        page: channel.nextPage,
+        page: channelMessages.nextPage,
         channels: data.channels,
       },
     )
   }
 
-  for (const record of channel.records as DiscordApiMessage[]) {
+  for (const record of channelMessages.records as DiscordApiMessage[]) {
     let parent: string | undefined
     let parentChannel: string | undefined
 
@@ -288,7 +289,7 @@ const processChannelStream: ProcessStreamHandler = async (ctx) => {
     }
 
     await ctx.publishData<IDiscordAPIData>({
-      type: 'channel',
+      type: DiscordAPIDataType.CHANNEL,
       data: {
         ...record,
         parent,
@@ -301,7 +302,7 @@ const processChannelStream: ProcessStreamHandler = async (ctx) => {
   }
 
   // saving last timestamp from the stream
-  const records = channel.records as DiscordApiMessage[]
+  const records = channelMessages.records as DiscordApiMessage[]
   if (records.length > 0) {
     const lastRecord = records[records.length - 1]
     const lastRecordDate = lastRecord.timestamp
