@@ -11,6 +11,7 @@
             :to="{
               name: 'memberView',
               params: { id: activity.member.id },
+              query: { projectGroup: selectedProjectGroup?.id },
             }"
             target="_blank"
           >
@@ -133,6 +134,8 @@ import AppActivityLink from '@/modules/activity/components/activity-link.vue';
 import AppMemberDisplayName from '@/modules/member/components/member-display-name.vue';
 import AppActivityContentFooter from '@/modules/activity/components/activity-content-footer.vue';
 import { computed } from 'vue';
+import { storeToRefs } from 'pinia';
+import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import AppActivityHeader from './activity-header.vue';
 
 const emit = defineEmits(['openConversation', 'edit', 'onUpdate', 'activity-destroyed']);
@@ -153,6 +156,9 @@ const props = defineProps({
     default: true,
   },
 });
+
+const lsSegmentsStore = useLfSegmentsStore();
+const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);
 
 const platform = computed(() => CrowdIntegrations.getConfig(
   props.activity.platform,

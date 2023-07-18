@@ -19,7 +19,8 @@
 }
 
 .el-notification__title {
-  @apply font-semibold text-xs text-black m-0;
+  font-family: 'Open Sans';
+  @apply font-semibold text-xs text-black m-0 normal-case;
 }
 
 .el-notification__content {

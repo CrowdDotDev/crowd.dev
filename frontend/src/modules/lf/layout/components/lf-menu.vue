@@ -51,7 +51,10 @@
         >
           <router-link
             id="menu-dashboard"
-            :to="{ path: '/' }"
+            :to="{
+              path: '/',
+              query: { projectGroup: selectedProjectGroup?.id },
+            }"
             class="el-menu-item"
             :class="classFor('/', true, !selectedProjectGroup)"
             :disabled="!selectedProjectGroup"
@@ -75,7 +78,10 @@
         >
           <router-link
             id="menu-members"
-            :to="{ path: '/contributors' }"
+            :to="{
+              path: '/contributors',
+              query: { projectGroup: selectedProjectGroup?.id },
+            }"
             class="el-menu-item"
             :class="classFor('/contributors', false, !selectedProjectGroup)"
             :disabled="!selectedProjectGroup"
@@ -99,7 +105,10 @@
         >
           <router-link
             id="menu-organizations"
-            :to="{ path: '/organizations' }"
+            :to="{
+              path: '/organizations',
+              query: { projectGroup: selectedProjectGroup?.id },
+            }"
             class="el-menu-item"
             :class="classFor('/organizations', false, !selectedProjectGroup)"
             :disabled="!selectedProjectGroup"
@@ -123,7 +132,10 @@
         >
           <router-link
             id="menu-activities"
-            :to="{ path: '/activities' }"
+            :to="{
+              path: '/activities',
+              query: { projectGroup: selectedProjectGroup?.id },
+            }"
             class="el-menu-item"
             :class="classFor('/activities', false, !selectedProjectGroup)"
             :disabled="!selectedProjectGroup"
@@ -147,7 +159,10 @@
         >
           <router-link
             id="menu-reports"
-            :to="{ path: '/reports' }"
+            :to="{
+              path: '/reports',
+              query: { projectGroup: selectedProjectGroup?.id },
+            }"
             class="el-menu-item"
             :class="classFor('/reports', false, !selectedProjectGroup)"
             :disabled="!selectedProjectGroup"

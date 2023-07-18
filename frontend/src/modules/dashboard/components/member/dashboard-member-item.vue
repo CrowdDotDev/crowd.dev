@@ -15,7 +15,11 @@
   <router-link
     v-else
     class="flex items-center justify-between group"
-    :to="{ name: 'memberView', params: { id: member.id } }"
+    :to="{
+      name: 'memberView',
+      params: { id: member.id },
+      query: { projectGroup: selectedProjectGroup?.id },
+    }"
   >
     <div class="flex items-center">
       <app-avatar :entity="member" size="xs" />
@@ -37,6 +41,8 @@ import { CrowdIntegrations } from '@/integrations/integrations-config';
 import AppAvatar from '@/shared/avatar/avatar.vue';
 import AppLoading from '@/shared/loading/loading-placeholder.vue';
 import AppMemberDisplayName from '@/modules/member/components/member-display-name.vue';
+import { storeToRefs } from 'pinia';
+import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 
 export default {
   name: 'AppDashboardMemberItem',
@@ -60,6 +66,13 @@ export default {
       type: Boolean,
       required: false,
       default: false,
+    },
+  },
+  computed: {
+    selectedProjectGroup() {
+      const lsSegmentsStore = useLfSegmentsStore();
+
+      return storeToRefs(lsSegmentsStore).selectedProjectGroup.value;
     },
   },
   methods: {

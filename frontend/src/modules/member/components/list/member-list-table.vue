@@ -107,6 +107,7 @@
                     :to="{
                       name: 'memberView',
                       params: { id: scope.row.id },
+                      query: { projectGroup: selectedProjectGroup?.id },
                     }"
                     class="block"
                   >
@@ -130,6 +131,7 @@
                     :to="{
                       name: 'memberView',
                       params: { id: scope.row.id },
+                      query: { projectGroup: selectedProjectGroup?.id },
                     }"
                     class="block"
                   >
@@ -151,6 +153,7 @@
                     :to="{
                       name: 'memberView',
                       params: { id: scope.row.id },
+                      query: { projectGroup: selectedProjectGroup?.id },
                     }"
                     class="block !text-gray-500"
                   >
@@ -169,6 +172,7 @@
                     :to="{
                       name: 'memberView',
                       params: { id: scope.row.id },
+                      query: { projectGroup: selectedProjectGroup?.id },
                     }"
                     class="block"
                   >
@@ -187,6 +191,7 @@
                     :to="{
                       name: 'memberView',
                       params: { id: scope.row.id },
+                      query: { projectGroup: selectedProjectGroup?.id },
                     }"
                     class="block !text-gray-500"
                   >
@@ -209,6 +214,7 @@
                     :to="{
                       name: 'memberView',
                       params: { id: scope.row.id },
+                      query: { projectGroup: selectedProjectGroup?.id },
                     }"
                     class="block !text-gray-500"
                   >
@@ -234,6 +240,7 @@
                     :to="{
                       name: 'memberView',
                       params: { id: scope.row.id },
+                      query: { projectGroup: selectedProjectGroup?.id },
                     }"
                     class="block"
                   >
@@ -269,6 +276,7 @@
                     :to="{
                       name: 'memberView',
                       params: { id: scope.row.id },
+                      query: { projectGroup: selectedProjectGroup?.id },
                     }"
                     class="block"
                   >
@@ -289,6 +297,7 @@
                     :to="{
                       name: 'memberView',
                       params: { id: scope.row.id },
+                      query: { projectGroup: selectedProjectGroup?.id },
                     }"
                     class="block"
                   >
@@ -303,6 +312,7 @@
                     :to="{
                       name: 'memberView',
                       params: { id: scope.row.id },
+                      query: { projectGroup: selectedProjectGroup?.id },
                     }"
                     class="block"
                   >
@@ -349,6 +359,7 @@
                     :to="{
                       name: 'memberView',
                       params: { id: scope.row.id },
+                      query: { projectGroup: selectedProjectGroup?.id },
                     }"
                     class="block"
                   >
@@ -363,6 +374,7 @@
                     :to="{
                       name: 'memberView',
                       params: { id: scope.row.id },
+                      query: { projectGroup: selectedProjectGroup?.id },
                     }"
                     class="block w-full"
                   >

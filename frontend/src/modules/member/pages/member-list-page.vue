@@ -11,6 +11,7 @@
               :class="{ 'pointer-events-none': isEditLockedForSampleData }"
               :to="{
                 name: 'memberMergeSuggestions',
+                query: { projectGroup: selectedProjectGroup?.id },
               }"
             >
               <button
@@ -97,6 +98,7 @@ import { FilterQuery } from '@/shared/modules/filters/types/FilterQuery';
 import CrSavedViews from '@/shared/modules/saved-views/components/SavedViews.vue';
 import AppMemberListTable from '@/modules/member/components/list/member-list-table.vue';
 import { useRouter } from 'vue-router';
+import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import { memberFilters, memberSearchFilter } from '../config/filters/main';
 import { memberSavedViews, memberViews } from '../config/saved-views/main';
 
@@ -105,6 +107,9 @@ const router = useRouter();
 const memberStore = useMemberStore();
 const { getMemberCustomAttributes, fetchMembers } = memberStore;
 const { filters, customAttributesFilter, savedFilterBody } = storeToRefs(memberStore);
+
+const lsSegmentsStore = useLfSegmentsStore();
+const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);
 
 const membersCount = ref(0);
 const membersToMergeCount = ref(0);

@@ -7,7 +7,7 @@
         :segments="segments"
         :set-segments="onSegmentsChange"
         :should-apply-immeadiately="false"
-        btn-class="custom-btn"
+        btn-class="btn btn--secondary"
       />
 
       <app-filter-list-item
@@ -20,11 +20,11 @@
         <template #button>
           <div class="relative">
             <el-button
-              class="custom-btn"
+              class="btn btn--secondary"
               @click="handleOpenPlatform"
             >
-              <div class="flex items-center gap-2 text-xs">
-                <i class="ri-apps-2-line" /><span
+              <div class="flex items-center text-xs text-gray-900">
+                <i class="ri-apps-2-line text-gray-900" /><span
                   class="font-medium"
                 >Platforms:
                   <span class="font-normal text-gray-600">{{

@@ -32,6 +32,7 @@
         :to="{
           name: 'activity',
           hash: '#activity',
+          query: { projectGroup: selectedProjectGroup?.id },
         }"
         class="text-red font-medium text-center text-xs leading-5"
       >
@@ -45,6 +46,8 @@
 import { mapGetters } from 'vuex';
 import AppDashboardEmptyState from '@/modules/dashboard/components/dashboard-empty-state.vue';
 import AppDashboardActivityItem from '@/modules/dashboard/components/activity/dashboard-activity-item.vue';
+import { storeToRefs } from 'pinia';
+import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 
 export default {
   name: 'AppDashboardActivityList',
@@ -57,6 +60,11 @@ export default {
       'recentActivities',
       'activities',
     ]),
+    selectedProjectGroup() {
+      const lsSegmentsStore = useLfSegmentsStore();
+
+      return storeToRefs(lsSegmentsStore).selectedProjectGroup.value;
+    },
   },
   methods: {
     refreshActivities() {

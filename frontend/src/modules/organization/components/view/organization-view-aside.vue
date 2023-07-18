@@ -164,6 +164,7 @@
             :to="{
               name: 'organizationEdit',
               params: { id: organization.id },
+              query: { projectGroup: selectedProjectGroup?.id },
             }"
             class="hover:underline"
           >
@@ -188,9 +189,11 @@
 </template>
 
 <script setup>
-import { defineProps, computed } from 'vue';
+import { computed } from 'vue';
 import enrichmentAttributes, { attributesTypes } from '@/modules/organization/config/organization-enrichment-attributes';
 import { withHttp } from '@/utils/string';
+import { storeToRefs } from 'pinia';
+import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import AppOrganizationAsideEnriched from './_aside/_aside-enriched.vue';
 
 const props = defineProps({
@@ -199,6 +202,9 @@ const props = defineProps({
     default: () => {},
   },
 });
+
+const lsSegmentsStore = useLfSegmentsStore();
+const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);
 
 const showDivider = computed(
   () => (!!props.organization.emails?.length

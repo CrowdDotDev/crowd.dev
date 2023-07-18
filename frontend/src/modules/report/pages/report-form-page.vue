@@ -9,7 +9,10 @@
       <div class="flex items-center justify-between">
         <router-link
           class="text-gray-600 btn-link--md btn-link--secondary p-0 inline-flex items-center"
-          :to="{ path: '/reports' }"
+          :to="{
+            path: '/reports',
+            query: { projectGroup: selectedProjectGroup?.id },
+          }"
         >
           <i class="ri-arrow-left-s-line mr-2" />Reports
         </router-link>
@@ -22,6 +25,7 @@
                 id,
                 segmentId,
               },
+              query: { projectGroup: selectedProjectGroup?.id },
             }"
           >
             <i class="ri-eye-line mr-2" />View
@@ -48,6 +52,8 @@
 import { mapActions, mapGetters } from 'vuex';
 import AppReportForm from '@/modules/report/components/report-form.vue';
 import AppReportDropdown from '@/modules/report/components/report-dropdown.vue';
+import { storeToRefs } from 'pinia';
+import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 
 export default {
   name: 'AppReportFormPage',
@@ -82,6 +88,11 @@ export default {
     ...mapGetters('report', ['find']),
     record() {
       return this.find(this.id);
+    },
+    selectedProjectGroup() {
+      const lsSegmentsStore = useLfSegmentsStore();
+
+      return storeToRefs(lsSegmentsStore).selectedProjectGroup.value;
     },
   },
 
