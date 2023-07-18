@@ -391,7 +391,8 @@
       </div>
     </div>
     <app-member-merge-dialog v-model="isMergeDialogOpen" />
-    <app-tag-popover v-model="isEditTagsDialogOpen" @reload="fetchMembers({ reload: true })" />
+    <!-- TODO: ask joana why the popover is added here, apparently this causes a weird bug -->
+    <!-- <app-tag-popover v-model="isEditTagsDialogOpen" @reload="fetchMembers({ reload: true })" /> -->
   </div>
 </template>
 
