@@ -557,18 +557,6 @@ const en = {
     },
   },
 
-  roles: {
-    admin: {
-      label: 'Admin',
-      description: 'Full access to all resources',
-    },
-    readonly: {
-      label: 'Read-only',
-      description:
-        'Read access to Community Contributors, Activities, Conversations, and Reports',
-    },
-  },
-
   user: {
     fields: {
       id: 'Id',

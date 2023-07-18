@@ -15,7 +15,6 @@ import automation from '@/modules/automation/automation-module';
 import organization from '@/modules/organization/organization-module';
 
 import eagleEye from '@/premium/eagle-eye/eagle-eye-module';
-import user from '@/modules/user/user-module';
 import lf from '@/modules/lf/lf-modules';
 
 const modules: Record<string, any> = {
@@ -33,7 +32,6 @@ const modules: Record<string, any> = {
   widget,
   report,
   automation,
-  user,
   eagleEye,
   organization,
   lf,

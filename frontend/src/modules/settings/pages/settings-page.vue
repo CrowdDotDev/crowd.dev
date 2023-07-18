@@ -5,17 +5,6 @@
         Settings
       </h4>
       <el-tabs v-model="computedActiveTab" class="mt-10">
-        <el-tab-pane
-          v-if="hasUsersModule"
-          label="Users & Permissions"
-          name="users"
-          label-class="app-content-title"
-        >
-          <app-user-list-page
-            v-if="activeTab === 'users'"
-            class="pt-4"
-          />
-        </el-tab-pane>
         <el-tab-pane label="Automations" name="automations">
           <app-automation-list-page
             v-if="activeTab === 'automations'"
@@ -32,10 +21,7 @@
 </template>
 
 <script>
-import { mapGetters } from 'vuex';
 import AppApiKeysPage from '@/modules/settings/pages/api-keys-page.vue';
-import UserListPage from '@/modules/user/pages/user-list-page.vue';
-import { UserPermissions } from '@/modules/user/user-permissions';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import AppAutomationListPage from '@/modules/automation/pages/automation-list-page.vue';
 
@@ -44,7 +30,6 @@ export default {
 
   components: {
     AppApiKeysPage,
-    'app-user-list-page': UserListPage,
     AppAutomationListPage,
   },
 
@@ -55,16 +40,6 @@ export default {
   },
 
   computed: {
-    ...mapGetters({
-      currentUser: 'auth/currentUser',
-      currentTenant: 'auth/currentTenant',
-    }),
-    hasUsersModule() {
-      return new UserPermissions(
-        this.currentTenant,
-        this.currentUser,
-      ).read;
-    },
     computedActiveTab: {
       get() {
         return this.activeTab;
@@ -100,9 +75,7 @@ export default {
       urlSearchParams.entries(),
     );
 
-    this.activeTab = this.hasUsersModule
-      ? params.activeTab || 'users'
-      : params.activeTab;
+    this.activeTab = params.activeTab || 'automations';
   },
 };
 </script>
