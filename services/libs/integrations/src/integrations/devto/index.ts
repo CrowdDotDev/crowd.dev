@@ -13,6 +13,9 @@ const descriptor: IIntegrationDescriptor = {
   generateStreams,
   processStream,
   processData,
+  processWebhookStream: async (ctx) => {
+    console.log('webhook stream data', ctx.stream.type, ctx.stream.identifier, ctx.stream.data)
+  },
 }
 
 export default descriptor

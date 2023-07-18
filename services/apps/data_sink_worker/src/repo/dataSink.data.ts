@@ -5,7 +5,8 @@ export interface IResultData {
   state: IntegrationResultState
   data: IIntegrationResult
 
-  runId: string
+  runId: string | null
+  webhookId: string | null
   streamId: string
   apiDataId: string
   tenantId: string
