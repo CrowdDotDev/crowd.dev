@@ -36,7 +36,6 @@ export interface IDiscordAPIData {
 
 export interface DiscordRootStreamData {
   guildId: string
-  token: string
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   channels: any[]
 }
