@@ -1,15 +1,11 @@
 import axios from 'axios'
-import { Logger } from '@crowd/logging'
-import {
-  DiscordApiMessage,
-  DiscordParsedReponse,
-  DiscordGetMessagesInput,
-} from '../../types/discordTypes'
+import { DiscordApiMessage, DiscordParsedReponse, DiscordGetMessagesInput } from '../types'
+import { IProcessStreamContext } from '@/types'
 
 async function getMessages(
   input: DiscordGetMessagesInput,
-  logger: Logger,
-  showError: boolean = true,
+  ctx: IProcessStreamContext,
+  showError = true,
 ): Promise<DiscordParsedReponse> {
   try {
     let url = `https://discord.com/api/v10/channels/${input.channelId}/messages?limit=${input.perPage}`
@@ -38,7 +34,7 @@ async function getMessages(
     }
   } catch (err) {
     if (err.response.status === 429) {
-      logger.warn(
+      ctx.log.warn(
         `Rate limit exceeded in Get Messages. Wait value in header is ${err.response.headers['x-ratelimit-reset-after']}`,
       )
       return {
@@ -56,7 +52,7 @@ async function getMessages(
         timeUntilReset: 0,
       }
     }
-    logger.error({ err, input }, 'Error while getting messages from Discord')
+    ctx.log.error({ err, input }, 'Error while getting messages from Discord')
     throw err
   }
 }
