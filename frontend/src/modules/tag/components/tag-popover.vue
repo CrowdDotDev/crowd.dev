@@ -1,9 +1,9 @@
 <template>
-  <app-dialog v-if="computedVisible" v-model="computedVisible" title="Edit tags">
+  <app-dialog v-if="computedVisible" v-model="computedVisible" title="Edit tags"  :pre-title="member?.displayName ?? ''">
     <template #content>
       <div class="px-6 pb-6">
         <form v-if="modelValue" class="tags-form">
-          <app-tag-autocomplete-input v-model="bulkEditTagsModel" :fetch-fn="fields.tags.fetchFn"
+          <app-tag-autocomplete-input v-model="editTagsModel" :fetch-fn="fields.tags.fetchFn"
             :mapper-fn="fields.tags.mapperFn" :create-if-not-found="true" placeholder="Type to search/create tags" />
         </form>
       </div>
@@ -45,14 +45,18 @@ export default {
       type: Boolean,
       default: () => false,
     },
+    member: {
+      type: Object,
+      default: () => null,
+    },
   },
   emits: ['reload', 'update:modelValue'],
 
   data() {
     return {
       loading: false,
-      bulkEditTagsModel: [],
-      bulkEditTagsInCommon: [],
+      editTagsModel: [],
+      editTagsInCommon: [],
     };
   },
 
@@ -68,13 +72,16 @@ export default {
         this.$emit('update:modelValue', false);
       },
     },
+    membersToUpdate() {
+      return this.member ? [this.member]: selectedMembers.value;
+    },
   },
 
   watch: {
     modelValue: {
       async handler(newValue) {
         if (newValue) {
-          await this.prepareBulkUpdateTags();
+          await this.prepareUpdateTags();
         }
       },
     },
@@ -86,8 +93,8 @@ export default {
         'member/doBulkUpdateMembersTags',
     }),
 
-    prepareBulkUpdateTags() {
-      this.bulkEditTagsModel = selectedMembers.value.reduce(
+    prepareUpdateTags() {
+      this.editTagsModel = this.membersToUpdate.reduce(
         (acc, item, index) => {
           let { tags } = formSchema.initialValues({
             tags: item.tags,
@@ -102,8 +109,8 @@ export default {
         },
         [],
       );
-      this.bulkEditTagsInCommon = [
-        ...this.bulkEditTagsModel,
+      this.editTagsInCommon = [
+        ...this.editTagsModel,
       ];
     },
 
@@ -111,9 +118,9 @@ export default {
       this.loading = true;
 
       await this.doBulkUpdateMembersTags({
-        members: [...selectedMembers.value],
-        tagsInCommon: this.bulkEditTagsInCommon,
-        tagsToSave: this.bulkEditTagsModel,
+        members: [...this.membersToUpdate],
+        tagsInCommon: this.editTagsInCommon,
+        tagsToSave: this.editTagsModel,
       });
 
       this.loading = false;
@@ -123,8 +130,8 @@ export default {
     },
 
     handleCancel() {
-      this.bulkEditTagsModel = [];
-      this.bulkEditTagsInCommon = [];
+      this.editTagsModel = [];
+      this.editTagsInCommon = [];
       this.computedVisible = false;
     }
   },
