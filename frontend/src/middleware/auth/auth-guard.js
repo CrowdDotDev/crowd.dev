@@ -13,7 +13,6 @@ function isGoingToIntegrationsPage(to) {
  *
  * It uses the PermissionChecker to validate if:
  * - User is authenticated, and both currentTenant & currentUser exist within our store (if not, redirects to /auth/signin)
- * - Email of that user is verified (if not, redirects to /auth/email-unverified)
  * - User has permissions (if not, redirects to /auth/empty-permissions)
  *
  * @param to
