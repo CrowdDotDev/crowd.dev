@@ -1,7 +1,6 @@
 <template>
   <el-container v-if="currentTenant" class="flex-col">
-    <app-lf-header />
-    <el-container style="height: calc(100vh - 60px);">
+    <el-container style="height: calc(100vh - 60px); margin-top: 60px;">
       <!-- App menu -->
       <app-lf-menu />
 
@@ -20,7 +19,7 @@ import { mapActions, mapGetters } from 'vuex';
 import identify from '@/shared/monitoring/identify';
 import AppLfMenu from '@/modules/lf/layout/components/lf-menu.vue';
 import AppLfBanners from '@/modules/lf/layout/components/lf-banners.vue';
-import AppLfHeader from '@/modules/lf/layout/components/lf-header.vue';
+import { Auth0Service } from '@/shared/services/auth0.service';
 
 export default {
   name: 'AppLayout',
@@ -28,7 +27,6 @@ export default {
   components: {
     AppLfMenu,
     AppLfBanners,
-    AppLfHeader,
   },
 
   computed: {
@@ -63,6 +61,17 @@ export default {
   },
 
   async mounted() {
+    try {
+      const user = await Auth0Service.getUser();
+      const lfxHeader = document.getElementById('lfx-header');
+
+      if (lfxHeader) {
+        lfxHeader.authuser = user;
+      }
+    } catch (e) {
+      console.error(e);
+    }
+
     identify(this.currentUser);
     this.initPendo();
   },

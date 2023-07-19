@@ -1,6 +1,7 @@
 <template>
   <div v-show="!loading" id="app">
     <div class="sm:hidden md:block lg:block">
+      <lfx-header-v2 id="lfx-header" product="Community Management" />
       <router-view v-slot="{ Component }">
         <transition>
           <div>
