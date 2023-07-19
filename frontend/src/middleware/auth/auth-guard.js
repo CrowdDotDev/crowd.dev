@@ -13,8 +13,6 @@ function isGoingToIntegrationsPage(to) {
  *
  * It uses the PermissionChecker to validate if:
  * - User is authenticated, and both currentTenant & currentUser exist within our store (if not, redirects to /auth/signin)
- * - Email of that user is verified (if not, redirects to /auth/email-unverified)
- * - User is onboarded (if not, redirects to /onboard)
  * - User has permissions (if not, redirects to /auth/empty-permissions)
  *
  * @param to
@@ -40,14 +38,6 @@ export default async function ({ to, store, router }) {
     return;
   }
 
-  // if (
-  //   to.path !== '/auth/email-unverified'
-  //   && !permissionChecker.isEmailVerified
-  // ) {
-  //   router.push({ path: '/auth/signin' });
-  //   return;
-  // }
-
   // Temporary fix
   if (
     to.meta.permission
@@ -61,28 +51,6 @@ export default async function ({ to, store, router }) {
   }
 
   if (
-    ['multi', 'multi-with-subdomain'].includes(
-      config.tenantMode,
-    )
-    && !tenantSubdomain.isSubdomain
-  ) {
-    if (
-      to.path !== '/onboard'
-      && permissionChecker.isEmailVerified
-      && (permissionChecker.isEmptyTenant
-        || !store.getters['auth/currentTenant'].onboardedAt)
-    ) {
-      router.push({
-        path: '/onboard',
-        query: isGoingToIntegrationsPage(to)
-          ? {
-            selectedDataType: 'real',
-            ...to.query,
-          }
-          : undefined,
-      });
-    }
-  } else if (
     to.path !== '/auth/empty-permissions'
       && permissionChecker.isEmailVerified
       && permissionChecker.isEmptyPermissions

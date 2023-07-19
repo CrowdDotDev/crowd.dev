@@ -16,7 +16,10 @@
       <div class="max-w-5xl mx-5 w-full">
         <router-link
           class="text-gray-600 btn-link--md btn-link--secondary p-0 inline-flex items-center mb-2"
-          :to="{ path: '/reports' }"
+          :to="{
+            path: '/reports',
+            query: { projectGroup: selectedProjectGroup?.id },
+          }"
         >
           <i class="ri-arrow-left-s-line mr-2" />Reports
         </router-link>
@@ -68,6 +71,8 @@
 import { mapState, mapGetters, mapActions } from 'vuex';
 import AuthCurrentTenant from '@/modules/auth/auth-current-tenant';
 import ReportShareButton from '@/modules/report/components/report-share-button.vue';
+import { storeToRefs } from 'pinia';
+import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import ReportGridLayout from '../components/report-grid-layout.vue';
 import ReportDropdown from '../components/report-dropdown.vue';
 
@@ -117,6 +122,11 @@ export default {
     },
     computedLoading() {
       return this.reportLoading || this.loading;
+    },
+    selectedProjectGroup() {
+      const lsSegmentsStore = useLfSegmentsStore();
+
+      return storeToRefs(lsSegmentsStore).selectedProjectGroup.value;
     },
   },
 

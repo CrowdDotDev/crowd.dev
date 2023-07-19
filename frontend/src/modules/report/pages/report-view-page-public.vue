@@ -51,6 +51,7 @@
                   id,
                   segmentId: report.segmentId,
                 },
+                query: { projectGroup: selectedProjectGroup?.id },
               }"
             >
               <i class="ri-pencil-line mr-2" />Edit
@@ -178,6 +179,8 @@ import MEMBERS_REPORT from '@/modules/report/templates/config/members';
 import PRODUCT_COMMUNITY_FIT_REPORT from '@/modules/report/templates/config/productCommunityFit';
 import ACTIVITIES_REPORT from '@/modules/report/templates/config/activities';
 import templates from '@/modules/report/templates/config';
+import { storeToRefs } from 'pinia';
+import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 
 const platformField = new ActivityPlatformField(
   'activeOn',
@@ -251,6 +254,11 @@ export default {
       return this.templates.find(
         (t) => t.config.nameAsId === this.report.name,
       )?.config;
+    },
+    selectedProjectGroup() {
+      const lsSegmentsStore = useLfSegmentsStore();
+
+      return storeToRefs(lsSegmentsStore).selectedProjectGroup.value;
     },
   },
 

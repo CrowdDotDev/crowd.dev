@@ -81,6 +81,7 @@
                       value: periodStartDate,
                       operator: 'gt',
                     },
+                    projectGroup: selectedProjectGroup?.id,
                   }),
                 }"
                 class="text-sm leading-5 font-medium hover:underline"
@@ -161,6 +162,7 @@
                       value: periodStartDate,
                       operator: 'gt',
                     },
+                    projectGroup: selectedProjectGroup?.id,
                   }),
                 }"
                 class="text-sm leading-5 font-medium hover:underline"
@@ -193,6 +195,8 @@ import AppDashboardWidgetChart from '@/modules/dashboard/components/dashboard-wi
 import newAndActive from '@/modules/organization/config/saved-views/views/new-and-active';
 import allOrganizations from '@/modules/organization/config/saved-views/views/all-organizations';
 import { filterQueryService } from '@/shared/modules/filters/services/filter-query.service';
+import { storeToRefs } from 'pinia';
+import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 
 export default {
   name: 'AppDashboardOrganizations',
@@ -225,6 +229,11 @@ export default {
       return moment()
         .subtract(this.period.value, 'day')
         .format('YYYY-MM-DD');
+    },
+    selectedProjectGroup() {
+      const lsSegmentsStore = useLfSegmentsStore();
+
+      return storeToRefs(lsSegmentsStore).selectedProjectGroup.value;
     },
   },
   methods: {

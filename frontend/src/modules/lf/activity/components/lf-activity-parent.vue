@@ -9,6 +9,7 @@
           params: {
             id: parent.memberId,
           },
+          query: { projectGroup: selectedProjectGroup?.id },
         }"
       >
         <span class="font-medium text-gray-900">{{ parent.member.displayName }}</span>
@@ -19,6 +20,8 @@
 
 <script setup>
 import { toSentenceCase } from '@/utils/string';
+import { storeToRefs } from 'pinia';
+import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 
 defineProps({
   parent: {
@@ -26,6 +29,9 @@ defineProps({
     default: () => {},
   },
 });
+
+const lsSegmentsStore = useLfSegmentsStore();
+const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);
 </script>
 
 <script>

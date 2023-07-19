@@ -15,6 +15,9 @@ module.exports = {
   testTimeout: 90000,
   testRegex: ['__tests__/.*tests?.ts$'],
   bail: false,
-  roots: ['./'],
+  roots: ['<rootDir>'],
+  moduleNameMapper: {
+    '^@/(.*)$': '<rootDir>/src/$1',
+  },
   transformIgnorePatterns: ['node_modules/(?!(axios|@crowd/))/'],
 }

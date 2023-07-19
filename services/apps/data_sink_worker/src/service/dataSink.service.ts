@@ -53,6 +53,7 @@ export default class DataSinkService extends LoggerBase {
       apiDataId: resultInfo.apiDataId,
       streamId: resultInfo.streamId,
       runId: resultInfo.runId,
+      webhookId: resultInfo.webhookId,
       integrationId: resultInfo.integrationId,
       platform: resultInfo.platform,
     })
@@ -65,15 +66,14 @@ export default class DataSinkService extends LoggerBase {
       }
 
       await this.repo.resetResults([resultId])
-      // await this.triggerResultError(resultId, 'check-result-state', 'Result is not pending.', {
-      //   actualState: resultInfo.state,
-      // })
       return
     }
 
     this.log.debug('Marking result as in progress.')
     await this.repo.markResultInProgress(resultId)
-    await this.repo.touchRun(resultInfo.runId)
+    if (resultInfo.runId) {
+      await this.repo.touchRun(resultInfo.runId)
+    }
 
     try {
       const data = resultInfo.data
@@ -132,7 +132,9 @@ export default class DataSinkService extends LoggerBase {
         frameworkVersion: 'new',
       })
     } finally {
-      await this.repo.touchRun(resultInfo.runId)
+      if (resultInfo.runId) {
+        await this.repo.touchRun(resultInfo.runId)
+      }
     }
   }
 }

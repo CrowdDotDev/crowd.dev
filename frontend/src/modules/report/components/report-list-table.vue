@@ -53,6 +53,7 @@
                         id: scope.row.id,
                         segmentId: scope.row.segmentId,
                       },
+                      query: { projectGroup: selectedProjectGroup?.id },
                     }"
                     class="flex items-center text-black"
                   >
@@ -121,11 +122,16 @@ import {
 } from 'vue';
 import { useStore } from 'vuex';
 import { useRouter } from 'vue-router';
+import { storeToRefs } from 'pinia';
+import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import AppReportDropdown from './report-dropdown.vue';
 import AppReportListToolbar from './report-list-toolbar.vue';
 
 const store = useStore();
 const router = useRouter();
+
+const lsSegmentsStore = useLfSegmentsStore();
+const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);
 
 const table = ref(null);
 

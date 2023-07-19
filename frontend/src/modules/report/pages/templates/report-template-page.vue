@@ -15,7 +15,10 @@
       <div class="max-w-5xl mx-auto px-8 pb-6">
         <router-link
           class="btn-link--sm btn-link--secondary inline-flex items-center mb-3.5"
-          :to="{ path: '/reports' }"
+          :to="{
+            path: '/reports',
+            query: { projectGroup: selectedProjectGroup?.id },
+          }"
         >
           <i
             class="ri-arrow-left-s-line mr-2"
@@ -85,6 +88,8 @@ import templates from '@/modules/report/templates/config';
 import AppReportTemplateFilters from '@/modules/report/components/templates/report-template-filters.vue';
 import ActivityPlatformField from '@/modules/activity/activity-platform-field';
 import { mapActions } from '@/shared/vuex/vuex.helpers';
+import { storeToRefs } from 'pinia';
+import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 
 const props = defineProps({
   id: {
@@ -92,6 +97,9 @@ const props = defineProps({
     default: null,
   },
 });
+
+const lsSegmentsStore = useLfSegmentsStore();
+const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);
 
 const { doFind } = mapActions('report');
 

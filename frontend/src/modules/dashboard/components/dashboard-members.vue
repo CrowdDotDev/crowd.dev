@@ -98,6 +98,7 @@
                       value: periodStartDate,
                       operator: 'gt',
                     },
+                    projectGroup: selectedProjectGroup?.id,
                   }),
                 }"
                 class="text-sm leading-5 font-medium  hover:underline"
@@ -220,6 +221,8 @@ import AppDashboardCount from '@/modules/dashboard/components/dashboard-count.vu
 import { filterQueryService } from '@/shared/modules/filters/services/filter-query.service';
 import newAndActive from '@/modules/member/config/saved-views/views/new-and-active';
 import allMembers from '@/modules/member/config/saved-views/views/all-members';
+import { storeToRefs } from 'pinia';
+import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 
 export default {
   name: 'AppDashboardMember',
@@ -253,6 +256,11 @@ export default {
       return moment()
         .subtract(this.period.value, 'day')
         .format('YYYY-MM-DD');
+    },
+    selectedProjectGroup() {
+      const lsSegmentsStore = useLfSegmentsStore();
+
+      return storeToRefs(lsSegmentsStore).selectedProjectGroup.value;
     },
   },
   methods: {

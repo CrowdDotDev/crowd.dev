@@ -1,14 +1,14 @@
 import axios, { AxiosRequestConfig } from 'axios'
-import { Logger } from '@crowd/logging'
 import { handleDiscordError } from './errorHandler'
+import { IProcessStreamContext } from '@/types'
 
 export const getMessage = async (
   channelId: string,
   messageId: string,
   token: string,
-  logger: Logger,
-): Promise<any> => {
-  const config: AxiosRequestConfig<any> = {
+  ctx: IProcessStreamContext,
+) => {
+  const config: AxiosRequestConfig = {
     method: 'get',
     url: `https://discord.com/api/v10/channels/${channelId}/messages/${messageId}`,
     headers: {
@@ -20,7 +20,7 @@ export const getMessage = async (
     const response = await axios(config)
     return response.data
   } catch (err) {
-    const newErr = handleDiscordError(err, config, { channelId, messageId }, logger)
+    const newErr = handleDiscordError(err, config, { channelId, messageId }, ctx)
     throw newErr
   }
 }

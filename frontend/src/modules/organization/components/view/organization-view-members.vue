@@ -36,6 +36,7 @@
               :to="{
                 name: 'memberView',
                 params: { id: member.id },
+                query: { projectGroup: selectedProjectGroup?.id },
               }"
             >
               <app-avatar :entity="member" size="sm" />
@@ -97,6 +98,8 @@ import authAxios from '@/shared/axios/auth-axios';
 import AppMemberEngagementLevel from '@/modules/member/components/member-engagement-level.vue';
 import AppMemberDisplayName from '@/modules/member/components/member-display-name.vue';
 import AppMemberIdentities from '@/modules/member/components/member-identities.vue';
+import { storeToRefs } from 'pinia';
+import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 
 const SearchIcon = h(
   'i', // type
@@ -111,6 +114,9 @@ const props = defineProps({
     default: () => {},
   },
 });
+
+const lsSegmentsStore = useLfSegmentsStore();
+const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);
 
 const loading = ref(true);
 const query = ref('');

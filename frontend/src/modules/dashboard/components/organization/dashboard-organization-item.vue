@@ -16,6 +16,7 @@
       :to="{
         name: 'organizationView',
         params: { id: props.organization.id },
+        query: { projectGroup: selectedProjectGroup?.id },
       }"
       class="flex items-center justify-between group hover:cursor-pointer w-full"
     >
@@ -43,9 +44,11 @@
 </template>
 
 <script setup>
-import { defineProps, computed } from 'vue';
+import { computed } from 'vue';
 import AppAvatar from '@/shared/avatar/avatar.vue';
 import AppLoading from '@/shared/loading/loading-placeholder.vue';
+import { storeToRefs } from 'pinia';
+import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 
 const props = defineProps({
   organization: {
@@ -59,6 +62,9 @@ const props = defineProps({
     default: false,
   },
 });
+
+const lsSegmentsStore = useLfSegmentsStore();
+const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);
 
 const entity = computed(() => ({
   avatar: props.organization.logo,

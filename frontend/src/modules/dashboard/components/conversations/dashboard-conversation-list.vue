@@ -37,6 +37,7 @@
         :to="{
           name: 'activity',
           hash: '#conversation',
+          query: { projectGroup: selectedProjectGroup?.id },
         }"
         class="text-red font-medium text-center text-xs leading-5 hover:underline"
       >
@@ -57,6 +58,8 @@ import { mapGetters } from 'vuex';
 import AppDashboardEmptyState from '@/modules/dashboard/components/dashboard-empty-state.vue';
 import AppDashboardConversationItem from '@/modules/dashboard/components/conversations/dashboard-conversation-item.vue';
 import AppConversationDrawer from '@/modules/conversation/components/conversation-drawer.vue';
+import { storeToRefs } from 'pinia';
+import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 
 export default {
   name: 'AppDashboardConversationList',
@@ -75,6 +78,11 @@ export default {
       'trendingConversations',
       'conversations',
     ]),
+    selectedProjectGroup() {
+      const lsSegmentsStore = useLfSegmentsStore();
+
+      return storeToRefs(lsSegmentsStore).selectedProjectGroup.value;
+    },
   },
   methods: {
     refreshConversations() {

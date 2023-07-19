@@ -5,6 +5,7 @@
         :to="{
           name: 'organizationView',
           params: { id: activeOrganization.id },
+          query: { projectGroup: selectedProjectGroup?.id },
         }"
         class="flex items-start hover:cursor-pointer"
         @click.stop
@@ -74,6 +75,7 @@
         :to="{
           name: 'organizationView',
           params: { id: activeOrganization.id },
+          query: { projectGroup: selectedProjectGroup?.id },
         }"
         class="badge--interactive"
         @click.stop
@@ -97,6 +99,8 @@
 
 <script setup>
 import { computed } from 'vue';
+import { storeToRefs } from 'pinia';
+import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 
 const props = defineProps({
   member: {
@@ -112,6 +116,9 @@ const props = defineProps({
     default: () => 'vertical',
   },
 });
+
+const lsSegmentsStore = useLfSegmentsStore();
+const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);
 
 const activeOrganization = computed(() => {
   if (!props.member.organizations?.length) {
