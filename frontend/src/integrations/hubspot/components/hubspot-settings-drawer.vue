@@ -1,7 +1,6 @@
 <template>
   <app-drawer
     v-model="isDrawerVisible"
-    custom-class="integration-reddit-drawer"
     title="Discourse"
     size="600px"
     pre-title="Integration"
@@ -70,7 +69,12 @@
               Select and map which attributes and properties to sync between crowd.dev and HubSpot.
             </p>
             <div class="pl-8">
-              <el-button class="btn btn--bordered btn--sm !h-8" :disabled="!form.members && !form.organizations" @click="updateAttributes()">
+              <el-button
+                class="btn btn--bordered btn--sm !h-8"
+                :disabled="!form.members && !form.organizations"
+                :loading="updatingAttributes"
+                @click="updateAttributes()"
+              >
                 <span class="ri-refresh-line mr-2" />
                 Update attributes
               </el-button>
@@ -84,7 +88,7 @@
           </div>
         </section>
         <section>
-          <el-collapse v-model="activeView" accordion>
+          <el-collapse v-model="activeView" accordion class="attributes">
             <el-collapse-item name="member" :disabled="!form.members">
               <template #title>
                 <div class="flex justify-between w-full items-center">
@@ -101,16 +105,52 @@
                 </div>
               </template>
 
-              <section>
-                <div>
-                  Consistent with real life: in line with the process and logic of real
-                  life, and comply with languages and habits that the users are used to;
+              <div v-if="activeView === 'member'">
+                <div class="flex pt-3 pb-2 border-b border-gray-100">
+                  <div class="w-1/2 pl-8 text-gray-400 font-semibold tracking-1 text-3xs">
+                    CROWD.DEV ATTRIBUTES
+                  </div>
+                  <div class="w-1/2 pl-8 text-gray-400 font-semibold tracking-1 text-3xs">
+                    HUBSPOT PROPERTIES <span class="text-brand-500">*</span>
+                  </div>
                 </div>
-                <div>
-                  Consistent within interface: all elements should be consistent, such
-                  as: design style, icons and texts, position of elements, etc.
-                </div>
-              </section>
+                <section class="pt-1 pb-3">
+                  <div v-for="(type, field) in memberMappableFields" :key="field" class="flex items-center">
+                    <div class="w-1/2">
+                      <div class="flex items-center">
+                        <el-checkbox v-model="form.enabled.members[field]" size="default" class="filter-checkbox" />
+                        <p class="pl-1 text-2xs">
+                          {{ getLabel(field as string) }}
+                        </p>
+                      </div>
+                    </div>
+                    <div class="w-1/2 py-2">
+                      <div class="flex items-center w-full">
+                        <div class="ri-arrow-left-right-line text-base text-gray-400 mr-4 h-4 flex items-center" />
+                        <label class="w-full">
+                          <select
+                            v-model="form.mapping.members[field]"
+                            class="c-select"
+                            :class="[
+                              form.mapping.members[field] ? 'text-gray-900' : 'text-gray-400',
+                              form.enabled.members[field] && !form.mapping.members[field] ? 'border-brand-400' : '',
+                            ]"
+                          >
+                            <option :value="undefined" disabled class="hidden">Select property</option>
+                            <option
+                              v-for="hubspotField of getHubspotMemberFields(type, form.mapping.members[field])"
+                              :key="hubspotField.name"
+                              :value="hubspotField.name"
+                            >
+                              {{ hubspotField.label }}
+                            </option>
+                          </select>
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+                </section>
+              </div>
             </el-collapse-item>
             <el-collapse-item name="organization" :disabled="!form.organizations">
               <template #title>
@@ -127,13 +167,53 @@
                   </div>
                 </div>
               </template>
-              <div>
-                Consistent with real life: in line with the process and logic of real
-                life, and comply with languages and habits that the users are used to;
-              </div>
-              <div>
-                Consistent within interface: all elements should be consistent, such
-                as: design style, icons and texts, position of elements, etc.
+              <div v-if="activeView === 'organization'">
+                <div class="flex pt-3 pb-2 border-b border-gray-100">
+                  <div class="w-1/2 pl-8 text-gray-400 font-semibold tracking-1 text-3xs">
+                    CROWD.DEV ATTRIBUTES
+                  </div>
+                  <div class="w-1/2 pl-8 text-gray-400 font-semibold tracking-1 text-3xs">
+                    HUBSPOT PROPERTIES <span class="text-brand-500">*</span>
+                  </div>
+                </div>
+                <section class="pt-1 pb-3">
+                  <div v-for="(type, field) in organizationMappableFields" :key="field" class="flex items-center">
+                    <div class="w-1/2">
+                      <div class="flex items-center">
+                        <el-checkbox v-model="form.enabled.organizations[field]" size="default" class="filter-checkbox" />
+                        <p class="pl-1 text-2xs">
+                          {{ getLabel(field as string) }}
+                        </p>
+                      </div>
+                    </div>
+                    <div class="w-1/2 py-2">
+                      <div class="flex items-center w-full">
+                        <div class="ri-arrow-left-right-line text-base text-gray-400 mr-4 h-4 flex items-center" />
+                        <div class="w-full">
+                          <label class="w-full">
+                            <select
+                              v-model="form.mapping.organizations[field]"
+                              class="c-select"
+                              :class="[
+                                form.mapping.organizations[field] ? 'text-gray-900' : 'text-gray-400',
+                                form.enabled.organizations[field] && !form.mapping.organizations[field] ? 'border-brand-400' : '',
+                              ]"
+                            >
+                              <option :value="undefined" disabled class="hidden">Select property</option>
+                              <option
+                                v-for="hubspotField of getHubspotOrganizationFields(type, form.mapping.organizations[field])"
+                                :key="hubspotField.name"
+                                :value="hubspotField.name"
+                              >
+                                {{ hubspotField.label }}
+                              </option>
+                            </select>
+                          </label>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </section>
               </div>
             </el-collapse-item>
           </el-collapse>
@@ -142,26 +222,23 @@
     </template>
 
     <template #footer>
-      <!--      <div style="flex: auto">-->
-      <!--        <el-button-->
-      <!--          class="btn btn&#45;&#45;md btn&#45;&#45;bordered mr-3"-->
-      <!--          :disabled="loading"-->
-      <!--          @click="handleCancel"-->
-      <!--        >-->
-      <!--          Cancel-->
-      <!--        </el-button>-->
-      <!--        <el-button-->
-      <!--          type="primary"-->
-      <!--          class="btn btn&#45;&#45;md btn&#45;&#45;primary"-->
-      <!--          :disabled="-->
-      <!--            $v.$invalid-->
-      <!--              || !hasFormChanged || loading"-->
-      <!--          :loading="loading"-->
-      <!--          @click="connect()"-->
-      <!--        >-->
-      <!--          {{ integration.settings?.forumHostname ? "Update" : "Connect" }}-->
-      <!--        </el-button>-->
-      <!--      </div>-->
+      <div style="flex: auto">
+        <el-button
+          class="btn btn--md btn--bordered mr-3"
+          @click="isDrawerVisible = false"
+        >
+          Cancel
+        </el-button>
+        <el-button
+          type="primary"
+          class="btn btn--md btn--primary"
+          :disabled="!isMappingValid || loading"
+          :loading="loading"
+          @click="update()"
+        >
+          Update
+        </el-button>
+      </div>
     </template>
   </app-drawer>
 </template>
@@ -172,6 +249,11 @@ import {
 } from 'vue';
 import { CrowdIntegrations } from '@/integrations/integrations-config';
 import { HubspotApiService } from '@/integrations/hubspot/hubspot.api.service';
+import { MappableFields } from '@/integrations/hubspot/types/MappableFields';
+import { useStore } from 'vuex';
+import { HubspotOnboard } from '@/integrations/hubspot/types/HubspotOnboard';
+import { HubspotEntity } from '@/integrations/hubspot/types/HubspotEntity';
+import { mapActions } from '@/shared/vuex/vuex.helpers';
 
 const props = defineProps<{
   modelValue: boolean
@@ -179,7 +261,13 @@ const props = defineProps<{
 
 const emit = defineEmits<{(e: 'update:modelValue', value: boolean): void }>();
 
+const store = useStore();
+const { doFetch } = mapActions('integration');
+
 const activeView = ref(null);
+
+const memberMappableFields = ref<Record<string, string>>({});
+const organizationMappableFields = ref<Record<string, string>>({});
 
 const isDrawerVisible = computed({
   get() {
@@ -193,19 +281,142 @@ const isDrawerVisible = computed({
 const form = reactive({
   members: false,
   organizations: false,
+  enabled: {
+    members: {},
+    organizations: {},
+  },
+  mapping: {
+    members: {},
+    organizations: {},
+  },
 });
+
+const loading = ref<boolean>(false);
+const updatingAttributes = ref<boolean>(false);
+
+const usedHubspotMemberFields = computed(() => Object.values(form.mapping.members));
+const usedHubspotOrganizationFields = computed(() => Object.values(form.mapping.organizations));
+
+const getHubspotMemberFields = (type: string, name: string) => {
+  const fields = getHubspotProperties.value.members;
+  return fields.filter((field) => {
+    if (field.name === name) {
+      return true;
+    }
+    return !(field.type !== type || usedHubspotMemberFields.value.includes(field.name));
+  });
+};
+
+const getHubspotOrganizationFields = (type: string, name: string) => {
+  const fields = getHubspotProperties.value.organizations;
+  return fields.filter((field) => {
+    if (field.name === name) {
+      return true;
+    }
+    return !(field.type !== type || usedHubspotOrganizationFields.value.includes(field.name));
+  });
+};
+
+const getLabel = (field: string) => {
+  const label = field
+    .replace('attributes.', '')
+    .replace('_', ' ')
+    .replace(/([A-Z])/g, ' $1');
+  return label.at(0).toUpperCase() + label.substring(1).toLowerCase();
+};
 
 const hubspotDetails = computed(() => CrowdIntegrations.getConfig('hubspot'));
 
-const updateAttributes = () => {
+const getHubspotProperties = ref({});
 
+const updateAttributes = () => {
+  updatingAttributes.value = true;
+  HubspotApiService.updateAttributes()
+    .then((res) => {
+      getHubspotProperties.value = res;
+    })
+    .finally(() => {
+      updatingAttributes.value = false;
+    });
+};
+
+const isMappingValid = computed(() => {
+  const memberKeys = Object.keys(form.enabled.members).filter((key) => form.enabled.members[key]);
+  const organizationKeys = Object.keys(form.enabled.organizations).filter((key) => form.enabled.organizations[key]);
+  const memberValid = memberKeys.every((key) => form.mapping.members[key]?.length > 0);
+  const organizationValid = organizationKeys.every((key) => form.mapping.organizations[key]?.length > 0);
+  return (!form.members || (memberValid && memberKeys.length > 0))
+    && (!form.organizations || (organizationValid && organizationKeys.length > 0))
+    && (form.members || form.organizations);
+});
+
+const update = () => {
+  if (!isMappingValid.value) {
+    return;
+  }
+  const data: HubspotOnboard = {
+    enabledFor: [
+      ...(form.members ? [HubspotEntity.MEMBERS] : []),
+      ...(form.organizations ? [HubspotEntity.ORGANIZATIONS] : []),
+    ],
+    attributesMapping: {
+      members: {},
+      organizations: {},
+    },
+  };
+  if (form.members) {
+    const memberKeys = Object.keys(form.enabled.members).filter((key) => form.enabled.members[key]);
+    data.attributesMapping.members = memberKeys.reduce((a, b) => ({
+      ...a,
+      [b]: form.mapping.members[b],
+    }), {});
+  }
+  if (form.organizations) {
+    const organizationKeys = Object.keys(form.enabled.organizations).filter((key) => form.enabled.organizations[key]);
+    data.attributesMapping.organizations = organizationKeys.reduce((a, b) => ({
+      ...a,
+      [b]: form.mapping.organizations[b],
+    }), {});
+  }
+  loading.value = true;
+  HubspotApiService.finishOnboard(data)
+    .then(() => {
+      doFetch(null);
+      isDrawerVisible.value = false;
+    })
+    .finally(() => {
+      loading.value = false;
+    });
+};
+
+const fillForm = (data: HubspotOnboard) => {
+  form.members = data.enabledFor.includes(HubspotEntity.MEMBERS);
+  form.organizations = data.enabledFor.includes(HubspotEntity.ORGANIZATIONS);
+
+  form.mapping.members = data.attributesMapping[HubspotEntity.MEMBERS];
+  form.mapping.organizations = data.attributesMapping[HubspotEntity.ORGANIZATIONS];
+
+  form.enabled.members = Object.keys(data.attributesMapping[HubspotEntity.MEMBERS]).reduce((a, b) => ({
+    ...a,
+    [b]: true,
+  }), {});
+
+  form.enabled.organizations = Object.keys(data.attributesMapping[HubspotEntity.ORGANIZATIONS]).reduce((a, b) => ({
+    ...a,
+    [b]: true,
+  }), {});
 };
 
 onMounted(() => {
+  updateAttributes();
   HubspotApiService.getMappableFields()
-    .then((mappableData) => {
-      console.log(mappableData);
+    .then((mappableData: MappableFields) => {
+      memberMappableFields.value = mappableData.members;
+      organizationMappableFields.value = mappableData.organizations;
     });
+
+  const data = CrowdIntegrations.getMappedConfig('hubspot', store);
+  fillForm(data.settings);
 });
 
 </script>
@@ -217,7 +428,7 @@ export default {
 </script>
 
 <style lang="scss">
-.el-collapse {
+.el-collapse.attributes {
   @apply border-0;
 }
 
@@ -233,5 +444,23 @@ export default {
   .el-collapse-item__arrow {
     @apply hidden;
   }
+}
+
+.el-select.map-attribute{
+  .el-input {
+    @apply min-h-8 bg-gray-50;
+
+    .el-input__wrapper{
+      @apply bg-gray-50;
+    }
+
+    .el-input__suffix-inner {
+      top: 0.5rem;
+    }
+  }
+}
+
+.c-select{
+  @apply w-full h-8 bg-gray-50 border border-gray-100 rounded-md px-2 text-2xs text-gray-600;
 }
 </style>

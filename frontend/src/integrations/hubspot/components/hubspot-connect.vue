@@ -1,6 +1,6 @@
 <template>
   <slot :connect="connect" :settings="settings" :has-settings="true" />
-  <app-hubspot-settings-drawer v-model="openSettingsDrawer" />
+  <app-hubspot-settings-drawer v-if="openSettingsDrawer" v-model="openSettingsDrawer" />
 </template>
 
 <script setup lang="ts">
