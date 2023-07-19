@@ -109,6 +109,7 @@
 
     <!-- Add/Edit Webhook form drawer -->
     <app-automation-form
+      v-if="openAutomationForm"
       v-model="openAutomationForm"
       v-model:automation="editAutomation"
       :type="automationFormType"
