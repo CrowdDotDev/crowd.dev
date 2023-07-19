@@ -248,7 +248,7 @@ export default class IntegrationDataRepository extends RepositoryBase<Integratio
        where id = $(dataId)`,
       {
         dataId,
-        state: IntegrationStreamState.PENDING,
+        state: IntegrationStreamDataState.PENDING,
       },
     )
 
