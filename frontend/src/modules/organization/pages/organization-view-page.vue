@@ -8,7 +8,10 @@
     <div v-else-if="organization">
       <router-link
         class="text-gray-600 btn-link--md btn-link--secondary p-0 inline-flex items-center"
-        :to="{ path: '/organizations' }"
+        :to="{
+          path: '/organizations',
+          query: { projectGroup: selectedProjectGroup?.id },
+        }"
       >
         <i class="ri-arrow-left-s-line mr-2" />Organizations
       </router-link>
@@ -56,6 +59,8 @@ import AppOrganizationViewHeader from '@/modules/organization/components/view/or
 import AppOrganizationViewAside from '@/modules/organization/components/view/organization-view-aside.vue';
 import AppOrganizationViewMembers from '@/modules/organization/components/view/organization-view-members.vue';
 import Message from '@/shared/message/message';
+import { storeToRefs } from 'pinia';
+import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import { OrganizationService } from '../organization-service';
 
 const props = defineProps({
@@ -64,6 +69,10 @@ const props = defineProps({
     default: null,
   },
 });
+
+const lsSegmentsStore = useLfSegmentsStore();
+const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);
+
 const organization = ref({});
 
 const loading = ref(true);

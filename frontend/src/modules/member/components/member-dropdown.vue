@@ -20,6 +20,7 @@
             params: {
               id: member.id,
             },
+            query: { projectGroup: selectedProjectGroup?.id },
           }"
           :class="{
             'pointer-events-none cursor-not-allowed':
@@ -165,14 +166,14 @@
 
 <script>
 import { mapActions, mapGetters } from 'vuex';
-import { mapActions as piniaMapActions } from 'pinia';
+import { mapActions as piniaMapActions, storeToRefs } from 'pinia';
 import { MemberService } from '@/modules/member/member-service';
 import Message from '@/shared/message/message';
 import { MemberPermissions } from '@/modules/member/member-permissions';
 import ConfirmDialog from '@/shared/dialog/confirm-dialog';
 import AppSvg from '@/shared/svg/svg.vue';
-import AppMemberMergeDialog from '@/modules/member/components/member-merge-dialog.vue';
 import { useMemberStore } from '@/modules/member/store/pinia';
+import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 
 export default {
   name: 'AppMemberDropdown',
@@ -224,6 +225,11 @@ export default {
         this.currentTenant,
         this.currentUser,
       ).destroyLockedForSampleData;
+    },
+    selectedProjectGroup() {
+      const lsSegmentsStore = useLfSegmentsStore();
+
+      return storeToRefs(lsSegmentsStore).selectedProjectGroup.value;
     },
   },
   methods: {

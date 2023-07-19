@@ -104,6 +104,7 @@
                     :to="{
                       name: 'organizationView',
                       params: { id: scope.row.id },
+                      query: { projectGroup: selectedProjectGroup?.id },
                     }"
                     class="block mr-4"
                   >
@@ -127,6 +128,7 @@
                     :to="{
                       name: 'organizationView',
                       params: { id: scope.row.id },
+                      query: { projectGroup: selectedProjectGroup?.id },
                     }"
                     class="block"
                   >
@@ -153,6 +155,7 @@
                     :to="{
                       name: 'organizationView',
                       params: { id: scope.row.id },
+                      query: { projectGroup: selectedProjectGroup?.id },
                     }"
                     class="block"
                   >
@@ -188,6 +191,7 @@
                     :to="{
                       name: 'organizationView',
                       params: { id: scope.row.id },
+                      query: { projectGroup: selectedProjectGroup?.id },
                     }"
                     class="block"
                   >
@@ -216,6 +220,7 @@
                     :to="{
                       name: 'organizationView',
                       params: { id: scope.row.id },
+                      query: { projectGroup: selectedProjectGroup?.id },
                     }"
                     class="block"
                   >
@@ -244,6 +249,7 @@
                     :to="{
                       name: 'organizationView',
                       params: { id: scope.row.id },
+                      query: { projectGroup: selectedProjectGroup?.id },
                     }"
                     class="block"
                   >
@@ -275,6 +281,7 @@
                     :to="{
                       name: 'organizationView',
                       params: { id: scope.row.id },
+                      query: { projectGroup: selectedProjectGroup?.id },
                     }"
                     class="block"
                   >
@@ -302,6 +309,7 @@
                     :to="{
                       name: 'organizationView',
                       params: { id: scope.row.id },
+                      query: { projectGroup: selectedProjectGroup?.id },
                     }"
                     class="block"
                   >
@@ -355,6 +363,7 @@
                     :to="{
                       name: 'organizationView',
                       params: { id: scope.row.id },
+                      query: { projectGroup: selectedProjectGroup?.id },
                     }"
                     class="block"
                   >
@@ -384,6 +393,7 @@
                     :to="{
                       name: 'organizationView',
                       params: { id: scope.row.id },
+                      query: { projectGroup: selectedProjectGroup?.id },
                     }"
                     class="block"
                   >
@@ -413,6 +423,7 @@
                     :to="{
                       name: 'organizationView',
                       params: { id: scope.row.id },
+                      query: { projectGroup: selectedProjectGroup?.id },
                     }"
                     class="block"
                   >
@@ -442,6 +453,7 @@
                     :to="{
                       name: 'organizationView',
                       params: { id: scope.row.id },
+                      query: { projectGroup: selectedProjectGroup?.id },
                     }"
                     class="block"
                   >
@@ -471,6 +483,7 @@
                     :to="{
                       name: 'organizationView',
                       params: { id: scope.row.id },
+                      query: { projectGroup: selectedProjectGroup?.id },
                     }"
                     class="block"
                   >
@@ -495,6 +508,7 @@
                     :to="{
                       name: 'organizationView',
                       params: { id: scope.row.id },
+                      query: { projectGroup: selectedProjectGroup?.id },
                     }"
                     class="flex justify-center"
                   >
@@ -543,6 +557,7 @@ import { formatNumberToCompact } from '@/utils/number';
 import { withHttp, toSentenceCase } from '@/utils/string';
 import { useOrganizationStore } from '@/modules/organization/store/pinia';
 import { storeToRefs } from 'pinia';
+import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import AppOrganizationIdentities from '../organization-identities.vue';
 import AppOrganizationListToolbar from './organization-list-toolbar.vue';
 import AppOrganizationName from '../organization-name.vue';
@@ -564,6 +579,9 @@ const organizationStore = useOrganizationStore();
 const {
   organizations, selectedOrganizations, filters, totalOrganizations,
 } = storeToRefs(organizationStore);
+
+const lsSegmentsStore = useLfSegmentsStore();
+const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);
 
 const table = ref(null);
 const scrollbarRef = ref();

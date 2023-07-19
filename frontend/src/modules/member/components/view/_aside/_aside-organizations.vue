@@ -10,6 +10,7 @@
           params: {
             id: member.id,
           },
+          query: { projectGroup: selectedProjectGroup?.id },
         }"
         :class="{
           'pointer-events-none cursor-not-allowed':
@@ -43,6 +44,7 @@
           params: {
             id,
           },
+          query: { projectGroup: selectedProjectGroup?.id },
         }"
         class="group hover:cursor-pointer"
       >
@@ -107,6 +109,8 @@ import { MemberPermissions } from '@/modules/member/member-permissions';
 import { mapGetters } from '@/shared/vuex/vuex.helpers';
 import { computed } from 'vue';
 import moment from 'moment';
+import { storeToRefs } from 'pinia';
+import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 
 defineProps({
   member: {
@@ -114,6 +118,9 @@ defineProps({
     default: () => {},
   },
 });
+
+const lsSegmentsStore = useLfSegmentsStore();
+const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);
 
 const { currentTenant, currentUser } = mapGetters('auth');
 

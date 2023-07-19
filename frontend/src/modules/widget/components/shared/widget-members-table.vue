@@ -24,6 +24,7 @@
       :to="{
         name: 'memberView',
         params: { id: member.id },
+        query: { projectGroup: selectedProjectGroup?.id },
       }"
       @click="onRowClick"
     >
@@ -88,10 +89,11 @@
 </template>
 
 <script setup>
-import { defineProps, defineEmits } from 'vue';
 import pluralize from 'pluralize';
 import AppPlatformSvgIcon from '@/shared/platform/platform-svg-icon.vue';
 import { CrowdIntegrations } from '@/integrations/integrations-config';
+import { storeToRefs } from 'pinia';
+import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 
 const emit = defineEmits(['onRowClick', 'onExportClick']);
 defineProps({
@@ -108,6 +110,9 @@ defineProps({
     default: false,
   },
 });
+
+const lsSegmentsStore = useLfSegmentsStore();
+const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);
 
 const tooltipContent = (platform) => {
   const config = CrowdIntegrations.getConfig(platform) || {};

@@ -29,6 +29,7 @@
           :to="{
             name: 'memberView',
             params: { id: activity.member.id },
+            query: { projectGroup: selectedProjectGroup?.id },
           }"
           target="_blank"
         >
@@ -132,6 +133,8 @@ import AppActivityContent from '@/modules/activity/components/activity-content.v
 import AppMemberDisplayName from '@/modules/member/components/member-display-name.vue';
 import AppActivityContentFooter from '@/modules/activity/components/activity-content-footer.vue';
 import AppActivityHeader from '@/modules/activity/components/activity-header.vue';
+import { storeToRefs } from 'pinia';
+import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 
 export default {
   name: 'AppDashboardActivityItem',
@@ -162,6 +165,11 @@ export default {
       return CrowdIntegrations.getConfig(
         this.activity.platform,
       );
+    },
+    selectedProjectGroup() {
+      const lsSegmentsStore = useLfSegmentsStore();
+
+      return storeToRefs(lsSegmentsStore).selectedProjectGroup.value;
     },
   },
 };

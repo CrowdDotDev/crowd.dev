@@ -123,7 +123,7 @@ import { UserModel } from '@/modules/user/user-model';
 import Message from '@/shared/message/message';
 import { i18n } from '@/i18n';
 import AppI18n from '@/shared/i18n/i18n.vue';
-import { Auth0Service } from "@/shared/services/auth0.service";
+import { Auth0Service } from '@/shared/services/auth0.service';
 
 const { fields } = UserModel;
 

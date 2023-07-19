@@ -33,6 +33,7 @@
         :to="{
           name: 'memberView',
           params: { id: member.id },
+          query: { projectGroup: selectedProjectGroup?.id },
         }"
       >
         <app-avatar :entity="member" size="xs" />
@@ -167,6 +168,8 @@ import AppConversationDetailsFooter from '@/modules/conversation/components/conv
 import { ActivityService } from '@/modules/activity/activity-service';
 import Message from '@/shared/message/message';
 import config from '@/config';
+import { storeToRefs } from 'pinia';
+import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import { ConversationPermissions } from '../conversation-permissions';
 
 export default {
@@ -273,6 +276,11 @@ export default {
       );
 
       return options;
+    },
+    selectedProjectGroup() {
+      const lsSegmentsStore = useLfSegmentsStore();
+
+      return storeToRefs(lsSegmentsStore).selectedProjectGroup.value;
     },
   },
   methods: {

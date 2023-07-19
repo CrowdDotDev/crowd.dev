@@ -18,7 +18,13 @@
     <div class="flex items-center">
       <router-link
         v-if="props.route && props.buttonTitle"
-        :to="props.route"
+        :to="{
+          ...props.route,
+          query: {
+            ...props.route.query,
+            projectGroup: selectedProjectGroup?.id,
+          },
+        }"
       >
         <el-button
           class="btn btn-link btn-link--sm btn-link--primary w-full leading-5 text-brand-500"
@@ -33,6 +39,7 @@
             params: {
               id: report(props.reportName).id,
             },
+            query: { projectGroup: selectedProjectGroup?.id },
           }"
           class="ml-4"
         >
@@ -49,10 +56,11 @@
 </template>
 
 <script setup>
-import { defineProps } from 'vue';
 import AppLoading from '@/shared/loading/loading-placeholder.vue';
 import { formatNumberToCompact } from '@/utils/number';
 import { mapGetters } from '@/shared/vuex/vuex.helpers';
+import { storeToRefs } from 'pinia';
+import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 
 const props = defineProps({
   title: {
@@ -87,6 +95,9 @@ const props = defineProps({
 });
 
 const { rows } = mapGetters('report');
+
+const lsSegmentsStore = useLfSegmentsStore();
+const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);
 
 const report = (reportName) => {
   if (!reportName) {

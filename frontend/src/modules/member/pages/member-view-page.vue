@@ -8,7 +8,10 @@
     <div v-else>
       <router-link
         class="text-gray-600 btn-link--md btn-link--secondary p-0 inline-flex items-center"
-        :to="{ path: '/contributors' }"
+        :to="{
+          path: '/contributors',
+          query: { projectGroup: selectedProjectGroup?.id },
+        }"
       >
         <i class="ri-arrow-left-s-line mr-2" />Contributors
       </router-link>
@@ -62,6 +65,7 @@ import AppMemberViewNotes from '@/modules/member/components/view/member-view-not
 import AppMemberViewContributions from '@/modules/member/components/view/member-view-contributions.vue';
 import { useMemberStore } from '@/modules/member/store/pinia';
 import { storeToRefs } from 'pinia';
+import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 
 const store = useStore();
 const props = defineProps({
@@ -74,6 +78,9 @@ const props = defineProps({
 const memberStore = useMemberStore();
 const { customAttributes } = storeToRefs(memberStore);
 const { getMemberCustomAttributes } = memberStore;
+
+const lsSegmentsStore = useLfSegmentsStore();
+const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);
 
 const member = computed(() => store.getters['member/find'](props.id) || {});
 
