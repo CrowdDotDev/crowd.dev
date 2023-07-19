@@ -178,6 +178,9 @@
 
         <!-- Eagle eye -->
         <el-tooltip
+          v-if="
+            hasPermissionToEagleEye || isEagleEyeLocked
+          "
           :disabled="!isCollapsed"
           :hide-after="50"
           effect="dark"
@@ -187,9 +190,6 @@
           content="Community Lens"
         >
           <router-link
-            v-if="
-              hasPermissionToEagleEye || isEagleEyeLocked
-            "
             id="menu-eagle-eye"
             :to="{ path: '/community-lens' }"
             class="el-menu-item"
@@ -203,37 +203,13 @@
         </el-tooltip>
 
         <el-divider
-          v-if="hasPermissionToSettings || isSettingsLocked || hasPermissionToAccessAdminPanel"
+          v-if="hasPermissionToAccessAdminPanel"
           class="border-gray-200 !mb-1"
         />
 
         <div class="mb-6">
           <el-tooltip
-            :disabled="!isCollapsed"
-            :hide-after="50"
-            effect="dark"
-            placement="right"
-            raw-content
-            popper-class="custom-menu-tooltip"
-            content="Settings"
-          >
-            <router-link
-              v-if="
-                hasPermissionToSettings || isSettingsLocked
-              "
-              id="menu-settings"
-              :to="{ path: '/settings' }"
-              class="el-menu-item mb-2"
-              :class="classFor('/settings')"
-            >
-              <i class="ri-settings-3-line" />
-              <span v-if="!isCollapsed">
-                Settings
-              </span>
-            </router-link>
-          </el-tooltip>
-
-          <el-tooltip
+            v-if="hasPermissionToAccessAdminPanel"
             :disabled="!isCollapsed"
             :hide-after="50"
             effect="dark"
@@ -243,11 +219,10 @@
             content="Admin panel"
           >
             <router-link
-              v-if="hasPermissionToAccessAdminPanel"
               id="menu-admin-panel"
-              :to="{ path: '/admin/project-groups' }"
+              :to="{ path: '/admin' }"
               class="el-menu-item"
-              :class="classFor('/admin/project-groups')"
+              :class="classFor('/admin')"
             >
               <i class="ri-settings-3-line" />
               <span v-if="!isCollapsed">
@@ -286,7 +261,6 @@ import AppAccountDropdown from '@/modules/layout/components/account-dropdown.vue
 import { ActivityTypeService } from '@/modules/activity/services/activity-type-service';
 import { EagleEyePermissions } from '@/premium/eagle-eye/eagle-eye-permissions';
 import { mapGetters } from '@/shared/vuex/vuex.helpers';
-import { SettingsPermissions } from '@/modules/settings/settings-permissions';
 import { LfPermissions } from '@/modules/lf/lf-permissions';
 import { useStore } from 'vuex';
 
@@ -341,20 +315,6 @@ const hasPermissionToEagleEye = computed(
 
 const isEagleEyeLocked = computed(
   () => new EagleEyePermissions(
-    currentTenant.value,
-    currentUser.value,
-  ).lockedForCurrentPlan,
-);
-
-const hasPermissionToSettings = computed(
-  () => new SettingsPermissions(
-    currentTenant.value,
-    currentUser.value,
-  ).edit,
-);
-
-const isSettingsLocked = computed(
-  () => new SettingsPermissions(
     currentTenant.value,
     currentUser.value,
   ).lockedForCurrentPlan,

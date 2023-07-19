@@ -1,3 +1,5 @@
+import { store } from '@/store';
+
 export const getSegmentsFromProjectGroup = (projectGroup, options) => {
   if (!projectGroup) {
     return [];
@@ -14,4 +16,22 @@ export const getSegmentsFromProjectGroup = (projectGroup, options) => {
 
     return acc;
   }, []);
+};
+
+export const hasAccessToProjectGroup = (segmentId) => {
+  const currentUser = store.getters['auth/currentUser'];
+  const { segments = [] } = currentUser;
+
+  if (!segments.length) {
+    return false;
+  }
+
+  return segments.includes(segmentId);
+};
+
+export const getUserSegments = (allSegments) => {
+  const currentUser = store.getters['auth/currentUser'];
+  const { segments = [] } = currentUser;
+
+  return allSegments.filter((s) => segments.includes(s.id));
 };

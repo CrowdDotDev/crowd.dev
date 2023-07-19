@@ -5,12 +5,12 @@ const ProjectGroupsListPage = () => import(
   '@/modules/lf/segments/pages/lf-project-groups-list-page.vue'
 );
 
-const ProjectGroupsPage = () => import(
-  '@/modules/lf/segments/pages/lf-project-groups-page.vue'
-);
-
 const ProjectsPage = () => import(
   '@/modules/lf/segments/pages/lf-projects-page.vue'
+);
+
+const AdminPanelPage = () => import(
+  '@/modules/lf/segments/pages/lf-admin-panel-page.vue'
 );
 
 export default [
@@ -33,9 +33,9 @@ export default [
         },
       },
       {
-        name: 'adminProjectGroups',
-        path: '/admin/project-groups',
-        component: ProjectGroupsPage,
+        name: 'adminPanel',
+        path: '/admin',
+        component: AdminPanelPage,
         meta: {
           title: 'Admin Panel',
           permission: Permissions.values.projectGroupCreate,

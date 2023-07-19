@@ -28,7 +28,10 @@
         description="Create your first project group and start integrating your projects"
         cta-btn="Manage project groups"
         @cta-click="router.push({
-          name: 'adminProjectGroups',
+          name: 'adminPanel',
+          query: {
+            activeTab: 'project-groups',
+          },
         })"
       />
 
@@ -81,6 +84,7 @@
             </el-button>
 
             <router-link
+              v-if="hasPermissionToAccessAdminPanel && hasAccessToProjectGroup(projectGroup.id)"
               :to="{
                 name: 'adminProjects',
                 params: {
@@ -88,7 +92,9 @@
                 },
               }"
             >
-              <el-button v-if="hasPermissionToAccessAdminPanel" class="btn btn--md btn--full btn--secondary">
+              <el-button
+                class="btn btn--md btn--full btn--secondary"
+              >
                 Settings
               </el-button>
             </router-link>
@@ -108,6 +114,7 @@ import pluralize from 'pluralize';
 import { useRouter } from 'vue-router';
 import { LfPermissions } from '@/modules/lf/lf-permissions';
 import { mapGetters } from '@/shared/vuex/vuex.helpers';
+import { hasAccessToProjectGroup } from '@/utils/segments';
 
 const router = useRouter();
 

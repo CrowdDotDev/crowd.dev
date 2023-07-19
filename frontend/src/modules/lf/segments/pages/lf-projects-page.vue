@@ -2,7 +2,12 @@
   <app-page-wrapper>
     <router-link
       class="text-gray-600 btn-link--md btn-link--secondary p-0 inline-flex items-center pb-6"
-      :to="{ name: 'adminProjectGroups' }"
+      :to="{
+        name: 'adminPanel',
+        query: {
+          activeTab: 'project-groups',
+        },
+      }"
     >
       <i class="ri-arrow-left-s-line mr-2" />
       <span>Project groups</span>

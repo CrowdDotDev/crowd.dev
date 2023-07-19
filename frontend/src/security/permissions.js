@@ -715,6 +715,7 @@ class Permissions {
         allowedRoles: [
           roles.admin,
           roles.projectAdmin,
+          roles.viewer,
         ],
         allowedPlans: [
           plans.essential,

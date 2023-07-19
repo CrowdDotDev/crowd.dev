@@ -1,9 +1,12 @@
 <template>
-  <app-page-wrapper>
-    <div class="w-full flex items-center justify-between mb-6">
-      <h4 class="text-gray-900 py-6">
-        Admin panel
-      </h4>
+  <div class="pt-6">
+    <div class="flex gap-4">
+      <!-- Search input -->
+      <app-lf-search-input
+        v-if="pagination.total"
+        placeholder="Search project groups..."
+        @on-change="searchProjectGroup"
+      />
       <el-button
         v-if="pagination.total && hasPermissionToCreate"
         class="btn btn--md btn--primary"
@@ -12,13 +15,6 @@
         Add project group
       </el-button>
     </div>
-
-    <!-- Search input -->
-    <app-lf-search-input
-      v-if="pagination.total"
-      placeholder="Search project groups..."
-      @on-change="searchProjectGroup"
-    />
 
     <div
       v-if="loading"
@@ -64,7 +60,7 @@
       v-model="isProjectFormDrawerOpen"
       :parent-slug="projectGroupForm.parentSlug"
     />
-  </app-page-wrapper>
+  </div>
 </template>
 
 <script setup>
