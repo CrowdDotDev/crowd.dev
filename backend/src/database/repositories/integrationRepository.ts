@@ -264,6 +264,7 @@ class IntegrationRepository {
       where: {
         integrationIdentifier: identifier,
         platform,
+        deletedAt: null,
       },
     })
 

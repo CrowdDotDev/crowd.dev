@@ -24,6 +24,7 @@ export default class IntegrationDataRepository extends RepositoryBase<Integratio
             r.state    as "runState",
             d."streamId",
             d."runId",
+            d."webhookId",
             d."tenantId",
             i.settings as "integrationSettings",
             d.id,
@@ -36,7 +37,7 @@ export default class IntegrationDataRepository extends RepositoryBase<Integratio
             coalesce(d.retries, 0) as retries
       from integration."apiData" d
               inner join integrations i on d."integrationId" = i.id
-              inner join integration.runs r on r.id = d."runId"
+              left join integration.runs r on r.id = d."runId"
               inner join tenants t on t.id = d."tenantId"
       where d.id = $(dataId);
   `
@@ -106,12 +107,13 @@ export default class IntegrationDataRepository extends RepositoryBase<Integratio
   public async publishResult(dataId: string, result: IIntegrationResult): Promise<string> {
     const results = await this.db().oneOrNone(
       `
-    insert into integration.results(state, data, "apiDataId", "streamId", "runId", "tenantId", "integrationId", "microserviceId")
+    insert into integration.results(state, data, "apiDataId", "streamId", "runId", "webhookId", "tenantId", "integrationId", "microserviceId")
     select $(state),
            $(data)::json,
            $(dataId)::uuid,
            "streamId",
            "runId",
+           "webhookId",
            "tenantId",
            "integrationId",
            "microserviceId"
@@ -134,15 +136,17 @@ export default class IntegrationDataRepository extends RepositoryBase<Integratio
 
   public async publishStream(
     parentId: string,
-    runId: string,
     identifier: string,
     data?: unknown,
+    runId?: string,
+    webhookId?: string,
   ): Promise<string | null> {
     const result = await this.db().oneOrNone(
       `
-    insert into integration.streams("parentId", "runId", state, identifier, data, "tenantId", "integrationId", "microserviceId")
+    insert into integration.streams("parentId", "runId", "webhookId", state, identifier, data, "tenantId", "integrationId", "microserviceId")
     select $(parentId)::uuid,
            $(runId)::uuid,
+           $(webhookId)::uuid,
            $(state),
            $(identifier),
            $(data)::json,
@@ -156,6 +160,7 @@ export default class IntegrationDataRepository extends RepositoryBase<Integratio
       {
         parentId,
         runId,
+        webhookId,
         state: IntegrationStreamState.PENDING,
         identifier: identifier,
         data: data ? JSON.stringify(data) : null,
@@ -226,6 +231,24 @@ export default class IntegrationDataRepository extends RepositoryBase<Integratio
     `,
       {
         runId,
+      },
+    )
+
+    this.checkUpdateRowCount(result.rowCount, 1)
+  }
+
+  public async resetStream(dataId: string): Promise<void> {
+    const result = await this.db().result(
+      `update integration."apiData"
+       set  state = $(state),
+            error = null,
+            "delayedUntil" = null,
+            "processedAt" = null,
+            "updatedAt" = now()
+       where id = $(dataId)`,
+      {
+        dataId,
+        state: IntegrationStreamDataState.PENDING,
       },
     )
 
