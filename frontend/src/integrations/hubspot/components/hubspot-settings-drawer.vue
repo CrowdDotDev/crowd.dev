@@ -40,7 +40,7 @@
               </p>
             </div>
             <div>
-              <el-switch v-model="form.members" />
+              <el-switch v-model="form.members" @change="syncSelected($event, 'member')" />
             </div>
           </article>
           <article class="border border-gray-200 rounded-b border-t-0 py-4 px-5 flex justify-between">
@@ -56,7 +56,7 @@
               </p>
             </div>
             <div>
-              <el-switch v-model="form.organizations" />
+              <el-switch v-model="form.organizations" @change="syncSelected($event, 'organization')" />
             </div>
           </article>
         </section>
@@ -99,8 +99,12 @@
                     />
                     <span class="text-xs font-medium">Member attributes</span>
                   </div>
-                  <div v-if="form.members" class="h-5 px-2 rounded-full bg-gray-100 text-3xs text-gray-600 flex items-center">
-                    0 attributes synced
+                  <div
+                    v-if="form.members"
+                    class="h-5 px-2 rounded-full text-3xs flex items-center"
+                    :class="memberAttributesSynced > 0 ? 'text-brand-700 bg-brand-50' : 'text-gray-600 bg-gray-100'"
+                  >
+                    {{ memberAttributesSynced }} attributes synced
                   </div>
                 </div>
               </template>
@@ -162,8 +166,12 @@
                     />
                     <span class="text-xs font-medium">Organization attributes</span>
                   </div>
-                  <div v-if="form.organizations" class="h-5 px-2 rounded-full bg-gray-100 text-3xs text-gray-600 flex items-center">
-                    0 attributes synced
+                  <div
+                    v-if="form.organizations"
+                    class="h-5 px-2 rounded-full text-3xs flex items-center"
+                    :class="organizationAttributesSynced > 0 ? 'text-brand-700 bg-brand-50' : 'text-gray-600 bg-gray-100'"
+                  >
+                    {{ organizationAttributesSynced }} attributes synced
                   </div>
                 </div>
               </template>
@@ -180,7 +188,11 @@
                   <div v-for="(type, field) in organizationMappableFields" :key="field" class="flex items-center">
                     <div class="w-1/2">
                       <div class="flex items-center">
-                        <el-checkbox v-model="form.enabled.organizations[field]" size="default" class="filter-checkbox" />
+                        <el-checkbox
+                          v-model="form.enabled.organizations[field]"
+                          size="default"
+                          class="filter-checkbox"
+                        />
                         <p class="pl-1 text-2xs">
                           {{ getLabel(field as string) }}
                         </p>
@@ -264,7 +276,7 @@ const emit = defineEmits<{(e: 'update:modelValue', value: boolean): void }>();
 const store = useStore();
 const { doFetch } = mapActions('integration');
 
-const activeView = ref(null);
+const activeView = ref<string | null>(null);
 
 const memberMappableFields = ref<Record<string, string>>({});
 const organizationMappableFields = ref<Record<string, string>>({});
@@ -339,6 +351,17 @@ const updateAttributes = () => {
       updatingAttributes.value = false;
     });
 };
+
+const syncSelected = (value: boolean, attribute: string) => {
+  if (value) {
+    activeView.value = attribute;
+  } else if (activeView.value === attribute) {
+    activeView.value = null;
+  }
+};
+
+const memberAttributesSynced = computed(() => Object.keys(form.enabled.members).filter((key) => form.enabled.members[key]).length);
+const organizationAttributesSynced = computed(() => Object.keys(form.enabled.organizations).filter((key) => form.enabled.organizations[key]).length);
 
 const isMappingValid = computed(() => {
   const memberKeys = Object.keys(form.enabled.members).filter((key) => form.enabled.members[key]);
