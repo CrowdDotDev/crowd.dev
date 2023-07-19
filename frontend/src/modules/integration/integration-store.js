@@ -471,12 +471,10 @@ export default {
     async doHubspotConnect(
       { commit },
     ) {
-      // Function to connect to StackOverflow.
-
       try {
         commit('CREATE_STARTED');
 
-        const integration = await IntegrationService.hubspotOnboard();
+        const integration = await IntegrationService.hubspotConnect();
 
         commit('CREATE_SUCCESS', integration);
 

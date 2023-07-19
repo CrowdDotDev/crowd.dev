@@ -266,7 +266,7 @@ export class IntegrationService {
     return response.data;
   }
 
-  static async hubspotOnboard() {
+  static async hubspotConnect() {
     // Getting the tenant_id
     const tenantId = AuthCurrentTenant.get();
     // Calling the authenticate function in the backend.

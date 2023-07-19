@@ -1,4 +1,4 @@
-import HubSpotBookCall from './components/hubspot-book-call.vue';
+import HubspotConnect from './components/hubspot-connect.vue';
 
 export default {
   name: 'HubSpot',
@@ -7,7 +7,7 @@ export default {
   description: 'Create a 2-way sync with HubSpot.',
   image:
     '/images/integrations/hubspot.png',
-  connectComponent: HubSpotBookCall,
+  connectComponent: HubspotConnect,
   enabled: true,
   url: (username) => null,
   chartColor: '#FF712E',
