@@ -83,7 +83,12 @@
           <div v-if="form.members || form.organizations" class="p-2 rounded bg-blue-50 flex items-center mb-3">
             <span class="ri-information-line text-blue-900 mr-2 text-base h-4 flex items-center" />
             <span class="text-[11px] text-blue-900 leading-4.5">We recommend creating custom properties in Hubspot for every crowd.dev attribute.
-              <a href="#" target="_blank" class="underline text-blue-900 font-medium">Read more</a>
+              <a
+                href="https://go.crowd.dev/hubspot-docs-properties"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="underline text-blue-900 font-medium"
+              >Read more</a>
             </span>
           </div>
         </section>
@@ -119,40 +124,14 @@
                   </div>
                 </div>
                 <section class="pt-1 pb-3">
-                  <div v-for="(type, field) in memberMappableFields" :key="field" class="flex items-center">
-                    <div class="w-1/2">
-                      <div class="flex items-center">
-                        <el-checkbox v-model="form.enabled.members[field]" size="default" class="filter-checkbox" />
-                        <p class="pl-1 text-2xs">
-                          {{ getLabel(field as string) }}
-                        </p>
-                      </div>
-                    </div>
-                    <div class="w-1/2 py-2">
-                      <div class="flex items-center w-full">
-                        <div class="ri-arrow-left-right-line text-base text-gray-400 mr-4 h-4 flex items-center" />
-                        <label class="w-full">
-                          <select
-                            v-model="form.mapping.members[field]"
-                            class="c-select"
-                            :class="[
-                              form.mapping.members[field] ? 'text-gray-900' : 'text-gray-400',
-                              form.enabled.members[field] && !form.mapping.members[field] ? 'border-brand-400' : '',
-                            ]"
-                          >
-                            <option :value="undefined" disabled class="hidden">Select property</option>
-                            <option
-                              v-for="hubspotField of getHubspotMemberFields(type, form.mapping.members[field])"
-                              :key="hubspotField.name"
-                              :value="hubspotField.name"
-                            >
-                              {{ hubspotField.label }}
-                            </option>
-                          </select>
-                        </label>
-                      </div>
-                    </div>
-                  </div>
+                  <app-hubspot-property-map
+                    v-for="(type, field) in memberMappableFields"
+                    :key="field"
+                    v-model="form.mapping.members[field]"
+                    v-model:enabled="form.enabled.members[field]"
+                    :field="field as string"
+                    :hubspot-fields="getHubspotMemberFields(type, form.mapping.members[field])"
+                  />
                 </section>
               </div>
             </el-collapse-item>
@@ -185,46 +164,14 @@
                   </div>
                 </div>
                 <section class="pt-1 pb-3">
-                  <div v-for="(type, field) in organizationMappableFields" :key="field" class="flex items-center">
-                    <div class="w-1/2">
-                      <div class="flex items-center">
-                        <el-checkbox
-                          v-model="form.enabled.organizations[field]"
-                          size="default"
-                          class="filter-checkbox"
-                        />
-                        <p class="pl-1 text-2xs">
-                          {{ getLabel(field as string) }}
-                        </p>
-                      </div>
-                    </div>
-                    <div class="w-1/2 py-2">
-                      <div class="flex items-center w-full">
-                        <div class="ri-arrow-left-right-line text-base text-gray-400 mr-4 h-4 flex items-center" />
-                        <div class="w-full">
-                          <label class="w-full">
-                            <select
-                              v-model="form.mapping.organizations[field]"
-                              class="c-select"
-                              :class="[
-                                form.mapping.organizations[field] ? 'text-gray-900' : 'text-gray-400',
-                                form.enabled.organizations[field] && !form.mapping.organizations[field] ? 'border-brand-400' : '',
-                              ]"
-                            >
-                              <option :value="undefined" disabled class="hidden">Select property</option>
-                              <option
-                                v-for="hubspotField of getHubspotOrganizationFields(type, form.mapping.organizations[field])"
-                                :key="hubspotField.name"
-                                :value="hubspotField.name"
-                              >
-                                {{ hubspotField.label }}
-                              </option>
-                            </select>
-                          </label>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
+                  <app-hubspot-property-map
+                    v-for="(type, field) in organizationMappableFields"
+                    :key="field"
+                    v-model="form.mapping.organizations[field]"
+                    v-model:enabled="form.enabled.organizations[field]"
+                    :field="field as string"
+                    :hubspot-fields="getHubspotOrganizationFields(type, form.mapping.organizations[field])"
+                  />
                 </section>
               </div>
             </el-collapse-item>
@@ -266,6 +213,7 @@ import { useStore } from 'vuex';
 import { HubspotOnboard } from '@/integrations/hubspot/types/HubspotOnboard';
 import { HubspotEntity } from '@/integrations/hubspot/types/HubspotEntity';
 import { mapActions } from '@/shared/vuex/vuex.helpers';
+import AppHubspotPropertyMap from '@/integrations/hubspot/components/hubspot-property-map.vue';
 
 const props = defineProps<{
   modelValue: boolean
@@ -309,6 +257,8 @@ const updatingAttributes = ref<boolean>(false);
 const usedHubspotMemberFields = computed(() => Object.values(form.mapping.members));
 const usedHubspotOrganizationFields = computed(() => Object.values(form.mapping.organizations));
 
+const getHubspotProperties = ref({});
+
 const getHubspotMemberFields = (type: string, name: string) => {
   const fields = getHubspotProperties.value.members;
   return fields.filter((field) => {
@@ -329,17 +279,7 @@ const getHubspotOrganizationFields = (type: string, name: string) => {
   });
 };
 
-const getLabel = (field: string) => {
-  const label = field
-    .replace('attributes.', '')
-    .replace('_', ' ')
-    .replace(/([A-Z])/g, ' $1');
-  return label.at(0).toUpperCase() + label.substring(1).toLowerCase();
-};
-
 const hubspotDetails = computed(() => CrowdIntegrations.getConfig('hubspot'));
-
-const getHubspotProperties = ref({});
 
 const updateAttributes = () => {
   updatingAttributes.value = true;
