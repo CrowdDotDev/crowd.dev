@@ -14,7 +14,7 @@ if (processArguments.length !== 1) {
   process.exit(1)
 }
 
-const streamId = processArguments[0]
+const streamIds = processArguments[0].split(',')
 
 setImmediate(async () => {
   const sqsClient = getSqsClient(SQS_CONFIG())
@@ -25,16 +25,18 @@ setImmediate(async () => {
   const store = new DbStore(log, dbConnection)
   const repo = new IntegrationStreamRepository(store, log)
 
-  const info = await repo.getStreamData(streamId)
+  for (const streamId of streamIds) {
+    const info = await repo.getStreamData(streamId)
 
-  if (info) {
-    if (info.state !== IntegrationStreamState.PENDING) {
-      await repo.resetStream(streamId)
+    if (info) {
+      if (info.state !== IntegrationStreamState.PENDING) {
+        await repo.resetStream(streamId)
+      }
+
+      await emitter.triggerStreamProcessing(info.tenantId, info.integrationType, streamId)
+    } else {
+      log.error({ streamId }, 'Stream not found!')
+      process.exit(1)
     }
-
-    await emitter.triggerStreamProcessing(info.tenantId, info.integrationType, streamId)
-  } else {
-    log.error({ streamId }, 'Stream not found!')
-    process.exit(1)
   }
 })

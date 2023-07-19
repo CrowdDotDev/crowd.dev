@@ -17,6 +17,8 @@ export * from './activities'
 
 export * from './organizations'
 
+export * from './organizations'
+
 export * from './enums/edition'
 
 export * from './caching'
@@ -33,3 +35,5 @@ export * from './opensearch'
 export * from './enums/webhooks'
 
 export * from './graphql'
+
+export * from './enums/webhooks'

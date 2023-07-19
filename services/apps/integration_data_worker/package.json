@@ -13,7 +13,9 @@
     "lint": "./node_modules/.bin/eslint --ext .ts src --max-warnings=0",
     "format": "./node_modules/.bin/prettier --write \"src/**/*.ts\"",
     "format-check": "./node_modules/.bin/prettier --check .",
-    "tsc-check": "./node_modules/.bin/tsc --noEmit"
+    "tsc-check": "./node_modules/.bin/tsc --noEmit",
+    "script:process-data": "SERVICE=script TS_NODE_TRANSPILE_ONLY=true node -r tsconfig-paths/register -r ts-node/register src/bin/process-data.ts",
+    "script:process-data-for-tenant": "SERVICE=script TS_NODE_TRANSPILE_ONLY=true node -r tsconfig-paths/register -r ts-node/register src/bin/process-data-for-tenant.ts"
   },
   "dependencies": {
     "@crowd/common": "file:../../libs/common",

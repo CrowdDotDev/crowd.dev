@@ -157,7 +157,7 @@ export default class IntegrationStreamService extends LoggerBase {
   }
 
   public async processWebhookStream(webhookId: string): Promise<void> {
-    this.log.debug({ webhookId }, 'Trying to process webhook stream!')
+    this.log.debug({ webhookId }, 'Trying to process webhook!')
 
     // get webhook info
     const webhookInfo = await this.webhookRepo.getWebhookById(webhookId)
@@ -168,18 +168,21 @@ export default class IntegrationStreamService extends LoggerBase {
     }
 
     // creating stream to process webhook
-    const streamId = await this.repo.publishStream(
-      // parentId
-      undefined,
-      // stream identifier should be unique across tenant and platform, but for webhook we don't have anything
+    // webhookId is used as stream identifier
+    const streamId = await this.repo.publishWebhookStream(
       webhookId,
-      // data
+      webhookId,
       webhookInfo.payload,
-      // runId
-      undefined,
-      // webhookId
-      webhookId,
+      webhookInfo.integrationId,
+      webhookInfo.tenantId,
     )
+
+    if (!streamId) {
+      this.log.error({ webhookId }, 'Could not create webhook stream!')
+      return
+    }
+
+    this.log.debug({ webhookId, streamId }, 'Webhook stream created!')
 
     // getting all stream info
     const streamInfo = await this.repo.getStreamData(streamId)
@@ -308,6 +311,7 @@ export default class IntegrationStreamService extends LoggerBase {
       await integrationService.processWebhookStream(context)
       this.log.debug('Finished processing webhook stream!')
       await this.repo.markStreamProcessed(streamId)
+      await this.webhookRepo.markWebhookProcessed(webhookId)
     } catch (err) {
       this.log.error(err, 'Error while processing webhook stream!')
       await this.triggerStreamError(

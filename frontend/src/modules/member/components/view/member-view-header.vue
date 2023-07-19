@@ -71,14 +71,15 @@
 
     <div class="absolute inset-x-0 bottom-0 rounded-b-md bg-gray-50 p-6 mt-9">
       <div class="text-sm">
-        <app-tags :long="true" :member="member" />
+        <app-tags :long="true" :member="member" @edit="isEditTagsDialogOpen = member" />
+        <app-tag-popover v-model="isEditTagsDialogOpen" />
       </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { defineProps } from 'vue';
+import { defineProps, ref } from "vue";
 import moment from 'moment/moment';
 import AppMemberOrganizations from '@/modules/member/components/member-organizations.vue';
 import { formatNumberToCompact, formatNumber } from '@/utils/number';
@@ -90,6 +91,7 @@ import AppMemberDropdown from '@/modules/member/components/member-dropdown.vue';
 import AppMemberBadge from '@/modules/member/components/member-badge.vue';
 import AppTags from '@/modules/tag/components/tag-list.vue';
 import AppMemberBio from '@/modules/member/components/member-bio.vue';
+import AppTagPopover from '@/modules/tag/components/tag-popover.vue';
 
 defineProps({
   member: {
@@ -97,6 +99,8 @@ defineProps({
     default: () => {},
   },
 });
+
+const isEditTagsDialogOpen = ref(null);
 
 const formattedInformation = (value, type) => {
   // Show dash for empty information
