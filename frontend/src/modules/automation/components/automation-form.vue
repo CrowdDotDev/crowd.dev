@@ -139,8 +139,8 @@
 
 <script setup>
 import {
-  computed, defineProps, defineEmits, reactive, ref, watch, onMounted
-} from "vue";
+  computed, defineProps, defineEmits, reactive, ref, watch, onMounted,
+} from 'vue';
 import AppDrawer from '@/shared/drawer/drawer.vue';
 import { required } from '@vuelidate/validators';
 import useVuelidate from '@vuelidate/core';
@@ -154,7 +154,7 @@ import { useAutomationStore } from '@/modules/automation/store';
 import Message from '@/shared/message/message';
 import { i18n } from '@/i18n';
 import formChangeDetector from '@/shared/form/form-change';
-import { useStore } from "vuex";
+import { useStore } from 'vuex';
 
 const props = defineProps({
   modelValue: {
@@ -293,11 +293,6 @@ const doSubmit = () => {
 
 onMounted(() => {
   fetchIntegrations();
-  storeUnsubscribe.value = store.subscribeAction((action) => {
-    if (action.type === 'auth/doRefreshCurrentUser') {
-      fetchIntegrations();
-    }
-  });
 });
 </script>
 
