@@ -17,6 +17,75 @@ export enum GithubActivityType {
   DISCUSSION_COMMENT = 'discussion-comment',
 }
 
+export enum GithubStreamType {
+  ROOT = 'root',
+  STARGAZERS = 'stargazers',
+  FORKS = 'forks',
+  PULLS = 'pulls',
+  PULL_COMMENTS = 'pull-comments',
+  PULL_REVIEW_THREADS = 'pull-review-threads',
+  PULL_REVIEW_THREAD_COMMENTS = 'pull-review-thread-comments',
+  PULL_COMMITS = 'pull-commits',
+  ISSUES = 'issues',
+  ISSUE_COMMENTS = 'issue-comments',
+  DISCUSSIONS = 'discussions',
+  DISCUSSION_COMMENTS = 'discussion-comments',
+}
+
+export enum GithubApiDataType {
+  STARGAZERS = 'stargazers',
+  FORKS = 'forks',
+  PULLS = 'pulls',
+  PULL_COMMENTS = 'pull-comments',
+  PULL_REVIEW_THREADS = 'pull-review-threads',
+  PULL_REVIEW_THREAD_COMMENTS = 'pull-review-thread-comments',
+  PULL_COMMITS = 'pull-commits',
+  ISSUES = 'issues',
+  ISSUE_COMMENTS = 'issue-comments',
+  DISCUSSIONS = 'discussions',
+  DISCUSSION_COMMENTS = 'discussion-comments',
+}
+
+export interface GithubApiData {
+  type: GithubApiDataType
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  data: any[]
+}
+
+export interface GithubStreamBase {
+  isCommitDataEnabled: boolean
+  privateKey: string
+}
+
+export interface GithubRootStream extends GithubStreamBase {
+  reposToCheck: Repos
+}
+
+export interface GithubBasicStream extends GithubStreamBase {
+  repo: Repo
+  page: string
+  prNumber?: string
+  reviewThreadId?: string
+  issueNumber?: string
+  discussionNumber?: string
+}
+
+export interface GithubPlatformSettings {
+  appId: string
+  clientId: string
+  clientSecret: string
+  privateKey: string
+  webhookSecret: string
+  isCommitDataEnabled: string
+  globalLimit?: number
+  callbackUrl: string
+}
+
+export interface GithubIntegrationSettings {
+  repos: Repos
+  unavailableRepos: Repos
+}
+
 export enum GithubPullRequestEvents {
   REQUEST_REVIEW = 'ReviewRequestedEvent',
   REVIEW = 'PullRequestReview',
