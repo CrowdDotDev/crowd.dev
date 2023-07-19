@@ -236,4 +236,22 @@ export default class IntegrationDataRepository extends RepositoryBase<Integratio
 
     this.checkUpdateRowCount(result.rowCount, 1)
   }
+
+  public async resetStream(dataId: string): Promise<void> {
+    const result = await this.db().result(
+      `update integration."apiData"
+       set  state = $(state),
+            error = null,
+            "delayedUntil" = null,
+            "processedAt" = null,
+            "updatedAt" = now()
+       where id = $(dataId)`,
+      {
+        dataId,
+        state: IntegrationStreamState.PENDING,
+      },
+    )
+
+    this.checkUpdateRowCount(result.rowCount, 1)
+  }
 }
