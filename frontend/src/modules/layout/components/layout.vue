@@ -1,4 +1,5 @@
 <template>
+  <lfx-header-v2 id="lfx-header" product="Community Management" />
   <el-container v-if="currentTenant" class="flex-col">
     <el-container style="height: calc(100vh - 60px); margin-top: 60px;">
       <!-- App menu -->
