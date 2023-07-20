@@ -259,7 +259,7 @@
       </div>
     </el-menu>
     <div
-      class="absolute bg-gray-600 right-0 rounded-l-md h-8 w-6 flex items-center justify-center bottom-64 cursor-pointer hover:bg-gray-700"
+      class="absolute bg-gray-600 right-0 rounded-l-md h-8 w-6 flex items-center justify-center bottom-48 cursor-pointer hover:bg-gray-700"
       @click="toggleMenu"
     >
       <i
