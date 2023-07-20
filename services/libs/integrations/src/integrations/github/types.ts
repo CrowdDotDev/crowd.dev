@@ -15,6 +15,7 @@ export enum GithubActivityType {
   PULL_REQUEST_REVIEW_THREAD_COMMENT = 'pull_request-review-thread-comment',
   ISSUE_COMMENT = 'issue-comment',
   DISCUSSION_COMMENT = 'discussion-comment',
+  AUTHORED_COMMIT = 'authored-commit',
 }
 
 export enum GithubStreamType {
@@ -32,24 +33,15 @@ export enum GithubStreamType {
   DISCUSSION_COMMENTS = 'discussion-comments',
 }
 
-export enum GithubApiDataType {
-  STARGAZERS = 'stargazers',
-  FORKS = 'forks',
-  PULLS = 'pulls',
-  PULL_COMMENTS = 'pull-comments',
-  PULL_REVIEW_THREADS = 'pull-review-threads',
-  PULL_REVIEW_THREAD_COMMENTS = 'pull-review-thread-comments',
-  PULL_COMMITS = 'pull-commits',
-  ISSUES = 'issues',
-  ISSUE_COMMENTS = 'issue-comments',
-  DISCUSSIONS = 'discussions',
-  DISCUSSION_COMMENTS = 'discussion-comments',
-}
-
 export interface GithubApiData {
-  type: GithubApiDataType
+  type: GithubActivityType
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  data: any[]
+  data: any[] | any
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  member: GithubParseMemberOutput
+  objectMember?: GithubParseMemberOutput
+  sourceParentId?: string
+  repo: Repo
 }
 
 export interface GithubStreamBase {
@@ -115,4 +107,15 @@ export type State = {
   endpoints: Endpoints
   endpoint: string
   page: string
+}
+
+export interface AppTokenResponse {
+  token: string
+  expiresAt: string
+}
+
+export interface GithubParseMemberOutput {
+  email: string
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  orgs: any
 }

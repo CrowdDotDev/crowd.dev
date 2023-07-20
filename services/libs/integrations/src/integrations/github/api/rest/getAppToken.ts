@@ -11,7 +11,7 @@ export interface AppTokenResponse {
 
 export const getAppToken = async (
   jwt: string,
-  installationId: number,
+  installationId: string,
 ): Promise<AppTokenResponse> => {
   try {
     const config = {
