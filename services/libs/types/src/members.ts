@@ -1,4 +1,5 @@
 import { MemberAttributeType } from './enums/members'
+import { IOrganization } from './organizations'
 
 export interface IMemberAttribute {
   type: MemberAttributeType
@@ -22,4 +23,5 @@ export interface IMemberData {
   weakIdentities?: IMemberIdentity[]
   attributes?: Record<string, unknown>
   joinedAt?: string
+  organizations?: IOrganization[]
 }

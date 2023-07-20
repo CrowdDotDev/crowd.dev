@@ -1,6 +1,10 @@
 import { addSeconds, singleOrDefault } from '@crowd/common'
 import { DbStore } from '@crowd/database'
-import { INTEGRATION_SERVICES, IProcessStreamContext } from '@crowd/integrations'
+import {
+  INTEGRATION_SERVICES,
+  IProcessStreamContext,
+  IProcessWebhookStreamContext,
+} from '@crowd/integrations'
 import { Logger, LoggerBase, getChildLogger } from '@crowd/logging'
 import { RedisCache, RedisClient, RateLimiter } from '@crowd/redis'
 import {
@@ -12,9 +16,11 @@ import { IntegrationRunState, IntegrationStreamType, RateLimitError } from '@cro
 import { NANGO_CONFIG, PLATFORM_CONFIG, WORKER_SETTINGS } from '../conf'
 import IntegrationStreamRepository from '../repo/integrationStream.repo'
 import { IStreamData } from '@/repo/integrationStream.data'
+import IncomingWebhookRepository from '@/repo/incomingWebhook.repo'
 
 export default class IntegrationStreamService extends LoggerBase {
   private readonly repo: IntegrationStreamRepository
+  private readonly webhookRepo: IncomingWebhookRepository
 
   constructor(
     private readonly redisClient: RedisClient,
@@ -27,6 +33,7 @@ export default class IntegrationStreamService extends LoggerBase {
     super(parentLog)
 
     this.repo = new IntegrationStreamRepository(store, this.log)
+    this.webhookRepo = new IncomingWebhookRepository(store, this.log)
   }
 
   public async checkStreams(): Promise<void> {
@@ -39,11 +46,19 @@ export default class IntegrationStreamService extends LoggerBase {
       for (const stream of streams) {
         this.log.info({ streamId: stream.id }, 'Restarting delayed stream!')
         await this.repo.resetStream(stream.id)
-        await this.streamWorkerEmitter.triggerStreamProcessing(
-          stream.tenantId,
-          stream.integrationType,
-          stream.id,
-        )
+        if (stream.runId) {
+          await this.streamWorkerEmitter.triggerStreamProcessing(
+            stream.tenantId,
+            stream.integrationType,
+            stream.id,
+          )
+        } else {
+          await this.streamWorkerEmitter.triggerWebhookProcessing(
+            stream.tenantId,
+            stream.integrationType,
+            stream.id,
+          )
+        }
       }
 
       streams = await this.repo.getPendingDelayedStreams(1, 10)
@@ -99,8 +114,13 @@ export default class IntegrationStreamService extends LoggerBase {
         { until: until.toISOString() },
         'Rate limit error detected - pausing entire run!',
       )
-      await this.repo.resetStream(stream.id)
-      await this.repo.delayRun(stream.runId, until)
+      if (stream.runId) {
+        await this.repo.resetStream(stream.id)
+        await this.repo.delayRun(stream.runId, until)
+      } else {
+        await this.repo.delayStream(stream.id, until)
+      }
+
       return
     }
 
@@ -122,11 +142,186 @@ export default class IntegrationStreamService extends LoggerBase {
     }
 
     // stop run because of stream error
-    this.log.warn('Reached maximum retries for stream! Stopping the run!')
-    await this.triggerRunError(stream.runId, 'stream-run-stop', 'Stream reached maximum retries!', {
-      retries: stream.retries + 1,
-      maxRetries: WORKER_SETTINGS().maxStreamRetries,
+    if (stream.runId) {
+      this.log.warn('Reached maximum retries for stream! Stopping the run!')
+      await this.triggerRunError(
+        stream.runId,
+        'stream-run-stop',
+        'Stream reached maximum retries!',
+        {
+          retries: stream.retries + 1,
+          maxRetries: WORKER_SETTINGS().maxStreamRetries,
+        },
+      )
+    }
+  }
+
+  public async processWebhookStream(webhookId: string): Promise<void> {
+    this.log.debug({ webhookId }, 'Trying to process webhook!')
+
+    // get webhook info
+    const webhookInfo = await this.webhookRepo.getWebhookById(webhookId)
+
+    if (!webhookInfo) {
+      this.log.error({ webhookId }, 'Webhook not found!')
+      return
+    }
+
+    // creating stream to process webhook
+    // webhookId is used as stream identifier
+    const streamId = await this.repo.publishWebhookStream(
+      webhookId,
+      webhookId,
+      webhookInfo.payload,
+      webhookInfo.integrationId,
+      webhookInfo.tenantId,
+    )
+
+    if (!streamId) {
+      this.log.error({ webhookId }, 'Could not create webhook stream!')
+      return
+    }
+
+    this.log.debug({ webhookId, streamId }, 'Webhook stream created!')
+
+    // getting all stream info
+    const streamInfo = await this.repo.getStreamData(streamId)
+
+    if (!streamInfo) {
+      this.log.error({ webhookStreamId: streamId }, 'Webhook stream not found!')
+      return
+    }
+
+    this.log = getChildLogger('webhook-stream-processor', this.log, {
+      webhookId: streamInfo.webhookId,
+      integrationId: streamInfo.integrationId,
+      platform: streamInfo.integrationType,
     })
+
+    const integrationService = singleOrDefault(
+      INTEGRATION_SERVICES,
+      (i) => i.type === streamInfo.integrationType,
+    )
+
+    if (!integrationService) {
+      this.log.error({ type: streamInfo.integrationType }, 'Could not find integration service!')
+      await this.triggerStreamError(
+        streamInfo,
+        'check-webhook-stream-int-service',
+        'Could not find integration service!',
+        {
+          type: streamInfo.integrationType,
+        },
+      )
+      return
+    }
+
+    if (!integrationService.processWebhookStream) {
+      this.log.error(
+        { type: streamInfo.integrationType },
+        'Integration service does not have processWebhookStream processing defined!',
+      )
+      await this.triggerStreamError(
+        streamInfo,
+        'check-webhook-stream-int-service',
+        'Integration service does not have processWebhookStream processing defined!',
+        {
+          type: streamInfo.integrationType,
+        },
+      )
+      return
+    }
+
+    const cache = new RedisCache(
+      `int-${streamInfo.tenantId}-${streamInfo.integrationType}`,
+      this.redisClient,
+      this.log,
+    )
+
+    const globalCache = new RedisCache(`int-global`, this.redisClient, this.log)
+
+    const nangoConfig = NANGO_CONFIG()
+
+    const context: IProcessWebhookStreamContext = {
+      serviceSettings: {
+        nangoUrl: nangoConfig.url,
+        nangoSecretKey: nangoConfig.secretKey,
+        nangoId: `${streamInfo.tenantId}-${streamInfo.integrationType}`,
+      },
+
+      platformSettings: PLATFORM_CONFIG(streamInfo.integrationType),
+
+      integration: {
+        id: streamInfo.integrationId,
+        identifier: streamInfo.integrationIdentifier,
+        platform: streamInfo.integrationType,
+        status: streamInfo.integrationState,
+        settings: streamInfo.integrationSettings,
+        token: streamInfo.integrationToken,
+      },
+
+      stream: {
+        identifier: streamInfo.identifier,
+        type: streamInfo.parentId ? IntegrationStreamType.CHILD : IntegrationStreamType.ROOT,
+        data: streamInfo.data,
+      },
+
+      log: this.log,
+      cache,
+      globalCache,
+
+      publishData: async (data) => {
+        await this.publishData(
+          streamInfo.tenantId,
+          streamInfo.integrationType,
+          streamId,
+          data,
+          undefined,
+        )
+      },
+      publishStream: async (identifier, data) => {
+        await this.publishStream(
+          streamInfo.tenantId,
+          streamInfo.integrationType,
+          streamId,
+          identifier,
+          data,
+          undefined,
+          streamInfo.webhookId,
+        )
+      },
+      updateIntegrationSettings: async (settings) => {
+        await this.updateIntegrationSettings(streamId, settings, streamInfo.runId)
+      },
+
+      abortWithError: async (message: string, metadata?: unknown, error?: Error) => {
+        this.log.error({ message }, 'Aborting webhook stream processing with error!')
+        await this.triggerStreamError(streamInfo, 'webhook-stream-abort', message, metadata, error)
+      },
+      getRateLimiter: (maxRequests: number, timeWindowSeconds: number, counterKey: string) => {
+        return new RateLimiter(globalCache, maxRequests, timeWindowSeconds, counterKey)
+      },
+    }
+
+    this.log.debug('Marking webhook stream as in progress!')
+    await this.repo.markStreamInProgress(streamId)
+
+    this.log.debug('Processing webhook stream!')
+    try {
+      await integrationService.processWebhookStream(context)
+      this.log.debug('Finished processing webhook stream!')
+      await this.repo.markStreamProcessed(streamId)
+      await this.webhookRepo.markWebhookProcessed(webhookId)
+    } catch (err) {
+      this.log.error(err, 'Error while processing webhook stream!')
+      await this.triggerStreamError(
+        streamInfo,
+        'webhook-stream-process',
+        'Error while processing webhook stream!',
+        undefined,
+        err,
+      )
+    }
   }
 
   public async processStream(streamId: string): Promise<void> {
@@ -218,9 +413,9 @@ export default class IntegrationStreamService extends LoggerBase {
         await this.publishData(
           streamInfo.tenantId,
           streamInfo.integrationType,
-          streamInfo.runId,
           streamId,
           data,
+          streamInfo.runId,
         )
       },
       publishStream: async (identifier, data) => {
@@ -228,9 +423,10 @@ export default class IntegrationStreamService extends LoggerBase {
           streamInfo.tenantId,
           streamInfo.integrationType,
           streamId,
-          streamInfo.runId,
           identifier,
           data,
+          streamInfo.runId,
+          undefined,
         )
       },
       updateIntegrationSettings: async (settings) => {
@@ -278,18 +474,25 @@ export default class IntegrationStreamService extends LoggerBase {
     }
   }
 
-  private async updateIntegrationSettings(streamId: string, settings: unknown): Promise<void> {
+  private async updateIntegrationSettings(
+    streamId: string,
+    settings: unknown,
+    runId?: string,
+  ): Promise<void> {
     try {
       this.log.debug('Updating integration settings!')
       await this.repo.updateIntegrationSettings(streamId, settings)
     } catch (err) {
-      await this.triggerRunError(
-        streamId,
-        'run-stream-update-settings',
-        'Error while updating settings!',
-        undefined,
-        err,
-      )
+      if (runId) {
+        await this.triggerRunError(
+          streamId,
+          'run-stream-update-settings',
+          'Error while updating settings!',
+          undefined,
+          err,
+        )
+      }
+
       throw err
     }
   }
@@ -298,26 +501,37 @@ export default class IntegrationStreamService extends LoggerBase {
     tenantId: string,
     platform: string,
     parentId: string,
-    runId: string,
     identifier: string,
     data?: unknown,
+    runId?: string,
+    webhookId?: string,
   ): Promise<void> {
     try {
+      if (!runId && !webhookId) {
+        throw new Error('Need either run id or webhook id!')
+      }
       this.log.debug({ identifier }, 'Publishing new child stream!')
-      const streamId = await this.repo.publishStream(parentId, runId, identifier, data)
+      const streamId = await this.repo.publishStream(parentId, identifier, data, runId, webhookId)
       if (streamId) {
-        await this.streamWorkerEmitter.triggerStreamProcessing(tenantId, platform, streamId)
+        if (runId) {
+          await this.streamWorkerEmitter.triggerStreamProcessing(tenantId, platform, streamId)
+        } else {
+          await this.streamWorkerEmitter.triggerWebhookProcessing(tenantId, platform, streamId)
+        }
       } else {
         this.log.debug({ identifier }, 'Child stream already exists!')
       }
     } catch (err) {
-      await this.triggerRunError(
-        runId,
-        'run-publish-child-stream',
-        'Error while publishing child stream!',
-        undefined,
-        err,
-      )
+      if (runId) {
+        await this.triggerRunError(
+          runId,
+          'run-publish-child-stream',
+          'Error while publishing child stream!',
+          undefined,
+          err,
+        )
+      }
+
       throw err
     }
   }
@@ -325,22 +539,25 @@ export default class IntegrationStreamService extends LoggerBase {
   private async publishData(
     tenantId: string,
     platform: string,
-    runId: string,
     streamId: string,
     data: unknown,
+    runId?: string,
   ): Promise<void> {
     try {
       this.log.debug('Publishing new stream data!')
       const dataId = await this.repo.publishData(streamId, data)
       await this.dataWorkerEmitter.triggerDataProcessing(tenantId, platform, dataId)
     } catch (err) {
-      await this.triggerRunError(
-        runId,
-        'run-publish-stream-data',
-        'Error while publishing stream data!',
-        undefined,
-        err,
-      )
+      if (runId) {
+        await this.triggerRunError(
+          runId,
+          'run-publish-stream-data',
+          'Error while publishing stream data!',
+          undefined,
+          err,
+        )
+      }
+
       throw err
     }
   }

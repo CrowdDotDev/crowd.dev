@@ -49,31 +49,32 @@
 </template>
 
 <script setup>
-import { useStore } from 'vuex';
-import {
-  defineProps, computed, onMounted, ref,
-} from 'vue';
+import { onMounted, ref } from 'vue';
 
 import AppActivityTimeline from '@/modules/activity/components/activity-timeline.vue';
 import AppOrganizationViewHeader from '@/modules/organization/components/view/organization-view-header.vue';
 import AppOrganizationViewAside from '@/modules/organization/components/view/organization-view-aside.vue';
 import AppOrganizationViewMembers from '@/modules/organization/components/view/organization-view-members.vue';
+import Message from '@/shared/message/message';
+import { OrganizationService } from '../organization-service';
 
-const store = useStore();
 const props = defineProps({
   id: {
     type: String,
     default: null,
   },
 });
-
-const organization = computed(() => store.getters['organization/find'](props.id) || {});
+const organization = ref({});
 
 const loading = ref(true);
 const tab = ref('members');
 
 onMounted(async () => {
-  await store.dispatch('organization/doFind', props.id);
+  try {
+    organization.value = await OrganizationService.find(props.id);
+  } catch (e) {
+    Message.error('Something went wrong');
+  }
   loading.value = false;
 });
 </script>

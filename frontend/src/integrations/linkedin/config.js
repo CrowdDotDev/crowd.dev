@@ -19,7 +19,7 @@ export default {
     entertainment: 'Funny',
   },
   premium: true,
-  url: (username) => (!username.includes('private-') ? `https://linkedin.com/in/${username}` : null),
+  url: (username) => (!username?.includes('private-') ? `https://linkedin.com/in/${username}` : null),
   chartColor: '#2867B2',
   showProfileLink: true,
   activityDisplay: {

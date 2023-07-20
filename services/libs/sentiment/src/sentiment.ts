@@ -157,6 +157,11 @@ const prepareText = (text: string): string => {
   // needs to be utf-8 encoded
   let prepared = Buffer.from(text).toString('utf8')
   // from docs - AWS performs analysis on the first 500 characters and ignores the rest
+
+  // Remove Non-ASCII characters
+  // eslint-disable-next-line no-control-regex
+  prepared = prepared.replace(/[^\x00-\x7F]/g, '')
+
   prepared = prepared.slice(0, 500)
   // trim down to max allowed byte length
   prepared = trimUtf8ToMaxByteLength(prepared, ALLOWED_MAX_BYTE_LENGTH)

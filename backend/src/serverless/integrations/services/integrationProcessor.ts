@@ -8,7 +8,6 @@ import { NodeWorkerIntegrationProcessMessage } from '../../../types/mq/nodeWorke
 import { IntegrationCheckProcessor } from './integrationCheckProcessor'
 import { IntegrationRunProcessor } from './integrationRunProcessor'
 import { IntegrationTickProcessor } from './integrationTickProcessor'
-import { DiscordIntegrationService } from './integrations/discordIntegrationService'
 import { DiscourseIntegrationService } from './integrations/discourseIntegrationService'
 import { GithubIntegrationService } from './integrations/githubIntegrationService'
 import { TwitterIntegrationService } from './integrations/twitterIntegrationService'
@@ -28,7 +27,6 @@ export class IntegrationProcessor extends LoggerBase {
     super(options.log)
 
     const integrationServices = [
-      new DiscordIntegrationService(),
       new TwitterIntegrationService(),
       new TwitterReachIntegrationService(),
       new GithubIntegrationService(),

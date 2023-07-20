@@ -1,5 +1,4 @@
 import { i18n, init as i18nInit } from '@/i18n';
-import IdField from '@/shared/fields/id-field';
 import { GenericModel } from '@/shared/model/generic-model';
 import DateTimeField from '@/shared/fields/date-time-field';
 import StringField from '@/shared/fields/string-field';
@@ -21,7 +20,7 @@ function label(name) {
 i18nInit();
 
 const fields = {
-  id: new IdField('id', label('id')),
+  id: new StringField('id', label('id')),
   name: new StringField('name', label('name'), {
     required: true,
   }),
@@ -32,7 +31,6 @@ const fields = {
     'description',
     label('description'),
   ),
-  url: new StringField('url', label('url')),
   website: new StringField('website', label('website')),
   location: new StringField('location', label('location'), { filterable: true }),
   createdAt: new DateTimeField(
@@ -91,8 +89,6 @@ const fields = {
     'Phone number',
   ),
 
-  // This field is just for filtering/searching
-  // TODO: Confirm what else can be searchable
   search: new SearchField('search', label('search'), {
     fields: ['name'],
   }),
@@ -101,7 +97,6 @@ const fields = {
   industry: new StringField('industry', 'Industry', { filterable: true }),
   founded: new IntegerField('founded', 'Founded', { filterable: true }),
   type: new OrganizationTypeField('organizationType', 'Type', { filterable: true }),
-  address: new StringField('industry', 'Industry'),
   profiles: new StringArrayField('profiles', 'Profiles'),
   lastEnrichedAt: new BooleanField('lastEnrichedAt', 'Enriched organization', {
     filterable: true,
