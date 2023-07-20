@@ -1,8 +1,11 @@
 <template>
-  <div v-show="!success">
-    <h3 class="text-2xl leading-12 font-semibold mb-1">
-      You have no permissions yet. Wait for the admin to grant you privileges.
-    </h3>
+  <div class="text-center">
+    <h4 class="mb-2">
+      You have no permissions yet.
+    </h4>
+    <div class="font-semibold text-base">
+      Wait for the admin to grant you privileges.
+    </div>
     <div class="pt-10">
       <el-button
         class="btn btn--primary btn--lg w-full"
