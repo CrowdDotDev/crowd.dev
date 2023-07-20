@@ -5,7 +5,7 @@ export default {
   fetchActivities(this: ActivityState, { body = {}, reload = false } :{ body?: any, reload?: boolean }): Promise<any> {
     const mappedBody = reload ? this.savedFilterBody : body;
     this.activities = [];
-    return ActivityService.listActivities(mappedBody)
+    return ActivityService.query(mappedBody)
       .then((data: any) => {
         this.activities = data.rows;
         this.totalActivities = data.count;

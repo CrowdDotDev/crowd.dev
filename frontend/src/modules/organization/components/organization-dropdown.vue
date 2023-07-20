@@ -119,11 +119,10 @@
 </template>
 
 <script setup>
-import { computed, defineProps } from 'vue';
+import { computed } from 'vue';
 import { useRouter } from 'vue-router';
 import {
   mapGetters,
-  mapActions,
 } from '@/shared/vuex/vuex.helpers';
 import ConfirmDialog from '@/shared/dialog/confirm-dialog';
 import Message from '@/shared/message/message';
@@ -149,7 +148,6 @@ defineProps({
 const store = useStore();
 
 const { currentUser, currentTenant } = mapGetters('auth');
-const { doFind } = mapActions('organization');
 
 const organizationStore = useOrganizationStore();
 const { fetchOrganizations } = organizationStore;
@@ -256,7 +254,7 @@ const handleCommand = (command) => {
           reload: true,
         });
       } else {
-        doFind(command.organization.id);
+        OrganizationService.find(id);
       }
     });
   }

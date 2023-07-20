@@ -44,9 +44,13 @@
 </template>
 
 <script>
-import { mapActions, mapGetters } from 'vuex';
+import { mapGetters } from 'vuex';
 import { ActivityPermissions } from '@/modules/activity/activity-permissions';
 import ConfirmDialog from '@/shared/dialog/confirm-dialog';
+import Errors from '@/shared/error/errors';
+import { ActivityService } from '@/modules/activity/activity-service';
+import Message from '@/shared/message/message';
+import { i18n } from '@/i18n';
 
 export default {
   name: 'AppActivityDropdown',
@@ -83,9 +87,6 @@ export default {
     },
   },
   methods: {
-    ...mapActions({
-      doDestroy: 'activity/doDestroy',
-    }),
     editActivity() {
       this.$emit('edit');
     },
@@ -101,10 +102,15 @@ export default {
           icon: 'ri-delete-bin-line',
         });
 
-        await this.doDestroy(this.activity.id);
+        await ActivityService.destroyAll([this.activity.id]);
+
+        Message.success(
+          i18n('entities.activity.destroy.success'),
+        );
+
         this.$emit('activity-destroyed', this.activity.id);
       } catch (error) {
-        // no
+        Errors.handle(error);
       }
     },
   },

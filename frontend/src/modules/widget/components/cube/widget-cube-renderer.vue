@@ -72,23 +72,28 @@ export default {
     query() {
       // Exclude team members in all queries
       const widgetQuery = this.widget.settings.query;
-      const isTeamMemberFilter = {
-        member: 'Members.isTeamMember',
-        operator: 'equals',
-        values: ['0'],
-      };
-      const isBot = {
-        member: 'Members.isBot',
-        operator: 'equals',
-        values: ['0'],
-      };
+      const filters = widgetQuery.filters || [];
 
-      if (!widgetQuery.filters) {
-        widgetQuery.filters = [isTeamMemberFilter, isBot];
-      } else {
-        widgetQuery.filters.push(isTeamMemberFilter);
-        widgetQuery.filters.push(isBot);
+      const hasTeamMemberFilter = filters.some((f) => f.member === 'Members.isTeamMember');
+      const hasBotFilter = filters.some((f) => f.member === 'Members.isBot');
+
+      if (!hasTeamMemberFilter) {
+        filters.push({
+          member: 'Members.isTeamMember',
+          operator: 'equals',
+          values: ['0'],
+        });
       }
+
+      if (!hasBotFilter) {
+        filters.push({
+          member: 'Members.isBot',
+          operator: 'equals',
+          values: ['0'],
+        });
+      }
+
+      widgetQuery.filters = filters;
 
       return widgetQuery;
     },

@@ -317,4 +317,34 @@ export default class IntegrationStreamRepository extends RepositoryBase<Integrat
 
     return null
   }
+
+  public async publishWebhookStream(
+    identifier: string,
+    webhookId: string,
+    data: unknown,
+    integrationId: string,
+    tenantId: string,
+  ): Promise<string | null> {
+    const result = await this.db().oneOrNone(
+      `
+    insert into integration.streams("parentId", "runId", "webhookId", state, identifier, data, "tenantId", "integrationId", "microserviceId")
+    values (null, null, $(webhookId)::uuid, $(state), $(identifier), $(data)::json, $(tenantId), $(integrationId), null)
+    returning id;
+    `,
+      {
+        webhookId,
+        state: IntegrationStreamState.PENDING,
+        identifier: identifier,
+        data: data ? JSON.stringify(data) : null,
+        tenantId,
+        integrationId,
+      },
+    )
+
+    if (result) {
+      return result.id
+    }
+
+    return null
+  }
 }

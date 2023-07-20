@@ -191,7 +191,6 @@
         </el-dropdown-item>
       </template>
     </el-dropdown>
-    <app-member-merge-dialog v-model="isMergeDialogOpen" />
   </div>
 </template>
 
@@ -212,7 +211,6 @@ import { HubspotApiService } from '@/integrations/hubspot/hubspot.api.service';
 export default {
   name: 'AppMemberDropdown',
   components: {
-    AppMemberMergeDialog,
     AppSvg,
   },
   props: {
@@ -221,9 +219,11 @@ export default {
       default: () => {},
     },
   },
+  emits: [
+    'merge',
+  ],
   data() {
     return {
-      isMergeDialogOpen: null,
       isMergeLoading: false,
       pair: [],
     };
@@ -355,7 +355,7 @@ export default {
           this.doFind(command.member.id);
         }
       } else if (command.action === 'memberMerge') {
-        this.isMergeDialogOpen = this.member;
+        this.$emit('merge');
       } else if (command.action === 'memberEnrich') {
         await this.doEnrich(command.member.id);
         await this.fetchMembers({ reload: true });

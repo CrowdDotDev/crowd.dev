@@ -336,6 +336,9 @@ export default class MemberService extends LoggerBase {
 
           // Collect unique domains
           for (const email of data.emails) {
+            if (!email) {
+              continue
+            }
             const domain = email.split('@')[1]
             emailDomains.add(domain)
           }
