@@ -109,9 +109,11 @@ export default {
         return acc;
       }, []);
       const updatedMembers = await MemberService.updateBulk(payload);
+      Message.success('Tags updated successfully');
       commit('BULK_UPDATE_MEMBERS_TAGS_SUCCESS', updatedMembers);
     } catch (error) {
       Errors.handle(error);
+      Message.error('There was an error updating tags');
     }
   },
 
