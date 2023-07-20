@@ -710,7 +710,7 @@ class Permissions {
           plans.enterprise,
         ],
       },
-      eagleEyeRead: {
+      eagleEyeContentRead: {
         id: 'eagleEyeRead',
         allowedRoles: [
           roles.admin,
@@ -724,6 +724,45 @@ class Permissions {
           plans.enterprise,
         ],
         allowedSampleTenant: true,
+      },
+      eagleEyeContentCreate: {
+        id: 'eagleEyeContentCreate',
+        allowedRoles: [
+          roles.admin,
+          roles.projectAdmin,
+        ],
+        allowedPlans: [
+          plans.growth,
+          plans.essential,
+          plans.eagleEye,
+          plans.enterprise,
+        ],
+      },
+      eagleEyeContentEdit: {
+        id: 'eagleEyeContentEdit',
+        allowedRoles: [
+          roles.admin,
+          roles.projectAdmin,
+        ],
+        allowedPlans: [
+          plans.growth,
+          plans.essential,
+          plans.eagleEye,
+          plans.enterprise,
+        ],
+      },
+      eagleEyeActionCreate: {
+        id: 'eagleEyeActionCreate',
+        allowedRoles: [
+          roles.admin,
+          roles.projectAdmin,
+        ],
+        allowedPlans: [
+          plans.growth,
+          plans.essential,
+          plans.eagleEye,
+          plans.enterprise,
+        ],
       },
       automationImport: {
         id: 'automationImport',

@@ -2,6 +2,14 @@ import { ProjectGroup, Project } from '@/modules/lf/segments/types/Segments';
 
 export interface SegmentsState {
   selectedProjectGroup: ProjectGroup | null;
+  userProjectGroups: {
+    list: ProjectGroup[],
+    loading: boolean,
+    pagination: {
+      total: number,
+      count: number,
+    },
+  },
   projectGroups: {
     list: ProjectGroup[],
     loading: boolean,
@@ -27,6 +35,14 @@ export interface SegmentsState {
 
 const state: SegmentsState = {
   selectedProjectGroup: null,
+  userProjectGroups: {
+    list: [],
+    loading: true,
+    pagination: {
+      total: 0,
+      count: 0,
+    },
+  },
   projectGroups: {
     list: [],
     loading: true,

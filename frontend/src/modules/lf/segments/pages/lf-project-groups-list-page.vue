@@ -1,18 +1,26 @@
 <template>
   <div class="p-3">
-    <div class="w-full flex items-center justify-between mb-9">
+    <div
+      class="w-full flex items-center justify-between"
+      :class="{ 'mb-9': !isProjectAdminUser }"
+    >
       <h4 class="text-gray-900">
         Project Groups
       </h4>
 
       <div class="basis-1/4">
         <app-lf-search-input
-          v-if="pagination.total"
+          v-if="pagination.total && !isProjectAdminUser"
           placeholder="Search project group..."
           @on-change="(query) => searchProjectGroup(query, null)"
         />
       </div>
     </div>
+
+    <el-tabs v-if="isProjectAdminUser" v-model="computedActiveTab" class="mt-8">
+      <el-tab-pane label="My project groups" name="project-groups" />
+      <el-tab-pane label="All project groups" name="all-project-groups" />
+    </el-tabs>
 
     <div
       v-if="loading"
@@ -20,6 +28,12 @@
       class="app-page-spinner h-16 !relative !min-h-5 mt-10"
     />
     <div v-else>
+      <app-lf-search-input
+        v-if="pagination.total && isProjectAdminUser"
+        class="my-6"
+        placeholder="Search project group..."
+        @on-change="(query) => searchProjectGroup(query, null)"
+      />
       <app-empty-state-cta
         v-if="!pagination.total"
         class="mt-20"
@@ -107,34 +121,85 @@
 
 <script setup>
 import { storeToRefs } from 'pinia';
-import { computed, onMounted, reactive } from 'vue';
+import {
+  computed, onMounted, reactive, ref, watch,
+} from 'vue';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import AppLfSearchInput from '@/modules/lf/segments/components/view/lf-search-input.vue';
 import pluralize from 'pluralize';
-import { useRouter } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 import { LfPermissions } from '@/modules/lf/lf-permissions';
 import { mapGetters } from '@/shared/vuex/vuex.helpers';
 import { hasAccessToProjectGroup } from '@/utils/segments';
+import { PermissionChecker } from '@/modules/user/permission-checker';
+import Roles from '@/security/roles';
 
 const router = useRouter();
+const route = useRoute();
 
 const { currentTenant, currentUser } = mapGetters('auth');
 
 const lsSegmentsStore = useLfSegmentsStore();
-const { projectGroups } = storeToRefs(lsSegmentsStore);
-const { listProjectGroups, updateSelectedProjectGroup, searchProjectGroup } = lsSegmentsStore;
+const { projectGroups, userProjectGroups } = storeToRefs(lsSegmentsStore);
+const {
+  listProjectGroups, listUserProjectGroups, updateSelectedProjectGroup, searchProjectGroup, searchUserProjectGroup,
+} = lsSegmentsStore;
 
-const loading = computed(() => projectGroups.value.loading);
-const pagination = computed(() => projectGroups.value.pagination);
-const list = computed(() => projectGroups.value.list);
+const activeTab = ref();
+
+const isProjectAdminUser = computed(() => {
+  const permissionChecker = new PermissionChecker(
+    currentTenant.value,
+    currentUser.value,
+  );
+  return permissionChecker.currentUserRolesIds.includes(Roles.values.projectAdmin);
+});
+
+const config = computed(() => {
+  if (!isProjectAdminUser.value || activeTab.value === 'all-project-groups') {
+    return {
+      ...projectGroups.value,
+      listProjectGroups,
+      searchProjectGroup,
+    };
+  }
+
+  return {
+    ...userProjectGroups.value,
+    listProjectGroups: listUserProjectGroups,
+    searchProjectGroup: searchUserProjectGroup,
+  };
+});
+const loading = computed(() => config.value.loading);
+const pagination = computed(() => config.value.pagination);
+const list = computed(() => config.value.list);
+
+const computedActiveTab = computed({
+  get() {
+    return activeTab.value;
+  },
+  set(value) {
+    router.push({
+      name: 'projectGroupsList',
+      query: { activeTab: value },
+    });
+  },
+});
 
 const imageErrors = reactive({});
 
+watch(() => route.query.activeTab, (newActiveTab) => {
+  if (newActiveTab && isProjectAdminUser.value) {
+    activeTab.value = newActiveTab;
+  }
+});
+
 onMounted(() => {
-  listProjectGroups({
-    limit: null,
-    reset: true,
-  });
+  if (isProjectAdminUser.value) {
+    activeTab.value = route.query.activeTab || 'project-groups';
+  }
+
+  config.value.listProjectGroups();
 });
 
 const handleImageError = (id, e) => {

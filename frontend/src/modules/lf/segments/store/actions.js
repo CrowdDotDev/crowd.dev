@@ -1,6 +1,7 @@
 import { LfService } from '@/modules/lf/segments/lf-segments-service';
 import Message from '@/shared/message/message';
 import { router } from '@/router';
+import { getUserSegments } from '@/utils/segments';
 
 export default {
   // Project Groups
@@ -45,6 +46,42 @@ export default {
         this.projectGroups.loading = false;
       });
   },
+  listUserProjectGroups({
+    search = null,
+  } = {}) {
+    this.userProjectGroups.loading = true;
+    this.userProjectGroups.pagination = {
+      total: 0,
+      count: 0,
+    };
+
+    return LfService.queryProjectGroups({
+      limit: null,
+      offset: 0,
+      filter: {
+        name: search,
+      },
+    })
+      .then((response) => {
+        const count = Number(response.count);
+
+        this.userProjectGroups.list = getUserSegments(response.rows);
+
+        if (!search) {
+          this.userProjectGroups.pagination.total = this.userProjectGroups.list.length;
+        }
+
+        this.userProjectGroups.pagination.count = this.userProjectGroups.list.length;
+        return Promise.resolve();
+      })
+      .catch(() => {
+        Message.error('Something went wrong while fetching project groups');
+        return Promise.reject();
+      })
+      .finally(() => {
+        this.userProjectGroups.loading = false;
+      });
+  },
   findProjectGroup(id) {
     return LfService.findSegment(id)
       .then((projectGroup) => Promise.resolve(projectGroup))
@@ -78,6 +115,10 @@ export default {
   searchProjectGroup(search, limit) {
     this.projectGroups.pagination.currentPage = 1;
     this.listProjectGroups({ search, offset: 0, limit });
+  },
+  searchUserProjectGroup(search) {
+    this.userProjectGroups.pagination.currentPage = 1;
+    this.listUserProjectGroups({ search });
   },
   // Projects
   listProjects({

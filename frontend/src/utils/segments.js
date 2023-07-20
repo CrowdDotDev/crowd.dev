@@ -1,4 +1,6 @@
 import { store } from '@/store';
+import { PermissionChecker } from '@/modules/user/permission-checker';
+import Roles from '@/security/roles';
 
 export const getSegmentsFromProjectGroup = (projectGroup, options) => {
   if (!projectGroup) {
@@ -20,6 +22,22 @@ export const getSegmentsFromProjectGroup = (projectGroup, options) => {
 
 export const hasAccessToProjectGroup = (segmentId) => {
   const currentUser = store.getters['auth/currentUser'];
+  const currentTenant = store.getters['auth/currentTenant'];
+
+  const permissionChecker = new PermissionChecker(
+    currentTenant,
+    currentUser,
+  );
+
+  const isAdmin = permissionChecker.currentUserRolesIds.includes(Roles.values.projectAdmin);
+  const isViewer = permissionChecker.currentUserRolesIds.includes(Roles.values.projectAdmin);
+
+  if (isAdmin) {
+    return true;
+  } if (isViewer) {
+    return false;
+  }
+
   const { segments = [] } = currentUser;
 
   if (!segments.length) {
@@ -33,5 +51,5 @@ export const getUserSegments = (allSegments) => {
   const currentUser = store.getters['auth/currentUser'];
   const { segments = [] } = currentUser;
 
-  return allSegments.filter((s) => segments.includes(s.id));
+  return allSegments.filter((s) => segments.some((id) => id === s.id));
 };

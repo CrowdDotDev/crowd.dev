@@ -14,6 +14,7 @@
     </div>
 
     <el-button
+      v-if="hasPermissionToEditContent"
       class="btn btn--primary btn--full !h-8"
       @click="isEmailDigestDrawerOpen = true"
     >
@@ -60,6 +61,7 @@
 import { ref, computed } from 'vue';
 import { mapGetters } from '@/shared/vuex/vuex.helpers';
 import AppEagleEyeEmailDigestDrawer from '@/premium/eagle-eye/components/list/eagle-eye-email-digest-drawer.vue';
+import { EagleEyePermissions } from '@/premium/eagle-eye/eagle-eye-permissions';
 
 const { currentUser, currentTenant } = mapGetters('auth');
 
@@ -78,5 +80,12 @@ const isEmailDigestConfiguredOnce = computed(
 
 const isEmailDigestActivated = computed(
   () => eagleEyeSettings.value?.emailDigestActive,
+);
+
+const hasPermissionToEditContent = computed(
+  () => new EagleEyePermissions(
+    currentTenant.value,
+    currentUser.value,
+  ).edit,
 );
 </script>

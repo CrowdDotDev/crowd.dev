@@ -23,6 +23,7 @@
   </div>
 
   <el-button
+    v-if="hasPermissionToCreateContent"
     class="btn btn--primary btn--full btn--md"
     @click="emit('onStepChange', 1)"
   >
@@ -37,8 +38,19 @@
 </template>
 
 <script setup>
-import { defineEmits } from 'vue';
+import { defineEmits, computed } from 'vue';
 import { pageContent } from '@/modules/layout/layout-page-content';
+import { EagleEyePermissions } from '@/premium/eagle-eye/eagle-eye-permissions';
+import { mapGetters } from '@/shared/vuex/vuex.helpers';
 
 const emit = defineEmits(['onStepChange']);
+
+const { currentUser, currentTenant } = mapGetters('auth');
+
+const hasPermissionToCreateContent = computed(
+  () => new EagleEyePermissions(
+    currentTenant.value,
+    currentUser.value,
+  ).create,
+);
 </script>
