@@ -1,6 +1,7 @@
 import { PermissionChecker } from '@/modules/user/permission-checker';
 import config from '@/config';
 import { tenantSubdomain } from '@/modules/tenant/tenant-subdomain';
+import { Auth0Service } from '@/shared/services/auth0.service';
 
 function isGoingToIntegrationsPage(to) {
   return to.name === 'integration';
@@ -34,8 +35,11 @@ export default async function ({ to, store, router }) {
     currentUser,
   );
 
-  if (!permissionChecker.isAuthenticated) {
+  const isAuthenticated = await Auth0Service.isAuthenticated();
+
+  if (!permissionChecker.isAuthenticated || !isAuthenticated) {
     router.push({ path: '/auth/signin' });
+    Auth0Service.localLogout();
     return;
   }
 

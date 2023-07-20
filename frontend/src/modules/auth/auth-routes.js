@@ -1,4 +1,3 @@
-import Layout from '@/modules/layout/components/layout.vue';
 import AuthLayout from '@/modules/auth/layouts/auth-layout.vue';
 
 const SigninPage = () => import('@/modules/auth/pages/signin-page.vue');

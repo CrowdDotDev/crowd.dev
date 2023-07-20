@@ -1,6 +1,5 @@
 import { AuthToken } from '@/modules/auth/auth-token';
 import AuthCurrentTenant from '@/modules/auth/auth-current-tenant';
-import { Auth0Service } from '@/shared/services/auth0.service';
 
 /**
  * Unauth Guard
@@ -14,16 +13,10 @@ import { Auth0Service } from '@/shared/services/auth0.service';
  * @param router
  * @returns {Promise<*>}
  */
-export default function ({ to, router }) {
+export default async function ({ to, router }) {
   if (!to.meta || !to.meta.unauth) {
     return;
   }
-
-  Auth0Service.isAuthenticated().then((isAuthenticated) => {
-    if (!isAuthenticated) {
-      Auth0Service.logout();
-    }
-  });
 
   const token = AuthToken.get();
   const tenantId = AuthCurrentTenant.get();
