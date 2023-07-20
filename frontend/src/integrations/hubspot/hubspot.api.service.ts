@@ -30,4 +30,52 @@ export class HubspotApiService {
     )
       .then((response) => response.data);
   }
+
+  static syncMember(memberId: string): Promise<any> {
+    const tenantId = AuthCurrentTenant.get();
+
+    return authAxios.post(
+      `/tenant/${tenantId}/hubspot-sync-member`,
+      {
+        memberId,
+      },
+    )
+      .then((response) => response.data);
+  }
+
+  static stopSyncMember(memberId: string): Promise<any> {
+    const tenantId = AuthCurrentTenant.get();
+
+    return authAxios.post(
+      `/tenant/${tenantId}/hubspot-stop-sync-member`,
+      {
+        memberId,
+      },
+    )
+      .then((response) => response.data);
+  }
+
+  static syncOrganization(organizationId: string): Promise<any> {
+    const tenantId = AuthCurrentTenant.get();
+
+    return authAxios.post(
+      `/tenant/${tenantId}/hubspot-sync-organization`,
+      {
+        organizationId,
+      },
+    )
+      .then((response) => response.data);
+  }
+
+  static stopSyncOrganization(organizationId: string): Promise<any> {
+    const tenantId = AuthCurrentTenant.get();
+
+    return authAxios.post(
+      `/tenant/${tenantId}/hubspot-stop-sync-organization`,
+      {
+        organizationId,
+      },
+    )
+      .then((response) => response.data);
+  }
 }
