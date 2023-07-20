@@ -23,6 +23,10 @@ class Auth0ServiceClass {
     this.webAuth.loginWithRedirect();
   }
 
+  isAuthenticated() {
+    return this.webAuth.isAuthenticated();
+  }
+
   public async handleAuth(): Promise<void> {
     return this.webAuth.handleRedirectCallback()
       .then(() => this.webAuth.getIdTokenClaims())
