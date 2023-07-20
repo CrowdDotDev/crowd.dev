@@ -87,6 +87,23 @@ export class OpensearchQueryParser {
     throw new Error('Bad op!')
   }
 
+  private static translateOperatorSymbol(operator: string): string {
+    switch (operator) {
+      case 'eq':
+        return '=='
+      case 'gt':
+        return '>'
+      case 'gte':
+        return '>='
+      case 'lt':
+        return '<'
+      case 'lte':
+        return '<='
+      default:
+        throw new Error(`Invalid operator: ${operator}`)
+    }
+  }
+
   private static parseColumnCondition(filters: any, searchKey: string): any {
     const conditionKeys = Object.keys(filters)
     if (conditionKeys.length !== 1) {
@@ -290,12 +307,24 @@ export class OpensearchQueryParser {
     }
 
     if (operator === Operator.ARRAY_LENGTH) {
+      if (!Array.isArray(value)) {
+        throw new Error('Array length should be used with an array of values!')
+      }
+
+      const [lengthOperator, arrayLength] = value
+
+      if (typeof arrayLength !== 'number') {
+        throw new Error('Array length should be a number!')
+      }
+
+      const opensearchOperator = this.translateOperatorSymbol(lengthOperator)
+
       return {
         script: {
-          source: `doc['${searchKey}'].length == params.length`,
+          source: `doc['${searchKey}'].length ${opensearchOperator} params.length`,
           lang: 'painless',
           params: {
-            length: value,
+            length: arrayLength,
           },
         },
       }
