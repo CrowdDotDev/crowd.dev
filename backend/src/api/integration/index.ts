@@ -96,6 +96,17 @@ export default (app) => {
     safeWrap(require('./helpers/hubspotGetMappableFields').default),
   )
 
+  app.post(
+    '/tenant/:tenantId/hubspot-sync-member',
+    safeWrap(require('./helpers/hubspotSyncMember').default),
+  )
+
+  app.post(
+    '/tenant/:tenantId/hubspot-stop-sync-member',
+    safeWrap(require('./helpers/hubspotStopSyncMember').default),
+  )
+
+
   // if (TWITTER_CONFIG.clientId) {
   //   /**
   //    * Using the passport.authenticate this endpoint forces a

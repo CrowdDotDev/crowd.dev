@@ -112,6 +112,14 @@ export interface IHubspotIntegrationSettings extends IHubspotOnboardingSettings 
   hubspotId: number
   hubspotProperties: IHubspotProperty[]
   updateMemberAttributes: boolean
+  syncRemoteEnabled?: boolean
+  blockSyncRemote?: boolean
+}
+
+export interface IHubspotManualSyncPayload {
+  memberId?: string
+  organizationId?: string
+  segmentId: string
 }
 
 export interface IHubspotBaseStream {

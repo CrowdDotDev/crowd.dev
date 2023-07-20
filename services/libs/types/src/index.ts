@@ -5,6 +5,7 @@ export * from './queue/integration_data_worker'
 export * from './queue/data_sink_worker'
 export * from './queue/nodejs_worker'
 export * from './queue/search_sync_worker'
+export * from './queue/integration_sync_worker'
 
 export * from './enums/integrations'
 export * from './integrations'

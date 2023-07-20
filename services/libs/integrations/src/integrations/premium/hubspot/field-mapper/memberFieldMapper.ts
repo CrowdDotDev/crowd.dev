@@ -63,7 +63,7 @@ export class HubspotMemberFieldMapper extends HubspotFieldMapper {
     }
 
     for (const identity of this.identities) {
-      this.typeMap[`identities_${identity.platform}`] = HubspotPropertyType.STRING
+      this.typeMap[`identities.${identity.platform}`] = HubspotPropertyType.STRING
     }
 
     return this.typeMap

@@ -1,6 +1,14 @@
-import { IMemberAttribute, IActivityData, IntegrationResultType } from '@crowd/types'
+import {
+  IMemberAttribute,
+  IActivityData,
+  IntegrationResultType,
+  IMember,
+  IMemberIdentity,
+} from '@crowd/types'
 import { Logger } from '@crowd/logging'
 import { ICache, IIntegration, IIntegrationStream, IRateLimiter } from '@crowd/types'
+
+import { IntegrationSyncWorkerEmitter } from '@crowd/sqs'
 
 export interface IIntegrationContext {
   onboarding?: boolean
@@ -12,6 +20,22 @@ export interface IIntegrationContext {
   updateIntegrationSettings: (settings: unknown) => Promise<void>
 
   abortRunWithError: (message: string, metadata?: unknown, error?: Error) => Promise<void>
+}
+
+export interface IIntegrationStartRemoteSyncContext {
+  integrationSyncWorkerEmitter: IntegrationSyncWorkerEmitter
+  integration: IIntegration
+  tenantId: string
+  log: Logger
+}
+
+export interface IIntegrationProcessRemoteSyncContext {
+  tenantId: string
+  integration: IIntegration
+  memberAttributes: IMemberAttribute[]
+  platforms: IMemberIdentity[]
+  log: Logger
+  serviceSettings: IIntegrationServiceSettings
 }
 
 export interface IGenerateStreamsContext extends IIntegrationContext {
@@ -68,6 +92,12 @@ export type GenerateStreamsHandler = (ctx: IGenerateStreamsContext) => Promise<v
 export type ProcessStreamHandler = (ctx: IProcessStreamContext) => Promise<void>
 export type ProcessWebhookStreamHandler = (ctx: IProcessWebhookStreamContext) => Promise<void>
 export type ProcessDataHandler = (ctx: IProcessDataContext) => Promise<void>
+export type StartIntegrationSyncHandler = (ctx: IIntegrationStartRemoteSyncContext) => Promise<void>
+export type ProcessIntegrationSyncHandler = (
+  membersToCreate: IMember[],
+  membersToUpdate: IMember[],
+  ctx: IIntegrationProcessRemoteSyncContext,
+) => Promise<any>
 
 export interface IIntegrationDescriptor {
   /**
@@ -132,6 +162,15 @@ export interface IIntegrationDescriptor {
   // if undefined it will never check
   // if 0 it will check the same as if it was 1 - every minute
   checkEvery?: number
+
+  /**
+   * Function that will be called if defined, after an integration goes into done state.
+   * Mainly responsible for sending queue messages to integration-sync-worker
+   */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  startSyncRemote?: StartIntegrationSyncHandler
+
+  processSyncRemote?: ProcessIntegrationSyncHandler
 }
 
 export interface IIntegrationServiceSettings {

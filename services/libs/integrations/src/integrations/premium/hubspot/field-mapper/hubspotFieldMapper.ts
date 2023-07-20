@@ -51,6 +51,12 @@ export abstract class HubspotFieldMapper {
     return Object.values(this.fieldMap)
   }
 
+  public getAllCrowdFields(): string[] {
+    this.ensureFieldMapExists()
+
+    return Object.keys(this.fieldMap)
+  }
+
   public setFieldMap(fieldMap: Record<string, string>): void {
     this.fieldMap = fieldMap
   }

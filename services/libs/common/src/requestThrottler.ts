@@ -1,16 +1,14 @@
-import { IIntegrationContext } from '..'
-
 export class RequestThrottler {
   private requests: number
   private totalRequests: number
   private interval: number
-  private ctx: IIntegrationContext
+  private logger: any
 
-  constructor(totalRequests: number, interval: number, ctx: IIntegrationContext) {
+  constructor(totalRequests: number, interval: number, logger: any) {
     this.totalRequests = totalRequests
     this.requests = totalRequests
     this.interval = interval
-    this.ctx = ctx
+    this.logger = logger
     setInterval(() => this.replenish(), this.interval)
   }
 
@@ -24,7 +22,7 @@ export class RequestThrottler {
       return await func()
     } else {
       // Delay by the replenishment interval if out of requests
-      this.ctx.log.debug(
+      this.logger.debug(
         `Throttling api requests limit ${this.totalRequests}, waiting ${this.interval}ms`,
       )
       await new Promise((resolve) => setTimeout(resolve, this.interval))

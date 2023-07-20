@@ -1,13 +1,18 @@
 import { SlackAlertTypes, sendSlackAlert } from '@crowd/alerting'
 import { singleOrDefault } from '@crowd/common'
 import { DbStore } from '@crowd/database'
-import { IGenerateStreamsContext, INTEGRATION_SERVICES } from '@crowd/integrations'
+import {
+  IGenerateStreamsContext,
+  IIntegrationStartRemoteSyncContext,
+  INTEGRATION_SERVICES,
+} from '@crowd/integrations'
 import { Logger, LoggerBase, getChildLogger } from '@crowd/logging'
 import { ApiPubSubEmitter, RedisCache, RedisClient } from '@crowd/redis'
 import {
   IntegrationRunWorkerEmitter,
   IntegrationStreamWorkerEmitter,
   SearchSyncWorkerEmitter,
+  IntegrationSyncWorkerEmitter,
 } from '@crowd/sqs'
 import { IntegrationRunState, IntegrationStreamState } from '@crowd/types'
 import { NANGO_CONFIG, PLATFORM_CONFIG, SLACK_ALERTING_CONFIG } from '../conf'
@@ -24,6 +29,7 @@ export default class IntegrationRunService extends LoggerBase {
     private readonly streamWorkerEmitter: IntegrationStreamWorkerEmitter,
     private readonly runWorkerEmitter: IntegrationRunWorkerEmitter,
     private readonly searchSyncWorkerEmitter: SearchSyncWorkerEmitter,
+    private readonly integrationSyncWorkerEmitter: IntegrationSyncWorkerEmitter,
     private readonly apiPubSubEmitter: ApiPubSubEmitter,
     private readonly store: DbStore,
     parentLog: Logger,
@@ -145,6 +151,51 @@ export default class IntegrationRunService extends LoggerBase {
           }
         } catch (err) {
           this.log.error({ err }, 'Error while post processing integration settings!')
+        }
+
+        try {
+          this.log.info('Trying to start syncRemote!')
+
+          const service = singleOrDefault(
+            INTEGRATION_SERVICES,
+            (s) => s.type === runInfo.integrationType,
+          )
+
+          const settings = runInfo.integrationSettings as any
+
+          if (
+            service.startSyncRemote &&
+            settings.syncRemoteEnabled &&
+            settings.blockSyncRemote !== true
+          ) {
+            const syncRemoteContext: IIntegrationStartRemoteSyncContext = {
+              integrationSyncWorkerEmitter: this.integrationSyncWorkerEmitter,
+              integration: {
+                id: runInfo.integrationId,
+                identifier: runInfo.integrationIdentifier,
+                platform: runInfo.integrationType,
+                status: runInfo.integrationState,
+                settings: runInfo.integrationSettings,
+                token: runInfo.integrationToken,
+              },
+              tenantId: runInfo.tenantId,
+              log: this.log,
+            }
+
+            await service.startSyncRemote(syncRemoteContext)
+
+            this.log.info('Triggering start sync remote!')
+          } else {
+            this.log.info(
+              {
+                syncRemoteEnabled: settings.syncRemoteEnabled,
+                blockSyncRemote: settings.blockSyncRemote,
+              },
+              `Integration does not have a startSyncRemote function or settings disable sync remote!`,
+            )
+          }
+        } catch (err) {
+          this.log.error({ err }, 'Error while starting integration sync remote!')
         }
 
         await this.repo.markRunProcessed(runId)

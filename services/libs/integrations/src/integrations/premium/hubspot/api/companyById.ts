@@ -3,7 +3,7 @@ import { IHubspotObject } from '../types'
 import axios, { AxiosRequestConfig } from 'axios'
 import { getNangoToken } from './../../../nango'
 import { PlatformType } from '@crowd/types'
-import { RequestThrottler } from '@/integrations/requestThrottler'
+import { RequestThrottler } from '@crowd/common'
 import { HubspotOrganizationFieldMapper } from '../field-mapper/organizationFieldMapper'
 
 export const getCompanyById = async (

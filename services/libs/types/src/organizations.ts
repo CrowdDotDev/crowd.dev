@@ -23,3 +23,9 @@ export interface IOrganizationSocial {
   handle: string
   url?: string
 }
+
+export interface IOrganizationOpensearch {
+  id: string
+  logo: string
+  displayName: string
+}
