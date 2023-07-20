@@ -3,7 +3,7 @@ import { Logger } from '@crowd/logging'
 import { ICache, IIntegration, IIntegrationStream, IRateLimiter } from '@crowd/types'
 
 export interface IIntegrationContext {
-  onboarding: boolean
+  onboarding?: boolean
   integration: IIntegration
   log: Logger
   cache: ICache
@@ -33,6 +33,26 @@ export interface IProcessStreamContext extends IIntegrationContext {
   getRateLimiter: (maxRequests: number, timeWindowSeconds: number, cacheKey: string) => IRateLimiter
 }
 
+export interface IProcessWebhookStreamContext {
+  integration: IIntegration
+  log: Logger
+  cache: ICache
+
+  publishStream: <T>(identifier: string, metadata?: T) => Promise<void>
+  updateIntegrationSettings: (settings: unknown) => Promise<void>
+  stream: IIntegrationStream
+  serviceSettings: IIntegrationServiceSettings
+  platformSettings?: unknown
+
+  publishData: <T>(data: T) => Promise<void>
+
+  abortWithError: (message: string, metadata?: unknown, error?: Error) => Promise<void>
+
+  globalCache: ICache
+
+  getRateLimiter: (maxRequests: number, timeWindowSeconds: number, cacheKey: string) => IRateLimiter
+}
+
 export interface IProcessDataContext extends IIntegrationContext {
   data: unknown
   platformSettings?: unknown
@@ -44,6 +64,7 @@ export interface IProcessDataContext extends IIntegrationContext {
 
 export type GenerateStreamsHandler = (ctx: IGenerateStreamsContext) => Promise<void>
 export type ProcessStreamHandler = (ctx: IProcessStreamContext) => Promise<void>
+export type ProcessWebhookStreamHandler = (ctx: IProcessWebhookStreamContext) => Promise<void>
 export type ProcessDataHandler = (ctx: IProcessDataContext) => Promise<void>
 
 export interface IIntegrationDescriptor {
@@ -67,6 +88,17 @@ export interface IIntegrationDescriptor {
    * @param ctx Everything that is needed to process a single stream
    */
   processStream: ProcessStreamHandler
+
+  /**
+   * Function that will be called to process a single webhook stream.
+   * The results of this function should be raw data fetched from external API
+   * that will be processed later by the processData function.
+   *
+   * Use ctx.publishData to store data for later processing
+   * Use ctx.publishStream to create a new stream if needed
+   * @param ctx Everything that is needed to process a single stream
+   */
+  processWebhookStream?: ProcessWebhookStreamHandler
 
   /**
    * Function that will be called to process a single stream data.

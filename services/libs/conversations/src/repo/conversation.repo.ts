@@ -62,7 +62,7 @@ export class ConversationRepository extends RepositoryBase<ConversationRepositor
     const now = new Date()
     const result = await this.db().result(
       `insert into "conversationSettings"(id, "tenantId", "createdAt", "updatedAt", "createdById")
-       values ($(id), $(tenantId), $(now), $(now), (select "createdById" from tenants where id = $(tenantId) limit 1));`,
+       values ($(id), $(tenantId), $(now), $(now), (select coalesce("createdById", "updatedById") as "createdById" from tenants where id = $(tenantId) limit 1));`,
       {
         id,
         tenantId,

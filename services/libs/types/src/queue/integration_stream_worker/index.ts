@@ -4,6 +4,7 @@ export enum IntegrationStreamWorkerQueueMessageType {
   CHECK_STREAMS = 'check_streams',
   CONTINUE_PROCESSING_RUN_STREAMS = 'continue_processing_run_streams',
   PROCESS_STREAM = 'process_stream',
+  PROCESS_WEBHOOK_STREAM = 'process_webhook_stream',
 }
 
 export class CheckStreamsQueueMessage implements IQueueMessage {
@@ -21,4 +22,10 @@ export class ProcessStreamQueueMessage implements IQueueMessage {
   public readonly type: string = IntegrationStreamWorkerQueueMessageType.PROCESS_STREAM
 
   constructor(public readonly streamId: string) {}
+}
+
+export class ProcessWebhookStreamQueueMessage implements IQueueMessage {
+  public readonly type: string = IntegrationStreamWorkerQueueMessageType.PROCESS_WEBHOOK_STREAM
+
+  constructor(public readonly webhookId: string) {}
 }

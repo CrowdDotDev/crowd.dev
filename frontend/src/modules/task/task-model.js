@@ -1,4 +1,3 @@
-import IdField from '@/shared/fields/id-field';
 import StringField from '@/shared/fields/string-field';
 import DateTimeField from '@/shared/fields/date-time-field';
 import { GenericModel } from '@/shared/model/generic-model';
@@ -6,6 +5,7 @@ import RelationToManyField from '@/shared/fields/relation-to-many-field';
 import Permissions from '@/security/permissions';
 import { UserService } from '@/modules/user/user-service';
 import { MemberService } from '@/modules/member/member-service';
+import { DEFAULT_MEMBER_FILTERS } from '@/modules/member/store/constants';
 
 const fetchUsers = (query, limit) => UserService.fetchUserAutocomplete(query, limit);
 
@@ -32,13 +32,17 @@ const fetchMembers = (query, limit) => {
     };
   }
 
-  return MemberService.list(
-    filter,
-    '',
+  return MemberService.listMembers({
+    filter: {
+      and: [
+        ...DEFAULT_MEMBER_FILTERS,
+        filter,
+      ],
+    },
+    orderBy: '',
     limit,
-    0,
-    false,
-  ).then(({ rows }) => rows.map((r) => ({
+    offset: 0,
+  }).then(({ rows }) => rows.map((r) => ({
     ...r,
     id: r.id,
     label: r.displayName,
@@ -46,7 +50,6 @@ const fetchMembers = (query, limit) => {
 };
 
 const fields = {
-  id: new IdField('id', 'ID'),
   title: new StringField('name', 'Title', {
     required: true,
   }),
