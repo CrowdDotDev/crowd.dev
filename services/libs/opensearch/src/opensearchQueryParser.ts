@@ -87,23 +87,6 @@ export class OpensearchQueryParser {
     throw new Error('Bad op!')
   }
 
-  private static translateOperatorSymbol(operator: string): string {
-    switch (operator) {
-      case 'eq':
-        return '=='
-      case 'gt':
-        return '>'
-      case 'gte':
-        return '>='
-      case 'lt':
-        return '<'
-      case 'lte':
-        return '<='
-      default:
-        throw new Error(`Invalid operator: ${operator}`)
-    }
-  }
-
   private static parseColumnCondition(filters: any, searchKey: string): any {
     const conditionKeys = Object.keys(filters)
     if (conditionKeys.length !== 1) {
@@ -307,25 +290,43 @@ export class OpensearchQueryParser {
     }
 
     if (operator === Operator.ARRAY_LENGTH) {
-      if (!Array.isArray(value)) {
-        throw new Error('Array length should be used with an array of values!')
+      if (typeof value !== 'object') {
+        throw new Error(
+          'Array length should be used with an object containing operators and their values!',
+        )
       }
 
-      const [lengthOperator, arrayLength] = value
-
-      if (typeof arrayLength !== 'number') {
-        throw new Error('Array length should be a number!')
+      const operatorsMapping = {
+        gte: '>=',
+        lte: '<=',
+        gt: '>',
+        lt: '<',
+        eq: '==',
       }
 
-      const opensearchOperator = this.translateOperatorSymbol(lengthOperator)
+      const scriptQueries = Object.entries(value).map(([lengthOperator, arrayLength]) => {
+        if (typeof arrayLength !== 'number') {
+          throw new Error(`Array length value for operator ${lengthOperator} should be a number!`)
+        }
+
+        if (!Object.prototype.hasOwnProperty.call(operatorsMapping, lengthOperator)) {
+          throw new Error(`Invalid operator "${lengthOperator}" used in ARRAY_LENGTH`)
+        }
+
+        return {
+          script: {
+            source: `doc['${searchKey}'].length ${operatorsMapping[lengthOperator]} params.length`,
+            lang: 'painless',
+            params: {
+              length: arrayLength,
+            },
+          },
+        }
+      })
 
       return {
-        script: {
-          source: `doc['${searchKey}'].length ${opensearchOperator} params.length`,
-          lang: 'painless',
-          params: {
-            length: arrayLength,
-          },
+        bool: {
+          must: scriptQueries,
         },
       }
     }
