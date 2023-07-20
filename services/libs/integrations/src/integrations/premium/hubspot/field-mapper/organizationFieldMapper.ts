@@ -52,7 +52,7 @@ export class HubspotOrganizationFieldMapper extends HubspotFieldMapper {
       name: organizationProperties.name,
     }
 
-    // loop through member properties
+    // loop through organization properties
     for (const hubspotPropertyName of Object.keys(organizationProperties)) {
       const crowdKey = this.getCrowdFieldName(hubspotPropertyName)
 
