@@ -18,6 +18,12 @@
             Slack notification
           </p>
         </div>
+        <div v-else-if="type === 'hubspot'" class="flex items-center">
+          <img alt="HubSpot" src="/images/integrations/hubspot.png" class="w-4 max-w-4">
+          <p class="pl-2 text-xs text-gray-900">
+            HubSpot
+          </p>
+        </div>
         <h4 class="text-lg font-medium mt-1 text-gray-900">
           Add automation
         </h4>
