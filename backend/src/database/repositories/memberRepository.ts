@@ -3245,8 +3245,7 @@ class MemberRepository {
     const query = `
       INSERT INTO "memberOrganizations" ("memberId", "organizationId", "createdAt", "updatedAt", "title", "dateStart", "dateEnd")
       VALUES (:memberId, :organizationId, NOW(), NOW(), :title, :dateStart, :dateEnd)
-      ON CONFLICT ("memberId", "organizationId") DO UPDATE
-      SET "title" = :title, "dateStart" = :dateStart, "dateEnd" = :dateEnd
+      ON CONFLICT ("memberId", "organizationId", "dateStart", "dateEnd") DO NOTHING
     `
 
     await seq.query(query, {
