@@ -289,6 +289,18 @@ export class OpensearchQueryParser {
       }
     }
 
+    if (operator === Operator.ARRAY_LENGTH) {
+      return {
+        script: {
+          source: `doc['${searchKey}'].length == params.length`,
+          lang: 'painless',
+          params: {
+            length: value,
+          },
+        },
+      }
+    }
+
     return {
       term: {
         [searchKey]: value,
