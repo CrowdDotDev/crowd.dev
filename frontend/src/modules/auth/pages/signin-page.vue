@@ -1,16 +1,20 @@
 <template>
-  <div>
-    <h3 class="text-2xl leading-12 font-semibold mb-1">
-      👋 Welcome back
-    </h3>
-    <div class="pt-10">
-      <a
-        id="googleLogin"
-        class="btn btn--secondary btn--lg w-full"
-        @click="signin()"
-      >
-        <span class="pl-3 text-gray-600">Sign in</span>
-      </a>
+  <div class="flex flex-col items-center gap-16">
+    <div class="flex gap-4 items-center">
+      <img src="/images/lf/logo_lfx_cm.svg" alt="lf logo" class="h-5" />
+      <el-divider direction="vertical" class="h-5 !m-0" />
+      <div class="text-xl text-brand-500">
+        Community Management
+      </div>
+    </div>
+    <div class="flex gap-4 items-center">
+      <div
+        v-loading="true"
+        class="app-page-spinner h-10 w-10 !relative !min-h-10"
+      />
+      <div class="font-semibold text-lg">
+        Signing you in...
+      </div>
     </div>
   </div>
 </template>
@@ -20,15 +24,8 @@ import { Auth0Service } from '@/shared/services/auth0.service';
 
 export default {
   name: 'AppSigninPage',
-  data() {
-    return {
-    };
-  },
-
-  methods: {
-    signin() {
-      Auth0Service.loginWithRedirect();
-    },
+  created() {
+    Auth0Service.loginWithRedirect();
   },
 };
 </script>
