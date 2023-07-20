@@ -24,6 +24,7 @@ export default async function ({ to, store, router }) {
   if (!to.meta || !to.meta.auth) {
     return;
   }
+
   await store.dispatch('auth/doWaitUntilInit');
 
   const currentUser = store.getters['auth/currentUser'];

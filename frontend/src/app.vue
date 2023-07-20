@@ -1,6 +1,7 @@
 <template>
   <div v-show="!loading" id="app">
     <div class="sm:hidden md:block lg:block">
+      <lfx-header-v2 v-if="showLfxMenu" id="lfx-header" product="Community Management" />
       <router-view v-slot="{ Component }">
         <transition>
           <div>
@@ -47,6 +48,9 @@ export default {
           && !this.featureFlag.hasError
           && !config.isCommunityVersion)
       );
+    },
+    showLfxMenu() {
+      return this.$route.name !== 'reportPublicView';
     },
   },
 
