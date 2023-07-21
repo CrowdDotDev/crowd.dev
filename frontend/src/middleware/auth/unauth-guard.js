@@ -13,7 +13,7 @@ import AuthCurrentTenant from '@/modules/auth/auth-current-tenant';
  * @param router
  * @returns {Promise<*>}
  */
-export default function ({ to, router }) {
+export default async function ({ to, router }) {
   if (!to.meta || !to.meta.unauth) {
     return;
   }

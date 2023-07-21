@@ -12,8 +12,8 @@ import { Auth0Service } from '@/shared/services/auth0.service';
 
 export default {
   name: 'AppSigninPage',
-  created() {
-    Auth0Service.loginWithRedirect();
+  async created() {
+    await Auth0Service.loginWithRedirect();
   },
 };
 </script>
