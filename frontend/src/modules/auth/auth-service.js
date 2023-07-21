@@ -87,6 +87,7 @@ export class AuthService {
           : undefined,
       })
       .then((response) => {
+        console.log(response);
         AuthInvitationToken.clear();
 
         return response.data;

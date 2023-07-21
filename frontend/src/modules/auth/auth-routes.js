@@ -3,6 +3,7 @@ import AuthLayout from '@/modules/auth/layouts/auth-layout.vue';
 
 const SigninPage = () => import('@/modules/auth/pages/signin-page.vue');
 
+const ProfileFormPage = () => import('@/modules/auth/pages/profile-form-page.vue');
 const InvitationPage = () => import('@/modules/auth/pages/invitation-page.vue');
 const TermsAndPrivacyPage = () => import('@/modules/auth/pages/terms-and-privacy.vue');
 const EmptyPermissionsPage = () => import('@/modules/auth/pages/empty-permissions-page.vue');
@@ -47,6 +48,23 @@ export default [
         path: 'terms-and-privacy',
         component: TermsAndPrivacyPage,
         meta: { title: 'Terms of service and privacy policy' },
+      },
+    ],
+  },
+  {
+    name: '',
+    path: '',
+    component: Layout,
+    meta: {
+      auth: true,
+      title: 'Profile Settings',
+    },
+    children: [
+      {
+        name: 'editProfile',
+        path: '/auth/edit-profile',
+        component: ProfileFormPage,
+        meta: { auth: true },
       },
     ],
   },
