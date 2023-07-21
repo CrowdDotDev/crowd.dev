@@ -352,6 +352,7 @@ const processPullsStream: ProcessStreamHandler = async (ctx) => {
                 data: record2,
                 member,
                 objectMember,
+                repo: data.repo,
               })
             } else if (record2?.requestedReviewer?.members) {
               const member = await parseMember(record2.actor, ctx)
@@ -363,6 +364,7 @@ const processPullsStream: ProcessStreamHandler = async (ctx) => {
                   data: record2,
                   member,
                   objectMember,
+                  repo: data.repo,
                 })
               }
             }
@@ -376,6 +378,7 @@ const processPullsStream: ProcessStreamHandler = async (ctx) => {
               type: GithubActivityType.PULL_REQUEST_REVIEWED,
               data: record2,
               member,
+              repo: data.repo,
             })
           }
           break
@@ -387,6 +390,7 @@ const processPullsStream: ProcessStreamHandler = async (ctx) => {
               type: GithubActivityType.PULL_REQUEST_MERGED,
               data: record2,
               member,
+              repo: data.repo,
             })
           }
           break
@@ -398,6 +402,7 @@ const processPullsStream: ProcessStreamHandler = async (ctx) => {
               type: GithubActivityType.PULL_REQUEST_MERGED,
               data: record2,
               member,
+              repo: data.repo,
             })
           }
           break
