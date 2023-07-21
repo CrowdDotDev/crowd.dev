@@ -126,7 +126,6 @@ export default {
   async doSignout({ commit }) {
     commit('AUTH_START');
     AuthService.signout();
-    Auth0Service.logout();
     commit('AUTH_SUCCESS', {
       currentUser: null,
     });
