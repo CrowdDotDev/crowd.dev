@@ -1,6 +1,6 @@
 import { LocalStorageEnum } from '@/shared/types/LocalStorage';
 import config from '@/config';
-import { Auth0Client } from '@auth0/auth0-spa-js';
+import { Auth0Client, User } from '@auth0/auth0-spa-js';
 
 const baseUrl = `${config.frontendUrl.protocol}://${config.frontendUrl.host}`;
 const authCallback = `${baseUrl}/auth/callback`;
@@ -15,6 +15,7 @@ class Auth0ServiceClass {
       authorizationParams: {
         redirect_uri: authCallback,
       },
+      cacheLocation: 'localstorage',
     });
   }
 
@@ -62,6 +63,10 @@ class Auth0ServiceClass {
   public logout(): void {
     Auth0ServiceClass.localLogout();
     this.webAuth.logout();
+  }
+
+  public getUser(): Promise<User> {
+    return this.webAuth.getUser().then((user) => user);
   }
 }
 
