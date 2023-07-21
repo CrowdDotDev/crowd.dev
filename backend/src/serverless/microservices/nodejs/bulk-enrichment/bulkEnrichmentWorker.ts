@@ -13,11 +13,11 @@ import { FeatureFlagRedisKey } from '../../../../types/common'
  */
 async function bulkEnrichmentWorker(
   tenantId: string,
-  memberIds: string[],
+  memberIds: string[], segmentIds: string[],
   notifyFrontend: boolean,
   skipCredits: boolean,
 ) {
-  const userContext = await getUserContext(tenantId)
+  const userContext = await getUserContext(tenantId, null, segmentIds)
 
   const memberEnrichmentService = new MemberEnrichmentService(userContext)
 
