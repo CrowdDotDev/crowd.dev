@@ -75,6 +75,8 @@ import AppLfProjectGroupsTable from '@/modules/lf/segments/components/view/lf-pr
 import AppLfSearchInput from '@/modules/lf/segments/components/view/lf-search-input.vue';
 import { LfPermissions } from '@/modules/lf/lf-permissions';
 import { mapGetters } from '@/shared/vuex/vuex.helpers';
+import { PermissionChecker } from '@/modules/user/permission-checker';
+import Roles from '@/security/roles';
 
 const lsSegmentsStore = useLfSegmentsStore();
 const { projectGroups } = storeToRefs(lsSegmentsStore);
@@ -97,10 +99,19 @@ const hasPermissionToCreate = computed(() => new LfPermissions(
   currentUser.value,
 )?.createProjectGroup);
 
+const isProjectAdminUser = computed(() => {
+  const permissionChecker = new PermissionChecker(
+    currentTenant.value,
+    currentUser.value,
+  );
+  return permissionChecker.currentUserRolesIds.includes(Roles.values.projectAdmin);
+});
+
 onMounted(() => {
   updateSelectedProjectGroup(null);
   listProjectGroups({
     reset: true,
+    adminOnly: isProjectAdminUser.value || null,
   });
 });
 

@@ -1,12 +1,11 @@
 import { LfService } from '@/modules/lf/segments/lf-segments-service';
 import Message from '@/shared/message/message';
 import { router } from '@/router';
-import { getUserSegments } from '@/utils/segments';
 
 export default {
   // Project Groups
   listProjectGroups({
-    search = null, offset, limit, reset = false,
+    search = null, offset, limit, reset = false, adminOnly,
   } = {}) {
     this.projectGroups.loading = true;
 
@@ -24,6 +23,7 @@ export default {
       offset: offset !== undefined ? offset : this.projectGroupOffset,
       filter: {
         name: search,
+        adminOnly,
       },
     })
       .then((response) => {
@@ -60,18 +60,19 @@ export default {
       offset: 0,
       filter: {
         name: search,
+        adminOnly: true,
       },
     })
       .then((response) => {
         const count = Number(response.count);
 
-        this.userProjectGroups.list = getUserSegments(response.rows);
+        this.userProjectGroups.list = response.rows;
 
         if (!search) {
-          this.userProjectGroups.pagination.total = this.userProjectGroups.list.length;
+          this.userProjectGroups.pagination.total = count;
         }
 
-        this.userProjectGroups.pagination.count = this.userProjectGroups.list.length;
+        this.userProjectGroups.pagination.count = count;
         return Promise.resolve();
       })
       .catch(() => {

@@ -46,10 +46,3 @@ export const hasAccessToProjectGroup = (segmentId) => {
 
   return segments.includes(segmentId);
 };
-
-export const getUserSegments = (allSegments) => {
-  const currentUser = store.getters['auth/currentUser'];
-  const { segments = [] } = currentUser;
-
-  return allSegments.filter((s) => segments.some((id) => id === s.id));
-};
