@@ -1,18 +1,21 @@
+/* eslint-disable  @typescript-eslint/no-explicit-any */
+// processStream.ts content
 // processData.ts content
 import { IProcessStreamContext, ProcessDataHandler } from '../../types'
-import { GithubApiData, GithubActivityType, GithubParseMemberOutput } from './types'
+import {
+  GithubApiData,
+  GithubActivityType,
+  GithubPrepareMemberOutput,
+  GithubActivitySubType,
+} from './types'
 import { IActivityData, IMemberData, PlatformType, MemberAttributeName } from '@crowd/types'
 import { GITHUB_GRID } from './grid'
 import { generateSourceIdHash } from '@/helpers'
 
 const IS_TEST_ENV: boolean = process.env.NODE_ENV === 'test'
 
-const parseMember = (
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  memberFromApi: any,
-  memberAdditionalInfo: GithubParseMemberOutput,
-): IMemberData => {
-  const { email, orgs } = memberAdditionalInfo
+const parseMember = (memberData: GithubPrepareMemberOutput): IMemberData => {
+  const { email, orgs, memberFromApi } = memberData
 
   const member: IMemberData = {
     identities: [
@@ -83,9 +86,9 @@ const parseMember = (
 const parseStar: ProcessDataHandler = async (ctx) => {
   const apiData = ctx.data as GithubApiData
   const data = apiData.data
-  const memberAdditionalInfo = apiData.member
+  const memberData = apiData.member
 
-  const member = parseMember(data.node, memberAdditionalInfo)
+  const member = parseMember(memberData)
 
   const activity: IActivityData = {
     type: GithubActivityType.STAR,
@@ -109,9 +112,9 @@ const parseStar: ProcessDataHandler = async (ctx) => {
 const parseFork: ProcessDataHandler = async (ctx) => {
   const apiData = ctx.data as GithubApiData
   const data = apiData.data
-  const memberAdditionalInfo = apiData.member
+  const memberData = apiData.member
 
-  const member = parseMember(data.owner, memberAdditionalInfo)
+  const member = parseMember(memberData)
 
   const activity: IActivityData = {
     type: GithubActivityType.FORK,
@@ -127,31 +130,442 @@ const parseFork: ProcessDataHandler = async (ctx) => {
   await ctx.publishActivity(activity)
 }
 
-const parsePullRequestOpened: ProcessDataHandler = async (ctx) => {}
+const parsePullRequestOpened: ProcessDataHandler = async (ctx) => {
+  const apiData = ctx.data as GithubApiData
+  const data = apiData.data
+  const memberData = apiData.member
 
-const parsePullRequestClosed: ProcessDataHandler = async (ctx) => {}
+  const member = parseMember(memberData)
 
-const parsePullRequestReviewRequested: ProcessDataHandler = async (ctx) => {}
+  const activity: IActivityData = {
+    type: GithubActivityType.PULL_REQUEST_OPENED,
+    sourceId: data.id,
+    sourceParentId: '',
+    timestamp: new Date(data.createdAt).toISOString(),
+    body: data.bodyText,
+    url: data.url ? data.url : '',
+    channel: apiData.repo.url,
+    title: data.title,
+    attributes: {
+      state: data.state.toLowerCase(),
+      additions: data.additions,
+      deletions: data.deletions,
+      changedFiles: data.changedFiles,
+      authorAssociation: data.authorAssociation,
+      labels: data.labels?.nodes.map((l) => l.name),
+    },
+    member,
+    score: GITHUB_GRID[GithubActivityType.PULL_REQUEST_OPENED].score,
+    isContribution: GITHUB_GRID[GithubActivityType.PULL_REQUEST_OPENED].isContribution,
+  }
 
-const parsePullRequestReviewed: ProcessDataHandler = async (ctx) => {}
+  await ctx.publishActivity(activity)
+}
 
-const parsePullRequestAssigned: ProcessDataHandler = async (ctx) => {}
+const parsePullRequestClosed: ProcessDataHandler = async (ctx) => {
+  const apiData = ctx.data as GithubApiData
+  const data = apiData.data
+  const relatedData = apiData.relatedData
+  const memberData = apiData.member
 
-const parsePullRequestMerged: ProcessDataHandler = async (ctx) => {}
+  const member = parseMember(memberData)
 
-const parseIssueOpened: ProcessDataHandler = async (ctx) => {}
+  const activity: IActivityData = {
+    type: GithubActivityType.PULL_REQUEST_CLOSED,
+    sourceId: `gen-CE_${relatedData.sourceId}_${memberData.memberFromApi.login}_${new Date(
+      data.createdAt,
+    ).toISOString()}`,
+    sourceParentId: relatedData.sourceId,
+    timestamp: new Date(data.createdAt).toISOString(),
+    body: '',
+    url: relatedData.url,
+    channel: relatedData.channel,
+    title: '',
+    attributes: {
+      state: (relatedData.attributes as any).state,
+      additions: (relatedData.attributes as any).additions,
+      deletions: (relatedData.attributes as any).deletions,
+      changedFiles: (relatedData.attributes as any).changedFiles,
+      authorAssociation: (relatedData.attributes as any).authorAssociation,
+      labels: (relatedData.attributes as any).labels,
+    },
+    member,
+    score: GITHUB_GRID[GithubActivityType.PULL_REQUEST_CLOSED].score,
+    isContribution: GITHUB_GRID[GithubActivityType.PULL_REQUEST_CLOSED].isContribution,
+  }
 
-const parseIssueClosed: ProcessDataHandler = async (ctx) => {}
+  await ctx.publishActivity(activity)
+}
 
-const parsePullRequestComment: ProcessDataHandler = async (ctx) => {}
+const parsePullRequestReviewRequested: ProcessDataHandler = async (ctx) => {
+  const apiData = ctx.data as GithubApiData
+  const data = apiData.data
+  const relatedData = apiData.relatedData
+  const memberData = apiData.member
+  const objectMemberData = apiData.objectMember
 
-const parsePullRequestReviewThreadComment: ProcessDataHandler = async (ctx) => {}
+  const member = parseMember(memberData)
+  const objectMember = parseMember(objectMemberData)
 
-const parseIssueComment: ProcessDataHandler = async (ctx) => {}
+  const subType = apiData.subType
 
-const parseDiscussionComment: ProcessDataHandler = async (ctx) => {}
+  const sourceId =
+    subType === GithubActivitySubType.PULL_REQUEST_REVIEW_REQUESTED_SINGLE
+      ? `gen-RRE_${relatedData.sourceId}_${memberData.memberFromApi.login}_${
+          objectMemberData.memberFromApi.login
+        }_${new Date(data.createdAt).toISOString()}`
+      : `gen-RRE_${relatedData.sourceId}_${memberData.memberFromApi.login}_${
+          objectMemberData.memberFromApi.login
+        }_${new Date(data.createdAt).toISOString()}`
 
-const parseAuthoredCommit: ProcessDataHandler = async (ctx) => {}
+  const activity: IActivityData = {
+    type: GithubActivityType.PULL_REQUEST_REVIEW_REQUESTED,
+    sourceId: sourceId,
+    sourceParentId: relatedData.sourceId,
+    timestamp: new Date(data.createdAt).toISOString(),
+    body: '',
+    url: relatedData.url,
+    channel: relatedData.channel,
+    title: '',
+    attributes: {
+      state: (relatedData.attributes as any).state,
+      additions: (relatedData.attributes as any).additions,
+      deletions: (relatedData.attributes as any).deletions,
+      changedFiles: (relatedData.attributes as any).changedFiles,
+      authorAssociation: (relatedData.attributes as any).authorAssociation,
+      labels: (relatedData.attributes as any).labels,
+    },
+    member,
+    objectMember,
+    score: GITHUB_GRID[GithubActivityType.PULL_REQUEST_REVIEW_REQUESTED].score,
+    isContribution: GITHUB_GRID[GithubActivityType.PULL_REQUEST_REVIEW_REQUESTED].isContribution,
+  }
+
+  await ctx.publishActivity(activity)
+}
+
+const parsePullRequestReviewed: ProcessDataHandler = async (ctx) => {
+  const apiData = ctx.data as GithubApiData
+  const data = apiData.data
+  const relatedData = apiData.relatedData
+  const memberData = apiData.member
+
+  const member = parseMember(memberData)
+
+  const activity: IActivityData = {
+    type: GithubActivityType.PULL_REQUEST_REVIEWED,
+    sourceId: `gen-PRR_${relatedData.sourceId}_${memberData.memberFromApi.login}_${new Date(
+      data.createdAt,
+    ).toISOString()}`,
+    sourceParentId: relatedData.sourceId,
+    timestamp: new Date(data.createdAt).toISOString(),
+    url: relatedData.url,
+    channel: apiData.repo.url,
+    title: '',
+    attributes: {
+      reviewState: data.state,
+      state: (relatedData.attributes as any).state,
+      additions: (relatedData.attributes as any).additions,
+      deletions: (relatedData.attributes as any).deletions,
+      changedFiles: (relatedData.attributes as any).changedFiles,
+      authorAssociation: (relatedData.attributes as any).authorAssociation,
+      labels: (relatedData.attributes as any).labels,
+    },
+    member,
+    score: GITHUB_GRID[GithubActivityType.PULL_REQUEST_REVIEWED].score,
+    isContribution: GITHUB_GRID[GithubActivityType.PULL_REQUEST_REVIEWED].isContribution,
+  }
+
+  await ctx.publishActivity(activity)
+}
+
+const parsePullRequestAssigned: ProcessDataHandler = async (ctx) => {
+  const apiData = ctx.data as GithubApiData
+  const data = apiData.data
+  const relatedData = apiData.relatedData
+  const memberData = apiData.member
+  const objectMemberData = apiData.objectMember
+
+  const member = parseMember(memberData)
+  const objectMember = parseMember(objectMemberData)
+
+  const activity: IActivityData = {
+    type: GithubActivityType.PULL_REQUEST_ASSIGNED,
+    sourceId: `gen-AE_${relatedData.sourceId}_${memberData.memberFromApi.login}_${
+      objectMemberData.memberFromApi.login
+    }_${new Date(data.createdAt).toISOString()}`,
+    sourceParentId: relatedData.sourceId,
+    timestamp: new Date(data.createdAt).toISOString(),
+    body: '',
+    url: relatedData.url,
+    channel: apiData.repo.url,
+    title: '',
+    attributes: {
+      state: (relatedData.attributes as any).state,
+      additions: (relatedData.attributes as any).additions,
+      deletions: (relatedData.attributes as any).deletions,
+      changedFiles: (relatedData.attributes as any).changedFiles,
+      authorAssociation: (relatedData.attributes as any).authorAssociation,
+      labels: (relatedData.attributes as any).labels,
+    },
+    member,
+    objectMember,
+    score: GITHUB_GRID[GithubActivityType.PULL_REQUEST_ASSIGNED].score,
+    isContribution: GITHUB_GRID[GithubActivityType.PULL_REQUEST_ASSIGNED].isContribution,
+  }
+
+  await ctx.publishActivity(activity)
+}
+
+const parsePullRequestMerged: ProcessDataHandler = async (ctx) => {
+  const apiData = ctx.data as GithubApiData
+  const data = apiData.data
+  const relatedData = apiData.relatedData
+  const memberData = apiData.member
+
+  const member = parseMember(memberData)
+
+  const activity: IActivityData = {
+    type: GithubActivityType.PULL_REQUEST_MERGED,
+    sourceId: `gen-ME_${relatedData.sourceId}_${memberData.memberFromApi.login}_${new Date(
+      data.createdAt,
+    ).toISOString()}`,
+    sourceParentId: relatedData.sourceId,
+    timestamp: new Date(data.createdAt).toISOString(),
+    body: '',
+    url: relatedData.url,
+    channel: apiData.repo.url,
+    title: '',
+    attributes: {
+      state: (relatedData.attributes as any).state,
+      additions: (relatedData.attributes as any).additions,
+      deletions: (relatedData.attributes as any).deletions,
+      changedFiles: (relatedData.attributes as any).changedFiles,
+      authorAssociation: (relatedData.attributes as any).authorAssociation,
+      labels: (relatedData.attributes as any).labels,
+    },
+    member,
+    score: GITHUB_GRID[GithubActivityType.PULL_REQUEST_MERGED].score,
+    isContribution: GITHUB_GRID[GithubActivityType.PULL_REQUEST_MERGED].isContribution,
+  }
+
+  await ctx.publishActivity(activity)
+}
+
+const parseIssueOpened: ProcessDataHandler = async (ctx) => {
+  const apiData = ctx.data as GithubApiData
+  const data = apiData.data
+  const memberData = apiData.member
+
+  const member = parseMember(memberData)
+
+  const activity: IActivityData = {
+    type: GithubActivityType.ISSUE_OPENED,
+    sourceId: data.id,
+    sourceParentId: '',
+    timestamp: new Date(data.createdAt).toISOString(),
+    body: data.bodyText,
+    url: data.url ? data.url : '',
+    channel: apiData.repo.url,
+    title: data.title.replace(/\0/g, ''),
+    attributes: {
+      state: data.state.toLowerCase(),
+    },
+    member,
+    score: GITHUB_GRID[GithubActivityType.ISSUE_OPENED].score,
+    isContribution: GITHUB_GRID[GithubActivityType.ISSUE_OPENED].isContribution,
+  }
+
+  await ctx.publishActivity(activity)
+}
+
+const parseIssueClosed: ProcessDataHandler = async (ctx) => {
+  const apiData = ctx.data as GithubApiData
+  const data = apiData.data
+  const relatedData = apiData.relatedData
+  const memberData = apiData.member
+
+  const member = parseMember(memberData)
+
+  const activity: IActivityData = {
+    type: GithubActivityType.ISSUE_CLOSED,
+    sourceId: `gen-CE_${relatedData.sourceId}_${memberData.memberFromApi.login}_${new Date(
+      data.createdAt,
+    ).toISOString()}`,
+    sourceParentId: relatedData.sourceId,
+    timestamp: new Date(data.createdAt).toISOString(),
+    body: '',
+    url: relatedData.url,
+    channel: relatedData.channel,
+    title: '',
+    attributes: {
+      state: (relatedData.attributes as any).state,
+    },
+    member,
+    score: GITHUB_GRID[GithubActivityType.ISSUE_CLOSED].score,
+    isContribution: GITHUB_GRID[GithubActivityType.ISSUE_CLOSED].isContribution,
+  }
+
+  await ctx.publishActivity(activity)
+}
+
+const parsePullRequestComment: ProcessDataHandler = async (ctx) => {
+  const apiData = ctx.data as GithubApiData
+  const data = apiData.data
+  const memberData = apiData.member
+
+  const member = parseMember(memberData)
+
+  const activity: IActivityData = {
+    type: GithubActivityType.PULL_REQUEST_COMMENT,
+    sourceId: data.id,
+    sourceParentId: data.pullRequest.id,
+    timestamp: new Date(data.createdAt).toISOString(),
+    url: data.url,
+    body: data.bodyText,
+    channel: apiData.repo.url,
+    member,
+    score: GITHUB_GRID[GithubActivityType.PULL_REQUEST_COMMENT].score,
+    isContribution: GITHUB_GRID[GithubActivityType.PULL_REQUEST_COMMENT].isContribution,
+  }
+
+  await ctx.publishActivity(activity)
+}
+
+const parsePullRequestReviewThreadComment: ProcessDataHandler = async (ctx) => {
+  const apiData = ctx.data as GithubApiData
+  const data = apiData.data
+  const memberData = apiData.member
+
+  const member = parseMember(memberData)
+
+  const activity: IActivityData = {
+    type: GithubActivityType.PULL_REQUEST_REVIEW_THREAD_COMMENT,
+    sourceId: data.id,
+    sourceParentId: data.pullRequest.id,
+    timestamp: new Date(data.createdAt).toISOString(),
+    body: data.bodyText,
+    url: data.url,
+    channel: apiData.repo.url,
+    title: '',
+    attributes: {
+      state: data.pullRequest.state.toLowerCase(),
+      additions: data.pullRequest.additions,
+      deletions: data.pullRequest.deletions,
+      changedFiles: data.pullRequest.changedFiles,
+      authorAssociation: data.pullRequest.authorAssociation,
+      labels: data.pullRequest.labels?.nodes.map((l) => l.name),
+    },
+    member,
+    score: GITHUB_GRID[GithubActivityType.PULL_REQUEST_REVIEW_THREAD_COMMENT].score,
+    isContribution:
+      GITHUB_GRID[GithubActivityType.PULL_REQUEST_REVIEW_THREAD_COMMENT].isContribution,
+  }
+
+  await ctx.publishActivity(activity)
+}
+
+const parseIssueComment: ProcessDataHandler = async (ctx) => {
+  const apiData = ctx.data as GithubApiData
+  const data = apiData.data
+  const memberData = apiData.member
+
+  const member = parseMember(memberData)
+
+  const activity: IActivityData = {
+    type: GithubActivityType.ISSUE_COMMENT,
+    sourceId: data.id,
+    sourceParentId: data.issue.id,
+    timestamp: new Date(data.createdAt).toISOString(),
+    url: data.url,
+    body: data.bodyText,
+    channel: apiData.repo.url,
+    member,
+    score: GITHUB_GRID[GithubActivityType.ISSUE_COMMENT].score,
+    isContribution: GITHUB_GRID[GithubActivityType.ISSUE_COMMENT].isContribution,
+  }
+
+  await ctx.publishActivity(activity)
+}
+
+const parseDiscussionComment: ProcessDataHandler = async (ctx) => {
+  const apiData = ctx.data as GithubApiData
+  const data = apiData.data
+  const memberData = apiData.member
+  const sourceParentId = apiData.sourceParentId
+
+  const member = parseMember(memberData)
+
+  const subType = apiData.subType
+
+  let activity: IActivityData
+
+  if (subType === GithubActivitySubType.DISCUSSION_COMMENT_START) {
+    activity = {
+      type: GithubActivityType.DISCUSSION_COMMENT,
+      sourceId: data.id,
+      sourceParentId: data.discussion.id,
+      timestamp: new Date(data.createdAt).toISOString(),
+      url: data.url,
+      body: data.bodyText,
+      channel: apiData.repo.url,
+      attributes: {
+        isAnswer: data.isAnswer ?? undefined,
+      },
+      member,
+      score: data.isAnswer
+        ? GITHUB_GRID[GithubActivityType.DISCUSSION_COMMENT].score + 2
+        : GITHUB_GRID[GithubActivityType.DISCUSSION_COMMENT].score,
+      isContribution: GITHUB_GRID[GithubActivityType.DISCUSSION_COMMENT].isContribution,
+    }
+  } else if (subType === GithubActivitySubType.DISCUSSION_COMMENT_REPLY) {
+    activity = {
+      type: GithubActivityType.DISCUSSION_COMMENT,
+      sourceId: data.id,
+      sourceParentId,
+      timestamp: new Date(data.createdAt).toISOString(),
+      url: data.url,
+      body: data.bodyText,
+      channel: apiData.repo.url,
+      member,
+      score: GITHUB_GRID[GithubActivityType.DISCUSSION_COMMENT].score,
+      isContribution: GITHUB_GRID[GithubActivityType.DISCUSSION_COMMENT].isContribution,
+    }
+  }
+
+  await ctx.publishActivity(activity)
+}
+
+const parseAuthoredCommit: ProcessDataHandler = async (ctx) => {
+  const apiData = ctx.data as GithubApiData
+  const data = apiData.data
+  const memberData = apiData.member
+
+  const member = parseMember(memberData)
+
+  const activity: IActivityData = {
+    channel: apiData.repo.url,
+    url: `${apiData.repo.url}/commit/${data.commit.oid}`,
+    body: data.commit.message,
+    type: 'authored-commit',
+    sourceId: data.commit.oid,
+    sourceParentId: `${data.repository.pullRequest.id}`,
+    timestamp: new Date(data.commit.authoredDate).toISOString(),
+    attributes: {
+      insertions: 'additions' in data.commit ? data.commit.additions : 0,
+      deletions: 'deletions' in data.commit ? data.commit.deletions : 0,
+      lines:
+        'additions' in data.commit && 'deletions' in data.commit
+          ? data.commit.additions - data.commit.deletions
+          : 0,
+      isMerge: data.commit.parents.totalCount > 1,
+    },
+    member,
+    score: GITHUB_GRID[GithubActivityType.AUTHORED_COMMIT].score,
+  }
+
+  await ctx.publishActivity(activity)
+}
 
 const handler: ProcessDataHandler = async (ctx) => {
   const data = ctx.data as GithubApiData

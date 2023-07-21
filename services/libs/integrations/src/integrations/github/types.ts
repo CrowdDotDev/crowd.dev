@@ -1,3 +1,4 @@
+/* eslint-disable  @typescript-eslint/no-explicit-any */
 export enum GithubActivityType {
   DISCUSSION_STARTED = 'discussion-started',
   PULL_REQUEST_OPENED = 'pull_request-opened',
@@ -18,6 +19,13 @@ export enum GithubActivityType {
   AUTHORED_COMMIT = 'authored-commit',
 }
 
+export enum GithubActivitySubType {
+  PULL_REQUEST_REVIEW_REQUESTED_SINGLE = 'pull_request-review-requested-single',
+  PULL_REQUEST_REVIEW_REQUESTED_MULTIPLE = 'pull_request-review-requested-multiple',
+  DISCUSSION_COMMENT_START = 'discussion-comment-start',
+  DISCUSSION_COMMENT_REPLY = 'discussion-comment-reply',
+}
+
 export enum GithubStreamType {
   ROOT = 'root',
   STARGAZERS = 'stargazers',
@@ -35,11 +43,11 @@ export enum GithubStreamType {
 
 export interface GithubApiData {
   type: GithubActivityType
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  subType?: string
   data: any[] | any
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  member: GithubParseMemberOutput
-  objectMember?: GithubParseMemberOutput
+  relatedData?: any | any[]
+  member: GithubPrepareMemberOutput
+  objectMember?: GithubPrepareMemberOutput
   sourceParentId?: string
   repo: Repo
 }
@@ -114,8 +122,8 @@ export interface AppTokenResponse {
   expiresAt: string
 }
 
-export interface GithubParseMemberOutput {
+export interface GithubPrepareMemberOutput {
   email: string
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   orgs: any
+  memberFromApi: any
 }

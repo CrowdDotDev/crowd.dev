@@ -11,9 +11,10 @@ import {
   GithubApiData,
   AppTokenResponse,
   GithubPlatformSettings,
-  GithubParseMemberOutput,
+  GithubPrepareMemberOutput,
   GithubPullRequestEvents,
   GithubActivityType,
+  GithubActivitySubType,
 } from './types'
 import StargazersQuery from './api/graphql/stargazers'
 import ForksQuery from './api/graphql/forks'
@@ -150,10 +151,10 @@ const handleNextPageStream = async (ctx: IProcessStreamContext, response: GraphQ
 }
 
 // this function extracts email and orgs from member data
-const parseMember = async (
+const prepareMember = async (
   memberFromApi: any,
   ctx: IProcessStreamContext,
-): Promise<GithubParseMemberOutput> => {
+): Promise<GithubPrepareMemberOutput> => {
   const email = await getMemberEmail(ctx, memberFromApi.login)
 
   let orgs: any
@@ -172,6 +173,7 @@ const parseMember = async (
   return {
     email,
     orgs,
+    memberFromApi,
   }
 }
 
@@ -262,7 +264,7 @@ const processStargazersStream: ProcessStreamHandler = async (ctx) => {
   await handleNextPageStream(ctx, result)
 
   for (const record of result.data) {
-    const member = await parseMember(record.node, ctx)
+    const member = await prepareMember(record.node, ctx)
 
     // publish data
     await ctx.publishData<GithubApiData>({
@@ -286,7 +288,7 @@ const processForksStream: ProcessStreamHandler = async (ctx) => {
   await handleNextPageStream(ctx, result)
 
   for (const record of result.data) {
-    const member = await parseMember(record.owner, ctx)
+    const member = await prepareMember(record.owner, ctx)
 
     // publish data
     await ctx.publishData<GithubApiData>({
@@ -310,7 +312,7 @@ const processPullsStream: ProcessStreamHandler = async (ctx) => {
   await handleNextPageStream(ctx, result)
 
   for (const record1 of result.data) {
-    const member = await parseMember(record1.author, ctx)
+    const member = await prepareMember(record1.author, ctx)
 
     // publish data
     await ctx.publishData<GithubApiData>({
@@ -325,12 +327,13 @@ const processPullsStream: ProcessStreamHandler = async (ctx) => {
       switch (record2.__typename) {
         case GithubPullRequestEvents.ASSIGN: {
           if (record2?.actor?.login && record2?.assignee?.login) {
-            const member = await parseMember(record2.actor, ctx)
-            const objectMember = await parseMember(record2.assignee, ctx)
+            const member = await prepareMember(record2.actor, ctx)
+            const objectMember = await prepareMember(record2.assignee, ctx)
 
             await ctx.publishData<GithubApiData>({
               type: GithubActivityType.PULL_REQUEST_ASSIGNED,
               data: record2,
+              relatedData: record1,
               member,
               objectMember,
               repo: data.repo,
@@ -345,23 +348,27 @@ const processPullsStream: ProcessStreamHandler = async (ctx) => {
           ) {
             // Requested review from single member
             if (record2?.requestedReviewer?.login) {
-              const member = await parseMember(record2.actor, ctx)
-              const objectMember = await parseMember(record2.requestedReviewer, ctx)
+              const member = await prepareMember(record2.actor, ctx)
+              const objectMember = await prepareMember(record2.requestedReviewer, ctx)
               await ctx.publishData<GithubApiData>({
                 type: GithubActivityType.PULL_REQUEST_REVIEW_REQUESTED,
                 data: record2,
+                subType: GithubActivitySubType.PULL_REQUEST_REVIEW_REQUESTED_SINGLE,
+                relatedData: record1,
                 member,
                 objectMember,
                 repo: data.repo,
               })
             } else if (record2?.requestedReviewer?.members) {
-              const member = await parseMember(record2.actor, ctx)
+              const member = await prepareMember(record2.actor, ctx)
 
               for (const teamMember of record2.requestedReviewer.members.nodes) {
-                const objectMember = await parseMember(teamMember, ctx)
+                const objectMember = await prepareMember(teamMember, ctx)
                 await ctx.publishData<GithubApiData>({
                   type: GithubActivityType.PULL_REQUEST_REVIEW_REQUESTED,
                   data: record2,
+                  subType: GithubActivitySubType.PULL_REQUEST_REVIEW_REQUESTED_MULTIPLE,
+                  relatedData: record1,
                   member,
                   objectMember,
                   repo: data.repo,
@@ -373,10 +380,11 @@ const processPullsStream: ProcessStreamHandler = async (ctx) => {
         }
         case GithubPullRequestEvents.REVIEW: {
           if (record2?.author?.login && record2?.submittedAt) {
-            const member = await parseMember(record2.author, ctx)
+            const member = await prepareMember(record2.author, ctx)
             await ctx.publishData<GithubApiData>({
               type: GithubActivityType.PULL_REQUEST_REVIEWED,
               data: record2,
+              relatedData: record1,
               member,
               repo: data.repo,
             })
@@ -385,10 +393,11 @@ const processPullsStream: ProcessStreamHandler = async (ctx) => {
         }
         case GithubPullRequestEvents.MERGE: {
           if (record2?.actor?.login) {
-            const member = await parseMember(record2.actor, ctx)
+            const member = await prepareMember(record2.actor, ctx)
             await ctx.publishData<GithubApiData>({
               type: GithubActivityType.PULL_REQUEST_MERGED,
               data: record2,
+              relatedData: record1,
               member,
               repo: data.repo,
             })
@@ -397,10 +406,11 @@ const processPullsStream: ProcessStreamHandler = async (ctx) => {
         }
         case GithubPullRequestEvents.CLOSE: {
           if (record2?.actor?.login) {
-            const member = await parseMember(record2.actor, ctx)
+            const member = await prepareMember(record2.actor, ctx)
             await ctx.publishData<GithubApiData>({
               type: GithubActivityType.PULL_REQUEST_MERGED,
               data: record2,
+              relatedData: record1,
               member,
               repo: data.repo,
             })
@@ -479,7 +489,7 @@ const processPullCommentsStream: ProcessStreamHandler = async (ctx) => {
 
   // get member info for each comment
   for (const record of result.data) {
-    const member = await parseMember(record.author, ctx)
+    const member = await prepareMember(record.author, ctx)
 
     // publish data
     await ctx.publishData<GithubApiData>({
@@ -541,7 +551,7 @@ const processPullReviewThreadCommentsStream: ProcessStreamHandler = async (ctx) 
 
   // get additional member info for each comment
   for (const record of result.data) {
-    const member = await parseMember(record.author, ctx)
+    const member = await prepareMember(record.author, ctx)
 
     // publish data
     await ctx.publishData<GithubApiData>({
@@ -597,7 +607,7 @@ const processPullCommitsStream: ProcessStreamHandler = async (ctx) => {
           // eslint-disable-next-line no-continue
           continue
         }
-        const member = await parseMember(author.user, ctx)
+        const member = await prepareMember(author.user, ctx)
 
         // publish data
         await ctx.publishData<GithubApiData>({
@@ -623,7 +633,7 @@ const processIssuesStream: ProcessStreamHandler = async (ctx) => {
   await handleNextPageStream(ctx, result)
 
   for (const record1 of result.data) {
-    const member = await parseMember(record1.author, ctx)
+    const member = await prepareMember(record1.author, ctx)
 
     await ctx.publishData<GithubApiData>({
       type: GithubActivityType.ISSUE_OPENED,
@@ -637,10 +647,11 @@ const processIssuesStream: ProcessStreamHandler = async (ctx) => {
       switch (record2.__typename) {
         case GithubPullRequestEvents.CLOSE: {
           if (record2?.actor?.login) {
-            const member = await parseMember(record2.actor, ctx)
+            const member = await prepareMember(record2.actor, ctx)
             await ctx.publishData<GithubApiData>({
               type: GithubActivityType.ISSUE_CLOSED,
               data: record2,
+              relatedData: record1,
               member,
               repo: data.repo,
             })
@@ -682,7 +693,7 @@ const processIssueCommentsStream: ProcessStreamHandler = async (ctx) => {
 
   // get additional member info for each comment
   for (const record of result.data) {
-    const member = await parseMember(record.author, ctx)
+    const member = await prepareMember(record.author, ctx)
 
     // publish data
     await ctx.publishData<GithubApiData>({
@@ -706,7 +717,7 @@ const processDiscussionsStream: ProcessStreamHandler = async (ctx) => {
 
   // get additional member info for each comment
   for (const d of result.data) {
-    const member = await parseMember(d.author, ctx)
+    const member = await prepareMember(d.author, ctx)
 
     // publish data
     await ctx.publishData<GithubApiData>({
@@ -752,11 +763,12 @@ const processDiscussionCommentsStream: ProcessStreamHandler = async (ctx) => {
     }
 
     const commentId = record.id
-    const member = await parseMember(record.author, ctx)
+    const member = await prepareMember(record.author, ctx)
 
     // publish data
     await ctx.publishData<GithubApiData>({
       type: GithubActivityType.DISCUSSION_COMMENT,
+      subType: GithubActivitySubType.DISCUSSION_COMMENT_START,
       data: record,
       member,
       repo: data.repo,
@@ -768,11 +780,12 @@ const processDiscussionCommentsStream: ProcessStreamHandler = async (ctx) => {
         // eslint-disable-next-line no-continue
         continue
       }
-      const member = await parseMember(reply.author, ctx)
+      const member = await prepareMember(reply.author, ctx)
 
       // publish data
       await ctx.publishData<GithubApiData>({
         type: GithubActivityType.DISCUSSION_COMMENT,
+        subType: GithubActivitySubType.DISCUSSION_COMMENT_REPLY,
         data: reply,
         member,
         sourceParentId: commentId,
