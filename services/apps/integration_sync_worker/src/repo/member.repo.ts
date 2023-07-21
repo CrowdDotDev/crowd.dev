@@ -41,9 +41,11 @@ export class MemberRepository extends RepositoryBase<MemberRepository> {
 
     if (member.attributes.sourceId) {
       member.attributes.sourceId[platform] = sourceId
+      member.attributes.sourceId.default = sourceId
     } else {
       member.attributes.sourceId = {
         [platform]: sourceId,
+        default: sourceId,
       }
     }
 
