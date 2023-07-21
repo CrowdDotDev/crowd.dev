@@ -158,7 +158,7 @@ const parseMember = async (
 
   let orgs: any
 
-  if (memberFromApi.company) {
+  if (memberFromApi?.company) {
     if (IS_TEST_ENV) {
       orgs = [{ name: 'crowd.dev' }]
     } else {
@@ -324,7 +324,7 @@ const processPullsStream: ProcessStreamHandler = async (ctx) => {
     for (const record2 of record1.timelineItems.nodes) {
       switch (record2.__typename) {
         case GithubPullRequestEvents.ASSIGN: {
-          if (record2.actor.login && record2.assignee.login) {
+          if (record2?.actor?.login && record2?.assignee?.login) {
             const member = await parseMember(record2.actor, ctx)
             const objectMember = await parseMember(record2.assignee, ctx)
 
@@ -593,7 +593,7 @@ const processPullCommitsStream: ProcessStreamHandler = async (ctx) => {
 
     for (const record of commits) {
       for (const author of record.commit.authors.nodes) {
-        if (!author || !author.user || !author.user.login) {
+        if (!author || !author?.user || !author?.user?.login) {
           // eslint-disable-next-line no-continue
           continue
         }
@@ -636,7 +636,7 @@ const processIssuesStream: ProcessStreamHandler = async (ctx) => {
     for (const record2 of record1.timelineItems.nodes) {
       switch (record2.__typename) {
         case GithubPullRequestEvents.CLOSE: {
-          if (record2.actor.login) {
+          if (record2?.actor?.login) {
             const member = await parseMember(record2.actor, ctx)
             await ctx.publishData<GithubApiData>({
               type: GithubActivityType.ISSUE_CLOSED,
