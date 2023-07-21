@@ -38,11 +38,11 @@ export const hasAccessToProjectGroup = (segmentId) => {
     return false;
   }
 
-  const { segments = [] } = currentUser;
+  const { adminSegments = [] } = currentUser;
 
-  if (!segments.length) {
+  if (!adminSegments.length) {
     return false;
   }
 
-  return segments.includes(segmentId);
+  return adminSegments.includes(segmentId);
 };
