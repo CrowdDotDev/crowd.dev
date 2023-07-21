@@ -828,6 +828,7 @@ export default class IntegrationService {
         {
           platform: PlatformType.HUBSPOT,
           settings: {
+            ...integration.settings,
             updateMemberAttributes: true,
             hubspotProperties: {
               [HubspotEntity.MEMBERS]: hubspotMemberProperties,
@@ -895,6 +896,7 @@ export default class IntegrationService {
         {
           platform: PlatformType.HUBSPOT,
           settings: {
+            ...integration.settings,
             updateMemberAttributes: true,
             hubspotProperties: {
               [HubspotEntity.MEMBERS]: hubspotMemberProperties,
