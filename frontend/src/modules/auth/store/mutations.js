@@ -9,6 +9,10 @@ export default {
     );
   },
 
+  AUTHENTICATE(state) {
+    state.isAuthenticated = true;
+  },
+
   AUTH_START(state) {
     state.loading = true;
   },
