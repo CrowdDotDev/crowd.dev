@@ -133,12 +133,9 @@ export const sendExportCSVNodeSQSMessage = async (
 }
 
 export const sendBulkEnrichMessage = async (
-  
   tenant: string,
- 
   memberIds: string[],
   segmentIds: string[],
-,
   notifyFrontend: boolean = true,
   skipCredits: boolean = false,
 ): Promise<void> => {

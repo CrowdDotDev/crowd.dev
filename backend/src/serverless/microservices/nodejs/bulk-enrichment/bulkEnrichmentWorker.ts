@@ -13,7 +13,8 @@ import { FeatureFlagRedisKey } from '../../../../types/common'
  */
 async function bulkEnrichmentWorker(
   tenantId: string,
-  memberIds: string[], segmentIds: string[],
+  memberIds: string[], 
+  segmentIds: string[],
   notifyFrontend: boolean,
   skipCredits: boolean,
 ) {

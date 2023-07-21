@@ -67,100 +67,95 @@ if (parameters.help || (!parameters.tenant && (!parameters.organization || !para
 } else {
   setImmediate(async () => {
     const options = await SequelizeRepository.getDefaultIRepositoryOptions()
+    const segmentIds = SequelizeRepository.getSegmentIds(options)
     const tenantIds = parameters.tenant.split(',')
     const enrichMembers = parameters.member
     const enrichOrganizations = parameters.organization
     const limit = 1000
 
     for (const tenantId of tenantIds) {
-      try {
-        const tenant = await options.database.tenant.findByPk(tenantId)
+      const tenant = await options.database.tenant.findByPk(tenantId)
 
-        if (!tenant) {
-          log.error({ tenantId }, 'Tenant not found!')
-          process.exit(1)
-        } else {
-          log.info(
-            { tenantId },
-            `Tenant found - starting enrichment operation for tenant ${tenantId}`,
-          )
+      if (!tenant) {
+        log.error({ tenantId }, 'Tenant not found!')
+        process.exit(1)
+      } else {
+        log.info(
+          { tenantId },
+          `Tenant found - starting enrichment operation for tenant ${tenantId}`,
+        )
 
-          // Members enrichment
-          if (
-            (enrichMembers && !enrichOrganizations) ||
-            (!enrichMembers && !enrichOrganizations) ||
-            (enrichMembers && enrichOrganizations)
-          ) {
-            let offset = 0
-            let totalMembers = 0
-
-            do {
-              const members = await MemberRepository.findAndCountAllv2(
-                {
-                  limit,
-                  offset,
-                  countOnly: false,
-                },
-                options,
-              )
-
-              totalMembers = members.count
-              log.info({ tenantId }, `Total members found in the tenant: ${totalMembers}`)
-
-              const membersToEnrich = members.rows.map((m) => m.id)
-              // notifyFrontend is set to false to prevent sending notifications to the frontend
-              // skipCredits is set to true to discard any limits, credits, and etc for the enrichment
-              await sendBulkEnrichMessage(tenant, membersToEnrich, false, true)
-
-              log.info(
-                { tenantId },
-                `Enriched members from ${offset + 1} to ${offset + membersToEnrich.length}`,
-              )
-
-              offset += limit
-            } while (totalMembers > offset)
-
-            log.info({ tenantId }, `Members enrichment operation finished for tenant ${tenantId}`)
-          }
-
-          // Organizations enrichment
-          if (
-            (enrichOrganizations && !enrichMembers) ||
-            (!enrichMembers && !enrichOrganizations) ||
-            (enrichMembers && enrichOrganizations)
-          ) {
-            const organizations = await OrganizationRepository.findAndCountAll(
-              {
-                limit,
-                offset: 0,
-              },
+        if (enrichMembers) {
+          let offset = 0
+          let totalMembers = 0
+          do {
+            const members = await MemberRepository.findAndCountAllv2(
+              { limit, offset, countOnly: false },
               options,
             )
 
-            const totalOrganizations = organizations.count
+            totalMembers = members.count
+            log.info({ tenantId }, `Total members found in the tenant: ${totalMembers}`)
 
-            log.info({ tenantId }, `Total organizations in the tenant: ${totalOrganizations}`)
+            for (const member of members.rows) {
+              try {
+                const memberToEnrich = member.id
+                await sendBulkEnrichMessage(tenant, [memberToEnrich], segmentIds, false, true)
+                log.info({ tenantId }, `Enriched member with ID: ${memberToEnrich}`)
+              } catch (error) {
+                log.error(
+                  { tenantId, memberId: member.id },
+                  `Couldn't enrich member: ${error.message}`,
+                )
+              }
+            }
+
+            offset += limit
+          } while (totalMembers > offset)
+
+          log.info({ tenantId }, `Members enrichment operation finished for tenant ${tenantId}`)
+        }
+
+        if (enrichOrganizations) {
+          let offset = 0
+          let totalOrganizations = 0
+          do {
+            const organizations = await OrganizationRepository.findAndCountAll(
+              { limit, offset },
+              options,
+            )
+
+            totalOrganizations = organizations.count
+
+            log.info({ tenantId }, `Total organizations found in the tenant: ${totalOrganizations}`)
 
             for (const organization of organizations.rows) {
               const payload = {
                 type: NodeWorkerMessageType.NODE_MICROSERVICE,
                 service: 'enrich-organizations',
                 tenantId: organization.id,
-                maxEnrichLimit: 5000, // limit the enrich to max of 5000 organizations of a tenant
+                maxEnrichLimit: 5000,
               } as NodeWorkerMessageBase
 
-              log.info({ payload }, 'Enricher worker payload for organization')
-              await sendNodeWorkerMessage(tenantId, payload)
+              try {
+                log.info({ payload }, 'Enricher worker payload for organization')
+                await sendNodeWorkerMessage(tenantId, payload)
+              } catch (error) {
+                log.error(
+                  { tenantId, organizationId: organization.id },
+                  `Couldn't enrich organization: ${error.message}`,
+                )
+              }
             }
 
-            log.info(
-              { tenantId },
-              `Organizations enrichment operation finished for tenant ${tenantId}`,
-            )
-          }
+            offset += limit
+          } while (totalOrganizations > offset)
+
+          log.info(
+            { tenantId },
+            `Organizations enrichment operation finished for tenant ${tenantId}`,
+          )
         }
-      } catch (error) {
-        log.error({ tenantId }, `Error occurred during enrichment operation: ${error}`)
       }
     }
 

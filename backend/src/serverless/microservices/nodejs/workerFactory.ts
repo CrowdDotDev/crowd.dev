@@ -74,12 +74,9 @@ async function workerFactory(event: NodeMicroserviceMessage): Promise<any> {
     case 'bulk-enrich':
       const bulkEnrichMessage = event as BulkEnrichMessage
       return bulkEnrichmentWorker(
-        
         bulkEnrichMessage.tenant,
-       
         bulkEnrichMessage.memberIds,
         bulkEnrichMessage.segmentIds,
-      ,
         bulkEnrichMessage.notifyFrontend,
         bulkEnrichMessage.skipCredits,
       )
