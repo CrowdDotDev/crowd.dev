@@ -1,27 +1,16 @@
 <template>
   <app-drawer
+    v-if="typeData"
     v-model="isDrawerOpen"
     title=""
     :size="600"
   >
     <template #header>
       <div>
-        <div v-if="type === 'webhook'" class="flex items-center">
-          <img alt="Webhook" src="/images/automation/webhook.png" class="w-4 max-w-4">
+        <div class="flex items-center">
+          <img :alt="typeData.name" :src="typeData.icon" class="w-4 max-w-4">
           <p class="pl-2 text-xs text-gray-900">
-            Webhook
-          </p>
-        </div>
-        <div v-else-if="type === 'slack'" class="flex items-center">
-          <img alt="Slack" src="https://cdn-icons-png.flaticon.com/512/3800/3800024.png" class="w-4 max-w-4">
-          <p class="pl-2 text-xs text-gray-900">
-            Slack notification
-          </p>
-        </div>
-        <div v-else-if="type === 'hubspot'" class="flex items-center">
-          <img alt="HubSpot" src="/images/integrations/hubspot.png" class="w-4 max-w-4">
-          <p class="pl-2 text-xs text-gray-900">
-            HubSpot
+            {{ typeData.name }}
           </p>
         </div>
         <h4 class="text-lg font-medium mt-1 text-gray-900">
@@ -44,63 +33,25 @@
           <h5 class="text-base leading-5 text-brand-500 font-semibold mb-1">
             Trigger
           </h5>
-          <p v-if="type === 'webhook'" class="text-2xs text-gray-500">
-            Define the event that triggers your webhook
-          </p>
-          <p v-else-if="type === 'slack'" class="text-2xs text-gray-500">
-            Define the event that triggers your Slack notification.
+          <p class="text-2xs text-gray-500">
+            {{ typeData.triggerText }}
           </p>
         </div>
-        <app-form-item
-          class="mb-4"
-          label="Choose trigger"
-          :required="true"
-          :validation="$v.trigger"
-          :error-messages="{
-            required: 'This field is required',
-          }"
-        >
-          <el-select
-            v-model="form.trigger"
-            placeholder="Select option"
-            class="w-full"
-            @change="collapseOpen = 'filterOptions'"
-            @blur="$v.trigger.$touch"
-          >
-            <el-option
-              v-for="{ value, label } of triggerOptions"
-              :key="value"
-              :value="value"
-              :label="label"
-            />
-          </el-select>
-        </app-form-item>
-        <div class="filter-options pb-8">
-          <el-collapse v-if="form.trigger" v-model="collapseOpen">
-            <el-collapse-item
-              title="Filter options"
-              name="filterOptions"
-            >
-              <app-new-activity-filter-options v-if="form.trigger === 'new_activity'" v-model="form.settings" />
-              <app-new-member-filter-options v-if="form.trigger === 'new_member'" v-model="form.settings" />
-            </el-collapse-item>
-          </el-collapse>
-        </div>
+        <section class="pb-8">
+          <component :is="typeData.triggerComponent" v-model:settings="form.settings" v-model:trigger="form.trigger" />
+        </section>
+
         <hr>
         <div class="py-6">
           <h5 class="text-base leading-5 text-brand-500 font-semibold mb-1">
             Action
           </h5>
-          <p v-if="type === 'webhook'" class="text-2xs text-gray-500">
-            Define the endpoint where the webhook payload should be sent to
-          </p>
-          <p v-else-if="type === 'slack'" class="text-2xs text-gray-500">
-            Receive a notification in your Slack workspace every time the event is triggered.
+          <p class="text-2xs text-gray-500">
+            {{ typeData.triggerText }}
           </p>
         </div>
         <div>
-          <app-automation-webhook-action v-if="type === 'webhook'" v-model="form.settings" />
-          <app-automation-slack-action v-else-if="type === 'slack'" v-model="form.settings" />
+          <component :is="typeData.actionComponent" v-model="form.settings" />
         </div>
       </div>
     </template>
@@ -133,8 +84,9 @@
             @click="doSubmit"
           >
             <span v-if="isEdit">Update</span>
-            <span v-else-if="type === 'webhook'">Add webhook</span>
-            <span v-else-if="type === 'slack'">Add Slack notification</span>
+            <span v-else-if="typeData && typeData.createButtonText">
+              {{ typeData.createButtonText }}
+            </span>
             <span v-else>Add automation</span>
           </el-button>
         </div>
@@ -148,19 +100,15 @@ import {
   computed, defineProps, defineEmits, reactive, ref, watch, onMounted,
 } from 'vue';
 import AppDrawer from '@/shared/drawer/drawer.vue';
-import { required } from '@vuelidate/validators';
+import { email, required } from "@vuelidate/validators";
 import useVuelidate from '@vuelidate/core';
 import AppFormItem from '@/shared/form/form-item.vue';
-import AppNewActivityFilterOptions
-  from '@/modules/automation/components/filter-options/new-activity-filter-options.vue';
-import AppNewMemberFilterOptions from '@/modules/automation/components/filter-options/new-member-filter-options.vue';
-import AppAutomationWebhookAction from '@/modules/automation/components/action/webhook-action.vue';
-import AppAutomationSlackAction from '@/modules/automation/components/action/slack-action.vue';
 import { useAutomationStore } from '@/modules/automation/store';
 import Message from '@/shared/message/message';
 import { i18n } from '@/i18n';
 import formChangeDetector from '@/shared/form/form-change';
 import { useStore } from 'vuex';
+import { automationTypes } from '../config/automation-types';
 
 const props = defineProps({
   modelValue: {
@@ -196,6 +144,8 @@ const isDrawerOpen = computed({
     emit('update:automation', null);
   },
 });
+
+const typeData = computed(() => props.type && automationTypes[props.type]);
 
 const type = computed(() => props.automation?.type || props.type);
 

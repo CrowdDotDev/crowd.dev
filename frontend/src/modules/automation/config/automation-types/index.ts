@@ -1,23 +1,29 @@
-import { webhook } from './webhook';
-import { slack } from './slack';
-import { hubspot } from './hubspot';
+import { webhook } from './webhook/config';
+import { slack } from './slack/config';
+import { hubspot } from './hubspot/config';
 
 interface AutomationTypeAction {
-  label: string;
-  action: () => void;
+  label: string; // Text of the action button
+  action: () => void; // Action triggered on  button click
+}
+interface AutomationTypeEmptyScreen {
+  title: string; // Title in empty screen
+  body: string; // Body text in empty screen
 }
 
 export interface AutomationTypeConfig {
-  name: string;
-  description: string;
-  icon: string;
-  canCreate: (store: any) => boolean;
-  actionButton?: (store: any) => AutomationTypeAction | null;
-  disabled?: (store: any) => boolean;
-  emptyScreen?: {
-    title: string;
-    body: string;
-  }
+  name: string; // Name of the automation
+  description: string; // Description shown under name in dropdown
+  icon: string; // Icon of the automation type
+  canCreate: (store: any) => boolean; // method if creation of that automation type is disabled
+  actionButton?: (store: any) => AutomationTypeAction | null; // Action button to show in dropdown
+  disabled?: (store: any) => boolean; // If dropdown option is disabled
+  emptyScreen?: AutomationTypeEmptyScreen, // Text for empty screen if there is no automations of that type
+  triggerText: string; // Description shown below Trigger in automation form
+  actionText: string; // Description shown below Action in automation form
+  createButtonText?: string;
+  actionComponent: any; // Component which handeles form for action
+  triggerComponent: any; // Component which handeles form for trigger
 }
 
 export const automationTypes: Record<string, AutomationTypeConfig> = {

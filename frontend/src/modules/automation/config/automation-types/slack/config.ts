@@ -1,6 +1,8 @@
-import { AutomationTypeConfig } from '@/modules/automation/config/automation-types/index';
+import { AutomationTypeConfig } from '@/modules/automation/config/automation-types';
 import config from '@/config';
 import { AuthToken } from '@/modules/auth/auth-token';
+import AutomationsSlackAction from './slack-action.vue';
+import AutomationsTriggerMemberActivity from '../shared/trigger-member-activity.vue';
 
 export const slack: AutomationTypeConfig = {
   name: 'Slack notification',
@@ -10,6 +12,9 @@ export const slack: AutomationTypeConfig = {
     title: 'No Slack notifications yet',
     body: 'Send Slack notifications when a new activity happens, or a new member joins your community',
   },
+  triggerText: 'Define the event that triggers your Slack notification.',
+  actionText: 'Receive a notification in your Slack workspace every time the event is triggered.',
+  createButtonText: 'Add Slack notification',
   canCreate(store) {
     const tenant = store.getters['auth/currentTenant'];
     return !!tenant.settings[0].slackWebHook;
@@ -32,4 +37,6 @@ export const slack: AutomationTypeConfig = {
       },
     };
   },
+  actionComponent: AutomationsSlackAction,
+  triggerComponent: AutomationsTriggerMemberActivity,
 };
