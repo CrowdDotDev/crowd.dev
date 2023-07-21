@@ -33,6 +33,7 @@ export default {
     ...mapGetters({
       currentUser: 'auth/currentUser',
       currentTenant: 'auth/currentTenant',
+      isAuthenticated: 'auth/isAuthenticated',
       menu: 'layout/menuCollapsed',
     }),
   },
@@ -58,20 +59,26 @@ export default {
         }
       },
     },
+    isAuthenticated: {
+      immediate: true,
+      async handler(value) {
+        if (value) {
+          try {
+            const user = await Auth0Service.getUser();
+            const lfxHeader = document.getElementById('lfx-header');
+
+            if (lfxHeader) {
+              lfxHeader.authuser = user;
+            }
+          } catch (e) {
+            console.error(e);
+          }
+        }
+      },
+    },
   },
 
   async mounted() {
-    try {
-      const user = await Auth0Service.getUser();
-      const lfxHeader = document.getElementById('lfx-header');
-
-      if (lfxHeader) {
-        lfxHeader.authuser = user;
-      }
-    } catch (e) {
-      console.error(e);
-    }
-
     identify(this.currentUser);
     this.initPendo();
   },
