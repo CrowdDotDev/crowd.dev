@@ -70,7 +70,7 @@ export default class MemberService extends LoggerBase {
         if (data.organizations) {
           const orgService = new OrganizationService(txStore, this.log)
           for (const org of data.organizations) {
-            const id = await orgService.findOrCreate(tenantId, org)
+            const id = await orgService.findOrCreate(tenantId, segmentId, org)
             organizationIds.push(id)
           }
 
@@ -165,7 +165,7 @@ export default class MemberService extends LoggerBase {
         if (data.organizations) {
           const orgService = new OrganizationService(txStore, this.log)
           for (const org of data.organizations) {
-            const id = await orgService.findOrCreate(tenantId, org)
+            const id = await orgService.findOrCreate(tenantId, segmentId, org)
             organizationIds.push(id)
           }
 
@@ -252,7 +252,7 @@ export default class MemberService extends LoggerBase {
         }
       })
     } catch (err) {
-      this.log.error(err, 'Error while processing an activity!')
+      this.log.error(err, 'Error while processing a member enrich!')
       throw err
     }
   }

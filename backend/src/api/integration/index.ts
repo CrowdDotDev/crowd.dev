@@ -106,6 +106,16 @@ export default (app) => {
     safeWrap(require('./helpers/hubspotStopSyncMember').default),
   )
 
+  app.post(
+    '/tenant/:tenantId/hubspot-sync-organization',
+    safeWrap(require('./helpers/hubspotSyncOrganization').default),
+  )
+
+  app.post(
+    '/tenant/:tenantId/hubspot-stop-sync-organization',
+    safeWrap(require('./helpers/hubspotStopSyncOrganization').default),
+  )
+
 
   // if (TWITTER_CONFIG.clientId) {
   //   /**

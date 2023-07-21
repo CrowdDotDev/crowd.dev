@@ -43,7 +43,7 @@ export class MemberRepository extends RepositoryBase<MemberRepository> {
       member.attributes.sourceId[platform] = sourceId
     } else {
       member.attributes.sourceId = {
-        [PlatformType.HUBSPOT]: sourceId,
+        [platform]: sourceId,
       }
     }
 

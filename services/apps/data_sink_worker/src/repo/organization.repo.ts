@@ -95,31 +95,78 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
     this.checkUpdateRowCount(result.rowCount, 1)
   }
 
-  public async findByName(tenantId: string, name: string): Promise<IDbOrganization> {
+  public async findByName(
+    tenantId: string,
+    segmentId: string,
+    name: string,
+  ): Promise<IDbOrganization> {
     const result = await this.db().oneOrNone(
       `
-      select  id,
-              name,
-              url,
-              description,
-              emails,
-              logo,
-              tags,
-              github,
-              twitter,
-              linkedin,
-              crunchbase,
-              employees,
-              location,
-              website,
-              type,
-              size,
-              headline,
-              industry,
-              founded
-      from organizations
-      where "tenantId" = $(tenantId) and name = $(name);`,
-      { tenantId, name },
+      select  o.id,
+              o.name,
+              o.url,
+              o.description,
+              o.emails,
+              o.logo,
+              o.tags,
+              o.github,
+              o.twitter,
+              o.linkedin,
+              o.crunchbase,
+              o.employees,
+              o.location,
+              o.website,
+              o.type,
+              o.size,
+              o.headline,
+              o.industry,
+              o.founded,
+              o.attributes
+      from organizations o
+      where o."tenantId" = $(tenantId) and o.name = $(name)
+      and o.id in (select os."organizationId"
+                    from "organizationSegments" os
+                      where os."segmentId" = $(segmentId))`,
+      { tenantId, name, segmentId },
+    )
+
+    return result
+  }
+
+  public async findBySourceId(
+    tenantId: string,
+    segmentId: string,
+    platform: string,
+    sourceId: string,
+  ): Promise<IDbOrganization> {
+    const result = await this.db().oneOrNone(
+      `
+      select  o.id,
+              o.name,
+              o.url,
+              o.description,
+              o.emails,
+              o.logo,
+              o.tags,
+              o.github,
+              o.twitter,
+              o.linkedin,
+              o.crunchbase,
+              o.employees,
+              o.location,
+              o.website,
+              o.type,
+              o.size,
+              o.headline,
+              o.industry,
+              o.founded,
+              o.attributes
+      from organizations o
+      where o."tenantId" = $(tenantId) and COALESCE(((o.attributes -> 'sourceId'::text) ->> '${platform}'::text)::text, '') = $(sourceId)
+      and o.id in (select os."organizationId"
+                    from "organizationSegments" os
+                      where os."segmentId" = $(segmentId))`,
+      { tenantId, sourceId, segmentId },
     )
 
     return result

@@ -256,6 +256,7 @@ class OrganizationRepository {
           'employees',
           'twitter',
           'lastEnrichedAt',
+          'attributes'
         ]),
         updatedById: currentUser.id,
       },

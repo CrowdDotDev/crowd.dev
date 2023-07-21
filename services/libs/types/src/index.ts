@@ -32,3 +32,5 @@ export * from './enums/opensearch'
 export * from './opensearch'
 
 export * from './enums/webhooks'
+
+export * from './enums/entities'

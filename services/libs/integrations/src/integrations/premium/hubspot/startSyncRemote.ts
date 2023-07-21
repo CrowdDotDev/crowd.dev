@@ -13,6 +13,10 @@ const handler: StartIntegrationSyncHandler = async (ctx) => {
 
   if (settings.enabledFor.includes(HubspotEntity.ORGANIZATIONS)) {
     // sync orgs
+    await ctx.integrationSyncWorkerEmitter.triggerSyncMarkedOrganizations(
+      ctx.tenantId,
+      ctx.integration.id,
+    )
   }
 }
 

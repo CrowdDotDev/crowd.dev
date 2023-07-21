@@ -1,5 +1,6 @@
 import { MemberSyncService } from '@/service/member.sync.service'
 import { OpenSearchService } from '@/service/opensearch.service'
+import { OrganizationSyncService } from '@/service/organization.sync.service'
 import { DbConnection, DbStore } from '@crowd/database'
 import { Logger } from '@crowd/logging'
 import {
@@ -32,6 +33,10 @@ export class WorkerQueueReceiver extends SqsQueueReceiver {
     )
   }
 
+  private initOrganizationService(): OrganizationSyncService {
+    return new OrganizationSyncService(new DbStore(this.log, this.dbConn), this.log)
+  }
+
   protected override async processMessage<T extends IQueueMessage>(message: T): Promise<void> {
     try {
       this.log.trace({ messageType: message.type }, 'Processing message!')
@@ -51,6 +56,19 @@ export class WorkerQueueReceiver extends SqsQueueReceiver {
             data.tenantId,
             data.integrationId,
             data.memberId,
+          )
+          break
+        case IntegrationSyncWorkerQueueMessageType.SYNC_ORGANIZATION:
+          await this.initOrganizationService().syncOrganization(
+            data.tenantId,
+            data.integrationId,
+            data.organizationId,
+          )
+          break
+        case IntegrationSyncWorkerQueueMessageType.SYNC_ALL_MARKED_ORGANIZATIONS:
+          await this.initOrganizationService().syncAllMarkedOrganizations(
+            data.tenantId,
+            data.integrationId,
           )
           break
 

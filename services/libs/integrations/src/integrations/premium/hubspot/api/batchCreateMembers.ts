@@ -5,7 +5,7 @@ import { IMember, PlatformType } from '@crowd/types'
 import { RequestThrottler } from '@crowd/common'
 import { HubspotMemberFieldMapper } from '../field-mapper/memberFieldMapper'
 
-export interface IBatchCreateResult {
+export interface IBatchCreateMemberResult {
   memberId: string
   sourceId: string
 }
@@ -16,7 +16,7 @@ export const batchCreateMembers = async (
   memberMapper: HubspotMemberFieldMapper,
   ctx: IProcessStreamContext | IGenerateStreamsContext,
   throttler: RequestThrottler,
-): Promise<IBatchCreateResult[]> => {
+): Promise<IBatchCreateMemberResult[]> => {
   const config: AxiosRequestConfig<unknown> = {
     method: 'post',
     url: `https://api.hubapi.com/crm/v3/objects/contacts/batch/create`,

@@ -1,4 +1,5 @@
 export interface IOrganization {
+  id?: string
   name: string
   url?: string
   description?: string
@@ -17,6 +18,7 @@ export interface IOrganization {
   headline?: string
   industry?: string
   founded?: string
+  attributes?: any
 }
 
 export interface IOrganizationSocial {

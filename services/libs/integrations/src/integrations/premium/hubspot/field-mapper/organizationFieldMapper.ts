@@ -1,4 +1,4 @@
-import { IOrganization } from '@crowd/types'
+import { IOrganization, MemberAttributeName, PlatformType } from '@crowd/types'
 import { HubspotPropertyType, IHubspotObject } from '../types'
 import { HubspotFieldMapper } from './hubspotFieldMapper'
 
@@ -36,10 +36,6 @@ export class HubspotOrganizationFieldMapper extends HubspotFieldMapper {
   override getEntity(hubspotOrganization: IHubspotObject): IOrganization {
     this.ensureFieldMapExists()
 
-    if (!this.hubspotId) {
-      throw new Error('Hubspot Id should be set before parsing the member!')
-    }
-
     const organizationProperties = hubspotOrganization.properties as any
 
     if (!organizationProperties.name) {
@@ -50,6 +46,11 @@ export class HubspotOrganizationFieldMapper extends HubspotFieldMapper {
 
     const organization: IOrganization = {
       name: organizationProperties.name,
+      attributes: {
+        [MemberAttributeName.SOURCE_ID]: {
+          [PlatformType.HUBSPOT]: hubspotOrganization.id,
+        },
+      },
     }
 
     // loop through organization properties

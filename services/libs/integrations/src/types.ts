@@ -4,6 +4,7 @@ import {
   IntegrationResultType,
   IMember,
   IMemberIdentity,
+  Entity,
 } from '@crowd/types'
 import { Logger } from '@crowd/logging'
 import { ICache, IIntegration, IIntegrationStream, IRateLimiter } from '@crowd/types'
@@ -32,8 +33,8 @@ export interface IIntegrationStartRemoteSyncContext {
 export interface IIntegrationProcessRemoteSyncContext {
   tenantId: string
   integration: IIntegration
-  memberAttributes: IMemberAttribute[]
-  platforms: IMemberIdentity[]
+  memberAttributes?: IMemberAttribute[]
+  platforms?: IMemberIdentity[]
   log: Logger
   serviceSettings: IIntegrationServiceSettings
 }
@@ -93,9 +94,10 @@ export type ProcessStreamHandler = (ctx: IProcessStreamContext) => Promise<void>
 export type ProcessWebhookStreamHandler = (ctx: IProcessWebhookStreamContext) => Promise<void>
 export type ProcessDataHandler = (ctx: IProcessDataContext) => Promise<void>
 export type StartIntegrationSyncHandler = (ctx: IIntegrationStartRemoteSyncContext) => Promise<void>
-export type ProcessIntegrationSyncHandler = (
-  membersToCreate: IMember[],
-  membersToUpdate: IMember[],
+export type ProcessIntegrationSyncHandler = <T>(
+  toCreate: T[],
+  toUpdate: T[],
+  entity: Entity,
   ctx: IIntegrationProcessRemoteSyncContext,
 ) => Promise<any>
 
