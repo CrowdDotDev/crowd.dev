@@ -17,9 +17,9 @@ const { doSigninWithAuth0 } = mapActions('auth');
 onMounted(() => {
   Auth0Service.handleAuth()
     .then(() => {
-      Auth0Service.authData().then((token) => {
-        doSigninWithAuth0(token);
-      });
+      const { idToken } = Auth0Service.authData();
+
+      return doSigninWithAuth0(idToken);
     })
     .catch(() => {
       Auth0Service.logout();

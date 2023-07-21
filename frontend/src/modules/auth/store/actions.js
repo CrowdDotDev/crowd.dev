@@ -40,10 +40,6 @@ export default {
     }
   },
 
-  authenticate({ commit }) {
-    commit('AUTHENTICATE');
-  },
-
   doWaitUntilInit({ getters }) {
     if (!getters.loadingInit) {
       return Promise.resolve();

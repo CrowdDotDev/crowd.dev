@@ -1,7 +1,6 @@
+import { LocalStorageEnum } from '@/shared/types/LocalStorage';
 import config from '@/config';
 import { Auth0Client, User } from '@auth0/auth0-spa-js';
-import { store } from '@/store';
-import { router } from '@/router';
 
 const baseUrl = `${config.frontendUrl.protocol}://${config.frontendUrl.host}`;
 const authCallback = `${baseUrl}/auth/callback`;
@@ -16,56 +15,45 @@ class Auth0ServiceClass {
       authorizationParams: {
         redirect_uri: authCallback,
       },
-      useCookiesForTransactions: true,
-      useRefreshTokens: true,
-      useRefreshTokensFallback: true,
+      cacheLocation: 'localstorage',
     });
   }
 
-  async loginWithRedirect() {
-    return this.webAuth.loginWithRedirect();
+  loginWithRedirect() {
+    this.webAuth.loginWithRedirect();
   }
 
-  isAuthenticated() {
-    return this.webAuth.isAuthenticated();
-  }
-
-  async handleAuth(): Promise<void> {
-    return this.webAuth.handleRedirectCallback();
-  }
-
-  init() {
-    return this.webAuth.isAuthenticated().then((isAuthenticated) => {
-      if (!isAuthenticated) {
-        return this.webAuth.getTokenSilently().then(() => {
-          store.dispatch('auth/authenticate');
-
+  public async handleAuth(): Promise<void> {
+    return this.webAuth.handleRedirectCallback()
+      .then(() => this.webAuth.getIdTokenClaims())
+      .then((idToken) => {
+        if (idToken) {
+          // eslint-disable-next-line no-underscore-dangle
+          const actualIdToken = idToken.__raw;
+          Auth0ServiceClass.localLogin({ id_token: actualIdToken, expires_in: idToken?.exp });
           return Promise.resolve();
-        }).catch(() => {
-          // If getTokenSilently() fails it's because user is not authenticated
-          Auth0ServiceClass.localLogout();
-          router.push({
-            name: 'signin',
-          });
-
-          return Promise.reject();
-        });
-      }
-
-      return Promise.resolve();
-    });
+        }
+        return Promise.reject();
+      });
   }
 
   public authData() {
-    return this.webAuth.getIdTokenClaims()
-      .then((idToken) => {
-        if (idToken) {
-        // eslint-disable-next-line no-underscore-dangle
-          return idToken.__raw;
-        }
+    const idToken = localStorage.getItem(LocalStorageEnum.ID_TOKEN);
+    const idTokenExpiration = localStorage.getItem(LocalStorageEnum.ID_TOKEN_EXPIRATION);
 
-        return null;
-      });
+    if (idToken && idTokenExpiration) {
+      const idTokenExpirationDate = new Date(parseInt(idTokenExpiration, 10));
+      return {
+        idToken,
+        idTokenExpiration: idTokenExpirationDate,
+      };
+    }
+    return null;
+  }
+
+  public static localLogin(authResult: any): void {
+    localStorage.setItem(LocalStorageEnum.ID_TOKEN, authResult.id_token as string);
+    localStorage.setItem(LocalStorageEnum.ID_TOKEN_EXPIRATION, authResult.expires_in);
   }
 
   public static localLogout() {
