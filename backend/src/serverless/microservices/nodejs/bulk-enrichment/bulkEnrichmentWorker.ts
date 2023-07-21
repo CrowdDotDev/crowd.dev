@@ -11,8 +11,8 @@ import { FeatureFlagRedisKey } from '../../../../types/common'
  * Data sent is for the last week.
  * @param tenantId
  */
-async function bulkEnrichmentWorker(tenantId: string, memberIds: string[]) {
-  const userContext = await getUserContext(tenantId)
+async function bulkEnrichmentWorker(tenantId: string, memberIds: string[], segmentIds: string[]) {
+  const userContext = await getUserContext(tenantId, null, segmentIds)
 
   const memberEnrichmentService = new MemberEnrichmentService(userContext)
 
