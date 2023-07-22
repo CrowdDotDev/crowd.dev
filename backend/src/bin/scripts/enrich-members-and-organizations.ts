@@ -88,6 +88,9 @@ if (parameters.help || (!parameters.tenant && (!parameters.organization || !para
         if (enrichMembers) {
           let offset = 0
           let totalMembers = 0
+          let enrichedMembersCount = 0
+          const failedMembers = [] // Store the IDs of failed member enrichments
+
           do {
             const members = await MemberRepository.findAndCountAllv2(
               { limit, offset, countOnly: false },
@@ -102,11 +105,9 @@ if (parameters.help || (!parameters.tenant && (!parameters.organization || !para
                 const memberToEnrich = member.id
                 await sendBulkEnrichMessage(tenant, [memberToEnrich], segmentIds, false, true)
                 log.info({ tenantId }, `Enriched member with ID: ${memberToEnrich}`)
+                enrichedMembersCount++
               } catch (error) {
-                log.error(
-                  { tenantId, memberId: member.id },
-                  `Couldn't enrich member: ${error.message}`,
-                )
+                failedMembers.push(member.id)
               }
             }
 
@@ -114,11 +115,22 @@ if (parameters.help || (!parameters.tenant && (!parameters.organization || !para
           } while (totalMembers > offset)
 
           log.info({ tenantId }, `Members enrichment operation finished for tenant ${tenantId}`)
+          log.info(
+            { tenantId },
+            `Enriched members count: ${enrichedMembersCount}, Failed to enrich members count: ${failedMembers.length}`,
+          )
+
+          if (failedMembers.length > 0) {
+            log.error({ tenantId }, `Failed to enrich members: ${failedMembers}`)
+          }
         }
 
         if (enrichOrganizations) {
           let offset = 0
           let totalOrganizations = 0
+          let enrichedOrganizationsCount = 0
+          const failedOrganizations = [] // Store the IDs of failed organization enrichments
+
           do {
             const organizations = await OrganizationRepository.findAndCountAll(
               { limit, offset },
@@ -140,11 +152,9 @@ if (parameters.help || (!parameters.tenant && (!parameters.organization || !para
               try {
                 log.info({ payload }, 'Enricher worker payload for organization')
                 await sendNodeWorkerMessage(tenantId, payload)
+                enrichedOrganizationsCount++
               } catch (error) {
-                log.error(
-                  { tenantId, organizationId: organization.id },
-                  `Couldn't enrich organization: ${error.message}`,
-                )
+                failedOrganizations.push(organization.id)
               }
             }
 
@@ -155,6 +165,15 @@ if (parameters.help || (!parameters.tenant && (!parameters.organization || !para
             { tenantId },
             `Organizations enrichment operation finished for tenant ${tenantId}`,
           )
+
+          log.info(
+            { tenantId },
+            `Enriched organizations count: ${enrichedOrganizationsCount}, Failed to enrich organizations count: ${failedOrganizations.length}`,
+          )
+
+          if (failedOrganizations.length > 0) {
+            log.error({ tenantId }, `Failed to enrich organizations: ${failedOrganizations}`)
+          }
         }
       }
     }
