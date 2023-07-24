@@ -75,6 +75,24 @@
           )
         "
       />
+
+      <!-- HubSpot -->
+      <app-platform
+        v-if="!!organization.attributes?.url?.hubspot && !!organization.attributes?.domain?.hubspot"
+        platform="hubspot"
+        track-event-name="Click Organization Contact"
+        track-event-channel="HubSpot"
+        tooltip-label="HubSpot profile"
+        :username-handles="[organization.attributes?.domain?.hubspot]"
+        :has-tooltip="true"
+        :href="getIdentityLink('hubspot')"
+        :as-link="
+          !!(
+            organization.attributes?.url?.hubspot
+            || organization.attributes?.domain?.hubspot
+          )
+        "
+      />
     </div>
 
     <!-- Facebook -->
@@ -163,6 +181,8 @@ const getIdentityLink = (platform) => {
       url = 'https://www.crunchbase.com/organization/';
     } else if (platform === 'facebook') {
       url = 'https://www.facebook.com/';
+    } else if (platform === 'hubspot') {
+      return props.organization.attributes?.url?.hubspot;
     } else {
       return null;
     }

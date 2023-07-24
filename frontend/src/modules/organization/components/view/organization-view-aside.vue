@@ -117,6 +117,28 @@
             class="ri-external-link-line text-gray-300"
           />
         </a>
+        <a
+          v-if="getIdentityLink('hubspot')"
+          class="px-6 py-2 flex justify-between items-center relative"
+          :class="
+            getIdentityLink('hubspot')
+              ? 'hover:bg-gray-50 transition-colors cursor-pointer'
+              : ''
+          "
+          :href="getIdentityLink('hubspot')"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          <div class="flex gap-3 items-center">
+            <app-platform platform="hubspot" />
+            <span class="text-gray-900 text-xs">
+              HubSpot</span>
+          </div>
+          <i
+            v-if="getIdentityLink('facebook')"
+            class="ri-external-link-line text-gray-300"
+          />
+        </a>
         <el-divider
           v-if="showDivider"
           class="border-t-gray-200"
@@ -245,6 +267,8 @@ const getIdentityLink = (platform) => {
       url = 'https://www.crunchbase.com/organization/';
     } else if (platform === 'facebook') {
       url = 'https://www.facebook.com/';
+    } else if (platform === 'hubspot') {
+      return props.organization.attributes?.url?.hubspot;
     } else {
       return null;
     }
@@ -257,6 +281,6 @@ const getIdentityLink = (platform) => {
 
 <script>
 export default {
-  name: 'AppMemberViewAside',
+  name: 'AppOrganizationViewAside',
 };
 </script>
