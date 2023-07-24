@@ -20,4 +20,11 @@ export default {
         return Promise.reject(err);
       });
   },
+  fetchOrganization(this: OrganizationState, id: string): Promise<Organization> {
+    return OrganizationService.find(id)
+      .then((organization: Organization) => {
+        this.organization = organization;
+        return Promise.resolve(organization);
+      });
+  },
 };

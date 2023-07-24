@@ -1,7 +1,7 @@
 <template>
   <div>
     <el-dropdown
-      v-if="!isReadOnly"
+      v-if="!isReadOnly && organization"
       trigger="click"
       placement="bottom-end"
       @command="handleCommand"
@@ -36,7 +36,7 @@
             action: 'syncHubspot',
             organization,
           }"
-          :disabled="!isHubspotConnected"
+          :disabled="!isHubspotConnected || (!organization.website && !organization.attributes?.sourceId?.hubspot)"
         >
           <app-svg name="hubspot" class="h-4 w-4 text-current" />
           <span
@@ -150,7 +150,7 @@ const store = useStore();
 const { currentUser, currentTenant } = mapGetters('auth');
 
 const organizationStore = useOrganizationStore();
-const { fetchOrganizations } = organizationStore;
+const { fetchOrganizations, fetchOrganization } = organizationStore;
 
 const isReadOnly = computed(
   () => new OrganizationPermissions(
@@ -230,7 +230,7 @@ const handleCommand = (command) => {
             reload: true,
           });
         } else {
-          doFind(command.organization.id);
+          fetchOrganization(command.organization.id);
         }
         if (sync) {
           Message.success('Organization is now syncing with HubSpot');
@@ -254,7 +254,7 @@ const handleCommand = (command) => {
           reload: true,
         });
       } else {
-        OrganizationService.find(id);
+        fetchOrganization(command.organization.id);
       }
     });
   }
