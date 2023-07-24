@@ -10,6 +10,7 @@ export default {
   connectComponent: HubspotConnect,
   enabled: true,
   url: (username) => null,
+  scale: true,
   chartColor: '#FF712E',
   showProfileLink: true,
   activityDisplay: {
