@@ -267,7 +267,7 @@ const getCtaContent = (plan) => {
   // Custom plans
   if (
     plan === crowdHostedPlans.enterprise
-    || plan === communityPlans.scale
+    || plan === crowdHostedPlans.scale
     || plan === communityPlans.custom
   ) {
     return 'Book a call';
