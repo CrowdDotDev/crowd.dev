@@ -70,10 +70,16 @@ const form = computed({
 
 const { active } = mapGetters('integration');
 
-const computedPlatformOptions = computed(() => active.value.map((item) => ({
+const computedPlatformOptions = computed(() => [...active.value.map((item) => ({
   value: item.platform,
-  label: CrowdIntegrations.getConfig(item.platform)?.name || 'Custom',
-})));
+  label: CrowdIntegrations.getConfig(item.platform)
+    .name,
+})),
+{
+  value: 'twitter',
+  label: 'Twitter',
+},
+]);
 
 const getPlatformDetails = (platform) => CrowdIntegrations.getConfig(platform);
 
