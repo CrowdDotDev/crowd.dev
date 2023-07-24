@@ -119,11 +119,16 @@ const { active } = mapGetters('integration');
 
 const { types } = storeToRefs(useActivityTypeStore());
 
-const computedPlatformOptions = computed(() => active.value.map((item) => ({
+const computedPlatformOptions = computed(() => [...active.value.map((item) => ({
   value: item.platform,
   label: CrowdIntegrations.getConfig(item.platform)
     .name,
-})));
+})),
+{
+  value: 'twitter',
+  label: 'Twitter',
+},
+]);
 
 const computedActivityTypeOptions = computed(() => {
   if (
