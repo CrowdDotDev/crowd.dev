@@ -10,7 +10,7 @@
       }"
     >
       <el-select
-        v-model="form.trigger"
+        v-model="trigger"
         placeholder="Select option"
         class="w-full"
         @change="collapseOpen = 'filterOptions'"
@@ -25,13 +25,13 @@
       </el-select>
     </app-form-item>
     <div class="filter-options pb-8">
-      <el-collapse v-if="form.trigger" v-model="collapseOpen">
+      <el-collapse v-if="trigger" v-model="collapseOpen">
         <el-collapse-item
           title="Filter options"
           name="filterOptions"
         >
-          <app-new-activity-filter-options v-if="form.trigger === 'new_activity'" v-model="form.settings" />
-          <app-new-member-filter-options v-if="form.trigger === 'new_member'" v-model="form.settings" />
+          <app-new-activity-filter-options v-if="trigger === 'new_activity'" v-model="settings" />
+          <app-new-member-filter-options v-if="trigger === 'new_member'" v-model="settings" />
         </el-collapse-item>
       </el-collapse>
     </div>
@@ -44,6 +44,60 @@ import AppNewActivityFilterOptions
   from '@/modules/automation/config/automation-types/shared/filter-options/new-activity-filter-options.vue';
 import AppNewMemberFilterOptions
   from '@/modules/automation/config/automation-types/shared/filter-options/new-member-filter-options.vue';
+import { computed, defineEmits, ref } from 'vue';
+import { required } from '@vuelidate/validators';
+import useVuelidate from '@vuelidate/core';
+
+interface AutomationTriggerForm {
+  trigger: string;
+  settings: any;
+}
+
+const props = defineProps<AutomationTriggerForm>();
+
+const emit = defineEmits<{(e: 'update:trigger', value: string), (e: 'update:settings', value: any),}>();
+
+const collapseOpen = ref('filterOptions');
+
+const triggerOptions = ref([
+  {
+    label: 'New activity happened in your community',
+    value: 'new_activity',
+  },
+  {
+    label: 'New member joined your community',
+    value: 'new_member',
+  },
+]);
+
+const trigger = computed<string>({
+  get() {
+    return props.trigger;
+  },
+  set(value: string) {
+    emit('update:trigger', value);
+  },
+});
+
+const settings = computed<any>({
+  get() {
+    return props.settings;
+  },
+  set(value: any) {
+    emit('update:settings', value);
+  },
+});
+
+const rules = {
+  trigger: {
+    required,
+  },
+};
+
+const $v = useVuelidate<AutomationTriggerForm>(rules, {
+  trigger,
+  settings,
+});
 </script>
 
 <script lang="ts">

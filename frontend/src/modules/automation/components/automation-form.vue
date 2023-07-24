@@ -151,19 +151,6 @@ const type = computed(() => props.automation?.type || props.type);
 
 const isEdit = computed(() => props.automation !== null);
 
-const triggerOptions = ref([
-  {
-    label: 'New activity happened in your community',
-    value: 'new_activity',
-  },
-  {
-    label: 'New member joined your community',
-    value: 'new_member',
-  },
-]);
-
-const collapseOpen = ref('filterOptions');
-
 // Setup and validation
 const form = reactive({
   name: '',
