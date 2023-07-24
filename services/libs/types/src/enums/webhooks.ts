@@ -8,6 +8,7 @@ export enum WebhookType {
   GITHUB = 'GITHUB',
   DISCORD = 'DISCORD',
   DISCOURSE = 'DISCOURSE',
+  FAKE = 'FAKE', // special type for streams
 }
 
 export enum DiscordWebsocketEvent {

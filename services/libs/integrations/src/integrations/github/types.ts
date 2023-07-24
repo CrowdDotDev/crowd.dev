@@ -19,11 +19,34 @@ export enum GithubActivityType {
   AUTHORED_COMMIT = 'authored-commit',
 }
 
+export interface GithubWebhookPayload {
+  signature: string
+  event: any
+  data: any
+}
+
 export enum GithubActivitySubType {
   PULL_REQUEST_REVIEW_REQUESTED_SINGLE = 'pull_request-review-requested-single',
   PULL_REQUEST_REVIEW_REQUESTED_MULTIPLE = 'pull_request-review-requested-multiple',
   DISCUSSION_COMMENT_START = 'discussion-comment-start',
   DISCUSSION_COMMENT_REPLY = 'discussion-comment-reply',
+}
+
+export enum GithubWebhookSubType {
+  DISCUSSION_COMMENT_START = 'discussion-comment-start',
+  DISCUSSION_COMMENT_REPLY = 'discussion-comment-reply',
+}
+
+export enum GithubWehookEvent {
+  ISSUES = 'issues',
+  DISCUSSION = 'discussion',
+  PULL_REQUEST = 'pull_request',
+  PULL_REQUEST_REVIEW = 'pull_request_review',
+  STAR = 'star',
+  FORK = 'fork',
+  DISCUSSION_COMMENT = 'discussion_comment',
+  PULL_REQUEST_REVIEW_COMMENT = 'pull_request_review_comment',
+  ISSUE_COMMENT = 'issue_comment',
 }
 
 export enum GithubStreamType {
@@ -52,16 +75,21 @@ export interface GithubApiData {
   repo: Repo
 }
 
-export interface GithubStreamBase {
-  isCommitDataEnabled: boolean
-  privateKey: string
+export interface GithubWebhookData {
+  webhookType: GithubWehookEvent
+  subType?: string
+  data: any[] | any
+  relatedData?: any | any[]
+  member: GithubPrepareMemberOutput
+  objectMember?: GithubPrepareMemberOutput
+  sourceParentId?: string
 }
 
-export interface GithubRootStream extends GithubStreamBase {
+export interface GithubRootStream {
   reposToCheck: Repos
 }
 
-export interface GithubBasicStream extends GithubStreamBase {
+export interface GithubBasicStream {
   repo: Repo
   page: string
   prNumber?: string

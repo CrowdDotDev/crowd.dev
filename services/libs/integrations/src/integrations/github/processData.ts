@@ -1,14 +1,22 @@
 /* eslint-disable  @typescript-eslint/no-explicit-any */
 // processStream.ts content
 // processData.ts content
-import { IProcessStreamContext, ProcessDataHandler } from '../../types'
+import { IProcessDataContext, ProcessDataHandler } from '../../types'
 import {
   GithubApiData,
+  GithubWebhookData,
   GithubActivityType,
   GithubPrepareMemberOutput,
   GithubActivitySubType,
+  GithubWehookEvent,
 } from './types'
-import { IActivityData, IMemberData, PlatformType, MemberAttributeName } from '@crowd/types'
+import {
+  IActivityData,
+  IMemberData,
+  PlatformType,
+  MemberAttributeName,
+  IActivityScoringGrid,
+} from '@crowd/types'
 import { GITHUB_GRID } from './grid'
 import { generateSourceIdHash } from '@/helpers'
 
@@ -567,59 +575,162 @@ const parseAuthoredCommit: ProcessDataHandler = async (ctx) => {
   await ctx.publishActivity(activity)
 }
 
-const handler: ProcessDataHandler = async (ctx) => {
-  const data = ctx.data as GithubApiData
+const parseWebhookIssue = async (ctx: IProcessDataContext) => {
+  const data = ctx.data as GithubWebhookData
+  const payload = data.data
+  const memberData = data.member
 
-  const event = data.type
+  const member = parseMember(memberData)
 
-  switch (event) {
-    case GithubActivityType.STAR:
-      await parseStar(ctx)
+  let type: GithubActivityType
+  let scoreGrid: IActivityScoringGrid
+  let timestamp: string
+  let sourceId: string
+  let sourceParentId: string
+  let body = ''
+  let title = ''
+
+  switch (payload.action) {
+    case 'edited':
+    case 'opened':
+    case 'reopened':
+      type = GithubActivityType.ISSUE_OPENED
+      scoreGrid = GITHUB_GRID[GithubActivityType.ISSUE_OPENED]
+      timestamp = payload.issue.created_at
+      sourceParentId = null
+      sourceId = payload.issue.node_id.toString()
+      body = payload.issue.body
+      title = payload.issue.title
       break
-    case GithubActivityType.FORK:
-      await parseFork(ctx)
+
+    case 'closed':
+      type = GithubActivityType.ISSUE_CLOSED
+      scoreGrid = GITHUB_GRID[GithubActivityType.ISSUE_CLOSED]
+      timestamp = payload.issue.closed_at
+      sourceParentId = payload.issue.node_id.toString()
+      sourceId = `gen-CE_${payload.issue.node_id.toString()}_${payload.sender.login}_${new Date(
+        payload.issue.closed_at,
+      ).toISOString()}`
       break
-    case GithubActivityType.PULL_REQUEST_OPENED:
-      await parsePullRequestOpened(ctx)
-      break
-    case GithubActivityType.PULL_REQUEST_CLOSED:
-      await parsePullRequestClosed(ctx)
-      break
-    case GithubActivityType.PULL_REQUEST_REVIEW_REQUESTED:
-      await parsePullRequestReviewRequested(ctx)
-      break
-    case GithubActivityType.PULL_REQUEST_REVIEWED:
-      await parsePullRequestReviewed(ctx)
-      break
-    case GithubActivityType.PULL_REQUEST_ASSIGNED:
-      await parsePullRequestAssigned(ctx)
-      break
-    case GithubActivityType.PULL_REQUEST_MERGED:
-      await parsePullRequestMerged(ctx)
-      break
-    case GithubActivityType.ISSUE_OPENED:
-      await parseIssueOpened(ctx)
-      break
-    case GithubActivityType.ISSUE_CLOSED:
-      await parseIssueClosed(ctx)
-      break
-    case GithubActivityType.PULL_REQUEST_COMMENT:
-      await parsePullRequestComment(ctx)
-      break
-    case GithubActivityType.PULL_REQUEST_REVIEW_THREAD_COMMENT:
-      await parsePullRequestReviewThreadComment(ctx)
-      break
-    case GithubActivityType.ISSUE_COMMENT:
-      await parseIssueComment(ctx)
-      break
-    case GithubActivityType.DISCUSSION_COMMENT:
-      await parseDiscussionComment(ctx)
-      break
-    case GithubActivityType.AUTHORED_COMMIT:
-      await parseAuthoredCommit(ctx)
-      break
+
     default:
-      throw new Error(`Event not supported '${event}'!`)
+      return
+  }
+
+  const issue = payload.issue
+
+  if (member) {
+    const activity: IActivityData = {
+      member,
+      type,
+      timestamp: new Date(timestamp).toISOString(),
+      sourceId,
+      sourceParentId,
+      url: issue.html_url,
+      title,
+      channel: payload.repository.html_url,
+      body,
+      attributes: {
+        state: issue.state,
+      },
+      score: scoreGrid.score,
+      isContribution: scoreGrid.isContribution,
+    }
+
+    await ctx.publishActivity(activity)
+  }
+}
+
+const handler: ProcessDataHandler = async (ctx) => {
+  const data = ctx.data as any
+
+  const event = data?.type as GithubActivityType
+  const webhookEvent = data?.webhookType as GithubWehookEvent
+
+  if (event) {
+    // parse github api data
+    switch (event) {
+      case GithubActivityType.STAR:
+        await parseStar(ctx)
+        break
+      case GithubActivityType.FORK:
+        await parseFork(ctx)
+        break
+      case GithubActivityType.PULL_REQUEST_OPENED:
+        await parsePullRequestOpened(ctx)
+        break
+      case GithubActivityType.PULL_REQUEST_CLOSED:
+        await parsePullRequestClosed(ctx)
+        break
+      case GithubActivityType.PULL_REQUEST_REVIEW_REQUESTED:
+        await parsePullRequestReviewRequested(ctx)
+        break
+      case GithubActivityType.PULL_REQUEST_REVIEWED:
+        await parsePullRequestReviewed(ctx)
+        break
+      case GithubActivityType.PULL_REQUEST_ASSIGNED:
+        await parsePullRequestAssigned(ctx)
+        break
+      case GithubActivityType.PULL_REQUEST_MERGED:
+        await parsePullRequestMerged(ctx)
+        break
+      case GithubActivityType.ISSUE_OPENED:
+        await parseIssueOpened(ctx)
+        break
+      case GithubActivityType.ISSUE_CLOSED:
+        await parseIssueClosed(ctx)
+        break
+      case GithubActivityType.PULL_REQUEST_COMMENT:
+        await parsePullRequestComment(ctx)
+        break
+      case GithubActivityType.PULL_REQUEST_REVIEW_THREAD_COMMENT:
+        await parsePullRequestReviewThreadComment(ctx)
+        break
+      case GithubActivityType.ISSUE_COMMENT:
+        await parseIssueComment(ctx)
+        break
+      case GithubActivityType.DISCUSSION_COMMENT:
+        await parseDiscussionComment(ctx)
+        break
+      case GithubActivityType.AUTHORED_COMMIT:
+        await parseAuthoredCommit(ctx)
+        break
+      default:
+        await ctx.abortWithError(`Event not supported '${event}'!`)
+    }
+  } else if (webhookEvent) {
+    // TODO: implement webhook events
+    switch (webhookEvent) {
+      case GithubWehookEvent.ISSUES:
+        await parseWebhookIssue(ctx)
+        break
+      case GithubWehookEvent.DISCUSSION:
+        // await parseWebhookDiscussion(ctx)
+        break
+      case GithubWehookEvent.PULL_REQUEST:
+        // await parseWebhookPullRequest(ctx)
+        break
+      case GithubWehookEvent.PULL_REQUEST_REVIEW:
+        // await parseWebhookPullRequestReview(ctx)
+        break
+      case GithubWehookEvent.STAR:
+        // await parseWebhookStar(ctx)
+        break
+      case GithubWehookEvent.FORK:
+        // await parseWebhookFork(ctx)
+        break
+      case GithubWehookEvent.DISCUSSION_COMMENT:
+        // await parseWebhookDiscussionComment(ctx)
+        break
+      case GithubWehookEvent.PULL_REQUEST_REVIEW_COMMENT:
+        // await parseWebhookPullRequestReviewComment(ctx)
+        break
+      case GithubWehookEvent.ISSUE_COMMENT:
+        // await parseWebhookIssueComment(ctx)
+        break
+      default:
+        await ctx.abortWithError(`Webhook event not supported '${webhookEvent}'!`)
+    }
   }
 }
 

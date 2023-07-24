@@ -144,14 +144,12 @@ const handleNextPageStream = async (ctx: IProcessStreamContext, response: GraphQ
     await ctx.publishStream<GithubBasicStream>(`${streamIdentifier}:${response.startCursor}`, {
       repo: data.repo,
       page: response.startCursor,
-      isCommitDataEnabled: data.isCommitDataEnabled,
-      privateKey: data.privateKey,
     })
   }
 }
 
 // this function extracts email and orgs from member data
-const prepareMember = async (
+export const prepareMember = async (
   memberFromApi: any,
   ctx: IProcessStreamContext,
 ): Promise<GithubPrepareMemberOutput> => {
@@ -247,8 +245,6 @@ const processRootStream: ProcessStreamHandler = async (ctx) => {
       await ctx.publishStream<GithubBasicStream>(`${endpoint}:firstPage`, {
         repo,
         page: '',
-        isCommitDataEnabled: data.isCommitDataEnabled,
-        privateKey: data.privateKey,
       })
     }
   }
@@ -425,7 +421,10 @@ const processPullsStream: ProcessStreamHandler = async (ctx) => {
     }
   }
 
-  if (data.isCommitDataEnabled) {
+  const GITHUB_CONFIG = ctx.platformSettings as GithubPlatformSettings
+  const IS_GITHUB_COMMIT_DATA_ENABLED = GITHUB_CONFIG.isCommitDataEnabled === 'true'
+
+  if (IS_GITHUB_COMMIT_DATA_ENABLED) {
     // publish new pull commits streams
     // It is very important to keep commits first. Otherwise, we have problems
     // creating conversations if the Git integration has already ran for those data points.
@@ -436,8 +435,6 @@ const processPullsStream: ProcessStreamHandler = async (ctx) => {
           repo: data.repo,
           page: '',
           prNumber: pull.number,
-          isCommitDataEnabled: data.isCommitDataEnabled,
-          privateKey: data.privateKey,
         },
       )
     }
@@ -451,8 +448,6 @@ const processPullsStream: ProcessStreamHandler = async (ctx) => {
         repo: data.repo,
         page: '',
         prNumber: pull.number,
-        isCommitDataEnabled: data.isCommitDataEnabled,
-        privateKey: data.privateKey,
       },
     )
   }
@@ -465,8 +460,6 @@ const processPullsStream: ProcessStreamHandler = async (ctx) => {
         repo: data.repo,
         page: '',
         prNumber: pull.number,
-        isCommitDataEnabled: data.isCommitDataEnabled,
-        privateKey: data.privateKey,
       },
     )
   }
@@ -525,8 +518,6 @@ const processPullReviewThreadsStream: ProcessStreamHandler = async (ctx) => {
         repo: data.repo,
         page: '',
         reviewThreadId: thread.id,
-        isCommitDataEnabled: data.isCommitDataEnabled,
-        privateKey: data.privateKey,
       },
     )
   }
@@ -674,8 +665,6 @@ const processIssuesStream: ProcessStreamHandler = async (ctx) => {
         repo: data.repo,
         page: '',
         issueNumber: issue.number,
-        isCommitDataEnabled: data.isCommitDataEnabled,
-        privateKey: data.privateKey,
       },
     )
   }
@@ -736,8 +725,6 @@ const processDiscussionsStream: ProcessStreamHandler = async (ctx) => {
         repo: data.repo,
         page: '',
         discussionNumber: d.number,
-        isCommitDataEnabled: data.isCommitDataEnabled,
-        privateKey: data.privateKey,
       },
     )
   }
