@@ -6,6 +6,7 @@ export interface OrganizationState {
   filters: Filter,
   savedFilterBody: any,
   organizations: Organization[];
+  organization: Organization | null;
   selectedOrganizations: Organization[];
   totalOrganizations: number;
 }
@@ -20,6 +21,7 @@ const state: OrganizationState = {
   },
   savedFilterBody: {},
   organizations: [],
+  organization: null,
   selectedOrganizations: [],
   totalOrganizations: 0,
 };

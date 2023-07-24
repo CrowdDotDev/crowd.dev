@@ -1,8 +1,9 @@
+import IntegrationRepository from '@/repo/integration.repo'
 import { IDbInsertOrganizationData } from '@/repo/organization.data'
 import { OrganizationRepository } from '@/repo/organization.repo'
 import { DbStore } from '@crowd/database'
-import { Logger, LoggerBase } from '@crowd/logging'
-import { IOrganization, IOrganizationSocial } from '@crowd/types'
+import { Logger, LoggerBase, getChildLogger } from '@crowd/logging'
+import { IOrganization, IOrganizationSocial, PlatformType } from '@crowd/types'
 
 export class OrganizationService extends LoggerBase {
   private readonly repo: OrganizationRepository
@@ -13,7 +14,11 @@ export class OrganizationService extends LoggerBase {
     this.repo = new OrganizationRepository(store, this.log)
   }
 
-  public async findOrCreate(tenantId: string, data: IOrganization): Promise<string> {
+  public async findOrCreate(
+    tenantId: string,
+    segmentId: string,
+    data: IOrganization,
+  ): Promise<string> {
     data = this.normalizeSocialFields(data)
 
     // find from cache by name
@@ -69,13 +74,17 @@ export class OrganizationService extends LoggerBase {
         id,
         enriched: false,
         ...insertData,
+        attributes: {},
       }
     }
 
     // now check if exists in this tenant
-    const existing = await this.repo.findByName(tenantId, data.name)
+    const existing = await this.repo.findByName(tenantId, segmentId, data.name)
 
     const displayName = existing.displayName ? existing.displayName : data.name
+    const attributes = existing.attributes
+      ? { ...existing.attributes, ...data.attributes }
+      : data.attributes
 
     if (existing) {
       // if it does exists update it
@@ -99,6 +108,7 @@ export class OrganizationService extends LoggerBase {
         headline: cached.headline,
         industry: cached.industry,
         founded: cached.founded,
+        attributes,
       })
 
       return existing.id
@@ -124,6 +134,7 @@ export class OrganizationService extends LoggerBase {
         headline: cached.headline,
         industry: cached.industry,
         founded: cached.founded,
+        attributes,
       })
 
       return id
@@ -168,5 +179,59 @@ export class OrganizationService extends LoggerBase {
   ): Promise<void> {
     await this.repo.addToSegments(tenantId, segmentId, orgIds)
     await this.repo.addToMember(memberId, orgIds)
+  }
+
+  public async processOrganizationEnrich(
+    tenantId: string,
+    integrationId: string,
+    platform: PlatformType,
+    organization: IOrganization,
+  ): Promise<void> {
+    this.log = getChildLogger('OrganizationService.processOrganizationEnrich', this.log, {
+      integrationId,
+      tenantId,
+    })
+
+    try {
+      this.log.debug('Processing organization enrich.')
+
+      if (!organization.name && !organization.attributes?.sourceId?.[platform]) {
+        const errorMessage = `Organization can't be enriched. It is missing both name and attributes.sourceId[${platform}}] fields.`
+        this.log.warn(errorMessage)
+        return
+      }
+
+      await this.store.transactionally(async (txStore) => {
+        const txRepo = new OrganizationRepository(txStore, this.log)
+        const txIntegrationRepo = new IntegrationRepository(txStore, this.log)
+
+        const dbIntegration = await txIntegrationRepo.findById(integrationId)
+        const segmentId = dbIntegration.segmentId
+
+        // first try finding the organization using the remote sourceId
+        const sourceId = organization.attributes?.sourceId?.[platform]
+        let dbOrganization = sourceId
+          ? await txRepo.findBySourceId(tenantId, segmentId, platform, sourceId)
+          : null
+
+        if (!dbOrganization && organization.name) {
+          // try finding the organization using name
+          dbOrganization = await txRepo.findByName(tenantId, segmentId, organization.name)
+        }
+
+        if (dbOrganization) {
+          this.log.trace({ organizationId: dbOrganization.id }, 'Found existing organization.')
+
+          await this.findOrCreate(tenantId, segmentId, organization)
+        } else {
+          this.log.info(
+            'No organization found for enriching. This organization enrich process had no affect.',
+          )
+        }
+      })
+    } catch (err) {
+      this.log.error(err, 'Error while processing an organization enrich!')
+      throw err
+    }
   }
 }

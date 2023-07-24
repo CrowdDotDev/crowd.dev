@@ -591,7 +591,15 @@ export default class IntegrationService {
 
     const organization = await organizationService.findById(payload.organizationId)
 
-    if (!organization.attributes.syncRemote) {
+    if(!organization.attributes){
+      organization.attributes = {
+        syncRemote: {
+          default: true,
+          [PlatformType.HUBSPOT]: true
+        }
+      }
+    }
+    else if (!organization.attributes.syncRemote) {
       organization.attributes.syncRemote = {
         default: true,
         [PlatformType.HUBSPOT]: true
@@ -820,6 +828,7 @@ export default class IntegrationService {
         {
           platform: PlatformType.HUBSPOT,
           settings: {
+            ...integration.settings,
             updateMemberAttributes: true,
             hubspotProperties: {
               [HubspotEntity.MEMBERS]: hubspotMemberProperties,

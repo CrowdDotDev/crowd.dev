@@ -22,6 +22,7 @@ export interface IDbOrganization {
   headline: string | null
   industry: string | null
   founded: string | null
+  attributes: any | null
 }
 
 export interface IDbInsertOrganizationData {
@@ -44,6 +45,7 @@ export interface IDbInsertOrganizationData {
   headline: string | null
   industry: string | null
   founded: string | null
+  attributes?: any | null
 }
 
 let insertOrganizationColumnSet: DbColumnSet
@@ -109,6 +111,7 @@ export interface IDbUpdateOrganizationCacheData {
 
 export interface IDbUpdateOrganizationData extends IDbUpdateOrganizationCacheData {
   displayName: string | null
+  attributes: any | null
 }
 
 let updateOrganizationColumnSet: DbColumnSet

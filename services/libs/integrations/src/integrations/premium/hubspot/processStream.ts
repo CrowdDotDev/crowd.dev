@@ -24,6 +24,7 @@ const processRootStream: ProcessStreamHandler = async (ctx) => {
       HubspotEntity.MEMBERS,
     ) as HubspotMemberFieldMapper
     memberMapper.setFieldMap(settings.attributesMapping.members)
+    memberMapper.setHubspotId(settings.hubspotId)
 
     const organizationsEnabled = settings.enabledFor.includes(HubspotEntity.ORGANIZATIONS)
 

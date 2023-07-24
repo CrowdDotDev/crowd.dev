@@ -126,7 +126,12 @@ export default class DataSinkService extends LoggerBase {
           const service = new OrganizationService(this.store, this.log)
           const organizationData = data.data as IOrganization
 
-          await service.findOrCreate(resultInfo.tenantId, organizationData)
+          await service.processOrganizationEnrich(
+            resultInfo.tenantId,
+            resultInfo.integrationId,
+            resultInfo.platform,
+            organizationData,
+          )
           break
         }
 

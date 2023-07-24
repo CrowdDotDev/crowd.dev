@@ -1,6 +1,6 @@
 import { NANGO_CONFIG, SERVICE_CONFIG } from '@/conf'
 import { MemberRepository } from '../repo/member.repo'
-import { IMember, OpenSearchIndex, PlatformType } from '@crowd/types'
+import { Entity, IMember, OpenSearchIndex, PlatformType } from '@crowd/types'
 import { singleOrDefault } from '@crowd/common'
 import { DbStore } from '@crowd/database'
 import { Logger, LoggerBase } from '@crowd/logging'
@@ -15,7 +15,7 @@ import { SearchSyncWorkerEmitter } from '@crowd/sqs'
 
 export class MemberSyncService extends LoggerBase {
   private readonly memberRepo: MemberRepository
-  public readonly integrationRepo: IntegrationRepository
+  private readonly integrationRepo: IntegrationRepository
 
   constructor(
     store: DbStore,
@@ -67,7 +67,12 @@ export class MemberSyncService extends LoggerBase {
         tenantId,
       }
 
-      const newMembers = await service.processSyncRemote(membersToCreate, membersToUpdate, context)
+      const newMembers = await service.processSyncRemote<IMember>(
+        membersToCreate,
+        membersToUpdate,
+        Entity.MEMBERS,
+        context,
+      )
 
       for (const newMember of newMembers) {
         await this.memberRepo.setIntegrationSourceId(
@@ -209,9 +214,10 @@ export class MemberSyncService extends LoggerBase {
           tenantId,
         }
 
-        const newMembers = await service.processSyncRemote(
+        const newMembers = await service.processSyncRemote<IMember>(
           membersToCreate,
           membersToUpdate,
+          Entity.MEMBERS,
           context,
         )
 

@@ -4,31 +4,23 @@ import {
   ProcessIntegrationSyncHandler,
 } from '@/types'
 import { HubspotEntity, IHubspotIntegrationSettings } from './types'
-import { IMember } from '@crowd/types'
+import { Entity, IMember, IOrganization } from '@crowd/types'
 import { HubspotFieldMapperFactory } from './field-mapper/mapperFactory'
 import { HubspotMemberFieldMapper } from './field-mapper/memberFieldMapper'
 import { RequestThrottler } from '@crowd/common'
 import { batchCreateMembers } from './api/batchCreateMembers'
 import { batchUpdateMembers } from './api/batchUpdateMembers'
+import { HubspotOrganizationFieldMapper } from './field-mapper/organizationFieldMapper'
+import { batchCreateOrganizations } from './api/batchCreateOrganizations'
+import { batchUpdateOrganizations } from './api/batchUpdateOrganizations'
 
-const handler: ProcessIntegrationSyncHandler = async (
-  membersToCreate: IMember[],
-  membersToUpdate: IMember[],
+const handler: ProcessIntegrationSyncHandler = async <T>(
+  toCreate: T[],
+  toUpdate: T[],
+  entity: Entity,
   ctx: IIntegrationProcessRemoteSyncContext,
 ) => {
-  let membersCreatedInHubspot
-
   const nangoId = `${ctx.tenantId}-${ctx.integration.platform}`
-
-  const memberMapper = HubspotFieldMapperFactory.getFieldMapper(
-    HubspotEntity.MEMBERS,
-    ctx.memberAttributes,
-    ctx.platforms,
-  ) as HubspotMemberFieldMapper
-
-  memberMapper.setFieldMap(
-    (ctx.integration.settings as IHubspotIntegrationSettings).attributesMapping.members,
-  )
 
   const integrationContext = {
     log: ctx.log,
@@ -41,21 +33,81 @@ const handler: ProcessIntegrationSyncHandler = async (
 
   const throttler = new RequestThrottler(100, 10000, ctx.log)
 
-  if (membersToCreate.length > 0) {
-    membersCreatedInHubspot = await batchCreateMembers(
-      nangoId,
-      membersToCreate,
-      memberMapper,
-      integrationContext,
-      throttler,
-    )
-  }
+  switch (entity) {
+    case Entity.MEMBERS: {
+      let membersCreatedInHubspot
 
-  if (membersToUpdate.length > 0) {
-    await batchUpdateMembers(nangoId, membersToUpdate, memberMapper, integrationContext, throttler)
-  }
+      const memberMapper = HubspotFieldMapperFactory.getFieldMapper(
+        HubspotEntity.MEMBERS,
+        ctx.memberAttributes,
+        ctx.platforms,
+      ) as HubspotMemberFieldMapper
 
-  return membersCreatedInHubspot || []
+      memberMapper.setFieldMap(
+        (ctx.integration.settings as IHubspotIntegrationSettings).attributesMapping.members,
+      )
+
+      if (toCreate.length > 0) {
+        membersCreatedInHubspot = await batchCreateMembers(
+          nangoId,
+          toCreate as IMember[],
+          memberMapper,
+          integrationContext,
+          throttler,
+        )
+      }
+
+      if (toUpdate.length > 0) {
+        await batchUpdateMembers(
+          nangoId,
+          toUpdate as IMember[],
+          memberMapper,
+          integrationContext,
+          throttler,
+        )
+      }
+
+      return membersCreatedInHubspot || []
+    }
+    case Entity.ORGANIZATIONS: {
+      let companiesCreatedInHubspot
+
+      const organizationMapper = HubspotFieldMapperFactory.getFieldMapper(
+        HubspotEntity.ORGANIZATIONS,
+      ) as HubspotOrganizationFieldMapper
+
+      organizationMapper.setFieldMap(
+        (ctx.integration.settings as IHubspotIntegrationSettings).attributesMapping.organizations,
+      )
+
+      if (toCreate.length > 0) {
+        companiesCreatedInHubspot = await batchCreateOrganizations(
+          nangoId,
+          toCreate as IOrganization[],
+          organizationMapper,
+          integrationContext,
+          throttler,
+        )
+      }
+
+      if (toUpdate.length > 0) {
+        await batchUpdateOrganizations(
+          nangoId,
+          toUpdate as IOrganization[],
+          organizationMapper,
+          integrationContext,
+          throttler,
+        )
+      }
+
+      return companiesCreatedInHubspot || []
+    }
+    default: {
+      const message = `Unsupported entity ${entity} while processing HubSpot sync remote!` 
+      ctx.log.error(message)
+      throw new Error(message)
+    }
+  }
 }
 
 export default handler

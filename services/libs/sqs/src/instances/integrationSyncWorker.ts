@@ -15,13 +15,13 @@ export class IntegrationSyncWorkerEmitter extends SqsQueueEmitter {
       throw new Error('integrationId is required!')
     }
     await this.sendMessage(
-      `integration-sync-${tenantId}`,
+      `integration-sync-marked-members-${tenantId}`,
       {
         type: IntegrationSyncWorkerQueueMessageType.SYNC_ALL_MARKED_MEMBERS,
         tenantId,
         integrationId,
       },
-      `integration-sync-${integrationId}`,
+      `integration-sync-marked-members-${integrationId}`,
     )
   }
 
@@ -50,6 +50,27 @@ export class IntegrationSyncWorkerEmitter extends SqsQueueEmitter {
         memberId,
       },
       `integration-sync-member-${memberId}`,
+    )
+  }
+
+  public async triggerSyncMarkedOrganizations(
+    tenantId: string,
+    integrationId: string,
+  ): Promise<void> {
+    if (!tenantId) {
+      throw new Error('tenantId is required!')
+    }
+    if (!integrationId) {
+      throw new Error('integrationId is required!')
+    }
+    await this.sendMessage(
+      `integration-sync-marked-organizations-${tenantId}`,
+      {
+        type: IntegrationSyncWorkerQueueMessageType.SYNC_ALL_MARKED_ORGANIZATIONS,
+        tenantId,
+        integrationId,
+      },
+      `integration-sync-marked-organizations-${integrationId}`,
     )
   }
 
