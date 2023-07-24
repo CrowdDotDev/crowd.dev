@@ -1,5 +1,10 @@
 <template>
-  <slot :connect="isHubspotEnabled ? connect : upgradePlan" :settings="settings" :has-settings="true" />
+  <slot
+    :connect="isHubspotEnabled ? connect : upgradePlan"
+    :settings="settings"
+    :has-settings="true"
+    :has-integration="isHubspotEnabled"
+  />
   <app-hubspot-settings-drawer v-if="openSettingsDrawer" v-model="openSettingsDrawer" />
 </template>
 
