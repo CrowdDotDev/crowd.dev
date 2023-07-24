@@ -240,14 +240,6 @@ const reset = () => {
   formSnapshot();
 };
 
-watch(() => props.modelValue, () => {
-  if (type.value && props.automation) {
-    fillForm(props.automation);
-  } else {
-    reset();
-  }
-});
-
 // Submit form
 const sending = ref(false);
 
@@ -293,6 +285,11 @@ const doSubmit = () => {
 
 onMounted(() => {
   fetchIntegrations();
+  if (type.value && props.automation) {
+    fillForm(props.automation);
+  } else {
+    reset();
+  }
 });
 </script>
 

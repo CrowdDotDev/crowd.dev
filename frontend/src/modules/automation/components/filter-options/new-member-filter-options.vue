@@ -67,10 +67,15 @@ const form = computed({
   },
 });
 
-const computedPlatformOptions = computed(() => CrowdIntegrations.enabledConfigs.map((item) => ({
+const computedPlatformOptions = computed(() => [...CrowdIntegrations.enabledConfigs.map((item) => ({
   value: item.platform,
   label: item.name,
-})));
+})),
+{
+  value: 'twitter',
+  label: 'Twitter',
+},
+]);
 
 const getPlatformDetails = (platform) => CrowdIntegrations.getConfig(platform);
 
