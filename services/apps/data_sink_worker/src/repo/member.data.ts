@@ -15,7 +15,7 @@ export function getSelectMemberColumnSet(instance: DbInstance): DbColumnSet {
   if (getMemberColumnSet) return getMemberColumnSet
 
   getMemberColumnSet = new instance.helpers.ColumnSet(
-    ['id', 'emails', 'score', 'joinedAt', 'reach', 'attributes', 'weakIdentities'],
+    ['id', 'emails', 'score', 'joinedAt', 'reach', 'attributes', 'weakIdentities', 'displayName'],
     {
       table: {
         table: 'members',

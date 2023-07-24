@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 import {
   IMemberAttribute,
   IMemberData,
@@ -5,12 +7,12 @@ import {
   MemberAttributeName,
   MemberAttributeType,
   PlatformType,
+  ITagOpensearch,
 } from '@crowd/types'
 import { HubspotPropertyType, IFieldProperty, IHubspotContact } from '../types'
 import { HubspotFieldMapper } from './hubspotFieldMapper'
 import { HubspotOrganizationFieldMapper } from './organizationFieldMapper'
 import { serializeArray, serializeDate } from './utils/serialization'
-import { ITagOpensearch } from '../../../../../../types/dist/tags'
 
 export class HubspotMemberFieldMapper extends HubspotFieldMapper {
   protected fieldProperties: Record<string, IFieldProperty> = {
@@ -167,11 +169,11 @@ export class HubspotMemberFieldMapper extends HubspotFieldMapper {
       const crowdKey = this.getCrowdFieldName(hubspotPropertyName)
 
       // discard readonly fields, readonly fields will be only used when pushing data back to hubspot
-      if (!this.fieldProperties[crowdKey].readonly) {
+      if (crowdKey && !this.fieldProperties[crowdKey].readonly) {
         // For incoming integrations, we already get the member email from hubspot defined field `email`
         // if user mapped crowd field `emails` to some other field
         // this will be saved to the mapped field when sending the member back to hubspot
-        if (crowdKey && crowdKey !== 'emails' && contactProperties[hubspotPropertyName] !== null) {
+        if (crowdKey !== 'emails' && contactProperties[hubspotPropertyName] !== null) {
           if (crowdKey.startsWith('attributes')) {
             const crowdAttributeName = crowdKey.split('.')[1] || null
 

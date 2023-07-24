@@ -1,7 +1,6 @@
 import { IGenerateStreamsContext, IProcessStreamContext } from '@/types'
 import { HubspotAssociationType, HubspotEndpoint, IHubspotContact, IHubspotObject } from '../types'
 import axios, { AxiosRequestConfig } from 'axios'
-import { HubspotFieldMapper } from '../field-mapper/hubspotFieldMapper'
 import { getNangoToken } from './../../../nango'
 import { PlatformType } from '@crowd/types'
 import { IPaginatedResponse } from './types'

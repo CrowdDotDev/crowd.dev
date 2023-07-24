@@ -244,6 +244,7 @@ export default class MemberService extends LoggerBase {
               weakIdentities: member.weakIdentities || undefined,
               identities: member.identities,
               organizations: member.organizations,
+              displayName: member.displayName || undefined,
             },
             dbMember,
             false,
@@ -368,7 +369,7 @@ export default class MemberService extends LoggerBase {
       attributes,
       weakIdentities,
       identities,
-      displayName: member.displayName,
+      displayName: member.displayName || dbMember.displayName,
     }
   }
 }

@@ -140,6 +140,7 @@ export function getUpdateOrganizationColumnSet(instance: DbInstance): DbColumnSe
       'industry',
       'founded',
       'updatedAt',
+      'attributes',
     ],
     {
       table: {

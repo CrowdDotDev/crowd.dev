@@ -16,6 +16,7 @@ export * from './members'
 export * from './enums/activities'
 export * from './activities'
 
+export * from './enums/organizations'
 export * from './organizations'
 
 export * from './enums/edition'
@@ -34,3 +35,5 @@ export * from './opensearch'
 export * from './enums/webhooks'
 
 export * from './enums/entities'
+
+export * from './tags'

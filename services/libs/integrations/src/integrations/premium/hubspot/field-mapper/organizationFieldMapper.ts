@@ -1,4 +1,6 @@
-import { IOrganization, MemberAttributeName, PlatformType } from '@crowd/types'
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
+import { IOrganization, OrganizationAttributeName, PlatformType } from '@crowd/types'
 import { HubspotPropertyType, IFieldProperty, IHubspotObject } from '../types'
 import { HubspotFieldMapper } from './hubspotFieldMapper'
 import { serializeArray } from './utils/serialization'
@@ -46,7 +48,7 @@ export class HubspotOrganizationFieldMapper extends HubspotFieldMapper {
       hubspotType: HubspotPropertyType.STRING,
       readonly: true,
       serialize: (linkedin: any) => {
-        return linkedin.handle
+        return linkedin?.handle ? linkedin.handle : undefined
       },
     },
     crunchbase: {
@@ -111,6 +113,10 @@ export class HubspotOrganizationFieldMapper extends HubspotFieldMapper {
   override getEntity(hubspotOrganization: IHubspotObject): IOrganization {
     this.ensureFieldMapExists()
 
+    if (!this.hubspotId) {
+      throw new Error('Hubspot Id should be set before parsing the organization!')
+    }
+
     const organizationProperties = hubspotOrganization.properties as any
 
     if (!organizationProperties.name) {
@@ -122,8 +128,14 @@ export class HubspotOrganizationFieldMapper extends HubspotFieldMapper {
     const organization: IOrganization = {
       name: organizationProperties.name,
       attributes: {
-        [MemberAttributeName.SOURCE_ID]: {
+        [OrganizationAttributeName.SOURCE_ID]: {
           [PlatformType.HUBSPOT]: hubspotOrganization.id,
+        },
+        [OrganizationAttributeName.URL]: {
+          [PlatformType.HUBSPOT]: `https://app.hubspot.com/contacts/${this.hubspotId}/company/${hubspotOrganization.id}`,
+        },
+        [OrganizationAttributeName.DOMAIN]: {
+          [PlatformType.HUBSPOT]: organizationProperties.domain,
         },
       },
     }
@@ -133,8 +145,8 @@ export class HubspotOrganizationFieldMapper extends HubspotFieldMapper {
       const crowdKey = this.getCrowdFieldName(hubspotPropertyName)
 
       // discard readonly fields, readonly fields will be only used when pushing data back to hubspot
-      if (!this.fieldProperties[crowdKey].readonly) {
-        if (crowdKey && organizationProperties[hubspotPropertyName] !== null) {
+      if (crowdKey && !this.fieldProperties[crowdKey].readonly) {
+        if (organizationProperties[hubspotPropertyName] !== null) {
           organization[crowdKey] = organizationProperties[hubspotPropertyName]
 
           // fix for linkedin social, it comes as a full url

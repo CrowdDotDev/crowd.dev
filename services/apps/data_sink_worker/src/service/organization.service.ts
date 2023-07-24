@@ -1,3 +1,5 @@
+import mergeWith from 'lodash.mergewith'
+import isEqual from 'lodash.isequal'
 import IntegrationRepository from '@/repo/integration.repo'
 import { IDbInsertOrganizationData } from '@/repo/organization.data'
 import { OrganizationRepository } from '@/repo/organization.repo'
@@ -82,9 +84,15 @@ export class OrganizationService extends LoggerBase {
     const existing = await this.repo.findByName(tenantId, segmentId, data.name)
 
     const displayName = existing.displayName ? existing.displayName : data.name
-    const attributes = existing.attributes
-      ? { ...existing.attributes, ...data.attributes }
-      : data.attributes
+
+    let attributes = existing.attributes
+
+    if (data.attributes) {
+      const temp = mergeWith({}, existing.attributes, data.attributes)
+      if (!isEqual(temp, existing.attributes)) {
+        attributes = temp
+      }
+    }
 
     if (existing) {
       // if it does exists update it
