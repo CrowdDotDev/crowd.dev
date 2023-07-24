@@ -66,4 +66,37 @@ export default class IncomingWebhookRepository extends RepositoryBase<IncomingWe
       },
     )
   }
+
+  public async createWebhook(
+    tenantId: string,
+    integrationId: string,
+    type: string,
+    //  eslint-disable-next-line @typescript-eslint/no-explicit-any
+    payload: any,
+  ): Promise<string | null> {
+    const result = await this.db().oneOrNone(
+      `
+        insert into "incomingWebhooks" (
+          "tenantId",
+          "integrationId",
+          type,
+          payload
+        ) values (
+          $(tenantId),
+          $(integrationId),
+          $(type),
+          $(payload)
+        )
+        returning id
+      `,
+      {
+        tenantId,
+        integrationId,
+        type,
+        payload,
+      },
+    )
+
+    return result?.id ?? null
+  }
 }

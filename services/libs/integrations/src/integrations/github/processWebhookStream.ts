@@ -11,12 +11,16 @@ import {
   GithubWebhookData,
   GithubPrepareMemberOutput,
   GithubWebhookSubType,
+  GithubStreamType,
+  Repo,
+  GithubBasicStream,
 } from './types'
 import verifyGithubWebhook from 'verify-github-webhook'
 import getMember from './api/graphql/members'
 import { prepareMember } from './processStream'
 import TeamsQuery from './api/graphql/teams'
 import { GithubWebhookTeam } from './api/graphql/types'
+import { processPullCommitsStream } from './processStream'
 
 const IS_TEST_ENV: boolean = process.env.NODE_ENV === 'test'
 
@@ -140,6 +144,23 @@ const parseWebhookPullRequestEvents = async (
     case 'synchronize': {
       if (IS_GITHUB_COMMIT_DATA_ENABLED) {
         const prNumber = payload.number
+        const repo: Repo = {
+          name: payload.repository.name,
+          owner: payload.repository.owner.login,
+          url: payload.repository.html_url,
+          createdAt: payload.repository.created_at,
+        }
+
+        // this will create a fake webhook and stream for it
+        // this way we don't need integration run
+        await ctx.publishStream<GithubBasicStream>(
+          `${GithubStreamType.PULL_COMMITS}:${prNumber}:firstPage`,
+          {
+            repo,
+            page: '',
+            prNumber,
+          },
+        )
       }
       break
     }
@@ -169,6 +190,14 @@ const parseWebhookPullRequest = async (payload: any, ctx: IProcessWebhookStreamC
 }
 
 const handler: ProcessWebhookStreamHandler = async (ctx) => {
+  const identifier = ctx.stream.identifier
+
+  if (identifier.startsWith(GithubStreamType.PULL_COMMITS)) {
+    // we are reusing code here with another type of context
+    // everything should work except for ctx.aborRuntWithError
+    await processPullCommitsStream(ctx as IProcessStreamContext)
+  }
+
   const { signature, event, data } = ctx.stream.data as GithubWebhookPayload
 
   await verifyWebhookSignature(signature, data, ctx)

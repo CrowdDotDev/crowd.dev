@@ -139,6 +139,7 @@ async function getMemberEmail(ctx: IProcessStreamContext, login: string): Promis
 
 const handleNextPageStream = async (ctx: IProcessStreamContext, response: GraphQlQueryResponse) => {
   const data = ctx.stream.data as GithubBasicStream
+  // the last part of stream identifier is page number (e.g commits:12345:1)
   const streamIdentifier = ctx.stream.identifier.split(':').slice(0, -1).join(':')
   if (response.hasPreviousPage) {
     await ctx.publishStream<GithubBasicStream>(`${streamIdentifier}:${response.startCursor}`, {
@@ -554,7 +555,7 @@ const processPullReviewThreadCommentsStream: ProcessStreamHandler = async (ctx) 
   }
 }
 
-const processPullCommitsStream: ProcessStreamHandler = async (ctx) => {
+export const processPullCommitsStream: ProcessStreamHandler = async (ctx) => {
   let result: GraphQlQueryResponse
 
   const data = ctx.stream.data as GithubBasicStream

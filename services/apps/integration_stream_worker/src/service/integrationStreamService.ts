@@ -12,7 +12,12 @@ import {
   IntegrationRunWorkerEmitter,
   IntegrationStreamWorkerEmitter,
 } from '@crowd/sqs'
-import { IntegrationRunState, IntegrationStreamType, RateLimitError } from '@crowd/types'
+import {
+  IntegrationRunState,
+  IntegrationStreamType,
+  RateLimitError,
+  WebhookType,
+} from '@crowd/types'
 import { NANGO_CONFIG, PLATFORM_CONFIG, WORKER_SETTINGS } from '../conf'
 import IntegrationStreamRepository from '../repo/integrationStream.repo'
 import { IStreamData } from '@/repo/integrationStream.data'
@@ -280,6 +285,13 @@ export default class IntegrationStreamService extends LoggerBase {
         )
       },
       publishStream: async (identifier, data) => {
+        const webhookId = await this.webhookRepo.createWebhook(
+          streamInfo.tenantId,
+          streamInfo.integrationId,
+          // not a real webhok, just for compatibility
+          WebhookType.FAKE,
+          data,
+        )
         await this.publishStream(
           streamInfo.tenantId,
           streamInfo.integrationType,
@@ -287,7 +299,7 @@ export default class IntegrationStreamService extends LoggerBase {
           identifier,
           data,
           undefined,
-          streamInfo.webhookId,
+          webhookId,
         )
       },
       updateIntegrationSettings: async (settings) => {
@@ -511,15 +523,20 @@ export default class IntegrationStreamService extends LoggerBase {
         throw new Error('Need either run id or webhook id!')
       }
       this.log.debug({ identifier }, 'Publishing new child stream!')
-      const streamId = await this.repo.publishStream(parentId, identifier, data, runId, webhookId)
-      if (streamId) {
-        if (runId) {
+      if (runId) {
+        // publising normal stream
+        const streamId = await this.repo.publishStream(parentId, identifier, data, runId)
+        if (streamId) {
           await this.streamWorkerEmitter.triggerStreamProcessing(tenantId, platform, streamId)
         } else {
-          await this.streamWorkerEmitter.triggerWebhookProcessing(tenantId, platform, streamId)
+          this.log.debug({ identifier }, 'Child stream already exists!')
         }
-      } else {
-        this.log.debug({ identifier }, 'Child stream already exists!')
+      }
+
+      if (webhookId) {
+        // publishing webhook stream
+        //  no need to create a stream for webhook, it will be created automatically
+        await this.streamWorkerEmitter.triggerWebhookProcessing(tenantId, platform, webhookId)
       }
     } catch (err) {
       if (runId) {
