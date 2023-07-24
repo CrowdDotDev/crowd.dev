@@ -68,6 +68,7 @@ export interface IDbMemberUpdateData {
   attributes: Record<string, unknown>
   weakIdentities: IMemberIdentity[]
   identities: IMemberIdentity[]
+  displayName: string
 }
 
 let updateMemberColumnSet: DbColumnSet
@@ -75,7 +76,7 @@ export function getUpdateMemberColumnSet(instance: DbInstance): DbColumnSet {
   if (updateMemberColumnSet) return updateMemberColumnSet
 
   updateMemberColumnSet = new instance.helpers.ColumnSet(
-    ['attributes', 'emails', 'joinedAt', 'weakIdentities', 'updatedAt'],
+    ['attributes', 'emails', 'joinedAt', 'weakIdentities', 'updatedAt', 'displayName'],
     {
       table: {
         table: 'members',

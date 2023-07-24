@@ -7,6 +7,13 @@ export enum HubspotPropertyType {
   NUMBER = 'number',
 }
 
+export interface IFieldProperty {
+  hubspotType: HubspotPropertyType
+  readonly?: boolean
+  serialize?: (object: any) => string
+  deserialize?: (string: string) => object
+}
+
 export enum HubspotEndpoint {
   CONTACTS = 'contacts',
   COMPANIES = 'companies',

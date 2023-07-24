@@ -147,6 +147,7 @@ export default class MemberService extends LoggerBase {
             weakIdentities: toUpdate.weakIdentities || original.weakIdentities,
             // leave this one empty if nothing changed - we are only adding up new identities not removing them
             identities: toUpdate.identities,
+            displayName: toUpdate.displayName || original.displayName,
           })
           await txRepo.addToSegment(id, tenantId, segmentId)
 
@@ -367,6 +368,7 @@ export default class MemberService extends LoggerBase {
       attributes,
       weakIdentities,
       identities,
+      displayName: member.displayName,
     }
   }
 }

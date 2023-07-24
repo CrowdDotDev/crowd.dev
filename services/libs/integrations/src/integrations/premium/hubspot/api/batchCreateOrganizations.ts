@@ -50,7 +50,10 @@ export const batchCreateOrganizations = async (
           const hubspotField = organizationMapper.getHubspotFieldName(crowdField)
 
           if (hubspotField && organization[crowdField] !== undefined) {
-            hubspotCompany.properties[hubspotField] = organization[crowdField]
+            hubspotCompany.properties[hubspotField] = organizationMapper.getCrowdValue(
+              organization,
+              crowdField,
+            )
           }
         }
 

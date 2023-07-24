@@ -1,36 +1,111 @@
 import { IOrganization, MemberAttributeName, PlatformType } from '@crowd/types'
-import { HubspotPropertyType, IHubspotObject } from '../types'
+import { HubspotPropertyType, IFieldProperty, IHubspotObject } from '../types'
 import { HubspotFieldMapper } from './hubspotFieldMapper'
+import { serializeArray } from './utils/arraySerialization'
 
 export class HubspotOrganizationFieldMapper extends HubspotFieldMapper {
-  protected typeMap: Record<string, HubspotPropertyType> = {
-    name: HubspotPropertyType.STRING,
-    url: HubspotPropertyType.STRING,
-    description: HubspotPropertyType.STRING,
-    emails: HubspotPropertyType.STRING,
-    logo: HubspotPropertyType.STRING,
-    tags: HubspotPropertyType.STRING,
-    github: HubspotPropertyType.STRING,
-    twitter: HubspotPropertyType.STRING,
-    linkedin: HubspotPropertyType.STRING,
-    crunchbase: HubspotPropertyType.STRING,
-    employees: HubspotPropertyType.NUMBER,
-    location: HubspotPropertyType.STRING,
-    website: HubspotPropertyType.STRING,
-    type: HubspotPropertyType.ENUMERATION,
-    size: HubspotPropertyType.STRING,
-    headline: HubspotPropertyType.STRING,
-    industry: HubspotPropertyType.ENUMERATION,
-    founded: HubspotPropertyType.STRING,
-    activityCount: HubspotPropertyType.NUMBER,
-    memberCount: HubspotPropertyType.NUMBER,
-    activeOn: HubspotPropertyType.STRING,
-    identities: HubspotPropertyType.STRING,
-    lastActive: HubspotPropertyType.DATETIME,
+  protected fieldProperties: Record<string, IFieldProperty> = {
+    name: {
+      hubspotType: HubspotPropertyType.STRING,
+      readonly: true,
+    },
+    url: {
+      hubspotType: HubspotPropertyType.STRING,
+    },
+    description: {
+      hubspotType: HubspotPropertyType.STRING,
+    },
+    emails: {
+      hubspotType: HubspotPropertyType.STRING,
+      readonly: true,
+      serialize: serializeArray,
+    },
+    logo: {
+      hubspotType: HubspotPropertyType.STRING,
+    },
+    tags: {
+      hubspotType: HubspotPropertyType.STRING,
+      readonly: true,
+      serialize: serializeArray,
+    },
+    github: {
+      hubspotType: HubspotPropertyType.STRING,
+      readonly: true,
+      serialize: (github: any) => {
+        return github.handle
+      },
+    },
+    twitter: {
+      hubspotType: HubspotPropertyType.STRING,
+      readonly: true,
+      serialize: (twitter: any) => {
+        return twitter.handle
+      },
+    },
+    linkedin: {
+      hubspotType: HubspotPropertyType.STRING,
+      readonly: true,
+      serialize: (linkedin: any) => {
+        return linkedin.handle
+      },
+    },
+    crunchbase: {
+      hubspotType: HubspotPropertyType.STRING,
+      readonly: true,
+      serialize: (crunchbase: any) => {
+        return crunchbase.handle
+      },
+    },
+    revenueRange: {
+      hubspotType: HubspotPropertyType.STRING,
+      readonly: true,
+      serialize: (revenueRange: any) => {
+        return JSON.stringify(revenueRange)
+      },
+    },
+    employeeCountByCountry: {
+      hubspotType: HubspotPropertyType.STRING,
+      readonly: true,
+      serialize: (employeeCountByCountry: any) => {
+        return JSON.stringify(employeeCountByCountry)
+      },
+    },
+    employees: {
+      hubspotType: HubspotPropertyType.NUMBER,
+    },
+    location: {
+      hubspotType: HubspotPropertyType.STRING,
+    },
+    website: {
+      hubspotType: HubspotPropertyType.STRING,
+    },
+    type: {
+      hubspotType: HubspotPropertyType.ENUMERATION,
+    },
+    size: {
+      hubspotType: HubspotPropertyType.STRING,
+    },
+    headline: {
+      hubspotType: HubspotPropertyType.STRING,
+    },
+    industry: {
+      hubspotType: HubspotPropertyType.ENUMERATION,
+    },
+    founded: {
+      hubspotType: HubspotPropertyType.STRING,
+    },
+    activityCount: {
+      hubspotType: HubspotPropertyType.NUMBER,
+      readonly: true,
+    },
+    memberCount: {
+      hubspotType: HubspotPropertyType.NUMBER,
+      readonly: true,
+    },
   }
 
-  override getFieldTypeMap(): Record<string, HubspotPropertyType> {
-    return this.typeMap
+  override getFieldProperties(): Record<string, IFieldProperty> {
+    return this.fieldProperties
   }
 
   override getEntity(hubspotOrganization: IHubspotObject): IOrganization {
@@ -57,13 +132,16 @@ export class HubspotOrganizationFieldMapper extends HubspotFieldMapper {
     for (const hubspotPropertyName of Object.keys(organizationProperties)) {
       const crowdKey = this.getCrowdFieldName(hubspotPropertyName)
 
-      if (crowdKey && organizationProperties[hubspotPropertyName] !== null) {
-        organization[crowdKey] = organizationProperties[hubspotPropertyName]
+      // discard readonly fields, readonly fields will be only used when pushing data back to hubspot
+      if (!this.fieldProperties[crowdKey].readonly) {
+        if (crowdKey && organizationProperties[hubspotPropertyName] !== null) {
+          organization[crowdKey] = organizationProperties[hubspotPropertyName]
 
-        // fix for linkedin social, it comes as a full url
-        if (crowdKey === 'linkedin') {
-          const linkedinHandle = organizationProperties[hubspotPropertyName].split('/').pop()
-          organization[crowdKey] = linkedinHandle
+          // fix for linkedin social, it comes as a full url
+          if (crowdKey === 'linkedin') {
+            const linkedinHandle = organizationProperties[hubspotPropertyName].split('/').pop()
+            organization[crowdKey] = linkedinHandle
+          }
         }
       }
     }

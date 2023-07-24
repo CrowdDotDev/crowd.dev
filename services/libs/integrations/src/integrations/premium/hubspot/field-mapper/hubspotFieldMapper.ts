@@ -1,7 +1,7 @@
-import { HubspotEntity, HubspotPropertyType, IHubspotObject } from '../types'
+import { HubspotEntity, HubspotPropertyType, IFieldProperty, IHubspotObject } from '../types'
 
 export abstract class HubspotFieldMapper {
-  protected typeMap: Record<string, HubspotPropertyType>
+  protected fieldProperties: Record<string, IFieldProperty>
 
   public fieldMap: Record<string, string>
 
@@ -9,22 +9,45 @@ export abstract class HubspotFieldMapper {
 
   public hubspotId: number
 
-  abstract getFieldTypeMap(): Record<string, HubspotPropertyType>
+  abstract getFieldProperties(): Record<string, IFieldProperty>
 
   abstract getEntity(input: IHubspotObject, args?: unknown): unknown
 
   public isFieldMappableToHubspotType(field: string, type: HubspotPropertyType) {
-    if (!this.typeMap) {
+    if (!this.fieldProperties) {
       throw new Error(
-        `${this.entity} type map isn't initialized. Instance should be created with customAttributes and identities.`,
+        `${this.entity} field properties aren't initialized. Instance should be created with customAttributes and identities.`,
       )
     }
 
-    if (this.typeMap[field] === undefined) {
-      throw new Error(`${this.entity} attribute ${field} not found!`)
+    if (this.fieldProperties[field] === undefined) {
+      throw new Error(`${this.entity} property ${field} not found!`)
     }
 
-    return this.typeMap[field] === type
+    return this.fieldProperties[field].hubspotType === type
+  }
+
+  public getCrowdValue(entity: any, crowdKey: string) {
+    let value = entity[crowdKey]
+    if (this.fieldProperties[crowdKey].serialize) {
+      value = this.fieldProperties[crowdKey].serialize(entity[crowdKey])
+    }
+
+    return value
+  }
+
+  public getTypeMap(): Record<string, HubspotPropertyType> {
+    if (!this.fieldProperties) {
+      throw new Error(`Can't find field properties of ${this.entity}!`)
+    }
+
+    const typeMap: Record<string, HubspotPropertyType> = {}
+
+    Object.keys(this.fieldProperties).forEach((propertyName) => {
+      typeMap[propertyName] = this.fieldProperties[propertyName].hubspotType
+    })
+
+    return typeMap
   }
 
   public getCrowdFieldName(hubspotAttributeName: string): string {

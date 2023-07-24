@@ -59,7 +59,7 @@ export const batchUpdateMembers = async (
           } else if (crowdField === 'organizationName') {
             // send latest org of member as value
           } else if (hubspotField && member[crowdField] !== undefined) {
-            hsMember.properties[hubspotField] = member[crowdField]
+            hsMember.properties[hubspotField] = memberMapper.getCrowdValue(member, crowdField)
           }
         }
 

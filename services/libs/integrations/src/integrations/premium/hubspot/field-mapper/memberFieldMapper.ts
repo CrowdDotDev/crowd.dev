@@ -6,29 +6,71 @@ import {
   MemberAttributeType,
   PlatformType,
 } from '@crowd/types'
-import { HubspotPropertyType, IHubspotContact } from '../types'
+import { HubspotPropertyType, IFieldProperty, IHubspotContact } from '../types'
 import { HubspotFieldMapper } from './hubspotFieldMapper'
 import { HubspotOrganizationFieldMapper } from './organizationFieldMapper'
+import { serializeArray } from './utils/arraySerialization'
+import { ITagOpensearch } from '../../../../../../types/dist/tags'
 
 export class HubspotMemberFieldMapper extends HubspotFieldMapper {
-  protected typeMap: Record<string, HubspotPropertyType> = {
-    id: HubspotPropertyType.STRING,
-    tenantId: HubspotPropertyType.STRING,
-    segmentId: HubspotPropertyType.STRING,
-    displayName: HubspotPropertyType.STRING,
-    score: HubspotPropertyType.NUMBER,
-    lastEnriched: HubspotPropertyType.DATETIME,
-    emails: HubspotPropertyType.STRING,
-    joinedAt: HubspotPropertyType.DATETIME,
-    createdAt: HubspotPropertyType.DATETIME,
-    reach: HubspotPropertyType.NUMBER,
-    numberOfOpensourceContributions: HubspotPropertyType.NUMBER,
-    activityCount: HubspotPropertyType.NUMBER,
-    activeDaysCount: HubspotPropertyType.NUMBER,
-    lastActive: HubspotPropertyType.DATETIME,
-    averageSentiment: HubspotPropertyType.NUMBER,
-    tags: HubspotPropertyType.STRING,
-    organizationName: HubspotPropertyType.STRING,
+  protected fieldProperties: Record<string, IFieldProperty> = {
+    displayName: {
+      hubspotType: HubspotPropertyType.STRING,
+    },
+    score: {
+      hubspotType: HubspotPropertyType.NUMBER,
+      readonly: true,
+    },
+    lastEnriched: {
+      hubspotType: HubspotPropertyType.DATE,
+      readonly: true,
+    },
+    emails: {
+      hubspotType: HubspotPropertyType.STRING,
+      serialize: serializeArray,
+    },
+    joinedAt: {
+      hubspotType: HubspotPropertyType.DATE,
+      readonly: true,
+    },
+    createdAt: {
+      hubspotType: HubspotPropertyType.DATE,
+      readonly: true,
+    },
+    reach: {
+      hubspotType: HubspotPropertyType.NUMBER,
+      readonly: true,
+    },
+    numberOfOpensourceContributions: {
+      hubspotType: HubspotPropertyType.NUMBER,
+      readonly: true,
+    },
+    activityCount: {
+      hubspotType: HubspotPropertyType.NUMBER,
+      readonly: true,
+    },
+    activeDaysCount: {
+      hubspotType: HubspotPropertyType.NUMBER,
+      readonly: true,
+    },
+    lastActive: {
+      hubspotType: HubspotPropertyType.DATE,
+      readonly: true,
+    },
+    averageSentiment: {
+      hubspotType: HubspotPropertyType.NUMBER,
+      readonly: true,
+    },
+    tags: {
+      hubspotType: HubspotPropertyType.STRING,
+      readonly: true,
+      serialize: (tags: ITagOpensearch[]) => {
+        return tags.map((t) => t.name).toString()
+      },
+    },
+    organizationName: {
+      hubspotType: HubspotPropertyType.STRING,
+    },
   }
 
   public customAttributes?: IMemberAttribute[]
@@ -41,32 +83,42 @@ export class HubspotMemberFieldMapper extends HubspotFieldMapper {
     if (customAttributes && identities) {
       this.customAttributes = customAttributes
       this.identities = identities
-      this.typeMap = this.getFieldTypeMap()
+      this.fieldProperties = this.getFieldProperties()
     }
   }
 
-  override getFieldTypeMap(): Record<string, HubspotPropertyType> {
-    for (const customAttribute of this.customAttributes) {
+  override getFieldProperties(): Record<string, IFieldProperty> {
+    for (const customAttribute of this.customAttributes.filter((a) => a.show)) {
       if (customAttribute.type === MemberAttributeType.BOOLEAN) {
-        this.typeMap[`attributes.${customAttribute.name}`] = HubspotPropertyType.BOOL
+        this.fieldProperties[`attributes.${customAttribute.name}`] = {
+          hubspotType: HubspotPropertyType.BOOL,
+        }
       } else if (customAttribute.type === MemberAttributeType.DATE) {
-        this.typeMap[`attributes.${customAttribute.name}`] = HubspotPropertyType.DATETIME
+        this.fieldProperties[`attributes.${customAttribute.name}`] = {
+          hubspotType: HubspotPropertyType.DATETIME,
+        }
       } else if (customAttribute.type === MemberAttributeType.NUMBER) {
-        this.typeMap[`attributes.${customAttribute.name}`] = HubspotPropertyType.NUMBER
+        this.fieldProperties[`attributes.${customAttribute.name}`] = {
+          hubspotType: HubspotPropertyType.NUMBER,
+        }
       } else if (
         [MemberAttributeType.EMAIL, MemberAttributeType.STRING, MemberAttributeType.URL].includes(
           customAttribute.type,
         )
       ) {
-        this.typeMap[`attributes.${customAttribute.name}`] = HubspotPropertyType.STRING
+        this.fieldProperties[`attributes.${customAttribute.name}`] = {
+          hubspotType: HubspotPropertyType.STRING,
+        }
       }
     }
 
     for (const identity of this.identities) {
-      this.typeMap[`identities.${identity.platform}`] = HubspotPropertyType.STRING
+      this.fieldProperties[`identities.${identity.platform}`] = {
+        hubspotType: HubspotPropertyType.STRING,
+      }
     }
 
-    return this.typeMap
+    return this.fieldProperties
   }
 
   override getEntity(
@@ -87,7 +139,7 @@ export class HubspotMemberFieldMapper extends HubspotFieldMapper {
       )
     }
 
-    // only staticly defined property is email, also used as hubspot identity
+    // staticly defined member fields
     const member: IMemberData = {
       emails: [contactProperties.email],
       identities: [
@@ -110,35 +162,38 @@ export class HubspotMemberFieldMapper extends HubspotFieldMapper {
     for (const hubspotPropertyName of Object.keys(contactProperties)) {
       const crowdKey = this.getCrowdFieldName(hubspotPropertyName)
 
-      // For incoming integrations, we already get the member email from hubspot defined field `email`
-      // if user mapped `emails` to some other field
-      // this will be saved to the mapped field when sending the member back to hubspot via outgoing integrations
-      if (crowdKey && crowdKey !== 'emails' && contactProperties[hubspotPropertyName] !== null) {
-        if (crowdKey.startsWith('attributes')) {
-          const crowdAttributeName = crowdKey.split('.')[1] || null
+      // discard readonly fields, readonly fields will be only used when pushing data back to hubspot
+      if (!this.fieldProperties[crowdKey].readonly) {
+        // For incoming integrations, we already get the member email from hubspot defined field `email`
+        // if user mapped crowd field `emails` to some other field
+        // this will be saved to the mapped field when sending the member back to hubspot
+        if (crowdKey && crowdKey !== 'emails' && contactProperties[hubspotPropertyName] !== null) {
+          if (crowdKey.startsWith('attributes')) {
+            const crowdAttributeName = crowdKey.split('.')[1] || null
 
-          if (crowdAttributeName) {
-            member.attributes[crowdAttributeName] = {
-              [PlatformType.HUBSPOT]: contactProperties[hubspotPropertyName],
+            if (crowdAttributeName) {
+              member.attributes[crowdAttributeName] = {
+                [PlatformType.HUBSPOT]: contactProperties[hubspotPropertyName],
+              }
             }
-          }
-        } else if (crowdKey.startsWith('identities')) {
-          const identityPlatform = crowdKey.split('.')[1] || null
+          } else if (crowdKey.startsWith('identities')) {
+            const identityPlatform = crowdKey.split('.')[1] || null
 
-          if (identityPlatform) {
-            member.identities.push({
-              username: contactProperties[hubspotPropertyName],
-              platform: identityPlatform,
-            })
+            if (identityPlatform) {
+              member.identities.push({
+                username: contactProperties[hubspotPropertyName],
+                platform: identityPlatform,
+              })
+            }
+          } else if (crowdKey === 'organizationName') {
+            member.organizations = [
+              {
+                name: contactProperties[hubspotPropertyName],
+              },
+            ]
+          } else {
+            member[crowdKey] = contactProperties[hubspotPropertyName]
           }
-        } else if (crowdKey === 'organizationName') {
-          member.organizations = [
-            {
-              name: contactProperties[hubspotPropertyName],
-            },
-          ]
-        } else {
-          member[crowdKey] = contactProperties[hubspotPropertyName]
         }
       }
     }

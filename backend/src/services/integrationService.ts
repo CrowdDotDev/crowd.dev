@@ -769,8 +769,8 @@ export default class IntegrationService {
     const organizationMapper = HubspotFieldMapperFactory.getFieldMapper(HubspotEntity.ORGANIZATIONS)
 
     return {
-      members: memberMapper.getFieldTypeMap(),
-      organizations: organizationMapper.getFieldTypeMap(),
+      members: memberMapper.getTypeMap(),
+      organizations: organizationMapper.getTypeMap(),
     }
   }
 
