@@ -9,7 +9,7 @@ import {
 import { HubspotPropertyType, IFieldProperty, IHubspotContact } from '../types'
 import { HubspotFieldMapper } from './hubspotFieldMapper'
 import { HubspotOrganizationFieldMapper } from './organizationFieldMapper'
-import { serializeArray } from './utils/arraySerialization'
+import { serializeArray, serializeDate } from './utils/serialization'
 import { ITagOpensearch } from '../../../../../../types/dist/tags'
 
 export class HubspotMemberFieldMapper extends HubspotFieldMapper {
@@ -24,6 +24,7 @@ export class HubspotMemberFieldMapper extends HubspotFieldMapper {
     lastEnriched: {
       hubspotType: HubspotPropertyType.DATE,
       readonly: true,
+      serialize: serializeDate,
     },
     emails: {
       hubspotType: HubspotPropertyType.STRING,
@@ -32,10 +33,12 @@ export class HubspotMemberFieldMapper extends HubspotFieldMapper {
     joinedAt: {
       hubspotType: HubspotPropertyType.DATE,
       readonly: true,
+      serialize: serializeDate,
     },
     createdAt: {
       hubspotType: HubspotPropertyType.DATE,
       readonly: true,
+      serialize: serializeDate,
     },
     reach: {
       hubspotType: HubspotPropertyType.NUMBER,
@@ -56,6 +59,7 @@ export class HubspotMemberFieldMapper extends HubspotFieldMapper {
     lastActive: {
       hubspotType: HubspotPropertyType.DATE,
       readonly: true,
+      serialize: serializeDate,
     },
     averageSentiment: {
       hubspotType: HubspotPropertyType.NUMBER,
@@ -95,7 +99,7 @@ export class HubspotMemberFieldMapper extends HubspotFieldMapper {
         }
       } else if (customAttribute.type === MemberAttributeType.DATE) {
         this.fieldProperties[`attributes.${customAttribute.name}`] = {
-          hubspotType: HubspotPropertyType.DATETIME,
+          hubspotType: HubspotPropertyType.DATE,
         }
       } else if (customAttribute.type === MemberAttributeType.NUMBER) {
         this.fieldProperties[`attributes.${customAttribute.name}`] = {

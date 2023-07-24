@@ -27,8 +27,9 @@ export abstract class HubspotFieldMapper {
     return this.fieldProperties[field].hubspotType === type
   }
 
-  public getCrowdValue(entity: any, crowdKey: string) {
+  public getHubspotValue(entity: any, crowdKey: string) {
     let value = entity[crowdKey]
+
     if (this.fieldProperties[crowdKey].serialize) {
       value = this.fieldProperties[crowdKey].serialize(entity[crowdKey])
     }

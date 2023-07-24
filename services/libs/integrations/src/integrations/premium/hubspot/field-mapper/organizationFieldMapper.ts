@@ -1,7 +1,7 @@
 import { IOrganization, MemberAttributeName, PlatformType } from '@crowd/types'
 import { HubspotPropertyType, IFieldProperty, IHubspotObject } from '../types'
 import { HubspotFieldMapper } from './hubspotFieldMapper'
-import { serializeArray } from './utils/arraySerialization'
+import { serializeArray } from './utils/serialization'
 
 export class HubspotOrganizationFieldMapper extends HubspotFieldMapper {
   protected fieldProperties: Record<string, IFieldProperty> = {

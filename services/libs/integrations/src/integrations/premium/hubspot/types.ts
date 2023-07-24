@@ -10,7 +10,7 @@ export enum HubspotPropertyType {
 export interface IFieldProperty {
   hubspotType: HubspotPropertyType
   readonly?: boolean
-  serialize?: (object: any) => string
+  serialize?: (object: any) => string | number
   deserialize?: (string: string) => object
 }
 

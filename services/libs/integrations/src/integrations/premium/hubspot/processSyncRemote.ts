@@ -103,7 +103,7 @@ const handler: ProcessIntegrationSyncHandler = async <T>(
       return companiesCreatedInHubspot || []
     }
     default: {
-      const message = `Unsupported entity ${entity} while processing HubSpot sync remote!` 
+      const message = `Unsupported entity ${entity} while processing HubSpot sync remote!`
       ctx.log.error(message)
       throw new Error(message)
     }
