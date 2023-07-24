@@ -326,7 +326,7 @@ export default class MemberService extends LoggerBase {
             }
             // We findOrCreate the organization and add it to the list of IDs
             const organizationRecord = await organizationService.findOrCreate(data)
-            organizations.push(organizationRecord.id)
+            organizations.push({ id: organizationRecord.id })
           }
         }
 
@@ -349,14 +349,14 @@ export default class MemberService extends LoggerBase {
             if (domain) {
               const organizationRecord = await organizationService.findByUrl(domain)
               if (organizationRecord) {
-                organizations.push(organizationRecord.id)
+                organizations.push({ id: organizationRecord.id })
               }
             }
           }
         }
 
         // Remove dups
-        data.organizations = [...new Set(organizations)]
+        data.organizations = lodash.uniqBy(organizations, 'id')
       }
 
       const fillRelations = false
