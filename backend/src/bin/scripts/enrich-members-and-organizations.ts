@@ -99,7 +99,11 @@ if (parameters.help || (!parameters.tenant && (!parameters.organization || !para
           segmentIds.push(segment.id)
         }
 
-        const optionsWithTenant = await SequelizeRepository.getDefaultIRepositoryOptions(null, tenant, segments)
+        const optionsWithTenant = await SequelizeRepository.getDefaultIRepositoryOptions(
+          null,
+          tenant,
+          segments,
+        )
 
         if (enrichMembers) {
           let offset = 0
