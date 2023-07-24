@@ -1116,7 +1116,7 @@ class Permissions {
       },
       segmentCreate: {
         id: 'segmentCreate',
-        allowedRoles: [roles.admin, roles.readonly],
+        allowedRoles: [roles.admin],
         allowedPlans: [
           plans.essential,
           plans.growth,
@@ -1127,7 +1127,7 @@ class Permissions {
       },
       segmentEdit: {
         id: 'segmentEdit',
-        allowedRoles: [roles.admin, roles.readonly],
+        allowedRoles: [roles.admin],
         allowedPlans: [
           plans.essential,
           plans.growth,
