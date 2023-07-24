@@ -11,25 +11,43 @@
     <div class="w-1/2 py-2">
       <div class="flex items-center w-full">
         <div class="ri-arrow-left-right-line text-base text-gray-400 mr-4 h-4 flex items-center" />
-        <label v-if="props.hubspotFields.length > 0" class="w-full">
-          <select
-            v-model="mapping"
-            class="c-select"
-            :class="[
-              mapping ? 'text-gray-900' : 'text-gray-400',
-              enabled && !mapping ? 'border-brand-400' : '',
-            ]"
-          >
-            <option :value="undefined" disabled class="hidden">Select property</option>
-            <option
-              v-for="hubspotField of props.hubspotFields"
-              :key="hubspotField.name"
-              :value="hubspotField.name"
-            >
-              {{ hubspotField.label }}
-            </option>
-          </select>
-        </label>
+        <el-select
+          v-if="props.hubspotFields.length > 0"
+          v-model="mapping"
+          placeholder="Select property"
+          :class="[
+            enabled && !mapping ? 'border-brand-400' : '',
+          ]"
+          class="w-full"
+          clearable
+          placement="bottom-end"
+        >
+          <el-option
+            v-for="hubspotField of props.hubspotFields"
+            :key="hubspotField.name"
+            :value="hubspotField.name"
+            :label="hubspotField.label"
+          />
+        </el-select>
+        <!--        <label  class="w-full">-->
+        <!--          <select-->
+        <!--            v-model="mapping"-->
+        <!--            class="c-select"-->
+        <!--            :class="[-->
+        <!--              mapping ? 'text-gray-900' : 'text-gray-400',-->
+        <!--              enabled && !mapping ? 'border-brand-400' : '',-->
+        <!--            ]"-->
+        <!--          >-->
+        <!--            <option :value="undefined" disabled class="hidden">Select property</option>-->
+        <!--            <option-->
+        <!--              v-for="hubspotField of props.hubspotFields"-->
+        <!--              :key="hubspotField.name"-->
+        <!--              :value="hubspotField.name"-->
+        <!--            >-->
+        <!--              {{ hubspotField.label }}-->
+        <!--            </option>-->
+        <!--          </select>-->
+        <!--        </label>-->
         <p v-else class="text-2xs leading-8">
           No matching properties
         </p>

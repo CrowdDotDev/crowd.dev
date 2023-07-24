@@ -252,7 +252,6 @@ const shouldShowAttributes = computed(() => enrichmentAttributes.some((a) => {
 }));
 
 const getIdentityLink = (platform) => {
-  console.log(props.organization[platform]?.url);
   if (props.organization[platform]?.url) {
     return withHttp(props.organization[platform]?.url);
   }
