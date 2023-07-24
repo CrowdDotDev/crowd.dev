@@ -14,6 +14,7 @@ import crunchbase from './crunchbase';
 import make from './make';
 import git from './git';
 import facebook from './facebook';
+import n8n from './n8n';
 
 class IntegrationsConfig {
   get integrations() {
@@ -34,6 +35,7 @@ class IntegrationsConfig {
       hubspot,
       make,
       facebook,
+      n8n,
     };
   }
 
