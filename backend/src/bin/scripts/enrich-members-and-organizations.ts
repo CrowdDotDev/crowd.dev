@@ -77,7 +77,6 @@ if (parameters.help || (!parameters.tenant && (!parameters.organization || !para
     for (const tenantId of tenantIds) {
       const options = await SequelizeRepository.getDefaultIRepositoryOptions()
       const tenant = await options.database.tenant.findByPk(tenantId)
-      const segmentIds = []
 
       if (!tenant) {
         log.error({ tenantId }, 'Tenant not found!')
@@ -95,9 +94,7 @@ if (parameters.help || (!parameters.tenant && (!parameters.organization || !para
         log.info({ tenantId }, `Total segments found in the tenant: ${segments.length}`)
 
         // get all segment ids for the tenant
-        for (const segment of segments) {
-          segmentIds.push(segment.id)
-        }
+        const segmentIds = segments.map((segment) => segment.id)
 
         const optionsWithTenant = await SequelizeRepository.getDefaultIRepositoryOptions(
           null,
@@ -108,8 +105,6 @@ if (parameters.help || (!parameters.tenant && (!parameters.organization || !para
         if (enrichMembers) {
           let offset = 0
           let totalMembers = 0
-          let enrichedMembersCount = 0
-          const failedMembers = [] // Store the IDs of failed member enrichments
 
           do {
             const { rows: members, count: membersCount } = await MemberRepository.findAndCountAllv2(
@@ -118,38 +113,22 @@ if (parameters.help || (!parameters.tenant && (!parameters.organization || !para
             )
 
             totalMembers = membersCount
-            log.info({ tenantId }, `Total members found in the tenant: ${totalMembers}`)
+            log.info({ tenantId }, `Total members found in the tenant: ${membersCount}`)
 
-            for (const member of members) {
-              try {
-                const memberToEnrich = member.id
-                await sendBulkEnrichMessage(tenantId, [memberToEnrich], segmentIds, false, true)
-                log.info({ tenantId }, `Enriched member with ID: ${memberToEnrich}`)
-                enrichedMembersCount++
-              } catch (error) {
-                failedMembers.push(member.id)
-              }
-            }
+            // get all member ids for the tenant
+            const memberIds = members.map((member) => member.id)
+
+            await sendBulkEnrichMessage(tenantId, memberIds, segmentIds, false, true)
 
             offset += limit
           } while (totalMembers > offset)
 
           log.info({ tenantId }, `Members enrichment operation finished for tenant ${tenantId}`)
-          log.info(
-            { tenantId },
-            `Enriched members count: ${enrichedMembersCount}, Failed to enrich members count: ${failedMembers.length}`,
-          )
-
-          if (failedMembers.length > 0) {
-            log.error({ tenantId }, `Failed to enrich members: ${failedMembers}`)
-          }
         }
 
         if (enrichOrganizations) {
           let offset = 0
           let totalOrganizations = 0
-          let enrichedOrganizationsCount = 0
-          const failedOrganizations = [] // Store the IDs of failed organization enrichments
 
           do {
             const organizations = await OrganizationRepository.findAndCountAll(
@@ -169,13 +148,7 @@ if (parameters.help || (!parameters.tenant && (!parameters.organization || !para
                 maxEnrichLimit: 5000,
               } as NodeWorkerMessageBase
 
-              try {
-                log.info({ payload }, 'Enricher worker payload for organization')
-                await sendNodeWorkerMessage(tenantId, payload)
-                enrichedOrganizationsCount++
-              } catch (error) {
-                failedOrganizations.push(organization.id)
-              }
+              await sendNodeWorkerMessage(tenantId, payload)
             }
 
             offset += limit
@@ -185,15 +158,6 @@ if (parameters.help || (!parameters.tenant && (!parameters.organization || !para
             { tenantId },
             `Organizations enrichment operation finished for tenant ${tenantId}`,
           )
-
-          log.info(
-            { tenantId },
-            `Enriched organizations count: ${enrichedOrganizationsCount}, Failed to enrich organizations count: ${failedOrganizations.length}`,
-          )
-
-          if (failedOrganizations.length > 0) {
-            log.error({ tenantId }, `Failed to enrich organizations: ${failedOrganizations}`)
-          }
         }
       }
     }
