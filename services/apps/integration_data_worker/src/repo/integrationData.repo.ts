@@ -42,6 +42,15 @@ export default class IntegrationDataRepository extends RepositoryBase<Integratio
       where d.id = $(dataId);
   `
 
+  private readonly getDataForTenantQuery = `
+    select
+      d.id
+    from 
+     integration."apiData" d
+    where 
+     d."tenantId" = $(tenantId)
+  `
+
   public async getDataInfo(dataId: string): Promise<IApiDataInfo | null> {
     const results = await this.db().oneOrNone(this.getDataInfoQuery, {
       dataId,
@@ -253,5 +262,13 @@ export default class IntegrationDataRepository extends RepositoryBase<Integratio
     )
 
     this.checkUpdateRowCount(result.rowCount, 1)
+  }
+
+  public async getDataForTenant(tenantId: string): Promise<string[]> {
+    const results = await this.db().manyOrNone(this.getDataForTenantQuery, {
+      tenantId,
+    })
+
+    return results.map((r) => r.id)
   }
 }
