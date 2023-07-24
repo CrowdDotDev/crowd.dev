@@ -3,12 +3,15 @@ import commandLineUsage from 'command-line-usage'
 import * as fs from 'fs'
 import path from 'path'
 import { getServiceLogger } from '@crowd/logging'
-import SequelizeRepository from '../../database/repositories/sequelizeRepository'
-import MemberRepository from '../../database/repositories/memberRepository'
-import { sendBulkEnrichMessage, sendNodeWorkerMessage } from '../../serverless/utils/nodeWorkerSQS'
-import OrganizationRepository from '../../database/repositories/organizationRepository'
-import { NodeWorkerMessageType } from '../../serverless/types/workerTypes'
-import { NodeWorkerMessageBase } from '../../types/mq/nodeWorkerMessageBase'
+import SequelizeRepository from '@/database/repositories/sequelizeRepository'
+import MemberRepository from '@/database/repositories/memberRepository'
+import { sendBulkEnrichMessage, sendNodeWorkerMessage } from '@/serverless/utils/nodeWorkerSQS'
+import OrganizationRepository from '@/database/repositories/organizationRepository'
+import { NodeWorkerMessageType } from '@/serverless/types/workerTypes'
+import { NodeWorkerMessageBase } from '@/types/mq/nodeWorkerMessageBase'
+import getUserContext from '@/database/utils/getUserContext'
+import { IRepositoryOptions } from '@/database/repositories/IRepositoryOptions'
+import SegmentService from '@/services/segmentService'
 
 /* eslint-disable no-console */
 
@@ -66,15 +69,15 @@ if (parameters.help || (!parameters.tenant && (!parameters.organization || !para
   console.log(usage)
 } else {
   setImmediate(async () => {
-    const options = await SequelizeRepository.getDefaultIRepositoryOptions()
-    const segmentIds = SequelizeRepository.getSegmentIds(options)
     const tenantIds = parameters.tenant.split(',')
     const enrichMembers = parameters.member
     const enrichOrganizations = parameters.organization
     const limit = 1000
 
     for (const tenantId of tenantIds) {
+      const options = await SequelizeRepository.getDefaultIRepositoryOptions()
       const tenant = await options.database.tenant.findByPk(tenantId)
+      const segmentIds = []
 
       if (!tenant) {
         log.error({ tenantId }, 'Tenant not found!')
@@ -85,6 +88,19 @@ if (parameters.help || (!parameters.tenant && (!parameters.organization || !para
           `Tenant found - starting enrichment operation for tenant ${tenantId}`,
         )
 
+        const userContext: IRepositoryOptions = await getUserContext(tenantId)
+        const segmentService = new SegmentService(userContext)
+        const { rows: segments } = await segmentService.querySubprojects({})
+
+        log.info({ tenantId }, `Total segments found in the tenant: ${segments.length}`)
+
+        // get all segment ids for the tenant
+        for (const segment of segments) {
+          segmentIds.push(segment.id)
+        }
+
+        const optionsWithTenant = await SequelizeRepository.getDefaultIRepositoryOptions(null, tenant, segments)
+
         if (enrichMembers) {
           let offset = 0
           let totalMembers = 0
@@ -93,8 +109,8 @@ if (parameters.help || (!parameters.tenant && (!parameters.organization || !para
 
           do {
             const members = await MemberRepository.findAndCountAllv2(
-              { limit, offset, countOnly: false },
-              options,
+              { filter: {}, limit, offset, countOnly: true },
+              optionsWithTenant,
             )
 
             totalMembers = members.count
@@ -134,7 +150,7 @@ if (parameters.help || (!parameters.tenant && (!parameters.organization || !para
           do {
             const organizations = await OrganizationRepository.findAndCountAll(
               { limit, offset },
-              options,
+              optionsWithTenant,
             )
 
             totalOrganizations = organizations.count
