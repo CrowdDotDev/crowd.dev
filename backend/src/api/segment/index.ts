@@ -30,8 +30,8 @@ export default (app) => {
   )
 
   // get segment by id
-  app.get(`/tenant/:tenantId/segment/:id`, safeWrap(require('./segmentFind').default))
-  app.put(`/tenant/:tenantId/segment/:id`, safeWrap(require('./segmentUpdate').default))
+  app.get(`/tenant/:tenantId/segment/:segmentId`, safeWrap(require('./segmentFind').default))
+  app.put(`/tenant/:tenantId/segment/:segmentId`, safeWrap(require('./segmentUpdate').default))
 
   // app.get(`/tenant/:tenantId/segment/projectGroup/:id`, safeWrap(require('./segmentFind').default))
   // app.get(`/tenant/:tenantId/segment/project/:id`, safeWrap(require('./segmentFind').default))
