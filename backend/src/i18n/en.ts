@@ -165,7 +165,7 @@ const en = {
       noOrganizationFound: 'No organization found for given id!',
     },
     hubspot: {
-      notInPlan: 'Hubspot integration requires Scale plan.'
+      notInPlan: 'Hubspot integration requires Scale plan.',
     },
     members: {
       activeList: {

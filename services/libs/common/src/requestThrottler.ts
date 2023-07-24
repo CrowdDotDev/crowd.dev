@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 export class RequestThrottler {
   private requests: number
   private totalRequests: number

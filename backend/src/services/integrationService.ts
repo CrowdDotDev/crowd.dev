@@ -31,7 +31,10 @@ import { getOrganizations } from '../serverless/integrations/usecases/linkedin/g
 import Error404 from '../errors/Error404'
 import IntegrationRunRepository from '../database/repositories/integrationRunRepository'
 import { IntegrationRunState } from '../types/integrationRunTypes'
-import { getIntegrationRunWorkerEmitter, getIntegrationSyncWorkerEmitter } from '../serverless/utils/serviceSQS'
+import {
+  getIntegrationRunWorkerEmitter,
+  getIntegrationSyncWorkerEmitter,
+} from '../serverless/utils/serviceSQS'
 import MemberAttributeSettingsRepository from '../database/repositories/memberAttributeSettingsRepository'
 import TenantRepository from '../database/repositories/tenantRepository'
 import MemberService from './memberService'
@@ -462,7 +465,7 @@ export default class IntegrationService {
   }
 
   async hubspotStopSyncMember(payload: IHubspotManualSyncPayload) {
-    if (!payload.memberId){
+    if (!payload.memberId) {
       throw new Error('memberId is required in the payload while syncing member to hubspot!')
     }
 
@@ -474,21 +477,18 @@ export default class IntegrationService {
     if (!member.attributes.syncRemote) {
       member.attributes.syncRemote = {
         default: false,
-        [PlatformType.HUBSPOT]: false
+        [PlatformType.HUBSPOT]: false,
       }
-    }
-    else{
+    } else {
       member.attributes.syncRemote[PlatformType.HUBSPOT] = false
       member.attributes.syncRemote.default = false
     }
 
-    await memberService.update(payload.memberId, {attributes: member.attributes})
-
+    await memberService.update(payload.memberId, { attributes: member.attributes })
   }
-  
-  
+
   async hubspotSyncMember(payload: IHubspotManualSyncPayload) {
-    if (!payload.memberId){
+    if (!payload.memberId) {
       throw new Error('memberId is required in the payload while syncing member to hubspot!')
     }
 
@@ -510,10 +510,9 @@ export default class IntegrationService {
     if (!member.attributes.syncRemote) {
       member.attributes.syncRemote = {
         default: true,
-        [PlatformType.HUBSPOT]: true
+        [PlatformType.HUBSPOT]: true,
       }
-    }
-    else{
+    } else {
       member.attributes.syncRemote[PlatformType.HUBSPOT] = true
       member.attributes.syncRemote.default = true
     }
@@ -527,12 +526,12 @@ export default class IntegrationService {
           platform: PlatformType.HUBSPOT,
           settings: {
             ...integration.settings,
-            syncRemoteEnabled: true
+            syncRemoteEnabled: true,
           },
         },
         transaction,
       )
-      await memberService.update(payload.memberId, {attributes: member.attributes})
+      await memberService.update(payload.memberId, { attributes: member.attributes })
 
       await SequelizeRepository.commitTransaction(transaction)
     } catch (err) {
@@ -541,14 +540,18 @@ export default class IntegrationService {
     }
 
     const integrationSyncWorkerEmitter = await getIntegrationSyncWorkerEmitter()
-    await integrationSyncWorkerEmitter.triggerSyncMember(this.options.currentTenant.id, integration.id, payload.memberId)
-
+    await integrationSyncWorkerEmitter.triggerSyncMember(
+      this.options.currentTenant.id,
+      integration.id,
+      payload.memberId,
+    )
   }
 
-
   async hubspotStopSyncOrganization(payload: IHubspotManualSyncPayload) {
-    if (!payload.organizationId){
-      throw new Error('organizationId is required in the payload while stopping organization sync to hubspot!')
+    if (!payload.organizationId) {
+      throw new Error(
+        'organizationId is required in the payload while stopping organization sync to hubspot!',
+      )
     }
 
     // update organization.attributes.syncRemote.hubspot to false
@@ -559,21 +562,23 @@ export default class IntegrationService {
     if (!organization.attributes.syncRemote) {
       organization.attributes.syncRemote = {
         default: false,
-        [PlatformType.HUBSPOT]: false
+        [PlatformType.HUBSPOT]: false,
       }
-    }
-    else{
+    } else {
       organization.attributes.syncRemote[PlatformType.HUBSPOT] = false
       organization.attributes.syncRemote.default = false
     }
 
-    await organizationService.update(payload.organizationId, {attributes: organization.attributes})
-
+    await organizationService.update(payload.organizationId, {
+      attributes: organization.attributes,
+    })
   }
 
   async hubspotSyncOrganization(payload: IHubspotManualSyncPayload) {
-    if (!payload.organizationId){
-      throw new Error('organizationId is required in the payload while syncing organization to hubspot!')
+    if (!payload.organizationId) {
+      throw new Error(
+        'organizationId is required in the payload while syncing organization to hubspot!',
+      )
     }
 
     let integration
@@ -591,21 +596,19 @@ export default class IntegrationService {
 
     const organization = await organizationService.findById(payload.organizationId)
 
-    if(!organization.attributes){
+    if (!organization.attributes) {
       organization.attributes = {
         syncRemote: {
           default: true,
-          [PlatformType.HUBSPOT]: true
-        }
+          [PlatformType.HUBSPOT]: true,
+        },
       }
-    }
-    else if (!organization.attributes.syncRemote) {
+    } else if (!organization.attributes.syncRemote) {
       organization.attributes.syncRemote = {
         default: true,
-        [PlatformType.HUBSPOT]: true
+        [PlatformType.HUBSPOT]: true,
       }
-    }
-    else{
+    } else {
       organization.attributes.syncRemote[PlatformType.HUBSPOT] = true
       organization.attributes.syncRemote.default = true
     }
@@ -619,12 +622,14 @@ export default class IntegrationService {
           platform: PlatformType.HUBSPOT,
           settings: {
             ...integration.settings,
-            syncRemoteEnabled: true
+            syncRemoteEnabled: true,
           },
         },
         transaction,
       )
-      await organizationService.update(payload.organizationId, {attributes: organization.attributes})
+      await organizationService.update(payload.organizationId, {
+        attributes: organization.attributes,
+      })
 
       await SequelizeRepository.commitTransaction(transaction)
     } catch (err) {
@@ -633,8 +638,11 @@ export default class IntegrationService {
     }
 
     const integrationSyncWorkerEmitter = await getIntegrationSyncWorkerEmitter()
-    await integrationSyncWorkerEmitter.triggerSyncOrganization(this.options.currentTenant.id, integration.id, payload.organizationId)
-
+    await integrationSyncWorkerEmitter.triggerSyncOrganization(
+      this.options.currentTenant.id,
+      integration.id,
+      payload.organizationId,
+    )
   }
 
   async hubspotOnboard(onboardSettings: IHubspotOnboardingSettings) {

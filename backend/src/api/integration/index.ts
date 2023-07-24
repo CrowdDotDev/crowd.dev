@@ -126,7 +126,6 @@ export default (app) => {
     safeWrap(require('./helpers/hubspotStopSyncOrganization').default),
   )
 
-
   // if (TWITTER_CONFIG.clientId) {
   //   /**
   //    * Using the passport.authenticate this endpoint forces a
