@@ -112,18 +112,18 @@ if (parameters.help || (!parameters.tenant && (!parameters.organization || !para
           const failedMembers = [] // Store the IDs of failed member enrichments
 
           do {
-            const members = await MemberRepository.findAndCountAllv2(
-              { filter: {}, limit, offset, countOnly: true },
+            const { rows: members, count: membersCount } = await MemberRepository.findAndCountAllv2(
+              { filter: {}, limit, offset, countOnly: false },
               optionsWithTenant,
             )
 
-            totalMembers = members.count
+            totalMembers = membersCount
             log.info({ tenantId }, `Total members found in the tenant: ${totalMembers}`)
 
-            for (const member of members.rows) {
+            for (const member of members) {
               try {
                 const memberToEnrich = member.id
-                await sendBulkEnrichMessage(tenant, [memberToEnrich], segmentIds, false, true)
+                await sendBulkEnrichMessage(tenantId, [memberToEnrich], segmentIds, false, true)
                 log.info({ tenantId }, `Enriched member with ID: ${memberToEnrich}`)
                 enrichedMembersCount++
               } catch (error) {
