@@ -1,6 +1,6 @@
-import Roles from "@/security/roles";
-import Plans from "@/security/plans";
-import Storage from "@/security/storage";
+import Roles from '@/security/roles';
+import Plans from '@/security/plans';
+import Storage from '@/security/storage';
 
 const storage = Storage.values;
 const roles = Roles.values;
@@ -14,7 +14,7 @@ class Permissions {
   static get values() {
     return {
       tenantEdit: {
-        id: "tenantEdit",
+        id: 'tenantEdit',
         allowedRoles: [roles.admin],
         allowedPlans: [
           plans.essential,
@@ -25,7 +25,7 @@ class Permissions {
         ],
       },
       tenantDestroy: {
-        id: "tenantDestroy",
+        id: 'tenantDestroy',
         allowedRoles: [roles.admin],
         allowedPlans: [
           plans.essential,
@@ -36,7 +36,7 @@ class Permissions {
         ],
       },
       planEdit: {
-        id: "planEdit",
+        id: 'planEdit',
         allowedRoles: [roles.admin],
         allowedPlans: [
           plans.essential,
@@ -47,7 +47,7 @@ class Permissions {
         ],
       },
       planRead: {
-        id: "planRead",
+        id: 'planRead',
         allowedRoles: [roles.admin],
         allowedPlans: [
           plans.essential,
@@ -58,7 +58,7 @@ class Permissions {
         ],
       },
       userEdit: {
-        id: "userEdit",
+        id: 'userEdit',
         allowedRoles: [roles.admin],
         allowedPlans: [
           plans.essential,
@@ -70,7 +70,7 @@ class Permissions {
         allowedSampleTenant: true,
       },
       userDestroy: {
-        id: "userDestroy",
+        id: 'userDestroy',
         allowedRoles: [roles.admin],
         allowedPlans: [
           plans.essential,
@@ -82,7 +82,7 @@ class Permissions {
         allowedSampleTenant: true,
       },
       userCreate: {
-        id: "userCreate",
+        id: 'userCreate',
         allowedRoles: [roles.admin],
         allowedPlans: [
           plans.essential,
@@ -94,7 +94,7 @@ class Permissions {
         allowedSampleTenant: true,
       },
       userImport: {
-        id: "userImport",
+        id: 'userImport',
         allowedRoles: [roles.admin],
         allowedPlans: [
           plans.essential,
@@ -105,7 +105,7 @@ class Permissions {
         ],
       },
       userRead: {
-        id: "userRead",
+        id: 'userRead',
         allowedRoles: [roles.admin],
         allowedPlans: [
           plans.essential,
@@ -117,7 +117,7 @@ class Permissions {
         allowedSampleTenant: true,
       },
       userAutocomplete: {
-        id: "userAutocomplete",
+        id: 'userAutocomplete',
         allowedRoles: [roles.admin],
         allowedPlans: [
           plans.essential,
@@ -128,7 +128,7 @@ class Permissions {
         ],
       },
       auditLogRead: {
-        id: "auditLogRead",
+        id: 'auditLogRead',
         allowedRoles: [roles.admin],
         allowedPlans: [
           plans.essential,
@@ -139,7 +139,7 @@ class Permissions {
         ],
       },
       settingsRead: {
-        id: "settingsRead",
+        id: 'settingsRead',
         allowedRoles: [roles.admin, roles.readonly],
         allowedPlans: [
           plans.essential,
@@ -155,7 +155,7 @@ class Permissions {
         allowedSampleTenant: true,
       },
       settingsEdit: {
-        id: "settingsEdit",
+        id: 'settingsEdit',
         allowedRoles: [roles.admin],
         allowedPlans: [
           plans.essential,
@@ -171,7 +171,7 @@ class Permissions {
         allowedSampleTenant: true,
       },
       integrationImport: {
-        id: "integrationImport",
+        id: 'integrationImport',
         allowedRoles: [roles.admin],
         allowedPlans: [
           plans.essential,
@@ -182,7 +182,7 @@ class Permissions {
         ],
       },
       integrationCreate: {
-        id: "integrationCreate",
+        id: 'integrationCreate',
         allowedRoles: [roles.admin],
         allowedPlans: [
           plans.essential,
@@ -194,7 +194,7 @@ class Permissions {
         allowedStorage: [],
       },
       integrationEdit: {
-        id: "integrationEdit",
+        id: 'integrationEdit',
         allowedRoles: [roles.admin],
         allowedPlans: [
           plans.essential,
@@ -206,7 +206,7 @@ class Permissions {
         allowedStorage: [],
       },
       integrationDestroy: {
-        id: "integrationDestroy",
+        id: 'integrationDestroy',
         allowedRoles: [roles.admin],
         allowedPlans: [
           plans.essential,
@@ -218,7 +218,7 @@ class Permissions {
         allowedStorage: [],
       },
       integrationRead: {
-        id: "integrationRead",
+        id: 'integrationRead',
         allowedRoles: [roles.admin, roles.readonly],
         allowedPlans: [
           plans.essential,
@@ -230,7 +230,7 @@ class Permissions {
         allowedSampleTenant: true,
       },
       integrationAutocomplete: {
-        id: "integrationAutocomplete",
+        id: 'integrationAutocomplete',
         allowedRoles: [roles.admin],
         allowedPlans: [
           plans.essential,
@@ -242,7 +242,7 @@ class Permissions {
       },
 
       reportImport: {
-        id: "reportImport",
+        id: 'reportImport',
         allowedRoles: [roles.admin],
         allowedPlans: [
           plans.essential,
@@ -253,7 +253,7 @@ class Permissions {
         ],
       },
       reportCreate: {
-        id: "reportCreate",
+        id: 'reportCreate',
         allowedRoles: [roles.admin],
         allowedPlans: [
           plans.essential,
@@ -266,7 +266,7 @@ class Permissions {
         allowedSampleTenant: true,
       },
       reportEdit: {
-        id: "reportEdit",
+        id: 'reportEdit',
         allowedRoles: [roles.admin],
         allowedPlans: [
           plans.essential,
@@ -279,7 +279,7 @@ class Permissions {
         allowedSampleTenant: true,
       },
       reportDestroy: {
-        id: "reportDestroy",
+        id: 'reportDestroy',
         allowedRoles: [roles.admin],
         allowedPlans: [
           plans.essential,
@@ -292,7 +292,7 @@ class Permissions {
         allowedSampleTenant: true,
       },
       reportRead: {
-        id: "reportRead",
+        id: 'reportRead',
         allowedRoles: [roles.admin, roles.readonly],
         allowedPlans: [
           plans.essential,
@@ -304,7 +304,7 @@ class Permissions {
         allowedSampleTenant: true,
       },
       reportAutocomplete: {
-        id: "reportAutocomplete",
+        id: 'reportAutocomplete',
         allowedRoles: [roles.admin],
         allowedPlans: [
           plans.essential,
@@ -316,7 +316,7 @@ class Permissions {
       },
 
       memberImport: {
-        id: "memberImport",
+        id: 'memberImport',
         allowedRoles: [roles.admin],
         allowedPlans: [
           plans.essential,
@@ -327,7 +327,7 @@ class Permissions {
         ],
       },
       memberCreate: {
-        id: "memberCreate",
+        id: 'memberCreate',
         allowedRoles: [roles.admin],
         allowedPlans: [
           plans.essential,
@@ -339,7 +339,7 @@ class Permissions {
         allowedStorage: [],
       },
       memberEdit: {
-        id: "memberEdit",
+        id: 'memberEdit',
         allowedRoles: [roles.admin],
         allowedPlans: [
           plans.essential,
@@ -351,7 +351,7 @@ class Permissions {
         allowedStorage: [],
       },
       memberDestroy: {
-        id: "memberDestroy",
+        id: 'memberDestroy',
         allowedRoles: [roles.admin],
         allowedPlans: [
           plans.essential,
@@ -363,7 +363,7 @@ class Permissions {
         allowedStorage: [],
       },
       memberRead: {
-        id: "memberRead",
+        id: 'memberRead',
         allowedRoles: [roles.admin, roles.readonly],
         allowedPlans: [
           plans.essential,
@@ -375,7 +375,7 @@ class Permissions {
         allowedSampleTenant: true,
       },
       memberAutocomplete: {
-        id: "memberAutocomplete",
+        id: 'memberAutocomplete',
         allowedRoles: [roles.admin],
         allowedPlans: [
           plans.essential,
@@ -387,7 +387,7 @@ class Permissions {
       },
 
       organizationImport: {
-        id: "organizationImport",
+        id: 'organizationImport',
         allowedRoles: [roles.admin],
         allowedPlans: [
           plans.essential,
@@ -398,7 +398,7 @@ class Permissions {
         ],
       },
       organizationCreate: {
-        id: "organizationCreate",
+        id: 'organizationCreate',
         allowedRoles: [roles.admin],
         allowedPlans: [
           plans.essential,
@@ -410,7 +410,7 @@ class Permissions {
         allowedStorage: [],
       },
       organizationEdit: {
-        id: "organizationEdit",
+        id: 'organizationEdit',
         allowedRoles: [roles.admin],
         allowedPlans: [
           plans.essential,
@@ -422,7 +422,7 @@ class Permissions {
         allowedStorage: [],
       },
       organizationDestroy: {
-        id: "organizationDestroy",
+        id: 'organizationDestroy',
         allowedRoles: [roles.admin],
         allowedPlans: [
           plans.essential,
@@ -434,7 +434,7 @@ class Permissions {
         allowedStorage: [],
       },
       organizationRead: {
-        id: "organizationRead",
+        id: 'organizationRead',
         allowedRoles: [roles.admin, roles.readonly],
         allowedPlans: [
           plans.essential,
@@ -446,7 +446,7 @@ class Permissions {
         allowedSampleTenant: true,
       },
       organizationAutocomplete: {
-        id: "organizationAutocomplete",
+        id: 'organizationAutocomplete',
         allowedRoles: [roles.admin],
         allowedPlans: [
           plans.essential,
@@ -458,7 +458,7 @@ class Permissions {
       },
 
       activityImport: {
-        id: "activityImport",
+        id: 'activityImport',
         allowedRoles: [roles.admin],
         allowedPlans: [
           plans.essential,
@@ -469,7 +469,7 @@ class Permissions {
         ],
       },
       activityCreate: {
-        id: "activityCreate",
+        id: 'activityCreate',
         allowedRoles: [roles.admin],
         allowedPlans: [
           plans.essential,
@@ -481,7 +481,7 @@ class Permissions {
         allowedStorage: [],
       },
       activityEdit: {
-        id: "activityEdit",
+        id: 'activityEdit',
         allowedRoles: [roles.admin],
         allowedPlans: [
           plans.essential,
@@ -493,7 +493,7 @@ class Permissions {
         allowedStorage: [],
       },
       activityDestroy: {
-        id: "activityDestroy",
+        id: 'activityDestroy',
         allowedRoles: [roles.admin],
         allowedPlans: [
           plans.essential,
@@ -505,7 +505,7 @@ class Permissions {
         allowedStorage: [],
       },
       activityRead: {
-        id: "activityRead",
+        id: 'activityRead',
         allowedRoles: [roles.admin, roles.readonly],
         allowedPlans: [
           plans.essential,
@@ -517,7 +517,7 @@ class Permissions {
         allowedSampleTenant: true,
       },
       activityAutocomplete: {
-        id: "activityAutocomplete",
+        id: 'activityAutocomplete',
         allowedRoles: [roles.admin],
         allowedPlans: [
           plans.essential,
@@ -529,7 +529,7 @@ class Permissions {
       },
 
       taskImport: {
-        id: "taskImport",
+        id: 'taskImport',
         allowedRoles: [roles.admin],
         allowedPlans: [
           plans.essential,
@@ -541,7 +541,7 @@ class Permissions {
         allowedSampleTenant: true,
       },
       taskCreate: {
-        id: "taskCreate",
+        id: 'taskCreate',
         allowedRoles: [roles.admin],
         allowedPlans: [
           plans.essential,
@@ -554,7 +554,7 @@ class Permissions {
         allowedSampleTenant: true,
       },
       taskEdit: {
-        id: "taskEdit",
+        id: 'taskEdit',
         allowedRoles: [roles.admin],
         allowedPlans: [
           plans.essential,
@@ -567,7 +567,7 @@ class Permissions {
         allowedSampleTenant: true,
       },
       taskDestroy: {
-        id: "taskDestroy",
+        id: 'taskDestroy',
         allowedRoles: [roles.admin],
         allowedPlans: [
           plans.essential,
@@ -580,7 +580,7 @@ class Permissions {
         allowedSampleTenant: true,
       },
       taskRead: {
-        id: "taskRead",
+        id: 'taskRead',
         allowedRoles: [roles.admin, roles.readonly],
         allowedPlans: [
           plans.essential,
@@ -592,7 +592,7 @@ class Permissions {
         allowedSampleTenant: true,
       },
       taskAutocomplete: {
-        id: "taskAutocomplete",
+        id: 'taskAutocomplete',
         allowedRoles: [roles.admin],
         allowedPlans: [
           plans.essential,
@@ -605,7 +605,7 @@ class Permissions {
       },
 
       conversationImport: {
-        id: "conversationImport",
+        id: 'conversationImport',
         allowedRoles: [roles.admin],
         allowedPlans: [
           plans.essential,
@@ -616,7 +616,7 @@ class Permissions {
         ],
       },
       conversationCreate: {
-        id: "conversationCreate",
+        id: 'conversationCreate',
         allowedRoles: [roles.admin],
         allowedPlans: [
           plans.essential,
@@ -628,7 +628,7 @@ class Permissions {
         allowedStorage: [],
       },
       conversationEdit: {
-        id: "conversationEdit",
+        id: 'conversationEdit',
         allowedRoles: [roles.admin],
         allowedPlans: [
           plans.essential,
@@ -640,7 +640,7 @@ class Permissions {
         allowedStorage: [],
       },
       conversationDestroy: {
-        id: "conversationDestroy",
+        id: 'conversationDestroy',
         allowedRoles: [roles.admin],
         allowedPlans: [
           plans.essential,
@@ -652,7 +652,7 @@ class Permissions {
         allowedStorage: [],
       },
       conversationRead: {
-        id: "conversationRead",
+        id: 'conversationRead',
         allowedRoles: [roles.admin, roles.readonly],
         allowedPlans: [
           plans.essential,
@@ -664,12 +664,12 @@ class Permissions {
         allowedSampleTenant: true,
       },
       conversationCustomize: {
-        id: "conversationCustomize",
+        id: 'conversationCustomize',
         allowedRoles: [roles.admin],
         allowedPlans: [plans.growth, plans.enterprise],
       },
       conversationAutocomplete: {
-        id: "conversationAutocomplete",
+        id: 'conversationAutocomplete',
         allowedRoles: [roles.admin],
         allowedPlans: [
           plans.essential,
@@ -680,7 +680,7 @@ class Permissions {
         ],
       },
       eagleEyeRead: {
-        id: "eagleEyeRead",
+        id: 'eagleEyeRead',
         allowedRoles: [roles.admin],
         allowedPlans: [
           plans.essential,
@@ -692,7 +692,7 @@ class Permissions {
         allowedSampleTenant: true,
       },
       automationImport: {
-        id: "automationImport",
+        id: 'automationImport',
         allowedRoles: [roles.admin],
         allowedPlans: [
           plans.essential,
@@ -703,7 +703,7 @@ class Permissions {
         ],
       },
       automationCreate: {
-        id: "automationCreate",
+        id: 'automationCreate',
         allowedRoles: [roles.admin],
         allowedPlans: [
           plans.essential,
@@ -716,7 +716,7 @@ class Permissions {
         allowedSampleTenant: true,
       },
       automationEdit: {
-        id: "automationEdit",
+        id: 'automationEdit',
         allowedRoles: [roles.admin],
         allowedPlans: [
           plans.essential,
@@ -729,7 +729,7 @@ class Permissions {
         allowedSampleTenant: true,
       },
       automationDestroy: {
-        id: "automationDestroy",
+        id: 'automationDestroy',
         allowedRoles: [roles.admin],
         allowedPlans: [
           plans.essential,
@@ -742,7 +742,7 @@ class Permissions {
         allowedSampleTenant: true,
       },
       automationRead: {
-        id: "automationRead",
+        id: 'automationRead',
         allowedRoles: [roles.admin, roles.readonly],
         allowedPlans: [
           plans.essential,
@@ -754,12 +754,12 @@ class Permissions {
         allowedSampleTenant: true,
       },
       automationCustomize: {
-        id: "automationCustomize",
+        id: 'automationCustomize',
         allowedRoles: [roles.admin],
         allowedPlans: [plans.growth, plans.enterprise],
       },
       automationAutocomplete: {
-        id: "automationAutocomplete",
+        id: 'automationAutocomplete',
         allowedRoles: [roles.admin],
         allowedPlans: [
           plans.essential,
@@ -770,7 +770,7 @@ class Permissions {
         ],
       },
       noteCreate: {
-        id: "noteCreate",
+        id: 'noteCreate',
         allowedRoles: [roles.admin],
         allowedPlans: [
           plans.essential,
@@ -781,7 +781,7 @@ class Permissions {
         allowedStorage: [],
       },
       noteEdit: {
-        id: "noteEdit",
+        id: 'noteEdit',
         allowedRoles: [roles.admin],
         allowedPlans: [
           plans.essential,
@@ -792,7 +792,7 @@ class Permissions {
         allowedStorage: [],
       },
       noteDestroy: {
-        id: "noteDestroy",
+        id: 'noteDestroy',
         allowedRoles: [roles.admin],
         allowedPlans: [
           plans.essential,
