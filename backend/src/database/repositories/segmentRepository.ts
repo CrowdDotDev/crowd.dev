@@ -651,11 +651,17 @@ class SegmentRepository extends RepositoryBase<
       searchQuery += ` AND s."grandparentSlug" = :grandparent_slug `
     }
 
+    if (criteria.filter?.ids) {
+      searchQuery += ` AND (s.id IN (:ids) OR sp.id IN (:ids) OR sgp.id IN (:ids)) `
+    }
+
     const subprojects = await this.options.database.sequelize.query(
       `
         SELECT
           COUNT(DISTINCT s.id) AS count,
           s.*,
+          sp.id AS "projectId",
+          sgp.id AS "projectGroupId",
           jsonb_merge_agg(sac."activityChannels") AS "activityChannels"
         FROM segments s
         LEFT JOIN (
@@ -667,11 +673,21 @@ class SegmentRepository extends RepositoryBase<
           WHERE "tenantId" = :tenantId
           GROUP BY "tenantId", "segmentId", "platform"
         ) sac ON sac."tenantId" = s."tenantId" AND sac."segmentId" = s.id
+        JOIN segments sp ON sp.slug = s."parentSlug"
+          AND sp."grandparentSlug" IS NULL
+          AND sp."parentSlug" IS NOT NULL
+          AND sp."tenantId" = s."tenantId"
+        JOIN segments sgp ON sgp.slug = sp."parentSlug"
+          AND sgp.slug = s."grandparentSlug"
+          AND sgp."grandparentSlug" IS NULL
+          AND sgp."parentSlug" IS NULL
+          AND sgp."tenantId" = s."tenantId"
         WHERE s."grandparentSlug" IS NOT NULL
           AND s."parentSlug" IS NOT NULL
           AND s."tenantId" = :tenantId
           ${searchQuery}
-        GROUP BY s.id
+        GROUP BY s.id, sp.id, sgp.id
+        ORDER BY s.name
         ${this.getPaginationString(criteria)};
       `,
       {
@@ -681,6 +697,7 @@ class SegmentRepository extends RepositoryBase<
           status: criteria.filter?.status,
           parent_slug: `${criteria.filter?.parentSlug}`,
           grandparent_slug: `${criteria.filter?.grandparentSlug}`,
+          ids: criteria.filter?.ids,
         },
         type: QueryTypes.SELECT,
       },
