@@ -7,6 +7,7 @@ class Plans {
       essential: 'Essential',
       growth: 'Growth',
       enterprise: 'Enterprise',
+      scale: 'Scale',
       eagleEye: 'Eagle Eye',
     };
   }

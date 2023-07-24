@@ -38,8 +38,8 @@ export const plans = {
       sale: '🐦 Early bird offer',
     },
     {
-      key: crowdHostedPlans.enterprise,
-      title: 'Custom',
+      key: crowdHostedPlans.scale,
+      title: 'Scale',
       description:
         'Unlock community-led growth for your company',
       price: 'from $850/month',
@@ -52,6 +52,21 @@ export const plans = {
         'Dedicated community expert',
       ],
     },
+    // {
+    //   key: crowdHostedPlans.enterprise,
+    //   title: 'Custom',
+    //   description:
+    //     'Unlock community-led growth for your company',
+    //   price: 'from $850/month',
+    //   featuresNote: 'Everything in Growth, plus:',
+    //   features: [
+    //     'Activity categorization & topic analysis',
+    //     'Integrations with CRMs & CDPs',
+    //     'Unlimited member & organization enrichment (automated)',
+    //     'Unlimited active workflows & CSV exports per month',
+    //     'Dedicated community expert',
+    //   ],
+    // },
   ],
   community: [
     {

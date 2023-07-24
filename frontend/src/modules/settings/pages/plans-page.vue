@@ -267,6 +267,7 @@ const getCtaContent = (plan) => {
   // Custom plans
   if (
     plan === crowdHostedPlans.enterprise
+    || plan === communityPlans.scale
     || plan === communityPlans.custom
   ) {
     return 'Book a call';
@@ -302,7 +303,8 @@ const handleOnCtaClick = (plan) => {
 
   // Custom plans
   if (
-    plan === crowdHostedPlans.enterprise
+    plan === crowdHostedPlans.scale
+    || plan === crowdHostedPlans.enterprise
     || plan === communityPlans.custom
   ) {
     window.open(
