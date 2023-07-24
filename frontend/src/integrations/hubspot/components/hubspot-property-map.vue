@@ -29,25 +29,6 @@
             :label="hubspotField.label"
           />
         </el-select>
-        <!--        <label  class="w-full">-->
-        <!--          <select-->
-        <!--            v-model="mapping"-->
-        <!--            class="c-select"-->
-        <!--            :class="[-->
-        <!--              mapping ? 'text-gray-900' : 'text-gray-400',-->
-        <!--              enabled && !mapping ? 'border-brand-400' : '',-->
-        <!--            ]"-->
-        <!--          >-->
-        <!--            <option :value="undefined" disabled class="hidden">Select property</option>-->
-        <!--            <option-->
-        <!--              v-for="hubspotField of props.hubspotFields"-->
-        <!--              :key="hubspotField.name"-->
-        <!--              :value="hubspotField.name"-->
-        <!--            >-->
-        <!--              {{ hubspotField.label }}-->
-        <!--            </option>-->
-        <!--          </select>-->
-        <!--        </label>-->
         <p v-else class="text-2xs leading-8">
           No matching properties
         </p>
