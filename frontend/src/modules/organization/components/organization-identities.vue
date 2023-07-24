@@ -168,7 +168,8 @@ const showDivider = computed(
 const getIdentityLink = (platform) => {
   if (props.organization[platform]?.url) {
     return withHttp(props.organization[platform]?.url);
-  } if (props.organization[platform]?.handle) {
+  }
+  if (props.organization[platform]?.handle) {
     let url;
 
     if (platform === 'linkedin') {
@@ -181,13 +182,14 @@ const getIdentityLink = (platform) => {
       url = 'https://www.crunchbase.com/organization/';
     } else if (platform === 'facebook') {
       url = 'https://www.facebook.com/';
-    } else if (platform === 'hubspot') {
-      return props.organization.attributes?.url?.hubspot;
     } else {
       return null;
     }
 
     return `${url}${props.organization[platform].handle}`;
+  }
+  if (props.organization.attributes?.url?.[platform]) {
+    return props.organization.attributes?.url?.[platform];
   }
 
   return null;

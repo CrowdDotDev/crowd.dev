@@ -135,7 +135,7 @@
               HubSpot</span>
           </div>
           <i
-            v-if="getIdentityLink('facebook')"
+            v-if="getIdentityLink('hubspot')"
             class="ri-external-link-line text-gray-300"
           />
         </a>
@@ -252,9 +252,11 @@ const shouldShowAttributes = computed(() => enrichmentAttributes.some((a) => {
 }));
 
 const getIdentityLink = (platform) => {
+  console.log(props.organization[platform]?.url);
   if (props.organization[platform]?.url) {
     return withHttp(props.organization[platform]?.url);
-  } if (props.organization[platform]?.handle) {
+  }
+  if (props.organization[platform]?.handle) {
     let url;
 
     if (platform === 'linkedin') {
@@ -267,13 +269,14 @@ const getIdentityLink = (platform) => {
       url = 'https://www.crunchbase.com/organization/';
     } else if (platform === 'facebook') {
       url = 'https://www.facebook.com/';
-    } else if (platform === 'hubspot') {
-      return props.organization.attributes?.url?.hubspot;
     } else {
       return null;
     }
 
     return `${url}${props.organization[platform].handle}`;
+  }
+  if (props.organization.attributes?.url?.[platform]) {
+    return props.organization.attributes?.url?.[platform];
   }
   return null;
 };
